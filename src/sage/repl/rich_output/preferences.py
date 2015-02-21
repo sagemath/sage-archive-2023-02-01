@@ -47,10 +47,10 @@ Properties have documentation attached::
 
 Values can also be specified as keyword arguments to the constructor::
 
-    sage: DisplayPreferences(text='mathjax')
+    sage: DisplayPreferences(text='latex')
     Display preferences:
     * graphics is not specified
-    * text = mathjax
+    * text = latex
 
 .. TODO::
 
@@ -394,7 +394,7 @@ class DisplayPreferences(PreferencesABC):
 
 DisplayPreferences._add_option(
     'text',
-    ('plain', 'ascii_art', 'mathjax'),
+    ('plain', 'ascii_art', 'latex'),
     """
     Which textual representation is preferred
     """

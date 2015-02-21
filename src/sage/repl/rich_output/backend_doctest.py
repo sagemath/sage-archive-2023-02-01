@@ -108,7 +108,7 @@ class BackendDoctest(BackendBase):
             True
         """
         return set([
-            OutputPlainText, OutputAsciiArt, OutputMathJax,
+            OutputPlainText, OutputAsciiArt, OutputLatex,
             OutputImagePng, OutputImageGif, OutputImageJpg, 
             OutputImageSvg, OutputImagePdf, OutputImageDvi,
             OutputSceneJmol, OutputSceneCanvas3d, OutputSceneWavefront,
@@ -147,7 +147,7 @@ class BackendDoctest(BackendBase):
         """
         self.validate(rich_output)
         if any(isinstance(rich_output, cls) for cls in 
-               [OutputPlainText, OutputAsciiArt, OutputMathJax]):
+               [OutputPlainText, OutputAsciiArt, OutputLatex]):
             rich_output.print_to_stdout()
         else:
             plain_text.print_to_stdout()
@@ -180,7 +180,7 @@ class BackendDoctest(BackendBase):
         """
         self.validate(rich_output)
         if any(isinstance(rich_output, cls) for cls in 
-               [OutputPlainText, OutputAsciiArt, OutputMathJax]):
+               [OutputPlainText, OutputAsciiArt, OutputLatex]):
             rich_output.print_to_stdout()
 
     def validate(self, rich_output):
@@ -209,7 +209,7 @@ class BackendDoctest(BackendBase):
             AssertionError
             sage: backend.validate(dm.types.OutputPlainText.example())
             sage: backend.validate(dm.types.OutputAsciiArt.example())
-            sage: backend.validate(dm.types.OutputMathJax.example())
+            sage: backend.validate(dm.types.OutputLatex.example())
             sage: backend.validate(dm.types.OutputImagePng.example())
             sage: backend.validate(dm.types.OutputImageGif.example())
             sage: backend.validate(dm.types.OutputImageJpg.example())
@@ -224,8 +224,8 @@ class BackendDoctest(BackendBase):
             pass
         elif isinstance(rich_output, OutputAsciiArt):
             pass
-        elif isinstance(rich_output, OutputMathJax):
-            assert rich_output.math_tex.get().startswith('<html>')
+        elif isinstance(rich_output, OutputLatex):
+            assert rich_output.mathjax().startswith('<html>')
         elif isinstance(rich_output, OutputImagePng):
             assert rich_output.png.get().startswith('\x89PNG')
         elif isinstance(rich_output, OutputImageGif):

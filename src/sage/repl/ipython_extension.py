@@ -253,9 +253,9 @@ class SageMagics(Magics):
         As yet another option, typeset mode. This is used in the emacs
         interface::
 
-            sage: shell.run_cell('%display text mathjax')
+            sage: shell.run_cell('%display text latex')
             sage: shell.run_cell('1/2')
-            <html><script type="math/tex">...\frac{1}{2}</script></html>
+            \newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2}
 
         Switch back::
 
@@ -269,7 +269,7 @@ class SageMagics(Magics):
         TESTS::
 
             sage: shell.run_cell('%display invalid_mode')
-            value must be unset (None) or one of ('plain', 'ascii_art', 'mathjax'), got invalid_mode
+            value must be unset (None) or one of ('plain', 'ascii_art', 'latex'), got invalid_mode
             sage: shell.quit()
         """
         from sage.repl.rich_output import get_display_manager
@@ -283,7 +283,7 @@ class SageMagics(Magics):
         if arg0 == 'simple':
             dm.preferences.text = 'plain'
         elif arg0 == 'typeset':
-            dm.preferences.text = 'mathjax'
+            dm.preferences.text = 'latex'
         elif arg0 == 'ascii_art' and len(args) > 1:
             try:
                 max_width = int(args[1])

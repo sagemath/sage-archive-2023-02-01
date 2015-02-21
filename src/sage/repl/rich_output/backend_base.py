@@ -324,9 +324,9 @@ class BackendBase(SageObject):
         from sage.repl.rich_output.output_basic import OutputAsciiArt
         return OutputAsciiArt(ascii_art)
 
-    def mathjax_formatter(self, obj):
+    def latex_formatter(self, obj):
         r"""
-        Hook to override how MathJax (math/tex) is being formatted.
+        Hook to override how Latex is being formatted.
 
         INPUT:
 
@@ -335,25 +335,27 @@ class BackendBase(SageObject):
         OUTPUT:
 
         Instance of
-        :class:`~sage.repl.rich_output.output_basic.OutputMathJax`
-        containing the math/tex string representation of the object.
+        :class:`~sage.repl.rich_output.output_basic.OutputLatex`
+        containing the latex string representation of the object.
 
         EXAMPLES::
 
             sage: from sage.repl.rich_output.backend_base import BackendBase
             sage: backend = BackendBase()
-            sage: out = backend.mathjax_formatter(1/2)
+            sage: out = backend.latex_formatter(1/2)
             sage: out
-            OutputMathJax container
-            sage: out.math_tex
-            buffer containing 91 bytes
-            sage: out.math_tex.get()
-            '<html><script type="math/tex">\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2}</script></html>'
+            OutputLatex container
+            sage: out.latex
+            buffer containing 45 bytes
+            sage: out.latex.get()
+            '\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2}'
+            sage: out.mathjax()
+            '<html><script type="math/tex; mode=display">\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2}</script></html>'
         """
         from sage.misc.latex import MathJax
-        mathjax = MathJax().eval(obj, mode='inline', combine_all=True)
-        from sage.repl.rich_output.output_basic import OutputMathJax
-        return OutputMathJax(str(mathjax))
+        mathjax = MathJax().eval(obj, mode='plain', combine_all=True)
+        from sage.repl.rich_output.output_basic import OutputLatex
+        return OutputLatex(str(mathjax))
 
     def set_underscore_variable(self, obj):
         """

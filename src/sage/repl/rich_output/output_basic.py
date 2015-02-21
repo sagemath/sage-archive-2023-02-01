@@ -221,54 +221,118 @@ class OutputAsciiArt(OutputBase):
         print(self.ascii_art.get())
 
 
-class OutputMathJax(OutputBase):
+class OutputLatex(OutputBase):
 
-    def __init__(self, math_tex):
+    def __init__(self, latex):
         """
-        MathJax Output
+        LaTeX Output
+
+        .. note::
+        
+            The LaTeX commands will only use a subset of LaTeX that
+            can be displayed by MathJax.
         
         INPUT:
 
-        - ``math_tex`` --
+        - ``latex`` --
           :class:`~sage.repl.rich_output.buffer.OutputBuffer`. Alternatively,
           a string (bytes) can be passed directly which will then be
           converted into an
           :class:`~sage.repl.rich_output.buffer.OutputBuffer`. String
-          containing the math/tex code. Includes the surrounding
-          ``<html>`` tag.
+          containing the latex equation code. Excludes the surrounding
+          dollar signs / LaTeX equation environment. Also excludes the
+          surrounding MathJax ``<html>`` tag.
 
         EXAMPLES::
 
-            sage: from sage.repl.rich_output.output_catalog import OutputMathJax
-            sage: OutputMathJax('<html><script type="math/tex; mode=display">1</script></html>')
-            OutputMathJax container
+            sage: from sage.repl.rich_output.output_catalog import OutputLatex
+            sage: OutputLatex('<html><script type="math/tex; mode=display">1</script></html>')
+            OutputLatex container
         """
-        self.math_tex = OutputBuffer(math_tex)        
+        self.latex = OutputBuffer(latex)
+
+    def mathjax(self):
+        r"""
+        Return the LaTeX with a surrounding MathJax HTML code.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_catalog import OutputLatex
+            sage: rich_output = OutputLatex('1')
+            sage: rich_output.latex
+            buffer containing 1 bytes
+            sage: rich_output.latex.get()
+            '1'
+            sage: rich_output.mathjax()
+            '<html><script type="math/tex; mode=display">1</script></html>'
+        """
+        return r'<html><script type="math/tex; mode=display">{0}</script></html>'.format(
+            self.latex.get())
+
+    def display_equation(self):
+        r"""
+        Return the LaTeX code for a display equation
+
+        OUTPUT:
+
+        String.
+        
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_catalog import OutputLatex
+            sage: rich_output = OutputLatex('1')
+            sage: rich_output.latex
+            buffer containing 1 bytes
+            sage: rich_output.latex.get()
+            '1'
+            sage: rich_output.display_equation()
+            '\\begin{equation}\n1\n\\end{equation}'
+        """
+        return '\n'.join([r'\begin{equation}', self.latex.get(), r'\end{equation}'])
+
+    def inline_equation(self):
+        r"""
+        Return the LaTeX code for an inline equation
+
+        OUTPUT:
+
+        String.
+        
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_catalog import OutputLatex
+            sage: rich_output = OutputLatex('1')
+            sage: rich_output.latex
+            buffer containing 1 bytes
+            sage: rich_output.latex.get()
+            '1'
+            sage: rich_output.inline_equation()
+            '\\begin{math}\n1\n\\end{math}'
+        """
+        return '\n'.join([r'\begin{math}', self.latex.get(), r'\end{math}'])
 
     @classmethod
     def example(cls):
         r"""
-        Construct a sample MathJax output container
+        Construct a sample LaTeX output container
 
         This static method is meant for doctests, so they can easily
         construt an example.
 
         OUTPUT:
 
-        An instance of :class:`OutputMathJax`.
+        An instance of :class:`OutputLatex`.
         
         EXAMPLES::
 
-            sage: from sage.repl.rich_output.output_catalog import OutputMathJax
-            sage: OutputMathJax.example()
-            OutputMathJax container
-            sage: OutputMathJax.example().math_tex.get()
-            '<html><script type="math/tex; mode=display">\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\int \\sin\\left(x\\right)\\,{d x}</script></html>'
+            sage: from sage.repl.rich_output.output_catalog import OutputLatex
+            sage: OutputLatex.example()
+            OutputLatex container
+            sage: OutputLatex.example().latex.get()
+            '\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\int \\sin\\left(x\\right)\\,{d x}'
         """
-        return cls(r'<html><script type="math/tex; mode=display">'
-                   r'\newcommand{\Bold}[1]{\mathbf{#1}}'
-                   r'\int \sin\left(x\right)\,{d x}'
-                   r'</script></html>')
+        return cls(r'\newcommand{\Bold}[1]{\mathbf{#1}}'
+                   r'\int \sin\left(x\right)\,{d x}')
 
     def print_to_stdout(self):
         r"""
@@ -278,9 +342,9 @@ class OutputMathJax(OutputBase):
 
         EXAMPLES::
 
-            sage: from sage.repl.rich_output.output_catalog import OutputMathJax
-            sage: mathjax = OutputMathJax.example()
-            sage: mathjax.print_to_stdout()
-            <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\int \sin\left(x\right)\,{d x}</script></html>
+            sage: from sage.repl.rich_output.output_catalog import OutputLatex
+            sage: rich_output = OutputLatex.example()
+            sage: rich_output.print_to_stdout()
+            \newcommand{\Bold}[1]{\mathbf{#1}}\int \sin\left(x\right)\,{d x}
         """
-        print(self.math_tex.get())
+        print(self.latex.get())

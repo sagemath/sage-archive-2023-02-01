@@ -126,12 +126,12 @@ class BackendIPythonCommandline(BackendIPython):
             set([<class 'sage.repl.rich_output.output_graphics.OutputImageGif'>, 
                  ...,
                  <class 'sage.repl.rich_output.output_graphics.OutputImagePng'>])
-            sage: from sage.repl.rich_output.output_basic import OutputMathJax
-            sage: OutputMathJax in supp
+            sage: from sage.repl.rich_output.output_basic import OutputLatex
+            sage: OutputLatex in supp
             True
         """
         return set([
-            OutputPlainText, OutputAsciiArt, OutputMathJax,
+            OutputPlainText, OutputAsciiArt, OutputLatex,
             OutputImagePng, OutputImageGif,
             OutputImagePdf, OutputImageDvi,
             OutputSceneJmol, OutputSceneWavefront,
@@ -174,8 +174,8 @@ class BackendIPythonCommandline(BackendIPython):
             return ({u'text/plain': rich_output.text.get()}, {})
         elif isinstance(rich_output, OutputAsciiArt):
             return ({u'text/plain': rich_output.ascii_art.get()}, {})
-        elif isinstance(rich_output, OutputMathJax):
-            return ({u'text/plain': rich_output.math_tex.get()}, {})
+        elif isinstance(rich_output, OutputLatex):
+            return ({u'text/plain': rich_output.latex.get()}, {})
         elif isinstance(rich_output, OutputImagePng):
             msg = self.launch_viewer(
                 rich_output.png.filename(ext='png'), plain_text.text.get())
@@ -381,8 +381,8 @@ class BackendIPythonNotebook(BackendIPython):
             set([<class 'sage.repl.rich_output.output_graphics.OutputPlainText'>, 
                  ...,
                  <class 'sage.repl.rich_output.output_graphics.OutputImagePdf'>])
-            sage: from sage.repl.rich_output.output_basic import OutputMathJax
-            sage: OutputMathJax in supp
+            sage: from sage.repl.rich_output.output_basic import OutputLatex
+            sage: OutputLatex in supp
             True
 
         The IPython notebook cannot display gif images, see
@@ -393,7 +393,7 @@ class BackendIPythonNotebook(BackendIPython):
             False
         """
         return set([
-            OutputPlainText, OutputAsciiArt, OutputMathJax,
+            OutputPlainText, OutputAsciiArt, OutputLatex,
             OutputImagePng, OutputImageJpg,
             OutputImageSvg, OutputImagePdf, 
         ])
@@ -435,8 +435,8 @@ class BackendIPythonNotebook(BackendIPython):
             return ({u'text/plain': rich_output.text.get()}, {})
         elif isinstance(rich_output, OutputAsciiArt):
             return ({u'text/plain': rich_output.ascii_art.get()}, {})
-        elif isinstance(rich_output, OutputMathJax):
-            return ({u'text/html':  rich_output.math_tex.get(),
+        elif isinstance(rich_output, OutputLatex):
+            return ({u'text/html':  rich_output.mathjax(),
                      u'text/plain': plain_text.text.get(),
             }, {})
         elif isinstance(rich_output, OutputImagePng):

@@ -1917,8 +1917,10 @@ class MathJax:
         -  ``locals`` - extra local variables used when
            evaluating Sage code in ``x``.
 
-        -  ``mode`` - string (optional, default ``'display'``): ``'display'``
-           for displaymath or ``'inline'`` for inline math
+        - ``mode`` - string (optional, default ``'display'``):
+           ``'display'`` for displaymath, ``'inline'`` for inline
+           math, or ``'plain'`` for just the LaTeX code without the
+           surrounding html and script tags.
 
         - ``combine_all`` - boolean (Default: ``False``): If ``combine_all`` is
           ``True`` and the input is a tuple, then it does not return a tuple
@@ -1987,24 +1989,21 @@ class MathJax:
                 subparts.append(spacer % "x")
             subparts.append(part[closing + 1:])
             parts[i] = "".join(subparts)
-        x = "".join(parts)
-
-        # In MathJax:
-        #   inline math: <script type="math/tex">...</script>
-        #   displaymath: <script type="math/tex; mode=display">...</script>
         from sage.misc.latex_macros import sage_configurable_latex_macros
+        latex_string = ''.join(
+            sage_configurable_latex_macros +
+            [_Latex_prefs._option['macros']] +
+            parts
+        )
         if mode == 'display':
-            modecode = '; mode=display'
+            html = '<html><script type="math/tex; mode=display">{0}</script></html>'
         elif mode == 'inline':
-            modecode = ''
+            html = '<html><script type="math/tex">{0}</script></html>'
+        elif mode == 'plain':
+            return latex_string
         else:
-            # what happened here?
-            raise ValueError("mode must be either 'display' or 'inline'")
-
-        return MathJaxExpr('<html><script type="math/tex{}">'.format(modecode)
-                         + ''.join(sage_configurable_latex_macros)
-                         + _Latex_prefs._option['macros']
-                         + '{}</script></html>'.format(x))
+            raise ValueError("mode must be either 'display', 'inline', or 'plain'")
+        return MathJaxExpr(html.format(latex_string))
 
 def view(objects, title='Sage', debug=False, sep='', tiny=False,
         pdflatex=None, engine=None, viewer = None, tightpage = None,
@@ -2479,14 +2478,14 @@ def pretty_print_default(enable=True):
 
         sage: pretty_print_default(True)
         sage: 'foo'
-        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|foo|</script></html>
+        \newcommand{\Bold}[1]{\mathbf{#1}}\verb|foo|
         sage: pretty_print_default(False)
         sage: 'foo'
         'foo'
     """
     from sage.repl.rich_output import get_display_manager
     dm = get_display_manager()
-    dm.preferences.text = 'mathjax' if enable else None
+    dm.preferences.text = 'latex' if enable else None
 
 
 common_varnames = ['alpha',

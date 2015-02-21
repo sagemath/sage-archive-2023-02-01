@@ -298,12 +298,12 @@ class BackendSageNB(BackendBase):
             set([<class 'sage.repl.rich_output.output_graphics.OutputPlainText'>, 
                  ...,
                  <class 'sage.repl.rich_output.output_graphics.OutputCanvas3d'>])
-            sage: from sage.repl.rich_output.output_basic import OutputMathJax
-            sage: OutputMathJax in supp
+            sage: from sage.repl.rich_output.output_basic import OutputLatex
+            sage: OutputLatex in supp
             True
         """
         return set([
-            OutputPlainText, OutputAsciiArt, OutputMathJax,
+            OutputPlainText, OutputAsciiArt, OutputLatex,
             OutputImagePng, OutputImageGif, OutputImageJpg,
             OutputImagePdf, OutputImageSvg,
             SageNbOutputSceneJmol,
@@ -333,18 +333,21 @@ class BackendSageNB(BackendBase):
 
         EXAMPLES:
 
-            sage: from sage.repl.rich_output.output_basic import OutputPlainText
-            sage: plain_text = OutputPlainText.example()
+            sage: import sage.repl.rich_output.output_catalog as catalog
+            sage: plain_text = catalog.OutputPlainText.example()
             sage: from sage.repl.rich_output.backend_sagenb import BackendSageNB
             sage: backend = BackendSageNB()
             sage: backend.display_immediately(plain_text, plain_text)
             Example plain text output
+            sage: latex = catalog.OutputLatex.example()
+            sage: backend.display_immediately(plain_text, latex)
+            <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\int \sin\left(x\right)\,{d x}</script></html>
         """
-        if any(isinstance(rich_output, cls) for cls in 
-               [OutputPlainText, OutputAsciiArt, OutputMathJax]):
+        if isinstance(rich_output, (OutputPlainText, OutputAsciiArt)):
             rich_output.print_to_stdout()
-            return
-        if isinstance(rich_output, OutputImagePng):
+        elif isinstance(rich_output, OutputLatex):
+            print(rich_output.mathjax())
+        elif isinstance(rich_output, OutputImagePng):
             self.embed_image(rich_output.png, '.png')
         elif isinstance(rich_output, OutputImageGif):
             self.embed_image(rich_output.gif, '.gif')

@@ -884,14 +884,11 @@ class MathematicaElement(ExpectElement):
                 return display_manager.graphics_from_save(
                     self.save, kwds, '.png', OutputImagePng)
         else:
-            OutputMathJax = display_manager.types.OutputMathJax
+            OutputLatex = display_manager.types.OutputLatex
             if display_manager.preferences.text == 'plain':
                 return
-            if OutputMathJax in display_manager.supported_output():
-                return OutputMathJax(
-                    '<html><script type="math/tex; mode=display">' + 
-                    self._latex_() + 
-                    '</script></html>')
+            if OutputLatex in display_manager.supported_output():
+                return OutputLatex(self._latex_())
         
     def show(self, ImageSize=600):
         r"""

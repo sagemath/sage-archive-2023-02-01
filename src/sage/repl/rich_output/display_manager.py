@@ -38,7 +38,7 @@ import warnings
 
 from sage.structure.sage_object import SageObject
 from sage.repl.rich_output.output_basic import (
-    OutputPlainText, OutputAsciiArt, OutputMathJax,
+    OutputPlainText, OutputAsciiArt, OutputLatex,
 )
 
 
@@ -448,7 +448,7 @@ class DisplayManager(SageObject):
         :class:`~sage.repl.rich_output.output_basic.OutputPlainText`,
         :class:`~sage.repl.rich_output.output_basic.OutputAsciiArt`,
         or
-        :class:`~sage.repl.rich_output.output_basic.OutputMathJax`
+        :class:`~sage.repl.rich_output.output_basic.OutputLatex`
         containing the preferred textual representation of ``obj``
         supported by the backend.
 
@@ -469,9 +469,9 @@ class DisplayManager(SageObject):
             sage: dm._preferred_text_formatter(1/42)
             OutputAsciiArt container
 
-            sage: dm.preferences.text = 'mathjax'
+            sage: dm.preferences.text = 'latex'
             sage: dm._preferred_text_formatter(1/42)          
-            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|OutputMathJax|\phantom{\verb!x!}\verb|container|</script></html>
+            \newcommand{\Bold}[1]{\mathbf{#1}}\verb|OutputLatex|\phantom{\verb!x!}\verb|container|
 
             sage: del dm.preferences.text   # reset to default
         """
@@ -482,10 +482,10 @@ class DisplayManager(SageObject):
             if type(out) != OutputAsciiArt:
                 raise OutputTypeException('backend returned wrong output type, require AsciiArt')
             return out
-        if want == 'mathjax' and OutputMathJax in supported:
-            out = self._backend.mathjax_formatter(obj)
-            if type(out) != OutputMathJax:
-                raise OutputTypeException('backend returned wrong output type, require MathJax')
+        if want == 'latex' and OutputLatex in supported:
+            out = self._backend.latex_formatter(obj)
+            if type(out) != OutputLatex:
+                raise OutputTypeException('backend returned wrong output type, require Latex')
             return out
         if plain_text is not None:
             if type(plain_text) != OutputPlainText:

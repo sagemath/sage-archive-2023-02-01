@@ -2086,6 +2086,15 @@ if is_package_installed('mcqd'):
                   language = "c++"))
 #                  libraries = ["mcqd"]))
 
+if is_package_installed('arb'):
+    ext_modules.extend([
+       Extension("sage.rings.real_arb",
+                 ["sage/rings/real_arb.pyx"],
+                 language = "c",
+                 libraries = ['arb', 'mpfi', 'mpfr'],
+                 include_dirs = [SAGE_INC + '/flint'],
+                 depends = flint_depends)
+       ])
 
 # Only include darwin_utilities on OS_X >= 10.5
 UNAME = os.uname()

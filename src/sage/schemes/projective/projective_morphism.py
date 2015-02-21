@@ -2913,14 +2913,18 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
     def connected_rational_component(self,P,n=0):
         r"""
-        Computes the connected component of a rational preperiodic point `P` of ``self``.
+        Computes the connected component of a rational preperiodic point `P` of ``self``. Will work for
+        non-preperiodic points if `n` is positive. Otherwise this will not terminate.
 
         INPUT:
+
         - ``P`` - A rational preperiodic point of ``self``
+
         - ``n`` - Maximum distance from `P` to branch out. A value of 0 indicates no bound. Default: 0
 
         OUTPUT:
-        - a list of points that are either forward images or preimages of `P`
+
+        - a list of points connected to `P` up to the specified distance
 
         Examples::
 
@@ -2949,27 +2953,30 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         """
         points = [[],[]] # list of points and a list of their corresponding levels
         points[0].append(P)
-        points[1].append(0)
+        points[1].append(0) # P is treated as level 0
 
-        nextPoints = []
-        nextPoints.append(P)
+        nextpoints = []
+        nextpoints.append(P)
 
         level = 1
-        while True:
-            newPoints = []
-            for Q in nextPoints:
+        foundall = False # whether done or not
+        while not foundall:
+            newpoints = []
+            for Q in nextpoints:
                 # forward image
-                newPoints.append(self(Q))
+                newpoints.append(self(Q))
                 # preimages
-                newPoints.extend(self.rational_preimages(Q))
-            del nextPoints[:]
-            for Q in newPoints:
+                newpoints.extend(self.rational_preimages(Q))
+            del nextpoints[:] # empty list
+            # add any points that are not already in the connected component
+            for Q in newpoints:
                 if (Q not in points[0]):
                     points[0].append(Q)
                     points[1].append(level)
-                    nextPoints.append(Q)
-            if ((level + 1 > n and n != 0) or len(nextPoints) == 0):
-                break
+                    nextpoints.append(Q)
+            # done if max level was achieved or if there were no more points to add
+            if ((level + 1 > n and n != 0) or len(nextpoints) == 0):
+                foundall = True
             level = level + 1
 
         return points[0]

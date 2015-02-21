@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+set -e
+
+GIT_VERSION=r70
+
+[ -n "${SAGE_ROOT}" ] || SAGE_ROOT="$(pwd)/../../../"
+
+
+# fetch and rename latest version.
+URL="https://github.com/mrdoob/three.js/archive/${GIT_VERSION}.tar.gz"
+echo "Downloading $URL"
+rm -rf src
+if [ -z "$UPSTREAM_SOURCE_TARBALL" ]; then
+    tar xzf <( curl -L "$URL" )
+else
+    tar xzf "$UPSTREAM_SOURCE_TARBALL"
+fi
+mv three.js-${GIT_VERSION} src
+
+# Delete the 200mb of enclosed examples
+rm -rf src/examples
+
+# repack
+tar czf "$SAGE_ROOT/upstream/threejs-${GIT_VERSION}.tar.gz" src
+rm -rf src
+
+# update package info
+echo "${GIT_VERSION}" > 'package-version.txt'
+"$SAGE_ROOT"/sage -sh 'sage-fix-pkg-checksums'
+

@@ -130,10 +130,6 @@ real field R::
 # Do not create any Integer, especially non cdef'ed ones, before the hooked
 # creation and deletion are setup by the call to hook_fast_tp_functions
 
-doc="""
-Integers
-"""
-
 cimport cython
 
 import operator

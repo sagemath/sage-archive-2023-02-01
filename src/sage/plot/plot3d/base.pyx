@@ -114,7 +114,8 @@ cdef class Graphics3d(SageObject):
         can_view_jmol = (types.OutputSceneJmol in display_manager.supported_output())
         can_view_canvas3d  = (types.OutputSceneCanvas3d in display_manager.supported_output())
         can_view_wavefront = (types.OutputSceneWavefront in display_manager.supported_output())
-        viewer = self._extra_kwds.get('viewer', None)
+        opts = self._process_viewing_options(kwds)
+        viewer = opts.get('viewer', None)
         if viewer == 'java3d':
             from sage.misc.superseded import deprecation
             deprecation(17234, 'use viewer="wavefront" instead of "java3d"')

@@ -34,3 +34,11 @@
  #define CPUSETUP_atom		CPUVEC_SETUP_p6;CPUVEC_SETUP_p6_mmx;CPUVEC_SETUP_p6_p3mmx
  #define CPUSETUP_nano		CPUVEC_SETUP_p6;CPUVEC_SETUP_p6_mmx;CPUVEC_SETUP_p6_p3mmx
  #define CPUSETUP_pentium4	CPUVEC_SETUP_pentium4;CPUVEC_SETUP_pentium4_mmx;CPUVEC_SETUP_pentium4_sse2
+@@ -116,6 +123,7 @@ struct cpuvec_t __gmpn_cpuvec = {
+ #define CPUSETUP_k102		CPUVEC_SETUP_k7;CPUVEC_SETUP_k7_mmx;CPUVEC_SETUP_k7_mmx_k8;CPUVEC_SETUP_k7_mmx_k8_k10;CPUVEC_SETUP_k7_mmx_k8_k10_k102
+ #define CPUSETUP_k103		CPUVEC_SETUP_k7;CPUVEC_SETUP_k7_mmx;CPUVEC_SETUP_k7_mmx_k8;CPUVEC_SETUP_k7_mmx_k8_k10;CPUVEC_SETUP_k7_mmx_k8_k10_k102
+ #define CPUSETUP_bulldozer	CPUVEC_SETUP_k7;CPUVEC_SETUP_k7_mmx;CPUVEC_SETUP_k7_mmx_k8;CPUVEC_SETUP_k7_mmx_k8_k10;CPUVEC_SETUP_k7_mmx_k8_k10_k102
++#define CPUSETUP_piledriver		CPUVEC_SETUP_k7;CPUVEC_SETUP_k7_mmx;CPUVEC_SETUP_k7_mmx_k8;CPUVEC_SETUP_k7_mmx_k8_k10;CPUVEC_SETUP_k7_mmx_k8_k10_k102
+ #define CPUSETUP_bobcat		CPUVEC_SETUP_k7;CPUVEC_SETUP_k7_mmx;CPUVEC_SETUP_k7_mmx_k8;CPUVEC_SETUP_k7_mmx_k8_k10;CPUVEC_SETUP_k7_mmx_k8_k10_k102
+ #define CPUSETUP_viac3		do{}while(0)
+ #define CPUSETUP_viac32		do{}while(0)

@@ -70,38 +70,38 @@ from sage.rings.infinity import infinity, minus_infinity
 
 
 class InternalRealInterval(UniqueRepresentation, Parent):
+    """
+    A real interval
+
+    You are not supposed to create :class:`RealInterval` objects
+    yourself. Always use :class:`RealSet` instead.
+
+    INPUT:
+
+    - ``lower`` -- real or minus infinity. The lower bound of the
+      interval.
+
+    - ``lower_closed`` -- boolean. Whether the interval is closed
+      at the lower bound.
+
+    - ``upper`` -- real or (plus) infinity. The upper bound of the
+      interval.
+
+    - ``upper_closed`` -- boolean. Whether the interval is closed
+      at the upper bound.
+
+    - ``check`` -- boolean keyword argument. Whether to check the
+      other arguments for validity.
+
+    EXAMPLES::
+
+        sage: RealSet([0, oo])
+        Traceback (most recent call last):
+        ...
+        ValueError: interval cannot be closed at +oo
+    """
 
     def __init__(self, lower, lower_closed, upper, upper_closed, check=True):
-        """
-        A real interval
-
-        You are not supposed to create :class:`RealInterval` objects
-        yourself. Always use :class:`RealSet` instead.
-
-        INPUT:
-
-        - ``lower`` -- real or minus infinity. The lower bound of the
-          interval.
-
-        - ``lower_closed`` -- boolean. Whether the interval is closed
-          at the lower bound.
-
-        - ``upper`` -- real or (plus) infinity. The upper bound of the
-          interval.
-
-        - ``upper_closed`` -- boolean. Whether the interval is closed
-          at the upper bound.
-
-        - ``check`` -- boolean keyword argument. Whether to check the
-          other arguments for validity.
-
-        EXAMPLES::
-
-            sage: RealSet([0, oo])
-            Traceback (most recent call last):
-            ...
-            ValueError: interval cannot be closed at +oo
-        """
         self._lower = lower
         self._upper = upper
         self._lower_closed = lower_closed

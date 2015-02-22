@@ -948,6 +948,19 @@ If this all works, you can then make calls like:
         """
         return self._expect.before
 
+    def _interrupt(self):
+        for i in range(15):
+            try:
+                self._sendstr('quit;\n'+chr(3))
+                self._expect_expr(timeout=2)
+            except pexpect.TIMEOUT:
+                pass
+            except pexpect.EOF:
+                self._crash_msg()
+                self.quit()
+            else:
+                return
+
     def _expect_expr(self, expr=None, timeout=None):
         r"""
         Wait for a given expression expr (which could be a regular
@@ -1144,7 +1157,7 @@ If this all works, you can then make calls like:
                 self._expect_expr(s,timeout=0.5)
                 self._expect_expr(timeout=0.5)
         except pexpect.TIMEOUT:
-            self.interrupt()
+            self._interrupt()
         except pexpect.EOF:
             self._crash_msg()
             self.quit()

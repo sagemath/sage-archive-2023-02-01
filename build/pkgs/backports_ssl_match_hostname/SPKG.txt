@@ -15,5 +15,5 @@ Home page: https://pypi.python.org/pypi/backports.ssl_match_hostname
 
 == Dependencies ==
 
-Python
+Python, Setuptools
 

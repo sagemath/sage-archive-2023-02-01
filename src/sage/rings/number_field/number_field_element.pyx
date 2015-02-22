@@ -37,6 +37,8 @@ include "sage/libs/ntl/decl.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
+from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_GT, Py_LE, Py_GE
+from sage.structure.sage_object cimport rich_to_bool
 
 import sage.rings.infinity
 import sage.rings.polynomial.polynomial_element
@@ -46,6 +48,7 @@ import sage.rings.integer_ring
 import sage.rings.integer
 import sage.rings.arith
 
+cimport number_field_base
 import number_field
 
 from sage.rings.integer_ring cimport IntegerRing_class
@@ -693,7 +696,7 @@ cdef class NumberFieldElement(FieldElement):
             raise IndexError, "index must be between 0 and degree minus 1."
         return self.polynomial()[n]
 
-    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
+    cpdef _richcmp_(left, sage.structure.element.Element right, int op):
         r"""
         EXAMPLE::
 
@@ -702,9 +705,66 @@ cdef class NumberFieldElement(FieldElement):
             True
             sage: a + 1 < a # indirect doctest
             False
+
+        Comaprison of embedded number fields::
+
+            sage: x = polygen(ZZ)
+            sage: K.<cbrt2> = NumberField(x^3 - 2, embedding=AA(2).nth_root(3))
+            sage: 6064/4813 < cbrt2 < 90325/71691
+            True
+
+            sage: c20 = 3085094589/2448641198
+            sage: c21 = 4433870912/3519165675
+            sage: c20 < cbrt2 < c21
+            True
+            sage: c20 >= cbrt2 or cbrt2 <= c20 or c21 <= cbrt2 or cbrt2 >= c21
+            False
+
+            sage: c40 = 927318063212049190871/736012834525960091591
+            sage: c41 = 112707779922292658185265/89456224206823838627034
+            sage: c40 < cbrt2 < c41
+            True
+            sage: c40 >= cbrt2 or cbrt2 <= c40 or c41 <= cbrt2 or cbrt2 >= c41
+            False
         """
         cdef NumberFieldElement _right = right
-        return (left.__numerator != _right.__numerator) or (left.__denominator != _right.__denominator)
+        cdef int res
+
+        # fast equality check
+        res = left.__numerator == _right.__numerator and left.__denominator == _right.__denominator
+        if res:
+            if op == Py_EQ or op == Py_GE or op == Py_LE:
+                return True
+            if op == Py_NE or op == Py_GT or op == Py_LT:
+                return False
+        elif op == Py_EQ:
+            return False
+        elif op == Py_NE:
+            return True
+
+        # comparisons <, <=, > or >=
+        # this should work for number field element and order element
+        cdef number_field_base.NumberField P
+        try:
+            P = <number_field_base.NumberField?> left._parent
+        except TypeError:
+            P = left._parent.number_field()
+        cdef size_t i = 0
+        if P._embedded_real:
+            lp = left.polynomial()
+            rp = _right.polynomial()
+            la = lp(P._get_embedding_approx(0))
+            ra = rp(P._get_embedding_approx(0))
+            while la.overlaps(ra):
+                i += 1
+                la = lp(P._get_embedding_approx(i))
+                ra = rp(P._get_embedding_approx(i))
+            if op == Py_LT or op == Py_LE:
+                return la.upper() < ra.lower()
+            elif op == Py_GT or op == Py_GE:
+                return la.lower() > ra.upper()
+        else:
+            return rich_to_bool(op, 1)
 
     def _random_element(self, num_bound=None, den_bound=None, distribution=None):
         """
@@ -2133,7 +2193,7 @@ cdef class NumberFieldElement(FieldElement):
             -1/2
         """
         if ZZX_deg(self.__numerator) >= 1:
-            raise TypeError, "Unable to coerce %s to a rational"%self
+            raise TypeError("Unable to coerce %s to a rational"%self)
         cdef Integer num
         num = PY_NEW(Integer)
         ZZX_getitem_as_mpz(num.value, &self.__numerator, 0)

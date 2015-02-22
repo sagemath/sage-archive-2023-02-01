@@ -41,6 +41,9 @@ cdef class NumberField(Field):
     # the docstring of the __init__ method inherited from IntegralDomain, which
     # is rather confusing.
 
+    def __cinit__(self, *args, **kwds):
+        self._embedded_real = self._embedded_complex = 0
+
     def ring_of_integers(self, *args, **kwds):
         r"""
         Synomym for ``self.maximal_order(...)``.
@@ -265,4 +268,57 @@ cdef class NumberField(Field):
             from sage.rings.integer import Integer
             return Integer(1)
         return ans
+
+
+    # Approximate embeddings for comparisons with respect to the order of RR or
+    # CC
+
+    def _init_embedding_approx(self):
+        r"""
+        Initialize the approximation of embeddings.
+        """
+        from sage.rings.qqbar import AA
+        self._embedded_real = 0
+        if AA.has_coerce_map_from(self):
+            from sage.rings.real_mpfi import RealIntervalField
+            self._embedded_real = 1
+            self._gen_approx = []
+
+    cpdef _get_embedding_approx(self, size_t i):
+        r"""
+        Return an interval approximation of the generator of this number field.
+
+        OUTPUT:
+
+        A real interval element with precision `53 \times 2^i`.
+
+        EXAMPLES::
+
+            sage: x = polygen(ZZ)
+            sage: p = x^5 - 3*x + 1
+            sage: a_AA = AA.polynomial_root(p, RIF(0,1))
+            sage: K.<a> = NumberField(p, embedding=a_AA)
+            sage: K._get_embedding_approx(2)
+            0.3347341419433526870750989624732833071257517550374285560578335863?
+
+            sage: K._get_embedding_approx(2).prec()
+            212
+            sage: K._get_embedding_approx(1).prec()
+            106
+            sage: K._get_embedding_approx(0).prec()
+            53
+        """
+        if i < len(self._gen_approx):
+            return self._gen_approx[i]
+
+        cdef size_t j = len(self._gen_approx)
+        if self._embedded_real:
+            from sage.rings.real_mpfi import RealIntervalField
+            gen = self.coerce_embedding()(self.gen())
+            while j <= i:
+                self._gen_approx.append(RealIntervalField(53 << j)(gen))
+                j += 1
+            return self._gen_approx[i]
+        else:
+            raise ValueError("no embedding set. You need to call ._init_embedding_approx() first")
 

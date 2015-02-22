@@ -23,6 +23,8 @@ AUTHORS:
 
 - Julian Rueth (2014-04-03): absolute number fields are unique parents
 
+- Vincent Delecroix (2015-02): comparisons/floor/ceil using embeddings
+
 .. note::
 
    Unlike in PARI/GP, class group computations *in Sage* do *not* by default
@@ -6424,6 +6426,8 @@ class NumberField_absolute(NumberField_generic):
         self._zero_element = self(0)
         self._one_element =  self(1)
 
+        self._init_embedding_approx()
+
     def _coerce_from_other_number_field(self, x):
         """
         Coerce a number field element x into this number field.
@@ -8906,6 +8910,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 
         zeta = self.gen()
         zeta._set_multiplicative_order(n)
+        self._init_embedding_approx()
 
     def construction(self):
         F,R = NumberField_generic.construction(self)

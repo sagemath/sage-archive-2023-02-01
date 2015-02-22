@@ -144,7 +144,7 @@ from sage.structure.sage_object import SageObject
 from sage.misc.misc import SAGE_TMP
 from sage.misc.misc import get_verbose
 from sage.misc.viewer import png_viewer
-from sage.misc.temporary_file import tmp_filename, graphics_filename
+from sage.misc.temporary_file import tmp_filename
 
 #from sage.ext import fast_tachyon_routines
 
@@ -471,12 +471,48 @@ class Tachyon(SageObject):
         """
         if verbose is None:
             verbose = get_verbose()
-
         tachyon_rt(self.str(), filename, verbose, block, extra_opts)
 
-    def show(self, verbose=None, extra_opts=''):
+    def _rich_repr_(self, display_manager, **kwds):
+        """
+        Rich Output Magic Method
+
+        See :mod:`sage.repl.rich_output` for details.
+
+        EXAMPLES::
+
+            sage: q = Tachyon()
+            sage: q.light((1,1,11), 1,(1,1,1))
+            sage: q.texture('s')
+            sage: q.sphere((0,0,0),1,'s')
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: q._rich_repr_(dm)
+            OutputImagePng container
+        """
+        OutputImagePng = display_manager.types.OutputImagePng
+        if OutputImagePng not in display_manager.supported_output():
+            return
+        filename = tmp_filename(ext='.png')
+        self.save(filename, **kwds)
+        from sage.repl.rich_output.buffer import OutputBuffer
+        buf = OutputBuffer.from_file(filename)
+        return OutputImagePng(buf)
+        
+    def show(self, **kwds):
         r"""
         Create a PNG file of the scene.
+
+        This method attempts to display the graphics immediately,
+        without waiting for the currently running code (if any) to
+        return to the command line. Be careful, calling it from within
+        a loop will potentially launch a large number of external
+        viewer programs.
+
+        OUTPUT:
+
+        This method does not return anything. Use :meth:`save` if you
+        want to save the figure as an image.
 
         EXAMPLES:
         
@@ -535,13 +571,9 @@ class Tachyon(SageObject):
             Scene contains 1 non-gridded objects
             ...
         """
-        filename = graphics_filename()
-        self.save(filename, verbose=verbose, extra_opts=extra_opts)
-
-        from sage.doctest import DOCTEST_MODE
-        from sage.plot.plot import EMBEDDED_MODE
-        if not DOCTEST_MODE and not EMBEDDED_MODE:
-            os.system('%s %s 2>/dev/null 1>/dev/null &'%(png_viewer(), filename))
+        from sage.repl.rich_output import get_display_manager
+        dm = get_display_manager()
+        dm.display_immediately(self, **kwds)
 
     def _res(self):
         r"""

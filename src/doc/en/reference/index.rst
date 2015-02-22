@@ -10,7 +10,7 @@ Enjoy Sage!
 Table of Contents
 =================
 
-* :doc:`The Sage Command Line <repl/index>`
+* :doc:`The Sage Command Line (REPL) <repl/index>`
 * :doc:`The Sage Notebook <notebook/index>`
 
 Calculus, Plotting

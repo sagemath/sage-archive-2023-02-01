@@ -211,8 +211,9 @@ cdef class SageObject:
             +---+---+
             | 1 | 2 |
             +---+---+
-            sage: shell.run_cell('%display simple')
+            sage: shell.run_cell('%display plain')
             sage: shell.run_cell('Tableaux.global_options.reset()')
+            sage: shell.quit()
 
         TESTS::
 

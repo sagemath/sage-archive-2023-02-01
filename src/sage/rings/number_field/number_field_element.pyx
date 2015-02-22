@@ -1526,7 +1526,7 @@ cdef class NumberFieldElement(FieldElement):
             ...
             NotImplementedError: gcd() for Order in Number Field in i with defining polynomial x^2 + 1 is not implemented
 
-        The following field has class number 3, but it the ideal
+        The following field has class number 3, but if the ideal
         ``(self, other)`` happens to be principal, this still works::
 
             sage: K.<a> = NumberField(x^3 - 7)

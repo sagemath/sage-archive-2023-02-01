@@ -23,6 +23,7 @@ all:
 # All targets except for the base packages
 all-sage: \
      $(INST)/$(ATLAS) \
+     $(INST)/$(BACKPORTS_SSL_MATCH_HOSTNAME) \
      $(INST)/$(BOEHM_GC) \
      $(INST)/$(BOOST_CROPPED) \
      $(INST)/$(CDDLIB) \
@@ -379,7 +380,11 @@ $(INST)/$(PYPARSING): $(INST)/$(PYTHON)
 $(INST)/$(PYZMQ): $(INST)/$(PYTHON) $(INST)/$(ZEROMQ) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(PYZMQ) 2>&1" "tee -a $(SAGE_LOGS)/$(PYZMQ).log"
 
-$(INST)/$(TORNADO): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
+$(INST)/$(BACKPORTS_SSL_MATCH_HOSTNAME): $(INST)/$(PYTHON)
+	+$(PIPE) "$(SAGE_SPKG) $(BACKPORTS_SSL_MATCH_HOSTNAME) 2>&1" "tee -a $(SAGE_LOGS)/$(BACKPORTS_SSL_MATCH_HOSTNAME).log"
+
+$(INST)/$(TORNADO): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) \
+                    $(INST)/$(BACKPORTS_SSL_MATCH_HOSTNAME)
 	+$(PIPE) "$(SAGE_SPKG) $(TORNADO) 2>&1" "tee -a $(SAGE_LOGS)/$(TORNADO).log"
 
 $(INST)/$(MATPLOTLIB): $(INST)/$(PYTHON) $(INST)/$(NUMPY) \

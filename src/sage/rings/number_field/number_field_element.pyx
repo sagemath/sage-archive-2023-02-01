@@ -860,6 +860,7 @@ cdef class NumberFieldElement(FieldElement):
         return 0  # No error
 
 
+    # TODO: this is wrong if there is a real embedding specified
     def __abs__(self):
         r"""
         Return the numerical absolute value of this number field element
@@ -881,6 +882,114 @@ cdef class NumberFieldElement(FieldElement):
             1.2599210498948731647672106072782283506
         """
         return self.abs(prec=53, i=None)
+
+    def floor(self):
+        r"""
+        Return the floor of this number field element.
+
+        EXAMPLES::
+
+            sage: x = polygen(ZZ)
+            sage: p = x**7 - 5*x**2 + x + 1
+            sage: a_AA = AA.polynomial_root(p, RIF(1,2))
+            sage: K.<a> = NumberField(p, embedding=a_AA)
+            sage: b = a**5 + a/2 - 1/7
+            sage: b.floor()
+            4
+
+        This function always succeed even if a tremendous precision is needed::
+
+            sage: c = b - 4772404052447/1154303505127 + 2
+            sage: c.floor()
+            1
+            sage: RIF(c).unique_floor()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique floor
+
+        If the number field is not embedded, this function is valid only if the
+        element is rational::
+
+            sage: p = x**5 - 3
+            sage: K.<a> = NumberField(p)
+            sage: K(2/3).floor()
+            0
+            sage: a.floor()
+            Traceback (most recent call last):
+            ...
+            TypeError: floor not uniquely defined since no real embedding is specified
+        """
+        if ZZX_deg(self.__numerator) == 0:
+            return self._rational_().floor()
+
+        if not (<number_field_base.NumberField> self._parent)._embedded_real:
+            raise TypeError("floor not uniquely defined since no real embedding is specified")
+
+        from sage.rings.real_mpfi import RealIntervalField
+        i = 0
+        a = RealIntervalField(53)(self)
+        low = a.lower().floor()
+        upp = a.upper().floor()
+        while low != upp:
+            i += 1
+            a = RealIntervalField(53<<i)(self)
+            low = a.lower().floor()
+            upp = a.upper().floor()
+        return low
+
+    def ceil(self):
+        r"""
+        Return the ceil of this number field element.
+
+        EXAMPLES::
+
+            sage: x = polygen(ZZ)
+            sage: p = x**7 - 5*x**2 + x + 1
+            sage: a_AA = AA.polynomial_root(p, RIF(1,2))
+            sage: K.<a> = NumberField(p, embedding=a_AA)
+            sage: b = a**5 + a/2 - 1/7
+            sage: b.ceil()
+            5
+
+        This function always succeed even if a tremendous precision is needed::
+
+            sage: c = b - 5065701199253/1225243417356 + 2
+            sage: c.ceil()
+            3
+            sage: RIF(c).unique_ceil()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique ceil
+
+        If the number field is not embedded, this function is valid only if the
+        element is rational::
+
+            sage: p = x**5 - 3
+            sage: K.<a> = NumberField(p)
+            sage: K(2/3).ceil()
+            1
+            sage: a.ceil()
+            Traceback (most recent call last):
+            ...
+            TypeError: ceil not uniquely defined since no real embedding is specified
+        """
+        if ZZX_deg(self.__numerator) == 0:
+            return self._rational_().ceil()
+
+        if not (<number_field_base.NumberField> self._parent)._embedded_real:
+            raise TypeError("ceil not uniquely defined since no real embedding is specified")
+
+        from sage.rings.real_mpfi import RealIntervalField
+        i = 0
+        a = RealIntervalField(53)(self)
+        low = a.lower().ceil()
+        upp = a.upper().ceil()
+        while low != upp:
+            i += 1
+            a = RealIntervalField(53<<i)(self)
+            low = a.lower().ceil()
+            upp = a.upper().ceil()
+        return low
 
     def abs(self, prec=53, i=None):
         r"""

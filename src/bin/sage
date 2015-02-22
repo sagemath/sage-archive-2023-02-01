@@ -203,7 +203,7 @@ usage_advanced() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Making Sage packages or distributions:"
-    echo "  -bdist VER          -- build a binary distribution of Sage"
+    echo "  -bdist <tmpdir>     -- build a binary distribution of Sage"
     echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
     echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
     echo "  -sdist              -- build a source distribution of Sage"

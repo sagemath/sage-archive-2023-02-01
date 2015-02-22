@@ -376,7 +376,6 @@ cdef class ntl_ZZX:
         ZZX_rem(r.x, (<ntl_ZZX>self).x, (<ntl_ZZX>other).x)
         sig_off()
         return r
-        sig_on()
 
     def quo_rem(self, ntl_ZZX other):
         """

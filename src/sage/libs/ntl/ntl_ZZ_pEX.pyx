@@ -90,10 +90,6 @@ cdef class ntl_ZZ_pEX:
                 ZZ_pEX_SetCoeff(self.x, i, cc.x)
         else:
             raise NotImplementedError
-            s = str(v).replace(',',' ').replace('L','')
-            #sig_on()
-            #ZZ_pEX_from_str(&self.x, s)
-            #sig_off()
 
     def __cinit__(self, v=None, modulus=None):
         #################### WARNING ###################

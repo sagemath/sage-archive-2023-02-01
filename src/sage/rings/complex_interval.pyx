@@ -86,7 +86,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         same parent as ``self``.
         """
         cdef ComplexIntervalFieldElement x
-        x = PY_NEW(ComplexIntervalFieldElement)
+        x = ComplexIntervalFieldElement.__new__(ComplexIntervalFieldElement)
         x._parent = self._parent
         x._prec = self._prec
         mpfi_init2(x.__re, self._prec)

@@ -50,8 +50,6 @@ import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.misc.randstate cimport randstate, current_randstate
 
-from sage.misc.misc_c import is_64_bit
-
 include 'pari_err.pxi'
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/python.pxi'
@@ -10004,85 +10002,6 @@ cdef GEN _Vec_append(GEN v, GEN a, long n):
         return w
     else:
         return v
-
-
-# We derive PariError from RuntimeError, for backward compatibility with
-# code that catches the latter.
-class PariError(RuntimeError):
-    """
-    Error raised by PARI
-    """
-    def errnum(self):
-        r"""
-        Return the PARI error number corresponding to this exception.
-
-        EXAMPLES::
-
-            sage: try:
-            ....:     pari('1/0')
-            ....: except PariError as err:
-            ....:     print err.errnum()
-            30
-        """
-        return self.args[0]
-
-    def errtext(self):
-        """
-        Return the message output by PARI when this error occurred.
-
-        EXAMPLE::
-
-            sage: try:
-            ....:     pari('pi()')
-            ....: except PariError as e:
-            ....:     print e.errtext()
-            ....:
-              ***   at top-level: pi()
-              ***                 ^----
-              ***   not a function in function call
-
-        """
-        return self.args[1]
-
-    def __repr__(self):
-        r"""
-        TESTS::
-
-            sage: PariError(11)
-            PariError(11)
-        """
-        return "PariError(%d)"%self.errnum()
-
-    def __str__(self):
-        r"""
-        Return a suitable message for displaying this exception.
-
-        This is the last line of ``self.errtext()``, with the leading
-        ``"  ***   "`` and trailing periods and colons (if any) removed.
-        An exception is syntax errors, where the "syntax error" line is
-        shown.
-
-        EXAMPLES::
-
-            sage: try:
-            ....:     pari('1/0')
-            ....: except PariError as err:
-            ....:     print err
-            _/_: impossible inverse in gdiv: 0
-
-        A syntax error::
-
-            sage: pari('!@#$%^&*()')
-            Traceback (most recent call last):
-            ...
-            PariError: syntax error, unexpected $undefined: !@#$%^&*()
-        """
-        lines = self.errtext().split('\n')
-        if self.errnum() == e_SYNTAX:
-            for line in lines:
-                if "syntax error" in line:
-                    return line.lstrip(" *").rstrip(" .:")
-        return lines[-1].lstrip(" *").rstrip(" .:")
 
 
 cdef _factor_int_when_pari_factor_failed(x, failed_factorization):

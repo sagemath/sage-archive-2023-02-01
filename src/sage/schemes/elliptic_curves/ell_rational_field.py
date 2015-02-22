@@ -81,7 +81,7 @@ from sage.rings.all import (
     IntegerRing, RealField,
     ComplexField, RationalField)
 
-import sage.misc.misc as misc
+import sage.misc.all as misc
 from sage.misc.all import verbose
 
 from sage.misc.functional import log
@@ -1136,6 +1136,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            much faster if ``use_eclib=False``, though evaluation of
            it after computing it won't be any faster.
 
+        .. SEEALSO::
+
+            :meth:`modular_symbol_numerical`
+
         EXAMPLES::
 
             sage: E=EllipticCurve('37a1')
@@ -1216,6 +1220,84 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             M = ell_modular_symbols.ModularSymbolSage(self, sign, normalize=normalize)
         self.__modular_symbol[typ] = M
         return M
+
+    def _modsym(self, tau, prec=53):
+        r"""
+        Compute the modular symbol `\{\infty, \tau\}` analytically.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a1')
+            sage: E._modsym(0)  # abs tol 1e-14
+            0.253841860855911 - 2.86184184507043e-17*I
+            sage: E = EllipticCurve('17a1')
+            sage: E._modsym(0)  # abs tol 1e-14
+            0.386769938387780 - 4.26353246509333e-17*I
+        """
+        from sage.modular.cusps import Cusps
+        from sage.sets.all import Primes
+        N = self.conductor()
+        # Find a prime p that is suitable, along with matrices M[i].
+        for p in Primes():
+            if N % p == 0:
+                continue
+            # Are the cusps tau, p*tau, and (tau+j)/p for j = 0, ..., p-1
+            # all equivalent?
+            t = Cusps(tau)
+            M = []
+            b, m = t.is_gamma0_equiv(p * tau, N, transformation='matrix')
+            if not b:
+                continue
+            M.append(m)
+            good = True
+            for j in range(p):
+                b, m = t.is_gamma0_equiv((tau + j) / p, N,
+                                         transformation='matrix')
+                if not b:
+                    good = False
+                    break
+                M.append(m)
+            if good:
+                # Found it!
+                break
+        f = self.newform()
+        return -sum(f.period(m, prec) for m in M) / (1 + p - self.ap(p))
+
+    def modular_symbol_numerical(self, sign=1, prec=53):
+        """
+        Return the modular symbol as a numerical function.
+
+        .. NOTE::
+
+            This method does not compute spaces of modular symbols, so
+            it is suitable for curves of larger conductor than can be
+            handled by :meth:`modular_symbol`.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('19a1')
+            sage: f = E.modular_symbol_numerical(1)  # indirect doctest
+            sage: g = E.modular_symbol(1)
+            sage: f(2), g(2)  # abs tol 1e-14
+            (0.333333333333330, 1/3)
+            sage: f(oo), g(oo)
+            (-0.000000000000000, 0)
+
+            sage: E = EllipticCurve('79a1')
+            sage: f = E.modular_symbol_numerical(-1)  # indirect doctest
+            sage: g = E.modular_symbol(-1)
+            sage: f(1), g(1)  # abs tol 1e-14
+            (7.60908499689245e-16, 0)
+            sage: f(oo), g(oo)
+            (0.000000000000000, 0)
+        """
+        lam = self.period_lattice().basis(prec=prec)
+        if sign == 1:
+            P = lam[0].real()
+            return lambda a: self._modsym(a, prec).real() / P
+        else:
+            P = lam[1].imag()
+            return lambda a: self._modsym(a, prec).imag() / P
 
     padic_lseries = padics.padic_lseries
 
@@ -4029,7 +4111,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         If the curve has square-free conductor then it is already minimal (see :trac:`14060`)::
 
-            sage: E = cremona_optimal_curves([2*3*5*7*11]).next()
+            sage: E = next(cremona_optimal_curves([2*3*5*7*11]))
             sage: (E, 1) == E.minimal_quadratic_twist()
             True
 

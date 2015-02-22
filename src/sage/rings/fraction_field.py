@@ -631,7 +631,7 @@ class FractionField_generic(field.Field):
             z3
         """
         x = self._R.gen(i)
-        one = self._R.one_element()
+        one = self._R.one()
         r = self._element_class(self, x, one, coerce=False, reduce=False)
         return r
 

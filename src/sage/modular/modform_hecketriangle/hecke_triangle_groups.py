@@ -165,23 +165,6 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         else:
             raise ValueError("The specified method {} is not supported!").format(method)
 
-    def one_element(self):
-        r"""
-        Return the identity element/matrix for ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
-            sage: HeckeTriangleGroup(10).one_element()
-            [1 0]
-            [0 1]
-
-            sage: HeckeTriangleGroup(10).one_element().parent()
-            Hecke triangle group for n = 10
-        """
-
-        return self.I()
-
     def one(self):
         r"""
         Return the identity element/matrix for ``self``.

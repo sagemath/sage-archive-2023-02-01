@@ -570,7 +570,8 @@ cdef void *apply_subset_aug(void *parent, void *aug, void *child, int *degree, b
     Adds the element represented by ``aug`` to ``parent``, storing the result to
     ``child``.
     """
-    cdef subset *set1 = <subset *> child, *par_set = <subset *> parent
+    cdef subset *set1 = <subset *> child
+    cdef subset *par_set = <subset *> parent
     cdef bitset_s parbits = par_set.bits
     cdef int add_pt = (<int *> aug)[0], n = parbits.size
     bitset_copy(&set1.bits, &parbits)

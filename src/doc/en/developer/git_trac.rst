@@ -14,11 +14,8 @@ public setting on `the Sage Trac server <http://trac.sagemath.org>`_
 (the Sage bug and enhancement tracker).
 
 One can use ``git`` :ref:`the hard way <chapter-manual-git>` for this,
-but this section presumes use of the helper ``git trac`` command, which
+but this section explains how to use the helper ``git trac`` command, which
 simplifies many of the most common actions in collaboration on Sage.
-Sage itself has a more limited set of actions built in to work with
-(see :ref:`chapter-devscript`), but the recommended path is using
-this section of the manual to get started.
 
 Most of the commands in the following section will not work unless
 you have an account on Trac. If you want to contribute to Sage, it
@@ -129,8 +126,8 @@ then you can set up the remote by hand as described in the section on
 :ref:`section-git-trac`.
 
 
-Trac Tickets to Local Branches
-==============================
+Trac Tickets and Git Branches
+=============================
 
 Now let's start adding code to Sage!
 
@@ -356,8 +353,8 @@ you need a new feature or if your branch conflicts.
 
 .. _section-git_trac-collaborate:
 
-Collaboration
-=============
+Collaboration and conflict resolution
+=====================================
 
 Exchanging Branches
 -------------------

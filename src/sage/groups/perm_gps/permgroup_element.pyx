@@ -503,7 +503,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         return make_permgroup_element_v2, (self._parent, self.domain(), self._parent.domain())
 
     cdef PermutationGroupElement _new_c(self):
-        cdef PermutationGroupElement other = PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef PermutationGroupElement other = t.__new__(t)
         if HAS_DICTIONARY(self):
             other.__class__ = self.__class__
         other._parent = self._parent

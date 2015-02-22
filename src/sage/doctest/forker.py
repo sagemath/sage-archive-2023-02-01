@@ -1564,7 +1564,7 @@ class DocTestDispatcher(SageObject):
                     # Start new workers if possible
                     while source_iter is not None and len(workers) < opt.nthreads:
                         try:
-                            source = source_iter.next()
+                            source = next(source_iter)
                         except StopIteration:
                             source_iter = None
                         else:

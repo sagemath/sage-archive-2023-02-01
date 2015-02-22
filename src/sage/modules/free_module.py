@@ -1159,7 +1159,7 @@ done from the right side.""")
             return
         R     = self.base_ring()
         iters = [iter(R) for _ in range(len(G))]
-        for x in iters: x.next()     # put at 0
+        for x in iters: next(x)     # put at 0
         zero  = R(0)
         v = [zero for _ in range(len(G))]
         n = 0
@@ -1167,12 +1167,12 @@ done from the right side.""")
         yield z
         while n < len(G):
             try:
-                v[n] = iters[n].next()
+                v[n] = next(iters[n])
                 yield self.linear_combination_of_basis(v)
                 n = 0
             except StopIteration:
                 iters[n] = iter(R)  # reset
-                iters[n].next()     # put at 0
+                next(iters[n])     # put at 0
                 v[n] = zero
                 n += 1
 
@@ -1578,22 +1578,21 @@ done from the right side.""")
 
     def gen(self, i=0):
         """
-        Return ith generator for self, where i is between 0 and rank-1,
-        inclusive.
+        Return the `i`-th generator for ``self``.
+
+        Here `i` is between 0 and rank - 1, inclusive.
 
         INPUT:
 
+        - `i` -- an integer (default 0)
 
-        -  ``i`` - an integer
-
-
-        OUTPUT: i-th basis vector for self.
+        OUTPUT: `i`-th basis vector for ``self``.
 
         EXAMPLES::
 
             sage: n = 5
             sage: V = QQ^n
-            sage: B = [ V.gen(i) for i in range(n) ]
+            sage: B = [V.gen(i) for i in range(n)]
             sage: B
             [(1, 0, 0, 0, 0),
             (0, 1, 0, 0, 0),
@@ -1611,7 +1610,7 @@ done from the right side.""")
             TypeError: rational is not an integer
         """
         if i < 0 or i >= self.rank():
-            raise ValueError("Generator %s not defined."%i)
+            raise ValueError("Generator %s not defined." % i)
         return self.basis()[i]
 
     def gram_matrix(self):
@@ -2256,17 +2255,30 @@ class FreeModule_generic_pid(FreeModule_generic):
             sage: A * m
             Free module of degree 3 and rank 2 over Integer Ring
             Echelon basis matrix:
-            [1 1 1]
-            [0 3 6]
+            [ 3  0 -3]
+            [ 0  1  2]
             sage: m * A
             Free module of degree 3 and rank 2 over Integer Ring
             Echelon basis matrix:
             [ 3  0 -3]
             [ 0  1  2]
+
+        TESTS:
+
+        Check that :trac:`17705` is fixed::
+
+            sage: V = GF(2)^2
+            sage: W = V.subspace([[1, 0]])
+            sage: x = matrix(GF(2), [[1, 1], [0, 1]])
+            sage: W*x
+            Vector space of degree 2 and dimension 1 over Finite Field of size 2
+            Basis matrix:
+            [1 1]
+
         """
-        if switch_sides:
-            return self.span([v * other for v in self.basis()])
-        return self.span([other * v for v in self.basis()])
+        B = self.basis_matrix()
+        B = other * B if switch_sides else B * other
+        return self.span(B.rows())
 
     def base_field(self):
         """
@@ -4680,6 +4692,56 @@ class FreeModule_ambient(FreeModule_generic):
             if rand() <= prob:
                 v[i] = R.random_element(*args, **kwds)
         return v
+
+    def gen(self, i=0):
+        """
+        Return the `i`-th generator for ``self``.
+
+        Here `i` is between 0 and rank - 1, inclusive.
+
+        INPUT:
+
+        - `i` -- an integer (default 0)
+
+        OUTPUT: `i`-th basis vector for ``self``.
+
+        EXAMPLES::
+
+            sage: n = 5
+            sage: V = QQ^n
+            sage: B = [V.gen(i) for i in range(n)]
+            sage: B
+            [(1, 0, 0, 0, 0),
+            (0, 1, 0, 0, 0),
+            (0, 0, 1, 0, 0),
+            (0, 0, 0, 1, 0),
+            (0, 0, 0, 0, 1)]
+            sage: V.gens() == tuple(B)
+            True
+
+        TESTS::
+
+            sage: (QQ^3).gen(4/3)
+            Traceback (most recent call last):
+            ...
+            TypeError: rational is not an integer
+
+        Check that :trac:`10262` and :trac:`13304` are fixed
+        (coercions involving :class:`FreeModule_ambient` used to take
+        quadratic time and space in the rank of the module)::
+
+            sage: vector([0]*50000)/1
+            (0, 0, 0, ..., 0)
+        """
+        if i < 0 or i >= self.rank():
+            raise ValueError("Generator %s not defined." % i)
+        try:
+            return self.__basis[i]
+        except AttributeError:
+            v = self(0)
+            v[i] = self.base_ring().one()
+            v.set_immutable()
+            return v
 
 
 ###############################################################################

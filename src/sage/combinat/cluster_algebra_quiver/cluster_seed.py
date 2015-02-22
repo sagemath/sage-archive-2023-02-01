@@ -1299,13 +1299,13 @@ class ClusterSeed(SageObject):
 
             sage: S = ClusterSeed(['A',[1,1],1])
             sage: it = S.mutation_class_iter()
-            sage: it.next()
+            sage: next(it)
             A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1]
-            sage: it.next()
+            sage: next(it)
             A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1]
-            sage: it.next()
+            sage: next(it)
             A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1]
-            sage: it.next()
+            sage: next(it)
             A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1]
 
             sage: it = S.mutation_class_iter(depth=3, return_paths=True)
@@ -1488,15 +1488,15 @@ class ClusterSeed(SageObject):
 
             sage: S = ClusterSeed(['A',[1,1],1])
             sage: it = S.cluster_class_iter()
-            sage: it.next()
+            sage: next(it)
             [x0, x1]
-            sage: it.next()
+            sage: next(it)
             [x0, (x0^2 + 1)/x1]
-            sage: it.next()
+            sage: next(it)
             [(x1^2 + 1)/x0, x1]
-            sage: it.next()
+            sage: next(it)
             [(x0^4 + 2*x0^2 + x1^2 + 1)/(x0*x1^2), (x0^2 + 1)/x1]
-            sage: it.next()
+            sage: next(it)
             [(x1^2 + 1)/x0, (x1^4 + x0^2 + 2*x1^2 + 1)/(x0^2*x1)]
 
             sage: it = S.cluster_class_iter(depth=3)

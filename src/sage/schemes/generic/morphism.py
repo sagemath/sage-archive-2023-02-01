@@ -1469,9 +1469,9 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: A = AffineSpace(2, QQ)
             sage: a = A(1,2)
             sage: iter = a.__iter__()
-            sage: iter.next()
+            sage: next(iter)
             1
-            sage: iter.next()
+            sage: next(iter)
             2
             sage: list(a)
             [1, 2]

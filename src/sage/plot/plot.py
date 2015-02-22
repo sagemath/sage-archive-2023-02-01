@@ -574,7 +574,7 @@ def xydata_from_point_list(points):
         ([0.0, 1.0], [0.0, 0.0])
 
     This function should work for anything than can be turned into a
-    list, such as iterators and such (see ticket #10478)::
+    list, such as iterators and such (see :trac:`10478`)::
 
         sage: xydata_from_point_list(iter([(0,0), (sqrt(3), 2)]))
         ([0.0, 1.7320508075688772], [0.0, 2.0])
@@ -586,21 +586,22 @@ def xydata_from_point_list(points):
         ([2.0, 3.0, 5.0, 7.0], [11.0, 13.0, 17.0, 19.0])
     """
     from sage.rings.complex_number import ComplexNumber
-    if not isinstance(points, (list,tuple)):
+
+    if not isinstance(points, (list, tuple)):
         points = list(points)
         try:
             points = [[float(z) for z in points]]
         except TypeError:
             pass
-    elif len(points)==2 and not isinstance(points[0],(list,tuple,ComplexNumber)):
+    elif len(points) == 2 and not isinstance(points[0], (list, tuple,
+                                                         ComplexNumber)):
         try:
             points = [[float(z) for z in points]]
         except TypeError:
             pass
 
-    if len(points)>0 and len(list(points[0]))!=2:
+    if len(points) and len(list(points[0])) != 2:
         raise ValueError("points must have 2 coordinates in a 2d line")
-
 
     xdata = [float(z[0]) for z in points]
     ydata = [float(z[1]) for z in points]
@@ -664,13 +665,17 @@ def plot(funcs, *args, **kwds):
       to logarithmic scale. The ``"linear"`` scale is the default value
       when :class:`~sage.plot.graphics.Graphics` is initialized.
 
-    - ``xmin`` - starting x value
+    - ``xmin`` - starting x value in the rendered figure. This parameter is
+      passed directly to the ``show`` procedure and it could be overwritten.
 
-    - ``xmax`` - ending x value
+    - ``xmax`` - ending x value in the rendered figure. This parameter is passed
+      directly to the ``show`` procedure and it could be overwritten.
 
-    - ``ymin`` - starting y value in the rendered figure
+    - ``ymin`` - starting y value in the rendered figure. This parameter is
+      passed directly to the ``show`` procedure and it could be overwritten.
 
-    - ``ymax`` - ending y value in the rendered figure
+    - ``ymax`` - ending y value in the rendered figure. This parameter is passed
+      directly to the ``show`` procedure and it could be overwritten.
 
     - ``color`` - an RGB tuple (r,g,b) with each of r,g,b between 0 and 1,
       or a color name as a string (e.g., 'purple'), or an HTML color
@@ -973,6 +978,20 @@ def plot(funcs, *args, **kwds):
         sage: P = plot([h1, h2], 1,4)
         sage: P          # show the result
         Graphics object consisting of 2 graphics primitives
+
+    It is important to mention that when we draw several graphs at the same time,
+    parameters ``xmin``, ``xmax``, ``ymin`` and ``ymax`` are just passed directly
+    to the ``show`` procedure. In fact, these parameters would be overwritten::
+
+        sage: p=plot(x^3, x, xmin=-1, xmax=1,ymin=-1, ymax=1)
+        sage: q=plot(exp(x), x, xmin=-2, xmax=2, ymin=0, ymax=4)
+        sage: (p+q).show()
+
+    As a workaround, we can perform the trick::
+
+        sage: p1 = line([(a,b) for a,b in zip(p[0].xdata,p[0].ydata) if (b>=-1 and b<=1)])
+        sage: q1 = line([(a,b) for a,b in zip(q[0].xdata,q[0].ydata) if (b>=0 and b<=4)])
+        sage: (p1+q1).show()
 
     We can also directly plot the elliptic curve::
 

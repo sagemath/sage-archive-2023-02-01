@@ -1111,22 +1111,22 @@ How does this work?
     sage: it = iter(GF(5)); it
     <generator object __iter__ at 0x...>
 
-    sage: it.next()
+    sage: next(it)
     0
 
-    sage: it.next()
+    sage: next(it)
     1
 
-    sage: it.next()
+    sage: next(it)
     2
 
-    sage: it.next()
+    sage: next(it)
     3
 
-    sage: it.next()
+    sage: next(it)
     4
 
-    sage: it.next()
+    sage: next(it)
     Traceback (most recent call last):
     ...
     StopIteration

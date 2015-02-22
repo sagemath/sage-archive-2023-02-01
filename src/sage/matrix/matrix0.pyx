@@ -4168,11 +4168,26 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def rank(self):
         """
+        Return the rank of this matrix.
+
+        EXAMPLES::
+
+            sage: m = matrix(GF(7),5,range(25))
+            sage: m.rank()
+            2
+
+        Rank is not implemented over the integers modulo a composite yet.::
+
+            sage: m = matrix(Integers(4), 2, [2,2,2,2])
+            sage: m.rank()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 4'.
 
         TESTS:
 
         We should be able to compute the rank of a matrix whose
-        entries are polynomials over a finite field (trac #5014)::
+        entries are polynomials over a finite field (trac:`5014`)::
 
             sage: P.<x> = PolynomialRing(GF(17))
             sage: m = matrix(P, [ [ 6*x^2 + 8*x + 12, 10*x^2 + 4*x + 11],

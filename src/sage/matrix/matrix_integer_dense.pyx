@@ -106,8 +106,6 @@ from matrix_modn_dense_double cimport Matrix_modn_dense_double
 from matrix_mod2_dense import Matrix_mod2_dense
 from matrix_mod2_dense cimport Matrix_mod2_dense
 
-from matrix_modn_dense cimport is_Matrix_modn_dense
-
 
 from matrix2 import decomp_seq
 
@@ -5453,7 +5451,8 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     mm = moduli
 
     for b in residues:
-        if not is_Matrix_modn_dense(b):
+        if not (isinstance(b, Matrix_modn_dense_float) or
+                isinstance(b, Matrix_modn_dense_double)):
             raise TypeError("Can only perform CRT on list of matrices mod n.")
 
     cdef mod_int **row_list

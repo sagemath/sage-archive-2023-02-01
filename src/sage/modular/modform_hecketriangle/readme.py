@@ -90,7 +90,7 @@ Hecke triangle groups and elements:
       sage: G(matrix([[-1, 1+G.lam()],[0, -1]]))
       Traceback (most recent call last):
       ...
-      ValueError: The matrix is not an element of Hecke triangle group for n = 6, up to equivalence it identifies two nonequivalent points.
+      TypeError: The matrix is not an element of Hecke triangle group for n = 6, up to equivalence it identifies two nonequivalent points.
       sage: G(matrix([[-1, G.lam()],[0, -1]]))
       -T^(-1)
 

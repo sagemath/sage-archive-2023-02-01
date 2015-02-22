@@ -115,7 +115,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: G(M)
             Traceback (most recent call last):
             ...
-            ValueError: The matrix is not an element of Hecke triangle group for n = 4, up to equivalence it identifies two nonequivalent points.
+            TypeError: The matrix is not an element of Hecke triangle group for n = 4, up to equivalence it identifies two nonequivalent points.
 
             sage: G = HeckeTriangleGroup(10)
             sage: el = G(M)
@@ -139,7 +139,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: G(M)
             Traceback (most recent call last):
             ...
-            ValueError: The matrix is not an element of Hecke triangle group for n = 10, it has determinant -1 != 1.
+            TypeError: The matrix is not an element of Hecke triangle group for n = 10, it has determinant -1 != 1.
 
             sage: G.T().inverse()
             [   1 -lam]
@@ -151,9 +151,15 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         """
         MatrixGroupElement_generic.__init__(self, parent, M, check=check, convert=True)
 
+        # The matrix check involves a lengthy element method (_word_S_T_data)
+        # whose result is also used for other purposes. For performance reason the
+        # results are stored/cached in the element. Moreover this avoids code duplication.
+        # In particular this means we cannot call the method from _matrix_check().
+        # Instead it is called here in the __init__ method of the element
+        # (after the prelimenary checks).
         if check:
             if self._matrix.determinant() != 1:
-                raise ValueError("The matrix is not an element of {}, it has determinant {} != 1.".format(parent, self._matrix.determinant()))
+                raise TypeError("The matrix is not an element of {}, it has determinant {} != 1.".format(parent, self._matrix.determinant()))
             self._word_S_T_data()
 
     @cached_method
@@ -163,7 +169,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         of ``self`` as a product of the generators ``S`` and ``T``
         together with a sign correction ``sgn``.
 
-        If this decomposition is not possible an ``ValueError``
+        If this decomposition is not possible a ``TypeError``
         is raised. In particular this function can be used to
         check the membership in ``parent`` of an arbitrary matrix
         over the base ring.
@@ -219,7 +225,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             elif M == -ID:
                 return (tuple(res), -one)
             else:
-                raise ValueError("The matrix is not an element of {}, up to equivalence it identifies two nonequivalent points.".format(self.parent()))
+                raise TypeError("The matrix is not an element of {}, up to equivalence it identifies two nonequivalent points.".format(self.parent()))
 
     def word_S_T(self):
         r"""
@@ -237,7 +243,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         of ``L`` are either the generator ``S`` or a non-trivial
         integer power of the generator ``T``. ``sgn`` is +- the identity.
 
-        If this decomposition is not possible a ``ValueError`` is raised.
+        If this decomposition is not possible a ``TypeError`` is raised.
 
         EXAMPLES::
 

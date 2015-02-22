@@ -1,14 +1,110 @@
 r"""
 PQ-Trees
 
-This module implements PQ-Trees and methods to help recognise Interval
-Graphs. It is used by :meth:`is_interval
-<sage.graphs.generic_graph.GenericGraph.is_interval>`.
+This module implements PQ-Trees, a data structure use to represent all
+permutations of the columns of a matrix which satisfy the *consecutive ones*
+*property*:
 
-Author:
+  A binary matrix satisfies the *consecutive ones property* if the 1s are
+  contiguous in each of its rows (or equivalently, if no row contains the regexp
+  pattern `10^+1`).
 
-- Nathann Cohen
+  Alternatively, one can say that a sequence of sets `S_1,...,S_n` satisfies the
+  *consecutive ones property* if for any `x` the indices of the sets containing
+  `x` is an interval of `[1,n]`.
 
+This module is used for the recognition of Interval Graphs (see
+:meth:`~sage.graphs.generic_graph.GenericGraph.is_interval`).
+
+**P-tree and Q-tree**
+
+
+- A `P`-tree with children `c_1,...,c_k` (which can be `P`-trees, `Q`-trees, or
+  actual sets of points) indicates that all `k!` permutations of the children
+  are allowed.
+
+  Example: `\{1,2\},\{3,4\},\{5,6\}` (disjoint sets can be permuted in any way)
+
+- A `Q`-tree with children `c_1,...,c_k` (which can be `P`-trees, `Q`-trees, or
+  actual sets of points) indicates that only two permutations of its children
+  are allowed: `c_1,...,c_k` or `c_k,...,c_1`.
+
+  Example: `\{1,2\},\{2,3\},\{3,4\},\{4,5\},\{5,6\}` (only two permutations of
+  these sets have the *consecutive ones property*).
+
+**Computation of all possible orderings**
+
+#. In order to compute all permutations of a sequence of sets `S_1,...,S_k`
+   satisfying the *consecutive ones property*, we initialize `T` as a `P`-tree
+   whose children are all the `S_1,...,S_k`, thus representing the set of all
+   `k!` permutations of them.
+
+#. We select some element `x` and update the data structure `T` to restrict the
+   permutations it describes to those that keep the occurrences of `x` on an
+   interval of `[1,...,k]`. This will result in a new `P`-tree whose children
+   are:
+
+   * all `\bar c_x` sets `S_i` which do *not* contain `x`.
+   * a new `P`-tree whose children are the `c_x` sets `S_i` containing `x`.
+
+   This describes the set of all `c_x!\times \bar c'_x!` permutations of
+   `S_1,...,S_k` that keep the sets containing `x` on an interval.
+
+#. We take a second element `x'` and update the data structure `T` to restrict
+   the permutations it describes to those that keep `x'` on an interval of
+   `[1,...,k]`. The sets `S_1,...,S_k` belong to 4 categories:
+
+   * The family `S_{00}` of sets which do not contain any of
+     `x,x'`.
+
+   * The family `S_{01}` of sets which contain `x'` but do not contain
+     `x`.
+
+   * The family `S_{10}` of sets which contain `x` but do not contain
+     `x'`.
+
+   * The family `S_{11}` of sets which contain `x'` and `x'`.
+
+   With these notations, the permutations of `S_1,...,S_k` which keep the
+   occurrences of `x` and `x'` on an interval are of two forms:
+
+   * <some sets `S_{00}`>, <sets from `S_{10}`>, <sets from `S_{11}`>, <sets from `S_{01}`>, <other sets from `S_{00}`>
+   * <some sets `S_{00}`>, <sets from `S_{01}`>, <sets from `S_{11}`>, <sets from `S_{10}`>, <other sets from `S_{00}`>
+
+   These permutations can be modeled with the following `PQ`-tree:
+
+   * A `P`-tree whose children are:
+
+     * All sets from `S_{00}`
+     * A `Q`-tree whose children are:
+
+       * A `P`-tree with whose children are the sets from `S_{10}`
+       * A `P`-tree with whose children are the sets from `S_{11}`
+       * A `P`-tree with whose children are the sets from `S_{01}`
+
+#. One at a time, we update the data structure with each element until they are
+   all exhausted, or until we reach a proof that no permutation satisfying the
+   *consecutive ones property* exists.
+
+   Using these two types of tree, and exploring the different cases of
+   intersection, it is possible to represent all the possible permutations of
+   our sets satisfying our constraints, or to prove that no such ordering
+   exists. This is the whole purpose of this module, and is explained with more
+   details in many places, for example in the following document from Hajiaghayi
+   [Haj]_.
+
+REFERENCES:
+
+.. [Haj] M. Hajiaghayi
+   http://www-math.mit.edu/~hajiagha/pp11.ps
+
+Authors:
+
+Nathann Cohen (initial implementation)
+
+
+Methods and functions
+---------------------
 """
 
 ################################################################################
@@ -84,18 +180,12 @@ def reorder_sets(sets):
         sage: print ordered
         [{0, 1, 2}, {1, 2, 3}, {2, 3, 4}, {3, 4, 5}, {4, 5, 6}, {5, 6, 7}, {8, 6, 7}, {8, 9, 7}, {8, 9, 10}, {9, 10, 11}, {10, 11, 12}, {11, 12, 13}, {12, 13, 14}, {13, 14, 15}]
     """
-
-    if len(sets) == 1:
+    if len(sets) <= 2:
         return sets
 
-    s = set([])
-
-    for ss in sets:
-        for i in ss:
-            s.add(i)
+    s = set().union(*sets) # union of the sets
 
     tree = P(sets)
-
 
     for i in s:
         tree.set_contiguous(i)
@@ -105,83 +195,11 @@ def reorder_sets(sets):
 
 class PQ:
     r"""
-    This class implements the PQ-Tree, used for the recognition of
-    Interval Graphs, or equivalently for matrices having the so-caled
-    "consecutive ones property".
+    PQ-Trees
 
-    Briefly, we are given a collection `C=S_1, ..., S_n` of sets on a
-    common ground set `X`, and we would like to reorder the elements
-    of `C` in such a way that for every element `x\in X` such that
-    `x\in S_i` and `x\in S_j`, `i<j`, we have `x\in S_l` for all
-    `i<l<j`. This property could also be rephrased as : the sets
-    containing `x` are an interval.
-
-    To achieve it, we will actually compute ALL the orderings
-    satisfying such constraints using the structure of PQ-Tree, by
-    adding the constraints one at a time.
-
-        * At first, there is no constraint : all the permutations are
-          allowed. We will then build a tree composed of one node
-          linked to all the sets in our collection (his children). As
-          we want to remember that all the permutations of his
-          children are allowed, we will label it with "P", making it a
-          P-Tree.
-
-        * We are now picking an element `x \in X`, and we want to
-          ensure that all the elements `C_x` containing it are
-          contiguous. We can remove them from their tree `T_1`, create
-          a second tree `T_2` whose only children are the `C_x`, and
-          attach this `T_2` to `T_1`. We also make this new tree a
-          `P-Tree`, as all the elements of `C_x` can be permuted as
-          long as they stay close to each other. Obviously, the whole
-          tree `T_2` can be prmuter with the other children of `T_1`
-          in any way -- it does not impair the fact that the sequence
-          of the children will ensure the sets containing `x` are
-          contiguous.
-
-        * We would like to repeat the same procedure for `x' \in X`,
-          but we are now encountering a problem : there may be sets
-          containing both `x'` and `x`, along with others containing
-          only `x` or only `x'`. We can permute the sets containing
-          only `x'` together, or the sets containing both `x` and `x'`
-          together, but we may NOT permute all the sets containing
-          `x'` together as this may break the relationship between the
-          sets containing `x`. We need `Q`-Trees. A `Q`-Tree is a tree
-          whose children are ordered, even though their order could be
-          reversed (if the children of a `Q`-Tree are `c_1c_2
-          ... c_k`, we can change it to `c_k ... c_2c_1`). We can now
-          express all the orderings satisfying our two constraints the
-          following way :
-
-            * We create a tree `T_1` gathering all the elements not
-              containing `x` nor `x'`, and make it a `P-Tree`
-
-            * We create 3 `P`-Trees `T_{x, x'}, T_x, T_{x'}`, which
-              respectively have for children the elements or our
-              collection containing
-
-                * both `x` and `x'`
-                * only `x`
-                * only `x'`
-
-            * To ensure our constraints on both elements, we create a
-              `Q`-tree `T_2` whose children are in order `T_x, T_{x,
-              x'}, T_{x'}`
-
-            * We now make this `Q`-Tree `T_2` a children of the
-              `P`-Tree `T_1`
-
-    Using these two types of tree, and exploring the different cases
-    of intersection, it is possible to represent all the possible
-    permutations of our sets satisfying or constraints, or to prove
-    that no such ordering exists. This is the whole purpose of this
-    class and this algorithm, and is explained with more details in many
-    places, for example in the following document from Hajiaghayi [Haj]_.
-
-    REFERENCES:
-
-    .. [Haj] M. Hajiaghayi
-      http://www-math.mit.edu/~hajiagha/pp11.ps
+    This class should not be instantiated by itself: it is extended by
+    :class:`P` and :class:`Q`. See the documentation of
+    :mod:`sage.graphs.pq_trees` for more information.
 
     AUTHOR : Nathann Cohen
     """
@@ -264,11 +282,10 @@ class PQ:
             {2, 3}
             ('P', [{2, 4}, {8, 2}, {9, 2}])
         """
-
         for i in self._children:
             yield i
 
-    def cardinality(self):
+    def number_of_children(self):
         r"""
         Returns the number of children of ``self``
 
@@ -276,7 +293,7 @@ class PQ:
 
             sage: from sage.graphs.pq_trees import P, Q
             sage: p = Q([[1,2], [2,3], P([[2,4], [2,8], [2,9]])])
-            sage: p.cardinality()
+            sage: p.number_of_children()
             3
         """
         return len(self._children)
@@ -313,7 +330,7 @@ class PQ:
             sage: print p
             ('Q', [{1, 2}, {2, 3}, ('P', [{2, 4}, {8, 2}, {9, 2}])])
         """
-        return str((("P" if self.is_P() else "Q"),self._children))
+        return str((("P" if isinstance(self,P) else "Q"),self._children))
 
     def simplify(self, v, left = False, right = False):
         r"""
@@ -329,10 +346,10 @@ class PQ:
 
         INPUT:
 
-        - ``left, right`` (booleans) -- whether ``v`` is aligned to the
+        - ``left, right`` (boolean) -- whether ``v`` is aligned to the
           right or to the left
 
-        - ``v```-- an element of the ground set
+        - ``v``-- an element of the ground set
 
         OUTPUT:
 
@@ -367,7 +384,7 @@ class PQ:
         if sum([left, right]) !=1:
             raise ValueError("Exactly one of left or right must be specified")
 
-        if self.is_Q():
+        if isinstance(self,Q):
             l = []
             for c in self._children:
                 if (isinstance(c,PQ)          and  # Is c partial?
@@ -418,54 +435,22 @@ class PQ:
             sage: p.flatten()
             ('P', [{2, 4}, {8, 2}, {9, 2}])
         """
-        if self.cardinality() == 1:
+        if self.number_of_children() == 1:
             return flatten(self._children[0])
         else:
             self._children = [flatten(x) for x in self._children]
             return self
 
-
-    def is_P(self):
-        r"""
-        Tests whether ``self`` is a `P`-Tree
-
-        EXAMPLE::
-
-            sage: from sage.graphs.pq_trees import P, Q
-            sage: P([[0,1],[2,3]]).is_P()
-            True
-            sage: Q([[0,1],[2,3]]).is_P()
-            False
-        """
-        return isinstance(self,P)
-
-    def is_Q(self):
-        r"""
-        Tests whether ``self`` is a `Q`-Tree
-
-        EXAMPLE::
-
-            sage: from sage.graphs.pq_trees import P, Q
-            sage: Q([[0,1],[2,3]]).is_Q()
-            True
-            sage: P([[0,1],[2,3]]).is_Q()
-            False
-        """
-        return isinstance(self,Q)
-
 class P(PQ):
     r"""
-    A P-Tree is a PQ-Tree whose children are
-    not ordered (they can be permuted in any way)
+    A P-Tree is a PQ-Tree whose children can be permuted in any way.
+
+    For more information, see the documentation of :mod:`sage.graphs.pq_trees`.
     """
     def set_contiguous(self, v):
         r"""
-        Updates ``self`` so that its sets containing ``v`` are
+        Updates ``self`` so that the sets containing ``v`` are
         contiguous for any admissible permutation of its subtrees.
-
-        This function also ensures, whenever possible,
-        that all the sets containing ``v`` are located on an interval
-        on the right side of the ordering.
 
         INPUT:
 
@@ -517,7 +502,6 @@ class P(PQ):
             Traceback (most recent call last):
             ...
             ValueError: Impossible
-
         """
 
         ###############################################################
@@ -556,15 +540,13 @@ class P(PQ):
         n_PARTIAL_ALIGNED       = len(set_PARTIAL_ALIGNED)
         n_PARTIAL_UNALIGNED     = len(set_PARTIAL_UNALIGNED)
 
-        counts = dict(map(lambda x_y: (x_y[0], len(x_y[1])),
-                          sorting.iteritems()))
+        counts = {x:len(y) for x,y in sorting.iteritems()}
 
         # Excludes the situation where there is no solution.
         # read next comment for more explanations
 
-        if (n_PARTIAL_ALIGNED + n_PARTIAL_UNALIGNED > 2 or
-            (n_PARTIAL_UNALIGNED >= 1 and n_EMPTY != self.cardinality() -1)):
-
+        if (n_PARTIAL_ALIGNED > 2 or
+            (n_PARTIAL_UNALIGNED >= 1 and n_EMPTY != self.number_of_children() -1)):
             raise ValueError(impossible_msg)
 
         # From now on, there are at most two pq-trees which are partially filled
@@ -578,11 +560,11 @@ class P(PQ):
         #########################################################
 
         # All the children are FULL
-        elif n_FULL == self.cardinality():
+        elif n_FULL == self.number_of_children():
             return FULL, True
 
         # All the children are empty
-        elif n_EMPTY == self.cardinality():
+        elif n_EMPTY == self.number_of_children():
             return EMPTY, True
 
         # There is a PARTIAL UNALIGNED element (and all the others are
@@ -595,11 +577,10 @@ class P(PQ):
         # empty, we just reorder the set to put it at the right end
 
         elif (n_PARTIAL_ALIGNED == 1 and
-              n_EMPTY == self.cardinality()-1):
+              n_EMPTY == self.number_of_children()-1):
 
             self._children = set_EMPTY + set_PARTIAL_ALIGNED
             return (PARTIAL, ALIGNED)
-
 
         ################################################################
         # 2/2                                                          #
@@ -633,13 +614,11 @@ class P(PQ):
 
                 new = []
 
-
                 # add the partial element, if any
                 if n_PARTIAL_ALIGNED == 1:
 
                     subtree = set_PARTIAL_ALIGNED[0]
                     new.extend(subtree.simplify(v, right = ALIGNED))
-
 
                 # Then the full elements, if any, in a P-tree (we can
                 # permute any two of them while keeping all the
@@ -660,10 +639,9 @@ class P(PQ):
             # interval of sets containing v to the right
 
             else:
-
                 new = []
 
-                # The second partal element is aligned to the right
+                # The second partial element is aligned to the right
                 # while, as we want to put it at the end of the
                 # interval, it should be aligned to the left
                 set_PARTIAL_ALIGNED[1].reverse()
@@ -690,20 +668,70 @@ class P(PQ):
 
                 return PARTIAL, False
 
+    def cardinality(self):
+        r"""
+        Return the number of orderings allowed by the structure.
+
+        .. SEEALSO::
+
+            :meth:`orderings` -- iterate over all admissible orderings
+
+        EXAMPLE::
+
+            sage: from sage.graphs.pq_trees import P, Q
+            sage: p = P([[0,3], [1,2], [2,3], [2,4], [4,0],[2,8], [2,9]])
+            sage: p.cardinality()
+            5040
+            sage: p.set_contiguous(3)
+            (1, True)
+            sage: p.cardinality()
+            1440
+        """
+        from math import factorial
+        n = factorial(self.number_of_children())
+        for c in self._children:
+            if isinstance(c,PQ):
+                n = n*c.cardinality()
+        return n
+
+    def orderings(self):
+        r"""
+        Iterate over all orderings of the sets allowed by the structure.
+
+        .. SEEALSO::
+
+            :meth:`cardinality` -- return the number of orderings
+
+        EXAMPLES::
+
+            sage: from sage.graphs.pq_trees import P, Q
+            sage: p = P([[2,4], [1,2], [0,8], [0,5]])
+            sage: for o in p.orderings():
+            ....:    print o
+            ({2, 4}, {1, 2}, {0, 8}, {0, 5})
+            ({2, 4}, {1, 2}, {0, 5}, {0, 8})
+            ({2, 4}, {0, 8}, {1, 2}, {0, 5})
+            ({2, 4}, {0, 8}, {0, 5}, {1, 2})
+            ...
+
+        """
+        from itertools import permutations, product
+        for p in permutations(self._children):
+            for o in product(*[x.orderings() if isinstance(x,PQ) else [x]
+                               for x in p]):
+                yield o
+
 class Q(PQ):
     r"""
-    A Q-Tree is a PQ-Tree whose children are
-    ordered up to reversal
+    A Q-Tree is a PQ-Tree whose children are ordered up to reversal
+
+    For more information, see the documentation of :mod:`sage.graphs.pq_trees`.
     """
 
     def set_contiguous(self, v):
         r"""
-        Updates ``self`` so that its sets containing ``v`` are
+        Updates ``self`` so that the sets containing ``v`` are
         contiguous for any admissible permutation of its subtrees.
-
-        This function also ensures, whenever possible,
-        that all the sets containing ``v`` are located on an interval
-        on the right side of the ordering.
 
         INPUT:
 
@@ -749,11 +777,7 @@ class Q(PQ):
             Traceback (most recent call last):
             ...
             ValueError: Impossible
-
-
         """
-
-
         #################################################################
         # Guidelines :                                                  #
         #                                                               #
@@ -803,8 +827,7 @@ class Q(PQ):
         n_PARTIAL_ALIGNED       = len(set_PARTIAL_ALIGNED)
         n_PARTIAL_UNALIGNED     = len(set_PARTIAL_UNALIGNED)
 
-        counts = dict(map(lambda x_y: (x_y[0], len(x_y[1])),
-                          sorting.iteritems()))
+        counts = {x:len(y) for x,y in sorting.iteritems()}
 
         ###################################################################
         #                                                                 #
@@ -827,11 +850,10 @@ class Q(PQ):
         ###################################################################
 
         if (f_seq[self._children[-1]] == (EMPTY, ALIGNED) or
-            (f_seq[self._children[-1]] == (PARTIAL, ALIGNED) and n_FULL == self.cardinality() - 1)):
+            (f_seq[self._children[-1]] == (PARTIAL, ALIGNED) and n_FULL == self.number_of_children() - 1)):
 
             # We reverse the order of the elements in the SET only. Which means that they are still aligned to the right !
             self._children.reverse()
-
 
         #########################################################
         # 1/2                                                   #
@@ -840,12 +862,11 @@ class Q(PQ):
         # attention                                             #
         #########################################################
 
-
         # Excludes the situation where there is no solution.
         # read next comment for more explanations
 
-        if (n_PARTIAL_ALIGNED + n_PARTIAL_UNALIGNED > 2 or
-            (n_PARTIAL_UNALIGNED >= 1 and n_EMPTY != self.cardinality() -1)):
+        if (n_PARTIAL_ALIGNED > 2 or
+            (n_PARTIAL_UNALIGNED >= 1 and n_EMPTY != self.number_of_children() -1)):
 
             raise ValueError(impossible_msg)
 
@@ -853,11 +874,11 @@ class Q(PQ):
         # If there is one which is not aligned to the right, all the others are empty
 
         # First trivial case, no checking neded
-        elif n_FULL == self.cardinality():
+        elif n_FULL == self.number_of_children():
             return FULL, True
 
         # Second trivial case, no checking needed
-        elif n_EMPTY == self.cardinality():
+        elif n_EMPTY == self.number_of_children():
             return EMPTY, True
 
         # Third trivial case, no checking needed
@@ -869,7 +890,7 @@ class Q(PQ):
         # the set to put it at the right end
 
         elif (n_PARTIAL_ALIGNED == 1 and
-              n_EMPTY == self.cardinality()-1):
+              n_EMPTY == self.number_of_children()-1):
 
             if set_PARTIAL_ALIGNED[0] == self._children[-1]:
                 return (PARTIAL, ALIGNED)
@@ -877,13 +898,12 @@ class Q(PQ):
             else:
                 return (PARTIAL, UNALIGNED)
 
-
         ##############################################################
         # 2/2                                                        #
         #                                                            #
         # We iteratively consider all the children, and check        #
         # that the elements containing v are indeed                  #
-        # locate on an interval.                                     #
+        # located on an interval.                                    #
         #                                                            #
         # We are also interested in knowing whether this interval is #
         # aligned to the right                                       #
@@ -985,3 +1005,53 @@ class Q(PQ):
 
             return (PARTIAL, not seen_right_end)
 
+    def cardinality(self):
+        r"""
+        Return the number of orderings allowed by the structure.
+
+        .. SEEALSO::
+
+            :meth:`orderings` -- iterate over all admissible orderings
+
+        EXAMPLE::
+
+            sage: from sage.graphs.pq_trees import P, Q
+            sage: q = Q([[0,3], [1,2], [2,3], [2,4], [4,0],[2,8], [2,9]])
+            sage: q.cardinality()
+            2
+        """
+        n = 1
+        for c in self._children:
+            if isinstance(c,PQ):
+                n = n*c.cardinality()
+
+        return n if (self.number_of_children() == 1) else 2*n
+
+    def orderings(self):
+        r"""
+        Iterates over all orderings of the sets allowed by the structure
+
+        .. SEEALSO::
+
+            :meth:`cardinality` -- return the number of orderings
+
+
+        EXAMPLES::
+
+            sage: from sage.graphs.pq_trees import P, Q
+            sage: q = Q([[2,4], [1,2], [0,8], [0,5]])
+            sage: for o in q.orderings():
+            ....:    print o
+            ({2, 4}, {1, 2}, {0, 8}, {0, 5})
+            ({0, 5}, {0, 8}, {1, 2}, {2, 4})
+        """
+        if len(self._children) == 1:
+            c = self._children[0]
+            for o in (c.orderings() if isinstance(c,PQ) else [o]):
+                yield o
+        else:
+            from itertools import product
+            for o in product(*[x.orderings() if isinstance(x,PQ) else [x]
+                               for x in self._children]):
+                yield o
+                yield o[::-1]

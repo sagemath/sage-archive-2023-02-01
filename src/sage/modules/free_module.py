@@ -1326,8 +1326,19 @@ done from the right side.""")
             Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
             sage: ((ZZ^2)*2).basis_matrix(RDF).parent()
             Full MatrixSpace of 2 by 2 dense matrices over Real Double Field
-            sage: ((ZZ^2)*(1/2)).basis_matrix().parent()
+
+            sage: M = (ZZ^2)*(1/2)
+            sage: M.basis_matrix()
+            [1/2   0]
+            [  0 1/2]
+            sage: M.basis_matrix().parent()
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: M.basis_matrix(QQ).parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: M.basis_matrix(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix has denominators so can't change to ZZ.
         """
         try:
             A = self.__basis_matrix

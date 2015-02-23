@@ -17,3 +17,8 @@ Home page: https://pypi.python.org/pypi/backports.ssl_match_hostname
 
 Python, Setuptools
 
+== Special Update/Build Instructions ==
+
+* Unpack the tarball
+* rename backports.ssl_match_hostname -> backports_ssl_match_hostname
+* Tar as backports_ssl_match_hostname.VERSION.tar.gz

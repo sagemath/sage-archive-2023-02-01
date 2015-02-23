@@ -678,7 +678,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         All memory is allocated for this matrix, but its
         entries have not yet been filled in.
         """
-        cdef object P
         if nrows == self._nrows and ncols == self._ncols:
             P = self._parent
         else:

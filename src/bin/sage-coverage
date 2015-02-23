@@ -196,7 +196,7 @@ class CoverageResults:
 
 
 first = True
-no_doc = no_test = possibly_wrong = 0
+good = no_doc = no_test = possibly_wrong = 0
 bad_files = []
 def go(filename):
     r"""
@@ -216,7 +216,7 @@ def go(filename):
             or filename.endswith('.sage')):
         return
 
-    global first, no_doc, no_test, possibly_wrong, bad_files
+    global first, good, no_doc, no_test, possibly_wrong, bad_files
     with open(filename, 'r') as f:
         cr = CoverageResults(filename).check_file(f)
     bad = cr.no_doc or cr.no_test or cr.possibly_wrong
@@ -225,6 +225,7 @@ def go(filename):
         no_doc         += len(cr.no_doc)
         no_test        += len(cr.no_test)
         possibly_wrong += len(cr.possibly_wrong)
+        good           += len(cr.good)
         if bad: bad_files.append(filename)
         return
     if not bad and args.only_bad:
@@ -240,6 +241,9 @@ for arg in args.filename:
     go(arg)
 
 if args.summary:
+    num_functions = good + no_doc + no_test
+    score = (100.0 * good) / float(num_functions)
+    print("Global score: {:.1f}% ({} of {})\n".format(score, good, num_functions))
     print("{} files with wrong documentation".format(len(bad_files)))
     print("{} functions with no doc".format(no_doc))
     print("{} functions with no test".format(no_test))

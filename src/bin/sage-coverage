@@ -236,6 +236,7 @@ def go(filename):
     if not bad and args.only_bad:
         return
 
+    global first
     if first:
         print('-'*72)
         first = False

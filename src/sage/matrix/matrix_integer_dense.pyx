@@ -257,32 +257,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         sage_free(self._entries)
         self._initialized_mpz = False
 
-    def __copy__(self):
-        r"""
-        Returns a new copy of this matrix.
-
-        EXAMPLES::
-
-            sage: a = matrix(ZZ,1,3, [1,2,-3]); a
-            [ 1  2 -3]
-            sage: b = a.__copy__(); b
-            [ 1  2 -3]
-            sage: b is a
-            False
-            sage: b == a
-            True
-        """
-        cdef Matrix_integer_dense A
-        A = self._new_uninitialized_matrix(self._nrows,self._ncols)
-
-        cdef Py_ssize_t i
-        sig_on()
-        fmpz_mat_set(A._matrix,self._matrix)
-        sig_off()
-        if self._subdivisions is not None:
-            A.subdivide(*self.subdivisions())
-        return A
-
     def __hash__(self):
         r"""
         Returns hash of self.
@@ -735,9 +709,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def __copy__(self):
         r"""
-        Return a copy of this matrix.
+        Returns a new copy of this matrix.
 
         EXAMPLES::
+
+            sage: a = matrix(ZZ,1,3, [1,2,-3]); a
+            [ 1  2 -3]
+            sage: b = a.__copy__(); b
+            [ 1  2 -3]
+            sage: b is a
+            False
+            sage: b == a
+            True
 
             sage: M = MatrixSpace(ZZ,2,3)
             sage: m = M([1,2,3,3,2,1])
@@ -745,9 +728,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: mc == m and mc is not m
             True
         """
-        cdef Matrix_integer_dense M = self._new_uninitialized_matrix(self._nrows, self._ncols)
-        fmpz_mat_set(M._matrix, (<Matrix_integer_dense> self)._matrix)
-        return M
+        cdef Matrix_integer_dense A
+        A = self._new_uninitialized_matrix(self._nrows,self._ncols)
+
+        sig_on()
+        fmpz_mat_set(A._matrix,self._matrix)
+        sig_off()
+        if self._subdivisions is not None:
+            A.subdivide(*self.subdivisions())
+        return A
 
     def __nonzero__(self):
         r"""

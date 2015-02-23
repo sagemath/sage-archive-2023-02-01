@@ -4052,6 +4052,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f = 12 * (3*x*y + 4) * (5*x - 2) * (2*y + 7)^2
             sage: f.factor()
             2^2 * 3 * (2*y + 7)^2 * (5*x - 2) * (3*x*y + 4)
+            sage: g = -12 * (x^2 - y^2)
+            sage: g.factor()
+            (-1) * 2^2 * 3 * (x - y) * (x + y)
 
         TESTS:
 
@@ -4188,9 +4191,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                 frac_field = self._parent._base.fraction_field()
                 F = self.change_ring(frac_field).factor()
                 FF = [(f[0].change_ring(self._parent), f[1]) for f in F]
-                U = list(self._parent._base(F.unit()).factor())
-                U.extend(FF)
-                return Factorization(U)
+                U = self._parent._base(F.unit()).factor()
+                return Factorization(list(U) + FF, unit=U.unit())
             except:
                 raise NotImplementedError, "Factorization of multivariate polynomials over %s is not implemented."%self._parent._base
 

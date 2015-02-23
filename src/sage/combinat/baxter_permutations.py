@@ -166,7 +166,7 @@ class BaxterPermutations_size(BaxterPermutations):
 
         TESTS::
 
-            sage: all(a in BaxterPermutations(n) for n in xrange(9)
+            sage: all(a in BaxterPermutations(n) for n in xrange(7)
             ....:     for a in BaxterPermutations(n))
             True
 
@@ -221,7 +221,7 @@ class BaxterPermutations_size(BaxterPermutations):
             {\binom{n+1}{k-1} \binom{n+1}{k} \binom{n+1}{k+1}}
             {\binom{n+1}{1} \binom{n+1}{2}} .
 
-        This is sequence A001181 in Sloane's OEIS.
+        This is sequence :oeis:`A001181` in Sloane's OEIS.
 
         EXAMPLES::
 

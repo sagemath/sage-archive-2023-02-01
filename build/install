@@ -302,6 +302,7 @@ BOOST_CROPPED=`newest_version boost_cropped`
 BZIP2=`newest_version bzip2`
 CDDLIB=`newest_version cddlib`
 CEPHES=`newest_version cephes`
+CERTIFI=`newest_version certifi`
 CLIQUER=`newest_version cliquer`
 COMBINATORIAL_DESIGNS=`newest_version combinatorial_designs`
 CONWAY=`newest_version conway_polynomials`

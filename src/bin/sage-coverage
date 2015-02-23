@@ -6,13 +6,14 @@ import os
 import sys
 import token
 from tokenize import *
+import argparse
 
+parser = argparse.ArgumentParser(description='Look into Sage files for wrong doctests.')
+parser.add_argument('filename', type=str, nargs='+', help='filename or a directory')
+parser.add_argument('--only-bad', action='store_true', help='only print info for bad formatted files')
+parser.add_argument('--summary', action='store_true', help='only print a short summary')
 
-if len(sys.argv) == 1:
-    print("Usage: sage --coverage <files>")
-    print("Give info about doctest coverage of files.")
-    sys.exit(2)
-
+args = parser.parse_args()
 
 # Collect coverage results for one file
 class CoverageResults:
@@ -193,9 +194,16 @@ class CoverageResults:
         return self
 
 
-first = True
 
+first = True
+no_doc = no_test = possibly_wrong = 0
+bad_files = []
 def go(filename):
+    r"""
+    If ``filename`` is a file, launch the inspector on this file. If
+    ``filename`` is a directory then recursively launch this function on the
+    files it contains.
+    """
     if os.path.isdir(filename):
         for F in sorted(os.listdir(filename)):
             go(os.path.join(filename, F))
@@ -208,12 +216,33 @@ def go(filename):
             or filename.endswith('.sage')):
         return
 
-    global first
+    global first, no_doc, no_test, possibly_wrong, bad_files
+    with open(filename, 'r') as f:
+        cr = CoverageResults(filename).check_file(f)
+    bad = cr.no_doc or cr.no_test or cr.possibly_wrong
+
+    if args.summary:
+        no_doc         += len(cr.no_doc)
+        no_test        += len(cr.no_test)
+        possibly_wrong += len(cr.possibly_wrong)
+        if bad: bad_files.append(filename)
+        return
+    if not bad and args.only_bad:
+        return
+
     if first:
         print('-'*72)
         first = False
-    CoverageResults(filename).check_file(open(filename)).report()
+    cr.report()
     print('-'*72)
 
-for arg in sys.argv[1:]:
+for arg in args.filename:
     go(arg)
+
+if args.summary:
+    print("{} functions with no doc".format(no_doc))
+    print("{} functions with no test".format(no_test))
+    print("{} doctest are potentially wrong".format(possibly_wrong))
+    print("\nFiles with wrong documentation:")
+    print("---------------------------------")
+    print("\n".join(" - {}".format(filename) for filename in bad_files))

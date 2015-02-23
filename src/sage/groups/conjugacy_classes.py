@@ -60,15 +60,6 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
-# TODO
-#
-# Don't derive from Parent if there are no elements
-#
-# @cached_method must not return mutable containers (lists), use
-# tuples instead.
-
-
-
 class ConjugacyClass(Parent):
     r"""
     Generic conjugacy classes for elements in a group.
@@ -211,7 +202,6 @@ class ConjugacyClass(Parent):
         else:
             raise NotImplementedError("Listing the elements of conjugacy classes is not implemented for infinite groups!")
 
-    @cached_method
     def list(self):
         r"""
         Return a list with all the elements of ``self``.
@@ -273,6 +263,7 @@ class ConjugacyClass(Parent):
         """
         return self._representative
 
+    an_element = representative
 
 class ConjugacyClassGAP(ConjugacyClass):
     r"""
@@ -348,6 +339,21 @@ class ConjugacyClassGAP(ConjugacyClass):
             ConjugacyClass( SymmetricGroup( [ 1 .. 3 ] ), (1,2,3) )
         """
         return self._gap_conjugacy_class
+
+    def cardinality(self):
+        r"""
+        Return the size of this conjugacy class.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(['C',6])
+            sage: cc = W.conjugacy_class(W.an_element())
+            sage: cc.cardinality()
+            3840
+            sage: type(cc.cardinality())
+            <type 'sage.rings.integer.Integer'>
+        """
+        return self._gap_().Size().sage()
 
     @cached_method
     def set(self):

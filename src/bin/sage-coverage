@@ -194,10 +194,14 @@ class CoverageResults:
         return self
 
 
+# Data reported by --summary
+good           = 0
+no_doc         = 0
+no_test        = 0
+possibly_wrong = 0
+bad_files      = []
 
 first = True
-good = no_doc = no_test = possibly_wrong = 0
-bad_files = []
 def go(filename):
     r"""
     If ``filename`` is a file, launch the inspector on this file. If
@@ -216,12 +220,13 @@ def go(filename):
             or filename.endswith('.sage')):
         return
 
-    global first, good, no_doc, no_test, possibly_wrong, bad_files
     with open(filename, 'r') as f:
         cr = CoverageResults(filename).check_file(f)
     bad = cr.no_doc or cr.no_test or cr.possibly_wrong
 
+    # Update the global variables
     if args.summary:
+        global good, no_doc, no_test, possibly_wrong, bad_files
         no_doc         += len(cr.no_doc)
         no_test        += len(cr.no_test)
         possibly_wrong += len(cr.possibly_wrong)
@@ -234,7 +239,8 @@ def go(filename):
     if first:
         print('-'*72)
         first = False
-    cr.report()
+
+    cr.report() # Print the report
     print('-'*72)
 
 for arg in args.filename:
@@ -249,5 +255,5 @@ if args.summary:
     print("{} functions with no test".format(no_test))
     print("{} doctest are potentially wrong".format(possibly_wrong))
     print("\nFiles with wrong documentation:")
-    print("---------------------------------")
+    print("-------------------------------")
     print("\n".join("  {}".format(filename) for filename in bad_files))

@@ -329,8 +329,6 @@ cdef inline object si2sa_ZZmod(number *n, ring *_ring, object base):
         ret.set_from_mpz(<mpz_ptr>n)
         return base(ret)
 
-    return base(_ring.cf.n_Int(n,_ring))
-
 cdef number *sa2si_QQ(Rational r, ring *_ring):
     """
     TESTS::

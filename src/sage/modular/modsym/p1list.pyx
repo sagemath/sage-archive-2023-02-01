@@ -62,9 +62,8 @@ cdef int c_p1_normalize_int(int N, int u, int v,
         ss[0] = 1
         return 0
 
-    if N<=0 or N > 46340:
-        raise OverflowError, "Modulus is too large (must be < 46340)"
-        return -1
+    if N <= 0 or 46340 < N:
+        raise OverflowError("Modulus is too large (must be <= 46340)")
 
     u = u % N
     v = v % N
@@ -578,9 +577,8 @@ cdef int p1_normalize_xgcdtable(int N, int u, int v,
         ss[0] = 1
         return 0
 
-    if N<=0 or N > 46340:
-        raise OverflowError, "Modulus is too large (must be < 46340)"
-        return -1
+    if N <= 0 or 46340 < N:
+        raise OverflowError("Modulus is too large (must be <= 46340)")
 
     u = u % N
     v = v % N

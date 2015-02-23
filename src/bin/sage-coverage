@@ -245,4 +245,4 @@ if args.summary:
     print("{} doctest are potentially wrong".format(possibly_wrong))
     print("\nFiles with wrong documentation:")
     print("---------------------------------")
-    print("\n".join(" - {}".format(filename) for filename in bad_files))
+    print("\n".join("  {}".format(filename) for filename in bad_files))

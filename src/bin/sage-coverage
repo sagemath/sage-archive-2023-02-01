@@ -240,6 +240,7 @@ for arg in args.filename:
     go(arg)
 
 if args.summary:
+    print("{} files with wrong documentation".format(len(bad_files)))
     print("{} functions with no doc".format(no_doc))
     print("{} functions with no test".format(no_test))
     print("{} doctest are potentially wrong".format(possibly_wrong))

@@ -83,6 +83,7 @@ TESTS:
 
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
+from sage.ext.memory cimport check_allocarray
 
 from sage.rings.finite_rings.stdint cimport INTEGER_MOD_INT64_LIMIT
 
@@ -130,9 +131,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
         self._degree = degree
         self._parent = parent
         self._p = p
-        self._entries = <mod_int *> sage_malloc(sizeof(mod_int) * degree)
-        if self._entries == NULL:
-            raise MemoryError
+        self._entries = <mod_int *>check_allocarray(degree, sizeof(mod_int))
 
     def __cinit__(self, parent=None, x=None, coerce=True, copy=True):
         self._entries = NULL

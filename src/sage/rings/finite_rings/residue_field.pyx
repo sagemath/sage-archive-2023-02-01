@@ -172,6 +172,7 @@ from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 from sage.structure.factory import UniqueFactory
+from sage.structure.element cimport parent_c
 
 
 class ResidueFieldFactory(UniqueFactory):
@@ -542,16 +543,11 @@ class ResidueField_generic(Field):
             4
         """
         K = OK = self.p.ring()
+        R = parent_c(x)
         if OK.is_field():
             OK = OK.ring_of_integers()
         else:
             K = K.fraction_field()
-        if PY_TYPE_CHECK(x, Element):
-            R = (<Element>x)._parent
-        elif hasattr(x, 'parent'):
-            R = x.parent()
-        else:
-            R = type(x)
         if OK.has_coerce_map_from(R):
             x = OK(x)
         elif K.has_coerce_map_from(R):

@@ -62,7 +62,8 @@ from sage.interfaces.interface import Interface, InterfaceElement, InterfaceFunc
 from sage.structure.element import RingElement
 
 import sage.misc.sage_eval
-from sage.misc.misc import SAGE_EXTCODE, verbose, SAGE_TMP_INTERFACE, LOCAL_IDENTIFIER
+from sage.misc.misc import verbose, SAGE_TMP_INTERFACE
+from sage.env import SAGE_EXTCODE, LOCAL_IDENTIFIER
 from sage.misc.object_multiplexer import Multiplex
 
 BAD_SESSION = -2

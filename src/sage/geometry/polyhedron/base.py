@@ -916,7 +916,7 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: p = polytopes.n_cube(3)
-            sage: p.Hrep_generator().next()
+            sage: next(p.Hrep_generator())
             An inequality (0, 0, -1) x + 1 >= 0
         """
         for H in self.Hrepresentation():
@@ -1004,9 +1004,9 @@ class Polyhedron_base(Element):
 
             sage: p = polytopes.cyclic_polytope(3,4)
             sage: vg = p.Vrep_generator()
-            sage: vg.next()
+            sage: next(vg)
             A vertex at (0, 0, 0)
-            sage: vg.next()
+            sage: next(vg)
             A vertex at (1, 1, 1)
         """
         for V in self.Vrepresentation():
@@ -1099,7 +1099,7 @@ class Polyhedron_base(Element):
 
             sage: p = polytopes.regular_polygon(8,base_ring=RDF)
             sage: p3 = Polyhedron(vertices = [x+[0] for x in p.vertices()], base_ring=RDF)
-            sage: p3.equation_generator().next()
+            sage: next(p3.equation_generator())
             An equation (0.0, 0.0, 1.0) x + 0.0 == 0
         """
         for H in self.Hrepresentation():
@@ -1182,13 +1182,13 @@ class Polyhedron_base(Element):
             A vertex at (1, 0)
             A vertex at (1, 1)
             sage: v_gen = triangle.vertex_generator()
-            sage: v_gen.next()   # the first vertex
+            sage: next(v_gen)   # the first vertex
             A vertex at (0, 1)
-            sage: v_gen.next()   # the second vertex
+            sage: next(v_gen)   # the second vertex
             A vertex at (1, 0)
-            sage: v_gen.next()   # the third vertex
+            sage: next(v_gen)   # the third vertex
             A vertex at (1, 1)
-            sage: try: v_gen.next()   # there are only three vertices
+            sage: try: next(v_gen)   # there are only three vertices
             ... except StopIteration: print "STOP"
             STOP
             sage: type(v_gen)
@@ -1327,7 +1327,7 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: pr = Polyhedron(rays = [[1,0],[-1,0],[0,1]], vertices = [[-1,-1]])
-            sage: pr.line_generator().next().vector()
+            sage: next(pr.line_generator()).vector()
             (1, 0)
         """
         for V in self.Vrepresentation():
@@ -2368,10 +2368,10 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: p = Polyhedron(vertices = [[t,t^2,t^3] for t in srange(2,6)])
-            sage: p.vertex_generator().next()
+            sage: next(p.vertex_generator())
             A vertex at (2, 4, 8)
             sage: p2 = p.dilation(2)
-            sage: p2.vertex_generator().next()
+            sage: next(p2.vertex_generator())
             A vertex at (4, 8, 16)
             sage: p.dilation(2) == p * 2
             True

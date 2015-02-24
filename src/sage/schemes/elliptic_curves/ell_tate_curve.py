@@ -191,7 +191,7 @@ class TateCurve(SageObject):
         Delta = CuspForms(weight=12).basis()[0]
         j = (E4.q_expansion(prec+3))**3/Delta.q_expansion(prec+3)
         jinv = (1/j).power_series()
-        q_in_terms_of_jinv = jinv.reversion()
+        q_in_terms_of_jinv = jinv.reverse()
         R = Qp(self._p,prec=prec)
         qE = q_in_terms_of_jinv(R(1/self._E.j_invariant()))
         self._q = qE

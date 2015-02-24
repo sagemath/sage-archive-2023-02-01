@@ -698,7 +698,8 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
 
         cdef Py_ssize_t l, n
 
-        cdef mpq_vector *v, *w
+        cdef mpq_vector *v
+        cdef mpq_vector *w
         v = &self._matrix[i]
         w = &_A._matrix[r]
 

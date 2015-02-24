@@ -1159,7 +1159,7 @@ done from the right side.""")
             return
         R     = self.base_ring()
         iters = [iter(R) for _ in range(len(G))]
-        for x in iters: x.next()     # put at 0
+        for x in iters: next(x)     # put at 0
         zero  = R(0)
         v = [zero for _ in range(len(G))]
         n = 0
@@ -1167,12 +1167,12 @@ done from the right side.""")
         yield z
         while n < len(G):
             try:
-                v[n] = iters[n].next()
+                v[n] = next(iters[n])
                 yield self.linear_combination_of_basis(v)
                 n = 0
             except StopIteration:
                 iters[n] = iter(R)  # reset
-                iters[n].next()     # put at 0
+                next(iters[n])     # put at 0
                 v[n] = zero
                 n += 1
 
@@ -2256,17 +2256,30 @@ class FreeModule_generic_pid(FreeModule_generic):
             sage: A * m
             Free module of degree 3 and rank 2 over Integer Ring
             Echelon basis matrix:
-            [1 1 1]
-            [0 3 6]
+            [ 3  0 -3]
+            [ 0  1  2]
             sage: m * A
             Free module of degree 3 and rank 2 over Integer Ring
             Echelon basis matrix:
             [ 3  0 -3]
             [ 0  1  2]
+
+        TESTS:
+
+        Check that :trac:`17705` is fixed::
+
+            sage: V = GF(2)^2
+            sage: W = V.subspace([[1, 0]])
+            sage: x = matrix(GF(2), [[1, 1], [0, 1]])
+            sage: W*x
+            Vector space of degree 2 and dimension 1 over Finite Field of size 2
+            Basis matrix:
+            [1 1]
+
         """
-        if switch_sides:
-            return self.span([v * other for v in self.basis()])
-        return self.span([other * v for v in self.basis()])
+        B = self.basis_matrix()
+        B = other * B if switch_sides else B * other
+        return self.span(B.rows())
 
     def base_field(self):
         """

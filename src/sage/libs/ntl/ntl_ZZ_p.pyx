@@ -127,7 +127,7 @@ cdef class ntl_ZZ_p:
         ## the error checking in __init__ will prevent##
         ## you from constructing an ntl_ZZ_p          ##
         ## inappropriately.  However, from Cython, you##
-        ## could do r = PY_NEW(ntl_ZZ_p) without      ##
+        ## could do r = ntl_ZZ_p.__new__(ntl_ZZ_p) without
         ## first restoring a ZZ_pContext, which could ##
         ## have unfortunate consequences.  See _new  ##
         ## defined below for an example of the right  ##
@@ -152,7 +152,7 @@ cdef class ntl_ZZ_p:
     cdef ntl_ZZ_p _new(self):
         cdef ntl_ZZ_p r
         self.c.restore_c()
-        r = PY_NEW(ntl_ZZ_p)
+        r = ntl_ZZ_p.__new__(ntl_ZZ_p)
         r.c = self.c
         return r
 

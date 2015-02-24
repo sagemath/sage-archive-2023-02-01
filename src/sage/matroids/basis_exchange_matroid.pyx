@@ -1030,7 +1030,8 @@ cdef class BasisExchangeMatroid(Matroid):
             [1, 8, 22, 14, 1]
 
         """
-        cdef bitset_t *flats, *todo
+        cdef bitset_t *flats
+        cdef bitset_t *todo
         if self._matroid_rank == 0:
             return [0]
         flats = <bitset_t*>sage_malloc((self.full_rank() + 1) * sizeof(bitset_t))
@@ -1100,7 +1101,8 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: len(M.flats(4))
             1
         """
-        cdef bitset_t *flats, *todo
+        cdef bitset_t *flats
+        cdef bitset_t *todo
         if r < 0 or r > self.full_rank():
             return SetSystem(self._E)
         if r == self.full_rank():
@@ -1174,7 +1176,8 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: len(M.coflats(4))
             1
         """
-        cdef bitset_t *coflats, *todo
+        cdef bitset_t *coflats
+        cdef bitset_t *todo
         if r < 0 or r > self.full_corank():
             return SetSystem(self._E)
         if r == self.full_corank():
@@ -1222,7 +1225,8 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         Compute a flat-element invariant of the matroid.
         """
-        cdef bitset_t *flats, *todo
+        cdef bitset_t *flats
+        cdef bitset_t *todo
         if self._groundset_size == 0:
             return {}, tuple()
         flats = <bitset_t*>sage_malloc((k + 1) * sizeof(bitset_t))

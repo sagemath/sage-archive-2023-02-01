@@ -94,7 +94,7 @@ This came up in some subtle bug once::
 
 """
 
-cimport element
+from element cimport parent_c
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
 from sage.structure.debug_options import debug
@@ -115,22 +115,6 @@ from sage.structure.misc cimport AttributeErrorMessage
 cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage(None, '')
 dummy_attribute_error = AttributeError(dummy_error_message)
 
-# TODO: define this once?
-
-cdef object elt_parent = None
-
-cdef inline parent_c(x):
-    if PY_TYPE_CHECK(x, element.Element):
-        return (<element.Element>x)._parent
-#    elif hasattr(x, 'parent'):
-#        return x.parent()
-#    else:
-#        return <object>PY_TYPE(x)
-    else:
-        try:
-            return x.parent()
-        except AttributeError:
-            return <object>PY_TYPE(x)
 
 cdef _record_exception():
     from element import get_coercion_model
@@ -141,7 +125,7 @@ cdef bint is_Integer(x):
     global _Integer
     if _Integer is None:
         from sage.rings.integer import Integer as _Integer
-    return PY_TYPE_CHECK_EXACT(x, _Integer) or PY_TYPE_CHECK_EXACT(x, int)
+    return type(x) is _Integer or type(x) is int
 
 # for override testing
 cdef extern from "descrobject.h":
@@ -818,6 +802,7 @@ cdef class Parent(category_object.CategoryObject):
              pass
             running ._test_eq() . . . pass
             running ._test_euclidean_degree() . . . pass
+            running ._test_gcd_vs_xgcd() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_one() . . . pass
             running ._test_pickling() . . . pass
@@ -886,6 +871,7 @@ cdef class Parent(category_object.CategoryObject):
             _test_enumerated_set_iter_list
             _test_eq
             _test_euclidean_degree
+            _test_gcd_vs_xgcd
             _test_not_implemented_methods
             _test_one
             _test_pickling
@@ -2479,9 +2465,9 @@ cdef class Parent(category_object.CategoryObject):
             else:
                 raise TypeError("_coerce_map_from_ must return None, a boolean, a callable, or an explicit Map (called on %s, got %s)" % (type(self), type(user_provided_mor)))
 
-            if (PY_TYPE_CHECK_EXACT(mor, DefaultConvertMap) or
-                  PY_TYPE_CHECK_EXACT(mor, DefaultConvertMap_unique) or
-                  PY_TYPE_CHECK_EXACT(mor, NamedConvertMap)) and not mor._force_use:
+            if (type(mor) is DefaultConvertMap or
+                  type(mor) is DefaultConvertMap_unique or
+                  type(mor) is NamedConvertMap) and not mor._force_use:
                 # If there is something better in the list, try to return that instead
                 # This is so, for example, _coerce_map_from_ can return True but still
                 # take advantage of the _populate_coercion_lists_ data.

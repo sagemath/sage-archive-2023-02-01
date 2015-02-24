@@ -143,8 +143,7 @@ Functions
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "sage/data_structures/bitset.pxi"
-include "sage/misc/binary_matrix.pxi"
+include "sage/data_structures/binary_matrix.pxi"
 from libc.stdint cimport uint64_t, uint32_t, INT32_MAX, UINT32_MAX
 from sage.graphs.base.c_graph cimport CGraph
 from sage.graphs.base.c_graph cimport vertex_label
@@ -538,13 +537,16 @@ def is_distance_regular(G, parameters = False):
         if distance_matrix[i] > diameter and distance_matrix[i] != infinity:
             diameter = distance_matrix[i]
 
+    cdef bitset_t b_tmp
+    bitset_init(b_tmp, n)
+            
     # b_distance_matrix[d*n+v] is the set of vertices at distance d from v.
     cdef binary_matrix_t b_distance_matrix
     try:
         binary_matrix_init(b_distance_matrix,n*(diameter+2),n)
-        binary_matrix_fill(b_distance_matrix, 0)
     except MemoryError:
         sage_free(distance_matrix)
+        bitset_free(b_tmp)
         raise
 
     # Fills b_distance_matrix
@@ -552,8 +554,8 @@ def is_distance_regular(G, parameters = False):
         for v in range(u,n):
             d = distance_matrix[u*n+v]
             if d != infinity:
-                binary_matrix_set1(b_distance_matrix, d*n+u,v)
-                binary_matrix_set1(b_distance_matrix, d*n+v,u)
+                binary_matrix_set1(b_distance_matrix, d*n+u, v)
+                binary_matrix_set1(b_distance_matrix, d*n+v, u)
 
     cdef list bi = [-1 for i in range(diameter +1)]
     cdef list ci = [-1 for i in range(diameter +1)]
@@ -570,11 +572,10 @@ def is_distance_regular(G, parameters = False):
 
             # Computations of b_d and c_d for u,v. We intersect sets stored in
             # b_distance_matrix.
-            b = 0
-            c = 0
-            for l in range(b_distance_matrix.width):
-                b += __builtin_popcountl(b_distance_matrix.rows[(d+1)*n+u][l] & b_distance_matrix.rows[1*n+v][l])
-                c += __builtin_popcountl(b_distance_matrix.rows[(d-1)*n+u][l] & b_distance_matrix.rows[1*n+v][l])
+            bitset_and(b_tmp, b_distance_matrix.rows[(d+1)*n+u], b_distance_matrix.rows[n+v])
+            b = bitset_len(b_tmp)
+            bitset_and(b_tmp, b_distance_matrix.rows[(d-1)*n+u], b_distance_matrix.rows[n+v])
+            c = bitset_len(b_tmp)
 
             # Consistency of b_d and c_d
             if bi[d] == -1:
@@ -584,10 +585,12 @@ def is_distance_regular(G, parameters = False):
             elif bi[d] != b or ci[d] != c:
                 sage_free(distance_matrix)
                 binary_matrix_free(b_distance_matrix)
+                bitset_free(b_tmp)
                 return False
 
     sage_free(distance_matrix)
     binary_matrix_free(b_distance_matrix)
+    bitset_free(b_tmp)
 
     if parameters:
         bi[0] = k
@@ -1556,7 +1559,8 @@ def floyd_warshall(gg, paths = True, distances = False):
                 prec[v_int][u_int] = v_int
 
     # The algorithm itself.
-    cdef unsigned short *dv, *dw
+    cdef unsigned short *dv
+    cdef unsigned short *dw
     cdef int dvw
     cdef int val
 

@@ -93,9 +93,9 @@ from sage.rings.finite_rings.integer_mod cimport (
     IntegerMod_abstract, use_32bit_type)
 
 cdef mod_int ivalue(IntegerMod_abstract x) except -1:
-    if PY_TYPE_CHECK_EXACT(x, IntegerMod_int):
+    if type(x) is IntegerMod_int:
         return (<IntegerMod_int>x).ivalue
-    elif PY_TYPE_CHECK_EXACT(x, IntegerMod_int64):
+    elif type(x) is IntegerMod_int64:
         return (<IntegerMod_int64>x).ivalue
     else:
         raise TypeError, "non-fixed size integer"
@@ -108,7 +108,7 @@ from free_module_element import vector
 cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     cdef _new_c(self):
         cdef Vector_modn_dense y
-        y = PY_NEW(Vector_modn_dense)
+        y = Vector_modn_dense.__new__(Vector_modn_dense)
         y._init(self._degree, self._parent, self._p)
         return y
 
@@ -215,9 +215,6 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             True
         """
         return free_module_element.FreeModuleElement.__hash__(self)
-
-    def __len__(self):
-        return self._degree
 
     def __setitem__(self, i, value):
         if not self._is_mutable:
@@ -370,7 +367,7 @@ def unpickle_v0(parent, entries, degree, p):
     #    make_FreeModuleElement_generic_dense_v1
     # and changed the reduce method below.
     cdef Vector_modn_dense v
-    v = PY_NEW(Vector_modn_dense)
+    v = Vector_modn_dense.__new__(Vector_modn_dense)
     v._init(degree, parent, p)
     for i from 0 <= i < degree:
         v._entries[i] = entries[i]
@@ -378,7 +375,7 @@ def unpickle_v0(parent, entries, degree, p):
 
 def unpickle_v1(parent, entries, degree, p, is_mutable):
     cdef Vector_modn_dense v
-    v = PY_NEW(Vector_modn_dense)
+    v = Vector_modn_dense.__new__(Vector_modn_dense)
     v._init(degree, parent, p)
     for i from 0 <= i < degree:
         v._entries[i] = entries[i]

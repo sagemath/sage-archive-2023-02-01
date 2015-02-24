@@ -230,7 +230,7 @@ cdef class E(Expression):
             [0 e]
         """
         global exp_one
-        exp_one = SR.one_element().exp()
+        exp_one = SR.one().exp()
         Expression.__init__(self, SR, exp_one)
 
     def __pow__(left, right, dummy):

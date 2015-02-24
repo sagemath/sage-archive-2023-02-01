@@ -44,6 +44,7 @@ from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
 from sage.rings.fraction_field     import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.integer_ring       import ZZ
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.quotient_ring      import QuotientRing_generic
 from sage.rings.real_mpfr          import RealField
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial

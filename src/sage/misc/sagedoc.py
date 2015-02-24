@@ -37,7 +37,7 @@ from __future__ import print_function
 import os, re, sys
 import pydoc
 from sage.misc.viewer import browser
-from sage.misc.misc import tmp_dir
+from sage.misc.temporary_file import tmp_dir
 import sage.version
 from sage.env import SAGE_DOC, SAGE_SRC
 
@@ -1036,7 +1036,7 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='',
 
         sage: len(search_doc('tree', interact=False).splitlines()) > 4000  # long time
         True
-        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 1000  # long time
+        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 2000  # long time
         True
     """
     return _search_src_or_doc('doc', string, extra1=extra1, extra2=extra2,

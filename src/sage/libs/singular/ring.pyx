@@ -38,9 +38,6 @@ from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libs
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 
-from sage.misc.misc_c import is_64_bit
-
-
 # mapping str --> SINGULAR representation
 order_dict = {
     "dp": ringorder_dp,
@@ -194,14 +191,12 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         ch = base_ring.characteristic()
         if ch.is_power_of(2):
             exponent = ch.nbits() -1
-            if is_64_bit:
-                # it seems Singular uses ints somewhere
-                # internally, cf. #6051 (Sage) and #138 (Singular)
-                if exponent <= 30: ringtype = 1
-                else: ringtype = 3
+            # it seems Singular uses ints somewhere
+            # internally, cf. #6051 (Sage) and #138 (Singular)
+            if exponent <= 30:
+                ringtype = 1
             else:
-                if exponent <= 30: ringtype = 1
-                else: ringtype = 3
+                ringtype = 3
             characteristic = exponent
             ringflaga = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
             mpz_init_set_ui(ringflaga, 2)

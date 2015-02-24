@@ -186,8 +186,7 @@ from sage.functions.hyperbolic import sinh, cosh
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.misc.latex import latex
 from sage.rings.all import RR, Integer
-from sage.structure.coerce import parent
-from sage.structure.element import get_coercion_model
+from sage.structure.element import parent, get_coercion_model
 from sage.symbolic.constants import pi
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression

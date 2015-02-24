@@ -31,7 +31,7 @@ We test that preparsing is off for ``%runfile``, on for ``%time``::
 
     sage: import os, re
     sage: from sage.repl.interpreter import get_test_shell
-    sage: from sage.misc.misc import tmp_dir
+    sage: from sage.misc.all import tmp_dir
     sage: shell = get_test_shell()
     sage: TMP = tmp_dir()
 
@@ -99,7 +99,7 @@ class SageMagics(Magics):
 
             sage: import os
             sage: from sage.repl.interpreter import get_test_shell
-            sage: from sage.misc.misc import tmp_dir
+            sage: from sage.misc.all import tmp_dir
             sage: shell = get_test_shell()
             sage: tmp = os.path.join(tmp_dir(), 'run_cell.py')
             sage: f = open(tmp, 'w'); f.write('a = 2\n'); f.close()

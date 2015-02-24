@@ -4005,7 +4005,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: ST.an_element()
             [[-1, -1, -1]]
         """
-        return self.__iter__().next()
+        return next(self.__iter__())
 
     def outer_shape(self):
         r"""

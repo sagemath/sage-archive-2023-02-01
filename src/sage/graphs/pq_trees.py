@@ -194,6 +194,11 @@ class PQ:
 
             sage: from sage.graphs.pq_trees import P, Q
             sage: p = Q([[1,2], [2,3], P([[2,4], [2,8], [2,9]])])
+
+        :trac:`17787`::
+
+            sage: Graph('GvGNp?').is_interval()
+            False
         """
         from sage.sets.set import Set
 
@@ -242,64 +247,8 @@ class PQ:
             False
             sage: 9 in p
             True
-
         """
-        for i in self:
-            if v in i:
-                return True
-        False
-
-    def split(self, v):
-        r"""
-        Returns the subsequences of children containing and not
-        containing ``v``
-
-        INPUT:
-
-        - ``v`` -- an element of the ground set
-
-        OUTPUT:
-
-        Two lists, the first containing the children of ``self``
-        containing ``v``, and the other containing the other children.
-
-        .. NOTE::
-
-           This command is meant to be used on a partial tree, once it
-           has be "set continuous" on an element ``v`` and aligned it
-           to the right. Hence, none of the list should be empty (an
-           exception is raised if that happens, as it would reveal a
-           bug in the algorithm) and the sum ``contains +
-           does_not_contain`` should be equal to the sequence of
-           children of ``self``.
-
-        EXAMPLE::
-
-            sage: from sage.graphs.pq_trees import P, Q
-            sage: p = Q([[1,2], [2,3], P([[2,4], [2,8], [2,9]])])
-            sage: p.reverse()
-            sage: contains, does_not_contain = p.split(1)
-            sage: contains
-            [{1, 2}]
-            sage: does_not_contain
-            [('P', [{9, 2}, {8, 2}, {2, 4}]), {2, 3}]
-            sage: does_not_contain + contains == p._children
-            True
-
-        """
-        contains = []
-        does_not_contain = []
-
-        for i in self:
-            if v in i:
-                contains.append(i)
-            else:
-                does_not_contain.append(i)
-
-        if not contains or not does_not_contain:
-            raise ValueError("None of the sets should be empty !")
-
-        return contains, does_not_contain
+        return any(v in i for i in self)
 
     def __iter__(self):
         r"""
@@ -419,18 +368,39 @@ class PQ:
             raise ValueError("Exactly one of left or right must be specified")
 
         if self.is_Q():
-            return self._children
+            l = []
+            for c in self._children:
+                if (isinstance(c,PQ)          and  # Is c partial?
+                    v in c                    and  # (does c contain sets with
+                    any(v not in cc for cc in c)): #  and without v ?)
+                    l.extend(c.simplify(v,right=right,left=left))
+                else:
+                    l.append(c)
+            return l
         else:
+            empty = []
+            full  = []
 
-            contains, does_not_contain = self.split(v)
+            partial = []
 
-            A = new_P(does_not_contain)
-            B = new_P(contains)
+            for c in self._children:
+                if v in c:
+                    if (isinstance(c,PQ)          and  # Is c partial? (does c contain
+                        any(v not in cc for cc in c)): # sets with and without v ?)
+                        partial = c.simplify(v,right=right,left=left)
+                    else:
+                        full.append(c)
+                else:
+                    empty.append(c)
+            if empty:
+                empty = [new_P(empty)]
+            if full:
+                full  = [new_P(full)]
 
             if right:
-                return [A, B]
+                return empty+partial+full
             else:
-                return [B, A]
+                return full+partial+empty
 
     def flatten(self):
         r"""

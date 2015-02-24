@@ -264,6 +264,22 @@ class AnInfinity(object):
         else:
             return 'inf'
 
+    def _fricas_init_(self):
+        """
+        TESTS::
+
+            sage: fricas(-oo)           # optional - fricas
+            %minusInfinity
+            sage: [x._fricas_init_() for x in [unsigned_infinity, oo, -oo]]   # optional - fricas
+            ['%infinity', '%plusInfinity', '%minusInfinity']
+        """
+        if self._sign_char == '':
+            return r"%infinity"
+        elif self._sign > 0:
+            return r"%plusInfinity"
+        else:
+            return r"%minusInfinity"
+
     def _pari_(self):
         """
         Convert ``self`` to a Pari object.

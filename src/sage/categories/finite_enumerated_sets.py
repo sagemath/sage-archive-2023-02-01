@@ -503,16 +503,16 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 # visualize an odometer, with "wheels" displaying "digits"...:
                 factors = list(self.cartesian_factors())
                 wheels = map(iter, factors)
-                digits = [it.next() for it in wheels]
+                digits = [next(it) for it in wheels]
                 while True:
                     yield self._cartesian_product_of_elements(digits)
                     for i in range(len(digits)-1, -1, -1):
                         try:
-                            digits[i] = wheels[i].next()
+                            digits[i] = next(wheels[i])
                             break
                         except StopIteration:
                             wheels[i] = iter(factors[i])
-                            digits[i] = wheels[i].next()
+                            digits[i] = next(wheels[i])
                     else:
                         break
 

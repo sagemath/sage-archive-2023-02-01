@@ -227,9 +227,9 @@ def conjugacy_class_iterator(part, S=None):
     It is also possible to specify any underlying set::
 
         sage: it = conjugacy_class_iterator([2,2,2], 'abcdef')
-        sage: it.next()
+        sage: next(it)
         [('a', 'c'), ('b', 'e'), ('d', 'f')]
-        sage: it.next()
+        sage: next(it)
         [('a', 'c'), ('b', 'd'), ('e', 'f')]
     """
     n = sum(part)

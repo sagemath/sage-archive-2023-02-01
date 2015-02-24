@@ -147,9 +147,8 @@ from cpython.number cimport *
 from cpython.int cimport *
 from libc.stdint cimport uint64_t
 cimport sage.structure.element
-from sage.structure.element cimport Element
+from sage.structure.element cimport Element, EuclideanDomainElement, parent_c
 include "sage/ext/python_debug.pxi"
-include "../structure/coerce.pxi"   # for parent_c
 include "sage/libs/pari/decl.pxi"
 from sage.rings.rational cimport Rational
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
@@ -1825,7 +1824,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         cdef Integer z = <Integer>PY_NEW(Integer)
         cdef long yy, res
-        if PY_TYPE(x) is PY_TYPE(y):
+        if type(x) is type(y):
             if not mpz_sgn((<Integer>y).value):
                 raise ZeroDivisionError, "Integer division by zero"
             if mpz_size((<Integer>x).value) > 100000:
@@ -2915,7 +2914,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef long yy, res
 
         # first case: Integer % Integer
-        if PY_TYPE(x) is PY_TYPE(y):
+        if type(x) is type(y):
             if not mpz_sgn((<Integer>y).value):
                 raise ZeroDivisionError, "Integer modulo by zero"
             if mpz_size((<Integer>x).value) > 100000:
@@ -3016,7 +3015,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     mpz_sub_ui(q.value, q.value, 1)
                     mpz_sub_ui(r.value, r.value, -d)
 
-        elif PY_TYPE_CHECK_EXACT(other, Integer):
+        elif type(other) is Integer:
             if mpz_sgn((<Integer>other).value) == 0:
                 raise ZeroDivisionError, "Integer division by zero"
             if mpz_size(self.value) > 100000:
@@ -3104,7 +3103,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ZeroDivisionError: rational reconstruction with zero modulus
         """
         cdef Integer a
-        cdef Rational x = <Rational>PY_NEW(Rational)
+        cdef Rational x = <Rational>Rational.__new__(Rational)
         try:
             mpq_rational_reconstruction(x.value, self.value, m.value)
         except ValueError:
@@ -4294,7 +4293,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         else:
             R = RealField(prec)
         if self.is_zero():
-            return R.zero_element()
+            return R.zero()
         return R(self).abs().log()
 
     cdef bint _is_power_of(Integer self, Integer n):

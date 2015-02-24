@@ -1118,7 +1118,7 @@ class GroebnerFan(SageObject):
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: gf = R.ideal([x^3-y,y^3-x-1]).groebner_fan()
             sage: a = gf.__iter__()
-            sage: a.next()
+            sage: next(a)
             [y^9 - 3*y^6 + 3*y^3 - y - 1, -y^3 + x + 1]
         """
         for x in self.reduced_groebner_bases():

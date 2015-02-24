@@ -625,7 +625,7 @@ cdef class RingHomomorphism(RingMap):
             sage: bool(ZZ.hom(R1, [1]))
             False
         """
-        return bool(self.codomain().one_element())
+        return bool(self.codomain().one())
 
     def _repr_type(self):
         """
@@ -1555,6 +1555,21 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             return P(self.__underlying(x.numerator()))/P(self.__underlying(x.denominator()))
         except Exception:
             raise TypeError, "invalid argument %s"%repr(x)
+
+    def is_identity(self):
+        """
+        Return ``True`` if this morphism is the identity morphism.
+
+        EXAMPLES::
+
+            sage: K.<z> = GF(4)
+            sage: phi = End(K)([z^2])
+            sage: R.<t> = K[]
+            sage: psi = End(R)(phi)
+            sage: psi.is_identity()
+            False
+        """
+        return self.__underlying.is_identity() and RingHomomorphism.is_identity(self)
 
 cdef class RingHomomorphism_cover(RingHomomorphism):
     r"""

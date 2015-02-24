@@ -193,3 +193,5 @@ from binary_recurrence_sequences import BinaryRecurrenceSequence
 # Six Vertex Model
 lazy_import('sage.combinat.six_vertex_model', 'SixVertexModel')
 
+# sine-Gordon Y-systems
+lazy_import('sage.combinat.sine_gordon', 'SineGordonYsystem')

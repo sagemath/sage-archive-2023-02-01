@@ -743,7 +743,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             return (denom/d)*B
         elif algorithm == "flint":
             AZ, denom = self._clear_denom()
-            B, d = AZ._invert_flint(check_invertible=check_invertible)
+            B, d = AZ._invert_flint()
             return (denom/d)*B
         else:
             raise ValueError("unknown algorithm '%s'"%algorithm)

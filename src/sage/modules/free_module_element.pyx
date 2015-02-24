@@ -948,6 +948,71 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         v = ','.join([a._magma_init_(magma) for a in self.list()])
         return '%s![%s]' % (R.name(), v)
 
+    def numpy(self, dtype=object):
+        """
+        Converts self to a numpy array.
+
+        INPUT:
+
+        - ``dtype`` -- the `numpy dtype <http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_
+                       of the returned array
+
+        EXAMPLES::
+
+            sage: v = vector([1,2,3])
+            sage: v.numpy()
+            array([1, 2, 3], dtype=object)
+            sage: v.numpy() * v.numpy()
+            array([1, 4, 9], dtype=object)
+
+            sage: vector(QQ, [1, 2, 5/6]).numpy()
+            array([1, 2, 5/6], dtype=object)
+
+        By default the ``object`` `dtype <http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_ is used.
+        Alternatively, the desired dtype can be passed in as a parameter::
+
+            sage: v = vector(QQ, [1, 2, 5/6])
+            sage: v.numpy()
+            array([1, 2, 5/6], dtype=object)
+            sage: v.numpy(dtype=float)
+            array([ 1.        ,  2.        ,  0.83333333])
+            sage: v.numpy(dtype=int)
+            array([1, 2, 0])
+            sage: import numpy
+            sage: v.numpy(dtype=numpy.uint8)
+            array([1, 2, 0], dtype=uint8)
+
+        Passing a dtype of None will let numpy choose a native type, which can
+        be more efficient but may have unintended consequences::
+
+            sage: v.numpy(dtype=None)
+            array([ 1.        ,  2.        ,  0.83333333])
+
+            sage: w = vector(ZZ, [0, 1, 2^63 -1]); w
+            (0, 1, 9223372036854775807)
+            sage: wn = w.numpy(dtype=None); wn
+            array([                  0,                   1, 9223372036854775807]...)
+            sage: wn.dtype
+            dtype('int64')
+            sage: w.dot_product(w)
+            85070591730234615847396907784232501250
+            sage: wn.dot(wn)        # overflow
+            2
+
+        Numpy can give rather obscure errors; we wrap these to give a bit of context::
+
+            sage: vector([1, 1/2, QQ['x'].0]).numpy(dtype=float)
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not convert vector over Univariate Polynomial Ring in x over Rational Field to numpy array of type <type 'float'>: setting an array element with a sequence.
+        """
+        from numpy import array
+        try:
+            return array(self, dtype=dtype)
+        except ValueError as e:
+            raise ValueError(
+                "Could not convert vector over %s to numpy array of type %s: %s" % (self.base_ring(), dtype, e))
+
     def __hash__(self):
         """
         Return hash of this vector.  Only mutable vectors are hashable.
@@ -2162,8 +2227,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             Univariate Polynomial Ring in x over Real Double Field
         """
         if left._degree == 0:
-            return (left.base_ring().zero_element()
-                    * right.base_ring().zero_element())
+            return (left.base_ring().zero()
+                    * right.base_ring().zero())
         cdef list a = left.list(copy=False)
         cdef list b = right.list(copy=False)
         cdef Py_ssize_t i
@@ -2502,6 +2567,128 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         if self._parent is not (<FreeModuleElement>right)._parent:
             self, right = canonical_coercion(self, right)
         return self._pairwise_product_(right)
+
+    def _variables(self):
+        """
+        Return the ordered variable of self, as defined by the basering.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: vector([x, y, 3])._variables()
+            [x, y, z]
+            sage: vector(SR, [x, y, 3])._variables()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unable to determine ordered variable names for Symbolic Ring
+            sage: v(x, y, z) = (-y, x, 0)
+            sage: v._variables()
+            [(x, y, z) |--> x, (x, y, z) |--> y, (x, y, z) |--> z]
+        """
+        R = self._parent.base_ring()
+        try:
+            var_names = R.variable_names()
+        except ValueError:
+            if hasattr(R, 'arguments'):
+                var_names = R.arguments()
+            else:
+                raise ValueError("Unable to determine ordered variable names for %s" % R)
+        return [R(x) for x in var_names]
+
+    def div(self, variables=None):
+        """
+        Return the divergence of this vector function.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: vector([x, y, z]).div()
+            3
+            sage: vector([x*y, y*z, z*x]).div()
+            x + y + z
+
+            sage: R.<x,y,z,w> = QQ[]
+            sage: vector([x*y, y*z, z*x]).div([x, y, z])
+            x + y + z
+            sage: vector([x*y, y*z, z*x]).div([z, x, y])
+            0
+            sage: vector([x*y, y*z, z*x]).div([x, y, w])
+            y + z
+
+            sage: vector(SR, [x*y, y*z, z*x]).div()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unable to determine ordered variable names for Symbolic Ring
+            sage: vector(SR, [x*y, y*z, z*x]).div([x, y, z])
+            x + y + z
+        """
+        if variables is None:
+            variables = self._variables()
+        if len(variables) != len(self):
+            raise ValueError("number of variables must equal dimension of self")
+        return sum(c.derivative(x) for (c, x) in zip(self, variables))
+
+    def curl(self, variables=None):
+        """
+        Return the curl of this two-dimensional or three-dimensional
+        vector function.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: vector([-y, x, 0]).curl()
+            (0, 0, 2)
+            sage: vector([y, -x, x*y*z]).curl()
+            (x*z, -y*z, -2)
+            sage: vector([y^2, 0, 0]).curl()
+            (0, 0, -2*y)
+            sage: (R^3).random_element().curl().div()
+            0
+
+        For rings where the variable order is not well defined, it must be
+        defined explicitly::
+
+            sage: v = vector(SR, [-y, x, 0])
+            sage: v.curl()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unable to determine ordered variable names for Symbolic Ring
+            sage: v.curl([x, y, z])
+            (0, 0, 2)
+
+        Note that callable vectors have well defined variable orderings::
+
+            sage: v(x, y, z) = (-y, x, 0)
+            sage: v.curl()
+            (x, y, z) |--> (0, 0, 2)
+
+        In two-dimensions, this returns a scalar value::
+
+            sage: R.<x,y> = QQ[]
+            sage: vector([-y, x]).curl()
+            2
+        """
+        if len(self) == 3:
+            if variables is None:
+                variables = self._variables()
+            if len(variables) != 3:
+                raise ValueError("exactly 3 variables must be provided")
+            x, y, z = variables
+            Fx, Fy, Fz = self
+            return self.parent([Fz.derivative(y) - Fy.derivative(z),
+                                Fx.derivative(z) - Fz.derivative(x),
+                                Fy.derivative(x) - Fx.derivative(y)])
+
+        if len(self) == 2:
+            if variables is None:
+                variables = self._variables()
+            if len(variables) != 2:
+                raise ValueError("exactly 2 variables must be provided")
+            x, y = variables
+            Fx, Fy = self
+            return Fy.derivative(x) - Fx.derivative(y)
+
+        raise TypeError("curl only defined for 2 or 3 dimensions")
 
     def element(self):
         """
@@ -3645,7 +3832,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         FreeModuleElement.__init__(self, parent)
         R = self.base_ring()
         if not entries:
-            entries = [R.zero_element()]*self._degree
+            entries = [R.zero()]*self._degree
         else:
             if type(entries) is not list:
                 if not isinstance(entries, (list, tuple)):
@@ -4259,9 +4446,9 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             Univariate Polynomial Ring in x over Real Double Field
         """
         cdef dict e = (<FreeModuleElement_generic_sparse>right)._entries
-        z = left.base_ring().zero_element()
+        z = left.base_ring().zero()
         if left.base_ring() is not right.base_ring():
-            z *= right.base_ring().zero_element()
+            z *= right.base_ring().zero()
         for i, a in left._entries.iteritems():
             if i in e:
                 z += a * e[i]

@@ -638,9 +638,8 @@ if [[ "$1" =~ ^--notebook=.* || "$1" =~ ^-n=.* || "$1" =~ ^-notebook=.* ]] ; the
 fi
 
 if [ "$1" = "-notebook" -o "$1" = '--notebook' -o "$1" = '-n' ]; then
-    shift
     sage-cleaner &>/dev/null &
-    exec sage-notebook --notebook=default "$@"
+    exec sage-notebook "$@"
 fi
 
 if [ "$1" = "-bn" -o "$1" = "--build-and-notebook" ]; then

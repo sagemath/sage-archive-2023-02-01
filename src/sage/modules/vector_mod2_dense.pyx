@@ -49,7 +49,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             <type 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>
         """
         cdef Vector_mod2_dense y
-        y = PY_NEW(Vector_mod2_dense)
+        y = Vector_mod2_dense.__new__(Vector_mod2_dense)
         y._init(self._degree, self._parent)
         return y
 
@@ -514,8 +514,8 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         cdef Py_ssize_t i
         cdef list v = [0]*d
         K = self.base_ring()
-        z = K.zero_element()
-        o = K.one_element()
+        z = K.zero()
+        o = K.one()
         cdef list switch = [z,o]
         for i in range(d):
             v[i] = switch[mzd_read_bit(self._entries, 0, i)]
@@ -532,7 +532,7 @@ def unpickle_v0(parent, entries, degree, is_mutable):
     """
     # If you think you want to change this function, don't.
     cdef Vector_mod2_dense v
-    v = PY_NEW(Vector_mod2_dense)
+    v = Vector_mod2_dense.__new__(Vector_mod2_dense)
     v._init(degree, parent)
     cdef int xi
 

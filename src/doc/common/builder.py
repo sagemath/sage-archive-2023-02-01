@@ -1444,6 +1444,9 @@ def setup_parser():
     standard.add_option("-j", "--mathjax", "--jsmath", dest="mathjax",
                         action="store_true",
                         help="render math using MathJax; FORMATs: html, json, pickle, web")
+    standard.add_option("--no-plot", dest="no_plot",
+                        action="store_true",
+                        help="do not include graphics auto-generated using the '.. plot' markup")
     standard.add_option("--no-pdf-links", dest="no_pdf_links",
                         action="store_true",
                         help="do not include PDF links in DOCUMENT 'website'; FORMATs: html, json, pickle, web")
@@ -1602,6 +1605,8 @@ if __name__ == '__main__':
         WEBSITESPHINXOPTS = " -A hide_pdf_links=1 "
     if options.warn_links:
         ALLSPHINXOPTS += "-n "
+    if options.no_plot:
+        os.environ['SAGE_SKIP_PLOT_DIRECTIVE'] = 'yes'
 
     ABORT_ON_ERROR = not options.keep_going
 

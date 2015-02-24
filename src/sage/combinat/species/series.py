@@ -34,11 +34,13 @@ from sage.rings.all import Integer
 from sage.misc.all import prod
 from functools import partial
 from sage.misc.misc import repr_lincomb, is_iterator
+from sage.misc.superseded import deprecated_function_alias
 
 from sage.algebras.algebra import Algebra
 from sage.algebras.algebra_element import AlgebraElement
 import sage.structure.parent_base
 from sage.categories.all import Rings
+from sage.structure.element import Element, parent
 
 class LazyPowerSeriesRing(Algebra):
     def __init__(self, R, element_class = None, names=None):
@@ -121,7 +123,6 @@ class LazyPowerSeriesRing(Algebra):
         """
         return self(x)
 
-
     def __call__(self, x=None, order=unk):
         """
         EXAMPLES::
@@ -183,7 +184,7 @@ class LazyPowerSeriesRing(Algebra):
                     return x._new(partial(x._change_ring_gen, self.base_ring()), lambda ao: ao, x, parent=self)
 
 
-        if hasattr(x, "parent") and BR.has_coerce_map_from(x.parent()):
+        if BR.has_coerce_map_from(parent(x)):
             x = BR(x)
             return self.term(x, 0)
 
@@ -197,23 +198,34 @@ class LazyPowerSeriesRing(Algebra):
             aorder = order if order != unk else 0
             return cls(self, stream=x, order=order, aorder=aorder,
                        aorder_changed=False, is_initialized=True)
-        elif not hasattr(x, "parent"):
+        elif not isinstance(x, Element):
             x = BR(x)
             return self.term(x, 0)
 
         raise TypeError("do not know how to coerce %s into self"%x)
 
-    def zero_element(self):
+    def zero(self):
         """
         Returns the zero power series.
 
         EXAMPLES::
 
             sage: L = LazyPowerSeriesRing(QQ)
+            sage: L.zero()
+            0
+
+        TESTS:
+
+        Check that the method `zero_element` raises a warning (:trac:`17694`)::
+
             sage: L.zero_element()
+            doctest:...: DeprecationWarning: zero_element is deprecated. Please use zero instead.
+            See http://trac.sagemath.org/17694 for details.
             0
         """
-        return self(self.base_ring()(0))
+        return self(self.base_ring().zero())
+
+    zero_element = deprecated_function_alias(17694, zero)
 
     def identity_element(self):
         """
@@ -486,7 +498,7 @@ class LazyPowerSeries(AlgebraElement):
             self.order = inf
         self.aorder_changed = aorder_changed
         self.is_initialized = is_initialized
-        self._zero = A.base_ring().zero_element()
+        self._zero = A.base_ring().zero()
         self._name = name
 
     def compute_aorder(*args, **kwargs):

@@ -620,17 +620,17 @@ cdef preprocess_list(pAdicZZpXElement elt, L):
         raise ValueError, "negative valuation"
     if total_type == one:
         # rationals and integers
-        py_tmp = PY_NEW(ntl_ZZ)
+        py_tmp = ntl_ZZ.__new__(ntl_ZZ)
         py_tmp.x = elt.prime_pow.pow_ZZ_top()[0]
         ctx = ntl_ZZ_pContext(py_tmp)
     else:
         # integers, rationals and things with finite precision
         # note that min_val will be non-positive since things with finite precision return non-positive valuation from get_val_prec
-        py_tmp = PY_NEW(ntl_ZZ)
+        py_tmp = ntl_ZZ.__new__(ntl_ZZ)
         py_tmp.x = elt.prime_pow.pow_ZZ_tmp(mpz_get_ui((<Integer>(min_aprec - min_val)).value))[0]
         ctx = ntl_ZZ_pContext(py_tmp)
     if min_val < 0:
-        pshift_z = PY_NEW(ntl_ZZ)
+        pshift_z = ntl_ZZ.__new__(ntl_ZZ)
         pshift_z.x = elt.prime_pow.pow_ZZ_tmp(-mpz_get_si((<Integer>min_val).value))[0]
         pshift_m = elt.prime_pow.pow_Integer(-mpz_get_si((<Integer>min_val).value))
         for i from 0 <= i < len(L):
@@ -645,13 +645,13 @@ cdef preprocess_list(pAdicZZpXElement elt, L):
             elif (L[i].modulus_context() is not ctx) or min_val != zero:
                 L[i] = ntl_ZZ_p(L[i].lift()*pshift_z, ctx)
     elif elt.parent().is_capped_relative() and min_val > 0:
-        pshift_z = PY_NEW(ntl_ZZ)
+        pshift_z = ntl_ZZ.__new__(ntl_ZZ)
         pshift_z.x = elt.prime_pow.pow_ZZ_tmp(mpz_get_ui((<Integer>min_val).value))[0]
         pshift_m = elt.prime_pow.pow_Integer(mpz_get_ui((<Integer>min_val).value))
         for i from 0 <= i < len(L):
             if PY_TYPE_CHECK(L[i], ntl_ZZ):
                 ZZ_div(tmp, (<ntl_ZZ>L[i]).x, pshift_z.x)
-                py_tmp = PY_NEW(ntl_ZZ)
+                py_tmp = ntl_ZZ.__new__(ntl_ZZ)
                 py_tmp.x = tmp
                 L[i] = ntl_ZZ_p(py_tmp, ctx)
             elif PY_TYPE_CHECK(L[i], Integer) or PY_TYPE_CHECK(L[i], Rational) or isinstance(L[i], (int, long)):
@@ -662,7 +662,7 @@ cdef preprocess_list(pAdicZZpXElement elt, L):
                 L[i] = ntl_ZZ_p(L[i].lift()//pshift_m, ctx)
             elif (L[i].modulus_context() is not ctx) or min_val != zero:
                 ZZ_div(tmp, (<ntl_ZZ>L[i].lift()).x, pshift_z.x)
-                py_tmp = PY_NEW(ntl_ZZ)
+                py_tmp = ntl_ZZ.__new__(ntl_ZZ)
                 py_tmp.x = tmp
                 L[i] = ntl_ZZ_p(py_tmp, ctx)
     else:
@@ -844,7 +844,7 @@ cdef get_val_prec(PowComputer_ext pp, a):
     if PY_TYPE_CHECK(a, ntl_ZZ):
         if ZZ_IsZero((<ntl_ZZ>a).x):
             return (big, big, two)
-        py_tmp = PY_NEW(ntl_ZZ)
+        py_tmp = ntl_ZZ.__new__(ntl_ZZ)
         py_tmp.x = pp.pow_ZZ_tmp(1)[0]
         return (Integer(a.valuation(py_tmp)), big, two)
     #print "pre int/long check"
@@ -899,7 +899,7 @@ cdef get_val_prec(PowComputer_ext pp, a):
             return (zero, Integer_val, zero)
         else:
             print long_val
-            py_tmp = PY_NEW(ntl_ZZ)
+            py_tmp = ntl_ZZ.__new__(ntl_ZZ)
             py_tmp.x = (<ntl_ZZ_p>a).c.p.x
             print py_tmp
             py_tmp.x = leftover_z

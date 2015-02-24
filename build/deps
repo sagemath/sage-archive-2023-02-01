@@ -510,7 +510,8 @@ $(INST)/csage: $(INST)/$(SCONS) \
        $(INST)/$(SAGE_MP_LIBRARY) \
        $(INST)/$(NTL) \
        $(INST)/$(PARI) \
-       $(INST)/$(PYTHON)
+       $(INST)/$(PYTHON) \
+       $(CSAGE_SOURCES)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && cd c_lib && \
 		$(PIPE) 'time scons -Q install 2>&1' 'tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log' && \

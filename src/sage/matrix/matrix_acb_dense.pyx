@@ -54,6 +54,13 @@ cdef void matrix_to_acb_mat(acb_mat_t target, source):
             ComplexIntervalFieldElement_to_acb(acb_mat_entry(target, r, c),
                                                source[r][c])
 
+cdef ComplexIntervalFieldElement _to_CIF(acb_t source, ComplexIntervalFieldElement template):
+    cdef ComplexIntervalFieldElement result
+    result = template._new()
+    acb_to_ComplexIntervalFieldElement(
+        result, source)
+    return result
+
 cdef Matrix_generic_dense acb_mat_to_matrix(
     acb_mat_t source, Parent CIF):
     """
@@ -71,13 +78,14 @@ cdef Matrix_generic_dense acb_mat_to_matrix(
     containing :class:`ComplexIntervalFieldElement`.
     """
     cdef unsigned long nrows, ncols, r, c
+    cdef ComplexIntervalFieldElement template
 
     nrows = acb_mat_nrows(source)
     ncols = acb_mat_ncols(source)
+    template = CIF(0)
 
     return matrix(
-                  [[acb_to_ComplexIntervalFieldElement(
-                        acb_mat_entry(source, r, c), CIF)
+                  [[_to_CIF(acb_mat_entry(source, r, c), template)
                     for c in range(ncols)]
                    for r in range(nrows)])
 

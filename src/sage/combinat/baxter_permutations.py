@@ -1,3 +1,7 @@
+"""
+Baxter permutations
+"""
+
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -20,7 +24,7 @@ class BaxterPermutations(UniqueRepresentation, Parent):
     INPUT:
 
     - ``n`` -- (default: ``None``) a nonnegative integer, the size of
-    the permutations.
+      the permutations.
 
     OUTPUT:
 
@@ -35,7 +39,7 @@ class BaxterPermutations(UniqueRepresentation, Parent):
         sage: BaxterPermutations()
         Baxter permutations
 
-    REFERENCES::
+    REFERENCES:
 
     .. [Gir12] Samuele Giraudo,
        *Algebraic and combinatorial structures on pairs of twin binary trees*,
@@ -221,7 +225,7 @@ class BaxterPermutations_size(BaxterPermutations):
             {\binom{n+1}{k-1} \binom{n+1}{k} \binom{n+1}{k+1}}
             {\binom{n+1}{1} \binom{n+1}{2}} .
 
-        This is sequence :oeis:`A001181` in Sloane's OEIS.
+        This is :oeis:`A001181`.
 
         EXAMPLES::
 

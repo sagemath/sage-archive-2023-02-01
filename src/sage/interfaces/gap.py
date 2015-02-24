@@ -649,15 +649,13 @@ class Gap_generic(Expect):
             2
             sage: import sage.tests.interrupt
             sage: try:
-            ...     sage.tests.interrupt.interrupt_after_delay()
-            ...     while True: SymmetricGroup(7).conjugacy_classes_subgroups()
-            ... except KeyboardInterrupt:
-            ...     pass
-            Interrupting Gap...
+            ....:     sage.tests.interrupt.interrupt_after_delay()
+            ....:     while True: SymmetricGroup(7).conjugacy_classes_subgroups()
+            ....: except KeyboardInterrupt:
+            ....:     pass
             sage: gap(2)
             2
         """
-        print "Interrupting %s..."%self
         self.quit()
         raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
 
@@ -1168,7 +1166,6 @@ class Gap(Gap_generic):
             if self.__use_workspace_cache and first_try:
                 first_try = False
                 self.quit(timeout=0)
-                expect.failed_to_start.remove(self.name())
                 gap_reset_workspace(verbose=False)
                 Expect._start(self, "Failed to start GAP.")
                 self._session_number = n

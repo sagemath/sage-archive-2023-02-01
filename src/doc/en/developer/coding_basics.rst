@@ -341,6 +341,16 @@ information. You can use the existing functions of Sage as templates.
               sage: have_fresh_beers('Bière de l\'Yvette', algorithm="BaBF") # not implemented
               Enjoy !
 
+- A **PLOT** block to illustrate with pictures the output of a function.
+
+  Generate with Sage code an object ``g`` with a ``.plot`` method, then call
+  ``sphinx_plot(g)``::
+
+      .. PLOT::
+
+          g = graphs.PetersenGraph()
+          sphinx_plot(g)
+
 - A **REFERENCES** block to list related books or papers (optional)
 
   It should cite the books/research papers relevant to the code, e.g. the source

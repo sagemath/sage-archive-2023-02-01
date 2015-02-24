@@ -639,7 +639,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
         """
         if exp == 0:
-            return self._parent.one_element()
+            return self._parent.one()
         if exp < 0 and FF_equal0(self.val):
             raise ZeroDivisionError
         exp = Integer(exp)._pari_()

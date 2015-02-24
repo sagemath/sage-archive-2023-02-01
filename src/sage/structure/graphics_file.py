@@ -204,7 +204,11 @@ class GraphicsFile(SageObject):
         """
         from sage.misc.temporary_file import graphics_filename
         ext = "." + Mime.extension(self.mime())
-        self.save_as(graphics_filename(ext=ext))
+        fn = graphics_filename(ext=ext)
+        self.save_as(fn)
+        # Client-server sagenb requires this to be world-readable.
+        # See Trac #17755.
+        os.chmod(fn, 0o644)
 
 
 def graphics_from_save(save_function, preferred_mime_types, 

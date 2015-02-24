@@ -1104,7 +1104,7 @@ class CombinatorialObject(SageObject):
                 sage: not b
                 Traceback (most recent call last):
                 ...
-                AttributeError: 'NoneType' object has no attribute 'zero_element'
+                AttributeError: 'NoneType' object has no attribute 'zero'
         """
         return bool(self._list)
 
@@ -2142,7 +2142,8 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
         """
         Counts the elements of the combinatorial class.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = InfiniteAbstractCombinatorialClass()
             sage: R.cardinality()
             +Infinity
@@ -2153,7 +2154,8 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
         """
         Returns an error since self is an infinite combinatorial class.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = InfiniteAbstractCombinatorialClass()
             sage: R.list()
             Traceback (most recent call last):
@@ -2167,7 +2169,8 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
         Returns an iterator for the infinite combinatorial class self if
         possible or raise a NotImplementedError.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = InfiniteAbstractCombinatorialClass()
             sage: next(iter(R))
             Traceback (most recent call last):

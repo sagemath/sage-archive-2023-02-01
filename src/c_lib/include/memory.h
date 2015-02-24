@@ -6,6 +6,8 @@ AUTHORS:
 
 - Jeroen Demeyer (2011-01-13): initial version (#10258)
 
+- Jeroen Demeyer (2014-12-14): add more functions (#10257)
+
 */
 
 /*****************************************************************************
@@ -25,6 +27,22 @@ AUTHORS:
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+
+#define MUL_NO_OVERFLOW ( ((size_t)1) << (4*sizeof(size_t)))
+
+static inline size_t mul_overflowcheck(size_t a, size_t b)
+/* Return a*b, checking for overflow. Assume that a > 0.
+ * If overflow occurs, return ((size_t)-1).
+ * We assume that malloc( (size_t)-1 ) always fails. */
+{
+    if (a >= MUL_NO_OVERFLOW || b >= MUL_NO_OVERFLOW)
+    {
+        if (b > ((size_t)-1) / a)
+            return ((size_t)-1);
+    }
+    return a*b;
+}
 
 static inline void* sage_malloc(size_t n)
 {

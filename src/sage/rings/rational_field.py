@@ -1108,10 +1108,11 @@ class RationalField(Singleton, number_field_base.NumberField):
             [1, 5, -1, -5]
         """
         KSgens, ords = self.selmer_group(S=S, m=m, proof=proof, orders=True)
-        one = self.one_element()
-        from sage.misc.all import prod, cartesian_product_iterator
-        for ev in cartesian_product_iterator([range(o) for o in ords]):
-            yield prod([p**e for p,e in zip(KSgens, ev)], one)
+        one = self.one()
+        from sage.misc.all import prod
+        from itertools import product
+        for ev in product(*[range(o) for o in ords]):
+            yield prod((p**e for p,e in zip(KSgens, ev)), one)
 
 
     #################################

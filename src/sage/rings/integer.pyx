@@ -6101,6 +6101,7 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
         10
         sage: Integer('012')
         doctest:...: DeprecationWarning: use 0o as octal prefix instead of 0
+        If you do not want this number to be interpreted as octal, remove the leading zeros.
         See http://trac.sagemath.org/17413 for details.
         10
 
@@ -6167,7 +6168,7 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
         mpz_neg(z, z)
     if warnoctal and mpz_sgn(z) != 0:
         from sage.misc.superseded import deprecation
-        deprecation(17413, "use 0o as octal prefix instead of 0")
+        deprecation(17413, "use 0o as octal prefix instead of 0\nIf you do not want this number to be interpreted as octal, remove the leading zeros.")
 
 
 cpdef LCM_list(v):

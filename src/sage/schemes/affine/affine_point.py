@@ -307,7 +307,7 @@ class SchemeMorphism_point_affine_field(SchemeMorphism_point_affine):
             sage: R.<x> = QQ[]
             sage: K.<w> = NumberField(x^5-2)
             sage: R.<x> = K[]
-            sage: L.<v> = K.extension(x^2+1)
+            sage: L.<v> = K.extension(x^2+w)
             sage: A.<x,y> = AffineSpace(L,2)
             sage: P = A([w^3-v,1+w+w*v])
             sage: P.weil_restriction()
@@ -334,7 +334,7 @@ class SchemeMorphism_point_affine_field(SchemeMorphism_point_affine):
             V, from_V, to_V = L.relative_vector_space()
             h = L(1)
             B = [to_V(h)]
-            f = v.absolute_minpoly()
+            f = v.minpoly()
             for i in range(f.degree()-1):
                 h *= v
                 B.append(to_V(h))

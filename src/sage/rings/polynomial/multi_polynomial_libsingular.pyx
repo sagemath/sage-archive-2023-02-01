@@ -4193,7 +4193,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                 FF = [(f[0].change_ring(self._parent), f[1]) for f in F]
                 U = self._parent._base(F.unit()).factor()
                 return Factorization(list(U) + FF, unit=U.unit())
-            except:
+            except Exception:
                 raise NotImplementedError, "Factorization of multivariate polynomials over %s is not implemented."%self._parent._base
 
         if self._parent._base.is_finite():

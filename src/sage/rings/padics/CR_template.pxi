@@ -181,7 +181,8 @@ cdef class CRElement(pAdicTemplateElement):
             sage: R(6,5) * R(7,8) #indirect doctest
             2 + 3*5 + 5^2 + O(5^5)
         """
-        cdef CRElement ans = PY_NEW(self.__class__)
+        cdef type t = self.__class__
+        cdef CRElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
         cconstruct(ans.unit, ans.prime_pow)
@@ -1958,7 +1959,7 @@ cdef class pAdicConvert_CR_QQ(RingMap):
             sage: f(Qp(5)(1/5))
             1/5
         """
-        cdef Rational ans = PY_NEW(Rational)
+        cdef Rational ans = Rational.__new__(Rational)
         cdef CRElement x =  _x
         if x.relprec == 0:
             mpq_set_ui(ans.value, 0, 1)
@@ -2129,7 +2130,7 @@ def unpickle_cre_v2(cls, parent, unit, ordp, relprec):
         sage: a.precision_relative() == b.precision_relative()
         True
     """
-    cdef CRElement ans = PY_NEW(cls)
+    cdef CRElement ans = cls.__new__(cls)
     ans._parent = parent
     ans.prime_pow = <PowComputer_class?>parent.prime_pow
     cconstruct(ans.unit, ans.prime_pow)

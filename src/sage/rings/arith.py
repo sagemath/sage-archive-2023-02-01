@@ -2650,10 +2650,7 @@ def is_square(n, root=False):
     t, x = pari(n).issquare(find_root=True)
     if root:
         if t:
-            if hasattr(n, 'parent'):
-                x = n.parent()(str(x))
-            else:
-                x = x.python()
+            x = parent(n)(x)
         return t, x
     return t
 

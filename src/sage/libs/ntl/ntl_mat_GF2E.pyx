@@ -111,7 +111,7 @@ cdef class ntl_mat_GF2E:
         ## the error checking in __init__ will prevent##
         ## you from constructing an ntl_GF2E          ##
         ## inappropriately.  However, from Cython, you##
-        ## could do r = PY_NEW(ntl_GF2E) without      ##
+        ## could do r = ntl_GF2E.__new__(ntl_GF2E) without
         ## first restoring a GF2EContext, which could ##
         ## have unfortunate consequences.  See _new  ##
         ## defined below for an example of the right  ##
@@ -132,14 +132,14 @@ cdef class ntl_mat_GF2E:
     cdef ntl_GF2E _new_element(self):
         cdef ntl_GF2E r
         self.c.restore_c()
-        r = PY_NEW(ntl_GF2E)
+        r = ntl_GF2E.__new__(ntl_GF2E)
         r.c = self.c
         return r
 
     cdef ntl_mat_GF2E _new(self):
         cdef ntl_mat_GF2E r
         self.c.restore_c()
-        r = PY_NEW(ntl_mat_GF2E)
+        r = ntl_mat_GF2E.__new__(ntl_mat_GF2E)
         r.x.SetDims(self.x.NumRows(),self.x.NumCols())
         r.c = self.c
         return r

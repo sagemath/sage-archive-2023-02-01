@@ -121,7 +121,7 @@ cdef class ntl_GF2:
             sage: z*z
             0
         """
-        cdef ntl_GF2 r = PY_NEW(ntl_GF2)
+        cdef ntl_GF2 r = ntl_GF2.__new__(ntl_GF2)
         if not PY_TYPE_CHECK(self, ntl_GF2):
             self = ntl_GF2(self)
         if not PY_TYPE_CHECK(other, ntl_GF2):
@@ -147,7 +147,7 @@ cdef class ntl_GF2:
             other = ntl_GF2(other)
         if GF2_IsZero((<ntl_GF2>other).x):
             raise ZeroDivisionError
-        r = PY_NEW(ntl_GF2)
+        r = ntl_GF2.__new__(ntl_GF2)
         GF2_div(r.x, (<ntl_GF2>self).x, (<ntl_GF2>other).x)
         return r
 
@@ -164,7 +164,7 @@ cdef class ntl_GF2:
             sage: z-z
             0
         """
-        cdef ntl_GF2 r = PY_NEW(ntl_GF2)
+        cdef ntl_GF2 r = ntl_GF2.__new__(ntl_GF2)
         if not PY_TYPE_CHECK(self, ntl_GF2):
             self = ntl_GF2(self)
         if not PY_TYPE_CHECK(other, ntl_GF2):
@@ -185,7 +185,7 @@ cdef class ntl_GF2:
             sage: z+z
             0
         """
-        cdef ntl_GF2 r = PY_NEW(ntl_GF2)
+        cdef ntl_GF2 r = ntl_GF2.__new__(ntl_GF2)
         if not PY_TYPE_CHECK(self, ntl_GF2):
             self = ntl_GF2(self)
         if not PY_TYPE_CHECK(other, ntl_GF2):
@@ -202,7 +202,7 @@ cdef class ntl_GF2:
             sage: -o
             1
         """
-        cdef ntl_GF2 r = PY_NEW(ntl_GF2)
+        cdef ntl_GF2 r = ntl_GF2.__new__(ntl_GF2)
         GF2_negate(r.x, self.x)
         return r
 

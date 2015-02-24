@@ -172,7 +172,8 @@ cdef extern from 'symmetrica/macro.h':
         INT exist
         INT reihenart
         INT z
-        reihe *x, *y
+        reihe *x
+        reihe *y
         reihe *p
         INT (*eingabefkt)()
         char ope

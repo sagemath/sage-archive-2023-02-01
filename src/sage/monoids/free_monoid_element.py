@@ -200,7 +200,7 @@ class FreeMonoidElement(MonoidElement):
 
         # I don't start with 0, because I don't want to preclude evaluation with
         #arbitrary objects (e.g. matrices) because of funny coercion.
-        one = P.one_element()
+        one = P.one()
         result = None
         for var_index, exponent in self._element_list:
             # Take further pains to ensure that non-square matrices are not exponentiated.

@@ -136,7 +136,7 @@ cdef bint is_Integer(x):
     global _Integer
     if _Integer is None:
         from sage.rings.integer import Integer as _Integer
-    return PY_TYPE_CHECK_EXACT(x, _Integer) or PY_TYPE_CHECK_EXACT(x, int)
+    return type(x) is _Integer or type(x) is int
 
 cdef class CoercionModel_cache_maps(CoercionModel):
     """
@@ -670,7 +670,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
     cpdef Parent division_parent(self, Parent parent):
         r"""
         Deduces where the result of division in parent lies by calculating
-        the inverse of ``parent.one_element()`` or ``parent.an_element()``.
+        the inverse of ``parent.one()`` or ``parent.an_element()``.
 
         The result is cached.
 
@@ -695,7 +695,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         except KeyError:
             pass
         try:
-            ret = parent_c(~parent.one_element())
+            ret = parent_c(~parent.one())
         except Exception:
             self._record_exception()
             ret = parent_c(~parent.an_element())
@@ -977,13 +977,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 return self.canonical_coercion(x, y)
 
         # Allow coercion of 0 even if no coercion from Z
-        if is_Integer(x) and not x and not PY_TYPE_CHECK_EXACT(yp, type):
+        if is_Integer(x) and not x and type(yp) is not type:
             try:
                 return yp(0), y
             except Exception:
                 self._record_exception()
 
-        if is_Integer(y) and not y and not PY_TYPE_CHECK_EXACT(xp, type):
+        if is_Integer(y) and not y and type(xp) is not type:
             try:
                 return x, xp(0)
             except Exception:
@@ -1401,7 +1401,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 #print "found1", action
                 return action
 
-        if PY_TYPE(R) == <void *>type:
+        if type(R) is type:
             sageR = py_scalar_parent(R)
             if sageR is not None:
                 action = self.discover_action(sageR, S, op, s=s)
@@ -1410,7 +1410,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                         action = PrecomposedAction(action, sageR._internal_coerce_map_from(R), None)
                     return action
 
-        if PY_TYPE(S) == <void *>type:
+        if type(S) is type:
             sageS = py_scalar_parent(S)
             if sageS is not None:
                 action = self.discover_action(R, sageS, op, r=r)

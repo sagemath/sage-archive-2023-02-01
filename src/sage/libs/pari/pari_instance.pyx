@@ -419,6 +419,10 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         # error handlers.
         pari_init_opts(10000, maxprime, INIT_DFTm)
 
+        # Disable PARI's stack overflow checking which is incompatible
+        # with multi-threading.
+        pari_stackcheck_init(NULL)
+
         _pari_init_error_handling()
 
         # pari_init_opts() overrides MPIR's memory allocation functions,
@@ -618,7 +622,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         call pari_catch_sig_off().
         """
         cdef pari_sp address
-        cdef gen y = PY_NEW(gen)
+        cdef gen y = gen.__new__(gen)
         y.g = self.deepcopy_to_python_heap(x, &address)
         y.b = address
         y._parent = self
@@ -833,7 +837,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari("[[1,2],3]")[0][1] ## indirect doctest
             2
         """
-        cdef gen p = PY_NEW(gen)
+        cdef gen p = gen.__new__(gen)
         p.g = g
         p.b = 0
         p._parent = self

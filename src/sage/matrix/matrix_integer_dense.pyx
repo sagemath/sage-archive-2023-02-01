@@ -202,6 +202,13 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: a = Matrix_integer_dense.__new__(Matrix_integer_dense, Mat(ZZ,3), 0,0,0)
             sage: type(a)
             <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+
+        TESTS::
+
+            sage: Matrix(ZZ, sys.maxsize, sys.maxsize)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: FLINT exception
         """
         self._parent = parent
         self._base_ring = ZZ
@@ -211,7 +218,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         self._initialized_mpz = False
         self._entries = NULL
         self._rows = NULL
+        sig_str("FLINT exception")
         fmpz_mat_init(self._matrix, self._nrows, self._ncols)
+        sig_off()
 
     cdef inline int _init_mpz(self) except -1:
         if self._initialized_mpz:
@@ -683,8 +692,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         else:
             P = matrix_space.MatrixSpace(ZZ, nrows, ncols, sparse=False)
         cdef Matrix_integer_dense ans = Matrix_integer_dense.__new__(Matrix_integer_dense, P, None, None, None)
-        if ans._matrix == NULL:
-            raise MemoryError("out of memory allocating a matrix")
         return ans
 
     ########################################################################
@@ -888,10 +895,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         EXAMPLES::
 
-            sage: a = matrix(QQ,2,range(6))
-            sage: (3/4) * a
-            [   0  3/4  3/2]
-            [ 9/4    3 15/4]
+            sage: a = matrix(ZZ, 2, range(6))
+            sage: 5 * a
+            [ 0  5 10]
+            [15 20 25]
         """
         cdef Integer x = Integer(right)
         cdef fmpz_t z
@@ -965,6 +972,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 2 -3 -1]
             [-4  4  1]
             [ 1  0  0]
+            sage: M(range(9)) ** -1
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Matrix is singular
 
         TESTS::
 
@@ -984,8 +995,21 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [1 0 0]
             [0 1 0]
             [0 0 1]
+
+        In this case, the second argument to ``__pow__`` is a matrix,
+        which should raise the correct error::
+
+            sage: M = Matrix(2, 2, range(4))
+            sage: None^M
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert NoneType to sage.matrix.matrix_integer_dense.Matrix_integer_dense
+            sage: M^M
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: non-integral exponents not supported
         """
-        cdef Matrix_integer_dense self = sself
+        cdef Matrix_integer_dense self = <Matrix_integer_dense?>sself
 
         if dummy is not None:
             raise ValueError
@@ -994,15 +1018,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         cdef unsigned long e
 
-        if isinstance(n,(int,long)):
+        if isinstance(n, int):
             if n < 0:
                 return (~self) ** (-n)
-            try:
-                e = n
-            except OverflowError:
-                # it is very likely that the following will never finish...
-                return generic_power_c(self, n, self._parent.one())
-
+            e = n
         else:
             if not isinstance(n, Integer):
                 try:
@@ -1030,7 +1049,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         sig_off()
         return M
 
-    def __neg__(sself):
+    def __neg__(self):
         r"""
         Return the negative of this matrix.
 
@@ -1044,7 +1063,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 0 -1]
             [-2 -3]
         """
-        cdef Matrix_integer_dense self = sself
         cdef Matrix_integer_dense M = self._new_uninitialized_matrix(self._nrows, self._ncols)
         sig_on()
         fmpz_mat_neg(M._matrix, self._matrix)
@@ -1402,10 +1420,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         Reduce the integer matrix modulo a positive integer.
 
         EXAMPLES::
-            sage: matrix(QQ,2,[1,0,0,1]).change_ring(GF(2)) - 1
-            [0 0]
-            [0 0]
 
+            sage: M = Matrix(ZZ, 2, [1,2,-2,3])
+            sage: M._mod_int(2)
+            [1 0]
+            [0 1]
+            sage: M._mod_int(1000000)
+            [     1      2]
+            [999998      3]
         """
         cdef mod_int c = modulus
         if int(c) != modulus:
@@ -3693,19 +3715,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 raise ZeroDivisionError("input matrix must be nonsingular")
             return self._solve_iml(P.identity_matrix(), right=True)
 
-    def _invert_flint(self, check_invertible=True):
+    def _invert_flint(self):
         """
         Invert this matrix using FLINT. The output matrix is an integer
         matrix and a denominator.
 
         INPUT:
 
-
         -  ``self`` - an invertible matrix
-
-        -  ``check_invertible`` - (default: True) whether to
-           check that the matrix is invertible.
-
 
         OUTPUT: A, d such that A\*self = d
 
@@ -3750,7 +3767,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         fmpz_get_mpz(den.value,fden)
         sig_off()
         fmpz_clear(fden)
-        if check_invertible and res == 0:
+        if res == 0:
             raise ZeroDivisionError('Matrix is singular')
         if den < 0:
             return -M, -den

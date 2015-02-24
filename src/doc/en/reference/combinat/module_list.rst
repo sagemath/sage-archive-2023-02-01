@@ -262,6 +262,7 @@ Comprehensive Module list
     sage/combinat/shuffle
     sage/combinat/sidon_sets
     sage/combinat/similarity_class_type
+    sage/combinat/sine_gordon
     sage/combinat/six_vertex_model
     sage/combinat/skew_partition
     sage/combinat/skew_tableau

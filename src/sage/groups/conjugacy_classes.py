@@ -355,6 +355,35 @@ class ConjugacyClassGAP(ConjugacyClass):
         """
         return self._gap_().Size().sage()
 
+    def __contains__(self, g):
+        r"""
+        Containment test.
+
+        Wraps ``IsConjugate`` from GAP.
+
+        TESTS::
+
+            sage: W = WeylGroup(['C',6])
+            sage: g0,g1,g2,g3,g4,g5 = W.gens()
+            sage: cc = W.conjugacy_class(g0)
+            sage: g0 in cc
+            True
+            sage: g1 in cc
+            True
+            sage: g2 in cc
+            True
+            sage: g3 in cc
+            True
+            sage: g4 in cc
+            True
+            sage: g5 in cc
+            False
+        """
+        g = self._parent(g)._gap_()
+        G = self._parent._gap_()
+        g0 = self._representative._gap_()
+        return G.IsConjugate(g0, g).sage()
+
     @cached_method
     def set(self):
         r"""

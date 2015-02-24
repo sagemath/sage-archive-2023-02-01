@@ -78,6 +78,7 @@ from sage.libs.arb.acb cimport *
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
 from sage.rings.real_arb import RealBallField
+from sage.structure.parent cimport Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
 cdef inline bint acb_is_nonzero(const acb_t z):
@@ -104,29 +105,27 @@ cdef void ComplexIntervalFieldElement_to_acb(
     mpfi_to_arb(&target.real, source.__re, precision)
     mpfi_to_arb(&target.imag, source.__im, precision)
 
-cdef ComplexIntervalFieldElement acb_to_ComplexIntervalFieldElement(
-    const acb_t source,
-    Parent CIF):
+cdef int acb_to_ComplexIntervalFieldElement(
+    ComplexIntervalFieldElement target,
+    const acb_t source) except -1:
     """
     Convert an ``acb`` to a :class:`ComplexIntervalFieldElement`.
 
     INPUT:
 
-    - ``source`` -- an ``acb_t``
+    - ``target`` -- a :class:`ComplexIntervalFieldElement`
 
-     - ``CIF`` -- a complex interval field
+    - ``source`` -- an ``acb_t``
 
     OUTPUT:
 
     A :class:`ComplexIntervalFieldElement`.
     """
-    cdef ComplexIntervalFieldElement result
-    cdef long precision = CIF.precision()
+    cdef long precision = target._prec
 
-    result = CIF(0)
-    arb_to_mpfi(result.__re, &source.real, precision)
-    arb_to_mpfi(result.__im, &source.imag, precision)
-    return result
+    arb_to_mpfi(target.__re, &source.real, precision)
+    arb_to_mpfi(target.__im, &source.imag, precision)
+    return 0
 
 class ComplexBallField(UniqueRepresentation, Parent):
     r"""
@@ -524,8 +523,9 @@ cdef class ComplexBall(Element):
             sage: a._interval()   # optional - arb
             2 + 2*I
         """
-
-        return acb_to_ComplexIntervalFieldElement(self.value, ComplexIntervalField(prec(self)))
+        cdef ComplexIntervalFieldElement target = ComplexIntervalField(prec(self))(0)
+        acb_to_ComplexIntervalFieldElement(target, self.value)
+        return target
 
     # Comparisons and predicates
 

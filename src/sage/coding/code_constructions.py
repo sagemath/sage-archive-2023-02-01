@@ -153,7 +153,7 @@ from sage.misc.all import prod
 from linear_code import LinearCodeFromVectorSpace, LinearCode
 from sage.modules.free_module import span
 from sage.schemes.projective.projective_space import ProjectiveSpace
-from sage.structure.sequence import Sequence
+from sage.structure.sequence import Sequence, Sequence_generic
 from sage.rings.arith import GCD,LCM,divisors,quadratic_residues
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -463,7 +463,10 @@ def permutation_action(g,v):
     if isinstance(v, list):
         v_type_list = True
         v = Sequence(v)
-    V = v.parent()
+    if isinstance(v, Sequence_generic):
+        V = v.universe()
+    else:
+        V = v.parent()
     n = len(list(v))
     gv = []
     for i in range(n):

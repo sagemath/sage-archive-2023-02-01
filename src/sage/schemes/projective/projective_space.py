@@ -53,6 +53,8 @@ two lines.
 AUTHORS:
 
 - Ben Hutz: (June 2012): support for rings
+
+- Ben Hutz (9/2014): added support for cartesian products
 """
 
 #*****************************************************************************
@@ -77,6 +79,7 @@ from sage.categories.fields import Fields
 _Fields = Fields()
 
 from sage.categories.homset import Hom
+from sage.categories.number_fields import NumberFields
 
 from sage.misc.all import (latex,
                            prod)
@@ -97,7 +100,6 @@ from sage.schemes.projective.projective_point import (SchemeMorphism_point_proje
 from sage.schemes.projective.projective_morphism import  (SchemeMorphism_polynomial_projective_space,
                                                           SchemeMorphism_polynomial_projective_space_field,
                                                           SchemeMorphism_polynomial_projective_space_finite_field)
-
 
 def is_ProjectiveSpace(x):
     r"""
@@ -844,6 +846,32 @@ class ProjectiveSpace_ring(AmbientSpace):
         H = Hom(self,self)
         return(H(F))
 
+    def cartesian_product(self, other):
+        r"""
+        Return the cartesian product of the projective spaces ``self`` and
+        ``other``.
+
+        INPUT:
+
+        - ``other`` - A projective space with the same base ring as ``self``
+
+        OUTPUT:
+
+        - A cartesian product of projective spaces
+
+        EXAMPLES::
+
+            sage: P1 = ProjectiveSpace(QQ,1,'x')
+            sage: P2 = ProjectiveSpace(QQ,2,'y')
+            sage: PP = P1.cartesian_product(P2); PP
+            Product of projective spaces P^1 x P^2 over Rational Field
+            sage: PP.gens()
+            (x0, x1, y0, y1, y2)
+        """
+        from sage.schemes.product_projective.space import ProductProjectiveSpaces
+        return ProductProjectiveSpaces([self, other])
+
+
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):
         """
@@ -889,6 +917,72 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                     (x : y : z)
         """
         return SchemeMorphism_polynomial_projective_space_field(*args, **kwds)
+
+    def points_of_bounded_height(self,bound):
+        r"""
+        Returns an iterator of the points in self of absolute height of at most the given bound. Bound check
+        is strict for the rational field. Requires self to be projective space over a number field. Uses the
+        Doyle-Krumm algorithm for computing algebraic numbers up to a given height [Doyle-Krumm].
+
+        INPUT:
+
+        - ``bound`` - a real number
+
+        OUTPUT:
+
+        - an iterator of points in self
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: list(P.points_of_bounded_height(5))
+            [(0 : 1), (1 : 1), (-1 : 1), (1/2 : 1), (-1/2 : 1), (2 : 1), (-2 : 1), (1/3 : 1),
+            (-1/3 : 1), (3 : 1), (-3 : 1), (2/3 : 1), (-2/3 : 1), (3/2 : 1), (-3/2 : 1), (1/4 : 1),
+            (-1/4 : 1), (4 : 1), (-4 : 1), (3/4 : 1), (-3/4 : 1), (4/3 : 1), (-4/3 : 1), (1 : 0)]
+
+        ::
+
+            sage: u = QQ['u'].0
+            sage: P.<x,y,z> = ProjectiveSpace(NumberField(u^2 - 2,'v'), 2)
+            sage: len(list(P.points_of_bounded_height(6)))
+            133
+        """
+        if (is_RationalField(self.base_ring())):
+            ftype = False # stores whether the field is a number field or the rational field
+        elif (self.base_ring() in NumberFields()): # true for rational field as well, so check is_RationalField first
+            ftype = True
+        else:
+            raise NotImplementedError("self must be projective space over a number field.")
+
+        bound = bound**(1/self.base_ring().absolute_degree()) # convert to relative height
+
+        n = self.dimension_relative()
+        R = self.base_ring()
+        zero = R(0)
+        i = n
+        while not i < 0:
+            P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
+            yield self(P)
+            if (ftype == False): # if rational field
+                iters = [ R.range_by_height(bound) for _ in range(i) ]
+            else: # if number field
+                iters = [ R.elements_of_bounded_height(bound) for _ in range(i) ]
+            for x in iters: x.next() # put at zero
+            j = 0
+            while j < i:
+                try:
+                    P[j] = iters[j].next()
+                    yield self(P)
+                    j = 0
+                except StopIteration:
+                    if (ftype == False): # if rational field
+                        iters[j] = R.range_by_height(bound) # reset
+                    else: # if number field
+                        iters[j] = R.elements_of_bounded_height(bound) # reset
+                    iters[j].next() # put at zero
+                    P[j] = zero
+                    j += 1
+            i -= 1
 
 class ProjectiveSpace_finite_field(ProjectiveSpace_field):
     def _point(self, *args, **kwds):
@@ -976,16 +1070,16 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
             P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
             yield self(P)
             iters = [ iter(R) for _ in range(i) ]
-            for x in iters: x.next() # put at zero
+            for x in iters: next(x) # put at zero
             j = 0
             while j < i:
                 try:
-                    P[j] = iters[j].next()
+                    P[j] = next(iters[j])
                     yield self(P)
                     j = 0
                 except StopIteration:
                     iters[j] = iter(R)  # reset
-                    iters[j].next() # put at zero
+                    next(iters[j]) # put at zero
                     P[j] = zero
                     j += 1
             i -= 1
@@ -1041,17 +1135,17 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
             D.update({self(P):index})
             index+=1
             iters = [ iter(R) for _ in range(i) ]
-            for x in iters: x.next() # put at zero
+            for x in iters: next(x) # put at zero
             j = 0
             while j < i:
                 try:
-                    P[j] = iters[j].next()
+                    P[j] = next(iters[j])
                     D.update({self(P):index})
                     index+=1
                     j = 0
                 except StopIteration:
                     iters[j] = iter(R)  # reset
-                    iters[j].next() # put at zero
+                    next(iters[j]) # put at zero
                     P[j] = zero
                     j += 1
             i -= 1

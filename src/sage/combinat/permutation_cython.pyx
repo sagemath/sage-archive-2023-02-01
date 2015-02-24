@@ -141,7 +141,9 @@ def permutation_iterator_transposition_list(int n):
 
     """
 
-    cdef int *c, *o, N, m
+    cdef int *c
+    cdef int *o
+    cdef int N, m
     cdef list T
 
     if n <= 1:

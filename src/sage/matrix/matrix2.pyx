@@ -49,6 +49,7 @@ import sage.modules.free_module
 import matrix_space
 import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
+from sage.matrix.matrix_misc import permanental_minor_polynomial
 
 cdef class Matrix(matrix1.Matrix):
     def _backslash_(self, B):
@@ -279,6 +280,9 @@ cdef class Matrix(matrix1.Matrix):
             [  1]
             [124]
             [  1]
+            sage: B = B.column(0)
+            sage: A.solve_right(B)
+            (1, 124, 1)
 
         Solving a system over the p-adics::
 
@@ -326,8 +330,12 @@ cdef class Matrix(matrix1.Matrix):
             if is_IntegerModRing(K):
                 from sage.libs.pari.all import pari
                 A = pari(self.lift())
-                b = pari([c.lift() for c in B]).Col()
-                ret = A.matsolvemod(pari(K.cardinality()), b)
+                b = pari(B).lift()
+                if b.type() == "t_MAT":
+                    b = b[0]
+                elif b.type() == "t_VEC":
+                    b = b.Col()
+                ret = A.matsolvemod(K.cardinality(), b)
                 if ret.type() == 't_INT':
                     raise ValueError("matrix equation has no solutions")
                 ret = ret.Vec().sage()
@@ -563,7 +571,7 @@ cdef class Matrix(matrix1.Matrix):
 
         Notice the base ring of the results in the next two examples.  ::
 
-            sage: D = matrix(ZZ[x],2,[1+x^2,2,3,4-x])
+            sage: D = matrix(ZZ['x'],2,[1+x^2,2,3,4-x])
             sage: E = matrix(QQ,2,[1,2,3,4])
             sage: F = D.elementwise_product(E)
             sage: F
@@ -679,14 +687,12 @@ cdef class Matrix(matrix1.Matrix):
             self, right = canonical_coercion(self, right)
         return self._elementwise_product(right)
 
-    def permanent(self):
+    def permanent(self, algorithm="Ryser"):
         r"""
-        Calculate and return the permanent of the `m \times n`
-        matrix ``self`` using Ryser's algorithm.
+        Return the permanent of this matrix.
 
-        Let `A = (a_{i,j})` be an `m \times n` matrix over
-        any commutative ring, with `m \le n`. The permanent of
-        `A` is
+        Let `A = (a_{i,j})` be an `m \times n` matrix over any
+        commutative ring with `m \le n`. The permanent of `A` is
 
         .. MATH::
 
@@ -694,53 +700,54 @@ cdef class Matrix(matrix1.Matrix):
            = \sum_\pi a_{1,\pi(1)} a_{2,\pi(2)} \cdots a_{m,\pi(m)}
 
         where the summation extends over all one-to-one functions
-        `\pi` from `\{1, \ldots, m\}` to
-        `\{1, \ldots, n\}`.
+        `\pi` from `\{1, \ldots, m\}` to `\{1, \ldots, n\}`.
 
         The product
         `a_{1,\pi(1)} a_{2,\pi(2)} \cdots a_{m,\pi(m)}` is
-        called diagonal product. So the permanent of an
+        called *diagonal product*. So the permanent of an
         `m \times n` matrix `A` is the sum of all the
         diagonal products of `A`.
+
+        By default, this method uses Ryser's algorithm, but setting
+        ``algorithm`` to "ButeraPernici" you can use the algorithm of Butera and
+        Pernici (which is well suited for band matrices, i.e. matrices whose
+        entries are concentrated near the diagonal).
 
         INPUT:
 
         - ``A`` -- matrix of size `m \times n` with `m \leq n`
 
-        OUTPUT:
-
-        permanent of the matrix `A`
+        - ``algorithm`` -- either "Ryser" (default) or "ButeraPernici". The
+          Butera-Pernici algorithm takes advantage of presence of zeros and is
+          very well suited for sparse matrices.
 
         ALGORITHM:
 
-        Modification of theorem 7.1.1. from Brualdi and Ryser:
-        Combinatorial Matrix Theory. Instead of deleting columns from
-        `A`, we choose columns from `A` and calculate the
-        product of the row sums of the selected submatrix.
+        The Ryser algorithm is implemented in the method
+        :meth:`_permanent_ryser`. It is a modification of theorem 7.1.1. from
+        Brualdi and Ryser: Combinatorial Matrix Theory. Instead of deleting
+        columns from `A`, we choose columns from `A` and calculate the product
+        of the row sums of the selected submatrix.
+
+        The Butera-Pernici algorithm is implemented in the function
+        :func:`~sage.matrix.matrix_misc.permanental_minor_polynomial`. It takes
+        advantage of cancellations that may occur in the computations.
 
         EXAMPLES::
 
-            sage: M = MatrixSpace(ZZ,4,4)
-            sage: A = M([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1])
+            sage: A = ones_matrix(4,4)
             sage: A.permanent()
             24
 
-        ::
-
-            sage: M = MatrixSpace(QQ,3,6)
-            sage: A = M([1,1,1,1,0,0,0,1,1,1,1,0,0,0,1,1,1,1])
+            sage: A = matrix(3,6,[1,1,1,1,0,0,0,1,1,1,1,0,0,0,1,1,1,1])
             sage: A.permanent()
             36
-
-        ::
-
-            sage: M = MatrixSpace(RR,3,6)
-            sage: A = M([1.0,1.0,1.0,1.0,0,0,0,1.0,1.0,1.0,1.0,0,0,0,1.0,1.0,1.0,1.0])
-            sage: A.permanent()
+            sage: B = A.change_ring(RR)
+            sage: B.permanent()
             36.0000000000000
 
-        See Sloane's sequence OEIS A079908(3) = 36, "The Dancing School
-        Problems"
+        The permanent above is directed to the Sloane's sequence :oeis:`A079908`
+        ("The Dancing School Problems") for which the third term is 36: 
 
         ::
 
@@ -751,39 +758,64 @@ cdef class Matrix(matrix1.Matrix):
 
         ::
 
-            sage: M = MatrixSpace(ZZ,4,5)
-            sage: A = M([1,1,0,1,1,0,1,1,1,1,1,0,1,0,1,1,1,0,1,0])
+            sage: A = matrix(4,5,[1,1,0,1,1,0,1,1,1,1,1,0,1,0,1,1,1,0,1,0])
             sage: A.permanent()
             32
+
+        A huge permanent that can not be reasonably computed with the Ryser
+        algorithm (a `50 \times 50` band matrix with width `5`)::
+
+            sage: n, w = 50, 5
+            sage: A = matrix(ZZ, n, n, lambda i,j: (i+j)%5 + 1 if abs(i-j) <= w else 0)
+            sage: A.permanent(algorithm="ButeraPernici")
+            57766972735511097036962481710892268404670105604676932908
 
         See Minc: Permanents, Example 2.1, p. 5.
 
         ::
 
-            sage: M = MatrixSpace(QQ,2,2)
-            sage: A = M([1/5,2/7,3/2,4/5])
+            sage: A = matrix(QQ,2,2,[1/5,2/7,3/2,4/5])
             sage: A.permanent()
             103/175
 
         ::
 
             sage: R.<a> = PolynomialRing(ZZ)
-            sage: A = MatrixSpace(R,2)([[a,1], [a,a+1]])
+            sage: A = matrix(R,2,2,[a,1,a,a+1])
             sage: A.permanent()
             a^2 + 2*a
 
         ::
 
             sage: R.<x,y> = PolynomialRing(ZZ,2)
-            sage: A = MatrixSpace(R,2)([x, y, x^2, y^2])
+            sage: A = matrix(R,2,2,[x, y, x^2, y^2])
             sage: A.permanent()
             x^2*y + x*y^2
 
         AUTHORS:
 
-        - Jaap Spies (2006-02-16)
+        - Jaap Spies (2006-02-16 and 2006-02-21)
+        """
+        if algorithm == "Ryser":
+            return self._permanent_ryser()
 
-        - Jaap Spies (2006-02-21): added definition of permanent
+        elif algorithm == "ButeraPernici":
+            return permanental_minor_polynomial(self, True)
+
+        else:
+            raise ValueError("algorithm must be one of \"Ryser\" or \"ButeraPernici\".")
+
+    def _permanent_ryser(self):
+        r"""
+        Return the permanent computed using Ryser algorithm.
+
+        See :meth:`permanent` for the documentation.
+
+        EXAMPLES::
+
+            sage: m = matrix([[1,1],[1,1]])
+            sage: m._permanent_ryser()
+            2
         """
         cdef Py_ssize_t m, n, r
         cdef int sn
@@ -808,45 +840,44 @@ cdef class Matrix(matrix1.Matrix):
             perm = perm + sn * _binomial(n-r, m-r) * s
         return perm
 
-
-    def permanental_minor(self, Py_ssize_t k):
+    def permanental_minor(self, Py_ssize_t k, algorithm="Ryser"):
         r"""
-        Return the permanental `k`-minor of an `m \times n` matrix.
+        Return the permanental `k`-minor of this matrix.
 
-        This is the sum of the permanents of all possible `k` by
-        `k` submatrices of `A`.
-
-        See Brualdi and Ryser: Combinatorial Matrix Theory, p. 203. Note
-        the typo `p_0(A) = 0` in that reference! For applications
-        see Theorem 7.2.1 and Theorem 7.2.4.
-
-        Note that the permanental `m`-minor equals
-        `\mathrm{per}(A)` if `m = n`.
+        The *permanental* `k`-*minor* of a matrix `A` is the sum of the
+        permanents of all possible `k` by `k` submatrices of `A`. Note that the
+        maximal permanental minor is just the permanent.
 
         For a (0,1)-matrix `A` the permanental `k`-minor
         counts the number of different selections of `k` 1's of
         `A` with no two of the 1's on the same row and no two of the
         1's on the same column.
 
+        See Brualdi and Ryser: Combinatorial Matrix Theory, p. 203. Note
+        the typo `p_0(A) = 0` in that reference! For applications
+        see Theorem 7.2.1 and Theorem 7.2.4.
+
+        .. SEEALSO:
+
+            The method :meth:`rook_vector` returns the list of all permanental
+            minors.
+
         INPUT:
 
-        - ``self`` -- matrix of size `m \times n` with `m \leq n`
+        - ``k`` -- the size of the minor
 
-        OUTPUT:
-
-        The permanental `k`-minor of the matrix ``self``.
+        - ``algorithm`` -- either "Ryser" (default) or "ButeraPernici". The
+          Butera-Pernici algorithm is well suited for band matrices.
 
         EXAMPLES::
 
-            sage: M = MatrixSpace(ZZ,4,4)
-            sage: A = M([1,0,1,0,1,0,1,0,1,0,10,10,1,0,1,1])
+            sage: A = matrix(4,[1,0,1,0,1,0,1,0,1,0,10,10,1,0,1,1])
             sage: A.permanental_minor(2)
             114
 
         ::
 
-            sage: M = MatrixSpace(ZZ,3,6)
-            sage: A = M([1,1,1,1,0,0,0,1,1,1,1,0,0,0,1,1,1,1])
+            sage: A = matrix(3,6,[1,1,1,1,0,0,0,1,1,1,1,0,0,0,1,1,1,1])
             sage: A.permanental_minor(0)
             1
             sage: A.permanental_minor(1)
@@ -862,30 +893,54 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.permanent()
             36
 
-        ::
+        The permanental minors of the "complement" matrix of `A` is
+        related to the permanent of `A`::
 
-            sage: A.permanental_minor(5)
-            0
-
-        For `C` the "complement" of `A`::
-
-            sage: M = MatrixSpace(ZZ,3,6)
-            sage: C = M([0,0,0,0,1,1,1,0,0,0,0,1,1,1,0,0,0,0])
             sage: m, n = 3, 6
-            sage: sum([(-1)^k * C.permanental_minor(k)*factorial(n-k)/factorial(n-m) for k in range(m+1)])
+            sage: C = matrix(m, n, lambda i,j: 1 - A[i,j])
+            sage: sum((-1)^k * C.permanental_minor(k)*factorial(n-k)/factorial(n-m) for k in range(m+1))
             36
 
         See Theorem 7.2.1 of Brualdi and Ryser: Combinatorial Matrix
         Theory: per(A)
 
+        TESTS::
+
+            sage: A.permanental_minor(5)
+            0
+
         AUTHORS:
 
         - Jaap Spies (2006-02-19)
         """
+        if algorithm == "Ryser":
+            return self._permanental_minor_ryser(k)
+
+        elif algorithm == "ButeraPernici":
+            p = permanental_minor_polynomial(self, prec=k+1)
+            return p[k]
+
+        else:
+            raise ValueError("algorithm must be one of \"Ryser\" or \"ButeraPernici\".")
+
+    def _permanental_minor_ryser(self, Py_ssize_t k):
+        r"""
+        Compute the `k`-th permanental minor using Ryser algorithm.
+
+        See :meth:`permanental_minor` for the documentation.
+
+        EXAMPLES::
+
+            sage: m = matrix([[1,2,1],[3,4,3],[5,6,5]])
+            sage: m._permanental_minor_ryser(1)
+            30
+            sage: m._permanental_minor_ryser(2)
+            174
+            sage: m._permanental_minor_ryser(3)
+            136
+        """
         m = self._nrows
         n = self._ncols
-        if not m <= n:
-            raise ValueError("must have m <= n, but m (=%s) and n (=%s)"%(m,n))
 
         R = self._base_ring
         if k == 0:
@@ -899,73 +954,240 @@ cdef class Matrix(matrix1.Matrix):
                 pm = pm + self.matrix_from_rows_and_columns(rows, cols).permanent()
         return pm
 
-
-    def rook_vector(self, check = False):
+    def rook_vector(self, algorithm="ButeraPernici", complement=False, use_complement=None):
         r"""
-        Return the rook vector of the matrix ``self``.
+        Return the rook vector of this matrix.
 
-        Let `A` be an `m` by `n` (0,1)-matrix with `m \le n`. We identify
-        `A` with a chessboard where rooks can be placed on the fields
-        `(i, j)` with `a_{i,j} = 1`. The number
-        `r_k = p_k(A)` (the permanental `k`-minor) counts the number of
+        Let `A` be an `m` by `n` (0,1)-matrix. We identify `A` with a chessboard
+        where rooks can be placed on the fields `(i, j)` with `A_{i,j} = 1`. The
+        number `r_k = p_k(A)` (the permanental `k`-minor) counts the number of
         ways to place `k` rooks on this board so that no rook can attack
         another.
 
-        The rook vector of the matrix `A` is the list consisting of
-        `r_0, r_1, \ldots, r_m`.
+        The *rook vector* of the matrix `A` is the list consisting of `r_0,
+        r_1, \ldots, r_h`, where `h = min(m,n)`. The *rook polynomial* is defined by
+        `r(x) = \sum_{k=0}^h r_k x^k`.
 
-        The rook polynomial is defined by
-        `r(x) = \sum_{k=0}^m r_k x^k`.
+        The rook vector can be generalized to matrices defined over any rings
+        using permanental minors. Among the available algorithms, only "Godsil"
+        needs the condition on the entries to be either `0` or `1`.
+
+        See :wikipedia:`Rook_polynomial` for more information and also the
+        method :meth:`permanental_minor` to compute individual permanental
+        minor.
+
+        See also ``sage.matrix.matrix2.permanental_minor_polynomial``
+        and the graph method ``matching_polynomial``.
 
         INPUT:
 
-        - ``self`` -- an `m` by `n` (0,1)-matrix with `m \le n`
+        - ``self`` -- an `m` by `n` matrix
 
-        - ``check`` -- Boolean (default: ``False``) determining whether
-          to check that ``self`` is a (0,1)-matrix.
+        - ``algorithm`` -- a string which must be either "Ryser" or
+          "ButeraPernici" (default) or "Godsil"; Ryser one might be faster on
+          simple and small instances. Godsil only accepts input in 0,1.
 
-        OUTPUT:
+        - ``complement`` -- boolean (default: ``False``) whether we consider the
+          rook vector of the complement matrix. If set to ``True`` then the
+          matrix must have entries in {0, 1} and the complement matrix is the
+          one for which the 0's are replaced by 1's and 1's by 0's.
 
-        The rook vector of the matrix ``self``.
+        - ``use_complement`` -- Boolean (default: ``None``) whether to compute the
+          rook vector of a (0,1)-matrix from its complement. By default this is
+          determined by the density of ones in the matrix.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: M = MatrixSpace(ZZ,3,6)
-            sage: A = M([1,1,1,1,0,0,0,1,1,1,1,0,0,0,1,1,1,1])
+        The standard chessboard is an `8` by `8` grid in which any positions is
+        allowed. In that case one gets that the number of ways to position `4`
+        non-attacking rooks is `117600` while for `8` rooks it is `40320`::
+
+            sage: ones_matrix(8,8).rook_vector()
+            [1, 64, 1568, 18816, 117600, 376320, 564480, 322560, 40320]
+
+        These numbers are the coefficients of a modified Laguerre polynomial::
+
+            sage: x = polygen(ZZ)
+            sage: factorial(8) * laguerre(8,-x)
+            x^8 + 64*x^7 + 1568*x^6 + 18816*x^5 + 117600*x^4 + 376320*x^3 +
+            564480*x^2 + 322560*x + 40320
+
+        The number of derangements of length `n` is the permanent
+        of a matrix with 0 on the diagonal and 1 elsewhere;
+        for `n=21` it is `18795307255050944540` (see :oeis:`A000166`):
+
+           sage: A = identity_matrix(21)
+           sage: A.rook_vector(complement=True)[-1]
+           18795307255050944540
+           sage: Derangements(21).cardinality()
+           18795307255050944540
+
+        An other example that we convert into a rook polynomial::
+
+            sage: A = matrix(3,6, [1,1,1,1,0,0,0,1,1,1,1,0,0,0,1,1,1,1])
+            sage: A
+            [1 1 1 1 0 0]
+            [0 1 1 1 1 0]
+            [0 0 1 1 1 1]
             sage: A.rook_vector()
             [1, 12, 40, 36]
 
-        ::
-
-            sage: R.<x> = PolynomialRing(ZZ)
-            sage: rv = A.rook_vector()
-            sage: rook_polynomial = sum([rv[k] * x^k for k in range(len(rv))])
-            sage: rook_polynomial
+            sage: R = PolynomialRing(ZZ, 'x')
+            sage: R(A.rook_vector())
             36*x^3 + 40*x^2 + 12*x + 1
+
+        Different algorithms are available::
+
+            sage: A = matrix([[1,0,0,1],[0,1,1,0],[0,1,1,0],[1,0,0,1]])
+            sage: A.rook_vector(algorithm="ButeraPernici")
+            [1, 8, 20, 16, 4]
+            sage: A.rook_vector(algorithm="Ryser")
+            [1, 8, 20, 16, 4]
+            sage: A.rook_vector(algorithm="Godsil")
+            [1, 8, 20, 16, 4]
+
+        When the matrix `A` has more ones then zeroes it is usually faster
+        to compute the rook polynomial of the complementary matrix, with
+        zeroes and ones interchanged, and use the inclusion-exclusion theorem,
+        giving for a `m \times n` matrix `A` with complementary matrix `B`
+
+        .. MATH::
+
+            r_k(A) = \sum_{j=0}^k (-1)^j \binom{m-j}{k-j} \binom{n-j}{k-j} (k-j)! r_j(B)
+
+        see [Riordan] or the introductory text [Allenby]. This can be done
+        setting the argument ``use_complement`` to ``True``.
+
+        An example with an exotic matrix (for which only Butera-Pernici and
+        Ryser algorithms are available)::
+
+            sage: R.<x,y> = PolynomialRing(GF(5))
+            sage: A = matrix(R,[[1,x,y],[x*y,x**2+y,0]])
+            sage: A.rook_vector(algorithm="ButeraPernici")
+            [1, x^2 + x*y + x + 2*y + 1, 2*x^2*y + x*y^2 + x^2 + y^2 + y]
+            sage: A.rook_vector(algorithm="Ryser")
+            [1, x^2 + x*y + x + 2*y + 1, 2*x^2*y + x*y^2 + x^2 + y^2 + y]
+            sage: A.rook_vector(algorithm="Godsil")
+            Traceback (most recent call last):
+            ...
+            ValueError: coefficients must be zero or one, but we have 'x' in position (0,1).
+            sage: B = A.transpose()
+            sage: B.rook_vector(algorithm="ButeraPernici")
+            [1, x^2 + x*y + x + 2*y + 1, 2*x^2*y + x*y^2 + x^2 + y^2 + y]
+            sage: B.rook_vector(algorithm="Ryser")
+            [1, x^2 + x*y + x + 2*y + 1, 2*x^2*y + x*y^2 + x^2 + y^2 + y]
+
+        TESTS::
+
+            sage: matrix([[0,0],[0,0]]).rook_vector(algorithm="ButeraPernici")
+            [1, 0, 0]
+            sage: matrix([[0,0],[0,0]]).rook_vector(algorithm="Ryser")
+            [1, 0, 0]
+            sage: matrix([[0,0],[0,0]]).rook_vector(algorithm="Godsil")
+            [1, 0, 0]
+            sage: matrix.ones(4, 2).rook_vector("Ryser")
+            [1, 8, 12]
+            sage: matrix.ones(4, 2).rook_vector("Godsil")
+            [1, 8, 12]
+            sage: m = matrix(ZZ,4,5)
+            sage: m[:4,:4] = identity_matrix(4)
+            sage: for algorithm in ("Godsil","Ryser","ButeraPernici"):
+            ....:     v = m.rook_vector(complement=True, use_complement=True, algorithm=algorithm)
+            ....:     if v != [1, 16, 78, 128, 53]:
+            ....:         print "ERROR with algorithm={} use_complement=True".format(algorithm)
+            ....:     v = m.rook_vector(complement=True, use_complement=False, algorithm=algorithm)
+            ....:     v = m.rook_vector(complement=True, use_complement=False)
+            ....:     if v != [1, 16, 78, 128, 53]:
+            ....:         print "ERROR with algorithm={} use_complement=False".format(algorithm)
+
+        REFERENCES:
+
+        .. [Riordan] J. Riordan, "An Introduction to Combinatorial Analysis",
+           Dover Publ. (1958)
+
+        .. [Allenby] R.B.J.T Allenby and A. Slomson, "How to count", CRC Press (2011)
 
         AUTHORS:
 
         - Jaap Spies (2006-02-24)
+        - Mario Pernici (2014-07-01)
         """
-        m = self._nrows
-        n = self._ncols
-        if not m <= n:
-            raise ValueError, "must have m <= n, but m (=%s) and n (=%s)"%(m,n)
+        cdef Py_ssize_t i,j
+        cdef unsigned int num_ones
+        cdef int m = self._nrows
+        cdef int n = self._ncols
+        cdef int mn = min(m,n)
+        cdef Matrix B
+        zero = self.base_ring().zero()
+        one  = self.base_ring().one()
 
-        if check:
-            # verify that self[i, j] in {0, 1}
+        # we first run through the coefficients of the matrix to compute the
+        # number of non-zero coefficients and to see whether or not it contains
+        # only elements in {0,1}... but this is not always needed
+        if complement or use_complement is None or algorithm == "Godsil":
+            # z2 flag is True if all coefficients belong to {0,1}
+            z2 = True
+            num_ones = 1
             for i in range(m):
                 for j in range(n):
-                    x = self.get_unsafe(i, j)
-                    if not (x == 0 or x == 1):
-                        raise ValueError, "must have zero or one, but we have (=%s)"%x
+                    x = self.get_unsafe(i,j)
+                    if x != zero:
+                        if x != one:
+                            z2 = False
+                            break
+                        else:
+                            num_ones += 1
+                else:
+                    continue
+                break
 
-        tmp = []
-        for k in range(m+1):
-            tmp.append(self.permanental_minor(k))
-        return tmp
+            if not z2 and (complement or algorithm == "Godsil"):
+                raise ValueError("coefficients must be zero or one, but we have '{}' in position ({},{}).".format(x,i,j))
 
-    def minors(self,k):
+            if use_complement is None:
+                use_complement = z2 and num_ones > 0.55 * m * n
+
+        if use_complement:
+            B = self.new_matrix()
+            for i in range(m):
+                for j in range(n):
+                    B.set_unsafe(i,j, one-self.get_unsafe(i,j))
+            b = B.rook_vector(algorithm=algorithm, use_complement=False)
+            complement = not complement
+
+        elif algorithm == "Ryser":
+            b = [self.permanental_minor(k,algorithm="Ryser") for k in range(mn+1)]
+
+        elif algorithm == "ButeraPernici":
+            p = permanental_minor_polynomial(self)
+            b = [p[k] for k in range(mn+1)]
+
+        elif algorithm == "Godsil":
+            from sage.graphs.bipartite_graph import BipartiteGraph
+            p = BipartiteGraph(self).matching_polynomial()
+            d = p.degree()
+            b = [p[i]*(-1)**((d - i)/2) for i in range(d, d-2*mn-1, -2)]
+
+        else:
+            raise ValueError('algorithm must be one of "Ryser", "ButeraPernici" or "Godsil".')
+
+        # now compute the permanental minor of the complement matrix if needed
+        if complement:
+            a = [one]
+            c1 = 1
+            for k in range(1, mn + 1):
+                c1 = c1*(m-k+1)*(n-k+1)/k
+                c = c1
+                s = c*b[0] + (-one)**k*b[k]
+                for j in range(1, k):
+                    c = -c*(k-j+1)/((m-j+1)*(n-j+1))
+                    s += c*b[j]
+                a.append(s)
+            return a
+        else:
+            return b
+
+    def minors(self, k):
         r"""
         Return the list of all `k \times k` minors of self.
 
@@ -1459,7 +1681,10 @@ cdef class Matrix(matrix1.Matrix):
 
     def __abs__(self):
         """
-        Synonym for self.determinant(...).
+        Deprecated.
+
+        This function used to return the determinant. It is deprecated since
+        :trac:`17443`.
 
         EXAMPLES::
 
@@ -1467,9 +1692,179 @@ cdef class Matrix(matrix1.Matrix):
             [1 2]
             [3 4]
             sage: abs(a)
+            doctest:...: DeprecationWarning: abs(matrix) is deprecated. Use matrix.det()to
+            get the determinant.
+            See http://trac.sagemath.org/17443 for details.
             -2
         """
-        return self.determinant()
+        #TODO: after expiration of the one year deprecation, we should return a
+        # TypeError with the following kind of message:
+        #   absolute value is not defined on matrices. If you want the
+        #   L^1-norm use m.norm(1) and if you want the matrix obtained by
+        #   applying the absolute value to the coefficents use
+        #   m.apply_map(abs).
+        from sage.misc.superseded import deprecation
+        deprecation(17443, "abs(matrix) is deprecated. Use matrix.det()"
+                           "to get the determinant.")
+        return self.det()
+
+    def apply_morphism(self, phi):
+        """
+        Apply the morphism phi to the coefficients of this dense matrix.
+
+        The resulting matrix is over the codomain of phi.
+
+        INPUT:
+
+
+        -  ``phi`` - a morphism, so phi is callable and
+           phi.domain() and phi.codomain() are defined. The codomain must be a
+           ring.
+
+        OUTPUT: a matrix over the codomain of phi
+
+        EXAMPLES::
+
+            sage: m = matrix(ZZ, 3, range(9))
+            sage: phi = ZZ.hom(GF(5))
+            sage: m.apply_morphism(phi)
+            [0 1 2]
+            [3 4 0]
+            [1 2 3]
+            sage: parent(m.apply_morphism(phi))
+            Full MatrixSpace of 3 by 3 dense matrices over Finite Field of size 5
+
+        We apply a morphism to a matrix over a polynomial ring::
+
+            sage: R.<x,y> = QQ[]
+            sage: m = matrix(2, [x,x^2 + y, 2/3*y^2-x, x]); m
+            [          x     x^2 + y]
+            [2/3*y^2 - x           x]
+            sage: phi = R.hom([y,x])
+            sage: m.apply_morphism(phi)
+            [          y     y^2 + x]
+            [2/3*x^2 - y           y]
+        """
+        M = self.parent().change_ring(phi.codomain())
+        if self.is_sparse():
+            values = {(i,j): phi(z) for (i,j),z in self.dict()}
+        else:
+            values = [phi(z) for z in self.list()]
+        image = M(values)
+        if self._subdivisions is not None:
+            image.subdivide(*self.subdivisions())
+        return image
+
+    def apply_map(self, phi, R=None, sparse=None):
+        """
+        Apply the given map phi (an arbitrary Python function or callable
+        object) to this dense matrix. If R is not given, automatically
+        determine the base ring of the resulting matrix.
+
+        INPUT:
+
+        - ``sparse`` -- True to make the output a sparse matrix; default False
+
+        -  ``phi`` - arbitrary Python function or callable object
+
+        -  ``R`` - (optional) ring
+
+        OUTPUT: a matrix over R
+
+        EXAMPLES::
+
+            sage: m = matrix(ZZ, 3, range(9))
+            sage: k.<a> = GF(9)
+            sage: f = lambda x: k(x)
+            sage: n = m.apply_map(f); n
+            [0 1 2]
+            [0 1 2]
+            [0 1 2]
+            sage: n.parent()
+            Full MatrixSpace of 3 by 3 dense matrices over Finite Field in a of size 3^2
+
+        In this example, we explicitly specify the codomain.
+
+        ::
+
+            sage: s = GF(3)
+            sage: f = lambda x: s(x)
+            sage: n = m.apply_map(f, k); n
+            [0 1 2]
+            [0 1 2]
+            [0 1 2]
+            sage: n.parent()
+            Full MatrixSpace of 3 by 3 dense matrices over Finite Field in a of size 3^2
+
+        If self is subdivided, the result will be as well::
+
+            sage: m = matrix(2, 2, srange(4))
+            sage: m.subdivide(None, 1); m
+            [0|1]
+            [2|3]
+            sage: m.apply_map(lambda x: x*x)
+            [0|1]
+            [4|9]
+
+        If the matrix is sparse, the result will be as well::
+
+            sage: m = matrix(ZZ,100,100,sparse=True)
+            sage: m[18,32] = -6
+            sage: m[1,83] = 19
+            sage: n = m.apply_map(abs, R=ZZ)
+            sage: n.dict()
+            {(1, 83): 19, (18, 32): 6}
+            sage: n.is_sparse()
+            True
+
+        If the map sends most of the matrix to zero, then it may be useful
+        to get the result as a sparse matrix.
+
+        ::
+
+            sage: m = matrix(ZZ, 3, 3, range(1, 10))
+            sage: n = m.apply_map(lambda x: 1//x, sparse=True); n
+            [1 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: n.parent()
+            Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
+
+        TESTS::
+
+            sage: m = matrix([])
+            sage: m.apply_map(lambda x: x*x) == m
+            True
+
+            sage: m.apply_map(lambda x: x*x, sparse=True).parent()
+            Full MatrixSpace of 0 by 0 sparse matrices over Integer Ring
+        """
+        if self._nrows == 0 or self._ncols == 0:
+            if sparse is None or self.is_sparse() is sparse:
+                return self.__copy__()
+            elif sparse:
+                return self.sparse_matrix()
+            else:
+                return self.dense_matrix()
+
+        if self.is_sparse():
+            values = {(i,j): phi(v) for (i,j),v in self.dict().iteritems()}
+            if R is None:
+                R = sage.structure.sequence.Sequence(values.values()).universe()
+        else:
+            values = [phi(v) for v in self.list()]
+            if R is None:
+                R = sage.structure.sequence.Sequence(values).universe()
+
+        if sparse is None or sparse is self.is_sparse():
+            M = self.parent().change_ring(R)
+        else:
+            M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
+                       self._ncols, sparse=sparse)
+        image = M(values)
+        if self._subdivisions is not None:
+            image.subdivide(*self.subdivisions())
+        return image
 
     def characteristic_polynomial(self, *args, **kwds):
         """
@@ -14283,4 +14678,3 @@ def _jordan_form_vector_in_difference(V, W):
         if v not in W_space:
             return v
     return None
-

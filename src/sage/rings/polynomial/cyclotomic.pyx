@@ -32,7 +32,7 @@ include "sage/ext/cdefs.pxi"
 
 from sage.rings.arith import factor
 from sage.rings.infinity import infinity
-from sage.misc.misc import prod, subsets
+from sage.misc.all import prod, subsets
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.libs.pari.gen cimport gen

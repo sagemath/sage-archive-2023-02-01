@@ -226,7 +226,7 @@ cdef class Cache_ntl_gf2e(SageObject):
         """
         cdef FiniteField_ntl_gf2eElement y
         self.F.restore()
-        y = PY_NEW(FiniteField_ntl_gf2eElement)
+        y = FiniteField_ntl_gf2eElement.__new__(FiniteField_ntl_gf2eElement)
         y._parent = self._parent
         y._cache = self
         return y
@@ -527,7 +527,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
     cdef FiniteField_ntl_gf2eElement _new(FiniteField_ntl_gf2eElement self):
         cdef FiniteField_ntl_gf2eElement y
         (<Cache_ntl_gf2e>self._parent._cache).F.restore()
-        y = PY_NEW(FiniteField_ntl_gf2eElement)
+        y = FiniteField_ntl_gf2eElement.__new__(FiniteField_ntl_gf2eElement)
         y._parent = self._parent
         y._cache = self._cache
         return y

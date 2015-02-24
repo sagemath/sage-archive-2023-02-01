@@ -23,7 +23,9 @@ AUTHORS:
 - Peter Bruin (2013-11-17): move PariInstance to a separate file
   (#15185)
 
- - Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (#15767)
+- Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (#15767)
+
+- Martin von Gagern (2014-12-17): Added some Galois functions (#17519)
 
 """
 
@@ -47,8 +49,6 @@ import operator
 import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.misc.randstate cimport randstate, current_randstate
-
-from sage.misc.misc_c import is_64_bit
 
 include 'pari_err.pxi'
 include 'sage/ext/stdsage.pxi'
@@ -181,8 +181,7 @@ cdef class gen(sage.structure.element.RingElement):
             True
         """
         s = str(self)
-        import sage.libs.pari.gen_py
-        return sage.libs.pari.gen_py.pari, (s,)
+        return (objtogen, (s,))
 
     cpdef ModuleElement _add_(self, ModuleElement right):
         pari_catch_sig_on()
@@ -1638,6 +1637,14 @@ cdef class gen(sage.structure.element.RingElement):
 
         - `n` (gen) -- a non-negative integer
 
+        OUTPUT:
+
+        0 if `n<0`, otherwise the Hurwitz-Kronecker class number of
+        `n`.  This is `0` if `n\equiv1,2\mod4`, `-1/12` when `n=0`,
+        and otherwise it is the number of classes of positive definite
+        binary quadratic forms with discriminant `-n`, each weighted
+        by the number of its automorphisms.
+
         .. note::
 
            If `n` is large (more than `5*10^5`), the result is
@@ -1645,10 +1652,11 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES:
 
-        The Hurwitx class number is 0 is n is congruent to 1 or 2 modulo 4::
-            sage: pari(-10007).qfbhclassno()
+        The Hurwitz class number is 0 if n is congruent to 1 or 2 modulo 4::
+
+            sage: pari(10009).qfbhclassno()
             0
-            sage: pari(-2).qfbhclassno()
+            sage: pari(2).qfbhclassno()
             0
 
         It is -1/12 for n=0::
@@ -1670,6 +1678,127 @@ cdef class gen(sage.structure.element.RingElement):
         """
         pari_catch_sig_on()
         return P.new_gen(hclassno(n.g))
+
+    def qfbclassno(gen d, long flag=0):
+        r"""
+        Computes the class number of the quadratic order of discriminant `d`.
+
+        INPUT:
+
+        - `d` (gen) -- a quadratic discriminant, which is an integer
+          congruent to `0` or `1`\mod4`, not a square.
+
+        - ``flag`` (long int) -- if 0 (default), uses Euler product
+          and the functional equation for `d>0` or Shanks's method for
+          `d<0`; if 1, uses Euler products and the functional equation
+          in both cases.
+
+        OUTPUT:
+
+        The class number of the quadratic order with discriminant `d`.
+
+        .. warning::
+
+           Using Euler products and the functional equation is
+           reliable but has complexity `O(|d|^{1/2})`.  Using Shanks's
+           method for `d<0` is `O(|d|^{1/4})` but this function may give
+           incorrect results when the class group has many cyclic
+           factors, because implementing Shanks's method in full
+           generality slows it down immensely. It is therefore
+           strongly recommended to double-check results using either
+           the version with ``flag`` = 1 or the function
+           ``quadclassunit``. The result is unconditionally correct
+           for `-d < 2e10`.
+
+        EXAMPLES::
+
+           sage: pari(-4).qfbclassno()
+           1
+           sage: pari(-23).qfbclassno()
+           3
+           sage: pari(-104).qfbclassno()
+           6
+
+           sage: pari(109).qfbclassno()
+           1
+           sage: pari(10001).qfbclassno()
+           16
+           sage: pari(10001).qfbclassno(flag=1)
+           16
+
+        TESTS:
+
+        The input must be congruent to `0` or `1\mod4` and not a square::
+
+           sage: pari(3).qfbclassno()
+           Traceback (most recent call last):
+           ...
+           PariError: domain error in classno2: disc % 4 > 1
+           sage: pari(4).qfbclassno()
+           Traceback (most recent call last):
+           ...
+           PariError: domain error in classno2: issquare(disc) = 1
+        """
+        pari_catch_sig_on()
+        return P.new_gen(qfbclassno0(d.g, flag))
+
+    def quadclassunit(gen d, long precision=0):
+        r"""
+        Returns the class group of a quadratic order of discriminant `d`.
+
+        INPUT:
+
+        - `d` (gen) -- a quadratic discriminant, which is an integer
+          congruent to `0` or `1`\mod4`, not a square.
+
+        OUTPUT:
+
+        (h,cyc,gen,reg) where:
+
+        - h is the class number
+        - cyc is the class group structure (list of invariants)
+        - gen is the class group generators (list of quadratic forms)
+        - reg is the regulator
+
+        ALGORITHM:
+
+        Buchmann-McCurley's sub-exponential algorithm
+
+        EXAMPLES::
+
+           sage: pari(-4).quadclassunit()
+           [1, [], [], 1]
+           sage: pari(-23).quadclassunit()
+           [3, [3], [Qfb(2, 1, 3)], 1]
+           sage: pari(-104).quadclassunit()
+           [6, [6], [Qfb(5, -4, 6)], 1]
+
+           sage: pari(109).quadclassunit()
+           [1, [], [], 5.56453508676047]
+           sage: pari(10001).quadclassunit() # random generators
+           [16, [16], [Qfb(10, 99, -5, 0.E-38)], 5.29834236561059]
+           sage: pari(10001).quadclassunit()[0]
+           16
+           sage: pari(10001).quadclassunit()[1]
+           [16]
+           sage: pari(10001).quadclassunit()[3]
+           5.29834236561059
+
+        TESTS:
+
+        The input must be congruent to `0` or `1\mod4` and not a square::
+
+           sage: pari(3).quadclassunit()
+           Traceback (most recent call last):
+           ...
+           PariError: domain error in Buchquad: disc % 4 > 1
+           sage: pari(4).quadclassunit()
+           Traceback (most recent call last):
+           ...
+           PariError: domain error in Buchquad: issquare(disc) = 1
+        """
+        pari_catch_sig_on()
+        return P.new_gen(quadclassunit0(d.g, 0, NULL, prec_bits_to_words(precision)))
 
     def ispseudoprime(gen self, long flag=0):
         """
@@ -6875,8 +7004,36 @@ cdef class gen(sage.structure.element.RingElement):
 
     def galoisinit(self, den=None):
         """
-        galoisinit(K{,den}): calculate Galois group of number field K; see PARI manual
-        for meaning of den
+        Calculate the Galois group of ``self``.
+
+        This wraps the `galoisinit`_ function from PARI.
+
+        INPUT:
+
+        - ``self`` -- A number field or a polynomial.
+
+        - ``den`` -- If set, this must be a multiple of the least
+          common denominator of the automorphisms, expressed as
+          polynomials in a root of the defining polynomial.
+
+        OUTPUT:
+
+        An eight-tuple, represented as a GEN object,
+        with details about the Galois group of the number field.
+        For details see `the PARI manual <galoisinit_>`_.
+        Note that the element indices in Sage and PARI are
+        0-based and 1-based, respectively.
+
+        EXAMPLES::
+
+            sage: P = pari(x^6 + 108)
+            sage: G = P.galoisinit()
+            sage: G[0] == P
+            True
+            sage: len(G[5]) == prod(G[7])
+            True
+
+        .. _galoisinit: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoisinit
         """
         cdef gen t0
         if den is None:
@@ -6888,14 +7045,227 @@ cdef class gen(sage.structure.element.RingElement):
             return P.new_gen(galoisinit(self.g, t0.g))
 
     def galoispermtopol(self, perm):
+        """
+        Return the polynomial defining the Galois automorphism ``perm``.
+
+        This wraps the `galoispermtopol`_ function from PARI.
+
+        INPUT:
+
+        - ``self`` -- A Galois group as generated by :meth:`galoisinit`.
+
+        - ``perm`` -- A permutation from that group,
+          or a vector or matrix of such permutations.
+
+        OUTPUT:
+
+        The defining polynomial of the specified automorphism.
+
+        EXAMPLES::
+
+            sage: G = pari(x^6 + 108).galoisinit()
+            sage: G.galoispermtopol(G[5])
+            [x, 1/12*x^4 - 1/2*x, -1/12*x^4 - 1/2*x, 1/12*x^4 + 1/2*x, -1/12*x^4 + 1/2*x, -x]
+            sage: G.galoispermtopol(G[5][1])
+            1/12*x^4 - 1/2*x
+            sage: G.galoispermtopol(G[5][1:4])
+            [1/12*x^4 - 1/2*x, -1/12*x^4 - 1/2*x, 1/12*x^4 + 1/2*x]
+
+        .. _galoispermtopol: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoispermtopol
+        """
         cdef gen t0 = objtogen(perm)
         pari_catch_sig_on()
         return P.new_gen(galoispermtopol(self.g, t0.g))
 
     def galoisfixedfield(self, perm, long flag=0, v=-1):
+        """
+        Compute the fixed field of the Galois group ``self``.
+
+        This wraps the `galoisfixedfield`_ function from PARI.
+
+        INPUT:
+
+        - ``self`` -- A Galois group as generated by :meth:`galoisinit`.
+
+        - ``perm`` -- An element of a Galois group, a vector of such
+          elements, or a subgroup generated by :meth:`galoissubgroups`.
+
+        - ``flag`` -- Amount of data to include in output (see below).
+
+        - ``v`` -- Name of the second variable to use (default: ``'y'``).
+
+        OUTPUT:
+
+        This depends on the value of ``flag``:
+
+        - ``flag = 0`` -- A two-element tuple consisting of the defining
+          polynomial of the fixed field and a description of its roots
+          modulo the primes used in the group.
+
+        - ``flag = 1`` -- Just the polynomial.
+
+        - ``flag = 2`` -- A third tuple element will describe the
+          factorization of the original polynomial, using the variable
+          indicated by ``v`` to stand for a root of the polynomial
+          from the first tuple element.
+
+        EXAMPLES::
+
+            sage: G = pari(x^4 + 1).galoisinit()
+            sage: G.galoisfixedfield(G[5][1], flag=2)
+            [x^2 + 4, Mod(2*x^2, x^4 + 1), [x^2 - 1/2*y, x^2 + 1/2*y]]
+            sage: G.galoisfixedfield(G[5][5:7])
+            [x^4 + 1, Mod(x, x^4 + 1)]
+            sage: L = G.galoissubgroups()
+            sage: G.galoisfixedfield(L[2], flag=2, v='z')
+            [x^2 + 2, Mod(x^3 + x, x^4 + 1), [x^2 - z*x - 1, x^2 + z*x - 1]]
+
+        .. _galoisfixedfield: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoisfixedfield
+        """
         cdef gen t0 = objtogen(perm)
         pari_catch_sig_on()
         return P.new_gen(galoisfixedfield(self.g, t0.g, flag, P.get_var(v)))
+
+    def galoissubfields(self, long flag=0, v=-1):
+        """
+        List all subfields of the Galois group ``self``.
+
+        This wraps the `galoissubfields`_ function from PARI.
+
+        This method is essentially the same as applying
+        :meth:`galoisfixedfield` to each group returned by
+        :meth:`galoissubgroups`.
+
+        INPUT:
+
+        - ``self`` -- A Galois group as generated by :meth:`galoisinit`.
+
+        - ``flag`` -- Has the same meaning as in :meth:`galoisfixedfield`.
+
+        - ``v`` -- Has the same meaning as in :meth:`galoisfixedfield`.
+
+        OUTPUT:
+
+        A vector of all subfields of this group.  Each entry is as
+        described in the :meth:`galoisfixedfield` method.
+
+        EXAMPLES::
+
+            sage: G = pari(x^6 + 108).galoisinit()
+            sage: G.galoissubfields(flag=1)
+            [x, x^2 + 972, x^3 + 54, x^3 + 864, x^3 - 54, x^6 + 108]
+            sage: G = pari(x^4 + 1).galoisinit()
+            sage: G.galoissubfields(flag=2, v='z')[2]
+            [x^2 + 2, Mod(x^3 + x, x^4 + 1), [x^2 - z*x - 1, x^2 + z*x - 1]]
+
+        .. _galoissubfields: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoissubfields
+        """
+        pari_catch_sig_on()
+        return P.new_gen(galoissubfields(self.g, flag, P.get_var(v)))
+
+    def galoissubgroups(self):
+        """
+        List all subgroups of the Galois group ``self``.
+
+        This wraps the `galoissubgroups`_ function from PARI.
+
+        INPUT:
+
+        - ``self`` -- A Galois group as generated by :meth:`galoisinit`,
+          or a subgroup thereof as returned by :meth:`galoissubgroups`.
+
+        OUTPUT:
+
+        A vector of all subgroups of this group.
+        Each subgroup is described as a two-tuple,
+        with the subgroup generators as first element
+        and the orders of these generators as second element.
+
+        EXAMPLES::
+
+            sage: G = pari(x^6 + 108).galoisinit()
+            sage: L = G.galoissubgroups()
+            sage: list(L[0][1])
+            [3, 2]
+
+        .. _galoissubgroups: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoissubgroups
+        """
+        pari_catch_sig_on()
+        return P.new_gen(galoissubgroups(self.g))
+
+    def galoisisabelian(self, long flag=0):
+        """
+        Decide whether ``self`` is an abelian group.
+
+        This wraps the `galoisisabelian`_ function from PARI.
+
+        INPUT:
+
+        - ``self`` -- A Galois group as generated by :meth:`galoisinit`,
+          or a subgroup thereof as returned by :meth:`galoissubgroups`.
+
+        - ``flag`` -- Controls the details contained in the returned result.
+
+        OUTPUT:
+
+        This returns 0 if ``self`` is not an abelian group. If it is,
+        then the output depends on ``flag``:
+
+        - ``flag = 0`` -- The HNF matrix of ``self`` over its generators
+          is returned.
+
+        - ``flag = 1`` -- The return value is simply 1.
+
+        EXAMPLES::
+
+            sage: G = pari(x^6 + 108).galoisinit()
+            sage: G.galoisisabelian()
+            0
+            sage: H = G.galoissubgroups()[2]
+            sage: H.galoisisabelian()
+            Mat(2)
+            sage: H.galoisisabelian(flag=1)
+            1
+
+        .. _galoisisabelian: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoisisabelian
+        """
+        pari_catch_sig_on()
+        return P.new_gen(galoisisabelian(self.g, flag))
+
+    def galoisisnormal(self, subgrp):
+        """
+        Decide whether ``subgrp`` is a normal subgroup of ``self``.
+
+        This wraps the `galoisisnormal`_ function from PARI.
+
+        INPUT:
+
+        - ``self`` -- A Galois group as generated by :meth:`galoisinit`,
+          or a subgroup thereof as returned by :meth:`galoissubgroups`.
+
+        - ``subgrp`` -- A subgroup of ``self`` as returned by
+          :meth:`galoissubgroups`.
+
+        OUTPUT:
+
+        One if ``subgrp`` is a subgroup of ``self``, zero otherwise.
+
+        EXAMPLES::
+
+            sage: G = pari(x^6 + 108).galoisinit()
+            sage: L = G.galoissubgroups()
+            sage: G.galoisisnormal(L[0])
+            1
+            sage: G.galoisisnormal(L[2])
+            0
+
+        .. _galoisisnormal: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoisisnormal
+        """
+        cdef gen t0 = objtogen(subgrp)
+        pari_catch_sig_on()
+        v = galoisisnormal(self.g, t0.g)
+        P.clear_stack()
+        return v
 
     def idealred(self, I, vdir=0):
         cdef gen t0 = objtogen(I)
@@ -8998,22 +9368,18 @@ cdef class gen(sage.structure.element.RingElement):
         return P.new_gen(order(self.g))
 
     def znprimroot(self):
-        """
-        Return a primitive root modulo self, whenever it exists.
-
-        This is a generator of the group `(\ZZ/n\ZZ)^*`, whenever
-        this group is cyclic, i.e. if `n=4` or `n=p^k` or
-        `n=2p^k`, where `p` is an odd prime and `k`
-        is a natural number.
+        r"""
+        Return a primitive root modulo ``self``, whenever it exists.
 
         INPUT:
 
+        - ``self`` -- an integer `n` such that `|n|` is equal to 1, 2,
+          4, a power of an odd prime, or twice a power of an odd prime
 
-        -  ``self`` - positive integer equal to 4, or a power
-           of an odd prime, or twice a power of an odd prime
+        OUTPUT:
 
-
-        OUTPUT: gen
+        A generator (type ``t_INTMOD``) of `(\ZZ/n\ZZ)^*`.  Note that
+        this group is cyclic if and only if `n` is of the above form.
 
         EXAMPLES::
 
@@ -9026,6 +9392,41 @@ cdef class gen(sage.structure.element.RingElement):
         """
         pari_catch_sig_on()
         return P.new_gen(znprimroot(self.g))
+
+    def znstar(self):
+        r"""
+        Return the structure of the group `(\ZZ/n\ZZ)^*`.
+
+        INPUT:
+
+        - ``self`` -- any integer `n` (type ``t_INT``)
+
+        OUTPUT:
+
+        A triple `[\phi(n), [d_1, \ldots, d_k], [x_1, \ldots, x_k]]`,
+        where
+
+        - `\phi(n)` is the order of `(\ZZ/n\ZZ)^*`;
+
+        - `d_1, \ldots, d_k` are the unique integers greater than 1
+          with `d_k \mid d_{k-1} \mid \ldots \mid d_1` such that
+          `(\ZZ/n\ZZ)^*` is isomorphic to `\prod_{i=1}^k \ZZ/d_i\ZZ`;
+
+        - `x_1, \ldots, x_k` are the images of the standard generators
+          under some isomorphism from `\prod_{i=1}^k \ZZ/d_i\ZZ` to
+          `(\ZZ/n\ZZ)^*`.
+
+        EXAMPLES::
+
+            sage: pari(0).znstar()
+            [2, [2], [-1]]
+            sage: pari(96).znstar()
+            [32, [8, 2, 2], [Mod(37, 96), Mod(79, 96), Mod(65, 96)]]
+            sage: pari(-5).znstar()
+            [4, [4], [Mod(2, 5)]]
+        """
+        pari_catch_sig_on()
+        return P.new_gen(znstar(self.g))
 
     def __abs__(self):
         return self.abs()
@@ -9496,7 +9897,7 @@ def init_pari_stack(s=8000000):
     P.allocatemem(s, silent=True)
 
 
-cdef gen objtogen(s):
+cpdef gen objtogen(s):
     """
     Convert any Sage/Python object to a PARI gen.
     """
@@ -9601,85 +10002,6 @@ cdef GEN _Vec_append(GEN v, GEN a, long n):
         return w
     else:
         return v
-
-
-# We derive PariError from RuntimeError, for backward compatibility with
-# code that catches the latter.
-class PariError(RuntimeError):
-    """
-    Error raised by PARI
-    """
-    def errnum(self):
-        r"""
-        Return the PARI error number corresponding to this exception.
-
-        EXAMPLES::
-
-            sage: try:
-            ....:     pari('1/0')
-            ....: except PariError as err:
-            ....:     print err.errnum()
-            30
-        """
-        return self.args[0]
-
-    def errtext(self):
-        """
-        Return the message output by PARI when this error occurred.
-
-        EXAMPLE::
-
-            sage: try:
-            ....:     pari('pi()')
-            ....: except PariError as e:
-            ....:     print e.errtext()
-            ....:
-              ***   at top-level: pi()
-              ***                 ^----
-              ***   not a function in function call
-
-        """
-        return self.args[1]
-
-    def __repr__(self):
-        r"""
-        TESTS::
-
-            sage: PariError(11)
-            PariError(11)
-        """
-        return "PariError(%d)"%self.errnum()
-
-    def __str__(self):
-        r"""
-        Return a suitable message for displaying this exception.
-
-        This is the last line of ``self.errtext()``, with the leading
-        ``"  ***   "`` and trailing periods and colons (if any) removed.
-        An exception is syntax errors, where the "syntax error" line is
-        shown.
-
-        EXAMPLES::
-
-            sage: try:
-            ....:     pari('1/0')
-            ....: except PariError as err:
-            ....:     print err
-            _/_: impossible inverse in gdiv: 0
-
-        A syntax error::
-
-            sage: pari('!@#$%^&*()')
-            Traceback (most recent call last):
-            ...
-            PariError: syntax error, unexpected $undefined: !@#$%^&*()
-        """
-        lines = self.errtext().split('\n')
-        if self.errnum() == e_SYNTAX:
-            for line in lines:
-                if "syntax error" in line:
-                    return line.lstrip(" *").rstrip(" .:")
-        return lines[-1].lstrip(" *").rstrip(" .:")
 
 
 cdef _factor_int_when_pari_factor_failed(x, failed_factorization):

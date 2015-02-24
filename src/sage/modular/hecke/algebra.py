@@ -546,9 +546,9 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
 
             sage: T = ModularSymbols(1,12).hecke_algebra()
             sage: g = T.gens()
-            sage: g.next()
+            sage: next(g)
             Hecke operator T_1 on Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
-            sage: g.next()
+            sage: next(g)
             Hecke operator T_2 on Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
         """
         n = 1
@@ -769,9 +769,9 @@ class HeckeAlgebra_anemic(HeckeAlgebra_base):
 
             sage: T = ModularSymbols(12,2).anemic_hecke_algebra()
             sage: g = T.gens()
-            sage: g.next()
+            sage: next(g)
             Hecke operator T_1 on Modular Symbols space of dimension 5 for Gamma_0(12) of weight 2 with sign 0 over Rational Field
-            sage: g.next()
+            sage: next(g)
             Hecke operator T_5 on Modular Symbols space of dimension 5 for Gamma_0(12) of weight 2 with sign 0 over Rational Field
         """
         level = self.level()

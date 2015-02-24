@@ -43,11 +43,12 @@ import polynomial_singular_interface
 from sage.interfaces.all import singular as singular_default
 
 from sage.structure.element import generic_power, canonical_coercion, bin_op, coerce_binop
+from sage.structure.element cimport have_same_parent_c
 
-from sage.libs.ntl.ntl_ZZ_p_decl cimport *, ZZ_p_c
-from sage.libs.ntl.ntl_lzz_p_decl cimport *, zz_p_c
-from sage.libs.ntl.ntl_lzz_pX_decl cimport *, zz_pX_c, zz_pX_Modulus_c
-from sage.libs.ntl.ntl_ZZ_pX_decl cimport *, ZZ_pX_c, ZZ_pX_Modulus_c
+from sage.libs.ntl.ntl_ZZ_p_decl cimport *
+from sage.libs.ntl.ntl_lzz_p_decl cimport *
+from sage.libs.ntl.ntl_lzz_pX_decl cimport *
+from sage.libs.ntl.ntl_ZZ_pX_decl cimport *
 
 def make_element(parent, args):
     return parent(*args)
@@ -624,7 +625,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         self.c = ntl.c
 
     cdef Polynomial_dense_modn_ntl_zz _new(self):
-        cdef Polynomial_dense_modn_ntl_zz y = <Polynomial_dense_modn_ntl_zz>PY_NEW(Polynomial_dense_modn_ntl_zz)
+        cdef Polynomial_dense_modn_ntl_zz y = <Polynomial_dense_modn_ntl_zz>Polynomial_dense_modn_ntl_zz.__new__(Polynomial_dense_modn_ntl_zz)
         y.c = self.c
         y._parent = self._parent
         return y
@@ -920,7 +921,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: f - q*g
             x + 1
         """
-        if PY_TYPE(self) != PY_TYPE(right) or (<Element>self)._parent is not (<Element>right)._parent:
+        if not have_same_parent_c(self, right):
             self, right = canonical_coercion(self, right)
             return self // right
         cdef Polynomial_dense_modn_ntl_zz numer = <Polynomial_dense_modn_ntl_zz>self
@@ -943,7 +944,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: g * x^4 + r
             x^7 + x + 1
         """
-        if PY_TYPE(self) != PY_TYPE(right) or (<Element>self)._parent is not (<Element>right)._parent:
+        if not have_same_parent_c(self, right):
             self, right = canonical_coercion(self, right)
             return self % right
         cdef Polynomial_dense_modn_ntl_zz numer = <Polynomial_dense_modn_ntl_zz>self
@@ -1202,7 +1203,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
 
     cdef Polynomial_dense_modn_ntl_ZZ _new(self):
-        cdef Polynomial_dense_modn_ntl_ZZ y = <Polynomial_dense_modn_ntl_ZZ>PY_NEW(Polynomial_dense_modn_ntl_ZZ)
+        cdef Polynomial_dense_modn_ntl_ZZ y = <Polynomial_dense_modn_ntl_ZZ>Polynomial_dense_modn_ntl_ZZ.__new__(Polynomial_dense_modn_ntl_ZZ)
         y.c = self.c
         y._parent = self._parent
         return y
@@ -1481,7 +1482,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             sage: f - q*g
             x + 1
         """
-        if PY_TYPE(self) != PY_TYPE(right) or (<Element>self)._parent is not (<Element>right)._parent:
+        if not have_same_parent_c(self, right):
             self, right = canonical_coercion(self, right)
             return self // right
         cdef Polynomial_dense_modn_ntl_ZZ numer = <Polynomial_dense_modn_ntl_ZZ>self
@@ -1504,7 +1505,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             sage: g * (x^4 + x) + r
             x^7 + x + 1
         """
-        if PY_TYPE(self) != PY_TYPE(right) or (<Element>self)._parent is not (<Element>right)._parent:
+        if not have_same_parent_c(self, right):
             self, right = canonical_coercion(self, right)
             return self % right
         cdef Polynomial_dense_modn_ntl_ZZ numer = <Polynomial_dense_modn_ntl_ZZ>self

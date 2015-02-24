@@ -102,7 +102,7 @@ cdef class ntl_ZZ_pEX:
         ## the error checking in __init__ will prevent##
         ## you from constructing an ntl_ZZ_pEX        ##
         ## inappropriately.  However, from Cython, you##
-        ## could do r = PY_NEW(ntl_ZZ_pEX) without    ##
+        ## could do r = ntl_ZZ_pEX.__new__(ntl_ZZ_pEX) without
         ## first restoring a ZZ_pEContext, which could##
         ## have unfortunate consequences.  See _new  ##
         ## defined below for an example of the right  ##
@@ -138,7 +138,7 @@ cdef class ntl_ZZ_pEX:
     cdef ntl_ZZ_pEX _new(self):
         cdef ntl_ZZ_pEX r
         self.c.restore_c()
-        r = PY_NEW(ntl_ZZ_pEX)
+        r = ntl_ZZ_pEX.__new__(ntl_ZZ_pEX)
         r.c = self.c
         return r
 
@@ -249,7 +249,7 @@ cdef class ntl_ZZ_pEX:
         cdef ntl_ZZ_pE r
         sig_on()
         self.c.restore_c()
-        r = PY_NEW(ntl_ZZ_pE)
+        r = ntl_ZZ_pE.__new__(ntl_ZZ_pE)
         r.c = self.c
         r.x = ZZ_pEX_coeff( self.x, i)
         sig_off()
@@ -596,7 +596,7 @@ cdef class ntl_ZZ_pEX:
         """
         cdef ntl_ZZ_pEContext_class cE = ntl_ZZ_pEContext(self.c.f.convert_to_modulus(c))
         cE.restore_c()
-        cdef ntl_ZZ_pEX ans = PY_NEW(ntl_ZZ_pEX)
+        cdef ntl_ZZ_pEX ans = ntl_ZZ_pEX.__new__(ntl_ZZ_pEX)
         sig_on()
         ZZ_pEX_conv_modulus(ans.x, self.x, c.x)
         sig_off()

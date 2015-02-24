@@ -25,7 +25,7 @@ Conjugacy classes for groups of permutations::
     sage: G = SymmetricGroup(4)
     sage: g = G((1,2,3,4))
     sage: G.conjugacy_class(g)
-    Conjugacy class of (1,2,3,4) in Symmetric group of order 4! as a permutation group
+    Conjugacy class of cycle type [4] in Symmetric group of order 4! as a permutation group
 
 Conjugacy classes for groups of matrices::
 

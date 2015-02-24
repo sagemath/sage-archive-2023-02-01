@@ -302,12 +302,12 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             v = self._matrix[i]
             for j from 0 <= j < self._ncols:
                 x = entries[k]
-                if PY_TYPE_CHECK_EXACT(x, int):
+                if type(x) is int:
                     tmp = (<long>x) % p
                     v[j] = tmp + (tmp<0)*p
-                elif PY_TYPE_CHECK_EXACT(x, IntegerMod_int) and (<IntegerMod_int>x)._parent is R:
+                elif type(x) is IntegerMod_int and (<IntegerMod_int>x)._parent is R:
                     v[j] = (<IntegerMod_int>x).ivalue
-                elif PY_TYPE_CHECK_EXACT(x, Integer):
+                elif type(x) is Integer:
                     if coerce:
                         v[j] = mpz_fdiv_ui((<Integer>x).value, p)
                     else:
@@ -648,7 +648,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         M.p = p
 
         sig_on()
-        cdef mod_int *row_self, *row_ans
+        cdef mod_int *row_self
+        cdef mod_int *row_ans
         for i from 0 <= i < self._nrows:
             row_self = self._matrix[i]
             row_ans = M._matrix[i]
@@ -697,7 +698,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         M.p = p
 
         sig_on()
-        cdef mod_int *row_self, *row_ans
+        cdef mod_int *row_self
+        cdef mod_int *row_ans
         for i from 0 <= i < self._nrows:
             row_self = self._matrix[i]
             row_ans = M._matrix[i]
@@ -750,7 +752,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         p = self.p
 
         sig_on()
-        cdef mod_int *row_self, *row_right, *row_ans
+        cdef mod_int *row_self
+        cdef mod_int *row_right
+        cdef mod_int *row_ans
         for i from 0 <= i < self._nrows:
             row_self = self._matrix[i]
             row_right = (<Matrix_modn_dense> right)._matrix[i]
@@ -791,7 +795,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         p = self.p
 
         sig_on()
-        cdef mod_int *row_self, *row_right, *row_ans
+        cdef mod_int *row_self
+        cdef mod_int *row_right
+        cdef mod_int *row_ans
         for i from 0 <= i < self._nrows:
             row_self = self._matrix[i]
             row_right = (<Matrix_modn_dense> right)._matrix[i]
@@ -835,7 +841,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef int cmp
 
         sig_on()
-        cdef mod_int *row_self, *row_right
+        cdef mod_int *row_self
+        cdef mod_int *row_right
         for i from 0 <= i < self._nrows:
             row_self = self._matrix[i]
             row_right = (<Matrix_modn_dense> right)._matrix[i]
@@ -1102,7 +1109,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
           row1 + t \* row2 where g = sa + tb
         """
         cdef mod_int p = self.p
-        cdef mod_int * row1_p, * row2_p
+        cdef mod_int * row1_p
+        cdef mod_int * row2_p
         cdef mod_int tmp
         cdef int g, s, t, v, w
         cdef Py_ssize_t nc, i
@@ -1256,7 +1264,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     cdef _add_multiple_of_row_c(self,  Py_ssize_t row_to, Py_ssize_t row_from, mod_int multiple,
                                Py_ssize_t start_col):
         cdef mod_int p
-        cdef mod_int *v_from, *v_to
+        cdef mod_int *v_from
+        cdef mod_int *v_to
 
         p = self.p
         v_from = self._matrix[row_from]
@@ -1649,7 +1658,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef int ndigits = len(str(self.p))
 
         cdef Py_ssize_t i, n
-        cdef char *s, *t
+        cdef char *s
+        cdef char *t
 
         if self._nrows == 0 or self._ncols == 0:
             data = ''

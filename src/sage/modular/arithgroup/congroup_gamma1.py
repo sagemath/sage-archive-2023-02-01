@@ -16,7 +16,7 @@ Congruence Subgroup `\Gamma_1(N)`
 
 from sage.misc.cachefunc import cached_method
 
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from congroup_gammaH import GammaH_class, is_GammaH, GammaH_constructor
 from sage.rings.all import ZZ, euler_phi as phi, moebius, divisors
 from sage.modular.dirichlet import DirichletGroup

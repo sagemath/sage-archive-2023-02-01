@@ -1,10 +1,9 @@
-
 ======================================
 Welcome to the Sage Developer's Guide!
 ======================================
 
-Everybody who uses Sage is encouraged to contribute something back to
-Sage at some point. You could:
+Everybody who uses Sage is encouraged to contribute something back to Sage at
+some point. You could:
 
 * Add examples to the documentation
 * Find bugs or typos
@@ -14,71 +13,49 @@ Sage at some point. You could:
 * Translate an existing document to a new language
 * Create a new class, create a fast new C library, etc.
 
-This document describes how to write programs using Sage, how to modify
-and extend the core Sage libraries, and how to modify Sage's
-documentation. We also discuss how to share your new and modified code
-with other Sage users around the globe.
+This document tells you what you need to know to do all the above, from
+reporting bugs to modifying and extending Sage and its documentation.  We also
+discuss how to share your new and modified code with other Sage users around the
+globe.
 
-It is not necessary to memorize this entire guide to begin working on
-Sage, but careful reading of different sections now will be well worth
-the effort in seamless contributions later.  There are four main things
-to be aware of.
+Here are brief overviews of each part; for more details, see the extended table
+of contents below.  No matter where you start, good luck and welcome to Sage
+development!
 
-- All development takes place on or via `the Sage Trac server
-  <http://trac.sagemath.org>`_, including bug reports, fixes,
-  new functionality, and discussions about approaches to particular tickets.
-  If you don't have an account on it, read about how to :ref:`acquire a
-  Trac account <section-trac-account>`.  This is recommended even if you
-  only want to report bugs or request new functionality, not necessarily
-  to help make changes to Sage.
+- **Trac server:** all changes go through the `the Sage Trac server
+  <http://trac.sagemath.org>`_ at some point. It contains bug reports, upgrade
+  requests, changes in progress, and those already part of Sage
+  today. :ref:`Click here <chapter-sage-trac>` for more information.
 
-- Next, if you've never worked on software before, you will want to read
-  about the `prerequisites to compile
-  <http://www.sagemath.org/doc/installation/source.html#prerequisites>`_
-  from the installation guide.  This will allow you to
-  make your changes in the source code work.  Pay close attention
-  to any system-specific requirements.
+  Importantly, you will need to :ref:`create a trac account
+  <section-trac-account>` in order to contribute.
 
-- Once you start writing code for Sage, you will want to carefully read the
-  :ref:`conventions and guidelines <section-writing-code-for-sage>` we use.
-  (Looking at newer files and functionality within Sage is another way to
-  get a sense for the the general style, but refer here for details.)
+- **Source code:** You need your own copy of Sage's source code to change it.
+  `Go there <http://www.sagemath.org/doc/installation/source.html>`_ to get it
+  and for instructions to build it.
 
-  - There is an entire section on how to modify or add to the various
-    :ref:`manuals and tutorials <chapter-sage_manuals>`,
-    including localizing to other languages.
+  If you have never worked on software before, pay close attention to the
+  `prerequisites to compile
+  <http://www.sagemath.org/doc/installation/source.html#prerequisites>`_ on your
+  system.
 
-- Finally, in order to share changes with the Sage community, you will
-  need to learn some basics of the source code revision control process.
-  There are several places to start, depending upon your previous knowledge.
+- **Conventions:** read our :ref:`conventions and guidelines
+  <section-writing-code-for-sage>` for code and documentation.
 
-  - Don't forget to :ref:`acquire a Trac account <section-trac-account>`.
-  - First, you will need to :ref:`install the 'git' revision control
-    software <section-git-install>` if you don't already have it.
-  - Then you will need to go through a short process to :ref:`configure git
-    <section-git-setup-name>` for use with Trac.
-  - Assuming you have ``git`` installed and know the basics of how to use it,
-    the next step is the overview of the Sage development flow in the
-    :ref:`concise development guide <chapter-walkthrough>`.
+  For everything related to manuals, tutorials, and languages, :ref:`click here
+  <chapter-sage_manuals>`.
 
-    - (More advanced :ref:`tricks and tips <section-git-tricks-and-tips>` for
-      ``git`` are linked below.)
+- **Git (revision control):** To share changes with the Sage community, you will
+  need to learn about revision control; we use the software Git for this
+  purpose.
 
-  - For those unfamiliar with ``git`` or revision control, please start by
-    reading about :ref:`collaborative development with Git-Trac <chapter-git_trac>`,
-    which provides some easier interface with git and Trac, both for newbies
-    and power users.
-  - Alternately, one can do certain amounts of Sage development without
-    having ``git`` installed, by using Sage's own internal installation of ``git``
-    and the :ref:`Sage dev scripts <chapter-devscript>`.  This is mainly
-    intended as a bridge to full use of git once one becomes more comfortable
-    with the system.
+  - :ref:`Here is <chapter-walkthrough>` an overview of our development flow.
+  - :ref:`Unfamiliar with Git or revision control? <chapter-git_trac>`
+  - :ref:`How to install it? <section-git-install>`
+  - :ref:`How to configure it for use with Trac? <section-git-setup-name>`
 
-No matter where you start, good luck and welcome to Sage development!
-
-
-Git and Trac
-============
+Git for Sage development
+========================
 
 First Steps with Git
 --------------------
@@ -91,27 +68,15 @@ Sage uses git for version control.
    git_setup
    walk_through
 
-Sage Trac and tickets
----------------------
-
-All changes to Sage source code require a ticket on the
-`Sage trac server <http://trac.sagemath.org>`_.
-
-.. toctree::
-   :maxdepth: 3
-
-   trac
-
-Git and Trac integration
-------------------------
+The git-trac command
+--------------------
 
 Putting your local changes on a Trac ticket.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    git_trac
-   dev_script
 
 .. _section-git-tricks-and-tips:
 
@@ -121,12 +86,23 @@ Git Tricks & Tips
 When ``git trac`` is not enough.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    manual_git
    git_background
    advanced_git
    workflows
+
+Sage Trac and tickets
+=====================
+
+All changes to Sage source code require a ticket on the
+`Sage trac server <http://trac.sagemath.org>`_.
+
+.. toctree::
+   :maxdepth: 2
+
+   trac
 
 
 .. _section-writing-code-for-sage:
@@ -134,13 +110,18 @@ When ``git trac`` is not enough.
 Writing Code for Sage
 =====================
 
-Basics of Writing and Testing Sage Code
----------------------------------------
-
 .. toctree::
    :maxdepth: 3
 
    coding_basics
+   reviewer_checklist
+
+Running Sage's tests
+--------------------
+
+.. toctree::
+   :maxdepth: 3
+
    doctesting
 
 Contributing to Manuals and Tutorials

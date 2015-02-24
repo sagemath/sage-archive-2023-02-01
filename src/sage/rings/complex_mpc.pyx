@@ -321,7 +321,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
         Return a new complex number with parent ``self`.
         """
         cdef MPComplexNumber z
-        z = PY_NEW(MPComplexNumber)
+        z = MPComplexNumber.__new__(MPComplexNumber)
         z._parent = self
         mpc_init2(z.value, self.__prec)
         z.init = 1
@@ -371,7 +371,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
             2.00000000000000 + 3.00000000000000*I
         """
         if x is None:
-            return self.zero_element()
+            return self.zero()
         # We implement __call__ to gracefully accept the second argument.
         if im is not None:
             x = x, im
@@ -709,7 +709,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         Return a new complex number with same parent as ``self``.
         """
         cdef MPComplexNumber z
-        z = PY_NEW(MPComplexNumber)
+        z = MPComplexNumber.__new__(MPComplexNumber)
         z._parent = self._parent
         mpc_init2(z.value, (<MPComplexField_class>self._parent).__prec)
         z.init = 1
@@ -1020,19 +1020,6 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         y = RealNumber(self._parent._imag_field())
         mpfr_set (y.value, self.value.im, (<RealField_class>y._parent).rnd)
         return y
-
-    def parent(self):
-        """
-        Return the complex field containing the number.
-
-        EXAMPLES::
-
-            sage: C = MPComplexField()
-            sage: a = C(1.2456, 987.654)
-            sage: a.parent()
-            Complex Field with 53 bits of precision
-        """
-        return self._parent
 
     def str(self, int base=10, int truncate=True):
         """

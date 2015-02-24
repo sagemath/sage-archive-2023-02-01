@@ -23,7 +23,6 @@ from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
 from sage.functions.other import sqrt, floor, ceil
-from sage.misc.prandom import randint
 
 from sage.graphs.graph import Graph
 
@@ -917,7 +916,7 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: p = polytopes.n_cube(3)
-            sage: p.Hrep_generator().next()
+            sage: next(p.Hrep_generator())
             An inequality (0, 0, -1) x + 1 >= 0
         """
         for H in self.Hrepresentation():
@@ -1005,9 +1004,9 @@ class Polyhedron_base(Element):
 
             sage: p = polytopes.cyclic_polytope(3,4)
             sage: vg = p.Vrep_generator()
-            sage: vg.next()
+            sage: next(vg)
             A vertex at (0, 0, 0)
-            sage: vg.next()
+            sage: next(vg)
             A vertex at (1, 1, 1)
         """
         for V in self.Vrepresentation():
@@ -1100,7 +1099,7 @@ class Polyhedron_base(Element):
 
             sage: p = polytopes.regular_polygon(8,base_ring=RDF)
             sage: p3 = Polyhedron(vertices = [x+[0] for x in p.vertices()], base_ring=RDF)
-            sage: p3.equation_generator().next()
+            sage: next(p3.equation_generator())
             An equation (0.0, 0.0, 1.0) x + 0.0 == 0
         """
         for H in self.Hrepresentation():
@@ -1183,13 +1182,13 @@ class Polyhedron_base(Element):
             A vertex at (1, 0)
             A vertex at (1, 1)
             sage: v_gen = triangle.vertex_generator()
-            sage: v_gen.next()   # the first vertex
+            sage: next(v_gen)   # the first vertex
             A vertex at (0, 1)
-            sage: v_gen.next()   # the second vertex
+            sage: next(v_gen)   # the second vertex
             A vertex at (1, 0)
-            sage: v_gen.next()   # the third vertex
+            sage: next(v_gen)   # the third vertex
             A vertex at (1, 1)
-            sage: try: v_gen.next()   # there are only three vertices
+            sage: try: next(v_gen)   # there are only three vertices
             ... except StopIteration: print "STOP"
             STOP
             sage: type(v_gen)
@@ -1328,7 +1327,7 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: pr = Polyhedron(rays = [[1,0],[-1,0],[0,1]], vertices = [[-1,-1]])
-            sage: pr.line_generator().next().vector()
+            sage: next(pr.line_generator()).vector()
             (1, 0)
         """
         for V in self.Vrepresentation():
@@ -2369,10 +2368,10 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: p = Polyhedron(vertices = [[t,t^2,t^3] for t in srange(2,6)])
-            sage: p.vertex_generator().next()
+            sage: next(p.vertex_generator())
             A vertex at (2, 4, 8)
             sage: p2 = p.dilation(2)
-            sage: p2.vertex_generator().next()
+            sage: next(p2.vertex_generator())
             A vertex at (4, 8, 16)
             sage: p.dilation(2) == p * 2
             True
@@ -2915,7 +2914,6 @@ class Polyhedron_base(Element):
         """
         return vector(ZZ, [len(x) for x in self.face_lattice().level_sets()])
 
-    @cached_method
     def vertex_graph(self):
         """
         Return a graph in which the vertices correspond to vertices
@@ -2935,6 +2933,76 @@ class Polyhedron_base(Element):
         return Graph(self.vertex_adjacency_matrix(), loops=False)
 
     graph = vertex_graph
+
+    def vertex_digraph(self, f, increasing=True):
+        """
+        Return the directed graph of the polyhedron according to a linear form.
+
+        The underlying undirected graph is the graph of vertices and edges.
+
+        INPUT:
+
+        - ``f`` -- a linear form. The linear form can be provided as:
+
+            - a vector space morphism with one-dimensional codomain, (see
+              :meth:`sage.modules.vector_space_morphism.linear_transformation`
+              and
+              :class:`sage.modules.vector_space_morphism.VectorSpaceMorphism`)
+            - a vector ; in this case the linear form is obtained by duality
+              using the dot product: ``f(v) = v.dot_product(f)``.
+
+        - ``increasing`` -- boolean (default ``True``) whether to orient
+          edges in the increasing or decreasing direction.
+
+        By default, an edge is oriented from `v` to `w` if
+        `f(v) \leq f(w)`.
+
+        If `f(v)=f(w)`, then two opposite edges are created.
+
+        EXAMPLES::
+
+            sage: penta = Polyhedron([[0,0],[1,0],[0,1],[1,2],[3,2]])
+            sage: G = penta.vertex_digraph(vector([1,1])); G
+            Digraph on 5 vertices
+            sage: G.sinks()
+            [A vertex at (3, 2)]
+
+            sage: A = matrix(ZZ, [[1], [-1]])
+            sage: f = linear_transformation(A)
+            sage: G = penta.vertex_digraph(f) ; G
+            Digraph on 5 vertices
+            sage: G.is_directed_acyclic()
+            False
+
+        .. SEEALSO::
+
+            :meth:`vertex_graph`
+        """
+        from sage.modules.vector_space_morphism import VectorSpaceMorphism
+        if isinstance(f, VectorSpaceMorphism):
+            if f.codomain().dimension() == 1:
+                orientation_check = lambda v: f(v) >= 0
+            else:
+                raise TypeError('The linear map f must have '
+                                'one-dimensional codomain')
+        else:
+            try:
+                if f.is_vector():
+                    orientation_check = lambda v: v.dot_product(f) >= 0
+                else:
+                    raise TypeError('f must be a linear map or a vector')
+            except AttributeError:
+                raise TypeError('f must be a linear map or a vector')
+        if not increasing:
+            f = -f
+        from sage.graphs.digraph import DiGraph
+        dg = DiGraph()
+        for j in range(self.n_vertices()):
+            vj = self.Vrepresentation(j)
+            for vi in vj.neighbors():
+                if orientation_check(vj.vector() - vi.vector()):
+                    dg.add_edge(vi, vj)
+        return dg
 
     def polar(self):
         """
@@ -3554,7 +3622,7 @@ class Polyhedron_base(Element):
         try:
             vertices = self.vertices_matrix(ZZ).columns()
         except TypeError:
-            if envelope==False:
+            if not envelope:
                 raise ValueError('Some vertices are not integral. '
                     'You probably want to add the argument '
                     '"envelope=True" to compute an enveloping lattice polytope.')
@@ -3783,7 +3851,6 @@ class Polyhedron_base(Element):
             sage: P.combinatorial_automorphism_group()
             Permutation Group with generators [(3,4)]
         """
-        from sage.groups.perm_gps.permgroup import PermutationGroup
         G = Graph()
         for edge in self.vertex_graph().edges():
             i = edge[0]
@@ -3982,8 +4049,6 @@ class Polyhedron_base(Element):
             sage: p.restricted_automorphism_group()
             Permutation Group with generators [(2,3)]
         """
-        from sage.groups.perm_gps.permgroup import PermutationGroup
-
         if self.base_ring() is ZZ or self.base_ring() is QQ:
             def rational_approximation(c):
                 return c

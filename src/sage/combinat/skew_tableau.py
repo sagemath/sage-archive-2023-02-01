@@ -1446,7 +1446,7 @@ class StandardSkewTableaux_all(StandardSkewTableaux):
         EXAMPLES::
 
             sage: it = StandardTableaux().__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[],
              [[1]],
              [[1, 2]],
@@ -1812,7 +1812,7 @@ class SemistandardSkewTableaux_all(SemistandardSkewTableaux):
         EXAMPLES::
 
             sage: it = SemistandardSkewTableaux(max_entry = 5).__iter__()
-            sage: [it.next() for x in range(12)]
+            sage: [next(it) for x in range(12)]
             [[],
              [[1]],
              [[2]],
@@ -1831,7 +1831,7 @@ class SemistandardSkewTableaux_all(SemistandardSkewTableaux):
         for all `n`::
 
             sage: it = SemistandardSkewTableaux().__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[],
              [[1]],
              [[1, 1]],

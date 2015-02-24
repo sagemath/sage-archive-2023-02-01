@@ -50,7 +50,8 @@ available, use the :func:`lib` function as shown below::
 
 There is also a short-hand notation for the above::
 
-    sage: primdecSY = sage.libs.singular.ff.primdec__lib.primdecSY
+    sage: import sage.libs.singular.function_factory
+    sage: primdecSY = sage.libs.singular.function_factory.ff.primdec__lib.primdecSY
 
 The above line will load "primdec.lib" first and then load the
 function ``primdecSY``.
@@ -1230,7 +1231,7 @@ cdef class SingularFunction(SageObject):
             sage: P.<x,y,z> = PolynomialRing(QQ)
             sage: I = Ideal([x^3*y^2 + 3*x^2*y^2*z + y^3*z^2 + z^5])
             sage: I = Ideal(I.groebner_basis())
-            sage: hilb = sage.libs.singular.ff.hilb
+            sage: hilb = sage.libs.singular.function_factory.ff.hilb
             sage: hilb(I) # Singular will print // ** _ is no standard basis
             // ** _ is no standard basis
             //         1 t^0
@@ -1266,7 +1267,7 @@ cdef class SingularFunction(SageObject):
             sage: P.<e,d,c,b,a> = PolynomialRing(QQ,5,order='lex')
             sage: I = sage.rings.ideal.Cyclic(P)
 
-            sage: triangL = sage.libs.singular.ff.triang__lib.triangL
+            sage: triangL = sage.libs.singular.function_factory.ff.triang__lib.triangL
             sage: _ = triangL(I)
             Traceback (most recent call last):
             ...
@@ -1317,13 +1318,13 @@ INPUT:
 
 EXAMPLE::
 
-    sage: groebner = sage.libs.singular.ff.groebner
+    sage: groebner = sage.libs.singular.function_factory.ff.groebner
     sage: P.<x, y> = PolynomialRing(QQ)
     sage: I = P.ideal(x^2-y, y+x)
     sage: groebner(I)
     [x + y, y^2 - y]
 
-    sage: triangL = sage.libs.singular.ff.triang__lib.triangL
+    sage: triangL = sage.libs.singular.function_factory.ff.triang__lib.triangL
     sage: P.<x1, x2> = PolynomialRing(QQ, order='lex')
     sage: f1 = 1/2*((x1^2 + 2*x1 - 4)*x2^2 + 2*(x1^2 + x1)*x2 + x1^2)
     sage: f2 = 1/2*((x1^2 + 2*x1 + 1)*x2^2 + 2*(x1^2 + x1)*x2 - 4*x1^2)
@@ -1823,7 +1824,7 @@ def list_of_functions(packages=False):
 
 #cdef ring*?
 cdef inline RingWrap new_RingWrap(ring* r):
-    cdef RingWrap ring_wrap_result = PY_NEW(RingWrap)
+    cdef RingWrap ring_wrap_result = RingWrap.__new__(RingWrap)
     ring_wrap_result._ring = r
     ring_wrap_result._ring.ref += 1
 

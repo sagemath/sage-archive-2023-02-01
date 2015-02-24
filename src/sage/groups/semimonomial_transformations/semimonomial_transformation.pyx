@@ -137,7 +137,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
     cdef _new_c(self):
         # Create a copy of self.
         cdef SemimonomialTransformation x
-        x = PY_NEW(SemimonomialTransformation)
+        x = SemimonomialTransformation.__new__(SemimonomialTransformation)
         x._parent = self._parent
         x.v = self.v
         x.perm = self.perm

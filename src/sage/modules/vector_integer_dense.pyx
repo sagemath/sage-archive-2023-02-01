@@ -56,6 +56,9 @@ cimport free_module_element
 
 from free_module_element import vector
 
+from sage.libs.gmp.mpz cimport *
+
+
 cdef inline _Integer_from_mpz(mpz_t e):
     cdef Integer z = PY_NEW(Integer)
     mpz_set(z.value, e)
@@ -64,7 +67,7 @@ cdef inline _Integer_from_mpz(mpz_t e):
 cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
     cdef _new_c(self):
         cdef Vector_integer_dense y
-        y = PY_NEW(Vector_integer_dense)
+        y = Vector_integer_dense.__new__(Vector_integer_dense)
         y._init(self._degree, self._parent)
         return y
 
@@ -167,9 +170,6 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             True
         """
         return free_module_element.FreeModuleElement.__hash__(self)
-
-    def __len__(self):
-        return self._degree
 
     def __setitem__(self, i, value):
         """
@@ -393,7 +393,7 @@ def unpickle_v0(parent, entries, degree):
     #    make_FreeModuleElement_generic_dense_v1
     # and changed the reduce method below.
     cdef Vector_integer_dense v
-    v = PY_NEW(Vector_integer_dense)
+    v = Vector_integer_dense.__new__(Vector_integer_dense)
     v._init(degree, parent)
     cdef Integer z
     for i from 0 <= i < degree:
@@ -403,7 +403,7 @@ def unpickle_v0(parent, entries, degree):
 
 def unpickle_v1(parent, entries, degree, is_mutable):
     cdef Vector_integer_dense v
-    v = PY_NEW(Vector_integer_dense)
+    v = Vector_integer_dense.__new__(Vector_integer_dense)
     v._init(degree, parent)
     cdef Integer z
     for i from 0 <= i < degree:

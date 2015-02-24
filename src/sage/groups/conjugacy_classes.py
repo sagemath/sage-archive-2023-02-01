@@ -378,11 +378,34 @@ class ConjugacyClassGAP(ConjugacyClass):
             True
             sage: g5 in cc
             False
+
+        Only trivial cases are implemented for infinite groups::
+
+            sage: G = SL(2,ZZ)
+            sage: m1 = G([[1,1],[0,1]])
+            sage: m2 = G([[1,0],[1,1]])
+            sage: m1 in G.conjugacy_class(m1) and m2 in G.conjugacy_class(m2)
+            True
+            sage: m2 in G.conjugacy_class(m1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only implemented for finite groups
         """
-        g = self._parent(g)._gap_()
-        G = self._parent._gap_()
-        g0 = self._representative._gap_()
-        return G.IsConjugate(g0, g).sage()
+        g = self._parent(g)
+        g0 = self._representative
+        if g == g0:
+            return True
+
+        G = self._parent
+        try:
+            finite = G.is_finite()
+        except (AttributeError, NotImplementedError):
+            finite = False
+
+        if not finite:
+            raise NotImplementedError("only implemented for finite groups")
+
+        return G._gap_().IsConjugate(g0._gap_(), g._gap_()).sage()
 
     @cached_method
     def set(self):

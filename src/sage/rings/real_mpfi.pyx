@@ -4790,6 +4790,36 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             # Worst case, this will recurse twice, as self is positive.
             return (1+self).gamma() / self
 
+    def psi(self):
+        """
+        Return the digamma function evaluated on self.
+
+        INPUT:
+
+        None.
+
+        OUTPUT:
+
+        A :class:`RealIntervalFieldElement`.
+
+        This uses the optional `arb library <http://fredrikj.net/arb/>`_.
+        You may have to install it via ``sage -i arb``.
+
+        EXAMPLES::
+
+            sage: psi_1 = RIF(1).psi() # optional - arb
+            sage: psi_1 # optional - arb
+            -0.577215664901533?
+            sage: psi_1.overlaps(-RIF.euler_constant()) # optional - arb
+            True
+        """
+        try:
+            from sage.rings.real_arb import RealBallField
+        except ImportError:
+            raise TypeError("The optional arb package is not installed. "
+                            "Consider installing it via 'sage -i arb'")
+        return RealBallField(self.precision())(self).psi()._interval()
+
 # MPFI does not have: agm, erf, gamma, zeta
 #     def agm(self, other):
 #         """

@@ -236,7 +236,7 @@ all constituents coerce.
 #*****************************************************************************
 
 from sage.rings.ring import CommutativeRing
-from sage.structure.all import SageObject
+from sage.structure.all import SageObject, parent
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
 import operator, re
@@ -848,7 +848,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
         """
         # if x is in self, there's nothing left to do
-        if hasattr(x, 'parent') and (x.parent() is self):
+        if parent(x) is self:
             return x
         from sage.rings.polynomial.infinite_polynomial_element import InfinitePolynomial
         # In many cases, the easiest solution is to "simply" evaluate
@@ -860,7 +860,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             except Exception:
                 raise ValueError("Can't convert %s into an element of %s" % (x, self))
 
-        if hasattr(x, 'parent') and isinstance(x.parent(), InfinitePolynomialRing_sparse):
+        if isinstance(parent(x), InfinitePolynomialRing_sparse):
             # the easy case - parent == self - is already past
             if x.parent() is self._base: # another easy case
                 return InfinitePolynomial(self,x)

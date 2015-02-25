@@ -60,6 +60,7 @@ from sage.functions.other import ceil
 from sage.misc.flatten import flatten
 from sage.calculus.var import var
 from sage.functions.other import real_part, imag_part
+from sage.misc.cachefunc import cached_method
 
 
 class SineGordonYsystem(SageObject):
@@ -98,24 +99,64 @@ class SineGordonYsystem(SageObject):
         sage: Y.plot()     #not tested
     """
     def __init__(self, X, na):
+        """
+        TESTS::
+
+            sage: Y = SineGordonYsystem('A',(6,4,3)); Y  # indirect doctest
+            A sine-Gordon Y-system of type A with defining integer tuple
+            (6, 4, 3)
+
+            sage: SineGordonYsystem('E',(6,4,3))
+            Traceback (most recent call last):
+            ...
+            ValueError: the type must be either 'A' of 'D'.
+            sage: SineGordonYsystem('A',(2,4,3))
+            Traceback (most recent call last):
+            ...
+            ValueError: the first integer in the defining sequence must be
+            greater than 2.
+            sage: SineGordonYsystem('A',(6,-4,3))
+            Traceback (most recent call last):
+            ...
+            ValueError: the defining sequence must contain only positive
+            integers.
+            sage: SineGordonYsystem('A',(3,))
+            Traceback (most recent call last):
+            ...
+            ValueError: the integer sequence (3,) in type 'A' is not allowed
+            as input
+        """
         if X not in ['A', 'D']:
-            raise ValueError("The type must be either 'A' of 'D'.")
+            raise ValueError("the type must be either 'A' of 'D'.")
         self._type = X
         if na[0] <= 2:
-            raise ValueError("The first integer in the defining sequence "
+            raise ValueError("the first integer in the defining sequence "
                              "must be greater than 2.")
         if any(x not in NN for x in na):
-            raise ValueError("The defining sequence must contain only "
+            raise ValueError("the defining sequence must contain only "
                              "positive integers.")
         self._na = tuple(na)
         if self._na == (3,) and self._type == 'A':
-            raise ValueError("The algorithm gives fuzzy results with the "
-                             "integer sequence (3,) in type 'A', do you "
-                             "really need sage to plot a square?")
+            raise ValueError("the integer sequence (3,) in type 'A'"
+                             " is not allowed as input")
         self._F = len(self._na)
 
-    def __repr__(self):
-        return "A sine-Gordon Y-system of type %s with defining integer tuple %s" % (str(self._type), str(self._na))
+    def _repr_(self):
+        """
+        Return the string representation of ``self``.
+
+        TESTS::
+
+            sage: Y = SineGordonYsystem('A',(6,4,3)); Y  # indirect doctest
+            A sine-Gordon Y-system of type A with defining integer tuple
+            (6, 4, 3)
+            sage: Y = SineGordonYsystem('D',(6,4,3)); Y  # indirect doctest
+            A sine-Gordon Y-system of type D with defining integer tuple
+            (6, 4, 3)
+        """
+        msg = "A sine-Gordon Y-system of type {}"
+        msg += " with defining integer tuple {}"
+        return  msg.format(self._type, self._na)
 
     def type(self):
         r"""
@@ -249,10 +290,11 @@ class SineGordonYsystem(SageObject):
             self._vertices = ZZ.quotient(self.r())
         return self._vertices
 
+    @cached_method
     def triangulation(self):
         r"""
-        Return the initial triangulation of the polygon realizing ``self`` as a
-        tuple of pairs of vertices.
+        Return the initial triangulation of the polygon realizing
+        ``self`` as a tuple of pairs of vertices.
 
         .. WARNING::
 
@@ -273,56 +315,55 @@ class SineGordonYsystem(SageObject):
              (102, 105),
              (103, 105))
         """
-        if not hasattr(self, '_triangulation'):
-            rk = self.rk() + (1, 1)
-            na = self.na()
-            vert = self.vertices()
-            triangulation = []
-            intervals = self.intervals()
-            for a in range(self.F()):
-                for (first, last, typ) in intervals[a]:
-                    if first - last in [vert(1), vert(-1)]:
-                        continue
-                    if typ == "L":
-                        left = True
-                        if na[a] % 2 == 0:
-                            last_cw = first + vert(na[a]/2 * rk[a + 1])
-                            last_ccw = last - vert(na[a]/2 * rk[a + 1])
-                        else:
-                            last_cw = first + vert((na[a]+1)/2 * rk[a + 1])
-                            last_ccw = last - vert((na[a]-1)/2 * rk[a + 1])
-                    elif typ == "R":
-                        left = False
-                        if na[a] % 2 == 0:
-                            last_cw = first + vert(na[a]/2 * rk[a + 1])
-                            last_ccw = last - vert(na[a]/2 * rk[a + 1])
-                        else:
-                            last_cw = first + vert((na[a]-1)/2 * rk[a + 1])
-                            last_ccw = last - vert((na[a]+1)/2 * rk[a + 1])
+        rk = self.rk() + (1, 1)
+        na = self.na()
+        vert = self.vertices()
+        triangulation = []
+        intervals = self.intervals()
+        for a in range(self.F()):
+            for (first, last, typ) in intervals[a]:
+                if first - last in [vert(1), vert(-1)]:
+                    continue
+                if typ == "L":
+                    left = True
+                    if na[a] % 2 == 0:
+                        last_cw = first + vert(na[a] / 2 * rk[a + 1])
+                        last_ccw = last - vert(na[a] / 2 * rk[a + 1])
                     else:
-                        continue
-                    if first == last:
-                        # this happens only when the interval is the whole disk
-                        first = first + vert(rk[a + 1])
-                        last = last - vert(rk[a + 1])
-                    edge = (first, last)
-                    triangulation.append(edge)
-                    done = False
-                    while not done:
-                        if left:
-                            edge = (edge[0] + vert(rk[a+1]), edge[1])
-                        else:
-                            edge = (edge[0], edge[1] - vert(rk[a+1]))
-                        left = not left
-                        if (edge[1] >= last_ccw and edge[0] < last_cw) or (edge[1] > last_ccw and edge[0] <= last_cw):
-                            triangulation.append(edge)
-                        else:
-                            done = True
-            if self.type() == 'D':
-                triangulation.append((vert(0), vert(rk[0] - rk[1])))
-            self._triangulation = tuple(triangulation)
-        return self._triangulation
+                        last_cw = first + vert((na[a] + 1) / 2 * rk[a + 1])
+                        last_ccw = last - vert((na[a] - 1) / 2 * rk[a + 1])
+                elif typ == "R":
+                    left = False
+                    if na[a] % 2 == 0:
+                        last_cw = first + vert(na[a] / 2 * rk[a + 1])
+                        last_ccw = last - vert(na[a] / 2 * rk[a + 1])
+                    else:
+                        last_cw = first + vert((na[a] - 1) / 2 * rk[a + 1])
+                        last_ccw = last - vert((na[a] + 1) / 2 * rk[a + 1])
+                else:
+                    continue
+                if first == last:
+                    # this happens only when the interval is the whole disk
+                    first = first + vert(rk[a + 1])
+                    last = last - vert(rk[a + 1])
+                edge = (first, last)
+                triangulation.append(edge)
+                done = False
+                while not done:
+                    if left:
+                        edge = (edge[0] + vert(rk[a+1]), edge[1])
+                    else:
+                        edge = (edge[0], edge[1] - vert(rk[a + 1]))
+                    left = not left
+                    if (edge[1] >= last_ccw and edge[0] < last_cw) or (edge[1] > last_ccw and edge[0] <= last_cw):
+                        triangulation.append(edge)
+                    else:
+                        done = True
+        if self.type() == 'D':
+            triangulation.append((vert(0), vert(rk[0] - rk[1])))
+        return tuple(triangulation)
 
+    @cached_method
     def intervals(self):
         r"""
         Return, divided by generation, the list of intervals used to construct
@@ -349,61 +390,59 @@ class SineGordonYsystem(SageObject):
               (104, 105, 'R'),
               (105, 0, 'R')))
         """
-        if not hasattr(self, '_intervals'):
-            rk = self.rk() + (1, 1)
-            na = self.na()
-            vert = self.vertices()
-            intervals = [[(vert(0), vert(0), "R")]]
-            for a in range(self.F()):
-                new_intervals = []
-                if na[a] % 2 == 0:
-                    for (first, last, typ) in intervals[a]:
-                        if typ == "NR":
-                            new_intervals.append((first, last, "R"))
-                        elif typ == "NL":
-                            new_intervals.append((first, last, "L"))
+        rk = self.rk() + (1, 1)
+        na = self.na()
+        vert = self.vertices()
+        intervals = [[(vert(0), vert(0), "R")]]
+        for a in range(self.F()):
+            new_intervals = []
+            if na[a] % 2 == 0:
+                for (first, last, typ) in intervals[a]:
+                    if typ == "NR":
+                        new_intervals.append((first, last, "R"))
+                    elif typ == "NL":
+                        new_intervals.append((first, last, "L"))
+                    else:
+                        last_cw = first + vert(na[a] / 2 * rk[a + 1])
+                        last_ccw = vert(last_cw + rk[a + 2])
+                        x = first
+                        while x < last_cw:
+                            new_intervals.append((vert(x), vert(x + rk[a+1]), "L"))
+                            x = vert(x + rk[a + 1])
+                        if typ == "L":
+                            new_intervals.append((last_cw, last_ccw, "NL"))
                         else:
-                            last_cw = first + vert(na[a] / 2 * rk[a + 1])
-                            last_ccw = vert(last_cw + rk[a + 2])
-                            x = first
-                            while x < last_cw:
-                                new_intervals.append((vert(x), vert(x + rk[a+1]), "L"))
-                                x = vert(x + rk[a + 1])
-                            if typ == "L":
-                                new_intervals.append((last_cw, last_ccw, "NL"))
-                            else:
-                                new_intervals.append((last_cw, last_ccw, "NR"))
-                            x = last_ccw
-                            while x != last:
-                                new_intervals.append((vert(x), vert(x+rk[a+1]), "R"))
-                                x = vert(x + rk[a+1])
-                else:
-                    for (first, last, typ) in intervals[a]:
-                        if typ == "NR":
-                            new_intervals.append((first, last, "R"))
-                        elif typ == "NL":
-                            new_intervals.append((first, last, "L"))
+                            new_intervals.append((last_cw, last_ccw, "NR"))
+                        x = last_ccw
+                        while x != last:
+                            new_intervals.append((vert(x), vert(x+rk[a+1]), "R"))
+                            x = vert(x + rk[a + 1])
+            else:
+                for (first, last, typ) in intervals[a]:
+                    if typ == "NR":
+                        new_intervals.append((first, last, "R"))
+                    elif typ == "NL":
+                        new_intervals.append((first, last, "L"))
+                    else:
+                        if typ == "L":
+                            last_cw = first + vert((na[a] + 1) / 2 * rk[a + 1])
                         else:
-                            if typ == "L":
-                                last_cw = first + vert((na[a] + 1)/2 * rk[a+1])
-                            else:
-                                last_cw = first + vert((na[a] - 1)/2 * rk[a+1])
-                            last_ccw = vert(last_cw + rk[a+2])
-                            x = first
-                            while x < last_cw:
-                                new_intervals.append((vert(x), vert(x + rk[a+1]), "L"))
-                                x = vert(x + rk[a+1])
-                            if typ == "L":
-                                new_intervals.append((last_cw, last_ccw, "NR"))
-                            else:
-                                new_intervals.append((last_cw, last_ccw, "NL"))
-                            x = last_ccw
-                            while x != last:
-                                new_intervals.append((vert(x), vert(x + rk[a+1]), "R"))
-                                x = vert(x + rk[a + 1])
-                intervals.append(new_intervals)
-            self._intervals = tuple(map(tuple, intervals))
-        return self._intervals
+                            last_cw = first + vert((na[a] - 1) / 2 * rk[a + 1])
+                        last_ccw = vert(last_cw + rk[a + 2])
+                        x = first
+                        while x < last_cw:
+                            new_intervals.append((vert(x), vert(x + rk[a+1]), "L"))
+                            x = vert(x + rk[a+1])
+                        if typ == "L":
+                            new_intervals.append((last_cw, last_ccw, "NR"))
+                        else:
+                            new_intervals.append((last_cw, last_ccw, "NL"))
+                        x = last_ccw
+                        while x != last:
+                            new_intervals.append((vert(x), vert(x + rk[a+1]), "R"))
+                            x = vert(x + rk[a + 1])
+            intervals.append(new_intervals)
+        return tuple(map(tuple, intervals))
 
     def plot(self, **kwds):
         r"""

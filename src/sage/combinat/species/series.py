@@ -40,6 +40,7 @@ from sage.algebras.algebra import Algebra
 from sage.algebras.algebra_element import AlgebraElement
 import sage.structure.parent_base
 from sage.categories.all import Rings
+from sage.structure.element import Element, parent
 
 class LazyPowerSeriesRing(Algebra):
     def __init__(self, R, element_class = None, names=None):
@@ -183,7 +184,7 @@ class LazyPowerSeriesRing(Algebra):
                     return x._new(partial(x._change_ring_gen, self.base_ring()), lambda ao: ao, x, parent=self)
 
 
-        if hasattr(x, "parent") and BR.has_coerce_map_from(x.parent()):
+        if BR.has_coerce_map_from(parent(x)):
             x = BR(x)
             return self.term(x, 0)
 
@@ -197,7 +198,7 @@ class LazyPowerSeriesRing(Algebra):
             aorder = order if order != unk else 0
             return cls(self, stream=x, order=order, aorder=aorder,
                        aorder_changed=False, is_initialized=True)
-        elif not hasattr(x, "parent"):
+        elif not isinstance(x, Element):
             x = BR(x)
             return self.term(x, 0)
 

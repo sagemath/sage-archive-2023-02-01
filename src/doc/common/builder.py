@@ -1302,7 +1302,7 @@ def get_formats():
     tut_b = DocBuilder('en/tutorial')
     formats = tut_b._output_formats()
     formats.remove('html')
-    return ['html', 'html-no-pix', 'pdf'] + formats
+    return ['html', 'pdf'] + formats
 
 def help_formats(s=u""):
     """

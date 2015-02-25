@@ -96,10 +96,7 @@ cdef extern from "convert.h":
     void t_INT_to_ZZ ( mpz_t value, GEN g )
 
 
-cdef extern from "mpz_pylong.h":
-    cdef mpz_get_pylong(mpz_t src)
-    cdef int mpz_set_pylong(mpz_t dst, src) except -1
-    cdef long mpz_pythonhash(mpz_t src)
+from sage.libs.gmp.pylong cimport *
 
 cdef class Rational(sage.structure.element.FieldElement)
 

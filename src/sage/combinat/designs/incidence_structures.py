@@ -586,9 +586,9 @@ class IncidenceStructure(object):
             sage: sum(1 for _ in IP.isomorphic_substructures_iterator(IC))
             120
 
-        As the automorphism group of `C_5` has size 10, the number of disjoint
-        copies is 12. Let us check that all functions returned correspond to an
-        actual `C_5` subgraph::
+        As the automorphism group of `C_5` has size 10, the number of distinct
+        unlabelled copies is 12. Let us check that all functions returned
+        correspond to an actual `C_5` subgraph::
 
             sage: for f in IP.isomorphic_substructures_iterator(IC):
             ....:     assert all(P.has_edge(f[x],f[y]) for x,y in C.edges(labels=False))

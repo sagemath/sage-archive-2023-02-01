@@ -91,6 +91,7 @@ Comprehensive Module list
     sage/combinat/designs/orthogonal_arrays_build_recursive
     sage/combinat/designs/orthogonal_arrays_find_recursive
     sage/combinat/designs/steiner_quadruple_systems
+    sage/combinat/designs/subhypergraph_search
     sage/combinat/diagram_algebras
     sage/combinat/dict_addition
     sage/combinat/dlx

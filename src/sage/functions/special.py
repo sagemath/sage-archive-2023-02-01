@@ -836,8 +836,8 @@ class EllipticE(BuiltinFunction):
         z
         sage: elliptic_e(0.5, 0.1)  # abs tol 2e-15
         0.498011394498832
-        sage: elliptic_e(0.5, 0.1).n(200)
-        0.4980113944988315277662138669...
+        sage: elliptic_e(1/2, 1/10).n(200)
+        0.4980113944988315331154610406...
     """
     def __init__(self):
         """
@@ -885,8 +885,8 @@ class EllipticE(BuiltinFunction):
 
             sage: elliptic_e(0.5, 0.1)
             0.498011394498832
-            sage: elliptic_e(0.5, 0.1).n(200)
-            0.4980113944988315277662...
+            sage: elliptic_e(1/2, 1/10).n(200)
+            0.4980113944988315331154610406...
             sage: elliptic_e(I, I).n()
             -0.189847437084712 + 1.03209769372160*I
         """

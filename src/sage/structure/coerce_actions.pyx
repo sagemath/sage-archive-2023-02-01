@@ -393,20 +393,23 @@ cdef class ModuleAction(Action):
         EXAMPLES::
 
             sage: from sage.structure.coerce_actions import RightModuleAction
-            sage: x = ZZ['x'].gen()
-            sage: A = ~RightModuleAction(QQ, QQ['x']); A
+
+            sage: ZZx = ZZ['x']
+            sage: x = ZZx.gen()
+            sage: QQx = QQ['x']
+            sage: A = ~RightModuleAction(QQ, QQx); A
             Right inverse action by Rational Field on Univariate Polynomial Ring in x over Rational Field
             sage: A(x, 2)
             1/2*x
 
-            sage: A = ~RightModuleAction(QQ, ZZ['x']); A
+            sage: A = ~RightModuleAction(QQ, ZZx); A
             Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
             sage: A.codomain()
             Univariate Polynomial Ring in x over Rational Field
             sage: A(x, 2)
             1/2*x
 
-            sage: A = ~RightModuleAction(ZZ, ZZ['x']); A
+            sage: A = ~RightModuleAction(ZZ, ZZx); A
             Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
             with precomposition on right by Natural morphism:
               From: Integer Ring
@@ -416,7 +419,8 @@ cdef class ModuleAction(Action):
             sage: A(x, 2)
             1/2*x
 
-            sage: A = ~RightModuleAction(ZZ, GF(5)['x']); A
+            sage: GF5x = GF(5)['x']
+            sage: A = ~RightModuleAction(ZZ, GF5x); A
             Right inverse action by Finite Field of size 5 on Univariate Polynomial Ring in x over Finite Field of size 5
             with precomposition on right by Natural morphism:
               From: Integer Ring
@@ -424,13 +428,16 @@ cdef class ModuleAction(Action):
             sage: A(x, 2)
             3*x
 
-            sage: A = ~RightModuleAction(ZZ, GF(5)['x']['y']); A
+            sage: GF5xy = GF5x['y']
+            sage: A = ~RightModuleAction(ZZ, GF5xy); A
             Right inverse action by Finite Field of size 5 on Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Finite Field of size 5
             with precomposition on right by Natural morphism:
               From: Integer Ring
               To:   Finite Field of size 5
 
-            sage: A = ~RightModuleAction(ZZ['y'], ZZ['x']['y']['z']['w']); A
+            sage: ZZy = ZZ['y']
+            sage: ZZxyzw = ZZx['y']['z']['w']
+            sage: A = ~RightModuleAction(ZZy, ZZxyzw); A
             Right inverse action by Fraction Field of Univariate Polynomial Ring in y
                 over Univariate Polynomial Ring in x
                 over Integer Ring

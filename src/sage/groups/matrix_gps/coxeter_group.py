@@ -170,7 +170,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         sage: W = CoxeterGroup(['D',5], implementation="reflection")
         sage: W
-        Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
         [1 3 2 2 2]
         [3 1 3 2 2]
         [2 3 1 3 3]
@@ -178,7 +178,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         [2 2 3 2 1]
         sage: W = CoxeterGroup(['H',3], implementation="reflection")
         sage: W
-        Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
         [1 3 2]
         [3 1 5]
         [2 5 1]
@@ -323,17 +323,20 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         base_field = base_ring.fraction_field()
         MS2 = MatrixSpace(base_field, n, sparse=True)
         MC2 = MS2._get_matrix_class()
-        self._bilinear = MC2(MS2, entries={(i, j): val(coxeter_matrix[i, j]) / base_ring(-2)
+        self._bilinear = MC2(MS2, entries={(i, j): val(coxeter_matrix[i, j]) / base_field(-2)
                                            for i in range(n) for j in range(n)
                                            if coxeter_matrix[i, j] != 2},
                              coerce=True, copy=True)
         self._bilinear.set_immutable()
         category = CoxeterGroups()
         # Now we shall see if the group is finite, and, if so, refine
-        # the category to ``category.Finite()``.
+        # the category to ``category.Finite()``. Otherwise the group is
+        # infinite and we refine the category to ``category.Infinite()``.
         is_finite = self._finite_recognition()
         if is_finite:
             category = category.Finite()
+        else:
+            category = category.Infinite()
         FinitelyGeneratedMatrixGroup_generic.__init__(self, n, base_ring,
                                                       gens, category=category)
 
@@ -492,12 +495,14 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         EXAMPLES::
 
             sage: CoxeterGroup([[1,3,2],[3,1,3],[2,3,1]])
-            Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+            Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
             [1 3 2]
             [3 1 3]
             [2 3 1]
         """
-        return "Coxeter group over {} with Coxeter matrix:\n{}".format(self.base_ring(), self._matrix)
+        rep = "Finite " if self.is_finite() else ""
+        rep += "Coxeter group over {} with Coxeter matrix:\n{}".format(self.base_ring(), self._matrix)
+        return rep
 
     def index_set(self):
         """
@@ -627,6 +632,25 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         # their ``__init__`` method, so we can just check
         # the category of ``self``.
         return "Finite" in self.category().axioms()
+
+    def order(self):
+        """
+        Return the order of ``self``.
+
+        If the Coxeter group is finite, this uses an iterator.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup([[1,3],[3,1]])
+            sage: W.order()
+            6
+            sage: W = CoxeterGroup([[1,-1],[-1,1]])
+            sage: W.order()
+            +Infinity
+        """
+        if self.is_finite():
+            return self._cardinality_from_iterator()
+        return infinity
 
     def canonical_representation(self):
         r"""

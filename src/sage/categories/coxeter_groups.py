@@ -632,7 +632,7 @@ class CoxeterGroups(Category_singleton):
 
                 sage: W = WeylGroup("A3")
                 sage: W.canonical_representation()
-                Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+                Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
                 [1 3 2]
                 [3 1 3]
                 [2 3 1]

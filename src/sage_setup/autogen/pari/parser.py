@@ -113,13 +113,12 @@ def read_decl():
         sage: read_decl()
         {'ABC_to_bnr', ..., 'zx_to_ZX'}
     """
-    decl = open(os.path.join(sage_src_pari(), "decl.pxi")).read()
-    decl += open(os.path.join(sage_src_pari(), "declinl.pxi")).read()
-
-    D = set()
-    for m in decl_re.finditer(decl):
-        D.add(m.groups()[0])
-    return D
+    s = set()
+    with open(os.path.join(sage_src_pari(), "decl.pxi")) as f:
+        s.update(decl_re.findall(f.read()))
+    with open(os.path.join(sage_src_pari(), "declinl.pxi")) as f:
+        s.update(decl_re.findall(f.read()))
+    return s
 
 
 def parse_prototype(proto, help, initial_args=[]):

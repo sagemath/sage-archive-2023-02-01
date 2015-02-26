@@ -183,11 +183,11 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         # note: the following call takes care of the fact that
         # proof.arithmetic() is True or False.
-        n,p = q.is_prime_power(get_data=True)
-        if n == 0:
-            raise ArithmeticError("q must be a prime power")
+        p, n = q.is_prime_power(get_data=True)
         if n > 1:
             base_ring = GF(p)
+        elif n == 0:
+            raise ArithmeticError("q must be a prime power")
         else:
             raise ValueError("The size of the finite field must not be prime.")
 

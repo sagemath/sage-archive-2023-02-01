@@ -434,12 +434,10 @@ def is_prime(n):
     """
     try:
         return n.is_prime()
-    except AttributeError:
-        pass
+    except (AttributeError, NotImplementedError):
+        return ZZ(n).is_prime()
 
-    return ZZ(n).is_prime()
-
-def is_pseudoprime(n, flag=0):
+def is_pseudoprime(n, flag=None):
     r"""
     Test whether ``n`` is a pseudo-prime
 
@@ -448,8 +446,6 @@ def is_pseudoprime(n, flag=0):
     INPUT:
 
     - ``n`` -- an integer
-
-    - ``flag`` -- deprecated
 
     .. note::
 
@@ -476,20 +472,17 @@ def is_pseudoprime(n, flag=0):
 
     Deprecation warning from :trac:`16878`::
 
-        sage: is_pseudoprime(127, flag=1)
-        doctest:...: DeprecationWarning: the keyword 'flag' is deprecated and
-        might soon be removed in future release of Sage
+        sage: is_pseudoprime(127, flag=0)
+        doctest:...: DeprecationWarning: the keyword 'flag' is deprecated and no longer used
         See http://trac.sagemath.org/16878 for details.
         True
     """
-    if flag:
+    if flag is not None:
         from sage.misc.superseded import deprecation
-        deprecation(16878, "the keyword 'flag' is deprecated and might soon be "
-                "removed in future release of Sage")
-
+        deprecation(16878, "the keyword 'flag' is deprecated and no longer used")
     return ZZ(n).is_pseudoprime()
 
-def is_prime_power(n, flag=0, get_data=False):
+def is_prime_power(n, flag=None, get_data=False):
     r"""
     Test whether ``n`` is a positive power of a prime number
 
@@ -497,10 +490,8 @@ def is_prime_power(n, flag=0, get_data=False):
 
     - ``n`` -- an integer
 
-    - ``flag`` -- deprecated
-
-    - ``get_data`` -- if set to ``True``, return a pair ``(k,p)`` such that
-      this integer equals ``p^k`` instead of ``True`` or ``(0,self)`` instead of
+    - ``get_data`` -- if set to ``True``, return a pair ``(p,k)`` such that
+      this integer equals ``p^k`` instead of ``True`` or ``(self,0)`` instead of
       ``False``
 
     EXAMPLES::
@@ -514,7 +505,7 @@ def is_prime_power(n, flag=0, get_data=False):
         sage: is_prime_power(1024)
         True
         sage: is_prime_power(1024, get_data=True)
-        (10, 2)
+        (2, 10)
 
         sage: is_prime_power(-1)
         False
@@ -529,84 +520,80 @@ def is_prime_power(n, flag=0, get_data=False):
         sage: is_prime_power("foo")
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (=foo) to an integer
+        TypeError: unable to convert 'foo' to an integer
     """
-    return ZZ(n).is_prime_power(flag=flag, get_data=get_data)
+    if flag is not None:
+        from sage.misc.superseded import deprecation
+        deprecation(16878, "the keyword 'flag' is deprecated and no longer used")
+    return ZZ(n).is_prime_power(get_data=get_data)
 
-def is_pseudoprime_small_power(n, bound=1024, get_data=False):
+def is_pseudoprime_power(n, get_data=False):
     r"""
-    Test if ``n`` is a small power of a pseudoprime.
+    Test if ``n`` is a power of a pseudoprime.
 
     The result is *NOT* proven correct - *this IS a pseudo-primality test!*.
     Note that a prime power is a positive power of a prime number so that 1 is
     not a prime power.
 
-    If `get_data` is set to true and `n = p^d`, for a pseudoprime `p`
-    and power `d`, return the pair `(d, p)`.
-
     INPUT:
 
     -  ``n`` - an integer
 
-    -  ``bound (default: 1024)`` - highest power to test.
-
-    -  ``get_data`` - (boolean) instead of a boolean return a pair `(k,p)` so
-       that ``n`` equals `p^k` and `p` is a pseudoprime or `(0,n)` otherwise.
+    -  ``get_data`` - (boolean) instead of a boolean return a pair `(p,k)` so
+       that ``n`` equals `p^k` and `p` is a pseudoprime or `(n,0)` otherwise.
 
     EXAMPLES::
 
-        sage: is_pseudoprime_small_power(389)
+        sage: is_pseudoprime_power(389)
         True
-        sage: is_pseudoprime_small_power(2000)
+        sage: is_pseudoprime_power(2000)
         False
-        sage: is_pseudoprime_small_power(2)
+        sage: is_pseudoprime_power(2)
         True
-        sage: is_pseudoprime_small_power(1024)
+        sage: is_pseudoprime_power(1024)
         True
-        sage: is_pseudoprime_small_power(-1)
+        sage: is_pseudoprime_power(-1)
         False
-        sage: is_pseudoprime_small_power(1)
+        sage: is_pseudoprime_power(1)
         False
-        sage: is_pseudoprime_small_power(997^100)
+        sage: is_pseudoprime_power(997^100)
         True
-
-    The default bound is 1024::
-
-        sage: is_pseudoprime_small_power(3^1024)
-        True
-        sage: is_pseudoprime_small_power(3^1031)
-        False
-
-    But it can be set higher or lower::
-
-        sage: is_pseudoprime_small_power(3^1031, bound=2000)
-        True
-        sage: is_pseudoprime_small_power(3^101, bound=20)
-        False
 
     Use of the get_data keyword::
 
-        sage: is_pseudoprime_small_power(3^1024, get_data=True)
-        doctest:...: DeprecationWarning: the semantic of the 'get_data'
-        argument has changed. Instead of a list containing a unique pair (p,n)
-        it returns simply the pair (n,p).
-        See http://trac.sagemath.org/16878 for details.
-        (1024, 3)
-        sage: is_pseudoprime_small_power(2^256, get_data=True)
-        (256, 2)
-        sage: is_pseudoprime_small_power(31, get_data=True)
-        (1, 31)
-        sage: is_pseudoprime_small_power(15, get_data=True)
-        (0, 15)
+        sage: is_pseudoprime_power(3^1024, get_data=True)
+        (3, 1024)
+        sage: is_pseudoprime_power(2^256, get_data=True)
+        (2, 256)
+        sage: is_pseudoprime_power(31, get_data=True)
+        (31, 1)
+        sage: is_pseudoprime_power(15, get_data=True)
+        (15, 0)
     """
-    if get_data:
-        from sage.misc.superseded import deprecation
-        deprecation(16878, "the semantic of the 'get_data' argument has "
-            "changed. Instead of a list containing a unique pair (p,n) it "
-            "returns simply the pair (n,p).")
-    return ZZ(n).is_pseudoprime_small_power(bound, get_data)
+    return ZZ(n).is_prime_power(proof=False, get_data=get_data)
 
-def valuation(m, *args1, **args2):
+def is_pseudoprime_small_power(n, bound=None, get_data=False):
+    """
+    Deprecated version of ``is_pseudoprime_power``.
+
+    EXAMPLES::
+
+        sage: is_pseudoprime_small_power(1234)
+        doctest:...: DeprecationWarning: the function is_pseudoprime_small_power() is deprecated, use is_pseudoprime_power() instead.
+        See http://trac.sagemath.org/16878 for details.
+        False
+        sage: is_pseudoprime_small_power(3^1024, get_data=True)
+        [(3, 1024)]
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(16878, "the function is_pseudoprime_small_power() is deprecated, use is_pseudoprime_power() instead.")
+    if get_data:
+        return [ZZ(n).is_prime_power(proof=False, get_data=True)]
+    else:
+        return ZZ(n).is_prime_power(proof=False)
+
+
+def valuation(m, *args, **kwds):
     """
     Return the valuation of ``m``.
 
@@ -666,11 +653,9 @@ def valuation(m, *args1, **args2):
         ValueError: You can only compute the valuation with respect to a integer larger than 1.
     """
     try:
-        return m.valuation(*args1, **args2)
+        return m.valuation(*args, **kwds)
     except AttributeError:
-        pass
-
-    return ZZ(m).valuation(*args1, **args2)
+        return ZZ(m).valuation(*args, **kwds)
 
 def prime_powers(start, stop=None):
     r"""

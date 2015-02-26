@@ -128,8 +128,8 @@ cpdef py_scalar_parent(py_type):
     else:
         return None
 
-cdef object _native_coercion_ranks_inv = (bool, int, long, float, complex)
-cdef object _native_coercion_ranks = dict([(t, k) for k, t in enumerate(_native_coercion_ranks_inv)])
+cdef _native_coercion_ranks_inv = (bool, int, long, float, complex)
+cdef dict _native_coercion_ranks = dict([(t, k) for k, t in enumerate(_native_coercion_ranks_inv)])
 
 cdef object _Integer
 cdef bint is_Integer(x):
@@ -932,9 +932,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                     return x_elt,y_elt
             self._coercion_error(x, x_map, x_elt, y, y_map, y_elt)
 
-
-        cdef bint x_numeric = PY_IS_NUMERIC(x)
-        cdef bint y_numeric = PY_IS_NUMERIC(y)
+        cdef bint x_numeric = isinstance(x, (int, long, float, complex))
+        cdef bint y_numeric = isinstance(y, (int, long, float, complex))
 
         if x_numeric and y_numeric:
             x_rank = _native_coercion_ranks[type(x)]

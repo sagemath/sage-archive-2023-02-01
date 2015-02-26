@@ -29,6 +29,8 @@ cdef inline bint have_same_parent_c(left, right):
         return (<Element>left)._parent is (<Element>right)._parent
     return False
 
+cpdef py_scalar_to_element(py)
+
 
 cdef str arith_error_message(x, y, op)
 

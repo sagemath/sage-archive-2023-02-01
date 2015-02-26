@@ -189,18 +189,48 @@ def make_element(_class, _dict, parent):
     from sage.misc.pickle_old import make_element_old
     return make_element_old(_class, _dict, parent)
 
-def py_scalar_to_element(py):
-    from sage.rings.integer_ring import ZZ
-    from sage.rings.real_double import RDF
-    from sage.rings.complex_double import CDF
-    if PyInt_Check(py) or PyLong_Check(py):
-        return ZZ(py)
-    elif PyFloat_Check(py):
-        return RDF(py)
-    elif PyComplex_Check(py):
-        return CDF(py)
+
+cpdef inline py_scalar_to_element(x):
+    """
+    Convert ``x`` to a Sage :class:`Element` if possible.
+
+    If ``x`` was already an :class:`Element` or if there is no obvious
+    conversion possible, just return ``x`` itself.
+
+    EXAMPLES::
+
+        sage: from sage.structure.element import py_scalar_to_element
+        sage: x = py_scalar_to_element(42)
+        sage: x, parent(x)
+        (42, Integer Ring)
+        sage: x = py_scalar_to_element(int(42))
+        sage: x, parent(x)
+        (42, Integer Ring)
+        sage: x = py_scalar_to_element(long(42))
+        sage: x, parent(x)
+        (42, Integer Ring)
+        sage: x = py_scalar_to_element(float(42))
+        sage: x, parent(x)
+        (42.0, Real Double Field)
+        sage: x = py_scalar_to_element(complex(42))
+        sage: x, parent(x)
+        (42.0, Complex Double Field)
+        sage: py_scalar_to_element('hello')
+        'hello'
+    """
+    if isinstance(x, Element):
+        return x
+    if isinstance(x, (int, long)):
+        from sage.rings.integer import Integer
+        return Integer(x)
+    elif isinstance(x, float):
+        from sage.rings.real_double import RDF
+        return RDF(x)
+    elif isinstance(x, complex):
+        from sage.rings.complex_double import CDF
+        return CDF(x)
     else:
-        raise TypeError("Not a scalar")
+        return x
 
 
 def parent(x):
@@ -948,10 +978,9 @@ cdef class Element(SageObject):
                 return 1
             try:
                 _left, _right = coercion_model.canonical_coercion(left, right)
-                if PY_IS_NUMERIC(_left):
-                    return cmp(_left, _right)
-                else:
-                    return _left._cmp_(_right)
+                if isinstance(_left, Element):
+                    return (<Element>_left)._cmp_(_right)
+                return cmp(_left, _right)
             except TypeError:
                 r = cmp(type(left), type(right))
                 if r == 0:
@@ -982,10 +1011,9 @@ cdef class Element(SageObject):
                 return _rich_to_bool(op, 1)
             try:
                 _left, _right = coercion_model.canonical_coercion(left, right)
-                if PY_IS_NUMERIC(_left):
-                    return _rich_to_bool(op, cmp(_left, _right))
-                else:
-                    return _left._richcmp_(_right, op)
+                if isinstance(_left, Element):
+                    return (<Element>_left)._richcmp_(_right, op)
+                return _rich_to_bool(op, cmp(_left, _right))
             except (TypeError, NotImplementedError):
                 r = cmp(type(left), type(right))
                 if r == 0:
@@ -2702,8 +2730,7 @@ cdef class Vector(ModuleElement):
         raise TypeError("unsupported operation for '%s' and '%s'"%(parent_c(left), parent_c(right)))
 
     def __div__(self, right):
-        if PY_IS_NUMERIC(right):
-            right = py_scalar_to_element(right)
+        right = py_scalar_to_element(right)
         if isinstance(right, RingElement):
             # Let __mul__ do the job
             return self.__mul__(~right)

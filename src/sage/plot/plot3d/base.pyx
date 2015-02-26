@@ -185,7 +185,7 @@ cdef class Graphics3d(SageObject):
         x, y = opts['figsize'][0]*100, opts['figsize'][1]*100
         if DOCTEST_MODE:
             x, y = 10, 10
-        tachyon_rt(T.tachyon(), filename, opts['verbosity'], True,
+        tachyon_rt(T.tachyon(), filename, opts['verbosity'],
                    '-res %s %s' % (x, y))
         from sage.repl.rich_output.buffer import OutputBuffer
         import sage.repl.rich_output.output_catalog as catalog

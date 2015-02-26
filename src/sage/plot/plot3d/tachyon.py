@@ -424,8 +424,10 @@ class Tachyon(SageObject):
         """
         self.save(filename, *args, **kwds)
 
-    def save(self, filename='sage.png', verbose=None, block=True, extra_opts=''):
+    def save(self, filename='sage.png', verbose=None, extra_opts=''):
         r"""
+        Save rendering of the tachyon scene
+
         INPUT:
 
         -  ``filename`` - (default: 'sage.png') output
@@ -452,9 +454,6 @@ class Tachyon(SageObject):
 
         -  ``2`` - very verbose output
 
-        -  ``block`` - bool (default: True); if False, run the
-           rendering command in the background.
-
         -  ``extra_opts`` - passed directly to tachyon command
            line. Use tachyon_rt.usage() to see some of the possibilities.
 
@@ -466,12 +465,10 @@ class Tachyon(SageObject):
             sage: q.sphere((0,0,0),1,'s')
             sage: tempname = tmp_filename()
             sage: q.save(tempname)
-            sage: os.system('rm ' + tempname)
-            0
         """
         if verbose is None:
             verbose = get_verbose()
-        tachyon_rt(self.str(), filename, verbose, block, extra_opts)
+        tachyon_rt(self.str(), filename, verbose, extra_opts)
 
     def _rich_repr_(self, display_manager, **kwds):
         """

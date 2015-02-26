@@ -66,7 +66,7 @@ AUTHORS:
 import weakref
 
 import sage.categories.all                  as cat
-import sage.misc.misc                       as misc
+from sage.misc.all import prod
 import sage.misc.prandom                    as random
 import sage.modules.free_module             as free_module
 import sage.modules.free_module_element     as free_module_element
@@ -696,7 +696,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             return rings.Integer(1)
         F = arith.factor(self.modulus())
         if len(F) > 1:
-            return misc.mul([d.conductor() for d in self.decomposition()])
+            return prod([d.conductor() for d in self.decomposition()])
         p = F[0][0]
         # When p is odd, and x =/= 1, the conductor is the smallest p**r such that
         #   Order(x) divides EulerPhi(p**r) = p**(r-1)*(p-1).
@@ -1575,8 +1575,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
         zeta_order = G.zeta_order()
         zeta = R.zeta(zeta_order)
         A = rings.Integers(zeta_order)
-        A_zero = A.zero_element()
-        A_one = A.one_element()
+        A_zero = A.zero()
+        A_one = A.one()
         ZZ = rings.ZZ
 
         S = G._integers

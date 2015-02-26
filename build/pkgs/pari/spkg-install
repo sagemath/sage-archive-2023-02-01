@@ -187,33 +187,14 @@ install()
         exit 1
     fi
 
-    cd "$CUR"
-
-    if [ "$UNAME" = "Darwin" ]; then
-        # The following is a hack to get the library installed correctly
-        # on Mac OS X:
-        echo "Applying Mac OS X hack -- deleting and reinstalling libpari.a ..."
-        rm -f Odarwin-ppc/*lib*
-        $MAKE install-lib-sta
-        if [ $? -ne 0 ]; then
-            echo >&2 "Error reinstalling PARI's static libraries (OS X trick)"
-            exit 1
-        fi
-
-        cd "`config/objdir`" && cp -f libpari* "$SAGE_LOCAL/lib"
-        if [ $? -ne 0 ]; then
-            echo >&2 "Error copying PARI's libraries (OS X trick)"
-            exit 1
-        fi
-        cd "$CUR"
-    fi
-
-    # Copy gprc.expect to $SAGE_LOCAL/etc
-    cp -f "$TOP/gprc.expect" "$SAGE_LOCAL/etc"
+    # Copy anal.h
+    cp -f "src/language/anal.h" "$SAGE_LOCAL/include/pari/anal.h"
     if [ $? -ne 0 ]; then
-        echo >&2 "Error installing gprc.expect"
+        echo >&2 "Error copying anal.h"
         exit 1
     fi
+
+    cd "$CUR"
 }
 
 

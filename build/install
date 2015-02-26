@@ -61,6 +61,41 @@ mkdir -p "$SAGE_SPKG_INST"
 mkdir -p "$SAGE_SHARE"
 
 ###############################################################################
+# Determine whether to use MPIR (default standard pkg) or GMP (optional pkg).
+###############################################################################
+
+if [ -z "$SAGE_MP_LIBRARY" ]; then
+    # Automatic detection of installed MP library.
+    if [ ! -f "$SAGE_LOCAL/share/mp_config" ]; then
+        echo "MPIR" > "$SAGE_LOCAL/share/mp_config"
+    fi
+    SAGE_MP_LIBRARY=`cat "$SAGE_LOCAL/share/mp_config"`
+else
+    if [ -f "$SAGE_LOCAL/share/mp_config" -a "$SAGE_MP_LIBRARY" != `cat "$SAGE_LOCAL/share/mp_config"` ]; then
+        echo "SAGE_MP_LIBRARY differs from the value stored in"
+        echo "\"$SAGE_LOCAL/share/mp_config\"."
+        echo "This is not supported; you should rebuild Sage from scratch"
+        echo "using the new SAGE_MP_LIBRARY value."
+        exit 1
+    fi
+
+    case "$SAGE_MP_LIBRARY" in
+        MPIR|GMP)
+            echo "Using $SAGE_MP_LIBRARY as default MP library."
+            echo $SAGE_MP_LIBRARY > "$SAGE_LOCAL/share/mp_config"
+            ;;
+        *)
+            echo "Allowed values for SAGE_MP_LIBRARY are \"MPIR\" and \"GMP\"."
+            echo "If you did not set this variable, check the content of"
+            echo "\"$SAGE_LOCAL/share/mp_config\"."
+            exit 1
+            ;;
+    esac
+fi
+
+export SAGE_MP_LIBRARY
+
+###############################################################################
 # Determine whether to install GCC (gcc, g++, gfortran).
 ###############################################################################
 
@@ -310,7 +345,6 @@ MAXIMA=`newest_version maxima`
 MPC=`newest_version mpc`
 MPFI=`newest_version mpfi`
 MPFR=`newest_version mpfr`
-MPIR=`newest_version mpir`
 MPMATH=`newest_version mpmath`
 NETWORKX=`newest_version networkx`
 NTL=`newest_version ntl`
@@ -347,7 +381,6 @@ SETUPTOOLS=`newest_version setuptools`
 SINGULAR=`newest_version singular`
 SIX=`newest_version six`
 SPHINX=`newest_version sphinx`
-SQLALCHEMY=`newest_version sqlalchemy`
 SQLITE=`newest_version sqlite`
 SYMMETRICA=`newest_version symmetrica`
 SYMPOW=`newest_version sympow`
@@ -364,6 +397,14 @@ INST=`echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`
 
 EOF
 
+# Sage MP library
+sage_mp_library=`echo "$SAGE_MP_LIBRARY" | tr '[A-Z]' '[a-z]'`
+cat >&5 << EOF
+# Sage MP library
+SAGE_MP_LIBRARY=`newest_version $sage_mp_library`
+
+EOF
+
 # $(TOOLCHAIN) variable containing prerequisites for the build
 echo >&5 -n 'TOOLCHAIN ='
 if [ "$SAGE_INSTALL_CCACHE" = yes ]; then
@@ -377,6 +418,11 @@ if [ "$need_to_install_gcc" = yes ]; then
 fi
 echo >&5
 
+echo >&5 'CSAGE_SOURCES = \'
+for file in "$SAGE_SRC/c_lib/src/"*.c "$SAGE_SRC/c_lib/src/"*.cpp "$SAGE_SRC/c_lib/include"/*.h; do
+    echo >&5 "                \$(SAGE_SRC)${file#$SAGE_SRC} \\"
+done
+echo >&5
 echo >&5 'SCRIPT_SOURCES = \'
 for file in "$SAGE_SRC/bin/"*; do
     echo >&5 "                 \$(SAGE_SRC)${file#$SAGE_SRC} \\"

@@ -178,7 +178,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
             if poly in _m4rie_finite_field_cache:
                 self._entries = mzed_init((<M4RIE_finite_field>_m4rie_finite_field_cache[poly]).ff, self._nrows, self._ncols)
             else:
-                FF = PY_NEW(M4RIE_finite_field)
+                FF = M4RIE_finite_field.__new__(M4RIE_finite_field)
                 FF.ff = gf2e_init(poly)
                 self._entries = mzed_init(FF.ff, self._nrows, self._ncols)
                 _m4rie_finite_field_cache[poly] = FF

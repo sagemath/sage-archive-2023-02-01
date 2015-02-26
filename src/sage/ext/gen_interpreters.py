@@ -2549,7 +2549,7 @@ cdef inline double_complex CDE_to_dz(zz):
     return z._complex.dat[0] + _Complex_I * z._complex.dat[1]
 
 cdef inline ComplexDoubleElement dz_to_CDE(double_complex dz):
-    cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
+    cdef ComplexDoubleElement z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
     z._complex.dat[0] = creal(dz)
     z._complex.dat[1] = cimag(dz)
     return z

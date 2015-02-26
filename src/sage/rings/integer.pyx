@@ -140,7 +140,6 @@ import operator
 
 import sys
 
-include "sage/ext/gmp.pxi"
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "sage/ext/stdsage.pxi"
 from cpython.list cimport *
@@ -148,9 +147,8 @@ from cpython.number cimport *
 from cpython.int cimport *
 from libc.stdint cimport uint64_t
 cimport sage.structure.element
-from sage.structure.element cimport Element
+from sage.structure.element cimport Element, EuclideanDomainElement, parent_c
 include "sage/ext/python_debug.pxi"
-include "../structure/coerce.pxi"   # for parent_c
 include "sage/libs/pari/decl.pxi"
 from sage.rings.rational cimport Rational
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
@@ -194,12 +192,6 @@ cdef object numpy_object_interface = {'typestr': '|O'}
 
 cdef mpz_t mpz_tmp
 mpz_init(mpz_tmp)
-
-def init_mpz_globals():
-    init_mpz_globals_c()
-
-def clear_mpz_globals():
-    clear_mpz_globals_c()
 
 cdef int set_mpz(Integer self, mpz_t value):
     mpz_set(self.value, value)
@@ -1832,7 +1824,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         cdef Integer z = <Integer>PY_NEW(Integer)
         cdef long yy, res
-        if PY_TYPE(x) is PY_TYPE(y):
+        if type(x) is type(y):
             if not mpz_sgn((<Integer>y).value):
                 raise ZeroDivisionError, "Integer division by zero"
             if mpz_size((<Integer>x).value) > 100000:
@@ -2922,7 +2914,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef long yy, res
 
         # first case: Integer % Integer
-        if PY_TYPE(x) is PY_TYPE(y):
+        if type(x) is type(y):
             if not mpz_sgn((<Integer>y).value):
                 raise ZeroDivisionError, "Integer modulo by zero"
             if mpz_size((<Integer>x).value) > 100000:
@@ -3023,10 +3015,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     mpz_sub_ui(q.value, q.value, 1)
                     mpz_sub_ui(r.value, r.value, -d)
 
-        elif PY_TYPE_CHECK_EXACT(other, Integer):
+        elif type(other) is Integer:
             if mpz_sgn((<Integer>other).value) == 0:
                 raise ZeroDivisionError, "Integer division by zero"
-            if mpz_size((<Integer>x).value) > 100000:
+            if mpz_size(self.value) > 100000:
                 sig_on()
                 mpz_fdiv_qr(q.value, r.value, self.value, (<Integer>other).value)
                 sig_off()
@@ -3111,7 +3103,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ZeroDivisionError: rational reconstruction with zero modulus
         """
         cdef Integer a
-        cdef Rational x = <Rational>PY_NEW(Rational)
+        cdef Rational x = <Rational>Rational.__new__(Rational)
         try:
             mpq_rational_reconstruction(x.value, self.value, m.value)
         except ValueError:
@@ -4301,7 +4293,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         else:
             R = RealField(prec)
         if self.is_zero():
-            return R.zero_element()
+            return R.zero()
         return R(self).abs().log()
 
     cdef bint _is_power_of(Integer self, Integer n):
@@ -6621,7 +6613,6 @@ cdef set_zero_one_elements():
     if initialized: return
     the_integer_ring._zero_element = Integer(0)
     the_integer_ring._one_element = Integer(1)
-    init_mpz_globals()
     initialized = True
 set_zero_one_elements()
 

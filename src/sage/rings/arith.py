@@ -23,7 +23,7 @@ import sage.rings.complex_field
 import sage.rings.complex_number
 import sage.rings.real_mpfr
 from sage.structure.element import parent
-from sage.misc.misc import prod, union
+from sage.misc.all import prod, union
 from sage.rings.real_mpfi import RealIntervalField
 
 import fast_arith
@@ -1848,32 +1848,28 @@ def xgcd(a, b):
     r"""
     Return a triple ``(g,s,t)`` such that `g = s\cdot a+t\cdot b = \gcd(a,b)`.
 
-    .. note::
+    .. NOTE::
 
-       One exception is if `a` and `b` are not in a PID, e.g., they are
-       both polynomials over the integers, then this function can't in
-       general return ``(g,s,t)`` as above, since they need not exist.
-       Instead, over the integers, we first multiply `g` by a divisor of
-       the resultant of `a/g` and `b/g`, up to sign.
+       One exception is if `a` and `b` are not in a principal ideal domain (see
+       :wikipedia:`Principal_ideal_domain`), e.g., they are both polynomials
+       over the integers. Then this function can't in general return ``(g,s,t)``
+       as above, since they need not exist.  Instead, over the integers, we
+       first multiply `g` by a divisor of the resultant of `a/g` and `b/g`, up
+       to sign.
 
     INPUT:
 
-
-    -  ``a, b`` - integers or univariate polynomials (or
-       any type with an xgcd method).
-
+    -  ``a, b`` - integers or more generally, element of a ring for which the
+       xgcd make sense (e.g. a field or univariate polynomials).
 
     OUTPUT:
 
     -  ``g, s, t`` - such that `g = s\cdot a + t\cdot b`
 
-
-    .. note::
+    .. NOTE::
 
        There is no guarantee that the returned cofactors (s and t) are
-       minimal. In the integer case, see
-       :meth:`sage.rings.integer.Integer._xgcd()` for minimal
-       cofactors.
+       minimal.
 
     EXAMPLES::
 
@@ -1881,14 +1877,20 @@ def xgcd(a, b):
         (4, 4, -5)
         sage: 4*56 + (-5)*44
         4
+
         sage: g, a, b = xgcd(5/1, 7/1); g, a, b
-        (1, 1/5, 0)
+        (1, 3, -2)
         sage: a*(5/1) + b*(7/1) == g
         True
+
         sage: x = polygen(QQ)
         sage: xgcd(x^3 - 1, x^2 - 1)
         (x - 1, 1, -x)
+
         sage: K.<g> = NumberField(x^2-3)
+        sage: g.xgcd(g+2)
+        (1, 1/3*g, 0)
+
         sage: R.<a,b> = K[]
         sage: S.<y> = R.fraction_field()[]
         sage: xgcd(y^2, a*y+b)
@@ -1896,8 +1898,8 @@ def xgcd(a, b):
         sage: xgcd((b+g)*y^2, (a+g)*y+b)
         (1, (a^2 + (2*g)*a + 3)/(b^3 + (g)*b^2), ((-a + (-g))/b^2)*y + 1/b)
 
-    We compute an xgcd over the integers, where the linear combination
-    is not the gcd but the resultant::
+    Here is an example of a xgcd for two polynomials over the integers, where the linear
+    combination is not the gcd but the gcd multiplied by the resultant::
 
         sage: R.<x> = ZZ[]
         sage: gcd(2*x*(x-1), x^2)
@@ -1911,9 +1913,7 @@ def xgcd(a, b):
         return a.xgcd(b)
     except AttributeError:
         pass
-    if not isinstance(a, sage.rings.integer.Integer):
-        a = ZZ(a)
-    return a.xgcd(ZZ(b))
+    return ZZ(a).xgcd(ZZ(b))
 
 XGCD = xgcd
 
@@ -2650,10 +2650,7 @@ def is_square(n, root=False):
     t, x = pari(n).issquare(find_root=True)
     if root:
         if t:
-            if hasattr(n, 'parent'):
-                x = n.parent()(str(x))
-            else:
-                x = x.python()
+            x = parent(n)(x)
         return t, x
     return t
 
@@ -3079,7 +3076,7 @@ def CRT_vectors(X, moduli):
     if n != len(moduli):
         raise ValueError("number of moduli must equal length of X")
     a = CRT_basis(moduli)
-    modulus = misc.prod(moduli)
+    modulus = prod(moduli)
     return [sum([a[i]*X[i][j] for i in range(n)]) % modulus for j in range(len(X[0]))]
 
 def binomial(x, m, **kwds):
@@ -3264,7 +3261,7 @@ def binomial(x, m, **kwds):
         P = type(x)
     if m < 0:
         return P(0)
-    return misc.prod([x-i for i in xrange(m)])/factorial(m)
+    return prod([x-i for i in xrange(m)])/factorial(m)
 
 def multinomial(*ks):
     r"""
@@ -3927,428 +3924,9 @@ class Moebius:
 
 moebius = Moebius()
 
-def farey(v, lim):
-    """
-    Return the Farey sequence associated to the floating point number
-    v.
 
-    INPUT:
-
-
-    -  ``v`` - float (automatically converted to a float)
-
-    -  ``lim`` - maximum denominator.
-
-
-    OUTPUT: Results are (numerator, denominator); (1, 0) is "infinity".
-
-    EXAMPLES::
-
-        sage: farey(2.0, 100)
-        (2, 1)
-        sage: farey(2.0, 1000)
-        (2, 1)
-        sage: farey(2.1, 1000)
-        (21, 10)
-        sage: farey(2.1, 100000)
-        (21, 10)
-        sage: farey(pi, 100000)
-        (312689, 99532)
-
-    AUTHORS:
-
-    - Scott David Daniels: Python Cookbook, 2nd Ed., Recipe 18.13
-    """
-    v = float(v)
-    if v < 0:
-        n, d = farey(-v, lim)
-        return -n, d
-    z = lim - lim    # Get a "0 of the right type" for denominator
-    lower, upper = (z, z+1), (z+1, z)
-    while True:
-        mediant = (lower[0] + upper[0]), (lower[1] + upper[1])
-        if v * mediant[1] > mediant[0]:
-            if lim < mediant[1]:
-                return upper
-            lower = mediant
-        elif v * mediant[1] == mediant[0]:
-            if lim >= mediant[1]:
-                return mediant
-            if lower[1] < upper[1]:
-                return lower
-            return upper
-        else:
-            if lim < mediant[1]:
-                return lower
-            upper = mediant
-
-
-## def convergents_pnqn(x):
-##     """
-##     Return the pairs (pn,qn) that are the numerators and denominators
-##     of the partial convergents of the continued fraction of x.  We
-##     include (0,1) and (1,0) at the beginning of the list (these are
-##     the -2 and -1 th convergents).
-##     """
-##     v = pari(x).contfrac()
-##     w = [(0,1), (1,0)]
-##     for n in range(len(v)):
-##         pn = w[n+1][0]*v[n] + w[n][0]
-##         qn = w[n+1][1]*v[n] + w[n][1]
-##         w.append(int(pn), int(qn))
-##     return w
-
-def continued_fraction_list(x, partial_convergents=False, bits=None, nterms=None):
-    r"""
-    Returns the continued fraction of x as a list.
-
-    The continued fraction expansion of `x` are the coefficients `a_i` in
-
-    .. math::
-
-        x = a_1 + 1/(a_2+1/(...) ... )
-
-    with `a_1` integer and `a_2`, `...` positive integers.
-
-    .. note::
-
-       This may be slow for real number input, since it's implemented in pure
-       Python. For rational number input the PARI C library is used.
-
-    .. SEEALSO::
-
-         :func:`Hirzebruch_Jung_continued_fraction_list` for
-         Hirzebruch-Jung continued fractions.
-
-    INPUT:
-
-    - ``x`` -- exact rational or floating-point number. The number to
-      compute the continued fraction of.
-
-    - ``partial_convergents`` -- boolean. Whether to return the partial convergents.
-
-    - ``bits`` -- integer. the precision of the real interval field
-      that is used internally.
-
-    - ``nterms`` -- integer. The upper bound on the number of terms in
-      the continued fraction expansion to return.
-
-    OUTPUT:
-
-    A lits of integers, the coefficients in the continued fraction
-    expansion of ``x``. If ``partial_convergents=True`` is passed, a
-    pair containing the coefficient list and the partial convergents
-    list is returned.
-
-    EXAMPLES::
-
-        sage: continued_fraction_list(45/17)
-        [2, 1, 1, 1, 5]
-        sage: continued_fraction_list(e, bits=20)
-        [2, 1, 2, 1, 1, 4, 1, 1]
-        sage: continued_fraction_list(e, bits=30)
-        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8]
-        sage: continued_fraction_list(sqrt(2))
-        [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
-        sage: continued_fraction_list(sqrt(4/19))
-        [0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1]
-        sage: continued_fraction_list(RR(pi), partial_convergents=True)
-        ([3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3],
-         [(3, 1),
-          (22, 7),
-          (333, 106),
-          (355, 113),
-          (103993, 33102),
-          (104348, 33215),
-          (208341, 66317),
-          (312689, 99532),
-          (833719, 265381),
-          (1146408, 364913),
-          (4272943, 1360120),
-          (5419351, 1725033),
-          (80143857, 25510582),
-          (245850922, 78256779)])
-        sage: continued_fraction_list(e)
-        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1]
-        sage: continued_fraction_list(RR(e))
-        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1]
-        sage: continued_fraction_list(RealField(200)(e))
-        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1,
-         14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1,
-         26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 1, 1]
-
-    TESTS::
-
-        sage: continued_fraction_list(1 + 10^-10, nterms=3)
-        [1, 10000000000]
-        sage: continued_fraction_list(1 + 10^-20 - e^-100, bits=10, nterms=3)
-        [1, 100000000000000000000, 2688]
-        sage: continued_fraction_list(1 + 10^-20 - e^-100, bits=10, nterms=5)
-        [1, 100000000000000000000, 2688, 8, 1]
-        sage: continued_fraction_list(1 + 10^-20 - e^-100, bits=1000, nterms=5)
-        [1, 100000000000000000000, 2688, 8, 1]
-
-    Check that :trac:`14858` is fixed::
-
-        sage: continued_fraction_list(3/4) == continued_fraction_list(SR(3/4))
-        True
-
-    """
-    if isinstance(x, sage.symbolic.expression.Expression):
-        try:
-            x = x.pyobject()
-        except TypeError:
-            pass
-
-    if isinstance(x, (integer.Integer, int, long)):
-        if partial_convergents:
-            return [x], [(x,1)]
-        else:
-            return [x]
-
-    if isinstance(x, sage.rings.rational.Rational):
-        if bits is not None and nterms is None:
-            x = RealIntervalField(bits)(x)
-        else:
-            # PARI is faster than the pure Python below, but doesn't give us the convergents.
-            v = pari(x).contfrac().python()
-            if nterms is not None:
-                v = v[:nterms]
-            if partial_convergents:
-                w = [(0,1), (1,0)]
-                for a in v:
-                    pn = a*w[-1][0] + w[-2][0]
-                    qn = a*w[-1][1] + w[-2][1]
-                    w.append((pn, qn))
-                return v, w[2:]
-            else:
-                return v
-
-    # Work in interval field, increasing precision as needed.
-    if bits is None:
-        try:
-            bits = x.prec()
-        except AttributeError:
-            bits = 53
-    RIF = RealIntervalField(bits)
-    v = []
-    w = [(0,1), (1,0)]
-    orig, x = x, RIF(x)
-
-    while True:
-        try:
-            a = x.unique_floor()
-        except ValueError:
-            # Either we're done or we need more precision.
-            if nterms is None:
-                break
-            else:
-                RIF = RIF.to_prec(2*RIF.prec())
-                x = RIF(orig)
-                for a in v: x = ~(x-a)
-                continue
-        if partial_convergents:
-            pn = a*w[-1][0] + w[-2][0]
-            qn = a*w[-1][1] + w[-2][1]
-            w.append((pn, qn))
-        v.append(a)
-        if x == a or nterms is not None and len(v) >= nterms:
-            break
-        x = ~(x-a)
-
-    if partial_convergents:
-        return v, w[2:]
-    else:
-        return v
-
-
-def Hirzebruch_Jung_continued_fraction_list(x, bits=None, nterms=None):
-    r"""
-    Return the Hirzebruch-Jung continued fraction of ``x`` as a list.
-
-    The Hirzebruch-Jung continued fraction of `x` is similar to the
-    ordinary continued fraction expansion, but with minus signs. That
-    is, the coefficients `a_i` in
-
-    .. math::
-
-        x = a_1 - 1/(a_2-1/(...) ... )
-
-    with `a_1` integer and `a_2`, `...` positive integers.
-
-    .. SEEALSO::
-
-         :func:`continued_fraction_list` for ordinary continued fractions.
-
-    INPUT:
-
-    - ``x`` -- exact rational or something that can be numerically
-      evaluated. The number to compute the continued fraction of.
-
-    - ``bits`` -- integer (default: the precision of ``x``). the
-      precision of the real interval field that is used
-      internally. This is only used if ``x`` is not an exact fraction.
-
-    - ``nterms`` -- integer (default: None). The upper bound on the
-      number of terms in the continued fraction expansion to return.
-
-    OUTPUT:
-
-    A lits of integers, the coefficients in the Hirzebruch-Jung continued
-    fraction expansion of ``x``.
-
-    EXAMPLES::
-
-        sage: Hirzebruch_Jung_continued_fraction_list(17/11)
-        [2, 3, 2, 2, 2, 2]
-        sage: Hirzebruch_Jung_continued_fraction_list(45/17)
-        [3, 3, 6]
-        sage: Hirzebruch_Jung_continued_fraction_list(e, bits=20)
-        [3, 4, 3, 2, 2, 2, 3, 7]
-        sage: Hirzebruch_Jung_continued_fraction_list(e, bits=30)
-        [3, 4, 3, 2, 2, 2, 3, 8, 3, 2, 2, 2, 2, 2, 2, 2, 3]
-        sage: Hirzebruch_Jung_continued_fraction_list(sqrt(2), bits=100)
-        [2, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4,
-         2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 2]
-        sage: Hirzebruch_Jung_continued_fraction_list(sqrt(4/19))
-        [1, 2, 7, 3, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 3, 7,
-         2, 2, 2, 7, 3, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
-        sage: Hirzebruch_Jung_continued_fraction_list(pi)
-        [4, 2, 2, 2, 2, 2, 2, 17, 294, 3, 4, 5, 16, 2, 2]
-        sage: Hirzebruch_Jung_continued_fraction_list(e)
-        [3, 4, 3, 2, 2, 2, 3, 8, 3, 2, 2, 2, 2, 2, 2, 2,
-         3, 12, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 10]
-        sage: Hirzebruch_Jung_continued_fraction_list(e, nterms=20)
-        [3, 4, 3, 2, 2, 2, 3, 8, 3, 2, 2, 2, 2, 2, 2, 2, 3, 12, 3, 2]
-        sage: len(_) == 20
-        True
-
-    TESTS::
-
-        sage: Hirzebruch_Jung_continued_fraction_list(1 - 10^-10, nterms=3)
-        [1, 10000000000]
-        sage: Hirzebruch_Jung_continued_fraction_list(1 - 10^-10 - e^-100, bits=100, nterms=5)
-        [1, 10000000000]
-        sage: Hirzebruch_Jung_continued_fraction_list(1 - 10^-20 - e^-100, bits=1000, nterms=5)
-        [1, 100000000000000000000, 2689, 2, 2]
-   """
-    if not isinstance(x, sage.rings.rational.Rational):
-        try:
-            x = QQ(x)
-        except TypeError:
-            # Numerically evaluate x
-            if bits is None:
-                try:
-                    bits = x.prec()
-                except AttributeError:
-                    bits = 53
-            x = QQ(x.n(bits))
-    v = []
-    while True:
-        div, mod = divmod(x.numerator(), x.denominator())
-        if mod == 0:
-            v.append(div)
-            break
-        v.append(div+1)
-        if nterms is not None and len(v) >= nterms:
-            break
-        x = 1/(div+1-x)
-    return v
-
-
-def convergent(v, n):
-    r"""
-    Return the n-th continued fraction convergent of the continued
-    fraction defined by the sequence of integers v. We assume
-    `n \geq 0`.
-
-    INPUT:
-
-
-    -  ``v`` - list of integers
-
-    -  ``n`` - integer
-
-
-    OUTPUT: a rational number
-
-    If the continued fraction integers are
-
-    .. math::
-
-       v = [a_0, a_1, a_2, \ldots, a_k]
-
-
-    then ``convergent(v,2)`` is the rational number
-
-    .. math::
-
-       a_0 + 1/a_1
-
-    and ``convergent(v,k)`` is the rational number
-
-    .. math::
-
-       a1 + 1/(a2+1/(...) ... )
-
-    represented by the continued fraction.
-
-    EXAMPLES::
-
-        sage: convergent([2, 1, 2, 1, 1, 4, 1, 1], 7)
-        193/71
-    """
-    if hasattr(v, 'convergent'):
-        return v.convergent(n)
-    i = int(n)
-    x = QQ(v[i])
-    i -= 1
-    while i >= 0:
-        x = QQ(v[i]) + 1/x
-        i -= 1
-    return x
-
-
-def convergents(v):
-    """
-    Return all the partial convergents of a continued fraction defined
-    by the sequence of integers v.
-
-    If v is not a list, compute the continued fraction of v and return
-    its convergents (this is potentially much faster than calling
-    continued_fraction first, since continued fractions are
-    implemented using PARI and there is overhead moving the answer back
-    from PARI).
-
-    INPUT:
-
-
-    -  ``v`` - list of integers or a rational number
-
-
-    OUTPUT:
-
-
-    -  ``list`` - of partial convergents, as rational
-       numbers
-
-
-    EXAMPLES::
-
-        sage: convergents([2, 1, 2, 1, 1, 4, 1, 1])
-        [2, 3, 8/3, 11/4, 19/7, 87/32, 106/39, 193/71]
-    """
-    if hasattr(v, 'convergents'):
-        return v.convergents()
-    if not isinstance(v, list):
-        v = pari(v).contfrac()
-    w = [(0,1), (1,0)]
-    for n in range(len(v)):
-        pn = w[n+1][0]*v[n] + w[n][0]
-        qn = w[n+1][1]*v[n] + w[n][1]
-        w.append((pn, qn))
-    return [QQ(x) for x in w[2:]]
-
+## Note: farey, convergent, continued_fraction_list and convergents have been moved to
+## sage.rings.continued_fraction
 
 ## def continuant(v, n=None):
 ##     """
@@ -4395,7 +3973,7 @@ def continuant(v, n=None):
         sage: q = continuant([1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10])
         sage: p/q
         517656/190435
-        sage: convergent([2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10],14)
+        sage: continued_fraction([2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10]).convergent(14)
         517656/190435
         sage: x = PolynomialRing(RationalField(),'x',5).gens()
         sage: continuant(x)
@@ -4772,7 +4350,7 @@ def falling_factorial(x, a):
     if (isinstance(a, (integer.Integer, int, long)) or
         (isinstance(a, sage.symbolic.expression.Expression) and
          a.is_integer())) and a >= 0:
-        return misc.prod([(x - i) for i in range(a)], z=x.parent()(1))
+        return prod([(x - i) for i in range(a)], z=x.parent()(1))
     from sage.functions.all import gamma
     return gamma(x+1) / gamma(x-a+1)
 
@@ -4860,7 +4438,7 @@ def rising_factorial(x, a):
     if (isinstance(a, (integer.Integer, int, long)) or
         (isinstance(a, sage.symbolic.expression.Expression) and
          a.is_integer())) and a >= 0:
-        return misc.prod([(x + i) for i in range(a)], z=x.parent()(1))
+        return prod([(x + i) for i in range(a)], z=x.parent()(1))
     from sage.functions.all import gamma
     return gamma(x+a) / gamma(x)
 

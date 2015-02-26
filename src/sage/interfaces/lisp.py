@@ -54,7 +54,7 @@ AUTHORS:
 import random
 
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
-from sage.structure.element import RingElement
+from sage.structure.element import RingElement, parent
 
 class Lisp(Expect):
     def __init__(self,
@@ -423,7 +423,7 @@ class LispElement(ExpectElement):
 
         """
         P = self._check_valid()
-        if not hasattr(other, 'parent') or P is not other.parent():
+        if parent(other) is not P:
             other = P(other)
 
         if P.eval('(= %s %s)'%(self.name(), other.name())) == P._true_symbol():

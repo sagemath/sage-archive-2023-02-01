@@ -959,7 +959,7 @@ cdef class BooleanFunction(SageObject):
         s = vector(self.truth_table()).support()
 
         from sage.combinat.combination import Combinations
-        from sage.misc.misc import prod
+        from sage.misc.all import prod
 
         from sage.matrix.constructor import Matrix
         from sage.rings.arith import binomial

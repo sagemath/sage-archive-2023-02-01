@@ -22,6 +22,7 @@ from sage.rings.finite_rings.constructor import is_FiniteField
 
 from sage.categories.fields import Fields
 _Fields = Fields()
+from sage.categories.number_fields import NumberFields
 
 from sage.misc.all import latex
 from sage.structure.parent_gens import normalize_names
@@ -35,7 +36,6 @@ from sage.schemes.affine.affine_morphism import (SchemeMorphism_polynomial_affin
 from sage.schemes.affine.affine_point import (SchemeMorphism_point_affine,
                                               SchemeMorphism_point_affine_field,
                                               SchemeMorphism_point_affine_finite_field)
-
 
 
 def is_AffineSpace(x):
@@ -193,16 +193,16 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         P = [ zero for _ in range(n) ]
         yield self(P)
         iters = [ iter(R) for _ in range(n) ]
-        for x in iters: x.next() # put at zero
+        for x in iters: next(x) # put at zero
         i = 0
         while i < n:
             try:
-                P[i] = iters[i].next()
+                P[i] = next(iters[i])
                 yield self(P)
                 i = 0
             except StopIteration:
                 iters[i] = iter(R)  # reset
-                iters[i].next() # put at zero
+                next(iters[i]) # put at zero
                 P[i] = zero
                 i += 1
 
@@ -742,6 +742,73 @@ class AffineSpace_field(AffineSpace_generic):
                     (x, y, z)
         """
         return SchemeMorphism_polynomial_affine_space_field(*args, **kwds)
+
+    def points_of_bounded_height(self,bound):
+        r"""
+        Returns an iterator of the points in self of absolute height of at most the given bound. Bound check
+        is strict for the rational field. Requires self to be affine space over a number field. Uses the
+        Doyle-Krumm algorithm for computing algebraic numbers up to a given height [Doyle-Krumm].
+
+        INPUT:
+
+        - ``bound`` - a real number
+
+        OUTPUT:
+
+        - an iterator of points in self
+
+        EXAMPLES::
+            sage: A.<x,y> = AffineSpace(QQ,2)
+            sage: list(A.points_of_bounded_height(3))
+            [(0, 0), (1, 0), (-1, 0), (1/2, 0), (-1/2, 0), (2, 0), (-2, 0), (0, 1),
+            (1, 1), (-1, 1), (1/2, 1), (-1/2, 1), (2, 1), (-2, 1), (0, -1), (1, -1),
+            (-1, -1), (1/2, -1), (-1/2, -1), (2, -1), (-2, -1), (0, 1/2), (1, 1/2),
+            (-1, 1/2), (1/2, 1/2), (-1/2, 1/2), (2, 1/2), (-2, 1/2), (0, -1/2), (1, -1/2),
+            (-1, -1/2), (1/2, -1/2), (-1/2, -1/2), (2, -1/2), (-2, -1/2), (0, 2), (1, 2),
+            (-1, 2), (1/2, 2), (-1/2, 2), (2, 2), (-2, 2), (0, -2), (1, -2), (-1, -2), (1/2, -2),
+            (-1/2, -2), (2, -2), (-2, -2)]
+
+        ::
+
+            sage: u = QQ['u'].0
+            sage: A.<x,y> = AffineSpace(NumberField(u^2 - 2,'v'), 2)
+            sage: len(list(A.points_of_bounded_height(6)))
+            121
+        """
+        if (is_RationalField(self.base_ring())):
+            ftype = False # stores whether field is a number field or the rational field
+        elif (self.base_ring() in NumberFields()): # true for rational field as well, so check is_RationalField first
+            ftype = True
+        else:
+            raise NotImplementedError("self must be affine space over a number field.")
+
+        bound = bound**(1/self.base_ring().absolute_degree()) # convert to relative height
+
+        n = self.dimension_relative()
+        R = self.base_ring()
+        zero = R(0)
+        P = [ zero for _ in range(n) ]
+        yield self(P)
+        if (ftype == False):
+            iters = [ R.range_by_height(bound) for _ in range(n) ]
+        else:
+            iters = [ R.elements_of_bounded_height(bound) for _ in range(n) ]
+        for x in iters: x.next() # put at zero
+        i = 0
+        while i < n:
+            try:
+                P[i] = iters[i].next()
+                yield self(P)
+                i = 0
+            except StopIteration:
+                if (ftype == False):
+                    iters[i] = R.range_by_height(bound) # reset
+                else:
+                    iters[i] = R.elements_of_bounded_height(bound)
+                iters[i].next() # put at zero
+                P[i] = zero
+                i += 1
+
 
 class AffineSpace_finite_field(AffineSpace_field):
     def _point(self, *args, **kwds):

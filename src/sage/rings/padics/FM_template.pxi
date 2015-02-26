@@ -94,7 +94,8 @@ cdef class FMElement(pAdicTemplateElement):
             sage: R = ZpFM(5); R(6) * R(7) #indirect doctest
             2 + 3*5 + 5^2 + O(5^20)
         """
-        cdef FMElement ans = PY_NEW(self.__class__)
+        cdef type t = self.__class__
+        cdef FMElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
         cconstruct(ans.value, ans.prime_pow)
@@ -1151,7 +1152,7 @@ def unpickle_fme_v2(cls, parent, value):
         sage: a.parent() is R
         True
     """
-    cdef FMElement ans = PY_NEW(cls)
+    cdef FMElement ans = cls.__new__(cls)
     ans._parent = parent
     ans.prime_pow = <PowComputer_class?>parent.prime_pow
     cconstruct(ans.value, ans.prime_pow)

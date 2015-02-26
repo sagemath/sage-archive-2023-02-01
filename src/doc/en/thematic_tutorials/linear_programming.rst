@@ -1,6 +1,5 @@
 .. _linear_programming:
 
-
 Linear Programming (Mixed Integer)
 ==================================
 
@@ -15,7 +14,6 @@ constraints.
 
 This is a translation of a chapter from the book
 `Calcul mathematique avec Sage <http://sagebook.gforge.inria.fr>`_.
-
 
 Definition
 ----------

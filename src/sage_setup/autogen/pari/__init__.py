@@ -1,11 +1,11 @@
 from sage_setup.autogen.pari.generator import PariFunctionGenerator
 import os
 
-def rebuild():
+def rebuild(force=False):
     stamp = os.path.join(os.path.dirname(__file__), 'timestamp')
     desc = os.path.join(os.environ['SAGE_LOCAL'], 'share', 'pari', 'pari.desc')
     try:
-        if os.stat(stamp).st_mtime >= os.stat(desc).st_mtime:
+        if not force and os.stat(stamp).st_mtime >= os.stat(desc).st_mtime:
             # No need to rebuild
             return
     except OSError:

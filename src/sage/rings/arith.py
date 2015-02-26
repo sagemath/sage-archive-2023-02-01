@@ -406,7 +406,7 @@ def factorial(n, algorithm='gmp'):
 
 def is_prime(n):
     r"""
-    Returns ``True`` if `n` is prime, and ``False`` otherwise.
+    Return ``True`` if `n` is a prime number, and ``False`` otherwise.
 
     AUTHORS:
 
@@ -416,10 +416,6 @@ def is_prime(n):
     INPUT:
 
     -  ``n`` - the object for which to determine primality
-
-    OUTPUT:
-
-    -  ``bool`` - ``True`` or ``False``
 
     EXAMPLES::
 
@@ -431,63 +427,29 @@ def is_prime(n):
         True
         sage: is_prime(-1)
         False
-        sage: factor(-6)
-        -1 * 2 * 3
         sage: is_prime(1)
         False
         sage: is_prime(-2)
         False
-
-    ALGORITHM:
-
-    Calculation is delegated to the ``n.is_prime()`` method, or in special
-    cases (e.g., Python ``int``s) to ``Integer(n).is_prime()``.  If an
-    ``n.is_prime()`` method is not available, it otherwise raises a
-    ``TypeError``.
     """
-    if isinstance(n, sage.symbolic.expression.Expression):
-        try:
-            n = n.pyobject()
-        except TypeError:
-            pass
-
-    from sage.structure.proof.all import arithmetic
-    proof = arithmetic()
-    if isinstance(n, int) or isinstance(n, long):
-        from sage.rings.integer import Integer
-        if proof:
-            return Integer(n).is_prime()
-        else:
-            return Integer(n).is_pseudoprime()
     try:
-        if proof:
-            return n.is_prime()
-        else:
-            return n.is_pseudoprime()
+        return n.is_prime()
     except AttributeError:
-        raise TypeError("is_prime() is not written for this type")
+        pass
+
+    return ZZ(n).is_prime()
 
 def is_pseudoprime(n, flag=0):
     r"""
-    Returns True if `x` is a pseudo-prime, and False otherwise.  The
-    result is *NOT* proven correct - *this is a pseudo-primality
-    test!*.
+    Test whether ``n`` is a pseudo-prime
+
+    The result is *NOT* proven correct - *this is a pseudo-primality test!*.
 
     INPUT:
 
-        -  ``flag`` - int
-        - ``0`` (default): checks whether x is a Baillie-Pomerance-
-          Selfridge-Wagstaff pseudo prime (strong Rabin-Miller pseudo
-          prime for base 2, followed by strong Lucas test for the
-          sequence (P,-1), P smallest positive integer such that `P^2
-          - 4` is not a square mod x).
-        - ``>0``: checks whether x is a strong Miller-Rabin pseudo
-          prime for flag randomly chosen bases (with end-matching to
-          catch square roots of -1).
+    - ``n`` -- an integer
 
-    OUTPUT:
-
-        -  ``bool`` - True or False
+    - ``flag`` -- deprecated
 
     .. note::
 
@@ -510,24 +472,36 @@ def is_pseudoprime(n, flag=0):
         sage: is_pseudoprime(-2)
         False
 
-    IMPLEMENTATION: Calls the PARI ispseudoprime function.
-    """
-    n = ZZ(n)
-    return pari(n).ispseudoprime()
+    TESTS:
 
-def is_prime_power(n, flag=0):
+    Deprecation warning from :trac:`16878`::
+
+        sage: is_pseudoprime(127, flag=1)
+        doctest:...: DeprecationWarning: the keyword 'flag' is deprecated and
+        might soon be removed in future release of Sage
+        See http://trac.sagemath.org/16878 for details.
+        True
+    """
+    if flag:
+        from sage.misc.superseded import deprecation
+        deprecation(16878, "the keyword 'flag' is deprecated and might soon be "
+                "removed in future release of Sage")
+
+    return ZZ(n).is_pseudoprime()
+
+def is_prime_power(n, flag=0, get_data=False):
     r"""
-    Returns True if `n` is a prime power, and False otherwise.  The
-    result is proven correct - *this is NOT a pseudo-primality test!*.
+    Test whether ``n`` is a positive power of a prime number
 
     INPUT:
 
-        -  ``n`` - an integer or rational number
-        -  ``flag (for primality testing)`` - int
-        - ``0`` (default): use a combination of algorithms.
-        - ``1``: certify primality using the Pocklington-Lehmer Test.
-        - ``2``: certify primality using the APRCL test.
+    - ``n`` -- an integer
 
+    - ``flag`` -- deprecated
+
+    - ``get_data`` -- if set to ``True``, return a pair ``(k,p)`` such that
+      this integer equals ``p^k`` instead of ``True`` or ``(0,self)`` instead of
+      ``False``
 
     EXAMPLES::
 
@@ -539,51 +513,45 @@ def is_prime_power(n, flag=0):
         True
         sage: is_prime_power(1024)
         True
+        sage: is_prime_power(1024, get_data=True)
+        (10, 2)
+
         sage: is_prime_power(-1)
         False
         sage: is_prime_power(1)
-        True
-        sage: is_prime_power(997^100)
+        False
+        sage: is_prime_power(QQ(997^100))
         True
         sage: is_prime_power(1/2197)
-        True
-        sage: is_prime_power(1/100)
-        False
-        sage: is_prime_power(2/5)
-        False
+        Traceback (most recent call last):
+        ...
+        TypeError: no conversion of this rational to integer
+        sage: is_prime_power("foo")
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert x (=foo) to an integer
     """
-    try:
-        n = ZZ(n)
-    except TypeError:
-        # n might be a nonintegral rational number, in which case it is a
-        # prime power iff the integer 1/n is a prime power
-        r = QQ(1/n)
-        if not r.is_integral():
-            return False
-        n = ZZ(r)
-
-    from sage.structure.proof.all import arithmetic
-    proof = arithmetic()
-    if proof:
-        return n.is_prime_power(flag=flag)
-    else:
-        return is_pseudoprime_small_power(n)
+    return ZZ(n).is_prime_power(flag=flag, get_data=get_data)
 
 def is_pseudoprime_small_power(n, bound=1024, get_data=False):
     r"""
-    Return True if `n` is a small power of a pseudoprime, and False
-    otherwise.  The result is *NOT* proven correct - *this IS a
-    pseudo-primality test!*.
+    Test if ``n`` is a small power of a pseudoprime.
+
+    The result is *NOT* proven correct - *this IS a pseudo-primality test!*.
+    Note that a prime power is a positive power of a prime number so that 1 is
+    not a prime power.
 
     If `get_data` is set to true and `n = p^d`, for a pseudoprime `p`
-    and power `d`, return [(p, d)].
-
+    and power `d`, return the pair `(d, p)`.
 
     INPUT:
 
-        -  ``n`` - an integer
-        -  ``bound (default: 1024)`` - int: highest power to test.
-        -  ``get_data`` - boolean: return small pseudoprime and the power.
+    -  ``n`` - an integer
+
+    -  ``bound (default: 1024)`` - highest power to test.
+
+    -  ``get_data`` - (boolean) instead of a boolean return a pair `(k,p)` so
+       that ``n`` equals `p^k` and `p` is a pseudoprime or `(0,n)` otherwise.
 
     EXAMPLES::
 
@@ -598,7 +566,7 @@ def is_pseudoprime_small_power(n, bound=1024, get_data=False):
         sage: is_pseudoprime_small_power(-1)
         False
         sage: is_pseudoprime_small_power(1)
-        True
+        False
         sage: is_pseudoprime_small_power(997^100)
         True
 
@@ -606,54 +574,47 @@ def is_pseudoprime_small_power(n, bound=1024, get_data=False):
 
         sage: is_pseudoprime_small_power(3^1024)
         True
-        sage: is_pseudoprime_small_power(3^1025)
+        sage: is_pseudoprime_small_power(3^1031)
         False
 
     But it can be set higher or lower::
 
-        sage: is_pseudoprime_small_power(3^1025, bound=2000)
+        sage: is_pseudoprime_small_power(3^1031, bound=2000)
         True
-        sage: is_pseudoprime_small_power(3^100, bound=20)
+        sage: is_pseudoprime_small_power(3^101, bound=20)
         False
 
     Use of the get_data keyword::
 
         sage: is_pseudoprime_small_power(3^1024, get_data=True)
-        [(3, 1024)]
+        doctest:...: DeprecationWarning: the semantic of the 'get_data'
+        argument has changed. Instead of a list containing a unique pair (p,n)
+        it returns simply the pair (n,p).
+        See http://trac.sagemath.org/16878 for details.
+        (1024, 3)
         sage: is_pseudoprime_small_power(2^256, get_data=True)
-        [(2, 256)]
+        (256, 2)
         sage: is_pseudoprime_small_power(31, get_data=True)
-        [(31, 1)]
+        (1, 31)
         sage: is_pseudoprime_small_power(15, get_data=True)
-        False
+        (0, 15)
     """
-    n = ZZ(n)
-    if n == 1:
-        # canonical way to write 1 as a prime power?
-        return True
-    if n <= 0:
-        return False
-    if n.is_pseudoprime():
-        if get_data == True:
-            return [(n, 1)]
-        else:
-            return True
-    for i in xrange(2, bound + 1):
-        p, boo = n.nth_root(i, truncate_mode=True)
-        if boo:
-            if p.is_pseudoprime():
-                if get_data == True:
-                    return [(p, i)]
-                else:
-                    return True
-    return False
+    if get_data:
+        from sage.misc.superseded import deprecation
+        deprecation(16878, "the semantic of the 'get_data' argument has "
+            "changed. Instead of a list containing a unique pair (p,n) it "
+            "returns simply the pair (n,p).")
+    return ZZ(n).is_pseudoprime_small_power(bound, get_data)
 
-
-def valuation(m,*args1, **args2):
+def valuation(m, *args1, **args2):
     """
-    This actually just calls the m.valuation() method.
+    Return the valuation of ``m``.
+
+    This function simply calls the m.valuation() method.
     See the documentation of m.valuation() for a more precise description.
-    Use of this function by developers is discouraged. Use m.valuation() instead.
+
+    Note that the use of this functions is discouraged as it is better to use
+    m.valuation() directly.
 
     .. NOTE::
 
@@ -704,9 +665,12 @@ def valuation(m,*args1, **args2):
         ...
         ValueError: You can only compute the valuation with respect to a integer larger than 1.
     """
-    if isinstance(m,(int,long)):
-        m=ZZ(m)
-    return m.valuation(*args1, **args2)
+    try:
+        return m.valuation(*args1, **args2)
+    except AttributeError:
+        pass
+
+    return ZZ(m).valuation(*args1, **args2)
 
 def prime_powers(start, stop=None):
     r"""
@@ -1012,11 +976,9 @@ def next_prime_power(n):
     EXAMPLES::
 
         sage: next_prime_power(-10)
-        1
-        sage: is_prime_power(1)
-        True
+        2
         sage: next_prime_power(0)
-        1
+        2
         sage: next_prime_power(1)
         2
         sage: next_prime_power(2)
@@ -1028,12 +990,10 @@ def next_prime_power(n):
         sage: next_prime_power(99)
         101
     """
-    if n < 0:   # negatives are not prime.
-        return ZZ(1)
-    if n == 2:
-        return ZZ(3)
     n = ZZ(n) + 1
-    while not is_prime_power(n):  # pari isprime is provably correct
+    if n <= 2:   # negatives are not prime.
+        return ZZ(2)
+    while not n.is_prime_power():
         n += 1
     return n
 
@@ -1155,8 +1115,8 @@ def previous_prime_power(n):
 
     EXAMPLES::
 
-        sage: previous_prime_power(2)
-        1
+        sage: previous_prime_power(3)
+        2
         sage: previous_prime_power(10)
         9
         sage: previous_prime_power(7)
@@ -1166,11 +1126,11 @@ def previous_prime_power(n):
 
     ::
 
-        sage: previous_prime_power(0)
+        sage: previous_prime_power(2)
         Traceback (most recent call last):
         ...
         ValueError: no previous prime power
-        sage: previous_prime_power(1)
+        sage: previous_prime_power(-10)
         Traceback (most recent call last):
         ...
         ValueError: no previous prime power
@@ -1179,12 +1139,12 @@ def previous_prime_power(n):
 
         sage: n = previous_prime_power(2^16 - 1)
         sage: while is_prime(n):
-        ...    n = previous_prime_power(n)
+        ....:  n = previous_prime_power(n)
         sage: factor(n)
         251^2
     """
-    n = ZZ(n)-1
-    if n <= 0:
+    n = ZZ(n) - 1
+    if n <= 1:
         raise ValueError("no previous prime power")
     while not is_prime_power(n):
         n -= 1
@@ -3656,6 +3616,8 @@ def primitive_root(n, check=True):
         0
         sage: primitive_root(2)
         1
+        sage: primitive_root(3)
+        2
         sage: primitive_root(4)
         3
 
@@ -3682,9 +3644,11 @@ def primitive_root(n, check=True):
     if not check:
         return ZZ(pari(n).znprimroot())
     n = ZZ(n).abs()
-    if n == 4:
-        return ZZ(3)
-    if n%2: # n odd
+    if n <= 4:
+        if n:
+            # n-1 is a primitive root for n in {1,2,3,4}
+            return n-1
+    elif n%2: # n odd
         if n.is_prime_power():
             return ZZ(pari(n).znprimroot())
     else:   # n even

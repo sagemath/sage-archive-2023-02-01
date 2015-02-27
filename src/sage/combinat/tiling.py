@@ -1649,20 +1649,20 @@ class TilingSolver(SageObject):
             sage: y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='cyan')
             sage: T = TilingSolver([y], box=(5,10), reusable=True, reflection=True)
             sage: a = T.animate()
-            sage: a
+            sage: a             # optional -- ImageMagick
             Animation with 10 frames
 
         Include partial solutions (common prefix between two consecutive
         solutions)::
 
             sage: a = T.animate('common_prefix')
-            sage: a
+            sage: a             # optional -- ImageMagick
             Animation with 19 frames
 
         Incremental solutions (one piece removed or added at a time)::
 
             sage: a = T.animate('incremental')      # long time (2s)
-            sage: a                                 # long time (2s)
+            sage: a                                 # long time (2s)  # optional -- ImageMagick
             Animation with 123 frames
 
         ::

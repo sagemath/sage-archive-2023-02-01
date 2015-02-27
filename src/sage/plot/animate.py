@@ -226,7 +226,7 @@ class Animation(SageObject):
 
             sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.3)],
             ....:                xmin=0, xmax=2*pi, figsize=[2,1]) # indirect doctest
-            sage: a
+            sage: a           # optional -- ImageMagick
             Animation with 21 frames
         """
         self._frames = v
@@ -276,12 +276,12 @@ class Animation(SageObject):
 
             sage: a = animate([circle((i,-i), 1-1/(i+1), hue=i/10) for i in srange(0,2,0.2)],
             ....:               xmin=0,ymin=-2,xmax=2,ymax=0,figsize=[2,2])
-            sage: a
+            sage: a           # optional -- ImageMagick
             Animation with 10 frames
             sage: frame2 = a[2]  # indirect doctest
             sage: frame2.show()
             sage: a.show() # optional -- ImageMagick
-            sage: a[3:7]   # indirect doctest
+            sage: a[3:7]   # optional -- ImageMagick   # indirect doctest
             Animation with 4 frames
             sage: a[3:7].show() # optional -- ImageMagick
         """
@@ -298,7 +298,7 @@ class Animation(SageObject):
 
             sage: a = animate([circle((i,-i), 1-1/(i+1), hue=i/10) for i in srange(0,2,0.2)],
             ....:               xmin=0,ymin=-2,xmax=2,ymax=0,figsize=[2,2])
-            sage: a
+            sage: a           # optional -- ImageMagick
             Animation with 10 frames
             sage: a._repr_()
             'Animation with 10 frames'

@@ -889,6 +889,13 @@ class EllipticE(BuiltinFunction):
             0.4980113944988315331154610406...
             sage: elliptic_e(I, I).n()
             -0.189847437084712 + 1.03209769372160*I
+
+        TESTS:
+
+        This gave an error in Maxima (:trac:`15046`)::
+
+            sage: elliptic_e(2.5, 2.5)
+            0.535647771608740 + 1.63996015168665*I
         """
         R = parent or parent(z)
         from mpmath import ellipe

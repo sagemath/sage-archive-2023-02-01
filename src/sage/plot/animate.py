@@ -161,9 +161,9 @@ class Animation(SageObject):
 
         sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.3)],
         ....:                xmin=0, xmax=2*pi, figsize=[2,1])
-        sage: a
+        sage: a                 # optional -- ImageMagick
         Animation with 21 frames
-        sage: a[:5]
+        sage: a[:5]             # optional -- ImageMagick
         Animation with 5 frames
         sage: a.show()          # optional -- ImageMagick
         sage: a[:5].show()      # optional -- ImageMagick

@@ -173,7 +173,10 @@ cdef class Graphics3d(SageObject):
         EXAMPLES::
 
             sage: import sage.repl.rich_output.output_catalog as catalog
-            sage: sphere()._rich_repr_tachyon(catalog.OutputImageJpg)
+            sage: sphere()._rich_repr_tachyon(catalog.OutputImagePng)
+            OutputImagePng container
+            sage: import sage.repl.rich_output.output_catalog as catalog
+            sage: sphere()._rich_repr_tachyon(catalog.OutputImageJpg)  # optional -- libjpeg
             OutputImageJpg container
         """
         filename = tmp_filename(ext='.png')

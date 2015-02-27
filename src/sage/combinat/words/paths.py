@@ -1623,10 +1623,10 @@ class FiniteWordPath_2d(FiniteWordPath_all):
 
             sage: P = WordPaths('abAB')
             sage: p = P('aaababbb')
-            sage: a = p.animate(); a
+            sage: a = p.animate(); a    # optional -- ImageMagick
             Animation with 9 frames
-            sage: show(a)       # optional -- ImageMagick
-            sage: a.gif(delay=35, iterations=3)       # optional
+            sage: show(a)               # optional -- ImageMagick
+            sage: a.gif(delay=35, iterations=3)    # optional -- ImageMagick
 
         ::
 

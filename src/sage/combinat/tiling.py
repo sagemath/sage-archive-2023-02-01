@@ -177,17 +177,16 @@ Animation of the solutions::
     sage: from sage.combinat.tiling import Polyomino, TilingSolver
     sage: Y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='yellow')
     sage: T = TilingSolver([Y], box=(15,15), reusable=True, reflection=True)
-    sage: a = T.animate(stop=40)            # long time
-    sage: a                                 # long time
+    sage: a = T.animate(stop=40)            # long time  # optional -- ImageMagick
+    sage: a                                 # long time  # optional -- ImageMagick
     Animation with 40 frames
-    sage: a.show()                          # not tested  - requires convert command
 
 Incremental animation of the solutions (one piece is removed/added at a time)::
 
-    sage: a = T.animate('incremental', stop=40)   # long time
-    sage: a                                       # long time
+    sage: a = T.animate('incremental', stop=40)   # long time  # optional -- ImageMagick
+    sage: a                                       # long time  # optional -- ImageMagick
     Animation with 40 frames
-    sage: a.show(delay=50, iterations=1)     # not tested  - requires convert command
+    sage: a.show(delay=50, iterations=1)          # long time  # optional -- ImageMagick
 
 5d Easy Example
 ---------------

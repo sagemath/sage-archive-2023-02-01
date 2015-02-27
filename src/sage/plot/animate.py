@@ -31,7 +31,7 @@ The sine function::
 
     sage: sines = [plot(c*sin(x), (-2*pi,2*pi), color=Color(c,0,0), ymin=-1, ymax=1) for c in sxrange(0,1,.2)]
     sage: a = animate(sines)
-    sage: a
+    sage: a         # optional -- ImageMagick
     Animation with 5 frames
     sage: a.show()  # optional -- ImageMagick
 
@@ -632,7 +632,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
             sage: a = animate([plot(x^2 + n) for n in range(4)], ymin=0, ymax=4)
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
-            sage: a._rich_repr_(dm)
+            sage: a._rich_repr_(dm)       # optional -- ImageMagick
             OutputImageGif container
         """
         OutputImageGif = display_manager.types.OutputImageGif

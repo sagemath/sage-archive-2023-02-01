@@ -418,7 +418,7 @@ class Tachyon(SageObject):
             ....:     return q
 
             sage: a = animate([tw_cubic(t) for t in srange(-1,1,.3)])
-            sage: a
+            sage: a        # optional -- ImageMagick
             Animation with 7 frames
             sage: a.show() # optional -- ImageMagick
         """

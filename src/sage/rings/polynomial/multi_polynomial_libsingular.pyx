@@ -4046,7 +4046,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             ...
             NotImplementedError: Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.
 
-        Finally, factorization over the integers is now supported, see :trac:`17840` ::
+        Factorization over the integers is now supported, see :trac:`17840` ::
 
             sage: P.<x,y> = PolynomialRing(ZZ)
             sage: f = 12 * (3*x*y + 4) * (5*x - 2) * (2*y + 7)^2
@@ -4055,6 +4055,15 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: g = -12 * (x^2 - y^2)
             sage: g.factor()
             (-1) * 2^2 * 3 * (x - y) * (x + y)
+
+        Factorization over non-integral domains is not supported ::
+
+            sage: R.<x,y> = PolynomialRing(Zmod(4))
+            sage: f = (2*x + 1) * (x^2 + x + 1)
+            sage: f.factor()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Factorization of multivariate polynomials over non-integral domains is not implemented.
 
         TESTS:
 

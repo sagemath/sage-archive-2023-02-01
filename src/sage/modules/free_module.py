@@ -658,14 +658,13 @@ class FreeModule_generic(module.Module_old):
 
         INPUT:
 
+        -  ``base_ring`` -- a commutative ring
 
-        -  ``base_ring`` - a commutative ring
+        -  ``rank`` -- a non-negative integer
 
-        -  ``rank`` - a non-negative integer
+        -  ``degree`` -- a non-negative integer
 
-        -  ``degree`` - a non-negative integer
-
-        -  ``sparse`` - bool (default: False)
+        -  ``sparse`` -- bool (default: False)
 
         - ``coordinate_ring`` -- a ring containing ``base_ring``
           (default: equal to ``base_ring``)
@@ -4227,24 +4226,28 @@ class FreeModule_ambient(FreeModule_generic):
     """
     Ambient free module over a commutative ring.
     """
-    def __init__(self, base_ring, rank, sparse=False):
+    def __init__(self, base_ring, rank, sparse=False, coordinate_ring=None):
         """
         The free module of given rank over the given base_ring.
 
         INPUT:
 
+        -  ``base_ring`` -- a commutative ring
 
-        -  ``base_ring`` - a commutative ring
+        -  ``rank`` -- a non-negative integer
 
-        -  ``rank`` - a non-negative integer
+        -  ``sparse`` -- bool (default: False)
 
+        - ``coordinate_ring`` -- a ring containing ``base_ring``
+          (default: equal to ``base_ring``)
 
         EXAMPLES::
 
             sage: FreeModule(ZZ, 4)
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
         """
-        FreeModule_generic.__init__(self, base_ring, rank=rank, degree=rank, sparse=sparse)
+        FreeModule_generic.__init__(self, base_ring, rank=rank,
+                degree=rank, sparse=sparse, coordinate_ring=coordinate_ring)
 
     def __hash__(self):
         """
@@ -4521,11 +4524,11 @@ class FreeModule_ambient(FreeModule_generic):
             return self.__basis
         except  AttributeError:
             ZERO = self(0)
-            one = self.base_ring()(1)
+            one = self.coordinate_ring().one()
             w = []
             for n in range(self.rank()):
                 v = ZERO.__copy__()
-                v[n] = one
+                v.set(n, one)
                 w.append(v)
             self.__basis = basis_seq(self, w)
             return self.__basis
@@ -4805,7 +4808,7 @@ class FreeModule_ambient_domain(FreeModule_ambient):
     """
     Ambient free module over an integral domain.
     """
-    def __init__(self, base_ring, rank, sparse=False):
+    def __init__(self, base_ring, rank, sparse=False, coordinate_ring=None):
         """
         Create the ambient free module of given rank over the given
         integral domain.
@@ -4816,7 +4819,8 @@ class FreeModule_ambient_domain(FreeModule_ambient):
             Ambient free module of rank 3 over the principal ideal domain
             Univariate Polynomial Ring in x over Finite Field of size 5
         """
-        FreeModule_ambient.__init__(self, base_ring, rank, sparse)
+        FreeModule_ambient.__init__(self, base_ring,
+                rank, sparse, coordinate_ring)
 
     def _repr_(self):
         """
@@ -4967,27 +4971,40 @@ class FreeModule_ambient_pid(FreeModule_generic_pid, FreeModule_ambient_domain):
     """
     Ambient free module over a principal ideal domain.
     """
-    def __init__(self, base_ring, rank, sparse=False):
+    def __init__(self, base_ring, rank, sparse=False, coordinate_ring=None):
         """
         Create the ambient free module of given rank over the given
         principal ideal domain.
 
         INPUT:
 
+        -  ``base_ring`` -- a principal ideal domain
 
-        -  ``base_ring`` - a principal ideal domain
+        -  ``rank`` -- a non-negative integer
 
-        -  ``rank`` - a non-negative integer
+        -  ``sparse`` -- bool (default: False)
 
-        -  ``sparse`` - bool (default: False)
-
+        - ``coordinate_ring`` -- a ring containing ``base_ring``
+          (default: equal to ``base_ring``)
 
         EXAMPLES::
 
             sage: ZZ^3
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
+
+        We create the same module with coordinates in ``QQ``::
+
+            sage: from sage.modules.free_module import FreeModule_ambient_pid
+            sage: M = FreeModule_ambient_pid(ZZ, 3, coordinate_ring=QQ)
+            sage: M
+            Ambient free module of rank 3 over the principal ideal domain Integer Ring
+            sage: v = M.basis()[0]; v
+            (1, 0, 0)
+            sage: type(v)
+            <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
         """
-        FreeModule_ambient_domain.__init__(self, base_ring=base_ring, rank=rank, sparse=sparse)
+        FreeModule_ambient_domain.__init__(self, base_ring=base_ring,
+                rank=rank, sparse=sparse, coordinate_ring=coordinate_ring)
 
     def _repr_(self):
         """
@@ -6777,22 +6794,6 @@ def basis_seq(V, vecs):
     for z in vecs:
         z.set_immutable()
     return Sequence(vecs, universe=V, check = False, immutable=True, cr=True)
-
-#class RealDoubleVectorSpace_class(FreeModule_ambient_field):
-#    def __init__(self, dimension, sparse=False):
-#        if sparse:
-#            raise NotImplementedError, "Sparse matrices over RDF not implemented yet"
-#        FreeModule_ambient_field.__init__(self, sage.rings.real_double.RDF, dimension, sparse=False)
-
-#class ComplexDoubleVectorSpace_class(FreeModule_ambient_field):
-#    def __init__(self, dimension, sparse=False):
-#        if sparse:
-#            raise NotImplementedError, "Sparse matrices over CDF not implemented yet"
-#        FreeModule_ambient_field.__init__(self, sage.rings.complex_double.CDF, dimension, sparse=False)
-
-
-
-
 
 
 class RealDoubleVectorSpace_class(FreeModule_ambient_field):

@@ -1422,7 +1422,7 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
 
     cdef int i
     for i from 0 <= i < len(vars):
-        if not PY_TYPE_CHECK(vars[i], str):
+        if not isinstance(vars[i], str):
             v = str(vars[i])
             # inexact generators display as 1.00..0*x
             if '*' in v:
@@ -1455,4 +1455,4 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
 
 
 def is_fast_float(x):
-    return PY_TYPE_CHECK(x, FastDoubleFunc) or PY_TYPE_CHECK(x, Wrapper)
+    return isinstance(x, FastDoubleFunc) or isinstance(x, Wrapper)

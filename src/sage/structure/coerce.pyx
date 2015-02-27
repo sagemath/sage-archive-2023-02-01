@@ -536,15 +536,15 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             """
         self._exceptions_cleared = False
         res = None
-        if not PY_TYPE_CHECK(xp, type) and not PY_TYPE_CHECK(xp, Parent):
+        if not isinstance(xp, type) and not isinstance(xp, Parent):
             xp = parent_c(xp)
-        if not PY_TYPE_CHECK(yp, type) and not PY_TYPE_CHECK(yp, Parent):
+        if not isinstance(yp, type) and not isinstance(yp, Parent):
             yp = parent_c(yp)
 
         all = []
         if xp is yp:
             all.append("Identical parents, arithmetic performed immediately." % xp)
-            if op is div and PY_TYPE_CHECK(xp, Parent):
+            if op is div and isinstance(xp, Parent):
                 xp = self.division_parent(xp)
             return all, xp
         if xp == yp:
@@ -573,30 +573,30 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                     raise RuntimeError, ("BUG in coercion model: codomains not equal!", x_mor, y_mor)
                 res = y_mor.codomain()
             all.append("Arithmetic performed after coercions.")
-            if op is div and PY_TYPE_CHECK(res, Parent):
+            if op is div and isinstance(res, Parent):
                 res = self.division_parent(res)
             return all, res
 
-        if PY_TYPE_CHECK(yp, Parent) and xp in [int, long, float, complex, bool]:
+        if isinstance(yp, Parent) and xp in [int, long, float, complex, bool]:
             mor = yp._internal_coerce_map_from(xp)
             if mor is not None:
                 mor = mor.__copy__()
                 all.append("Coercion on numeric left operand via")
                 all.append(mor)
-                if op is div and PY_TYPE_CHECK(yp, Parent):
+                if op is div and isinstance(yp, Parent):
                     yp = self.division_parent(yp)
                 return all, yp
             all.append("Left operand is numeric, will attempt coercion in both directions.")
         elif type(xp) is type:
             all.append("Left operand is not Sage element, will try _sage_.")
 
-        if PY_TYPE_CHECK(xp, Parent) and yp in [int, long, float, complex, bool]:
+        if isinstance(xp, Parent) and yp in [int, long, float, complex, bool]:
             mor = xp._internal_coerce_map_from(yp)
             if mor is not None:
                 mor = mor.__copy__()
                 all.append("Coercion on numeric right operand via")
                 all.append(mor)
-                if op is div and PY_TYPE_CHECK(xp, Parent):
+                if op is div and isinstance(xp, Parent):
                     xp = self.division_parent(xp)
                 return all, xp
             all.append("Right operand is numeric, will attempt coercion in both directions.")
@@ -967,7 +967,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 self._record_exception()
 
         # See if the non-objects define a _sage_ method.
-        if not PY_TYPE_CHECK(x, SageObject) or not PY_TYPE_CHECK(y, SageObject):
+        if not isinstance(x, SageObject) or not isinstance(y, SageObject):
             try:
                 x = x._sage_()
                 y = y._sage_()
@@ -1084,7 +1084,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 swap = None
             else:
                 R_map, S_map = homs
-                if R_map is None and PY_TYPE_CHECK(S, Parent) and (<Parent>S).has_coerce_map_from(R):
+                if R_map is None and isinstance(S, Parent) and (<Parent>S).has_coerce_map_from(R):
                     swap = None, (<Parent>S)._internal_coerce_map_from(R)
                 else:
                     swap = S_map, R_map
@@ -1117,9 +1117,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             return None
         cdef Map x_map, y_map
         R_map, S_map = homs
-        if PY_TYPE_CHECK(R, type):
+        if isinstance(R, type):
             R = Set_PythonType(R)
-        elif PY_TYPE_CHECK(S, type):
+        elif isinstance(S, type):
             S = Set_PythonType(S)
         if R_map is None:
             R_map = IdentityMorphism(R)
@@ -1152,9 +1152,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                         R_map = connecting * R_map
             if R_map.codomain() is not S_map.codomain():
                 raise RuntimeError, ("BUG in coercion model, codomains must be identical", R_map, S_map)
-        if PY_TYPE_CHECK(R_map, IdentityMorphism):
+        if isinstance(R_map, IdentityMorphism):
             R_map = None
-        elif PY_TYPE_CHECK(S_map, IdentityMorphism):
+        elif isinstance(S_map, IdentityMorphism):
             S_map = None
         return R_map, S_map
 
@@ -1209,19 +1209,19 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             return None, None
 
         # See if there is a natural coercion from R to S
-        if PY_TYPE_CHECK(R, Parent):
+        if isinstance(R, Parent):
             mor = (<Parent>R)._internal_coerce_map_from(S)
             if mor is not None:
                 return None, mor
 
         # See if there is a natural coercion from S to R
-        if PY_TYPE_CHECK(S, Parent):
+        if isinstance(S, Parent):
             mor = (<Parent>S)._internal_coerce_map_from(R)
             if mor is not None:
                 return mor, None
 
         # Try base extending
-        if PY_TYPE_CHECK(R, Parent) and PY_TYPE_CHECK(S, Parent):
+        if isinstance(R, Parent) and isinstance(S, Parent):
             from sage.categories.pushout import pushout
             try:
                 Z = pushout(R, S)
@@ -1303,20 +1303,20 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         if action is None:
             return action
-        elif PY_TYPE_CHECK(action, IntegerMulAction):
+        elif isinstance(action, IntegerMulAction):
             return action
         cdef bint ok = True
         try:
             if action.left_domain() is not R:
-                ok &= PY_TYPE_CHECK(R, type) and action.left_domain()._type is R
+                ok &= isinstance(R, type) and action.left_domain()._type is R
             if action.right_domain() is not S:
-                ok &= PY_TYPE_CHECK(S, type) and action.right_domain()._type is S
+                ok &= isinstance(S, type) and action.right_domain()._type is S
         except AttributeError:
             ok = False
         if not ok:
-            if PY_TYPE_CHECK(R, type):
+            if isinstance(R, type):
                 R = Set_PythonType(R)
-            if PY_TYPE_CHECK(S, type):
+            if isinstance(S, type):
                 S = Set_PythonType(S)
 
             # Non-unique parents
@@ -1399,13 +1399,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         #print "looking", R, <int><void *>R, op, S, <int><void *>S
 
-        if PY_TYPE_CHECK(R, Parent):
+        if isinstance(R, Parent):
             action = (<Parent>R).get_action(S, op, True, r, s)
             if action is not None:
                 #print "found2", action
                 return action
 
-        if PY_TYPE_CHECK(S, Parent):
+        if isinstance(S, Parent):
             action = (<Parent>S).get_action(R, op, False, s, r)
             if action is not None:
                 #print "found1", action
@@ -1416,7 +1416,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             if sageR is not None:
                 action = self.discover_action(sageR, S, op, s=s)
                 if action is not None:
-                    if not PY_TYPE_CHECK(action, IntegerMulAction):
+                    if not isinstance(action, IntegerMulAction):
                         action = PrecomposedAction(action, sageR._internal_coerce_map_from(R), None)
                     return action
 
@@ -1425,7 +1425,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             if sageS is not None:
                 action = self.discover_action(R, sageS, op, r=r)
                 if action is not None:
-                    if not PY_TYPE_CHECK(action, IntegerMulAction):
+                    if not isinstance(action, IntegerMulAction):
                         action = PrecomposedAction(action, None, sageS._internal_coerce_map_from(S))
                     return action
 
@@ -1436,7 +1436,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 if a is not None:
                     is_inverse = isinstance(a, InverseAction)
                     if is_inverse: a = ~a
-                    if a is not None and PY_TYPE_CHECK(a, RightModuleAction):
+                    if a is not None and isinstance(a, RightModuleAction):
                         # We want a new instance so that we don't alter the (potentially cached) original
                         a = RightModuleAction(S, R, s, r)
                         a.is_inplace = 1

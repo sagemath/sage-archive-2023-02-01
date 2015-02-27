@@ -1142,12 +1142,12 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
             nmod_poly_set_coeff_ui(ans._denom, 0, 1)  # No need to normalize
         elif len(args) == 1:
             y = args[0]
-            if PY_TYPE_CHECK(y, Integer):
+            if isinstance(y, Integer):
                 r = mpz_fdiv_ui((<Integer>y).value, self.p)
                 nmod_poly_set_coeff_ui(ans._denom, 0, r)
             else:
                 # could use the coerce keyword being set to False to not check this...
-                if not (PY_TYPE_CHECK(y, Element) and y.parent() is self.domain()):
+                if not (isinstance(y, Element) and y.parent() is self.domain()):
                     # We could special case integers and GF(p) elements here.
                     y = self.domain()(y)
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
@@ -1416,7 +1416,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
             nmod_poly_set_coeff_ui(ans._denom, 0, 1)
         if len(args) == 1:
             y = args[0]
-            if PY_TYPE_CHECK(y, Integer):
+            if isinstance(y, Integer):
                 r = mpz_fdiv_ui((<Integer>y).value, self.p)
                 if r == 0:
                     raise ZeroDivisionError
@@ -1424,7 +1424,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
             else:
                 R = ans._parent.ring_of_integers()
                 # could use the coerce keyword being set to False to not check this...
-                if not (PY_TYPE_CHECK(y, Element) and y.parent() is R):
+                if not (isinstance(y, Element) and y.parent() is R):
                     # We could special case integers and GF(p) elements here.
                     y = R(y)
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
@@ -1719,7 +1719,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
             nmod_poly_set_coeff_ui(ans._denom, 0, 1)
         if len(args) == 1:
             y = args[0]
-            if PY_TYPE_CHECK(y, Integer):
+            if isinstance(y, Integer):
                 r = mpz_fdiv_ui((<Integer>y).value, self.p)
                 if r == 0:
                     raise ZeroDivisionError
@@ -1727,7 +1727,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
             else:
                 R = ans._parent.ring_of_integers()
                 # could use the coerce keyword being set to False to not check this...
-                if not (PY_TYPE_CHECK(y, Element) and y.parent() is R):
+                if not (isinstance(y, Element) and y.parent() is R):
                     # We could special case integers and GF(p) elements here.
                     y = R(y)
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))

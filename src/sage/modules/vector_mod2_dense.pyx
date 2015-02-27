@@ -159,7 +159,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             if len(x) != self._degree:
                 raise TypeError("x must be a list of the right length")
             for i from 0 <= i < self._degree:
-                if PY_TYPE_CHECK(x[i],IntegerMod_int) or PY_TYPE_CHECK(x[i],int) or PY_TYPE_CHECK(x[i],Integer):
+                if isinstance(x[i], IntegerMod_int) or isinstance(x[i], int) or isinstance(x[i], Integer):
                     xi = x[i]
                     # the if/else statement is because in some compilers, (-1)%2 is -1
                     mzd_write_bit(self._entries, 0, i, 0 if xi%2==0 else 1)
@@ -537,7 +537,7 @@ def unpickle_v0(parent, entries, degree, is_mutable):
     cdef int xi
 
     for i from 0 <= i < degree:
-        if PY_TYPE_CHECK(entries[i],IntegerMod_int) or PY_TYPE_CHECK(entries[i],int) or PY_TYPE_CHECK(entries[i],Integer):
+        if isinstance(entries[i], IntegerMod_int) or isinstance(entries[i], int) or isinstance(entries[i], Integer):
             xi = entries[i]
             mzd_write_bit(v._entries, 0, i, xi%2)
         else:

@@ -112,7 +112,7 @@ cdef class HMM_Util:
             [0.1000, 0.2000, 0.9000]
         """
         cdef TimeSeries T
-        if PY_TYPE_CHECK(pi, TimeSeries):
+        if isinstance(pi, TimeSeries):
             T = pi
         else:
             if not isinstance(pi, list):
@@ -153,7 +153,7 @@ cdef class HMM_Util:
             [0.1000, 0.7000, 0.4286, 0.5714]
         """
         cdef TimeSeries T
-        if PY_TYPE_CHECK(A, TimeSeries):
+        if isinstance(A, TimeSeries):
             T = A
         elif is_Matrix(A):
             T = TimeSeries(A.list())

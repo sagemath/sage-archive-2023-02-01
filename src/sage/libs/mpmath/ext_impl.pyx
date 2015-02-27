@@ -43,7 +43,7 @@ cdef mpz_set_integer(mpz_t v, x):
         mpz_set_si(v, PyInt_AS_LONG(x))
     elif PyLong_Check(x):
         mpz_set_pylong(v, x)
-    elif PY_TYPE_CHECK(x, Integer):
+    elif isinstance(x, Integer):
         mpz_set(v, (<Integer>x).value)
     else:
         raise TypeError("cannot convert %s to an integer" % x)
@@ -271,7 +271,7 @@ cdef MPF_set_tuple(MPF *x, tuple value):
     #cdef int sign
     cdef Integer man
     sign, _man, exp, bc = value
-    if PY_TYPE_CHECK(_man, Integer):
+    if isinstance(_man, Integer):
         man = <Integer>_man
     else:
         # This is actually very unlikely; it should never happen

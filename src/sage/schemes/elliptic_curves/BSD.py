@@ -305,10 +305,19 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         sage: EllipticCurve('11a').prove_BSD(verbosity=2)
         p = 2: True by 2-descent
         True for p not in {2, 5} by Kolyvagin.
-        Kato further implies that #Sha[5] is trivial.
+        Kolyvagin's bound for p = 5 applies by Lawson - Wuthrich
+        True for p = 5 by Kolyvagin bound
         []
 
         sage: EllipticCurve('14a').prove_BSD(verbosity=2)
+        p = 2: True by 2-descent
+        True for p not in {2, 3} by Kolyvagin.
+        Kolyvagin's bound for p = 3 applies by Lawson - Wuthrich
+        True for p = 3 by Kolyvagin bound
+        []
+
+        sage: E = EllipticCurve("20a1")
+        sage: E.prove_BSD(verbosity=2)
         p = 2: True by 2-descent
         True for p not in {2, 3} by Kolyvagin.
         Kato further implies that #Sha[3] is trivial.
@@ -318,7 +327,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         sage: E.prove_BSD(verbosity=2)
         p = 2: True by 2-descent
         True for p not in {2, 3, 5} by Kolyvagin.
-        Kolyvagin's bound for p = 3 applies by Stein et al.
+        Kolyvagin's bound for p = 3 applies by Lawson - Wuthrich
         True for p = 3 by Kolyvagin bound
         Remaining primes:
         p = 5: reducible, not surjective, additive, divides a Tamagawa number
@@ -348,7 +357,8 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         sage: E.prove_BSD(verbosity=2)
         p = 2: True by 2-descent
         True for p not in {2, 3} by Kolyvagin.
-        Kato further implies that #Sha[3] is trivial.
+        Kolyvagin's bound for p = 3 applies by Lawson - Wuthrich
+        True for p = 3 by Kolyvagin bound
         []
 
         sage: E = EllipticCurve('37a')

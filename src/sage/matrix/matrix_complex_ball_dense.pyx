@@ -20,14 +20,20 @@ You may have to run ``sage -i arb`` to use the arb library.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include 'sage/ext/interrupt.pxi'
+
+from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_mat cimport *
+from sage.matrix.matrix cimport Matrix
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_generic_sparse cimport Matrix_generic_sparse
 from sage.rings.complex_interval_field import ComplexIntervalField_class, ComplexIntervalField
 from sage.rings.complex_interval cimport ComplexIntervalFieldElement
 from sage.rings.complex_ball_acb cimport (
+    ComplexBall,
     ComplexIntervalFieldElement_to_acb,
     acb_to_ComplexIntervalFieldElement)
+from sage.structure.element cimport Element
 
 
 cdef void matrix_to_acb_mat(acb_mat_t target, source):
@@ -90,149 +96,268 @@ cdef Matrix_generic_dense acb_mat_to_matrix(
                    for r in range(nrows)])
 
 
-cdef class Acb_mat(SageObject):
+cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
     """
-    Class holding an ``acb_mat``, a matrix of complex balls implemented in Arb.
-
-    INPUT:
-
-    - ``nrows`` -- number of rows, a non-negative integer.
-
-    - ``ncols`` -- number of columns, a non-negative integer.
-
-    - ``value`` -- (default: ``None``) ``None`` or a
-      :class:`ComplexIntervalFieldElement`.
-
-    - ``precision`` -- (default: ``0``) a non-negative
-      integer. Must be given unless ``value`` is not ``None``.
-
-    OUTPUT:
-
-    None.
+    Matrix over a complex ball field. Implemented using the
+    ``acb_mat`` type of the Arb library.
 
     EXAMPLES::
 
-        sage: from sage.matrix.matrix_acb_dense import Acb_mat # optional - arb
-        sage: Acb_mat(nrows=3, ncols=2, precision=2) # optional - arb; indirect doctest
-        <type 'sage.matrix.matrix_acb_dense.Acb_mat'>
+        sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+        sage: CBF = ComplexBallField() # optional - arb
+        sage: MatrixSpace(CBF, 3)(2)
+        [2.000000000000000                 0                 0]
+        [                0 2.000000000000000                 0]
+        [                0                 0 2.000000000000000]
+        sage: matrix(CBF, 1, 3, [1, 2, -3])
+        [ 1.000000000000000  2.000000000000000 -3.000000000000000]
     """
+    #################################################################
+    # LEVEL 1 functionality
+    # * __cinit__
+    # * __init__
+    # * __dealloc__
+    # * set_unsafe(self, size_t i, size_t j, x)
+    # * get_unsafe(self, size_t i, size_t j)
+    # * __richcmp__
+    ################################################################
+
     def __cinit__(self,
-                  unsigned long nrows,
-                  unsigned long ncols,
-                  value=None,
-                  unsigned long precision=0):
+                  parent,
+                  entries,
+                  coerce,
+                  copy):
         """
-        Allocate memory for the encapsulated value.
+        Create and allocate memory for the matrix.
 
         INPUT:
 
-        - ``nrows`` -- number of rows, a non-negative integer.
-
-        - ``ncols`` -- number of columns, a non-negative integer.
-
-        - ``value`` -- (default: ``None``) ``None`` or a matrix.
-
-        - ``precision`` -- (default: ``0``) a non-negative
-          integer.
-
-        OUTPUT:
-
-        None.
+        -  ``parent, entries, coerce, copy`` - as for
+           ``__init__``.
 
         EXAMPLES::
 
-            sage: from sage.matrix.matrix_acb_dense import Acb_mat # optional - arb
-            sage: Acb_mat(nrows=3, ncols=2, precision=2) # optional - arb; indirect doctest
-            <type 'sage.matrix.matrix_acb_dense.Acb_mat'>
+            sage: from sage.matrix.matrix_complex_ball_dense import Matrix_complex_ball_dense # optional - arb
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: CBF = ComplexBallField() # optional - arb
+            sage: a = Matrix_complex_ball_dense.__new__( # optional - arb; indirect doctest
+            ....:     Matrix_complex_ball_dense, Mat(CBF, 2), 0, 0, 0)
+            sage: type(a)
+            <type 'sage.matrix.matrix_complex_ball_dense.Matrix_complex_ball_dense'>
         """
-        acb_mat_init(self.value, nrows, ncols)
+        self._parent = parent
+        self._base_ring = parent.base_ring()
+        self._nrows = parent.nrows()
+        self._ncols = parent.ncols()
+        sig_str("Arb exception")
+        acb_mat_init(self.value, self._nrows, self._ncols)
+        sig_off()
 
     def __dealloc__(self):
         """
-        Deallocate memory of the encapsulated value.
-
-        INPUT:
-
-        None.
-
-        OUTPUT:
-
-        None.
+        Free all the memory allocated for this matrix.
 
         EXAMPLES::
 
-            sage: from sage.matrix.matrix_acb_dense import Acb_mat # optional - arb
-            sage: a = Acb_mat(nrows=3, ncols=2, precision=2) # optional - arb; indirect doctest
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: CBF = ComplexBallField() # optional - arb
+            sage: a = Matrix(CBF, 2, [1, 2, 3, 4]) # optional - arb; indirect doctest
             sage: del a # optional - arb
         """
         acb_mat_clear(self.value)
 
 
     def __init__(self,
-                 unsigned long nrows,
-                 unsigned long ncols,
-                 value=None,
-                 unsigned long precision=0):
+                 parent,
+                 entries,
+                 copy,
+                 coerce):
         """
-        Initialize Acb using value.
+        Initialize a dense matrix over the complex ball field.
 
         INPUT:
 
-        - ``nrows`` -- number of rows, a non-negative integer.
+        -  ``parent`` - a matrix space
 
-        - ``ncols`` -- number of columns, a non-negative integer.
+        -  ``entries`` - list - create the matrix with those
+           entries along the rows.
 
-        - ``value`` -- (default: ``None``) ``None`` or a matrix.
+        -  ``other`` - a scalar; entries is coerced to a complex ball
+           and the diagonal entries of this matrix are set to that
+           complex ball.
 
-        - ``precision`` -- (default: ``0``) a non-negative
-          integer. Must be given unless ``value`` is not ``None``.
+        -  ``coerce`` - whether need to coerce entries to the
+           complex ball field (program may crash if you get this wrong)
 
-        OUTPUT:
+        -  ``copy`` - ignored (since complex balls are immutable)
 
-        None.
+        EXAMPLES:
+
+        The __init__ function is called implicitly in each of the
+        examples below to actually fill in the values of the matrix.
+
+        ::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: CBF = ComplexBallField() # optional - arb
+
+        We create a `2 \times 2` and a `1\times 4` matrix::
+
+            sage: matrix(CBF, 2, 2, range(4)) # optional - arb
+            [                0 1.000000000000000]
+            [2.000000000000000 3.000000000000000]
+            sage: Matrix(CBF, 1, 4, range(4)) # optional - arb
+            [                0 1.000000000000000 2.000000000000000 3.000000000000000]
+
+        If the number of columns isn't given, it is determined from the
+        number of elements in the list.
+
+        ::
+
+            sage: matrix(CBF, 2, range(4)) # optional - arb
+            [                0 1.000000000000000]
+            [2.000000000000000 3.000000000000000]
+            sage: matrix(CBF, 2, range(6)) # optional - arb
+            [                0 1.000000000000000 2.000000000000000]
+            [3.000000000000000 4.000000000000000 5.000000000000000]
+
+        Another way to make a matrix is to create the space of matrices and
+        convert lists into it.
+
+        ::
+
+            sage: A = Mat(CBF, 2); A # optional - arb
+            Full MatrixSpace of 2 by 2 dense matrices over
+            Complex ball field with 53 bits precision
+            sage: A(range(4)) # optional - arb
+            [                0 1.000000000000000]
+            [2.000000000000000 3.000000000000000]
+
+        Actually it is only necessary that the input can be converted to a
+        list, so the following also works::
+
+            sage: v = reversed(range(4)); type(v) # optional - arb
+            <type 'listreverseiterator'>
+            sage: A(v) # optional - arb
+            [3.000000000000000 2.000000000000000]
+            [1.000000000000000                 0]
+
+        Matrices can have many rows or columns (in fact, on a 64-bit
+        machine they could have up to `2^64-1` rows or columns)::
+
+            sage: v = matrix(CBF, 1, 10^5, range(10^5)) # optional - arb
+            sage: v.parent() # optional - arb
+            Full MatrixSpace of 1 by 100000 dense matrices over
+            Complex ball field with 53 bits precision
+        """
+        cdef Py_ssize_t i, j, k
+        cdef bint is_list
+        cdef ComplexBall x
+
+        if entries is None:
+            x = parent(0)
+            is_list = 0
+        elif isinstance(entries, (int, long, Element)):
+            try:
+                x = self._base_ring(entries)
+            except TypeError:
+                raise TypeError("unable to convert entry to a complex ball")
+            is_list = 0
+        else:
+            entries = list(entries)
+            is_list = 1
+        if is_list:
+            # Create the matrix whose entries are in the given entry list.
+            if len(entries) != self._nrows * self._ncols:
+                raise TypeError("entries has the wrong length")
+            if coerce:
+                k = 0
+                for i from 0 <= i < self._nrows:
+                    for j from 0 <= j < self._ncols:
+                        x = self._base_ring(entries[k])
+                        k += 1
+                        acb_set(acb_mat_entry(self.value, i, j),
+                                x.value)
+            else:
+                k = 0
+                for i from 0 <= i < self._nrows:
+                    for j from 0 <= j < self._ncols:
+                        acb_set(acb_mat_entry(self.value, i, j),
+                                (<ComplexBall> entries[k]).value)
+                        k += 1
+        else:
+            # If x is zero, make the zero matrix and be done.
+            if acb_is_zero(x.value):
+                acb_mat_zero(self.value)
+                return
+
+            # the matrix must be square:
+            if self._nrows != self._ncols:
+                raise TypeError("nonzero scalar matrix must be square")
+
+            # Now we set all the diagonal entries to x and all other entries to 0.
+            acb_mat_zero(self.value)
+            for i from 0 <= i < self._nrows:
+                acb_set(acb_mat_entry(self.value, i, i), x.value)
+
+    cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, object x):
+        """
+        Set position ``i``, ``j`` of this matrix to ``x``.
+
+        The object ``x`` must be of type ``ComplexBall``.
+
+        INPUT:
+
+        - ``i`` -- row
+
+        - ``j`` -- column
+
+        - ``x`` -- must be ComplexBall! The value to set self[i,j] to.
 
         EXAMPLES::
 
-            sage: from sage.matrix.matrix_acb_dense import Acb_mat # optional - arb
-            sage: a = Acb_mat(2, 2, matrix([[CIF(1), CIF(1)], [CIF(0), CIF(1)]]))                 # optional - arb
-            sage: c = Acb_mat(3, 2) # optional - arb
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: CBF = ComplexBallField() # optional - arb
+            sage: a = matrix(CBF, 2, 3, range(6)); a # optional - arb
+            [                0 1.000000000000000 2.000000000000000]
+            [3.000000000000000 4.000000000000000 5.000000000000000]
+            sage: a[0, 0] = 10 # optional - arb
+            sage: a # optional - arb
+            [10.00000000000000  1.000000000000000  2.000000000000000]
+            [3.000000000000000  4.000000000000000  5.000000000000000]
+        """
+        acb_set(acb_mat_entry(self.value, i, j), (<ComplexBall> x).value)
+
+    cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        """
+        Return ``(i, j)`` entry of this matrix as a new ComplexBall.
+
+        .. warning::
+
+           This is very unsafe; it assumes ``i`` and ``j`` are in the right
+           range.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: CBF = ComplexBallField() # optional - arb
+            sage: a = MatrixSpace(CBF, 3)(range(9)); a # optional - arb
+            [                0 1.000000000000000 2.000000000000000]
+            [3.000000000000000 4.000000000000000 5.000000000000000]
+            [6.000000000000000 7.000000000000000 8.000000000000000]
+            sage: a[1, 2] # optional - arb
+            5.000000000000000
+            sage: a[4, 7] # optional - arb
             Traceback (most recent call last):
             ...
-            TypeError: precision must be given.
+            IndexError: matrix index out of range
+            sage: a[-1, 0] # optional - arb
+            6.000000000000000
         """
-        if value is None:
-            if precision > 0:
-                self._precision_ = precision
-            else:
-                raise TypeError("precision must be given.")
-        elif isinstance(value, Matrix_generic_dense) or \
-                isinstance(value, Matrix_generic_sparse):
-            self._precision_ = value.parent().base_ring().precision()
-            matrix_to_acb_mat(self.value, value)
+        cdef ComplexBall z = ComplexBall.__new__(ComplexBall)
+        z._parent = self._base_ring
+        acb_set(z.value, acb_mat_entry(self.value, i, j))
+        return z
 
-        else:
-            raise TypeError("value must be None or a "
-                            "matrix.")
-
-    cpdef  Matrix_generic_dense _matrix_(self):
-        """
-        Return :class:`~sage.matrix.matrix_generic_dense.Matrix_generic_dense` of the same value.
-
-        INPUT:
-
-        None.
-
-        OUTPUT:
-
-        A :class:`~sage.matrix.matrix_generic_dense.Matrix_generic_dense`.
-
-        EXAMPLES::
-
-            sage: from sage.matrix.matrix_acb_dense import Acb_mat # optional - arb
-            sage: a = Acb_mat(2, 2, matrix([[CIF(1), CIF(1)], [CIF(0), CIF(1)]]))                 # optional - arb
-            sage: matrix(a)   # optional - arb
-            [1 1]
-            [0 1]
-        """
-
-        return acb_mat_to_matrix(self.value, ComplexIntervalField(self._precision_))
+    def __richcmp__(Matrix self, right, int op):  # always needed for mysterious reasons.
+        return self._richcmp(right, op)

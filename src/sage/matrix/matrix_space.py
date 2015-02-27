@@ -977,6 +977,13 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 if R is SR:
                     import matrix_symbolic_dense
                     return matrix_symbolic_dense.Matrix_symbolic_dense
+                try:
+                    from sage.rings.complex_ball_acb import ComplexBallField
+                    if isinstance(R, ComplexBallField):
+                        import matrix_complex_ball_dense
+                        return matrix_complex_ball_dense.Matrix_complex_ball_dense
+                except ImportError:
+                    pass
                 return matrix_generic_dense.Matrix_generic_dense
 
         else:

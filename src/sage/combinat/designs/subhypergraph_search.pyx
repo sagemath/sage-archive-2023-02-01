@@ -300,11 +300,11 @@ cdef int cmp_128_bits(void * a, void * b) nogil:
     cdef uint64_t * p1 = (<uint64_t **> a)[0]
     cdef uint64_t * p2 = (<uint64_t **> b)[0]
     if p1[0] > p2[0]:
-        return True
+        return 1
     elif p1[0] == p2[0]:
-        return p1[1] > p2[1]
+        return 1 if p1[1] > p2[1] else -1
     else:
-        return False
+        return -1
 
 cdef int is_induced_admissible64(hypergraph h1,hypergraph * h2_induced,int n,hypergraph tmp1):
     r"""

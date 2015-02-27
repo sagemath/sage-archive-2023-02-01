@@ -3,7 +3,7 @@ Rooted (Unordered) Trees
 
 AUTHORS:
 
-- Florent Hivert (2011): initial revision
+- Florent Hivert (2011): initial version
 """
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
@@ -13,7 +13,6 @@ from sage.combinat.abstract_tree import (AbstractClonableTree,
 from sage.misc.cachefunc import cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
-from sage.rings.infinity import Infinity
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -171,9 +170,8 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
             children = list(children)
         except TypeError:
             raise TypeError("input ({}) is not a valid tree".format(children))
-        tst = (children.__class__ is self.__class__
-               and children.parent() == parent)
-        if not tst:
+        if not (children.__class__ is self.__class__
+                and children.parent() == parent):
             children = [self.__class__(parent, x) for x in children]
         NormalizedClonableList.__init__(self, parent, children, check=check)
 
@@ -374,10 +372,10 @@ class RootedTrees(UniqueRepresentation, Parent):
         """
         if n is None:
             return RootedTrees_all()
-        else:
-            if not (isinstance(n, (Integer, int)) and n >= 1):
-                raise ValueError("n must be a positive integer")
-            return RootedTrees_size(Integer(n))
+
+        if n not in ZZ or n < 1:
+            raise ValueError("n must be a positive integer")
+        return RootedTrees_size(Integer(n))
 
 
 class RootedTrees_all(DisjointUnionEnumeratedSets, RootedTrees):
@@ -386,12 +384,9 @@ class RootedTrees_all(DisjointUnionEnumeratedSets, RootedTrees):
 
     See :class:`RootedTree` for a definition.
     """
-
     def __init__(self):
         """
         TESTS::
-
-            sage: from sage.combinat.rooted_tree import RootedTrees_all
 
             sage: sum(x**len(t) for t in
             ....:     set(RootedTree(t) for t in OrderedTrees(6)))
@@ -399,7 +394,7 @@ class RootedTrees_all(DisjointUnionEnumeratedSets, RootedTrees):
             sage: sum(x**len(t) for t in RootedTrees(6))
             x^5 + x^4 + 3*x^3 + 6*x^2 + 9*x
 
-            sage: TestSuite(RootedTrees()).run()
+            sage: TestSuite(RootedTrees()).run() # long time
         """
         DisjointUnionEnumeratedSets.__init__(
             self, Family(NonNegativeIntegers(), RootedTrees_size),
@@ -409,7 +404,7 @@ class RootedTrees_all(DisjointUnionEnumeratedSets, RootedTrees):
         r"""
         TESTS::
 
-            sage: RootedTrees()   # indirect doctest
+            sage: RootedTrees()
             Rooted trees
         """
         return "Rooted trees"
@@ -548,18 +543,19 @@ class RootedTrees_size(RootedTrees):
         """
         if self._n == 1:
             yield self._element_constructor_([])
-        else:
-            from sage.combinat.partition import Partitions
-            from itertools import combinations_with_replacement, product
-            for part in Partitions(self._n - 1):
-                mults = part.to_exp_dict()
-                choices = []
-                for p, mp in mults.items():
-                    lp = self.__class__(p).list()
-                    new_choice = [list(z) for z in combinations_with_replacement(lp, mp)]
-                    choices.append(new_choice)
-                for c in product(*choices):
-                    yield self._element_constructor_(sum(c, []))
+            return
+
+        from sage.combinat.partition import Partitions
+        from itertools import combinations_with_replacement, product
+        for part in Partitions(self._n - 1):
+            mults = part.to_exp_dict()
+            choices = []
+            for p, mp in mults.items():
+                lp = self.__class__(p).list()
+                new_choice = [list(z) for z in combinations_with_replacement(lp, mp)]
+                choices.append(new_choice)
+            for c in product(*choices):
+                yield self.element_class(self._parent_for, sum(c, []))
 
     def check_element(self, el, check=True):
         r"""
@@ -766,7 +762,7 @@ class LabelledRootedTrees(UniqueRepresentation, Parent):
 
     .. TODO::
 
-        add the possibility to restrict the labels to a fixed set.
+        Add the possibility to restrict the labels to a fixed set.
     """
     @staticmethod
     def __classcall_private__(cls, n=None):
@@ -794,6 +790,7 @@ class LabelledRootedTrees_all(LabelledRootedTrees):
         """
         if category is None:
             category = Sets()
+        category = category.Infinite()
         Parent.__init__(self, category=category)
 
     def _repr_(self):
@@ -802,21 +799,10 @@ class LabelledRootedTrees_all(LabelledRootedTrees):
 
         TESTS::
 
-            sage: LabelledRootedTrees()   # indirect doctest
+            sage: LabelledRootedTrees()
             Labelled rooted trees
         """
         return "Labelled rooted trees"
-
-    def cardinality(self):
-        """
-        Return the cardinality of ``self``.
-
-        EXAMPLE::
-
-            sage: LabelledRootedTrees().cardinality()
-            +Infinity
-        """
-        return Infinity
 
     def _an_element_(self):
         """
@@ -856,3 +842,4 @@ class LabelledRootedTrees_all(LabelledRootedTrees):
         return self
 
     Element = LabelledRootedTree
+

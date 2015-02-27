@@ -606,16 +606,16 @@ class OrderedTree(AbstractClonableTree, ClonableList):
 
         INPUT:
 
-        - ``other``: an ordered rooted tree.
+        - ``other`` -- an ordered rooted tree
 
         OUTPUT:
 
-        `-1`, if ``smaller < other`` with respect to the
-        dendrographical order.
-        `0`, if ``smaller == other`` (as unlabelled ordered
-        rooted trees).
-        `1`, if ``smaller > other`` with respect to the
-        dendrographical order.
+        - `-1`, if ``smaller < other`` with respect to the
+          dendrographical order.
+        - `0`, if ``smaller == other`` (as unlabelled ordered
+          rooted trees).
+        - `1`, if ``smaller > other`` with respect to the
+          dendrographical order.
 
         .. NOTE::
 
@@ -660,9 +660,9 @@ class OrderedTree(AbstractClonableTree, ClonableList):
 
         INPUT:
 
-        - ``inplace`` -- boolean, (default ``False``) if ``True``,
-          then ``self`` is modified and nothing returned. Otherwise
-          the normalized tree is returned.
+        - ``inplace`` -- (default ``False``) boolean; if ``True``,
+          then ``self`` is modified and nothing returned; otherwise
+          the normalized tree is returned
 
         The normalized tree of an unlabelled ordered rooted tree
         `t` with respect to the dendrographical order is an
@@ -709,11 +709,11 @@ class OrderedTree(AbstractClonableTree, ClonableList):
                     resl[i] = resl[i].dendrog_normalize()
                 resl.sort(cmp=dendrog_cmp)
             return res
-        else:
-            resl = self._get_list()
-            for i in range(len(resl)):
-                resl[i] = resl[i].dendrog_normalize()
-            resl.sort(cmp=dendrog_cmp)
+
+        resl = self._get_list()
+        for i in range(len(resl)):
+            resl[i] = resl[i].dendrog_normalize()
+        resl.sort(cmp=dendrog_cmp)
 
 
 # Abstract class to serve as a Factory no instance are created.
@@ -818,7 +818,7 @@ class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
 
             sage: B is OrderedTrees_all()
             True
-            sage: TestSuite(B).run()
+            sage: TestSuite(B).run() # long time
             """
         DisjointUnionEnumeratedSets.__init__(
             self, Family(NonNegativeIntegers(), OrderedTrees_size),

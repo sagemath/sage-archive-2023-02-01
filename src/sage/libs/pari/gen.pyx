@@ -9089,8 +9089,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def qfsolve(self):
         """
-        Try to solve over `\Q` the quadratic equation `X^t G X = 0` for
-        a matrix G with rational coefficients.
+        Try to solve over `\mathbb{Q}` the quadratic equation
+        `X^t G X = 0` for a matrix G with rational coefficients.
 
         INPUT:
 

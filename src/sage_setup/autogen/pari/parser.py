@@ -33,14 +33,14 @@ def sage_src_pari():
     SAGE_SRC = os.environ['SAGE_SRC']
     return os.path.join(SAGE_SRC, 'sage', 'libs', 'pari')
 
-def pari_src():
+def pari_share():
     r"""
-    Return the directory of the pari source code.
+    Return the directory where the PARI data files are stored.
 
     EXAMPLES::
 
-        sage: from sage_setup.autogen.pari.parser import pari_src
-        sage: pari_src()
+        sage: from sage_setup.autogen.pari.parser import pari_share
+        sage: pari_share()
         '.../local/share/pari'
     """
     SAGE_LOCAL = os.environ["SAGE_LOCAL"]
@@ -70,7 +70,7 @@ def read_pari_desc():
          'prototype': 'Gp',
          'section': 'transcendental'}
     """
-    with open(os.path.join(pari_src(), 'pari.desc')) as f:
+    with open(os.path.join(pari_share(), 'pari.desc')) as f:
         lines = f.readlines()
 
     n = 0

@@ -671,11 +671,9 @@ cdef class RealBall(Element):
         rt = right
 
         if op == Py_EQ:
-            if lt is rt:
-                return True
-            if not arb_is_exact(lt.value) or not arb_is_exact(rt.value):
-                return False
-            return arb_equal(lt.value, rt.value)
+            return (lt is rt) or (
+                arb_is_exact(lt.value) and arb_is_exact(rt.value)
+                and arb_equal(lt.value, rt.value))
 
         arb_init(difference)
         arb_sub(difference, lt.value, rt.value, prec(lt))

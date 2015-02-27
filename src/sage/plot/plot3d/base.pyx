@@ -277,7 +277,7 @@ cdef class Graphics3d(SageObject):
             sage: out.obj.get()
             'mtllib ... 6 2 7 11\nf 7 8 12\nf 8 9 12\nf 9 10 12\nf 10 11 12\nf 11 7 12\n'
             sage: out.mtl.get()
-            'newmtl texture...\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1\nd 1\n'
+            'newmtl texture...\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1.0\nd 1.0\n'
         """
         from sage.repl.rich_output.output_graphics3d import OutputSceneWavefront
         from sage.repl.rich_output.buffer import OutputBuffer
@@ -675,7 +675,7 @@ cdef class Graphics3d(SageObject):
             <Scene>
             <Viewpoint position='0 0 6'/>
             <Transform translation='1 2 3'>
-            <Shape><Sphere radius='5.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
+            <Shape><Sphere radius='5.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             </Transform>
             </Scene>
             </X3D>
@@ -692,9 +692,9 @@ cdef class Graphics3d(SageObject):
             <IndexedFaceSet coordIndex='...'>
               <Coordinate point='...'/>
             </IndexedFaceSet>
-            <Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
+            <Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             <Transform translation='0 0 0'>
-            <Shape><Sphere radius='0.5'/><Appearance><Material diffuseColor='1.0 0.0 0.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
+            <Shape><Sphere radius='0.5'/><Appearance><Material diffuseColor='1.0 0.0 0.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             </Transform>
             </Scene>
             </X3D>
@@ -731,7 +731,7 @@ cdef class Graphics3d(SageObject):
                         COLOR 1.0 1.0 1.0
                         TEXFUNC 0
                 Texdef texture...
-              Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 1
+              Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 1.0
                Color 1.0 1.0 0.0
                TexFunc 0
                 Sphere center 1.0 -2.0 3.0 Rad 5.0 texture...
@@ -743,14 +743,13 @@ cdef class Graphics3d(SageObject):
             begin_scene
             ...
             Texdef texture...
-              Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 1
+              Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 1.0
                Color 1.0 1.0 0.0
                TexFunc 0
             TRI V0 ...
             Sphere center 1.0 -2.0 3.0 Rad 0.5 texture...
             end_scene
         """
-
         render_params = self.default_render_params()
         # switch from LH to RH coords to be consistent with java rendition
         render_params.push_transform(Transformation(scale=[1,-1,1]))
@@ -1058,15 +1057,15 @@ end_scene""" % (render_params.antialiasing,
             Kd 1.0 1e-05 1e-05
             Ks 0.0 0.0 0.0
             illum 1
-            Ns 1
-            d 1
+            Ns 1.0
+            d 1.0
             newmtl ...
             Ka 0.5 0.5 5e-06
             Kd 1.0 1.0 1e-05
             Ks 0.0 0.0 0.0
             illum 1
-            Ns 1
-            d 0.500000000000000
+            Ns 1.0
+            d 0.5
         """
         return "\n\n".join(sorted([t.mtl_str() for t in self.texture_set()])) + "\n"
 
@@ -1638,10 +1637,10 @@ class Graphics3dGroup(Graphics3d):
             sage: G = sphere() + sphere((1,2,3))
             sage: print G.x3d_str()
             <Transform translation='0 0 0'>
-            <Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
+            <Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             </Transform>
             <Transform translation='1 2 3'>
-            <Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
+            <Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             </Transform>
         """
         return "\n".join([g.x3d_str() for g in self.all])
@@ -1805,7 +1804,7 @@ class TransformGroup(Graphics3dGroup):
         EXAMPLES::
 
             sage: sphere((1,2,3)).x3d_str()
-            "<Transform translation='1 2 3'>\n<Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>\n\n</Transform>"
+            "<Transform translation='1 2 3'>\n<Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>\n\n</Transform>"
         """
         s = "<Transform"
         if self._rot is not None:
@@ -2040,7 +2039,7 @@ cdef class PrimitiveObject(Graphics3d):
         EXAMPLES::
 
             sage: sphere().flatten().x3d_str()
-            "<Transform>\n<Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>\n\n</Transform>"
+            "<Transform>\n<Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>\n\n</Transform>"
         """
         return "<Shape>" + self.x3d_geometry() + self.texture.x3d_str() + "</Shape>\n"
 

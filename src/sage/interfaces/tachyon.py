@@ -150,7 +150,7 @@ class TachyonRT(SageObject):
         cmd += ['-o', outfile]
         cmd += extra_opts.split()
         if verbose >= 2:
-            opts += ['+V']
+            cmd += ['+V']
         if verbose:
             print(' '.join(cmd))
         import subprocess

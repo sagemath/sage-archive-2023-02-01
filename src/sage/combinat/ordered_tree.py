@@ -22,6 +22,12 @@ from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.misc.cachefunc import cached_method
+from sage.categories.sets_cat import Sets, EmptySetError
+from sage.rings.integer import Integer
+from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
 
 
 class OrderedTree(AbstractClonableTree, ClonableList):
@@ -511,12 +517,204 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         children.reverse()
         return OrderedTree(children)
 
-from sage.categories.sets_cat import Sets, EmptySetError
-from sage.rings.integer import Integer
-from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-from sage.sets.family import Family
-from sage.misc.cachefunc import cached_method
+    import sage.combinat.ranker
+    _unordered_ranker = sage.combinat.ranker.on_fly()
+
+    @cached_method
+    def normalize(self, inplace=False):
+        r"""
+        Return the normalized tree of ``self``.
+
+        INPUT:
+
+        - ``inplace`` -- boolean, (default ``False``) if ``True``,
+          then ``self`` is modified and nothing returned. Otherwise
+          the normalized tree is returned.
+
+        The normalization of an ordered tree `t` is an ordered tree `s`
+        which has the property that `t` and `s` are isomorphic as
+        *unordered* rooted trees, and that if two ordered trees `t` and
+        `t'` are isomorphic as *unordered* rooted trees, then the
+        normalizations of `t` and `t'` are identical. In other words,
+        normalization is a map from the set of ordered trees to itself
+        which picks a representative from every equivalence class with
+        respect to the relation of "being isomorphic as unordered
+        trees", and maps every ordered tree to the representative
+        chosen from its class. This map is non-deterministically
+        constructed based on the choices of the user. (More
+        specifically, it proceeds recursively by first normalizing
+        every subtree, and then sorting the subtrees. Here the sort is
+        performed according to the rank function which is constructed
+        "on the fly", basically sorting the trees in the order in which
+        they have been first encountered in the given Sage session.
+        See :meth:`dendrog_normalize` for a deterministic alternative
+        that works for unlabelled trees.)
+
+        Consider the quotient map `\pi` that sends a planar rooted tree to
+        the associated unordered rooted tree. Normalization is the
+        composite `s \circ \pi`, where `s` is a section of `\pi`.
+
+        EXAMPLES::
+
+            sage: OT = OrderedTree
+            sage: ta = OT([[],[[]]])
+            sage: tb = OT([[[]],[]])
+            sage: ta.normalize() == tb.normalize()
+            True
+            sage: ta == tb
+            False
+
+        An example with inplace normalization::
+
+            sage: OT = OrderedTree
+            sage: ta = OT([[],[[]]])
+            sage: tb = OT([[[]],[]])
+            sage: ta.normalize(inplace=True); ta
+            [[], [[]]]
+            sage: tb.normalize(inplace=True); tb
+            [[], [[]]]
+        """
+        rank, unrank = self._unordered_ranker
+        if not inplace:
+            with self.clone() as res:
+                resl = res._get_list()
+                for i in range(len(resl)):
+                    resl[i] = resl[i].normalize()
+                resl.sort(key=rank)
+            return unrank(rank(res))
+        else:
+            resl = self._get_list()
+            for i in range(len(resl)):
+                resl[i] = resl[i].normalize()
+            resl.sort(key=rank)
+
+    def dendrog_cmp(self, other):
+        r"""
+        Return `-1` if ``self`` is smaller than ``other`` in the
+        dendrographical order; return `0` if they are equal;
+        return `1` if ``other`` is smaller.
+
+        The dendrographical order is a total order on the set of
+        unlabelled ordered rooted trees; it is defined recursively
+        as follows: An ordered rooted tree `T` with children
+        `T_1, T_2, \ldots, T_a` is smaller than an
+        ordered rooted tree `S` with children
+        `S_1, S_2, \ldots, S_b` if either `a < b` or (`a = b`
+        and there exists a `1 \leq i \leq a` such that
+        `T_1 = S_1, T_2 = S_2, \ldots, T_{i-1} = S_{i-1}` and
+        `T_i < S_i`).
+
+        INPUT:
+
+        - ``other``: an ordered rooted tree.
+
+        OUTPUT:
+
+        `-1`, if ``smaller < other`` with respect to the
+        dendrographical order.
+        `0`, if ``smaller == other`` (as unlabelled ordered
+        rooted trees).
+        `1`, if ``smaller > other`` with respect to the
+        dendrographical order.
+
+        .. NOTE::
+
+            It is possible to provide labelled trees to this
+            method; however, their labels are ignored.
+
+        EXAMPLES::
+
+            sage: OT = OrderedTree
+            sage: ta = OT([])
+            sage: tb = OT([[], [], [[], []]])
+            sage: tc = OT([[], [[], []], []])
+            sage: td = OT([[[], []], [], []])
+            sage: te = OT([[], []])
+            sage: tf = OT([[], [], []])
+            sage: tg = OT([[[], []], [[], []]])
+            sage: l = [ta, tb, tc, td, te, tf, tg]
+            sage: [l[i].dendrog_cmp(l[j]) for i in range(7) for j in range(7)]
+            [0, -1, -1, -1, -1, -1, -1,
+             1, 0, -1, -1, 1, 1, 1,
+             1, 1, 0, -1, 1, 1, 1,
+             1, 1, 1, 0, 1, 1, 1,
+             1, -1, -1, -1, 0, -1, -1,
+             1, -1, -1, -1, 1, 0, 1,
+             1, -1, -1, -1, 1, -1, 0]
+        """
+        if len(self) < len(other):
+            return -1
+        if len(self) > len(other):
+            return 1
+        for (a, b) in zip(self, other):
+            comp = a.dendrog_cmp(b)
+            if comp != 0:
+                return comp
+        return 0
+
+    @cached_method
+    def dendrog_normalize(self, inplace=False):
+        r"""
+        Return the normalized tree of the *unlabelled* ordered rooted
+        tree ``self`` with respect to the dendrographical order.
+
+        INPUT:
+
+        - ``inplace`` -- boolean, (default ``False``) if ``True``,
+          then ``self`` is modified and nothing returned. Otherwise
+          the normalized tree is returned.
+
+        The normalized tree of an unlabelled ordered rooted tree
+        `t` with respect to the dendrographical order is an
+        unlabelled ordered rooted tree defined recursively
+        as follows: We first replace all children of `t` by their
+        normalized trees (with respect to the dendrographical
+        order); then, we reorder these children in weakly
+        increasing order with respect to the dendrographical order
+        (:meth:`dendrog_cmp`).
+
+        This can be viewed as an alternative to :meth:`normalize`
+        for the case of unlabelled ordered rooted trees. It has the
+        advantage of giving path-independent results, which can be
+        used for doctesting output.
+
+        EXAMPLES::
+
+            sage: OT = OrderedTree
+            sage: ta = OT([[],[[]]])
+            sage: tb = OT([[[]],[]])
+            sage: ta.dendrog_normalize() == tb.dendrog_normalize()
+            True
+            sage: ta == tb
+            False
+            sage: ta.dendrog_normalize()
+            [[], [[]]]
+
+        An example with inplace normalization::
+
+            sage: OT = OrderedTree
+            sage: ta = OT([[],[[]]])
+            sage: tb = OT([[[]],[]])
+            sage: ta.dendrog_normalize(inplace=True); ta
+            [[], [[]]]
+            sage: tb.dendrog_normalize(inplace=True); tb
+            [[], [[]]]
+        """
+        def dendrog_cmp(a, b):
+            return a.dendrog_cmp(b)
+        if not inplace:
+            with self.clone() as res:
+                resl = res._get_list()
+                for i in range(len(resl)):
+                    resl[i] = resl[i].dendrog_normalize()
+                resl.sort(cmp=dendrog_cmp)
+            return res
+        else:
+            resl = self._get_list()
+            for i in range(len(resl)):
+                resl[i] = resl[i].dendrog_normalize()
+            resl.sort(cmp=dendrog_cmp)
+
 
 # Abstract class to serve as a Factory no instance are created.
 class OrderedTrees(UniqueRepresentation, Parent):
@@ -587,6 +785,7 @@ class OrderedTrees(UniqueRepresentation, Parent):
             True
         """
         return self([])
+
 
 class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
     """
@@ -659,7 +858,7 @@ class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
 
     def labelled_trees(self):
         """
-        Return the set of unlabelled trees associated to ``self``
+        Return the set of labelled trees associated to ``self``
 
         EXAMPLES::
 
@@ -679,7 +878,6 @@ class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
         return self.element_class(self, *args, **keywords)
 
     Element = OrderedTree
-
 
 
 from sage.misc.lazy_attribute import lazy_attribute

@@ -2200,7 +2200,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             ...
             NotImplementedError: base ring must be QQ or a finite field
         """
-        import sage.libs.singular
+        from sage.libs.singular.function_factory import ff
+
         K = self.base_ring()
         if not(is_RationalField(K) or is_FiniteField(K)):
             raise NotImplementedError("base ring must be QQ or a finite field")
@@ -2230,7 +2231,9 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         J = I_S
         for i in range(n + 1):
             J = J + S.ideal(z[-1] * f_S.derivative(z[i]) - z[i + n + 1])
-        sat = sage.libs.singular.ff.elim__lib.sat
+
+        sat = ff.elim__lib.sat
+
         max_ideal = S.ideal(z[n + 1: 2 * n + 2])
         J_sat_gens = sat(J, max_ideal)[0]
         J_sat = S.ideal(J_sat_gens)

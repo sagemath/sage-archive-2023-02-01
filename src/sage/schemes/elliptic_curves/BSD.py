@@ -830,7 +830,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
                     if verbosity > 2:
                         print '    trying max_height =', max_height
                     old_bound = M
-                    M, _, exact = BSD.curve.heegner_index_bound(D, max_height=max_height) #, secs_dc=secs_dc)
+                    M, _, exact = BSD.curve.heegner_index_bound(D, max_height=max_height, secs_dc=secs_hi)
                     if M == -1:
                         max_height += 1
                         continue
@@ -882,7 +882,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
                     old_bound = M
                     if p**(BSD.sha_an.ord(p)/2+1) > M or max_height >= 22:
                         break
-                    M, _, exact = BSD.curve.heegner_index_bound(D, max_height=max_height) #, secs_dc=secs_dc)
+                    M, _, exact = BSD.curve.heegner_index_bound(D, max_height=max_height, secs_dc=secs_hi)
                     if M == -1:
                         max_height += 1
                         continue

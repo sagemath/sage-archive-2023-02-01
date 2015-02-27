@@ -8,6 +8,9 @@ that the deprecated function is called.
 Note that all doctests in the following use the trac ticket number
 :trac:`13109`, which is where this mandatory argument to
 :func:`deprecation` was introduced.
+
+Functions and classes
+---------------------
 """
 
 
@@ -297,7 +300,7 @@ def deprecated_callable_import(trac_number, module_name, globs, locs, fromlist, 
 
     - ``locs`` -- dictionary. The ``locals()`` from where this is being called.
 
-    - ``param fromlist: -- list of strings. The list the names of the
+    - ``param fromlist``: -- list of strings. The list the names of the
       callables to deprecate
 
     - ``message`` --` string. Message to display when the deprecated functions are called.

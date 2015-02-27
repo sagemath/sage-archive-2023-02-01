@@ -279,9 +279,9 @@ Therefore, the Cartan types are considered as distinct::
 
 .. rubric:: Affine Cartan types
 
-For affine types, we use the usual conventions for affine Coxeter groups: each affine type
-is either untwisted (that is arise from the natural affinisation
-of a finite Cartan type)::
+For affine types, we use the usual conventions for affine Coxeter
+groups: each affine type is either untwisted (that is arise from the
+natural affinisation of a finite Cartan type)::
 
     sage: CartanType(["A", 4, 1]).dynkin_diagram()
     0
@@ -451,7 +451,6 @@ from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.global_options import GlobalOptions
 from sage.sets.family import Family
-from sage.misc.superseded import deprecated_function_alias
 from sage.misc.decorators import rename_keyword
 
 # TODO:
@@ -1070,7 +1069,6 @@ class CartanType_abstract(object):
             [(1, 2, 3), (2, 3, 4), (3, 4, 3)]
         """
 
-    @cached_method
     def coxeter_matrix(self):
         """
         Return the Coxeter matrix for ``self``.
@@ -1083,16 +1081,19 @@ class CartanType_abstract(object):
             [2 3 1 3]
             [2 2 3 1]
         """
-        from sage.matrix.constructor import matrix
-        from sage.rings.all import ZZ
-        index_set = self.index_set()
-        reverse = dict((index_set[i], i) for i in range(len(index_set)))
-        m = matrix(ZZ,len(index_set), lambda i,j: 1 if i==j else 2)
-        for (i,j,l) in self.coxeter_diagram().edge_iterator():
-            m[reverse[i], reverse[j]] = l
-            m[reverse[j], reverse[i]] = l
-        m.set_immutable()
-        return m
+        from sage.combinat.root_system.coxeter_matrix import CoxeterMatrix
+        return CoxeterMatrix(self)
+
+    def coxeter_type(self):
+        """
+        Return the Coxeter type for ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', 4]).coxeter_type()
+        """
+        from sage.combinat.root_system.coxeter_type import CoxeterType
+        return CoxeterType(self)
 
     def dual(self):
         """
@@ -1284,19 +1285,8 @@ class CartanType_abstract(object):
              [['E', 6], True], [['E', 7], True], [['E', 8], True],
              [['F', 4], True], [['G', 2], True],
              [['I', 5], False], [['H', 3], False], [['H', 4], False]]
-
-        TESTS::
-
-            sage: all(t.is_crystallographic() for t in CartanType.samples(affine=True))
-            True
-            sage: t = CartanType(['A',3]); t.is_crystalographic()
-            doctest:...: DeprecationWarning: is_crystalographic is deprecated. Please use is_crystallographic instead.
-            See http://trac.sagemath.org/14673 for details.
-            True
         """
         return False
-
-    is_crystalographic = deprecated_function_alias(14673, is_crystallographic)
 
     def is_simply_laced(self):
         """
@@ -1572,17 +1562,8 @@ class CartanType_crystallographic(CartanType_abstract):
 
             sage: CartanType(['A', 3, 1]).is_crystallographic()
             True
-
-        TESTS::
-
-            sage: t = CartanType(['A',3]); t.is_crystalographic()
-            doctest:...: DeprecationWarning: is_crystalographic is deprecated. Please use is_crystallographic instead.
-            See http://trac.sagemath.org/14673 for details.
-            True
         """
         return True
-
-    is_crystalographic = deprecated_function_alias(14673, is_crystallographic)
 
     @cached_method
     def symmetrizer(self):

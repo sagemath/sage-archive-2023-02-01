@@ -6,8 +6,9 @@ lazy_import('sage.combinat.root_system.associahedron', 'Associahedron')
 
 from cartan_type import CartanType
 from dynkin_diagram import DynkinDiagram
-from cartan_matrix import CartanMatrix, cartan_matrix
-from coxeter_matrix import coxeter_matrix
+from cartan_matrix import CartanMatrix
+from coxeter_matrix import CoxeterMatrix, coxeter_matrix
+from coxeter_type import CoxeterType
 from root_system import RootSystem, WeylDim
 from weyl_group import WeylGroup, WeylGroupElement
 from coxeter_group import CoxeterGroup

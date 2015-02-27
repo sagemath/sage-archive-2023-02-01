@@ -32,7 +32,6 @@ from sage.matrix.matrix import is_Matrix
 from sage.graphs.digraph import DiGraph
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
-from sage.misc.superseded import deprecated_function_alias
 
 def DynkinDiagram(*args, **kwds):
     r"""
@@ -583,14 +582,10 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
         TESTS::
 
-            sage: CartanType(['G',2]).dynkin_diagram().is_crystalographic()
-            doctest:...: DeprecationWarning: is_crystalographic is deprecated. Please use is_crystallographic instead.
-            See http://trac.sagemath.org/14673 for details.
+            sage: CartanType(['G',2]).dynkin_diagram().is_crystallographic()
             True
         """
         return True
-
-    is_crystalographic = deprecated_function_alias(14673, is_crystallographic)
 
     def symmetrizer(self):
         """

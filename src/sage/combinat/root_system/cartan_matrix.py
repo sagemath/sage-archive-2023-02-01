@@ -197,7 +197,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
     @staticmethod
     def __classcall_private__(cls, *args, **kwds):
         """
-        Normalize input so we can inherit from spare integer matrix.
+        Normalize input so we can inherit from sparse integer matrix.
 
         .. NOTE::
 
@@ -760,28 +760,4 @@ def find_cartan_type_from_matrix(CM):
         if ct.cartan_matrix() == CM:
             return ct
     return None
-
-def cartan_matrix(t):
-    """
-    Return the Cartan matrix of type `t`.
-
-    .. NOTE::
-
-        This function is deprecated in favor of
-        ``CartanMatrix(...)``, to avoid polluting the
-        global namespace.
-
-    EXAMPLES::
-
-        sage: cartan_matrix(['A', 4])
-        doctest:...: DeprecationWarning: cartan_matrix() is deprecated. Use CartanMatrix() instead
-        See http://trac.sagemath.org/14137 for details.
-        [ 2 -1  0  0]
-        [-1  2 -1  0]
-        [ 0 -1  2 -1]
-        [ 0  0 -1  2]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14137, 'cartan_matrix() is deprecated. Use CartanMatrix() instead')
-    return CartanMatrix(t)
 

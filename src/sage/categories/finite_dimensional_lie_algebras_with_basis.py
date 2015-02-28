@@ -101,9 +101,9 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             r"""
             Return the Killing matrix of ``x`` and ``y``.
 
-            The Killing form is defined as the matrix corresponding to the
-            action of `\mathrm{ad}_x \circ \mathrm{ad}_y` in the basis
-            of ``self``.
+            The Killing matrix is defined as the matrix corresponding
+            to the action of `\mathrm{ad}_x \circ \mathrm{ad}_y` in
+            the basis of ``self``.
 
             EXAMPLES::
 

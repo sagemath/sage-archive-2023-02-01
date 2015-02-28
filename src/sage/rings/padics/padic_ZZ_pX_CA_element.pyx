@@ -866,7 +866,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             sage: w^5 + 1 # indirect doctest
             1 + w^5 + O(w^25)
         """
-        cdef pAdicZZpXCAElement ans = PY_NEW(pAdicZZpXCAElement)
+        cdef pAdicZZpXCAElement ans = pAdicZZpXCAElement.__new__(pAdicZZpXCAElement)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
         ans.absprec = absprec
@@ -897,7 +897,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         if self.absprec == 0:
             return make_ZZpXCAElement, (self.parent(), None, absprec, 0)
         self.prime_pow.restore_context_capdiv(self.absprec)
-        cdef ntl_ZZ_pX holder = PY_NEW(ntl_ZZ_pX)
+        cdef ntl_ZZ_pX holder = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
         holder.c = self.prime_pow.get_context_capdiv(self.absprec)
         holder.x = self.value
         return make_ZZpXCAElement, (self.parent(), holder, absprec, 0)
@@ -989,7 +989,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             sage: y.parent()
             Eisenstein Extension of 5-adic Field with capped relative precision 5 in w defined by (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
         """
-        cdef pAdicZZpXCRElement ans = PY_NEW(pAdicZZpXCRElement)
+        cdef pAdicZZpXCRElement ans = pAdicZZpXCRElement.__new__(pAdicZZpXCRElement)
         ans._parent = self._parent.fraction_field()
         ans.prime_pow = ans._parent.prime_pow
         ans.ordp = 0
@@ -1384,7 +1384,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             mpz_clear(tmp)
             if ans_ordp >= self.prime_pow.ram_prec_cap:
                 return self._new_c(self.prime_pow.ram_prec_cap)
-        cdef ntl_ZZ rZZ = PY_NEW(ntl_ZZ)
+        cdef ntl_ZZ rZZ = ntl_ZZ.__new__(ntl_ZZ)
         mpz_to_ZZ(&rZZ.x, right.value)
         if ans_ordp + ans_relprec <= self.prime_pow.ram_prec_cap:
             ans = self._new_c(ans_ordp + ans_relprec) # restores context
@@ -1698,7 +1698,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         if self.absprec == 0:
             raise ValueError, "self has 0 absolute precision"
         self.prime_pow.restore_context_capdiv(self.absprec)
-        cdef ntl_ZZ_pX ans = PY_NEW(ntl_ZZ_pX)
+        cdef ntl_ZZ_pX ans = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
         ans.c = self.prime_pow.get_context_capdiv(self.absprec)
         ans.x = self.value
         return ans

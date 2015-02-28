@@ -2837,26 +2837,3 @@ cdef class MIPVariableParent(Parent):
 
 mip_variable_parent = MIPVariableParent()
 
-
-def Sum(x):
-    """
-    Only for legacy support, use :meth:`MixedIntegerLinearProgram.sum` instead.
-
-    EXAMPLES::
-
-        sage: from sage.numerical.mip import Sum
-        sage: Sum([])
-        doctest:...: DeprecationWarning: use MixedIntegerLinearProgram.sum() instead
-        See http://trac.sagemath.org/13646 for details.
-
-        sage: p = MixedIntegerLinearProgram()
-        sage: x = p.new_variable(nonnegative=True)
-        sage: Sum([ x[0]+x[1], x[1]+x[2], x[2]+x[3] ])   # deprecation is only shown once
-        x_0 + 2*x_1 + 2*x_2 + x_3
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13646, 'use MixedIntegerLinearProgram.sum() instead')
-    if not x:
-        return None
-    parent = x[0].parent()
-    return parent.sum(x)

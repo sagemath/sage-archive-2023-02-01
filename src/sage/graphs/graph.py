@@ -41,6 +41,7 @@ graphs.
     :widths: 30, 70
     :delim: |
 
+    :meth:`~Graph.is_asteroidal_triple_free` | Tests whether the current graph is asteroidal triple free.
     :meth:`~Graph.is_prime` | Tests whether the current graph is prime.
     :meth:`~Graph.is_split` | Returns ``True`` if the graph is a Split graph, ``False`` otherwise.
     :meth:`~Graph.is_triangle_free` | Returns whether ``self`` is triangle-free.
@@ -528,6 +529,7 @@ Methods
 #*****************************************************************************
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.misc.superseded import deprecation
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
@@ -941,7 +943,7 @@ class Graph(GenericGraph):
           sage: g = Graph([(1,2,"Peace"),(7,-9,"and"),(77,2, "Love")])
           sage: g
           Graph on 5 vertices
-          sage: g = Graph([(0, 2, '0'), (0, 2, '1'), (3, 3, '2')])
+          sage: g = Graph([(0, 2, '0'), (0, 2, '1'), (3, 3, '2')], loops=True, multiedges=True)
           sage: g.loops()
           [(3, 3, '2')]
 
@@ -1031,9 +1033,9 @@ class Graph(GenericGraph):
         Loops are not counted as multiedges (see :trac:`11693`) and edges are
         not counted twice ::
 
-            sage: Graph([[1,1]],multiedges=False).num_edges()
+            sage: Graph({1:[1]}).num_edges()
             1
-            sage: Graph([[1,2],[1,2]],multiedges=True).num_edges()
+            sage: Graph({1:[2,2]}).num_edges()
             2
 
         Invalid sequence of edges given as an input (they do not all
@@ -1112,13 +1114,20 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: Non-multigraph got several edges (0,1)
+
+        Check the error when the input has a loop but ``loops`` is set to False
+        (:trac:`17385`)::
+
+            sage: Graph([(0,0)], loops=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: The graph was built with loops=False but input data has a loop at 0.
         """
         GenericGraph.__init__(self)
         msg = ''
         from sage.structure.element import is_Matrix
-        from sage.misc.misc import uniq
 
-        if sparse == False:
+        if sparse is False:
             if data_structure != "sparse":
                 raise ValueError("The 'sparse' argument is an alias for "
                                  "'data_structure'. Please do not define both.")
@@ -1220,6 +1229,11 @@ class Graph(GenericGraph):
 
                         if (multiedges is None and (u in data[v])):
                             multiedges = True
+                            deprecation(15706, "You created a graph with multiple "+
+                                        "edges from a list. Please set 'multiedges' "+
+                                        "to 'True' when you do so, as in the "+
+                                        "future the default behaviour will "+
+                                        "be to ignore those edges")
                             for uu, dd in data.iteritems():
                                 for vv, ddd in dd.iteritems():
                                     dd[vv] = [ddd]
@@ -1258,6 +1272,11 @@ class Graph(GenericGraph):
                 else:
                     raise ValueError("Edges input must all follow the same format.")
 
+            if loops is None and any(x in dx for x,dx in data.iteritems()):
+                deprecation(15706, "You created a graph with loops from a list. "+
+                            "Please set 'loops' to 'True' when you do so, as in "+
+                            "the future the default behaviour will be to ignore "+
+                            "those edges")
         if format is None:
             import networkx
             data = networkx.MultiGraph(data)
@@ -1333,33 +1352,44 @@ class Graph(GenericGraph):
             if multiedges is None: multiedges = False
             format = 'adjacency_matrix'
         if format == 'adjacency_matrix':
-            entries = uniq(data.list())
-            for e in entries:
+            # note: the adjacency matrix might be weighted and hence not
+            # necessarily consists of integers
+            if not weighted and data.base_ring() != ZZ:
                 try:
-                    e = int(e)
-                    assert e >= 0
-                except Exception:
+                    data = data.change_ring(ZZ)
+                except TypeError:
                     if weighted is False:
                         raise ValueError("Non-weighted graph's"+
                         " adjacency matrix must have only nonnegative"+
                         " integer entries")
                     weighted = True
-                    if multiedges is None: multiedges = False
-                    break
 
+            if data.is_sparse():
+                entries = set(data[i,j] for i,j in data.nonzero_positions())
+            else:
+                entries = set(data.list())
+
+            if not weighted and any(e < 0 for e in entries):
+                if weighted is False:
+                    raise ValueError("Non-weighted digraph's"+
+                    " adjacency matrix must have only nonnegative"+
+                    " integer entries")
+                weighted = True
+                if multiedges is None: multiedges = False
             if weighted is None:
                 weighted = False
 
             if multiedges is None:
-                multiedges = ((not weighted) and sorted(entries) != [0,1])
+                multiedges = ((not weighted) and any(e != 0 and e != 1 for e in entries))
 
-            for i in xrange(data.nrows()):
-                if data[i,i] != 0:
-                    if loops is None: loops = True
-                    elif not loops:
-                        raise ValueError("Non-looped graph's adjacency"+
-                        " matrix must have zeroes on the diagonal.")
-                    break
+            if not loops and any(data[i,i] for i in xrange(data.nrows())):
+                if loops is False:
+                    raise ValueError("Non-looped digraph's adjacency"+
+                    " matrix must have zeroes on the diagonal.")
+                loops = True
+            if loops is None:
+                loops = False
+
             num_verts = data.nrows()
         elif format == 'incidence_matrix':
             positions = []
@@ -1377,7 +1407,7 @@ class Graph(GenericGraph):
                     raise ValueError(msg)
                 else:
                     positions.append(tuple(NZ))
-                L = sorted(uniq(c.list()))
+                L = sorted(set(c.list()))
 
                 if data.nrows() != (2 if len(NZ) == 2 else 1):
                     desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]
@@ -1391,17 +1421,17 @@ class Graph(GenericGraph):
             if weighted   is None: weighted  = False
             if multiedges is None:
                 total = len(positions)
-                multiedges = (  len(uniq(positions)) < total  )
+                multiedges = (  len(set(positions)) < total  )
             num_verts = data.nrows()
         elif format == 'Graph':
             if loops is None: loops = data.allows_loops()
             elif not loops and data.has_loops():
-                raise ValueError("No loops but input graph has loops.")
+                raise ValueError("The graph was built with loops=False but input data has a loop")
             if multiedges is None: multiedges = data.allows_multiple_edges()
             elif not multiedges:
                 e = data.edges(labels=False)
                 e = [sorted(f) for f in e]
-                if len(e) != len(uniq(e)):
+                if len(e) != len(set(e)):
                     raise ValueError("No multiple edges but input graph"+
                     " has multiple edges.")
             if weighted is None: weighted = data.weighted()
@@ -1420,19 +1450,18 @@ class Graph(GenericGraph):
         elif format == 'dict_of_dicts':
             if not all(isinstance(data[u], dict) for u in data):
                 raise ValueError("Input dict must be a consistent format.")
-            verts = set(data.keys())
-            if loops is None or loops is False:
-                for u in data:
-                    if u in data[u]:
-                        if loops is None: loops = True
-                        elif loops is False:
-                            raise ValueError("No loops but dict has loops.")
-                        break
-                if loops is None: loops = False
+
+            if not loops and any(u in neighb for u,neighb in data.iteritems()):
+                if loops is False:
+                    u = next(u for u,neighb in data.iteritems() if u in neighb)
+                    raise ValueError("The graph was built with loops=False but input data has a loop at {}.".format(u))
+                loops = True
+            if loops is None:
+                loops = False
+
             if weighted is None: weighted = False
             for u in data:
                 for v in data[u]:
-                    if v not in verts: verts.add(v)
                     if hash(u) > hash(v):
                         if v in data and u in data[v]:
                             if data[u][v] != data[v][u]:
@@ -1444,6 +1473,8 @@ class Graph(GenericGraph):
                             raise ValueError("Dict of dicts for multigraph must be in the format {v : {u : list}}")
             if multiedges is None and len(data) > 0:
                 multiedges = True
+
+            verts = set().union(data.keys(), *data.values())
             num_verts = len(verts)
         elif format == 'dict_of_lists':
             if not all(isinstance(data[u], list) for u in data):
@@ -1453,18 +1484,22 @@ class Graph(GenericGraph):
             if loops is None or loops is False:
                 for u in data:
                     if u in data[u]:
-                        if loops is None: loops = True
+                        if loops is None:
+                            loops = True
                         elif loops is False:
-                            raise ValueError("No loops but dict has loops.")
+                            u = next(u for u,neighb in data.iteritems() if u in neighb)
+                            raise ValueError("The graph was built with loops=False but input data has a loop at {}.".format(u))
                         break
-                if loops is None: loops = False
+                if loops is None:
+                    loops = False
             if weighted is None: weighted = False
             for u in data:
-                if len(uniq(data[u])) != len(data[u]):
+                if len(set(data[u])) != len(data[u]):
                     if multiedges is False:
-                        v = (v for v in data[u] if data[u].count(v) > 1).next()
+                        v = next((v for v in data[u] if data[u].count(v) > 1))
                         raise ValueError("Non-multigraph got several edges (%s,%s)"%(u,v))
-                    if multiedges is None: multiedges = True
+                    if multiedges is None:
+                        multiedges = True
             if multiedges is None: multiedges = False
             num_verts = len(verts)
         elif format == 'NX':
@@ -1630,7 +1665,7 @@ class Graph(GenericGraph):
         elif format == 'elliptic_curve_congruence':
             from sage.rings.arith import lcm, prime_divisors
             from sage.rings.fast_arith import prime_range
-            from sage.misc.misc import prod
+            from sage.misc.all import prod
             for i in xrange(self.order()):
                 for j in xrange(i):
                     E = curves[i]
@@ -1771,11 +1806,16 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: for x in graphs(3):    print x.to_partition()
+            doctest:...: DeprecationWarning: Please use G.connected_components_sizes() instead
+            See http://trac.sagemath.org/17449 for details.
             [1, 1, 1]
             [2, 1]
             [3]
             [3]
         """
+        from sage.misc.superseded import deprecation
+        deprecation(17449, "Please use G.connected_components_sizes() instead")
+
         from sage.combinat.partition import Partition
         return Partition(sorted([len(y) for y in self.connected_components()], reverse=True))
 
@@ -1952,7 +1992,7 @@ class Graph(GenericGraph):
 
         This is useful for graphs with multiple edges::
 
-            sage: G = Graph([(1, 2, 'a'), (1, 2, 'b')])
+            sage: G = Graph([(1, 2, 'a'), (1, 2, 'b')], multiedges=True)
             sage: G.is_tree(certificate=True)
             (False, [1, 2])
             sage: G.is_tree(certificate=True, output='edge')
@@ -2005,7 +2045,7 @@ class Graph(GenericGraph):
             # graph. We *know* it exists as there are too many edges around.
             n = self.order()
             seen = {}
-            u = self.vertex_iterator().next()
+            u = next(self.vertex_iterator())
             seen[u] = u
             stack = [(u, v) for v in self.neighbor_iterator(u)]
             while stack:
@@ -3003,7 +3043,7 @@ class Graph(GenericGraph):
             sage: graphs.CycleGraph(11).odd_girth()
             11
         """
-        ch = ((self.am()).charpoly()).coeffs()
+        ch = ((self.am()).charpoly()).coefficients(sparse=False)
         n = self.order()
 
         for i in xrange(n-1,-1,-2):
@@ -3055,7 +3095,7 @@ class Graph(GenericGraph):
             return True
 
         A = self.automorphism_group()
-        e = self.edge_iterator(labels=False).next()
+        e = next(self.edge_iterator(labels=False))
         e = [A._domain_to_gap[e[0]], A._domain_to_gap[e[1]]]
 
         return gap("OrbitLength("+str(A._gap_())+",Set(" + str(e) + "),OnSets);") == self.size()
@@ -3097,7 +3137,7 @@ class Graph(GenericGraph):
             return True
 
         A = self.automorphism_group()
-        e = self.edge_iterator(labels=False).next()
+        e = next(self.edge_iterator(labels=False))
         e = [A._domain_to_gap[e[0]], A._domain_to_gap[e[1]]]
 
         return gap("OrbitLength("+str(A._gap_())+",Set(" + str(e) + "),OnTuples);") == 2*self.size()
@@ -3271,7 +3311,7 @@ class Graph(GenericGraph):
 
         try:
             p.solve(log=verbose)
-            g = self.copy()
+            g = self.copy(immutable=False)
             b = p.get_values(b)
             g.delete_edges([(x,y) for x,y,_ in g.edge_iterator() if b[reorder(x,y)] < 0.5])
             return g
@@ -3347,7 +3387,7 @@ class Graph(GenericGraph):
         # in which it has been used. All the other edges are oriented
         # backward
 
-        v = self.vertex_iterator().next()
+        v = next(self.vertex_iterator())
         seen = {}
         i=1
 
@@ -3355,17 +3395,17 @@ class Graph(GenericGraph):
         seen[v] = i
 
         # indicates the stack of edges to explore
-        next = self.edges_incident(v)
+        next_ = self.edges_incident(v)
 
-        while next:
-            e = next.pop(-1)
+        while next_:
+            e = next_.pop(-1)
             # We assume e[0] to be a `seen` vertex
             e = e if seen.get(e[0],False) != False else (e[1],e[0],e[2])
 
             # If we discovered a new vertex
             if seen.get(e[1],False) == False:
                 d.add_edge(e)
-                next.extend([ee for ee in self.edges_incident(e[1]) if (((e[0],e[1]) != (ee[0],ee[1])) and ((e[0],e[1]) != (ee[1],ee[0])))])
+                next_.extend([ee for ee in self.edges_incident(e[1]) if (((e[0],e[1]) != (ee[0],ee[1])) and ((e[0],e[1]) != (ee[1],ee[0])))])
                 i+=1
                 seen[e[1]]=i
 
@@ -3853,6 +3893,11 @@ class Graph(GenericGraph):
             sage: G.plot(vertex_colors=H)
             Graphics object consisting of 16 graphics primitives
 
+        .. PLOT::
+
+            g = Graph("Fooba")
+            sphinx_plot(g.plot(partition=g.coloring()))
+
         TESTS::
 
             sage: G.coloring(algorithm="foo")
@@ -3940,6 +3985,11 @@ class Graph(GenericGraph):
            sage: g = graphs.PappusGraph()
            sage: g.matching(algorithm="LP", value_only=True)
            9.0
+
+        .. PLOT::
+
+            g = graphs.PappusGraph()
+            sphinx_plot(g.plot(edge_colors={"red":g.matching()}))
 
         TESTS:
 
@@ -4187,7 +4237,7 @@ class Graph(GenericGraph):
         self._scream_if_not_simple()
         from sage.numerical.mip import MixedIntegerLinearProgram
 
-        g = self.copy()
+        g = self.copy(immutable=False)
         p = MixedIntegerLinearProgram(solver=solver, constraint_generation = True)
 
         # One variable per edge
@@ -5659,6 +5709,11 @@ class Graph(GenericGraph):
             sage: C = graphs.PetersenGraph()
             sage: len(C.independent_set(algorithm = "MILP"))
             4
+
+        .. PLOT::
+
+            g = graphs.PetersenGraph()
+            sphinx_plot(g.plot(partition=[g.independent_set()]))
         """
         my_cover = self.vertex_cover(algorithm=algorithm, value_only=value_only, reduction_rules=reduction_rules, solver=solver, verbosity=verbosity)
         if value_only:
@@ -5734,6 +5789,11 @@ class Graph(GenericGraph):
            sage: g = graphs.PappusGraph()
            sage: g.vertex_cover(value_only=True)
            9
+
+        .. PLOT::
+
+            g = graphs.PappusGraph()
+            sphinx_plot(g.plot(partition=[g.vertex_cover()]))
 
         TESTS:
 
@@ -5812,7 +5872,7 @@ class Graph(GenericGraph):
 
             # We first create manually a copy of the graph to prevent creating
             # multi-edges when merging vertices, if edges have labels (e.g., weights).
-            g = self.copy()
+            g = self.copy(immutable=False)
 
             degree_at_most_two = set([u for u,du in g.degree(labels = True).items() if du <= 2])
 
@@ -6422,11 +6482,11 @@ class Graph(GenericGraph):
         r"""
         Tests whether the current graph is prime. A graph is prime if
         all its modules are trivial (i.e. empty, all of the graph or
-        singletons)-- see `self.modular_decomposition?`.
+        singletons)-- see ``self.modular_decomposition?``.
 
         EXAMPLE:
 
-        The Petersen Graph and the Bull Graph are both prime ::
+        The Petersen Graph and the Bull Graph are both prime::
 
             sage: graphs.PetersenGraph().is_prime()
             True
@@ -6567,7 +6627,7 @@ class Graph(GenericGraph):
         g = g1_tree.union(g2_tree)
 
         # An edge to connect them, with the appropriate label
-        g.add_edge(g1_tree.vertex_iterator().next(), g2_tree.vertex_iterator().next(), flow)
+        g.add_edge(next(g1_tree.vertex_iterator()), next(g2_tree.vertex_iterator()), flow)
 
         if pos:
             g.set_pos(pos)
@@ -6766,13 +6826,13 @@ class Graph(GenericGraph):
 
         For the 'coffee bean' graph::
 
-            sage: G = Graph([(0,1,'a'),(0,1,'b'),(0,1,'c')])
+            sage: G = Graph([(0,1,'a'),(0,1,'b'),(0,1,'c')],multiedges=True)
             sage: G.kirchhoff_symanzik_polynomial()
             t0*t1 + t0*t2 + t1*t2
 
         For the 'parachute' graph::
 
-            sage: G = Graph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')])
+            sage: G = Graph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')], multiedges=True)
             sage: G.kirchhoff_symanzik_polynomial()
             t0*t1 + t0*t2 + t1*t2 + t1*t3 + t2*t3
 
@@ -6862,7 +6922,6 @@ class Graph(GenericGraph):
            of the Ihara zeta function, Involve (http://msp.org/involve/2008/1-2/involve-v1-n2-p08-p.pdf)
         """
         from sage.matrix.constructor import matrix
-        from sage.rings.integer_ring import ZZ
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
         ring = PolynomialRing(ZZ, 't')
@@ -6891,6 +6950,9 @@ import sage.graphs.weakly_chordal
 Graph.is_long_hole_free = types.MethodType(sage.graphs.weakly_chordal.is_long_hole_free, None, Graph)
 Graph.is_long_antihole_free = types.MethodType(sage.graphs.weakly_chordal.is_long_antihole_free, None, Graph)
 Graph.is_weakly_chordal = types.MethodType(sage.graphs.weakly_chordal.is_weakly_chordal, None, Graph)
+
+import sage.graphs.asteroidal_triples
+Graph.is_asteroidal_triple_free = types.MethodType(sage.graphs.asteroidal_triples.is_asteroidal_triple_free, None, Graph)
 
 import sage.graphs.chrompoly
 Graph.chromatic_polynomial = types.MethodType(sage.graphs.chrompoly.chromatic_polynomial, None, Graph)

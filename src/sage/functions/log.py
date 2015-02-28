@@ -10,7 +10,7 @@ from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.constants import e as const_e
 
 from sage.libs.mpmath import utils as mpmath_utils
-from sage.structure.coerce import parent as s_parent
+from sage.structure.all import parent as s_parent
 from sage.symbolic.expression import Expression
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF

@@ -126,21 +126,20 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         return '\\Gamma^{(%s)}'%(latex(self._n))
 
-    def one_element(self):
+    def one(self):
         r"""
         Return the identity element/matrix for ``self``.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
-            sage: HeckeTriangleGroup(10).one_element()
+            sage: HeckeTriangleGroup(10).one()
             [1 0]
             [0 1]
 
-            sage: HeckeTriangleGroup(10).one_element().parent()
+            sage: HeckeTriangleGroup(10).one().parent()
             Hecke triangle group for n = 10
         """
-
         return self.I()
 
     @cached_method

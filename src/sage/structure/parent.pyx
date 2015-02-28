@@ -94,7 +94,7 @@ This came up in some subtle bug once::
 
 """
 
-cimport element
+from element cimport parent_c
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
 from sage.structure.debug_options import debug
@@ -115,22 +115,6 @@ from sage.structure.misc cimport AttributeErrorMessage
 cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage(None, '')
 dummy_attribute_error = AttributeError(dummy_error_message)
 
-# TODO: define this once?
-
-cdef object elt_parent = None
-
-cdef inline parent_c(x):
-    if PY_TYPE_CHECK(x, element.Element):
-        return (<element.Element>x)._parent
-#    elif hasattr(x, 'parent'):
-#        return x.parent()
-#    else:
-#        return <object>PY_TYPE(x)
-    else:
-        try:
-            return x.parent()
-        except AttributeError:
-            return <object>PY_TYPE(x)
 
 cdef _record_exception():
     from element import get_coercion_model
@@ -141,7 +125,7 @@ cdef bint is_Integer(x):
     global _Integer
     if _Integer is None:
         from sage.rings.integer import Integer as _Integer
-    return PY_TYPE_CHECK_EXACT(x, _Integer) or PY_TYPE_CHECK_EXACT(x, int)
+    return type(x) is _Integer or type(x) is int
 
 # for override testing
 cdef extern from "descrobject.h":
@@ -151,19 +135,6 @@ cdef extern from "descrobject.h":
         PyMethodDef *d_method
     void* PyCFunction_GET_FUNCTION(object)
     bint PyCFunction_Check(object)
-
-cdef extern from *:
-    Py_ssize_t PyDict_Size(object)
-    Py_ssize_t PyTuple_GET_SIZE(object)
-
-    ctypedef class __builtin__.dict [object PyDictObject]:
-        cdef Py_ssize_t ma_fill
-        cdef Py_ssize_t ma_used
-
-    void* PyDict_GetItem(object, object)
-
-cdef inline Py_ssize_t PyDict_GET_SIZE(o):
-    return (<dict>o).ma_used
 
 ###############################################################################
 #       Copyright (C) 2009 Robert Bradshaw <robertwb@math.washington.edu>
@@ -831,6 +802,7 @@ cdef class Parent(category_object.CategoryObject):
              pass
             running ._test_eq() . . . pass
             running ._test_euclidean_degree() . . . pass
+            running ._test_gcd_vs_xgcd() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_one() . . . pass
             running ._test_pickling() . . . pass
@@ -899,6 +871,7 @@ cdef class Parent(category_object.CategoryObject):
             _test_enumerated_set_iter_list
             _test_eq
             _test_euclidean_degree
+            _test_gcd_vs_xgcd
             _test_not_implemented_methods
             _test_one
             _test_pickling
@@ -1102,7 +1075,7 @@ cdef class Parent(category_object.CategoryObject):
                 raise NotImplementedError
         cdef Py_ssize_t i
         cdef R = parent_c(x)
-        cdef bint no_extra_args = PyTuple_GET_SIZE(args) == 0 and PyDict_GET_SIZE(kwds) == 0
+        cdef bint no_extra_args = len(args) == 0 and len(kwds) == 0
         if R is self and no_extra_args:
             return x
 
@@ -2492,9 +2465,9 @@ cdef class Parent(category_object.CategoryObject):
             else:
                 raise TypeError("_coerce_map_from_ must return None, a boolean, a callable, or an explicit Map (called on %s, got %s)" % (type(self), type(user_provided_mor)))
 
-            if (PY_TYPE_CHECK_EXACT(mor, DefaultConvertMap) or
-                  PY_TYPE_CHECK_EXACT(mor, DefaultConvertMap_unique) or
-                  PY_TYPE_CHECK_EXACT(mor, NamedConvertMap)) and not mor._force_use:
+            if (type(mor) is DefaultConvertMap or
+                  type(mor) is DefaultConvertMap_unique or
+                  type(mor) is NamedConvertMap) and not mor._force_use:
                 # If there is something better in the list, try to return that instead
                 # This is so, for example, _coerce_map_from_ can return True but still
                 # take advantage of the _populate_coercion_lists_ data.
@@ -2632,11 +2605,15 @@ cdef class Parent(category_object.CategoryObject):
                 raise TypeError("_convert_map_from_ must return a map or callable (called on %s, got %s)" % (type(self), type(user_provided_mor)))
 
         if not PY_TYPE_CHECK(S, type) and not PY_TYPE_CHECK(S, Parent):
-            # Sequences is used as a category and a "Parent"
+            # Sequences is not a Parent but a category!! As we would like to
+            # consider them as a parent we consider a workaround by using
+            # Set_PythonType from sage.structure.parent
             from sage.categories.category_types import Sequences
             from sage.structure.coerce_maps import ListMorphism
             if isinstance(S, Sequences):
-                return ListMorphism(S, self.convert_map_from(list))
+                from sage.structure.sequence import Sequence_generic
+                SS = Set_PythonType(Sequence_generic)
+                return ListMorphism(SS, self.convert_map_from(list))
 
         mor = self._generic_convert_map(S)
         return mor
@@ -3037,6 +3014,24 @@ cpdef Parent Set_PythonType(theType):
         return theSet
 
 cdef class Set_PythonType_class(Set_generic):
+    r"""
+    The set of Python objects of a given type.
+
+    EXAMPLES::
+
+        sage: S = sage.structure.parent.Set_PythonType(int)
+        sage: S
+        Set of Python objects of type 'int'
+        sage: int('1') in S
+        True
+        sage: Integer('1') in S
+        False
+
+        sage: sage.structure.parent.Set_PythonType(2)
+        Traceback (most recent call last):
+        ...
+        TypeError: must be intialized with a type, not 2
+    """
 
     cdef _type
 
@@ -3048,8 +3043,22 @@ cdef class Set_PythonType_class(Set_generic):
             sage: S.category()
             Category of sets
         """
+        if not isinstance(theType, type):
+            raise TypeError("must be intialized with a type, not %r" % theType)
         Set_generic.__init__(self, element_constructor=theType, category=Sets())
         self._type = theType
+
+    def __reduce__(self):
+        r"""
+        Pickling support
+
+        TESTS::
+
+            sage: S = sage.structure.parent.Set_PythonType(object)
+            sage: loads(dumps(S))
+            Set of Python objects of type 'object'
+        """
+        return Set_PythonType, (self._type,)
 
     def __call__(self, x):
         """

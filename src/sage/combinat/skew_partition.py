@@ -1422,7 +1422,7 @@ class SkewPartitions_all(SkewPartitions):
 
             sage: SP = SkewPartitions()
             sage: it = SP.__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[] / [],
              [1] / [],
              [2] / [],

@@ -239,7 +239,7 @@ from sage.interfaces.all import macaulay2
 from sage.interfaces.singular import singular as singular_default, is_SingularElement, SingularElement
 from sage.interfaces.macaulay2 import macaulay2 as macaulay2_default, is_Macaulay2Element
 
-from sage.misc.misc import mul
+from sage.misc.all import prod as mul
 from sage.misc.sage_eval import sage_eval
 
 import sage.libs.pari.gen
@@ -2103,7 +2103,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                 y += c*mul([ x[i]**m[i] for i in m.nonzero_positions()])
             return y
 
-        cdef poly *res
+        cdef poly *res    # ownership will be transferred to us in the next line
         singular_polynomial_call(&res, self._poly, _ring, coerced_x, MPolynomial_libsingular_get_element)
         res_parent = get_coercion_model().common_parent(parent._base, *x)
 
@@ -2111,8 +2111,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             return res_parent(0)
         if p_LmIsConstant(res, _ring):
             sage_res = si2sa( p_GetCoeff(res, _ring), _ring, parent._base )
+            p_Delete(&res, _ring)            # sage_res contains copy
         else:
-            sage_res = new_MP(parent, res)
+            sage_res = new_MP(parent, res)   # pass on ownership of res to sage_res
+
         if parent(sage_res) is not res_parent:
             sage_res = res_parent(sage_res)
         return sage_res
@@ -2403,12 +2405,11 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             ....
             OverflowError: Exponent overflow (...).
         """
-        if not PY_TYPE_CHECK_EXACT(exp, Integer) or \
-                PY_TYPE_CHECK_EXACT(exp, int):
-                    try:
-                        exp = Integer(exp)
-                    except TypeError:
-                        raise TypeError, "non-integral exponents not supported"
+        if type(exp) is not Integer:
+            try:
+                exp = Integer(exp)
+            except TypeError:
+                raise TypeError("non-integral exponents not supported")
 
         if exp < 0:
             return 1/(self**(-exp))
@@ -3277,7 +3278,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
             sage: P = QQ['x,y']
             sage: x = var('x')
-            sage: parent(P.zero_element() / x)
+            sage: parent(P.zero() / x)
             Symbolic Ring
 
         We are catching overflows::
@@ -5135,7 +5136,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             Miguel Marco
         """
         if self.is_zero():
-            return self.parent().zero_element()
+            return self.parent().zero()
         n = self.degree(variable)
         d = self.derivative(variable)
         k = d.degree(variable)
@@ -5351,7 +5352,7 @@ cdef inline MPolynomial_libsingular new_MP(MPolynomialRing_libsingular parent, p
     polynomial, so it is your repsonsiblity to make a copy if the
     Singular data structure is used elsewhere.
     """
-    cdef MPolynomial_libsingular p = PY_NEW(MPolynomial_libsingular)
+    cdef MPolynomial_libsingular p = MPolynomial_libsingular.__new__(MPolynomial_libsingular)
     p._parent = <ParentWithBase>parent
     p._parent_ring = singular_ring_reference(parent._ring)
     p._poly = juice

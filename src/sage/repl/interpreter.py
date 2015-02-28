@@ -68,15 +68,33 @@ embeddable IPython shell which can be used to directly interact with
 that shell.  The bulk of this functionality is provided through
 :class:`InterfaceShellTransformer`.
 
+TESTS:
+
+Check that Cython source code appears in tracebacks::
+
+    sage: from sage.repl.interpreter import get_test_shell
+    sage: get_test_shell().run_cell('1/0')
+    ---------------------------------------------------------------------------
+    .../sage/rings/integer_ring.pyx in sage.rings.integer_ring.IntegerRing_class._div (build/cythonized/sage/rings/integer_ring.c:...)()
+        ...         cdef rational.Rational x = rational.Rational.__new__(rational.Rational)
+        ...         if mpz_sgn(right.value) == 0:
+        ...             raise ZeroDivisionError('Rational division by zero')
+        ...         mpz_set(mpq_numref(x.value), left.value)
+        ...         mpz_set(mpq_denref(x.value), right.value)
+    <BLANKLINE>
+    ZeroDivisionError: Rational division by zero
 """
 
 #*****************************************************************************
 #       Copyright (C) 2004-2012 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 import copy
 import os

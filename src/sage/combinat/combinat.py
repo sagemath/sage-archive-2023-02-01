@@ -153,7 +153,7 @@ from sage.rings.arith import bernoulli, binomial
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.libs.all import pari
 from sage.misc.prandom import randint
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.misc.lazy_attribute import lazy_attribute
@@ -1104,7 +1104,7 @@ class CombinatorialObject(SageObject):
                 sage: not b
                 Traceback (most recent call last):
                 ...
-                AttributeError: 'NoneType' object has no attribute 'zero_element'
+                AttributeError: 'NoneType' object has no attribute 'zero'
         """
         return bool(self._list)
 
@@ -1438,7 +1438,7 @@ class CombinatorialClass(Parent):
             sage: C.first = lambda: 0
             sage: C.next  = lambda c: c+1
             sage: it = iter(C) # indirect doctest
-            sage: [it.next() for _ in range(4)]
+            sage: [next(it) for _ in range(4)]
             [0, 1, 2, 3]
         """
         f = self.first()
@@ -1473,7 +1473,7 @@ class CombinatorialClass(Parent):
             ...
             sage: C.previous  = prev
             sage: it = iter(C) # indirect doctest
-            sage: [it.next() for _ in range(4)]
+            sage: [next(it) for _ in range(4)]
             [1, 2, 3, 4]
         """
         l = self.last()
@@ -2142,7 +2142,8 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
         """
         Counts the elements of the combinatorial class.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = InfiniteAbstractCombinatorialClass()
             sage: R.cardinality()
             +Infinity
@@ -2153,7 +2154,8 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
         """
         Returns an error since self is an infinite combinatorial class.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = InfiniteAbstractCombinatorialClass()
             sage: R.list()
             Traceback (most recent call last):
@@ -2167,17 +2169,18 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
         Returns an iterator for the infinite combinatorial class self if
         possible or raise a NotImplementedError.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = InfiniteAbstractCombinatorialClass()
-            sage: iter(R).next()
+            sage: next(iter(R))
             Traceback (most recent call last):
             ...
             NotImplementedError
 
             sage: c = iter(Compositions()) # indirect doctest
-            sage: c.next(), c.next(), c.next(), c.next(), c.next(), c.next()
+            sage: next(c), next(c), next(c), next(c), next(c), next(c)
             ([], [1], [1, 1], [2], [1, 1, 1], [1, 2])
-            sage: c.next(), c.next(), c.next(), c.next(), c.next(), c.next()
+            sage: next(c), next(c), next(c), next(c), next(c), next(c)
             ([2, 1], [3], [1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3])
         """
         try:

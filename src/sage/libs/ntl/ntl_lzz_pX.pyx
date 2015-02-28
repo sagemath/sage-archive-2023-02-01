@@ -141,7 +141,7 @@ cdef class ntl_zz_pX:
         ## the error checking in __init__ will prevent##
         ## you from constructing a zz_pX              ##
         ## inappropriately.  However, from Cython, you##
-        ## could do r = PY_NEW(ntl_zz_pX) without     ##
+        ## could do r = ntl_zz_pX.__new__(ntl_zz_pX) without
         ## first restoring a zz_pContext, which could ##
         ## have unfortunate consequences.  See _new  ##
         ## defined below for an example of the right  ##
@@ -207,7 +207,7 @@ cdef class ntl_zz_pX:
             0
         """
         cdef ntl_zz_p y
-        y = PY_NEW(ntl_zz_p)
+        y = ntl_zz_p.__new__(ntl_zz_p)
         y.c = self.c
         self.c.restore_c()
         if not PY_TYPE_CHECK( i, long ):
@@ -251,7 +251,7 @@ cdef class ntl_zz_pX:
             [1]
         """
         cdef ntl_zz_pX y
-        y = PY_NEW(ntl_zz_pX)
+        y = ntl_zz_pX.__new__(ntl_zz_pX)
         y.c = self.c
         return y
 

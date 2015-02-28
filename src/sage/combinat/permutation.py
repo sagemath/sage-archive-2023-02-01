@@ -40,6 +40,7 @@ Below are listed all methods and classes defined in this file.
     :meth:`~sage.combinat.permutation.Permutation.prev` | Returns the permutation that comes directly before ``self`` in lexicographic order (in the same symmetric group as ``self``).
     :meth:`~sage.combinat.permutation.Permutation.to_tableau_by_shape` | Returns a tableau of shape ``shape`` with the entries in ``self``.
     :meth:`~sage.combinat.permutation.Permutation.to_cycles` | Returns the permutation ``self`` as a list of disjoint cycles.
+    :meth:`~sage.combinat.permutation.Permutation.forget_cycles` | Return ``self`` under the forget cycle map.
     :meth:`~sage.combinat.permutation.Permutation.to_permutation_group_element` | Returns a ``PermutationGroupElement`` equal to ``self``.
     :meth:`~sage.combinat.permutation.Permutation.signature` | Returns the signature of the permutation ``sef``.
     :meth:`~sage.combinat.permutation.Permutation.is_even` | Returns ``True`` if the permutation ``self`` is even, and ``False`` otherwise.
@@ -807,16 +808,16 @@ class Permutation(CombinatorialObject, Element):
         EXAMPLES::
 
             sage: p = Permutation([1, 3, 2])
-            sage: p.next()
+            sage: next(p)
             [2, 1, 3]
             sage: p = Permutation([4,3,2,1])
-            sage: p.next()
+            sage: next(p)
             False
 
         TESTS::
 
             sage: p = Permutation([])
-            sage: p.next()
+            sage: next(p)
             False
         """
         p = self[:]
@@ -939,6 +940,10 @@ class Permutation(CombinatorialObject, Element):
         """
         Return the permutation ``self`` as a list of disjoint cycles.
 
+        The cycles are returned in the order of increasing smallest
+        elements, and each cycle is returned as a tuple which starts
+        with its smallest element.
+
         If ``singletons=False`` is given, the list does not contain the
         singleton cycles.
 
@@ -948,6 +953,9 @@ class Permutation(CombinatorialObject, Element):
             [(1, 2), (3,), (4,)]
             sage: Permutation([2,1,3,4]).to_cycles(singletons=False)
             [(1, 2)]
+
+            sage: Permutation([4,1,5,2,6,3]).to_cycles()
+            [(1, 4, 2), (3, 5, 6)]
 
         The algorithm is of complexity `O(n)` where `n` is the size of the
         given permutation.
@@ -994,7 +1002,7 @@ class Permutation(CombinatorialObject, Element):
 
         l = self[:]
 
-        #Go through until we've considered every number between 1 and len(p)
+        #Go through until we've considered every number between 1 and len(l)
         for i in range(len(l)):
             if l[i] == False:
                 continue
@@ -2176,6 +2184,72 @@ class Permutation(CombinatorialObject, Element):
         cycle_type.sort(reverse=True)
         from sage.combinat.partition import Partition
         return Partition(cycle_type)
+
+    @combinatorial_map(name='forget cycles')
+    def forget_cycles(self):
+        r"""
+        Return the image of ``self`` under the map which forgets cycles.
+
+        Consider a permutation `\sigma` written in standard cyclic form:
+
+        .. MATH::
+
+            \sigma = (a_{1,1}, \ldots, a_{1,k_1}) (a_{2,1}, \ldots, a_{2,k_2})
+            \cdots (a_{m,1}, \ldots, a_{m,k_m}),
+
+        where `a_{1,1} < a_{2,1} < \cdots < a_{m,1}` and `a_{j,1} < a_{j,i}`
+        for all `1 \leq j \leq m` and `2 \leq i \leq k_j` where we include
+        cycles of length 1 as well. The image of the forget cycle map `\phi`
+        is given by
+
+        .. MATH::
+
+            \phi(\sigma) = [a_{1,1}, \ldots, a_{1,k_1}, a_{2,1} \ldots,
+            a_{2,k_2}, \ldots, a_{m,1}, \ldots, a_{m,k_m}],
+
+        considered as a permutation in 1-line notation.
+
+        EXAMPLES::
+
+            sage: P = Permutations(5)
+            sage: x = P([1, 5, 3, 4, 2])
+            sage: x.forget_cycles()
+            [1, 2, 5, 3, 4]
+
+        We select all permutations with a cycle composition of `[2, 3, 1]`
+        in `S_6`::
+
+            sage: P = Permutations(6)
+            sage: l = [p for p in P if [len(t) for t in p.to_cycles()] == [1,3,2]]
+
+        Next we apply `\phi` and then take the inverse, and then view the
+        results as a poset under the Bruhat order::
+
+            sage: l = [p.forget_cycles().inverse() for p in l]
+            sage: B = Poset([l, lambda x,y: x.bruhat_lequal(y)])
+            sage: R.<q> = QQ[]
+            sage: sum(q^B.rank_function()(x) for x in B)
+            q^5 + 2*q^4 + 3*q^3 + 3*q^2 + 2*q + 1
+
+        We check the statement in [CC13]_ that the posets
+        `C_{[1,3,1,1]}` and `C_{[1,3,2]}` are isomorphic::
+
+            sage: l2 = [p for p in P if [len(t) for t in p.to_cycles()] == [1,3,1,1]]
+            sage: l2 = [p.forget_cycles().inverse() for p in l2]
+            sage: B2 = Poset([l2, lambda x,y: x.bruhat_lequal(y)])
+            sage: B.is_isomorphic(B2)
+            True
+
+        REFERENCES:
+
+        .. [CC13] Mahir Bilen Can and Yonah Cherniavsky.
+           *Omitting parentheses from the cyclic notation*. (2013).
+           :arxiv:`1308.0936v2`.
+        """
+        ret = []
+        for t in self.to_cycles():
+            ret += list(t)
+        return Permutations()(ret)
 
     @combinatorial_map(name='foata_bijection')
     def foata_bijection(self):
@@ -5715,7 +5789,7 @@ class StandardPermutations_all(Permutations):
         TESTS::
 
             sage: it = iter(Permutations())
-            sage: [it.next() for i in range(10)]
+            sage: [next(it) for i in range(10)]
             [[], [1], [1, 2], [2, 1], [1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
         """
         n = 0

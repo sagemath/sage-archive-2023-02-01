@@ -481,7 +481,7 @@ class Animation(SageObject):
             sage: E = EllipticCurve('37a')
             sage: v = [E.change_ring(GF(p)).plot(pointsize=30) for p in [97, 101, 103, 107]]
             sage: a = animate(v, xmin=0, ymin=0, axes=False)
-            sage: a
+            sage: a        # optional -- ImageMagick
             Animation with 4 frames
             sage: a.show() # optional -- ImageMagick
 

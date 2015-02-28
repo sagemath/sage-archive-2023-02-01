@@ -154,30 +154,25 @@ include "coerce.pxi"
 from cpython.ref cimport PyObject
 
 import types
-import sys
 cdef add, sub, mul, div, iadd, isub, imul, idiv
 from operator import add, sub, mul, div, iadd, isub, imul, idiv
-
-import sage.misc.sageinspect as sageinspect
 
 cdef MethodType
 from types import MethodType
 
-from sage.categories.category   import Category
-from sage.structure.parent      cimport Parent
-from sage.structure.misc        import is_extension_type, getattr_from_other_class
-from sage.misc.lazy_format      import LazyFormat
+from sage.structure.coerce cimport py_scalar_to_element
+from sage.structure.parent cimport Parent
+from sage.structure.misc import is_extension_type, getattr_from_other_class
+from sage.misc.lazy_format import LazyFormat
+from sage.misc import sageinspect
 
 # Create a dummy attribute error, using some kind of lazy error message,
 # so that neither the error itself not the message need to be created
 # repeatedly, which would cost time.
-
 from sage.structure.misc cimport AttributeErrorMessage
 cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage(None, '')
 dummy_attribute_error = AttributeError(dummy_error_message)
 
-# This classes uses element.pxd.  To add data members, you
-# must change that file.
 
 def make_element(_class, _dict, parent):
     """
@@ -188,19 +183,6 @@ def make_element(_class, _dict, parent):
     """
     from sage.misc.pickle_old import make_element_old
     return make_element_old(_class, _dict, parent)
-
-def py_scalar_to_element(py):
-    from sage.rings.integer_ring import ZZ
-    from sage.rings.real_double import RDF
-    from sage.rings.complex_double import CDF
-    if PyInt_Check(py) or PyLong_Check(py):
-        return ZZ(py)
-    elif PyFloat_Check(py):
-        return RDF(py)
-    elif PyComplex_Check(py):
-        return CDF(py)
-    else:
-        raise TypeError("Not a scalar")
 
 
 def parent(x):
@@ -948,10 +930,9 @@ cdef class Element(SageObject):
                 return 1
             try:
                 _left, _right = coercion_model.canonical_coercion(left, right)
-                if PY_IS_NUMERIC(_left):
-                    return cmp(_left, _right)
-                else:
-                    return _left._cmp_(_right)
+                if isinstance(_left, Element):
+                    return (<Element>_left)._cmp_(_right)
+                return cmp(_left, _right)
             except TypeError:
                 r = cmp(type(left), type(right))
                 if r == 0:
@@ -982,10 +963,9 @@ cdef class Element(SageObject):
                 return _rich_to_bool(op, 1)
             try:
                 _left, _right = coercion_model.canonical_coercion(left, right)
-                if PY_IS_NUMERIC(_left):
-                    return _rich_to_bool(op, cmp(_left, _right))
-                else:
-                    return _left._richcmp_(_right, op)
+                if isinstance(_left, Element):
+                    return (<Element>_left)._richcmp_(_right, op)
+                return _rich_to_bool(op, cmp(_left, _right))
             except (TypeError, NotImplementedError):
                 r = cmp(type(left), type(right))
                 if r == 0:
@@ -2702,8 +2682,7 @@ cdef class Vector(ModuleElement):
         raise TypeError("unsupported operation for '%s' and '%s'"%(parent_c(left), parent_c(right)))
 
     def __div__(self, right):
-        if PY_IS_NUMERIC(right):
-            right = py_scalar_to_element(right)
+        right = py_scalar_to_element(right)
         if isinstance(right, RingElement):
             # Let __mul__ do the job
             return self.__mul__(~right)

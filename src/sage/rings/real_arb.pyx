@@ -137,7 +137,7 @@ cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision):
     mpfr_clear(left)
     mpfr_clear(right)
 
-cdef void arb_to_mpfi(mpfi_t target, arb_t source, const long precision):
+cdef int arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except -1:
     """
     Convert an Arb ball to an MPFI interval.
 
@@ -152,6 +152,32 @@ cdef void arb_to_mpfi(mpfi_t target, arb_t source, const long precision):
     OUTPUT:
 
     None.
+
+    EXAMPLES::
+
+        sage: cython("\n".join([ # optional - arb
+        ....:     '#cinclude $SAGE_ROOT/local/include/flint',
+        ....:     '#clib arb',
+        ....:     'from sage.rings.real_mpfi cimport RealIntervalFieldElement',
+        ....:     'from sage.libs.arb.arb cimport *',
+        ....:     'from sage.rings.real_arb cimport arb_to_mpfi',
+        ....:     'from sage.rings.real_mpfi import RIF',
+        ....:     '',
+        ....:     'cdef extern from "arb.h":',
+        ....:     '    void arb_pow_ui(arb_t y, const arb_t b, unsigned long e, long prec)',
+        ....:     '',
+        ....:     'cdef RealIntervalFieldElement result',
+        ....:     'cdef arb_t arb',
+        ....:     'arb_init(arb)',
+        ....:     'result = RIF(0)',
+        ....:     'arb_set_ui(arb, 65536)',
+        ....:     'arb_pow_ui(arb, arb, 65536**3 * 65535, 53)',
+        ....:     'arb_to_mpfi(result.value, arb, 53)',
+        ....:     'arb_clear(arb)'
+        ....: ]))
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: Error converting arb to mpfi. Overflow?
     """
     cdef mpfr_t left
     cdef mpfr_t right
@@ -159,11 +185,16 @@ cdef void arb_to_mpfi(mpfi_t target, arb_t source, const long precision):
     mpfr_init2(left, precision)
     mpfr_init2(right, precision)
 
-    arb_get_interval_mpfr(left, right, source)
-    mpfi_interv_fr(target, left, right)
-
-    mpfr_clear(left)
-    mpfr_clear(right)
+    try:
+        sig_on()
+        arb_get_interval_mpfr(left, right, source)
+        mpfi_interv_fr(target, left, right)
+        sig_off()
+    except RuntimeError:
+        raise ArithmeticError("Error converting arb to mpfi. Overflow?")
+    finally:
+        mpfr_clear(left)
+        mpfr_clear(right)
 
 
 class RealBallField(UniqueRepresentation, Parent):

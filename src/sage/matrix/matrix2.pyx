@@ -8315,7 +8315,7 @@ cdef class Matrix(matrix1.Matrix):
         return bistochastic_as_sum_of_permutations(self)
 
     def visualize_structure(self, maxsize=512):
-        """
+        r"""
         Visualize the non-zero entries
 
         White pixels are put at positions with zero entries. If 'maxsize'

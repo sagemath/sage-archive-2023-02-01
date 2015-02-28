@@ -170,9 +170,9 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
             children = list(children)
         except TypeError:
             raise TypeError("input ({}) is not a valid tree".format(children))
-        if not (children.__class__ is self.__class__
-                and children.parent() == parent):
-            children = [self.__class__(parent, x) for x in children]
+        #if not (children.__class__ is self.__class__
+        #        and children.parent() == parent):
+        children = [self.__class__(parent, x) for x in children]
         NormalizedClonableList.__init__(self, parent, children, check=check)
 
     _unordered_ranker = on_fly()

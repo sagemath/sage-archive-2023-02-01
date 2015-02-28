@@ -67,6 +67,7 @@ all-sage: \
      $(INST)/$(LINBOX) \
      $(INST)/$(M4RI) \
      $(INST)/$(M4RIE) \
+     $(INST)/$(MATHJAX) \
      $(INST)/$(MATPLOTLIB) \
      $(INST)/$(MAXIMA) \
      $(INST)/$(MPC) \
@@ -390,6 +391,9 @@ $(INST)/$(BACKPORTS_SSL_MATCH_HOSTNAME): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 $(INST)/$(TORNADO): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) \
                     $(INST)/$(BACKPORTS_SSL_MATCH_HOSTNAME) $(INST)/$(CERTIFI)
 	+$(PIPE) "$(SAGE_SPKG) $(TORNADO) 2>&1" "tee -a $(SAGE_LOGS)/$(TORNADO).log"
+
+$(INST)/$(MATHJAX):
+	+$(PIPE) "$(SAGE_SPKG) $(MATHJAX) 2>&1" "tee -a $(SAGE_LOGS)/$(MATHJAX).log"
 
 $(INST)/$(MATPLOTLIB): $(INST)/$(PYTHON) $(INST)/$(NUMPY) \
                        $(INST)/$(FREETYPE) $(INST)/$(LIBPNG) \

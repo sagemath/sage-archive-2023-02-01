@@ -3947,8 +3947,8 @@ class AlgebraicNumber(AlgebraicNumber_base):
         have the same minimal polynomial, that cost can be avoided,
         though (see :trac:`16964`)::
 
-            sage: R.<x> = QQ[]
-            sage: p = (69721504*x^8 + 251777664*x^6 + 329532012*x^4 + 184429548*x^2 + 37344321)
+            sage: x = polygen(ZZ)
+            sage: p = 69721504*x^8 + 251777664*x^6 + 329532012*x^4 + 184429548*x^2 + 37344321
             sage: r1 = QQbar.polynomial_root(p, CIF(RIF(-0.1,0),RIF(1,1.1)))
             sage: r2 = QQbar.polynomial_root(p, CIF(RIF(-0.1,0),RIF(-1.1,-1)))
             sage: r1 < r2
@@ -3958,6 +3958,19 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: r = [r1, r2]; r.sort(); r
             [-0.0221204634374360? - 1.090991904211621?*I,
              -0.0221204634374360? + 1.090991904211621?*I]
+
+        It also works for comparison of conjugate roots even in a degenerate
+        situations where many roots have the same real value. In the following
+        examples, six of the ten roots have a real part equal to 1::
+
+            sage: p1 = x^5 + 6*x^4 - 42*x^3 - 142*x^2 + 467*x + 422
+            sage: p2 = p1((x-1)^2)
+            sage: sum(1 for r in p2.roots(CC,False) if abs(r.real() - 1) < 0.0001)
+            6
+            sage: r1 = QQbar.polynomial_root(p2, CIF(1, (-2.9,-2.7)))
+            sage: r2 = QQbar.polynomial_root(p2, CIF(1, (2.7,2.9)))
+            sage: cmp(r1,r2), cmp(r1,r1), cmp(r2,r2), cmp(r2,r1)
+            (-1, 0, 0, 1)
         """
         # case 0: same object
         if self is other: return 0

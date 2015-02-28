@@ -3955,16 +3955,30 @@ class AlgebraicNumber(AlgebraicNumber_base):
             [-0.0221204634374360? - 1.090991904211621?*I,
              -0.0221204634374360? + 1.090991904211621?*I]
         """
+        # case 0: same object
         if self is other: return 0
+
+        # case 1: real parts are clearly distinct
         ri1 = self._value.real()
         ri2 = other._value.real()
         if not ri1.overlaps(ri2):
             return cmp(ri1, ri2)
-        if self.minpoly() == other.minpoly():
-            # Very likely the roots only differ in their imaginary component.
+
+        # case 2: possibly equal or conjugate values
+        # (this case happen a lot when sorting the roots of a real polynomial)
+        if is_RealIntervalFieldElement(self._value):
+            ci1 = ri1.parent().zero()
+        else:
+            ci1 = self._value.imag()
+        if is_RealIntervalFieldElement(other._value):
+            ci2 = ri2.parent().zero()
+        else:
+            ci2 = other._value.imag()
+        if (ci1.overlaps(ci2) or (-ci1).overlaps(ci2)) and self.minpoly() == other.minpoly():
             ri = ri1.union(ri2)
+            ci = ci1.union(ci2).union(-ci1).union(-ci2)
             roots = self.minpoly().roots(QQbar, False)
-            roots = [r for r in roots if r._value.real().overlaps(ri)]
+            roots = [r for r in roots if r._value.real().overlaps(ri) and r._value.imag().overlaps(ci)]
             if len(roots) == 1:
                 # There is only a single (real) root matching both descriptors
                 # so they both must be that root and therefore equal.
@@ -3972,7 +3986,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             if (len(roots) == 2 and
                 not roots[0]._value.imag().contains_zero()):
                 # There is a complex conjugate pair of roots matching both
-                # descriptors, so compare by imaginary value
+                # descriptors, so compare by imaginary value.
                 ii1 = self._value.imag()
                 while ii1.contains_zero():
                     self._more_precision()
@@ -3984,6 +3998,8 @@ class AlgebraicNumber(AlgebraicNumber_base):
                 if ii1.overlaps(ii2):
                     return 0
                 return cmp(ii1, ii2)
+
+        # case 3: try hard to compare real parts and imaginary parts
         rcmp = cmp(self.real(), other.real())
         if rcmp != 0:
             return rcmp

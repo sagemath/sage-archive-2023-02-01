@@ -133,9 +133,9 @@ cpdef py_scalar_parent(py_type):
 
 cpdef py_scalar_to_element(x):
     """
-    Convert ``x`` to a Sage :class:`Element` if possible.
+    Convert ``x`` to a Sage :class:`~sage.structure.element.Element` if possible.
 
-    If ``x`` was already an :class:`Element` or if there is no obvious
+    If ``x`` was already an :class:`~sage.structure.element.Element` or if there is no obvious
     conversion possible, just return ``x`` itself.
 
     EXAMPLES::

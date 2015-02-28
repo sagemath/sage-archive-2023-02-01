@@ -365,7 +365,6 @@ class Gap(Parent):
                 pass
             x = str(x._gap_init_())
             return make_any_gap_element(self, gap_eval(x))
-        raise ValueError('cannot represent '+str(x)+' as a GAP object')
 
     def _construct_matrix(self, M):
         """

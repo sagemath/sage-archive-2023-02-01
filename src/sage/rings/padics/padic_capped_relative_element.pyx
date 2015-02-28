@@ -275,7 +275,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
         """
         cdef Integer selfvalue, modulus
         cdef long aprec
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if absprec > self.precision_absolute():
             raise PrecisionError("not enough precision known in order to compute residue.")

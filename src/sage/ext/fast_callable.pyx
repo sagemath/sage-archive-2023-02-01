@@ -621,7 +621,7 @@ cdef class ExpressionTreeBuilder:
             'x'
         """
         # There should be a better way to do this.  (Maybe there is.)
-        if not PY_TYPE_CHECK(v, str):
+        if not isinstance(v, str):
             v = str(v)
             if '*' in v:
                 v = v[v.index('*')+1:]

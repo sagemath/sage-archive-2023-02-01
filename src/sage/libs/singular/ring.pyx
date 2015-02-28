@@ -156,16 +156,16 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         else:
             raise TypeError, "Characteristic p must be <= 2147483647."
 
-    elif PY_TYPE_CHECK(base_ring, RationalField):
+    elif isinstance(base_ring, RationalField):
         characteristic = 0
 
-    elif PY_TYPE_CHECK(base_ring, IntegerRing_class):
+    elif isinstance(base_ring, IntegerRing_class):
         ringflaga = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
         mpz_init_set_ui(ringflaga, 0)
         characteristic = 0
         ringtype = 4 # integer ring
 
-    elif PY_TYPE_CHECK(base_ring, FiniteField_generic):
+    elif isinstance(base_ring, FiniteField_generic):
         if base_ring.characteristic() <= 2147483647:
             characteristic = -base_ring.characteristic() # note the negative characteristic
         else:
@@ -178,7 +178,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         minpoly = base_ring.polynomial()(k.gen())
         is_extension = True
 
-    elif PY_TYPE_CHECK(base_ring, NumberField) and base_ring.is_absolute():
+    elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
         characteristic = 1
         try:
             k = PolynomialRing(RationalField(), 1, [base_ring.variable_name()], 'lex')

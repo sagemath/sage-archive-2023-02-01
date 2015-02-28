@@ -11,6 +11,14 @@ documentation for more details.
 
 You may have to run ``sage -i arb`` to use the arb library.
 
+.. WARNING::
+
+    Identical :class:`RealBall` objects are understood to give
+    permission for algebraic simplification. This assumption is made
+    to improve performance.  For example, setting ``z = x*x`` sets `z`
+    to a ball enclosing the set `\{t^2 : t \in x\}` and not the
+    (generally larger) set `\{tu : t \in x, u \in x\}`.
+
 Comparison
 ==========
 
@@ -49,8 +57,8 @@ A ball is non-zero if and only if it does not contain zero. ::
     sage: b != 0 # optional - arb
     True
 
-A ball ``left`` is less than a ball ``right`` if all elements of ``left`` are less
-than all elements of ``right``. ::
+A ball ``left`` is less than a ball ``right`` if all elements of
+``left`` are less than all elements of ``right``. ::
 
     sage: a = RBF(RIF(1, 2)) # optional - arb
     sage: b = RBF(RIF(3, 4)) # optional - arb
@@ -663,11 +671,9 @@ cdef class RealBall(Element):
         rt = right
 
         if op == Py_EQ:
-            if lt is rt:
-                return True
-            if not arb_is_exact(lt.value) or not arb_is_exact(rt.value):
-                return False
-            return arb_equal(lt.value, rt.value)
+            return (lt is rt) or (
+                arb_is_exact(lt.value) and arb_is_exact(rt.value)
+                and arb_equal(lt.value, rt.value))
 
         arb_init(difference)
         arb_sub(difference, lt.value, rt.value, prec(lt))

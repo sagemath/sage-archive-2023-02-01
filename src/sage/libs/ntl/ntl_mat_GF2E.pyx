@@ -99,7 +99,7 @@ cdef class ntl_mat_GF2E:
             for i from 0 <= i < _nrows:
                 for j from 0 <= j < _ncols:
                     elem = v[i*_ncols+j]
-                    if not PY_TYPE_CHECK(elem, ntl_GF2E):
+                    if not isinstance(elem, ntl_GF2E):
                         elem = ntl_GF2E(elem, modulus)
                     mat_GF2E_setitem(&self.x, i, j, &(<ntl_GF2E>elem).x)
             sig_off()
@@ -120,7 +120,7 @@ cdef class ntl_mat_GF2E:
         ################################################
         if modulus is None:
             return
-        if PY_TYPE_CHECK( modulus, ntl_GF2EContext_class ):
+        if isinstance(modulus, ntl_GF2EContext_class):
             self.c = <ntl_GF2EContext_class>modulus
             self.c.restore_c()
             mat_GF2E_construct(&self.x)
@@ -213,7 +213,7 @@ cdef class ntl_mat_GF2E:
             ]
         """
         cdef ntl_mat_GF2E r = self._new()
-        if not PY_TYPE_CHECK(other, ntl_mat_GF2E):
+        if not isinstance(other, ntl_mat_GF2E):
             other = ntl_mat_GF2E(other, self.c)
         if not self.c is (<ntl_mat_GF2E>other).c:
             raise ValueError, "You can not perform arithmetic with matrices over different fields."
@@ -239,7 +239,7 @@ cdef class ntl_mat_GF2E:
             ]
         """
         cdef ntl_mat_GF2E r = self._new()
-        if not PY_TYPE_CHECK(other, ntl_mat_GF2E):
+        if not isinstance(other, ntl_mat_GF2E):
             other = ntl_mat_GF2E(other, self.c)
         if not self.c is (<ntl_mat_GF2E>other).c:
             raise ValueError, "You can not perform arithmetic with matrices over different fields."
@@ -264,7 +264,7 @@ cdef class ntl_mat_GF2E:
             ]
         """
         cdef ntl_mat_GF2E r = self._new()
-        if not PY_TYPE_CHECK(other, ntl_mat_GF2E):
+        if not isinstance(other, ntl_mat_GF2E):
             other = ntl_mat_GF2E(other, self.c)
         if not self.c is (<ntl_mat_GF2E>other).c:
             raise ValueError, "You can not perform arithmetic with matrices over different fields."
@@ -317,7 +317,7 @@ cdef class ntl_mat_GF2E:
         """
         self.c.restore_c()
 
-        if not PY_TYPE_CHECK(other, ntl_mat_GF2E):
+        if not isinstance(other, ntl_mat_GF2E):
             other = ntl_mat_GF2E(other,self.c)
 
         if op != 2 and op != 3:
@@ -368,15 +368,15 @@ cdef class ntl_mat_GF2E:
             [1]
         """
         cdef int i, j
-        if not PY_TYPE_CHECK(x, ntl_GF2E):
+        if not isinstance(x, ntl_GF2E):
             x = ntl_GF2E(x, self.c)
 
         if isinstance(ij, tuple) and len(ij) == 2:
             i, j = ij
-        elif self.x.NumCols()==1 and (PY_TYPE_CHECK(ij, Integer) or PY_TYPE_CHECK(ij,int)):
+        elif self.x.NumCols()==1 and (isinstance(ij, Integer) or isinstance(ij, int)):
             i = ij
             j = 0
-        elif self.x.NumRows()==1 and (PY_TYPE_CHECK(ij, Integer) or PY_TYPE_CHECK(ij,int)):
+        elif self.x.NumRows()==1 and (isinstance(ij, Integer) or isinstance(ij, int)):
             i = 0
             j = ij
         else:
@@ -407,10 +407,10 @@ cdef class ntl_mat_GF2E:
         cdef int i, j
         if isinstance(ij, tuple) and len(ij) == 2:
             i, j = ij
-        elif self.x.NumCols() == 1 and (PY_TYPE_CHECK(ij, Integer) or PY_TYPE_CHECK(ij,int)):
+        elif self.x.NumCols() == 1 and (isinstance(ij, Integer) or isinstance(ij, int)):
             i = ij
             j = 0
-        elif self.x.NumRows() == 1 and (PY_TYPE_CHECK(ij, Integer) or PY_TYPE_CHECK(ij,int)):
+        elif self.x.NumRows() == 1 and (isinstance(ij, Integer) or isinstance(ij, int)):
             i = 0
             j = ij
         else:

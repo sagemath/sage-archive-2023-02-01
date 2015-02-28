@@ -563,7 +563,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         return nzp
 
     def visualize_structure(self, filename=None, maxsize=512):
-        """
+        r"""
         Write a PNG image to 'filename' which visualizes self by putting
         black pixels in those positions which have nonzero entries.
 

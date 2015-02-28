@@ -288,14 +288,14 @@ class BackendIPythonCommandline(BackendIPython):
             sage: backend.launch_jmol(OutputSceneJmol.example(), 'Graphics3d object')
             'Launched jmol viewer for Graphics3d object'
         """
+        from sage.doctest import DOCTEST_MODE
         from sage.interfaces.jmoldata import JmolData
         jdata = JmolData()
-        if not jdata.is_jvm_available():
+        if not jdata.is_jvm_available() and not DOCTEST_MODE:
             raise RuntimeError('jmol cannot run, no suitable java version found')
         launch_script = output_jmol.launch_script_filename()
         from sage.env import SAGE_LOCAL
         jmol_cmd = os.path.join(SAGE_LOCAL, 'bin', 'jmol')
-        from sage.doctest import DOCTEST_MODE
         if not DOCTEST_MODE:
             os.system('{0} {1} 2>/dev/null 1>/dev/null &'
                       .format(jmol_cmd, launch_script))

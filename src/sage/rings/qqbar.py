@@ -3951,6 +3951,10 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: p = (69721504*x^8 + 251777664*x^6 + 329532012*x^4 + 184429548*x^2 + 37344321)
             sage: r1 = QQbar.polynomial_root(p, CIF(RIF(-0.1,0),RIF(1,1.1)))
             sage: r2 = QQbar.polynomial_root(p, CIF(RIF(-0.1,0),RIF(-1.1,-1)))
+            sage: r1 < r2
+            False
+            sage: r2 < r1
+            True
             sage: r = [r1, r2]; r.sort(); r
             [-0.0221204634374360? - 1.090991904211621?*I,
              -0.0221204634374360? + 1.090991904211621?*I]
@@ -3969,16 +3973,17 @@ class AlgebraicNumber(AlgebraicNumber_base):
         if is_RealIntervalFieldElement(self._value):
             ci1 = ri1.parent().zero()
         else:
-            ci1 = self._value.imag()
+            ci1 = self._value.imag().abs()
         if is_RealIntervalFieldElement(other._value):
             ci2 = ri2.parent().zero()
         else:
-            ci2 = other._value.imag()
-        if (ci1.overlaps(ci2) or (-ci1).overlaps(ci2)) and self.minpoly() == other.minpoly():
+            ci2 = other._value.imag().abs()
+        if ci1.overlaps(ci2) and self.minpoly() == other.minpoly():
             ri = ri1.union(ri2)
-            ci = ci1.union(ci2).union(-ci1).union(-ci2)
+            ci = ci1.union(ci2)
             roots = self.minpoly().roots(QQbar, False)
-            roots = [r for r in roots if r._value.real().overlaps(ri) and r._value.imag().overlaps(ci)]
+            roots = [r for r in roots if r._value.real().overlaps(ri)
+                     and r._value.imag().abs().overlaps(ci)]
             if len(roots) == 1:
                 # There is only a single (real) root matching both descriptors
                 # so they both must be that root and therefore equal.

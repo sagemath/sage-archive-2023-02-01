@@ -1663,6 +1663,10 @@ class ExpressionTreeWalker(Converter):
 
             sage: from sage.symbolic.expression_conversions import ExpressionTreeWalker
             sage: from sage.symbolic.random_tests import random_expr
+            sage: ex = sin(atan(0,hold=True)+hypergeometric((1,),(1,),x))
+            sage: s = ExpressionTreeWalker(ex)
+            sage: bool(s() == ex)
+            True
             sage: foo = random_expr(20, nvars=2)
             sage: s = ExpressionTreeWalker(foo)
             sage: bool(s() == foo)
@@ -1725,12 +1729,16 @@ class ExpressionTreeWalker(Converter):
 
             sage: from sage.symbolic.expression_conversions import ExpressionTreeWalker
             sage: foo = function('foo')
-            sage: f = foo(foo(x))
+            sage: f = foo(atan2(0, 0, hold=True))
             sage: s = ExpressionTreeWalker(f)
             sage: bool(s.composition(f, f.operator()) == f)
             True
         """
-        return operator(*map(self, ex.operands()))
+        from sage.symbolic.function import Function
+        if isinstance(operator, Function):
+            return operator(*map(self, ex.operands()), hold=True)
+        else:
+            return operator(*map(self, ex.operands()))
 
     def derivative(self, ex, operator):
         """
@@ -1745,6 +1753,18 @@ class ExpressionTreeWalker(Converter):
         """
         return operator(*map(self, ex.operands()))
 
+    def tuple(self, ex):
+        """
+        EXAMPLES::
+
+            sage: from sage.symbolic.expression_conversions import ExpressionTreeWalker
+            sage: foo = function('foo')
+            sage: f = hypergeometric((1,2,3,),(x,),x)
+            sage: s = ExpressionTreeWalker(f)
+            sage: bool(s() == f)
+            True
+        """
+        return ex.operands()
 
 class SubstituteFunction(ExpressionTreeWalker):
     def __init__(self, ex, original, new):

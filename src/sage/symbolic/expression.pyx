@@ -4888,8 +4888,7 @@ cdef class Expression(CommutativeRingElement):
                 and is_a_numeric((<Expression>ex.operands()[3])._gobj)):
                     from sage.calculus.calculus import symbolic_sum
                     return symbolic_sum(*(ex.operands()))
-                else:
-                    return operator(*map(self, ex.operands()))
+                return super(DefiniteSumExpander, self).composition(ex, operator)
 
         s = DefiniteSumExpander(self)
         cdef Expression x = self._parent(s())
@@ -8822,9 +8821,7 @@ cdef class Expression(CommutativeRingElement):
         an error::
 
             sage: f(8).n()
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot evaluate symbolic expression numerically
+            31.7752256945384
         """
         return self.parent()(self._maxima_().simplify_sum())
 

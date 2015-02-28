@@ -72,7 +72,7 @@ include 'sage/ext/interrupt.pxi'
 include "sage/ext/python.pxi"
 include "sage/ext/stdsage.pxi"
 
-import sage.categories.sets_cat
+import sage.categories.fields
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
 from sage.rings.complex_interval_field import ComplexIntervalField
@@ -186,7 +186,7 @@ class ComplexBallField(UniqueRepresentation, Parent):
         """
         if precision < 2:
             raise ValueError("Precision must be at least 2.")
-        super(ComplexBallField, self).__init__(categories=[sage.categories.sets_cat.Sets])
+        super(ComplexBallField, self).__init__(category=[sage.categories.fields.Fields()])
         self._prec = precision
         self.RealBallField = RealBallField(precision)
 

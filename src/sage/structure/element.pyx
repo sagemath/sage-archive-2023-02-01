@@ -154,30 +154,25 @@ include "coerce.pxi"
 from cpython.ref cimport PyObject
 
 import types
-import sys
 cdef add, sub, mul, div, iadd, isub, imul, idiv
 from operator import add, sub, mul, div, iadd, isub, imul, idiv
-
-import sage.misc.sageinspect as sageinspect
 
 cdef MethodType
 from types import MethodType
 
-from sage.categories.category   import Category
-from sage.structure.parent      cimport Parent
-from sage.structure.misc        import is_extension_type, getattr_from_other_class
-from sage.misc.lazy_format      import LazyFormat
+from sage.structure.coerce cimport py_scalar_to_element
+from sage.structure.parent cimport Parent
+from sage.structure.misc import is_extension_type, getattr_from_other_class
+from sage.misc.lazy_format import LazyFormat
+from sage.misc import sageinspect
 
 # Create a dummy attribute error, using some kind of lazy error message,
 # so that neither the error itself not the message need to be created
 # repeatedly, which would cost time.
-
 from sage.structure.misc cimport AttributeErrorMessage
 cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage(None, '')
 dummy_attribute_error = AttributeError(dummy_error_message)
 
-# This classes uses element.pxd.  To add data members, you
-# must change that file.
 
 def make_element(_class, _dict, parent):
     """
@@ -188,49 +183,6 @@ def make_element(_class, _dict, parent):
     """
     from sage.misc.pickle_old import make_element_old
     return make_element_old(_class, _dict, parent)
-
-
-cpdef inline py_scalar_to_element(x):
-    """
-    Convert ``x`` to a Sage :class:`Element` if possible.
-
-    If ``x`` was already an :class:`Element` or if there is no obvious
-    conversion possible, just return ``x`` itself.
-
-    EXAMPLES::
-
-        sage: from sage.structure.element import py_scalar_to_element
-        sage: x = py_scalar_to_element(42)
-        sage: x, parent(x)
-        (42, Integer Ring)
-        sage: x = py_scalar_to_element(int(42))
-        sage: x, parent(x)
-        (42, Integer Ring)
-        sage: x = py_scalar_to_element(long(42))
-        sage: x, parent(x)
-        (42, Integer Ring)
-        sage: x = py_scalar_to_element(float(42))
-        sage: x, parent(x)
-        (42.0, Real Double Field)
-        sage: x = py_scalar_to_element(complex(42))
-        sage: x, parent(x)
-        (42.0, Complex Double Field)
-        sage: py_scalar_to_element('hello')
-        'hello'
-    """
-    if isinstance(x, Element):
-        return x
-    if isinstance(x, (int, long)):
-        from sage.rings.integer import Integer
-        return Integer(x)
-    elif isinstance(x, float):
-        from sage.rings.real_double import RDF
-        return RDF(x)
-    elif isinstance(x, complex):
-        from sage.rings.complex_double import CDF
-        return CDF(x)
-    else:
-        return x
 
 
 def parent(x):

@@ -21,7 +21,7 @@ from sage.structure.element cimport Element, parent_c
 from expression cimport new_Expression_from_GEx, Expression
 from ring import SR
 
-from sage.structure.element cimport py_scalar_to_element
+from sage.structure.coerce cimport py_scalar_to_element
 from sage.structure.element import get_coercion_model
 
 # we keep a database of symbolic functions initialized in a session

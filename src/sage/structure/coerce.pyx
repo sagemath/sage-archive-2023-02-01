@@ -97,6 +97,7 @@ from coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
 from sage.misc.lazy_import import LazyImport
 parent = LazyImport('sage.structure.all', 'parent', deprecation=17533)
 
+
 cpdef py_scalar_parent(py_type):
     """
     Returns the Sage equivalent of the given python type, if one exists.
@@ -113,10 +114,12 @@ cpdef py_scalar_parent(py_type):
         Real Double Field
         sage: py_scalar_parent(complex)
         Complex Double Field
+        sage: py_scalar_parent(bool)
+        Integer Ring
         sage: py_scalar_parent(dict),
         (None,)
     """
-    if py_type is int or py_type is long:
+    if py_type is int or py_type is long or py_type is bool:
         import sage.rings.integer_ring
         return sage.rings.integer_ring.ZZ
     elif py_type is float:
@@ -127,6 +130,64 @@ cpdef py_scalar_parent(py_type):
         return sage.rings.complex_double.CDF
     else:
         return None
+
+cpdef py_scalar_to_element(x):
+    """
+    Convert ``x`` to a Sage :class:`Element` if possible.
+
+    If ``x`` was already an :class:`Element` or if there is no obvious
+    conversion possible, just return ``x`` itself.
+
+    EXAMPLES::
+
+        sage: from sage.structure.coerce import py_scalar_to_element
+        sage: x = py_scalar_to_element(42)
+        sage: x, parent(x)
+        (42, Integer Ring)
+        sage: x = py_scalar_to_element(int(42))
+        sage: x, parent(x)
+        (42, Integer Ring)
+        sage: x = py_scalar_to_element(long(42))
+        sage: x, parent(x)
+        (42, Integer Ring)
+        sage: x = py_scalar_to_element(float(42))
+        sage: x, parent(x)
+        (42.0, Real Double Field)
+        sage: x = py_scalar_to_element(complex(42))
+        sage: x, parent(x)
+        (42.0, Complex Double Field)
+        sage: py_scalar_to_element('hello')
+        'hello'
+
+    Note that bools are converted to 0 or 1::
+
+        sage: py_scalar_to_element(False), py_scalar_to_element(True)
+        (0, 1)
+
+    Test compatibility with :func:`py_scalar_parent`::
+
+        sage: from sage.structure.coerce import py_scalar_parent
+        sage: elt = [True, int(42), long(42), float(42), complex(42)]
+        sage: for x in elt:
+        ....:     assert py_scalar_parent(type(x)) == py_scalar_to_element(x).parent()
+    """
+    if isinstance(x, Element):
+        return x
+    elif isinstance(x, int):
+        from sage.rings.integer import Integer
+        return Integer(x)
+    elif isinstance(x, float):
+        from sage.rings.real_double import RDF
+        return RDF(x)
+    elif isinstance(x, long):
+        from sage.rings.integer import Integer
+        return Integer(x)
+    elif isinstance(x, complex):
+        from sage.rings.complex_double import CDF
+        return CDF(x)
+    else:
+        return x
+
 
 cdef _native_coercion_ranks_inv = (bool, int, long, float, complex)
 cdef dict _native_coercion_ranks = dict([(t, k) for k, t in enumerate(_native_coercion_ranks_inv)])

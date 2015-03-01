@@ -142,7 +142,7 @@ from sage.ext.memory cimport check_allocarray
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
-from libc.stdint cimport uint64_t, uintmax_t
+from libc.stdint cimport uint64_t
 cimport sage.structure.element
 from sage.structure.element cimport Element, EuclideanDomainElement, parent_c
 include "sage/ext/python_debug.pxi"
@@ -2677,17 +2677,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError, "n must be nonzero"
         f = self.factor()
 
-        # All of the declarations below are for optimizing the uintmax_t-sized
+        # All of the declarations below are for optimizing the unsigned long-sized
         # case.  Operations are performed in C as far as possible without
         # overflow before moving to Python objects.
-        cdef uintmax_t p_c, pn_c, apn_c
+        cdef unsigned long p_c, pn_c, apn_c
         cdef Py_ssize_t all_len, sorted_len, prev_len
-        cdef uintmax_t* ptr
-        cdef uintmax_t* empty_c
-        cdef uintmax_t* swap_tmp
-        cdef uintmax_t* all_c
-        cdef uintmax_t* sorted_c
-        cdef uintmax_t* prev_c
+        cdef unsigned long* ptr
+        cdef unsigned long* empty_c
+        cdef unsigned long* swap_tmp
+        cdef unsigned long* all_c
+        cdef unsigned long* sorted_c
+        cdef unsigned long* prev_c
 
         # These are used to keep track of whether or not we are able to
         # perform the operations in machine words. A factor of 0.999
@@ -2695,7 +2695,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # issues.
         cdef bint fits_c = True
         cdef double cur_max = 1
-        cdef double fits_max = 0.999 * 2.0 ** (8*sizeof(uintmax_t))
+        cdef double fits_max = 0.999 * 2.0 ** (8*sizeof(unsigned long))
 
         cdef Py_ssize_t divisor_count = 1
         with cython.overflowcheck(True):
@@ -2703,7 +2703,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 # Using *= does not work, see http://trac.cython.org/cython_trac/ticket/825
                 divisor_count = divisor_count * (1 + e)
 
-        ptr = <uintmax_t*>check_allocarray(divisor_count, 3 * sizeof(uintmax_t))
+        ptr = <unsigned long*>check_allocarray(divisor_count, 3 * sizeof(unsigned long))
         all_c = ptr
         sorted_c = ptr + divisor_count
         prev_c = sorted_c + divisor_count
@@ -2711,33 +2711,32 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         try:
             sorted_c[0] = 1
             sorted_len = 1
-    
+
             for p, e in f:
                 cur_max *= (<double>p)**e
                 if fits_c and cur_max > fits_max:
                     sorted = []
                     for i in range(sorted_len):
                         z = <Integer>PY_NEW(Integer)
-                        mpz_set_ux(z.value, sorted_c[i])
+                        mpz_set_ui(z.value, sorted_c[i])
                         sorted.append(z)
                     fits_c = False
                     sage_free(ptr)
                     ptr = NULL
-    
+
                 # The two cases below are essentially the same algorithm, one
-                # operating on Integers in Python lists, the other on uintmax_t's.
+                # operating on Integers in Python lists, the other on unsigned long's.
                 if fits_c:
-    
                     sig_on()
 
                     pn_c = p_c = p
-    
+
                     swap_tmp = sorted_c
                     sorted_c = prev_c
                     prev_c = swap_tmp
                     prev_len = sorted_len
                     sorted_len = 0
-    
+
                     tip = 0
                     prev_c[prev_len] = prev_c[prev_len-1] * pn_c
                     for i in range(prev_len):
@@ -2748,15 +2747,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                             tip += 1
                         sorted_c[sorted_len] = apn_c
                         sorted_len += 1
-    
+
                     for ee in range(1, e):
-    
+
                         swap_tmp = all_c
                         all_c = sorted_c
                         sorted_c = swap_tmp
                         all_len = sorted_len
                         sorted_len = 0
-    
+
                         pn_c *= p_c
                         tip = 0
                         all_c[all_len] = prev_c[prev_len-1] * pn_c
@@ -2770,7 +2769,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                             sorted_len += 1
 
                     sig_off()
-    
+
                 else:
                     # fits_c is False: use mpz integers
                     prev = sorted
@@ -2793,13 +2792,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                                 sorted.append(all_tip)
                                 tip += 1
                             sorted.append(apn)
-    
+
             if fits_c:
                 # all the data is in sorted_c
                 sorted = []
                 for i in range(sorted_len):
                     z = <Integer>PY_NEW(Integer)
-                    mpz_set_ux(z.value, sorted_c[i])
+                    mpz_set_ui(z.value, sorted_c[i])
                     sorted.append(z)
         finally:
             sage_free(ptr)

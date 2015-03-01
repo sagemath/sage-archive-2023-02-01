@@ -3949,28 +3949,44 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
             sage: x = polygen(ZZ)
             sage: p = 69721504*x^8 + 251777664*x^6 + 329532012*x^4 + 184429548*x^2 + 37344321
-            sage: r1 = QQbar.polynomial_root(p, CIF(RIF(-0.1,0),RIF(1,1.1)))
-            sage: r2 = QQbar.polynomial_root(p, CIF(RIF(-0.1,0),RIF(-1.1,-1)))
-            sage: r1 < r2
-            False
-            sage: r2 < r1
-            True
-            sage: r = [r1, r2]; r.sort(); r
+            sage: sorted(p.roots(QQbar,False))
             [-0.0221204634374360? - 1.090991904211621?*I,
-             -0.0221204634374360? + 1.090991904211621?*I]
+             -0.0221204634374360? + 1.090991904211621?*I,
+             -0.8088604911480535?*I,
+             -0.7598602580415435?*I,
+             0.7598602580415435?*I,
+             0.8088604911480535?*I,
+             0.0221204634374360? - 1.090991904211621?*I,
+             0.0221204634374360? + 1.090991904211621?*I]
 
         It also works for comparison of conjugate roots even in a degenerate
-        situations where many roots have the same real value. In the following
-        examples, six of the ten roots have a real part equal to 1::
+        situation where many roots have the same real part. In the following
+        example, the polynomial ``p2`` is irreducible and all its roots have
+        real part equal to `1`::
 
-            sage: p1 = x^5 + 6*x^4 - 42*x^3 - 142*x^2 + 467*x + 422
+            sage: p1 = x^8 + 74*x^7 + 2300*x^6 + 38928*x^5 + \
+            ....: 388193*x^4 + 2295312*x^3 + 7613898*x^2 + \
+            ....: 12066806*x + 5477001
             sage: p2 = p1((x-1)^2)
             sage: sum(1 for r in p2.roots(CC,False) if abs(r.real() - 1) < 0.0001)
-            6
-            sage: r1 = QQbar.polynomial_root(p2, CIF(1, (-2.9,-2.7)))
-            sage: r2 = QQbar.polynomial_root(p2, CIF(1, (2.7,2.9)))
+            16
+            sage: r1 = QQbar.polynomial_root(p2, CIF(1, (-4.1,-4.0)))
+            sage: r2 = QQbar.polynomial_root(p2, CIF(1, (4.0, 4.1)))
             sage: cmp(r1,r2), cmp(r1,r1), cmp(r2,r2), cmp(r2,r1)
             (-1, 0, 0, 1)
+
+        Though, comparing roots which are not equal or conjugate is much
+        slower because the algorithm needs to check the equality of the real
+        parts::
+
+            sage: sorted(p2.roots(QQbar,False))   # long time - 3 secs
+            [1.000000000000000? - 4.016778562562223?*I,
+             1.000000000000000? - 3.850538755978243?*I,
+             1.000000000000000? - 3.390564396412898?*I,
+             ...
+             1.000000000000000? + 3.390564396412898?*I,
+             1.000000000000000? + 3.850538755978243?*I,
+             1.000000000000000? + 4.016778562562223?*I]
         """
         # case 0: same object
         if self is other: return 0

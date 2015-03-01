@@ -9,6 +9,7 @@ Sage-Enhanced IPython Notebook
 """
 
 import os
+import errno
 import copy
 
 from IPython.kernel.kernelspec import (
@@ -16,30 +17,10 @@ from IPython.kernel.kernelspec import (
     
 
 from sage.env import (
-    SAGE_ROOT, DOT_SAGE, SAGE_LOCAL,
+    SAGE_ROOT, SAGE_DOC, SAGE_LOCAL, SAGE_EXTCODE,
     SAGE_VERSION
 )
 from sage.misc.temporary_file import tmp_dir
-
-
-
-# # The notebook Jinja2 templates and static files
-# TEMPLATE_PATH = os.path.join(SAGE_EXTCODE, 'notebook-ipython', 'templates')
-# STATIC_PATH = os.path.join(SAGE_EXTCODE, 'notebook-ipython', 'static')
-# DOCS_PATH = os.path.join(SAGE_DOC, 'output', 'html', 'en')
-
-
-# # Note: sage.repl.interpreter.DEFAULT_SAGE_CONFIG will be applied, too
-# DEFAULT_SAGE_NOTEBOOK_CONFIG = Config(
-#     SageNotebookApp = Config(
-#         # log_level = 'DEBUG',       # if you want more logs
-#         # open_browser = False,      # if you want to avoid browser restart
-#         webapp_settings = Config(
-#             template_path = TEMPLATE_PATH,
-#         ),
-#         extra_static_paths = [STATIC_PATH, DOCS_PATH],
-#     ),
-# )
 
 
 class SageKernelSpec(object):
@@ -50,22 +31,50 @@ class SageKernelSpec(object):
 
         EXAMPLES::
 
-            sage: from sage.repl.notebook_ipython import SageKernelSpec
+            sage: from sage.repl.ipython_kernel.install import SageKernelSpec
             sage: spec = SageKernelSpec()
-            sage: spec._display_name
-            sage: spec._identifier
+            sage: spec._display_name    # not tested
+            'Sage 6.6.beta2'
+            sage: spec._identifier      # not tested
+            'sage_6_6_beta2'
         """
         self._display_name = 'Sage {0}'.format(SAGE_VERSION)
-        self._identifier = self._display_name.lower().replace(' ', '_').replace('.', '_')
 
+    @classmethod
+    def identifier(self):
+        return 'Sage {0}'.format(SAGE_VERSION).lower().replace(' ', '_').replace('.', '_')
+        
+    def symlink(self, src, dst):
+        """
+        Symlink ``src`` to ``dst``
+
+        This is not an atomic operation.
+
+        Already-existing symlinks will be deleted, already existing
+        non-empty directories will be kept.
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_kernel.install import SageKernelSpec
+            sage: spec = SageKernelSpec()
+            sage: path = tmp_dir()
+            sage: spec.symlink(os.path.join(path, 'a'), os.path.join(path, 'b'))
+            sage: os.listdir(path)
+            ['b']
+        """
+        try:
+            os.remove(dst)
+        except OSError as err:
+            if err.errno == errno.EEXIST:
+                return
+        os.symlink(src, dst)
+        
     def use_local_mathjax(self):
         ipython_dir = os.environ['IPYTHONDIR']
         src = os.path.join(SAGE_LOCAL, 'share', 'mathjax')
         dst = os.path.join(ipython_dir, 'nbextensions', 'mathjax')
-        print('symlink', src, dst)
-        if not os.path.exists(dst):
-            os.symlink(src, dst)
-        
+        self.symlink(src, dst)
+
     def _kernel_cmd(self):
         return [
             os.path.join(SAGE_ROOT, 'sage'),
@@ -83,7 +92,7 @@ class SageKernelSpec(object):
             display_name=self._display_name,
         )
     
-    def install(self):
+    def install_spec(self):
         """
         Install the Sage IPython kernel
         
@@ -95,14 +104,29 @@ class SageKernelSpec(object):
         kernel_spec = os.path.join(temp, 'kernel.json')
         with open(kernel_spec, 'w') as f:
             json.dump(self.kernel_spec(), f)
-        install_kernel_spec(temp, self._identifier, user=True, replace=True)
+        identifier = self.identifier()
+        install_kernel_spec(temp, identifier, user=True, replace=True)
+        self._spec = get_kernel_spec(identifier)
 
+    def symlink_resources(self):
+        spec_dir = self._spec.resource_dir
+        path = os.path.join(SAGE_EXTCODE, 'notebook-ipython')
+        for filename in os.listdir(path):
+            self.symlink(
+                os.path.join(path, filename),
+                os.path.join(spec_dir, filename)
+            )
+        self.symlink(
+            os.path.join(SAGE_DOC, 'output', 'html', 'en'),
+            os.path.join(spec_dir, 'doc')
+        )
+        
     @classmethod
     def update(cls):
         instance = cls()
         instance.use_local_mathjax()
-        instance.install()
-
+        instance.install_spec()
+        instance.symlink_resources()
         
 
 def have_prerequisites():

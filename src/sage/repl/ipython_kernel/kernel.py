@@ -42,65 +42,74 @@ class SageKernel(IPythonKernel):
         from sage.misc.banner import banner_text
         return banner_text()
 
-    help_links = [
-        {
-            'text': 'Sage Tutorial',
-            'url': 'http://www.sagemath.org/doc/tutorial/index.html',
-        },
-        {
-            'text': 'Thematic Tutorials',
-            'url': 'http://www.sagemath.org/doc/thematic_tutorials/index.html',
-        },
-        {
-            'text': 'FAQs',
-            'url': 'http://www.sagemath.org/doc/faq/index.html',
-        },
-        {
-            'text': 'PREP Tutorials',
-            'url': 'http://www.sagemath.org/doc/prep/index.html',
-        },
-        {
-            'text': 'Sage Reference',
-            'url': 'http://www.sagemath.org/doc/reference/index.html',
-        },
-        {
-            'text': 'Developers Guide',
-            'url': 'http://www.sagemath.org/doc/developer/index.html',
-        },
-        {
-            'text': "Python",
-            'url': "http://docs.python.org/%i.%i" % sys.version_info[:2],
-        },
-        {
-            'text': "IPython",
-            'url': "http://ipython.org/documentation.html",
-        },
-        {
-            'text': 'Singular',
-            'url': 'http://www.singular.uni-kl.de/Manual/latest/index.htm',
-        },
-        {
-            'text': 'GAP',
-            'url': 'http://gap-system.org/Manuals/doc/ref/chap0.html',
-        },
-        {
-            'text': "NumPy",
-            'url': "http://docs.scipy.org/doc/numpy/reference/",
-        },
-        {
-            'text': "SciPy",
-            'url': "http://docs.scipy.org/doc/scipy/reference/",
-        },
-        {
-            'text': "SymPy",
-            'url': 'http://docs.sympy.org/latest/index.html',
-        },
-        {
-            'text': "Matplotlib",
-            'url': "http://matplotlib.org/contents.html",
-        },
-        {
-            'text': "Markdown",
-            'url': "http://help.github.com/articles/github-flavored-markdown",
-        },
-    ]
+    @property
+    def help_links(self):
+        from sage.repl.ipython_kernel.install import SageKernelSpec
+        identifier = SageKernelSpec.identifier()
+        kernel_url = lambda x: '/kernelspecs/{0}/{1}'.format(identifier, x)
+        return [
+            {
+                'text': 'Sage Documentation',
+                'url': kernel_url('doc/index.html')
+            },
+            {
+                'text': 'Sage Tutorial',
+                'url': kernel_url('doc/tutorial/index.html'),
+            },
+            {
+                'text': 'Thematic Tutorials',
+                'url': kernel_url('doc/thematic_tutorials/index.html'),
+            },
+            {
+                'text': 'FAQs',
+                'url': kernel_url('doc/faq/index.html'),
+            },
+            {
+                'text': 'PREP Tutorials',
+                'url': kernel_url('doc/prep/index.html'),
+            },
+            {
+                'text': 'Sage Reference',
+                'url': kernel_url('doc/reference/index.html'),
+            },
+            {
+                'text': 'Developers Guide',
+                'url': kernel_url('doc/developer/index.html'),
+            },
+            {
+                'text': "Python",
+                'url': "http://docs.python.org/%i.%i" % sys.version_info[:2],
+            },
+            {
+                'text': "IPython",
+                'url': "http://ipython.org/documentation.html",
+            },
+            {
+                'text': 'Singular',
+                'url': 'http://www.singular.uni-kl.de/Manual/latest/index.htm',
+            },
+            {
+                'text': 'GAP',
+                'url': 'http://gap-system.org/Manuals/doc/ref/chap0.html',
+            },
+            {
+                'text': "NumPy",
+                'url': "http://docs.scipy.org/doc/numpy/reference/",
+            },
+            {
+                'text': "SciPy",
+                'url': "http://docs.scipy.org/doc/scipy/reference/",
+            },
+            {
+                'text': "SymPy",
+                'url': 'http://docs.sympy.org/latest/index.html',
+            },
+            {
+                'text': "Matplotlib",
+                'url': "http://matplotlib.org/contents.html",
+            },
+            {
+                'text': "Markdown",
+                'url': "http://help.github.com/articles/github-flavored-markdown",
+            },
+        ]

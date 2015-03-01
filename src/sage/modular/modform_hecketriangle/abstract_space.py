@@ -467,7 +467,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         r"""
         Return a functor that constructs ``self`` (used by the coercion machinery).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
             sage: QuasiModularForms(n=4, k=2, ep=1, base_ring=CC).construction()
@@ -755,8 +755,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         elif (gamma.is_reflection()):
             return self._ep * (t/AlgebraicField()(i))**self._weight
         else:
-            L = [M for M in gamma.decompose_basic()]
-            L.pop(-1)
+            L = [v for v in gamma.word_S_T()[0]]
             aut_f = ZZ(1)
             while (len(L) > 0):
                 M = L.pop(-1)

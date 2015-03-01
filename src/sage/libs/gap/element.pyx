@@ -882,7 +882,7 @@ cdef class GapElement(RingElement):
             ...
             ValueError: libGAP: Error, Variable: 'Infinity' must have a value
         """
-        if not PY_TYPE_CHECK(right, GapElement):
+        if not isinstance(right, GapElement):
             libgap = self.parent()
             right = libgap(right)
         cdef libGAP_Obj result

@@ -102,7 +102,7 @@ def is_IntegerRing(x):
         sage: is_IntegerRing(parent(1/3))
         False
     """
-    return PY_TYPE_CHECK(x, IntegerRing_class)
+    return isinstance(x, IntegerRing_class)
 
 import integer_ring_python
 
@@ -511,13 +511,13 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         if step is None:
             step = 1
         if not PyInt_CheckExact(step):
-            if not PY_TYPE_CHECK(step, integer.Integer):
+            if not isinstance(step, integer.Integer):
                 step = integer.Integer(step)
             if mpz_fits_slong_p((<Integer>step).value):
                 step = int(step)
-        if not PY_TYPE_CHECK(start, integer.Integer):
+        if not isinstance(start, integer.Integer):
             start = integer.Integer(start)
-        if not PY_TYPE_CHECK(end, integer.Integer):
+        if not isinstance(end, integer.Integer):
             end = integer.Integer(end)
         cdef integer.Integer a = <Integer>start
         cdef integer.Integer b = <Integer>end
@@ -802,11 +802,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 if x is None:
                     mpz_set_si(value, rstate.c_random()%5 - 2)
                 else:
-                    n_max = x if PY_TYPE_CHECK(x, integer.Integer) else self(x)
+                    n_max = x if isinstance(x, integer.Integer) else self(x)
                     mpz_urandomm(value, rstate.gmp_state, n_max.value)
             else:
-                n_min = x if PY_TYPE_CHECK(x, integer.Integer) else self(x)
-                n_max = y if PY_TYPE_CHECK(y, integer.Integer) else self(y)
+                n_min = x if isinstance(x, integer.Integer) else self(x)
+                n_max = y if isinstance(y, integer.Integer) else self(y)
                 n_width = n_max - n_min
                 if mpz_sgn(n_width.value) <= 0:
                     n_min = self(-2)

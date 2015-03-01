@@ -356,9 +356,6 @@ are named
 
               [matrix] [base ring] [dense or sparse].
 
-See the files ``matrix_template.pxd`` and
-``matrix_template.pyx``.
-
 ::
 
     New matrices types can only be implemented in Cython.

@@ -637,7 +637,7 @@ cdef class CRElement(pAdicTemplateElement):
         cdef Integer right
         cdef CRElement base, pright, ans
         cdef bint exact_exp
-        if (PY_TYPE_CHECK(_right, Integer) or isinstance(_right, (int, long)) or PY_TYPE_CHECK(_right, Rational)):
+        if (isinstance(_right, Integer) or isinstance(_right, (int, long)) or isinstance(_right, Rational)):
             if _right < 0:
                 base = ~self
                 return base.__pow__(-_right, dummy)
@@ -669,7 +669,7 @@ cdef class CRElement(pAdicTemplateElement):
             # If a positive integer exponent, return an inexact zero of valuation right * self.ordp.  Otherwise raise an error.
             if isinstance(_right, (int, long)):
                 _right = Integer(_right)
-            if PY_TYPE_CHECK(_right, Integer):
+            if isinstance(_right, Integer):
                 right = <Integer>_right
                 mpz_init(tmp)
                 mpz_mul_si(tmp, (<Integer>_right).value, self.ordp)
@@ -871,10 +871,10 @@ cdef class CRElement(pAdicTemplateElement):
         cdef long aprec, newprec
         if absprec is infinity:
             return self
-        elif PY_TYPE_CHECK(absprec, int):
+        elif isinstance(absprec, int):
             aprec = absprec
         else:
-            if not PY_TYPE_CHECK(absprec, Integer):
+            if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
             aprec = mpz_get_si((<Integer>absprec).value)
         if aprec < self.ordp:
@@ -958,7 +958,7 @@ cdef class CRElement(pAdicTemplateElement):
             if self.relprec == 0 and absprec > self.ordp:
                 raise PrecisionError("Not enough precision to determine if element is zero")
             return self.ordp >= absprec
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if self.relprec == 0:
             if mpz_cmp_si((<Integer>absprec).value, self.ordp) > 0:
@@ -1085,7 +1085,7 @@ cdef class CRElement(pAdicTemplateElement):
         if absprec is None:
             aprec = min(self.ordp + self.relprec, right.ordp + right.relprec)
         else:
-            if not PY_TYPE_CHECK(absprec, Integer):
+            if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
             if mpz_fits_slong_p((<Integer>absprec).value) == 0:
                 if mpz_sgn((<Integer>absprec).value) < 0 or \

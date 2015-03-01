@@ -1464,4 +1464,4 @@ def is_FiniteField(x):
         sage: is_FiniteField(Integers(7))
         False
     """
-    return IS_INSTANCE(x, FiniteField)
+    return isinstance(x, FiniteField)

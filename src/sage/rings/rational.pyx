@@ -63,7 +63,7 @@ from integer cimport Integer
 
 import sage.libs.pari.pari_instance
 from sage.libs.pari.gen cimport gen as pari_gen
-from sage.libs.pari.pari_instance cimport PariInstance
+from sage.libs.pari.pari_instance cimport PariInstance, INT_to_mpz, INTFRAC_to_mpq
 
 from integer_ring import ZZ
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
@@ -89,11 +89,6 @@ cdef object numpy_long_interface = {'typestr': '=i4' if sizeof(long) == 4 else '
 cdef object numpy_int64_interface = {'typestr': '=i8'}
 cdef object numpy_object_interface = {'typestr': '|O'}
 cdef object numpy_double_interface = {'typestr': '=f8'}
-
-cdef extern from "convert.h":
-    ctypedef long* GEN
-    void t_FRAC_to_QQ ( mpq_t value, GEN g )
-    void t_INT_to_ZZ ( mpz_t value, GEN g )
 
 
 cdef extern from "mpz_pylong.h":
@@ -533,11 +528,8 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         elif isinstance(x, pari_gen):
             x = x.simplify()
-            if typ((<pari_gen>x).g) == t_FRAC:
-                t_FRAC_to_QQ(self.value, (<pari_gen>x).g)
-            elif typ((<pari_gen>x).g) == t_INT:
-                t_INT_to_ZZ(mpq_numref(self.value), (<pari_gen>x).g)
-                mpz_set_si(mpq_denref(self.value), 1)
+            if is_rational_t(typ((<pari_gen>x).g)):
+                INTFRAC_to_mpq(self.value, (<pari_gen>x).g)
             else:
                 a = integer.Integer(x)
                 mpz_set(mpq_numref(self.value), a.value)
@@ -2410,7 +2402,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         if dummy is not None:
             raise ValueError, "__pow__ dummy variable not used"
 
-        if not PY_TYPE_CHECK(self, Rational):
+        if not isinstance(self, Rational):
             # If the base is not a rational, e.g., it is an int, complex, float, user-defined type, etc.
             try:
                 self_coerced = n.parent().coerce(self)
@@ -2429,7 +2421,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         try:
             nn = PyNumber_Index(n)
         except TypeError:
-            if PY_TYPE_CHECK(n, Rational):
+            if isinstance(n, Rational):
                 # Perhaps it can be done exactly
                 c, d = rational_power_parts(self, n)
                 if d == 1:
@@ -2452,7 +2444,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 else:
                     return SR(self).power(n, hold=True)
 
-            if PY_TYPE_CHECK(n, Element):
+            if isinstance(n, Element):
                 return (<Element>n)._parent(self)**n
             try:
                 return n.parent()(self)**n
@@ -3420,10 +3412,10 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (2/3) << (4/1)
             32/3
         """
-        if PY_TYPE_CHECK(x, Rational):
+        if isinstance(x, Rational):
             if isinstance(y, (int, long, integer.Integer)):
                 return (<Rational>x)._lshift(y)
-            if PY_TYPE_CHECK(y, Rational):
+            if isinstance(y, Rational):
                 if mpz_cmp_si(mpq_denref((<Rational>y).value), 1) != 0:
                     raise ValueError, "denominator must be 1"
                 return (<Rational>x)._lshift(y)
@@ -3468,10 +3460,10 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (2/1) >>(4/1)
             1/8
         """
-        if PY_TYPE_CHECK(x, Rational):
+        if isinstance(x, Rational):
             if isinstance(y, (int, long, integer.Integer)):
                 return (<Rational>x)._rshift(y)
-            if PY_TYPE_CHECK(y, Rational):
+            if isinstance(y, Rational):
                 if mpz_cmp_si(mpq_denref((<Rational>y).value), 1) != 0:
                     raise ValueError, "denominator must be 1"
                 return (<Rational>x)._rshift(y)

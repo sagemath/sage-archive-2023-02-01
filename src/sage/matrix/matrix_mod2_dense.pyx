@@ -655,7 +655,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             True
         """
         cdef mzd_t *tmp
-        if not PY_TYPE_CHECK(v, Vector_mod2_dense):
+        if not isinstance(v, Vector_mod2_dense):
             M = VectorSpace(self._base_ring, self._nrows)
             v = M(v)
         if self.ncols() != v.degree():

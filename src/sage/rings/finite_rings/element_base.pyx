@@ -210,7 +210,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1)
         """
         #vector(foo) might pass in ZZ
-        if PY_TYPE_CHECK(reverse, Parent):
+        if isinstance(reverse, Parent):
             raise TypeError, "Base field is fixed to prime subfield."
 
         k = self.parent()

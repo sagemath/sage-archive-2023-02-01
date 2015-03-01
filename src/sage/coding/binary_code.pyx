@@ -56,7 +56,8 @@ cdef inline int min(int a, int b):
 ## essentially only for doctesting and debugging, have underscores.
 
 cdef int *hamming_weights():
-    cdef int *ham_wts, i
+    cdef int *ham_wts
+    cdef int i
     ham_wts = <int *> sage_malloc( 65536 * sizeof(int) )
     if ham_wts is NULL:
         sage_free(ham_wts)
@@ -3954,7 +3955,8 @@ cdef class BinaryCodeClassifier:
         cdef WordPermutation **parent_generators
         cdef BinaryCode B_aug
         cdef int i, ii, j, jj, ij, k = 0, parity, combo, num_gens
-        cdef int base_size, *multimod2_index, row
+        cdef int base_size, row
+        cdef int *multimod2_index
         cdef int *ham_wts = self.ham_wts
         cdef int *num_inner_gens
         cdef int *num_outer_gens

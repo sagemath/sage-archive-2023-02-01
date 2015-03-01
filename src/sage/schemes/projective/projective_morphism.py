@@ -3135,6 +3135,76 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         g = self._preperiodic_points_to_cyclegraph(preper)
         return(g)
 
+    def connected_rational_component(self,P,n=0):
+        r"""
+        Computes the connected component of a rational preperiodic point `P` of ``self``. Will work for
+        non-preperiodic points if `n` is positive. Otherwise this will not terminate.
+
+        INPUT:
+
+        - ``P`` - A rational preperiodic point of ``self``
+
+        - ``n`` - Maximum distance from `P` to branch out. A value of 0 indicates no bound. Default: 0
+
+        OUTPUT:
+
+        - a list of points connected to `P` up to the specified distance
+
+        Examples::
+
+            sage: R.<x>=PolynomialRing(QQ)
+            sage: K.<w>= NumberField(x^3+1/4*x^2-41/16*x+23/64)
+            sage: PS.<x,y> = ProjectiveSpace(1,K)
+            sage: H = End(PS)
+            sage: f = H([x^2 - 29/16*y^2,y^2])
+            sage: P = PS([w,1])
+            sage: f.connected_rational_component(P)
+            [(w : 1), (w^2 - 29/16 : 1), (-w^2 - w + 25/16 : 1), (w^2 + w - 25/16 : 1),
+            (-w : 1), (-w^2 + 29/16 : 1), (-w - 1/2 : 1), (w + 1/2 : 1), (w^2 - 21/16 : 1),
+            (-w^2 + 21/16 : 1), (-w^2 - w + 33/16 : 1), (w^2 + w - 33/16 : 1)]
+
+        ::
+
+            sage: PS.<x,y,z> = ProjectiveSpace(2,QQ)
+            sage: H = End(PS)
+            sage: f = H([x^2 - 21/16*z^2,y^2-2*z^2,z^2])
+            sage: P = PS([17/16,7/4,1])
+            sage: f.connected_rational_component(P,3)
+            [(17/16 : 7/4 : 1), (-47/256 : 17/16 : 1), (-83807/65536 : -223/256 : 1), (17/16 : -7/4 : 1),
+            (-17/16 : -7/4 : 1), (-17/16 : 7/4 : 1), (1386468673/4294967296 : -81343/65536 : 1),
+            (47/256 : -17/16 : 1), (47/256 : 17/16 : 1), (-47/256 : -17/16 : 1), (-1/2 : -1/2 : 1),
+            (-1/2 : 1/2 : 1), (1/2 : 1/2 : 1), (1/2 : -1/2 : 1)]
+        """
+        points = [[],[]] # list of points and a list of their corresponding levels
+        points[0].append(P)
+        points[1].append(0) # P is treated as level 0
+
+        nextpoints = []
+        nextpoints.append(P)
+
+        level = 1
+        foundall = False # whether done or not
+        while not foundall:
+            newpoints = []
+            for Q in nextpoints:
+                # forward image
+                newpoints.append(self(Q))
+                # preimages
+                newpoints.extend(self.rational_preimages(Q))
+            del nextpoints[:] # empty list
+            # add any points that are not already in the connected component
+            for Q in newpoints:
+                if (Q not in points[0]):
+                    points[0].append(Q)
+                    points[1].append(level)
+                    nextpoints.append(Q)
+            # done if max level was achieved or if there were no more points to add
+            if ((level + 1 > n and n != 0) or len(nextpoints) == 0):
+                foundall = True
+            level = level + 1
+
+        return points[0]
+
     def _number_field_from_algebraics(self):
         r"""
         Given a projective map defined over ``QQbar``, return the same map, but defined

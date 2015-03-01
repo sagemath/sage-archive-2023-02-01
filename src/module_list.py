@@ -1069,14 +1069,6 @@ ext_modules = [
               include_dirs = [SAGE_INC + '/m4rie'],
               extra_compile_args = m4ri_extra_compile_args),
 
-    Extension('sage.matrix.matrix_modn_dense',
-              sources = ['sage/matrix/matrix_modn_dense.pyx'],
-              language="c++",
-              extra_compile_args = ["-D_XPG6"] + m4ri_extra_compile_args,
-              # order matters for cygwin!!
-              libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'flint', BLAS, BLAS2],
-              depends = [SAGE_INC + '/m4ri/m4ri.h'] + flint_depends),
-
     Extension('sage.matrix.matrix_modn_dense_float',
               sources = ['sage/matrix/matrix_modn_dense_float.pyx'],
               language="c++",
@@ -1126,9 +1118,6 @@ ext_modules = [
 
     Extension('sage.matrix.matrix_window',
               sources = ['sage/matrix/matrix_window.pyx']),
-
-    Extension('sage.matrix.matrix_window_modn_dense',
-              sources = ['sage/matrix/matrix_window_modn_dense.pyx']),
 
     Extension('sage.matrix.misc',
               sources = ['sage/matrix/misc.pyx'],

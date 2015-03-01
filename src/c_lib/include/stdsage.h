@@ -147,12 +147,6 @@ extern PyObject* global_empty_tuple;
  */
 void init_csage(void);
 
-/**
- * Initialisation of a Cython module. Called exactly once for every
- * Cython module. On Cygwin, this calls init_csage().
- */
-void init_csage_module(void);
-
 
 
 /**

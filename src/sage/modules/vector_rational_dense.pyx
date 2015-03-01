@@ -348,9 +348,9 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
     cpdef ModuleElement _rmul_(self, RingElement left):
         cdef Vector_rational_dense z
         cdef Rational a
-        if PY_TYPE_CHECK(left, Rational):
+        if isinstance(left, Rational):
             a = <Rational>left
-        elif PY_TYPE_CHECK(left, Integer):
+        elif isinstance(left, Integer):
             a = <Rational>Rational.__new__(Rational)
             mpq_set_z(a.value, (<Integer>left).value)
         else:
@@ -367,9 +367,9 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
     cpdef ModuleElement _lmul_(self, RingElement right):
         cdef Vector_rational_dense z
         cdef Rational a
-        if PY_TYPE_CHECK(right, Rational):
+        if isinstance(right, Rational):
             a = <Rational>right
-        elif PY_TYPE_CHECK(right, Integer):
+        elif isinstance(right, Integer):
             a = <Rational>Rational.__new__(Rational)
             mpq_set_z(a.value, (<Integer>right).value)
         else:

@@ -39,12 +39,12 @@ cdef class PowerSeries_poly(PowerSeries):
             1 + O(t^5)
         """
         R = parent._poly_ring()
-        if PY_TYPE_CHECK(f, Element):
+        if isinstance(f, Element):
             if (<Element>f)._parent is R:
                 pass
             elif (<Element>f)._parent == R.base_ring():
                 f = R([f])
-            elif PY_TYPE_CHECK(f, PowerSeries_poly):
+            elif isinstance(f, PowerSeries_poly):
                 prec = (<PowerSeries_poly>f)._prec
                 f = R((<PowerSeries_poly>f).__f)
             else:

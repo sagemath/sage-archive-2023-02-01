@@ -79,13 +79,13 @@ cdef class ntl_ZZ:
 
         AUTHOR: Joel B. Mohler (2007-06-14)
         """
-        if PY_TYPE_CHECK(v, ntl_ZZ):
+        if isinstance(v, ntl_ZZ):
             self.x = (<ntl_ZZ>v).x
         elif PyInt_Check(v):
             ZZ_conv_from_int(self.x, PyInt_AS_LONG(v))
         elif PyLong_Check(v):
             ZZ_set_pylong(self.x, v)
-        elif PY_TYPE_CHECK(v, Integer):
+        elif isinstance(v, Integer):
             self.set_from_sage_int(v)
         elif v is not None:
             v = str(v)
@@ -169,9 +169,9 @@ cdef class ntl_ZZ:
             5966
         """
         cdef ntl_ZZ r = ntl_ZZ.__new__(ntl_ZZ)
-        if not PY_TYPE_CHECK(self, ntl_ZZ):
+        if not isinstance(self, ntl_ZZ):
             self = ntl_ZZ(self)
-        if not PY_TYPE_CHECK(other, ntl_ZZ):
+        if not isinstance(other, ntl_ZZ):
             other = ntl_ZZ(other)
         sig_on()
         ZZ_mul(r.x, (<ntl_ZZ>self).x, (<ntl_ZZ>other).x)
@@ -187,9 +187,9 @@ cdef class ntl_ZZ:
             2981
         """
         cdef ntl_ZZ r = ntl_ZZ.__new__(ntl_ZZ)
-        if not PY_TYPE_CHECK(self, ntl_ZZ):
+        if not isinstance(self, ntl_ZZ):
             self = ntl_ZZ(self)
-        if not PY_TYPE_CHECK(other, ntl_ZZ):
+        if not isinstance(other, ntl_ZZ):
             other = ntl_ZZ(other)
         ZZ_sub(r.x, (<ntl_ZZ>self).x, (<ntl_ZZ>other).x)
         return r
@@ -203,9 +203,9 @@ cdef class ntl_ZZ:
             25
         """
         cdef ntl_ZZ r = ntl_ZZ.__new__(ntl_ZZ)
-        if not PY_TYPE_CHECK(self, ntl_ZZ):
+        if not isinstance(self, ntl_ZZ):
             self = ntl_ZZ(self)
-        if not PY_TYPE_CHECK(other, ntl_ZZ):
+        if not isinstance(other, ntl_ZZ):
             other = ntl_ZZ(other)
         ZZ_add(r.x, (<ntl_ZZ>self).x, (<ntl_ZZ>other).x)
         return r
@@ -457,7 +457,7 @@ def randomBnd(q):
 
     cdef ntl_ZZ w
 
-    if not PY_TYPE_CHECK(q, ntl_ZZ):
+    if not isinstance(q, ntl_ZZ):
         q = ntl_ZZ(str(q))
     w = q
     cdef ntl_ZZ ans

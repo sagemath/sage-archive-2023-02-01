@@ -114,7 +114,7 @@ def is_ComplexDoubleField(x):
         sage: is_ComplexDoubleField(ComplexField(53))
         False
     """
-    return PY_TYPE_CHECK(x, ComplexDoubleField_class)
+    return isinstance(x, ComplexDoubleField_class)
 
 cdef class ComplexDoubleField_class(sage.rings.ring.Field):
     """
@@ -275,7 +275,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: loads(dumps(CDF)) == CDF # indirect doctest
             True
         """
-        if PY_TYPE_CHECK(x, ComplexDoubleField_class):
+        if isinstance(x, ComplexDoubleField_class):
             return 0
         return cmp(type(self), type(x))
 
@@ -343,9 +343,9 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: CDF((1,2)) # indirect doctest
             1.0 + 2.0*I
         """
-        if PY_TYPE_CHECK(x, ComplexDoubleElement):
+        if isinstance(x, ComplexDoubleElement):
             return x
-        elif PY_TYPE_CHECK(x, tuple):
+        elif isinstance(x, tuple):
             return ComplexDoubleElement(x[0], x[1])
         elif isinstance(x, (float, int, long)):
             return ComplexDoubleElement(x, 0)
@@ -681,7 +681,7 @@ def is_ComplexDoubleElement(x):
         sage: is_ComplexDoubleElement(CDF(0))
         True
     """
-    return PY_TYPE_CHECK(x, ComplexDoubleElement)
+    return isinstance(x, ComplexDoubleElement)
 
 cdef inline ComplexDoubleElement pari_to_cdf(pari_gen g):
     """

@@ -863,7 +863,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
                 zz_pX_power(r.x, self.x, e)
                 if do_sig: sig_off()
         else:
-            if not PY_TYPE_CHECK(modulus, Polynomial_dense_modn_ntl_zz):
+            if not isinstance(modulus, Polynomial_dense_modn_ntl_zz):
                 modulus = self.parent()._coerce_(modulus)
             zz_pX_Modulus_construct(mod)
             zz_pX_Modulus_build(mod[0], (<Polynomial_dense_modn_ntl_zz>modulus).x)
@@ -1161,11 +1161,11 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             return Polynomial.__call__(self, *args, **kwds)
         arg = args[0]
         cdef ntl_zz_p fx = ntl_zz_p(0, self.c), x = None
-        if PY_TYPE_CHECK(arg, int):
+        if isinstance(arg, int):
             x = ntl_zz_p(arg, self.c)
-        elif PY_TYPE_CHECK(arg, Integer):
+        elif isinstance(arg, Integer):
             x = ntl_zz_p(arg, self.c)
-        elif PY_TYPE_CHECK(arg, Element):
+        elif isinstance(arg, Element):
             if <void *>self._parent._base == <void *>(<Element>arg)._parent: # c++ pointer hack
                 x = ntl_zz_p(arg, self.c)
             else:
@@ -1256,7 +1256,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
     def _unsafe_mutate(self, n, value):
         self.c.restore_c()
         cdef Integer a
-        if PY_TYPE_CHECK(value, Integer):
+        if isinstance(value, Integer):
             a = <Integer>value
         else:
             a = ZZ(value)
@@ -1425,7 +1425,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
                 ZZ_pX_power(r.x, self.x, e)
                 if do_sig: sig_off()
         else:
-            if not PY_TYPE_CHECK(modulus, Polynomial_dense_modn_ntl_ZZ):
+            if not isinstance(modulus, Polynomial_dense_modn_ntl_ZZ):
                 modulus = self.parent()._coerce_(modulus)
             ZZ_pX_Modulus_construct(mod)
             ZZ_pX_Modulus_build(mod[0], (<Polynomial_dense_modn_ntl_ZZ>modulus).x)
@@ -1727,9 +1727,9 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             return Polynomial.__call__(self, *args, **kwds)
         arg = args[0]
         cdef ntl_ZZ_p fx = ntl_ZZ_p(0, self.c), x = None
-        if PY_TYPE_CHECK(arg, int) or PY_TYPE_CHECK(arg, Integer):
+        if isinstance(arg, int) or isinstance(arg, Integer):
             x = ntl_ZZ_p(arg, self.c)
-        elif PY_TYPE_CHECK(arg, Element):
+        elif isinstance(arg, Element):
             if <void *>self._parent._base == <void *>(<Element>arg)._parent: # c++ pointer hack
                 x = ntl_ZZ_p(arg, self.c)
             else:

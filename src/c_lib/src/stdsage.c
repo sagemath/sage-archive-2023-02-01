@@ -51,10 +51,3 @@ void init_csage() {
     setup_sage_signal_handler();
     setup_NTL_error_callback(global_NTL_error_callback, NULL);
 }
-
-/* This is called once for every single module that links in stdsage */
-void init_csage_module() {
-#if defined(__CYGWIN32__)
-    init_csage();
-#endif
-}

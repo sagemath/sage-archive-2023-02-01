@@ -79,14 +79,24 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         Create a sparse matrix over the integers.
 
         INPUT:
-            parent -- a matrix space
-            entries -- * a Python list of triples (i,j,x), where 0 <= i < nrows,
-                         0 <= j < ncols, and x is coercible to an int.  The i,j
-                         entry of self is set to x.  The x's can be 0.
-                       * Alternatively, entries can be a list of *all* the entries
-                         of the sparse matrix (so they would be mostly 0).
-            copy -- ignored
-            coerce -- ignored
+
+        - ``parent`` -- a matrix space
+
+        - ``entries`` -- can be one of the following:
+
+          * a Python dictionary whose items have the
+            form ``(i, j): x``, where ``0 <= i < nrows``,
+            ``0 <= j < ncols``, and ``x`` is coercible to
+            an integer.  The ``i,j`` entry of ``self`` is
+            set to ``x``.  The ``x``'s can be ``0``.
+          * Alternatively, entries can be a list of *all*
+            the entries of the sparse matrix, read
+            row-by-row from top to bottom (so they would
+            be mostly 0).
+
+        - ``copy`` -- ignored
+
+        - ``coerce`` -- ignored
         """
         cdef Py_ssize_t i, j, k
         cdef Integer z
@@ -186,7 +196,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             [ 9 12 15]
         """
         cdef Py_ssize_t i
-        cdef mpz_vector* self_row, *M_row
+        cdef mpz_vector *self_row
+        cdef mpz_vector *M_row
         cdef Matrix_integer_sparse M
         cdef Integer _x
         _x = Integer(right)
@@ -199,7 +210,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
     cpdef ModuleElement _add_(self, ModuleElement right):
         cdef Py_ssize_t i, j
-        cdef mpz_vector* self_row, *M_row
+        cdef mpz_vector *self_row
+        cdef mpz_vector *M_row
         cdef Matrix_integer_sparse M
 
         M = Matrix_integer_sparse.__new__(Matrix_integer_sparse, self._parent, None, None, None)
@@ -213,7 +225,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
         cdef Py_ssize_t i, j
-        cdef mpz_vector* self_row, *M_row
+        cdef mpz_vector *self_row
+        cdef mpz_vector *M_row
         cdef Matrix_integer_sparse M
 
         M = Matrix_integer_sparse.__new__(Matrix_integer_sparse, self._parent, None, None, None)

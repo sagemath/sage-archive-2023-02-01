@@ -293,7 +293,7 @@ cdef op_to_tuple(fast_double_op op):
         return s, param
 
 def _unpickle_FastDoubleFunc(nargs, max_height, op_list):
-    cdef FastDoubleFunc self = PY_NEW(FastDoubleFunc)
+    cdef FastDoubleFunc self = FastDoubleFunc.__new__(FastDoubleFunc)
     self.nops = len(op_list)
     self.nargs = nargs
     self.max_height = max_height
@@ -1228,7 +1228,7 @@ cdef class FastDoubleFunc:
     ###################################################################
 
     cdef FastDoubleFunc unop(FastDoubleFunc self, char type):
-        cdef FastDoubleFunc feval = PY_NEW(FastDoubleFunc)
+        cdef FastDoubleFunc feval = FastDoubleFunc.__new__(FastDoubleFunc)
         feval.nargs = self.nargs
         feval.nops = self.nops + 1
         feval.max_height = self.max_height
@@ -1290,7 +1290,7 @@ cdef FastDoubleFunc binop(_left, _right, char type):
     if left is None or right is None:
         raise TypeError
 
-    cdef FastDoubleFunc feval = PY_NEW(FastDoubleFunc)
+    cdef FastDoubleFunc feval = FastDoubleFunc.__new__(FastDoubleFunc)
     feval.nargs = max(left.nargs, right.nargs)
     feval.nops = left.nops + right.nops + 1
     feval.max_height = max(left.max_height, right.max_height+1)
@@ -1422,7 +1422,7 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
 
     cdef int i
     for i from 0 <= i < len(vars):
-        if not PY_TYPE_CHECK(vars[i], str):
+        if not isinstance(vars[i], str):
             v = str(vars[i])
             # inexact generators display as 1.00..0*x
             if '*' in v:
@@ -1455,4 +1455,4 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
 
 
 def is_fast_float(x):
-    return PY_TYPE_CHECK(x, FastDoubleFunc) or PY_TYPE_CHECK(x, Wrapper)
+    return isinstance(x, FastDoubleFunc) or isinstance(x, Wrapper)

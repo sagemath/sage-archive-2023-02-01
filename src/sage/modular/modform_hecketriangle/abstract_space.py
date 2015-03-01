@@ -25,6 +25,7 @@ from sage.modules.free_module_element import is_FreeModuleElement
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.rings.all import Integer
+from sage.structure.all import parent
 
 from sage.misc.cachefunc import cached_method
 
@@ -232,19 +233,20 @@ class FormsSpace_abstract(FormsRing_abstract):
         # holomorphic at -1 for n=infinity (this assumption however
         # can be changed in construct_form
         # resp. construct_quasi_form))
-        if hasattr(x, 'parent') and (is_LaurentSeriesRing(x.parent()) or is_PowerSeriesRing(x.parent())):
+        P = parent(x)
+        if is_LaurentSeriesRing(P) or is_PowerSeriesRing(P):
             if (self.is_modular()):
                 return self.construct_form(x)
             else:
                 return self.construct_quasi_form(x)
-        if is_FreeModuleElement(x) and (self.module() == x.parent() or self.ambient_module() == x.parent()):
+        if is_FreeModuleElement(x) and (self.module() is P or self.ambient_module() is P):
             return self.element_from_ambient_coordinates(x)
         if (not self.is_ambient()) and (isinstance(x, list) or isinstance(x, tuple) or is_FreeModuleElement(x)) and len(x) == self.rank():
             try:
                 return self.element_from_coordinates(x)
             except (ArithmeticError, TypeError):
                 pass
-        if hasattr(x, 'parent') and self.ambient_module() and self.ambient_module().has_coerce_map_from(x.parent()):
+        if self.ambient_module() and self.ambient_module().has_coerce_map_from(P):
             return self.element_from_ambient_coordinates(self.ambient_module()(x))
         if (isinstance(x,list) or isinstance(x, tuple)) and len(x) == self.degree():
             try:
@@ -312,9 +314,8 @@ class FormsSpace_abstract(FormsRing_abstract):
                 and self.coeff_ring().has_coerce_map_from(S)
 
     # Since forms spaces are modules instead of rings
-    # we have to manually define one_element() and one().
+    # we have to manually define one().
     # one() allows to take the power 0 of an element
-    # one_element() allows to take negative powers of elements
     @cached_method
     def one(self):
         r"""
@@ -332,7 +333,6 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: (MF.Delta()^0).parent()
             ModularForms(n=3, k=0, ep=1) over Integer Ring
         """
-
         return self.extend_type("holo", ring=True)(1).reduce()
 
     def one_element(self):
@@ -349,9 +349,12 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: (MF.Delta()^(-1)).parent()
             MeromorphicModularForms(n=3, k=-12, ep=1) over Integer Ring
             sage: MF.one_element()
+            doctest:...: DeprecationWarning: .one_element() is deprecated. Use .one() instead.
+            See http://trac.sagemath.org/17694 for details.
             1 + O(q^5)
         """
-
+        from sage.misc.superseded import deprecation
+        deprecation(17694, ".one_element() is deprecated. Use .one() instead.")
         return self.one()
 
     def is_ambient(self):
@@ -464,7 +467,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         r"""
         Return a functor that constructs ``self`` (used by the coercion machinery).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
             sage: QuasiModularForms(n=4, k=2, ep=1, base_ring=CC).construction()
@@ -752,8 +755,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         elif (gamma.is_reflection()):
             return self._ep * (t/AlgebraicField()(i))**self._weight
         else:
-            L = [M for M in gamma.decompose_basic()]
-            L.pop(-1)
+            L = [v for v in gamma.word_S_T()[0]]
             aut_f = ZZ(1)
             while (len(L) > 0):
                 M = L.pop(-1)

@@ -56,7 +56,8 @@ cdef inline int min(int a, int b):
 ## essentially only for doctesting and debugging, have underscores.
 
 cdef int *hamming_weights():
-    cdef int *ham_wts, i
+    cdef int *ham_wts
+    cdef int i
     ham_wts = <int *> sage_malloc( 65536 * sizeof(int) )
     if ham_wts is NULL:
         sage_free(ham_wts)
@@ -179,10 +180,13 @@ def test_word_perms(t_limit=5.0):
         sage: test_word_perms()  # long time (5s on sage.math, 2011)
 
     """
-    cdef WordPermutation *g, *h, *i
+    cdef WordPermutation *g
+    cdef WordPermutation *h
+    cdef WordPermutation *i
     cdef codeword cw1, cw2, cw3
     cdef int n = sizeof(codeword) << 3
-    cdef int j, *arr = <int*> sage_malloc(n * sizeof(int))
+    cdef int j
+    cdef int *arr = <int*> sage_malloc(n * sizeof(int))
     if arr is NULL:
         raise MemoryError("Error allocating memory.")
     from sage.misc.prandom import randint
@@ -267,7 +271,8 @@ cdef WordPermutation *create_word_perm(object list_perm):
     $i \mapsto L[i]$.
     """
     cdef int i, j, parity, comb, words_per_chunk, num_chunks = 1
-    cdef codeword *images_i, image
+    cdef codeword *images_i
+    cdef codeword image
     cdef WordPermutation *word_perm = <WordPermutation *> sage_malloc( sizeof(WordPermutation) )
     if word_perm is NULL:
         raise RuntimeError("Error allocating memory.")
@@ -316,7 +321,8 @@ cdef WordPermutation *create_array_word_perm(int *array, int start, int degree):
     Create a word permutation of a given degree from a C array, starting at start.
     """
     cdef int i, j, cslim, parity, comb, words_per_chunk, num_chunks = 1
-    cdef codeword *images_i, image
+    cdef codeword *images_i
+    cdef codeword image
     cdef WordPermutation *word_perm = <WordPermutation *> sage_malloc( sizeof(WordPermutation) )
     if word_perm is NULL:
         raise RuntimeError("Error allocating memory.")
@@ -364,7 +370,8 @@ cdef WordPermutation *create_id_word_perm(int degree):
     Create the identity word permutation of degree degree.
     """
     cdef int i, j, parity, comb, words_per_chunk, num_chunks = 1
-    cdef codeword *images_i, image
+    cdef codeword *images_i
+    cdef codeword image
     cdef WordPermutation *word_perm = <WordPermutation *> sage_malloc( sizeof(WordPermutation) )
     if word_perm is NULL:
         raise RuntimeError("Error allocating memory.")
@@ -411,7 +418,8 @@ cdef WordPermutation *create_comp_word_perm(WordPermutation *g, WordPermutation 
     Create the composition of word permutations $g \circ h$.
     """
     cdef int i, j, parity, comb, words_per_chunk, num_chunks = 1
-    cdef codeword *images_i, image
+    cdef codeword *images_i
+    cdef codeword image
     cdef WordPermutation *word_perm = <WordPermutation *> sage_malloc( sizeof(WordPermutation) )
     if word_perm is NULL:
         raise RuntimeError("Error allocating memory.")
@@ -460,7 +468,8 @@ cdef WordPermutation *create_inv_word_perm(WordPermutation *g):
     r"""
     Create the inverse $g^{-1}$ of the word permutation of $g$.
     """
-    cdef int i, j, *array = <int *> sage_malloc( g.degree * sizeof(int) )
+    cdef int i, j
+    cdef int *array = <int *> sage_malloc( g.degree * sizeof(int) )
     cdef codeword temp
     cdef WordPermutation *w
     for i from 0 <= i < g.degree:
@@ -560,7 +569,8 @@ cdef codeword *expand_to_ortho_basis(BinaryCode B, int n):
     that all the vectors in the span of the output have even weight).
     """
     # assumes B is already in standard form
-    cdef codeword *basis, word = 0, temp, new, pivots = 0, combo, parity
+    cdef codeword *basis
+    cdef codeword word = 0, temp, new, pivots = 0, combo, parity
     cdef codeword n_gate = (~<codeword>0) >> ( (sizeof(codeword)<<3) - n)
     cdef int i, j, m, k = B.nrows, dead, d
     cdef WordPermutation *wp
@@ -711,7 +721,9 @@ cdef class BinaryCode:
         cdef int nwords, other_nwords, parity, combination
         cdef codeword word, glue_word
         cdef BinaryCode other
-        cdef codeword *self_words, *self_basis, *other_basis
+        cdef codeword *self_words
+        cdef codeword *self_basis
+        cdef codeword *other_basis
 
         self.radix = sizeof(int) << 3
 
@@ -1518,8 +1530,16 @@ cdef class PartitionStack:
     def __cinit__(self, arg1, arg2=None):
         cdef int k, nwords, ncols, sizeof_int
         cdef PartitionStack other = None
-        cdef int *wd_ents, *wd_lvls, *col_ents, *col_lvls
-        cdef int *col_degs, *col_counts, *col_output, *wd_degs, *wd_counts, *wd_output
+        cdef int *wd_ents
+        cdef int *wd_lvls
+        cdef int *col_ents
+        cdef int *col_lvls
+        cdef int *col_degs
+        cdef int *col_counts
+        cdef int *col_output
+        cdef int *wd_degs
+        cdef int *wd_counts
+        cdef int *wd_output
         sizeof_int = sizeof(int)
 
         try:
@@ -1961,8 +1981,10 @@ cdef class PartitionStack:
 #
     cdef void new_min_cell_reps(self, int k, unsigned int *Omega, int start):
         cdef int i, j
-        cdef int *self_col_lvls = self.col_lvls, *self_wd_lvls = self.wd_lvls
-        cdef int *self_col_ents = self.col_ents, *self_wd_ents = self.wd_ents
+        cdef int *self_col_lvls = self.col_lvls
+        cdef int *self_wd_lvls = self.wd_lvls
+        cdef int *self_col_ents = self.col_ents
+        cdef int *self_wd_ents = self.wd_ents
         cdef int reps = (1 << self_col_ents[0]), length, word
         cdef int radix = self.radix, nwords = self.nwords, ncols = self.ncols
         length = 1 + nwords/radix
@@ -2019,8 +2041,10 @@ cdef class PartitionStack:
     cdef void fixed_vertices(self, int k, unsigned int *Phi, unsigned int *Omega, int start):
         cdef int i, j, length, ell, fixed = 0
         cdef int radix = self.radix, nwords = self.nwords, ncols = self.ncols
-        cdef int *self_col_lvls = self.col_lvls, *self_wd_lvls = self.wd_lvls
-        cdef int *self_col_ents = self.col_ents, *self_wd_ents = self.wd_ents
+        cdef int *self_col_lvls = self.col_lvls
+        cdef int *self_wd_lvls = self.wd_lvls
+        cdef int *self_col_ents = self.col_ents
+        cdef int *self_wd_ents = self.wd_ents
         for i from 0 <= i < ncols:
             fixed += ((self_col_lvls[i] <= k) << self_col_ents[i])
         Phi[start] = fixed & Omega[start]
@@ -2093,8 +2117,10 @@ cdef class PartitionStack:
         cdef int ell
         cdef int i = 0, j = 0, location = 0, min = self.ncols, nwords = self.nwords
         cdef int min_is_col = 1, radix = self.radix
-        cdef int *self_col_lvls = self.col_lvls, *self_wd_lvls = self.wd_lvls
-        cdef int *self_col_ents = self.col_ents, *self_wd_ents = self.wd_ents
+        cdef int *self_col_lvls = self.col_lvls
+        cdef int *self_wd_lvls = self.wd_lvls
+        cdef int *self_col_ents = self.col_ents
+        cdef int *self_wd_ents = self.wd_ents
         while True:
             if self_col_lvls[i] <= k:
                 if i != j and min > i - j + 1:
@@ -2394,7 +2420,8 @@ cdef class PartitionStack:
 
     cdef int col_degree(self, BinaryCode CG, int col, int wd_ptr, int k):
         cdef int i = 0
-        cdef int *self_wd_lvls = self.wd_lvls, *self_wd_ents = self.wd_ents
+        cdef int *self_wd_lvls = self.wd_lvls
+        cdef int *self_wd_ents = self.wd_ents
         while True:
             if CG.is_one(self_wd_ents[wd_ptr], col): i += 1
             if self_wd_lvls[wd_ptr] > k: wd_ptr += 1
@@ -2436,7 +2463,8 @@ cdef class PartitionStack:
 
     cdef int wd_degree(self, BinaryCode CG, int wd, int col_ptr, int k, int *ham_wts):
 
-        cdef int *self_col_lvls = self.col_lvls, *self_col_ents = self.col_ents
+        cdef int *self_col_lvls = self.col_lvls
+        cdef int *self_col_ents = self.col_ents
         cdef int mask = (1 << self_col_ents[col_ptr])
         while self_col_lvls[col_ptr] > k:
             col_ptr += 1
@@ -2647,8 +2675,12 @@ cdef class PartitionStack:
     cdef int refine(self, int k, int *alpha, int alpha_length, BinaryCode CG, int *ham_wts):
         cdef int q, r, s, t, flag = self.flag, self_ncols = self.ncols
         cdef int t_w, self_nwords = self.nwords, invariant = 0, i, j, m = 0
-        cdef int *self_wd_degs = self.wd_degs, *self_wd_lvls = self.wd_lvls, *self_wd_ents = self.wd_ents
-        cdef int *self_col_degs = self.col_degs, *self_col_lvls = self.col_lvls, *self_col_ents = self.col_ents
+        cdef int *self_wd_degs = self.wd_degs
+        cdef int *self_wd_lvls = self.wd_lvls
+        cdef int *self_wd_ents = self.wd_ents
+        cdef int *self_col_degs = self.col_degs
+        cdef int *self_col_lvls = self.col_lvls
+        cdef int *self_col_ents = self.col_ents
         while not self.is_discrete(k) and m < alpha_length:
 #            print "m:", m
 #            print "alpha:", ','.join(['w'+str(alpha[i]^flag) if alpha[i]&flag else 'c'+str(alpha[i]) for i from 0 <= i < alpha_length])
@@ -2757,7 +2789,8 @@ cdef class PartitionStack:
 
     cdef void clear(self, int k):
         cdef int i, j = 0, nwords = self.nwords, ncols = self.ncols
-        cdef int *wd_lvls = self.wd_lvls, *col_lvls = self.col_lvls
+        cdef int *wd_lvls = self.wd_lvls
+        cdef int *col_lvls = self.col_lvls
         for i from 0 <= i < nwords:
             if wd_lvls[i] >= k:
                 wd_lvls[i] += 1
@@ -2965,8 +2998,10 @@ cdef class PartitionStack:
 
     cdef void get_permutation(self, PartitionStack other, int *word_gamma, int *col_gamma):
         cdef int i
-        cdef int *self_wd_ents = self.wd_ents, *other_wd_ents = other.wd_ents
-        cdef int *self_col_ents = self.col_ents, *other_col_ents = other.col_ents
+        cdef int *self_wd_ents = self.wd_ents
+        cdef int *other_wd_ents = other.wd_ents
+        cdef int *self_col_ents = self.col_ents
+        cdef int *other_col_ents = other.col_ents
         # word_gamma[i] := image of the ith row as linear comb of rows
         for i from 0 <= i < self.nwords:
             word_gamma[other_wd_ents[i]] = self_wd_ents[i]
@@ -3259,7 +3294,8 @@ cdef class BinaryCodeClassifier:
         cdef int hzf__h_zeta      # the max height for which Lambda and zf agree
         cdef int hzb__h_rho = -1  # the max height for which Lambda and zb agree
 
-        cdef int *word_gamma, *col_gamma = self.c_gamma # used for storing permutations
+        cdef int *word_gamma
+        cdef int *col_gamma = self.c_gamma # used for storing permutations
         cdef int nwords = C.nwords, ncols = C.ncols, nrows = C.nrows
         cdef int *ham_wts = self.ham_wts
         cdef int state  # keeps track of position in algorithm - see sage/graphs/graph_isom.pyx, search for "STATE DIAGRAM"
@@ -3905,16 +3941,27 @@ cdef class BinaryCodeClassifier:
 
         """
         cdef BinaryCode m
-        cdef codeword *ortho_basis, *B_can_lab, current, swap
+        cdef codeword *ortho_basis
+        cdef codeword *B_can_lab
+        cdef codeword current, swap
         cdef codeword word, temp, gate, nonzero_gate, orbit, bwd, k_gate
-        cdef codeword *temp_basis, *orbit_checks, orb_chx_size, orb_chx_shift, radix_gate
-        cdef WordPermutation *gwp, *hwp, *can_lab, *can_lab_inv
+        cdef codeword *temp_basis
+        cdef codeword *orbit_checks
+        cdef codeword orb_chx_size, orb_chx_shift, radix_gate
+        cdef WordPermutation *gwp
+        cdef WordPermutation *hwp
+        cdef WordPermutation *can_lab
+        cdef WordPermutation *can_lab_inv
         cdef WordPermutation **parent_generators
         cdef BinaryCode B_aug
         cdef int i, ii, j, jj, ij, k = 0, parity, combo, num_gens
-        cdef int base_size, *multimod2_index, row
+        cdef int base_size, row
+        cdef int *multimod2_index
         cdef int *ham_wts = self.ham_wts
-        cdef int *num_inner_gens, *num_outer_gens, *v, log_2_radix
+        cdef int *num_inner_gens
+        cdef int *num_outer_gens
+        cdef int *v
+        cdef int log_2_radix
         cdef bint bingo, bingo2, bingo3
 
         B.put_in_std_form()

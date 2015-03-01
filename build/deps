@@ -23,10 +23,12 @@ all:
 # All targets except for the base packages
 all-sage: \
      $(INST)/$(ATLAS) \
+     $(INST)/$(BACKPORTS_SSL_MATCH_HOSTNAME) \
      $(INST)/$(BOEHM_GC) \
      $(INST)/$(BOOST_CROPPED) \
      $(INST)/$(CDDLIB) \
      $(INST)/$(CEPHES) \
+     $(INST)/$(CERTIFI) \
      $(INST)/$(CLIQUER) \
      $(INST)/$(COMBINATORIAL_DESIGNS) \
      $(INST)/$(CONWAY) \
@@ -379,7 +381,14 @@ $(INST)/$(PYPARSING): $(INST)/$(PYTHON)
 $(INST)/$(PYZMQ): $(INST)/$(PYTHON) $(INST)/$(ZEROMQ) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(PYZMQ) 2>&1" "tee -a $(SAGE_LOGS)/$(PYZMQ).log"
 
-$(INST)/$(TORNADO): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
+$(INST)/$(CERTIFI):  $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
+	+$(PIPE) "$(SAGE_SPKG) $(CERTIFI) 2>&1" "tee -a $(SAGE_LOGS)/$(CERTIFI).log"
+
+$(INST)/$(BACKPORTS_SSL_MATCH_HOSTNAME): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
+	+$(PIPE) "$(SAGE_SPKG) $(BACKPORTS_SSL_MATCH_HOSTNAME) 2>&1" "tee -a $(SAGE_LOGS)/$(BACKPORTS_SSL_MATCH_HOSTNAME).log"
+
+$(INST)/$(TORNADO): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) \
+                    $(INST)/$(BACKPORTS_SSL_MATCH_HOSTNAME) $(INST)/$(CERTIFI)
 	+$(PIPE) "$(SAGE_SPKG) $(TORNADO) 2>&1" "tee -a $(SAGE_LOGS)/$(TORNADO).log"
 
 $(INST)/$(MATPLOTLIB): $(INST)/$(PYTHON) $(INST)/$(NUMPY) \
@@ -510,7 +519,8 @@ $(INST)/csage: $(INST)/$(SCONS) \
        $(INST)/$(SAGE_MP_LIBRARY) \
        $(INST)/$(NTL) \
        $(INST)/$(PARI) \
-       $(INST)/$(PYTHON)
+       $(INST)/$(PYTHON) \
+       $(CSAGE_SOURCES)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && cd c_lib && \
 		$(PIPE) 'time scons -Q install 2>&1' 'tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log' && \

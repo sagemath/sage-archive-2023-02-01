@@ -31,8 +31,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
+from sage.ext.memory cimport check_calloc, check_allocarray, check_reallocarray, sage_free
 
 cdef extern from *:
     void memset(void *, int, Py_ssize_t)
@@ -336,29 +336,15 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: len(G.vertex_list())
             0
         """
-        if self.vs == NULL:
-            self.vs = <point_c *> sage_malloc(sizeof(point_c) * vcount)
-        else:
-            self.vs = <point_c *> sage_realloc(self.vs, sizeof(point_c) * vcount)
-        if self._faces == NULL:
-            self._faces = <face_c *> sage_malloc(sizeof(face_c) * fcount)
-        else:
-            self._faces = <face_c *> sage_realloc(self._faces, sizeof(face_c) * fcount)
-        if self.face_indices == NULL:
-            self.face_indices = <int *> sage_malloc(sizeof(int) * icount)
-        else:
-            self.face_indices = <int *> sage_realloc(self.face_indices, sizeof(int) * icount)
-        if (self.vs == NULL and vcount > 0) or (self.face_indices == NULL and icount > 0) or (self._faces == NULL and fcount > 0):
-            raise MemoryError("Out of memory allocating triangulation for %s" % type(self))
+        self.vs = <point_c *>check_reallocarray(self.vs, vcount, sizeof(point_c))
+        self._faces = <face_c *>check_reallocarray(self._faces, fcount, sizeof(face_c))
+        self.face_indices = <int *>check_reallocarray(self.face_indices, icount, sizeof(int))
 
     def _clean_point_list(self):
         # TODO: There is still wasted space where quadrilaterals were
         # converted to triangles...  but it's so little it's probably
         # not worth bothering with
-        cdef int* point_map = <int *>sage_malloc(sizeof(int) * self.vcount)
-        if point_map == NULL:
-            raise MemoryError("Out of memory cleaning up for %s" % type(self))
-        memset(point_map, 0, sizeof(int) * self.vcount)  # TODO: sage_calloc
+        cdef int* point_map = <int *>check_calloc(self.vcount, sizeof(int))
         cdef Py_ssize_t i, j
         cdef face_c *face
         for i from 0 <= i < self.fcount:
@@ -394,12 +380,9 @@ cdef class IndexFaceSet(PrimitiveObject):
         cdef Py_ssize_t i, j, k
         cdef face_c *face
         cdef int v, count, total = 0
-        cdef int* point_counts = <int *>sage_malloc(sizeof(int) * (self.vcount * 2 + 1))
+        cdef int* point_counts = <int *>check_calloc(self.vcount * 2 + 1, sizeof(int))
         # For each vertex, get number of faces
-        if point_counts == NULL:
-            raise MemoryError("Out of memory in _seperate_creases for %s" % type(self))
         cdef int* running_point_counts = &point_counts[self.vcount]
-        memset(point_counts, 0, sizeof(int) * self.vcount)
         for i from 0 <= i < self.fcount:
             face = &self._faces[i]
             total += face.n
@@ -415,10 +398,12 @@ cdef class IndexFaceSet(PrimitiveObject):
                 max = point_counts[i]
         running_point_counts[self.vcount] = running
         # Create an array, indexed by running_point_counts[v], to the list of faces containing that vertex.
-        cdef face_c** point_faces = <face_c **>sage_malloc(sizeof(face_c*) * total)
-        if point_faces == NULL:
+        cdef face_c** point_faces
+        try:
+            point_faces = <face_c **>check_allocarray(total, sizeof(face_c*))
+        except MemoryError:
             sage_free(point_counts)
-            raise MemoryError("Out of memory in _seperate_creases for %s" % type(self))
+            raise
         sig_on()
         memset(point_counts, 0, sizeof(int) * self.vcount)
         for i from 0 <= i < self.fcount:
@@ -453,13 +438,14 @@ cdef class IndexFaceSet(PrimitiveObject):
                     ix += 1
             # Reallocate room for vertices at end
             if ix > self.vcount:
-                self.vs = <point_c *>sage_realloc(self.vs, sizeof(point_c) * ix)
-                if self.vs == NULL:
+                try:
+                    self.vs = <point_c *>check_reallocarray(self.vs, ix, sizeof(point_c))
+                except MemoryError:
                     sage_free(point_counts)
                     sage_free(point_faces)
                     self.vcount = self.fcount = self.icount = 0 # so we don't get segfaults on bad points
                     sig_off()
-                    raise MemoryError("Out of memory in _seperate_creases for %s, CORRUPTED" % type(self))
+                    raise
                 ix = self.vcount
                 running = 0
                 for i from 0 <= i < self.vcount - start:
@@ -491,12 +477,9 @@ cdef class IndexFaceSet(PrimitiveObject):
         return self.vcount, self.fcount, self.icount
 
     def __dealloc__(self):
-        if self.vs != NULL:
-            sage_free(self.vs)
-        if self._faces != NULL:
-            sage_free(self._faces)
-        if self.face_indices != NULL:
-            sage_free(self.face_indices)
+        sage_free(self.vs)
+        sage_free(self._faces)
+        sage_free(self.face_indices)
 
     def is_enclosed(self):
         """
@@ -740,10 +723,8 @@ cdef class IndexFaceSet(PrimitiveObject):
         cdef face_c *new_face
         cdef IndexFaceSet face_set
 
-        cdef int *partition = <int *>sage_malloc(sizeof(int) * self.fcount)
+        cdef int *partition = <int *>check_allocarray(self.fcount, sizeof(int))
 
-        if partition == NULL:
-            raise MemoryError
         part_counts = {}
         for i from 0 <= i < self.fcount:
             face = &self._faces[i]
@@ -892,10 +873,10 @@ cdef class IndexFaceSet(PrimitiveObject):
             return ["{vertices:%s,faces:%s,color:%s}" %
                     (vertices_str, faces_str, color_str)]
         else:
-            color_str = "[{}]".format(",".join(["'#{}'".format(
+            color_str = "[{}]".format(",".join(["'{}'".format(
                     Color(self._faces[i].color.r,
                           self._faces[i].color.g,
-                          self._faces[i].color.b).__hex__())
+                          self._faces[i].color.b).html_color())
                                             for i from 0 <= i < self.fcount]))
             return ["{vertices:%s,faces:%s,face_colors:%s}" %
                     (vertices_str, faces_str, color_str)]

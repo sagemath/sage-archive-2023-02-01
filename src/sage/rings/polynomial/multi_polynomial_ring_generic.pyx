@@ -24,7 +24,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.arith import binomial
 
 def is_MPolynomialRing(x):
-    return bool(PY_TYPE_CHECK(x, MPolynomialRing_generic))
+    return isinstance(x, MPolynomialRing_generic)
 
 cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
     def __init__(self, base_ring, n, names, order):

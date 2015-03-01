@@ -41,6 +41,7 @@ graphs.
     :widths: 30, 70
     :delim: |
 
+    :meth:`~Graph.is_asteroidal_triple_free` | Tests whether the current graph is asteroidal triple free.
     :meth:`~Graph.is_prime` | Tests whether the current graph is prime.
     :meth:`~Graph.is_split` | Returns ``True`` if the graph is a Split graph, ``False`` otherwise.
     :meth:`~Graph.is_triangle_free` | Returns whether ``self`` is triangle-free.
@@ -3892,6 +3893,11 @@ class Graph(GenericGraph):
             sage: G.plot(vertex_colors=H)
             Graphics object consisting of 16 graphics primitives
 
+        .. PLOT::
+
+            g = Graph("Fooba")
+            sphinx_plot(g.plot(partition=g.coloring()))
+
         TESTS::
 
             sage: G.coloring(algorithm="foo")
@@ -3979,6 +3985,11 @@ class Graph(GenericGraph):
            sage: g = graphs.PappusGraph()
            sage: g.matching(algorithm="LP", value_only=True)
            9.0
+
+        .. PLOT::
+
+            g = graphs.PappusGraph()
+            sphinx_plot(g.plot(edge_colors={"red":g.matching()}))
 
         TESTS:
 
@@ -5698,6 +5709,11 @@ class Graph(GenericGraph):
             sage: C = graphs.PetersenGraph()
             sage: len(C.independent_set(algorithm = "MILP"))
             4
+
+        .. PLOT::
+
+            g = graphs.PetersenGraph()
+            sphinx_plot(g.plot(partition=[g.independent_set()]))
         """
         my_cover = self.vertex_cover(algorithm=algorithm, value_only=value_only, reduction_rules=reduction_rules, solver=solver, verbosity=verbosity)
         if value_only:
@@ -5773,6 +5789,11 @@ class Graph(GenericGraph):
            sage: g = graphs.PappusGraph()
            sage: g.vertex_cover(value_only=True)
            9
+
+        .. PLOT::
+
+            g = graphs.PappusGraph()
+            sphinx_plot(g.plot(partition=[g.vertex_cover()]))
 
         TESTS:
 
@@ -6929,6 +6950,9 @@ import sage.graphs.weakly_chordal
 Graph.is_long_hole_free = types.MethodType(sage.graphs.weakly_chordal.is_long_hole_free, None, Graph)
 Graph.is_long_antihole_free = types.MethodType(sage.graphs.weakly_chordal.is_long_antihole_free, None, Graph)
 Graph.is_weakly_chordal = types.MethodType(sage.graphs.weakly_chordal.is_weakly_chordal, None, Graph)
+
+import sage.graphs.asteroidal_triples
+Graph.is_asteroidal_triple_free = types.MethodType(sage.graphs.asteroidal_triples.is_asteroidal_triple_free, None, Graph)
 
 import sage.graphs.chrompoly
 Graph.chromatic_polynomial = types.MethodType(sage.graphs.chrompoly.chromatic_polynomial, None, Graph)

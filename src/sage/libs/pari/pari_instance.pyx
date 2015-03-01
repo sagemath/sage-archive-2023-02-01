@@ -419,6 +419,10 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         # error handlers.
         pari_init_opts(10000, maxprime, INIT_DFTm)
 
+        # Disable PARI's stack overflow checking which is incompatible
+        # with multi-threading.
+        pari_stackcheck_init(NULL)
+
         _pari_init_error_handling()
 
         # pari_init_opts() overrides MPIR's memory allocation functions,
@@ -618,7 +622,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         call pari_catch_sig_off().
         """
         cdef pari_sp address
-        cdef gen y = PY_NEW(gen)
+        cdef gen y = gen.__new__(gen)
         y.g = self.deepcopy_to_python_heap(x, &address)
         y.b = address
         y._parent = self
@@ -833,7 +837,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari("[[1,2],3]")[0][1] ## indirect doctest
             2
         """
-        cdef gen p = PY_NEW(gen)
+        cdef gen p = gen.__new__(gen)
         p.g = g
         p.b = 0
         p._parent = self
@@ -1647,3 +1651,30 @@ cdef int init_stack(size_t requested_size) except -1:
     finally:
         sig_unblock()
         sig_off()
+
+
+cdef inline void INT_to_mpz(mpz_ptr value, GEN g):
+    """
+    Store a PARI ``t_INT`` as an ``mpz_t``.
+    """
+    if typ(g) != t_INT:
+        pari_err(e_TYPE, <char*>"conversion to mpz", g)
+
+    cdef long size = lgefint(g) - 2
+    mpz_import(value, size, -1, sizeof(long), 0, 0, int_LSW(g))
+
+    if signe(g) < 0:
+        mpz_neg(value, value)
+
+cdef void INTFRAC_to_mpq(mpq_ptr value, GEN g):
+    """
+    Store a PARI ``t_INT`` or ``t_FRAC`` as an ``mpq_t``.
+    """
+    if typ(g) == t_FRAC:
+        INT_to_mpz(mpq_numref(value), gel(g, 1))
+        INT_to_mpz(mpq_denref(value), gel(g, 2))
+    elif typ(g) == t_INT:
+        INT_to_mpz(mpq_numref(value), g)
+        mpz_set_ui(mpq_denref(value), 1)
+    else:
+        pari_err(e_TYPE, <char*>"conversion to mpq", g)

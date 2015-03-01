@@ -1802,7 +1802,7 @@ class FormsRing_abstract(Parent):
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing, CuspFormsRing
             sage: MR = ModularFormsRing()
-            sage: MR.EisensteinSeries() == MR.one_element()
+            sage: MR.EisensteinSeries() == MR.one()
             True
             sage: E8 = MR.EisensteinSeries(k=8)
             sage: E8 in MR

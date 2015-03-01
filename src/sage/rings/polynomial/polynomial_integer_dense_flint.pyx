@@ -8,6 +8,16 @@ AUTHORS:
   wrapper
 - David Harvey: split off from polynomial_element_generic.py (2007-09)
 - Burcin Erocal: rewrote to use FLINT (2008-06-16)
+
+TESTS:
+
+We check that the buggy gcd is fixed (see trac:`17816`)::
+
+    sage: R.<q> = ZZ[]
+    sage: X = 3*q^12 - 8*q^11 - 24*q^10 - 48*q^9 - 84*q^8 - 92*q^7 - 92*q^6 - 70*q^5 - 50*q^4 - 27*q^3 - 13*q^2 - 4*q - 1
+    sage: Y = q^13 - 2*q^12 + 2*q^10 - q^9
+    sage: gcd(X,Y)
+    1
 """
 
 ################################################################################
@@ -74,7 +84,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         Quickly creates a new initialized Polynomial_integer_dense_flint
         with the correct parent and _is_gen == 0.
         """
-        cdef Polynomial_integer_dense_flint x = PY_NEW(Polynomial_integer_dense_flint)
+        cdef Polynomial_integer_dense_flint x = Polynomial_integer_dense_flint.__new__(Polynomial_integer_dense_flint)
         x._parent = self._parent
         x._is_gen = 0
         return x
@@ -95,10 +105,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             2
 
         """
-        cdef Polynomial_integer_dense_flint x = PY_NEW(Polynomial_integer_dense_flint)
+        cdef Polynomial_integer_dense_flint x = Polynomial_integer_dense_flint.__new__(Polynomial_integer_dense_flint)
         x._parent = P
         x._is_gen = 0
-        if not PY_TYPE_CHECK(a, Integer):
+        if not isinstance(a, Integer):
             a = ZZ(a)
         fmpz_poly_set_coeff_mpz(x.__poly, 0, (<Integer>a).value)
         return x
@@ -195,7 +205,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             # find max degree to allocate only once
             for ii, a in x:
                 # mpoly dict style has tuple keys
-                i = ii[0] if PY_TYPE_CHECK_EXACT(ii, tuple) else ii
+                i = ii[0] if type(ii) is tuple else ii
                 if i < 0:
                     raise ValueError, "Negative monomial degrees not allowed: %s" % i
                 elif i > degree:
@@ -208,13 +218,13 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 raise OverflowError, "Cannot allocate memory!"
             # now fill them in
             for ii, a in x:
-                i = ii[0] if PY_TYPE_CHECK_EXACT(ii, tuple) else ii
-                if PY_TYPE_CHECK_EXACT(a, int):
+                i = ii[0] if type(ii) is tuple else ii
+                if type(a) is int:
                     sig_on()
                     fmpz_poly_set_coeff_si(self.__poly, i, a)
                     sig_off()
                 else:
-                    if not PY_TYPE_CHECK(a, Integer):
+                    if not isinstance(a, Integer):
                         a = ZZ(a)
                     sig_on()
                     fmpz_poly_set_coeff_mpz(self.__poly, i, (<Integer>a).value)
@@ -247,12 +257,12 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         for i from 0 <= i < len(x):
             a = x[i]
-            if PY_TYPE_CHECK_EXACT(a, int):
+            if type(a) is int:
                 sig_on()
                 fmpz_poly_set_coeff_si(self.__poly, i, a)
                 sig_off()
             else:
-                if not PY_TYPE_CHECK(a, Integer):
+                if not isinstance(a, Integer):
                     a = ZZ(a)
                 sig_on()
                 fmpz_poly_set_coeff_mpz(self.__poly, i, (<Integer>a).value)
@@ -938,7 +948,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         cdef long t
         if right == 0:
             raise ZeroDivisionError, "division by zero"
-        if not PY_TYPE_CHECK(right, Polynomial_integer_dense_flint):
+        if not isinstance(right, Polynomial_integer_dense_flint):
             if right in ZZ:
                 sig_on()
                 fmpz_poly_scalar_fdiv_mpz(res.__poly, self.__poly,
@@ -975,11 +985,11 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         """
         if n < 0:
             raise IndexError, "n must be >= 0"
-        if PY_TYPE_CHECK(value, int):
+        if isinstance(value, int):
             sig_on()
             fmpz_poly_set_coeff_si(self.__poly, n, value)
             sig_off()
-        elif PY_TYPE_CHECK(value, Integer):
+        elif isinstance(value, Integer):
             sig_on()
             fmpz_poly_set_coeff_mpz(self.__poly, n, (<Integer>value).value)
             sig_off()

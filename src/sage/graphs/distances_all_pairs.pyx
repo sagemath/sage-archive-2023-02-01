@@ -1559,7 +1559,8 @@ def floyd_warshall(gg, paths = True, distances = False):
                 prec[v_int][u_int] = v_int
 
     # The algorithm itself.
-    cdef unsigned short *dv, *dw
+    cdef unsigned short *dv
+    cdef unsigned short *dw
     cdef int dvw
     cdef int val
 

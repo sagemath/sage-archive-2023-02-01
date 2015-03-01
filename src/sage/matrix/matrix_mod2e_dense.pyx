@@ -178,7 +178,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
             if poly in _m4rie_finite_field_cache:
                 self._entries = mzed_init((<M4RIE_finite_field>_m4rie_finite_field_cache[poly]).ff, self._nrows, self._ncols)
             else:
-                FF = PY_NEW(M4RIE_finite_field)
+                FF = M4RIE_finite_field.__new__(M4RIE_finite_field)
                 FF.ff = gf2e_init(poly)
                 self._entries = mzed_init(FF.ff, self._nrows, self._ncols)
                 _m4rie_finite_field_cache[poly] = FF
@@ -1573,7 +1573,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
 
         cdef mzd_slice_t *v = mzd_slice_init(self._entries.finite_field, self._nrows, self._ncols)
         for i in range(self._entries.finite_field.degree):
-            if not PY_TYPE_CHECK(C[i], Matrix_mod2_dense):
+            if not isinstance(C[i], Matrix_mod2_dense):
                 mzd_slice_free(v)
                 raise TypeError("All input matrices must be over GF(2).")
             mzd_copy(v.x[i], (<Matrix_mod2_dense>C[i])._entries)

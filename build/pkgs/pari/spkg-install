@@ -195,13 +195,6 @@ install()
     fi
 
     cd "$CUR"
-
-    # Copy gprc.expect to $SAGE_LOCAL/etc
-    cp -f "$TOP/gprc.expect" "$SAGE_LOCAL/etc"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error installing gprc.expect"
-        exit 1
-    fi
 }
 
 

@@ -21,7 +21,31 @@ sys.path.append(get_doc_abspath('common'))
 extensions = ['inventory_builder', 'multidocs',
               'sage_autodoc',  'sphinx.ext.graphviz',
               'sphinx.ext.inheritance_diagram', 'sphinx.ext.todo',
-              'sphinx.ext.extlinks']
+              'sphinx.ext.extlinks', 'matplotlib.sphinxext.plot_directive']
+
+# This code is executed before each ".. PLOT::" directive in the Sphinx
+# documentation. It defines a 'sphinx_plot' function that displays a Sage object
+# through mathplotlib, so that it will be displayed in the HTML doc
+plot_html_show_source_link = False
+plot_pre_code = """
+def sphinx_plot(plot):
+    import matplotlib.image as mpimg
+    from sage.misc.temporary_file import tmp_filename
+    import matplotlib.pyplot as plt
+    if os.environ.get('SAGE_SKIP_PLOT_DIRECTIVE', 'no') != 'yes':
+        fn = tmp_filename(ext=".png")
+        plot.plot().save(fn)
+        img = mpimg.imread(fn)
+        plt.imshow(img)
+        plt.margins(0)
+        plt.axis("off")
+        plt.tight_layout(pad=0)
+
+from sage.all_cmdline import *
+"""
+
+plot_html_show_formats = False
+
 # We do *not* fully initialize intersphinx since we call it by hand
 # in find_sage_dangling_links.
 #, 'sphinx.ext.intersphinx']

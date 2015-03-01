@@ -912,8 +912,8 @@ cdef class ETuple:
         Quickly creates a new initialized ETuple with the
         same length as self.
         """
-        cdef ETuple x
-        x = <ETuple>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef ETuple x = <ETuple>t.__new__(t)
         x._length = self._length
         return x
 
@@ -936,12 +936,12 @@ cdef class ETuple:
             return
         cdef size_t ind
         cdef int v
-        if PY_TYPE_CHECK(data,ETuple):
+        if isinstance(data, ETuple):
             self._length = (<ETuple>data)._length
             self._nonzero = (<ETuple>data)._nonzero
             self._data = <int*>sage_malloc(sizeof(int)*self._nonzero*2)
             memcpy(self._data,(<ETuple>data)._data,sizeof(int)*self._nonzero*2)
-        elif PY_TYPE_CHECK(data,dict) and PY_TYPE_CHECK(length,int):
+        elif isinstance(data, dict) and isinstance(length, int):
             self._length = length
             self._nonzero = len(data)
             self._data = <int*>sage_malloc(sizeof(int)*self._nonzero*2)
@@ -951,7 +951,7 @@ cdef class ETuple:
                 self._data[2*ind] = index
                 self._data[2*ind+1] = exp
                 ind += 1
-        elif PY_TYPE_CHECK(data,list) or PY_TYPE_CHECK(data,tuple):
+        elif isinstance(data, list) or isinstance(data, tuple):
             self._length = len(data)
             self._nonzero = 0
             for v in data:
@@ -990,7 +990,7 @@ cdef class ETuple:
             (1, 1, 0, 0, 2, 0)
         """
         cdef size_t index = 0
-        cdef ETuple result = <ETuple>PY_NEW(ETuple)
+        cdef ETuple result = <ETuple>ETuple.__new__(ETuple)
         result._length = self._length+other._length
         result._nonzero = self._nonzero+other._nonzero
         result._data = <int*>sage_malloc(sizeof(int)*result._nonzero*2)
@@ -1013,7 +1013,7 @@ cdef class ETuple:
             (1, 2, 3, 1, 2, 3)
         """
         cdef int _factor = factor
-        cdef ETuple result = <ETuple>PY_NEW(ETuple)
+        cdef ETuple result = <ETuple>ETuple.__new__(ETuple)
         if factor <= 0:
             result._length = 0
             result._nonzero = 0

@@ -105,11 +105,11 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
 
         sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
         sage: CBF = ComplexBallField() # optional - arb
-        sage: MatrixSpace(CBF, 3)(2)
+        sage: MatrixSpace(CBF, 3)(2) # optional - arb
         [2.000000000000000                 0                 0]
         [                0 2.000000000000000                 0]
         [                0                 0 2.000000000000000]
-        sage: matrix(CBF, 1, 3, [1, 2, -3])
+        sage: matrix(CBF, 1, 3, [1, 2, -3]) # optional - arb
         [ 1.000000000000000  2.000000000000000 -3.000000000000000]
     """
     #################################################################
@@ -142,7 +142,7 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
             sage: CBF = ComplexBallField() # optional - arb
             sage: a = Matrix_complex_ball_dense.__new__( # optional - arb; indirect doctest
             ....:     Matrix_complex_ball_dense, Mat(CBF, 2), 0, 0, 0)
-            sage: type(a)
+            sage: type(a) # optional - arb
             <type 'sage.matrix.matrix_complex_ball_dense.Matrix_complex_ball_dense'>
         """
         self._parent = parent

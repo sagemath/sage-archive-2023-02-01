@@ -79,12 +79,6 @@ from sage.categories.fields import Fields
 _Rings = Rings()
 _Fields = Fields()
 
-# Fix unpickling Matrix_modn_dense
-from sage.matrix.matrix_modn_dense_double import Matrix_modn_dense_double
-from sage.structure.sage_object import register_unpickle_override
-register_unpickle_override('sage.matrix.matrix_modn_dense',
-    'Matrix_modn_dense', Matrix_modn_dense_double)
-
 
 def is_MatrixSpace(x):
     """
@@ -103,8 +97,8 @@ def is_MatrixSpace(x):
         sage: is_MatrixSpace(5)
         False
     """
-
     return isinstance(x, MatrixSpace)
+
 
 class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
     """
@@ -1704,6 +1698,7 @@ def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
     assert(inv == m1)
     if checkrank:
         assert(m1.rank() == 1)
+
 
 # Fix unpickling Matrix_modn_dense and Matrix_integer_2x2
 from sage.matrix.matrix_modn_dense_double import Matrix_modn_dense_double

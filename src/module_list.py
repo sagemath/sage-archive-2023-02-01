@@ -1185,8 +1185,8 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.modular.arithgroup.congroup_pyx',
-              sources = ['sage/modular/arithgroup/congroup_pyx.pyx']),
+    Extension('sage.modular.arithgroup.congroup',
+              sources = ['sage/modular/arithgroup/congroup.pyx']),
 
     Extension('sage.modular.arithgroup.farey_symbol',
               sources = ['sage/modular/arithgroup/farey_symbol.pyx',

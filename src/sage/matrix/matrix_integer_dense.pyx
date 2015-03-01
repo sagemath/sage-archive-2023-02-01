@@ -54,7 +54,6 @@ TESTS::
 #*****************************************************************************
 
 from libc.stdint cimport int64_t
-from cpython.list cimport PyList_CheckExact
 
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 
@@ -371,25 +370,25 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             Full MatrixSpace of 1 by 100000 dense matrices over Integer Ring
         """
         cdef Py_ssize_t i, j, k
-        cdef int is_list
+        cdef bint is_list
         cdef Integer x
         cdef list entries_list
 
         if entries is None:
             x = ZZ.zero()
-            is_list = 0
+            is_list = False
         elif isinstance(entries, (int,long,Element)):
             try:
                 x = ZZ(entries)
             except TypeError:
                 raise TypeError("unable to coerce entry to an integer")
-            is_list = 0
-        elif not PyList_CheckExact(entries):
-            entries_list = list(entries)
-            is_list = 1
-        else:
+            is_list = False
+        elif type(entries) is list:
             entries_list = entries
-            is_list = 1
+            is_list = True
+        else:
+            entries_list = list(entries)
+            is_list = True
         if is_list:
             # Create the matrix whose entries are in the given entry list.
             if len(entries_list) != self._nrows * self._ncols:
@@ -656,9 +655,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def _unpickle(self, data, int version):
         if version == 0:
-            if isinstance(data,str):
+            if isinstance(data, str):
                 self._unpickle_version0(data)
-            elif isinstance(data,list):
+            elif isinstance(data, list):
                 self._unpickle_matrix_2x2_version0(data)
             else:
                 raise RuntimeError("invalid pickle data")
@@ -670,7 +669,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         data = data.split()
         n = self._nrows * self._ncols
         if len(data) != n:
-            raise RuntimeError("invalid pickle data.")
+            raise RuntimeError("invalid pickle data")
         k = 0
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
@@ -679,15 +678,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 if fmpz_set_str(fmpz_mat_entry(self._matrix,i,j), s, 32):
                     raise RuntimeError("invalid pickle data")
 
-    cdef _unpickle_matrix_2x2_version0(self, data):
+    def _unpickle_matrix_2x2_version0(self, data):
         if len(data) != 4 or self._nrows != 2 or self._ncols != 2:
-            raise RuntimeError("invalid pickle data.")
+            raise RuntimeError("invalid pickle data")
         self.set_unsafe(0, 0, data[0])
         self.set_unsafe(0, 1, data[1])
         self.set_unsafe(1, 0, data[2])
         self.set_unsafe(1, 1, data[3])
 
-    def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
+    def __richcmp__(Matrix self, right, int op):  # needed since we override __hash__
         return self._richcmp(right, op)
 
     ########################################################################
@@ -3830,18 +3829,24 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         EXAMPLES::
 
-            sage: m = matrix(2, [2,1,1,1])._invert_unit()
-            sage: m
-            [ 1 -1]
+            sage: a = matrix(2, [1,2,1,1])
+            sage: a^(-1)
             [-1  2]
+            [ 1 -1]
+            sage: m = a._invert_unit(); m
+            [-1  2]
+            [ 1 -1]
             sage: m.parent()
             Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+            sage: matrix(2, [2,1,0,1])._invert_unit()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: matrix is not invertible over Integer Ring
         """
         A,d = self._invert_flint()
-        if d != ZZ.one() and d != -ZZ.one():
-            raise ZeroDivisionError("Not a unit!")
+        if d != ZZ.one():
+            raise ZeroDivisionError("matrix is not invertible over {}".format(self.base_ring()))
         return A
-
 
     def _solve_right_nonsingular_square(self, B, check_rank=True, algorithm = 'iml'):
         r"""

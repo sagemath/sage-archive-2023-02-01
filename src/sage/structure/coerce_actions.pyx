@@ -587,7 +587,7 @@ cdef inline fast_mul(a, n):
 
 cdef inline fast_mul_long(a, long s):
     # It's important to change the signed s to an unsigned n,
-    # see Trac #17844.
+    # since -LONG_MIN = LONG_MIN.  See Trac #17844.
     cdef unsigned long n
     if s < 0:
         n = -s
@@ -595,7 +595,12 @@ cdef inline fast_mul_long(a, long s):
     else:
         n = s
     if n < 4:
-        if n == 0: return parent_c(a)(0)
+        if n == 0:
+            p = parent_c(a)
+            try:
+                return p.zero()
+            except AttributeError:
+                return p(0)
         elif n == 1: return a
         elif n == 2: return a+a
         elif n == 3: return a+a+a

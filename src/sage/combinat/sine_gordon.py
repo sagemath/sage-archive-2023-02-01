@@ -194,6 +194,7 @@ class SineGordonYsystem(SageObject):
         """
         return self._na
 
+    @cached_method
     def rk(self):
         r"""
         Return the sequence of integers ``r^{(k)}``, i.e. the width of
@@ -205,18 +206,17 @@ class SineGordonYsystem(SageObject):
             sage: Y.rk()
             (106, 17, 4)
         """
-        if not hasattr(self, '_rk'):
-            na = self._na
-            F = self._F
-            rk = [na[F - 1] + 1]
-            if F > 1:
-                rk.append(na[F - 2] * na[F - 1] + na[F - 2] + 1)
-                for k in range(2, F):
-                    rk.append(na[F - k - 1] * rk[k - 1] + rk[k - 2])
-            rk.reverse()
-            self._rk = tuple(rk)
-        return self._rk
+        na = self._na
+        F = self._F
+        rk = [na[F - 1] + 1]
+        if F > 1:
+            rk.append(na[F - 2] * na[F - 1] + na[F - 2] + 1)
+            for k in range(2, F):
+                rk.append(na[F - k - 1] * rk[k - 1] + rk[k - 2])
+        rk.reverse()
+        return tuple(rk)
 
+    @cached_method
     def pa(self):
         r"""
         Return the sequence of integers  ``p_a``, i.e. the total number of
@@ -228,17 +228,16 @@ class SineGordonYsystem(SageObject):
             sage: Y.pa()
             (1, 6, 25)
         """
-        if not hasattr(self, '_pa'):
-            na = self._na
-            F = self._F
-            pa = [1]
-            if F > 1:
-                pa.append(na[0])
-                for k in range(2, F):
-                    pa.append(na[k-1] * pa[k-1] + pa[k-2])
-            self._pa = tuple(pa)
-        return self._pa
+        na = self._na
+        F = self._F
+        pa = [1]
+        if F > 1:
+            pa.append(na[0])
+            for k in range(2, F):
+                pa.append(na[k-1] * pa[k-1] + pa[k-2])
+        return tuple(pa)
 
+    @cached_method
     def qa(self):
         r"""
         Return the sequence of integers  ``q_a``, i.e. the total number of
@@ -250,17 +249,16 @@ class SineGordonYsystem(SageObject):
             sage: Y.qa()
             (6, 25, 81)
         """
-        if not hasattr(self, '_qa'):
-            na = self._na
-            F = self._F
-            qa = [na[0]]
-            if F > 1:
-                qa.append(na[1] * qa[0] + 1)
-                for k in range(2, F):
-                    qa.append(na[k] * qa[k - 1] + qa[k - 2])
-            self._qa = tuple(qa)
-        return self._qa
+        na = self._na
+        F = self._F
+        qa = [na[0]]
+        if F > 1:
+            qa.append(na[1] * qa[0] + 1)
+            for k in range(2, F):
+                qa.append(na[k] * qa[k - 1] + qa[k - 2])
+        return tuple(qa)
 
+    @cached_method
     def r(self):
         r"""
         Return the number of vertices in the polygon realizing ``self``.
@@ -271,10 +269,9 @@ class SineGordonYsystem(SageObject):
             sage: Y.r()
             106
         """
-        if not hasattr(self, '_r'):
-            self._r = self.rk()[0]
-        return self._r
+        return self.rk()[0]
 
+    @cached_method
     def vertices(self):
         r"""
         Return the vertices of the polygon realizing ``self`` as the ring of
@@ -286,9 +283,7 @@ class SineGordonYsystem(SageObject):
             sage: Y.vertices()
             Ring of integers modulo 106
         """
-        if not hasattr(self, '_vertices'):
-            self._vertices = ZZ.quotient(self.r())
-        return self._vertices
+        return ZZ.quotient(self.r())
 
     @cached_method
     def triangulation(self):
@@ -566,6 +561,7 @@ class SineGordonYsystem(SageObject):
         def vertex_to_angle(v):
             # v==0 corresponds to pi/2
             return -2 * pi * RR(v) / self.r() + 5 * pi / 2
+
         # Begin plotting
         P = Graphics()
         # Shade neuter intervals

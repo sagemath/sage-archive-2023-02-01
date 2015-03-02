@@ -1069,6 +1069,7 @@ class CartanType_abstract(object):
             [(1, 2, 3), (2, 3, 4), (3, 4, 3)]
         """
 
+    @cached_method
     def coxeter_matrix(self):
         """
         Return the Coxeter matrix for ``self``.

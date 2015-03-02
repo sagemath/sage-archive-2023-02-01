@@ -9,7 +9,7 @@ Windows. It includes all the major TeX-related programs, macro
 packages, and fonts that are free software, including support for many
 languages around the world.
 
-This package installs all texlive packages requried to build Sage. If
+This package installs all texlive packages required to build Sage. If
 necessary, texlive itself is installed.
 
 == License ==
@@ -19,11 +19,9 @@ https://www.tug.org/texlive/copying.html for details.
 
 == Upstream Contact ==
 
-Hoem page: https://www.tug.org/texlive
+Home page: https://www.tug.org/texlive
 
 == Dependencies ==
-
-Put a bulleted list of dependencies here:
 
 * python
 

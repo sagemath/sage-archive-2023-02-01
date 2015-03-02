@@ -1484,7 +1484,7 @@ class HyperplaneArrangementElement(Element):
         return tuple(regions)
 
     def region_containing_point(self, p):
-        r"""def region
+        r"""
         The region in the hyperplane arrangement containing a given point.
 
         The base field must have characteristic zero.

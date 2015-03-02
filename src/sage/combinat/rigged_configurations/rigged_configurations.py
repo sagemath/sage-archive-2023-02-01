@@ -480,7 +480,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
 
             sage: RC = RiggedConfigurations(['A', 3, 1], [[2,1], [1,1]])
             sage: g = RC.__iter__()
-            sage: g.next()
+            sage: next(g)
             <BLANKLINE>
             (/)
             <BLANKLINE>
@@ -488,7 +488,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             <BLANKLINE>
             (/)
             <BLANKLINE>
-            sage: g.next()
+            sage: next(g)
             <BLANKLINE>
             (/)
             <BLANKLINE>

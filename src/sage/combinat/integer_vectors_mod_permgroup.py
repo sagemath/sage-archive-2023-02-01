@@ -90,7 +90,7 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
         ...
         NotImplementedError: infinite list
         sage: p = iter(I)
-        sage: for i in range(10): p.next()
+        sage: for i in range(10): next(p)
         [0, 0, 0]
         [1, 0, 0]
         [2, 0, 0]
@@ -158,7 +158,7 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
         sage: I = IntegerVectorsModPermutationGroup(SymmetricGroup(5)) # long time
         sage: p = iter(I) # long time
         sage: for i in range(100): # long time
-        ...       v = list(p.next())
+        ...       v = list(next(p))
         ...       assert sorted(v, reverse=True) == v
 
     We now check that there is as much of canonical vectors under the
@@ -250,13 +250,13 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         +Infinity
         sage: TestSuite(I).run()
         sage: it = iter(I)
-        sage: [it.next(), it.next(), it.next(), it.next(), it.next()]
+        sage: [next(it), next(it), next(it), next(it), next(it)]
         [[0, 0, 0, 0],
          [1, 0, 0, 0],
          [2, 0, 0, 0],
          [1, 1, 0, 0],
          [1, 0, 1, 0]]
-        sage: x = it.next(); x
+        sage: x = next(it); x
         [3, 0, 0, 0]
         sage: I.first()
         [0, 0, 0, 0]
@@ -903,7 +903,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         else:
             try:
                 v = iter(self)
-                return v.next()
+                return next(v)
             except StopIteration:
                 from sage.categories.sets_cat import EmptySetError
                 raise EmptySetError

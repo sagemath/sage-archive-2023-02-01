@@ -1240,7 +1240,7 @@ class LatinSquare:
             sage: from sage.combinat.matrices.latin import *
             sage: B = back_circulant(4)
             sage: g = B.find_disjoint_mates(allow_subtrade = True)
-            sage: B1 = g.next()
+            sage: B1 = next(g)
             sage: B0, B1 = bitrade(B, B1)
             sage: assert is_bitrade(B0, B1)
             sage: print B0, "\n,\n", B1
@@ -2172,7 +2172,7 @@ def LatinSquare_generator(L_start, check_assertions = False):
 
         sage: from sage.combinat.matrices.latin import *
         sage: g = LatinSquare_generator(back_circulant(4))
-        sage: g.next().is_latin_square()
+        sage: next(g).is_latin_square()
         True
 
     REFERENCE::

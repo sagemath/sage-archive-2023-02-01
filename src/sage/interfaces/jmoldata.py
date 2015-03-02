@@ -21,7 +21,7 @@ AUTHORS:
 
 from sage.structure.sage_object import SageObject
 
-from sage.misc.misc import SAGE_LOCAL, DOT_SAGE, sage_makedirs
+from sage.env import SAGE_LOCAL
 from sage.misc.temporary_file import tmp_filename
 
 import subprocess

@@ -10,9 +10,9 @@ Free modules
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import Element
+from sage.structure.element import Element, have_same_parent
 from sage.structure.parent import Parent
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 from sage.structure.indexed_generators import IndexedGenerators
 from sage.modules.free_module_element import vector
 from sage.misc.misc import repr_lincomb
@@ -473,8 +473,7 @@ class CombinatorialFreeModuleElement(Element):
             sage: len(a.monomial_coefficients())
             1
         """
-
-        assert hasattr( other, 'parent' ) and other.parent() == self.parent()
+        assert have_same_parent(self, other)
 
         F = self.parent()
         return F._from_dict( dict_addition( [ self._monomial_coefficients, other._monomial_coefficients ] ), remove_zeros=False )
@@ -513,7 +512,7 @@ class CombinatorialFreeModuleElement(Element):
             sage: s([2,1]) - s([5,4]) # indirect doctest
             s[2, 1] - s[5, 4]
         """
-        assert hasattr( other, 'parent' ) and other.parent() == self.parent()
+        assert have_same_parent(self, other)
         F = self.parent()
         return F._from_dict( dict_linear_combination( [ ( self._monomial_coefficients, 1 ), (other._monomial_coefficients, -1 ) ] ), remove_zeros=False )
 
@@ -896,10 +895,10 @@ class CombinatorialFreeModuleElement(Element):
          - add non commutative tests
         """
         # With the current design, the coercion model does not have
-        # enough information to detect apriori that this method only
+        # enough information to detect a priori that this method only
         # accepts scalars; so it tries on some elements(), and we need
         # to make sure to report an error.
-        if hasattr( scalar, 'parent' ) and scalar.parent() != self.base_ring():
+        if isinstance(scalar, Element) and scalar.parent() is not self.base_ring():
             # Temporary needed by coercion (see Polynomial/FractionField tests).
             if self.base_ring().has_coerce_map_from(scalar.parent()):
                 scalar = self.base_ring()( scalar )
@@ -1354,7 +1353,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         try:
             g = iter(self.basis().keys())
             for c in range(1,4):
-                x = x + self.term(g.next(), R(c))
+                x = x + self.term(next(g), R(c))
         except Exception:
             pass
         return x
@@ -1489,23 +1488,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if isinstance(x, int):
             x = Integer(x)
 
-#         if hasattr(self, '_coerce_start'):
-#             try:
-#                 return self._coerce_start(x)
-#             except TypeError:
-#                 pass
-
-        # x is an element of the same type of combinatorial free module
-        # (disabled: this yields mathematically wrong results)
-        #if hasattr(x, 'parent') and x.parent().__class__ is self.__class__:
-        #    P = x.parent()
-        #    #same base ring
-        #    if P is self:
-        #        return x
-        #    #different base ring -- coerce the coefficients from into R
-        #    else:
-        #        return eclass(self, dict([ (e1,R(e2)) for e1,e2 in x._monomial_coefficients.items()]))
-        #x is an element of the ground ring (will be disabled at some point: not so useful)
         if x in R:
             if x == 0:
                 return self.zero()
@@ -1733,9 +1715,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             if not codomain:
                 keys = x.support()
                 key = keys[0]
-                if hasattr(on_basis( key ), 'parent'):
-                    codomain = on_basis( key ).parent()
-                else:
+                try:
+                    codomain = on_basis(key).parent()
+                except Exception:
                     raise ValueError('Codomain could not be determined')
 
             if hasattr( codomain, 'linear_combination' ):
@@ -2192,7 +2174,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             else:
                 symb = tensor.symbol
             it = iter(zip(self._sets, term))
-            module, t = it.next()
+            module, t = next(it)
             rpr = module._ascii_art_term(t)
             for (module,t) in it:
                 rpr += AsciiArt([symb], [len(symb)])

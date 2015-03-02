@@ -884,8 +884,8 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
 
     # Make sure to return elements that belong to Sage
     if return_seqs:
-        return [list(map(ZZ, counts)),
-                [[s[0], list(map(QQ, s[1].reverse().Vec())), s[2].coeffs()]
+        return [[ZZ(x) for x in counts],
+                [[s[0], [QQ(x) for x in s[1].reverse().Vec()], s[2].coefficients(sparse=False)]
                  for s in S]
                ]
     elif return_pari_objects:

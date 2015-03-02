@@ -2352,7 +2352,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
             sage: p2 = A0*x^2 + A1*y^2 + A2*z^2 + A3
             sage: p2 += B0*x*y + B1*x*z + B2*x + B3*y*z + B4*y + B5*z
             sage: q = invariant_theory.quaternary_biquadratic(p1, p2, [x, y, z])
-            sage: coeffs = det(t * q[0].matrix() + q[1].matrix()).polynomial(t).coeffs()
+            sage: coeffs = det(t * q[0].matrix() + q[1].matrix()).polynomial(t).coefficients(sparse=False)
             sage: q.Delta_invariant() == coeffs[4]
             True
         """
@@ -2371,7 +2371,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
             sage: p2 = A0*x^2 + A1*y^2 + A2*z^2 + A3
             sage: p2 += B0*x*y + B1*x*z + B2*x + B3*y*z + B4*y + B5*z
             sage: q = invariant_theory.quaternary_biquadratic(p1, p2, [x, y, z])
-            sage: coeffs = det(t * q[0].matrix() + q[1].matrix()).polynomial(t).coeffs()
+            sage: coeffs = det(t * q[0].matrix() + q[1].matrix()).polynomial(t).coefficients(sparse=False)
             sage: q.Delta_prime_invariant() == coeffs[0]
             True
         """
@@ -2419,7 +2419,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
             sage: p2 = A0*x^2 + A1*y^2 + A2*z^2 + A3
             sage: p2 += B0*x*y + B1*x*z + B2*x + B3*y*z + B4*y + B5*z
             sage: q = invariant_theory.quaternary_biquadratic(p1, p2, [x, y, z])
-            sage: coeffs = det(t * q[0].matrix() + q[1].matrix()).polynomial(t).coeffs()
+            sage: coeffs = det(t * q[0].matrix() + q[1].matrix()).polynomial(t).coefficients(sparse=False)
             sage: q.Theta_invariant() == coeffs[3]
             True
         """
@@ -2438,7 +2438,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
             sage: p2 = A0*x^2 + A1*y^2 + A2*z^2 + A3
             sage: p2 += B0*x*y + B1*x*z + B2*x + B3*y*z + B4*y + B5*z
             sage: q = invariant_theory.quaternary_biquadratic(p1, p2, [x, y, z])
-            sage: coeffs = det(t * q[0].matrix() + q[1].matrix()).polynomial(t).coeffs()
+            sage: coeffs = det(t * q[0].matrix() + q[1].matrix()).polynomial(t).coefficients(sparse=False)
             sage: q.Theta_prime_invariant() == coeffs[1]
             True
         """
@@ -2457,7 +2457,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
             sage: p2 = A0*x^2 + A1*y^2 + A2*z^2 + A3
             sage: p2 += B0*x*y + B1*x*z + B2*x + B3*y*z + B4*y + B5*z
             sage: q = invariant_theory.quaternary_biquadratic(p1, p2, [x, y, z])
-            sage: coeffs = det(t * q[0].matrix() + q[1].matrix()).polynomial(t).coeffs()
+            sage: coeffs = det(t * q[0].matrix() + q[1].matrix()).polynomial(t).coefficients(sparse=False)
             sage: q.Phi_invariant() == coeffs[2]
             True
         """

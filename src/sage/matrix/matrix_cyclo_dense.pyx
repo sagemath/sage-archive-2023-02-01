@@ -35,9 +35,7 @@ AUTHORS:
 ######################################################################
 
 include "sage/ext/interrupt.pxi"
-# include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
-include "sage/ext/gmp.pxi"
 include "sage/ext/random.pxi"
 include "sage/libs/ntl/decl.pxi"
 
@@ -235,7 +233,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         # The i,j entry is the (i * self._ncols + j)'th column.
         c = i * self._ncols + j
 
-        if PY_TYPE_CHECK_EXACT(value, NumberFieldElement_quadratic):
+        if type(value) is NumberFieldElement_quadratic:
             # Must be coded differently, since elements of
             # quadratic number fields are stored differently.
             if self._n == 4:

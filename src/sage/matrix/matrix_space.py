@@ -24,9 +24,18 @@ TESTS::
     [0 0]
 """
 
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
 # System imports
+import sys
 import types
-import weakref
 import operator
 
 # Sage matrix imports
@@ -47,32 +56,18 @@ import matrix_rational_sparse
 
 import matrix_mpolynomial_dense
 
-#import padics.matrix_padic_capped_relative_dense
-
-## import matrix_cyclo_dense
-## import matrix_cyclo_sparse
-
 
 # Sage imports
 from sage.misc.superseded import deprecation
 import sage.structure.coerce
 import sage.structure.parent_gens as parent_gens
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.all import ZZ
-import sage.rings.ring as ring
-import sage.rings.rational_field as rational_field
-import sage.rings.integer_ring as integer_ring
 import sage.rings.integer as integer
-import sage.rings.field as field
-import sage.rings.principal_ideal_domain as principal_ideal_domain
-import sage.rings.integral_domain as integral_domain
 import sage.rings.number_field.all
 import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.finite_rings.constructor
 import sage.rings.polynomial.multi_polynomial_ring_generic
 import sage.misc.latex as latex
-import sage.misc.mrange
-import sage.modules.free_module_element
 import sage.modules.free_module
 from sage.structure.sequence import Sequence
 
@@ -83,6 +78,13 @@ from sage.categories.fields import Fields
 
 _Rings = Rings()
 _Fields = Fields()
+
+# Fix unpickling Matrix_modn_dense
+from sage.matrix.matrix_modn_dense_double import Matrix_modn_dense_double
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.matrix.matrix_modn_dense',
+    'Matrix_modn_dense', Matrix_modn_dense_double)
+
 
 def is_MatrixSpace(x):
     """
@@ -124,21 +126,21 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
         sage: MatrixSpace(ZZ,10,5).category()
         Category of modules over (euclidean domains and infinite enumerated sets)
-
-        sage: MatrixSpace(ZZ,10,2^31)
-        Traceback (most recent call last):                                   # 32-bit
-        ...                                                                  # 32-bit
-        ValueError: number of rows and columns must be less than 2^31 (on a 32-bit computer -- use a 64-bit computer for matrices with up to 2^63-1 rows and columns)           # 32-bit
-        Full MatrixSpace of 10 by 2147483648 dense matrices over Integer Ring   # 64-bit
-        sage: MatrixSpace(ZZ,2^31,10)
-        Traceback (most recent call last):                                   # 32-bit
-        ...                                                                  # 32-bit
-        ValueError: number of rows and columns must be less than 2^31 (on a 32-bit computer -- use a 64-bit computer for matrices with up to 2^63-1 rows and columns)           # 32-bit
-        Full MatrixSpace of 2147483648 by 10 dense matrices over Integer Ring   # 64-bit
         sage: MatrixSpace(ZZ,10,10).category()
         Category of algebras over (euclidean domains and infinite enumerated sets)
         sage: MatrixSpace(QQ,10).category()
         Category of algebras over quotient fields
+
+    TESTS::
+
+        sage: MatrixSpace(ZZ, 1, 2^63)
+        Traceback (most recent call last):
+        ...
+        ValueError: number of rows and columns may be at most...
+        sage: MatrixSpace(ZZ, 2^100, 10)
+        Traceback (most recent call last):
+        ...
+        ValueError: number of rows and columns may be at most...
     """
     _no_generic_basering_coercion = True
 
@@ -282,10 +284,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         if ncols < 0:
             raise ArithmeticError("ncols must be nonnegative")
 
-        if nrows >= 2**63 or ncols >= 2**63:
-            raise ValueError("number of rows and columns must be less than 2^63")
-        elif (nrows >= 2**31 or ncols >= 2**31) and not sage.misc.misc.is_64_bit:
-            raise ValueError("number of rows and columns must be less than 2^31 (on a 32-bit computer -- use a 64-bit computer for matrices with up to 2^63-1 rows and columns)")
+        if nrows > sys.maxsize or ncols > sys.maxsize:
+            raise ValueError("number of rows and columns may be at most %s" % sys.maxsize)
 
         self.__nrows = nrows
         self.__is_sparse = sparse
@@ -732,11 +732,11 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         ::
 
             sage: i = iter(ZZ)
-            sage: i.next()
+            sage: next(i)
             0
-            sage: i.next()
+            sage: next(i)
             1
-            sage: i.next()
+            sage: next(i)
             -1
 
         Some more examples::
@@ -809,7 +809,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
             sage: MS = MatrixSpace(ZZ, 2, 3)
             sage: i = iter(MS)
-            sage: a = [ i.next() for _ in range(6) ]
+            sage: a = [ next(i) for _ in range(6) ]
             sage: a[0]
             [0 0 0]
             [0 0 0]
@@ -861,13 +861,13 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             #through and yield the matrices by "weight", which is
             #the total number of iterations that need to be done
             #on the base ring to reach the matrix.
-            base_elements = [ base_iter.next() ]
+            base_elements = [ next(base_iter) ]
             weight = 0
             while True:
                 for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries):
                     yield self(entries=[base_elements[i] for i in iv])
                 weight += 1
-                base_elements.append( base_iter.next() )
+                base_elements.append( next(base_iter) )
         else:
             #In the finite case, we do a similar thing except that
             #the "weight" of each entry is bounded by the number

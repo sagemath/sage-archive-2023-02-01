@@ -177,7 +177,7 @@ AUTHOR:
 
 from operator import mul
 from itertools import chain
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.functions.all import factorial
 from sage.rings.arith import moebius
 from sage.structure.parent import Parent

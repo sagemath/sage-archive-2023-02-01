@@ -1,5 +1,40 @@
 r"""
-A collection of posets and lattices.
+A catalog of posets and lattices.
+
+Some common posets can be accessed through the ``posets.<tab>`` object::
+
+    sage: posets.PentagonPoset()
+    Finite lattice containing 5 elements
+
+Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
+
+    sage: Posets(5)
+    Posets containing 5 vertices
+
+**Catalog of common posets:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~Posets.AntichainPoset` | Return an antichain on `n` elements.
+    :meth:`~Posets.BooleanLattice` | Return the Boolean lattice on `2^n` elements.
+    :meth:`~Posets.ChainPoset` | Return a chain on `n` elements.
+    :meth:`~Posets.DiamondPoset` | Return the lattice of rank two on `n` elements.
+    :meth:`~Posets.IntegerCompositions` | Return the poset of integer compositions of `n`.
+    :meth:`~Posets.IntegerPartitions` | Return the poset of integer partitions of ``n``.
+    :meth:`~Posets.PentagonPoset` | Return the Pentagon poset.
+    :meth:`~Posets.RandomPoset` | Return a random poset on `n` vertices according to a probability `p`.
+    :meth:`~Posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
+    :meth:`~Posets.SSTPoset` | Return the poset on semistandard tableaux of shape `s` and largest entry `f` that is ordered by componentwise comparison.
+    :meth:`~Posets.SymmetricGroupBruhatIntervalPoset` | The poset of permutations with respect to Bruhat order.
+    :meth:`~Posets.SymmetricGroupBruhatOrderPoset` | The poset of permutations with respect to Bruhat order.
+    :meth:`~Posets.SymmetricGroupWeakOrderPoset` | The poset of permutations of `\{ 1, 2, \ldots, n \}` with respect to the weak order.
+    :meth:`~Posets.TamariLattice` | Return the Tamari lattice.
+
+Constructions
+-------------
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,
@@ -575,5 +610,10 @@ class Posets(object):
                 return [v for v in s.bruhat_succ() if
                     s.length() + (s.inverse().left_action_product(v)).length() == v.length()]
         return Poset(dict([[s,weak_covers(s)] for s in Permutations(n)]),element_labels)
+
+    # Tamari lattices
+    import sage.combinat.tamari_lattices
+    TamariLattice = staticmethod(sage.combinat.tamari_lattices.TamariLattice)
+
 
 posets = Posets

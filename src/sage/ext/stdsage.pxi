@@ -33,17 +33,7 @@ cdef extern from "stdsage.h":
     bint HAS_DICTIONARY(object o)
     bint PY_IS_NUMERIC(object o)
 
+    void init_memory_functions() nogil
+    void init_csage()
 
-# Memory management
-cdef extern from "stdsage.h":
-    void  sage_free(void *p) nogil
-    void* sage_realloc(void *p, size_t n) nogil
-    void* sage_malloc(size_t) nogil
-    void* sage_calloc(size_t nmemb, size_t size) nogil
-    void  init_memory_functions() nogil
-    void  init_csage()
-    void  init_csage_module()
-
-
-# Do this for every single module that links in stdsage.
-init_csage_module()
+from sage.ext.memory cimport sage_free, sage_realloc, sage_malloc, sage_calloc

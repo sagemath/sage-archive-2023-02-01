@@ -38,7 +38,7 @@ sub-polytopes and give rise to fibrations of toric varieties for
 suitable fan refinements. We can compute them using
 :meth:`~LatticePolytope_PPL.fibration_generator` ::
 
-    sage: F = P.fibration_generator(2).next()
+    sage: F = next(P.fibration_generator(2))
     sage: F.vertices()
     ((1, 0, 0, 0), (0, 1, 0, 0), (-3, -2, 0, 0))
 
@@ -182,7 +182,7 @@ def LatticePolytope_PPL(*args):
         else:
             gs.insert(point(Linear_Expression(v, 0)))
     if not gs.empty():
-        dim = Generator_System_iterator(gs).next().space_dimension()
+        dim = next(Generator_System_iterator(gs)).space_dimension()
         polytope_class = _class_for_LatticePolytope(dim)
     return polytope_class(gs)
 
@@ -523,7 +523,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
             sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
             sage: p = LatticePolytope_PPL((0,0),(0,1),(1,0))
-            sage: ieq = iter(p.constraints()).next();  ieq
+            sage: ieq = next(iter(p.constraints()));  ieq
             x0>=0
             sage: p.vertices_saturating(ieq)
             ((0, 0), (0, 1))
@@ -828,7 +828,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
             sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
             sage: poly = LatticePolytope_PPL((-9,-6,-1,-1),(0,0,0,1),(0,0,1,0),(0,1,0,0),(1,0,0,0))
-            sage: fiber = poly.fibration_generator(2).next()
+            sage: fiber = next(poly.fibration_generator(2))
             sage: poly.base_projection(fiber)
             Finitely generated module V/W over Integer Ring with invariants (0, 0)
         """
@@ -855,7 +855,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
             sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
             sage: poly = LatticePolytope_PPL((-9,-6,-1,-1),(0,0,0,1),(0,0,1,0),(0,1,0,0),(1,0,0,0))
-            sage: fiber = poly.fibration_generator(2).next()
+            sage: fiber = next(poly.fibration_generator(2))
             sage: poly.base_projection_matrix(fiber)
             [0 0 1 0]
             [0 0 0 1]
@@ -892,7 +892,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
             sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
             sage: poly = LatticePolytope_PPL((-9,-6,-1,-1),(0,0,0,1),(0,0,1,0),(0,1,0,0),(1,0,0,0))
-            sage: fiber = poly.fibration_generator(2).next()
+            sage: fiber = next(poly.fibration_generator(2))
             sage: poly.base_rays(fiber, poly.integral_points_not_interior_to_facets())
             ((-1, -1), (0, 1), (1, 0))
 

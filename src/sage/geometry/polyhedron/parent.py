@@ -235,7 +235,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             self.element_class(self, None, None) ]
 
     @cached_method
-    def zero_element(self):
+    def zero(self):
         r"""
         Return the polyhedron consisting of the origin, which is the
         neutral element for Minkowski addition.
@@ -243,7 +243,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: from sage.geometry.polyhedron.parent import Polyhedra
-            sage: p = Polyhedra(QQ, 4).zero_element();  p
+            sage: p = Polyhedra(QQ, 4).zero();  p
             A 0-dimensional polyhedron in QQ^4 defined as the convex hull of 1 vertex
             sage: p+p == p
             True
@@ -426,7 +426,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             Hrep = [ polyhedron.inequality_generator(), polyhedron.equation_generator() ]
             return self.element_class(self, None, Hrep, **kwds)
         if nargs==1 and args[0]==0:
-            return self.zero_element()
+            return self.zero()
         raise ValueError('Cannot convert to polyhedron object.')
 
     def base_extend(self, base_ring, backend=None):
@@ -664,7 +664,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: p = Polyhedron([(1,2,3),(2/3,3/4,4/5)])   # indirect doctest
-            sage: p.inequality_generator().next()
+            sage: next(p.inequality_generator())
             An inequality (0, 0, -1) x + 3 >= 0
         """
         try:
@@ -691,7 +691,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: p = Polyhedron([(1,2,3),(2/3,3/4,4/5)])   # indirect doctest
-            sage: p.equation_generator().next()
+            sage: next(p.equation_generator())
             An equation (0, 44, -25) x - 13 == 0
         """
         try:
@@ -718,7 +718,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: p = Polyhedron([(1,2,3),(2/3,3/4,4/5)], rays=[(5/6,6/7,7/8)])   # indirect doctest
-            sage: p.vertex_generator().next()
+            sage: next(p.vertex_generator())
             A vertex at (1, 2, 3)
         """
         try:
@@ -745,7 +745,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: p = Polyhedron([(1,2,3),(2/3,3/4,4/5)], rays=[(5/6,6/7,7/8)])   # indirect doctest
-            sage: p.ray_generator().next()
+            sage: next(p.ray_generator())
             A ray in the direction (140, 144, 147)
         """
         try:
@@ -772,7 +772,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: p = Polyhedron([(1,2,3),(2/3,3/4,4/5)], lines=[(5/6,6/7,7/8)])   # indirect doctest
-            sage: p.line_generator().next()
+            sage: next(p.line_generator())
             A line in the direction (140, 144, 147)
         """
         try:

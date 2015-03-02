@@ -621,7 +621,7 @@ cdef class ExpressionTreeBuilder:
             'x'
         """
         # There should be a better way to do this.  (Maybe there is.)
-        if not PY_TYPE_CHECK(v, str):
+        if not isinstance(v, str):
             v = str(v)
             if '*' in v:
                 v = v[v.index('*')+1:]
@@ -1754,7 +1754,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: fc(3)
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (=sin(3)) to an integer
+        TypeError: unable to convert sin(3) to an integer
 
         sage: fc = fast_callable(etb(x)^100)
         sage: fc(pi)

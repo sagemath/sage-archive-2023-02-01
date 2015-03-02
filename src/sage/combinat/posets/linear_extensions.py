@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
 r"""
 Linear Extensions of Posets
+
+This module defines two classes:
+
+- :class:`LinearExtensionOfPoset`
+- :class:`LinearExtensionsOfPoset`
+
+Classes and methods
+-------------------
 """
 #*****************************************************************************
 #       Copyright (C) 2012 Anne Schilling <anne at math.ucdavis.edu>

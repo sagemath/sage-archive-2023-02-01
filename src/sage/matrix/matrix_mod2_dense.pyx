@@ -572,7 +572,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if from_list:
             return self.rows(copy=False)[i]
         cdef Py_ssize_t j
-        cdef Vector_mod2_dense z = PY_NEW(Vector_mod2_dense)
+        cdef Vector_mod2_dense z = Vector_mod2_dense.__new__(Vector_mod2_dense)
         z._init(self._ncols, VectorSpace(self.base_ring(),self._ncols))
         if self._ncols:
             mzd_submatrix(z._entries, self._entries, i, 0, i+1, self._ncols)
@@ -655,14 +655,14 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             True
         """
         cdef mzd_t *tmp
-        if not PY_TYPE_CHECK(v, Vector_mod2_dense):
+        if not isinstance(v, Vector_mod2_dense):
             M = VectorSpace(self._base_ring, self._nrows)
             v = M(v)
         if self.ncols() != v.degree():
             raise ArithmeticError("number of columns of matrix must equal degree of vector")
 
         VS = VectorSpace(self._base_ring, self._nrows)
-        cdef Vector_mod2_dense c = PY_NEW(Vector_mod2_dense)
+        cdef Vector_mod2_dense c = Vector_mod2_dense.__new__(Vector_mod2_dense)
         c._init(self._nrows, VS)
         c._entries = mzd_init(1, self._nrows)
         if c._entries.nrows and c._entries.ncols:
@@ -1575,7 +1575,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             Z._subdivide_on_augment(self, other)
         return Z
 
-    def stack(self, bottom, subdivide=False):
+    cdef _stack_impl(self, bottom):
         r"""
         Stack ``self`` on top of ``bottom``.
 
@@ -1641,25 +1641,11 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: M.stack(N)
             []
         """
-        if hasattr(bottom, '_vector_'):
-            bottom = bottom.row()
-        cdef Matrix_mod2_dense other = bottom
-
-        if self._ncols != other._ncols:
-            raise TypeError("Both numbers of columns must match.")
-
-        if self._nrows == 0:
-            return other.__copy__()
-        if other._nrows == 0:
-            return self.__copy__()
-
+        cdef Matrix_mod2_dense other = <Matrix_mod2_dense>bottom
         cdef Matrix_mod2_dense Z
-        Z = self.new_matrix(nrows = self._nrows + other._nrows)
-        if self._ncols == 0:
-            return Z
-        Z._entries = mzd_stack(Z._entries, self._entries, other._entries)
-        if subdivide:
-            Z._subdivide_on_stack(self, other)
+        Z = self.new_matrix(nrows=self._nrows + other._nrows, ncols=self._ncols)
+        if self._ncols > 0:
+            Z._entries = mzd_stack(Z._entries, self._entries, other._entries)
         return Z
 
     def submatrix(self, lowr, lowc, nrows , ncols):
@@ -1763,7 +1749,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             '1 0 1 1 1 0'
         """
         cdef Py_ssize_t i, j, k, n
-        cdef char *s, *t
+        cdef char *s
+        cdef char *t
 
         if self._nrows == 0 or self._ncols == 0:
             data = ''
@@ -1845,7 +1832,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._nrows == 0 or self._ncols == 0:
             return 0
         cdef mzd_t *A = mzd_copy(NULL, self._entries)
-        cdef mzp_t *P, *Q
+        cdef mzp_t *P
+        cdef mzp_t *Q
 
         if algorithm == 'ple':
             P = mzp_init(self._entries.nrows)

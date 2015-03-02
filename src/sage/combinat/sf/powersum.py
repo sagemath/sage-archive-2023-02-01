@@ -554,17 +554,19 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
 
         def expand(self, n, alphabet='x'):
             """
-            Expand the symmetric function as a symmetric polynomial
-            in `n` variables.
+            Expand the symmetric function ``self`` as a symmetric polynomial
+            in ``n`` variables.
 
             INPUT:
 
-            - ``n`` -- a positive integer
-            - ``alphabet`` -- (default: `x`) a variable for the expansion
+            - ``n`` -- a nonnegative integer
+
+            - ``alphabet`` -- (default: ``'x'``) a variable for the expansion
 
             OUTPUT:
 
-            - a polynomial expansion of an instance of ``self`` in `n` variables
+            A monomial expansion of ``self`` in the `n` variables
+            labelled by ``alphabet``.
 
             EXAMPLES::
 
@@ -588,7 +590,13 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
                 0
                 sage: (p([]) + 2*p([1])).expand(3)
                 2*x0 + 2*x1 + 2*x2 + 1
+                sage: p([1]).expand(0)
+                0
+                sage: (3*p([])).expand(0)
+                3
             """
+            if n == 0:   # Symmetrica crashes otherwise...
+                return self.counit()
             condition = lambda part: False
             return self._expand(condition, n, alphabet)
 

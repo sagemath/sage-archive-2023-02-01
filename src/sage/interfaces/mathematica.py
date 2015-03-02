@@ -403,7 +403,7 @@ class Mathematica(Expect):
         Expect.__init__(self,
                         name = 'mathematica',
                         prompt = 'In[[0-9]+]:=',
-                        command = "math",
+                        command = "math-readline",
                         maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
@@ -895,33 +895,11 @@ mathematica = Mathematica()
 def reduce_load(X):
     return mathematica(X)
 
-# Cleverly run Mathematica with the benefit of readline, which
-# is something the usual commercial mathematica doesn't provide!
-# See
-#    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/363500
-
 import os, sys
 def mathematica_console(readline=True):
     if not readline:
         os.system('math')
         return
-    f1 = os.popen('math ', 'w')
-    f1.flush()
-    try:
-        while True:
-            sys.stdout.write('')
-            try:
-                line = raw_input('        ')
-                f1.writelines(line+'\n')
-                f1.flush()
-            except KeyboardInterrupt:
-                f1.close()
-                break
-    except EOFError:
-        pass
-    sys.stdout.write('\n')
-
-#def mathematica_console():
-#    os.system('mathematica')
-
-
+    else:
+        os.system('math-readline')
+        return

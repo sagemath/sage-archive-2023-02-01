@@ -85,17 +85,27 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
 
     def __init__(self, parent, entries, copy, coerce):
         """
-        Create a sparse matrix over the rational numbers
+        Create a sparse matrix over the rational numbers.
 
         INPUT:
-            parent -- a matrix space
-            entries -- * a Python list of triples (i,j,x), where 0 <= i < nrows,
-                         0 <= j < ncols, and x is coercible to an int.  The i,j
-                         entry of self is set to x.  The x's can be 0.
-                       * Alternatively, entries can be a list of *all* the entries
-                         of the sparse matrix (so they would be mostly 0).
-            copy -- ignored
-            coerce -- ignored
+
+        - ``parent`` -- a matrix space
+
+        - ``entries`` -- can be one of the following:
+
+          * a Python dictionary whose items have the
+            form ``(i, j): x``, where ``0 <= i < nrows``,
+            ``0 <= j < ncols``, and ``x`` is coercible to
+            a rational.  The ``i,j`` entry of ``self`` is
+            set to ``x``.  The ``x``'s can be ``0``.
+          * Alternatively, entries can be a list of *all*
+            the entries of the sparse matrix, read
+            row-by-row from top to bottom (so they would
+            be mostly 0).
+
+        - ``copy`` -- ignored
+
+        - ``coerce`` -- ignored
         """
         cdef Py_ssize_t i, j, k
         cdef Rational z
@@ -471,12 +481,17 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     ################################################
     def echelonize(self, height_guess=None, proof=True, **kwds):
         """
+        Transform the matrix ``self`` into reduced row echelon form
+        in place.
+
         INPUT:
             height_guess, proof, **kwds -- all passed to the multimodular algorithm; ignored
                                            by the p-adic algorithm.
 
         OUTPUT:
-            matrix -- the reduced row echelon for of self.
+
+        Nothing. The matrix ``self`` is transformed into reduced row
+        echelon form in place.
 
         ALGORITHM: a multimodular algorithm.
 
@@ -693,7 +708,8 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
 
         cdef Py_ssize_t l, n
 
-        cdef mpq_vector *v, *w
+        cdef mpq_vector *v
+        cdef mpq_vector *w
         v = &self._matrix[i]
         w = &_A._matrix[r]
 

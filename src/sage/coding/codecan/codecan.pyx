@@ -973,7 +973,8 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         self._part.depth += 1
         PS_clear(self._part)
 
-        cdef bitset_t * nonsingletons, scratch
+        cdef bitset_t *nonsingletons
+        cdef bitset_t scratch
         bitset_init(scratch, self._hyp_part.degree)
         nonsingletons = < bitset_t *> sage_malloc(0)
         cdef int nr_cells = PS_all_new_cells(self._hyp_part, & nonsingletons)
@@ -1017,7 +1018,8 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
 
         self._hyp_part.depth += 1
         PS_clear(self._hyp_part)
-        cdef bitset_t * nonsingletons, scratch
+        cdef bitset_t *nonsingletons
+        cdef bitset_t scratch
         bitset_init(scratch, self._part.degree)
         nonsingletons = < bitset_t *> sage_malloc(0)
         cdef int nr_cells = PS_all_new_cells(self._part, & nonsingletons)

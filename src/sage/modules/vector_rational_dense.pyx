@@ -48,6 +48,7 @@ TESTS::
 
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
+from sage.ext.memory cimport check_allocarray
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
@@ -57,8 +58,11 @@ from sage.rings.rational cimport Rational
 cimport free_module_element
 from free_module_element import vector
 
+from sage.libs.gmp.mpq cimport *
+
+
 cdef inline _Rational_from_mpq(mpq_t e):
-    cdef Rational z = PY_NEW(Rational)
+    cdef Rational z = Rational.__new__(Rational)
     mpq_set(z.value, e)
     return z
 
@@ -70,7 +74,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
 
     cdef _new_c(self):
         cdef Vector_rational_dense y
-        y = PY_NEW(Vector_rational_dense)
+        y = Vector_rational_dense.__new__(Vector_rational_dense)
         y._init(self._degree, self._parent)
         return y
 
@@ -84,11 +88,32 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
         return y
 
     cdef _init(self, Py_ssize_t degree, parent):
+        """
+        TESTS:
+
+        Check implicitly that :trac:`10257` works::
+
+            sage: from sage.modules.vector_rational_dense import Vector_rational_dense
+            sage: Vector_rational_dense(QQ^(sys.maxsize))
+            Traceback (most recent call last):
+            ...
+            MemoryError: failed to allocate ... bytes
+            sage: try:
+            ....:     # Note: some malloc() implementations (on OS X
+            ....:     # for example) print stuff when an allocation
+            ....:     # fails.  # We catch this with the ... in the
+            ....:     # doctest result. The * is needed because a
+            ....:     # result cannot start with ...
+            ....:     print "*"
+            ....:     Vector_rational_dense(QQ^(2^56))
+            ....: except (MemoryError, OverflowError):
+            ....:     print "allocation failed"
+            *...
+            allocation failed
+        """
         self._degree = degree
         self._parent = parent
-        self._entries = <mpq_t *> sage_malloc(sizeof(mpq_t) * degree)
-        if self._entries == NULL:
-            raise MemoryError
+        self._entries = <mpq_t *>check_allocarray(degree, sizeof(mpq_t))
 
     def __cinit__(self, parent=None, x=None, coerce=True,copy=True):
         self._entries = NULL
@@ -173,9 +198,6 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
         """
         return free_module_element.FreeModuleElement.__hash__(self)
 
-    def __len__(self):
-        return self._degree
-
     def __setitem__(self, i, value):
         if not self._is_mutable:
             raise ValueError("vector is immutable; please change a copy instead (use copy())")
@@ -222,7 +244,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             ...
             IndexError: index out of range
         """
-        cdef Rational z = PY_NEW(Rational)
+        cdef Rational z = Rational.__new__(Rational)
         if isinstance(i, slice):
             start, stop, step = i.indices(len(self))
             return vector(self.base_ring(), self.list()[start:stop])
@@ -294,7 +316,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
         """
         cdef Vector_rational_dense r = right
         cdef Rational z
-        z = PY_NEW(Rational)
+        z = Rational.__new__(Rational)
         cdef mpq_t t
         mpq_init(t)
         mpq_set_si(z.value, 0, 1)
@@ -326,10 +348,10 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
     cpdef ModuleElement _rmul_(self, RingElement left):
         cdef Vector_rational_dense z
         cdef Rational a
-        if PY_TYPE_CHECK(left, Rational):
+        if isinstance(left, Rational):
             a = <Rational>left
-        elif PY_TYPE_CHECK(left, Integer):
-            a = <Rational>PY_NEW(Rational)
+        elif isinstance(left, Integer):
+            a = <Rational>Rational.__new__(Rational)
             mpq_set_z(a.value, (<Integer>left).value)
         else:
             # should not happen
@@ -345,10 +367,10 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
     cpdef ModuleElement _lmul_(self, RingElement right):
         cdef Vector_rational_dense z
         cdef Rational a
-        if PY_TYPE_CHECK(right, Rational):
+        if isinstance(right, Rational):
             a = <Rational>right
-        elif PY_TYPE_CHECK(right, Integer):
-            a = <Rational>PY_NEW(Rational)
+        elif isinstance(right, Integer):
+            a = <Rational>Rational.__new__(Rational)
             mpq_set_z(a.value, (<Integer>right).value)
         else:
             # should not happen
@@ -376,7 +398,7 @@ def unpickle_v0(parent, entries, degree):
     #    make_FreeModuleElement_generic_dense_v1
     # and changed the reduce method below.
     cdef Vector_rational_dense v
-    v = PY_NEW(Vector_rational_dense)
+    v = Vector_rational_dense.__new__(Vector_rational_dense)
     v._init(degree, parent)
     cdef Rational z
     for i from 0 <= i < degree:
@@ -387,7 +409,7 @@ def unpickle_v0(parent, entries, degree):
 
 def unpickle_v1(parent, entries, degree, is_mutable):
     cdef Vector_rational_dense v
-    v = PY_NEW(Vector_rational_dense)
+    v = Vector_rational_dense.__new__(Vector_rational_dense)
     v._init(degree, parent)
     cdef Rational z
     for i from 0 <= i < degree:

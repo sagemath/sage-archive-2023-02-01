@@ -307,19 +307,6 @@ class FreeMonoid_class(Monoid_class):
         """
         return self.__ngens
 
-    @cached_method
-    def one_element(self):
-        """
-        Returns the identity element in this monoid.
-
-        EXAMPLES::
-
-            sage: F = FreeMonoid(2005, 'a')
-            sage: F.one_element()
-            1
-        """
-        return self(1)
-
     def cardinality(self):
         r"""
         Return the cardinality of ``self``, which is `\infty`.

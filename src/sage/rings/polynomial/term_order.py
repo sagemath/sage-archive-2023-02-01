@@ -2062,7 +2062,7 @@ def termorder_from_singular(S):
     EXAMPLE::
 
         sage: singular.eval('ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp)')
-        'ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);'
+        ''
         sage: from sage.rings.polynomial.term_order import termorder_from_singular
         sage: termorder_from_singular(singular)
         Block term order with blocks:

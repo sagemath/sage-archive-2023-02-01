@@ -1436,9 +1436,9 @@ class SR_generic(MPolynomialSystemGenerator):
         for x in range(M.nrows()):
             for y in range(M.ncols()):
                 if e == 8:
-                    st.append("%02X"%(int(str(M[x, y].int_repr()))))
+                    st.append("%02X" % M[x, y].integer_representation())
                 else:
-                    st.append("%X"%(int(str(M[x, y].int_repr()))))
+                    st.append("%X" % M[x, y].integer_representation())
             st.append("\n")
         return " ".join(st)
 
@@ -1467,9 +1467,9 @@ class SR_generic(MPolynomialSystemGenerator):
         for y in range(M.ncols()):
             for x in range(M.nrows()):
                 if e == 8:
-                    st.append("%02X"%(int(str(M[x, y].int_repr()))))
+                    st.append("%02X" % M[x, y].integer_representation())
                 else:
-                    st.append("%X"%(int(str(M[x, y].int_repr()))))
+                    st.append("%X" % M[x, y].integer_representation())
             #st.append("\n")
         return "".join(st)
 

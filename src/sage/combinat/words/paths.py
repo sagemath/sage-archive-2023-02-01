@@ -59,6 +59,8 @@ use ``help(p)``::
     Methods inherited from FiniteWordPath_all:
     ...
     This only works on Python classes that derive from SageObject.
+    ...
+    See http://trac.sagemath.org/2536 for details.
 
 Since p is a finite word, many functions from the word library are available::
 
@@ -1279,7 +1281,7 @@ class FiniteWordPath_all(SageObject):
             sage: P = WordPaths('123',[(1,0,0),(0,1,0),(0,0,1)])
             sage: w = P(D[:200])
             sage: it = w.projected_point_iterator(v)
-            sage: for i in range(6): it.next()
+            sage: for i in range(6): next(it)
             (0.000000000000000, 0.000000000000000)
             (-0.526233343362516, 0.000000000000000)
             (0.220830337618112, -0.477656250512816)
@@ -1292,7 +1294,7 @@ class FiniteWordPath_all(SageObject):
             sage: P = WordPaths('ab','ne')
             sage: p = P('aabbabbab')
             sage: it = p.projected_point_iterator(ring=RealField(20))
-            sage: for i in range(8): it.next()
+            sage: for i in range(8): next(it)
             (0.00000)
             (0.78087)
             (1.5617)
@@ -1418,7 +1420,7 @@ class FiniteWordPath_all(SageObject):
             color = dict( (a, hue(A.rank(a)/float(A.cardinality()))) for a in A )
         it = self.projected_point_iterator(v, ring=ring)
         if kind == 'right':
-            start = it.next()
+            start = next(it)
         elif kind != 'left':
             raise ValueError('unknown value for kind (=%s)'%kind)
         tout = [point([c], color=color[a], size=size) for a, c in izip(self, it) if a in letters]
@@ -1706,8 +1708,10 @@ class FiniteWordPath_2d(FiniteWordPath_all):
 
         INPUT:
 
-        - ``options`` - (dictionary, default: {'rgbcolor': 'blue'} graphic
+        - ``options`` - dictionary, default: {'rgbcolor': 'blue'} graphic
           options for the arrow
+
+        If the start is the same as the end, a single point is returned.
 
         EXAMPLES::
 
@@ -1716,18 +1720,19 @@ class FiniteWordPath_2d(FiniteWordPath_all):
             sage: p = P('aaaccaccacacacaccccccbbdd'); p
             Path: aaaccaccacacacaccccccbbdd
             sage: R = p.plot() + p.plot_directive_vector()
-            sage: show(R, axes=False, aspect_ratio=1)
+            sage: R.plot(axes=False, aspect_ratio=1)
+            Graphics object consisting of 4 graphics primitives
 
         TESTS:
 
         A closed path::
 
             sage: P('acbd').plot_directive_vector()
-            Graphics object consisting of 0 graphics primitives
+            Graphics object consisting of 1 graphics primitive
         """
         start = self.start_point()
         end = self.end_point()
-        if (start == end) :
+        if (start == end):
             G = point(start, pointsize=10, **options)
         else:
             G = arrow(start, end, **options)

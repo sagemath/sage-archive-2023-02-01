@@ -27,8 +27,10 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
     The Witt basis of the ring of symmetric functions is
     denoted by `(x_{\lambda})` in [HazWitt1]_, section 9.63, and by
     `(q_{\lambda})` in [DoranIV1996]_. We will denote this basis by
-    `(w_{\lambda})`. It is a multiplicative basis (meaning that
-    `w_{\emptyset} = 1` and that every partition `\lambda` satisfies
+    `(w_{\lambda})` (which is precisely how it is denoted in
+    [GriRei2014]_, Exercise 2.76(d)). It is a multiplicative basis
+    (meaning that `w_{\emptyset} = 1` and that every partition
+    `\lambda` satisfies
     `w_{\lambda} = w_{\lambda_1} w_{\lambda_2} w_{\lambda_3} \cdots`,
     where `w_i` means `w_{(i)}` for every nonnegative integer `i`).
 
@@ -88,15 +90,15 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
     INPUT:
 
     - ``Sym`` -- an instance of the ring of the symmetric functions.
-    - ``coerce_h`` - (default: ``True``) a boolean that determines
+    - ``coerce_h`` -- (default: ``True``) a boolean that determines
       whether the transition maps between the Witt basis and the
       complete homogeneous basis will be cached and registered as
       coercions.
-    - ``coerce_e`` - (default: ``False``) a boolean that determines
+    - ``coerce_e`` -- (default: ``False``) a boolean that determines
       whether the transition maps between the Witt basis and the
       elementary symmetric basis will be cached and registered as
       coercions.
-    - ``coerce_p`` - (default: ``False``) a boolean that determines
+    - ``coerce_p`` -- (default: ``False``) a boolean that determines
       whether the transition maps between the Witt basis and the
       powersum basis will be cached and registered as coercions (or
       conversions, if the base ring is not a `\QQ`-algebra).
@@ -194,7 +196,8 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         sage: w([2]).antipode()
         -w[1, 1] - w[2]
 
-    This holds for all odd `i` and is easily proven by induction::
+    The following holds for all odd `i` and is easily proven by
+    induction::
 
         sage: all( w([i]).antipode() == -w([i]) for i in range(1, 10, 2) )
         True
@@ -212,7 +215,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
     variables do not affect the results of the (non-underscored)
     methods of ``self``, but they affect the speed of the computations
     (the more of these variables are set to ``True``, the
-    faster these are) and on the size of the cache (the more of
+    faster these are) and the size of the cache (the more of
     these variables are set to ``True``, the bigger the cache). Let us
     check that the results are the same no matter to what the
     variables are set::

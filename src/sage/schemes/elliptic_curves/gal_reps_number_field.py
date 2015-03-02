@@ -731,7 +731,7 @@ def _semistable_reducible_primes(E):
     last_char = 0 # The residue characteristic of the most recent prime.
 
     while len(precomp) < 2:
-        P = deg_one_primes.next()
+        P = next(deg_one_primes)
 
         if not P.is_principal():
             continue
@@ -814,7 +814,7 @@ def _semistable_reducible_primes(E):
         # TODO: Is this the best value for this parameter?
 
         while True:
-            P = deg_one_primes.next()
+            P = next(deg_one_primes)
 
             if not P.is_principal():
                 continue
@@ -899,7 +899,7 @@ def _possible_normalizers(E, SA):
     deg_one_primes = K.primes_of_degree_one_iter()
 
     while W.dimension() < V.dimension() - 1:
-        P = deg_one_primes.next()
+        P = next(deg_one_primes)
 
         k = P.residue_field()
 
@@ -969,7 +969,7 @@ def _possible_normalizers(E, SA):
     # TODO: Is this the best value for this parameter?
 
     while True:
-        P = deg_one_primes.next()
+        P = next(deg_one_primes)
 
         k = P.residue_field()
 

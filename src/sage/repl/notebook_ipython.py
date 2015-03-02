@@ -21,7 +21,7 @@ except ImportError:
 
 from sage.env import DOT_SAGE, SAGE_EXTCODE, SAGE_DOC
 from sage.repl.interpreter import (
-    SageCrashHandler, DEFAULT_SAGE_CONFIG, SageInteractiveShell,
+    SageCrashHandler, DEFAULT_SAGE_CONFIG,
 )
 
 

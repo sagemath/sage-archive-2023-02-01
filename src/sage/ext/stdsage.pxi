@@ -17,8 +17,6 @@ we call the initialization code below.
 #*****************************************************************************
 
 cdef extern from "stdsage.h":
-    ctypedef void PyObject
-
     # Global tuple -- useful optimization
     void init_global_empty_tuple()
     object PY_NEW(object t)

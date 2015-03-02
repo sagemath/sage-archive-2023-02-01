@@ -707,7 +707,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         Execute the operation op on x and y. It first looks for an action
         corresponding to op, and failing that, it tries to coerces x and y
-        into the a common parent and calls op on them.
+        into a common parent and calls op on them.
 
         If it cannot make sense of the operation, a TypeError is raised.
 

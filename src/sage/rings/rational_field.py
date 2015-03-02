@@ -87,7 +87,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         ...
         TypeError: unable to convert sage to a rational
 
-    Coercion from the reals to the rational is done by default using
+    Conversion from the reals to the rationals is done by default using
     continued fractions.
 
     ::

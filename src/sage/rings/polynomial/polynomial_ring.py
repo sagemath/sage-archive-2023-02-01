@@ -18,9 +18,7 @@ AUTHOR:
 
 - Simon King (2011-10): Choice of categories for polynomial rings.
 
-EXAMPLES:
-
-Creating a polynomial ring injects the variable into the interpreter namespace::
+EXAMPLES::
 
     sage: z = QQ['z'].0
     sage: (z^3 + z - 1)^3
@@ -38,8 +36,8 @@ Saving and loading of polynomial rings works::
     Sparse Univariate Polynomial Ring in y over Integer Ring
 
 Rings with different variable names are not equal; in fact,
-by trac ticket #9944, poynomial rings are equal if and only
-if they are identic (which should be the  case for all parent
+by trac ticket #9944, polynomial rings are equal if and only
+if they are identical (which should be the  case for all parent
 structures in Sage)::
 
     sage: QQ['y'] != QQ['x']

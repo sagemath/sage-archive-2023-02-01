@@ -3528,6 +3528,7 @@ class DiGraph(GenericGraph):
         The flow polytope of a directed graph is the polytope
         consisting of all nonnegative flows on the graph with
         a given set `S` of sources and a given set `T` of sinks.
+
         A *flow* on a directed graph `G` with a given set `S` of
         sources and a given set `T` of sinks means an assignment
         of a nonnegative real to each edge of `G` such that the
@@ -3544,7 +3545,7 @@ class DiGraph(GenericGraph):
         (i.e., vertices of indegree `0`) of `G`, and `T` is taken
         to be the set of all sinks (i.e., vertices of outdegree
         `0`) of `G`. If a different choice of `S` and `T` is
-        desired, it can be specified using the ``ends`` parameter.
+        desired, it can be specified using the optional ``ends`` parameter.
 
         The polytope is returned as a polytope in `\RR^m`, where
         `m` is the number of edges of the digraph ``self``. The
@@ -3552,7 +3553,7 @@ class DiGraph(GenericGraph):
         assigned to the `k`-th edge of ``self``. The order of the
         edges is the one returned by ``self.edges()``. If a
         different order is desired, it can be specified using the
-        ``edges`` parameter.
+        optional ``edges`` parameter.
 
         The faces and volume of these polytopes are of interest. Examples of
         these polytopes are the Chan-Robbins-Yuen polytope and the
@@ -3560,7 +3561,7 @@ class DiGraph(GenericGraph):
 
         INPUT:
 
-        - ``edges`` -- (default: ``self.edges()``) a list or tuple
+        - ``edges`` -- (optional, default: ``self.edges()``) a list or tuple
           of all edges of ``self`` (each only once). This
           determines which coordinate of a point in the polytope will
           correspond to which edge of ``self``. It is also possible
@@ -3572,7 +3573,7 @@ class DiGraph(GenericGraph):
           outputs an edge in the form ``(1, 3, None)``, then
           ``(1, 3)`` will not do!
 
-        - ``ends`` -- (default: ``(self.sources(), self.sinks())``)
+        - ``ends`` -- (optional, default: ``(self.sources(), self.sinks())``)
           a pair `(S, T)` of an iterable `S` and an iterable `T`.
 
         .. NOTE::

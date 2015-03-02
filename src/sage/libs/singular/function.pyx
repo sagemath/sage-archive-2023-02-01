@@ -1339,7 +1339,10 @@ The Singular documentation for '%s' is given below.
 """%(self._name,self._name)
         # Trac ticket #11268: Include the Singular documentation as a block of code
         singular_doc = get_docstring(self._name).split('\n')
-        return prefix + "\n::\n\n"+'\n'.join(["    "+L for L in singular_doc])
+        if len(singular_doc) > 1:
+            return prefix + "\n::\n\n"+'\n'.join(["    "+L for L in singular_doc])
+        else:
+            return prefix + "\n::\n\n"+"    Singular documentation not found"
 
     cdef common_ring(self, tuple args, ring=None):
         """

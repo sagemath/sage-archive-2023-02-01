@@ -22,7 +22,6 @@ from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.matrix.all import MatrixSpace
 from sage.rings.all import ZZ
-from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import UniversalCyclotomicField
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
 from sage.combinat.root_system.cartan_type import CartanType
@@ -234,6 +233,7 @@ class CoxeterType(object):
             [-1  1 -1]
             [-1 -1  1]
         """
+        from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import UniversalCyclotomicField
         if R is None:
             R = UniversalCyclotomicField()
         # Compute the matrix with entries `- \cos( \pi / m_{ij} )`.

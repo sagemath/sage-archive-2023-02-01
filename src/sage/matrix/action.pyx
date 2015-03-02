@@ -42,7 +42,9 @@ doesn't work (see :trac:`17859`)::
     sage: vector(QQ, [1]) * matrix(Zmod(2), [[1]])
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '*': 'Vector space of dimension 1 over Rational Field' and 'Full MatrixSpace of 1 by 1 dense matrices over Ring of integers modulo 2'
+    TypeError: unsupported operand parent(s) for '*': 'Vector space of
+    dimension 1 over Rational Field' and 'Full MatrixSpace of 1 by 1
+    dense matrices over Ring of integers modulo 2'
 
 AUTHOR:
 

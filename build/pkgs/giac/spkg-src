@@ -22,7 +22,7 @@ set -e
 
 #
 VERSION="1.1.4"
-VERSIONREV="7"
+VERSIONREV="10"
 
 # The upstream tarball name is: giac"$SOURCEORIG".tar.gz
 SOURCEORIG=_"$VERSION"-"$VERSIONREV"

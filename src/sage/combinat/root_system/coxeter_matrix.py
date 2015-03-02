@@ -240,6 +240,20 @@ class CoxeterMatrix(Matrix_integer_dense, CoxeterType):
         self._index_set = index_set
         self.set_immutable()
 
+    def __reduce__(self):
+        """
+        Used for pickling.
+
+        TESTS::
+
+            sage: C = CoxeterMatrix(['A',4])
+            sage: M = loads(dumps(C))
+            sage: M._index_set
+            (1, 2, 3, 4)
+        """
+        return (CoxeterMatrix, (self.parent(), self.list(),
+                                self._coxeter_type, self._index_set))
+
     ##########################################################################
     # Coxeter type methods
 

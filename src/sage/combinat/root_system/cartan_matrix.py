@@ -304,6 +304,20 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         self._index_set = index_set
         self.set_immutable()
 
+    def __reduce__(self):
+        """
+        Used for pickling.
+
+        TESTS::
+
+            sage: CM = CartanMatrix(['A',4])
+            sage: x = loads(dumps(CM))
+            sage: x._index_set
+            (1, 2, 3, 4)
+        """
+        return (CartanMatrix, (self.parent(), self.list(),
+                               self._cartan_type, self._index_set))
+
     def root_system(self):
         """
         Return the root system corresponding to ``self``.

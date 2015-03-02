@@ -1091,6 +1091,7 @@ class CartanType_abstract(object):
         EXAMPLES::
 
             sage: CartanType(['A', 4]).coxeter_type()
+            Coxeter type of ['A', 4]
         """
         from sage.combinat.root_system.coxeter_type import CoxeterType
         return CoxeterType(self)

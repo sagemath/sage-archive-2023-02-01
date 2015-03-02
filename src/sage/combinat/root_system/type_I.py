@@ -22,7 +22,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
             sage: ct.rank()
             2
             sage: ct.index_set()
-            [1, 2]
+            (1, 2)
 
             sage: ct.is_irreducible()
             True

@@ -603,13 +603,25 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 return False
         return True
 
-    def is_modular(self):
+    def is_modular(self, L=None):
         r"""
-        Return ``True`` if the lattice is modular and ``False`` otherwise.
+        Return ``True`` if either all of the elements ``L`` are modular and
+        ``False`` otherwise.
 
-        A lattice is modular if `x \le b` implies `x \vee (a \wedge b)=
-        (x \vee a) \wedge b` for every `a` and `b`. There are other equivalent
-        definitions, see :wikipedia:`Modular_lattice`.
+        INPUT:
+
+        - ``L`` -- (default: ``None``) a list of elements to check being
+          modular, if ``L`` is ``None``, then this checks the entire lattice
+
+        An element `x` in a lattice `L` is *modular* if `x \leq b` implies
+
+        .. MATH::
+
+            x \vee (a \wedge b) = (x \vee a) \wedge b
+
+        for every `a, b \in L`. We say `L` is modular if `x` is modular
+        for all `x \in L`. There are other equivalent definitions,
+        see :wikipedia:`Modular_lattice`.
 
         See also :meth:`is_upper_semimodular` and :meth:`is_lower_semimodular`.
 
@@ -630,6 +642,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L = LatticePoset({1:[2,3],2:[4,5],3:[5,6],4:[7],5:[7],6:[7]})
             sage: L.is_modular()
             False
+            sage: [L.is_modular([x]) for x in L]
+            [True, True, False, True, True, False, True]
 
         ALGORITHM:
 
@@ -637,12 +651,17 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         if not self.is_ranked():
             return False
-        H=self._hasse_diagram
-        n=H.order()
+        H = self._hasse_diagram
+        n = H.order()
+        if L is None:
+            return all(H._rank[a] + H._rank[b] ==
+                       H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
+                       for a in range(n) for b in range(a+1, n))
+
+        L = [self._element_to_vertex_dict[x] for x in L]
         return all(H._rank[a] + H._rank[b] ==
                    H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
-                   for a in range(n) for b in range(a+1, n))
-        return True
+                   for a in L for b in range(n))
 
     def is_upper_semimodular(self):
         r"""
@@ -683,7 +702,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return all(H._rank[a] + H._rank[b] >=
                    H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
                    for a in range(n) for b in range(a+1, n))
-        return True
 
     def is_lower_semimodular(self):
         r"""
@@ -720,7 +738,39 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return all(H._rank[a] + H._rank[b] <=
                    H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
                    for a in range(n) for b in range(a+1, n))
-        return True
+
+    def is_supersolvable(self):
+        """
+        Return ``True`` if ``self`` is a supersolvable lattice and
+        ``False`` otherwise.
+
+        A lattice `L` is *supersolvable* if there exists a maximal chain `C`
+        such that every `x \in C` is a modular element in `L`.
+
+        EXAMPLES::
+
+            sage: L = posets.DiamondPoset(5)
+            sage: L.is_supersolvable()
+            True
+
+            sage: L = posets.PentagonPoset()
+            sage: L.is_supersolvable()
+            False
+
+            sage: L = posets.ChainPoset(6)
+            sage: L.is_supersolvable()
+            True
+
+            sage: L = LatticePoset({1:[2,3],2:[4,5],3:[5,6],4:[7],5:[7],6:[7]})
+            sage: L.is_supersolvable()
+            True
+            sage: L.is_modular()
+            False
+        """
+        for C in self.maximal_chains():
+            if self.is_modular(C):
+                return True
+        return False
 
 ####################################################################################
 

@@ -3365,9 +3365,9 @@ cdef class Matrix(matrix1.Matrix):
             True
 
             sage: X = A.right_kernel_matrix(algorithm='pari', basis='computed'); X
-            [ 3  1 -5 -7 -2  3  2]
-            [ 3  1  2  5 -5  2 -6]
-            [ 4 13 -2  7 -5 -7  3]
+            [ -3  -1   5   7   2  -3  -2]
+            [  3   1   2   5  -5   2  -6]
+            [ -4 -13   2  -7   5   7  -3]
             sage: A*X.transpose() == zero_matrix(ZZ, 4, 3)
             True
 

@@ -2,13 +2,53 @@
 r"""
 The free Pre-Lie algebras
 
+Pre-Lie algebras are non-associative algebras, where the product `*` satisfies
+
+.. MATH::
+
+    (x * y) * z - x * (y * z) = (x * z) * y - x * (z * y).
+
+We use here the convention where the associator 
+
+.. MATH::
+
+    (x, y, z) := (x * y) * z - x * (y * z)
+
+is symmetric in its two rightmost arguments. This is sometimes called a right
+pre-Lie algebra.
+
+They have appeared in numerical analysis and deformation theory.
+
+The free Pre-Lie algebra on a given set `E` has an explicit
+description using rooted trees, just as the free associative algebra
+can be described using words. The underlying vector space has a basis
+indexed by finite rooted trees endowed with a map from their vertices
+to `E`. In this basis, the product of two (decorated) rooted trees `S
+* T` is the sum of all rooted trees obtained by adding one edge from the
+root of `T` to a vertex of `S`.
+
+The shortcut ``<`` can be used for the pre-Lie product, but must be
+parenthesized properly, as it does not have priority over ``+``.
+
+EXAMPLES::
+
+    sage: F = FreePreLieAlgebra(ZZ, 'xyz')
+    sage: x,y,z = F.gens()
+    sage: (x < y) < z
+    ?
+
+REFERENCES:
+
+.. [ChLi] F. Chapoton and M. Livernet, *Pre-Lie algebras and the rooted trees
+   operad*, International Math. Research Notices (2001) no 8, pages 395-408
+
 AUTHORS:
 
 - Florent Hivert, Frédéric Chapoton (2011)
 """
 
 #*****************************************************************************
-#       Copyright (C) 2010 Florent Hivert <Florent.Hivert@lri.fr>,
+#       Copyright (C) 2010-2015 Florent Hivert <Florent.Hivert@lri.fr>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -70,8 +110,8 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             Trees = RootedTrees()
         else:
             Trees = LabelledRootedTrees()
-        # on aurait besoin ici de LabelledRootedTrees(names)
-        # pour restreindre les etiquettes aux valeurs autorisees
+        # Here one would need LabelledRootedTrees(names)
+        # so that one can restrict the labels to some fixed set
 
         self._alphabet = names
         self.__ngens = self._alphabet.cardinality()

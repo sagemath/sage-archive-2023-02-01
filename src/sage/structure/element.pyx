@@ -565,19 +565,10 @@ cdef class Element(SageObject):
         """
         raise NotImplementedError
 
-    cdef base_extend_c(self, Parent R):
-        if HAS_DICTIONARY(self):
-            return self.base_extend(R)
-        else:
-            return self.base_extend_c_impl(R)
-
-    cdef base_extend_c_impl(self, Parent R):
+    cpdef base_extend(self, R):
         cdef Parent V
         V = self._parent.base_extend(R)
-        return (<Parent>V)._coerce_c(self)
-
-    def base_extend(self, R):
-        return self.base_extend_c_impl(R)
+        return V._coerce_c(self)
 
     def base_ring(self):
         """

@@ -893,6 +893,11 @@ ext_modules = [
         ##
         ###################################
 
+    Extension('sage.libs.ntl.error',
+              sources = ["sage/libs/ntl/error.pyx"],
+              libraries = ["ntl", "gmp", "gmpxx"],
+              language='c++'),
+
     Extension('sage.libs.ntl.ntl_GF2',
               sources = ["sage/libs/ntl/ntl_GF2.pyx"],
               libraries = ["ntl", "gmp", "gmpxx"],

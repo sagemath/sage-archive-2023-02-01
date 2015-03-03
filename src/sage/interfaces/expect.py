@@ -46,7 +46,6 @@ import sys
 import weakref
 import time
 import gc
-import operator
 import quit
 import cleaner
 from random import randrange
@@ -60,12 +59,11 @@ import pexpect
 from pexpect import ExceptionPexpect
 from sage.interfaces.interface import Interface, InterfaceElement, InterfaceFunction, InterfaceFunctionElement, AsciiArtString
 
-from sage.structure.sage_object import SageObject
-from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import RingElement
 
 import sage.misc.sage_eval
-from sage.misc.misc import SAGE_EXTCODE, verbose, SAGE_TMP_INTERFACE, LOCAL_IDENTIFIER
+from sage.misc.misc import verbose, SAGE_TMP_INTERFACE
+from sage.env import SAGE_EXTCODE, LOCAL_IDENTIFIER
 from sage.misc.object_multiplexer import Multiplex
 
 BAD_SESSION = -2
@@ -89,6 +87,7 @@ failed_to_start = []
 # The garbage collector will be returned to its original state
 # whenever the code exits by any means (falling off the end, executing
 # "return", "break", or "continue", raising an exception, ...)
+
 
 class gc_disabled(object):
     """
@@ -121,13 +120,15 @@ class gc_disabled(object):
             gc.enable()
         return False
 
+
 class Expect(Interface):
     """
     Expect interface object.
     """
-    def __init__(self, name, prompt, command=None, server=None, server_tmpdir=None,
+    def __init__(self, name, prompt, command=None, server=None,
+                 server_tmpdir=None,
                  ulimit = None, maxread=100000,
-                 script_subdirectory="", restart_on_ctrlc=False,
+                 script_subdirectory=None, restart_on_ctrlc=False,
                  verbose_start=False, init_code=[], max_startup_time=None,
                  logfile = None, eval_using_file_cutoff=0,
                  do_cleaner=True, remote_cleaner=False, path=None,
@@ -160,17 +161,18 @@ class Expect(Interface):
         self.__do_cleaner = do_cleaner
         self.__maxread = maxread
         self._eval_using_file_cutoff = eval_using_file_cutoff
-        self.__script_subdirectory = script_subdirectory
         self.__command = command
         self._prompt = prompt
         self._restart_on_ctrlc = restart_on_ctrlc
         self.__verbose_start = verbose_start
         if path is not None:
-            self.__path = path
+            self.__path = os.path.abspath(path)
         elif script_subdirectory is None:
-            self.__path = '.'
+            self.__path = os.getcwd()
         else:
-            self.__path = os.path.join(SAGE_EXTCODE,name,self.__script_subdirectory)
+            self.__path = os.path.join(SAGE_EXTCODE, name, script_subdirectory)
+        if not os.path.isdir(self.__path):
+            raise EnvironmentError("path %r does not exist" % self.__path)
         self.__initialized = False
         self.__seq = -1
         self._expect = None
@@ -257,13 +259,6 @@ class Expect(Interface):
 
     def _change_prompt(self, prompt):
         self._prompt = prompt
-
-#    (pdehaye 20070819: this was used by some interfaces but does not work well remotely)
-#    def _temp_file(self, x):
-#        T = self.__path + "/tmp/"
-#        if not os.path.exists(T):
-#            os.makedirs(T)
-#        return T + str(x)
 
     def path(self):
         return self.__path
@@ -386,17 +381,13 @@ If this all works, you can then make calls like:
         global failed_to_start
 
         self._session_number += 1
-        current_path = os.path.abspath('.')
-        dir = self.__path
-        sage_makedirs(dir)
-        os.chdir(dir)
 
         #If the 'SAGE_PEXPECT_LOG' environment variable is set and
         #the current logfile is None, then set the logfile to be one
         #in .sage/pexpect_logs/
         if self.__logfile is None and 'SAGE_PEXPECT_LOG' in os.environ:
             from sage.env import DOT_SAGE
-            logs = '%s/pexpect_logs'%DOT_SAGE
+            logs = os.path.join(DOT_SAGE, 'pexpect_logs')
             sage_makedirs(logs)
 
             filename = '%s/%s-%s-%s-%s.log'%(logs, self.name(), os.getpid(), id(self), self._session_number)
@@ -424,7 +415,13 @@ If this all works, you can then make calls like:
                     del pexpect_env[i]
                 except KeyError:
                     pass
+
+            # Run child from self.__path
+            currentdir = os.getcwd()
+            os.chdir(self.__path)
             self._expect = pexpect.spawn(cmd, logfile=self.__logfile, env=pexpect_env)
+            os.chdir(currentdir)
+
             if self._do_cleaner():
                 cleaner.cleaner(self._expect.pid, cmd)
 
@@ -432,13 +429,11 @@ If this all works, you can then make calls like:
             self._expect = None
             self._session_number = BAD_SESSION
             failed_to_start.append(self.name())
-            raise RuntimeError("Unable to start %s because the command '%s' failed.\n%s"%(
+            raise RuntimeError("unable to start %s because the command %r failed\n%s" % (
                 self.name(), cmd, self._install_hints()))
 
-        os.chdir(current_path)
         self._expect.timeout = self.__max_startup_time
 
-        #self._expect.setmaxread(self.__maxread)
         self._expect.maxread = self.__maxread
         self._expect.delaybeforesend = 0
         try:
@@ -447,7 +442,7 @@ If this all works, you can then make calls like:
             self._expect = None
             self._session_number = BAD_SESSION
             failed_to_start.append(self.name())
-            raise RuntimeError("Unable to start %s"%self.name())
+            raise RuntimeError("unable to start %s" % self.name())
         self._expect.timeout = None
 
         # Calling tcsetattr earlier exposes bugs in various pty
@@ -486,9 +481,9 @@ If this all works, you can then make calls like:
             def dummy(): pass
             try:
                 self._expect.close = dummy
-            except Exception as msg:
+            except Exception:
                 pass
-        except Exception as msg:
+        except Exception:
             pass
 
     def quit(self, verbose=False, timeout=0.25):
@@ -1221,7 +1216,7 @@ If this all works, you can then make calls like:
 
         try:
             with gc_disabled():
-                if (split_lines is "nofile" and allow_use_file and
+                if (split_lines == "nofile" and allow_use_file and
                         self._eval_using_file_cutoff and len(code) > self._eval_using_file_cutoff):
                     return self._eval_line_using_file(code)
                 elif split_lines:
@@ -1430,9 +1425,6 @@ class StdOutContext:
         self.stdout.write("\n")
         self.interface._expect.logfile = self._logfile_backup
 
-import os
+
 def console(cmd):
     os.system(cmd)
-
-
-

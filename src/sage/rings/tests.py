@@ -187,8 +187,8 @@ def rings1():
     v = rings0()
     X = random_rings(level=0)
     from sage.all import PolynomialRing, ZZ
-    v = [(lambda : PolynomialRing(X.next(), names='x'), 'univariate polynomial ring over level 0 ring'),
-         (lambda : PolynomialRing(X.next(), abs(ZZ.random_element(x=2,y=10)), names='x'),
+    v = [(lambda : PolynomialRing(next(X), names='x'), 'univariate polynomial ring over level 0 ring'),
+         (lambda : PolynomialRing(next(X), abs(ZZ.random_element(x=2,y=10)), names='x'),
                      'multivariate polynomial ring in between 2 and 10 variables over a level 0 ring')]
     return v
 
@@ -307,16 +307,16 @@ def test_karatsuba_multiplication(base_ring, maxdeg1, maxdeg2,
 
         sage: sage.rings.tests.test_karatsuba_multiplication(ZZ, 6, 5, verbose=True, seed=42)
         test_karatsuba_multiplication: ring=Univariate Polynomial Ring in x over Integer Ring, threshold=2
-          (-x^5 - x^4 - 3*x^3 + 4*x^2 + 4*x + 1)*(-2*x^4 - 20*x^3 + 3*x^2 + 2*x)
-          (x^5 + 16*x^4 + 4*x + 1)*(x^2 - 41)
-          (8*x^2 - x + 1)*(2)
-          (3*x + 1)*(-8*x^2 - x - 4)
-          (-x^6 - x^5 - x^2 - 1)*(2*x^2 + x + 1)
-          (-x^2 + 3*x - 1)*(-x^4 + x^3 + x^2 + x + 1)
-          (x^3 + 4*x^2 + 76*x - 1)*(-x^2 + 6*x)
-          (-5)*(4*x + 1)
-          (5*x - 1)*(-2)
-          (4*x^6 + x^5 + 21*x^4 + x^3 - x + 3)*(14*x^4 - 1)
+          (2*x^6 - x^5 - x^4 - 3*x^3 + 4*x^2 + 4*x + 1)*(4*x^4 + x^3 - 2*x^2 - 20*x + 3)
+          (16*x^2)*(x^2 - 41*x + 1)
+          (-x + 1)*(x^2 + 2*x + 8)
+          (-x^6 - x^4 - 8*x^3 - x^2 - 4*x + 3)*(-x^3 - x^2)
+          (2*x^2 + x + 1)*(x^4 - x^3 + 3*x^2 - x)
+          (-x^3 + x^2 + x + 1)*(4*x^2 + 76*x - 1)
+          (6*x + 1)*(-5*x - 1)
+          (-x^3 + 4*x^2 + x)*(-x^5 + 3*x^4 - 2*x + 5)
+          (-x^5 + 4*x^4 + x^3 + 21*x^2 + x)*(14*x^3)
+          (2*x + 1)*(12*x^3 - 12)
 
     Test Karatsuba multiplication of polynomials of small degree over some common rings::
 

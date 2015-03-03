@@ -43,6 +43,7 @@ These are imported from matplotlib's cm_ module.
 import math
 import collections
 from colorsys import hsv_to_rgb, hls_to_rgb, rgb_to_hsv, rgb_to_hls
+from math import floor
 
 # matplotlib color maps, loaded on-demand
 cm = None
@@ -864,7 +865,7 @@ class Color(object):
             sage: hex(Color(0.5, 1.0, 1.0, space='hsv'))
             '00ffff'
             sage: set([len(hex(Color(t, 1-t, t * t))) for t in srange(0, 1, 0.1)])
-            set([6])
+            {6}
         """
         return self.html_color()[1:]
 
@@ -1108,7 +1109,7 @@ class ColorsDict(dict):
             sage: from sage.plot.colors import ColorsDict
             sage: cols = ColorsDict()
             sage: set([(type(c), type(cols[c])) for c in cols])
-            set([(<type 'str'>, <class 'sage.plot.colors.Color'>)])
+            {(<type 'str'>, <class 'sage.plot.colors.Color'>)}
             sage: sorted(cols)
             ['aliceblue', 'antiquewhite', 'aqua', 'aquamarine', ...]
             sage: len(cols)
@@ -1192,6 +1193,7 @@ def hue(h, s=1, v=1):
         sage: for phi in xsrange(0, 2 * pi, 1 / pi):
         ...       p += plot(sin(x + phi), (x, -7, 7), rgbcolor = hue(phi))
         sage: p
+        Graphics object consisting of 20 graphics primitives
 
     INPUT:
 
@@ -1229,17 +1231,18 @@ def hue(h, s=1, v=1):
 
 def float_to_html(r, g, b):
     """
-    Converts a Red-Green-Blue (RGB) color tuple to a HTML hex color.
+    Convert a Red-Green-Blue (RGB) color tuple to a HTML hex color.
+
     Each input value should be in the interval [0.0, 1.0]; otherwise,
     the values are first reduced modulo one (see :func:`mod_one`).
 
     INPUT:
 
-    - ``r`` - a number; the RGB color's "red" intensity
+    - ``r`` -- a real number; the RGB color's "red" intensity
 
-    - ``g`` - a number; the RGB color's "green" intensity
+    - ``g`` -- a real number; the RGB color's "green" intensity
 
-    - ``b`` - a number; the RGB color's "blue" intensity
+    - ``b`` -- a real number; the RGB color's "blue" intensity
 
     OUTPUT:
 
@@ -1261,7 +1264,6 @@ def float_to_html(r, g, b):
     """
     # TODO: figure out why this is necessary
     from sage.rings.integer import Integer
-    from math import floor
 
     r, g, b = map(mod_one, (r, g, b))
     rr = Integer(int(floor(r * 255))).str(base = 16)
@@ -1273,6 +1275,46 @@ def float_to_html(r, g, b):
     bb = '0' * (2 - len(bb)) + bb
 
     return '#' + rr + gg + bb
+
+
+def float_to_integer(r, g, b):
+    """
+    Convert a Red-Green-Blue (RGB) color tuple to an integer.
+
+    Each input value should be in the interval [0.0, 1.0]; otherwise,
+    the values are first reduced modulo one (see :func:`mod_one`).
+
+    INPUT:
+
+    - ``r`` -- a real number; the RGB color's "red" intensity
+
+    - ``g`` -- a real number; the RGB color's "green" intensity
+
+    - ``b`` -- a real number; the RGB color's "blue" intensity
+
+    OUTPUT:
+
+    - an integer with encoding `256^2 r + 256 g + b`
+
+    EXAMPLES::
+
+        sage: from sage.plot.colors import float_to_integer
+        sage: float_to_integer(1.,1.,0.)
+        16776960
+        sage: float_to_integer(.03,.06,.02)
+        462597
+        sage: float_to_integer(*Color('brown').rgb())
+        10824234
+        sage: float_to_integer((0.2, 0.6, 0.8))
+        Traceback (most recent call last):
+        ...
+        TypeError: float_to_integer() takes exactly 3 arguments (1 given)
+    """
+    r, g, b = map(mod_one, (r, g, b))
+    rr = int(floor(r * 255))
+    gg = int(floor(g * 255))
+    bb = int(floor(b * 255))
+    return 65536 * rr + 256 * gg + bb
 
 
 def rainbow(n, format='hex'):

@@ -303,8 +303,8 @@ class LatticePolygon_PPL_class(LatticePolytope_PPL_class):
             return self._find_isomorphism_degenerate(polytope)
 
         polytope_origin = polytope_vertices[0]
-        origin_P = C_Polyhedron(Generator_System_iterator(
-            polytope.minimized_generators()).next())
+        origin_P = C_Polyhedron(next(Generator_System_iterator(
+            polytope.minimized_generators())))
 
         neighbors = []
         for c in polytope.minimized_constraints():
@@ -411,7 +411,9 @@ class LatticePolygon_PPL_class(LatticePolytope_PPL_class):
             sage: P = LatticePolytope_PPL((1,0), (0,1), (0,0), (2,2))
             sage: P.plot()    # not tested
             sage: LatticePolytope_PPL([0], [1]).plot()
+            Graphics object consisting of 2 graphics primitives
             sage: LatticePolytope_PPL([0]).plot()
+            Graphics object consisting of 1 graphics primitive
         """
         from sage.plot.point import point2d
         from sage.plot.polygon import polygon2d

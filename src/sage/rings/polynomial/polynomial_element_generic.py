@@ -118,14 +118,14 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f = 5 + w^1997 - w^10000; f
             7*w^10000 + w^1997 + 5
             sage: d = f.dict(); d
-            {0: 5, 10000: 7, 1997: 1}
+            {0: 5, 1997: 1, 10000: 7}
             sage: d[0] = 10
             sage: f.dict()
-            {0: 5, 10000: 7, 1997: 1}
+            {0: 5, 1997: 1, 10000: 7}
         """
         return dict(self.__coeffs)
 
-    def coefficients(self):
+    def coefficients(self,sparse=True):
         """
         Return the coefficients of the monomials appearing in self.
 
@@ -137,7 +137,10 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f.coefficients()
             [5, 1, 7]
         """
-        return [c[1] for c in sorted(self.__coeffs.iteritems())]
+        if sparse:
+          return [c[1] for c in sorted(self.__coeffs.iteritems())]
+        else:
+          return [self.__coeffs[i] if self.__coeffs.has_key(i) else 0 for i in xrange(self.degree() + 1)]
 
     def exponents(self):
         """
@@ -240,9 +243,9 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R.<w> = PolynomialRing(CDF, sparse=True)
             sage: f = CDF(1,2) + w^5 - CDF(pi)*w + CDF(e)
             sage: f._repr()
-            '1.0*w^5 - 3.14159265359*w + 3.71828182846 + 2.0*I'
+            '1.0*w^5 - 3.141592653589793*w + 3.718281828459045 + 2.0*I'
             sage: f._repr(name='z')
-            '1.0*z^5 - 3.14159265359*z + 3.71828182846 + 2.0*I'
+            '1.0*z^5 - 3.141592653589793*z + 3.718281828459045 + 2.0*I'
 
         AUTHOR:
 
@@ -297,9 +300,9 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R.<w> = PolynomialRing(RDF, sparse=True)
             sage: e = RDF(e)
             sage: f = sum(e^n*w^n for n in range(4)); f
-            20.0855369232*w^3 + 7.38905609893*w^2 + 2.71828182846*w + 1.0
+            20.085536923187664*w^3 + 7.3890560989306495*w^2 + 2.718281828459045*w + 1.0
             sage: f[1]
-            2.71828182846
+            2.718281828459045
             sage: f[5]
             0.0
             sage: f[-1]
@@ -729,6 +732,13 @@ class Polynomial_generic_field(Polynomial_singular_repr,
             sage: (2*x).gcd(2*x^2)
             x
 
+            sage: zero = R.zero_element()
+            sage: zero.gcd(2*x)
+            x
+            sage: (2*x).gcd(zero)
+            x
+            sage: zero.gcd(zero)
+            0
         """
         from sage.categories.euclidean_domains import EuclideanDomains
         g = EuclideanDomains().ElementMethods().gcd(self, other)
@@ -771,25 +781,43 @@ class Polynomial_generic_field(Polynomial_singular_repr,
             sage: g == u*P(0) + v*x
             True
 
+        TESTS:
+
+        We check that the behavior of xgcd with zero elements is compatible with
+        gcd (:trac:`17671`)::
+
+            sage: R.<x> = QQbar[]
+            sage: zero = R.zero_element()
+            sage: zero.xgcd(2*x)
+            (x, 0, 1/2)
+            sage: (2*x).xgcd(zero)
+            (x, 1/2, 0)
+            sage: zero.xgcd(zero)
+            (0, 0, 0)
         """
-        if other.is_zero():
-            R = self.parent()
-            return self, R.one_element(), R.zero_element()
-        # Algorithm 3.2.2 of Cohen, GTM 138
         R = self.parent()
+        zero = R.zero_element()
+        one = R.one_element()
+        if other.is_zero():
+            if self.is_zero():
+                return (zero, zero, zero)
+            else:
+                c = self.leading_coefficient()
+                return (self/c, one/c, zero)
+        elif self.is_zero():
+            c = other.leading_coefficient()
+            return (other/c, zero, one/c)
+
+        # Algorithm 3.2.2 of Cohen, GTM 138
         A = self
         B = other
-        U = R.one_element()
+        U = one
         G = A
-        V1 = R.zero_element()
+        V1 = zero
         V3 = B
         while not V3.is_zero():
             Q, R = G.quo_rem(V3)
-            T = U - V1*Q
-            U = V1
-            G = V3
-            V1 = T
-            V3 = R
+            G, U, V1, V3 = V3, V1, U-V1*Q, R
         V = (G-A*U)//B
         lc = G.leading_coefficient()
         return G/lc, U/lc, V/lc

@@ -120,7 +120,7 @@ objects is sometimes not valid input to GAP. Creating classes that
 wrap GAP objects *is* supported, via simply defining the a
 _gap_init_ member function that returns a string that when
 evaluated in GAP constructs the object. See
-``groups/permutation_group.py`` for a nontrivial
+``groups/perm_gps/permgroup.py`` for a nontrivial
 example of this.
 
 Long Input
@@ -178,7 +178,7 @@ AUTHORS:
 import expect
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.env import SAGE_LOCAL, SAGE_EXTCODE, DOT_SAGE
-from sage.misc.misc import is_64_bit, is_in_string
+from sage.misc.misc import is_in_string
 import re
 import os
 import pexpect
@@ -649,15 +649,13 @@ class Gap_generic(Expect):
             2
             sage: import sage.tests.interrupt
             sage: try:
-            ...     sage.tests.interrupt.interrupt_after_delay()
-            ...     while True: SymmetricGroup(7).conjugacy_classes_subgroups()
-            ... except KeyboardInterrupt:
-            ...     pass
-            Interrupting Gap...
+            ....:     sage.tests.interrupt.interrupt_after_delay()
+            ....:     while True: SymmetricGroup(7).conjugacy_classes_subgroups()
+            ....: except KeyboardInterrupt:
+            ....:     pass
             sage: gap(2)
             2
         """
-        print "Interrupting %s..."%self
         self.quit()
         raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
 
@@ -1549,9 +1547,7 @@ class GapElement(GapElement_generic):
             (<function reduce_load at 0x...>, ())
             sage: f, args = _
             sage: f(*args)
-            Traceback (most recent call last):
-            ...
-            ValueError: The session in which this object was defined is no longer running.
+            <repr(<sage.interfaces.gap.GapElement at 0x...>) failed: ValueError: The session in which this object was defined is no longer running.>
         """
         return reduce_load, ()  # default is an invalid object
 
@@ -1787,13 +1783,9 @@ def reduce_load():
 
         sage: from sage.interfaces.gap import reduce_load
         sage: reduce_load()
-        Traceback (most recent call last):
-        ...
-        ValueError: The session in which this object was defined is no longer running.
+        <repr(<sage.interfaces.gap.GapElement at 0x...>) failed: ValueError: The session in which this object was defined is no longer running.>
         sage: loads(dumps(gap(2)))
-        Traceback (most recent call last):
-        ...
-        ValueError: The session in which this object was defined is no longer running.
+        <repr(<sage.interfaces.gap.GapElement at 0x...>) failed: ValueError: The session in which this object was defined is no longer running.>
     """
     return GapElement(None, None)
 

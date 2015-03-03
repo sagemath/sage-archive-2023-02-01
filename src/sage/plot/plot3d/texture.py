@@ -11,7 +11,7 @@ for full details about options and use.
 Initially, we have no textures set::
 
     sage: sage.plot.plot3d.base.Graphics3d().texture_set()
-    set([])
+    set()
 
 However, one can access these textures in the following manner::
 
@@ -28,6 +28,7 @@ And the Texture objects keep track of all their data::
     sage: t.opacity
     0.500000000000000
     sage: T # should be translucent
+    Graphics3d Object
 
 AUTHOR:
 
@@ -40,6 +41,21 @@ from sage.plot.colors import Color
 
 
 uniq_c = 0
+def _new_global_texture_id():
+    """
+    Generate a new unique id for a texture.
+
+    EXAMPLES::
+
+        sage: sage.plot.plot3d.texture._new_global_texture_id()
+        'texture...'
+        sage: sage.plot.plot3d.texture._new_global_texture_id()
+        'texture...'
+    """
+    global uniq_c
+    uniq_c += 1
+    return "texture%s" % uniq_c
+
 
 from sage.plot.colors import colors
 
@@ -69,7 +85,7 @@ def Texture(id=None, **kwds):
 
     - ``id`` - a texture (optional, default: None), a dict, a color, a
       str, a tuple, None or any other type acting as an ID. If ``id`` is
-      None, then it returns a unique texture object.
+      None and keyword ``texture`` is empty, then it returns a unique texture object.
     - ``texture`` - a texture
     - ``color`` - tuple or str, (optional, default: (.4, .4, 1))
     - ``opacity`` - number between 0 and 1 (optional, default: 1)
@@ -131,7 +147,7 @@ def Texture(id=None, **kwds):
         Texture(texture..., 6666ff)
         sage: Texture(shininess=0.3)
         Texture(texture..., 6666ff)
-        sage: Texture(ambiant=0.7)
+        sage: Texture(ambient=0.7)
         Texture(texture..., 6666ff)
     """
     if isinstance(id, Texture_class):
@@ -157,9 +173,7 @@ def Texture(id=None, **kwds):
         kwds['color'] = id
         id = None
     if id is None:
-        global uniq_c
-        uniq_c += 1
-        id = "texture%s" % uniq_c
+        id = _new_global_texture_id()
     return Texture_class(id, **kwds)
 
 def parse_color(info, base=None):

@@ -46,6 +46,7 @@ def render_2d(projection, *args, **kwds):
         sage: p4 = Polyhedron(vertices=[[2,0]], rays=[[1,-1]], lines=[[1,1]])
         sage: q4 = p4.projection()
         sage: q1.plot() + q2.plot() + q3.plot() + q4.plot()
+        Graphics object consisting of 17 graphics primitives
         sage: from sage.geometry.polyhedron.plot import render_2d
         sage: q = render_2d(p1.projection())
         doctest:...: DeprecationWarning: use Projection.render_2d instead
@@ -77,17 +78,26 @@ def render_3d(projection, *args, **kwds):
         sage: p2 = Polyhedron(vertices=[[2,0,0], [0,2,0], [0,0,2]])
         sage: p3 = Polyhedron(vertices=[[1,0,0], [0,1,0], [0,0,1]], rays=[[-1,-1,-1]])
         sage: p1.projection().plot() + p2.projection().plot() + p3.projection().plot()
+        Graphics3d Object
 
     It correctly handles various degenerate cases::
 
         sage: Polyhedron(lines=[[1,0,0],[0,1,0],[0,0,1]]).plot()                              # whole space
+        Graphics3d Object
         sage: Polyhedron(vertices=[[1,1,1]], rays=[[1,0,0]], lines=[[0,1,0],[0,0,1]]).plot()  # half space
+        Graphics3d Object
         sage: Polyhedron(vertices=[[1,1,1]], lines=[[0,1,0],[0,0,1]]).plot()                  # R^2 in R^3
+        Graphics3d Object
         sage: Polyhedron(rays=[[0,1,0],[0,0,1]], lines=[[1,0,0]]).plot()                      # quadrant wedge in R^2
+        Graphics3d Object
         sage: Polyhedron(rays=[[0,1,0]], lines=[[1,0,0]]).plot()                              # upper half plane in R^3
+        Graphics3d Object
         sage: Polyhedron(lines=[[1,0,0]]).plot()                                              # R^1 in R^2
+        Graphics3d Object
         sage: Polyhedron(rays=[[0,1,0]]).plot()                                               # Half-line in R^3
+        Graphics3d Object
         sage: Polyhedron(vertices=[[1,1,1]]).plot()                                           # point in R^3
+        Graphics3d Object
     """
     from sage.misc.superseded import deprecation
     deprecation(16625, 'use Projection.render_3d instead')
@@ -124,7 +134,9 @@ def render_4d(polyhedron, point_opts={}, line_opts={}, polygon_opts={}, projecti
         sage: poly
         A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 24 vertices
         sage: poly.plot()
+        Graphics3d Object
         sage: poly.plot(projection_direction=[2,5,11,17])
+        Graphics3d Object
         sage: type( poly.plot() )
         <class 'sage.plot.plot3d.base.Graphics3dGroup'>
 
@@ -339,10 +351,10 @@ class ProjectionFuncStereographic():
             sage: from sage.geometry.polyhedron.plot import ProjectionFuncStereographic
             sage: proj = ProjectionFuncStereographic([1.0,1.0])
             sage: proj.__call__(vector([1,2]))
-            (-1.0)
+            (-1.0000000000000002)
             sage: proj = ProjectionFuncStereographic([2.0,1.0])
-            sage: proj.__call__(vector([1,2]))
-            (3.0)
+            sage: proj.__call__(vector([1,2]))  # abs tol 1e-14
+            (2.9999999999999996)
             sage: proj = ProjectionFuncStereographic([0,0,2])
             sage: proj.__call__(vector([0,0,1]))
             (0.0, 0.0)
@@ -459,10 +471,12 @@ class Projection(SageObject):
             sage: Projection(p,  lambda x: [x[1],x[2]] )   # another way of doing the same projection
             The projection of a polyhedron into 2 dimensions
             sage: _.plot()   # plot of the projected icosahedron in 2d
+            Graphics object consisting of 51 graphics primitives
             sage: proj = Projection(p)
             sage: proj.stereographic([1,2,3])
             The projection of a polyhedron into 2 dimensions
             sage: proj.plot()
+            Graphics object consisting of 51 graphics primitives
             sage: TestSuite(proj).run(skip='_test_pickling')
         """
         self.parent_polyhedron = polyhedron
@@ -560,6 +574,7 @@ class Projection(SageObject):
             sage: proj                                      #long time
             The projection of a polyhedron into 3 dimensions
             sage: proj.stereographic([5,2,3]).plot()        #long time
+            Graphics object consisting of 123 graphics primitives
             sage: Projection( polytopes.twenty_four_cell() ).stereographic([2,0,0,0])
             The projection of a polyhedron into 3 dimensions
         """
@@ -599,6 +614,7 @@ class Projection(SageObject):
             sage: Projection(cube4).schlegel([1,0,0,0])
             The projection of a polyhedron into 3 dimensions
             sage: _.plot()
+            Graphics3d Object
 
         TESTS::
 
@@ -608,7 +624,7 @@ class Projection(SageObject):
         center = self.parent_polyhedron.center()
         if projection_direction is None:
             if self.parent_polyhedron.is_full_dimensional():
-                projection_direction = self.parent_polyhedron.inequality_generator().next().A()
+                projection_direction = next(self.parent_polyhedron.inequality_generator()).A()
             else:
                 from sage.rings.arith import primes_first_n
                 projection_direction = primes_first_n(self.polyhedron_ambient_dim)
@@ -694,11 +710,23 @@ class Projection(SageObject):
                 pass
 
     def show(self, *args, **kwds):
+        """
+        Deprecated method to show the projection as a graphics
+        object.  Use ``Projection.plot()`` instead.
+
+        EXAMPLE::
+
+            sage: P8 = polytopes.n_cube(4)
+            sage: P8.schlegel_projection([2,5,11,17]).show()
+            doctest:...: DeprecationWarning: use Projection.plot instead
+            See http://trac.sagemath.org/16625 for details.
+            Graphics3d Object
+        """
         from sage.misc.superseded import deprecation
         deprecation(16625, 'use Projection.plot instead')
         return self.plot(*args, **kwds)
 
-    def _graphics_(self):
+    def _graphics_(self, **kwds):
         """
         Display projection graphically on the Sage command line.
 
@@ -706,17 +734,11 @@ class Projection(SageObject):
 
         EXAMPLES::
 
-            sage: polytopes.n_cube(3).projection()._graphics_()
-            False
+            sage: polytopes.n_cube(3).projection()._graphics_(
+            ....:   mime_types={'image/png'})
+            Graphics file image/png
         """
-        from sage.doctest import DOCTEST_MODE
-        if DOCTEST_MODE:
-            return False
-        try:
-            self.plot().show()
-            return True
-        except AttributeError:
-            return False
+        return self.plot()._graphics_(**kwds)
 
     def _init_from_2d(self, polyhedron):
         """
@@ -860,7 +882,7 @@ class Projection(SageObject):
         polygons = []
 
         if polyhedron.n_lines() == 1:
-            aline = polyhedron.line_generator().next()
+            aline = next(polyhedron.line_generator())
             for shift in [aline(), -aline()]:
                 for i in range(len(coords)):
                     polygons.append( [ coords[i-1],coords[i],
@@ -899,7 +921,7 @@ class Projection(SageObject):
 
         def defining_equation():  # corresponding to a polygon
             if polyhedron.dim() < 3:
-                yield polyhedron.equation_generator().next()
+                yield next(polyhedron.equation_generator())
             else:
                 for ineq in polyhedron.inequality_generator():
                     yield ineq
@@ -938,7 +960,7 @@ class Projection(SageObject):
 
         if polyhedron.n_lines()==1:
             assert len(faces)>0, "no vertices?"
-            aline = polyhedron.line_generator().next()
+            aline = next(polyhedron.line_generator())
             for shift in [aline(), -aline()]:
                 for coords in faces:
                     assert len(coords)==2, "There must be two points."
@@ -1156,6 +1178,7 @@ class Projection(SageObject):
         EXAMPLES::
 
             sage: Polyhedron([(0,), (1,)]).projection().render_1d()
+            Graphics object consisting of 2 graphics primitives
         """
         plt = Graphics()
         if isinstance(point_opts, dict):
@@ -1183,6 +1206,7 @@ class Projection(SageObject):
             sage: p4 = Polyhedron(vertices=[[2,0]], rays=[[1,-1]], lines=[[1,1]])
             sage: q4 = p4.projection()
             sage: q1.plot() + q2.plot() + q3.plot() + q4.plot()
+            Graphics object consisting of 17 graphics primitives
          """
         plt = Graphics()
         if isinstance(point_opts, dict):
@@ -1208,19 +1232,28 @@ class Projection(SageObject):
             sage: p2 = Polyhedron(vertices=[[2,0,0], [0,2,0], [0,0,2]])
             sage: p3 = Polyhedron(vertices=[[1,0,0], [0,1,0], [0,0,1]], rays=[[-1,-1,-1]])
             sage: p1.projection().plot() + p2.projection().plot() + p3.projection().plot()
+            Graphics3d Object
     
         It correctly handles various degenerate cases::
     
             sage: Polyhedron(lines=[[1,0,0],[0,1,0],[0,0,1]]).plot()           # whole space
+            Graphics3d Object
             sage: Polyhedron(vertices=[[1,1,1]], rays=[[1,0,0]], 
             ....:            lines=[[0,1,0],[0,0,1]]).plot()                   # half space
+            Graphics3d Object
             sage: Polyhedron(vertices=[[1,1,1]], 
             ....:            lines=[[0,1,0],[0,0,1]]).plot()                   # R^2 in R^3
+            Graphics3d Object
             sage: Polyhedron(rays=[[0,1,0],[0,0,1]], lines=[[1,0,0]]).plot()   # quadrant wedge in R^2
+            Graphics3d Object
             sage: Polyhedron(rays=[[0,1,0]], lines=[[1,0,0]]).plot()           # upper half plane in R^3
+            Graphics3d Object
             sage: Polyhedron(lines=[[1,0,0]]).plot()                           # R^1 in R^2
+            Graphics3d Object
             sage: Polyhedron(rays=[[0,1,0]]).plot()                            # Half-line in R^3
+            Graphics3d Object
             sage: Polyhedron(vertices=[[1,1,1]]).plot()                        # point in R^3
+            Graphics3d Object
         """
         from sage.plot.plot3d.base import Graphics3d
         plt = Graphics3d()

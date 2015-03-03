@@ -595,9 +595,9 @@ class OverconvergentModularFormsSpace(Module_old):
 
             sage: o = OverconvergentModularForms(3, 12, 1/2)
             sage: t = o.gens()
-            sage: t.next()
+            sage: next(t)
             3-adic overconvergent modular form of weight-character 12 with q-expansion 1 - 32760/61203943*q - 67125240/61203943*q^2 - ...
-            sage: t.next()
+            sage: next(t)
             3-adic overconvergent modular form of weight-character 12 with q-expansion 27*q + 19829193012/61203943*q^2 + 146902585770/61203943*q^3 + ...
         """
         i = 0
@@ -1602,6 +1602,7 @@ class OverconvergentModularFormElement(ModuleElement):
             sage: o=OverconvergentModularForms(3, 0, 1/2)
             sage: f=o.eigenfunctions(4)[1]
             sage: f.valuation_plot()
+            Graphics object consisting of 1 graphics primitive
         """
         if rmax is None: rmax = ZZ(self.prime())/ZZ(1 + self.prime())
         return plot(self.r_ord, (0, rmax) )

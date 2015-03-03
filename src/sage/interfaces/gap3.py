@@ -262,10 +262,9 @@ class Gap3(Gap_generic):
         sage: gap3(2)                                      #optional - gap3
         2
         sage: try:
-        ...     gap3._keyboard_interrupt()
-        ... except KeyboardInterrupt:
-        ...     pass                                       #optional - gap3
-        Interrupting Gap3...
+        ....:     gap3._keyboard_interrupt()
+        ....: except KeyboardInterrupt:
+        ....:     pass
         sage: gap3(2)                                      #optional - gap3
         2
 
@@ -561,7 +560,7 @@ class Gap3(Gap_generic):
             sage: gap3('3+2')
             Traceback (most recent call last):
             ...
-            TypeError: Unable to start gap3 because the command ... failed.
+            TypeError: unable to start gap3 because the command ... failed
             <BLANKLINE>
                 Your attempt to start GAP3 failed, either because you do not have
                 have GAP3 installed, or because it is not configured correctly.

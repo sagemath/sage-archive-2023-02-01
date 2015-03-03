@@ -228,7 +228,7 @@ class p_iter_fork:
             sage: sorted(list( F( (lambda x: x^2), [([10],{}), ([20],{})])))
             [(([10], {}), 100), (([20], {}), 400)]
         """
-        import os, sys
+        import imp, os, sys
         from sage.structure.sage_object import save
 
         try:
@@ -241,7 +241,7 @@ class p_iter_fork:
             # pid has changed (forcing a reload of
             # misc).
             import sage.misc.misc
-            reload(sage.misc.misc)
+            imp.reload(sage.misc.misc)
 
             # The pexpect interfaces (and objects defined in them) are
             # not valid.

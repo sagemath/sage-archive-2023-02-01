@@ -132,7 +132,7 @@ class Posets(Category):
 
             sage: P = Posets()
             sage: it = iter(P)
-            sage: for _ in range(10): print it.next();
+            sage: for _ in range(10): print next(it);
             Finite poset containing 0 elements
             Finite poset containing 1 elements
             Finite poset containing 2 elements
@@ -333,8 +333,9 @@ class Posets(Category):
             """
             if direction == 'up':
                 return self.order_filter(elements)
-            else:
+            if direction == 'down':
                 return self.order_ideal(elements)
+            raise ValueError("Direction must be either 'up' or 'down'.")
 
         def principal_order_ideal(self, x):
             r"""

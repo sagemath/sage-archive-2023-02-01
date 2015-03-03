@@ -28,7 +28,8 @@ GPL version 2+
  * http://pari.math.u-bordeaux.fr/
 
 == Dependencies ==
- * MPIR (in place of GMP)
+ * Perl
+ * MPIR or GMP
  * Readline
  * GNU patch (shipped with Sage)
 

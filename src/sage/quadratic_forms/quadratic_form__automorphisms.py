@@ -220,18 +220,16 @@ def short_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False):
         ...
         ValueError: Quadratic form must be positive definite in order to enumerate short vectors
 
-    Sometimes, PARI does not compute short vectors correctly.  It returns too long vectors.
-
-    ::
+    Check that PARI doesn't return vectors which are too long::
 
         sage: Q = QuadraticForm(matrix(2, [72, 12, 12, 120]))
         sage: len_bound_pari = 2*22953421 - 2; len_bound_pari
         45906840
         sage: vs = list(Q._pari_().qfminim(len_bound_pari)[2])  # long time (18s on sage.math, 2014)
         sage: v = vs[0]; v  # long time
-        [-65, 623]~
+        [-66, 623]~
         sage: v.Vec() * Q._pari_() * v  # long time
-        45907800
+        45902280
     """
     if not self.is_positive_definite() :
         raise ValueError( "Quadratic form must be positive definite in order to enumerate short vectors" )
@@ -256,11 +254,9 @@ def short_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False):
     # Sort the vectors into lists by their length
     vec_sorted_list = [list() for i in range(len_bound)]
     for i in range(len(parilist)):
-        length = ZZ(parilens[i])
-        # PARI can sometimes return longer vectors than requested.
-        # E.g. : self.matrix() == matrix(2, [72, 12, 12, 120])
-        #        len_bound = 22953421
-        # gives maximal length 22955664
+        length = int(parilens[i])
+        # In certain trivial cases, PARI can sometimes return longer
+        # vectors than requested.
         if length < len_bound:
             v = parilist[i]
             sagevec = V(list(parilist[i]))

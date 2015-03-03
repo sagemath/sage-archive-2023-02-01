@@ -2,14 +2,14 @@ r"""
 Base class for elements of multivariate polynomial rings
 """
 
-import sage.misc.misc as misc
-
 include "sage/ext/stdsage.pxi"
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 
 from sage.misc.derivative import multi_derivative
 from sage.rings.infinity import infinity
+
+from sage.misc.all import prod
 
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
@@ -287,7 +287,7 @@ cdef class MPolynomial(CommutativeRingElement):
         n = len(x)
         expr = fast_float_constant(0)
         for (m,c) in self.dict().iteritems():
-            monom = misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0], fast_float_constant(c))
+            monom = prod([ x[i]**m[i] for i in range(n) if m[i] != 0], fast_float_constant(c))
             expr = expr + monom
         return expr
 
@@ -329,7 +329,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
         expr = etb.constant(self.base_ring()(0))
         for (m, c) in self.dict().iteritems():
-            monom = misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0],
+            monom = prod([ x[i]**m[i] for i in range(n) if m[i] != 0],
                              etb.constant(c))
             expr = expr + monom
         return expr
@@ -472,7 +472,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: t,s = R.gens()
             sage: x,y,z = R.base_ring().gens()
             sage: (x+y+2*z*s+3*t)._mpoly_dict_recursive(['z','t','s'])
-            {(1, 0, 1): 2, (0, 1, 0): 3, (0, 0, 0): x + y}
+            {(0, 0, 0): x + y, (0, 1, 0): 3, (1, 0, 1): 2}
 
         TESTS::
 
@@ -1091,7 +1091,6 @@ cdef class MPolynomial(CommutativeRingElement):
         p = k.characteristic()
         e = k.degree()
         v = [self] + [self.map_coefficients(k.hom([k.gen()**(p**i)])) for i in range(1,e)]
-        from sage.misc.misc_c import prod
         return prod(v).change_ring(k.prime_subfield())
 
     def sylvester_matrix(self, right, variable = None):
@@ -1582,6 +1581,114 @@ cdef class MPolynomial(CommutativeRingElement):
            return P(XY[0])
        except ValueError:
            raise ArithmeticError, "element is non-invertible"
+
+    def weighted_degree(self, *weights):
+        """
+        Return the weighted degree of ``self``, which is the maximum weighted
+        degree of all monomials in ``self``; the weighted degree of a monomial
+        is the sum of all powers of the variables in the monomial, each power
+        multiplied with its respective weight in ``weights``.
+
+        This method is given for convenience. It is faster to use polynomial
+        rings with weighted term orders and the standard ``degree`` function.
+
+        INPUT:
+
+        - ``weights`` - Either individual numbers, an iterable or a dictionary,
+          specifying the weights of each variable. If it is a dictionary, it
+          maps each variable of ``self`` to its weight. If it is a sequence of
+          individual numbers or a tuple, the weights are specified in the order
+          of the generators as given by ``self.parent().gens()``:
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = GF(7)[]
+            sage: p = x^3 + y + x*z^2
+            sage: p.weighted_degree({z:0, x:1, y:2})
+            3
+            sage: p.weighted_degree(1, 2, 0)
+            3
+            sage: p.weighted_degree((1, 4, 2))
+            5
+            sage: p.weighted_degree((1, 4, 1))
+            4
+            sage: p.weighted_degree(2**64, 2**50, 2**128)
+            680564733841876926945195958937245974528
+            sage: q = R.random_element(100, 20) #random
+            sage: q.weighted_degree(1, 1, 1) == q.total_degree()
+            True
+
+        You may also work with negative weights
+
+        ::
+
+            sage: p.weighted_degree(-1, -2, -1)
+            -2
+
+        Note that only integer weights are allowed
+
+        ::
+
+            sage: p.weighted_degree(x,1,1)
+            Traceback (most recent call last):
+            ...
+            TypeError
+            sage: p.weighted_degree(2/1,1,1)
+            6
+
+        The ``weighted_degree`` coincides with the ``degree`` of a weighted
+        polynomial ring, but the later is faster.
+
+        ::
+
+            sage: K = PolynomialRing(QQ, 'x,y', order=TermOrder('wdegrevlex', (2,3)))
+            sage: p = K.random_element(10)
+            sage: p.degree() == p.weighted_degree(2,3)
+            True
+
+        TESTS::
+
+            sage: R = PolynomialRing(QQ, 'a', 5)
+            sage: f = R.random_element(terms=20)
+            sage: w = random_vector(ZZ,5)
+            sage: d1 = f.weighted_degree(w)
+            sage: d2 = (f*1.0).weighted_degree(w)
+            sage: d1 == d2
+            True
+        """
+        if self.is_zero():
+            #Corner case, note that the degree of zero is an Integer
+            return Integer(-1)
+
+        if len(weights) ==  1:
+            # First unwrap it if it is given as one element argument
+            weights = weights[0]
+
+        if isinstance(weights, dict):
+            weights = [weights[g] for g in self.parent().gens()]
+
+        weights = [Integer(w) for w in weights]
+
+        # Go through each monomial, calculating the weight
+        cdef int n = self.parent().ngens()
+        cdef int i, j
+        cdef Integer deg
+        cdef Integer l
+        cdef tuple m
+        A = self.exponents(as_ETuples=False)
+        l = Integer(0)
+        m = <tuple>(A[0])
+        for i in range(n):
+            l += weights[i]*m[i]
+        deg = l
+        for j in range(1,len(A)):
+            l = Integer(0)
+            m = <tuple>A[j]
+            for i in range(n):
+                l += weights[i]*m[i]
+            if deg < l:
+                deg = l
+        return deg
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)

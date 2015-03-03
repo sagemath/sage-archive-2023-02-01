@@ -30,6 +30,7 @@ class Text(GraphicPrimitive):
     We test creating some text::
 
         sage: text("I like Fibonacci",(3,5))
+        Graphics object consisting of 1 graphics primitive
     """
     def __init__(self, string, point, options):
         """
@@ -155,6 +156,7 @@ class Text(GraphicPrimitive):
             sage: t1 = text("Hello",(1,1), vertical_alignment="top", fontsize=30, rgbcolor='black')
             sage: t2 = text("World", (1,1), horizontal_alignment="left",fontsize=20, zorder=-1)
             sage: t1 + t2   # render the sum
+            Graphics object consisting of 2 graphics primitives
         """
         options = self.options()
         opts = {}
@@ -207,28 +209,34 @@ def text(string, xy, **options):
     EXAMPLES::
 
         sage: text("Sage is really neat!!",(2,12))
+        Graphics object consisting of 1 graphics primitive
 
     The same text in larger font and colored red::
 
         sage: text("Sage is really neat!!",(2,12),fontsize=20,rgbcolor=(1,0,0))
+        Graphics object consisting of 1 graphics primitive
 
     Same text but guaranteed to be in the lower left no matter what::
 
         sage: text("Sage is really neat!!",(0,0), axis_coords=True, horizontal_alignment='left')
+        Graphics object consisting of 1 graphics primitive
 
     Same text rotated around the left, bottom corner of the text::
 
         sage: text("Sage is really neat!!",(0,0), rotation=45.0, horizontal_alignment='left', vertical_alignment='bottom')
+        Graphics object consisting of 1 graphics primitive
 
     Same text oriented vertically::
 
         sage: text("Sage is really neat!!",(0,0), rotation="vertical")
+        Graphics object consisting of 1 graphics primitive
 
     You can also align text differently::
 
         sage: t1 = text("Hello",(1,1), vertical_alignment="top")
         sage: t2 = text("World", (1,0.5), horizontal_alignment="left")
         sage: t1 + t2   # render the sum
+        Graphics object consisting of 2 graphics primitives
 
     You can save text as part of PDF output::
 
@@ -245,6 +253,7 @@ def text(string, xy, **options):
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: text("MATH IS AWESOME", (0, 0), fontsize=40, axes=False)
+        Graphics object consisting of 1 graphics primitive
         sage: text("MATH IS AWESOME", (0, 0), fontsize=40).show(axes=False) # These are equivalent
     """
     try:

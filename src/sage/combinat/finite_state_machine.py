@@ -66,6 +66,8 @@ Manipulation
     :meth:`~FiniteStateMachine.delete_state` | Delete a state
     :meth:`~FiniteStateMachine.add_transition` | Add a transition
     :meth:`~FiniteStateMachine.add_transitions_from_function` | Add transitions
+    :attr:`~FiniteStateMachine.input_alphabet` | Input alphabet
+    :attr:`~FiniteStateMachine.output_alphabet` | Output alphabet
     :attr:`~FiniteStateMachine.on_duplicate_transition` | Hook for handling duplicate transitions
     :meth:`~FiniteStateMachine.add_from_transition_function` | Add transitions by a transition function
     :meth:`~FiniteStateMachine.delete_transition` | Delete a transition
@@ -95,6 +97,7 @@ Properties
     :meth:`~FiniteStateMachine.is_Markov_chain` | Checks for a Markov chain
     :meth:`~FiniteStateMachine.is_monochromatic` | Checks whether the colors of all states are equal
     :meth:`~FiniteStateMachine.asymptotic_moments` | Main terms of expectation and variance of sums of labels
+    :meth:`~FiniteStateMachine.epsilon_successors` | Epsilon successors of a state
 
 
 Operations
@@ -113,6 +116,7 @@ Operations
     :meth:`Transducer.cartesian_product` | Cartesian product of a transducer with another finite state machine
     :meth:`~FiniteStateMachine.product_FiniteStateMachine` | Product of finite state machines
     :meth:`~FiniteStateMachine.composition` | Composition (output of other is input of self)
+    :meth:`~FiniteStateMachine.__call__` | Composition with other finite state machine
     :meth:`~FiniteStateMachine.input_projection` | Input projection (output is deleted)
     :meth:`~FiniteStateMachine.output_projection` | Output projection (old output is new input)
     :meth:`~FiniteStateMachine.projection` | Input or output projection
@@ -120,6 +124,7 @@ Operations
     :meth:`~FiniteStateMachine.with_final_word_out` | Machine with final output constructed by implicitly reading trailing letters, cf. :meth:`~FiniteStateMachine.construct_final_word_out` for inplace version
     :meth:`Automaton.determinisation` | Determinisation of an automaton
     :meth:`~FiniteStateMachine.process` | Process input
+    :meth:`~FiniteStateMachine.__call__` | Process input with shortened output
     :meth:`Automaton.process` | Process input of an automaton (output differs from general case)
     :meth:`Transducer.process` | Process input of a transducer (output differs from general case)
     :meth:`~FiniteStateMachine.iter_process` | Return process iterator
@@ -170,6 +175,10 @@ LaTeX output
     :meth:`~FiniteStateMachine.format_letter_negative` | Format negative numbers as overlined number
     :meth:`~FiniteStateMachine.format_transition_label_reversed` | Format words in transition labels in reversed order
 
+.. SEEALSO::
+
+    :ref:`finite_state_machine_LaTeX_output`
+
 
 :class:`FSMState`
 -----------------
@@ -200,6 +209,19 @@ LaTeX output
     :attr:`~FSMTransition.word_in` | Input word of the transition
     :attr:`~FSMTransition.word_out` | Output word of the transition
     :meth:`~FSMTransition.deepcopy` | Returns a deep copy of the transition
+
+
+:class:`FSMProcessIterator`
+---------------------------
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FSMProcessIterator.next` | Makes one step in processing the input tape
+    :meth:`~FSMProcessIterator.preview_word` | Reads a word from the input tape
+    :meth:`~FSMProcessIterator.result` | Returns the finished branches during process
 
 
 Helper Functions
@@ -269,12 +291,12 @@ Anyhow, we got the following finite state machine::
     sage: fsm
     Finite state machine with 2 states
 
-We can also obtain the underlying directed graph by
+We can also obtain the underlying :class:`directed graph <DiGraph>` by
 
 ::
 
     sage: fsm.graph()
-    Digraph on 2 vertices
+    Looped multi-digraph on 2 vertices
 
 To visualize a finite state machine, we can use
 :func:`~sage.misc.latex.latex` and run the result through LaTeX,
@@ -394,6 +416,16 @@ we use :meth:`~FiniteStateMachine.format_letter_negative` to format
     \end{tikzpicture}
     sage: view(NAF) # not tested
 
+To use the output of :func:`~sage.misc.latex.latex` in your own
+`\LaTeX` file, you have to include
+
+.. code-block:: latex
+
+    \usepackage{tikz}
+    \usetikzlibrary{automata}
+
+into the preamble of your file.
+
 A simple transducer (binary inverter)
 -------------------------------------
 
@@ -420,6 +452,7 @@ Now we apply a word to it and see what the transducer does::
 ``True`` means, that we landed in a final state, that state is labeled
 ``'A'``, and we also got an output.
 
+.. _finite_state_machine_division_by_3_example:
 
 A transducer which performs division by `3` in binary
 -----------------------------------------------------
@@ -628,15 +661,16 @@ Finally, we check that this indeed computes the Gray code of the first
 Using the hook-functions
 ------------------------
 
-Let's use the previous example "divison by `3`" to demonstrate the
-optional state and transition parameters ``hook``.
+Let's use the :ref:`previous example "divison by
+3" <finite_state_machine_division_by_3_example>` to demonstrate the optional
+state and transition parameters ``hook``.
 
-First, we define, what those functions should do. In our case, this is
+First, we define what those functions should do. In our case, this is
 just saying in which state we are and which transition we take
 
 ::
 
-    sage: def state_hook(state, process):
+    sage: def state_hook(process, state, output):
     ....:     print "We are now in State %s." % (state.label(),)
     sage: from sage.combinat.finite_state_machine import FSMWordSymbol
     sage: def transition_hook(transition, process):
@@ -655,7 +689,7 @@ Now, let's add these hook-functions to the existing transducer::
 
 Rerunning the process again now gives the following output::
 
-    sage: D.process([1, 1, 0, 1])
+    sage: D.process([1, 1, 0, 1], check_epsilon_transitions=False)
     We are now in State 0.
     Currently we go from 0 to 1, reading 1 and writing 0.
     We are now in State 1.
@@ -668,7 +702,22 @@ Rerunning the process again now gives the following output::
     (False, 1, [0, 1, 0, 0])
 
 The example above just explains the basic idea of using
-hook-functions. In the following, we will use those hooks more seriously.
+hook-functions. In the following, we will use those hooks more
+seriously.
+
+.. WARNING::
+
+   The hooks of the states are also called while exploring the epsilon
+   successors of a state (during processing). In the example above, we
+   used ``check_epsilon_transitions=False`` to avoid this (and also
+   therefore got a cleaner output).
+
+.. WARNING::
+
+   The arguments used when calling a hook have changed in
+   :trac:`16538` from ``hook(state, process)`` to
+   ``hook(process, state, output)``. If you are using
+   an old-style hook, a deprecation warning is displayed.
 
 
 Detecting sequences with same number of `0` and `1`
@@ -681,8 +730,8 @@ our finite automaton by a counter::
 
     sage: from sage.combinat.finite_state_machine import FSMState, FSMTransition
     sage: C = FiniteStateMachine()
-    sage: def update_counter(state, process):
-    ....:     l = process.read_letter()
+    sage: def update_counter(process, state, output):
+    ....:     l = process.preview_word()
     ....:     process.fsm.counter += 1 if l == 1 else -1
     ....:     if process.fsm.counter > 0:
     ....:         next_state = 'positive'
@@ -786,6 +835,7 @@ from sage.calculus.var import var
 from sage.misc.cachefunc import cached_function
 from sage.misc.latex import latex
 from sage.misc.misc import verbose
+from sage.misc.misc import srange
 from sage.functions.trig import cos, sin, atan2
 from sage.symbolic.constants import pi
 
@@ -793,8 +843,10 @@ from copy import copy
 from copy import deepcopy
 
 import itertools
-from itertools import imap
+from itertools import imap, ifilter, izip
+import collections
 from collections import defaultdict, OrderedDict
+import heapq
 
 
 def full_group_by(l, key=lambda x: x):
@@ -1161,7 +1213,7 @@ class FSMState(SageObject):
         ....:                initial_states=[0],
         ....:                final_states=[4],
         ....:                input_alphabet=[9])
-        sage: def stop(current_state, process_iterator):
+        sage: def stop(process, state, output):
         ....:     raise StopIteration()
         sage: T.state(3).hook = stop
         sage: T.process([9, 9, 9, 9])
@@ -1765,6 +1817,167 @@ class FSMState(SageObject):
             True
         """
         return True  # A state cannot be zero (see __init__)
+
+
+    def _epsilon_successors_(self, fsm=None):
+        """
+        Returns the dictionary with states reachable from ``self``
+        without reading anything from an input tape as keys. The
+        values are lists of outputs.
+
+        INPUT:
+
+        - ``fsm`` -- the finite state machine to which ``self``
+          belongs.
+
+        OUTPUT:
+
+        A dictionary mapping states to a list of output words.
+
+        The states in the output are the epsilon successors of
+        ``self``. Each word of the list of words is an output word
+        written when taking a path from ``self`` to the corresponding
+        state.
+
+        TESTS::
+
+            sage: T = Transducer([(0, 1, None, 'a'), (1, 2, None, 'b')])
+            sage: T.state(0)._epsilon_successors_(T)
+            {1: [['a']], 2: [['a', 'b']]}
+            sage: T.state(1)._epsilon_successors_(T)
+            {2: [['b']]}
+            sage: T.state(2)._epsilon_successors_(T)
+            {}
+
+        ::
+
+            sage: T.state(0)._epsilon_successors_()
+            {1: [['a']], 2: [['a', 'b']]}
+
+        ::
+
+            sage: T.add_transition(2, 0, None, 'c')
+            Transition from 2 to 0: -|'c'
+            sage: T.state(0)._epsilon_successors_()
+            {0: [['a', 'b', 'c']], 1: [['a']], 2: [['a', 'b']]}
+
+        ::
+
+            sage: T.add_transition(0, 2, None, ['a', 'b'])
+            Transition from 0 to 2: -|'a','b'
+            sage: T.state(0)._epsilon_successors_()
+            {0: [['a', 'b', 'c']], 1: [['a']], 2: [['a', 'b']]}
+        """
+        if not hasattr(self, 'transitions'):
+            raise ValueError('State %s does not belong to a '
+                             'finite state machine.' % (self,))
+
+        it = _FSMProcessIteratorEpsilon_(fsm, input_tape=[],
+                                         initial_state=self)
+        # TODO: optimize the following lines (use already calculated
+        # epsilon successors)
+        for _ in it:
+            pass
+        _epsilon_successors_dict_ = it.visited_states
+        _epsilon_successors_dict_[self].remove([])  # delete starting state
+        if not _epsilon_successors_dict_[self]:
+            del _epsilon_successors_dict_[self]
+        for s, outputs in _epsilon_successors_dict_.iteritems():
+            _epsilon_successors_dict_[s] = [t for t, _ in
+                                            itertools.groupby(sorted(outputs))]
+        return _epsilon_successors_dict_
+
+
+    def _in_epsilon_cycle_(self, fsm=None):
+        """
+        Returns whether ``self`` is in an epsilon-cycle or not.
+
+        INPUT:
+
+        - ``fsm`` -- the finite state machine to which ``self``
+          belongs.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        TESTS::
+
+            sage: A = Automaton([(0, 1, None, 'a'), (1, 2, None, 'b'),
+            ....:                (2, 0, None, 'c'), (4, 1, None, 'd')])
+            sage: A.state(0)._epsilon_successors_(A)
+            {0: [['a', 'b', 'c']], 1: [['a']], 2: [['a', 'b']]}
+            sage: A.state(0)._in_epsilon_cycle_(A)
+            True
+            sage: A.state(4)._epsilon_successors_(A)
+            {0: [['d', 'b', 'c']], 1: [['d'], ['d', 'b', 'c', 'a']],
+             2: [['d', 'b']]}
+            sage: A.state(4)._in_epsilon_cycle_(A)
+            False
+        """
+        return self in self._epsilon_successors_(fsm)
+
+
+    def _epsilon_cycle_output_empty_(self, fsm=None):
+        """
+        Returns whether all epsilon-cycles in which ``self`` is
+        contained have an empty output (i.e., do not write any output
+        word).
+
+        INPUT:
+
+        - ``fsm`` -- the finite state machine to which ``self``
+          belongs.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        A ``ValueError`` is raised when ``self`` is not in an epsilon
+        cycle.
+
+        TESTS::
+
+            sage: A = Automaton([(0, 1, None, 'a'), (1, 2, None, None),
+            ....:                (2, 0, None, None), (4, 1, None, None)])
+            sage: A.state(0)._epsilon_successors_(A)
+            {0: [['a']], 1: [['a']], 2: [['a']]}
+            sage: A.state(0)._epsilon_cycle_output_empty_(A)
+            False
+            sage: A.state(4)._epsilon_cycle_output_empty_(A)
+            Traceback (most recent call last):
+            ...
+            ValueError: State 4 is not in an epsilon cycle.
+            sage: A = Automaton([(0, 1, None, None), (1, 2, None, None),
+            ....:                (2, 0, None, None), (4, 1, None, None)])
+            sage: A.state(0)._epsilon_successors_(A)
+            {0: [[]], 1: [[]], 2: [[]]}
+            sage: A.state(0)._epsilon_cycle_output_empty_(A)
+            True
+            sage: A.process([], initial_state=A.state(0))
+            [(False, 0), (False, 1), (False, 2)]
+            sage: A.add_transition(0, 0, None, 'x')
+            Transition from 0 to 0: -|'x'
+            sage: A.state(0)._epsilon_successors_(A)
+            {0: [[], ['x']], 1: [[]], 2: [[]]}
+            sage: A.state(0)._epsilon_cycle_output_empty_(A)
+            False
+            sage: A.process([], initial_state=A.state(0))
+            Traceback (most recent call last):
+            ...
+            RuntimeError: State 0 is in an epsilon cycle (no input),
+            but output is written.
+            sage: T = Transducer([(0, 1, None, None), (1, 2, None, None),
+            ....:                 (2, 0, None, None), (0, 0, None, None)])
+            sage: T.state(0)._epsilon_successors_(T)
+            {0: [[]], 1: [[]], 2: [[]]}
+            sage: T.state(0)._epsilon_cycle_output_empty_(T)
+            True
+        """
+        try:
+            return not any(self._epsilon_successors_(fsm)[self])
+        except KeyError:
+            raise ValueError("State %s is not in an epsilon cycle." % (self,))
 
 
 #*****************************************************************************
@@ -2480,11 +2693,19 @@ class FiniteStateMachine(SageObject):
 
     #.  The input-data can be an other instance of a finite state machine::
 
-            sage: FiniteStateMachine(FiniteStateMachine([]))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            sage: F = FiniteStateMachine()
+            sage: G = Transducer(F)
+            sage: G == F
+            True
 
+        The other parameters cannot be specified in that case. If you
+        want to change these, use the attributes
+        :attr:`FSMState.is_initial`, :attr:`FSMState.is_final`,
+        :attr:`input_alphabet`, :attr:`output_alphabet`,
+        :attr:`on_duplicate_transition` and methods
+        :meth:`.determine_alphabets`,
+        :meth:`.construct_final_word_out` on the new machine,
+        respectively.
 
     The following examples demonstrate the use of ``on_duplicate_transition``::
 
@@ -2575,13 +2796,97 @@ class FiniteStateMachine(SageObject):
         sage: t4 = FSMTransition(c, d)
         sage: FiniteStateMachine([t1, t2, t3, t4])
         Finite state machine with 4 states
+
+    We test that no input parameter is allowed when creating a finite
+    state machine from an existing instance::
+
+        sage: F = FiniteStateMachine()
+        sage: FiniteStateMachine(F, initial_states=[1])
+        Traceback (most recent call last):
+        ...
+        ValueError: initial_states cannot be specified when
+        copying another finite state machine.
+        sage: FiniteStateMachine(F, final_states=[1])
+        Traceback (most recent call last):
+        ...
+        ValueError: final_states cannot be specified when
+        copying another finite state machine.
+        sage: FiniteStateMachine(F, input_alphabet=[1])
+        Traceback (most recent call last):
+        ...
+        ValueError: input_alphabet cannot be specified when
+        copying another finite state machine.
+        sage: FiniteStateMachine(F, output_alphabet=[1])
+        Traceback (most recent call last):
+        ...
+        ValueError: output_alphabet cannot be specified when
+        copying another finite state machine.
+        sage: from sage.combinat.finite_state_machine import (
+        ....:     duplicate_transition_add_input)
+        sage: FiniteStateMachine(F,
+        ....:     on_duplicate_transition=duplicate_transition_add_input)
+        Traceback (most recent call last):
+        ...
+        ValueError: on_duplicate_transition cannot be specified when
+        copying another finite state machine.
+        sage: FiniteStateMachine(F, determine_alphabets=False)
+        Traceback (most recent call last):
+        ...
+        ValueError: determine_alphabets cannot be specified when
+        copying another finite state machine.
+        sage: FiniteStateMachine(F, with_final_word_out=[1])
+        Traceback (most recent call last):
+        ...
+        ValueError: with_final_word_out cannot be specified when
+        copying another finite state machine.
+
+    .. automethod:: __call__
     """
 
     on_duplicate_transition = duplicate_transition_ignore
     """
-    Which function to call when a duplicate transition is inserted. See
-    the documentation of the parameter ``on_duplicate_transition`` of
-    the class :class:`FiniteStateMachine` for details.
+    Which function to call when a duplicate transition is inserted.
+
+    It can be set by the parameter ``on_duplicate_transition`` when
+    initializing a finite state machine, see
+    :class:`FiniteStateMachine`.
+
+    .. SEEALSO::
+
+        :class:`FiniteStateMachine`, :meth:`is_Markov_chain`,
+        :meth:`markov_chain_simplification`
+    """
+
+    input_alphabet = None
+    """
+    A list of letters representing the input alphabet of the finite
+    state machine.
+
+    It can be set by the parameter ``input_alphabet`` when initializing
+    a finite state machine, see :class:`FiniteStateMachine`.
+
+    It can also be set by the method :meth:`determine_alphabets`.
+
+    .. SEEALSO::
+
+        :class:`FiniteStateMachine`, :meth:`determine_alphabets`,
+        :attr:`output_alphabet`
+    """
+
+    output_alphabet = None
+    """
+    A list of letters representing the output alphabet of the finite
+    state machine.
+
+    It can be set by the parameter ``output_alphabet`` when initializing
+    a finite state machine, see :class:`FiniteStateMachine`.
+
+    It can also be set by the method :meth:`determine_alphabets`.
+
+    .. SEEALSO::
+
+        :class:`FiniteStateMachine`, :meth:`determine_alphabets`,
+        :attr:`input_alphabet`
     """
 
     #*************************************************************************
@@ -2611,6 +2916,42 @@ class FiniteStateMachine(SageObject):
         if store_states_dict:
             self._states_dict_ = {}
 
+        self._allow_composition_ = True
+
+        if is_FiniteStateMachine(data):
+            if initial_states is not None:
+                raise ValueError(
+                    "initial_states cannot be specified when copying "
+                    "another finite state machine.")
+            if final_states is not None:
+                raise ValueError(
+                    "final_states cannot be specified when copying "
+                    "another finite state machine.")
+            if input_alphabet is not None:
+                raise ValueError(
+                    "input_alphabet cannot be specified when copying "
+                    "another finite state machine.")
+            if output_alphabet is not None:
+                raise ValueError(
+                    "output_alphabet cannot be specified when copying "
+                    "another finite state machine.")
+            if on_duplicate_transition is not None:
+                raise ValueError(
+                    "on_duplicate_transition cannot be specified when "
+                    "copying another finite state machine.")
+            if determine_alphabets is not None:
+                raise ValueError(
+                    "determine_alphabets cannot be specified when "
+                    "copying another finite state machine.")
+            if with_final_word_out is not None:
+                raise ValueError(
+                    "with_final_word_out cannot be specified when "
+                    "copying another finite state machine.")
+
+            self._copy_from_other_(data)
+            return
+
+
         if initial_states is not None:
             if not hasattr(initial_states, '__iter__'):
                 raise TypeError('Initial states must be iterable ' \
@@ -2639,8 +2980,6 @@ class FiniteStateMachine(SageObject):
 
         if data is None:
             pass
-        elif is_FiniteStateMachine(data):
-            raise NotImplementedError
         elif hasattr(data, 'iteritems'):
             # data is a dict (or something similar),
             # format: key = from_state, value = iterator of transitions
@@ -2697,8 +3036,6 @@ class FiniteStateMachine(SageObject):
 
         if with_final_word_out is not None:
             self.construct_final_word_out(with_final_word_out)
-
-        self._allow_composition_ = True
 
 
     #*************************************************************************
@@ -2776,9 +3113,7 @@ class FiniteStateMachine(SageObject):
             new = self.__class__()
         else:
             new = new_class()
-        new.input_alphabet = deepcopy(self.input_alphabet, memo)
-        new.output_alphabet = deepcopy(self.output_alphabet, memo)
-        new.on_duplicate_transition = self.on_duplicate_transition
+        new._copy_from_other_(self, memo=memo, empty=True)
         return new
 
 
@@ -2800,26 +3135,8 @@ class FiniteStateMachine(SageObject):
             sage: deepcopy(F)
             Finite state machine with 1 states
         """
-        relabel = hasattr(self, '_deepcopy_relabel_')
-        new = self.empty_copy(memo=memo)
-        relabel_iter = itertools.count(0)
-        for state in self.iter_states():
-            if relabel:
-                if self._deepcopy_labels_ is None:
-                    state._deepcopy_relabel_ = next(relabel_iter)
-                elif hasattr(self._deepcopy_labels_, '__call__'):
-                    state._deepcopy_relabel_ = self._deepcopy_labels_(state.label())
-                elif hasattr(self._deepcopy_labels_, '__getitem__'):
-                    state._deepcopy_relabel_ = self._deepcopy_labels_[state.label()]
-                else:
-                    raise TypeError("labels must be None, a callable "
-                                    "or a dictionary.")
-            s = deepcopy(state, memo)
-            if relabel:
-                del state._deepcopy_relabel_
-            new.add_state(s)
-        for transition in self.iter_transitions():
-            new.add_transition(deepcopy(transition, memo))
+        new = self.__class__()
+        new._copy_from_other_(self)
         return new
 
 
@@ -2855,6 +3172,57 @@ class FiniteStateMachine(SageObject):
 
         """
         return deepcopy(self, memo)
+
+    def _copy_from_other_(self, other, memo=None, empty=False):
+        """
+        Copy all data from other to self, to be used in the constructor.
+
+        INPUT:
+
+        - ``other`` -- a :class:`FiniteStateMachine`.
+
+        OUTPUT:
+
+        Nothing.
+
+        EXAMPLE::
+
+            sage: A = Automaton([(0, 0, 0)],
+            ....:               initial_states=[0],
+            ....:               final_states=[0])
+            sage: B = Automaton()
+            sage: B._copy_from_other_(A)
+            sage: A == B
+            True
+        """
+        if memo is None:
+            memo = {}
+        self.input_alphabet = deepcopy(other.input_alphabet, memo)
+        self.output_alphabet = deepcopy(other.output_alphabet, memo)
+        self.on_duplicate_transition = other.on_duplicate_transition
+
+        if not empty:
+            relabel = hasattr(other, '_deepcopy_relabel_')
+            relabel_iter = itertools.count(0)
+            for state in other.iter_states():
+                if relabel:
+                    if other._deepcopy_labels_ is None:
+                        state._deepcopy_relabel_ = next(relabel_iter)
+                    elif hasattr(other._deepcopy_labels_, '__call__'):
+                        state._deepcopy_relabel_ = \
+                            other._deepcopy_labels_(state.label())
+                    elif hasattr(other._deepcopy_labels_, '__getitem__'):
+                        state._deepcopy_relabel_ = \
+                            other._deepcopy_labels_[state.label()]
+                    else:
+                        raise TypeError("labels must be None, a callable "
+                                        "or a dictionary.")
+                s = deepcopy(state, memo)
+                if relabel:
+                    del state._deepcopy_relabel_
+                self.add_state(s)
+            for transition in other.iter_transitions():
+                self.add_transition(deepcopy(transition, memo))
 
 
     def relabeled(self, memo=None, labels=None):
@@ -3069,8 +3437,9 @@ class FiniteStateMachine(SageObject):
             already be achieved by setting
             ``FSMOldProcessOutput`` to ``False``.
 
-        Calls either method :meth:`.composition` or :meth:`.process`
-        (with ``full_output=False``).
+        Calls either method :meth:`.composition` or :meth:`.process` (with
+        ``full_output=False``). See the documentation of these functions for
+        possible parameters.
 
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.
@@ -3078,9 +3447,8 @@ class FiniteStateMachine(SageObject):
         EXAMPLES::
 
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False  # activate new output behavior
-            sage: from sage.combinat.finite_state_machine import FSMState
-            sage: A = FSMState('A', is_initial=True, is_final=True)
-            sage: binary_inverter = Transducer({A:[(A, 0, 1), (A, 1, 0)]})
+            sage: binary_inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:                              initial_states=['A'], final_states=['A'])
             sage: binary_inverter([0, 1, 0, 0, 1, 1])
             [1, 0, 1, 1, 0, 0]
 
@@ -3095,14 +3463,181 @@ class FiniteStateMachine(SageObject):
             sage: H = G(F)
             sage: H.states()
             [('A', 1), ('B', 1), ('B', 2)]
+
+        When only one successful path is found in a non-deterministic
+        transducer, the result of that path is returned.
+
+        ::
+
+            sage: T = Transducer([(0, 1, 0, 1), (0, 2, 0, 2)],
+            ....:                initial_states=[0], final_states=[1])
+            sage: T.process([0])
+            [(True, 1, [1]), (False, 2, [2])]
+            sage: T([0])
+            [1]
+
+        .. SEEALSO::
+
+            :meth:`.composition`,
+            :meth:`~FiniteStateMachine.process`,
+            :meth:`Automaton.process`,
+            :meth:`Transducer.process`.
+
+        TESTS::
+
+            sage: F = FiniteStateMachine([(0, 1, 1, 'a'), (0, 2, 2, 'b')],
+            ....:                        initial_states=[0],
+            ....:                        final_states=[1])
+            sage: A = Automaton([(0, 1, 1), (0, 2, 2)],
+            ....:               initial_states=[0],
+            ....:               final_states=[1])
+            sage: T = Transducer([(0, 1, 1, 'a'), (0, 2, 2, 'b')],
+            ....:                initial_states=[0],
+            ....:                final_states=[1])
+            sage: F([1])
+            (True, 1, ['a'])
+            sage: A([1])
+            True
+            sage: T([1])
+            ['a']
+            sage: F([2])
+            (False, 2, ['b'])
+            sage: A([2])
+            False
+            sage: T([2])
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid input sequence.
+            sage: F([3])
+            (False, None, None)
+            sage: A([3])
+            False
+            sage: T([3])
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid input sequence.
+
+        ::
+
+            sage: F = FiniteStateMachine([(11, 11, 1, 'a'), (11, 12, 2, 'b'),
+            ....:                         (11, 13, 3, 'c'), (11, 14, 4, 'd'),
+            ....:                         (12, 13, 3, 'e'), (12, 13, 3, 'f'),
+            ....:                         (12, 14, 4, 'g'), (12, 14, 4, 'h'),
+            ....:                         (12, 13, 2, 'i'), (12, 14, 2, 'j')],
+            ....:                        initial_states=[11],
+            ....:                        final_states=[13])
+            sage: def f(o):
+            ....:     return ''.join(o)
+            sage: F([0], format_output=f)
+            (False, None, None)
+            sage: F([3], format_output=f)
+            (True, 13, 'c')
+            sage: F([4], format_output=f)
+            (False, 14, 'd')
+            sage: F([2, 2], format_output=f)
+            Traceback (most recent call last):
+            ...
+            ValueError: Got more than one output, but only allowed to show
+            one. Change list_of_outputs option.
+            sage: F([2, 2], format_output=f, list_of_outputs=True)
+            [(True, 13, 'bi'), (False, 14, 'bj')]
+            sage: F([2, 3], format_output=f)
+            Traceback (most recent call last):
+            ...
+            ValueError: Got more than one output, but only allowed to show
+            one. Change list_of_outputs option.
+            sage: F([2, 3], format_output=f, list_of_outputs=True)
+            [(True, 13, 'be'), (True, 13, 'bf')]
+            sage: F([2, 4], format_output=f)
+            Traceback (most recent call last):
+            ...
+            ValueError: Got more than one output, but only allowed to show
+            one. Change list_of_outputs option.
+            sage: F([2, 4], format_output=f, list_of_outputs=True)
+            [(False, 14, 'bg'), (False, 14, 'bh')]
+
+        ::
+
+            sage: A = Automaton([(11, 11, 1), (11, 12, 2),
+            ....:                (11, 13, 3), (11, 14, 4),
+            ....:                (12, 13, 3), (12, 14, 4),
+            ....:                (12, 32, 3), (12, 42, 4),
+            ....:                (12, 13, 2), (12, 14, 2)],
+            ....:               initial_states=[11],
+            ....:               final_states=[13, 32])
+            sage: def f(o):
+            ....:     return ''.join(o)
+            sage: A([0], format_output=f)
+            False
+            sage: A([3], format_output=f)
+            True
+            sage: A([4], format_output=f)
+            False
+            sage: A([2, 2], format_output=f)
+            True
+            sage: A([2, 2], format_output=f, list_of_outputs=True)
+            [True, False]
+            sage: A([2, 3], format_output=f)
+            True
+            sage: A([2, 3], format_output=f, list_of_outputs=True)
+            [True, True]
+            sage: A([2, 4], format_output=f)
+            False
+            sage: A([2, 4], format_output=f, list_of_outputs=True)
+            [False, False]
+
+        ::
+
+            sage: T = Transducer([(11, 11, 1, 'a'), (11, 12, 2, 'b'),
+            ....:                 (11, 13, 3, 'c'), (11, 14, 4, 'd'),
+            ....:                 (12, 13, 3, 'e'), (12, 13, 3, 'f'),
+            ....:                 (12, 14, 4, 'g'), (12, 14, 4, 'h'),
+            ....:                 (12, 13, 2, 'i'), (12, 14, 2, 'j')],
+            ....:                initial_states=[11],
+            ....:                final_states=[13])
+            sage: def f(o):
+            ....:     return ''.join(o)
+            sage: T([0], format_output=f)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid input sequence.
+            sage: T([3], format_output=f)
+            'c'
+            sage: T([4], format_output=f)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid input sequence.
+            sage: T([2, 2], format_output=f)
+            'bi'
+            sage: T([2, 2], format_output=f, list_of_outputs=True)
+            ['bi', None]
+            sage: T([2, 2], format_output=f,
+            ....:   list_of_outputs=True, only_accepted=True)
+            ['bi']
+            sage: T.process([2, 2], format_output=f, list_of_outputs=True)
+            [(True, 13, 'bi'), (False, 14, 'bj')]
+            sage: T([2, 3], format_output=f)
+            Traceback (most recent call last):
+            ...
+            ValueError: Found more than one accepting path.
+            sage: T([2, 3], format_output=f, list_of_outputs=True)
+            ['be', 'bf']
+            sage: T([2, 4], format_output=f)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid input sequence.
+            sage: T([2, 4], format_output=f, list_of_outputs=True)
+            [None, None]
         """
         if len(args) == 0:
             raise TypeError("Called with too few arguments.")
         if is_FiniteStateMachine(args[0]):
             return self.composition(*args, **kwargs)
         if hasattr(args[0], '__iter__'):
-            if not kwargs.has_key('full_output'):
+            if not 'full_output' in kwargs:
                 kwargs['full_output'] = False
+            if not 'list_of_outputs' in kwargs:
+                kwargs['list_of_outputs'] = False
             return self.process(*args, **kwargs)
         raise TypeError("Do not know what to do with that arguments.")
 
@@ -3950,6 +4485,25 @@ class FiniteStateMachine(SageObject):
             \node[state, accepting] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
             \path[->] (v0) edge node[rotate=360.00, anchor=south] {$ $} (v1);
             \end{tikzpicture}
+
+        TESTS:
+
+            Check that :trac:`16943` is fixed::
+
+                sage: latex(Transducer(
+                ....:     [(0, 1), (1, 1), (2, 2), (3, 3), (4, 4)]))
+                \begin{tikzpicture}[auto, initial text=, >=latex]
+                \node[state] (v0) at (3.000000, 0.000000) {$0$};
+                \node[state] (v1) at (0.927051, 2.853170) {$1$};
+                \node[state] (v2) at (-2.427051, 1.763356) {$2$};
+                \node[state] (v3) at (-2.427051, -1.763356) {$3$};
+                \node[state] (v4) at (0.927051, -2.853170) {$4$};
+                \path[->] (v0) edge node[rotate=306.00, anchor=south] {$\varepsilon\mid \varepsilon$} (v1);
+                \path[->] (v1) edge[loop above] node {$\varepsilon\mid \varepsilon$} ();
+                \path[->] (v2) edge[loop above] node {$\varepsilon\mid \varepsilon$} ();
+                \path[->] (v3) edge[loop above] node {$\varepsilon\mid \varepsilon$} ();
+                \path[->] (v4) edge[loop above] node {$\varepsilon\mid \varepsilon$} ();
+                \end{tikzpicture}
         """
         def label_rotation(angle, both_directions):
             """
@@ -3964,6 +4518,10 @@ class FiniteStateMachine(SageObject):
                     # if transitions in both directions, the transition to the
                     # left has its label below the transition, otherwise above
                     anchor_label = "north"
+            if hasattr(angle_label, 'n'):
+                # we may need to convert symbolic expressions to floats,
+                # but int does not have .n()
+                angle_label = angle_label.n()
             return "rotate=%.2f, anchor=%s" % (angle_label, anchor_label)
 
         setup_latex_preamble()
@@ -4961,6 +5519,10 @@ class FiniteStateMachine(SageObject):
     # let the finite state machine work
     #*************************************************************************
 
+    _process_default_options_ = {'full_output': True,
+                                 'list_of_outputs': None,
+                                 'only_accepted': False,
+                                 'always_include_output': False}
 
     def process(self, *args, **kwargs):
         """
@@ -4969,33 +5531,118 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``input_tape`` -- The input tape can be a list with entries from
-          the input alphabet.
+        - ``input_tape`` -- the input tape can be a list or an
+          iterable with entries from the input alphabet. If we are
+          working with a multi-tape machine (see parameter
+          ``use_multitape_input`` and notes below), then the tape is a
+          list or tuple of tracks, each of which can be a list or an
+          iterable with entries from the input alphabet.
 
-        - ``initial_state`` -- (default: ``None``) The state in which
-          to start. If this parameter is ``None`` and there is only
-          one initial state in the machine, then this state is taken.
+        - ``initial_state`` or ``initial_states`` -- the initial
+          state(s) in which the machine starts. Either specify a
+          single one with ``initial_state`` or a list of them with
+          ``initial_states``. If both are given, ``initial_state``
+          will be appended to ``initial_states``. If neither is
+          specified, the initial states of the finite state machine
+          are taken.
+
+        - ``list_of_outputs`` -- (default: ``None``) a boolean or
+          ``None``. If ``True``, then the outputs are given in list form
+          (even if we have no or only one single output). If
+          ``False``, then the result is never a list (an exception is
+          raised if the result cannot be returned). If
+          ``list_of_outputs=None``, the method determines automatically
+          what to do (e.g. if a non-deterministic machine returns more
+          than one path, then the output is returned in list form).
+
+        - ``only_accepted`` -- (default: ``False``) a boolean. If set,
+          then the first argument in the output is guaranteed to be
+          ``True`` (if the output is a list, then the first argument
+          of each element will be ``True``).
+
+        - ``always_include_output`` -- if set (not by default), always
+          include the output. This is inconsequential for a
+          :class:`FiniteStateMachine`, but can be used in derived
+          classes where the output is suppressed by default,
+          cf. :meth:`Automaton.process`.
+
+        - ``format_output`` -- a function that translates the written
+          output (which is in form of a list) to something more
+          readable. By default (``None``) identity is used here.
+
+        - ``check_epsilon_transitions`` -- (default: ``True``) a
+          boolean. If ``False``, then epsilon transitions are not
+          taken into consideration during process.
+
+        - ``write_final_word_out`` -- (default: ``True``) a boolean
+          specifying whether the final output words should be written
+          or not.
+
+        - ``use_multitape_input`` -- (default: ``False``) a
+          boolean. If ``True``, then the multi-tape mode of the
+          process iterator is activated. See also the notes below for
+          multi-tape machines.
 
         OUTPUT:
 
-        A triple, where
+        A triple (or a list of triples,
+        cf. parameter ``list_of_outputs``), where
 
         - the first entry is ``True`` if the input string is accepted,
 
         - the second gives the reached state after processing the
           input tape (This is a state with label ``None`` if the input
-          could not be processed, i.e., when at one point no
-          transition to go could be found.), and
+          could not be processed, i.e., if at one point no
+          transition to go on could be found.), and
 
-        - the third gives a list of the output labels used during
+        - the third gives a list of the output labels written during
           processing (in the case the finite state machine runs as
           transducer).
 
+        Note that in the case the finite state machine is not
+        deterministic, all possible paths are taken into account.
+
+        This function uses an iterator which, in its simplest form, goes
+        from one state to another in each step. To decide which way to
+        go, it uses the input words of the outgoing transitions and
+        compares them to the input tape. More precisely, in each step,
+        the iterator takes an outgoing transition of the current state,
+        whose input label equals the input letter of the tape. The
+        output label of the transition, if present, is written on the
+        output tape.
+
+        If the choice of the outgoing transition is not unique (i.e.,
+        we have a non-deterministic finite state machine), all
+        possibilites are followed. This is done by splitting the
+        process into several branches, one for each of the possible
+        outgoing transitions.
+
+        The process (iteration) stops if all branches are finished,
+        i.e., for no branch, there is any transition whose input word
+        coincides with the processed input tape. This can simply
+        happen when the entire tape was read.
+
+        Also see :meth:`~FiniteStateMachine.__call__` for a version of
+        :meth:`.process` with shortened output.
+
+        Internally this function creates and works with an instance of
+        :class:`FSMProcessIterator`. This iterator can also be obtained
+        with :meth:`iter_process`.
+
+        If working with multi-tape finite state machines, all input
+        words of transitions are words of `k`-tuples of letters.
+        Moreover, the input tape has to consist of `k` tracks, i.e.,
+        be a list or tuple of `k` iterators, one for each track.
+
+        .. WARNING::
+
+            Working with multi-tape finite state machines is still
+            experimental and can lead to wrong outputs.
+
         EXAMPLES::
 
-            sage: from sage.combinat.finite_state_machine import FSMState
-            sage: A = FSMState('A', is_initial = True, is_final = True)
-            sage: binary_inverter = FiniteStateMachine({A:[(A, 0, 1), (A, 1, 0)]})
+            sage: binary_inverter = FiniteStateMachine({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:                                      initial_states=['A'], final_states=['A'])
             sage: binary_inverter.process([0, 1, 0, 0, 1, 1])
             (True, 'A', [1, 0, 1, 1, 0, 0])
 
@@ -5004,63 +5651,277 @@ class FiniteStateMachine(SageObject):
             sage: binary_inverter([0, 1, 0, 0, 1, 1])
             (True, 'A', [1, 0, 1, 1, 0, 0])
 
-        ::
+        Below we construct a finite state machine which tests if an input
+        is a non-adjacent form, i.e., no two neighboring letters are
+        both nonzero (see also the example on
+        :ref:`non-adjacent forms <finite_state_machine_recognizing_NAFs_example>`
+        in the documentation of the module
+        :mod:`~sage.combinat.finite_state_machine`)::
 
-            sage: NAF_ = FSMState('_', is_initial = True, is_final = True)
-            sage: NAF1 = FSMState('1', is_final = True)
             sage: NAF = FiniteStateMachine(
-            ....:     {NAF_: [(NAF_, 0), (NAF1, 1)], NAF1: [(NAF_, 0)]})
+            ....:     {'_': [('_', 0), (1, 1)], 1: [('_', 0)]},
+            ....:     initial_states=['_'], final_states=['_', 1])
             sage: [NAF.process(w)[0] for w in [[0], [0, 1], [1, 1], [0, 1, 0, 1],
             ....:                           [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
             [True, True, False, True, False, False]
 
-        Non-deterministic finite state machines cannot be handeled.
+        Working only with the first component (i.e., returning whether
+        accepted or not) usually corresponds to using the more
+        specialized class :class:`Automaton`.
+
+        Non-deterministic finite state machines can be handeled as well.
 
         ::
 
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 0, 0)],
             ....:     initial_states=[0])
             sage: T.process([0])
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Non-deterministic path encountered when processing input.
+            [(False, 1, [0]), (False, 2, [0])]
+
+        Here is another non-deterministic finite state machine. Note
+        that we use ``format_output`` (see
+        :class:`FSMProcessIterator`) to convert the written outputs
+        (all characters) to strings.
+
+        ::
+
+            sage: T = Transducer([(0, 1, [0, 0], 'a'), (0, 2, [0, 0, 1], 'b'),
+            ....:                 (0, 1, 1, 'c'), (1, 0, [], 'd'),
+            ....:                 (1, 1, 1, 'e')],
+            ....:                initial_states=[0], final_states=[0, 1])
+            sage: T.process([0], format_output=lambda o: ''.join(o))
+            (False, None, None)
+            sage: T.process([0, 0], format_output=lambda o: ''.join(o))
+            [(True, 0, 'ad'), (True, 1, 'a')]
+            sage: T.process([1], format_output=lambda o: ''.join(o))
+            [(True, 0, 'cd'), (True, 1, 'c')]
+            sage: T.process([1, 1], format_output=lambda o: ''.join(o))
+            [(True, 0, 'cdcd'), (True, 0, 'ced'),
+             (True, 1, 'cdc'), (True, 1, 'ce')]
+            sage: T.process([0, 0, 1], format_output=lambda o: ''.join(o))
+            [(True, 0, 'adcd'), (True, 0, 'aed'),
+             (True, 1, 'adc'), (True, 1, 'ae'), (False, 2, 'b')]
+            sage: T.process([0, 0, 1], format_output=lambda o: ''.join(o),
+            ....:           only_accepted=True)
+            [(True, 0, 'adcd'), (True, 0, 'aed'),
+             (True, 1, 'adc'), (True, 1, 'ae')]
+
+        A simple example of a multi-tape finite state machine is the
+        following: It writes the length of the first tape many letters
+        ``a`` and then the length of the second tape many letters
+        ``b``::
+
+            sage: M = FiniteStateMachine([(0, 0, (1, None), 'a'),
+            ....:                         (0, 1, [], []),
+            ....:                         (1, 1, (None, 1), 'b')],
+            ....:                        initial_states=[0],
+            ....:                        final_states=[1])
+            sage: M.process(([1, 1], [1]), use_multitape_input=True)
+            (True, 1, ['a', 'a', 'b'])
+
+        .. SEEALSO::
+
+            :meth:`Automaton.process`,
+            :meth:`Transducer.process`,
+            :meth:`~FiniteStateMachine.iter_process`,
+            :meth:`~FiniteStateMachine.__call__`,
+            :class:`FSMProcessIterator`.
+
+        TESTS::
+
             sage: T = Transducer([(0, 1, [0, 0], 0), (0, 2, [0, 0, 1], 0),
             ....:                 (0, 1, 1, 2), (1, 0, [], 1), (1, 1, 1, 3)],
             ....:     initial_states=[0], final_states=[0, 1])
             sage: T.process([0])
             (False, None, None)
             sage: T.process([0, 0])
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Non-deterministic path encountered when processing input.
+            [(True, 0, [0, 1]), (True, 1, [0])]
             sage: T.process([1])
-            (True, 1, [2])
+            [(True, 0, [2, 1]), (True, 1, [2])]
             sage: T.process([1, 1])
+            [(True, 0, [2, 1, 2, 1]), (True, 0, [2, 3, 1]),
+             (True, 1, [2, 1, 2]), (True, 1, [2, 3])]
+
+        ::
+
+            sage: F = FiniteStateMachine([(0, 0, 0, 0)],
+            ....:                        initial_states=[0])
+            sage: F.process([0], only_accepted=True)
+            []
+            sage: F.process([0], only_accepted=True, list_of_outputs=False)
             Traceback (most recent call last):
             ...
-            NotImplementedError: process cannot handle epsilon transition leaving state 1.
+            ValueError: No accepting output was found but according to the
+            given options, an accepting output should be returned. Change
+            only_accepted and/or list_of_outputs options.
+            sage: F.process([0], only_accepted=True, list_of_outputs=True)
+            []
+            sage: F.process([0], only_accepted=False)
+            (False, 0, [0])
+            sage: F.process([0], only_accepted=False, list_of_outputs=False)
+            (False, 0, [0])
+            sage: F.process([0], only_accepted=False, list_of_outputs=True)
+            [(False, 0, [0])]
+            sage: F.process([1], only_accepted=True)
+            []
+            sage: F.process([1], only_accepted=True, list_of_outputs=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: No accepting output was found but according to the
+            given options, an accepting output should be returned. Change
+            only_accepted and/or list_of_outputs options.
+            sage: F.process([1], only_accepted=True, list_of_outputs=True)
+            []
+            sage: F.process([1], only_accepted=False)
+            (False, None, None)
+            sage: F.process([1], only_accepted=False, list_of_outputs=False)
+            (False, None, None)
+            sage: F.process([1], only_accepted=False, list_of_outputs=True)
+            []
+
+        ::
+
+            sage: F = FiniteStateMachine([(0, 1, 1, 'a'), (0, 2, 2, 'b')],
+            ....:                        initial_states=[0],
+            ....:                        final_states=[1])
+            sage: A = Automaton([(0, 1, 1), (0, 2, 2)],
+            ....:               initial_states=[0],
+            ....:               final_states=[1])
+            sage: T = Transducer([(0, 1, 1, 'a'), (0, 2, 2, 'b')],
+            ....:                initial_states=[0],
+            ....:                final_states=[1])
+            sage: F.process([1])
+            (True, 1, ['a'])
+            sage: A.process([1])
+            (True, 1)
+            sage: T.process([1])
+            (True, 1, ['a'])
+            sage: F.process([2])
+            (False, 2, ['b'])
+            sage: A.process([2])
+            (False, 2)
+            sage: T.process([2])
+            (False, 2, ['b'])
+            sage: F.process([3])
+            (False, None, None)
+            sage: A.process([3])
+            (False, None)
+            sage: T.process([3])
+            (False, None, None)
         """
-        it = self.iter_process(*args, **kwargs)
+        # set default values
+        options = copy(self._process_default_options_)
+        options.update(kwargs)
+
+        # perform iteration
+        it = self.iter_process(*args, **options)
         for _ in it:
             pass
-        return (it.accept_input, it.current_state, it.output_tape)
+
+        # process output: filtering accepting results
+        only_accepted = options['only_accepted']
+        it_output = [result for result in it.result()
+                     if not only_accepted or result[0]]
+
+        # process output: returning a list output
+        if (len(it_output) > 1 and options['list_of_outputs'] is None or
+                options['list_of_outputs']):
+            return [self._process_convert_output_(out, **options)
+                    for out in it_output]
+
+        # process output: cannot return output to due input parameters
+        if options['list_of_outputs'] == False:
+            if not it_output and only_accepted:
+                raise ValueError('No accepting output was found but according '
+                                 'to the given options, an accepting output '
+                                 'should be returned. Change only_accepted '
+                                 'and/or list_of_outputs options.')
+            elif len(it_output) > 1:
+                raise ValueError('Got more than one output, but only allowed '
+                                 'to show one. Change list_of_outputs option.')
+        # At this point it_output has length 0 or 1.
+
+        # process output: create non-accepting output if needed
+        if not it_output:
+            if only_accepted:
+                return []
+            NoneState = FSMState(None, allow_label_None=True)
+            it_output = [(False, NoneState, None)]
+
+        return self._process_convert_output_(it_output[0], **options)
+
+
+    def _process_convert_output_(self, output_data, **kwargs):
+        """
+        Helper function which converts the output of
+        :meth:`FiniteStateMachine.process`. This is the identity.
+
+        INPUT:
+
+        - ``output_data`` -- a triple.
+
+        - ``full_output`` -- a boolean.
+
+        OUTPUT:
+
+        The converted output.
+
+        This function is overridden in :class:`Automaton` and
+        :class:`Transducer`.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: F = FiniteStateMachine()
+            sage: F._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                            full_output=False)
+            (True, 'a', [1, 0, 1])
+            sage: F._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                            full_output=True)
+            (True, 'a', [1, 0, 1])
+        """
+        accept_input, current_state, output = output_data
+        return (accept_input, current_state, output)
 
 
     def iter_process(self, input_tape=None, initial_state=None, **kwargs):
         """
-        See :meth:`.process` for more informations.
+        This function returns an instance of
+        :class:`FSMProcessIterator`. See :meth:`.process` (which runs
+        this iterator until the end) for more information.
 
         EXAMPLES::
 
             sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
             ....:     initial_states=['A'], final_states=['A'])
             sage: it = inverter.iter_process(input_tape=[0, 1, 1])
-            sage: for _ in it:
-            ....:     pass
-            sage: it.output_tape
-            [1, 0, 0]
+            sage: for current in it:
+            ....:     print current
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 1, [[1]]
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 2, [[1, 0]]
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 3, [[1, 0, 0]]
+            process (0 branches)
+            sage: it.result()
+            [(True, 'A', [1, 0, 0])]
+
+        .. SEEALSO::
+
+            :meth:`FiniteStateMachine.process`,
+            :meth:`Automaton.process`,
+            :meth:`Transducer.process`,
+            :meth:`~FiniteStateMachine.__call__`,
+            :class:`FSMProcessIterator`.
         """
-        return FSMProcessIterator(self, input_tape, initial_state, **kwargs)
+        return FSMProcessIterator(self,
+                                  input_tape=input_tape,
+                                  initial_state=initial_state,
+                                  **kwargs)
 
 
     #*************************************************************************
@@ -5585,6 +6446,48 @@ class FiniteStateMachine(SageObject):
         raise NotImplementedError
 
 
+    def epsilon_successors(self, state):
+        """
+        Returns the dictionary with states reachable from ``state``
+        without reading anything from an input tape as keys. The
+        values are lists of outputs.
+
+        INPUT:
+
+        - ``state`` -- the state whose epsilon successors should be
+          determined.
+
+        OUTPUT:
+
+        A dictionary mapping states to a list of output words.
+
+        The states in the output are the epsilon successors of
+        ``state``. Each word of the list of output words is a word
+        written when taking a path from ``state`` to the corresponding
+        state.
+
+        EXAMPLES::
+
+            sage: T = Transducer([(0, 1, None, 'a'), (1, 2, None, 'b')])
+            sage: T.epsilon_successors(0)
+            {1: [['a']], 2: [['a', 'b']]}
+            sage: T.epsilon_successors(1)
+            {2: [['b']]}
+            sage: T.epsilon_successors(2)
+            {}
+
+        If there is a cycle with only epsilon transitions, then this
+        cycle is only processed once and there is no infinite loop::
+
+            sage: S = Transducer([(0, 1, None, 'a'), (1, 0, None, 'b')])
+            sage: S.epsilon_successors(0)
+            {0: [['a', 'b']], 1: [['a']]}
+            sage: S.epsilon_successors(1)
+            {0: [['b']], 1: [['b', 'a']]}
+        """
+        return self.state(state)._epsilon_successors_(self)
+
+
     def accessible_components(self):
         """
         Returns a new finite state machine with the accessible states
@@ -5892,6 +6795,18 @@ class FiniteStateMachine(SageObject):
             sage: type(T.product_FiniteStateMachine(T, None,
             ....:      new_class=Automaton))
             <class 'sage.combinat.finite_state_machine.Automaton'>
+
+        Check that isolated vertices are kept (:trac:`16762`)::
+
+            sage: F = Transducer(initial_states=[0])
+            sage: F.add_state(1)
+            1
+            sage: G = Transducer(initial_states=['A'])
+            sage: F.product_FiniteStateMachine(G, None).states()
+            [(0, 'A')]
+            sage: F.product_FiniteStateMachine(
+            ....:     G, None, only_accessible_components=False).states()
+            [(0, 'A'), (1, 'A')]
         """
         def default_final_function(*args):
             if any(s.final_word_out for s in args):
@@ -5928,6 +6843,16 @@ class FiniteStateMachine(SageObject):
             result.add_transition(tuple(t.from_state for t in transitions),
                                   tuple(t.to_state for t in transitions),
                                   word[0], word[1])
+
+        if only_accessible_components:
+            state_iterator = itertools.product(
+                *(m.iter_initial_states() for m in machines))
+        else:
+            state_iterator = itertools.product(
+                *(m.iter_states() for m in machines))
+
+        for state in state_iterator:
+            result.add_state(state)
 
         for state in result.states():
             if all(s.is_initial for s in state.label()):
@@ -7497,7 +8422,7 @@ class FiniteStateMachine(SageObject):
 
         OUTPUT:
 
-        A graph.
+        A :class:`directed graph <DiGraph>`.
 
         EXAMPLES::
 
@@ -7505,15 +8430,17 @@ class FiniteStateMachine(SageObject):
             sage: A = FSMState('A')
             sage: T = Transducer()
             sage: T.graph()
-            Digraph on 0 vertices
+            Looped multi-digraph on 0 vertices
             sage: T.add_state(A)
             'A'
             sage: T.graph()
-            Digraph on 1 vertex
+            Looped multi-digraph on 1 vertex
             sage: T.add_transition(('A', 'A', 0, 1))
             Transition from 'A' to 'A': 0|1
             sage: T.graph()
-            Looped digraph on 1 vertex
+            Looped multi-digraph on 1 vertex
+
+        .. SEEALSO:: :class:`DiGraph`
         """
         if edge_labels == 'words_in_out':
             label_fct = lambda t:t._in_out_label_()
@@ -7532,7 +8459,7 @@ class FiniteStateMachine(SageObject):
                 graph_data.append((t.from_state.label(), t.to_state.label(),
                                    label_fct(t)))
 
-        G = DiGraph(graph_data)
+        G = DiGraph(graph_data, multiedges=True, loops=True)
         G.add_vertices(isolated_vertices)
         return G
 
@@ -7556,6 +8483,7 @@ class FiniteStateMachine(SageObject):
         TESTS::
 
             sage: FiniteStateMachine([('A', 'A', 0)]).plot()
+            Graphics object consisting of 3 graphics primitives
         """
         return self.graph(edge_labels='words_in_out').plot()
 
@@ -7652,7 +8580,7 @@ class FiniteStateMachine(SageObject):
         Then the expectation of `X_n` is `en+O(1)`, the variance
         of `X_n` is `vn+O(1)` and the covariance of `X_n` and
         the sum of input labels is `cn+O(1)`, cf. [HKW2014]_,
-        Theorem 2.
+        Theorem 3.9.
 
         In the case of non-integer input or output labels, performance
         degrades significantly. For rational input and output labels,
@@ -7661,7 +8589,7 @@ class FiniteStateMachine(SageObject):
         much more efficiently than over the symbolic ring. In fact, we
         compute (parts) of a trivariate generating function where the
         input and output labels are exponents of some indeterminates,
-        see [HKW2014]_, Theorem 2 for details. If those exponents are
+        see [HKW2014]_, Theorem 3.9 for details. If those exponents are
         integers, we can use a polynomial ring.
 
         EXAMPLES:
@@ -7771,7 +8699,7 @@ class FiniteStateMachine(SageObject):
                 sage: moments['covariance']
                 Order(1)
 
-        #.  This is Example 3.1 in [HKW2014]_, where a transducer with
+        #.  This is Example 3.16 in [HKW2014]_, where a transducer with
             variable output labels is given. There, the aim was to
             choose the output labels of this very simple transducer such
             that the input and output sum are asymptotically
@@ -7795,7 +8723,7 @@ class FiniteStateMachine(SageObject):
             Therefore, the asymptotic covariance vanishes if and only if
             `a_2=a_1`.
 
-        #.  This is Example 6.2 in [HKW2014]_, dealing with the
+        #.  This is Example 4.3 in [HKW2014]_, dealing with the
             transducer converting the binary expansion of an integer
             into Gray code (cf. the :wikipedia:`Gray_code` and the
             :ref:`example on Gray code
@@ -7809,7 +8737,7 @@ class FiniteStateMachine(SageObject):
                 sage: moments['covariance']
                 Order(1)
 
-        #.  This is the first part of Example 6.3 in [HKW2014]_,
+        #.  This is the first part of Example 4.4 in [HKW2014]_,
             counting the number of 10 blocks in the standard binary
             expansion. The least significant digit is at the left-most
             position::
@@ -7830,7 +8758,7 @@ class FiniteStateMachine(SageObject):
                 sage: moments['covariance']
                 Order(1)
 
-        #.  This is the second part of Example 6.3 in [HKW2014]_,
+        #.  This is the second part of Example 4.4 in [HKW2014]_,
             counting the number of 11 blocks in the standard binary
             expansion. The least significant digit is at the left-most
             position::
@@ -7855,7 +8783,7 @@ class FiniteStateMachine(SageObject):
                 sage: correlation
                 2/5*sqrt(5)
 
-        #.  This is Example 6.4 in [HKW2014]_, counting the number of
+        #.  This is Example 4.5 in [HKW2014]_, counting the number of
             01 blocks minus the number of 10 blocks in the standard binary
             expansion. The least significant digit is at the left-most
             position::
@@ -8012,13 +8940,13 @@ class FiniteStateMachine(SageObject):
 
         ALGORITHM:
 
-        See [HKW2014]_, Theorem 2.
+        See [HKW2014]_, Theorem 3.9.
 
         REFERENCES:
 
         .. [HKW2014] Clemens Heuberger, Sara Kropf and Stephan Wagner,
-           *Combinatorial Characterization of Independent Transducers via
-           Functional Digraphs*, :arxiv:`1404.3680`.
+           *Variances and Covariances in the Central Limit Theorem for
+           the Output of a Transducer*, :arxiv:`1404.3680v2`.
 
         .. [HP2007] Clemens Heuberger and Helmut Prodinger, *The Hamming
            Weight of the Non-Adjacent-Form under Various Input Statistics*,
@@ -8444,7 +9372,7 @@ class Automaton(FiniteStateMachine):
 
         TESTS:
 
-        This is from #15078, comment 13.
+        This is from `trac ticket #15078, comment 13 <http://trac.sagemath.org/ticket/15078#comment:13>`_.
 
         ::
 
@@ -8454,10 +9382,7 @@ class Automaton(FiniteStateMachine):
             sage: auto.is_deterministic()
             False
             sage: auto.process(list('aaab'))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Non-deterministic path encountered
-            when processing input.
+            [(False, 'A'), (True, 'C')]
             sage: auto.states()
             ['A', 'C', 'B']
             sage: Ddet = auto.determinisation()
@@ -8476,6 +9401,8 @@ class Automaton(FiniteStateMachine):
             [frozenset(['A'])]
             sage: Ddet.final_states()
             [frozenset(['A', 'C'])]
+            sage: Ddet.process(list('aaab'))
+            (True, frozenset(['A', 'C']))
         """
         if any(len(t.word_in) > 1 for t in self.iter_transitions()):
             return self.split_transitions().determinisation()
@@ -8652,39 +9579,139 @@ class Automaton(FiniteStateMachine):
 
         INPUT:
 
-        - ``input_tape`` -- The input tape can be a list with entries from
-          the input alphabet.
+        - ``input_tape`` -- the input tape can be a list or an
+          iterable with entries from the input alphabet. If we are
+          working with a multi-tape machine (see parameter
+          ``use_multitape_input`` and notes below), then the tape is a
+          list or tuple of tracks, each of which can be a list or an
+          iterable with entries from the input alphabet.
 
-        - ``initial_state`` -- (default: ``None``) The state in which
-          to start. If this parameter is ``None`` and there is only
-          one initial state in the machine, then this state is taken.
+        - ``initial_state`` or ``initial_states`` -- the initial
+          state(s) in which the machine starts. Either specify a
+          single one with ``initial_state`` or a list of them with
+          ``initial_states``. If both are given, ``initial_state``
+          will be appended to ``initial_states``. If neither is
+          specified, the initial states of the finite state machine
+          are taken.
 
-        - ``full_output`` -- (default: ``True``) If set, then the full
-          output is given, otherwise only whether the sequence is accepted
-          or not (the first entry below only).
+        - ``list_of_outputs`` -- (default: ``None``) a boolean or
+          ``None``. If ``True``, then the outputs are given in list form
+          (even if we have no or only one single output). If
+          ``False``, then the result is never a list (an exception is
+          raised if the result cannot be returned). If
+          ``list_of_outputs=None`` the method determines automatically
+          what to do (e.g. if a non-deterministic machine returns more
+          than one path, then the output is returned in list form).
+
+        - ``only_accepted`` -- (default: ``False``) a boolean. If set,
+          then the first argument in the output is guaranteed to be
+          ``True`` (if the output is a list, then the first argument
+          of each element will be ``True``).
+
+        - ``full_output`` -- (default: ``True``) a boolean. If set,
+          then the full output is given, otherwise only whether the
+          sequence is accepted or not (the first entry below only).
+
+        - ``always_include_output`` -- if set (not by default), always
+          return a triple containing the (non-existing) output. This
+          is in order to obtain output compatible with that of
+          :meth:`FiniteStateMachine.process`. If this parameter is set,
+          ``full_output`` has no effect.
+
+        - ``format_output`` -- a function that translates the written
+          output (which is in form of a list) to something more
+          readable. By default (``None``) identity is used here.
+
+        - ``check_epsilon_transitions`` -- (default: ``True``) a
+          boolean. If ``False``, then epsilon transitions are not
+          taken into consideration during process.
+
+        - ``write_final_word_out`` -- (default: ``True``) a boolean
+          specifying whether the final output words should be written
+          or not.
+
+        - ``use_multitape_input`` -- (default: ``False``) a
+          boolean. If ``True``, then the multi-tape mode of the
+          process iterator is activated. See also the notes below for
+          multi-tape machines.
 
         OUTPUT:
 
-        The full output is a pair, where
+        The full output is a pair (or a list of pairs,
+        cf. parameter ``list_of_outputs``), where
 
         - the first entry is ``True`` if the input string is accepted and
 
         - the second gives the state reached after processing the
           input tape (This is a state with label ``None`` if the input
-          could not be processed, i.e., when at one point no
-          transition to go could be found.).
+          could not be processed, i.e., if at one point no
+          transition to go on could be found.).
+
+        If ``full_output`` is ``False``, then only the first entry
+        is returned.
+
+        If ``always_include_output`` is set, an additional third entry
+        ``[]`` is included.
+
+        Note that in the case the automaton is not
+        deterministic, all possible paths are taken into account.
+        You can use :meth:`.determinisation` to get a deterministic
+        automaton machine.
 
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.
 
-        EXAMPLES::
+        This function uses an iterator which, in its simplest form, goes
+        from one state to another in each step. To decide which way to
+        go, it uses the input words of the outgoing transitions and
+        compares them to the input tape. More precisely, in each step,
+        the iterator takes an outgoing transition of the current state,
+        whose input label equals the input letter of the tape.
+
+        If the choice of the outgoing transition is not unique (i.e.,
+        we have a non-deterministic finite state machine), all
+        possibilites are followed. This is done by splitting the
+        process into several branches, one for each of the possible
+        outgoing transitions.
+
+        The process (iteration) stops if all branches are finished,
+        i.e., for no branch, there is any transition whose input word
+        coincides with the processed input tape. This can simply
+        happen when the entire tape was read.
+
+        Also see :meth:`~FiniteStateMachine.__call__` for a
+        version of :meth:`.process` with shortened output.
+
+        Internally this function creates and works with an instance of
+        :class:`FSMProcessIterator`. This iterator can also be obtained
+        with :meth:`iter_process`.
+
+        If working with multi-tape finite state machines, all input
+        words of transitions are words of `k`-tuples of letters.
+        Moreover, the input tape has to consist of `k` tracks, i.e.,
+        be a list or tuple of `k` iterators, one for each track.
+
+        .. WARNING::
+
+            Working with multi-tape finite state machines is still
+            experimental and can lead to wrong outputs.
+
+        EXAMPLES:
+
+        In the following examples, we construct an automaton which
+        accepts non-adjacent forms (see also the example on
+        :ref:`non-adjacent forms <finite_state_machine_recognizing_NAFs_example>`
+        in the documentation of the module
+        :mod:`~sage.combinat.finite_state_machine`)
+        and then test it by feeding it with several binary digit
+        expansions.
+
+        ::
 
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False  # activate new output behavior
-            sage: from sage.combinat.finite_state_machine import FSMState
-            sage: NAF_ = FSMState('_', is_initial = True, is_final = True)
-            sage: NAF1 = FSMState('1', is_final = True)
             sage: NAF = Automaton(
-            ....:     {NAF_: [(NAF_, 0), (NAF1, 1)], NAF1: [(NAF_, 0)]})
+            ....:     {'_': [('_', 0), ('1', 1)], '1': [('_', 0)]},
+            ....:     initial_states=['_'], final_states=['_', '1'])
             sage: [NAF.process(w) for w in [[0], [0, 1], [1, 1], [0, 1, 0, 1],
             ....:                           [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
             [(True, '_'), (True, '1'), (False, None),
@@ -8712,6 +9739,57 @@ class Automaton(FiniteStateMachine):
             Transition from '_' to 's': 2|-
             sage: NAF.process([2])
             (False, 's')
+
+        A simple example of a (non-deterministic) multi-tape automaton is the
+        following: It checks whether the two input tapes have the same number
+        of ones::
+
+            sage: M = Automaton([('=', '=', (1, 1)),
+            ....:                ('=', '=', (None, 0)),
+            ....:                ('=', '=', (0, None)),
+            ....:                ('=', '<', (None, 1)),
+            ....:                ('<', '<', (None, 1)),
+            ....:                ('<', '<', (None, 0)),
+            ....:                ('=', '>', (1, None)),
+            ....:                ('>', '>', (1, None)),
+            ....:                ('>', '>', (0, None))],
+            ....:               initial_states=['='],
+            ....:               final_states=['='])
+            sage: M.process(([1, 0, 1], [1, 0]), use_multitape_input=True)
+            (False, '>')
+            sage: M.process(([0, 1, 0], [0, 1, 1]), use_multitape_input=True)
+            (False, '<')
+            sage: M.process(([1, 1, 0, 1], [0, 0, 1, 0, 1, 1]),
+            ....:           use_multitape_input=True)
+            (True, '=')
+
+        Alternatively, we can use the following (non-deterministic)
+        multi-tape automaton for the same check::
+
+            sage: N = Automaton([('=', '=', (0, 0)),
+            ....:                ('=', '<', (None, 1)),
+            ....:                ('<', '<', (0, None)),
+            ....:                ('<', '=', (1, None)),
+            ....:                ('=', '>', (1, None)),
+            ....:                ('>', '>', (None, 0)),
+            ....:                ('>', '=', (None, 1))],
+            ....:               initial_states=['='],
+            ....:               final_states=['='])
+            sage: N.process(([1, 0, 1], [1, 0]), use_multitape_input=True)
+            (False, '>')
+            sage: N.process(([0, 1, 0], [0, 1, 1]), use_multitape_input=True)
+            (False, '<')
+            sage: N.process(([1, 1, 0, 1], [0, 0, 1, 0, 1, 1]),
+            ....:           use_multitape_input=True)
+            (True, '=')
+
+        .. SEEALSO::
+
+            :meth:`FiniteStateMachine.process`,
+            :meth:`Transducer.process`,
+            :meth:`~FiniteStateMachine.iter_process`,
+            :meth:`~FiniteStateMachine.__call__`,
+            :class:`FSMProcessIterator`.
         """
         if FSMOldProcessOutput:
             from sage.misc.superseded import deprecation
@@ -8720,21 +9798,70 @@ class Automaton(FiniteStateMachine):
                                "will change. Please use the corresponding "
                                "functions from FiniteStateMachine "
                                "for the original output.")
-            return super(Automaton, self).process(*args, **kwargs)
 
-        if not kwargs.has_key('full_output'):
-            kwargs['full_output'] = True
+        # set default values
+        options = copy(self._process_default_options_)
+        options.update(kwargs)
 
-        it = self.iter_process(*args, **kwargs)
-        for _ in it:
-            pass
+        condensed_output = (options['list_of_outputs'] == False and
+                            options['full_output'] == False)
 
-        # process output
+        if condensed_output:
+            options['list_of_outputs'] = True
+            options['only_accepted'] = True
+
+        result = super(Automaton, self).process(*args, **options)
+
+        if condensed_output:
+            return any(result)
+        return result
+
+
+    def _process_convert_output_(self, output_data, **kwargs):
+        """
+        Helper function which converts the output of
+        :meth:`FiniteStateMachine.process` to one suitable for
+        automata.
+
+        INPUT:
+
+        - ``output_data`` -- a triple.
+
+        - ``full_output`` -- a boolean.
+
+        - ``always_include_output`` -- if set (not by default), always
+          return a triple containing the (non-existing) output. This
+          is for compatibility with transducers.
+
+        OUTPUT:
+
+        The converted output.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: A = Automaton()
+            sage: A._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                            full_output=False,
+            ....:                            always_include_output=False)
+            True
+            sage: A._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                            full_output=True,
+            ....:                            always_include_output=False)
+            (True, 'a')
+            sage: A._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                            full_output=False,
+            ....:                            always_include_output=True)
+            (True, 'a', [1, 0, 1])
+        """
+        if FSMOldProcessOutput or kwargs['always_include_output']:
+            return super(Automaton, self)._process_convert_output_(
+                output_data, **kwargs)
+        accept_input, current_state, output = output_data
         if kwargs['full_output']:
-            return (it.accept_input, it.current_state)
+            return (accept_input, current_state)
         else:
-            return it.accept_input
-
+            return accept_input
 
 #*****************************************************************************
 
@@ -9032,7 +10159,7 @@ class Transducer(FiniteStateMachine):
             Please use Transducer.intersection for the original output.
             See http://trac.sagemath.org/16061 for details.
             sage: result
-            Transducer with 0 states
+            Transducer with 1 states
 
         By setting ``FSMOldCodeTransducerCartesianProduct`` to ``False``
         the new desired output is produced.
@@ -9303,41 +10430,129 @@ class Transducer(FiniteStateMachine):
 
         INPUT:
 
-        - ``input_tape`` -- The input tape can be a list with entries from
-          the input alphabet.
+        - ``input_tape`` -- the input tape can be a list or an
+          iterable with entries from the input alphabet. If we are
+          working with a multi-tape machine (see parameter
+          ``use_multitape_input`` and notes below), then the tape is a
+          list or tuple of tracks, each of which can be a list or an
+          iterable with entries from the input alphabet.
 
-        - ``initial_state`` -- (default: ``None``) The state in which
-          to start. If this parameter is ``None`` and there is only
-          one initial state in the machine, then this state is taken.
+        - ``initial_state`` or ``initial_states`` -- the initial
+          state(s) in which the machine starts. Either specify a
+          single one with ``initial_state`` or a list of them with
+          ``initial_states``. If both are given, ``initial_state``
+          will be appended to ``initial_states``. If neither is
+          specified, the initial states of the finite state machine
+          are taken.
 
-        - ``full_output`` -- (default: ``True``) If set, then the full
-          output is given, otherwise only the generated output (the
-          third entry below only). If the input is not accepted, a
-          ``ValueError`` is raised.
+        - ``list_of_outputs`` -- (default: ``None``) a boolean or
+          ``None``. If ``True``, then the outputs are given in list form
+          (even if we have no or only one single output). If
+          ``False``, then the result is never a list (an exception is
+          raised if the result cannot be returned). If
+          ``list_of_outputs=None`` the method determines automatically
+          what to do (e.g. if a non-deterministic machine returns more
+          than one path, then the output is returned in list form).
+
+        - ``only_accepted`` -- (default: ``False``) a boolean. If set,
+          then the first argument in the output is guaranteed to be
+          ``True`` (if the output is a list, then the first argument
+          of each element will be ``True``).
+
+        - ``full_output`` -- (default: ``True``) a boolean. If set,
+          then the full output is given, otherwise only the generated
+          output (the third entry below only). If the input is not
+          accepted, a ``ValueError`` is raised.
+
+        - ``always_include_output`` -- if set (not by default), always
+          include the output. This is inconsequential for a
+          :class:`Transducer`, but can be used in other classes
+          derived from :class:`FiniteStateMachine` where the output is
+          suppressed by default, cf. :meth:`Automaton.process`.
+
+        - ``format_output`` -- a function that translates the written
+          output (which is in form of a list) to something more
+          readable. By default (``None``) identity is used here.
+
+        - ``check_epsilon_transitions`` -- (default: ``True``) a
+          boolean. If ``False``, then epsilon transitions are not
+          taken into consideration during process.
+
+        - ``write_final_word_out`` -- (default: ``True``) a boolean
+          specifying whether the final output words should be written
+          or not.
+
+        - ``use_multitape_input`` -- (default: ``False``) a
+          boolean. If ``True``, then the multi-tape mode of the
+          process iterator is activated. See also the notes below for
+          multi-tape machines.
 
         OUTPUT:
 
-        The full output is a triple, where
+        The full output is a triple (or a list of triples,
+        cf. parameter ``list_of_outputs``), where
 
         - the first entry is ``True`` if the input string is accepted,
 
         - the second gives the reached state after processing the
           input tape (This is a state with label ``None`` if the input
-          could not be processed, i.e., when at one point no
-          transition to go could be found.), and
+          could not be processed, i.e., if at one point no
+          transition to go on could be found.), and
 
-        - the third gives a list of the output labels used during
+        - the third gives a list of the output labels written during
           processing.
+
+        If ``full_output`` is ``False``, then only the third entry
+        is returned.
+
+        Note that in the case the transducer is not
+        deterministic, all possible paths are taken into account.
 
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.
 
+        This function uses an iterator which, in its simplest form, goes
+        from one state to another in each step. To decide which way to
+        go, it uses the input words of the outgoing transitions and
+        compares them to the input tape. More precisely, in each step,
+        the iterator takes an outgoing transition of the current state,
+        whose input label equals the input letter of the tape. The
+        output label of the transition, if present, is written on the
+        output tape.
+
+        If the choice of the outgoing transition is not unique (i.e.,
+        we have a non-deterministic finite state machine), all
+        possibilites are followed. This is done by splitting the
+        process into several branches, one for each of the possible
+        outgoing transitions.
+
+        The process (iteration) stops if all branches are finished,
+        i.e., for no branch, there is any transition whose input word
+        coincides with the processed input tape. This can simply
+        happen when the entire tape was read.
+
+        Also see :meth:`~FiniteStateMachine.__call__` for a version of
+        :meth:`.process` with shortened output.
+
+        Internally this function creates and works with an instance of
+        :class:`FSMProcessIterator`. This iterator can also be obtained
+        with :meth:`iter_process`.
+
+        If working with multi-tape finite state machines, all input
+        words of transitions are words of `k`-tuples of letters.
+        Moreover, the input tape has to consist of `k` tracks, i.e.,
+        be a list or tuple of `k` iterators, one for each track.
+
+        .. WARNING::
+
+            Working with multi-tape finite state machines is still
+            experimental and can lead to wrong outputs.
+
         EXAMPLES::
 
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False  # activate new output behavior
-            sage: from sage.combinat.finite_state_machine import FSMState
-            sage: A = FSMState('A', is_initial = True, is_final = True)
-            sage: binary_inverter = Transducer({A:[(A, 0, 1), (A, 1, 0)]})
+            sage: binary_inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:                              initial_states=['A'], final_states=['A'])
             sage: binary_inverter.process([0, 1, 0, 0, 1, 1])
             (True, 'A', [1, 0, 1, 1, 0, 0])
 
@@ -9366,6 +10581,10 @@ class Transducer(FiniteStateMachine):
             sage: [T.process(w, full_output=False)
             ....:      for w in [[1], [0, 1], [0, 0, 1]]]
             [[2], [1, 2], [1, 1, 2]]
+            sage: T.process([0], full_output=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid input sequence.
             sage: T.process([0, 1, 2], full_output=False)
             Traceback (most recent call last):
             ...
@@ -9375,10 +10594,99 @@ class Transducer(FiniteStateMachine):
 
             sage: [T(w) for w in [[1], [0, 1], [0, 0, 1]]]
             [[2], [1, 2], [1, 1, 2]]
+            sage: T([0])
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid input sequence.
             sage: T([0, 1, 2])
             Traceback (most recent call last):
             ...
             ValueError: Invalid input sequence.
+
+        A cycle with empty input and empty output is correctly processed::
+
+            sage: T = Transducer([(0, 1, None, None), (1, 0, None, None)],
+            ....:                initial_states=[0], final_states=[1])
+            sage: T.process([])
+            [(False, 0, []), (True, 1, [])]
+            sage: _ = T.add_transition(-1, 0, 0, 'r')
+            sage: T.state(-1).is_initial = True
+            sage: T.state(0).is_initial = False
+            sage: T.process([0])
+            [(False, 0, ['r']), (True, 1, ['r'])]
+
+        If there is a cycle with empty input but non-empty output, the
+        possible outputs would be an infinite set::
+
+            sage: T = Transducer([(0, 1, None, 'z'), (1, 0, None, None)],
+            ....:                initial_states=[0], final_states=[1])
+            sage: T.process([])
+            Traceback (most recent call last):
+            ...
+            RuntimeError: State 0 is in an epsilon cycle (no input),
+            but output is written.
+
+        But if this cycle with empty input and non-empty output is not
+        reached, the correct output is produced::
+
+            sage: _ = T.add_transition(-1, 0, 0, 'r')
+            sage: T.state(-1).is_initial = True
+            sage: T.state(0).is_initial = False
+            sage: T.process([])
+            (False, -1, [])
+            sage: T.process([0])
+            Traceback (most recent call last):
+            ...
+            RuntimeError: State 0 is in an epsilon cycle (no input),
+            but output is written.
+
+        If we set ``check_epsilon_transitions=False``, then no
+        transitions with empty input are considered
+        anymore. Thus cycles with empty input are no problem anymore::
+
+            sage: T.process([0], check_epsilon_transitions=False)
+            (False, 0, ['r'])
+
+        A simple example of a multi-tape transducer is the
+        following: It writes the length of the first tape many letters ``a``
+        and then the length of the second tape many letters ``b``::
+
+            sage: M = Transducer([(0, 0, (1, None), 'a'),
+            ....:                 (0, 1, [], []),
+            ....:                 (1, 1, (None, 1), 'b')],
+            ....:                initial_states=[0],
+            ....:                final_states=[1])
+            sage: M.process(([1, 1], [1]), use_multitape_input=True)
+            (True, 1, ['a', 'a', 'b'])
+
+        .. SEEALSO::
+
+            :meth:`FiniteStateMachine.process`,
+            :meth:`Automaton.process`,
+            :meth:`~FiniteStateMachine.iter_process`,
+            :meth:`~FiniteStateMachine.__call__`,
+            :class:`FSMProcessIterator`.
+
+        TESTS::
+
+            sage: T = Transducer([(0, 1, 1, 'a'), (1, 0, 1, 'b')],
+            ....:                initial_states=[0, 1], final_states=[1])
+            sage: T.process([1, 1])
+            [(False, 0, ['a', 'b']), (True, 1, ['b', 'a'])]
+            sage: T.process([1, 1], T.state(0))
+            (False, 0, ['a', 'b'])
+            sage: T.state(1).final_word_out = 'c'
+            sage: T.process([1, 1], T.state(1))
+            (True, 1, ['b', 'a', 'c'])
+            sage: T.process([1, 1], T.state(1), write_final_word_out=False)
+            (True, 1, ['b', 'a'])
+
+        The parameter ``input_tape`` is required::
+
+            sage: T.process()
+            Traceback (most recent call last):
+            ...
+            TypeError: No input tape given.
         """
         if FSMOldProcessOutput:
             from sage.misc.superseded import deprecation
@@ -9387,26 +10695,921 @@ class Transducer(FiniteStateMachine):
                                "will change. Please use the corresponding "
                                "functions from FiniteStateMachine "
                                "for the original output.")
-            return super(Transducer, self).process(*args, **kwargs)
 
-        if not kwargs.has_key('full_output'):
-            kwargs['full_output'] = True
+        # set default values
+        options = copy(self._process_default_options_)
+        options.update(kwargs)
 
-        it = self.iter_process(*args, **kwargs)
-        for _ in it:
-            pass
+        condensed_output = (options['list_of_outputs'] == False and
+                            options['full_output'] == False)
 
-        # process output
-        if kwargs['full_output']:
-            if it.current_state.label() is None:
-                return (it.accept_input, it.current_state, None)
-            else:
-                return (it.accept_input, it.current_state, it.output_tape)
-        else:
-            if not it.accept_input:
+        if condensed_output:
+            options['list_of_outputs'] = True
+            options['only_accepted'] = True
+
+        result = super(Transducer, self).process(*args, **options)
+
+        if (condensed_output and not result or
+            not options['full_output'] and result is None):
                 raise ValueError("Invalid input sequence.")
-            return it.output_tape
+        if condensed_output and len(result) >= 2:
+                raise ValueError("Found more than one accepting path.")
 
+        if condensed_output:
+            return result[0]
+        return result
+
+
+    def _process_convert_output_(self, output_data, **kwargs):
+        """
+        Helper function which converts the output of
+        :meth:`FiniteStateMachine.process` to one suitable for
+        transducers.
+
+        INPUT:
+
+        - ``output_data`` -- a triple.
+
+        - ``full_output`` -- a boolean.
+
+        OUTPUT:
+
+        The converted output.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: T = Transducer()
+            sage: T._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                            full_output=False)
+            [1, 0, 1]
+            sage: T._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                            full_output=True)
+            (True, 'a', [1, 0, 1])
+        """
+        if FSMOldProcessOutput:
+            return super(Transducer, self)._process_convert_output_(
+                output_data, **kwargs)
+        accept_input, current_state, output = output_data
+        if kwargs['full_output']:
+            if current_state.label() is None:
+                return (accept_input, current_state, None)
+            else:
+                return (accept_input, current_state, output)
+        else:
+            if not accept_input:
+                return None
+            return output
+
+
+#*****************************************************************************
+
+
+class _FSMTapeCache_(SageObject):
+    """
+    This is a class for caching an input tape. It is used in
+    :class:`FSMProcessIterator`.
+
+    INPUT:
+
+    - ``tape_cache_manager`` -- a list of the existing instances of
+      :class:`_FSMTapeCache_`. ``self`` will be appended to this list.
+
+    - ``tape`` -- a tuple or list of the input tracks (iterables).
+
+    - ``tape_ended`` -- a list of booleans (one for each track of the
+      tape), which indicate whether the track iterator has already raised
+      a ``StopIteration`` exception.
+
+    - ``position`` -- a tuple of pairs `(p, t)` marking the current
+      positions of each of the input tracks. There `p` is the number
+      of letter read from track `t`. The pairs of ``position`` are
+      sorted first by `p` (smallest first) and then by `t`, i.e.,
+      lexicographically.
+
+    - ``is_multitape`` -- If ``True`` each entry of the
+      input-word-tuple of a transition is interpreted as word for the
+      corresponding input track. If ``False`` input-words are
+      interpreted as an iterable of letters.
+
+    OUTPUT:
+
+    A tape-cache.
+
+    TESTS::
+
+        sage: from sage.combinat.finite_state_machine import _FSMTapeCache_
+        sage: TC1 = _FSMTapeCache_([], (xsrange(37, 42),),
+        ....:                      [False], ((0, 0),), False)
+        sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+        ....:                      [False, False], ((0, 0), (0, 1)), True)
+        sage: TC1
+        tape at 0
+        sage: TC1.tape_cache_manager
+        [tape at 0]
+        sage: TC2
+        multi-tape at (0, 0)
+        sage: TC2.tape_cache_manager
+        [multi-tape at (0, 0)]
+    """
+    def __init__(self, tape_cache_manager, tape, tape_ended,
+                 position, is_multitape):
+        """
+        See :class:`_FSMTapeCache_` for more details.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import _FSMTapeCache_
+            sage: TC1 = _FSMTapeCache_([], (xsrange(37, 42),),
+            ....:                      [False], ((0, 0),), False)
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC1m = _FSMTapeCache_([], (xsrange(37, 42),),
+            ....:                       [False], ((0, 0),), True)
+            sage: TC3 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False], ((0, 0),), False)
+            Traceback (most recent call last):
+            ...
+            TypeError: The lengths of the inputs do not match
+            sage: TC4 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0),), False)
+            Traceback (most recent call last):
+            ...
+            TypeError: The lengths of the inputs do not match
+            sage: TC5 = _FSMTapeCache_([], (xsrange(37, 42),),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            Traceback (most recent call last):
+            ...
+            TypeError: The lengths of the inputs do not match
+            sage: _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                [False, False], ((0, 2), (0, 1)), True)
+            Traceback (most recent call last):
+            ...
+            TypeError: Tape position ((0, 2), (0, 1)) wrong.
+        """
+        if not len(tape) == len(position) == len(tape_ended):
+            raise TypeError('The lengths of the inputs do not match')
+        if sorted(p[1] for p in position) != range(len(tape)):
+            raise TypeError('Tape position %s wrong.' % (position,))
+        self.position = position
+        self.tape = tape
+        self.tape_ended = tape_ended
+        self.is_multitape = is_multitape
+
+        self.tape_cache_manager = tape_cache_manager
+        self.tape_cache_manager.append(self)
+        self.cache = tuple(collections.deque() for _ in self.tape)
+
+
+    def _repr_(self):
+        """
+        Returns a string representation of ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        Note that this representation depends on the parameter
+        ``is_multitape`` of ``self``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import _FSMTapeCache_
+            sage: TC1 = _FSMTapeCache_([], (xsrange(37, 42),),
+            ....:                      [False], ((0, 0),), False)
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC1m = _FSMTapeCache_([], (xsrange(37, 42),),
+            ....:                       [False], ((0, 0),), True)
+            sage: repr(TC1)  # indirect doctest
+            'tape at 0'
+            sage: repr(TC1m)  # indirect doctest
+            'multi-tape at (0,)'
+            sage: repr(TC2)  # indirect doctest
+            'multi-tape at (0, 0)'
+        """
+        if self.is_multitape:
+            pos = tuple(p for p, t in sorted(self.position, key=lambda x: x[1]))
+            return 'multi-tape at %s' % (pos,)
+        else:
+            return 'tape at %s' % (self.position[0][0],)
+
+
+    def __deepcopy__(self, memo):
+        """
+        See :meth:`.deepcopy` for details.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import _FSMTapeCache_
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC3 = deepcopy(TC2)  # indirect doctest
+            sage: TC3
+            multi-tape at (0, 0)
+            sage: TC2.tape_cache_manager
+            [multi-tape at (0, 0), multi-tape at (0, 0)]
+            sage: TC2.tape_cache_manager is TC3.tape_cache_manager
+            True
+        """
+        new = type(self)(self.tape_cache_manager,
+                         self.tape, self.tape_ended,
+                         self.position, self.is_multitape)
+        new.cache = deepcopy(self.cache, memo)
+        return new
+
+
+    def deepcopy(self, memo=None):
+        """
+        Returns a deepcopy of ``self``.
+
+        INPUT:
+
+        - ``memo`` -- a dictionary.
+
+        OUTPUT:
+
+        An instance of ``_FSMCacheTape_``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import _FSMTapeCache_
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC3 = deepcopy(TC2)  # indirect doctest
+            sage: TC2
+            multi-tape at (0, 0)
+            sage: TC3
+            multi-tape at (0, 0)
+            sage: TC2.read(0), TC2.read(1), TC2.read(1)
+            ((True, 37), (True, 11), (True, 12))
+            sage: TC2.preview_word()
+            (37, 11)
+            sage: TC2.cache is TC3.cache
+            False
+        """
+        return deepcopy(self, memo)
+
+
+    def read(self, track_number):
+        """
+        Reads one letter from the given track of the input tape into
+        the cache.
+
+        INPUT:
+
+        - ``track_number`` -- an integer.
+
+        OUTPUT:
+
+        ``(True, letter)`` if reading was successful (``letter`` was
+        read), otherwise ``(False, None)``.
+
+        Note that this updates the cache of all tapes in
+        ``self.tape_cache_manager``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import _FSMTapeCache_
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC2.read(0), TC2.read(1), TC2.read(1)
+            ((True, 37), (True, 11), (True, 12))
+            sage: TC2.preview_word()
+            (37, 11)
+            sage: TC3 = deepcopy(TC2)
+            sage: TC2.cache, TC3.cache
+            ((deque([37]), deque([11, 12])), (deque([37]), deque([11, 12])))
+            sage: TC3.read(1)
+            (True, 13)
+            sage: TC2.cache, TC3.cache
+            ((deque([37]), deque([11, 12, 13])),
+             (deque([37]), deque([11, 12, 13])))
+            sage: TC2.read(1), TC2.read(1)
+            ((True, 14), (False, None))
+            sage: TC2.cache
+            (deque([37]), deque([11, 12, 13, 14]))
+            sage: TC2.tape_ended
+            [False, True]
+            sage: TC2.read(1)
+            (False, None)
+        """
+        try:
+            newval = next(self.tape[track_number])
+        except StopIteration:
+            self.tape_ended[track_number] = True
+            return (False, None)
+
+        # update all tapes
+        for tape in self.tape_cache_manager:
+            tape.cache[track_number].append(newval)
+
+        return (True, newval)
+
+
+    def finished(self, track_number=None):
+        r"""
+        Returns whether the tape (or a particular track) has reached an
+        end, i.e., there are no more letters in the cache and nothing
+        more to read on the original tape.
+
+        INPUT:
+
+        - ``track_number`` -- an integer or ``None``. If ``None``,
+          then ``True`` is returned if all tracks are finished.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     _FSMTapeCache_, FSMTransition)
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: while True:
+            ....:     try:
+            ....:         word = TC2.preview_word(return_word=True)
+            ....:     except StopIteration:
+            ....:         print 'stop'
+            ....:         break
+            ....:     print 'cache:', TC2.cache, TC2
+            ....:     print 'finished:', TC2.finished(), \
+            ....:         TC2.finished(0), TC2.finished(1)
+            ....:     TC2.forward(
+            ....:         FSMTransition(0, 0, word))
+            cache: (deque([37]), deque([11])) multi-tape at (0, 0)
+            finished: False False False
+            cache: (deque([38]), deque([12])) multi-tape at (1, 1)
+            finished: False False False
+            cache: (deque([39]), deque([13])) multi-tape at (2, 2)
+            finished: False False False
+            cache: (deque([40]), deque([14])) multi-tape at (3, 3)
+            finished: False False False
+            stop
+            sage: print 'cache:', TC2.cache, TC2
+            cache: (deque([41]), deque([])) multi-tape at (4, 4)
+            sage: print 'finished:', TC2.finished(), \
+            ....:     TC2.finished(0), TC2.finished(1)
+            finished: False False True
+            sage: TC2.preview_word()
+            Traceback (most recent call last):
+            ...
+            StopIteration
+            sage: print 'cache:', TC2.cache, TC2
+            cache: (deque([41]), deque([])) multi-tape at (4, 4)
+            sage: TC2.read(0)
+            (False, None)
+            sage: TC2.forward(FSMTransition(0, 0, [(0, None)]))
+            sage: print 'finished:', TC2.finished(), \
+            ....:     TC2.finished(0), TC2.finished(1)
+            finished: True True True
+        """
+        if track_number is None:
+            return all(self.finished(n) for n, _ in enumerate(self.cache))
+        if not self.cache[track_number]:
+            self.read(track_number)  # to make sure tape_ended is correct
+        return self.tape_ended[track_number] and not self.cache[track_number]
+
+
+    def preview_word(self, track_number=None, length=1, return_word=False):
+        """
+        Reads a word from the input tape.
+
+        INPUT:
+
+        - ``track_number`` -- an integer or ``None``. If ``None``,
+          then a tuple of words (one from each track) is returned.
+
+        - ``length`` -- (default: ``1``) the length of the word(s).
+
+        - ``return_word`` -- (default: ``False``) a boolean. If set,
+          then a word is returned, otherwise a single letter (in which
+          case ``length`` has to be ``1``).
+
+        OUTPUT:
+
+        A single letter or a word.
+
+        An exception ``StopIteration`` is thrown if the tape (at least
+        one track) has reached its end.
+
+        Typically, this method is called from a hook-function of a
+        state.
+
+        The attribute ``position`` is not changed.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     _FSMTapeCache_, FSMTransition)
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC2.preview_word(), TC2.preview_word()
+            ((37, 11), (37, 11))
+            sage: while True:
+            ....:     try:
+            ....:         word = TC2.preview_word(return_word=True)
+            ....:     except StopIteration:
+            ....:         print 'stop'
+            ....:         break
+            ....:     print 'read:', word
+            ....:     print 'cache:', TC2.cache, TC2
+            ....:     TC2.forward(
+            ....:         FSMTransition(0, 0, word))
+            ....:     print 'cache:', TC2.cache, TC2
+            read: [(37, 11)]
+            cache: (deque([37]), deque([11])) multi-tape at (0, 0)
+            cache: (deque([]), deque([])) multi-tape at (1, 1)
+            read: [(38, 12)]
+            cache: (deque([38]), deque([12])) multi-tape at (1, 1)
+            cache: (deque([]), deque([])) multi-tape at (2, 2)
+            read: [(39, 13)]
+            cache: (deque([39]), deque([13])) multi-tape at (2, 2)
+            cache: (deque([]), deque([])) multi-tape at (3, 3)
+            read: [(40, 14)]
+            cache: (deque([40]), deque([14])) multi-tape at (3, 3)
+            cache: (deque([]), deque([])) multi-tape at (4, 4)
+            stop
+            sage: print 'cache:', TC2.cache, TC2
+            cache: (deque([41]), deque([])) multi-tape at (4, 4)
+            sage: TC2.preview_word()
+            Traceback (most recent call last):
+            ...
+            StopIteration
+            sage: print 'cache:', TC2.cache, TC2
+            cache: (deque([41]), deque([])) multi-tape at (4, 4)
+            sage: TC2.preview_word(0)
+            41
+            sage: print 'cache:', TC2.cache, TC2
+            cache: (deque([41]), deque([])) multi-tape at (4, 4)
+            sage: TC2.forward(FSMTransition(0, 0, [(41, None)]))
+            sage: print 'cache:', TC2.cache, TC2
+            cache: (deque([]), deque([])) multi-tape at (5, 4)
+        """
+        if not return_word and length != 1:
+            raise ValueError("Should return a letter, but parameter "
+                             "length is not 1.")
+        if track_number is None:
+            if self.is_multitape:
+                result = tuple(self.preview_word(n, length, return_word)
+                               for n, _ in enumerate(self.cache))
+                if len(result) != len(self.cache):
+                    raise StopIteration
+                if return_word:
+                    return tupleofwords_to_wordoftuples(result)
+                else:
+                    return result
+            else:
+                return self.preview_word(0, length, return_word)
+
+        track_cache = self.cache[track_number]
+        while len(track_cache) < length:
+            if not self.read(track_number)[0]:
+                raise StopIteration
+        if return_word:
+            return list(itertools.islice(track_cache, 0, length))
+        else:
+            return track_cache[0]
+
+
+    def compare_to_tape(self, track_number, word):
+        """
+        Returns whether it is possible to read ``word`` from the given
+        track successfully.
+
+        INPUT:
+
+        - ``track_number`` -- an integer.
+
+        - ``word`` -- a tuple or list of letters.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import _FSMTapeCache_
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC2.compare_to_tape(0, [37])
+            True
+            sage: TC2.compare_to_tape(1, [37])
+            False
+            sage: TC2.compare_to_tape(0, [37, 38])
+            True
+            sage: TC2.compare_to_tape(1, srange(11,15))
+            True
+            sage: TC2.compare_to_tape(1, srange(11,16))
+            False
+            sage: TC2.compare_to_tape(1, [])
+            True
+        """
+        track_cache = self.cache[track_number]
+        it_word = iter(word)
+
+        # check letters in cache
+        if any(letter_on_track != next(it_word)
+               for letter_on_track in track_cache):
+            return False
+
+        # check letters not already cached
+        for letter_in_word in it_word:
+            successful, letter_on_track = self.read(track_number)
+            if not successful:
+                return False
+            if letter_in_word != letter_on_track:
+                return False
+        return True
+
+
+    def forward(self, transition):
+        """
+        Forwards the tape according to the given transition.
+
+        INPUT:
+
+        - ``transition`` -- a transition of a finite state machine.
+
+        OUTPUT:
+
+        Nothing.
+
+        If ``self.is_multitape`` is ``False``, then this function
+        forwards ``self`` (track `0`) by the number of entries of
+        ``transition.word_in`` different from ``None``.
+        Otherwise (if ``self.is_multitape`` is
+        ``True``), this function forwards each track of ``self`` by
+        the length of each entry of ``transition.word_in``. Note that
+        the actual values in the input word do not play a role
+        (just the length).
+
+        This function changes the attribute ``position``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     _FSMTapeCache_, FSMTransition,
+            ....:     tupleofwords_to_wordoftuples)
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC2, TC2.cache
+            (multi-tape at (0, 0), (deque([]), deque([])))
+            sage: letter = TC2.preview_word(); letter
+            (37, 11)
+            sage: TC2, TC2.cache
+            (multi-tape at (0, 0), (deque([37]), deque([11])))
+            sage: TC2.forward(FSMTransition(0, 0, [letter]))
+            sage: TC2, TC2.cache
+            (multi-tape at (1, 1), (deque([]), deque([])))
+            sage: TC2.forward(FSMTransition(0, 0, [(0, 0), (None, 0)]))
+            sage: TC2, TC2.cache
+            (multi-tape at (2, 3), (deque([]), deque([])))
+            sage: letter = TC2.preview_word(); letter
+            (39, 14)
+            sage: TC2, TC2.cache
+            (multi-tape at (2, 3), (deque([39]), deque([14])))
+            sage: word_in = tupleofwords_to_wordoftuples([[None], [None, None]])
+            sage: TC2.forward(FSMTransition(0, 0, word_in))
+            sage: TC2, TC2.cache
+            (multi-tape at (2, 3), (deque([39]), deque([14])))
+            sage: TC2.forward(FSMTransition(0, 0, [[0, None], [None, 0]]))
+            sage: TC2, TC2.cache
+            (multi-tape at (3, 4), (deque([]), deque([])))
+            sage: TC2.forward(FSMTransition(0, 0, [(0, 0)]))
+            Traceback (most recent call last):
+            ...
+            ValueError: forwarding tape is not possible
+        """
+        def length(word):
+            return len(tuple(letter for letter in word if letter is not None))
+
+        if self.is_multitape:
+            increments = tuple(length(word) for word in
+                               itertools.izip(*transition.word_in))
+        else:
+            increments = (length(transition.word_in),)
+
+        for track_number, (track_cache, inc) in \
+                enumerate(izip(self.cache, increments)):
+            for _ in range(inc):
+                if not track_cache:
+                    if not self.read(track_number)[0]:
+                        raise ValueError('forwarding tape is not possible')
+                track_cache.popleft()
+        position = [(p + increments[t], t)
+                    for p, t in self.position]
+        self.position = tuple(sorted(position))
+
+
+    def transition_possible(self, transition):
+        """
+        Tests whether the input word of ``transition`` can be read
+        from the tape.
+
+        INPUT:
+
+        - ``transition`` -- a transition of a finite state machine.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     _FSMTapeCache_, FSMTransition)
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC2, TC2.cache
+            (multi-tape at (0, 0), (deque([]), deque([])))
+            sage: TC2.transition_possible(
+            ....:     FSMTransition(0, 0, [(37, 11), (38, 12), (None, 13)]))
+            True
+            sage: TC2.transition_possible(
+            ....:     FSMTransition(0, 0, [(37, 11), (38, 13)]))
+            False
+            sage: TC2.transition_possible(
+            ....:     FSMTransition(0, 0, [(37,), (38,)]))
+            Traceback (most recent call last):
+            ...
+            TypeError: Transition from 0 to 0: (37,),(38,)|- has bad
+            input word (entries should be tuples of size 2).
+        """
+        if self.is_multitape:
+            word_in = transition.word_in
+        else:
+            word_in = tupleofwords_to_wordoftuples((transition.word_in,))
+        if any(len(t) != len(self.cache) for t in word_in):
+            raise TypeError('%s has bad input word (entries should be '
+                            'tuples of size %s).' % (transition,
+                                                     len(self.cache)))
+        return self._transition_possible_test_(word_in)
+
+
+    def _transition_possible_epsilon_(self, word_in):
+        """
+        This helper function tests whether ``word_in`` equals ``epsilon``,
+        i.e., whether it is the empty word or consists only of letters ``None``.
+
+        INPUT:
+
+        - ``word_in`` -- an input word of a transition.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     _FSMTapeCache_)
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC2._transition_possible_epsilon_([])
+            True
+            sage: TC2._transition_possible_epsilon_([(None, None)])
+            True
+            sage: TC2._transition_possible_epsilon_(
+            ....:     [(None, None), (None, None)])
+            True
+        """
+        # Note that this function does not need self, but it is given
+        # to be consistent with the other _transition_possible_*_
+        # functions.
+        return all(letter is None for t in word_in for letter in t)
+
+
+    def _transition_possible_test_(self, word_in):
+        """
+        This helper function tests whether ``word_in`` can be read
+        from the tape.
+
+        INPUT:
+
+        - ``word_in`` -- an input word of a transition.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        This method is usually overridden in inherited classes,
+        cf. :class:`_FSMTapeCacheDetectEpsilon_` and
+        :class:`_FSMTapeCacheDetectAll_`.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     _FSMTapeCache_, tupleofwords_to_wordoftuples)
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC2, TC2.cache
+            (multi-tape at (0, 0), (deque([]), deque([])))
+            sage: word_in = tupleofwords_to_wordoftuples(
+            ....:     [(37, 38), (11, 12, 13)])
+            sage: TC2._transition_possible_test_(word_in)
+            True
+            sage: word_in = tupleofwords_to_wordoftuples(
+            ....:     [(37, 38), (11, 13)])
+            sage: TC2._transition_possible_test_(word_in)
+            False
+
+        Note that this function does not perform a check whether the
+        input word is correct or not. This is done by the higher-level
+        method :meth:`.transition_possible`::
+
+            sage: TC2._transition_possible_test_([(37,), (38,)])
+            True
+
+        This function does not accept words of epsilon-transitions::
+
+            sage: TC2._transition_possible_test_([])
+            False
+            sage: TC2._transition_possible_test_([(None, None)])
+            False
+            """
+        if self._transition_possible_epsilon_(word_in):
+            return False
+        word_in_transposed = wordoftuples_to_tupleofwords(word_in)
+        return all(self.compare_to_tape(track_number, word)
+                   for track_number, word in enumerate(word_in_transposed))
+
+
+#*****************************************************************************
+
+
+class _FSMTapeCacheDetectEpsilon_(_FSMTapeCache_):
+    """
+    This is a class is similar to :class:`_FSMTapeCache_` but accepts
+    only epsilon transitions.
+    """
+    def __init__(self, *args, **kwargs):
+        """
+        See :class:`_FSMTapeCache_` for more details.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import _FSMTapeCacheDetectEpsilon_
+            sage: _FSMTapeCacheDetectEpsilon_([], (xsrange(37, 42),),
+            ....:                             [False], ((0, 0),), False)
+            tape at 0
+        """
+        super(_FSMTapeCacheDetectEpsilon_, self).__init__(*args, **kwargs)
+        self._visited_states_ = set()
+
+
+    def __deepcopy__(self, memo):
+        """
+        See :meth:`_FSMTapeCache_.deepcopy` for details.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import _FSMTapeCacheDetectEpsilon_
+            sage: TC2 = _FSMTapeCacheDetectEpsilon_([], (xsrange(37, 42),),
+            ....:                                   [False], ((0, 0),), True)
+            sage: TC2._visited_states_.add(1)
+            sage: TC3 = deepcopy(TC2)  # indirect doctest
+            sage: TC3._visited_states_
+            {1}
+        """
+        new = super(_FSMTapeCacheDetectEpsilon_, self).__deepcopy__(memo)
+        new._visited_states_ = copy(self._visited_states_)
+        return new
+
+
+    def _transition_possible_test_(self, word_in):
+        """
+        This helper function tests whether ``word_in`` equals ``epsilon``,
+        i.e., whether it is the empty word or consists only of letters ``None``.
+
+        INPUT:
+
+        - ``word_in`` -- an input word of a transition.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     _FSMTapeCacheDetectEpsilon_)
+            sage: TCE = _FSMTapeCacheDetectEpsilon_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TCE._transition_possible_test_([])
+            True
+            sage: TCE._transition_possible_test_([(None, None)])
+            True
+            sage: TCE._transition_possible_test_([(37, 11), (38, 12)])
+            False
+            sage: TCE._transition_possible_test_([(37, 11), (38, 13)])
+            False
+        """
+        return self._transition_possible_epsilon_(word_in)
+
+
+#*****************************************************************************
+
+
+class _FSMTapeCacheDetectAll_(_FSMTapeCache_):
+    """
+    This is a class is similar to :class:`_FSMTapeCache_` but accepts
+    each transition.
+    """
+    def _transition_possible_test_(self, word_in):
+        """
+        This helper function returns ``True``, i.e., accepts every
+        ``word_in`` of every transition.
+
+        INPUT:
+
+        - ``word_in`` -- an input word of a transition.
+
+        OUTPUT:
+
+        ``True``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     _FSMTapeCacheDetectAll_)
+            sage: TCA = _FSMTapeCacheDetectAll_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TCA._transition_possible_test_([(37, 11), (38, 12)])
+            True
+            sage: TCA._transition_possible_test_([(37, 11), (38, 13)])
+            True
+            sage: TCA._transition_possible_test_([])
+            True
+            sage: TCA._transition_possible_test_([(None, None)])
+            True
+        """
+        return True
+
+
+#*****************************************************************************
+
+
+def tupleofwords_to_wordoftuples(tupleofwords):
+    """
+    Transposes a tuple of words over the alphabet to a word of tuples.
+
+    INPUT:
+
+    - ``tupleofwords`` -- a tuple of a list of letters.
+
+    OUTPUT:
+
+    A list of tuples.
+
+    Missing letters in the words are padded with the letter ``None``
+    (from the empty word).
+
+    EXAMPLES::
+
+        sage: from sage.combinat.finite_state_machine import (
+        ....:     tupleofwords_to_wordoftuples)
+        sage: tupleofwords_to_wordoftuples(
+        ....:     ([1, 2], [3, 4, 5, 6], [7]))
+        [(1, 3, 7), (2, 4, None), (None, 5, None), (None, 6, None)]
+    """
+    return list(itertools.izip_longest(*tupleofwords, fillvalue=None))
+
+
+def wordoftuples_to_tupleofwords(wordoftuples):
+    """
+    Transposes a word of tuples to a tuple of words over the alphabet.
+
+    INPUT:
+
+    - ``wordoftuples`` -- a list of tuples of letters.
+
+    OUTPUT:
+
+    A tuple of lists.
+
+    Letters ``None`` (empty word) are removed from each word in the output.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.finite_state_machine import (
+        ....:     wordoftuples_to_tupleofwords)
+        sage: wordoftuples_to_tupleofwords(
+        ....:     [(1, 2), (1, None), (1, None), (1, 2), (None, 2)])
+        ([1, 1, 1, 1], [2, 2, 2])
+    """
+    if not equal(len(t) for t in wordoftuples):
+        raise ValueError("Not all entries of input have the same length.")
+    def remove_empty_letters(word):
+        return [letter for letter in word if letter is not None]
+    return tuple(remove_empty_letters(word)
+                 for word in itertools.izip(*wordoftuples))
 
 
 #*****************************************************************************
@@ -9419,57 +11622,104 @@ def is_FSMProcessIterator(PI):
     TESTS::
 
         sage: from sage.combinat.finite_state_machine import is_FSMProcessIterator, FSMProcessIterator
-        sage: is_FSMProcessIterator(FSMProcessIterator(FiniteStateMachine([[0, 0, 0, 0]], initial_states=[0])))
+        sage: is_FSMProcessIterator(FSMProcessIterator(FiniteStateMachine([[0, 0, 0, 0]], initial_states=[0]), []))
         True
     """
     return isinstance(PI, FSMProcessIterator)
 
 
-class FSMProcessIterator(SageObject):
-    """
-    This class is for processing an input string on a finite state
-    machine.
+#*****************************************************************************
 
-    An instance of this class is generated when
-    :meth:`FiniteStateMachine.process` or
-    :meth:`FiniteStateMachine.iter_process` of the finite state
-    machine is invoked. It behaves like an iterator which, in each
-    step, takes one letter of the input and runs (one step on) the
-    finite state machine with this input. More precisely, in each
-    step, the process iterator takes an outgoing transition of the
-    current state, whose input label equals the input letter of the
-    tape. The output label of the transition, if present, is written
-    on the output tape.
+
+class FSMProcessIterator(SageObject, collections.Iterator):
+    """
+    This class takes an input, feeds it into a finite state machine
+    (automaton or transducer, in particular), tests whether this was
+    successful and calculates the written output.
 
     INPUT:
 
-    - ``fsm`` -- The finite state machine on which the input should be
+    - ``fsm`` -- the finite state machine on which the input should be
       processed.
 
-    - ``input_tape`` -- The input tape. It can be anything that is
-      iterable.
+    - ``input_tape`` -- the input tape can be a list or an
+      iterable with entries from the input alphabet. If we are
+      working with a multi-tape machine (see parameter
+      ``use_multitape_input`` and notes below), then the tape is a
+      list or tuple of tracks, each of which can be a list or an
+      iterable with entries from the input alphabet.
 
-    - ``initial_state`` -- The initial state in which the machine
-      starts. If this is ``None``, the unique inital state of the finite
-      state machine is takes. If there are several, a ``ValueError`` is
-      raised.
+    - ``initial_state`` or ``initial_states`` -- the initial
+      state(s) in which the machine starts. Either specify a
+      single one with ``initial_state`` or a list of them with
+      ``initial_states``. If both are given, ``initial_state``
+      will be appended to ``initial_states``. If neither is
+      specified, the initial states of the finite state machine
+      are taken.
 
-    The process (iteration) stops if there are no more input letters
-    on the tape. In this case a StopIteration exception is thrown. As
-    result the following attributes are available:
+    - ``format_output`` -- a function that translates the written
+      output (which is in form of a list) to something more
+      readable. By default (``None``) identity is used here.
 
-    - ``accept_input`` -- Is ``True`` if the reached state is a final state.
+    - ``check_epsilon_transitions`` -- (default: ``True``) a
+      boolean. If ``False``, then epsilon transitions are not
+      taken into consideration during process.
 
-    - ``current_state`` -- The current/reached state in the process.
+    - ``write_final_word_out`` -- (default: ``True``) a boolean
+      specifying whether the final output words should be written
+      or not.
 
-    - ``output_tape`` -- The written output.
-
-    Current values of those attributes (except ``accept_input``) are
-    (also) available during the iteration.
+    - ``use_multitape_input`` -- (default: ``False``) a
+      boolean. If ``True``, then the multi-tape mode of the
+      process iterator is activated. See also the notes below for
+      multi-tape machines.
 
     OUTPUT:
 
     An iterator.
+
+    In its simplest form, it behaves like an iterator which, in
+    each step, goes from one state to another. To decide which way
+    to go, it uses the input words of the outgoing transitions and
+    compares them to the input tape. More precisely, in each step,
+    the process iterator takes an outgoing transition of the
+    current state, whose input label equals the input letter of
+    the tape. The output label of the transition, if present, is
+    written on the output tape.
+
+    If the choice of the outgoing transition is not unique (i.e.,
+    we have a non-deterministic finite state machine), all
+    possibilites are followed. This is done by splitting the
+    process into several branches, one for each of the possible
+    outgoing transitions.
+
+    The process (iteration) stops if all branches are finished,
+    i.e., for no branch, there is any transition whose input word
+    coincides with the processed input tape. This can simply
+    happen when the entire tape was read.
+    When the process stops, a ``StopIteration`` exception is thrown.
+
+    .. WARNING::
+
+        Processing an input tape of length `n` usually takes at least `n+1`
+        iterations, since there will be `n+1` states visited (in the
+        case the taken transitions have input words consisting of single
+        letters).
+
+    An instance of this class is generated when
+    :meth:`FiniteStateMachine.process` or
+    :meth:`FiniteStateMachine.iter_process` of a finite state machine,
+    an automaton, or a transducer is invoked.
+
+    When working with multi-tape finite state machines, all input
+    words of transitions are words of `k`-tuples of letters.
+    Moreover, the input tape has to consist of `k` tracks, i.e.,
+    be a list or tuple of `k` iterators, one for each track.
+
+    .. WARNING::
+
+        Working with multi-tape finite state machines is still
+        experimental and can lead to wrong outputs.
 
     EXAMPLES:
 
@@ -9486,26 +11736,87 @@ class FSMProcessIterator(SageObject):
         sage: T.process(input)
         (True, 'A', [1, 0, 0, 1, 0, 1, 0])
 
-    The function :meth:`FiniteStateMachine.process` created a new
-    ``FSMProcessIterator``. We can do that manually, too, and get full
+    The function :meth:`FiniteStateMachine.process` (internally) uses a
+    :class:`FSMProcessIterator`. We can do that manually, too, and get full
     access to the iteration process::
 
         sage: from sage.combinat.finite_state_machine import FSMProcessIterator
         sage: it = FSMProcessIterator(T, input_tape=input)
-        sage: for _ in it:
-        ....:     print (it.current_state, it.output_tape)
-        ('B', [])
-        ('B', [])
-        ('A', [1, 0])
-        ('A', [1, 0, 0])
-        ('B', [1, 0, 0])
-        ('A', [1, 0, 0, 1, 0])
-        ('B', [1, 0, 0, 1, 0])
-        ('B', [1, 0, 0, 1, 0])
-        ('B', [1, 0, 0, 1, 0])
-        ('A', [1, 0, 0, 1, 0, 1, 0])
-        sage: it.accept_input
-        True
+        sage: for current in it:
+        ....:     print current
+        process (1 branch)
+        + at state 'B'
+        +-- tape at 1, [[]]
+        process (1 branch)
+        + at state 'B'
+        +-- tape at 2, [[]]
+        process (1 branch)
+        + at state 'A'
+        +-- tape at 3, [[1, 0]]
+        process (1 branch)
+        + at state 'A'
+        +-- tape at 4, [[1, 0, 0]]
+        process (1 branch)
+        + at state 'B'
+        +-- tape at 5, [[1, 0, 0]]
+        process (1 branch)
+        + at state 'A'
+        +-- tape at 6, [[1, 0, 0, 1, 0]]
+        process (1 branch)
+        + at state 'B'
+        +-- tape at 7, [[1, 0, 0, 1, 0]]
+        process (1 branch)
+        + at state 'B'
+        +-- tape at 8, [[1, 0, 0, 1, 0]]
+        process (1 branch)
+        + at state 'B'
+        +-- tape at 9, [[1, 0, 0, 1, 0]]
+        process (1 branch)
+        + at state 'A'
+        +-- tape at 10, [[1, 0, 0, 1, 0, 1, 0]]
+        process (0 branches)
+        sage: it.result()
+        [(True, 'A', [1, 0, 0, 1, 0, 1, 0])]
+
+    ::
+
+        sage: T = Transducer([(0, 0, 0, 'a'), (0, 1, 0, 'b'),
+        ....:                 (1, 2, 1, 'c'), (2, 0, 0, 'd'),
+        ....:                 (2, 1, None, 'd')],
+        ....:                initial_states=[0], final_states=[2])
+        sage: T.process([0, 0, 1], format_output=lambda o: ''.join(o))
+        [(False, 1, 'abcd'), (True, 2, 'abc')]
+        sage: it = FSMProcessIterator(T, input_tape=[0, 0, 1],
+        ....:                         format_output=lambda o: ''.join(o))
+        sage: for current in it:
+        ....:     print current
+        process (2 branches)
+        + at state 0
+        +-- tape at 1, [['a']]
+        + at state 1
+        +-- tape at 1, [['b']]
+        process (2 branches)
+        + at state 0
+        +-- tape at 2, [['a', 'a']]
+        + at state 1
+        +-- tape at 2, [['a', 'b']]
+        process (2 branches)
+        + at state 1
+        +-- tape at 3, [['a', 'b', 'c', 'd']]
+        + at state 2
+        +-- tape at 3, [['a', 'b', 'c']]
+        process (0 branches)
+        sage: it.result()
+        [(False, 1, 'abcd'), (True, 2, 'abc')]
+
+    .. SEEALSO::
+
+        :meth:`FiniteStateMachine.process`,
+        :meth:`Automaton.process`,
+        :meth:`Transducer.process`,
+        :meth:`FiniteStateMachine.iter_process`,
+        :meth:`FiniteStateMachine.__call__`,
+        :meth:`next`.
 
     TESTS::
 
@@ -9519,12 +11830,99 @@ class FSMProcessIterator(SageObject):
 
         sage: T = Transducer([[0, 1, 0, 0]], initial_states=[0, 1])
         sage: T.process([])
-        Traceback (most recent call last):
-        ...
-        ValueError: Several initial states.
+        [(False, 0, []), (False, 1, [])]
 
+    ::
+
+        sage: T = Transducer([[0, 0, 0, 0]],
+        ....:                initial_states=[0], final_states=[0])
+        sage: T.state(0).final_word_out = [42]
+        sage: T.process([0])
+        (True, 0, [0, 42])
+        sage: T.process([0], write_final_word_out=False)
+        (True, 0, [0])
     """
-    def __init__(self, fsm, input_tape=None, initial_state=None, **kwargs):
+
+    class Current(dict):
+        """
+        This class stores the branches which have to be processed
+        during iteration and provides a nicer formatting of them.
+
+        This class is derived from ``dict``. It is returned by the
+        ``next``-function during iteration.
+
+        EXAMPLES:
+
+        In the following example you can see the dict directly and
+        then the nicer output provided by this class::
+
+            sage: from sage.combinat.finite_state_machine import FSMProcessIterator
+            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
+            sage: for current in it:
+            ....:     print dict(current)
+            ....:     print current
+            {((1, 0),): {'A': (tape at 1, [[1]])}}
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 1, [[1]]
+            {((2, 0),): {'A': (tape at 2, [[1, 0]])}}
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 2, [[1, 0]]
+            {}
+            process (0 branches)
+        """
+        def __repr__(self):
+            """
+            Returns a nice representation of ``self``.
+
+            INPUT:
+
+            Nothing.
+
+            OUTPUT:
+
+            A string.
+
+            TEST::
+
+                sage: from sage.combinat.finite_state_machine import FSMProcessIterator
+                sage: T = Transducer([(0, 0, 0, 0)],
+                ....:     initial_states=[0], final_states=[0])
+                sage: it = FSMProcessIterator(T, input_tape=[0, 0])
+                sage: for current in it:
+                ....:     print current  # indirect doctest
+                process (1 branch)
+                + at state 0
+                +-- tape at 1, [[0]]
+                process (1 branch)
+                + at state 0
+                +-- tape at 2, [[0, 0]]
+                process (0 branches)
+            """
+            data = sorted(
+                (state, pos, tape_cache, outputs)
+                for pos, states in self.iteritems()
+                for state, (tape_cache, outputs) in states.iteritems())
+            branch = "branch" if len(data) == 1 else "branches"
+            result = "process (%s %s)" % (len(data), branch)
+            for s, sdata in itertools.groupby(data, lambda x: x[0]):
+                result += "\n+ at state %s" % (s,)
+                for state, pos, tape_cache, outputs in sdata:
+                    result += "\n+-- %s, %s" % (tape_cache, outputs)
+            return result
+
+
+    def __init__(self, fsm,
+                 input_tape=None,
+                 initial_state=None, initial_states=[],
+                 use_multitape_input=False,
+                 check_epsilon_transitions=True,
+                 write_final_word_out=True,
+                 format_output=None,
+                 **kwargs):
         """
         See :class:`FSMProcessIterator` for more information.
 
@@ -9534,47 +11932,248 @@ class FSMProcessIterator(SageObject):
             sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
             ....:     initial_states=['A'], final_states=['A'])
             sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
-            sage: for _ in it:
-            ....:     pass
-            sage: it.output_tape
-            [1, 0]
+            sage: for current in it:
+            ....:     print current
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 1, [[1]]
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 2, [[1, 0]]
+            process (0 branches)
+            sage: it.result()
+            [(True, 'A', [1, 0])]
         """
+        # FSM
         self.fsm = fsm
-        if initial_state is None:
-            fsm_initial_states = self.fsm.initial_states()
-            try:
-                self.current_state = fsm_initial_states[0]
-            except IndexError:
-                raise ValueError("No state is initial.")
-            if len(fsm_initial_states) > 1:
-                raise ValueError("Several initial states.")
-        else:
-            self.current_state = initial_state
-        self.output_tape = []
-        if input_tape is None:
-            self._input_tape_iter_ = iter([])
-        else:
-            if hasattr(input_tape, '__iter__'):
-                self._input_tape_iter_ = iter(input_tape)
-            else:
-                raise ValueError("Given input tape is not iterable.")
 
-    def __iter__(self):
+        # multi-tape flag
+        self.is_multitape = use_multitape_input
+
+        # initial states
+        initial_states = list(initial_states)
+        if initial_state is not None:
+            initial_states.append(initial_state)
+        if not initial_states:
+            initial_states = self.fsm.initial_states()
+            if not initial_states:
+                raise ValueError("No state is initial.")
+
+        # input tapes
+        tape = []
+        if input_tape is not None:
+            if self.is_multitape:
+                tape.extend(input_tape)
+            else:
+                tape.append(input_tape)
+        if not tape:
+            raise TypeError('No input tape given.')
+        if not all(hasattr(track, '__iter__') for track in tape):
+            raise TypeError('Given input tape is not iterable.')
+        self._input_tape_ = tuple(iter(track) for track in tape)
+        self._input_tape_ended_ = [False for _ in tape]
+
+        # other options
+        if format_output is None:
+            self.format_output = list
+        else:
+            self.format_output = format_output
+
+        self.check_epsilon_transitions = check_epsilon_transitions
+        self.write_final_word_out = write_final_word_out
+
+        # init branches
+        self._current_ = self.Current()
+        self._current_positions_ = []  # a heap queue of the keys of _current_
+        self._tape_cache_manager_ = []
+        position_zero = tuple((0, t) for t, _ in enumerate(self._input_tape_))
+        if not hasattr(self, 'TapeCache'):
+            self.TapeCache = _FSMTapeCache_
+
+        for state in initial_states:
+            tape_cache = self.TapeCache(self._tape_cache_manager_,
+                                        self._input_tape_,
+                                        self._input_tape_ended_,
+                                        position_zero,
+                                        self.is_multitape)
+            self._push_branches_(state, tape_cache, [[]])
+
+        self._finished_ = []  # contains (accept, state, output)
+
+
+    def _push_branch_(self, state, tape_cache, outputs):
         """
-        Returns ``self``.
+        This helper function pushes a ``state`` together with
+        ``tape_cache`` and ``outputs`` (i.e. a branch) to the queue
+        ``self._current_``. See also :meth:`._push_branches_`.
+
+        INPUT:
+
+        - ``state`` -- state which has to be processed.
+
+        - ``tape_cache`` -- an instance of :class:`_FSMTapeCache_` (storing
+          information what to read next).
+
+        - ``outputs`` -- a list of output tapes on each of which words
+          were written until reaching ``state``.
+
+        OUTPUT:
+
+        Nothing.
+
+        .. NOTE::
+
+            ``tape_cache`` is discarded if ``self.__current__`` already
+            contains a branch with the same position and state.
 
         TESTS::
 
             sage: from sage.combinat.finite_state_machine import FSMProcessIterator
-            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
-            ....:     initial_states=['A'], final_states=['A'])
-            sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
-            sage: id(it) == id(iter(it))
-            True
-        """
-        return self
+            sage: A = Automaton({'a': [('a', 0), ('b', 1), ('c', 1)],
+            ....:                'c': [('b', None)], 'b': [('c', None)]},
+            ....:     initial_states=['a'], final_states=['b', 'c'])
+            sage: it = FSMProcessIterator(A, input_tape=[0, 1, 2])  # indirect doctest
+            sage: it._current_
+            process (1 branch)
+            + at state 'a'
+            +-- tape at 0, [[]]
+            sage: it._push_branch_(
+            ....:     A.state('b'),
+            ....:     deepcopy(it._current_[((0, 0),)][A.state('a')][0]),
+            ....:     [[]])
+            sage: it._current_
+            process (2 branches)
+            + at state 'a'
+            +-- tape at 0, [[]]
+            + at state 'b'
+            +-- tape at 0, [[]]
+            sage: it._push_branches_(
+            ....:     A.state('c'),
+            ....:     deepcopy(it._current_[((0, 0),)][A.state('a')][0]),
+            ....:     [[]])  # indirect doctest
+            sage: it._current_
+            process (3 branches)
+            + at state 'a'
+            +-- tape at 0, [[]]
+            + at state 'b'
+            +-- tape at 0, [[]]
+            + at state 'c'
+            +-- tape at 0, [[]]
 
-    def next(self):
+        ::
+
+            sage: T = Transducer([(0, 1, 0, 'd'), (0, 1, 0, 'a'),
+            ....:                 (0, 1, 0, 'a'), (0, 1, 0, 'a'),
+            ....:                 (0, 1, 0, 'n'), (0, 1, 0, 'i'),
+            ....:                 (0, 1, 0, 'e'), (0, 1, 0, 'l'),
+            ....:                 (0, 1, 0, 'l'), (0, 1, 0, 'l'),
+            ....:                 (1, 2, 0, ':'), (2, 3, 0, ')')],
+            ....:                initial_states=[0], final_states=[3])
+            sage: T.process([0, 0, 0], format_output=lambda o: ''.join(o))
+            [(True, 3, 'a:)'), (True, 3, 'd:)'), (True, 3, 'e:)'),
+             (True, 3, 'i:)'), (True, 3, 'l:)'), (True, 3, 'n:)')]
+
+        """
+        if tape_cache.position in self._current_:
+            states = self._current_[tape_cache.position]
+        else:
+            states = self._current_[tape_cache.position] = {}
+            heapq.heappush(self._current_positions_, tape_cache.position)
+
+        if state in states:
+            existing_tape_cache, existing_outputs = states[state]
+            existing_outputs.extend(outputs)
+            existing_outputs = [t for t, _ in
+                                itertools.groupby(sorted(existing_outputs))]
+            states[state] = (existing_tape_cache, existing_outputs)
+        else:
+            states[state] = (tape_cache, outputs)
+
+
+    def _push_branches_(self, state, tape_cache, outputs):
+        """
+        This function pushes a branch (consisting of a ``state``, an
+        input ``tape_cache`` and ``outputs``) and one other branch for
+        each epsilon successor of ``state`` to the queue (containing
+        branches to process).
+
+        INPUT:
+
+        - ``state`` -- state which has to be processed (i.e., the
+          current state, this branch is in).
+
+        - ``tape_cache`` -- an instance of :class:`_FSMTapeCache_` (storing
+          information what to read next).
+
+        - ``outputs`` -- a list of output tapes on each of which words
+          were written until reaching ``state``.
+
+        OUTPUT:
+
+        Nothing.
+
+        When this function is called, a branch is updated, which
+        means, stored for further processing. If the state has epsilon
+        successors, then a new branch for each epsilon successor is
+        created. All these branches start on the same position on the
+        tape and get the same (more precisely, a deepcopy of the) list
+        of output tapes.
+
+        Note that ``self._current_`` contains all states which have to
+        be visited in the next steps during processing. The actual
+        adding of the data is done in the helper function
+        :meth:`._push_branch_`.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import FSMProcessIterator
+            sage: A = Automaton({'a': [('a', 0), ('b', 1), ('c', None)],
+            ....:                'c': [('b', 2)]},
+            ....:     initial_states=['a'], final_states=['b', 'c'])
+            sage: it = FSMProcessIterator(A, input_tape=[0, 1, 2])  # indirect doctest
+            sage: it._current_
+            process (2 branches)
+            + at state 'a'
+            +-- tape at 0, [[]]
+            + at state 'c'
+            +-- tape at 0, [[]]
+            sage: it._push_branches_(
+            ....:     A.state('b'),
+            ....:     deepcopy(it._current_[((0, 0),)][A.state('a')][0]),
+            ....:     [[]])
+            sage: it._current_
+            process (3 branches)
+            + at state 'a'
+            +-- tape at 0, [[]]
+            + at state 'b'
+            +-- tape at 0, [[]]
+            + at state 'c'
+            +-- tape at 0, [[]]
+         """
+        self._push_branch_(state, tape_cache, outputs)
+        if not self.check_epsilon_transitions:
+            return
+        if state._in_epsilon_cycle_(self.fsm):
+            if not state._epsilon_cycle_output_empty_(self.fsm):
+                raise RuntimeError(
+                    'State %s is in an epsilon cycle (no input), '
+                    'but output is written.' % (state,))
+
+        for eps_state, eps_outputs in \
+                state._epsilon_successors_(self.fsm).iteritems():
+            if eps_state == state:
+                continue
+                # "eps_state == state" means epsilon cycle
+                # Since we excluded epsilon cycles where
+                # output is written, this has to be one
+                # which does not write output; therefore
+                # skipped.
+            for eps_out in eps_outputs:
+                new_out = [o + list(eps_out) for o in outputs]
+                self._push_branch_(eps_state, deepcopy(tape_cache), new_out)
+
+
+    def __next__(self):
         """
         Makes one step in processing the input tape.
 
@@ -9584,8 +12183,19 @@ class FSMProcessIterator(SageObject):
 
         OUTPUT:
 
-        It returns the taken transition. A ``StopIteration`` exception is
-        thrown when there is nothing more to read.
+        It returns the current status of the iterator (see below). A
+        ``StopIteration`` exception is thrown when there is/was
+        nothing to do (i.e. all branches ended with previous call
+        of :meth:`.__next__`).
+
+        The current status is a dictionary (encapsulated into an instance of
+        :class:`~FSMProcessIterator.Current`).
+        The keys are positions on
+        the tape. The value corresponding to such a position is again
+        a dictionary, where each entry represents a branch of the
+        process. This dictionary maps the current state of a branch to
+        a pair consisting of a tape cache and a list of output words,
+        which were written during reaching this current state.
 
         EXAMPLES::
 
@@ -9593,14 +12203,29 @@ class FSMProcessIterator(SageObject):
             sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
             ....:     initial_states=['A'], final_states=['A'])
             sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
-            sage: it.next()
-            Transition from 'A' to 'A': 0|1
-            sage: it.next()
-            Transition from 'A' to 'A': 1|0
-            sage: it.next()
+            sage: next(it)
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 1, [[1]]
+            sage: next(it)
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 2, [[1, 0]]
+            sage: next(it)
+            process (0 branches)
+            sage: next(it)
             Traceback (most recent call last):
             ...
             StopIteration
+
+        .. SEEALSO::
+
+            :meth:`FiniteStateMachine.process`,
+            :meth:`Automaton.process`,
+            :meth:`Transducer.process`,
+            :meth:`FiniteStateMachine.iter_process`,
+            :meth:`FiniteStateMachine.__call__`,
+            :class:`FSMProcessIterator`.
 
         TESTS::
 
@@ -9611,188 +12236,729 @@ class FSMProcessIterator(SageObject):
             sage: s.final_word_out = [1, 2]
             sage: Z.process([])
             (True, 0, [1, 2])
-        """
-        if hasattr(self, 'accept_input'):
-            raise StopIteration
-        try:
-            # process current state
-            transition = None
-            try:
-                transition = self.current_state.hook(
-                    self.current_state, self)
-            except AttributeError:
-                pass
-            self.write_word(self.current_state.word_out)
-
-            # get next
-            if not isinstance(transition, FSMTransition):
-                next_word = []
-                found = False
-
-                try:
-                    while not found:
-                        next_word.append(self.read_letter())
-                        if len(next_word) == 1 and any(not t.word_in
-                               for t in self.current_state.transitions):
-                            raise NotImplementedError(
-                                "process cannot handle epsilon transition "
-                                "leaving state %s." % self.current_state.label())
-                        try:
-                            transition = self.get_next_transition(
-                                next_word)
-                            found = True
-                        except ValueError:
-                            pass
-
-                        if found and any(
-                            t is not transition and startswith(t.word_in,
-                                                               next_word)
-                            for t in self.current_state.transitions):
-                            raise NotImplementedError("Non-deterministic "
-                                                      "path encountered "
-                                                      "when processing "
-                                                      "input.")
-
-                except StopIteration:
-                    # this means input tape is finished
-                    if len(next_word) > 0:
-                        self.current_state = FSMState(None,
-                                                      allow_label_None=True)
-                    raise StopIteration
-
-            # process transition
-            try:
-                transition.hook(transition, self)
-            except AttributeError:
-                pass
-            self.write_word(transition.word_out)
-
-            # go to next state
-            self.current_state = transition.to_state
-
-        except StopIteration:
-            # this means, either input tape is finished or
-            # someone has thrown StopIteration manually (in one
-            # of the hooks)
-            if self.current_state.label is None or not self.current_state.is_final:
-                self.accept_input = False
-            if not hasattr(self, 'accept_input'):
-                self.accept_input = True
-            if self.current_state.is_final:
-                self.write_word(self.current_state.final_word_out)
-            raise StopIteration
-
-        # return
-        return transition
-
-    def read_letter(self):
-        """
-        Reads a letter from the input tape.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        A letter.
-
-        Exception ``StopIteration`` is thrown if tape has reached
-        the end.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.finite_state_machine import FSMProcessIterator
-            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
-            ....:     initial_states=['A'], final_states=['A'])
-            sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
-            sage: it.read_letter()
-            0
-        """
-        return self._input_tape_iter_.next()
-
-    def write_letter(self, letter):
-        """
-        Writes a letter on the output tape.
-
-        INPUT:
-
-        - ``letter`` -- the letter to be written.
-
-        OUTPUT:
-
-        Nothing.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.finite_state_machine import FSMProcessIterator
-            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
-            ....:     initial_states=['A'], final_states=['A'])
-            sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
-            sage: it.write_letter(42)
-            sage: it.output_tape
-            [42]
-        """
-        self.output_tape.append(letter)
-
-    def write_word(self, word):
-        """
-        Writes a word on the output tape.
-
-        INPUT:
-
-        - ``word`` -- the word to be written.
-
-        OUTPUT:
-
-        Nothing.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.finite_state_machine import FSMProcessIterator
-            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
-            ....:     initial_states=['A'], final_states=['A'])
-            sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
-            sage: it.write_word([4, 2])
-            sage: it.output_tape
-            [4, 2]
-        """
-        for letter in word:
-            self.write_letter(letter)
-
-    def get_next_transition(self, word_in):
-        """
-        Returns the next transition according to ``word_in``. It is
-        assumed that we are in state ``self.current_state``.
-
-        INPUT:
-
-        - ``word_in`` -- the input word.
-
-        OUTPUT:
-
-        The next transition according to ``word_in``. It is assumed
-        that we are in state ``self.current_state``. If no transition
-        matches, a ``ValueError`` is thrown.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.finite_state_machine import FSMProcessIterator
-            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
-            ....:     initial_states=['A'], final_states=['A'])
-            sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
-            sage: it.get_next_transition([0])
-            Transition from 'A' to 'A': 0|1
-            sage: it.get_next_transition([2])
+            sage: it = FSMProcessIterator(Z, input_tape=[])
+            sage: next(it)
+            process (0 branches)
+            sage: next(it)
             Traceback (most recent call last):
             ...
-            ValueError: No transition with input [2] found.
-        """
-        for transition in self.current_state.transitions:
-            if transition.word_in == word_in:
-                return transition
-        raise ValueError("No transition with input %s found." % (word_in,))
+            StopIteration
 
+        ::
+
+            sage: N = Transducer([(0, 0, 0, 1)], initial_states=[0])
+            sage: def h_old(state, process):
+            ....:     print state, process
+            sage: N.state(0).hook = h_old
+            sage: N.process([0, 0])
+            doctest:...: DeprecationWarning: The hook of state 0 cannot
+            be processed: It seems that you are using an old-style hook,
+            which is deprecated.
+            See http://trac.sagemath.org/16538 for details.
+            (False, 0, [1, 1])
+            sage: def h_new(process, state, outputs):
+            ....:     print state, outputs
+            sage: N.state(0).hook = h_new
+            sage: N.process([0, 0], check_epsilon_transitions=False)
+            0 [[]]
+            0 [[1]]
+            0 [[1, 1]]
+            (False, 0, [1, 1])
+        """
+        if not self._current_:
+            raise StopIteration
+
+        def write_word(outputs, word):
+            for o in outputs:
+                o.extend(word)
+
+        def step(current_state, input_tape, outputs):
+            # process current state
+            next_transitions = None
+            state_said_finished = False
+            if hasattr(current_state, 'hook'):
+                import inspect
+                if len(inspect.getargspec(current_state.hook).args) == 2:
+                    from sage.misc.superseded import deprecation
+                    deprecation(16538, 'The hook of state %s cannot be '
+                                'processed: It seems that you are using an '
+                                'old-style hook, which is deprecated. '
+                                % (current_state,))
+                else:
+                    try:
+                        self._current_branch_input_tape_ = input_tape  # for preview_word
+                        next_transitions = current_state.hook(
+                            self, current_state, outputs)
+                    except StopIteration:
+                        next_transitions = []
+                        state_said_finished = True
+            if isinstance(next_transitions, FSMTransition):
+                next_transitions = [next_transitions]
+            if next_transitions is not None and \
+                    not hasattr(next_transitions, '__iter__'):
+                raise ValueError('hook of state should return a '
+                                 'transition or '
+                                 'a list/tuple of transitions.')
+
+            # write output word of state
+            write_word(outputs, current_state.word_out)
+
+            # get next
+            if next_transitions is None:
+                next_transitions = \
+                    [transition for transition in current_state.transitions
+                     if input_tape.transition_possible(transition)]
+
+            if not next_transitions:
+                # this branch has to end here...
+                if not (input_tape.finished() or state_said_finished):
+                    return
+                successful = current_state.is_final
+                if successful and self.write_final_word_out:
+                    write_word(outputs, current_state.final_word_out)
+                for o in outputs:
+                    self._finished_.append((successful, current_state,
+                                            self.format_output(o)))
+                return
+
+            # at this point we know that there is at least one
+            # outgoing transition to take
+
+            new_currents = [(input_tape, outputs)]
+            if len(next_transitions) > 1:
+                new_currents.extend(
+                    [deepcopy(new_currents[0])
+                     for _ in srange(len(next_transitions) - 1)])
+
+            # process transitions
+            for transition, (tape, out) in izip(next_transitions, new_currents):
+                if hasattr(transition, 'hook'):
+                    transition.hook(transition, self)
+                write_word(out, transition.word_out)
+
+                # go to next state
+                state = transition.to_state
+                tape.forward(transition)
+                self._push_branches_(state, tape, out)
+            return
+
+        states_dict = self._current_.pop(heapq.heappop(self._current_positions_))
+        for state, (tape, outputs) in states_dict.iteritems():
+            step(state, tape, outputs)
+
+        return self._current_
+
+
+    next = __next__
+
+
+    def result(self, format_output=None):
+        """
+        Returns the already finished branches during process.
+
+        INPUT:
+
+        - ``format_output`` -- a function converting the output from
+          list form to something more readable (default: output the
+          list directly).
+
+        OUTPUT:
+
+        A list of triples ``(accepted, state, output)``.
+
+        See also the parameter ``format_output`` of
+        :class:`FSMProcessIterator`.
+
+        EXAMPLES::
+
+            sage: inverter = Transducer({'A': [('A', 0, 'one'), ('A', 1, 'zero')]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: it = inverter.iter_process(input_tape=[0, 1, 1])
+            sage: for _ in it:
+            ....:     pass
+            sage: it.result()
+            [(True, 'A', ['one', 'zero', 'zero'])]
+            sage: it.result(lambda L: ', '.join(L))
+            [(True, 'A', 'one, zero, zero')]
+
+        Using both the parameter ``format_output`` of
+        :class:`FSMProcessIterator` and the parameter ``format_output``
+        of :meth:`.result` leads to concatenation of the two
+        functions::
+
+            sage: it = inverter.iter_process(input_tape=[0, 1, 1],
+            ....:                            format_output=lambda L: ', '.join(L))
+            sage: for _ in it:
+            ....:     pass
+            sage: it.result()
+            [(True, 'A', 'one, zero, zero')]
+            sage: it.result(lambda L: ', '.join(L))
+            [(True, 'A', 'o, n, e, ,,  , z, e, r, o, ,,  , z, e, r, o')]
+        """
+        if format_output is None:
+            return self._finished_
+        return [r[:2] + (format_output(r[2]),) for r in self._finished_]
+
+
+    def preview_word(self, track_number=None, length=1, return_word=False):
+        """
+        Reads a word from the input tape.
+
+        INPUT:
+
+        - ``track_number`` -- an integer or ``None``. If ``None``,
+          then a tuple of words (one from each track) is returned.
+
+        - ``length`` -- (default: ``1``) the length of the word(s).
+
+        - ``return_word`` -- (default: ``False``) a boolean. If set,
+          then a word is returned, otherwise a single letter (in which
+          case ``length`` has to be ``1``).
+
+        OUTPUT:
+
+        A single letter or a word.
+
+        An exception ``StopIteration`` is thrown if the tape (at least
+        one track) has reached its end.
+
+        Typically, this method is called from a hook-function of a
+        state.
+
+        EXAMPLES::
+
+            sage: inverter = Transducer({'A': [('A', 0, 'one'),
+            ....:                              ('A', 1, 'zero')]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: def state_hook(process, state, output):
+            ....:     print "We are now in state %s." % (state.label(),)
+            ....:     print "Next on the tape is a %s." % (
+            ....:         process.preview_word(),)
+            sage: inverter.state('A').hook = state_hook
+            sage: it = inverter.iter_process(
+            ....:     input_tape=[0, 1, 1],
+            ....:     check_epsilon_transitions=False)
+            sage: for _ in it:
+            ....:     pass
+            We are now in state A.
+            Next on the tape is a 0.
+            We are now in state A.
+            Next on the tape is a 1.
+            We are now in state A.
+            Next on the tape is a 1.
+            We are now in state A.
+            sage: it.result()
+            [(True, 'A', ['one', 'zero', 'zero'])]
+        """
+        return self._current_branch_input_tape_.preview_word(
+            track_number, length, return_word)
+
+
+    @property
+    def current_state(self):
+        """
+        The current/reached state in the process.
+
+        .. WARNING::
+
+            This attribute is deprecated and should not be used any
+            longer (it may return a wrong result for non-deterministic
+            finite state machines).
+
+        TESTS::
+
+            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: it = inverter.iter_process(input_tape=[0, 1, 1])
+            sage: for current in it:
+            ....:     s = it.current_state
+            ....:     print current
+            ....:     print 'current state:', s
+            doctest:...: DeprecationWarning: This attribute will be
+            removed in future releases. Use result() at the end of our
+            iteration or the output of next().
+            See http://trac.sagemath.org/16538 for details.
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 1, [[1]]
+            current state: 'A'
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 2, [[1, 0]]
+            current state: 'A'
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 3, [[1, 0, 0]]
+            current state: 'A'
+            process (0 branches)
+            current state: None
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(16538, 'This attribute will be removed in future '
+                    'releases. Use result() at the end of our '
+                    'iteration or the output of next().')
+        if not self._current_:
+            return None
+        return next(next(self._current_.itervalues()).iterkeys())
+
+
+    @property
+    def output_tape(self):
+        """
+        The written output.
+
+        .. WARNING::
+
+            This attribute is deprecated and should not be used any
+            longer (it may return a wrong result for non-deterministic
+            finite state machines).
+
+        TESTS::
+
+            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: it = inverter.iter_process(input_tape=[0, 1, 1])
+            sage: for current in it:
+            ....:     t = it.output_tape
+            ....:     print current
+            ....:     print 'output:', t
+            doctest:...: DeprecationWarning: This attribute will be removed
+            in future releases. Use result() at the end of our iteration
+            or the output of next().
+            See http://trac.sagemath.org/16538 for details.
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 1, [[1]]
+            output: [1]
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 2, [[1, 0]]
+            output: [1, 0]
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 3, [[1, 0, 0]]
+            output: [1, 0, 0]
+            process (0 branches)
+            output: None
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(16538, 'This attribute will be removed in future '
+                    'releases. Use result() at the end of our iteration '
+                    'or the output of next().')
+        if not self._current_:
+            return None
+        return next(next(self._current_.itervalues()).itervalues())[1][0]
+
+
+    @property
+    def accept_input(self):
+        """
+        Is ``True`` if the reached state is accepted. This is only available
+        at the end of the iteration process.
+
+        .. WARNING::
+
+            This attribute is deprecated and should not be used any
+            longer (it may return a wrong result for non-deterministic
+            finite state machines).
+
+        TESTS::
+
+            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: it = inverter.iter_process(input_tape=[0, 1, 1])
+            sage: for _ in it:
+            ....:     pass
+            sage: it.result()
+            [(True, 'A', [1, 0, 0])]
+            sage: it.accept_input
+            doctest:...: DeprecationWarning: This attribute will be removed
+            in future releases. Use result() at the end of our iteration
+            or the output of next().
+            See http://trac.sagemath.org/16538 for details.
+            True
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(16538, 'This attribute will be removed in future '
+                    'releases. Use result() at the end of our iteration '
+                    'or the output of next().')
+        try:
+            return self._finished_[0][0]
+        except KeyError:
+            raise AttributeError
+
+
+#*****************************************************************************
+
+
+class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
+    """
+    This class is similar to :class:`FSMProcessIterator`, but only
+    accepts epsilon transitions during process. See
+    :class:`FSMProcessIterator` for more information.
+
+    EXAMPLES::
+
+        sage: T = Transducer([(0, 1, 0, 'a'), (0, 2, None, 'b'),
+        ....:                 (2, 1, None, 'c')])
+        sage: from sage.combinat.finite_state_machine import _FSMProcessIteratorEpsilon_
+        sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(0),
+        ....:                                format_output=lambda o: ''.join(o))
+
+    To see what is going on, we let the transducer run::
+
+        sage: for current in it:
+        ....:     print current
+        process (1 branch)
+        + at state 2
+        +-- tape at 0, [['b']]
+        process (1 branch)
+        + at state 1
+        +-- tape at 0, [['b', 'c']]
+        process (0 branches)
+
+    This class has the additional attribute ``visited_states``::
+
+        sage: it.visited_states
+        {0: [''], 1: ['bc'], 2: ['b']}
+
+    This means the following (let us skip the state `0` for a moment):
+    State `1` can be reached by a epsilon path which write ``'bc'`` as
+    output. Similarly, state `2` can be reached by writing ``'b'``. We
+    started in state `0`, so this is included in visited states as
+    well (``''`` means that nothing was written, which is clear, since
+    no path had to be taken).
+
+    We continue with the other states as initial states::
+
+        sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(1),
+        ....:                                  format_output=lambda o: ''.join(o))
+        sage: for current in it:
+        ....:     print current
+        process (0 branches)
+        sage: it.visited_states
+        {1: ['']}
+        sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(2),
+        ....:                                  format_output=lambda o: ''.join(o))
+        sage: for current in it:
+        ....:     print current
+        process (1 branch)
+        + at state 1
+        +-- tape at 0, [['c']]
+        process (0 branches)
+        sage: it.visited_states
+        {1: ['c'], 2: ['']}
+
+    TESTS::
+
+        sage: A = Automaton([(0, 1, 0), (1, 2, None), (2, 3, None),
+        ....:                (3, 1, None), (3, 4, None), (1, 4, None)])
+        sage: it = _FSMProcessIteratorEpsilon_(A, initial_state=A.state(0))
+        sage: for current in it:
+        ....:     print current
+        process (0 branches)
+        sage: it.visited_states
+        {0: [[]]}
+        sage: it = _FSMProcessIteratorEpsilon_(A, initial_state=A.state(1))
+        sage: for current in it:
+        ....:     print current
+        process (2 branches)
+        + at state 2
+        +-- tape at 0, [[]]
+        + at state 4
+        +-- tape at 0, [[]]
+        process (1 branch)
+        + at state 3
+        +-- tape at 0, [[]]
+        process (1 branch)
+        + at state 4
+        +-- tape at 0, [[]]
+        process (0 branches)
+        sage: it.visited_states
+        {1: [[], []], 2: [[]], 3: [[]], 4: [[], []]}
+
+    At this point note that in the previous output, state `1` (from
+    which we started) was also reached by a non-trivial
+    path. Moreover, there are two different paths from `1` to `4`.
+
+    Let us continue with the other initial states::
+
+        sage: it = _FSMProcessIteratorEpsilon_(A, initial_state=A.state(2))
+        sage: for current in it:
+        ....:     print current
+        process (1 branch)
+        + at state 3
+        +-- tape at 0, [[]]
+        process (2 branches)
+        + at state 1
+        +-- tape at 0, [[]]
+        + at state 4
+        +-- tape at 0, [[]]
+        process (1 branch)
+        + at state 4
+        +-- tape at 0, [[]]
+        process (0 branches)
+        sage: it.visited_states
+        {1: [[]], 2: [[], []], 3: [[]], 4: [[], []]}
+        sage: it = _FSMProcessIteratorEpsilon_(A, initial_state=A.state(3))
+        sage: for current in it:
+        ....:     print current
+        process (2 branches)
+        + at state 1
+        +-- tape at 0, [[]]
+        + at state 4
+        +-- tape at 0, [[]]
+        process (2 branches)
+        + at state 2
+        +-- tape at 0, [[]]
+        + at state 4
+        +-- tape at 0, [[]]
+        process (0 branches)
+        sage: it.visited_states
+        {1: [[]], 2: [[]], 3: [[], []], 4: [[], []]}
+        sage: it = _FSMProcessIteratorEpsilon_(A, initial_state=A.state(4))
+        sage: for current in it:
+        ....:     print current
+        process (0 branches)
+        sage: it.visited_states
+        {4: [[]]}
+
+    ::
+
+        sage: T = Transducer([(0, 1, 0, 'a'), (1, 2, None, 'b'),
+        ....:                 (2, 3, None, 'c'), (3, 1, None, 'd'),
+        ....:                 (3, 4, None, 'e'), (1, 4, None, 'f')])
+        sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(0),
+        ....:                                  format_output=lambda o: ''.join(o))
+        sage: for current in it:
+        ....:     print current
+        process (0 branches)
+        sage: it.visited_states
+        {0: ['']}
+        sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(1),
+        ....:                                  format_output=lambda o: ''.join(o))
+        sage: for current in it:
+        ....:     print current
+        process (2 branches)
+        + at state 2
+        +-- tape at 0, [['b']]
+        + at state 4
+        +-- tape at 0, [['f']]
+        process (1 branch)
+        + at state 3
+        +-- tape at 0, [['b', 'c']]
+        process (1 branch)
+        + at state 4
+        +-- tape at 0, [['b', 'c', 'e']]
+        process (0 branches)
+        sage: it.visited_states
+        {1: ['', 'bcd'], 2: ['b'],
+         3: ['bc'], 4: ['f', 'bce']}
+        sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(2),
+        ....:                                  format_output=lambda o: ''.join(o))
+        sage: for current in it:
+        ....:     print current
+        process (1 branch)
+        + at state 3
+        +-- tape at 0, [['c']]
+        process (2 branches)
+        + at state 1
+        +-- tape at 0, [['c', 'd']]
+        + at state 4
+        +-- tape at 0, [['c', 'e']]
+        process (1 branch)
+        + at state 4
+        +-- tape at 0, [['c', 'd', 'f']]
+        process (0 branches)
+        sage: it.visited_states
+        {1: ['cd'], 2: ['', 'cdb'],
+         3: ['c'], 4: ['ce', 'cdf']}
+        sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(3),
+        ....:                                  format_output=lambda o: ''.join(o))
+        sage: for current in it:
+        ....:     print current
+        process (2 branches)
+        + at state 1
+        +-- tape at 0, [['d']]
+        + at state 4
+        +-- tape at 0, [['e']]
+        process (2 branches)
+        + at state 2
+        +-- tape at 0, [['d', 'b']]
+        + at state 4
+        +-- tape at 0, [['d', 'f']]
+        process (0 branches)
+        sage: it.visited_states
+        {1: ['d'], 2: ['db'],
+         3: ['', 'dbc'], 4: ['e', 'df']}
+        sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(4),
+        ....:                                  format_output=lambda o: ''.join(o))
+        sage: for current in it:
+        ....:     print current
+        process (0 branches)
+        sage: it.visited_states
+        {4: ['']}
+
+    ::
+
+        sage: T = Transducer([(0, 1, None, 'a'), (0, 2, None, 'b'),
+        ....:                 (1, 3, None, 'c'), (2, 3, None, 'd'),
+        ....:                 (3, 0, None, 'e')])
+        sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(0),
+        ....:                                  format_output=lambda o: ''.join(o))
+        sage: for current in it:
+        ....:     print current
+        process (2 branches)
+        + at state 1
+        +-- tape at 0, [['a']]
+        + at state 2
+        +-- tape at 0, [['b']]
+        process (1 branch)
+        + at state 3
+        +-- tape at 0, [['a', 'c'], ['b', 'd']]
+        process (0 branches)
+        sage: it.visited_states
+        {0: ['', 'ace', 'bde'], 1: ['a'], 2: ['b'], 3: ['ac', 'bd']}
+
+    ::
+
+        sage: T = Transducer([(0, 1, None, None), (0, 2, None, 'b'),
+        ....:                 (1, 3, None, None), (2, 3, None, 'd'),
+        ....:                 (3, 0, None, None)])
+        sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(0),
+        ....:                                  format_output=lambda o: ''.join(o))
+        sage: for current in it:
+        ....:     print current
+        process (2 branches)
+        + at state 1
+        +-- tape at 0, [[]]
+        + at state 2
+        +-- tape at 0, [['b']]
+        process (1 branch)
+        + at state 3
+        +-- tape at 0, [[], ['b', 'd']]
+        process (0 branches)
+        sage: it.visited_states
+        {0: ['', '', 'bd'], 1: [''], 2: ['b'], 3: ['', 'bd']}
+        sage: T.state(0)._epsilon_cycle_output_empty_(T)
+        False
+
+    ::
+
+        sage: T = Transducer([(0, 1, None, 'a'), (1, 2, None, 'b'),
+        ....:                 (0, 2, None, 'c'), (2, 3, None, 'd'),
+        ....:                 (3, 0, None, 'e')])
+        sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(0),
+        ....:                                  format_output=lambda o: ''.join(o))
+        sage: for current in it:
+        ....:     print current
+        process (2 branches)
+        + at state 1
+        +-- tape at 0, [['a']]
+        + at state 2
+        +-- tape at 0, [['c']]
+        process (2 branches)
+        + at state 2
+        +-- tape at 0, [['a', 'b']]
+        + at state 3
+        +-- tape at 0, [['c', 'd']]
+        process (1 branch)
+        + at state 3
+        +-- tape at 0, [['a', 'b', 'd']]
+        process (0 branches)
+        sage: it.visited_states
+        {0: ['', 'cde', 'abde'], 1: ['a'], 2: ['c', 'ab'], 3: ['cd', 'abd']}
+
+    ::
+
+        sage: T = Transducer([(0, 1, None, 'a'), (0, 2, None, 'b'),
+        ....:                 (0, 2, None, 'c'), (2, 3, None, 'd'),
+        ....:                 (3, 0, None, 'e')])
+        sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(0),
+        ....:                                  format_output=lambda o: ''.join(o))
+        sage: for current in it:
+        ....:     print current
+        process (2 branches)
+        + at state 1
+        +-- tape at 0, [['a']]
+        + at state 2
+        +-- tape at 0, [['b'], ['c']]
+        process (1 branch)
+        + at state 3
+        +-- tape at 0, [['b', 'd'], ['c', 'd']]
+        process (0 branches)
+        sage: it.visited_states
+        {0: ['', 'bde', 'cde'], 1: ['a'], 2: ['b', 'c'], 3: ['bd', 'cd']}
+    """
+    def __init__(self, *args, **kwargs):
+        """
+        See :class:`_FSMProcessIteratorEpsilon_` and
+        :class:`FSMProcessIterator` for more information.
+
+        TESTS::
+
+            sage: T = Transducer([(0, 1, None, 'a'), (1, 2, None, 'b')])
+            sage: T.state(0)._epsilon_successors_(T)  # indirect doctest
+            {1: [['a']], 2: [['a', 'b']]}
+        """
+        kwargs['input_tape'] = iter([])
+        self.TapeCache = _FSMTapeCacheDetectEpsilon_
+        self.visited_states = {}
+        kwargs['check_epsilon_transitions'] = False
+        return super(_FSMProcessIteratorEpsilon_, self).__init__(*args, **kwargs)
+
+
+    def _push_branch_(self, state, tape_cache, outputs):
+        """
+        This helper function does the actual adding of a ``state`` to
+        ``self._current_`` (during the update of a branch), but,
+        in contrast to :meth:`FSMProcessIterator._push_branch_`, it
+        skips adding when the state was already visited in this branch
+        (i.e. detects whether ``state`` is in an epsilon cycle).
+
+        INPUT:
+
+        - ``state`` -- state which has to be processed.
+
+        - ``tape_cache`` -- an instance of :class:`_FSMTapeCache_` (storing
+          information what to read next).
+
+        - ``outputs`` -- a list of output tapes on each of which words
+          were written until reaching ``state``.
+
+        OUTPUT:
+
+        Nothing.
+
+        TESTS::
+
+            sage: T = Transducer([(0, 1, None, 'a'), (1, 2, None, 'b'),
+            ....:                 (2, 0, None, 'c')])
+            sage: T.state(0)._epsilon_successors_(T)  # indirect doctest
+            {0: [['a', 'b', 'c']], 1: [['a']], 2: [['a', 'b']]}
+            sage: T.state(1)._epsilon_successors_(T)  # indirect doctest
+            {0: [['b', 'c']], 1: [['b', 'c', 'a']], 2: [['b']]}
+            sage: T.state(2)._epsilon_successors_(T)  # indirect doctest
+            {0: [['c']], 1: [['c', 'a']], 2: [['c', 'a', 'b']]}
+        """
+        if state not in self.visited_states:
+            self.visited_states[state] = []
+        self.visited_states[state].extend(
+            self.format_output(o) for o in outputs)
+
+        found = state in tape_cache._visited_states_
+        tape_cache._visited_states_.add(state)
+        if found:
+            return
+
+        super(_FSMProcessIteratorEpsilon_, self)._push_branch_(
+            state, tape_cache, outputs)
+
+        # As tape_cache may have been discarded because current already
+        # contains a branch at the same state, _visited_states_ is
+        # updated manually.
+        self._current_[tape_cache.position][state][0]._visited_states_.update(
+            tape_cache._visited_states_)
 
 #*****************************************************************************
 

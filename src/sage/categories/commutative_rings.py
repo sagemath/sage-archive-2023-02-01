@@ -118,14 +118,14 @@ class CommutativeRings(CategoryWithAxiom):
                     sage: K = GF(27,'z')
                     sage: a = K.multiplicative_generator()
                     sage: R.<X> = PolynomialRing(K, 'X')
-                    sage: a.minimal_polynomial(X)
+                    sage: a.minimal_polynomial('X')
                     X^3 + 2*X + 1
                     sage: cyc3 = Zmod(26).cyclotomic_cosets(3,cosets=[1]); cyc3
                     [[1, 3, 9]]
                     sage: prod(X - a**i for i in cyc3[0])
                     X^3 + 2*X + 1
 
-                    sage: (a**7).minimal_polynomial(X)
+                    sage: (a**7).minimal_polynomial('X')
                     X^3 + X^2 + 2*X + 1
                     sage: cyc7 = Zmod(26).cyclotomic_cosets(3,cosets=[7]); cyc7
                     [[7, 11, 21]]

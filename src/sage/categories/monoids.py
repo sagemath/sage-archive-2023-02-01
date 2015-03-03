@@ -47,7 +47,7 @@ class Monoids(CategoryWithAxiom):
          Category of objects]
 
         sage: Monoids().axioms()
-        frozenset(['Associative', 'Unital'])
+        frozenset({'Associative', 'Unital'})
         sage: Semigroups().Unital()
         Category of monoids
 
@@ -122,6 +122,26 @@ class Monoids(CategoryWithAxiom):
 
             """
             return self.one()
+
+        def semigroup_generators(self):
+            """
+            Return the generators of ``self`` as a semigroup.
+
+            The generators of a monoid `M` as a semigroup are the generators
+            of `M` as a monoid and the unit.
+
+            EXAMPLES::
+
+                sage: M = Monoids().free([1,2,3])
+                sage: M.semigroup_generators()
+                Family (1, F[1], F[2], F[3])
+            """
+            G = self.monoid_generators()
+            from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+            if G not in FiniteEnumeratedSets():
+                raise NotImplementedError("currently only implemented for finitely generated monoids")
+            from sage.sets.family import Family
+            return Family((self.one(),) + tuple(G))
 
         def prod(self, args):
             r"""
@@ -236,6 +256,30 @@ class Monoids(CategoryWithAxiom):
             for i in range(n-1):
                 result *= self
             return result
+
+        def powers(self, n):
+            r"""
+            Return the list `[x^0, x^1, \ldots, x^{n-1}]`.
+
+            EXAMPLES::
+
+                sage: A = Matrix([[1, 1], [-1, 0]])
+                sage: A.powers(6)
+                [
+                [1 0]  [ 1  1]  [ 0  1]  [-1  0]  [-1 -1]  [ 0 -1]
+                [0 1], [-1  0], [-1 -1], [ 0 -1], [ 1  0], [ 1  1]
+                ]
+            """
+            if n < 0:
+                raise ValueError("negative number of powers requested")
+            elif n == 0:
+                return []
+            x = self.parent().one_element()
+            l = [x]
+            for i in xrange(n - 1):
+                x = x * self
+                l.append(x)
+            return l
 
     class Commutative(CategoryWithAxiom):
         """

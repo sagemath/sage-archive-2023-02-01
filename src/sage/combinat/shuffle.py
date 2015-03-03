@@ -124,7 +124,7 @@ class SetShuffleProduct(SageObject):
             self._element_constructor_ = element_constructor
         else:
             try:
-                e = iter(l1).next()
+                e = next(iter(l1))
                 if hasattr(e, "parent") and hasattr(e.parent(), "_element_constructor_"):
                     self._element_constructor_ = e.parent()._element_constructor_
                 else:
@@ -175,18 +175,18 @@ class SetShuffleProduct(SageObject):
             sage: list(SetShuffleProduct([[1,2],[3]], [[4]]))
             [[1, 2, 4], [4, 1, 2], [1, 4, 2], [3, 4], [4, 3]]
             sage: list(SetShuffleProduct([[1,2],[3,4]], [[1,4]], element_constructor=set))  #rando
-            [set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4])]
+            [{1, 2, 4},
+             {1, 2, 4},
+             {1, 2, 4},
+             {1, 2, 4},
+             {1, 2, 4},
+             {1, 2, 4},
+             {1, 3, 4},
+             {1, 3, 4},
+             {1, 3, 4},
+             {1, 3, 4},
+             {1, 3, 4},
+             {1, 3, 4}]
         """
         def shuffle_elements(pair):
             return ShuffleProduct(*pair, element_constructor=self._element_constructor_)

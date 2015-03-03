@@ -41,7 +41,7 @@ Different operations with cusps over a number field:
     sage: alpha.ideal()
     Fractional ideal (7, a + 3)
     sage: alpha.ABmatrix()
-    [a + 10, 3*a - 1, 7, 2*a]
+    [a + 10, -3*a + 1, 7, -2*a]
     sage: alpha.apply([0, 1, -1,0])
     Cusp [7: -a - 10] of Number Field in a with defining polynomial x^2 + 5
 
@@ -895,7 +895,7 @@ class NFCusp(Element):
         Given R a Dedekind domain and A, B ideals of R in inverse classes, an
         AB-matrix is a matrix realizing the isomorphism between R+R and A+B.
         An AB-matrix associated to a cusp [a1: a2] is an AB-matrix with A the
-        ideal associated to the cusp (A=<a1, a2>) and  first column given by
+        ideal associated to the cusp (A=<a1, a2>) and first column given by
         the coefficients of the cusp.
 
         EXAMPLES:
@@ -1265,7 +1265,7 @@ def NFCusps_ideal_reps_for_levelN(N, nlists=1):
         if not I.is_principal():
             Iinv = (I.ideal())**(-1)
             while check<nlists:
-                J = it.next()
+                J = next(it)
                 if (J*Iinv).is_principal() and J.is_coprime(N):
                     L[check].append(J)
                     check = check + 1
@@ -1295,7 +1295,7 @@ def units_mod_ideal(I):
         [1]
         sage: I = k.ideal(3)
         sage: units_mod_ideal(I)
-        [1, -a, -1, a]
+        [1, a, -1, -a]
 
     ::
 
@@ -1327,6 +1327,6 @@ def units_mod_ideal(I):
     elist = [Istar(I.ideallog(u)).order() for u in ulist]
 
     from sage.misc.mrange import xmrange
-    from sage.misc.misc import prod
+    from sage.misc.all import prod
 
     return [prod([u**e for u,e in zip(ulist,ei)],k(1)) for ei in xmrange(elist)]

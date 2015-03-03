@@ -112,6 +112,7 @@ from sage.rings.infinity import Infinity
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.misc.cachefunc import cached_method
 
+
 class PeriodLattice(FreeModule_generic_pid):
     """
     The class for the period lattice of an algebraic variety.
@@ -591,12 +592,12 @@ class PeriodLattice_ell(PeriodLattice):
 
         if algorithm=='pari':
             if self.E.base_field() is QQ:
-                periods = self.E.pari_curve(prec).omega().python()
+                periods = self.E.pari_curve().omega(prec).python()
                 return (R(periods[0]), C(periods[1]))
 
             from sage.libs.pari.all import pari
-            E_pari = pari([R(self.embedding(ai).real()) for ai in self.E.a_invariants()]).ellinit(precision=prec)
-            periods = E_pari.omega().python()
+            E_pari = pari([R(self.embedding(ai).real()) for ai in self.E.a_invariants()]).ellinit()
+            periods = E_pari.omega(prec).python()
             return (R(periods[0]), C(periods[1]))
 
         if algorithm!='sage':
@@ -998,9 +999,9 @@ class PeriodLattice_ell(PeriodLattice):
         if prec is None:
             prec = RealField().precision()
         try:
-            return self.E.pari_curve(prec).ellsigma(z, flag)
+            return self.E.pari_curve().ellsigma(z, flag, precision=prec)
         except AttributeError:
-            raise NotImplementedError("sigma function not yet implemented for period lattices of curves not defined over Q.")
+            raise NotImplementedError("sigma function not yet implemented for period lattices of curves not defined over Q")
 
     def curve(self):
         r"""

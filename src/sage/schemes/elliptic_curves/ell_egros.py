@@ -86,7 +86,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.misc.all import xmrange
 from sage.rings.all import QQ
 from constructor import EllipticCurve, EllipticCurve_from_j
@@ -451,7 +451,5 @@ def egros_get_j(S=[], proof=None, verbose=False):
                 if True: #verbose:
                     print "Discarding illegal j = ",j
                     sys.stdout.flush()
-    height_cmp = lambda j1,j2: cmp(j1.height(),j2.height())
-    jlist.sort(cmp=height_cmp)
-    return jlist
+    return sorted(jlist, key=lambda j: j.height())
 

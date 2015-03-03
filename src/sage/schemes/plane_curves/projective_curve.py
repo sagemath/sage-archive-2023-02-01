@@ -225,19 +225,25 @@ class ProjectiveCurve_generic(Curve_generic_projective):
             sage: R.<x, y, z> = QQ[]
             sage: C = Curve(x^3 - y^2*z)
             sage: C.plot()
+            Graphics object consisting of 1 graphics primitive
 
         The other affine patches of the same curve::
 
             sage: C.plot(patch=0)
+            Graphics object consisting of 1 graphics primitive
             sage: C.plot(patch=1)
+            Graphics object consisting of 1 graphics primitive
 
         An elliptic curve::
 
             sage: E = EllipticCurve('101a')
             sage: C = Curve(E)
             sage: C.plot()
+            Graphics object consisting of 1 graphics primitive
             sage: C.plot(patch=0)
+            Graphics object consisting of 1 graphics primitive
             sage: C.plot(patch=1)
+            Graphics object consisting of 1 graphics primitive
 
         A hyperelliptic curve::
 
@@ -245,8 +251,11 @@ class ProjectiveCurve_generic(Curve_generic_projective):
             sage: f = 4*x^5 - 30*x^3 + 45*x - 22
             sage: C = HyperellipticCurve(f)
             sage: C.plot()
+            Graphics object consisting of 1 graphics primitive
             sage: C.plot(patch=0)
+            Graphics object consisting of 1 graphics primitive
             sage: C.plot(patch=1)
+            Graphics object consisting of 1 graphics primitive
         """
         # if user hasn't specified a favourite affine patch, take the
         # one avoiding "infinity", i.e. the one corresponding to the
@@ -339,19 +348,19 @@ class ProjectiveCurve_finite_field(ProjectiveCurve_generic):
             sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
             sage: C = Curve(X*Y*Z)
             sage: a = C.rational_points_iterator()
-            sage: a.next()
+            sage: next(a)
             (1 : 0 : 0)
-            sage: a.next()
+            sage: next(a)
             (0 : 1 : 0)
-            sage: a.next()
+            sage: next(a)
             (1 : 1 : 0)
-            sage: a.next()
+            sage: next(a)
             (0 : 0 : 1)
-            sage: a.next()
+            sage: next(a)
             (1 : 0 : 1)
-            sage: a.next()
+            sage: next(a)
             (0 : 1 : 1)
-            sage: a.next()
+            sage: next(a)
             Traceback (most recent call last):
             ...
             StopIteration
@@ -362,27 +371,27 @@ class ProjectiveCurve_finite_field(ProjectiveCurve_generic):
             sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
             sage: C = Curve(X^3+5*Y^2*Z-33*X*Y*X)
             sage: b = C.rational_points_iterator()
-            sage: b.next()
+            sage: next(b)
             (0 : 1 : 0)
-            sage: b.next()
+            sage: next(b)
             (0 : 0 : 1)
-            sage: b.next()
+            sage: next(b)
             (2*a + 2 : a : 1)
-            sage: b.next()
+            sage: next(b)
             (2 : a + 1 : 1)
-            sage: b.next()
+            sage: next(b)
             (a + 1 : 2*a + 1 : 1)
-            sage: b.next()
+            sage: next(b)
             (1 : 2 : 1)
-            sage: b.next()
+            sage: next(b)
             (2*a + 2 : 2*a : 1)
-            sage: b.next()
+            sage: next(b)
             (2 : 2*a + 2 : 1)
-            sage: b.next()
+            sage: next(b)
             (a + 1 : a + 2 : 1)
-            sage: b.next()
+            sage: next(b)
             (1 : 1 : 1)
-            sage: b.next()
+            sage: next(b)
             Traceback (most recent call last):
             ...
             StopIteration

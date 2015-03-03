@@ -109,8 +109,6 @@ import rational_field, integer_ring
 from integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.libs.pari.all import pari
-from sage.misc.functional import sqrt, log
-from sage.rings.arith import integer_ceil as ceil
 from sage.misc.superseded import deprecated_function_alias
 
 from sage.categories.fields import Fields
@@ -816,13 +814,13 @@ cdef class PowerSeries(AlgebraElement):
 
             sage: R.<m> = CDF[[]]
             sage: f = CDF(pi)^2 + m^3 + CDF(e)*m^4 + O(m^10); f
-            9.86960440109 + 0.0*m + 0.0*m^2 + 1.0*m^3 + 2.71828182846*m^4 + O(m^10)
+            9.869604401089358 + 0.0*m + 0.0*m^2 + 1.0*m^3 + 2.718281828459045*m^4 + O(m^10)
             sage: f[-5]
             0.0
             sage: f[0]
-            9.86960440109
+            9.869604401089358
             sage: f[4]
-            2.71828182846
+            2.718281828459045
             sage: f[9]
             0.0
             sage: f[10]

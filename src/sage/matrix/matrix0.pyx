@@ -26,7 +26,7 @@ include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 from cpython.list cimport *
 from cpython.object cimport *
-include "sage/ext/python_slice.pxi"
+from cpython.slice cimport PySlice_Check
 from cpython.tuple cimport *
 
 import sage.modules.free_module
@@ -228,7 +228,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [      x       y       0]
             [      0       0 2*x + y]
             sage: d = a.dict(); d
-            {(0, 1): y, (1, 2): 2*x + y, (0, 0): x}
+            {(0, 0): x, (0, 1): y, (1, 2): 2*x + y}
 
         Notice that changing the returned list does not change a (the list
         is a copy)::
@@ -256,16 +256,16 @@ cdef class Matrix(sage.structure.element.Matrix):
             [0 1 2]
             [3 4 5]
             sage: v = a._dict(); v
-            {(0, 1): 1, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
+            {(0, 1): 1, (0, 2): 2, (1, 0): 3, (1, 1): 4, (1, 2): 5}
 
         If you change a key of the dictionary, the corresponding entry of
         the matrix will be changed (but without clearing any caches of
         computing information about the matrix)::
 
             sage: v[0,1] = -2/3; v
-            {(0, 1): -2/3, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
+            {(0, 1): -2/3, (0, 2): 2, (1, 0): 3, (1, 1): 4, (1, 2): 5}
             sage: a._dict()
-            {(0, 1): -2/3, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
+            {(0, 1): -2/3, (0, 2): 2, (1, 0): 3, (1, 1): 4, (1, 2): 5}
             sage: a[0,1]
             -2/3
 
@@ -4035,6 +4035,110 @@ cdef class Matrix(sage.structure.element.Matrix):
         else:
             raise ValueError("self must be a square matrix")
 
+    def is_weak_popov(self):
+        r"""
+        Return ``True`` if the matrix is in weak Popov form.
+
+        OUTPUT:
+
+        A matrix over an ordered ring is in weak Popov form if all
+        leading positions are different [MulSto]_. A leading position
+        is the position `i` in a row with the highest order (for
+        polynomials this is the degree), for multiple entries with
+        equal but highest order the maximal `i` is chosen (which is
+        the furthest to the right in the matrix).
+
+        .. WARNING::
+
+            This implementation only works for objects implementing a degree
+            function. It is designed to work for polynomials.
+
+        EXAMPLES:
+
+        A matrix with the same leading position in two rows is not in weak
+        Popov form. ::
+
+            sage: PF = PolynomialRing(GF(2^12,'a'),'x')
+            sage: A = matrix(PF,3,[x,x^2,x^3,x^2,x^2,x^2,x^3,x^2,x])
+            sage: A.is_weak_popov()
+            False
+
+        If a matrix has different leading positions, it is in weak Popov
+        form. ::
+
+            sage: B = matrix(PF,3,[1,1,x^3,x^2,1,1,1,x^2,1])
+            sage: B.is_weak_popov()
+            True
+
+        A matrix not over a polynomial ring will give an error. ::
+
+            sage: C = matrix(ZZ,4,[-1, 1, 0, 0, 7, 2, 1, 0, 1, 0, 2, -5, -1, 1, 0, 2])
+            sage: C.is_weak_popov()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_weak_popov only implements support for matrices ordered by a function self[x,y].degree()
+
+        Weak Popov form is not restricted to square matrices. ::
+
+            sage: PF = PolynomialRing(GF(7),'x')
+            sage: D = matrix(PF,2,4,[x^2+1,1,2,x,3*x+2,0,0,0])
+            sage: D.is_weak_popov()
+            False
+
+        Even a matrix with more rows than cols can still be in weak Popov
+        form. ::
+
+            sage: E = matrix(PF,4,2,[4*x^3+x,x^2+5*x+2,0,0,4,x,0,0])
+            sage: E.is_weak_popov()
+            True
+
+        But a matrix with less cols than non zero rows is never in weak
+        Popov form. ::
+
+            sage: F = matrix(PF,3,2,[x^2,x,x^3+2,x,4,5])
+            sage: F.is_weak_popov()
+            False
+
+        TESTS:
+
+        A matrix to check if really the rightmost value is taken. ::
+
+            sage: F = matrix(PF,2,2,[x^2,x^2,x,5])
+            sage: F.is_weak_popov()
+            True
+
+        .. SEEALSO::
+
+            - :meth:`weak_popov_form <sage.matrix.matrix2.weak_popov_form>`
+
+        REFERENCES:
+
+        .. [MulSto] T. Mulders, A. Storjohann, "On lattice reduction
+          for polynomial matrices", J. Symbolic Comput. 35 (2003),
+          no. 4, 377--401
+
+        AUTHOR:
+
+        - David Moedinger (2014-07-30)
+        """
+        try:
+            t = set()
+            for r in range(self.nrows()):
+                max = -1
+                for c in range(self.ncols()):
+                    if self[r, c].degree() >= max:
+                        max = self[r, c].degree()
+                        p = c
+                if not max == -1:
+                    if p in t:
+                        return False
+                    t.add(p)
+        except (NotImplementedError, AttributeError):
+            raise NotImplementedError(
+                "is_weak_popov only implements support for matrices ordered" +
+                " by a function self[x,y].degree()")
+        return True
+
     ###################################################
     # Invariants of a matrix
     ###################################################
@@ -5016,7 +5120,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: M = MatrixSpace(CC, 2)(-1.10220440881763)
             sage: N = ~M
             sage: (N*M).norm()
-            1.0
+            0.9999999999999999
         """
         if not self.base_ring().is_field():
             try:

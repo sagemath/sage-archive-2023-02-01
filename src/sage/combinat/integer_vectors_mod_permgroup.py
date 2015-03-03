@@ -90,7 +90,7 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
         ...
         NotImplementedError: infinite list
         sage: p = iter(I)
-        sage: for i in range(10): p.next()
+        sage: for i in range(10): next(p)
         [0, 0, 0]
         [1, 0, 0]
         [2, 0, 0]
@@ -143,13 +143,12 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
     we convert the returned set of vectors into a list in increasing lexicographic order,
     to get a reproducible test::
 
-        sage: from sage.combinat.enumeration_mod_permgroup import lex_cmp
-        sage: sorted(I.orbit([6,0,0]), cmp=lex_cmp)
+        sage: sorted(I.orbit([6,0,0]))
         [[0, 0, 6], [0, 6, 0], [6, 0, 0]]
-        sage: sorted(I.orbit([5,1,0]), cmp=lex_cmp)
+        sage: sorted(I.orbit([5,1,0]))
         [[0, 5, 1], [1, 0, 5], [5, 1, 0]]
         sage: I.orbit([2,2,2])
-        set([[2, 2, 2]])
+        {[2, 2, 2]}
 
     TESTS:
 
@@ -159,7 +158,7 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
         sage: I = IntegerVectorsModPermutationGroup(SymmetricGroup(5)) # long time
         sage: p = iter(I) # long time
         sage: for i in range(100): # long time
-        ...       v = list(p.next())
+        ...       v = list(next(p))
         ...       assert sorted(v, reverse=True) == v
 
     We now check that there is as much of canonical vectors under the
@@ -251,13 +250,13 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         +Infinity
         sage: TestSuite(I).run()
         sage: it = iter(I)
-        sage: [it.next(), it.next(), it.next(), it.next(), it.next()]
+        sage: [next(it), next(it), next(it), next(it), next(it)]
         [[0, 0, 0, 0],
          [1, 0, 0, 0],
          [2, 0, 0, 0],
          [1, 1, 0, 0],
          [1, 0, 1, 0]]
-        sage: x = it.next(); x
+        sage: x = next(it); x
         [3, 0, 0, 0]
         sage: I.first()
         [0, 0, 0, 0]
@@ -487,18 +486,17 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         In order to get reproducible doctests, we convert the returned sets
         into lists in increasing lexicographic order::
 
-            sage: from sage.combinat.enumeration_mod_permgroup import lex_cmp
             sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]))
-            sage: sorted(I.orbit([2,2,0,0]), cmp=lex_cmp)
+            sage: sorted(I.orbit([2,2,0,0]))
             [[0, 0, 2, 2], [0, 2, 2, 0], [2, 0, 0, 2], [2, 2, 0, 0]]
-            sage: sorted(I.orbit([2,1,0,0]), cmp=lex_cmp)
+            sage: sorted(I.orbit([2,1,0,0]))
             [[0, 0, 2, 1], [0, 2, 1, 0], [1, 0, 0, 2], [2, 1, 0, 0]]
-            sage: sorted(I.orbit([2,0,1,0]), cmp=lex_cmp)
+            sage: sorted(I.orbit([2,0,1,0]))
             [[0, 1, 0, 2], [0, 2, 0, 1], [1, 0, 2, 0], [2, 0, 1, 0]]
-            sage: sorted(I.orbit([2,0,2,0]), cmp=lex_cmp)
+            sage: sorted(I.orbit([2,0,2,0]))
             [[0, 2, 0, 2], [2, 0, 2, 0]]
             sage: I.orbit([1,1,1,1])
-            set([[1, 1, 1, 1]])
+            {[1, 1, 1, 1]}
         """
         assert isinstance(v, (list, ClonableIntArray)), '%s shoud be a Python list or an element of %s'%(v, self)
         try:
@@ -905,7 +903,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         else:
             try:
                 v = iter(self)
-                return v.next()
+                return next(v)
             except StopIteration:
                 from sage.categories.sets_cat import EmptySetError
                 raise EmptySetError
@@ -925,11 +923,10 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         We convert the result in a list in increasing lexicographic
         order, to get a reproducible doctest::
 
-            sage: from sage.combinat.enumeration_mod_permgroup import lex_cmp
             sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]),4)
             sage: I.orbit([1,1,1,1])
-            set([[1, 1, 1, 1]])
-            sage: sorted(I.orbit([3,0,0,1]), cmp=lex_cmp)
+            {[1, 1, 1, 1]}
+            sage: sorted(I.orbit([3,0,0,1]))
             [[0, 0, 1, 3], [0, 1, 3, 0], [1, 3, 0, 0], [3, 0, 0, 1]]
         """
         assert isinstance(v, (list, ClonableIntArray)), '%s shoud be a Python list or an element of %s'%(v, self)

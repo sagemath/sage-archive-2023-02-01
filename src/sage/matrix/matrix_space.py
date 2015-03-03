@@ -25,6 +25,7 @@ TESTS::
 """
 
 # System imports
+import sys
 import types
 import weakref
 import operator
@@ -123,27 +124,27 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         sage: MatrixSpace(ZZ,10,5)
         Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
         sage: MatrixSpace(ZZ,10,5).category()
-        Category of modules over euclidean domains
-
-        sage: MatrixSpace(ZZ,10,2^31)
-        Traceback (most recent call last):                                   # 32-bit
-        ...                                                                  # 32-bit
-        ValueError: number of rows and columns must be less than 2^31 (on a 32-bit computer -- use a 64-bit computer for matrices with up to 2^63-1 rows and columns)           # 32-bit
-        Full MatrixSpace of 10 by 2147483648 dense matrices over Integer Ring   # 64-bit
-        sage: MatrixSpace(ZZ,2^31,10)
-        Traceback (most recent call last):                                   # 32-bit
-        ...                                                                  # 32-bit
-        ValueError: number of rows and columns must be less than 2^31 (on a 32-bit computer -- use a 64-bit computer for matrices with up to 2^63-1 rows and columns)           # 32-bit
-        Full MatrixSpace of 2147483648 by 10 dense matrices over Integer Ring   # 64-bit
+        Category of modules over (euclidean domains and infinite enumerated sets)
         sage: MatrixSpace(ZZ,10,10).category()
-        Category of algebras over euclidean domains
+        Category of algebras over (euclidean domains and infinite enumerated sets)
         sage: MatrixSpace(QQ,10).category()
         Category of algebras over quotient fields
+
+    TESTS::
+
+        sage: MatrixSpace(ZZ, 1, 2^63)
+        Traceback (most recent call last):
+        ...
+        ValueError: number of rows and columns may be at most...
+        sage: MatrixSpace(ZZ, 2^100, 10)
+        Traceback (most recent call last):
+        ...
+        ValueError: number of rows and columns may be at most...
     """
     _no_generic_basering_coercion = True
 
     @staticmethod
-    def __classcall__(cls, base_ring, nrows, ncols=None, sparse=False):
+    def __classcall__(cls, base_ring, nrows, ncols=None, sparse=False, implementation='flint'):
         """
         Create with the command
 
@@ -154,13 +155,14 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         INPUT:
 
-        -  ``base_ring`` - a ring
-        -  ``nrows`` - int, the number of rows
-        -  ``ncols`` - (default nrows) int, the number of
-           columns
-        -  ``sparse`` - (default false) whether or not matrices
-           are given a sparse representation
-
+        - ``base_ring`` -- a ring
+        - ``nrows`` -- int, the number of rows
+        - ``ncols`` -- (default nrows) int, the number of
+          columns
+        - ``sparse`` -- (default false) whether or not matrices
+          are given a sparse representation
+        - ``implementation`` -- (default 'flint') choose an
+          implementation (only applicable over `\Z`)
 
         OUTPUT:
 
@@ -205,23 +207,31 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         ::
 
-            sage: M = MatrixSpace(ZZ, 10)
+            sage: M = MatrixSpace(ZZ, 10, implementation="flint")
             sage: M
             Full MatrixSpace of 10 by 10 dense matrices over Integer Ring
             sage: loads(M.dumps()) is M
             True
 
+        TESTS::
+
+            sage: MatrixSpace(ZZ, 10, implementation="foobar")
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown matrix implementation 'foobar'
         """
         if base_ring not in _Rings:
             raise TypeError("base_ring (=%s) must be a ring"%base_ring)
         if ncols is None: ncols = nrows
         nrows = int(nrows); ncols = int(ncols); sparse=bool(sparse)
-        return super(MatrixSpace, cls).__classcall__(cls, base_ring, nrows, ncols, sparse)
+        return super(MatrixSpace, cls).__classcall__(
+                cls, base_ring, nrows, ncols, sparse, implementation)
 
     def __init__(self,  base_ring,
                         nrows,
                         ncols=None,
-                        sparse=False):
+                        sparse=False,
+                        implementation='flint'):
         """
         TEST:
 
@@ -258,6 +268,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: B = MatrixSpace(RDF,1000,1000).random_element()
             sage: C = A * B
         """
+        self._implementation = implementation
+
         if ncols is None: ncols = nrows
         from sage.categories.all import Modules, Algebras
         parent_gens.ParentWithGens.__init__(self, base_ring) # category = Modules(base_ring)
@@ -271,10 +283,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         if ncols < 0:
             raise ArithmeticError("ncols must be nonnegative")
 
-        if nrows >= 2**63 or ncols >= 2**63:
-            raise ValueError("number of rows and columns must be less than 2^63")
-        elif (nrows >= 2**31 or ncols >= 2**31) and not sage.misc.misc.is_64_bit:
-            raise ValueError("number of rows and columns must be less than 2^31 (on a 32-bit computer -- use a 64-bit computer for matrices with up to 2^63-1 rows and columns)")
+        if nrows > sys.maxsize or ncols > sys.maxsize:
+            raise ValueError("number of rows and columns may be at most %s" % sys.maxsize)
 
         self.__nrows = nrows
         self.__is_sparse = sparse
@@ -293,6 +303,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             category = Algebras(base_ring.category())
         else:
             category = Modules(base_ring.category())
+
         sage.structure.parent.Parent.__init__(self, category=category)
         #sage.structure.category_object.CategoryObject._init_category_(self, category)
 
@@ -371,7 +382,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         else:
             return True
 
-    def __call__(self, entries=None, coerce=True, copy=True):
+    def __call__(self, entries=None, coerce=True, copy=True, sparse = False):
         """
         EXAMPLES::
 
@@ -720,11 +731,11 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         ::
 
             sage: i = iter(ZZ)
-            sage: i.next()
+            sage: next(i)
             0
-            sage: i.next()
+            sage: next(i)
             1
-            sage: i.next()
+            sage: next(i)
             -1
 
         Some more examples::
@@ -797,7 +808,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
             sage: MS = MatrixSpace(ZZ, 2, 3)
             sage: i = iter(MS)
-            sage: a = [ i.next() for _ in range(6) ]
+            sage: a = [ next(i) for _ in range(6) ]
             sage: a[0]
             [0 0 0]
             [0 0 0]
@@ -849,13 +860,13 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             #through and yield the matrices by "weight", which is
             #the total number of iterations that need to be done
             #on the base ring to reach the matrix.
-            base_elements = [ base_iter.next() ]
+            base_elements = [ next(base_iter) ]
             weight = 0
             while True:
                 for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries):
                     yield self(entries=[base_elements[i] for i in iv])
                 weight += 1
-                base_elements.append( base_iter.next() )
+                base_elements.append( next(base_iter) )
         else:
             #In the finite case, we do a similar thing except that
             #the "weight" of each entry is bounded by the number
@@ -902,7 +913,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: MS[2]
             Traceback (most recent call last):
             ...
-            ValueError: since it is infinite, cannot list Full MatrixSpace of 7 by 7 dense matrices over Rational Field
+            NotImplementedError: since it is infinite, cannot list Full MatrixSpace of 7 by 7 dense matrices over Rational Field
         """
         if isinstance(x, (int, long, integer.Integer)):
             return self.list()[x]
@@ -930,6 +941,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         R = self.base_ring()
         if self.is_dense():
             if sage.rings.integer_ring.is_IntegerRing(R):
+                if self._implementation != 'flint':
+                    raise ValueError("unknown matrix implementation %r" % self._implementation)
                 return matrix_integer_dense.Matrix_integer_dense
             elif sage.rings.rational_field.is_RationalField(R):
                 return matrix_rational_dense.Matrix_rational_dense

@@ -15,7 +15,6 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.rngs import Rngs
-from category import HomCategory
 from functools import reduce
 
 class Rings(CategoryWithAxiom):
@@ -905,9 +904,6 @@ class Rings(CategoryWithAxiom):
                 return False
             raise NotImplementedError
 
-    class HomCategory(HomCategory):
-        pass
-
 def _gen_names(elts):
     r"""
     Used to find a name for a generator when rings are created using the
@@ -927,7 +923,7 @@ def _gen_names(elts):
     from sage.structure.parent_gens import _certify_names
     from sage.combinat.words.words import Words
     it = iter(Words("abcdefghijklmnopqrstuvwxyz", infinite=False))
-    it.next() # skip empty word
+    next(it) # skip empty word
     for x in elts:
         name = str(x)
         m = re.match('^sqrt\((\d+)\)$', name)
@@ -936,5 +932,5 @@ def _gen_names(elts):
         try:
             _certify_names([name])
         except ValueError:
-            name = it.next().string_rep()
+            name = next(it).string_rep()
         yield name

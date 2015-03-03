@@ -33,7 +33,7 @@ AUTHORS:
 
 import os
 
-import sage.misc.misc
+from sage.misc.all import tmp_filename
 from sage.rings.real_mpfr import RR
 from sage.rings.all import CC
 from sage.rings.integer import Integer
@@ -245,7 +245,7 @@ class PHC_Object:
         start_data += str(sol_count) + ' ' + str(var_number) + '\n'
         start_data += jan_bar + sol_data
         if start_filename is not None:
-            start_file = file(start_filename,'w')
+            start_file = open(start_filename, 'w')
             start_file.write(start_data)
             start_file.close()
         return start_data
@@ -420,14 +420,14 @@ class PHC:
             sage: a = phc._output_from_command_list(['phc -m','4','n','n','n'], start_sys)  # optional -- phc
         """
         # Get temporary file names (these will be in SAGE_HOME/.sage/tmp/pid)
-        input_filename = sage.misc.misc.tmp_filename()
-        output_filename = sage.misc.misc.tmp_filename()
+        input_filename = tmp_filename()
+        output_filename = tmp_filename()
 
         # Get the input polynomial text
         input = self._input_file(polys)
         if verbose:
             print "Writing the input file to %s"%input_filename
-        open(input_filename,'w').write(input)
+        open(input_filename, 'w').write(input)
 
         if verbose:
             print "The following file will be the input polynomial file to phc."
@@ -602,8 +602,8 @@ class PHC:
         """
         # Probably unnecessarily redundant from the start_from function
         if start_filename_or_string.find('THE SOLUTIONS') != -1:
-            start_filename = sage.misc.misc.tmp_filename()
-            start_file = file(start_filename,'w')
+            start_filename = tmp_filename()
+            start_file = open(start_filename, 'w')
             start_file.write(start_filename_or_string)
             start_file.close()
         elif os.path.exists(start_filename_or_string):
@@ -774,12 +774,12 @@ class PHC:
             sage: len(sol.solutions())                     # optional -- phc
             30
         """
-        input_filename = sage.misc.misc.tmp_filename()
-        output_filename = sage.misc.misc.tmp_filename()
+        input_filename = tmp_filename()
+        output_filename = tmp_filename()
 
         if start_filename_or_string.find('THE SOLUTIONS') != -1:
-            start_filename = sage.misc.misc.tmp_filename()
-            start_file = file(start_filename,'w')
+            start_filename = tmp_filename()
+            start_file = open(start_filename,'w')
             start_file.write(start_filename_or_string)
             start_file.close()
         elif os.path.exists(start_filename_or_string):
@@ -791,7 +791,7 @@ class PHC:
         input = self._input_file(polys)
         if verbose:
             print "Writing the input file to %s"%input_filename
-        open(input_filename,'w').write(input)
+        open(input_filename, 'w').write(input)
 
         if verbose:
             print "The following file will be the input polynomial file to phc."
@@ -869,15 +869,15 @@ class PHC:
         """
 
         # Get three temporary file names (these will be in SAGE_HOME/.sage/tmp/pid)
-        input_filename = sage.misc.misc.tmp_filename()
+        input_filename = tmp_filename()
         output_filename = input_filename + ".phc"
-        log_filename = sage.misc.misc.tmp_filename()
+        log_filename = tmp_filename()
 
         # Get the input polynomial text
         input = self._input_file(polys)
         if verbose:
             print "Writing the input file to %s"%input_filename
-        open(input_filename,'w').write(input)
+        open(input_filename, 'w').write(input)
 
         if verbose:
             print "The following file will be the input polynomial file to phc."

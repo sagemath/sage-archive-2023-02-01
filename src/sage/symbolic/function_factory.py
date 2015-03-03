@@ -1,5 +1,5 @@
 r"""
-Symbolic functions
+Factory for symbolic functions
 """
 
 ###############################################################################
@@ -217,9 +217,9 @@ def function(s, *args, **kwds):
         (r^2*D[0, 0](psi)(r) + 2*r*D[0](psi)(r))/r^2
         sage: g.expand()
         2*D[0](psi)(r)/r + D[0, 0](psi)(r)
-        sage: g.coeff(psi.derivative(r,2))
+        sage: g.coefficient(psi.derivative(r,2))
         1
-        sage: g.coeff(psi.derivative(r,1))
+        sage: g.coefficient(psi.derivative(r,1))
         2/r
 
     Defining custom methods for automatic or numeric evaluation, derivation,
@@ -301,7 +301,7 @@ def function(s, *args, **kwds):
 
     TESTS:
 
-    Make sure that trac:`15860` is fixed and whitespaces are removed::
+    Make sure that :trac:`15860` is fixed and whitespaces are removed::
 
         sage: function('A, B')
         (A, B)

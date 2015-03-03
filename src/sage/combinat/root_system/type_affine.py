@@ -447,7 +447,8 @@ class AmbientSpace(CombinatorialFreeModule):
 
             .. TODO:: Lift to CombinatorialFreeModule.Element as canonical_inner_product
             """
-            assert self.parent() is other.parent()
+            if self.parent() is not other.parent():
+                raise TypeError("the parents must be the same")
             return self.base_ring().sum( self[i] * c for (i,c) in other )
 
         scalar = inner_product

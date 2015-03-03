@@ -112,5 +112,22 @@ class MagmasAndAdditiveMagmas(Category_singleton):
         """
         return [Magmas(), AdditiveMagmas()]
 
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, this category is meant to represent the join of
+        :class:`AdditiveMagmas` and :class:`Magmas`. As such, it
+        defines no additional structure.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        EXAMPLES::
+
+            sage: from sage.categories.magmas_and_additive_magmas import MagmasAndAdditiveMagmas
+            sage: MagmasAndAdditiveMagmas().additional_structure()
+        """
+        return None
+
     Distributive = LazyImport('sage.categories.distributive_magmas_and_additive_magmas', 'DistributiveMagmasAndAdditiveMagmas', at_startup=True)
 

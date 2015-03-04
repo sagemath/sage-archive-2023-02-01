@@ -377,10 +377,10 @@ import integer_ring
 the_integer_ring = integer_ring.ZZ
 
 # The documentation for the ispseudoprime() function in the PARI
-# manual states that its result is always prime up to this 10^13.
+# manual states that its result is always prime up to this 2^64.
 cdef mpz_t PARI_PSEUDOPRIME_LIMIT
 mpz_init(PARI_PSEUDOPRIME_LIMIT)
-mpz_set_str(PARI_PSEUDOPRIME_LIMIT, "10000000000000", 10)
+mpz_ui_pow_ui(PARI_PSEUDOPRIME_LIMIT, 2, 64)
 
 def is_Integer(x):
     """
@@ -3700,7 +3700,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_sgn(self.value) == 0:
             return sage.rings.infinity.infinity
         if mpz_cmp_ui(p.value, 2) < 0:
-            raise ValueError, "You can only compute the valuation with respect to a integer larger than 1."
+            raise ValueError("You can only compute the valuation with respect to a integer larger than 1.")
 
         cdef Integer v = PY_NEW(Integer)
         cdef mpz_t u
@@ -4504,17 +4504,26 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             n = Integer(n)
         return self._is_power_of(n)
 
-    def is_prime_power(self, flag=0):
+    def is_prime_power(self, flag=None, proof=None, bint get_data=False):
         r"""
-        Returns True if this integer is a prime power, and False otherwise.
+        Return ``True`` if this integer is a prime power, and ``False`` otherwise.
+
+        A prime power is a prime number raised to a positive power. Hence `1` is
+        not a prime power.
+
+        For a method that uses a pseudoprimality test instead see
+        :meth:`is_pseudoprime_power`.
 
         INPUT:
 
-        - ``flag`` (for primality testing) - int. Values are:
+        - ``proof`` -- Boolean or ``None`` (default). If ``False``, use a strong
+          pseudo-primality test (see :meth:`is_pseudoprime`).  If ``True``, use
+          a provable primality test. If unset, use the default arithmetic proof
+          flag.
 
-          - ``0`` (default): use a combination of algorithms.
-          - ``1``: certify primality using the Pocklington-Lehmer test.
-          - ``2``: certify primality using the APRCL test.
+        - ``get_data`` -- (default ``False``), if ``True`` return a pair
+          ``(p,k)`` such that this integer equals ``p^k`` with ``p`` a prime
+          and ``k`` a positive integer or the pair ``(self,0)`` otherwise.
 
         .. seealso::
 
@@ -4523,19 +4532,54 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             - :meth:`is_perfect_power`: Doesn't test whether the base is prime.
             - :meth:`is_power_of`: If you know the base already this method is
               the fastest option.
+            - :meth:`is_pseudoprime_power`: If the entry is very large.
 
         EXAMPLES::
 
-            sage: (-10).is_prime_power()
+            sage: 17.is_prime_power()
+            True
+            sage: 10.is_prime_power()
             False
-            sage: (10).is_prime_power()
-            False
-            sage: (64).is_prime_power()
+            sage: 64.is_prime_power()
             True
             sage: (3^10000).is_prime_power()
             True
-            sage: (10000).is_prime_power(flag=1)
+            sage: (10000).is_prime_power()
             False
+            sage: (-3).is_prime_power()
+            False
+            sage: 0.is_prime_power()
+            False
+            sage: 1.is_prime_power()
+            False
+            sage: p = next_prime(10^20); p
+            100000000000000000039
+            sage: p.is_prime_power()
+            True
+            sage: (p^97).is_prime_power()
+            True
+            sage: (p+1).is_prime_power()
+            False
+
+        With the ``get_data`` keyword set to ``True``::
+
+            sage: (3^100).is_prime_power(get_data=True)
+            (3, 100)
+            sage: 12.is_prime_power(get_data=True)
+            (12, 0)
+            sage: (p^97).is_prime_power(get_data=True)
+            (100000000000000000039, 97)
+            sage: q = p.next_prime(); q
+            100000000000000000129
+            sage: (p*q).is_prime_power(get_data=True)
+            (10000000000000000016800000000000000005031, 0)
+
+        The method works for large entries when `proof=False`::
+
+            sage: proof.arithmetic(False)
+            sage: ((10^500 + 961)^4).is_prime_power()
+            True
+            sage: proof.arithmetic(True)
 
         We check that :trac:`4777` is fixed::
 
@@ -4543,20 +4587,36 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.is_prime_power()
             True
         """
-        if self.is_zero():
-            return False
-        elif self.is_one():
-            return True
-        elif mpz_sgn(self.value) < 0:
-            return False
-        if self.is_prime():
-            return True
-        if not self.is_perfect_power():
-            return False
-        k, g = self._pari_().ispower()
-        if k == 1:
-            raise RuntimeError, "Inconsistent results between GMP and PARI"
-        return g.isprime(flag=flag)
+        if flag is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(16878, "the 'flag' argument to is_prime_power() is no longer used")
+        if mpz_sgn(self.value) <= 0:
+            return (self, zero) if get_data else False
+
+        cdef long p, n
+        if mpz_fits_slong_p(self.value):
+            # Note that self.value fits in a long, so there is no
+            # overflow possible because of mixing signed/unsigned longs.
+            # We call the PARI function uisprimepower()
+            n = uisprimepower(mpz_get_ui(self.value), <ulong*>(&p))
+            if n:
+                return (smallInteger(p), smallInteger(n)) if get_data else True
+            else:
+                return (self, zero) if get_data else False
+        else:
+            if proof is None:
+                from sage.structure.proof.proof import get_flag
+                proof = get_flag(proof, "arithmetic")
+
+            if proof:
+                n, pari_p = self._pari_().isprimepower()
+            else:
+                n, pari_p = self._pari_().ispseudoprimepower()
+
+            if n:
+                return (Integer(pari_p), smallInteger(n)) if get_data else True
+            else:
+                return (self, zero) if get_data else False
 
     def is_prime(self, proof=None):
         r"""
@@ -4616,12 +4676,43 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         IMPLEMENTATION: Calls the PARI ``isprime`` function.
         """
-        from sage.structure.proof.proof import get_flag
-        proof = get_flag(proof, "arithmetic")
+        if mpz_sgn(self.value) <= 0:
+            return False
+
+        if mpz_fits_ulong_p(self.value):
+            return bool(uisprime(mpz_get_ui(self.value)))
+
+        if proof is None:
+            from sage.structure.proof.proof import get_flag
+            proof = get_flag(proof, "arithmetic")
         if proof:
-            return bool(self._pari_().isprime())
+            return self._pari_().isprime()
         else:
-            return bool(self._pari_().ispseudoprime())
+            return self._pari_().ispseudoprime()
+
+    cdef bint _pseudoprime_is_prime(self, proof) except -1:
+        """
+        Given a pseudoprime, return ``self.is_prime(proof)``.
+
+        INPUT:
+
+        - ``self`` -- A PARI pseudoprime
+
+        - ``proof`` -- Mandatory proof flag (True, False or None)
+
+        OUTPUT:
+
+        - The result of ``self.is_prime(proof)`` but faster
+        """
+        if mpz_cmp(self.value, PARI_PSEUDOPRIME_LIMIT) < 0:
+            return True
+        if proof is None:
+            from sage.structure.proof.proof import get_flag
+            proof = get_flag(proof, "arithmetic")
+        if proof:
+            return self._pari_().isprime()
+        else:
+            return True
 
     def is_irreducible(self):
         r"""
@@ -4643,8 +4734,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z.is_irreducible()
             True
         """
-        n = self if self >= 0 else -self
-        return bool(n._pari_().isprime())
+        cdef Integer n = self if self >= 0 else -self
+        return n._pari_().isprime()
 
     def is_pseudoprime(self):
         r"""
@@ -4664,7 +4755,47 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z.is_pseudoprime()
             False
         """
-        return bool(self._pari_().ispseudoprime())
+        return self._pari_().ispseudoprime()
+
+    def is_pseudoprime_power(self, get_data=False):
+        r"""
+        Test if this number is a power of a pseudoprime number.
+
+        For large numbers, this method might be faster than
+        :meth:`is_prime_power`.
+
+        INPUT:
+
+        - ``get_data`` -- (default ``False``) if ``True`` return a pair `(p,k)`
+          such that this number equals `p^k` with `p` a pseudoprime and `k` a
+          positive integer or the pair ``(self,0)`` otherwise.
+
+        EXAMPLES::
+
+            sage: x = 10^200 + 357
+            sage: x.is_pseudoprime()
+            True
+            sage: (x^12).is_pseudoprime_power()
+            True
+            sage: (x^12).is_pseudoprime_power(get_data=True)
+            (1000...000357, 12)
+            sage: (997^100).is_pseudoprime_power()
+            True
+            sage: (998^100).is_pseudoprime_power()
+            False
+            sage: ((10^1000 + 453)^2).is_pseudoprime_power()
+            True
+
+        TESTS::
+
+            sage: 0.is_pseudoprime_power()
+            False
+            sage: (-1).is_pseudoprime_power()
+            False
+            sage: 1.is_pseudoprime_power()
+            False
+        """
+        return self.is_prime_power(proof=False, get_data=get_data)
 
     def is_perfect_power(self):
         r"""
@@ -4719,10 +4850,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 mpz_sqrt(tmp, tmp)
             res = mpz_perfect_power_p(tmp)
             mpz_clear(tmp)
-            if res:
-                return True
-            else:
-                return False
+            return res != 0
         return mpz_perfect_power_p(self.value)
 
     def is_norm(self, K, element=False, proof=True):
@@ -5044,12 +5172,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLES::
 
-            sage: Integer(100).next_prime()
+            sage: 100.next_prime()
             101
+            sage: (10^50).next_prime()
+            100000000000000000000000000000000000000000000000151
 
-        Use Proof = False, which is way faster::
+        Use ``proof=False``, which is way faster since it does not need
+        a primality proof::
 
             sage: b = (2^1024).next_prime(proof=False)
+            sage: b - 2^1024
+            643
 
         ::
 
@@ -5058,21 +5191,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(1001).next_prime()
             1009
         """
-        if mpz_cmp(self.value, PARI_PSEUDOPRIME_LIMIT) < 0:
-            return Integer( self._pari_().nextprime(True) )
-        if proof is None:
-            from sage.structure.proof.proof import get_flag
-            proof = get_flag(proof, "arithmetic")
-        if not proof:
-            return Integer( self._pari_().nextprime(True) )
-        n = self
-        if n % 2 == 0:
-            n += 1
-        else:
-            n += 2
-        while not n.is_prime():  # PARI's isprime() is provably correct
-            n += 2
-        return integer_ring.ZZ(n)
+        # Use PARI to compute the next *pseudo*-prime
+        p = Integer(self._pari_().nextprime(True))
+        while not p._pseudoprime_is_prime(proof):
+            p = Integer(p._pari_().nextprime(True))
+        return p
 
     def additive_order(self):
         """
@@ -5085,8 +5208,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ(1).additive_order()
             +Infinity
         """
-        import sage.rings.infinity
-        if self.is_zero():
+        if mpz_sgn(self.value) == 0:
             return one
         else:
             return sage.rings.infinity.infinity
@@ -5106,13 +5228,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ(2).multiplicative_order()
             +Infinity
         """
-        import sage.rings.infinity
-        if  mpz_cmp_si(self.value, 1) == 0:
-                return one
+        if mpz_cmp_si(self.value, 1) == 0:
+            return one
         elif mpz_cmp_si(self.value, -1) == 0:
-                return Integer(2)
+            return smallInteger(2)
         else:
-                return sage.rings.infinity.infinity
+            return sage.rings.infinity.infinity
 
     def is_squarefree(self):
         """
@@ -5130,7 +5251,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self._pari_().issquarefree()
 
-    def _pari_(self):
+    cpdef _pari_(self):
         """
         Returns the PARI version of this integer.
 
@@ -5148,10 +5269,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: m = n._pari_() ## crash from trac 875
             sage: m % 1234567
             1041334
-        """
-        return self._pari_c()
 
-    cdef _pari_c(self):
+        """
         return pari.new_gen_from_mpz_t(self.value)
 
     def _interface_init_(self, I=None):
@@ -5962,9 +6081,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.popcount()
             +Infinity
         """
-        if self<0:
+        if mpz_sgn(self.value) < 0:
             return sage.rings.infinity.Infinity
-        return int(mpz_popcount(self.value))
+        return smallInteger(mpz_popcount(self.value))
 
 
     def conjugate(self):

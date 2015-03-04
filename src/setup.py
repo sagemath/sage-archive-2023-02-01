@@ -40,8 +40,8 @@ SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 
 # search for dependencies and add to gcc -I<path>
 include_dirs = [SAGE_INC,
-                os.path.join(SAGE_INC, 'csage'),
                 SAGE_SRC,
+                os.path.join(SAGE_SRC, 'c_lib', 'include'),
                 os.path.join(SAGE_SRC, 'sage', 'ext')]
 
 # Manually add -fno-strict-aliasing, which is needed to compile Cython

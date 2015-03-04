@@ -34,6 +34,5 @@ void init_global_empty_tuple(void) {
  * Cygwin, this is also called from init_csage_module(). */
 void init_csage() {
     init_global_empty_tuple();
-    init_memory_functions();
     setup_sage_signal_handler();
 }

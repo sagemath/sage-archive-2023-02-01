@@ -131,6 +131,12 @@ class OutputBuffer(SageObject):
             0
         """
         import os
+        from sage.env import SAGE_EXTCODE
+        filename = os.path.abspath(filename)
+        if filename.startswith(os.path.abspath(SAGE_EXTCODE)):
+            # Do not change permissions on the sample rich output
+            # files, as it will cause trouble when upgrading Sage
+            return
         import stat
         mode = os.stat(filename).st_mode
         mode = stat.S_IMODE(mode) & ~(stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH)

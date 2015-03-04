@@ -1934,15 +1934,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             <type 'sage.rings.integer.Integer'>
             sage: type(int(3)^int(2))
             <type 'int'>
-
-        Check that a ``MemoryError`` is thrown if the resulting number
-        would be ridiculously large, see :trac:`15363`::
-
-            sage: 2^(2^63-2)
-            Traceback (most recent call last):
-            ...
-            RuntimeError: exponent must be at most 2147483647          # 32-bit
-            MemoryError: failed to allocate 1152921504606847008 bytes  # 64-bit
         """
         if modulus is not None:
             from sage.rings.finite_rings.integer_mod import Mod

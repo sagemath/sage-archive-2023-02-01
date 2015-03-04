@@ -33,7 +33,6 @@
 #define STDSAGE_H
 
 #include "Python.h"
-#include "memory.h"
 
 /* Building with this not commented out causes
    serious problems on RHEL5 64-bit for Kiran Kedlaya... i.e., it doesn't work. */

@@ -33,7 +33,7 @@ cdef extern from "stdsage.h":
     bint HAS_DICTIONARY(object o)
     bint PY_IS_NUMERIC(object o)
 
-    void init_memory_functions() nogil
     void init_csage()
 
 from sage.ext.memory cimport sage_free, sage_realloc, sage_malloc, sage_calloc
+from sage.ext.memory import init_memory_functions

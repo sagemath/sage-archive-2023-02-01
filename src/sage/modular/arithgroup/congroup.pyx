@@ -18,21 +18,26 @@ functions are for internal use by routines elsewhere in the Sage library.
 #
 ################################################################################
 
+include 'sage/ext/stdsage.pxi'
+
 import random
 from congroup_gamma1 import Gamma1_constructor as Gamma1
 from congroup_gamma0 import Gamma0_constructor as Gamma0
 
-import sage.rings.arith
-
 cimport sage.rings.fast_arith
 import sage.rings.fast_arith
 cdef sage.rings.fast_arith.arith_int arith_int
-arith_int  = sage.rings.fast_arith.arith_int()
-from sage.matrix.matrix_integer_2x2 cimport Matrix_integer_2x2
+arith_int = sage.rings.fast_arith.arith_int()
+from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 from sage.modular.modsym.p1list import lift_to_sl2z
+from sage.matrix.matrix_space import MatrixSpace
+from sage.rings.all import ZZ
+Mat2Z = MatrixSpace(ZZ,2)
 
-include "sage/ext/cdefs.pxi"
-include 'sage/ext/stdsage.pxi'
+cdef Matrix_integer_dense genS, genT, genI
+genS = Matrix_integer_dense(Mat2Z, [0,-1, 1, 0], True, True)
+genT = Matrix_integer_dense(Mat2Z, [1, 1, 0, 1], True, True)
+genI = Matrix_integer_dense(Mat2Z, [1, 0, 0, 1], True, True)
 
 
 # This is the C version of a function formerly implemented in python in
@@ -263,7 +268,7 @@ def degeneracy_coset_representatives_gamma1(int N, int M, int t):
     sage_free(R)
     return S
 
-def generators_helper(coset_reps, level, Mat2Z):
+def generators_helper(coset_reps, level):
     r"""
     Helper function for generators of Gamma0, Gamma1 and GammaH.
 
@@ -295,24 +300,20 @@ def generators_helper(coset_reps, level, Mat2Z):
         [21  5], [ 7 -1], [-7  1]
         ]
     """
-    cdef Matrix_integer_2x2 S,T,I,x,y,z,v,vSmod,vTmod
-
-    S = Matrix_integer_2x2(Mat2Z,[0,-1,1,0],False,True)
-    T = Matrix_integer_2x2(Mat2Z,[1,1,0,1],False,True)
-    I = Matrix_integer_2x2(Mat2Z,[1,0,0,1],False,True)
+    cdef Matrix_integer_dense x,y,z,v,vSmod,vTmod
 
     crs = coset_reps.list()
-#    print [type(lift_to_sl2z(c, d, level)) for c,d in crs]
     try:
-        reps = [Matrix_integer_2x2(Mat2Z,lift_to_sl2z(c, d, level),False,True) for c,d in crs]
+        reps = [Matrix_integer_dense(Mat2Z,lift_to_sl2z(c, d, level),False,True) for c,d in crs]
     except Exception:
-        raise ArithmeticError, "Error lifting to SL2Z: level=%s crs=%s" % (level, crs)
+        raise ArithmeticError("Error lifting to SL2Z: level=%s crs=%s" % (level, crs))
     ans = []
-    for i from 0 <= i < len(crs):
+    cdef Py_ssize_t i
+    for i in range(len(crs)):
         x = reps[i]
-        v = Matrix_integer_2x2(Mat2Z,[crs[i][0],crs[i][1],0,0],False,True)
-        vSmod = (v*S)
-        vTmod = (v*T)
+        v = Matrix_integer_dense(Mat2Z,[crs[i][0],crs[i][1],0,0],False,True)
+        vSmod = (v*genS)
+        vTmod = (v*genT)
         y_index = coset_reps.normalize(vSmod[0,0],vSmod[0,1])
         z_index = coset_reps.normalize(vTmod[0,0],vTmod[0,1])
         y_index = crs.index(y_index)
@@ -321,19 +322,6 @@ def generators_helper(coset_reps, level, Mat2Z):
         z = reps[z_index]
         y = y._invert_unit()
         z = z._invert_unit()
-        ans.append(x*S*y)
-        ans.append(x*T*z)
-    output = []
-    for x in ans:
-        if (x[0,0] != 1) or \
-           (x[0,1] != 0) or \
-           (x[1,0] != 0) or \
-           (x[1,1] != 1):
-            output.append(x)
-#    should be able to do something like:
-#    ans = [x for x in ans if x != I]
-#    however, this raises a somewhat mysterious error:
-#    <type 'exceptions.SystemError'>: error return without exception set
-    return output
-
-
+        ans.append(x*genS*y)
+        ans.append(x*genT*z)
+    return [x for x in ans if x != genI]

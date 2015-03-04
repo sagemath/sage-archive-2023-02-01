@@ -1807,7 +1807,7 @@ class SubstituteFunction(ExpressionTreeWalker):
         if operator == self.original:
             return self.new(*map(self, ex.operands()))
         else:
-            return operator(*map(self, ex.operands()))
+            return super(SubstituteFunction, self).composition(ex, operator)
 
     def derivative(self, ex, operator):
         """

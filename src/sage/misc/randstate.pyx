@@ -410,8 +410,7 @@ Classes and methods
 ===================
 """
 
-cdef extern from "mpz_pylong.h":
-    cdef int mpz_set_pylong(mpz_t dst, src) except -1
+from sage.libs.gmp.pylong cimport mpz_set_pylong
 
 cdef extern from "stdlib.h":
     long c_libc_random "random"()

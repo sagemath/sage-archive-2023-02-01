@@ -150,20 +150,10 @@ include "sage/libs/pari/decl.pxi"
 from sage.rings.rational cimport Rational
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 
-cdef extern from "limits.h":
-    long LONG_MAX
+from libc.limits cimport LONG_MAX
+from libc.math cimport sqrt as sqrt_double, log as log_c, ceil as ceil_c, isnan
 
-cdef extern from "math.h":
-    double sqrt_double "sqrt"(double)
-    cdef double log_c "log" (double)
-    cdef double ceil_c "ceil" (double)
-    int isnan(double)
-
-cdef extern from "mpz_pylong.h":
-    cdef mpz_get_pylong(mpz_t src)
-    cdef mpz_get_pyintlong(mpz_t src)
-    cdef int mpz_set_pylong(mpz_t dst, src) except -1
-    cdef long mpz_pythonhash(mpz_t src)
+from sage.libs.gmp.pylong cimport *
 
 cdef extern from "mpz_longlong.h":
     cdef void mpz_set_longlong(mpz_t dst, long long src)
@@ -3151,37 +3141,43 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLES::
 
-            sage: n = 920938; n
-            920938
+            sage: n = 920938
             sage: int(n)
             920938
+            sage: int(-n)
+            -920938
             sage: type(n.__int__())
             <type 'int'>
-            sage: n = 99028390823409823904823098490238409823490820938; n
-            99028390823409823904823098490238409823490820938
+            sage: n = 99028390823409823904823098490238409823490820938
+            sage: int(n)
+            99028390823409823904823098490238409823490820938L
+            sage: int(-n)
+            -99028390823409823904823098490238409823490820938L
             sage: type(n.__int__())
             <type 'long'>
+            sage: int(-1), int(0), int(1)
+            (-1, 0, 1)
         """
-        # TODO -- this crashes on sage.math, since it is evidently written incorrectly.
         return mpz_get_pyintlong(self.value)
-        #return int(mpz_get_pylong(self.value))
 
     def __long__(self):
         """
-        Return long integer corresponding to this Sage integer.
+        Return the Python long corresponding to this Sage integer.
 
         EXAMPLES::
 
-            sage: n = 9023408290348092849023849820934820938490234290; n
-            9023408290348092849023849820934820938490234290
+            sage: n = 9023408290348092849023849820934820938490234290
             sage: long(n)
             9023408290348092849023849820934820938490234290L
-            sage: n = 920938; n
-            920938
+            sage: long(-n)
+            -9023408290348092849023849820934820938490234290L
+            sage: n = 920938
             sage: long(n)
             920938L
             sage: n.__long__()
             920938L
+            sage: long(-1), long(0), long(1)
+            (-1L, 0L, 1L)
         """
         return mpz_get_pylong(self.value)
 
@@ -3242,10 +3238,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS::
 
-            sage: hash(0)
-            0
-            sage: hash(-1)
-            -2
+            sage: hash(-1), hash(0), hash(1)
+            (-2, 0, 1)
             sage: n = 2^31 + 2^63 + 2^95 + 2^127 + 2^128*(2^32-2)
             sage: hash(n) == hash(long(n))
             True
@@ -3265,7 +3259,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: hash(1-n) == hash(long(1-n))
             True
 
-        These tests come from Trac #4957:
+        These tests come from :trac:`4957`::
 
             sage: n = 2^31 + 2^13
             sage: hash(n)

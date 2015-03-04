@@ -693,6 +693,10 @@ ext_modules = [
               extra_compile_args=["-DFPLLL_V3_COMPAT"],
               depends = [SAGE_INC + "/fplll/fplll.h"] + flint_depends),
 
+    Extension('sage.libs.gmp.pylong',
+              sources = ['sage/libs/gmp/pylong.pyx'],
+              libraries = ['gmp']),
+
     Extension('sage.libs.gmp.rational_reconstruction',
               sources = ['sage/libs/gmp/rational_reconstruction.pyx'],
               libraries = ['gmp']),

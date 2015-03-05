@@ -47,7 +47,7 @@ would completely avoid having to create the matrix space)::
 We next change the top-right entry of `A`. Note that matrix
 indexing is `0`-based in Sage, so the top right entry is
 `(0,2)`, which should be thought of as "row number
-`0`, column number 2".
+`0`, column number `2`".
 
 ::
 
@@ -73,8 +73,7 @@ Indexing
 Sage has quite flexible ways of extracting elements or submatrices
 from a matrix::
 
-
-    sage: m=[(1, -2, -1, -1,9), (1, 8, 6, 2,2), (1, 1, -1, 1,4), (-1, 2, -2, -1,4)];M= matrix(m)
+    sage: m=[(1, -2, -1, -1,9), (1, 8, 6, 2,2), (1, 1, -1, 1,4), (-1, 2, -2, -1,4)] ; M = matrix(m)
     sage: M
     [ 1 -2 -1 -1  9]
     [ 1  8  6  2  2]
@@ -356,9 +355,6 @@ are named
 ::
 
               [matrix] [base ring] [dense or sparse].
-
-See the files ``matrix_template.pxd`` and
-``matrix_template.pyx``.
 
 ::
 

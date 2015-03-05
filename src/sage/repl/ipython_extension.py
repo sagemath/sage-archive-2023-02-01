@@ -31,7 +31,7 @@ We test that preparsing is off for ``%runfile``, on for ``%time``::
 
     sage: import os, re
     sage: from sage.repl.interpreter import get_test_shell
-    sage: from sage.misc.misc import tmp_dir
+    sage: from sage.misc.all import tmp_dir
     sage: shell = get_test_shell()
     sage: TMP = tmp_dir()
 
@@ -57,7 +57,7 @@ In contrast, input to the ``%time`` magic command is preparsed::
 
 from IPython.core.magic import Magics, magics_class, line_magic
 
-import sage.misc.preparser as preparser
+from sage.repl.load import load_wrap
 
 from sage.env import SAGE_IMPORTALL, SAGE_STARTUP_FILE
 
@@ -99,7 +99,7 @@ class SageMagics(Magics):
 
             sage: import os
             sage: from sage.repl.interpreter import get_test_shell
-            sage: from sage.misc.misc import tmp_dir
+            sage: from sage.misc.all import tmp_dir
             sage: shell = get_test_shell()
             sage: tmp = os.path.join(tmp_dir(), 'run_cell.py')
             sage: f = open(tmp, 'w'); f.write('a = 2\n'); f.close()
@@ -107,7 +107,7 @@ class SageMagics(Magics):
             sage: shell.run_cell('a')
             2
         """
-        return self.shell.ex(preparser.load_wrap(s, attach=False))
+        return self.shell.ex(load_wrap(s, attach=False))
 
     @line_magic
     def attach(self, s):
@@ -147,7 +147,7 @@ class SageMagics(Magics):
             []
             sage: os.remove(tmp)
         """
-        return self.shell.ex(preparser.load_wrap(s, attach=True))
+        return self.shell.ex(load_wrap(s, attach=True))
 
     @line_magic
     def iload(self, args):

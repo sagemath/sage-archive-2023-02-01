@@ -366,7 +366,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 
     TESTS:
 
-    Trac #9961 fixed (allow assumptions on the dependent variable in desolve)::
+    :trac:`9961` fixed (allow assumptions on the dependent variable in desolve)::
 
         sage: y=function('y',x); assume(x>0); assume(y>0)
         sage: sage.calculus.calculus.maxima('domain:real')  # needed since Maxima 5.26.0 to get the answer as below
@@ -374,7 +374,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: desolve(x*diff(y,x)-x*sqrt(y^2+x^2)-y == 0, y, contrib_ode=True)
         [x - arcsinh(y(x)/x) == _C]
 
-    Trac #10682 updated Maxima to 5.26, and it started to show a different
+    :trac:`10682` updated Maxima to 5.26, and it started to show a different
     solution in the complex domain for the ODE above::
 
         sage: sage.calculus.calculus.maxima('domain:complex')  # back to the default complex domain
@@ -385,7 +385,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
             log(4*(2*x^2*sqrt((x^2*y(x)^2 + y(x)^4)/x^2)*sqrt(x^(-2)) + x^2 +
             2*y(x)^2)/x^2))/(x*sqrt(x^(-2))) == _C]
 
-    Trac #6479 fixed::
+    :trac:`6479` fixed::
 
         sage: x = var('x')
         sage: y = function('y', x)
@@ -397,7 +397,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: desolve( diff(y,x,x) == 0, y, [0,1,1])
         x + 1
 
-    Trac #9835 fixed::
+    :trac:`9835` fixed::
 
         sage: x = var('x')
         sage: y = function('y', x)
@@ -406,11 +406,18 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         ...
         NotImplementedError: Unable to use initial condition for this equation (freeofx).
 
-    Trac #8931 fixed::
+    :trac:`8931` fixed::
 
         sage: x=var('x'); f=function('f',x); k=var('k'); assume(k>0)
         sage: desolve(diff(f,x,2)/f==k,f,ivar=x)
         _K1*e^(sqrt(k)*x) + _K2*e^(-sqrt(k)*x)
+
+    :trac:`15775` fixed::
+
+        sage: forget()
+        sage: y = function('y')(x)
+        sage: desolve(diff(y, x) == sqrt(abs(y)), dvar=y, ivar=x)
+        sqrt(-y(x))*(sgn(y(x)) - 1) + (sgn(y(x)) + 1)*sqrt(y(x)) == _C + x
 
 
     AUTHORS:
@@ -706,7 +713,9 @@ def desolve_system(des, vars, ics=None, ivar=None):
 
     - ``vars`` - list of dependent variables
 
-    - ``ics`` - (optional) list of initial values for ivar and vars
+    - ``ics`` - (optional) list of initial values for ivar and vars.
+      If ics is defined, it should provide initial conditions for each variable,
+      otherwise an exception would be raised.
 
     - ``ivar`` - (optional) the independent variable, which must be
       specified if there is more than one independent variable in the
@@ -736,7 +745,7 @@ def desolve_system(des, vars, ics=None, ivar=None):
 
     TESTS:
 
-    Trac #9823 fixed::
+    Check that :trac:`9823` is fixed::
 
         sage: t = var('t')
         sage: x = function('x', t)
@@ -744,10 +753,57 @@ def desolve_system(des, vars, ics=None, ivar=None):
         sage: desolve_system([de1], [x])
         -t + x(0)
 
+    Check that :trac:`16568` is fixed::
+
+        sage: t = var('t')
+        sage: x = function('x', t)
+        sage: y = function('y', t)
+        sage: de1 = diff(x,t) + y - 1 == 0
+        sage: de2 = diff(y,t) - x + 1 == 0
+        sage: des = [de1,de2]
+        sage: ics = [0,1,-1]
+        sage: vars = [x,y]
+        sage: sol = desolve_system(des, vars, ics); sol
+        [x(t) == 2*sin(t) + 1, y(t) == -2*cos(t) + 1]
+
+    ::
+
+        sage: solx, soly = sol[0].rhs(), sol[1].rhs()
+        sage: RR(solx(t=3))
+        1.28224001611973
+
+    ::
+
+        sage: P1 = plot([solx,soly], (0,1))
+        sage: P2 = parametric_plot((solx,soly), (0,1))
+
+    Now type show(P1), show(P2) to view these plots.
+
+    Check that :trac:`9824` is fixed::
+
+        sage: t = var('t')
+        sage: epsilon = var('epsilon')
+        sage: x1 = function('x1', t)
+        sage: x2 = function('x2', t)
+        sage: de1 = diff(x1,t) == epsilon
+        sage: de2 = diff(x2,t) == -2
+        sage: desolve_system([de1, de2], [x1, x2], ivar=t)
+        [x1(t) == epsilon*t + x1(0), x2(t) == -2*t + x2(0)]
+        sage: desolve_system([de1, de2], [x1, x2], ics=[1,1], ivar=t)
+        Traceback (most recent call last):
+        ...
+        ValueError: Initial conditions aren't complete: number of vars is different from number of dependent variables. Got ics = [1, 1], vars = [x1(t), x2(t)]
+
+
     AUTHORS:
 
     - Robert Bradshaw (10-2008)
+    - Sergey Bykov (10-2014)
     """
+    if ics is not None:
+        if len(ics) != (len(vars) + 1):
+            raise ValueError("Initial conditions aren't complete: number of vars is different from number of dependent variables. Got ics = {0}, vars = {1}".format(ics, vars))
+
     if len(des)==1:
         return desolve_laplace(des[0], vars[0], ics=ics, ivar=ivar)
     ivars = set([])
@@ -776,95 +832,6 @@ def desolve_system(des, vars, ics=None, ivar=None):
         for dvar, ic in zip(dvars, ics[:1]):
             dvar.atvalue(ivar==ivar_ic, dvar)
     return soln
-
-
-def desolve_system_strings(des,vars,ics=None):
-    r"""
-    Solve any size system of 1st order ODE's. Initial conditions are optional.
-
-    This function is obsolete, use desolve_system.
-
-    INPUT:
-
-    - ``de`` - a list of strings representing the ODEs in maxima
-      notation (eg, de = "diff(f(x),x,2)=diff(f(x),x)+sin(x)")
-
-    - ``vars`` - a list of strings representing the variables (eg,
-      vars = ["s","x","y"], where s is the independent variable and
-      x,y the dependent variables)
-
-    - ``ics`` - a list of numbers representing initial conditions
-      (eg, x(0)=1, y(0)=2 is ics = [0,1,2])
-
-    WARNING:
-
-        The given ics sets the initial values of the dependent vars in
-        maxima, so subsequent ODEs involving these variables will have
-        these initial conditions automatically imposed.
-
-    EXAMPLES::
-
-        sage: from sage.calculus.desolvers import desolve_system_strings
-        sage: s = var('s')
-        sage: function('x', s)
-        x(s)
-
-    ::
-
-        sage: function('y', s)
-        y(s)
-
-    ::
-
-        sage: de1 = lambda z: diff(z[0],s) + z[1] - 1
-        sage: de2 = lambda z: diff(z[1],s) - z[0] + 1
-        sage: des = [de1([x(s),y(s)]),de2([x(s),y(s)])]
-        sage: vars = ["s","x","y"]
-        sage: desolve_system_strings(des,vars)
-        ["(1-'y(0))*sin(s)+('x(0)-1)*cos(s)+1", "('x(0)-1)*sin(s)+('y(0)-1)*cos(s)+1"]
-
-    ::
-
-        sage: ics = [0,1,-1]
-        sage: soln = desolve_system_strings(des,vars,ics); soln
-        ['2*sin(s)+1', '1-2*cos(s)']
-
-    ::
-
-        sage: solnx, solny = map(SR, soln)
-        sage: RR(solnx(s=3))
-        1.28224001611973
-
-    ::
-
-        sage: P1 = plot([solnx,solny],(0,1))
-        sage: P2 = parametric_plot((solnx,solny),(0,1))
-
-    Now type show(P1), show(P2) to view these.
-
-
-    AUTHORS:
-
-    - David Joyner (3-2006, 8-2007)
-    """
-    d = len(des)
-    dess = [de._maxima_init_() + "=0" for de in des]
-    for i in range(d):
-        cmd="de:" + dess[int(i)] + ";"
-        maxima.eval(cmd)
-    desstr = "[" + ",".join(dess) + "]"
-    d = len(vars)
-    varss = list("'" + vars[i] + "(_SAGE_VAR_" + vars[0] + ")" for i in range(1,d))
-    varstr = "[" + ",".join(varss) + "]"
-    if ics is not None:
-        #d = len(ics) ## must be same as len(des)
-        for i in range(1,d):
-            ic = "atvalue('" + vars[i] + "(_SAGE_VAR_"+vars[0] + ")," + "_SAGE_VAR_"\
-             + str(vars[0]) + "=" + str(ics[0]) + "," + str(ics[i]) + ")"
-            maxima.eval(ic)
-    cmd = "desolve(" + desstr + "," + varstr + ");"
-    soln = maxima(cmd)
-    return [f.rhs()._maxima_init_().replace("_SAGE_VAR_"+vars[0],vars[0]) for f in soln]
 
 @rename_keyword(deprecation=6094, method="algorithm")
 def eulers_method(f,x0,y0,h,x1,algorithm="table"):
@@ -1643,7 +1610,6 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
     import subprocess
     if subprocess.call('command -v gcc', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         raise RuntimeError('Unable to run because gcc cannot be found')
-    from sage.misc.misc import SAGE_ROOT
     from sage.interfaces.tides import genfiles_mintides
     from sage.misc.temporary_file import tmp_dir
     tempdir = tmp_dir()
@@ -1750,7 +1716,6 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
     import subprocess
     if subprocess.call('command -v gcc', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         raise RuntimeError('Unable to run because gcc cannot be found')
-    from sage.misc.misc import SAGE_ROOT
     from sage.interfaces.tides import genfiles_mpfr
     from sage.functions.other import ceil
     from sage.functions.log import log

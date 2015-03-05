@@ -236,7 +236,7 @@ class ParkingFunctions_all(InfiniteAbstractCombinatorialClass):
             sage: (ParkingFunctions())._infinite_cclass_slice(4) == ParkingFunctions(4)
             True
             sage: it = iter(ParkingFunctions()) # indirect doctest
-            sage: [it.next() for i in range(8)]
+            sage: [next(it) for i in range(8)]
             [[], [1], [1, 1], [1, 2], [2, 1], [1, 1, 1], [1, 1, 2], [1, 2, 1]]
          """
         return ParkingFunctions_n(n)

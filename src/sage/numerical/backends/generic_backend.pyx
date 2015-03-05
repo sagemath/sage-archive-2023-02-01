@@ -1069,7 +1069,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
 
     .. SEEALSO::
 
-    - :func:`default_mip_solver` -- Returns/Sets the default MIP solver.
+        - :func:`default_mip_solver` -- Returns/Sets the default MIP solver.
 
     EXAMPLE::
 

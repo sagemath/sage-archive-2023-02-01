@@ -1329,7 +1329,7 @@ def unpickle_discrete_hmm_v1(A, B, pi, n_out, emission_symbols, emission_symbols
         sage: loads(dumps(m)) == m   # indirect test
         True
     """
-    cdef DiscreteHiddenMarkovModel m = PY_NEW(DiscreteHiddenMarkovModel)
+    cdef DiscreteHiddenMarkovModel m = DiscreteHiddenMarkovModel.__new__(DiscreteHiddenMarkovModel)
     m.A = A
     m.B = B
     m.pi = pi

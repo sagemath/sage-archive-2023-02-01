@@ -100,7 +100,7 @@ cdef class SageObject:
 
     def reset_name(self):
         """
-        Remove the custrom name of an object.
+        Remove the custom name of an object.
 
         EXAMPLES::
 

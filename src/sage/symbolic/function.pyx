@@ -389,6 +389,8 @@ cdef class Function(SageObject):
             TypeError: cannot coerce arguments: ...
             sage: exp(QQbar(I))
             0.540302305868140 + 0.841470984807897*I
+            sage: binomial(Qp(2)(9),5)
+            126
 
         For functions with single argument, if coercion fails we try to call
         a method with the name of the function on the object::
@@ -474,12 +476,14 @@ cdef class Function(SageObject):
                 # to work around this limitation, we manually convert
                 # elements of QQbar to symbolic expressions here
                 from sage.rings.qqbar import QQbar, AA
+                from sage.rings.padics.padic_generic_element import pAdicGenericElement
                 nargs = [None]*len(args)
                 for i in range(len(args)):
                     carg = args[i]
-                    if isinstance(carg, Element) and \
-                            (<Element>carg)._parent is QQbar or \
-                            (<Element>carg)._parent is AA:
+                    if (isinstance(carg, Element) and
+                            ((<Element>carg)._parent is QQbar or
+                            (<Element>carg)._parent is AA or
+                            isinstance(carg, pAdicGenericElement))):
                         nargs[i] = SR(carg)
                     else:
                         try:

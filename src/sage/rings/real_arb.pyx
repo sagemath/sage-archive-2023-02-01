@@ -721,8 +721,8 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RealBallField # optional - arb
-            sage: a = RealBallField()(RIF(2))                     # optional - arb
-            sage: a._interval()        # optional - arb
+            sage: a = RealBallField()(RIF(2))                   # optional - arb
+            sage: RIF(a)                                        # optional - arb, indirect doctest
             2
         """
         cdef RealIntervalFieldElement result
@@ -1079,6 +1079,8 @@ cdef class RealBall(RingElement):
             sage: RealBallField()(1/3).rad().parent()
             Real Field with 30 bits of precision
         """
+        # Should we return a real number with rounding towards +∞ (or away from
+        # zero if/when implemented)?
         cdef RealField_class rad_field = RealField(MAG_BITS)
         cdef RealNumber rad = RealNumber(rad_field, None)
         cdef arf_t tmp
@@ -1268,7 +1270,7 @@ cdef class RealBall(RingElement):
         Returns nonzero *iff* the given number (or ball) ``other`` is contained
         in the interval represented by ``self``.
 
-        If ``self`` is contains NaN, this function always returns nonzero (as
+        If ``self`` contains NaN, this function always returns nonzero (as
         it could represent anything, and in particular could represent all the
         points included in ``other``). If ``other`` contains NaN and ``self``
         does not, it always returns zero.

@@ -873,10 +873,10 @@ cdef class IndexFaceSet(PrimitiveObject):
             return ["{vertices:%s,faces:%s,color:%s}" %
                     (vertices_str, faces_str, color_str)]
         else:
-            color_str = "[{}]".format(",".join(["'#{}'".format(
+            color_str = "[{}]".format(",".join(["'{}'".format(
                     Color(self._faces[i].color.r,
                           self._faces[i].color.g,
-                          self._faces[i].color.b).__hex__())
+                          self._faces[i].color.b).html_color())
                                             for i from 0 <= i < self.fcount]))
             return ["{vertices:%s,faces:%s,face_colors:%s}" %
                     (vertices_str, faces_str, color_str)]

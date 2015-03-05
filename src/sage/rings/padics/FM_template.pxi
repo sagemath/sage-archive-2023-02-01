@@ -429,10 +429,10 @@ cdef class FMElement(pAdicTemplateElement):
             1 + O(7^4)
         """
         cdef long aprec, newprec
-        if PY_TYPE_CHECK(absprec, int):
+        if isinstance(absprec, int):
             aprec = absprec
         else:
-            if not PY_TYPE_CHECK(absprec, Integer):
+            if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
             aprec = mpz_get_si((<Integer>absprec).value)
         if aprec >= self.prime_pow.prec_cap:
@@ -488,7 +488,7 @@ cdef class FMElement(pAdicTemplateElement):
         cdef bint iszero = ciszero(self.value, self.prime_pow)
         if absprec is None:
             return iszero
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if mpz_cmp_si((<Integer>absprec).value, self.prime_pow.prec_cap) >= 0:
             return iszero
@@ -544,7 +544,7 @@ cdef class FMElement(pAdicTemplateElement):
             # The default absolute precision is given by the precision cap
             aprec = self.prime_pow.prec_cap
         else:
-            if not PY_TYPE_CHECK(absprec, Integer):
+            if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
             # If absprec is not positive, then self and right are always
             # equal.

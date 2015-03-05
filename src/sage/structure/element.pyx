@@ -319,7 +319,7 @@ def is_Element(x):
         sage: is_Element(QQ^3)
         False
     """
-    return IS_INSTANCE(x, Element)
+    return isinstance(x, Element)
 
 cdef class Element(SageObject):
     """
@@ -960,7 +960,7 @@ cdef class Element(SageObject):
         else:
             if HAS_DICTIONARY(left):
                 left_cmp = left._cmp_
-                if PY_TYPE_CHECK(left_cmp, MethodType):
+                if isinstance(left_cmp, MethodType):
                     # it must have been overridden
                     return left_cmp(right)
 
@@ -999,9 +999,9 @@ cdef class Element(SageObject):
                 # contaminating the _has_coerce_map_from cache.)
                 from sage.rings.integer import Integer
                 try:
-                    if PY_TYPE_CHECK(left, Element) and isinstance(right, (int, float, Integer)) and not right:
+                    if isinstance(left, Element) and isinstance(right, (int, float, Integer)) and not right:
                         right = (<Element>left)._parent(right)
-                    elif PY_TYPE_CHECK(right, Element) and isinstance(left, (int, float, Integer)) and not left:
+                    elif isinstance(right, Element) and isinstance(left, (int, float, Integer)) and not left:
                         left = (<Element>right)._parent(left)
                     else:
                         return _rich_to_bool(op, r)
@@ -1010,7 +1010,7 @@ cdef class Element(SageObject):
 
         if HAS_DICTIONARY(left):   # fast check
             left_cmp = left.__cmp__
-            if PY_TYPE_CHECK(left_cmp, MethodType):
+            if isinstance(left_cmp, MethodType):
                 # it must have been overridden
                 return _rich_to_bool(op, left_cmp(right))
 
@@ -1099,7 +1099,7 @@ def is_ModuleElement(x):
         sage: is_ModuleElement('a')
         False
     """
-    return IS_INSTANCE(x, ModuleElement)
+    return isinstance(x, ModuleElement)
 
 cdef class ElementWithCachedMethod(Element):
     r"""
@@ -1336,7 +1336,7 @@ cdef class ModuleElement(Element):
 
         # (We know at least one of the arguments is a ModuleElement. So if
         # their types are *equal* (fast to check) then they are both
-        # ModuleElements. Otherwise use the slower test via PY_TYPE_CHECK.)
+        # ModuleElements. Otherwise use the slower test via isinstance.)
         if have_same_parent_c(left, right):
             # If we hold the only references to this object, we can
             # safely mutate it. NOTE the threshold is different by one
@@ -1474,7 +1474,7 @@ cdef class ModuleElement(Element):
         return self._lmul_(right)
 
     cdef RingElement coerce_to_base_ring(self, x):
-        if PY_TYPE_CHECK(x, Element) and (<Element>x)._parent is self._parent._base:
+        if isinstance(x, Element) and (<Element>x)._parent is self._parent._base:
             return x
         try:
             return self._parent._base._coerce_c(x)
@@ -1504,7 +1504,7 @@ def is_MonoidElement(x):
     """
     Return ``True`` if x is of type MonoidElement.
     """
-    return IS_INSTANCE(x, MonoidElement)
+    return isinstance(x, MonoidElement)
 
 cdef class MonoidElement(Element):
     """
@@ -1592,7 +1592,7 @@ def is_AdditiveGroupElement(x):
     """
     Return ``True`` if x is of type AdditiveGroupElement.
     """
-    return IS_INSTANCE(x, AdditiveGroupElement)
+    return isinstance(x, AdditiveGroupElement)
 
 cdef class AdditiveGroupElement(ModuleElement):
     """
@@ -1624,7 +1624,7 @@ def is_MultiplicativeGroupElement(x):
     """
     Return ``True`` if x is of type MultiplicativeGroupElement.
     """
-    return IS_INSTANCE(x, MultiplicativeGroupElement)
+    return isinstance(x, MultiplicativeGroupElement)
 
 cdef class MultiplicativeGroupElement(MonoidElement):
     """
@@ -1665,7 +1665,7 @@ def is_RingElement(x):
     """
     Return ``True`` if x is of type RingElement.
     """
-    return IS_INSTANCE(x, RingElement)
+    return isinstance(x, RingElement)
 
 cdef class RingElement(ModuleElement):
     ##################################################
@@ -1841,7 +1841,7 @@ cdef class RingElement(ModuleElement):
         # Try fast pathway if they are both RingElements and the parents match.
         # (We know at least one of the arguments is a RingElement. So if their
         # types are *equal* (fast to check) then they are both RingElements.
-        # Otherwise use the slower test via PY_TYPE_CHECK.)
+        # Otherwise use the slower test via isinstance.)
         if have_same_parent_c(left, right):
             if (<PyObject *>left).ob_refcnt < inplace_threshold:
                 return (<RingElement>left)._imul_(<RingElement>right)
@@ -1968,7 +1968,7 @@ cdef class RingElement(ModuleElement):
 
     def __truediv__(self, right):
         # in sage all divs are true
-        if not PY_TYPE_CHECK(self, Element):
+        if not isinstance(self, Element):
             return coercion_model.bin_op(self, right, div)
         return self.__div__(right)
 
@@ -2150,7 +2150,7 @@ def is_CommutativeRingElement(x):
         sage: is_CommutativeRingElement(1)
         True
     """
-    return IS_INSTANCE(x, CommutativeRingElement)
+    return isinstance(x, CommutativeRingElement)
 
 cdef class CommutativeRingElement(RingElement):
     """
@@ -2704,10 +2704,10 @@ cdef class Vector(ModuleElement):
     def __div__(self, right):
         if PY_IS_NUMERIC(right):
             right = py_scalar_to_element(right)
-        if PY_TYPE_CHECK(right, RingElement):
+        if isinstance(right, RingElement):
             # Let __mul__ do the job
             return self.__mul__(~right)
-        if PY_TYPE_CHECK(right, Vector):
+        if isinstance(right, Vector):
             try:
                 W = right.parent().submodule([right])
                 return W.coordinates(self)[0] / W.coordinates(right)[0]
@@ -2757,7 +2757,7 @@ cdef class Vector(ModuleElement):
         return '%s![%s]'%(V.name(), ','.join(v))
 
 def is_Vector(x):
-    return IS_INSTANCE(x, Vector)
+    return isinstance(x, Vector)
 
 cdef class Matrix(ModuleElement):
 
@@ -3033,13 +3033,13 @@ cdef class Matrix(ModuleElement):
 
 
 def is_Matrix(x):
-    return IS_INSTANCE(x, Matrix)
+    return isinstance(x, Matrix)
 
 def is_IntegralDomainElement(x):
     """
     Return ``True`` if x is of type IntegralDomainElement.
     """
-    return IS_INSTANCE(x, IntegralDomainElement)
+    return isinstance(x, IntegralDomainElement)
 
 cdef class IntegralDomainElement(CommutativeRingElement):
     def is_nilpotent(self):
@@ -3050,7 +3050,7 @@ def is_DedekindDomainElement(x):
     """
     Return ``True`` if x is of type DedekindDomainElement.
     """
-    return IS_INSTANCE(x, DedekindDomainElement)
+    return isinstance(x, DedekindDomainElement)
 
 cdef class DedekindDomainElement(IntegralDomainElement):
     pass
@@ -3059,7 +3059,7 @@ def is_PrincipalIdealDomainElement(x):
     """
     Return ``True`` if x is of type PrincipalIdealDomainElement.
     """
-    return IS_INSTANCE(x, PrincipalIdealDomainElement)
+    return isinstance(x, PrincipalIdealDomainElement)
 
 cdef class PrincipalIdealDomainElement(DedekindDomainElement):
     def lcm(self, right):
@@ -3081,7 +3081,7 @@ def is_EuclideanDomainElement(x):
     """
     Return ``True`` if x is of type EuclideanDomainElement.
     """
-    return IS_INSTANCE(x, EuclideanDomainElement)
+    return isinstance(x, EuclideanDomainElement)
 
 cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
 
@@ -3108,7 +3108,7 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
             (2, 1)
 
         """
-        if PY_TYPE_CHECK(self, Element):
+        if isinstance(self, Element):
             return self.quo_rem(other)
         else:
             x, y = canonical_coercion(self, other)
@@ -3140,7 +3140,7 @@ def is_FieldElement(x):
     """
     Return ``True`` if x is of type FieldElement.
     """
-    return IS_INSTANCE(x, FieldElement)
+    return isinstance(x, FieldElement)
 
 cdef class FieldElement(CommutativeRingElement):
 
@@ -3239,7 +3239,7 @@ def is_AlgebraElement(x):
         sage: is_AlgebraElement(1)
         False
     """
-    return IS_INSTANCE(x, AlgebraElement)
+    return isinstance(x, AlgebraElement)
 
 cdef class AlgebraElement(RingElement):
     pass
@@ -3248,7 +3248,7 @@ def is_CommutativeAlgebraElement(x):
     """
     Return ``True`` if x is of type CommutativeAlgebraElement.
     """
-    return IS_INSTANCE(x, CommutativeAlgebraElement)
+    return isinstance(x, CommutativeAlgebraElement)
 
 cdef class CommutativeAlgebraElement(CommutativeRingElement):
     pass
@@ -3266,7 +3266,7 @@ def is_InfinityElement(x):
         sage: is_InfinityElement(oo)
         True
     """
-    return IS_INSTANCE(x, InfinityElement)
+    return isinstance(x, InfinityElement)
 
 cdef class InfinityElement(RingElement):
     def __invert__(self):
@@ -3619,7 +3619,7 @@ cdef generic_power_c(a, nn, one):
 
     if not n:
         if one is None:
-            if PY_TYPE_CHECK(a, Element):
+            if isinstance(a, Element):
                 return (<Element>a)._parent.one()
             try:
                 try:

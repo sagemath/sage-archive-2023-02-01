@@ -422,11 +422,11 @@ cdef class CategoryObject(sage_object.SageObject):
             names = self.normalize_names(ngens, names)
         if self._names is not None and names != self._names:
             raise ValueError, 'variable names cannot be changed after object creation.'
-        if PY_TYPE_CHECK(names, str):
+        if isinstance(names, str):
             names = (names, )  # make it a tuple
-        elif PY_TYPE_CHECK(names, list):
+        elif isinstance(names, list):
             names = tuple(names)
-        elif not PY_TYPE_CHECK(names, tuple):
+        elif not isinstance(names, tuple):
             raise TypeError, "names must be a tuple of strings"
         self._names = names
 
@@ -604,6 +604,20 @@ cdef class CategoryObject(sage_object.SageObject):
             Integer Ring
             sage: F.__class__.base_ring
             <method 'base_ring' of 'sage.structure.category_object.CategoryObject' objects>
+
+        Note that the coordinates of the elements of a module can lie
+        in a bigger ring, the ``coordinate_ring``::
+
+            sage: M = (ZZ^2) * (1/2)
+            sage: v = M([1/2, 0])
+            sage: v.base_ring()
+            Integer Ring
+            sage: parent(v[0])
+            Rational Field
+            sage: v.coordinate_ring()
+            Rational Field
+
+        More examples::
 
             sage: F = FreeAlgebra(QQ, 'x')
             sage: F.base_ring()

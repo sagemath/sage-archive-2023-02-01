@@ -679,7 +679,7 @@ cdef class PolynomialRealDense(Polynomial):
         else:
             return Polynomial.__call__(self, *args, **kwds)
         
-        if not PY_TYPE_CHECK(xx, RealNumber):
+        if not isinstance(xx, RealNumber):
             if self._base_ring.has_coerce_map_from(parent(xx)):
                 xx = self._base_ring(xx)
             else:

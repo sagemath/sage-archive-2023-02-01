@@ -809,10 +809,10 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         rnd =(<MPComplexField_class>self._parent).__rnd
         if y is None:
             if z is None: return
-            if PY_TYPE_CHECK(z, MPComplexNumber):
+            if isinstance(z, MPComplexNumber):
                 mpc_set(self.value, (<MPComplexNumber>z).value, rnd)
                 return
-            elif PY_TYPE_CHECK(z, str):
+            elif isinstance(z, str):
                 a, b = split_complex_string(z, base)
                 # set real part
                 if a is None:
@@ -826,7 +826,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
                 else:
                     mpfr_set_str(self.value.im, b, base, rnd_im(rnd))
                 return
-            elif PY_TYPE_CHECK(z, ComplexNumber):
+            elif isinstance(z, ComplexNumber):
                 mpc_set_fr_fr(self.value, (<ComplexNumber>z).__re, (<ComplexNumber>z).__im, rnd)
                 return
             elif isinstance(z, sage.libs.pari.all.pari_gen):
@@ -840,11 +840,11 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
                 self._set(zz)
                 return
             # then, no imaginary part
-            elif PY_TYPE_CHECK(z, RealNumber):
+            elif isinstance(z, RealNumber):
                 zz = sage.rings.real_mpfr.RealField(self._parent.prec())(z)
                 mpc_set_fr(self.value, (<RealNumber>zz).value, rnd)
                 return
-            elif PY_TYPE_CHECK(z, Integer):
+            elif isinstance(z, Integer):
                 mpc_set_z(self.value, (<Integer>z).value, rnd)
                 return
             elif isinstance(z, (int, long)):

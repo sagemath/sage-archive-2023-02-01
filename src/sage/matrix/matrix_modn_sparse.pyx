@@ -957,7 +957,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         else:
             if not B.is_sparse():
                 B = B.sparse_matrix()
-            if PY_TYPE_CHECK(B, Matrix_modn_sparse):
+            if isinstance(B, Matrix_modn_sparse):
                 b = B
             else:
                 raise TypeError, "B must be a matrix or vector over the same base as self"

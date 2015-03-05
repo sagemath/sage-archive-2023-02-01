@@ -60,7 +60,6 @@ all-sage: \
      $(INST)/$(IPYTHON) \
      $(INST)/$(JINJA2) \
      $(INST)/$(JMOL) \
-     $(INST)/$(JSONPOINTER) \
      $(INST)/$(JSONSCHEMA) \
      $(INST)/$(LCALC) \
      $(INST)/$(LRCALC) \

@@ -15,8 +15,10 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 from cpython.int cimport *
 from cpython.number cimport *
+from sage.structure.element cimport parent_c
 include "coerce.pxi"
 
+from sage.categories.action import InverseAction, PrecomposedAction
 from coerce_exceptions import CoercionException
 
 cdef extern from *:
@@ -274,7 +276,7 @@ cdef class ModuleAction(Action):
             Left scalar multiplication by Rational Field on Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Integer Ring
 
         The following tests against a problem that was relevant during work on
-        trac ticket #9944::
+        :trac:`9944`::
 
             sage: R.<x> = PolynomialRing(ZZ)
             sage: S.<x> = PolynomialRing(ZZ, sparse=True)
@@ -284,14 +286,14 @@ cdef class ModuleAction(Action):
             1/x
 
         """
-        Action.__init__(self, G, S, not PY_TYPE_CHECK(self, RightModuleAction), operator.mul)
+        Action.__init__(self, G, S, not isinstance(self, RightModuleAction), operator.mul)
         if not isinstance(G, Parent):
             # only let Parents act
-            raise TypeError, "Actor must be a parent."
+            raise TypeError("Actor must be a parent.")
         base = S.base()
         if base is S or base is None:
             # The right thing to do is a normal multiplication
-            raise CoercionException, "Best viewed as standard multiplication"
+            raise CoercionException("Best viewed as standard multiplication")
         # Objects are implemented with the assumption that
         # _rmul_ is given an element of the base ring
         if G is not base:
@@ -302,15 +304,15 @@ cdef class ModuleAction(Action):
                 from sage.categories.pushout import pushout
                 # this may raise a type error, which we propagate
                 self.extended_base = pushout(G, S)
-                # make sure the pushout actually gave correct a base extension of S
+                # make sure the pushout actually gave a correct base extension of S
                 if self.extended_base.base() != pushout(G, base):
-                    raise CoercionException, "Actor must be coercible into base."
+                    raise CoercionException("Actor must be coercible into base.")
                 else:
                     self.connecting = self.extended_base.base()._internal_coerce_map_from(G)
                     if self.connecting is None:
                         # this may happen if G is, say, int rather than a parent
                         # TODO: let python types be valid actions
-                        raise CoercionException, "Missing connecting morphism"
+                        raise CoercionException("Missing connecting morphism")
 
         # Don't waste time if our connecting morphisms happen to be the identity.
         if self.connecting is not None and self.connecting.codomain() is G:
@@ -386,6 +388,90 @@ cdef class ModuleAction(Action):
         """
         return self.underlying_set()
 
+    def __invert__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.structure.coerce_actions import RightModuleAction
+
+            sage: ZZx = ZZ['x']
+            sage: x = ZZx.gen()
+            sage: QQx = QQ['x']
+            sage: A = ~RightModuleAction(QQ, QQx); A
+            Right inverse action by Rational Field on Univariate Polynomial Ring in x over Rational Field
+            sage: A(x, 2)
+            1/2*x
+
+            sage: A = ~RightModuleAction(QQ, ZZx); A
+            Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
+            sage: A.codomain()
+            Univariate Polynomial Ring in x over Rational Field
+            sage: A(x, 2)
+            1/2*x
+
+            sage: A = ~RightModuleAction(ZZ, ZZx); A
+            Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
+            with precomposition on right by Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
+            sage: A.codomain()
+            Univariate Polynomial Ring in x over Rational Field
+            sage: A(x, 2)
+            1/2*x
+
+            sage: GF5x = GF(5)['x']
+            sage: A = ~RightModuleAction(ZZ, GF5x); A
+            Right inverse action by Finite Field of size 5 on Univariate Polynomial Ring in x over Finite Field of size 5
+            with precomposition on right by Natural morphism:
+              From: Integer Ring
+              To:   Finite Field of size 5
+            sage: A(x, 2)
+            3*x
+
+            sage: GF5xy = GF5x['y']
+            sage: A = ~RightModuleAction(ZZ, GF5xy); A
+            Right inverse action by Finite Field of size 5 on Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Finite Field of size 5
+            with precomposition on right by Natural morphism:
+              From: Integer Ring
+              To:   Finite Field of size 5
+
+            sage: ZZy = ZZ['y']
+            sage: ZZxyzw = ZZx['y']['z']['w']
+            sage: A = ~RightModuleAction(ZZy, ZZxyzw); A
+            Right inverse action by Fraction Field of Univariate Polynomial Ring in y
+                over Univariate Polynomial Ring in x
+                over Integer Ring
+            on Univariate Polynomial Ring in w
+                over Univariate Polynomial Ring in z
+                over Univariate Polynomial Ring in y
+                over Univariate Polynomial Ring in x
+                over Integer Ring
+            with precomposition on right by Conversion via FractionFieldElement map:
+              From: Univariate Polynomial Ring in y over Integer Ring
+              To:   Fraction Field of Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Integer Ring
+        """
+        K = self.G._pseudo_fraction_field()
+        if K is self.G:
+            return InverseAction(self)
+        else:
+            # Try to find a suitable ring between G and R in which to compute
+            # the inverse.
+            from sage.categories.pushout import construction_tower, pushout
+            R = self.G if self.connecting is None else self.connecting.codomain()
+            K = pushout(self.G._pseudo_fraction_field(), R)
+            if K is None:
+                K = R._pseudo_fraction_field()
+            for _, Ri in reversed(construction_tower(K)):
+                if not Ri.has_coerce_map_from(self.G):
+                    continue
+                Ki = Ri._pseudo_fraction_field()
+                if Ki is Ri:
+                    K = Ki
+                    break
+            module_action = type(self)(K, self.codomain())
+            connecting = K.coerce_map_from(self.G)
+            left, right = (connecting, None) if self._is_left else (None, connecting)
+            return PrecomposedAction(InverseAction(module_action), left, right)
 
 
 cdef class LeftModuleAction(ModuleAction):
@@ -488,7 +574,7 @@ cdef class IntegerMulAction(Action):
             sage: act(-3, x-1)
             -3*x + 3
         """
-        if PY_TYPE_CHECK(ZZ, type):
+        if isinstance(ZZ, type):
             from sage.structure.parent import Set_PythonType
             ZZ = Set_PythonType(ZZ)
         if m is None:

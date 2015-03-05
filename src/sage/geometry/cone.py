@@ -212,8 +212,7 @@ from sage.misc.all import cached_method, flatten, latex
 from sage.misc.superseded import deprecation
 from sage.modules.all import span, vector
 from sage.rings.all import QQ, RR, ZZ, gcd
-from sage.structure.all import SageObject
-from sage.structure.coerce import parent
+from sage.structure.all import SageObject, parent
 from sage.libs.ppl import C_Polyhedron, Generator_System, Constraint_System, \
     Linear_Expression, ray as PPL_ray, point as PPL_point, \
     Poly_Con_Relation
@@ -1056,17 +1055,17 @@ def classify_cone_2d(ray0, ray1, check=True):
 
         sage: from sage.geometry.cone import normalize_rays
         sage: for i in range(10):
-        ...       ray0 = random_vector(ZZ, 3)
-        ...       ray1 = random_vector(ZZ, 3)
-        ...       if ray0.is_zero() or ray1.is_zero(): continue
-        ...       ray0, ray1 = normalize_rays([ray0, ray1], ZZ^3)
-        ...       d, k = classify_cone_2d(ray0, ray1, check=True)
-        ...       assert (d,k) == classify_cone_2d(ray1, ray0)
-        ...       if d == 0: continue
-        ...       frac = Hirzebruch_Jung_continued_fraction_list(k/d)
-        ...       if len(frac)>100: continue   # avoid expensive computation
-        ...       hilb = Cone([ray0, ray1]).Hilbert_basis()
-        ...       assert len(hilb) == len(frac) + 1
+        ....:     ray0 = random_vector(ZZ, 3)
+        ....:     ray1 = random_vector(ZZ, 3)
+        ....:     if ray0.is_zero() or ray1.is_zero(): continue
+        ....:     ray0, ray1 = normalize_rays([ray0, ray1], ZZ^3)
+        ....:     d, k = classify_cone_2d(ray0, ray1, check=True)
+        ....:     assert (d,k) == classify_cone_2d(ray1, ray0)
+        ....:     if d == 0: continue
+        ....:     frac = (k/d).continued_fraction_list("hj")
+        ....:     if len(frac)>100: continue   # avoid expensive computation
+        ....:     hilb = Cone([ray0, ray1]).Hilbert_basis()
+        ....:     assert len(hilb) == len(frac) + 1
     """
     if check:
         assert ray0.parent() is ray1.parent()
@@ -3173,7 +3172,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: c.sublattice(1, 0, 0)
             Traceback (most recent call last):
             ...
-            TypeError: element (= [1, 0, 0]) is not in free module
+            TypeError: element [1, 0, 0] is not in free module
         """
         if "_sublattice" not in self.__dict__:
             self._split_ambient_lattice()

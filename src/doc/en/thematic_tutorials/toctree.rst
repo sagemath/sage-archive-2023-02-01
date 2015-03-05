@@ -21,3 +21,5 @@ Thematic tutorial document tree
    coercion_and_categories
    cython_interface
    numerical_sage/index
+   explicit_methods_in_number_theory/index
+   sws2rst

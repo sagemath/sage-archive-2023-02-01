@@ -17,6 +17,7 @@ from ginac cimport *
 
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
+from sage.structure.element cimport Element, parent_c
 from expression cimport new_Expression_from_GEx, Expression
 from ring import SR
 
@@ -312,7 +313,7 @@ cdef class Function(SageObject):
             True
 
         """
-        if PY_TYPE_CHECK(other, Function):
+        if isinstance(other, Function):
             return cmp(self._serial, (<Function>other)._serial)
         return False
 
@@ -476,7 +477,7 @@ cdef class Function(SageObject):
                 nargs = [None]*len(args)
                 for i in range(len(args)):
                     carg = args[i]
-                    if PY_TYPE_CHECK(carg, Element) and \
+                    if isinstance(carg, Element) and \
                             (<Element>carg)._parent is QQbar or \
                             (<Element>carg)._parent is AA:
                         nargs[i] = SR(carg)
@@ -488,7 +489,7 @@ cdef class Function(SageObject):
                 args = nargs
         else: # coerce == False
             for a in args:
-                if not PY_TYPE_CHECK(a, Expression):
+                if not isinstance(a, Expression):
                     raise TypeError, "arguments must be symbolic expressions"
 
         cdef GEx res
@@ -1137,7 +1138,7 @@ cdef class SymbolicFunction(Function):
         cdef Function sfunc
         cdef long myhash = self._hash_()
         for sfunc in sfunction_serial_dict.itervalues():
-            if PY_TYPE_CHECK(sfunc, SymbolicFunction) and \
+            if isinstance(sfunc, SymbolicFunction) and \
                     myhash == (<SymbolicFunction>sfunc)._hash_():
                 # found one, set self._serial to be a copy
                 self._serial = sfunc._serial

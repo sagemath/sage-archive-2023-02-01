@@ -572,7 +572,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if from_list:
             return self.rows(copy=False)[i]
         cdef Py_ssize_t j
-        cdef Vector_mod2_dense z = PY_NEW(Vector_mod2_dense)
+        cdef Vector_mod2_dense z = Vector_mod2_dense.__new__(Vector_mod2_dense)
         z._init(self._ncols, VectorSpace(self.base_ring(),self._ncols))
         if self._ncols:
             mzd_submatrix(z._entries, self._entries, i, 0, i+1, self._ncols)
@@ -655,14 +655,14 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             True
         """
         cdef mzd_t *tmp
-        if not PY_TYPE_CHECK(v, Vector_mod2_dense):
+        if not isinstance(v, Vector_mod2_dense):
             M = VectorSpace(self._base_ring, self._nrows)
             v = M(v)
         if self.ncols() != v.degree():
             raise ArithmeticError("number of columns of matrix must equal degree of vector")
 
         VS = VectorSpace(self._base_ring, self._nrows)
-        cdef Vector_mod2_dense c = PY_NEW(Vector_mod2_dense)
+        cdef Vector_mod2_dense c = Vector_mod2_dense.__new__(Vector_mod2_dense)
         c._init(self._nrows, VS)
         c._entries = mzd_init(1, self._nrows)
         if c._entries.nrows and c._entries.ncols:

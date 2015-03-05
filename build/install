@@ -296,11 +296,13 @@ newest_version() {
 cat >&5 <<EOF
 # Standard packages
 ATLAS=`newest_version atlas`
+BACKPORTS_SSL_MATCH_HOSTNAME=`newest_version backports_ssl_match_hostname`
 BOEHM_GC=`newest_version boehm_gc`
 BOOST_CROPPED=`newest_version boost_cropped`
 BZIP2=`newest_version bzip2`
 CDDLIB=`newest_version cddlib`
 CEPHES=`newest_version cephes`
+CERTIFI=`newest_version certifi`
 CLIQUER=`newest_version cliquer`
 COMBINATORIAL_DESIGNS=`newest_version combinatorial_designs`
 CONWAY=`newest_version conway_polynomials`
@@ -418,6 +420,11 @@ if [ "$need_to_install_gcc" = yes ]; then
 fi
 echo >&5
 
+echo >&5 'CSAGE_SOURCES = \'
+for file in "$SAGE_SRC/c_lib/src/"*.c "$SAGE_SRC/c_lib/src/"*.cpp "$SAGE_SRC/c_lib/include"/*.h; do
+    echo >&5 "                \$(SAGE_SRC)${file#$SAGE_SRC} \\"
+done
+echo >&5
 echo >&5 'SCRIPT_SOURCES = \'
 for file in "$SAGE_SRC/bin/"*; do
     echo >&5 "                 \$(SAGE_SRC)${file#$SAGE_SRC} \\"

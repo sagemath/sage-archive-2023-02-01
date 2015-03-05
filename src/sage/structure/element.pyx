@@ -62,7 +62,7 @@ Elements typically define a method ``_new_c``, e.g.,
 
     cdef _new_c(self, defining data):
         cdef FreeModuleElement_generic_dense x
-        x = PY_NEW(FreeModuleElement_generic_dense)
+        x = FreeModuleElement_generic_dense.__new__(FreeModuleElement_generic_dense)
         x._parent = self._parent
         x._entries = v
 
@@ -75,92 +75,71 @@ followed by both arithmetic implementers and callers.
 
 A quick summary for the impatient:
 
-- To implement addition for any Element class, override def _add_().
-- If you want to add x and y, whose parents you know are IDENTICAL,
-  you may call _add_(x, y). This will be the fastest way to guarantee
+- To implement addition for any Element class, override ``def _add_()``.
+- If you want to add ``x`` and ``y``, whose parents you know are **identical**,
+  you may call ``_add_(x, y)``. This will be the fastest way to guarantee
   that the correct implementation gets called. Of course you can still
-  always use "x + y".
+  always use ``x + y``.
 
 Now in more detail. The aims of this system are to provide (1) an efficient
 calling protocol from both Python and Cython, (2) uniform coercion semantics
 across Sage, (3) ease of use, (4) readability of code.
 
-We will take addition of RingElements as an example; all other operators
-and classes are similar. There are four relevant functions.
+We will take addition of RingElements as an example; all other
+operators and classes are similar. There are three relevant functions,
+with subtly differing names (``add`` vs.  ``iadd``, single vs. double
+underscores).
 
-- **def RingElement.__add__**
+-  **def RingElement.__add__**
 
-   This function is called by Python or Pyrex when the binary "+" operator
-   is encountered. It ASSUMES that at least one of its arguments is a
+   This function is called by Python or Cython when the binary "+" operator
+   is encountered. It **assumes** that at least one of its arguments is a
    RingElement; only a really twisted programmer would violate this
    condition. It has a fast pathway to deal with the most common case
    where the arguments have the same parent. Otherwise, it uses the coercion
    module to work out how to make them have the same parent. After any
-   necessary coercions have been performed, it calls _add_ to dispatch to
+   necessary coercions have been performed, it calls ``_add_`` to dispatch to
    the correct underlying addition implementation.
-
-   Note that although this function is declared as def, it doesn't have the
-   usual overheads associated with python functions (either for the caller
-   or for __add__ itself). This is because python has optimised calling
+   
+   Note that although this function is declared as ``def``, it doesn't have the
+   usual overheads associated with Python functions (either for the caller or
+   for ``__add__`` itself). This is because Python has optimised calling
    protocols for such special functions.
 
 -  **def RingElement._add_**
 
    This is the function you should override to implement addition in a
-   python subclass of RingElement.
+   subclass of ``RingElement``.
 
-   The two arguments to this function are guaranteed to have the
-   SAME PARENT. Its return value MUST have the SAME PARENT as its
+   The two arguments to this function are guaranteed to have the **same
+   parent**. Its return value **must** have the **same parent** as its
    arguments.
 
-   If you want to add two objects from python, and you know that their
-   parents are the same object, you are encouraged to call this function
-   directly, instead of using "x + y".
+   If you want to add two objects and you know that their parents are
+   the same object, you are encouraged to call this function directly,
+   instead of using ``x + y``.
 
-   The default implementation of this function is to call _add_,
-   so if no-one has defined a python implementation, the correct Pyrex
-   implementation will get called.
+   When implementing ``_add_`` in a Cython extension class, use
+   ``cpdef _add_`` instead of ``def _add_``.
 
--  **cpdef RingElement._add_**
-
-   This is the function you should override to implement addition in a
-   Pyrex subclass of RingElement.
-
-   The two arguments to this function are guaranteed to have the
-   SAME PARENT. Its return value MUST have the SAME PARENT as its
-   arguments.
-
-   The default implementation of this function is to raise a
-   NotImplementedError, which will happen if no-one has supplied
-   implementations of either _add_.
-
-
-For speed, there are also **inplace** version of the arithmetic commands.
-DD NOT call them directly, they may mutate the object and will be called
+For speed, there are also *inplace* versions of the arithmetic commands.
+**Do not** call them directly, they may mutate the object and will be called
 when and only when it has been determined that the old object will no longer
 be accessible from the calling function after this operation.
 
 -  **def RingElement._iadd_**
 
-   This is the function you should override to inplace implement addition
-   in a Python subclass of RingElement.
+   This is the function you should override to implement inplace
+   addition in a Python subclass of RingElement.
 
-   The two arguments to this function are guaranteed to have the
-   SAME PARENT. Its return value MUST have the SAME PARENT as its
+   The two arguments to this function are guaranteed to have the **same
+   parent**. Its return value **must** have the **same parent** as its
    arguments.
 
-   The default implementation of this function is to call _add_,
-   so if no-one has defined a Python implementation, the correct Cython
+   The default implementation of this function is to call ``_add_``,
+   so if no one has defined a Python implementation, the correct Cython
    implementation will get called.
 """
-
-
-cdef extern from *:
-    ctypedef struct RefPyObject "PyObject":
-        int ob_refcnt
-
-
-
 
 ##################################################################
 # Generic element, so all this functionality must be defined
@@ -170,10 +149,14 @@ cdef extern from *:
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
+include "coerce.pxi"
 
-import operator, types
+from cpython.ref cimport PyObject
+
+import types
 import sys
-import traceback
+cdef add, sub, mul, div, iadd, isub, imul, idiv
+from operator import add, sub, mul, div, iadd, isub, imul, idiv
 
 import sage.misc.sageinspect as sageinspect
 
@@ -219,6 +202,111 @@ def py_scalar_to_element(py):
     else:
         raise TypeError("Not a scalar")
 
+
+def parent(x):
+    """
+    Return the parent of the element ``x``.
+
+    Usually, this means the mathematical object of which ``x`` is an
+    element.
+
+    INPUT:
+
+    - ``x`` -- an element
+
+    OUTPUT:
+
+    - if ``x`` is a Sage :class:`Element`, return ``x.parent()``.
+
+    - if ``x`` has a ``parent`` method and ``x`` does not have an
+      ``__int__`` or ``__float__`` method, return ``x.parent()``.
+
+    - otherwise, return ``type(x)``.
+
+    .. SEEALSO::
+
+        `Parents, Conversion and Coercion <http://www.sagemath.org/doc/tutorial/tour_coercion.html>`_
+            Section in the Sage Tutorial
+
+    EXAMPLES::
+
+        sage: a = 42
+        sage: parent(a)
+        Integer Ring
+        sage: b = 42/1
+        sage: parent(b)
+        Rational Field
+        sage: c = 42.0
+        sage: parent(c)
+        Real Field with 53 bits of precision
+
+    Some more complicated examples::
+
+        sage: x = Partition([3,2,1,1,1])
+        sage: parent(x)
+        Partitions
+        sage: v = vector(RDF, [1,2,3])
+        sage: parent(v)
+        Vector space of dimension 3 over Real Double Field
+
+    The following are not considered to be elements, so the type is
+    returned::
+
+        sage: d = int(42)  # Python int
+        sage: parent(d)
+        <type 'int'>
+        sage: L = range(10)
+        sage: parent(L)
+        <type 'list'>
+    """
+    return parent_c(x)
+
+def have_same_parent(left, right):
+    """
+    Return ``True`` if and only if ``left`` and ``right`` have the
+    same parent.
+
+    .. WARNING::
+
+        This function assumes that at least one of the arguments is a
+        Sage :class:`Element`. When in doubt, use the slower
+        ``parent(left) is parent(right)`` instead.
+
+    EXAMPLES::
+
+        sage: from sage.structure.element import have_same_parent
+        sage: have_same_parent(1, 3)
+        True
+        sage: have_same_parent(1, 1/2)
+        False
+        sage: have_same_parent(gap(1), gap(1/2))
+        True
+
+    These have different types but the same parent::
+
+        sage: a = RLF(2)
+        sage: b = exp(a)
+        sage: type(a)
+        <type 'sage.rings.real_lazy.LazyWrapper'>
+        sage: type(b)
+        <type 'sage.rings.real_lazy.LazyNamedUnop'>
+        sage: have_same_parent(a, b)
+        True
+    """
+    return have_same_parent_c(left, right)
+
+
+cdef dict _coerce_op_symbols = {'mul':'*', 'add':'+', 'sub':'-', 'div':'/', 'imul': '*', 'iadd': '+', 'isub':'-', 'idiv':'/'}
+
+cdef str arith_error_message(x, y, op):
+    name = op.__name__
+    try:
+        name = _coerce_op_symbols[name]
+    except KeyError:
+        pass
+    return "unsupported operand parent(s) for '%s': '%s' and '%s'"%(name, parent_c(x), parent_c(y))
+
+
 def is_Element(x):
     """
     Return ``True`` if x is of type Element.
@@ -231,15 +319,15 @@ def is_Element(x):
         sage: is_Element(QQ^3)
         False
     """
-    return IS_INSTANCE(x, Element)
+    return isinstance(x, Element)
 
-cdef class Element(sage_object.SageObject):
+cdef class Element(SageObject):
     """
     Generic element of a structure. All other types of elements
     (RingElement, ModuleElement, etc) derive from this type.
 
-    Subtypes must either call __init__() to set _parent, or may
-    set _parent themselves if that would be more efficient.
+    Subtypes must either call ``__init__()`` to set ``_parent``, or may
+    set ``_parent`` themselves if that would be more efficient.
     """
 
     def __init__(self, parent):
@@ -533,7 +621,7 @@ cdef class Element(sage_object.SageObject):
         """
         from sage.categories.objects    import Objects
         tester = self._tester(**options)
-        sage_object.SageObject._test_category(self, tester = tester)
+        SageObject._test_category(self, tester = tester)
         category = self.category()
         # Tests that self inherits methods from the categories
         if not is_extension_type(self.__class__):
@@ -604,7 +692,7 @@ cdef class Element(sage_object.SageObject):
     def subs(self, in_dict=None, **kwds):
         """
         Substitutes given generators with given values while not touching
-        other generators. This is a generic wrapper around __call__.
+        other generators. This is a generic wrapper around ``__call__``.
         The syntax is meant to be compatible with the corresponding method
         for symbolic expressions.
 
@@ -813,7 +901,7 @@ cdef class Element(sage_object.SageObject):
         boolean, as in the conditional of an if or while statement.
 
         TESTS:
-        Verify that #5185 is fixed.
+        Verify that :trac:`5185` is fixed.
 
         ::
 
@@ -828,19 +916,19 @@ cdef class Element(sage_object.SageObject):
             sage: (v+w).__nonzero__()
             False
         """
-        return self != self._parent.zero_element()
+        return self != self._parent.zero()
 
     def is_zero(self):
         """
-        Return ``True`` if ``self`` equals self.parent()(0).
+        Return ``True`` if ``self`` equals ``self.parent()(0)``.
 
-        The default implementation is to fall back to 'not
-        self.__nonzero__'.
+        The default implementation is to fall back to ``not
+        self.__nonzero__``.
 
         .. WARNING::
 
             Do not re-implement this method in your subclass but
-            implement __nonzero__ instead.
+            implement ``__nonzero__`` instead.
         """
         return not self
 
@@ -853,7 +941,7 @@ cdef class Element(sage_object.SageObject):
         """
         global coercion_model
         cdef int r
-        if not have_same_parent(left, right):
+        if not have_same_parent_c(left, right):
             if left is None or left is Ellipsis:
                 return -1
             elif right is None or right is Ellipsis:
@@ -872,7 +960,7 @@ cdef class Element(sage_object.SageObject):
         else:
             if HAS_DICTIONARY(left):
                 left_cmp = left._cmp_
-                if PY_TYPE_CHECK(left_cmp, MethodType):
+                if isinstance(left_cmp, MethodType):
                     # it must have been overridden
                     return left_cmp(right)
 
@@ -887,7 +975,7 @@ cdef class Element(sage_object.SageObject):
         """
         global coercion_model
         cdef int r
-        if not have_same_parent(left, right):
+        if not have_same_parent_c(left, right):
             if left is None or left is Ellipsis:
                 return _rich_to_bool(op, -1)
             elif right is None or right is Ellipsis:
@@ -911,9 +999,9 @@ cdef class Element(sage_object.SageObject):
                 # contaminating the _has_coerce_map_from cache.)
                 from sage.rings.integer import Integer
                 try:
-                    if PY_TYPE_CHECK(left, Element) and isinstance(right, (int, float, Integer)) and not right:
+                    if isinstance(left, Element) and isinstance(right, (int, float, Integer)) and not right:
                         right = (<Element>left)._parent(right)
-                    elif PY_TYPE_CHECK(right, Element) and isinstance(left, (int, float, Integer)) and not left:
+                    elif isinstance(right, Element) and isinstance(left, (int, float, Integer)) and not left:
                         left = (<Element>right)._parent(left)
                     else:
                         return _rich_to_bool(op, r)
@@ -922,7 +1010,7 @@ cdef class Element(sage_object.SageObject):
 
         if HAS_DICTIONARY(left):   # fast check
             left_cmp = left.__cmp__
-            if PY_TYPE_CHECK(left_cmp, MethodType):
+            if isinstance(left_cmp, MethodType):
                 # it must have been overridden
                 return _rich_to_bool(op, left_cmp(right))
 
@@ -1011,7 +1099,7 @@ def is_ModuleElement(x):
         sage: is_ModuleElement('a')
         False
     """
-    return IS_INSTANCE(x, ModuleElement)
+    return isinstance(x, ModuleElement)
 
 cdef class ElementWithCachedMethod(Element):
     r"""
@@ -1248,12 +1336,12 @@ cdef class ModuleElement(Element):
 
         # (We know at least one of the arguments is a ModuleElement. So if
         # their types are *equal* (fast to check) then they are both
-        # ModuleElements. Otherwise use the slower test via PY_TYPE_CHECK.)
-        if have_same_parent(left, right):
+        # ModuleElements. Otherwise use the slower test via isinstance.)
+        if have_same_parent_c(left, right):
             # If we hold the only references to this object, we can
             # safely mutate it. NOTE the threshold is different by one
             # for __add__ and __iadd__.
-            if  (<RefPyObject *>left).ob_refcnt < inplace_threshold:
+            if (<PyObject *>left).ob_refcnt < inplace_threshold:
                 return (<ModuleElement>left)._iadd_(<ModuleElement>right)
             else:
                 return (<ModuleElement>left)._add_(<ModuleElement>right)
@@ -1265,8 +1353,8 @@ cdef class ModuleElement(Element):
         raise TypeError(arith_error_message(left, right, add))
 
     def __iadd__(ModuleElement self, right):
-        if have_same_parent(self, right):
-            if  (<RefPyObject *>self).ob_refcnt <= inplace_threshold:
+        if have_same_parent_c(self, right):
+            if (<PyObject *>self).ob_refcnt <= inplace_threshold:
                 return self._iadd_(<ModuleElement>right)
             else:
                 return self._add_(<ModuleElement>right)
@@ -1286,8 +1374,8 @@ cdef class ModuleElement(Element):
         Top-level subtraction operator for ModuleElements.
         See extensive documentation at the top of element.pyx.
         """
-        if have_same_parent(left, right):
-            if  (<RefPyObject *>left).ob_refcnt < inplace_threshold:
+        if have_same_parent_c(left, right):
+            if (<PyObject *>left).ob_refcnt < inplace_threshold:
                 return (<ModuleElement>left)._isub_(<ModuleElement>right)
             else:
                 return (<ModuleElement>left)._sub_(<ModuleElement>right)
@@ -1300,8 +1388,8 @@ cdef class ModuleElement(Element):
         return left._add_(-right)
 
     def __isub__(ModuleElement self, right):
-        if have_same_parent(self, right):
-            if  (<RefPyObject *>self).ob_refcnt <= inplace_threshold:
+        if have_same_parent_c(self, right):
+            if (<PyObject *>self).ob_refcnt <= inplace_threshold:
                 return self._isub_(<ModuleElement>right)
             else:
                 return self._sub_(<ModuleElement>right)
@@ -1340,14 +1428,14 @@ cdef class ModuleElement(Element):
             return (<ModuleElement>left)._mul_long(PyInt_AS_LONG(right))
         if PyInt_CheckExact(left):
             return (<ModuleElement>right)._mul_long(PyInt_AS_LONG(left))
-        if have_same_parent(left, right):
+        if have_same_parent_c(left, right):
             raise TypeError(arith_error_message(left, right, mul))
         # Always do this
         global coercion_model
         return coercion_model.bin_op(left, right, mul)
 
     def __imul__(left, right):
-        if have_same_parent(left, right):
+        if have_same_parent_c(left, right):
              raise TypeError
         # Always do this
         global coercion_model
@@ -1386,7 +1474,7 @@ cdef class ModuleElement(Element):
         return self._lmul_(right)
 
     cdef RingElement coerce_to_base_ring(self, x):
-        if PY_TYPE_CHECK(x, Element) and (<Element>x)._parent is self._parent._base:
+        if isinstance(x, Element) and (<Element>x)._parent is self._parent._base:
             return x
         try:
             return self._parent._base._coerce_c(x)
@@ -1416,7 +1504,7 @@ def is_MonoidElement(x):
     """
     Return ``True`` if x is of type MonoidElement.
     """
-    return IS_INSTANCE(x, MonoidElement)
+    return isinstance(x, MonoidElement)
 
 cdef class MonoidElement(Element):
     """
@@ -1432,7 +1520,7 @@ cdef class MonoidElement(Element):
         See extensive documentation at the top of element.pyx.
         """
         global coercion_model
-        if have_same_parent(left, right):
+        if have_same_parent_c(left, right):
             return (<MonoidElement>left)._mul_(<MonoidElement>right)
         try:
             return coercion_model.bin_op(left, right, mul)
@@ -1490,7 +1578,7 @@ cdef class MonoidElement(Element):
             raise ValueError("negative number of powers requested")
         elif n == 0:
             return []
-        x = self._parent.one_element()
+        x = self._parent.one()
         l = [x]
         for i in xrange(n - 1):
             x = x * self
@@ -1504,7 +1592,7 @@ def is_AdditiveGroupElement(x):
     """
     Return ``True`` if x is of type AdditiveGroupElement.
     """
-    return IS_INSTANCE(x, AdditiveGroupElement)
+    return isinstance(x, AdditiveGroupElement)
 
 cdef class AdditiveGroupElement(ModuleElement):
     """
@@ -1536,7 +1624,7 @@ def is_MultiplicativeGroupElement(x):
     """
     Return ``True`` if x is of type MultiplicativeGroupElement.
     """
-    return IS_INSTANCE(x, MultiplicativeGroupElement)
+    return isinstance(x, MultiplicativeGroupElement)
 
 cdef class MultiplicativeGroupElement(MonoidElement):
     """
@@ -1552,7 +1640,7 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         raise ArithmeticError("addition not defined in a multiplicative group")
 
     def __div__(left, right):
-        if have_same_parent(left, right):
+        if have_same_parent_c(left, right):
             return left._div_(right)
         global coercion_model
         return coercion_model.bin_op(left, right, div)
@@ -1565,21 +1653,24 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         return self * ~right
 
     def __invert__(self):
+        r"""
+        Return the inverse of ``self``.
+        """
         if self.is_one():
             return self
-        return 1/self
+        return self.parent().one()/self
 
 
 def is_RingElement(x):
     """
     Return ``True`` if x is of type RingElement.
     """
-    return IS_INSTANCE(x, RingElement)
+    return isinstance(x, RingElement)
 
 cdef class RingElement(ModuleElement):
     ##################################################
     def is_one(self):
-        return self == self._parent.one_element()
+        return self == self._parent.one()
 
     ##################################
     # Fast long add/sub path.
@@ -1591,8 +1682,8 @@ cdef class RingElement(ModuleElement):
 
         See extensive documentation at the top of element.pyx.
         """
-        if have_same_parent(left, right):
-            if  (<RefPyObject *>left).ob_refcnt < inplace_threshold:
+        if have_same_parent_c(left, right):
+            if (<PyObject *>left).ob_refcnt < inplace_threshold:
                 return (<ModuleElement>left)._iadd_(<ModuleElement>right)
             else:
                 return (<ModuleElement>left)._add_(<ModuleElement>right)
@@ -1615,8 +1706,8 @@ cdef class RingElement(ModuleElement):
         See extensive documentation at the top of element.pyx.
         """
         cdef long n
-        if have_same_parent(left, right):
-            if  (<RefPyObject *>left).ob_refcnt < inplace_threshold:
+        if have_same_parent_c(left, right):
+            if (<PyObject *>left).ob_refcnt < inplace_threshold:
                 return (<ModuleElement>left)._isub_(<ModuleElement>right)
             else:
                 return (<ModuleElement>left)._sub_(<ModuleElement>right)
@@ -1750,9 +1841,9 @@ cdef class RingElement(ModuleElement):
         # Try fast pathway if they are both RingElements and the parents match.
         # (We know at least one of the arguments is a RingElement. So if their
         # types are *equal* (fast to check) then they are both RingElements.
-        # Otherwise use the slower test via PY_TYPE_CHECK.)
-        if have_same_parent(left, right):
-            if  (<RefPyObject *>left).ob_refcnt < inplace_threshold:
+        # Otherwise use the slower test via isinstance.)
+        if have_same_parent_c(left, right):
+            if (<PyObject *>left).ob_refcnt < inplace_threshold:
                 return (<RingElement>left)._imul_(<RingElement>right)
             else:
                 return (<RingElement>left)._mul_(<RingElement>right)
@@ -1770,8 +1861,8 @@ cdef class RingElement(ModuleElement):
         raise TypeError(arith_error_message(self, right, mul))
 
     def __imul__(left, right):
-        if have_same_parent(left, right):
-            if  (<RefPyObject *>left).ob_refcnt <= inplace_threshold:
+        if have_same_parent_c(left, right):
+            if (<PyObject *>left).ob_refcnt <= inplace_threshold:
                 return (<RingElement>left)._imul_(<RingElement>right)
             else:
                 return (<RingElement>left)._mul_(<RingElement>right)
@@ -1864,7 +1955,7 @@ cdef class RingElement(ModuleElement):
             raise ValueError("negative number of powers requested")
         elif n == 0:
             return []
-        x = self._parent.one_element()
+        x = self._parent.one()
         l = [x]
         for i in xrange(n - 1):
             x = x * self
@@ -1877,7 +1968,7 @@ cdef class RingElement(ModuleElement):
 
     def __truediv__(self, right):
         # in sage all divs are true
-        if not PY_TYPE_CHECK(self, Element):
+        if not isinstance(self, Element):
             return coercion_model.bin_op(self, right, div)
         return self.__div__(right)
 
@@ -1886,8 +1977,8 @@ cdef class RingElement(ModuleElement):
         Top-level multiplication operator for ring elements.
         See extensive documentation at the top of element.pyx.
         """
-        if have_same_parent(self, right):
-            if  (<RefPyObject *>self).ob_refcnt < inplace_threshold:
+        if have_same_parent_c(self, right):
+            if (<PyObject *>self).ob_refcnt < inplace_threshold:
                 return (<RingElement>self)._idiv_(<RingElement>right)
             else:
                 return (<RingElement>self)._div_(<RingElement>right)
@@ -1912,8 +2003,8 @@ cdef class RingElement(ModuleElement):
         Top-level division operator for ring elements.
         See extensive documentation at the top of element.pyx.
         """
-        if have_same_parent(self, right):
-            if  (<RefPyObject *>self).ob_refcnt <= inplace_threshold:
+        if have_same_parent_c(self, right):
+            if (<PyObject *>self).ob_refcnt <= inplace_threshold:
                 return (<RingElement>self)._idiv_(<RingElement>right)
             else:
                 return (<RingElement>self)._div_(<RingElement>right)
@@ -1970,8 +2061,8 @@ cdef class RingElement(ModuleElement):
 
     def abs(self):
         """
-        Return the absolute value of self.  (This just calls the __abs__
-        method, so it is equivalent to the abs() built-in function.)
+        Return the absolute value of ``self``.  (This just calls the ``__abs__``
+        method, so it is equivalent to the ``abs()`` built-in function.)
 
         EXAMPLES::
 
@@ -2059,7 +2150,7 @@ def is_CommutativeRingElement(x):
         sage: is_CommutativeRingElement(1)
         True
     """
-    return IS_INSTANCE(x, CommutativeRingElement)
+    return isinstance(x, CommutativeRingElement)
 
 cdef class CommutativeRingElement(RingElement):
     """
@@ -2119,11 +2210,10 @@ cdef class CommutativeRingElement(RingElement):
             ...
             ZeroDivisionError: reduction modulo right not defined.
 
-        If x has different parent than `self`, they are first coerced to a
+        If ``x`` has different parent than ``self``, they are first coerced to a
         common parent if possible. If this coercion fails, it returns a
-        TypeError. This fixes :trac:`5759`
+        TypeError. This fixes :trac:`5759`. ::
 
-        ::
             sage: Zmod(2)(0).divides(Zmod(2)(0))
             True
             sage: Zmod(2)(0).divides(Zmod(2)(1))
@@ -2139,7 +2229,7 @@ cdef class CommutativeRingElement(RingElement):
         """
         #Check if the parents are the same:
 
-        if have_same_parent(self, x):
+        if have_same_parent_c(self, x):
             # First we test some generic conditions:
             try:
                 if x.is_zero():
@@ -2304,17 +2394,17 @@ cdef class CommutativeRingElement(RingElement):
 
         -  ``all`` - Whether to return a list of all square roots or just a square root (default: False)
 
-        -  ``name`` - Required when extend=``True`` and ``self`` is not a square. This will be the name of the generator extension.
+        -  ``name`` - Required when ``extend=True`` and ``self`` is not a square. This will be the name of the generator extension.
 
         OUTPUT:
 
-        - if all=False it returns a square root. (throws an error if extend=False and ``self`` is not a square)
+        - if ``all=False`` it returns a square root. (throws an error if ``extend=False`` and ``self`` is not a square)
 
-        - if all=``True`` it returns a list of all the square roots (could be empty if extend=False and ``self`` is not a square)
+        - if ``all=True`` it returns a list of all the square roots (could be empty if ``extend=False`` and ``self`` is not a square)
 
         ALGORITHM:
 
-        It uses is_square(root=true) for the hard part of the work, the rest is just wrapper code.
+        It uses ``is_square(root=true)`` for the hard part of the work, the rest is just wrapper code.
 
         EXAMPLES::
 
@@ -2429,7 +2519,7 @@ cdef class Vector(ModuleElement):
         raise NotImplementedError
 
     def __imul__(left, right):
-        if have_same_parent(left, right):
+        if have_same_parent_c(left, right):
             return (<Vector>left)._dot_product_(<Vector>right)
         # Always do this
         global coercion_model
@@ -2596,13 +2686,16 @@ cdef class Vector(ModuleElement):
             TypeError: unsupported operand parent(s) for '*': 'Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Rational Field'
 
         """
-        if have_same_parent(left, right):
+        if have_same_parent_c(left, right):
             return (<Vector>left)._dot_product_(<Vector>right)
         # Always do this
         global coercion_model
         return coercion_model.bin_op(left, right, mul)
 
     cpdef Element _dot_product_(Vector left, Vector right):
+        return left._dot_product_coerce_(right)
+
+    cpdef Element _dot_product_coerce_(Vector left, Vector right):
         raise TypeError(arith_error_message(left, right, mul))
 
     cpdef Vector _pairwise_product_(Vector left, Vector right):
@@ -2611,10 +2704,10 @@ cdef class Vector(ModuleElement):
     def __div__(self, right):
         if PY_IS_NUMERIC(right):
             right = py_scalar_to_element(right)
-        if PY_TYPE_CHECK(right, RingElement):
+        if isinstance(right, RingElement):
             # Let __mul__ do the job
             return self.__mul__(~right)
-        if PY_TYPE_CHECK(right, Vector):
+        if isinstance(right, Vector):
             try:
                 W = right.parent().submodule([right])
                 return W.coordinates(self)[0] / W.coordinates(right)[0]
@@ -2664,7 +2757,7 @@ cdef class Vector(ModuleElement):
         return '%s![%s]'%(V.name(), ','.join(v))
 
 def is_Vector(x):
-    return IS_INSTANCE(x, Vector)
+    return isinstance(x, Vector)
 
 cdef class Matrix(ModuleElement):
 
@@ -2675,7 +2768,7 @@ cdef class Matrix(ModuleElement):
         raise NotImplementedError
 
     def __imul__(left, right):
-        if have_same_parent(left, right):
+        if have_same_parent_c(left, right):
             return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
         else:
             global coercion_model
@@ -2862,7 +2955,7 @@ cdef class Matrix(ModuleElement):
             [33 36] [39 42]
             [45 48]]
         """
-        if have_same_parent(left, right):
+        if have_same_parent_c(left, right):
             return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
         else:
             global coercion_model
@@ -2918,9 +3011,9 @@ cdef class Matrix(ModuleElement):
             [       (-t^3 + t^2 - t - 6)/(t^5 - 3*t) (t^4 + 2*t^3 + t^2 - t - 2)/(t^5 - 3*t)]
         """
         cdef Matrix rightinv
-        if have_same_parent(left, right):
+        if have_same_parent_c(left, right):
             rightinv = ~<Matrix>right
-            if have_same_parent(left,rightinv):
+            if have_same_parent_c(left,rightinv):
                 return (<Matrix>left)._matrix_times_matrix_(rightinv)
             else:
                 return (<Matrix>(left.change_ring(rightinv.parent().base_ring())))._matrix_times_matrix_(rightinv)
@@ -2940,13 +3033,13 @@ cdef class Matrix(ModuleElement):
 
 
 def is_Matrix(x):
-    return IS_INSTANCE(x, Matrix)
+    return isinstance(x, Matrix)
 
 def is_IntegralDomainElement(x):
     """
     Return ``True`` if x is of type IntegralDomainElement.
     """
-    return IS_INSTANCE(x, IntegralDomainElement)
+    return isinstance(x, IntegralDomainElement)
 
 cdef class IntegralDomainElement(CommutativeRingElement):
     def is_nilpotent(self):
@@ -2957,7 +3050,7 @@ def is_DedekindDomainElement(x):
     """
     Return ``True`` if x is of type DedekindDomainElement.
     """
-    return IS_INSTANCE(x, DedekindDomainElement)
+    return isinstance(x, DedekindDomainElement)
 
 cdef class DedekindDomainElement(IntegralDomainElement):
     pass
@@ -2966,7 +3059,7 @@ def is_PrincipalIdealDomainElement(x):
     """
     Return ``True`` if x is of type PrincipalIdealDomainElement.
     """
-    return IS_INSTANCE(x, PrincipalIdealDomainElement)
+    return isinstance(x, PrincipalIdealDomainElement)
 
 cdef class PrincipalIdealDomainElement(DedekindDomainElement):
     def lcm(self, right):
@@ -2988,7 +3081,7 @@ def is_EuclideanDomainElement(x):
     """
     Return ``True`` if x is of type EuclideanDomainElement.
     """
-    return IS_INSTANCE(x, EuclideanDomainElement)
+    return isinstance(x, EuclideanDomainElement)
 
 cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
 
@@ -3003,7 +3096,7 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
 
     def __divmod__(self, other):
         """
-        Return the quotient and remainder of ``self`` divided by other.
+        Return the quotient and remainder of ``self`` divided by ``other``.
 
         EXAMPLES::
 
@@ -3015,7 +3108,7 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
             (2, 1)
 
         """
-        if PY_TYPE_CHECK(self, Element):
+        if isinstance(self, Element):
             return self.quo_rem(other)
         else:
             x, y = canonical_coercion(self, other)
@@ -3047,7 +3140,7 @@ def is_FieldElement(x):
     """
     Return ``True`` if x is of type FieldElement.
     """
-    return IS_INSTANCE(x, FieldElement)
+    return isinstance(x, FieldElement)
 
 cdef class FieldElement(CommutativeRingElement):
 
@@ -3090,18 +3183,18 @@ cdef class FieldElement(CommutativeRingElement):
 
     def quo_rem(self, right):
         r"""
-        Return the quotient and remainder obtained by dividing `self` by
-        `other`. Since this element lives in a field, the remainder is always
-        zero and the quotient is `self/right`.
+        Return the quotient and remainder obtained by dividing ``self`` by
+        ``right``. Since this element lives in a field, the remainder is always
+        zero and the quotient is ``self/right``.
 
         TESTS:
 
-        Test if #8671 is fixed::
+        Test if :trac:`8671` is fixed::
 
             sage: R.<x,y> = QQ[]
             sage: S.<a,b> = R.quo(y^2 + 1)
             sage: S.is_field = lambda : False
-            sage: F = Frac(S); u = F.one_element()
+            sage: F = Frac(S); u = F.one()
             sage: u.quo_rem(u)
             (1, 0)
         """
@@ -3146,7 +3239,7 @@ def is_AlgebraElement(x):
         sage: is_AlgebraElement(1)
         False
     """
-    return IS_INSTANCE(x, AlgebraElement)
+    return isinstance(x, AlgebraElement)
 
 cdef class AlgebraElement(RingElement):
     pass
@@ -3155,7 +3248,7 @@ def is_CommutativeAlgebraElement(x):
     """
     Return ``True`` if x is of type CommutativeAlgebraElement.
     """
-    return IS_INSTANCE(x, CommutativeAlgebraElement)
+    return isinstance(x, CommutativeAlgebraElement)
 
 cdef class CommutativeAlgebraElement(CommutativeRingElement):
     pass
@@ -3173,7 +3266,7 @@ def is_InfinityElement(x):
         sage: is_InfinityElement(oo)
         True
     """
-    return IS_INSTANCE(x, InfinityElement)
+    return isinstance(x, InfinityElement)
 
 cdef class InfinityElement(RingElement):
     def __invert__(self):
@@ -3186,8 +3279,6 @@ cdef class PlusInfinityElement(InfinityElement):
 cdef class MinusInfinityElement(InfinityElement):
     pass
 
-include "coerce.pxi"
-
 
 #################################################################################
 #
@@ -3197,15 +3288,15 @@ include "coerce.pxi"
 
 cpdef canonical_coercion(x, y):
     """
-    canonical_coercion(x,y) is what is called before doing an
-    arithmetic operation between x and y.  It returns a pair (z,w)
-    such that z is got from x and w from y via canonical coercion and
-    the parents of z and w are identical.
+    ``canonical_coercion(x,y)`` is what is called before doing an
+    arithmetic operation between ``x`` and ``y``.  It returns a pair ``(z,w)``
+    such that ``z`` is got from ``x`` and ``w`` from ``y`` via canonical coercion and
+    the parents of ``z`` and ``w`` are identical.
 
     EXAMPLES::
 
-        sage: A = Matrix([[0,1],[1,0]])
-        sage: canonical_coercion(A,1)
+        sage: A = Matrix([[0, 1], [1, 0]])
+        sage: canonical_coercion(A, 1)
         (
         [0 1]  [1 0]
         [1 0], [0 1]
@@ -3401,7 +3492,7 @@ cdef class NamedBinopMethod:
                 self._func(x, **kwds)
             else:
                 x, y = self._self, x
-        if not have_same_parent(x, y):
+        if not have_same_parent_c(x, y):
             old_x = x
             x,y = coercion_model.canonical_coercion(x, y)
             if old_x is x:
@@ -3481,11 +3572,11 @@ def generic_power(a, n, one=None):
     """
     Computes `a^n`, where `n` is an integer, and `a` is an object which
     supports multiplication.  Optionally an additional argument,
-    which is used in the case that n == 0:
+    which is used in the case that ``n == 0``:
 
     - ``one`` - the "unit" element, returned directly (can be anything)
 
-    If this is not supplied, int(1) is returned.
+    If this is not supplied, ``int(1)`` is returned.
 
     EXAMPLES::
 
@@ -3528,7 +3619,7 @@ cdef generic_power_c(a, nn, one):
 
     if not n:
         if one is None:
-            if PY_TYPE_CHECK(a, Element):
+            if isinstance(a, Element):
                 return (<Element>a)._parent.one()
             try:
                 try:

@@ -29,7 +29,6 @@ cdef class Polynomial_generic_dense(Polynomial):
 #    cdef _dict_to_list(self, x, zero)
 
 cpdef is_Polynomial(f)
-cpdef Polynomial_generic_dense _new_constant_dense_poly(list coeffs, Parent P, sample)
 
 #cdef class Polynomial_generic_sparse(Polynomial):
 #    cdef object __coeffs # a python dict (for now)

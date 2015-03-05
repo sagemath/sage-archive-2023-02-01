@@ -16,29 +16,6 @@ from covering_design import (CoveringDesign,
 
 import design_catalog as designs
 
-from sage.misc.superseded import deprecated_callable_import
-deprecated_callable_import(14499,
-                           'sage.combinat.designs.block_design',
-                           globals(),
-                           locals(),
-                           ["ProjectiveGeometryDesign",
-                            "AffineGeometryDesign",
-                            "WittDesign",
-                            "HadamardDesign"],
-                           ("This method soon will not be available in that "
-                            "way anymore. To use it, you can now call it by "
-                            "typing designs.%(name)s"))
-deprecated_callable_import(14499,
-                           'sage.combinat.designs.covering_design',
-                           globals(),
-                           locals(),
-                           ["best_known_covering_design_www"],
-                           ("This method soon will not be available in that "
-                            "way anymore. To use it, you can now call it by "
-                            "typing designs.best_known_covering_design_from_LJCR"))
-
-del deprecated_callable_import
-
 import sage.combinat.designs.steiner_quadruple_systems
 import sage.combinat.designs.orthogonal_arrays
 import sage.combinat.designs.latin_squares

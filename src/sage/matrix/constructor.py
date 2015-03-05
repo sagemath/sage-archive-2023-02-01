@@ -2767,7 +2767,7 @@ def block_diagonal_matrix(*sub_matrices, **kwds):
     if isinstance(sub_matrices, (list, tuple)) and len(sub_matrices) == 1:
         sub_matrices = sub_matrices[0]
     n = len(sub_matrices)
-    entries = [ZZ.zero_element()] * n**2
+    entries = [ZZ.zero()] * n**2
     for i in range(n):
         entries[n*i+i] = sub_matrices[i]
     return block_matrix(n, n, entries, **kwds)

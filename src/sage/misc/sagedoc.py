@@ -37,27 +37,39 @@ from __future__ import print_function
 import os, re, sys
 import pydoc
 from sage.misc.viewer import browser
-from sage.misc.misc import tmp_dir
+from sage.misc.temporary_file import tmp_dir
 import sage.version
 from sage.env import SAGE_DOC, SAGE_SRC
 
-# two kinds of substitutions: math, which should only be done on the
-# command line -- in the notebook, these should instead by taken care
-# of by MathJax -- and nonmath, which should be done always.
-math_substitutes = [ # don't forget leading backslash '\\'
-    ('\\to', '-->'),
-    ('\\leq', '<='),
-    ('\\geq', '>='),
-    ('\\le', '<='),
-    ('\\ge', '>='),
-    ('\\cdots', '...'),
-    ('\\ldots', '...'),
-    ('\\dots', '...'),
-    ('\\cdot', ' *'),
-    (' \\times', ' x'),
-    ('\\times', ' x'),
-    ('\\backslash','\\'),
-    ('\\mapsto', ' |--> '),
+# The detex function does two kinds of substitutions: math, which
+# should only be done on the command line -- in the notebook, these
+# should instead by taken care of by MathJax -- and nonmath, which
+# should be done always.
+
+# Math substititions: don't forget the leading backslash '\\'. These
+# are done using regular expressions, so it works best to also make
+# the strings raw: r'\\blah'.
+math_substitutes = [
+    (r'\\to', '-->'),
+    (r'\\left', ''),
+    (r'\\right', ''),
+    (r'\\bigl', ''),
+    (r'\\bigr', ''),
+    (r'\\leq', '<='),
+    (r'\\geq', '>='),
+    (r'\\le', '<='),
+    (r'\\ge', '>='),
+    (r'\\cdots', '...'),
+    (r'\\ldots', '...'),
+    (r'\\dots', '...'),
+    (r'\\cdot', ' *'),
+    (r'\\ast', ' *'),
+    (r' \\times', ' x'),
+    (r'\\times', ' x'),
+    (r'\\backslash','\\'),
+    (r'\\mapsto', ' |--> '),
+    (r'\\lvert', '|'),
+    (r'\\rvert', '|'),
 ]
 nonmath_substitutes = [
     ('\\_','_'),
@@ -178,6 +190,10 @@ def detex(s, embedded=False):
         'a, b, c, ..., z\n'
         sage: detex(r'`a, b, c, \ldots, z`', embedded=True)
         '`a, b, c, \\ldots, z`'
+        sage: detex(r'`\left(\lvert x\ast y \rvert\right]`')
+        '(| x * y |]\n'
+        sage: detex(r'`\left(\leq\le\leftarrow \rightarrow\to`')
+        '(<=<=leftarrow rightarrow-->\n'
     """
     s = _rmcmd(s, 'url')
     s = _rmcmd(s, 'code')
@@ -200,8 +216,12 @@ def detex(s, embedded=False):
         s = _rmcmd(s, 'mathrm')
         from sagenb.misc.sphinxify import sphinxify
         s = sphinxify(s, format='text')
-        for a,b in math_substitutes:  # do math substitutions
-            s = s.replace(a,b)
+        # Do math substitutions. The strings to be replaced should be
+        # TeX commands like "\\blah". Do a regular expression
+        # replacement to replace "\\blah" but not "\\blahxyz", etc.:
+        # test to make sure the next character is not a letter.
+        for a,b in math_substitutes:
+            s = re.sub(a+'([^a-zA-Z])', b+'\\1', s)
         s = s.replace('\\','')        # nuke backslashes
     return s
 
@@ -1036,7 +1056,7 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='',
 
         sage: len(search_doc('tree', interact=False).splitlines()) > 4000  # long time
         True
-        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 1000  # long time
+        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 2000  # long time
         True
     """
     return _search_src_or_doc('doc', string, extra1=extra1, extra2=extra2,

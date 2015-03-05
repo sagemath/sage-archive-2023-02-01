@@ -596,7 +596,7 @@ def wilson_1972_difference_family(K, k, existence=False, check=True):
 
         sage: it4 = ppap(4*3,1)
         sage: for _ in range(7):
-        ....:     v = it4.next()
+        ....:     v = next(it4)
         ....:     existence = wilson_1972_difference_family(GF(v,'a'), 4, existence=True)
         ....:     print "v = {}: {}".format(v, existence)
         v = 13: True
@@ -609,7 +609,7 @@ def wilson_1972_difference_family(K, k, existence=False, check=True):
 
         sage: it5 = ppap(5*4,1)
         sage: for _ in range(7):
-        ....:     v = it5.next()
+        ....:     v = next(it5)
         ....:     existence = wilson_1972_difference_family(GF(v,'a'), 5, existence=True)
         ....:     print "v = {:3}: {}".format(v, existence)
         v =  41: True
@@ -622,7 +622,7 @@ def wilson_1972_difference_family(K, k, existence=False, check=True):
 
         sage: it6 = ppap(6*5,1)
         sage: for _ in range(7):
-        ....:     v = it6.next()
+        ....:     v = next(it6)
         ....:     existence = wilson_1972_difference_family(GF(v,'a'), 6, existence=True)
         ....:     print "v = {:3}: {}".format(v, existence)
         v =  31: False
@@ -635,7 +635,7 @@ def wilson_1972_difference_family(K, k, existence=False, check=True):
 
         sage: it7 = ppap(7*6,1)
         sage: for _ in range(7):
-        ....:     v = it7.next()
+        ....:     v = next(it7)
         ....:     existence = wilson_1972_difference_family(GF(v,'a'), 7, existence=True)
         ....:     print "v = {:3}: {}".format(v, existence)
         v =  43: False
@@ -1064,7 +1064,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         elif explain_construction:
             return "The database contains a ({},{},{})-difference family".format(v,k,l)
 
-        vv, blocks = DF[v,k,l].iteritems().next()
+        vv, blocks = next(DF[v,k,l].iteritems())
 
         # Build the group
         from sage.rings.finite_rings.integer_mod_ring import Zmod

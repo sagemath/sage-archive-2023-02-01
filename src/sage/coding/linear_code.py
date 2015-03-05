@@ -224,7 +224,7 @@ from sage.matrix.constructor import Matrix
 from sage.modules.free_module_element import vector
 from sage.rings.arith import GCD, rising_factorial, binomial
 from sage.groups.all import SymmetricGroup
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.misc.functional import log, is_even
 from sage.rings.rational_field import QQ
 from sage.structure.parent import Parent
@@ -273,7 +273,7 @@ def code2leon(C):
         sage: f.close()
 
     """
-    from sage.misc.misc import tmp_filename
+    from sage.misc.temporary_file import tmp_filename
     F = C.base_ring()
     p = F.order()  # must be prime and <11
     s = "LIBRARY code;\n"+"code=seq(%s,%s,%s,seq(\n"%(p,C.dimension(),C.length())
@@ -2889,7 +2889,7 @@ class LinearCode(module.Module):
             guava_bin_dir = gap.eval('DirectoriesPackagePrograms("guava")[1]')
             guava_bin_dir = guava_bin_dir[guava_bin_dir.index('"') + 1:guava_bin_dir.rindex('"')]
             input = code2leon(self)
-            from sage.misc.misc import tmp_filename
+            from sage.misc.temporary_file import tmp_filename
             output = tmp_filename()
             import os
             status = os.system(os.path.join(guava_bin_dir, 'wtdist')
@@ -3041,16 +3041,13 @@ class LinearCode(module.Module):
         EXAMPLES::
 
             sage: C = codes.HammingCode(3, GF(2))
-            sage: C.zero_element()
+            sage: C.zero()
             (0, 0, 0, 0, 0, 0, 0)
             sage: C.sum(()) # indirect doctest
             (0, 0, 0, 0, 0, 0, 0)
             sage: C.sum((C.gens())) # indirect doctest
             (1, 1, 1, 1, 1, 1, 1)
         """
-        # Note that self.sum() calls self.zero_element(), which in turn
-        # calls self.zero(). So, only this method needs to be implemented
-        # for the other two to work.
         v = 0*self.__gens[0]
         v.set_immutable()
         return v

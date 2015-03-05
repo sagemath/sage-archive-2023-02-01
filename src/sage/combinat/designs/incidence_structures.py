@@ -303,9 +303,9 @@ class IncidenceStructure(object):
 
             sage: b = designs.IncidenceStructure('ab', ['a','ab'])
             sage: it = iter(b)
-            sage: it.next()
+            sage: next(it)
             ['a']
-            sage: it.next()
+            sage: next(it)
             ['a', 'b']
         """
         if self._point_to_index is None:

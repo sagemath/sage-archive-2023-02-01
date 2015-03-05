@@ -601,11 +601,11 @@ cdef int cconv(mpz_t out, x, long prec, long valshift, PowComputer_class prime_p
 
     - ``prime_pow`` -- a PowComputer for the ring.
     """
-    if PY_TYPE_CHECK(x, pari_gen):
+    if isinstance(x, pari_gen):
         x = x.sage()
-    if PY_TYPE_CHECK(x, pAdicGenericElement) or sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
+    if isinstance(x, pAdicGenericElement) or sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
         x = x.lift()
-    if PY_TYPE_CHECK(x, Integer):
+    if isinstance(x, Integer):
         if valshift > 0:
             mpz_divexact(out, (<Integer>x).value, prime_pow.pow_mpz_t_tmp(valshift))
             mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec))
@@ -613,7 +613,7 @@ cdef int cconv(mpz_t out, x, long prec, long valshift, PowComputer_class prime_p
             raise RuntimeError("Integer should not have negative valuation")
         else:
             mpz_mod(out, (<Integer>x).value, prime_pow.pow_mpz_t_tmp(prec))
-    elif PY_TYPE_CHECK(x, Rational):
+    elif isinstance(x, Rational):
         if valshift == 0:
             mpz_invert(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(prec))
             mpz_mul(out, out, mpq_numref((<Rational>x).value))

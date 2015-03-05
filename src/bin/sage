@@ -45,7 +45,7 @@ usage() {
     echo "                         'version' is a git branch or tag name. Useful values"
     echo "                         are 'master' (the currend development version, this"
     echo "                         is the default) or a version number like '5.13'."
-    echo "  -v, -version        -- print the Sage version"
+    echo "  -v, -version        -- display Sage version information"
     exit 0
 }
 
@@ -65,7 +65,8 @@ usage_advanced() {
     echo "  -root               -- print the Sage root directory"
     echo "  -gthread, -qthread, -q4thread, -wthread, -pylab"
     echo "                      -- pass the option through to ipython"
-    echo "  -v, -version        -- print the Sage version"
+    echo "  -v, -version        -- display Sage version information"
+    echo "  -dumpversion        -- print Sage version"
     echo "  -git-branch         -- print the current git branch"
 
     echo
@@ -203,7 +204,7 @@ usage_advanced() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Making Sage packages or distributions:"
-    echo "  -bdist VER          -- build a binary distribution of Sage"
+    echo "  -bdist <tmpdir>     -- build a binary distribution of Sage"
     echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
     echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
     echo "  -sdist              -- build a source distribution of Sage"
@@ -356,11 +357,16 @@ fi
 # Report information about the Sage environment
 #####################################################################
 
+if [ "$1" = '-dumpversion' -o "$1" = '--dumpversion' ]; then
+	. "$SAGE_LOCAL"/bin/sage-version.sh
+	echo ${SAGE_VERSION}
+	exit 0
+fi
+
 if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
-    # Workaround for OSX, see http://trac.sagemath.org/15072
-    export LC_ALL=C
-    exec sed -n -e 's/.*\(Sage Version.*Date: [0-9-]*\).*/\1/p' \
-        "$SAGE_LOCAL"/bin/sage-banner
+	. "$SAGE_LOCAL"/bin/sage-version.sh
+	echo "Sage Version ${SAGE_VERSION}, Release Date: ${SAGE_RELEASE_DATE}"
+	exit 0
 fi
 
 if [ "$1" = '-root'  -o "$1" = '--root' ]; then
@@ -632,15 +638,14 @@ build_sage() {
     sage-build "$@" || exit $?
 }
 
-if [[ "$1" =~ "--notebook="* || "$1" =~ "-n="* || "$1" =~ "-notebook="* ]]; then
+if [[ "$1" =~ ^--notebook=.* || "$1" =~ ^-n=.* || "$1" =~ ^-notebook=.* ]] ; then
     sage-cleaner &>/dev/null &
     exec sage-notebook "$@"
 fi
 
 if [ "$1" = "-notebook" -o "$1" = '--notebook' -o "$1" = '-n' ]; then
-    shift
     sage-cleaner &>/dev/null &
-    exec sage-notebook --notebook=default "$@"
+    exec sage-notebook "$@"
 fi
 
 if [ "$1" = "-bn" -o "$1" = "--build-and-notebook" ]; then

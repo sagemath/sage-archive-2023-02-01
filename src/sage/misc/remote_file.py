@@ -3,24 +3,28 @@ import os, sys
 def get_remote_file(filename, verbose=True):
     """
     INPUT:
-        filename -- the URL of a file on the web, e.g.,
-             "http://modular.math.washington.edu/myfile.txt"
-        verbose -- whether to display download status
+
+    - ``filename`` -- the URL of a file on the web, e.g.,
+      ``"http://modular.math.washington.edu/myfile.txt"``
+
+    - ``verbose`` -- whether to display download status
 
     OUTPUT:
-        creates a file in the temp directory and returns the
-        absolute path to that file.
 
-    EXAMPLES:
+    creates a file in the temp directory and returns the absolute path
+    to that file.
+
+    EXAMPLES::
+
         sage: g = get_remote_file("http://sagemath.org/ack.html", verbose=False)   # optional - internet
-        sage: len(open(g).read())   # optional; randomly growing.
+        sage: len(open(g).read())   # optional - internet; random
         10198
     """
     if verbose:
         print("Attempting to load remote file: " + filename)
-    import misc
 
-    temp_name = misc.tmp_filename() + '.' + os.path.splitext(filename)[1][1:]
+    from sage.misc.temporary_file import tmp_filename
+    temp_name = tmp_filename() + '.' + os.path.splitext(filename)[1][1:]
     # IMPORTANT -- urllib takes a long time to load,
     # so do not import it in the module scope.
     import urllib

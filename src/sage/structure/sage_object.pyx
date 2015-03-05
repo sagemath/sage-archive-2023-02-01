@@ -10,16 +10,16 @@ from sage.misc.sage_unittest import TestSuite
 
 sys_modules = sys.modules
 
+from sage.misc.lazy_import import LazyImport
+have_same_parent = LazyImport('sage.structure.element', 'have_same_parent', deprecation=17533)
+
 # change to import zlib to use zlib instead; but this
 # slows down loading any data stored in the other format
 import zlib; comp = zlib
 import bz2; comp_other = bz2
 
-base=None
 
 cdef process(s):
-    if base is not None and not os.path.isabs(s):
-        s = os.path.join(base,s)
     if s[-5:] != '.sobj':
         return s + '.sobj'
     else:
@@ -306,7 +306,15 @@ cdef class SageObject:
         version of Sage it was created.
 
         This only works on Python classes that derive from SageObject.
+
+        TESTS::
+
+            sage: v = DiGraph().version()
+            doctest:... DeprecationWarning: version() is deprecated.
+            See http://trac.sagemath.org/2536 for details.
         """
+        from sage.misc.superseded import deprecation
+        deprecation(2536, 'version() is deprecated.')
         try:
             return self.__version
         except AttributeError:
@@ -371,24 +379,17 @@ cdef class SageObject:
         reload.
 
         The database directory is ``$HOME/.sage/db``
+
+        TESTS::
+
+            sage: SageObject().db("Test")
+            doctest:... DeprecationWarning: db() is deprecated.
+            See http://trac.sagemath.org/2536 for details.
         """
-        #if name is None:
-        #    name = self._db_name()
+        from sage.misc.superseded import deprecation
+        deprecation(2536, 'db() is deprecated.')
         from sage.misc.all import SAGE_DB
         return self.dump('%s/%s'%(SAGE_DB,name), compress=compress)
-
-##     def _db_name(self):
-##         t = str(type(self)).split()[-1][1:-2]
-##         try:
-##             d = str(self._defining_params_())
-##         except AttributeError:
-##             d = str(self)
-##         d = '_'.join(d.split())
-##         from sage.misc.all import SAGE_DB
-##         if not os.path.exists('%s/%s'%(SAGE_DB, t)):
-##             os.makedirs(t)
-##         return '%s/%s'%(t, d)
-
 
     #############################################################################
     # Category theory / structure
@@ -831,51 +832,18 @@ cdef class SageObject:
         from sage.interfaces.gp import gp
         return self._interface_init_(gp)
 
-
-######################################################
-# A python-accessible version of the one in coerce.pxi
-# Where should it be?
-
-def have_same_parent(self, other):
-    """
-    EXAMPLES::
-
-        sage: from sage.structure.sage_object import have_same_parent
-        sage: have_same_parent(1, 3)
-        True
-        sage: have_same_parent(1, 1/2)
-        False
-        sage: have_same_parent(gap(1), gap(1/2))
-        True
-    """
-    from sage.structure.coerce import parent
-    return parent(self) == parent(other)
-
 ##################################################################
 
 def load(*filename, compress=True, verbose=True):
     r"""
     Load Sage object from the file with name filename, which will have
     an ``.sobj`` extension added if it doesn't have one.  Or, if the input
-    is a filename ending in ``.py``, ``.pyx``, or ``.sage``, load that
-    file into the current running session. If the filename ends in
-    ``.f`` or ``.f90``, it is compiled as Fortran code and loaded.
+    is a filename ending in ``.py``, ``.pyx``, ``.sage``, ``.spyx``,
+    ``.f``, ``.f90`` or ``.m``, load that file into the current running
+    session.
     
     Loaded files are not loaded into their own namespace, i.e., this is
     much more like Python's ``execfile`` than Python's ``import``.
-
-    .. NOTE::
-
-       There is also a special Sage command (that is not
-       available in Python) called load that you use by typing
-
-       ::
-
-          sage: load filename.sage           # not tested
-
-       The documentation below is not for that command.  The
-       documentation for load is almost identical to that for attach.
-       Type attach? for help on attach.
 
     This function also loads a ``.sobj`` file over a network by
     specifying the full URL.  (Setting ``verbose = False`` suppresses
@@ -920,14 +888,15 @@ def load(*filename, compress=True, verbose=True):
     """
     import sage.repl.load
     if len(filename) != 1:
-        v = [load(file, compress=True, verbose=True) for file in filename]
-        ret = False
+        v = [load(file, compress=compress, verbose=verbose) for file in filename]
+        # Return v if one of the filenames refers to an object and not
+        # a loadable filename.
         for file in filename:
             if not sage.repl.load.is_loadable_filename(file):
-                ret = True
-        return v if ret else None
-    else:
-        filename = filename[0]
+                return v
+        return
+
+    filename = filename[0]
 
     if sage.repl.load.is_loadable_filename(filename):
         sage.repl.load.load(filename, globals())
@@ -939,11 +908,6 @@ def load(*filename, compress=True, verbose=True):
         from sage.misc.remote_file import get_remote_file
         filename = get_remote_file(filename, verbose=verbose)
         tmpfile_flag = True
-    elif lower.endswith('.f') or lower.endswith('.f90'):
-        from sage.misc.inline_fortran import fortran
-        with open(filename) as f:
-            fortran(f.read(), globals())
-        return
     else:
         tmpfile_flag = False
         filename = process(filename)
@@ -965,7 +929,7 @@ def load(*filename, compress=True, verbose=True):
 def save(obj, filename=None, compress=True, **kwds):
     """
     Save ``obj`` to the file with name ``filename``, which will have an
-    ``.sobj`` extension added if it doesn't have one, or if ``obj``
+    ``.sobj`` extension added if it doesn't have one and if ``obj``
     doesn't have its own ``save()`` method, like e.g. Python tuples.
 
     For image objects and the like (which have their own ``save()`` method),
@@ -1014,10 +978,8 @@ def save(obj, filename=None, compress=True, **kwds):
     # Add '.sobj' if the filename currently has no extension
     # and also if the object doesn't have its own save() method (#11577)
     # since we otherwise assume below it is an image object:
-    if (os.path.splitext(filename)[1] == ''
-        or (os.path.splitext(filename)[1] != '.sobj'
-             and not hasattr(obj,"save"))):
-        filename += '.sobj'
+    if not os.path.splitext(filename)[1] or not hasattr(obj, "save"):
+        filename = process(filename)
 
     if filename.endswith('.sobj'):
         try:
@@ -1504,7 +1466,7 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
     """
     if dir is None:
         pickle_jar=True
-        from sage.misc.misc import SAGE_EXTCODE
+        from sage.env import SAGE_EXTCODE
         dir = os.path.join(SAGE_EXTCODE,'pickle_jar','pickle_jar.tar.bz2')
     else:
         pickle_jar=False
@@ -1554,4 +1516,3 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
     print "Failed to unpickle %s objects."%j
     if debug:
         return tracebacks
-

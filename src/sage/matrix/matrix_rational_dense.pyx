@@ -76,21 +76,18 @@ from sage.rings.arith import gcd
 from matrix2 import cmp_pivots, decomp_seq
 from matrix0 import Matrix as Matrix_base
 
-from sage.misc.misc import verbose, get_verbose, prod
+from sage.misc.all import verbose, get_verbose, prod
 
 #########################################################
 # PARI C library
 from sage.libs.pari.gen cimport gen
-from sage.libs.pari.pari_instance cimport PariInstance
+from sage.libs.pari.pari_instance cimport PariInstance, INTFRAC_to_mpq
 
 import sage.libs.pari.pari_instance
 cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 include "sage/libs/pari/decl.pxi"
 include "sage/libs/pari/pari_err.pxi"
-
-cdef extern from "convert.h":
-    void t_FRAC_to_QQ ( mpq_t value, GEN g )
 
 #########################################################
 
@@ -214,7 +211,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         cdef Rational x
-        x = PY_NEW(Rational)
+        x = Rational.__new__(Rational)
         mpq_set(x.value, self._matrix[i][j])
         return x
 
@@ -259,7 +256,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         """
         cdef Py_ssize_t i, j, len_so_far, m, n
         cdef char *a
-        cdef char *s, *t, *tmp
+        cdef char *s
+        cdef char *t
+        cdef char *tmp
 
         if self._nrows == 0 or self._ncols == 0:
             data = ''
@@ -412,7 +411,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return M
 
     cdef int _cmp_c_impl(self, Element right) except -2:
-        cdef mpq_t *a, *b
+        cdef mpq_t *a
+        cdef mpq_t *b
         cdef Py_ssize_t i, j
         cdef int k
         for i from 0 <= i < self._nrows:
@@ -740,7 +740,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             return (denom/d)*B
         elif algorithm == "flint":
             AZ, denom = self._clear_denom()
-            B, d = AZ._invert_flint(check_invertible=check_invertible)
+            B, d = AZ._invert_flint()
             return (denom/d)*B
         else:
             raise ValueError("unknown algorithm '%s'"%algorithm)
@@ -1205,7 +1205,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 mpq_add(s, s, self._matrix[row][c])
             mpq_mul(pr, pr, s)
         cdef Rational _pr
-        _pr = PY_NEW(Rational)
+        _pr = Rational.__new__(Rational)
         mpq_set(_pr.value, pr)
         mpq_clear(s)
         mpq_clear(pr)
@@ -1646,7 +1646,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         E = self._echelon_form_multimodular(height_guess, proof=proof, **kwds)
         self._clear_cache()
         cdef Py_ssize_t i, j
-        cdef mpq_t *row0, *row1
+        cdef mpq_t *row0
+        cdef mpq_t *row1
         for i from 0 <= i < self._nrows:
             row0 = self._matrix[i]
             row1 = E._matrix[i]
@@ -2419,7 +2420,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t n
         cdef Rational _s
         _s = Rational(s)
-        cdef mpq_t *row_i, *row_j
+        cdef mpq_t *row_i
+        cdef mpq_t *row_j
         row_i = self._matrix[i]
         row_j = self._matrix[j]
         for n from 0 <= n < self._ncols:
@@ -2515,8 +2517,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         pari_catch_sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
         # now convert d to a Sage rational
-        cdef Rational e = Rational()
-        t_FRAC_to_QQ(e.value, d)
+        cdef Rational e = <Rational>Rational.__new__(Rational)
+        INTFRAC_to_mpq(e.value, d)
         pari.clear_stack()
         return e
 
@@ -2629,7 +2631,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t j
         from sage.modules.free_module import FreeModule
         parent = FreeModule(self._base_ring, self._ncols)
-        cdef Vector_rational_dense v = PY_NEW(Vector_rational_dense)
+        cdef Vector_rational_dense v = Vector_rational_dense.__new__(Vector_rational_dense)
         v._init(self._ncols, parent)
         for j in range(self._ncols):
             mpq_init(v._entries[j]); mpq_set(v._entries[j], self._matrix[i][j])
@@ -2663,7 +2665,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t j
         from sage.modules.free_module import FreeModule
         parent = FreeModule(self._base_ring, self._nrows)
-        cdef Vector_rational_dense v = PY_NEW(Vector_rational_dense)
+        cdef Vector_rational_dense v = Vector_rational_dense.__new__(Vector_rational_dense)
         v._init(self._nrows, parent)
         for j in range(self._nrows):
             mpq_init(v._entries[j]); mpq_set(v._entries[j], self._matrix[j][i])
@@ -2672,7 +2674,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
 cdef new_matrix_from_pari_GEN(parent, GEN d):
     """
-    Given a PARI GEN with t_FRAC entries, create a Matrix_rational_dense from it.
+    Given a PARI GEN with ``t_INT`` or ``t_FRAC entries, create a
+    :class:`Matrix_rational_dense` from it.
 
     EXAMPLES::
 
@@ -2685,7 +2688,7 @@ cdef new_matrix_from_pari_GEN(parent, GEN d):
         Matrix_rational_dense, parent, None, None, None)
     for i in range(B._nrows):
         for j in range(B._ncols):
-            t_FRAC_to_QQ(B._matrix[i][j], gcoeff(d, i+1, j+1))
+            INTFRAC_to_mpq(B._matrix[i][j], gcoeff(d, i+1, j+1))
     return B
 
 cdef inline GEN pari_GEN(Matrix_rational_dense B):

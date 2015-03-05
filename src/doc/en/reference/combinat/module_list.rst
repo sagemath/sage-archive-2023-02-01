@@ -22,6 +22,7 @@ Comprehensive Module list
     sage/combinat/all
     sage/combinat/alternating_sign_matrix
     sage/combinat/backtrack
+    sage/combinat/baxter_permutations
     sage/combinat/binary_recurrence_sequences
     sage/combinat/binary_tree
     sage/combinat/cartesian_product

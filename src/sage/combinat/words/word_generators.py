@@ -198,8 +198,8 @@ class LowerChristoffelWord(FiniteWord_list):
             elif (p, q) == (1, 0):
                 w = [alphabet[1]]
             else:
-                from sage.rings.all import QQ, CFF
-                cf = CFF(QQ((p, q)))
+                from sage.rings.rational_field import QQ
+                cf = QQ((p, q)).continued_fraction_list()
                 u = [alphabet[0]]
                 v = [alphabet[1]]
                 #do not consider the first zero if p < q
@@ -838,9 +838,11 @@ class WordGenerator(object):
         ::
 
             sage: words.CharacteristicSturmianWord(1/golden_ratio^2, bits=30)
+            doctest:...: DeprecationWarning: the argument 'bits' is deprecated
+            See http://trac.sagemath.org/14567 for details.
             word: 0100101001001010010100100101001001010010...
             sage: _.length()
-            6765
+            +Infinity
 
         ::
 
@@ -867,15 +869,24 @@ class WordGenerator(object):
             sage: u[1:-1] == v[:-2]
             True
         """
+        if bits is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(14567, "the argument 'bits' is deprecated")
+
         if len(set(alphabet)) != 2:
             raise TypeError("alphabet does not contain two distinct elements")
+
         if slope in RR:
             if not 0 < slope < 1:
                 msg = "The argument slope (=%s) must be in ]0,1[."%slope
                 raise ValueError(msg)
-            from sage.rings.all import CFF
-            cf = iter(CFF(slope, bits=bits))
-            length = 'finite'
+            from sage.rings.continued_fraction import continued_fraction
+            cf = continued_fraction(slope)
+            if cf.length() == Infinity:
+                length = Infinity
+            else:
+                length = 'finite'
+            cf = iter(cf)
         elif hasattr(slope, '__iter__'):
             cf = iter(slope)
             length = Infinity
@@ -912,26 +923,26 @@ class WordGenerator(object):
 
         EXAMPLES::
 
-            sage: CFF(1/golden_ratio^2)[:8]
-            [0, 2, 1, 1, 1, 1, 1, 1]
+            sage: continued_fraction(1/golden_ratio^2)[:8]
+            [0; 2, 1, 1, 1, 1, 2]
             sage: cf = iter(_)
             sage: Word(words._CharacteristicSturmianWord_LetterIterator(cf))
-            word: 0100101001001010010100100101001001
+            word: 0100101001001010010100100101001010
 
         ::
 
             sage: alpha = (sqrt(3)-1)/2
-            sage: CFF(alpha)[:10]
-            [0, 2, 1, 2, 1, 2, 1, 2, 1, 2]
+            sage: continued_fraction(alpha)[:10]
+            [0; 2, 1, 2, 1, 2, 1, 2, 1, 2]
             sage: cf = iter(_)
             sage: Word(words._CharacteristicSturmianWord_LetterIterator(cf))
             word: 0100100101001001001010010010010100100101...
         """
-        if cf.next() != 0:
+        if next(cf) != 0:
             raise ValueError("The first term of the continued fraction expansion must be zero.")
         s0 = [1]
         s1 = [0]
-        e = cf.next()
+        e = next(cf)
         if not e >= 1:
             raise ValueError("The second term of the continued fraction expansion must be larger or equal to 1.")
         s1, s0 = s1*(e-1) + s0, s1
@@ -941,7 +952,7 @@ class WordGenerator(object):
                 n += 1
                 yield alphabet[i]
             else:
-                s1, s0 = s1*cf.next() + s0, s1
+                s1, s0 = s1*next(cf) + s0, s1
 
     def KolakoskiWord(self, alphabet=(1,2)):
         r"""
@@ -1289,14 +1300,14 @@ class WordGenerator(object):
         else:
            d = iter(directive_word)
         W = directive_word.parent()
-        w = W(d.next())
+        w = W(next(d))
         n = 0
         while True:
               for x in w[n:]:
                   n += 1
                   yield x
               else:
-                  w = W(w*W(d.next())).palindromic_closure()
+                  w = W(w*W(next(d))).palindromic_closure()
 
     def MinimalSmoothPrefix(self, n):
         r"""
@@ -1619,11 +1630,11 @@ class WordGenerator(object):
         """
         from itertools import tee,izip
         sequence_it,sequence = tee(sequence)
-        m = sequence_it.next()
+        m = next(sequence_it)
         codomain = m.codomain()
         p = codomain.identity_morphism()
         letters_it,letters = tee(letters)
-        precedent_letter = m(letters_it.next())[0]
+        precedent_letter = m(next(letters_it))[0]
 
         yield precedent_letter
         for (i,(m,a)) in enumerate(izip(sequence, letters)):
@@ -1884,7 +1895,7 @@ class WordGenerator(object):
 
         from itertools import tee
         seq_it,seq= tee(seq)
-        m = seq_it.next()
+        m = next(seq_it)
         W = m.codomain()
 
         kwds = {}

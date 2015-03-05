@@ -239,7 +239,7 @@ class CombinatorialFreeModuleElement(Element):
         TESTS::
 
             sage: M = QuasiSymmetricFunctions(QQ).M()
-            sage: ascii_art(M[1,3]**2)
+            sage: ascii_art(M[1,3]**2)  # indirect doctest
             4*M      + 2*M       + 2*M      + 2*M       + 2*M       + M
                  ***      ******        ***         ***         ***     ******
                ***        *             *        ****         ***      **
@@ -1302,7 +1302,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         TESTS::
 
             sage: R = NonCommutativeSymmetricFunctions(QQ).R()
-            sage: ascii_art(R.one())
+            sage: ascii_art(R.one())  # indirect doctest
             1
         """
         from sage.misc.ascii_art import AsciiArt
@@ -2517,15 +2517,22 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
             sage: F = CombinatorialFreeModule(ZZ, [4,5]); F.__custom_name = "F"
             sage: G = CombinatorialFreeModule(ZZ, [4,6]); G.__custom_name = "G"
             sage: S = cartesian_product([F, G])
-            sage: phi = S.summand_embedding(0)
+            sage: phi = S.cartesian_embedding(0)
             sage: phi(F.monomial(4) + 2 * F.monomial(5))
             B[(0, 4)] + 2*B[(0, 5)]
             sage: phi(F.monomial(4) + 2 * F.monomial(6)).parent() == S
             True
-            sage: phi(G.monomial(4)) # not implemented Should raise an error!  problem: G(F.monomial(4)) does not complain!!!!
+
+        TESTS::
+
+            sage: phi(G.monomial(4))
+            Traceback (most recent call last):
+            ...
+            AssertionError:
         """
         assert i in self._sets_keys()
-        return self._sets[i]._module_morphism(lambda t: self.monomial((i,t)), codomain = self)
+        return self._sets[i]._module_morphism(lambda t: self.monomial((i, t)),
+                                              codomain = self)
 
     summand_embedding = cartesian_embedding
 

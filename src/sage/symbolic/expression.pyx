@@ -2710,7 +2710,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x*unsigned_infinity
             Traceback (most recent call last):
             ...
-            ValueError: oo times number < oo not defined
+            RuntimeError: indeterminate expression: infinity * f(x) encountered.
 
             sage: SR(oo)*SR(oo)
             +Infinity

@@ -469,7 +469,7 @@ class AnInfinity(object):
             sage: SR(infinity) / unsigned_infinity
             Traceback (most recent call last):
             ...
-            ValueError: unsigned oo times smaller number not defined
+            RuntimeError: indeterminate expression: 0 * infinity encountered.
         """
         return self * ~other
 

@@ -103,6 +103,8 @@ cdef class SymbolicRing(CommutativeRing):
             2
             sage: SR.coerce(-infinity)
             -Infinity
+            sage: SR.coerce(unsigned_infinity)
+            Infinity
             sage: SR.has_coerce_map_from(ZZ['t'])
             True
             sage: SR.has_coerce_map_from(ZZ['t,u,v'])
@@ -116,6 +118,8 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR.has_coerce_map_from(Integers(8))
             True
             sage: SR.has_coerce_map_from(GF(9, 'a'))
+            True
+            sage: SR.has_coerce_map_from(UnsignedInfinityRing)
             True
 
         TESTS:
@@ -163,7 +167,8 @@ cdef class SymbolicRing(CommutativeRing):
             from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 
             from sage.rings.all import (ComplexField,
-                                        RLF, CLF, AA, QQbar, InfinityRing)
+                                        RLF, CLF, AA, QQbar, InfinityRing,
+                                        UnsignedInfinityRing)
             from sage.rings.finite_rings.finite_field_base import is_FiniteField
 
             from sage.interfaces.maxima import Maxima
@@ -180,7 +185,7 @@ cdef class SymbolicRing(CommutativeRing):
             elif is_PolynomialRing(R) or is_MPolynomialRing(R) or is_FractionField(R):
                 base = R.base_ring()
                 return base is not self and self.has_coerce_map_from(base)
-            elif (R is InfinityRing
+            elif (R is InfinityRing or R is UnsignedInfinityRing
                   or is_RealIntervalField(R) or is_ComplexIntervalField(R)
                   or is_IntegerModRing(R) or is_FiniteField(R)):
                 return True

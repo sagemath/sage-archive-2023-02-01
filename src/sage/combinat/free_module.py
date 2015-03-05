@@ -2528,7 +2528,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
             sage: phi(G.monomial(4))
             Traceback (most recent call last):
             ...
-            AssertionError:
+            AssertionError
         """
         assert i in self._sets_keys()
         return self._sets[i]._module_morphism(lambda t: self.monomial((i, t)),

@@ -60,6 +60,7 @@ all-sage: \
      $(INST)/$(IPYTHON) \
      $(INST)/$(JINJA2) \
      $(INST)/$(JMOL) \
+     $(INST)/$(JSONSCHEMA) \
      $(INST)/$(LCALC) \
      $(INST)/$(LRCALC) \
      $(INST)/$(LIBGAP) \
@@ -310,6 +311,9 @@ $(INST)/$(GAP): $(INST)/$(NCURSES) $(INST)/$(READLINE) $(INST)/$(SAGE_MP_LIBRARY
 
 $(INST)/$(LIBGAP): $(INST)/$(GAP)
 	+$(PIPE) "$(SAGE_SPKG) $(LIBGAP) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBGAP).log"
+
+$(INST)/$(JSONSCHEMA): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
+	+$(PIPE) "$(SAGE_SPKG) $(JSONSCHEMA) 2>&1" "tee -a $(SAGE_LOGS)/$(JSONSCHEMA).log"
 
 $(INST)/$(IPYTHON): $(INST)/$(PYTHON) $(INST)/$(JINJA2) $(INST)/$(TORNADO) $(INST)/$(PYZMQ)
 	+$(PIPE) "$(SAGE_SPKG) $(IPYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(IPYTHON).log"

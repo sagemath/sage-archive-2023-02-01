@@ -719,13 +719,13 @@ class Patch(SageObject):
             sage: x = [Face((0,0,0),t) for t in [1,2,3]]
             sage: P = Patch(x)
             sage: it = iter(P)
-            sage: type(it.next())
+            sage: type(next(it))
             <class 'sage.combinat.e_one_star.Face'>
-            sage: type(it.next())
+            sage: type(next(it))
             <class 'sage.combinat.e_one_star.Face'>
-            sage: type(it.next())
+            sage: type(next(it))
             <class 'sage.combinat.e_one_star.Face'>
-            sage: type(it.next())
+            sage: type(next(it))
             Traceback (most recent call last):
             ...
             StopIteration
@@ -1426,7 +1426,7 @@ class E1Star(SageObject):
                     raise ValueError("Option 'method' can only be 'prefix' or 'suffix'.")
                 if not letter in X:
                     X[letter] = []
-                v = self.inverse_matrix()*vector(image_word.parikh_vector())
+                v = self.inverse_matrix()*vector(image_word.abelian_vector())
                 X[letter].append((v, k))
         self._base_iter = X
 

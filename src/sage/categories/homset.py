@@ -377,7 +377,7 @@ def Hom(X, Y, category=None, check=True):
             for O in [X, Y]:
                 try:
                     category_mismatch = O not in category
-                except BaseException:
+                except Exception:
                     # An error should not happen, this here is just to be on
                     # the safe side.
                     category_mismatch = True
@@ -415,7 +415,7 @@ def Hom(X, Y, category=None, check=True):
         if not isinstance(H, WithEqualityById):
             try:
                 H.__class__ = dynamic_class(H.__class__.__name__+"_with_equality_by_id", (WithEqualityById, H.__class__), doccls=H.__class__)
-            except BaseException:
+            except Exception:
                 pass
     return H
 
@@ -523,12 +523,20 @@ class Homset(Set_generic):
         sage: loads(H.dumps()) is H
         True
 
-    Homsets of non-unique parents are non-unique as well::
+    Homsets of unique parents are unique as well::
 
         sage: H = End(AffineSpace(2, names='x,y'))
         sage: loads(dumps(AffineSpace(2, names='x,y'))) is AffineSpace(2, names='x,y')
+        True
+        sage: loads(dumps(H)) is H
+        True
+
+    Conversely, homsets of non-unique parents are non-unique:
+
+        sage: H = End(ProjectiveSpace(2, names='x,y,z'))
+        sage: loads(dumps(ProjectiveSpace(2, names='x,y,z'))) is ProjectiveSpace(2, names='x,y,z')
         False
-        sage: loads(dumps(AffineSpace(2, names='x,y'))) == AffineSpace(2, names='x,y')
+        sage: loads(dumps(ProjectiveSpace(2, names='x,y,z'))) == ProjectiveSpace(2, names='x,y,z')
         True
         sage: loads(dumps(H)) is H
         False
@@ -677,21 +685,20 @@ class Homset(Set_generic):
 
     def __hash__(self):
         """
+        The hash is obtained from domain, codomain and base.
+
         TESTS::
 
-            sage: hash(Hom(ZZ, QQ))
-            1586601211              # 32-bit
-            8060925370113826043     # 64-bit
-            sage: hash(Hom(QQ, ZZ))
-            1346950701              # 32-bit
-            -6958821237014866387    # 64-bit
+            sage: hash(Hom(ZZ, QQ)) == hash((ZZ, QQ, ZZ))
+            True
+            sage: hash(Hom(QQ, ZZ)) == hash((QQ, ZZ, QQ))
+            True
 
             sage: E = EllipticCurve('37a')
             sage: H = E(0).parent(); H
             Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
-            sage: hash(H)           # random output
-            -1145411691             # 32-bit
-            -8446824869798451307    # 64-bit
+            sage: hash(H) == hash((H.domain(), H.codomain(), H.base()))
+            True
         """
         return hash((self._domain, self._codomain, self.base()))
 

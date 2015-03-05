@@ -268,7 +268,7 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset((Subsets([1,2,3]), attrcall("issubset")))
                 sage: I = P.order_ideal([Set([1,2]), Set([2,3]), Set([1])]); I
-                [{}, {1}, {3}, {2}, {1, 2}, {2, 3}]
+                [{}, {3}, {2}, {2, 3}, {1}, {1, 2}]
 
             Then, we retrieve the generators of this ideal::
 
@@ -279,7 +279,7 @@ class FinitePosets(CategoryWithAxiom):
             the minimal generators for an order filter::
 
                 sage: I = P.order_filter([Set([1,2]), Set([2,3]), Set([1])]); I
-                [{1}, {1, 3}, {1, 2}, {2, 3}, {1, 2, 3}]
+                [{2, 3}, {1}, {1, 2}, {1, 3}, {1, 2, 3}]
                 sage: P.order_ideal_generators(I, direction='up')
                 {{2, 3}, {1}}
 
@@ -307,7 +307,7 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset((Subsets([1,2,3]), attrcall("issubset")))
                 sage: I = P.order_filter([Set([1,2]), Set([2,3]), Set([1])]); I
-                [{1}, {1, 3}, {1, 2}, {2, 3}, {1, 2, 3}]
+                [{2, 3}, {1}, {1, 2}, {1, 3}, {1, 2, 3}]
                 sage: P.order_filter_generators(I)
                 {{2, 3}, {1}}
 
@@ -449,8 +449,8 @@ class FinitePosets(CategoryWithAxiom):
             `\widehat{P}` denote the poset obtained from `P` by adding a
             new element `1` which is greater than all existing elements
             of `P`, and a new element `0` which is smaller than all
-            existing elements of `P` and `1`. Now, a *`\mathbf{K}`-labelling
-            of `P`* will mean any function from `\widehat{P}` to `\mathbf{K}`.
+            existing elements of `P` and `1`. Now, a `\mathbf{K}`-*labelling
+            of* `P` will mean any function from `\widehat{P}` to `\mathbf{K}`.
             The image of an element `v` of `\widehat{P}` under this labelling
             will be called the *label* of this labelling at `v`. The set
             of all `\mathbf{K}`-labellings of `P` is clearly
@@ -473,7 +473,7 @@ class FinitePosets(CategoryWithAxiom):
             respectively given conditions). Here, `\lessdot` and `\gtrdot`
             mean (respectively) "covered by" and "covers", interpreted with
             respect to the poset `\widehat{P}`. This rational map `T_v`
-            is an involution and is called the *(birational) `v`-toggle*; see
+            is an involution and is called the *(birational)* `v`-*toggle*; see
             :meth:`birational_toggle` for its implementation.
 
             Now, *birational rowmotion* is defined as the composition
@@ -673,7 +673,7 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Posets.ChainPoset(2).product(Posets.ChainPoset(3))
                 sage: P
-                Finite poset containing 6 elements
+                Finite lattice containing 6 elements
                 sage: lex = [(1,0),(0,0),(1,1),(0,1),(1,2),(0,2)]
                 sage: l = P.birational_free_labelling(linear_extension=lex,
                 ....:                                 prefix="u", reduced=True)
@@ -1444,13 +1444,13 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.panyushev_orbit_iter([2], stop=False)
-                sage: Piter.next()
+                sage: next(Piter)
                 {2}
-                sage: Piter.next()
+                sage: next(Piter)
                 {3}
-                sage: Piter.next()
+                sage: next(Piter)
                 {2}
-                sage: Piter.next()
+                sage: next(Piter)
                 {3}
             """
             # TODO: implement a generic function taking a set and
@@ -1533,15 +1533,15 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.rowmotion_orbit_iter([1, 2, 3], stop=False)
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3}
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3, 4}
-                sage: Piter.next()
+                sage: next(Piter)
                 set()
-                sage: Piter.next()
+                sage: next(Piter)
                 {1}
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3}
 
                 sage: P = Poset({ 1: [4], 2: [4, 5], 3: [5] })
@@ -1646,15 +1646,15 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.toggling_orbit_iter([1, 2, 4, 3], [1, 2, 3], stop=False)
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3}
-                sage: Piter.next()
+                sage: next(Piter)
                 {1}
-                sage: Piter.next()
+                sage: next(Piter)
                 set()
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3}
-                sage: Piter.next()
+                sage: next(Piter)
                 {1}
             """
             # TODO: implement a generic function taking a set and
@@ -1708,7 +1708,7 @@ class FinitePosets(CategoryWithAxiom):
                 sage: J = P.order_ideals_lattice(); J
                 Finite lattice containing 8 elements
                 sage: list(J)
-                [{}, {0}, {0, 2}, {0, 1}, {0, 1, 2}, {0, 2, 3}, {0, 1, 2, 3}, {0, 1, 2, 3, 4}]
+                [{}, {0}, {0, 2}, {0, 2, 3}, {0, 1}, {0, 1, 2}, {0, 1, 2, 3}, {0, 1, 2, 3, 4}]
 
             As a lattice on antichains::
 

@@ -158,25 +158,28 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
     def __init__(self, parent, entries, copy, coerce):
         """
-        Create a sparse matrix modulo n.
+        Create a sparse matrix over the integers modulo ``n``.
 
         INPUT:
 
+        - ``parent`` -- a matrix space
 
-        -  ``parent`` - a matrix space
+        - ``entries`` -- can be one of the following:
 
-        -  ``entries``
+          * a Python dictionary whose items have the
+            form ``(i, j): x``, where ``0 <= i < nrows``,
+            ``0 <= j < ncols``, and ``x`` is coercible to
+            an element of the integers modulo ``n``.
+            The ``i,j`` entry of ``self`` is
+            set to ``x``.  The ``x``'s can be ``0``.
+          * Alternatively, entries can be a list of *all*
+            the entries of the sparse matrix, read
+            row-by-row from top to bottom (so they would
+            be mostly 0).
 
-           - a Python list of triples (i,j,x), where 0 <= i < nrows, 0 <=
-             j < ncols, and x is coercible to an int. The i,j entry of
-             self is set to x. The x's can be 0.
+        - ``copy`` -- ignored
 
-           - Alternatively, entries can be a list of *all* the
-             entries of the sparse matrix (so they would be mostly 0).
-
-        -  ``copy`` - ignored
-
-        -  ``coerce`` - ignored
+        - ``coerce`` -- ignored
         """
         cdef int s, z, p
         cdef Py_ssize_t i, j, k
@@ -206,7 +209,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             R = self._base_ring
             # Get fast access to the entries list.
             for i from 0 <= i < self._nrows:
-                for  j from 0 <= j < self._ncols:
+                for j from 0 <= j < self._ncols:
                     z = R(<object>X[k])
                     if z != 0:
                         set_entry(&self.rows[i], j, z)
@@ -954,7 +957,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         else:
             if not B.is_sparse():
                 B = B.sparse_matrix()
-            if PY_TYPE_CHECK(B, Matrix_modn_sparse):
+            if isinstance(B, Matrix_modn_sparse):
                 b = B
             else:
                 raise TypeError, "B must be a matrix or vector over the same base as self"

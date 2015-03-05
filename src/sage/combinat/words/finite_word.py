@@ -137,20 +137,20 @@ As matrix and many other sage objects, words have a parent::
 Factors and Rauzy Graphs
 ========================
 
-Enumeration of factors, the successive values returned by it.next()
+Enumeration of factors, the successive values returned by next(it)
 can appear in a different order depending on hardware. Therefore we
 mark the three first results of the test random. The important test
 is that the iteration stops properly on the fourth call::
 
     sage: w = Word([4,5,6])^7
     sage: it = w.factor_iterator(4)
-    sage: it.next() # random
+    sage: next(it) # random
     word: 6456
-    sage: it.next() # random
+    sage: next(it) # random
     word: 5645
-    sage: it.next() # random
+    sage: next(it) # random
     word: 4564
-    sage: it.next()
+    sage: next(it)
     Traceback (most recent call last):
     ...
     StopIteration
@@ -198,6 +198,7 @@ from sage.misc.cachefunc import cached_method
 from sage.combinat.words.word_options import word_options
 from sage.rings.all import Integer, Infinity, ZZ
 from sage.sets.set import Set
+from sage.misc.superseded import deprecated_function_alias
 
 class FiniteWord_class(Word_class):
     def __str__(self):
@@ -466,9 +467,9 @@ class FiniteWord_class(Word_class):
         if length in ZZ and length >= 0:
             return self._parent(fcn, length=length)
         else:
-            raise ValueError("Power of the word is not defined on the \
-exponent %s: the length of the word (%s) times the exponent \
-(%s) must be a positive integer"  % (exp, self.length(), exp))
+            raise ValueError("Power of the word is not defined on the exponent {}:"
+                    " the length of the word ({}) times the exponent ({}) must"
+                    " be a positive integer".format(exp,self.length(),exp))
 
     def length(self):
         r"""
@@ -550,15 +551,16 @@ exponent %s: the length of the word (%s) times the exponent \
             return self
         r = self.reversal()
         w = list(r)
+        parent = self.parent()
         if n is None:
-            alphsize = self.parent().size_of_alphabet()
+            alphsize = parent.size_of_alphabet()
             if not alphsize == +Infinity:
-                n = max(self.parent().alphabet())
+                n = max(parent.alphabet())
             elif r.length()>0:
                 n = max(w)
         for k in range(r.length()):
             w[k] = n+1 - w[k]
-        return self.parent()(w)
+        return parent(w, check=False)
 
     def is_empty(self):
         r"""
@@ -626,7 +628,7 @@ exponent %s: the length of the word (%s) times the exponent \
             [1, 0, 0, 2]
         """
         cmp_fcn = self._parent.cmp_letters
-        ordered_alphabet = sorted(set(self), cmp=cmp_fcn)
+        ordered_alphabet = sorted(self.letters(), cmp=cmp_fcn)
         index = dict((b,a) for (a,b) in enumerate(ordered_alphabet))
         return [index[a] for a in self]
 
@@ -1944,11 +1946,11 @@ exponent %s: the length of the word (%s) times the exponent \
             return True
         try:
             it = iter(self)
-            s = islice(it, seq[0], None).next()
+            s = next(islice(it, seq[0], None))
             for i in xrange(1, len(seq)):
                 steps = seq[i] - seq[i-1]
-                for n in xrange(steps-1): it.next()
-                if it.next() != s:
+                for n in xrange(steps-1): next(it)
+                if next(it) != s:
                     return False
         except StopIteration:
             return False
@@ -2002,7 +2004,7 @@ exponent %s: the length of the word (%s) times the exponent \
             return other
 
         iter = enumerate(izip(reversed(self), reversed(other)))
-        i,(b,c) = iter.next()
+        i,(b,c) = next(iter)
         if b != c:
             #In this case, return the empty word
             return self[:0]
@@ -2649,7 +2651,7 @@ exponent %s: the length of the word (%s) times the exponent \
             if not f.is_involution():
                 raise ValueError("f must be an involution")
             D = f.domain()
-            A = set(map(D,set(self)))
+            A = set(map(D, self.letters()))
             while A:
                 x = A.pop()
                 if f(x) != x: # count only non f-palindromic letters
@@ -3271,10 +3273,10 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         its = iter(self)
         try:
-            s = its.next()
+            s = next(its)
             for e in other:
                 if s == e:
-                    s = its.next()
+                    s = next(its)
             else:
                 return False
         except StopIteration:
@@ -4538,14 +4540,15 @@ exponent %s: the length of the word (%s) times the exponent \
                 out[p] = i
             else:
                 out[p] = i+1
-        return self.parent()(out)
+        return self.parent()(out, check=False)
 
     def _to_partition_content(self):
         r"""
         Returns the conversion of self to a word with partition content using
         the `s_i` operators of Lascoux and Schutzenberger.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: w = Word([1,3,2,1,2,3,4,6,4,2,3,2])
             sage: w._to_partition_content()
             word: 132112454132
@@ -4744,7 +4747,7 @@ exponent %s: the length of the word (%s) times the exponent \
         if self.is_empty():
            return self
         conjugates = sorted(self._conjugates_list())
-        return self.parent()([x[x.length()-1] for x in conjugates])
+        return self.parent()([x[x.length()-1] for x in conjugates], check=False)
 
     def iterated_left_palindromic_closure(self, f=None):
         r"""
@@ -4863,19 +4866,19 @@ exponent %s: the length of the word (%s) times the exponent \
            Encyclopedia of Mathematics and its Applications, Cambridge
            University Press, U.K., 2002.
         """
-        alphabet = set(self)
+        alphabet = self.letters()
         best = 0
         for i in range(1, self.length()):
             start = iter(self)
             end = iter(self)
             abelian = dict(zip(alphabet, [0]*len(alphabet)))
             for _ in range(i):
-                abelian[end.next()] += 1
+                abelian[next(end)] += 1
             abel_max = abelian.copy()
             abel_min = abelian.copy()
             for _ in range(self.length() - i):
-                lost = start.next()
-                gain = end.next()
+                lost = next(start)
+                gain = next(end)
                 abelian[gain] += 1
                 abelian[lost] -= 1
                 abel_max[gain] = max(abel_max[gain], abelian[gain])
@@ -4945,7 +4948,7 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         if not isinstance(q, (int, Integer)) or q <= 0:
             raise TypeError("the balance level must be a positive integer")
-        alphabet = set(self)
+        alphabet = self.letters()
         for i in xrange(2, self.length()):
             empty_sets = [set() for _ in range(len(alphabet))]
             tab = dict(zip(alphabet, empty_sets))
@@ -4958,6 +4961,112 @@ exponent %s: the length of the word (%s) times the exponent \
                     return False
         return True
 
+    def abelian_vectors(self, n):
+        r"""
+        Return the abelian vectors of factors of length ``n`` of self.
+
+        The vectors are defined w.r.t the order of the alphabet of the
+        parent.
+
+        OUTPUT:
+
+            Set of tuples
+
+        EXAMPLES::
+
+            sage: W = Words([0,1,2])
+            sage: w = W([0,1,1,0,1,2,0,2,0,2])
+            sage: w.abelian_vectors(3)
+            {(1, 0, 2), (1, 1, 1), (1, 2, 0), (2, 0, 1)}
+            sage: w[:5].abelian_vectors(3)
+            {(1, 2, 0)}
+            sage: w[5:].abelian_vectors(3)
+            {(1, 0, 2), (2, 0, 1)}
+
+        ::
+
+            sage: w = words.FibonacciWord()[:100]
+            sage: sorted(w.abelian_vectors(0))
+            [(0, 0)]
+            sage: sorted(w.abelian_vectors(1))
+            [(0, 1), (1, 0)]
+            sage: sorted(w.abelian_vectors(7))
+            [(4, 3), (5, 2)]
+
+        The word must be defined with a parent on a finite alphabet::
+
+            sage: from itertools import count
+            sage: w = Word(count(), alphabet=NN)
+            sage: w[:2].abelian_vectors(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: The alphabet of the parent is infinite; define the
+            word with a parent on a finite alphabet
+
+        TESTS::
+
+            sage: W = Words([0, 1])
+            sage: w = W([0,0,0])
+            sage: sorted(w.abelian_vectors(3))
+            [(3, 0)]
+            sage: w = W([0,0,0,1])
+            sage: sorted(w.abelian_vectors(3))
+            [(2, 1), (3, 0)]
+            sage: w = W([0,0,0,1,1])
+            sage: sorted(w.abelian_vectors(3))
+            [(1, 2), (2, 1), (3, 0)]
+            sage: w = W([0,0,0,1,1,1])
+            sage: sorted(w.abelian_vectors(3))
+            [(0, 3), (1, 2), (2, 1), (3, 0)]
+
+        ::
+
+            sage: w = Word([0,1,0], alphabet=[0,1])
+            sage: w.abelian_complexity(3)
+            1
+            sage: w.abelian_complexity(4)
+            0
+
+        """
+        alphabet = self.parent().alphabet()
+        size = alphabet.cardinality()
+        if size == float('inf'):
+            raise TypeError("The alphabet of the parent is infinite; define"
+                   " the word with a parent on a finite alphabet")
+        S = set()
+        if n > self.length():
+            return S
+        rank = dict((letter,i) for i,letter in enumerate(alphabet))
+        start = iter(self)
+        end = iter(self)
+        abelian = [0] * size
+        for _ in range(n):
+            abelian[rank[next(end)]] += 1
+        S.add(tuple(abelian))
+        for letter in end:
+            abelian[rank[letter]] += 1
+            abelian[rank[next(start)]] -= 1
+            S.add(tuple(abelian))
+        return S
+
+    def abelian_complexity(self, n):
+        r"""
+        Return the number of abelian vectors of factors of length ``n`` of self.
+
+        EXAMPLES::
+
+            sage: w = words.FibonacciWord()[:100]
+            sage: map(w.abelian_complexity, range(20))
+            [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+
+        ::
+
+            sage: w = words.ThueMorseWord()[:100]
+            sage: map(w.abelian_complexity, range(20))
+            [1, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2]
+
+        """
+        return len(self.abelian_vectors(n))
 
     def sturmian_desubstitute_as_possible(self):
         r"""
@@ -5049,14 +5158,12 @@ exponent %s: the length of the word (%s) times the exponent \
         if (W.size_of_alphabet() == 2):
             alphabet = W.alphabet()
         else:
-            alphabet_as_set = set(self)
-            if len(alphabet_as_set) > 2:
+            alphabet = self.letters()
+            if len(alphabet) > 2:
                 raise TypeError('your word must be defined on a binary alphabet or use at most two different letters')
-            elif len(alphabet_as_set) < 2:
+            elif len(alphabet) < 2:
                 return W()
-            else:
-                alphabet = list(alphabet_as_set)
-        word_from_letter = {l:W([l],datatype="list") for l in alphabet}
+        word_from_letter = {l:W([l],datatype="list",check=False) for l in alphabet}
         is_prefix = True
         current_run_length = 0
         prefix_length = 0
@@ -5334,54 +5441,77 @@ exponent %s: the length of the word (%s) times the exponent \
         else:
             return self
 
-    def parikh_vector(self, alphabet=None):
+    def abelian_vector(self, alphabet=None):
         r"""
-        Returns the Parikh vector of self, i.e., the vector containing the
-        number of occurrences of each letter, given in the order of the
-        alphabet.
+        Return the abelian vector of self counting the occurrences of each letter.
 
-        See also evaluation_dict.
+        The vector is defined w.r.t the order of the alphabet of the
+        parent. See also :meth:`evaluation_dict`.
 
         INPUT:
 
-        -  ``alphabet`` - (default: None) finite ordered alphabet, if None it
-           uses the set of letters in self with the ordering defined by the
-           parent
+        - ``self`` -- word having a parent on a finite alphabet
+        - ``alphabet`` -- DEPRECATED
+
+        OUTPUT:
+
+            list
 
         EXAMPLES::
 
-            sage: Words('ab')().parikh_vector()
+            sage: W = Words('ab')
+            sage: W('aaabbbbb').abelian_vector()
+            [3, 5]
+            sage: W('a').abelian_vector()
+            [1, 0]
+            sage: W().abelian_vector()
             [0, 0]
-            sage: Word('aabaa').parikh_vector('abc')
+
+        The argument alphabet is deprecated::
+
+            sage: Word('aabaa').abelian_vector('abc')
+            doctest:...: DeprecationWarning: The argument alphabet of
+            methods abelian_vector and parikh_vector is deprecated and will
+            be removed in a future version of Sage. In order to fix this,
+            you must define your word on a parent with a finite alphabet.
+            See http://trac.sagemath.org/17058 for details.
             [4, 1, 0]
-            sage: Word('a').parikh_vector('abc')
-            [1, 0, 0]
-            sage: Word('a').parikh_vector('cab')
-            [0, 1, 0]
-            sage: Word('a').parikh_vector('bca')
-            [0, 0, 1]
-            sage: Word().parikh_vector('ab')
-            [0, 0]
-            sage: Word().parikh_vector('abc')
-            [0, 0, 0]
-            sage: Word().parikh_vector('abcd')
-            [0, 0, 0, 0]
+
+        You may fix the above deprecated use of alphabet argument this way::
+
+            sage: W = Words('abc')
+            sage: W('aabaa').abelian_vector()
+            [4, 1, 0]
 
         TESTS::
 
-            sage: Word('aabaa').parikh_vector()
+            sage: W = Words()
+            sage: W('aabaa').abelian_vector()
             Traceback (most recent call last):
             ...
-            TypeError: the alphabet is infinite; specify a finite alphabet or use evaluation_dict() instead
+            TypeError: The alphabet of the parent is infinite; define the
+            word with a parent on a finite alphabet or use
+            evaluation_dict() instead
         """
-        if alphabet is None and self._parent.size_of_alphabet() is Infinity:
-            raise TypeError("the alphabet is infinite; specify a finite alphabet or use evaluation_dict() instead")
         if alphabet is None:
-            alphabet = self._parent._alphabet
+            if self.parent().size_of_alphabet() is Infinity:
+                raise TypeError("The alphabet of the parent is infinite; define "
+                        "the word with a parent on a finite alphabet or use "
+                        "evaluation_dict() instead")
+            alphabet = self.parent().alphabet()
+        else:
+            from sage.misc.superseded import deprecation
+            deprecation(17058, "The argument alphabet of methods abelian_vector "
+                        "and parikh_vector is deprecated and will be "
+                        "removed in a future version of Sage. In order to "
+                        "fix this, you must define your word on a parent "
+                        "with a finite alphabet.")
+
         ev_dict = self.evaluation_dict()
         return [ev_dict.get(a,0) for a in alphabet]
 
-    evaluation = parikh_vector
+    parikh_vector = deprecated_function_alias(17058, abelian_vector)
+    evaluation = abelian_vector
 
     def robinson_schensted(self):
         """
@@ -5520,7 +5650,7 @@ exponent %s: the length of the word (%s) times the exponent \
             from sage.combinat.words.shuffle_product import ShuffleProduct_shifted
             return ShuffleProduct_shifted(self, other)
         else:
-            return self.shuffle(self._parent([x + shift for x in other]))
+            return self.shuffle(self._parent([x + shift for x in other], check=False))
 
     def delta_inv(self, W=None, s=None):
         r"""
@@ -5549,17 +5679,17 @@ exponent %s: the length of the word (%s) times the exponent \
         if self.is_empty():
             return Words(alphabet)()
         if s is None:
-            s = cycle_alphabet.next()
+            s = next(cycle_alphabet)
         else:
             if s not in alphabet:
                 raise ValueError("starting letter not in alphabet")
-            t = cycle_alphabet.next()
+            t = next(cycle_alphabet)
             while t != s:
-                t = cycle_alphabet.next()
+                t = next(cycle_alphabet)
         w = []
         for i in self:
             w.extend([s] * i)
-            s = cycle_alphabet.next()
+            s = next(cycle_alphabet)
         return Words(alphabet)(w)
 
     def delta(self):
@@ -5761,7 +5891,7 @@ exponent %s: the length of the word (%s) times the exponent \
             W = self.parent()
         if self.is_empty():
             return W()
-        v = self.parent()((self[-1],))
+        v = self.parent()((self[-1],), check=False)
         for i in xrange(self.length()-2, -1, -1):
             v = v.delta_inv(W, self[i])
         return v
@@ -5827,7 +5957,7 @@ exponent %s: the length of the word (%s) times the exponent \
 
     def letters(self):
         r"""
-        Return a list of the letters that appear in self, listed in the
+        Return the list of letters that appear in this word, listed in the
         order of first appearance.
 
         EXAMPLES::
@@ -5836,12 +5966,18 @@ exponent %s: the length of the word (%s) times the exponent \
             [0, 1]
             sage: Word("cacao").letters()
             ['c', 'a', 'o']
+
+        TESTS::
+
+            sage: Word().letters()
+            []
         """
-        seen, res = {}, []
+        seen = set()
+        res = []
         for x in self:
             if x not in seen:
                 res.append(x)
-                seen[x] = True
+                seen.add(x)
         return res
 
     def standard_factorization(self):
@@ -5948,7 +6084,7 @@ exponent %s: the length of the word (%s) times the exponent \
                 permutation = Permutation(permutation.domain())
             else:
                 permutation = Permutation(permutation)
-        return self.parent()(permutation.action(self))
+        return self.parent()(permutation.action(self), check=False)
 
     def apply_permutation_to_letters(self, permutation):
         r"""
@@ -6252,7 +6388,7 @@ exponent %s: the length of the word (%s) times the exponent \
         try:
             l = list(self.parent().alphabet())
         except AttributeError:
-            l = list(set(self))
+            l = self.letters()
         M = FreeMonoid(len(l), l)
         return M(self)
 

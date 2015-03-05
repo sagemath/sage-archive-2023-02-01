@@ -11,6 +11,7 @@ AUTHORS:
 
 - Jeroen Demeyer (2012-04-19): split off this file from plot.py (:trac:`12857`)
 - Punarbasu Purkayastha (2012-05-20): Add logarithmic scale (:trac:`4529`)
+- Emily Chen (2013-01-05): Add documentation for :meth:`~sage.plot.graphics.Graphics.show` figsize parameter (:trac:`5956`)
 
 """
 
@@ -30,6 +31,7 @@ import sage.misc.misc
 from sage.misc.html import html
 from sage.misc.temporary_file import tmp_filename, graphics_filename
 from sage.structure.sage_object import SageObject
+from sage.structure.graphics_file import GraphicsFile
 from sage.misc.decorators import suboptions
 from colors import rgbcolor
 
@@ -129,6 +131,8 @@ class Graphics(SageObject):
 
         sage: isinstance(g2, Graphics)
         True
+
+    .. automethod:: _graphics_
     """
 
     def __init__(self):
@@ -818,29 +822,54 @@ class Graphics(SageObject):
         """
         return self.__str__()
 
-    def _graphics_(self):
+    def _graphics_(self, mime_types=None, figsize=None, dpi=None):
         """
-        Show graphics.
+        Magic graphics method.
 
         The presence of this method is used by the displayhook to
         decide that we want to see a graphical output by default.
 
+        INPUT:
+        
+        - ``mime_types`` -- set of mime types (as strings).
+
+        - ``figsize`` -- pair of integers (optional). The desired
+          graphics size in pixels. Suggested, but need not be
+          respected by the output.
+
+        - ``dpi`` -- integer (optional). The desired resolution in
+          dots per inch. Suggested, but need not be respected by the
+          output.
+
         OUTPUT:
 
-        Return ``True`` if graphical output was generated (might not
-        be shown in doctest mode), otherwise ``False``.
+        Return an instance of
+        :class:`sage.structure.graphics_file.GraphicsFile`
+        encapsulating a suitable image file. If ``mime_types`` is
+        specified, the resulting file format must match one of these.
+
+        Alternatively, this method can return ``None`` to indicate
+        that textual representation is preferable and/or no graphics
+        with the desired mime type can be generated.
 
         EXAMPLES::
 
             sage: g = Graphics()
             sage: g._graphics_()
-            True
+            Graphics file image/png
+
             sage: [g, g]
             [Graphics object consisting of 0 graphics primitives,
              Graphics object consisting of 0 graphics primitives]
+
+            sage: g._graphics_(mime_types={'foo/bar'}) is None
+            True
         """
-        self.show()
-        return True
+        from sage.structure.graphics_file import Mime, graphics_from_save
+        preference = [Mime.PNG, Mime.SVG, Mime.JPG, Mime.PDF]
+        return graphics_from_save(self.save, preference,
+                                  allowed_mime_types=mime_types, 
+                                  figsize=figsize, dpi=dpi)
 
     def __str__(self):
         r"""
@@ -1275,9 +1304,12 @@ class Graphics(SageObject):
 
         - ``filename`` - (default: None) string
 
-        - ``dpi`` - dots per inch
+        - ``dpi`` - (default: 100) dots per inch
 
-        - ``figsize`` - [width, height]
+        - ``figsize`` - (default: [8.0,6.0]) [width, height] inches. The
+          maximum value of each of the width and the height can be 327
+          inches, at the default ``dpi`` of 100 dpi, which is just shy of
+          the maximum allowed value of 32768 dots (pixels).
 
         - ``fig_tight`` - (default: True) whether to clip the drawing
           tightly around drawn objects.  If True, then the resulting
@@ -1476,6 +1508,14 @@ class Graphics(SageObject):
               ``base`` is set to, it will default to 10 and will remain
               unused.
 
+        - ``xmin`` -- starting x value in the rendered figure.
+
+        - ``xmax`` -- ending x value in the rendered figure.
+
+        - ``ymin`` -- starting y value in the rendered figure.
+
+        - ``ymax`` -- ending y value in the rendered figure.
+
         - ``typeset`` -- (default: ``"default"``) string. The type of
           font rendering that should be used for the text. The possible
           values are
@@ -1497,9 +1537,12 @@ class Graphics(SageObject):
             sage: c = circle((1,1), 1, color='red')
             sage: c.show(xmin=-1, xmax=3, ymin=-1, ymax=3)
 
-        You could also just make the picture larger by changing ``figsize``::
+        You can make the picture larger by changing ``figsize`` with width,
+        height each having a maximum value of 327 inches at default dpi::
 
-            sage: c.show(figsize=8, xmin=-1, xmax=3, ymin=-1, ymax=3)
+            sage: p = ellipse((0,0),4,1)
+            sage: p.show(figsize=[327,10],dpi=100)
+            sage: p.show(figsize=[328,10],dpi=80)
 
         You can turn off the drawing of the axes::
 
@@ -1854,6 +1897,59 @@ class Graphics(SageObject):
             ...
             ValueError: 'title_pos' must be a list or tuple of two real numbers.
 
+        TESTS:
+
+        The figsize width and height parameters (at default dpi) must be
+        less than 328 inches each, corresponding to the maximum allowed
+        pixels in each direction of 32768.  See :trac:`5956` for more about
+        the next several tests::
+
+            sage: p = ellipse((0,0),4,1)
+            sage: p.show(figsize=[328,10],dpi=100)
+            Traceback (most recent call last):
+            ...
+            ValueError: width and height must each be below 32768
+
+        The following tests result in a segmentation fault and should not
+        be run or doctested::
+
+            sage: p = ellipse((0,0),4,1)
+            sage: #p.show(figsize=[232,232],dpi=100) # not tested
+            ------------------------------------------------------------------------
+            Unhandled SIGSEGV: A segmentation fault occurred in Sage.
+            This probably occurred because a *compiled* component of Sage has a bug
+            in it and is not properly wrapped with sig_on(), sig_off().
+            Sage will now terminate.
+            ------------------------------------------------------------------------
+            sage: #p.show(figsize=[327,181],dpi=100) # not tested
+            ------------------------------------------------------------------------
+            Unhandled SIGSEGV: A segmentation fault occurred in Sage.
+            This probably occurred because a *compiled* component of Sage has a bug
+            in it and is not properly wrapped with sig_on(), sig_off().
+            Sage will now terminate.
+            ------------------------------------------------------------------------
+
+        The following tests ensure we give a good error message for
+        negative figsizes::
+
+            sage: P = plot(x^2,(x,0,1))
+            sage: P.show(figsize=[-1,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: figsize should be positive numbers, not -1.0 and 1.0
+            sage: P.show(figsize=-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: figsize should be positive, not -1.0
+            sage: P.show(figsize=x^2)
+            Traceback (most recent call last):
+            ...
+            TypeError: figsize should be a positive number, not x^2
+            sage: P.show(figsize=[2,3,4])
+            Traceback (most recent call last):
+            ...
+            ValueError: figsize should be a positive number or a list of two positive numbers, not [2, 3, 4]
+            sage: P.show(figsize=[sqrt(2),sqrt(3)])
         """
         if filename is None:
             filename = graphics_filename()
@@ -1866,9 +1962,9 @@ class Graphics(SageObject):
             else:
                 html("<img src='cell://%s'>" % filename)
                 return
-        if not sage.doctest.DOCTEST_MODE:
-            os.system('%s %s 2>/dev/null 1>/dev/null &'
-                      % (sage.misc.viewer.png_viewer(), filename))
+
+        gfx = GraphicsFile(filename, mime_type='image/png')
+        gfx.launch_viewer()
 
     def xmin(self, xmin=None):
         """
@@ -2368,8 +2464,24 @@ class Graphics(SageObject):
         self.axes_labels(l=axes_labels)
 
         if figsize is not None and not isinstance(figsize, (list, tuple)):
-            default_width, default_height=rcParams['figure.figsize']
-            figsize=(figsize, default_height*figsize/default_width)
+            # in this case, figsize is a number and should be positive
+            try:
+                figsize = float(figsize) # to pass to mpl
+            except TypeError:
+                raise TypeError("figsize should be a positive number, not {0}".format(figsize))
+            if figsize > 0:
+                default_width, default_height=rcParams['figure.figsize']
+                figsize=(figsize, default_height*figsize/default_width)
+            else:
+                raise ValueError("figsize should be positive, not {0}".format(figsize))
+
+        if figsize is not None:
+            # then the figsize should be two positive numbers
+            if len(figsize) != 2:
+                raise ValueError("figsize should be a positive number or a list of two positive numbers, not {0}".format(figsize))
+            figsize = (float(figsize[0]),float(figsize[1])) # floats for mpl
+            if not (figsize[0] > 0 and figsize[1] > 0):
+                raise ValueError("figsize should be positive numbers, not {0} and {1}".format(figsize[0],figsize[1]))
 
         if figure is None:
             figure=Figure(figsize=figsize)
@@ -2995,10 +3107,13 @@ class Graphics(SageObject):
         data.sort()
         return '\n'.join(g[1] for g in data)
 
+
 class GraphicsArray(SageObject):
     """
     GraphicsArray takes a (`m` x `n`) list of lists of
     graphics objects and plots them all on one canvas.
+
+    .. automethod:: _graphics_
     """
     def __init__(self, array):
         """
@@ -3071,27 +3186,26 @@ class GraphicsArray(SageObject):
         """
         return self.__str__()
 
-    def _graphics_(self):
+    def _graphics_(self, mime_types=None, figsize=None, dpi=None):
         """
-        Show graphics.
+        Magic graphics method.
 
-        The presence of this method is used by the displayhook to
-        decide that we want to see a graphical output by default.
-
-        OUTPUT:
-
-        Return ``True`` if graphical output was generated (might not
-        be shown in doctest mode), otherwise ``False``.
+        See :meth:`sage.plot.graphics.Graphics._graphics_` for details.
 
         EXAMPLES::
 
             sage: from sage.plot.graphics import GraphicsArray
             sage: g = GraphicsArray([])
             sage: g._graphics_()
+            Graphics file image/png
+            sage: g._graphics_(mime_types={'foo/bar'}) is None
             True
         """
-        self.show()
-        return True
+        from sage.structure.graphics_file import Mime, graphics_from_save
+        preference = [Mime.PNG, Mime.SVG, Mime.JPG, Mime.PDF]
+        return graphics_from_save(self.save, preference,
+                                  allowed_mime_types=mime_types, 
+                                  figsize=figsize, dpi=dpi)
 
     def __str__(self):
         """
@@ -3290,7 +3404,8 @@ class GraphicsArray(SageObject):
 
         -  ``dpi`` - dots per inch
 
-        -  ``figsize`` - width or [width, height]
+        -  ``figsize`` - width or [width, height] See documentation
+           for :meth:`sage.plot.graphics.Graphics.show` for more details.
 
         -  ``axes`` - (default: True)
 
@@ -3355,7 +3470,7 @@ class GraphicsArray(SageObject):
 
 
     def show(self, filename=None, dpi=DEFAULT_DPI, figsize=None,
-             axes = None, **kwds):
+             axes=None, **kwds):
         r"""
         Show this graphics array using the default viewer.
 
@@ -3365,7 +3480,9 @@ class GraphicsArray(SageObject):
 
         -  ``dpi`` - dots per inch
 
-        -  ``figsize`` - width or [width, height]
+        -  ``figsize`` - width or [width, height]  See the
+           documentation for :meth:`sage.plot.graphics.Graphics.show`
+           for more information.
 
         -  ``axes`` - (default: True)
 
@@ -3384,7 +3501,6 @@ class GraphicsArray(SageObject):
         """
         if filename is None:
             filename = graphics_filename()
-        self.save(filename, dpi=dpi, figsize=figsize, axes = axes, **kwds)
-        if not sage.doctest.DOCTEST_MODE and not sage.plot.plot.EMBEDDED_MODE:
-            os.system('%s %s 2>/dev/null 1>/dev/null &'%(
-                         sage.misc.viewer.png_viewer(), filename))
+        self.save(filename, dpi=dpi, figsize=figsize, axes=axes, **kwds)
+        gfx = GraphicsFile(filename, mime_type='image/png')
+        gfx.launch_viewer()

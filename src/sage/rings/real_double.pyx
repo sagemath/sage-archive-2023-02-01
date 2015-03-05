@@ -69,7 +69,7 @@ def is_RealDoubleField(x):
         sage: is_RealDoubleField(RealField(53))
         False
     """
-    return PY_TYPE_CHECK(x, RealDoubleField_class)
+    return isinstance(x, RealDoubleField_class)
 
 cdef class RealDoubleField_class(Field):
     """
@@ -221,7 +221,7 @@ cdef class RealDoubleField_class(Field):
             sage: loads(dumps(RDF)) == RDF
             True
         """
-        if PY_TYPE_CHECK(x, RealDoubleField_class):
+        if isinstance(x, RealDoubleField_class):
             return 0
         return cmp(type(self), type(x))
 
@@ -584,13 +584,15 @@ cdef class RealDoubleField_class(Field):
         roots not to be real even though they are::
 
             sage: f = (x-1)^3
-            sage: f.roots(ring=CDF)  # abs tol 1e-6
-            [(0.9999894993080326, 1), (1.0000052503459833 - 9.09398093719616e-06*I, 1), (1.0000052503459833 + 9.09398093719616e-06*I, 1)]
+            sage: f.roots(ring=CDF)  # abs tol 2e-5
+            [(1.0000065719436413, 1),
+             (0.9999967140281792 - 5.691454546815028e-06*I, 1),
+             (0.9999967140281792 + 5.691454546815028e-06*I, 1)]
 
         This leads to the following incorrect factorization::
 
-            sage: f.factor()  # abs tol 1e-6
-            (x - 0.9999894993080326) * (x^2 - 2.0000105006919666*x + 1.0000105008022333)
+            sage: f.factor()  # abs tol 2e-5
+            (x - 1.0000065719436413) * (x^2 - 1.9999934280563585*x + 0.9999934280995487)
         """
         roots = f.roots(sage.rings.complex_double.CDF)
 
@@ -855,20 +857,6 @@ cdef class RealDoubleElement(FieldElement):
             TypeError: Cannot convert non-integral float to integer
         """
         return Integer(self._value)
-
-    def parent(self):
-        """
-        Return the real double field, which is the parent of ``self``.
-
-        EXAMPLES::
-
-            sage: a = RDF(2.3)
-            sage: a.parent()
-            Real Double Field
-            sage: parent(a)
-            Real Double Field
-        """
-        return self._parent
 
     def _interface_init_(self, I=None):
         """
@@ -1922,15 +1910,15 @@ cdef class RealDoubleElement(FieldElement):
             (-2.3)^x
         """
         cdef RealDoubleElement base, exp
-        if PY_TYPE_CHECK(self, RealDoubleElement):
+        if isinstance(self, RealDoubleElement):
             base = self
-            if PY_TYPE_CHECK(exponent, RealDoubleElement):
+            if isinstance(exponent, RealDoubleElement):
                 return base.__pow_float((<RealDoubleElement>exponent)._value)
-            elif PY_TYPE_CHECK(exponent, float):
+            elif isinstance(exponent, float):
                 return base.__pow_float(exponent)
-            elif PY_TYPE_CHECK(exponent, int):
+            elif isinstance(exponent, int):
                 return base.__pow_int(exponent)
-            elif PY_TYPE_CHECK(exponent, Integer) and exponent < INT_MAX:
+            elif isinstance(exponent, Integer) and exponent < INT_MAX:
                 return base.__pow_int(exponent)
             try:
                 exp = base._parent(exponent)
@@ -2641,7 +2629,7 @@ def is_RealDoubleElement(x):
         sage: is_RealDoubleElement(RIF(3))
         False
     """
-    return PY_TYPE_CHECK(x, RealDoubleElement)
+    return isinstance(x, RealDoubleElement)
 
 
 ################# FAST CREATION CODE ######################

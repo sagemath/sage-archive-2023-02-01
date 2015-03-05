@@ -1990,7 +1990,7 @@ class TermOrder(SageObject):
         """
         if self.name() in ('lex','degrevlex','deglex','degneglex','wdegrevlex','wdeglex'):
             return True
-        elif self.name() is 'block':
+        elif self.name() == 'block':
             return all([t.is_global() for t in self.blocks()])
         else:
             return False
@@ -2016,7 +2016,7 @@ class TermOrder(SageObject):
         if (self.name() in ('neglex','negdegrevlex','negdeglex','negwdegrevlex','negwdeglex') or
             self.singular_str() in ('ls','ds','Ds','ws','Ws')):
             return True
-        elif self.name() is 'block':
+        elif self.name() == 'block':
             return all([t.is_local() for t in self.blocks()])
         else:
             return False
@@ -2062,7 +2062,7 @@ def termorder_from_singular(S):
     EXAMPLE::
 
         sage: singular.eval('ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp)')
-        'ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);'
+        ''
         sage: from sage.rings.polynomial.term_order import termorder_from_singular
         sage: termorder_from_singular(singular)
         Block term order with blocks:

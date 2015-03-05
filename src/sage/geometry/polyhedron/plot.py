@@ -624,7 +624,7 @@ class Projection(SageObject):
         center = self.parent_polyhedron.center()
         if projection_direction is None:
             if self.parent_polyhedron.is_full_dimensional():
-                projection_direction = self.parent_polyhedron.inequality_generator().next().A()
+                projection_direction = next(self.parent_polyhedron.inequality_generator()).A()
             else:
                 from sage.rings.arith import primes_first_n
                 projection_direction = primes_first_n(self.polyhedron_ambient_dim)
@@ -710,11 +710,23 @@ class Projection(SageObject):
                 pass
 
     def show(self, *args, **kwds):
+        """
+        Deprecated method to show the projection as a graphics
+        object.  Use ``Projection.plot()`` instead.
+
+        EXAMPLE::
+
+            sage: P8 = polytopes.n_cube(4)
+            sage: P8.schlegel_projection([2,5,11,17]).show()
+            doctest:...: DeprecationWarning: use Projection.plot instead
+            See http://trac.sagemath.org/16625 for details.
+            Graphics3d Object
+        """
         from sage.misc.superseded import deprecation
         deprecation(16625, 'use Projection.plot instead')
         return self.plot(*args, **kwds)
 
-    def _graphics_(self):
+    def _graphics_(self, **kwds):
         """
         Display projection graphically on the Sage command line.
 
@@ -722,17 +734,11 @@ class Projection(SageObject):
 
         EXAMPLES::
 
-            sage: polytopes.n_cube(3).projection()._graphics_()
-            False
+            sage: polytopes.n_cube(3).projection()._graphics_(
+            ....:   mime_types={'image/png'})
+            Graphics file image/png
         """
-        from sage.doctest import DOCTEST_MODE
-        if DOCTEST_MODE:
-            return False
-        try:
-            self.plot().show()
-            return True
-        except AttributeError:
-            return False
+        return self.plot()._graphics_(**kwds)
 
     def _init_from_2d(self, polyhedron):
         """
@@ -876,7 +882,7 @@ class Projection(SageObject):
         polygons = []
 
         if polyhedron.n_lines() == 1:
-            aline = polyhedron.line_generator().next()
+            aline = next(polyhedron.line_generator())
             for shift in [aline(), -aline()]:
                 for i in range(len(coords)):
                     polygons.append( [ coords[i-1],coords[i],
@@ -915,7 +921,7 @@ class Projection(SageObject):
 
         def defining_equation():  # corresponding to a polygon
             if polyhedron.dim() < 3:
-                yield polyhedron.equation_generator().next()
+                yield next(polyhedron.equation_generator())
             else:
                 for ineq in polyhedron.inequality_generator():
                     yield ineq
@@ -954,7 +960,7 @@ class Projection(SageObject):
 
         if polyhedron.n_lines()==1:
             assert len(faces)>0, "no vertices?"
-            aline = polyhedron.line_generator().next()
+            aline = next(polyhedron.line_generator())
             for shift in [aline(), -aline()]:
                 for coords in faces:
                     assert len(coords)==2, "There must be two points."

@@ -205,9 +205,12 @@ __append_to_doc(
      "OrthogonalPolarGraph",
      "PaleyGraph",
      "petersen_family",
+     "planar_graphs",
+     "quadrangulations",
      "RingedTree",
      "SymplecticGraph",
      "trees",
+     "triangulations",
      "WheelGraph"])
 
 __doc__ += """
@@ -620,7 +623,7 @@ class GraphGenerators():
 ###########################################################################
 
     def __call__(self, vertices=None, property=lambda x: True, augment='edges',
-        size=None, deg_seq=None, degree_sequence=None, loops=False, implementation='c_graph',
+        size=None, degree_sequence=None, loops=False, implementation='c_graph',
         sparse=True, copy = True):
         """
         Accesses the generator of isomorphism class representatives.
@@ -670,12 +673,6 @@ class GraphGenerators():
         from sage.misc.superseded import deprecation
         from copy import copy as copyfun
 
-        if deg_seq is not None:
-            deprecation(11927, "The argument name deg_seq is deprecated. It will be "
-                        "removed in a future release of Sage. So, please use "
-                        "degree_sequence instead.")
-        if degree_sequence is None:
-            degree_sequence=deg_seq
         if degree_sequence is not None:
             if vertices is None:
                 raise NotImplementedError
@@ -795,11 +792,11 @@ class GraphGenerators():
         to contain it.  ::
 
             sage: gen = graphs.nauty_geng("2") # optional nauty
-            sage: gen.next() # optional nauty
+            sage: next(gen) # optional nauty
             Graph on 2 vertices
-            sage: gen.next() # optional nauty
+            sage: next(gen) # optional nauty
             Graph on 2 vertices
-            sage: gen.next() # optional nauty
+            sage: next(gen) # optional nauty
             Traceback (most recent call last):
             ...
             StopIteration: Exhausted list of graphs from nauty geng
@@ -825,7 +822,7 @@ class GraphGenerators():
         successful initiation.  ::
 
             sage: gen = graphs.nauty_geng("4", debug=True) # optional nauty
-            sage: print gen.next() # optional nauty
+            sage: print next(gen) # optional nauty
             >A nauty-geng -d0D3 n=4 e=0-6
         """
         import subprocess
@@ -840,7 +837,7 @@ class GraphGenerators():
         gen = sp.stdout
         while True:
             try:
-                s = gen.next()
+                s = next(gen)
             except StopIteration:
                 raise StopIteration("Exhausted list of graphs from nauty geng")
             G = graph.Graph(s[:-1], format='graph6')
@@ -1097,9 +1094,9 @@ class GraphGenerators():
         Buckminster Fullerene:  ::
 
             sage: gen = graphs.fullerenes(60, ipr=True)  # optional buckygen
-            sage: gen.next()  # optional buckygen
+            sage: next(gen)  # optional buckygen
             Graph on 60 vertices
-            sage: gen.next()  # optional buckygen
+            sage: next(gen)  # optional buckygen
             Traceback (most recent call last):
             ...
             StopIteration
@@ -1108,7 +1105,7 @@ class GraphGenerators():
         graph. ::
 
             sage: gen = graphs.fullerenes(20)  # optional buckygen
-            sage: g = gen.next()  # optional buckygen
+            sage: g = next(gen)  # optional buckygen
             sage: g.is_isomorphic(graphs.DodecahedralGraph()) # optional buckygen
             True
             sage: g.get_embedding()  # optional buckygen
@@ -1206,9 +1203,9 @@ class GraphGenerators():
         a graph on just 10 vertices:  ::
 
             sage: gen = graphs.fusenes(2)  # optional benzene
-            sage: gen.next()  # optional benzene
+            sage: next(gen)  # optional benzene
             Graph on 10 vertices
-            sage: gen.next()  # optional benzene
+            sage: next(gen)  # optional benzene
             Traceback (most recent call last):
             ...
             StopIteration
@@ -1249,6 +1246,476 @@ class GraphGenerators():
             return
 
         command = 'benzene '+('b' if benzenoids else '')+' {0} p'.format(hexagon_count)
+
+        import subprocess
+        sp = subprocess.Popen(command, shell=True,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE, close_fds=True)
+
+        for G in graphs._read_planar_code(sp.stdout):
+            yield(G)
+
+    def planar_graphs(self, order, minimum_degree=None, minimum_connectivity=None,
+                      exact_connectivity=False, only_bipartite=False):
+        r"""
+        An iterator over connected planar graphs using the plantri generator.
+
+        This uses the plantri generator (see [plantri]_) which is available
+        through the optional package plantri.
+
+        .. NOTE::
+
+            The non-3-connected graphs will be returned several times, with all
+            its possible embeddings.
+
+        INPUT:
+
+        - ``order`` - a positive integer smaller than or equal to 64.
+          This specifies the number of vertices in the generated graphs.
+
+        - ``minimum_degree`` - default: ``None`` - a value `\geq 1` and `\leq
+          5`, or ``None``. This specifies the minimum degree of the generated
+          graphs. If this is ``None`` and the order is 1, then this is set to
+          0. If this is ``None`` and the minimum connectivity is specified, then
+          this is set to the same value as the minimum connectivity.  If the
+          minimum connectivity is also equal to ``None``, then this is set to 1.
+
+        - ``minimum_connectivity`` - default: ``None`` - a value `\geq 1`
+          and `\leq 3`, or ``None``. This specifies the minimum connectivity of the
+          generated graphs. If this is ``None`` and the minimum degree is
+          specified, then this is set to the minimum of the minimum degree
+          and 3. If the minimum degree is also equal to ``None``, then this
+          is set to 1.
+
+        - ``exact_connectivity`` - default: ``False`` - if ``True`` only
+          graphs with exactly the specified connectivity will be generated.
+          This option cannot be used with ``minimum_connectivity=3``, or if
+          the minimum connectivity is not explicitely set.
+
+        - ``only_bipartite`` - default: ``False`` - if ``True`` only bipartite
+          graphs will be generated. This option cannot be used for graphs with
+          a minimum degree larger than 3.
+
+        OUTPUT:
+
+        An iterator which will produce all planar graphs with the given
+        number of vertices as Sage graphs with an embedding set. These will be
+        simple graphs (no loops, no multiple edges, no directed edges).
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.set_embedding`,
+              :meth:`~sage.graphs.generic_graph.GenericGraph.get_embedding` --
+              get/set methods for embeddings.
+
+        EXAMPLES:
+
+        There are 6 planar graphs on 4 vertices::
+
+            sage: gen = graphs.planar_graphs(4)  # optional plantri
+            sage: len(list(gen))  # optional plantri
+            6
+
+        Three of these planar graphs are bipartite::
+
+            sage: gen = graphs.planar_graphs(4, only_bipartite=True)  # optional plantri
+            sage: len(list(gen))  # optional plantri
+            3
+
+        The cycle of length 4 is the only 2-connected bipartite planar graph
+        on 4 vertices::
+
+            sage: l = list(graphs.planar_graphs(4, minimum_connectivity=2, only_bipartite=True))  # optional plantri
+            sage: l[0].get_embedding()  # optional plantri
+            {1: [2, 3],
+             2: [1, 4],
+             3: [1, 4],
+             4: [2, 3]}
+
+        There is one planar graph with one vertex. This graph obviously has
+        minimum degree equal to 0::
+
+            sage: list(graphs.planar_graphs(1))  # optional plantri
+            [Graph on 1 vertex]
+            sage: list(graphs.planar_graphs(1, minimum_degree=1))  # optional plantri
+            []
+
+        REFERENCE:
+
+        .. [plantri] G. Brinkmann and B.D. McKay, Fast generation of planar graphs,
+           MATCH-Communications in Mathematical and in Computer Chemistry, 58(2):323-357, 2007.
+        """
+        from sage.misc.package import is_package_installed
+        if not is_package_installed("plantri"):
+            raise TypeError("the optional plantri package is not installed")
+
+        # number of vertices should be positive
+        if order < 0:
+            raise ValueError("Number of vertices should be positive.")
+
+        # plantri can only output general planar graphs on up to 64 vertices
+        if order > 64:
+            raise ValueError("Number of vertices should be at most 64.")
+
+        if exact_connectivity and minimum_connectivity is None:
+            raise ValueError("Minimum connectivity must be specified to use the exact_connectivity option.")
+
+        # minimum connectivity should be None or a number between 1 and 3
+        if minimum_connectivity is  not None and not (1 <= minimum_connectivity <= 3):
+            raise ValueError("Minimum connectivity should be a number between 1 and 3.")
+
+        # minimum degree should be None or a number between 1 and 5
+        if minimum_degree == 0:
+            if order != 1:
+                raise ValueError("Minimum degree equal to 0 is only possible if the graphs have 1 vertex.")
+        elif minimum_degree is not None and not (1 <= minimum_degree <= 5):
+            raise ValueError("Minimum degree should be a number between 1 and 5 if the order is greater than 1.")
+        elif minimum_degree is None and order == 1:
+            minimum_degree = 0
+
+        # check combination of values of minimum degree and minimum connectivity
+        if minimum_connectivity is None:
+            if minimum_degree is not None:
+                minimum_connectivity = min(3, minimum_degree)
+            elif minimum_degree is None:
+                minimum_degree, minimum_connectivity = 1, 1
+        else:
+            if minimum_degree is None:
+                minimum_degree = minimum_connectivity
+            elif (minimum_degree < minimum_connectivity and
+                  minimum_degree > 0):
+                raise ValueError("Minimum connectivity can be at most the minimum degree.")
+
+        #exact connectivity is not implemented for minimum connectivity 3
+        if exact_connectivity and minimum_connectivity==3:
+            raise NotImplementedError("Generation of planar graphs with connectivity exactly 3 is not implemented.")
+
+        if only_bipartite and minimum_degree > 3:
+            raise NotImplementedError("Generation of bipartite planar graphs with minimum degree 4 or 5 is not implemented.")
+
+        if order == 0:
+            return
+
+        minimum_order = {0:1, 1:2, 2:3, 3:4, 4:6, 5:12}[minimum_degree]
+
+        if order < minimum_order:
+            return
+
+        if order == 1:
+            if minimum_degree == 0:
+                G = graph.Graph(1)
+                G.set_embedding({0: []})
+                yield(G)
+            return
+
+        command = ('plantri -p{}m{}c{}{} {}'.format('b' if only_bipartite else '',
+                                                    minimum_degree,
+                                                    minimum_connectivity,
+                                                    'x' if exact_connectivity else '',
+                                                    order))
+
+        import subprocess
+        sp = subprocess.Popen(command, shell=True,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE, close_fds=True)
+
+        for G in graphs._read_planar_code(sp.stdout):
+            yield(G)
+
+    def triangulations(self, order, minimum_degree=None, minimum_connectivity=None,
+                     exact_connectivity=False, only_eulerian=False):
+        r"""
+        An iterator over connected planar triangulations using the plantri generator.
+
+        This uses the plantri generator (see [plantri]_) which is available
+        through the optional package plantri.
+
+        INPUT:
+
+        - ``order`` - a positive integer smaller than or equal to 64.
+          This specifies the number of vertices in the generated triangulations.
+
+        - ``minimum_degree`` - default: ``None`` - a value `\geq 3` and `\leq 5`,
+          or ``None``. This specifies the minimum degree of the generated
+          triangulations. If this is ``None`` and the minimum connectivity
+          is specified, then this is set to the same value as the minimum
+          connectivity. If the minimum connectivity is also equal to ``None``,
+          then this is set to 3.
+
+        - ``minimum_connectivity`` - default: ``None`` - a value `\geq 3` and
+          `\leq 5`, or ``None``. This specifies the minimum connectivity of the
+          generated triangulations. If this is ``None`` and the minimum degree
+          is specified, then this is set to the minimum of the minimum degree
+          and 3. If the minimum degree is also equal to ``None``, then this is
+          set to 3.
+
+        - ``exact_connectivity`` - default: ``False`` - if ``True`` only
+          triangulations with exactly the specified connectivity will be generated.
+          This option cannot be used with ``minimum_connectivity=3``, or if
+          the minimum connectivity is not explicitely set.
+
+        - ``only_eulerian`` - default: ``False`` - if ``True`` only eulerian
+          triangulations will be generated. This option cannot be used if the
+          minimum degree is explicitely set to anything else than 4.
+
+        OUTPUT:
+
+        An iterator which will produce all planar triangulations with the given
+        number of vertices as Sage graphs with an embedding set. These will be
+        simple graphs (no loops, no multiple edges, no directed edges).
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.set_embedding`,
+              :meth:`~sage.graphs.generic_graph.GenericGraph.get_embedding` --
+              get/set methods for embeddings.
+
+        EXAMPLES:
+
+        The unique planar embedding of the `K_4` is the only planar triangulations
+        on 4 vertices::
+
+            sage: gen = graphs.triangulations(4)    # optional plantri
+            sage: [g.get_embedding() for g in gen]  # optional plantri
+            [{1: [2, 3, 4], 2: [1, 4, 3], 3: [1, 2, 4], 4: [1, 3, 2]}]
+
+        but, of course, this graph is not eulerian::
+
+            sage: gen = graphs.triangulations(4, only_eulerian=True)  # optional plantri
+            sage: len(list(gen))                                      # optional plantri
+            0
+
+        The unique eulerian triangulation on 6 vertices is isomorphic to the octahedral
+        graph. ::
+
+            sage: gen = graphs.triangulations(6, only_eulerian=True)  # optional plantri
+            sage: g = next(gen)                                       # optional plantri
+            sage: g.is_isomorphic(graphs.OctahedralGraph())           # optional plantri
+            True
+
+        An overview of the number of 5-connected triangulations on up to 22 vertices. This
+        agrees with Sloane's OEIS sequence A081621::
+
+            sage: for i in range(12, 23):                                             # optional plantri
+            ....:     L = len(list(graphs.triangulations(i, minimum_connectivity=5))) # optional plantri
+            ....:     print("{}   {:3d}".format(i,L))                                 # optional plantri
+            12     1
+            13     0
+            14     1
+            15     1
+            16     3
+            17     4
+            18    12
+            19    23
+            20    71
+            21   187
+            22   627
+
+        The minimum connectivity can be at most the minimum degree::
+
+            sage: gen = next(graphs.triangulations(10, minimum_degree=3, minimum_connectivity=5))  # optional plantri
+            Traceback (most recent call last):
+            ...
+            ValueError: Minimum connectivity can be at most the minimum degree.
+
+        There are 5 triangulations with 9 vertices and minimum degree equal to 4
+        that are 3-connected, but only one of them is not 4-connected::
+
+            sage: len([g for g in graphs.triangulations(9, minimum_degree=4, minimum_connectivity=3)]) # optional plantri
+            5
+            sage: len([g for g in graphs.triangulations(9, minimum_degree=4, minimum_connectivity=3, exact_connectivity=True)]) # optional plantri
+            1
+        """
+        from sage.misc.package import is_package_installed
+        if not is_package_installed("plantri"):
+            raise TypeError("the optional plantri package is not installed")
+
+        # number of vertices should be positive
+        if order < 0:
+            raise ValueError("Number of vertices should be positive.")
+
+        # plantri can only output planar triangulations on up to 64 vertices
+        if order > 64:
+            raise ValueError("Number of vertices should be at most 64.")
+
+        if exact_connectivity and minimum_connectivity is None:
+            raise ValueError("Minimum connectivity must be specified to use the exact_connectivity option.")
+
+        # minimum connectivity should be None or a number between 3 and 5
+        if minimum_connectivity is  not None and not (3 <= minimum_connectivity <= 5):
+            raise ValueError("Minimum connectivity should be None or a number between 3 and 5.")
+
+        # minimum degree should be None or a number between 3 and 5
+        if minimum_degree is  not None and not (3 <= minimum_degree <= 5):
+            raise ValueError("Minimum degree should be None or a number between 3 and 5.")
+
+        # for eulerian triangulations the minimum degree is set to 4 (unless it was already specifically set)
+        if only_eulerian and minimum_degree is None:
+            minimum_degree = 4
+
+        # check combination of values of minimum degree and minimum connectivity
+        if minimum_connectivity is None:
+            if minimum_degree is not None:
+                minimum_connectivity = min(3, minimum_degree)
+            else:
+                minimum_degree, minimum_connectivity = 3, 3
+        else:
+            if minimum_degree is None:
+                minimum_degree = minimum_connectivity
+            elif minimum_degree < minimum_connectivity:
+                raise ValueError("Minimum connectivity can be at most the minimum degree.")
+
+        #exact connectivity is not implemented for minimum connectivity equal to minimum degree
+        if exact_connectivity and minimum_connectivity==minimum_degree:
+            raise NotImplementedError("Generation of triangulations with minimum connectivity equal to minimum degree is not implemented.")
+
+        minimum_order = {3:4, 4:6, 5:12}[minimum_degree]
+
+        if order < minimum_order:
+            return
+
+        if only_eulerian and order < 6:
+            return
+
+        command = ('plantri -{}m{}c{}{} {}'.format('b' if only_eulerian else '',
+                                                   minimum_degree,
+                                                   minimum_connectivity,
+                                                   'x' if exact_connectivity else '',
+                                                   order))
+
+        import subprocess
+        sp = subprocess.Popen(command, shell=True,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE, close_fds=True)
+
+        for G in graphs._read_planar_code(sp.stdout):
+            yield(G)
+
+    def quadrangulations(self, order, minimum_degree=None, minimum_connectivity=None,
+                        no_nonfacial_quadrangles=False):
+        r"""
+        An iterator over planar quadrangulations using the plantri generator.
+
+        This uses the plantri generator (see [plantri]_) which is available
+        through the optional package plantri.
+
+        INPUT:
+
+        - ``order`` - a positive integer smaller than or equal to 64.
+          This specifies the number of vertices in the generated quadrangulations.
+
+        - ``minimum_degree`` - default: ``None`` - a value `\geq 2` and `\leq
+          3`, or ``None``. This specifies the minimum degree of the generated
+          quadrangulations. If this is ``None`` and the minimum connectivity is
+          specified, then this is set to the same value as the minimum
+          connectivity. If the minimum connectivity is also equal to ``None``,
+          then this is set to 2.
+
+        - ``minimum_connectivity`` - default: ``None`` - a value `\geq 2` and
+          `\leq 3`, or ``None``. This specifies the minimum connectivity of the
+          generated quadrangulations. If this is ``None`` and the option
+          ``no_nonfacial_quadrangles`` is set to ``True``, then this is set to
+          3. Otherwise if this is ``None`` and the minimum degree is specified,
+          then this is set to the minimum degree. If the minimum degree is also
+          equal to ``None``, then this is set to 3.
+
+        - ``no_nonfacial_quadrangles`` - default: ``False`` - if ``True`` only
+          quadrangulations with no non-facial quadrangles are generated. This
+          option cannot be used if ``minimum_connectivity`` is set to 2.
+
+        OUTPUT:
+
+        An iterator which will produce all planar quadrangulations with the given
+        number of vertices as Sage graphs with an embedding set. These will be
+        simple graphs (no loops, no multiple edges, no directed edges).
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.set_embedding`,
+              :meth:`~sage.graphs.generic_graph.GenericGraph.get_embedding` --
+              get/set methods for embeddings.
+
+        EXAMPLES:
+
+        The cube is the only 3-connected planar quadrangulation on 8 vertices::
+
+            sage: gen = graphs.quadrangulations(8, minimum_connectivity=3)  # optional plantri
+            sage: g = next(gen)                                            # optional plantri
+            sage: g.is_isomorphic(graphs.CubeGraph(3))                      # optional plantri
+            True
+            sage: next(gen)                                                # optional plantri
+            Traceback (most recent call last):
+            ...
+            StopIteration
+
+        An overview of the number of quadrangulations on up to 12 vertices. This
+        agrees with Sloane's OEIS sequence A113201::
+
+            sage: for i in range(4,13):                          # optional plantri
+            ....:     L =  len(list(graphs.quadrangulations(i))) # optional plantri
+            ....:     print("{:2d}   {:3d}".format(i,L))         # optional plantri
+             4     1
+             5     1
+             6     2
+             7     3
+             8     9
+             9    18
+            10    62
+            11   198
+            12   803
+
+        There are 2 planar quadrangulation on 12 vertices that do not have a
+        non-facial quadrangle::
+
+            sage: len([g for g in graphs.quadrangulations(12, no_nonfacial_quadrangles=True)])  # optional plantri
+            2
+        """
+        from sage.misc.package import is_package_installed
+        if not is_package_installed("plantri"):
+            raise TypeError("the optional plantri package is not installed")
+
+        # number of vertices should be positive
+        if order < 0:
+            raise ValueError("Number of vertices should be positive.")
+
+        # plantri can only output planar quadrangulations on up to 64 vertices
+        if order > 64:
+            raise ValueError("Number of vertices should be at most 64.")
+
+        # minimum connectivity should be None, 2 or 3
+        if minimum_connectivity not in {None, 2, 3}:
+            raise ValueError("Minimum connectivity should be None, 2 or 3.")
+
+        # minimum degree should be None, 2 or 3
+        if minimum_degree not in {None, 2, 3}:
+            raise ValueError("Minimum degree should be None, 2 or 3.")
+
+        if (no_nonfacial_quadrangles and
+            minimum_connectivity == 2):
+                raise NotImplementedError("Generation of no non-facial quadrangles and minimum connectivity 2 is not implemented")
+
+        # check combination of values of minimum degree and minimum connectivity
+        if minimum_connectivity is None:
+            if minimum_degree is not None:
+                minimum_connectivity = min(2, minimum_degree)
+            else:
+                minimum_degree, minimum_connectivity = 2, 2
+        else:
+            if minimum_degree is None:
+                minimum_degree = minimum_connectivity
+            elif minimum_degree < minimum_connectivity:
+                raise ValueError("Minimum connectivity can be at most the minimum degree.")
+
+        minimum_order = {2:4, 3:8}[minimum_degree]
+
+        if order < minimum_order:
+            return
+
+        if no_nonfacial_quadrangles:
+            # for plantri -q the option -c4 means 3-connected with no non-facial quadrangles
+            minimum_connectivity = 4
+
+        command = ('plantri -qm{}c{} {}'.format(minimum_degree, minimum_connectivity, order))
 
         import subprocess
         sp = subprocess.Popen(command, shell=True,
@@ -1435,7 +1902,6 @@ class GraphGenerators():
     RandomGNM                = staticmethod(sage.graphs.generators.random.RandomGNM)
     RandomGNP                = staticmethod(sage.graphs.generators.random.RandomGNP)
     RandomHolmeKim           = staticmethod(sage.graphs.generators.random.RandomHolmeKim)
-    RandomInterval           = staticmethod(sage.graphs.generators.random.RandomInterval) # deprecated
     RandomIntervalGraph      = staticmethod(sage.graphs.generators.random.RandomIntervalGraph)
     RandomLobster            = staticmethod(sage.graphs.generators.random.RandomLobster)
     RandomNewmanWattsStrogatz = staticmethod(sage.graphs.generators.random.RandomNewmanWattsStrogatz)

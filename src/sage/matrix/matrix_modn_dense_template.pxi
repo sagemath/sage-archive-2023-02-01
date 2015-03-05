@@ -504,12 +504,12 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             v = self._matrix[i]
             for j in range(self._ncols):
                 x = entries[k]
-                if PY_TYPE_CHECK_EXACT(x, int):
+                if type(x) is int:
                     tmp = (<long>x) % p
                     v[j] = tmp + (tmp<0)*p
-                elif PY_TYPE_CHECK_EXACT(x, IntegerMod_int) and (<IntegerMod_int>x)._parent is R:
+                elif type(x) is IntegerMod_int and (<IntegerMod_int>x)._parent is R:
                     v[j] = <celement>(<IntegerMod_int>x).ivalue
-                elif PY_TYPE_CHECK_EXACT(x, Integer):
+                elif type(x) is Integer:
                     if coerce:
                         v[j] = mpz_fdiv_ui((<Integer>x).value, p)
                     else:
@@ -2152,7 +2152,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             sage: A.characteristic_polynomial()
             x^10 + 12*x^9 + 6*x^8 + 8*x^7 + 13*x^6
             sage: P.<x> = GF(17)[]
-            sage: A._charpoly_hessenberg(x)
+            sage: A._charpoly_hessenberg('x')
             x^10 + 12*x^9 + 6*x^8 + 8*x^7 + 13*x^6
         """
         if self._nrows != self._ncols:
@@ -2427,7 +2427,8 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
           row1 + t \* row2 where g = sa + tb
         """
         cdef int p = <int>self.p
-        cdef celement * row1_p, * row2_p
+        cdef celement *row1_p
+        cdef celement *row2_p
         cdef celement tmp
         cdef int g, s, t, v, w
         cdef Py_ssize_t nc, i
@@ -2587,7 +2588,8 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             [34 19 14 11 35 30 35 34 25 33]
         """
         cdef celement p
-        cdef celement *v_from, *v_to
+        cdef celement *v_from
+        cdef celement *v_to
 
         p = self.p
         v_from = self._matrix[row_from]
@@ -2826,7 +2828,8 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         cdef int ndigits = len(str(self.p))
 
         cdef Py_ssize_t i, n
-        cdef char *s, *t
+        cdef char *s
+        cdef char *t
 
         if self._nrows == 0 or self._ncols == 0:
             data = ''
@@ -2901,18 +2904,12 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         cdef Matrix_integer_dense L
         cdef object P =  matrix_space.MatrixSpace(ZZ, self._nrows, self._ncols, sparse=False)
         L = Matrix_integer_dense(P,ZZ(0),False,False)
-        cdef mpz_t* L_row
-        cdef mpz_t tmp
         cdef celement* A_row
-        mpz_init(tmp)
-        for i from 0 <= i < self._nrows:
+        for i in range(self._nrows):
             A_row = self._matrix[i]
-            for j from 0 <= j < self._ncols:
-                mpz_set_si(tmp,<int>(A_row[j]))
-                L.set_unsafe_mpz(i,j,tmp)
-        L._initialized = 1
+            for j in range(self._ncols):
+                L.set_unsafe_double(i, j, A_row[j])
         L.subdivide(self.subdivisions())
-        mpz_clear(tmp)
         return L
 
 

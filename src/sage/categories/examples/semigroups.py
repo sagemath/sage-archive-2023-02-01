@@ -214,7 +214,7 @@ class FreeSemigroup(UniqueRepresentation, Parent):
 
         """
         self.alphabet = alphabet
-        Parent.__init__(self, category = Semigroups())
+        Parent.__init__(self, category = Semigroups().FinitelyGenerated())
 
     def _repr_(self):
         r"""

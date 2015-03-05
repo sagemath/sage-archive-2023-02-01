@@ -241,7 +241,7 @@ from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_di
 
 import pexpect
 
-from sage.misc.misc import verbose, DOT_SAGE
+from sage.env import DOT_SAGE
 from sage.misc.pager import pager
 
 COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj'%DOT_SAGE
@@ -257,7 +257,7 @@ class Maple(Expect):
     object, and ``maple.eval(...)`` to run a string using
     Maple (and get the result back as a string).
     """
-    def __init__(self, maxread=100, script_subdirectory="", server=None, server_tmpdir=None, logfile=None):
+    def __init__(self, maxread=100, script_subdirectory=None, server=None, server_tmpdir=None, logfile=None):
         """
         Create an instance of the Maple interpreter.
 
@@ -1140,7 +1140,7 @@ class MapleElement(ExpectElement):
             raise NotImplementedError("Unable to parse Maple output: %s" % result)
 
 # An instance
-maple = Maple(script_subdirectory='user')
+maple = Maple()
 
 def reduce_load_Maple():
     """

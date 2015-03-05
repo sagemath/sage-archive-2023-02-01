@@ -101,7 +101,7 @@ cdef class ntl_ZZ_p:
         cdef long failed
         if v is not None:
             sig_on()
-            if PY_TYPE_CHECK(v, ntl_ZZ_p):
+            if isinstance(v, ntl_ZZ_p):
                 self.x = (<ntl_ZZ_p>v).x
             elif PyInt_Check(v):
                 self.x = int_to_ZZ_p(v)
@@ -127,7 +127,7 @@ cdef class ntl_ZZ_p:
         ## the error checking in __init__ will prevent##
         ## you from constructing an ntl_ZZ_p          ##
         ## inappropriately.  However, from Cython, you##
-        ## could do r = PY_NEW(ntl_ZZ_p) without      ##
+        ## could do r = ntl_ZZ_p.__new__(ntl_ZZ_p) without
         ## first restoring a ZZ_pContext, which could ##
         ## have unfortunate consequences.  See _new  ##
         ## defined below for an example of the right  ##
@@ -137,7 +137,7 @@ cdef class ntl_ZZ_p:
         if modulus is None:
             ZZ_p_construct(&self.x)
             return
-        if PY_TYPE_CHECK( modulus, ntl_ZZ_pContext_class ):
+        if isinstance(modulus, ntl_ZZ_pContext_class):
             self.c = <ntl_ZZ_pContext_class>modulus
             self.c.restore_c()
             ZZ_p_construct(&self.x)
@@ -152,7 +152,7 @@ cdef class ntl_ZZ_p:
     cdef ntl_ZZ_p _new(self):
         cdef ntl_ZZ_p r
         self.c.restore_c()
-        r = PY_NEW(ntl_ZZ_p)
+        r = ntl_ZZ_p.__new__(ntl_ZZ_p)
         r.c = self.c
         return r
 
@@ -242,7 +242,7 @@ cdef class ntl_ZZ_p:
         """
         cdef ntl_ZZ_p y
         cdef ntl_ZZ_p r = self._new()
-        if not PY_TYPE_CHECK(other, ntl_ZZ_p):
+        if not isinstance(other, ntl_ZZ_p):
             other = ntl_ZZ_p(other,self.c)
         elif self.c is not (<ntl_ZZ_p>other).c:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
@@ -260,7 +260,7 @@ cdef class ntl_ZZ_p:
             sage: y-x
             3
         """
-        if not PY_TYPE_CHECK(other, ntl_ZZ_p):
+        if not isinstance(other, ntl_ZZ_p):
             other = ntl_ZZ_p(other,self.c)
         elif self.c is not (<ntl_ZZ_p>other).c:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
@@ -278,7 +278,7 @@ cdef class ntl_ZZ_p:
         """
         cdef ntl_ZZ_p y
         cdef ntl_ZZ_p r = ntl_ZZ_p(modulus=self.c)
-        if not PY_TYPE_CHECK(other, ntl_ZZ_p):
+        if not isinstance(other, ntl_ZZ_p):
             other = ntl_ZZ_p(other,modulus=self.c)
         elif self.c is not (<ntl_ZZ_p>other).c:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."

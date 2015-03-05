@@ -251,7 +251,7 @@ def construct_skeleton(database):
     skeleton = {}
     cur = database.__connection__.cursor()
     exe = cur.execute("SELECT name FROM sqlite_master WHERE TYPE='table'")
-    from sage.misc.misc import SAGE_SHARE
+    from sage.env import SAGE_SHARE
     for table in exe.fetchall():
         skeleton[table[0]] = {}
         exe1 = cur.execute("PRAGMA table_info(%s)"%table[0])
@@ -561,12 +561,12 @@ class SQLQuery(SageObject):
             sage: param = (5,)
             sage: Q = SQLQuery(G,q,param)
             sage: it = Q.__iter__()
-            sage: it.next()
+            sage: next(it)
             (18, u'D??')
-            sage: it.next()
+            sage: next(it)
             (19, u'D?C')
-            sage: skip = [it.next() for _ in range(15)]
-            sage: it.next()
+            sage: skip = [next(it) for _ in range(15)]
+            sage: next(it)
             (35, u'DBk')
         """
         try:

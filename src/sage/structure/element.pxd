@@ -1,15 +1,38 @@
+from sage_object cimport SageObject
+from parent cimport Parent
+from cpython.number cimport PyNumber_Check
 
-# It is important to keep this line here, basically to trick Pyrex.
-# If you remove this line then other modules that cimport element
-# from other directories will fail.
+cdef inline parent_c(x):
+    if isinstance(x, Element):
+        return (<Element>x)._parent
+    # Fast check for "number" types, including int and float
+    if PyNumber_Check(x):
+        return type(x)
+    try:
+        p = x.parent
+    except AttributeError:
+        return type(x)
+    else:
+        return p()
 
-cimport sage.structure.sage_object
-from sage.structure.parent cimport Parent
+cdef inline bint have_same_parent_c(left, right):
+    """
+    Return ``True`` if and only if ``left`` and ``right`` have the
+    same parent.
+    """
+    # We know at least one of the arguments is an Element. So if
+    # their types are *equal* (fast to check) then they are both
+    # Elements.  Otherwise use the slower test via isinstance().
+    if type(left) is type(right):
+        return (<Element>left)._parent is (<Element>right)._parent
+    if isinstance(right, Element) and isinstance(left, Element):
+        return (<Element>left)._parent is (<Element>right)._parent
+    return False
 
-cimport sage_object
-import  sage_object
 
-cdef class Element(sage_object.SageObject):
+cdef str arith_error_message(x, y, op)
+
+cdef class Element(SageObject):
     cdef Parent _parent
     cdef _richcmp_c_impl(left, Element right, int op)
     cdef int _cmp_c_impl(left, Element right) except -2
@@ -104,8 +127,11 @@ cdef class InfinityElement(RingElement):
 cdef class Vector(ModuleElement):
     cdef Py_ssize_t _degree
 
-    # Returns the dot product, using the simple metric $e_i \cdot e_j = \delta_{ij}$.
-    cpdef Element _dot_product_(Vector left, Vector right)  # override, call if parents the same
+    # Return the dot product using the simple metric
+    # $e_i \cdot e_j = \delta_{ij}$. The first assumes that the parents
+    # are equal, both assume that the degrees are equal.
+    cpdef Element _dot_product_(Vector left, Vector right)
+    cpdef Element _dot_product_coerce_(Vector left, Vector right)
 
     cpdef Vector _pairwise_product_(Vector left, Vector right) # override, call if parents the same
 

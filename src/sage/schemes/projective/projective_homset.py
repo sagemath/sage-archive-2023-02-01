@@ -1,5 +1,5 @@
 r"""
-Set of homomorphisms between two proejctive schemes
+Set of homomorphisms between two projective schemes
 
 For schemes `X` and `Y`, this module implements the set of morphisms
 `Hom(X,Y)`. This is done by :class:`SchemeHomset_generic`.
@@ -40,6 +40,7 @@ from sage.rings.all import ZZ
 from sage.schemes.generic.homset import SchemeHomset_points
 
 from sage.rings.rational_field import is_RationalField
+from sage.categories.number_fields import NumberFields
 from sage.rings.finite_rings.constructor import is_FiniteField
 
 #*******************************************************************
@@ -76,19 +77,39 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
 
         EXAMPLES::
 
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P(QQ).points(4)
+            [(-4 : 1), (-3 : 1), (-2 : 1), (-3/2 : 1), (-4/3 : 1), (-1 : 1),
+            (-3/4 : 1), (-2/3 : 1), (-1/2 : 1), (-1/3 : 1), (-1/4 : 1), (0 : 1),
+            (1/4 : 1), (1/3 : 1), (1/2 : 1), (2/3 : 1), (3/4 : 1), (1 : 0), (1 : 1),
+            (4/3 : 1), (3/2 : 1), (2 : 1), (3 : 1), (4 : 1)]
+
+        ::
+
+            sage: u = QQ['u'].0
+            sage: K.<v> = NumberField(u^2 + 3)
+            sage: P.<x,y,z> = ProjectiveSpace(K,2)
+            sage: len(P(K).points(9))
+            381
+
+        ::
+
             sage: P1 = ProjectiveSpace(GF(2),1)
             sage: F.<a> = GF(4,'a')
             sage: P1(F).points()
             [(0 : 1), (1 : 0), (1 : 1), (a : 1), (a + 1 : 1)]
         """
-        from sage.schemes.projective.projective_rational_point import enum_projective_rational_field
-        from sage.schemes.projective.projective_rational_point import enum_projective_finite_field
         R = self.value_ring()
         if is_RationalField(R):
             if not B > 0:
                 raise TypeError("A positive bound B (= %s) must be specified."%B)
+            from sage.schemes.projective.projective_rational_point import enum_projective_rational_field
             return enum_projective_rational_field(self,B)
+        elif R in NumberFields():
+            from sage.schemes.projective.projective_rational_point import enum_projective_number_field
+            return enum_projective_number_field(self,B)
         elif is_FiniteField(R):
+            from sage.schemes.projective.projective_rational_point import enum_projective_finite_field
             return enum_projective_finite_field(self.extended_codomain())
         else:
             raise TypeError("Unable to enumerate points over %s."%R)
@@ -280,4 +301,3 @@ from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.schemes.generic.homset',
                            'SchemeHomsetModule_abelian_variety_coordinates_field',
                            SchemeHomset_points_abelian_variety_field)
-

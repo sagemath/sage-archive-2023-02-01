@@ -72,7 +72,6 @@ from sage.interfaces.gap import is_GapElement
 from sage.interfaces.expect import is_ExpectElement
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
-from sage.misc.superseded import deprecated_function_alias
 
 import operator
 
@@ -504,7 +503,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         return make_permgroup_element_v2, (self._parent, self.domain(), self._parent.domain())
 
     cdef PermutationGroupElement _new_c(self):
-        cdef PermutationGroupElement other = PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef PermutationGroupElement other = t.__new__(t)
         if HAS_DICTIONARY(self):
             other.__class__ = self.__class__
         other._parent = self._parent
@@ -727,9 +727,9 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 raise ValueError, "Must be in the domain or a list, tuple or string."
 
             permuted = [i[self.perm[j]] for j from 0 <= j < self.n]
-            if PY_TYPE_CHECK(i, tuple):
+            if isinstance(i, tuple):
                 permuted = tuple(permuted)
-            elif PY_TYPE_CHECK(i, str):
+            elif isinstance(i, str):
                 permuted = ''.join(permuted)
             permuted += i[self.n:]
             return permuted
@@ -934,8 +934,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         from sage.combinat.permutation import Permutation
         return Permutation(self._gap_list()).cycle_string()
-
-    list = deprecated_function_alias(14319, domain)
 
     cpdef domain(self):
         """
@@ -1439,21 +1437,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             print "         ",l1
             print "         ",l5
         return l1,l2
-
-    def conjugacy_class(self):
-        r"""
-        Return the conjugacy class of ``self``.
-
-        EXAMPLES::
-
-            sage: D = DihedralGroup(5)
-            sage: g = D((1,3,5,2,4))
-            sage: g.conjugacy_class()
-            Conjugacy class of (1,3,5,2,4) in Dihedral group of order 10 as a permutation group
-        """
-        from sage.groups.conjugacy_classes import ConjugacyClassGAP
-        return ConjugacyClassGAP(self.parent(), self)
-
 
 cdef bint is_valid_permutation(int* perm, int n):
     """

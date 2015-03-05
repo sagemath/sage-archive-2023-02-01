@@ -1,6 +1,9 @@
 r"""
 Elements, parents, and categories in Sage: a (draft of) primer
 
+.. contents::
+    :depth: 2
+
 Abstract
 ========
 
@@ -201,6 +204,8 @@ Here is an overview of all categories in Sage::
 Wrap-up: generic algorithms in Sage are organized in a hierarchy of
 bookshelves modelled upon the usual hierarchy of categories provided
 by abstract algebra.
+
+.. _category-primer-parents-elements-categories:
 
 Elements, Parents, Categories
 -----------------------------
@@ -409,7 +414,7 @@ Applying an operation is generally done by *calling a method*::
     sage: pQ.factor()
     (6) * (x + 1)^2
 
-    sage: pZ = ZZ[x] ( p )
+    sage: pZ = ZZ['x'] ( p )
     sage: type(pZ)
     <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
     sage: pZ.factor()
@@ -957,7 +962,8 @@ implemented can be found by introspection with::
 
     sage: FiniteSemigroups().required_methods()
     {'element': {'optional': ['_mul_'], 'required': []},
-     'parent': {'optional': [], 'required': ['__contains__']}}
+     'parent': {'optional': ['semigroup_generators'],
+      'required': ['__contains__']}}
 
 ``product`` does not appear in the list because a default implementation
 is provided in term of the method ``_mul_`` on elements. Of course, at

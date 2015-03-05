@@ -163,7 +163,7 @@ class Bimodules(CategoryWithParameters):
         Return ``None``.
 
         Indeed, the category of bimodules defines no additional
-        structure: a left and right module-morphism between two
+        structure: a left and right module morphism between two
         bimodules is a bimodule morphism.
 
         .. SEEALSO:: :meth:`Category.additional_structure`

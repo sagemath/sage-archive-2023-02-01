@@ -831,7 +831,7 @@ class DyckWord(CombinatorialObject, Element):
         r"""
         A latex representation of ``self`` using the tikzpicture package.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: D = DyckWord([1,0,1,1,1,0,1,1,0,0,0,1,0,0])
             sage: D.set_latex_options({"valleys":True, "peaks":True, "bounce path":True})
@@ -903,7 +903,7 @@ class DyckWord(CombinatorialObject, Element):
         if diagonal:
             res += "  \\draw (0,0) -- %s;\n" % str((self.number_of_open_symbols(), self.number_of_open_symbols()))
         res += "  \\draw[rounded corners=1, color=%s, line width=%s] (0, 0)" % (latex_options['color'], str(latex_options['line width']))
-        ht.next()
+        next(ht)
         for i, j in ht:
             res += " -- (%s, %s)" % (i, j)
         res += ";\n"
@@ -945,8 +945,6 @@ class DyckWord(CombinatorialObject, Element):
             0
         """
         return len([x for x in self if x == open_symbol])
-
-    size = deprecated_function_alias(13550, number_of_open_symbols)
 
     def number_of_close_symbols(self):
         r"""
@@ -1352,8 +1350,6 @@ class DyckWord(CombinatorialObject, Element):
         """
         h = self.heights()
         return [i for i in xrange(2, len(h), 2) if h[i] == 0]
-
-    return_to_zero = deprecated_function_alias(13550, returns_to_zero)
 
     def touch_points(self):
         r"""
@@ -2877,8 +2873,6 @@ class DyckWord_complete(DyckWord):
                 a += above - diagonal
         return a
 
-    a_statistic = deprecated_function_alias(13550, area)
-
     def bounce_path(self):
         r"""
         Return the bounce path of ``self`` formed by starting at `(n,n)` and
@@ -3015,8 +3009,6 @@ class DyckWord_complete(DyckWord):
                         makeup_steps = 0
 
         return b
-
-    b_statistic = deprecated_function_alias(13550, bounce)
 
     def dinv(self, labeling=None):
         r"""
@@ -3400,7 +3392,7 @@ class DyckWords_all(DyckWords):
         EXAMPLES::
 
             sage: it = DyckWords(complete=False).__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[],
              [1],
              [1, 0],
@@ -3787,7 +3779,7 @@ class CompleteDyckWords_all(CompleteDyckWords, DyckWords_all):
         EXAMPLES::
 
             sage: it = DyckWords().__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[],
              [1, 0],
              [1, 0, 1, 0],

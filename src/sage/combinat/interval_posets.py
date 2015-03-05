@@ -230,7 +230,7 @@ class TamariIntervalPoset(Element):
         sage: TamariIntervalPoset(2,[(2,1),(1,2)])
         Traceback (most recent call last):
         ...
-        ValueError: Hasse diagram contains cycles.
+        ValueError: The graph is not directed acyclic
 
         sage: TamariIntervalPoset(3,[(1,3)])
         Traceback (most recent call last):
@@ -2378,7 +2378,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         final_forest = TamariIntervalPosets.final_forest(tree1)
         try:
             return initial_forest.intersection(final_forest)
-        except:
+        except Exception:
             raise ValueError("The two binary trees are not comparable on the Tamari lattice.")
 
     @staticmethod
@@ -2425,7 +2425,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         tree2 = dw2.to_binary_tree_tamari()
         try:
             return TamariIntervalPosets.from_binary_trees(tree1, tree2)
-        except:
+        except Exception:
             raise ValueError("The two Dyck words are not comparable on the Tamari lattice.")
 
     def __call__(self, *args, **keywords):
@@ -2502,13 +2502,13 @@ class TamariIntervalPosets_all(DisjointUnionEnumeratedSets, TamariIntervalPosets
             +Infinity
 
             sage: it = iter(S)
-            sage: [it.next() for i in xrange(5)]
+            sage: [next(it) for i in xrange(5)]
             [The tamari interval of size 0 induced by relations [],
              The tamari interval of size 1 induced by relations [],
              The tamari interval of size 2 induced by relations [],
              The tamari interval of size 2 induced by relations [(2, 1)],
              The tamari interval of size 2 induced by relations [(1, 2)]]
-            sage: it.next().parent()
+            sage: next(it).parent()
             Interval-posets
             sage: S(0,[])
             The tamari interval of size 0 induced by relations []

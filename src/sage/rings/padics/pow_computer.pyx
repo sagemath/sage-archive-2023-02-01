@@ -35,7 +35,6 @@ AUTHORS:
 import weakref
 from sage.rings.infinity import infinity
 
-include "sage/ext/gmp.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 
@@ -398,7 +397,7 @@ cdef class PowComputer_class(SageObject):
         cdef mpz_t tmp
         if n is infinity:
             return Integer(0)
-        if not PY_TYPE_CHECK(n, Integer):
+        if not isinstance(n, Integer):
             _n = Integer(n)
         else:
             _n = <Integer>n
@@ -489,7 +488,7 @@ cdef class PowComputer_base(PowComputer_class):
             sage: PC._pow_mpz_t_top_test() #indirect doctest
             59049
         """
-        return <mpz_srcptr>&(self.top_power[0])
+        return self.top_power
 
     cdef mpz_srcptr pow_mpz_t_tmp(self, long n):
         """
@@ -502,11 +501,11 @@ cdef class PowComputer_base(PowComputer_class):
             81
         """
         if n <= self.cache_limit:
-            return <mpz_srcptr>&(self.small_powers[n][0])
+            return self.small_powers[n]
         if n == self.prec_cap:
-            return <mpz_srcptr>&(self.top_power[0])
+            return self.top_power
         mpz_pow_ui(self.temp_m, self.prime.value, n)
-        return <mpz_srcptr>&(self.temp_m[0])
+        return self.temp_m
 
 pow_comp_cache = {}
 cdef PowComputer_base PowComputer_c(Integer m, Integer cache_limit, Integer prec_cap, in_field):
@@ -564,11 +563,11 @@ def PowComputer(m, cache_limit, prec_cap, in_field = False):
         sage: PC(-1)
         1/3
     """
-    if not PY_TYPE_CHECK(m, Integer):
+    if not isinstance(m, Integer):
         m = Integer(m)
-    if not PY_TYPE_CHECK(cache_limit, Integer):
+    if not isinstance(cache_limit, Integer):
         cache_limit = Integer(cache_limit)
-    if not PY_TYPE_CHECK(prec_cap, Integer):
+    if not isinstance(prec_cap, Integer):
         prec_cap = Integer(prec_cap)
     return PowComputer_c(m, cache_limit, prec_cap, in_field)
 

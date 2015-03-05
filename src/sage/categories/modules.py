@@ -75,7 +75,7 @@ class Modules(Category_module):
         sage: Modules == RingModules
         True
 
-        sage: Modules(ZZ[x]).is_abelian()   # see #6081
+        sage: Modules(ZZ['x']).is_abelian()   # see #6081
         True
 
     TESTS::
@@ -173,8 +173,8 @@ class Modules(Category_module):
         r"""
         Return ``None``.
 
-        Indeed, the category of modules defines no new structure: a
-        bimodule morphism between two modules is a module morphism.
+        Indeed, the category of modules defines no additional structure:
+        a bimodule morphism between two modules is a module morphism.
 
         .. SEEALSO:: :meth:`Category.additional_structure`
 
@@ -487,7 +487,8 @@ class Modules(Category_module):
             .. TODO::
 
                 Generalize this so that any homset category of a full
-                subcategory of module is a category over base ring.
+                subcategory of modules over a base ring is a category over
+                this base ring.
             """
             return self.base_category().base_ring()
 
@@ -552,7 +553,7 @@ class Modules(Category_module):
         class Endset(CategoryWithAxiom_over_base_ring):
             """
             The category of endomorphism sets `End(X)` for `X`
-            module (this is not used yet)
+            a module (this is not used yet)
             """
             def extra_super_categories(self):
                 """

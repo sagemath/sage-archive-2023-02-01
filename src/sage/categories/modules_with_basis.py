@@ -19,7 +19,6 @@ AUTHORS:
 from sage.misc.lazy_import import LazyImport
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import attrcall
-from sage.misc.superseded import deprecated_function_alias
 from sage.misc.sage_itertools import max_cmp, min_cmp
 from sage.categories.homsets import HomsetsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
@@ -933,22 +932,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: a = s([2,1]) + s([1,1,1])
                 sage: a.map_item(f)
                 2*s[2, 1] + 2*s[3]
-
-            The following methods are deprecated::
-
-                sage: a.map_term(f)
-                doctest:...: DeprecationWarning: map_term is deprecated. Please use map_item instead.
-                See http://trac.sagemath.org/8890 for details.
-                2*s[2, 1] + 2*s[3]
-                sage: a.map_mc(f)
-                doctest:...: DeprecationWarning: map_mc is deprecated. Please use map_item instead.
-                See http://trac.sagemath.org/8890 for details.
-                2*s[2, 1] + 2*s[3]
             """
             return self.parent().sum_of_terms( f(m,c) for m,c in self )
-
-        map_term = deprecated_function_alias(8890, map_item)
-        map_mc   = deprecated_function_alias(8890, map_item)
 
         def tensor(*elements):
             """

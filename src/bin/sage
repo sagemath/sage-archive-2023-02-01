@@ -18,11 +18,13 @@ usage() {
     echo "  -gp [...]           -- run Sage's PARI/GP calculator with given arguments"
     echo "  -h, -?              -- print this help message"
     echo "  -i [packages]       -- install the given Sage packages"
-    echo "  -inotebook [...]    -- start the *insecure* Sage notebook"
+    echo "  -pip [...]          -- invoke pip, the Python package manager"
+    echo "  -inotebook [...]    -- start the *insecure* Sage notebook (deprecated)"
     echo "  -maxima [...]       -- run Sage's Maxima with given arguments"
     echo "  -mwrank [...]       -- run Sage's mwrank with given arguments"
-    echo "  -n, -notebook [...] -- start the Sage notebook (options are the same"
-    echo "                         as for the notebook command in Sage)"
+    echo "  --notebook=[...]    -- start the Sage notebook (valid options are"
+    echo "                         'default', 'sagenb', and 'ipython')"
+    echo "  -n, --notebook      -- shortcut for --notebook=default"
     echo "  -optional           -- list all optional packages that can be installed"
     echo "  -python [...]       -- run the Python interpreter"
     echo "  -R [...]            -- run Sage's R with given arguments"
@@ -43,7 +45,7 @@ usage() {
     echo "                         'version' is a git branch or tag name. Useful values"
     echo "                         are 'master' (the currend development version, this"
     echo "                         is the default) or a version number like '5.13'."
-    echo "  -v, -version        -- print the Sage version"
+    echo "  -v, -version        -- display Sage version information"
     exit 0
 }
 
@@ -63,17 +65,24 @@ usage_advanced() {
     echo "  -root               -- print the Sage root directory"
     echo "  -gthread, -qthread, -q4thread, -wthread, -pylab"
     echo "                      -- pass the option through to ipython"
-    echo "  -v, -version        -- print the Sage version"
+    echo "  -v, -version        -- display Sage version information"
+    echo "  -dumpversion        -- print Sage version"
+    echo "  -git-branch         -- print the current git branch"
 
     echo
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Running the notebook:"
+    echo "  --notebook=[...]    -- start the Sage notebook (valid options are"
+    echo "                         'default', 'sagenb', and 'ipython'). See the output"
+    echo "                         of sage --notebook --help for more details and"
+    echo "                         examples of how to pass optional arguments"
     echo "  -bn, -build-and-notebook [...] -- build the Sage library then start"
     echo "                         the Sage notebook"
-    echo "  -inotebook [...]    -- start the *insecure* Sage notebook"
-    echo "  -n, -notebook [...] -- start the Sage notebook (options are the same"
-    echo "                         as for the notebook command in Sage)"
+    echo "  -inotebook [...]    -- start the *insecure* Sage notebook (deprecated)"
+    echo "  -n, -notebook [...] -- start the default Sage notebook (options are the"
+    echo "                         same as for the notebook command in Sage).  See the"
+    echo "                         output of sage -n -h for more details"
 
     echo
     ####  1.......................26..................................................78
@@ -122,6 +131,7 @@ usage_advanced() {
     echo "  -info [packages]    -- print the SPKG.txt of the given packages"
     echo "  -optional           -- list all optional packages that can be installed"
     echo "  -standard           -- list all standard packages that can be installed"
+    echo "  -installed          -- list all installed packages"
    #echo "  -update             -- download latest non-optional Sage packages (do not build them)"
    #echo "  -update-build       -- build and install all downloaded non-optional Sage packages"
     echo "  -upgrade [version]  -- download, build and install the given version. Here,"
@@ -194,8 +204,7 @@ usage_advanced() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Making Sage packages or distributions:"
-    echo "  -bdist VER          -- build a binary distribution of Sage"
-    echo "  -crap sage-ver.tar  -- detect suspicious garbage in sage source tarball"
+    echo "  -bdist <tmpdir>     -- build a binary distribution of Sage"
     echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
     echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
     echo "  -sdist              -- build a source distribution of Sage"
@@ -275,7 +284,6 @@ if [ $# -gt 0 ]; then
   fi
 fi
 
-
 # Prepare for running Sage, either interactively or non-interactively.
 sage_setup() {
     # Check that we're not in a source tarball which hasn't been built yet (#13561).
@@ -349,11 +357,16 @@ fi
 # Report information about the Sage environment
 #####################################################################
 
+if [ "$1" = '-dumpversion' -o "$1" = '--dumpversion' ]; then
+	. "$SAGE_LOCAL"/bin/sage-version.sh
+	echo ${SAGE_VERSION}
+	exit 0
+fi
+
 if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
-    # Workaround for OSX, see http://trac.sagemath.org/15072
-    export LC_ALL=C
-    exec sed -n -e 's/.*\(Sage Version.*Date: [0-9-]*\).*/\1/p' \
-        "$SAGE_LOCAL"/bin/sage-banner
+	. "$SAGE_LOCAL"/bin/sage-version.sh
+	echo "Sage Version ${SAGE_VERSION}, Release Date: ${SAGE_RELEASE_DATE}"
+	exit 0
 fi
 
 if [ "$1" = '-root'  -o "$1" = '--root' ]; then
@@ -440,6 +453,11 @@ if [ "$1" = '-scons' -o "$1" = '--scons' ]; then
     exec scons "$@"
 fi
 
+if [ "$1" = '-pip' -o "$1" = '--pip' ]; then
+    shift
+    exec pip "$@"
+fi
+
 if [ "$1" = '-python' -o "$1" = '--python' ]; then
     shift
     exec python "$@"
@@ -458,6 +476,11 @@ fi
 if [ "$1" = '-git' -o "$1" = '--git' ]; then
     shift
     exec git "$@"
+fi
+
+if [ "$1" = '-git-branch' -o "$1" = '--git-branch' ]; then
+    shift
+    exec git --git-dir="$SAGE_ROOT"/.git rev-parse --abbrev-ref HEAD
 fi
 
 if [ "$1" = '-sh' -o "$1" = '--sh' ]; then
@@ -607,15 +630,6 @@ if [ "$1" = '-rst2sws' -o "$1" = '--rst2sws' ]; then
 fi
 
 #####################################################################
-# Crap
-#####################################################################
-
-if [ "$1" = "-crap" -o "$1" = "--crap" ]; then
-    shift
-    exec sage-crap $@
-fi
-
-#####################################################################
 # Run Sage's versions of the standard Algebra/Geometry etc. software
 #####################################################################
 
@@ -624,8 +638,12 @@ build_sage() {
     sage-build "$@" || exit $?
 }
 
+if [[ "$1" =~ ^--notebook=.* || "$1" =~ ^-n=.* || "$1" =~ ^-notebook=.* ]] ; then
+    sage-cleaner &>/dev/null &
+    exec sage-notebook "$@"
+fi
+
 if [ "$1" = "-notebook" -o "$1" = '--notebook' -o "$1" = '-n' ]; then
-    shift
     sage-cleaner &>/dev/null &
     exec sage-notebook "$@"
 fi
@@ -634,13 +652,13 @@ if [ "$1" = "-bn" -o "$1" = "--build-and-notebook" ]; then
     shift
     build_sage
     sage-cleaner &>/dev/null &
-    exec sage-notebook "$@"
+    exec sage-notebook --notebook=default "$@"
 fi
 
 if [ "$1" = "-inotebook" -o "$1" = '--inotebook' ]; then
     shift
     sage-cleaner &>/dev/null &
-    exec sage-notebook-insecure "$@"
+    exec sage-notebook --notebook=sagenb secure=False "$@"
 fi
 
 if [ "$1" = '-grep' -o "$1" = "--grep" -o "$1" = "-search_src" -o "$1" = "--search_src" ]; then
@@ -772,15 +790,19 @@ install() {
 }
 
 if [ "$1" = '-optional' -o "$1" = "--optional" ]; then
-    exec sage-list-optional
+    exec sage-list-packages optional
 fi
 
 if [ "$1" = '-experimental' -o "$1" = "--experimental" ]; then
-    exec sage-list-experimental
+    exec sage-list-packages experimental
 fi
 
 if [ "$1" = '-standard' -o "$1" = "--standard" ]; then
-    exec sage-list-standard
+    exec sage-list-packages standard
+fi
+
+if [ "$1" = '-installed' -o "$1" = "--installed" ]; then
+    exec sage-list-packages installed
 fi
 
 if [ "$1" = '-i' ]; then

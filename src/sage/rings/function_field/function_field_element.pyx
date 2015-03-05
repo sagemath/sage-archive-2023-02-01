@@ -83,7 +83,8 @@ cdef class FunctionFieldElement(FieldElement):
                 (self._parent, type(self), self._x))
 
     cdef FunctionFieldElement _new_c(self):
-        cdef FunctionFieldElement x = <FunctionFieldElement>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef FunctionFieldElement x = <FunctionFieldElement>t.__new__(t)
         x._parent = self._parent
         return x
 
@@ -329,7 +330,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             sage: f = y/x^2 + x/(x^2+1); f
             1/x^2*y + x/(x^2 + 1)
             sage: f.element()
-            1/x^2*T + x/(x^2 + 1)
+            1/x^2*y + x/(x^2 + 1)
             sage: type(f.element())
             <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
         """

@@ -8,7 +8,7 @@ Subsets satisfying a hereditary property
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-def subsets_with_hereditary_property(f,X,ncpus=1):
+def subsets_with_hereditary_property(f,X,max_obstruction_size=None,ncpus=1):
     r"""
     Return all subsets `S` of `X` such that `f(S)` is true.
 
@@ -29,6 +29,13 @@ def subsets_with_hereditary_property(f,X,ncpus=1):
       ``X``.
 
     - ``X`` -- a list/iterable.
+
+    - ``max_obstruction_size`` (integer) -- if you know that there is
+      a `k` such that `f(S)` is true if and only if `f(S')` is true
+      for all `S'\subseteq S` with `S'\leq k`, set
+      ``max_obstruction_size=k``. It may dramatically decrease the
+      number of calls to `f`. Set to ``None`` by default, meaning
+      `k=|X|`.
 
     - ``ncpus`` -- number of cpus to use for this computation. Note that
       changing the value from `1` (default) to anything different *enables*
@@ -58,6 +65,27 @@ def subsets_with_hereditary_property(f,X,ncpus=1):
         sage: sorted(list(subsets_with_hereditary_property(f,range(4),ncpus=2)))
         [[], [0], [0, 2], [1], [1, 3], [2], [3]]
 
+    One can use this function to compute the independent sets of a graph. We
+    know, however, that in this case the maximum obstructions are the edges, and
+    have size 2. We can thus set ``max_obstruction_size=2``, which reduces the
+    number of calls to `f` from 91 to 56::
+
+        sage: num_calls=0
+        sage: g = graphs.PetersenGraph()
+        sage: def is_independent_set(S):
+        ....:     global num_calls
+        ....:     num_calls+=1
+        ....:     return g.subgraph(S).size()==0
+        sage: l1=list(subsets_with_hereditary_property(is_independent_set,g.vertices()))
+        sage: num_calls
+        91
+        sage: num_calls=0
+        sage: l2=list(subsets_with_hereditary_property(is_independent_set,g.vertices(),max_obstruction_size=2))
+        sage: num_calls
+        56
+        sage: l1==l2
+        True
+
     TESTS::
 
         sage: list(subsets_with_hereditary_property(lambda x:False,range(4)))
@@ -67,7 +95,7 @@ def subsets_with_hereditary_property(f,X,ncpus=1):
         sage: print list(subsets_with_hereditary_property(lambda x:True,range(2)))
         [[], [0], [1], [0, 1]]
     """
-    from sage.misc.bitset import Bitset
+    from sage.data_structures.bitset import Bitset
     from sage.parallel.decorate import parallel
     # About the implementation:
     #
@@ -85,6 +113,9 @@ def subsets_with_hereditary_property(f,X,ncpus=1):
     X_labels = list(X)
     n = len(X_labels)
     X = set(range(n))
+    if max_obstruction_size is None:
+        max_obstruction_size = n
+
     bs  = [Bitset([],1) for _ in range(n)] # collection of no-set
     nforb=1                                # number of no-sets stored
     current_layer = [[]]                   # all yes-sets of size 'current_size'
@@ -110,7 +141,7 @@ def subsets_with_hereditary_property(f,X,ncpus=1):
 
             # If we cannot decide yet we must call f(S)
             if not inter:
-                if f([X_labels[xx] for xx in s_plus_i]):
+                if set_size >= max_obstruction_size or f([X_labels[xx] for xx in s_plus_i]):
                     new_yes_sets.append(s_plus_i)
                 else:
                     new_no_sets.append(s_plus_i)
@@ -126,7 +157,9 @@ def subsets_with_hereditary_property(f,X,ncpus=1):
         explore_neighbors_paral = parallel(ncpus=ncpus)(explore_neighbors)
 
     # All sets of size 0, then size 1, then ...
+    set_size = -1
     while current_layer:
+        set_size        += 1
         new_no_sets      = []
         new_yes_sets     = []
 

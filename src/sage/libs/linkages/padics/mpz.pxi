@@ -18,12 +18,12 @@ AUTHORS:
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
-include "sage/ext/gmp.pxi"
 from cpython.list cimport *
 
 cdef extern from "mpz_pylong.h":
     cdef long mpz_pythonhash(mpz_t src)
 
+from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
@@ -77,7 +77,7 @@ cdef inline int ccmp(mpz_t a, mpz_t b, long prec, bint reduce_a, bint reduce_b, 
     cdef int ans
     if reduce_a or reduce_b:
         mpz_sub(holder.value, a, b)
-        mpz_mod(holder.value, holder.value, &prime_pow.pow_mpz_t_tmp(prec)[0])
+        mpz_mod(holder.value, holder.value, prime_pow.pow_mpz_t_tmp(prec))
         return mpz_sgn(holder.value)
     else:
         ans = mpz_cmp(a,b)
@@ -224,7 +224,7 @@ cdef inline bint cisunit(mpz_t a, PowComputer_class prime_pow) except -1:
 
 cdef inline int cshift(mpz_t out, mpz_t a, long n, long prec, PowComputer_class prime_pow, bint reduce_afterward) except -1:
     """
-    Mulitplies by a power of the uniformizer.
+    Multiplies by a power of the uniformizer.
 
     INPUT:
 
@@ -250,7 +250,7 @@ cdef inline int cshift(mpz_t out, mpz_t a, long n, long prec, PowComputer_class 
 
 cdef inline int cshift_notrunc(mpz_t out, mpz_t a, long n, long prec, PowComputer_class prime_pow) except -1:
     """
-    Mulitplies by a power of the uniformizer, assuming that the
+    Multiplies by a power of the uniformizer, assuming that the
     valuation of a is at least -n.
 
     INPUT:
@@ -601,11 +601,11 @@ cdef int cconv(mpz_t out, x, long prec, long valshift, PowComputer_class prime_p
 
     - ``prime_pow`` -- a PowComputer for the ring.
     """
-    if PY_TYPE_CHECK(x, pari_gen):
+    if isinstance(x, pari_gen):
         x = x.sage()
-    if PY_TYPE_CHECK(x, pAdicGenericElement) or sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
+    if isinstance(x, pAdicGenericElement) or sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
         x = x.lift()
-    if PY_TYPE_CHECK(x, Integer):
+    if isinstance(x, Integer):
         if valshift > 0:
             mpz_divexact(out, (<Integer>x).value, prime_pow.pow_mpz_t_tmp(valshift))
             mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec))
@@ -613,7 +613,7 @@ cdef int cconv(mpz_t out, x, long prec, long valshift, PowComputer_class prime_p
             raise RuntimeError("Integer should not have negative valuation")
         else:
             mpz_mod(out, (<Integer>x).value, prime_pow.pow_mpz_t_tmp(prec))
-    elif PY_TYPE_CHECK(x, Rational):
+    elif isinstance(x, Rational):
         if valshift == 0:
             mpz_invert(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(prec))
             mpz_mul(out, out, mpq_numref((<Rational>x).value))

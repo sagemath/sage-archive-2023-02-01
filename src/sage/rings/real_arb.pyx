@@ -574,7 +574,7 @@ cdef class RealBall(RingElement):
             sage: from sage.rings.real_arb import RealBall
             sage: RealBall(RBF, sage.symbolic.constants.Pi())
             [3.141592653589793 +/- 5.62e-16]
-            sage: RealBall(RBF, sage.symbolic.constants.Log2())
+            sage: RealBall(RBF, sage.symbolic.constants.Log2()) # abs tol 1e-16
             [0.693147180559945 +/- 4.06e-16]
             sage: RealBall(RBF, sage.symbolic.constants.Catalan())
             [0.915965594177219 +/- 9.43e-17]
@@ -1619,8 +1619,8 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
-            sage: RBF(2).log()
-            [0.6931471805599453 +/- 4.34e-17]
+            sage: RBF(3).log()
+            [1.098612288668110 +/- 6.63e-16]
             sage: RBF(-1/3).log()
             nan
         """
@@ -1693,8 +1693,8 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
-            sage: RBF(pi).sin()
-            [+/- 5.68e-16]
+            sage: RBF(pi).sin() # abs tol 1e-16
+            [+/- 5.69e-16]
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -1709,7 +1709,7 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
-            sage: RBF(pi).cos()
+            sage: RBF(pi).cos() # abs tol 1e-16
             [-1.00000000000000 +/- 6.69e-16]
         """
         cdef RealBall res = self._new()

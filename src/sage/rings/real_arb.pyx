@@ -1164,7 +1164,7 @@ cdef class RealBall(RingElement):
 
     def is_zero(self):
         """
-        Return nonzero iff the midpoint and radius of this ball are both zero.
+        Return True iff the midpoint and radius of this ball are both zero.
 
         EXAMPLES::
 
@@ -1179,7 +1179,7 @@ cdef class RealBall(RingElement):
 
     def is_nonzero(self):
         """
-        Return nonzero iff zero is not contained in the interval represented
+        Return True iff zero is not contained in the interval represented
         by this ball.
 
         EXAMPLES::
@@ -1194,7 +1194,7 @@ cdef class RealBall(RingElement):
 
     def is_finite(self):
         """
-        Return nonzero iff the midpoint and radius of this ball are both
+        Return True iff the midpoint and radius of this ball are both
         finite floating-point numbers, i.e. not infinities or NaN.
 
         EXAMPLES::
@@ -1209,7 +1209,7 @@ cdef class RealBall(RingElement):
 
     def is_exact(self):
         """
-        Return nonzero iff the radius of this ball is zero.
+        Return True iff the radius of this ball is zero.
 
         EXAMPLES::
 
@@ -1223,7 +1223,7 @@ cdef class RealBall(RingElement):
 
     def identical(self, RealBall other):
         """
-        Return nonzero iff ``self`` and ``other`` are equal as balls, i.e.
+        Return True iff ``self`` and ``other`` are equal as balls, i.e.
         have both the same midpoint and radius.
 
         Note that this is not the same thing as testing whether both ``self``
@@ -1247,7 +1247,7 @@ cdef class RealBall(RingElement):
 
     def overlaps(self, RealBall other):
         """
-        Return nonzero iff ``self`` and ``other`` have some point in common.
+        Return True iff ``self`` and ``other`` have some point in common.
 
         If either ``self`` or ``other`` contains NaN, this method always
         returns nonzero (as a NaN could be anything, it could in particular

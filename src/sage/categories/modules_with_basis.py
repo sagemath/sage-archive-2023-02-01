@@ -20,6 +20,7 @@ from sage.misc.lazy_import import LazyImport
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import attrcall
 from sage.misc.sage_itertools import max_cmp, min_cmp
+from sage.misc.superseded import deprecated_function_alias
 from sage.categories.homsets import HomsetsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.tensor import tensor, TensorProductsCategory

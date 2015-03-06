@@ -2702,7 +2702,7 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().treewidth()
             4
             sage: graphs.PetersenGraph().treewidth(certificate=True)
-            Graph on 7 vertices
+            Graph on 6 vertices
 
         The treewidth of a 2d grid is its smallest side::
 
@@ -2720,7 +2720,7 @@ class Graph(GenericGraph):
             sage: g.treewidth()
             1
             sage: g.treewidth(certificate=True)
-            Graph on 6 vertices
+            Graph on 4 vertices
             sage: g.treewidth(2)
             True
             sage: g.treewidth(1)
@@ -2738,7 +2738,7 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().treewidth(k=3,certificate=True)
             False
             sage: graphs.PetersenGraph().treewidth(k=4,certificate=True)
-            Graph on 7 vertices
+            Graph on 6 vertices
 
         TESTS:
 

@@ -329,40 +329,39 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
                                      position=1)
 
     # after this line : coercion
-    # def _element_constructor_(self, x):
-    #     r"""
-    #     Convert ``x`` into ``self``.
+    def _element_constructor_(self, x):
+        r"""
+        Convert ``x`` into ``self``.
 
-    #     EXAMPLES::
+        EXAMPLES::
 
-    #         sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-    #         sage: R = FreePreLieAlgebra(QQ, 'xy')
-    #         sage: x, y = R.gens()
-    #         sage: R(x)
-    #         B[[x]]
-    #         sage: R(x+4*y)
-    #         4*B[y[]] + B[x[]]
+            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
+            sage: R = FreePreLieAlgebra(QQ, 'xy')
+            sage: x, y = R.gens()
+            sage: R(x)
+            B[[x]]
+            sage: R(x+4*y)
+            4*B[y[]] + B[x[]]
 
-    #         sage: Trees = R.basis().keys()
-    #         sage: R(Trees([],'x')
+            sage: Trees = R.basis().keys()
+            sage: R(Trees([],'x')
 
-    #         sage: D = FreePreLieAlgebra(ZZ, 'xy')
-    #         sage: X, Y = D.gens()
-    #         sage: R(X-Y).parent()
-    #         Free PreLie algebra on 2 generators ['x', 'y'] over Rational Field
-    #     """
-    #     if x in self.basis().keys():
-    #         return self.monomial(x)
-    #     try:
-    #         P = x.parent()
-    #         if isinstance(P, FreePreLieAlgebra):
-    #             if P is self:
-    #                 return x
-    #             return self.element_class(self, x.monomial_coefficients())
-    #     except AttributeError:
-    #         raise TypeError('not able to coerce this in this algebra')
-
-    #     # ok, not a pre-Lie algebra element (or should not be viewed as one).
+            sage: D = FreePreLieAlgebra(ZZ, 'xy')
+            sage: X, Y = D.gens()
+            sage: R(X-Y).parent()
+            Free PreLie algebra on 2 generators ['x', 'y'] over Rational Field
+        """
+        if x in self.basis().keys():
+            return self.monomial(x)
+        try:
+            P = x.parent()
+            if isinstance(P, FreePreLieAlgebra):
+                if P is self:
+                    return x
+                return self.element_class(self, x.monomial_coefficients())
+        except AttributeError:
+            raise TypeError('not able to coerce this in this algebra')
+        # Ok, not a pre-Lie algebra element (or should not be viewed as one).
 
     def _coerce_impl(self, x):
         r"""
@@ -484,7 +483,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
                     sage: (a<a) + a
                     B[[]] + B[[[]]]
 
-                Indeed ``a<a + a`` is understood as ``a< (a + a)``
+                Indeed ``a<a + a`` is understood as ``a< (a + a)``::
 
                     sage: (a<a + a) - (a < (a + a))
                     0

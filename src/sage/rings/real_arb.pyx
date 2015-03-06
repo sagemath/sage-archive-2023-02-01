@@ -5,9 +5,8 @@ AUTHORS:
 
 - Clemens Heuberger (2014-10-21): Initial version.
 
-This is a rudimentary binding to the optional `Arb library
-<http://fredrikj.net/arb/>`_; it may be useful to refer to its
-documentation for more details.
+This is a binding to the optional `Arb library <http://fredrikj.net/arb/>`_; it
+may be useful to refer to its documentation for more details.
 
 You may have to run ``sage -i arb`` to use the arb library.
 

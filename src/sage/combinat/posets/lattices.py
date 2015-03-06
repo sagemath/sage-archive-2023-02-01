@@ -663,6 +663,24 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                    H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
                    for a in L for b in range(n))
 
+    def is_modular_element(self, x=None):
+        r"""
+        Return ``True`` if ``x`` is a modular element and ``False`` otherwise.
+
+        INPUT:
+
+        - ``x`` -- an element of the lattice
+
+        An element `x` in a lattice `L` is *modular* if `x \leq b` implies
+
+        .. MATH::
+
+            x \vee (a \wedge b) = (x \vee a) \wedge b
+
+        for every `a, b \in L`.
+        """
+        return self.is_modular([x])
+
     def is_upper_semimodular(self):
         r"""
         Return ``True`` if the lattice is upper semimodular and
@@ -767,10 +785,31 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_modular()
             False
         """
-        for C in self.maximal_chains():
-            if self.is_modular(C):
-                return True
-        return False
+        if not self.is_ranked():
+            return False
+
+        H = self._hasse_diagram
+        height = self.height()
+        n = H.order()
+        cur = H.minimal_elements()[0]
+        next = [H.neighbor_out_iterator(cur)]
+        is_modular = lambda a: all(H._rank[a] + H._rank[b] ==
+                                   H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
+                                   for b in range(n))
+
+        if not is_modular(cur):
+            return False
+        while next <= height:
+            try:
+                cur = next[-1].next()
+            except StopIteration:
+                if not next:
+                    return False
+                next.pop()
+                continue
+            if is_modular(cur):
+                next.append(H.neighbor_out_iterator(cur))
+        return True
 
 ####################################################################################
 

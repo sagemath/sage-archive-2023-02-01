@@ -446,6 +446,7 @@ class RealBallField(UniqueRepresentation, Parent):
         return 0
 
 
+
 cdef inline bint _do_sig(long prec):
     """
     Whether signal handlers should be installed for calls to arb.
@@ -2026,19 +2027,68 @@ cdef class RealBall(RingElement):
 
     # Special functions
 
+    def gamma(self):
+        """
+        Return the image of this ball by the Euler Gamma function.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1/2).gamma()
+            [1.772453850905516 +/- 3.72e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_gamma(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def log_gamma(self):
+        """
+        Return the image of this ball by the logarithmic Gamma function.
+
+        The complex branch structure is assumed, so if ``self`` ≤ 0, the result
+        is an indeterminate interval.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1/2).log_gamma()
+            [0.572364942924700 +/- 4.87e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_lgamma(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def rgamma(self):
+        """
+        Return the image of this ball by the function 1/Γ, avoiding division by
+        zero at the poles of the gamma function.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(-1).rgamma()
+            0
+            sage: RBF(3).rgamma()
+            0.5000000000000000
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_rgamma(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
     cpdef RealBall psi(self):
         """
         Compute the digamma function with argument self.
 
-        OUTPUT:
-
-        A :class:`RealBall`.
-
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import RealBallField # optional - arb
-            sage: a = RealBallField()(RIF(1))                     # optional - arb
-            sage: a.psi()  # optional - arb
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1).psi()  # optional - arb
             [-0.577215664901533 +/- 3.85e-16]
         """
 
@@ -2047,5 +2097,34 @@ cdef class RealBall(RingElement):
         arb_digamma(result.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return result
+
+    def zeta(self, a=None):
+        """
+        Return the image of this ball by the Hurwitz zeta function.
+
+        For ``a = 1`` (or ``a = None``), this computes the Riemann zeta function.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(-1).zeta()
+            [-0.0833333333333333 +/- 4.36e-17]
+            sage: RBF(-1).zeta(1)
+            [-0.0833333333333333 +/- 6.81e-17]
+            sage: RBF(-1).zeta(2) # abs tol 1e-16
+            [-1.083333333333333 +/- 4.09e-16]
+        """
+        cdef RealBall a_ball
+        cdef RealBall res = self._new()
+        if a is None:
+            if _do_sig(prec(self)): sig_on()
+            arb_zeta(res.value, self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
+        else:
+            a_ball = self._parent.coerce(a)
+            if _do_sig(prec(self)): sig_on()
+            arb_hurwitz_zeta(res.value, self.value, a_ball.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
+        return res
 
 RBF = RealBallField()

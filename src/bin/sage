@@ -692,7 +692,8 @@ fi
 
 if [ "$1" = '-ba' -o "$1" = '-ba-force' -o "$1" = '--ba-force' ]; then
     shift
-    build_sage -b "$@"
+    ( cd "$SAGE_SRC" && make clean )
+    build_sage "$@"
     exit $?
 fi
 

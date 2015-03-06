@@ -554,36 +554,11 @@ cdef class CategoryObject(sage_object.SageObject):
     # Bases
     #################################################################################################
 
-#    cpdef base(self, category=None):
-#        if category is None:
-#            return self._base
-#        else:
-#            return category._obj_base(self)
-
     def has_base(self, category=None):
         if category is None:
             return self._base is not None
         else:
             return category._obj_base(self) is not None
-
-#    cpdef base_extend(self, other, category=None):
-#        """
-#        EXAMPLES:
-#            sage: QQ.base_extend(GF(7))
-#            Traceback (most recent call last):
-#            ...
-#            TypeError: base extension not defined for Rational Field
-#            sage: ZZ.base_extend(GF(7))
-#            Finite Field of size 7
-#        """
-#        try:
-#            if category is None:
-#                method = self._category.get_object_method("base_extend") # , self._categories[1:])
-#            else:
-#                method = category.get_object_method("base_extend")
-#            return method(self)
-#        except AttributeError:
-#            raise TypeError, "base extension not defined for %s" % self
 
     def base_ring(self):
         """

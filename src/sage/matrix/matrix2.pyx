@@ -3365,9 +3365,9 @@ cdef class Matrix(matrix1.Matrix):
             True
 
             sage: X = A.right_kernel_matrix(algorithm='pari', basis='computed'); X
-            [ 3  1 -5 -7 -2  3  2]
-            [ 3  1  2  5 -5  2 -6]
-            [ 4 13 -2  7 -5 -7  3]
+            [ -3  -1   5   7   2  -3  -2]
+            [  3   1   2   5  -5   2  -6]
+            [ -4 -13   2  -7   5   7  -3]
             sage: A*X.transpose() == zero_matrix(ZZ, 4, 3)
             True
 
@@ -10274,9 +10274,9 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: F.<a> = FiniteField(7^2)
             sage: C = matrix(F,[[  a + 2, 5*a + 4],
-            ...                 [6*a + 6, 6*a + 4]])
-            sage: S = matrix(ZZ, [[0, 1],
-            ...                   [1, 0]])
+            ....:               [6*a + 6, 6*a + 4]])
+            sage: S = matrix(F, [[0, 1],
+            ....:                [1, 0]])
             sage: D = S.inverse()*C*S
             sage: C.is_similar(D)
             Traceback (most recent call last):

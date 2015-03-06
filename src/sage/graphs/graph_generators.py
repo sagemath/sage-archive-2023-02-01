@@ -1255,8 +1255,10 @@ class GraphGenerators():
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
 
-    def planar_graphs(self, order, minimum_degree=None, minimum_connectivity=None,
-                      exact_connectivity=False, only_bipartite=False):
+    def planar_graphs(self, order, minimum_degree=None,
+                      minimum_connectivity=None,
+                      exact_connectivity=False, only_bipartite=False,
+                      dual=False):
         r"""
         An iterator over connected planar graphs using the plantri generator.
 
@@ -1296,6 +1298,9 @@ class GraphGenerators():
           graphs will be generated. This option cannot be used for graphs with
           a minimum degree larger than 3.
 
+        - ``dual`` - default: ``False`` - if ``True`` return instead the
+          planar duals of the generated graphs.
+
         OUTPUT:
 
         An iterator which will produce all planar graphs with the given
@@ -1321,6 +1326,12 @@ class GraphGenerators():
             sage: gen = graphs.planar_graphs(4, only_bipartite=True)  # optional plantri
             sage: len(list(gen))  # optional plantri
             3
+
+        Setting ``dual=True`` gives the planar dual graphs::
+
+            sage: gen = graphs.planar_graphs(4, dual=True)  # optional plantri
+            sage: [len(u) for u in list(gen)]  # optional plantri
+            ?
 
         The cycle of length 4 is the only 2-connected bipartite planar graph
         on 4 vertices::
@@ -1408,11 +1419,13 @@ class GraphGenerators():
                 yield(G)
             return
 
-        command = ('plantri -p{}m{}c{}{} {}'.format('b' if only_bipartite else '',
-                                                    minimum_degree,
-                                                    minimum_connectivity,
-                                                    'x' if exact_connectivity else '',
-                                                    order))
+        cmd = 'plantri -p{}m{}c{}{}{} {}'
+        command = cmd.format('b' if only_bipartite else '',
+                             minimum_degree,
+                             minimum_connectivity,
+                             'x' if exact_connectivity else '',
+                             'd' if dual else '',
+                             order)
 
         import subprocess
         sp = subprocess.Popen(command, shell=True,
@@ -1423,7 +1436,7 @@ class GraphGenerators():
             yield(G)
 
     def triangulations(self, order, minimum_degree=None, minimum_connectivity=None,
-                     exact_connectivity=False, only_eulerian=False):
+                       exact_connectivity=False, only_eulerian=False, dual=False):
         r"""
         An iterator over connected planar triangulations using the plantri generator.
 
@@ -1457,6 +1470,9 @@ class GraphGenerators():
         - ``only_eulerian`` - default: ``False`` - if ``True`` only eulerian
           triangulations will be generated. This option cannot be used if the
           minimum degree is explicitely set to anything else than 4.
+
+        - ``dual`` - default: ``False`` - if ``True`` return instead the
+          planar duals of the generated graphs.
 
         OUTPUT:
 
@@ -1525,6 +1541,11 @@ class GraphGenerators():
             5
             sage: len([g for g in graphs.triangulations(9, minimum_degree=4, minimum_connectivity=3, exact_connectivity=True)]) # optional plantri
             1
+
+        Setting ``dual=True`` gives the planar dual graphs::
+
+            sage: [len(g) for g in graphs.triangulations(9, minimum_degree=4, minimum_connectivity=3, dual=True)]  # optional plantri
+            [14, 14, 14, 14, 14]
         """
         from sage.misc.package import is_package_installed
         if not is_package_installed("plantri"):
@@ -1577,11 +1598,13 @@ class GraphGenerators():
         if only_eulerian and order < 6:
             return
 
-        command = ('plantri -{}m{}c{}{} {}'.format('b' if only_eulerian else '',
-                                                   minimum_degree,
-                                                   minimum_connectivity,
-                                                   'x' if exact_connectivity else '',
-                                                   order))
+        cmd = 'plantri -{}m{}c{}{}{} {}'
+        command = cmd.format('b' if only_eulerian else '',
+                             minimum_degree,
+                             minimum_connectivity,
+                             'x' if exact_connectivity else '',
+                             'd' if dual else '',
+                             order)
 
         import subprocess
         sp = subprocess.Popen(command, shell=True,
@@ -1592,7 +1615,7 @@ class GraphGenerators():
             yield(G)
 
     def quadrangulations(self, order, minimum_degree=None, minimum_connectivity=None,
-                        no_nonfacial_quadrangles=False):
+                         no_nonfacial_quadrangles=False, dual=False):
         r"""
         An iterator over planar quadrangulations using the plantri generator.
 
@@ -1622,6 +1645,9 @@ class GraphGenerators():
         - ``no_nonfacial_quadrangles`` - default: ``False`` - if ``True`` only
           quadrangulations with no non-facial quadrangles are generated. This
           option cannot be used if ``minimum_connectivity`` is set to 2.
+
+        - ``dual`` - default: ``False`` - if ``True`` return instead the
+          planar duals of the generated graphs.
 
         OUTPUT:
 
@@ -1669,6 +1695,11 @@ class GraphGenerators():
 
             sage: len([g for g in graphs.quadrangulations(12, no_nonfacial_quadrangles=True)])  # optional plantri
             2
+
+        Setting ``dual=True`` gives the planar dual graphs::
+
+            sage: [len(g) for g in graphs.quadrangulations(12, no_nonfacial_quadrangles=True, dual=True)]  # optional plantri
+            [10, 10]
         """
         from sage.misc.package import is_package_installed
         if not is_package_installed("plantri"):
@@ -1715,7 +1746,12 @@ class GraphGenerators():
             # for plantri -q the option -c4 means 3-connected with no non-facial quadrangles
             minimum_connectivity = 4
 
-        command = ('plantri -qm{}c{} {}'.format(minimum_degree, minimum_connectivity, order))
+
+        cmd = 'plantri -qm{}c{}{} {}'
+        command = cmd.format(minimum_degree,
+                             minimum_connectivity,
+                             'd' if dual else '',
+                             order)
 
         import subprocess
         sp = subprocess.Popen(command, shell=True,

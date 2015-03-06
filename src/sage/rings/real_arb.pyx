@@ -121,9 +121,9 @@ cimport sage.rings.rational
 cimport sage.structure.element
 
 from sage.libs.arb.arb cimport *
-from sage.libs.arb.arf cimport arf_t, arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag
+from sage.libs.arb.arf cimport arf_t, arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set
 from sage.libs.arb.arf cimport arf_equal, arf_is_nan, arf_is_neg_inf, arf_is_pos_inf
-from sage.libs.arb.mag cimport mag_t, mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite
+from sage.libs.arb.mag cimport mag_t, mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
 from sage.libs.flint.flint cimport flint_free
 from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
@@ -1470,6 +1470,8 @@ cdef class RealBall(RingElement):
         """
         Return the center of this ball.
 
+        .. SEEALSO:: :meth:`rad`, :meth:`squash`
+
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RealBallField, RBF # optional - arb
@@ -1496,6 +1498,8 @@ cdef class RealBall(RingElement):
         """
         Return the radius of this ball.
 
+        .. SEEALSO:: :meth:`mid`, :meth:`rad_as_ball`
+
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RealBallField # optional - arb
@@ -1516,6 +1520,50 @@ cdef class RealBall(RingElement):
         if rnd != 0:
             raise OverflowError("Unable to represent the radius of this ball within the exponent range of RealNumbers")
         return rad
+
+    def squash(self):
+        """
+        Return an exact ball with the same center of this ball.
+
+        .. SEEALSO:: :meth:`mid`, :meth:`rad_as_ball`
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField
+            sage: mid = RealBallField(16)(1/3).squash()
+            sage: mid
+            [0.3333 +/- 2.83e-5]
+            sage: mid.is_exact()
+            True
+            sage: mid.parent()
+            Real ball field with 16 bits precision
+        """
+        cdef RealBall res = self._new()
+        arf_set(arb_midref(res.value), arb_midref(self.value))
+        mag_zero(arb_radref(res.value))
+        return res
+
+    def rad_as_ball(self):
+        """
+        Return an exact ball with center equal to the radius of this ball.
+
+        .. SEEALSO:: :meth:`squash`, :meth:`rad`
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: rad = RBF(1/3).rad_as_ball()
+            sage: rad
+            [5.55111512e-17 +/- 3.13e-26]
+            sage: rad.is_exact()
+            True
+            sage: rad.parent()
+            Real ball field with 30 bits precision
+        """
+        cdef RealBall res = self._parent.element_class(RealBallField(MAG_BITS))
+        arf_set_mag(arb_midref(res.value), arb_radref(self.value))
+        mag_zero(arb_radref(res.value))
+        return res
 
     # Precision
 

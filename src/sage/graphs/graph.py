@@ -2702,7 +2702,7 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().treewidth()
             4
             sage: graphs.PetersenGraph().treewidth(certificate=True)
-            Graph on 7 vertices
+            Graph on 6 vertices
 
         The treewidth of a 2d grid is its smallest side::
 
@@ -2720,7 +2720,7 @@ class Graph(GenericGraph):
             sage: g.treewidth()
             1
             sage: g.treewidth(certificate=True)
-            Graph on 6 vertices
+            Graph on 4 vertices
             sage: g.treewidth(2)
             True
             sage: g.treewidth(1)
@@ -2738,7 +2738,19 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().treewidth(k=3,certificate=True)
             False
             sage: graphs.PetersenGraph().treewidth(k=4,certificate=True)
-            Graph on 7 vertices
+            Graph on 6 vertices
+
+        TESTS:
+
+        All edges do appear (:trac:`17893`)::
+
+            sage: from itertools import combinations
+            sage: g = graphs.PathGraph(10)
+            sage: td = g.treewidth(certificate=True)
+            sage: for bag in td:
+            ....:    g.delete_edges(list(combinations(bag,2)))
+            sage: g.size()
+            0
         """
         from sage.misc.cachefunc import cached_function
         from sage.sets.set import Set
@@ -2810,7 +2822,8 @@ class Graph(GenericGraph):
 
                     if certificate:
                         sons.extend(son)
-                        sons.append((cut,reduced_cut))
+                        sons.append((cut,cutv))
+                        sons.append((cutv,reduced_cut))
 
                 # Weird Python syntax which is useful once in a lifetime : if break
                 # was never called in the loop above, we return "sons".
@@ -2836,26 +2849,18 @@ class Graph(GenericGraph):
         G = Graph()
         G.add_edges([(Set(x),Set(y)) for x,y in TD])
 
-        # The Tree-Decomposition contains a lot of useless nodes that we now remove.
-        prune_list = G.vertices()
-
-        for v in prune_list:
-            # We remove any vertex of degree 1 whose corresponding set is contained
-            # in the set represented by its unique neighbor.
-            if G.degree(v)==1:
-                v1 = G.neighbors(v)[0]
-                if v.issubset(v1):
-                    G.delete_vertex(v)
-                    prune_list.append(v1)
-
-            # We remove a vertex v with two neighbors v1,v2 if v1 is a subset of v
-            # and v is a subset of v2
-            elif G.degree(v) == 2:
-                v1,v2 = G.neighbors(v)
-                if ((v1.issubset(v)   and v.issubset(v2)) or
-                    (v1.issuperset(v) and v.issuperset(v2))):
-                    G.add_edge(v1,v2)
-                    G.delete_vertex(v)
+        # The Tree-Decomposition contains a lot of useless nodes.
+        #
+        # We merge all edges between two sets S,S' where S is a subset of S'
+        changed = True
+        while changed:
+            changed=False
+            for v in G.vertices():
+                for u in G.neighbors(v):
+                    if u.issuperset(v):
+                        G.merge_vertices([u,v]) # the new vertex is named 'u'
+                        changed = True
+                        break
 
         return G
 

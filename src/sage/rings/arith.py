@@ -1262,7 +1262,7 @@ def divisors(n):
     if not n:
         raise ValueError("n must be nonzero")
 
-    if isinstance(int, long):
+    if isinstance(n, (int, long)):
         n = ZZ(n) # we have specialized code for this case, make sure it gets used
 
     try:

@@ -82,7 +82,7 @@ def deprecation(trac_number, message):
         sage: def foo():
         ....:  sage.misc.superseded.deprecation(13109, 'the function foo is replaced by bar')
         sage: foo()
-        doctest:1: DeprecationWarning: the function foo is replaced by bar
+        doctest:...: DeprecationWarning: the function foo is replaced by bar
         See http://trac.sagemath.org/13109 for details.
     """
     _check_trac_number(trac_number)
@@ -92,8 +92,6 @@ def deprecation(trac_number, message):
     # Stack level 3 to get the line number of the code which called
     # the deprecated function which called this function.
     warn(message, DeprecationWarning, stacklevel=3)
-
-
 
 class DeprecatedFunctionAlias(object):
     """
@@ -124,7 +122,7 @@ class DeprecatedFunctionAlias(object):
         self.trac_number  = trac_number
         self.instance = None # for use with methods
         self.__module__ = module
-        if type(func) == type(deprecation):
+        if isinstance(func, type(deprecation)):
             sphinxrole = "func"
         else:
             sphinxrole = "meth"
@@ -173,7 +171,7 @@ class DeprecatedFunctionAlias(object):
         def is_class(gc_ref):
             if not isinstance(gc_ref, dict):
                 return False
-            is_python_class = '__module__' in gc_ref
+            is_python_class = '__module__' in gc_ref or '__package__' in gc_ref
             is_cython_class = '__new__' in gc_ref
             return is_python_class or is_cython_class
         for ref in gc.get_referrers(self):
@@ -182,7 +180,7 @@ class DeprecatedFunctionAlias(object):
                 for key, val in ref_copy.iteritems():
                     if val is self:
                         return key
-        raise AttributeError, "The name of this deprecated function can not be determined"
+        raise AttributeError("The name of this deprecated function can not be determined")
 
     def __call__(self, *args, **kwds):
         """
@@ -192,7 +190,7 @@ class DeprecatedFunctionAlias(object):
             sage: def bla(): return 42
             sage: blo = deprecated_function_alias(13109, bla)
             sage: blo()
-            doctest:1: DeprecationWarning: blo is deprecated. Please use bla instead.
+            doctest:...: DeprecationWarning: blo is deprecated. Please use bla instead.
             See http://trac.sagemath.org/13109 for details.
             42
         """
@@ -350,5 +348,7 @@ def deprecated_callable_import(trac_number, module_name, globs, locs, fromlist, 
             from sage.misc.superseded import deprecation
             deprecation(trac_number, message%{'name': name, 'module_name': module_name})
             return func(*args, **kwds)
-        globs[name] = sage_wraps(func)(partial(wrapper, func, name))
+        wrapped_function = sage_wraps(func)(partial(wrapper, func, name))
+        wrapped_function.__doc__ = message%{'name': name, 'module_name': module_name}
+        globs[name] = wrapped_function
     del name

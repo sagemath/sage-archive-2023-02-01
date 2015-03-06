@@ -40,7 +40,8 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
 
     Any irreducible classical crystal appears as the irreducible
     component of the tensor product of several copies of this crystal
-    (plus possibly one copy of the spin crystal, see :class:`CrystalOfSpins`).
+    (plus possibly one copy of the spin crystal, see
+    :class:`~sage.combinat.crystals.spins.CrystalOfSpins`).
     See [KN94]_. Elements of this irreducible component have a fixed shape,
     and can be fit inside a tableau shape. Otherwise said, any irreducible
     classical crystal is isomorphic to a crystal of tableaux with cells
@@ -60,7 +61,7 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
 
     EXAMPLES::
 
-        sage: C = CrystalOfLetters(['A',5])
+        sage: C = crystals.Letters(['A',5])
         sage: C.list()
         [1, 2, 3, 4, 5, 6]
         sage: C.cartan_type()
@@ -74,12 +75,12 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
 
     EXAMPLES::
 
-        sage: C = CrystalOfLetters(['E',6], element_print_style = 'compact')
+        sage: C = crystals.Letters(['E',6], element_print_style = 'compact')
         sage: C
         The crystal of letters for type ['E', 6]
         sage: C.list()
         [+, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z]
-        sage: C = CrystalOfLetters(['E',6], element_print_style = 'compact', dual = True)
+        sage: C = crystals.Letters(['E',6], element_print_style = 'compact', dual = True)
         sage: C
         The crystal of letters for type ['E', 6] (dual)
         sage: C.list()
@@ -119,7 +120,8 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
     needs to implement a class for the elements (which subclasses
     :class:`~sage.combinat.crystals.Letter`), with appropriate
     `e_i` and `f_i` operations. If the module generator is not `1`, one also
-    needs to define the subclass :class:`ClassicalCrystalOfLetters` for the
+    needs to define the subclass
+    :class:`~sage.combinat.crystals.letters.ClassicalCrystalOfLetters` for the
     crystal itself.
 
     The basic assumption is that crystals of letters are small, but
@@ -133,7 +135,7 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
         """
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['A',5])
+            sage: C = crystals.Letters(['A',5])
             sage: C.category()
             Category of classical crystals
             sage: TestSuite(C).run()
@@ -181,7 +183,7 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E',6])
+            sage: C = crystals.Letters(['E',6])
             sage: c = C((1,))
             sage: C([1]) == c
             True
@@ -199,7 +201,7 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['A',5])
+            sage: C = crystals.Letters(['A',5])
             sage: c = C(1); c
             1
             sage: c.parent()
@@ -218,7 +220,7 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['A',5])
+            sage: C = crystals.Letters(['A',5])
             sage: [x for x in C]
             [1, 2, 3, 4, 5, 6]
         """
@@ -230,7 +232,7 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['A',5])
+            sage: C = crystals.Letters(['A',5])
             sage: C.list()
             [1, 2, 3, 4, 5, 6]
         """
@@ -243,7 +245,7 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: CrystalOfLetters(['A',5])._digraph_closure
+            sage: crystals.Letters(['A',5])._digraph_closure
             Transitive closure of : Digraph on 6 vertices
         """
         return self.digraph().transitive_closure()
@@ -252,7 +254,7 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
         """
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['A',5])
+            sage: C = crystals.Letters(['A',5])
             sage: 1 in C
             False
             sage: C(1) in C
@@ -271,7 +273,7 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['A', 5])
+            sage: C = crystals.Letters(['A', 5])
             sage: x = C(1)
             sage: y = C(2)
             sage: C.lt_elements(x,y)
@@ -280,7 +282,7 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
             False
             sage: C.lt_elements(x,x)
             False
-            sage: C = CrystalOfLetters(['D', 4])
+            sage: C = crystals.Letters(['D', 4])
             sage: C.lt_elements(C(4),C(-4))
             False
             sage: C.lt_elements(C(-4),C(4))
@@ -326,7 +328,7 @@ cdef class Letter(Element):
         sage: l11 == l21 # not tested
         False
 
-        sage: C = CrystalOfLetters(['B', 3])
+        sage: C = crystals.Letters(['B', 3])
         sage: C(0) != C(0)
         False
         sage: C(1) != C(-1)
@@ -338,7 +340,7 @@ cdef class Letter(Element):
         """
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['B',4])
+            sage: C = crystals.Letters(['B',4])
             sage: a = C(3)
             sage: TestSuite(a).run()
         """
@@ -351,7 +353,7 @@ cdef class Letter(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['B',4])
+            sage: C = crystals.Letters(['B',4])
             sage: a = C(3)
             sage: loads(dumps(a)) == a
             True
@@ -365,7 +367,7 @@ cdef class Letter(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['A',3])
+            sage: C = crystals.Letters(['A',3])
             sage: a = C(1)
             sage: a.__reduce__()
             (The crystal of letters for type ['A', 3], (1,))
@@ -378,7 +380,7 @@ cdef class Letter(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['B', 3])
+            sage: C = crystals.Letters(['B', 3])
             sage: C(0)
             0
             sage: C(1)
@@ -394,7 +396,7 @@ cdef class Letter(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['D', 4])
+            sage: C = crystals.Letters(['D', 4])
             sage: latex(C(2))
             2
             sage: latex(C(-3))
@@ -410,7 +412,7 @@ cdef class Letter(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['D', 4])
+            sage: C = crystals.Letters(['D', 4])
             sage: hash(C(4)) == hash(4)
             True
         """
@@ -423,7 +425,7 @@ cdef class Letter(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['D', 4])
+            sage: C = crystals.Letters(['D', 4])
             sage: C(4) > C(-4)
             False
         """
@@ -435,7 +437,7 @@ cdef class Letter(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['D', 4])
+            sage: C = crystals.Letters(['D', 4])
             sage: C(4) > C(-4) # indirect doctest
             False
             sage: C(4) < C(-3)
@@ -445,7 +447,7 @@ cdef class Letter(Element):
 
         TESTS::
 
-            sage: C = CrystalOfLetters(['C', 3])
+            sage: C = crystals.Letters(['C', 3])
             sage: C('E') == C(2)
             False
             sage: C(2) == C('E')
@@ -492,11 +494,11 @@ cdef class EmptyLetter(Element):
 
     def __init__(self, parent):
         """
-        Initialize ``xelf``.
+        Initialize ``self``.
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['C', 3])
+            sage: C = crystals.Letters(['C', 3])
             sage: TestSuite(C('E')).run()
         """
         self.value = 'E'
@@ -508,7 +510,7 @@ cdef class EmptyLetter(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['C',3])
+            sage: C = crystals.Letters(['C',3])
             sage: a = C('E')
             sage: a.__reduce__()
             (The crystal of letters for type ['C', 3], ('E',))
@@ -521,7 +523,7 @@ cdef class EmptyLetter(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['C', 3])
+            sage: C = crystals.Letters(['C', 3])
             sage: C('E')
             E
         """
@@ -533,7 +535,7 @@ cdef class EmptyLetter(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['C', 3])
+            sage: C = crystals.Letters(['C', 3])
             sage: latex(C('E'))
             \emptyset
         """
@@ -545,7 +547,7 @@ cdef class EmptyLetter(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['D', 4])
+            sage: C = crystals.Letters(['D', 4])
             sage: hash(C('E')) == hash('E')
             True
         """
@@ -557,7 +559,7 @@ cdef class EmptyLetter(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['C', 3])
+            sage: C = crystals.Letters(['C', 3])
             sage: C('E').weight()
             (0, 0, 0)
         """
@@ -569,7 +571,7 @@ cdef class EmptyLetter(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['C', 3])
+            sage: C = crystals.Letters(['C', 3])
             sage: C('E').e(1)
         """
         return None
@@ -580,7 +582,7 @@ cdef class EmptyLetter(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['C', 3])
+            sage: C = crystals.Letters(['C', 3])
             sage: C('E').f(1)
         """
         return None
@@ -591,7 +593,7 @@ cdef class EmptyLetter(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['C', 3])
+            sage: C = crystals.Letters(['C', 3])
             sage: C('E').epsilon(1)
             0
         """
@@ -603,7 +605,7 @@ cdef class EmptyLetter(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['C', 3])
+            sage: C = crystals.Letters(['C', 3])
             sage: C('E').phi(1)
             0
         """
@@ -619,7 +621,7 @@ cdef class Crystal_of_letters_type_A_element(Letter):
 
     TESTS::
 
-        sage: C = CrystalOfLetters(['A',3])
+        sage: C = crystals.Letters(['A',3])
         sage: C.list()
         [1, 2, 3, 4]
         sage: [ [x < y for y in C] for x in C ]
@@ -630,7 +632,7 @@ cdef class Crystal_of_letters_type_A_element(Letter):
 
     ::
 
-        sage: C = CrystalOfLetters(['A',5])
+        sage: C = crystals.Letters(['A',5])
         sage: C(1) < C(1), C(1) < C(2), C(1) < C(3), C(2) < C(1)
         (False, True, True, False)
 
@@ -644,7 +646,7 @@ cdef class Crystal_of_letters_type_A_element(Letter):
 
         EXAMPLES::
 
-            sage: [v.weight() for v in CrystalOfLetters(['A',3])]
+            sage: [v.weight() for v in crystals.Letters(['A',3])]
             [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)]
         """
         return self._parent.weight_lattice_realization().monomial(self.value-1)
@@ -655,7 +657,7 @@ cdef class Crystal_of_letters_type_A_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['A',4])
+            sage: C = crystals.Letters(['A',4])
             sage: [(c,i,c.e(i)) for i in C.index_set() for c in C if c.e(i) is not None]
             [(2, 1, 1), (3, 2, 2), (4, 3, 3), (5, 4, 4)]
         """
@@ -670,7 +672,7 @@ cdef class Crystal_of_letters_type_A_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['A',4])
+            sage: C = crystals.Letters(['A',4])
             sage: [(c,i,c.f(i)) for i in C.index_set() for c in C if c.f(i) is not None]
             [(1, 1, 2), (2, 2, 3), (3, 3, 4), (4, 4, 5)]
         """
@@ -685,7 +687,7 @@ cdef class Crystal_of_letters_type_A_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['A',4])
+            sage: C = crystals.Letters(['A',4])
             sage: [(c,i) for i in C.index_set() for c in C if c.epsilon(i) != 0]
             [(2, 1), (3, 2), (4, 3), (5, 4)]
         """
@@ -699,7 +701,7 @@ cdef class Crystal_of_letters_type_A_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['A',4])
+            sage: C = crystals.Letters(['A',4])
             sage: [(c,i) for i in C.index_set() for c in C if c.phi(i) != 0]
             [(1, 1), (2, 2), (3, 3), (4, 4)]
         """
@@ -717,7 +719,7 @@ cdef class Crystal_of_letters_type_B_element(Letter):
 
     TESTS::
 
-        sage: C = CrystalOfLetters(['B',3])
+        sage: C = crystals.Letters(['B',3])
         sage: TestSuite(C).run()
     """
     def weight(self):
@@ -726,7 +728,7 @@ cdef class Crystal_of_letters_type_B_element(Letter):
 
         EXAMPLES::
 
-            sage: [v.weight() for v in CrystalOfLetters(['B',3])]
+            sage: [v.weight() for v in crystals.Letters(['B',3])]
             [(1, 0, 0),
              (0, 1, 0),
              (0, 0, 1),
@@ -748,7 +750,7 @@ cdef class Crystal_of_letters_type_B_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['B',4])
+            sage: C = crystals.Letters(['B',4])
             sage: [(c,i,c.e(i)) for i in C.index_set() for c in C if c.e(i) is not None]
             [(2, 1, 1),
              (-1, 1, -2),
@@ -777,7 +779,7 @@ cdef class Crystal_of_letters_type_B_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['B',4])
+            sage: C = crystals.Letters(['B',4])
             sage: [(c,i,c.f(i)) for i in C.index_set() for c in C if c.f(i) is not None]
             [(1, 1, 2),
              (-2, 1, -1),
@@ -806,7 +808,7 @@ cdef class Crystal_of_letters_type_B_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['B',3])
+            sage: C = crystals.Letters(['B',3])
             sage: [(c,i) for i in C.index_set() for c in C if c.epsilon(i) != 0]
             [(2, 1), (-1, 1), (3, 2), (-2, 2), (0, 3), (-3, 3)]
         """
@@ -827,7 +829,7 @@ cdef class Crystal_of_letters_type_B_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['B',3])
+            sage: C = crystals.Letters(['B',3])
             sage: [(c,i) for i in C.index_set() for c in C if c.phi(i) != 0]
             [(1, 1), (-2, 1), (2, 2), (-3, 2), (3, 3), (0, 3)]
         """
@@ -852,7 +854,7 @@ cdef class Crystal_of_letters_type_C_element(Letter):
 
     TESTS::
 
-        sage: C = CrystalOfLetters (['C',3])
+        sage: C = crystals.Letters (['C',3])
         sage: C.list()
         [1, 2, 3, -3, -2, -1]
         sage: [ [x < y for y in C] for x in C ]
@@ -870,7 +872,7 @@ cdef class Crystal_of_letters_type_C_element(Letter):
 
         EXAMPLES::
 
-            sage: [v.weight() for v in CrystalOfLetters(['C',3])]
+            sage: [v.weight() for v in crystals.Letters(['C',3])]
             [(1, 0, 0), (0, 1, 0), (0, 0, 1), (0, 0, -1), (0, -1, 0), (-1, 0, 0)]
         """
         if self.value > 0:
@@ -886,7 +888,7 @@ cdef class Crystal_of_letters_type_C_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['C',4])
+            sage: C = crystals.Letters(['C',4])
             sage: [(c,i,c.e(i)) for i in C.index_set() for c in C if c.e(i) is not None]
             [(2, 1, 1),
              (-1, 1, -2),
@@ -909,7 +911,7 @@ cdef class Crystal_of_letters_type_C_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['C',4])
+            sage: C = crystals.Letters(['C',4])
             sage: [(c,i,c.f(i)) for i in C.index_set() for c in C if c.f(i) is not None]
             [(1, 1, 2), (-2, 1, -1), (2, 2, 3),
              (-3, 2, -2), (3, 3, 4), (-4, 3, -3), (4, 4, -4)]
@@ -927,7 +929,7 @@ cdef class Crystal_of_letters_type_C_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['C',3])
+            sage: C = crystals.Letters(['C',3])
             sage: [(c,i) for i in C.index_set() for c in C if c.epsilon(i) != 0]
             [(2, 1), (-1, 1), (3, 2), (-2, 2), (-3, 3)]
         """
@@ -941,7 +943,7 @@ cdef class Crystal_of_letters_type_C_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['C',3])
+            sage: C = crystals.Letters(['C',3])
             sage: [(c,i) for i in C.index_set() for c in C if c.phi(i) != 0]
             [(1, 1), (-2, 1), (2, 2), (-3, 2), (3, 3)]
         """
@@ -959,7 +961,7 @@ cdef class Crystal_of_letters_type_D_element(Letter):
 
     TESTS::
 
-        sage: C = CrystalOfLetters(['D',4])
+        sage: C = crystals.Letters(['D',4])
         sage: C.list()
         [1, 2, 3, 4, -4, -3, -2, -1]
         sage: TestSuite(C).run()
@@ -970,7 +972,7 @@ cdef class Crystal_of_letters_type_D_element(Letter):
 
         EXAMPLES::
 
-            sage: [v.weight() for v in CrystalOfLetters(['D',4])]
+            sage: [v.weight() for v in crystals.Letters(['D',4])]
             [(1, 0, 0, 0),
              (0, 1, 0, 0),
              (0, 0, 1, 0),
@@ -993,7 +995,7 @@ cdef class Crystal_of_letters_type_D_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['D',5])
+            sage: C = crystals.Letters(['D',5])
             sage: [(c,i,c.e(i)) for i in C.index_set() for c in C if c.e(i) is not None]
             [(2, 1, 1),
              (-1, 1, -2),
@@ -1026,7 +1028,7 @@ cdef class Crystal_of_letters_type_D_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['D',5])
+            sage: C = crystals.Letters(['D',5])
             sage: [(c,i,c.f(i)) for i in C.index_set() for c in C if c.f(i) is not None]
             [(1, 1, 2),
              (-2, 1, -1),
@@ -1057,7 +1059,7 @@ cdef class Crystal_of_letters_type_D_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['D',4])
+            sage: C = crystals.Letters(['D',4])
             sage: [(c,i) for i in C.index_set() for c in C if c.epsilon(i) != 0]
             [(2, 1), (-1, 1), (3, 2), (-2, 2), (4, 3), (-3, 3), (-4, 4), (-3, 4)]
         """
@@ -1074,7 +1076,7 @@ cdef class Crystal_of_letters_type_D_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['D',4])
+            sage: C = crystals.Letters(['D',4])
             sage: [(c,i) for i in C.index_set() for c in C if c.phi(i) != 0]
             [(1, 1), (-2, 1), (2, 2), (-3, 2), (3, 3), (-4, 3), (3, 4), (4, 4)]
         """
@@ -1095,7 +1097,7 @@ cdef class Crystal_of_letters_type_G_element(Letter):
 
     TESTS::
 
-        sage: C = CrystalOfLetters(['G',2])
+        sage: C = crystals.Letters(['G',2])
         sage: C.list()
         [1, 2, 3, 0, -3, -2, -1]
         sage: TestSuite(C).run()
@@ -1106,7 +1108,7 @@ cdef class Crystal_of_letters_type_G_element(Letter):
 
         EXAMPLES::
 
-            sage: [v.weight() for v in CrystalOfLetters(['G',2])]
+            sage: [v.weight() for v in crystals.Letters(['G',2])]
             [(1, 0, -1), (1, -1, 0), (0, 1, -1), (0, 0, 0), (0, -1, 1), (-1, 1, 0), (-1, 0, 1)]
         """
         if self.value == 1:
@@ -1132,7 +1134,7 @@ cdef class Crystal_of_letters_type_G_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['G',2])
+            sage: C = crystals.Letters(['G',2])
             sage: [(c,i,c.e(i)) for i in C.index_set() for c in C if c.e(i) is not None]
             [(2, 1, 1),
              (0, 1, 3),
@@ -1166,7 +1168,7 @@ cdef class Crystal_of_letters_type_G_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['G',2])
+            sage: C = crystals.Letters(['G',2])
             sage: [(c,i,c.f(i)) for i in C.index_set() for c in C if c.f(i) is not None]
             [(1, 1, 2),
              (3, 1, 0),
@@ -1200,7 +1202,7 @@ cdef class Crystal_of_letters_type_G_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['G',2])
+            sage: C = crystals.Letters(['G',2])
             sage: [(c,i,c.epsilon(i)) for i in C.index_set() for c in C if c.epsilon(i) != 0]
             [(2, 1, 1), (0, 1, 1), (-3, 1, 2), (-1, 1, 1), (3, 2, 1), (-2, 2, 1)]
         """
@@ -1220,7 +1222,7 @@ cdef class Crystal_of_letters_type_G_element(Letter):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['G',2])
+            sage: C = crystals.Letters(['G',2])
             sage: [(c,i,c.phi(i)) for i in C.index_set() for c in C if c.phi(i) != 0]
             [(1, 1, 1), (3, 1, 2), (0, 1, 1), (-2, 1, 1), (2, 2, 1), (-3, 2, 1)]
         """
@@ -1250,7 +1252,7 @@ cdef class LetterTuple(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E',6])
+            sage: C = crystals.Letters(['E',6])
             sage: a = C((1,-3))
             sage: TestSuite(a).run()
         """
@@ -1263,7 +1265,7 @@ cdef class LetterTuple(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E',6])
+            sage: C = crystals.Letters(['E',6])
             sage: a = C((1,-3))
             sage: loads(dumps(a)) == a
             True
@@ -1277,7 +1279,7 @@ cdef class LetterTuple(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E',6])
+            sage: C = crystals.Letters(['E',6])
             sage: a = C((1,-3))
             sage: a.__reduce__()
             (The crystal of letters for type ['E', 6], ((1, -3),))
@@ -1290,7 +1292,7 @@ cdef class LetterTuple(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E', 6])
+            sage: C = crystals.Letters(['E', 6])
             sage: hash(C((1, -3))) == hash((1, -3))
             True
         """
@@ -1303,7 +1305,7 @@ cdef class LetterTuple(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E', 6])
+            sage: C = crystals.Letters(['E', 6])
             sage: C((1,)) > C((-1, 3))
             False
         """
@@ -1315,7 +1317,7 @@ cdef class LetterTuple(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E', 6])
+            sage: C = crystals.Letters(['E', 6])
             sage: C((1,)) < C((-1, 3)) # indirect doctest
             True
             sage: C((6,)) < C((1,))
@@ -1346,7 +1348,7 @@ cdef class LetterTuple(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E', 6])
+            sage: C = crystals.Letters(['E', 6])
             sage: C((-1, 3))
             (-1, 3)
         """
@@ -1358,7 +1360,7 @@ cdef class LetterTuple(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E', 6])
+            sage: C = crystals.Letters(['E', 6])
             sage: latex(C((-1, 3)))
             \left(\overline{1}, 3\right)
         """
@@ -1381,7 +1383,7 @@ cdef class LetterTuple(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E',6])
+            sage: C = crystals.Letters(['E',6])
             sage: C((-6,)).epsilon(1)
             0
             sage: C((-6,)).epsilon(6)
@@ -1397,7 +1399,7 @@ cdef class LetterTuple(Element):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E',6])
+            sage: C = crystals.Letters(['E',6])
             sage: C((1,)).phi(1)
             1
             sage: C((1,)).phi(6)
@@ -1418,7 +1420,7 @@ cdef class Crystal_of_letters_type_E6_element(LetterTuple):
 
     TESTS::
 
-        sage: C = CrystalOfLetters(['E',6])
+        sage: C = crystals.Letters(['E',6])
         sage: C.module_generators
         ((1,),)
         sage: C.list()
@@ -1445,7 +1447,7 @@ cdef class Crystal_of_letters_type_E6_element(LetterTuple):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E',6], element_print_style = 'compact')
+            sage: C = crystals.Letters(['E',6], element_print_style = 'compact')
             sage: C.list()
             [+, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z]
         """
@@ -1460,7 +1462,7 @@ cdef class Crystal_of_letters_type_E6_element(LetterTuple):
 
         EXAMPLES::
 
-            sage: [v.weight() for v in CrystalOfLetters(['E',6])]
+            sage: [v.weight() for v in crystals.Letters(['E',6])]
             [(0, 0, 0, 0, 0, -2/3, -2/3, 2/3),
              (-1/2, 1/2, 1/2, 1/2, 1/2, -1/6, -1/6, 1/6),
              (1/2, -1/2, 1/2, 1/2, 1/2, -1/6, -1/6, 1/6),
@@ -1498,7 +1500,7 @@ cdef class Crystal_of_letters_type_E6_element(LetterTuple):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E',6])
+            sage: C = crystals.Letters(['E',6])
             sage: C((-1,3)).e(1)
             (1,)
             sage: C((-2,-3,4)).e(2)
@@ -1586,7 +1588,7 @@ cdef class Crystal_of_letters_type_E6_element(LetterTuple):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E',6])
+            sage: C = crystals.Letters(['E',6])
             sage: C((1,)).f(1)
             (-1, 3)
             sage: C((-6,)).f(1)
@@ -1673,7 +1675,7 @@ cdef class Crystal_of_letters_type_E6_element_dual(LetterTuple):
 
     TESTS::
 
-        sage: C = CrystalOfLetters(['E',6], dual = True)
+        sage: C = crystals.Letters(['E',6], dual = True)
         sage: C.module_generators
         ((6,),)
         sage: all(b==b.retract(b.lift()) for b in C)
@@ -1702,7 +1704,7 @@ cdef class Crystal_of_letters_type_E6_element_dual(LetterTuple):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E',6], element_print_style = 'compact', dual = True)
+            sage: C = crystals.Letters(['E',6], element_print_style = 'compact', dual = True)
             sage: C.list()
             [-, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
             """
@@ -1714,11 +1716,11 @@ cdef class Crystal_of_letters_type_E6_element_dual(LetterTuple):
     cpdef LetterTuple lift(self):
         """
         Lift an element of ``self`` to the crystal of letters
-        ``CrystalOfLetters(['E',6])`` by taking its inverse weight.
+        ``crystals.Letters(['E',6])`` by taking its inverse weight.
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E',6], dual = True)
+            sage: C = crystals.Letters(['E',6], dual = True)
             sage: b = C.module_generators[0]
             sage: b.lift()
             (-6,)
@@ -1731,13 +1733,13 @@ cdef class Crystal_of_letters_type_E6_element_dual(LetterTuple):
     cpdef LetterTuple retract(self, LetterTuple p):
         """
         Retract element ``p``, which is an element in
-        ``CrystalOfLetters(['E',6])`` to an element in
-        ``CrystalOfLetters(['E',6], dual=True)`` by taking its inverse weight.
+        ``crystals.Letters(['E',6])`` to an element in
+        ``crystals.Letters(['E',6], dual=True)`` by taking its inverse weight.
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E',6])
-            sage: Cd = CrystalOfLetters(['E',6], dual = True)
+            sage: C = crystals.Letters(['E',6])
+            sage: Cd = crystals.Letters(['E',6], dual = True)
             sage: b = Cd.module_generators[0]
             sage: p = C((-1,3))
             sage: b.retract(p)
@@ -1757,7 +1759,7 @@ cdef class Crystal_of_letters_type_E6_element_dual(LetterTuple):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E',6], dual = True)
+            sage: C = crystals.Letters(['E',6], dual = True)
             sage: C((-1,)).e(1)
             (1, -3)
         """
@@ -1769,7 +1771,7 @@ cdef class Crystal_of_letters_type_E6_element_dual(LetterTuple):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E',6], dual = True)
+            sage: C = crystals.Letters(['E',6], dual = True)
             sage: C((6,)).f(6)
             (5, -6)
             sage: C((6,)).f(1)
@@ -1782,7 +1784,7 @@ cdef class Crystal_of_letters_type_E6_element_dual(LetterTuple):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E',6], dual = True)
+            sage: C = crystals.Letters(['E',6], dual = True)
             sage: b=C.module_generators[0]
             sage: b.weight()
             (0, 0, 0, 0, 1, -1/3, -1/3, 1/3)
@@ -1829,7 +1831,7 @@ cdef class Crystal_of_letters_type_E7_element(LetterTuple):
 
     TESTS::
 
-        sage: C = CrystalOfLetters(['E',7])
+        sage: C = crystals.Letters(['E',7])
         sage: C.module_generators
         ((7,),)
         sage: C.list()
@@ -1858,7 +1860,7 @@ cdef class Crystal_of_letters_type_E7_element(LetterTuple):
 
         EXAMPLES::
 
-            sage: [v.weight() for v in CrystalOfLetters(['E',7])]
+            sage: [v.weight() for v in crystals.Letters(['E',7])]
             [(0, 0, 0, 0, 0, 1, -1/2, 1/2), (0, 0, 0, 0, 1, 0, -1/2, 1/2), (0, 0, 0,
             1, 0, 0, -1/2, 1/2), (0, 0, 1, 0, 0, 0, -1/2, 1/2), (0, 1, 0, 0, 0, 0,
             -1/2, 1/2), (-1, 0, 0, 0, 0, 0, -1/2, 1/2), (1, 0, 0, 0, 0, 0, -1/2,
@@ -1899,7 +1901,7 @@ cdef class Crystal_of_letters_type_E7_element(LetterTuple):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E',7])
+            sage: C = crystals.Letters(['E',7])
             sage: C((7,)).e(7)
             sage: C((-7,6)).e(7)
             (7,)
@@ -2081,7 +2083,7 @@ cdef class Crystal_of_letters_type_E7_element(LetterTuple):
 
         EXAMPLES::
 
-            sage: C = CrystalOfLetters(['E',7])
+            sage: C = crystals.Letters(['E',7])
             sage: C((-7,)).f(7)
             sage: C((7,)).f(7)
             (-7, 6)

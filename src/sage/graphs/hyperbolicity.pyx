@@ -1,5 +1,5 @@
 r"""
-Hyperbolicity of a graph
+Hyperbolicity
 
 **Definition** :
 
@@ -139,7 +139,7 @@ from sage.rings.arith import binomial
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RR
 from sage.functions.other import floor
-from sage.misc.bitset import Bitset
+from sage.data_structures.bitset import Bitset
 from libc.stdint cimport uint16_t, uint32_t, uint64_t
 include "sage/ext/stdsage.pxi"
 

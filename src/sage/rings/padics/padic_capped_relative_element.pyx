@@ -157,7 +157,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
                 mpz_set_ui(ans.value, 0)
             else:
                 mpz_set(ans.value, self.unit)
-                mpz_mul(ans.value, ans.value, self.prime_pow.pow_mpz_t_tmp(self.ordp)[0])
+                mpz_mul(ans.value, ans.value, self.prime_pow.pow_mpz_t_tmp(self.ordp))
             return ans
         else:
             ansr = PY_NEW(Rational)
@@ -166,7 +166,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
                 return self
             else:
                 mpz_set(mpq_numref(ansr.value), self.unit)
-                mpz_set(mpq_denref(ansr.value), self.prime_pow.pow_mpz_t_tmp(-self.ordp)[0])
+                mpz_set(mpq_denref(ansr.value), self.prime_pow.pow_mpz_t_tmp(-self.ordp))
             return ansr
 
     def _pari_(self):
@@ -207,7 +207,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
         else:
             return P.new_gen_from_padic(self.ordp, self.relprec,
                                         self.prime_pow.prime.value,
-                                        self.prime_pow.pow_mpz_t_tmp(self.relprec)[0],
+                                        self.prime_pow.pow_mpz_t_tmp(self.relprec),
                                         self.unit)
     def _integer_(self, Z=None):
         """
@@ -264,13 +264,13 @@ cdef class pAdicCappedRelativeElement(CRElement):
         if self.ordp < 0:
             raise ValueError, "Element must have non-negative valuation in order to compute residue."
         modulus = PY_NEW(Integer)
-        mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
+        mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))
         selfvalue = PY_NEW(Integer)
         if self.relprec == 0:
             mpz_set_ui(selfvalue.value, 0)
         else:
             # Need to do this better.
-            mpz_mul(selfvalue.value, self.prime_pow.pow_mpz_t_tmp(self.ordp)[0], self.unit)
+            mpz_mul(selfvalue.value, self.prime_pow.pow_mpz_t_tmp(self.ordp), self.unit)
         return Mod(selfvalue, modulus)
 
 def unpickle_pcre_v1(R, unit, ordp, relprec):

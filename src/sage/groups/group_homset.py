@@ -43,7 +43,7 @@ class GroupHomset_generic(HomsetWithBase):
         try:
             return morphism.GroupHomomorphism_im_gens(self, im_gens, check=check)
         except (NotImplementedError, ValueError) as err:
-            raise TypeError, "images (=%s) do not define a valid homomorphism"%im_gens
+            raise TypeError("images (=%s) do not define a valid homomorphism"%im_gens)
 
     def natural_map(self):
         return morphism.GroupHomomorphism_coercion(self)

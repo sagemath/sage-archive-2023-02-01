@@ -252,17 +252,17 @@ def symplectic_basis_over_field(M):
         Full MatrixSpace of 8 by 8 dense matrices over Real Field with 53 bits of precision
     """
     if not M.base_ring().is_field():
-        raise ValueError, "Can only find symplectic bases for matrices over fields"
+        raise ValueError("Can only find symplectic bases for matrices over fields")
     if not M.is_square():
-        raise ValueError, "Can only find symplectic bases for square matrices"
+        raise ValueError("Can only find symplectic bases for square matrices")
     if not M.transpose() + M == 0:
-        raise ValueError, "Can only find symplectic bases for anti-symmetric matrices"
+        raise ValueError("Can only find symplectic bases for anti-symmetric matrices")
 
     E = M.__copy__()
     n = E.nrows()
     for i in range(n):
         if not E[i, i].is_zero():
-            raise ValueError, "Can only find symplectic bases for alternating matrices"
+            raise ValueError("Can only find symplectic bases for alternating matrices")
     B = E.parent().one().__copy__()
 
     zeroes = []
@@ -456,15 +456,15 @@ def symplectic_basis_over_ZZ(M):
         Full MatrixSpace of 5 by 5 dense matrices over Integer Ring
     """
     if not M.is_square():
-        raise ValueError, "Can only find symplectic bases for square matrices"
+        raise ValueError("Can only find symplectic bases for square matrices")
     if not M.transpose() + M == 0:
-        raise ValueError, "Can only find symplectic bases for anti-symmetric matrices"
+        raise ValueError("Can only find symplectic bases for anti-symmetric matrices")
 
     E = M.__copy__().change_ring(ZZ)
     n = E.nrows()
     for i in range(n):
         if not E[i, i].is_zero():
-            raise ValueError, "Can only find symplectic bases for alternating matrices"
+            raise ValueError("Can only find symplectic bases for alternating matrices")
     B = E.parent().one().__copy__()
 
     zeroes = []

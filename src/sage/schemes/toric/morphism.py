@@ -161,7 +161,7 @@ For example, consider the blow-up restricted to one of the two
 coordinate charts of $O_{\mathbb{P}^1}(2)$ ::
 
 
-    sage: O2_P1_chart = ToricVariety(Fan([O2_P1.fan().generating_cones()[1]]))
+    sage: O2_P1_chart = ToricVariety(Fan([O2_P1.fan().generating_cones()[0]]))
     sage: single_chart = O2_P1_chart.hom(identity_matrix(2), A2_Z2)
     sage: single_chart.is_dominant()
     True
@@ -373,7 +373,7 @@ from sage.categories.morphism import Morphism
 from sage.structure.sequence  import Sequence
 from sage.rings.all import ZZ, gcd
 from sage.misc.all import cached_method
-from sage.matrix.constructor import matrix, block_matrix, zero_matrix, identity_matrix
+from sage.matrix.constructor import matrix, identity_matrix
 from sage.modules.free_module_element import vector
 from sage.geometry.all import Cone, Fan
 
@@ -414,8 +414,7 @@ class SchemeMorphism_point_toric_field(SchemeMorphism_point, Morphism):
 
     TESTS::
 
-        sage: fan = FaceFan(lattice_polytope.octahedron(2))
-        sage: P1xP1 = ToricVariety(fan)
+        sage: P1xP1 = toric_varieties.P1xP1()
         sage: P1xP1(1,2,3,4)
         [1 : 2 : 3 : 4]
     """
@@ -426,8 +425,7 @@ class SchemeMorphism_point_toric_field(SchemeMorphism_point, Morphism):
 
         TESTS::
 
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan)
+            sage: P1xP1 = toric_varieties.P1xP1()
             sage: P1xP1(1,2,3,4)
             [1 : 2 : 3 : 4]
         """
@@ -480,21 +478,20 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphis
 
     TESTS::
 
-        sage: fan = FaceFan(lattice_polytope.octahedron(2))
-        sage: P1xP1 = ToricVariety(fan)
+        sage: P1xP1 = toric_varieties.P1xP1()
         sage: P1xP1.inject_variables()
-        Defining z0, z1, z2, z3
-        sage: P1 = P1xP1.subscheme(z0-z2)
+        Defining s, t, x, y
+        sage: P1 = P1xP1.subscheme(s-t)
         sage: H = P1xP1.Hom(P1)
         sage: import sage.schemes.toric.morphism as MOR
-        sage: MOR.SchemeMorphism_polynomial_toric_variety(H, [z0,z1,z0,z3])
+        sage: MOR.SchemeMorphism_polynomial_toric_variety(H, [s, s, x, y])
         Scheme morphism:
-          From: 2-d toric variety covered by 4 affine patches
-          To:   Closed subscheme of 2-d toric variety
+          From: 2-d CPR-Fano toric variety covered by 4 affine patches
+          To:   Closed subscheme of 2-d CPR-Fano toric variety
                 covered by 4 affine patches defined by:
-          z0 - z2
-          Defn: Defined on coordinates by sending
-                [z0 : z1 : z2 : z3] to [z0 : z1 : z0 : z3]
+          s - t
+          Defn: Defined on coordinates by sending [s : t : x : y] to
+                [s : s : x : y]
     """
 
     def __init__(self, parent, polynomials, check=True):
@@ -503,21 +500,20 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphis
 
         TESTS::
 
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan)
+            sage: P1xP1 = toric_varieties.P1xP1()
             sage: P1xP1.inject_variables()
-            Defining z0, z1, z2, z3
-            sage: P1 = P1xP1.subscheme(z0-z2)
+            Defining s, t, x, y
+            sage: P1 = P1xP1.subscheme(s-t)
             sage: H = P1xP1.Hom(P1)
             sage: import sage.schemes.toric.morphism as MOR
-            sage: MOR.SchemeMorphism_polynomial_toric_variety(H, [z0,z1,z0,z3])
+            sage: MOR.SchemeMorphism_polynomial_toric_variety(H, [s, s, x, y])
             Scheme morphism:
-              From: 2-d toric variety covered by 4 affine patches
-              To:   Closed subscheme of 2-d toric variety
+              From: 2-d CPR-Fano toric variety covered by 4 affine patches
+              To:   Closed subscheme of 2-d CPR-Fano toric variety
                     covered by 4 affine patches defined by:
-              z0 - z2
-              Defn: Defined on coordinates by sending
-                    [z0 : z1 : z2 : z3] to [z0 : z1 : z0 : z3]
+              s - t
+              Defn: Defined on coordinates by sending [s : t : x : y] to
+                    [s : s : x : y]
         """
         SchemeMorphism_polynomial.__init__(self, parent, polynomials, check)
         if check:
@@ -650,14 +646,13 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
             sage: P1 = P2_112.orbit_closure(Cone([(1,0)]))
             sage: f = P1.embedding_morphism()
             sage: f._ray_map
-            {N(0, 1): (1), N(1, 0): (0), N(-1, -2): (-2)}
+            {N(-1, -2): (-2), N(0, 1): (1), N(1, 0): (0)}
             sage: f._reverse_ray_map()
             {N(-2): 2, N(1): 1}
         """
         orbit = self.parent().domain()
         codomain_fan = self.parent().codomain().fan()
         reverse_ray_dict = dict()
-        defining_cone_indices = []
         for n1,n2 in self._ray_map.iteritems():
             ray_index = codomain_fan.rays().index(n1)
             if n2.is_zero(): 
@@ -1594,7 +1589,7 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
             sage: polytope = Polyhedron(
             ...       [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
             ...        (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
-            sage: coarse_fan = FaceFan(polytope.lattice_polytope())
+            sage: coarse_fan = FaceFan(polytope, lattice=ToricLattice(4))
 
             sage: P2 = toric_varieties.P2()
             sage: proj34 = block_matrix(2,1,[zero_matrix(2,2), identity_matrix(2)])
@@ -1669,7 +1664,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
         sage: polytope = Polyhedron(
         ...       [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
         ...        (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
-        sage: coarse_fan = FaceFan(polytope.lattice_polytope())
+        sage: coarse_fan = FaceFan(polytope, lattice=ToricLattice(4))
         sage: P2 = toric_varieties.P2()
         sage: proj24 = matrix([[0,0],[1,0],[0,0],[0,1]])
         sage: fm = FanMorphism(proj24, coarse_fan, P2.fan(), subdivide=True)
@@ -1690,7 +1685,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
           From: 2-d toric variety covered by 4 affine patches
           To:   4-d toric variety covered by 23 affine patches
           Defn: Defined on coordinates by sending [z0 : z1 : z2 : z3] to
-                [1 : 1 : 1 : 1 : z1 : 0 : 1 : z0 : 1 : 1 : 1 : 1 : 1 : z3 : z2]
+                [1 : 1 : 1 : 1 : z1 : 0 : 1 : z0 : 1 : 1 : 1 : z2 : z3 : 1 : 1]
         sage: type(fiber_component.embedding_morphism())
         <class 'sage.schemes.toric.morphism.SchemeMorphism_fan_fiber_component_toric_variety'>
     """
@@ -1704,7 +1699,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             sage: polytope = Polyhedron(
             ...       [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
             ...        (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
-            sage: coarse_fan = FaceFan(polytope.lattice_polytope())
+            sage: coarse_fan = FaceFan(polytope, lattice=ToricLattice(4))
             sage: P2 = toric_varieties.P2()
             sage: proj24 = matrix([[0,0],[1,0],[0,0],[0,1]])
             sage: fm = FanMorphism(proj24, coarse_fan, P2.fan(), subdivide=True)
@@ -1760,7 +1755,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             sage: polytope = Polyhedron(
             ...       [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
             ...        (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
-            sage: coarse_fan = FaceFan(polytope.lattice_polytope())
+            sage: coarse_fan = FaceFan(polytope, lattice=ToricLattice(4))
             sage: P2 = toric_varieties.P2()
             sage: proj24 = matrix([[0,0],[1,0],[0,0],[0,1]])
             sage: fm = FanMorphism(proj24, coarse_fan, P2.fan(), subdivide=True)
@@ -1773,7 +1768,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
               From: 2-d toric variety covered by 4 affine patches
               To:   4-d toric variety covered by 23 affine patches
               Defn: Defined on coordinates by sending [z0 : z1 : z2 : z3] to
-                    [1 : 1 : 1 : 1 : z1 : 0 : 1 : z0 : 1 : 1 : 1 : 1 : 1 : z3 : z2]
+                    [1 : 1 : 1 : 1 : z1 : 0 : 1 : z0 : 1 : 1 : 1 : z2 : z3 : 1 : 1]
 
             sage: primitive_cone = Cone([(-1, 2, -1, 0)])
             sage: f = fibration.fiber_component(primitive_cone).embedding_morphism()
@@ -1937,7 +1932,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             sage: polytope = Polyhedron(
             ...       [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
             ...        (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
-            sage: coarse_fan = FaceFan(polytope.lattice_polytope())
+            sage: coarse_fan = FaceFan(polytope, lattice=ToricLattice(4))
             sage: P2 = toric_varieties.P2()
             sage: proj24 = matrix([[0,0],[1,0],[0,0],[0,1]])
             sage: fm = FanMorphism(proj24, coarse_fan, P2.fan(), subdivide=True)
@@ -1949,9 +1944,9 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             ...       print r, f._image_ray_multiplicity(r)
             N(0, 1) (5, 1)
             N(1, -3) (9, 2)
-            N(-1, 2) (14, 1)
+            N(-1, 2) (11, 1)
             sage: f._ray_index_map
-            {N(0, 1): 5, N(-3, 4): 11, N(-1, 2): 14, N(1, 0): 4, N(2, -6): 9}
+            {N(-3, 4): 10, N(-1, 2): 11, N(0, 1): 5, N(1, 0): 4, N(2, -6): 9}
         """
         try:
             image_ray_index = self._ray_index_map[fiber_ray]

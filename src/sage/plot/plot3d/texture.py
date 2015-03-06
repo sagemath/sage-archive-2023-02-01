@@ -11,7 +11,7 @@ for full details about options and use.
 Initially, we have no textures set::
 
     sage: sage.plot.plot3d.base.Graphics3d().texture_set()
-    set([])
+    set()
 
 However, one can access these textures in the following manner::
 
@@ -28,6 +28,7 @@ And the Texture objects keep track of all their data::
     sage: t.opacity
     0.500000000000000
     sage: T # should be translucent
+    Graphics3d Object
 
 AUTHOR:
 

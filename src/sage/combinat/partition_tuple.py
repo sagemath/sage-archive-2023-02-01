@@ -484,7 +484,7 @@ class PartitionTuple(CombinatorialObject,Element):
         """
         return self.level()
 
-    def _repr_(self, compact=False):
+    def _repr_(self, compact=None):
         """
         Return a string representation of ``self`` depending on
         :meth:`PartitionTuples.global_options`.
@@ -526,10 +526,9 @@ class PartitionTuple(CombinatorialObject,Element):
             2, 1 | 3, 2 | 1^3
             sage: PartitionTuples.global_options.reset()
         """
-        if compact:
+        if compact is not None:
             from sage.misc.superseded import deprecation
-            deprecation(13605, 'compact option is deprecated. Use PartitionTuples.global_options instead.')
-            return self._repr_compact_high()
+            deprecation(16933, 'compact argument is deprecated.')
 
         return self.parent().global_options.dispatch(self, '_repr_', 'display')
 
@@ -564,6 +563,8 @@ class PartitionTuple(CombinatorialObject,Element):
 
             sage: PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_exp_low()
             '1, 2 | 2, 3 | 1^3'
+            sage: PartitionTuple(([],[3,2],[1,1,1]))._repr_exp_low()
+            '- | 2, 3 | 1^3'
         """
         return ' | '.join(nu._repr_exp_low() for nu in self)
 
@@ -576,6 +577,8 @@ class PartitionTuple(CombinatorialObject,Element):
 
             sage: PartitionTuple(([2,1],[3,2],[1,1,1,1,1,1,1,1,1,1]))._repr_exp_high()
             '2, 1 | 3, 2 | 1^10'
+            sage: PartitionTuple(([],[3,2],[1,1,1]))._repr_exp_high()
+            '- | 3, 2 | 1^3'
         """
         return ' | '.join(nu._repr_exp_high() for nu in self)
 
@@ -588,8 +591,10 @@ class PartitionTuple(CombinatorialObject,Element):
 
             sage: PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_compact_low()
             '1,2|2,3|1^3'
+            sage: PartitionTuple(([],[3,2],[1,1,1]))._repr_compact_low()
+            '-|2,3|1^3'
         """
-        return '%s' % '|'.join('-' if mu==[] else mu._repr_compact_low() for mu in self)
+        return '%s' % '|'.join(mu._repr_compact_low() for mu in self)
 
     def _repr_compact_high(self):
         """
@@ -600,8 +605,10 @@ class PartitionTuple(CombinatorialObject,Element):
 
             sage: PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_compact_high()
             '2,1|3,2|1^3'
+            sage: PartitionTuple(([],[3,2],[1,1,1]))._repr_compact_high()
+            '-|3,2|1^3'
         """
-        return '%s' % '|'.join('-' if mu==[] else mu._repr_compact_high() for mu in self)
+        return '%s' % '|'.join(mu._repr_compact_high() for mu in self)
 
     # override default string representation which is str(self._list)
     __str__=lambda self: self._repr_()

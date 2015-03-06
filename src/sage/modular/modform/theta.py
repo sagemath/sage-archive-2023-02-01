@@ -44,7 +44,7 @@ def theta2_qexp(prec=10, var='q', K=ZZ, sparse=False):
     """
     prec = Integer(prec)
     if prec <= 0:
-        raise ValueError, "prec must be positive"
+        raise ValueError("prec must be positive")
     if sparse:
         v = {}
     else:
@@ -92,7 +92,7 @@ def theta_qexp(prec=10, var='q', K=ZZ, sparse=False):
     """
     prec = Integer(prec)
     if prec <= 0:
-        raise ValueError, "prec must be positive"
+        raise ValueError("prec must be positive")
     if sparse:
         v = {}
     else:

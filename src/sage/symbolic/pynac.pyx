@@ -103,6 +103,26 @@ cdef public object exprseq_to_PyTuple(GEx seq):
             res.append(new_Expression_from_GEx(SR, seq.op(i)))
     return tuple(res)
 
+def unpack_operands(Expression ex):
+    """
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import unpack_operands
+        sage: t = SR._force_pyobject((1, 2, x, x+1, x+2))
+        sage: unpack_operands(t)
+        (1, 2, x, x + 1, x + 2)
+        sage: type(unpack_operands(t))
+        <type 'tuple'>
+        sage: map(type, unpack_operands(t))
+        [<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>]
+        sage: u = SR._force_pyobject((t, x^2))
+        sage: unpack_operands(u)
+        ((1, 2, x, x + 1, x + 2), x^2)
+        sage: type(unpack_operands(u)[0])
+        <type 'tuple'>
+    """
+    return exprseq_to_PyTuple(ex._gobj)
+
 cdef public object exvector_to_PyTuple(GExVector seq):
     """
     Converts arguments list given to a function to a PyTuple.
@@ -1422,7 +1442,7 @@ cdef public object py_zeta(object x) except +:
         sage: py_zeta(CC.0)
         0.00330022368532410 - 0.418155449141322*I
         sage: py_zeta(CDF(5))
-        1.03692775514
+        1.03692775514337
         sage: py_zeta(RealField(100)(5))
         1.0369277551433699263313654865
     """

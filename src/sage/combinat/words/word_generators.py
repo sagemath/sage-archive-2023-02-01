@@ -176,10 +176,10 @@ class LowerChristoffelWord(FiniteWord_list):
             sage: _ = w2.standard_factorization() # hackish test for self.__p and self.__q
         """
         if len(set(alphabet)) != 2:
-            raise ValueError, "alphabet must contain exactly two distinct elements"
+            raise ValueError("alphabet must contain exactly two distinct elements")
         # Compute gcd of p, q; raise TypeError if not 1.
         if gcd(p,q) != 1:
-            raise ValueError, "%s and %s are not relatively prime" % (p, q)
+            raise ValueError("%s and %s are not relatively prime" % (p, q))
         # Compute the Christoffel word
         if algorithm == 'linear':
             w = []
@@ -216,7 +216,7 @@ class LowerChristoffelWord(FiniteWord_list):
                     v = u * (cf[i]-1) + v
                 w = u + v
         else:
-            raise ValueError, 'Unknown algorithm (=%s)'%algorithm
+            raise ValueError('Unknown algorithm (=%s)'%algorithm)
         super(LowerChristoffelWord, self).__init__(Words(alphabet), w)
         self.__p = p
         self.__q = q
@@ -419,7 +419,7 @@ class WordGenerator(object):
         alphabet = w.parent().alphabet()
         m = w.parent().size_of_alphabet()
         if base < 2 or m < 2 :
-            raise ValueError, "base (=%s) and size of alphabet (=%s) must be at least 2"%(base, m)
+            raise ValueError("base (=%s) and size of alphabet (=%s) must be at least 2"%(base, m))
         return w
 
     def _ThueMorseWord_nth_digit(self, n, alphabet=(0,1), base=2):
@@ -466,7 +466,7 @@ class WordGenerator(object):
             NotImplementedError: nth digit of Thue-Morse word is not implemented for negative value of n
         """
         if n < 0:
-            raise NotImplementedError, "nth digit of Thue-Morse word is not implemented for negative value of n"
+            raise NotImplementedError("nth digit of Thue-Morse word is not implemented for negative value of n")
         m = len(alphabet)
         if base == 2 and m == 2:
             for tn in count():
@@ -474,7 +474,7 @@ class WordGenerator(object):
                     return alphabet[tn & 1]
                 n &= n - 1
         elif base < 2 or m < 2 :
-            raise ValueError, "base (=%s) and len(alphabet) (=%s) must be at least 2"%(base, m)
+            raise ValueError("base (=%s) and len(alphabet) (=%s) must be at least 2"%(base, m))
         else:
             return alphabet[ZZ(sum(ZZ(n).digits(base = base))).mod(m)]
 
@@ -681,7 +681,7 @@ class WordGenerator(object):
             TypeError: alphabet does not contain two distinct elements
         """
         if len(set(alphabet)) != 2:
-            raise TypeError, "alphabet does not contain two distinct elements"
+            raise TypeError("alphabet does not contain two distinct elements")
         from functools import partial
         f = partial(self._CodingOfRotationWord_function,alpha=alpha,beta=beta,x=x,alphabet=alphabet)
         w = Words(alphabet)(f, datatype='callable')
@@ -872,7 +872,7 @@ class WordGenerator(object):
         if slope in RR:
             if not 0 < slope < 1:
                 msg = "The argument slope (=%s) must be in ]0,1[."%slope
-                raise ValueError, msg
+                raise ValueError(msg)
             from sage.rings.all import CFF
             cf = iter(CFF(slope, bits=bits))
             length = 'finite'
@@ -928,12 +928,12 @@ class WordGenerator(object):
             word: 0100100101001001001010010010010100100101...
         """
         if cf.next() != 0:
-            raise ValueError, "The first term of the continued fraction expansion must be zero."
+            raise ValueError("The first term of the continued fraction expansion must be zero.")
         s0 = [1]
         s1 = [0]
         e = cf.next()
         if not e >= 1:
-            raise ValueError, "The second term of the continued fraction expansion must be larger or equal to 1."
+            raise ValueError("The second term of the continued fraction expansion must be larger or equal to 1.")
         s1, s0 = s1*(e-1) + s0, s1
         n = 0
         while True:
@@ -1018,7 +1018,7 @@ class WordGenerator(object):
         a, b = alphabet
         if a not in ZZ or a <= 0 or b not in ZZ or b <= 0 or a == b:
             msg = 'The alphabet (=%s) must consist of two distinct positive integers'%(alphabet,)
-            raise ValueError, msg
+            raise ValueError(msg)
         return Words(alphabet)(self._KolakoskiWord_iterator(a, b), datatype = 'iter')
 
     def _KolakoskiWord_iterator(self, a=1, b=2):
@@ -1254,7 +1254,7 @@ class WordGenerator(object):
            2007, arXiv:0801.1655.
         """
         if not isinstance(directive_word, Word_class):
-           raise TypeError, "directive_word is not a word, so it cannot be used to build an episturmian word"
+           raise TypeError("directive_word is not a word, so it cannot be used to build an episturmian word")
         epistandard = directive_word.parent()(\
                 self._StandardEpisturmianWord_LetterIterator(directive_word), \
                 datatype='iter')
@@ -1382,7 +1382,7 @@ class WordGenerator(object):
         if alphabet is None:
             alphabet = range(m)
         if len(set(alphabet)) != m:
-            raise TypeError, "alphabet does not contain %s distinct elements" % m
+            raise TypeError("alphabet does not contain %s distinct elements" % m)
         return Words(alphabet)([alphabet[randint(0,m-1)] for i in xrange(n)])
 
     LowerChristoffelWord = LowerChristoffelWord
@@ -1628,7 +1628,7 @@ class WordGenerator(object):
         yield precedent_letter
         for (i,(m,a)) in enumerate(izip(sequence, letters)):
             if not precedent_letter == m(a)[0]:
-                raise ValueError, "The hypothesis of the algorithm used is not satisfied: the image of the %s-th letter (=%s) under the %s-th morphism (=%s) should start with the %s-th letter (=%s)."%(i+1,a,i+1,m,i,precedent_letter)
+                raise ValueError("The hypothesis of the algorithm used is not satisfied: the image of the %s-th letter (=%s) under the %s-th morphism (=%s) should start with the %s-th letter (=%s)."%(i+1,a,i+1,m,i,precedent_letter))
             w = p(m(a)[1:])
             for b in w:
                 yield b
@@ -1874,7 +1874,7 @@ class WordGenerator(object):
         elif hasattr(morphisms, '__call__'):
             seq = (morphisms(i) for i in sequence)
         else:
-            raise TypeError, "morphisms (=%s) must be None, callable or provide a __getitem__ method."%morphisms
+            raise TypeError("morphisms (=%s) must be None, callable or provide a __getitem__ method."%morphisms)
 
         from sage.combinat.words.word import FiniteWord_class
         if isinstance(sequence,(tuple,list,str,FiniteWord_class)) \

@@ -296,5 +296,5 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
         if self.is_endomorphism_set():
             return self(matrix.identity_matrix(self.base_ring(),self.domain().rank()))
         else:
-            raise TypeError, "Identity map only defined for endomorphisms. Try natural_map() instead."
+            raise TypeError("Identity map only defined for endomorphisms. Try natural_map() instead.")
 

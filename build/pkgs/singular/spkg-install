@@ -85,11 +85,6 @@ choose_patches()
 {
     cd "$PATCHES" || return $?
 
-    # Move some patches which are conditionally applied
-    if [ "$UNAME" = "CYGWIN" ]; then
-        mv conditional/cygwin.patch . || return $?
-    fi
-
     if [ "x$SAGE_DEBUG" = "xyes" ]; then
         mv conditional/sage_debug.patch . || return $?
         # Remove old omalloc files, except for configure
@@ -97,6 +92,7 @@ choose_patches()
         rm -r "$SRC/omalloc"/*
         mv configure_omalloc "$SRC/omalloc/configure"
         mv conditional/singular_xalloc.patch . || return $?
+        mv conditional/cygwin64_debug.patch ./cygwin64.patch || return $?
     fi
 }
 
@@ -141,10 +137,10 @@ config()
                 --with-apint=gmp \
                 --with-malloc=system \
                 --with-NTL \
+                --with-flint="$SAGE_LOCAL" \
                 --without-MP \
                 --without-lex \
                 --without-Boost \
-                --without-flint \
                 --enable-Singular \
                 --enable-factory \
                 --enable-libfac \
@@ -239,7 +235,7 @@ build_factory()
                 --with-gmp="$SAGE_LOCAL" \
                 --enable-NTL \
                 --with-NTL="$SAGE_LOCAL" \
-                --without-flint \
+                --with-flint="$SAGE_LOCAL" \
                 --with-gmp="$SAGE_LOCAL" \
                 $ENABLE_DEBUGOUTPUT
 

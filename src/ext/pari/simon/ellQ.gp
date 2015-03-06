@@ -117,7 +117,7 @@
   Courbes de la forme : k*y^2 = x^3+A*x^2+B*x+C
   sans 2-torsion, A,B,C entiers.
   gp > bnf = bnfinit(x^3+A*x^2+B*x+C);
-  gp > ell = ellinit([0,A,0,B,C],1);
+  gp > ell = ellinit([0,A,0,B,C]);
   gp > rank = ell2descent_gen(ell,bnf,k);
 
   Courbes avec #E[2](Q) >= 2 :
@@ -833,7 +833,7 @@ if( DEBUGLEVEL_ell >= 4, print("    end of LS2localimage"));
 \\ returns all the points Q on ell such that 2Q = P.
 my(pol2,ratroots,half,x2,y2,P2);
 
-  if(#ell < 13, ell=ellinit(ell,1));
+  if(#ell < 13, ell=ellinit(ell));
 
   pol2 = Pol([4,ell.b2,2*ell.b4,ell.b6]); \\ 2-division polynomial
 
@@ -880,7 +880,7 @@ if( DEBUGLEVEL_ell >= 3, print("   E[2] = ",tors2));
 my(torseven,P2);
 
 if( DEBUGLEVEL_ell >= 4, print("    computing the 2^n-torsion"));
-  if(#ell < 13, ell=ellinit(ell,1));
+  if(#ell < 13, ell=ellinit(ell));
   torseven = elltors2(ell);
 
   while( torseven[1] != 1,
@@ -976,7 +976,7 @@ if( DEBUGLEVEL_ell >= 5, print("     ell=",ell));
   d = #listgen;
   if( d == 0, return([]));  
 
-  if( #ell < 13, ell = ellinit(ell,1));
+  if( #ell < 13, ell = ellinit(ell));
 
   if( K != 1,
     if( ell.a1 != 0 || ell.a3 != 0, error(" ellredgen: a1*a3 != 0"));
@@ -1323,7 +1323,7 @@ my(A,B,C,polrel,polprime,ttheta,badprimes,S,LS2,selmer,rootapprox,p,pp,locimage,
 
 if( DEBUGLEVEL_ell >= 4, print("    starting ell2descent_gen"));
 
-  if( #ell < 13, ell = ellinit(ell,1));
+  if( #ell < 13, ell = ellinit(ell));
 
   if( ell.a1 != 0 || ell.a3 != 0,
     error(" ell2descent_gen: the curve is not of the form [0,a,0,b,c]"));
@@ -1579,7 +1579,7 @@ if( DEBUGLEVEL_ell >= 4, print("    end of ell2descent_gen"));
 my(urst,urst1,den,eqell,tors2,bnf,rang,time1);
 
 if( DEBUGLEVEL_ell >= 3, print("   starting ellrank"));
-  if( #ell < 13, ell = ellinit(ell,1));
+  if( #ell < 13, ell = ellinit(ell));
 
 \\ kill the coefficients a1 and a3
   urst = [1,0,0,0];
@@ -1915,7 +1915,7 @@ if( DEBUGLEVEL_ell >= 4, print("    end of ellcount"));
 my(P,Pfact,tors,listpointstriv,KS2prod,KS2gen,listpoints,pointgen,n1,n2,certain,apinit,bpinit,np1,np2,listpoints2,aux1,aux2,certainp,rang,strange);
 
 if( DEBUGLEVEL_ell >= 2, print("  Algorithm of 2-descent via isogenies"));
-  if( #ell < 13, ell = ellinit(ell,1));
+  if( #ell < 13, ell = ellinit(ell));
 
   if( ell.disc == 0,
     error(" ell2descent_viaisog: singular curve !!"));

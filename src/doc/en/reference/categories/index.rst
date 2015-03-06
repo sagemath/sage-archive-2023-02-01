@@ -8,6 +8,8 @@ Category Theory
    sage/categories/tutorial
    sage/categories/category
    sage/categories/category_types
+   sage/categories/category_singleton
+   sage/categories/category_with_axiom
    sage/categories/map
    sage/categories/homset
    sage/categories/morphism
@@ -42,11 +44,16 @@ Categories
 .. toctree::
    :maxdepth: 2
 
+   sage/categories/additive_groups
    sage/categories/additive_magmas
+   sage/categories/additive_monoids
+   sage/categories/additive_semigroups
+   sage/categories/affine_weyl_groups
    sage/categories/algebra_ideals
    sage/categories/algebra_modules
    sage/categories/algebras
    sage/categories/algebras_with_basis
+   sage/categories/associative_algebras
    sage/categories/bialgebras
    sage/categories/bialgebras_with_basis
    sage/categories/bimodules
@@ -62,13 +69,14 @@ Categories
    sage/categories/commutative_rings
    sage/categories/coxeter_groups
    sage/categories/crystals
+   sage/categories/distributive_magmas_and_additive_magmas
    sage/categories/division_rings
    sage/categories/domains
    sage/categories/enumerated_sets
    sage/categories/euclidean_domains
    sage/categories/fields
-   sage/categories/finite_crystals
    sage/categories/finite_coxeter_groups
+   sage/categories/finite_crystals
    sage/categories/finite_dimensional_algebras_with_basis
    sage/categories/finite_dimensional_bialgebras_with_basis
    sage/categories/finite_dimensional_coalgebras_with_basis
@@ -77,12 +85,14 @@ Categories
    sage/categories/finite_enumerated_sets
    sage/categories/finite_fields
    sage/categories/finite_groups
-   sage/categories/finite_posets
    sage/categories/finite_lattice_posets
    sage/categories/finite_monoids
    sage/categories/finite_permutation_groups
+   sage/categories/finite_posets
    sage/categories/finite_semigroups
+   sage/categories/finite_sets
    sage/categories/finite_weyl_groups
+   sage/categories/function_fields
    sage/categories/gcd_domains
    sage/categories/graded_algebras
    sage/categories/graded_algebras_with_basis
@@ -94,6 +104,7 @@ Categories
    sage/categories/graded_hopf_algebras_with_basis
    sage/categories/graded_modules
    sage/categories/graded_modules_with_basis
+   sage/categories/group_algebras
    sage/categories/groupoid
    sage/categories/groups
    sage/categories/g_sets
@@ -106,6 +117,8 @@ Categories
    sage/categories/lattice_posets
    sage/categories/left_modules
    sage/categories/magmas
+   sage/categories/magmas_and_additive_magmas
+   sage/categories/magmatic_algebras
    sage/categories/matrix_algebras
    sage/categories/modular_abelian_varieties
    sage/categories/modules
@@ -115,10 +128,13 @@ Categories
    sage/categories/number_fields
    sage/categories/objects
    sage/categories/partially_ordered_monoids
-   sage/categories/posets
+   sage/categories/permutation_groups
    sage/categories/pointed_sets
+   sage/categories/polyhedra
+   sage/categories/posets
    sage/categories/principal_ideal_domains
    sage/categories/quotient_fields
+   sage/categories/regular_crystals
    sage/categories/right_modules
    sage/categories/ring_ideals
    sage/categories/rings
@@ -128,7 +144,9 @@ Categories
    sage/categories/semirings
    sage/categories/sets_cat
    sage/categories/sets_with_grading
+   sage/categories/sets_with_partial_maps
    sage/categories/unique_factorization_domains
+   sage/categories/unital_algebras
    sage/categories/vector_spaces
    sage/categories/weyl_groups
 
@@ -151,6 +169,7 @@ Examples of parents using categories
    sage/categories/examples/commutative_additive_semigroups
    sage/categories/examples/coxeter_groups
    sage/categories/examples/crystals
+   sage/categories/examples/facade_sets
    sage/categories/examples/finite_coxeter_groups
    sage/categories/examples/finite_enumerated_sets
    sage/categories/examples/finite_monoids
@@ -159,11 +178,12 @@ Examples of parents using categories
    sage/categories/examples/hopf_algebras_with_basis
    sage/categories/examples/infinite_enumerated_sets
    sage/categories/examples/monoids
-   sage/categories/examples/semigroups
+   sage/categories/examples/posets
    sage/categories/examples/semigroups_cython
+   sage/categories/examples/semigroups
    sage/categories/examples/sets_cat
-   sage/categories/examples/with_realizations
    sage/categories/examples/sets_with_grading
+   sage/categories/examples/with_realizations
 
 Miscellaneous
 =============

@@ -18,8 +18,8 @@ EXAMPLES:
 Let's consider the face and normal fans of the "diamond" and the projection
 to the `x`-axis::
 
-    sage: diamond = lattice_polytope.octahedron(2)
-    sage: face = FaceFan(diamond)
+    sage: diamond = lattice_polytope.cross_polytope(2)
+    sage: face = FaceFan(diamond, lattice=ToricLattice(2))
     sage: normal = NormalFan(diamond)
     sage: N = face.lattice()
     sage: H = End(N)
@@ -88,6 +88,7 @@ from sage.modules.free_module_morphism import (FreeModuleMorphism,
                                                is_FreeModuleMorphism)
 from sage.rings.all import Infinity, ZZ
 from sage.rings.infinity import is_Infinite
+from functools import reduce
 
 class FanMorphism(FreeModuleMorphism):
     r"""
@@ -147,8 +148,8 @@ class FanMorphism(FreeModuleMorphism):
     Here we consider the face and normal fans of the "diamond" and the
     projection to the `x`-axis::
 
-        sage: diamond = lattice_polytope.octahedron(2)
-        sage: face = FaceFan(diamond)
+        sage: diamond = lattice_polytope.cross_polytope(2)
+        sage: face = FaceFan(diamond, lattice=ToricLattice(2))
         sage: normal = NormalFan(diamond)
         sage: N = face.lattice()
         sage: H = End(N)
@@ -350,17 +351,21 @@ class FanMorphism(FreeModuleMorphism):
 
         TESTS::
 
-            sage: diamond = lattice_polytope.octahedron(2)
+            sage: diamond = lattice_polytope.cross_polytope(2)
             sage: face = FaceFan(diamond)
             sage: normal = NormalFan(diamond)
             sage: N = face.lattice()
             sage: fm = FanMorphism(identity_matrix(2),
             ...           normal, face, subdivide=True)
             sage: fm._RISGIS()
-            (frozenset([3]), frozenset([2]),
-             frozenset([1]), frozenset([0]),
-             frozenset([1, 3]), frozenset([0, 1]),
-             frozenset([0, 2]), frozenset([2, 3]))
+            (frozenset({3}),
+             frozenset({2}),
+             frozenset({1}),
+             frozenset({0}),
+             frozenset({1, 3}),
+             frozenset({0, 1}),
+             frozenset({0, 2}),
+             frozenset({2, 3}))
         """
         if "_RISGIS_" not in self.__dict__:
             try:
@@ -393,7 +398,7 @@ class FanMorphism(FreeModuleMorphism):
 
         TESTS::
 
-            sage: F = NormalFan(lattice_polytope.octahedron(2))
+            sage: F = NormalFan(lattice_polytope.cross_polytope(2))
             sage: N = F.lattice()
             sage: H = End(N)
             sage: phi = H([N.0, 0])
@@ -642,7 +647,7 @@ class FanMorphism(FreeModuleMorphism):
         We check that Trac #10943 is fixed::
 
             sage: Sigma = Fan(rays=[(1,1,0), (1,-1,0)], cones=[(0,1)])
-            sage: Sigma_prime = FaceFan(lattice_polytope.octahedron(3))
+            sage: Sigma_prime = FaceFan(lattice_polytope.cross_polytope(3))
             sage: fm = FanMorphism(identity_matrix(3),
             ...                    Sigma, Sigma_prime, subdivide=True)
             sage: fm.domain_fan().rays()
@@ -970,8 +975,8 @@ class FanMorphism(FreeModuleMorphism):
         We check that complete codomain fans are handled correctly, since a
         different algorithm is used in this case::
 
-            sage: diamond = lattice_polytope.octahedron(2)
-            sage: face = FaceFan(diamond)
+            sage: diamond = lattice_polytope.cross_polytope(2)
+            sage: face = FaceFan(diamond, lattice=ToricLattice(2))
             sage: normal = NormalFan(diamond)
             sage: N = face.lattice()
             sage: fm = FanMorphism(identity_matrix(2),

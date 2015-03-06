@@ -71,7 +71,7 @@ class Jack(UniqueRepresentation):
         """
         self._sym = Sym
         if not (t in Sym.base_ring() or var(t) in Sym.base_ring()):
-            raise ValueError, "parameter t must be in the base ring"
+            raise ValueError("parameter t must be in the base ring")
         self.t = Sym.base_ring()(t)
         self._name_suffix = ""
         if str(t) !='t':
@@ -467,19 +467,19 @@ def normalize_coefficients(self, c):
         numer = c.numerator()
 
         #Clear the denominators
-        a = lcm([i.denominator() for i in denom.coeffs()])
-        b = lcm([i.denominator() for i in numer.coeffs()])
+        a = lcm([i.denominator() for i in denom.coefficients(sparse=False)])
+        b = lcm([i.denominator() for i in numer.coefficients(sparse=False)])
         l = Integer(a).lcm(Integer(b))
         denom *= l
         numer *= l
 
         #Divide through by the gcd of the numerators
-        a = gcd([i.numerator() for i in denom.coeffs()])
-        b = gcd([i.numerator() for i in numer.coeffs()])
+        a = gcd([i.numerator() for i in denom.coefficients(sparse=False)])
+        b = gcd([i.numerator() for i in numer.coefficients(sparse=False)])
         l = Integer(a).gcd(Integer(b))
 
-        denom = denom / l
-        numer = numer / l
+        denom = denom // l
+        numer = numer // l
 
         return c.parent()(numer, denom)
     else:

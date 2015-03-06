@@ -62,12 +62,16 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 from cpython.list cimport *
 
-from sage.rings.all      import ZZ, Integer, is_MPolynomial, is_Polynomial
+from sage.rings.all      import ZZ, Integer
+from sage.rings.polynomial.polynomial_element import is_Polynomial
+from sage.rings.polynomial.multi_polynomial import is_MPolynomial
+from sage.matrix.matrix import is_Matrix
 from sage.matrix.all     import MatrixSpace
-from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
+from sage.interfaces.all import gap
+from sage.interfaces.gap import is_GapElement
+from sage.interfaces.expect import is_ExpectElement
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
-from sage.misc.superseded import deprecated_function_alias
 
 import operator
 
@@ -215,6 +219,7 @@ def standardize_generator(g, convert_dict=None):
         [(1, 2)]
         sage: standardize_generator([('a','b')], convert_dict=d)
         [(1, 2)]
+
     """
     from sage.interfaces.gap import GapElement
     from sage.combinat.permutation import Permutation
@@ -237,17 +242,9 @@ def standardize_generator(g, convert_dict=None):
         g = [g]
 
     #Get the permutation in list notation
-    if PyList_CheckExact(g) and (len(g) == 0 or not PY_TYPE_CHECK(g[0], tuple)):
+    if isinstance(g, list) and (len(g) == 0 or not isinstance(g[0], tuple)):
         if convert_dict is not None and needs_conversion:
             g = [convert_dict[x] for x in g]
-
-
-        #FIXME: Currently, we need to verify that g defines an actual
-        #permutation since the constructor Permutation does not
-        #perform this check.  When it does, we should remove this code.
-        #See #8392
-        if set(g) != set(range(1, len(g)+1)):
-            raise ValueError, "Invalid permutation vector: %s"%g
         return Permutation(g).cycle_tuples()
     else:
         if convert_dict is not None and needs_conversion:
@@ -425,6 +422,13 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             ()
             sage: PermutationGroupElement([()])
             ()
+
+        We check that :trac:`16678` is fixed::
+
+            sage: Permutations.global_options(display='cycle')
+            sage: p = Permutation((1,2))
+            sage: PermutationGroupElement(p)
+            (1,2)
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         from sage.groups.perm_gps.permgroup import PermutationGroup_generic
@@ -436,11 +440,10 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         except KeyError:
             raise ValueError, "Invalid permutation vector: %s" % g
 
-
         degree = max([1] + [max(cycle+(1,)) for cycle in v])
         v = from_cycles(degree, v)
 
-        self.__gap = 'PermList(%s)'%v
+        self.__gap = 'PermList({})'.format(list(v)) # Make sure it is a list
 
         if parent is None:
             parent = SymmetricGroup(len(v))
@@ -797,6 +800,9 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         the indeterminates. This is a right action since the image of
         f(sigma\*x) under tau is f(sigma\*tau\*x).
 
+        Additionally, if ``left`` is a matrix, then sigma acts on the matrix
+        by permuting the rows.
+
         INPUT:
 
 
@@ -818,6 +824,15 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             2*x^2 - y^2 + z^2 + u^2
             sage: (f*sigma)*tau
             2*x^2 - y^2 + z^2 + u^2
+
+            sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
+            sage: M*sigma
+            [0 2 0 0 0]
+            [0 0 3 0 0]
+            [1 0 0 0 0]
+            [0 0 0 0 5]
+            [0 0 0 4 0]
+
         """
         if not self_on_left:
             left = x
@@ -833,6 +848,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 except IndexError:
                     raise TypeError, "%s does not act on %s"%(self, left.parent())
                 return left(tuple(sigma_x))
+            elif is_Matrix(left):
+                return left.with_permuted_rows(self)
 
     cpdef MonoidElement _mul_(left, MonoidElement _right):
         """
@@ -916,8 +933,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         from sage.combinat.permutation import Permutation
         return Permutation(self._gap_list()).cycle_string()
-
-    list = deprecated_function_alias(14319, domain)
 
     cpdef domain(self):
         """
@@ -1433,8 +1448,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: g.conjugacy_class()
             Conjugacy class of (1,3,5,2,4) in Dihedral group of order 10 as a permutation group
         """
-        from sage.groups.conjugacy_classes import ConjugacyClassGAP
-        return ConjugacyClassGAP(self.parent(), self)
+        return self.parent().conjugacy_class(self)
 
 
 cdef bint is_valid_permutation(int* perm, int n):
@@ -1452,7 +1466,7 @@ cdef bint is_valid_permutation(int* perm, int n):
         sage: PermutationGroupElement([1,1],S,check=False)
         Traceback (most recent call last):
         ...
-        ValueError: Invalid permutation vector: [1, 1]
+        ValueError: The permutation has length 2 but its maximal element is 1. Some element may be repeated, or an element is missing, but there is something wrong with its length.
         sage: PermutationGroupElement([1,-1],S,check=False)
         Traceback (most recent call last):
         ...
@@ -1460,7 +1474,7 @@ cdef bint is_valid_permutation(int* perm, int n):
         sage: PermutationGroupElement([1,2,3,10],S,check=False)
         Traceback (most recent call last):
         ...
-        ValueError: Invalid permutation vector: [1, 2, 3, 10]
+        ValueError: The permutation has length 4 but its maximal element is 10. Some element may be repeated, or an element is missing, but there is something wrong with its length.
     """
     cdef int i, ix
     # make everything is in bounds

@@ -748,7 +748,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
             raise ValueError('symbolic function has the wrong number of inputs for domain')
         if n != C.degree():
             raise ValueError('symbolic function has the wrong number of outputs for codomain')
-        arg2 = [[e.coeff(a) for e in exprs] for a in args]
+        arg2 = [[e.coefficient(a) for e in exprs] for a in args]
         try:
             arg2 = matrix(D.base_ring(), m, n, arg2)
         except TypeError as e:
@@ -849,7 +849,7 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
             <class 'sage.modules.vector_space_morphism.VectorSpaceMorphism'>
         """
         if not vector_space_homspace.is_VectorSpaceHomspace(homspace):
-            raise TypeError, 'homspace must be a vector space hom space, not {0}'.format(homspace)
+            raise TypeError('homspace must be a vector space hom space, not {0}'.format(homspace))
         if isinstance(A, matrix_morphism.MatrixMorphism):
             A = A.matrix()
         if not is_Matrix(A):

@@ -20,7 +20,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 ####################################################################################
 
-from sage.categories.all import Morphism, is_Morphism
+from sage.categories.morphism import Morphism, is_Morphism
 import fgp_module
 
 
@@ -105,14 +105,14 @@ class FGP_Morphism(Morphism):
 
             MO, _ = M.optimized()
             if phi.domain() != MO.V():
-                raise ValueError, "domain of phi must be the covering module for the optimized covering module of the domain"
+                raise ValueError("domain of phi must be the covering module for the optimized covering module of the domain")
             if phi.codomain() != N.V():
-                raise ValueError, "codomain of phi must be the covering module the codomain."
+                raise ValueError("codomain of phi must be the covering module the codomain.")
             # check that MO.W() gets sent into N.W()
             # todo (optimize): this is slow:
             for x in MO.W().basis():
                 if phi(x) not in N.W():
-                    raise ValueError, "phi must send optimized submodule of M.W() into N.W()"
+                    raise ValueError("phi must send optimized submodule of M.W() into N.W()")
         self._phi = phi
 
     def _repr_(self):
@@ -276,7 +276,7 @@ class FGP_Morphism(Morphism):
         from fgp_module import is_FGP_Module
         if is_FGP_Module(x):
             if not x.is_submodule(self.domain()):
-                raise ValueError, "x must be a submodule or element of the domain"
+                raise ValueError("x must be a submodule or element of the domain")
             # perhaps can be optimized with a matrix multiply; but note
             # the subtlety of optimized representations.
             return self.codomain().submodule([self(y) for y in x.smith_form_gens()])
@@ -353,9 +353,9 @@ class FGP_Morphism(Morphism):
         """
         from fgp_module import is_FGP_Module
         if not is_FGP_Module(A):
-            raise TypeError, "A must be a finitely generated quotient module"
+            raise TypeError("A must be a finitely generated quotient module")
         if not A.is_submodule(self.codomain()):
-            raise ValueError, "A must be a submodule of the codomain"
+            raise ValueError("A must be a submodule of the codomain")
         V = self._phi.inverse_image(A.V())
         D = self.domain()
         V = D.W() + V
@@ -438,7 +438,7 @@ class FGP_Morphism(Morphism):
             if z.denominator() != 1:
                 raise ValueError
         except ValueError:
-            raise ValueError, "no lift of element to domain"
+            raise ValueError("no lift of element to domain")
 
         # Write back in terms of rows of B, and delete rows not corresponding to A,
         # since those corresponding to relations

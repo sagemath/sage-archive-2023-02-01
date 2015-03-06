@@ -90,7 +90,7 @@ def qfsolve(G, factD=None):
     """
     gp = _gp_for_simon()
     if factD is not None:
-        raise NotImplementedError, "qfsolve not implemented with parameter factD"
+        raise NotImplementedError("qfsolve not implemented with parameter factD")
     ret = gp('qfsolve(%s)' % G._pari_init_())
     if str(ret.type()) == 't_COL':  # Need explicit str(), see #15522
         return tuple(QQ(r) for r in ret)

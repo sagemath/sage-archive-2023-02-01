@@ -90,8 +90,6 @@ from sage.rings.arith import factor
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.functional import is_even
 from sage.misc.cachefunc import cached_method, weak_cached_function
-from sage.misc.classcall_metaclass import typecall
-from sage.misc.superseded import deprecated_function_alias
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.structure.unique_representation import CachedRepresentation
@@ -99,10 +97,10 @@ from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-from sage.categories.enumerated_sets import EnumeratedSets
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.family import Family
 from sage.sets.primes import Primes
+
 
 class PermutationGroup_unique(CachedRepresentation, PermutationGroup_generic):
     """
@@ -193,64 +191,71 @@ class PermutationGroup_symalt(PermutationGroup_unique):
                 try:
                     domain = Integer(domain)
                 except TypeError:
-                    raise ValueError("domain (=%s) must be an integer >= 0 or a finite set (but domain has type %s)"%(domain,type(domain)))
+                    raise TypeError("domain (={}) must be an integer >= 0 or a finite set (but domain has type {})".format(domain, type(domain)))
 
                 if domain < 0:
-                    raise ValueError("domain (=%s) must be an integer >= 0 or a list"%domain)
-                else:
-                    domain = range(1, domain+1)
+                    raise ValueError("domain (={}) must be an integer >= 0 or a list".format(domain))
+                domain = range(1, domain+1)
             v = FiniteEnumeratedSet(domain)
         else:
             v = domain
 
         return super(PermutationGroup_symalt, cls).__classcall__(cls, domain=v)
 
-    set = deprecated_function_alias(10335, PermutationGroup_generic.domain)
 
 class SymmetricGroup(PermutationGroup_symalt):
+    r"""
+    The full symmetric group of order `n!`, as a permutation group.
+
+    If `n` is a list or tuple of positive integers then it returns the
+    symmetric group of the associated set.
+
+    INPUT:
+
+    - ``n`` -- a positive integer, or list or tuple thereof
+
+    .. NOTE::
+
+        This group is also available via ``groups.permutation.Symmetric()``.
+
+    EXAMPLES::
+
+        sage: G = SymmetricGroup(8)
+        sage: G.order()
+        40320
+        sage: G
+        Symmetric group of order 8! as a permutation group
+        sage: G.degree()
+        8
+        sage: S8 = SymmetricGroup(8)
+        sage: G = SymmetricGroup([1,2,4,5])
+        sage: G
+        Symmetric group of order 4! as a permutation group
+        sage: G.domain()
+        {1, 2, 4, 5}
+        sage: G = SymmetricGroup(4)
+        sage: G
+        Symmetric group of order 4! as a permutation group
+        sage: G.domain()
+        {1, 2, 3, 4}
+        sage: G.category()
+        Join of Category of finite permutation groups
+         and Category of finite weyl groups
+
+    TESTS::
+
+        sage: groups.permutation.Symmetric(4)
+        Symmetric group of order 4! as a permutation group
+    """
     def __init__(self, domain=None):
         """
-        The full symmetric group of order $n!$, as a permutation group.
-        If n is a list or tuple of positive integers then it returns the
-        symmetric group of the associated set.
-
-        INPUT:
-
-         - ``n`` - a positive integer, or list or tuple thereof
-
-        .. note::
-          This group is also available via ``groups.permutation.Symmetric()``.
-
-        EXAMPLES::
-
-            sage: G = SymmetricGroup(8)
-            sage: G.order()
-            40320
-            sage: G
-            Symmetric group of order 8! as a permutation group
-            sage: G.degree()
-            8
-            sage: S8 = SymmetricGroup(8)
-            sage: G = SymmetricGroup([1,2,4,5])
-            sage: G
-            Symmetric group of order 4! as a permutation group
-            sage: G.domain()
-            {1, 2, 4, 5}
-            sage: G = SymmetricGroup(4)
-            sage: G
-            Symmetric group of order 4! as a permutation group
-            sage: G.domain()
-            {1, 2, 3, 4}
-            sage: G.category()
-            Join of Category of finite permutation groups and Category of finite weyl groups
-            sage: TestSuite(G).run()
+        Initialize ``self``.
 
         TESTS::
 
             sage: TestSuite(SymmetricGroup(0)).run()
-
-            sage: groups.permutation.Symmetric(4)
-            Symmetric group of order 4! as a permutation group
+            sage: TestSuite(SymmetricGroup(1)).run()
+            sage: TestSuite(SymmetricGroup(3)).run()
         """
         from sage.categories.finite_weyl_groups import FiniteWeylGroups
         from sage.categories.finite_permutation_groups import FinitePermutationGroups
@@ -259,23 +264,24 @@ class SymmetricGroup(PermutationGroup_symalt):
         #Note that we skip the call to the superclass initializer in order to
         #avoid infinite recursion since SymmetricGroup is called by
         #PermutationGroupElement
-        super(PermutationGroup_generic, self).__init__(category = Category.join([FinitePermutationGroups(), FiniteWeylGroups()]))
+        cat = Category.join([FinitePermutationGroups(), FiniteWeylGroups()])
+        super(PermutationGroup_generic, self).__init__(category=cat)
 
         self._domain = domain
         self._deg = len(self._domain)
-        self._domain_to_gap = dict((key, i+1) for i, key in enumerate(self._domain))
-        self._domain_from_gap = dict((i+1, key) for i, key in enumerate(self._domain))
+        self._domain_to_gap = {key: i+1 for i, key in enumerate(self._domain)}
+        self._domain_from_gap = {i+1: key for i, key in enumerate(self._domain)}
 
         #Create the generators for the symmetric group
-        gens = [ tuple(self._domain) ]
+        gens = [tuple(self._domain)]
         if len(self._domain) > 2:
-            gens.append( tuple(self._domain[:2]) )
-        self._gens = [PermutationGroupElement(g, self, check=False) for g in gens]
-
+            gens.append(tuple(self._domain[:2]))
+        self._gens = [PermutationGroupElement(g, self, check=False)
+                      for g in gens]
 
     def _gap_init_(self, gap=None):
         """
-        Returns the string used to create this group in GAP.
+        Return the string used to create this group in GAP.
 
         EXAMPLES::
 
@@ -286,12 +292,12 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: S._gap_init_()
             'SymmetricGroup(3)'
         """
-        return 'SymmetricGroup(%s)'%self.degree()
+        return 'SymmetricGroup({})'.format(self.degree())
 
     @cached_method
     def index_set(self):
         """
-        Indexing sets of descent of the symmetric group.
+        Return the index set for the descents of the symmetric group ``self``.
 
         EXAMPLES::
 
@@ -318,8 +324,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         """
         if isinstance(x, SymmetricGroup):
             return cmp((self._deg, self._domain), (x._deg, x._domain))
-        else:
-            return PermutationGroup_generic.__cmp__(self, x)
+        return PermutationGroup_generic.__cmp__(self, x)
 
     def _repr_(self):
         """
@@ -328,12 +333,26 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: A = SymmetricGroup([2,3,7]); A
             Symmetric group of order 3! as a permutation group
         """
-        return "Symmetric group of order %s! as a permutation group"%self.degree()
+        return "Symmetric group of order {}! as a permutation group".format(self.degree())
+
+    def cartan_type(self):
+        r"""
+        Return the Cartan type of ``self``
+
+        The symmetric group `S_n` is a Coxeter group of type `A_{n-1}`.
+
+        EXAMPLES::
+
+            sage: A = SymmetricGroup([2,3,7]); A.cartan_type()
+            ['A', 2]
+        """
+        from sage.combinat.root_system.cartan_type import CartanType
+        return CartanType(['A', self.degree() - 1])
 
     def simple_reflection(self, i):
-        """
+        r"""
         For `i` in the index set of ``self``, this returns the
-        elementary transposition `s_i=(i,i+1)`.
+        elementary transposition `s_i = (i,i+1)`.
 
         EXAMPLES::
 
@@ -356,11 +375,13 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: S = SymmetricGroup(8)
             sage: c = Composition([2,2,2,2])
             sage: S.young_subgroup(c)
-            Subgroup of (Symmetric group of order 8! as a permutation group) generated by [(7,8), (5,6), (3,4), (1,2)]
+            Subgroup of (Symmetric group of order 8! as a permutation group)
+             generated by [(7,8), (5,6), (3,4), (1,2)]
 
             sage: S = SymmetricGroup(['a','b','c'])
             sage: S.young_subgroup([2,1])
-            Subgroup of (Symmetric group of order 3! as a permutation group) generated by [('a','b')]
+            Subgroup of (Symmetric group of order 3! as a permutation group)
+             generated by [('a','b')]
 
             sage: Y = S.young_subgroup([2,2,2,2,2])
             Traceback (most recent call last):
@@ -370,11 +391,11 @@ class SymmetricGroup(PermutationGroup_symalt):
         if sum(comp) != self.degree():
             raise ValueError('The composition is not of expected size')
 
-        domain = self.domain()
+        domain = self._domain
         gens = []
         pos = 0
         for c in comp:
-            for i in range(c-1):
+            for i in range(c - 1):
                 gens.append(self((domain[pos + i], domain[pos + i + 1])))
             pos += c
 
@@ -382,18 +403,18 @@ class SymmetricGroup(PermutationGroup_symalt):
 
     def major_index(self, parameter=None):
         r"""
-        Returns the *major index generating polynomial* of ``self``,
+        Return the *major index generating polynomial* of ``self``,
         which is a gadget counting the elements of ``self`` by major
         index.
 
         INPUT:
 
-        - ``parameter`` - an element of a ring. The result is
-          more explicit with a formal variable.  (default:
-          element q of Univariate Polynomial Ring in q over
+        - ``parameter`` -- an element of a ring; the result is
+          more explicit with a formal variable (default:
+          element ``q`` of Univariate Polynomial Ring in ``q`` over
           Integer Ring)
 
-        .. math::
+        .. MATH::
 
             P(q) = \sum_{g\in S_n} q^{ \operatorname{major\ index}(g) }
 
@@ -408,6 +429,124 @@ class SymmetricGroup(PermutationGroup_symalt):
         """
         from sage.combinat.q_analogues import q_factorial
         return q_factorial(self.degree(), parameter)
+
+    def conjugacy_classes_representatives(self):
+        """
+        Return a complete list of representatives of conjugacy classes in
+        a permutation group `G`.
+
+        Let `S_n` be the symmetric group on `n` letters. The conjugacy
+        classes are indexed by partitions `\lambda` of `n`. The ordering
+        of the conjugacy classes is reverse lexicographic order of
+        the partitions.
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(5)
+            sage: G.conjugacy_classes_representatives()
+            [(), (1,2), (1,2)(3,4), (1,2,3), (1,2,3)(4,5),
+             (1,2,3,4), (1,2,3,4,5)]
+
+        ::
+
+            sage: S = SymmetricGroup(['a','b','c'])
+            sage: S.conjugacy_classes_representatives()
+            [(), ('a','b'), ('a','b','c')]
+
+        TESTS:
+
+        Check some border cases::
+
+            sage: S = SymmetricGroup(0)
+            sage: S.conjugacy_classes_representatives()
+            [()]
+            sage: S = SymmetricGroup(1)
+            sage: S.conjugacy_classes_representatives()
+            [()]
+        """
+        from sage.combinat.partition import Partitions_n
+        from sage.groups.perm_gps.symgp_conjugacy_class import default_representative
+        n = len(self.domain())
+        return [ default_representative(la, self)
+                 for la in reversed(Partitions_n(n)) ]
+
+    def conjugacy_classes_iterator(self):
+        """
+        Iterate over the conjugacy classes of ``self``.
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(5)
+            sage: list(G.conjugacy_classes_iterator()) == G.conjugacy_classes()
+            True
+        """
+        from sage.combinat.partition import Partitions_n
+        from sage.groups.perm_gps.symgp_conjugacy_class import SymmetricGroupConjugacyClass
+        P = Partitions_n(len(self.domain()))
+        for la in reversed(P):
+            yield SymmetricGroupConjugacyClass(self, la)
+
+    def conjugacy_classes(self):
+        """
+        Return a list of the conjugacy classes of ``self``.
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(5)
+            sage: G.conjugacy_classes()
+            [Conjugacy class of cycle type [1, 1, 1, 1, 1] in
+                 Symmetric group of order 5! as a permutation group,
+             Conjugacy class of cycle type [2, 1, 1, 1] in
+                 Symmetric group of order 5! as a permutation group,
+             Conjugacy class of cycle type [2, 2, 1] in
+                 Symmetric group of order 5! as a permutation group,
+             Conjugacy class of cycle type [3, 1, 1] in
+                 Symmetric group of order 5! as a permutation group,
+             Conjugacy class of cycle type [3, 2] in
+                 Symmetric group of order 5! as a permutation group,
+             Conjugacy class of cycle type [4, 1] in
+                 Symmetric group of order 5! as a permutation group,
+             Conjugacy class of cycle type [5] in
+                 Symmetric group of order 5! as a permutation group]
+        """
+        return list(self.conjugacy_classes_iterator())
+
+    def conjugacy_class(self, g):
+        r"""
+        Return the conjugacy class of ``g`` inside the symmetric
+        group ``self``.
+
+        INPUT:
+
+        - ``g`` -- a partition or an element of the symmetric group ``self``
+
+        OUTPUT:
+
+        A conjugacy class of a symmetric group.
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(5)
+            sage: g = G((1,2,3,4))
+            sage: G.conjugacy_class(g)
+            Conjugacy class of cycle type [4, 1] in
+             Symmetric group of order 5! as a permutation group
+        """
+        from sage.groups.perm_gps.symgp_conjugacy_class import SymmetricGroupConjugacyClass
+        return SymmetricGroupConjugacyClass(self, g)
+
+    def algebra(self, base_ring):
+        """
+        Return the symmetric group algebra associated to ``self``.
+
+        EXAMPLES::
+
+            sage: S4 = SymmetricGroup(4)
+            sage: S4.algebra(QQ)
+            Symmetric group algebra of order 4 over Rational Field
+        """
+        from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
+        return SymmetricGroupAlgebra(base_ring, len(self._domain))
 
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):
@@ -430,7 +569,7 @@ class AlternatingGroup(PermutationGroup_symalt):
             Alternating group of order 6!/2 as a permutation group
             sage: G.category()
             Category of finite permutation groups
-            sage: TestSuite(G).run()
+            sage: TestSuite(G).run() # long time
 
             sage: G = AlternatingGroup([1,2,4,5])
             sage: G
@@ -1019,7 +1158,7 @@ class GeneralDihedralGroup(PermutationGroup_generic):
             sage: G = GeneralDihedralGroup([5,5,5])
             sage: G.order()
             250
-            sage: TestSuite(G).run()
+            sage: TestSuite(G).run() # long time
         """
 
 
@@ -1041,8 +1180,7 @@ class GeneralDihedralGroup(PermutationGroup_generic):
         # To get uniform outputs for isomorphic inputs, we break
         # each inputted cyclic group into a direct product of cyclic
         # p-groups
-        simplified = [term[0]**term[1] for a in factors for term in a.factor()]
-        simplified.sort()
+        simplified = sorted([term[0]**term[1] for a in factors for term in a.factor()])
 
         gens = []
         # genx is an element of order two that turns each of the
@@ -1602,7 +1740,7 @@ def TransitiveGroups(d=None):
         NotImplementedError: Only the transitive groups of order less than 30 are available in GAP's database
 
     """
-    if d == None:
+    if d is None:
         return TransitiveGroupsAll()
     else:
         d = Integer(d)
@@ -1981,7 +2119,7 @@ def PrimitiveGroups(d=None):
     enumerate groups with specified properties such as transitivity,
     solvability, ..., without creating all groups.
     """
-    if d == None:
+    if d is None:
         return PrimitiveGroupsAll()
     else:
         d = Integer(d)
@@ -2287,7 +2425,7 @@ class PGL(PermutationGroup_plg):
 
             sage: G.category()
             Category of finite permutation groups
-            sage: TestSuite(G).run()
+            sage: TestSuite(G).run() # long time
 
         TESTS::
 
@@ -2354,7 +2492,7 @@ class PSL(PermutationGroup_plg):
 
             sage: G.category()
             Category of finite permutation groups
-            sage: TestSuite(G).run()
+            sage: TestSuite(G).run() # long time
 
         TESTS::
 

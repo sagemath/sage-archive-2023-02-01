@@ -138,12 +138,12 @@ def FreeQuadraticModule(
     rank = int(rank)
 
     if inner_product_matrix is None:
-        raise ValueError, "An inner_product_matrix must be specified."
+        raise ValueError("An inner_product_matrix must be specified.")
 
     # In order to use coercion into the inner_product_ring we need to pass
     # this ring into the vector classes.
     if inner_product_ring is not None:
-        raise NotImplementedError, "An inner_product_ring can not currently be defined."
+        raise NotImplementedError("An inner_product_ring can not currently be defined.")
 
     inner_product_matrix = sage.matrix.matrix_space.MatrixSpace(base_ring, rank)(inner_product_matrix)
     inner_product_matrix.set_immutable()
@@ -156,7 +156,7 @@ def FreeQuadraticModule(
             return M
 
     if not base_ring.is_commutative():
-        raise TypeError, "base_ring must be a commutative ring"
+        raise TypeError("base_ring must be a commutative ring")
 
     #elif not sparse and isinstance(base_ring,sage.rings.real_double.RealDoubleField_class):
     #    M = RealDoubleQuadraticSpace_class(rank, inner_product_matrix=inner_product_matrix, sparse=False)
@@ -210,9 +210,9 @@ def QuadraticSpace(K, dimension, inner_product_matrix, sparse=False):
         TypeError: Argument K (= Integer Ring) must be a field.
     """
     if not K.is_field():
-        raise TypeError, "Argument K (= %s) must be a field." % K
+        raise TypeError("Argument K (= %s) must be a field." % K)
     if not sparse in (True,False):
-        raise TypeError, "Argument sparse (= %s) must be a boolean."%sparse
+        raise TypeError("Argument sparse (= %s) must be a boolean."%sparse)
     return FreeQuadraticModule(K, rank=dimension, inner_product_matrix=inner_product_matrix, sparse=sparse)
 
 InnerProductSpace = QuadraticSpace
@@ -619,7 +619,7 @@ class FreeQuadraticModule_generic_field(
             [0 0 0 0 0 0 1]
         """
         if not isinstance(base_field, field.Field):
-            raise TypeError, "The base_field (=%s) must be a field" % base_field
+            raise TypeError("The base_field (=%s) must be a field" % base_field)
         free_module.FreeModule_generic_field.__init__(
             self, base_field=base_field, dimension=dimension, degree=degree, sparse=sparse)
         #self._FreeQuadraticModule_generic_inner_product_matrix = inner_product_matrix
@@ -652,7 +652,7 @@ class FreeQuadraticModule_generic_field(
         if free_module.is_FreeModule(gens):
             gens = gens.gens()
         if not isinstance(gens, (list, tuple)):
-            raise TypeError, "gens (=%s) must be a list or tuple"%gens
+            raise TypeError("gens (=%s) must be a list or tuple"%gens)
 
         return FreeQuadraticModule_submodule_field(
             self.ambient_module(), gens,
@@ -1411,7 +1411,7 @@ class FreeQuadraticModule_submodule_with_basis_field(
         sage: loads(W.dumps()) == W
         True
     """
-    def __init__(self, ambient, basis, inner_product_basis,
+    def __init__(self, ambient, basis, inner_product_matrix,
                  check=True, echelonize=False, echelonized_basis=None, already_echelonized=False):
         """
         Create a vector space with given basis.
@@ -1424,6 +1424,16 @@ class FreeQuadraticModule_submodule_with_basis_field(
             User basis matrix:
             [1 2 3]
             [4 5 6]
+            sage: V = VectorSpace(QQ, 3, inner_product_matrix=1)
+            sage: V.span_of_basis([[1,2,3],[4,5,6]])
+            Quadratic space of degree 3 and dimension 2 over Rational Field
+            Basis matrix:
+            [1 2 3]
+            [4 5 6]
+            Inner product matrix:
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
         """
         free_module.FreeModule_submodule_with_basis_field.__init__(
             self, ambient=ambient, basis=basis, check=check,

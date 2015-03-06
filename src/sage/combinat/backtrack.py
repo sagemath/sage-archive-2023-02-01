@@ -5,136 +5,49 @@ This library contains generic tools for constructing large sets whose
 elements can be enumerated by exploring a search space with a (lazy)
 tree or graph structure.
 
-- :class:`SearchForest`: Depth and breadth first
-  search through a tree described by a ``children`` function.
 - :class:`GenericBacktracker`: Depth first search through a tree
   described by a ``children`` function, with branch pruning, etc.
+
+Deprecated classes (use :func:`RecursivelyEnumeratedSet` instead):
+
+- :class:`SearchForest`: Depth and breadth first
+  search through a tree described by a ``children`` function.
+
 - :class:`TransitiveIdeal`: Depth first search through a
   graph described by a ``neighbours`` relation.
+
 - :class:`TransitiveIdealGraded`: Breadth first search
   through a graph described by a ``neighbours`` relation.
 
-How to define a set using those classes ?
------------------------------------------
+Deprecation details:
 
-Only two things are necessary to define a set using a
-:class:`SearchForest` object (the other classes being very similar) :
+- ``SearchForest(seeds, succ)`` keeps the same behavior as before
+  :trac:`6637` and is now the same as ``RecursivelyEnumeratedSet(seeds,
+  succ, structure='forest', enumeration='depth')``. 
 
-.. MATH::
+- ``TransitiveIdeal(succ, seeds)`` keeps the same behavior as before
+  :trac:`6637` and is now the same as ``RecursivelyEnumeratedSet(seeds,
+  succ, structure=None, enumeration='naive')``. 
 
-    \begin{picture}(-300,0)(600,0)
-    % Root
-    \put(0,0){\circle*{7}}
-    \put(0,10){\makebox(0,10){``\ ''}}
-    % First Children
-    \put(-150,-60){\makebox(0,10){``a''}}
-    \put(0,-60){\makebox(0,10){``b''}}
-    \put(150,-60){\makebox(0,10){``c''}}
-    \multiput(-150,-70)(150,0){3}{\circle*{7}}
-    % Second children
-    \put(-200,-130){\makebox(0,10){``aa''}}
-    \put(-150,-130){\makebox(0,10){``ab''}}
-    \put(-100,-130){\makebox(0,10){``ac''}}
-    \put(-50,-130){\makebox(0,10){``ba''}}
-    \put(0,-130){\makebox(0,10){``bb''}}
-    \put(50,-130){\makebox(0,10){``bc''}}
-    \put(100,-130){\makebox(0,10){``ca''}}
-    \put(150,-130){\makebox(0,10){``cb''}}
-    \put(200,-130){\makebox(0,10){``cc''}}
-    \multiput(-200,-140)(50,0){9}{\circle*{7}}
-    % Legend
-    \put(100,-5){\makebox(0,10)[l]{1) An initial element}}
-    \put(-250,-5){\makebox(0,10)[l]{2) A function of an element enumerating}}
-    \put(-235,-20){\makebox(0,10)[l]{its children (if any)}}
-    % Arrows
-    \thicklines
-    \put(0,-10){\vector(0,-1){30}}
-    \put(-15,-5){\vector(-2,-1){110}}
-    \put(15,-5){\vector(2,-1){110}}
-    \multiput(-150,-80)(150,0){3}{\vector(0,-1){30}}
-    \multiput(-160,-80)(150,0){3}{\vector(-1,-1){30}}
-    \multiput(-140,-80)(150,0){3}{\vector(1,-1){30}}
-    \put(90,0){\vector(-1,0){70}}
-    \put(-215,-30){\vector(1,-1){40}}
-    \end{picture}
+- ``TransitiveIdealGraded(succ, seeds, max_depth)`` keeps the same behavior
+  as before :trac:`6637` and is now the same as
+  ``RecursivelyEnumeratedSet(seeds, succ, structure=None,
+  enumeration='breadth', max_depth=max_depth)``. 
 
-For the previous example, the two necessary pieces of information are :
+TODO:
 
-- The initial element ``""``
+- For now the code of ``SearchForest`` is still in
+  ``sage/combinat/backtrack.py``.  It should be moved in
+  ``sage/sets/recursively_enumerated_set.pyx`` into a class named
+  ``RecursivelyEnumeratedSet_forest`` in a later ticket. 
 
-- The function ``lambda x : [x+letter for letter in ['a', 'b', 'c']``
+- ``TransitiveIdeal`` and ``TransitiveIealGraded`` are used in the code of
+  ``sage/combinat``, ``sage/categories`` and ``sage/groups`` at least.
+  These should be updated to use ``RecursivelyEnumeratedSet`` in a later
+  ticket for speed improvements.
 
-Err.. Well, this would actually describe an **infinite** set, as such rules
-describes "all words" on 3 letters. Hence, it is a good idea to replace the
-function by
-
-    ``lambda x : [x+letter for letter in ['a', 'b', 'c']] if len(x) < 2 else []``
-
-or even::
-
-    sage: def children(x):
-    ...      if len(x) < 2:
-    ...         for letter in ['a', 'b', 'c']:
-    ...            yield x+letter
-
-We can then create the :class:`SearchForest` object with either ::
-
-    sage: S = SearchForest( [''],
-    ...       lambda x: [x+letter for letter in ['a', 'b', 'c']]
-    ...                 if len(x) < 2 else [],
-    ...       category=FiniteEnumeratedSets())
-    sage: S.list()
-    ['', 'a', 'aa', 'ab', 'ac', 'b', 'ba', 'bb', 'bc', 'c', 'ca', 'cb', 'cc']
-
-Or::
-
-    sage: S = SearchForest( [''], children,
-    ...       category=FiniteEnumeratedSets())
-    sage: S.list()
-    ['', 'a', 'aa', 'ab', 'ac', 'b', 'ba', 'bb', 'bc', 'c', 'ca', 'cb', 'cc']
-
-Here is a little more involved example. We want to iterate through all
-permutations of a given set S. One solution is to take elements of S one by
-one an insert them at every positions. So a node of the generating tree
-contains two informations
-
-- the list ``lst`` of already inserted element;
-- the set ``st`` of the yet to be inserted element.
-
-We want to generate a permutation only if ``st`` is empty (leaves on the
-tree). Also suppose for the sake of the example, that instead of list we want
-to generate tuples. This selection of some nodes and final mapping of a
-function to the element is done by the ``post_process = f`` argument. The
-convention is that the generated elements are the ``s := f(n)``, except when
-``s`` not ``None`` when no element is generated at all. Here is the code::
-
-    sage: def children((lst, st)):
-    ...       st = set(st) # make a copy
-    ...       if st:
-    ...          el = st.pop()
-    ...          for i in range(0, len(lst)+1):
-    ...              yield (lst[0:i]+[el]+lst[i:], st)
-    sage: list(children(([1,2], {3,7,9})))
-    [([9, 1, 2], set([3, 7])), ([1, 9, 2], set([3, 7])), ([1, 2, 9], set([3, 7]))]
-    sage: S = SearchForest( [([], {1,3,6,8})],
-    ...       children,
-    ...       post_process = lambda (l, s): tuple(l) if not s else None,
-    ...       category=FiniteEnumeratedSets())
-    sage: S.list()
-    [(6, 3, 1, 8), (3, 6, 1, 8), (3, 1, 6, 8), (3, 1, 8, 6), (6, 1, 3, 8), (1, 6, 3, 8), (1, 3, 6, 8), (1, 3, 8, 6), (6, 1, 8, 3), (1, 6, 8, 3), (1, 8, 6, 3), (1, 8, 3, 6), (6, 3, 8, 1), (3, 6, 8, 1), (3, 8, 6, 1), (3, 8, 1, 6), (6, 8, 3, 1), (8, 6, 3, 1), (8, 3, 6, 1), (8, 3, 1, 6), (6, 8, 1, 3), (8, 6, 1, 3), (8, 1, 6, 3), (8, 1, 3, 6)]
-    sage: S.cardinality()
-    24
-
-Todo
-----
-
-#. Find a good and consistent naming scheme! Do we want to emphasize the
-   underlying graph/tree structure? The branch & bound aspect? The transitive
-   closure of a relation point of view?
-
-#. Do we want ``TransitiveIdeal(relation, generators)`` or
-   ``TransitiveIdeal(generators, relation)``?  The code needs to be standardized once
-   the choice is made.
+- Once the deprecation has been there for enough time: delete
+  ``TransitiveIdeal`` and ``TransitiveIealGraded``.
 
 """
 #*****************************************************************************
@@ -164,6 +77,7 @@ CommutativeAdditiveSemigroups)
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.integer_ring import ZZ
 from sage.misc.sage_itertools import imap_and_filter_none
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_generic
 
 class GenericBacktracker(object):
     r"""
@@ -173,7 +87,6 @@ class GenericBacktracker(object):
     See also :class:`SearchForest` and :class:`TransitiveIdeal` for
     handling simple special cases.
     """
-
     def __init__(self, initial_data, initial_state):
         r"""
         EXAMPLES::
@@ -233,7 +146,7 @@ def search_forest_iterator(roots, children, algorithm='depth'):
 
     - ``roots`` -- a list (or iterable)
     - ``children`` -- a function returning a list (or iterable)
-    - ``algorithm`` -- ``depth`` or ``breadth`` (default: ``depth``)
+    - ``algorithm`` -- ``'depth'`` or ``'breadth'`` (default: ``'depth'``)
 
     EXAMPLES:
 
@@ -324,7 +237,7 @@ class SearchForest(Parent):
     - ``children`` -- a function returning a list (or iterable, or iterator)
     - ``post_process`` -- a function defined over the nodes of the
       forest (default: no post processing)
-    - ``algorithm`` -- ``depth`` or ``breadth`` (default: ``depth``)
+    - ``algorithm`` -- ``'depth'`` or ``'breadth'`` (default: ``'depth'``)
     - ``category`` -- a category (default: :class:`EnumeratedSets`)
 
     The option ``post_process`` allows for customizing the nodes that
@@ -339,6 +252,9 @@ class SearchForest(Parent):
         sage: S = SearchForest( [[]],
         ....:     lambda l: [l+[0], l+[1]] if len(l) < 3 else [],
         ....:     category=FiniteEnumeratedSets())
+        doctest:...: DeprecationWarning: This class soon will not be
+        available in that way anymore. Use RecursivelyEnumeratedSet
+        instead.  See http://trac.sagemath.org/6637 for details.
         sage: S.list()
         [[],
          [0], [0, 0], [0, 0, 0], [0, 0, 1], [0, 1], [0, 1, 0], [0, 1, 1],
@@ -360,6 +276,9 @@ class SearchForest(Parent):
         ....:       lambda l: [l + [i] for i in range(3) if i not in l],
         ....:       algorithm = 'breadth',
         ....:       category=FiniteEnumeratedSets())
+        doctest:...: DeprecationWarning: This class soon will not be
+        available in that way anymore. Use RecursivelyEnumeratedSet
+        instead.  See http://trac.sagemath.org/6637 for details.
         sage: tb[0]
         []
         sage: tb.cardinality()
@@ -378,6 +297,9 @@ class SearchForest(Parent):
         sage: I = SearchForest([(0,0)],
         ....:                  lambda l: [(l[0]+1, l[1]), (l[0], 1)]
         ....:                            if l[1] == 0 else [(l[0], l[1]+1)])
+        doctest:...: DeprecationWarning: This class soon will not be
+        available in that way anymore. Use RecursivelyEnumeratedSet
+        instead.  See http://trac.sagemath.org/6637 for details.
 
     With a depth first search, only the elements of the form `(i,0)`
     are generated::
@@ -415,6 +337,7 @@ class SearchForest(Parent):
     A first approach is to pass the ``roots`` and ``children``
     functions as arguments to :meth:`SearchForest.__init__`::
 
+        sage: from sage.combinat.backtrack import SearchForest
         sage: class A(UniqueRepresentation, SearchForest):
         ....:     def __init__(self):
         ....:         SearchForest.__init__(self, [()],
@@ -438,6 +361,7 @@ class SearchForest(Parent):
     method or attribute such that ``A.post_process(x)`` returns the
     desired output for the node ``x`` of the tree::
 
+        sage: from sage.combinat.backtrack import SearchForest
         sage: class A(UniqueRepresentation, SearchForest):
         ....:     def __init__(self):
         ....:         SearchForest.__init__(self, algorithm = 'breadth',
@@ -493,6 +417,9 @@ class SearchForest(Parent):
         TESTS::
 
             sage: S = SearchForest(NN, lambda x : [], lambda x: x^2 if x.is_prime() else None)
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: S.category()
             Category of enumerated sets
         """
@@ -512,6 +439,9 @@ class SearchForest(Parent):
         TESTS::
 
             sage: SearchForest( [1], lambda x: [x+1])
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             An enumerated set with a forest structure
         """
         return "An enumerated set with a forest structure"
@@ -523,6 +453,9 @@ class SearchForest(Parent):
         EXAMPLES::
 
             sage: I = SearchForest([(0,0)], lambda l: [(l[0]+1, l[1]), (l[0], 1)] if l[1] == 0 else [(l[0], l[1]+1)])
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: [i for i in I.roots()]
             [(0, 0)]
             sage: I = SearchForest([(0,0),(1,1)], lambda l: [(l[0]+1, l[1]), (l[0], 1)] if l[1] == 0 else [(l[0], l[1]+1)])
@@ -542,6 +475,9 @@ class SearchForest(Parent):
         EXAMPLES::
 
             sage: I = SearchForest([(0,0)], lambda l: [(l[0]+1, l[1]), (l[0], 1)] if l[1] == 0 else [(l[0], l[1]+1)])
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: [i for i in I.children((0,0))]
             [(1, 0), (0, 1)]
             sage: [i for i in I.children((1,0))]
@@ -564,6 +500,9 @@ class SearchForest(Parent):
             ....:      return [l+[0], l+[1]]
             ....:
             sage: C = SearchForest(([],), children)
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: f = C.__iter__()
             sage: f.next()
             []
@@ -587,6 +526,9 @@ class SearchForest(Parent):
 
             sage: f = SearchForest([[]],
             ....:                  lambda l: [l+[0], l+[1]] if len(l) < 3 else [])
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: list(f.depth_first_search_iterator())
             [[], [0], [0, 0], [0, 0, 0], [0, 0, 1], [0, 1], [0, 1, 0], [0, 1, 1], [1], [1, 0], [1, 0, 0], [1, 0, 1], [1, 1], [1, 1, 0], [1, 1, 1]]
         """
@@ -600,11 +542,17 @@ class SearchForest(Parent):
 
             sage: f = SearchForest([[]],
             ....:                  lambda l: [l+[0], l+[1]] if len(l) < 3 else [])
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: list(f.breadth_first_search_iterator())
             [[], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1], [0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1], [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1]]
             sage: S = SearchForest([(0,0)],
             ....: lambda x : [(x[0], x[1]+1)] if x[1] != 0 else [(x[0]+1,0), (x[0],1)],
             ....: post_process = lambda x: x if ((is_prime(x[0]) and is_prime(x[1])) and ((x[0] - x[1]) == 2)) else None)
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: p = S.breadth_first_search_iterator()
             sage: [p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next()]
             [(5, 3), (7, 5), (13, 11), (19, 17), (31, 29), (43, 41), (61, 59)]
@@ -624,6 +572,9 @@ class SearchForest(Parent):
         EXAMPLES::
 
             sage: I = SearchForest([(0,0)], lambda l: [(l[0]+1, l[1]), (l[0], 1)] if l[1] == 0 else [(l[0], l[1]+1)])
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: list(I._elements_of_depth_iterator_rec(8))
             [(8, 0), (7, 1), (6, 2), (5, 3), (4, 4), (3, 5), (2, 6), (1, 7), (0, 8)]
             sage: I = SearchForest([[]], lambda l: [l+[0], l+[1]] if len(l) < 3 else [])
@@ -658,11 +609,17 @@ class SearchForest(Parent):
             ....:        lambda x : [(x[0], x[1]+1)] if x[1] != 0 else [(x[0]+1,0), (x[0],1)],
             ....:        post_process = lambda x: x if ((is_prime(x[0]) and is_prime(x[1]))
             ....:                                        and ((x[0] - x[1]) == 2)) else None)
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: p = S.elements_of_depth_iterator(8)
             sage: p.next()
             (5, 3)
             sage: S = SearchForest(NN, lambda x : [],
             ....:                      lambda x: x^2 if x.is_prime() else None)
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: p = S.elements_of_depth_iterator(0)
             sage: [p.next(), p.next(), p.next(), p.next(), p.next()]
             [4, 9, 25, 49, 121]
@@ -686,6 +643,9 @@ class SearchForest(Parent):
         EXAMPLES::
 
             sage: S = SearchForest( [[]], lambda l: [l+[0], l+[1]] if len(l) < 3 else [], category=FiniteEnumeratedSets())
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: [4] in S
             False
             sage: [1] in S
@@ -710,6 +670,9 @@ class SearchForest(Parent):
 
             sage: S = SearchForest(Family(NN, lambda x : (x, 0)),
             ....: lambda x : Family(PositiveIntegers(), lambda y : (x[0], y)) if x[1] == 0 else [])
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: p = S.depth_first_search_iterator()
             sage: [p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next()]
             [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6)]
@@ -869,7 +832,7 @@ class PositiveIntegerSemigroup(UniqueRepresentation, SearchForest):
         """
         return self.first()
 
-class TransitiveIdeal():
+class TransitiveIdeal(RecursivelyEnumeratedSet_generic):
     r"""
     Generic tool for constructing ideals of a relation.
 
@@ -896,6 +859,9 @@ class TransitiveIdeal():
     EXAMPLES::
 
         sage: [i for i in TransitiveIdeal(lambda i: [i+1] if i<10 else [], [0])]
+        doctest:...: DeprecationWarning: This class soon will not be
+        available in that way anymore. Use RecursivelyEnumeratedSet
+        instead.  See http://trac.sagemath.org/6637 for details.
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
         sage: [i for i in TransitiveIdeal(lambda i: [mod(i+1,3)], [0])]
@@ -933,20 +899,32 @@ class TransitiveIdeal():
         sage: [p for p in TransitiveIdeal(attrcall("permutohedron_succ"), [Permutation([3,1,2,4]), Permutation([2,1,3,4])])]
         [[2, 1, 3, 4], [2, 1, 4, 3], [2, 4, 1, 3], [4, 2, 1, 3], [4, 2, 3, 1], [4, 3, 2, 1], [3, 1, 2, 4], [2, 4, 3, 1], [3, 2, 1, 4], [2, 3, 1, 4], [2, 3, 4, 1], [3, 2, 4, 1], [3, 1, 4, 2], [3, 4, 2, 1], [3, 4, 1, 2], [4, 3, 1, 2]]
 
+    Using TransitiveIdeal people have been using the ``__contains__``
+    method provided from the ``__iter__`` method. We need to make sure that
+    this continues to work::
+
+        sage: T = TransitiveIdeal(lambda a:[a+7,a+5], [0])
+        sage: 12 in T
+        True
+
     """
     def __init__(self, succ, generators):
         r"""
         TESTS::
 
             sage: C = TransitiveIdeal(factor, (1, 2, 3))
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: C._succ
             <function factor at ...>
             sage: C._generators
             (1, 2, 3)
             sage: loads(dumps(C))   # should test for equality with C, but equality is not implemented
         """
-        self._succ = succ
-        self._generators = generators
+        RecursivelyEnumeratedSet_generic.__init__(self, seeds=generators, successors=succ, enumeration='naive')
+        self._generators = self._seeds
+        self._succ = self.successors
 
     def __iter__(self):
         r"""
@@ -955,6 +933,9 @@ class TransitiveIdeal():
         TESTS::
 
             sage: C = TransitiveIdeal(lambda x: [1,2], ())
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: list(C) # indirect doctest
             []
 
@@ -967,20 +948,9 @@ class TransitiveIdeal():
             [1, 2]
 
         """
-        known = set(self._generators)
-        todo = known.copy()
-        while len(todo) > 0:
-            x = todo.pop()
-            yield x
-            for y in self._succ(x):
-                if y == None or y in known:
-                    continue
-                todo.add(y)
-                known.add(y)
-        return
+        return self.naive_search_iterator()
 
-
-class TransitiveIdealGraded(TransitiveIdeal):
+class TransitiveIdealGraded(RecursivelyEnumeratedSet_generic):
     r"""
     Generic tool for constructing ideals of a relation.
 
@@ -1012,6 +982,9 @@ class TransitiveIdealGraded(TransitiveIdeal):
     EXAMPLES::
 
         sage: [i for i in TransitiveIdealGraded(lambda i: [i+1] if i<10 else [], [0])]
+        doctest:...: DeprecationWarning: This class soon will not be
+        available in that way anymore. Use RecursivelyEnumeratedSet
+        instead.  See http://trac.sagemath.org/6637 for details.
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     We now illustrate that the enumeration is done lazily, by breadth first search::
@@ -1048,15 +1021,18 @@ class TransitiveIdealGraded(TransitiveIdeal):
         TESTS::
 
             sage: C = TransitiveIdealGraded(factor, (1, 2, 3))
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: C._succ
             <function factor at ...>
             sage: C._generators
             (1, 2, 3)
             sage: loads(dumps(C))   # should test for equality with C, but equality is not implemented
         """
-        self._succ = succ
-        self._generators = generators
-        self._max_depth = max_depth
+        RecursivelyEnumeratedSet_generic.__init__(self, seeds=generators, successors=succ, enumeration='breadth', max_depth=max_depth)
+        self._generators = self._seeds
+        self._succ = self.successors
 
     def __iter__(self):
         r"""
@@ -1064,34 +1040,27 @@ class TransitiveIdealGraded(TransitiveIdeal):
 
         TESTS::
 
-            sage: C = TransitiveIdeal(lambda x: [1,2], ())
+            sage: C = TransitiveIdealGraded(lambda x: [1,2], ())
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: list(C) # indirect doctest
             []
 
-            sage: C = TransitiveIdeal(lambda x: [1,2], (1,))
+            sage: C = TransitiveIdealGraded(lambda x: [1,2], (1,))
             sage: list(C) # indirect doctest
             [1, 2]
 
-            sage: C = TransitiveIdeal(lambda x: [], (1,2))
+            sage: C = TransitiveIdealGraded(lambda x: [], (1,2))
             sage: list(C) # indirect doctest
             [1, 2]
 
-            sage: [i for i in TransitiveIdealGraded(lambda i: [i+1] if i<10 else [], [0], max_depth=1).__iter__()]
+        ::
+
+            sage: fn = lambda i: [i+1] if i<10 else []
+            sage: C = TransitiveIdealGraded(fn, [0], max_depth=1)
+            sage: list(C)
             [0, 1]
         """
-        current_level = self._generators
-        known = set(current_level)
-        depth = 0
-        while len(current_level) > 0 and depth <= self._max_depth:
-            next_level = set()
-            for x in current_level:
-                yield x
-                for y in self._succ(x):
-                    if y == None or y in known:
-                        continue
-                    next_level.add(y)
-                    known.add(y)
-            current_level = next_level
-            depth += 1
-        return
+        return self.breadth_first_search_iterator()
 

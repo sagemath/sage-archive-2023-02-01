@@ -76,7 +76,7 @@ def runsnake(command):
     """
     import cProfile, os
     from sage.misc.misc import tmp_filename, get_main_globals
-    from sage.misc.preparser import preparse
+    from sage.repl.preparse import preparse
     tmpfile = tmp_filename()
     cProfile.runctx(preparse(command.lstrip().rstrip()), get_main_globals(), locals(), filename=tmpfile)
     os.system("/usr/bin/python -E `which runsnake` %s &"%tmpfile)
@@ -156,10 +156,9 @@ def load_submodules(module=None, exclude_pattern=None):
     EXAMPLES::
 
         sage: sage.misc.dev_tools.load_submodules(sage.combinat)
-        load sage.combinat.cluster_algebra_quiver.cluster_seed... suceeded
-        load sage.combinat.cluster_algebra_quiver.mutation_class... suceeded
+        load sage.combinat.algebraic_combinatorics... succeeded
         ...
-        load sage.combinat.words.suffix_trees... suceeded
+        load sage.combinat.words.suffix_trees... succeeded
 
     Calling a second time has no effect (since the function does not import
     modules already imported)::
@@ -169,15 +168,15 @@ def load_submodules(module=None, exclude_pattern=None):
     The second argument allows to exclude a pattern::
 
         sage: sage.misc.dev_tools.load_submodules(sage.geometry, "database$|lattice")
-        load sage.geometry.fan_isomorphism... suceeded
-        load sage.geometry.hyperplane_arrangement.affine_subspace... suceeded
+        load sage.geometry.fan_isomorphism... succeeded
+        load sage.geometry.hyperplane_arrangement.affine_subspace... succeeded
         ...
-        load sage.geometry.riemannian_manifolds.surface3d_generators... suceeded
+        load sage.geometry.riemannian_manifolds.surface3d_generators... succeeded
 
         sage: sage.misc.dev_tools.load_submodules(sage.geometry)
-        load sage.geometry.polyhedron.lattice_euclidean_group_element... suceeded
-        load sage.geometry.polyhedron.palp_database... suceeded
-        load sage.geometry.polyhedron.ppl_lattice_polygon... suceeded
+        load sage.geometry.polyhedron.lattice_euclidean_group_element... succeeded
+        load sage.geometry.polyhedron.palp_database... succeeded
+        load sage.geometry.polyhedron.ppl_lattice_polygon... succeeded
     """
     import sys
     import pkgutil
@@ -207,7 +206,7 @@ def load_submodules(module=None, exclude_pattern=None):
             sys.stdout.flush()
             loader = importer.find_module(module_name)
             loader.load_module(module_name)
-            sys.stdout.write(" suceeded\n")
+            sys.stdout.write(" succeeded\n")
         except (ValueError,AttributeError,TypeError,ImportError):
             # we might get error because of cython code that has been
             # compiled but with source removed
@@ -349,7 +348,8 @@ def find_object_modules(obj):
 
     return module_to_obj
 
-def import_statements(*objects, **options):
+
+def import_statements(*objects, **kwds):
     r"""
     Print import statements for the given objects.
 
@@ -410,9 +410,9 @@ def import_statements(*objects, **options):
     If the object has several names, an other way to get the import
     statement you expect is to use a string instead of the object::
 
-        sage: import_statements(cached_function)
-        # ** Warning **: several names for that object: CachedFunction, cached_function
-        from sage.misc.cachefunc import CachedFunction
+        sage: import_statements(matrix)
+        # ** Warning **: several names for that object: Matrix, matrix
+        from sage.matrix.constructor import Matrix
 
         sage: import_statements('cached_function')
         from sage.misc.cachefunc import cached_function
@@ -453,11 +453,11 @@ def import_statements(*objects, **options):
         sage: import_statements('EnumeratedSetFromIterator')
         Traceback (most recent call last):
         ...
-        ValueError: no object matched by 'EnumeratedSetFromIterator' was found.
+        LookupError: no object named 'EnumeratedSetFromIterator'
         sage: from sage.misc.dev_tools import load_submodules
         sage: load_submodules(sage.sets)
-        load sage.sets.cartesian_product... suceeded
-        load sage.sets.set_from_iterator... suceeded
+        load sage.sets.cartesian_product... succeeded
+        load sage.sets.set_from_iterator... succeeded
         sage: import_statements('EnumeratedSetFromIterator')
         from sage.sets.set_from_iterator import EnumeratedSetFromIterator
 
@@ -466,7 +466,7 @@ def import_statements(*objects, **options):
         sage: import_statements('my_tailor_is_rich')
         Traceback (most recent call last):
         ...
-        ValueError: no object matched by 'my_tailor_is_rich' was found.
+        LookupError: no object named 'my_tailor_is_rich'
         sage: import_statements(5)
         Traceback (most recent call last):
         ...
@@ -478,6 +478,17 @@ def import_statements(*objects, **options):
         from sage.rings.semirings.non_negative_integer_semiring import NN
         sage: import_statements('NN')
         from sage.rings.semirings.non_negative_integer_semiring import NN
+
+    Deprecated lazy imports are ignored (see :trac:`17458`)::
+
+        sage: lazy_import('sage.all', 'RR', 'deprecated_RR', namespace=sage.__dict__, deprecation=17458)
+        sage: import_statements('deprecated_RR')
+        Traceback (most recent call last):
+        ...
+        LookupError: object named 'deprecated_RR' is deprecated (see trac ticket 17458)
+        sage: lazy_import('sage.all', 'RR', namespace=sage.__dict__, deprecation=17458)
+        sage: import_statements('RR')
+        from sage.rings.real_mpfr import RR
 
     The following were fixed with :trac:`15351`::
 
@@ -510,12 +521,12 @@ def import_statements(*objects, **options):
                   # where "nameX" is an object in "module" that has to be
                   # imported with the alias "aliasX"
 
-    lazy = options.pop("lazy", False)
-    verbose = options.pop("verbose", True)
-    answer_as_str = options.pop("answer_as_str",False)
+    lazy = kwds.pop("lazy", False)
+    verbose = kwds.pop("verbose", True)
+    answer_as_str = kwds.pop("answer_as_str", False)
 
-    if options:
-        raise ValueError("Unexpected '%s' argument"%options.keys()[0])
+    if kwds:
+        raise TypeError("Unexpected '%s' argument"%kwds.keys()[0])
 
     for obj in objects:
         name = None    # the name of the object
@@ -526,17 +537,21 @@ def import_statements(*objects, **options):
             obj = find_objects_from_name(name, 'sage')
             if len(obj) == 0:
                 obj = find_objects_from_name(name)
-                if len(obj) == 0:
-                    raise ValueError("no object matched by '%s' was found."%name)
 
             # remove lazy imported objects from list obj
             i = 0
+            deprecation = None
             while i < len(obj):
                 if isinstance(obj[i], LazyImport):
-                    tmp = obj[i]._get_object()
-                    del obj[i]
-                    if all(u is not tmp for u in obj):
-                        obj.append(tmp)
+                    tmp = obj.pop(i)
+                    # Ignore deprecated lazy imports
+                    tmp_deprecation = tmp._get_deprecation_ticket()
+                    if tmp_deprecation:
+                        deprecation = tmp_deprecation
+                    else:
+                        tmp = tmp._get_object()
+                        if all(u is not tmp for u in obj):
+                            obj.append(tmp)
                 else:
                     i += 1
 
@@ -544,14 +559,19 @@ def import_statements(*objects, **options):
                 modules = set()
                 for o in obj:
                     modules.update(find_object_modules(o))
-                print "# **Warning**: distinct objects with name '%s' in:"%name
+                print("# **Warning**: distinct objects with name '{}' in:".format(name))
                 for module_name in modules:
-                    print "#   - %s"%module_name
+                    print("#   - {}".format(module_name))
 
             # choose a random object among the potentially enormous list of
             # objects we get from "name"
-            obj = obj[0]
-
+            try:
+                obj = obj[0]
+            except IndexError:
+                if deprecation:
+                    raise LookupError("object named %r is deprecated (see trac ticket %s)"%(name, deprecation))
+                else:
+                    raise LookupError("no object named %r"%name)
 
         # 1'. if obj is a LazyImport we recover the real object
         if isinstance(obj, LazyImport):
@@ -576,13 +596,13 @@ def import_statements(*objects, **options):
             del modules['__main__']
 
         if not modules:
-            raise ValueError("no import statement found for '%s'."%obj)
+            raise ValueError("no import statement found for '{}'.".format(obj))
 
         if len(modules) == 1:  # the module is well defined
             module_name, obj_names = modules.items()[0]
             if name is None:
                 if verbose and len(obj_names) > 1:
-                    print "# ** Warning **: several names for that object: %s"%', '.join(sorted(obj_names))
+                    print("# ** Warning **: several names for that object: {}".format(', '.join(sorted(obj_names))))
                 name = alias = obj_names[0]
             elif name in modules[module_name]:
                 alias = name
@@ -630,12 +650,11 @@ def import_statements(*objects, **options):
 
             not_all_modules = [module_name for module_name in modules if not '.all_' in module_name and not module_name.endswith('.all')]
             if not(not_all_modules):
-                print "# ** Warning **: the object %s is only defined in .all modules"%obj
+                print("# ** Warning **: the object {} is only defined in .all modules".format(obj))
                 module_name = modules.keys()[0]
-
             else:
                 if len(not_all_modules) > 1:
-                    print "# ** Warning **: several modules for the object %s: %s"%(obj, ', '.join(modules.keys()))
+                    print("# ** Warning **: several modules for the object {}: {}".format(obj, ', '.join(modules.keys())))
                 module_name = not_all_modules[0]
 
         # 3. Now that we found the module, we fix the problem of the alias
@@ -660,5 +679,5 @@ def import_statements(*objects, **options):
     if answer_as_str:
         return '\n'.join(res)
     else:
-        print '\n'.join(res)
+        print('\n'.join(res))
 

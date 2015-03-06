@@ -88,21 +88,32 @@ def integral_matrix_and_denom_from_rational_quaternions(v, reverse=False):
     # Now fill in each row x of A, multiplying it by q = d/denom(x)
     cdef mpz_t q
     cdef mpz_t* row
+    cdef mpz_t tmp
     mpz_init(q)
+    mpz_init(tmp)
     for i in range(n):
         x = v[i]
         mpz_fdiv_q(q, d.value, x.d)
         if reverse:
-            mpz_mul(A._matrix[n-i-1][3], q, x.x)
-            mpz_mul(A._matrix[n-i-1][2], q, x.y)
-            mpz_mul(A._matrix[n-i-1][1], q, x.z)
-            mpz_mul(A._matrix[n-i-1][0], q, x.w)
+            mpz_mul(tmp, q, x.x)
+            A.set_unsafe_mpz(n-i-1,3,tmp)
+            mpz_mul(tmp, q, x.y)
+            A.set_unsafe_mpz(n-i-1,2,tmp)
+            mpz_mul(tmp, q, x.z)
+            A.set_unsafe_mpz(n-i-1,1,tmp)
+            mpz_mul(tmp, q, x.w)
+            A.set_unsafe_mpz(n-i-1,0,tmp)
         else:
-            mpz_mul(A._matrix[i][0], q, x.x)
-            mpz_mul(A._matrix[i][1], q, x.y)
-            mpz_mul(A._matrix[i][2], q, x.z)
-            mpz_mul(A._matrix[i][3], q, x.w)
+            mpz_mul(tmp, q, x.x)
+            A.set_unsafe_mpz(i,0,tmp)
+            mpz_mul(tmp, q, x.y)
+            A.set_unsafe_mpz(i,1,tmp)
+            mpz_mul(tmp, q, x.z)
+            A.set_unsafe_mpz(i,2,tmp)
+            mpz_mul(tmp, q, x.w)
+            A.set_unsafe_mpz(i,3,tmp)
     mpz_clear(q)
+    mpz_clear(tmp)
     return A, d
 
 def rational_matrix_from_rational_quaternions(v, reverse=False):
@@ -195,6 +206,8 @@ def rational_quaternions_from_integral_matrix_and_denom(A, Matrix_integer_dense 
     a = Integer(A.invariants()[0])
     b = Integer(A.invariants()[1])
     cdef Py_ssize_t i, j
+    cdef mpz_t tmp
+    mpz_init(tmp)
 
     if reverse:
         rng = range(H.nrows()-1,-1,-1)
@@ -207,19 +220,28 @@ def rational_quaternions_from_integral_matrix_and_denom(A, Matrix_integer_dense 
         mpz_set(x.a, a.value)
         mpz_set(x.b, b.value)
         if reverse:
-            mpz_init_set(x.x, H._matrix[i][3])
-            mpz_init_set(x.y, H._matrix[i][2])
-            mpz_init_set(x.z, H._matrix[i][1])
-            mpz_init_set(x.w, H._matrix[i][0])
+            H.get_unsafe_mpz(i,3,tmp)
+            mpz_init_set(x.x, tmp)
+            H.get_unsafe_mpz(i,2,tmp)
+            mpz_init_set(x.y, tmp)
+            H.get_unsafe_mpz(i,1,tmp)
+            mpz_init_set(x.z, tmp)
+            H.get_unsafe_mpz(i,0,tmp)
+            mpz_init_set(x.w, tmp)
         else:
-            mpz_init_set(x.x, H._matrix[i][0])
-            mpz_init_set(x.y, H._matrix[i][1])
-            mpz_init_set(x.z, H._matrix[i][2])
-            mpz_init_set(x.w, H._matrix[i][3])
+            H.get_unsafe_mpz(i,0,tmp)
+            mpz_init_set(x.x, tmp)
+            H.get_unsafe_mpz(i,1,tmp)
+            mpz_init_set(x.y, tmp)
+            H.get_unsafe_mpz(i,2,tmp)
+            mpz_init_set(x.z, tmp)
+            H.get_unsafe_mpz(i,3,tmp)
+            mpz_init_set(x.w, tmp)
         mpz_init_set(x.d, d.value)
         # WARNING -- we do *not* canonicalize the entries in the quaternion.  This is
         # I think _not_ needed for quaternion_element.pyx
         v.append(x)
+    mpz_clear(tmp)
     return v
 
 

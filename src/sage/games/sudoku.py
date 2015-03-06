@@ -256,7 +256,7 @@ class Sudoku(SageObject):
 
     def _latex_(self):
         r"""nodetex
-        Returns a `\mbox{\rm\LaTeX}` representation of a Sudoku puzzle as an array environment.
+        Returns a `\LaTeX` representation of a Sudoku puzzle as an array environment.
 
         EXAMPLE::
 
@@ -426,7 +426,7 @@ class Sudoku(SageObject):
 
     def to_latex(self):
         r"""
-        Creates a string of `\mbox{\rm\LaTeX}` code representing a Sudoku puzzle or solution.
+        Creates a string of `\LaTeX` code representing a Sudoku puzzle or solution.
 
         EXAMPLE::
 

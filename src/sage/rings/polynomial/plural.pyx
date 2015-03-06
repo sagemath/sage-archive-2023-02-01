@@ -163,7 +163,7 @@ class G_AlgFactory(UniqueFactory):
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y}) # indirect doctest
             Noncommutative Multivariate Polynomial Ring in x, y, z over Rational
-            Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
 
         """
         # key = (base_ring,names, c,d, order, category)
@@ -199,7 +199,8 @@ class G_AlgFactory(UniqueFactory):
         # Get the number of names:
         names = tuple(names)
         n = len(names)
-        order = TermOrder(order or 'degrevlex', n)
+        if not isinstance(order, TermOrder):
+            order = TermOrder(order or 'degrevlex', n)
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         P = PolynomialRing(base_ring, n, names, order=order)
@@ -360,10 +361,17 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: H is loads(dumps(H))  # indirect doctest
             True
 
+        Check that :trac:`17224` is fixed::
+
+            sage: from sage.rings.polynomial.term_order import TermOrder
+            sage: F.<x,y> = FreeAlgebra(QQ)
+            sage: g = F.g_algebra({y*x:-x*y}, order=TermOrder('wdegrevlex', [1,2]))
+            sage: loads(dumps(g)) == g
+            True
         """
         return g_Algebra, (self.base_ring(),self._c,self._d,
                             self.variable_names(),
-                            self.term_order().name(),
+                            self.term_order(),
                             self.category())
 
     def __dealloc__(self):
@@ -705,9 +713,9 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: x*y == y*x
             True
             sage: H.relations()
-            {z*y: y*z - 2*y, z*x: x*z + 2*x}
+            {z*x: x*z + 2*x, z*y: y*z - 2*y}
             sage: H.relations(add_commutative=True)
-            {y*x: x*y, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            {y*x: x*y, z*x: x*z + 2*x, z*y: y*z - 2*y}
 
         """
         if add_commutative:
@@ -1704,7 +1712,7 @@ cdef class NCPolynomial_plural(RingElement):
             sage: I.std()
             Left Ideal (z^2 - 1, y*z - y, x*z + x, y^2, 2*x*y - z - 1, x^2) of
             Noncommutative Multivariate Polynomial Ring in x, y, z over Rational
-            Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
 
         """
         cdef ideal *_I
@@ -2151,7 +2159,7 @@ cdef class NCPolynomial_plural(RingElement):
 
             sage: f = (2*x*y^3*z^2 + (7)*x^2 + (3))
             sage: f.dict()
-            {(0, 0, 0): 3, (2, 0, 0): 7, (1, 2, 3): 2}
+            {(0, 0, 0): 3, (1, 2, 3): 2, (2, 0, 0): 7}
         """
         cdef poly *p
         cdef ring *r
@@ -2945,7 +2953,7 @@ def ExteriorAlgebra(base_ring, names,order='degrevlex'):
 
         sage: from sage.rings.polynomial.plural import ExteriorAlgebra
         sage: E = ExteriorAlgebra(QQ, ['x', 'y', 'z']) ; E
-        Quotient of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: -x*y, z*y: -y*z, z*x: -x*z} by the ideal (z^2, y^2, x^2)
+        Quotient of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: -x*z, z*y: -y*z, y*x: -x*y} by the ideal (z^2, y^2, x^2)
         sage: E.inject_variables()
         Defining xbar, ybar, zbar
         sage: x,y,z = (xbar,ybar,zbar)

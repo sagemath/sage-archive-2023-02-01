@@ -104,7 +104,7 @@ class Mupad(Expect):
     """
     Interface to the MuPAD interpreter.
     """
-    def __init__(self, maxread=1000, script_subdirectory="", server=None, server_tmpdir=None, logfile=None):
+    def __init__(self, maxread=1000, script_subdirectory=None, server=None, server_tmpdir=None, logfile=None):
         """
         Create an instance of the MuPAD interpreter.
 
@@ -268,12 +268,12 @@ command-line version of MuPAD.
         z = E.before
         i = z.find(START)
         if i == -1:
-            raise RuntimeError, "%s\nError evaluating code in MuPAD"%z
+            raise RuntimeError("%s\nError evaluating code in MuPAD"%z)
         z = z[i+len(START)+2:]
         z = z.rstrip().rstrip(END).rstrip('"').rstrip().strip('\n').strip('\r').strip('\n').replace('\\\r\n','')
         i = z.find('Error: ')
         if i != -1:
-            raise RuntimeError, z[i + 7:]
+            raise RuntimeError(z[i + 7:])
         return z
 
     def cputime(self, t=None):
@@ -300,7 +300,7 @@ command-line version of MuPAD.
         out = self.eval(cmd)
         i = out.find('Error: ')
         if i != -1:
-            raise RuntimeError, out[i + 7:]
+            raise RuntimeError(out[i + 7:])
 
     def get(self, var):
         """
@@ -618,7 +618,7 @@ class MupadElement(ExpectElement):
         return mupad.nops(self)
 
 # An instance
-mupad = Mupad(script_subdirectory='user')
+mupad = Mupad()
 
 def reduce_load_mupad():
     """

@@ -549,7 +549,7 @@ class RealBallField(UniqueRepresentation, Parent):
         This works even if ``x`` itself is not a ball, and may be faster or
         more accurate where ``x`` is a rational number.
 
-        .. seealso: :meth`~sage.rings.real_arb.RealBall.sin`
+        .. seealso:: :meth:`~sage.rings.real_arb.RealBall.sin`
 
         EXAMPLES::
 
@@ -596,7 +596,7 @@ class RealBallField(UniqueRepresentation, Parent):
         This works even if ``x`` itself is not a ball, and may be faster or
         more accurate where ``x`` is a rational number.
 
-        .. seealso: :meth`~sage.rings.real_arb.RealBall.cos`
+        .. seealso:: :meth:`~sage.rings.real_arb.RealBall.cos`
 
         EXAMPLES::
 
@@ -641,7 +641,7 @@ class RealBallField(UniqueRepresentation, Parent):
         This works even if ``x`` itself is not a ball, and may be more
         efficient in the case where ``x`` is an integer or a rational number.
 
-        .. seealso: :meth`~sage.rings.real_arb.RealBall.gamma`
+        .. seealso:: :meth:`~sage.rings.real_arb.RealBall.gamma`
 
         EXAMPLES::
 
@@ -701,7 +701,7 @@ class RealBallField(UniqueRepresentation, Parent):
         This works even if ``s`` itself is not a ball, and may be more
         efficient in the case where ``s`` is an integer.
 
-        .. seealso: :meth`~sage.rings.real_arb.RealBall.zeta`
+        .. SEEALSO:: :meth:`~sage.rings.real_arb.RealBall.zeta`
 
         EXAMPLES::
 
@@ -2238,7 +2238,7 @@ cdef class RealBall(RingElement):
         """
         Return the sine of this ball.
 
-        .. seealso: :meth`~sage.rings.real_arb.RealBallField.sinpi`
+        .. seealso:: :meth:`~sage.rings.real_arb.RealBallField.sinpi`
 
         EXAMPLES::
 
@@ -2256,7 +2256,7 @@ cdef class RealBall(RingElement):
         """
         Return the cosine of this ball.
 
-        .. seealso: :meth`~sage.rings.real_arb.RealBallField.cospi`
+        .. seealso:: :meth:`~sage.rings.real_arb.RealBallField.cospi`
 
         EXAMPLES::
 
@@ -2489,7 +2489,7 @@ cdef class RealBall(RingElement):
         Return the image of this ball by the Euler Gamma function.
 
         For integer and rational arguments,
-        :meth`~sage.rings.real_arb.RealBall.gamma` may be faster.
+        :meth:`~sage.rings.real_arb.RealBall.gamma` may be faster.
 
         EXAMPLES::
 
@@ -2564,9 +2564,8 @@ cdef class RealBall(RingElement):
 
         For ``a = 1`` (or ``a = None``), this computes the Riemann zeta function.
 
-        Use :meth`~sage.rings.real_arb.RealBallField.zeta` to compute the
-        Riemann zeta function of a small integer without first converting it to
-        a real ball.
+        Use :meth:`RealBallField.zeta` to compute the Riemann zeta function of
+        a small integer without first converting it to a real ball.
 
         EXAMPLES::
 

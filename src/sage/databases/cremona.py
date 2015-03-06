@@ -837,13 +837,9 @@ class MiniCremonaDatabase(SQLDatabase):
         if lmfdb_label:
             data['lmfdb_label'] = lmfdb_label
         if len(c) > 3:
-            if num == 1:
-                data['modular_degree'] = (c[3])
-                data['gens'] = eval(c[4])
-                data['db_extra'] = list(c[5:])
-            elif c[1] == 0:
-                # we know the rank is 0, so the gens are empty
-                data['gens'] = []
+            data['modular_degree'] = (c[3])
+            data['gens'] = eval(c[4])
+            data['db_extra'] = list(c[5:])
         return ainvs, data
 
     def data_from_coefficients(self, ainvs):
@@ -885,13 +881,9 @@ class MiniCremonaDatabase(SQLDatabase):
                 'torsion_order': c[2],
                 'conductor': N}
         if len(c) > 3:
-            if num == 1:
-                data['modular_degree'] = (c[3])
-                data['gens'] = eval(c[4])
-                data['db_extra'] = list(c[5:])
-            elif c[1] == 0:
-                # we know the rank is 0, so the gens are empty
-                data['gens'] = []
+            data['modular_degree'] = (c[3])
+            data['gens'] = eval(c[4])
+            data['db_extra'] = list(c[5:])
         return data
 
     def elliptic_curve_from_ainvs(self, ainvs):

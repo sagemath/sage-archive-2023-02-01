@@ -1290,7 +1290,7 @@ cdef class RealBall(RingElement):
             ::
 
                 sage: exact_nan == exact_nan, exact_nan <= exact_nan, exact_nan >= exact_nan
-                (True, True, True)
+                (False, False, False)
                 sage: exact_nan != exact_nan, exact_nan < exact_nan, exact_nan > exact_nan
                 (False, False, False)
                 sage: from operator import eq, ne, le, lt, ge, gt
@@ -1341,9 +1341,9 @@ cdef class RealBall(RingElement):
         lt = left
         rt = right
 
-        if lt is rt:
-            return op == Py_EQ or op == Py_GE or op == Py_LE
-        elif arb_is_finite(lt.value) or arb_is_finite(rt.value):
+        if arb_is_finite(lt.value) or arb_is_finite(rt.value):
+            if lt is rt:
+                return op == Py_EQ or op == Py_GE or op == Py_LE
             if op == Py_EQ:
                 return arb_is_exact(lt.value) and arb_equal(lt.value, rt.value)
             arb_init(difference)

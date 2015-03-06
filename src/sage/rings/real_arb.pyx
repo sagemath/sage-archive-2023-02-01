@@ -204,26 +204,8 @@ cdef int arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except -
 
     EXAMPLES::
 
-        sage: cython("\n".join([ # optional - arb
-        ....:     '#cinclude $SAGE_ROOT/local/include/flint',
-        ....:     '#clib arb',
-        ....:     'from sage.rings.real_mpfi cimport RealIntervalFieldElement',
-        ....:     'from sage.libs.arb.arb cimport *',
-        ....:     'from sage.rings.real_arb cimport arb_to_mpfi',
-        ....:     'from sage.rings.real_mpfi import RIF',
-        ....:     '',
-        ....:     'cdef extern from "arb.h":',
-        ....:     '    void arb_pow_ui(arb_t y, const arb_t b, unsigned long e, long prec)',
-        ....:     '',
-        ....:     'cdef RealIntervalFieldElement result',
-        ....:     'cdef arb_t arb',
-        ....:     'arb_init(arb)',
-        ....:     'result = RIF(0)',
-        ....:     'arb_set_ui(arb, 65536)',
-        ....:     'arb_pow_ui(arb, arb, 65536**3 * 65535, 53)',
-        ....:     'arb_to_mpfi(result.value, arb, 53)',
-        ....:     'arb_clear(arb)'
-        ....: ]))
+        sage: from sage.rings.real_arb import RBF  # optional - arb
+        sage: RIF(RBF(2)**(2**100)) # optional - arb, indirect doctest
         Traceback (most recent call last):
         ...
         ArithmeticError: Error converting arb to mpfi. Overflow?
@@ -831,7 +813,7 @@ cdef class RealBall(RingElement):
         sage: b = a.psi()                         # optional - arb
         sage: b                                   # optional - arb
         [-0.577215664901533 +/- 3.85e-16]
-        sage: b._interval()        # optional - arb
+        sage: RIF(b)        # optional - arb
         -0.577215664901533?
     """
 
@@ -1074,9 +1056,9 @@ cdef class RealBall(RingElement):
 
     # Conversions
 
-    cpdef RealIntervalFieldElement _interval(self):
+    cpdef RealIntervalFieldElement _real_mpfi_(self, RealIntervalField_class parent):
         """
-        Return a :mod:`real interval <sage.rings.real_mpfr>` containing this ball.
+        Return a :mod:`real interval <sage.rings.real_mpfi>` containing this ball.
 
         OUTPUT:
 
@@ -1090,7 +1072,7 @@ cdef class RealBall(RingElement):
             2
         """
         cdef RealIntervalFieldElement result
-        result = RealIntervalField(prec(self))(0)
+        result = parent(0)
         arb_to_mpfi(result.value, self.value, prec(self))
         return result
 

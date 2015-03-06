@@ -24,18 +24,20 @@ description using rooted trees, just as the free associative algebra
 can be described using words. The underlying vector space has a basis
 indexed by finite rooted trees endowed with a map from their vertices
 to `E`. In this basis, the product of two (decorated) rooted trees `S
-* T` is the sum of all rooted trees obtained by adding one edge from the
-root of `T` to a vertex of `S`.
+* T` is the sum over vertices of `S` of the rooted tree obtained by
+adding one edge from the root of `T` to the given vertex of `S`. The root of
+these trees is taken to be the root of `S`.
 
 The shortcut ``<`` can be used for the pre-Lie product, but must be
 parenthesized properly, as it does not have priority over ``+``.
 
 EXAMPLES::
 
+    sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
     sage: F = FreePreLieAlgebra(ZZ, 'xyz')
     sage: x,y,z = F.gens()
     sage: (x < y) < z
-    ?
+    B[x[y[], z[]]] + B[x[y[z[]]]]
 
 REFERENCES:
 

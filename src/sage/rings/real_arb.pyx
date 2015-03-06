@@ -127,6 +127,7 @@ from sage.libs.arb.mag cimport mag_t, mag_init, mag_clear, mag_add, mag_set_d, M
 from sage.libs.flint.flint cimport flint_free
 from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
+from sage.libs.gmp.mpz cimport mpz_fits_ulong_p, mpz_get_ui
 from sage.libs.mpfi cimport mpfi_get_left, mpfi_get_right, mpfi_interv_fr
 from sage.libs.mpfr cimport mpfr_t, mpfr_init2, mpfr_clear, mpfr_sgn, MPFR_PREC_MIN
 from sage.libs.mpfr cimport GMP_RNDN, GMP_RNDU, GMP_RNDD, GMP_RNDZ
@@ -445,6 +446,143 @@ class RealBallField(UniqueRepresentation, Parent):
         """
         return 0
 
+    # Ball functions of non-ball arguments
+
+    def gamma(self, x):
+        """
+        Return a ball enclosing the gamma function of ``x``.
+
+        This works even if ``x`` itself is not a ball, and may be more
+        efficient in the case where ``x`` is an integer or a rational number.
+
+        .. seealso: :meth`~sage.rings.real_arb.RealBall.gamma`
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF.gamma(5)
+            24.00000000000000
+            sage: RBF.gamma(10**20)
+            [+/- 5.92e+1956570551809674821757]
+            sage: RBF.gamma(1/3)
+            [2.678938534707747 +/- 9.06e-16]
+            sage: RBF.gamma(-5)
+            nan
+
+        TESTS::
+
+            sage: RBF.gamma(RLF(pi))
+            [2.2880377953400 +/- 4.29e-14]
+        """
+        cdef RealBall res
+        cdef sage.rings.integer.Integer x_as_Integer
+        cdef sage.rings.rational.Rational x_as_Rational
+        cdef fmpz_t tmpz
+        cdef fmpq_t tmpq
+        res = self.element_class(self)
+        try:
+            x_as_Integer = ZZ.coerce(x)
+            try:
+                if _do_sig(self._prec): sig_on()
+                fmpz_init(tmpz)
+                fmpz_set_mpz(tmpz, x_as_Integer.value)
+                arb_gamma_fmpz(res.value, tmpz, self._prec)
+                if _do_sig(self._prec): sig_off()
+            finally:
+                fmpz_clear(tmpz)
+            return res
+        except TypeError:
+            pass
+        try:
+            x_as_Rational = QQ.coerce(x)
+            try:
+                if _do_sig(self._prec): sig_on()
+                fmpq_init(tmpq)
+                fmpq_set_mpq(tmpq, x_as_Rational.value)
+                arb_gamma_fmpq(res.value, tmpq, self._prec)
+                if _do_sig(self._prec): sig_off()
+            finally:
+                fmpq_clear(tmpq)
+            return res
+        except TypeError:
+            pass
+        return self.coerce(x).gamma()
+
+    def zeta(self, s):
+        """
+        Return a ball enclosing the Riemann zeta function of ``s``.
+
+        This works even if ``s`` itself is not a ball, and may be more
+        efficient in the case where ``s`` is an integer.
+
+        .. seealso: :meth`~sage.rings.real_arb.RealBall.zeta`
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF.zeta(3) # abs tol 5e-16
+            [1.202056903159594 +/- 2.87e-16]
+            sage: RBF.zeta(1)
+            nan
+            sage: RBF.zeta(1/2)
+            [-1.460354508809587 +/- 1.94e-16]
+        """
+        cdef RealBall res
+        cdef sage.rings.integer.Integer s_as_Integer
+        try:
+            s_as_Integer = ZZ.coerce(s)
+            if mpz_fits_ulong_p(s_as_Integer.value):
+                res = self.element_class(self)
+                if _do_sig(self._prec): sig_on()
+                arb_zeta_ui(res.value, mpz_get_ui(s_as_Integer.value), self._prec)
+                if _do_sig(self._prec): sig_off()
+                return res
+        except TypeError:
+            pass
+        return self.coerce(s).zeta()
+
+    def bernoulli(self, n):
+        """
+        Return a ball enclosing the ``n``-th Bernoulli number.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: [RBF.bernoulli(n) for n in range(4)]
+            [1.000000000000000, -0.5000000000000000, [0.1666666666666667 +/- 7.04e-17], 0]
+            sage: RBF.bernoulli(2**20)
+            [-1.823002872104961e+5020717 +/- 7.16e+5020701]
+            sage: RBF.bernoulli(2**1000)
+            Traceback (most recent call last):
+            ...
+            ValueError: argument too large
+
+        TESTS::
+
+            sage: RBF.bernoulli(2r)
+            [0.1666666666666667 +/- 7.04e-17]
+            sage: RBF.bernoulli(2/3)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Rational Field to Integer Ring
+            sage: RBF.bernoulli(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: expected a nonnegative index
+        """
+        cdef RealBall res
+        cdef sage.rings.integer.Integer n_as_Integer = ZZ.coerce(n)
+        if mpz_fits_ulong_p(n_as_Integer.value):
+            res = self.element_class(self)
+            if _do_sig(self._prec): sig_on()
+            arb_bernoulli_ui(res.value, mpz_get_ui(n_as_Integer.value), self._prec)
+            if _do_sig(self._prec): sig_off()
+            return res
+        elif n < 0:
+            raise ValueError("expected a nonnegative index")
+        else:
+            # TODO: Fall back to a Sage implementation in this case?
+            raise ValueError("argument too large")
 
 
 cdef inline bint _do_sig(long prec):
@@ -574,7 +712,7 @@ cdef class RealBall(RingElement):
         TESTS::
 
             sage: from sage.rings.real_arb import RealBall
-            sage: RealBall(RBF, sage.symbolic.constants.Pi())
+            sage: RealBall(RBF, sage.symbolic.constants.Pi()) # abs tol 1e-16
             [3.141592653589793 +/- 5.62e-16]
             sage: RealBall(RBF, sage.symbolic.constants.Log2()) # abs tol 1e-16
             [0.693147180559945 +/- 4.06e-16]
@@ -604,8 +742,8 @@ cdef class RealBall(RingElement):
         elif isinstance(mid, sage.rings.integer.Integer):
             if _do_sig(prec(self)): sig_on()
             fmpz_init(tmpz)
-            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> mid).value) # no rounding!
-            arb_set_fmpz(self.value, tmpz)
+            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> mid).value)
+            arb_set_fmpz(self.value, tmpz) # no rounding!
             fmpz_clear(tmpz)
             if _do_sig(prec(self)): sig_off()
         elif isinstance(mid, sage.rings.rational.Rational):
@@ -2031,6 +2169,9 @@ cdef class RealBall(RingElement):
         """
         Return the image of this ball by the Euler Gamma function.
 
+        For integer and rational arguments,
+        :meth`~sage.rings.real_arb.RealBall.gamma` may be faster.
+
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
@@ -2103,6 +2244,10 @@ cdef class RealBall(RingElement):
         Return the image of this ball by the Hurwitz zeta function.
 
         For ``a = 1`` (or ``a = None``), this computes the Riemann zeta function.
+
+        Use :meth`~sage.rings.real_arb.RealBallField.zeta` to compute the
+        Riemann zeta function of a small integer without first converting it to
+        a real ball.
 
         EXAMPLES::
 

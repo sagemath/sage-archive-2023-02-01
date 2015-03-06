@@ -2119,6 +2119,40 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    # Floor, ceil, etc.
+
+    def floor(self):
+        """
+        Return the floor of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1000+1/3, rad=1.r).floor()
+            [1.00e+3 +/- 1.01]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_floor(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def ceil(self):
+        """
+        Return the ceil of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1000+1/3, rad=1.r).ceil()
+            [1.00e+3 +/- 2.01]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_ceil(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
     # Elementary functions
 
     def log(self):

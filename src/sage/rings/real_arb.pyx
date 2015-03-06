@@ -127,7 +127,7 @@ from sage.libs.arb.mag cimport mag_t, mag_init, mag_clear, mag_add, mag_set_d, M
 from sage.libs.flint.flint cimport flint_free
 from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
-from sage.libs.gmp.mpz cimport mpz_fits_ulong_p, mpz_get_ui
+from sage.libs.gmp.mpz cimport mpz_fits_ulong_p, mpz_fits_slong_p, mpz_get_ui, mpz_get_si
 from sage.libs.mpfi cimport mpfi_get_left, mpfi_get_right, mpfi_interv_fr
 from sage.libs.mpfr cimport mpfr_t, mpfr_init2, mpfr_clear, mpfr_sgn, MPFR_PREC_MIN
 from sage.libs.mpfr cimport GMP_RNDN, GMP_RNDU, GMP_RNDD, GMP_RNDZ
@@ -2270,6 +2270,49 @@ cdef class RealBall(RingElement):
             if _do_sig(prec(self)): sig_on()
             arb_hurwitz_zeta(res.value, self.value, a_ball.value, prec(self))
             if _do_sig(prec(self)): sig_off()
+        return res
+
+    def polylog(self, s):
+        """
+        Return the polylogarithm `\operatorname{Li}_s(\mathrm{self})`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: polylog(0, -1)
+            -1/2
+            sage: RBF(-1).polylog(0)
+            [-0.50000000000000 +/- 1.78e-15]
+            sage: polylog(1, 1/2)
+            -log(1/2)
+            sage: RBF(1/2).polylog(1)
+            [0.6931471805599 +/- 5.08e-14]
+            sage: RBF(1/3).polylog(1/2)
+            [0.44210883528067 +/- 6.75e-15]
+            sage: RBF(1/3).polylog(RLF(pi))
+            [0.34728895057225 +/- 5.51e-15]
+
+        TESTS::
+
+            sage: RBF(1/3).polylog(2r)
+            [0.36621322997706 +/- 4.62e-15]
+        """
+        cdef RealBall s_as_ball
+        cdef sage.rings.integer.Integer s_as_Integer
+        cdef RealBall res = self._new()
+        try:
+            s_as_Integer = ZZ.coerce(s)
+            if mpz_fits_slong_p(s_as_Integer.value):
+                if _do_sig(prec(self)): sig_on()
+                arb_polylog_si(res.value, mpz_get_si(s_as_Integer.value), self.value, prec(self))
+                if _do_sig(prec(self)): sig_off()
+                return res
+        except TypeError:
+            pass
+        s_as_ball = self._parent.coerce(s)
+        if _do_sig(prec(self)): sig_on()
+        arb_polylog(res.value, s_as_ball.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
         return res
 
 RBF = RealBallField()

@@ -431,8 +431,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             sage: result[0]
             'computed-pari-int'
             sage: X = result[1]; X
-            [-26  31 -30  21   2 -10]
-            [-47 -13  48 -14 -11  18]
+            [ 26 -31  30 -21  -2  10]
+            [ 47  13 -48  14  11 -18]
             sage: A*X.transpose() == zero_matrix(ZZ, 4, 2)
             True
 

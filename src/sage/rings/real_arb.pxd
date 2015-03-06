@@ -5,7 +5,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
 
 cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision)
-cdef void arb_to_mpfi(mpfi_t target, arb_t source, const long precision)
+cdef int arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except -1
 
 cdef class RealBall(Element):
     cdef arb_t value

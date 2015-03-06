@@ -731,7 +731,7 @@ class PlotOptions:
             sage: options = RootSystem(["B",3]).root_lattice().plot_parse_options()
             sage: print options.text("coucou", [0,1,2]).x3d_str()
             <Transform translation='0 1 2'>
-            <Shape><Text string='coucou' solid='true'/><Appearance><Material diffuseColor='0.0 0.0 0.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
+            <Shape><Text string='coucou' solid='true'/><Appearance><Material diffuseColor='0.0 0.0 0.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             <BLANKLINE>
             </Transform>
         """

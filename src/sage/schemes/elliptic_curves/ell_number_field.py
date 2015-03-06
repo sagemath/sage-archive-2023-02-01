@@ -256,7 +256,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             a = Mod(y,K.pol);
             bnfellrank(K, [0, 0, 0, 1, a], [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]]);
              elliptic curve: Y^2 = x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)
-              A = 0
+              A = Mod(0, y^2 + 7)
               B = Mod(1, y^2 + 7)
               C = Mod(y, y^2 + 7)
             <BLANKLINE>
@@ -289,7 +289,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
             v = [1, 1, [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]]]
             sage: v
             (1, 1, [(1/2*a + 3/2 : -a - 2 : 1)])
-
 
         A curve with 2-torsion::
 

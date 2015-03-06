@@ -3365,9 +3365,9 @@ cdef class Matrix(matrix1.Matrix):
             True
 
             sage: X = A.right_kernel_matrix(algorithm='pari', basis='computed'); X
-            [ 3  1 -5 -7 -2  3  2]
-            [ 3  1  2  5 -5  2 -6]
-            [ 4 13 -2  7 -5 -7  3]
+            [ -3  -1   5   7   2  -3  -2]
+            [  3   1   2   5  -5   2  -6]
+            [ -4 -13   2  -7   5   7  -3]
             sage: A*X.transpose() == zero_matrix(ZZ, 4, 3)
             True
 
@@ -8310,11 +8310,9 @@ cdef class Matrix(matrix1.Matrix):
         from sage.combinat.permutation import bistochastic_as_sum_of_permutations
         return bistochastic_as_sum_of_permutations(self)
 
-
-    def visualize_structure(self, filename=None, maxsize=512):
-        """
-        Write a PNG image to 'filename' which visualizes self by putting
-        black pixels in those positions which have nonzero entries.
+    def visualize_structure(self, maxsize=512):
+        r"""
+        Visualize the non-zero entries
 
         White pixels are put at positions with zero entries. If 'maxsize'
         is given, then the maximal dimension in either x or y direction is
@@ -8326,62 +8324,56 @@ cdef class Matrix(matrix1.Matrix):
 
         INPUT:
 
+        - ``maxsize`` - integer (default: ``512``). Maximal dimension
+          in either x or y direction of the resulting image. If
+          ``None`` or a maxsize larger than
+          ``max(self.nrows(),self.ncols())`` is given the image will
+          have the same pixelsize as the matrix dimensions.
 
-        -  ``filename`` - either a path or None in which case a
-           filename in the current directory is chosen automatically
-           (default:None)
+        OUTPUT:
 
-
-        maxsize - maximal dimension in either x or y direction of the
-        resulting image. If None or a maxsize larger than
-        max(self.nrows(),self.ncols()) is given the image will have the
-        same pixelsize as the matrix dimensions (default: 512)
+        Bitmap image as an instance of
+        :class:`~sage.repl.image.Image`.
 
         EXAMPLE::
 
-            sage: M = random_matrix(CC, 4)
-            sage: M.visualize_structure()
-        """
-        import gd
-        import os
+            sage: M = random_matrix(CC, 5, 7)
+            sage: for i in range(5):  M[i,i] = 0
+            sage: M[4, 0] = M[0, 6] = M[4, 6] = 0
+            sage: img = M.visualize_structure();  img
+            7x5px 24-bit RGB image
 
+        You can use :meth:`~sage.repl.image.Image.save` to save the
+        resulting image::
+
+            sage: filename = tmp_filename(ext='.png')
+            sage: img.save(filename)
+            sage: open(filename).read().startswith('\x89PNG') 
+            True
+        """
         cdef int x, y, _x, _y, v, bi, bisq
         cdef int ir,ic
         cdef float b, fct
-
         mr, mc = self.nrows(), self.ncols()
-
         if maxsize is None:
-
             ir = mc
             ic = mr
             b = 1.0
-
         elif max(mr,mc) > maxsize:
-
             maxsize = float(maxsize)
             ir = int(mc * maxsize/max(mr,mc))
             ic = int(mr * maxsize/max(mr,mc))
             b = max(mr,mc)/maxsize
-
         else:
-
             ir = mc
             ic = mr
             b = 1.0
-
         bi = round(b)
         bisq = bi*bi
         fct = 255.0/bisq
-
-        im = gd.image((ir,ic),1)
-        white = im.colorExact((255,255,255))
-        im.fill((0,0),white)
-
-        # these speed things up a bit
-        colorExact = im.colorExact
-        setPixel = im.setPixel
-
+        from sage.repl.image import Image
+        img = Image('RGB', (ir, ic))
+        pixel = img.pixels()
         for x from 0 <= x < ic:
             for y from 0 <= y < ir:
                 v = bisq
@@ -8389,16 +8381,9 @@ cdef class Matrix(matrix1.Matrix):
                     for _y from 0 <= _y < bi:
                         if not self.get_unsafe(<int>(x*b + _x), <int>(y*b + _y)).is_zero():
                             v-=1 #increase darkness
-
-                v =  round(v*fct)
-                val = colorExact((v,v,v))
-                setPixel((y,x), val)
-
-        if filename is None:
-            from sage.misc.temporary_file import graphics_filename
-            filename = graphics_filename()
-
-        im.writePng(filename)
+                v = round(v*fct)
+                pixel[y, x] = (v, v, v)
+        return img
 
     def density(self):
         """
@@ -10289,9 +10274,9 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: F.<a> = FiniteField(7^2)
             sage: C = matrix(F,[[  a + 2, 5*a + 4],
-            ...                 [6*a + 6, 6*a + 4]])
-            sage: S = matrix(ZZ, [[0, 1],
-            ...                   [1, 0]])
+            ....:               [6*a + 6, 6*a + 4]])
+            sage: S = matrix(F, [[0, 1],
+            ....:                [1, 0]])
             sage: D = S.inverse()*C*S
             sage: C.is_similar(D)
             Traceback (most recent call last):

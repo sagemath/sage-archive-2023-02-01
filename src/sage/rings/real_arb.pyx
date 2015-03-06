@@ -122,7 +122,8 @@ cimport sage.structure.element
 
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.arf cimport arf_t, arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag
-from sage.libs.arb.mag cimport mag_t, mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS
+from sage.libs.arb.arf cimport arf_equal, arf_is_nan, arf_is_neg_inf, arf_is_pos_inf
+from sage.libs.arb.mag cimport mag_t, mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite
 from sage.libs.flint.flint cimport flint_free
 from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
@@ -1010,6 +1011,65 @@ cdef class RealBall(RingElement):
                 True
                 sage: a != b # optional - arb
                 False
+
+            Special values::
+
+                sage: inf = RBF(+infinity)
+                sage: other_inf = RBF(+infinity, 42.r)
+                sage: neg_inf = RBF(-infinity)
+                sage: extended_line = 1/RBF(0)
+                sage: exact_nan = inf - inf
+                sage: exact_nan.mid(), exact_nan.rad()
+                (NaN, 0.00000000)
+                sage: other_exact_nan = inf - inf
+
+            ::
+
+                sage: exact_nan == exact_nan, exact_nan <= exact_nan, exact_nan >= exact_nan
+                (True, True, True)
+                sage: exact_nan != exact_nan, exact_nan < exact_nan, exact_nan > exact_nan
+                (False, False, False)
+                sage: from operator import eq, ne, le, lt, ge, gt
+                sage: ops = [eq, ne, le, lt, ge, gt]
+                sage: any(op(exact_nan, other_exact_nan) for op in ops)
+                False
+                sage: any(op(exact_nan, b) for op in ops for b in [RBF(1), extended_line, inf, neg_inf])
+                False
+
+            ::
+
+                sage: neg_inf < a < inf and inf > a > neg_inf
+                True
+                sage: neg_inf <= b <= inf and inf >= b >= neg_inf
+                True
+                sage: neg_inf <= extended_line <= inf and inf >= extended_line >= neg_inf
+                True
+                sage: neg_inf < extended_line or extended_line < inf
+                False
+                sage: inf > extended_line or extended_line > neg_inf
+                False
+
+            ::
+
+                sage: all(b <= b == b >= b and not (b < b or b != b or b > b)
+                ....:     for b in [inf, neg_inf, other_inf])
+                True
+                sage: any(b1 == b2 for b1 in [inf, neg_inf, a, extended_line]
+                ....:              for b2 in [inf, neg_inf, a, extended_line]
+                ....:              if not b1 is b2)
+                False
+                sage: all(b1 != b2 and not b1 == b2
+                ....:     for b1 in [inf, neg_inf, a]
+                ....:     for b2 in [inf, neg_inf, a]
+                ....:     if not b1 is b2)
+                True
+                sage: neg_inf <= -other_inf == neg_inf == -other_inf < other_inf == inf <= other_inf
+                True
+                sage: any(inf < b or b > inf
+                ....:     for b in [inf, other_inf,  a, extended_line])
+                False
+                sage: any(inf <= b or b >= inf for b in [a, extended_line])
+                False
         """
         cdef RealBall lt, rt
         cdef arb_t difference
@@ -1017,27 +1077,59 @@ cdef class RealBall(RingElement):
         lt = left
         rt = right
 
-        if op == Py_EQ:
-            return (lt is rt) or (
-                arb_is_exact(lt.value) and arb_is_exact(rt.value)
-                and arb_equal(lt.value, rt.value))
-
-        arb_init(difference)
-        arb_sub(difference, lt.value, rt.value, prec(lt))
-
-        if op == Py_NE:
-            result = arb_is_nonzero(difference)
-        elif op == Py_GT:
-            result = arb_is_positive(difference)
-        elif op == Py_GE:
-            result = arb_is_nonnegative(difference)
-        elif op == Py_LT:
-            result = arb_is_negative(difference)
-        elif op == Py_LE:
-            result = arb_is_nonpositive(difference)
-
-        arb_clear(difference)
-        return result
+        if lt is rt:
+            return op == Py_EQ or op == Py_GE or op == Py_LE
+        elif arb_is_finite(lt.value) or arb_is_finite(rt.value):
+            if op == Py_EQ:
+                return arb_is_exact(lt.value) and arb_equal(lt.value, rt.value)
+            arb_init(difference)
+            arb_sub(difference, lt.value, rt.value, prec(lt))
+            if op == Py_NE:
+                result = arb_is_nonzero(difference)
+            elif op == Py_GT:
+                result = arb_is_positive(difference)
+            elif op == Py_GE:
+                result = arb_is_nonnegative(difference)
+            elif op == Py_LT:
+                result = arb_is_negative(difference)
+            elif op == Py_LE:
+                result = arb_is_nonpositive(difference)
+            arb_clear(difference)
+            return result
+        elif arf_is_nan(arb_midref(lt.value)) or arf_is_nan(arb_midref(rt.value)):
+            return False
+        elif mag_is_inf(arb_radref(lt.value)):
+            # left is the whole extended real line
+            if op == Py_GE:
+                return arf_is_neg_inf(arb_midref(rt.value)) and mag_is_finite(arb_radref(rt.value))
+            elif op == Py_LE:
+                return arf_is_pos_inf(arb_midref(rt.value)) and mag_is_finite(arb_radref(rt.value))
+            else:
+                return False
+        elif mag_is_inf(arb_radref(rt.value)):
+            # right is the whole extended real line
+            if op == Py_GE:
+                return arf_is_pos_inf(arb_midref(lt.value)) and mag_is_finite(arb_radref(lt.value))
+            elif op == Py_LE:
+                return arf_is_neg_inf(arb_midref(lt.value)) and mag_is_finite(arb_radref(lt.value))
+            else:
+                return False
+        else:
+            # both left and right are special, neither is nan, and neither is
+            # [-∞,∞], so they are both points at infinity
+            if op == Py_EQ:
+                return arf_equal(arb_midref(lt.value), arb_midref(rt.value))
+            elif op == Py_NE:
+                return not arf_equal(arb_midref(lt.value), arb_midref(rt.value))
+            elif op == Py_GT:
+                return (arf_is_pos_inf(arb_midref(lt.value))
+                        and arf_is_neg_inf(arb_midref(rt.value)))
+            elif op == Py_LT:
+                return (arf_is_neg_inf(arb_midref(lt.value))
+                        and arf_is_pos_inf(arb_midref(rt.value)))
+            elif op == Py_GE or op == Py_LE:
+                return True
+        assert False, "not reached"
 
     # Center and radius
 

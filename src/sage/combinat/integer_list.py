@@ -54,8 +54,6 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
 
     Preconditions:
 
-    - ``minslope < maxslope``
-
     - ``floor`` and ``ceiling`` need to satisfy the slope constraints,
       e.g. be obtained ``fromcomp2floor`` or ``comp2ceil``
 
@@ -76,6 +74,12 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
         [7, 6, 5, 4, 2, 1, 0, 0, 0]
         sage: integer_list.first(36, 9, 9, f([3,3,3,2,1,4,2,0,0]), f([7,6,5,5,5,5,5,4,4]), -2, 1)
         [7, 6, 5, 5, 5, 4, 3, 1, 0]
+
+    ::
+
+        sage: I = integer_list.IntegerListsLex(6, max_slope=2, min_slope=2)
+        sage: list(I)
+        [[6], [2, 4], [0, 2, 4]]
     """
     # Check trivial cases, and standardize min_length to be at least 1
     if n < 0:
@@ -108,6 +112,9 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
         if n < floor(1):
             return None
         return [n]
+
+    if max_slope < min_slope:
+        return None
 
     # Compute the minimum values
     # We are constrained below by the max slope
@@ -158,6 +165,11 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
             result[high_x+i-1] = high_y + min_slope * i - 1
         for i in range(-n, low_x-high_x+1):
             result[high_x+i-1] = high_y + min_slope * i
+
+    # Special check for equal slopes
+    if min_slope == max_slope and any(val + min_slope != result[i+1]
+                                      for i,val in enumerate(result[:-1])):
+            return None
 
     return result
 
@@ -239,6 +251,8 @@ def rightmost_pivot(comp, min_length, max_length, floor, ceiling, min_slope, max
         sage: integer_list.rightmost_pivot([2,4],1,5,lambda i: i,g(10),-10,10)
         [1, 1]
     """
+    if max_slope < min_slope:
+        return None
 
     y = len(comp) + 1
     while y <= max_length:
@@ -704,8 +718,6 @@ class IntegerListsLex(Parent):
        - The upper and lower bounds themselves should satisfy the
          slope constraints.
 
-       - The maximal and minimal slopes values should not be equal.
-
        - The maximal and minimal part values should not be equal.
 
     Those conditions are not checked by the algorithm, and the
@@ -840,10 +852,6 @@ class IntegerListsLex(Parent):
             True
             sage: TestSuite(C).run()
         """
-        from sage.misc.stopgap import stopgap
-        stopgap("This code contains bugs and may be mathematically unreliable.",
-                17548)
-
         # Convert to float infinity
         from sage.rings.infinity import infinity
         if max_slope == infinity:

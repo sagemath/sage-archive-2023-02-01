@@ -4527,7 +4527,8 @@ class Partitions(UniqueRepresentation, Parent):
       be contained inside the partition `p`.
 
     - ``min_slope=k`` specifies that the partitions have slope at least
-      `k`; the slope is the difference between successive parts.
+      `k`; the slope at position `i` is the difference between the
+      `(i+1)`-th part and the `i`-th part.
 
     - ``parts_in=S`` specifies that the partitions have parts in the set
       `S`, which can be any sequence of pairwise distinct positive
@@ -4803,6 +4804,9 @@ class Partitions(UniqueRepresentation, Parent):
 
             # max_slope is at most 0, and it is 0 by default
             kwargs['max_slope'] = min(0,kwargs.get('max_slope',0))
+
+            if kwargs['min_slope'] > 0:
+                raise ValueError("the minimum slope must be non-negative")
 
             if 'outer' in kwargs:
                 if 'max_length' in kwargs:

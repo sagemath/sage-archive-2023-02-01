@@ -2025,9 +2025,7 @@ cdef class RealBall(RingElement):
         Return the square root of this ball, assuming that it represents a
         nonnegative number.
 
-        Any negative numbers in the input interval are discarded, and the
-        output ball does not contain any negative numbers (unless the radius is
-        infinite).
+        Any negative numbers in the input interval are discarded.
 
         EXAMPLES::
 

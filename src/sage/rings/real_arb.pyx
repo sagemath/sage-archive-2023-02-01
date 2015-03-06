@@ -242,6 +242,29 @@ class RealBallField(UniqueRepresentation, Parent):
         sage: from sage.rings.real_arb import RBF
         sage: (1/2*RBF(1)) + AA(sqrt(2)) - 1 + polygen(QQ, x)
         x + [0.914213562373095 +/- 4.10e-16]
+
+    TESTS::
+
+        sage: RBF.bracket(RBF(1/2), RBF(1/3))
+        [+/- 5.56e-17]
+        sage: RBF.cardinality()
+        +Infinity
+        sage: RBF.cartesian_product(QQ).an_element()**2
+        ([1.440000000000000 +/- 4.98e-16], 1/4)
+        sage: RBF.coerce_embedding() is None
+        True
+        sage: loads(dumps(RBF)) is RBF
+        True
+        sage: RBF['x'].gens_dict_recursive()
+        {'x': x}
+        sage: RBF.is_finite()
+        False
+        sage: RBF.is_zero()
+        False
+        sage: RBF.one()
+        1.000000000000000
+        sage: RBF.zero()
+        0
     """
     Element = RealBall
 
@@ -383,11 +406,37 @@ class RealBallField(UniqueRepresentation, Parent):
         r"""
         EXAMPLE::
 
-            sage: from sage.rings.real_arb import RealBallField # optional - arb
-            sage: RealBallField().gens()
+            sage: from sage.rings.real_arb import RBF # optional - arb
+            sage: RBF.gens()
             (1.000000000000000,)
+            sage: RBF.gens_dict()
+            {'1.000000000000000': 1.000000000000000}
         """
         return (self.one(),)
+
+    def base(self):
+        """
+        Real ball fields are their own base.
+
+        EXAMPLE::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF.base()
+            Real ball field with 53 bits precision
+        """
+        return self
+
+    def base_ring(self):
+        """
+        Real ball fields are their own base ring.
+
+        EXAMPLE::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF.base_ring()
+            Real ball field with 53 bits precision
+        """
+        return self
 
     def construction(self):
         """
@@ -445,6 +494,27 @@ class RealBallField(UniqueRepresentation, Parent):
             0
         """
         return 0
+
+    def some_elements(self):
+        """
+        Real ball fields contain exact balls, inexact balls, infinities, and
+        more.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF.some_elements()
+            [1.000000000000000,
+            [0.3333333333333333 +/- 7.04e-17],
+            [-4.733045976388941e+363922934236666733021124 +/- 3.46e+363922934236666733021108],
+            [+/- inf],
+            [+/- inf],
+            nan]
+        """
+        return [self(1), self(1)/3,
+                -self(2)**(sage.rings.integer.Integer(2)**80),
+                self(sage.rings.infinity.Infinity), ~self(0),
+                self.element_class(self, sage.symbolic.constants.NotANumber())]
 
     # Ball functions of non-ball arguments
 
@@ -930,7 +1000,6 @@ cdef class RealBall(RingElement):
                 mag_clear(tmpm)
             else:
                 raise TypeError("rad should be a Python float")
-
 
     cdef RealBall _new(self):
         """

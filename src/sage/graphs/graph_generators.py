@@ -1044,15 +1044,29 @@ class GraphGenerators():
 
             while zeroCount < order:
                 c = code_input.read(1)
-                if ord(c)==0:
+                if ord(c) == 0:
                     zeroCount += 1
                 else:
                     g[zeroCount].append(ord(c))
 
-            #construct graph based on g
-            g = {i+1:di for i,di in enumerate(g)}
-            G = graph.Graph(g)
-            G.set_embedding(g)
+            # construct graph based on g
+
+            # first taking care that every edge is given twice
+            edges_g = {i + 1: [j for j in di if j < i + 1]
+                       for i, di in enumerate(g)}
+
+            # then adding half of the loops (if any)
+            has_loops = False
+            for i, di in enumerate(g):
+                Ni = di.count(i + 1)
+                if Ni > 1:
+                    edges_g[i + 1] += [i + 1] * (Ni / 2)
+                    has_loops = True
+            G = graph.Graph(edges_g, loops=has_loops)
+
+            if not(G.has_multiple_edges()):
+                embed_g = {i + 1: di for i, di in enumerate(g)}
+                G.set_embedding(embed_g)
             yield(G)
 
     def fullerenes(self, order, ipr=False):
@@ -1331,7 +1345,7 @@ class GraphGenerators():
 
             sage: gen = graphs.planar_graphs(4, dual=True)  # optional plantri
             sage: [len(u) for u in list(gen)]  # optional plantri
-            ?
+            [4, 3, 2, 2, 1, 1]
 
         The cycle of length 4 is the only 2-connected bipartite planar graph
         on 4 vertices::

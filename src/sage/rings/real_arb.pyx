@@ -147,7 +147,7 @@ cimport sage.structure.element
 
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.arf cimport arf_t, arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set
-from sage.libs.arb.arf cimport arf_equal, arf_is_nan, arf_is_neg_inf, arf_is_pos_inf
+from sage.libs.arb.arf cimport arf_equal, arf_is_nan, arf_is_neg_inf, arf_is_pos_inf, arf_get_mag
 from sage.libs.arb.mag cimport mag_t, mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
 from sage.libs.flint.flint cimport flint_free
 from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
@@ -871,9 +871,10 @@ cdef class RealBall(RingElement):
         - ``mid`` (optional) --  ball midpoint, see examples below. If omitted,
           initialize the ball to zero, ignoring the ``rad`` argument.
 
-        - ``rad`` (optional) -- a :class:`RealDoubleElement`, ball radius. If
-          the midpoint is not exactly representable in floating-point, the
-          radius is adjusted to account for the roundoff error.
+        - ``rad`` (optional) -- a :class:`RealNumber` or a Python float, ball
+          radius. If the midpoint is not exactly representable in
+          floating-point, the radius is adjusted to account for the roundoff
+          error.
 
         EXAMPLES::
 
@@ -896,7 +897,7 @@ cdef class RealBall(RingElement):
 
         ::
 
-            sage: RBF(3, 0.125r)
+            sage: RBF(3, 0.125)
             [3e+0 +/- 0.126]
             sage: RBF(pi, 0.125r)
             [3e+0 +/- 0.267]
@@ -1018,13 +1019,18 @@ cdef class RealBall(RingElement):
             raise TypeError("unsupported midpoint type")
 
         if rad is not None:
-            if isinstance(rad, float):
-                mag_init(tmpm)
+            mag_init(tmpm)
+            if isinstance(rad, RealNumber):
+                arf_init(tmpr)
+                arf_set_mpfr(tmpr, (<RealNumber> rad).value)
+                arf_get_mag(tmpm, tmpr)
+                arf_clear(tmpr)
+            elif isinstance(rad, float):
                 mag_set_d(tmpm, PyFloat_AS_DOUBLE(rad))
-                mag_add(arb_radref(self.value), arb_radref(self.value), tmpm)
-                mag_clear(tmpm)
             else:
-                raise TypeError("rad should be a Python float")
+                raise TypeError("rad should be a RealNumber or a Python float")
+            mag_add(arb_radref(self.value), arb_radref(self.value), tmpm)
+            mag_clear(tmpm)
 
     cdef RealBall _new(self):
         """

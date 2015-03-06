@@ -2599,4 +2599,6 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    # TODO: once CBF is there, also wrap functions that only exist in acb*
+
 RBF = RealBallField()

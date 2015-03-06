@@ -9,6 +9,7 @@ Indexed Generators
 #*****************************************************************************
 
 from sage.rings.all import Integer
+from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 
 class IndexedGenerators(object):
     r"""
@@ -74,6 +75,9 @@ class IndexedGenerators(object):
     - ``generator_cmp`` -- a comparison function (default: ``cmp``),
       to use for sorting elements in the output of elements
 
+    - ``string_quotes`` -- bool (default: ``True``), if ``True`` then
+      display string indices with quotes
+
     .. NOTE::
 
         These print options may also be accessed and modified using the
@@ -130,7 +134,8 @@ class IndexedGenerators(object):
                                'scalar_mult': "*",
                                'latex_scalar_mult': None,
                                'tensor_symbol': None,
-                               'generator_cmp': cmp}
+                               'generator_cmp': cmp,
+                               'string_quotes': True}
         # 'bracket': its default value here is None, meaning that
         # the value of self._repr_option_bracket is used; the default
         # value of that attribute is True -- see immediately before
@@ -186,8 +191,9 @@ class IndexedGenerators(object):
         - ``latex_scalar_mult``
         - ``tensor_symbol``
         - ``generator_cmp``
+        - ``string_quotes``
 
-        See the documentation for :class:`CombinatorialFreeModule` for
+        See the documentation for :class:`IndexedGenerators` for
         descriptions of the effects of setting each of these options.
 
         OUTPUT: if the user provides any input, set the appropriate
@@ -209,7 +215,8 @@ class IndexedGenerators(object):
             [('bracket', '('), ('generator_cmp', <built-in function cmp>),
              ('latex_bracket', False), ('latex_prefix', None),
              ('latex_scalar_mult', None), ('prefix', 'x'),
-             ('scalar_mult', '*'), ('tensor_symbol', None)]
+             ('scalar_mult', '*'), ('string_quotes', True),
+             ('tensor_symbol', None)]
             sage: F.print_options(bracket='[') # reset
         """
         # don't just use kwds.get(...) because I want to distinguish
@@ -217,11 +224,7 @@ class IndexedGenerators(object):
         # being there altogether.
         if kwds:
             for option in kwds:
-                # TODO: make this into a set and put it in a global variable?
-                if option in ['prefix', 'latex_prefix', 'bracket', 'latex_bracket',
-                              'scalar_mult', 'latex_scalar_mult', 'tensor_symbol',
-                              'generator_cmp'
-                             ]:
+                if option in self._print_options:
                     self._print_options[option] = kwds[option]
                 else:
                     raise ValueError('{} is not a valid print option.'.format(option))
@@ -262,6 +265,9 @@ class IndexedGenerators(object):
             sage: e = F.basis()
             sage: e['a'] + 2*e['b']    # indirect doctest
             F['a'] + 2*F['b']
+            sage: F.print_options(string_quotes=False)
+            sage: e['a'] + 2*e['b']
+            F[a] + 2*F[b]
 
             sage: QS3 = CombinatorialFreeModule(QQ, Permutations(3), prefix="")
             sage: original_print_options = QS3.print_options()
@@ -309,6 +315,9 @@ class IndexedGenerators(object):
         else:
             left = bracket
             right = bracket
+        quotes = self._print_options.get('string_quotes', True)
+        if not quotes and isinstance(m, str):
+            return self.prefix() + left + m + right
         return self.prefix() + left + repr(m) + right # mind the (m), to accept a tuple for m
 
     def _ascii_art_generator(self, m):
@@ -433,4 +442,114 @@ class IndexedGenerators(object):
         if prefix == "":
             return left + s + right
         return "%s_{%s}" % (prefix, s)
+
+def split_index_keywords(kwds):
+    """
+    Split the dictionary ``kwds`` into two dictionaries, one containing
+    keywords for :class:`IndexedGenerators`, and the other is everything else.
+
+    OUTPUT:
+
+    The dictionary containing only they keywords
+    for :class:`IndexedGenerators`. This modifies the dictionary ``kwds``.
+
+    .. WARNING::
+
+        This modifies the input dictionary ``kwds``.
+
+    EXAMPLES::
+
+        sage: from sage.structure.indexed_generators import split_index_keywords
+        sage: d = {'string_quotes': False, 'bracket': None, 'base': QQ}
+        sage: split_index_keywords(d)
+        {'string_quotes': False, 'bracket': None}
+        sage: d
+        {'base': Rational Field}
+    """
+    ret = {}
+    for option in ['prefix', 'latex_prefix', 'bracket', 'latex_bracket',
+                   'scalar_mult', 'latex_scalar_mult', 'tensor_symbol',
+                   'generator_cmp', 'string_quotes']:
+        try:
+            ret[option] = kwds.pop(option)
+        except KeyError:
+            pass
+    return ret
+
+def parse_indices_names(indices, names, prefix, kwds={}):
+    """
+    Parse the indices, names, and prefix input, along with setting
+    default values for keyword arguments ``kwds``.
+
+    OUTPUT:
+
+    The triple ``(I, N, p)`` where ``I`` is the indexing set, ``N`` is the
+    tuple of variable names, and ``p`` is the prefix. This modifies
+    the dictionary ``kwds``.
+
+    .. NOTE::
+
+        When the indices, names, or prefix have not been given, it
+        should be passed to this function as ``None``.
+
+    .. NOTE::
+
+        For handling default prefixes, if the result will be ``None`` if
+        it is not processed in this function.
+
+    EXAMPLES::
+
+        sage: from sage.structure.indexed_generators import parse_indices_names
+        sage: d = {}
+        sage: parse_indices_names(ZZ, 'x,y,z', None, d)
+        (Integer Ring, 'x,y,z', None)
+        sage: d
+        {}
+        sage: d = {}
+        sage: parse_indices_names(None, 'x,y,z', None, d)
+        ({'x', 'y', 'z'}, ('x', 'y', 'z'), '')
+        sage: d
+        {'string_quotes': False, 'bracket': False}
+        sage: d = {}
+        sage: parse_indices_names(ZZ, None, None, d)
+        (Integer Ring, None, None)
+        sage: d
+        {}
+
+    ::
+
+        sage: d = {'string_quotes':True, 'bracket':'['}
+        sage: parse_indices_names(ZZ, ['x','y','z'], 'x', d)
+        (Integer Ring, ['x', 'y', 'z'], 'x')
+        sage: d
+        {'string_quotes': True, 'bracket': '['}
+        sage: parse_indices_names(None, 'x,y,z', 'A', d)
+        ({'x', 'y', 'z'}, ('x', 'y', 'z'), 'A')
+        sage: d
+        {'string_quotes': True, 'bracket': '['}
+    """
+    if indices is None:
+        if names is None:
+            raise ValueError("either the indices or names must be given")
+        if isinstance(names, str):
+            names = names.split(',')
+        names = tuple(names)
+        indices = names
+
+        if prefix is None:
+            prefix =''
+        if 'string_quotes' not in kwds:
+            kwds['string_quotes'] = False
+        if 'bracket' not in kwds:
+            kwds['bracket'] = False
+
+    if isinstance(indices, dict): # dict of {name: index} -- not likely to be used
+        names = indices.keys()
+        indices = FiniteEnumeratedSet([indices[n] for n in names])
+    elif isinstance(indices, str):
+        indices = FiniteEnumeratedSet(list(indices))
+    elif isinstance(indices, (list, tuple, set, frozenset)):
+        indices = FiniteEnumeratedSet(indices)
+
+    return (indices, names, prefix)
 

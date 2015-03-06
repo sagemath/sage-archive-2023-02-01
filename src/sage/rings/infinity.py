@@ -1170,6 +1170,9 @@ class InfinityRing_class(_uniq, Ring):
         from sage.rings.real_mpfi import RealIntervalField_class
         if isinstance(R, RealIntervalField_class):
             return True
+        from sage.rings.real_arb import RealBallField
+        if isinstance(R, RealBallField):
+            return True
         return False
 
 

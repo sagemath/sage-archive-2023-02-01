@@ -85,6 +85,31 @@ A ball ``left`` is less than a ball ``right`` if all elements of
     sage: a >= b # optional - arb
     False
 
+Comparisons with Sage symbolic infinities work with some limitations::
+
+    sage: -infinity < RBF(1) < +infinity
+    True
+    sage: -infinity < RBF(infinity)
+    True
+    sage: RBF(infinity) < infinity
+    False
+    sage: RBF(NaN) < infinity
+    Traceback (most recent call last):
+    ...
+    ValueError: infinite but not with +/- phase
+    sage: 1/RBF(0) <= infinity
+    Traceback (most recent call last):
+    ...
+    ValueError: infinite but not with +/- phase
+
+Comparisons between elements of real ball fields, however, support special
+values and should be preferred::
+
+    sage: RBF(NaN) < RBF(infinity)
+    False
+    sage: 1/RBF(0) <= RBF(infinity)
+    True
+
 TESTS::
 
     sage: from sage.rings.real_arb import RBF
@@ -1780,6 +1805,63 @@ cdef class RealBall(RingElement):
             False
         """
         return self.contains_exact(self._parent(other))
+
+    def is_negative_infinity(self):
+        """
+        Return ``True`` if this ball is the point -∞.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(-infinity).is_negative_infinity()
+            True
+        """
+        return (arf_is_neg_inf(arb_midref(self.value))
+                and mag_is_finite(arb_radref(self.value)))
+
+    def is_positive_infinity(self):
+        """
+        Return ``True`` if this ball is the point +∞.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(infinity).is_positive_infinity()
+            True
+        """
+        return (arf_is_pos_inf(arb_midref(self.value))
+                and mag_is_finite(arb_radref(self.value)))
+
+    def is_infinity(self):
+        """
+        Return ``True`` if this ball contains or may represent a point at
+        infinity.
+
+        This is the exact negation of :meth:`is_finite`, used in comparisons
+        with Sage symbolic infinities.
+
+        .. WARNING::
+
+            Contrary to the usual convention, a return value of True does
+            not imply that all points of the ball satisfy the predicate.
+            This is due to the way comparisons with symbolic infinities work in
+            sage.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(infinity).is_infinity()
+            True
+            sage: RBF(-infinity).is_infinity()
+            True
+            sage: RBF(NaN).is_infinity()
+            True
+            sage: (~RBF(0)).is_infinity()
+            True
+            sage: RBF(42, rad=1.r).is_infinity()
+            False
+        """
+        return not self.is_finite()
 
     # Arithmetic
 

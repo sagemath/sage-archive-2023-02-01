@@ -448,6 +448,98 @@ class RealBallField(UniqueRepresentation, Parent):
 
     # Ball functions of non-ball arguments
 
+    def sinpi(self, x):
+        """
+        Return a ball enclosing sin(πx).
+
+        This works even if ``x`` itself is not a ball, and may be faster or
+        more accurate where ``x`` is a rational number.
+
+        .. seealso: :meth`~sage.rings.real_arb.RealBall.sin`
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF.sinpi(1)
+            0
+            sage: RBF.sinpi(1/3)
+            [0.866025403784439 +/- 5.15e-16]
+            sage: RBF.sinpi(1 + 2^(-100))
+            [-2.478279624546525e-30 +/- 5.92e-46]
+
+        TESTS::
+
+            sage: RBF.sinpi(RLF(sqrt(2)))
+            [-0.96390253284988 +/- 4.11e-15]
+        """
+        cdef RealBall res, x_as_ball
+        cdef sage.rings.rational.Rational x_as_Rational
+        cdef fmpq_t tmpq
+        res = self.element_class(self)
+        try:
+            x_as_Rational = QQ.coerce(x)
+            try:
+                if _do_sig(self._prec): sig_on()
+                fmpq_init(tmpq)
+                fmpq_set_mpq(tmpq, x_as_Rational.value)
+                arb_sin_pi_fmpq(res.value, tmpq, self._prec)
+                if _do_sig(self._prec): sig_off()
+            finally:
+                fmpq_clear(tmpq)
+            return res
+        except TypeError:
+            pass
+        x_as_ball = self.coerce(x)
+        if _do_sig(self._prec): sig_on()
+        arb_sin_pi(res.value, x_as_ball.value, self._prec)
+        if _do_sig(self._prec): sig_off()
+        return res
+
+    def cospi(self, x):
+        """
+        Return a ball enclosing cos(πx).
+
+        This works even if ``x`` itself is not a ball, and may be faster or
+        more accurate where ``x`` is a rational number.
+
+        .. seealso: :meth`~sage.rings.real_arb.RealBall.cos`
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF.cospi(1)
+            -1.000000000000000
+            sage: RBF.cospi(1/3)
+            0.5000000000000000
+
+        TESTS::
+
+            sage: RBF.cospi(RLF(sqrt(2)))
+            [-0.26625534204142 +/- 5.38e-15]
+        """
+        cdef RealBall res, x_as_ball
+        cdef sage.rings.rational.Rational x_as_Rational
+        cdef fmpq_t tmpq
+        res = self.element_class(self)
+        try:
+            x_as_Rational = QQ.coerce(x)
+            try:
+                if _do_sig(self._prec): sig_on()
+                fmpq_init(tmpq)
+                fmpq_set_mpq(tmpq, x_as_Rational.value)
+                arb_cos_pi_fmpq(res.value, tmpq, self._prec)
+                if _do_sig(self._prec): sig_off()
+            finally:
+                fmpq_clear(tmpq)
+            return res
+        except TypeError:
+            pass
+        x_as_ball = self.coerce(x)
+        if _do_sig(self._prec): sig_on()
+        arb_cos_pi(res.value, x_as_ball.value, self._prec)
+        if _do_sig(self._prec): sig_off()
+        return res
+
     def gamma(self, x):
         """
         Return a ball enclosing the gamma function of ``x``.
@@ -578,11 +670,44 @@ class RealBallField(UniqueRepresentation, Parent):
             arb_bernoulli_ui(res.value, mpz_get_ui(n_as_Integer.value), self._prec)
             if _do_sig(self._prec): sig_off()
             return res
-        elif n < 0:
+        elif n_as_Integer < 0:
             raise ValueError("expected a nonnegative index")
         else:
             # TODO: Fall back to a Sage implementation in this case?
             raise ValueError("argument too large")
+
+    def fibonacci(self, n):
+        """
+        Return a ball enclosing the ``n``-th Fibonacci number.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: [RBF.fibonacci(n) for n in xrange(7)]
+            [0,
+            1.000000000000000,
+            1.000000000000000,
+            2.000000000000000,
+            3.000000000000000,
+            5.000000000000000,
+            8.000000000000000]
+            sage: RBF.fibonacci(-2)
+            -1.000000000000000
+            sage: RBF.fibonacci(10**20)
+            [3.78202087472056e+20898764024997873376 +/- 4.01e+20898764024997873361]
+        """
+        cdef fmpz_t tmpz
+        cdef RealBall res = self.element_class(self)
+        cdef sage.rings.integer.Integer n_as_Integer = ZZ.coerce(n)
+        try:
+            if _do_sig(self._prec): sig_on()
+            fmpz_init(tmpz)
+            fmpz_set_mpz(tmpz, n_as_Integer.value)
+            arb_fib_fmpz(res.value, tmpz, self._prec)
+            if _do_sig(self._prec): sig_off()
+        finally:
+            fmpz_clear(tmpz)
+        return res
 
 
 cdef inline bint _do_sig(long prec):
@@ -1923,6 +2048,8 @@ cdef class RealBall(RingElement):
         """
         Return the sine of this ball.
 
+        .. seealso: :meth`~sage.rings.real_arb.RealBallField.sinpi`
+
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
@@ -1938,6 +2065,8 @@ cdef class RealBall(RingElement):
     def cos(self):
         """
         Return the cosine of this ball.
+
+        .. seealso: :meth`~sage.rings.real_arb.RealBallField.cospi`
 
         EXAMPLES::
 
@@ -2312,6 +2441,92 @@ cdef class RealBall(RingElement):
         s_as_ball = self._parent.coerce(s)
         if _do_sig(prec(self)): sig_on()
         arb_polylog(res.value, s_as_ball.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def chebyshev_T(self, n):
+        """
+        Evaluates the Chebyshev polynomial of the first kind ``T_n`` at this
+        ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(pi).chebyshev_T(0)
+            1.000000000000000
+            sage: RBF(pi).chebyshev_T(1) # abs tol 1e-16
+            [3.141592653589793 +/- 5.62e-16]
+            sage: RBF(pi).chebyshev_T(10**20)
+            Traceback (most recent call last):
+            ...
+            ValueError: index too large
+            sage: RBF(pi).chebyshev_T(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: expected a nonnegative index
+        """
+        cdef RealBall res = self._new()
+        cdef sage.rings.integer.Integer n_as_Integer = ZZ.coerce(n)
+        if mpz_fits_ulong_p(n_as_Integer.value):
+            if _do_sig(prec(self)): sig_on()
+            arb_chebyshev_t_ui(res.value, mpz_get_ui(n_as_Integer.value), self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
+            return res
+        elif n_as_Integer < 0:
+            raise ValueError("expected a nonnegative index")
+        else:
+            raise ValueError("index too large")
+
+    def chebyshev_U(self, n):
+        """
+        Evaluates the Chebyshev polynomial of the second kind ``U_n`` at this
+        ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(pi).chebyshev_U(0)
+            1.000000000000000
+            sage: RBF(pi).chebyshev_U(1)
+            [6.28318530717959 +/- 4.66e-15]
+            sage: RBF(pi).chebyshev_U(10**20)
+            Traceback (most recent call last):
+            ...
+            ValueError: index too large
+            sage: RBF(pi).chebyshev_U(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: expected a nonnegative index
+        """
+        cdef RealBall res = self._new()
+        cdef sage.rings.integer.Integer n_as_Integer = ZZ.coerce(n)
+        if mpz_fits_ulong_p(n_as_Integer.value):
+            if _do_sig(prec(self)): sig_on()
+            arb_chebyshev_u_ui(res.value, mpz_get_ui(n_as_Integer.value), self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
+            return res
+        elif n_as_Integer < 0:
+            raise ValueError("expected a nonnegative index")
+        else:
+            raise ValueError("index too large")
+
+    def agm(self, other):
+        """
+        Return the arithmetic-geometric mean of ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1).agm(1)
+            1.000000000000000
+            sage: RBF(sqrt(2)).agm(1)^(-1)
+            [0.83462684167407 +/- 4.31e-15]
+        """
+        cdef RealBall other_as_ball
+        cdef RealBall res = self._new()
+        other_as_ball = self._parent.coerce(other)
+        if _do_sig(prec(self)): sig_on()
+        arb_agm(res.value, self.value, other_as_ball.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
 

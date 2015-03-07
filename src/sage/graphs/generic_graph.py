@@ -7989,9 +7989,14 @@ class GenericGraph(GenericGraph_pyx):
 
         # For any vertex v, one of its neighbors or v itself is in
         # the minimum dominating set
-        for v in g.vertices():
-            p.add_constraint(int(not total)*b[v]+p.sum([b[u] for u in g.neighbors(v)]),min=1)
-
+        # for v in g.vertices():
+        #     p.add_constraint(int(not total)*b[v]+p.sum([b[u] for u in g.neighbors(v)]),min=1)
+        if isinstance(g,sage.graphs.digraph.DiGraph):
+            for v in g.vertices():
+                p.add_constraint(int(not total)*b[v]+p.sum([b[u] for u in g.neighbors_in(v)]),min=1)
+        else:
+            for v in g.vertices():
+                p.add_constraint(int(not total)*b[v]+p.sum([b[u] for u in g.neighbors(v)]),min=1)
 
         if independent:
             # no two adjacent vertices are in the set

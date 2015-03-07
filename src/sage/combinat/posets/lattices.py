@@ -784,6 +784,13 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             True
             sage: L.is_modular()
             False
+
+            sage: L = LatticePoset({0: [1, 2, 3, 4], 1: [5, 6, 7],
+            ....:                   2: [5, 8, 9], 3: [6, 8, 10], 4: [7, 9, 10],
+            ....:                   5: [11], 6: [11], 7: [11], 8: [11],
+            ....:                   9: [11], 10: [11]})
+            sage: L.is_supersolvable()
+            False
         """
         if not self.is_ranked():
             return False
@@ -791,24 +798,24 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         H = self._hasse_diagram
         height = self.height()
         n = H.order()
-        cur = H.minimal_elements()[0]
-        next = [H.neighbor_out_iterator(cur)]
+        cur = H.maximal_elements()[0]
+        next = [H.neighbor_in_iterator(cur)]
         is_modular = lambda a: all(H._rank[a] + H._rank[b] ==
                                    H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
                                    for b in range(n))
 
         if not is_modular(cur):
             return False
-        while next <= height:
+        while len(next) < height:
             try:
                 cur = next[-1].next()
             except StopIteration:
+                next.pop()
                 if not next:
                     return False
-                next.pop()
                 continue
             if is_modular(cur):
-                next.append(H.neighbor_out_iterator(cur))
+                next.append(H.neighbor_in_iterator(cur))
         return True
 
 ####################################################################################

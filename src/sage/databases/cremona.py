@@ -104,7 +104,7 @@ def build(name, data_tgz, largest_conductor=0, mini=False, decompress=True):
     Build the CremonaDatabase with given name from scratch
     using the data_tgz tarball.
 
-    ... note::
+    .. note::
 
            For data up to level 350000, this function takes about
            3m40s.  The resulting database occupies 426MB disk space.

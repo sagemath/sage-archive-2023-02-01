@@ -1123,4 +1123,31 @@ class IntegerListsLex(Parent):
             return is_a(v, *(self.build_args())) and sum(v) in self.n_range
         return False
 
+class IntegerListsLexPublic(IntegerListsLex):
+    def __init__(self,
+                 n,
+                 length = None, min_length=0, max_length=float('+inf'),
+                 floor=None, ceiling = None,
+                 min_part = 0, max_part = float('+inf'),
+                 min_slope=float('-inf'), max_slope=float('+inf'),
+                 name = None,
+                 element_constructor = None,
+                 element_class = None,
+                 global_options = None):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: C = IntegerListsLex(2, length=3)
+        """
+        from sage.misc.stopgap import stopgap
+        stopgap("IntegerListsLex does not allow for arbitrary input;"
+                " non-allowed input can return wrong results,"
+                " please see the documentation for IntegerListsLex for details.",
+                17548)
+        IntegerListsLex.__init__(self, n, length, min_length, max_length,
+                                 floor, ceiling, min_part, max_part,
+                                 min_slope, max_slope, name, element_constructor,
+                                 element_class, global_options)
 

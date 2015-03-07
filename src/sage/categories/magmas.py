@@ -223,7 +223,7 @@ class Magmas(Category_singleton):
             endowed with a distinguished finite set of
             (multiplicative) magma generators.
 
-            EXAMPLES::
+            EXAMPLES:
 
             This is a shorthand for :meth:`FinitelyGeneratedAsMagma`,
             which see::

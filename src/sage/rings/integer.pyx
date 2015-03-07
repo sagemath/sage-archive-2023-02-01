@@ -874,7 +874,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: all([(a > b) == (RR(a) > RR(b)) for (a, b) in zip(Ilist, flist)])
             True
 
-        Verify that trac 12149 was fixed (and the fix is consistent
+        Verify that :trac:`12149` was fixed (and the fix is consistent
         with Python ints)::
 
             sage: a = int(1); b = 1; n = float('nan')
@@ -1593,6 +1593,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Fast path for adding a C long.
 
         TESTS::
+
             sage: int(10) + Integer(100)
             110
             sage: Integer(100) + int(10)
@@ -2892,7 +2893,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: [int(a) % b for a,b in signs] == control
             True
 
-        This example caused trouble in trac #6083::
+        This example caused trouble in :trac:`6083`::
 
             sage: a = next_prime(2**31)
             sage: b = Integers(a)(100)
@@ -2979,7 +2980,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         TESTS:
 
         The divisor can be rational as well, although the remainder
-        will always be zero (trac #7965)::
+        will always be zero (:trac:`7965`)::
 
             sage: 5.quo_rem(QQ(2))
             (5/2, 0)

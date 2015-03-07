@@ -698,7 +698,7 @@ def prime_powers(start, stop=None):
         sage: prime_powers(-1,3)
         [2]
 
-    TESTS::
+    TESTS:
 
     Check that output are always Sage integers (:trac:`922`)::
 
@@ -1475,7 +1475,7 @@ def gcd(a, b=None, **kwargs):
     TESTS:
 
     The following shows that indeed coercion takes place before computing
-    the gcd. This behaviour was introduced in trac ticket #10771::
+    the gcd. This behaviour was introduced in :trac:`10771`::
 
         sage: R.<x>=QQ[]
         sage: S.<x>=ZZ[]
@@ -1616,8 +1616,7 @@ def lcm(a, b=None):
 
     TESTS:
 
-    The following tests against a bug that was fixed in trac
-    ticket #10771::
+    The following tests against a bug that was fixed in :trac:`10771`::
 
         sage: lcm(4/1,2)
         4
@@ -3575,7 +3574,7 @@ def primitive_root(n, check=True):
         3
 
     We test that various numbers without primitive roots give
-    an error - see Trac 10836::
+    an error - see :trac:`10836`::
 
         sage: primitive_root(15)
         Traceback (most recent call last):

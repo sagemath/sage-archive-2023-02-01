@@ -795,6 +795,13 @@ class MiniCremonaDatabase(SQLDatabase):
             0
             sage: d['torsion_order']
             2
+
+        Check that :trac:`17904` is fixed::
+
+            sage: 'gens' in CremonaDatabase().coefficients_and_data('100467a2')[1] # optional - database_cremona_ellcurve
+            True
+
+
         """
         # There are two possible strings: the Cremona label and the LMFDB label.
         # They are distinguished by the presence of a period.
@@ -858,6 +865,12 @@ class MiniCremonaDatabase(SQLDatabase):
             1
             sage: d['torsion_order']
             2
+
+        Check that :trac:`17904` is fixed::
+
+            sage: ai = EllipticCurve('100467a2').ainvs() # optional - database_cremona_ellcurve
+            sage: 'gens' in CremonaDatabase().data_from_coefficients(ai) # optional - database_cremona_ellcurve
+            True
         """
         ainvs = str(list(ainvs))
         if self.get_skeleton() == _miniCremonaSkeleton:
@@ -1394,8 +1407,9 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
 
         sage: c = CremonaDatabase('cremona')  # optional - database_cremona_ellcurve
         sage: c.allcurves(11)                 # optional - database_cremona_ellcurve
-        {'a1': [[0, -1, 1, -10, -20], 0, 5], 'a3': [[0, -1, 1, 0, 0], 0, 5],
-         'a2': [[0, -1, 1, -7820, -263580], 0, 1]}
+        {'a1': [[0, -1, 1, -10, -20], 0, 5],
+        'a2': [[0, -1, 1, -7820, -263580], 0, 1],
+        'a3': [[0, -1, 1, 0, 0], 0, 5]}
     """
     def __init__(self, name, read_only=True, build=False):
         """

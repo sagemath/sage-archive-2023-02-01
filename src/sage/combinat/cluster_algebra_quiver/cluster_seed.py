@@ -2040,7 +2040,7 @@ class ClusterSeed(SageObject):
     def oriented_exchange_graph(self):
         """
         Return the oriented exchange graph of ``self`` as a directed
-        graph
+        graph.
 
         The seed must be a cluster seed for a cluster algebra of
         finite type with principal coefficients (the corresponding
@@ -2080,23 +2080,24 @@ class ClusterSeed(SageObject):
         if not self._is_principal:
             raise TypeError('only works for principal coefficients')
 
-        mut_class = self.mutation_class()
         covers = []
-
         n = self.n()
-        pairs = [(i, j) for i in mut_class for j in mut_class if i != j]
-        for (i, j) in pairs:
+        stack = [self]
+        known_clusters = {}
+        while stack:
+            i = stack.pop()
             B = i.b_matrix()
             for k in range(n):
-                count = len([i2 for i2 in range(n, 2 * n) if B[i2][k] <= 0])
-                green = (count == n)
-                NewS1 = i.mutate(k, inplace=False)
-                Var1 = [NewS1.cluster_variable(k) for k in range(n)]
-                Var1.sort()
-                Var2 = [j.cluster_variable(k) for k in range(n)]
-                Var2.sort()
-                if Var1 == Var2 and green and (i, j) not in covers:
-                    covers.append((i, j))
+                # check if green
+                if all(B[i2][k] >= 0 for i2 in range(n, 2 * n)):
+                    j = i.mutate(k, inplace=False)
+                    Varj = tuple(sorted(j.cluster()))
+                    if Varj in known_clusters:
+                        covers.append((i, known_clusters[Varj]))
+                    else:
+                        covers.append((i, j))
+                        known_clusters[Varj] = j
+                        stack.append(j)
 
         return DiGraph(covers)
 

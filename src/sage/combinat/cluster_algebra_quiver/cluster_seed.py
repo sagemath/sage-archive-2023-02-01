@@ -30,7 +30,8 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.all import FractionField, PolynomialRing
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.sets.all import Set
-from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import  QuiverMutationType_Irreducible, QuiverMutationType_Reducible
+from sage.graphs.digraph import DiGraph
+from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType_Irreducible, QuiverMutationType_Reducible
 from sage.combinat.cluster_algebra_quiver.mutation_type import is_mutation_finite
 
 class ClusterSeed(SageObject):
@@ -2035,6 +2036,70 @@ class ClusterSeed(SageObject):
         else:
             raise ValueError("Greedy elements are only currently "
                              "defined for cluster seeds of rank two.")
+
+    def oriented_exchange_graph(self):
+        """
+        Return the oriented exchange graph of ``self`` as a directed
+        graph
+
+        The seed must be a cluster seed for a cluster algebra of
+        finite type with principal coefficients (the corresponding
+        quiver must have mutable vertices 0,1,...,n-1).
+
+        EXAMPLES::
+
+            sage: S = ClusterSeed(['A', 2]).principal_extension()
+            sage: G = S.oriented_exchange_graph(); G
+            Digraph on 5 vertices
+            sage: G.out_degree_sequence()
+            [2, 1, 1, 1, 0]
+
+            sage: S = ClusterSeed(['B', 2]).principal_extension()
+            sage: G = S.oriented_exchange_graph(); G
+            Digraph on 6 vertices
+            sage: G.out_degree_sequence()
+            [2, 1, 1, 1, 1, 0]
+
+        TESTS::
+
+            sage: S = ClusterSeed(['A',[2,2],1])
+            sage: S.oriented_exchange_graph()
+            Traceback (most recent call last):
+            ...
+            TypeError: only works for finite mutation type
+
+            sage: S = ClusterSeed(['A', 2])
+            sage: S.oriented_exchange_graph()
+            Traceback (most recent call last):
+            ...
+            TypeError: only works for principal coefficients
+        """
+        if not self._mutation_type.is_finite():
+            raise TypeError('only works for finite mutation type')
+
+        if not self._is_principal:
+            raise TypeError('only works for principal coefficients')
+
+        mut_class = self.mutation_class()
+        covers = []
+
+        n = self.n()
+        pairs = [(i, j) for i in mut_class for j in mut_class if i != j]
+        for (i, j) in pairs:
+            B = i.b_matrix()
+            for k in range(n):
+                count = len([i2 for i2 in range(n, 2 * n) if B[i2][k] <= 0])
+                green = (count == n)
+                NewS1 = i.mutate(k, inplace=False)
+                Var1 = [NewS1.cluster_variable(k) for k in range(n)]
+                Var1.sort()
+                Var2 = [j.cluster_variable(k) for k in range(n)]
+                Var2.sort()
+                if Var1 == Var2 and green and (i, j) not in covers:
+                    covers.append((i, j))
+
+        return DiGraph(covers)
+
 
 def _bino(n, k):
     """

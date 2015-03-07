@@ -605,8 +605,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def is_modular(self, L=None):
         r"""
-        Return ``True`` if either all of the elements ``L`` are modular and
-        ``False`` otherwise.
+        Return ``True`` if the lattice is modular and ``False`` otherwise.
+
+        Using the parameter ``L``, this can also be used to check that
+        some subset of elements are all modular.
 
         INPUT:
 
@@ -623,7 +625,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         for all `x \in L`. There are other equivalent definitions,
         see :wikipedia:`Modular_lattice`.
 
-        See also :meth:`is_upper_semimodular` and :meth:`is_lower_semimodular`.
+        .. SEEALSO::
+
+            :meth:`is_upper_semimodular`, :meth:`is_lower_semimodular`
+            and :meth:`is_modular_element`
 
         EXAMPLES::
 
@@ -655,15 +660,15 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         n = H.order()
         if L is None:
             return all(H._rank[a] + H._rank[b] ==
-                       H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
-                       for a in range(n) for b in range(a+1, n))
+                       H._rank[H._meet[a, b]] + H._rank[H._join[a, b]]
+                       for a in range(n) for b in range(a + 1, n))
 
         L = [self._element_to_vertex_dict[x] for x in L]
         return all(H._rank[a] + H._rank[b] ==
-                   H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
+                   H._rank[H._meet[a, b]] + H._rank[H._join[a, b]]
                    for a in L for b in range(n))
 
-    def is_modular_element(self, x=None):
+    def is_modular_element(self, x):
         r"""
         Return ``True`` if ``x`` is a modular element and ``False`` otherwise.
 
@@ -678,6 +683,19 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             x \vee (a \wedge b) = (x \vee a) \wedge b
 
         for every `a, b \in L`.
+
+        .. SEEALSO::
+
+            :meth:`is_modular` to check modularity for the full lattice or
+            some set of elements
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1:[2,3],2:[4,5],3:[5,6],4:[7],5:[7],6:[7]})
+            sage: L.is_modular()
+            False
+            sage: [L.is_modular_element(x) for x in L]
+            [True, True, False, True, True, False, True]
         """
         return self.is_modular([x])
 
@@ -690,6 +708,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         covered by `y` and `z`, both `y` and `z` are covered by their join.
 
         See also :meth:`is_modular` and :meth:`is_lower_semimodular`.
+
+        See :wikipedia:`Semimodular_lattice`
 
         EXAMPLES::
 
@@ -715,11 +735,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         if not self.is_ranked():
             return False
-        H=self._hasse_diagram
-        n=H.order()
+        H = self._hasse_diagram
+        n = H.order()
         return all(H._rank[a] + H._rank[b] >=
-                   H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
-                   for a in range(n) for b in range(a+1, n))
+                   H._rank[H._meet[a, b]] + H._rank[H._join[a, b]]
+                   for a in range(n) for b in range(a + 1, n))
 
     def is_lower_semimodular(self):
         r"""
@@ -730,6 +750,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         `y` and `z`, both `y` and `z` cover their meet.
 
         See also :meth:`is_modular` and :meth:`is_upper_semimodular`.
+
+        See :wikipedia:`Semimodular_lattice`
 
         EXAMPLES::
 
@@ -751,8 +773,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         if not self.is_ranked():
             return False
-        H=self._hasse_diagram
-        n=H.order()
+        H = self._hasse_diagram
+        n = H.order()
         return all(H._rank[a] + H._rank[b] <=
                    H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
                    for a in range(n) for b in range(a+1, n))
@@ -800,11 +822,14 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         n = H.order()
         cur = H.maximal_elements()[0]
         next = [H.neighbor_in_iterator(cur)]
-        is_modular = lambda a: all(H._rank[a] + H._rank[b] ==
-                                   H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
-                                   for b in range(n))
 
-        if not is_modular(cur):
+        # @cached_function
+        def is_modular_elt(a):
+            return all(H._rank[a] + H._rank[b] ==
+                       H._rank[H._meet[a, b]] + H._rank[H._join[a, b]]
+                       for b in range(n))
+
+        if not is_modular_elt(cur):
             return False
         while len(next) < height:
             try:
@@ -814,11 +839,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 if not next:
                     return False
                 continue
-            if is_modular(cur):
+            if is_modular_elt(cur):
                 next.append(H.neighbor_in_iterator(cur))
         return True
 
-####################################################################################
+############################################################################
 
 FiniteMeetSemilattice._dual_class = FiniteJoinSemilattice
 FiniteJoinSemilattice._dual_class = FiniteMeetSemilattice

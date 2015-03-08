@@ -4761,6 +4761,12 @@ class Partitions(UniqueRepresentation, Parent):
             sage: P2 = Partitions(int(4))
             sage: P is P2
             True
+
+        Check that :trac:`17898` is fixed::
+
+            sage: P = Partitions(5, min_slope=0)
+            sage: list(P)
+            [[5]]
         """
         if n == infinity:
             raise ValueError("n cannot be infinite")
@@ -4805,7 +4811,7 @@ class Partitions(UniqueRepresentation, Parent):
             # max_slope is at most 0, and it is 0 by default
             kwargs['max_slope'] = min(0,kwargs.get('max_slope',0))
 
-            if kwargs['min_slope'] > 0:
+            if kwargs.get('min_slope', -float('inf')) > 0:
                 raise ValueError("the minimum slope must be non-negative")
 
             if 'outer' in kwargs:

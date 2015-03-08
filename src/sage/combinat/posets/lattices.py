@@ -814,6 +814,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_supersolvable()
             False
         """
+        from sage.misc.cachefunc import cached_function
+
         if not self.is_ranked():
             return False
 
@@ -823,7 +825,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         cur = H.maximal_elements()[0]
         next = [H.neighbor_in_iterator(cur)]
 
-        # @cached_function
+        @cached_function
         def is_modular_elt(a):
             return all(H._rank[a] + H._rank[b] ==
                        H._rank[H._meet[a, b]] + H._rank[H._join[a, b]]

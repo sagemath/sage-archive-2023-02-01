@@ -1,11 +1,9 @@
 """
-Sage-Enhanced IPython Notebook
+Installing the Sage IPython Kernel
 
-.. note::
-
-    The customized Jinja2 templates for the IPython notebook are in
-    ``SAGE_LOCAL/share/sage/ext/ipython-notebook``. You may have to
-    update them as well when updating to a new IPython version.
+Kernels have to register themselves with IPython so that they appear
+in the IPython notebook's kernel drop-down. This is done by
+:class:`SageKernelSpec`.
 """
 
 import os
@@ -33,15 +31,28 @@ class SageKernelSpec(object):
 
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
             sage: spec = SageKernelSpec()
-            sage: spec._display_name    # not tested
+            sage: spec._display_name    # random output
             'Sage 6.6.beta2'
-            sage: spec._identifier      # not tested
-            'sage_6_6_beta2'
         """
         self._display_name = 'Sage {0}'.format(SAGE_VERSION)
 
     @classmethod
     def identifier(self):
+        """
+        Internal identifier for the Sage kernel
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_kernel.install import SageKernelSpec
+            sage: SageKernelSpec.identifier()    # random output
+            'sage_6_6_beta3'
+            sage: SageKernelSpec.identifier().startswith('sage_')
+            True
+        """
         return 'Sage {0}'.format(SAGE_VERSION).lower().replace(' ', '_').replace('.', '_')
         
     def symlink(self, src, dst):
@@ -70,12 +81,44 @@ class SageKernelSpec(object):
         os.symlink(src, dst)
         
     def use_local_mathjax(self):
+        """
+        Symlink Sage's Mathjax Install to the IPython notebook.
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_kernel.install import SageKernelSpec
+            sage: spec = SageKernelSpec()
+            sage: spec.use_local_mathjax()
+            sage: ipython_dir = os.environ['IPYTHONDIR']
+            sage: mathjax = os.path.join(ipython_dir, 'nbextensions', 'mathjax')
+            sage: os.path.exists(mathjax)
+            True
+        """
         ipython_dir = os.environ['IPYTHONDIR']
         src = os.path.join(SAGE_LOCAL, 'share', 'mathjax')
         dst = os.path.join(ipython_dir, 'nbextensions', 'mathjax')
         self.symlink(src, dst)
 
     def _kernel_cmd(self):
+        """
+        Helper to construct the Sage kernel command.
+        
+        OUTPUT:
+
+        List of strings. The command to start a new Sage kernel.
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_kernel.install import SageKernelSpec
+            sage: spec = SageKernelSpec()
+            sage: spec._kernel_cmd()
+            ['/.../sage',
+             '-python',
+             '-m',
+             'sage.repl.ipython_kernel',
+             '-f',
+             '{connection_file}']
+        """
         return [
             os.path.join(SAGE_ROOT, 'sage'),
             '-python',
@@ -86,18 +129,38 @@ class SageKernelSpec(object):
     def kernel_spec(self):
         """
         Return the kernel spec as Python dictionary
+
+        OUTPUT:
+
+        A dictionary. See the IPython documentation for details.
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_kernel.install import SageKernelSpec
+            sage: spec = SageKernelSpec()
+            sage: spec.kernel_spec()
+            {'argv': ..., 'display_name': 'Sage 6.6.beta3'}
         """
         return dict(
             argv=self._kernel_cmd(),
             display_name=self._display_name,
         )
     
-    def install_spec(self):
+    def _install_spec(self):
         """
         Install the Sage IPython kernel
         
         It is safe to call this method multiple times, only one Sage
-        kernel spec is ever installed.
+        kernel spec is ever installed for any given Sage
+        version. However, it resets the IPython kernel spec directory
+        so additional resources symlinked there are lost. See
+        :meth:`symlink_resources`.
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_kernel.install import SageKernelSpec
+            sage: spec = SageKernelSpec()
+            sage: spec._install_spec()    # not tested
         """
         import json
         temp = tmp_dir()
@@ -108,7 +171,22 @@ class SageKernelSpec(object):
         install_kernel_spec(temp, identifier, user=True, replace=True)
         self._spec = get_kernel_spec(identifier)
 
-    def symlink_resources(self):
+    def _symlink_resources(self):
+        """
+        Symlink miscellaneous resources
+
+        This method symlinks additional resources (like the Sage
+        documentation) into the Sage kernel directory. This is
+        necessary to make the help links in the notebook work.
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_kernel.install import SageKernelSpec
+            sage: spec = SageKernelSpec()
+            sage: spec._install_spec()         # not tested
+            sage: spec._symlink_resources()    # not tested
+        """
+        assert self._spec, 'call _install_spec() first'
         spec_dir = self._spec.resource_dir
         path = os.path.join(SAGE_EXTCODE, 'notebook-ipython')
         for filename in os.listdir(path):
@@ -123,10 +201,23 @@ class SageKernelSpec(object):
         
     @classmethod
     def update(cls):
+        """
+        Configure the IPython notebook for the Sage kernel
+        
+        This method does everything necessary to use the Sage kernel,
+        you should never need to call any of the other methods
+        directly.
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_kernel.install import SageKernelSpec
+            sage: spec = SageKernelSpec()
+            sage: spec.update()
+        """
         instance = cls()
         instance.use_local_mathjax()
-        instance.install_spec()
-        instance.symlink_resources()
+        instance._install_spec()
+        instance._symlink_resources()
         
 
 def have_prerequisites():
@@ -142,7 +233,7 @@ def have_prerequisites():
 
     EXAMPLES::
 
-        sage: from sage.repl.notebook_ipython import have_prerequisites
+        sage: from sage.repl.ipython_kernel.install import have_prerequisites
         sage: have_prerequisites() in [True, False]
         True
     """

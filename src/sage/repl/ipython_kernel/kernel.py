@@ -34,16 +34,62 @@ class SageKernel(IPythonKernel):
     shell_class = Type(SageZMQInteractiveShell)
 
     def __init__(self, **kwds):
+        """
+        The Sage IPython Kernel
+
+        INPUT:
+
+        See the IPython documentation
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_kernel.kernel import SageKernel
+            sage: SageKernel.__new__(SageKernel)
+            <sage.repl.ipython_kernel.kernel.SageKernel object at 0x...>
+        """
         super(SageKernel, self).__init__(**kwds)
         SageCustomizations(self.shell)
 
     @property
     def banner(self):
+        r"""
+        The Sage Banner
+        
+        The value of this property is displayed in the IPython
+        notebook.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_kernel.kernel import SageKernel
+            sage: sk = SageKernel.__new__(SageKernel)
+            sage: sk.banner
+            '\xe2\x94\x8c\xe2...Sage Version...\x9b\x1b[0m'
+        """
         from sage.misc.banner import banner_text
         return banner_text()
 
     @property
     def help_links(self):
+        r"""
+        Help in the IPython Notebook
+        
+        OUTPUT:
+
+        See the IPython documentation.
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_kernel.kernel import SageKernel
+            sage: sk = SageKernel.__new__(SageKernel)
+            sage: sk.help_links
+            [{'text': 'Sage Documentation',
+              'url': '/kernelspecs/sage_6_6_beta3/doc/index.html'},
+             ...]
+        """
         from sage.repl.ipython_kernel.install import SageKernelSpec
         identifier = SageKernelSpec.identifier()
         kernel_url = lambda x: '/kernelspecs/{0}/{1}'.format(identifier, x)

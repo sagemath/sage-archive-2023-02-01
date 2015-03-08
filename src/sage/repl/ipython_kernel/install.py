@@ -75,6 +75,12 @@ class SageKernelSpec(object):
         dst = os.path.join(ipython_dir, 'nbextensions', 'mathjax')
         self.symlink(src, dst)
 
+    def use_local_jsmol(self):
+        ipython_dir = os.environ['IPYTHONDIR']
+        src = os.path.join(SAGE_LOCAL, 'share', 'jsmol')
+        dst = os.path.join(ipython_dir, 'nbextensions', 'jsmol')
+        self.symlink(src, dst)
+
     def _kernel_cmd(self):
         return [
             os.path.join(SAGE_ROOT, 'sage'),
@@ -125,6 +131,7 @@ class SageKernelSpec(object):
     def update(cls):
         instance = cls()
         instance.use_local_mathjax()
+        instance.use_local_jsmol()
         instance.install_spec()
         instance.symlink_resources()
         

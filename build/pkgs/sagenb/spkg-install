@@ -37,12 +37,9 @@ fi
 # End boilerplate
 
 
-
-# Install dependencies
-for PKG in $(cat src/install_order); do
-    easy_install -H None "src/$PKG" || die "Error installing $PKG !"
-done
-PKG=$(ls -1 src | GREP_OPTIONS= grep sagenb-)
-
-# Install sagenb into site-packages
-easy_install -H None "src/$PKG" || die "Error installing sagenb !"
+pip install --no-index \
+    --find-links="file://$(pwd)/src/" sagenb
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: Installing SageNB failed."
+    exit 1
+fi

@@ -7978,6 +7978,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.PetersenGraph()
             sage: G.dominating_set(total=True,value_only=True)
             4
+
+        For a directed graph of 3 nodes 1->2->3 has cardinality 2 but 
+        for the undirected graph 1-2-3 1::
+            sage: g=DiGraph()
+            sage: g.add_edges([(1,2),(2,3)])
+            sage: len(g.dominating_set())
+            2
+            sage: gg=Graph()
+            sage: gg.add_edges([(1,2),(2,3)])
+            sage: len(gg.dominating_set())
+            1
+
         """
         
         self._scream_if_not_simple(allow_multiple_edges=True, allow_loops=not total)

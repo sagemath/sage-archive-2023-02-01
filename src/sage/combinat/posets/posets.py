@@ -3202,6 +3202,28 @@ class FinitePoset(UniqueRepresentation, Parent):
         result.rename("Set of chains of %s" % self)
         return result
 
+    def connected_components(self):
+        """
+        Return the connected components of ``self`` as subposets.
+
+        EXAMPLES::
+
+            sage: P = Poset({1:[2,3], 3:[4,5]})
+            sage: CC = P.connected_components()
+            sage: CC is P
+            True
+
+            sage: P = Poset({1:[2,3], 3:[4,5], 6:[7,8]})
+            sage: P.connected_components()
+            [Finite poset containing 5 elements,
+             Finite poset containing 3 elements]
+        """
+        comps = self._hasse_diagram.connected_components()
+        if len(comps) == 1:
+            return self
+        return [self.subposet(self._vertex_to_element(x) for x in cc)
+                for cc in comps]
+
     def product(self,other):
         """
         Return the cartesian product of ``self`` and ``other``.

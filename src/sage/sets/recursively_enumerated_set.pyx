@@ -24,7 +24,6 @@ EXAMPLES:
 .. TODO:: Merge in the following documentation by Florent:
 
     How to define a set using those classes ?
-    -----------------------------------------
 
     Only two things are necessary to define a set using a
     :class:`SearchForest` object (the other classes being very similar) :

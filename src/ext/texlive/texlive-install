@@ -72,6 +72,15 @@ def write_profile(filename):
         f.write(profile)
     print('TeXlive unattended install profile: {0}'.format(filename))
 
+def first_dir(glob_pattern):
+    """
+    Return the first directory matching ``glob_pattern``
+    """
+    for dirent in glob.glob(glob_pattern):
+        if os.path.isdir(dirent):
+            return dirent
+    raise RuntimeError('no directory found: {0}'.format(glob_pattern))
+    
 def install_texlive():
     import tempfile
     tmp_dir = tempfile.mkdtemp()
@@ -83,7 +92,7 @@ def install_texlive():
     original_dir = os.getcwd()
     os.chdir(tmp_dir)
     check_call(['tar', '-x', '-z', '-f', tarball])
-    install_dir = glob.glob('install-tl-*')[0]
+    install_dir = first_dir('install-tl-*')
     os.chdir(install_dir)
 
     check_call([

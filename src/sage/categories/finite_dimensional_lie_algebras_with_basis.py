@@ -208,6 +208,10 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             Return the centralizer of ``S`` in ``self``.
 
+            .. TODO::
+
+                What is S?
+
             EXAMPLES::
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
@@ -351,17 +355,17 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 [\mathfrak{g}^{(k)}, \mathfrak{g}^{(k)}]
 
             and recall that
-            `\mathfrak{g}^{(k)} \subseteq \mathfrak{g}^{(k+1)}`.
-            Alternatively we canexpress this as
+            `\mathfrak{g}^{(k)} \supseteq \mathfrak{g}^{(k+1)}`.
+            Alternatively we can express this as
 
             .. MATH::
 
-                \mathfrak{g} \subseteq [\mathfrak{g}, \mathfrak{g}] \subseteq
+                \mathfrak{g} \supseteq [\mathfrak{g}, \mathfrak{g}] \supseteq
                 \bigl[ [\mathfrak{g}, \mathfrak{g}], [\mathfrak{g},
-                \mathfrak{g}] \bigr] \subseteq
+                \mathfrak{g}] \bigr] \supseteq
                 \biggl[ \bigl[ [\mathfrak{g}, \mathfrak{g}], [\mathfrak{g},
                 \mathfrak{g}] \bigr], \bigl[ [\mathfrak{g}, \mathfrak{g}],
-                [\mathfrak{g}, \mathfrak{g}] \bigr] \biggr] \subseteq \cdots.
+                [\mathfrak{g}, \mathfrak{g}] \bigr] \biggr] \supseteq \cdots.
 
             EXAMPLES::
 
@@ -407,15 +411,15 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 \mathfrak{g}_{k+1} = [\mathfrak{g}, \mathfrak{g}_{k}]
 
-            and recall that `\mathfrak{g}_k} \subseteq \mathfrak{g}_{k+1}`.
+            and recall that `\mathfrak{g}_k} \supseteq \mathfrak{g}_{k+1}`.
             Alternatively we can express this as
 
             .. MATH::
 
-                \mathfrak{g} \subseteq [\mathfrak{g}, \mathfrak{g}] \subseteq
+                \mathfrak{g} \supseteq [\mathfrak{g}, \mathfrak{g}] \supseteq
                 \bigl[ [\mathfrak{g}, \mathfrak{g}], \mathfrak{g} \bigr]
-                \subseteq\biggl[\bigl[ [\mathfrak{g}, \mathfrak{g}],
-                \mathfrak{g} \bigr], \mathfrak{g}\biggr] \subseteq \cdots.
+                \supseteq\biggl[\bigl[ [\mathfrak{g}, \mathfrak{g}],
+                \mathfrak{g} \bigr], \mathfrak{g}\biggr] \supseteq \cdots.
 
             EXAMPLES::
 

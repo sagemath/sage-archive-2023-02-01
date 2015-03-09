@@ -17,14 +17,32 @@ from sage.structure.element_wrapper import ElementWrapper
 
 class LieAlgebraFromAssociative(Parent, UniqueRepresentation):
     r"""
-    An example of a Lie algebra: a Lie algebra from an associative algebra.
+    An example of a Lie algebra: a Lie algebra from an associative
+    algebra.
+
+    Let `R` be a commutative ring, and `A` an associative
+    `R`-algebra. The Lie algebra `A` (sometimes denoted `A^-`)
+    is defined to be the `R`-module `A` with Lie bracket given by
+    the commutator in `A`: that is, `[a, b] := ab - ba` for all
+    `a, b \in A`.
 
     This class illustrates a minimal implementation of a Lie algebra.
 
+    INPUT:
+
+    - ``R`` -- base ring
+
+    .. TODO::
+
+        I don't see how this class is supposed to be
+        instantiated. Apparently I am supposed to pass it a
+        nonempty (bad requirement if you ask me) list of
+        generators. Shouldn't I rather be asked for the
+        associative algebra `A` ?
+
     EXAMPLES:
 
-    We create an example of `\mathfrak{sl}_2` using matrices::
-
+    We create a model of `\mathfrak{sl}_2` using matrices::
 
         sage: gens = [matrix([[0,1],[0,0]]), matrix([[0,0],[1,0]]), matrix([[1,0],[0,-1]])]
         sage: for g in gens:
@@ -110,6 +128,12 @@ class LieAlgebraFromAssociative(Parent, UniqueRepresentation):
     def lie_algebra_generators(self):
         """
         Return the generators of ``self`` as a Lie algebra.
+
+        .. TODO::
+
+            This is false (including the doctest). The generators
+            of an algebra seldom generate its Lie algebra. I'd
+            rather use the basis.
 
         EXAMPLES::
 

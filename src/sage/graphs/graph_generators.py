@@ -520,7 +520,7 @@ class GraphGenerators():
         45
 
     Generate all bipartite graphs on up to 7 vertices: (see
-    http://oeis.org/classic/A033995)
+    :oeis:`A033995`)
 
     ::
 
@@ -554,7 +554,7 @@ class GraphGenerators():
         sage: len(filter(property, graphs(4)))
         7
 
-    Generate graphs on the fly: (see http://oeis.org/classic/A000088)
+    Generate graphs on the fly: (see :oeis:`A000088`)
 
     ::
 
@@ -568,8 +568,7 @@ class GraphGenerators():
         34
         156
 
-    Generate all simple graphs, allowing loops: (see
-    http://oeis.org/classic/A000666)
+    Generate all simple graphs, allowing loops: (see :oeis:`A000666`)
 
     ::
 
@@ -582,8 +581,7 @@ class GraphGenerators():
         4 90
         5 544
 
-    Generate all graphs with a specified degree sequence (see
-    http://oeis.org/classic/A002851)::
+    Generate all graphs with a specified degree sequence (see :oeis:`A002851`)::
 
         sage: for i in [4,6,8]:  # long time (4s on sage.math, 2012)
         ...       print i, len([g for g in graphs(i, degree_sequence=[3]*i) if g.is_connected()])
@@ -602,7 +600,7 @@ class GraphGenerators():
         10 19
 
     Make sure that the graphs are really independent and the generator
-    survives repeated vertex removal (trac 8458)::
+    survives repeated vertex removal (:trac:`8458`)::
 
         sage: for G in graphs(3):
         ...       G.delete_vertex(0)
@@ -802,14 +800,14 @@ class GraphGenerators():
             StopIteration: Exhausted list of graphs from nauty geng
 
         A list of all graphs on 7 vertices.  This agrees with
-        Sloane's OEIS sequence A000088.  ::
+        :oeis:`A000088`.  ::
 
             sage: gen = graphs.nauty_geng("7") # optional nauty
             sage: len(list(gen))  # optional nauty
             1044
 
         A list of just the connected graphs on 7 vertices.  This agrees with
-        Sloane's OEIS sequence A001349.  ::
+        :oeis:`A001349`.  ::
 
             sage: gen = graphs.nauty_geng("7 -c") # optional nauty
             sage: len(list(gen))  # optional nauty
@@ -1531,7 +1529,7 @@ class GraphGenerators():
             True
 
         An overview of the number of 5-connected triangulations on up to 22 vertices. This
-        agrees with Sloane's OEIS sequence A081621::
+        agrees with :oeis:`A081621`::
 
             sage: for i in range(12, 23):                                             # optional plantri
             ....:     L = len(list(graphs.triangulations(i, minimum_connectivity=5))) # optional plantri
@@ -1701,7 +1699,7 @@ class GraphGenerators():
             StopIteration
 
         An overview of the number of quadrangulations on up to 12 vertices. This
-        agrees with Sloane's OEIS sequence A113201::
+        agrees with :oeis:`A113201`::
 
             sage: for i in range(4,13):                          # optional plantri
             ....:     L =  len(list(graphs.quadrangulations(i))) # optional plantri

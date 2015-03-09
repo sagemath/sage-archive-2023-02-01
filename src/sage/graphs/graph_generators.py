@@ -981,7 +981,8 @@ class GraphGenerators():
 
         A generator which will produce the plane graphs as Sage graphs
         with an embedding set. These will be simple graphs: no loops, no
-        multiple edges, no directed edges.
+        multiple edges, no directed edges (unless plantri is asked to give
+        the dual graphs instead).
 
         .. SEEALSO::
 
@@ -1319,7 +1320,8 @@ class GraphGenerators():
 
         An iterator which will produce all planar graphs with the given
         number of vertices as Sage graphs with an embedding set. These will be
-        simple graphs (no loops, no multiple edges, no directed edges).
+        simple graphs (no loops, no multiple edges, no directed edges)
+        unless the option ``dual=True`` is used.
 
         .. SEEALSO::
 
@@ -1333,7 +1335,7 @@ class GraphGenerators():
 
             sage: gen = graphs.planar_graphs(4)  # optional plantri
             sage: len(list(gen))  # optional plantri
-            6
+            6            
 
         Three of these planar graphs are bipartite::
 
@@ -1344,8 +1346,13 @@ class GraphGenerators():
         Setting ``dual=True`` gives the planar dual graphs::
 
             sage: gen = graphs.planar_graphs(4, dual=True)  # optional plantri
-            sage: [len(u) for u in list(gen)]  # optional plantri
-            [4, 3, 2, 2, 1, 1]
+            sage: [u for u in list(gen)]  # optional plantri
+            [Graph on 4 vertices,
+            Multi-graph on 3 vertices,
+            Multi-graph on 2 vertices,
+            Looped multi-graph on 2 vertices,
+            Looped multi-graph on 1 vertex,
+            Looped multi-graph on 1 vertex]
 
         The cycle of length 4 is the only 2-connected bipartite planar graph
         on 4 vertices::
@@ -1560,6 +1567,11 @@ class GraphGenerators():
 
             sage: [len(g) for g in graphs.triangulations(9, minimum_degree=4, minimum_connectivity=3, dual=True)]  # optional plantri
             [14, 14, 14, 14, 14]
+
+        TESTS::
+
+            sage: [g.size() for g in graphs.triangulations(6, minimum_connectivity=3)] # optional plantri
+            [12, 12]
         """
         from sage.misc.package import is_package_installed
         if not is_package_installed("plantri"):

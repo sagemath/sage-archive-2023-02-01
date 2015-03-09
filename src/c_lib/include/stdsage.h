@@ -43,14 +43,6 @@ extern "C" {
 #endif
 
 
-/*****************************************
-   PARI array element assignment
- *****************************************/
-#define set_gel(x, n, z)         (gel(x,n) = z)
-#define set_gmael(x, i, j, z)    (gmael(x,i,j) = z)
-#define set_gcoeff(x, i, j, z)   (gcoeff(x,i,j) = z)
-
-
 /******************************************
  Some macros exported for Pyrex in cdefs.pxi
  ****************************************/

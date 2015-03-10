@@ -204,7 +204,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             from sage.combinat.family import Family
             return Family(self._indices, self.monomial)
 
-        def module_morphism(self, on_basis = None, diagonal = None, triangular = None, **keywords):
+        def module_morphism(self, on_basis=None,
+                            diagonal=None, triangular=None, unitriangular=False,
+                            **keywords):
             r"""
             Construct a module morphism from ``self`` to ``codomain``.
 
@@ -242,6 +244,10 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 of the basis vector `x_i` is `i`, or
               * ``"lower"`` - if the :meth:`trailing_support` of the image
                 of the basis vector `x_i` is `i`
+
+            - ``unitriangular`` -- (default: ``False``) a boolean;
+              As a shorthand, one may use ``unitriangular="lower"``
+              for ``triangular="lower", unitriangular=True``
 
             - ``category`` -- a category; by default, this is
               ``ModulesWithBasis(R)`` if `Y` is in this category, and
@@ -410,11 +416,14 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                - cleanup the defaut value of the category to make it
                  more systematic and uniform
             """
+            if unitriangular in ["upper", "lower"] and triangular is None:
+                triangular = unitriangular
+                unitriangular = True
             if diagonal is not None:
                 return DiagonalModuleMorphism(diagonal = diagonal, domain = self, **keywords)
             elif on_basis is not None:
                 if triangular is not None:
-                    return TriangularModuleMorphism(on_basis, domain = self, triangular = triangular, **keywords)
+                    return TriangularModuleMorphism(on_basis, domain = self, triangular = triangular, unitriangular = unitriangular, **keywords)
                 return ModuleMorphismByLinearity(on_basis = on_basis, domain = self, **keywords)
             raise ValueError("module morphism requires either on_basis or diagonal argument")
 
@@ -1477,7 +1486,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
         sage: X = CombinatorialFreeModule(QQ, I); X.rename("X"); x = X.basis()
         sage: Y = CombinatorialFreeModule(QQ, I); Y.rename("Y"); y = Y.basis()
         sage: f = Y.sum_of_monomials * divisors   # This * is map composition.
-        sage: phi = X.module_morphism(f, triangular="upper", unitriangular = True, codomain = Y)
+        sage: phi = X.module_morphism(f, unitriangular="upper", codomain = Y)
         sage: phi(x[2])
         B[1] + B[2]
         sage: phi(x[6])
@@ -1536,7 +1545,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
         sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
         sage: uut = lambda i: sum(  y[j] for j in range(i+1,6)  )
         sage: phi = X.module_morphism(uut, codomain = Y,
-        ....:        triangular=True, unitriangular=True,
+        ....:        unitriangular="lower",
         ....:        inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
         sage: phi(x[2])
         B[3] + B[4] + B[5]
@@ -1664,11 +1673,11 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); x = X.basis()
             sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3]); y = Y.basis()
             sage: f = lambda i: sum(  y[j] for j in range(i,4)  )
-            sage: phi = X.module_morphism(f, triangular="lower", codomain = Y)
+            sage: phi = X.module_morphism(f, triangular="lower", codomain=Y)
             sage: phi._test_triangular()
 
             sage: fw = lambda i: sum(  y[j] for j in range(i+1,4)  )
-            sage: phi = X.module_morphism(fw, triangular="lower", codomain = Y)
+            sage: phi = X.module_morphism(fw, triangular="lower", codomain=Y)
             sage: phi._test_triangular()
             Traceback (most recent call last):
             ...
@@ -1677,14 +1686,14 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: X = CombinatorialFreeModule(QQ, [1,2,3]); x = X.basis()
             sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
             sage: uut = lambda i: sum(  y[j] for j in range(i+1,6)  )
-            sage: phi = X.module_morphism(uut, codomain = Y,
-            ....:      triangular=True, unitriangular=True,
+            sage: phi = X.module_morphism(uut, codomain=Y,
+            ....:      unitriangular="lower",
             ....:      inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
             sage: phi._test_triangular()
 
             sage: ut = lambda i: sum(  2*y[j] for j in range(i+1,6)  )
-            sage: phi = X.module_morphism(ut, codomain = Y,
-            ....:      triangular=True, unitriangular=True,
+            sage: phi = X.module_morphism(ut, codomain=Y,
+            ....:      unitriangular="lower",
             ....:      inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
             sage: phi._test_triangular()
             Traceback (most recent call last):
@@ -1733,10 +1742,12 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: ult = lambda i: sum(  y[j] for j in range(i,4)  ) # uni-lower
             sage: ut =  lambda i: sum(j*y[j] for j in range(1,i+1)) # upper
             sage: lt =  lambda i: sum(j*y[j] for j in range(i,4  )) # lower
-            sage: f_uut = X.module_morphism(uut, triangular="upper", unitriangular=True,  codomain = Y)
-            sage: f_ult = X.module_morphism(ult, triangular="lower", unitriangular=True,  codomain = Y)
-            sage: f_ut =  X.module_morphism(ut,  triangular="upper",                      codomain = Y)
-            sage: f_lt =  X.module_morphism(lt,  triangular="lower",                      codomain = Y)
+            sage: f_uut = X.module_morphism(uut, codomain=Y,
+            ....:                           unitriangular="upper")
+            sage: f_ult = X.module_morphism(ult, codomain=Y,
+            ....:                           unitriangular="lower")
+            sage: f_ut  = X.module_morphism(ut, codomain=Y, triangular="upper")
+            sage: f_lt  = X.module_morphism(lt, codomain=Y, triangular="lower")
             sage: (~f_uut)(y[2])
             -B[1] + B[2]
             sage: (~f_ult)(y[2])
@@ -1923,6 +1934,8 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
         INPUT:
 
+        - ``self`` -- a triangular morphism over a field, or a
+          unitriangular morphism over a ring
         - ``y`` -- an element of the codomain of ``self``
 
         Suppose that ``self`` is a morphism from `X` to `Y`. Then, for
@@ -1936,8 +1949,8 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
             sage: uut = lambda i: sum(  y[j] for j in range(i+1,6)  )
             sage: phi = X.module_morphism(uut, codomain = Y,
-            ...        triangular=True, unitriangular=True,
-            ...        inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
+            ....:        unitriangular="lower",
+            ....:        inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
             sage: [phi(v) for v in X.basis()]
             [B[2] + B[3] + B[4] + B[5],
                     B[3] + B[4] + B[5],
@@ -1951,8 +1964,8 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
             sage: ut = lambda i: sum( j*y[j] for j in range(i+1,6)  )
             sage: phi = X.module_morphism(ut, codomain = Y,
-            ...        triangular=True,
-            ...        inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
+            ....:       triangular="lower",
+            ....:       inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
             sage: [phi(v) for v in X.basis()]
             [2*B[2] + 3*B[3] + 4*B[4] + 5*B[5],
                       3*B[3] + 4*B[4] + 5*B[5],
@@ -1968,16 +1981,16 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: X = CombinatorialFreeModule(ZZ, [1,2,3]); x = X.basis()
             sage: Y = CombinatorialFreeModule(ZZ, [1,2,3,4,5]); y = Y.basis()
             sage: phi = X.module_morphism(uut, codomain = Y,
-            ...        triangular=True, unitriangular=True,
-            ...        inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
+            ....:       unitriangular="lower",
+            ....:       inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
             sage: [phi.coreduced(y[1]-2*y[4])]
             [B[1] + 2*B[5]]
             sage: [phi.coreduced(v) for v in y]
             [B[1], 0, 0, -B[5], B[5]]
 
             sage: phi = X.module_morphism(ut, codomain = Y,
-            ...        triangular=True,
-            ...        inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
+            ....:       triangular="lower",
+            ....:       inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
             sage: [phi.coreduced(v) for v in y]
             Traceback (most recent call last):
             ...
@@ -2005,29 +2018,63 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
                 s = basis_map(j_preimage)
                 assert j == self._dominant_item(s)[0]
                 if not self._unitriangular:
-                    c = c / s[j]
+                    c = c / s[j]  # the base ring is a field
                 remainder -= s._lmul_(c)
         return result
     co_reduced = deprecated_function_alias(8678, coreduced)
 
     def cokernel_basis_indices(self):
         """
-        Return a basis of the cokernel of ``self``.
+        Return the indices of the natural monomial basis of the cokernel of ``self``.
 
-        OUTPUT: a list of indices of the basis of the codomain of
-           ``self`` so that the corresponding basis elements span a
-           suplementary of the image set of ``self``.
+        INPUT:
+
+        - ``self`` -- a triangular morphism over a field or a
+          unitriangular morphism over a ring, with a finite
+          dimensional codomain.
+
+        OUTPUT:
+
+        A list `E` of indices of the basis `(B_e)_e` of the codomain
+        of ``self`` so that `(B_e)_{e\in E}` forms a basis of a
+        supplementary of the image set of ``self``.
+
+        Thinking of this triangular morphism as a row echelon matrix,
+        this returns the complementary of the characteristic
+        columns. Namely `E` is the set of indices which do not appear
+        as leading support of some element of the image set of
+        ``self``.
 
         EXAMPLES::
 
-            sage: X = CombinatorialFreeModule(QQ, [1,2,3]); x = X.basis()
-            sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
+            sage: X = CombinatorialFreeModule(ZZ, [1,2,3]); x = X.basis()
+            sage: Y = CombinatorialFreeModule(ZZ, [1,2,3,4,5]); y = Y.basis()
             sage: uut = lambda i: sum(  y[j] for j in range(i+1,6)  ) # uni-upper
-            sage: phi = X.module_morphism(uut, triangular=True, codomain = Y,
-            ...        inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
+            sage: phi = X.module_morphism(uut, unitriangular="upper", codomain = Y,
+            ....:       inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
             sage: phi.cokernel_basis_indices()
             [1, 5]
+
+            sage: phi = X.module_morphism(uut, triangular="upper", codomain = Y,
+            ....:       inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
+            sage: phi.cokernel_basis_indices()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: cokernel_basis_indices for a triangular but not unitriangular morphism over a ring
+
+            sage: Y = CombinatorialFreeModule(ZZ, NN); y = Y.basis()
+            sage: phi = X.module_morphism(uut, unitriangular="upper", codomain = Y,
+            ....:       inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
+            sage: phi.cokernel_basis_indices()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: cokernel_basis_indices implemented only for morphisms with a finite dimensional codomain
         """
+        R = self.domain().base_ring()
+        if R not in Fields and not self._unitriangular:
+            raise NotImplementedError, "cokernel_basis_indices for a triangular but not unitriangular morphism over a ring"
+        if self.codomain() not in Modules(R).FiniteDimensional():
+            raise NotImplementedError, "cokernel_basis_indices implemented only for morphisms with a finite dimensional codomain"
         return [i for i in self.codomain().basis().keys() if self._inverse_on_support(i) is None]
 
     def cokernel_projection(self, category = None):

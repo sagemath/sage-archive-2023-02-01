@@ -31,6 +31,7 @@ from sage.categories.homset import Hom
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.commutative_additive_semigroups import CommutativeAdditiveSemigroups
+from sage.categories.fields import Fields
 from sage.categories.modules import Modules
 from sage.structure.element import Element, parent
 
@@ -1681,8 +1682,8 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             ....:      inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
             sage: phi._test_triangular()
 
-            sage: uutw = lambda i: sum(  2*y[j] for j in range(i+1,6)  ) # uni-upper
-            sage: phi = X.module_morphism(uutw, codomain = Y,
+            sage: ut = lambda i: sum(  2*y[j] for j in range(i+1,6)  )
+            sage: phi = X.module_morphism(ut, codomain = Y,
             ....:      triangular=True, unitriangular=True,
             ....:      inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
             sage: phi._test_triangular()
@@ -1705,7 +1706,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
     def _on_basis(self, i):
         """
-        Return the image, by ``self``, of the basis element indexed by ``i``.
+        Return the image by ``self`` of the basis element indexed by ``i``.
 
         TESTS::
 
@@ -1798,8 +1799,9 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
                                    SetsWithPartialMaps()),
                                self.preimage)
 
-    # This should be removed and optimized (the inverse should not be computed
-    # on the basis
+    # This should be removed and optimized as soon as triangular
+    # morphism not defined by linearity are available
+    # (the inverse should not be computed on the basis).
     def _invert_on_basis(self, i):
         r"""
         Return the image, by the inverse of ``self``, of the basis element
@@ -1915,7 +1917,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
         return out
 
-    def co_reduced(self, y):
+    def coreduced(self, y):
         """
         Return `y` reduced w.r.t. the image of ``self``.
 
@@ -1924,7 +1926,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
         - ``y`` -- an element of the codomain of ``self``
 
         Suppose that ``self`` is a morphism from `X` to `Y`. Then, for
-        any `y \in Y`, the call ``self.co_reduced(y)`` returns a
+        any `y \in Y`, the call ``self.coreduced(y)`` returns a
         normal form for `y` in the quotient `Y / I` where `I` is the
         image of ``self``.
 
@@ -1940,28 +1942,52 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             [B[2] + B[3] + B[4] + B[5],
                     B[3] + B[4] + B[5],
                            B[4] + B[5]]
-            sage: [phi.co_reduced(y[1]-2*y[4])]
+            sage: [phi.coreduced(y[1]-2*y[4])]
             [B[1] + 2*B[5]]
-            sage: [phi.co_reduced(v) for v in y]
+            sage: [phi.coreduced(v) for v in y]
             [B[1], 0, 0, -B[5], B[5]]
 
         Now with a non uni-triangular morphism::
 
-            sage: uut = lambda i: sum( j*y[j] for j in range(i+1,6)  )
-            sage: phi = X.module_morphism(uut, codomain = Y,
+            sage: ut = lambda i: sum( j*y[j] for j in range(i+1,6)  )
+            sage: phi = X.module_morphism(ut, codomain = Y,
             ...        triangular=True,
             ...        inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
             sage: [phi(v) for v in X.basis()]
             [2*B[2] + 3*B[3] + 4*B[4] + 5*B[5],
                       3*B[3] + 4*B[4] + 5*B[5],
                                4*B[4] + 5*B[5]]
-            sage: [phi.co_reduced(y[1]-2*y[4])]
+            sage: [phi.coreduced(y[1]-2*y[4])]
             [B[1] + 5/2*B[5]]
-            sage: [phi.co_reduced(v) for v in y]
+            sage: [phi.coreduced(v) for v in y]
             [B[1], 0, 0, -5/4*B[5], B[5]]
+
+        For general rings, this method is only implemented for
+        unitriangular morphisms::
+
+            sage: X = CombinatorialFreeModule(ZZ, [1,2,3]); x = X.basis()
+            sage: Y = CombinatorialFreeModule(ZZ, [1,2,3,4,5]); y = Y.basis()
+            sage: phi = X.module_morphism(uut, codomain = Y,
+            ...        triangular=True, unitriangular=True,
+            ...        inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
+            sage: [phi.coreduced(y[1]-2*y[4])]
+            [B[1] + 2*B[5]]
+            sage: [phi.coreduced(v) for v in y]
+            [B[1], 0, 0, -B[5], B[5]]
+
+            sage: phi = X.module_morphism(ut, codomain = Y,
+            ...        triangular=True,
+            ...        inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
+            sage: [phi.coreduced(v) for v in y]
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: coreduce for a triangular but not unitriangular morphism over a ring
+
+        .. NOTE:: Before :trac:`8678` this method used to be called co_reduced.
         """
         G = self.codomain()
-        base_ring = G.base_ring()
+        if G.base_ring() not in Fields and not self._unitriangular:
+            raise NotImplementedError, "coreduce for a triangular but not unitriangular morphism over a ring"
         basis_map = self._on_basis
         assert y in G
 
@@ -1979,9 +2005,10 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
                 s = basis_map(j_preimage)
                 assert j == self._dominant_item(s)[0]
                 if not self._unitriangular:
-                    c = base_ring(c / s[j])
+                    c = c / s[j]
                 remainder -= s._lmul_(c)
         return result
+    co_reduced = deprecated_function_alias(8678, coreduced)
 
     def cokernel_basis_indices(self):
         """
@@ -2032,7 +2059,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
         """
         category = ModulesWithBasis(self.codomain().base_ring()).or_subcategory(category)
         return SetMorphism(Hom(self.codomain(), self.codomain(), category),
-                           self.co_reduced)
+                           self.coreduced)
 
     co_kernel_projection = deprecated_function_alias(8678, cokernel_projection)
 

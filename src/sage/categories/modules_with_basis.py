@@ -244,6 +244,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             - ``triangular`` --  (default: ``None``) ``"upper"`` or
               ``"lower"`` or ``None``:
+
               * ``"upper"`` - if the :meth:`leading_support` of the image
                 of the basis vector `x_i` is `i`, or
               * ``"lower"`` - if the :meth:`trailing_support` of the image
@@ -257,7 +258,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             - ``side`` -- "left" or "right" (default: "left")
               Only meaningful for a morphism built from a matrix.
 
-            EXAMPLES::
+            EXAMPLES:
 
             With the ``on_basis`` option, this returns a function `g`
             obtained by extending `f` by linearity on the

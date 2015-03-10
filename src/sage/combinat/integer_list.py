@@ -849,6 +849,8 @@ class IntegerListsLex(Parent):
         []
         sage: IntegerListsLex(6, ceiling=[4,2], floor=[3,3]).list()
         []
+        sage: Partitions(6, max_part=3, max_slope=-4).list()
+        []
     """
     def __init__(self,
                  n,

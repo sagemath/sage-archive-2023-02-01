@@ -1660,7 +1660,7 @@ cdef class RealBall(RingElement):
             sage: RBF(oo).is_finite()
             False
         """
-        return bool(arb_is_finite(self.value))
+        return arb_is_finite(self.value)
 
     def identical(self, RealBall other):
         """
@@ -1684,7 +1684,7 @@ cdef class RealBall(RingElement):
             sage: RBF(1).identical(RBF(1, rad=0.25r))
             False
         """
-        return bool(arb_equal(self.value, other.value))
+        return arb_equal(self.value, other.value)
 
     def overlaps(self, RealBall other):
         """
@@ -1702,7 +1702,7 @@ cdef class RealBall(RingElement):
             sage: RBF(pi).overlaps(RBF(3))
             False
         """
-        return bool(arb_overlaps(self.value, other.value))
+        return arb_overlaps(self.value, other.value)
 
     def contains_exact(self, other):
         """
@@ -1769,7 +1769,7 @@ cdef class RealBall(RingElement):
                 raise TypeError
         finally:
             if _do_sig(prec(self)): sig_off()
-        return bool(res)
+        return res
 
     def __contains__(self, other):
         """

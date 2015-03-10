@@ -4733,15 +4733,17 @@ class Partitions(UniqueRepresentation, Parent):
     Check that calling ``Partitions`` with ``outer=a`` no longer
     mutates ``a`` (:trac:`16234`)::
 
-        sage: a = [4,2,1,1,1,1,1]
+        sage: a = [4,3,2,1,1,1,1]
         sage: for p in Partitions(8, outer=a, min_slope=-1):
         ....:    print p
-        ....:     
+        [3, 3, 2]
+        [3, 2, 2, 1]
         [3, 2, 1, 1, 1]
+        [2, 2, 2, 1, 1]
         [2, 2, 1, 1, 1, 1]
         [2, 1, 1, 1, 1, 1, 1]
         sage: a
-        [4, 2, 1, 1, 1, 1, 1]
+        [4, 3, 2, 1, 1, 1, 1]
     """
     @staticmethod
     def __classcall_private__(cls, n=None, **kwargs):

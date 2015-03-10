@@ -93,7 +93,7 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
             return []
         min_length = 1
 
-    #Increase minl until n <= sum([ceiling(i) for i in range(min_length)])
+    #Increase min_length until n <= sum([ceiling(i) for i in range(min_length)])
     #This may run forever!
     # Find the actual length the list needs to be
     N = sum([ceiling(i) for i in range(1,min_length+1)])
@@ -254,6 +254,10 @@ def rightmost_pivot(comp, min_length, max_length, floor, ceiling, min_slope, max
     if max_slope < min_slope:
         return None
 
+    x = len(comp)
+    if x == 0:
+        return None
+
     y = len(comp) + 1
     while y <= max_length:
         if ceiling(y) > 0:
@@ -262,10 +266,6 @@ def rightmost_pivot(comp, min_length, max_length, floor, ceiling, min_slope, max
             y = max_length + 1
             break
         y += 1
-
-    x = len(comp)
-    if x == 0:
-        return None
 
     ceilingx_x = comp[x-1]-1
     floorx_x = floor(x)
@@ -569,9 +569,12 @@ class IntegerListsLex(Parent):
     - ``max_length`` -- an integer or `\infty`
     - ``length`` -- an integer; overrides min_length and max_length if
       specified
-    - ``floor`` -- a function `f` (or list);    defaults to ``lambda i: 0``
+    - ``min_part`` -- the minimum value of each part; defaults to ``0``
+    - ``max_part`` -- the maximum value of each part; defaults to `+\infty`
+    - ``floor`` -- a function `f` (or list);    defaults to
+      ``lambda i: min_part``
     - ``ceiling`` -- a function `f` (or list);  defaults to
-      ``lambda i: infinity``
+      ``lambda i: max_part``
     - ``min_slope`` -- an integer or `-\infty`; defaults to `-\infty`
     - ``max_slope`` -- an integer or `+\infty`; defaults to `+\infty`
 
@@ -662,7 +665,6 @@ class IntegerListsLex(Parent):
         sage: list(IntegerListsLex(5, max_slope = 0, max_length = 3, ceiling = [3,2,2]))
         [[3, 2], [3, 1, 1], [2, 2, 1]]
 
-
     This is the list of all compositions of `4` (but see Compositions)::
 
         sage: list(IntegerListsLex(4, min_part = 1))
@@ -671,8 +673,9 @@ class IntegerListsLex(Parent):
     This is the list of all integer vectors of sum `4` and length `3`::
 
         sage: list(IntegerListsLex(4, length = 3))
-        [[4, 0, 0], [3, 1, 0], [3, 0, 1], [2, 2, 0], [2, 1, 1], [2, 0, 2], [1, 3, 0], [1, 2, 1], [1, 1, 2], [1, 0, 3], [0, 4, 0], [0, 3, 1], [0, 2, 2], [0, 1, 3], [0, 0, 4]]
-
+        [[4, 0, 0], [3, 1, 0], [3, 0, 1], [2, 2, 0], [2, 1, 1],
+         [2, 0, 2], [1, 3, 0], [1, 2, 1], [1, 1, 2], [1, 0, 3],
+         [0, 4, 0], [0, 3, 1], [0, 2, 2], [0, 1, 3], [0, 0, 4]]
 
     There are all the lists of sum 4 and length 4 such that l[i] <= i::
 
@@ -720,15 +723,24 @@ class IntegerListsLex(Parent):
 
        - The maximal and minimal part values should not be equal.
 
-    Those conditions are not checked by the algorithm, and the
+    Those conditions are not always checked by the algorithm, and the
     result may be completely incorrect if they are not satisfied:
 
-    In the following example, the slope condition is not satisfied
-    by the upper bound on the parts, and ``[3,3]`` is erroneously
-    included in the result::
+    In the following example, the floor conditions do not satisfy the
+    slope conditions since the floor for the third part is also 3::
 
-        sage: list(IntegerListsLex(6, max_part=3, max_slope=-1))
-        [[3, 3], [3, 2, 1]]
+        sage: I = IntegerListsLex(16, min_length=2, min_part=3, max_slope=-1, floor=[5,3])
+        Traceback (most recent call last):
+        ...
+        ValueError: floor does not satisfy the max slope condition
+
+    Compare this with the following input, which is equivalent
+    but it bypasses the checks because the floor is a function::
+
+        sage: f = lambda x: 5 if x == 0 else 3
+        sage: I = IntegerListsLex(16, min_length=2, max_slope=-1, floor=f)
+        sage: list(I)
+        [[13, 3], [12, 4], [11, 5], [10, 6]]
 
     With some work, this could be fixed without affecting the overall
     complexity and efficiency. Also, the generation algorithm could be
@@ -825,6 +837,10 @@ class IntegerListsLex(Parent):
         sage: list(IntegerListsLex(6, min_length=1, floor=[7]))
         []
 
+    Noted on :trac:`17898`::
+
+        sage: list(IntegerListsLex(4, min_part=1, length=3, min_slope=1))
+        []
     """
     def __init__(self,
                  n,
@@ -868,17 +884,20 @@ class IntegerListsLex(Parent):
         else:
             try:
                 # Is ``floor`` an iterable?
-                self.floor_list = __builtin__.list(floor) # not ``floor[:]`` because we want
-                                                          # ``self.floor_list`` mutable, and
-                                                          # applying [:] to a tuple gives a
-                                                          # tuple.
+                # Not ``floor[:]`` because we want ``self.floor_list``
+                #    mutable, and applying [:] to a tuple gives a tuple.
+                self.floor_list = __builtin__.list(floor)
                 # Make sure the floor list will make the list satisfy the constraints
-                if max_slope != float('+inf'):
-                    for i in reversed(range(len(self.floor_list)-1)):
-                        self.floor_list[i] = max(self.floor_list[i], self.floor_list[i+1] - max_slope)
                 if min_slope != float('-inf'):
                     for i in range(1, len(self.floor_list)):
                         self.floor_list[i] = max(self.floor_list[i], self.floor_list[i-1] + min_slope)
+
+                # Some input checking
+                for i in range(1, len(self.floor_list)):
+                    if self.floor_list[i] - self.floor_list[i-1] > max_slope:
+                        raise ValueError("floor does not satisfy the max slope condition")
+                if self.floor_list and min_part - self.floor_list[-1] > max_slope:
+                    raise ValueError("floor does not satisfy the max slope condition")
             except TypeError:
                 self.floor = floor
         if ceiling is None:
@@ -891,15 +910,16 @@ class IntegerListsLex(Parent):
                 if max_slope != float('+inf'):
                     for i in range(1, len(self.ceiling_list)):
                         self.ceiling_list[i] = min(self.ceiling_list[i], self.ceiling_list[i-1] + max_slope)
-                if min_slope != float('-inf'):
-                    for i in reversed(range(len(self.ceiling_list)-1)):
-                        self.ceiling_list[i] = min(self.ceiling_list[i], self.ceiling_list[i+1] - min_slope)
+
+                # Some input checking
+                for i in range(1, len(self.ceiling_list)):
+                    if self.ceiling_list[i] - self.ceiling_list[i-1] < min_slope:
+                        raise ValueError("ceiling does not satisfy the min slope condition")
+                if self.ceiling_list and max_part - self.ceiling_list[-1] < min_slope:
+                    raise ValueError("ceiling does not satisfy the min slope condition")
             except TypeError:
                 # ``ceiling`` is not an iterable.
                 self.ceiling = ceiling
-        if length is not None:
-            min_length = length
-            max_length = length
         if name is not None:
             self.rename(name)
         if n in ZZ:
@@ -907,6 +927,9 @@ class IntegerListsLex(Parent):
             self.n_range = [n]
         else:
             self.n_range = n
+        if length is not None:
+            min_length = length
+            max_length = length
         self.min_length = min_length
         self.max_length = max_length
         self.min_part = min_part
@@ -993,9 +1016,12 @@ class IntegerListsLex(Parent):
             1
             sage: C.floor(1)
             2
-
         """
-        return self.floor_list[i] if i < len(self.floor_list) else self.min_part
+        if i < len(self.floor_list):
+            return max(self.min_part, self.floor_list[i])
+        if self.min_slope != float('-inf') and self.min_slope > 0:
+            return self.min_part + (i - len(self.floor_list)) * self.min_slope
+        return self.min_part
 
     def ceiling(self, i):
         """
@@ -1012,10 +1038,12 @@ class IntegerListsLex(Parent):
             3
             sage: C.ceiling(1)
             2
-
         """
-        return self.ceiling_list[i] if i < len(self.ceiling_list) else self.max_part
-
+        if i < len(self.ceiling_list):
+            return min(self.max_part, self.ceiling_list[i])
+        if self.max_slope != float('inf') and self.max_slope < 0:
+            return self.max_part + (i - len(self.ceiling_list)) * self.max_slope
+        return self.max_part
 
     # Temporary adapter to use the preexisting list/iterator/is_a function above.
     # FIXME: fix their specs so that floor and ceiling start from 0 instead of 1...
@@ -1124,6 +1152,9 @@ class IntegerListsLex(Parent):
         return False
 
 class IntegerListsLexPublic(IntegerListsLex):
+    # Just use the doc for IntegerListsLex
+    __doc__ = IntegerListsLex.__doc__
+
     def __init__(self,
                  n,
                  length = None, min_length=0, max_length=float('+inf'),

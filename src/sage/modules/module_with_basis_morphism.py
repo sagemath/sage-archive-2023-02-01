@@ -97,6 +97,15 @@ class ModuleMorphism(Morphism):
 
         H = Hom(domain, codomain, category=category)
         Morphism.__init__(self, H)
+
+        # If needed, this creates the element class from the concrete
+        # class (ModuleMorphismByLinearity, DiagonalModuleMorphism,
+        # ...) and the abstract classes from the categories.
+        #
+        # The category infrastructure handles this automatically for
+        # parents with a single element class. But for now we still
+        # need to do it by hand here, since H may have many different
+        # element classes::
         if not issubclass(self.__class__, H._abstract_element_class):
             self.__class__ = H.__make_element_class__(self.__class__)
 

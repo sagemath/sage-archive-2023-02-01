@@ -1013,7 +1013,7 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
                              %(m.nrows(), len(indices)))
         if matrix.ncols() != codomain.dimension():
             raise ValueError("The dimension of the matrix (%s) does not match with the dimension of the codomain (%s)"
-                             %(m.ncols(), codomain.dimension()))
+                             %(matrix.ncols(), codomain.dimension()))
         self._matrix = matrix
         d = { xt: codomain.from_vector(matrix.row(rank_domain(xt)))
               for xt in domain.basis().keys() }

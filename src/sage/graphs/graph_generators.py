@@ -1333,7 +1333,7 @@ class GraphGenerators():
 
             sage: gen = graphs.planar_graphs(4)  # optional plantri
             sage: len(list(gen))  # optional plantri
-            6            
+            6
 
         Three of these planar graphs are bipartite::
 
@@ -1370,11 +1370,17 @@ class GraphGenerators():
             sage: list(graphs.planar_graphs(1, minimum_degree=1))  # optional plantri
             []
 
-        TESTS::
+        TESTS:
 
-            sage: [x.size() for x in graphs.planar_graphs(5,dual=True)]
-            [9, 8, 8, 7, 6, 5, 4, 5, 4, 4, 6, 5, 7, 6, 7, 6, 5, 5, 5,
-            6, 7, 6, 6, 5, 7]
+        The number of edges in a planar graph is equal to the number of edges in
+        its dual::
+
+            sage: planar      = list(graphs.planar_graphs(5,dual=True))  # optional -- plantri
+            sage: dual_planar = list(graphs.planar_graphs(5,dual=False)) # optional -- plantri
+            sage: planar_sizes      = [g.size() for g in planar]         # optional -- plantri
+            sage: dual_planar_sizes = [g.size() for g in dual_planar]    # optional -- plantri
+            sage: planar_sizes == dual_planar_sizes                      # optional -- plantri
+            True
 
         REFERENCE:
 

@@ -96,16 +96,22 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
     #Increase min_length until n <= sum([ceiling(i) for i in range(min_length)])
     #This may run forever!
     # Find the actual length the list needs to be
-    N = sum([ceiling(i) for i in range(1,min_length+1)])
+    N = 0
+    for i in range(1,min_length+1):
+        ceil = ceiling(i)
+        if ceil < floor(i):
+            return None
+        N += ceil
     while N < n:
         min_length += 1
         if min_length > max_length:
             return None
 
-        if ceiling(min_length) == 0 and max_slope <= 0:
+        ceil = ceiling(min_length)
+        if ceil == 0 and max_slope <= 0 or ceil < floor(min_length):
             return None
 
-        N += ceiling(min_length)
+        N += ceil
 
     # Trivial case
     if min_length == 1:
@@ -840,6 +846,8 @@ class IntegerListsLex(Parent):
     Noted on :trac:`17898`::
 
         sage: list(IntegerListsLex(4, min_part=1, length=3, min_slope=1))
+        []
+        sage: IntegerListsLex(6, ceiling=[4,2], floor=[3,3]).list()
         []
     """
     def __init__(self,

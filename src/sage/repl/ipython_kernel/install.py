@@ -35,6 +35,32 @@ class SageKernelSpec(object):
             'Sage 6.6.beta2'
         """
         self._display_name = 'Sage {0}'.format(SAGE_VERSION)
+        self._ipython_dir = os.environ['IPYTHONDIR']
+        self._mkdirs()
+
+    def _mkdirs(self):
+        """
+        Create necessary parent directories
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_kernel.install import SageKernelSpec
+            sage: spec = SageKernelSpec()
+            sage: spec._mkdirs()
+            sage: nbextensions = os.path.join(spec._ipython_dir, 'nbextensions')
+            sage: os.path.exists(nbextensions)
+            True
+        """
+        def mkdir_p(*path_components):
+            path = os.path.join(*path_components)
+            try:
+                os.makedirs(path)
+            except OSError as err:
+                if err.errno == errno.EEXIST and os.path.isdir(path):
+                    pass
+                else:
+                    raise
+        mkdir_p(self._ipython_dir, 'nbextensions')
 
     @classmethod
     def identifier(self):
@@ -94,9 +120,8 @@ class SageKernelSpec(object):
             sage: os.path.exists(mathjax)
             True
         """
-        ipython_dir = os.environ['IPYTHONDIR']
         src = os.path.join(SAGE_LOCAL, 'share', 'mathjax')
-        dst = os.path.join(ipython_dir, 'nbextensions', 'mathjax')
+        dst = os.path.join(self._ipython_dir, 'nbextensions', 'mathjax')
         self.symlink(src, dst)
 
     def _kernel_cmd(self):

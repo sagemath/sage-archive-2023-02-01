@@ -1063,7 +1063,7 @@ class GraphGenerators():
                     has_loops = True
             G = graph.Graph(edges_g, loops=has_loops)
 
-            if not(G.has_multiple_edges()):
+            if not(G.has_multiple_edges() or has_loops):
                 embed_g = {i + 1: di for i, di in enumerate(g)}
                 G.set_embedding(embed_g)
             yield(G)
@@ -1369,6 +1369,12 @@ class GraphGenerators():
             [Graph on 1 vertex]
             sage: list(graphs.planar_graphs(1, minimum_degree=1))  # optional plantri
             []
+
+        TESTS::
+
+            sage: [x.size() for x in graphs.planar_graphs(5,dual=True)]
+            [9, 8, 8, 7, 6, 5, 4, 5, 4, 4, 6, 5, 7, 6, 7, 6, 5, 5, 5,
+            6, 7, 6, 6, 5, 7]
 
         REFERENCE:
 

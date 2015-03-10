@@ -28,7 +28,10 @@ from sage.categories.modules import Modules
 from sage.structure.element import Element, parent
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.modules.module_with_basis_morphism',
-            ['ModuleMorphismByLinearity','DiagonalModuleMorphism', 'TriangularModuleMorphism'])
+            ['ModuleMorphismByLinearity',
+             'TriangularModuleMorphismByLinearity',
+             'DiagonalModuleMorphism',
+             'ModuleMorphismFromMatrix'])
 
 class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
     """
@@ -199,7 +202,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             from sage.combinat.family import Family
             return Family(self._indices, self.monomial)
 
-        def module_morphism(self, on_basis=None,
+        def module_morphism(self, on_basis=None, matrix=None, function=None,
                             diagonal=None, triangular=None, unitriangular=False,
                             **keywords):
             r"""
@@ -216,68 +219,86 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             - ``self`` -- a parent `X` in ``ModulesWithBasis(R)`` with
               basis `x=(x_i)_{i\in I}`.
 
-            Exactly one of the three following options must be
+            Exactly one of the four following options must be
             specified to define the morphism from:
 
             - ``on_basis`` -- a function `f` from `I` to `Y`
             - ``diagonal`` -- a function `d` from `I` to `R`
             - ``function`` -- a function `f` from `X` to `Y`
+            - ``matrix``   -- a matrix of size `\dim X,\dim Y` or `\dim Y,\dim X`
 
             Further options include:
 
             - ``codomain`` -- the codomain `Y` of `f` (default:
               ``f.codomain()`` if it's defined)
+
+            - ``category`` -- a category or ``None`` (default: `None``)
+
             - ``zero`` -- the zero of the codomain (default: ``codomain.zero()``);
-              can be used (with care) to define affine maps
+              can be used (with care) to define affine maps.
+              Only meaningfull with ``on_basis``
+
             - ``position`` -- a non-negative integer specifying which
               positional argument in used as the input of the function `f`
               (default: 0); this is currently only used with ``on_basis``
+
             - ``triangular`` --  (default: ``None``) ``"upper"`` or
               ``"lower"`` or ``None``:
-
               * ``"upper"`` - if the :meth:`leading_support` of the image
                 of the basis vector `x_i` is `i`, or
               * ``"lower"`` - if the :meth:`trailing_support` of the image
                 of the basis vector `x_i` is `i`
 
             - ``unitriangular`` -- (default: ``False``) a boolean;
+              Only meaningful for a triangular morphism.
               As a shorthand, one may use ``unitriangular="lower"``
               for ``triangular="lower", unitriangular=True``
 
-            - ``category`` -- a category; by default, this is
-              ``ModulesWithBasis(R)`` if `Y` is in this category, and
-              otherwise this lets `Hom(X,Y)` decide
+            - ``side`` -- "left" or "right" (default: "left")
+              Only meaningful for a morphism built from a matrix.
+
+            EXAMPLES::
 
             With the ``on_basis`` option, this returns a function `g`
-            obtained by extending `f` by linearity on the ``position``-th
-            positional argument. For example, for ``position == 1`` and a
-            ternary function `f`, one has:
+            obtained by extending `f` by linearity on the
+            ``position``-th positional argument. For example, for
+            ``position == 1`` and a ternary function `f`, one has:
 
             .. MATH::
 
                 g\left( a,\ \sum_i \lambda_i x_i,\ c \right)
                 = \sum_i \lambda_i f(a, i, c).
 
-            EXAMPLES::
+            ::
 
                 sage: X = CombinatorialFreeModule(QQ, [1,2,3]);   X.rename("X")
                 sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4]); Y.rename("Y")
                 sage: phi = X.module_morphism(lambda i: Y.monomial(i) + 2*Y.monomial(i+1), codomain = Y)
+                sage: x = X.basis(); y = Y.basis()
+                sage: phi(x[1] + x[3])
+                B[1] + 2*B[2] + B[3] + 2*B[4]
+
                 sage: phi
                 Generic morphism:
                 From: X
                 To:   Y
+
+            By default, the category is the first of
+            ``Modules(R).WithBasis().FiniteDimensional()``,
+            ``Modules(R).WithBasis()`` ``Modules(R)``,
+            ``CommutativeAdditiveMonoids()`` that contains both the
+            domain and the codomain::
+
                 sage: phi.category_for()
                 Category of finite dimensional vector spaces with basis over Rational Field
-                sage: x = X.basis(); y = Y.basis()
-                sage: phi(x[1] + x[3])
-                B[1] + 2*B[2] + B[3] + 2*B[4]
 
             With the ``zero`` argument, one can define affine morphisms::
 
                 sage: phi = X.module_morphism(lambda i: Y.monomial(i) + 2*Y.monomial(i+1), codomain = Y, zero = 10*y[1])
                 sage: phi(x[1] + x[3])
                 11*B[1] + 2*B[2] + B[3] + 2*B[4]
+
+            In this special case, the default category is ``Sets()``::
                 sage: phi.category_for()
                 Category of sets
 
@@ -397,29 +418,45 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             .. WARNING::
 
-                The returned morphism is in ``Hom(codomain, domain,
-                category``). This is only correct for unary functions.
+                As a temporary measure until multivariate morphism are
+                implemented, the returned morphism is in
+                ``Hom(codomain, domain, category``). This is only
+                correct for unary functions.
 
             .. TODO::
 
-               - should codomain be ``self`` by default in the
-                 diagonal and triangular cases?
+               - Should codomain be ``self`` by default in the
+                 diagonal, triangular, and matrix cases?
 
-               - support for diagonal morphisms between modules not
+               - Support for diagonal morphisms between modules not
                  sharing the same index set
-
-               - cleanup the defaut value of the category to make it
-                 more systematic and uniform
             """
+            if not len([x for x in [matrix, on_basis, function, diagonal] if x is not None]) == 1:
+                raise ValueError("module_morphism() takes exactly one option out of `matrix`, `on_basis`, `function`, `diagonal`")
+            if matrix is not None:
+                return ModuleMorphismFromMatrix(matrix=matrix, domain=self, **keywords)
+            if diagonal is not None:
+                return DiagonalModuleMorphism(diagonal=diagonal, domain=self, **keywords)
             if unitriangular in ["upper", "lower"] and triangular is None:
                 triangular = unitriangular
                 unitriangular = True
-            if diagonal is not None:
-                return DiagonalModuleMorphism(diagonal = diagonal, domain = self, **keywords)
-            elif on_basis is not None:
-                if triangular is not None:
-                    return TriangularModuleMorphism(on_basis, domain = self, triangular = triangular, unitriangular = unitriangular, **keywords)
-                return ModuleMorphismByLinearity(on_basis = on_basis, domain = self, **keywords)
+            if triangular is not None:
+                if on_basis is not None:
+                    return TriangularModuleMorphismByLinearity(
+                        on_basis, domain=self,
+                        triangular=triangular, unitriangular=unitriangular,
+                        **keywords)
+                else:
+                    return TriangularModuleMorphism(
+                        function, domain=self,
+                        triangular=triangular, unitriangular=unitriangular,
+                        **keywords)
+            if on_basis is not None:
+                return ModuleMorphismByLinearity(
+                    on_basis=on_basis, domain=self, **keywords)
+            else:
+                return ModuleMorphism(
+                    function,          domain=self, **keywords)
             raise ValueError("module morphism requires either on_basis or diagonal argument")
 
         _module_morphism = module_morphism

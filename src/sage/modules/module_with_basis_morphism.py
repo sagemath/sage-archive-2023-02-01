@@ -226,7 +226,7 @@ class ModuleMorphismByLinearity(ModuleMorphism):
     # To be cleaned up
     _call_ = __call__
 
-class TriangularModuleMorphism(ModuleMorphismByLinearity):
+class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity):
     r"""
     A class for triangular module morphisms; that is, module morphisms
     from `X` to `Y` whose representing matrix in the distinguished
@@ -413,7 +413,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: import __main__; __main__.ut = ut
             sage: phi = X.module_morphism(ut, triangular="lower", codomain = X)
             sage: phi.__class__
-            <class 'sage.modules.module_with_basis_morphism.TriangularModuleMorphism_with_category'>
+            <class 'sage.modules.module_with_basis_morphism.TriangularModuleMorphismByLinearity_with_category'>
             sage: TestSuite(phi).run(skip=["_test_pickling"])
 
         Known issue::
@@ -909,6 +909,118 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
                            self.coreduced)
 
     co_kernel_projection = deprecated_function_alias(8678, cokernel_projection)
+
+class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
+    r"""
+    A class for module morphisms built from from their matrix in the
+    distinguished bases of the domain and codomain.
+
+    .. SEEALSO:
+
+        - :meth:`ModulesWithBasis.ParentMethods.module_morphism`.
+        - :meth:`ModulesWithBasis.FiniteDimensional.MorphismMethods.matrix`
+
+    INPUT:
+
+    - ``domain``, ``codomain`` -- two finite dimensional modules over
+      the same base ring `R` with basis `F` and `G`, respectively
+
+    - ``matrix`` -- a matrix with base ring `R` and dimensions
+      matching that of `F` and `G` respectively
+
+    - ``side`` -- "left" or "right" (default: "left")
+
+        If ``side`` is "left", this morphism is considered as
+        acting on the left; i.e. each column of the matrix
+        represents the image of an element of the basis of the
+        domain.
+
+    - ``category`` -- a category or ``None`` (default: ``None``)
+
+    EXAMPLES::
+
+        sage: X = CombinatorialFreeModule(ZZ, [1,2]); X.rename("X"); x = X.basis()
+        sage: Y = CombinatorialFreeModule(ZZ, [3,4]); Y.rename("Y"); y = Y.basis()
+        sage: m = matrix([[1,2],[3,5]])
+        sage: phi = X.module_morphism(matrix=m, codomain=Y)
+        sage: phi.parent()
+        Set of Morphisms from X to Y in Category of finite dimensional modules with basis over Integer Ring
+        sage: phi.__class__
+        <class 'sage.modules.module_with_basis_morphism.ModuleMorphismFromMatrix_with_category'>
+        sage: phi(x[1])
+        B[3] + 3*B[4]
+        sage: phi(x[2])
+        2*B[3] + 5*B[4]
+
+        sage: m = matrix([[1,2],[3,5]])
+        sage: phi = X.module_morphism(matrix=m, codomain=Y, side="right", category=Modules(ZZ).WithBasis())
+        sage: phi.parent()
+        Set of Morphisms from X to Y in Category of modules with basis over Integer Ring
+        sage: phi(x[1])
+        B[3] + 2*B[4]
+        sage: phi(x[2])
+        3*B[3] + 5*B[4]
+
+    .. TODO:
+
+        - Possibly implement rank, addition, multiplication, matrix,
+          etc, from the stored matrix
+        - Pickling: the attribute _on_basis = d.__getitem__ is not picklable.
+          This is probably best implemented by pickling by construction.
+    """
+    def __init__(self, matrix, domain, codomain=None, category=None, side="left"):
+        r"""
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: from sage.modules.module_with_basis_morphism import ModuleMorphismFromMatrix
+            sage: X = CombinatorialFreeModule(ZZ, [1,2]); X.rename("X"); x = X.basis()
+            sage: Y = CombinatorialFreeModule(ZZ, [3,4]); Y.rename("Y"); y = Y.basis()
+            sage: m = matrix([[1,2],[3,5]])
+            sage: phi = ModuleMorphismFromMatrix(matrix=m, domain=X, codomain=Y, side="right")
+            sage: phi.__class__
+            <class 'sage.modules.module_with_basis_morphism.ModuleMorphismFromMatrix_with_category'>
+            sage: phi.matrix(side="right") == m
+            True
+            sage: TestSuite(phi).run(skip=["_test_pickling"])
+
+        The matrix is stored in the morphism, as for an action on the right::
+
+            sage: phi._matrix
+            [1 2]
+            [3 5]
+
+            sage: phi = ModuleMorphismFromMatrix(matrix=m, domain=X, codomain=Y, side="left")
+            sage: phi._matrix
+            [1 3]
+            [2 5]
+        """
+        C = ModulesWithBasis(domain.base_ring()).FiniteDimensional()
+        if not domain in C:
+            raise ValueError("The domain %s should be finite dimensional"%domain)
+        if codomain is None:
+            raise ValueError("The codomain %s should be specified")
+        if not codomain in C:
+            raise ValueError("The codomain %s should be finite dimensional"%codomain)
+        import sage.combinat.ranker
+        indices = tuple(domain.basis().keys())
+        rank_domain  = sage.combinat.ranker.rank_from_list(indices)
+        if side == "left":
+            matrix = matrix.transpose()
+        if matrix.nrows() != len(indices):
+            raise ValueError("The dimension of the matrix (%s) does not match with the dimension of the domain (%s)"
+                             %(m.nrows(), len(indices)))
+        if matrix.ncols() != codomain.dimension():
+            raise ValueError("The dimension of the matrix (%s) does not match with the dimension of the codomain (%s)"
+                             %(m.ncols(), codomain.dimension()))
+        self._matrix = matrix
+        d = { xt: codomain.from_vector(matrix.row(rank_domain(xt)))
+              for xt in domain.basis().keys() }
+
+        ModuleMorphismByLinearity.__init__(self, on_basis=d.__getitem__,
+                                           domain=domain, codomain=codomain,
+                                           category=category)
 
 class DiagonalModuleMorphism(ModuleMorphismByLinearity):
     r"""

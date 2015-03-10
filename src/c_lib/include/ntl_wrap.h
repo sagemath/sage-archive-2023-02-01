@@ -207,7 +207,7 @@ struct zz_p;
 #define zz_p_set_from_long( obj1, obj2 )\
         (obj1) = (obj2)
 #define NTL_zz_p_DOUBLE_EQUALS( obj1, obj2 )\
-        (obj1) == (obj2)
+        ((obj1) == (obj2))
 
 EXTERN struct zz_pContext* zz_pContext_new(long p);
 EXTERN struct zz_pContext* zz_pContext_construct(void* mem, long p);
@@ -220,7 +220,7 @@ struct zz_pX;
 #endif
 
 #define NTL_zz_pX_DOUBLE_EQUALS( obj1, obj2 )\
-        (obj1) == (obj2)
+        ((obj1) == (obj2))
 
 //////// ZZ_pEContext ///////////////
 
@@ -306,6 +306,7 @@ struct GF2X;
 
 #ifndef __cplusplus
 struct GF2EContext;
+struct GF2X_c;
 #endif
 
 EXTERN struct GF2EContext* GF2EContext_new(struct GF2X_c* p);
@@ -315,6 +316,7 @@ EXTERN struct GF2EContext* GF2EContext_construct(void *mem, const struct GF2X *p
 
 #ifndef __cplusplus
 typedef struct {} mat_GF2E;
+struct GF2E;
 #endif
 
 EXTERN void mat_GF2E_setitem(mat_GF2E* x, int i, int j, const struct GF2E* z);
@@ -323,6 +325,7 @@ EXTERN void mat_GF2E_setitem(mat_GF2E* x, int i, int j, const struct GF2E* z);
 
 #ifndef __cplusplus
 typedef struct {} mat_GF2;
+struct GF2;
 #endif
 
 EXTERN void mat_GF2_setitem(mat_GF2* x, int i, int j, const struct GF2* z);

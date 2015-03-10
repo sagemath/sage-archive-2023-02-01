@@ -87,7 +87,7 @@ class AdditiveMonoids(CategoryWithAxiom_singleton):
             .. TODO::
 
                 This could be deduced from
-                :meth:`AdditiveSemigroups.extra_super_categories`.
+                :meth:`AdditiveSemigroups.Homsets.extra_super_categories`.
                 See comment in :meth:`Objects.SubcategoryMethods.Homsets`.
             """
             return [AdditiveSemigroups()]

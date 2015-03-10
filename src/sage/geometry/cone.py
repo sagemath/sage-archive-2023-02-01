@@ -61,7 +61,7 @@ important ones are, probably, ray accessing methods::
     N(-1,  0, 0)
     in 3-d lattice N
     sage: rays.set()
-    frozenset([N(1, 0, 0), N(-1, 0, 0), N(0, 1, 0), N(0, 0, 1), N(0, -1, 0)])
+    frozenset({N(-1, 0, 0), N(0, -1, 0), N(0, 0, 1), N(0, 1, 0), N(1, 0, 0)})
     sage: rays.matrix()
     [ 0  0  1]
     [ 0  1  0]
@@ -212,8 +212,7 @@ from sage.misc.all import cached_method, flatten, latex
 from sage.misc.superseded import deprecation
 from sage.modules.all import span, vector
 from sage.rings.all import QQ, RR, ZZ, gcd
-from sage.structure.all import SageObject
-from sage.structure.coerce import parent
+from sage.structure.all import SageObject, parent
 from sage.libs.ppl import C_Polyhedron, Generator_System, Constraint_System, \
     Linear_Expression, ray as PPL_ray, point as PPL_point, \
     Poly_Con_Relation
@@ -945,6 +944,7 @@ class IntegralRayCollection(SageObject,
 
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: quadrant.plot()
+            Graphics object consisting of 9 graphics primitives
         """
         tp = ToricPlotter(options, self.lattice().degree(), self.rays())
         return tp.plot_lattice() + tp.plot_rays() + tp.plot_generators()
@@ -1055,17 +1055,17 @@ def classify_cone_2d(ray0, ray1, check=True):
 
         sage: from sage.geometry.cone import normalize_rays
         sage: for i in range(10):
-        ...       ray0 = random_vector(ZZ, 3)
-        ...       ray1 = random_vector(ZZ, 3)
-        ...       if ray0.is_zero() or ray1.is_zero(): continue
-        ...       ray0, ray1 = normalize_rays([ray0, ray1], ZZ^3)
-        ...       d, k = classify_cone_2d(ray0, ray1, check=True)
-        ...       assert (d,k) == classify_cone_2d(ray1, ray0)
-        ...       if d == 0: continue
-        ...       frac = Hirzebruch_Jung_continued_fraction_list(k/d)
-        ...       if len(frac)>100: continue   # avoid expensive computation
-        ...       hilb = Cone([ray0, ray1]).Hilbert_basis()
-        ...       assert len(hilb) == len(frac) + 1
+        ....:     ray0 = random_vector(ZZ, 3)
+        ....:     ray1 = random_vector(ZZ, 3)
+        ....:     if ray0.is_zero() or ray1.is_zero(): continue
+        ....:     ray0, ray1 = normalize_rays([ray0, ray1], ZZ^3)
+        ....:     d, k = classify_cone_2d(ray0, ray1, check=True)
+        ....:     assert (d,k) == classify_cone_2d(ray1, ray0)
+        ....:     if d == 0: continue
+        ....:     frac = (k/d).continued_fraction_list("hj")
+        ....:     if len(frac)>100: continue   # avoid expensive computation
+        ....:     hilb = Cone([ray0, ray1]).Hilbert_basis()
+        ....:     assert len(hilb) == len(frac) + 1
     """
     if check:
         assert ray0.parent() is ray1.parent()
@@ -1294,7 +1294,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: C = Cone([(1,0)])
             sage: C.face_lattice()
-            Finite poset containing 2 elements
+            Finite poset containing 2 elements with distinguished linear extension
             sage: C._test_pickling()
             sage: C2 = loads(dumps(C)); C2
             1-d cone in 2-d lattice N
@@ -1983,7 +1983,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: L = quadrant.face_lattice()
             sage: L
-            Finite poset containing 4 elements
+            Finite poset containing 4 elements with distinguished linear extension
 
         To see all faces arranged by dimension, you can do this::
 
@@ -2048,14 +2048,14 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: supercone = Cone([(1,2,3,4), (5,6,7,8),
             ...                     (1,2,4,8), (1,3,9,7)])
             sage: supercone.face_lattice()
-            Finite poset containing 16 elements
+            Finite poset containing 16 elements with distinguished linear extension
             sage: supercone.face_lattice().top()
             4-d cone in 4-d lattice N
             sage: cone = supercone.facets()[0]
             sage: cone
             3-d face of 4-d cone in 4-d lattice N
             sage: cone.face_lattice()
-            Finite poset containing 8 elements
+            Finite poset containing 8 elements with distinguished linear extension
             sage: cone.face_lattice().bottom()
             0-d face of 4-d cone in 4-d lattice N
             sage: cone.face_lattice().top()
@@ -2169,6 +2169,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                     faces.append(self)
                     for face in dfaces:
                         L.add_edge(face_to_index[face], next_index)
+                D = {i:f for i,f in enumerate(faces)}
+                L.relabel(D)
                 self._face_lattice = FinitePoset(L, faces, key = id(self))
         return self._face_lattice
 
@@ -2861,13 +2863,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: halfplane = Cone([(1,0), (0,1), (-1,0)])
             sage: halfplane.line_set()
-            doctest:...: DeprecationWarning:
-            line_set(...) is deprecated, please use lines().set() instead!
+            doctest:...: DeprecationWarning: line_set(...) is deprecated, please use lines().set() instead!
             See http://trac.sagemath.org/12544 for details.
-            frozenset([N(1, 0)])
+            frozenset({N(1, 0)})
             sage: fullplane = Cone([(1,0), (0,1), (-1,-1)])
             sage: fullplane.line_set()
-            frozenset([N(0, 1), N(1, 0)])
+            frozenset({N(0, 1), N(1, 0)})
         """
         deprecation(12544, "line_set(...) is deprecated, "
                     "please use lines().set() instead!")
@@ -2947,6 +2948,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: quadrant.plot()
+            Graphics object consisting of 9 graphics primitives
         """
         # What to do with 3-d cones in 5-d? Use some projection method?
         deg = self.lattice().degree()
@@ -3170,7 +3172,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: c.sublattice(1, 0, 0)
             Traceback (most recent call last):
             ...
-            TypeError: element (= [1, 0, 0]) is not in free module
+            TypeError: element [1, 0, 0] is not in free module
         """
         if "_sublattice" not in self.__dict__:
             self._split_ambient_lattice()

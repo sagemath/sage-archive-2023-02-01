@@ -121,7 +121,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         parent as ``self``.
         """
         cdef ComplexNumber x
-        x = PY_NEW(ComplexNumber)
+        x = ComplexNumber.__new__(ComplexNumber)
         x._parent = self._parent
         x._prec = self._prec
         x._multiplicative_order = None
@@ -168,7 +168,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         if imag is None:
             if real is None: return
 
-            if PY_TYPE_CHECK(real, ComplexNumber):
+            if isinstance(real, ComplexNumber):
                 real, imag = (<ComplexNumber>real).real(), (<ComplexNumber>real).imag()
             elif isinstance(real, sage.libs.pari.all.pari_gen):
                 real, imag = real.real(), real.imag()
@@ -590,7 +590,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             mpc(real='1.0', imag='2.0')
         """
         if prec is not None:
-            return self.n(prec=prec)._mpmath_()
+            from complex_field import ComplexField
+            return ComplexField(prec)(self)._mpmath_()
         from sage.libs.mpmath.all import make_mpc
         re = mpfr_to_mpfval(self.__re)
         im = mpfr_to_mpfval(self.__im)
@@ -1223,11 +1224,13 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
             sage: z = CC(0,1)
             sage: plot(z)
+            Graphics object consisting of 1 graphics primitive
 
         or the more direct::
 
             sage: z = CC(0,1)
             sage: z.plot()
+            Graphics object consisting of 1 graphics primitive
         """
         return sage.plot.point.point2d((self.real(), self.imag()), **kargs)
 
@@ -2593,9 +2596,9 @@ cdef class CCtoCDF(Map):
             sage: f(CC.0)
             1.0*I
             sage: f(exp(pi*CC.0/4))
-            0.707106781187 + 0.707106781187*I
+            0.7071067811865476 + 0.7071067811865475*I
         """
-        cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
+        cdef ComplexDoubleElement z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
         z._complex.dat[0] = mpfr_get_d((<ComplexNumber>x).__re, GMP_RNDN)
         z._complex.dat[1] = mpfr_get_d((<ComplexNumber>x).__im, GMP_RNDN)
         return z

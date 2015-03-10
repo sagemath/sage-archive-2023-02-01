@@ -41,14 +41,12 @@ Basic arithmetic with c-integers.
 
 # The int definitions
 
-include "sage/ext/gmp.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/libs/pari/decl.pxi"
 
 cdef extern from "pari/pari.h":
     cdef long NEXT_PRIME_VIADIFF(long, byteptr)
 
-from sage.rings.integer_ring import ZZ
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.pari.all import pari
 from sage.rings.integer cimport Integer
@@ -263,8 +261,7 @@ cdef class arith_int:
         cdef float bnd
 
         if m>46340:
-            raise OverflowError, "The modulus m(=%s) should be at most 46340"%m
-            return -1
+            raise OverflowError("The modulus m(=%s) should be at most 46340"%m)
 
         a = a % m
 
@@ -398,8 +395,7 @@ cdef class arith_llong:
         cdef float bnd
 
         if m > 2147483647:
-            raise OverflowError, "The modulus m(=%s) must be at most 2147483647"%m
-            return -1
+            raise OverflowError("The modulus m(=%s) must be at most 2147483647"%m)
 
         a = a % m
 

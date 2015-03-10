@@ -1299,13 +1299,13 @@ class ClusterSeed(SageObject):
 
             sage: S = ClusterSeed(['A',[1,1],1])
             sage: it = S.mutation_class_iter()
-            sage: it.next()
+            sage: next(it)
             A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1]
-            sage: it.next()
+            sage: next(it)
             A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1]
-            sage: it.next()
+            sage: next(it)
             A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1]
-            sage: it.next()
+            sage: next(it)
             A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1]
 
             sage: it = S.mutation_class_iter(depth=3, return_paths=True)
@@ -1488,15 +1488,15 @@ class ClusterSeed(SageObject):
 
             sage: S = ClusterSeed(['A',[1,1],1])
             sage: it = S.cluster_class_iter()
-            sage: it.next()
+            sage: next(it)
             [x0, x1]
-            sage: it.next()
+            sage: next(it)
             [x0, (x0^2 + 1)/x1]
-            sage: it.next()
+            sage: next(it)
             [(x1^2 + 1)/x0, x1]
-            sage: it.next()
+            sage: next(it)
             [(x0^4 + 2*x0^2 + x1^2 + 1)/(x0*x1^2), (x0^2 + 1)/x1]
-            sage: it.next()
+            sage: next(it)
             [(x1^2 + 1)/x0, (x1^4 + x0^2 + 2*x1^2 + 1)/(x0^2*x1)]
 
             sage: it = S.cluster_class_iter(depth=3)
@@ -1836,9 +1836,7 @@ class ClusterSeed(SageObject):
             raise ValueError('The variable class can - for infinite types - only be computed up to a given depth')
 
         var_iter = self.variable_class_iter( depth=depth, ignore_bipartite_belt=ignore_bipartite_belt )
-        Vs = [ var for var in var_iter ]
-        Vs.sort(cmp=cmp)
-        return Vs
+        return sorted(var_iter)
 
     def is_finite( self ):
         r"""
@@ -2090,15 +2088,15 @@ def PathSubset(n,m):
 
         sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import PathSubset
         sage: PathSubset(4,0)
-        set([1, 3, 5, 7])
+        {1, 3, 5, 7}
         sage: PathSubset(4,1)
-        set([1, 3, 5, 6, 7])
+        {1, 3, 5, 6, 7}
         sage: PathSubset(4,2)
-        set([1, 2, 3, 5, 6, 7])
+        {1, 2, 3, 5, 6, 7}
         sage: PathSubset(4,3)
-        set([1, 2, 3, 4, 5, 6, 7])
+        {1, 2, 3, 4, 5, 6, 7}
         sage: PathSubset(4,4)
-        set([0, 1, 2, 3, 4, 5, 6, 7])
+        {0, 1, 2, 3, 4, 5, 6, 7}
     """
     from sage.misc.misc import union
     from sage.functions.other import floor

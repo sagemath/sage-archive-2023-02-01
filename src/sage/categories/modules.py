@@ -75,7 +75,7 @@ class Modules(Category_module):
         sage: Modules == RingModules
         True
 
-        sage: Modules(ZZ[x]).is_abelian()   # see #6081
+        sage: Modules(ZZ['x']).is_abelian()   # see #6081
         True
 
     TESTS::
@@ -169,23 +169,22 @@ class Modules(Category_module):
         R = self.base_ring()
         return [Bimodules(R,R)]
 
-    def is_structure_category(self):
+    def additional_structure(self):
         r"""
-        Return whether ``self`` is a structure category.
+        Return ``None``.
 
-        .. SEEALSO:: :meth:`Category.is_structure_category`
+        Indeed, the category of modules defines no additional structure:
+        a bimodule morphism between two modules is a module morphism.
 
-        The category of modules defines no new structure: a bimodule
-        morphism between two modules is a module morphism.
+        .. SEEALSO:: :meth:`Category.additional_structure`
 
         .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
 
         EXAMPLES::
 
-            sage: Modules(ZZ).is_structure_category()
-            False
+            sage: Modules(ZZ).additional_structure()
         """
-        return False
+        return None
 
     class SubcategoryMethods:
 
@@ -239,7 +238,7 @@ class Modules(Category_module):
             EXAMPLES::
 
                 sage: ModulesWithBasis(QQ).TensorProducts()
-                Category of tensor products of modules with basis over Rational Field
+                Category of tensor products of vector spaces with basis over Rational Field
             """
             return TensorProductsCategory.category_of(self)
 
@@ -478,6 +477,21 @@ class Modules(Category_module):
             """
             return [Modules(self.base_category().base_ring())]
 
+        def base_ring(self):
+            """
+            EXAMPLES::
+
+                sage: Modules(ZZ).Homsets().base_ring()
+                Integer Ring
+
+            .. TODO::
+
+                Generalize this so that any homset category of a full
+                subcategory of modules over a base ring is a category over
+                this base ring.
+            """
+            return self.base_category().base_ring()
+
         class ParentMethods:
 
             @cached_method
@@ -536,19 +550,24 @@ class Modules(Category_module):
                 from sage.misc.constant_function import ConstantFunction
                 return self(ConstantFunction(self.codomain().zero()))
 
-    class EndCategory:#(HomsetsCategory): TODO: handle systematically endomorphism categories
-        """
-        The category of endomorphism sets `End(X)` for `X` module (this is
-        not used yet)
-        """
-
-        def extra_super_categories(self):
+        class Endset(CategoryWithAxiom_over_base_ring):
             """
-            EXAMPLES::
-
-                sage: Hom(ZZ^3, ZZ^3).category().extra_super_categories() # todo: not implemented
-                [Category of algebras over Integer Ring]
+            The category of endomorphism sets `End(X)` for `X`
+            a module (this is not used yet)
             """
-            from algebras import Algebras
-            return [Algebras(self.base_category.base_ring())]
+            def extra_super_categories(self):
+                """
+                Implement the fact that the endomorphism set of a module is an algebra.
 
+                .. SEEALSO:: :meth:`CategoryWithAxiom.extra_super_categories`
+
+                EXAMPLES::
+
+                    sage: Modules(ZZ).Endsets().extra_super_categories()
+                    [Category of magmatic algebras over Integer Ring]
+
+                    sage: End(ZZ^3) in Algebras(ZZ)
+                    True
+                """
+                from magmatic_algebras import MagmaticAlgebras
+                return [MagmaticAlgebras(self.base_category().base_ring())]

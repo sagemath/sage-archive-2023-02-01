@@ -1062,7 +1062,7 @@ class SkewTableau(CombinatorialObject, Element):
         if not self.is_ribbon():
             raise ValueError("self must be a ribbon")
         from sage.combinat.ribbon_shaped_tableau import RibbonShapedTableau
-        r =  [ [i for i in row if i is not None] for row in self]
+        r = [[i for i in row if i is not None] for row in self]
         return RibbonShapedTableau(r)
 
     def filling(self):
@@ -1075,13 +1075,13 @@ class SkewTableau(CombinatorialObject, Element):
             sage: t.filling()
             [[1], [2, 3]]
         """
-        return [ [i for i in row if i is not None] for row in self ]
+        return [[i for i in row if i is not None] for row in self]
 
     def cells_by_content(self, c):
         """
         Return the coordinates of the cells in ``self`` with content ``c``.
 
-        ::
+        EXAMPLES::
 
             sage: s = SkewTableau([[None,1,2],[3,4,5],[6]])
             sage: s.cells_by_content(0)
@@ -1139,7 +1139,7 @@ class SkewTableau(CombinatorialObject, Element):
 
     def cells(self):
         """
-        Returns the cells in ``self``.
+        Return the cells in ``self``.
 
         EXAMPLES::
 
@@ -1216,8 +1216,8 @@ class SkewTableau(CombinatorialObject, Element):
 
 def _label_skew(list, sk):
     """
-    Returns a filled in a standard skew tableaux given an ordered list
-    of the coordinates to filled in.
+    Return a filled-in standard skew tableau given an ordered list
+    of the coordinates to fill in.
 
     EXAMPLES::
 
@@ -1285,7 +1285,7 @@ class SkewTableaux(Parent, UniqueRepresentation):
 
     def __contains__(self, x):
         """
-        Checks if ``x`` is a skew tableaux.
+        Checks if ``x`` is a skew tableau.
 
         EXAMPLES::
 
@@ -1446,7 +1446,7 @@ class StandardSkewTableaux_all(StandardSkewTableaux):
         EXAMPLES::
 
             sage: it = StandardTableaux().__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[],
              [[1]],
              [[1, 2]],
@@ -1812,7 +1812,7 @@ class SemistandardSkewTableaux_all(SemistandardSkewTableaux):
         EXAMPLES::
 
             sage: it = SemistandardSkewTableaux(max_entry = 5).__iter__()
-            sage: [it.next() for x in range(12)]
+            sage: [next(it) for x in range(12)]
             [[],
              [[1]],
              [[2]],
@@ -1831,7 +1831,7 @@ class SemistandardSkewTableaux_all(SemistandardSkewTableaux):
         for all `n`::
 
             sage: it = SemistandardSkewTableaux().__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[],
              [[1]],
              [[1, 1]],
@@ -2127,57 +2127,6 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
         from ribbon_tableau import RibbonTableaux_shape_weight_length
         for x in RibbonTableaux_shape_weight_length(self.p, self.mu, 1):
             yield self.element_class(self, x._list)
-
-################
-# Deprecations #
-################
-
-def from_expr(expr):
-    """
-    Deprecated in :trac:`14101`. Use instead :meth:`SkewTableaux.from_expr()`.
-
-    EXAMPLES::
-
-        sage: sage.combinat.skew_tableau.from_expr([[1,1],[[5],[3,4],[1,2]]])
-        doctest:...: DeprecationWarning: from_expr is deprecated. Use SkewTableaux().from_expr instead
-        See http://trac.sagemath.org/14101 for details.
-        [[None, 1, 2], [None, 3, 4], [5]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14101, 'from_expr is deprecated. Use SkewTableaux().from_expr instead')
-    return SkewTableaux().from_expr(expr)
-
-def from_shape_and_word(shape, word):
-    """
-    Deprecated in :trac:`14101`. Use instead
-    :meth:`SkewTableaux.from_shape_and_word()`.
-
-    EXAMPLES::
-
-        sage: t = SkewTableau([[None, 1, 3], [None, 2], [4]])
-        sage: shape = t.shape()
-        sage: word  = t.to_word()
-        sage: sage.combinat.skew_tableau.from_shape_and_word(shape, word)
-        doctest:...: DeprecationWarning: from_shape_and_word is deprecated. Use SkewTableaux().from_shape_and_word instead
-        See http://trac.sagemath.org/14101 for details.
-        [[None, 1, 3], [None, 2], [4]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14101, 'from_shape_and_word is deprecated. Use SkewTableaux().from_shape_and_word instead')
-    return SkewTableaux().from_shape_and_word(shape, word)
-
-def StandardSkewTableaux_skewpartition(skp):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.skew_tableau.StandardSkewTableaux_skewpartition([[1],[]])
-        doctest:...: DeprecationWarning: this class is deprecated. Use StandardSkewTableaux_shape instead
-        See http://trac.sagemath.org/14101 for details.
-        Standard skew tableaux of shape [1] / []
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14101,'this class is deprecated. Use StandardSkewTableaux_shape instead')
-    return StandardSkewTableaux(skp)
 
 # October 2012: fixing outdated pickles which use the classes being deprecated
 from sage.structure.sage_object import register_unpickle_override

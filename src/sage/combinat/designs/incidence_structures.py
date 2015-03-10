@@ -14,7 +14,8 @@ matrix ([1]_, [2]_). :class:`IncidenceStructure` instances have the following me
     :meth:`~IncidenceStructure.num_blocks` | Return the number of blocks.
     :meth:`~IncidenceStructure.blocks` | Return the list of blocks.
     :meth:`~IncidenceStructure.block_sizes` | Return the set of block sizes.
-    :meth:`~IncidenceStructure.degree` | Return the degree of a point ``p``
+    :meth:`~IncidenceStructure.degree` | Return the degree of a point `p`
+    :meth:`~IncidenceStructure.degrees` | Return the degree of all sets of given size, or the degree of all points.
     :meth:`~IncidenceStructure.is_connected` | Test whether the design is connected.
     :meth:`~IncidenceStructure.is_simple` | Test whether this design is simple (i.e. no repeated block).
     :meth:`~IncidenceStructure.incidence_matrix` | Return the incidence matrix `A` of the design
@@ -25,7 +26,12 @@ matrix ([1]_, [2]_). :class:`IncidenceStructure` instances have the following me
     :meth:`~IncidenceStructure.is_t_design` | Test whether ``self`` is a `t-(v,k,l)` design.
     :meth:`~IncidenceStructure.dual` | Return the dual design.
     :meth:`~IncidenceStructure.automorphism_group` | Return the automorphism group
+    :meth:`~IncidenceStructure.canonical_label` | Return a canonical label for the incidence structure.
+    :meth:`~IncidenceStructure.is_isomorphic` | Return whether the two incidence structures are isomorphic.
     :meth:`~IncidenceStructure.edge_coloring` | Return an optimal edge coloring`
+    :meth:`~IncidenceStructure.copy` | Return a copy of the incidence structure.
+    :meth:`~IncidenceStructure.induced_substructure` | Return the substructure induced by a set of points.
+    :meth:`~IncidenceStructure.trace` | Return the trace of a set of point
 
 REFERENCES:
 
@@ -185,7 +191,7 @@ class IncidenceStructure(object):
 
         sage: blocks = [[0,1],[2,0],[1,2]]  # a list of lists of integers
         sage: I = designs.IncidenceStructure(3, blocks, copy=False)
-        sage: I.blocks(copy=False) is blocks
+        sage: I._blocks is blocks
         True
     """
     def __init__(self, points=None, blocks=None, incidence_matrix=None,
@@ -282,13 +288,11 @@ class IncidenceStructure(object):
 
         self._name = str(name) if name is not None else 'IncidenceStructure'
         self._classes = None
+        self._canonical_label = None
 
     def __iter__(self):
         """
         Iterator over the blocks.
-
-        Note that it is faster to call for the method ``.blocks(copy=True)``
-        (but in that case the output should not be modified).
 
         EXAMPLES::
 
@@ -299,13 +303,14 @@ class IncidenceStructure(object):
 
             sage: b = designs.IncidenceStructure('ab', ['a','ab'])
             sage: it = iter(b)
-            sage: it.next()
+            sage: next(it)
             ['a']
-            sage: it.next()
+            sage: next(it)
             ['a', 'b']
         """
         if self._point_to_index is None:
-            for b in self._blocks: yield b[:]
+            for b in self._blocks:
+                yield b[:]
         else:
             for b in self._blocks:
                 yield [self._points[i] for i in b]
@@ -448,24 +453,275 @@ class IncidenceStructure(object):
 
         return sorted(block) in self._blocks
 
-    def ground_set(self, copy=True):
+    def canonical_label(self):
         r"""
-        Return the ground set (i.e the list of points).
+        Return a canonical label for the incidence structure.
+
+        A canonical label is relabeling of the points into integers
+        `\{0,...,n-1\}` such that isomorphic incidence structures are
+        relabelled to equal objects.
+
+        EXAMPLE::
+
+            sage: fano1 = designs.balanced_incomplete_block_design(7,3)
+            sage: fano2 = designs.projective_plane(2)
+            sage: fano1 == fano2
+            False
+            sage: fano1.relabel(fano1.canonical_label())
+            sage: fano2.relabel(fano2.canonical_label())
+            sage: fano1 == fano2
+            True
+        """
+        if self._canonical_label is None:
+            from sage.graphs.graph import Graph
+            g = Graph()
+            n = self.num_points()
+            g.add_edges((i+n,x) for i,b in enumerate(self._blocks) for x in b)
+            canonical_label = g.canonical_label([range(n),range(n,n+self.num_blocks())],certify=True)[1]
+            canonical_label = [canonical_label[x] for x in range(n)]
+            self._canonical_label = canonical_label
+
+        return dict(zip(self._points,self._canonical_label))
+
+    def is_isomorphic(self, other, certificate=False):
+        r"""
+        Return whether the two incidence structures are isomorphic.
+
+        .. NOTE::
+
+            If you need to test isomorphisms between one incidence
+            structure and many others, you should consider using
+            :meth:`canonical_label` instead of this function.
 
         INPUT:
 
-        - ``copy`` (boolean) -- ``True`` by default. When set to ``False``, a
-          pointer toward the object's internal data is given. Set it to
-          ``False`` only if you know what you are doing.
+        - ``other`` -- an incidence structure.
+
+        - ``certificate`` (boolean) -- whether to return an
+          insomorphism from ``self`` to ``other`` instead of a boolean
+          answer.
+
+        EXAMPLE::
+
+            sage: fano1 = designs.balanced_incomplete_block_design(7,3)
+            sage: fano2 = designs.projective_plane(2)
+            sage: fano1.is_isomorphic(fano2)
+            True
+            sage: fano1.is_isomorphic(fano2,certificate=True)
+            {0: 0, 1: 1, 2: 2, 3: 6, 4: 4, 5: 3, 6: 5}
+
+        TESTS::
+
+            sage: IS  = IncidenceStructure([["A",5,pi],["A",5,"Wouhou"],["A","Wouhou",(9,9)],[pi,12]])
+            sage: IS2 = IS.copy()
+            sage: IS2.relabel(IS2.canonical_label())
+            sage: IS.is_isomorphic(IS2)
+            True
+            sage: canon = IS.is_isomorphic(IS2,certificate=True)
+            sage: IS.relabel(canon)
+            sage: IS==IS2
+            True
+
+            sage: IS2 = IncidenceStructure([[1,2]])
+            sage: IS2.is_isomorphic(IS)
+            False
+            sage: IS2.is_isomorphic(IS,certificate=True)
+            {}
+        """
+        if (self.num_points() != other.num_points() or
+            self.num_blocks() != other.num_blocks() or
+            sorted(self.block_sizes()) != sorted(other.block_sizes())):
+            return {} if certificate else False
+
+        A = self.copy()
+        B = other.copy()
+
+        A_canon = A.canonical_label()
+        B_canon = B.canonical_label()
+        A.relabel(A_canon)
+        B.relabel(B_canon)
+
+        if A == B:
+            if certificate:
+                B_canon_rev = {y:x for x,y in B_canon.iteritems()}
+                return {x:B_canon_rev[xint] for x,xint in A_canon.iteritems()}
+            else:
+                return True
+        else:
+            return {} if certificate else False
+
+    def copy(self):
+        r"""
+        Return a copy of the incidence structure.
+
+        EXAMPLE::
+
+            sage: IS = IncidenceStructure([[1,2,3,"e"]],name="Test")
+            sage: IS
+            Incidence structure with 4 points and 1 blocks
+            sage: copy(IS)
+            Incidence structure with 4 points and 1 blocks
+            sage: [1, 2, 3, 'e'] in copy(IS)
+            True
+            sage: copy(IS)._name
+            'Test'
+        """
+        IS = IncidenceStructure(self._blocks,
+                                name=self._name,
+                                check=False)
+        IS.relabel(dict(zip(range(self.num_points()),self._points)))
+        IS._canonical_label = None if self._canonical_label is None else self._canonical_label[:]
+
+        return IS
+
+    __copy__ = copy
+
+    def induced_substructure(self, points):
+        r"""
+        Return the substructure induced by a set of points.
+
+        The substructure induced in `\mathcal H` by a set `X\subseteq V(\mathcal
+        H)` of points is the incidence structure `\mathcal H_X` defined on `X`
+        whose sets are all `S\in \mathcal H` such that `S\subseteq X`.
+
+        INPUT:
+
+        - ``points`` -- a set of points.
+
+        .. NOTE::
+
+            This method goes over all sets of ``self`` before building a new
+            :class:`IncidenceStructure` (which involves some relabelling and
+            sorting). It probably should not be called in a performance-critical
+            code.
+
+        EXAMPLE:
+
+        A Fano plane with one point removed::
+
+            sage: F = designs.steiner_triple_system(7)
+            sage: F.induced_substructure([0..5])
+            Incidence structure with 6 points and 4 blocks
+
+        TESTS::
+
+            sage: F.induced_substructure([0..50])
+            Traceback (most recent call last):
+            ...
+            ValueError: 7 is not a point of the incidence structure
+            sage: F.relabel(dict(enumerate("abcdefg")))
+            sage: F.induced_substructure("abc")
+            Incidence structure with 3 points and ...
+            sage: F.induced_substructure("Y")
+            Traceback (most recent call last):
+            ...
+            ValueError: 'Y' is not a point of the incidence structure
+        """
+        # Checking the input
+        if self._point_to_index is None:
+            n = self.num_points()
+            for x in points:
+                x = int(x)
+                if x < 0 or x >= n:
+                    raise ValueError("{} is not a point of the incidence structure".format(x))
+            int_points = points
+        else:
+            try:
+                int_points = [self._point_to_index[x] for x in points]
+            except KeyError as bad_pt:
+                raise ValueError("{} is not a point of the incidence structure".format(bad_pt))
+
+        int_points = set(int_points)
+        return IncidenceStructure(points,
+                                  [[self._points[x] for x in S]
+                                   for S in self._blocks
+                                   if int_points.issuperset(S)])
+
+    def trace(self, points, min_size=1, multiset=True):
+        r"""
+        Return the trace of a set of points.
+
+        Given an hypergraph `\mathcal H`, the *trace* of a set `X` of points in
+        `\mathcal H` is the hypergraph whose blocks are all non-empty `S \cap X`
+        where `S \in \mathcal H`.
+
+        INPUT:
+
+        - ``points`` -- a set of points.
+
+        - ``min_size`` (integer; default 1) -- minimum size of the sets to
+          keep. By default all empty sets are discarded, i.e. ``min_size=1``.
+
+        - ``multiset`` (boolean; default ``True``) -- whether to keep multiple
+          copies of the same set.
+
+        .. NOTE::
+
+            This method goes over all sets of ``self`` before building a new
+            :class:`IncidenceStructure` (which involves some relabelling and
+            sorting). It probably should not be called in a performance-critical
+            code.
+
+        EXAMPLE:
+
+        A Baer subplane of order 2 (i.e. a Fano plane) in a projective plane of order 4::
+
+            sage: P4 = designs.projective_plane(4)
+            sage: F = designs.projective_plane(2)
+            sage: for x in Subsets(P4.ground_set(),7):
+            ....:     if P4.trace(x,min_size=2).is_isomorphic(F):
+            ....:         break
+            sage: subplane = P4.trace(x,min_size=2); subplane
+            Incidence structure with 7 points and 7 blocks
+            sage: subplane.is_isomorphic(F)
+            True
+
+        TESTS::
+
+            sage: F.trace([0..50])
+            Traceback (most recent call last):
+            ...
+            ValueError: 7 is not a point of the incidence structure
+            sage: F.relabel(dict(enumerate("abcdefg")))
+            sage: F.trace("abc")
+            Incidence structure with 3 points and ...
+            sage: F.trace("Y")
+            Traceback (most recent call last):
+            ...
+            ValueError: 'Y' is not a point of the incidence structure
+        """
+        # Checking the input
+        if self._point_to_index is None:
+            n = self.num_points()
+            int_points = frozenset(int(x) for x in points)
+            for x in int_points:
+                if x < 0 or x >= n:
+                    raise ValueError("{} is not a point of the incidence structure".format(x))
+        else:
+            try:
+                int_points = frozenset(self._point_to_index[x] for x in points)
+            except KeyError as bad_pt:
+                raise ValueError("{} is not a point of the incidence structure".format(bad_pt))
+
+        blocks = [int_points.intersection(S) for S in self._blocks]
+        if min_size:
+            blocks = [S for S in blocks if len(S)>=min_size]
+        if not multiset:
+            blocks = set(blocks)
+        IS = IncidenceStructure(blocks)
+        IS.relabel({i:self._points[i] for i in int_points})
+        return IS
+
+    def ground_set(self):
+        r"""
+        Return the ground set (i.e the list of points).
 
         EXAMPLES::
 
             sage: designs.IncidenceStructure(3, [[0,1],[0,2]]).ground_set()
             [0, 1, 2]
         """
-        if copy:
-            return self._points[:]
-        return self._points
+        return self._points[:]
 
     def num_points(self):
         r"""
@@ -495,15 +751,9 @@ class IncidenceStructure(object):
         """
         return len(self._blocks)
 
-    def blocks(self, copy=True):
+    def blocks(self):
         """
         Return the list of blocks.
-
-        INPUT:
-
-        - ``copy`` (boolean) -- ``True`` by default. When set to ``False``, a
-          pointer toward the object's internal data is given. Set it to
-          ``False`` only if you know what you are doing.
 
         EXAMPLES::
 
@@ -511,21 +761,11 @@ class IncidenceStructure(object):
             sage: BD.blocks()
             [[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]
 
-        What you should pay attention to::
-
-            sage: blocks = BD.blocks(copy=False)
-            sage: del blocks[0:6]
-            sage: BD
-            Incidence structure with 7 points and 1 blocks
-
         """
-        if copy:
-            if self._point_to_index is None:
-                return [b[:] for b in self._blocks]
-            else:
-                return [[self._points[i] for i in b] for b in self._blocks]
+        if self._point_to_index is None:
+            return [b[:] for b in self._blocks]
         else:
-            return self._blocks
+            return [[self._points[i] for i in b] for b in self._blocks]
 
     def block_sizes(self):
         r"""
@@ -542,33 +782,116 @@ class IncidenceStructure(object):
         """
         return map(len, self._blocks)
 
-    def degree(self, p=None):
+    def degree(self, p=None, subset=False):
         r"""
-        Return the degree of a point ``p``
+        Return the degree of a point ``p`` (or a set of points).
 
-        The degree of a point `p` is the number of blocks that contain it.
+        The degree of a point (or set of points) is the number of blocks that
+        contain it.
 
         INPUT:
 
-        - ``p`` -- a point. If set to ``None`` (default), a dictionary
-          associating the points with their degrees is returned.
+        - ``p`` -- a point (or a set of points) of the incidence structure.
+
+        - ``subset`` (boolean) -- whether to interpret the argument as a set of
+          point (``subset=True``) or as a point (``subset=False``, default).
 
         EXAMPLES::
 
             sage: designs.steiner_triple_system(9).degree(3)
             4
+            sage: designs.steiner_triple_system(9).degree({1,2},subset=True)
+            1
+
+        TESTS::
+
             sage: designs.steiner_triple_system(9).degree()
+            doctest:...: DeprecationWarning: Please use degrees() instead of degree(None)
+            See http://trac.sagemath.org/17108 for details.
             {0: 4, 1: 4, 2: 4, 3: 4, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4}
+            sage: designs.steiner_triple_system(9).degree(subset=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: subset must be False when p is None
         """
         if p is None:
+            if subset is True:
+                raise ValueError("subset must be False when p is None")
+            from sage.misc.superseded import deprecation
+            deprecation(17108, "Please use degrees() instead of degree(None)")
+            return self.degrees()
+
+        # degree of a point
+        if not subset:
+            if self._point_to_index:
+                p = self._point_to_index.get(p,-1)
+            else:
+                p = p if (p>=0 and p<len(self._points)) else -1
+            return sum((p in b) for b in self._blocks) if p != -1 else 0
+
+        # degree of a set
+        else:
+            if self._point_to_index:
+                p = set(self._point_to_index.get(x,-1) for x in p)
+            else:
+                p = set(p) if all(x>=0 and x<len(self._points) for x in p) else set([-1])
+
+            return sum(p.issubset(b) for b in self._blocks) if -1 not in p else 0
+
+    def degrees(self, size=None):
+        r"""
+        Return the degree of all sets of given size, or the degree of all points.
+
+        The degree of a point (or set of point) is the number of blocks that
+        contain it.
+
+        INPUT:
+
+        - ``size`` (integer) -- return the degree of all subsets of points of
+          cardinality ``size``. When ``size=None``, the function outputs the
+          degree of all points.
+
+          .. NOTE::
+
+              When ``size=None`` the output is indexed by the points. When
+              ``size=1`` it is indexed by tuples of size 1. This is the same
+              information, stored slightly differently.
+
+        OUTPUT:
+
+        A dictionary whose values are degrees and keys are either:
+
+        - the points of the incidence structure if ``size=None`` (default)
+
+        - the subsets of size ``size`` of the points stored as tuples
+
+        EXAMPLES::
+
+            sage: IncidenceStructure([[1,2,3],[1,4]]).degrees(2)
+            {(1, 2): 1, (1, 3): 1, (1, 4): 1, (2, 3): 1, (2, 4): 0, (3, 4): 0}
+
+        In a steiner triple system, all pairs have degree 1::
+
+            sage: S13 = designs.steiner_triple_system(13)
+            sage: all(v == 1 for v in S13.degrees(2).itervalues())
+            True
+        """
+        if size is None:
             d = [0]*self.num_points()
             for b in self._blocks:
                 for x in b:
                     d[x] += 1
             return {p: d[i] for i, p in enumerate(self._points)}
         else:
-            p = self._point_to_index[p] if self._point_to_index else p
-            return sum(1 for b in self._blocks if p in b)
+            from itertools import combinations
+            d = {t:0 for t in combinations(range(self.num_points()),size)}
+            for b in self._blocks:
+                for s in combinations(b,size):
+                    d[s]+=1
+            if self._point_to_index:
+                return {tuple([self._points[x] for x in s]):v for s,v in d.iteritems()}
+            else:
+                return d
 
     def is_connected(self):
         r"""
@@ -677,12 +1000,27 @@ class IncidenceStructure(object):
         A = self.incidence_matrix()
         return BipartiteGraph(A)
 
-    def relabel(self, perm):
+    def relabel(self, perm=None, inplace=True):
         r"""
         Relabel the ground set
 
-        - ``label`` (dictionary) -- associated every point of the ground set
-          with its image. All images must be distinct.
+        INPUT:
+
+        - ``perm`` -- can be one of
+
+            - a dictionary -- then each point ``p`` (which should be a key of
+              ``d``) is relabeled to ``d[p]``
+
+            - a list or a tuple of length ``n`` -- the first point returned by
+              :meth:`ground_set` is relabeled to ``l[0]``, the second to
+              ``l[1]``, ...
+
+            - ``None`` -- the incidence structure is relabeled to be on
+              `\{0,1,...,n-1\}` in the ordering given by :meth:`ground_set`.
+
+        - ``inplace`` -- If ``True`` then return a relabeled graph and does not
+          touch ``self`` (default is ``False``).
+
 
         EXAMPLES::
 
@@ -692,12 +1030,53 @@ class IncidenceStructure(object):
             ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
             sage: print TD.blocks()[:3]
             [['a', 'f', 'k', 'p', 'u'], ['a', 'g', 'm', 's', 'y'], ['a', 'h', 'o', 'q', 'x']]
-        """
-        assert len(set(perm.values())) == len(perm)
 
+        Relabel to integer points::
+
+            sage: TD.relabel()
+            sage: print TD.blocks()[:3]
+            [[0, 5, 10, 15, 20], [0, 6, 12, 18, 24], [0, 7, 14, 16, 23]]
+
+        TESTS:
+
+        Check that the relabel is consistent on a fixed incidence structure::
+
+            sage: I = designs.IncidenceStructure([0,1,2,3,4],
+            ....:               [[0,1,3],[0,2,4],[2,3,4],[0,1]])
+            sage: I.relabel()
+            sage: from itertools import permutations
+            sage: for p in permutations([0,1,2,3,4]):
+            ....:     J = I.relabel(p,inplace=False)
+            ....:     if I == J: print p
+            (0, 1, 2, 3, 4)
+            (0, 1, 4, 3, 2)
+
+        And one can also verify that we have exactly two automorphisms::
+
+            sage: I.automorphism_group()
+            Permutation Group with generators [(2,4)]
+        """
+        if not inplace:
+            from copy import copy
+            G = copy(self)
+            G.relabel(perm=perm, inplace=True)
+            return G
+
+        if perm is None:
+            self._points = range(self.num_points())
+            self._point_to_index = None
+            return
+
+        if isinstance(perm, (list,tuple)):
+            perm = dict(zip(self._points, perm))
+
+        if not isinstance(perm, dict):
+            raise ValueError("perm argument must be None, a list or a dictionary")
+
+        if len(set(perm.values())) != len(perm):
+            raise ValueError("Two points are getting relabelled with the same name !")
 
         self._points = [perm[x] for x in self._points]
-
         if self._points == range(self.num_points()):
             self._point_to_index  = None
         else:
@@ -1080,7 +1459,7 @@ class IncidenceStructure(object):
             gens = [[tuple([i-1 for i in cycle]) for cycle in g] for g in gens]
         return PermutationGroup(gens, domain=self._points)
 
-    def is_resolvable(self, certificate=False, solver=None, verbose=0, copy=True, check=True):
+    def is_resolvable(self, certificate=False, solver=None, verbose=0, check=True):
         r"""
         Test whether the hypergraph is resolvable
 
@@ -1109,10 +1488,6 @@ class IncidenceStructure(object):
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
-
-        - ``copy`` (boolean) -- ``True`` by default. When set to ``False``, a
-          pointer toward the object's internal data is given. Set it to
-          ``False`` only if you know what you are doing.
 
         - ``check`` (boolean) -- whether to check that output is correct before
           returning it. As this is expected to be useless (but we are cautious
@@ -1161,18 +1536,13 @@ class IncidenceStructure(object):
 
         TESTS::
 
-            sage: _,cls1 = AG.is_resolvable(certificate=True, copy=True)
-            sage: _,cls2 = AG.is_resolvable(certificate=True, copy=True)
+            sage: _,cls1 = AG.is_resolvable(certificate=True)
+            sage: _,cls2 = AG.is_resolvable(certificate=True)
             sage: cls1 is cls2
             False
-
-            sage: _,cls1 = AG.is_resolvable(certificate=True, copy=False)
-            sage: _,cls2 = AG.is_resolvable(certificate=True, copy=False)
-            sage: cls1 is cls2
-            True
         """
         if self._classes is None:
-            degrees = set(self.degree().itervalues())
+            degrees = set(self.degrees().itervalues())
             if len(degrees) != 1:
                 self._classes = False
             else:
@@ -1219,13 +1589,10 @@ class IncidenceStructure(object):
             return (False, []) if certificate else False
 
         if certificate:
-            if copy:
-                if self._point_to_index is None:
-                    classes = [[block[:] for block in classs] for classs in self._classes]
-                else:
-                    classes = [[[self._points[i] for i in block] for block in classs] for classs in self._classes]
+            if self._point_to_index is None:
+                classes = [[block[:] for block in classs] for classs in self._classes]
             else:
-                classes = self._classes
+                classes = [[[self._points[i] for i in block] for block in classs] for classs in self._classes]
 
             return (True, classes)
 
@@ -1493,159 +1860,3 @@ class IncidenceStructure(object):
 
         tex += "\\end{tikzpicture}"
         return tex
-
-class GroupDivisibleDesign(IncidenceStructure):
-    r"""
-    Group Divisible Design (GDD)
-
-    Let `K` and `G` be sets of positive integers and let `\lambda` be a positive
-    integer. A Group Divisible Design of index `\lambda` and order `v` is a
-    triple `(V,\mathcal G,\mathcal B)` where:
-
-    - `V` is a set of cardinality `v`
-
-    - `\mathcal G` is a partition of `V` into groups whose size belongs to `G`
-
-    - `\mathcal B` is a family of subsets of `V` whose size belongs to `K` such
-      that any two points `p_1,p_2\in V` from different groups appear
-      simultaneously in exactly `\lambda` elements of `mathcal B`. Besides, a
-      group and a block intersect on at most one point.
-
-    If `K=\{k_1,...,k_k\}` and `G` has exactly `m_i` groups of cardinality `k_i`
-    then `G` is said to have type `k_1^{m_1}...k_k^{m_k}`.
-
-    INPUT:
-
-    - ``points`` -- the underlying set. If ``points`` is an integer `v`, then
-      the set is considered to be `\{0, ..., v-1\}`.
-
-    - ``groups`` -- the groups of the design
-
-    - ``blocks`` -- collection of blocks
-
-    - ``G`` -- list of integers of which the sizes of the groups must be
-      elements. Set to ``None`` (automatic guess) by default.
-
-    - ``K`` -- list of integers of which the sizes of the blocks must be
-      elements. Set to ``None`` (automatic guess) by default.
-
-    - ``lambd`` (integer) -- value of `\lambda`, set to `1` by default.
-
-    - ``check`` (boolean) -- whether to check that the design is indeed a `GDD`
-      with the right parameters. Set to ``True`` by default.
-
-    - ``copy`` -- (use with caution) if set to ``False`` then ``blocks`` must be
-      a list of lists of integers. The list will not be copied but will be
-      modified in place (each block is sorted, and the whole list is
-      sorted). Your ``blocks`` object will become the instance's internal data.
-
-    EXAMPLE::
-
-        sage: from sage.combinat.designs.incidence_structures import GroupDivisibleDesign
-        sage: TD = designs.transversal_design(4,10)
-        sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
-        sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
-        Group Divisible Design on 40 points of type 10^4
-    """
-    def __init__(self, points, groups, blocks, G=None, K=None, lambd=1, check=True, copy=True,**kwds):
-        r"""
-        Constructor function
-
-        EXAMPLE::
-
-            sage: from sage.combinat.designs.incidence_structures import GroupDivisibleDesign
-            sage: TD = designs.transversal_design(4,10)
-            sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
-            sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
-            Group Divisible Design on 40 points of type 10^4
-        """
-        from designs_pyx import is_group_divisible_design
-
-        self._lambd = lambd
-
-        IncidenceStructure.__init__(self,
-                                    points,
-                                    blocks,
-                                    copy=copy,
-                                    check=False,
-                                    **kwds)
-
-        if copy is False and self._point_to_index is None:
-            self._groups = groups
-        elif self._point_to_index is None:
-            self._groups = [g[:] for g in groups]
-        else:
-            self._groups = [[self._point_to_index[x] for x in g] for g in groups]
-
-        if check:
-            assert is_group_divisible_design(self._groups,self._blocks,self.num_points(),G,K,lambd)
-
-
-    def groups(self, copy=True):
-        r"""
-        Return the groups of the Group-Divisible Design.
-
-        INPUT:
-
-        - ``copy`` (boolean) -- ``True`` by default. When set to ``False``, a
-          pointer toward the object's internal data is given. Set it to
-          ``False`` only if you know what you are doing.
-
-        EXAMPLE::
-
-            sage: from sage.combinat.designs.incidence_structures import GroupDivisibleDesign
-            sage: TD = designs.transversal_design(4,10)
-            sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
-            sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
-            Group Divisible Design on 40 points of type 10^4
-            sage: GDD.groups()
-            [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-             [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
-             [20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
-             [30, 31, 32, 33, 34, 35, 36, 37, 38, 39]]
-
-        TESTS:
-
-        Non-integer ground set::
-
-            sage: TD=designs.transversal_design(5,5)
-            sage: TD.relabel({i:chr(97+i) for i in range(25)})
-            sage: TD.groups()
-            [['a', 'b', 'c', 'd', 'e'],
-             ['f', 'g', 'h', 'i', 'j'],
-             ['k', 'l', 'm', 'n', 'o'],
-             ['p', 'q', 'r', 's', 't'],
-             ['u', 'v', 'w', 'x', 'y']]
-        """
-        if copy is False:
-            return self._groups
-        elif self._point_to_index is None:
-            return [list(g) for g in self._groups]
-        else:
-            return [[self._points[i] for i in g] for g in self._groups]
-
-    def __repr__(self):
-        r"""
-        Returns a string that describes self
-
-        EXAMPLE::
-
-            sage: from sage.combinat.designs.incidence_structures import GroupDivisibleDesign
-            sage: TD = designs.transversal_design(4,10)
-            sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
-            sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
-            Group Divisible Design on 40 points of type 10^4
-        """
-        from string import join
-        group_sizes = map(len, self.groups(copy=False))
-
-        gdd_type = ["{}^{}".format(s,group_sizes.count(s))
-                    for s in sorted(set(group_sizes))]
-        gdd_type = join(gdd_type,".")
-
-        if not gdd_type:
-            gdd_type = "1^0"
-
-        v = self.num_points()
-
-        return "Group Divisible Design on {} points of type {}".format(v,gdd_type)

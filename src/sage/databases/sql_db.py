@@ -159,12 +159,10 @@ def verify_column(col_dict):
         sage: from sage.databases.sql_db import verify_column
         sage: col = {'sql':'BOOLEAN'}
         sage: verify_column(col)
-        {'index': False, 'unique': False, 'primary_key': False,
-            'sql': 'BOOLEAN'}
+        {'index': False, 'primary_key': False, 'sql': 'BOOLEAN', 'unique': False}
         sage: col = {'primary_key':True, 'sql':'INTEGER'}
         sage: verify_column(col)
-        {'index': True, 'unique': True, 'primary_key': True,
-            'sql': 'INTEGER'}
+        {'index': True, 'primary_key': True, 'sql': 'INTEGER', 'unique': True}
         sage: verify_column({})
         Traceback (most recent call last):
         ...
@@ -253,7 +251,7 @@ def construct_skeleton(database):
     skeleton = {}
     cur = database.__connection__.cursor()
     exe = cur.execute("SELECT name FROM sqlite_master WHERE TYPE='table'")
-    from sage.misc.misc import SAGE_SHARE
+    from sage.env import SAGE_SHARE
     for table in exe.fetchall():
         skeleton[table[0]] = {}
         exe1 = cur.execute("PRAGMA table_info(%s)"%table[0])
@@ -563,12 +561,12 @@ class SQLQuery(SageObject):
             sage: param = (5,)
             sage: Q = SQLQuery(G,q,param)
             sage: it = Q.__iter__()
-            sage: it.next()
+            sage: next(it)
             (18, u'D??')
-            sage: it.next()
+            sage: next(it)
             (19, u'D?C')
-            sage: skip = [it.next() for _ in range(15)]
-            sage: it.next()
+            sage: skip = [next(it) for _ in range(15)]
+            sage: next(it)
             (35, u'DBk')
         """
         try:
@@ -1787,9 +1785,14 @@ class SQLDatabase(SageObject):
             sage: MonicPolys.create_table('simon', {'n':{'sql':'INTEGER', 'index':True}, 'n2':{'sql':'INTEGER'}})
             sage: MonicPolys.make_index('n2','simon')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': True, 'unique': False,
-             'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': True,
-             'unique': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': True,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': False},
+              'n2': {'index': True,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': False}}}
         """
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database.')
@@ -1823,9 +1826,14 @@ class SQLDatabase(SageObject):
             sage: MonicPolys.create_table('simon', {'n':{'sql':'INTEGER', 'index':True}, 'n2':{'sql':'INTEGER'}})
             sage: MonicPolys.drop_index('simon', 'n')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': False, 'unique': False,
-             'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': False,
-             'unique': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': False,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': False},
+              'n2': {'index': False,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': False}}}
         """
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database.')
@@ -1858,9 +1866,14 @@ class SQLDatabase(SageObject):
             sage: MonicPolys.create_table('simon', {'n':{'sql':'INTEGER', 'index':True}, 'n2':{'sql':'INTEGER'}})
             sage: MonicPolys.make_unique('simon', 'n2')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': False, 'unique': True,
-             'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': True,
-             'unique': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': True,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': False},
+              'n2': {'index': False,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': True}}}
 
         """
         if self.__read_only__:
@@ -1892,9 +1905,14 @@ class SQLDatabase(SageObject):
             sage: MonicPolys.make_unique('simon', 'n2')
             sage: MonicPolys.drop_unique('simon', 'n2')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': False, 'unique': False,
-             'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': True,
-             'unique': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': True,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': False},
+              'n2': {'index': False,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': False}}}
         """
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database.')
@@ -1930,9 +1948,14 @@ class SQLDatabase(SageObject):
             sage: MonicPolys.create_table('simon', {'n':{'sql':'INTEGER', 'index':True}, 'n2':{'sql':'INTEGER'}})
             sage: MonicPolys.make_primary_key('simon', 'n2')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': False, 'unique': True,
-             'primary_key': True, 'sql': 'INTEGER'}, 'n': {'index': True,
-             'unique': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': True,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': False},
+              'n2': {'index': False,
+               'primary_key': True,
+               'sql': 'INTEGER',
+               'unique': True}}}
         """
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database.')
@@ -1969,9 +1992,14 @@ class SQLDatabase(SageObject):
             sage: MonicPolys.make_primary_key('simon', 'n2')
             sage: MonicPolys.drop_primary_key('simon', 'n2')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': False, 'unique': True,
-             'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': True,
-             'unique': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': True,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': False},
+              'n2': {'index': False,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': True}}}
         """
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database.')

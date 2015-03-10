@@ -47,7 +47,7 @@ class Monoids(CategoryWithAxiom):
          Category of objects]
 
         sage: Monoids().axioms()
-        frozenset(['Associative', 'Unital'])
+        frozenset({'Associative', 'Unital'})
         sage: Semigroups().Unital()
         Category of monoids
 
@@ -118,9 +118,12 @@ class Monoids(CategoryWithAxiom):
 
                 sage: S = Monoids().example()
                 sage: S.one_element()
+                doctest:...: DeprecationWarning: .one_element() is deprecated. Please use .one() instead.
+                See http://trac.sagemath.org/17694 for details.
                 ''
-
             """
+            from sage.misc.superseded import deprecation
+            deprecation(17694, ".one_element() is deprecated. Please use .one() instead.")
             return self.one()
 
         def semigroup_generators(self):
@@ -256,6 +259,30 @@ class Monoids(CategoryWithAxiom):
             for i in range(n-1):
                 result *= self
             return result
+
+        def powers(self, n):
+            r"""
+            Return the list `[x^0, x^1, \ldots, x^{n-1}]`.
+
+            EXAMPLES::
+
+                sage: A = Matrix([[1, 1], [-1, 0]])
+                sage: A.powers(6)
+                [
+                [1 0]  [ 1  1]  [ 0  1]  [-1  0]  [-1 -1]  [ 0 -1]
+                [0 1], [-1  0], [-1 -1], [ 0 -1], [ 1  0], [ 1  1]
+                ]
+            """
+            if n < 0:
+                raise ValueError("negative number of powers requested")
+            elif n == 0:
+                return []
+            x = self.parent().one()
+            l = [x]
+            for i in xrange(n - 1):
+                x = x * self
+                l.append(x)
+            return l
 
     class Commutative(CategoryWithAxiom):
         """

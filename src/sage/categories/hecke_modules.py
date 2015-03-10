@@ -125,7 +125,11 @@ class HeckeModules(Category_module):
                 Set of Morphisms from Modular Forms space of dimension 3 for Congruence Subgroup Gamma0(7) of weight 4 over Rational Field to Modular Forms space of dimension 3 for Congruence Subgroup Gamma0(7) of weight 4 over Rational Field in Category of Hecke modules over Rational Field
                 sage: H.__class__
                 <class 'sage.modular.hecke.homspace.HeckeModuleHomspace_with_category'>
-                sage: TestSuite(H).run(skip=["_test_zero", "_test_elements", "_test_an_element", "_test_additive_associativity", "_test_elements_eq", "_test_elements_eq_reflexive", "_test_elements_eq_transitive", "_test_elements_eq_symmetric", "_test_elements_neq", "_test_some_elements"])
+                sage: TestSuite(H).run(skip=["_test_elements", "_test_an_element", "_test_elements_eq",
+                ....:                        "_test_elements_eq_reflexive", "_test_elements_eq_transitive",
+                ....:                        "_test_elements_eq_symmetric", "_test_elements_neq", "_test_some_elements",
+                ....:                        "_test_zero", "_test_additive_associativity",
+                ....:                        "_test_one", "_test_associativity", "_test_prod"])
 
             Fixing :meth:`_test_zero` (``__call__`` should accept a
             function as input) and :meth:`_test_elements*` (modular
@@ -147,15 +151,11 @@ class HeckeModules(Category_module):
             return HeckeModuleHomspace(self, Y, category = category)
 
     class Homsets(HomsetsCategory):
-        def extra_super_categories_disabled(self):
-            """
-            EXAMPLES::
+        """
+        TESTS::
 
-                sage: HeckeModules(ZZ).Homsets().extra_super_categories()
-                [Category of homsets]
-            """
-            return [] # FIXME: what category structure is there on Homsets of hecke modules?
-
+            sage: TestSuite(HeckeModules(ZZ).Homsets()).run()
+        """
 
         def base_ring(self):
             """
@@ -165,6 +165,21 @@ class HeckeModules(Category_module):
                 Rational Field
             """
             return self.base_category().base_ring()
+
+        def extra_super_categories(self):
+            """
+            TESTS:
+
+            Check that Hom sets of Hecke modules are in the correct
+            category (see :trac:`17359`)::
+
+                sage: HeckeModules(ZZ).Homsets().super_categories()
+                [Category of modules over Integer Ring, Category of homsets]
+                sage: HeckeModules(QQ).Homsets().super_categories()
+                [Category of vector spaces over Rational Field, Category of homsets]
+            """
+            from sage.categories.modules import Modules
+            return [Modules(self.base_ring())]
 
         class ParentMethods:
             pass

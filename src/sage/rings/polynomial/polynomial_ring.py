@@ -152,7 +152,7 @@ These may change over time::
     <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category'>
     sage: type(NumberField([x^2-2,x^2-3],'a')['x'].0)
     <class 'sage.rings.polynomial.polynomial_number_field.Polynomial_relative_number_field_dense'>
-    sage: type(NumberField([x^2-2,x^2-3],'a')[x])
+    sage: type(NumberField([x^2-2,x^2-3],'a')['x'])
     <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category'>
 """
 
@@ -383,7 +383,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
             sage: x = var('x')
             sage: R = IntegerModRing(4)
-            sage: S = PolynomialRing(R, x)
+            sage: S = R['x']
             sage: S(x)
             x
 
@@ -468,6 +468,17 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             False
         """
         return self.base_ring().is_integral_domain(proof)
+
+    def is_unique_factorization_domain(self, proof = True):
+        """
+        EXAMPLES::
+
+            sage: ZZ['x'].is_unique_factorization_domain()
+            True
+            sage: Integers(8)['x'].is_unique_factorization_domain()
+            False
+        """
+        return self.base_ring().is_unique_factorization_domain(proof)
 
     def is_noetherian(self):
         return self.base_ring().is_noetherian()
@@ -774,7 +785,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             # of the polynomial ring canonically coerce into codomain.
             # Since poly rings are free, any image of the gen
             # determines a homomorphism
-            codomain.coerce(self.base_ring().one_element())
+            codomain.coerce(self.base_ring().one())
         except TypeError:
             return False
         return True
@@ -1218,7 +1229,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Refer to monics() for full documentation.
         """
         base = self.base_ring()
-        for coeffs in sage.misc.mrange.xmrange_iter([[base.one_element()]]+[base]*of_degree):
+        for coeffs in sage.misc.mrange.xmrange_iter([[base.one()]]+[base]*of_degree):
             # Each iteration returns a *new* list!
             # safe to mutate the return
             coeffs.reverse()
@@ -1237,7 +1248,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Refer to polynomials() for full documentation.
         """
         base = self.base_ring()
-        base0 = base.zero_element()
+        base0 = base.zero()
         for leading_coeff in base:
             if leading_coeff != base0:
                 for lt1 in sage.misc.mrange.xmrange_iter([base]*(of_degree)):
@@ -1479,7 +1490,20 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
         from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing
         return PolynomialQuotientRing(self, f, names)
 
+    def weyl_algebra(self):
+        """
+        Return the Weyl algebra generated from ``self``.
 
+        EXAMPLES::
+
+            sage: R = QQ['x']
+            sage: W = R.weyl_algebra(); W
+            Differential Weyl algebra of polynomials in x over Rational Field
+            sage: W.polynomial_ring() == R
+            True
+        """
+        from sage.algebras.weyl_algebra import DifferentialWeylAlgebra
+        return DifferentialWeylAlgebra(self)
 
 class PolynomialRing_integral_domain(PolynomialRing_commutative, integral_domain.IntegralDomain):
     def __init__(self, base_ring, name="x", sparse=False, implementation=None,
@@ -1954,7 +1978,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
             from sage.rings.polynomial.polynomial_zz_pex import Polynomial_ZZ_pEX
 
             p=base_ring.characteristic()
-            self._modulus = ntl_ZZ_pEContext(ntl_ZZ_pX(list(base_ring.polynomial()), p))
+            self._modulus = ntl_ZZ_pEContext(ntl_ZZ_pX(list(base_ring.modulus()), p))
             element_class = Polynomial_ZZ_pEX
 
         PolynomialRing_field.__init__(self, base_ring, sparse=False, name=name,
@@ -1962,7 +1986,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
 
     def irreducible_element(self, n, algorithm=None):
         """
-        Construct an irreducible polynomial of degree `n`.
+        Construct a monic irreducible polynomial of degree `n`.
 
         INPUT:
 
@@ -1997,9 +2021,12 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
         if n < 1:
             raise ValueError("degree must be at least 1")
 
-        if algorithm is None or algorithm == "random":
+        if algorithm is None:
+            algorithm = "random"
+
+        if algorithm == "random":
             while True:
-                f = self.gen()**n + self.random_element(n - 1)
+                f = self.gen()**n + self.random_element(degree=(0, n - 1))
                 if f.is_irreducible():
                     return f
         elif algorithm == "first_lexicographic":
@@ -2206,6 +2233,46 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
         s = PolynomialRing_commutative._repr_(self)
         return s + self._implementation_repr
 
+    def residue_field(self, ideal, names=None):
+        """
+        Return the residue finite field at the given ideal.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(2)[]
+            sage: k.<a> = R.residue_field(t^3+t+1); k
+            Residue field in a of Principal ideal (t^3 + t + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: k.list()
+            [0, a, a^2, a + 1, a^2 + a, a^2 + a + 1, a^2 + 1, 1]
+            sage: R.residue_field(t)
+            Residue field of Principal ideal (t) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: P = R.irreducible_element(8) * R
+            sage: P
+            Principal ideal (t^8 + t^4 + t^3 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: k.<a> = R.residue_field(P); k
+            Residue field in a of Principal ideal (t^8 + t^4 + t^3 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: k.cardinality()
+            256
+
+        Non-maximal ideals are not accepted::
+
+            sage: R.residue_field(t^2 + 1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: ideal is not maximal
+            sage: R.residue_field(0)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: ideal is not maximal
+            sage: R.residue_field(1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: ideal is not maximal
+        """
+        ideal = self.ideal(ideal)
+        if not ideal.is_maximal():
+            raise ArithmeticError("ideal is not maximal")
+        return ideal.residue_field(names)
 
 class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
                                  PolynomialRing_dense_mod_n,
@@ -2268,7 +2335,7 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
 
     def irreducible_element(self, n, algorithm=None):
         """
-        Construct an irreducible polynomial of degree `n`.
+        Construct a monic irreducible polynomial of degree `n`.
 
         INPUT:
 
@@ -2284,6 +2351,9 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             over the field of `p` elements in the database; raise a
             ``RuntimeError`` if it is not found.
 
+          - ``'ffprimroot'``: use the ``ffprimroot()`` function from
+            PARI.
+
           - ``'first_lexicographic'``: return the lexicographically
             smallest irreducible polynomial of degree `n`.
 
@@ -2291,13 +2361,19 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             degree `n` with minimal number of non-zero coefficients.
             Only implemented for `p = 2`.
 
+          - ``'primitive'``: return a polynomial `f` such that a root of
+            `f` generates the multiplicative group of the finite field
+            extension defined by `f`. This uses the Conway polynomial if
+            possible, otherwise it uses ``ffprimroot``.
+
           - ``'random'``: try random polynomials until an irreducible
             one is found.
 
-          If ``algorithm`` is ``None``, the Conway polynomial is used
-          if it is found in the database.  If no Conway polynomial is
-          found, the algorithm ``minimal_weight`` is used if `p = 2`,
-          and the algorithm ``adleman-lenstra`` if `p > 2`.
+          If ``algorithm`` is ``None``, use `x - 1` in degree 1. In
+          degree > 1, the Conway polynomial is used if it is found in
+          the database.  Otherwise, the algorithm ``minimal_weight``
+          is used if `p = 2`, and the algorithm ``adleman-lenstra`` if
+          `p > 2`.
 
         OUTPUT:
 
@@ -2309,15 +2385,39 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             x^2 + 4*x + 2
             sage: GF(5)['x'].irreducible_element(2, algorithm="adleman-lenstra")
             x^2 + x + 1
+            sage: GF(5)['x'].irreducible_element(2, algorithm="primitive")
+            x^2 + 4*x + 2
+            sage: GF(5)['x'].irreducible_element(32, algorithm="first_lexicographic")
+            x^32 + 2
+            sage: GF(5)['x'].irreducible_element(32, algorithm="conway")
+            Traceback (most recent call last):
+            ...
+            RuntimeError: requested Conway polynomial not in database.
+            sage: GF(5)['x'].irreducible_element(32, algorithm="primitive")
+            x^32 + ...
+
+        In characteristic 2::
 
             sage: GF(2)['x'].irreducible_element(33)
             x^33 + x^13 + x^12 + x^11 + x^10 + x^8 + x^6 + x^3 + 1
             sage: GF(2)['x'].irreducible_element(33, algorithm="minimal_weight")
             x^33 + x^10 + 1
 
+        In degree 1::
+        
+            sage: GF(97)['x'].irreducible_element(1)
+            x + 96
+            sage: GF(97)['x'].irreducible_element(1, algorithm="conway")
+            x + 92
+            sage: GF(97)['x'].irreducible_element(1, algorithm="adleman-lenstra")
+            x
+
         AUTHORS:
 
         - Peter Bruin (June 2013)
+
+        - Jeroen Demeyer (September 2014): add "ffprimroot" algorithm,
+          see :trac:`8373`.
         """
         from sage.libs.pari.all import pari
         from sage.rings.finite_rings.conway_polynomials import (conway_polynomial,
@@ -2330,13 +2430,21 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
         n = int(n)
         if n < 1:
             raise ValueError("degree must be at least 1")
+
         if algorithm is None:
-            if exists_conway_polynomial(p, n):
+            if n == 1:
+                return self((-1,1))  # Polynomial x - 1
+            elif exists_conway_polynomial(p, n):
                 algorithm = "conway"
             elif p == 2:
                 algorithm = "minimal_weight"
             else:
                 algorithm = "adleman-lenstra"
+        elif algorithm == "primitive":
+            if exists_conway_polynomial(p, n):
+                algorithm = "conway"
+            else:
+                algorithm = "ffprimroot"
 
         if algorithm == "adleman-lenstra":
             return self(pari(p).ffinit(n))
@@ -2348,6 +2456,8 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             else:
                 # Fallback to PolynomialRing_dense_finite_field.irreducible_element
                 pass
+        elif algorithm == "ffprimroot":
+            return self(pari(p).ffinit(n).ffgen().ffprimroot().charpoly())
         elif algorithm == "minimal_weight":
             if p == 2:
                 return self(GF2X_BuildSparseIrred_list(n))

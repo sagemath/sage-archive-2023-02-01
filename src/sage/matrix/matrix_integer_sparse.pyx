@@ -79,14 +79,24 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         Create a sparse matrix over the integers.
 
         INPUT:
-            parent -- a matrix space
-            entries -- * a Python list of triples (i,j,x), where 0 <= i < nrows,
-                         0 <= j < ncols, and x is coercible to an int.  The i,j
-                         entry of self is set to x.  The x's can be 0.
-                       * Alternatively, entries can be a list of *all* the entries
-                         of the sparse matrix (so they would be mostly 0).
-            copy -- ignored
-            coerce -- ignored
+
+        - ``parent`` -- a matrix space
+
+        - ``entries`` -- can be one of the following:
+
+          * a Python dictionary whose items have the
+            form ``(i, j): x``, where ``0 <= i < nrows``,
+            ``0 <= j < ncols``, and ``x`` is coercible to
+            an integer.  The ``i,j`` entry of ``self`` is
+            set to ``x``.  The ``x``'s can be ``0``.
+          * Alternatively, entries can be a list of *all*
+            the entries of the sparse matrix, read
+            row-by-row from top to bottom (so they would
+            be mostly 0).
+
+        - ``copy`` -- ignored
+
+        - ``coerce`` -- ignored
         """
         cdef Py_ssize_t i, j, k
         cdef Integer z
@@ -139,7 +149,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         cdef Integer x
         x = Integer()
-        mpz_vector_get_entry(&x.value, &self._matrix[i], j)
+        mpz_vector_get_entry(x.value, &self._matrix[i], j)
         return x
 
     def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
@@ -186,7 +196,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             [ 9 12 15]
         """
         cdef Py_ssize_t i
-        cdef mpz_vector* self_row, *M_row
+        cdef mpz_vector *self_row
+        cdef mpz_vector *M_row
         cdef Matrix_integer_sparse M
         cdef Integer _x
         _x = Integer(right)
@@ -199,7 +210,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
     cpdef ModuleElement _add_(self, ModuleElement right):
         cdef Py_ssize_t i, j
-        cdef mpz_vector* self_row, *M_row
+        cdef mpz_vector *self_row
+        cdef mpz_vector *M_row
         cdef Matrix_integer_sparse M
 
         M = Matrix_integer_sparse.__new__(Matrix_integer_sparse, self._parent, None, None, None)
@@ -213,7 +225,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
         cdef Py_ssize_t i, j
-        cdef mpz_vector* self_row, *M_row
+        cdef mpz_vector *self_row
+        cdef mpz_vector *M_row
         cdef Matrix_integer_sparse M
 
         M = Matrix_integer_sparse.__new__(Matrix_integer_sparse, self._parent, None, None, None)
@@ -380,15 +393,6 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         import misc
         return misc.matrix_integer_sparse_rational_reconstruction(self, N)
 
-    def _linbox_sparse(self):
-        cdef Py_ssize_t i, j
-        v = ['%s %s M'%(self._nrows, self._ncols)]
-        d = self._dict()
-        for ij, x in d.iteritems():
-            v.append('%s %s %s'%(ij[0]+1,ij[1]+1,x))
-        v.append('0 0 0\n')
-        return '\n'.join(v)
-
     def _right_kernel_matrix(self, **kwds):
         r"""
         Returns a pair that includes a matrix of basis vectors
@@ -409,7 +413,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         OUTPUT:
 
         Returns a pair.  First item is the string is either
-        'computed-pari-int' or 'computed-iml-int', which identifies
+        'computed-pari-int', 'computed-iml-int' or 'computed-flint-int', which identifies
         the nature of the basis vectors.
 
         Second item is a matrix whose rows are a basis for the right kernel,
@@ -438,22 +442,23 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             sage: X = result[1]; X
             [-469  214  -30  119  -37    0]
             [ 370 -165   18  -91   30   -2]
+
             sage: A*X.transpose() == zero_matrix(ZZ, 4, 2)
             True
 
             sage: result = A._right_kernel_matrix(algorithm='default')
             sage: result[0]
-            'computed-pari-int'
+            'computed-flint-int'
             sage: result[1]
-            [-26  31 -30  21   2 -10]
-            [-47 -13  48 -14 -11  18]
+            [ 469 -214   30 -119   37    0]
+            [-370  165  -18   91  -30    2]
 
             sage: result = A._right_kernel_matrix()
             sage: result[0]
-            'computed-pari-int'
+            'computed-flint-int'
             sage: result[1]
-            [-26  31 -30  21   2 -10]
-            [-47 -13  48 -14 -11  18]
+            [ 469 -214   30 -119   37    0]
+            [-370  165  -18   91  -30    2]
 
         With the 'default' given as the algorithm, several heuristics are
         used to determine if PARI or IML ('padic') is used.  The code has
@@ -481,8 +486,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
             sage: A = matrix(ZZ, 0, 2, sparse=True)
             sage: A._right_kernel_matrix()[1]
-            [1 0]
-            [0 1]
+            []
             sage: A = matrix(ZZ, 2, 0, sparse=True)
             sage: A._right_kernel_matrix()[1].parent()
             Full MatrixSpace of 0 by 0 dense matrices over Integer Ring

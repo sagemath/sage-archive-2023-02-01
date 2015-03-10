@@ -377,7 +377,7 @@ def Hom(X, Y, category=None, check=True):
             for O in [X, Y]:
                 try:
                     category_mismatch = O not in category
-                except BaseException:
+                except Exception:
                     # An error should not happen, this here is just to be on
                     # the safe side.
                     category_mismatch = True
@@ -415,7 +415,7 @@ def Hom(X, Y, category=None, check=True):
         if not isinstance(H, WithEqualityById):
             try:
                 H.__class__ = dynamic_class(H.__class__.__name__+"_with_equality_by_id", (WithEqualityById, H.__class__), doccls=H.__class__)
-            except BaseException:
+            except Exception:
                 pass
     return H
 
@@ -467,7 +467,7 @@ def End(X, category=None):
         Alternating group of order 3!/2 as a permutation group
 
     To avoid creating superfluous categories, a homset in a category
-    ``Cs()`` is in the homset category of the lowest fullsupercategory
+    ``Cs()`` is in the homset category of the lowest full super category
     ``Bs()`` of ``Cs()`` that implements ``Bs.Homsets`` (or the join
     thereof if there are several). For example, finite groups form a
     full subcategory of unital magmas: any unital magma morphism
@@ -482,17 +482,17 @@ def End(X, category=None):
         sage: H.homset_category()
         Category of groups
         sage: H.category()
-        Category of homsets of unital magmas
+        Category of endsets of unital magmas
 
     Similarly, a ring morphism just needs to preserve addition,
     multiplication, zero, and one. Accordingly, and since the category
-    of rings implement nothing specific about their homsets, a ring
+    of rings implements nothing specific about its homsets, a ring
     homset is currently constructed in the category of homsets of
     unital magmas and unital additive magmas::
 
         sage: H = Hom(ZZ,ZZ,Rings())
         sage: H.category()
-        Category of homsets of unital magmas and additive unital additive magmas
+        Category of endsets of unital magmas and additive unital additive magmas
     """
     return Hom(X,X, category)
 
@@ -523,12 +523,20 @@ class Homset(Set_generic):
         sage: loads(H.dumps()) is H
         True
 
-    Homsets of non-unique parents are non-unique as well::
+    Homsets of unique parents are unique as well::
 
         sage: H = End(AffineSpace(2, names='x,y'))
         sage: loads(dumps(AffineSpace(2, names='x,y'))) is AffineSpace(2, names='x,y')
+        True
+        sage: loads(dumps(H)) is H
+        True
+
+    Conversely, homsets of non-unique parents are non-unique:
+
+        sage: H = End(ProjectiveSpace(2, names='x,y,z'))
+        sage: loads(dumps(ProjectiveSpace(2, names='x,y,z'))) is ProjectiveSpace(2, names='x,y,z')
         False
-        sage: loads(dumps(AffineSpace(2, names='x,y'))) == AffineSpace(2, names='x,y')
+        sage: loads(dumps(ProjectiveSpace(2, names='x,y,z'))) == ProjectiveSpace(2, names='x,y,z')
         True
         sage: loads(dumps(H)) is H
         False
@@ -677,21 +685,20 @@ class Homset(Set_generic):
 
     def __hash__(self):
         """
+        The hash is obtained from domain, codomain and base.
+
         TESTS::
 
-            sage: hash(Hom(ZZ, QQ))
-            1586601211              # 32-bit
-            8060925370113826043     # 64-bit
-            sage: hash(Hom(QQ, ZZ))
-            1346950701              # 32-bit
-            -6958821237014866387    # 64-bit
+            sage: hash(Hom(ZZ, QQ)) == hash((ZZ, QQ, ZZ))
+            True
+            sage: hash(Hom(QQ, ZZ)) == hash((QQ, ZZ, QQ))
+            True
 
             sage: E = EllipticCurve('37a')
             sage: H = E(0).parent(); H
             Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
-            sage: hash(H)           # random output
-            -1145411691             # 32-bit
-            -8446824869798451307    # 64-bit
+            sage: hash(H) == hash((H.domain(), H.codomain(), H.base()))
+            True
         """
         return hash((self._domain, self._codomain, self.base()))
 
@@ -912,11 +919,23 @@ class Homset(Set_generic):
         it possible for a category to provide code for its morphisms
         and for morphisms of all its subcategories, full or not.
 
+        .. NOTE::
+
+            The element class of ``C.Homsets()`` will be inherited by
+            morphisms in *full* subcategories of ``C``, while the morphism
+            class of ``C`` will be inherited by *all* subcategories of
+            ``C``. Hence, if some feature of a morphism depends on the
+            algebraic properties of the homsets, it should be implemented by
+            ``C.Homsets.ElementMethods``, but if it depends only on the
+            algebraic properties of domain and codomain, it should be
+            implemented in ``C.MorphismMethods``.
+
+            At this point, the homset element classes takes precedence over
+            the morphism classes. But this may be subject to change.
+
+
         .. TODO::
 
-            - Decide in which order those two classes should be. At
-              this point the homset element classes takes precedence
-              over the morphism classes.
             - Make sure this class is shared whenever possible.
             - Flatten join category classes
 
@@ -926,13 +945,15 @@ class Homset(Set_generic):
 
         EXAMPLES:
 
-        Let's take a homset of finite commutative group as example; at
+        Let's take a homset of finite commutative groups as example; at
         this point this is the simplest one to create (gosh)::
 
-            sage: C = Groups().Finite().Commutative()
-            sage: G = PermutationGroup([(1,2,3)])
-            sage: G._refine_category_(Groups().Finite().Commutative())
-            sage: H = Hom(G, G, C)
+            sage: cat = Groups().Finite().Commutative()
+            sage: C3 = PermutationGroup([(1,2,3)])
+            sage: C3._refine_category_(cat)
+            sage: C2 = PermutationGroup([(1,2)])
+            sage: C2._refine_category_(cat)
+            sage: H = Hom(C3, C2, cat)
             sage: H.homset_category()
             Category of finite commutative groups
             sage: H.category()

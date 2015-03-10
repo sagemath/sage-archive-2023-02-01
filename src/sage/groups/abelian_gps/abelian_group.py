@@ -209,7 +209,7 @@ from sage.rings.infinity import infinity
 from sage.rings.arith import divisors, gcd
 from sage.groups.abelian_gps.abelian_group_element import AbelianGroupElement
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.misc.mrange import mrange, cartesian_product_iterator
 from sage.rings.arith import lcm
 from sage.groups.group import AbelianGroup as AbelianGroupBase
@@ -363,11 +363,11 @@ def _normalize(n, gens_orders=None, names="f"):
         sage: _normalize('1', '[2]', names='a')
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (=[) to an integer
+        TypeError: unable to convert '[' to an integer
         sage: _normalize(3, 'str', names='a')
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (=s) to an integer
+        TypeError: unable to convert 's' to an integer
    """
     if gens_orders is None:
         if isinstance(n, (list, tuple)):

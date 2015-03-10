@@ -46,8 +46,17 @@ This example illustrates generators for a free module over `\ZZ`.
     ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
 """
 
-import generators
-import sage_object
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+include 'sage/ext/stdsage.pxi'
+cimport generators
+cimport sage_object
 from sage.categories.category import Category
 from sage.structure.debug_options import debug
 
@@ -83,9 +92,6 @@ def guess_category(obj):
     return None # don't want to risk importing stuff...
 
 cpdef inline check_default_category(default_category, category):
-    """
-
-    """
     ## The resulting category is guaranteed to be
     ## a sub-category of the default.
     if category is None:
@@ -416,11 +422,11 @@ cdef class CategoryObject(sage_object.SageObject):
             names = self.normalize_names(ngens, names)
         if self._names is not None and names != self._names:
             raise ValueError, 'variable names cannot be changed after object creation.'
-        if PY_TYPE_CHECK(names, str):
+        if isinstance(names, str):
             names = (names, )  # make it a tuple
-        elif PY_TYPE_CHECK(names, list):
+        elif isinstance(names, list):
             names = tuple(names)
-        elif not PY_TYPE_CHECK(names, tuple):
+        elif not isinstance(names, tuple):
             raise TypeError, "names must be a tuple of strings"
         self._names = names
 
@@ -599,6 +605,20 @@ cdef class CategoryObject(sage_object.SageObject):
             sage: F.__class__.base_ring
             <method 'base_ring' of 'sage.structure.category_object.CategoryObject' objects>
 
+        Note that the coordinates of the elements of a module can lie
+        in a bigger ring, the ``coordinate_ring``::
+
+            sage: M = (ZZ^2) * (1/2)
+            sage: v = M([1/2, 0])
+            sage: v.base_ring()
+            Integer Ring
+            sage: parent(v[0])
+            Rational Field
+            sage: v.coordinate_ring()
+            Rational Field
+
+        More examples::
+
             sage: F = FreeAlgebra(QQ, 'x')
             sage: F.base_ring()
             Rational Field
@@ -623,35 +643,6 @@ cdef class CategoryObject(sage_object.SageObject):
 
     def base(self):
         return self._base
-
-    #################################################################################################
-    # Automatic lookup of methods on the category.
-    #################################################################################################
-
-#    def __getattr__(self, name):
-#        """
-#        Overriding the __getattr__ method allows one to define methods for objects in a particular
-#        category by writing a corresponding method on the category.
-#
-#        In order to write a method called FOO that's automatically attached to a category object,
-#        write a method object_FOO on one of that object's categories.
-#
-#        EXAMPLES:
-#        sage: G = DirichletGroup(18); G
-#        Group of Dirichlet characters of modulus 18 over Cyclotomic Field of order 6 and degree 2
-#        sage: G.generator_orders()
-#        [1, 6]
-#        sage: G.category().object_generator_orders(G)
-#        [1, 6]
-#        """
-#        if self._category is not None:
-#            attr = self._category.get_object_method(name)
-#            if attr is not None:
-#                if callable(attr):
-#                    return FillFirstArg(attr, self)
-#                else:
-#                    return attr
-#        return object.__getattribute__(self, name)
 
     ############################################################################
     # Homomorphism --
@@ -923,17 +914,3 @@ class localvars:
 
     def __exit__(self, type, value, traceback):
         self._obj._temporarily_change_names(self._orig_names)
-
-
-# This Cython class confuses the hell out of the Sphinx documentation parser
-# (because __doc__ is defined but not set). And the only code that refers to it
-# is commented out. So I'm commenting it out too. -- David Loeffler 2009-07-06
-#cdef class FillFirstArg:
-#    cdef object arg, f
-#    cdef public __doc__
-#    def __init__(self, f, arg):
-#        self.arg = arg
-#        self.f = f
-#        self.__doc__ = f.__doc__
-#    def __call__(self, *args, **kwds):
-#        return self.f(self.arg, *args, **kwds)

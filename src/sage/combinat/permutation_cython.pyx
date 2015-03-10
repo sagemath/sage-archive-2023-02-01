@@ -1,9 +1,5 @@
-#  Free for any use.
-#  Unfit for any purpose.
-#
-#  Copyright 2010, Tom Boothby
-
 """
+Permutations (Cython file)
 
 This is a nearly-straightforward implementation of what
 Knuth calls "Algorithm P" in TAOCP 7.2.1.2.  The intent is
@@ -24,7 +20,13 @@ to slow code.
 For those willing to sacrifice a (very small) amount of
 speed, we provide a class that wraps our struct.
 
+
 """
+
+#  Free for any use.
+#  Unfit for any purpose.
+#
+#  Copyright 2010, Tom Boothby
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
@@ -118,7 +120,8 @@ def permutation_iterator_transposition_list(int n):
     encouraged to avoid filling anything more than 4GB of
     memory with the output of this function.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.permutation_cython
         sage: from sage.combinat.permutation_cython import permutation_iterator_transposition_list
         sage: permutation_iterator_transposition_list(4)
@@ -141,13 +144,16 @@ def permutation_iterator_transposition_list(int n):
 
     """
 
-    cdef int *c, *o, N, m
+    cdef int *c
+    cdef int *o
+    cdef int N, m
     cdef list T
 
     if n <= 1:
         return []
     if n > 12:
-        raise ValueError, "Cowardly refusing to enumerate the permutations on more than 12 letters."
+        raise ValueError("Cowardly refusing to enumerate the permutations "
+                         "on more than 12 letters.")
 
     m = n-1
     N = n
@@ -157,14 +163,16 @@ def permutation_iterator_transposition_list(int n):
 
     c = <int *>sage_malloc(2*n*sizeof(int))
     if c is NULL:
-        raise MemoryError, "Failed to allocate memory in permutation_iterator_transposition_list"
+        raise MemoryError("Failed to allocate memory in "
+                          "permutation_iterator_transposition_list")
     o = c + n
 
     try:
         T = PyList_New(N-1)
     except Exception:
         sage_free(c)
-        raise MemoryError, "Failed to allocate memory in permutation_iterator_transposition_list"
+        raise MemoryError("Failed to allocate memory in "
+                          "permutation_iterator_transposition_list")
 
     reset_swap(n,c,o)
     for m in range(N-1):

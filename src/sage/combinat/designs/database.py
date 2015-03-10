@@ -27,6 +27,9 @@ This module implements:
 - `(v,k,\lambda)`-difference matrices:
 {LIST_OF_DM}
 
+- `(n,k;\lambda,\mu;u)`-quasi-difference matrices:
+    {LIST_OF_QDM}
+
 REFERENCES:
 
 .. [DesignHandbook] Handbook of Combinatorial Designs (2ed)
@@ -91,7 +94,7 @@ def MOLS_10_2():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(2,10,existence=True)
+        sage: designs.orthogonal_arrays.is_available(2,10)
         True
     """
     from sage.matrix.constructor import Matrix
@@ -152,7 +155,8 @@ def MOLS_14_4():
     r"""
     Return four MOLS of order 14
 
-    These MOLS were shared by Ian Wanless.
+    These MOLS were shared by Ian Wanless. The first proof of existence was
+    given in [Todorov12]_.
 
     EXAMPLES::
 
@@ -164,8 +168,14 @@ def MOLS_14_4():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(4,14,existence=True)
+        sage: designs.orthogonal_arrays.is_available(4,14)
         True
+
+    REFERENCE:
+
+    .. [Todorov12] D.T. Todorov,
+      Four mutually orthogonal Latin squares of order 14,
+      Journal of Combinatorial Designs 2012, vol.20 n.8 pp.363-367
     """
     M = """
         bjihgkecalnfmd  bfmcenidgjhalk  bcdefghijklmna  bcdefghijklmna
@@ -202,7 +212,7 @@ def MOLS_15_4():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(4,15,existence=True)
+        sage: designs.orthogonal_arrays.is_available(4,15)
         True
     """
     M = """
@@ -241,7 +251,7 @@ def MOLS_18_3():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(3,18,existence=True)
+        sage: designs.orthogonal_arrays.is_available(3,18)
         True
     """
     M = """
@@ -306,7 +316,7 @@ def OA_7_18():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,18,existence=True)
+        sage: designs.orthogonal_arrays.is_available(7,18)
         True
     """
     M = """
@@ -340,303 +350,6 @@ def OA_7_18():
     M = [M[i] for i in range(len(M)) if i%18<9] # only develop w.r.t the last two coordinates
     return M
 
-def OA_6_20():
-    r"""
-    Return an OA(6,20)
-
-    As explained in the Handbook III.3.49 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_6_20
-        sage: OA = OA_6_20()
-        sage: print is_orthogonal_array(OA,6,20,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(6,20,existence=True)
-        True
-    """
-    M=[[None,   7,  13,   1,  16,   9,   2],
-       [   0,   1,  15,   7,  17,   6,  14],
-       [   0,  11,  10,  11,   5,   4,   3],
-       [   7,None,  13,  16,   1,   2,   9],
-       [   1,   0,  15,  17,   7,  14,   6],
-       [  11,   0,  10,   5,  11,   3,   4]]
-
-    Mb=[]
-
-    for R in zip(*M):
-        a,b,c,d,e,f = R
-        Mb.append([a,b,c,d,e,f])
-        Mb.append([b,c,a,f,d,e])
-        Mb.append([c,a,b,e,f,d])
-
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    M = OA_from_quasi_difference_matrix(Mb,AdditiveCyclic(19),add_col=False)
-
-    return M
-
-def OA_5_22():
-    r"""
-    Return an OA(5,22)
-
-    As explained in the Handbook III.3.51 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_5_22
-        sage: OA = OA_5_22()
-        sage: print is_orthogonal_array(OA,5,22,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(5,22,existence=True)
-        True
-    """
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    G = AdditiveCyclic(21)
-    M = [
-        [   1,  13,  18,   3,  16,  19,None],
-        [  16,  19,   1,  13,  18,   3,   0],
-        [  18,   3,  16,  19,   1,  13,   0],
-        [   6,  15,   6,  15,   6,  15,   0],
-        [  12,   9,  19,  16,   5,   2,   0],
-        ]
-
-    Mb=[[0,7,14,None,0],
-        [0,14,7,0,None]]
-
-    for R in zip(*M):
-        a,b,c,d,e = [G(x) if x is not None else None for x in R]
-        Mb.append([a,b,c,d,e])
-
-        Mb.append([16*c,
-                   None if a is None else 16*a,
-                   16*b,
-                   16*d+7,
-                   16*e+14])
-
-        Mb.append([4*b,
-                   4*c,
-                   None if a is None else 4*a,
-                   4*d+14,
-                   4*e+7])
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col=False)
-    return M
-
-def OA_6_26():
-    r"""
-    Return an OA(6,26)
-
-    As explained in the Handbook III.3.53 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_6_26
-        sage: OA = OA_6_26()
-        sage: print is_orthogonal_array(OA,6,26,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(6,26,existence=True)
-        True
-    """
-    M = [
-        [None,None,None,None,None],
-        [   0,   0,   0,   0,   0],
-        [   1,   6,   7,   8,  14],
-        [   3,  11,  20,  18,  10],
-        [   6,  10,  14,   1,   5],
-        [   4,  19,   5,  12,   2],
-        ]
-
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    G = AdditiveCyclic(21)
-    Mb=[[0,0,0,0,0,0]]
-
-    for R in zip(*M):
-        a,b,c,d,e,f = R
-        Mb.append([a,b,c,d,e,f])
-        Mb.append([b,c,d,e,f,a])
-        Mb.append([c,d,e,f,a,b])
-        Mb.append([d,e,f,a,b,c])
-        Mb.append([e,f,a,b,c,d])
-        Mb.append([f,a,b,c,d,e])
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
-    return M
-
-def OA_6_30():
-    r"""
-    Return an OA(6,30)
-
-    As explained in the Handbook III.3.55 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_6_30
-        sage: OA = OA_6_30()
-        sage: print is_orthogonal_array(OA,6,30,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(6,30,existence=True)
-        True
-    """
-    M = [
-        [(0,0),None,(0,0),(0,0),(0,0),(0,0),(0,0)],
-        [(0,0),(0,0),None,(0,4),(0,2),(0,3),(0,1)],
-        [(0,0),(3,1),(3,0),None,(4,0),(1,0),(2,0)],
-        [(0,0),(3,0),(0,2),(1,2),None,(0,1),(0,3)],
-        [(0,0),(3,3),(1,2),(4,2),(2,0),None,(0,4)],
-        [(0,0),(4,2),(2,4),(0,3),(2,3),(3,2),None]
-        ]
-
-    from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
-    from sage.modules.free_module_element import free_module_element as vector
-    G = AdditiveAbelianGroup([5,5])
-    M = [[None if x is None else G(vector(x)) for x in L] for L in M]
-
-    Mb=[]
-
-    for R in zip(*M):
-        a,b,c,d,e,f = R
-        for i in range(5):
-            Mb.append([
-                None if a is None else a+G(vector((i,i))),
-                None if b is None else b+G(vector((2*i,i))),
-                None if c is None else c+G(vector((i,0))),
-                None if d is None else d+G(vector((4*i,0))),
-                None if e is None else e+G(vector((3*i,4*i))),
-                None if f is None else f+G(vector((4*i,4*i)))])
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
-    return M
-
-def OA_6_34():
-    r"""
-    Return an OA(6,34)
-
-    As explained in the Handbook III.3.57 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_6_34
-        sage: OA = OA_6_34()
-        sage: print is_orthogonal_array(OA,6,34,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(6,34,existence=True)
-        True
-    """
-    M = [
-        [None,   0,   0,   0,   0,   0],
-        [  30,  17,  10,  25,  23,   8],
-        [  22,   4,  32,  29,  28,  22],
-        [  25,  10,  20,  15,  21,  16],
-        [   0,  12,  15,  16,  32,  23],
-        [   6,  11,  18,  14,   9,  20]
-        ]
-
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    G = AdditiveCyclic(33)
-
-    Mb = [[ 0,  0,  0,  0,  0,   0],
-          [ 1,  4, 16, 31, 25,  11],
-          [ 3, 12, 15, 27,  9,  11],
-          [10,  7, 28, 13, 19,   0],
-          [ 5, 20, 14, 23, 26,None]]
-
-    times4 = lambda x : None if x is None else 4*x
-    for R in zip(*M):
-        a,b,c,d,e,f = [None if x is None else G(x) for x in R]
-        for i in range(5):
-            Mb.append([a,b,c,d,e,f])
-            a,b,c,d,e,f = map(times4,[e,a,b,c,d,f])
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
-    return M
-
-def OA_6_38():
-    r"""
-    Return an OA(6,38)
-
-    As explained in the Handbook III.3.60 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_6_38
-        sage: OA = OA_6_38()
-        sage: print is_orthogonal_array(OA,6,38,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(6,38,existence=True)
-        True
-    """
-    M = [
-        [None,  10,   1,   2,   6,   3,  22,   5,   7,   9,  14,  18,  28],
-        [   0,   1,  10,  20,  23,  30,  35,  13,  33,  16,  29,  32,  21],
-        [   0,  26,  26,  15,   8,   4,  17,  19,  34,  12,  31,  24,  25],
-        [  10,None,  10,   6,   2,  22,   3,   7,   5,  14,   9,  28,  18],
-        [   1,   0,  26,  23,  20,  35,  30,  33,  13,  29,  16,  21,  32],
-        [  26,   0,   1,   8,  15,  17,   4,  34,  19,  31,  12,  25,  24]
-        ]
-
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    G = AdditiveCyclic(37)
-
-    Mb=[]
-
-    for R in zip(*M):
-        a,b,c,d,e,f = R
-        Mb.append([a,b,c,d,e,f])
-        Mb.append([b,c,a,f,d,e])
-        Mb.append([c,a,b,e,f,d])
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
-    return M
-
-
 def OA_9_40():
     r"""
     Return an OA(9,40)
@@ -658,7 +371,7 @@ def OA_9_40():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(9,40,existence=True)
+        sage: designs.orthogonal_arrays.is_available(9,40)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -676,176 +389,6 @@ def OA_9_40():
     Y = [None, 0, 1, 6, 5, 4, 3, 2]
 
     return OA_n_times_2_pow_c_from_matrix(9,3,FiniteField(5),A,Y,check=False)
-
-def OA_7_42():
-    r"""
-    Return an OA(7,42)
-
-    As explained in the Handbook III.3.63 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_7_42
-        sage: OA = OA_7_42()
-        sage: print is_orthogonal_array(OA,7,42,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(7,42,existence=True)
-        True
-    """
-    M = [
-        [None,None,None,None,None,None,None],
-        [   0,   0,   0,   0,   0,   0,   0],
-        [  18, -18,  11, -11,   5,  -5,   4],
-        [  26, -26,  10, -10,  30, -30,  23],
-        [  20, -20,   3,  -3,  33, -33,  23],
-        [   5,  -5,  25, -25,  24, -24,   4],
-        [  17, -17,   4,  -4,  22, -22,   0]
-        ]
-
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    G = AdditiveCyclic(35)
-
-    Mb=[]
-
-    for R in zip(*M):
-        for i in range(7):
-            Mb.append(cyclic_shift(R,i))
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
-    return M
-
-def OA_7_54():
-    r"""
-    Return an OA(7,54)
-
-    As explained in the Handbook III.3.71 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_7_54
-        sage: OA = OA_7_54()
-        sage: print is_orthogonal_array(OA,7,54,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(7,54,existence=True)
-        True
-    """
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    G = AdditiveCyclic(45)
-
-    M = [
-        [None,None,None,None,None,None,None,None,None],
-        [   0,   0,   0,   0,   0,   0,   0,   0,   0],
-        [   1,  27,  16,   7,  -1, -27, -16,  -7,   3],
-        [  24,  40,   1,  35, -24, -40,  -1, -35,   7],
-        [  10,  30,  22,  44, -10, -30, -22, -44,   7],
-        [   5,  18,  14,  33,  -5, -18, -14, -33,   3],
-        [  30,  16,  33,  27, -30, -16, -33, -27,   0],
-        ]
-
-    Mb=[]
-
-    for R in zip(*M):
-        for c in range(7):
-            Mb.append(cyclic_shift(R,c))
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
-    return M
-
-def OA_7_62():
-    r"""
-    Return an OA(7,62)
-
-    As explained in the Handbook III.3.74 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_7_62
-        sage: OA = OA_7_62()
-        sage: print is_orthogonal_array(OA,7,62,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(7,62,existence=True)
-        True
-    """
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    G = AdditiveCyclic(54)
-
-    M = [
-        [ 0 ,None,None,None, 0   ,None ,None ,None,None,None],
-        [17 , 0  , 0  , 0  , -17 ,  0  ,  0  ,  0 ,  1 , 11 ],
-        [29 , 28 , 35 , 23 , -29 , -28 , -35 , -23,  3 , 19 ],
-        [36 , 50 , 5  , 33 , -36 , -50 , -5  , -33,  7 , 33 ],
-        [31 ,  2 , 43 , 30 , -31 , - 2 , -43 , -30, 34 , 33 ],
-        [16 , 47 , 44 , 51 , -16 , -47 , -44 , -51, 30 , 19 ],
-        [41 , 11 ,  1 , 17 , -41 , -11 , - 1 , -17, 28 , 11 ]
-        ]
-
-    Mb=[]
-
-    for R in zip(*M):
-        for c in range(7):
-            Mb.append(cyclic_shift(R,c))
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
-    return M
-
-def OA_9_65():
-    r"""
-    Return an OA(9,65)
-
-    Construction shared by Julian R. Abel
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_9_65
-        sage: OA = OA_9_65()
-        sage: print is_orthogonal_array(OA,9,65,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(9,65,existence=True)
-        True
-    """
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as G
-
-    B = [None,1, 6, 7, 9, 19, 38, 42, 49] # Base block of a (57,8,1)-BIBD
-    OA = orthogonal_array(9,9,2)
-    M = [R for R in OA if any(R[0] != x for x in R)]
-
-    M = [[B[x] for x in R] for R in M] # replacing [0,..,8] by the elements of B
-    M.append([0]*9)
-
-    M = OA_from_quasi_difference_matrix(M, G(57),add_col=False)
-    return M
 
 def OA_7_66():
     r"""
@@ -867,7 +410,7 @@ def OA_7_66():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,66,existence=True)
+        sage: designs.orthogonal_arrays.is_available(7,66)
         True
     """
 
@@ -907,7 +450,7 @@ def OA_7_68():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,68,existence=True)
+        sage: designs.orthogonal_arrays.is_available(7,68)
         True
     """
 
@@ -947,7 +490,7 @@ def OA_8_69():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(8,69,existence=True)
+        sage: designs.orthogonal_arrays.is_available(8,69)
         True
     """
     # base block of a (73,9,1) BIBD
@@ -1020,7 +563,7 @@ def OA_7_74():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,74,existence=True)
+        sage: designs.orthogonal_arrays.is_available(7,74)
         True
     """
 
@@ -1060,7 +603,7 @@ def OA_8_76():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(8,76,existence=True)
+        sage: designs.orthogonal_arrays.is_available(8,76)
         True
     """
     # base block of a (91,10,1) BIBD
@@ -1128,7 +671,7 @@ def OA_11_80():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(11,80,existence=True)
+        sage: designs.orthogonal_arrays.is_available(11,80)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1170,7 +713,7 @@ def OA_15_112():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(15,112,existence=True)
+        sage: designs.orthogonal_arrays.is_available(15,112)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1220,7 +763,7 @@ def OA_9_120():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(9,120,existence=True)
+        sage: designs.orthogonal_arrays.is_available(9,120)
         True
     """
     from incidence_structures import IncidenceStructure
@@ -1269,7 +812,7 @@ def OA_9_135():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(9,135,existence=True)
+        sage: designs.orthogonal_arrays.is_available(9,135)
         True
 
     As this orthogonal array requires a `(273,17,1)` cyclic difference set, we check that
@@ -1326,7 +869,7 @@ def OA_9_135():
     truncated_OA = [B[1:-7]+[x if x==0 else None for x in B[-7:]] for B in OA]
 
     # And call Wilson's construction
-    return wilson_construction(truncated_OA, 9, 16, 8,7,(1,)*7,check=False)
+    return wilson_construction(truncated_OA, 9, 16, 8, (1,)*7, check=False)
 
 def OA_11_160():
     r"""
@@ -1349,7 +892,7 @@ def OA_11_160():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(11,160,existence=True)
+        sage: designs.orthogonal_arrays.is_available(11,160)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1392,7 +935,7 @@ def OA_16_176():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(16,176,existence=True)
+        sage: designs.orthogonal_arrays.is_available(16,176)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1451,7 +994,7 @@ def OA_11_185():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(11,185,existence=True)
+        sage: designs.orthogonal_arrays.is_available(11,185)
         True
 
     """
@@ -1527,7 +1070,7 @@ def OA_10_205():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(10,205,existence=True)
+        sage: designs.orthogonal_arrays.is_available(10,205)
         True
     """
     # Base block of a cyclic PG(2,4^2)
@@ -1591,7 +1134,7 @@ def OA_16_208():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(16,208,existence=True)
+        sage: designs.orthogonal_arrays.is_available(16,208)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1650,7 +1193,7 @@ def OA_15_224():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(15,224,existence=True)
+        sage: designs.orthogonal_arrays.is_available(15,224)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1701,7 +1244,7 @@ def OA_11_254():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(11,254,existence=True)
+        sage: designs.orthogonal_arrays.is_available(11,254)
         True
     """
 
@@ -1736,7 +1279,7 @@ def OA_20_352():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(20,352,existence=True)
+        sage: designs.orthogonal_arrays.is_available(20,352)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1795,7 +1338,7 @@ def OA_20_416():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(20,416,existence=True)
+        sage: designs.orthogonal_arrays.is_available(20,416)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1834,42 +1377,6 @@ def OA_20_416():
 
     return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(13),zip(*A),Y,check=False)
 
-def OA_9_514():
-    r"""
-    Returns an OA(9,514)
-
-    Construction shared by Julian R. Abel:
-
-        A `V(8,57)` vector appears on page p281 of the Brouwer-Van Rees paper
-        [BvR82]_. This gives a `TD(8+2, 514) - TD(8+2,57)`. Using a `TD(9,57)`
-        (not a `TD(10,57)`) it yields a `TD(9,514)`.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_9_514
-        sage: OA = OA_9_514()
-        sage: print is_orthogonal_array(OA,9,514,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(9,514,existence=True)
-        True
-    """
-    from sage.rings.finite_rings.constructor import FiniteField
-    q = 8*57+1
-    Fq = FiniteField(q)
-
-    Vm8_57 = [0,1,3,2,12,333,363,154,340]
-    QDM = QDM_from_Vmt(8,57,Vm8_57)
-    QDM = [B[:-1] for B in QDM]
-    return OA_from_quasi_difference_matrix(QDM,Fq,add_col=False)
-
 def OA_20_544():
     r"""
     Returns an OA(20,544)
@@ -1891,7 +1398,7 @@ def OA_20_544():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(20,544,existence=True)
+        sage: designs.orthogonal_arrays.is_available(20,544)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1955,7 +1462,7 @@ def OA_17_560():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(17,560,existence=True)
+        sage: designs.orthogonal_arrays.is_available(17,560)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField as GF
@@ -1996,7 +1503,7 @@ def OA_17_560():
 
     OA=zip(*OA)
 
-    return wilson_construction(OA,k,n,m,3,[p**beta]*3,check=False)
+    return wilson_construction(OA,k,n,m,[p**beta]*3,check=False)
 
 def OA_11_640():
     r"""
@@ -2019,7 +1526,7 @@ def OA_11_640():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(11,640,existence=True)
+        sage: designs.orthogonal_arrays.is_available(11,640)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -2069,7 +1576,7 @@ def OA_10_796():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(10,796,existence=True)
+        sage: designs.orthogonal_arrays.is_available(10,796)
         True
     """
     from sage.combinat.designs.orthogonal_arrays import OA_relabel
@@ -2117,7 +1624,7 @@ def OA_10_469():
 
     This construction appears in [Brouwer80]_. It is based on the same technique
     used in
-    :func:`~sage.combinat.designs.orthogonal_arrays_recursive.brouwer_separable_design`.
+    :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.brouwer_separable_design`.
 
     Julian R. Abel's instructions:
 
@@ -2147,10 +1654,10 @@ def OA_10_469():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(10,469,existence=True)
+        sage: designs.orthogonal_arrays.is_available(10,469)
         True
     """
-    from orthogonal_arrays_recursive import _reorder_matrix
+    from orthogonal_arrays_build_recursive import _reorder_matrix
     from orthogonal_arrays import incomplete_orthogonal_array
 
     OA = []
@@ -2189,8 +1696,9 @@ def OA_520_plus_x(x):
     r"""
     Return an `OA(10+x,520+x)`.
 
-    The consruction shared by Julian R. Abel can build three designs:
-    `OA(10,520), OA(12,522), OA(14,524)`.
+    The consruction shared by Julian R. Abel works for :func:`OA(10,520)
+    <OA_10_520>`, :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524)
+    <OA_14_524>`.
 
         Let `n=520+x` and `k=10+x`. Build a `TD(17,31)`. Remove `8-x` points
         contained in a common block, add a new point `p` and create a block
@@ -2214,14 +1722,14 @@ def OA_520_plus_x(x):
         Only a row `[p,p,...]` is missing from the `OA(10+x,520+x)`
 
     This construction is used in :func:`OA(10,520) <OA_10_520>`,
-    :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524) <OA_10_524>`.
+    :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524) <OA_14_524>`.
 
     EXAMPLE::
 
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_520_plus_x
-        sage: OA = OA_520_plus_x(0)                   # not tested (already tested in OA_10_520
-        sage: print is_orthogonal_array(OA,10,520,2)  # not tested (already tested in OA_10_520
+        sage: OA = OA_520_plus_x(0)                   # not tested (already tested in OA_10_520)
+        sage: print is_orthogonal_array(OA,10,520,2)  # not tested (already tested in OA_10_520)
         True
 
     """
@@ -2275,7 +1783,7 @@ def OA_10_520():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(10,520,existence=True)
+        sage: designs.orthogonal_arrays.is_available(10,520)
         True
     """
     return OA_520_plus_x(0)
@@ -2297,7 +1805,7 @@ def OA_12_522():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(12,522,existence=True)
+        sage: designs.orthogonal_arrays.is_available(12,522)
         True
     """
     return OA_520_plus_x(2)
@@ -2319,7 +1827,7 @@ def OA_14_524():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(14,524,existence=True)
+        sage: designs.orthogonal_arrays.is_available(14,524)
         True
     """
     return OA_520_plus_x(4)
@@ -2345,7 +1853,7 @@ def OA_15_896():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(15,896,existence=True)
+        sage: designs.orthogonal_arrays.is_available(15,896)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -2371,6 +1879,36 @@ def OA_15_896():
 
     return OA_n_times_2_pow_c_from_matrix(15,7,FiniteField(7),zip(*A),Y,check=False)
 
+def OA_9_1078():
+    r"""
+    Returns an OA(9,1078)
+
+    This is obtained through the generalized Brouwer-van Rees
+    construction. Indeed, `1078 = 89.11 + (99=9.11)` and there exists an
+    `OA(9,100) - OA(9,11)`.
+
+    .. NOTE::
+
+        This function should be removed once
+        :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_brouwer_van_rees_with_one_truncated_column`
+        can handle all incomplete orthogonal arrays obtained through
+        :func:`~sage.combinat.designs.orthogonal_arrays.incomplete_orthogonal_array`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_9_1078
+        sage: OA = OA_9_1078()                       # not tested -- ~3s
+        sage: print is_orthogonal_array(OA,9,1078,2) # not tested -- ~3s
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_arrays.is_available(9,1078)
+        True
+    """
+    return wilson_construction(None,9,11,89,[[(11,9)]])
+
 def OA_25_1262():
     r"""
     Returns an OA(25,1262)
@@ -2392,7 +1930,7 @@ def OA_25_1262():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(25,1262,existence=True)
+        sage: designs.orthogonal_arrays.is_available(25,1262)
         True
     """
 
@@ -2408,6 +1946,66 @@ def OA_25_1262():
 
     return OA_from_PBD(25,1262,PBD,check=False)
 
+def OA_9_1612():
+    r"""
+    Returns an OA(9,1612)
+
+    This is obtained through the generalized Brouwer-van Rees
+    construction. Indeed, `1612 = 89.17 + (99=9.11)` and there exists an
+    `OA(9,100) - OA(9,11)`.
+
+    .. NOTE::
+
+        This function should be removed once
+        :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_brouwer_van_rees_with_one_truncated_column`
+        can handle all incomplete orthogonal arrays obtained through
+        :func:`~sage.combinat.designs.orthogonal_arrays.incomplete_orthogonal_array`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_9_1612
+        sage: OA = OA_9_1612()                       # not tested -- ~6s
+        sage: print is_orthogonal_array(OA,9,1612,2) # not tested -- ~6s
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_arrays.is_available(9,1612)
+        True
+    """
+    return wilson_construction(None,9,17,89,[[(11,9)]])
+
+def OA_10_1620():
+    r"""
+    Returns an OA(10,1620)
+
+    This is obtained through the generalized Brouwer-van Rees
+    construction. Indeed, `1620 = 144.11+(36=4.9)` and there exists an
+    `OA(10,153) - OA(10,9)`.
+
+    .. NOTE::
+
+        This function should be removed once
+        :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_brouwer_van_rees_with_one_truncated_column`
+        can handle all incomplete orthogonal arrays obtained through
+        :func:`~sage.combinat.designs.orthogonal_arrays.incomplete_orthogonal_array`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_1620
+        sage: OA = OA_10_1620()                       # not tested -- ~7s
+        sage: print is_orthogonal_array(OA,10,1620,2) # not tested -- ~7s
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_arrays.is_available(10,1620)
+        True
+    """
+    return wilson_construction(None,10,11,144,[[(9,4)]])
+
 # Index of the OA constructions
 #
 # Associates to n the pair (k,f) where f() is a function that returns an OA(k,n)
@@ -2416,17 +2014,7 @@ def OA_25_1262():
 
 OA_constructions = {
     18  : (7  , OA_7_18),
-    20  : (6  , OA_6_20),
-    22  : (5  , OA_5_22),
-    26  : (6  , OA_6_26),
-    30  : (6  , OA_6_30),
-    34  : (6  , OA_6_34),
-    38  : (6  , OA_6_38),
     40  : (9  , OA_9_40),
-    42  : (7  , OA_7_42),
-    54  : (7  , OA_7_54),
-    62  : (7  , OA_7_62),
-    65  : (9  , OA_9_65),
     66  : (7  , OA_7_66),
     68  : (7  , OA_7_68),
     69  : (8  , OA_8_69),
@@ -2446,7 +2034,6 @@ OA_constructions = {
     352 : (20 , OA_20_352),
     416 : (20 , OA_20_416),
     469 : (10 , OA_10_469),
-    514 : (9  , OA_9_514),
     520 : (10 , OA_10_520),
     522 : (12 , OA_12_522),
     524 : (14 , OA_14_524),
@@ -2455,146 +2042,659 @@ OA_constructions = {
     640 : (11 , OA_11_640),
     796 : (10 , OA_10_796),
     896 : (15 , OA_15_896),
-    1262 : (25 , OA_25_1262),
+    1078 : (9 , OA_9_1078),
+    1262 : (25, OA_25_1262),
+    1612 : (9 , OA_9_1612),
+    1620 : (10, OA_10_1620),
 }
 # Add this data to the module's doc
 LIST_OF_OA_CONSTRUCTIONS = join((":func:`OA({},{}) <OA_{}_{}>`".format(k,n,k,n)
                                 for n,(k,_) in OA_constructions.items()),
                                ", ")
 
+def QDM_19_6_1_1_1():
+    r"""
+    Return a `(19,6;1,1;1)`-quasi-difference matrix.
+
+    Used to build an `OA(6,20)`
+
+    Given in the Handbook III.3.49 [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_19_6_1_1_1
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_19_6_1_1_1()
+        sage: is_quasi_difference_matrix(M,G,6,1,1,1)
+        True
+    """
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    M=[[None,   7,  13,   1,  16,   9,   2],
+       [   0,   1,  15,   7,  17,   6,  14],
+       [   0,  11,  10,  11,   5,   4,   3],
+       [   7,None,  13,  16,   1,   2,   9],
+       [   1,   0,  15,  17,   7,  14,   6],
+       [  11,   0,  10,   5,  11,   3,   4]]
+
+    Mb=[]
+
+    for R in zip(*M):
+        a,b,c,d,e,f = R
+        Mb.append([a,b,c,d,e,f])
+        Mb.append([b,c,a,f,d,e])
+        Mb.append([c,a,b,e,f,d])
+
+    return AdditiveCyclic(19), Mb
+
+def QDM_21_5_1_1_1():
+    r"""
+    Return a `(21,5;1,1;1)`-quasi-difference matrix.
+
+    Used to build an `OA(5,22)`
+
+    Given in the Handbook III.3.51 [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_21_5_1_1_1
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_21_5_1_1_1()
+        sage: is_quasi_difference_matrix(M,G,5,1,1,1)
+        True
+    """
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(21)
+    M = [
+        [   1,  13,  18,   3,  16,  19,None],
+        [  16,  19,   1,  13,  18,   3,   0],
+        [  18,   3,  16,  19,   1,  13,   0],
+        [   6,  15,   6,  15,   6,  15,   0],
+        [  12,   9,  19,  16,   5,   2,   0],
+        ]
+
+    Mb=[[0,7,14,None,0],
+        [0,14,7,0,None]]
+
+    for R in zip(*M):
+        a,b,c,d,e = [G(x) if x is not None else None for x in R]
+        Mb.append([a,b,c,d,e])
+
+        Mb.append([16*c,
+                   None if a is None else 16*a,
+                   16*b,
+                   16*d+7,
+                   16*e+14])
+
+        Mb.append([4*b,
+                   4*c,
+                   None if a is None else 4*a,
+                   4*d+14,
+                   4*e+7])
+
+    return G, Mb
+
+def QDM_21_6_1_1_5():
+    r"""
+    Return a `(21,6;1,1;5)`-quasi-difference matrix.
+
+    Used to build an `OA(6,26)`
+
+    Given in the Handbook III.3.53 [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_21_6_1_1_5
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_21_6_1_1_5()
+        sage: is_quasi_difference_matrix(M,G,6,1,1,5)
+        True
+    """
+    M = [
+        [None,None,None,None,None],
+        [   0,   0,   0,   0,   0],
+        [   1,   6,   7,   8,  14],
+        [   3,  11,  20,  18,  10],
+        [   6,  10,  14,   1,   5],
+        [   4,  19,   5,  12,   2],
+        ]
+
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(21)
+    Mb=[[0,0,0,0,0,0]]
+
+    for R in zip(*M):
+        a,b,c,d,e,f = R
+        Mb.append([a,b,c,d,e,f])
+        Mb.append([b,c,d,e,f,a])
+        Mb.append([c,d,e,f,a,b])
+        Mb.append([d,e,f,a,b,c])
+        Mb.append([e,f,a,b,c,d])
+        Mb.append([f,a,b,c,d,e])
+
+    return G, Mb
+
+def QDM_25_6_1_1_5():
+    r"""
+    Return a `(25,6;1,1;5)`-quasi-difference matrix.
+
+    Used to build an `OA(6,30)`
+
+    Given in the Handbook III.3.55 [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_25_6_1_1_5
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_25_6_1_1_5()
+        sage: is_quasi_difference_matrix(M,G,6,1,1,5)
+        True
+    """
+    M = [
+        [(0,0),None,(0,0),(0,0),(0,0),(0,0),(0,0)],
+        [(0,0),(0,0),None,(0,4),(0,2),(0,3),(0,1)],
+        [(0,0),(3,1),(3,0),None,(4,0),(1,0),(2,0)],
+        [(0,0),(3,0),(0,2),(1,2),None,(0,1),(0,3)],
+        [(0,0),(3,3),(1,2),(4,2),(2,0),None,(0,4)],
+        [(0,0),(4,2),(2,4),(0,3),(2,3),(3,2),None]
+        ]
+
+    from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+    from sage.modules.free_module_element import free_module_element as vector
+    G = AdditiveAbelianGroup([5,5])
+    M = [[None if x is None else G(vector(x)) for x in L] for L in M]
+
+    Mb=[]
+
+    for R in zip(*M):
+        a,b,c,d,e,f = R
+        for i in range(5):
+            Mb.append([
+                None if a is None else a+G(vector((i,i))),
+                None if b is None else b+G(vector((2*i,i))),
+                None if c is None else c+G(vector((i,0))),
+                None if d is None else d+G(vector((4*i,0))),
+                None if e is None else e+G(vector((3*i,4*i))),
+                None if f is None else f+G(vector((4*i,4*i)))])
+
+    return G, Mb
+
+def QDM_33_6_1_1_1():
+    r"""
+    Return a `(33,6;1,1;1)`-quasi-difference matrix.
+
+    Used to build an `OA(6,34)`
+
+    Given in the Handbook III.3.57 [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_33_6_1_1_1
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_33_6_1_1_1()
+        sage: is_quasi_difference_matrix(M,G,6,1,1,1)
+        True
+    """
+    M = [
+        [None,   0,   0,   0,   0,   0],
+        [  30,  17,  10,  25,  23,   8],
+        [  22,   4,  32,  29,  28,  22],
+        [  25,  10,  20,  15,  21,  16],
+        [   0,  12,  15,  16,  32,  23],
+        [   6,  11,  18,  14,   9,  20]
+        ]
+
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(33)
+
+    Mb = [[ 0,  0,  0,  0,  0,   0],
+          [ 1,  4, 16, 31, 25,  11],
+          [ 3, 12, 15, 27,  9,  11],
+          [10,  7, 28, 13, 19,   0],
+          [ 5, 20, 14, 23, 26,None]]
+
+    times4 = lambda x : None if x is None else 4*x
+    for R in zip(*M):
+        a,b,c,d,e,f = [None if x is None else G(x) for x in R]
+        for i in range(5):
+            Mb.append([a,b,c,d,e,f])
+            a,b,c,d,e,f = map(times4,[e,a,b,c,d,f])
+
+    return G, Mb
+
+def QDM_37_6_1_1_1():
+    r"""
+    Return a `(37,6;1,1;1)`-quasi-difference matrix.
+
+    Used to build an `OA(6,38)`
+
+    Given in the Handbook III.3.60 [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_37_6_1_1_1
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_37_6_1_1_1()
+        sage: is_quasi_difference_matrix(M,G,6,1,1,1)
+        True
+    """
+    M = [
+        [None,  10,   1,   2,   6,   3,  22,   5,   7,   9,  14,  18,  28],
+        [   0,   1,  10,  20,  23,  30,  35,  13,  33,  16,  29,  32,  21],
+        [   0,  26,  26,  15,   8,   4,  17,  19,  34,  12,  31,  24,  25],
+        [  10,None,  10,   6,   2,  22,   3,   7,   5,  14,   9,  28,  18],
+        [   1,   0,  26,  23,  20,  35,  30,  33,  13,  29,  16,  21,  32],
+        [  26,   0,   1,   8,  15,  17,   4,  34,  19,  31,  12,  25,  24]
+        ]
+
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(37)
+
+    Mb=[]
+
+    for R in zip(*M):
+        a,b,c,d,e,f = R
+        Mb.append([a,b,c,d,e,f])
+        Mb.append([b,c,a,f,d,e])
+        Mb.append([c,a,b,e,f,d])
+
+    return G, Mb
+
+def QDM_35_7_1_1_7():
+    r"""
+    Return a `(35,7;1,1;7)`-quasi-difference matrix.
+
+    Used to build an `OA(7,42)`
+
+    As explained in the Handbook III.3.63 [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_35_7_1_1_7
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_35_7_1_1_7()
+        sage: is_quasi_difference_matrix(M,G,7,1,1,7)
+        True
+    """
+    M = [
+        [None,None,None,None,None,None,None],
+        [   0,   0,   0,   0,   0,   0,   0],
+        [  18, -18,  11, -11,   5,  -5,   4],
+        [  26, -26,  10, -10,  30, -30,  23],
+        [  20, -20,   3,  -3,  33, -33,  23],
+        [   5,  -5,  25, -25,  24, -24,   4],
+        [  17, -17,   4,  -4,  22, -22,   0]
+        ]
+
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(35)
+
+    Mb=[]
+
+    for R in zip(*M):
+        for i in range(7):
+            Mb.append(cyclic_shift(R,i))
+
+    return G, Mb
+
+def QDM_45_7_1_1_9():
+    r"""
+    Return a `(45,7;1,1;9)`-quasi-difference matrix.
+
+    Used to build an `OA(7,54)`
+
+    As explained in the Handbook III.3.71 [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_45_7_1_1_9
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_45_7_1_1_9()
+        sage: is_quasi_difference_matrix(M,G,7,1,1,9)
+        True
+    """
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(45)
+
+    M = [
+        [None,None,None,None,None,None,None,None,None],
+        [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+        [   1,  27,  16,   7,  -1, -27, -16,  -7,   3],
+        [  24,  40,   1,  35, -24, -40,  -1, -35,   7],
+        [  10,  30,  22,  44, -10, -30, -22, -44,   7],
+        [   5,  18,  14,  33,  -5, -18, -14, -33,   3],
+        [  30,  16,  33,  27, -30, -16, -33, -27,   0],
+        ]
+
+    Mb=[]
+
+    for R in zip(*M):
+        for c in range(7):
+            Mb.append(cyclic_shift(R,c))
+
+    return G, Mb
+
+def QDM_54_7_1_1_8():
+    r"""
+    Return a `(54,7;1,1;8)`-quasi-difference matrix.
+
+    Used to build an `OA(7,62)`
+
+    As explained in the Handbook III.3.74 [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_54_7_1_1_8
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_54_7_1_1_8()
+        sage: is_quasi_difference_matrix(M,G,7,1,1,8)
+        True
+    """
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(54)
+
+    M = [
+        [ 0 ,None,None,None, 0   ,None ,None ,None,None,None],
+        [17 , 0  , 0  , 0  , -17 ,  0  ,  0  ,  0 ,  1 , 11 ],
+        [29 , 28 , 35 , 23 , -29 , -28 , -35 , -23,  3 , 19 ],
+        [36 , 50 , 5  , 33 , -36 , -50 , -5  , -33,  7 , 33 ],
+        [31 ,  2 , 43 , 30 , -31 , - 2 , -43 , -30, 34 , 33 ],
+        [16 , 47 , 44 , 51 , -16 , -47 , -44 , -51, 30 , 19 ],
+        [41 , 11 ,  1 , 17 , -41 , -11 , - 1 , -17, 28 , 11 ]
+        ]
+
+    Mb=[]
+
+    for R in zip(*M):
+        for c in range(7):
+            Mb.append(cyclic_shift(R,c))
+
+    return G, Mb
+
+def QDM_57_9_1_1_8():
+    r"""
+    Return a `(57,9;1,1;8)`-quasi-difference matrix.
+
+    Used to build an `OA(9,65)`
+
+    Construction shared by Julian R. Abel
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_57_9_1_1_8
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_57_9_1_1_8()
+        sage: is_quasi_difference_matrix(M,G,9,1,1,8)
+        True
+    """
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as G
+
+    B = [None,1, 6, 7, 9, 19, 38, 42, 49] # Base block of a (57,8,1)-BIBD
+    OA = orthogonal_array(9,9,2)
+    M = [R for R in OA if any(R[0] != x for x in R)]
+
+    M = [[B[x] for x in R] for R in M] # replacing [0,..,8] by the elements of B
+    M.append([0]*9)
+
+    return  G(57), M
+
+# Quasi-difference matrices
+#
+# The syntax of the dictionary is
+#
+# QDM = {
+#     (n+u,lmbda): { # QDM with mu<=lmbda=1 yields a OA(k,n+u)-OA(k,u)
+#         (n,lmbda,mu,u): (k,qdm_constructor),
+#         }
+# }
+
+QDM = {}
+for ((n,k,lmbda,mu,u),f) in [((19,6,1,1,1), QDM_19_6_1_1_1),
+                             ((21,5,1,1,1), QDM_21_5_1_1_1),
+                             ((21,6,1,1,5), QDM_21_6_1_1_5),
+                             ((25,6,1,1,5), QDM_25_6_1_1_5),
+                             ((33,6,1,1,1), QDM_33_6_1_1_1),
+                             ((37,6,1,1,1), QDM_37_6_1_1_1),
+                             ((35,7,1,1,7), QDM_35_7_1_1_7),
+                             ((45,7,1,1,9), QDM_45_7_1_1_9),
+                             ((54,7,1,1,8), QDM_54_7_1_1_8),
+                             ((57,9,1,1,8), QDM_57_9_1_1_8)]:
+    if not (n+u,lmbda) in QDM:
+        QDM[n+u,lmbda] = {}
+    QDM[n+u,lmbda][n,lmbda,mu,u] = (k,f)
+
+# Create the list of QDM matrices for the doc
+LIST_OF_QDM = join(("`({},{};{},{};{})`".format(n,k,lmbda,mu,u)
+                    for n,k,lmbda,mu,u in
+                    sorted((n,k,lmbda,mu,u) for entry in QDM.values()
+                           for (n,lmbda,mu,u),(k,_) in sorted(entry.items()))),
+                   ", ")
+
+_ref_Handbook = """Handbook of Combinatorial Designs (2ed),
+    C. Colbourn, J. Dinitz, 2010 CRC Press"""
+
+_ref_Brouwer_vanRees = """A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
+    Discrete Mathematics 1982, vol 39, num 3, pp 263-281"""
+
+_ref_Colbourn = """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+    Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""
+
+_ref_Abel_v_12_t = """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+     Australasian Journal of Combinatorics 2008, vol 40 pp 69-85"""
+
+_ref_Abel_v_11_t = """J.R. Abel, Some new matrix-minus-diagonal V(11,t) vectors,
+     Journal of Combinatorial Designs 2003, vol 11, num 4, pp 304-306"""
+
 Vmt_vectors = {
-    (4,9) : ((0,1,3,2,8),
-             """A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
-             Discrete Mathematics 1982, vol 39, num 3, pp 263-281"""),
-
-    (6,7) : ((0,1,3,16,35,26,36),
-             """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-             Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (8,9) : ((0,1,20,70,23,59,3,8,19),
-             """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-             Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (8,11) : ((0,1,6,56,22,35,47,23,60),
-              """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-              Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (8,17) : ((0,1,3,2,133,126,47,109,74),
-              """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-              Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (8,29) : ((0,1,4,11,94,60,85,16,198),
-              """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-              Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,13) : ((0,1,5,10,22,6,14,9,53,129,84),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,19) : ((0,1,3,96,143,156,182,142,4,189,25),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,25) : ((0,1,3,85,140,178,195,22,48,179,188),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,27) : ((0,1,3,82,109,241,36,112,141,263,126),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,31) : ((0,1,3,57,128,247,289,239,70,271,96),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,43) : ((0,1,6,29,170,207,385,290,375,32,336),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10, 81) : ((0,1,3,2,27,438,615,708,168,410,656),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10, 97) : ((0,1,3,6,11,274,772,340,707,157,556),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,103) : ((0,1,3,2,7,744,342,797,468,46,561),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,181) : ((0,1,3,8,5,68,514,16,1168,225,929),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,187) : ((0,1,3,7,2,325,1138,730,1013,534,366),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,259) : ((0,1,3,7,2,15,324,1956,1353,2041,1616),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,273) : ((0,1,3,6,11,28,2573,38,1215,1299,2468),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,319) : ((0,1,3,7,2,43,239,1335,1586,2724,63),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,391) : ((0,1,3,2,5,32,555,3450,1242,1823,3833),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,409) : ((0,1,3,2,5,11,505,3202,1502,2521,3023),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (12,73) : ((0,1,607,719,837,496,240,645,184,829,451,830,770),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40 pp 69-85"""),
-
-    (12, 83) : ((0,1,627,898,836,939,742,42,847,531,173,607,361),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
-
-    (12, 89) : ((0,1,602,894,827,661,350,647,304,47,430,533,550),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
-
-    (12,101) : ((0,1,787,1049,818,1064,288,346,464,958,1188,340,1192),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
-
-    (12,103) : ((0,1,770,1027,806,1082,515,436,1096,1060,57,1135,1144),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
-
-    (12,121) : ((0,1,713,1265,848,421,998,69,874,1126,693,467,1164),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
-
-    (12,169) : ((0,1,425,326,951,1211,1881,1063,1631,1363,1554,665,1600),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
-
-    (12,191) : ((0,1,491,527,939,377,1685,1735,1967,1176,391,2192,681),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
-
-    (12,199) : ((0,1,377,524,946,560,316,1591,2036,273,1841,2091,713),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
-
-    (12,229) : ((0,1,338,312,933,380,401,2398,612,1279,1514,268,528),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
-
+    (3 ,2 ) : ((0,1,3,6),                               _ref_Handbook),
+    (3 ,4 ) : ((0,1,3,9),                               _ref_Handbook),
+    (3 ,10) : ((0,1,4,13),                              _ref_Handbook),
+    (3 ,12) : ((0,1,3,10),                              _ref_Handbook),
+    (3 ,20) : ((0,1,3,13),                              _ref_Handbook),
+    (3 ,6 ) : ((0,1,3,7),                               _ref_Handbook),
+    (3 ,26) : ((0,1,3,8),                               _ref_Handbook),
+    (3 ,32) : ((0,1,3,9),                               _ref_Handbook),
+    (3 ,6 ) : ((0,1,3,7),                               _ref_Handbook),
+    (3 ,14) : ((0,1,4,13),                              _ref_Handbook),
+    (3 ,24) : ((0,1,3,15),                              _ref_Handbook),
+    (3 ,34) : ((0,1,3,7),                               _ref_Handbook),
+    (4 ,3 ) : ((0,1,3,7,2),                             _ref_Handbook),
+    (4 ,7 ) : ((0,1,3,7,19),                            _ref_Handbook),
+    (4 ,9 ) : ((0,1,3,2,8),                             _ref_Brouwer_vanRees),
+    (4 ,13) : ((0,1,3,7,19),                            _ref_Handbook),
+    (4 ,15) : ((0,1,3,7,5),                             _ref_Handbook),
+    (4 ,25) : ((0,1,3,2,31),                            _ref_Handbook),
+    (5 ,6 ) : ((0,1,3,7,30,17),                         _ref_Handbook),
+    (5 ,8 ) : ((0,1,3,22,14,18),                        _ref_Handbook),
+    (5 ,12) : ((0,1,3,7,23,50),                         _ref_Handbook),
+    (5 ,14) : ((0,1,3,9,25,54),                         _ref_Handbook),
+    (5 ,20) : ((0,1,3,10,43,91),                        _ref_Handbook),
+    (5 ,26) : ((0,1,3,6,48,15),                         _ref_Handbook),
+    (6 ,5 ) : ((0,1,7,30,12,21,15),                     _ref_Handbook),
+    (6 ,7 ) : ((0,1,3,16,35,26,36),                     _ref_Colbourn),
+    (6 ,11) : ((0,1,3,14,7,24,27),                      _ref_Handbook),
+    (6 ,13) : ((0,1,3,7,55,47,34),                      _ref_Handbook),
+    (6 ,17) : ((0,1,3,2,14,99,29),                      _ref_Handbook),
+    (6 ,21) : ((0,1,4,13,66,93,45),                     _ref_Handbook),
+    (7 ,6 ) : ((0,1,12,27,37,16,30,35),                 _ref_Handbook),
+    (7 ,10) : ((0,1,3,45,9,50,28,16),                   _ref_Handbook),
+    (7 ,16) : ((0,1,3,7,82,72,93,39),                   _ref_Handbook),
+    (7 ,18) : ((0,1,3,6,97,114,99,26),                  _ref_Handbook),
+    (8 ,9 ) : ((0,1,20,70,23,59,3,8,19),                _ref_Colbourn),
+    (8 ,11) : ((0,1,6,56,22,35,47,23,60),               _ref_Colbourn),
+    (8 ,17) : ((0,1,3,2,133,126,47,109,74),             _ref_Colbourn),
+    (8 ,29) : ((0,1,4,11,94,60,85,16,198),              _ref_Colbourn),
+    (8 ,57) : ((0,1,3,2,12,333,363,154,340),            _ref_Brouwer_vanRees),
+    (9 ,12) : ((0,1,4,19,56,22,83,95,52,96),            _ref_Handbook),
+    (9 ,14) : ((0,1,11,25,37,8,100,23,95,42),           _ref_Handbook),
+    (9 ,18) : ((0,1,3,7,36,30,158,94,52,70),            _ref_Handbook),
+    (9 ,20) : ((0,1,3,19,145,70,173,159,18,85),         _ref_Handbook),
+    (9 ,22) : ((0,1,3,31,99,190,174,46,87,127),         _ref_Handbook),
+    (9 ,30) : ((0,1,3,8,197,68,119,13,215,105),         _ref_Handbook),
+    (9 ,34) : ((0,1,3,13,140,81,74,131,303,238),        _ref_Handbook),
+    (9 ,42) : ((0,1,3,6,66,258,186,346,104,152),        _ref_Handbook),
+    (9 ,44) : ((0,1,4,11,144,103,216,77,160,363),       _ref_Handbook),
+    (10,13) : ((0,1,5,10,22,6,14,9,53,129,84),          _ref_Colbourn),
+    (10,15) : ((0,1,45,146,51,97,70,137,85,133,18),     _ref_Handbook),
+    (10,19) : ((0,1,3,96,143,156,182,142,4,189,25),     _ref_Colbourn),
+    (10,21) : ((0,1,6,188,205,39,101,113,30,32,42),     _ref_Handbook),
+    (10,25) : ((0,1,3,85,140,178,195,22,48,179,188),    _ref_Colbourn),
+    (10,27) : ((0,1,3,82,109,241,36,112,141,263,126),   _ref_Colbourn),
+    (10,31) : ((0,1,3,57,128,247,289,239,70,271,96),    _ref_Colbourn),
+    (10,33) : ((0,1,3,67,319,44,249,146,302,282,90),    _ref_Handbook),
+    (10,43) : ((0,1,6,29,170,207,385,290,375,32,336),   _ref_Colbourn),
+    (10,49) : ((0,1,3,8,406,72,335,197,324,383,395),    _ref_Handbook),
+    (10,81) : ((0,1,3,2,27,438,615,708,168,410,656),    _ref_Colbourn),
+    (10,97) : ((0,1,3,6,11,274,772,340,707,157,556),    _ref_Colbourn),
+    (10,103) : ((0,1,3,2,7,744,342,797,468,46,561),     _ref_Colbourn),
+    (10,181) : ((0,1,3,8,5,68,514,16,1168,225,929),     _ref_Colbourn),
+    (10,187) : ((0,1,3,7,2,325,1138,730,1013,534,366),  _ref_Colbourn),
+    (10,259) : ((0,1,3,7,2,15,324,1956,1353,2041,1616), _ref_Colbourn),
+    (10,273) : ((0,1,3,6,11,28,2573,38,1215,1299,2468), _ref_Colbourn),
+    (10,319) : ((0,1,3,7,2,43,239,1335,1586,2724,63),   _ref_Colbourn),
+    (10,391) : ((0,1,3,2,5,32,555,3450,1242,1823,3833), _ref_Colbourn),
+    (10,409) : ((0,1,3,2,5,11,505,3202,1502,2521,3023), _ref_Colbourn),
+    (11,30 ) : ((0,1,58,61,235,82,160,120,260,161,204,174),               _ref_Abel_v_11_t),
+    (11,32 ) : ((0,1,90,6,158,125,293,76,250,123,341,79),                 _ref_Abel_v_11_t),
+    (11,36 ) : ((0,1,3,57,250,77,196,255,371,107,305,260),                _ref_Abel_v_11_t),
+    (11,38 ) : ((0,1,43,27,179,37,345,70,17,255,238,147),                 _ref_Abel_v_11_t),
+    (11,42 ) : ((0,1,3,12,87,104,392,328,346,314,23,359),                 _ref_Abel_v_11_t),
+    (11,56 ) : ((0,1,26,50,76,246,255,146,513,271,123,555),               _ref_Abel_v_11_t),
+    (11,60 ) : ((0,1,5,46,324,206,537,621,304,307,529,547),               _ref_Abel_v_11_t),
+    (11,62 ) : ((0,1,11,31,395,251,605,55,336,321,6,213),                 _ref_Abel_v_11_t),
+    (11,66 ) : ((0,1,4,32,15,586,669,112,240,496,490,210),                _ref_Abel_v_11_t),
+    (11,78 ) : ((0,1,4,31,97,264,277,746,816,808,298,741),                _ref_Abel_v_11_t),
+    (11,80 ) : ((0,1,3,73,68,71,569,409,127,110,554,432),                 _ref_Abel_v_11_t),
+    (11,86 ) : ((0,1,13,32,17,236,380,340,849,855,189,774),               _ref_Abel_v_11_t),
+    (11,90 ) : ((0,1,6,19,193,213,529,661,52,952,638,605),                _ref_Abel_v_11_t),
+    (11,92 ) : ((0,1,4,80,177,182,508,581,511,664,25,425),                _ref_Abel_v_11_t),
+    (11,102) : ((0,1,9,34,747,766,884,887,812,12,255,475),                _ref_Abel_v_11_t),
+    (11,116) : ((0,1,3,16,692,7,36,183,201,846,661,759),                  _ref_Abel_v_11_t),
+    (11,120) : ((0,1,4,29,531,536,732,1167,65,1033,508,1255),             _ref_Abel_v_11_t),
+    (11,128) : ((0,1,6,53,50,492,599,1230,430,131,1063,677),              _ref_Abel_v_11_t),
+    (11,132) : ((0,1,4,81,626,632,694,1352,744,60,105,821),               _ref_Abel_v_11_t),
+    (11,146) : ((0,1,7,18,92,176,193,1088,114,515,791,548),               _ref_Abel_v_11_t),
+    (11,162) : ((0,1,8,28,314,323,401,1569,1197,1455,1269,382),           _ref_Abel_v_11_t),
+    (11,170) : ((0,1,8,41,1573,1585,1686,1750,358,1732,271,340),          _ref_Abel_v_11_t),
+    (11,182) : ((0,1,5,23,675,682,732,1800,1821,1485,763,1913),           _ref_Abel_v_11_t),
+    (11,188) : ((0,1,5,29,1454,1463,1493,1838,903,98,1692,1846),          _ref_Abel_v_11_t),
+    (11,192) : ((0,1,4,9,1842,1851,1876,2035,139,979,1027,350),           _ref_Abel_v_11_t),
+    (11,198) : ((0,1,3,52,250,255,278,347,418,856,1298,780),              _ref_Abel_v_11_t),
+    (11,206) : ((0,1,6,99,1465,1469,1501,1530,869,2074,1786,674),         _ref_Abel_v_11_t),
+    (11,210) : ((0,1,8,39,2228,2244,2274,2293,188,2181,537,867),          _ref_Abel_v_11_t),
+    (11,212) : ((0,1,9,32,2219,2241,2310,2319,1253,352,920,365),          _ref_Abel_v_11_t),
+    (11,216) : ((0,1,5,15,1606,1611,1627,2101,211,1821,1564,1688),        _ref_Abel_v_11_t),
+    (11,218) : ((0,1,8,23,1347,1352,1358,1846,1479,2157,1910,292),        _ref_Abel_v_11_t),
+    (11,230) : ((0,1,6,33,2387,2394,2488,2518,1893,728,246,65),           _ref_Abel_v_11_t),
+    (11,242) : ((0,1,8,57,378,392,404,637,1708,567,1356,1903),            _ref_Abel_v_11_t),
+    (11,246) : ((0,1,7,97,389,400,413,1253,1625,1071,1756,1440),          _ref_Abel_v_11_t),
+    (11,248) : ((0,1,6,67,2112,2118,2142,2181,365,1315,2336,1283),        _ref_Abel_v_11_t),
+    (11,260) : ((0,1,5,20,1158,1165,1171,1609,449,1990,1546,1222),        _ref_Abel_v_11_t),
+    (11,266) : ((0,1,4,45,2132,2136,2164,2354,2407,2194,1459,394),        _ref_Abel_v_11_t),
+    (11,270) : ((0,1,9,31,2085,2089,2100,2348,57,748,1440,2254),          _ref_Abel_v_11_t),
+    (11,276) : ((0,1,5,42,1905,1910,1925,2382,618,594,2820,322),          _ref_Abel_v_11_t),
+    (11,288) : ((0,1,7,21,2651,2656,2694,2953,190,545,311,3063),          _ref_Abel_v_11_t),
+    (11,290) : ((0,1,5,95,1487,1492,1512,1523,1599,939,2724,971),         _ref_Abel_v_11_t),
+    (11,296) : ((0,1,7,68,856,860,868,2884,2872,2339,2965,1715),          _ref_Abel_v_11_t),
+    (11,300) : ((0,1,9,24,2221,2232,2246,2349,2196,3173,2190,1661),       _ref_Abel_v_11_t),
+    (11,302) : ((0,1,8,24,1273,1277,1290,1750,2662,733,511,1147),         _ref_Abel_v_11_t),
+    (11,308) : ((0,1,4,29,1159,1168,1174,2322,2963,1778,3071,2317),       _ref_Abel_v_11_t),
+    (11,312) : ((0,1,4,43,121,128,136,1266,2919,603,3199,2590),           _ref_Abel_v_11_t),
+    (11,318) : ((0,1,8,36,2701,2712,2733,2995,3281,2830,1262,2203),       _ref_Abel_v_11_t),
+    (11,330) : ((0,1,9,22,2312,2316,2326,2517,1311,488,1406,267),         _ref_Abel_v_11_t),
+    (11,336) : ((0,1,3,69,117,126,133,456,1399,579,3469,1157),            _ref_Abel_v_11_t),
+    (11,338) : ((0,1,9,52,1012,1017,1027,1511,3139,243,2560,139),         _ref_Abel_v_11_t),
+    (11,350) : ((0,1,5,37,2650,2655,2666,3213,3709,86,3456,1383),         _ref_Abel_v_11_t),
+    (11,356) : ((0,1,6,23,2647,2651,2657,2942,2733,1481,301,831),         _ref_Abel_v_11_t),
+    (11,366) : ((0,1,6,28,1144,1151,1160,1349,392,1114,1006,1906),        _ref_Abel_v_11_t),
+    (11,368) : ((0,1,9,47,1259,1263,1269,1319,1029,2121,2206,3959),       _ref_Abel_v_11_t),
+    (11,372) : ((0,1,7,89,1015,1022,1035,1280,361,3425,1101,2744),        _ref_Abel_v_11_t),
+    (11,378) : ((0,1,3,35,551,558,570,750,481,464,118,2491),              _ref_Abel_v_11_t),
+    (11,396) : ((0,1,9,58,1938,1942,1956,2251,434,768,582,1489),          _ref_Abel_v_11_t),
+    (11,402) : ((0,1,8,49,4331,4336,4350,4399,4169,1114,3877,3795),       _ref_Abel_v_11_t),
+    (11,420) : ((0,1,9,23,207,214,220,359,1273,1500,1817,1048),           _ref_Abel_v_11_t),
+    (11,422) : ((0,1,7,27,86,97,125,246,3796,3663,2211,2422),             _ref_Abel_v_11_t),
+    (11,450) : ((0,1,7,31,4808,4812,4826,4931,1333,4783,1152,162),        _ref_Abel_v_11_t),
+    (11,452) : ((0,1,5,58,4530,4536,4544,4568,3644,1121,561,1732),        _ref_Abel_v_11_t),
+    (12,33 ) : ((0,1,117,331,131,309,321,386,204,276,278,40,118),         _ref_Abel_v_12_t),
+    (12,35 ) : ((0,1,110,361,349,226,98,68,80,234,347,198,321),           _ref_Abel_v_12_t),
+    (12,45 ) : ((0,1,128,372,85,361,484,394,242,41,412,388,480),          _ref_Abel_v_12_t),
+    (12,51 ) : ((0,1,216,516,92,426,559,292,568,184,387,460,162),         _ref_Abel_v_12_t),
+    (12,55 ) : ((0,1,354,581,101,391,639,534,523,252,338,379,77),         _ref_Abel_v_12_t),
+    (12,59 ) : ((0,1,287,561,431,482,527,513,234,518,366,673,670),        _ref_Abel_v_12_t),
+    (12,61 ) : ((0,1,289,562,361,385,125,613,219,637,686,732,185),        _ref_Abel_v_12_t),
+    (12,63 ) : ((0,1,216,562,384,653,218,584,188,704,11,29,122),          _ref_Abel_v_12_t),
+    (12,69 ) : ((0,1,527,449,471,497,677,20,778,88,366,721,753),          _ref_Abel_v_12_t),
+    (12,71 ) : ((0,1,645,446,813,543,413,7,55,177,468,503,646),           _ref_Abel_v_12_t),
+    (12,73 ) : ((0,1,607,719,837,496,240,645,184,829,451,830,770),        _ref_Abel_v_12_t),
+    (12,83 ) : ((0,1,627,898,836,939,742,42,847,531,173,607,361),         _ref_Abel_v_12_t),
+    (12,85 ) : ((0,1,778,1000,913,819,961,456,507,186,509,495,300),       _ref_Abel_v_12_t),
+    (12,89 ) : ((0,1,602,894,827,661,350,647,304,47,430,533,550),         _ref_Abel_v_12_t),
+    (12,91 ) : ((0,1,777,1054,855,892,792,134,224,740,240,898,631),       _ref_Abel_v_12_t),
+    (12,93 ) : ((0,1,601,1004,872,557,599,819,381,248,270,1091,49),       _ref_Abel_v_12_t),
+    (12,101) : ((0,1,787,1049,818,1064,288,346,464,958,1188,340,1192),    _ref_Abel_v_12_t),
+    (12,103) : ((0,1,770,1027,806,1082,515,436,1096,1060,57,1135,1144),   _ref_Abel_v_12_t),
+    (12,115) : ((0,1,747,1179,873,484,969,692,679,153,1237,1110,616),     _ref_Abel_v_12_t),
+    (12,119) : ((0,1,701,1225,834,515,367,727,1349,407,891,1189,153),     _ref_Abel_v_12_t),
+    (12,121) : ((0,1,713,1265,848,421,998,69,874,1126,693,467,1164),      _ref_Abel_v_12_t),
+    (12,129) : ((0,1,623,1170,824,450,1099,418,948,177,207,797,59),       _ref_Abel_v_12_t),
+    (12,133) : ((0,1,648,1157,822,371,407,180,1120,898,342,548,117),      _ref_Abel_v_12_t),
+    (12,135) : ((0,1,712,1253,844,623,943,992,191,845,299,1381,611),      _ref_Abel_v_12_t),
+    (12,139) : ((0,1,627,1216,711,489,642,904,733,1246,96,1617,12),       _ref_Abel_v_12_t),
+    (12,141) : ((0,1,447,522,967,763,1035,344,93,561,1137,523,828),       _ref_Abel_v_12_t),
+    (12,145) : ((0,1,426,582,937,534,1538,1606,1148,1436,191,1406,823),   _ref_Abel_v_12_t),
+    (12,149) : ((0,1,420,509,957,593,835,1031,1502,319,1552,1047,993),    _ref_Abel_v_12_t),
+    (12,155) : ((0,1,300,482,962,638,1207,1682,885,211,1838,1244,531),    _ref_Abel_v_12_t),
+    (12,161) : ((0,1,455,318,952,400,470,584,1368,292,678,1138,383),      _ref_Abel_v_12_t),
+    (12,169) : ((0,1,425,326,951,1211,1881,1063,1631,1363,1554,665,1600), _ref_Abel_v_12_t),
+    (12,171) : ((0,1,432,319,933,688,549,63,2002,1702,653,1081,1813),     _ref_Abel_v_12_t),
+    (12,185) : ((0,1,404,324,935,605,366,360,178,221,533,1940,30),        _ref_Abel_v_12_t),
+    (12,189) : ((0,1,303,329,957,866,2180,1899,597,2209,1186,994,1301),   _ref_Abel_v_12_t),
+    (12,191) : ((0,1,491,527,939,377,1685,1735,1967,1176,391,2192,681),   _ref_Abel_v_12_t),
+    (12,195) : ((0,1,331,313,934,384,2105,479,1546,86,184,1127,1822),     _ref_Abel_v_12_t),
+    (12,199) : ((0,1,377,524,946,560,316,1591,2036,273,1841,2091,713),    _ref_Abel_v_12_t),
+    (12,203) : ((0,1,324,312,933,341,547,68,39,1008,561,1372,1300),       _ref_Abel_v_12_t),
+    (12,213) : ((0,1,343,312,933,378,229,60,1179,1781,1960,66,536),       _ref_Abel_v_12_t),
+    (12,223) : ((0,1,463,316,933,413,970,1083,2322,491,1226,1809,560),    _ref_Abel_v_12_t),
+    (12,229) : ((0,1,338,312,933,380,401,2398,612,1279,1514,268,528),     _ref_Abel_v_12_t),
+    (12,233) : ((0,1,405,314,934,398,1053,310,2254,2250,2652,1300,1079),  _ref_Abel_v_12_t),
+    (12,243) : ((0,1,486,314,933,375,697,151,1964,1623,1590,1756,1152),   _ref_Abel_v_12_t),
+    (12,253) : ((0,1,322,312,933,395,1047,12,176,1859,881,1220,2465),     _ref_Abel_v_12_t),
+    (12,255) : ((0,1,463,316,938,345,360,2537,2648,2270,789,2959,2796),   _ref_Abel_v_12_t),
+    (12,259) : ((0,1,486,314,933,350,575,1962,2347,750,3054,2719,1841),   _ref_Abel_v_12_t),
+    (12,265) : ((0,1,333,312,933,343,759,1754,2650,1633,2479,2718,1164),  _ref_Abel_v_12_t),
+    (12,269) : ((0,1,432,312,938,345,567,2441,966,1935,470,2105,3043),    _ref_Abel_v_12_t),
+    (12,271) : ((0,1,463,313,933,356,453,2869,793,748,2116,3126,2839),    _ref_Abel_v_12_t),
+    (12,275) : ((0,1,477,313,943,358,474,2312,1258,52,1452,2370,260),     _ref_Abel_v_12_t),
+    (12,281) : ((0,1,483,313,933,387,418,961,1586,766,2937,275,2569),     _ref_Abel_v_12_t),
+    (12,289) : ((0,1,474,313,943,367,963,3147,2157,238,12,1610,2189),     _ref_Abel_v_12_t),
+    (12,293) : ((0,1,423,335,945,397,235,2878,1793,2484,2440,503,1609),   _ref_Abel_v_12_t),
+    (12,295) : ((0,1,428,337,931,406,360,1978,68,375,721,2390,2465),      _ref_Abel_v_12_t),
+    (12,301) : ((0,1,436,351,924,367,1196,265,2527,720,664,105,250),      _ref_Abel_v_12_t),
+    (12,303) : ((0,1,487,572,946,462,2646,2616,1249,3143,21,2537,2128),   _ref_Abel_v_12_t),
+    (12,309) : ((0,1,417,327,944,341,1924,1975,2308,1234,1658,1829,1606), _ref_Abel_v_12_t),
+    (12,311) : ((0,1,435,557,937,371,267,428,1289,3355,2948,3030,861),    _ref_Abel_v_12_t),
+    (12,321) : ((0,1,319,325,952,364,674,2128,643,393,1025,619,868),      _ref_Abel_v_12_t),
+    (12,323) : ((0,1,445,344,920,365,567,3483,3364,1240,344,2683,3070),   _ref_Abel_v_12_t),
+    (12,335) : ((0,1,478,557,969,462,1587,1457,2552,2575,2420,168,924),   _ref_Abel_v_12_t),
+    (12,341) : ((0,1,498,362,954,440,584,421,3867,3964,404,664,2233),     _ref_Abel_v_12_t),
+    (12,355) : ((0,1,415,329,927,512,615,2336,127,2245,2250,2272,1888),   _ref_Abel_v_12_t),
+    (12,363) : ((0,1,541,368,971,370,297,555,148,4195,1197,1527,211),     _ref_Abel_v_12_t),
+    (12,379) : ((0,1,424,545,948,415,378,1181,2984,3458,3288,3888,74),    _ref_Abel_v_12_t),
+    (12,383) : ((0,1,477,534,964,441,246,972,2504,3957,3101,4366,2168),   _ref_Abel_v_12_t),
+    (12,385) : ((0,1,543,334,943,531,793,1852,538,4231,4492,580,3816),    _ref_Abel_v_12_t),
+    (12,399) : ((0,1,487,571,964,391,300,4515,2211,3063,2771,2586,1056),  _ref_Abel_v_12_t),
+    (12,401) : ((0,1,442,543,964,514,567,763,3816,3621,2124,1092,1456),   _ref_Abel_v_12_t),
+    (12,405) : ((0,1,433,552,963,385,684,63,4243,3494,3500,560,4611),     _ref_Abel_v_12_t),
+    (12,409) : ((0,1,426,541,954,411,708,1875,2058,2443,1913,2924,3673),  _ref_Abel_v_12_t),
+    (12,411) : ((0,1,430,558,963,397,372,492,2502,3948,18,1191,3761),     _ref_Abel_v_12_t),
+    (12,413) : ((0,1,436,546,977,467,242,3695,682,483,3026,461,1334),     _ref_Abel_v_12_t),
 }
-# Translate all V(m,t) into OA constructors
+# Translate all V(m,t) into (mt+1,m+2;1,0;t)-QDM constructors
 for (m,t),(vec,source) in Vmt_vectors.iteritems():
-    OA_constructions[(m+1)*t+1] = (m+2, lambda m=m,t=t,vec=vec:OA_from_Vmt(m,t,vec))
+    n,k,lmbda,mu,u = (m*t+1,m+2,1,0,t)
+    if not (n+u,lmbda) in QDM:
+        QDM[n+u,lmbda] = {}
+    QDM[n+u,lmbda][n,lmbda,mu,u] = (k,lambda m=m,t=t,vec=vec:QDM_from_Vmt(m,t,vec))
 
 # Create the list of V(m,t) vectors for the doc
 _all_m = sorted(set(m for m,_ in Vmt_vectors.keys()))
@@ -2607,80 +2707,15 @@ Tests for the Vmt vectors
 
 EXAMPLES::
 
-    sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
-    sage: from sage.combinat.designs.orthogonal_arrays import OA_from_Vmt
+    sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+    sage: from sage.combinat.designs.orthogonal_arrays import QDM_from_Vmt
     sage: from sage.combinat.designs.database import Vmt_vectors
     sage: for (m,t),(vec,source) in sorted(Vmt_vectors.items()):
-    ....:     k,n = m+2,(m+1)*t+1
-    ....:     if n < 1000:
-    ....:         assert is_orthogonal_array(OA_from_Vmt(m,t,vec),k,n)
-    ....:     print "{:11}{}".format("V({},{}):".format(m,t),source)
-    V(4,9):    A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
-                 Discrete Mathematics 1982, vol 39, num 3, pp 263-281
-    V(6,7):    Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                 Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(8,9):    Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                 Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(8,11):   Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                  Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(8,17):   Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                  Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(8,29):   Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                  Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,13):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,19):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,25):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,27):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,31):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,43):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,81):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,97):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,103): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,181): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,187): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,259): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,273): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,319): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,391): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,409): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(12,73):  J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40 pp 69-85
-    V(12,83):  J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
-    V(12,89):  J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
-    V(12,101): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
-    V(12,103): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
-    V(12,121): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
-    V(12,169): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
-    V(12,191): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
-    V(12,199): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
-    V(12,229): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
+    ....:     G,M = QDM_from_Vmt(m,t,vec)
+    ....:     if m*t < 600:
+    ....:         assert  is_quasi_difference_matrix(M,G,m+2,1,1,t,verbose=1),(m,t)
+    ....:     assert len(source)>10
 """
-
 
 DF = {
 ##############
@@ -3041,6 +3076,36 @@ DF = {
   {(67,): [[0,1,9,14,15,22,24,25,40,59,62,64],
            [0,2,13,18,28,30,44,48,50,51,57,61],
            [0,4,21,26,29,33,35,36,47,55,56,60]]},
+
+# a 133-cyclic set from Ken Smith database
+# see http://www.ccrwest.org/diffsets/diff_sets/DS_133_33_8_133.html
+(133,33, 8):
+  {(133,): [[0,4,7,8,15,17,19,22,24,25,29,30,38,
+             47,49,50,55,58,61,62,71,73,76,77,78,
+             82,95,111,113,114,121,123,127]]},
+
+# a 901-cyclic
+# see http://www.ccrwest.org/diffsets/diff_sets/DS_901_225_56_901.html
+(901,225,56):
+  {(901,): [[  0,  1,  5,  9, 12, 13, 14, 16, 22, 25, 41, 43,
+              45, 47, 53, 59, 60, 65, 69, 70, 71, 79, 80, 81,
+              89, 92, 93,106,108,109,110,114,117,124,125,126,
+             133,139,144,147,152,156,159,167,168,169,173,174,
+             182,183,192,194,196,198,202,203,205,208,209,212,
+             214,215,219,222,223,224,225,226,229,231,232,233,
+             235,244,254,256,259,264,265,274,277,286,292,293,
+             295,296,300,307,308,313,318,319,325,326,345,350,
+             352,355,363,369,371,379,382,387,394,395,397,400,
+             401,402,405,407,419,422,423,424,433,445,447,460,
+             461,465,467,469,477,484,492,498,502,503,516,523,
+             526,529,530,531,533,536,540,543,545,550,559,564,
+             570,571,574,577,579,581,583,585,587,596,599,602,
+             611,617,618,620,621,622,625,630,634,636,639,641,
+             656,658,661,664,665,688,689,691,694,695,706,708,
+             711,713,720,721,724,729,735,737,742,746,752,760,
+             766,767,772,778,780,786,795,801,813,824,826,827,
+             828,835,837,840,843,845,848,849,852,853,859,862,
+             863,865,870,874,878,881,886,897,898]]}
 }
 
 # Create the list of DF for the documentation
@@ -3966,7 +4031,7 @@ DM = {
 # Create the list of DM for the documentation
 _all_l = sorted(set(l for v,l in DM.keys()))
 LIST_OF_DM = join(("    - `\lambda={}`:\n       ".format(l)+
-                   join(("`({},{},{})`".format(v,k,l) for (v,l),(k,_) in sorted(DM.items()) if _ == l),", ")
+                   join(("`({},{},{})`".format(v,k,l) for (v,_),(k,__) in sorted(DM.items()) if _ == l),", ")
                    for l in _all_l), "\n")
 
 def RBIBD_120_8_1():
@@ -3979,10 +4044,11 @@ def RBIBD_120_8_1():
     Construction shared by Julian R. Abel:
 
         Seiden's method: Start with a cyclic `(273,17,1)-BIBD` and let `B` be an
-        hyperoval, i.e. a set which intersects any block of the BIBD in either 0
-        (153 blocks) or 2 points (120 blocks). Dualise this design and take
-        these last 120 blocks as points in the design; blocks in the design will
-        correspond to the `273-18=255` non-hyperoval points.
+        hyperoval, i.e. a set of 18 points which intersects any block of the
+        BIBD in either 0 points (153 blocks) or 2 points (120 blocks). Dualise
+        this design and take these last 120 blocks as points in the design;
+        blocks in the design will correspond to the `273-18=255` non-hyperoval
+        points.
 
         The design is also resolvable.  In the original `PG(2,16)` take any
         point `T` in the hyperoval and consider a block `B1` containing `T`.
@@ -4066,5 +4132,6 @@ __doc__ = __doc__.format(
     LIST_OF_MOLS_CONSTRUCTIONS = LIST_OF_MOLS_CONSTRUCTIONS,
     LIST_OF_VMT_VECTORS        = LIST_OF_VMT_VECTORS,
     LIST_OF_DF                 = LIST_OF_DF,
-    LIST_OF_DM                 = LIST_OF_DM)
-del LIST_OF_OA_CONSTRUCTIONS, LIST_OF_MOLS_CONSTRUCTIONS, LIST_OF_VMT_VECTORS, LIST_OF_DF, LIST_OF_DM
+    LIST_OF_DM                 = LIST_OF_DM,
+    LIST_OF_QDM                = LIST_OF_QDM)
+del LIST_OF_OA_CONSTRUCTIONS, LIST_OF_MOLS_CONSTRUCTIONS, LIST_OF_VMT_VECTORS, LIST_OF_DF, LIST_OF_DM, LIST_OF_QDM

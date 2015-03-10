@@ -171,7 +171,7 @@ cdef extern from "gmpxx.h":
         mpz_class(int i)
         mpz_class(mpz_t z)
         mpz_class(mpz_class)
-        mpz_t* get_mpz_t()
+        mpz_t get_mpz_t()
 
 
 ####################################################
@@ -1939,7 +1939,11 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: cs.insert( 3*x+5*y<=10 )
             sage: p = C_Polyhedron(cs)
             sage: p.maximize( x+y )
-            {'sup_d': 3, 'sup_n': 10, 'bounded': True, 'maximum': True, 'generator': point(10/3, 0/3)}
+            {'bounded': True,
+             'generator': point(10/3, 0/3),
+             'maximum': True,
+             'sup_d': 3,
+             'sup_n': 10}
 
         Unbounded case::
 
@@ -1949,7 +1953,11 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: p.maximize( +x )
             {'bounded': False}
             sage: p.maximize( -x )
-            {'sup_d': 1, 'sup_n': 0, 'bounded': True, 'maximum': False, 'generator': closure_point(0/1)}
+            {'bounded': True,
+             'generator': closure_point(0/1),
+             'maximum': False,
+             'sup_d': 1,
+             'sup_n': 0}
         """
         cdef PPL_Coefficient sup_n
         cdef PPL_Coefficient sup_d
@@ -2010,7 +2018,11 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: cs.insert( 3*x+5*y<=10 )
             sage: p = C_Polyhedron(cs)
             sage: p.minimize( x+y )
-            {'minimum': True, 'bounded': True, 'inf_d': 1, 'generator': point(0/1, 0/1), 'inf_n': 0}
+            {'bounded': True,
+             'generator': point(0/1, 0/1),
+             'inf_d': 1,
+             'inf_n': 0,
+             'minimum': True}
 
         Unbounded case::
 
@@ -2018,7 +2030,11 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: cs.insert( x>0 )
             sage: p = NNC_Polyhedron(cs)
             sage: p.minimize( +x )
-            {'minimum': False, 'bounded': True, 'inf_d': 1, 'generator': closure_point(0/1), 'inf_n': 0}
+            {'bounded': True,
+             'generator': closure_point(0/1),
+             'inf_d': 1,
+             'inf_n': 0,
+             'minimum': False}
             sage: p.minimize( -x )
             {'bounded': False}
         """

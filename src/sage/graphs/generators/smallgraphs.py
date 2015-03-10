@@ -3832,7 +3832,7 @@ def ShrikhandeGraph():
         sage: set([ len([x for x in G.neighbors(i) if x in G.neighbors(j)])
         ....:     for i in range(G.order())
         ....:     for j in range(i) ])
-        set([2])
+        {2}
 
     It is non-planar, and both Hamiltonian and Eulerian::
 
@@ -3923,7 +3923,7 @@ def SylvesterGraph():
         True
     """
     g = HoffmanSingletonGraph()
-    e = g.edge_iterator(labels = False).next()
+    e = next(g.edge_iterator(labels = False))
     g.delete_vertices(g.neighbors(e[0]) + g.neighbors(e[1]))
     g.relabel()
     ordering = [0, 1, 2, 4, 5, 9, 16, 35, 15, 18, 20, 30, 22, 6, 33, 32, 14,
@@ -3963,7 +3963,7 @@ def SimsGewirtzGraph():
 
     """
     g = HigmanSimsGraph()
-    e = g.edge_iterator(labels = False).next()
+    e = next(g.edge_iterator(labels = False))
     g.delete_vertices(g.neighbors(e[0]) + g.neighbors(e[1]))
     g.relabel()
     ordering = [0, 2, 3, 4, 6, 7, 8, 17, 1, 41, 49, 5, 22, 26, 11, 27, 15, 47,

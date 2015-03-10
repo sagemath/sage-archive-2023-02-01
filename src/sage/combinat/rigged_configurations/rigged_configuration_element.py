@@ -470,11 +470,11 @@ class RiggedConfigurationElement(ClonableArray):
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
             sage: RC(partition_list=[[2], [2,2], [2], [2]]).nu()
             [0[ ][ ]0
-            , -2[ ][ ]-2
-            -2[ ][ ]-2
-            , 2[ ][ ]2
-            , -2[ ][ ]-2
-            ]
+             , -2[ ][ ]-2
+             -2[ ][ ]-2
+             , 2[ ][ ]2
+             , -2[ ][ ]-2
+             ]
         """
         return list(self)
 
@@ -1880,10 +1880,10 @@ class KRRCSimplyLacedElement(KRRiggedConfigurationElement):
 
         .. MATH::
 
-            cc(\nu, J) = \frac{1}{2} \sum_{a, b \in J}
-            \sum_{j,k \geq 1} \left( \alpha_a \mid \alpha_b \right)
+            cc(\nu, J) = \frac{1}{2} \sum_{a, b \in I_0}
+            \sum_{j,k > 0} \left( \alpha_a \mid \alpha_b \right)
             \min(j, k) m_j^{(a)} m_k^{(b)}
-            + \sum_{a, i} \left\lvert J^{(a, i)} \right\rvert.
+            + \sum_{a \in I} \sum_{i > 0} \left\lvert J^{(a, i)} \right\rvert.
 
         EXAMPLES::
 
@@ -2140,4 +2140,50 @@ class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
         if self.parent()._rc_index.index(a) == n-1: # -1 for indexing
             phi *= 2
         return Integer(phi)
+
+    @cached_method
+    def cocharge(self):
+        r"""
+        Compute the cocharge statistic.
+
+        Computes the cocharge statistic [RigConBijection]_ on this
+        rigged configuration `(\nu, J)`. The cocharge statistic is
+        computed as:
+
+        .. MATH::
+
+            cc(\nu, J) = \frac{1}{2} \sum_{a \in I_0} \sum_{i > 0}
+            t_a^{\vee} m_i^{(a)} \left( \sum_{j > 0} \min(i, j) L_j^{(a)}
+            - p_i^{(a)} \right) + \sum_{a \in I} t_a^{\vee} \sum_{i > 0}
+            \left\lvert J^{(a, i)} \right\rvert.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(CartanType(['A',4,2]).dual(), [[1,1],[2,2]])
+            sage: sc = RC.cartan_type().as_folding().scaling_factors()
+            sage: all(mg.cocharge() * sc[0] == mg.to_virtual_configuration().cocharge()
+            ....:     for mg in RC.module_generators)
+            True
+        """
+        #return self.to_virtual_configuration().cocharge() / self.parent()._folded_ct.gamma[0]
+        vct = self.parent()._folded_ct
+        cc = 0
+        rigging_sum = 0
+        #sigma = vct.folding_orbit()
+        #gammatilde = list(vct.scaling_factors())
+        #gammatilde[-1] = 2
+        for a, p in enumerate(self):
+            t_check = 1 # == len(sigma[a+1]) * gammatilde[a+1] / gammatilde[0]
+            for pos, i in enumerate(p._list):
+                # Add the rigging
+                rigging_sum += t_check * p.rigging[pos]
+                # Add the L matrix contribution
+                for dim in self.parent().dims:
+                    if dim[0] == a + 1:
+                        cc += t_check * min(dim[1], i)
+                # Subtract the vacancy number
+                cc -= t_check * p.vacancy_numbers[pos]
+        return cc / 2 + rigging_sum
+
+    cc = cocharge
 

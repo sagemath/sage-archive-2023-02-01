@@ -141,7 +141,7 @@ from sage.groups.abelian_gps.values import AbelianGroupWithValues_class
 from sage.structure.sequence import Sequence
 from sage.structure.proof.proof import get_flag
 from sage.libs.pari.all import pari
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.rings.integer_ring import ZZ
 
 class UnitGroup(AbelianGroupWithValues_class):
@@ -181,7 +181,7 @@ class UnitGroup(AbelianGroupWithValues_class):
     An S-unit group::
 
         sage: SUK = UnitGroup(K,S=21); SUK
-        S-unit group with structure C26 x Z x Z x Z x Z x Z x Z x Z x Z x Z x Z of Cyclotomic Field of order 13 and degree 12 with S = (Fractional ideal (3, z^3 - z - 1), Fractional ideal (3, z^3 + z^2 + z - 1), Fractional ideal (3, z^3 + z^2 - 1), Fractional ideal (3, z^3 - z^2 - z - 1), Fractional ideal (7))
+        S-unit group with structure C26 x Z x Z x Z x Z x Z x Z x Z x Z x Z x Z of Cyclotomic Field of order 13 and degree 12 with S = (Fractional ideal (3, z^3 + z^2 - 1), Fractional ideal (3, z^3 + z^2 + z - 1), Fractional ideal (3, z^3 - z - 1), Fractional ideal (3, z^3 - z^2 - z - 1), Fractional ideal (7))
         sage: SUK.rank()
         10
         sage: SUK.zeta_order()
@@ -643,6 +643,6 @@ class UnitGroup(AbelianGroupWithValues_class):
            sage: SUK.log(u) == v
            True
         """
-        return prod([u**e for u,e in zip(self.gens_values(),exponents)], self.number_field().one_element())
+        return prod((u**e for u,e in zip(self.gens_values(),exponents)), self.number_field().one())
 
 

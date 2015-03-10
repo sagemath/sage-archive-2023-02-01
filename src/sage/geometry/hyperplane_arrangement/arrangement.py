@@ -621,6 +621,7 @@ class HyperplaneArrangementElement(Element):
 
             sage: L.<x, y> = HyperplaneArrangements(QQ)
             sage: L(x, y, x+y-2).plot()
+            Graphics object consisting of 3 graphics primitives
         """
         from sage.geometry.hyperplane_arrangement.plot import plot
         return plot(self, **kwds)
@@ -1353,6 +1354,7 @@ class HyperplaneArrangementElement(Element):
             sage: A.vertices()
             ((-2/3, 1/3), (-1/3, -1/3), (0, -1), (0, 0), (1/3, -2/3), (2/3, -1/3))
             sage: point2d(A.vertices(), size=20) + A.plot()
+            Graphics object consisting of 7 graphics primitives
         
             sage: H.<x,y> = HyperplaneArrangements(QQ)
             sage: chessboard = []
@@ -1912,7 +1914,7 @@ class HyperplaneArrangementElement(Element):
         """
         from sage.rings.all import PolynomialRing
         from sage.matrix.constructor import identity_matrix
-        from sage.misc.misc import prod
+        from sage.misc.all import prod
         k = len(self)
         R = PolynomialRing(QQ, names, k)
         h = R.gens()

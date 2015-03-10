@@ -62,6 +62,6 @@ class Ideal_1poly_field(Ideal_pid):
             if not self.is_prime():
                 raise ValueError("%s is not a prime ideal"%self)
 
-        from sage.rings.residue_field import ResidueField
+        from sage.rings.finite_rings.residue_field import ResidueField
         return ResidueField(self, names, check=False)
 

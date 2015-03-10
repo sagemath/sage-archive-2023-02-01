@@ -32,7 +32,7 @@ include "sage/ext/cdefs.pxi"
 
 from sage.rings.arith import factor
 from sage.rings.infinity import infinity
-from sage.misc.misc import prod, subsets
+from sage.misc.all import prod, subsets
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.libs.pari.gen cimport gen
@@ -63,7 +63,7 @@ def cyclotomic_coeffs(nn, sparse=None):
         sage: cyclotomic_coeffs(30)
         [1, 1, 0, -1, -1, -1, 0, 1, 1]
         sage: cyclotomic_coeffs(10^5)
-        {0: 1, 10000: -1, 40000: 1, 30000: -1, 20000: 1}
+        {0: 1, 10000: -1, 20000: 1, 30000: -1, 40000: 1}
         sage: R = QQ['x']
         sage: R(cyclotomic_coeffs(30))
         x^8 + x^7 - x^5 - x^4 - x^3 + x + 1

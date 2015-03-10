@@ -54,7 +54,7 @@ class Crystals(Category_singleton):
 
         sage: from sage.misc.abstract_method import abstract_methods_of_class
         sage: abstract_methods_of_class(Crystals().element_class)
-        {'required': ['e', 'epsilon', 'f', 'phi', 'weight'], 'optional': []}
+        {'optional': [], 'required': ['e', 'epsilon', 'f', 'phi', 'weight']}
 
     TESTS::
 
@@ -223,15 +223,15 @@ class Crystals(Category_singleton):
                 sage: C.__iter__.__module__
                 'sage.categories.crystals'
                 sage: g = C.__iter__()
-                sage: g.next()
+                sage: next(g)
                 (-Lambda[0] + Lambda[2],)
-                sage: g.next()
+                sage: next(g)
                 (Lambda[0] - Lambda[1] + delta,)
-                sage: g.next()
+                sage: next(g)
                 (Lambda[1] - Lambda[2] + delta,)
-                sage: g.next()
+                sage: next(g)
                 (-Lambda[0] + Lambda[2] + delta,)
-                sage: g.next()
+                sage: next(g)
                 (Lambda[1] - Lambda[2],)
 
                 sage: sorted(C.__iter__(index_set=[1,2]), key=str)
@@ -832,6 +832,33 @@ class Crystals(Category_singleton):
             G = self.digraph(**options)
             return G.plot3d()
 
+        def tensor(self, *crystals, **options):
+            """
+            Return the tensor product of ``self`` with the crystals ``B``.
+
+            EXAMPLES::
+
+                sage: C = crystals.Letters(['A', 3])
+                sage: B = crystals.infinity.Tableaux(['A', 3])
+                sage: T = C.tensor(C, B); T
+                Full tensor product of the crystals
+                 [The crystal of letters for type ['A', 3],
+                  The crystal of letters for type ['A', 3],
+                  The infinity crystal of tableaux of type ['A', 3]]
+                sage: tensor([C, C, B]) is T
+                True
+
+                sage: C = crystals.Letters(['A',2])
+                sage: T = C.tensor(C, C, generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]]); T
+                The tensor product of the crystals
+                 [The crystal of letters for type ['A', 2],
+                  The crystal of letters for type ['A', 2],
+                  The crystal of letters for type ['A', 2]]
+                sage: T.module_generators
+                [[2, 1, 1], [1, 2, 1]]
+            """
+            from sage.combinat.crystals.tensor_product import TensorProductOfCrystals
+            return TensorProductOfCrystals(self, *crystals, **options)
 
     class ElementMethods:
 

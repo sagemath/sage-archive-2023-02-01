@@ -38,21 +38,20 @@ class Objects(Category_singleton):
         sage: TestSuite(Objects()).run()
     """
 
-    def is_structure_category(self):
+    def additional_structure(self):
         """
-        Return whether ``self`` is a structure category.
+        Return ``None``
 
-        .. SEEALSO:: :meth:`Category.is_structure_category`
+        Indeed, by convention, the category of objects defines no
+        additional structure.
 
-        By convention, the category of objects does not define new
-        structure.
+        .. SEEALSO:: :meth:`Category.additional_structure`
 
         EXAMPLES::
 
-            sage: Objects().is_structure_category()
-            False
+            sage: Objects().additional_structure()
         """
-        return False
+        return None
 
     def super_categories(self):
         """
@@ -159,11 +158,10 @@ class Objects(Category_singleton):
             EXAMPLES::
 
                 sage: Sets().Endsets()
-                Category of homsets of sets
+                Category of endsets of sets
 
                 sage: Rings().Endsets()
-                Category of homsets of unital magmas and additive unital additive magmas
-
+                Category of endsets of unital magmas and additive unital additive magmas
 
             .. SEEALSO::
 

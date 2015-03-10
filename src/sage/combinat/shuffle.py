@@ -124,10 +124,10 @@ class SetShuffleProduct(SageObject):
             self._element_constructor_ = element_constructor
         else:
             try:
-                e = iter(l1).next()
-                if hasattr(e, "parent") and hasattr(e.parent(), "_element_constructor_"):
+                e = next(iter(l1))
+                try:
                     self._element_constructor_ = e.parent()._element_constructor_
-                else:
+                except AttributeError:
                     self._element_constructor_ = list
             except StopIteration:
                 self._element_constructor_ = list
@@ -175,18 +175,18 @@ class SetShuffleProduct(SageObject):
             sage: list(SetShuffleProduct([[1,2],[3]], [[4]]))
             [[1, 2, 4], [4, 1, 2], [1, 4, 2], [3, 4], [4, 3]]
             sage: list(SetShuffleProduct([[1,2],[3,4]], [[1,4]], element_constructor=set))  #rando
-            [set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4])]
+            [{1, 2, 4},
+             {1, 2, 4},
+             {1, 2, 4},
+             {1, 2, 4},
+             {1, 2, 4},
+             {1, 2, 4},
+             {1, 3, 4},
+             {1, 3, 4},
+             {1, 3, 4},
+             {1, 3, 4},
+             {1, 3, 4},
+             {1, 3, 4}]
         """
         def shuffle_elements(pair):
             return ShuffleProduct(*pair, element_constructor=self._element_constructor_)
@@ -265,9 +265,9 @@ class ShuffleProduct(SageObject):
         self._l2 = list(l2)
 
         if element_constructor is None:
-            if hasattr(l1, "parent") and hasattr(l1.parent(), "_element_constructor_"):
+            try:
                 self._element_constructor_ = l1.parent()._element_constructor_
-            else:
+            except AttributeError:
                 self._element_constructor_ = list
         else:
             self._element_constructor_ = element_constructor

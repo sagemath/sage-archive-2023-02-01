@@ -26,7 +26,6 @@ include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 from cpython.list cimport *
 from cpython.object cimport *
-include "sage/ext/python_slice.pxi"
 from cpython.tuple cimport *
 
 import sage.modules.free_module
@@ -49,8 +48,6 @@ import sage.modules.free_module
 
 import matrix_misc
 
-cdef extern from "Python.h":
-    bint PySlice_Check(PyObject* ob)
 
 cdef class Matrix(sage.structure.element.Matrix):
     r"""
@@ -228,7 +225,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [      x       y       0]
             [      0       0 2*x + y]
             sage: d = a.dict(); d
-            {(0, 1): y, (1, 2): 2*x + y, (0, 0): x}
+            {(0, 0): x, (0, 1): y, (1, 2): 2*x + y}
 
         Notice that changing the returned list does not change a (the list
         is a copy)::
@@ -256,16 +253,16 @@ cdef class Matrix(sage.structure.element.Matrix):
             [0 1 2]
             [3 4 5]
             sage: v = a._dict(); v
-            {(0, 1): 1, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
+            {(0, 1): 1, (0, 2): 2, (1, 0): 3, (1, 1): 4, (1, 2): 5}
 
         If you change a key of the dictionary, the corresponding entry of
         the matrix will be changed (but without clearing any caches of
         computing information about the matrix)::
 
             sage: v[0,1] = -2/3; v
-            {(0, 1): -2/3, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
+            {(0, 1): -2/3, (0, 2): 2, (1, 0): 3, (1, 1): 4, (1, 2): 5}
             sage: a._dict()
-            {(0, 1): -2/3, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
+            {(0, 1): -2/3, (0, 2): 2, (1, 0): 3, (1, 1): 4, (1, 2): 5}
             sage: a[0,1]
             -2/3
 
@@ -879,7 +876,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
                     if ind < 0 or ind >= nrows:
                         raise IndexError("matrix index out of range")
-            elif PySlice_Check(<PyObject *>row_index):
+            elif isinstance(row_index, slice):
                 row_list = range(*row_index.indices(nrows))
             else:
                 if not PyIndex_Check(row_index):
@@ -911,7 +908,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
                     if ind < 0 or ind >= ncols:
                         raise IndexError("matrix index out of range")
-            elif PySlice_Check(<PyObject *>col_index):
+            elif isinstance(col_index, slice):
                 col_list =  range(*col_index.indices(ncols))
             else:
                 if not PyIndex_Check(col_index):
@@ -963,7 +960,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 if ind < 0 or ind >= nrows:
                     raise IndexError("matrix index out of range")
             r = self.matrix_from_rows(row_list)
-        elif PySlice_Check(<PyObject *>row_index):
+        elif isinstance(row_index, slice):
             row_list = range(*row_index.indices(nrows))
             r = self.matrix_from_rows(row_list)
         else:
@@ -1394,9 +1391,9 @@ cdef class Matrix(sage.structure.element.Matrix):
                 # M[1] = [1,2,3] or M[1,:]=[1,2,3]
                 value_list_one_dimensional = 1
             value_list = list(value)
-        elif IS_INSTANCE(value, Matrix):
+        elif isinstance(value, Matrix):
             value_list = list(value)
-        elif IS_INSTANCE(value, Vector):
+        elif isinstance(value, Vector):
             if single_row or single_col:
                 value_list_one_dimensional = 1
                 value_list = list(value)
@@ -1482,7 +1479,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         Return coercion of x into the base ring of self.
         """
-        if PY_TYPE_CHECK(x, Element) and (<Element> x)._parent is self._base_ring:
+        if isinstance(x, Element) and (<Element> x)._parent is self._base_ring:
             return x
         return self._base_ring(x)
 
@@ -4171,11 +4168,26 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def rank(self):
         """
+        Return the rank of this matrix.
+
+        EXAMPLES::
+
+            sage: m = matrix(GF(7),5,range(25))
+            sage: m.rank()
+            2
+
+        Rank is not implemented over the integers modulo a composite yet.::
+
+            sage: m = matrix(Integers(4), 2, [2,2,2,2])
+            sage: m.rank()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 4'.
 
         TESTS:
 
         We should be able to compute the rank of a matrix whose
-        entries are polynomials over a finite field (trac #5014)::
+        entries are polynomials over a finite field (trac:`5014`)::
 
             sage: P.<x> = PolynomialRing(GF(17))
             sage: m = matrix(P, [ [ 6*x^2 + 8*x + 12, 10*x^2 + 4*x + 11],
@@ -4767,7 +4779,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [     -x*y*x*y x*y*x + x*y^2 x*y*x - x*y^2]
         """
         # derived classes over a commutative base *just* overload _lmul_ (!!)
-        if PY_TYPE_CHECK(self._base_ring, CommutativeRing):
+        if isinstance(self._base_ring, CommutativeRing):
             return self._lmul_(left)
         cdef Py_ssize_t r,c
         x = self._base_ring(left)
@@ -5120,7 +5132,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: M = MatrixSpace(CC, 2)(-1.10220440881763)
             sage: N = ~M
             sage: (N*M).norm()
-            1.0
+            0.9999999999999999
         """
         if not self.base_ring().is_field():
             try:

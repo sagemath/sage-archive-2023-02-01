@@ -6,9 +6,11 @@ This module implements the design methods that need to be somewhat efficient.
 Functions
 ---------
 """
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/bitset.pxi"
+include "sage/ext/stdsage.pxi"
 
 from libc.string cimport memset
+from sage.misc.unknown import Unknown
 
 def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="OA"):
     r"""
@@ -32,7 +34,7 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
     EXAMPLES::
 
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: OA = designs.orthogonal_array(8,9)
+        sage: OA = designs.orthogonal_arrays.build(8,9)
         sage: is_orthogonal_array(OA,8,9)
         True
         sage: is_orthogonal_array(OA,8,10)
@@ -152,7 +154,7 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
     Checks that input is a Group Divisible Design on `\{0,...,v-1\}`
 
     For more information on Group Divisible Designs, see
-    :class:`~sage.combinat.designs.incidence_structure.GroupDivisibleDesign`.
+    :class:`~sage.combinat.designs.incidence_structures.GroupDivisibleDesign`.
 
     INPUT:
 
@@ -406,37 +408,118 @@ def is_difference_matrix(M,G,k,lmbda=1,verbose=False):
         sage: for R in M: _=R.pop(-1)
         sage: M.append([None]*3**3)
         sage: is_difference_matrix(M,F,q,verbose=1)
-        The matrix has 28 rows but lambda.|G|=1.27=27
+        The matrix has 28 rows instead of lambda(|G|-1+2u)+mu=1(27-1+2.0)+1=27
         False
         sage: _= M.pop(-1)
         sage: for R in M: R[-1] = 0
         sage: is_difference_matrix(M,F,q,verbose=1)
-        Rows 0 and 26 do not generate all elements of G exactly lambda(=1)
-        times. The element 0 appeared 27 times as a difference.
+        Columns 0 and 26 generate 0 exactly 27 times instead of the expected mu(=1)
+        False
+        sage: for R in M: R[-1] = 1
+        sage: M[-1][-1] = 0
+        sage: is_difference_matrix(M,F,q,verbose=1)
+        Columns 0 and 26 do not generate all elements of G exactly lambda(=1) times. The element x appeared 0 times as a difference.
+        False
+    """
+    return is_quasi_difference_matrix(M,G,k,lmbda=lmbda,mu=lmbda,u=0,verbose=verbose)
+
+def is_quasi_difference_matrix(M,G,int k,int lmbda,int mu,int u,verbose=False):
+    r"""
+    Test if the matrix is a `(G,k;\lambda,\mu;u)`-quasi-difference matrix
+
+    Let `G` be an abelian group of order `n`. A
+    `(n,k;\lambda,\mu;u)`-quasi-difference matrix (QDM) is a matrix `Q_{ij}`
+    with `\lambda(n-1+2u)+\mu` rows and `k` columns, with each entry either
+    equal to ``None`` (i.e. the 'missing entries') or to an element of `G`. Each
+    column contains exactly `\lambda u` empty entries, and each row contains at
+    most one ``None``. Furthermore, for each `1\leq i<j\leq k`, the multiset
+
+    .. MATH::
+
+        \{q_{li}-q_{lj}:1\leq l\leq \lambda (n-1+2u)+\mu, \text{ with } q_{li}\text{ and }q_{lj}\text{ not empty}\}
+
+    contains `\lambda` times every nonzero element of `G` and contains `\mu`
+    times `0`.
+
+    INPUT:
+
+    - ``M`` -- a matrix with entries from ``G`` (or equal to ``None`` for
+      missing entries)
+
+    - ``G`` -- a group
+
+    - ``k,lmbda,mu,u`` -- integers
+
+    - ``verbose`` (boolean) -- whether to print some information when the answer
+      is ``False``.
+
+    EXAMPLES:
+
+    Differences matrices::
+
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: q = 3**3
+        sage: F = GF(q,'x')
+        sage: M = [[x*y for y in F] for x in F]
+        sage: is_quasi_difference_matrix(M,F,q,1,1,0,verbose=1)
+        True
+
+        sage: B = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ....:      [0, 1, 2, 3, 4, 2, 3, 4, 0, 1],
+        ....:      [0, 2, 4, 1, 3, 3, 0, 2, 4, 1]]
+        sage: G = GF(5)
+        sage: B = [[G(b) for b in R] for R in B]
+        sage: is_quasi_difference_matrix(zip(*B),G,3,2,2,0)
+        True
+
+    A quasi-difference matrix from the database::
+
+        sage: from sage.combinat.designs.database import QDM
+        sage: G,M = QDM[38,1][37,1,1,1][1]()
+        sage: is_quasi_difference_matrix(M,G,k=6,lmbda=1,mu=1,u=1)
+        True
+
+    Bad input::
+
+        sage: is_quasi_difference_matrix(M,G,k=6,lmbda=1,mu=1,u=3,verbose=1)
+        The matrix has 39 rows instead of lambda(|G|-1+2u)+mu=1(37-1+2.3)+1=43
+        False
+        sage: is_quasi_difference_matrix(M,G,k=6,lmbda=1,mu=2,u=1,verbose=1)
+        The matrix has 39 rows instead of lambda(|G|-1+2u)+mu=1(37-1+2.1)+2=40
+        False
+        sage: M[3][1] = None
+        sage: is_quasi_difference_matrix(M,G,k=6,lmbda=1,mu=1,u=1,verbose=1)
+        Row 3 contains more than one empty entry
+        False
+        sage: M[3][1] = 1
+        sage: M[6][1] = None
+        sage: is_quasi_difference_matrix(M,G,k=6,lmbda=1,mu=1,u=1,verbose=1)
+        Column 1 contains 2 empty entries instead of the expected lambda.u=1.1=1
         False
     """
     from difference_family import group_law
 
     assert k>=2
     assert lmbda >=1
+    assert mu>=0
+    assert u>=0
 
-    cdef int G_card = G.cardinality()
+    cdef int n = G.cardinality()
     cdef int M_nrows = len(M)
     cdef int i,j,ii
-    cdef int K = k
-    cdef int L = lmbda
+    cdef bint bit
 
     # Height of the matrix
-    if G_card*lmbda != M_nrows:
+    if lmbda*(n-1+2*u)+mu != M_nrows:
         if verbose:
-            print "The matrix has {} rows but lambda.|G|={}.{}={}".format(M_nrows,lmbda,G_card,lmbda*G_card)
+            print "The matrix has {} rows instead of lambda(|G|-1+2u)+mu={}({}-1+2.{})+{}={}".format(M_nrows,lmbda,n,u,mu,lmbda*(n-1+2*u)+mu)
         return False
 
     # Width of the matrix
     for R in M:
-        if len(R)!=K:
+        if len(R)!=k:
             if verbose:
-                print "The matrix has {} columns but k={}".format(len(R),K)
+                print "The matrix has {} columns but k={}".format(len(R),k)
             return False
 
     # When |G|=0
@@ -448,10 +531,10 @@ def is_difference_matrix(M,G,k,lmbda=1,verbose=False):
     cdef dict group_to_int = {v:i for i,v in enumerate(int_to_group)}
 
     # Allocations
-    cdef int ** x_minus_y     = <int **> sage_malloc(G_card*sizeof(int *))
-    cdef int * x_minus_y_data = <int *>  sage_malloc(G_card*G_card*sizeof(int))
+    cdef int ** x_minus_y     = <int **> sage_malloc((n+1)*sizeof(int *))
+    cdef int * x_minus_y_data = <int *>  sage_malloc((n+1)*(n+1)*sizeof(int))
     cdef int * M_c            = <int *>  sage_malloc(k*M_nrows*sizeof(int))
-    cdef int * G_seen         = <int *>  sage_malloc(G_card*sizeof(int))
+    cdef int * G_seen         = <int *>  sage_malloc((n+1)*sizeof(int))
     if (x_minus_y == NULL or x_minus_y_data == NULL or M_c == NULL or G_seen == NULL):
         sage_free(x_minus_y)
         sage_free(x_minus_y_data)
@@ -460,36 +543,87 @@ def is_difference_matrix(M,G,k,lmbda=1,verbose=False):
         raise MemoryError
 
     # The "x-y" table. If g_i, g_j \in G, then x_minus_y[i][j] is equal to
-    # group_to_int[g_i-g_j]
+    # group_to_int[g_i-g_j].
+    #
+    # In order to handle empty values represented by n, we have
+    # x_minus_y[?][n]=x_minus_y[n][?]=n
     zero, op, inv = group_law(G)
     x_minus_y[0] = x_minus_y_data
-    for i in range(1,G_card):
-        x_minus_y[i] = x_minus_y[i-1] + G_card
+    for i in range(1,n+1):
+        x_minus_y[i] = x_minus_y[i-1] + n+1
 
+    # Elements of G
     for j,Gj in enumerate(int_to_group):
         minus_Gj = inv(Gj)
         assert op(Gj, minus_Gj) == zero
         for i,Gi in enumerate(int_to_group):
             x_minus_y[i][j] = group_to_int[op(Gi,minus_Gj)]
 
+    # Empty values
+    for i in range(n+1):
+        x_minus_y[n][i]=n
+        x_minus_y[i][n]=n
+
     # A copy of the matrix
     for i,R in enumerate(M):
         for j,x in enumerate(R):
-            M_c[i*K+j] = group_to_int[G(x)]
+            M_c[i*k+j] = group_to_int[G(x)] if x is not None else n
+
+    # Each row contains at most one empty entry
+    if u:
+        for i in range(M_nrows):
+            bit = False
+            for j in range(k):
+                if M_c[i*k+j] == n:
+                    if bit:
+                        if verbose:
+                            print "Row {} contains more than one empty entry".format(i)
+                        sage_free(x_minus_y_data)
+                        sage_free(x_minus_y)
+                        sage_free(G_seen)
+                        sage_free(M_c)
+                        return False
+                    bit = True
+
+    # Each column contains lmbda*u empty entries
+        for j in range(k):
+            ii = 0
+            for i in range(M_nrows):
+                if M_c[i*k+j] == n:
+                    ii += 1
+            if ii!=lmbda*u:
+                if verbose:
+                    print ("Column {} contains {} empty entries instead of the expected "
+                           "lambda.u={}.{}={}".format(j,ii,lmbda,u,lmbda*u))
+                sage_free(x_minus_y_data)
+                sage_free(x_minus_y)
+                sage_free(G_seen)
+                sage_free(M_c)
+                return False
 
     # We are now ready to test every pair of columns
-    for i in range(K):
-        for j in range(i+1,K):
-            memset(G_seen, 0, G_card*sizeof(int))
+    for i in range(k):
+        for j in range(i+1,k):
+            memset(G_seen, 0, (n+1)*sizeof(int))
             for ii in range(M_nrows):
-                G_seen[x_minus_y[M_c[ii*K+i]][M_c[ii*K+j]]] += 1
+                G_seen[x_minus_y[M_c[ii*k+i]][M_c[ii*k+j]]] += 1
 
-            for ii in range(G_card):
-                if G_seen[ii] != L:
+            if G_seen[0] != mu: # Bad number of 0
+                if verbose:
+                    print ("Columns {} and {} generate 0 exactly {} times "
+                           "instead of the expected mu(={})".format(i,j,G_seen[0],mu))
+                sage_free(x_minus_y_data)
+                sage_free(x_minus_y)
+                sage_free(G_seen)
+                sage_free(M_c)
+                return False
+
+            for ii in range(1,n): # bad number of g_ii\in G
+                if G_seen[ii] != lmbda:
                     if verbose:
-                        print ("Rows {} and {} do not generate all elements of G "
+                        print ("Columns {} and {} do not generate all elements of G "
                          "exactly lambda(={}) times. The element {} appeared {} "
-                         "times as a difference.".format(i,j,L,int_to_group[ii],G_seen[ii]))
+                         "times as a difference.".format(i,j,lmbda,int_to_group[ii],G_seen[ii]))
                     sage_free(x_minus_y_data)
                     sage_free(x_minus_y)
                     sage_free(G_seen)
@@ -501,3 +635,84 @@ def is_difference_matrix(M,G,k,lmbda=1,verbose=False):
     sage_free(G_seen)
     sage_free(M_c)
     return True
+
+# Cached information for OA constructions (see .pxd file for more info)
+
+_OA_cache = <cache_entry *> sage_malloc(2*sizeof(cache_entry))
+if (_OA_cache == NULL):
+    sage_free(_OA_cache)
+    raise MemoryError
+_OA_cache[0].max_true = -1
+_OA_cache[1].max_true = -1
+_OA_cache_size = 2
+
+cpdef _OA_cache_set(int k,int n,truth_value):
+    r"""
+    Sets a value in the OA cache of existence results
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    - ``truth_value`` -- one of ``True,False,Unknown``
+    """
+    global _OA_cache, _OA_cache_size
+    cdef int i
+    if _OA_cache_size <= n:
+        new_cache_size = n+100
+        _OA_cache = <cache_entry *> sage_realloc(_OA_cache,new_cache_size*sizeof(cache_entry))
+        if _OA_cache == NULL:
+            sage_free(_OA_cache)
+            raise MemoryError
+
+        for i in range(_OA_cache_size,new_cache_size):
+            _OA_cache[i].max_true = 0
+            _OA_cache[i].min_unknown = -1
+            _OA_cache[i].max_unknown = 0
+            _OA_cache[i].min_false = -1
+
+        _OA_cache_size = new_cache_size
+
+    if truth_value is True:
+        _OA_cache[n].max_true    = k if k>_OA_cache[n].max_true    else _OA_cache[n].max_true
+    elif truth_value is Unknown:
+        _OA_cache[n].min_unknown = k if k<_OA_cache[n].min_unknown else _OA_cache[n].min_unknown
+        _OA_cache[n].max_unknown = k if k>_OA_cache[n].max_unknown else _OA_cache[n].max_unknown
+    else:
+        _OA_cache[n].min_false   = k if k<_OA_cache[n].min_false   else _OA_cache[n].min_false
+
+cpdef _OA_cache_get(int k,int n):
+    r"""
+    Gets a value from the OA cache of existence results
+
+    INPUT:
+
+    ``k,n`` (integers)
+    """
+    if n>=_OA_cache_size:
+        return None
+    if k <= _OA_cache[n].max_true:
+        return True
+    elif (k >= _OA_cache[n].min_unknown and k <= _OA_cache[n].max_unknown):
+        return Unknown
+    elif k >= _OA_cache[n].min_false:
+        return False
+
+    return None
+
+cpdef _OA_cache_construction_available(int k,int n):
+    r"""
+    Tests if a construction is implemented using the cache's information
+
+    INPUT:
+
+    - ``k,n`` (integers)
+    """
+    if n>=_OA_cache_size:
+        return Unknown
+    if k <= _OA_cache[n].max_true:
+        return True
+    if k >= _OA_cache[n].min_unknown:
+        return False
+    else:
+        return Unknown

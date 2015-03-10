@@ -95,21 +95,20 @@ class EnumeratedSets(Category_singleton):
         """
         return [Sets()]
 
-    def is_structure_category(self):
+    def additional_structure(self):
         """
-        Return whether ``self`` is a structure category.
+        Return ``None``.
 
-        .. SEEALSO:: :meth:`Category.is_structure_category`
+        Indeed, morphisms of enumerated sets are not required to
+        preserve the enumeration.
 
-        Morphisms of enumerated sets are not required to preserve the
-        enumeration.
+        .. SEEALSO:: :meth:`Category.additional_structure`
 
         EXAMPLES::
 
-            sage: GcdDomains().is_structure_category()
-            False
+            sage: EnumeratedSets().additional_structure()
         """
-        return False
+        return None
 
     def _call_(self, X):
         """
@@ -177,7 +176,7 @@ class EnumeratedSets(Category_singleton):
                 ...    def __init__(self):
                 ...        Parent.__init__(self, category = EnumeratedSets())
                 ...
-                sage: it = iter(broken()); [it.next(), it.next(), it.next()]
+                sage: it = iter(broken()); [next(it), next(it), next(it)]
                 Traceback (most recent call last):
                 ...
                 NotImplementedError: iterator called but not implemented
@@ -192,7 +191,7 @@ class EnumeratedSets(Category_singleton):
                 ...    def next(self, elt):
                 ...        return elt+1
                 ...
-                sage: it = iter(set_first_next()); [it.next(), it.next(), it.next()]
+                sage: it = iter(set_first_next()); [next(it), next(it), next(it)]
                 [0, 1, 2]
 
             Let us try with ``unrank``::
@@ -203,7 +202,7 @@ class EnumeratedSets(Category_singleton):
                 ...    def unrank(self, i):
                 ...        return i + 5
                 ...
-                sage: it = iter(set_unrank()); [it.next(), it.next(), it.next()]
+                sage: it = iter(set_unrank()); [next(it), next(it), next(it)]
                 [5, 6, 7]
 
             Let us finally try with ``list``::
@@ -214,7 +213,7 @@ class EnumeratedSets(Category_singleton):
                 ...    def list(self):
                 ...        return [5, 6, 7]
                 ...
-                sage: it = iter(set_list()); [it.next(), it.next(), it.next()]
+                sage: it = iter(set_list()); [next(it), next(it), next(it)]
                 [5, 6, 7]
 
             """
@@ -266,7 +265,7 @@ class EnumeratedSets(Category_singleton):
                 1
             """
             it = self.__iter__()
-            return it.next()
+            return next(it)
         first = _first_from_iterator
 
         def _next_from_iterator(self, obj):
@@ -291,10 +290,10 @@ class EnumeratedSets(Category_singleton):
             TODO: specify the behavior when ``obj`` is not in ``self``.
             """
             it = iter(self)
-            el = it.next()
+            el = next(it)
             while el != obj:
-                el = it.next()
-            return it.next()
+                el = next(it)
+            return next(it)
         next = _next_from_iterator
 
 
@@ -375,7 +374,7 @@ class EnumeratedSets(Category_singleton):
 
                 sage: C = FiniteEnumeratedSets().example()
                 sage: it = C._iterator_from_list()
-                sage: [it.next(), it.next(), it.next()]
+                sage: [next(it), next(it), next(it)]
                 [1, 2, 3]
             """
             for x in self.list():
@@ -394,7 +393,7 @@ class EnumeratedSets(Category_singleton):
 
                 sage: C = InfiniteEnumeratedSets().example()
                 sage: it = C._iterator_from_next()
-                sage: [it.next(), it.next(), it.next(), it.next(), it.next()]
+                sage: [next(it), next(it), next(it), next(it), next(it)]
                 [0, 1, 2, 3, 4]
             """
             f = self.first()
@@ -423,7 +422,7 @@ class EnumeratedSets(Category_singleton):
 
                 sage: C = InfiniteEnumeratedSets().example()
                 sage: it = C._iterator_from_unrank()
-                sage: [it.next(), it.next(), it.next(), it.next(), it.next()]
+                sage: [next(it), next(it), next(it), next(it), next(it)]
                 [0, 1, 2, 3, 4]
             """
             r = 0
@@ -479,7 +478,7 @@ class EnumeratedSets(Category_singleton):
             """
             it = self.__iter__()
             try:
-                return it.next()
+                return next(it)
             except StopIteration:
                 raise EmptySetError
 

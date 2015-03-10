@@ -28,7 +28,8 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.realizations import Category_realization_of_parent
-from sage.categories.modules_with_basis import ModulesWithBasis, ModuleMorphismByLinearity
+from sage.categories.modules_with_basis import ModulesWithBasis
+from sage.modules.module_with_basis_morphism import ModuleMorphismByLinearity
 from sage.combinat.composition import Compositions, Composition
 from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
@@ -994,7 +995,7 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
             sage: f(2*Psi[[]] + 3 * Psi[1,3,2] + Psi[2,4] )
             2*Psi[] + 3*Psi[1, 1, 3, 3, 2, 2] + Psi[2, 2, 4, 4]
             sage: f.category()
-            Category of homsets of unital magmas and right modules over Rational Field and left modules over Rational Field
+            Category of endsets of unital magmas and right modules over Rational Field and left modules over Rational Field
 
         When extra properties about the morphism are known, one
         can specify the category of which it is a morphism::
@@ -1006,7 +1007,7 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
             sage: f(2*Psi[[]] + 3 * Psi[1,3,2] + Psi[2,4] )
             2*Psi[] - 3*Psi[1, 3, 2] + Psi[2, 4]
             sage: f.category()
-            Category of homsets of hopf algebras over Rational Field and graded modules over Rational Field
+            Category of endsets of hopf algebras over Rational Field and graded modules over Rational Field
 
         If ``anti`` is true, this returns an anti-algebra morphism::
 
@@ -1016,7 +1017,7 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
             sage: f(2*Psi[[]] + 3 * Psi[1,3,2] + Psi[2,4] )
             2*Psi[] + 3*Psi[2, 2, 3, 3, 1, 1] + Psi[4, 4, 2, 2]
             sage: f.category()
-            Category of homsets of modules with basis over Rational Field
+            Category of endsets of modules with basis over Rational Field
 
         TESTS::
 

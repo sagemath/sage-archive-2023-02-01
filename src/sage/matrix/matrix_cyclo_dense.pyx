@@ -35,9 +35,7 @@ AUTHORS:
 ######################################################################
 
 include "sage/ext/interrupt.pxi"
-# include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
-include "sage/ext/gmp.pxi"
 include "sage/ext/random.pxi"
 include "sage/libs/ntl/decl.pxi"
 
@@ -235,7 +233,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         # The i,j entry is the (i * self._ncols + j)'th column.
         c = i * self._ncols + j
 
-        if PY_TYPE_CHECK_EXACT(value, NumberFieldElement_quadratic):
+        if type(value) is NumberFieldElement_quadratic:
             # Must be coded differently, since elements of
             # quadratic number fields are stored differently.
             if self._n == 4:
@@ -291,9 +289,9 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         mpz_init(numer)
         mpz_init(denom)
 
-        v._ntl_denom_as_mpz(&denom)
+        v._ntl_denom_as_mpz(denom)
         for k from 0 <= k < self._degree:
-            v._ntl_coeff_as_mpz(&numer, k)
+            v._ntl_coeff_as_mpz(numer, k)
             mpz_set(mpq_numref(self._matrix._matrix[k][c]), numer)
             mpz_set(mpq_denref(self._matrix._matrix[k][c]), denom)
             mpq_canonicalize(self._matrix._matrix[k][c])
@@ -397,11 +395,11 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             mpz_mul(tmp, mpq_numref(self._matrix._matrix[k][c]), denom)
             mpz_divexact(tmp, tmp, mpq_denref(self._matrix._matrix[k][c]))
             # Now set k-th entry of x's numerator to tmp
-            mpz_to_ZZ(&coeff, &tmp)
+            mpz_to_ZZ(&coeff, tmp)
             ZZX_SetCoeff(x.__numerator, k, coeff)
 
         # Set the denominator of x to denom.
-        mpz_to_ZZ(&x.__denominator, &denom)
+        mpz_to_ZZ(&x.__denominator, denom)
         mpz_clear(denom)
         mpz_clear(tmp)
         ZZ_destruct(&coeff)

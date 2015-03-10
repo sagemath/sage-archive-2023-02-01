@@ -145,7 +145,7 @@ class Macaulay2(Expect):
     """
     Interface to the Macaulay2 interpreter.
     """
-    def __init__(self, maxread=10000, script_subdirectory="",
+    def __init__(self, maxread=10000, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None):
         """
         Initialize a Macaulay2 interface instance.
@@ -214,7 +214,6 @@ class Macaulay2(Expect):
 
         TESTS::
 
-            sage: from sage.misc.misc import tmp_filename
             sage: filename = tmp_filename()
             sage: f = open(filename, "w")
             sage: f.write("sage_test = 7;")
@@ -1140,7 +1139,7 @@ def is_Macaulay2Element(x):
     return isinstance(x, Macaulay2Element)
 
 # An instance
-macaulay2 = Macaulay2(script_subdirectory='user')
+macaulay2 = Macaulay2()
 
 import os
 

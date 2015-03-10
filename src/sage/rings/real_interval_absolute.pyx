@@ -312,7 +312,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
     cdef _new_c(self, Integer _mantissa, Integer _diameter):
         cdef RealIntervalAbsoluteElement x
-        x = <RealIntervalAbsoluteElement>PY_NEW(RealIntervalAbsoluteElement)
+        x = <RealIntervalAbsoluteElement>RealIntervalAbsoluteElement.__new__(RealIntervalAbsoluteElement)
         x._parent = self._parent
         x._mantissa = _mantissa
         x._diameter = _diameter

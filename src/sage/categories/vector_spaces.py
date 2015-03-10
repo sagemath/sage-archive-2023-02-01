@@ -13,7 +13,9 @@ Vector Spaces
 from sage.categories.category import Category
 from sage.categories.category_types import Category_module
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
+from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.dual import DualObjectsCategory
+from sage.categories.tensor import TensorProductsCategory
 from sage.categories.fields import Fields
 from sage.categories.modules import Modules
 from sage.categories.modules_with_basis import ModulesWithBasis
@@ -124,24 +126,23 @@ class VectorSpaces(Category_module):
         R = self.base_field()
         return [Modules(R, dispatch = False)]
 
-    def is_structure_category(self):
+    def additional_structure(self):
         r"""
-        Return whether ``self`` is a structure category.
+        Return  ``None``.
 
-        .. SEEALSO:: :meth:`Category.is_structure_category`
+        Indeed, the category of vector spaces defines no additional
+        structure: a bimodule morphism between two vector spaces is a
+        vector space morphism.
 
-        The category of vector spaces defines no new structure: a
-        bimodule morphism between two vector spaces is a vector space
-        morphism.
+        .. SEEALSO:: :meth:`Category.additional_structure`
 
         .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
 
         EXAMPLES::
 
-            sage: VectorSpaces(QQ).is_structure_category()
-            False
+            sage: VectorSpaces(QQ).additional_structure()
         """
-        return False
+        return None
 
     class ParentMethods:
         pass
@@ -166,6 +167,32 @@ class VectorSpaces(Category_module):
             """
             return True
 
+        class CartesianProducts(CartesianProductsCategory):
+            def extra_super_categories(self):
+                r"""
+                The category of vector spaces with basis is closed under cartesian products::
+
+                    sage: C = VectorSpaces(QQ).WithBasis()
+                    sage: C.CartesianProducts()
+                    Category of Cartesian products of vector spaces with basis over Rational Field
+                    sage: C in C.CartesianProducts().super_categories()
+                    True
+                """
+                return [self.base_category()]
+
+        class TensorProducts(TensorProductsCategory):
+            def extra_super_categories(self):
+                r"""
+                The category of vector spaces with basis is closed under tensor products::
+
+                    sage: C = VectorSpaces(QQ).WithBasis()
+                    sage: C.TensorProducts()
+                    Category of tensor products of vector spaces with basis over Rational Field
+                    sage: C in C.TensorProducts().super_categories()
+                    True
+                """
+                return [self.base_category()]
+
     class DualObjects(DualObjectsCategory):
 
         def extra_super_categories(self):
@@ -182,5 +209,31 @@ class VectorSpaces(Category_module):
                 Category of duals of vector spaces over Rational Field
                 sage: C.dual().super_categories() # indirect doctest
                 [Category of vector spaces over Rational Field]
+            """
+            return [self.base_category()]
+
+    class CartesianProducts(CartesianProductsCategory):
+        def extra_super_categories(self):
+            r"""
+            The category of vector spaces is closed under cartesian products::
+
+                sage: C = VectorSpaces(QQ)
+                sage: C.CartesianProducts()
+                Category of Cartesian products of vector spaces over Rational Field
+                sage: C in C.CartesianProducts().super_categories()
+                True
+            """
+            return [self.base_category()]
+
+    class TensorProducts(TensorProductsCategory):
+        def extra_super_categories(self):
+            r"""
+            The category of vector spaces is closed under tensor products::
+
+                sage: C = VectorSpaces(QQ)
+                sage: C.TensorProducts()
+                Category of tensor products of vector spaces over Rational Field
+                sage: C in C.TensorProducts().super_categories()
+                True
             """
             return [self.base_category()]

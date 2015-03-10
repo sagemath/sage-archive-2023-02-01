@@ -158,24 +158,23 @@ class Bimodules(CategoryWithParameters):
         S = self.right_base_ring()
         return [LeftModules(R), RightModules(S)]
 
-    def is_structure_category(self):
+    def additional_structure(self):
         r"""
-        Return whether ``self`` is a structure category.
+        Return ``None``.
 
-        .. SEEALSO:: :meth:`Category.is_structure_category`
+        Indeed, the category of bimodules defines no additional
+        structure: a left and right module morphism between two
+        bimodules is a bimodule morphism.
 
-        The category of bimodules defines no new structure: a left and
-        right module-morphism between two bimodules is a bimodule
-        morphism.
+        .. SEEALSO:: :meth:`Category.additional_structure`
 
         .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
 
         EXAMPLES::
 
-            sage: Bimodules(QQ, ZZ).is_structure_category()
-            False
+            sage: Bimodules(QQ, ZZ).additional_structure()
         """
-        return False
+        return None
 
     class ParentMethods:
         pass

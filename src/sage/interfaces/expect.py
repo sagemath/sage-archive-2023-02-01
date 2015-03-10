@@ -46,7 +46,6 @@ import sys
 import weakref
 import time
 import gc
-import operator
 import quit
 import cleaner
 from random import randrange
@@ -60,17 +59,14 @@ import pexpect
 from pexpect import ExceptionPexpect
 from sage.interfaces.interface import Interface, InterfaceElement, InterfaceFunction, InterfaceFunctionElement, AsciiArtString
 
-from sage.structure.sage_object import SageObject
-from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import RingElement
 
 import sage.misc.sage_eval
-from sage.misc.misc import SAGE_EXTCODE, verbose, SAGE_TMP_INTERFACE, LOCAL_IDENTIFIER
+from sage.misc.misc import verbose, SAGE_TMP_INTERFACE
+from sage.env import SAGE_EXTCODE, LOCAL_IDENTIFIER
 from sage.misc.object_multiplexer import Multiplex
 
 BAD_SESSION = -2
-
-failed_to_start = []
 
 # The subprocess is a shared resource.  In a multi-threaded
 # environment, there would have to be a lock to control access to the
@@ -90,6 +86,7 @@ failed_to_start = []
 # whenever the code exits by any means (falling off the end, executing
 # "return", "break", or "continue", raising an exception, ...)
 
+
 class gc_disabled(object):
     """
     This is a "with" statement context manager. Garbage collection is
@@ -102,10 +99,10 @@ class gc_disabled(object):
         sage: gc.isenabled()
         True
         sage: with gc_disabled():
-        ...       print gc.isenabled()
-        ...       with gc_disabled():
-        ...           print gc.isenabled()
-        ...       print gc.isenabled()
+        ....:     print gc.isenabled()
+        ....:     with gc_disabled():
+        ....:         print gc.isenabled()
+        ....:     print gc.isenabled()
         False
         False
         False
@@ -121,13 +118,15 @@ class gc_disabled(object):
             gc.enable()
         return False
 
+
 class Expect(Interface):
     """
     Expect interface object.
     """
-    def __init__(self, name, prompt, command=None, server=None, server_tmpdir=None,
+    def __init__(self, name, prompt, command=None, server=None,
+                 server_tmpdir=None,
                  ulimit = None, maxread=100000,
-                 script_subdirectory="", restart_on_ctrlc=False,
+                 script_subdirectory=None, restart_on_ctrlc=False,
                  verbose_start=False, init_code=[], max_startup_time=None,
                  logfile = None, eval_using_file_cutoff=0,
                  do_cleaner=True, remote_cleaner=False, path=None,
@@ -160,17 +159,18 @@ class Expect(Interface):
         self.__do_cleaner = do_cleaner
         self.__maxread = maxread
         self._eval_using_file_cutoff = eval_using_file_cutoff
-        self.__script_subdirectory = script_subdirectory
         self.__command = command
         self._prompt = prompt
         self._restart_on_ctrlc = restart_on_ctrlc
         self.__verbose_start = verbose_start
         if path is not None:
-            self.__path = path
+            self.__path = os.path.abspath(path)
         elif script_subdirectory is None:
-            self.__path = '.'
+            self.__path = os.getcwd()
         else:
-            self.__path = os.path.join(SAGE_EXTCODE,name,self.__script_subdirectory)
+            self.__path = os.path.join(SAGE_EXTCODE, name, script_subdirectory)
+        if not os.path.isdir(self.__path):
+            raise EnvironmentError("path %r does not exist" % self.__path)
         self.__initialized = False
         self.__seq = -1
         self._expect = None
@@ -180,8 +180,11 @@ class Expect(Interface):
 
         #Handle the log file
         if isinstance(logfile, basestring):
-            logfile = open(logfile,'w')
-        self.__logfile = logfile
+            self.__logfile = None
+            self.__logfilename = logfile
+        else:
+            self.__logfile = logfile
+            self.__logfilename = None
 
         quit.expect_objects.append(weakref.ref(self))
         self._available_vars = []
@@ -257,13 +260,6 @@ class Expect(Interface):
 
     def _change_prompt(self, prompt):
         self._prompt = prompt
-
-#    (pdehaye 20070819: this was used by some interfaces but does not work well remotely)
-#    def _temp_file(self, x):
-#        T = self.__path + "/tmp/"
-#        if not os.path.exists(T):
-#            os.makedirs(T)
-#        return T + str(x)
 
     def path(self):
         return self.__path
@@ -383,24 +379,21 @@ If this all works, you can then make calls like:
     def _start(self, alt_message=None, block_during_init=True):
         from sage.misc.misc import sage_makedirs
         self.quit()  # in case one is already running
-        global failed_to_start
 
         self._session_number += 1
-        current_path = os.path.abspath('.')
-        dir = self.__path
-        sage_makedirs(dir)
-        os.chdir(dir)
 
-        #If the 'SAGE_PEXPECT_LOG' environment variable is set and
-        #the current logfile is None, then set the logfile to be one
-        #in .sage/pexpect_logs/
-        if self.__logfile is None and 'SAGE_PEXPECT_LOG' in os.environ:
-            from sage.env import DOT_SAGE
-            logs = '%s/pexpect_logs'%DOT_SAGE
-            sage_makedirs(logs)
+        if self.__logfile is None:
+            # If the 'SAGE_PEXPECT_LOG' environment variable is set and
+            # there is no logfile already defined, then create a
+            # logfile in .sage/pexpect_logs/
+            if self.__logfilename is None and 'SAGE_PEXPECT_LOG' in os.environ:
+                from sage.env import DOT_SAGE
+                logs = os.path.join(DOT_SAGE, 'pexpect_logs')
+                sage_makedirs(logs)
 
-            filename = '%s/%s-%s-%s-%s.log'%(logs, self.name(), os.getpid(), id(self), self._session_number)
-            self.__logfile = open(filename, 'w')
+                self.__logfilename = '%s/%s-%s-%s-%s.log'%(logs, self.name(), os.getpid(), id(self), self._session_number)
+            if self.__logfilename is not None:
+                self.__logfile = open(self.__logfilename, 'w')
 
         cmd = self.__command
 
@@ -408,37 +401,43 @@ If this all works, you can then make calls like:
             print cmd
             print "Starting %s"%cmd.split()[0]
 
+        if self.__remote_cleaner and self._server:
+            c = 'sage-native-execute  ssh %s "nohup sage -cleaner"  &'%self._server
+            os.system(c)
+
+        # Unset some environment variables for the children to
+        # reduce the chances they do something complicated breaking
+        # the terminal interface.
+        # See Trac #12221 and #13859.
+        pexpect_env = dict(os.environ)
+        pexpect_del_vars = ['TERM', 'COLUMNS']
+        for i in pexpect_del_vars:
+            try:
+                del pexpect_env[i]
+            except KeyError:
+                pass
+
+        # Run child from self.__path
+        currentdir = os.getcwd()
+        os.chdir(self.__path)
         try:
-            if self.__remote_cleaner and self._server:
-                c = 'sage-native-execute  ssh %s "nohup sage -cleaner"  &'%self._server
-                os.system(c)
-
-            # Unset some environment variables for the children to
-            # reduce the chances they do something complicated breaking
-            # the terminal interface.
-            # See Trac #12221 and #13859.
-            pexpect_env = dict(os.environ)
-            pexpect_del_vars = ['TERM', 'COLUMNS']
-            for i in pexpect_del_vars:
-                try:
-                    del pexpect_env[i]
-                except KeyError:
-                    pass
-            self._expect = pexpect.spawn(cmd, logfile=self.__logfile, env=pexpect_env)
-            if self._do_cleaner():
-                cleaner.cleaner(self._expect.pid, cmd)
-
-        except (ExceptionPexpect, pexpect.EOF, IndexError):
+            try:
+                self._expect = pexpect.spawn(cmd, logfile=self.__logfile, env=pexpect_env)
+            except (ExceptionPexpect, pexpect.EOF) as e:
+                # Change pexpect errors to RuntimeError
+                raise RuntimeError("unable to start %s because the command %r failed: %s\n%s" %
+                        (self.name(), cmd, e, self._install_hints()))
+        except BaseException:
             self._expect = None
             self._session_number = BAD_SESSION
-            failed_to_start.append(self.name())
-            raise RuntimeError("Unable to start %s because the command '%s' failed.\n%s"%(
-                self.name(), cmd, self._install_hints()))
+            raise
+        finally:
+            os.chdir(currentdir)
 
-        os.chdir(current_path)
+        if self._do_cleaner():
+            cleaner.cleaner(self._expect.pid, cmd)
+
         self._expect.timeout = self.__max_startup_time
-
-        #self._expect.setmaxread(self.__maxread)
         self._expect.maxread = self.__maxread
         self._expect.delaybeforesend = 0
         try:
@@ -446,8 +445,7 @@ If this all works, you can then make calls like:
         except (pexpect.TIMEOUT, pexpect.EOF) as msg:
             self._expect = None
             self._session_number = BAD_SESSION
-            failed_to_start.append(self.name())
-            raise RuntimeError("Unable to start %s"%self.name())
+            raise RuntimeError("unable to start %s" % self.name())
         self._expect.timeout = None
 
         # Calling tcsetattr earlier exposes bugs in various pty
@@ -486,9 +484,9 @@ If this all works, you can then make calls like:
             def dummy(): pass
             try:
                 self._expect.close = dummy
-            except Exception as msg:
+            except Exception:
                 pass
-        except Exception as msg:
+        except Exception:
             pass
 
     def quit(self, verbose=False, timeout=0.25):
@@ -533,7 +531,25 @@ If this all works, you can then make calls like:
         return
 
     def _quit_string(self):
+        """
+        Return the string which will be used to quit the application.
+
+        EXAMPLES::
+
+            sage: gp._quit_string()
+            '\\q'
+            sage: maxima._quit_string()
+            'quit();'
+        """
         return 'quit'
+
+    def _send_interrupt(self):
+        """
+        Send an interrupt to the application.  This is used internally
+        by :meth:`interrupt`.
+        """
+        self._expect.sendline(chr(3))
+        self._expect.sendline(self._quit_string())
 
     def _local_tmpfile(self):
         """
@@ -555,7 +571,7 @@ If this all works, you can then make calls like:
             sage: gap._local_tmpfile() is gap._local_tmpfile()
             True
 
-        The following two problems were fixed in #10004.
+        The following two problems were fixed in :trac:`10004`.
 
         1. Different interfaces have different temp-files::
 
@@ -566,9 +582,8 @@ If this all works, you can then make calls like:
            function have different temp-files::
 
             sage: @parallel
-            ... def f(n):
-            ...     return gap._local_tmpfile()
-            ...
+            ....: def f(n):
+            ....:     return gap._local_tmpfile()
             sage: L = [t[1] for t in f(range(5))]
             sage: len(set(L))
             5
@@ -623,25 +638,6 @@ If this all works, you can then make calls like:
         if not (self.__remote_tmpfile is None):
             raise NotImplementedError
 
-    def read(self, filename):
-        r"""
-        EXAMPLES::
-
-            sage: filename = tmp_filename()
-            sage: f = open(filename, 'w')
-            sage: f.write('x = 2\n')
-            sage: f.close()
-            sage: octave.read(filename)  # optional - octave
-            sage: octave.get('x')        #optional
-            ' 2'
-            sage: import os
-            sage: os.unlink(filename)
-        """
-        self.eval(self._read_in_file_command(filename))
-
-    def _read_in_file_command(self, filename):
-        raise NotImplementedError
-
     def _eval_line_using_file(self, line, restart_if_needed=True):
         """
         Evaluate a line of commands, using a temporary file.
@@ -666,14 +662,14 @@ If this all works, you can then make calls like:
         TESTS::
 
             sage: singular._eval_line_using_file('def a=3;')
-            '< "...";'
+            ''
             sage: singular('a')
             3
             sage: singular.eval('quit;')
             ''
             sage: singular._eval_line_using_file('def a=3;')
             Singular crashed -- automatically restarting.
-            '< "...";'
+            ''
             sage: singular('a')
             3
             sage: singular.eval('quit;')
@@ -767,18 +763,18 @@ If this all works, you can then make calls like:
         TESTS::
 
             sage: singular._eval_line('def a=3;')
-            'def a=3;'
+            ''
             sage: singular('a')
             3
             sage: singular.eval('quit;')
             ''
             sage: singular._eval_line('def a=3;')
             Singular crashed -- automatically restarting.
-            'def a=3;'
+            ''
             sage: singular('a')
             3
             sage: singular.eval('kill a')
-            'kill a;'
+            ''
 
         We are now sending a command that would run forever. But since
         we declare that we are not waiting for a prompt, we can interrupt
@@ -881,8 +877,6 @@ If this all works, you can then make calls like:
                     out = E.before
                 else:
                     out = E.before.rstrip('\n\r')
-                    if out == '':   # match bug with echo
-                        out = line
             else:
                 if self._terminal_echo:
                     out = '\n\r'
@@ -920,15 +914,14 @@ If this all works, you can then make calls like:
         success = False
         try:
             for i in range(tries):
-                E.sendline(chr(3))
-                E.sendline(self._quit_string())
+                self._send_interrupt()
                 try:
                     E.expect(self._prompt, timeout=timeout)
-                    success= True
-                    break
                 except (pexpect.TIMEOUT, pexpect.EOF) as msg:
-                    #print msg
                     pass
+                else:
+                    success = True
+                    break
         except Exception as msg:
             pass
         if success:
@@ -1221,7 +1214,7 @@ If this all works, you can then make calls like:
 
         try:
             with gc_disabled():
-                if (split_lines is "nofile" and allow_use_file and
+                if (split_lines == "nofile" and allow_use_file and
                         self._eval_using_file_cutoff and len(code) > self._eval_using_file_cutoff):
                     return self._eval_line_using_file(code)
                 elif split_lines:
@@ -1384,9 +1377,8 @@ class StdOutContext:
         EXAMPLE::
 
             sage: from sage.interfaces.expect import StdOutContext
-            sage: with StdOutContext(gp):
-            ...       gp('1+1')
-            ...
+            sage: with StdOutContext(Gp()) as g:
+            ....:     g('1+1')
             sage=...
         """
         self.interface = interface
@@ -1399,13 +1391,12 @@ class StdOutContext:
 
             sage: from sage.interfaces.expect import StdOutContext
             sage: with StdOutContext(singular):
-            ...       singular.eval('1+1')
-            ...
+            ....:     singular.eval('1+1')
             1+1;
             ...
         """
         if self.silent:
-            return
+            return self.interface
         if self.interface._expect is None:
             self.interface._start()
         self._logfile_backup = self.interface._expect.logfile
@@ -1413,6 +1404,7 @@ class StdOutContext:
             self.interface._expect.logfile = Multiplex(self.interface._expect.logfile, self.stdout)
         else:
             self.interface._expect.logfile = Multiplex(self.stdout)
+        return self.interface
 
     def __exit__(self, typ, value, tb):
         """
@@ -1420,8 +1412,7 @@ class StdOutContext:
 
             sage: from sage.interfaces.expect import StdOutContext
             sage: with StdOutContext(gap):
-            ...       gap('1+1')
-            ...
+            ....:     gap('1+1')
             $sage...
         """
         if self.silent:
@@ -1430,9 +1421,6 @@ class StdOutContext:
         self.stdout.write("\n")
         self.interface._expect.logfile = self._logfile_backup
 
-import os
+
 def console(cmd):
     os.system(cmd)
-
-
-

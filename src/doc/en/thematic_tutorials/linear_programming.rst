@@ -1,6 +1,5 @@
 .. _linear_programming:
 
-
 Linear Programming (Mixed Integer)
 ==================================
 
@@ -15,7 +14,6 @@ constraints.
 
 This is a translation of a chapter from the book
 `Calcul mathematique avec Sage <http://sagebook.gforge.inria.fr>`_.
-
 
 Definition
 ----------
@@ -77,13 +75,13 @@ solvers.
 Let us ask Sage to solve the following LP:
 
 .. MATH::
-    \text{Max: } & x + y - 3z\\
+    \text{Max: } & x + y + 3z\\
     \text{Such that: } & x + 2y \leq 4\\
     \text{} & 5z - y \leq 8\\
     \text{} & x,y,z \geq 0\\
 
 To achieve it, we need to define a corresponding ``MILP`` object, along with 3
-variables ``x,y`` and ``z``::
+variables ``x``, ``y`` and ``z``::
 
     sage: p = MixedIntegerLinearProgram()
     sage: v = p.new_variable(real=True, nonnegative=True)
@@ -116,7 +114,7 @@ the objective function
     sage: round(p.solve(), 2)
     8.8
 
-We can read the optimal assignation found by the solver for `x, y` and
+We can read the optimal assignation found by the solver for `x`, `y` and
 `z` through the ``get_values`` method
 
 .. link
@@ -134,9 +132,9 @@ We can read the optimal assignation found by the solver for `x, y` and
 Variables
 ^^^^^^^^^
 
-In the previous example, we obtained variables through ``v['x'], v['y']`` and
-``v['z']``. This being said, larger LP/MILP will require us to associate a LP
-variable to many Sage objects, which can be integers, strings, or even the
+In the previous example, we obtained variables through ``v['x']``, ``v['y']``
+and ``v['z']``. This being said, larger LP/MILP will require us to associate a
+LP variable to many Sage objects, which can be integers, strings, or even the
 vertices and edges of a graph. For example:
 
 .. link
@@ -239,8 +237,8 @@ Using Sage, we will give to our items a random weight::
 
     sage: set_random_seed(685474)
     sage: for o in L:
-    ...       weight[o] = random()
-    ...       usefulness[o] = random()
+    ....:     weight[o] = random()
+    ....:     usefulness[o] = random()
 
 We can now define the MILP itself
 
@@ -340,8 +338,8 @@ Let us write the Sage code of this MILP::
 ::
 
     sage: for v in g:
-    ...       p.add_constraint(sum(matching[e]
-    ...           for e in g.edges_incident(v, labels=False)) <= 1)
+    ....:     p.add_constraint(sum(matching[e]
+    ....:         for e in g.edges_incident(v, labels=False)) <= 1)
 
 .. link
 
@@ -409,17 +407,17 @@ graph, in which all the edges have a capacity of 1::
 ::
 
     sage: for v in g:
-    ...       if v != s and v != t:
-    ...           p.add_constraint(
-    ...               sum(f[(v,u)] for u in g.neighbors_out(v))
-    ...               - sum(f[(u,v)] for u in g.neighbors_in(v)) == 0)
+    ....:     if v != s and v != t:
+    ....:         p.add_constraint(
+    ....:             sum(f[(v,u)] for u in g.neighbors_out(v))
+    ....:             - sum(f[(u,v)] for u in g.neighbors_in(v)) == 0)
 
 .. link
 
 ::
 
     sage: for e in g.edges(labels=False):
-    ...       p.add_constraint(f[e] <= 1)
+    ....:     p.add_constraint(f[e] <= 1)
 
 .. link
 
@@ -431,7 +429,7 @@ graph, in which all the edges have a capacity of 1::
 
 ::
 
-    sage: p.solve()
+    sage: p.solve()  # rel tol 2e-12
     2.0
 
 .. image:: media/lp_flot2.png

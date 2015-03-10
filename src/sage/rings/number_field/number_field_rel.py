@@ -212,9 +212,7 @@ class NumberField_relative(NumberField_generic):
             sage: l.<b> = k.extension(x^2 + 3/5)
             doctest:...: UserWarning: PARI only handles integral absolute polynomials. Computations in this field might trigger PARI errors
             sage: b
-            Traceback (most recent call last):
-            ...
-            PariError: incorrect type in core2partial (t_FRAC)
+            <repr(<sage.rings.number_field.number_field_element.NumberFieldElement_relative at 0x...>) failed: PariError: incorrect type in core2partial (t_FRAC)>
 
         However, if the polynomial is linear, rational coefficients should work::
 
@@ -1583,10 +1581,10 @@ class NumberField_relative(NumberField_generic):
             x^4 + 7/6*x^2 + 1/144
         """
         try:
-            return self.__pari_polynomial.change_variable_name(name)
+            return self._pari_polynomial.change_variable_name(name)
         except AttributeError:
-            self.__pari_polynomial = self._pari_rnfequation()[0].change_variable_name(name)
-            return self.__pari_polynomial
+            self._pari_polynomial = self._pari_rnfequation()[0].change_variable_name(name)
+            return self._pari_polynomial
 
     @cached_method
     def pari_rnf(self):
@@ -2467,7 +2465,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: K.<a, b> = NumberField([x^2 + 23, x^2 - 3])
             sage: P = K.prime_factors(5)[0]; P
-            Fractional ideal (5, (-1/2*b - 5/2)*a + 5/2*b - 11/2)
+            Fractional ideal (5, (-1/2*b - 5/2)*a + 5/2*b - 9/2)
             sage: u = K.uniformizer(P)
             sage: u.valuation(P)
             1

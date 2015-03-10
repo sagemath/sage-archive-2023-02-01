@@ -18,7 +18,7 @@ from sage.categories.category_singleton import Category_singleton
 from sage.categories.groups import Groups
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 from sage.misc.flatten import flatten
 from copy import copy
 
@@ -32,14 +32,14 @@ class CoxeterGroups(Category_singleton):
 
     `I` is the *index set* of `W` and `|I|` is the *rank* of `W`.
 
-    See http://en.wikipedia.org/wiki/Coxeter_group for details.
+    See :Wikipedia:`Coxeter_group` for details.
 
     EXAMPLES::
 
         sage: C = CoxeterGroups(); C
         Category of coxeter groups
         sage: C.super_categories()
-        [Category of groups, Category of enumerated sets]
+        [Category of finitely generated groups]
 
         sage: W = C.example(); W
         The symmetric group on {0, ..., 3}
@@ -66,6 +66,19 @@ class CoxeterGroups(Category_singleton):
     .. TODO:: add a demo of usual computations on Coxeter groups.
 
     .. SEEALSO:: :class:`WeylGroups`, :mod:`sage.combinat.root_system`
+
+    .. WARNING::
+
+        It is assumed that morphisms in this category preserve the
+        distinguished choice of simple reflections. In particular,
+        subobjects in this category are parabolic subgroups. In this
+        sense, this category might be better named ``Coxeter
+        Systems``. In the long run we might want to have two distinct
+        categories, one for Coxeter groups (with morphisms being just
+        group morphisms) and one for Coxeter systems::
+
+            sage: CoxeterGroups().is_full_subcategory(Groups())
+            False
 
     TESTS::
 
@@ -104,9 +117,9 @@ class CoxeterGroups(Category_singleton):
         EXAMPLES::
 
             sage: CoxeterGroups().super_categories()
-            [Category of groups, Category of enumerated sets]
+            [Category of finitely generated groups]
         """
-        return [Groups(), EnumeratedSets()]
+        return [Groups().FinitelyGenerated()]
 
     Finite = LazyImport('sage.categories.finite_coxeter_groups', 'FiniteCoxeterGroups')
     Algebras = LazyImport('sage.categories.coxeter_group_algebras', 'CoxeterGroupAlgebras')
@@ -186,15 +199,15 @@ class CoxeterGroups(Category_singleton):
 
                 sage: W = WeylGroup(["A",2,1])
                 sage: g = iter(W)
-                sage: g.next()
+                sage: next(g)
                 [1 0 0]
                 [0 1 0]
                 [0 0 1]
-                sage: g.next()
+                sage: next(g)
                 [-1  1  1]
                 [ 0  1  0]
                 [ 0  0  1]
-                sage: g.next()
+                sage: next(g)
                 [ 0 -1  2]
                 [ 1 -1  1]
                 [ 0  0  1]
@@ -619,7 +632,7 @@ class CoxeterGroups(Category_singleton):
 
                 sage: W = WeylGroup("A3")
                 sage: W.canonical_representation()
-                Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+                Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
                 [1 3 2]
                 [3 1 3]
                 [2 3 1]

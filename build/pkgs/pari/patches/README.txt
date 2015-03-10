@@ -34,3 +34,5 @@ C files:
   determinant(), only collect garbage once per outer loop iteration.
   Better increase PARI stack size instead of collecting garbage too
   often.
+* nffactor.patch (Jeroen Demeyer, #16894): Fix an nffactor() bug, taken
+  from PARI git commit 7630f584371c3db43c5fd6f57900c70a2c832b8e.

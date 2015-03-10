@@ -18,7 +18,7 @@ from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.homsets import HomsetsCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.sets_cat import Sets
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 
 class AdditiveMagmas(Category_singleton):
     """
@@ -489,7 +489,7 @@ class AdditiveMagmas(Category_singleton):
                 sage: AdditiveMagmas().Homsets().extra_super_categories()
                 [Category of additive magmas]
                 sage: AdditiveMagmas().Homsets().super_categories()
-                [Category of additive magmas]
+                [Category of additive magmas, Category of homsets]
             """
             return [AdditiveMagmas()]
 
@@ -507,7 +507,7 @@ class AdditiveMagmas(Category_singleton):
                 sage: C.super_categories()
                 [Category of additive magmas, Category of Cartesian products of sets]
                 sage: C.axioms()
-                frozenset([])
+                frozenset()
             """
             return [AdditiveMagmas()]
 
@@ -601,7 +601,7 @@ class AdditiveMagmas(Category_singleton):
                     sage: C.extra_super_categories();
                     [Category of additive commutative additive magmas]
                     sage: C.axioms()
-                    frozenset(['AdditiveCommutative'])
+                    frozenset({'AdditiveCommutative'})
                 """
                 return [AdditiveMagmas().AdditiveCommutative()]
 
@@ -625,22 +625,22 @@ class AdditiveMagmas(Category_singleton):
 
     class AdditiveUnital(CategoryWithAxiom):
 
-        def is_structure_category(self):
+        def additional_structure(self):
             r"""
             Return whether ``self`` is a structure category.
 
-            .. SEEALSO:: :meth:`Category.is_structure_category`
+            .. SEEALSO:: :meth:`Category.additional_structure`
 
-            The category of unital additive magmas define the zero as
-            new structure, and this zero shall be preserved by
+            The category of unital additive magmas defines the zero as
+            additional structure, and this zero shall be preserved by
             morphisms.
 
             EXAMPLES::
 
-                sage: AdditiveMagmas().AdditiveUnital().is_structure_category()
-                True
+                sage: AdditiveMagmas().AdditiveUnital().additional_structure()
+                Category of additive unital additive magmas
             """
-            return True
+            return self
 
         class SubcategoryMethods:
 
@@ -746,10 +746,15 @@ class AdditiveMagmas(Category_singleton):
 
                 TESTS::
 
-                    sage: S = CommutativeAdditiveMonoids().example()
-                    sage: S.zero_element()
-                    0
+                    sage: from sage.geometry.polyhedron.parent import Polyhedra
+                    sage: P = Polyhedra(QQ, 3)
+                    sage: P.zero_element()
+                    doctest:...: DeprecationWarning: .zero_element() is deprecated. Use .zero() instead
+                    See http://trac.sagemath.org/17694 for details.
+                    A 0-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex
                 """
+                from sage.misc.superseded import deprecation
+                deprecation(17694, ".zero_element() is deprecated. Use .zero() instead")
                 return self.zero()
 
         class ElementMethods:
@@ -864,7 +869,7 @@ class AdditiveMagmas(Category_singleton):
                     sage: AdditiveMagmas().AdditiveUnital().Homsets().extra_super_categories()
                     [Category of additive unital additive magmas]
                     sage: AdditiveMagmas().AdditiveUnital().Homsets().super_categories()
-                    [Category of additive unital additive magmas]
+                    [Category of additive unital additive magmas, Category of homsets]
                 """
                 return [AdditiveMagmas().AdditiveUnital()]
 
@@ -923,7 +928,7 @@ class AdditiveMagmas(Category_singleton):
                     sage: C.extra_super_categories();
                     [Category of additive unital additive magmas]
                     sage: C.axioms()
-                    frozenset(['AdditiveUnital'])
+                    frozenset({'AdditiveUnital'})
                 """
                 return [AdditiveMagmas().AdditiveUnital()]
 

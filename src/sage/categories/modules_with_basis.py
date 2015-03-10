@@ -18,22 +18,17 @@ AUTHORS:
 
 from sage.misc.lazy_import import LazyImport
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import attrcall
 from sage.misc.sage_itertools import max_cmp, min_cmp
-from sage.misc.superseded import deprecated_function_alias
 from sage.categories.homsets import HomsetsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.tensor import tensor, TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
-from sage.categories.morphism import SetMorphism, Morphism
-from sage.categories.homset import Hom
-from sage.categories.sets_cat import Sets
-from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
-from sage.categories.commutative_additive_semigroups import CommutativeAdditiveSemigroups
-from sage.categories.fields import Fields
 from sage.categories.modules import Modules
 from sage.structure.element import Element, parent
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.modules.module_with_basis_morphism',
+            ['ModuleMorphismByLinearity','DiagonalModuleMorphism', 'TriangularModuleMorphism'])
 
 class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
     """
@@ -398,7 +393,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 -B[1] + B[2] + B[3] + B[5] - B[6] - B[10] - B[15] + B[30]
 
             For details and further optional arguments, see
-            :class:`sage.categories.modules_with_basis.TriangularModuleMorphism`.
+            :class:`sage.modules.module_with_basis_morphism.TriangularModuleMorphism`.
 
             .. WARNING::
 
@@ -1265,3 +1260,4 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 [Category of duals of vector spaces over Rational Field, Category of duals of modules with basis over Rational Field]
             """
             return [Modules(self.base_category().base_ring())]
+

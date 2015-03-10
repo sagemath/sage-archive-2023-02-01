@@ -17,9 +17,90 @@ The classes in this file were extracted of sage.categories.modules_with_basis.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.categories.fields import Fields
+from sage.categories.modules import Modules
+from sage.misc.misc import attrcall
+from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
+from sage.categories.commutative_additive_semigroups import CommutativeAdditiveSemigroups
+from sage.categories.homset import Hom
+from sage.categories.modules_with_basis import ModulesWithBasis
+from sage.categories.morphism import SetMorphism, Morphism
+from sage.categories.sets_cat import Sets
+from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+from sage.structure.element import parent
 
+class ModuleMorphism(Morphism):
+    """
+    An abstract base class for module morphisms
 
-class ModuleMorphismByLinearity(Morphism):
+    The role of this class is rather minimal:
+    - handling of the choice of the default category
+    - setting the class to inherit properly from categories
+    """
+    def __init__(self, domain, codomain=None, category=None, affine=False):
+        """
+        Construct a module morphism.
+
+        INPUT:
+
+        - ``domain`` -- a parent in ``ModulesWithBasis(...)``
+        - ``codomain`` -- a parent in ``Modules(...)``;
+
+        EXAMPLES::
+
+            sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
+            sage: Y = CombinatorialFreeModule(ZZ, [1, 2])
+            sage: from sage.modules.module_with_basis_morphism import ModuleMorphismByLinearity
+            sage: phi = ModuleMorphismByLinearity(X, on_basis = Y.monomial * abs)
+
+        TESTS::
+
+            sage: TestSuite(phi).run()
+        """
+        if category is None:
+            if not domain in ModulesWithBasis:
+                raise ValueError("domain(=%s) should be a module with basis"%(codomain))
+            base_ring = domain.base_ring()
+
+            if not hasattr( codomain, 'base_ring' ):
+                raise ValueError("codomain(=%s) needs to have a base_ring attribute"%(codomain))
+            # codomain should be a module over base_ring
+            # The natural test would be ``codomains in Modules(base_ring)``
+            # But this is not properly implemented yet:
+            #     sage: CC in Modules(QQ)
+            #     False
+            #     sage: QQ in Modules(QQ)
+            #     False
+            #     sage: CC[x] in Modules(QQ)
+            #     False
+            # The test below is a bit more restrictive
+            if (not codomain.base_ring().has_coerce_map_from(base_ring)) \
+               and (not codomain.has_coerce_map_from(base_ring)):
+                raise ValueError("codomain(=%s) should be a module over the base ring of the domain(=%s)"%(codomain, domain))
+
+            if affine:
+                # We don't yet have a category whose morphisms are affine morphisms
+                category = Sets()
+            else:
+                C = Modules(base_ring)
+                for C in [C.WithBasis().FiniteDimensional(),
+                          C.WithBasis(),
+                          C,
+                          # QQ is not in Modules(QQ)!
+                          CommutativeAdditiveSemigroups()]:
+                    if codomain in C and domain in C:
+                        category = C
+                        break
+                if category is None:
+                    raise ValueError("codomain=(%s) should at least be a commutative additive semigroup")
+
+        H = Hom(domain, codomain, category=category)
+        Morphism.__init__(self, H)
+        if not issubclass(self.__class__, H._abstract_element_class):
+            self.__class__ = H.__make_element_class__(self.__class__)
+
+class ModuleMorphismByLinearity(ModuleMorphism):
     """
     A class for module morphisms obtained by extending a function by linearity.
     """
@@ -44,7 +125,8 @@ class ModuleMorphismByLinearity(Morphism):
 
             sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
             sage: Y = CombinatorialFreeModule(ZZ, [1, 2])
-            sage: phi = sage.categories.modules_with_basis.ModuleMorphismByLinearity(X, on_basis = Y.monomial * abs)
+            sage: from sage.modules.module_with_basis_morphism import ModuleMorphismByLinearity
+            sage: phi = ModuleMorphismByLinearity(X, on_basis = Y.monomial * abs)
 
         TESTS::
 
@@ -55,53 +137,19 @@ class ModuleMorphismByLinearity(Morphism):
 
         if codomain is None and hasattr(on_basis, 'codomain'):
             codomain = on_basis.codomain()
-        if not hasattr( codomain, 'base_ring' ):
-            raise ValueError("codomain(=%s) needs to have a base_ring attribute"%(codomain))
-        # codomain should be a module over base_ring
-        # The natural test would be ``codomains in Modules(base_ring)``
-        # But this is not properly implemented yet:
-        #     sage: CC in Modules(QQ)
-        #     False
-        #     sage: QQ in Modules(QQ)
-        #     False
-        #     sage: CC[x] in Modules(QQ)
-        #     False
-        # The test below is a bit more restrictive
-        if (not codomain.base_ring().has_coerce_map_from(base_ring)) \
-           and (not codomain.has_coerce_map_from(base_ring)):
-            raise ValueError("codomain(=%s) should be a module over the base ring of the domain(=%s)"%(codomain, domain))
-
         if zero is None:
             zero = codomain.zero()
         self._zero = zero
+        self._position = position
+        if on_basis is not None:
+            self._on_basis = on_basis
 
         self._is_module_with_basis_over_same_base_ring = \
             codomain in ModulesWithBasis( base_ring ) and zero == codomain.zero()
 
-        if category is None:
-            if self._is_module_with_basis_over_same_base_ring:
-                category = ModulesWithBasis(base_ring)
-                # FIXME: this should eventually be handled automatically by full subcategories
-                fd_category = category.FiniteDimensional()
-                if domain in fd_category and codomain in fd_category:
-                    category = fd_category
-            elif zero == codomain.zero():
-                if codomain in Modules(base_ring):
-                    category = Modules(base_ring)
-                else:
-                    # QQ is not in Modules(QQ)!
-                    category = CommutativeAdditiveSemigroups()
-            else:
-                category = Sets()
-
-        H = Hom(domain, codomain, category = category)
-        Morphism.__init__(self, H)
-        if not issubclass(self.__class__, H._abstract_element_class):
-            self.__class__ = H.__make_element_class__(self.__class__)
-
-        self._position = position
-        if on_basis is not None:
-            self._on_basis = on_basis
+        ModuleMorphism.__init__(self, domain, codomain,
+                                category=category,
+                                affine=zero != codomain.zero())
 
     def __eq__(self, other):
         """
@@ -135,7 +183,7 @@ class ModuleMorphismByLinearity(Morphism):
             sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
             sage: Y = CombinatorialFreeModule(ZZ, [1, 2])
             sage: phi_on_basis = Y.monomial * abs
-            sage: phi = sage.categories.modules_with_basis.ModuleMorphismByLinearity(X, on_basis = phi_on_basis, codomain = Y)
+            sage: phi = sage.modules.module_with_basis_morphism.ModuleMorphismByLinearity(X, on_basis = phi_on_basis, codomain = Y)
             sage: x = X.basis()
             sage: phi.on_basis()(-2)
             B[2]
@@ -153,7 +201,7 @@ class ModuleMorphismByLinearity(Morphism):
             sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
             sage: Y = CombinatorialFreeModule(ZZ, [1, 2])
             sage: def phi_on_basis(i): return Y.monomial(abs(i))
-            sage: phi = sage.categories.modules_with_basis.ModuleMorphismByLinearity(X, on_basis = Y.monomial * abs, codomain = Y)
+            sage: phi = sage.modules.module_with_basis_morphism.ModuleMorphismByLinearity(X, on_basis = Y.monomial * abs, codomain = Y)
             sage: x = X.basis()
             sage: phi(x[1]), phi(x[-2]), phi(x[1] + 3 * x[-2])
             (B[1], B[2], B[1] + 3*B[2])
@@ -365,7 +413,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: import __main__; __main__.ut = ut
             sage: phi = X.module_morphism(ut, triangular="lower", codomain = X)
             sage: phi.__class__
-            <class 'sage.categories.modules_with_basis.TriangularModuleMorphism_with_category'>
+            <class 'sage.modules.module_with_basis_morphism.TriangularModuleMorphism_with_category'>
             sage: TestSuite(phi).run(skip=["_test_pickling"])
 
         Known issue::
@@ -909,7 +957,7 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
             sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X")
             sage: phi = X.module_morphism(diagonal = factorial, codomain = X)
             sage: phi.__class__
-            <class 'sage.categories.modules_with_basis.DiagonalModuleMorphism_with_category'>
+            <class 'sage.modules.module_with_basis_morphism.DiagonalModuleMorphism_with_category'>
             sage: TestSuite(phi).run()
         """
         assert codomain is not None
@@ -969,7 +1017,7 @@ def pointwise_inverse_function(f):
 
     EXAMPLES::
 
-        sage: from sage.categories.modules_with_basis import pointwise_inverse_function
+        sage: from sage.modules.module_with_basis_morphism import pointwise_inverse_function
         sage: def f(x): return x
         ....:
         sage: g = pointwise_inverse_function(f)
@@ -1000,7 +1048,7 @@ class PointwiseInverseFunction(SageObject):
 
     EXAMPLES::
 
-        sage: from sage.categories.modules_with_basis import PointwiseInverseFunction
+        sage: from sage.modules.module_with_basis_morphism import PointwiseInverseFunction
         sage: f = PointwiseInverseFunction(factorial)
         sage: f(0), f(1), f(2), f(3)
         (1, 1, 1/2, 1/6)
@@ -1010,7 +1058,7 @@ class PointwiseInverseFunction(SageObject):
         """
         TESTS::
 
-            sage: from sage.categories.modules_with_basis import PointwiseInverseFunction
+            sage: from sage.modules.module_with_basis_morphism import PointwiseInverseFunction
             sage: f = PointwiseInverseFunction(factorial)
             sage: g = PointwiseInverseFunction(factorial)
             sage: f is g
@@ -1024,7 +1072,7 @@ class PointwiseInverseFunction(SageObject):
         """
         TESTS::
 
-            sage: from sage.categories.modules_with_basis import PointwiseInverseFunction
+            sage: from sage.modules.module_with_basis_morphism import PointwiseInverseFunction
             sage: f = PointwiseInverseFunction(factorial)
             sage: f(0), f(1), f(2), f(3)
             (1, 1, 1/2, 1/6)
@@ -1036,7 +1084,7 @@ class PointwiseInverseFunction(SageObject):
         """
         TESTS::
 
-            sage: from sage.categories.modules_with_basis import PointwiseInverseFunction
+            sage: from sage.modules.module_with_basis_morphism import PointwiseInverseFunction
             sage: g = PointwiseInverseFunction(operator.mul)
             sage: g(5,7)
             1/35
@@ -1047,10 +1095,9 @@ class PointwiseInverseFunction(SageObject):
         """
         TESTS::
 
-            sage: from sage.categories.modules_with_basis import PointwiseInverseFunction
+            sage: from sage.modules.module_with_basis_morphism import PointwiseInverseFunction
             sage: g = PointwiseInverseFunction(operator.mul)
             sage: g.pointwise_inverse() is operator.mul
             True
         """
         return self._pointwise_inverse
-

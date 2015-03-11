@@ -816,12 +816,12 @@ framework. Here is a comprehensive list:
   - **bug:** For lines that describe bugs. Alternatively, use ``# known bug``
     instead: it is an alias for ``optional bug``. ::
 
-      The following should yield 4.  See :trac:`2`. ::
+        The following should yield 4.  See :trac:`2`. ::
 
-          sage: 2+2  # optional: bug
-          5
-          sage: 2+2  # known bug
-          5
+            sage: 2+2  # optional: bug
+            5
+            sage: 2+2  # known bug
+            5
 
   .. NOTE::
 
@@ -846,11 +846,11 @@ framework. Here is a comprehensive list:
   etc. Use it also when you test the function by calling ``B`` which
   internally calls ``A``::
 
-     This is the docstring of an ``__add__`` method. The following example tests
-     it, but ``__add__`` is not written anywhere::
+      This is the docstring of an ``__add__`` method. The following
+      example tests it, but ``__add__`` is not written anywhere::
 
-       sage: 1+1 # indirect doctest
-       2
+          sage: 1+1 # indirect doctest
+          2
 
 - **32-bit** or **64-bit:** for tests that behave differently on 32-bit or
   64-bit machines. Note that this particular flag is to be applied on the

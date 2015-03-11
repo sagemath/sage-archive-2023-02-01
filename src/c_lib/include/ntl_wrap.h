@@ -140,7 +140,7 @@ EXTERN void ZZX_squarefree_decomposition(struct ZZX*** v, long** e, long* n, str
 struct ZZ_pX;
 #endif
 
-EXTERN struct ZZ_pX* ZZ_pX_init();
+EXTERN struct ZZ_pX* ZZ_pX_init(void);
 //EXTERN char* ZZ_pX_repr(struct ZZ_pX* x);
 /* EXTERN struct ZZ_pX* ZZ_pX_copy(struct ZZ_pX* x); */
 /* EXTERN void ZZ_pX_setitem_from_int(struct ZZ_pX* x, long i, int value); */

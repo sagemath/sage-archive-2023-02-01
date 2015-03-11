@@ -845,6 +845,8 @@ class IntegralRayCollection(SageObject,
         """
         lattice = self.lattice()
         rays = [-r1 for r1 in self.rays()]
+        for r in rays:
+            r.set_immutable()
         return IntegralRayCollection(rays, lattice)
 
     def dim(self):

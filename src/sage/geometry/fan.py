@@ -1609,6 +1609,8 @@ class RationalPolyhedralFan(IntegralRayCollection,
             in 2-d lattice N
         """
         new_rays = [-r1 for r1 in self.rays()]
+        for r in new_rays:
+            r.set_immutable()
         self_cones = [cone.ambient_ray_indices() for cone in self]
         return RationalPolyhedralFan(self_cones, new_rays, self.lattice())
 

@@ -1,4 +1,6 @@
 """
+mpmath floating-point numbers
+
 Implements mpf and mpc types, with binary operations and support
 for interaction with other types. Also implements the main
 context class, and related utilities.
@@ -553,9 +555,9 @@ cdef class Context:
 
     def isnan(ctx, x):
         """
-        For an ``mpf`` *x*, determines whether *x* is not-a-number (nan)::
+        For an ``mpf`` *x*, determines whether *x* is not-a-number (nan).
 
-        TESTS ::
+        TESTS::
 
             sage: from mpmath import isnan, nan
             sage: isnan(nan), isnan(3)
@@ -584,9 +586,9 @@ cdef class Context:
     def isinf(ctx, x):
         """
         Return *True* if the absolute value of *x* is infinite;
-        otherwise return *False*::
+        otherwise return *False*.
 
-        TESTS ::
+        TESTS::
 
             sage: from mpmath import isinf, inf, mpc
             sage: isinf(inf)

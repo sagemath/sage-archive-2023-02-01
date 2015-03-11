@@ -5,7 +5,7 @@ This module implements Airy functions and their generalized derivatives. It
 supports symbolic functionality through Maxima and numeric evaluation through
 mpmath and scipy.
 
-Airy functions are solutions to the differential equation `f''(z) +f(z)x=0`.
+Airy functions are solutions to the differential equation `f''(z) - xf(z)=0`.
 
 Four global function symbols are immediately available, please see
 
@@ -154,7 +154,7 @@ class FunctionAiryAiGeneral(BuiltinFunction):
 class FunctionAiryAiSimple(BuiltinFunction):
     def __init__(self):
         """
-        The class for the Airy Ai function
+        The class for the Airy Ai function.
 
         EXAMPLES::
 
@@ -352,7 +352,7 @@ def airy_ai(alpha, x=None, hold_derivative=False, **kwds):
     r"""
     The Airy Ai function `\operatorname{Ai}(x)` is one of the two
     linearly independent solutions to the Airy differential equation
-    `f''(z) +f(z)x=0`, defined by the initial conditions:
+    `f''(z) - xf(z)=0`, defined by the initial conditions:
 
     .. math ::
         \operatorname{Ai}(0)=\frac{1}{2^{2/3} \Gamma\left(\frac{2}{3}\right)},
@@ -477,7 +477,7 @@ def airy_ai(alpha, x=None, hold_derivative=False, **kwds):
 class FunctionAiryBiGeneral(BuiltinFunction):
     def __init__(self):
         r"""
-        The generalized derivative of the Airy Bi function
+        The generalized derivative of the Airy Bi function.
 
         INPUT:
 
@@ -568,7 +568,7 @@ class FunctionAiryBiGeneral(BuiltinFunction):
 class FunctionAiryBiSimple(BuiltinFunction):
     def __init__(self):
         """
-        The class for the Airy Bi function
+        The class for the Airy Bi function.
 
         EXAMPLES::
 
@@ -768,7 +768,7 @@ def airy_bi(alpha, x=None, hold_derivative=False, **kwds):
     r"""
     The Airy Bi function `\operatorname{Bi}(x)` is one of the two
     linearly independent solutions to the Airy differential equation
-    `f''(z) +f(z)x=0`, defined by the initial conditions:
+    `f''(z) -xf(z)=0`, defined by the initial conditions:
 
     .. math ::
         \operatorname{Bi}(0)=\frac{1}{3^{1/6} \Gamma\left(\frac{2}{3}\right)},

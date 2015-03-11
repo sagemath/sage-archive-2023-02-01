@@ -70,6 +70,7 @@ Categories
    sage/categories/commutative_ring_ideals
    sage/categories/commutative_rings
    sage/categories/complete_discrete_valuation
+   sage/categories/discrete_valuation
    sage/categories/coxeter_groups
    sage/categories/coxeter_group_algebras
    sage/categories/crystals
@@ -197,5 +198,6 @@ Miscellaneous
    :maxdepth: 2
 
    sage/categories/action
+   sage/categories/poor_man_map
 
 .. include:: ../footer.txt

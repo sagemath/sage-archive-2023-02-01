@@ -46,7 +46,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
             """
             Return the absolute precision of this element.
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: R = Zp(7)
                 sage: x = R(7); x
@@ -60,7 +60,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
             """
             Return the relative precision of this element.
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: R = Zp(7)
                 sage: x = R(7); x
@@ -101,7 +101,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
             """
             Return the absolute precision of this element.
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: K = Qp(7)
                 sage: x = K(7); x
@@ -115,7 +115,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
             """
             Return the relative precision of this element.
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: K = Qp(7)
                 sage: x = K(7); x

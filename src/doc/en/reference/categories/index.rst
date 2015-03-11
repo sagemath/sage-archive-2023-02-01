@@ -70,10 +70,10 @@ Categories
    sage/categories/commutative_ring_ideals
    sage/categories/commutative_rings
    sage/categories/complete_discrete_valuation
-   sage/categories/discrete_valuation
-   sage/categories/coxeter_groups
    sage/categories/coxeter_group_algebras
+   sage/categories/coxeter_groups
    sage/categories/crystals
+   sage/categories/discrete_valuation
    sage/categories/distributive_magmas_and_additive_magmas
    sage/categories/division_rings
    sage/categories/domains
@@ -98,6 +98,7 @@ Categories
    sage/categories/finite_sets
    sage/categories/finite_weyl_groups
    sage/categories/function_fields
+   sage/categories/g_sets
    sage/categories/gcd_domains
    sage/categories/graded_algebras
    sage/categories/graded_algebras_with_basis
@@ -112,7 +113,6 @@ Categories
    sage/categories/group_algebras
    sage/categories/groupoid
    sage/categories/groups
-   sage/categories/g_sets
    sage/categories/hecke_modules
    sage/categories/highest_weight_crystals
    sage/categories/hopf_algebras

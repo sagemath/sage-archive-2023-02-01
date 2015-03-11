@@ -1588,6 +1588,26 @@ class RationalPolyhedralFan(IntegralRayCollection,
         except AttributeError: # The result is either incomplete or unknown.
             return RationalPolyhedralFan(new_cones, rc.rays(), rc.lattice())
 
+    def __neg__(self):
+        """
+        Return the fan where each cone is replaced by the opposite cone.
+
+        EXAMPLES::
+
+            sage: c0 = Cone([(1,1),(0,1)])
+            sage: c1 = Cone([(1,1),(1,0)])
+            sage: F = Fan([c0, c1])
+            sage: G = -F  # indirect doctest
+            sage: G.rays()
+            N( 0, -1),
+            N(-1,  0),
+            N(-1, -1)
+            in 2-d lattice N
+        """
+        new_rays = [-r1 for r1 in self.rays()]
+        self_cones = [cone.ambient_ray_indices() for cone in self]
+        return RationalPolyhedralFan(self_cones, new_rays, self.lattice())
+
     def _latex_(self):
         r"""
         Return a LaTeX representation of ``self``.

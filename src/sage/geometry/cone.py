@@ -829,6 +829,24 @@ class IntegralRayCollection(SageObject,
             r.set_immutable()
         return IntegralRayCollection(rays, lattice)
 
+    def __neg__(self):
+        """
+        Return the collection with opposite rays.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,1),(0,1)]); c
+            2-d cone in 2-d lattice N
+            sage: d = -c  # indirect doctest
+            sage: d.rays()
+            N(-1, -1),
+            N( 0, -1)
+            in 2-d lattice N
+        """
+        lattice = self.lattice()
+        rays = [-r1 for r1 in self.rays()]
+        return IntegralRayCollection(rays, lattice)
+
     def dim(self):
         r"""
         Return the dimension of the subspace spanned by rays of ``self``.

@@ -1,17 +1,16 @@
 """
-These are the actions used by the coercion model for matrix and vector
-multiplications.
+Actions used by the coercion model for matrix and vector multiplications
 
 .. WARNING::
 
     The class :class:`MatrixMulAction` and its descendants extends the class
-    :class:`Action`. As a consequence, objects from these classes only keep weak
+    :class:`Action`. As a consequence objects from these classes only keep weak
     references to the underlying sets which are acted upon. This decision was
     made in :trac:`715` in order to allow garbage collection within the coercion
     framework, where actions are mainly used, and avoid memory leaks.
 
     To ensure that the underlying set of such an object does not get garbage
-    collected, it is sufficient to explicitely create a strong reference to it
+    collected, it is sufficient to explicitly create a strong reference to it
     before creating the action.
 
     ::

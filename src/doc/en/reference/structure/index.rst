@@ -12,6 +12,7 @@ Basic Structures
    sage/structure/coerce_dict
    sage/structure/formal_sum
    sage/structure/factorization
+   sage/structure/factorization_integer
    sage/structure/element
    sage/structure/unique_representation
    sage/structure/factory
@@ -42,6 +43,21 @@ Basic Structures
    sage/sets/real_set
 
    sage/structure/parent
+
+   sage/structure/proof/proof
+   sage/misc/proof
+
+   sage/structure/coerce_exceptions
+   sage/structure/debug_options
+   sage/structure/element_verify
+   sage/structure/generators
+   sage/structure/gens_py
+   sage/structure/graphics_file
+   sage/structure/list_clone_timings
+   sage/structure/list_clone_timings_cy
+   sage/structure/misc
+   sage/structure/nonexact
+   sage/structure/test_factory
 
 
 .. include:: ../footer.txt

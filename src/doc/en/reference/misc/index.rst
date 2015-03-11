@@ -12,7 +12,6 @@ Miscellaneous
    sage/misc/c3
    sage/misc/c3_controlled
    sage/misc/decorators
-   sage/misc/lazy_list
    sage/misc/classgraph
    sage/misc/dev_tools
    sage/misc/function_mangling
@@ -51,8 +50,43 @@ Miscellaneous
    sage/misc/viewer
    sage/misc/session
    sage/misc/defaults
-   sage/misc/superseded
 
+   sage/ext/multi_modular
+   sage/ext/memory
+
+   sage/media/channels
+   sage/media/wav
+
+   sage/misc/banner
+   sage/misc/benchmark
+   sage/misc/binary_tree
+   sage/misc/cache
+   sage/misc/citation
+   sage/misc/copying
+   sage/misc/cython_c
+   sage/misc/flatten
+
+   sage/misc/fpickle
+   sage/misc/inline_fortran
+   sage/misc/map_threaded
+   sage/misc/mathml
+   sage/misc/memory_info
+   sage/misc/method_decorator
+   sage/misc/misc_c
+   sage/misc/multireplace
+   sage/misc/object_multiplexer
+   sage/misc/pager
+   sage/misc/parser
+   sage/misc/prandom
+   sage/misc/python
+   sage/misc/remote_file
+   sage/misc/reset
+   sage/misc/sage_itertools
+   sage/misc/sage_ostools
+   sage/misc/search
+   sage/misc/sh
+   sage/misc/stopgap
+   sage/misc/superseded
 
 Profiling and Performance Testing
 ---------------------------------
@@ -85,5 +119,36 @@ Lazyness
    sage/misc/lazy_attribute
    sage/misc/lazy_format
    sage/misc/lazy_import
+   sage/misc/lazy_list
+   sage/misc/lazy_import_cache
+   sage/misc/lazy_string
+
+Fast Expression Evaluation
+--------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/ext/fast_callable
+   sage/ext/fast_eval
+
+.. The docbuilder only accepts modules from src/sage/* in the reference
+.. manual (#18216)
+..   sage_setup/autogen/interpreters
+
+.. Automatically generated interpreters, probably shouldn't be documented.
+..   sage/ext/interpreters/wrapper_cdf
+..   sage/ext/interpreters/wrapper_el
+..   sage/ext/interpreters/wrapper_py
+..   sage/ext/interpreters/wrapper_rdf
+..   sage/ext/interpreters/wrapper_rr
+
+Databases
+---------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/databases/sql_db
 
 .. include:: ../footer.txt

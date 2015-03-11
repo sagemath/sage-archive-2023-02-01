@@ -52,6 +52,8 @@ objects like operation tables (e.g. the multiplication table of a group).
 
    sage/matrix/docs
 
+   sage/matrix/matrix_misc
+
    sage/matrix/matrix
 
    sage/matrix/matrix0
@@ -70,7 +72,6 @@ objects like operation tables (e.g. the multiplication table of a group).
    sage/matrix/matrix_generic_dense
    sage/matrix/matrix_generic_sparse
 
-   sage/matrix/matrix_modn_dense
    sage/matrix/matrix_modn_sparse
 
    sage/matrix/matrix_symbolic_dense

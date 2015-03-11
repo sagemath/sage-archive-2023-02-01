@@ -157,26 +157,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.categories.action',
-              sources = ['sage/categories/action.pyx']),
-
-    Extension('sage.categories.category_cy_helper',
-              sources = ['sage/categories/category_cy_helper.pyx']),
-
-    Extension('sage.categories.category_singleton',
-              sources = ['sage/categories/category_singleton.pyx']),
-
-    Extension('sage.categories.functor',
-              sources = ['sage/categories/functor.pyx']),
-
-    Extension('sage.categories.map',
-              sources = ['sage/categories/map.pyx']),
-
-    Extension('sage.categories.morphism',
-              sources = ['sage/categories/morphism.pyx']),
-
-    Extension('sage.categories.examples.semigroups_cython',
-              sources = ['sage/categories/examples/semigroups_cython.pyx']),
+    Extension('*', ['sage/categories/**/*.pyx']),
 
     ################################
     ##
@@ -184,18 +165,13 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.coding.binary_code',
-              sources = ['sage/coding/binary_code.pyx'],
-              libraries = ['gmp']),
-
     Extension('sage.coding.codecan.codecan',
               sources = ['sage/coding/codecan/codecan.pyx'],
               libraries = ['gmp', 'flint'],
               include_dirs = ['sage/groups/perm_gps/partn_ref2/'],
               depends = flint_depends),
 
-    Extension('sage.coding.codecan.autgroup_can_label',
-          sources = ['sage/coding/codecan/autgroup_can_label.pyx']),
+    Extension('*', ['sage/coding/**/*.pyx']),
 
     ################################
     ##
@@ -261,6 +237,9 @@ ext_modules = [
     Extension('sage.combinat.crystals.letters',
               sources=['sage/combinat/crystals/letters.pyx']),
 
+    Extension('sage.combinat.designs.subhypergraph_search',
+              sources=['sage/combinat/designs/subhypergraph_search.pyx']),
+
     Extension('sage.combinat.designs.designs_pyx',
               sources=['sage/combinat/designs/designs_pyx.pyx'],
               libraries=['gmp']),
@@ -285,6 +264,10 @@ ext_modules = [
     ##
     ################################
 
+    Extension('sage.data_structures.bounded_integer_sequences',
+              sources = ['sage/data_structures/bounded_integer_sequences.pyx'],
+              libraries = ['gmp']),
+
     Extension('sage.data_structures.bitset',
               sources = ['sage/data_structures/bitset.pyx'],
               libraries = ['gmp']),
@@ -295,25 +278,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.ext.c_lib',
-              sources = ['sage/ext/c_lib.pyx']),
-
-    Extension('sage.ext.fast_callable',
-              sources = ['sage/ext/fast_callable.pyx']),
-
-    Extension('sage.ext.fast_eval',
-              sources = ['sage/ext/fast_eval.pyx']),
-
-    Extension('sage.ext.interactive_constructors_c',
-              sources = ['sage/ext/interactive_constructors_c.pyx']),
-
-    Extension('sage.ext.multi_modular',
-              sources = ['sage/ext/multi_modular.pyx'],
-              extra_compile_args = ['-std=c99'],
-              libraries=['gmp']),
-
-    Extension('sage.ext.pselect',
-              sources = ['sage/ext/pselect.pyx']),
+    Extension('*', ['sage/ext/*.pyx']),
 
     ################################
     ##
@@ -389,6 +354,9 @@ ext_modules = [
     ##
     ################################
 
+    Extension('sage.graphs.asteroidal_triples',
+              sources = ['sage/graphs/asteroidal_triples.pyx']),
+
     Extension('sage.graphs.chrompoly',
               sources = ['sage/graphs/chrompoly.pyx'],
               libraries = ['gmp']),
@@ -422,10 +390,12 @@ ext_modules = [
               sources = ['sage/graphs/graph_generators_pyx.pyx']),
 
     Extension('sage.graphs.distances_all_pairs',
-              sources = ['sage/graphs/distances_all_pairs.pyx']),
+              sources = ['sage/graphs/distances_all_pairs.pyx'],
+              libraries = ['gmp']),
 
     Extension('sage.graphs.base.static_dense_graph',
-              sources = ['sage/graphs/base/static_dense_graph.pyx']),
+              sources = ['sage/graphs/base/static_dense_graph.pyx'],
+              libraries = ['gmp']),
 
     Extension('sage.graphs.base.static_sparse_graph',
               sources = ['sage/graphs/base/static_sparse_graph.pyx'],
@@ -501,6 +471,9 @@ ext_modules = [
               sources = ['sage/graphs/graph_decompositions/rankwidth.pyx',
                          'sage/graphs/graph_decompositions/rankwidth_c/rw.c']),
 
+    Extension('sage.graphs.graph_decompositions.bandwidth',
+              sources = ['sage/graphs/graph_decompositions/bandwidth.pyx']),
+
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
 
@@ -511,7 +484,8 @@ ext_modules = [
               sources = ['sage/graphs/genus.pyx']),
 
     Extension('sage.graphs.hyperbolicity',
-              sources = ['sage/graphs/hyperbolicity.pyx']),
+              sources = ['sage/graphs/hyperbolicity.pyx'],
+              libraries = ['gmp']),
 
         ################################
         ##
@@ -719,6 +693,10 @@ ext_modules = [
               extra_compile_args=["-DFPLLL_V3_COMPAT"],
               depends = [SAGE_INC + "/fplll/fplll.h"] + flint_depends),
 
+    Extension('sage.libs.gmp.pylong',
+              sources = ['sage/libs/gmp/pylong.pyx'],
+              libraries = ['gmp']),
+
     Extension('sage.libs.gmp.rational_reconstruction',
               sources = ['sage/libs/gmp/rational_reconstruction.pyx'],
               libraries = ['gmp']),
@@ -919,6 +897,11 @@ ext_modules = [
         ##
         ###################################
 
+    Extension('sage.libs.ntl.error',
+              sources = ["sage/libs/ntl/error.pyx"],
+              libraries = ["ntl", "gmp", "gmpxx"],
+              language='c++'),
+
     Extension('sage.libs.ntl.ntl_GF2',
               sources = ["sage/libs/ntl/ntl_GF2.pyx"],
               libraries = ["ntl", "gmp", "gmpxx"],
@@ -1070,10 +1053,6 @@ ext_modules = [
     Extension('sage.matrix.matrix_generic_sparse',
               sources = ['sage/matrix/matrix_generic_sparse.pyx']),
 
-    Extension('sage.matrix.matrix_integer_2x2',
-              sources = ['sage/matrix/matrix_integer_2x2.pyx'],
-              libraries = ['gmp']),
-
     Extension('sage.matrix.matrix_integer_dense',
               sources = ['sage/matrix/matrix_integer_dense.pyx'],
               extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
@@ -1097,14 +1076,6 @@ ext_modules = [
               depends = [SAGE_INC + "/m4rie/m4rie.h"],
               include_dirs = [SAGE_INC + '/m4rie'],
               extra_compile_args = m4ri_extra_compile_args),
-
-    Extension('sage.matrix.matrix_modn_dense',
-              sources = ['sage/matrix/matrix_modn_dense.pyx'],
-              language="c++",
-              extra_compile_args = ["-D_XPG6"] + m4ri_extra_compile_args,
-              # order matters for cygwin!!
-              libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'flint', BLAS, BLAS2],
-              depends = [SAGE_INC + '/m4ri/m4ri.h'] + flint_depends),
 
     Extension('sage.matrix.matrix_modn_dense_float',
               sources = ['sage/matrix/matrix_modn_dense_float.pyx'],
@@ -1155,9 +1126,6 @@ ext_modules = [
 
     Extension('sage.matrix.matrix_window',
               sources = ['sage/matrix/matrix_window.pyx']),
-
-    Extension('sage.matrix.matrix_window_modn_dense',
-              sources = ['sage/matrix/matrix_window_modn_dense.pyx']),
 
     Extension('sage.matrix.misc',
               sources = ['sage/matrix/misc.pyx'],
@@ -1221,90 +1189,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.misc.allocator',
-              sources = ['sage/misc/allocator.pyx']),
-
-    Extension('sage.misc.cachefunc',
-              sources = ['sage/misc/cachefunc.pyx']),
-
-    Extension('sage.misc.citation',
-              sources = ['sage/misc/citation.pyx']),
-
-    Extension('sage.misc.constant_function',
-              sources = ['sage/misc/constant_function.pyx']),
-
-    Extension('sage.misc.cython_c',
-              sources = ['sage/misc/cython_c.pyx']),
-
-    Extension('sage.misc.c3',
-              sources = ['sage/misc/c3.pyx']),
-
-    Extension('sage.misc.c3_controlled',
-              sources = ['sage/misc/c3_controlled.pyx']),
-
-    Extension('sage.misc.derivative',
-              sources = ['sage/misc/derivative.pyx']),
-
-    Extension('sage.misc.fpickle',
-              sources = ['sage/misc/fpickle.pyx']),
-
-    Extension('sage.misc.function_mangling',
-              sources = ['sage/misc/function_mangling.pyx']),
-
-    Extension('sage.misc.lazy_attribute',
-              sources = ['sage/misc/lazy_attribute.pyx']),
-
-    Extension('sage.misc.lazy_import',
-              sources = ['sage/misc/lazy_import.pyx']),
-
-    Extension('sage.misc.lazy_list',
-              sources = ['sage/misc/lazy_list.pyx']),
-
-    Extension('sage.misc.misc_c',
-              sources = ['sage/misc/misc_c.pyx']),
-
-    Extension('sage.misc.nested_class',
-              sources = ['sage/misc/nested_class.pyx']),
-
-    Extension('sage.misc.parser',
-              sources = ['sage/misc/parser.pyx']),
-
-    Extension('sage.misc.pickle_old',
-              sources = ['sage/misc/pickle_old.pyx']),
-
-    Extension('sage.misc.randstate',
-              sources = ['sage/misc/randstate.pyx'],
-              libraries = ['gmp']),
-
-    Extension('sage.misc.refcount',
-              sources = ['sage/misc/refcount.pyx']),
-
-    Extension('sage.misc.reset',
-              sources = ['sage/misc/reset.pyx']),
-
-    Extension('sage.misc.sage_timeit_class',
-              sources = ['sage/misc/sage_timeit_class.pyx']),
-
-    Extension('sage.misc.classcall_metaclass',
-              sources = ['sage/misc/classcall_metaclass.pyx']),
-
-    Extension('sage.misc.fast_methods',
-              sources = ['sage/misc/fast_methods.pyx']),
-
-    Extension('sage.misc.binary_tree',
-              sources = ['sage/misc/binary_tree.pyx']),
-
-    Extension('sage.misc.search',
-              sources = ['sage/misc/search.pyx']),
-
-    Extension('sage.misc.session',
-              sources = ['sage/misc/session.pyx']),
-
-    Extension('sage.misc.stopgap',
-              sources = ['sage/misc/stopgap.pyx']),
-
-    Extension('sage.misc.weak_dict',
-              sources = ['sage/misc/weak_dict.pyx']),
+    Extension('*', ['sage/misc/*.pyx']),
 
     ################################
     ##
@@ -1312,8 +1197,8 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.modular.arithgroup.congroup_pyx',
-              sources = ['sage/modular/arithgroup/congroup_pyx.pyx']),
+    Extension('sage.modular.arithgroup.congroup',
+              sources = ['sage/modular/arithgroup/congroup.pyx']),
 
     Extension('sage.modular.arithgroup.farey_symbol',
               sources = ['sage/modular/arithgroup/farey_symbol.pyx',
@@ -2071,9 +1956,6 @@ ext_modules = [
     Extension('sage.structure.sage_object',
               sources = ['sage/structure/sage_object.pyx']),
 
-    Extension('sage.structure.wrapper_parent',
-              sources = ['sage/structure/wrapper_parent.pyx']),
-
     ################################
     ##
     ## sage.symbolic
@@ -2099,11 +1981,6 @@ ext_modules = [
     ################################
     Extension('sage.tests.interrupt',
               sources = ['sage/tests/interrupt.pyx', 'sage/tests/c_lib.c']),
-
-    Extension('sage.tests.parallel',
-              sources = ['sage/tests/parallel.pyx'],
-              extra_compile_args=["-fopenmp"],
-              extra_link_args=["-fopenmp"]),
 
     Extension('sage.tests.stl_vector',
               sources = ['sage/tests/stl_vector.pyx'],
@@ -2206,6 +2083,15 @@ if is_package_installed('mcqd'):
                   language = "c++"))
 #                  libraries = ["mcqd"]))
 
+if is_package_installed('arb'):
+    ext_modules.extend([
+       Extension("sage.rings.real_arb",
+                 ["sage/rings/real_arb.pyx"],
+                 language = "c",
+                 libraries = ['arb', 'mpfi', 'mpfr'],
+                 include_dirs = [SAGE_INC + '/flint'],
+                 depends = flint_depends)
+       ])
 
 # Only include darwin_utilities on OS_X >= 10.5
 UNAME = os.uname()

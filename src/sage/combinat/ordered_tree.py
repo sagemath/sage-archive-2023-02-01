@@ -610,9 +610,9 @@ class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
             +Infinity
 
             sage: it = iter(B)
-            sage: (it.next(), it.next(), it.next(), it.next(), it.next())
+            sage: (next(it), next(it), next(it), next(it), next(it))
             ([], [[]], [[], []], [[[]]], [[], [], []])
-            sage: it.next().parent()
+            sage: next(it).parent()
             Ordered trees
             sage: B([])
             []

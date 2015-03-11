@@ -220,7 +220,7 @@ from sage.combinat.partition import _Partitions, Partitions
 import sage.libs.symmetrica.all as symmetrica  # used in eval()
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
-from sage.misc.misc import prod, uniq
+from sage.misc.all import prod, uniq
 from copy import copy
 from functools import reduce
 
@@ -5174,7 +5174,7 @@ def _nonnegative_coefficients(x):
         False
     """
     if is_Polynomial(x) or is_MPolynomial(x):
-        return all([ c >= 0 for c in x.coeffs() ])
+        return all([ c >= 0 for c in x.coefficients(sparse=False) ])
     else:
         return x >= 0
 

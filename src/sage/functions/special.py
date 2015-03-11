@@ -778,8 +778,14 @@ class EllipticEC(MaximaFunction):
 
             sage: elliptic_ec(0.1)
             1.53075763689776
+
+        TESTS::
+
+            sage: elliptic_ec(x)._sympy_()
+            elliptic_e(x)
         """
-        MaximaFunction.__init__(self, "elliptic_ec", nargs=1)
+        MaximaFunction.__init__(self, "elliptic_ec", nargs=1,
+                                conversions=dict(sympy='elliptic_e'))
 
     def _derivative_(self, *args, **kwds):
         """
@@ -852,8 +858,14 @@ class EllipticF(MaximaFunction):
 
             sage: elliptic_f (0.2, 0.1)
             0.200132506747543
+
+        TESTS::
+
+            sage: elliptic_f(x, 2)._sympy_()
+            elliptic_f(x, 2)
         """
-        MaximaFunction.__init__(self, "elliptic_f")
+        MaximaFunction.__init__(self, "elliptic_f",
+                                conversions=dict(sympy='elliptic_f'))
 
 elliptic_f = EllipticF()
 
@@ -881,8 +893,14 @@ class EllipticKC(MaximaFunction):
             1.85407467730137
             sage: elliptic_f(RR(pi/2), 0.5)
             1.85407467730137
+
+        TESTS::
+
+            sage: elliptic_kc(x)._sympy_()
+            elliptic_k(x)
         """
-        MaximaFunction.__init__(self, "elliptic_kc", nargs=1)
+        MaximaFunction.__init__(self, "elliptic_kc", nargs=1,
+                                conversions=dict(sympy='elliptic_k'))
 
 elliptic_kc = EllipticKC()
 
@@ -935,30 +953,16 @@ class EllipticPi(MaximaFunction):
 
             sage: elliptic_pi(0.1, 0.2, 0.3)
             0.200665068220979
+
+        TESTS::
+
+            sage: elliptic_pi(x, pi/4, 1)._sympy_()
+            elliptic_pi(x, pi/4, 1)
         """
-        MaximaFunction.__init__(self, "elliptic_pi", nargs=3)
+        MaximaFunction.__init__(self, "elliptic_pi", nargs=3,
+                                conversions=dict(sympy='elliptic_pi'))
 
 elliptic_pi = EllipticPi()
-
-
-def lngamma(t):
-    r"""
-    This method is deprecated, please use
-    :meth:`~sage.functions.other.log_gamma` instead.
-
-    See the :meth:`~sage.functions.other.log_gamma` function for '
-    documentation and examples.
-
-    EXAMPLES::
-
-        sage: lngamma(RR(6))
-        doctest:...: DeprecationWarning: The method lngamma() is deprecated. Use log_gamma() instead.
-        See http://trac.sagemath.org/6992 for details.
-        4.78749174278205
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(6992, "The method lngamma() is deprecated. Use log_gamma() instead.")
-    return log_gamma(t)
 
 def error_fcn(t):
     r"""

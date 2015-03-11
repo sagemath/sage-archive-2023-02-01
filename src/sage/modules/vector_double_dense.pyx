@@ -29,15 +29,19 @@ AUTHORS:
 - William Stein
 """
 
-###############################################################################
-#   Sage: System for Algebra and Geometry Experimentation
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
+#*****************************************************************************
 
-cimport free_module_element
-import  free_module_element
+cimport numpy
+import numpy
+import free_module_element
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
@@ -46,15 +50,11 @@ from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.complex_double cimport ComplexDoubleElement, new_ComplexDoubleElement
 
-cimport numpy as cnumpy
+# This is for the NumPy C API (the PyArray... functions) to work
+numpy.import_array()
 
-numpy = None
-scipy = None
 
-# This is for the NumPy C API to work
-cnumpy.import_array()
-
-cdef class Vector_double_dense(free_module_element.FreeModuleElement):
+cdef class Vector_double_dense(FreeModuleElement):
     """
     Base class for vectors over the Real Double Field and the Complex
     Double Field.  These are supposed to be fast vector operations
@@ -89,7 +89,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
         self._degree = parent.degree()
         self._parent = parent
 
-    cdef Vector_double_dense _new(self, cnumpy.ndarray vector_numpy):
+    cdef Vector_double_dense _new(self, numpy.ndarray vector_numpy):
         """
         Return a new vector with same parent as self.
         """
@@ -117,9 +117,9 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             sage: a=vector(RDF, range(9))
             sage: a.__create_vector__()
         """
-        cdef cnumpy.npy_intp dims[1]
+        cdef numpy.npy_intp dims[1]
         dims[0] = self._degree
-        self._vector_numpy = cnumpy.PyArray_SimpleNew(1, dims, self._numpy_dtypeint)
+        self._vector_numpy = numpy.PyArray_SimpleNew(1, dims, self._numpy_dtypeint)
         return
 
     cdef bint is_dense_c(self):
@@ -198,12 +198,11 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
                 for i from 0<=i<self._degree:
                     self.set_unsafe(i,entries[i])
 
-        elif isinstance(entries, cnumpy.ndarray):
+        elif isinstance(entries, numpy.ndarray):
             self._replace_self_with_numpy(entries)
         else:
-            cnumpy.PyArray_FILLWBYTE(self._vector_numpy, 0)
+            numpy.PyArray_FILLWBYTE(self._vector_numpy, 0)
             if entries is None:
-                print "entries is None"
                 return
             else:
                 try:
@@ -322,8 +321,8 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
         # numpy does not know how to deal with complex numbers other
         # than the built-in complex number type.
         cdef int status
-        status = cnumpy.PyArray_SETITEM(self._vector_numpy,
-                        cnumpy.PyArray_GETPTR1(self._vector_numpy, i),
+        status = numpy.PyArray_SETITEM(self._vector_numpy,
+                        numpy.PyArray_GETPTR1(self._vector_numpy, i),
                         self._python_dtype(value))
         #TODO: Throw an error if status == -1
 
@@ -333,8 +332,8 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
         Get the (i,j) entry without any bounds checking, etc.
         """
         # We assume that Py_ssize_t is the same as npy_intp
-        return self._sage_dtype(cnumpy.PyArray_GETITEM(self._vector_numpy,
-                                                cnumpy.PyArray_GETPTR1(self._vector_numpy, i)))
+        return self._sage_dtype(numpy.PyArray_GETITEM(self._vector_numpy,
+                                                numpy.PyArray_GETPTR1(self._vector_numpy, i)))
 
 
     cpdef ModuleElement _add_(self, ModuleElement right):
@@ -388,21 +387,18 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             1.0
             sage: w*v
             1.0
-        """
-        if not right.parent() == self.parent():
-            right = self.parent().ambient_module()(right)
-        if self._degree == 0:
-            from copy import copy
-            return copy(self)
 
+        This works correctly for zero-dimensional vectors::
+
+            sage: v = vector(RDF, [])
+            sage: v._dot_product_(v)
+            0.0
+        """
         cdef Vector_double_dense _right, _left
         _right = right
         _left = self
 
-        global scipy
-        if scipy is None:
-            import scipy
-        return self._sage_dtype(scipy.dot(_left._vector_numpy, _right._vector_numpy))
+        return self._sage_dtype(numpy.dot(_left._vector_numpy, _right._vector_numpy))
 
     cpdef Vector _pairwise_product_(self, Vector right):
         """
@@ -525,9 +521,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
 
         if self._degree == 0:
             return self
-        global scipy
-        if scipy is None:
-            import scipy
+
         import scipy.fftpack
 
         if inplace:
@@ -546,29 +540,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
                 return Vector_complex_double_dense(V, scipy.ifft(self._vector_numpy))
 
 
-    def numpy(self):
-        """
-        Return numpy array corresponding to this vector.
-
-        EXAMPLES::
-
-            sage: v = vector(CDF,4,range(4))
-            sage: v.numpy()
-            array([ 0.+0.j,  1.+0.j,  2.+0.j,  3.+0.j])
-            sage: v = vector(CDF,0)
-            sage: v.numpy()
-            array([], dtype=complex128)
-            sage: v = vector(RDF,4,range(4))
-            sage: v.numpy()
-            array([ 0.,  1.,  2.,  3.])
-            sage: v = vector(RDF,0)
-            sage: v.numpy()
-            array([], dtype=float64)
-        """
-        from copy import copy
-        return copy(self._vector_numpy)
-
-    cdef _replace_self_with_numpy(self,cnumpy.ndarray numpy_array):
+    cdef _replace_self_with_numpy(self, numpy.ndarray numpy_array):
         """
         Replace the underlying numpy array with numpy_array.
         """
@@ -636,10 +608,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             (1e-06 + 5.0*I, 5.0 + 1e-06*I, 5.0 + 5.0*I, 1e-06 + 1e-06*I)
         """
         import sage.rings.complex_double
-        global numpy
         cdef Vector_double_dense v
-        if numpy is None:
-            import numpy
         eps = float(eps)
         out = self._vector_numpy.copy()
         if self._sage_dtype is sage.rings.complex_double.CDF:
@@ -751,9 +720,6 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             ...
             ValueError: vector norm 'p' must be +/- infinity or a real number, not junk
         """
-        global numpy
-        if numpy is None:
-            import numpy
         import sage.rings.infinity
         import sage.rings.integer
         if p == sage.rings.infinity.Infinity:
@@ -786,9 +752,6 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             sage: w.mean()
             4.0 + 5.0*I
         """
-        global numpy
-        if numpy is None:
-            import numpy
         return self._sage_dtype(numpy.mean(self._vector_numpy))
 
     def variance(self, population=True):
@@ -812,10 +775,6 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             sage: w.variance(population=False)
             13.333333333333334
         """
-        global numpy
-        if numpy is None:
-            import numpy
-
         if population is True:
             return self._sage_dtype(numpy.var(self._vector_numpy, ddof=1))
         else:
@@ -841,10 +800,6 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             sage: w.standard_deviation(population=False)
             3.6514837167011076
         """
-        global numpy
-        if numpy is None:
-            import numpy
-
         if population is True:
             return self._sage_dtype(numpy.std(self._vector_numpy, ddof=1))
         else:
@@ -869,9 +824,6 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             sage: w.stats_kurtosis()
             -1.2300000000000002
         """
-        global scipy
-        if scipy is None:
-            import scipy
         import scipy.stats
         return self._sage_dtype(scipy.stats.kurtosis(self._vector_numpy))
 
@@ -905,3 +857,44 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
         """
         return self._sage_dtype(self._vector_numpy.sum())
 
+    # Put this method last, otherwise it overrides the "numpy" cimport
+    def numpy(self, dtype=None):
+        """
+        Return numpy array corresponding to this vector.
+
+        INPUT:
+
+        - ``dtype`` -- if specified, the `numpy dtype <http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_
+                       of the returned array.
+
+        EXAMPLES::
+
+            sage: v = vector(CDF,4,range(4))
+            sage: v.numpy()
+            array([ 0.+0.j,  1.+0.j,  2.+0.j,  3.+0.j])
+            sage: v = vector(CDF,0)
+            sage: v.numpy()
+            array([], dtype=complex128)
+            sage: v = vector(RDF,4,range(4))
+            sage: v.numpy()
+            array([ 0.,  1.,  2.,  3.])
+            sage: v = vector(RDF,0)
+            sage: v.numpy()
+            array([], dtype=float64)
+
+        A numpy dtype may be requested manually::
+
+            sage: import numpy
+            sage: v = vector(CDF, 3, range(3))
+            sage: v.numpy()
+            array([ 0.+0.j,  1.+0.j,  2.+0.j])
+            sage: v.numpy(dtype=numpy.float64)
+            array([ 0.,  1.,  2.])
+            sage: v.numpy(dtype=numpy.float32)
+            array([ 0.,  1.,  2.], dtype=float32)
+        """
+        if dtype is None or dtype is self._vector_numpy.dtype:
+            from copy import copy
+            return copy(self._vector_numpy)
+        else:
+            return super(Vector_double_dense, self).numpy(dtype)

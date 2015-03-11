@@ -20,10 +20,11 @@ include "sage/ext/random.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
-from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
-from sage.rings.integer_ring cimport IntegerRing_class
+
+cdef extern from "mpz_pylong.h":
+    cdef int mpz_set_pylong(mpz_t dst, src) except -1
 
 ZZ_sage = IntegerRing()
 
@@ -79,13 +80,13 @@ cdef class ntl_ZZ:
 
         AUTHOR: Joel B. Mohler (2007-06-14)
         """
-        if PY_TYPE_CHECK(v, ntl_ZZ):
+        if isinstance(v, ntl_ZZ):
             self.x = (<ntl_ZZ>v).x
         elif PyInt_Check(v):
             ZZ_conv_from_int(self.x, PyInt_AS_LONG(v))
         elif PyLong_Check(v):
-            ZZ_set_pylong(self.x, v)
-        elif PY_TYPE_CHECK(v, Integer):
+            PyLong_to_ZZ(&self.x, v)
+        elif isinstance(v, Integer):
             self.set_from_sage_int(v)
         elif v is not None:
             v = str(v)
@@ -168,10 +169,10 @@ cdef class ntl_ZZ:
             sage: n
             5966
         """
-        cdef ntl_ZZ r = PY_NEW(ntl_ZZ)
-        if not PY_TYPE_CHECK(self, ntl_ZZ):
+        cdef ntl_ZZ r = ntl_ZZ.__new__(ntl_ZZ)
+        if not isinstance(self, ntl_ZZ):
             self = ntl_ZZ(self)
-        if not PY_TYPE_CHECK(other, ntl_ZZ):
+        if not isinstance(other, ntl_ZZ):
             other = ntl_ZZ(other)
         sig_on()
         ZZ_mul(r.x, (<ntl_ZZ>self).x, (<ntl_ZZ>other).x)
@@ -186,10 +187,10 @@ cdef class ntl_ZZ:
             sage: ntl.ZZ(2983)-2
             2981
         """
-        cdef ntl_ZZ r = PY_NEW(ntl_ZZ)
-        if not PY_TYPE_CHECK(self, ntl_ZZ):
+        cdef ntl_ZZ r = ntl_ZZ.__new__(ntl_ZZ)
+        if not isinstance(self, ntl_ZZ):
             self = ntl_ZZ(self)
-        if not PY_TYPE_CHECK(other, ntl_ZZ):
+        if not isinstance(other, ntl_ZZ):
             other = ntl_ZZ(other)
         ZZ_sub(r.x, (<ntl_ZZ>self).x, (<ntl_ZZ>other).x)
         return r
@@ -202,10 +203,10 @@ cdef class ntl_ZZ:
             sage: ntl.ZZ(23)+2
             25
         """
-        cdef ntl_ZZ r = PY_NEW(ntl_ZZ)
-        if not PY_TYPE_CHECK(self, ntl_ZZ):
+        cdef ntl_ZZ r = ntl_ZZ.__new__(ntl_ZZ)
+        if not isinstance(self, ntl_ZZ):
             self = ntl_ZZ(self)
-        if not PY_TYPE_CHECK(other, ntl_ZZ):
+        if not isinstance(other, ntl_ZZ):
             other = ntl_ZZ(other)
         ZZ_add(r.x, (<ntl_ZZ>self).x, (<ntl_ZZ>other).x)
         return r
@@ -218,7 +219,7 @@ cdef class ntl_ZZ:
             sage: x.__neg__()
             -38
         """
-        cdef ntl_ZZ r = PY_NEW(ntl_ZZ)
+        cdef ntl_ZZ r = ntl_ZZ.__new__(ntl_ZZ)
         ZZ_negate(r.x, self.x)
         return r
 
@@ -341,8 +342,8 @@ cdef class ntl_ZZ:
         sage: b.valuation(p)
         +Infinity
         """
-        cdef ntl_ZZ ans = PY_NEW(ntl_ZZ)
-        cdef ntl_ZZ unit = PY_NEW(ntl_ZZ)
+        cdef ntl_ZZ ans = ntl_ZZ.__new__(ntl_ZZ)
+        cdef ntl_ZZ unit = ntl_ZZ.__new__(ntl_ZZ)
         cdef long valuation
         if ZZ_IsZero(self.x):
             from sage.rings.infinity import infinity
@@ -367,8 +368,8 @@ cdef class ntl_ZZ:
         sage: a.val_unit(ntl.ZZ(2))
         (0, 6328125)
         """
-        cdef ntl_ZZ val = PY_NEW(ntl_ZZ)
-        cdef ntl_ZZ unit = PY_NEW(ntl_ZZ)
+        cdef ntl_ZZ val = ntl_ZZ.__new__(ntl_ZZ)
+        cdef ntl_ZZ unit = ntl_ZZ.__new__(ntl_ZZ)
         cdef long valuation
         sig_on()
         valuation = ZZ_remove(unit.x, self.x, prime.x)
@@ -457,11 +458,11 @@ def randomBnd(q):
 
     cdef ntl_ZZ w
 
-    if not PY_TYPE_CHECK(q, ntl_ZZ):
+    if not isinstance(q, ntl_ZZ):
         q = ntl_ZZ(str(q))
     w = q
     cdef ntl_ZZ ans
-    ans = PY_NEW(ntl_ZZ)
+    ans = ntl_ZZ.__new__(ntl_ZZ)
     sig_on()
     ZZ_RandomBnd(ans.x, w.x)
     sig_off()
@@ -481,8 +482,19 @@ def randomBits(long n):
     current_randstate().set_seed_ntl(False)
 
     cdef ntl_ZZ ans
-    ans = PY_NEW(ntl_ZZ)
+    ans = ntl_ZZ.__new__(ntl_ZZ)
     sig_on()
     ZZ_RandomBits(ans.x, n)
     sig_off()
     return ans
+
+
+cdef void PyLong_to_ZZ(ZZ_c* z, value):
+    """
+    Convert ``value`` (which must be a Python ``long``) to NTL.
+    """
+    cdef mpz_t t
+    mpz_init(t)
+    mpz_set_pylong(t, value)
+    mpz_to_ZZ(z, t)
+    mpz_clear(t)

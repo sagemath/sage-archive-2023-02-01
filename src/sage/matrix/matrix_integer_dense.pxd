@@ -27,8 +27,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cdef void set_unsafe_mpz(self, Py_ssize_t i, Py_ssize_t j, const mpz_t value)
     cdef void set_unsafe_si(self, Py_ssize_t i, Py_ssize_t j, long value)
     cdef void set_unsafe_double(self, Py_ssize_t i, Py_ssize_t j, double value)
-    cdef void get_unsafe_mpz(self, Py_ssize_t i, Py_ssize_t j, mpz_t value)
-    cdef double get_unsafe_double(self, Py_ssize_t i, Py_ssize_t j)
+    cdef inline void get_unsafe_mpz(self, Py_ssize_t i, Py_ssize_t j, mpz_t value)
+    cdef inline double get_unsafe_double(self, Py_ssize_t i, Py_ssize_t j)
 
     # HNF Modn
     cdef int _hnf_modn(Matrix_integer_dense self, Matrix_integer_dense res,

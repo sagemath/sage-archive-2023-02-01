@@ -95,7 +95,7 @@ import ell_point
 import sage.matrix.all as matrix
 from sage.rings.ring import Ring
 from sage.rings.arith import gcd, prime_divisors
-from sage.misc.misc import prod
+from sage.misc.all import prod
 import ell_torsion
 from ell_generic import is_EllipticCurve
 
@@ -256,7 +256,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             a = Mod(y,K.pol);
             bnfellrank(K, [0, 0, 0, 1, a], [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]]);
              elliptic curve: Y^2 = x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)
-              A = 0
+              A = Mod(0, y^2 + 7)
               B = Mod(1, y^2 + 7)
               C = Mod(y, y^2 + 7)
             <BLANKLINE>
@@ -289,7 +289,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
             v = [1, 1, [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]]]
             sage: v
             (1, 1, [(1/2*a + 3/2 : -a - 2 : 1)])
-
 
         A curve with 2-torsion::
 
@@ -2745,7 +2744,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         PI = K.primes_of_degree_one_iter()
         while True:
-            P = PI.next()
+            P = next(PI)
             if P.norm() > maxnorm: break
             if not P.divides(N):
                 if E1.reduction(P).cardinality() != E2.reduction(P).cardinality():
@@ -2776,7 +2775,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 OP = K.residue_field(P)
                 if E1.change_ring(OP).cardinality() != E2.change_ring(OP).cardinality():
                     return False
-            P = PI.next()
+            P = next(PI)
 
         # Finally we compute the full isogeny class of E1 and check if
         # E2 is isomorphic to any curve in the class:

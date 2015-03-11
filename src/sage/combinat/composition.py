@@ -476,7 +476,7 @@ class Composition(CombinatorialObject, Element):
             while True:
                 if i == 0:
                     try:
-                        i = I_iter.next()
+                        i = next(I_iter)
                     except StopIteration:
                         factors.append(Compositions()(current_factor))
                         return (tuple(factors), tuple(signs))
@@ -608,7 +608,7 @@ class Composition(CombinatorialObject, Element):
             while True:
                 if i == 0:
                     try:
-                        i = I_iter.next()
+                        i = next(I_iter)
                     except StopIteration:
                         return Compositions()(factors)
                 if current_factor_size + i <= j:
@@ -728,7 +728,7 @@ class Composition(CombinatorialObject, Element):
             while True:
                 if i == 0:
                     try:
-                        i = I_iter.next()
+                        i = next(I_iter)
                     except StopIteration:
                         factors.append(current_part)
                         return Compositions()(factors)
@@ -1838,7 +1838,7 @@ class Compositions_all(Compositions):
 
             sage: C = Compositions()
             sage: it = C.__iter__()
-            sage: [it.next() for i in range(10)]
+            sage: [next(it) for i in range(10)]
             [[], [1], [1, 1], [2], [1, 1, 1], [1, 2], [2, 1], [3], [1, 1, 1, 1], [1, 1, 2]]
         """
         n = 0

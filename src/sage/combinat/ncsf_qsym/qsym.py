@@ -2853,7 +2853,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             - A quasi-symmetric function in the dual immaculate basis.
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: dI = QuasiSymmetricFunctions(QQ).dI()
                 sage: dI._from_Monomial_on_basis(Composition([]))

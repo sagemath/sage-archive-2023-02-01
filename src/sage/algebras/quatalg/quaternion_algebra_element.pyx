@@ -744,7 +744,7 @@ cdef class QuaternionAlgebraElement_generic(QuaternionAlgebraElement_abstract):
             <type 'sage.algebras.quatalg.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
         """
         cdef QuaternionAlgebraElement_generic right = _right
-        # TODO -- make this, etc. use PY_NEW
+        # TODO -- make this, etc. use __new__
         return QuaternionAlgebraElement_generic(self._parent, (self.x + right.x, self.y + right.y, self.z + right.z, self.w + right.w), check=False)
 
     cpdef ModuleElement _sub_(self, ModuleElement _right):
@@ -1112,7 +1112,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         #   by the gcd of d3, x3, y3, z3, and w3
 
         cdef QuaternionAlgebraElement_rational_field right = _right
-        cdef QuaternionAlgebraElement_rational_field result = <QuaternionAlgebraElement_rational_field> PY_NEW(QuaternionAlgebraElement_rational_field)
+        cdef QuaternionAlgebraElement_rational_field result = <QuaternionAlgebraElement_rational_field> QuaternionAlgebraElement_rational_field.__new__(QuaternionAlgebraElement_rational_field)
         result._parent = self._parent
 
         mpz_mul(U1, self.x, right.d)        # U1 = x1 * d2
@@ -1150,7 +1150,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
             4/3 + 3/2*i
         """
         cdef QuaternionAlgebraElement_rational_field right = _right
-        cdef QuaternionAlgebraElement_rational_field result = <QuaternionAlgebraElement_rational_field> PY_NEW(QuaternionAlgebraElement_rational_field)
+        cdef QuaternionAlgebraElement_rational_field result = <QuaternionAlgebraElement_rational_field> QuaternionAlgebraElement_rational_field.__new__(QuaternionAlgebraElement_rational_field)
         result._parent = self._parent
 
         # Implementation Note: To obtain _sub_, we simply replace every occurrence of
@@ -1228,7 +1228,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
 
 
         cdef QuaternionAlgebraElement_rational_field right = _right
-        cdef QuaternionAlgebraElement_rational_field result = <QuaternionAlgebraElement_rational_field> PY_NEW(QuaternionAlgebraElement_rational_field)
+        cdef QuaternionAlgebraElement_rational_field result = <QuaternionAlgebraElement_rational_field> QuaternionAlgebraElement_rational_field.__new__(QuaternionAlgebraElement_rational_field)
         result._parent = self._parent
 
         mpz_set(result.a, self.a)
@@ -1329,7 +1329,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
 
         mpz_mul(U2, self.d, self.d)
 
-        cdef Rational result = PY_NEW(Rational)
+        cdef Rational result = Rational.__new__(Rational)
         mpq_set_num(result.value, U1)
         mpq_set_den(result.value, U2)
         mpq_canonicalize(result.value)
@@ -1353,7 +1353,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
             1 - 1/3*i - 1/5*j + 1/7*k
         """
 
-        cdef QuaternionAlgebraElement_rational_field result = <QuaternionAlgebraElement_rational_field> PY_NEW(QuaternionAlgebraElement_rational_field)
+        cdef QuaternionAlgebraElement_rational_field result = <QuaternionAlgebraElement_rational_field> QuaternionAlgebraElement_rational_field.__new__(QuaternionAlgebraElement_rational_field)
         result._parent = self._parent
 
         mpz_set(result.a, self.a)
@@ -1385,7 +1385,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         #return 2*self[0]
 
         mpz_mul_si(U1, self.x, 2)
-        cdef Rational result = PY_NEW(Rational)
+        cdef Rational result = Rational.__new__(Rational)
         mpq_set_num(result.value, U1)
         mpq_set_den(result.value, self.d)
         mpq_canonicalize(result.value)
@@ -1550,7 +1550,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
             sage: 5*a == a._multiply_by_integer(5)
             True
         """
-        cdef QuaternionAlgebraElement_rational_field result = <QuaternionAlgebraElement_rational_field> PY_NEW(QuaternionAlgebraElement_rational_field)
+        cdef QuaternionAlgebraElement_rational_field result = <QuaternionAlgebraElement_rational_field> QuaternionAlgebraElement_rational_field.__new__(QuaternionAlgebraElement_rational_field)
         result._parent = self._parent
 
         mpz_set(result.a, self.a)
@@ -1593,7 +1593,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         if mpz_sgn(n.value) == 0:
             raise ZeroDivisionError
 
-        cdef QuaternionAlgebraElement_rational_field result = <QuaternionAlgebraElement_rational_field> PY_NEW(QuaternionAlgebraElement_rational_field)
+        cdef QuaternionAlgebraElement_rational_field result = <QuaternionAlgebraElement_rational_field> QuaternionAlgebraElement_rational_field.__new__(QuaternionAlgebraElement_rational_field)
         result._parent = self._parent
 
         mpz_set(result.a, self.a)
@@ -1788,7 +1788,7 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
         # a modulus that is not monic.
 
         cdef QuaternionAlgebraElement_number_field right = _right
-        cdef QuaternionAlgebraElement_number_field result = <QuaternionAlgebraElement_number_field> PY_NEW(QuaternionAlgebraElement_number_field)
+        cdef QuaternionAlgebraElement_number_field result = <QuaternionAlgebraElement_number_field> QuaternionAlgebraElement_number_field.__new__(QuaternionAlgebraElement_number_field)
 
         fmpz_poly_set(result.a, self.a)
         fmpz_poly_set(result.b, self.b)
@@ -1837,7 +1837,7 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
         # currently be an issue because it is impossible to create a number field with
         # a modulus that is not monic.
         cdef QuaternionAlgebraElement_number_field right = _right
-        cdef QuaternionAlgebraElement_number_field result = <QuaternionAlgebraElement_number_field> PY_NEW(QuaternionAlgebraElement_number_field)
+        cdef QuaternionAlgebraElement_number_field result = <QuaternionAlgebraElement_number_field> QuaternionAlgebraElement_number_field.__new__(QuaternionAlgebraElement_number_field)
 
 
         fmpz_poly_set(result.a, self.a)
@@ -1916,7 +1916,7 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
         # There might be a way to optimize this formula further.
 
         cdef QuaternionAlgebraElement_number_field right = _right
-        cdef QuaternionAlgebraElement_number_field result = <QuaternionAlgebraElement_number_field> PY_NEW(QuaternionAlgebraElement_number_field)
+        cdef QuaternionAlgebraElement_number_field result = <QuaternionAlgebraElement_number_field> QuaternionAlgebraElement_number_field.__new__(QuaternionAlgebraElement_number_field)
 
         mpz_set_si(result.d, 1)
 

@@ -127,6 +127,7 @@ cdef extern from "ginac_wrap.h":
 
     # Pattern matching wildcards
     GEx g_wild "wild"(unsigned int label) except +
+    bint haswild(GEx x) except +
 
     # Series back to poly
     GEx series_to_poly(GEx e) except +

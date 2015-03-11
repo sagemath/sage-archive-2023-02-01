@@ -29,15 +29,7 @@ import weakref
 from sage.structure.parent cimport Set_PythonType
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.superseded import deprecated_function_alias
-# copied from sage.structure.parent
-cdef inline parent_c(x):
-    if PY_TYPE_CHECK(x, Element):
-        return (<Element>x)._parent
-    else:
-        try:
-            return x.parent()
-        except AttributeError:
-            return <object>PY_TYPE(x)
+from sage.structure.element cimport parent_c
 
 def unpickle_map(_class, parent, _dict, _slots):
     """
@@ -127,7 +119,7 @@ cdef class Map(Element):
               To:   Symmetric group of order 6! as a permutation group
         """
         if codomain is not None:
-            if PY_TYPE_CHECK(parent, type):
+            if isinstance(parent, type):
                 parent = Set_PythonType(parent)
             parent = homset.Hom(parent, codomain)
         elif not isinstance(parent, homset.Homset):
@@ -135,6 +127,7 @@ cdef class Map(Element):
         Element.__init__(self, parent)
         D = parent.domain()
         C = parent.codomain()
+        self._category_for = parent.homset_category()
         self._codomain = C
         self.domain    = ConstantFunction(D)
         self.codomain  = ConstantFunction(C)
@@ -235,7 +228,7 @@ cdef class Map(Element):
             C = self._codomain
             if C is None or D is None:
                 raise ValueError("This map is in an invalid state, the domain has been garbage collected")
-            return homset.Hom(D, C)
+            return homset.Hom(D, C, self._category_for)
         return self._parent
 
     def _make_weak_references(self):
@@ -295,6 +288,8 @@ cdef class Map(Element):
         if not isinstance(self.domain, ConstantFunction):
             return
         self.domain = weakref.ref(self.domain())
+        # Save the category before clearing the parent.
+        self._category_for = self._parent.homset_category()
         self._parent = None
 
     def _make_strong_references(self):
@@ -367,7 +362,7 @@ cdef class Map(Element):
         if D is None or C is None:
             raise RuntimeError("The domain of this map became garbage collected")
         self.domain = ConstantFunction(D)
-        self._parent = homset.Hom(D, C)
+        self._parent = homset.Hom(D, C, self._category_for)
 
     cdef _update_slots(self, dict _slots):
         """
@@ -624,7 +619,14 @@ cdef class Map(Element):
 
         FIXME: find a better name for this method
         """
-        return self.parent().homset_category()
+        if self._category_for is None:
+            # This can happen if the map is the result of unpickling.
+            # We have initialised self._parent, but could not set
+            # self._category_for at that moment, because it could
+            # happen that the parent was not fully constructed and
+            # did not know its category yet.
+            self._category_for = self._parent.homset_category()
+        return self._category_for
 
     def __call__(self, x, *args, **kwds):
         """

@@ -7,17 +7,11 @@ Group Theory and Sage
 
 .. MODULEAUTHOR:: Robert A. Beezer, University of Puget Sound
 
-Changelog:
-
-* 2009/01/30  Version 1.0, first complete release
-* 2009/03/03  Version 1.1, added cyclic group size interact
-* 2010/03/10  Version 1.3, dropped US on license, some edits.
-
 This compilation collects Sage commands that are useful for a student
 in an introductory course on group theory.  It is not intended to
 teach Sage or to teach group theory.  (There are many introductory
 texts on group theory and more information on Sage can be found via
-www.sagemath.org.) Rather, by presenting commands roughly in the
+`<www.sagemath.org>`_) Rather, by presenting commands roughly in the
 order a student would learn the corresponding mathematics they might
 be encouraged to experiment and learn more about mathematics and learn
 more about Sage.  Not coincidentally, when Sage was the acronym SAGE,
@@ -31,6 +25,14 @@ link below each cell, for a fully interactive experience. A PDF and
 Sage worksheet versions of this tutorial are available at
 http://abstract.ups.edu/sage-aata.html.
 
+.. contents:: Table of contents
+   :depth: 2
+
+Changelog:
+
+* 2009/01/30  Version 1.0, first complete release
+* 2009/03/03  Version 1.1, added cyclic group size interact
+* 2010/03/10  Version 1.3, dropped US on license, some edits.
 
 Basic properties of the integers
 ================================
@@ -528,7 +530,7 @@ preceded by the order of each element. ::
     sage: n = 20
     sage: CN = CyclicPermutationGroup(n)
     sage: for g in CN:
-    ...       print g.order(), "  ", g
+    ....:     print g.order(), "  ", g
     ...
     1    ()
     20    (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20)
@@ -721,7 +723,7 @@ rotation about each axis.  These three rotations will construct the
 entire symmetry group.  Use ::
 
     sage: cube = PermutationGroup(["(3,2,6,7)(4,1,5,8)",
-    ...   "(1,2,6,5)(4,3,7,8)", "(1,2,3,4)(5,6,7,8)"])
+    ....:     "(1,2,6,5)(4,3,7,8)", "(1,2,3,4)(5,6,7,8)"])
     sage: cube.list()
     [(), (2,4,5)(3,8,6), (2,5,4)(3,6,8), (1,2)(3,5)(4,6)(7,8), (1,2,3,4)(5,6,7,8), (1,2,6,5)(3,7,8,4), (1,3,6)(4,7,5), (1,3)(2,4)(5,7)(6,8), (1,3,8)(2,7,5), (1,4,3,2)(5,8,7,6), (1,4,8,5)(2,3,7,6), (1,4)(2,8)(3,5)(6,7), (1,5,6,2)(3,4,8,7), (1,5,8,4)(2,6,7,3), (1,5)(2,8)(3,7)(4,6), (1,6,3)(4,5,7), (1,6)(2,5)(3,8)(4,7), (1,6,8)(2,7,4), (1,7)(2,3)(4,6)(5,8), (1,7)(2,6)(3,5)(4,8), (1,7)(2,8)(3,4)(5,6), (1,8,6)(2,4,7), (1,8,3)(2,5,7), (1,8)(2,7)(3,6)(4,5)]
 
@@ -734,7 +736,7 @@ diagonals is created by exactly one symmetry of the 8 vertices of the
 cube.  So this subgroup of `S_8` is "the same as" `S_4`.  In Sage::
 
     sage: cube = PermutationGroup(["(3,2,6,7)(4,1,5,8)",
-    ...   "(1,2,6,5)(4,3,7,8)", "(1,2,3,4)(5,6,7,8)"])
+    ....:     "(1,2,6,5)(4,3,7,8)", "(1,2,3,4)(5,6,7,8)"])
     sage: cube.is_isomorphic(SymmetricGroup(4))
     True
 
@@ -873,7 +875,7 @@ conjugacy classes of the full symmetric group on 5 symbols::
     sage: reps = G.conjugacy_classes_representatives()
     sage: class_sizes = []
     sage: for g in reps:
-    ...       class_sizes.append(group_order / G.centralizer(g).order())
+    ....:     class_sizes.append(group_order / G.centralizer(g).order())
     ...
     sage: class_sizes
     [1, 10, 15, 20, 20, 30, 24]

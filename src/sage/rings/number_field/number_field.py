@@ -3182,7 +3182,7 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<z> = CyclotomicField(10)
             sage: it = K.primes_of_degree_one_iter()
-            sage: Ps = [ it.next() for i in range(3) ]
+            sage: Ps = [ next(it) for i in range(3) ]
             sage: Ps # random
             [Fractional ideal (z^3 + z + 1), Fractional ideal (3*z^3 - z^2 + z - 1), Fractional ideal (2*z^3 - 3*z^2 + z - 2)]
             sage: [ P.norm() for P in Ps ] # random
@@ -3233,7 +3233,7 @@ class NumberField_generic(number_field_base.NumberField):
             [1, 1, 1]
         """
         it = self.primes_of_degree_one_iter()
-        return [ it.next() for i in range(n) ]
+        return [ next(it) for i in range(n) ]
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         """
@@ -4073,7 +4073,7 @@ class NumberField_generic(number_field_base.NumberField):
             [1, -1, 13, -13, 11, -11, 143, -143]
         """
         KSgens, ords = self.selmer_group(S=S, m=m, proof=proof, orders=True)
-        one = self.one_element()
+        one = self.one()
         from sage.misc.all import cartesian_product_iterator
         for ev in cartesian_product_iterator([range(o) for o in ords]):
             yield prod([p**e for p,e in zip(KSgens, ev)], one)
@@ -4527,7 +4527,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.elements_of_norm(3)
             []
             sage: K.elements_of_norm(50)
-            [-7*a + 1, -5*a - 5, a - 7]
+            [-7*a + 1, -5*a - 5, 7*a + 1]
         """
         proof = proof_flag(proof)
         B = self.pari_bnf(proof).bnfisintnorm(n)
@@ -5107,10 +5107,10 @@ class NumberField_generic(number_field_base.NumberField):
             x
             sage: F.<alpha> = NumberField(x^4+x^2+712312*x+131001238)
             sage: F.reduced_gram_matrix(prec=128)
-            [   4.0000000000000000000000000000000000000   0.00000000000000000000000000000000000000 -2.1369320000000000000000000000000000000e6 -3.3122478000000000000000000000000000000e7]
+            [   4.0000000000000000000000000000000000000   0.00000000000000000000000000000000000000 -2.1369360000000000000000000000000000000e6 -3.3122478000000000000000000000000000000e7]
             [  0.00000000000000000000000000000000000000    46721.539331563218381658483353092335550 -2.2467769057394530109094755223395819322e7 -3.4807276041138450473611629088647496430e8]
-            [-2.1369320000000000000000000000000000000e6 -2.2467769057394530109094755223395819322e7 7.0704243186034907491782135494859351061e12 1.1256636615786237006027526953641297995e14]
-            [-3.3122478000000000000000000000000000000e7 -3.4807276041138450473611629088647496430e8 1.1256636615786237006027526953641297995e14 1.7923838231014970520503146603069479547e15]
+            [-2.1369360000000000000000000000000000000e6 -2.2467769057394530109094755223395819322e7 7.0704285924714907491782135494859351061e12 1.1256639928034037006027526953641297995e14]
+            [-3.3122478000000000000000000000000000000e7 -3.4807276041138450473611629088647496430e8 1.1256639928034037006027526953641297995e14 1.7923838231014970520503146603069479547e15]
         """
         if self.is_totally_real():
             try:
@@ -5656,7 +5656,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: A = x^4 - 10*x^3 + 20*5*x^2 - 15*5^2*x + 11*5^3
             sage: K = NumberField(A, 'a')
             sage: K.units()
-            (6/275*a^3 - 9/55*a^2 + 14/11*a - 2,)
+            (7/275*a^3 - 1/11*a^2 + 9/11*a + 2,)
 
         For big number fields, provably computing the unit group can
         take a very long time.  In this case, one can ask for the
@@ -5726,7 +5726,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: U.gens()
             (u0, u1)
             sage: U.gens_values()
-            [-7/275*a^3 + 1/11*a^2 - 9/11*a - 1, 6/275*a^3 - 9/55*a^2 + 14/11*a - 2]
+            [-7/275*a^3 + 1/11*a^2 - 9/11*a - 1, 7/275*a^3 - 1/11*a^2 + 9/11*a + 2]
             sage: U.invariants()
             (10, 0)
             sage: [u.multiplicative_order() for u in U.gens()]
@@ -5796,7 +5796,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: U.gens()
             (u0, u1, u2, u3)
             sage: U.gens_values()
-            [-7/275*a^3 + 1/11*a^2 - 9/11*a - 1, 6/275*a^3 - 9/55*a^2 + 14/11*a - 2, 1/275*a^3 + 4/55*a^2 - 5/11*a + 5, -14/275*a^3 + 21/55*a^2 - 29/11*a + 6]
+            [-7/275*a^3 + 1/11*a^2 - 9/11*a - 1, 7/275*a^3 - 1/11*a^2 + 9/11*a + 2, 1/275*a^3 + 4/55*a^2 - 5/11*a + 5, -14/275*a^3 + 21/55*a^2 - 29/11*a + 6]
             sage: U.invariants()
             (10, 0, 0, 0)
             sage: [u.multiplicative_order() for u in U.gens()]
@@ -7373,9 +7373,10 @@ class NumberField_absolute(NumberField_generic):
         if K.characteristic() != 0:
             return Sequence([], immutable=True, check=False, universe=self.Hom(K))
 
-        f = K['x'](self.defining_polynomial())
-        r = f.roots(); r.sort()
-        v = [self.hom([e[0]], check=False) for e in r]
+        f = self.defining_polynomial()
+        r = f.roots(K, multiplicities=False)
+        r.sort()
+        v = [self.hom([e], check=False) for e in r]
         # If there is an embedding that preserves variable names
         # then it is most natural, so we put it first.
         put_natural_embedding_first(v)
@@ -7815,7 +7816,7 @@ class NumberField_absolute(NumberField_generic):
         # f is the minimal polynomial of a over L
         f = L['x'](coeffs_in_L + [1])
         # sanity check...
-        mp_in_self = self['x'](map(L_into_self, f.coeffs()))
+        mp_in_self = self['x'](map(L_into_self, f.coefficients(sparse=False)))
         assert mp_in_self(a) == 0
 
         if structure is None:
@@ -8440,11 +8441,11 @@ class NumberField_cyclotomic(NumberField_absolute):
         TESTS::
 
             sage: TestSuite(k).run()
-            sage: type(CyclotomicField(4).zero_element())
+            sage: type(CyclotomicField(4).zero())
             <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
-            sage: type(CyclotomicField(6).one_element())
+            sage: type(CyclotomicField(6).one())
             <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
-            sage: type(CyclotomicField(15).zero_element())
+            sage: type(CyclotomicField(15).zero())
             <type 'sage.rings.number_field.number_field_element.NumberFieldElement_absolute'>
         """
         f = QQ['x'].cyclotomic_polynomial(n)
@@ -9637,9 +9638,9 @@ class NumberField_quadratic(NumberField_absolute):
         TESTS::
 
             sage: k.<a> = QuadraticField(7)
-            sage: type(k.zero_element())
+            sage: type(k.zero())
             <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
-            sage: type(k.one_element())
+            sage: type(k.one())
             <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
 
             sage: TestSuite(k).run()
@@ -10117,6 +10118,24 @@ def refine_embedding(e, prec=None):
           From: Cyclotomic Field of order 7 and degree 6
           To:   Algebraic Field
           Defn: zeta7 |--> 0.6234898018587335? + 0.7818314824680299?*I
+
+    When the old embedding is into the real lazy field,
+    then only real embeddings should be considered.
+    See :trac:`17495`::
+
+        sage: R.<x> = QQ[]
+        sage: K.<a> = NumberField(x^3 + x - 1, embedding=0.68)
+        sage: from sage.rings.number_field.number_field import refine_embedding
+        sage: refine_embedding(K.specified_complex_embedding(), 100)
+        Ring morphism:
+          From: Number Field in a with defining polynomial x^3 + x - 1
+          To:   Real Field with 100 bits of precision
+          Defn: a |--> 0.68232780382801932736948373971
+        sage: refine_embedding(K.specified_complex_embedding(), Infinity)
+        Ring morphism:
+          From: Number Field in a with defining polynomial x^3 + x - 1
+          To:   Algebraic Real Field
+          Defn: a |--> 0.6823278038280193?
     """
     K = e.domain()
     RC = e.codomain()
@@ -10135,7 +10154,7 @@ def refine_embedding(e, prec=None):
         return e
 
     # We first compute all the embeddings at the new precision:
-    if sage.rings.real_mpfr.is_RealField(RC) or RC is RDF:
+    if sage.rings.real_mpfr.is_RealField(RC) or RC in (RDF, RLF):
         if prec == Infinity:
             elist = K.embeddings(sage.rings.qqbar.AA)
         else:

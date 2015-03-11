@@ -92,7 +92,7 @@ import copy
 import permutation
 from sage.misc.flatten import flatten
 from sage.groups.perm_gps.permgroup import PermutationGroup
-from sage.misc.misc import uniq, prod
+from sage.misc.all import uniq, prod
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets

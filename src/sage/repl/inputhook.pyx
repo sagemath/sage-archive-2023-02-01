@@ -31,7 +31,7 @@ cdef extern from 'intrcheck.h':
 ### workaround
     void PyErr_SetInterrupt() nogil
 
-from sage.misc.attached_files import reload_attached_files_if_modified
+from sage.repl.attach import reload_attached_files_if_modified
 
 
 cdef int c_sage_inputhook() nogil except *:
@@ -103,6 +103,7 @@ def sage_inputhook():
         sage: shell.run_cell('detach({0})'.format(repr(tmp)))
         sage: shell.run_cell('attached_files()')
         []
+        sage: shell.quit()
     """
     reload_attached_files_if_modified()
     return 0

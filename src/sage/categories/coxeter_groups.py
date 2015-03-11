@@ -18,7 +18,7 @@ from sage.categories.category_singleton import Category_singleton
 from sage.categories.groups import Groups
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 from sage.misc.flatten import flatten
 from copy import copy
 
@@ -199,15 +199,15 @@ class CoxeterGroups(Category_singleton):
 
                 sage: W = WeylGroup(["A",2,1])
                 sage: g = iter(W)
-                sage: g.next()
+                sage: next(g)
                 [1 0 0]
                 [0 1 0]
                 [0 0 1]
-                sage: g.next()
+                sage: next(g)
                 [-1  1  1]
                 [ 0  1  0]
                 [ 0  0  1]
-                sage: g.next()
+                sage: next(g)
                 [ 0 -1  2]
                 [ 1 -1  1]
                 [ 0  0  1]
@@ -632,7 +632,7 @@ class CoxeterGroups(Category_singleton):
 
                 sage: W = WeylGroup("A3")
                 sage: W.canonical_representation()
-                Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+                Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
                 [1 3 2]
                 [3 1 3]
                 [2 3 1]

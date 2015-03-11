@@ -50,7 +50,7 @@ and library interfaces to Maxima.
 
 import os, re, sys, subprocess
 
-from sage.misc.misc import DOT_SAGE
+from sage.env import DOT_SAGE
 COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj'%DOT_SAGE
 
 from sage.misc.multireplace import multiple_replace
@@ -418,7 +418,7 @@ class MaximaAbstract(Interface):
         EXAMPLES::
 
             sage: maxima.version()
-            '5.34.1'
+            '5.35.1'
         """
         return maxima_version()
 
@@ -2347,7 +2347,7 @@ def maxima_version():
 
         sage: from sage.interfaces.maxima_abstract import maxima_version
         sage: maxima_version()
-        '5.34.1'
+        '5.35.1'
     """
     return os.popen('maxima --version').read().split()[-1]
 

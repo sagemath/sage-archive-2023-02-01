@@ -199,7 +199,8 @@ class Gp(Expect):
         Expect.__init__(self,
                         name = 'pari',
                         prompt = '\\? ',
-                        command = "gp --emacs --quiet --stacksize %s"%stacksize,
+                        # --fast so the system gprc isn't read (we configure below)
+                        command = "gp --fast --emacs --quiet --stacksize %s"%stacksize,
                         maxread = maxread,
                         server=server,
                         server_tmpdir=server_tmpdir,
@@ -212,6 +213,20 @@ class Gp(Expect):
         self.__var_store_len = 0
         self.__init_list_length = init_list_length
 
+    def _start(self, alt_message=None, block_during_init=True):
+        Expect._start(self, alt_message, block_during_init)
+        # disable timer
+        self._eval_line('default(timer,0);')
+        # disable the break loop, otherwise gp will seem to hang on errors
+        self._eval_line('default(breakloop,0);')
+        # list of directories where gp will look for scripts (only current working directory)
+        self._eval_line('default(path,".");')
+        # location of elldata, seadata, galdata
+        self._eval_line('default(datadir, "$SAGE_LOCAL/share/pari");')
+        # executable for gp ?? help
+        self._eval_line('default(help, "$SAGE_LOCAL/bin/gphelp -detex");')
+        # logfile disabled since Expect already logs
+        self._eval_line('default(log,0);')
 
     def _repr_(self):
         """
@@ -997,11 +1012,8 @@ def is_GpElement(x):
     """
     return isinstance(x, GpElement)
 
-from sage.env import DOT_SAGE, SAGE_ETC
+from sage.env import DOT_SAGE
 import os
-
-# Set GPRC environment variable to $SAGE_ETC/gprc.expect
-os.environ["GPRC"] = os.path.join(SAGE_ETC, 'gprc.expect')
 
 # An instance
 gp = Gp(logfile=os.path.join(DOT_SAGE,'gp-expect.log')) # useful for debugging!

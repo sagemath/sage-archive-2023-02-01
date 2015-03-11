@@ -57,18 +57,9 @@ ZZ = None
 
 from sage.structure.parent_gens import ParentWithGens
 import sage.rings.number_field.number_field_base as number_field_base
+from sage.misc.fast_methods import Singleton
 
-
-_obj = {}
-class _uniq(object):
-    def __new__(cls):
-        if 0 in _obj:
-            return _obj[0]
-        O = number_field_base.NumberField.__new__(cls)
-        _obj[0] = O
-        return O
-
-class RationalField(_uniq, number_field_base.NumberField):
+class RationalField(Singleton, number_field_base.NumberField):
     r"""
     The class ``RationalField`` represents the field `\QQ` of rational numbers.
 
@@ -96,7 +87,7 @@ class RationalField(_uniq, number_field_base.NumberField):
         ...
         TypeError: unable to convert sage to a rational
 
-    Coercion from the reals to the rational is done by default using
+    Conversion from the reals to the rationals is done by default using
     continued fractions.
 
     ::
@@ -134,6 +125,23 @@ class RationalField(_uniq, number_field_base.NumberField):
         sage: QQ(RealField(45)(t))
         1/5
     """
+    def __new__(cls):
+        """
+        This method actually is not needed for using :class:`RationalField`.
+        But it is used to unpickle some very old pickles.
+
+        TESTS::
+
+            sage: RationalField() in Fields() # indirect doctest
+            True
+
+        """
+        try:
+            from sage.rings.rational_field import QQ
+            return QQ
+        except BaseException:
+            import sage
+            return sage.rings.number_field.number_field_base.NumberField.__new__(cls)
 
     def __init__(self):
         r"""
@@ -210,17 +218,6 @@ class RationalField(_uniq, number_field_base.NumberField):
         ParentWithGens.__init__(self, self, category = QuotientFields())
         self._assign_names(('x',),normalize=False) # ???
         self._populate_coercion_lists_(element_constructor=rational.Rational, init_no_parent=True)
-
-    def __hash__(self):
-        """
-        Return hash value for ``self``.
-
-        EXAMPLES::
-
-            sage: hash(QQ)
-            -11115808
-        """
-        return -11115808
 
     def _repr_(self):
         """
@@ -1111,10 +1108,11 @@ class RationalField(_uniq, number_field_base.NumberField):
             [1, 5, -1, -5]
         """
         KSgens, ords = self.selmer_group(S=S, m=m, proof=proof, orders=True)
-        one = self.one_element()
-        from sage.misc.all import prod, cartesian_product_iterator
-        for ev in cartesian_product_iterator([range(o) for o in ords]):
-            yield prod([p**e for p,e in zip(KSgens, ev)], one)
+        one = self.one()
+        from sage.misc.all import prod
+        from itertools import product
+        for ev in product(*[range(o) for o in ords]):
+            yield prod((p**e for p,e in zip(KSgens, ev)), one)
 
 
     #################################

@@ -307,7 +307,8 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         v = PyList_New(left._nrows * right._ncols)
         zero = R(0)
         p = 0
-        cdef PyObject *l, *r
+        cdef PyObject *l
+        cdef PyObject *r
         for i from 0 <= i < nr:
             for j from 0 <= j < nc:
                 z = zero

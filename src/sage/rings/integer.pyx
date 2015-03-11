@@ -149,15 +149,10 @@ include "sage/ext/python_debug.pxi"
 include "sage/libs/pari/decl.pxi"
 from sage.rings.rational cimport Rational
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
+from sage.libs.gmp.pylong cimport *
 
 from libc.limits cimport LONG_MAX
 from libc.math cimport sqrt as sqrt_double, log as log_c, ceil as ceil_c, isnan
-
-from sage.libs.gmp.pylong cimport *
-
-cdef extern from "mpz_longlong.h":
-    cdef void mpz_set_longlong(mpz_t dst, long long src)
-    cdef void mpz_set_ulonglong(mpz_t dst, unsigned long long src)
 
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.pari.pari_instance cimport PariInstance, INT_to_mpz
@@ -177,8 +172,6 @@ cdef object numpy_object_interface = {'typestr': '|O'}
 cdef mpz_t mpz_tmp
 mpz_init(mpz_tmp)
 
-cdef int set_mpz(Integer self, mpz_t value):
-    mpz_set(self.value, value)
 
 cdef set_from_Integer(Integer self, Integer other):
     mpz_set(self.value, other.value)
@@ -230,30 +223,6 @@ cdef set_from_pari_gen(Integer self, pari_gen x):
     # Now we have a true PARI integer, convert it to Sage
     INT_to_mpz(self.value, (<pari_gen>x).g)
 
-
-def _test_mpz_set_longlong(long long v):
-    """
-    TESTS::
-
-        sage: from sage.rings.integer import _test_mpz_set_longlong
-        sage: _test_mpz_set_longlong(1)
-        1
-        sage: _test_mpz_set_longlong(-1)
-        -1
-        sage: _test_mpz_set_longlong(100)
-        100
-        sage: _test_mpz_set_longlong(100000000000)
-        100000000000
-        sage: _test_mpz_set_longlong(2^32) == 2^32
-        True
-        sage: _test_mpz_set_longlong(-2^32) == -2^32
-        True
-        sage: all([_test_mpz_set_longlong(2^n) == 2^n for n in range(63)])
-        True
-    """
-    cdef Integer z = PY_NEW(Integer)
-    mpz_set_longlong(z.value, v)
-    return z
 
 cdef _digits_naive(mpz_t v,l,int offset,Integer base,digits):
     """
@@ -952,7 +921,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         cdef Integer z
         z = PY_NEW(Integer)
-        set_mpz(z,self.value)
+        mpz_set(z.value, self.value)
         return z
 
     def list(self):

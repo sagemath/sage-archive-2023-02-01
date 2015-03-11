@@ -1596,8 +1596,12 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
             sage: c0 = Cone([(1,1),(0,1)])
             sage: c1 = Cone([(1,1),(1,0)])
-            sage: F = Fan([c0, c1])
-            sage: G = -F  # indirect doctest
+            sage: F = Fan([c0, c1]); F
+            Rational polyhedral fan in 2-d lattice N
+            sage: G = -F; G  # indirect doctest
+            Rational polyhedral fan in 2-d lattice N
+            sage: -G==F
+            True
             sage: G.rays()
             N( 0, -1),
             N(-1,  0),

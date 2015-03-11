@@ -1502,6 +1502,30 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                                                                 other, lattice)
         return ConvexRationalPolyhedralCone(rc.rays(), rc.lattice())
 
+    def __neg__(self):
+        """
+        Return the cone with opposite rays.
+
+        OUTPUT:
+
+        - a :class:`cone <ConvexRationalPolyhedralCone>`.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,1),(0,1)]); c
+            2-d cone in 2-d lattice N
+            sage: d = -c; d  # indirect doctest
+            2-d cone in 2-d lattice N
+            sage: -d == c
+            True
+            sage: d.rays()
+            N(-1, -1),
+            N( 0, -1)
+            in 2-d lattice N
+        """
+        rc = super(ConvexRationalPolyhedralCone, self).__neg__()
+        return ConvexRationalPolyhedralCone(rc.rays(), rc.lattice())
+
     def __cmp__(self, right):
         r"""
         Compare ``self`` and ``right``.

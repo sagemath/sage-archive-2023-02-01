@@ -6407,7 +6407,7 @@ cdef class Matrix(matrix1.Matrix):
 
         A 3-tuple `(W,N,d)` consisting of:
 
-        1. `W` - a matrix over `k(x)` giving a weak the Popov form of self
+        1. `W` - a matrix over `k(x)` giving a row reduced form of `self`
         2. `N` - a matrix over `k[x]` representing row operations used to
             transform `self` to `W`
         3. `d` - degree of respective columns of W; the degree of a column is
@@ -6523,10 +6523,6 @@ cdef class Matrix(matrix1.Matrix):
          - For consistency with LLL and other algorithms in sage, we have opted
            for row operations; however, references such as [H] transpose and use
            column operations.
-
-         - There are multiple weak Popov forms of a matrix, so one may want to
-           extend this code to produce a Popov form (see section 1.2 of [V]).  The
-           latter is canonical, but more work to produce.
 
         REFERENCES:
 

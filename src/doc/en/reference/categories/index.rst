@@ -34,6 +34,8 @@ Functorial constructions
    sage/categories/subobjects
    sage/categories/isomorphic_objects
 
+   sage/categories/homsets
+
    sage/categories/realizations
    sage/categories/with_realizations
 
@@ -67,7 +69,9 @@ Categories
    sage/categories/commutative_algebras
    sage/categories/commutative_ring_ideals
    sage/categories/commutative_rings
+   sage/categories/complete_discrete_valuation
    sage/categories/coxeter_groups
+   sage/categories/coxeter_group_algebras
    sage/categories/crystals
    sage/categories/distributive_magmas_and_additive_magmas
    sage/categories/division_rings
@@ -175,6 +179,7 @@ Examples of parents using categories
    sage/categories/examples/finite_monoids
    sage/categories/examples/finite_semigroups
    sage/categories/examples/finite_weyl_groups
+   sage/categories/examples/graded_modules_with_basis
    sage/categories/examples/hopf_algebras_with_basis
    sage/categories/examples/infinite_enumerated_sets
    sage/categories/examples/monoids

@@ -1,3 +1,6 @@
+r"""
+Coxeter Group Algebras
+"""
 import functools
 from sage.misc.cachefunc import cached_method
 from sage.categories.algebra_functor import AlgebrasCategory

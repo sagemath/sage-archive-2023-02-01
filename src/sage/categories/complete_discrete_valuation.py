@@ -1,9 +1,5 @@
 r"""
-This module implements the two following categories :
-
- -  Complete Discrete Valuation Rings (CDVR)
-
- -  Complete Discrete Valuation Fields (CDVF)
+Complete Discrete Valuation Rings (CDVR) and Fields (CDVF)
 """
 #**************************************************************************
 #  Copyright (C) 2013 Xavier Caruso <xavier.caruso@normalesup.org>

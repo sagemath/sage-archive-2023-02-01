@@ -497,7 +497,7 @@ documentation for more information on its behaviour and optional arguments.
       def my_new_function():
           ...
 
-      my_old_function = deprecated_function_alias()
+      my_old_function = deprecated_function_alias(my_new_function)
 
 * **Remove a name from the global namespace:** the function
   :func:`~sage.misc.superseded.deprecated_callable_import` imports an object into
@@ -510,9 +510,10 @@ documentation for more information on its behaviour and optional arguments.
                            locals(),
                            ["name_of_the_function"])
 
-* **Any other case:** if none of the cases above apply, use
-  :func:`~sage.misc.superseded.deprecation` directly. It will display the message
-  of your choice (and interact properly with the doctest framework)::
+* **Any other case:** if none of the cases above apply, call
+  :func:`~sage.misc.superseded.deprecation` in the function that you want to
+  deprecate. It will display the message of your choice (and interact properly
+  with the doctest framework)::
 
       deprecation(666, "Do not use your computer to compute 1+1. Use your brain.")
 

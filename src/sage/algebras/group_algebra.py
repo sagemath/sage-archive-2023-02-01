@@ -146,7 +146,7 @@ class GroupAlgebraFunctor(ConstructionFunctor):
 
             sage: from sage.algebras.group_algebra import GroupAlgebraFunctor
             sage: GroupAlgebra(SU(2, GF(4, 'a')), IntegerModRing(12)).category()
-            Category of group algebras over Ring of integers modulo 12
+            Category of finite dimensional group algebras over Ring of integers modulo 12
         """
         self.__group = group
 

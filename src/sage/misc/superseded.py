@@ -260,7 +260,7 @@ def deprecated_function_alias(trac_number, func):
         See http://trac.sagemath.org/13109 for details.
         42
 
-    Trac #11585::
+    :trac:`11585`::
 
         sage: def a(): pass
         sage: b = deprecated_function_alias(13109, a)

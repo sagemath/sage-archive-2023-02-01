@@ -6530,12 +6530,8 @@ cdef class Matrix(matrix1.Matrix):
           fields and related topics," J. Symbolic Comput. 33 (2002), no. 4,
           425--445.
 
-        .. [MS] T. Mulders, A. Storjohann, "On lattice reduction for polynomial
-          matrices," J. Symbolic Comput. 35 (2003), no. 4, 377--401
+        .. [K] T. Kaliath, "Linear Systems", Prentice-Hall, 1980, 383--386.
 
-        .. [V] G. Villard, "Computing Popov and Hermite forms of polynomial
-          matrices", ISSAC '96: Proceedings of the 1996 international symposium
-          on Symbolic and algebraic computation, 250--258.
 
         """
         import sage.matrix.matrix_misc

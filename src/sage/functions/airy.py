@@ -47,7 +47,6 @@ Verify that the Airy functions are solutions to the differential equation::
 
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
-from sage.symbolic.function import is_inexact
 from sage.symbolic.ring import SR
 from sage.structure.coerce import parent as sage_structure_coerce_parent
 from sage.functions.other import gamma
@@ -126,7 +125,7 @@ class FunctionAiryAiGeneral(BuiltinFunction):
         """
         if not isinstance(x, Expression) and \
                 not isinstance(alpha, Expression):
-            if is_inexact(x):
+            if self._is_numerical(x):
                 return self._evalf_(alpha, x)
             if alpha == 0:
                 return airy_ai_simple(x)

@@ -5,7 +5,7 @@ This module implements Airy functions and their generalized derivatives. It
 supports symbolic functionality through Maxima and numeric evaluation through
 mpmath and scipy.
 
-Airy functions are solutions to the differential equation `f''(z) - xf(z)=0`.
+Airy functions are solutions to the differential equation `f''(x) - x f(x) = 0`.
 
 Four global function symbols are immediately available, please see
 
@@ -350,9 +350,12 @@ airy_ai_prime = FunctionAiryAiPrime()
 
 def airy_ai(alpha, x=None, hold_derivative=False, **kwds):
     r"""
-    The Airy Ai function `\operatorname{Ai}(x)` is one of the two
-    linearly independent solutions to the Airy differential equation
-    `f''(z) - xf(z)=0`, defined by the initial conditions:
+    The Airy Ai function
+
+    The Airy Ai function `\operatorname{Ai}(x)` is (along with
+    `\operatorname{Bi}(x)`) one of the two linearly independent standard
+    solutions to the Airy differential equation `f''(x) - x f(x) = 0`. It is
+    defined by the initial conditions:
 
     .. math ::
         \operatorname{Ai}(0)=\frac{1}{2^{2/3} \Gamma\left(\frac{2}{3}\right)},
@@ -384,6 +387,8 @@ def airy_ai(alpha, x=None, hold_derivative=False, **kwds):
     - ``hold_derivative`` -- Whether or not to stop from returning higher
       derivatives in terms of `\operatorname{Ai}(x)` and
       `\operatorname{Ai}'(x)`
+
+    .. SEEALSO:: :func:`airy_bi`
 
     EXAMPLES::
 
@@ -766,9 +771,12 @@ airy_bi_prime = FunctionAiryBiPrime()
 
 def airy_bi(alpha, x=None, hold_derivative=False, **kwds):
     r"""
-    The Airy Bi function `\operatorname{Bi}(x)` is one of the two
-    linearly independent solutions to the Airy differential equation
-    `f''(z) -xf(z)=0`, defined by the initial conditions:
+    The Airy Bi function
+
+    The Airy Bi function `\operatorname{Bi}(x)` is (along with
+    `\operatorname{Ai}(x)`) one of the two linearly independent standard
+    solutions to the Airy differential equation `f''(x) - x f(x) = 0`. It is
+    defined by the initial conditions:
 
     .. math ::
         \operatorname{Bi}(0)=\frac{1}{3^{1/6} \Gamma\left(\frac{2}{3}\right)},
@@ -801,6 +809,8 @@ def airy_bi(alpha, x=None, hold_derivative=False, **kwds):
     - ``hold_derivative`` -- Whether or not to stop from returning higher
       derivatives in terms of `\operatorname{Bi}(x)` and
       `\operatorname{Bi}'(x)`
+
+    .. SEEALSO:: :func:`airy_ai`
 
     EXAMPLES::
 

@@ -1248,73 +1248,74 @@ class Link:
 
             sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
             sage: L.regions()
-            [[4, -11], [2, -7], [6, -1], [13, 9], [-4, -10, -12], [-8, -2, -6, -14], [10, -3, 8, -13], [14, -5, 12, -9], [7, 3, 11, 5, 1]]
+            [[1, 7, 3, 11, 5], [2, -7], [4, -11], [6, -1], [8, -13, 10, -3], [9, 13], [12, -9, 14, -5], [-14, -8, -2, -6], [-12, -4, -10]]
             sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
             sage: L.regions()
-            [[-2, -6], [8, 4], [5, 3, -8], [2, -5, -7], [1, 7, -4], [6, -1, -3]]
+            [[1, 7, -4], [2, -5, -7], [3, -8, 5], [4, 8], [6, -1, -3], [-2, -6]]
             sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
             sage: L.regions()
-            [[6, -11], [15, -4], [9, 3, -14], [2, -9, -13], [1, 13, -8], [12, -1, -7], [5, 11, 7, -16], [-3, 10, -5, -15], [-6, -10, -2, -12], [16, 8, 14, 4]]
+            [[1, 13, -8], [2, -9, -13], [3, -14, 9], [4, 16, 8, 14], [5, 11, 7, -16], [6, -11], [10, -5, -15, -3], [12, -1, -7], [15, -4], [-12, -6, -10, -2]]
             sage: B = BraidGroup(2)
             sage: L = Link(B([-1, -1, -1]))
             sage: L.regions()
-            [[6, -5], [4, -3], [2, -1], [-4, -2, -6], [3, 5, 1]]
+            [[1, 3, 5], [2, -1], [4, -3], [6, -5], [-2, -6, -4]]
             sage: L = Link([[[1, -2, 3, -4], [-1, 5, -3, 2, -5, 4]], [-1, 1, 1, -1, -1]])
             sage: L.regions()
-            [[1, -5], [8, 3], [-6, -1, -10], [-2, 6, -9], [10, -4, -7], [9, 7, -3], [4, 5, 2, -8]]
+            [[1, -5], [2, -8, 4, 5], [3, 8], [6, -9, -2], [7, -3, 9], [10, -4, -7], [-10, -6, -1]]
+            sage: L = Link([[1, 2, 3, 3], [2, 5, 4, 4], [5, 7, 6, 6], [7, 1, 8, 8]])
+            sage: L.regions()
+            [[-3], [-4], [-6], [-8], [1, 2, 5, 7], [-2, 3, -1, 8, -7, 6, -5, 4]]
+
+        .. NOTE::
+
+            The link diagram is assumed to have only one completely isolated component.
+            This is because otherwise some regions would be have disconnected boundary.
         """
         pd = self.PD_code()
-        orient = self.orientation()
+        tails, heads = self._directions_of_edges_()
+        available_edges = set(flatten(pd))
+        if len(pd) == 1:
+            if pd[0][0] == pd[0][1]:
+                return [[-pd[0][2]], [pd[0][0]], [pd[0][2], -pd[0][0]]]
+            else:
+                return [[pd[0][2]], [-pd[0][0]], [-pd[0][2], pd[0][0]]]
+        loops = [i for i in available_edges if heads[i] == tails[i]]
+        available_edges = available_edges.union({-i for i in available_edges})
         regions = []
-        for i, j in enumerate(pd):
-            x = [[], []]
-            if orient[i] == -1:
-                x[0].append(j[0])
-                x[0].append(j[1])
-                x[1].append(j[3])
-                x[1].append(-j[0])
-            elif orient[i] == 1:
-                x[0].append(j[0])
-                x[0].append(-j[1])
-                x[1].append(j[1])
-                x[1].append(j[2])
-            regions.append(x)
-        pd_opposite = deepcopy(pd)
-        for i in range(len(pd_opposite)):
-            pd_opposite[i][0] = -pd[i][2]
-            pd_opposite[i][1] = -pd[i][3]
-            pd_opposite[i][2] = -pd[i][0]
-            pd_opposite[i][3] = -pd[i][1]
-        regions_op = []
-        for i, j in enumerate(pd_opposite):
-            x_op = [[], []]
-            if orient[i] == -1:
-                x_op[0].append(j[0])
-                x_op[0].append(j[1])
-                x_op[1].append(j[3])
-                x_op[1].append(-j[0])
-            elif orient[i] == 1:
-                x_op[0].append(j[0])
-                x_op[0].append(-j[1])
-                x_op[1].append(j[1])
-                x_op[1].append(j[2])
-            regions_op.append(x_op)
-        regions_final = []
-        for i in range(len(regions)):
-            for j in range(len(regions[i])):
-                regions_final.append(regions[i][j])
-                regions_final.append(regions_op[i][j])
-        dic = {}
-        for i in regions_final:
-            dic.update({i[0]: [i[1]]})
-        D = DiGraph(dic)
-        d = D.all_simple_cycles()
-        for i in d:
-            del i[0]
-        for i in d:
-            if len(i) == 1 and i[0] < 0:
-                d.remove(i)
-        return d
+        for edge in loops:
+            cros = heads[edge]
+            if cros[1] == edge:
+                regions.append([edge])
+            else:
+                regions.append([-edge])
+            available_edges.remove(edge)
+            available_edges.remove(-edge)
+        while available_edges:
+            edge = available_edges.pop()
+            region = []
+            while not edge in region:
+                region.append(edge)
+                if edge > 0 :
+                    cros = heads[edge]
+                    ind = cros.index(edge)
+                else:
+                    cros = tails[-edge]
+                    ind = cros.index(-edge)
+                next_edge = cros[(ind + 1) % 4]
+                if [next_edge] in regions:
+                    region.append(-next_edge)
+                    next_edge = cros[(ind - 1) % 4]
+                elif [-next_edge] in regions:
+                    region.append(next_edge)
+                    next_edge = cros[(ind - 1) % 4]
+                if tails[next_edge] == cros:
+                    edge = next_edge
+                else:
+                    edge = -next_edge
+                if edge in available_edges:
+                    available_edges.remove(edge)
+            regions.append(region)
+        return regions
 
     def writhe(self):
         """
@@ -1352,7 +1353,7 @@ class Link:
         OUTPUT:
 
         - Jones Polynomial of the link. It is a polynomial in var, as an element
-        of the symbolic ring.
+          of the symbolic ring.
 
         EXAMPLES::
 

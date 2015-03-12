@@ -7979,16 +7979,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.dominating_set(total=True,value_only=True)
             4
 
-        For a directed graph of 3 nodes 1->2->3 has cardinality 2 but 
-        for the undirected graph 1-2-3 1::
-            sage: g=DiGraph()
-            sage: g.add_edges([(1,2),(2,3)])
-            sage: len(g.dominating_set())
+        The dominating set is calculated for both the directed and undirected graphs(modification introduced in :trac:`17905`)::
+
+            sage: g=digraphs.Path(3)
+            sage: g.dominating_set(value_only=True)
             2
-            sage: gg=Graph()
-            sage: gg.add_edges([(1,2),(2,3)])
-            sage: len(gg.dominating_set())
+            sage: g=graphs.PathGraph(3)
+            sage: g.dominating_set(value_only=True)
             1
+
 
         """
         
@@ -8000,15 +7999,22 @@ class GenericGraph(GenericGraph_pyx):
         b=p.new_variable(binary=True)
 
         # For any vertex v, one of its neighbors or v itself is in
-        # the minimum dominating set
-        # If Digraph then it's the neighbors_in else neighbors
-        
-        if isinstance(g,sage.graphs.digraph.DiGraph):
-            for v in g.vertices():
-                p.add_constraint(int(not total)*b[v]+p.sum([b[u] for u in g.neighbors_in(v)]),min=1)
+        # the minimum dominating set. If g is directed, we use the
+        # in neighbors of v instead.
+
+        if g.is_directed():
+            neighbors_iter=g.neighbor_in_iterator
         else:
-            for v in g.vertices():
-                p.add_constraint(int(not total)*b[v]+p.sum([b[u] for u in g.neighbors(v)]),min=1)
+            neighbors_iter=g.neighbor_iterator
+        for v in g.vertices():
+            p.add_constraint(int(not total)*b[v]+p.sum([b[u] for u in neighbors_iter(v)]),min=1)
+
+        # if isinstance(g,sage.graphs.digraph.DiGraph):
+        #     for v in g.vertices():
+        #         p.add_constraint(int(not total)*b[v]+p.sum([b[u] for u in g.neighbors_in(v)]),min=1)
+        # else:
+        #     for v in g.vertices():
+        #         p.add_constraint(int(not total)*b[v]+p.sum([b[u] for u in g.neighbors(v)]),min=1)
 
         if independent:
             # no two adjacent vertices are in the set

@@ -1391,9 +1391,9 @@ cdef class Matrix(sage.structure.element.Matrix):
                 # M[1] = [1,2,3] or M[1,:]=[1,2,3]
                 value_list_one_dimensional = 1
             value_list = list(value)
-        elif IS_INSTANCE(value, Matrix):
+        elif isinstance(value, Matrix):
             value_list = list(value)
-        elif IS_INSTANCE(value, Vector):
+        elif isinstance(value, Vector):
             if single_row or single_col:
                 value_list_one_dimensional = 1
                 value_list = list(value)
@@ -1479,7 +1479,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         Return coercion of x into the base ring of self.
         """
-        if PY_TYPE_CHECK(x, Element) and (<Element> x)._parent is self._base_ring:
+        if isinstance(x, Element) and (<Element> x)._parent is self._base_ring:
             return x
         return self._base_ring(x)
 
@@ -4168,11 +4168,26 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def rank(self):
         """
+        Return the rank of this matrix.
+
+        EXAMPLES::
+
+            sage: m = matrix(GF(7),5,range(25))
+            sage: m.rank()
+            2
+
+        Rank is not implemented over the integers modulo a composite yet.::
+
+            sage: m = matrix(Integers(4), 2, [2,2,2,2])
+            sage: m.rank()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 4'.
 
         TESTS:
 
         We should be able to compute the rank of a matrix whose
-        entries are polynomials over a finite field (trac #5014)::
+        entries are polynomials over a finite field (trac:`5014`)::
 
             sage: P.<x> = PolynomialRing(GF(17))
             sage: m = matrix(P, [ [ 6*x^2 + 8*x + 12, 10*x^2 + 4*x + 11],
@@ -4764,7 +4779,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [     -x*y*x*y x*y*x + x*y^2 x*y*x - x*y^2]
         """
         # derived classes over a commutative base *just* overload _lmul_ (!!)
-        if PY_TYPE_CHECK(self._base_ring, CommutativeRing):
+        if isinstance(self._base_ring, CommutativeRing):
             return self._lmul_(left)
         cdef Py_ssize_t r,c
         x = self._base_ring(left)

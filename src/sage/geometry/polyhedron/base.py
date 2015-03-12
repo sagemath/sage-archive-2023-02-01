@@ -679,7 +679,33 @@ class Polyhedron_base(Element):
                                           .format(self.ambient_dim()))
         return plot_method(*opts)
 
-    show = plot
+    def show(self, **kwds):
+        """
+        Display graphics immediately
+
+        This method attempts to display the graphics immediately,
+        without waiting for the currently running code (if any) to
+        return to the command line. Be careful, calling it from within
+        a loop will potentially launch a large number of external
+        viewer programs.
+
+        INPUT:
+        
+        - ``kwds`` -- optional keyword arguments. See :meth:`plot` for
+          the description of available options.
+
+        OUTPUT:
+
+        This method does not return anything. Use :meth:`plot` if you
+        want to generate a graphics object that can be saved or
+        further transformed.
+
+        EXAMPLES::
+
+            sage: square = polytopes.n_cube(2)
+            sage: square.show(point='red')
+        """
+        self.plot(**kwds).show()
 
     def _repr_(self):
         """

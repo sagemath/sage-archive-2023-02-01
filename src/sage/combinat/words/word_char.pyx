@@ -268,7 +268,7 @@ cdef class WordDatatype_char(WordDatatype):
         # 3: !=
         # 4: >
         # 5: >=
-        if not PY_TYPE_CHECK(other, WordDatatype_char):
+        if not isinstance(other, WordDatatype_char):
             return NotImplemented
 
         # word of different lengths are not equal!
@@ -297,7 +297,7 @@ cdef class WordDatatype_char(WordDatatype):
             sage: cmp(W([0,1,0,0]), W([0,1,1]))
             -1
         """
-        if not PY_TYPE_CHECK(other, WordDatatype_char):
+        if not isinstance(other, WordDatatype_char):
             return NotImplemented
 
         cdef int test = self._lexico_cmp(other)
@@ -455,7 +455,7 @@ cdef class WordDatatype_char(WordDatatype):
         """
         cdef WordDatatype_char w
 
-        if PY_TYPE_CHECK(other, WordDatatype_char):
+        if isinstance(other, WordDatatype_char):
             return (<WordDatatype_char> self)._concatenate(other)
 
         elif PySequence_Check(other):
@@ -577,7 +577,7 @@ cdef class WordDatatype_char(WordDatatype):
         cdef size_t i
         cdef WordDatatype_char w
 
-        if PY_TYPE_CHECK(other, WordDatatype_char):
+        if isinstance(other, WordDatatype_char):
             # C level
             w = <WordDatatype_char> other
             if w._length > self._length:

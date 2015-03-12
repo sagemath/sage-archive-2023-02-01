@@ -37,6 +37,7 @@ from yang_baxter_graph import YangBaxterGraph
 from permutation import Permutation, Permutations, Arrangements, PermutationOptions, CyclicPermutations, CyclicPermutationsOfPartition
 from affine_permutation import AffinePermutationGroup
 from derangements import Derangements
+lazy_import('sage.combinat.baxter_permutations', ['BaxterPermutations'])
 
 #RSK
 from rsk import RSK, RSK_inverse, robinson_schensted_knuth, robinson_schensted_knuth_inverse,\

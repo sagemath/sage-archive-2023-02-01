@@ -1625,16 +1625,16 @@ class FiniteWordPath_2d(FiniteWordPath_all):
 
             sage: P = WordPaths('abAB')
             sage: p = P('aaababbb')
-            sage: a = p.animate(); a
+            sage: a = p.animate(); a    # optional -- ImageMagick
             Animation with 9 frames
-            sage: show(a)       # optional -- ImageMagick
-            sage: a.gif(delay=35, iterations=3)       # optional
+            sage: show(a)               # optional -- ImageMagick
+            sage: a.gif(delay=35, iterations=3)    # optional -- ImageMagick
 
         ::
 
             sage: P = WordPaths('abcdef',steps='triangle')
             sage: p =  P('abcdef')
-            sage: p.animate()
+            sage: p.animate()           # optional -- ImageMagick
             Animation with 8 frames
 
         If the path is closed, the plain polygon is added at the end of the
@@ -1642,7 +1642,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
 
             sage: P = WordPaths('abAB')
             sage: p = P('ababAbABABaB')
-            sage: a = p.animate(); a
+            sage: a = p.animate(); a    # optional -- ImageMagick
             Animation with 14 frames
 
         Another example illustrating a Fibonacci tile::

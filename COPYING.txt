@@ -30,10 +30,12 @@ SOFTWARE                    LICENSE
 -----------------------------------------------------------------------
 atlas                       Modified BSD
 boehm_gc                    MIT-like license (see below)
+backports_ssl_match_hostname  Python License
 boost_cropped               Boost Software License (see below)
 bzip2                       BSD-ish (see below)
 cddlib                      GPLv2+
 cephes                      "may be used freely" (see below)
+certifi                     ISC
 cliquer                     GPLv2+
 conway_polynomials          None (database)
 cvxopt                      GPLv2+
@@ -65,6 +67,7 @@ iml                         COPYING is GPLv2, source files state modified BSD
 ipython                     Modified BSD
 jinja2                      Modified BSD
 jmol                        LGPLv2.1+
+jsonschema                  MIT License
 lcalc                       GPLv2+
 libfplll                    LGPLv2.1+
 libgap                      GPLv3+
@@ -73,6 +76,7 @@ linbox                      LGPLv2.1+
 lrcalc                      GPLv2+
 m4ri                        GPLv2+
 m4rie                       GPLv2+
+mathjax                     Apache License 2.0
 matplotlib                  Matplotlib License (BSD compatible, see below)
 maxima                      See below
 mpc                         LGPLv3+

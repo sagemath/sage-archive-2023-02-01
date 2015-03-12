@@ -80,7 +80,7 @@ cdef class Generators(SageObject):
         return [self.get_from_index(i) for i in self.index_set()]
 
     def _repr_(self):
-        if not PY_TYPE_CHECK(self._obj, Generators):
+        if not isinstance(self._obj, Generators):
             return "Set of generators of %s"%(self.obj())
         else:
             raise RuntimeError, "Set of generators of a generators object"

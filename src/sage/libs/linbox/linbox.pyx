@@ -102,7 +102,6 @@ cdef class Linbox_integer_dense:
             v.append(k)
         linbox_integer_dense_delete_array(poly)
         return v
-        return self._poly(True)
 
     def charpoly(self):
         """
@@ -125,7 +124,6 @@ cdef class Linbox_integer_dense:
             v.append(k)
         linbox_integer_dense_delete_array(poly)
         return v
-        return self._poly(True)
 
     cdef matrix_matrix_multiply(self,
                                 mpz_t **ans,

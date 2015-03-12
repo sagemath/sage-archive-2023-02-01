@@ -3172,7 +3172,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: c.sublattice(1, 0, 0)
             Traceback (most recent call last):
             ...
-            TypeError: element (= [1, 0, 0]) is not in free module
+            TypeError: element [1, 0, 0] is not in free module
         """
         if "_sublattice" not in self.__dict__:
             self._split_ambient_lattice()

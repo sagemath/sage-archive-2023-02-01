@@ -60,15 +60,6 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
-# TODO
-#
-# Don't derive from Parent if there are no elements
-#
-# @cached_method must not return mutable containers (lists), use
-# tuples instead.
-
-
-
 class ConjugacyClass(Parent):
     r"""
     Generic conjugacy classes for elements in a group.
@@ -211,7 +202,6 @@ class ConjugacyClass(Parent):
         else:
             raise NotImplementedError("Listing the elements of conjugacy classes is not implemented for infinite groups!")
 
-    @cached_method
     def list(self):
         r"""
         Return a list with all the elements of ``self``.
@@ -273,6 +263,7 @@ class ConjugacyClass(Parent):
         """
         return self._representative
 
+    an_element = representative
 
 class ConjugacyClassGAP(ConjugacyClass):
     r"""
@@ -348,6 +339,73 @@ class ConjugacyClassGAP(ConjugacyClass):
             ConjugacyClass( SymmetricGroup( [ 1 .. 3 ] ), (1,2,3) )
         """
         return self._gap_conjugacy_class
+
+    def cardinality(self):
+        r"""
+        Return the size of this conjugacy class.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(['C',6])
+            sage: cc = W.conjugacy_class(W.an_element())
+            sage: cc.cardinality()
+            3840
+            sage: type(cc.cardinality())
+            <type 'sage.rings.integer.Integer'>
+        """
+        return self._gap_().Size().sage()
+
+    def __contains__(self, g):
+        r"""
+        Containment test.
+
+        Wraps ``IsConjugate`` from GAP.
+
+        TESTS::
+
+            sage: W = WeylGroup(['C',6])
+            sage: g0,g1,g2,g3,g4,g5 = W.gens()
+            sage: cc = W.conjugacy_class(g0)
+            sage: g0 in cc
+            True
+            sage: g1 in cc
+            True
+            sage: g2 in cc
+            True
+            sage: g3 in cc
+            True
+            sage: g4 in cc
+            True
+            sage: g5 in cc
+            False
+
+        Only trivial cases are implemented for infinite groups::
+
+            sage: G = SL(2,ZZ)
+            sage: m1 = G([[1,1],[0,1]])
+            sage: m2 = G([[1,0],[1,1]])
+            sage: m1 in G.conjugacy_class(m1) and m2 in G.conjugacy_class(m2)
+            True
+            sage: m2 in G.conjugacy_class(m1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only implemented for finite groups
+        """
+        g = self._parent(g)
+        g0 = self._representative
+        if g == g0:
+            return True
+
+        G = self._parent
+        try:
+            finite = G.is_finite()
+        except (AttributeError, NotImplementedError):
+            finite = False
+
+        if not finite:
+            raise NotImplementedError("only implemented for finite groups")
+
+        return G._gap_().IsConjugate(g0._gap_(), g._gap_()).sage()
 
     @cached_method
     def set(self):

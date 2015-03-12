@@ -2925,7 +2925,7 @@ from sage.structure.element cimport Element
 cdef public object el_check_element(object v, parent):
     cdef Element v_el
 
-    if PY_TYPE_CHECK(v, Element):
+    if isinstance(v, Element):
         v_el = <Element>v
         if v_el._parent is parent:
             return v_el

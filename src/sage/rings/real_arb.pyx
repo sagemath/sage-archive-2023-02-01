@@ -11,6 +11,14 @@ documentation for more details.
 
 You may have to run ``sage -i arb`` to use the arb library.
 
+.. WARNING::
+
+    Identical :class:`RealBall` objects are understood to give
+    permission for algebraic simplification. This assumption is made
+    to improve performance.  For example, setting ``z = x*x`` sets `z`
+    to a ball enclosing the set `\{t^2 : t \in x\}` and not the
+    (generally larger) set `\{tu : t \in x, u \in x\}`.
+
 Comparison
 ==========
 
@@ -49,8 +57,8 @@ A ball is non-zero if and only if it does not contain zero. ::
     sage: b != 0 # optional - arb
     True
 
-A ball ``left`` is less than a ball ``right`` if all elements of ``left`` are less
-than all elements of ``right``. ::
+A ball ``left`` is less than a ball ``right`` if all elements of
+``left`` are less than all elements of ``right``. ::
 
     sage: a = RBF(RIF(1, 2)) # optional - arb
     sage: b = RBF(RIF(3, 4)) # optional - arb
@@ -129,7 +137,7 @@ cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision):
     mpfr_clear(left)
     mpfr_clear(right)
 
-cdef void arb_to_mpfi(mpfi_t target, arb_t source, const long precision):
+cdef int arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except -1:
     """
     Convert an Arb ball to an MPFI interval.
 
@@ -144,6 +152,32 @@ cdef void arb_to_mpfi(mpfi_t target, arb_t source, const long precision):
     OUTPUT:
 
     None.
+
+    EXAMPLES::
+
+        sage: cython("\n".join([ # optional - arb
+        ....:     '#cinclude $SAGE_ROOT/local/include/flint',
+        ....:     '#clib arb',
+        ....:     'from sage.rings.real_mpfi cimport RealIntervalFieldElement',
+        ....:     'from sage.libs.arb.arb cimport *',
+        ....:     'from sage.rings.real_arb cimport arb_to_mpfi',
+        ....:     'from sage.rings.real_mpfi import RIF',
+        ....:     '',
+        ....:     'cdef extern from "arb.h":',
+        ....:     '    void arb_pow_ui(arb_t y, const arb_t b, unsigned long e, long prec)',
+        ....:     '',
+        ....:     'cdef RealIntervalFieldElement result',
+        ....:     'cdef arb_t arb',
+        ....:     'arb_init(arb)',
+        ....:     'result = RIF(0)',
+        ....:     'arb_set_ui(arb, 65536)',
+        ....:     'arb_pow_ui(arb, arb, 65536**3 * 65535, 53)',
+        ....:     'arb_to_mpfi(result.value, arb, 53)',
+        ....:     'arb_clear(arb)'
+        ....: ]))
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: Error converting arb to mpfi. Overflow?
     """
     cdef mpfr_t left
     cdef mpfr_t right
@@ -151,11 +185,16 @@ cdef void arb_to_mpfi(mpfi_t target, arb_t source, const long precision):
     mpfr_init2(left, precision)
     mpfr_init2(right, precision)
 
-    arb_get_interval_mpfr(left, right, source)
-    mpfi_interv_fr(target, left, right)
-
-    mpfr_clear(left)
-    mpfr_clear(right)
+    try:
+        sig_on()
+        arb_get_interval_mpfr(left, right, source)
+        mpfi_interv_fr(target, left, right)
+        sig_off()
+    except RuntimeError:
+        raise ArithmeticError("Error converting arb to mpfi. Overflow?")
+    finally:
+        mpfr_clear(left)
+        mpfr_clear(right)
 
 
 class RealBallField(UniqueRepresentation, Parent):
@@ -663,11 +702,9 @@ cdef class RealBall(Element):
         rt = right
 
         if op == Py_EQ:
-            if lt is rt:
-                return True
-            if not arb_is_exact(lt.value) or not arb_is_exact(rt.value):
-                return False
-            return arb_equal(lt.value, rt.value)
+            return (lt is rt) or (
+                arb_is_exact(lt.value) and arb_is_exact(rt.value)
+                and arb_equal(lt.value, rt.value))
 
         arb_init(difference)
         arb_sub(difference, lt.value, rt.value, prec(lt))

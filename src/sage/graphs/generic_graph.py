@@ -7979,7 +7979,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.dominating_set(total=True,value_only=True)
             4
 
-        The dominating set is calculated for both the directed and undirected graphs(modification introduced in :trac:`17905`)::
+        The dominating set is calculated for both the directed and undirected
+        graphs(modification introduced in :trac:`17905`)::
 
             sage: g=digraphs.Path(3)
             sage: g.dominating_set(value_only=True)
@@ -7988,9 +7989,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.dominating_set(value_only=True)
             1
 
-
         """
-        
         self._scream_if_not_simple(allow_multiple_edges=True, allow_loops=not total)
 
         from sage.numerical.mip import MixedIntegerLinearProgram
@@ -8002,10 +8001,8 @@ class GenericGraph(GenericGraph_pyx):
         # the minimum dominating set. If g is directed, we use the
         # in neighbors of v instead.
 
-        if g.is_directed():
-            neighbors_iter=g.neighbor_in_iterator
-        else:
-            neighbors_iter=g.neighbor_iterator
+        neighbors_iter=g.neighbor_in_iterator if g.is_directed() else g.neighbor_iterator
+
         for v in g.vertices():
             p.add_constraint(int(not total)*b[v]+p.sum([b[u] for u in neighbors_iter(v)]),min=1)
 

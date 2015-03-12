@@ -1282,7 +1282,6 @@ class Link:
         loops = [i for i in available_edges if heads[i] == tails[i]]
         available_edges = available_edges.union({-i for i in available_edges})
         regions = []
-<<<<<<< HEAD
         for edge in loops:
             cros = heads[edge]
             if cros[1] == edge:
@@ -1317,57 +1316,6 @@ class Link:
                     available_edges.remove(edge)
             regions.append(region)
         return regions
-=======
-        for i, j in enumerate(pd):
-            x = [[], []]
-            if orient[i] == -1:
-                x[0].append(j[0])
-                x[0].append(j[1])
-                x[1].append(j[3])
-                x[1].append(-j[0])
-            elif orient[i] == 1:
-                x[0].append(j[0])
-                x[0].append(-j[1])
-                x[1].append(j[1])
-                x[1].append(j[2])
-            regions.append(x)
-        pd_opposite = deepcopy(pd)
-        for i in range(len(pd_opposite)):
-            pd_opposite[i][0] = -pd[i][2]
-            pd_opposite[i][1] = -pd[i][3]
-            pd_opposite[i][2] = -pd[i][0]
-            pd_opposite[i][3] = -pd[i][1]
-        regions_op = []
-        for i, j in enumerate(pd_opposite):
-            x_op = [[], []]
-            if orient[i] == -1:
-                x_op[0].append(j[0])
-                x_op[0].append(j[1])
-                x_op[1].append(j[3])
-                x_op[1].append(-j[0])
-            elif orient[i] == 1:
-                x_op[0].append(j[0])
-                x_op[0].append(-j[1])
-                x_op[1].append(j[1])
-                x_op[1].append(j[2])
-            regions_op.append(x_op)
-        regions_final = []
-        for i in range(len(regions)):
-            for j in range(len(regions[i])):
-                regions_final.append(regions[i][j])
-                regions_final.append(regions_op[i][j])
-        dic = {}
-        for i in regions_final:
-            dic.update({i[0]: [i[1]]})
-        D = DiGraph(dic)
-        d = D.all_simple_cycles()
-        for i in d:
-            del i[0]
-        for i in d:
-            if len(i) == 1 and i[0] < 0:
-                d.remove(i)
-        return d
->>>>>>> FETCH_HEAD
 
     def writhe(self):
         """

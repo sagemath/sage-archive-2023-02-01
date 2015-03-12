@@ -7980,7 +7980,7 @@ class GenericGraph(GenericGraph_pyx):
             4
 
         The dominating set is calculated for both the directed and undirected
-        graphs(modification introduced in :trac:`17905`)::
+        graphs (modification introduced in :trac:`17905`)::
 
             sage: g=digraphs.Path(3)
             sage: g.dominating_set(value_only=True)

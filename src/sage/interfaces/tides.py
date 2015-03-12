@@ -1,4 +1,6 @@
 r"""
+Interface to TIDES
+
 This module contains tools to write the .c files needed for TIDES [TI]_ .
 
 Tides is an integration engine based on the Taylor method. It is implemented

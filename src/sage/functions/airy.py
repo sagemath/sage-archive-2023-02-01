@@ -348,7 +348,7 @@ airy_ai_simple = FunctionAiryAiSimple()
 airy_ai_prime = FunctionAiryAiPrime()
 
 
-def airy_ai(alpha, x=None, hold_derivative=False, **kwds):
+def airy_ai(alpha, x=None, hold_derivative=True, **kwds):
     r"""
     The Airy Ai function
 
@@ -398,13 +398,13 @@ def airy_ai(alpha, x=None, hold_derivative=False, **kwds):
 
     It can return derivatives or integrals::
 
-        sage: airy_ai(1, x)
-        airy_ai_prime(x)
         sage: airy_ai(2, x)
-        x*airy_ai(x)
-        sage: airy_ai(2, x, hold_derivative=True)
         airy_ai(2, x)
-        sage: airy_ai(-2, x)
+        sage: airy_ai(1, x, hold_derivative=False)
+        airy_ai_prime(x)
+        sage: airy_ai(2, x, hold_derivative=False)
+        x*airy_ai(x)
+        sage: airy_ai(-2, x, hold_derivative=False)
         airy_ai(-2, x)
         sage: airy_ai(n, x)
         airy_ai(n, x)
@@ -769,7 +769,7 @@ airy_bi_simple = FunctionAiryBiSimple()
 airy_bi_prime = FunctionAiryBiPrime()
 
 
-def airy_bi(alpha, x=None, hold_derivative=False, **kwds):
+def airy_bi(alpha, x=None, hold_derivative=True, **kwds):
     r"""
     The Airy Bi function
 
@@ -820,13 +820,13 @@ def airy_bi(alpha, x=None, hold_derivative=False, **kwds):
 
     It can return derivatives or integrals::
 
-        sage: airy_bi(1, x)
-        airy_bi_prime(x)
         sage: airy_bi(2, x)
-        x*airy_bi(x)
-        sage: airy_bi(2, x, hold_derivative=True)
         airy_bi(2, x)
-        sage: airy_bi(-2, x)
+        sage: airy_bi(1, x, hold_derivative=False)
+        airy_bi_prime(x)
+        sage: airy_bi(2, x, hold_derivative=False)
+        x*airy_bi(x)
+        sage: airy_bi(-2, x, hold_derivative=False)
         airy_bi(-2, x)
         sage: airy_bi(n, x)
         airy_bi(n, x)

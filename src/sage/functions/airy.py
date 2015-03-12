@@ -106,11 +106,11 @@ class FunctionAiryAiGeneral(BuiltinFunction):
             sage: derivative(airy_ai_general(n, x), n)
             Traceback (most recent call last):
             ...
-            ValueError: cannot differentiate airy_ai in the first parameter
+            NotImplementedError: cannot differentiate airy_ai in the first parameter
         """
         if diff_param == 0:
-            raise ValueError("cannot differentiate airy_ai in the"
-                             " first parameter")
+            raise NotImplementedError("cannot differentiate airy_ai in the"
+                                      " first parameter")
         return airy_ai_general(alpha + 1, x)
 
     def _eval_(self, alpha, x):
@@ -527,11 +527,11 @@ class FunctionAiryBiGeneral(BuiltinFunction):
             sage: derivative(airy_bi_general(n, x), n)
             Traceback (most recent call last):
             ...
-            ValueError: cannot differentiate airy_bi in the first parameter
+            NotImplementedError: cannot differentiate airy_bi in the first parameter
         """
         if diff_param == 0:
-            raise ValueError("cannot differentiate airy_bi in the"
-                             " first parameter")
+            raise NotImplementedError("cannot differentiate airy_bi in the"
+                                      " first parameter")
         return airy_bi_general(alpha + 1, x)
 
     def _eval_(self, alpha, x):

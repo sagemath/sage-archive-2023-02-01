@@ -8,6 +8,7 @@ Lie Algebras
    sage/algebras/lie_algebras/heisenberg.py
    sage/algebras/lie_algebras/lie_algebra.py
    sage/algebras/lie_algebras/lie_algebra_element.py
+   sage/algebras/lie_algebras/poincare_birkhoff_witt.py
    sage/algebras/lie_algebras/structure_coefficients.py
    sage/algebras/lie_algebras/virasoro.py
 

@@ -92,6 +92,21 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 # Otherwise just index by the basis of ``self`` as a fallback
                 return CombinatorialFreeModule(self.base_ring(), self.basis())
 
+        def pbw_basis(self, basis_cmp=None, **kwds):
+            """
+            Return the Poincare-Birkhoff-Witt basis of the universal
+            enveloping algebra corresponding to ``self``.
+
+            EXAMPLES::
+            """
+            from sage.algebras.lie_algebras.poincare_birkhoff_witt \
+                import PoincareBirkhoffWittBasis
+            return PoincareBirkhoffWittBasis(self, basis_cmp, **kwds)
+
+        poincare_birkhoff_witt_basis = pbw_basis
+
+        _construct_UEA = pbw_basis
+
     class ElementMethods:
         def _bracket_(self, y):
             """

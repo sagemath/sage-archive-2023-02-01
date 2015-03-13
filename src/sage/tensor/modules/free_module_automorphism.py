@@ -289,8 +289,11 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         if is_identity:
             if name is None:
                 name = 'Id'
-            if latex_name is None and name == 'Id':
-                latex_name = r'\mathrm{Id}'
+            if latex_name is None:
+                if name == 'Id':
+                    latex_name = r'\mathrm{Id}'
+                else:
+                    latex_name = name
         FreeModuleTensor.__init__(self, fmodule, (1,1), name=name,
                                   latex_name=latex_name,
                                   parent=fmodule.general_linear_group())

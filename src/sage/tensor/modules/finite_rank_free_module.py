@@ -782,7 +782,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         if not hasattr(self, '_zero_element'):
             self._zero_element = self._element_constructor_(name='zero',
                                                             latex_name='0')
-        # Identity endomorphism:
+        # Identity automorphism:
         self._identity_map = None # to be set by self.identity_map()
         # General linear group:
         self._general_linear_group = None # to be set by
@@ -2380,9 +2380,17 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         return End(self)(matrix_rep, bases=(basis,basis), name=name,
                          latex_name=latex_name)
 
-    def identity_map(self):
+    def identity_map(self, name='Id', latex_name=None):
         r"""
         Return the identity map of the free module ``self``.
+
+        INPUT:
+
+        - ``name`` -- (string; default: 'Id') name given to the identity
+          identity map
+        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
+          the identity map; if none is provided, the LaTeX symbol is set to
+          '\mathrm{Id}' if ``name`` is 'Id' and to ``name`` otherwise
 
         OUTPUT:
 
@@ -2399,12 +2407,22 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             Identity map of the Rank-3 free module M over the Integer Ring
             sage: Id.parent()
             General linear group of the Rank-3 free module M over the Integer Ring
-            sage: latex(Id)
-            \mathrm{Id}
             sage: Id.matrix(e)
             [1 0 0]
             [0 1 0]
             [0 0 1]
+
+        The default LaTeX symbol::
+
+            sage: latex(Id)
+            \mathrm{Id}
+
+        It can be changed by means of the method
+        :meth:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor.set_name`::
+
+            sage: Id.set_name(latex_name=r'\mathrm{1}_M')
+            sage: latex(Id)
+            \mathrm{1}_M
 
         The identity map is actually the identity element of GL(M)::
 
@@ -2422,7 +2440,22 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             [0 1 0]
             [0 0 1]
 
+        Example with a LaTeX symbol different from the default one and set
+        at the creation of the object::
+
+            sage: N = FiniteRankFreeModule(ZZ, 3, name='N')
+            sage: f = N.basis('f')
+            sage: Id = N.identity_map(name='Id_N', latex_name=r'\mathrm{Id}_N')
+            sage: Id
+            Identity map of the Rank-3 free module N over the Integer Ring
+            sage: latex(Id)
+            \mathrm{Id}_N
+
         """
         if self._identity_map is None:
             self._identity_map = self.general_linear_group().one()
+            if name != 'Id':
+                if latex_name is None:
+                    latex_name = name
+                self._identity_map.set_name(name=name, latex_name=latex_name)
         return self._identity_map

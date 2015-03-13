@@ -232,6 +232,8 @@ class FreeModuleHomset(Homset):
                     fmodule2._latex_name + r"\right)"
         else:
             self._latex_name = latex_name
+        self._one = None # to be set by self.one() if self is an endomorphism
+                         # set (fmodule1 = fmodule2)
 
     def _latex_(self):
         r"""
@@ -463,3 +465,69 @@ class FreeModuleHomset(Homset):
         return False
 
     #### End of methods required for any Parent
+
+
+    #### Monoid methods (case of an endomorphism set) ####
+
+    def one(self):
+        r"""
+        Return the identity element of ``self`` considered as a monoid (case of
+        an endomorphism set).
+
+        This applies only when the codomain of ``self`` is equal to its domain,
+        i.e. when ``self`` is of the type `\mathrm{Hom}(M,M)`.
+
+        OUTPUT:
+
+        - the identity element of `\mathrm{End}(M) = \mathrm{Hom}(M,M)`, as an
+          instance of
+          :class:`~sage.tensor.modules.free_module_morphism.FiniteRankFreeModuleMorphism`
+
+        EXAMPLE:
+
+        Identity element of the set of endomorphisms of a free module
+        over `\ZZ`::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: H = End(M)
+            sage: H.one()
+            Identity endomorphism of Rank-3 free module M over the Integer Ring
+            sage: H.one().matrix(e)
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: H.one().is_identity()
+            True
+
+        NB: mathematically, ``H.one()`` coincides with the identity map of the
+        free module `M`. However the latter is considered here as an
+        element of `\mathrm{GL}(M)`, the general linear group of `M`.
+        Accordingly, one has to use the coercion map
+        `\mathrm{GL}(M) \rightarrow \mathrm{End}(M)`
+        to recover ``H.one()`` from ``M.identity_map()``::
+
+            sage: M.identity_map()
+            Identity map of the Rank-3 free module M over the Integer Ring
+            sage: M.identity_map().parent()
+            General linear group of the Rank-3 free module M over the Integer Ring
+            sage: H.one().parent()
+            Set of Morphisms from Rank-3 free module M over the Integer Ring to Rank-3 free module M over the Integer Ring in Category of modules over Integer Ring
+            sage: H.one() == H(M.identity_map())
+            True
+
+        Conversely, one can recover ``M.identity_map()`` from ``H.one()`` by
+        means of a conversion `\mathrm{End}(M)\rightarrow \mathrm{GL}(M)`::
+
+            sage: GL = M.general_linear_group()
+            sage: M.identity_map() == GL(H.one())
+            True
+
+        """
+        if self._one is None:
+            if self.codomain() != self.domain():
+                raise TypeError("the {} is not a monoid".format(self))
+            self._one = self.element_class(self, [], is_identity=True)
+        return self._one
+
+    #### End of monoid methods ####

@@ -737,11 +737,11 @@ class Components(SageObject):
                     return self._output_formatter(self._comp[ind], format_type)
             else:  # if the value is not stored in self._comp, it is zero:
                 if no_format:
-                    return self._ring.zero_element()
+                    return self._ring.zero()
                 elif format_type is None:
-                    return self._output_formatter(self._ring.zero_element())
+                    return self._output_formatter(self._ring.zero())
                 else:
-                    return self._output_formatter(self._ring.zero_element(),
+                    return self._output_formatter(self._ring.zero(),
                                                  format_type)
 
     def _get_list(self, ind_slice, no_format=True, format_type=None):
@@ -2696,11 +2696,11 @@ class CompWithSym(Components):
             sign, ind = self._ordered_indices(indices)
             if (sign == 0) or (ind not in self._comp): # the value is zero:
                 if no_format:
-                    return self._ring.zero_element()
+                    return self._ring.zero()
                 elif format_type is None:
-                    return self._output_formatter(self._ring.zero_element())
+                    return self._output_formatter(self._ring.zero())
                 else:
-                    return self._output_formatter(self._ring.zero_element(),
+                    return self._output_formatter(self._ring.zero(),
                                                  format_type)
             else: # non zero value
                 if no_format:
@@ -4164,11 +4164,11 @@ class CompFullySym(CompWithSym):
 
         # the value is zero
         if no_format:
-            return self._ring.zero_element()
+            return self._ring.zero()
         elif format_type is None:
-            return self._output_formatter(self._ring.zero_element())
+            return self._output_formatter(self._ring.zero())
         else:
-            return self._output_formatter(self._ring.zero_element(),
+            return self._output_formatter(self._ring.zero(),
                                              format_type)
 
     def __setitem__(self, args, value):

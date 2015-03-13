@@ -482,7 +482,8 @@ class FreeModuleAltForm(FreeModuleTensor):
 
         """
         from sage.misc.latex import latex
-        from format_utilities import is_atomic, FormattedExpansion
+        from sage.tensor.modules.format_utilities import is_atomic, \
+                                                         FormattedExpansion
         if basis is None:
             basis = self._fmodule._def_basis
         cobasis = basis.dual_basis()
@@ -537,16 +538,15 @@ class FreeModuleAltForm(FreeModuleTensor):
                     expansion_latex += term
                 else:
                     expansion_latex += "+" + term
-        result = FormattedExpansion(self)
         if self._name is None:
-            result.txt = expansion_txt
+            resu_txt = expansion_txt
         else:
-            result.txt = self._name + " = " + expansion_txt
+            resu_txt = self._name + " = " + expansion_txt
         if self._latex_name is None:
-            result.latex = expansion_latex
+            resu_latex = expansion_latex
         else:
-            result.latex = latex(self) + " = " + expansion_latex
-        return result
+            resu_latex = latex(self) + " = " + expansion_latex
+        return FormattedExpansion(resu_txt, resu_latex)
 
     disp = display
 

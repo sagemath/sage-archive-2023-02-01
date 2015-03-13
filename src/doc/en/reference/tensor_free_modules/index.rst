@@ -1,3 +1,5 @@
+.. _tensors-on-free-modules:
+
 Tensors on free modules of finite rank
 ======================================
 

@@ -1586,3 +1586,45 @@ class ClusterQuiver(SageObject):
             return is_finite, path
         else:
             return is_finite
+
+    def fan(self):
+        """
+        Return the cluster fan associated with the quiver.
+
+        It only makes sense for acyclic quivers of finite type.
+
+        This is defined using the denominator vectors of the cluster
+        variables. Cones are in correspondance with clusters and
+        rays with cluster variables.
+
+        EXAMPLES::
+
+            sage: F = ClusterQuiver(DiGraph({0:[1]})).fan(); F
+            Rational polyhedral fan in 2-d lattice N
+            sage: F.ngenerating_cones()
+            5
+
+            sage: F = ClusterQuiver(['A',3]).fan(); F
+            Rational polyhedral fan in 2-d lattice N
+            sage: F.ngenerating_cones()
+            14
+
+        TESTS::
+
+            sage: ClusterQuiver(DiGraph({0:[1],1:[2],2:[0]})).fan()
+            Traceback (most recent call last):
+            ...
+            ValueError: only makes sense for acyclic quivers of finite type
+        """
+        from cluster_seed import ClusterSeed
+        from sage.geometry.fan import Fan
+        from sage.geometry.cone import Cone
+        from sage.modules.free_module_element import vector
+
+        if not(self.is_finite() and self.is_acyclic()):
+            raise ValueError('only makes sense for acyclic quivers'
+                             ' of finite type')
+        seed = ClusterSeed(self)
+        return Fan([Cone([vector(v.almost_positive_root())
+                          for v in s.cluster()])
+                    for s in seed.mutation_class()])

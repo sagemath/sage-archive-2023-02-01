@@ -603,22 +603,3 @@ class LiftMorphism(Morphism):
         """
         return x.lift()
 
-    def section(self):
-        """
-        Return the section map of ``self``.
-
-        EXAMPLES::
-
-            sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-            sage: L.lift.section()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-
-        .. TODO::
-
-            Implement the section map from an enveloping algebra to the
-            corresponding Lie algebra.
-        """
-        raise NotImplementedError
-

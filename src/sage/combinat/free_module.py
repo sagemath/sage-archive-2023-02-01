@@ -1107,7 +1107,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         [('bracket', None), ('generator_cmp', <built-in function cmp>),
          ('latex_bracket', False), ('latex_prefix', None),
          ('latex_scalar_mult', None), ('prefix', 'x'),
-         ('scalar_mult', '*'), ('tensor_symbol', None)]
+         ('scalar_mult', '*'), ('string_quotes', True),
+         ('tensor_symbol', None)]
 
         sage: e = F.basis()
         sage: e['a'] - 3 * e['b']

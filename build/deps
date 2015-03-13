@@ -309,7 +309,7 @@ $(INST)/$(LIBGAP): $(INST)/$(GAP)
 	+$(PIPE) "$(SAGE_SPKG) $(LIBGAP) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBGAP).log"
 
 $(INST)/$(IPYTHON): $(INST)/$(PYTHON) $(INST)/$(JINJA2) $(INST)/$(TORNADO) \
-                    $(INST)/$(PYZMQ) $(INST)/$(MATHJAX)
+                    $(INST)/$(PYZMQ)
 	+$(PIPE) "$(SAGE_SPKG) $(IPYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(IPYTHON).log"
 
 $(INST)/$(PEXPECT): $(INST)/$(PYTHON)
@@ -447,8 +447,7 @@ $(INST)/$(ZNPOLY): $(INST)/$(MPIR) $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(ZNPOLY) 2>&1" "tee -a $(SAGE_LOGS)/$(ZNPOLY).log"
 
 $(INST)/$(SAGENB): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(PEXPECT) \
-                   $(INST)/$(JINJA2) $(INST)/$(SPHINX) $(INST)/$(DOCUTILS) \
-                   $(INST)/$(MATHJAX)
+                   $(INST)/$(JINJA2) $(INST)/$(SPHINX) $(INST)/$(DOCUTILS)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGENB) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGENB).log"
 
 $(INST)/$(SQLALCHEMY): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)

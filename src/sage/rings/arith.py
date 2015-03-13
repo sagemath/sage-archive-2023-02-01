@@ -3146,6 +3146,14 @@ def binomial(x, m, **kwds):
         Traceback (most recent call last):
         ...
         TypeError: either m or x-m must be an integer
+
+    For symbolic manipulation, you should use the function
+    :func:`~sage.functions.other.binomial` from the module
+    :mod:`sage.functions.other`::
+
+        sage: from sage.functions.other import binomial
+        sage: binomial(k, i)
+        binomial(k, i)
     """
     x = py_scalar_to_element(x)
     P = parent(x)

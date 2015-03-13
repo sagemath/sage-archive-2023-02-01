@@ -6086,6 +6086,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             0
             sage: (-2).binomial(3)
             -4
+            sage: (-3).binomial(0)
+            1
 
         The argument ``m`` or (``self-m``) must fit into unsigned long::
 
@@ -6136,7 +6138,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mm = self - mm
 
         if mm == zero:
-            return one if self >= zero else zero
+            return one
         if mm == one:
             return self
 

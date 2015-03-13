@@ -40,14 +40,14 @@ class NotebookSageNB(object):
                 logger.debug('keyword argument %s = %s', key, value)
                 try:
                     value = ast.literal_eval(value)
-                except StandardError:
+                except Exception:
                     logger.debug('cannot evaluate, treat as string')
                 kwds[key] = value
             else:
                 logger.debug('positional argument %s', x)
                 try:
                     value = ast.literal_eval(x)
-                except StandardError:
+                except Exception:
                     value = x
                     logger.debug('cannot evaluate, treat as string')
                 args.append(value)
@@ -74,13 +74,14 @@ class NotebookIPython(object):
     """)
 
     def __init__(self, argv):
-        from sage.repl.notebook_ipython import have_prerequisites, SageNotebookApp
+        from sage.repl.ipython_kernel.install import \
+            SageKernelSpec, have_prerequisites
+        SageKernelSpec.update()
         if not have_prerequisites():
             print(self.PREREQUISITE_ERROR)
             raise SystemExit(1)
-        app = SageNotebookApp.instance()
-        app.initialize(argv)
-        app.start()
+        from IPython import start_ipython
+        start_ipython(['notebook'] + argv)
 
 
 description = \

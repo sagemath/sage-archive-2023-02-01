@@ -62,8 +62,7 @@ cimport cython
 cdef extern from "misc.h":
     int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
 
-cdef extern from "mpz_pylong.h":
-    cdef int mpz_set_pylong(mpz_t dst, src) except -1
+from sage.libs.gmp.pylong cimport mpz_set_pylong
 
 from pari_instance cimport PariInstance, prec_bits_to_words, pari_instance
 cdef PariInstance P = pari_instance
@@ -6031,7 +6030,7 @@ cdef class gen(gen_auto):
             sage: e.ellheight([1,0])
             0.476711659343740
             sage: e.ellheight([1,0], precision=128).sage()
-            0.47671165934373953737948605888465305945902294217            # 32-bit
+            0.47671165934373953737948605888465305945902294218            # 32-bit
             0.476711659343739537379486058884653059459022942211150879336  # 64-bit
         """
         if flag != -1:
@@ -8514,8 +8513,8 @@ cdef class gen(gen_auto):
 
     def qfsolve(self):
         """
-        Try to solve over `\Q` the quadratic equation `X^t G X = 0` for
-        a matrix G with rational coefficients.
+        Try to solve over `\mathbb{Q}` the quadratic equation
+        `X^t G X = 0` for a matrix G with rational coefficients.
 
         INPUT:
 

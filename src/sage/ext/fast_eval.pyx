@@ -77,34 +77,27 @@ AUTHORS:
 - Robert Bradshaw (2008-10): Initial version
 """
 
-
 #*****************************************************************************
 #       Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 from sage.ext.fast_callable import fast_callable, Wrapper
 
 include "stdsage.pxi"
 
-cdef extern from "Python.h":
-    int PyInt_AS_LONG(PyObject*)
-    PyObject* PyTuple_New(Py_ssize_t size)
-    PyObject* PyTuple_GET_ITEM(PyObject* t, Py_ssize_t index)
-    void PyTuple_SET_ITEM(PyObject* t, Py_ssize_t index, PyObject* item)
-    object PyObject_CallObject(PyObject* func, PyObject* args)
-    PyObject* PyFloat_FromDouble(double d)
-    void Py_DECREF(PyObject *)
+cimport cython
+from cpython.ref cimport Py_INCREF
+from cpython.object cimport PyObject_CallObject
+from cpython.int cimport PyInt_AS_LONG
+from cpython.tuple cimport PyTuple_New, PyTuple_SET_ITEM
+
 
 cdef extern from "math.h":
     double sqrt(double)
@@ -312,33 +305,24 @@ def _unpickle_FastDoubleFunc(nargs, max_height, op_list):
         elif type in [ONE_ARG_FUNC, TWO_ARG_FUNC]:
             param_count, cfunc = op[1]
             address = cfunc_addresses[cfunc]
-            self.ops[i].params.func = <void *>address
+            self.ops[i].params.func = <PyObject*>address
             self.ops[i].type = ['', ONE_ARG_FUNC, TWO_ARG_FUNC][param_count]
         elif type == PY_FUNC:
             if self.py_funcs is None:
                 self.py_funcs = op[1]
             else:
                 self.py_funcs = self.py_funcs + (op[1],)
-            self.ops[i].params.func = <void *>op[1]
+            self.ops[i].params.func = <PyObject*>op[1]
         i += 1
     return self
 
 
-# This is where we wish we had case statements...
-# It looks like gcc might be smart enough to figure it out.
+@cython.boundscheck(False)
+@cython.wraparound(False)
 cdef inline int process_op(fast_double_op op, double* stack, double* argv, int top) except -2:
-
-#    print [stack[i] for i from 0 <= i <= top], ':', op.type
-
     cdef int i, n
-    cdef PyObject* py_args
-
-    # We have to do some trickery because Pyrex disallows function pointer casts
-    # This will be removed in a future version of Cython.
-    cdef double (*f)(double)
-    cdef void** fp = <void **>&f
-    cdef double (*ff)(double, double)
-    cdef void** ffp = <void **>&ff
+    cdef object arg
+    cdef tuple py_args
 
     if op.type == LOAD_ARG:
         stack[top+1] = argv[op.params.n]
@@ -418,26 +402,24 @@ cdef inline int process_op(fast_double_op op, double* stack, double* argv, int t
         return top-1
 
     elif op.type == ONE_ARG_FUNC:
-        fp[0] = op.params.func
-        stack[top] = f(stack[top])
+        stack[top] = (op.params.f)(stack[top])
         return top
 
     elif op.type == TWO_ARG_FUNC:
-        ffp[0] = op.params.func
-        stack[top-1] = ff(stack[top-1], stack[top])
+        stack[top-1] = (op.params.ff)(stack[top-1], stack[top])
         return top-1
 
     elif op.type == PY_FUNC:
-        # Even though it's python, optimize this because it'll be used often...
-        # We also want to avoid cluttering the header and footer
-        # of this function Python variables bring.
-        n = PyInt_AS_LONG(PyTuple_GET_ITEM(op.params.func, 0))
+        # We use a few direct C/API calls here because Cython itself
+        # doesn't generate optimal code for this.
+        n = PyInt_AS_LONG((<tuple>op.params.func)[0])
         top = top - n + 1
         py_args = PyTuple_New(n)
-        for i from 0 <= i < n:
-            PyTuple_SET_ITEM(py_args, i, PyFloat_FromDouble(stack[top+i]))
-        stack[top] = PyObject_CallObject(PyTuple_GET_ITEM(op.params.func, 1), py_args)
-        Py_DECREF(py_args)
+        for i in range(n):
+            arg = stack[top+i]
+            Py_INCREF(arg)  # PyTuple_SET_ITEM() steals a reference
+            PyTuple_SET_ITEM(py_args, i, arg)
+        stack[top] = PyObject_CallObject((<tuple>op.params.func)[1], py_args)
         return top
 
     raise RuntimeError("Bad op code %s" % op.type)
@@ -546,7 +528,7 @@ cdef class FastDoubleFunc:
                 memcpy(self.ops + i, arg.ops, sizeof(fast_double_op) * arg.nops)
                 i += arg.nops
             self.ops[self.nops-1].type = PY_FUNC
-            self.ops[self.nops-1].params.func = <void *>py_func
+            self.ops[self.nops-1].params.func = <PyObject*>py_func
 
         else:
             raise ValueError("Unknown operation: %s" % type)
@@ -1219,7 +1201,7 @@ cdef class FastDoubleFunc:
 
     cdef FastDoubleFunc cfunc(FastDoubleFunc self, void* func):
         cdef FastDoubleFunc feval = self.unop(ONE_ARG_FUNC)
-        feval.ops[feval.nops - 1].params.func = func
+        feval.ops[feval.nops - 1].params.func = <PyObject*>func
         feval.allocate_stack()
         return feval
 
@@ -1422,7 +1404,7 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
 
     cdef int i
     for i from 0 <= i < len(vars):
-        if not PY_TYPE_CHECK(vars[i], str):
+        if not isinstance(vars[i], str):
             v = str(vars[i])
             # inexact generators display as 1.00..0*x
             if '*' in v:
@@ -1455,4 +1437,4 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
 
 
 def is_fast_float(x):
-    return PY_TYPE_CHECK(x, FastDoubleFunc) or PY_TYPE_CHECK(x, Wrapper)
+    return isinstance(x, FastDoubleFunc) or isinstance(x, Wrapper)

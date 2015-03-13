@@ -48,7 +48,7 @@ cdef class Fmpz_poly(SageObject):
         cdef Py_ssize_t i
         cdef long c
         cdef Integer w
-        if PY_TYPE_CHECK(v, str):
+        if isinstance(v, str):
             if not fmpz_poly_set_str(self.poly, v):
                 return
             else:
@@ -82,7 +82,7 @@ cdef class Fmpz_poly(SageObject):
             sage: f[2] == 10**100000
             True
         """
-        if PY_TYPE_CHECK(value, Integer) :
+        if isinstance(value, Integer) :
             fmpz_poly_set_coeff_mpz(self.poly, i, (<Integer>value).value)
         else :
             fmpz_poly_set_coeff_si(self.poly, i, value)
@@ -160,7 +160,7 @@ cdef class Fmpz_poly(SageObject):
             sage: Fmpz_poly([1,2,3]) + Fmpz_poly(range(6))
             6  1 3 5 3 4 5
         """
-        if not PY_TYPE_CHECK(left, Fmpz_poly) or not PY_TYPE_CHECK(right, Fmpz_poly):
+        if not isinstance(left, Fmpz_poly) or not isinstance(right, Fmpz_poly):
             raise TypeError
         cdef Fmpz_poly res = <Fmpz_poly>Fmpz_poly.__new__(Fmpz_poly)
         fmpz_poly_add(res.poly, (<Fmpz_poly>left).poly, (<Fmpz_poly>right).poly)
@@ -176,7 +176,7 @@ cdef class Fmpz_poly(SageObject):
             sage: Fmpz_poly([10,2,3]) - Fmpz_poly([4,-2,1])
             3  6 4 2
         """
-        if not PY_TYPE_CHECK(left, Fmpz_poly) or not PY_TYPE_CHECK(right, Fmpz_poly):
+        if not isinstance(left, Fmpz_poly) or not isinstance(right, Fmpz_poly):
             raise TypeError
         cdef Fmpz_poly res = <Fmpz_poly>Fmpz_poly.__new__(Fmpz_poly)
         fmpz_poly_sub(res.poly, (<Fmpz_poly>left).poly, (<Fmpz_poly>right).poly)
@@ -217,14 +217,14 @@ cdef class Fmpz_poly(SageObject):
             3  5 0 -5
         """
         cdef Fmpz_poly res = <Fmpz_poly>Fmpz_poly.__new__(Fmpz_poly)
-        if not PY_TYPE_CHECK(left, Fmpz_poly) or not PY_TYPE_CHECK(right, Fmpz_poly):
-            if PY_TYPE_CHECK(left, int) :
+        if not isinstance(left, Fmpz_poly) or not isinstance(right, Fmpz_poly):
+            if isinstance(left, int) :
                 fmpz_poly_scalar_mul_si(res.poly, (<Fmpz_poly>right).poly, left)
-            elif PY_TYPE_CHECK(left, Integer) :
+            elif isinstance(left, Integer) :
                 fmpz_poly_scalar_mul_mpz(res.poly, (<Fmpz_poly>right).poly, (<Integer>left).value)
-            elif  PY_TYPE_CHECK(right, int) :
+            elif  isinstance(right, int) :
                 fmpz_poly_scalar_mul_si(res.poly, (<Fmpz_poly>left).poly, right)
-            elif PY_TYPE_CHECK(right, Integer) :
+            elif isinstance(right, Integer) :
                 fmpz_poly_scalar_mul_mpz(res.poly, (<Fmpz_poly>left).poly, (<Integer>right).value)
             else:
                 raise TypeError
@@ -249,7 +249,7 @@ cdef class Fmpz_poly(SageObject):
             1427247692705959881058285969449495136382746624
         """
         cdef long nn = n
-        if not PY_TYPE_CHECK(self, Fmpz_poly):
+        if not isinstance(self, Fmpz_poly):
             raise TypeError
         cdef Fmpz_poly res = <Fmpz_poly>Fmpz_poly.__new__(Fmpz_poly)
         fmpz_poly_pow(res.poly, (<Fmpz_poly>self).poly, nn)
@@ -292,7 +292,7 @@ cdef class Fmpz_poly(SageObject):
             sage: f^4
             9  81 432 1404 2928 4486 4880 3900 2000 625
         """
-        if not PY_TYPE_CHECK(left, Fmpz_poly) or not PY_TYPE_CHECK(right, Fmpz_poly):
+        if not isinstance(left, Fmpz_poly) or not isinstance(right, Fmpz_poly):
             raise TypeError
         cdef Fmpz_poly res = <Fmpz_poly>Fmpz_poly.__new__(Fmpz_poly)
         fmpz_poly_div(res.poly, (<Fmpz_poly>left).poly, (<Fmpz_poly>right).poly)

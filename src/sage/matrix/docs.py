@@ -340,7 +340,6 @@ Class Diagram (an x means that class is currently supported)::
     x  Matrix_dense
     x     Matrix_generic_dense
     x     Matrix_integer_dense
-          Matrix_integer_2x2_dense
     x     Matrix_rational_dense
           Matrix_cyclo_dense    -- idea: restrict scalars to QQ, compute charpoly there, then factor
     x     Matrix_modn_dense
@@ -355,9 +354,6 @@ are named
 ::
 
               [matrix] [base ring] [dense or sparse].
-
-See the files ``matrix_template.pxd`` and
-``matrix_template.pyx``.
 
 ::
 

@@ -1,3 +1,5 @@
+"Cremona modular symbols"
+
 from mat cimport MatrixFactory
 
 cdef MatrixFactory MF = MatrixFactory()

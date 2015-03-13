@@ -51,8 +51,8 @@ cdef class Polynomial_GF2X(Polynomial_template):
             0
         """
         try:
-            if (PY_TYPE_CHECK(x, int)
-                or PY_TYPE_CHECK(x, Integer)):
+            if (isinstance(x, int)
+                or isinstance(x, Integer)):
                 x = int(x % 2)
             elif (x.parent() is parent.base_ring()
                 or x.parent() == parent.base_ring()):

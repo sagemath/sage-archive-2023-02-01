@@ -472,7 +472,7 @@ cdef class NCPolynomialRing_plural(Ring):
         if(_ring != currRing): rChangeCurrRing(_ring)
 
 
-        if PY_TYPE_CHECK(element, NCPolynomial_plural):
+        if isinstance(element, NCPolynomial_plural):
 
             if element.parent() is <object>self:
                 return element
@@ -480,7 +480,7 @@ cdef class NCPolynomialRing_plural(Ring):
                 # is this safe?
                 _p = p_Copy((<NCPolynomial_plural>element)._poly, _ring)
 
-        elif PY_TYPE_CHECK(element, CommutativeRingElement):
+        elif isinstance(element, CommutativeRingElement):
             # base ring elements
             if  <Parent>element.parent() is base_ring:
                 # shortcut for GF(p)
@@ -504,7 +504,7 @@ cdef class NCPolynomialRing_plural(Ring):
                 _p = p_NSet(_n, _ring)
 
         # Accepting int
-        elif PY_TYPE_CHECK(element, int):
+        elif isinstance(element, int):
             if isinstance(base_ring, FiniteField_prime_modn):
                 _p = p_ISet(int(element) % _ring.ch,_ring)
             else:
@@ -512,7 +512,7 @@ cdef class NCPolynomialRing_plural(Ring):
                 _p = p_NSet(_n, _ring)
 
         # and longs
-        elif PY_TYPE_CHECK(element, long):
+        elif isinstance(element, long):
             if isinstance(base_ring, FiniteField_prime_modn):
                 element = element % self.base_ring().characteristic()
                 _p = p_ISet(int(element),_ring)
@@ -1181,7 +1181,7 @@ cdef class NCPolynomialRing_plural(Ring):
             return f,f
 
         for g in G:
-            if PY_TYPE_CHECK(g, NCPolynomial_plural) \
+            if isinstance(g, NCPolynomial_plural) \
                    and (<NCPolynomial_plural>g) \
                    and p_LmDivisibleBy((<NCPolynomial_plural>g)._poly, m, r):
                 flt = pDivide(f._poly, (<NCPolynomial_plural>g)._poly)
@@ -1725,7 +1725,7 @@ cdef class NCPolynomial_plural(RingElement):
 
         if(r != currRing): rChangeCurrRing(r)
 
-        if PY_TYPE_CHECK(I, NCPolynomialIdeal):
+        if isinstance(I, NCPolynomialIdeal):
             try:
                 strat = I._groebner_strategy()
                 return strat.normal_form(self)
@@ -1735,7 +1735,7 @@ cdef class NCPolynomial_plural(RingElement):
 
         _I = idInit(len(I),1)
         for f in I:
-            if not (PY_TYPE_CHECK(f,NCPolynomial_plural) \
+            if not (isinstance(f, NCPolynomial_plural) \
                    and <NCPolynomialRing_plural>(<NCPolynomial_plural>f)._parent is parent):
                 try:
                     f = parent._coerce_c(f)
@@ -2041,7 +2041,7 @@ cdef class NCPolynomial_plural(RingElement):
         for i from 0<=i<gens:
             exps[i] = -1
 
-        if PY_TYPE_CHECK(degrees, NCPolynomial_plural) and self._parent is (<NCPolynomial_plural>degrees)._parent:
+        if isinstance(degrees, NCPolynomial_plural) and self._parent is (<NCPolynomial_plural>degrees)._parent:
             _degrees = (<NCPolynomial_plural>degrees)._poly
             if pLength(_degrees) != 1:
                 raise TypeError("degrees must be a monomial")
@@ -2255,9 +2255,9 @@ cdef class NCPolynomial_plural(RingElement):
         cdef ring *r = (<NCPolynomialRing_plural>self._parent)._ring
         cdef int i
 
-        if PY_TYPE_CHECK(x, NCPolynomial_plural):
+        if isinstance(x, NCPolynomial_plural):
             return self.monomial_coefficient(x)
-        if not PY_TYPE_CHECK(x, tuple):
+        if not isinstance(x, tuple):
             try:
                 x = tuple(x)
             except TypeError:

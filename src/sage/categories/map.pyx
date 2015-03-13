@@ -119,7 +119,7 @@ cdef class Map(Element):
               To:   Symmetric group of order 6! as a permutation group
         """
         if codomain is not None:
-            if PY_TYPE_CHECK(parent, type):
+            if isinstance(parent, type):
                 parent = Set_PythonType(parent)
             parent = homset.Hom(parent, codomain)
         elif not isinstance(parent, homset.Homset):

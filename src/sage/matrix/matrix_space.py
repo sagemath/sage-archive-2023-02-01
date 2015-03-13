@@ -24,10 +24,18 @@ TESTS::
     [0 0]
 """
 
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
 # System imports
 import sys
 import types
-import weakref
 import operator
 
 # Sage matrix imports
@@ -48,32 +56,18 @@ import matrix_rational_sparse
 
 import matrix_mpolynomial_dense
 
-#import padics.matrix_padic_capped_relative_dense
-
-## import matrix_cyclo_dense
-## import matrix_cyclo_sparse
-
 
 # Sage imports
 from sage.misc.superseded import deprecation
 import sage.structure.coerce
 import sage.structure.parent_gens as parent_gens
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.all import ZZ
-import sage.rings.ring as ring
-import sage.rings.rational_field as rational_field
-import sage.rings.integer_ring as integer_ring
 import sage.rings.integer as integer
-import sage.rings.field as field
-import sage.rings.principal_ideal_domain as principal_ideal_domain
-import sage.rings.integral_domain as integral_domain
 import sage.rings.number_field.all
 import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.finite_rings.constructor
 import sage.rings.polynomial.multi_polynomial_ring_generic
 import sage.misc.latex as latex
-import sage.misc.mrange
-import sage.modules.free_module_element
 import sage.modules.free_module
 from sage.structure.sequence import Sequence
 
@@ -84,6 +78,7 @@ from sage.categories.fields import Fields
 
 _Rings = Rings()
 _Fields = Fields()
+
 
 def is_MatrixSpace(x):
     """
@@ -102,7 +97,6 @@ def is_MatrixSpace(x):
         sage: is_MatrixSpace(5)
         False
     """
-
     return isinstance(x, MatrixSpace)
 
 
@@ -1704,3 +1698,15 @@ def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
     assert(inv == m1)
     if checkrank:
         assert(m1.rank() == 1)
+
+
+# Fix unpickling Matrix_modn_dense and Matrix_integer_2x2
+from sage.matrix.matrix_modn_dense_double import Matrix_modn_dense_double
+from sage.matrix.matrix_integer_dense import Matrix_integer_dense
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.matrix.matrix_modn_dense',
+    'Matrix_modn_dense', Matrix_modn_dense_double)
+register_unpickle_override('sage.matrix.matrix_integer_2x2',
+    'Matrix_integer_2x2', Matrix_integer_dense)
+register_unpickle_override('sage.matrix.matrix_integer_2x2',
+    'MatrixSpace_ZZ_2x2_class', MatrixSpace)

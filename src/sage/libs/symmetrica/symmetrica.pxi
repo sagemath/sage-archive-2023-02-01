@@ -838,7 +838,7 @@ cdef object _op_polynom(object d, OP res):
 
     poly_ring = d.parent()
 
-    if not PY_TYPE_CHECK(poly_ring, MPolynomialRing_generic):
+    if not isinstance(poly_ring, MPolynomialRing_generic):
         raise TypeError, "you must pass a multivariate polynomial"
     base_ring = poly_ring.base_ring()
 

@@ -27,6 +27,7 @@ from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring cimport IntegerRing_class
 
+from sage.libs.ntl.ntl_ZZ cimport PyLong_to_ZZ
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
@@ -94,14 +95,14 @@ cdef class ntl_ZZ_pE:
 
         AUTHOR: David Roe (2007-9-25)
         """
-        if PY_TYPE_CHECK( modulus, ntl_ZZ_pEContext_class ):
+        if isinstance(modulus, ntl_ZZ_pEContext_class):
             self.c = <ntl_ZZ_pEContext_class>modulus
-        elif PY_TYPE_CHECK( modulus, ntl_ZZ_pX ):
+        elif isinstance(modulus, ntl_ZZ_pX):
             modulus.get_modulus_context().restore()
             self.c = <ntl_ZZ_pEContext_class>ntl_ZZ_pEContext(<ntl_ZZ_pX>modulus)
-        elif PY_TYPE_CHECK(v, ntl_ZZ_pE):
+        elif isinstance(v, ntl_ZZ_pE):
             self.c = (<ntl_ZZ_pE>v).c
-        elif PY_TYPE_CHECK(v, tuple) and len(v) == 2 and PY_TYPE_CHECK(v[1], ntl_ZZ_pEContext_class):
+        elif isinstance(v, tuple) and len(v) == 2 and isinstance(v[1], ntl_ZZ_pEContext_class):
             self.c = v[1]
             v = v[0]
         else:
@@ -112,15 +113,15 @@ cdef class ntl_ZZ_pE:
         cdef ntl_ZZ_pX tmp_zzpx
         if v is not None:
             sig_on()
-            if PY_TYPE_CHECK(v, ntl_ZZ_pE):
+            if isinstance(v, ntl_ZZ_pE):
                 if (<ntl_ZZ_pE>v).c is not self.c:
                     raise ValueError, "You cannot cast between rings with different moduli"
                 self.x = (<ntl_ZZ_pE>v).x
-            elif PY_TYPE_CHECK(v, ntl_ZZ_pX):
+            elif isinstance(v, ntl_ZZ_pX):
                 if (<ntl_ZZ_pX>v).c is not self.c.pc:
                     raise ValueError, "You cannot cast between rings with different moduli"
                 self.x = ZZ_pX_to_ZZ_pE((<ntl_ZZ_pX>v).x)
-            elif PY_TYPE_CHECK(v, list) or PY_TYPE_CHECK(v, tuple):
+            elif isinstance(v, list) or isinstance(v, tuple):
                 tmp_zzpx = <ntl_ZZ_pX>ntl_ZZ_pX(v, self.c.pc)
                 # random values without the following restore call
                 # surely because the above call restore things and breaks the modulus
@@ -128,14 +129,14 @@ cdef class ntl_ZZ_pE:
                 self.x = ZZ_pX_to_ZZ_pE(tmp_zzpx.x)
             elif PyInt_Check(v):
                 self.x = long_to_ZZ_pE(v)
-            elif PY_TYPE_CHECK(v, ntl_ZZ_p):
+            elif isinstance(v, ntl_ZZ_p):
                 self.x = ZZ_p_to_ZZ_pE((<ntl_ZZ_p>v).x)
             elif PyLong_Check(v):
-                ZZ_set_pylong(temp, v)
+                PyLong_to_ZZ(&temp, v)
                 self.x = ZZ_to_ZZ_pE(temp)
-            elif PY_TYPE_CHECK(v, ntl_ZZ):
+            elif isinstance(v, ntl_ZZ):
                 self.x = ZZ_to_ZZ_pE((<ntl_ZZ>v).x)
-            elif PY_TYPE_CHECK(v, Integer):
+            elif isinstance(v, Integer):
                 (<Integer>v)._to_ZZ(&temp)
                 self.x = ZZ_to_ZZ_pE(temp)
             else:
@@ -160,7 +161,7 @@ cdef class ntl_ZZ_pE:
         if modulus is None:
             ZZ_pE_construct(&self.x)
             return
-        if PY_TYPE_CHECK( modulus, ntl_ZZ_pEContext_class ):
+        if isinstance(modulus, ntl_ZZ_pEContext_class):
             self.c = <ntl_ZZ_pEContext_class>modulus
             self.c.restore_c()
             ZZ_pE_construct(&self.x)
@@ -243,7 +244,7 @@ cdef class ntl_ZZ_pE:
     def __mul__(ntl_ZZ_pE self, other):
         cdef ntl_ZZ_pE y
         cdef ntl_ZZ_pE r = self._new()
-        if not PY_TYPE_CHECK(other, ntl_ZZ_pE):
+        if not isinstance(other, ntl_ZZ_pE):
             other = ntl_ZZ_pE(other,self.c)
         elif self.c is not (<ntl_ZZ_pE>other).c:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
@@ -253,7 +254,7 @@ cdef class ntl_ZZ_pE:
         return r
 
     def __sub__(ntl_ZZ_pE self, other):
-        if not PY_TYPE_CHECK(other, ntl_ZZ_pE):
+        if not isinstance(other, ntl_ZZ_pE):
             other = ntl_ZZ_pE(other,self.c)
         elif self.c is not (<ntl_ZZ_pE>other).c:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
@@ -265,7 +266,7 @@ cdef class ntl_ZZ_pE:
     def __add__(ntl_ZZ_pE self, other):
         cdef ntl_ZZ_pE y
         cdef ntl_ZZ_pE r = self._new()
-        if not PY_TYPE_CHECK(other, ntl_ZZ_pE):
+        if not isinstance(other, ntl_ZZ_pE):
             other = ntl_ZZ_pE(other,modulus=self.c)
         elif self.c is not (<ntl_ZZ_pE>other).c:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."

@@ -1,5 +1,6 @@
 include 'decl.pxi'
 
+from sage.libs.gmp.types cimport *
 from sage.libs.flint.types cimport fmpz_mat_t
 from sage.structure.parent_base cimport ParentWithBase
 cimport cython
@@ -38,3 +39,6 @@ cdef class PariInstance(PariInstance_auto):
     cdef gen rational_matrix(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc)
 
 cdef PariInstance pari_instance
+
+cdef void INT_to_mpz(mpz_ptr value, GEN g)
+cdef void INTFRAC_to_mpq(mpq_ptr value, GEN g)

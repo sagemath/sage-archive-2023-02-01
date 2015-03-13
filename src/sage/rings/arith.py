@@ -13,19 +13,20 @@ Miscellaneous arithmetic functions
 
 import math
 
-from sage.misc.misc import union, powerset
+from sage.misc.misc import powerset
 from sage.misc.misc_c import prod
 
 from sage.libs.pari.all import pari
 import sage.libs.flint.arith as flint_arith
 
-from sage.structure.element import parent, get_coercion_model
+from sage.structure.element import parent
+from sage.structure.coerce import py_scalar_to_element
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer, GCD_list, LCM_list
 from sage.rings.rational import Rational
-from sage.rings.real_mpfr import RealNumber, RealLiteral
+from sage.rings.real_mpfr import RealNumber
 from sage.rings.complex_number import ComplexNumber
 
 import fast_arith
@@ -167,7 +168,9 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
 
     x = ZZ['x'].gen()
 
-    if isinstance(z, (int, long, Integer)):
+    z = py_scalar_to_element(z)
+
+    if isinstance(z, Integer):
         if height_bound and abs(z) >= height_bound:
             return None
         return x - ZZ(z)
@@ -178,13 +181,6 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         if height_bound and max(abs(z.denominator()), abs(z.numerator())) >= height_bound:
             return None
         return z.denominator()*x - z.numerator()
-
-    if isinstance(z, float):
-        from sage.rings.all import RR
-        z = RR(z)
-    elif isinstance(z, complex):
-        from sage.rings.all import CC
-        z = CC(z)
 
     if isinstance(z, (RealNumber, ComplexNumber)):
 
@@ -716,12 +712,12 @@ def prime_powers(start, stop=None):
         sage: prime_powers("foo")
         Traceback (most recent call last):
         ...
-        TypeError: start must be an integer, foo is not an integer
+        TypeError: unable to convert 'foo' to an integer
 
         sage: prime_powers(6, "bar")
         Traceback (most recent call last):
         ...
-        TypeError: stop must be an integer, bar is not an integer
+        TypeError: unable to convert 'bar' to an integer
 
     Check that long input are accepted (:trac:`17852`)::
 
@@ -730,20 +726,14 @@ def prime_powers(start, stop=None):
         sage: prime_powers(6l,10l)
         [7, 8, 9]
     """
-    # ensure that both inputs are integers
-    if isinstance(start, (int,long)):
-        start = Integer(start)
-    elif not isinstance(start, Integer):
-        raise TypeError("start must be an integer, {} is not an integer".format(start))
+    start = ZZ(start)
 
     ZZ_2 = Integer(2)
     if stop is None:
         stop = start
         start = ZZ_2
-    elif isinstance(stop, (int,long)):
-        stop = Integer(stop)
-    elif not isinstance(stop, Integer):
-        raise TypeError("stop must be an integer, {} is not an integer".format(stop))
+    else:
+        stop = ZZ(stop)
 
     if stop <= ZZ_2 or start >= stop:
         return []
@@ -785,7 +775,7 @@ def primes_first_n(n, leave_pari=False):
         raise ValueError("n must be nonnegative")
     if n < 1:
         return []
-    return fast_arith.prime_range(pari.nth_prime(n) + 1)
+    return fast_arith.prime_range(nth_prime(n) + 1)
 
 #
 # This is from
@@ -921,7 +911,7 @@ def primes(start, stop=None, proof=None):
         stop = ZZ(stop)
     n = start - 1
     while True:
-        n = next_prime(n, proof)
+        n = n.next_prime(proof)
         if n < stop:
             yield n
         else:
@@ -1018,10 +1008,7 @@ def next_prime(n, proof=None):
         sage: next_prime(2004)
         2011
     """
-    try:
-        return n.next_prime(proof)
-    except AttributeError:
-        return ZZ(n).next_prime(proof)
+    return ZZ(n).next_prime(proof)
 
 def previous_prime(n):
     """
@@ -1514,16 +1501,14 @@ def gcd(a, b=None, **kwargs):
     """
     # Most common use case first:
     if b is not None:
-        cm = get_coercion_model()
-        a,b = cm.canonical_coercion(a,b)
         try:
-            GCD = a.gcd
-        except AttributeError:
-            try:
-                return ZZ(a).gcd(ZZ(b))
-            except TypeError:
-                raise TypeError("unable to find gcd")
-        return GCD(b, **kwargs)
+            return a.gcd(b, **kwargs)
+        except (AttributeError, TypeError):
+            pass
+        try:
+            return ZZ(a).gcd(ZZ(b))
+        except TypeError:
+            raise TypeError("unable to find gcd")
 
     from sage.structure.sequence import Sequence
     seq = Sequence(a)
@@ -1656,19 +1641,23 @@ def lcm(a, b=None):
         ...
         TypeError: unable to find lcm
 
+    Check rational and integers (:trac:`17852`)::
+
+        sage: lcm(1/2, 4)
+        4
+        sage: lcm(4, 1/2)
+        4
     """
     # Most common use case first:
     if b is not None:
-        cm = get_coercion_model()
-        a,b = cm.canonical_coercion(a,b)
         try:
-            LCM = a.lcm
-        except AttributeError:
-            try:
-                return ZZ(a).lcm(ZZ(b))
-            except TypeError:
-                raise TypeError("unable to find lcm")
-        return LCM(b)
+            return a.lcm(b)
+        except (AttributeError,TypeError):
+            pass
+        try:
+            return ZZ(a).lcm(ZZ(b))
+        except TypeError:
+            raise TypeError("unable to find lcm")
 
     from sage.structure.sequence import Sequence
     seq = Sequence(a)
@@ -3029,7 +3018,7 @@ def binomial(x, m, **kwds):
 
     .. math::
 
-                \binom{x}{m} = x (x-1) \cdots (x-m+1) / m!
+        \binom{x}{m} = x (x-1) \cdots (x-m+1) / m!
 
 
     which is defined for `m \in \ZZ` and any
@@ -3038,7 +3027,7 @@ def binomial(x, m, **kwds):
 
     .. math::
 
-        \binom{x}{m}= \binom{x}{x-m}
+        \binom{x}{m} = \binom{x}{x-m}
 
     If `m < 0`, return `0`.
 
@@ -3077,9 +3066,11 @@ def binomial(x, m, **kwds):
         sage: binomial(2^100, 2^100)
         1
 
-        sage: k, i = var('k,i')
-        sage: binomial(k,i)
-        binomial(k, i)
+        sage: x = polygen(ZZ)
+        sage: binomial(x, 3)
+        1/6*x^3 - 1/2*x^2 + 1/3*x
+        sage: binomial(x, x-3)
+        1/6*x^3 - 1/2*x^2 + 1/3*x
 
     If `x \in \ZZ`, there is an optional 'algorithm' parameter, which
     can be 'mpir' (faster for small values) or 'pari' (faster for
@@ -3120,61 +3111,72 @@ def binomial(x, m, **kwds):
         sage: a = binomial(float(1001), float(1)); a
         1001.0
         sage: type(a)
-        <type 'float'>
+        <type 'sage.rings.real_double.RealDoubleElement'>
         sage: binomial(float(1000), 1001)
         0.0
 
     Test symbolic and uni/multivariate polynomials::
 
-        sage: K.<x> = ZZ[]
-        sage: binomial(x,3)
+        sage: x = polygen(ZZ)
+        sage: binomial(x, 3)
         1/6*x^3 - 1/2*x^2 + 1/3*x
-        sage: binomial(x,3).parent()
+        sage: binomial(x, 3).parent()
         Univariate Polynomial Ring in x over Rational Field
+
         sage: K.<x,y> = Integers(7)[]
         sage: binomial(y,3)
         -y^3 + 3*y^2 - 2*y
         sage: binomial(y,3).parent()
         Multivariate Polynomial Ring in x, y over Ring of integers modulo 7
+
         sage: n = var('n')
         sage: binomial(n,2)
         1/2*(n - 1)*n
+
+    Invalid inputs::
+
+        sage: x = polygen(ZZ)
+        sage: binomial(x, x^2)
+        Traceback (most recent call last):
+        ...
+        TypeError: either m or x-m must be an integer
+
+        sage: k, i = var('k,i')
+        sage: binomial(k,i)
+        Traceback (most recent call last):
+        ...
+        TypeError: either m or x-m must be an integer
     """
-    if isinstance(x, (int,long)):
-        x = ZZ(x)
-
-    # the following works for most common cases, i.e. integers and symbolic
-    # expressions
-    try:
-        return x.binomial(m, **kwds)
-    except AttributeError:
-        pass
-
+    x = py_scalar_to_element(x)
     P = parent(x)
 
     try:
         m = ZZ(m)
     except TypeError:
-        pass
+        try:
+            m = ZZ(x-m)
+        except TypeError:
+            raise TypeError("either m or x-m must be an integer")
 
     try:
         x = ZZ(x)
     except TypeError:
         pass
 
-    if isinstance(x, (float, complex, RealNumber, RealLiteral, ComplexNumber)):
-        # currently, only pari knows how to compute this!
-        return P(pari(x).binomial(m))
-
     try:
-        return P(1) * x.binomial(m, **kwds)
+        return P(x.binomial(m, **kwds))
     except (AttributeError,TypeError):
         pass
 
-    if m < 0:
+
+    if isinstance(x, (RealNumber, ComplexNumber)):
+        # currently, only pari knows how to compute this!
+        return P(pari(x).binomial(m))
+
+    if m < ZZ.zero():
         return P(0)
 
-    return prod(x-i for i in xrange(m)) / factorial(m)
+    return prod(x-i for i in xrange(m)) / m.factorial()
 
 def multinomial(*ks):
     r"""
@@ -4072,7 +4074,7 @@ def hilbert_conductor(a, b):
     """
     a, b = ZZ(a), ZZ(b)
     d = ZZ(1)
-    for p in union(union( [2], prime_divisors(a) ), prime_divisors(b) ):
+    for p in set().union([2], prime_divisors(a), prime_divisors(b)):
         if hilbert_symbol(a, b, p) == -1:
             d *= p
     return d
@@ -5039,10 +5041,19 @@ def squarefree_divisors(x):
         sage: list(squarefree_divisors(12))
         [1, 2, 3, 6]
 
+    TESTS:
+
+    Check that the first divisor (i.e. `1`) is a Sage integer (see
+    :trac:`17852`)::
+
+        sage: a = squarefree_divisors(14).next()
+        sage: a
+        1
+        sage: type(a)
+        <type 'sage.rings.integer.Integer'>
     """
-    p_list = prime_divisors(x)
-    for a in powerset(p_list):
-        yield prod(a,1)
+    for a in powerset(prime_divisors(x)):
+        yield prod(a, ZZ.one())
 
 def dedekind_sum(p, q, algorithm='default'):
     r"""

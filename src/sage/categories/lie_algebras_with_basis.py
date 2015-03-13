@@ -98,6 +98,9 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             enveloping algebra corresponding to ``self``.
 
             EXAMPLES::
+
+                sage: L = lie_algebras.sl(QQ, 2)
+                sage: PBW = L.pbw_basis()
             """
             from sage.algebras.lie_algebras.poincare_birkhoff_witt \
                 import PoincareBirkhoffWittBasis

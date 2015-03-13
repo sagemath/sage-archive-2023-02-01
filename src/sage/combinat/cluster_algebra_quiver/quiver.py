@@ -1605,9 +1605,11 @@ class ClusterQuiver(SageObject):
             5
 
             sage: F = ClusterQuiver(['A',3]).fan(); F
-            Rational polyhedral fan in 2-d lattice N
+            Rational polyhedral fan in 3-d lattice N
             sage: F.ngenerating_cones()
             14
+            sage: F.is_smooth()
+            True
 
         TESTS::
 

@@ -95,7 +95,7 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     class ElementMethods:
         def _bracket_(self, y):
             """
-            Return the Lie bracket of ``[self, y]``.
+            Return the Lie bracket ``[self, y]``.
 
             EXAMPLES::
 

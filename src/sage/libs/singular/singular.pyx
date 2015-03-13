@@ -718,7 +718,9 @@ cdef init_libsingular():
         if os.path.exists(lib):
             handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
             if not handle:
-                print dlerror()
+                err = dlerror()
+                if err:
+                    print err
             break
 
     if handle == NULL:

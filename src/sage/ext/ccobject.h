@@ -14,7 +14,7 @@
  * @author Joel B. Mohler <joel@kiwistrawberry.us>
  *
  * @brief These functions provide assistance for constructing and destructing
- *  C++ objects from pyrex.
+ *  C++ objects from Cython.
  *
  */
 
@@ -108,6 +108,4 @@ PyObject* _to_PyString(const T *x)
 
 #endif
 
-#endif // ndef __SAGE_CCOBJECT_H__
-
-
+#endif /* ifndef __SAGE_CCOBJECT_H__ */

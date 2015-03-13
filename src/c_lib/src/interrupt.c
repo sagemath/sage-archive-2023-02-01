@@ -40,7 +40,6 @@ AUTHORS:
 #ifdef __linux__
 #include <sys/prctl.h>
 #endif
-#include "stdsage.h"
 #include "interrupt.h"
 
 

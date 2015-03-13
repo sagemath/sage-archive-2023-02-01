@@ -30,7 +30,7 @@ class LieAlgebraFromAssociative(Parent, UniqueRepresentation):
 
     INPUT:
 
-    - ``R`` -- base ring
+    - ``gens`` -- a set of elements of an associative algebra
 
     EXAMPLES:
 

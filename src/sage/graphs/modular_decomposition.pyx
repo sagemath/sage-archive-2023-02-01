@@ -69,13 +69,13 @@ cpdef modular_decomposition(g):
 
     The Bull Graph is prime::
 
-        sage: from sage.graphs.modular_decomposition.modular_decomposition import modular_decomposition
-        sage: modular_decomposition(graphs.BullGraph())
+        sage: from sage.graphs.modular_decomposition import modular_decomposition # optional -- modular_decomposition
+        sage: modular_decomposition(graphs.BullGraph()) # optional -- modular_decomposition
         ('Prime', [3, 4, 0, 1, 2])
 
     The Petersen Graph too::
 
-        sage: modular_decomposition(graphs.PetersenGraph())
+        sage: modular_decomposition(graphs.PetersenGraph()) # optional -- modular_decomposition
         ('Prime', [2, 6, 3, 9, 7, 8, 0, 1, 5, 4])
 
     This a clique on 5 vertices with 2 pendant edges, though, has a more
@@ -84,7 +84,7 @@ cpdef modular_decomposition(g):
         sage: g = graphs.CompleteGraph(5)
         sage: g.add_edge(0,5)
         sage: g.add_edge(0,6)
-        sage: modular_decomposition(g)
+        sage: modular_decomposition(g) # optional -- modular_decomposition
         ('Serie', [0, ('Parallel', [5, ('Serie', [1, 4, 3, 2]), 6])])
 
 

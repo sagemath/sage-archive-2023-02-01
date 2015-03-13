@@ -6355,6 +6355,11 @@ class Graph(GenericGraph):
         r"""
         Returns the modular decomposition of the current graph.
 
+        .. NOTE::
+
+            In order to use this method you must install the
+            ``modular_decomposition`` optional package.
+
         Crash course on modular decomposition:
 
         A module `M` of a graph `G` is a proper subset of its vertices
@@ -6419,12 +6424,12 @@ class Graph(GenericGraph):
 
         The Bull Graph is prime::
 
-            sage: graphs.BullGraph().modular_decomposition()
+            sage: graphs.BullGraph().modular_decomposition() # optional -- modular_decomposition
             ('Prime', [3, 4, 0, 1, 2])
 
         The Petersen Graph too::
 
-            sage: graphs.PetersenGraph().modular_decomposition()
+            sage: graphs.PetersenGraph().modular_decomposition() # optional -- modular_decomposition
             ('Prime', [2, 6, 3, 9, 7, 8, 0, 1, 5, 4])
 
         This a clique on 5 vertices with 2 pendant edges, though, has a more
@@ -6433,7 +6438,7 @@ class Graph(GenericGraph):
             sage: g = graphs.CompleteGraph(5)
             sage: g.add_edge(0,5)
             sage: g.add_edge(0,6)
-            sage: g.modular_decomposition()
+            sage: g.modular_decomposition() # optional -- modular_decomposition
             ('Serie', [0, ('Parallel', [5, ('Serie', [1, 4, 3, 2]), 6])])
 
         ALGORITHM:
@@ -6469,11 +6474,15 @@ class Graph(GenericGraph):
           vol 4, number 1, pages 41--59, 2010
           http://www.lirmm.fr/~paul/md-survey.pdf
         """
+        try:
+            from sage.graphs.modular_decomposition import modular_decomposition
+        except ImportError:
+            raise RuntimeError("In order to use this method you must "
+                               "install the modular_decomposition package")
+
         self._scream_if_not_simple()
         from sage.misc.stopgap import stopgap
         stopgap("Graph.modular_decomposition is known to return wrong results",13744)
-
-        from sage.graphs.modular_decomposition.modular_decomposition import modular_decomposition
 
         D = modular_decomposition(self)
 

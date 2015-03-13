@@ -3535,6 +3535,74 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             return [x for x in TransitiveIdeal(attrcall('pred'), [self])]
 
+        def extraspecial_pair(self):
+            r"""
+            Return the extraspecial pair of ``self`` under the ordering
+            defined by
+            :meth:`~sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations.ParentMethods.positive_roots_by_height`.
+
+            The *extraspecial pair* of a positive root `\gamma` with some total
+            ordering `<` of the root lattice that respects height is the pair
+            of positive roots `(\alpha, \beta)` such that `\gamma = \alpha +
+            \beta` and `\alpha` is as small as possible.
+
+            EXAMPLES::
+
+                sage: Q = RootSystem(['G', 2]).root_lattice()
+                sage: Q.highest_root().extraspecial_pair()
+                (alpha[2], 3*alpha[1] + alpha[2])
+            """
+            if self.is_positive_root():
+                r = self
+            else:
+                r = -self
+            p_roots = self.parent().positive_roots_by_height()
+            # We won't need any roots higher than us
+            p_roots = p_roots[:p_roots.index(r)]
+            for i,a in enumerate(p_roots):
+                for b in p_roots[i+1:]:
+                    if a + b == r:
+                        return (a, b)
+            raise ValueError("Unable to find an extraspecial pair")
+
+        def height(self):
+            r"""
+            Return the hieght of ``self``.
+
+            The height of a root `\alpha = \sum_i a_i \alpha_i` is defined
+            to be `h(\alpha) := \sum_i a_i`.
+
+            EXAMPLES::
+
+                sage: Q = RootSystem(['G', 2]).root_lattice()
+                sage: Q.highest_root().height()
+                5
+            """
+            return sum(self.coefficients())
+
+        def norm_squared(self):
+            r"""
+            Return the norm squared of ``self``.
+
+            Given a root `\alpha \in \Phi`, we define
+
+            .. MATH::
+
+                \lVert\alpha\rVert^2 = (\alpha, \alpha) = \sum_{\beta\in\Phi}
+                \lvert\langle \alpha, \beta^{\vee} \rangle\rvert^2
+
+            where `(\alpha, \beta)` can be though of as the usual Euclidean
+            inner product in the ambient space.
+
+            EXAMPLES::
+
+                sage: Q = RootSystem(['G', 2]).root_lattice()
+                sage: Q.highest_root().norm_squared()
+                48
+            """
+            L = self.parent().root_system.ambient_space()
+            return L(self).scalar(L(self))
+
         ##########################################################################
         # Level
         ##########################################################################

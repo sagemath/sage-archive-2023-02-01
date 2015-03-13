@@ -64,15 +64,13 @@ cdef int sig_raise_exception(int sig, const char* msg) except 0:
     """
     if sig == SIGHUP or sig == SIGTERM:
         # Redirect stdin from /dev/null to close interactive sessions
-        freopen("/dev/null", "r", stdin);
+        freopen("/dev/null", "r", stdin)
         # This causes Python to exit
         raise SystemExit
     if sig == SIGINT:
         raise KeyboardInterrupt
     if sig == SIGALRM:
-        if msg == NULL:
-            msg = ""
-        raise AlarmInterrupt(msg)
+        raise AlarmInterrupt
     if sig == SIGILL:
         if msg == NULL:
             msg = "Illegal instruction"
@@ -91,7 +89,7 @@ cdef int sig_raise_exception(int sig, const char* msg) except 0:
         raise SignalError(msg)
     if sig == SIGSEGV:
         if msg == NULL:
-            msg = "Segmentation fault";
+            msg = "Segmentation fault"
         raise SignalError(msg)
 
     raise SystemError("unknown signal number %s"%sig)
@@ -116,6 +114,17 @@ def do_raise_exception(sig, msg=None):
         Traceback (most recent call last):
         ...
         SystemError: unknown signal number 0
+
+    For interrupts, the message is ignored, see :trac:`17949`::
+
+        sage: do_raise_exception(signal.SIGINT, "ignored")
+        Traceback (most recent call last):
+        ...
+        KeyboardInterrupt
+        sage: do_raise_exception(signal.SIGALRM, "ignored")
+        Traceback (most recent call last):
+        ...
+        AlarmInterrupt
     """
     cdef const char* m
     if msg is None:

@@ -87,7 +87,7 @@ class SageKernel(IPythonKernel):
             sage: sk = SageKernel.__new__(SageKernel)
             sage: sk.help_links
             [{'text': 'Sage Documentation',
-              'url': '/kernelspecs/sage_6_6_beta3/doc/index.html'},
+              'url': '/kernelspecs/sage_.../doc/index.html'},
              ...]
         """
         from sage.repl.ipython_kernel.install import SageKernelSpec

@@ -208,9 +208,10 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             Return the centralizer of ``S`` in ``self``.
 
-            .. TODO::
+            INPUT:
 
-                What is S?
+            - ``S`` -- a subalgebra of ``self`` or a set of elements which
+              represent generators for a subalgebra
 
             EXAMPLES::
 

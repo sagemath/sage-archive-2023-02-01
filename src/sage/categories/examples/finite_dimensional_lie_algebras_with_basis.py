@@ -11,6 +11,7 @@ Examples of a finite dimensional Lie algebra with basis
 from sage.misc.cachefunc import cached_method
 from sage.sets.family import Family
 from sage.categories.all import LieAlgebras
+from sage.rings.all import ZZ
 from sage.modules.free_module import FreeModule
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -51,10 +52,6 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
 
     .. TODO::
 
-       Have I correctly explained these?
-
-    .. TODO::
-
        Why am I required to specify ``names`` if the actual
        elements of the Lie algebra end up being anonymous
        vectors anyway?
@@ -81,9 +78,16 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             sage: A3 = AbelianLieAlgebra(QQ, ['x','y','z'], FreeModule(QQ, 3))
             sage: A1 is A2 and A2 is A3
             True
+
+            sage: A1 = AbelianLieAlgebra(QQ, 'x0,x1')
+            sage: A2 = AbelianLieAlgebra(QQ, 2)
+            sage: A1 is A2
+            True
         """
         if isinstance(names, str):
             names = names.split(',')
+        elif names in ZZ:
+            names = ['x%s'%i for i in range(names)]
         if M is None:
             M = FreeModule(R, len(names))
         elif len(names) != M.dimension():

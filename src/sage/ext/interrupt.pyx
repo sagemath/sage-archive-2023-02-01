@@ -1,5 +1,5 @@
 r"""
-Cython interface to the interrupt handling code.
+Cython interface to the interrupt handling code
 
 See ``src/sage/tests/interrupt.pyx`` for extensive tests.
 

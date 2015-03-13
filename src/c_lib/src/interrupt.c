@@ -132,8 +132,8 @@ void sage_interrupt_handler(int sig)
     else
     {
         /* Set the Python interrupt indicator, which will cause the
-         * Python-level interrupt handler in sage/ext/c_lib.pyx to be
-         * called. */
+         * Python-level interrupt handler in sage/ext/interrupt.pyx to
+         * be called. */
         PyErr_SetInterrupt();
     }
 

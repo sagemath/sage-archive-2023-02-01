@@ -69,7 +69,7 @@ from integer_ring import ZZ
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 
 from sage.structure.element cimport Element, RingElement, ModuleElement
-from sage.structure.element import bin_op
+from sage.structure.element import bin_op, coerce_binop
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 
@@ -882,109 +882,6 @@ cdef class Rational(sage.structure.element.FieldElement):
             -17/37
         """
         return codomain._coerce_(self)
-
-    def lcm(self, Rational other):
-        r"""
-        Return the least common multiple of self and other.
-
-        One way to define this notion is the following:
-
-        Note that each rational positive rational number can be written as
-        a product of primes with integer (positive or negative) powers in a
-        unique way.
-
-        Then, the LCM of two rational numbers `x,y` can be defined by
-        specifying that the exponent of every prime `p` in ``lcm(x,y)`` is the
-        supremum of the exponents of `p` in `x`, and the exponent of `p` in `y`
-        (The primes that does not appear in the decomposition of `x` or `y` are
-        considered to have exponent zero).
-
-        This definition is consistent with the definition of the LCM in the
-        rational integers. Our hopefully interesting notion of LCM for
-        rational numbers is illustrated in the examples below.
-
-        EXAMPLES::
-
-            sage: lcm(2/3,1/5)
-            2
-
-        This is consistent with the definition above, since:
-
-        .. math::
-
-                        2/3 = 2^1 * 3^{-1}*5^0
-
-        .. math::
-
-                        1/5 = 2^0 * 3^0   *5^{-1}
-
-        and hence,
-
-        .. math::
-
-                        lcm(2/3,1/5)= 2^1*3^0*5^0 = 2.
-
-        ::
-
-            sage: lcm(2/3,7/5)
-            14
-
-        In this example:
-
-        .. math::
-
-                        2/3 = 2^1*3^{-1}*5^0    * 7^0
-
-        .. math::
-
-                        7/5 = 2^0*3^0   *5^{-1} * 7^1
-
-        .. math::
-
-                        lcm(2/3,7/5) = 2^1*3^0*5^0*7^1 = 14
-
-        ::
-
-            sage: lcm(1/3,1/5)
-            1
-
-        In this example:
-
-        .. math::
-
-                        1/3 = 3^{-1}*5^0
-
-        .. math::
-
-                        1/5 = 3^0 * 5^{-1}
-
-        .. math::
-
-                        lcm(1/3,1/5)=3^0*5^0=1
-
-        ::
-
-            sage: lcm(1/3,1/6)
-            1/3
-
-        In this example:
-
-        .. math::
-
-                        1/3 = 2^0*3^{-1}
-
-        .. math::
-
-                        1/6 = 2^{-1}*3^{-1}
-
-        .. math::
-
-                        lcm(1/3,1/6)=2^0*3^{-1}=1/3
-        """
-        d = self.denom()*other.denom()
-        self_d = self.numer()*other.denom()
-        other_d = other.numer()*self.denom()
-        return self_d.lcm(other_d) / d
 
     def content(self, other):
         """

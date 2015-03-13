@@ -131,19 +131,28 @@ class QuotientFields(Category_singleton):
                 return P.one()
 
         @coerce_binop
-        def lcm(self,other):
+        def lcm(self, other):
             """
             Least common multiple
 
-            .. NOTE::
+            In a field, the least common multiple is not very informative, as it
+            is only determined up to a unit. But in the fraction field of an
+            integral domain that provides both gcd and lcm, it is reasonable to
+            be a bit more specific and to define the least common multiple so
+            that it restricts to the usual least common multiple in the base
+            ring and is unique up to a unit of the base ring (rather than up to
+            a unit of the fraction field).
 
-                In a field, the least common multiple is not very informative,
-                as it is only determined up to a unit. But in the fraction field
-                of an integral domain that provides both gcd and lcm, it is
-                reasonable to be a bit more specific and to define the least
-                common multiple so that it restricts to the usual least common
-                multiple in the base ring and is unique up to a unit of the base
-                ring (rather than up to a unit of the fraction field).
+            The least common multiple is easily described in terms of the
+            prime decomposition. A rational number can be written as a product
+            of primes with integer (positive or negative) powers in a unique
+            way. The least common multiple of two rational numbers `x` and `y`
+            can then be defined by specifying that the exponent of every prime
+            `p` in `lcm(x,y)` is the supremum of the exponents of `p` in `x`,
+            and the exponent of `p` in `y` (where the primes that does not
+            appear in the decomposition of `x` or `y` are considered to have
+            exponent zero).
+
 
             AUTHOR:
 
@@ -151,7 +160,20 @@ class QuotientFields(Category_singleton):
 
             EXAMPLES::
 
-                sage: R.<x>=QQ[]
+                sage: lcm(2/3, 1/5)
+                2
+
+            Indeed `2/3 = 2^1 3^{-1} 5^0` and `1/5 = 2^0 3^0
+            5^{-1}`, so `lcm(2/3,1/5)= 2^1 3^0 5^0 = 2`.
+
+                sage: lcm(1/3, 1/5)
+                1
+                sage: lcm(1/3, 1/6)
+                1/3
+
+            Some more involved examples::
+
+                sage: R.<x> = QQ[]
                 sage: p = (1+x)^3*(1+2*x^2)/(1-x^5)
                 sage: q = (1+x)^2*(1+3*x^2)/(1-x^4)
                 sage: factor(p)
@@ -186,6 +208,14 @@ class QuotientFields(Category_singleton):
                 0
                 sage: lcm(R.zero(),0)
                 0
+
+            Check that it is possible to take lcm of a rational and an integer
+            (:trac:`17852`)::
+
+                sage: (1/2).lcm(2)
+                2
+                sage: type((1/2).lcm(2))
+                <type 'sage.rings.rational.Rational'>
             """
             P = self.parent()
             try:

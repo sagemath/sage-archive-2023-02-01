@@ -1,14 +1,85 @@
 r"""
 Module morphisms from a module with basis
 
-AUTHORS:
+This module contains a hierarchy of classes for modules with bases:
 
-The classes in this file were extracted of sage.categories.modules_with_basis.
+- :class:`ModuleMorphism`
+- :class:`ModuleMorphismByLinearity`
+- :class:`ModuleMorphismFromMatrix`
+- :class:`ModuleMorphismFromFunction`
+- :class:`TriangularModuleMorphism`
+- :class:`TriangularModuleMorphismByLinearity`
+- :class:`TriangularModuleMorphismFromFunction`
+
+Those are internal classes; it is strongly recommended *not* to use
+them directly, and instead to always construct morphisms through the
+:meth:`ModulesWithBasis.ParentMethods.module_morphism` method of
+domain, or through the homset; see the former for an overview
+description of the arguments.
+
+EXAMPLES::
+
+    sage: X = CombinatorialFreeModule(QQ, [1,2,3]);   x = X.basis()
+    sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4]); y = Y.basis()
+    sage: on_basis = lambda i: Y.monomial(i) + 2*Y.monomial(i+1)
+
+    sage: phi1 = X.module_morphism(on_basis, codomain = Y)
+    sage: phi1(x[1])
+    B[1] + 2*B[2]
+
+    sage: H = Hom(X,Y)
+    sage: phi2 = H(on_basis=on_basis)
+    sage: phi1 == phi2
+    True
+
+No backward compatibility is guaranteed for this one::
+
+    sage: from sage.modules.module_with_basis_morphism import ModuleMorphismByLinearity
+    sage: phi3 = ModuleMorphismByLinearity(X, on_basis, codomain=Y)
+    sage: phi3 == phi1
+    True
+
+
+.. WARNING::
+
+    The hierarchy of classes implemented in this module is one of the
+    first non trivial hierarchy of classes for morphisms. It is
+    hitting a couple scaling issues:
+
+    - There are many independent properties from which module
+      morphisms can get code (being defined by linearity, from a
+      matrix, or a function; being triangular, being diagonal,
+      ...). How to mitigate the class hierarchy growth?
+
+      This will become even more stringent as more properties are
+      added (e.g. being defined from generators for an algebra
+      morphism, ...)
+
+      Categories, whose primary purpose is to provide infrastructure
+      for handling such large hierarchy of classes, can't help at this
+      point: there is no category whose morphisms are triangular
+      morphisms, and it's not clear such a category would be sensible.
+
+    - How to properly handle ``__init__`` method calls and
+      multiple inheritance.
+
+    - Who should be in charge of setting the default category: the
+      classes themselves, or
+      :meth:`ModulesWithBasis.ParentMethods.module_morphism`.
+
+    Because of this the hierarchy of classes, and their specific APIs,
+    is likely to be refactored as better infrastructure and best
+    practices emerge.
+
+AUTHORS:
 
 - Nicolas M. Thiery (2008-2015):
 - Jason Bandlow and Florent Hivert (2010): Triangular Morphisms
 - Christian Stump (2010): :trac:`9648` module_morphism's to a wider class
   of codomains
+
+Before :trac:`8678`, this hierarchy of classes used to be in
+sage.categories.modules_with_basis, which see for the complete log.
 """
 #*****************************************************************************
 #  Copyright (C) 2015 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -32,30 +103,39 @@ from sage.structure.element import parent
 
 class ModuleMorphism(Morphism):
     """
-    An abstract base class for module morphisms
+    The top abstract base class for module with basis morphisms.
 
-    The role of this class is rather minimal:
-    - handling of the choice of the default category
-    - setting the class to inherit properly from categories
+    INPUT:
+
+    - ``domain`` -- a parent in ``ModulesWithBasis(...)``
+    - ``codomain`` -- a parent in ``Modules(...)``;
+    - ``category`` -- a category or ``None`` (default: `None``)
+
+    Construct a module morphism from ``domain`` to ``codomain`` in the
+    category ``category``. By default, the category is the first of
+    ``Modules(R).WithBasis().FiniteDimensional()``,
+    ``Modules(R).WithBasis()`` ``Modules(R)``,
+    ``CommutativeAdditiveMonoids()`` that contains both the domain and
+    the codomain.
+
+
+    The role of this class is minimal; it provides an :meth:`__init__`
+    method which::
+
+    - handles the choice of the default category
+    - handles the proper inheritance from categories by updating the
+      class of ``self`` upon construction.
+
+
     """
     def __init__(self, domain, codomain=None, category=None, affine=False):
         """
-        Construct a module morphism.
-
-        INPUT:
-
-        - ``domain`` -- a parent in ``ModulesWithBasis(...)``
-        - ``codomain`` -- a parent in ``Modules(...)``;
-
-        EXAMPLES::
+        TESTS::
 
             sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
             sage: Y = CombinatorialFreeModule(ZZ, [1, 2])
             sage: from sage.modules.module_with_basis_morphism import ModuleMorphismByLinearity
-            sage: phi = ModuleMorphismByLinearity(X, on_basis = Y.monomial * abs)
-
-        TESTS::
-
+            sage: phi = ModuleMorphismByLinearity(X, on_basis=Y.monomial * abs)
             sage: TestSuite(phi).run()
         """
         if category is None:
@@ -109,33 +189,65 @@ class ModuleMorphism(Morphism):
         if not issubclass(self.__class__, H._abstract_element_class):
             self.__class__ = H.__make_element_class__(self.__class__)
 
+class ModuleMorphismFromFunction(ModuleMorphism, SetMorphism):
+    """
+    A class for module morphisms implemented by a plain function
+
+    INPUT:
+
+    - ``domain``, ``codomain``, ``category`` --
+      As for :class:`ModuleMorphismFromFunction`, which see.
+
+    - ``matrix`` -- a matrix with base ring `R` and dimensions
+      matching that of the domain and codomain respectively
+
+    - ``side`` -- "left" or "right" (default: "left")
+
+        If ``side`` is "left", this morphism is considered as
+        acting on the left; i.e. each column of the matrix
+        represents the image of an element of the basis of the
+        domain.
+
+    - ``category`` -- a category or ``None`` (default: ``None``)
+    """
+
+    def __init__(self, domain, function, codomain=None, category=None):
+        """
+        
+
+        """
+        # Caveat: This calls Morphism.__init__ twice ...
+        ModuleMorphism.__init__(self, domain, codomain, category=category)
+        SetMorphism.__init__(self, self.parent(), function)
+
 class ModuleMorphismByLinearity(ModuleMorphism):
     """
     A class for module morphisms obtained by extending a function by linearity.
     """
-    def __init__(self, domain, on_basis = None, position = 0, zero = None, codomain = None, category = None):
+    def __init__(self, domain, on_basis=None, codomain=None, category=None,
+                 position=0, zero=None):
         """
         Construct a module morphism by linearity.
 
         INPUT:
 
         - ``domain`` -- a parent in ``ModulesWithBasis(...)``
-        - ``codomain`` -- a parent in ``Modules(...)``; defaults to
-          ``f.codomain()`` if the latter is defined
-        - ``position`` -- a non-negative integer; defaults to 0
         - ``on_basis`` -- a function which accepts indices of the basis of
           ``domain`` as ``position``-th argument (optional)
+        - ``codomain`` -- a parent in ``Modules(...)``; defaults to
+          ``on_basis.codomain()`` if the latter is defined
+        - ``position`` -- a non-negative integer; defaults to 0
         - ``zero`` -- the zero of the codomain; defaults to ``codomain.zero()``
 
-        ``on_basis`` may alternatively be provided in derived classes by
-        implementing or setting ``_on_basis``.
+        ``on_basis`` may alternatively be provided in derived classes
+        by implementing or setting the attribute ``_on_basis``.
 
         EXAMPLES::
 
             sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
             sage: Y = CombinatorialFreeModule(ZZ, [1, 2])
             sage: from sage.modules.module_with_basis_morphism import ModuleMorphismByLinearity
-            sage: phi = ModuleMorphismByLinearity(X, on_basis = Y.monomial * abs)
+            sage: phi = ModuleMorphismByLinearity(X, on_basis=Y.monomial * abs)
 
         TESTS::
 
@@ -235,12 +347,12 @@ class ModuleMorphismByLinearity(ModuleMorphism):
     # To be cleaned up
     _call_ = __call__
 
-class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity):
+class TriangularModuleMorphism(ModuleMorphism):
     r"""
-    A class for triangular module morphisms; that is, module morphisms
-    from `X` to `Y` whose representing matrix in the distinguished
-    bases of `X` and `Y` is upper triangular with invertible elements
-    on its diagonal.
+    An abstract class for triangular module morphisms; that is, module
+    morphisms from `X` to `Y` whose representing matrix in the
+    distinguished bases of `X` and `Y` is upper triangular with
+    invertible elements on its diagonal.
 
     See :meth:`ModulesWithBasis.ParentMethods.module_morphism`
 
@@ -248,8 +360,6 @@ class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity):
 
     - ``domain`` -- a module `X` with basis `F`
     - ``codomain`` -- a module `Y` with basis `G` (defaults to `X`)
-    - ``on_basis`` -- a function from the index set of the basis `F`
-      to the module `Y` which determines the morphism by linearity
     - ``unitriangular`` -- boolean (default: ``False``)
     - ``triangular`` -- (default: ``"upper"``) ``"upper"`` or ``"lower"``:
 
@@ -283,8 +393,17 @@ class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity):
 
     OUTPUT:
 
-    The triangular module morphism from `X` to `Y` which maps `F(i)`
-    to ``on_basis(i)`` and is extended by linearity.
+    A morphism from `X` to `Y`.
+
+    .. WARNING::
+
+        This class is meant to be used as complement for a concrete
+        class for how the morphism is implemented as a function.  In
+        particular, the :meth:`__init__` method focuses on setting up
+        the data structure describing the triangularity of the
+        morphism. It purposely does *not* call
+        :meth:`ModuleMorphism.__init__` which should be called
+        (directly or indirectly) before calling this method.
 
     EXAMPLES:
 
@@ -411,9 +530,8 @@ class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity):
         sage: [phi.preimage(x[i]) for i in range(1, 4)]
         [-1/3*B[1] + B[2] - 1/12*B[3], 1/4*B[3], 1/3*B[1] - 1/6*B[3]]
     """
-    def __init__(self, on_basis, domain, triangular = "upper", unitriangular=False,
-                 codomain = None, category = None, cmp = None,
-                 inverse = None, inverse_on_support = None, invertible = None):
+    def __init__(self, triangular="upper", unitriangular=False,
+                 cmp=None, inverse=None, inverse_on_support=None, invertible=None):
         """
         TESTS::
 
@@ -438,8 +556,6 @@ class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity):
             sage: loads(dumps(c)) == c
             False
         """
-        ModuleMorphismByLinearity.__init__(self, on_basis=on_basis,
-                                           domain=domain, codomain=codomain, category=category)
         if triangular == "upper":
             self._dominant_item = attrcall("leading_item",  cmp)
         else:
@@ -448,6 +564,8 @@ class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity):
         self._triangular = triangular
         self._cmp = cmp
 
+        domain = self.domain()
+        codomain = self.codomain()
         self._unitriangular = unitriangular
         self._inverse = inverse
         if inverse_on_support == "compute":
@@ -608,11 +726,12 @@ class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity):
                 self._dominant_item(self._on_basis(i))[0]
 
         if self._invertible:
-            return self.__class__( self._invert_on_basis,
-                domain = self.codomain(),               codomain = self.domain(),
-                unitriangular = self._unitriangular,  triangular = self._triangular,
-                cmp = self._cmp,
-                inverse = self,                       category = self.category_for(),
+            return self.__class__(
+                domain=self.codomain(),
+                on_basis=self._invert_on_basis,
+                codomain=self.domain(), category=self.category_for(),
+                unitriangular=self._unitriangular,  triangular=self._triangular,
+                cmp=self._cmp, inverse=self,
                 inverse_on_support=retract_dom, invertible = self._invertible)
         else:
             return SetMorphism(Hom(self.codomain(), self.domain(),
@@ -913,11 +1032,25 @@ class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity):
             sage: phipro(y[5])
             B[5]
         """
-        category = ModulesWithBasis(self.codomain().base_ring()).or_subcategory(category)
-        return SetMorphism(Hom(self.codomain(), self.codomain(), category),
-                           self.coreduced)
+        codomain = self.codomain()
+        category = ModulesWithBasis(codomain.base_ring()).or_subcategory(category)
+        return codomain.module_morphism(function=self.coreduced,
+                                        codomain=codomain, category=category)
 
     co_kernel_projection = deprecated_function_alias(8678, cokernel_projection)
+
+class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity, TriangularModuleMorphism):
+    def __init__(self, domain, on_basis, codomain=None, category=None, **keywords):
+        ModuleMorphismByLinearity.__init__(self, on_basis=on_basis,
+                                           domain=domain, codomain=codomain, category=category)
+        TriangularModuleMorphism.__init__(self, **keywords)
+
+class TriangularModuleMorphismFromFunction(ModuleMorphismFromFunction, TriangularModuleMorphism):
+    def __init__(self, domain, function, codomain=None, category=None, **keywords):
+        ModuleMorphismFromFunction.__init__(self, function=function,
+                                          domain=domain, codomain=codomain, category=category)
+        TriangularModuleMorphism.__init__(self, **keywords)
+
 
 class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
     r"""
@@ -977,7 +1110,7 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
         - Pickling: the attribute _on_basis = d.__getitem__ is not picklable.
           This is probably best implemented by pickling by construction.
     """
-    def __init__(self, matrix, domain, codomain=None, category=None, side="left"):
+    def __init__(self, domain, matrix, codomain=None, category=None, side="left"):
         r"""
         Initialize ``self``.
 
@@ -1019,7 +1152,7 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
             matrix = matrix.transpose()
         if matrix.nrows() != len(indices):
             raise ValueError("The dimension of the matrix (%s) does not match with the dimension of the domain (%s)"
-                             %(m.nrows(), len(indices)))
+                             %(matrix.nrows(), len(indices)))
         if matrix.ncols() != codomain.dimension():
             raise ValueError("The dimension of the matrix (%s) does not match with the dimension of the codomain (%s)"
                              %(matrix.ncols(), codomain.dimension()))
@@ -1069,7 +1202,7 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
         sage: phi(x[1]), phi(x[2]), phi(x[3])
         (B[1], 2*B[2], 6*B[3])
     """
-    def __init__(self, diagonal, domain, codomain = None, category = None):
+    def __init__(self, domain, diagonal, codomain = None, category = None):
         r"""
         Initialize ``self``.
 
@@ -1086,7 +1219,8 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
         assert domain.base_ring()    == codomain.base_ring()
         if category is None:
             category = ModulesWithBasis(domain.base_ring())
-        ModuleMorphismByLinearity.__init__(self, domain = domain, codomain = codomain, category = category)
+        ModuleMorphismByLinearity.__init__(
+            self, domain=domain, codomain=codomain, category=category)
         self._diagonal = diagonal
 
     def _on_basis(self, i):
@@ -1123,9 +1257,9 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
         condition is *not* tested for, so using an ill defined inverse
         morphism will trigger arithmetic errors.
         """
-        return self.__class__(
-            pointwise_inverse_function(self._diagonal),
-            domain = self.codomain(), codomain = self.domain(), category = self.category_for())
+        return self.codomain().module_morphism(
+            diagonal=pointwise_inverse_function(self._diagonal),
+            codomain=self.domain(), category = self.category_for())
 
 
 def pointwise_inverse_function(f):

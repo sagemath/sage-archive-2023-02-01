@@ -29,9 +29,11 @@ from sage.structure.element import Element, parent
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.modules.module_with_basis_morphism',
             ['ModuleMorphismByLinearity',
-             'TriangularModuleMorphismByLinearity',
+             'ModuleMorphismFromMatrix',
+             'ModuleMorphismFromFunction',
              'DiagonalModuleMorphism',
-             'ModuleMorphismFromMatrix'])
+             'TriangularModuleMorphismByLinearity',
+             'TriangularModuleMorphismFromFunction'])
 
 class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
     """
@@ -445,8 +447,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             .. WARNING::
 
-                As a temporary measure until multivariate morphism are
-                implemented, the constructed morphism is in
+                As a temporary measure, until multivariate morphism
+                are implemented, the constructed morphism is in
                 ``Hom(codomain, domain, category``). This is only
                 correct for unary functions.
 
@@ -461,29 +463,29 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             if not len([x for x in [matrix, on_basis, function, diagonal] if x is not None]) == 1:
                 raise ValueError("module_morphism() takes exactly one option out of `matrix`, `on_basis`, `function`, `diagonal`")
             if matrix is not None:
-                return ModuleMorphismFromMatrix(matrix=matrix, domain=self, **keywords)
+                return ModuleMorphismFromMatrix(domain=self, matrix=matrix, **keywords)
             if diagonal is not None:
-                return DiagonalModuleMorphism(diagonal=diagonal, domain=self, **keywords)
+                return DiagonalModuleMorphism(domain=self, diagonal=diagonal, **keywords)
             if unitriangular in ["upper", "lower"] and triangular is None:
                 triangular = unitriangular
                 unitriangular = True
             if triangular is not None:
                 if on_basis is not None:
                     return TriangularModuleMorphismByLinearity(
-                        on_basis, domain=self,
+                        domain=self, on_basis=on_basis,
                         triangular=triangular, unitriangular=unitriangular,
                         **keywords)
                 else:
                     return TriangularModuleMorphismFromFunction(
-                        function, domain=self,
+                        domain=self, function=function,
                         triangular=triangular, unitriangular=unitriangular,
                         **keywords)
             if on_basis is not None:
                 return ModuleMorphismByLinearity(
-                    on_basis=on_basis, domain=self, **keywords)
+                    domain=self, on_basis=on_basis, **keywords)
             else:
                 return ModuleMorphismFromFunction( # Or just SetMorphism?
-                    function,          domain=self, **keywords)
+                    domain=self, function=function, **keywords)
 
         _module_morphism = module_morphism
 

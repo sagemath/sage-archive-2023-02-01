@@ -1,9 +1,7 @@
 r"""
-Interface between Python and c_lib.
+Cython interface to the interrupt handling code
 
-This allows Python code to access a few parts of c_lib.  This is not
-needed for Cython code, since such code can access c_lib directly.
-
+See ``src/sage/tests/interrupt.pyx`` for extensive tests.
 
 AUTHORS:
 
@@ -19,10 +17,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
 include 'sage/ext/interrupt.pxi'
-include 'sage/ext/cdefs.pxi'
 include 'sage/ext/signals.pxi'
+from libc.stdio cimport freopen, stdin
+
 
 class AlarmInterrupt(KeyboardInterrupt):
     """
@@ -34,7 +32,7 @@ class AlarmInterrupt(KeyboardInterrupt):
         Traceback (most recent call last):
         ...
         AlarmInterrupt
-        sage: from sage.ext.c_lib import do_raise_exception
+        sage: from sage.ext.interrupt import do_raise_exception
         sage: import signal
         sage: do_raise_exception(signal.SIGALRM)
         Traceback (most recent call last):
@@ -50,7 +48,7 @@ class SignalError(BaseException):
 
     EXAMPLES::
 
-        sage: from sage.ext.c_lib import do_raise_exception
+        sage: from sage.ext.interrupt import do_raise_exception
         sage: import signal
         sage: do_raise_exception(signal.SIGSEGV)
         Traceback (most recent call last):
@@ -104,7 +102,7 @@ def do_raise_exception(sig, msg=None):
 
     EXAMPLES::
 
-        sage: from sage.ext.c_lib import do_raise_exception
+        sage: from sage.ext.interrupt import do_raise_exception
         sage: import signal
         sage: do_raise_exception(signal.SIGFPE)
         Traceback (most recent call last):
@@ -127,12 +125,12 @@ def do_raise_exception(sig, msg=None):
     sig_raise_exception(sig, m)
 
 
-def _init_csage():
+def init_interrupts():
     """
-    Call init_csage() and enable interrupts.
+    Initialize the Sage interrupt framework.
 
-    This is normally done exactly once during Sage startup from
-    sage/all.py
+    This is normally done exactly once during Sage startup when
+    importing this module.
     """
     # Set the Python-level interrupt handler. When a SIGINT occurs,
     # this will not be called directly. Instead, a SIGINT is caught by
@@ -145,18 +143,18 @@ def _init_csage():
     import signal
     signal.signal(signal.SIGINT, sage_python_check_interrupt)
 
-    init_csage()
+    setup_sage_signal_handler()
     _signals.raise_exception = sig_raise_exception
 
 
-def _sig_on_reset():
+def sig_on_reset():
     """
     Return the current value of ``_signals.sig_on_count`` and set its
     value to zero. This is used by the doctesting framework.
 
     EXAMPLES::
 
-        sage: from sage.ext.c_lib import _sig_on_reset as sig_on_reset
+        sage: from sage.ext.interrupt import sig_on_reset
         sage: cython('sig_on()'); sig_on_reset()
         1
         sage: sig_on_reset()
@@ -174,3 +172,6 @@ def sage_python_check_interrupt(sig, frame):
     libcsage (c_lib).
     """
     sig_check()
+
+
+init_interrupts()

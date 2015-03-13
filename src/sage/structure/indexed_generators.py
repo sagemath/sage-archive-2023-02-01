@@ -74,6 +74,9 @@ class IndexedGenerators(object):
     - ``generator_cmp`` -- a comparison function (default: ``cmp``),
       to use for sorting elements in the output of elements
 
+    - ``string_quotes`` -- bool (default: ``True``), if ``True`` then
+      display string indices with quotes
+
     .. NOTE::
 
         These print options may also be accessed and modified using the
@@ -130,7 +133,8 @@ class IndexedGenerators(object):
                                'scalar_mult': "*",
                                'latex_scalar_mult': None,
                                'tensor_symbol': None,
-                               'generator_cmp': cmp}
+                               'generator_cmp': cmp,
+                               'string_quotes': True}
         # 'bracket': its default value here is None, meaning that
         # the value of self._repr_option_bracket is used; the default
         # value of that attribute is True -- see immediately before
@@ -186,8 +190,9 @@ class IndexedGenerators(object):
         - ``latex_scalar_mult``
         - ``tensor_symbol``
         - ``generator_cmp``
+        - ``string_quotes``
 
-        See the documentation for :class:`CombinatorialFreeModule` for
+        See the documentation for :class:`IndexedGenerators` for
         descriptions of the effects of setting each of these options.
 
         OUTPUT: if the user provides any input, set the appropriate
@@ -209,7 +214,8 @@ class IndexedGenerators(object):
             [('bracket', '('), ('generator_cmp', <built-in function cmp>),
              ('latex_bracket', False), ('latex_prefix', None),
              ('latex_scalar_mult', None), ('prefix', 'x'),
-             ('scalar_mult', '*'), ('tensor_symbol', None)]
+             ('scalar_mult', '*'), ('string_quotes', True),
+             ('tensor_symbol', None)]
             sage: F.print_options(bracket='[') # reset
         """
         # don't just use kwds.get(...) because I want to distinguish
@@ -220,7 +226,7 @@ class IndexedGenerators(object):
                 # TODO: make this into a set and put it in a global variable?
                 if option in ['prefix', 'latex_prefix', 'bracket', 'latex_bracket',
                               'scalar_mult', 'latex_scalar_mult', 'tensor_symbol',
-                              'generator_cmp'
+                              'generator_cmp', 'string_quotes'
                              ]:
                     self._print_options[option] = kwds[option]
                 else:
@@ -262,6 +268,9 @@ class IndexedGenerators(object):
             sage: e = F.basis()
             sage: e['a'] + 2*e['b']    # indirect doctest
             F['a'] + 2*F['b']
+            sage: F.print_options(string_quotes=False)
+            sage: e['a'] + 2*e['b']
+            F[a] + 2*F[b]
 
             sage: QS3 = CombinatorialFreeModule(QQ, Permutations(3), prefix="")
             sage: original_print_options = QS3.print_options()
@@ -309,6 +318,9 @@ class IndexedGenerators(object):
         else:
             left = bracket
             right = bracket
+        quotes = self._print_options.get('string_quotes', True)
+        if not quotes and isinstance(m, str):
+            return self.prefix() + left + m + right
         return self.prefix() + left + repr(m) + right # mind the (m), to accept a tuple for m
 
     def _ascii_art_generator(self, m):

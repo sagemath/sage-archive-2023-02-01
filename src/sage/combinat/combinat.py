@@ -2671,7 +2671,7 @@ def bell_polynomial(n, k):
 
     OUTPUT:
 
-    - polynomial expression (SymbolicArithmetic)
+    - a polynomial in `n-k+1` variables over `\QQ`
 
     EXAMPLES::
 

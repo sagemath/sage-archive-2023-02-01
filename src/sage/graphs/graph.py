@@ -6358,7 +6358,8 @@ class Graph(GenericGraph):
         .. NOTE::
 
             In order to use this method you must install the
-            ``modular_decomposition`` optional package.
+            ``modular_decomposition`` optional package. See
+            :mod:`sage.misc.package`.
 
         Crash course on modular decomposition:
 
@@ -6494,9 +6495,16 @@ class Graph(GenericGraph):
 
     def is_prime(self):
         r"""
-        Tests whether the current graph is prime. A graph is prime if
-        all its modules are trivial (i.e. empty, all of the graph or
-        singletons)-- see ``self.modular_decomposition?``.
+        Tests whether the current graph is prime.
+
+        A graph is prime if all its modules are trivial (i.e. empty, all of the
+        graph or singletons) -- see :meth:`modular_decomposition`.
+
+        .. NOTE::
+
+            In order to use this method you must install the
+            ``modular_decomposition`` optional package. See
+            :mod:`sage.misc.package`.
 
         EXAMPLE:
 

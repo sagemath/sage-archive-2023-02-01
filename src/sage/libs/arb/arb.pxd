@@ -4,6 +4,7 @@ from sage.libs.flint.types cimport fmpz_t, fmpq_t
 from sage.libs.mpfr cimport mpfr_t
 
 cdef extern from "arb.h":
+
     ctypedef struct arb_struct:
         pass
     ctypedef arb_struct arb_t[1]

@@ -3111,9 +3111,28 @@ def binomial(x, m, **kwds):
         sage: a = binomial(float(1001), float(1)); a
         1001.0
         sage: type(a)
-        <type 'sage.rings.real_double.RealDoubleElement'>
+        <type 'float'>
         sage: binomial(float(1000), 1001)
         0.0
+
+    Test more output types::
+
+        sage: type(binomial(5r, 2r))
+        <type 'int'>
+        sage: type(binomial(5r, 2))
+        <type 'sage.rings.integer.Integer'>
+        sage: type(binomial(5, 2r))
+        <type 'sage.rings.integer.Integer'>
+
+        sage: type(binomial(5, 2.0r))
+        <type 'float'>
+        sage: type(binomial(5.0r, 2))
+        <type 'float'>
+
+        sage: type(binomial(5/1, 2))
+        <type 'sage.rings.rational.Rational'>
+        sage: type(binomial(5, 2/1))
+        <type 'sage.rings.rational.Rational'>
 
     Test symbolic and uni/multivariate polynomials::
 
@@ -3155,8 +3174,14 @@ def binomial(x, m, **kwds):
         sage: binomial(k, i)
         binomial(k, i)
     """
-    x = py_scalar_to_element(x)
     P = parent(x)
+    if type(x) is not type(m):
+        from sage.structure.element import get_coercion_model
+        cm = get_coercion_model()
+        x,m = cm.canonical_coercion(x,m)
+        P = parent(x)
+
+    x = py_scalar_to_element(x)
 
     try:
         m = ZZ(m)
@@ -3176,8 +3201,7 @@ def binomial(x, m, **kwds):
     except (AttributeError,TypeError):
         pass
 
-
-    if isinstance(x, (RealNumber, ComplexNumber)):
+    if isinstance(x, (Rational, RealNumber, ComplexNumber)):
         # currently, only pari knows how to compute this!
         return P(pari(x).binomial(m))
 

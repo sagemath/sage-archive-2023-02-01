@@ -6066,15 +6066,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         INPUT:
 
-            - ``m`` -- an integer
+        - ``m`` -- an integer
 
-            - ``algorithm`` -- ``'mpir'`` (default) or ``'pari'``; ``'mpir'`` is
-              faster for small ``m``, and ``'pari'`` tends to be faster for
-              large ``m``
+        - ``algorithm`` -- ``'mpir'`` (default) or ``'pari'``; ``'mpir'`` is
+          faster for small ``m``, and ``'pari'`` tends to be faster for
+          large ``m``
 
         OUTPUT:
 
-            - integer
+        - integer
 
         EXAMPLES::
 

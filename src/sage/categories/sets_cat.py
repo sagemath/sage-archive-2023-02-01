@@ -1553,6 +1553,57 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
             parents = [parent(element) for element in elements]
             return cartesian_product(parents)._cartesian_product_of_elements(elements) # good name???
 
+    class MorphismMethods:
+        @abstract_method(optional=True)
+        def __invert__(self):
+            r"""
+            Return the inverse morphism, or raise an error.
+
+            The error may either state that the morphism is not
+            invertible, or that Sage cannot invert it.
+
+            EXAMPLES::
+
+                sage: i = End(QQ).identity(); i
+                Identity endomorphism of Rational Field
+                sage: i.__invert__()
+                Identity endomorphism of Rational Field
+
+            This is method meant to be used with the Python inversion
+            operator `~`:
+
+                sage: ~i
+                Identity endomorphism of Rational Field
+
+            We now try to inverse a couple morphisms defined by a matrix::
+
+                sage: H = End(QQ^2)
+                sage: phi = H(matrix([[1,1],[0,1]])); phi
+                Vector space morphism represented by the matrix:
+                [1 1]
+                [0 1]
+                Domain: Vector space of dimension 2 over Rational Field
+                Codomain: Vector space of dimension 2 over Rational Field
+                sage: ~phi
+                Vector space morphism represented by the matrix:
+                [ 1 -1]
+                [ 0  1]
+                Domain: Vector space of dimension 2 over Rational Field
+                Codomain: Vector space of dimension 2 over Rational Field
+
+                sage: phi = H(matrix([[1,1],[1,1]]))
+                sage: ~phi
+                Traceback (most recent call last):
+                ...
+                ZeroDivisionError: matrix morphism not invertible
+
+            .. NOTE::
+
+                This is an optional method. A default implementation
+                raising ``NotImplementedError`` could be provided instead.
+            """
+
+
     Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets')
     Finite = LazyImport('sage.categories.finite_sets', 'FiniteSets', at_startup=True)
 

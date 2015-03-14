@@ -383,16 +383,15 @@ cdef class ComplexBall(Element):
             TypeError: unable to convert to a ComplexIntervalFieldElement
             sage: RBF = RealBallField() # optional - arb
             sage: CBF(RBF(1/3)) # optional - arb
-            [0.333333333333333 +/- 3.99e-16]
+            [0.3333333333333333 +/- 7.04e-17]
             sage: CBF(RBF(1/3), RBF(1/6)) # optional - arb
-            [0.333333333333333 +/- 3.99e-16] + [0.1666666666666667 +/- 8.43e-17]*I
+            [0.3333333333333333 +/- 7.04e-17] + [0.1666666666666667 +/- 7.04e-17]*I
             sage: CBF(1/3) # optional - arb
             [0.333333333333333 +/- 3.99e-16]
             sage: CBF(1/3, 1/6) # optional - arb
-            [0.333333333333333 +/- 3.99e-16] + [0.1666666666666667 +/- 8.43e-17]*I
+            [0.3333333333333333 +/- 7.04e-17] + [0.1666666666666667 +/- 7.04e-17]*I
             sage: ComplexBallField(106)(1/3, 1/6) # optional - arb
-            [0.3333333333333333333333333333333 +/- 3.85e-32]
-            + [0.16666666666666666666666666666666 +/- 9.24e-33]*I
+            [0.33333333333333333333333333333333 +/- 6.94e-33] + [0.16666666666666666666666666666666 +/- 7.70e-33]*I
         """
         super(ComplexBall, self).__init__(parent)
 
@@ -452,7 +451,7 @@ cdef class ComplexBall(Element):
            sage: CBF = ComplexBallField() # optional - arb
            sage: a = CBF(1/3, 1/5) # optional - arb
            sage: a.real() # optional - arb
-           [0.333333333333333 +/- 3.99e-16]
+           [0.3333333333333333 +/- 7.04e-17]
         """
         cdef RealBall r
         r = real_ball_field(self)(0)
@@ -473,7 +472,7 @@ cdef class ComplexBall(Element):
            sage: CBF = ComplexBallField() # optional - arb
            sage: a = CBF(1/3, 1/5) # optional - arb
            sage: a.imag() # optional - arb
-           [0.2000000000000000 +/- 5.83e-17]
+           [0.2000000000000000 +/- 4.45e-17]
         """
         cdef RealBall r
         r = real_ball_field(self)(0)
@@ -495,9 +494,9 @@ cdef class ComplexBall(Element):
            sage: CBF(1/3) # optional - arb
            [0.333333333333333 +/- 3.99e-16]
            sage: CBF(0, 1/3) # optional - arb
-           [0.333333333333333 +/- 3.99e-16]*I
+           [0.3333333333333333 +/- 7.04e-17]*I
            sage: ComplexBallField()(1/3, 1/6)  # optional - arb
-           [0.333333333333333 +/- 3.99e-16] + [0.1666666666666667 +/- 8.43e-17]*I
+           [0.3333333333333333 +/- 7.04e-17] + [0.1666666666666667 +/- 7.04e-17]*I
         """
         if arb_is_zero(&self.value.imag):
             return self.real()._repr_()

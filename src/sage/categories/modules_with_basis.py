@@ -226,13 +226,14 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             - ``on_basis`` -- a function `f` from `I` to `Y`
             - ``diagonal`` -- a function `d` from `I` to `R`
-            - ``function`` -- a function `f` from `X` to `Y`
+            - ``function`` -- a function `f` from `X` to `Y`  (new since :trac:`8678`)
             - ``matrix``   -- a matrix of size `\dim X,\dim Y` or `\dim Y,\dim X`
 
             Further options include:
 
             - ``codomain`` -- the codomain `Y` of `f` (default:
-              ``f.codomain()`` if it's defined)
+              ``f.codomain()`` if it's defined; otherwise it must be
+              specified)
 
             - ``category`` -- a category or ``None`` (default: `None``)
 
@@ -441,6 +442,18 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 -B[1] + B[2] + B[3] + B[5] - B[6] - B[10] - B[15] + B[30]
                 sage: (phi^-1)(y[30])
                 -B[1] + B[2] + B[3] + B[5] - B[6] - B[10] - B[15] + B[30]
+
+            Since :trac:`8678`, one can also define a triangular
+            morphism from a function::
+
+                sage: X = CombinatorialFreeModule(QQ, [0,1,2,3,4]); x = X.basis()
+                sage: from sage.modules.module_with_basis_morphism import TriangularModuleMorphismFromFunction
+                sage: def f(x): return x + X.term(0, sum(x.coefficients()))
+                sage: phi = X.module_morphism(function=f, codomain=X, triangular="upper")
+                sage: phi(x[2] + 3*x[4])
+                4*B[0] + B[2] + 3*B[4]
+                sage: phi.preimage(_)
+                B[2] + 3*B[4]
 
             For details and further optional arguments, see
             :class:`sage.modules.module_with_basis_morphism.TriangularModuleMorphism`.

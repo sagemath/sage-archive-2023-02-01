@@ -103,7 +103,7 @@ sage.categories.modules_with_basis, which see for the complete log.
 from sage.categories.fields import Fields
 from sage.categories.modules import Modules
 from sage.misc.misc import attrcall
-from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_method, cached_function
 # The identity function would deserve a more canonical location
 from sage.misc.c3_controlled import identity
 from sage.misc.superseded import deprecated_function_alias
@@ -433,9 +433,10 @@ class TriangularModuleMorphism(ModuleMorphism):
 
     - ``invertible`` -- a boolean or ``None`` (default: ``None``); can
       be set to specify that `\phi` is known to be (or not to be)
-      invertible. In the finite dimensional case, this is by default
-      automatically set to ``True`` if the domain and codomain share
-      the same indexing set.
+      invertible. If the domain and codomain share the same indexing
+      set, this is by default automatically set to ``True`` if
+      ``inverse_on_support`` is the identity, or in the finite
+      dimensional case.
 
     .. SEEALSO::
 
@@ -567,6 +568,22 @@ class TriangularModuleMorphism(ModuleMorphism):
         sage: [phi.preimage(x[i]) for i in range(1, 4)]
         [-B[2] + B[3], B[2], B[1]]
 
+    In the finite dimensional case, one can ask Sage to recover
+    ``inverse_on_support`` by a precomputation::
+
+        sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); x = X.basis()
+        sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3, 4]); y = Y.basis()
+        sage: f = lambda i: sum(  y[j] for j in range(1,i+2) )
+        sage: phi = X.module_morphism(f, codomain=Y,
+        ....:            triangular="upper", inverse_on_support="compute")
+        sage: for j in Y.basis().keys():
+        ....:     i = phi._inverse_on_support(j)
+        ....:     print j, i, phi(x[i]) if i is not None else None
+        1 None None
+        2 1 B[1] + B[2]
+        3 2 B[1] + B[2] + B[3]
+        4 3 B[1] + B[2] + B[3] + B[4]
+
     The ``inverse_on_basis`` and ``cmp`` keywords can be combined::
 
         sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X"); x = X.basis()
@@ -595,20 +612,30 @@ class TriangularModuleMorphism(ModuleMorphism):
             sage: phi = X.module_morphism(ut, triangular="lower", codomain = X)
             sage: phi.__class__
             <class 'sage.modules.module_with_basis_morphism.TriangularModuleMorphismByLinearity_with_category'>
+            sage: phi._invertible
+            True
+            sage: TestSuite(phi).run()
+
+        With the option ``compute``::
+
+            sage: phi = X.module_morphism(ut, triangular="lower", codomain = X, inverse_on_support="compute")
             sage: TestSuite(phi).run(skip=["_test_pickling"])
 
-        Known issue::
+        Pickling fails (:trac:`17957`) because the attribute
+        ``phi._inverse_on_support`` is a ``dict.get`` method which is
+        not yet picklable::
 
-            sage: loads(dumps(phi)) == phi
-            False
-
-        This is due to one of the attributes not being picklable::
-
-            sage: c = phi._inverse_on_support_precomputed
-            sage: c
-            Cached version of <function _inverse_on_support_precomputed at ...>
-            sage: loads(dumps(c)) == c
-            False
+            sage: phi = X.module_morphism(ut, triangular="lower", codomain = X, inverse_on_support="compute")
+            sage: dumps(phi)
+            Traceback (most recent call last):
+            ...
+            TypeError: expected string or Unicode object, NoneType found
+            sage: phi._inverse_on_support
+            <built-in method get of dict object at ...>
+            sage: dumps(phi._inverse_on_support)
+            Traceback (most recent call last):
+            ...
+            TypeError: expected string or Unicode object, NoneType found
         """
         if triangular == "upper":
             self._dominant_item = attrcall("leading_item",  cmp)
@@ -625,42 +652,18 @@ class TriangularModuleMorphism(ModuleMorphism):
         self._inverse = inverse
 
         if inverse_on_support == "compute":
-            self._inverse_on_support = self._inverse_on_support_precomputed
-            for i in self.domain().basis().keys():
-                (j, c) = self._dominant_item(on_basis(i))
-                self._inverse_on_support.set_cache(i, j)
-        else:
-            self._inverse_on_support = inverse_on_support
+            inverse_on_support = {
+                self._dominant_item(on_basis(i))[0] : i
+                for i in self.domain().basis().keys()
+            }.get
 
-        if invertible is None and domain in Modules.FiniteDimensional and (domain.basis().keys() == codomain.basis().keys()):
+        self._inverse_on_support = inverse_on_support
+
+
+        if invertible is None and (domain.basis().keys() == codomain.basis().keys()) and \
+           (self._inverse_on_support==identity or domain in Modules.FiniteDimensional):
             invertible = True
         self._invertible=invertible
-
-    @cached_method
-    def _inverse_on_support_precomputed(self, i):
-        """
-        An implementation of _inverse_on_support by brute force precomputation.
-
-        This method is used to implement `_inverse_on_support` when
-        the option ``inverse_on_support="compute"`` is passed to
-        :meth:`__init__`; see there for details.
-
-        EXAMPLES::
-
-            sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); x = X.basis()
-            sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3, 4]); y = Y.basis()
-            sage: f = lambda i: sum(  y[j] for j in range(1,i+2) )
-            sage: phi = X.module_morphism(f, codomain=Y,
-            ....:            triangular="upper", inverse_on_support="compute")
-            sage: for j in Y.basis().keys():
-            ....:     i = phi._inverse_on_support_precomputed(j)
-            ....:     print j, i, phi(x[i]) if i is not None else None
-            1 None None
-            2 1 B[1] + B[2]
-            3 2 B[1] + B[2] + B[3]
-            4 3 B[1] + B[2] + B[3] + B[4]
-        """
-        return None
 
     def _test_triangular(self, **options):
         """
@@ -741,10 +744,12 @@ class TriangularModuleMorphism(ModuleMorphism):
             sage: (~f_lt)(y[2])
             1/2*B[2] - 1/2*B[3]
         """
-        if not self._invertible:
+        if self._invertible is True:
+            return self.section()
+        elif self._invertible is False:
             raise ValueError("Non invertible morphism")
         else:
-            return self.section()
+            raise ValueError("Morphism not known to be invertible; see the invertible option of module_morphism")
 
     def section(self):
         """
@@ -765,7 +770,7 @@ class TriangularModuleMorphism(ModuleMorphism):
             sage: ~phi
             Traceback (most recent call last):
             ...
-            ValueError: Non invertible morphism
+            ValueError: Morphism not known to be invertible; see the invertible option of module_morphism
             sage: phiinv = phi.section()
             sage: map(phiinv*phi, X.basis().list()) == X.basis().list()
             True
@@ -1121,9 +1126,7 @@ class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity, TriangularM
             sage: __main__.on_basis = on_basis
             sage: phi = TriangularModuleMorphismByLinearity(
             ....:           X, on_basis=on_basis, codomain=X)
-            sage: TestSuite(phi).run(skip=["_test_nonzero_equal", "_test_pickling"])
-
-        Pickling fails because equality is not implemented.
+            sage: TestSuite(phi).run(skip=["_test_nonzero_equal"])
         """
         ModuleMorphismByLinearity.__init__(self, on_basis=on_basis,
                                            domain=domain, codomain=codomain, category=category)
@@ -1153,9 +1156,7 @@ class TriangularModuleMorphismFromFunction(ModuleMorphismFromFunction, Triangula
             sage: __main__.f = f
             sage: phi = TriangularModuleMorphismFromFunction(
             ....:           X, function=f, codomain=X)
-            sage: TestSuite(phi).run(skip=["_test_pickling"])
-
-        Pickling fails at ``phi._inverse_on_support_precomputed``.
+            sage: TestSuite(phi).run()
         """
         ModuleMorphismFromFunction.__init__(self, function=function,
                                           domain=domain, codomain=codomain, category=category)
@@ -1215,10 +1216,8 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
 
     .. TODO:
 
-        - Possibly implement rank, addition, multiplication, matrix,
-          etc, from the stored matrix
-        - Pickling: the attribute _on_basis = d.__getitem__ is not picklable.
-          This is probably best implemented by pickling by construction.
+        Possibly implement rank, addition, multiplication, matrix,
+        etc, from the stored matrix.
     """
     def __init__(self, domain, matrix, codomain=None, category=None, side="left"):
         r"""
@@ -1237,8 +1236,15 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
             True
             sage: TestSuite(phi).run(skip=["_test_pickling"])
 
-        Pickling fails because ``phi._on_basis`` is currently a
-        ``dict.__getitem__`` which is not picklable.
+        Pickling fails (:trac:`17957`) because ``phi._on_basis`` is
+        currently a ``dict.__getitem__`` which is not yet picklable::
+
+            sage: phi._on_basis
+            <built-in method __getitem__ of dict object at ...>
+            sage: dumps(phi._on_basis)
+            Traceback (most recent call last):
+            ...
+            TypeError: expected string or Unicode object, NoneType found
 
         The matrix is stored in the morphism, as if it was for an
         action on the right::

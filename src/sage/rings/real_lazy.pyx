@@ -530,7 +530,7 @@ cdef class LazyFieldElement(FieldElement):
             sage: RLF(5) + RLF(1/2) # indirect doctest
             5.5000000000000000?
         """
-        if PY_TYPE_CHECK(left, LazyWrapper) and PY_TYPE_CHECK(right, LazyWrapper):
+        if isinstance(left, LazyWrapper) and isinstance(right, LazyWrapper):
             try:
                 return left._new_wrapper((<LazyWrapper?>left)._value + (<LazyWrapper?>right)._value)
             except TypeError:
@@ -546,7 +546,7 @@ cdef class LazyFieldElement(FieldElement):
             sage: CLF(5) - 2 # indirect doctest
             3
         """
-        if PY_TYPE_CHECK(left, LazyWrapper) and PY_TYPE_CHECK(right, LazyWrapper):
+        if isinstance(left, LazyWrapper) and isinstance(right, LazyWrapper):
             try:
                 return left._new_wrapper((<LazyWrapper?>left)._value - (<LazyWrapper?>right)._value)
             except TypeError:
@@ -562,7 +562,7 @@ cdef class LazyFieldElement(FieldElement):
             sage: CLF(10) * RLF(5) # indirect doctest
             50
         """
-        if PY_TYPE_CHECK(left, LazyWrapper) and PY_TYPE_CHECK(right, LazyWrapper):
+        if isinstance(left, LazyWrapper) and isinstance(right, LazyWrapper):
             try:
                 return left._new_wrapper((<LazyWrapper?>left)._value * (<LazyWrapper?>right)._value)
             except TypeError:
@@ -580,7 +580,7 @@ cdef class LazyFieldElement(FieldElement):
             sage: Reals(300)(a)
             0.166666666666666666666666666666666666666666666666666666666666666666666666666666666666666667
         """
-        if PY_TYPE_CHECK(left, LazyWrapper) and PY_TYPE_CHECK(right, LazyWrapper):
+        if isinstance(left, LazyWrapper) and isinstance(right, LazyWrapper):
             try:
                 return left._new_wrapper((<LazyWrapper?>left)._value / (<LazyWrapper?>right)._value)
             except TypeError:
@@ -598,14 +598,14 @@ cdef class LazyFieldElement(FieldElement):
             sage: Reals(300)(a)
             1.41421356237309504880168872420969807856967187537694807317667973799073247846210703885038753
         """
-        if PY_TYPE_CHECK(left, LazyWrapper) and PY_TYPE_CHECK(right, LazyWrapper):
+        if isinstance(left, LazyWrapper) and isinstance(right, LazyWrapper):
             try:
                 return left._new_wrapper((<LazyWrapper>left)._value ** (<LazyWrapper>right)._value)
             except TypeError:
                 pass
-        if not PY_TYPE_CHECK(left, LazyFieldElement):
+        if not isinstance(left, LazyFieldElement):
             left = (<LazyFieldElement>right)._new_wrapper(left)
-        elif not PY_TYPE_CHECK(right, LazyFieldElement):
+        elif not isinstance(right, LazyFieldElement):
             right = (<LazyFieldElement>left)._new_wrapper(right)
         return (<LazyFieldElement>left)._new_binop(left, right, pow)
 
@@ -647,7 +647,7 @@ cdef class LazyFieldElement(FieldElement):
         """
         left = self
         try:
-            if PY_TYPE_CHECK(self, LazyWrapper) and PY_TYPE_CHECK(other, LazyWrapper):
+            if isinstance(self, LazyWrapper) and isinstance(other, LazyWrapper):
                 left, right = canonical_coercion((<LazyWrapper>self)._value, (<LazyWrapper>other)._value)
                 return cmp(left, right)
         except TypeError:
@@ -679,13 +679,13 @@ cdef class LazyFieldElement(FieldElement):
         return hash(complex(self))
 
     cdef LazyFieldElement _new_wrapper(self, value):
-        cdef LazyWrapper e = <LazyWrapper>PY_NEW(LazyWrapper)
+        cdef LazyWrapper e = <LazyWrapper>LazyWrapper.__new__(LazyWrapper)
         e._parent = self._parent
         e._value = value
         return e
 
     cdef LazyFieldElement _new_binop(self, LazyFieldElement left, LazyFieldElement right, op):
-        cdef LazyBinop e = <LazyBinop>PY_NEW(LazyBinop)
+        cdef LazyBinop e = <LazyBinop>LazyBinop.__new__(LazyBinop)
         e._parent = self._parent
         e._left = left
         e._right = right
@@ -693,7 +693,7 @@ cdef class LazyFieldElement(FieldElement):
         return e
 
     cdef LazyFieldElement _new_unop(self, LazyFieldElement arg, op):
-        cdef LazyUnop e = <LazyUnop>PY_NEW(LazyUnop)
+        cdef LazyUnop e = <LazyUnop>LazyUnop.__new__(LazyUnop)
         e._parent = self._parent
         e._op = op
         e._arg = arg
@@ -1023,9 +1023,9 @@ cdef class LazyBinop(LazyFieldElement):
             2.3333333333333333333333333333333333333333333333333333333333
         """
         FieldElement.__init__(self, parent)
-        if not PY_TYPE_CHECK(left, LazyFieldElement):
+        if not isinstance(left, LazyFieldElement):
             left = self._new_wrapper(left)
-        if not PY_TYPE_CHECK(right, LazyFieldElement):
+        if not isinstance(right, LazyFieldElement):
             right = self._new_wrapper(right)
         self._left = left
         self._right = right
@@ -1174,7 +1174,7 @@ cdef class LazyUnop(LazyFieldElement):
             3.0000000000000000000000000000
         """
         FieldElement.__init__(self, parent)
-        if not PY_TYPE_CHECK(arg, LazyFieldElement):
+        if not isinstance(arg, LazyFieldElement):
             arg = self._new_wrapper(arg)
         self._op = op
         self._arg = arg
@@ -1287,7 +1287,7 @@ cdef class LazyNamedUnop(LazyUnop):
             2.00000000000000
         """
         LazyUnop.__init__(self, parent, arg, op)
-        if extra_args is not None and not PY_TYPE_CHECK(extra_args, tuple):
+        if extra_args is not None and not isinstance(extra_args, tuple):
             raise TypeError, "extra args must be a tuple"
         self._extra_args = extra_args
 
@@ -1318,7 +1318,7 @@ cdef class LazyNamedUnop(LazyUnop):
         """
         arg = self._arg.eval(R)
         cdef bint has_extra_args = self._extra_args is not None and len(self._extra_args) > 0
-        if PY_TYPE_CHECK_EXACT(R, type):
+        if type(R) is type:
             f = getattr(math, self._op)
             if has_extra_args:
                 return f(arg, *self._extra_args)
@@ -1595,7 +1595,7 @@ cdef class LazyAlgebraic(LazyFieldElement):
             sage: RR(a)^2
             7.00000000000000
         """
-        if PY_TYPE_CHECK(R, type):
+        if isinstance(R, type):
             if self._prec < 53:
                 self.eval(self.parent().interval_field(64)) # up the prec
         elif self._prec < R.prec():
@@ -1704,9 +1704,9 @@ cdef class LazyWrapperMorphism(Morphism):
             sage: f(x)._value
             20
         """
-        cdef LazyWrapper e = <LazyWrapper>PY_NEW(LazyWrapper)
+        cdef LazyWrapper e = <LazyWrapper>LazyWrapper.__new__(LazyWrapper)
         e._parent = self._codomain
-        if PY_TYPE_CHECK_EXACT(x, LazyWrapper):
+        if type(x) is LazyWrapper:
             e._value = (<LazyWrapper>x)._value
         else:
             e._value = x

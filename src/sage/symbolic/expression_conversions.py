@@ -268,7 +268,7 @@ class Converter(object):
             d = FakeExpression(d, _operator.mul)
 
         if len(n) == 0:
-            return FakeExpression([SR.one_element(), d], _operator.div)
+            return FakeExpression([SR.one(), d], _operator.div)
         elif len(n) == 1:
             n = n[0]
         else:

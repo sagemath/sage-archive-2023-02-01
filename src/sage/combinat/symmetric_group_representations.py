@@ -466,7 +466,8 @@ class SymmetricGroupRepresentations_class(CombinatorialClass):
         r"""
         Return the irreducible representation corresponding to partition.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sp = SymmetricGroupRepresentations(3, "specht")
             sage: sp([1,1,1])
             Specht representation of the symmetric group corresponding to [1, 1, 1]
@@ -485,7 +486,8 @@ class SymmetricGroupRepresentations_class(CombinatorialClass):
         Iterate through all the irreducible representations of the
         symmetric group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: orth = SymmetricGroupRepresentations(3, "orthogonal")
             sage: for x in orth: print x
             Orthogonal representation of the symmetric group corresponding to [3]

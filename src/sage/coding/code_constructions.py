@@ -149,7 +149,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from linear_code import LinearCodeFromVectorSpace, LinearCode
 from sage.modules.free_module import span
 from sage.schemes.projective.projective_space import ProjectiveSpace

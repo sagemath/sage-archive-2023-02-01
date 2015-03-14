@@ -89,11 +89,11 @@ one by one to save memory.  Note that when we do something like
 ``for part in Partitions(4)`` this iterator is used in the background::
 
     sage: g = iter(Partitions(4))
-    sage: g.next()
+    sage: next(g)
     [4]
-    sage: g.next()
+    sage: next(g)
     [3, 1]
-    sage: g.next()
+    sage: next(g)
     [2, 2]
     sage: for p in Partitions(4): print p
     [4]
@@ -1144,9 +1144,9 @@ class Partition(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: Partition([4]).next()
+            sage: next(Partition([4]))
             [3, 1]
-            sage: Partition([1,1,1,1]).next()
+            sage: next(Partition([1,1,1,1]))
             False
         """
         p = self
@@ -4527,7 +4527,8 @@ class Partitions(UniqueRepresentation, Parent):
       be contained inside the partition `p`.
 
     - ``min_slope=k`` specifies that the partitions have slope at least
-      `k`; the slope is the difference between successive parts.
+      `k`; the slope at position `i` is the difference between the
+      `(i+1)`-th part and the `i`-th part.
 
     - ``parts_in=S`` specifies that the partitions have parts in the set
       `S`, which can be any sequence of pairwise distinct positive
@@ -4732,15 +4733,17 @@ class Partitions(UniqueRepresentation, Parent):
     Check that calling ``Partitions`` with ``outer=a`` no longer
     mutates ``a`` (:trac:`16234`)::
 
-        sage: a = [4,2,1,1,1,1,1]
+        sage: a = [4,3,2,1,1,1,1]
         sage: for p in Partitions(8, outer=a, min_slope=-1):
         ....:    print p
-        ....:     
+        [3, 3, 2]
+        [3, 2, 2, 1]
         [3, 2, 1, 1, 1]
+        [2, 2, 2, 1, 1]
         [2, 2, 1, 1, 1, 1]
         [2, 1, 1, 1, 1, 1, 1]
         sage: a
-        [4, 2, 1, 1, 1, 1, 1]
+        [4, 3, 2, 1, 1, 1, 1]
     """
     @staticmethod
     def __classcall_private__(cls, n=None, **kwargs):
@@ -4760,6 +4763,12 @@ class Partitions(UniqueRepresentation, Parent):
             sage: P2 = Partitions(int(4))
             sage: P is P2
             True
+
+        Check that :trac:`17898` is fixed::
+
+            sage: P = Partitions(5, min_slope=0)
+            sage: list(P)
+            [[5]]
         """
         if n == infinity:
             raise ValueError("n cannot be infinite")
@@ -4803,6 +4812,9 @@ class Partitions(UniqueRepresentation, Parent):
 
             # max_slope is at most 0, and it is 0 by default
             kwargs['max_slope'] = min(0,kwargs.get('max_slope',0))
+
+            if kwargs.get('min_slope', -float('inf')) > 0:
+                raise ValueError("the minimum slope must be non-negative")
 
             if 'outer' in kwargs:
                 if 'max_length' in kwargs:
@@ -4999,7 +5011,7 @@ class Partitions_all(Partitions):
 
             sage: p = Partitions()
             sage: it = p.__iter__()
-            sage: [it.next() for i in range(10)]
+            sage: [next(it) for i in range(10)]
             [[], [1], [2], [1, 1], [3], [2, 1], [1, 1, 1], [4], [3, 1], [2, 2]]
         """
         n = 0
@@ -5019,7 +5031,7 @@ class Partitions_all(Partitions):
 
             sage: p = Partitions()
             sage: revit = p.__reversed__()
-            sage: [revit.next() for i in range(10)]
+            sage: [next(revit) for i in range(10)]
             [[], [1], [1, 1], [2], [1, 1, 1], [2, 1], [3], [1, 1, 1, 1], [2, 1, 1], [2, 2]]
         """
         n = 0
@@ -5166,7 +5178,7 @@ class Partitions_all(Partitions):
             sage: Partitions().from_core_and_quotient([2,1], [[2,1],[3],[1,1,1]])
             [11, 5, 5, 3, 2, 2, 2]
 
-        TESTS:
+        TESTS::
 
             sage: Partitions().from_core_and_quotient([2,1], [[2,1],[2,3,1],[1,1,1]])
             Traceback (most recent call last):
@@ -5263,7 +5275,7 @@ class Partitions_all_bounded(Partitions):
 
             sage: p = Partitions(max_part=3)
             sage: it = p.__iter__()
-            sage: [it.next() for i in range(10)]
+            sage: [next(it) for i in range(10)]
             [[], [1], [2], [1, 1], [3], [2, 1], [1, 1, 1], [3, 1], [2, 2], [2, 1, 1]]
         """
         n = 0
@@ -6114,7 +6126,7 @@ class Partitions_parts_in(Partitions):
 
             sage: P = Partitions(4, parts_in=[2,4])
             sage: it = P._fast_iterator(4, [2,4])
-            sage: it.next()
+            sage: next(it)
             [4]
             sage: type(_)
             <type 'list'>
@@ -6218,7 +6230,7 @@ class Partitions_starting(Partitions):
             sage: Partitions(3, starting=[2,1]).next(Partition([2,1]))
             [1, 1, 1]
         """
-        return part.next()
+        return next(part)
 
 class Partitions_ending(Partitions):
     """
@@ -6315,7 +6327,7 @@ class Partitions_ending(Partitions):
         if part == self._ending:
             return None
         else:
-            return part.next()
+            return next(part)
 
 class PartitionsInBox(Partitions):
     r"""

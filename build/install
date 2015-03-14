@@ -296,11 +296,13 @@ newest_version() {
 cat >&5 <<EOF
 # Standard packages
 ATLAS=`newest_version atlas`
+BACKPORTS_SSL_MATCH_HOSTNAME=`newest_version backports_ssl_match_hostname`
 BOEHM_GC=`newest_version boehm_gc`
 BOOST_CROPPED=`newest_version boost_cropped`
 BZIP2=`newest_version bzip2`
 CDDLIB=`newest_version cddlib`
 CEPHES=`newest_version cephes`
+CERTIFI=`newest_version certifi`
 CLIQUER=`newest_version cliquer`
 COMBINATORIAL_DESIGNS=`newest_version combinatorial_designs`
 CONWAY=`newest_version conway_polynomials`
@@ -333,6 +335,7 @@ IML=`newest_version iml`
 IPYTHON=`newest_version ipython`
 JINJA2=`newest_version jinja2`
 JMOL=`newest_version jmol`
+JSONSCHEMA=`newest_version jsonschema`
 LCALC=`newest_version lcalc`
 LRCALC=`newest_version lrcalc`
 LIBGAP=`newest_version libgap`
@@ -340,6 +343,7 @@ LIBPNG=`newest_version libpng`
 LINBOX=`newest_version linbox`
 M4RI=`newest_version m4ri`
 M4RIE=`newest_version m4rie`
+MATHJAX=`newest_version mathjax`
 MATPLOTLIB=`newest_version matplotlib`
 MAXIMA=`newest_version maxima`
 MPC=`newest_version mpc`
@@ -418,6 +422,11 @@ if [ "$need_to_install_gcc" = yes ]; then
 fi
 echo >&5
 
+echo >&5 'CSAGE_SOURCES = \'
+for file in "$SAGE_SRC/c_lib/src/"*.c "$SAGE_SRC/c_lib/src/"*.cpp "$SAGE_SRC/c_lib/include"/*.h; do
+    echo >&5 "                \$(SAGE_SRC)${file#$SAGE_SRC} \\"
+done
+echo >&5
 echo >&5 'SCRIPT_SOURCES = \'
 for file in "$SAGE_SRC/bin/"*; do
     echo >&5 "                 \$(SAGE_SRC)${file#$SAGE_SRC} \\"

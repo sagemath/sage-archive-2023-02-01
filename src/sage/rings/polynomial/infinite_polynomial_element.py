@@ -629,7 +629,7 @@ class InfinitePolynomial_sparse(RingElement):
         """
         if not x.variables():
             p = self.base_ring()(x._p)
-            divisor = self.base_ring().one_element()/p  # use induction
+            divisor = self.base_ring().one()/p  # use induction
             OUTP = self.parent().tensor_with_ring(divisor.base_ring())
             return OUTP(self)*OUTP(divisor)
         else:
@@ -1139,7 +1139,7 @@ class InfinitePolynomial_sparse(RingElement):
         elif isinstance(monomial, dict):
             if monomial:
                 I = monomial.iterkeys()
-                K = I.next()
+                K = next(I)
                 monomial.__delitem__(K)
                 res = self.coefficient(K).coefficient(monomial)
             else:

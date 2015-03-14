@@ -249,7 +249,7 @@ class StandardRibbonShapedTableaux(StandardSkewTableaux):
         EXAMPLES::
 
             sage: it = StandardRibbonShapedTableaux().__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[],
              [[1]],
              [[1, 2]],

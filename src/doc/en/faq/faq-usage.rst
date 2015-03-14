@@ -623,7 +623,7 @@ libraries. Here is a small example::
     # Show that x behaves like a finite field element:
     for i in range(1, x.multiplicative_order() + 1):
         print i, x**i
-    assert x*(1/x) == K.one_element()
+    assert x*(1/x) == K.one()
 
 To find out more, type ::
 
@@ -632,7 +632,7 @@ To find out more, type ::
 at the Sage prompt and hit tab, then use ``??`` to get more
 information on each function. For example::
 
-    sage.rings.finite_field_givaro.FiniteField_givaro.one_element??
+    sage.rings.finite_field_givaro.FiniteField_givaro.one??
 
 tells you more about the multiplicative unit element in the finite
 field.

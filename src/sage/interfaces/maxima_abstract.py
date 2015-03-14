@@ -50,7 +50,7 @@ and library interfaces to Maxima.
 
 import os, re, sys, subprocess
 
-from sage.misc.misc import DOT_SAGE
+from sage.env import DOT_SAGE
 COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj'%DOT_SAGE
 
 from sage.misc.multireplace import multiple_replace

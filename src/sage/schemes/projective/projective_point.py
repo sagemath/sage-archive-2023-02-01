@@ -39,14 +39,18 @@ from sage.categories.integral_domains import IntegralDomains
 from sage.categories.number_fields import NumberFields
 _NumberFields = NumberFields()
 from sage.rings.infinity       import infinity
-from sage.rings.arith          import gcd, lcm, is_prime
-from sage.rings.fraction_field     import FractionField
+from sage.rings.arith          import gcd, lcm, is_prime, binomial
 from sage.rings.integer_ring   import ZZ
+from sage.rings.fraction_field import FractionField
+from sage.rings.morphism       import RingHomomorphism_im_gens
 from sage.rings.number_field.order import is_NumberFieldOrder
+from sage.rings.number_field.number_field_ideal import NumberFieldFractionalIdeal
 from sage.rings.padics.all     import Qp
 from sage.rings.quotient_ring  import QuotientRing_generic
 from sage.rings.rational_field import QQ
-from sage.rings.real_mpfr      import RealField, RR
+from sage.rings.real_double    import RDF
+from sage.rings.real_mpfr      import RealField, RR, is_RealField
+
 from copy                      import copy
 from sage.schemes.generic.morphism import (SchemeMorphism,
                                            is_SchemeMorphism,
@@ -768,12 +772,16 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             Orb.append(Q)
         return(Orb)
 
-    def green_function(self, G,v, **kwds):
+    def green_function(self, G, v, **kwds):
         r"""
-        Evaluates the local Green's function at the place ``v`` for ``self`` with ``N`` terms of the series
-        or, in dimension 1, to within the specified error bound. Defaults to ``N=10`` if no kwds provided
+        Evaluates the local Green's function with respect to the morphism ``G``
+        at the place ``v`` for ``self`` with ``N`` terms of the
+        series or to within a given error bound.  Must be over a number field
+        or order of a number field. Note that this is the absolute local Green's function
+        so is scaled by the degree of the base field.
 
-        Use ``v=0`` for the archimedean place. Must be over `\ZZ` or `\QQ`.
+        Use ``v=0`` for the archimedean place over `\QQ` or field embedding. Non-archimedean
+        places are prime ideals for number fields or primes over `\QQ`.
 
         ALGORITHM:
 
@@ -781,13 +789,13 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         INPUT:
 
-        - ``G`` - an endomorphism of self.codomain()
+        - ``G`` - a projective morphism whose local Green's function we are computing
 
         - ``v`` - non-negative integer. a place, use v=0 for the archimedean place
 
         kwds:
 
-        - ``N`` - positive integer. number of terms of the series to use
+        - ``N`` - positive integer. number of terms of the series to use, default: 10
 
         - ``prec`` - positive integer, float point or p-adic precision, default: 100
 
@@ -797,7 +805,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         - a real number
 
-        Examples::
+        EXAMPLES::
 
             sage: P.<x,y>=ProjectiveSpace(QQ,1)
             sage: H=Hom(P,P)
@@ -815,94 +823,150 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q.green_function(f,0,N=200,prec=200)
             1.6460930160038721802875250367738355497198064992657997569827
 
-        .. TODO::
+        ::
 
-            error bounds for dimension > 1
+            sage: K.<w> = QuadraticField(3)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = Hom(P,P)
+            sage: f = H([17*x^2+1/7*y^2,17*w*x*y])
+            sage: f.green_function(P.point([w,2],False), K.places()[1])
+            1.7236334013785676107373093775
+            sage: print f.green_function(P([2,1]), K.ideal(7), N=7)
+            0.48647753726382832627633818586
+            sage: print f.green_function(P([w,1]), K.ideal(17), error_bound=0.001)
+            -0.70761163353747779889947530309
+
+        .. TODO:: Implement general p-adic extensions so that the flip trick can be used
+             for number fields.
         """
-        N = kwds.get('N', None)                     #Get number of iterates (if entered)
+        N = kwds.get('N', 10)                     #Get number of iterates (if entered)
         err = kwds.get('error_bound', None)         #Get error bound (if entered)
         prec = kwds.get('prec', 100)                #Get precision (if entered)
-        R=RealField(prec)
+        R = RealField(prec)
+        localht = R(0)
+        BR = FractionField(self.codomain().base_ring())
+        GBR = G.change_ring(BR) #so the heights work
 
-        if not (v == 0 or is_prime(v)):
-            raise ValueError("Invalid valuation (=%s) entered."%v)
-        if v == 0:
-            K = R
-        else:
+        if not BR in NumberFields():
+            raise NotImplementedError("Must be over a NumberField or a NumberField Order")
+
+        #For QQ the 'flip-trick' works better over RR or Qp
+        if isinstance(v, (NumberFieldFractionalIdeal, RingHomomorphism_im_gens)):
+            K = BR
+        elif is_prime(v):
             K = Qp(v, prec)
+        elif v == 0:
+            K = R
+            v = BR.places(prec=prec)[0]
+        else:
+            raise ValueError("Invalid valuation (=%s) entered."%v)
 
         #Coerce all polynomials in F into polynomials with coefficients in K
-        F=G.change_ring(K,False)
+        F = G.change_ring(K, False)
         d = F.degree()
-        D=F.codomain().ambient_space().dimension_relative()
+        dim = F.codomain().ambient_space().dimension_relative()
+        P = self.change_ring(K, False)
 
         if err is not None:
-            if D!=1:
-                raise NotImplementedError("error bounds only for dimension 1")
             err = R(err)
             if not err>0:
                 raise ValueError("Error bound (=%s) must be positive."%err)
+            if G.is_endomorphism() == False:
+                raise NotImplementedError("Error bounds only for endomorphisms")
 
             #if doing error estimates, compute needed number of iterates
-            res = F.resultant()
+            D = (dim + 1) * (d - 1) + 1
+            #compute upper bound
+            if isinstance(v, RingHomomorphism_im_gens): #archimedean
+                vindex = BR.places(prec=prec).index(v)
+                U = GBR.local_height_arch(vindex, prec=prec) + R(binomial(dim + d, d)).log()
+            else: #non-archimedean
+                U = GBR.local_height(v, prec=prec)
 
-            #compute maximum coefficient of polynomials of F
-            C = R(G.global_height(prec))
-
-            if v == 0:
-                log_fact = R(0)
-                for i in range(2*d+1):
-                    log_fact += R(i+1).log()
-                B = max((R(res.abs()) - R(2*d).log() - (2*d-1)*C - log_fact).log().abs(), (C + R(d+1).log()).abs())
-            else:
-                B = max(R(res.abs()).log() - ((2*d-1)*C).abs(), C.abs())
-            N = R(B/(err*(d-1))).log(d).abs().ceil()
-
-        elif N is None:
-            N=10 #default is to do 10 iterations
-
-        #Coerce the coordinates into Q_v
-        self.normalize_coordinates()
-        if self.codomain().base_ring()==QQ:
-            self.clear_denominators()
-        P=self.change_ring(K,False)
+            #compute lower bound - from explicit polynomials of Nullstellensatz
+            CR = GBR.codomain().ambient_space().coordinate_ring() #.lift() only works over fields
+            I = CR.ideal(GBR.defining_polynomials())
+            maxh = 0
+            for k in range(dim + 1):
+                CoeffPolys = (CR.gen(k) ** D).lift(I)
+                Res = 1
+                h = 1
+                for poly in CoeffPolys:
+                    if poly != 0:
+                        for c in poly.coefficients():
+                            Res = lcm(Res, c.denominator())
+                for poly in CoeffPolys:
+                    if poly != 0:
+                        if isinstance(v, RingHomomorphism_im_gens): #archimedean
+                            if BR == QQ:
+                                h = max([(Res*c).local_height_arch(prec=prec) for c in poly.coefficients()])
+                            else:
+                                h = max([(Res*c).local_height_arch(vindex, prec=prec) for c in poly.coefficients()])
+                        else: #non-archimedean
+                            h = max([c.local_height(v, prec=prec) for c in poly.coefficients()])
+                        if h > maxh:
+                            maxh=h
+            if isinstance(v, RingHomomorphism_im_gens): #archimedean
+                L = R(Res / ((dim + 1) * binomial(dim + D - d, D - d) * maxh)).log().abs()
+            else: #non-archimedean
+                L = R(1 / maxh).log().abs()
+            C = max([U, L])
+            if C != 0:
+                N = R(C/(err)).log(d).abs().ceil()
+            else: #we just need log||P||_v
+                N=1
 
         #START GREEN FUNCTION CALCULATION
+        if isinstance(v, RingHomomorphism_im_gens):  #embedding for archimedean local height
+            for i in range(N+1):
+                Pv = [ (v(t).abs()) for t in P ]
+                m = -1
+                #compute the maximum absolute value of entries of a, and where it occurs
+                for n in range(dim + 1):
+                    if Pv[n] > m:
+                        j = n
+                        m = Pv[n]
+                # add to sum for the Green's function
+                localht += ((1/R(d))**R(i)) * (R(m).log())
+                #get the next iterate
+                if i < N:
+                    P.scale_by(1/P[j])
+                    P = F(P, False)
+            return (1/BR.absolute_degree()) * localht
 
-        g = R(0)
-
-        for i in range(N+1):
+        #else - prime or prime ideal for non-archimedean
+        for i in range(N + 1):
+            if BR == QQ:
+                Pv = [ R(K(t).abs()) for t in P ]
+            else:
+                Pv = [ R(t.abs_non_arch(v)) for t in P ]
             m = -1
-
             #compute the maximum absolute value of entries of a, and where it occurs
-            for n in range(D+1):
-                a_v = R(P[n].abs())
-                if a_v > m:
+            for n in range(dim + 1):
+                if Pv[n] > m:
                     j = n
-                    m = a_v
+                    m = Pv[n]
+            # add to sum for the Green's function
+            localht += ((1/R(d))**R(i)) * (R(m).log())
+            #get the next iterate
+            if i < N:
+                P.scale_by(1/P[j])
+                P = F(P, False)
+        return (1/BR.absolute_degree()) * localht
 
-            #add to Greens function
-            g += (1/R(d))**(i)*R(m).log()
-
-            #normalize coordinates and evaluate
-            P.scale_by(1/P[j])
-            P = F(P, check=False)
-
-        return g
-
-    def canonical_height(self,F, **kwds):
+    def canonical_height(self, F, **kwds):
         r"""
-        Evaluates the canonical height of ``self`` with respect to ``F``. Must be over `\ZZ` or `\QQ`.
-        Specify either the number of terms of the series to evaluate or, in dimension 1, the error bound
-        required.
+        Evaluates the (absolute) canonical height of ``self`` with respect to ``F``. Must be over number field
+        or order of a number field. Specify either the number of terms of the series to evaluate or
+        the error bound required.
 
         ALGORITHM:
 
-            The sum of the Green's function at the archimedean place and the places of bad reduction.
+            The sum of the Green's function at the archimedean places and the places of bad reduction.
 
         INPUT:
 
-        - ``P`` - a projective point
+        - ``F`` - a projective morphism
 
         kwds:
 
@@ -920,10 +984,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         EXAMPLES::
 
-            sage: P.<x,y>=ProjectiveSpace(ZZ,1)
-            sage: H=Hom(P,P)
-            sage: f=H([x^2+y^2,2*x*y]);
-            sage: Q=P(2,1)
+            sage: P.<x,y> = ProjectiveSpace(ZZ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+y^2,2*x*y]);
+            sage: Q = P(2,1)
             sage: f.canonical_height(f(Q))
             2.1965476757927038111992627081
             sage: f.canonical_height(Q)
@@ -931,38 +995,71 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         Notice that preperiodic points may not be exactly 0. ::
 
-            sage: P.<x,y>=ProjectiveSpace(QQ,1)
-            sage: H=Hom(P,P)
-            sage: f=H([x^2-29/16*y^2,y^2]);
-            sage: Q=P(5,4)
-            sage: f.canonical_height(Q,N=30)
-            1.4989058602918874235863427216e-9
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2-29/16*y^2,y^2]);
+            sage: Q = P(5,4)
+            sage: f.canonical_height(Q, N=30)
+            1.4989058602918874235833076226e-9
 
         ::
 
-            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
-            sage: X=P.subscheme(x^2-y^2);
-            sage: H=Hom(X,X)
-            sage: f=H([x^2,y^2,30*z^2]);
-            sage: Q=X([4,4,1])
-            sage: f.canonical_height(Q,badprimes=[2,3,5],prec=200)
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: X = P.subscheme(x^2-y^2);
+            sage: H = Hom(X,X)
+            sage: f = H([x^2,y^2,30*z^2]);
+            sage: Q = X([4,4,1])
+            sage: f.canonical_height(Q, badprimes=[2,3,5], prec=200)
             2.7054056208276961889784303469356774912979228770208655455481
         """
+        bad_primes = kwds.pop("badprimes", None)
+        prec = kwds.get("prec", 100)
+        error_bound = kwds.get("error_bound", None)
+        K = FractionField(self.codomain().base_ring())
 
-        badprimes = kwds.pop("badprimes",None)
+        if not K in _NumberFields:
+            raise NotImplementedError("Must be over a NumberField or a NumberField Order")
 
-        if badprimes is None:
-            badprimes=F.primes_of_bad_reduction(0)
+        if bad_primes is None:
+            bad_primes = []
+            for b in self:
+                if K == QQ:
+                    bad_primes += b.denominator().prime_factors()
+                else:
+                    bad_primes += b.denominator_ideal().prime_factors()
+            bad_primes += K(F.resultant()).support()
+            bad_primes = list(set(bad_primes))
 
-        h=self.green_function(F,0,**kwds)       #arch Green function
-        for v in badprimes:
-            h+=self.green_function(F,v,**kwds)  #non-arch Green functions
+        emb = K.places(prec=prec)
+        num_places = len(emb) + len(bad_primes)
+        if not error_bound is None:
+            error_bound /= num_places
+        R = RealField(prec)
+        h = R(0)
 
+        # Archimedean local heights
+        # :: WARNING: If places is fed the default Sage precision of 53 bits,
+        # it uses Real or Complex Double Field in place of RealField(prec) or ComplexField(prec)
+        # the function is_RealField does not identify RDF as real, so we test for that ourselves.
+        for v in emb:
+            if is_RealField(v.codomain()) or v.codomain() is RDF:
+                dv = R(1)
+            else:
+                dv = R(2)
+            h += dv*self.green_function(F, v, **kwds)       #arch Green function
+
+        # Non-Archimedean local heights
+        for v in bad_primes:
+            if K == QQ:
+                dv = R(1)
+            else:
+                dv = R(v.residue_class_degree() * v.absolute_ramification_index())
+            h += dv * self.green_function(F, v, **kwds)  #non-arch Green functions
         return h
 
     def global_height(self, prec=None):
         r"""
-        Returns the logarithmic height of the points. Must be over `\ZZ` or `\QQ`.
+        Returns the logarithmic height of the points.
 
         INPUT:
 
@@ -995,16 +1092,82 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: A([3,5*w+1,1]).global_height(prec=100)
             2.4181409534757389986565376694
 
-        .. TODO::
-
-            p-adic heights
-
         """
         if self.domain().base_ring() in _NumberFields or is_NumberFieldOrder(self.domain().base_ring()):
-            return(max([self[i].global_height(prec) for i in range(self.codomain().ambient_space().dimension_relative()+1)]))
+            return(max([self[i].global_height(prec=prec) for i in range(self.codomain().ambient_space().dimension_relative()+1)]))
         else:
-            raise NotImplementedError("Must be over a Numberfield or a Numberfield Order")
+            raise TypeError("Must be over a Numberfield or a Numberfield Order")
 
+    def local_height(self, v, prec=None):
+        r"""
+        Returns the maximum of the local height of the coordinates of ``self``.
+
+        INPUT:
+
+        - ``v`` -- a prime or prime ideal of the base ring
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number
+
+        EXAMPLES::
+
+            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
+            sage: Q=P.point([4,4,1/150],False)
+            sage: Q.local_height(5)
+            3.21887582486820
+
+        ::
+
+            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
+            sage: Q=P([4,1,30])
+            sage: Q.local_height(2)
+            0.693147180559945
+        """
+        K = FractionField(self.domain().base_ring())
+        if K not in _NumberFields:
+            raise("Must be over a Numberfield or a Numberfield Order")
+        return max([K(c).local_height(v, prec=prec) for c in self])
+
+    def local_height_arch(self, i, prec=None):
+        r"""
+        Returns the maximum of the local heights at the ``i``-th infinite place of ``self``.
+
+        INPUT:
+
+        - ``i`` -- an integer
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number
+
+        EXAMPLES::
+
+            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
+            sage: Q = P.point([4,4,1/150], False)
+            sage: Q.local_height_arch(0)
+            1.38629436111989
+
+        ::
+
+            sage: P.<x,y,z>=ProjectiveSpace(QuadraticField(5, 'w'),2)
+            sage: Q = P.point([4,1,30], False)
+            sage: Q.local_height_arch(1)
+            3.401197381662155375413236691607
+        """
+        K = FractionField(self.domain().base_ring())
+        if K not in _NumberFields:
+            raise("Must be over a Numberfield or a Numberfield Order")
+        if K == QQ:
+            return max([K(c).local_height_arch(prec=prec) for c in self])
+        else:
+            return max([K(c).local_height_arch(i, prec=prec) for c in self])
 
     def multiplier(self,f,n,check=True):
         r"""

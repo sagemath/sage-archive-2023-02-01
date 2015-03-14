@@ -42,7 +42,7 @@ AUTHORS:
 from sage.categories.number_fields import NumberFields
 from sage.categories.homset        import Hom
 from sage.functions.all            import sqrt
-from sage.libs.pari.gen            import PariError
+from sage.libs.pari.all            import PariError
 from sage.matrix.constructor       import matrix, identity_matrix
 from sage.misc.cachefunc           import cached_method
 from sage.misc.misc                import subsets
@@ -50,13 +50,14 @@ from sage.misc.mrange              import xmrange
 from sage.modules.free_module_element import vector
 from sage.rings.all                import Integer, moebius
 from sage.rings.arith              import gcd, lcm, next_prime, binomial, primes
-from sage.categories.number_fields import NumberFields
 from sage.rings.complex_field      import ComplexField_class,ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField_class
 from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.fraction_field     import FractionField
+from sage.rings.fraction_field_element import is_FractionFieldElement
 from sage.rings.integer_ring       import ZZ
+from sage.rings.number_field.order import is_NumberFieldOrder
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.quotient_ring      import QuotientRing_generic
 from sage.rings.rational_field     import QQ
@@ -71,6 +72,8 @@ from sage.ext.fast_callable        import fast_callable
 from sage.misc.lazy_attribute      import lazy_attribute
 from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
 import sys
+from sage.categories.number_fields import NumberFields
+_NumberFields = NumberFields()
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     """
@@ -694,14 +697,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if period[0] != 0:
             m = period[0]
             fm = self.nth_iterate_map(m)
-            fm1 = self.nth_iterate_map(m-1)
-            n = period [1]
+            fm1 = self.nth_iterate_map(m - 1)
+            n = period[1]
             PHI = 1;
             x = self.domain().gen(0)
             y = self.domain().gen(1)
             F = self._polys
             f = F
-            for d in range(1, n+1):
+            for d in range(1, n + 1):
                 if n % d == 0:
                     PHI = PHI * ((y*F[0] - x*F[1]) ** moebius(n/d))
                 if d != n: # avoid extra iteration
@@ -715,7 +718,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             F = self._polys
             f = F
             for d in range(1, period[1] + 1):
-                if period[1] % d == 0 :
+                if period[1] % d == 0:
                     PHI = PHI * ((y*F[0] - x*F[1]) ** moebius(period[1]/d))
                 if d != period[1]: # avoid extra iteration
                     F = [f[0](F[0], F[1]), f[1](F[0], F[1])]
@@ -1175,17 +1178,25 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x*z-t*y^2,x^2-y^2,t*z^2])
             sage: f.is_morphism()
             True
+
+        Map that is not morphism on projective space, but is over a subscheme::
+
+            sage: P.<x,y,z> = ProjectiveSpace(RR,2)
+            sage: X = P.subscheme([x*y + y*z])
+            sage: H = Hom(X,X)
+            sage: f = H([x*z-y*z,x^2-y^2,z^2])
+            sage: f.is_morphism()
+            True
         """
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
-        if is_ProjectiveSpace(self.domain()) is False or is_ProjectiveSpace(self.codomain()) is False:
-            raise NotImplementedError
+
         R = self.coordinate_ring()
         F = self._polys
+        defpolys = list(self.domain().defining_polynomials())
         if R.base_ring().is_field():
-            J = R.ideal(F)
+            J = R.ideal(F + defpolys)
         else:
             S = PolynomialRing(R.base_ring().fraction_field(), R.gens(), R.ngens())
-            J = S.ideal([S.coerce(F[i]) for i in range(R.ngens())])
+            J = S.ideal([S(f) for f in F] + [S(f) for f in defpolys])
         if J.dimension() > 0:
             return False
         else:
@@ -1283,7 +1294,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     def primes_of_bad_reduction(self, check=True):
         r"""
         Determines the primes of bad reduction for a map `self: \mathbb{P}^N \to \mathbb{P}^N`
-        defined over `\ZZ` or `\QQ`.
+        defined over number fields.
 
         If ``check`` is ``True``, each prime is verified to be of bad reduction.
 
@@ -1323,6 +1334,16 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.primes_of_bad_reduction()
             [2, 3, 7, 13, 31]
 
+        A number field example ::
+
+            sage: R.<z> = QQ[]
+            sage: K.<a> = NumberField(z^2 - 2)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = Hom(P,P)
+            sage: f = H([1/3*x^2+1/a*y^2,y^2])
+            sage: f.primes_of_bad_reduction()
+            [Fractional ideal (a), Fractional ideal (3)]
+
         This is an example where check=False returns extra primes::
 
             sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
@@ -1333,55 +1354,66 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.primes_of_bad_reduction()
             [5, 37, 2239, 304432717]
         """
-        if self.base_ring() != ZZ and self.base_ring() != QQ:
-            raise TypeError("Must be ZZ or QQ")
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
         if is_ProjectiveSpace(self.domain()) is False or is_ProjectiveSpace(self.codomain()) is False:
             raise NotImplementedError
-        R = self.coordinate_ring()
-        F = self._polys
-        if R.base_ring().is_field():
-            J = R.ideal(F)
-        else:
-            S = PolynomialRing(R.base_ring().fraction_field(), R.gens(), R.ngens())
-            J = S.ideal([S.coerce(F[i]) for i in range(R.ngens())])
-        if J.dimension() > 0:
-            raise TypeError("Not a morphism.")
-        #normalize to coefficients in the ring not the fraction field.
-        F = [F[i] * lcm([F[j].denominator() for j in range(len(F))]) for i in range(len(F))]
+        K = FractionField(self.codomain().base_ring())
+        #The primes of bad reduction are the support of the resultant for number fields
 
-        #move the ideal to the ring of integers
-        if R.base_ring().is_field():
-            S = PolynomialRing(R.base_ring().ring_of_integers(), R.gens(), R.ngens())
-            F = [F[i].change_ring(R.base_ring().ring_of_integers()) for i in range(len(F))]
-            J = S.ideal(F)
-        else:
-            J = R.ideal(F)
-        GB = J.groebner_basis()
-        badprimes = []
+        if K in NumberFields():
+            if K != QQ:
+                F = copy(self)
+                F.normalize_coordinates()
+                return (K(F.resultant()).support())
+            else:
+                #For the rationals, we can use groebner basis, as it is quicker in practice
+                R = self.coordinate_ring()
+                F = self._polys
 
-        #get the primes dividing the coefficients of the monomials x_i^k_i
-        for i in range(len(GB)):
-            LT = GB[i].lt().degrees()
-            power = 0
-            for j in range(R.ngens()):
-                if LT[j] != 0:
-                    power += 1
-            if power == 1:
-                badprimes = badprimes + GB[i].lt().coefficients()[0].support()
-        badprimes = sorted(set(badprimes))
-
-        #check to return only the truly bad primes
-        if check == True:
-            index = 0
-            while index < len(badprimes):  #figure out which primes are really bad primes...
-                S = PolynomialRing(GF(badprimes[index]), R.gens(), R.ngens())
-                J = S.ideal([S.coerce(F[j]) for j in range(R.ngens())])
-                if J.dimension() == 0:
-                    badprimes.pop(index)
+                if R.base_ring().is_field():
+                    J = R.ideal(F)
                 else:
-                    index += 1
-        return(badprimes)
+                    S = PolynomialRing(R.base_ring().fraction_field(), R.gens(), R.ngens())
+                    J = S.ideal([S.coerce(F[i]) for i in range(R.ngens())])
+                if J.dimension() > 0:
+                    raise TypeError("Not a morphism.")
+                #normalize to coefficients in the ring not the fraction field.
+                F = [F[i] * lcm([F[j].denominator() for j in range(len(F))]) for i in range(len(F))]
+
+                #move the ideal to the ring of integers
+                if R.base_ring().is_field():
+                    S = PolynomialRing(R.base_ring().ring_of_integers(), R.gens(), R.ngens())
+                    F = [F[i].change_ring(R.base_ring().ring_of_integers()) for i in range(len(F))]
+                    J = S.ideal(F)
+                else:
+                    J = R.ideal(F)
+                GB = J.groebner_basis()
+                badprimes = []
+
+                #get the primes dividing the coefficients of the monomials x_i^k_i
+                for i in range(len(GB)):
+                    LT = GB[i].lt().degrees()
+                    power = 0
+                    for j in range(R.ngens()):
+                        if LT[j] != 0:
+                            power += 1
+                    if power == 1:
+                        badprimes = badprimes + GB[i].lt().coefficients()[0].support()
+                badprimes = sorted(set(badprimes))
+
+                #check to return only the truly bad primes
+                if check == True:
+                    index = 0
+                    while index < len(badprimes):  #figure out which primes are really bad primes...
+                        S = PolynomialRing(GF(badprimes[index]), R.gens(), R.ngens())
+                        J = S.ideal([S.coerce(F[j]) for j in range(R.ngens())])
+                        if J.dimension() == 0:
+                            badprimes.pop(index)
+                        else:
+                            index += 1
+                return(badprimes)
+        else:
+            raise TypeError("Base Ring must be number field or number field ring")
 
     def conjugate(self, M):
         r"""
@@ -1479,9 +1511,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     def green_function(self, P, v, **kwds):
         r"""
         Evaluates the local Green's function at the place ``v`` for ``P`` with ``N`` terms of the
-        series or, in dimension 1, to within a given error bound.
+        series or to within a given error bound.  Must be over a number field
+        or order of a number field. Note that this is absolute local greens function
+        so is scaled by the degree of the base field.
 
-        Use ``v=0`` for the archimedean place. Must be over `\ZZ` or `\QQ`.
+        Use ``v=0`` for the archimedean place over `\QQ` or field embedding. Non-archimedean
+        places are prime ideals for number fields or primes over `\QQ`.
 
         ALGORITHM:
 
@@ -1495,7 +1530,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         kwds:
 
-        - ``N`` - positive integer. number of terms of the series to use
+        - ``N`` - positive integer. number of terms of the series to use, default: 10
 
         - ``prec`` - positive integer, float point or p-adic precision, default: 100
 
@@ -1517,20 +1552,17 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.green_function(P.point([1,1],False),0,N=30)
             0.43288629610862338612700146098
         """
-        if self.base_ring() != ZZ and self.base_ring() != QQ:
-            raise TypeError("Must be ZZ or QQ")
         return(P.green_function(self, v, **kwds))
 
     def canonical_height(self, P, **kwds):
         r"""
-        Evaluates the canonical height of ``P`` with respect to ``self``. Must be over `\ZZ` or `\QQ`.
-
-        Specify either the number of terms of the series to evaluate
-        or, in dimension 1, the error bound required.
+        Evaluates the (absolute) canonical height of ``P`` with respect to ``self``. Must be over number field
+        or order of a number field. Specify either the number of terms of the series to evaluate or
+        the error bound required.
 
         ALGORITHM:
 
-        The sum of the Green's function at the archimedean place and the places of bad reduction.
+        The sum of the Green's function at the archimedean places and the places of bad reduction.
 
         INPUT:
 
@@ -1555,18 +1587,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(ZZ,1)
             sage: H = Hom(P,P)
             sage: f = H([x^2+y^2,2*x*y]);
-            sage: f.canonical_height(P.point([5,4]),error_bound=0.001)
-            2.1970553519503404898926835324
-            sage: f.canonical_height(P.point([2,1]),error_bound=0.001)
-            1.0984430632822307984974382955
+            sage: f.canonical_height(P.point([5,4]), error_bound=0.001)
+            2.1968861265644615969948765910
+            sage: f.canonical_height(P.point([2,1]), error_bound=0.001)
+            1.0982738378963519055996313540
 
         Notice that preperiodic points may not be exactly 0::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = Hom(P,P)
             sage: f = H([x^2-29/16*y^2,y^2]);
-            sage: f.canonical_height(P.point([1,4]),N=60)
-            1.2024186864216154694752186858e-18
+            sage: f.canonical_height(P.point([1,4]), error_bound=0.000001)
+            4.6394113279707749011644196028e-7
 
         ::
 
@@ -1575,11 +1607,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(X,X)
             sage: f = H([x^2,y^2,4*z^2]);
             sage: Q = X([4,4,1])
-            sage: f.canonical_height(Q,badprimes=[2])
+            sage: f.canonical_height(Q, badprimes=[2])
             0.0013538030870311431824555314882
         """
-        if self.base_ring() != ZZ and self.base_ring() != QQ:
-            raise TypeError("Must be ZZ or QQ")
         return(P.canonical_height(self, **kwds))
 
     def global_height(self, prec=None):
@@ -1627,6 +1657,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         .. TODO:: add heights to integer.pyx and remove special case
         """
+        if self.domain().base_ring() not in _NumberFields and not is_NumberFieldOrder(self.domain().base_ring()):
+            raise TypeError("Must be over a Numberfield or a Numberfield Order")
         if self.domain().base_ring() == ZZ:
             if prec is None:
                 R = RealField()
@@ -1644,6 +1676,99 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             h = max([c.global_height(prec) for c in C])
             H = max(H, h)
         return(H)
+
+    def local_height(self, v, prec=None):
+        r"""
+        Returns the maximum of the local height of the coefficients in any
+        of the coordinate functions of ``self``.
+
+        INPUT:
+
+        - ``v`` -- a prime or prime ideal of the base ring
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([1/1331*x^2+1/4000*y^2,210*x*y]);
+            sage: f.local_height(1331)
+            7.19368581839511
+
+        This function does not automatically normalize::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = Hom(P,P)
+            sage: f = H([4*x^2+3/100*y^2,8/210*x*y,1/10000*z^2]);
+            sage: f.local_height(2)
+            2.77258872223978
+            sage: f.normalize_coordinates()
+            sage: f.local_height(2)
+            0.000000000000000
+
+        ::
+
+            sage: R.<z> = PolynomialRing(QQ)
+            sage: K.<w> = NumberField(z^2-2)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = Hom(P,P)
+            sage: f = H([2*x^2 + w/3*y^2,1/w*y^2])
+            sage: f.local_height(K.ideal(3))
+            1.09861228866811
+        """
+        K = FractionField(self.domain().base_ring())
+        if K not in _NumberFields:
+            raise TypeError("Must be over a Numberfield or a Numberfield Order")
+        return max([K(c).local_height(v, prec) for f in self for c in f.coefficients()])
+
+    def local_height_arch(self, i, prec=None):
+        r"""
+        Returns the maximum of the local height at the ``i``-th infinite place of the coefficients in any
+        of the coordinate functions of ``self``.
+
+        INPUT:
+
+        - ``i`` -- an integer
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([1/1331*x^2+1/4000*y^2,210*x*y]);
+            sage: f.local_height_arch(0)
+            5.34710753071747
+
+        ::
+
+            sage: R.<z> = PolynomialRing(QQ)
+            sage: K.<w> = NumberField(z^2-2)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = Hom(P,P)
+            sage: f = H([2*x^2 + w/3*y^2,1/w*y^2])
+            sage: f.local_height_arch(1)
+            0.6931471805599453094172321214582
+        """
+        K = FractionField(self.domain().base_ring())
+        if K not in _NumberFields:
+            raise TypeError("Must be over a Numberfield or a Numberfield Order")
+        if K == QQ:
+            return max([K(c).local_height_arch(prec=prec) for f in self for c in f.coefficients()])
+        else:
+            return max([K(c).local_height_arch(i, prec=prec) for f in self for c in f.coefficients()])
+
 
     def height_difference_bound(self, prec=None):
         r"""
@@ -2209,6 +2334,101 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         from endPN_minimal_model import affine_minimal
         return(affine_minimal(self, return_transformation, prime_list, False))
+
+    def automorphism_group(self, **kwds):
+        r"""
+        Given a homogenous rational function, this calculates the subsgroup of `PGL2` that is
+        the automorphism group of ``self``.
+
+        INPUT:
+
+        keywords:
+
+        - ``starting_prime`` -- The first prime to use for CRT. default: 5.(optional)
+
+        - ``algorithm``-- Choose ``CRT``-Chinese Remainder Theorem- or ``fixed_points`` algorithm.
+            default: depends on ``self``. (optional)
+
+        - ``return_functions``-- Boolean - True returns elements as linear fractional transformations.
+            False returns elements as `PGL2` matrices. default: False. (optional)
+
+        - ``iso_type`` -- Boolean - True returns the isomorphism type of the automorphism group.
+            default: False (optional)
+
+        OUTPUT:
+
+        - list - elements of automorphism group.
+
+        AUTHORS:
+
+        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray
+
+        - Modified by Joao Alberto de Faria, Ben Hutz, Bianca Thompson
+
+        REFERENCES:
+
+        .. [FMV] Computing Conjugating Sets and Automorphism Groups of Rational Functions
+            by Xander Faber, Michelle Manes, and Bianca Viray
+
+        EXAMPLES::
+
+            sage: R.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(R)
+            sage: f = H([x^2-y^2,x*y])
+            sage: f.automorphism_group(return_functions=True)
+            [x, -x]
+
+        ::
+
+            sage: R.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(R)
+            sage: f = H([x^2 + 5*x*y + 5*y^2,5*x^2 + 5*x*y + y^2])
+            sage: f.automorphism_group()
+            [
+            [1 0]  [0 2]
+            [0 1], [2 0]
+            ]
+
+        ::
+
+            sage: R.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(R)
+            sage: f=H([x^2-2*x*y-2*y^2,-2*x^2-2*x*y+y^2])
+            sage: f.automorphism_group(return_functions=True)
+            [x, 2/(2*x), -x - 1, -2*x/(2*x + 2), (-x - 1)/x, -1/(x + 1)]
+
+        ::
+
+            sage: R.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(R)
+            sage: f = H([3*x^2*y - y^3,x^3 - 3*x*y^2])
+            sage: f.automorphism_group(algorithm='CRT',return_functions=True,iso_type=True)
+            ([x, (x + 1)/(x - 1), (-x + 1)/(x + 1), -x, 1/x, -1/x, (x - 1)/(x + 1), (-x - 1)/(x - 1)], 'Dihedral of order 8')
+        """
+
+        alg = kwds.get('algorithm',None)
+        p = kwds.get('starting_prime', 5)
+        return_functions = kwds.get('return_functions', False)
+        iso_type = kwds.get('iso_type',False)
+
+        if self.domain().dimension_relative() != 1:
+            raise NotImplementedError("Must be dimension 1")
+        else:
+            f = self.dehomogenize(1)
+            z = f[0].parent().gen()
+        if is_FractionFieldElement(f[0]):
+            F = (f[0].numerator().polynomial(z))/f[0].denominator().polynomial(z)
+        else:
+            F = f[0].polynomial(z)
+        from endPN_automorphism_group import automorphism_group_QQ_CRT, automorphism_group_QQ_fixedpoints
+        if alg is None:
+            if self.degree() <= 12:
+                return(automorphism_group_QQ_fixedpoints(F, return_functions, iso_type))
+            return(automorphism_group_QQ_CRT(F, p, return_functions, iso_type))
+        elif alg == 'CRT':
+            return(automorphism_group_QQ_CRT(F, p, return_functions, iso_type))
+
+        return(automorphism_group_QQ_fixedpoints(F, return_functions, iso_type))
 
 class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial_projective_space):
 
@@ -2911,6 +3131,76 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         g = self._preperiodic_points_to_cyclegraph(preper)
         return(g)
 
+    def connected_rational_component(self,P,n=0):
+        r"""
+        Computes the connected component of a rational preperiodic point `P` of ``self``. Will work for
+        non-preperiodic points if `n` is positive. Otherwise this will not terminate.
+
+        INPUT:
+
+        - ``P`` - A rational preperiodic point of ``self``
+
+        - ``n`` - Maximum distance from `P` to branch out. A value of 0 indicates no bound. Default: 0
+
+        OUTPUT:
+
+        - a list of points connected to `P` up to the specified distance
+
+        Examples::
+
+            sage: R.<x>=PolynomialRing(QQ)
+            sage: K.<w>= NumberField(x^3+1/4*x^2-41/16*x+23/64)
+            sage: PS.<x,y> = ProjectiveSpace(1,K)
+            sage: H = End(PS)
+            sage: f = H([x^2 - 29/16*y^2,y^2])
+            sage: P = PS([w,1])
+            sage: f.connected_rational_component(P)
+            [(w : 1), (w^2 - 29/16 : 1), (-w^2 - w + 25/16 : 1), (w^2 + w - 25/16 : 1),
+            (-w : 1), (-w^2 + 29/16 : 1), (-w - 1/2 : 1), (w + 1/2 : 1), (w^2 - 21/16 : 1),
+            (-w^2 + 21/16 : 1), (-w^2 - w + 33/16 : 1), (w^2 + w - 33/16 : 1)]
+
+        ::
+
+            sage: PS.<x,y,z> = ProjectiveSpace(2,QQ)
+            sage: H = End(PS)
+            sage: f = H([x^2 - 21/16*z^2,y^2-2*z^2,z^2])
+            sage: P = PS([17/16,7/4,1])
+            sage: f.connected_rational_component(P,3)
+            [(17/16 : 7/4 : 1), (-47/256 : 17/16 : 1), (-83807/65536 : -223/256 : 1), (17/16 : -7/4 : 1),
+            (-17/16 : -7/4 : 1), (-17/16 : 7/4 : 1), (1386468673/4294967296 : -81343/65536 : 1),
+            (47/256 : -17/16 : 1), (47/256 : 17/16 : 1), (-47/256 : -17/16 : 1), (-1/2 : -1/2 : 1),
+            (-1/2 : 1/2 : 1), (1/2 : 1/2 : 1), (1/2 : -1/2 : 1)]
+        """
+        points = [[],[]] # list of points and a list of their corresponding levels
+        points[0].append(P)
+        points[1].append(0) # P is treated as level 0
+
+        nextpoints = []
+        nextpoints.append(P)
+
+        level = 1
+        foundall = False # whether done or not
+        while not foundall:
+            newpoints = []
+            for Q in nextpoints:
+                # forward image
+                newpoints.append(self(Q))
+                # preimages
+                newpoints.extend(self.rational_preimages(Q))
+            del nextpoints[:] # empty list
+            # add any points that are not already in the connected component
+            for Q in newpoints:
+                if (Q not in points[0]):
+                    points[0].append(Q)
+                    points[1].append(level)
+                    nextpoints.append(Q)
+            # done if max level was achieved or if there were no more points to add
+            if ((level + 1 > n and n != 0) or len(nextpoints) == 0):
+                foundall = True
+            level = level + 1
+
+        return points[0]
+
 
 class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_polynomial_projective_space_field):
 
@@ -3086,3 +3376,88 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
         """
         return _fast_possible_periods(self,return_points)
 
+    def automorphism_group(self, **kwds):
+        r"""
+        Given a homogenous rational function, this calculates the subsgroup of `PGL2` that is
+        the automorphism group of ``self``, see [FMV] fir algorithm.
+
+        INPUT:
+
+        keywords:
+
+        - ``absolute``-- Boolean - True returns the absolute automorphism group and a field of definition. default: False (optional)
+
+        - ``iso_type`` -- Boolean - True returns the isomorphism type of the automorphism group. default: False (optional)
+
+        - ``return_functions``-- Boolean - True returns elements as linear fractional transformations.
+            False returns elements as `PGL2` matrices. default: False. (optional)
+
+        OUTPUT:
+
+        - list - elements of automorphism group.
+
+        AUTHORS:
+
+        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray\
+
+        - Modified by Joao Alberto de Faria, Ben Hutz, Bianca Thompson
+
+        EXAMPLES::
+
+            sage: R.<x,y> = ProjectiveSpace(GF(7^3,'t'),1)
+            sage: H = End(R)
+            sage: f = H([x^2-y^2,x*y])
+            sage: f.automorphism_group()
+            [
+            [1 0]  [6 0]
+            [0 1], [0 1]
+            ]
+
+        ::
+
+            sage: R.<x,y> = ProjectiveSpace(GF(3^2,'t'),1)
+            sage: H = End(R)
+            sage: f = H([x^3,y^3])
+            sage: f.automorphism_group(return_functions=True,iso_type=True) # long time
+            ([x, x/(x + 1), x/(2*x + 1), 2/(x + 2), (2*x + 1)/(2*x), (2*x + 2)/x,
+            1/(2*x + 2), x + 1, x + 2, x/(x + 2), 2*x/(x + 1), 2*x, 1/x, 2*x + 1,
+            2*x + 2, ((t + 2)*x + t + 2)/((2*t + 1)*x + t + 2), (t*x + 2*t)/(t*x +
+            t), 2/x, (x + 1)/(x + 2), (2*t*x + t)/(t*x), (2*t + 1)/((2*t + 1)*x +
+            2*t + 1), ((2*t + 1)*x + 2*t + 1)/((2*t + 1)*x), t/(t*x + 2*t), (2*x +
+            1)/(x + 1)], 'PGL(2,3)')
+
+        ::
+
+            sage: R.<x,y> = ProjectiveSpace(GF(2^5,'t'),1)
+            sage: H = End(R)
+            sage: f=H([x^5,y^5])
+            sage: f.automorphism_group(return_functions=True,iso_type=True)
+            ([x, 1/x], 'Cyclic of order 2')
+
+            ::
+
+            sage: R.<x,y> = ProjectiveSpace(GF(3^4,'t'),1)
+            sage: H = End(R)
+            sage: f=H([x^2+25*x*y+y^2,x*y+3*y^2])
+            sage: f.automorphism_group(absolute=True)
+            [Univariate Polynomial Ring in w over Finite Field in b of size 3^4,
+             [
+            [1 0]
+            [0 1]
+            ]]
+        """
+        absolute=kwds.get('absolute',False)
+        iso_type=kwds.get('iso_type',False)
+        return_functions=kwds.get('return_functions',False)
+
+        if self.domain().dimension_relative()!=1:
+            raise NotImplementedError, "Must be dimension 1"
+        else:
+            f=self.dehomogenize(1)
+            z=f[0].parent().gen()
+        if f[0].denominator()!=1:
+            F=(f[0].numerator().polynomial(z))/f[0].denominator().polynomial(z)
+        else:
+            F=f[0].numerator().polynomial(z)
+        from endPN_automorphism_group import automorphism_group_FF
+        return(automorphism_group_FF(F, absolute, iso_type, return_functions))

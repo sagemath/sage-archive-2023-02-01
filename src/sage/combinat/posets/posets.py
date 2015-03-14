@@ -32,6 +32,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.compare_elements` | Compares `x` and `y` in the poset.
     :meth:`~FinitePoset.comparability_graph` | Returns the comparability graph of the poset.
     :meth:`~FinitePoset.completion_by_cuts` | Returns the Dedekind-MacNeille completion of the poset.
+    :meth:`~FinitePoset.connected_components` | Return the connected components of ``self`` as subposets.
     :meth:`~FinitePoset.cover_relations_iterator` | Returns an iterator for the cover relations of the poset.
     :meth:`~FinitePoset.cover_relations` | Returns the list of pairs `[u,v]` which are cover relations
     :meth:`~FinitePoset.cover_relations_graph` | Return the graph of cover relations
@@ -3202,6 +3203,28 @@ class FinitePoset(UniqueRepresentation, Parent):
         result.rename("Set of chains of %s" % self)
         return result
 
+    def connected_components(self):
+        """
+        Return the connected components of ``self`` as subposets.
+
+        EXAMPLES::
+
+            sage: P = Poset({1:[2,3], 3:[4,5]})
+            sage: CC = P.connected_components()
+            sage: CC is P
+            True
+
+            sage: P = Poset({1:[2,3], 3:[4,5], 6:[7,8]})
+            sage: sorted(P.connected_components(), key=len)
+            [Finite poset containing 3 elements,
+             Finite poset containing 5 elements]
+        """
+        comps = self._hasse_diagram.connected_components()
+        if len(comps) == 1:
+            return self
+        return [self.subposet(self._vertex_to_element(x) for x in cc)
+                for cc in comps]
+
     def product(self,other):
         """
         Return the cartesian product of ``self`` and ``other``.
@@ -4968,7 +4991,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         part = 0
         (pold, vold) = (0, 0)
         while size != n:
-            (p, v) = chron.next()
+            (p, v) = next(chron)
             if v > vold:
                 size += p
                 if part > 0:
@@ -5307,31 +5330,31 @@ def _ford_fulkerson_chronicle(G, s, t, a):
         False
         sage: a = {(1, 6): 4, (2, 4): 0, (1, 3): 4, (1, 7): 1, (3, 7): 6, (7, 9): 1, (6, 7): 3, (6, 8): 1, (8, 9): 0, (8, 12): 2}
         sage: ffc = _ford_fulkerson_chronicle(G, s, t, a)
-        sage: ffc.next()
+        sage: next(ffc)
         (1, 0)
-        sage: ffc.next()
+        sage: next(ffc)
         (2, 0)
-        sage: ffc.next()
+        sage: next(ffc)
         (2, 1)
-        sage: ffc.next()
+        sage: next(ffc)
         (3, 1)
-        sage: ffc.next()
+        sage: next(ffc)
         (4, 1)
-        sage: ffc.next()
+        sage: next(ffc)
         (5, 1)
-        sage: ffc.next()
+        sage: next(ffc)
         (5, 2)
-        sage: ffc.next()
+        sage: next(ffc)
         (6, 2)
-        sage: ffc.next()
+        sage: next(ffc)
         (7, 2)
-        sage: ffc.next()
+        sage: next(ffc)
         (8, 2)
-        sage: ffc.next()
+        sage: next(ffc)
         (9, 2)
-        sage: ffc.next()
+        sage: next(ffc)
         (10, 2)
-        sage: ffc.next()
+        sage: next(ffc)
         (11, 2)
     """
     from sage.graphs.digraph import DiGraph

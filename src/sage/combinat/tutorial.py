@@ -1012,18 +1012,18 @@ following iterator ``it``::
 returns successively the binomial coefficients `\binom 3 i` with
 `i=0,1,2,3`::
 
-    sage: it.next()
+    sage: next(it)
     1
-    sage: it.next()
+    sage: next(it)
     3
-    sage: it.next()
+    sage: next(it)
     3
-    sage: it.next()
+    sage: next(it)
     1
 
 When the iterator is finally exhausted, an exception is raised::
 
-    sage: it.next()
+    sage: next(it)
     Traceback (most recent call last):
       ...
     StopIteration
@@ -1131,9 +1131,9 @@ Alternatively, we could construct an interator on the counter-examples::
     sage: counter_examples = \
     ...     (p for p in range(1000)
     ...        if is_prime(p) and not is_prime(mersenne(p)))
-    sage: counter_examples.next()
+    sage: next(counter_examples)
     11
-    sage: counter_examples.next()
+    sage: next(counter_examples)
     23
 
 .. topic:: Exercice
@@ -1318,18 +1318,18 @@ to be continued from the same point. The result of the function is
 therefore an iterator over the successive values returned by ``yield``::
 
     sage: g = f(4)
-    sage: g.next()
+    sage: next(g)
     0
-    sage: g.next()
+    sage: next(g)
     1
-    sage: g.next()
+    sage: next(g)
     2
-    sage: g.next()
+    sage: next(g)
     3
 
 ::
 
-    sage: g.next()
+    sage: next(g)
     Traceback (most recent call last):
       ...
     StopIteration

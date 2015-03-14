@@ -1,3 +1,6 @@
+r"""
+Coxeter Group Algebras
+"""
 import functools
 from sage.misc.cachefunc import cached_method
 from sage.categories.algebra_functor import AlgebrasCategory
@@ -6,16 +9,18 @@ class CoxeterGroupAlgebras(AlgebrasCategory):
 
     class ParentMethods:
 
-        def demazure_lusztig_operator_on_basis(self, w, i, q1, q2, side="right"):
+        def demazure_lusztig_operator_on_basis(self, w, i, q1, q2,
+                                               side="right"):
             r"""
-            Return the result of applying the `i`-th Demazure Lusztig operator on ``w``.
+            Return the result of applying the `i`-th Demazure Lusztig
+            operator on ``w``.
 
             INPUT:
 
             - ``w`` -- an element of the Coxeter group
             - ``i`` -- an element of the index set
             - ``q1,q2`` -- two elements of the ground ring
-            - ``bar`` -- a boolean (default False)
+            - ``bar`` -- a boolean (default ``False``)
 
             See :meth:`demazure_lusztig_operators` for details.
 
@@ -66,9 +71,9 @@ class CoxeterGroupAlgebras(AlgebrasCategory):
 
             INPUT:
 
-            - ``q1,q2`` -- two elements of the ground ring `\KK`
+            - ``q1,q2`` -- two elements of the ground ring `K`
             - ``side`` -- "left" or "right" (default: "right"): which side to act upon
-            - ``affine`` -- a boolean (default: True)
+            - ``affine`` -- a boolean (default: ``True``)
 
             The Demazure-Lusztig operator `T_i` is the linear map
             `R\rightarrow R` obtained by interpolating between the
@@ -135,7 +140,7 @@ class CoxeterGroupAlgebras(AlgebrasCategory):
             INPUT:
 
             - ``self`` -- a finite Coxeter group `W`
-            - ``q1,q2`` -- two elements of the ground ring `\KK`
+            - ``q1,q2`` -- two elements of the ground ring `K`
 
             The affine Hecke algebra `H_{q_1,q_2}(\tilde W)` acts on
             the group algebra of `W` through the Demazure-Lusztig

@@ -433,7 +433,7 @@ class TriangularModuleMorphism(ModuleMorphism):
 
     - ``invertible`` -- a boolean or ``None`` (default: ``None``); can
       be set to specify that `\phi` is known to be (or not to be)
-      invertible. In the finite dimensional case, this is
+      invertible. In the finite dimensional case, this is by default
       automatically set to ``True`` if the domain and codomain share
       the same indexing set.
 
@@ -623,6 +623,7 @@ class TriangularModuleMorphism(ModuleMorphism):
         on_basis = self.on_basis()
         self._unitriangular = unitriangular
         self._inverse = inverse
+
         if inverse_on_support == "compute":
             self._inverse_on_support = self._inverse_on_support_precomputed
             for i in self.domain().basis().keys():
@@ -630,10 +631,10 @@ class TriangularModuleMorphism(ModuleMorphism):
                 self._inverse_on_support.set_cache(i, j)
         else:
             self._inverse_on_support = inverse_on_support
-        if invertible is not None:
-            self._invertible = invertible
-        elif domain in Modules.FiniteDimensional:
-            self._invertible = (domain.basis().keys() == codomain.basis().keys())
+
+        if invertible is None and domain in Modules.FiniteDimensional and (domain.basis().keys() == codomain.basis().keys()):
+            invertible = True
+        self._invertible=invertible
 
     @cached_method
     def _inverse_on_support_precomputed(self, i):

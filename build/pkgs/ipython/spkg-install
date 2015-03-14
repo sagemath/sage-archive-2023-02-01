@@ -49,8 +49,7 @@ fi
 
 # let ipython use mathjax
 cd "$SAGE_LOCAL/lib/python/site-packages/IPython/html/static"
-if [ -h mathjax ] ; then
-    rm mathjax
-fi
-ln -s ../../../../../../share/mathjax/
+rm -rf mathjax
+ln -s ../../../../../../share/mathjax/ mathjax
+
 

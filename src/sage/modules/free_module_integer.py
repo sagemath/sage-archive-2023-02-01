@@ -33,7 +33,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.libs.pari.pari_instance import pari
 from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
@@ -625,7 +624,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
                 B = self.reduced_basis.LLL()
                 qf = B*B.transpose()
 
-            count, length, vectors = pari(qf).qfminim(0, None)
+            count, length, vectors = qf._pari_().qfminim(0, None)
             v = vectors.python().columns()[0]
             w = v*B
         elif algorithm == "fplll":

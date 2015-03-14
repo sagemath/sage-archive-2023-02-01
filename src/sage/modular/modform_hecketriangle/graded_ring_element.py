@@ -1070,7 +1070,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
     # note that this is qd/dq, resp 1/(2*pi*i)*d/dtau
     def derivative(self):
         r"""
-        Return the derivative ``d/dq = 1/(2*pi*i) d/dtau`` of ``self``.
+        Return the derivative ``d/dq = lambda/(2*pi*i) d/dtau`` of ``self``.
 
         Note that the parent might (probably will) change.
         In particular its analytic type will be extended
@@ -1919,7 +1919,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f_rho(az)
             -2.29216470688... - 1.46235057536...*I
             sage: k = f_rho.weight()
-            sage: aut_fact = f_rho.ep()^3 * (((T*S)**2*T).acton(z)/i)**k * (((T*S)*T).acton(z)/i)**k * (T.acton(z)/i)**k
+            sage: aut_fact = f_rho.ep()^3 * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k * (((T*S)*T).acton(z)/AlgebraicField()(i))**k * (T.acton(z)/AlgebraicField()(i))**k
             sage: abs(aut_fact - f_rho.parent().aut_factor(A, z)) < 1e-12
             True
             sage: aut_fact * f_rho(z)
@@ -1937,7 +1937,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f_i(az)
             14.5845388476... - 28.4604652892...*I
             sage: k = f_i.weight()
-            sage: aut_fact = f_i.ep()^3 * (((T*S)**2*T).acton(z)/i)**k * (((T*S)*T).acton(z)/i)**k * (T.acton(z)/i)**k
+            sage: aut_fact = f_i.ep()^3 * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k * (((T*S)*T).acton(z)/AlgebraicField()(i))**k * (T.acton(z)/AlgebraicField()(i))**k
             sage: abs(aut_fact - f_i.parent().aut_factor(A, z)) < 1e-12
             True
             sage: aut_fact * f_i(z)
@@ -1956,11 +1956,11 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f(az)
             -15.9978074989... - 29.2775758341...*I
             sage: k = f.weight()
-            sage: aut_fact = f.ep()^3 * (((T*S)**2*T).acton(z)/i)**k * (((T*S)*T).acton(z)/i)**k * (T.acton(z)/i)**k
+            sage: aut_fact = f.ep()^3 * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k * (((T*S)*T).acton(z)/AlgebraicField()(i))**k * (T.acton(z)/AlgebraicField()(i))**k
             sage: abs(aut_fact - f.parent().aut_factor(A, z)) < 1e-12
             True
             sage: k2 = f_rho.weight()
-            sage: aut_fact2 = f_rho.ep() * (((T*S)**2*T).acton(z)/i)**k2 * (((T*S)*T).acton(z)/i)**k2 * (T.acton(z)/i)**k2
+            sage: aut_fact2 = f_rho.ep() * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k2 * (((T*S)*T).acton(z)/AlgebraicField()(i))**k2 * (T.acton(z)/AlgebraicField()(i))**k2
             sage: abs(aut_fact2 - f_rho.parent().aut_factor(A, z)) < 1e-12
             True
             sage: cor_term = (4 * G.n() / (G.n()-2) * A.c() * (A.c()*z+A.d())) / (2*pi*i).n(1000) * G.lam()
@@ -2024,7 +2024,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f_i(az)
             6.103314419... + 20.42678597...*I
             sage: k = f_i.weight()
-            sage: aut_fact = f_i.ep()^3 * (((T*S)**2*T).acton(z)/i)**k * (((T*S)*T).acton(z)/i)**k * (T.acton(z)/i)**k
+            sage: aut_fact = f_i.ep()^3 * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k * (((T*S)*T).acton(z)/AlgebraicField()(i))**k * (T.acton(z)/AlgebraicField()(i))**k
             sage: abs(aut_fact - f_i.parent().aut_factor(A, z)) < 1e-12
             True
             sage: aut_fact * f_i(z)
@@ -2043,11 +2043,11 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f(az)
             -140.4711702... + 469.0793692...*I
             sage: k = f.weight()
-            sage: aut_fact = f.ep()^3 * (((T*S)**2*T).acton(z)/i)**k * (((T*S)*T).acton(z)/i)**k * (T.acton(z)/i)**k
+            sage: aut_fact = f.ep()^3 * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k * (((T*S)*T).acton(z)/AlgebraicField()(i))**k * (T.acton(z)/AlgebraicField()(i))**k
             sage: abs(aut_fact - f.parent().aut_factor(A, z)) < 1e-12
             True
             sage: k2 = f_i.weight()
-            sage: aut_fact2 = f_i.ep() * (((T*S)**2*T).acton(z)/i)**k2 * (((T*S)*T).acton(z)/i)**k2 * (T.acton(z)/i)**k2
+            sage: aut_fact2 = f_i.ep() * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k2 * (((T*S)*T).acton(z)/AlgebraicField()(i))**k2 * (T.acton(z)/AlgebraicField()(i))**k2
             sage: abs(aut_fact2 - f_i.parent().aut_factor(A, z)) < 1e-12
             True
             sage: cor_term = (4 * A.c() * (A.c()*z+A.d())) / (2*pi*i).n(1000) * G.lam()
@@ -2096,7 +2096,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         if (self.is_homogeneous() and self.is_modular()):
             q_exp = self.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec)
-            A, w = self.group().get_FD(tau)
+            (A, w) = self.group().get_FD(tau)
             aut_factor = self.reduce(force=True).parent().aut_factor(A, w)
             if (type(q_exp) == LaurentSeries):
                 return q_exp.laurent_polynomial()(exp((2 * pi * i).n(num_prec) / self.group().lam() * w)) * aut_factor
@@ -2104,7 +2104,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                 return q_exp.polynomial()(exp((2 * pi * i).n(num_prec) / self.group().lam() * w)) * aut_factor
         elif (self._rat == z):
             E2 = self.parent().graded_ring().E2().reduce(force=True)
-            A, w = self.group().get_FD(tau)
+            (A, w) = self.group().get_FD(tau)
             aut_factor = E2.parent().aut_factor(A, w)
             E2_wvalue = E2.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec).polynomial()(exp((2 * pi * i).n(num_prec) / self.group().lam() * w))
             if (self.hecke_n() == infinity):

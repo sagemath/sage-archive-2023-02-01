@@ -298,11 +298,13 @@ We test an automatic coercion::
     <class 'sage.interfaces.singular.SingularElement'>
 
 Create a ring over GF(9) to check that ``gftables`` has been installed,
-see ticket #11645::
+see :trac:`11645`::
 
     sage: singular.eval("ring testgf9 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);")
-    'ring testgf9 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);'
+    ''
 """
+
+
 
 #We could also do these calculations without using the singular
 #interface (behind the scenes the interface is used by Sage):
@@ -588,7 +590,6 @@ class Singular(Expect):
             raise SingularError('Singular error:\n%s'%s)
 
         if get_verbose() > 0:
-            ret = []
             for line in s.splitlines():
                 if line.startswith("//"):
                     print line
@@ -1407,7 +1408,7 @@ class SingularElement(ExpectElement):
         EXAMPLE::
 
             sage: singular.eval('ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp)')
-            'ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);'
+            ''
             sage: R = singular('r1').sage_global_ring()
             sage: R
             Multivariate Polynomial Ring in a, b, c, d, e, f over Finite Field in x of size 3^2
@@ -1422,16 +1423,16 @@ class SingularElement(ExpectElement):
         ::
 
             sage: singular.eval('ring r2 = (0,x),(a,b,c),dp')
-            'ring r2 = (0,x),(a,b,c),dp;'
+            ''
             sage: singular('r2').sage_global_ring()
             Multivariate Polynomial Ring in a, b, c over Fraction Field of Univariate Polynomial Ring in x over Rational Field
 
         ::
 
             sage: singular.eval('ring r3 = (3,z),(a,b,c),dp')
-            'ring r3 = (3,z),(a,b,c),dp;'
+            ''
             sage: singular.eval('minpoly = 1+z+z2+z3+z4')
-            'minpoly = 1+z+z2+z3+z4;'
+            ''
             sage: singular('r3').sage_global_ring()
             Multivariate Polynomial Ring in a, b, c over Finite Field in z of size 3^4
 
@@ -1441,7 +1442,7 @@ class SingularElement(ExpectElement):
         bit precision::
 
             sage: singular.eval('ring r4 = (real,20),(a,b,c),dp')
-            'ring r4 = (real,20),(a,b,c),dp;'
+            ''
             sage: singular('r4').sage_global_ring()
             Multivariate Polynomial Ring in a, b, c over Real Field with 70 bits of precision
 
@@ -1449,7 +1450,7 @@ class SingularElement(ExpectElement):
         the generator of a complex field in Sage is always called "I"::
 
             sage: singular.eval('ring r5 = (complex,15,j),(a,b,c),dp')
-            'ring r5 = (complex,15,j),(a,b,c),dp;'
+            ''
             sage: R = singular('r5').sage_global_ring(); R
             Multivariate Polynomial Ring in a, b, c over Complex Field with 54 bits of precision
             sage: R.base_ring()('j')
@@ -1462,7 +1463,7 @@ class SingularElement(ExpectElement):
         In our last example, the base ring is a quotient ring::
 
             sage: singular.eval('ring r6 = (9,a), (x,y,z),lp')
-            'ring r6 = (9,a), (x,y,z),lp;'
+            ''
             sage: Q = singular('std(ideal(x^2,x+y^2+z^3))', type='qring')
             sage: Q.sage_global_ring()
             Quotient of Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 3^2 by the ideal (y^4 - y^2*z^3 + z^6, x + y^2 + z^3)
@@ -1578,9 +1579,9 @@ class SingularElement(ExpectElement):
         TESTS::
 
             sage: singular.eval('ring r = (3,z),(a,b,c),dp')
-            'ring r = (3,z),(a,b,c),dp;'
+            ''
             sage: singular.eval('minpoly = 1+z+z2+z3+z4')
-            'minpoly = 1+z+z2+z3+z4;'
+            ''
             sage: p = singular('z^4*a^3+z^2*a*b*c')
             sage: p.sage_poly()
             (-z^3 - z^2 - z - 1)*a^3 + (z^2)*a*b*c
@@ -1802,9 +1803,9 @@ class SingularElement(ExpectElement):
         ::
 
             sage: singular.eval('ring r10 = (9,a), (x,y,z),lp')
-            'ring r10 = (9,a), (x,y,z),lp;'
+            ''
             sage: singular.eval('setring R')
-            'setring R;'
+            ''
             sage: singular('r10').sage()
             Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 3^2
 
@@ -1820,7 +1821,7 @@ class SingularElement(ExpectElement):
         ::
 
             sage: singular.eval('setring r10')
-            'setring r10;'
+            ''
             sage: Q = singular('std(ideal(x^2,x+y^2+z^3))', type='qring')
             sage: Q.sage()
             Quotient of Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 3^2 by the ideal (y^4 - y^2*z^3 + z^6, x + y^2 + z^3)
@@ -2213,7 +2214,7 @@ def reduce_load_Singular():
     """
     return singular
 
-import os
+
 def singular_console():
     """
     Spawn a new Singular command-line session.
@@ -2410,3 +2411,166 @@ class SingularGBLogPrettyPrinter:
             sage: s3.flush()
         """
         sys.stdout.flush()
+
+class SingularGBDefaultContext:
+    """
+    Within this context all Singular Groebner basis calculations are
+    reduced automatically.
+
+    AUTHORS:
+
+    - Martin Albrecht
+    - Simon King
+    """
+    def __init__(self, singular=None):
+        """
+        Within this context all Singular Groebner basis calculations
+        are reduced automatically.
+
+        INPUT:
+
+        -  ``singular`` - Singular instance (default: default instance)
+
+        EXAMPLE::
+
+            sage: from sage.interfaces.singular import SingularGBDefaultContext
+            sage: P.<a,b,c> = PolynomialRing(QQ,3, order='lex')
+            sage: I = sage.rings.ideal.Katsura(P,3)
+            sage: singular.option('noredTail')
+            sage: singular.option('noredThrough')
+            sage: Is = I._singular_()
+            sage: gb = Is.groebner()
+            sage: gb
+            84*c^4-40*c^3+c^2+c,
+            7*b+210*c^3-79*c^2+3*c,
+            a+2*b+2*c-1
+
+        ::
+
+            sage: with SingularGBDefaultContext(): rgb = Is.groebner()
+            sage: rgb
+            84*c^4-40*c^3+c^2+c,
+            7*b+210*c^3-79*c^2+3*c,
+            7*a-420*c^3+158*c^2+8*c-7
+
+        Note that both bases are Groebner bases because they have
+        pairwise prime leading monomials but that the monic version of
+        the last element in ``rgb`` is smaller than the last element
+        of ``gb`` with respect to the lexicographical term ordering. ::
+
+            sage: (7*a-420*c^3+158*c^2+8*c-7)/7 < (a+2*b+2*c-1)
+            True
+
+        .. note::
+
+           This context is used automatically internally whenever a
+           Groebner basis is computed so the user does not need to use
+           it manually.
+        """
+        if singular is None:
+            from sage.interfaces.all import singular as singular_default
+            singular = singular_default
+        self.singular = singular
+
+    def __enter__(self):
+        """
+        EXAMPLE::
+
+            sage: from sage.interfaces.singular import SingularGBDefaultContext
+            sage: P.<a,b,c> = PolynomialRing(QQ,3, order='lex')
+            sage: I = sage.rings.ideal.Katsura(P,3)
+            sage: singular.option('noredTail')
+            sage: singular.option('noredThrough')
+            sage: Is = I._singular_()
+            sage: with SingularGBDefaultContext(): rgb = Is.groebner()
+            sage: rgb
+            84*c^4-40*c^3+c^2+c,
+            7*b+210*c^3-79*c^2+3*c,
+            7*a-420*c^3+158*c^2+8*c-7
+        """
+        from sage.interfaces.singular import SingularError
+        try:
+            self.bck_degBound = int(self.singular.eval('degBound'))
+        except SingularError:
+            self.bck_degBound = int(0)
+        try:
+            self.bck_multBound = int(self.singular.eval('multBound'))
+        except SingularError:
+            self.bck_multBound = int(0)
+        self.o = self.singular.option("get")
+        self.singular.option('set',self.singular._saved_options)
+        self.singular.option("redSB")
+        self.singular.option("redTail")
+        try:
+            self.singular.eval('degBound=0')
+        except SingularError:
+            pass
+        try:
+            self.singular.eval('multBound=0')
+        except SingularError:
+            pass
+
+    def __exit__(self, typ, value, tb):
+        """
+        EXAMPLE::
+
+            sage: from sage.interfaces.singular import SingularGBDefaultContext
+            sage: P.<a,b,c> = PolynomialRing(QQ,3, order='lex')
+            sage: I = sage.rings.ideal.Katsura(P,3)
+            sage: singular.option('noredTail')
+            sage: singular.option('noredThrough')
+            sage: Is = I._singular_()
+            sage: with SingularGBDefaultContext(): rgb = Is.groebner()
+            sage: rgb
+            84*c^4-40*c^3+c^2+c,
+            7*b+210*c^3-79*c^2+3*c,
+            7*a-420*c^3+158*c^2+8*c-7
+        """
+        from sage.interfaces.singular import SingularError
+        self.singular.option("set",self.o)
+        try:
+            self.singular.eval('degBound=%d'%self.bck_degBound)
+        except SingularError:
+            pass
+        try:
+            self.singular.eval('multBound=%d'%self.bck_multBound)
+        except SingularError:
+            pass
+
+def singular_gb_standard_options(func):
+    r"""
+    Decorator to force a reduced Singular groebner basis.
+
+    TESTS::
+
+        sage: P.<a,b,c,d,e> = PolynomialRing(GF(127))
+        sage: J = sage.rings.ideal.Cyclic(P).homogenize()
+        sage: from sage.misc.sageinspect import sage_getsource
+        sage: "basis" in sage_getsource(J.interreduced_basis) #indirect doctest
+        True
+
+    The following tests against a bug that was fixed in :trac:`11298`::
+
+        sage: from sage.misc.sageinspect import sage_getsourcelines, sage_getargspec
+        sage: P.<x,y> = QQ[]
+        sage: I = P*[x,y]
+        sage: sage_getargspec(I.interreduced_basis)
+        ArgSpec(args=['self'], varargs=None, keywords=None, defaults=None)
+        sage: sage_getsourcelines(I.interreduced_basis)
+        (['    @singular_gb_standard_options\n',
+          '    @libsingular_gb_standard_options\n',
+          '    def interreduced_basis(self):\n', '
+          ...
+          '        return self.basis.reduced()\n'], ...)
+
+    .. note::
+
+       This decorator is used automatically internally so the user
+       does not need to use it manually.
+    """
+    from sage.misc.decorators import sage_wraps
+    @sage_wraps(func)
+    def wrapper(*args, **kwds):
+        with SingularGBDefaultContext():
+            return func(*args, **kwds)
+    return wrapper

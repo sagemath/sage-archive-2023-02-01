@@ -53,7 +53,7 @@ import sfa
 import sage.combinat.partition
 from sage.matrix.all import MatrixSpace
 from sage.rings.all import QQ
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.rings.fraction_field import FractionField
 import functools
 

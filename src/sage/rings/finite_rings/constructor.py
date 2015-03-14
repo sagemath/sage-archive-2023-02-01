@@ -25,7 +25,7 @@ characteristic of such a field is 2 then NTL is used internally to
 represent the field
 (``sage.rings.finite_rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e``).
 In all other case the PARI C library is used
-(``sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari``).
+(``sage.rings.finite_rings.finite_field_pari_ffelt.FiniteField_pari_ffelt``).
 
 However, this distinction is internal only and the user usually
 does not have to worry about it because consistency across all
@@ -305,7 +305,7 @@ class FiniteFieldFactory(UniqueFactory):
         sage: K.<a> = GF(13^2, modulus=sin(x))
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (=sin(x)) to an integer
+        TypeError: unable to convert sin(x) to an integer
 
     If you wish to live dangerously, you can tell the constructor not
     to test irreducibility using ``check_irreducible=False``, but this
@@ -625,6 +625,9 @@ class FiniteFieldFactory(UniqueFactory):
                     K = FiniteField_pari_ffelt(p, modulus, name)
                 elif (impl == 'pari_mod'
                       or impl == 'pari'):    # for unpickling old pickles
+                    # This implementation is deprecated, a warning will
+                    # be given when this field is created.
+                    # See http://trac.sagemath.org/ticket/17297
                     from finite_field_ext_pari import FiniteField_ext_pari
                     K = FiniteField_ext_pari(order, name, modulus)
                 else:

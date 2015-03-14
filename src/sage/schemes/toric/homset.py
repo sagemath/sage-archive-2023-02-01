@@ -357,9 +357,9 @@ class SchemeHomset_points_toric_base(SchemeHomset_points):
 
             sage: P123 = toric_varieties.P2_123(base_ring=GF(3))
             sage: point_set = P123.point_set()
-            sage: iter(point_set._naive_enumerator()).next()
+            sage: next(iter(point_set._naive_enumerator()))
             (0, 0, 1)
-            sage: iter(point_set).next()
+            sage: next(iter(point_set))
             [0 : 0 : 1]
         """
         from sage.schemes.toric.points import \
@@ -536,9 +536,9 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
 
             sage: P123 = toric_varieties.P2_123(base_ring=GF(3))
             sage: point_set = P123.point_set()
-            sage: iter(point_set.__iter__()).next()
+            sage: next(iter(point_set.__iter__()))
             [0 : 0 : 1]
-            sage: iter(point_set).next()  # syntactic sugar
+            sage: next(iter(point_set))  # syntactic sugar
             [0 : 0 : 1]
         """
         for pt in self._naive_enumerator():

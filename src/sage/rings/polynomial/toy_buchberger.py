@@ -414,14 +414,16 @@ def inter_reduction(Q):
 
     ::
 
-        sage: (x,y) = QQ['x,y'].gens()
+        sage: P.<x,y> = QQ[]
         sage: reduced = inter_reduction(set([x^2-5*y^2,x^3]))
         sage: reduced == set([x*y^2, x^2-5*y^2])
+        True
+        sage: reduced == inter_reduction(set([2*(x^2-5*y^2),x^3]))
         True
     """
     if not Q:
         return Q # if Q is empty we cannot get a base ring
-    base_ring = iter(Q).next().base_ring()
+    base_ring = next(iter(Q)).base_ring()
 
     Q = set(Q)
     while True:

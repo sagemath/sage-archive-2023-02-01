@@ -438,6 +438,13 @@ A long complicated input expression::
 
     sage: maxima._eval_line('((((((((((0) + ((1) / ((n0) ^ (0)))) + ((1) / ((n1) ^ (1)))) + ((1) / ((n2) ^ (2)))) + ((1) / ((n3) ^ (3)))) + ((1) / ((n4) ^ (4)))) + ((1) / ((n5) ^ (5)))) + ((1) / ((n6) ^ (6)))) + ((1) / ((n7) ^ (7)))) + ((1) / ((n8) ^ (8)))) + ((1) / ((n9) ^ (9)));')
     '1/n9^9+1/n8^8+1/n7^7+1/n6^6+1/n5^5+1/n4^4+1/n3^3+1/n2^2+1/n1+1'
+
+Test that Maxima gracefully handles this syntax error (:trac:`17667`)::
+
+    sage: maxima.eval("1 == 1;")
+    Traceback (most recent call last):
+    ...
+    TypeError: ...incorrect syntax: = is not a prefix operator...
 """
 
 #*****************************************************************************
@@ -580,7 +587,7 @@ class Maxima(MaximaAbstract, Expect):
             sage: m.is_running()
             True
 
-        Test that we can use more than 256MB RAM (see trac :trac:`6722`)::
+        Test that we can use more than 256MB RAM (see trac :trac:`6772`)::
 
             sage: a = maxima(10)^(10^5)
             sage: b = a^600              # long time -- about 10-15 seconds

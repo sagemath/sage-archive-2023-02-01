@@ -83,7 +83,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         Quickly creates a new initialized Polynomial_integer_dense_ntl
         with the correct parent and _is_gen == 0.
         """
-        cdef Polynomial_integer_dense_ntl x = PY_NEW(Polynomial_integer_dense_ntl)
+        cdef Polynomial_integer_dense_ntl x = Polynomial_integer_dense_ntl.__new__(Polynomial_integer_dense_ntl)
         x._parent = self._parent
         x._is_gen = 0
         return x
@@ -185,7 +185,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             degree = 0
             # find max degree to allocate only once
             for ii, a in x:
-                i = ii[0] if PY_TYPE_CHECK_EXACT(ii, tuple) else ii # mpoly dict style has tuple keys
+                i = ii[0] if type(ii) is tuple else ii # mpoly dict style has tuple keys
                 if i < 0:
                     raise ValueError, "Negative monomial degrees not allowed: %s" % i
                 elif i > degree:
@@ -195,11 +195,11 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             ZZX_SetCoeff_long(self.__poly, degree, 1)
             # now fill them in
             for ii, a in x:
-                i = ii[0] if PY_TYPE_CHECK_EXACT(ii, tuple) else ii
-                if PY_TYPE_CHECK_EXACT(a, int):
+                i = ii[0] if type(ii) is tuple else ii
+                if type(a) is int:
                     ZZX_SetCoeff_long(self.__poly, i, a)
                 else:
-                    if not PY_TYPE_CHECK(a, Integer):
+                    if not isinstance(a, Integer):
                         a = ZZ(a)
                     mpz_to_ZZ(&y, (<Integer>a).value)
                     ZZX_SetCoeff(self.__poly, i, y)
@@ -229,10 +229,10 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
 
         for i from 0 <= i < len(x):
             a = x[i]
-            if PY_TYPE_CHECK_EXACT(a, int):
+            if type(a) is int:
                 ZZX_SetCoeff_long(self.__poly, i, a)
             else:
-                if not PY_TYPE_CHECK(a, Integer):
+                if not isinstance(a, Integer):
                     a = ZZ(a)
                 mpz_to_ZZ(&y, (<Integer>a).value)
                 ZZX_SetCoeff(self.__poly, i, y)
@@ -500,7 +500,8 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         if ZZX_IsZero(self.__poly):
             return self, self
 
-        cdef ZZX_c *q, *r
+        cdef ZZX_c *q
+        cdef ZZX_c *r
         cdef Polynomial_integer_dense_ntl qq = self._new()
         cdef Polynomial_integer_dense_ntl rr = self._new()
         cdef int divisible
@@ -604,7 +605,8 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: u*F + v*G
             2985984
         """
-        cdef ZZX_c *s, *t
+        cdef ZZX_c *s
+        cdef ZZX_c *t
         cdef ZZ_c *r
 
         ZZX_xgcd(&self.__poly, &(<Polynomial_integer_dense_ntl>right).__poly, &r, &s, &t, 1)    # proof = 1

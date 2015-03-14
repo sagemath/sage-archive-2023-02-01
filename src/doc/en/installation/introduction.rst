@@ -80,9 +80,6 @@ Here is a list of some of the software included with Sage:
 
 * maxima: symbolic algebra and calculus
 
-* mercurial: a Source Control Management system designed for handling of
-  very large distributed projects
-
 * mpfi: a C library for arithmetic by multi-precision intervals, based
   on MPFR and GMP
 

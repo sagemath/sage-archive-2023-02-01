@@ -137,20 +137,20 @@ As matrix and many other sage objects, words have a parent::
 Factors and Rauzy Graphs
 ========================
 
-Enumeration of factors, the successive values returned by it.next()
+Enumeration of factors, the successive values returned by next(it)
 can appear in a different order depending on hardware. Therefore we
 mark the three first results of the test random. The important test
 is that the iteration stops properly on the fourth call::
 
     sage: w = Word([4,5,6])^7
     sage: it = w.factor_iterator(4)
-    sage: it.next() # random
+    sage: next(it) # random
     word: 6456
-    sage: it.next() # random
+    sage: next(it) # random
     word: 5645
-    sage: it.next() # random
+    sage: next(it) # random
     word: 4564
-    sage: it.next()
+    sage: next(it)
     Traceback (most recent call last):
     ...
     StopIteration
@@ -1946,11 +1946,11 @@ class FiniteWord_class(Word_class):
             return True
         try:
             it = iter(self)
-            s = islice(it, seq[0], None).next()
+            s = next(islice(it, seq[0], None))
             for i in xrange(1, len(seq)):
                 steps = seq[i] - seq[i-1]
-                for n in xrange(steps-1): it.next()
-                if it.next() != s:
+                for n in xrange(steps-1): next(it)
+                if next(it) != s:
                     return False
         except StopIteration:
             return False
@@ -2004,7 +2004,7 @@ class FiniteWord_class(Word_class):
             return other
 
         iter = enumerate(izip(reversed(self), reversed(other)))
-        i,(b,c) = iter.next()
+        i,(b,c) = next(iter)
         if b != c:
             #In this case, return the empty word
             return self[:0]
@@ -3273,10 +3273,10 @@ class FiniteWord_class(Word_class):
         """
         its = iter(self)
         try:
-            s = its.next()
+            s = next(its)
             for e in other:
                 if s == e:
-                    s = its.next()
+                    s = next(its)
             else:
                 return False
         except StopIteration:
@@ -4547,7 +4547,8 @@ class FiniteWord_class(Word_class):
         Returns the conversion of self to a word with partition content using
         the `s_i` operators of Lascoux and Schutzenberger.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: w = Word([1,3,2,1,2,3,4,6,4,2,3,2])
             sage: w._to_partition_content()
             word: 132112454132
@@ -4872,12 +4873,12 @@ class FiniteWord_class(Word_class):
             end = iter(self)
             abelian = dict(zip(alphabet, [0]*len(alphabet)))
             for _ in range(i):
-                abelian[end.next()] += 1
+                abelian[next(end)] += 1
             abel_max = abelian.copy()
             abel_min = abelian.copy()
             for _ in range(self.length() - i):
-                lost = start.next()
-                gain = end.next()
+                lost = next(start)
+                gain = next(end)
                 abelian[gain] += 1
                 abelian[lost] -= 1
                 abel_max[gain] = max(abel_max[gain], abelian[gain])
@@ -5040,11 +5041,11 @@ class FiniteWord_class(Word_class):
         end = iter(self)
         abelian = [0] * size
         for _ in range(n):
-            abelian[rank[end.next()]] += 1
+            abelian[rank[next(end)]] += 1
         S.add(tuple(abelian))
         for letter in end:
             abelian[rank[letter]] += 1
-            abelian[rank[start.next()]] -= 1
+            abelian[rank[next(start)]] -= 1
             S.add(tuple(abelian))
         return S
 
@@ -5678,17 +5679,17 @@ class FiniteWord_class(Word_class):
         if self.is_empty():
             return Words(alphabet)()
         if s is None:
-            s = cycle_alphabet.next()
+            s = next(cycle_alphabet)
         else:
             if s not in alphabet:
                 raise ValueError("starting letter not in alphabet")
-            t = cycle_alphabet.next()
+            t = next(cycle_alphabet)
             while t != s:
-                t = cycle_alphabet.next()
+                t = next(cycle_alphabet)
         w = []
         for i in self:
             w.extend([s] * i)
-            s = cycle_alphabet.next()
+            s = next(cycle_alphabet)
         return Words(alphabet)(w)
 
     def delta(self):

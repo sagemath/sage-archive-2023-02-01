@@ -1614,6 +1614,65 @@ class RationalPolyhedralFan(IntegralRayCollection,
         self_cones = [cone.ambient_ray_indices() for cone in self]
         return RationalPolyhedralFan(self_cones, new_rays, self.lattice())
 
+    def common_refinement(self, other):
+        """
+        Compute the common refinement of ``self`` and ``other``.
+
+        This is currently only implemented when one of the fans is complete.
+
+        OUTPUT:
+
+        - a fan
+
+        EXAMPLES:
+
+        Refining a fan with itself gives itself::
+
+            sage: F0 = Fan2d([(1,0),(0,1),(-1,0),(0,-1)])
+            sage: F0.common_refinement(F0) == F0
+            True
+
+        A more complex example::
+
+            sage: F1 = Fan([[0],[1]],[(1,),(-1,)])
+            sage: F2 = Fan2d([(1,0),(1,1),(0,1),(-1,0),(0,-1)])
+            sage: F3 = F2.cartesian_product(F1)
+            sage: F4 = F1.cartesian_product(F2)
+            sage: FF = F3.common_refinement(F4); FF
+            Rational polyhedral fan in 3-d lattice N+N
+            sage: FF.ngenerating_cones()
+            13
+
+        TESTS:
+
+        This does not work when both fans are incomplete::
+
+            sage: F5 = Fan([[0,1],[1,2],[2,3]],[(1,0),(0,1),(-1,0),(0,-1)])
+            sage: F5.common_refinement(F5)
+            Traceback (most recent call last):
+            ...
+            ValueError: only implemented for complete fans
+
+        Both fans must live in the same lattice::
+
+            sage: F0.common_refinement(F1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the fans are not in the same lattice
+        """
+        from sage.categories.homset import End
+        from sage.geometry.fan_morphism import FanMorphism
+        latt = self.lattice()
+        if other.lattice() != latt:
+            raise ValueError('the fans are not in the same lattice')
+        if not(self.is_complete()):
+            if other.is_complete():
+                self, other = other, self
+            else:
+                raise ValueError('only implemented for complete fans')
+        id = FanMorphism(End(latt).identity(), self, other, subdivide=True)
+        return id.domain_fan()
+
     def _latex_(self):
         r"""
         Return a LaTeX representation of ``self``.

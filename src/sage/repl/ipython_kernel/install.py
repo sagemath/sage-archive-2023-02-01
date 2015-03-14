@@ -113,6 +113,7 @@ class SageKernelSpec(object):
         EXAMPLES::
 
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
+            sage: from IPython.utils.path import get_ipython_dir
             sage: spec = SageKernelSpec()
             sage: spec.use_local_mathjax()
             sage: ipython_dir = get_ipython_dir()

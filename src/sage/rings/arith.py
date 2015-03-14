@@ -3175,7 +3175,7 @@ def binomial(x, m, **kwds):
         binomial(k, i)
     """
     P = parent(x)
-    if type(x) is not type(m):
+    if parent(m) is not P:
         from sage.structure.element import get_coercion_model
         cm = get_coercion_model()
         x,m = cm.canonical_coercion(x,m)

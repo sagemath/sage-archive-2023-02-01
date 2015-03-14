@@ -1142,7 +1142,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             INPUT:
 
-            - ``i`` -- the index of an element of the basis of the domain of ``self``.
+            - ``i`` -- the index of an element of the basis of the domain of ``self``
+
+            EXAMPLES::
 
                 sage: X = CombinatorialFreeModule(QQ, [1,2,3]); X.rename("X")
                 sage: phi = End(X)(lambda x: 2*x)

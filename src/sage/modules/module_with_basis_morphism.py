@@ -104,6 +104,8 @@ from sage.categories.fields import Fields
 from sage.categories.modules import Modules
 from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method
+# The identity function would deserve a more canonical location
+from sage.misc.c3_controlled import identity
 from sage.misc.superseded import deprecated_function_alias
 from sage.categories.commutative_additive_semigroups import CommutativeAdditiveSemigroups
 from sage.categories.homset import Hom
@@ -133,9 +135,14 @@ class ModuleMorphism(Morphism):
     the codomain. If initializing an affine morphism, then `Sets()` is
     used instead.
 
-    See :meth:`ModulesWithBasis.ParentMethods.module_morphism` for
-    usage information and examples, and
-    :mod:`sage.modules_with_basis_morphism` for a technical overview.
+    .. SEEALSO::
+
+        - :meth:`ModulesWithBasis.ParentMethods.module_morphism` for
+          usage information and examples,
+        - :mod:`sage.modules_with_basis_morphism` for a technical
+          overview of the classes for module morphisms.
+        - :class:`ModuleMorphismFromFunction` and
+          :class:`TriangularModuleMorphism`.
 
     The role of this class is minimal: it provides an :meth:`__init__`
     method which:
@@ -218,9 +225,14 @@ class ModuleMorphismFromFunction(ModuleMorphism, SetMorphism):
 
     - ``function`` -- any function or callable from domain to codomain
 
-    See :meth:`ModulesWithBasis.ParentMethods.module_morphism` for
-    usage information and examples, and
-    :mod:`sage.modules_with_basis_morphism` for a technical overview.
+    .. SEEALSO::
+
+        - :meth:`ModulesWithBasis.ParentMethods.module_morphism` for
+          usage information and examples,
+        - :mod:`sage.modules_with_basis_morphism` for a technical
+          overview of the classes for module morphisms.
+        - :class:`ModuleMorphismFromFunction` and
+          :class:`TriangularModuleMorphism`.
     """
 
     def __init__(self, domain, function, codomain=None, category=None):
@@ -255,9 +267,14 @@ class ModuleMorphismByLinearity(ModuleMorphism):
     - ``position`` -- a non-negative integer (default: 0)
     - ``zero`` -- the zero of the codomain (defaults: ``codomain.zero()``)
 
-    See :meth:`ModulesWithBasis.ParentMethods.module_morphism` for
-    usage information and examples, and
-    :mod:`sage.modules_with_basis_morphism` for a technical overview.
+    .. SEEALSO::
+
+        - :meth:`ModulesWithBasis.ParentMethods.module_morphism` for
+          usage information and examples,
+        - :mod:`sage.modules_with_basis_morphism` for a technical
+          overview of the classes for module morphisms.
+        - :class:`ModuleMorphismFromFunction` and
+          :class:`TriangularModuleMorphism`.
 
     .. NOTE::
 
@@ -375,51 +392,59 @@ class TriangularModuleMorphism(ModuleMorphism):
     r"""
     An abstract class for triangular module morphisms
 
-    A triangular morphism is a module morphism from `X` to `Y` whose
-    representing matrix in the distinguished bases of `X` and `Y` is
-    upper triangular (echelon form). It is unitriangular if the pivots
-    are all one.
+    Let `X` and `Y` be modules over the same base ring, with
+    distinguised bases `F` indexed by `I` and `G` indexed by `J`
+    respectively.
 
-    See :meth:`ModulesWithBasis.ParentMethods.module_morphism`
+    A module morphism `\phi` from `X` to `Y` is *triangular* if its
+    representing matrix in the distinguished bases of `X` and `Y` is
+    upper triangular (echelon form).
+
+    More precisely, `\phi` is *upper triangular* w.r.t. a total order
+    `<` on `J` if, for any `j\in J`, there exists at most one index
+    `i\in I` such that the leading support of `\phi(F_i)` is `j` (see
+    :meth:`leading_support()`). We denote by `r(j)` this index,
+    setting `r(j)` to ``None`` if it does not exist.
+
+    *Lower triangular* morphisms are defined similarly, taking the
+    trailing support instead (see :meth:`trailing_support()`).
+
+    A triangular morphism is *unitriangular* if all its pivots
+    (i.e. coefficient of `j` in each `\phi(F[r(j)])`) are `1`.
 
     INPUT:
 
-    - ``domain`` -- a module `X` with basis `F`
-    - ``codomain`` -- a module `Y` with basis `G` (defaults to `X`)
+    - ``domain`` -- a module with basis `X`
+    - ``codomain`` -- a module with basis `Y` (default: `X`)
+    - ``category`` -- a category, as for :class:`ModuleMorphism`, which see.
+
     - ``unitriangular`` -- boolean (default: ``False``)
-    - ``triangular`` -- (default: ``"upper"``) ``"upper"`` or ``"lower"``:
+    - ``triangular`` -- ``"upper"`` or ``"lower"`` (default: ``"upper"``)
 
-      * ``"upper"`` - if the :meth:`leading_support()` of the image of
-        `F(i)` is `i`, or
-      * ``"lower"`` - if the :meth:`trailing_support()` of the image of
-        `F(i)` is `i`
+    - ``cmp`` -- a comparison function on `J`
+      (default: the usual comparison function on `J`)
 
-    - ``cmp`` -- an optional comparison function on the index set `J` of
-      the basis `G` of the codomain.
-    - ``invertible`` -- boolean or ``None`` (default: ``None``); should
-      be set to ``True`` if Sage is to compute an inverse for ``self``.
-      Automatically set to ``True`` if the domain and codomain share the
-      same indexing set and to ``False`` otherwise.
-    - ``inverse_on_support`` - compute the inverse on the support if the
-      codomain and domain have different index sets. See assumptions
-      below.
+    - ``inverse_on_support`` -- a function `J \to I\cup \{None\}`
+      implementing `r` (default: the identity function).
+      If set to "compute", the values of `r(j)` are precomputed by
+      running through the index set `I` of the basis of the
+      domain. This of course requires the domain to be finite
+      dimensional.
 
-    Assumptions:
+    - ``invertible`` -- a boolean or ``None`` (default: ``None``); can
+      be set to specify that `\phi` is known to be (or not to be)
+      invertible. In the finite dimensional case, this is
+      automatically set to ``True`` if the domain and codomain share
+      the same indexing set.
 
-    - `X` and `Y` have the same base ring `R`.
+    .. SEEALSO::
 
-    - Let `I` and `J` be the respective index sets of the bases `F` and
-      `G`. Either `I = J`, or ``inverse_on_support`` is a
-      function `r : J \to I` with the following property: for any `j \in J`,
-      `r(j)` should return an `i \in I` such that the leading term (or
-      trailing term, if ``triangular`` is set to ``"lower"``) of
-      ``on_basis(i)`` (with respect to the comparison ``cmp``, if the
-      latter is set, or just the default comparison otherwise) is `j` if
-      there exists such an `i`, or ``None`` if not.
-
-    See also :meth:`ModulesWithBasis.ParentMethods.module_morphism`
-    and :mod:`sage.modules_with_basis_morphism` for a technical
-    overview.
+        - :meth:`ModulesWithBasis.ParentMethods.module_morphism` for
+          usage information and examples,
+        - :mod:`sage.modules_with_basis_morphism` for a technical
+          overview of the classes for module morphisms.
+        - :class:`ModuleMorphismFromFunction` and
+          :class:`TriangularModuleMorphism`.
 
     OUTPUT:
 
@@ -560,7 +585,7 @@ class TriangularModuleMorphism(ModuleMorphism):
         [-1/3*B[1] + B[2] - 1/12*B[3], 1/4*B[3], 1/3*B[1] - 1/6*B[3]]
     """
     def __init__(self, triangular="upper", unitriangular=False,
-                 cmp=None, inverse=None, inverse_on_support=None, invertible=None):
+                 cmp=None, inverse=None, inverse_on_support=identity, invertible=None):
         """
         TESTS::
 
@@ -603,20 +628,37 @@ class TriangularModuleMorphism(ModuleMorphism):
             for i in self.domain().basis().keys():
                 (j, c) = self._dominant_item(on_basis(i))
                 self._inverse_on_support.set_cache(i, j)
-        elif inverse_on_support is None:
-            self._inverse_on_support = self._inverse_on_support_trivial
         else:
             self._inverse_on_support = inverse_on_support
         if invertible is not None:
             self._invertible = invertible
-        else:
+        elif domain in Modules.FiniteDimensional:
             self._invertible = (domain.basis().keys() == codomain.basis().keys())
-
-    def _inverse_on_support_trivial(self, i):
-        return i
 
     @cached_method
     def _inverse_on_support_precomputed(self, i):
+        """
+        An implementation of _inverse_on_support by brute force precomputation.
+
+        This method is used to implement `_inverse_on_support` when
+        the option ``inverse_on_support="compute"`` is passed to
+        :meth:`__init__`; see there for details.
+
+        EXAMPLES::
+
+            sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); x = X.basis()
+            sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3, 4]); y = Y.basis()
+            sage: f = lambda i: sum(  y[j] for j in range(1,i+2) )
+            sage: phi = X.module_morphism(f, codomain=Y,
+            ....:            triangular="upper", inverse_on_support="compute")
+            sage: for j in Y.basis().keys():
+            ....:     i = phi._inverse_on_support_precomputed(j)
+            ....:     print j, i, phi(x[i]) if i is not None else None
+            1 None None
+            2 1 B[1] + B[2]
+            3 2 B[1] + B[2] + B[3]
+            4 3 B[1] + B[2] + B[3] + B[4]
+        """
         return None
 
     def _test_triangular(self, **options):
@@ -733,7 +775,7 @@ class TriangularModuleMorphism(ModuleMorphism):
         """
         if self._inverse is not None:
             return self._inverse
-        if self._inverse_on_support == self._inverse_on_support_trivial:
+        if self._inverse_on_support == identity:
             retract_dom = None
         else:
             on_basis = self.on_basis()
@@ -1058,11 +1100,14 @@ class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity, TriangularM
     r"""
     A concrete class for triangular module morphisms obtained by extending a function by linearity.
 
-    See :meth:`ModulesWithBasis.ParentMethods.module_morphism` for
-    usage information and examples,
-    :mod:`sage.modules_with_basis_morphism` for a technical overview.
-    See also :class:`ModuleMorphismByLinearity` and
-    :class:`TriangularModuleMorphism`.
+    .. SEEALSO::
+
+        - :meth:`ModulesWithBasis.ParentMethods.module_morphism` for
+          usage information and examples,
+        - :mod:`sage.modules_with_basis_morphism` for a technical
+          overview of the classes for module morphisms.
+        - :class:`ModuleMorphismByLinearity` and
+          :class:`TriangularModuleMorphism`.
     """
     def __init__(self, domain, on_basis, codomain=None, category=None, **keywords):
         r"""
@@ -1087,11 +1132,14 @@ class TriangularModuleMorphismFromFunction(ModuleMorphismFromFunction, Triangula
     r"""
     A concrete class for triangular module morphisms implemented by a function.
 
-    See :meth:`ModulesWithBasis.ParentMethods.module_morphism` for
-    usage information and examples,
-    :mod:`sage.modules_with_basis_morphism` for a technical overview.
-    See also :class:`ModuleMorphismFromFunction` and
-    :class:`TriangularModuleMorphism`.
+    .. SEEALSO::
+
+        - :meth:`ModulesWithBasis.ParentMethods.module_morphism` for
+          usage information and examples,
+        - :mod:`sage.modules_with_basis_morphism` for a technical
+          overview of the classes for module morphisms.
+        - :class:`ModuleMorphismFromFunction` and
+          :class:`TriangularModuleMorphism`.
     """
     def __init__(self, domain, function, codomain=None, category=None, **keywords):
         r"""

@@ -6502,14 +6502,14 @@ class Graph(GenericGraph):
 
         The Petersen Graph and the Bull Graph are both prime::
 
-            sage: graphs.PetersenGraph().is_prime()
+            sage: graphs.PetersenGraph().is_prime() # optional - modular_decomposition
             True
-            sage: graphs.BullGraph().is_prime()
+            sage: graphs.BullGraph().is_prime()     # optional - modular_decomposition
             True
 
         Though quite obviously, the disjoint union of them is not::
 
-            sage: (graphs.PetersenGraph() + graphs.BullGraph()).is_prime()
+            sage: (graphs.PetersenGraph() + graphs.BullGraph()).is_prime() # optional - modular_decomposition
             False
         """
 

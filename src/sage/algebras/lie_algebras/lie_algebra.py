@@ -193,6 +193,23 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         if assoc is not None:
             return LieAlgebraFromAssociative(assoc, names=names, index_set=index_set)
 
+        # Parse input as a Cartan type
+        # -----
+
+        ct = kwds.get("cartan_type", None)
+        if ct is not None:
+            ct = CartanType(ct)
+            if not ct.is_finite():
+                raise NotImplementedError("non-finite types are not implemented yet, see trac #14901 for details")
+            rep = kwds.get("representation", "bracket")
+            if rep == 'bracket':
+                from sage.algebras.lie_algebras.classical_lie_algebra import LieAlgebraChevalleyBasis
+                return LieAlgebraChevalleyBasis(R, ct)
+            if rep == 'matrix':
+                from sage.algebras.lie_algebras.classical_lie_algebra import ClassicalMatrixLieAlgebra
+                return ClassicalMatrixLieAlgebra(R, ct)
+            raise ValueError("invalid representation")
+
         # Parse the remaining arguments
         # -----
 

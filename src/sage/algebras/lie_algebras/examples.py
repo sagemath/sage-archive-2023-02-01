@@ -20,7 +20,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-#from sage.algebras.lie_algebras.classical_lie_algebra import gl, sl, so, sp
+from sage.algebras.lie_algebras.classical_lie_algebra import gl, sl, so, sp
 from sage.algebras.lie_algebras.virasoro import VirasoroAlgebra
 
 def three_dimensional(R, a, b, c, d, names=['X', 'Y', 'Z']):
@@ -143,54 +143,6 @@ def three_dimensional_by_rank(R, n, a=None, names=['X', 'Y', 'Z']):
         return L
 
     raise ValueError("Invalid rank")
-
-# This can probably be replaced (removed) by sl once the classical Lie
-#   algebras are implemented
-def sl(R, n, representation='bracket'):
-    r"""
-    Return the Lie algebra `\mathfrak{sl}_n`.
-
-    EXAMPLES::
-
-        sage: sl2 = lie_algebras.sl(QQ, 2); sl2
-        sl2 over Rational Field
-        sage: E,F,H = sl2.gens()
-        sage: E.bracket(F) == H
-        True
-        sage: H.bracket(E) == 2*E
-        True
-        sage: H.bracket(F) == -2*F
-        True
-
-    TESTS::
-
-        sage: sl2 = lie_algebras.sl(QQ, 2, representation='matrix')
-        sage: E,F,H = sl2.gens()
-        sage: E.bracket(F) == H
-        True
-        sage: H.bracket(E) == 2*E
-        True
-        sage: H.bracket(F) == -2*F
-        True
-    """
-    if n != 2:
-        raise NotImplementedError("only n=2 is implemented")
-
-    if representation == 'matrix':
-        from sage.matrix.matrix_space import MatrixSpace
-        from sage.algebras.lie_algebras.lie_algebra import LieAlgebraFromAssociative
-        MS = MatrixSpace(R, 2)
-        E = MS([[0,1],[0,0]])
-        F = MS([[0,0],[1,0]])
-        H = MS([[1,0],[0,-1]])
-        L = LieAlgebraFromAssociative(MS, [E, F, H], ['E', 'F', 'H'])
-        L.rename("sl2 as a matrix Lie algebra over {}".format(R))
-    elif representation == 'bracket':
-        L = three_dimensional_by_rank(R, 3, names=['E', 'F', 'H'])
-    else:
-        raise ValueError("invalid representation")
-
-    return L
 
 def affine_transformations_line(R, names=['X', 'Y'], representation='bracket'):
     """

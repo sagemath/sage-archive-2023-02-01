@@ -22,9 +22,7 @@ include 'decl.pxi'
 
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
-
-cdef extern from "mpz_pylong.h":
-    cdef int mpz_set_pylong(mpz_t dst, src) except -1
+from sage.libs.gmp.pylong cimport mpz_set_pylong
 
 ZZ_sage = IntegerRing()
 

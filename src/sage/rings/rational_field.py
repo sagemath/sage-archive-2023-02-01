@@ -960,14 +960,43 @@ class RationalField(Singleton, number_field_base.NumberField):
         """
         Return an random element of `\QQ`.
 
+        Elements are constructed by randomly choosing integers
+        for the numerator and denominator, not neccessarily coprime.
+
+        INPUT:
+
+        -  ``num_bound`` -- a positive integer, specifying a bound
+           on the absolute value of the numerator.
+           If absent, no bound is enforced.
+
+        -  ``den_bound`` -- a positive integer, specifying a bound
+           on the value of the denominator.
+           If absent, the bound for the numerator will be reused.
+
+        Any extra positional or keyword arguments are passed through to
+        :meth:`sage.rings.integer_ring.IntegerRing_class.random_element`.
+
         EXAMPLES::
 
-            sage: QQ.random_element(10,10)
-            1/4
+            sage: QQ.random_element()
+            -4
+            sage: QQ.random_element()
+            0
+            sage: QQ.random_element()
+            -1/2
 
-        Passes extra positional or keyword arguments through::
+        In the following example, the resulting numbers range from
+        -5/1 to 5/1 (both inclusive),
+        while the smallest possible positive value is 1/10::
 
-            sage: QQ.random_element(10,10, distribution='1/n')
+            sage: QQ.random_element(5, 10)
+            -2/7
+
+        Extra positional or keyword arguments are passed through::
+
+            sage: QQ.random_element(distribution='1/n')
+            0
+            sage: QQ.random_element(distribution='1/n')
             -1
 
         """

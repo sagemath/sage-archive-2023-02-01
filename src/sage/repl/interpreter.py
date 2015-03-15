@@ -355,7 +355,31 @@ class SageTestShell(SageShellOverride, TerminalInteractiveShell):
         """
         self._display_manager.switch_backend(self._ipython_backend, shell=self)
 
+    def run_cell(self, *args, **kwds):
+        """
+        Run IPython cell
 
+        Starting with IPython-3.0, this returns an success/failure
+        information. Since it is more convenient for doctests, we
+        ignore it.
+
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: rc = shell.run_cell('1/0')
+            ---------------------------------------------------------------------------
+            ZeroDivisionError                         Traceback (most recent call last)
+            ...
+            ZeroDivisionError: Rational division by zero
+            sage: rc is None
+            True
+            sage: shell.quit()
+        """
+        rc = super(SageTestShell, self).run_cell(*args, **kwds)
+    
+        
 ###################################################################
 # Default configuration
 ###################################################################
@@ -600,6 +624,7 @@ def interface_shell_embed(interface):
         sage: shell = interface_shell_embed(gap)
         sage: shell.run_cell('List( [1..10], IsPrime )')
         [ false, true, true, false, true, false, true, false, false, false ]
+        <IPython.core.interactiveshell.ExecutionResult object at 0x...>
     """
     try:
         cfg = copy.deepcopy(get_ipython().config)
@@ -661,7 +686,10 @@ def get_test_shell():
     if app.shell is None:
         app.initialize(argv=[])
     else:
-        app.shell._restart()
+        try:
+            app.shell._restart()
+        except AttributeError:
+            pass
     # overwrite the default (console + graphics) formatter with the plain text one
     import sage.repl.display.formatter as formatter
     app.shell.display_formatter.formatters['text/plain'] = (

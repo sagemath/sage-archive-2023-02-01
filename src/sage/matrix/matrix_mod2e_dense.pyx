@@ -46,7 +46,7 @@ EXAMPLE::
 
 AUTHOR:
 
- * Martin Albrecht <martinralbrecht@googlemail.com>
+* Martin Albrecht <martinralbrecht@googlemail.com>
 
 TESTS::
 
@@ -55,14 +55,15 @@ TESTS::
 
 TODO:
 
- - wrap ``mzd_slice_t``
+- wrap ``mzd_slice_t``
 
 
 REFERENCES:
 
 .. [BB09] Tomas J. Boothby and Robert W. Bradshaw. *Bitslicing
-   and the Method of Four Russians Over Larger Finite Fields*. arXiv:0901.1413v1,
-2009. http://arxiv.org/abs/0901.1413
+   and the Method of Four Russians Over Larger Finite Fields* .
+   arXiv:0901.1413v1, 2009.
+   http://arxiv.org/abs/0901.1413
 """
 
 include "sage/ext/interrupt.pxi"

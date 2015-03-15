@@ -520,7 +520,7 @@ class GraphGenerators():
         45
 
     Generate all bipartite graphs on up to 7 vertices: (see
-    http://oeis.org/classic/A033995)
+    :oeis:`A033995`)
 
     ::
 
@@ -554,7 +554,7 @@ class GraphGenerators():
         sage: len(filter(property, graphs(4)))
         7
 
-    Generate graphs on the fly: (see http://oeis.org/classic/A000088)
+    Generate graphs on the fly: (see :oeis:`A000088`)
 
     ::
 
@@ -568,8 +568,7 @@ class GraphGenerators():
         34
         156
 
-    Generate all simple graphs, allowing loops: (see
-    http://oeis.org/classic/A000666)
+    Generate all simple graphs, allowing loops: (see :oeis:`A000666`)
 
     ::
 
@@ -582,8 +581,7 @@ class GraphGenerators():
         4 90
         5 544
 
-    Generate all graphs with a specified degree sequence (see
-    http://oeis.org/classic/A002851)::
+    Generate all graphs with a specified degree sequence (see :oeis:`A002851`)::
 
         sage: for i in [4,6,8]:  # long time (4s on sage.math, 2012)
         ...       print i, len([g for g in graphs(i, degree_sequence=[3]*i) if g.is_connected()])
@@ -602,7 +600,7 @@ class GraphGenerators():
         10 19
 
     Make sure that the graphs are really independent and the generator
-    survives repeated vertex removal (trac 8458)::
+    survives repeated vertex removal (:trac:`8458`)::
 
         sage: for G in graphs(3):
         ...       G.delete_vertex(0)
@@ -802,14 +800,14 @@ class GraphGenerators():
             StopIteration: Exhausted list of graphs from nauty geng
 
         A list of all graphs on 7 vertices.  This agrees with
-        Sloane's OEIS sequence A000088.  ::
+        :oeis:`A000088`.  ::
 
             sage: gen = graphs.nauty_geng("7") # optional nauty
             sage: len(list(gen))  # optional nauty
             1044
 
         A list of just the connected graphs on 7 vertices.  This agrees with
-        Sloane's OEIS sequence A001349.  ::
+        :oeis:`A001349`.  ::
 
             sage: gen = graphs.nauty_geng("7 -c") # optional nauty
             sage: len(list(gen))  # optional nauty
@@ -981,7 +979,8 @@ class GraphGenerators():
 
         A generator which will produce the plane graphs as Sage graphs
         with an embedding set. These will be simple graphs: no loops, no
-        multiple edges, no directed edges.
+        multiple edges, no directed edges (unless plantri is asked to give
+        the dual graphs instead).
 
         .. SEEALSO::
 
@@ -1044,15 +1043,29 @@ class GraphGenerators():
 
             while zeroCount < order:
                 c = code_input.read(1)
-                if ord(c)==0:
+                if ord(c) == 0:
                     zeroCount += 1
                 else:
                     g[zeroCount].append(ord(c))
 
-            #construct graph based on g
-            g = {i+1:di for i,di in enumerate(g)}
-            G = graph.Graph(g)
-            G.set_embedding(g)
+            # construct graph based on g
+
+            # first taking care that every edge is given twice
+            edges_g = {i + 1: [j for j in di if j < i + 1]
+                       for i, di in enumerate(g)}
+
+            # then adding half of the loops (if any)
+            has_loops = False
+            for i, di in enumerate(g):
+                Ni = di.count(i + 1)
+                if Ni > 1:
+                    edges_g[i + 1] += [i + 1] * (Ni / 2)
+                    has_loops = True
+            G = graph.Graph(edges_g, loops=has_loops)
+
+            if not(G.has_multiple_edges() or has_loops):
+                embed_g = {i + 1: di for i, di in enumerate(g)}
+                G.set_embedding(embed_g)
             yield(G)
 
     def fullerenes(self, order, ipr=False):
@@ -1255,8 +1268,10 @@ class GraphGenerators():
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
 
-    def planar_graphs(self, order, minimum_degree=None, minimum_connectivity=None,
-                      exact_connectivity=False, only_bipartite=False):
+    def planar_graphs(self, order, minimum_degree=None,
+                      minimum_connectivity=None,
+                      exact_connectivity=False, only_bipartite=False,
+                      dual=False):
         r"""
         An iterator over connected planar graphs using the plantri generator.
 
@@ -1296,11 +1311,15 @@ class GraphGenerators():
           graphs will be generated. This option cannot be used for graphs with
           a minimum degree larger than 3.
 
+        - ``dual`` - default: ``False`` - if ``True`` return instead the
+          planar duals of the generated graphs.
+
         OUTPUT:
 
         An iterator which will produce all planar graphs with the given
         number of vertices as Sage graphs with an embedding set. These will be
-        simple graphs (no loops, no multiple edges, no directed edges).
+        simple graphs (no loops, no multiple edges, no directed edges)
+        unless the option ``dual=True`` is used.
 
         .. SEEALSO::
 
@@ -1322,6 +1341,17 @@ class GraphGenerators():
             sage: len(list(gen))  # optional plantri
             3
 
+        Setting ``dual=True`` gives the planar dual graphs::
+
+            sage: gen = graphs.planar_graphs(4, dual=True)  # optional plantri
+            sage: [u for u in list(gen)]  # optional plantri
+            [Graph on 4 vertices,
+            Multi-graph on 3 vertices,
+            Multi-graph on 2 vertices,
+            Looped multi-graph on 2 vertices,
+            Looped multi-graph on 1 vertex,
+            Looped multi-graph on 1 vertex]
+
         The cycle of length 4 is the only 2-connected bipartite planar graph
         on 4 vertices::
 
@@ -1339,6 +1369,18 @@ class GraphGenerators():
             [Graph on 1 vertex]
             sage: list(graphs.planar_graphs(1, minimum_degree=1))  # optional plantri
             []
+
+        TESTS:
+
+        The number of edges in a planar graph is equal to the number of edges in
+        its dual::
+
+            sage: planar      = list(graphs.planar_graphs(5,dual=True))  # optional -- plantri
+            sage: dual_planar = list(graphs.planar_graphs(5,dual=False)) # optional -- plantri
+            sage: planar_sizes      = [g.size() for g in planar]         # optional -- plantri
+            sage: dual_planar_sizes = [g.size() for g in dual_planar]    # optional -- plantri
+            sage: planar_sizes == dual_planar_sizes                      # optional -- plantri
+            True
 
         REFERENCE:
 
@@ -1408,11 +1450,13 @@ class GraphGenerators():
                 yield(G)
             return
 
-        command = ('plantri -p{}m{}c{}{} {}'.format('b' if only_bipartite else '',
-                                                    minimum_degree,
-                                                    minimum_connectivity,
-                                                    'x' if exact_connectivity else '',
-                                                    order))
+        cmd = 'plantri -p{}m{}c{}{}{} {}'
+        command = cmd.format('b' if only_bipartite else '',
+                             minimum_degree,
+                             minimum_connectivity,
+                             'x' if exact_connectivity else '',
+                             'd' if dual else '',
+                             order)
 
         import subprocess
         sp = subprocess.Popen(command, shell=True,
@@ -1423,7 +1467,7 @@ class GraphGenerators():
             yield(G)
 
     def triangulations(self, order, minimum_degree=None, minimum_connectivity=None,
-                     exact_connectivity=False, only_eulerian=False):
+                       exact_connectivity=False, only_eulerian=False, dual=False):
         r"""
         An iterator over connected planar triangulations using the plantri generator.
 
@@ -1457,6 +1501,9 @@ class GraphGenerators():
         - ``only_eulerian`` - default: ``False`` - if ``True`` only eulerian
           triangulations will be generated. This option cannot be used if the
           minimum degree is explicitely set to anything else than 4.
+
+        - ``dual`` - default: ``False`` - if ``True`` return instead the
+          planar duals of the generated graphs.
 
         OUTPUT:
 
@@ -1494,7 +1541,7 @@ class GraphGenerators():
             True
 
         An overview of the number of 5-connected triangulations on up to 22 vertices. This
-        agrees with Sloane's OEIS sequence A081621::
+        agrees with :oeis:`A081621`::
 
             sage: for i in range(12, 23):                                             # optional plantri
             ....:     L = len(list(graphs.triangulations(i, minimum_connectivity=5))) # optional plantri
@@ -1525,6 +1572,16 @@ class GraphGenerators():
             5
             sage: len([g for g in graphs.triangulations(9, minimum_degree=4, minimum_connectivity=3, exact_connectivity=True)]) # optional plantri
             1
+
+        Setting ``dual=True`` gives the planar dual graphs::
+
+            sage: [len(g) for g in graphs.triangulations(9, minimum_degree=4, minimum_connectivity=3, dual=True)]  # optional plantri
+            [14, 14, 14, 14, 14]
+
+        TESTS::
+
+            sage: [g.size() for g in graphs.triangulations(6, minimum_connectivity=3)] # optional plantri
+            [12, 12]
         """
         from sage.misc.package import is_package_installed
         if not is_package_installed("plantri"):
@@ -1577,11 +1634,13 @@ class GraphGenerators():
         if only_eulerian and order < 6:
             return
 
-        command = ('plantri -{}m{}c{}{} {}'.format('b' if only_eulerian else '',
-                                                   minimum_degree,
-                                                   minimum_connectivity,
-                                                   'x' if exact_connectivity else '',
-                                                   order))
+        cmd = 'plantri -{}m{}c{}{}{} {}'
+        command = cmd.format('b' if only_eulerian else '',
+                             minimum_degree,
+                             minimum_connectivity,
+                             'x' if exact_connectivity else '',
+                             'd' if dual else '',
+                             order)
 
         import subprocess
         sp = subprocess.Popen(command, shell=True,
@@ -1592,7 +1651,7 @@ class GraphGenerators():
             yield(G)
 
     def quadrangulations(self, order, minimum_degree=None, minimum_connectivity=None,
-                        no_nonfacial_quadrangles=False):
+                         no_nonfacial_quadrangles=False, dual=False):
         r"""
         An iterator over planar quadrangulations using the plantri generator.
 
@@ -1623,6 +1682,9 @@ class GraphGenerators():
           quadrangulations with no non-facial quadrangles are generated. This
           option cannot be used if ``minimum_connectivity`` is set to 2.
 
+        - ``dual`` - default: ``False`` - if ``True`` return instead the
+          planar duals of the generated graphs.
+
         OUTPUT:
 
         An iterator which will produce all planar quadrangulations with the given
@@ -1649,7 +1711,7 @@ class GraphGenerators():
             StopIteration
 
         An overview of the number of quadrangulations on up to 12 vertices. This
-        agrees with Sloane's OEIS sequence A113201::
+        agrees with :oeis:`A113201`::
 
             sage: for i in range(4,13):                          # optional plantri
             ....:     L =  len(list(graphs.quadrangulations(i))) # optional plantri
@@ -1669,6 +1731,11 @@ class GraphGenerators():
 
             sage: len([g for g in graphs.quadrangulations(12, no_nonfacial_quadrangles=True)])  # optional plantri
             2
+
+        Setting ``dual=True`` gives the planar dual graphs::
+
+            sage: [len(g) for g in graphs.quadrangulations(12, no_nonfacial_quadrangles=True, dual=True)]  # optional plantri
+            [10, 10]
         """
         from sage.misc.package import is_package_installed
         if not is_package_installed("plantri"):
@@ -1715,7 +1782,12 @@ class GraphGenerators():
             # for plantri -q the option -c4 means 3-connected with no non-facial quadrangles
             minimum_connectivity = 4
 
-        command = ('plantri -qm{}c{} {}'.format(minimum_degree, minimum_connectivity, order))
+
+        cmd = 'plantri -qm{}c{}{} {}'
+        command = cmd.format(minimum_degree,
+                             minimum_connectivity,
+                             'd' if dual else '',
+                             order)
 
         import subprocess
         sp = subprocess.Popen(command, shell=True,

@@ -20,7 +20,8 @@ tutorial.
    sage/repl/readline_extra_commands
    sage/repl/interpreter
    sage/repl/ipython_extension
-   sage/repl/notebook_ipython
+   sage/repl/ipython_kernel/install
+   sage/repl/ipython_kernel/kernel
 
 
 Preparsing

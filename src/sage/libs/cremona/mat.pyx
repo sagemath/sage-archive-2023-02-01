@@ -1,3 +1,5 @@
+"Cremona matrices"
+
 from sage.matrix.all import MatrixSpace
 from sage.rings.all import ZZ
 
@@ -52,7 +54,7 @@ cdef class Matrix:
         return "%s x %s Cremona matrix over Rational Field"%(self.nrows(), self.ncols())
 
     def str(self):
-        """
+        r"""
         Return full string representation of this matrix, never in compact form.
 
         EXAMPLES::

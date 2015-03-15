@@ -6545,65 +6545,58 @@ class Graph(GenericGraph):
         """
         self._scream_if_not_simple()
 
-        # The default capacity of an arc is 1
-        from sage.rings.real_mpfr import RR
-
         # Small case, not really a problem ;-)
         if len(vertices) == 1:
             g = Graph()
             g.add_vertices(vertices)
             return g
 
-        # Take any two vertices
+        # Take any two vertices (u,v)
         it = vertices.__iter__()
         u,v = it.next(),it.next()
 
-        # Recovers the following values
-        # flow is the connectivity between u and v
-        # edges of a min cut
-        # sets1, sets2 are the two sides of the edge cut
-        flow,edges,[set1,set2] = self.edge_cut(u, v, use_edge_labels=True, vertices=True, method=method)
+        # Compute a uv min-edge-cut.
+        #
+        # The graph is split into U,V with u \in U and v\in V.
+        flow,edges,[U,V] = self.edge_cut(u, v, use_edge_labels=True, vertices=True, method=method)
 
         # One graph for each part of the previous one
-        g1,g2 = self.subgraph(set1), self.subgraph(set2)
+        gU,gV = self.subgraph(U), self.subgraph(V)
 
-        # Adding the fake vertex to each part
-        g1_v = frozenset(set2)
-        g2_v = frozenset(set1)
-        g1.add_vertex(g1_v)
-        g1.add_vertex(g2_v)
+        # A fake vertex fU (resp. fV) to represent U (resp. V)
+        fU = frozenset(U)
+        fV = frozenset(V)
 
-        # Each part of the graph had many edges going to the other part
-        # Now that we have a new fake vertex in each part
-        # we just say that the edges which were in the cut and going
-        # to the other side are now going to this fake vertex
+        # Each edge (uu,vv) with uu \in U and vv\in V yields:
+        # - an edge (uu,fV) in gU
+        # - an edge (vv,fU) in gV
+        #
+        # If the same edge is added several times their capacities add up.
 
-        # We must preserve the labels. They sum.
+        from sage.rings.real_mpfr import RR
+        for uu,vv,capacity in edges:
+            capacity = capacity if capacity in RR else 1
 
-        for x,y,l in edges:
-            l = l if l in RR else 1 # default capacity is 1
-
-            if x in g2: # Assumes x is in g1
-                x,y = y,x
+            # Assume uu is in gU
+            if uu in V:
+                uu,vv = vv,uu
 
             # Create the new edges if necessary
-            if not g1.has_edge(x, g1_v):
-                g1.add_edge(x, g1_v, 0)
-            if not g2.has_edge(y, g2_v):
-                g2.add_edge(y, g2_v, 0)
+            if not gU.has_edge(uu, fV):
+                gU.add_edge(uu, fV, 0)
+            if not gV.has_edge(vv, fU):
+                gV.add_edge(vv, fU, 0)
 
             # update the capacities
-            g1.set_edge_label(x, g1_v, g1.edge_label(x, g1_v) + l)
-            g2.set_edge_label(y, g2_v, g2.edge_label(y, g2_v) + l)
+            gU.set_edge_label(uu, fV, gU.edge_label(uu, fV) + capacity)
+            gV.set_edge_label(vv, fU, gV.edge_label(vv, fU) + capacity)
 
-        # Recursion for the two new graphs... The new "real" vertices are the intersection with
-        # with the previous set of "real" vertices
-        g1_tree = g1._gomory_hu_tree(vertices=(vertices & frozenset(g1.vertices())), method=method)
-        g2_tree = g2._gomory_hu_tree(vertices=(vertices & frozenset(g2.vertices())), method=method)
+        # Recursion on each side
+        gU_tree = gU._gomory_hu_tree(vertices & frozenset(gU), method=method)
+        gV_tree = gV._gomory_hu_tree(vertices & frozenset(gV), method=method)
 
-        # Union of the two partial trees ( it is disjoint, but
-        # disjoint_union does not preserve the name of the vertices )
-        g = g1_tree.union(g2_tree)
+        # Union of the two partial trees
+        g = gU_tree.union(gV_tree)
 
         # An edge to connect them, with the appropriate label
         g.add_edge(u, v, flow)
@@ -6679,11 +6672,13 @@ class Graph(GenericGraph):
             sage: g.edge_connectivity() == min(t.edge_labels())
             True
 
-        TESTS::
+        TESTS:
+
+        :trac:`16475`::
 
             sage: G = graphs.PetersenGraph()
             sage: for u, v in [(0, 1), (0, 4), (0, 5), (1, 2), (1, 6), (3, 4), (5, 7), (5, 8)]:
-            ....:     G.set_edge_label(u, v, random())
+            ....:     G.set_edge_label(u, v, 2)
             sage: T = G.gomory_hu_tree()
             sage: from itertools import combinations
             sage: for u,v in combinations(G,2):

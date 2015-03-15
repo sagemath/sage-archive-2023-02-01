@@ -6508,7 +6508,7 @@ class Graph(GenericGraph):
 
         return D[0] == "Prime" and len(D[1]) == self.order()
 
-    def _gomory_hu_tree(self, vertices=None, method="FF"):
+    def _gomory_hu_tree(self, vertices, method="FF"):
         r"""
         Returns a Gomory-Hu tree associated to self.
 
@@ -6541,7 +6541,7 @@ class Graph(GenericGraph):
         example is only present to have a doctest coverage of 100%.
 
             sage: g = graphs.PetersenGraph()
-            sage: t = g._gomory_hu_tree()
+            sage: t = g._gomory_hu_tree(Set(g.vertices()))
         """
         self._scream_if_not_simple()
         from sage.sets.set import Set
@@ -6550,29 +6550,9 @@ class Graph(GenericGraph):
         from sage.rings.real_mpfr import RR
         capacity = lambda label: label if label in RR else 1
 
-        # Keeping the graph's embedding
-        pos = False
-
         # Small case, not really a problem ;-)
         if self.order() == 1:
             return self.copy()
-
-        # This is a sign that this is the first call
-        # to this recursive function
-        if vertices is None:
-            # Now is the time to care about positions
-            pos = self.get_pos()
-
-            # if the graph is not connected, returns the union
-            # of the Gomory-Hu tree of each component
-            if not self.is_connected():
-                g = Graph()
-                for cc in self.connected_components_subgraphs():
-                    g = g.union(cc._gomory_hu_tree(method=method))
-                g.set_pos(self.get_pos())
-                return g
-            # All the vertices is this graph are the "real ones"
-            vertices = Set(self.vertices())
 
         # There may be many vertices, though only one which is "real"
         if len(vertices) == 1:
@@ -6633,9 +6613,6 @@ class Graph(GenericGraph):
 
         # An edge to connect them, with the appropriate label
         g.add_edge(next(g1_tree.vertex_iterator()), next(g2_tree.vertex_iterator()), flow)
-
-        if pos:
-            g.set_pos(pos)
 
         return g
 
@@ -6708,7 +6685,17 @@ class Graph(GenericGraph):
             sage: g.edge_connectivity() == min(t.edge_labels())
             True
         """
-        return self._gomory_hu_tree(method=method)
+        from sage.sets.set import Set
+        if not self.is_connected():
+            g = Graph()
+            for cc in self.connected_components_subgraphs():
+                g = g.union(cc._gomory_hu_tree(Set(cc.vertices()),method=method))
+        else:
+            g = self._gomory_hu_tree(Set(self.vertices()),method=method)
+
+        if self.get_pos() is not None:
+            g.set_pos(dict(self.get_pos()))
+        return g
 
     def two_factor_petersen(self):
         r"""

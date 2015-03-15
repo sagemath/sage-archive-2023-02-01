@@ -6551,13 +6551,9 @@ class Graph(GenericGraph):
         capacity = lambda label: label if label in RR else 1
 
         # Small case, not really a problem ;-)
-        if self.order() == 1:
-            return self.copy()
-
-        # There may be many vertices, though only one which is "real"
         if len(vertices) == 1:
             g = Graph()
-            g.add_vertex(vertices[0])
+            g.add_vertices(vertices)
             return g
 
         # Take any two vertices

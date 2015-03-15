@@ -3134,6 +3134,13 @@ def binomial(x, m, **kwds):
         sage: type(binomial(5, 2/1))
         <type 'sage.rings.rational.Rational'>
 
+        sage: R = Integers(11)
+        sage: b = binomial(R(7), R(3))
+        sage: b
+        2
+        sage: type(b)
+        <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
+
     Test symbolic and uni/multivariate polynomials::
 
         sage: x = polygen(ZZ)
@@ -3166,6 +3173,12 @@ def binomial(x, m, **kwds):
         ...
         TypeError: either m or x-m must be an integer
 
+        sage: R = Integers(6)
+        sage: binomial(R(5), R(2))
+        Traceback (most recent call last):
+        ...
+        ZeroDivisionError: Inverse does not exist.
+
     For symbolic manipulation, you should use the function
     :func:`~sage.functions.other.binomial` from the module
     :mod:`sage.functions.other`::
@@ -3191,24 +3204,36 @@ def binomial(x, m, **kwds):
         except TypeError:
             raise TypeError("either m or x-m must be an integer")
 
-    try:
-        x = ZZ(x)
-    except TypeError:
-        pass
-
+    # case 1: native binomial implemented on x
     try:
         return P(x.binomial(m, **kwds))
     except (AttributeError,TypeError):
         pass
 
+    # case 2: conversion to integers
+    try:
+        x = ZZ(x)
+    except TypeError:
+        pass
+    else:
+        # we need to check invertibility of factorial(m) in P otherwise binomial
+        # makes no sense! As a drawback, the check below might be quite
+        # slow in non integral domains.
+        from sage.categories.integral_domains import IntegralDomains
+        if P not in IntegralDomains():
+            for k in range(1,m+1):
+                1/P(k)
+        return P(x.binomial(m, **kwds))
+
+    # case 3: rational, real numbers, complex numbers -> use pari
     if isinstance(x, (Rational, RealNumber, ComplexNumber)):
-        # currently, only pari knows how to compute this!
         return P(pari(x).binomial(m))
 
+
+    # case 4: naive method
     if m < ZZ.zero():
         return P(0)
-
-    return prod(x-i for i in xrange(m)) / m.factorial()
+    return P(prod(x-i for i in xrange(m))) / m.factorial()
 
 def multinomial(*ks):
     r"""

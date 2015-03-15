@@ -191,7 +191,8 @@ class HyperbolicIsometry(Morphism):
             m = self.matrix().ncols()
             A = A / sqrt(A.det(), m) # Normalized to have determinant 1
             B = B / sqrt(B.det(), m)
-            test_matrix = bool( (A - B).norm() < EPSILON or (A + B).norm() < EPSILON )
+            test_matrix = ((A - B).norm() < EPSILON
+                           or (A + B).norm() < EPSILON)
         return self.domain() is other.domain() and test_matrix
 
     def __hash__(self):
@@ -781,9 +782,9 @@ class HyperbolicIsometryUHP(HyperbolicIsometry):
             ...
             ValueError: the identity transformation fixes the entire hyperbolic plane
         """
-        d = sqrt(self._matrix.det()**2)
+        d = sqrt(self._matrix.det() ** 2)
         M = self._matrix / sqrt(d)
-        tau = M.trace()**2
+        tau = M.trace() ** 2
         M_cls = self.classification()
         if M_cls == 'identity':
             raise ValueError("the identity transformation fixes the entire "
@@ -791,14 +792,14 @@ class HyperbolicIsometryUHP(HyperbolicIsometry):
 
         pt = self.domain().get_point
         if M_cls == 'parabolic':
-            if abs(M[1,0]) < EPSILON:
+            if abs(M[1, 0]) < EPSILON:
                 return [pt(infinity)]
             else:
                 # boundary point
-                return [pt( (M[0,0] - M[1,1]) / (2*M[1,0]) )]
+                return [pt((M[0,0] - M[1,1]) / (2*M[1,0]))]
         elif M_cls == 'elliptic':
             d = sqrt(tau - 4)
-            return [pt( (M[0,0] - M[1,1] + sign(M[1,0])*d) / (2*M[1,0]) )]
+            return [pt((M[0,0] - M[1,1] + sign(M[1,0])*d) / (2*M[1,0]))]
         elif M_cls == 'hyperbolic':
             if M[1,0] != 0: #if the isometry doesn't fix infinity
                 d = sqrt(tau - 4)

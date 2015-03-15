@@ -147,7 +147,7 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
         from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicModels
         Parent.__init__(self, category=HyperbolicModels(space))
 
-    def _repr_(self): #Abstract
+    def _repr_(self):  # Abstract
         """
         Return a string representation of ``self``.
 
@@ -156,7 +156,7 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
             sage: HyperbolicPlane().UHP()
             Hyperbolic plane in the Upper Half Plane Model model
         """
-        return "Hyperbolic plane in the {} model".format(self._name)
+        return u'Hyperbolic plane in the {} model'.format(self._name)
 
     def _element_constructor_(self, x, is_boundary=None, **graphics_options): #Abstract
         """
@@ -170,7 +170,7 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
         """
         return self.get_point(x, is_boundary, **graphics_options)
 
-    def name(self): #Abstract
+    def name(self):  # Abstract
         """
         Return the name of this model.
 
@@ -884,7 +884,7 @@ class HyperbolicModelUHP(HyperbolicModel):
         if isinstance(p, HyperbolicPoint):
             return p.is_boundary()
         im = abs(imag(CC(p)).n())
-        return bool( (im < EPSILON) or (p == infinity) )
+        return (im < EPSILON) or bool(p == infinity)
 
     def isometry_in_model(self, A):
         r"""
@@ -1138,7 +1138,7 @@ class HyperbolicModelUHP(HyperbolicModel):
         return B.inverse() * A
 
 #####################################################################
-## Poincare disk model
+## Poincaré disk model
 
 class HyperbolicModelPD(HyperbolicModel):
     r"""
@@ -1156,11 +1156,13 @@ class HyperbolicModelPD(HyperbolicModel):
             sage: PD = HyperbolicPlane().PD()
             sage: TestSuite(PD).run()
         """
+        # name should really be 'Poincaré Disk Model', but utf8 is not
+        # accepted by repr
         HyperbolicModel.__init__(self, space,
-            name="Poincare Disk Model", # u"Poincaré Disk Model"
-            short_name="PD",
-            bounded=True, conformal=True, dimension=2,
-            isometry_group="PU(1, 1)", isometry_group_is_projective=True)
+                                 name=u'Poincare Disk Model', short_name="PD",
+                                 bounded=True, conformal=True, dimension=2,
+                                 isometry_group="PU(1, 1)",
+                                 isometry_group_is_projective=True)
 
     def _coerce_map_from_(self, X):
         """
@@ -1239,12 +1241,13 @@ class HyperbolicModelPD(HyperbolicModel):
         # beta = A[0][1]
         # Orientation preserving and reversing
         return (HyperbolicIsometryPD._orientation_preserving(A)
-                or HyperbolicIsometryPD._orientation_preserving(I*A))
+                or HyperbolicIsometryPD._orientation_preserving(I * A))
 
     def get_background_graphic(self, **bdry_options):
         r"""
         Return a graphic object that makes the model easier to visualize.
-        For the Poincare disk, the background object is the ideal boundary.
+
+        For the Poincaré disk, the background object is the ideal boundary.
 
         EXAMPLES::
 
@@ -1471,11 +1474,12 @@ class HyperbolicModelHM(HyperbolicModel):
 
             sage: H = HyperbolicPlane().HM().get_background_graphic()
         """
-        hyperboloid_opacity = bdry_options.get('hyperboloid_opacity', .1)
-        z_height = bdry_options.get('z_height', 7.0)
-        x_max = sqrt((z_height**2 - 1) / 2.0)
         from sage.plot.plot3d.all import plot3d
         from sage.all import var
-        (x,y) = var('x,y')
-        return plot3d((1 + x**2 + y**2).sqrt(), (x, -x_max, x_max),
-                      (y,-x_max, x_max), opacity = hyperboloid_opacity, **bdry_options)
+        hyperboloid_opacity = bdry_options.get('hyperboloid_opacity', .1)
+        z_height = bdry_options.get('z_height', 7.0)
+        x_max = sqrt((z_height ** 2 - 1) / 2.0)
+        (x, y) = var('x,y')
+        return plot3d((1 + x ** 2 + y ** 2).sqrt(),
+                      (x, -x_max, x_max), (y,-x_max, x_max),
+                      opacity=hyperboloid_opacity, **bdry_options)

@@ -80,8 +80,8 @@ class HyperbolicModelCoercion(Morphism):
         """
         C = self.codomain()
         if not C.is_bounded() and self.domain().is_bounded() and x.is_boundary():
-            raise NotImplementedError("boundary points are not implemented for"
-                                      " the {0}".format(C.name()))
+            msg = u"boundary points are not implemented for the {}"
+            raise NotImplementedError(msg.format(C.name()))
 
         y = self.image_coordinates(x.coordinates())
         if self.domain().is_bounded():
@@ -352,8 +352,9 @@ class CoercionPDtoKM(HyperbolicModelCoercion):
             [ 0  1  0]
             [ 0  0 -1]
         """
-        return SL2R_to_SO21( matrix(2,[1,I,I,1]) * x *
-                             matrix(2,[1,-I,-I,1])/Integer(2) )
+        return SL2R_to_SO21(matrix(2, [1, I, I, 1]) * x *
+                            matrix(2, [1, -I, -I, 1]) / Integer(2))
+
 
 class CoercionPDtoHM(HyperbolicModelCoercion):
     """
@@ -372,11 +373,10 @@ class CoercionPDtoHM(HyperbolicModelCoercion):
             sage: phi.image_coordinates(0.5+0.5*I)
             (2.00000000000000, 2.00000000000000, 3.00000000000000)
         """
-        return vector((
-            2*real(x)/(1 - real(x)**2 - imag(x)**2),
-            2*imag(x)/(1 - real(x)**2 - imag(x)**2),
-            (real(x)**2 + imag(x)**2 + 1)/(1 - real(x)**2 - imag(x)**2)
-            ))
+        return vector((2*real(x)/(1 - real(x)**2 - imag(x)**2),
+                       2*imag(x)/(1 - real(x)**2 - imag(x)**2),
+                       (real(x)**2 + imag(x)**2 + 1) /
+                       (1 - real(x)**2 - imag(x)**2)))
 
     def image_isometry_matrix(self, x):
         """
@@ -393,12 +393,13 @@ class CoercionPDtoHM(HyperbolicModelCoercion):
             [ 0  1  0]
             [ 0  0 -1]
         """
-        return SL2R_to_SO21( matrix(2,[1,I,I,1]) * x *
-                             matrix(2,[1,-I,-I,1])/Integer(2) )
+        return SL2R_to_SO21(matrix(2, [1, I, I, 1]) * x *
+                            matrix(2, [1, -I, -I, 1]) / Integer(2))
 
 ###########
 # From KM #
 ###########
+
 
 class CoercionKMtoUHP(HyperbolicModelCoercion):
     """
@@ -421,9 +422,9 @@ class CoercionKMtoUHP(HyperbolicModelCoercion):
         """
         if tuple(x) == (0, 1):
             return infinity
-        return ( -x[0]/(x[1] - 1)
-                 + I*(-(sqrt(-x[0]**2 - x[1]**2 + 1) - x[0]**2 - x[1]**2 + 1)
-                      / ((x[1] - 1)*sqrt(-x[0]**2 - x[1]**2 + 1) + x[1] - 1)) )
+        return (-x[0]/(x[1] - 1)
+                + I*(-(sqrt(-x[0]**2 - x[1]**2 + 1) - x[0]**2 - x[1]**2 + 1)
+                     / ((x[1] - 1)*sqrt(-x[0]**2 - x[1]**2 + 1) + x[1] - 1)))
 
     def image_isometry_matrix(self, x):
         """
@@ -459,8 +460,8 @@ class CoercionKMtoPD(HyperbolicModelCoercion):
             sage: phi.image_coordinates((0, 0))
             0
         """
-        return ( x[0]/(1 + (1 - x[0]**2 - x[1]**2).sqrt())
-                 + I*x[1]/(1 + (1 - x[0]**2 - x[1]**2).sqrt()) )
+        return (x[0]/(1 + (1 - x[0]**2 - x[1]**2).sqrt())
+                + I*x[1]/(1 + (1 - x[0]**2 - x[1]**2).sqrt()))
 
     def image_isometry_matrix(self, x):
         """
@@ -650,7 +651,9 @@ def SL2R_to_SO21(A):
         sage: norm(A.transpose()*J*A - J) < 10**-4
         True
     """
-    a,b,c,d = (A/A.det().sqrt()).list()
+    a, b, c, d = (A/A.det().sqrt()).list()
+
+    # Kill ~0 imaginary parts
     B = matrix(3, map(real,
                       [a*d + b*c, a*c - b*d, a*c + b*d, a*b - c*d,
                        Integer(1)/Integer(2)*a**2 - Integer(1)/Integer(2)*b**2 -
@@ -661,8 +664,7 @@ def SL2R_to_SO21(A):
                        Integer(1)/Integer(2)*b**2 + Integer(1)/Integer(2)*c**2 -
                        Integer(1)/Integer(2)*d**2, Integer(1)/Integer(2)*a**2 +
                        Integer(1)/Integer(2)*b**2 + Integer(1)/Integer(2)*c**2 +
-                       Integer(1)/Integer(2)*d**2]
-               )) # Kill ~0 imaginary parts
+                       Integer(1)/Integer(2)*d**2]))
 
     #B = B.apply_map(attrcall('real'))
     if A.det() > 0:
@@ -704,20 +706,20 @@ def SO21_to_SL2R(M):
     (m_1,m_2,m_3,m_4,m_5,m_6,m_7,m_8,m_9) = M.list()
     d = sqrt(Integer(1)/Integer(2)*m_5 - Integer(1)/Integer(2)*m_6 -
              Integer(1)/Integer(2)*m_8 + Integer(1)/Integer(2)*m_9)
-    if M.det() > 0: #EPSILON?
+    if M.det() > 0:  # EPSILON?
         det_sign = 1
-    elif M.det() < 0: #EPSILON?
+    elif M.det() < 0:  # EPSILON?
         det_sign = -1
-    if d > 0: #EPSILON?
+    if d > 0:  # EPSILON?
         c = (-Integer(1)/Integer(2)*m_4 + Integer(1)/Integer(2)*m_7)/d
         b = (-Integer(1)/Integer(2)*m_2 + Integer(1)/Integer(2)*m_3)/d
-        ad = det_sign*1 + b*c # ad - bc = pm 1
+        ad = det_sign*1 + b*c  # ad - bc = pm 1
         a = ad/d
-    else: # d is 0, so we make c > 0
+    else:  # d is 0, so we make c > 0
         c = sqrt(-Integer(1)/Integer(2)*m_5 - Integer(1)/Integer(2)*m_6 +
-                  Integer(1)/Integer(2)*m_8 + Integer(1)/Integer(2)*m_9)
+                 Integer(1)/Integer(2)*m_8 + Integer(1)/Integer(2)*m_9)
         d = (-Integer(1)/Integer(2)*m_4 + Integer(1)/Integer(2)*m_7)/c
-            #d = 0, so ad - bc = -bc = pm 1.
+            # d = 0, so ad - bc = -bc = pm 1.
         b = - (det_sign*1)/c
         a = (Integer(1)/Integer(2)*m_4 + Integer(1)/Integer(2)*m_7)/b
     A = matrix(2, [a, b, c, d])

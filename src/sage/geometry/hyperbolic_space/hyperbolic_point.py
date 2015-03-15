@@ -511,19 +511,19 @@ class HyperbolicPoint(Element):
         if p == infinity:
             raise NotImplementedError("can't draw the point infinity")
 
-        opts = dict([('axes', False), ('aspect_ratio',1)])
+        opts = {'axes': False, 'aspect_ratio': 1}
         opts.update(self.graphics_options())
         opts.update(options)
 
         from sage.plot.point import point
         from sage.misc.functional import numerical_approx
 
-        if self._bdry: # It is a boundary point
+        if self._bdry:  # It is a boundary point
             p = numerical_approx(p)
             pic = point((p, 0), **opts)
             if boundary:
-                bd_pic = self._model.get_background_graphic(bd_min = p - 1,
-                                                            bd_max = p + 1)
+                bd_pic = self._model.get_background_graphic(bd_min=p - 1,
+                                                            bd_max=p + 1)
                 pic = bd_pic + pic
         else: # It is an interior point
             if p in RR:
@@ -590,23 +590,23 @@ class HyperbolicPointUHP(HyperbolicPoint):
         p = self.coordinates()
         if p == infinity:
             raise NotImplementedError("can't draw the point infinity")
-        opts = dict([('axes', False), ('aspect_ratio', 1)])
+        opts = {'axes': False, 'aspect_ratio': 1}
         opts.update(self.graphics_options())
         opts.update(options)
         from sage.misc.functional import numerical_approx
-        p = numerical_approx(p + 0*I)
+        p = numerical_approx(p + 0 * I)
         from sage.plot.point import point
         if self._bdry:
             pic = point((p, 0), **opts)
             if boundary:
-                bd_pic = self.parent().get_background_graphic(bd_min = p - 1,
-                                                              bd_max = p + 1)
+                bd_pic = self.parent().get_background_graphic(bd_min=p - 1,
+                                                              bd_max=p + 1)
                 pic = bd_pic + pic
         else:
             pic = point(p, **opts)
             if boundary:
                 cent = real(p)
-                bd_pic = self.parent().get_background_graphic(bd_min = cent - 1,
-                                                              bd_max = cent + 1)
+                bd_pic = self.parent().get_background_graphic(bd_min=cent - 1,
+                                                              bd_max=cent + 1)
                 pic = bd_pic + pic
         return pic

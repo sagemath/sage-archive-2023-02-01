@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Hyperbolic Geodesics
 
@@ -58,7 +59,8 @@ from sage.functions.hyperbolic import sinh, cosh, arcsinh
 from sage.geometry.hyperbolic_space.hyperbolic_constants import EPSILON
 
 from sage.misc.lazy_import import lazy_import
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_isometry', 'mobius_transform')
+lazy_import('sage.geometry.hyperbolic_space.hyperbolic_isometry',
+            'mobius_transform')
 
 
 class HyperbolicGeodesic(SageObject):
@@ -783,7 +785,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: HyperbolicPlane().UHP().get_geodesic(0, 1).show()
             Graphics object consisting of 2 graphics primitives
         """
-        opts = dict([('axes', False), ('aspect_ratio',1)])
+        opts = {'axes': False, 'aspect_ratio': 1}
         opts.update(self.graphics_options())
         opts.update(options)
         end_1, end_2 = [CC(k.coordinates()) for k in self.endpoints()]
@@ -813,7 +815,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             theta2 = CC(end_2 - center).arg()
             if abs(theta1 - theta2) < EPSILON:
                 theta2 += pi
-            [theta1, theta2] = sorted([theta1,theta2])
+            [theta1, theta2] = sorted([theta1, theta2])
             from sage.calculus.var import var
             from sage.plot.plot import parametric_plot
             x = var('x')
@@ -825,7 +827,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
                 # computations below compute the projection of the
                 # geodesic to the real line, and then draw a little
                 # to the left and right of the projection.
-                shadow_1, shadow_2 = [real(k) for k in [end_1,end_2]]
+                shadow_1, shadow_2 = [real(k) for k in [end_1, end_2]]
                 midpoint = (shadow_1 + shadow_2)/2
                 length = abs(shadow_1 - shadow_2)
                 bd_dict = {'bd_min': midpoint - length, 'bd_max': midpoint +
@@ -996,7 +998,8 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         d = self._model._dist_points(start, self._end.coordinates()) / 2
         S = self.complete()._to_std_geod(start)
         T1 = matrix([[exp(d/2), 0], [0, exp(-d/2)]])
-        T2 = matrix([[cos(pi/4), -sin(pi/4)], [sin(pi/4), cos(pi/4)]])
+        s2 = sqrt(2) * 0.5
+        T2 = matrix([[s2, -s2], [s2, s2]])
         isom_mtrx = S.inverse() * (T1 * T2) * S # We need to clean this matrix up.
         if (isom_mtrx - isom_mtrx.conjugate()).norm() < 5*EPSILON: # Imaginary part is small.
             isom_mtrx = (isom_mtrx + isom_mtrx.conjugate()) / 2 # Set it to its real part.
@@ -1082,7 +1085,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         if self.is_parallel(other):
             raise ValueError("geodesics do not intersect")
         # Make sure the segments are complete or intersect
-        if (not (self.is_complete() and other.is_complete()) \
+        if (not(self.is_complete() and other.is_complete())
                 and not self.intersection(other)):
             print("Warning: Geodesic segments do not intersect. "
                   "The angle between them is not defined.\n"
@@ -1092,8 +1095,10 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         if other._model is not self._model:
             other = other.to_model(self._model)
 
-        (p1, p2) = sorted([k.coordinates() for k in self.ideal_endpoints()], key=str)
-        (q1, q2) = sorted([k.coordinates() for k in other.ideal_endpoints()], key=str)
+        (p1, p2) = sorted([k.coordinates()
+                           for k in self.ideal_endpoints()], key=str)
+        (q1, q2) = sorted([k.coordinates()
+                           for k in other.ideal_endpoints()], key=str)
         # if the geodesics are equal, the angle between them is 0
         if (abs(p1 - q1) < EPSILON
                 and abs(p2 - q2) < EPSILON):
@@ -1111,7 +1116,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         if (b1 == infinity or b2 == infinity):
             # then since they intersect, they are equal
             return 0
-        return real( arccos((b1+b2) / abs(b2-b1)) )
+        return real(arccos((b1 + b2) / abs(b2 - b1)))
 
     ##################
     # Helper methods #
@@ -1147,7 +1152,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         # outmat below will be returned after we normalize the determinant.
         outmat = B * HyperbolicGeodesicUHP._crossratio_matrix(s, p, e)
         outmat = outmat / outmat.det().sqrt()
-        if abs(outmat - outmat.conjugate()) < 10**-9: # Small imaginary part.
+        if (outmat - outmat.conjugate()).norm(1) < 10**-9: # Small imaginary part.
             outmat = (outmat + outmat.conjugate()) / 2 # Set it equal to its real part.
         return outmat
 
@@ -1175,7 +1180,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: UHP = HyperbolicPlane().UHP()
             sage: (p1, p2, p3) = [UHP.random_point().coordinates() for k in range(3)]
             sage: A = HyperbolicGeodesicUHP._crossratio_matrix(p1, p2, p3)
-            sage: bool(abs(mobius_transform(A, p1) < 10**-9))
+            sage: bool(abs(mobius_transform(A, p1)) < 10**-9)
             True
             sage: bool(abs(mobius_transform(A, p2) - 1) < 10**-9)
             True
@@ -1199,7 +1204,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
 
 class HyperbolicGeodesicPD(HyperbolicGeodesic):
     r"""
-    A geodesic in the Poincare disk model.
+    A geodesic in the Poincaré disk model.
 
     INPUT:
 
@@ -1224,13 +1229,13 @@ class HyperbolicGeodesicPD(HyperbolicGeodesic):
             sage: HyperbolicPlane().PD().get_geodesic(0, 1).show()
             Graphics object consisting of 2 graphics primitives
         """
-        opts = dict([('axes', False), ('aspect_ratio',1)])
+        opts = dict([('axes', False), ('aspect_ratio', 1)])
         opts.update(self.graphics_options())
         opts.update(options)
         end_1, end_2 = [CC(k.coordinates()) for k in self.endpoints()]
         bd_1, bd_2 = [CC(k.coordinates()) for k in self.ideal_endpoints()]
         # Check to see if it's a line
-        if bool (real(bd_1)*imag(bd_2) - real(bd_2)*imag(bd_1))**2 < EPSILON:
+        if bool(real(bd_1)*imag(bd_2) - real(bd_2)*imag(bd_1))**2 < EPSILON:
             from sage.plot.line import line
             pic = line([(real(bd_1),imag(bd_1)),(real(bd_2),imag(bd_2))],
                        **opts)
@@ -1297,10 +1302,9 @@ class HyperbolicGeodesicKM(HyperbolicGeodesic):
             Graphics object consisting of 2 graphics primitives
         """
         from sage.plot.line import line
-        opts = dict ([('axes', False), ('aspect_ratio', 1)])
+        opts = {'axes': False, 'aspect_ratio': 1}
         opts.update(self.graphics_options())
-        end_1,end_2 = [k.coordinates() for k in self.endpoints()]
-        pic = line([end_1,end_2], **opts)
+        pic = line([k.coordinates() for k in self.endpoints()], **opts)
         if boundary:
             bd_pic = self._model.get_background_graphic()
             pic = bd_pic + pic

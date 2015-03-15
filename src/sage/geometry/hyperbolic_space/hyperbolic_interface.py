@@ -84,7 +84,7 @@ class HyperbolicPlane(Parent, UniqueRepresentation):
     Here are the models currently implemented:
 
     - ``UHP`` -- upper half plane
-    - ``PD`` -- Poincare disk
+    - ``PD`` -- Poincaré disk
     - ``KM`` -- Klein disk
     - ``HM`` -- hyperboloid model
     """

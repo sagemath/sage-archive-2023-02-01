@@ -417,7 +417,7 @@ airline manager tasked to settle the claims of both travelers explains
 that the airline is liable for a maximum of 10 per suitcase, and in order
 to determine an honest appraised value of the antiques the manager
 separates both travelers so they can't confer, and asks them to write down
-the amount of their value at no less than 2 and no larger than 100. He
+the amount of their value at no less than 2 and no larger than 10. He
 also tells them that if both write down the same number, he will treat
 that number as the true dollar value of both suitcases and reimburse both
 travelers that amount.
@@ -433,19 +433,19 @@ write down?
 In the following we create the game (with a max value of 10) and solve it::
 
     sage: K = 10  # Modifying this value lets us play with games of any size
-    sage: A = matrix([[min(i,j) + 2 * sign(j-i)  for j in range(2, K+1)]  for i in range(2, K+1)])
-    sage: B = matrix([[min(i,j) + 2 * sign(i-j)  for j in range(2, K+1)]  for i in range(2, K+1)])
+    sage: A = matrix([[min(i,j) + 2 * sign(j-i)  for j in range(K, 1, -1)]  for i in range(K, 1, -1)])
+    sage: B = matrix([[min(i,j) + 2 * sign(i-j)  for j in range(K, 1, -1)]  for i in range(K, 1, -1)])
     sage: g = NormalFormGame([A, B])
     sage: g.obtain_nash(algorithm='lrs') # optional - lrslib
     [[(1, 0, 0, 0, 0, 0, 0, 0, 0), (1, 0, 0, 0, 0, 0, 0, 0, 0)]]
     sage: g.obtain_nash(algorithm='LCP') # optional - gambit
-    [[(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), (1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)]]
+    [[(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0), (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0)]]
 
 The output is a pair of vectors (as before) showing the Nash equilibrium.
 In particular it here shows that out of the 10 possible strategies both
-players should choose the first. Recall that the above considers a reduced
-version of the game where individuals can claim integer values between 2
-and 10.  The equilibrium strategy is thus for both players to state that
+players should choose the last. Recall that the above considers a reduced
+version of the game where individuals can claim integer values from 10
+to 2.  The equilibrium strategy is thus for both players to state that
 the value of their suitcase is 2.
 
 Note that degenerate games can cause problems for most algorithms.
@@ -484,6 +484,17 @@ Here is an example with the trivial game where all payoffs are 0::
     [[(0, 0, 1), (0, 0, 1)], [(0, 0, 1), (0, 1, 0)], [(0, 0, 1), (1, 0, 0)], [(0, 1, 0), (0, 0, 1)], [(0, 1, 0), (0, 1, 0)], [(0, 1, 0), (1, 0, 0)], [(1, 0, 0), (0, 0, 1)], [(1, 0, 0), (0, 1, 0)], [(1, 0, 0), (1, 0, 0)]]
 
 A good description of degenerate games can be found in [NN2007]_.
+
+Several standard Normal Form Games have also been implemented.
+For more information on how to access these, see: :mod:`Game Theory Catalog<sage.game_theory.catalog>`.
+Included is information on the situation each Game models.
+For example::
+
+    sage: g = game_theory.PrisonersDilemma()
+    sage: g
+    Prisoners dilemma: Normal Form Game with the following utilities: {(0, 1): [-5, 0], (1, 0): [0, -5], (0, 0): [-2, -2], (1, 1): [-4, -4]}
+    sage: g.obtain_nash()
+    [[(0, 1), (0, 1)]]
 
 REFERENCES:
 

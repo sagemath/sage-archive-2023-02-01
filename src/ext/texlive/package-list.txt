@@ -23,6 +23,12 @@ parskip
 jknapltx
 etoolbox
 
+# Used by IPython nbconvert (ipynb -> latex -> pdf conversion)
+adjustbox
+extension
+collectbox
+ucs
+
 # Language support for localizations of the Sage docs
 collection-langcyrillic
 babel-basque

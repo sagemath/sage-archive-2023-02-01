@@ -248,7 +248,14 @@ cdef class Graphics3d(SageObject):
             tachyon.png.save_as(preview_png)
         else:
             # Java needs absolute paths
-            script = '''set defaultdirectory "%s"\nscript SCRIPT\n''' % scene_zip
+            # On cygwin, they should be native ones
+            scene_native = scene_zip
+            import sys
+            if sys.platform == 'cygwin':
+                from subprocess import check_output, STDOUT
+                scene_native = check_output(['cygpath', '-w', scene_native],
+                                            stderr=STDOUT).rstrip()
+            script = '''set defaultdirectory "{0}"\nscript SCRIPT\n'''.format(scene_native)
             jdata.export_image(targetfile=preview_png, datafile=script,
                                image_type="PNG",
                                figsize=opts['figsize'])

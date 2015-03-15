@@ -5546,7 +5546,7 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
     return RealLiteral(R, s, base)
 
 
-# here because this imports the other two real fields
+# here because this imports the other real fields
 def create_RealField(prec=53, type="MPFR", rnd="RNDN", sci_not=0):
     """
     Create a real field with given precision, type, rounding mode and
@@ -5596,6 +5596,9 @@ def create_RealField(prec=53, type="MPFR", rnd="RNDN", sci_not=0):
     elif type == "Interval":
         from real_mpfi import RealIntervalField
         return RealIntervalField(prec, sci_not)
+    elif type == "Ball":
+        from real_arb import RealBallField
+        return RealBallField(prec)
     elif type == "RLF":
         from real_lazy import RLF
         return RLF

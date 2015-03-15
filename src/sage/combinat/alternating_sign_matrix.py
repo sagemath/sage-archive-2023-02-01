@@ -928,6 +928,14 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
     def _an_element_(self):
         """
         Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: A._an_element_()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
         """
         return self.element_class(self, self._matrix_space.identity_matrix())
 

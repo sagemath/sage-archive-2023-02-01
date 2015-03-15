@@ -1,3 +1,7 @@
+r"""
+Linbox interface
+"""
+
 ## NOTE: The sig_on()/sig_off() stuff can't go in here -- it has to be in the
 ## code that calls these functions.  Otherwise strangely objects get left
 ## in an incorrect state.

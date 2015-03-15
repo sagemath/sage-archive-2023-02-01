@@ -2316,11 +2316,6 @@ def number_of_tuples(S, k, algorithm='naive'):
         interpreter. If ``S`` consists of at all complicated Sage
         objects, this function might *not* do what you expect.
 
-    .. TODO::
-
-        Is ``algorithm='gap'`` of any use? I can't imagine it beating the
-        native interpretation...
-
     EXAMPLES::
 
         sage: S = [1,2,3,4,5]
@@ -2434,11 +2429,6 @@ def number_of_unordered_tuples(S, k, algorithm='naive'):
         that have string representations that can be interpreted by the GAP
         interpreter. If ``S`` consists of at all complicated Sage
         objects, this function might *not* do what you expect.
-
-    .. TODO::
-
-        Is ``algorithm='gap'`` of any use? I can't imagine it beating the
-        native interpretation...
 
     EXAMPLES::
 

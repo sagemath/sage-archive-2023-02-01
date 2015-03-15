@@ -1,32 +1,32 @@
 r"""
 Interface to Macaulay2
 
-\note{You must have \code{Macaulay2} installed on your computer
-for this interface to work. Macaulay2 is not included with \sage,
-but you can obtain it from \url{http://www.math.uiuc.edu/Macaulay2/}.
-Note additional optional \sage packages are required.}
+.. NOTE::
+
+    You must have ``Macaulay2`` installed on your computer
+    for this interface to work. Macaulay2 is not included with Sage,
+    but you can obtain it from <http://www.math.uiuc.edu/Macaulay2/>.
+    Note additional optional Sage packages are required.
 
 Sage provides an interface to the Macaulay2 computational algebra
 system. This system provides extensive functionality for commutative
 algebra. You do not have to install any optional packages.
 
 The Macaulay2 interface offers three pieces of functionality:
-\begin{enumerate}
 
-\item \code{Macaulay2_console()} -- A function that dumps you
-into an interactive command-line Macaulay2 session.
+- ``Macaulay2_console()`` -- A function that dumps you
+  into an interactive command-line Macaulay2 session.
 
-\item \code{Macaulay2(expr)} -- Evaluation of arbitrary Macaulay2
-expressions, with the result returned as a string.
+- ``Macaulay2(expr)`` -- Evaluation of arbitrary Macaulay2
+  expressions, with the result returned as a string.
 
-\item \code{Macaulay2.new(expr)} -- Creation of a Sage object that wraps a
-Macaulay2 object.  This provides a Pythonic interface to Macaulay2.  For
-example, if \code{f=Macaulay2.new(10)}, then \code{f.gcd(25)} returns the
-GCD of $10$ and $25$ computed using Macaulay2.
+- ``Macaulay2.new(expr)`` -- Creation of a Sage object that wraps a
+  Macaulay2 object.  This provides a Pythonic interface to Macaulay2.  For
+  example, if ``f=Macaulay2.new(10)``, then ``f.gcd(25)`` returns the
+  GCD of `10` and `25` computed using Macaulay2.
 
-\end{enumerate}
+EXAMPLES::
 
-EXAMPLES:
     sage: print macaulay2('3/5 + 7/11') #optional
     68
     --
@@ -63,18 +63,20 @@ EXAMPLES:
 
 
 AUTHORS:
-   -- Kiran Kedlaya and David Roe (2006-02-05, during Sage coding sprint)
-   -- William Stein (2006-02-09): inclusion in Sage; prompt uses regexp,
-             calling of Macaulay2 functions via __call__.
-   -- William Stein (2006-02-09): fixed bug in reading from file and
-             improved output cleaning.
-   -- Kiran Kedlaya (2006-02-12): added ring and ideal constructors,
-             list delimiters, is_Macaulay2Element, sage_polystring,
-             __floordiv__, __mod__, __iter__, __len__; stripped extra
-             leading space and trailing newline from output.
+
+- Kiran Kedlaya and David Roe (2006-02-05, during Sage coding sprint)
+- William Stein (2006-02-09): inclusion in Sage; prompt uses regexp,
+  calling of Macaulay2 functions via __call__.
+- William Stein (2006-02-09): fixed bug in reading from file and
+  improved output cleaning.
+- Kiran Kedlaya (2006-02-12): added ring and ideal constructors,
+  list delimiters, is_Macaulay2Element, sage_polystring,
+  __floordiv__, __mod__, __iter__, __len__; stripped extra
+  leading space and trailing newline from output.
 
 TODO:
-   -- get rid of all numbers in output, e.g., in ideal function below.
+
+- get rid of all numbers in output, e.g., in ideal function below.
 """
 
 #*****************************************************************************
@@ -103,26 +105,29 @@ from sage.misc.multireplace import multiple_replace
 import re
 
 def remove_output_labels(s):
-    """
+    r"""
     Remove output labels of Macaulay2 from a string.
 
-    :param s: output of Macaulay2
+    - s: output of Macaulay2
 
-    :type s: string
+    - s: string
 
-    :returns: the input string with `n` symbols removed from the beginning
-        of each line, where `n` is the minimal number of spaces or
-        symbols of Macaulay2 output labels (looking like 'o39 = ')
-        present on every non-empty line.
+    Returns: the input string with `n` symbols removed from the beginning of
+    each line, where `n` is the minimal number of spaces or symbols of
+    Macaulay2 output labels (looking like 'o39 = ') present on every non-empty
+    line.
 
-    :rtype: string
+    Return type: string
 
-    :note: If ``s`` consists of several outputs and their lables have
+    .. note::
+
+        If ``s`` consists of several outputs and their lables have
         different width, it is possible that some strings will have leading
         spaces (or maybe even pieces of output labels). However, this
         function will try not cut any messages.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.macaulay2 import remove_output_labels
         sage: output = 'o1 = QQ [x, y]\n\no1 : PolynomialRing\n'
         sage: remove_output_labels(output)
@@ -162,7 +167,8 @@ class Macaulay2(Expect):
         labels to be of the same length. This allows correct stripping of
         the output of several commands.
 
-        TESTS:
+        TESTS::
+
             sage: macaulay2 == loads(dumps(macaulay2))
             True
         """
@@ -195,7 +201,8 @@ class Macaulay2(Expect):
         """
         Used in serializing an Macaulay2 interface.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: rlm2, t = macaulay2.__reduce__()
             sage: rlm2(*t)
             Macaulay2
@@ -206,11 +213,16 @@ class Macaulay2(Expect):
         """
         Load and *execute* the content of ``filename`` in Macaulay2.
 
-        :param filename: the name of the file to be loaded and executed.
-        :type filename: string
-        :returns: Macaulay2 command loading and executing commands in
-            ``filename``, that is, ``'load "filename"'``.
-        :rtype: string
+        INPUT:
+
+        - filename: the name of the file to be loaded and executed
+          (type: string)
+
+        OUTPUT:
+
+        Returns Macaulay2 command loading and executing commands in
+        ``filename``, that is, ``'load "filename"'``.
+        Return type: string
 
         TESTS::
 
@@ -233,7 +245,8 @@ class Macaulay2(Expect):
 
     def __getattr__(self, attrname):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gb = macaulay2.gb  #optional
             sage: type(gb)           #optional
             <class 'sage.interfaces.macaulay2.Macaulay2Function'>
@@ -250,10 +263,12 @@ class Macaulay2(Expect):
         as a string suitable for input back into Macaulay2, if possible.
 
         INPUT:
-            code -- str
-            strip -- ignored
 
-        EXAMPLES:
+        - code -- str
+        - strip -- ignored
+
+        EXAMPLES::
+
             sage: macaulay2.eval("2+2") #optional
             4
         """
@@ -268,7 +283,8 @@ class Macaulay2(Expect):
         r"""
         Restart Macaulay2 interpreter.
 
-        TEST:
+        TEST::
+
             sage: macaulay2.restart()  # optional
         """
         # If we allow restart to be called as a function, there will be
@@ -279,7 +295,8 @@ class Macaulay2(Expect):
         """
         Get the value of the variable var.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: macaulay2.set("a", "2") #optional
             sage: macaulay2.get("a")      #optional
             2
@@ -290,7 +307,8 @@ class Macaulay2(Expect):
         """
         Set the variable var to the given value.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: macaulay2.set("a", "2")  #optional
             sage: macaulay2.get("a")       #optional
             2
@@ -304,7 +322,8 @@ class Macaulay2(Expect):
         """
         Returns the class of Macaulay2 elements.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: macaulay2._object_class()
             <class 'sage.interfaces.macaulay2.Macaulay2Element'>
 
@@ -315,7 +334,8 @@ class Macaulay2(Expect):
         """
         Spawn a new M2 command-line session.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: macaulay2.console()                    # not tested
             Macaulay 2, version 1.1
             with packages: Classic, Core, Elimination, IntegralClosure, LLLBases, Parsing, PrimaryDecomposition, SchurRings, TangentCone
@@ -328,7 +348,8 @@ class Macaulay2(Expect):
         """
         Returns the Macaulay2 left delimiter for lists.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: macaulay2._left_list_delim()
             '{'
         """
@@ -338,7 +359,8 @@ class Macaulay2(Expect):
         """
         Returns the Macaulay2 right delimiter for lists.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: macaulay2._right_list_delim()
             '}'
         """
@@ -348,7 +370,8 @@ class Macaulay2(Expect):
         """
         Returns the Macaulay2 symbol for True.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: macaulay2._true_symbol()
             'true'
         """
@@ -358,7 +381,8 @@ class Macaulay2(Expect):
         """
         Returns the Macaulay2 symbol for False.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: macaulay2._false_symbol()
             'false'
         """
@@ -368,7 +392,8 @@ class Macaulay2(Expect):
         """
         Returns the Macaulay2 symbol for equality.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: macaulay2._false_symbol()
             'false'
         """
@@ -376,7 +401,8 @@ class Macaulay2(Expect):
 
     def cputime(self, t=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = macaulay2("QQ[x,y]")  #optional
             sage: x,y = R.gens()            #optional
             sage: a = (x+y+1)^20            #optional
@@ -393,7 +419,8 @@ class Macaulay2(Expect):
         """
         Returns the version of Macaulay2.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: macaulay2.version() #optional
             (1, 3, 1)
         """
@@ -409,12 +436,16 @@ class Macaulay2(Expect):
         Return the ideal generated by gens.
 
         INPUT:
-            gens -- list or tuple of Macaulay2 objects (or objects that can be
-                    made into Macaulay2 objects via evaluation)
-        OUTPUT:
-            the Macaulay2 ideal generated by the given list of gens
 
-        EXAMPLES:
+        - gens -- list or tuple of Macaulay2 objects (or objects that can be
+          made into Macaulay2 objects via evaluation)
+
+        OUTPUT:
+
+        the Macaulay2 ideal generated by the given list of gens
+
+        EXAMPLES::
+
             sage: R2 = macaulay2.ring('QQ', '[x, y]'); R2            # optional
             QQ[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
                                                                      {Lex => 2          }
@@ -444,16 +475,20 @@ class Macaulay2(Expect):
         Create a Macaulay2 ring.
 
         INPUT:
-            base_ring -- base ring (see examples below)
-            vars -- a tuple or string that defines the variable names
-            order -- string -- the monomial order (default: 'Lex')
+
+        - base_ring -- base ring (see examples below)
+        - vars -- a tuple or string that defines the variable names
+        - order -- string -- the monomial order (default: 'Lex')
 
         OUTPUT:
-            a Macaulay2 ring (with base ring ZZ)
+
+        - a Macaulay2 ring (with base ring ZZ)
 
         EXAMPLES:
+
         This is a ring in variables named a through d over the finite field
-        of order 7, with graded reverse lex ordering:
+        of order 7, with graded reverse lex ordering::
+
             sage: R1 = macaulay2.ring('ZZ/7', '[a..d]', 'GRevLex');  R1  # optional
             ZZ
             --[a..d, Degrees => {4:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
@@ -462,7 +497,8 @@ class Macaulay2(Expect):
             sage: R1.char()                                             # optional
             7
 
-        This is a polynomial ring over the rational numbers:
+        This is a polynomial ring over the rational numbers::
+
             sage: R2 = macaulay2.ring('QQ', '[x, y]'); R2               # optional
             QQ[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
                                                                      {Lex => 2          }
@@ -477,7 +513,8 @@ class Macaulay2(Expect):
 
     def help(self, s):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: macaulay2.help("load")  # optional
             load -- read Macaulay2 commands
             *******************************
@@ -495,12 +532,12 @@ class Macaulay2(Expect):
         """
         Return a list of tab completions for Macaulay2.
 
-        :returns: dynamically built sorted list of commands obtained using
-            Macaulay2 "apropos" command.
+        Returns dynamically built sorted list of commands obtained using
+        Macaulay2 "apropos" command.
+        Return type: list of strings
 
-        :rtype: list of strings
+        TESTS::
 
-        TESTS:
             sage: names = macaulay2.trait_names() # optional
             sage: 'ring' in names                 # optional
             True
@@ -527,7 +564,8 @@ class Macaulay2(Expect):
         """
         Use the Macaulay2 ring R.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = macaulay2("QQ[x,y]")                  #optional
             sage: P = macaulay2("ZZ/7[symbol x, symbol y]") #optional
             sage: macaulay2("x").cls()                      #optional
@@ -549,7 +587,8 @@ class Macaulay2(Expect):
         Returns a new Macaulay2Element of type type constructed from
         value.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: l = macaulay2.new_from("MutableList", [1,2,3]) #optional
             sage: l                                              #optional
             MutableList{...3...}
@@ -565,7 +604,8 @@ class Macaulay2(Expect):
 class Macaulay2Element(ExpectElement):
     def _latex_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = macaulay2('matrix {{1,2},{3,4}}') #optional
             sage: m                                     #optional
             | 1 2 |
@@ -579,7 +619,8 @@ class Macaulay2Element(ExpectElement):
 
     def __iter__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: l = macaulay2([1,2,3]) #optional
             sage: list(iter(l))          #optional
             [1, 2, 3]
@@ -589,7 +630,8 @@ class Macaulay2Element(ExpectElement):
 
     def __str__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = macaulay2("QQ[x,y,z]/(x^3-y^3-z^3)") #optional
             sage: x = macaulay2('x')                       #optional
             sage: y = macaulay2('y')                       #optional
@@ -611,7 +653,8 @@ class Macaulay2Element(ExpectElement):
 
     def external_string(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
            sage: R = macaulay2("QQ[symbol x, symbol y]")  #optional
            sage: R.external_string()                      #optional
            'QQ[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => VerticalList{MonomialSize => 32, GRevLex => {2:1}, Position => Up}, DegreeRank => 1]'
@@ -630,7 +673,8 @@ class Macaulay2Element(ExpectElement):
 
     def __len__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: l = macaulay2([1,2,3])  #optional
             sage: len(l)                  #optional
             3
@@ -642,7 +686,8 @@ class Macaulay2Element(ExpectElement):
 
     def __getitem__(self, n):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: l = macaulay2([1,2,3])  #optional
             sage: l[0]                    #optional
             1
@@ -653,7 +698,8 @@ class Macaulay2Element(ExpectElement):
 
     def __setitem__(self, index, value):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: l = macaulay2.new_from("MutableList", [1,2,3]) #optional
             sage: l[0] = 4               #optional
             sage: list(l)                #optional
@@ -669,7 +715,8 @@ class Macaulay2Element(ExpectElement):
 
     def __call__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = macaulay2("QQ[x, y]")     #optional
             sage: x,y = R.gens()                #optional
             sage: I = macaulay2.ideal(x*y, x+y) #optional
@@ -686,10 +733,12 @@ class Macaulay2Element(ExpectElement):
         """
         Quotient of division of self by other.  This is denoted //.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: R.<x,y> = GF(7)[]
 
-        Now make the M2 version of R, so we can coerce elements of R to M2:
+        Now make the M2 version of R, so we can coerce elements of R to M2::
+
             sage: macaulay2(R)                           # optional
             ZZ
             --[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
@@ -719,10 +768,12 @@ class Macaulay2Element(ExpectElement):
         """
         Remainder of division of self by other.  This is denoted %.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: R.<x,y> = GF(7)[]
 
-        Now make the M2 version of R, so we can coerce elements of R to M2:
+        Now make the M2 version of R, so we can coerce elements of R to M2::
+
             sage: macaulay2(R)                              # optional
             ZZ
             --[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
@@ -752,7 +803,8 @@ class Macaulay2Element(ExpectElement):
 
     def __nonzero__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = macaulay2(0)  #optional
             sage: a == 0            #optional
             True
@@ -766,11 +818,12 @@ class Macaulay2Element(ExpectElement):
         """
         If this Macaulay2 element is a polynomial, return a string
         representation of this polynomial that is suitable for
-        evaluation in Python.  Thus * is used for multiplication
-        and ** for exponentiation.   This function is primarily
+        evaluation in Python.  Thus ``*`` is used for multiplication
+        and ``**`` for exponentiation.   This function is primarily
         used internally.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = macaulay2.ring('QQ','(x,y)')               # optional
             sage: f = macaulay2('x^3 + 3*y^11 + 5')              # optional
             sage: print f                                        # optional
@@ -783,7 +836,8 @@ class Macaulay2Element(ExpectElement):
 
     def structure_sheaf(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = macaulay2('QQ[a..d]')                     # optional
             sage: R = S/macaulay2('a^3+b^3+c^3+d^3')            # optional
             sage: X = R.Proj()                                  # optional
@@ -798,7 +852,8 @@ class Macaulay2Element(ExpectElement):
         Note that we have to override the substitute method so that we get
         the default one from Macaulay2 instead of the one provided by Element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = macaulay2("QQ[x]")            #optional
             sage: P = macaulay2("ZZ/7[symbol x]")   #optional
             sage: x, = R.gens()                     #optional
@@ -814,15 +869,16 @@ class Macaulay2Element(ExpectElement):
 
     def trait_names(self):
         """
-        Return a list of tab completions for `self``.
+        Return a list of tab completions for ``self``.
 
-        :returns: dynamically built sorted list of commands obtained using
-            Macaulay2 "methods" command. All returned functions can take
-            ``self`` as their first argument
+        Returns dynamically built sorted list of commands obtained using
+        Macaulay2 "methods" command. All returned functions can take ``self``
+        as their first argument
 
-        :rtype: list of strings
+        Return type: list of strings
 
-        TEST:
+        TEST::
+
             sage: a = macaulay2("QQ[x,y]")   # optional
             sage: traits = a.trait_names()   # optional
             sage: "generators" in traits     # optional
@@ -856,7 +912,8 @@ class Macaulay2Element(ExpectElement):
         Macaulay2's class.  In Macaulay2, class corresponds to Sage's
         notion of parent.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: macaulay2(ZZ).cls()  #optional
             Ring
 
@@ -868,7 +925,8 @@ class Macaulay2Element(ExpectElement):
     ##########################
     def dot(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: d = macaulay2.new("MutableHashTable") #optional
             sage: d["k"] = 4                            #optional
             sage: d.dot("k")                            #optional
@@ -883,7 +941,8 @@ class Macaulay2Element(ExpectElement):
         Returns the infix binary operation specified by opstr applied
         to self and x.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = macaulay2("3")     #optional
             sage: a._operator("+", a)    #optional
             6
@@ -896,7 +955,8 @@ class Macaulay2Element(ExpectElement):
 
     def sharp(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = macaulay2([1,2,3]) #optional
             sage: a.sharp(0)             #optional
             1
@@ -905,10 +965,11 @@ class Macaulay2Element(ExpectElement):
 
     def starstar(self, x):
         """
-        The binary operator ** in Macaulay2 is usually used for tensor
+        The binary operator ``**`` in Macaulay2 is usually used for tensor
         or Cartesian power.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = macaulay2([1,2]).set()  #optional
             sage: a.starstar(a)               #optional
             set {(1, 1), (1, 2), (2, 1), (2, 2)}
@@ -918,7 +979,8 @@ class Macaulay2Element(ExpectElement):
 
     def underscore(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = macaulay2([1,2,3])  #optional
             sage: a.underscore(0)         #optional
             1
@@ -930,7 +992,8 @@ class Macaulay2Element(ExpectElement):
     ####################
     def to_sage(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: macaulay2(ZZ).to_sage()      #optional
             Integer Ring
             sage: macaulay2(QQ).to_sage()      #optional
@@ -1101,7 +1164,8 @@ class Macaulay2Element(ExpectElement):
 class Macaulay2Function(ExpectFunction):
     def _sage_doc_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: print macaulay2.load._sage_doc_()  # optional
             load -- read Macaulay2 commands
             *******************************
@@ -1113,7 +1177,8 @@ class Macaulay2Function(ExpectFunction):
 
     def _sage_src_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: print macaulay2.gb._sage_src_() #optional
             code(methods gb)
             ...
@@ -1129,7 +1194,8 @@ class Macaulay2Function(ExpectFunction):
 
 def is_Macaulay2Element(x):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.macaulay2 import is_Macaulay2Element
         sage: is_Macaulay2Element(2)              #optional
         False
@@ -1147,7 +1213,8 @@ def macaulay2_console():
     """
     Spawn a new M2 command-line session.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: macaulay2_console()                    # not tested
         Macaulay 2, version 1.1
         with packages: Classic, Core, Elimination, IntegralClosure, LLLBases, Parsing, PrimaryDecomposition, SchurRings, TangentCone
@@ -1162,7 +1229,8 @@ def reduce_load_macaulay2():
     """
     Used for reconstructing a copy of the Macaulay2 interpreter from a pickle.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.macaulay2 import reduce_load_macaulay2
         sage: reduce_load_macaulay2()
         Macaulay2

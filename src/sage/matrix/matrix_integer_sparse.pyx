@@ -2,10 +2,12 @@
 Sparse integer matrices.
 
 AUTHORS:
-    -- William Stein (2007-02-21)
-    -- Soroosh Yazdani (2007-02-21)
 
-TESTS:
+- William Stein (2007-02-21)
+- Soroosh Yazdani (2007-02-21)
+
+TESTS::
+
     sage: a = matrix(ZZ,2,range(4), sparse=True)
     sage: TestSuite(a).run()
     sage: Matrix(ZZ,0,0,sparse=True).inverse()
@@ -275,6 +277,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         It is safe to change the resulting list (unless you give the option copy=False).
 
         EXAMPLE::
+
             sage: M = Matrix(ZZ, [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
             [0 1 0 0 0 0 1 0]
@@ -306,6 +309,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         It is safe to change the resulting list (unless you give the option copy=False).
 
         EXAMPLE::
+
             sage: M = Matrix(ZZ, [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
             [0 1 0 0 0 0 1 0]
@@ -373,7 +377,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         rational numbers (if possible), where we view self as a matrix
         modulo N.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = matrix(ZZ, 3, 4, [(1/3)%500, 2, 3, (-4)%500, 7, 2, 2, 3, 4, 3, 4, (5/7)%500], sparse=True)
             sage: A.rational_reconstruction(500)
             [1/3   2   3  -4]
@@ -482,7 +487,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         TESTS:
 
         We test three trivial cases. PARI is used for small matrices,
-        but we let the heuristic decide that.  ::
+        but we let the heuristic decide that. ::
 
             sage: A = matrix(ZZ, 0, 2, sparse=True)
             sage: A._right_kernel_matrix()[1]
@@ -509,29 +514,34 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         this matrix.  They are ordered in reverse by divisibility.
 
         INPUT:
-            self -- matrix
-            algorithm -- (default: 'pari')
-                 'pari': works robustly, but is slower.
-                 'linbox' -- use linbox (currently off, broken)
+
+        - self -- matrix
+        - algorithm -- (default: 'pari')
+
+          * 'pari': works robustly, but is slower.
+          * 'linbox' -- use linbox (currently off, broken)
 
         OUTPUT:
-            list of integers
 
-        EXAMPLES:
+        list of integers
+
+        EXAMPLES::
+
             sage: matrix(3, range(9),sparse=True).elementary_divisors()
             [1, 3, 0]
             sage: M = matrix(ZZ, 3, [1,5,7, 3,6,9, 0,1,2], sparse=True)
             sage: M.elementary_divisors()
             [1, 1, 6]
 
-        This returns a copy, which is safe to change:
+        This returns a copy, which is safe to change::
+
             sage: edivs = M.elementary_divisors()
             sage: edivs.pop()
             6
             sage: M.elementary_divisors()
             [1, 1, 6]
 
-        SEE ALSO: smith_form
+        ..SEEALSO:: :meth:`smith_form`
         """
         return self.dense_matrix().elementary_divisors(algorithm=algorithm)
 

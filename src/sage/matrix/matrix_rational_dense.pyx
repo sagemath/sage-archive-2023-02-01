@@ -1380,7 +1380,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
           - ``'classical'``: just clear each column using Gauss elimination
 
-        -  ``height_guess, **kwds`` - all passed to the
+        -  ``height_guess``, ``**kwds`` - all passed to the
            multimodular algorithm; ignored by the p-adic algorithm.
 
         -  ``proof`` - bool or None (default: None, see
@@ -1485,7 +1485,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
            - 'classical': just clear each column using Gauss elimination
 
-        -  ``height_guess, **kwds`` - all passed to the
+        -  ``height_guess``, ``**kwds`` - all passed to the
            multimodular algorithm; ignored by the p-adic algorithm.
 
         -  ``proof`` - bool or None (default: None, see

@@ -1,3 +1,4 @@
+# distutils: libraries = gmp
 """
 Fast binary code routines.
 

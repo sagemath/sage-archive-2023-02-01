@@ -1,3 +1,4 @@
+# distutils: libraries = gmp
 r"""
 Vertex separation
 

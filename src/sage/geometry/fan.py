@@ -1616,13 +1616,16 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
     def common_refinement(self, other):
         """
-        Compute the common refinement of ``self`` and ``other``.
-
-        This is currently only implemented when one of the fans is complete.
+        Return the common refinement of this fan and ``other``.
+        
+        INPUT:
+        
+        - ``other`` -- a :class:`fan <RationalPolyhedralFan>` in the same
+          :meth:`lattice` and with the same support as this fan
 
         OUTPUT:
 
-        - a fan
+        - a :class:`fan <RationalPolyhedralFan>`
 
         EXAMPLES:
 
@@ -1638,20 +1641,13 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: F2 = Fan2d([(1,0),(1,1),(0,1),(-1,0),(0,-1)])
             sage: F3 = F2.cartesian_product(F1)
             sage: F4 = F1.cartesian_product(F2)
-            sage: FF = F3.common_refinement(F4); FF
-            Rational polyhedral fan in 3-d lattice N+N
+            sage: FF = F3.common_refinement(F4)
+            sage: F3.ngenerating_cones()
+            10
+            sage: F4.ngenerating_cones()
+            10
             sage: FF.ngenerating_cones()
             13
-
-        TESTS:
-
-        This does not work when both fans are incomplete::
-
-            sage: F5 = Fan([[0,1],[1,2],[2,3]],[(1,0),(0,1),(-1,0),(0,-1)])
-            sage: F5.common_refinement(F5)
-            Traceback (most recent call last):
-            ...
-            ValueError: only implemented for complete fans
 
         Both fans must live in the same lattice::
 
@@ -1662,16 +1658,15 @@ class RationalPolyhedralFan(IntegralRayCollection,
         """
         from sage.categories.homset import End
         from sage.geometry.fan_morphism import FanMorphism
-        latt = self.lattice()
-        if other.lattice() != latt:
+        N = self.lattice()
+        if other.lattice() is not N:
             raise ValueError('the fans are not in the same lattice')
-        if not(self.is_complete()):
-            if other.is_complete():
-                self, other = other, self
-            else:
-                raise ValueError('only implemented for complete fans')
-        id = FanMorphism(End(latt).identity(), self, other, subdivide=True)
-        return id.domain_fan()
+        id = End(N).identity()
+        subdivision = FanMorphism(id, self, other, subdivide=True).domain_fan()
+        if not self.is_complete():
+            # Construct the opposite morphism to ensure support equality
+            FanMorphism(id, other, self, subdivide=True)
+        return subdivision
 
     def _latex_(self):
         r"""

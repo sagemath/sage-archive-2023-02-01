@@ -6548,7 +6548,6 @@ class Graph(GenericGraph):
 
         # The default capacity of an arc is 1
         from sage.rings.real_mpfr import RR
-        capacity = lambda label: label if label in RR else 1
 
         # Small case, not really a problem ;-)
         if len(vertices) == 1:
@@ -6581,22 +6580,22 @@ class Graph(GenericGraph):
 
         # We must preserve the labels. They sum.
 
-        for e in edges:
-            x,y = e[0],e[1]
-            # Assumes x is in g1
-            if x in g2:
+        for x,y,l in edges:
+            l = l if l in RR else 1 # default capacity is 1
+
+            if x in g2: # Assumes x is in g1
                 x,y = y,x
             # If the edge x-g1_v exists, adds to its label the capacity of arc xy
             if g1.has_edge(x, g1_v):
-                g1.set_edge_label(x, g1_v, g1.edge_label(x, g1_v) + capacity(self.edge_label(x, y)))
+                g1.set_edge_label(x, g1_v, g1.edge_label(x, g1_v) + l)
             else:
                 # Otherwise, creates it with the good label
-                g1.add_edge(x, g1_v, capacity(self.edge_label(x, y)))
+                g1.add_edge(x, g1_v, l)
             # Same thing for g2
             if g2.has_edge(y, g2_v):
-                g2.set_edge_label(y, g2_v, g2.edge_label(y, g2_v) + capacity(self.edge_label(x, y)))
+                g2.set_edge_label(y, g2_v, g2.edge_label(y, g2_v) + l)
             else:
-                g2.add_edge(y, g2_v, capacity(self.edge_label(x, y)))
+                g2.add_edge(y, g2_v, l)
 
         # Recursion for the two new graphs... The new "real" vertices are the intersection with
         # with the previous set of "real" vertices

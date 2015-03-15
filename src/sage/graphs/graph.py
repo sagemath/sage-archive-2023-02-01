@@ -6541,10 +6541,9 @@ class Graph(GenericGraph):
         example is only present to have a doctest coverage of 100%.
 
             sage: g = graphs.PetersenGraph()
-            sage: t = g._gomory_hu_tree(Set(g.vertices()))
+            sage: t = g._gomory_hu_tree(frozenset(g.vertices()))
         """
         self._scream_if_not_simple()
-        from sage.sets.set import Set
 
         # The default capacity of an arc is 1
         from sage.rings.real_mpfr import RR
@@ -6556,7 +6555,8 @@ class Graph(GenericGraph):
             return g
 
         # Take any two vertices
-        u,v = vertices[0:2]
+        it = vertices.__iter__()
+        u,v = it.next(),it.next()
 
         # Recovers the following values
         # flow is the connectivity between u and v
@@ -6568,8 +6568,8 @@ class Graph(GenericGraph):
         g1,g2 = self.subgraph(set1), self.subgraph(set2)
 
         # Adding the fake vertex to each part
-        g1_v = Set(set2)
-        g2_v = Set(set1)
+        g1_v = frozenset(set2)
+        g2_v = frozenset(set1)
         g1.add_vertex(g1_v)
         g1.add_vertex(g2_v)
 
@@ -6598,8 +6598,8 @@ class Graph(GenericGraph):
 
         # Recursion for the two new graphs... The new "real" vertices are the intersection with
         # with the previous set of "real" vertices
-        g1_tree = g1._gomory_hu_tree(vertices=(vertices & Set(g1.vertices())), method=method)
-        g2_tree = g2._gomory_hu_tree(vertices=(vertices & Set(g2.vertices())), method=method)
+        g1_tree = g1._gomory_hu_tree(vertices=(vertices & frozenset(g1.vertices())), method=method)
+        g2_tree = g2._gomory_hu_tree(vertices=(vertices & frozenset(g2.vertices())), method=method)
 
         # Union of the two partial trees ( it is disjoint, but
         # disjoint_union does not preserve the name of the vertices )
@@ -6679,13 +6679,12 @@ class Graph(GenericGraph):
             sage: g.edge_connectivity() == min(t.edge_labels())
             True
         """
-        from sage.sets.set import Set
         if not self.is_connected():
             g = Graph()
             for cc in self.connected_components_subgraphs():
-                g = g.union(cc._gomory_hu_tree(Set(cc.vertices()),method=method))
+                g = g.union(cc._gomory_hu_tree(frozenset(cc.vertices()),method=method))
         else:
-            g = self._gomory_hu_tree(Set(self.vertices()),method=method)
+            g = self._gomory_hu_tree(frozenset(self.vertices()),method=method)
 
         if self.get_pos() is not None:
             g.set_pos(dict(self.get_pos()))

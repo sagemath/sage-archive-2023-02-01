@@ -6585,17 +6585,16 @@ class Graph(GenericGraph):
 
             if x in g2: # Assumes x is in g1
                 x,y = y,x
-            # If the edge x-g1_v exists, adds to its label the capacity of arc xy
-            if g1.has_edge(x, g1_v):
-                g1.set_edge_label(x, g1_v, g1.edge_label(x, g1_v) + l)
-            else:
-                # Otherwise, creates it with the good label
-                g1.add_edge(x, g1_v, l)
-            # Same thing for g2
-            if g2.has_edge(y, g2_v):
-                g2.set_edge_label(y, g2_v, g2.edge_label(y, g2_v) + l)
-            else:
-                g2.add_edge(y, g2_v, l)
+
+            # Create the new edges if necessary
+            if not g1.has_edge(x, g1_v):
+                g1.add_edge(x, g1_v, 0)
+            if not g2.has_edge(y, g2_v):
+                g2.add_edge(y, g2_v, 0)
+
+            # update the capacities
+            g1.set_edge_label(x, g1_v, g1.edge_label(x, g1_v) + l)
+            g2.set_edge_label(y, g2_v, g2.edge_label(y, g2_v) + l)
 
         # Recursion for the two new graphs... The new "real" vertices are the intersection with
         # with the previous set of "real" vertices

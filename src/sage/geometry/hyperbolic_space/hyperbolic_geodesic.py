@@ -1006,9 +1006,9 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         H = self._model.get_isometry(isom_mtrx)
         return self._model.get_geodesic(H(self._start), H(self._end))
 
-    def midpoint(self): #UHP
+    def midpoint(self):  # UHP
         r"""
-        Return the (hyperbolic) midpoint of ``self`` if .
+        Return the (hyperbolic) midpoint of ``self`` if it exists.
 
         EXAMPLES::
 
@@ -1051,7 +1051,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
 
         INPUT:
 
-        -``other`` -- a hyperbolic geodesic in the UHP model
+        - ``other`` -- a hyperbolic geodesic in the UHP model
 
         OUTPUT:
 

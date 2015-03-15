@@ -46,7 +46,7 @@ not::
    False
 
 The isometry groups of UHP and PD are projective, while that of HM is
-linear:
+linear::
 
     sage: U.is_isometry_group_projective()
     True
@@ -55,7 +55,7 @@ linear:
 
 The models are responsible for determining if the coordinates of points
 and the matrix of linear maps are appropriate for constructing points
-and isometries in hyperbolic space:
+and isometries in hyperbolic space::
 
     sage: U.point_in_model(2 + I)
     True
@@ -360,10 +360,11 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
         r"""
         Return a point in ``self``.
 
-        Automatically determine the type of point to return given either
-        (1) the coordinates of a point in the interior or ideal boundary
-        of hyperbolic space or (2) a :class:`HyperbolicPoint` or
-        :class:`HyperbolicBdryPoint` object.
+        Automatically determine the type of point to return given either:
+
+        #. the coordinates of a point in the interior or ideal boundary
+           of hyperbolic space, or
+        #. a :class:`~sage.geometry.hyperbolic_space.hyperbolic_point.HyperbolicPoint` object.
 
         INPUT:
 
@@ -371,7 +372,7 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
 
         OUTPUT:
 
-        - a :class:`HyperbolicPoint`
+        - a :class:`~sage.geometry.hyperbolic_space.hyperbolic_point.HyperbolicPoint`
 
         EXAMPLES:
 

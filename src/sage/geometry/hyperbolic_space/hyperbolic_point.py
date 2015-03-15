@@ -443,7 +443,7 @@ class HyperbolicPoint(Element):
 
     def symmetry_involution(self):
         r"""
-        Return the involutary isometry fixing the given point.
+        Return the involutory isometry fixing the given point.
 
         EXAMPLES::
 
@@ -556,7 +556,7 @@ class HyperbolicPointUHP(HyperbolicPoint):
     """
     def symmetry_involution(self):
         r"""
-        Return the involutary isometry fixing the given point.
+        Return the involutory isometry fixing the given point.
 
         EXAMPLES::
 

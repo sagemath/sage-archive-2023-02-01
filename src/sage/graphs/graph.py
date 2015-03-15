@@ -6617,6 +6617,8 @@ class Graph(GenericGraph):
         `Wikipedia article on Gomory-Hu tree <http://en.wikipedia.org/wiki/Gomory%E2%80%93Hu_tree>`_.
         Note that, in general, a graph admits more than one Gomory-Hu tree.
 
+        See also 15.4 (Gomory-Hu trees) from [SchrijverCombOpt]_.
+
         INPUT:
 
         - ``method`` -- There are currently two different

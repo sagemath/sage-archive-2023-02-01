@@ -136,7 +136,6 @@ cpdef modular_decomposition(g):
         a.suiv = G.G[j]
         G.G[j] = a
 
-
     R = decomposition_modulaire(G)
 
     return build_dict_from_decomposition(R)

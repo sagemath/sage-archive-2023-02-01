@@ -6606,7 +6606,7 @@ class Graph(GenericGraph):
         g = g1_tree.union(g2_tree)
 
         # An edge to connect them, with the appropriate label
-        g.add_edge(next(g1_tree.vertex_iterator()), next(g2_tree.vertex_iterator()), flow)
+        g.add_edge(u, v, flow)
 
         return g
 
@@ -6678,6 +6678,16 @@ class Graph(GenericGraph):
 
             sage: g.edge_connectivity() == min(t.edge_labels())
             True
+
+        TESTS::
+
+            sage: G = graphs.PetersenGraph()
+            sage: for u, v in [(0, 1), (0, 4), (0, 5), (1, 2), (1, 6), (3, 4), (5, 7), (5, 8)]:
+            ....:     G.set_edge_label(u, v, random())
+            sage: T = G.gomory_hu_tree()
+            sage: from itertools import combinations
+            sage: for u,v in combinations(G,2):
+            ....:     assert T.flow(u,v,use_edge_labels=True) == G.flow(u,v,use_edge_labels=True)
         """
         if not self.is_connected():
             g = Graph()

@@ -986,8 +986,6 @@ cdef class PariInstance(PariInstance_auto):
         if v is None:
             return -1
         if v == -1:
-            #from sage.misc.superseded import deprecation
-            #deprecation(XXXXX, 'passing -1 as PARI variable is deprecated, use None instead')
             return -1
         cdef bytes s = bytes(v)
         return fetch_user_var(s)

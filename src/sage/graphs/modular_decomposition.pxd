@@ -2,9 +2,7 @@ include "sage/ext/interrupt.pxi"
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
 
-
-
-cdef extern from "src/dm_english.h":
+cdef extern from "modular_decomposition.h":
 
     ctypedef struct noeud:
         pass
@@ -39,7 +37,5 @@ cdef extern from "src/dm_english.h":
 
         int n
         c_adj ** G
-
-cdef extern from "src/dm_english.h":
 
     c_noeud *decomposition_modulaire(c_graphe G)

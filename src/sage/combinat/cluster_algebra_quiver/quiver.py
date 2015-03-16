@@ -1591,11 +1591,31 @@ class ClusterQuiver(SageObject):
         """
         Return the cluster fan associated with the quiver.
 
-        It only makes sense for acyclic quivers of finite type.
+        This is a complete simplicial (and even smooth) fan. It only makes
+        sense for acyclic quivers of finite type.
 
-        This is defined using the denominator vectors of the cluster
+        This fan is defined using the denominator vectors of the cluster
         variables. Cones are in correspondance with clusters and
         rays with cluster variables.
+
+        More precisely, starting from the seed made of the quiver `Q`
+        with `n` vertices and variables `x_1, ..., x_n`, one obtains
+        by iterating mutation a finite set of seeds. Each of these
+        seeds is made of a quiver and `n` cluster variables (that form
+        a cluster).
+
+        Each cluster variable is mapped to a vector `d` in `\ZZ^n` by
+        using its denominator written as
+
+        .. MATH::
+
+            \prod_{i=1}^{n} x_i^d_i.
+
+        By convention the denominator of each initial variable `x_i` is
+        `x_i^{-1}`.
+
+        Using this map, every cluster defines a cone in `\ZZ^n`. These
+        are the maximal cones of the cluster fan.
 
         EXAMPLES::
 
@@ -1627,6 +1647,8 @@ class ClusterQuiver(SageObject):
             raise ValueError('only makes sense for acyclic quivers'
                              ' of finite type')
         seed = ClusterSeed(self)
+        # could maybe use a direct custom "denominator" function
+        # instead of going through almost_positive_roots
         return Fan([Cone([vector(v.almost_positive_root())
                           for v in s.cluster()])
                     for s in seed.mutation_class()])

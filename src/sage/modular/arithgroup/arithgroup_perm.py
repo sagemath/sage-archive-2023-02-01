@@ -1338,7 +1338,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
 
         For *odd* subgroups, Hsu's algorithm still works with minor
         modifications, using the extension of Wohlfarht's theorem due to
-        Kiming, Schuett and Verrill [KSV11]_. See [HL13]_ for details.
+        Kiming, Schuett and Verrill [KSV11]_. See [HL14]_ for details.
 
         The algorithm is as follows. Let `G` be a finite-index subgroup of
         `{\rm SL}(2, \ZZ)`, and let `L` and `R` be the permutations of the
@@ -1349,17 +1349,17 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
 
         - if `N` is odd, `G` is congruence if and only if the relation
         
-        .. math::
+          .. math::
         
             (L R^{-1} L)^2 = (R^2 L^{1/2})^3
 
-        holds, where `1/2` is understood as the multiplicative
-        inverse of 2 modulo N.
+          holds, where `1/2` is understood as the multiplicative inverse of 2
+          modulo N.
 
         - if `N` is a power of 2, then `G` is congruence if and only
-        if the relations
+          if the relations
 
-        .. math::
+          .. math::
 
             \begin{array}{cc}
              (L R^{-1} L)^{-1} S (L R^{-1} L) S = 1 & (A1)\\
@@ -1367,11 +1367,11 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
              (L R^{-1} L)^2 = (S R^5 L R^{-1} L)^3 & (A3) \\
             \end{array}
 
-        hold, where `S = L^{20} R^{1/5} L^{-4} R^{-1}`, `1/5` being the inverse
-        of 5 modulo N.
+          hold, where `S = L^{20} R^{1/5} L^{-4} R^{-1}`, `1/5` being the inverse
+          of 5 modulo N.
 
         - if `N` is neither odd nor a power of 2, seven relations (B1-7) hold,
-        for which see [HL13]_, or the source code of this function.
+          for which see [HL14]_, or the source code of this function.
 
         If the Sage verbosity flag is set (using ``set_verbose()``), then extra
         output will be produced indicating which of the relations (A1-3) or

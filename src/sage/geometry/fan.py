@@ -1617,9 +1617,9 @@ class RationalPolyhedralFan(IntegralRayCollection,
     def common_refinement(self, other):
         """
         Return the common refinement of this fan and ``other``.
-        
+
         INPUT:
-        
+
         - ``other`` -- a :class:`fan <RationalPolyhedralFan>` in the same
           :meth:`lattice` and with the same support as this fan
 
@@ -1635,7 +1635,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: F0.common_refinement(F0) == F0
             True
 
-        A more complex example::
+        A more complex example with complete fans::
 
             sage: F1 = Fan([[0],[1]],[(1,),(-1,)])
             sage: F2 = Fan2d([(1,0),(1,1),(0,1),(-1,0),(0,-1)])
@@ -1648,6 +1648,13 @@ class RationalPolyhedralFan(IntegralRayCollection,
             10
             sage: FF.ngenerating_cones()
             13
+
+        An example with two non-complete fans with the same support::
+
+            sage: F5 = Fan2d([(1,0),(1,2),(0,1)])
+            sage: F6 = Fan2d([(1,0),(2,1),(0,1)])
+            sage: F5.common_refinement(F6).ngenerating_cones()
+            3
 
         Both fans must live in the same lattice::
 

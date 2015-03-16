@@ -19,9 +19,18 @@ class SemisimpleAlgebras(Category_over_base_ring):
 
     EXAMPLES::
 
-        sage: SemisimpleAlgebras(QQ)
+        from sage.categories.semisimple_algebras import SemisimpleAlgebras
+        sage: C = SemisimpleAlgebras(QQ); C
         Category of semisimple algebras over Rational Field
-        sage: SemisimpleAlgebras(QQ).super_categories()
+
+    This category is best constructed as::
+
+        sage: D = Algebras(QQ).Semisimple(); D
+        Category of semisimple algebras over Rational Field
+        sage: D is C
+        True
+
+        sage: C.super_categories()
         [Category of algebras over Rational Field]
 
     Typically, finite group algebras are semisimple::
@@ -34,14 +43,14 @@ class SemisimpleAlgebras(Category_over_base_ring):
         sage: DihedralGroup(5).algebra(IntegerModRing(5)) in SemisimpleAlgebras
         False
 
-        sage: DihedralGroup(5).algebra(IntegerModRing(7)) in SemisimpleAlgebras # todo: not implemented
+        sage: DihedralGroup(5).algebra(IntegerModRing(7)) in SemisimpleAlgebras
         True
 
-    .. seealso:: `<http://en.wikipedia.org/wiki/Semisimple_algebra>`_
+    .. SEEALSO:: `<http://en.wikipedia.org/wiki/Semisimple_algebra>`_
 
     TESTS::
 
-        sage: TestSuite(SemisimpleAlgebras(QQ)).run()
+        sage: TestSuite(C).run()
     """
     @cached_method
     def super_categories(self):

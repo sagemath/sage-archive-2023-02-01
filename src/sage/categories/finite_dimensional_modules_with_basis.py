@@ -80,15 +80,13 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 Basis matrix:
                 [   1    0 -1/2 -3/2]
 
-            Note: currently `A` forgot everything about `F`; its
-            ambient space is a :class:`FreeModule` of same dimension
-            as `F`. But one can, for example, compute inclusions::
+            Taking annihilator is order reversing for inclusion::
 
                 sage: A   = F.annihilator([]);    A  .rename("A")
                 sage: Ax  = F.annihilator([x]);   Ax .rename("Ax")
                 sage: Ay  = F.annihilator([y]);   Ay .rename("Ay")
                 sage: Axy = F.annihilator([x,y]); Axy.rename("Axy")
-                sage: P = Poset(([A, Ax, Ay, Axy], attrcall("is_subspace")))
+                sage: P = Poset(([A, Ax, Ay, Axy], attrcall("is_submodule")))
                 sage: P.cover_relations()
                 [[Axy, Ay], [Axy, Ax], [Ay, A], [Ax, A]]
 

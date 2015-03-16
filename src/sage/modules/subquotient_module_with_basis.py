@@ -228,3 +228,37 @@ class SubModuleWithBasis(CombinatorialFreeModule):
             True
         """
         return self.lift.section()
+
+    def is_submodule(self, other):
+        """
+        Return whether ``self`` is a submodule of ``other``.
+
+        INPUT:
+
+        - ``other`` -- another submodule of the same ambient module, or the ambient module itself
+
+        EXAMPLES::
+
+            sage: X = CombinatorialFreeModule(QQ, range(4)); x = X.basis()
+            sage: F = X.submodule([x[0]-x[1], x[1]-x[2], x[2]-x[3]])
+            sage: G = X.submodule([x[0]-x[2]])
+            sage: H = X.submodule([x[0]-x[1], x[2]])
+            sage: F.is_submodule(X)
+            True
+            sage: G.is_submodule(F)
+            True
+            sage: H.is_submodule(F)
+            False
+        """
+        if other is self.ambient():
+            return True
+        if not isinstance(self, SubModuleWithBasis) and self.ambient() is other.ambient():
+            raise ValueError("other (=%s) should be a submodule of the same ambient space"%other)
+        if not self in ModulesWithBasis.FiniteDimensional:
+            raise NotImplementedError("is_submodule for infinite dimensional modules")
+        for b in self.basis():
+            try:
+                other.retract(b.lift())
+            except ValueError:
+                return False
+        return True

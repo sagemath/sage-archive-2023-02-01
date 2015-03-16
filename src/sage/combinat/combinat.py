@@ -549,7 +549,7 @@ def fibonacci(n, algorithm="pari"):
         raise ValueError("no algorithm {}".format(algorithm))
 
 def lucas_number1(n, P, Q):
-    """
+    r"""
     Return the `n`-th Lucas number "of the first kind" (this is not
     standard terminology). The Lucas sequence `L^{(1)}_n` is
     defined by the initial conditions `L^{(1)}_1 = 0`,
@@ -2195,7 +2195,7 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
 #### combinatorial sets/lists
 
 def tuples(S, k, algorithm='itertools'):
-    """
+    r"""
     Return a list of all `k`-tuples of elements of a given set ``S``.
 
     This function accepts the set ``S`` in the form of any iterable
@@ -2343,7 +2343,7 @@ def number_of_tuples(S, k, algorithm='naive'):
     raise ValueError('invalid algorithm')
 
 def unordered_tuples(S, k, algorithm='itertools'):
-    """
+    r"""
     Return a list of all unordered tuples of length ``k`` of the set ``S``.
 
     An unordered tuple of length `k` of set `S` is a unordered selection
@@ -2411,7 +2411,7 @@ def unordered_tuples(S, k, algorithm='itertools'):
     raise ValueError('invalid algorithm')
 
 def number_of_unordered_tuples(S, k, algorithm='naive'):
-    """
+    r"""
     Return the size of ``unordered_tuples(S, k)`` when `S` is a set.
 
     INPUT:

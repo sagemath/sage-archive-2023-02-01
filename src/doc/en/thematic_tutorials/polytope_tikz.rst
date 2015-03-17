@@ -85,11 +85,20 @@ When you found a good angle, I follow the above procedure to obtain the values
 
 .. end of output
 
+The image corresponding to the code ``Img=P.projection().tikz([674,108,-731],112)`` is
+
+.. PLOT::
+
+    latex.add_to_preamble(r"\usepackage{tikz}")
+    P = Polyhedron(vertices=[[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]).polar()
+    Img = P.projection().tikz([674,108,-731],112)
+    sphinx_plot(view(Img,tightpage=True))
+
 Then, you may want to customize using the command
 
 ::
 
-    Img=P.projection().tikz([674,108,-731],112,scale=2, edge_color='orange',facet_color='red',vertex_color='blue',opacity=0.4)""""""
+    Img=P.projection().tikz([674,108,-731],112,scale=2, edge_color='orange',facet_color='red',vertex_color='blue',opacity=0.4)
 
 .. end of output
 

@@ -31,7 +31,11 @@ def SymmetricGroupAlgebra(R, n, index_set=None):
     """
     Return the symmetric group algebra of order ``n`` over the ring ``R``.
 
-    .. TODO:: Document the ``index_set`` parameter?
+    INPUT:
+
+    - ``n`` -- the order of the symmetric group algebra
+    - ``index_set`` -- (optional) the indexing set as either
+      :class:`Permutations` or :class:`SymmetricGroup`
 
     EXAMPLES::
 
@@ -110,6 +114,8 @@ def SymmetricGroupAlgebra(R, n, index_set=None):
 
         sage: TestSuite(QS3).run()
     """
+    if not isinstance(index_set, (Permutations, SymmetricGroup)):
+        raise TypeError("the index set must be either Permutations or SymmetricGroup")
     return SymmetricGroupAlgebra_n(R, n, index_set)
 
 class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
@@ -535,7 +541,11 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
             :meth:`retract_direct_product`, :meth:`retract_okounkov_vershik`
         """
-        RSm = SymmetricGroupAlgebra(self.base_ring(), m)
+        try:
+            I = self.basis().keys().__class__(m)
+        except StandardError:
+            I = None
+        RSm = SymmetricGroupAlgebra(self.base_ring(), m, I)
         pairs = []
         for (p, coeff) in f.monomial_coefficients().iteritems():
             p_ret = p.retract_plain(m)
@@ -591,7 +601,11 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
             :meth:`retract_plain`, :meth:`retract_okounkov_vershik`
         """
-        RSm = SymmetricGroupAlgebra(self.base_ring(), m)
+        try:
+            I = self.basis().keys().__class__(m)
+        except StandardError:
+            I = None
+        RSm = SymmetricGroupAlgebra(self.base_ring(), m, I)
         dct = {}
         for (p, coeff) in f.monomial_coefficients().iteritems():
             p_ret = p.retract_direct_product(m)
@@ -643,7 +657,11 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
             :meth:`retract_plain`, :meth:`retract_direct_product`
         """
-        RSm = SymmetricGroupAlgebra(self.base_ring(), m)
+        try:
+            I = self.basis().keys().__class__(m)
+        except StandardError:
+            I = None
+        RSm = SymmetricGroupAlgebra(self.base_ring(), m, I)
         dct = {}
         for (p, coeff) in f.monomial_coefficients().iteritems():
             p_ret = p.retract_okounkov_vershik(m)

@@ -49,27 +49,37 @@ from sage.sets.family import Family
 class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
     """
     A classical Lie algebra represented using matrices.
+
+    INPUT:
+
+    - ``R`` -- the base ring
+    - ``ct`` -- the Cartan type of type `A_n`, `B_n`, `C_n`, or `D_n`
+
+    EXAMPLES::
+
+        sage: lie_algebras.ClassicalMatrix(QQ, ['A', 4])
+        Special linear Lie algebra of rank 5 over Rational Field
+        sage: lie_algebras.ClassicalMatrix(QQ, CartanType(['B',4]))
+        Special orthogonal Lie algebra of rank 9 over Rational Field
+        sage: lie_algebras.ClassicalMatrix(QQ, 'C4')
+        Symplectic Lie algebra of rank 8 over Rational Field
+        sage: lie_algebras.ClassicalMatrix(QQ, cartan_type=['D',4])
+        Special orthogonal Lie algebra of rank 8 over Rational Field
     """
     @staticmethod
     def __classcall_private__(cls, R, cartan_type):
         """
         Return the correct parent based on input.
 
-        INPUT:
-
-        - ``R`` -- the base ring
-        - ``ct`` -- the Cartan type
-
         EXAMPLES::
 
-            sage: from sage.algebras.lie_algebras.classical_lie_algebra import ClassicalMatrixLieAlgebra
-            sage: ClassicalMatrixLieAlgebra(QQ, ['A', 4])
+            sage: lie_algebras.ClassicalMatrix(QQ, ['A', 4])
             Special linear Lie algebra of rank 5 over Rational Field
-            sage: ClassicalMatrixLieAlgebra(QQ, CartanType(['B',4]))
+            sage: lie_algebras.ClassicalMatrix(QQ, CartanType(['B',4]))
             Special orthogonal Lie algebra of rank 9 over Rational Field
-            sage: ClassicalMatrixLieAlgebra(QQ, 'C4')
+            sage: lie_algebras.ClassicalMatrix(QQ, 'C4')
             Symplectic Lie algebra of rank 8 over Rational Field
-            sage: ClassicalMatrixLieAlgebra(QQ, cartan_type=['D',4])
+            sage: lie_algebras.ClassicalMatrix(QQ, cartan_type=['D',4])
             Special orthogonal Lie algebra of rank 8 over Rational Field
         """
         cartan_type = CartanType(cartan_type)
@@ -78,13 +88,13 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
             raise ValueError("only for finite types")
 
         if cartan_type.type() == 'A':
-            return sl(R, cartan_type.rank() + 1, 'matrix')
+            return sl(R, cartan_type.rank() + 1)
         if cartan_type.type() == 'B':
-            return so(R, 2*cartan_type.rank() + 1, 'matrix')
+            return so(R, 2*cartan_type.rank() + 1)
         if cartan_type.type() == 'C':
-            return sp(R, 2*cartan_type.rank(), 'matrix')
+            return sp(R, 2*cartan_type.rank())
         if cartan_type.type() == 'D':
-            return so(R, 2*cartan_type.rank(), 'matrix')
+            return so(R, 2*cartan_type.rank())
         raise NotImplementedError("only implemented for types A, B, C, D")
 
     def __init__(self, R, ct, e, f, h):
@@ -130,7 +140,7 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
 
     def f(self, i):
         r"""
-        Return the generator `f_i`.
+        Return the generator `f_i`.-
 
         EXAMPLES::
 
@@ -276,6 +286,8 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
 
 class gl(LieAlgebraFromAssociative):
     r"""
+    The matrix Lie algebra `\mathfrak{gl}_n`.
+
     The Lie algebra `\mathfrak{gl}_n` which consists of all `n \times n`
     matrices.
 
@@ -335,7 +347,10 @@ class gl(LieAlgebraFromAssociative):
         EXAMPLES::
 
             sage: g = lie_algebras.gl(QQ, 4)
-            sage: g.killing_form()
+            sage: x = g.an_element()
+            sage: y = g.basis()[1]
+            sage: g.killing_form(x, y)
+            8
         """
         return 2 * self._n * (x.value * y.value).trace() \
             - 2 * x.value.trace() * y.value.trace()
@@ -357,57 +372,11 @@ class gl(LieAlgebraFromAssociative):
 
 class sl(ClassicalMatrixLieAlgebra):
     r"""
-    The Lie algebra `\mathfrak{sl}_n` which consists of `n \times n` matrices
-    with trace 0. This is the Lie algebra of type `A_{n-1}`.
+    The matrix Lie algebra `\mathfrak{sl}_n`.
 
-    INPUT:
-
-    - ``R`` -- the base ring
-    - ``n`` -- the size of the matrix
-    - ``representation`` -- (default: ``'bracket'``) can be one of
-      the following:
-
-      * ``'bracket'`` - use brackets and the Chevalley basis
-      * ``'matrix'`` - use matrices
-
-    EXAMPLES:
-
-    We first construct `\mathfrak{sl}_2` using the Chevalley basis::
-
-        sage: sl2 = lie_algebras.sl(QQ, 2); sl2
-        Lie algebra of ['A', 1] in the Chevalley basis
-        sage: E,F,H = sl2.gens()
-        sage: E.bracket(F) == H
-        True
-        sage: H.bracket(E) == 2*E
-        True
-        sage: H.bracket(F) == -2*F
-        True
-
-    We now construct `\mathfrak{sl}_2` as a matrix Lie algebra::
-
-        sage: sl2 = lie_algebras.sl(QQ, 2, representation='matrix')
-        sage: E,F,H = sl2.gens()
-        sage: E.bracket(F) == H
-        True
-        sage: H.bracket(E) == 2*E
-        True
-        sage: H.bracket(F) == -2*F
-        True
+    The Lie algebra `\mathfrak{sl}_n`, which consists of all `n \times n`
+    matrices with trace 0. This is the Lie algebra of type `A_{n-1}`.
     """
-    # FIXME: Move this and the same methods for all other types into separate
-    #   functions for the Lie algebra examples because it breaks pickling
-    @staticmethod
-    def __classcall_private__(cls, R, n, representation='bracket'):
-        """
-        Choose the representation.
-        """
-        if representation == 'bracket':
-            return LieAlgebraChevalleyBasis(R, ['A', n-1])
-        if representation == 'matrix':
-            return super(sl, cls).__classcall__(cls, R, n)
-        raise ValueError("invalid representation")
-
     def __init__(self, R, n):
         """
         Initialize ``self``.
@@ -449,6 +418,10 @@ class sl(ClassicalMatrixLieAlgebra):
         EXAMPLES::
 
             sage: g = lie_algebras.sl(QQ, 5, representation='matrix')
+            sage: x = g.an_element()
+            sage: y = g.basis()['e1']
+            sage: g.killing_form(x, y)
+            10
         """
         return 2 * self._n * (x.value * y.value).trace()
 
@@ -472,34 +445,12 @@ class sl(ClassicalMatrixLieAlgebra):
 
 class so(ClassicalMatrixLieAlgebra):
     r"""
-    The Lie algebra `\mathfrak{so}_n` which consists of orthogonal `n \times n`
-    matrices. This is the Lie algebra of type `B_{(n-1)/2}` or `D_{n/2}` if `n`
-    is odd or even respectively.
+    The matrix Lie algebra `\mathfrak{so}_n`.
 
-    INPUT:
-
-    - ``R`` -- the base ring
-    - ``n`` -- the size of the matrix
-    - ``representation`` -- (default: ``'bracket'``) can be one of
-      the following:
-
-      * ``'bracket'`` - use brackets and the Chevalley basis
-      * ``'matrix'`` - use matrices
+    The Lie algebra `\mathfrak{so}_n`, which consists of all real
+    anti-symmetric `n \times n` matrices. This is the Lie algebra of
+    type `B_{(n-1)/2}` or `D_{n/2}` if `n` is odd or even respectively.
     """
-    @staticmethod
-    def __classcall_private__(cls, R, n, representation='bracket'):
-        """
-        Choose the representation.
-        """
-        if representation == 'bracket':
-            if n % 2 == 0:
-                return LieAlgebraChevalleyBasis(R, ['D', n//2])
-            else:
-                return LieAlgebraChevalleyBasis(R, ['B', (n-1)//2])
-        if representation == 'matrix':
-            return super(so, cls).__classcall__(cls, R, n)
-        raise ValueError("invalid representation")
-
     def __init__(self, R, n):
         """
         Initialize ``self``.
@@ -561,9 +512,17 @@ class so(ClassicalMatrixLieAlgebra):
         EXAMPLES::
 
             sage: g = lie_algebras.so(QQ, 8, representation='matrix')
+            sage: x = g.an_element()
+            sage: y = g.basis()['e1']
+            sage: g.killing_form(x, y)
+            32
             sage: g = lie_algebras.so(QQ, 9, representation='matrix')
+            sage: x = g.an_element()
+            sage: y = g.basis()['e1']
+            sage: g.killing_form(x, y)
+            36
         """
-        return 2 * self._n * (x.value * y.value).trace()
+        return (self._n - 2) * (x.value * y.value).trace()
 
     def simple_root(self, i, h):
         r"""
@@ -601,8 +560,10 @@ class so(ClassicalMatrixLieAlgebra):
 
 class sp(ClassicalMatrixLieAlgebra):
     r"""
-    The Lie algebra `\mathfrak{sp}_{2k}` which consists of `2k \times 2k`
-    matrices `X` that satisfy the equation:
+    The matrix Lie algebra `\mathfrak{sp}_n`.
+
+    The Lie algebra `\mathfrak{sp}_{2k}`, which consists of all
+    `2k \times 2k` matrices `X` that satisfy the equation:
 
     .. MATH::
 
@@ -618,31 +579,7 @@ class sp(ClassicalMatrixLieAlgebra):
         \end{pmatrix}.
 
     This is the Lie algebra of type `C_k`.
-
-    INPUT:
-
-    - ``R`` -- the base ring
-    - ``n`` -- the size of the matrix
-    - ``representation`` -- (default: ``'bracket'``) can be one of
-      the following:
-
-      * ``'bracket'`` - use brackets and the Chevalley basis
-      * ``'matrix'`` - use matrices
     """
-    @staticmethod
-    def __classcall_private__(cls, R, n, representation='bracket'):
-        """
-        Choose the representation.
-        """
-        if n % 2 != 0:
-            raise ValueError("n must be even")
-
-        if representation == 'bracket':
-            return LieAlgebraChevalleyBasis(R, ['C', n//2])
-        if representation == 'matrix':
-            return super(sp, cls).__classcall__(cls, R, n)
-        raise ValueError("invalid representation")
-
     def __init__(self, R, n):
         """
         Initialize ``self``.
@@ -688,6 +625,10 @@ class sp(ClassicalMatrixLieAlgebra):
         EXAMPLES::
 
             sage: g = lie_algebras.sp(QQ, 8, representation='matrix')
+            sage: x = g.an_element()
+            sage: y = g.basis()['e1']
+            sage: g.killing_form(x, y)
+            36
         """
         return (2 * self._n + 2) * (x.value * y.value).trace()
 
@@ -719,7 +660,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
     r"""
     A simple finite dimensional Lie algebra in the Chevalley basis.
 
-    Let `L` be a simple complex Lie algebra with roots `\Phi`, then the
+    Let `L` be a simple (complex) Lie algebra with roots `\Phi`, then the
     Chevalley basis is given by `e_{\alpha}` for all `\alpha \in \Phi` and
     `h_{\alpha_i} := h_i` where `\alpha_i` is a simple root subject. These
     generators are subject to the relations:
@@ -885,9 +826,18 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
         """
         return "Lie algebra of {} in the Chevalley basis".format(self._cartan_type)
 
-    def _repr_generator(self, m):
+    def _repr_term(self, m):
         """
         Return a string representation of the basis element indexed by ``m``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['A', 2])
+            sage: K = L.basis().keys()
+            sage: L._repr_term(K[0])
+            'E[alpha[2]]'
+            sage: L._repr_term(K[-1])
+            'h2'
         """
         if m in self._cartan_type.root_system().root_lattice().simple_coroots():
             return "h{}".format(m.support()[0])
@@ -902,6 +852,24 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
         OUTPUT:
 
         If ``x == y``, return 0. If ``x < y``, return -1. Else return 1.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['B', 3])
+            sage: K = L.basis().keys()
+            sage: S = sorted(K, cmp=L._basis_cmp); S
+            [alpha[2],
+             alpha[1],
+             alpha[1] + alpha[2],
+             alpha[1] + 2*alpha[2],
+             alphacheck[1],
+             alphacheck[2],
+             -alpha[2],
+             -alpha[1],
+             -alpha[1] - alpha[2],
+             -alpha[1] - 2*alpha[2]]
+            sage: S == K
+            False
         """
         if x == y:
             return 0
@@ -931,12 +899,24 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
     def cartan_type(self):
         """
         Return the Cartan type of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['A', 2])
+            sage: L.cartan_type()
+            ['A', 2]
         """
         return self._cartan_type
 
     def weyl_group(self):
         """
         Return the Weyl group of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['A', 2])
+            sage: L.weyl_group()
+            Weyl Group of type ['A', 2] (as a matrix group acting on the ambient space)
         """
         from sage.combinat.root_system.weyl_group import WeylGroup
         return WeylGroup(self._cartan_type)
@@ -1008,6 +988,12 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
         """
         Return the generators of ``self`` in the order of `e_i`, `f_i`,
         and `h_i`.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['A', 2])
+            sage: L.gens()
+            (E[alpha[1]], E[alpha[2]], E[-alpha[1]], E[-alpha[2]], h1, h2)
         """
         index_set = self._cartan_type.index_set()
         RL = self._cartan_type.root_system().root_lattice()
@@ -1024,17 +1010,22 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             ret.append(B[alphacheck[i]])
         return tuple(ret)
 
-    def gen(self, i):
-        """
-        Return the ``i``-th generator of ``self``.
-        """
-        return self.gens()[i]
-
     def highest_root_basis_elt(self, pos=True):
         r"""
         Return the basis element corresponding to the highest root `\theta`.
-        If ``pos`` is ``True``, then returns `e_{\theta}`, otherwise it
-        returns `f_{\theta}`.
+
+        INPUT:
+
+        - ``pos`` -- (default: ``True``) if ``True``, then return
+          `e_{\theta}`, otherwise return `f_{\theta}`
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['A', 2])
+            sage: L.highest_root_basis_elt()
+            E[alpha[1] + alpha[2]]
+            sage: L.highest_root_basis_elt(False)
+            E[-alpha[1] - alpha[2]]
         """
         RL = self._cartan_type.root_system().root_lattice()
         theta = RL.highest_root()

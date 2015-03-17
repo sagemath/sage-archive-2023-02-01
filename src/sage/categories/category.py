@@ -323,7 +323,7 @@ class Category(UniqueRepresentation, SageObject):
 
         sage: Algebras(GF(5)).parent_class is Algebras(GF(7)).parent_class
         True
-        sage: Coalgebras(QQ).parent_class is Coalgebras(FractionField(QQ[x])).parent_class
+        sage: Coalgebras(QQ).parent_class is Coalgebras(FractionField(QQ['x'])).parent_class
         True
 
     We now construct a parent in the usual way::

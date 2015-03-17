@@ -246,7 +246,7 @@ def ChainComplex(data=None, **kwds):
         try:
             zero = grading_group.identity()
         except AttributeError:
-            zero = grading_group.zero_element()
+            zero = grading_group.zero()
         if base_ring is None:
             base_ring = ZZ
         data_dict = dict()
@@ -394,7 +394,7 @@ class Chain_class(ModuleElement):
             return 'Trivial chain'
 
         if n == 1:
-            deg, vec = self._vec.iteritems().next()
+            deg, vec = next(self._vec.iteritems())
             return 'Chain({0}:{1})'.format(deg, vec)
 
         return 'Chain with {0} nonzero terms over {1}'.format(

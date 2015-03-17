@@ -269,7 +269,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
         if not x is None:
             return  # already known to be in echelon form
 
-        if PY_TYPE_CHECK(self.base_ring(), MPolynomialRing_libsingular):
+        if isinstance(self.base_ring(), MPolynomialRing_libsingular):
 
             self.check_mutability()
             self.clear_cache()
@@ -547,7 +547,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
         else:
             R = self._base_ring
 
-            if PY_TYPE_CHECK(R, MPolynomialRing_libsingular) and R.base_ring().is_field():
+            if isinstance(R, MPolynomialRing_libsingular) and R.base_ring().is_field():
                 singular_det = singular_function("det")
                 d = singular_det(self)
 

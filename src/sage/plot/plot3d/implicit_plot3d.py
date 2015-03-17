@@ -1,8 +1,8 @@
 """
 Implicit Plots
 """
-
 from implicit_surface import ImplicitSurface
+
 
 def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
     r"""
@@ -44,7 +44,7 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
     A nested set of spheres with a hole cut out::
 
         sage: implicit_plot3d((x^2 + y^2 + z^2), (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=60, contour=[1,3,5], \
-        ...                   region=lambda x,y,z: x<=0.2 or y>=0.2 or z<=0.2).show(viewer='tachyon')
+        ....:                 region=lambda x,y,z: x<=0.2 or y>=0.2 or z<=0.2).show(viewer='tachyon')
 
     A very pretty example, attributed to Douglas Summers-Stay (`archived page
     <http://web.archive.org/web/20080529033738/http://iat.ubalt.edu/summers/math/platsol.htm>`_)::
@@ -82,13 +82,37 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         sage: gy = lambda x, y, z: -(x^2 + 2*y + z^2)
         sage: gz = lambda x, y, z: -(x^2 + y^2 + 2*z)
         sage: implicit_plot3d(x^2+y^2+z^2, (x, -2, 2), (y, -2, 2), (z, -2, 2), contour=4, \
-        ...       plot_points=40, smooth=True, gradient=(gx, gy, gz)).show(viewer='tachyon')
+        ....:     plot_points=40, smooth=True, gradient=(gx, gy, gz)).show(viewer='tachyon')
 
     A graph of two metaballs interacting with each other::
 
         sage: def metaball(x0, y0, z0): return 1 / ((x-x0)^2 + (y-y0)^2 + (z-z0)^2)
         sage: implicit_plot3d(metaball(-0.6, 0, 0) + metaball(0.6, 0, 0), (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=60, contour=2)
         Graphics3d Object
+    
+    One can color the surface according to a coloring function and a colormap::
+
+        sage: t = (sin(2*y+3*z)**2).function(x,y,z)
+        sage: cm = colormaps.gist_rainbow
+        sage: G = implicit_plot3d(x^2 + y^2 + z^2, (x,-2, 2), (y,-2, 2),
+        ....:  (z,-2, 2), contour=4, color=(t,cm), plot_points=60)
+        sage: G.show(viewer='tachyon')
+
+    Here is another colored example::
+
+        sage: x, y, z = var('x,y,z')
+        sage: t = (x).function(x,y,z)
+        sage: cm = colormaps.PiYG
+        sage: G = implicit_plot3d(x^4 + y^2 + z^2, (x,-2, 2),
+        ....:   (y,-2, 2),(z,-2, 2), contour=4, color=(t,cm), plot_points=40)
+        sage: G
+        Graphics3d Object
+
+    .. WARNING::
+
+        This kind of coloring using a colormap can be visualized using
+        Jmol, Tachyon (option ``viewer='tachyon'``) and Canvas3D
+        (option ``viewer='canvas3d'`` in the notebook).
 
     MANY MORE EXAMPLES:
 
@@ -276,14 +300,6 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         sage: implicit_plot3d(max_symbolic(x, y^2) - z, (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=6)
         Graphics3d Object
     """
-
-    # These options aren't fully implemented yet:
-    # vertex_color: Either a single callable taking (x,y,z) and returning
-    #   (r,g,b), or a triple of three callables. Not used for jmol. Note that
-    #   Tachyon only lets you specify a single color for its triangles; this will
-    #   be the mean of the three vertex colors of the triangle. If this is None
-    #   (the default), we don't provide separate triangle colors to Tachyon.
-
     # These options, related to rendering with smooth shading, are irrelevant
     # since IndexFaceSet does not support surface normals:
     # smooth: (default: False) Whether to use vertex normals to produce a
@@ -296,7 +312,6 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
     #   a single python callable that takes (x,y,z) and returns a tuple (dx,dy,dz)
     #   or a tuple of three callables that each take (x,y,z) and return dx, dy, dz
     #   respectively.
-
 
     G = ImplicitSurface(f, xrange, yrange, zrange, **kwds)
     G._set_extra_kwds(kwds)

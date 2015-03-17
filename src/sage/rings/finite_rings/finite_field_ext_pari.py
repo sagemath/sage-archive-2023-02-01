@@ -1,5 +1,5 @@
 """
-Finite Extension Fields implemented via PARI.
+Finite Extension Fields implemented via PARI POLMODs (deprecated).
 
 AUTHORS:
 
@@ -43,9 +43,8 @@ class FiniteField_ext_pari(FiniteField_generic):
 
     - ``q`` -- integer, size of the finite field, not prime
 
-    - ``name`` -- variable used for printing element of the finite
-      field.  Also, two finite fields are considered equal if they
-      have the same variable name, and not otherwise.
+    - ``name`` -- variable name used for printing elements of the
+      finite field
 
     - ``modulus`` -- an irreducible polynomial to construct this field.
 
@@ -58,6 +57,8 @@ class FiniteField_ext_pari(FiniteField_generic):
         sage: P.<x> = PolynomialRing(GF(3))
         sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
         sage: k = FiniteField_ext_pari(9, 'a', modulus=(x^2 + 2*x + 2))
+        doctest:...: DeprecationWarning: The "pari_mod" finite field implementation is deprecated
+        See http://trac.sagemath.org/17297 for details.
         sage: k
         Finite Field in a of size 3^2
         sage: k.is_field()
@@ -136,6 +137,8 @@ class FiniteField_ext_pari(FiniteField_generic):
         sage: loads(K.dumps()) == K
         True
         sage: K = FiniteField(7^10, 'b', impl='pari_mod')
+        doctest:...: DeprecationWarning: The "pari_mod" finite field implementation is deprecated
+        See http://trac.sagemath.org/17297 for details.
         sage: loads(K.dumps()) == K
         True
         sage: K = FiniteField(7^10, 'a', impl='pari_mod')
@@ -169,33 +172,31 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: k = FiniteField(9, 'a', impl='pari_mod'); k
             Finite Field in a of size 3^2
         """
+        from sage.misc.superseded import deprecation
+        deprecation(17297, 'The "pari_mod" finite field implementation is deprecated')
+
         if element_ext_pari.dynamic_FiniteField_ext_pariElement is None: element_ext_pari._late_import()
         from constructor import FiniteField as GF
         q = integer.Integer(q)
         if q < 2:
             raise ArithmeticError("q must be a prime power")
-        from sage.structure.proof.all import arithmetic
-        proof = arithmetic()
-        if proof:
-            F = q.factor()
-        else:
-            from sage.rings.arith import is_pseudoprime_small_power
-            F = is_pseudoprime_small_power(q, get_data=True)
-        if len(F) != 1:
-            raise ArithmeticError("q must be a prime power")
 
-        if F[0][1] > 1:
-            base_ring = GF(F[0][0])
+        # note: the following call takes care of the fact that
+        # proof.arithmetic() is True or False.
+        p, n = q.is_prime_power(get_data=True)
+        if n > 1:
+            base_ring = GF(p)
+        elif n == 0:
+            raise ArithmeticError("q must be a prime power")
         else:
             raise ValueError("The size of the finite field must not be prime.")
-            #base_ring = self
 
         FiniteField_generic.__init__(self, base_ring, name, normalize=True)
 
         self._kwargs = {}
-        self.__char = F[0][0]
+        self.__char = p
         self.__pari_one = pari.pari(1).Mod(self.__char)
-        self.__degree = integer.Integer(F[0][1])
+        self.__degree = n
         self.__order = q
         self.__is_field = True
 
@@ -257,36 +258,6 @@ class FiniteField_ext_pari(FiniteField_generic):
             True
         """
         return self._factory_data[0].reduce_data(self)
-
-    def __cmp__(self, other):
-        """
-        Compare ``self`` to ``other``.
-
-        EXAMPLES::
-
-            sage: k = GF(7^20, 'a', impl='pari_mod')
-            sage: k == loads(dumps(k))
-            True
-        """
-        if not isinstance(other, FiniteField_ext_pari):
-            return cmp(type(self), type(other))
-        return cmp((self.__order, self.variable_name(), self._modulus), (other.__order, other.variable_name(), other._modulus))
-
-    def __richcmp__(left, right, op):
-        r"""
-        Compare ``left`` with ``right``.
-
-        EXAMPLE::
-
-            sage: k.<a> = GF(2^17, impl='pari_mod')
-            sage: j.<b> = GF(2^18, impl='pari_mod')
-            sage: k == j
-            False
-
-            sage: GF(2^17, 'a', impl='pari_mod') == copy(GF(2^17, 'a', impl='pari_mod'))
-            True
-        """
-        return left._richcmp_helper(right, op)
 
     def _pari_one(self):
         r"""
@@ -571,20 +542,3 @@ class FiniteField_ext_pari(FiniteField_generic):
             1024
         """
         return self.__order
-
-    def __hash__(self):
-        """
-        Return the hash of this field.
-
-        EXAMPLES::
-
-            sage: {GF(9, 'a', impl='pari_mod'): 1} # indirect doctest
-            {Finite Field in a of size 3^2: 1}
-            sage: {GF(9, 'b', impl='pari_mod'): 1} # indirect doctest
-            {Finite Field in b of size 3^2: 1}
-        """
-        try:
-            return self.__hash
-        except AttributeError:
-            self.__hash = hash((self.__order, self.variable_name(), self._modulus))
-            return self.__hash

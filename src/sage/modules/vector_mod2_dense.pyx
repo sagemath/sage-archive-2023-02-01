@@ -49,7 +49,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             <type 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>
         """
         cdef Vector_mod2_dense y
-        y = PY_NEW(Vector_mod2_dense)
+        y = Vector_mod2_dense.__new__(Vector_mod2_dense)
         y._init(self._degree, self._parent)
         return y
 
@@ -159,7 +159,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             if len(x) != self._degree:
                 raise TypeError("x must be a list of the right length")
             for i from 0 <= i < self._degree:
-                if PY_TYPE_CHECK(x[i],IntegerMod_int) or PY_TYPE_CHECK(x[i],int) or PY_TYPE_CHECK(x[i],Integer):
+                if isinstance(x[i], IntegerMod_int) or isinstance(x[i], int) or isinstance(x[i], Integer):
                     xi = x[i]
                     # the if/else statement is because in some compilers, (-1)%2 is -1
                     mzd_write_bit(self._entries, 0, i, 0 if xi%2==0 else 1)
@@ -228,15 +228,6 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             True
         """
         return free_module_element.FreeModuleElement.__hash__(self)
-
-    def __len__(self):
-        """
-        EXAMPLES::
-
-            sage: len(vector(GF(2),[0,0,1,1,1]))
-            5
-        """
-        return self._degree
 
     def __setitem__(self, i, value):
         """
@@ -523,8 +514,8 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         cdef Py_ssize_t i
         cdef list v = [0]*d
         K = self.base_ring()
-        z = K.zero_element()
-        o = K.one_element()
+        z = K.zero()
+        o = K.one()
         cdef list switch = [z,o]
         for i in range(d):
             v[i] = switch[mzd_read_bit(self._entries, 0, i)]
@@ -541,12 +532,12 @@ def unpickle_v0(parent, entries, degree, is_mutable):
     """
     # If you think you want to change this function, don't.
     cdef Vector_mod2_dense v
-    v = PY_NEW(Vector_mod2_dense)
+    v = Vector_mod2_dense.__new__(Vector_mod2_dense)
     v._init(degree, parent)
     cdef int xi
 
     for i from 0 <= i < degree:
-        if PY_TYPE_CHECK(entries[i],IntegerMod_int) or PY_TYPE_CHECK(entries[i],int) or PY_TYPE_CHECK(entries[i],Integer):
+        if isinstance(entries[i], IntegerMod_int) or isinstance(entries[i], int) or isinstance(entries[i], Integer):
             xi = entries[i]
             mzd_write_bit(v._entries, 0, i, xi%2)
         else:

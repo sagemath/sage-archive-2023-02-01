@@ -110,7 +110,7 @@ from sage.interfaces.all import maxima
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.misc.all import cached_method, tmp_filename
-from sage.misc.misc import SAGE_SHARE
+from sage.env import SAGE_SHARE
 from sage.modules.all import vector, span
 from sage.misc.superseded import deprecated_function_alias, deprecation
 from sage.plot.plot3d.index_face_set import IndexFaceSet

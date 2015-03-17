@@ -17,5 +17,6 @@
    sage/plot/plot3d/base
    sage/plot/plot3d/tachyon
    sage/plot/plot3d/texture
+   sage/plot/plot3d/index_face_set
 
 .. include:: ../footer.txt

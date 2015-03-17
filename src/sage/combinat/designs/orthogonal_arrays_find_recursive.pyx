@@ -67,7 +67,6 @@ def find_recursive_construction(k, n):
     - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.thwart_lemma_4_1`
     - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.three_factor_product`
     - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.brouwer_separable_design`
-    - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.find_brouwer_van_rees_with_one_truncated_column`
 
     INPUT:
 

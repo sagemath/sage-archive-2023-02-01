@@ -24,8 +24,6 @@ cdef extern from "limits.h":
 
 import os
 
-from sage.misc.misc_c import is_64_bit
-
 from sage.libs.singular.decl cimport intvec
 from sage.libs.singular.decl cimport SR_HDL, SR_INT, SR_TO_INT
 from sage.libs.singular.decl cimport singular_options, singular_verbose_options
@@ -231,13 +229,13 @@ cdef object si2sa_GFq_generic(number *n, ring *_ring, object base):
     cdef object ret
 
     if naIsZero(n):
-        return base.zero_element()
+        return base.zero()
     elif naIsOne(n):
-        return base.one_element()
+        return base.one()
     z = (<lnumber*>n).z
 
     a = base.gen()
-    ret = base.zero_element()
+    ret = base.zero()
 
     while z:
         c = <long>napGetCoeff(z)
@@ -331,8 +329,6 @@ cdef inline object si2sa_ZZmod(number *n, ring *_ring, object base):
         ret.set_from_mpz(<mpz_ptr>n)
         return base(ret)
 
-    return base(_ring.cf.n_Int(n,_ring))
-
 cdef number *sa2si_QQ(Rational r, ring *_ring):
     """
     TESTS::
@@ -354,7 +350,12 @@ cdef number *sa2si_GFqGivaro(int quo, ring *_ring):
     """
     """
     if _ring != currRing: rChangeCurrRing(_ring)
-    cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
+    cdef number *n1
+    cdef number *n2
+    cdef number *a
+    cdef number *coeff
+    cdef number *apow1
+    cdef number *apow2
     cdef int b = - _ring.ch
 
     a = naPar(1)
@@ -388,7 +389,12 @@ cdef number *sa2si_GFqNTLGF2E(FFgf2eE elem, ring *_ring):
     """
     if _ring != currRing: rChangeCurrRing(_ring)
     cdef int i
-    cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
+    cdef number *n1
+    cdef number *n2
+    cdef number *a
+    cdef number *coeff
+    cdef number *apow1
+    cdef number *apow2
     cdef GF2X_c rep = GF2E_rep(elem.x)
 
     if GF2X_deg(rep) >= 1:
@@ -423,7 +429,12 @@ cdef number *sa2si_GFq_generic(object elem, ring *_ring):
     """
     """
     cdef int i
-    cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
+    cdef number *n1
+    cdef number *n2
+    cdef number *a
+    cdef number *coeff
+    cdef number *apow1
+    cdef number *apow2
     elem = elem.polynomial()
 
     if _ring != currRing: rChangeCurrRing(_ring)
@@ -459,7 +470,13 @@ cdef number *sa2si_NF(object elem, ring *_ring):
     """
     """
     cdef int i
-    cdef number *n1, *n2, *a, *nlCoeff, *naCoeff, *apow1, *apow2
+    cdef number *n1
+    cdef number *n2
+    cdef number *a
+    cdef number *nlCoeff
+    cdef number *naCoeff
+    cdef number *apow1
+    cdef number *apow2
     elem = list(elem)
 
     if _ring != currRing: rChangeCurrRing(_ring)
@@ -555,28 +572,28 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
         return nrnMapGMP(<number *>((<Integer>lift).value))
 
 cdef object si2sa(number *n, ring *_ring, object base):
-    if PY_TYPE_CHECK(base, FiniteField_prime_modn):
+    if isinstance(base, FiniteField_prime_modn):
         return base(_ring.cf.n_Int(n, _ring))
 
-    elif PY_TYPE_CHECK(base, RationalField):
+    elif isinstance(base, RationalField):
         return si2sa_QQ(n,_ring)
 
-    elif PY_TYPE_CHECK(base, IntegerRing_class):
+    elif isinstance(base, IntegerRing_class):
         return si2sa_ZZ(n,_ring)
 
-    elif PY_TYPE_CHECK(base, FiniteField_givaro):
+    elif isinstance(base, FiniteField_givaro):
         return si2sa_GFqGivaro(n, _ring, base._cache)
 
-    elif PY_TYPE_CHECK(base, FiniteField_ntl_gf2e):
+    elif isinstance(base, FiniteField_ntl_gf2e):
         return si2sa_GFqNTLGF2E(n, _ring, <Cache_ntl_gf2e>base._cache)
 
-    elif PY_TYPE_CHECK(base, FiniteField):
+    elif isinstance(base, FiniteField):
         return si2sa_GFq_generic(n, _ring, base)
 
-    elif PY_TYPE_CHECK(base, NumberField) and base.is_absolute():
+    elif isinstance(base, NumberField) and base.is_absolute():
         return si2sa_NF(n, _ring, base)
 
-    elif PY_TYPE_CHECK(base, IntegerModRing_generic):
+    elif isinstance(base, IntegerModRing_generic):
         if _ring.ringtype == 0:
             return base(_ring.cf.n_Int(n, _ring))
         return si2sa_ZZmod(n, _ring, base)
@@ -586,27 +603,27 @@ cdef object si2sa(number *n, ring *_ring, object base):
 
 cdef number *sa2si(Element elem, ring * _ring):
     cdef int i = 0
-    if PY_TYPE_CHECK(elem._parent, FiniteField_prime_modn):
+    if isinstance(elem._parent, FiniteField_prime_modn):
         return n_Init(int(elem),_ring)
 
-    elif PY_TYPE_CHECK(elem._parent, RationalField):
+    elif isinstance(elem._parent, RationalField):
         return sa2si_QQ(elem, _ring)
 
-    elif PY_TYPE_CHECK(elem._parent, IntegerRing_class):
+    elif isinstance(elem._parent, IntegerRing_class):
         return sa2si_ZZ(elem, _ring)
 
     elif isinstance(elem._parent, FiniteField_givaro):
         return sa2si_GFqGivaro( (<FFgivE>elem)._cache.objectptr.convert(i, (<FFgivE>elem).element ), _ring )
 
-    elif PY_TYPE_CHECK(elem._parent, FiniteField_ntl_gf2e):
+    elif isinstance(elem._parent, FiniteField_ntl_gf2e):
         return sa2si_GFqNTLGF2E(elem, _ring)
 
-    elif PY_TYPE_CHECK(elem._parent, FiniteField):
+    elif isinstance(elem._parent, FiniteField):
         return sa2si_GFq_generic(elem, _ring)
 
-    elif PY_TYPE_CHECK(elem._parent, NumberField) and elem._parent.is_absolute():
+    elif isinstance(elem._parent, NumberField) and elem._parent.is_absolute():
         return sa2si_NF(elem, _ring)
-    elif PY_TYPE_CHECK(elem._parent, IntegerModRing_generic):
+    elif isinstance(elem._parent, IntegerModRing_generic):
         if _ring.ringtype == 0:
             return n_Init(int(elem),_ring)
         return sa2si_ZZmod(elem, _ring)

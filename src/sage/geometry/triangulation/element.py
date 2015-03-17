@@ -346,11 +346,11 @@ class Triangulation(Element):
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: triangulation = pc.triangulate()
             sage: iter = triangulation.__iter__()
-            sage: iter.next()
+            sage: next(iter)
             (1, 3, 4)
-            sage: iter.next()
+            sage: next(iter)
             (2, 3, 4)
-            sage: iter.next()
+            sage: next(iter)
             Traceback (most recent call last):
             ...
             StopIteration
@@ -390,7 +390,7 @@ class Triangulation(Element):
 
             sage: PointConfiguration.set_engine('internal')   # to make doctests independent of TOPCOM
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
-            sage: triangulation = pc.triangulations().next()
+            sage: triangulation = next(pc.triangulations())
             sage: triangulation.__len__()
             2
             sage: len(triangulation)    # equivalent
@@ -408,7 +408,7 @@ class Triangulation(Element):
             sage: PointConfiguration.set_engine('internal')   # to make doctests independent of TOPCOM
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1],[2,2]])
             sage: t = pc.triangulations()
-            sage: t.next()._repr_()
+            sage: next(t)._repr_()
             '(<1,4,5>, <2,4,5>)'
         """
         #s = 'A triangulation'

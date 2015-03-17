@@ -3,7 +3,7 @@ Fast Expression Evaluation.
 
 For many applications such as numerical integration, differential
 equation approximation, plotting a 3d surface, optimization problems,
-monte-carlo simulations, etc., one wishes to pass around and evaluate
+Monte-Carlo simulations, etc., one wishes to pass around and evaluate
 a single algebraic expression many, many times at various floating
 point values.  Other applications may need to evaluate an expression
 many times in interval arithmetic, or in a finite field.  Doing this
@@ -621,7 +621,7 @@ cdef class ExpressionTreeBuilder:
             'x'
         """
         # There should be a better way to do this.  (Maybe there is.)
-        if not PY_TYPE_CHECK(v, str):
+        if not isinstance(v, str):
             v = str(v)
             if '*' in v:
                 v = v[v.index('*')+1:]
@@ -1754,7 +1754,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: fc(3)
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (=sin(3)) to an integer
+        TypeError: unable to convert sin(3) to an integer
 
         sage: fc = fast_callable(etb(x)^100)
         sage: fc(pi)
@@ -1788,7 +1788,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: fc = fast_callable(etb(x)^expo, domain=RDF)
         sage: fc.op_list()
         [('load_arg', 0), ('py_call', (^4294967296), 1), 'return']
-        sage: fc(base)
+        sage: fc(base)        # rel tol 1e-15
         1.0000009536747712
         sage: RDF(base)^expo
         1.0000009536747712

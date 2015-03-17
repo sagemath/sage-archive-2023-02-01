@@ -6,11 +6,11 @@ AUTHORS:
 - Yoora Yi Tenen (2012-11-16): Add documentation for :meth:`log()` (:trac:`12113`)
 
 """
-from sage.symbolic.function import GinacFunction, BuiltinFunction, is_inexact
+from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.constants import e as const_e
 
 from sage.libs.mpmath import utils as mpmath_utils
-from sage.structure.coerce import parent as sage_structure_coerce_parent
+from sage.structure.all import parent as s_parent
 from sage.symbolic.expression import Expression
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
@@ -629,18 +629,15 @@ class Function_lambert_w(BuiltinFunction):
             Integer Ring
         """
         if not isinstance(z, Expression):
-            if is_inexact(z):
-                return self._evalf_(n, z, parent=sage_structure_coerce_parent(z))
-            elif n == 0 and z == 0:
-                return sage_structure_coerce_parent(z)(Integer(0))
+            if n == 0 and z == 0:
+                return s_parent(z)(0)
         elif n == 0:
             if z.is_trivial_zero():
-                return sage_structure_coerce_parent(z)(Integer(0))
+                return s_parent(z)(Integer(0))
             elif (z-const_e).is_trivial_zero():
-                return sage_structure_coerce_parent(z)(Integer(1))
+                return s_parent(z)(Integer(1))
             elif (z+1/const_e).is_trivial_zero():
-                return sage_structure_coerce_parent(z)(Integer(-1))
-        return None
+                return s_parent(z)(Integer(-1))
 
     def _evalf_(self, n, z, parent=None, algorithm=None):
         """
@@ -655,11 +652,31 @@ class Function_lambert_w(BuiltinFunction):
 
             sage: lambert_w(RDF(1))
             0.5671432904097838
+            sage: lambert_w(float(1))
+            0.5671432904097838
+            sage: lambert_w(CDF(1))
+            0.5671432904097838
+            sage: lambert_w(complex(1))
+            (0.5671432904097838+0j)
+            sage: lambert_w(RDF(-1))  # abs tol 2e-16
+            -0.31813150520476413 + 1.3372357014306895*I
+            sage: lambert_w(float(-1))  # abs tol 2e-16
+            (-0.31813150520476413+1.3372357014306895j)
         """
-        R = parent or sage_structure_coerce_parent(z)
-        if R is float or R is complex or R is RDF or R is CDF:
-            import scipy.special
-            return scipy.special.lambertw(z, n)
+        R = parent or s_parent(z)
+        if R is float or R is RDF:
+            from scipy.special import lambertw
+            res = lambertw(z, n)
+            # SciPy always returns a complex value, make it real if possible
+            if not res.imag:
+                return R(res.real)
+            elif R is float:
+                return complex(res)
+            else:
+                return CDF(res)
+        elif R is complex or R is CDF:
+            from scipy.special import lambertw
+            return R(lambertw(z, n))
         else:
             import mpmath
             return mpmath_utils.call(mpmath.lambertw, z, n, parent=R)

@@ -58,7 +58,7 @@ We verify Lagrange's four squares identity::
 from sage.structure.element import CommutativeRingElement, canonical_coercion, coerce_binop
 
 
-import sage.misc.misc as misc
+from sage.misc.all import prod
 import sage.rings.integer
 
 import polydict
@@ -153,7 +153,7 @@ class MPolynomial_element(MPolynomial):
             K = self.parent().base_ring()
         y = K(0)
         for (m,c) in self.element().dict().iteritems():
-            y += c*misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0])
+            y += c*prod([ x[i]**m[i] for i in range(n) if m[i] != 0])
         return y
 
     def __cmp__(self, right):
@@ -205,7 +205,7 @@ class MPolynomial_element(MPolynomial):
             return codomain._coerce_(self)
         y = codomain(0)
         for (m,c) in self.element().dict().iteritems():
-            y += codomain(c)*misc.mul([ im_gens[i]**m[i] for i in range(n) if m[i] ])
+            y += codomain(c)*prod([ im_gens[i]**m[i] for i in range(n) if m[i] ])
         return y
 
 
@@ -477,15 +477,14 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         INPUT:
 
-
-        -  ``x`` - multivariate polynomial (a generator of the
-           parent of self) If x is not specified (or is None), return the
-           total degree, which is the maximum degree of any monomial.
-
+        - ``x`` - multivariate polynomial (a generator of the parent
+           of self). If ``x`` is not specified (or is None), return
+           the total degree, which is the maximum degree of any
+           monomial.
 
         OUTPUT: integer
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = RR[]
             sage: f = y^2 - x^9 - x
@@ -497,11 +496,42 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             3
             sage: (y^10*x - 7*x^2*y^5 + 5*x^3).degree(y)
             10
+
+        Note that if ``x`` is not a generator of the parent of self,
+        for example if it is a generator of a polynomial algebra which
+        maps naturally to this one, then it is converted to an element
+        of this algebra. (This fixes the problem reported in
+        :trac:`17366`.)
+
+        ::
+
+            sage: x, y = ZZ['x','y'].gens()
+            sage: GF(3037000453)['x','y'].gen(0).degree(x)
+            1
+
+            sage: x0, y0 = QQ['x','y'].gens()
+            sage: GF(3037000453)['x','y'].gen(0).degree(x0)
+            Traceback (most recent call last):
+            ...
+            TypeError: x must canonically coerce to parent
+
+            sage: GF(3037000453)['x','y'].gen(0).degree(x^2)
+            Traceback (most recent call last):
+            ...
+            TypeError: x must be one of the generators of the parent
         """
         if x is None:
             return self.element().degree(None)
-        if not (isinstance(x, MPolynomial) and x.parent() is self.parent() and x.is_generator()):
-            raise TypeError("x must be one of the generators of the parent.")
+        if isinstance(x, MPolynomial):
+            if not x.parent() is self.parent():
+                try:
+                    x = self.parent().coerce(x)
+                except TypeError:
+                    raise TypeError("x must canonically coerce to parent")
+            if not x.is_generator():
+                raise TypeError("x must be one of the generators of the parent")
+        else:
+            raise TypeError("x must be one of the generators of the parent")
         return self.element().degree(x.element())
 
     def total_degree(self):
@@ -1306,7 +1336,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             R = self.parent()
             f = self._MPolynomial_element__element.lcmt( R.term_order().greater_tuple )
             one = R.base_ring()(1)
-            self.__lm = MPolynomial_polydict(R,polydict.PolyDict({f:one},zero=R.base_ring().zero_element(),force_int_exponents=False,  force_etuples=False))
+            self.__lm = MPolynomial_polydict(R,polydict.PolyDict({f:one},zero=R.base_ring().zero(),force_int_exponents=False,  force_etuples=False))
             return self.__lm
 
     def lc(self):
@@ -1365,7 +1395,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             R = self.parent()
             f = self._MPolynomial_element__element.dict()
             res = self._MPolynomial_element__element.lcmt( R.term_order().greater_tuple )
-            self.__lt = MPolynomial_polydict(R,polydict.PolyDict({res:f[res]},zero=R.base_ring().zero_element(),force_int_exponents=False, force_etuples=False))
+            self.__lt = MPolynomial_polydict(R,polydict.PolyDict({res:f[res]},zero=R.base_ring().zero(),force_int_exponents=False, force_etuples=False))
             return self.__lt
 
     def __eq__(self,right):
@@ -1435,7 +1465,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         if len(right.dict()) == 1:
             P = self.parent()
             ret = P(0)
-            denC,denM = iter(right).next()
+            denC,denM = next(iter(right))
             for c,m in self:
                 t = c*m
                 if denC.divides(c) and P.monomial_divides(denM, m):

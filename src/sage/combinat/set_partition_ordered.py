@@ -30,7 +30,7 @@ import sage.rings.integer
 from sage.sets.set import Set, is_Set
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.classcall_metaclass import ClasscallMetaclass
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray

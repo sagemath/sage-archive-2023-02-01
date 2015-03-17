@@ -10,7 +10,12 @@ Draw polytopes in LateX using TikZ
 .. MODULEAUTHOR:: Jean-Philippe Labbé <labbe@math.huji.ac.il>
 
 
-It is sometimes very helpful to draw 3-dimensional polytope in a paper. TikZ is a very versatile tool to draw in scientific documents and Sage can deal easily with 3-dimensional polytopes. Finally sagetex makes everything work together nicely between Sage, tikz and latex. Since version 6.3 of Sage, there is a function for (projection of) polytopes to output a TikZ picture of the polytope. This short tutorial shows how it all works.
+It is sometimes very helpful to draw 3-dimensional polytope in a paper. TikZ is 
+a very versatile tool to draw in scientific documents and Sage can deal easily 
+with 3-dimensional polytopes. Finally sagetex makes everything work together 
+nicely between Sage, tikz and latex. Since version 6.3 of Sage, there is a 
+function for (projection of) polytopes to output a TikZ picture of the polytope. 
+This short tutorial shows how it all works.
 
 Instructions
 """"""""""""
@@ -39,7 +44,8 @@ Then, you can either copy-paste it to your article by typing Img in Sage or save
 
 .. end of output
 
-Then in the pwd (present working directory of sage, the one of your article) you will have a file named Img_poly.tex containing the tikzpicture of your polytope
+Then in the pwd (present working directory of sage, the one of your article) 
+you will have a file named Img_poly.tex containing the tikzpicture of your polytope
 
 Customization
 """""""""""""
@@ -70,7 +76,8 @@ In Sage, you type:
 
 Then, you visualize the polytope by typing ``P.show(aspect_ratio=1)``
 
-When you found a good angle, I follow the above procedure to obtain the values [674,108,-731] and angle=112, for example.
+When you found a good angle, I follow the above procedure to obtain the values 
+[674,108,-731] and angle=112, for example.
 
 ::
 
@@ -86,7 +93,8 @@ Then, you may want to customize using the command
 
 .. end of output
 
-Further, you may want to edit deeper the style of the polytope inside the tikzpicture. For example, line 6-9 in the tikzpicture reads:
+Further, you may want to edit deeper the style of the polytope inside the 
+tikzpicture. For example, line 6-9 in the tikzpicture reads:
 
 ::
 
@@ -109,7 +117,8 @@ It is also possible to replace it by the following 4 lines (and adding ``\usetik
 
 .. end of output
 
-Finally, you may want to tweak your picture my adding labels, elements on vertices, edges, facets, etc.
+Finally, you may want to tweak your picture my adding labels, elements on 
+vertices, edges, facets, etc.
 
 Automatize using SageTex
 """"""""""""""""""""""""
@@ -120,7 +129,8 @@ For this you need to put
 
 in the preamble of your article
 
-There are different ways to use sagetex and you may create your own. Here are some possibilities.
+There are different ways to use sagetex and you may create your own. Here are 
+some possibilities.
 
 1) You can directly type in a sagestr in the article:
 

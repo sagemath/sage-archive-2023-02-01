@@ -81,16 +81,13 @@ from sage.misc.all import verbose, get_verbose, prod
 #########################################################
 # PARI C library
 from sage.libs.pari.gen cimport gen
-from sage.libs.pari.pari_instance cimport PariInstance
+from sage.libs.pari.pari_instance cimport PariInstance, INTFRAC_to_mpq
 
 import sage.libs.pari.pari_instance
 cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 include "sage/libs/pari/decl.pxi"
 include "sage/libs/pari/pari_err.pxi"
-
-cdef extern from "convert.h":
-    void t_FRAC_to_QQ ( mpq_t value, GEN g )
 
 #########################################################
 
@@ -743,7 +740,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             return (denom/d)*B
         elif algorithm == "flint":
             AZ, denom = self._clear_denom()
-            B, d = AZ._invert_flint(check_invertible=check_invertible)
+            B, d = AZ._invert_flint()
             return (denom/d)*B
         else:
             raise ValueError("unknown algorithm '%s'"%algorithm)
@@ -1383,7 +1380,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
           - ``'classical'``: just clear each column using Gauss elimination
 
-        -  ``height_guess, **kwds`` - all passed to the
+        -  ``height_guess``, ``**kwds`` - all passed to the
            multimodular algorithm; ignored by the p-adic algorithm.
 
         -  ``proof`` - bool or None (default: None, see
@@ -1488,7 +1485,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
            - 'classical': just clear each column using Gauss elimination
 
-        -  ``height_guess, **kwds`` - all passed to the
+        -  ``height_guess``, ``**kwds`` - all passed to the
            multimodular algorithm; ignored by the p-adic algorithm.
 
         -  ``proof`` - bool or None (default: None, see
@@ -2520,8 +2517,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         pari_catch_sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
         # now convert d to a Sage rational
-        cdef Rational e = Rational()
-        t_FRAC_to_QQ(e.value, d)
+        cdef Rational e = <Rational>Rational.__new__(Rational)
+        INTFRAC_to_mpq(e.value, d)
         pari.clear_stack()
         return e
 
@@ -2677,7 +2674,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
 cdef new_matrix_from_pari_GEN(parent, GEN d):
     """
-    Given a PARI GEN with t_FRAC entries, create a Matrix_rational_dense from it.
+    Given a PARI GEN with ``t_INT`` or ``t_FRAC entries, create a
+    :class:`Matrix_rational_dense` from it.
 
     EXAMPLES::
 
@@ -2690,7 +2688,7 @@ cdef new_matrix_from_pari_GEN(parent, GEN d):
         Matrix_rational_dense, parent, None, None, None)
     for i in range(B._nrows):
         for j in range(B._ncols):
-            t_FRAC_to_QQ(B._matrix[i][j], gcoeff(d, i+1, j+1))
+            INTFRAC_to_mpq(B._matrix[i][j], gcoeff(d, i+1, j+1))
     return B
 
 cdef inline GEN pari_GEN(Matrix_rational_dense B):

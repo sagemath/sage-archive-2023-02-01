@@ -376,7 +376,7 @@ cdef class PowerSeries(AlgebraElement):
             True
         """
         # A very common case throughout code
-        if PY_TYPE_CHECK(right, int):
+        if isinstance(right, int):
             return self.is_zero()
 
         prec = self.common_prec(right)

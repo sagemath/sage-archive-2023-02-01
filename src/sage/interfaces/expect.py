@@ -99,10 +99,10 @@ class gc_disabled(object):
         sage: gc.isenabled()
         True
         sage: with gc_disabled():
-        ...       print gc.isenabled()
-        ...       with gc_disabled():
-        ...           print gc.isenabled()
-        ...       print gc.isenabled()
+        ....:     print gc.isenabled()
+        ....:     with gc_disabled():
+        ....:         print gc.isenabled()
+        ....:     print gc.isenabled()
         False
         False
         False
@@ -531,7 +531,25 @@ If this all works, you can then make calls like:
         return
 
     def _quit_string(self):
+        """
+        Return the string which will be used to quit the application.
+
+        EXAMPLES::
+
+            sage: gp._quit_string()
+            '\\q'
+            sage: maxima._quit_string()
+            'quit();'
+        """
         return 'quit'
+
+    def _send_interrupt(self):
+        """
+        Send an interrupt to the application.  This is used internally
+        by :meth:`interrupt`.
+        """
+        self._expect.sendline(chr(3))
+        self._expect.sendline(self._quit_string())
 
     def _local_tmpfile(self):
         """
@@ -553,7 +571,7 @@ If this all works, you can then make calls like:
             sage: gap._local_tmpfile() is gap._local_tmpfile()
             True
 
-        The following two problems were fixed in #10004.
+        The following two problems were fixed in :trac:`10004`.
 
         1. Different interfaces have different temp-files::
 
@@ -564,9 +582,8 @@ If this all works, you can then make calls like:
            function have different temp-files::
 
             sage: @parallel
-            ... def f(n):
-            ...     return gap._local_tmpfile()
-            ...
+            ....: def f(n):
+            ....:     return gap._local_tmpfile()
             sage: L = [t[1] for t in f(range(5))]
             sage: len(set(L))
             5
@@ -621,25 +638,6 @@ If this all works, you can then make calls like:
         if not (self.__remote_tmpfile is None):
             raise NotImplementedError
 
-    def read(self, filename):
-        r"""
-        EXAMPLES::
-
-            sage: filename = tmp_filename()
-            sage: f = open(filename, 'w')
-            sage: f.write('x = 2\n')
-            sage: f.close()
-            sage: octave.read(filename)  # optional - octave
-            sage: octave.get('x')        #optional
-            ' 2'
-            sage: import os
-            sage: os.unlink(filename)
-        """
-        self.eval(self._read_in_file_command(filename))
-
-    def _read_in_file_command(self, filename):
-        raise NotImplementedError
-
     def _eval_line_using_file(self, line, restart_if_needed=True):
         """
         Evaluate a line of commands, using a temporary file.
@@ -664,14 +662,14 @@ If this all works, you can then make calls like:
         TESTS::
 
             sage: singular._eval_line_using_file('def a=3;')
-            '< "...";'
+            ''
             sage: singular('a')
             3
             sage: singular.eval('quit;')
             ''
             sage: singular._eval_line_using_file('def a=3;')
             Singular crashed -- automatically restarting.
-            '< "...";'
+            ''
             sage: singular('a')
             3
             sage: singular.eval('quit;')
@@ -765,18 +763,18 @@ If this all works, you can then make calls like:
         TESTS::
 
             sage: singular._eval_line('def a=3;')
-            'def a=3;'
+            ''
             sage: singular('a')
             3
             sage: singular.eval('quit;')
             ''
             sage: singular._eval_line('def a=3;')
             Singular crashed -- automatically restarting.
-            'def a=3;'
+            ''
             sage: singular('a')
             3
             sage: singular.eval('kill a')
-            'kill a;'
+            ''
 
         We are now sending a command that would run forever. But since
         we declare that we are not waiting for a prompt, we can interrupt
@@ -879,8 +877,6 @@ If this all works, you can then make calls like:
                     out = E.before
                 else:
                     out = E.before.rstrip('\n\r')
-                    if out == '':   # match bug with echo
-                        out = line
             else:
                 if self._terminal_echo:
                     out = '\n\r'
@@ -918,15 +914,14 @@ If this all works, you can then make calls like:
         success = False
         try:
             for i in range(tries):
-                E.sendline(chr(3))
-                E.sendline(self._quit_string())
+                self._send_interrupt()
                 try:
                     E.expect(self._prompt, timeout=timeout)
-                    success= True
-                    break
                 except (pexpect.TIMEOUT, pexpect.EOF) as msg:
-                    #print msg
                     pass
+                else:
+                    success = True
+                    break
         except Exception as msg:
             pass
         if success:
@@ -1382,9 +1377,8 @@ class StdOutContext:
         EXAMPLE::
 
             sage: from sage.interfaces.expect import StdOutContext
-            sage: with StdOutContext(gp):
-            ...       gp('1+1')
-            ...
+            sage: with StdOutContext(Gp()) as g:
+            ....:     g('1+1')
             sage=...
         """
         self.interface = interface
@@ -1397,13 +1391,12 @@ class StdOutContext:
 
             sage: from sage.interfaces.expect import StdOutContext
             sage: with StdOutContext(singular):
-            ...       singular.eval('1+1')
-            ...
+            ....:     singular.eval('1+1')
             1+1;
             ...
         """
         if self.silent:
-            return
+            return self.interface
         if self.interface._expect is None:
             self.interface._start()
         self._logfile_backup = self.interface._expect.logfile
@@ -1411,6 +1404,7 @@ class StdOutContext:
             self.interface._expect.logfile = Multiplex(self.interface._expect.logfile, self.stdout)
         else:
             self.interface._expect.logfile = Multiplex(self.stdout)
+        return self.interface
 
     def __exit__(self, typ, value, tb):
         """
@@ -1418,8 +1412,7 @@ class StdOutContext:
 
             sage: from sage.interfaces.expect import StdOutContext
             sage: with StdOutContext(gap):
-            ...       gap('1+1')
-            ...
+            ....:     gap('1+1')
             $sage...
         """
         if self.silent:

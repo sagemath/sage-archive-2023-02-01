@@ -180,12 +180,12 @@ def is_Parent(x):
         sage: is_Parent(Primes())
         True
     """
-    return PY_TYPE_CHECK(x, Parent)
+    return isinstance(x, Parent)
 
 cdef bint guess_pass_parent(parent, element_constructor):
-    if PY_TYPE_CHECK(element_constructor, types.MethodType):
+    if isinstance(element_constructor, types.MethodType):
         return False
-    elif PY_TYPE_CHECK(element_constructor, BuiltinMethodType):
+    elif isinstance(element_constructor, BuiltinMethodType):
         return element_constructor.__self__ is not parent
     else:
         return True
@@ -1454,7 +1454,7 @@ cdef class Parent(category_object.CategoryObject):
         """
         cdef int r
 
-        if not PY_TYPE_CHECK(right, Parent) or not PY_TYPE_CHECK(left, Parent):
+        if not isinstance(right, Parent) or not isinstance(left, Parent):
             # One is not a parent -- use arbitrary ordering
             if (<PyObject*>left) < (<PyObject*>right):
                 r = -1
@@ -1748,11 +1748,11 @@ cdef class Parent(category_object.CategoryObject):
         self._element_constructor = element_constructor
         self._element_init_pass_parent = guess_pass_parent(self, element_constructor)
 
-        if not PY_TYPE_CHECK(coerce_list, list):
+        if not isinstance(coerce_list, list):
             raise ValueError("%s_populate_coercion_lists_: coerce_list is type %s, must be list" % (type(coerce_list), type(self)))
-        if not PY_TYPE_CHECK(action_list, list):
+        if not isinstance(action_list, list):
             raise ValueError("%s_populate_coercion_lists_: action_list is type %s, must be list" % (type(action_list), type(self)))
-        if not PY_TYPE_CHECK(convert_list, list):
+        if not isinstance(convert_list, list):
             raise ValueError("%s_populate_coercion_lists_: convert_list is type %s, must be list" % (type(convert_list), type(self)))
 
         self._initial_coerce_list = copy(coerce_list)
@@ -1847,10 +1847,10 @@ cdef class Parent(category_object.CategoryObject):
             ...
             AssertionError: coercion from Univariate Polynomial Ring in b over Integer Ring to Univariate Polynomial Ring in a over Integer Ring already registered or discovered
         """
-        if PY_TYPE_CHECK(mor, map.Map):
+        if isinstance(mor, map.Map):
             if mor.codomain() is not self:
                 raise ValueError("Map's codomain must be self (%s) is not (%s)" % (self, mor.codomain()))
-        elif PY_TYPE_CHECK(mor, Parent) or PY_TYPE_CHECK(mor, type):
+        elif isinstance(mor, Parent) or isinstance(mor, type):
             mor = self._generic_convert_map(mor)
         else:
             raise TypeError("coercions must be parents or maps (got %s)" % type(mor))
@@ -1955,7 +1955,7 @@ cdef class Parent(category_object.CategoryObject):
                 raise ValueError("Map's codomain must be self")
             self._convert_from_list.append(mor)
             self._convert_from_hash.set(mor.domain(),mor)
-        elif PY_TYPE_CHECK(mor, Parent) or PY_TYPE_CHECK(mor, type):
+        elif isinstance(mor, Parent) or isinstance(mor, type):
             t = mor
             mor = self._generic_convert_map(mor)
             self._convert_from_list.append(mor)
@@ -2110,11 +2110,11 @@ cdef class Parent(category_object.CategoryObject):
         import coerce_maps
         if self._convert_method_name is not None:
             # handle methods like _integer_
-            if PY_TYPE_CHECK(S, type):
+            if isinstance(S, type):
                 element_constructor = S
-            elif PY_TYPE_CHECK(S, Parent):
+            elif isinstance(S, Parent):
                 element_constructor = (<Parent>S)._element_constructor
-                if not PY_TYPE_CHECK(element_constructor, type):
+                if not isinstance(element_constructor, type):
                     # if element_constructor is not an actual class, get the element class
                     element_constructor = type(S.an_element())
             else:
@@ -2438,7 +2438,7 @@ cdef class Parent(category_object.CategoryObject):
             To:   Number Field in a with defining polynomial x^2 - 2 over its base field
         """
         best_mor = None
-        if PY_TYPE_CHECK(S, Parent) and (<Parent>S)._embedding is not None:
+        if isinstance(S, Parent) and (<Parent>S)._embedding is not None:
             if (<Parent>S)._embedding.codomain() is self:
                 return (<Parent>S)._embedding
             connecting = self._internal_coerce_map_from((<Parent>S)._embedding.codomain())
@@ -2458,7 +2458,7 @@ cdef class Parent(category_object.CategoryObject):
 
             if user_provided_mor is True:
                 mor = self._generic_convert_map(S)
-            elif PY_TYPE_CHECK(user_provided_mor, Map):
+            elif isinstance(user_provided_mor, Map):
                 mor = <map.Map>user_provided_mor
             elif callable(user_provided_mor):
                 mor = CallableConvertMap(user_provided_mor)
@@ -2586,7 +2586,7 @@ cdef class Parent(category_object.CategoryObject):
         if mor is not None:
             return mor
 
-        if PY_TYPE_CHECK(S, Parent):
+        if isinstance(S, Parent):
             mor = S._internal_coerce_map_from(self)
             if mor is not None:
                 mor = mor.section()
@@ -2596,7 +2596,7 @@ cdef class Parent(category_object.CategoryObject):
         user_provided_mor = self._convert_map_from_(S)
 
         if user_provided_mor is not None:
-            if PY_TYPE_CHECK(user_provided_mor, map.Map):
+            if isinstance(user_provided_mor, map.Map):
                 return user_provided_mor
             elif callable(user_provided_mor):
                 from coerce_maps import CallableConvertMap
@@ -2667,7 +2667,7 @@ cdef class Parent(category_object.CategoryObject):
         from coerce_actions import LeftModuleAction, RightModuleAction
         cdef Parent R
         for action in self._action_list:
-            if PY_TYPE_CHECK(action, Action) and action.operation() is op:
+            if isinstance(action, Action) and action.operation() is op:
                 if self_on_left:
                     if action.left_domain() is not self: continue
                     R = action.right_domain()
@@ -2892,31 +2892,6 @@ cdef class Parent(category_object.CategoryObject):
         """
         return True
 
-#    cpdef base_extend(self, other, category=None):
-#        """
-#        EXAMPLES:
-#            sage: QQ.base_extend(GF(7))
-#            Traceback (most recent call last):
-#            ...
-#            TypeError: base extension not defined for Rational Field
-#            sage: ZZ.base_extend(GF(7))
-#            Finite Field of size 7
-#        """
-#        # Use the coerce map if a base extend is not defined in the category.
-#        # this is the default implementation.
-#        try:
-#            if category is None:
-#                method = self._categories[0].get_object_method("base_extend") # , self._categories[1:])
-#            else:
-#                method = category.get_object_method("base_extend")
-#            if method is not None:
-#                return method(self)
-#            elif other.has_coerce_map_from(self):
-#                return other
-#            else:
-#                raise TypeError, "base extension not defined for %s" % self
-#        except AttributeError:
-#            raise TypeError, "base extension not defined for %s" % self
 
 ############################################################################
 # Set base class --
@@ -3064,7 +3039,7 @@ cdef class Set_PythonType_class(Set_generic):
             0.333333333333333...
 
         """
-        if PY_TYPE_CHECK(x,self._type):
+        if isinstance(x, self._type):
             return x
         return self._type(x)
 
@@ -3237,8 +3212,8 @@ cdef bint _register_pair(x, y, tag) except -1:
     both = EltPair(x,y,tag)
 
     if both in _coerce_test_dict:
-        xp = type(x) if PY_TYPE_CHECK(x, Parent) else parent_c(x)
-        yp = type(y) if PY_TYPE_CHECK(y, Parent) else parent_c(y)
+        xp = type(x) if isinstance(x, Parent) else parent_c(x)
+        yp = type(y) if isinstance(y, Parent) else parent_c(y)
         raise CoercionException("Infinite loop in action of %s (parent %s) and %s (parent %s)!" % (x, xp, y, yp))
     _coerce_test_dict[both] = True
     return 0

@@ -463,7 +463,7 @@ def symbolic_sum(expression, *args, **kwds):
             sage: sum(valuation(n,2),n,1,5)
             Traceback (most recent call last):
             ...
-            AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'valuation'
+            TypeError: unable to convert n to an integer
             
         Again, use python ``sum()``::
         

@@ -826,11 +826,11 @@ class LinearCode(module.Module):
         facade_for = generator_matrix.row(0).parent()
         self.Element = type(generator_matrix.row(0)) # for when we make this a non-facade parent
         Parent.__init__(self, base=base_ring, facade=facade_for, category=cat)
-        self.__gens = generator_matrix.rows()
+        self._gens = generator_matrix.rows()
         self._generator_matrix = generator_matrix
         self._length = generator_matrix.ncols()
-        self.__dim = generator_matrix.rank()
-        self.__distance = d
+        self._dimension = generator_matrix.rank()
+        self._minimum_distance = d
 
     def _repr_(self):
         r"""
@@ -860,7 +860,7 @@ class LinearCode(module.Module):
             sage: C2.an_element()
             ((1, 0, 0, 0, 0, 1, 1), (1, 0, 0, 0, 0, 1, 1))
         """
-        return self.__gens[0]
+        return self._gens[0]
 
     def automorphism_group_gens(self, equivalence="semilinear"):
         r"""
@@ -1069,7 +1069,7 @@ class LinearCode(module.Module):
             sage: C.basis()
             [(1, 0, 0, 0, 0, 1, 1), (0, 1, 0, 0, 1, 0, 1), (0, 0, 1, 0, 1, 1, 0), (0, 0, 0, 1, 1, 1, 1)]
         """
-        return self.__gens
+        return self._gens
 
     # S. Pancratz, 19 Jan 2010:  In the doctests below, I removed the example
     # ``C.binomial_moment(3)``, which was also marked as ``#long``.  This way,
@@ -1582,7 +1582,7 @@ class LinearCode(module.Module):
             sage: C.dimension()
             2
         """
-        return self.__dim
+        return self._dimension
 
     def direct_sum(self, other):
         """
@@ -1894,7 +1894,7 @@ class LinearCode(module.Module):
             sage: C.gens()
              [(1, 0, 0, 0, 0, 1, 1), (0, 1, 0, 0, 1, 0, 1), (0, 0, 1, 0, 1, 1, 0), (0, 0, 0, 1, 1, 1, 1)]
         """
-        return self.__gens
+        return self._gens
 
     def genus(self):
         r"""
@@ -2240,8 +2240,8 @@ class LinearCode(module.Module):
         # If the minimum distance has already been computed or provided by
         # the user then simply return the stored value.
         # This is done only if algorithm is None.
-        if self.__distance is not None and algorithm is None:
-            return self.__distance
+        if self._minimum_distance is not None and algorithm is None:
+            return self._minimum_distance
         if algorithm not in (None, "gap", "guava"):
             raise ValueError("The algorithm argument must be one of None, "
                         "'gap' or 'guava'; got '{0}'".format(algorithm))
@@ -2262,8 +2262,8 @@ class LinearCode(module.Module):
             #print "Running Guava's MinimumWeight ...\n"
             return ZZ(d)
         Gstr = "%s*Z(%s)^0"%(gapG, q)
-        self.__distance = min_wt_vec_gap(Gstr,n,k,F).hamming_weight()
-        return self.__distance
+        self._minimum_distance = min_wt_vec_gap(Gstr,n,k,F).hamming_weight()
+        return self._minimum_distance
 
     def module_composition_factors(self, gp):
         r"""
@@ -3058,7 +3058,7 @@ class LinearCode(module.Module):
             sage: C.sum((C.gens())) # indirect doctest
             (1, 1, 1, 1, 1, 1, 1)
         """
-        v = 0*self.__gens[0]
+        v = 0*self._gens[0]
         v.set_immutable()
         return v
 

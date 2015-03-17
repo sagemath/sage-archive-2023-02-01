@@ -998,7 +998,8 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
         """
         EXAMPLES::
 
-            sage: IntegerVectors(2,3,min_slope=0).last()
+            sage: a = IntegerVectors(2,3,min_slope=0).first()
+            sage: IntegerVectors(2,3,min_slope=0).next(a)
             [0, 0, 2]
         """
         return integer_list.next(x, *self._parameters())

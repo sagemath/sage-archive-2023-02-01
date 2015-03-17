@@ -39,8 +39,7 @@ cdef class Element(SageObject):
     cdef public _richcmp(self, right, int op)
     cdef public _cmp(self, right)
     cdef _set_parent_c(self, Parent parent)
-    cdef base_extend_c(self, Parent R)       # do *NOT* override, but OK to call directly
-    cdef base_extend_c_impl(self, Parent R)  # OK to override, but do NOT call
+    cpdef base_extend(self, R)
     cdef _rich_to_bool(self, int op, int r)
 
     cpdef _act_on_(self, x, bint self_on_left)

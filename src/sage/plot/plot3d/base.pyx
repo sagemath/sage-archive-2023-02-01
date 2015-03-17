@@ -40,11 +40,12 @@ from cStringIO import StringIO
 
 from sage.misc.misc import sage_makedirs
 from sage.env import SAGE_LOCAL
+from sage.doctest import DOCTEST_MODE
 
 from sage.modules.free_module_element import vector
 
 from sage.rings.real_double import RDF
-from sage.misc.temporary_file import tmp_filename, graphics_filename
+from sage.misc.temporary_file import tmp_filename
 from texture import Texture, is_Texture
 from transform cimport Transformation, point_c, face_c
 include "point_c.pxi"
@@ -63,8 +64,8 @@ cdef class Graphics3d(SageObject):
     """
     This is the baseclass for all 3d graphics objects.
 
-    .. automethod:: _graphics_
     .. automethod:: __add__
+    .. automethod:: _rich_repr_
     """
     def __cinit__(self):
         """
@@ -94,34 +95,32 @@ cdef class Graphics3d(SageObject):
         """
         return str(self)
 
-    def _graphics_(self, mime_types=None, figsize=None, dpi=None):
+    def _rich_repr_(self, display_manager, **kwds):
         """
-        Magic graphics method.
+        Rich Output Magic Method
 
-        The presence of this method is used by the displayhook to
-        decide that we want to see a graphical output by default.
-
-        INPUT/OUTPUT:
-
-        See :meth:`sage.plot.graphics.Graphics._graphics_` for details.
+        See :mod:`sage.repl.rich_output` for details.
 
         EXAMPLES::
 
-            sage: S = sphere((0, 0, 0), 1)
-            sage: S._graphics_(mime_types={'image/png'})
-            Graphics file image/png
-            sage: S  # also productes graphics
-            Graphics3d Object
-            sage: [S, S]
-            [Graphics3d Object, Graphics3d Object]
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: g = sphere()
+            sage: g._rich_repr_(dm)
+            OutputSceneJmol container
         """
-        from sage.structure.graphics_file import (
-            Mime, graphics_from_save, GraphicsFile)
         ### First, figure out the best graphics format
-        can_view_jmol = (mime_types is None) or (Mime.JMOL in mime_types)
-        viewer = self._extra_kwds.get('viewer', None)
+        types = display_manager.types
+        can_view_jmol = (types.OutputSceneJmol in display_manager.supported_output())
+        can_view_canvas3d  = (types.OutputSceneCanvas3d in display_manager.supported_output())
+        can_view_wavefront = (types.OutputSceneWavefront in display_manager.supported_output())
+        opts = self._process_viewing_options(kwds)
+        viewer = opts.get('viewer', None)
+        if viewer == 'java3d':
+            from sage.misc.superseded import deprecation
+            deprecation(17234, 'use viewer="wavefront" instead of "java3d"')
         # make sure viewer is one of the supported options
-        if viewer not in [None, 'jmol', 'tachyon']:
+        if viewer not in [None, 'jmol', 'tachyon', 'canvas3d', 'wavefront']:
             import warnings
             warnings.warn('viewer={0} is not supported'.format(viewer))
             viewer = None
@@ -129,23 +128,197 @@ cdef class Graphics3d(SageObject):
         if viewer is None:
             viewer = 'jmol'
         # fall back to 2d image if necessary
-        if viewer == 'jmol' and not can_view_jmol:
-            viewer = 'tachyon'
+        if viewer == 'canvas3d' and not can_view_canvas3d:   viewer = 'jmol'
+        if viewer == 'wavefront' and not can_view_wavefront: viewer = 'jmol'
+        if viewer == 'jmol' and not can_view_jmol:           viewer = 'tachyon'
         ### Second, return the corresponding graphics file
         if viewer == 'jmol':
-            filename = tmp_filename(
-                ext=os.path.extsep + Mime.extension(Mime.JMOL))
-            self.save(filename)
-            return GraphicsFile(filename, Mime.JMOL)
+            return self._rich_repr_jmol(**kwds)
         elif viewer == 'tachyon':
-            preference = [Mime.PNG, Mime.JPG]
-            figsize = self._extra_kwds.get('figsize', figsize)
-            dpi = self._extra_kwds.get('dpi', dpi)
-            return graphics_from_save(self.save, preference,
-                                      allowed_mime_types=mime_types, 
-                                      figsize=figsize, dpi=dpi)
+            preferred = (
+                types.OutputImagePng,
+                types.OutputImageJpg,
+                types.OutputImageGif,
+            )
+            for output_container in preferred:
+                if output_container in display_manager.supported_output():
+                    return self._rich_repr_tachyon(output_container, **kwds)
+        elif viewer == 'canvas3d':
+            return self._rich_repr_canvas3d(**kwds)            
+        elif viewer == 'wavefront':
+            return self._rich_repr_wavefront(**kwds)            
         else:
             assert False   # unreachable
+
+    def _rich_repr_tachyon(self, output_container, **kwds):
+        """
+        Rich Representation using Tachyon.
+
+        INPUT:
+
+        - ``output_container`` -- the rich output container to contain
+          the rendered image (can be png, gif, or jpg). Determines the
+          type of the output.
+
+        - ``**kwds`` -- Optional keyword arguments are passed to the
+          Tachyon raytracer.
+
+        OUTPUT:
+
+        Instance of
+        :class:`~sage.repl.rich_output.output_graphics.OutputImagePng`,
+        :class:`~sage.repl.rich_output.output_graphics.OutputImageGif`, or 
+        :class:`~sage.repl.rich_output.output_graphics.OutputImageJpg`.
+
+        EXAMPLES::
+
+            sage: import sage.repl.rich_output.output_catalog as catalog
+            sage: sphere()._rich_repr_tachyon(catalog.OutputImagePng)
+            OutputImagePng container
+            sage: import sage.repl.rich_output.output_catalog as catalog
+            sage: sphere()._rich_repr_tachyon(catalog.OutputImageJpg)  # optional -- libjpeg
+            OutputImageJpg container
+        """
+        filename = tmp_filename(ext='.png')
+        opts = self._process_viewing_options(kwds)
+        T = self._prepare_for_tachyon(
+            opts['frame'], opts['axes'], opts['frame_aspect_ratio'],
+            opts['aspect_ratio'], opts['zoom']
+        )
+        x, y = opts['figsize'][0]*100, opts['figsize'][1]*100
+        if DOCTEST_MODE:
+            x, y = 10, 10
+        tachyon_rt(T.tachyon(), filename, opts['verbosity'],
+                   '-res %s %s' % (x, y))
+        from sage.repl.rich_output.buffer import OutputBuffer
+        import sage.repl.rich_output.output_catalog as catalog
+        import PIL.Image as Image
+        if output_container is catalog.OutputImagePng:
+            buf = OutputBuffer.from_file(filename)
+        elif output_container is catalog.OutputImageGif:
+            gif = tmp_filename(ext='.gif')
+            Image.open(filename).save(gif)
+            buf = OutputBuffer.from_file(gif)
+        elif output_container is catalog.OutputImageJpg:
+            jpg = tmp_filename(ext='.jpg')
+            Image.open(filename).save(jpg)
+            buf = OutputBuffer.from_file(jpg)
+        else:
+            raise ValueError('output_container not supported')
+        return output_container(buf)
+
+    def _rich_repr_jmol(self, **kwds):
+        """
+        Rich Representation as JMol scene
+
+        INPUT:
+
+        Optional keyword arguments are passed to JMol.
+
+        OUTPUT:
+
+        Instance of
+        :class:`sage.repl.rich_output.output_graphics3d.OutputSceneJmol`.
+
+        EXAMPLES::
+
+            sage: sphere()._rich_repr_jmol()
+            OutputSceneJmol container
+        """
+        from sage.misc.temporary_file import tmp_dir
+        root_dir = os.path.abspath(tmp_dir())
+        scene_zip     = os.path.join(root_dir, 'scene.spt.zip')
+        preview_png   = os.path.join(root_dir, 'preview.png')
+        opts = self._process_viewing_options(kwds)
+        zoom = opts['zoom']
+        T = self._prepare_for_jmol(
+            opts['frame'],
+            opts['axes'],
+            opts['frame_aspect_ratio'],
+            opts['aspect_ratio'],
+            zoom,
+        )
+        T.export_jmol(scene_zip, zoom=zoom*100, **kwds)
+        from sage.interfaces.jmoldata import JmolData
+        jdata = JmolData()
+        if not jdata.is_jvm_available():
+            # We can only use JMol to generate preview if a jvm is installed
+            from sage.repl.rich_output.output_graphics import OutputImagePng
+            tachyon = self._rich_repr_tachyon(OutputImagePng, **kwds)
+            tachyon.png.save_as(preview_png)
+        else:
+            # Java needs absolute paths
+            script = '''set defaultdirectory "%s"\nscript SCRIPT\n''' % scene_zip
+            jdata.export_image(targetfile=preview_png, datafile=script,
+                               image_type="PNG",
+                               figsize=opts['figsize'])
+        from sage.repl.rich_output.output_graphics3d import OutputSceneJmol
+        from sage.repl.rich_output.buffer import OutputBuffer
+        scene_zip     = OutputBuffer.from_file(scene_zip)
+        preview_png   = OutputBuffer.from_file(preview_png)
+        return OutputSceneJmol(scene_zip, preview_png)
+
+    def _rich_repr_wavefront(self, **kwds):
+        r"""
+        Rich Representation as Wavefront (obj + mtl) Scene
+
+        INPUT:
+
+        Optional keyword arguments are ignored.
+
+        OUTPUT:
+
+        Instance of
+        :class:`sage.repl.rich_output.output_graphics3d.OutputSceneWavefront`.
+
+        EXAMPLES::
+
+            sage: line = line3d([(0,0,0), (1,1,1)])
+            sage: out = line._rich_repr_wavefront()
+            sage: out
+            OutputSceneWavefront container
+            sage: out.obj.get()
+            'mtllib ... 6 2 7 11\nf 7 8 12\nf 8 9 12\nf 9 10 12\nf 10 11 12\nf 11 7 12\n'
+            sage: out.mtl.get()
+            'newmtl texture...\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1.0\nd 1.0\n'
+        """
+        from sage.repl.rich_output.output_graphics3d import OutputSceneWavefront
+        from sage.repl.rich_output.buffer import OutputBuffer
+        obj = OutputBuffer('mtllib scene.mtl\n' + self.obj())
+        return OutputSceneWavefront(obj, self.mtl_str())
+
+    def _rich_repr_canvas3d(self, **kwds):
+        r"""
+        Rich Representation as Canvas3D Scene
+
+        INPUT:
+
+        Optional keyword arguments.
+
+        OUTPUT:
+
+        Instance of
+        :class:`sage.repl.rich_output.output_graphics3d.OutputSceneCanvas3d`.
+
+        EXAMPLES::
+
+            sage: out = sphere()._rich_repr_canvas3d()
+            sage: out
+            OutputSceneCanvas3d container
+            sage: out.canvas3d.get()
+            "[{vertices:[{x:0,y:0,z:-1},...,color:'#6666ff'}]"
+        """
+        opts = self._process_viewing_options(kwds)
+        aspect_ratio = opts['aspect_ratio'] # this necessarily has a value now
+        frame_aspect_ratio = opts['frame_aspect_ratio']
+        zoom = opts['zoom']
+        frame = opts['frame']
+        axes = opts['axes']
+        T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
+        data = flatten_list(T.json_repr(T.default_render_params()))
+        canvas3d = '[' + ','.join(data) + ']'
+        from sage.repl.rich_output.output_catalog import OutputSceneCanvas3d
+        return OutputSceneCanvas3d(canvas3d)
 
     def __str__(self):
         """
@@ -505,7 +678,7 @@ cdef class Graphics3d(SageObject):
             <Scene>
             <Viewpoint position='0 0 6'/>
             <Transform translation='1 2 3'>
-            <Shape><Sphere radius='5.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
+            <Shape><Sphere radius='5.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             </Transform>
             </Scene>
             </X3D>
@@ -522,9 +695,9 @@ cdef class Graphics3d(SageObject):
             <IndexedFaceSet coordIndex='...'>
               <Coordinate point='...'/>
             </IndexedFaceSet>
-            <Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
+            <Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             <Transform translation='0 0 0'>
-            <Shape><Sphere radius='0.5'/><Appearance><Material diffuseColor='1.0 0.0 0.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
+            <Shape><Sphere radius='0.5'/><Appearance><Material diffuseColor='1.0 0.0 0.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             </Transform>
             </Scene>
             </X3D>
@@ -561,7 +734,7 @@ cdef class Graphics3d(SageObject):
                         COLOR 1.0 1.0 1.0
                         TEXFUNC 0
                 Texdef texture...
-              Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 1
+              Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 1.0
                Color 1.0 1.0 0.0
                TexFunc 0
                 Sphere center 1.0 -2.0 3.0 Rad 5.0 texture...
@@ -573,14 +746,13 @@ cdef class Graphics3d(SageObject):
             begin_scene
             ...
             Texdef texture...
-              Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 1
+              Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 1.0
                Color 1.0 1.0 0.0
                TexFunc 0
             TRI V0 ...
             Sphere center 1.0 -2.0 3.0 Rad 0.5 texture...
             end_scene
         """
-
         render_params = self.default_render_params()
         # switch from LH to RH coords to be consistent with java rendition
         render_params.push_transform(Transformation(scale=[1,-1,1]))
@@ -888,15 +1060,15 @@ end_scene""" % (render_params.antialiasing,
             Kd 1.0 1e-05 1e-05
             Ks 0.0 0.0 0.0
             illum 1
-            Ns 1
-            d 1
+            Ns 1.0
+            d 1.0
             newmtl ...
             Ka 0.5 0.5 5e-06
             Kd 1.0 1.0 1e-05
             Ks 0.0 0.0 0.0
             illum 1
-            Ns 1
-            d 0.500000000000000
+            Ns 1.0
+            d 0.5
         """
         return "\n\n".join(sorted([t.mtl_str() for t in self.texture_set()])) + "\n"
 
@@ -1087,8 +1259,16 @@ end_scene""" % (render_params.antialiasing,
 
         return opts
 
-    def show(self, *, filename=None, **kwds):
+    def show(self, **kwds):
         """
+        Display graphics immediately
+
+        This method attempts to display the graphics immediately,
+        without waiting for the currently running code (if any) to
+        return to the command line. Be careful, calling it from within
+        a loop will potentially launch a large number of external
+        viewer programs.
+
         INPUT:
 
         -  ``viewer`` -- string (default: 'jmol'), how to view
@@ -1102,9 +1282,6 @@ end_scene""" % (render_params.antialiasing,
 
            * 'canvas3d': Web-based 3D viewer powered by JavaScript and
              <canvas> (notebook only)
-
-        -  ``filename`` -- string (default: a temp file); filename
-           without extension to save the image file(s) to
 
         -  ``verbosity`` -- display information about rendering
            the figure
@@ -1131,6 +1308,11 @@ end_scene""" % (render_params.antialiasing,
 
         -  ``**kwds`` -- other options, which make sense for particular
            rendering engines
+
+        OUTPUT:
+
+        This method does not return anything. Use :meth:`save` if you
+        want to save the figure as an image.
 
         CHANGING DEFAULTS: Defaults can be uniformly changed by importing a
         dictionary and changing it. For example, here we change the default
@@ -1177,159 +1359,79 @@ end_scene""" % (render_params.antialiasing,
         the plot rendered inline using HTML canvas::
 
             sage: p.show(viewer='canvas3d')
-
-        From the command line, you probably want to specify an explicit
-        filename::
-
-            sage: basedir = tmp_dir()
-            sage: basename = os.path.join(basedir, "xyz")
-            sage: p.show(filename=basename)
-
-        In this doctest, we see many files because we test various
-        viewers::
-
-            sage: sorted(os.listdir(basedir))
-            ['xyz-size500.spt', 'xyz-size500.spt.zip', 'xyz.mtl', 'xyz.obj', 'xyz.png']
         """
-        opts = self._process_viewing_options(kwds)
+        from sage.repl.rich_output import get_display_manager
+        dm = get_display_manager()
+        dm.display_immediately(self, **kwds)
 
-        viewer = opts['viewer']
-        verbosity = opts['verbosity']
-        figsize = opts['figsize']
-        aspect_ratio = opts['aspect_ratio'] # this necessarily has a value now
-        frame_aspect_ratio = opts['frame_aspect_ratio']
-        zoom = opts['zoom']
-        frame = opts['frame']
-        axes = opts['axes']
-
-        basename = filename  # Filename without extension
-        filename = None  # Filename with extension of the plot result
-
-        def makename(ext):
-            if basename is not None:
-                return basename + ext
-            else:
-                return graphics_filename(ext=ext)
-
-        from sage.plot.plot import EMBEDDED_MODE
-        from sage.doctest import DOCTEST_MODE
-
-        # Tachyon resolution options
-        if DOCTEST_MODE:
-            tachyon_opts = '-res 10 10'
-        else:
-            tachyon_opts = '-res %s %s'%(figsize[0]*100, figsize[1]*100)
-
-        if DOCTEST_MODE or viewer=='tachyon' or (viewer=='java3d' and EMBEDDED_MODE):
-            T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
-            filename = makename(".png")
-            tachyon_rt(T.tachyon(), filename, verbosity, True, tachyon_opts)
-            import sage.misc.viewer
-            viewer_app = sage.misc.viewer.png_viewer()
-
-        if DOCTEST_MODE or viewer=='java3d':
-            mtl = makename(".mtl")
-            filename = makename(".obj")
-            with open(filename, "w") as f:
-                f.write("mtllib %s\n" % mtl)
-                f.write(self.obj())
-            with open(mtl, "w") as f:
-                f.write(self.mtl_str())
-            viewer_app = os.path.join(SAGE_LOCAL, "bin", "sage3d")
-
-        if DOCTEST_MODE or viewer=='jmol':
-            # Temporary hack: encode the desired applet size in the end of the filename:
-            # (This will be removed once we have dynamic resizing of applets in the browser.)
-            fg = figsize[0]
-            sizedname = lambda ext: makename("-size{}{}".format(fg*100, ext))
-
-            if EMBEDDED_MODE:
-                # jmol doesn't seem to correctly parse the ?params part of a URL
-                archive_name = sizedname(
-                    "-{}.jmol.zip".format(randint(0, 1 << 30)))
-                filename = sizedname(".jmol")
-            else:
-                archive_name = sizedname(".spt.zip".format(fg))
-                filename = sizedname(".spt")
-                with open(filename, 'w') as f:
-                    f.write('set defaultdirectory "{0}"\n'.format(archive_name))
-                    f.write('script SCRIPT\n')
-
-            T = self._prepare_for_jmol(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
-            T.export_jmol(archive_name, force_reload=EMBEDDED_MODE, zoom=zoom*100, **kwds)
-            viewer_app = os.path.join(SAGE_LOCAL, "bin", "jmol")
-
-            # If the server has a Java installation we can make better static images with Jmol
-            # Test for Java then make image with Jmol or Tachyon if no JavaVM
-            if EMBEDDED_MODE:
-                # We need a script for the Notebook.
-                # When the notebook sees this file, it will know to
-                # display the static file and the "Make Interactive"
-                # button.
-                import sagenb
-                path = "cells/%s/%s" %(sagenb.notebook.interact.SAGE_CELL_ID, archive_name)
-                with open(filename, 'w') as f:
-                    f.write('set defaultdirectory "%s"\n' % path)
-                    f.write('script SCRIPT\n')
-
-                # Filename for the static image
-                png_path = '.jmol_images'
-                sage_makedirs(png_path)
-                png_name = os.path.join(png_path, filename + ".png")
-
-                from sage.interfaces.jmoldata import JmolData
-                jdata = JmolData()
-                if jdata.is_jvm_available():
-                    # Java needs absolute paths
-                    archive_name = os.path.abspath(archive_name)
-                    png_name = os.path.abspath(png_name)
-                    script = '''set defaultdirectory "%s"\nscript SCRIPT\n''' % archive_name
-                    jdata.export_image(targetfile=png_name, datafile=script, image_type="PNG", figsize=fg)
-                else:
-                    # Render the image with tachyon
-                    T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
-                    tachyon_rt(T.tachyon(), png_name, verbosity, True, tachyon_opts)
-
-        if viewer == 'canvas3d':
-            if not EMBEDDED_MODE and not DOCTEST_MODE:
-                raise RuntimeError("canvas3d viewer is only available from the Notebook")
-            T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
-            data = flatten_list(T.json_repr(T.default_render_params()))
-            filename = makename('.canvas3d')
-            with open(filename, 'w') as f:
-                f.write('[%s]' % ','.join(data))
-
-        if filename is None:
-            raise ValueError("Unknown 3d plot type: %s" % viewer)
-
-        if not DOCTEST_MODE and not EMBEDDED_MODE:
-            if verbosity:
-                pipes = "2>&1"
-            else:
-                pipes = "2>/dev/null 1>/dev/null &"
-            os.system('%s "%s" %s' % (viewer_app, filename, pipes))
-
-    def save_image(self, filename=None, *args, **kwds):
+    def _save_image_png(self, filename, **kwds):
         r"""
-        Save an image representation of self.  The image type is
-        determined by the extension of the filename.  For example,
-        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
-        ``.svg``.  Currently this is implemented by calling the
-        :meth:`save` method of self, passing along all arguments and
-        keywords.
-
-        .. Note::
-
-            Not all image types are necessarily implemented for all
-            graphics types.  See :meth:`save` for more details.
+        Save a PNG rendering.
+        
+        This private method is only for use by :meth:`save_image`.
 
         EXAMPLES::
 
-            sage: f = tmp_filename() + '.png'
-            sage: G = sphere()
-            sage: G.save_image(f)
+            sage: s = sphere()
+            sage: filename = tmp_filename(ext='.png')
+            sage: s._save_image_png(filename)
+            sage: open(filename).read().startswith('\x89PNG')
+            True
+
+            sage: s._save_image_png('/path/to/foo.bar')
+            Traceback (most recent call last):
+            ...
+            AssertionError
         """
-        self.save(filename, *args, **kwds)
+        assert filename.endswith('.png')
+        opts = self._process_viewing_options(kwds)
+        viewer = opts['viewer']
+        if viewer == 'tachyon':
+            from sage.repl.rich_output.output_catalog import OutputImagePng
+            render = self._rich_repr_tachyon(OutputImagePng, **kwds)
+            render.png.save_as(filename)
+        elif viewer == 'jmol':
+            scene = self._rich_repr_jmol(**kwds)
+            scene.preview_png.save_as(filename)
+        else:
+            raise ValueError('cannot use viewer={0} to render image'.format(viewer))
+
+    def save_image(self, filename, **kwds):
+        r"""
+        Save a 2-D image rendering.
+
+        The image type is determined by the extension of the filename.
+        For example, this could be ``.png``, ``.jpg``, ``.gif``,
+        ``.pdf``, ``.svg``.
+
+        INPUT:
+
+        - ``filename`` -- string. The file name under which to save
+          the image.
+
+        Any further keyword arguments are passed to the renderer.
+
+        EXAMPLES::
+
+            sage: G = sphere()
+            sage: png = tmp_filename(ext='.png')
+            sage: G.save_image(png)
+            sage: assert open(png).read().startswith('\x89PNG')
+
+            sage: gif = tmp_filename(ext='.gif')
+            sage: G.save_image(gif)
+            sage: assert open(gif).read().startswith('GIF')
+        """
+        ext = os.path.splitext(filename)[1].lower()
+        if ext not in ['.bmp', '.png', '.gif', '.ppm', '.tiff', '.tif', '.jpg', '.jpeg']:
+            raise ValueError('unknown image file type: {0}'.format(ext))
+        if ext == '.png':
+            self._save_image_png(filename, **kwds)
+        else:
+            png = tmp_filename(ext='.png')
+            self._save_image_png(png, **kwds)
+            import PIL.Image as Image
+            Image.open(png).save(filename)
 
     def save(self, filename, **kwds):
         """
@@ -1341,7 +1443,7 @@ end_scene""" % (render_params.antialiasing,
 
         INPUT:
 
-        - ``filename`` -- Specify where to save the image or object.
+        - ``filename`` -- string. Where to save the image or object.
 
         - ``**kwds`` -- When specifying an image file to be rendered by Tachyon,
           any of the viewing options accepted by show() are valid as keyword
@@ -1361,7 +1463,7 @@ end_scene""" % (render_params.antialiasing,
 
             sage: G.save(f, zoom=2, figsize=[5, 10])
 
-        But some extra parameters don't make since (like ``viewer``, since
+        But some extra parameters don't make sense (like ``viewer``, since
         rendering is done using Tachyon only). They will be ignored::
 
             sage: G.save(f, viewer='jmol') # Looks the same
@@ -1375,37 +1477,12 @@ end_scene""" % (render_params.antialiasing,
         if ext == '' or ext == '.sobj':
             SageObject.save(self, filename)
         elif ext in ['.bmp', '.png', '.gif', '.ppm', '.tiff', '.tif', '.jpg', '.jpeg']:
-            opts = self._process_viewing_options(kwds)
-            T = self._prepare_for_tachyon(
-                opts['frame'], opts['axes'], opts['frame_aspect_ratio'],
-                opts['aspect_ratio'], opts['zoom']
-            )
-
-            if ext == '.png':
-                # No conversion is necessary
-                out_filename = filename
-            else:
-                # Save to a temporary file, and then convert using PIL
-                out_filename = tmp_filename(ext=ext)
-            tachyon_rt(T.tachyon(), out_filename, opts['verbosity'], True,
-                '-res %s %s' % (opts['figsize'][0]*100, opts['figsize'][1]*100))
-            if ext != '.png':
-                import PIL.Image as Image
-                Image.open(out_filename).save(filename)
+            self.save_image(filename)
         elif filename.endswith('.spt.zip'):
-            # Jmol zip archive
-            opts = self._process_viewing_options(kwds)
-            zoom = opts['zoom']
-            T = self._prepare_for_jmol(
-                opts['frame'],
-                opts['axes'],
-                opts['frame_aspect_ratio'],
-                opts['aspect_ratio'],
-                zoom)
-            T.export_jmol(filename, zoom=zoom*100, **kwds)
+            scene = self._rich_repr_jmol(**kwds)
+            scene.jmol.save(filename)
         else:
             raise ValueError('filetype not supported by save()')
-
 
 
 # if you add any default parameters you must update some code below
@@ -1563,10 +1640,10 @@ class Graphics3dGroup(Graphics3d):
             sage: G = sphere() + sphere((1,2,3))
             sage: print G.x3d_str()
             <Transform translation='0 0 0'>
-            <Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
+            <Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             </Transform>
             <Transform translation='1 2 3'>
-            <Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
+            <Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             </Transform>
         """
         return "\n".join([g.x3d_str() for g in self.all])
@@ -1730,7 +1807,7 @@ class TransformGroup(Graphics3dGroup):
         EXAMPLES::
 
             sage: sphere((1,2,3)).x3d_str()
-            "<Transform translation='1 2 3'>\n<Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>\n\n</Transform>"
+            "<Transform translation='1 2 3'>\n<Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>\n\n</Transform>"
         """
         s = "<Transform"
         if self._rot is not None:
@@ -1965,7 +2042,7 @@ cdef class PrimitiveObject(Graphics3d):
         EXAMPLES::
 
             sage: sphere().flatten().x3d_str()
-            "<Transform>\n<Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>\n\n</Transform>"
+            "<Transform>\n<Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>\n\n</Transform>"
         """
         return "<Shape>" + self.x3d_geometry() + self.texture.x3d_str() + "</Shape>\n"
 

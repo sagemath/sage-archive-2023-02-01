@@ -566,6 +566,7 @@ def reload_attached_files_if_modified():
         sage: shell.run_cell('detach({0})'.format(repr(tmp)))
         sage: shell.run_cell('attached_files()')
         []
+        sage: shell.quit()
     """
     for filename, mtime in modified_file_iterator():
         basename = os.path.basename(filename)

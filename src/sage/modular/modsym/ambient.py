@@ -78,7 +78,7 @@ import sage.misc.latex as latex
 import sage.misc.misc as misc
 
 import sage.matrix.matrix_space as matrix_space
-from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2 as M2Z
+from sage.modular.arithgroup.arithgroup_element import M2Z
 import sage.modules.free_module_element as free_module_element
 import sage.modules.free_module as free_module
 import sage.misc.misc as misc
@@ -2541,12 +2541,11 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
         B = self.manin_basis()
         syms = self.manin_symbols()
         k = self.weight()
-        G = M2Z()
-        H = [G(h) for h in H]
+        H = [M2Z(h) for h in H]
         for n in B:
             z = M(0)
             s = syms.manin_symbol(n)
-            g = G(list(s.lift_to_sl2z(N)))
+            g = M2Z(list(s.lift_to_sl2z(N)))
             i = s.i
             # We apply each matrix in H according to the above formula
             for h in H:

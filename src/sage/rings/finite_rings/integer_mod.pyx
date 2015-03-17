@@ -78,8 +78,7 @@ cdef extern from "math.h":
     double log(double)
     int ceil(double)
 
-cdef extern from "mpz_pylong.h":
-    cdef mpz_get_pyintlong(mpz_t src)
+from sage.libs.gmp.pylong cimport mpz_get_pyintlong
 
 import operator
 

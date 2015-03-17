@@ -2903,31 +2903,6 @@ cdef class Parent(category_object.CategoryObject):
         """
         return True
 
-#    cpdef base_extend(self, other, category=None):
-#        """
-#        EXAMPLES:
-#            sage: QQ.base_extend(GF(7))
-#            Traceback (most recent call last):
-#            ...
-#            TypeError: base extension not defined for Rational Field
-#            sage: ZZ.base_extend(GF(7))
-#            Finite Field of size 7
-#        """
-#        # Use the coerce map if a base extend is not defined in the category.
-#        # this is the default implementation.
-#        try:
-#            if category is None:
-#                method = self._categories[0].get_object_method("base_extend") # , self._categories[1:])
-#            else:
-#                method = category.get_object_method("base_extend")
-#            if method is not None:
-#                return method(self)
-#            elif other.has_coerce_map_from(self):
-#                return other
-#            else:
-#                raise TypeError, "base extension not defined for %s" % self
-#        except AttributeError:
-#            raise TypeError, "base extension not defined for %s" % self
 
 ############################################################################
 # Set base class --

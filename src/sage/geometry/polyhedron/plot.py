@@ -726,20 +726,6 @@ class Projection(SageObject):
         deprecation(16625, 'use Projection.plot instead')
         return self.plot(*args, **kwds)
 
-    def _graphics_(self, **kwds):
-        """
-        Display projection graphically on the Sage command line.
-
-        See :meth:`~sage.plot.graphics.Graphics._graphics_`.
-
-        EXAMPLES::
-
-            sage: polytopes.n_cube(3).projection()._graphics_(
-            ....:   mime_types={'image/png'})
-            Graphics file image/png
-        """
-        return self.plot()._graphics_(**kwds)
-
     def _init_from_2d(self, polyhedron):
         """
         Internal function: Initialize from polyhedron in 
@@ -761,7 +747,6 @@ class Projection(SageObject):
         self._init_points(polyhedron)
         self._init_lines_arrows(polyhedron)
         self._init_area_2d(polyhedron)
-
 
     def _init_from_3d(self, polyhedron):
         """

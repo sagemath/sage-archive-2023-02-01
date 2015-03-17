@@ -2348,7 +2348,7 @@ class TwoTernaryQuadratics(TwoAlgebraicForms):
             sage: p1 = a00*y0^2 + 2*a01*y0*y1 + a11*y1^2 + 2*a02*y0*y2 + 2*a12*y1*y2 + a22*y2^2
             sage: p2 = b00*y0^2 + 2*b01*y0*y1 + b11*y1^2 + 2*b02*y0*y2 + 2*b12*y1*y2 + b22*y2^2
             sage: q = invariant_theory.ternary_biquadratic(p1, p2, [y0, y1, y2])
-            sage: coeffs = det(t * q[0].matrix() + q[1].matrix()).polynomial(t).coeffs()
+            sage: coeffs = det(t * q[0].matrix() + q[1].matrix()).polynomial(t).coefficients(sparse=False)
             sage: q.Delta_invariant() == coeffs[3]
             True
         """

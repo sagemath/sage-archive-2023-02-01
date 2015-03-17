@@ -5795,6 +5795,10 @@ class StandardPermutations_n_abstract(Permutations):
             sage: P([2,3,1])
             [2, 3, 1, 4, 5]
         """
+        if isinstance(x, PermutationGroupElement):
+            if self.has_coerce_map_from(x.parent()):
+                return self(x.domain())
+            raise TypeError("unable to coerce permutation group element")
         if len(x) < self.n:
             x = list(x) + range(len(x)+1, self.n+1)
         return super(StandardPermutations_n_abstract, self).__call__(x, check_input=check_input)
@@ -5860,6 +5864,34 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         """
         for p in itertools.permutations(range(1, self.n+1), self.n):
             yield self.element_class(self, p)
+
+    def _coerce_map_from_(self, G):
+        """
+        Return a coerce map or ``True`` if there exists a coerce map
+        from ``G``.
+
+        EXAMPLES::
+
+            sage: P = Permtuations(6)
+            sage: P.has_coerce_map_from(SymmetricGroup(6))
+            True
+            sage: P.has_coerce_map_from(SymmetricGroup(5))
+            True
+            sage: P.has_coerce_map_from(SymmetricGroup(7))
+            False
+            sage: P.has_coerce_map_from(Permutations(5))
+            True
+            sage: P.has_coerce_map_from(Permutations(7))
+            False
+        """
+        if isinstance(G, SymmetricGroup):
+            D = G.domain()
+            if len(D) > self.n or list(D) != range(1, len(D)+1):
+                return False
+            return lambda x: self(x.domain())
+        if isinstance(G, StandardPermutations_n) and G.n <= self.n:
+            return True
+        return super(StandardPermutations_n, self)._coerce_map_from_(G)
 
     def identity(self):
         r"""

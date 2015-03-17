@@ -2323,7 +2323,7 @@ class TwoTernaryQuadratics(TwoAlgebraicForms):
         sage: R.<x,y,z> = QQ[]
         sage: inv = invariant_theory.ternary_biquadratic(x^2+y^2+z^2, x*y+y*z+x*z, [x, y, z])
         sage: inv
-        Joint ternary quadratic with coefficients (1, 1, 1, 0, 0, 0) and ternary 
+        Joint ternary quadratic with coefficients (1, 1, 1, 0, 0, 0) and ternary
         quadratic with coefficients (0, 0, 0, 1, 1, 1)
         sage: TestSuite(inv).run()
 
@@ -2343,7 +2343,7 @@ class TwoTernaryQuadratics(TwoAlgebraicForms):
         Return the `\Delta` invariant.
 
         EXAMPLES::
-       
+
             sage: R.<a00, a01, a11, a02, a12, a22, b00, b01, b11, b02, b12, b22, y0, y1, y2, t> = QQ[]
             sage: p1 = a00*y0^2 + 2*a01*y0*y1 + a11*y1^2 + 2*a02*y0*y2 + 2*a12*y1*y2 + a22*y2^2
             sage: p2 = b00*y0^2 + 2*b01*y0*y1 + b11*y1^2 + 2*b02*y0*y2 + 2*b12*y1*y2 + b22*y2^2
@@ -2359,7 +2359,7 @@ class TwoTernaryQuadratics(TwoAlgebraicForms):
         Return the `\Delta'` invariant.
 
         EXAMPLES::
-       
+
             sage: R.<a00, a01, a11, a02, a12, a22, b00, b01, b11, b02, b12, b22, y0, y1, y2, t> = QQ[]
             sage: p1 = a00*y0^2 + 2*a01*y0*y1 + a11*y1^2 + 2*a02*y0*y2 + 2*a12*y1*y2 + a22*y2^2
             sage: p2 = b00*y0^2 + 2*b01*y0*y1 + b11*y1^2 + 2*b02*y0*y2 + 2*b12*y1*y2 + b22*y2^2
@@ -2393,7 +2393,7 @@ class TwoTernaryQuadratics(TwoAlgebraicForms):
         Return the `\Theta` invariant.
 
         EXAMPLES::
-       
+
             sage: R.<a00, a01, a11, a02, a12, a22, b00, b01, b11, b02, b12, b22, y0, y1, y2, t> = QQ[]
             sage: p1 = a00*y0^2 + 2*a01*y0*y1 + a11*y1^2 + 2*a02*y0*y2 + 2*a12*y1*y2 + a22*y2^2
             sage: p2 = b00*y0^2 + 2*b01*y0*y1 + b11*y1^2 + 2*b02*y0*y2 + 2*b12*y1*y2 + b22*y2^2
@@ -2409,7 +2409,7 @@ class TwoTernaryQuadratics(TwoAlgebraicForms):
         Return the `\Theta'` invariant.
 
         EXAMPLES::
-       
+
             sage: R.<a00, a01, a11, a02, a12, a22, b00, b01, b11, b02, b12, b22, y0, y1, y2, t> = QQ[]
             sage: p1 = a00*y0^2 + 2*a01*y0*y1 + a11*y1^2 + 2*a02*y0*y2 + 2*a12*y1*y2 + a22*y2^2
             sage: p2 = b00*y0^2 + 2*b01*y0*y1 + b11*y1^2 + 2*b02*y0*y2 + 2*b12*y1*y2 + b22*y2^2
@@ -2425,13 +2425,13 @@ class TwoTernaryQuadratics(TwoAlgebraicForms):
         Return the `F` covariant.
 
         EXAMPLES::
-       
+
             sage: R.<a00, a01, a11, a02, a12, a22, b00, b01, b11, b02, b12, b22, x, y> = QQ[]
             sage: p1 = 73*x^2 + 96*x*y - 11*y^2 + 4*x + 63*y + 57
             sage: p2 = 61*x^2 - 100*x*y - 72*y^2 - 81*x + 39*y - 7
             sage: q = invariant_theory.ternary_biquadratic(p1, p2, [x, y])
             sage: q.F_covariant()
-            -32566577*x^2 + 29060637/2*x*y + 20153633/4*y^2 - 
+            -32566577*x^2 + 29060637/2*x*y + 20153633/4*y^2 -
             30250497/2*x - 241241273/4*y - 323820473/16
         """
         C = self.first().covariant_conic(self.second())
@@ -2443,14 +2443,14 @@ class TwoTernaryQuadratics(TwoAlgebraicForms):
         Return the `J` covariant.
 
         EXAMPLES::
-       
+
             sage: R.<a00, a01, a11, a02, a12, a22, b00, b01, b11, b02, b12, b22, x, y> = QQ[]
             sage: p1 = 73*x^2 + 96*x*y - 11*y^2 + 4*x + 63*y + 57
             sage: p2 = 61*x^2 - 100*x*y - 72*y^2 - 81*x + 39*y - 7
             sage: q = invariant_theory.ternary_biquadratic(p1, p2, [x, y])
             sage: q.J_covariant()
-            1057324024445*x^3 + 1209531088209*x^2*y + 942116599708*x*y^2 + 
-            984553030871*y^3 + 543715345505/2*x^2 - 3065093506021/2*x*y + 
+            1057324024445*x^3 + 1209531088209*x^2*y + 942116599708*x*y^2 +
+            984553030871*y^3 + 543715345505/2*x^2 - 3065093506021/2*x*y +
             755263948570*y^2 - 1118430692650*x - 509948695327/4*y + 3369951531745/8
         """
         return self._jacobian_determinant(
@@ -2473,9 +2473,9 @@ class TwoTernaryQuadratics(TwoAlgebraicForms):
         Zero if ``S`` is the first polynomial, ``S_prime`` the
         second polynomial, and the remaining input are the invariants
         and covariants of a ternary biquadratic.
-        
+
         EXAMPLES::
-  
+
             sage: R.<x,y,z> = QQ[]
             sage: monomials = [x^2, x*y, y^2, x*z, y*z, z^2]
             sage: def q_rnd():  return sum(randint(-1000,1000)*m for m in monomials)
@@ -2497,10 +2497,11 @@ class TwoTernaryQuadratics(TwoAlgebraicForms):
             sage: biquadratic.syzygy(1, 1, 1, 1, 1, 1, 1, x)
             1/64*x^2 + 1
         """
-        return (J**2 / 64
+        R = self._ring.base_ring()
+        return (J**2 / R(64)
                 + F**3
                 - 2 * F**2 * Theta*S_prime
-                - 2 * F**2 * Theta_prime*S 
+                - 2 * F**2 * Theta_prime*S
                 + F * S**2 * (Delta_prime * Theta + Theta_prime**2)
                 + F * S_prime**2 * (Delta * Theta_prime + Theta**2)
                 + 3 * F * S * S_prime * (Theta*Theta_prime - Delta*Delta_prime)
@@ -2512,7 +2513,7 @@ class TwoTernaryQuadratics(TwoAlgebraicForms):
                     Delta * Delta_prime * Theta - Theta_prime * Theta**2)
         )
 
-    
+
 ######################################################################
 
 class TwoQuaternaryQuadratics(TwoAlgebraicForms):
@@ -3290,7 +3291,7 @@ can then be queried for invariant and covariants. For example,
             <class 'sage.rings.invariant_theory.TwoTernaryQuadratics'>
 
         Distance between two circles::
-        
+
             sage: R.<x,y, a,b, r1,r2> = QQ[]
             sage: S1 = -r1^2 + x^2 + y^2
             sage: S2 = -r2^2 + (x-a)^2 + (y-b)^2
@@ -3304,16 +3305,16 @@ can then be queried for invariant and covariants. For example,
             sage: inv.Theta_prime_invariant()
             a^2 + b^2 - r1^2 - 2*r2^2
             sage: inv.F_covariant()
-            2*x^2*a^2 + y^2*a^2 - 2*x*a^3 + a^4 + 2*x*y*a*b - 2*y*a^2*b + x^2*b^2 + 
-            2*y^2*b^2 - 2*x*a*b^2 + 2*a^2*b^2 - 2*y*b^3 + b^4 - 2*x^2*r1^2 - 2*y^2*r1^2 + 
-            2*x*a*r1^2 - 2*a^2*r1^2 + 2*y*b*r1^2 - 2*b^2*r1^2 + r1^4 - 2*x^2*r2^2 - 
-            2*y^2*r2^2 + 2*x*a*r2^2 - 2*a^2*r2^2 + 2*y*b*r2^2 - 2*b^2*r2^2 + 2*r1^2*r2^2 + 
+            2*x^2*a^2 + y^2*a^2 - 2*x*a^3 + a^4 + 2*x*y*a*b - 2*y*a^2*b + x^2*b^2 +
+            2*y^2*b^2 - 2*x*a*b^2 + 2*a^2*b^2 - 2*y*b^3 + b^4 - 2*x^2*r1^2 - 2*y^2*r1^2 +
+            2*x*a*r1^2 - 2*a^2*r1^2 + 2*y*b*r1^2 - 2*b^2*r1^2 + r1^4 - 2*x^2*r2^2 -
+            2*y^2*r2^2 + 2*x*a*r2^2 - 2*a^2*r2^2 + 2*y*b*r2^2 - 2*b^2*r2^2 + 2*r1^2*r2^2 +
             r2^4
             sage: inv.J_covariant()
-            -8*x^2*y*a^3 + 8*x*y*a^4 + 8*x^3*a^2*b - 16*x*y^2*a^2*b - 8*x^2*a^3*b + 
-            8*y^2*a^3*b + 16*x^2*y*a*b^2 - 8*y^3*a*b^2 + 8*x*y^2*b^3 - 8*x^2*a*b^3 + 
-            8*y^2*a*b^3 - 8*x*y*b^4 + 8*x*y*a^2*r1^2 - 8*y*a^3*r1^2 - 8*x^2*a*b*r1^2 + 
-            8*y^2*a*b*r1^2 + 8*x*a^2*b*r1^2 - 8*x*y*b^2*r1^2 - 8*y*a*b^2*r1^2 + 8*x*b^3*r1^2 - 
+            -8*x^2*y*a^3 + 8*x*y*a^4 + 8*x^3*a^2*b - 16*x*y^2*a^2*b - 8*x^2*a^3*b +
+            8*y^2*a^3*b + 16*x^2*y*a*b^2 - 8*y^3*a*b^2 + 8*x*y^2*b^3 - 8*x^2*a*b^3 +
+            8*y^2*a*b^3 - 8*x*y*b^4 + 8*x*y*a^2*r1^2 - 8*y*a^3*r1^2 - 8*x^2*a*b*r1^2 +
+            8*y^2*a*b*r1^2 + 8*x*a^2*b*r1^2 - 8*x*y*b^2*r1^2 - 8*y*a*b^2*r1^2 + 8*x*b^3*r1^2 -
             8*x*y*a^2*r2^2 + 8*x^2*a*b*r2^2 - 8*y^2*a*b*r2^2 + 8*x*y*b^2*r2^2
         """
         q1 = TernaryQuadratic(3, 2, quadratic1, *args, **kwds)

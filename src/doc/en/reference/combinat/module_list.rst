@@ -180,6 +180,7 @@ Comprehensive Module list
     sage/combinat/rigged_configurations/bij_type_C
     sage/combinat/rigged_configurations/bij_type_D
     sage/combinat/rigged_configurations/bij_type_D_twisted
+    sage/combinat/rigged_configurations/bij_type_D_tri
     sage/combinat/rigged_configurations/bijection
     sage/combinat/rigged_configurations/kleber_tree
     sage/combinat/rigged_configurations/kr_tableaux

@@ -8,10 +8,11 @@ AUTHORS:
 
 - Travis Scrimshaw (2011-04-15): Initial version
 - Travis Scrimshaw (2012-12-21): Added all non-exceptional bijection types
+- Travis Scrimshaw (2014-09-10): Added type `D_4^{(3)}`
 """
 
 #*****************************************************************************
-#       Copyright (C) 2011, 2012 Travis Scrimshaw <tscrim@ucdavis.edu>
+#       Copyright (C) 2011-2014 Travis Scrimshaw <tscrim@ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -49,6 +50,9 @@ from sage.combinat.rigged_configurations.bij_type_A2_dual import RCToKRTBijectio
 from sage.combinat.rigged_configurations.bij_type_A2_odd import KRTToRCBijectionTypeA2Odd
 from sage.combinat.rigged_configurations.bij_type_A2_odd import RCToKRTBijectionTypeA2Odd
 
+from sage.combinat.rigged_configurations.bij_type_D_tri import KRTToRCBijectionTypeDTri
+from sage.combinat.rigged_configurations.bij_type_D_tri import RCToKRTBijectionTypeDTri
+
 def KRTToRCBijection(tp_krt):
     r"""
     Return the correct KR tableaux to rigged configuration bijection helper class.
@@ -83,7 +87,8 @@ def KRTToRCBijection(tp_krt):
         if ct.dual().type() == 'C': # D_{n+1}^{(2)}
             return KRTToRCBijectionTypeDTwisted(tp_krt)
         #if ct.dual().type() == 'F': # E_6^{(2)}
-        #if ct.dual().type() == 'G': # D_4^{(3)}
+        if ct.dual().type() == 'G': # D_4^{(3)}
+            return KRTToRCBijectionTypeDTri(tp_krt)
     raise NotImplementedError
 
 def RCToKRTBijection(rigged_configuration_elt):
@@ -120,6 +125,7 @@ def RCToKRTBijection(rigged_configuration_elt):
         if ct.dual().type() == 'C': # D_{n+1}^{(2)}
             return RCToKRTBijectionTypeDTwisted(rigged_configuration_elt)
         #if ct.dual().type() == 'F': # E_6^{(2)}
-        #if ct.dual().type() == 'G': # D_4^{(3)}
+        if ct.dual().type() == 'G': # D_4^{(3)}
+            return RCToKRTBijectionTypeDTri(rigged_configuration_elt)
     raise NotImplementedError
 

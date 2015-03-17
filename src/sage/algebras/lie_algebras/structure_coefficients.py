@@ -289,6 +289,11 @@ class AbelianLieAlgebra(LieAlgebraWithStructureCoefficients):
         Normalize input to ensure a unique representation.
 
         TESTS::
+
+            sage: L1 = LieAlgebra(QQ, 'x,y', {})
+            sage: L2.<x, y> = LieAlgebra(QQ, abelian=True)
+            sage: L1 is L2
+            True
         """
         names, index_set = LieAlgebra._standardize_names_index_set(names, index_set)
         return super(AbelianLieAlgebra, cls).__classcall__(cls, R, names, index_set, **kwds)

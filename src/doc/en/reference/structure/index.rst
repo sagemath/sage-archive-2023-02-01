@@ -23,7 +23,6 @@ Basic Structures
    sage/structure/element_wrapper
    sage/structure/indexed_generators
    sage/structure/global_options
-   sage/structure/graphics_file
 
    sage/sets/cartesian_product
    sage/sets/family

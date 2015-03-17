@@ -348,10 +348,3 @@ cdef extern from "ntl_wrap.h":
 
     void vec_GF2_conv_mat_GF2 "conv" (vec_GF2_c out, mat_GF2_c inp)
     void mat_GF2_conv_vec_GF2(mat_GF2_c out, vec_GF2_c inp)
-
-
-cdef extern from "ZZ_pylong.h":
-    object ZZ_get_pylong(ZZ_c z)
-    int ZZ_set_pylong(ZZ_c z, object ll)
-
-

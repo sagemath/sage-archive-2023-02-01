@@ -101,8 +101,12 @@ def init_sage():
     sage.doctest.DOCTEST_MODE=True
     import sage.all_cmdline
     sage.interfaces.quit.invalidate_all()
-    import sage.repl.display.python_hook
-    sys.displayhook = sage.repl.display.python_hook.DoctestDisplayHook()
+
+    # Use the rich output backend for doctest 
+    from sage.repl.rich_output import get_display_manager
+    dm = get_display_manager()
+    from sage.repl.rich_output.backend_doctest import BackendDoctest
+    dm.switch_backend(BackendDoctest())
 
     # Switch on extra debugging
     from sage.structure.debug_options import debug

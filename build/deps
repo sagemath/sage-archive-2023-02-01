@@ -60,6 +60,7 @@ all-sage: \
      $(INST)/$(IPYTHON) \
      $(INST)/$(JINJA2) \
      $(INST)/$(JMOL) \
+     $(INST)/$(JSONSCHEMA) \
      $(INST)/$(LCALC) \
      $(INST)/$(LRCALC) \
      $(INST)/$(LIBGAP) \
@@ -67,6 +68,7 @@ all-sage: \
      $(INST)/$(LINBOX) \
      $(INST)/$(M4RI) \
      $(INST)/$(M4RIE) \
+     $(INST)/$(MATHJAX) \
      $(INST)/$(MATPLOTLIB) \
      $(INST)/$(MAXIMA) \
      $(INST)/$(MPC) \
@@ -310,6 +312,9 @@ $(INST)/$(GAP): $(INST)/$(NCURSES) $(INST)/$(READLINE) $(INST)/$(SAGE_MP_LIBRARY
 $(INST)/$(LIBGAP): $(INST)/$(GAP)
 	+$(PIPE) "$(SAGE_SPKG) $(LIBGAP) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBGAP).log"
 
+$(INST)/$(JSONSCHEMA): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
+	+$(PIPE) "$(SAGE_SPKG) $(JSONSCHEMA) 2>&1" "tee -a $(SAGE_LOGS)/$(JSONSCHEMA).log"
+
 $(INST)/$(IPYTHON): $(INST)/$(PYTHON) $(INST)/$(JINJA2) $(INST)/$(TORNADO) $(INST)/$(PYZMQ)
 	+$(PIPE) "$(SAGE_SPKG) $(IPYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(IPYTHON).log"
 
@@ -390,6 +395,9 @@ $(INST)/$(BACKPORTS_SSL_MATCH_HOSTNAME): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 $(INST)/$(TORNADO): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) \
                     $(INST)/$(BACKPORTS_SSL_MATCH_HOSTNAME) $(INST)/$(CERTIFI)
 	+$(PIPE) "$(SAGE_SPKG) $(TORNADO) 2>&1" "tee -a $(SAGE_LOGS)/$(TORNADO).log"
+
+$(INST)/$(MATHJAX):
+	+$(PIPE) "$(SAGE_SPKG) $(MATHJAX) 2>&1" "tee -a $(SAGE_LOGS)/$(MATHJAX).log"
 
 $(INST)/$(MATPLOTLIB): $(INST)/$(PYTHON) $(INST)/$(NUMPY) \
                        $(INST)/$(FREETYPE) $(INST)/$(LIBPNG) \

@@ -30,25 +30,6 @@ Next, we summarize some of the properties of the functions
 implemented here.
 
 
--  Airy function The function `Ai(x)` and the related
-   function `Bi(x)`, which is also called an Airy function,
-   are solutions to the differential equation
-
-
-   .. math::
-
-         y'' - xy = 0,
-
-   known as the Airy equation. They belong to the class of 'Bessel functions of
-   fractional order'. The initial conditions
-   `Ai(0) = (\Gamma(2/3)3^{2/3})^{-1}`,
-   `Ai'(0) = -(\Gamma(1/3)3^{1/3})^{-1}` define
-   `Ai(x)`. The initial conditions
-   `Bi(0) = 3^{1/2}Ai(0)`, `Bi'(0) = -3^{1/2}Ai'(0)`
-   define `Bi(x)`.
-
-   They are named after the British astronomer George Biddell Airy.
-
 -  Spherical harmonics: Laplace's equation in spherical coordinates
    is:
 
@@ -162,8 +143,6 @@ REFERENCES:
 - Abramowitz and Stegun: Handbook of Mathematical Functions,
   http://www.math.sfu.ca/~cbm/aands/
 
-- http://en.wikipedia.org/wiki/Airy_function
-
 - http://en.wikipedia.org/wiki/Spherical_harmonics
 
 - http://en.wikipedia.org/wiki/Helmholtz_equation
@@ -230,11 +209,12 @@ def _init():
         sage: sage.functions.special._done
         False
 
-    Then after using one of these functions, it changes::
+    Then after using one of the MaximaFunctions, it changes::
 
-        sage: from sage.functions.special import airy_ai
-        sage: airy_ai(1.0)
-        0.1352924163128814
+        sage: from sage.functions.special import elliptic_ec
+        sage: elliptic_ec(0.1)
+        1.53075763689776
+
         sage: sage.functions.special._done
         True
     """
@@ -247,14 +227,15 @@ def _init():
 
 def meval(x):
     """
-    Returns ``x`` evaluated in Maxima, then returned to Sage.
+    Return ``x`` evaluated in Maxima, then returned to Sage.
+
     This is used to evaluate several of these special functions.
 
     TEST::
 
-        sage: from sage.functions.special import airy_ai
-        sage: airy_bi(1.0)
-        1.207423594952871
+        sage: from sage.functions.special import spherical_bessel_J
+        sage: spherical_bessel_J(2.,3.)      # rel tol 1e-10
+        0.2986374970757335
     """
     return maxima(x).sage()
 
@@ -446,79 +427,6 @@ def maxima_function(name):
     return NewMaximaFunction()
 
 
-def airy_ai(x):
-   r"""
-   The function `Ai(x)` and the related function `Bi(x)`,
-   which is also called an *Airy function*, are
-   solutions to the differential equation
-
-   .. math::
-
-      y'' - xy = 0,
-
-   known as the *Airy equation*. The initial conditions
-   `Ai(0) = (\Gamma(2/3)3^{2/3})^{-1}`,
-   `Ai'(0) = -(\Gamma(1/3)3^{1/3})^{-1}` define `Ai(x)`.
-   The initial conditions `Bi(0) = 3^{1/2}Ai(0)`,
-   `Bi'(0) = -3^{1/2}Ai'(0)` define `Bi(x)`.
-
-   They are named after the British astronomer George Biddell Airy.
-   They belong to the class of "Bessel functions of fractional order".
-
-   EXAMPLES::
-
-       sage: airy_ai(1.0)        # last few digits are random
-       0.135292416312881400
-       sage: airy_bi(1.0)        # last few digits are random
-       1.20742359495287099
-
-   REFERENCE:
-
-   - Abramowitz and Stegun: Handbook of Mathematical Functions,
-     http://www.math.sfu.ca/~cbm/aands/
-
-   - http://en.wikipedia.org/wiki/Airy_function
-   """
-   _init()
-   return RDF(meval("airy_ai(%s)"%RDF(x)))
-
-def airy_bi(x):
-   r"""
-   The function `Ai(x)` and the related function `Bi(x)`,
-   which is also called an *Airy function*, are
-   solutions to the differential equation
-
-   .. math::
-
-      y'' - xy = 0,
-
-   known as the *Airy equation*. The initial conditions
-   `Ai(0) = (\Gamma(2/3)3^{2/3})^{-1}`,
-   `Ai'(0) = -(\Gamma(1/3)3^{1/3})^{-1}` define `Ai(x)`.
-   The initial conditions `Bi(0) = 3^{1/2}Ai(0)`,
-   `Bi'(0) = -3^{1/2}Ai'(0)` define `Bi(x)`.
-
-   They are named after the British astronomer George Biddell Airy.
-   They belong to the class of "Bessel functions of fractional order".
-
-   EXAMPLES::
-
-       sage: airy_ai(1)        # last few digits are random
-       0.135292416312881400
-       sage: airy_bi(1)        # last few digits are random
-       1.20742359495287099
-
-   REFERENCE:
-
-   - Abramowitz and Stegun: Handbook of Mathematical Functions,
-     http://www.math.sfu.ca/~cbm/aands/
-
-   - http://en.wikipedia.org/wiki/Airy_function
-   """
-   _init()
-   return RDF(meval("airy_bi(%s)"%RDF(x)))
-
-
 def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
     r"""
     Default is a wrap of PARI's hyperu(alpha,beta,x) function.
@@ -552,17 +460,17 @@ def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
         sage: hypergeometric_U(1,1,1,"pari",70)
         0.59634736232319407434...
     """
-    if algorithm=="scipy":
+    if algorithm == "scipy":
         if prec != 53:
             raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
-        return RDF(scipy.special.hyperu(float(alpha),float(beta),float(x)))
-    elif algorithm=='pari':
+        return RDF(scipy.special.hyperu(float(alpha), float(beta), float(x)))
+    elif algorithm == 'pari':
         from sage.libs.pari.all import pari
         R = RealField(prec)
         return R(pari(R(alpha)).hyperu(R(beta), R(x), precision=prec))
     else:
-        raise ValueError("unknown algorithm '%s'"%algorithm)
+        raise ValueError("unknown algorithm '%s'" % algorithm)
 
 def spherical_bessel_J(n, var, algorithm="maxima"):
     r"""
@@ -580,7 +488,7 @@ def spherical_bessel_J(n, var, algorithm="maxima"):
         sage: spherical_bessel_J(1, 3, algorithm='scipy')
         0.345677499762355...
     """
-    if algorithm=="scipy":
+    if algorithm == "scipy":
         from scipy.special.specfun import sphj
         return CDF(sphj(int(n), float(var))[1][-1])
     elif algorithm == 'maxima':
@@ -602,7 +510,7 @@ def spherical_bessel_Y(n,var, algorithm="maxima"):
         sage: spherical_bessel_Y(2,x)
         -((3/x^2 - 1)*cos(x) + 3*sin(x)/x)/x
     """
-    if algorithm=="scipy":
+    if algorithm == "scipy":
         import scipy.special
         return CDF(scipy.special.sph_yn(int(n),float(var)))
     elif algorithm == 'maxima':
@@ -893,9 +801,10 @@ class EllipticEC(MaximaFunction):
 
 elliptic_ec = EllipticEC()
 
+
 class EllipticEU(MaximaFunction):
     r"""
-    This returns the value of the "incomplete elliptic integral of the
+    Return the value of the "incomplete elliptic integral of the
     second kind,"
 
     .. math::

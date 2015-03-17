@@ -814,14 +814,14 @@ framework. Here is a comprehensive list:
        sage: sloane_sequence(60843)       # optional - internet
 
   - **bug:** For lines that describe bugs. Alternatively, use ``# known bug``
-    instead: it is an alias for ``optional bug``.::
+    instead: it is an alias for ``optional bug``. ::
 
-      The following should yield 4.  See :trac:`2`. ::
+        The following should yield 4.  See :trac:`2`. ::
 
-          sage: 2+2  # optional: bug
-          5
-          sage: 2+2  # known bug
-          5
+            sage: 2+2  # optional: bug
+            5
+            sage: 2+2  # known bug
+            5
 
   .. NOTE::
 
@@ -836,6 +836,21 @@ framework. Here is a comprehensive list:
 
       - Optional tags are case-insensitive, so you could also write ``optional:
         chOMP``.
+
+- **indirect doctest:** in the docstring of a function ``A(...)``, a line
+  calling ``A`` and in which the name ``A`` does not appear should have this
+  flag. This prevents ``sage --coverage <file>`` from reporting the docstring as
+  "not testing what it should test".
+
+  Use it when testing special functions like ``__repr__``, ``__add__``,
+  etc. Use it also when you test the function by calling ``B`` which
+  internally calls ``A``::
+
+      This is the docstring of an ``__add__`` method. The following
+      example tests it, but ``__add__`` is not written anywhere::
+
+          sage: 1+1 # indirect doctest
+          2
 
 - **32-bit** or **64-bit:** for tests that behave differently on 32-bit or
   64-bit machines. Note that this particular flag is to be applied on the

@@ -156,6 +156,7 @@ build()
     # Note that "--graphic=none" is (usually) added to PARI_CONFIGURE:
     bash ./Configure --prefix="$SAGE_LOCAL" \
         --with-readline="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" \
+        --with-runtime-perl="/usr/bin/env perl" \
         --kernel=gmp $PARI_CONFIGURE
 
     if [ $? -ne 0 ]; then

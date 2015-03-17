@@ -4895,19 +4895,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
     @coerce_binop
     def resultant(self, other):
         r"""
-        Returns the resultant of self and other.
+        Return the resultant of ``self`` and ``other``.
 
         INPUT:
 
-
-        -  ``other`` - a polynomial
-
+        - ``other`` -- a polynomial
 
         OUTPUT: an element of the base ring of the polynomial ring
 
-        .. note::
+        ALGORITHM:
 
-           Implemented using PARI's ``polresultant`` function.
+        Uses PARI's ``polresultant`` function.  For base rings that
+        are not supported by PARI, the resultant is computed as the
+        determinant of the Sylvester matrix.
 
         EXAMPLES::
 
@@ -4918,10 +4918,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: r.parent() is QQ
             True
 
-        We can also compute resultants over univariate and multivariate
-        polynomial rings, provided that PARI's variable ordering
-        requirements are respected. Usually, your resultants will work if
-        you always ask for them in the variable ``x``::
+        We can compute resultants over univariate and multivariate
+        polynomial rings::
 
             sage: R.<a> = QQ[]
             sage: S.<x> = R[]
@@ -4941,9 +4939,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: r.parent() is R
             True
 
-        Unfortunately Sage does not handle PARI's variable ordering
-        requirements gracefully, so the following has to be done
-        through Singular::
+        TESTS::
 
             sage: R.<x, y> = QQ[]
             sage: S.<a> = R[]
@@ -4987,17 +4983,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.resultant(g)
             0
 
+        Check that :trac:`17817` is fixed::
+
+            sage: A.<a,b,c> = Frac(PolynomialRing(QQ,'a,b,c'))
+            sage: B.<d,e,f> = PolynomialRing(A,'d,e,f')
+            sage: R.<x>= PolynomialRing(B,'x')
+            sage: S.<y> = PolynomialRing(R,'y')
+            sage: p = ((1/b^2*d^2+1/a)*x*y^2+a*b/c*y+e+x^2)
+            sage: q = -4*c^2*y^3+1
+            sage: p.resultant(q)
+            16*c^4*x^6 + 48*c^4*e*x^4 + (1/b^6*d^6 + 3/(a*b^4)*d^4 + ((-12*a^3*b*c + 3)/(a^2*b^2))*d^2 + (-12*a^3*b*c + 1)/a^3)*x^3 + 48*c^4*e^2*x^2 + (((-12*a*c)/b)*d^2*e + (-12*b*c)*e)*x + 16*c^4*e^3 + 4*a^3*b^3/c
+
         """
         variable = self.variable_name()
-        if variable != 'x' and self.parent()._mpoly_base_ring() != self.parent().base_ring():
-            bigring = sage.rings.polynomial.multi_polynomial.PolynomialRing(self.parent()._mpoly_base_ring(),list(self.parent().variable_names_recursive()))
-            newself = bigring(self)
-            newother = bigring(other)
-            return self.parent().base_ring()(newself.resultant(newother,bigring(self.parent().gen())))
-        # Single-variable polynomial or main variable is "x": we can
-        # try PARI to compute the resultant
         try:
-            res = self._pari_with_name().polresultant(other._pari_with_name())
+            res = self._pari_().polresultant(other._pari_(), variable)
             return self.parent().base_ring()(res)
         except (TypeError, ValueError, PariError, NotImplementedError):
             return self.sylvester_matrix(other).det()
@@ -5012,20 +5012,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             R_n := a_n^{2 n-2} \prod_{1<i<j<n} (r_i-r_j)^2,
 
-
         where `n` is the degree of self, `a_n` is the
         leading coefficient of self and the roots of self are
         `r_1, \ldots, r_n`.
 
         OUTPUT: An element of the base ring of the polynomial ring.
 
-        .. note::
+        ALGORITHM:
 
-           Uses the identity `R_n(f) := (-1)^{n (n-1)/2} R(f,
-           f') a_n^{n-k-2}`, where `n` is the degree of self,
-           `a_n` is the leading coefficient of self, `f'`
-           is the derivative of `f`, and `k` is the degree
-           of `f'`. Calls :meth:`.resultant`.
+        Uses the identity `R_n(f) := (-1)^{n (n-1)/2} R(f, f')
+        a_n^{n-k-2}`, where `n` is the degree of self, `a_n` is the
+        leading coefficient of self, `f'` is the derivative of `f`,
+        and `k` is the degree of `f'`. Calls :meth:`.resultant`.
 
         EXAMPLES:
 
@@ -5048,10 +5046,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: d = f.discriminant(); d
             -116
 
-        We can also compute discriminants over univariate and multivariate
-        polynomial rings, provided that PARI's variable ordering
-        requirements are respected. Usually, your discriminants will work
-        if you always ask for them in the variable ``x``::
+        We can compute discriminants over univariate and multivariate
+        polynomial rings::
 
             sage: R.<a> = QQ[]
             sage: S.<x> = R[]
@@ -5071,9 +5067,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: d.parent() is R
             True
 
-        Unfortunately Sage does not handle PARI's variable ordering
-        requirements gracefully, so the following has to be done
-        through Singular::
+        TESTS::
 
             sage: R.<x, y> = QQ[]
             sage: S.<a> = R[]

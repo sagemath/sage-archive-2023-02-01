@@ -65,7 +65,7 @@ If the dimension of the dual code is smaller, we will work on this code::
 
     sage: C2 = codes.HammingCode(3, GF(3))
     sage: P2 = LinearCodeAutGroupCanLabel(C2)
-    sage: P2.get_canonical_form().check_mat() == P.get_canonical_form().generator_matrix()
+    sage: P2.get_canonical_form().parity_check_matrix() == P.get_canonical_form().generator_matrix()
     True
 
 There is a specialization of this algorithm to pass a coloring on the
@@ -344,7 +344,7 @@ class LinearCodeAutGroupCanLabel:
                 P=P_refined, algorithm_type=algorithm_type)
             can_transp = agcl.get_transporter()
             can_transp.invert_v()
-            can_col_set = agcl.get_canonical_form().check_mat().columns()
+            can_col_set = agcl.get_canonical_form().parity_check_matrix().columns()
             A = agcl.get_autom_gens()
             for a in A:
                 a.invert_v()

@@ -66,8 +66,8 @@ This file contains
    bounds_minimum_distance which call tables in GUAVA (updated May 2006)
    created by Cen Tjhai instead of the online internet tables,
 
-#. generator_matrix, generator_matrix_systematic, information_set, list, check_mat, decode,
-   dual_code, extended_code, shortened, punctured, genus, binomial_moment,
+#. generator_matrix, generator_matrix_systematic, information_set, list, parity_check_matrix,
+   decode, dual_code, extended_code, shortened, punctured, genus, binomial_moment,
    and divisor methods for LinearCode,
 
 #. Boolean-valued functions such as "==", is_self_dual, is_self_orthogonal,
@@ -1366,6 +1366,11 @@ class LinearCode(module.Module):
         return cmp(self._generator_matrix, right._generator_matrix)
 
     def check_mat(self):
+        from sage.misc.superseded import deprecation
+        deprecation(17973, "check_mat method is now deprecated, please call parity_check_matrix instead")
+        return self.parity_check_matrix()
+
+    def parity_check_matrix(self):
         r"""
         Returns the check matrix of ``self``.
 
@@ -1381,11 +1386,11 @@ class LinearCode(module.Module):
              [0 1 0 0 1 0 1]
              [0 0 1 0 1 1 0]
              [0 0 0 1 1 1 1]
-            sage: C.check_mat()
+            sage: C.parity_check_matrix()
              [1 0 1 0 1 0 1]
              [0 1 1 0 0 1 1]
              [0 0 0 1 1 1 1]
-            sage: Cperp.check_mat()
+            sage: Cperp.parity_check_matrix()
              [1 0 0 0 0 1 1]
              [0 1 0 0 1 0 1]
              [0 0 1 0 1 1 0]
@@ -1653,8 +1658,8 @@ class LinearCode(module.Module):
             return False
         sbasis = self.gens()
         rbasis = right.gens()
-        scheck = self.check_mat()
-        rcheck = right.check_mat()
+        scheck = self.parity_check_matrix()
+        rcheck = right.parity_check_matrix()
         for c in sbasis:
             if rcheck*c:
                 return False
@@ -1882,7 +1887,7 @@ class LinearCode(module.Module):
             [1 2 0]
             [0 0 1]
         """
-        return self._generator_matrix.echelon_form()
+        return self.generator_matrix().echelon_form()
 
     def gens(self):
         r"""
@@ -1942,7 +1947,7 @@ class LinearCode(module.Module):
             sage: code.information_set()
             (0, 2)
         """
-        return self._generator_matrix.transpose().pivot_rows()
+        return self.generator_matrix().transpose().pivot_rows()
 
     def is_permutation_automorphism(self,g):
         r"""
@@ -1967,7 +1972,7 @@ class LinearCode(module.Module):
             0
         """
         basis = self.generator_matrix().rows()
-        H = self.check_mat()
+        H = self.parity_check_matrix()
         V = H.column_space()
         HGm = H*g.matrix()
         # raise TypeError, (type(H), type(V), type(basis[0]), type(Gmc))

@@ -1019,20 +1019,20 @@ def LinearCodeFromCheckMatrix(H):
     EXAMPLES::
 
         sage: C = codes.HammingCode(3,GF(2))
-        sage: H = C.check_mat(); H
+        sage: H = C.parity_check_matrix(); H
         [1 0 1 0 1 0 1]
         [0 1 1 0 0 1 1]
         [0 0 0 1 1 1 1]
         sage: codes.LinearCodeFromCheckMatrix(H) == C
         True
         sage: C = codes.HammingCode(2,GF(3))
-        sage: H = C.check_mat(); H
+        sage: H = C.parity_check_matrix(); H
         [1 0 1 1]
         [0 1 1 2]
         sage: codes.LinearCodeFromCheckMatrix(H) == C
         True
         sage: C = codes.RandomLinearCode(10,5,GF(4,"a"))
-        sage: H = C.check_mat()
+        sage: H = C.parity_check_matrix()
         sage: codes.LinearCodeFromCheckMatrix(H) == C
         True
     """

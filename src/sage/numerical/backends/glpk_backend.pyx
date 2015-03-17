@@ -1915,6 +1915,11 @@ cdef class GLPKBackend(GenericBackend):
         else:
             return 0.0
 
+    cpdef int get_row_stat(self, int variable):
+        return glp_get_row_stat(self.lp, variable+1)
+
+    cpdef int get_col_stat(self, int variable):
+        return glp_get_col_stat(self.lp, variable+1)
 
     def __dealloc__(self):
         """

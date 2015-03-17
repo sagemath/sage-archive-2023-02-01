@@ -237,6 +237,9 @@ ext_modules = [
     Extension('sage.combinat.crystals.letters',
               sources=['sage/combinat/crystals/letters.pyx']),
 
+    Extension('sage.combinat.designs.subhypergraph_search',
+              sources=['sage/combinat/designs/subhypergraph_search.pyx']),
+
     Extension('sage.combinat.designs.designs_pyx',
               sources=['sage/combinat/designs/designs_pyx.pyx'],
               libraries=['gmp']),
@@ -690,6 +693,10 @@ ext_modules = [
               extra_compile_args=["-DFPLLL_V3_COMPAT"],
               depends = [SAGE_INC + "/fplll/fplll.h"] + flint_depends),
 
+    Extension('sage.libs.gmp.pylong',
+              sources = ['sage/libs/gmp/pylong.pyx'],
+              libraries = ['gmp']),
+
     Extension('sage.libs.gmp.rational_reconstruction',
               sources = ['sage/libs/gmp/rational_reconstruction.pyx'],
               libraries = ['gmp']),
@@ -890,6 +897,11 @@ ext_modules = [
         ##
         ###################################
 
+    Extension('sage.libs.ntl.error',
+              sources = ["sage/libs/ntl/error.pyx"],
+              libraries = ["ntl", "gmp", "gmpxx"],
+              language='c++'),
+
     Extension('sage.libs.ntl.ntl_GF2',
               sources = ["sage/libs/ntl/ntl_GF2.pyx"],
               libraries = ["ntl", "gmp", "gmpxx"],
@@ -1041,10 +1053,6 @@ ext_modules = [
     Extension('sage.matrix.matrix_generic_sparse',
               sources = ['sage/matrix/matrix_generic_sparse.pyx']),
 
-    Extension('sage.matrix.matrix_integer_2x2',
-              sources = ['sage/matrix/matrix_integer_2x2.pyx'],
-              libraries = ['gmp']),
-
     Extension('sage.matrix.matrix_integer_dense',
               sources = ['sage/matrix/matrix_integer_dense.pyx'],
               extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
@@ -1189,8 +1197,8 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.modular.arithgroup.congroup_pyx',
-              sources = ['sage/modular/arithgroup/congroup_pyx.pyx']),
+    Extension('sage.modular.arithgroup.congroup',
+              sources = ['sage/modular/arithgroup/congroup.pyx']),
 
     Extension('sage.modular.arithgroup.farey_symbol',
               sources = ['sage/modular/arithgroup/farey_symbol.pyx',

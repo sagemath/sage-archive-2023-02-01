@@ -33,7 +33,6 @@
 #define STDSAGE_H
 
 #include "Python.h"
-#include "memory.h"
 
 /* Building with this not commented out causes
    serious problems on RHEL5 64-bit for Kiran Kedlaya... i.e., it doesn't work. */
@@ -42,14 +41,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-
-/*****************************************
-   PARI array element assignment
- *****************************************/
-#define set_gel(x, n, z)         (gel(x,n) = z)
-#define set_gmael(x, i, j, z)    (gmael(x,i,j) = z)
-#define set_gcoeff(x, i, j, z)   (gcoeff(x,i,j) = z)
 
 
 /******************************************

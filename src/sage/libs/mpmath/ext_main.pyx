@@ -1,4 +1,6 @@
 """
+mpmath floating-point numbers
+
 Implements mpf and mpc types, with binary operations and support
 for interaction with other types. Also implements the main
 context class, and related utilities.
@@ -14,12 +16,6 @@ from cpython.number cimport *
 
 from sage.libs.gmp.all cimport *
 from sage.rings.integer cimport Integer
-
-cdef extern from "mpz_pylong.h":
-    cdef mpz_get_pylong(mpz_t src)
-    cdef mpz_get_pyintlong(mpz_t src)
-    cdef int mpz_set_pylong(mpz_t dst, src) except -1
-    cdef long mpz_pythonhash(mpz_t src)
 
 DEF ROUND_N = 0
 DEF ROUND_F = 1
@@ -559,9 +555,9 @@ cdef class Context:
 
     def isnan(ctx, x):
         """
-        For an ``mpf`` *x*, determines whether *x* is not-a-number (nan)::
+        For an ``mpf`` *x*, determines whether *x* is not-a-number (nan).
 
-        TESTS ::
+        TESTS::
 
             sage: from mpmath import isnan, nan
             sage: isnan(nan), isnan(3)
@@ -590,9 +586,9 @@ cdef class Context:
     def isinf(ctx, x):
         """
         Return *True* if the absolute value of *x* is infinite;
-        otherwise return *False*::
+        otherwise return *False*.
 
-        TESTS ::
+        TESTS::
 
             sage: from mpmath import isinf, inf, mpc
             sage: isinf(inf)

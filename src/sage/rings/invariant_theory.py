@@ -2303,7 +2303,7 @@ class TwoAlgebraicForms(SeveralAlgebraicForms):
 
 class TwoTernaryQuadratics(TwoAlgebraicForms):
     """
-    Invariant theory of two ternany quadratics.
+    Invariant theory of two ternary quadratics.
 
     You should use the :class:`invariant_theory
     <InvariantTheoryFactory>` factory object to construct instances
@@ -2470,7 +2470,7 @@ class TwoTernaryQuadratics(TwoAlgebraicForms):
 
         OUTPUT:
 
-        Zero if the ``S`` is the first polynomial, ``S_prime`` the
+        Zero if ``S`` is the first polynomial, ``S_prime`` the
         second polynomial, and the remaining input are the invariants
         and covariants of a ternary biquadratic.
         
@@ -2780,7 +2780,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
 
     def T_covariant(self):
         """
-        The $T$-covariant.
+        The `T`-covariant.
 
         EXAMPLES::
        
@@ -2802,7 +2802,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
 
     def T_prime_covariant(self):
         """
-        The $T'$-covariant.
+        The `T'`-covariant.
 
         EXAMPLES::
        
@@ -2825,10 +2825,10 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
 
     def J_covariant(self):
         """
-        The $J$-covariant.
+        The `J`-covariant.
 
         This is the Jacobian determinant of the two biquadratics, the
-        $T$-covariant, and the $T'$-covariant with respect to the four
+        `T`-covariant, and the `T'`-covariant with respect to the four
         homogeneous variables.
         
         EXAMPLES::
@@ -3273,7 +3273,7 @@ can then be queried for invariant and covariants. For example,
 
         INPUT:
 
-        - ``quadratic1``, ``quadratic2`` -- two polynomias. Either
+        - ``quadratic1``, ``quadratic2`` -- two polynomials. Either
           homogeneous quadratic in 3 homogeneous variables, or
           inhomogeneous quadratic in 2 variables.
 

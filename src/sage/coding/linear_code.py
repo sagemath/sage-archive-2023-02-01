@@ -236,6 +236,7 @@ from sage.combinat.set_partition import SetPartitions
 from sage.misc.randstate import current_randstate
 from sage.misc.decorators import rename_keyword
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
 
 ZZ = IntegerRing()
 VectorSpace = fm.VectorSpace
@@ -1365,14 +1366,9 @@ class LinearCode(module.Module):
             return cmp(type(self), type(right))
         return cmp(self._generator_matrix, right._generator_matrix)
 
-    def check_mat(self):
-        from sage.misc.superseded import deprecation
-        deprecation(17973, "check_mat method is now deprecated, please call parity_check_matrix instead")
-        return self.parity_check_matrix()
-
     def parity_check_matrix(self):
         r"""
-        Returns the check matrix of ``self``.
+        Returns the parity check matrix of ``self``.
 
         EXAMPLES::
 
@@ -1402,6 +1398,8 @@ class LinearCode(module.Module):
         """
         Cperp = self.dual_code()
         return Cperp.generator_matrix()
+
+    check_mat = deprecated_function_alias(17973, parity_check_matrix)
 
     def covering_radius(self):
         r"""
@@ -1839,11 +1837,6 @@ class LinearCode(module.Module):
         codeword.set_immutable()
         return codeword
 
-    def gen_mat(self):
-        from sage.misc.superseded import deprecation
-        deprecation(17973, "gen_mat method is now deprecated, please call generator_matrix instead")
-        return self.generator_matrix()
-
     def generator_matrix(self):
         r"""
         Return a generator matrix of this code.
@@ -1864,10 +1857,7 @@ class LinearCode(module.Module):
         """
         return self._generator_matrix
 
-    def gen_mat_systematic(self):
-        from sage.misc.superseded import deprecation
-        deprecation(17973, "gen_mat_systematic method is now deprecated, please call generator_matrix_systematic instead")
-        return self.generator_matrix_systematic()
+    gen_mat = deprecated_function_alias(17973, generator_matrix)
 
     def generator_matrix_systematic(self):
         """
@@ -1888,6 +1878,8 @@ class LinearCode(module.Module):
             [0 0 1]
         """
         return self.generator_matrix().echelon_form()
+
+    gen_mat_systematic = deprecated_function_alias(17973, generator_matrix_systematic)
 
     def gens(self):
         r"""

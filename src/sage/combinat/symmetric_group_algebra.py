@@ -114,7 +114,7 @@ def SymmetricGroupAlgebra(R, n, index_set=None):
 
         sage: TestSuite(QS3).run()
     """
-    if not isinstance(index_set, (Permutations, SymmetricGroup)):
+    if index_set is not None and not isinstance(index_set, (Permutations, SymmetricGroup)):
         raise TypeError("the index set must be either Permutations or SymmetricGroup")
     return SymmetricGroupAlgebra_n(R, n, index_set)
 

@@ -5786,22 +5786,25 @@ class StandardPermutations_n_abstract(Permutations):
             category = FiniteEnumeratedSets()
         Permutations.__init__(self, category=category)
 
-    def __call__(self, x, check_input=True):
+    def _element_constructor_(self, x, check_input=True):
         """
-        A close variant of ``__call__`` which just attempts to extend the
-        permutation to the correct size before constructing the element.
+        Construct an element of ``self`` from ``x``.
+
+        TESTS::
 
             sage: P = Permutations(5)
             sage: P([2,3,1])
             [2, 3, 1, 4, 5]
+
+            sage: G = SymmetricGroup(4)
+            sage: P = Permutations(4)
+            sage: x = G([4,3,1,2])
+            sage: P(x)
+            [4, 3, 1, 2]
         """
-        if isinstance(x, PermutationGroupElement):
-            if self.has_coerce_map_from(x.parent()):
-                return self(x.domain())
-            raise TypeError("unable to coerce permutation group element")
         if len(x) < self.n:
             x = list(x) + range(len(x)+1, self.n+1)
-        return super(StandardPermutations_n_abstract, self).__call__(x, check_input=check_input)
+        return self.element_class(self, x, check_input=check_input)
 
     def __contains__(self, x):
         """
@@ -5872,7 +5875,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
         EXAMPLES::
 
-            sage: P = Permtuations(6)
+            sage: P = Permutations(6)
             sage: P.has_coerce_map_from(SymmetricGroup(6))
             True
             sage: P.has_coerce_map_from(SymmetricGroup(5))
@@ -5888,10 +5891,24 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             D = G.domain()
             if len(D) > self.n or list(D) != range(1, len(D)+1):
                 return False
-            return lambda x: self(x.domain())
+            return self._from_permutation_group_element
         if isinstance(G, StandardPermutations_n) and G.n <= self.n:
             return True
         return super(StandardPermutations_n, self)._coerce_map_from_(G)
+
+    def _from_permutation_group_element(self, x):
+        """
+        Return an element of ``self`` from a permtuation group element.
+
+        TESTS::
+
+            sage: P = Permutations(4)
+            sage: G = SymmetricGroup(4)
+            sage: x = G([4,3,1,2])
+            sage: P._from_permutation_group_element(x)
+            [4, 3, 1, 2]
+        """
+        return self(x.domain())
 
     def identity(self):
         r"""

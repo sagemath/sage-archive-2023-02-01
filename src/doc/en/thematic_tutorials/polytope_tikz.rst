@@ -164,6 +164,6 @@ in your preamble and use them with a sagesilent in your article:
   \polytopeimg{Polytope}{[276,-607,-746]}{102}{1}
   \polytopeimgopt{Polytope}{view=[-907,379,183]}{angle=129}{scale=2}{edge_color='red'}{facet_color='yellow'}{vertex_color='blue'}{opacity=0.6}{axis=False}
 
-.. end of outpu
+.. end of output
 
 Then, run pdflatex, execute Sage on the file article_name.sagetex.sage and run pdflatex again.

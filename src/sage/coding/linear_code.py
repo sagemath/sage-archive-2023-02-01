@@ -860,7 +860,7 @@ class LinearCode(module.Module):
             sage: C2.an_element()
             ((1, 0, 0, 0, 0, 1, 1), (1, 0, 0, 0, 0, 1, 1))
         """
-        return self._gens[0]
+        return self.gens()[0]
 
     def automorphism_group_gens(self, equivalence="semilinear"):
         r"""
@@ -940,7 +940,7 @@ class LinearCode(module.Module):
             sage: C.ambient_space()
             Vector space of dimension 7 over Finite Field of size 2
         """
-        return VectorSpace(self.base_ring(),self._length)
+        return VectorSpace(self.base_ring(),self.length())
 
     def assmus_mattson_designs(self, t, mode=None):
         r"""
@@ -1069,7 +1069,7 @@ class LinearCode(module.Module):
             sage: C.basis()
             [(1, 0, 0, 0, 0, 1, 1), (0, 1, 0, 0, 1, 0, 1), (0, 0, 1, 0, 1, 1, 0), (0, 0, 0, 1, 1, 1, 1)]
         """
-        return self._gens
+        return self.gens()
 
     # S. Pancratz, 19 Jan 2010:  In the doctests below, I removed the example
     # ``C.binomial_moment(3)``, which was also marked as ``#long``.  This way,
@@ -3058,7 +3058,7 @@ class LinearCode(module.Module):
             sage: C.sum((C.gens())) # indirect doctest
             (1, 1, 1, 1, 1, 1, 1)
         """
-        v = 0*self._gens[0]
+        v = 0*self.gens()[0]
         v.set_immutable()
         return v
 

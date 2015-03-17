@@ -2,7 +2,7 @@
 
 .. linkall
 
-.. _polytope_tikz:
+.. _polytikz:
 
 Draw polytopes in LateX using TikZ
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -56,17 +56,21 @@ You can customize the polytope using the following options in the command ``P.ti
 Examples
 """"""""
 
-Let's say I want to draw the polar dual of the following (nice!) polytope given by the following list of vertices:
+Let's say you want to draw the polar dual of the following (nice!) polytope given by the following list of vertices:
 
 ``[[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]``
 
-In Sage, I type:
+In Sage, you type:
 
-``P=Polyhedron(vertices=[[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]).polar()``
+::
 
-Then, I visualize the polytope by typing ``P.show(aspect_ratio=1)``
+    P=Polyhedron(vertices=[[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]).polar()``
 
-When I found a good angle, I follow the above procedure to obtain the values [674,108,-731] and angle=112, for example.
+.. end of output
+
+Then, you visualize the polytope by typing ``P.show(aspect_ratio=1)``
+
+When you found a good angle, I follow the above procedure to obtain the values [674,108,-731] and angle=112, for example.
 
 ::
 
@@ -74,7 +78,7 @@ When I found a good angle, I follow the above procedure to obtain the values [67
 
 .. end of output
 
-Then, I may want to customize using the command
+Then, you may want to customize using the command
 
 ::
 
@@ -82,7 +86,7 @@ Then, I may want to customize using the command
 
 .. end of output
 
-Further, I may want to edit deeper the style of the polytope inside the tikzpicture. For example, line 6-9 in the tikzpicture reads:
+Further, you may want to edit deeper the style of the polytope inside the tikzpicture. For example, line 6-9 in the tikzpicture reads:
 
 ::
 

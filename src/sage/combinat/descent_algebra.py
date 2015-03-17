@@ -99,8 +99,8 @@ class DescentAlgebra(Parent, UniqueRepresentation):
         sage: I(elt)
         7/6*I[1, 1, 1, 1] + 2*I[1, 1, 2] + 3*I[1, 2, 1] + 4*I[1, 3]
 
-    There is the following syntatic sugar for calling elements of a basis, note
-    that for the empty set one must use ``D[[]]`` due to python's syntax::
+    There is the following syntactic sugar for calling elements of a basis, note
+    that for the empty set one must use ``D[[]]`` due to Python's syntax::
 
         sage: D[[]] + D[2] + 2*D[1,2]
         D{} + 2*D{1, 2} + D{2}

@@ -14,7 +14,7 @@ Thematic tutorial document tree
    numtheory_rsa
    coding_theory
    polytutorial
-   polytikz
+   polytope_tikz
    tutorial-programming-python
    tutorial-comprehensions
    tutorial-objects-and-classes

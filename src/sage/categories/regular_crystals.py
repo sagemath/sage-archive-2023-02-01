@@ -18,9 +18,11 @@ Regular Crystals
 #****************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.categories.category import HomCategory
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals
 from sage.categories.tensor import TensorProductsCategory
+from sage.combinat.subset import Subsets
 
 class RegularCrystals(Category_singleton):
     r"""
@@ -119,6 +121,43 @@ class RegularCrystals(Category_singleton):
             sage: RegularCrystals().additional_structure()
         """
         return None
+
+    class HomCategory(HomCategory):
+        """
+        The category of homomorphisms sets `Hom(X,Y)` for a regular crystal `X`
+        and an arbitrary crystal `Y`.
+        """
+        class ElementMethods:
+            def is_isomorphism(self):
+                """
+                Check if ``self`` is a crystal isomorphism, which is true
+                if and only if this is a strict embedding with the same number
+                of connected components.
+
+                EXAMPLES::
+
+                    sage: La = RootSystem(['A',2,1]).weight_space().fundamental_weights()
+                    sage: B = crystals.LSPaths(La[0])
+                    sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
+                    sage: C = crystals.GeneralizedYoungWalls(2, La[0])
+                    sage: H = Hom(B, C)
+                    sage: from sage.categories.highest_weight_crystals import HighestWeightCrystalMorphism
+                    sage: class Psi(HighestWeightCrystalMorphism):
+                    ....:     def is_strict(self):
+                    ....:         return True
+                    sage: psi = Psi(H, C.module_generators)
+                    sage: psi
+                    ['A', 2, 1] Crystal morphism:
+                      From: The crystal of LS paths of type ['A', 2, 1] and weight Lambda[0]
+                      To:   Highest weight crystal of generalized Young walls of Cartan type ['A', 2, 1]
+                             and highest weight Lambda[0]
+                      Defn: (Lambda[0],) |--> []
+                    sage: psi.is_isomorphism()
+                    True
+                """
+                return self.is_strict() \
+                        and self.domain().number_of_connected_components() == \
+                            self.codomain().number_of_connected_components()
 
     class ParentMethods:
 

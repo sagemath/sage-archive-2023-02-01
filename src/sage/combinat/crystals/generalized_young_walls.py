@@ -617,13 +617,14 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
             raise TypeError("Must be an element in the weight lattice realization")
         ac = self.parent().weight_lattice_realization().simple_coroots()
         n = self.cartan_type().classical().rank()
+        index_set = self.index_set()
         for k in range(1,self.cols+1):
-            for j in self.index_set():
+            for j in index_set:
                 if self.a(j,k) - self.a( (j-1) % (n+1) ,k) <= 0:
                     continue
                 else:
                     p_not_found = True
-                    for p in self.index_set():
+                    for p in index_set:
                         if (j+k) % (n+1)  == (p+1) % (n+1) and self.a(j,k) - self.a( (j-1) % (n+1) ,k) <= La.scalar(ac[p]):
                             p_not_found = False
                             continue
@@ -788,8 +789,10 @@ class InfinityCrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
             sage: Y = crystals.infinity.GeneralizedYoungWalls(2)
             sage: S = Y.subset(max_depth=2)
             sage: S
-            [[], [[], [1]], [[], [], [2]], [[0]], [[0, 2]], [[0], [1]], [[], [], [2], [], [], [2]],
-            [[], [1], [2]], [[0], [], [], [0]], [[0], [], [2]], [[], [], [2, 1]], [[], [1], [], [], [1]], [[], [1, 0]]]
+            [[], [[], [1]], [[], [1], [2]], [[], [], [2]], [[0], [], [2]],
+             [[], [], [2, 1]], [[], [1], [], [], [1]], [[0]],
+             [[], [1, 0]], [[0, 2]], [[0], [1]], [[], [], [2], [], [], [2]],
+             [[0], [], [], [0]]]
         """
         return [c for c in self.subcrystal(max_depth=max_depth, direction='lower')]
 
@@ -968,8 +971,8 @@ class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
             sage: next(x)
             [0]
         """
-        for c in self.subcrystal(direction='lower'):
-            if c.in_highest_weight_crystal(self.hw) :
+        for c in super(CrystalOfGeneralizedYoungWalls, self).__iter__():
+            if c.in_highest_weight_crystal(self.hw):
                 yield c
 
     def subset(self, max_depth=4):
@@ -983,6 +986,7 @@ class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
             sage: S
             [[], [[0]], [[0, 2]], [[0], [1]], [[0, 2, 1]], [[0, 2], [1]]]
         """
-        return [c for c in self.subcrystal(max_depth=max_depth, direction='lower')
-                if c.in_highest_weight_crystal(self.hw)]
+        f = lambda c: c.in_highest_weight_crystal(self.hw)
+        return [c.value for c in self.subcrystal(contained=f,
+                            max_depth=max_depth, direction='lower')]
 

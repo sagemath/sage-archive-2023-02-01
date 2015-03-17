@@ -10,7 +10,9 @@ Highest Weight Crystals
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
-from sage.categories.crystals import Crystals
+from sage.categories.crystals import Crystals, CrystalHomset, \
+    CrystalMorphismByGenerators, TwistedCrystalMorphismByGenerators, \
+    VirtualCrystalMorphismByGenerators
 from sage.categories.tensor import TensorProductsCategory
 
 class HighestWeightCrystals(Category_singleton):
@@ -149,10 +151,11 @@ class HighestWeightCrystals(Category_singleton):
             else:
                 raise RuntimeError("The crystal does not have exactly one highest weight vector")
 
+        # TODO: Not every highest weight crystal is a lowest weight crystal
         @cached_method
         def lowest_weight_vectors(self):
             r"""
-            Returns the lowest weight vectors of ``self``
+            Return the lowest weight vectors of ``self``.
 
             This default implementation selects among all elements of the crystal
             those that are lowest weight, and cache the result.
@@ -163,16 +166,16 @@ class HighestWeightCrystals(Category_singleton):
 
                 sage: C = crystals.Letters(['A',5])
                 sage: C.lowest_weight_vectors()
-                [6]
+                (6,)
 
             ::
 
                 sage: C = crystals.Letters(['A',2])
                 sage: T = crystals.TensorProduct(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
                 sage: T.lowest_weight_vectors()
-                [[3, 2, 3], [3, 3, 2]]
+                ([3, 2, 3], [3, 3, 2])
             """
-            return [g for g in self if g.is_lowest_weight()]
+            return tuple(g for g in self if g.is_lowest_weight())
 
         def __iter__(self, index_set=None, max_depth = float("inf")):
             """
@@ -391,8 +394,48 @@ class HighestWeightCrystals(Category_singleton):
                 ret = P(ret, prec)
             return ret
 
-    class ElementMethods:
+        # TODO: This is not correct if a factor has multiple heads (i.e., we
+        #   should have a category for uniqueness of highest/lowest weights)
+        connected_components_generators = highest_weight_vectors
 
+        def _Hom_(self, Y, category=None, **options):
+            r"""
+            Return the homset from ``self`` to ``Y`` in the
+            category ``category``.
+
+            INPUT::
+
+            - ``Y`` -- a crystal
+            - ``category`` -- a subcategory of :class:`HighestWeightCrysals`()
+              or ``None``
+
+            The sole purpose of this method is to construct the homset as a
+            :class:`~sage.categories.highest_weight_crystals.HighestWeightCrystalHomset`.
+            If ``category`` is specified and is not a subcategory of
+            :class:`HighestWeightCrystals`, a ``TypeError`` is raised instead
+
+            This method is not meant to be called directly. Please use
+            :func:`sage.categories.homset.Hom` instead.
+
+            EXAMPLES::
+
+                sage: B = crystals.Tableaux(['A',2], shape=[2,1])
+                sage: H = B._Hom_(B)
+                sage: H
+                Set of Crystal Morphisms from The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
+                 to The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
+                sage: type(H)
+                <class 'sage.categories.highest_weight_crystals.HighestWeightCrystalHomset_with_category'>
+            """
+            if category is None:
+                category = self.category()
+            elif not category.is_subcategory(HighestWeightCrystals()):
+                raise TypeError("{} is not a subcategory of HighestWeightCrystals()".format(category))
+            if Y not in Crystals():
+                raise TypeError("{} is not a crystal".format(Y))
+            return HighestWeightCrystalHomset(self, Y, category=category, **options)
+
+    class ElementMethods:
         pass
 
     class TensorProducts(TensorProductsCategory):
@@ -479,3 +522,207 @@ class HighestWeightCrystals(Category_singleton):
                         it.append( iter(self.crystals[-len(path)-1]) )
                 return tuple(ret)
 
+###############################################################################
+## Morphisms
+
+class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
+    """
+    A crystal morphism whose domain is a highest weight crystal.
+
+    INPUT:
+
+    - ``parent`` -- a homset
+    - ``on_gens`` -- a function for the images of the module generators
+    - ``cartan_type`` -- (optional) the Cartan type of the morphism; the
+      default is the Cartan type of the domain
+    - ``index_set`` -- (optional) the index set of the morphism; the
+      default is the index set of the Cartan type
+    - ``gens`` -- a list of generators to define the morphism; the
+      default is to use the highest weight vectors of the crystal
+    - ``check`` -- (default: ``True``) check if the crystal morphism is valid
+    """
+    def __init__(self, parent, on_gens, cartan_type=None, index_set=None, gens=None, check=True):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: B = crystals.infinity.Tableaux(['B',2])
+            sage: C = crystals.infinity.NakajimaMonomials(['B',2])
+            sage: psi = B.crystal_morphism(C.module_generators)
+        """
+        if gens is None:
+            gens = parent.domain().highest_weight_vectors()
+        return CrystalMorphismByGenerators.__init__(self, parent, on_gens, cartan_type,
+                                                    index_set, gens, check)
+
+    def _call_(self, x):
+        """
+        Return the image of ``x`` under ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(['B',2])
+            sage: C = crystals.infinity.NakajimaMonomials(['B',2])
+            sage: psi = B.crystal_morphism(C.module_generators)
+            sage: b = B.highest_weight_vector()
+            sage: psi(b)
+            1
+            sage: c = psi(b.f_string([1,1,1,2,2,1,2,2])); c
+            Y(1,0)^-4 Y(2,0)^4 Y(2,1)^-4 
+            sage: c == C.highest_weight_vector().f_string([1,1,1,2,2,1,2,2])
+            True
+        """
+        mg, path = x.to_highest_weight(self._index_set)
+        y = self._on_gens(mg)
+        if y is None:
+            return None
+        return y.f_string(reversed(path))
+
+class HighestWeightTwistedCrystalMorphism(TwistedCrystalMorphismByGenerators):
+    """
+    A twisted crystal morphism whose domain is a highest weight crystal.
+
+    INPUT:
+
+    - ``parent`` -- a homset
+    - ``on_gens`` -- a function for the images of the generators
+    - ``automorphism`` -- the twisting automorphism
+    - ``cartan_type`` -- (optional) the Cartan type of the morphism; the
+      default is the Cartan type of the domain
+    - ``index_set`` -- (optional) the index set of the morphism; the
+      default is the index set of the Cartan type
+    - ``gens`` -- a list of generators to define the morphism; the
+      default is to use the highest weight vectors of the crystal
+    - ``check`` -- (default: ``True``) check if the crystal morphism is valid
+    """
+    def __init__(self, parent, on_gens, automorphism, cartan_type=None,
+                 index_set=None, gens=None, check=True):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: B = crystals.Tableaux(['D',4], shape=[1])
+            sage: H = Hom(B, B)
+            sage: d = {1:1, 2:2, 3:4, 4:3}
+            sage: psi = H(B.module_generators, automorphism=lambda x: d[x])
+        """
+        if gens is None:
+            gens = parent.domain().highest_weight_vectors()
+        return TwistedCrystalMorphismByGenerators.__init__(self, parent, on_gens, automorphism,
+                                                           cartan_type, index_set, gens, check)
+
+    def _call_(self, x):
+        """
+        Return the image of ``x`` under ``self``.
+
+        TESTS::
+
+            sage: B = crystals.Tableaux(['D',4], shape=[1])
+            sage: H = Hom(B, B)
+            sage: d = {1:1, 2:2, 3:4, 4:3}
+            sage: psi = H(B.module_generators, automorphism=lambda x: d[x])
+            sage: b = B.highest_weight_vector()
+            sage: psi(b.f_string([1,2,3]))
+            [[-4]]
+        """
+        mg, path = x.to_highest_weight(self._index_set)
+        y = self._on_gens(mg)
+        if y is None:
+            return None
+        return y.f_string(map(self._twist, reversed(path)))
+
+class HighestWeightVirtualCrystalMorphism(VirtualCrystalMorphismByGenerators):
+    r"""
+    A virtual crystal morphism whose domain is a highest weight crystal.
+
+    INPUT:
+
+    - ``parent`` -- a homset
+    - ``on_gens`` -- a function for the images of the generators
+    - ``virtualization`` -- a dictionary whose keys are in the index set of
+      the domain and whose values are lists of entries in the index set of the
+      codomain
+    - ``scaling_factors`` -- a dictionary whose keys are in the index set of
+      the domain and whose values are scaling factors for the weight,
+      `\varepsilon` and `\varphi`.
+    - ``cartan_type`` -- (optional) the Cartan type of the morphism; the
+      default is the Cartan type of the domain
+    - ``index_set`` -- (optional) the index set of the morphism; the
+      default is the index set of the Cartan type
+    - ``gens`` -- a list of generators to define the morphism; the
+      default is to use the highest weight vectors of the crystal
+    - ``check`` -- (default: ``True``) check if the crystal morphism is valid
+    """
+    def __init__(self, parent, on_gens, virtualization, scaling_factors,
+                 cartan_type=None, index_set=None, gens=None, check=True):
+        """
+        Construct a virtual crystal morphism.
+
+        TESTS::
+
+            sage: B = crystals.Tableaux(['B',3], shape=[1])
+            sage: C = crystals.Tableaux(['D',4], shape=[2])
+            sage: H = Hom(B, C)
+            sage: psi = H(C.module_generators)
+        """
+        if gens is None:
+            gens = parent.domain().highest_weight_vectors()
+        VirtualCrystalMorphismByGenerators.__init__(self, parent, on_gens,
+                                                    virtualization, scaling_factors,
+                                                    cartan_type, index_set, gens, check)
+
+    def _call_(self, x):
+        """
+        Return the image of ``x`` under ``self``.
+
+        TESTS::
+
+            sage: B = crystals.Tableaux(['B',3], shape=[1])
+            sage: C = crystals.Tableaux(['D',4], shape=[2])
+            sage: H = Hom(B, C)
+            sage: psi = H(C.module_generators)
+            sage: psi(B.module_generators[0])
+            [[1, 1]]
+        """
+        mg, path = x.to_highest_weight(self._index_set)
+        cur = self._on_gens(mg)
+        for i in reversed(path):
+            if cur is None:
+                return None
+            s = []
+            sf = self._scaling_factors[i]
+            for j in self._virtualization[i]:
+                s += [j]*sf
+            cur = cur.f_string(s)
+        return cur
+
+class HighestWeightCrystalHomset(CrystalHomset):
+    """
+    The set of crystal morphisms from a highest weight crystal to
+    another crystal.
+
+    .. SEEALSO::
+
+        See :class:`sage.categories.crystals.CrystalHomset` for more
+        information.
+    """
+    def __init__(self, X, Y, category=None):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: B = crystals.Tableaux(['A', 2], shape=[2,1])
+            sage: H = Hom(B, B)
+            sage: B = crystals.infinity.Tableaux(['B',2])
+            sage: H = Hom(B, B)
+        """
+        if category is None:
+            category = HighestWeightCrystals()
+        CrystalHomset.__init__(self, X, Y, category)
+
+    _generic = HighestWeightCrystalMorphism
+    _twisted = HighestWeightTwistedCrystalMorphism
+    _virtual = HighestWeightVirtualCrystalMorphism

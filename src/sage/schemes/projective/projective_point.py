@@ -1029,10 +1029,13 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                 f = F._number_field_from_algebraics()
                 if K == QQ:
                     K = f.base_ring()
+                    P = P.change_ring(K)
+                elif f.base_ring() == QQ:
+                    f = f.change_ring(K)
                 else:
                     K, phi, psi, b = K.composite_fields(f.base_ring(), both_maps=True)[0]
-                P = P.change_ring(K, emb=phi)
-                f = f.change_ring(K, emb=psi)
+                    P = P.change_ring(K, embedding=phi)
+                    f = f.change_ring(K, embedding=psi)
         else:
             P = self
             f = F
@@ -1053,7 +1056,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             error_bound /= num_places
         R = RealField(prec)
         h = R(0)
-        
+
         ##update the keyword dictionary for use in green_function
         kwds.update({"badprimes": bad_primes})
         kwds.update({"error_bound": error_bound})
@@ -1234,12 +1237,12 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
     def is_preperiodic(self, f, err = 0.1, return_period=False):
         r"""
         Determine if the point ``self`` is preperiodic with respect to the map ``f``, i.e.,
-        if ``self`` has a finite forward orbit by ``f``. This is only implemented for 
+        if ``self`` has a finite forward orbit by ``f``. This is only implemented for
         projective space (not subschemes). There are two optional keyword arguments:
         ``error_bound`` sets the error_bound used in the canonical height computation
         and ``return_period`` a boolean which controls if the period is returned if the
         point is preperiodic. If ``return_period`` is ``True`` and the ``self`` is not
-        preperiodic, then `(0,0)` is returned for the period. 
+        preperiodic, then `(0,0)` is returned for the period.
 
         ALGORITHM:
 
@@ -1326,6 +1329,24 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q = P([3,0,4/3,1])
             sage: Q.is_preperiodic(f, return_period = True)
             (2, 24)
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQbar,2)
+            sage: H = End(P)
+            sage: f = H([x^2,QQbar(sqrt(-1))*y^2,z^2])
+            sage: Q = P([1,1,1])
+            sage: Q.is_preperiodic(f)
+            True
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQbar,2)
+            sage: H = End(P)
+            sage: f = H([x^2,y^2,z^2])
+            sage: Q = P([QQbar(sqrt(-1)),1,1])
+            sage: Q.is_preperiodic(f)
+            True
         """
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
         if not is_ProjectiveSpace(self.codomain()):

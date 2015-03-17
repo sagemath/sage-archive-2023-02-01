@@ -1280,7 +1280,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             f = F[0].substitute({y:1})
             g = F[1].substitute({y:1})
             #Try to use pari first, as it is faster for one dimensional case
-            #however the coercion from a Pari object to a sage object breaks 
+            #however the coercion from a Pari object to a sage object breaks
             #in the case of QQbar, so we just pass it into the macaulay resultant
             try:
                 res = (f.lc() ** (d - g.degree()) * g.lc() ** (d - f.degree()) * f._pari_().polresultant(g, x))
@@ -1777,7 +1777,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     def height_difference_bound(self, prec=None):
         r"""
         Returns an upper bound on the different bewtween the canonical height of a point with
-        respect to ``self`` and the height of the point. ``self`` must be a morphism.
+        respect to ``self`` and the absolute height of the point. ``self`` must be a morphism.
 
         ALGORITHM:
 
@@ -1821,25 +1821,39 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([1/(c+1)*x^2+c*y^2,210*x*y,10000*z^2])
             sage: f.height_difference_bound()
             11.0020998412042
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQbar,2)
+            sage: H = End(P)
+            sage: f = H([x^2, QQbar(sqrt(-1))*y^2, QQbar(sqrt(3))*z^2])
+            sage: f.height_difference_bound()
+            3.43967790223022
         """
         FF = FractionField(self.domain().base_ring()) #lift will only work over fields, so coercing into FF
         if not FF in NumberFields():
-            raise NotImplementedError("Fraction field of the base ring must be a number field")
+            if FF == QQbar:
+                #since this is absolute height, we can choose any number field over which the
+                #function is defined.
+                f = self._number_field_from_algebraics()
+            else:
+                raise NotImplementedError("Fraction field of the base ring must be a number field or QQbar")
+        else:
+            f = self.change_ring(FF)
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
         if prec is None:
             R = RealField()
         else:
             R = RealField(prec)
-        N = self.domain().dimension_relative()
-        d = self.degree()
+        N = f.domain().dimension_relative()
+        d = f.degree()
         D = (N + 1) * (d - 1) + 1
         #compute upper bound
-        U = self.global_height(prec) + R(binomial(N + d, d)).log()
+        U = f.global_height(prec) + R(binomial(N + d, d)).log()
         #compute lower bound - from explicit polynomials of Nullstellensatz
-        CR = self.domain().coordinate_ring()
-        CR = CR.change_ring(FF)
-        I = CR.ideal(self.defining_polynomials())
+        CR = f.domain().coordinate_ring()
+        I = CR.ideal(f.defining_polynomials())
         MCP = []
         for k in range(N + 1):
             CoeffPolys = (CR.gen(k) ** D).lift(I)
@@ -2847,14 +2861,13 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             ...
             NotImplementedError: Subschemes as Preimages not implemented
         """
-        
         BR = self.base_ring()
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
         if (Q in self.codomain()) == False:
             raise TypeError("Point must be in codomain of self")
         if isinstance(BR.base_ring(),(ComplexField_class, RealField_class,RealIntervalField_class, ComplexIntervalField_class)):
-            raise NotImplementedError("Not Implemented over precision fields") 
+            raise NotImplementedError("Not Implemented over precision fields")
         Dom = self.domain()
         PS = self.domain().ambient_space()
         R = PS.coordinate_ring()
@@ -2900,7 +2913,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                                     good = 1
                                     r = pol.variables()[0]
                                     varindex = R.gens().index(r)
-                                    #add this coordinates information to 
+                                    #add this coordinates information to
                                     #each dictionary entry
                                     P.update({R.gen(varindex):-BR(pol.coefficient({r:0})) / BR(pol.coefficient({r:1}))})
                                     new_points.append(copy(P))

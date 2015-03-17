@@ -538,6 +538,12 @@ class WeylGroups(Category_singleton):
                  Hyperplane 0*a1 + a2 + a3 + 0,
                  Hyperplane a1 + a2 + 0*a3 + 0,
                  Hyperplane a1 + a2 + a3 + 0)
+
+            The identity element gives the empty arrangement::
+
+                sage: W = WeylGroup(['A',3])
+                sage: W.one().inversion_arrangement()
+                Empty hyperplane arrangement of dimension 3
             """
             inv = self.inversions(side=side, inversion_type='roots')
             from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangements
@@ -545,7 +551,10 @@ class WeylGroups(Category_singleton):
             r = self.parent().cartan_type().rank()
             H = HyperplaneArrangements(QQ, tuple(['a%s'%i for i in I]))
             gens = H.gens()
-            return H([sum(c*gens[I.index(i)] for (i,c) in root) for root in inv])
+            A = [sum(c*gens[I.index(i)] for (i,c) in root) for root in inv]
+            if not A: # Special case for the empty list
+                return H()
+            return H(A)
 
         def bruhat_lower_covers_coroots(self):
             r"""

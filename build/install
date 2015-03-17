@@ -343,6 +343,7 @@ LIBPNG=`newest_version libpng`
 LINBOX=`newest_version linbox`
 M4RI=`newest_version m4ri`
 M4RIE=`newest_version m4rie`
+MARKUPSAFE=`newest_version markupsafe`
 MATHJAX=`newest_version mathjax`
 MATPLOTLIB=`newest_version matplotlib`
 MAXIMA=`newest_version maxima`

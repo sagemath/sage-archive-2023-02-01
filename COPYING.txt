@@ -76,6 +76,7 @@ linbox                      LGPLv2.1+
 lrcalc                      GPLv2+
 m4ri                        GPLv2+
 m4rie                       GPLv2+
+markupsafe                  Simplified BSD
 mathjax                     Apache License 2.0
 matplotlib                  Matplotlib License (BSD compatible, see below)
 maxima                      See below

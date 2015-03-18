@@ -33,7 +33,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
     _base_category_class_and_axiom = [LieAlgebras.FiniteDimensional, "WithBasis"]
 
-    def example(self, names=('a', 'b', 'c')):
+    def example(self, n=3):
         """
         Return an example of a finite dimensional Lie algebra with basis as per
         :meth:`Category.example <sage.categories.category.Category.example>`.
@@ -43,18 +43,16 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             sage: C = LieAlgebras(QQ).FiniteDimensional().WithBasis()
             sage: C.example()
             An example of a finite dimensional Lie algebra with basis:
-             the abelian Lie algebra with generators ('a', 'b', 'c')
-             over Rational Field
+             the abelian 3-dimensional Lie algebra over Rational Field
 
         Other names of generators can be specified as an optional argument::
 
             sage: C.example(('x','y','z'))
             An example of a finite dimensional Lie algebra with basis:
-             the abelian Lie algebra with generators ('x', 'y', 'z')
-             over Rational Field
+             the abelian 3-dimensional Lie algebra over Rational Field
         """
         from sage.categories.examples.finite_dimensional_lie_algebras_with_basis import Example
-        return Example(self.base_ring(), names)
+        return Example(self.base_ring(), n)
 
     class ParentMethods:
         @cached_method

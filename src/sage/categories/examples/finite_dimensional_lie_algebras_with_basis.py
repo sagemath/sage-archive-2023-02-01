@@ -15,7 +15,6 @@ from sage.rings.all import ZZ
 from sage.modules.free_module import FreeModule
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.examples.lie_algebras import LieAlgebraFromAssociative as BaseExample
 
 class AbelianLieAlgebra(Parent, UniqueRepresentation):
@@ -35,12 +34,10 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
 
     - ``R`` -- base ring
 
-    - ``names`` -- list of strings, to be used as identifiers for
-      the basis elements of `M`
+    - ``n`` -- (optional) a nonnegative integer (default: ``None``)
 
     - ``M`` -- an `R`-module (default: the free `R`-module of
-      rank ``len(names)``) to serve as the ground space for the
-      Lie algebra
+      rank ``n``) to serve as the ground space for the Lie algebra
 
     - ``ambient`` -- (optional) a Lie algebra; if this is set,
       then the resulting Lie algebra is declared a Lie subalgebra
@@ -49,61 +46,44 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
     OUTPUT:
 
     The abelian Lie algebra on `M`.
-
-    .. TODO::
-
-       Why am I required to specify ``names`` if the actual
-       elements of the Lie algebra end up being anonymous
-       vectors anyway?
-
-           sage: from sage.categories.examples.finite_dimensional_lie_algebras_with_basis import *
-           sage: AbelianLieAlgebra(QQ, ['x','y'])
-           An example of a finite dimensional Lie algebra with
-            basis: the abelian Lie algebra with generators
-            ('x', 'y') over Rational Field
-           sage: _.gens()
-           ((1, 0), (0, 1))
-
     """
     @staticmethod
-    def __classcall_private__(cls, R, names, M=None, ambient=None):
+    def __classcall_private__(cls, R, n=None, M=None, ambient=None):
         """
         Normalize input to ensure a unique representation.
 
         EXAMPLES::
 
             sage: from sage.categories.examples.finite_dimensional_lie_algebras_with_basis import AbelianLieAlgebra
-            sage: A1 = AbelianLieAlgebra(QQ, 'x,y,z')
-            sage: A2 = AbelianLieAlgebra(QQ, ['x','y','z'])
-            sage: A3 = AbelianLieAlgebra(QQ, ['x','y','z'], FreeModule(QQ, 3))
+            sage: A1 = AbelianLieAlgebra(QQ, n=3)
+            sage: A2 = AbelianLieAlgebra(QQ, M=FreeModule(QQ, 3))
+            sage: A3 = AbelianLieAlgebra(QQ, 3, FreeModule(QQ, 3))
             sage: A1 is A2 and A2 is A3
             True
 
-            sage: A1 = AbelianLieAlgebra(QQ, 'x0,x1')
-            sage: A2 = AbelianLieAlgebra(QQ, 2)
+            sage: A1 = AbelianLieAlgebra(QQ, 2)
+            sage: A2 = AbelianLieAlgebra(ZZ, 2)
             sage: A1 is A2
-            True
+            False
+
+            sage: A1 = AbelianLieAlgebra(QQ, 0)
+            sage: A2 = AbelianLieAlgebra(QQ, 1)
+            sage: A1 is A2
+            False
         """
-        if isinstance(names, str):
-            names = names.split(',')
-        elif names in ZZ:
-            names = ['x%s'%i for i in range(names)]
         if M is None:
-            M = FreeModule(R, len(names))
-        elif len(names) != M.dimension():
-            raise ValueError("number of generators is not correct")
+            M = FreeModule(R, n)
         else:
             M = M.change_ring(R)
-        return super(AbelianLieAlgebra, cls).__classcall__(cls, R, tuple(names), M, ambient)
+        return super(AbelianLieAlgebra, cls).__classcall__(cls, R, n=None, M=M, ambient=ambient)
 
-    def __init__(self, R, names, M, ambient):
+    def __init__(self, R, n=None, M=None, ambient=None):
         """
         EXAMPLES::
 
             sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
             sage: TestSuite(L).run()
         """
-        self._ordered_indices = names
         self._M = M
         cat = LieAlgebras(R).FiniteDimensional().WithBasis()
         if ambient is None:
@@ -111,7 +91,7 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
         else:
             cat = cat.Subobjects()
         self._ambient = ambient
-        Parent.__init__(self, base=R, names=names, category=cat)
+        Parent.__init__(self, base=R, category=cat)
 
     def _repr_(self):
         """
@@ -119,16 +99,18 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
 
             sage: LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
             An example of a finite dimensional Lie algebra with basis:
-             the abelian Lie algebra with generators ('a', 'b', 'c')
-             over Rational Field
+             the 3-dimensional abelian Lie algebra over Rational Field
         """
         ret = "An example of a finite dimensional Lie algebra with basis:" \
-              " the abelian Lie algebra with generators {!r} over {}".format(
-                         self.variable_names(), self.base_ring())
+              " the {}-dimensional abelian Lie algebra over {}".format(
+                         self.n(), self.base_ring())
         B = self._M.basis_matrix()
         if not B.is_one():
             ret += " with basis matrix:\n{!r}".format(B)
         return ret
+
+    def n(self):
+        return self._M.rank()
 
     def _element_constructor_(self, x):
         """
@@ -146,9 +128,9 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             sage: X = L.subalgebra([a+b, 2*a+c])
             sage: x,y = X.basis()
             sage: L(x)
-            (1, 0, 1)
+            (1, 0, 1/2)
             sage: L(x+y)
-            (1, 1, -1)
+            (1, 1, 0)
         """
         if isinstance(x, AbelianLieAlgebra.Element):
             x = x.value
@@ -188,15 +170,14 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-            sage: L.inject_variables()
-            Defining a, b, c
-            sage: S = L.subalgebra([2*a+b, b + c], 'x,y')
+            sage: a, b, c = L.lie_algebra_generators()
+            sage: S = L.subalgebra([2*a+b, b + c])
             sage: S.ambient() == L
             True
         """
         return self._ambient
 
-    def subalgebra(self, gens, names='x'):
+    def subalgebra(self, gens):
         """
         Return the Lie subalgebra of ``self`` generated by the
         elements of the iterable ``gens``.
@@ -206,21 +187,16 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-            sage: L.inject_variables()
-            Defining a, b, c
-            sage: L.subalgebra([2*a+b, b + c], 'x,y')
+            sage: a, b, c = L.lie_algebra_generators()
+            sage: L.subalgebra([2*a+b, b + c])
             An example of a finite dimensional Lie algebra with basis:
-             the abelian Lie algebra with generators ('x', 'y')
-             over Rational Field with basis matrix:
+             the 2-dimensional abelian Lie algebra over Rational Field with
+             basis matrix:
             [   1    0 -1/2]
             [   0    1    1]
         """
-        if isinstance(names, str):
-            names = names.split(',')
-        if len(names) == 1 and len(gens) != 1:
-            names = tuple( names[0] + str(i) for i in range(len(gens)) )
         N = self._M.subspace([g.value for g in gens])
-        return AbelianLieAlgebra(self.base_ring(), names, N, self._ambient)
+        return AbelianLieAlgebra(self.base_ring(), M=N, ambient=self._ambient)
 
     def basis(self):
         """
@@ -230,10 +206,9 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
 
             sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
             sage: L.basis()
-            Finite family {'a': (1, 0, 0), 'c': (0, 0, 1), 'b': (0, 1, 0)}
+            Finite family {0: (1, 0, 0), 1: (0, 1, 0), 2: (0, 0, 1)}
         """
-        names = self.variable_names()
-        d = {names[i]: self.element_class(self, b)
+        d = {i: self.element_class(self, b)
              for i,b in enumerate(self._M.basis())}
         return Family(d)
 
@@ -249,8 +224,7 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             sage: L.gens()
             ((1, 0, 0), (0, 1, 0), (0, 0, 1))
         """
-        G = self.lie_algebra_generators()
-        return tuple(G[i] for i in self.variable_names())
+        return tuple(self._M.basis())
 
     def free_module(self):
         """
@@ -262,9 +236,8 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             sage: L.free_module()
             Vector space of dimension 3 over Rational Field
 
-            sage: L.inject_variables()
-            Defining a, b, c
-            sage: S = L.subalgebra([2*a+b, b + c], 'x,y')
+            sage: a, b, c = L.lie_algebra_generators()
+            sage: S = L.subalgebra([2*a+b, b + c])
             sage: S.free_module()
             Vector space of degree 3 and dimension 2 over Rational Field
             Basis matrix:
@@ -283,17 +256,15 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                sage: L.inject_variables()
-                Defining a, b, c
+                sage: a, b, c = L.lie_algebra_generators()
                 sage: elt = 2*a - c
                 sage: list(elt)
-                [('a', 2), ('c', -1)]
+                [(0, 2), (2, -1)]
             """
-            I = self.parent()._ordered_indices
             zero = self.parent().base_ring().zero()
             for i, c in self.value.iteritems():
                 if c != zero:
-                    yield (I[i], c)
+                    yield (i, c)
 
         def __getitem__(self, i):
             """
@@ -303,18 +274,13 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                sage: L.inject_variables()
-                Defining a, b, c
+                sage: a, b, c = L.lie_algebra_generators()
                 sage: elt = 2*a + b - c
                 sage: elt[0]
                 2
-                sage: elt['a']
-                2
-                sage: elt['c']
+                sage: elt[2]
                 -1
             """
-            if i in self.parent()._ordered_indices:
-                i = self.parent()._ordered_indices.index(i)
             return self.value.__getitem__(i)
 
         def _bracket_(self, y):
@@ -324,8 +290,7 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                sage: L.inject_variables()
-                Defining a, b, c
+                sage: a, b, c = L.lie_algebra_generators()
                 sage: a.bracket(c)
                 (0, 0, 0)
                 sage: a.bracket(b).bracket(c)
@@ -340,8 +305,7 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                sage: L.inject_variables()
-                Defining a, b, c
+                sage: a, b, c = L.lie_algebra_generators()
                 sage: elt = 2*a + 2*b + 3*c
                 sage: elt.lift()
                 2*a + 2*b + 3*c
@@ -357,8 +321,7 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                sage: L.inject_variables()
-                Defining a, b, c
+                sage: a, b, c = L.lie_algebra_generators()
                 sage: elt = 2*a + 2*b + 3*c
                 sage: elt.to_vector()
                 (2, 2, 3)

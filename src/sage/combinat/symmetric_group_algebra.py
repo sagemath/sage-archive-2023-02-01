@@ -800,6 +800,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
         return self._from_dict(dct)
 
+    @cached_method
     def algebra_generators(self):
         r"""
         Return generators of this group algebra (as algebra) as a
@@ -812,13 +813,13 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: SymmetricGroupAlgebra(ZZ,5).algebra_generators()
-            [[2, 1, 3, 4, 5], [2, 3, 4, 5, 1]]
+            Family ([2, 1, 3, 4, 5], [2, 3, 4, 5, 1])
 
             sage: SymmetricGroupAlgebra(QQ,0).algebra_generators()
-            []
+            Family ()
 
             sage: SymmetricGroupAlgebra(QQ,1).algebra_generators()
-            []
+            Family ()
 
         TESTS:
 
@@ -826,19 +827,20 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
             sage: S3 = SymmetricGroupAlgebra(QQ, 3)
             sage: S3.algebra_generators()
-            [[2, 1, 3], [2, 3, 1]]
+            Family ([2, 1, 3], [2, 3, 1])
             sage: C = CombinatorialFreeModule(ZZ, ZZ)
             sage: M = C.module_morphism(lambda x: S3.zero(), codomain=S3)
             sage: M.register_as_coercion()
         """
+        from sage.sets.family import Family
         if self.n <= 1:
-            return []
+            return Family([])
         a = range(1, self.n+1)
         a[0] = 2
         a[1] = 1
         b = range(2, self.n+2)
         b[self.n-1] = 1
-        return [self.monomial(self._indices(a)), self.monomial(self._indices(b))]
+        return Family([self.monomial(self._indices(a)), self.monomial(self._indices(b))])
 
     def _conjugacy_classes_representatives_underlying_group(self):
         r"""

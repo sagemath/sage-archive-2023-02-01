@@ -1,6 +1,5 @@
 """
 Fundamental Group of an Extended Affine Weyl Group
-
 """
 
 #*****************************************************************************
@@ -27,10 +26,11 @@ def FundamentalGroupOfExtendedAffineWeylGroup(cartan_type, prefix='pi', general_
 
     INPUTS:
 
-        - `cartan_type` -- a Cartan type that is either affine or finite, with the latter being a
-        shorthand for the untwisted affinization
-        - `prefix` (default: 'pi') -- string that labels the elements of the group
-        - `general_linear` -- (default: None, meaning False) In untwisted type A, if True, use the universal central extension
+    - `cartan_type` -- a Cartan type that is either affine or finite, with the latter being a
+      shorthand for the untwisted affinization
+    - `prefix` (default: 'pi') -- string that labels the elements of the group
+    - `general_linear` -- (default: None, meaning False) In untwisted type A, if True, use the
+      universal central extension
 
     ..RUBRIC::
 
@@ -65,6 +65,7 @@ def FundamentalGroupOfExtendedAffineWeylGroup(cartan_type, prefix='pi', general_
 
     EXAMPLES::
 
+        sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
         sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1]); F
         Fundamental group of type ['A', 3, 1]
         sage: F.cartan_type().dynkin_diagram()
@@ -209,6 +210,7 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',4,1], prefix="f")
             sage: x = F.an_element(); x
             f[2]
@@ -222,6 +224,7 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
         r"""
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',4,1], prefix="f")
             sage: F(2)^3 # indirect doctest
             f[1]
@@ -235,6 +238,7 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
             sage: F(1).inverse()
             pi[3]
@@ -262,6 +266,7 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
             sage: W = WeylGroup(F.cartan_type(),prefix="s")
             sage: w = W.from_reduced_word([2,3,0])
@@ -281,6 +286,7 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
             sage: la = RootSystem(F.cartan_type()).weight_lattice().an_element(); la
             2*Lambda[0] + 2*Lambda[1] + 3*Lambda[2]
@@ -369,6 +375,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
             sage: F.one()
             pi[0]
@@ -382,6 +389,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
             sage: F.special_nodes()
             (0, 1, 2, 3)
@@ -409,6 +417,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['E',6,1],prefix="f")
             sage: fam = F.family(); fam
             Finite family {0: f[0], 1: f[1], 6: f[6]}
@@ -430,6 +439,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1])
             sage: [[(i, j, F.action(i)(j)) for j in F.index_set()] for i in F.special_nodes()]
             [[(0, 0, 0), (0, 1, 1), (0, 2, 2)], [(1, 0, 1), (1, 1, 2), (1, 2, 0)], [(2, 0, 2), (2, 1, 0), (2, 2, 1)]]
@@ -445,6 +455,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',4,1])
             sage: [(i, F.dual_node(i)) for i in F.special_nodes()]
             [(0, 0), (1, 4), (2, 3), (3, 2), (4, 1)]
@@ -468,6 +479,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
             sage: [(i, F.finite_action(i)) for i in F.special_nodes()]
             [(0, ()), (1, (1, 2, 3)), (2, (2, 1, 3, 2)), (3, (3, 2, 1))]
@@ -505,6 +517,7 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True).one()
             pi[0]
 
@@ -518,6 +531,7 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True)
             sage: F.special_nodes()
             Integer Ring
@@ -542,6 +556,7 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True).an_element()
             pi[5]
 
@@ -555,6 +570,7 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True)
             sage: F.action(4)(2)
             0
@@ -570,6 +586,7 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True)
             sage: F.dual_node(2)
             -2
@@ -588,6 +605,7 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True)
             sage: F.finite_action(10)
             (1, 2)

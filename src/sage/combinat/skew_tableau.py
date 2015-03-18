@@ -88,10 +88,13 @@ class SkewTableau(CombinatorialObject, Element):
         if expr is not None:
             return SkewTableaux().from_expr(expr)
 
+        try:
+            st = map(tuple, st)
+        except (TypeError, ValueError):
+            raise TypeError("each element of the skew tableau must be a list")
+
         for row in st:
-            if not isinstance(row, list):
-                raise TypeError("each element of the skew tableau must be a list")
-            if len(row) == 0:
+            if not row:
                 raise TypeError("a skew tableau cannot have an empty list for a row")
 
         return SkewTableaux()(st)
@@ -104,6 +107,11 @@ class SkewTableau(CombinatorialObject, Element):
             sage: st = SkewTableau([[None,1,1],[None,2],[4]])
             sage: TestSuite(st).run()
         """
+        try:
+            st = map(tuple, st)
+        except TypeError:
+            raise TypeError("each element of the skew tableau must be a list")
+
         CombinatorialObject.__init__(self, list(st))
         Element.__init__(self, parent)
 
@@ -150,7 +158,7 @@ class SkewTableau(CombinatorialObject, Element):
             sage: print SkewTableau([[None,2,3],[None,4],[5]])._repr_list()
             [[None, 2, 3], [None, 4], [5]]
         """
-        return repr(list(self))
+        return repr([list(row) for row in self])
 
     def _repr_diagram(self):
         """
@@ -355,7 +363,7 @@ class SkewTableau(CombinatorialObject, Element):
         """
         word = []
         for row in self:
-            word = row + word
+            word = list(row) + word
 
         return Words("positive integers")([i for i in word if i is not None])
 
@@ -702,7 +710,7 @@ class SkewTableau(CombinatorialObject, Element):
             sage: st
             [[None, None, None, None, 2], [None, None, None, None, 6], [None, 2, 4, 4], [2, 3, 6], [5, 5]]
         """
-        new_st = [x[:] for x in self]
+        new_st = [list(x) for x in self]
         inner_corners = self.inner_shape().corners()
         outer_corners = self.outer_shape().corners()
         if corner is not None:
@@ -968,7 +976,7 @@ class SkewTableau(CombinatorialObject, Element):
 
         # result_tab is going to be the result tableau (as a list of lists);
         # we will build it up step by step, starting with a deep copy of self.
-        result_tab = [row[:] for row in self]
+        result_tab = [list(row) for row in self]
         for i in rows:
             if i >= l:
                 continue

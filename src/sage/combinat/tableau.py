@@ -152,7 +152,7 @@ TableauOptions=GlobalOptions(name='tableaux',
         sage: ascii_art(t)
           1  2  3
           4  5
-        sage: Tableaux.global_options(ascii_art="normal")
+        sage: Tableaux.global_options(ascii_art="table")
         sage: ascii_art(t)
         +---+---+
         | 4 | 5 |
@@ -275,14 +275,33 @@ class Tableau(CombinatorialObject, Element):
         """
         if isinstance(t, Tableau):
             return t
+        
+        if isinstance(t, Tableau):
+            Element.__init__(self, parent)
+            # Since we are (supposed to be) immutable, we can share the underlying data
+            CombinatorialObject.__init__(self, t._list)
+            return
 
-        # t is not a legal tableau so we raise the appropriate error
-        if not isinstance(t, list) or not all(isinstance(row, list) for row in t):
+        # CombinatorialObject verifies that t is a list
+        # We must verify t is a list of lists
+        try:
+            t = map(tuple, t)
+        except (TypeError, ValueError):
             raise ValueError("A tableau must be a list of lists.")
 
+        # and that it has partition shape
         from sage.combinat.partition import _Partitions
         if not map(len,t) in _Partitions:
             raise ValueError("A tableau must be a list of lists of weakly decreasing length.")
+        
+        # t is not a legal tableau so we raise the appropriate error
+#        if not isinstance(t, list) or not all(isinstance(row, list) for row in t):
+#            raise ValueError("A tableau must be a list of lists.")
+
+        #from sage.combinat.partition import _Partitions
+        #try:
+        #    if not map(len,t) in _Partitions:
+        #        raise ValueError("A tableau must be a list of lists of weakly decreasing length.")
 
         return Tableaux_all().element_class(Tableaux_all(), t)
 
@@ -313,13 +332,7 @@ class Tableau(CombinatorialObject, Element):
 
         # CombinatorialObject verifies that t is a list
         # We must verify t is a list of lists
-        if not all(isinstance(row, list) for row in t):
-            raise ValueError("A tableau must be a list of lists.")
-
-        # and that it has partition shape
-        from sage.combinat.partition import _Partitions
-        if not map(len,t) in _Partitions:
-            raise ValueError("A tableau must be a list of lists of weakly decreasing length.")
+        t = map(tuple, t)
 
         Element.__init__(self, parent)
         CombinatorialObject.__init__(self, t)
@@ -374,7 +387,7 @@ class Tableau(CombinatorialObject, Element):
             sage: T._repr_list()
             '[[1, 2, 3], [4, 5]]'
         """
-        return repr(self._list)
+        return repr(map(list,self._list))
 
     def _repr_diagram(self):
         """
@@ -693,7 +706,7 @@ class Tableau(CombinatorialObject, Element):
         try:
             return self[i][j]
         except IndexError:
-            raise IndexError("The cell (%d,%d) is not contained in %s"%(i,j,self))
+            raise IndexError("The cell (%d,%d) is not contained in %s"%(i,j,repr(self)))
 
     def level(self):
         """
@@ -1244,7 +1257,7 @@ class Tableau(CombinatorialObject, Element):
 
     def entries(self):
         """
-        Return a list of all entries of ``self``, in the order obtained
+        Return the tuple of all entries of ``self``, in the order obtained
         by reading across the rows from top to bottom (in English
         notation).
 
@@ -1252,9 +1265,9 @@ class Tableau(CombinatorialObject, Element):
 
             sage: t = Tableau([[1,3], [2]])
             sage: t.entries()
-            [1, 3, 2]
+            (1, 3, 2)
         """
-        return sum(self, [])
+        return sum(self, ())
 
     def entry(self, cell):
         """
@@ -1778,7 +1791,7 @@ class Tableau(CombinatorialObject, Element):
             sage: t
             [[1, 2], [3, 4]]
         """
-        return [row[:] for row in self]
+        return [list(row) for row in self]
 
     def bump(self, x):
         """
@@ -2020,7 +2033,7 @@ class Tableau(CombinatorialObject, Element):
             l = len(left[0])
 
         for row in range(len(right)):
-            st.append([None]*l + right[row])
+            st.append((None,)*l + right[row])
         for row in range(len(left)):
             st.append(left[row])
 
@@ -2046,7 +2059,7 @@ class Tableau(CombinatorialObject, Element):
             sage: t._slide_up((1,2))
             [[0, 1, 1], [2, 3, 3], [4, 5]]
         """
-        new_st = [x[:] for x in self]
+        new_st = self.to_list()
         spotl, spotc = c
         while [spotl, spotc] != [0,0]:
             #once moving box is in first column, just move letters up
@@ -2100,7 +2113,7 @@ class Tableau(CombinatorialObject, Element):
             sage: t._slide_down((0, 1), 9)
             [[1, 2, 2, 2, 2, 3], [2, 4, 4, 6, 6], [4, 5, 7, 11], [5, 8]]
         """
-        new_st = [x[:] for x in self]
+        new_st = self.to_list()
         #new_st is a deep copy of self, so as not to mess around with self.
         new_st_shape = [len(x) for x in self]
         spotl, spotc = c
@@ -2882,7 +2895,7 @@ class Tableau(CombinatorialObject, Element):
         Lascoux-Schuetzenberger action is a group action of the
         symmetric group `S_n` on the set of semistandard Young tableaux
         with ceiling `n` (that is, with entries taken from the set
-        `\{1, 2, \ldots, n\}`. It is defined as follows:
+        `\{1, 2, \ldots, n\}`). It is defined as follows:
 
         Let `i \in \{1, 2, \ldots, n-1\}`, and let `T` be a
         semistandard tableau with ceiling `n`. Let `w` be the reading
@@ -4063,7 +4076,12 @@ class Tableaux(UniqueRepresentation, Parent):
         from sage.combinat.partition import _Partitions
         if isinstance(x, Tableau):
             return True
-        elif isinstance(x, list) and all(isinstance(y, list) for y in x):
+        elif isinstance(x, list):
+            try:
+                for row in x:
+                    tuple(row)
+            except TypeError:
+                return False
             # any list of lists of partition shape is a tableau
             return map(len,x) in _Partitions
         else:

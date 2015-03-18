@@ -21,7 +21,17 @@ class FullyPackedLoop(SageObject):
             sage: A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
             sage: fpl = FullyPackedLoop(A)
             sage: fpl.six_vertex_model
-            Stuff
+                ^    ^    ^
+                |    |    |
+            --> # -> # <- # <--
+                ^    |    ^
+                |    V    |
+            --> # <- # -> # <--
+                |    ^    |
+                V    |    V
+            --> # -> # <- # <--
+                |    |    |
+                V    V    V
 
         Otherwise we initiate a fully packed loop using a six vertex model::
 

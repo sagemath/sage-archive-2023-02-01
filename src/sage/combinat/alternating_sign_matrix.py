@@ -48,6 +48,7 @@ from sage.sets.set import Set
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFunction
 from sage.combinat.permutation import Permutation
+from sage.combinat.six_vertex_model import SquareIceModel
 
 class AlternatingSignMatrix(Element):
     r"""
@@ -414,13 +415,13 @@ class AlternatingSignMatrix(Element):
         TESTS::
 
             sage: ASM = AlternatingSignMatrices(5)
-            sage: all((x.to_six_vertex_model(x)).to_alternating_sign_matrix() == x
+            sage: all((x.to_six_vertex_model()).to_alternating_sign_matrix() == x
             ....:     for x in ASM)
             True
         """
 
         asm = self.to_matrix()
-        n = asm.nrows() + 1
+        n = asm.nrows()
         M = SquareIceModel(n)
         return M.from_alternating_sign_matrix(self)
 

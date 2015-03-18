@@ -31,6 +31,226 @@ from sage.structure.sage_object import SageObject
 from sage.combinat.free_module import CombinatorialFreeModuleElement
 from sage.structure.element_wrapper import ElementWrapper
 
+@total_ordering
+class LieGenerator(SageObject): # Does this need to be SageObject?
+    """
+    A wrapper around an object so it can compare with :class:`LieBracket`.
+    """
+    __metaclass__ = ClasscallMetaclass
+
+    @staticmethod
+    def __classcall_private__(cls, name):
+        """
+        Return ``name`` if it is a :class:`LieGenerator`, otherwise construct
+        a new object.
+
+        EXAMPLES::
+        """
+        if isinstance(name, LieGenerator):
+            return name
+        return typecall(cls, name)
+
+    def __init__(self, name):
+        """
+        Initalize ``self``.
+
+        EXAMPLES::
+        """
+        self._name = name
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+        """
+        return self._name
+
+    def __eq__(self, rhs):
+        """
+        Compare equals.
+
+        EXAMPLES::
+        """
+        return isinstance(rhs, LieGenerator) and self._name == rhs._name
+
+    def __lt__(self, rhs):
+        """
+        Compare less than.
+
+        EXAMPLES::
+        """
+        if isinstance(rhs, LieGenerator):
+            return self._name < rhs._name
+        if isinstance(rhs, LieBracket):
+            return not rhs.__lt__(self) # Clearly self != rhs
+        return False
+
+    def _im_gens_(self, codomain, im_gens, names):
+        """
+        Return the image of ``self``.
+
+        EXAMPLES::
+        """
+        x = im_gens[names.index(self._name)]
+        return im_gens[names.index(self._name)]
+
+    def to_word(self):
+        """
+        Return ``self`` as a word in the variable names.
+
+        EXAMPLES::
+        """
+        return [self._name]
+
+@total_ordering
+class LieBracket(SageObject): # Does this need to be SageObject?
+    """
+    A Lie bracket. This is the building blocks for Lie algebra elements.
+    """
+    def __init__(self, l, r):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+        """
+        self._left = l
+        self._right = r
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+        """
+        return "[{!s}, {!s}]".format(self._left, self._right)
+
+    def _latex_(self):
+        r"""
+        Return a `\LaTeX` representation of ``self``.
+
+        EXAMPLES::
+        """
+        from sage.misc.latex import latex
+        return "\\left[" + latex(self._left) + "," + latex(self._right) + "\\right]"
+
+    def __getitem__(self, i):
+        r"""
+        Return the `i`-th item of ``self``.
+
+        EXAMPLES::
+        """
+        if i == 0:
+            return self._left
+        if i == 1:
+            return self._right
+        raise IndexError("i must be either 0 or 1")
+
+    def __eq__(self, rhs):
+        """
+        Check equality.
+
+        EXAMPLES::
+        """
+        if isinstance(rhs, list):
+            if len(rhs) != 2:
+                return False
+            return self._left == rhs[0] and self._right == rhs[1]
+
+        if not isinstance(rhs, LieBracket):
+            return False
+        return self._left == rhs._left and self._right == rhs._right
+
+    def __lt__(self, rhs):
+        """
+        Check less than.
+
+        EXAMPLES::
+        """
+        if not isinstance(rhs, LieBracket):
+            return False
+        if self._left < rhs._left:
+            return True
+        elif self._left == rhs._left:
+            return self._right < rhs._right
+        return False
+
+    def __hash__(self):
+        """
+        Return the hash value of ``self``.
+
+        EXAMPLES::
+        """
+        return hash((self._left, self._right))
+
+    def _im_gens_(self, codomain, im_gens, names):
+        """
+        Return the image of ``self``.
+
+        EXAMPLES::
+        """
+        return codomain.bracket(self._left._im_gens_(codomain, im_gens, names),
+                                self._right._im_gens_(codomain, im_gens, names))
+
+    def lift(self, UEA_gens_dict):
+        """
+        Lift ``self`` to the universal enveloping algebra.
+
+        EXAMPLES::
+        """
+        if isinstance(self._left, LieBracket):
+            l = self._left.lift(UEA_gens_dict)
+        else:
+            l = UEA._gens_dict[self._left]
+
+        if isinstance(self._right, LieBracket):
+            r = self._right.lift(UEA_gens_dict)
+        else:
+            r = UEA_gens_dict[self._right]
+
+        return l*r - r*l
+
+    def to_word(self):
+        """
+        Return ``self`` as a word expressed in the variable names.
+
+        EXAMPLES::
+        """
+        return self._left.to_word() + self._right.to_word()
+
+class GradedLieBracket(LieBracket):
+    """
+    A Lie bracket in a graded Lie algebra.
+    """
+    def __init__(self, l, r, grade):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+        """
+        self._grade = grade
+        LieBracket.__init__(self, l, r)
+
+    def __lt__(self, rhs):
+        """
+        Check less than.
+
+        EXAMPLES::
+        """
+        if isinstance(rhs, GradedLieBracket) and self._grade != rhs._grade:
+            return self._grade < rhs._grade
+        if isinstance(rhs, LieGenerator):
+            return False # Lie generators have grade 1 and our grade > 1
+        return LieBracket.__lt__(self, rhs)
+
+    def __hash__(self):
+        """
+        Return the hash value of ``self``.
+
+        EXAMPLES::
+        """
+        return hash((self._grade, self._left, self._right))
+
 # TODO: Have the other classes inherit from this?
 # TODO: Should this be a mixin class (or moved to the category)?
 #class LieAlgebraElement_generic(ModuleElement):

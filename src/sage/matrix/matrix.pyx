@@ -25,7 +25,7 @@ def is_Matrix(x):
         sage: is_Matrix(matrix([[1,2],[3,4]]))
         True
     """
-    return IS_INSTANCE(x, Matrix)
+    return isinstance(x, Matrix)
 
 cdef class Matrix(matrix2.Matrix):
     pass

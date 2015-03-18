@@ -48,19 +48,9 @@ To use LaTeX in Sage you of course need a working TeX installation and it will w
 
 Customizing the output is accomplished in several ways.  Suppose ``g`` is a graph, then ``g.set_latex_options()`` can be used to efficiently set or modify various options.  Setting individual options, or querying options, can be accomplished by first using a command like ``opts = g.latex_options()`` to obtain a :class:`sage.graphs.graph_latex.GraphLatex` object which has several methods to set and retrieve options.
 
-Here is a minimal session demonstrating how to use these features. The following setup should work in the notebook or at the command-line, though the call to :meth:`~sage.misc.latex.Latex.mathjax_avoid_list` is only needed in the notebook. ::
+Here is a minimal session demonstrating how to use these features. The following setup should work in the notebook or at the command-line. ::
 
-
-    sage: from sage.graphs.graph_latex import setup_latex_preamble
-    sage: setup_latex_preamble()
-    sage: print latex.extra_preamble()  # random - depends on TeX installation
-    \usepackage{tikz}
-    \usepackage{tkz-graph}
-    \usepackage{tkz-berge}
-    \usetikzlibrary{arrows,shapes}
-    sage: latex.engine('pdflatex')
-    sage: latex.mathjax_avoid_list('tikzpicture')
-    sage: H=graphs.HeawoodGraph()
+    sage: H = graphs.HeawoodGraph()
     sage: H.set_latex_options(
     ...   graphic_size=(5,5),
     ...   vertex_size=0.2,
@@ -70,7 +60,7 @@ Here is a minimal session demonstrating how to use these features. The following
     ...   vertex_label_color='red'
     ...   )
 
-At this point, ``view(H)`` should call ``pdflatex`` to process the string created by ``latex(H)`` and then display the resulting graphic.  These lines (excluding the last two) only need to be run once in a Sage session, and the line requesting display of the extra preamble is included here just as part of the demonstration.
+At this point, ``view(H)`` should call ``pdflatex`` to process the string created by ``latex(H)`` and then display the resulting graphic.
 
 To use this image in a LaTeX document, you could of course just copy and save the resulting graphic.  However, the ``latex()`` command will produce the underlying LaTeX code, which can be incorporated into a standalone LaTeX document.  ::
 
@@ -1346,9 +1336,9 @@ class GraphLatex(SageObject):
             sage: print G.latex_options().dot2tex_picture() # optional - dot2tex graphviz 
             \begin{tikzpicture}[>=latex,line join=bevel,] 
             %% 
-            \node (3333) at (...bp,...bp) [draw,draw=none] {$3333$}; 
-              \node (88) at (...bp,...bp) [draw,draw=none] {$88$}; 
-              \draw [black,->] (3333) ..controls (...bp,...bp) and (...bp,...bp)  .. (88); 
+            \node (node_1) at (...bp,...bp) [draw,draw=none] {$3333$};
+              \node (node_0) at (...bp,...bp) [draw,draw=none] {$88$};
+              \draw [black,->] (node_1) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_0);
               \definecolor{strokecol}{rgb}{0.0,0.0,0.0}; 
               \pgfsetstrokecolor{strokecol} 
               \draw (...bp,...bp) node {$\text{\texttt{my{\char`\_}label}}$}; 

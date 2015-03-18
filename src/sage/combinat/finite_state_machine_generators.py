@@ -23,10 +23,14 @@ for more details and a lot of examples.
 
     :meth:`~TransducerGenerators.Identity` | Returns a transducer realizing the identity map.
     :meth:`~TransducerGenerators.abs` | Returns a transducer realizing absolute value.
+    :meth:`~TransducerGenerators.map` | Returns a transducer realizing a function.
     :meth:`~TransducerGenerators.operator` | Returns a transducer realizing a binary operation.
+    :meth:`~TransducerGenerators.all` | Returns a transducer realizing logical ``and``.
+    :meth:`~TransducerGenerators.any` | Returns a transducer realizing logical ``or``.
     :meth:`~TransducerGenerators.add` | Returns a transducer realizing addition.
     :meth:`~TransducerGenerators.sub` | Returns a transducer realizing subtraction.
     :meth:`~TransducerGenerators.CountSubblockOccurrences` | Returns a transducer counting the occurrences of a subblock.
+    :meth:`~TransducerGenerators.Wait` | Returns a transducer writing ``False`` until first (or k-th) true input is read.
     :meth:`~TransducerGenerators.weight` | Returns a transducer realizing the Hamming weight
     :meth:`~TransducerGenerators.GrayCode` | Returns a transducer realizing binary Gray code.
 
@@ -35,11 +39,16 @@ AUTHORS:
 - Clemens Heuberger (2014-04-07): initial version
 - Sara Kropf (2014-04-10): some changes in TransducerGenerator
 - Daniel Krenn (2014-04-15): improved common docstring during review
+- Clemens Heuberger, Daniel Krenn, Sara Kropf (2014-04-16--2014-05-02):
+  A couple of improvements. Details see
+  #16141, #16142, #16143, #16186.
 - Sara Kropf (2014-04-29): weight transducer
+- Clemens Heuberger, Daniel Krenn (2014-07-18): transducers Wait, all,
+  any
 
 ACKNOWLEDGEMENT:
 
-- Daniel Krenn, Clemens Heuberger and Sara Kropf are supported by the
+- Clemens Heuberger, Daniel Krenn and Sara Kropf are supported by the
   Austrian Science Fund (FWF): P 24644-N26.
 
 Functions and methods
@@ -48,14 +57,13 @@ Functions and methods
 """
 #*****************************************************************************
 #       Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
+#                     2014 Daniel Krenn <dev@danielkrenn.at>
 #                     2014 Sara Kropf <sara.kropf@aau.at>
-#                     2014 Daniel Krenn <devel@danielkrenn.at>
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.combinat.finite_state_machine import Transducer
@@ -74,9 +82,12 @@ class TransducerGenerators(object):
     - :meth:`~Identity`
     - :meth:`~abs`
     - :meth:`~TransducerGenerators.operator`
+    - :meth:`~all`
+    - :meth:`~any`
     - :meth:`~add`
     - :meth:`~sub`
     - :meth:`~CountSubblockOccurrences`
+    - :meth:`~Wait`
     - :meth:`~GrayCode`
 
     """
@@ -240,6 +251,89 @@ class TransducerGenerators(object):
             s.is_final = True
         return T
 
+    def Wait(self, input_alphabet, threshold=1):
+        r"""
+        Writes ``False`` until reading the ``threshold``-th occurrence
+        of a true input letter; then writes ``True``.
+
+        INPUT:
+
+        - ``input_alphabet`` -- a list or other iterable.
+
+        - ``threshold`` -- a positive integer specifying how many
+          occurrences of ``True`` inputs are waited for.
+
+        OUTPUT:
+
+        A transducer writing ``False`` until the ``threshold``-th true
+        (Python's standard conversion to boolean is used to convert the
+        actual input to boolean) input is read. Subsequently, the
+        transducer writes ``True``.
+
+        EXAMPLES::
+
+            sage: T = transducers.Wait([0, 1])
+            sage: T([0, 0, 1, 0, 1, 0])
+            [False, False, True, True, True, True]
+            sage: T2 = transducers.Wait([0, 1], threshold=2)
+            sage: T2([0, 0, 1, 0, 1, 0])
+            [False, False, False, False, True, True]
+        """
+        def transition(state, input):
+            if state == threshold:
+                return (threshold, True)
+            if not input:
+                return (state, False)
+            return (state + 1, state + 1 == threshold)
+
+        T = Transducer(transition,
+                       input_alphabet=input_alphabet,
+                       initial_states=[0])
+        for s in T.iter_states():
+            s.is_final = True
+
+        return T
+
+    def map(self, f, input_alphabet):
+        r"""
+        Return a transducer which realizes a function
+        on the alphabet.
+
+        INPUT:
+
+        - ``f`` -- function to realize.
+
+        - ``input_alphabet``  -- a list or other iterable.
+
+        OUTPUT:
+
+        A transducer mapping an input letter `x` to
+        `f(x)`.
+
+        EXAMPLE:
+
+        The following binary transducer realizes component-wise
+        absolute value (this transducer is also available as :meth:`.abs`)::
+
+            sage: T = transducers.map(abs, [-1, 0, 1])
+            sage: T.transitions()
+            [Transition from 0 to 0: -1|1,
+             Transition from 0 to 0: 0|0,
+             Transition from 0 to 0: 1|1]
+            sage: T.input_alphabet
+            [-1, 0, 1]
+            sage: T.initial_states()
+            [0]
+            sage: T.final_states()
+            [0]
+            sage: T([-1, 1, 0, 1])
+            [1, 1, 0, 1]
+        """
+        return Transducer(lambda state, input: (0, f(input)),
+                          input_alphabet=input_alphabet,
+                          initial_states=[0],
+                          final_states=[0])
+
 
     def operator(self, operator, input_alphabet, number_of_operands=2):
         r"""
@@ -300,7 +394,14 @@ class TransducerGenerators(object):
             sage: T([(-1,), (1,), (0,)])
             [1, 1, 0]
 
-        Compare this with the transducer generated by :meth:`.abs`::
+        Compare this with the transducer generated by :meth:`.map`::
+
+            sage: T = transducers.map(abs,
+            ....:                     [-1, 0, 1])
+            sage: T([-1, 1, 0])
+            [1, 1, 0]
+
+        In fact, this transducer is also available as :meth:`.abs`::
 
             sage: T = transducers.abs([-1, 0, 1])
             sage: T([-1, 1, 0])
@@ -317,7 +418,112 @@ class TransducerGenerators(object):
                           final_states=[0])
 
 
-    def add(self, input_alphabet):
+    def all(self, input_alphabet, number_of_operands=2):
+        """
+        Returns a transducer which realizes logical ``and`` over the given
+        input alphabet.
+
+        INPUT:
+
+        - ``input_alphabet``  -- a list or other iterable.
+
+        - ``number_of_operands`` -- (default: `2`) specifies the number
+          of input arguments for the ``and`` operation.
+
+        OUTPUT:
+
+        A transducer mapping an input word
+        `(i_{01}, \ldots, i_{0d})\ldots (i_{k1}, \ldots, i_{kd})` to the word
+        `(i_{01} \land \cdots \land i_{0d})\ldots (i_{k1} \land \cdots \land i_{kd})`.
+
+        The input alphabet of the generated transducer is the cartesian
+        product of ``number_of_operands`` copies of ``input_alphabet``.
+
+        EXAMPLE:
+
+        The following transducer realizes letter-wise
+        logical ``and``::
+
+            sage: T = transducers.all([False, True])
+            sage: T.transitions()
+            [Transition from 0 to 0: (False, False)|False,
+             Transition from 0 to 0: (False, True)|False,
+             Transition from 0 to 0: (True, False)|False,
+             Transition from 0 to 0: (True, True)|True]
+            sage: T.input_alphabet
+            [(False, False), (False, True), (True, False), (True, True)]
+            sage: T.initial_states()
+            [0]
+            sage: T.final_states()
+            [0]
+            sage: T([(False, False), (False, True), (True, False), (True, True)])
+            [False, False, False, True]
+
+        More than two operands and other input alphabets (with
+        conversion to boolean) are also possible::
+
+            sage: T3 = transducers.all([0, 1], number_of_operands=3)
+            sage: T3([(0, 0, 0), (1, 0, 0), (1, 1, 1)])
+            [False, False, True]
+        """
+        return self.operator(lambda *args: all(args),
+                             input_alphabet, number_of_operands)
+
+
+    def any(self, input_alphabet, number_of_operands=2):
+        """
+        Returns a transducer which realizes logical ``or`` over the given
+        input alphabet.
+
+        INPUT:
+
+        - ``input_alphabet``  -- a list or other iterable.
+
+        - ``number_of_operands`` -- (default: `2`) specifies the number
+          of input arguments for the ``or`` operation.
+
+        OUTPUT:
+
+        A transducer mapping an input word
+        `(i_{01}, \ldots, i_{0d})\ldots (i_{k1}, \ldots, i_{kd})` to the word
+        `(i_{01} \lor \cdots \lor i_{0d})\ldots (i_{k1} \lor \cdots \lor i_{kd})`.
+
+        The input alphabet of the generated transducer is the cartesian
+        product of ``number_of_operands`` copies of ``input_alphabet``.
+
+        EXAMPLE:
+
+        The following transducer realizes letter-wise
+        logical ``or``::
+
+            sage: T = transducers.any([False, True])
+            sage: T.transitions()
+            [Transition from 0 to 0: (False, False)|False,
+             Transition from 0 to 0: (False, True)|True,
+             Transition from 0 to 0: (True, False)|True,
+             Transition from 0 to 0: (True, True)|True]
+            sage: T.input_alphabet
+            [(False, False), (False, True), (True, False), (True, True)]
+            sage: T.initial_states()
+            [0]
+            sage: T.final_states()
+            [0]
+            sage: T([(False, False), (False, True), (True, False), (True, True)])
+            [False, True, True, True]
+
+        More than two operands and other input alphabets (with
+        conversion to boolean) are also possible::
+
+            sage: T3 = transducers.any([0, 1], number_of_operands=3)
+            sage: T3([(0, 0, 0), (1, 0, 0), (1, 1, 1)])
+            [False, True, True]
+        """
+        return self.operator(lambda *args: any(args),
+                             input_alphabet, number_of_operands)
+
+
+
+    def add(self, input_alphabet, number_of_operands=2):
         """
         Returns a transducer which realizes addition on pairs over the
         given input alphabet.
@@ -326,13 +532,17 @@ class TransducerGenerators(object):
 
         - ``input_alphabet``  -- a list or other iterable.
 
+        - ``number_of_operands`` -- (default: `2`) it specifies the number
+          of input arguments the operator takes.
+
         OUTPUT:
 
-        A transducer mapping an input word `(i_0, i'_0)\ldots (i_k, i'_k)`
-        to the word `(i_0 + i'_0)\ldots (i_k + i'_k)`.
+        A transducer mapping an input word
+        `(i_{01}, \ldots, i_{0d})\ldots (i_{k1}, \ldots, i_{kd})` to the word
+        `(i_{01} + \cdots + i_{0d})\ldots (i_{k1} + \cdots + i_{kd})`.
 
         The input alphabet of the generated transducer is the cartesian
-        product of two copies of ``input_alphabet``.
+        product of ``number_of_operands`` copies of ``input_alphabet``.
 
         EXAMPLE:
 
@@ -353,9 +563,19 @@ class TransducerGenerators(object):
             [0]
             sage: T([(0, 0), (0, 1), (1, 0), (1, 1)])
             [0, 1, 1, 2]
+
+        More than two operands can also be handled::
+
+            sage: T3 = transducers.add([0, 1], number_of_operands=3)
+            sage: T3.input_alphabet
+            [(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1),
+             (1, 0, 0), (1, 0, 1), (1, 1, 0), (1, 1, 1)]
+            sage: T3([(0, 0, 0), (0, 1, 0), (0, 1, 1), (1, 1, 1)])
+            [0, 1, 2, 3]
         """
-        import operator
-        return self.operator(operator.add, input_alphabet)
+        return self.operator(lambda *args: sum(args),
+                             input_alphabet,
+                             number_of_operands=number_of_operands)
 
 
     def sub(self, input_alphabet):
@@ -497,10 +717,7 @@ class TransducerGenerators(object):
             [1, 1, 0, 1]
 
         """
-        return Transducer(lambda state, input: (0, abs(input)),
-                          input_alphabet=input_alphabet,
-                          initial_states=[0],
-                          final_states=[0])
+        return self.map(abs, input_alphabet)
 
 
     def GrayCode(self):
@@ -525,7 +742,7 @@ class TransducerGenerators(object):
             Transducer with 3 states
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
             sage: for v in srange(0, 10):
-            ....:     print v, G(v.digits(base=2) + [0])
+            ....:     print v, G(v.digits(base=2))
             0 []
             1 [1]
             2 [1, 1]
@@ -553,7 +770,8 @@ class TransducerGenerators(object):
                            [2, 1, z, o],
                            [2, 2, o, z]],
                           initial_states=[0],
-                          final_states=[1])
+                          final_states=[1],
+                          with_final_word_out=[0])
 
 
 # Easy access to the transducer generators from the command line:

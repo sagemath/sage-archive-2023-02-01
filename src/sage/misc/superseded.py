@@ -8,6 +8,9 @@ that the deprecated function is called.
 Note that all doctests in the following use the trac ticket number
 :trac:`13109`, which is where this mandatory argument to
 :func:`deprecation` was introduced.
+
+Functions and classes
+---------------------
 """
 
 
@@ -82,7 +85,7 @@ def deprecation(trac_number, message):
         sage: def foo():
         ....:  sage.misc.superseded.deprecation(13109, 'the function foo is replaced by bar')
         sage: foo()
-        doctest:1: DeprecationWarning: the function foo is replaced by bar
+        doctest:...: DeprecationWarning: the function foo is replaced by bar
         See http://trac.sagemath.org/13109 for details.
     """
     _check_trac_number(trac_number)
@@ -92,8 +95,6 @@ def deprecation(trac_number, message):
     # Stack level 3 to get the line number of the code which called
     # the deprecated function which called this function.
     warn(message, DeprecationWarning, stacklevel=3)
-
-
 
 class DeprecatedFunctionAlias(object):
     """
@@ -192,7 +193,7 @@ class DeprecatedFunctionAlias(object):
             sage: def bla(): return 42
             sage: blo = deprecated_function_alias(13109, bla)
             sage: blo()
-            doctest:1: DeprecationWarning: blo is deprecated. Please use bla instead.
+            doctest:...: DeprecationWarning: blo is deprecated. Please use bla instead.
             See http://trac.sagemath.org/13109 for details.
             42
         """
@@ -259,7 +260,7 @@ def deprecated_function_alias(trac_number, func):
         See http://trac.sagemath.org/13109 for details.
         42
 
-    Trac #11585::
+    :trac:`11585`::
 
         sage: def a(): pass
         sage: b = deprecated_function_alias(13109, a)
@@ -299,7 +300,7 @@ def deprecated_callable_import(trac_number, module_name, globs, locs, fromlist, 
 
     - ``locs`` -- dictionary. The ``locals()`` from where this is being called.
 
-    - ``param fromlist: -- list of strings. The list the names of the
+    - ``param fromlist``: -- list of strings. The list the names of the
       callables to deprecate
 
     - ``message`` --` string. Message to display when the deprecated functions are called.
@@ -339,7 +340,7 @@ def deprecated_callable_import(trac_number, module_name, globs, locs, fromlist, 
         message = '\nUsing %(name)s from here is deprecated. ' + \
             'If you need to use it, please import it directly from %(module_name)s.'
     from functools import partial
-    from sage.misc.misc import sage_wraps
+    from sage.misc.decorators import sage_wraps
     if module_name is None:
         mod_dict = globs
     else:
@@ -350,5 +351,7 @@ def deprecated_callable_import(trac_number, module_name, globs, locs, fromlist, 
             from sage.misc.superseded import deprecation
             deprecation(trac_number, message%{'name': name, 'module_name': module_name})
             return func(*args, **kwds)
-        globs[name] = sage_wraps(func)(partial(wrapper, func, name))
+        wrapped_function = sage_wraps(func)(partial(wrapper, func, name))
+        wrapped_function.__doc__ = message%{'name': name, 'module_name': module_name}
+        globs[name] = wrapped_function
     del name

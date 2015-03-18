@@ -85,7 +85,6 @@ Many other functionalities...::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 import itertools
-from sage.misc.superseded import deprecated_function_alias
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.sets.set import Set
@@ -710,7 +709,7 @@ class WordMorphism(SageObject):
                     letter = w[0]
             elif hasattr(w, '__iter__'):
                 try:
-                    letter = w.next()
+                    letter = next(w)
                 except StopIteration:
                     return self.codomain()()
             elif w in self._domain.alphabet():
@@ -1679,7 +1678,7 @@ class WordMorphism(SageObject):
 
             sage: s = WordMorphism({('a', 1):[('a', 1), ('a', 2)], ('a', 2):[('a', 1)]})
             sage: it = s._fixed_point_iterator(('a',1))
-            sage: it.next()
+            sage: next(it)
             ('a', 1)
 
         This shows that ticket :trac:`13668` has been resolved::
@@ -1698,8 +1697,6 @@ class WordMorphism(SageObject):
             else:
                 next_w = next(w)
                 w = itertools.chain([next_w], w, self.image(next_w))
-
-    letter_iterator = deprecated_function_alias(8595, _fixed_point_iterator)
 
     def fixed_point(self, letter):
         r"""
@@ -1966,7 +1963,7 @@ class WordMorphism(SageObject):
         I = itertools.ifilterfalse(FiniteWord_class.is_empty, self.images())
 
         try:
-            letter = I.next()[0]
+            letter = next(I)[0]
         except StopIteration:
             return True
 
@@ -2287,7 +2284,9 @@ class WordMorphism(SageObject):
 
             sage: s = WordMorphism('1->12,2->13,3->1')
             sage: s.rauzy_fractal_projection()
-            {'1': (1.00..., 0.00...), '3': (-0.77..., 1.11...), '2': (-1.41..., -0.60...)}
+            {'1': (1.00000000000000, 0.000000000000000),
+             '2': (-1.41964337760708, -0.606290729207199),
+             '3': (-0.771844506346038, 1.11514250803994)}
 
         TESTS::
 
@@ -2295,9 +2294,23 @@ class WordMorphism(SageObject):
             sage: E = t.incidence_matrix().eigenvalues()
             sage: x = [x for x in E if -0.8 < x < -0.7][0]
             sage: t.rauzy_fractal_projection(prec=10)
-            {'1': (1.0, 0.00), '3': (0.79, 1.3), '2': (-1.7, -0.56), '5': (-1.7, -0.56), '4': (1.9, -0.74), '7': (0.21, -1.3), '6': (0.79, 1.3), '8': (-0.88, 0.74)}
+            {'1': (1.0, 0.00),
+             '2': (-1.7, -0.56),
+             '3': (0.79, 1.3),
+             '4': (1.9, -0.74),
+             '5': (-1.7, -0.56),
+             '6': (0.79, 1.3),
+             '7': (0.21, -1.3),
+             '8': (-0.88, 0.74)}
             sage: t.rauzy_fractal_projection(eig=x, prec=10)
-            {'1': (1.0, 0.00), '3': (-0.66, -0.56), '2': (-0.12, -0.74), '5': (-0.54, 0.18), '4': (-0.46, -0.18), '7': (0.12, 0.74), '6': (-0.34, 0.56), '8': (0.66, 0.56)}
+            {'1': (1.0, 0.00),
+             '2': (-0.12, -0.74),
+             '3': (-0.66, -0.56),
+             '4': (-0.46, -0.18),
+             '5': (-0.54, 0.18),
+             '6': (-0.34, 0.56),
+             '7': (0.12, 0.74),
+             '8': (0.66, 0.56)}
 
         AUTHOR:
 
@@ -2423,7 +2436,7 @@ class WordMorphism(SageObject):
         S = 0
         orbit_points = dict([(a,[]) for a in alphabet])
         for _ in xrange(n):
-            a = u.next()
+            a = next(u)
             S += canonical_basis_proj[a]
             orbit_points[a].append(S)
 
@@ -2547,6 +2560,7 @@ class WordMorphism(SageObject):
 
             sage: s = WordMorphism('1->12,2->13,3->1')
             sage: s.rauzy_fractal_plot()     # long time
+            Graphics object consisting of 3 graphics primitives
 
         #. The "Hokkaido" fractal. We tweak the plot using the plotting options
            to get a nice reusable picture, in which we mark the origin by a black dot::
@@ -2652,6 +2666,7 @@ class WordMorphism(SageObject):
 
             sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
             sage: s.rauzy_fractal_plot(n=1000, colormap='Set1', opacity={'a':0.5,'b':1,'c':0.7,'d':0,'e':0.2}, plot_origin=(100,"black"), plot_basis=True, point_size=2.5)
+            Graphics object consisting of 10 graphics primitives
 
         REFERENCES:
 
@@ -2814,7 +2829,7 @@ class WordMorphism(SageObject):
             I = [self.domain().alphabet().rank(letter)]
 
         last_coef = 0
-        coefs = self.incidence_matrix().charpoly().coeffs()
+        coefs = self.incidence_matrix().charpoly().coefficients(sparse=False)
         while coefs[last_coef] == 0:
             last_coef += 1
         V = self.abelian_rotation_subspace() + (self.incidence_matrix()**last_coef).right_kernel().change_ring(QQ)
@@ -2840,7 +2855,7 @@ class WordMorphism(SageObject):
         if self.is_primitive():
             return self.domain().alphabet().list()
         last_coef = 0
-        coefs = self.incidence_matrix().charpoly().coeffs()
+        coefs = self.incidence_matrix().charpoly().coefficients(sparse=False)
         while coefs[last_coef] == 0:
             last_coef += 1
         V = self.abelian_rotation_subspace() + (self.incidence_matrix()**last_coef).right_kernel().change_ring(QQ)

@@ -54,7 +54,7 @@ Sage example in ./float.tex, line 182::
 Sage example in ./float.tex, line 194::
 
     sage: RDF(8/3)
-    2.66666666667
+    2.6666666666666665
     sage: R100 = RealField(100); R100(8/3)
     2.6666666666666666666666666667
 
@@ -64,7 +64,7 @@ Sage example in ./float.tex, line 202::
     sage: R = RealField(); R(x)
     2.66666666666667
     sage: RDF(x)
-    2.66666666667
+    2.6666666666666665
 
 Sage example in ./float.tex, line 216::
 
@@ -252,7 +252,7 @@ Sage example in ./float.tex, line 714::
 Sage example in ./float.tex, line 723::
 
     sage: x = RDF.pi()/2; x.cos() # approximation flottante de zero!
-    6.12323399574e-17
+    6.123233995736757e-17
     sage: x.cos().arccos() - x
     0.0
 

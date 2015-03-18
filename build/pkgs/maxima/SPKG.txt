@@ -29,43 +29,44 @@ COPYING.
 
  * The Maxima mailing list - see http://maxima.sourceforge.net/maximalist.html
 
+== Dependencies ==
+
+ * ECL (Embedded Common Lisp)
+
 == Special Update/Build Instructions ==
 
- * Make sure the patches still apply cleanly.
+1. Go to http://sourceforge.net/projects/maxima/files/Maxima-source/
+   and download the source tarball maxima-x.y.z.tar.gz; place it in
+   the upstream/ directory.
 
- * Run the `spkg-src` script after updating to a newer upstream
-   release. It removes a large amount of unused documentation and
-   disables the associated Makefiles, reducing the size of the SPKG
-   greatly.
+2. Update package-version.txt and run sage-fix-pkg-checksums.
 
-=============================================================
+3. Make sure the patches still apply cleanly, and update them if
+   necessary.
 
-How to make a new version of the Maxima spkg.
+4. Test the resulting package.
 
-  1. Go to http://sourceforge.net/project/showfiles.php?group_id=4933
-     and download the source tar.gz ball.  That's near the bottom
-     of that page (i.e., hard to find if you don't scroll past
-     all the big red adds).
+All patch files in the patches/ directory are applied.  Descriptions
+of these patches are either in the patch files themselves or below.
 
-  2. Extract the tarball to replace the src/ subdirectory of this package.
+ * 0001-taylor2-Avoid-blowing-the-stack-when-diff-expand-isn.patch:
+   Fix for Maxima bug #2520 (abs_integrate fails on abs(sin(x)) and
+   abs(cos(x))).  Introduced in Trac #13364 (Upgrade Maxima to
+   5.29.1).
 
-  3. Create an spkg from this directory, with
-        sage -pkg maxima-x.y.z
+ * build-fasl.patch: Build a fasl library for ecl in addition to an
+   executable program.  Introduced in Trac #16178 (Build maxima fasl
+   without asdf).
 
-  4. Test the resulting maxima-??.spkg.
+ * infodir.patch: Correct the path to the Info directory.  Introduced
+   in Trac #11348 (maxima test fails when install tree is moved).
 
-=============================================================
+ * matrixexp.patch: Fix matrixexp(matrix([%i*%pi])), which broke after
+   Maxima 5.29.1.  Introduced in Trac #13973.
 
-Here's what spkg-dist does:
+ * maxima.system.patch: Set c::*compile-in-constants* to t.
+   Introduced in Trac #11966 (OS X 10.7 Lion: Maxima fails to build).
 
-* Removes the foreign language versions of the info files,
-  since they add several MEGS (and they weren't in previous
-  versions of Maxima).  This means making empty directories
-  and changing the Makefile.in's.
-
-* In the past, before doing step 3 above, one would also type
-
-       ./spkg-dist
-
-  However, this caused problems with calling automake because
-  of the changed .in files.
+ * undoing_true_false_printing_patch.patch: Revert an upstream change
+   causing '?' to be printed around some words.  Introduced in Trac
+   #13364 (Upgrade Maxima to 5.29.1).

@@ -17,7 +17,8 @@ AUTHORS:
 
 include "sage/ext/interrupt.pxi"
 include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
+from sage.ext.memory cimport check_allocarray, sage_malloc, sage_free
+include "sage/data_structures/binary_matrix.pxi"
 
 # import from Python standard library
 from sage.misc.prandom import random
@@ -124,9 +125,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     if n == 0:
         return {}
 
-    cdef double* pos = <double*>sage_malloc(n * dim * sizeof(double))
-    if pos is NULL:
-            raise MemoryError, "error allocating scratch space for spring layout"
+    cdef double* pos = <double*>check_allocarray(n, dim * sizeof(double))
 
     # convert or create the starting positions as a flat list of doubles
     if vpos is None:  # set the initial positions randomly in 1x1 box
@@ -141,10 +140,12 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
 
     # here we construct a lexicographically ordered list of all edges
     # where elist[2*i], elist[2*i+1] represents the i-th edge
-    cdef int* elist = <int*>sage_malloc( (2 * len(G.edges()) + 2) * sizeof(int)  )
-    if elist is NULL:
+    cdef int* elist
+    try:
+        elist = <int*>check_allocarray(2 * len(G.edges()) + 2, sizeof(int))
+    except MemoryError:
         sage_free(pos)
-        raise MemoryError, "error allocating scratch space for spring layout"
+        raise
 
     cdef int cur_edge = 0
 
@@ -166,11 +167,12 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     cdef double* cen
     cdef double r, r2, max_r2 = 0
     if rescale:
-        cen = <double *>sage_malloc(sizeof(double) * dim)
-        if cen is NULL:
+        try:
+            cen = <double *>check_allocarray(dim, sizeof(double))
+        except MemoryError:
             sage_free(elist)
             sage_free(pos)
-            raise MemoryError, "error allocating scratch space for spring layout"
+            raise
         for x from 0 <= x < dim: cen[x] = 0
         for i from 0 <= i < n:
             for x from 0 <= x < dim:
@@ -244,9 +246,7 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
     cdef double* disp_j
     cdef double* delta
 
-    cdef double* disp = <double*>sage_malloc((n+1) * dim * sizeof(double))
-    if disp is NULL:
-            raise MemoryError, "error allocating scratch space for spring layout"
+    cdef double* disp = <double*>check_allocarray(n+1, dim * sizeof(double))
     delta = &disp[n*dim]
 
     if height:
@@ -644,8 +644,28 @@ cdef class SubgraphSearch:
 
         cdef int i, j, k
 
-        self.tmp_array = <int *>sage_malloc(self.ng * sizeof(int))
-        if self.tmp_array == NULL:
+        # A vertex is said to be busy if it is already part of the partial copy
+        # of H in G.
+        self.busy       = <int *>  sage_malloc(self.ng * sizeof(int))
+        self.tmp_array  = <int *>  sage_malloc(self.ng * sizeof(int))
+        self.stack      = <int *>  sage_malloc(self.nh * sizeof(int))
+        self.vertices   = <int *>  sage_malloc(self.nh * sizeof(int))
+        self.line_h_out = <int **> sage_malloc(self.nh * sizeof(int *))
+        self.line_h_in  = <int **> sage_malloc(self.nh * sizeof(int *)) if self.directed else NULL
+
+        if self.line_h_out is not NULL:
+            self.line_h_out[0] = <int *> sage_malloc(self.nh*self.nh*sizeof(int))
+        if self.line_h_in is not NULL:
+            self.line_h_in[0]  = <int *> sage_malloc(self.nh*self.nh*sizeof(int))
+
+        if (self.tmp_array     == NULL or
+            self.busy          == NULL or
+            self.stack         == NULL or
+            self.vertices      == NULL or
+            self.line_h_out    == NULL or
+            self.line_h_out[0] == NULL or
+            (self.directed and self.line_h_in == NULL) or
+            (self.directed and self.line_h_in[0] == NULL)):
             raise MemoryError()
 
         # Should we look for induced subgraphs ?
@@ -659,51 +679,31 @@ cdef class SubgraphSearch:
         self.h = DenseGraph(self.nh)
 
         # copying the adjacency relations in both G and H
-        i = 0
-        for row in G.adjacency_matrix():
-            j = 0
-            for k in row:
+        for i,row in enumerate(G.adjacency_matrix()):
+            for j,k in enumerate(row):
                 if k:
                     self.g.add_arc(i, j)
-                j += 1
-            i += 1
-        i = 0
-        for row in H.adjacency_matrix():
-            j = 0
-            for k in row:
+
+        for i,row in enumerate(H.adjacency_matrix()):
+            for j,k in enumerate(row):
                 if k:
                     self.h.add_arc(i, j)
-                j += 1
-            i += 1
-
-        # A vertex is said to be busy if it is already part of the partial copy
-        # of H in G.
-        self.busy = <int *>sage_malloc(self.ng * sizeof(int))
-        self.stack = <int *>sage_malloc(self.nh * sizeof(int))
 
         # vertices is equal to range(nh), as an int *variable
-        self.vertices = <int *>sage_malloc(self.nh * sizeof(int))
         for 0 <= i < self.nh:
             self.vertices[i] = i
 
         # line_h_out[i] represents the adjacency sequence of vertex i
         # in h relative to vertices 0, 1, ..., i-1
-        self.line_h_out = <int **>sage_malloc(self.nh * sizeof(int *))
-        for 0 <= i < self.nh:
-            self.line_h_out[i] = <int *> sage_malloc(self.nh * sizeof(int *))
-            if self.line_h_out[i] is NULL:
-                raise MemoryError()
+        for i in range(self.nh):
+            self.line_h_out[i] = self.line_h_out[0]+i*self.nh
             self.h.adjacency_sequence_out(i, self.vertices, i, self.line_h_out[i])
 
         # Similarly in the opposite direction (only useful if the
         # graphs are directed)
         if self.directed:
-            self.line_h_in = <int **>sage_malloc(self.nh * sizeof(int *))
-            for 0 <= i < self.nh:
-                self.line_h_in[i] = <int *> sage_malloc(self.nh * sizeof(int *))
-                if self.line_h_in[i] is NULL:
-                    raise MemoryError()
-
+            for i in range(self.nh):
+                self.line_h_in[i] = self.line_h_in[0]+i*self.nh
                 self.h.adjacency_sequence_in(i, self.vertices, i, self.line_h_in[i])
 
     def __next__(self):
@@ -793,22 +793,17 @@ cdef class SubgraphSearch:
         r"""
         Freeing the allocated memory.
         """
+        if self.line_h_in  is not NULL:
+            sage_free(self.line_h_in[0])
+        if self.line_h_out is not NULL:
+            sage_free(self.line_h_out[0])
 
         # Free the memory
         sage_free(self.busy)
         sage_free(self.stack)
         sage_free(self.vertices)
-        for 0 <= i < self.nh:
-            sage_free(self.line_h_out[i])
         sage_free(self.line_h_out)
-
-        if self.directed:
-            for 0 <= i < self.nh:
-                sage_free(self.line_h_in[i])
-            sage_free(self.line_h_in)
-
-        if self.tmp_array != NULL:
-            sage_free(self.tmp_array)
+        sage_free(self.line_h_in)
 
 cdef inline bint vectors_equal(int n, int *a, int *b):
     r"""
@@ -877,8 +872,8 @@ def _test_vectors_equal_inferior():
     """
     from sage.misc.prandom import randint
     n = randint(500, 10**3)
-    cdef int *u = <int *>sage_malloc(n * sizeof(int))
-    cdef int *v = <int *>sage_malloc(n * sizeof(int))
+    cdef int *u = <int *>check_allocarray(n, sizeof(int))
+    cdef int *v = <int *>check_allocarray(n, sizeof(int))
     cdef int i
     # equal vectors: u = v
     for 0 <= i < n:
@@ -1096,11 +1091,11 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
     cdef int m = G.num_edges()
 
     #Initialize the path.
-    cdef int *path = <int *>sage_malloc(n * sizeof(int))
+    cdef int *path = <int *>check_allocarray(n, sizeof(int))
     memset(path, -1, n * sizeof(int))
 
     #Initialize the membership array
-    cdef bint *member = <bint *>sage_malloc(n * sizeof(int))
+    cdef bint *member = <bint *>check_allocarray(n, sizeof(int))
     memset(member, 0, n * sizeof(int))
 
     # static copy of the graph for more efficient operations
@@ -1143,14 +1138,14 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
     cdef int longest = length
 
     #Initialize a path to contain the longest path
-    cdef int *longest_path = <int *>sage_malloc(n * sizeof(int))
+    cdef int *longest_path = <int *>check_allocarray(n, sizeof(int))
     memset(longest_path, -1, n * sizeof(int))
     i = 0
     for 0 <= i < length:
         longest_path[ i ] = path[ i ]
 
     #Initialize a temporary path for flipping
-    cdef int *temp_path = <int *>sage_malloc(n * sizeof(int))
+    cdef int *temp_path = <int *>check_allocarray(n, sizeof(int))
     memset(temp_path, -1, n * sizeof(int))
 
     cdef bint longer = False
@@ -1285,3 +1280,68 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
 
     return (True,output)
 
+def transitive_reduction_acyclic(G):
+    r"""
+    Returns the transitive reduction of an acyclic digraph
+
+    INPUT:
+
+    - ``G`` -- an acyclic digraph.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.generic_graph_pyx import transitive_reduction_acyclic
+        sage: G = posets.BooleanLattice(4).hasse_diagram()
+        sage: G == transitive_reduction_acyclic(G.transitive_closure())
+        True
+    """
+    cdef int  n = G.order()
+    cdef dict v_to_int = {vv: i for i, vv in enumerate(G.vertices())}
+    cdef int  u, v, i
+
+    cdef list linear_extension
+
+    is_acyclic, linear_extension = G.is_directed_acyclic(certificate=True)
+    if not is_acyclic:
+        raise ValueError("The graph is not directed acyclic")
+
+    linear_extension.reverse()
+
+    cdef binary_matrix_t closure
+
+    # Build the transitive closure of G
+    #
+    # A point is reachable from u if it is one of its neighbours, or if it is
+    # reachable from one of its neighbours.
+    binary_matrix_init(closure, n, n)
+    for uu in linear_extension:
+        u = v_to_int[uu]
+        for vv in G.neighbors_out(uu):
+            v = v_to_int[vv]
+            binary_matrix_set1(closure, u, v)
+            bitset_or(closure.rows[u], closure.rows[u], closure.rows[v])
+
+    # Build the transitive reduction of G
+    #
+    # An edge uv belongs to the transitive reduction of G if no outneighbor of u
+    # can reach v (except v itself, of course).
+    linear_extension.reverse()
+    cdef list useful_edges = []
+    for uu in linear_extension:
+        u = v_to_int[uu]
+        for vv in G.neighbors_out(uu):
+            v = v_to_int[vv]
+            bitset_difference(closure.rows[u], closure.rows[u], closure.rows[v])
+        for vv in G.neighbors_out(uu):
+            v = v_to_int[vv]
+            if binary_matrix_get(closure, u, v):
+                useful_edges.append((uu, vv))
+
+    from sage.graphs.digraph import DiGraph
+    reduced = DiGraph()
+    reduced.add_edges(useful_edges)
+    reduced.add_vertices(linear_extension)
+
+    binary_matrix_free(closure)
+
+    return reduced

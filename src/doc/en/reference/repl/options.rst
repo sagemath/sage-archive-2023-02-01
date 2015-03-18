@@ -61,8 +61,8 @@ Command-line options for Sage
 - ``--ecl [...]``, ``--lisp [...]`` -- run Sage's copy of ECL
   (Embeddable Common Lisp) with the given arguments
 - ``--gap [...]`` -- run Sage's Gap with the given arguments
+- ``--git [...]`` -- run Sage's Git with the given arguments
 - ``--gp [...]`` -- run Sage's PARI/GP calculator with the given arguments
-- ``--hg [...]`` -- run Sage's Mercurial with the given arguments
 - ``--ipython [...]`` -- run Sage's IPython using the default
   environment (not Sage), passing additional options to IPython
 - ``--kash [...]`` -- run Sage's Kash with the given arguments
@@ -106,63 +106,16 @@ Command-line options for Sage
   packages from given url.  If url not given, automatically selects
   a suitable mirror.  If url='ask', it lets you select the mirror.
 
-.. rubric:: The Sage-combinat package manager
-
-Sage-combinat is a collection of experimental patches
-(i.e. extensions) on top of Sage, developed by a community of
-researchers, with a focus, at least to some extent, in
-combinatorics. Many of those patches get eventually integrated into
-Sage as soon as they are mature enough, but you can install the
-still-experimental ones by running ``sage -combinat install``.  This
-creates a new branch, called ``sage-combinat`` by default, containing
-the new patches. More information on sage-combinat is available at the
-`Sage wiki`__.  More details on the ``--combinat`` command-line option
-for Sage:
-
-__ http://wiki.sagemath.org/combinat
-
-- ``--combinat [options] command`` -- run the ``sage-combinat``
-  patch management script.  Commands:
-
-  - ``config`` -- show current configuration (Sage command, path, version, ...)
-  - ``install`` -- install the sage-combinat patches
-  - ``update`` -- update to the latest sage-combinat patches
-  - ``upgrade`` -- upgrade Sage and update to the latest sage-combinat patches
-  - ``status`` -- show changed files in the working directory and in
-    the patch queue
-  - ``qselect`` -- choose appropriate guards for the current version of Sage
-
-  Options:
-
-  - ``-h``, ``--help`` -- print a help message
-  - ``-b BRANCH``, ``--branch=BRANCH`` -- use ``sage-BRANCH``
-    instead of ``sage-combinat``
-  - ``--sage=/opt/bin/sage`` -- specify the path to Sage
-  - ``-f``, ``--force`` -- force proceeding, skipping any relevant queries
-  - ``-v`` -- Be verbose; print status messages
-  - ``-q``, ``--quiet`` -- don't print status messages
-  - ``-s URL``, ``--server=URL`` -- set the URL for the
-    sage-combinat server; the default is
-    ``http://combinat.sagemath.org/patches``
-  - ``-n`` -- after qselect: disable all previous non version guards
-
 .. rubric:: Building and testing the Sage library
 
 - ``--root`` -- print the Sage root directory
-- ``--branch`` -- print the current Sage branch
-- ``--clone [new branch]`` -- clone a new branch of the Sage library from the
-  current branch
-- ``-b [branch]`` -- build Sage library -- do this if you have modified
-  any source code files in :file:`$SAGE_ROOT/devel/sage/`.  If
-  ``branch`` is given, switch to the branch in
-  :file:`$SAGE_ROOT/devel/sage-branch` and build it.
-- ``-ba [branch]`` -- same as ``-b``, but rebuild *all* Cython
+- ``-b`` -- build Sage library -- do this if you have modified
+  any source code files in :file:`$SAGE_ROOT/src/sage/`.
+- ``-ba`` -- same as ``-b``, but rebuild *all* Cython
   code.  This could take a while, so you will be asked if you want
   to proceed.
-- ``-ba-force [branch]`` -- same as ``-ba``, but don't query before
-  rebuilding
-- ``--br [branch]`` -- switch to, build, and run Sage with the given
-  branch
+- ``-ba-force`` -- same as ``-ba``, but don't query before rebuilding
+- ``--br`` -- build and run Sage
 - ``-t [options] <files|dir>`` -- test examples in .py, .pyx, .sage
   or .tex files.  Options:
 
@@ -199,9 +152,6 @@ __ http://wiki.sagemath.org/combinat
   of files
 - ``--coverageall`` -- give summary info about doctest coverage of
   all files in the Sage library
-- ``--sync-build`` -- delete any files in :file:`$SAGE_ROOT/devel/sage/build/`
-  which don't have a corresponding source file in
-  :file:`$SAGE_ROOT/devel/sage/sage/`
 
 .. rubric:: Documentation
 
@@ -258,8 +208,6 @@ __ http://wiki.sagemath.org/combinat
 - ``--bdist VER`` -- build a binary distribution of Sage, with
   version ``VER``
 - ``--sdist`` -- build a source distribution of Sage
-- ``--crap sage-ver.tar`` -- detect suspicious garbage in the Sage
-  source tarball
 
 .. rubric:: Valgrind memory debugging
 

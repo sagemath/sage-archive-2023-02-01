@@ -27,7 +27,7 @@ mkdir src
 for pkg in \
     crime ctbllib design factint grape \
     guava Hap HAPcryst laguna polymaking \
-    sonata toric polycyclic autpgrp Alnuth
+    sonata toric polycyclic autpgrp Alnuth atlasrep
 do
     echo "Copying package $pkg"
     pkg_dir=`ls -d "$GAP/pkg/$pkg"*`

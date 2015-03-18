@@ -113,15 +113,16 @@ def KneserGraph(n,k):
     if not (k>0 and k<=n):
         raise ValueError("Parameter k should be a strictly positive integer inferior to n")
 
-    g = Graph(name="Kneser graph with parameters "+str(n)+","+str(k))
+    g = Graph(name="Kneser graph with parameters {},{}".format(n,k))
+
     from sage.combinat.subset import Subsets
-
-    if k>n/2:
-        g.add_vertices(Subsets(n,k).list())
-
     S = Subsets(n,k)
+    if k>n/2:
+        g.add_vertices(S)
+
+    s0 = S.underlying_set()    # {1,2,...,n}
     for s in S:
-        for t in Subsets(S.s.difference(s),k):
+        for t in Subsets(s0.difference(s), k):
             g.add_edge(s,t)
 
     return g
@@ -381,6 +382,7 @@ def BubbleSortGraph(n):
         sage: g = graphs.BubbleSortGraph(4); g
         Bubble sort: Graph on 24 vertices
         sage: g.plot() # long time
+        Graphics object consisting of 61 graphics primitives
 
     The bubble sort graph on `n = 1` symbol is the trivial graph `K_1`::
 
@@ -854,7 +856,7 @@ def FuzzyBallGraph(partition, q):
         sage: m=4; q=2; k=2
         sage: g_list=[graphs.FuzzyBallGraph(p,q) for p in Partitions(m, length=k)]
         sage: set([g.laplacian_matrix(normalized=True).charpoly() for g in g_list])  # long time (7s on sage.math, 2011)
-        set([x^8 - 8*x^7 + 4079/150*x^6 - 68689/1350*x^5 + 610783/10800*x^4 - 120877/3240*x^3 + 1351/100*x^2 - 931/450*x])
+        {x^8 - 8*x^7 + 4079/150*x^6 - 68689/1350*x^5 + 610783/10800*x^4 - 120877/3240*x^3 + 1351/100*x^2 - 931/450*x}
     """
     from sage.graphs.generators.basic import CompleteGraph
     if len(partition)<1:
@@ -1033,16 +1035,16 @@ def HararyGraph( k, n ):
         raise ValueError("Number of vertices n should be greater than k.")
 
     if k%2 == 0:
-        G = CirculantGraph( n, range(1,k/2+1) )
+        G = CirculantGraph( n, range(1,k//2+1) )
     else:
         if n%2 == 0:
-            G = CirculantGraph( n, range(1,(k-1)/2+1) )
+            G = CirculantGraph( n, range(1,(k-1)//2+1) )
             for i in range(n):
-                G.add_edge( i, (i+n/2)%n )
+                G.add_edge( i, (i + n//2)%n )
         else:
             G = HararyGraph( k-1, n )
-            for i in range((n-1)/2+1):
-                G.add_edge( i, (i+(n-1)/2)%n )
+            for i in range((n-1)//2 + 1):
+                G.add_edge( i, (i + (n-1)//2)%n )
     G.name('Harary graph {0}, {1}'.format(k,n))
     return G
 
@@ -1065,6 +1067,7 @@ def HyperStarGraph(n,k):
 
         sage: g = graphs.HyperStarGraph(6,3)
         sage: g.plot() # long time
+        Graphics object consisting of 51 graphics primitives
 
     REFERENCES:
 
@@ -1275,7 +1278,7 @@ def MycielskiStep(g):
     """
 
     # Make a copy of the input graph g
-    gg = g.copy()
+    gg = g.copy(immutable=False)
 
     # rename a vertex v of gg as (1,v)
     renamer = dict( [ (v, (1,v)) for v in g.vertices() ] )
@@ -1319,6 +1322,7 @@ def NKStarGraph(n,k):
 
         sage: g = graphs.NKStarGraph(4,2)
         sage: g.plot() # long time
+        Graphics object consisting of 31 graphics primitives
 
     REFERENCES:
 
@@ -1376,6 +1380,7 @@ def NStarGraph(n):
 
         sage: g = graphs.NStarGraph(4)
         sage: g.plot() # long time
+        Graphics object consisting of 61 graphics primitives
 
     REFERENCES:
 

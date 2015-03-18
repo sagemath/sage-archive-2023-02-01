@@ -45,11 +45,6 @@ associated digraph::
    :scale: 50
    :align: center
 
-REFERENCES:
-
-.. [L1995] P. Littelmann. *Paths and root operators in representation theory*.
-   Ann. of Math. (2) 142 (1995), no. 3, 499-525.
-
 The Littelmann path model also lends itself as a model for level zero
 crystals which are bi-infinite. To cut out a slice of these crystals, one
 can use the direction option in subcrystal::
@@ -65,5 +60,46 @@ can use the direction option in subcrystal::
 
 .. image:: ../media/level_zero_crystal.png
    :scale: 50
+   :align: center
+
+Modified Nakajima monomials
+---------------------------
+
+Modified Nakajima monomials have also been implemented in Sage and models
+highest weight crystals in all symmetrizable types. The elements are given
+in terms of commuting variables `Y_i(n)` where `i \in I` and
+`n \in \ZZ_{\geq 0}`. For more information on the modified Nakajima
+monomials, see [KKS2007]_.
+
+We give an example in affine type and verify that up to depth 3, it agrees
+with the Littelmann path model::
+
+    sage: La = RootSystem(['C',3,1]).weight_space().fundamental_weights()
+    sage: LS = crystals.LSPaths(2*La[1]+La[2])
+    sage: SL = LS.subcrystal(max_depth=3)
+    sage: GL = LS.digraph(subset=SL)
+
+    sage: La = RootSystem(['C',3,1]).weight_lattice().fundamental_weights()
+    sage: M = crystals.NakajimaMonomials(['C',3,1], 2*La[1]+La[2])
+    sage: SM = M.subcrystal(max_depth=3)
+    sage: GM = M.digraph(subset=SM)
+    sage: GL.is_isomorphic(GM, edge_labels=True)
+    True
+
+Now we do an example of a simply-laced (so symmetrizable) hyperbolic
+type `H_1^{(4)}`, which comes from the complete graph on 4 vertices::
+
+    sage: CM = CartanMatrix([[2, -1, -1,-1],[-1,2,-1,-1],[-1,-1,2,-1],[-1,-1,-1,2]]); CM
+    [ 2 -1 -1 -1]
+    [-1  2 -1 -1]
+    [-1 -1  2 -1]
+    [-1 -1 -1  2]
+    sage: La = RootSystem(CM).weight_lattice().fundamental_weights()
+    sage: M = crystals.NakajimaMonomials(CM, La[0])
+    sage: SM = M.subcrystal(max_depth=4)
+    sage: GM = M.digraph(subset=SM) # long time
+
+.. image:: ../media/hyperbolic_La0.png
+   :scale: 20
    :align: center
 

@@ -11,7 +11,7 @@ Additive groups
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_singleton
 from sage.categories.additive_monoids import AdditiveMonoids
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 
 class AdditiveGroups(CategoryWithAxiom_singleton):
     r"""
@@ -41,7 +41,7 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
          Category of objects]
 
         sage: AdditiveGroups().axioms()
-        frozenset(['AdditiveAssociative', 'AdditiveUnital', 'AdditiveInverse'])
+        frozenset({'AdditiveAssociative', 'AdditiveInverse', 'AdditiveUnital'})
         sage: AdditiveGroups() is AdditiveMonoids().AdditiveInverse()
         True
 
@@ -53,43 +53,3 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
     _base_category_class_and_axiom = (AdditiveMonoids, "AdditiveInverse")
 
     AdditiveCommutative = LazyImport('sage.categories.commutative_additive_groups', 'CommutativeAdditiveGroups', at_startup=True)
-
-    class ElementMethods:
-        ##def -x, -(x,y):
-        def __sub__(left, right):
-            """
-            Top-level subtraction operator.
-            See extensive documentation at the top of ``element.pyx``.
-
-            EXAMPLES::
-
-                sage: F = CombinatorialFreeModule(QQ, ['a','b'])
-                sage: a,b = F.basis()
-                sage: a - b
-                B['a'] - B['b']
-            """
-            if have_same_parent(left, right) and hasattr(left, "_sub_"):
-                return left._sub_(right)
-            from sage.structure.element import get_coercion_model
-            import operator
-            return get_coercion_model().bin_op(left, right, operator.sub)
-
-        ##################################################
-        # Negation
-        ##################################################
-
-        def __neg__(self):
-            """
-            Top-level negation operator for elements of abelian
-            monoids, which may choose to implement ``_neg_`` rather than
-            ``__neg__`` for consistancy.
-
-            EXAMPLES::
-
-                sage: F = CombinatorialFreeModule(QQ, ['a','b'])
-                sage: a,b = F.basis()
-                sage: - b
-                -B['b']
-            """
-            return self._neg_()
-

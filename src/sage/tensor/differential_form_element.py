@@ -75,7 +75,7 @@ def sort_subscript(subscript):
 
     # Check that offsets is a true permutation of 1..n
     n = len(offsets)
-    if sum(offsets) != n*(n+1)/2:
+    if sum(offsets) != n*(n+1)//2:
         sign = 0
     else:
         sign = Permutation(offsets).signature()

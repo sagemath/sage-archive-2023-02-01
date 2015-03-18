@@ -466,7 +466,8 @@ class SymmetricGroupRepresentations_class(CombinatorialClass):
         r"""
         Return the irreducible representation corresponding to partition.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sp = SymmetricGroupRepresentations(3, "specht")
             sage: sp([1,1,1])
             Specht representation of the symmetric group corresponding to [1, 1, 1]
@@ -485,7 +486,8 @@ class SymmetricGroupRepresentations_class(CombinatorialClass):
         Iterate through all the irreducible representations of the
         symmetric group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: orth = SymmetricGroupRepresentations(3, "orthogonal")
             sage: for x in orth: print x
             Orthogonal representation of the symmetric group corresponding to [3]
@@ -537,7 +539,11 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
 
             sage: orth = SymmetricGroupRepresentation([3,2], "orthogonal")
             sage: orth._tableau_dict
-            {(0, 2, 1, -1, 0): [[1, 3, 4], [2, 5]], (2, 0, -1, 1, 0): [[1, 2, 5], [3, 4]], (2, 0, 1, -1, 0): [[1, 3, 5], [2, 4]], (0, 2, -1, 1, 0): [[1, 2, 4], [3, 5]], (0, -1, 2, 1, 0): [[1, 2, 3], [4, 5]]}
+            {(0, -1, 2, 1, 0): [[1, 2, 3], [4, 5]],
+             (0, 2, -1, 1, 0): [[1, 2, 4], [3, 5]],
+             (0, 2, 1, -1, 0): [[1, 3, 4], [2, 5]],
+             (2, 0, -1, 1, 0): [[1, 2, 5], [3, 4]],
+             (2, 0, 1, -1, 0): [[1, 3, 5], [2, 4]]}
         """
         # construct a dictionary pairing vertices with tableau
         t = StandardTableaux(self._partition).last()
@@ -558,7 +564,11 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
 
             sage: orth = SymmetricGroupRepresentation([3,2], "orthogonal")
             sage: orth._word_dict
-            {(0, 2, -1, 1, 0): [3, 5, 1, 2, 4], (2, 0, -1, 1, 0): [3, 4, 1, 2, 5], (2, 0, 1, -1, 0): [2, 4, 1, 3, 5], (0, 2, 1, -1, 0): [2, 5, 1, 3, 4], (0, -1, 2, 1, 0): [4, 5, 1, 2, 3]}
+            {(0, -1, 2, 1, 0): [4, 5, 1, 2, 3],
+             (0, 2, -1, 1, 0): [3, 5, 1, 2, 4],
+             (0, 2, 1, -1, 0): [2, 5, 1, 3, 4],
+             (2, 0, -1, 1, 0): [3, 4, 1, 2, 5],
+             (2, 0, 1, -1, 0): [2, 4, 1, 3, 5]}
         """
         word_dict = {}
         for (v,t) in self._tableau_dict.iteritems():

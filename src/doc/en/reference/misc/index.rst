@@ -19,14 +19,12 @@ Miscellaneous
    sage/misc/exceptions
    sage/misc/misc
    sage/misc/temporary_file
-   sage/misc/bitset
    sage/misc/constant_function
    sage/misc/package
    sage/misc/explain_pickle
    sage/misc/getusage
    sage/misc/mrange
    sage/misc/dist
-   sage/misc/preparser
    sage/misc/functional
    sage/misc/html
    sage/misc/table
@@ -35,11 +33,13 @@ Miscellaneous
    sage/misc/unknown
    sage/misc/func_persist
    sage/misc/sage_eval
+   sage/misc/sage_input
    sage/misc/random_testing
    sage/misc/sageinspect
    sage/misc/sagedoc
    sage/misc/edit_module
    sage/rings/arith
+   sage/rings/sum_of_squares
    sage/misc/nested_class
    sage/misc/nested_class_test
    sage/misc/classcall_metaclass
@@ -50,6 +50,8 @@ Miscellaneous
    sage/misc/messaging
    sage/misc/viewer
    sage/misc/session
+   sage/misc/defaults
+   sage/misc/superseded
 
 
 Profiling and Performance Testing

@@ -26,7 +26,6 @@ include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 from cpython.list cimport *
 from cpython.object cimport *
-include "sage/ext/python_slice.pxi"
 from cpython.tuple cimport *
 
 import sage.modules.free_module
@@ -49,8 +48,6 @@ import sage.modules.free_module
 
 import matrix_misc
 
-cdef extern from "Python.h":
-    bint PySlice_Check(PyObject* ob)
 
 cdef class Matrix(sage.structure.element.Matrix):
     r"""
@@ -228,7 +225,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [      x       y       0]
             [      0       0 2*x + y]
             sage: d = a.dict(); d
-            {(0, 1): y, (1, 2): 2*x + y, (0, 0): x}
+            {(0, 0): x, (0, 1): y, (1, 2): 2*x + y}
 
         Notice that changing the returned list does not change a (the list
         is a copy)::
@@ -256,16 +253,16 @@ cdef class Matrix(sage.structure.element.Matrix):
             [0 1 2]
             [3 4 5]
             sage: v = a._dict(); v
-            {(0, 1): 1, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
+            {(0, 1): 1, (0, 2): 2, (1, 0): 3, (1, 1): 4, (1, 2): 5}
 
         If you change a key of the dictionary, the corresponding entry of
         the matrix will be changed (but without clearing any caches of
         computing information about the matrix)::
 
             sage: v[0,1] = -2/3; v
-            {(0, 1): -2/3, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
+            {(0, 1): -2/3, (0, 2): 2, (1, 0): 3, (1, 1): 4, (1, 2): 5}
             sage: a._dict()
-            {(0, 1): -2/3, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
+            {(0, 1): -2/3, (0, 2): 2, (1, 0): 3, (1, 1): 4, (1, 2): 5}
             sage: a[0,1]
             -2/3
 
@@ -879,7 +876,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
                     if ind < 0 or ind >= nrows:
                         raise IndexError("matrix index out of range")
-            elif PySlice_Check(<PyObject *>row_index):
+            elif isinstance(row_index, slice):
                 row_list = range(*row_index.indices(nrows))
             else:
                 if not PyIndex_Check(row_index):
@@ -911,7 +908,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
                     if ind < 0 or ind >= ncols:
                         raise IndexError("matrix index out of range")
-            elif PySlice_Check(<PyObject *>col_index):
+            elif isinstance(col_index, slice):
                 col_list =  range(*col_index.indices(ncols))
             else:
                 if not PyIndex_Check(col_index):
@@ -963,7 +960,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 if ind < 0 or ind >= nrows:
                     raise IndexError("matrix index out of range")
             r = self.matrix_from_rows(row_list)
-        elif PySlice_Check(<PyObject *>row_index):
+        elif isinstance(row_index, slice):
             row_list = range(*row_index.indices(nrows))
             r = self.matrix_from_rows(row_list)
         else:
@@ -1394,9 +1391,9 @@ cdef class Matrix(sage.structure.element.Matrix):
                 # M[1] = [1,2,3] or M[1,:]=[1,2,3]
                 value_list_one_dimensional = 1
             value_list = list(value)
-        elif IS_INSTANCE(value, Matrix):
+        elif isinstance(value, Matrix):
             value_list = list(value)
-        elif IS_INSTANCE(value, Vector):
+        elif isinstance(value, Vector):
             if single_row or single_col:
                 value_list_one_dimensional = 1
                 value_list = list(value)
@@ -1482,7 +1479,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         Return coercion of x into the base ring of self.
         """
-        if PY_TYPE_CHECK(x, Element) and (<Element> x)._parent is self._base_ring:
+        if isinstance(x, Element) and (<Element> x)._parent is self._base_ring:
             return x
         return self._base_ring(x)
 
@@ -4035,6 +4032,110 @@ cdef class Matrix(sage.structure.element.Matrix):
         else:
             raise ValueError("self must be a square matrix")
 
+    def is_weak_popov(self):
+        r"""
+        Return ``True`` if the matrix is in weak Popov form.
+
+        OUTPUT:
+
+        A matrix over an ordered ring is in weak Popov form if all
+        leading positions are different [MulSto]_. A leading position
+        is the position `i` in a row with the highest order (for
+        polynomials this is the degree), for multiple entries with
+        equal but highest order the maximal `i` is chosen (which is
+        the furthest to the right in the matrix).
+
+        .. WARNING::
+
+            This implementation only works for objects implementing a degree
+            function. It is designed to work for polynomials.
+
+        EXAMPLES:
+
+        A matrix with the same leading position in two rows is not in weak
+        Popov form. ::
+
+            sage: PF = PolynomialRing(GF(2^12,'a'),'x')
+            sage: A = matrix(PF,3,[x,x^2,x^3,x^2,x^2,x^2,x^3,x^2,x])
+            sage: A.is_weak_popov()
+            False
+
+        If a matrix has different leading positions, it is in weak Popov
+        form. ::
+
+            sage: B = matrix(PF,3,[1,1,x^3,x^2,1,1,1,x^2,1])
+            sage: B.is_weak_popov()
+            True
+
+        A matrix not over a polynomial ring will give an error. ::
+
+            sage: C = matrix(ZZ,4,[-1, 1, 0, 0, 7, 2, 1, 0, 1, 0, 2, -5, -1, 1, 0, 2])
+            sage: C.is_weak_popov()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_weak_popov only implements support for matrices ordered by a function self[x,y].degree()
+
+        Weak Popov form is not restricted to square matrices. ::
+
+            sage: PF = PolynomialRing(GF(7),'x')
+            sage: D = matrix(PF,2,4,[x^2+1,1,2,x,3*x+2,0,0,0])
+            sage: D.is_weak_popov()
+            False
+
+        Even a matrix with more rows than cols can still be in weak Popov
+        form. ::
+
+            sage: E = matrix(PF,4,2,[4*x^3+x,x^2+5*x+2,0,0,4,x,0,0])
+            sage: E.is_weak_popov()
+            True
+
+        But a matrix with less cols than non zero rows is never in weak
+        Popov form. ::
+
+            sage: F = matrix(PF,3,2,[x^2,x,x^3+2,x,4,5])
+            sage: F.is_weak_popov()
+            False
+
+        TESTS:
+
+        A matrix to check if really the rightmost value is taken. ::
+
+            sage: F = matrix(PF,2,2,[x^2,x^2,x,5])
+            sage: F.is_weak_popov()
+            True
+
+        .. SEEALSO::
+
+            - :meth:`weak_popov_form <sage.matrix.matrix2.weak_popov_form>`
+
+        REFERENCES:
+
+        .. [MulSto] T. Mulders, A. Storjohann, "On lattice reduction
+          for polynomial matrices", J. Symbolic Comput. 35 (2003),
+          no. 4, 377--401
+
+        AUTHOR:
+
+        - David Moedinger (2014-07-30)
+        """
+        try:
+            t = set()
+            for r in range(self.nrows()):
+                max = -1
+                for c in range(self.ncols()):
+                    if self[r, c].degree() >= max:
+                        max = self[r, c].degree()
+                        p = c
+                if not max == -1:
+                    if p in t:
+                        return False
+                    t.add(p)
+        except (NotImplementedError, AttributeError):
+            raise NotImplementedError(
+                "is_weak_popov only implements support for matrices ordered" +
+                " by a function self[x,y].degree()")
+        return True
+
     ###################################################
     # Invariants of a matrix
     ###################################################
@@ -4067,11 +4168,26 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def rank(self):
         """
+        Return the rank of this matrix.
+
+        EXAMPLES::
+
+            sage: m = matrix(GF(7),5,range(25))
+            sage: m.rank()
+            2
+
+        Rank is not implemented over the integers modulo a composite yet.::
+
+            sage: m = matrix(Integers(4), 2, [2,2,2,2])
+            sage: m.rank()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 4'.
 
         TESTS:
 
         We should be able to compute the rank of a matrix whose
-        entries are polynomials over a finite field (trac #5014)::
+        entries are polynomials over a finite field (trac:`5014`)::
 
             sage: P.<x> = PolynomialRing(GF(17))
             sage: m = matrix(P, [ [ 6*x^2 + 8*x + 12, 10*x^2 + 4*x + 11],
@@ -4663,16 +4779,15 @@ cdef class Matrix(sage.structure.element.Matrix):
             [     -x*y*x*y x*y*x + x*y^2 x*y*x - x*y^2]
         """
         # derived classes over a commutative base *just* overload _lmul_ (!!)
-        if PY_TYPE_CHECK(self._base_ring, CommutativeRing):
+        if isinstance(self._base_ring, CommutativeRing):
             return self._lmul_(left)
         cdef Py_ssize_t r,c
-        cpdef RingElement x
         x = self._base_ring(left)
         cdef Matrix ans
         ans = self._parent.zero_matrix().__copy__()
         for r from 0 <= r < self._nrows:
             for c from 0 <= c < self._ncols:
-                ans.set_unsafe(r, c, x._mul_(<RingElement>self.get_unsafe(r, c)))
+                ans.set_unsafe(r, c, x * self.get_unsafe(r, c))
         return ans
 
     cpdef ModuleElement _lmul_(self, RingElement right):
@@ -4709,13 +4824,12 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         # derived classes over a commutative base *just* overload this and not _rmul_
         cdef Py_ssize_t r,c
-        cpdef RingElement x
         x = self._base_ring(right)
         cdef Matrix ans
         ans = self._parent.zero_matrix().__copy__()
         for r from 0 <= r < self._nrows:
             for c from 0 <= c < self._ncols:
-                ans.set_unsafe(r, c, (<RingElement>self.get_unsafe(r, c))._mul_(x))
+                ans.set_unsafe(r, c, self.get_unsafe(r, c) * x)
         return ans
 
     cdef sage.structure.element.Matrix _matrix_times_matrix_(self, sage.structure.element.Matrix right):
@@ -5018,7 +5132,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: M = MatrixSpace(CC, 2)(-1.10220440881763)
             sage: N = ~M
             sage: (N*M).norm()
-            1.0
+            0.9999999999999999
         """
         if not self.base_ring().is_field():
             try:
@@ -5121,8 +5235,9 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         if not self.is_square():
             raise ArithmeticError("self must be a square matrix")
-
-        return RingElement.__pow__(self, n, ignored)
+        if ignored is not None:
+            raise RuntimeError("__pow__ third argument not used")
+        return sage.structure.element.generic_power_c(self, n, None)
 
     ###################################################
     # Comparison

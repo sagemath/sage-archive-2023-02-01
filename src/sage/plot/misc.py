@@ -221,21 +221,29 @@ def _multiple_of_constant(n,pos,const):
     Here is the intended use::
 
         sage: plot(sin(x), (x,0,2*pi), ticks=pi/3, tick_formatter=pi)
+        Graphics object consisting of 1 graphics primitive
 
     Here is an unintended use, which yields unexpected (and probably
     undesired) results::
 
         sage: plot(x^2, (x, -2, 2), tick_formatter=pi)
+        Graphics object consisting of 1 graphics primitive
 
     We can also use more unusual constant choices::
 
         sage: plot(ln(x), (x,0,10), ticks=e, tick_formatter=e)
+        Graphics object consisting of 1 graphics primitive
         sage: plot(x^2, (x,0,10), ticks=[sqrt(2),8], tick_formatter=sqrt(2))
+        Graphics object consisting of 1 graphics primitive
     """
     from sage.misc.latex import latex
-    from sage.rings.arith import convergents
-    c=[i for i in convergents(n/const.n()) if i.denominator()<12]
-    return '$%s$'%latex(c[-1]*const)
+    from sage.rings.continued_fraction import continued_fraction
+    from sage.rings.infinity import Infinity
+    cf = continued_fraction(n/const)
+    k = 1
+    while cf.quotient(k) != Infinity and cf.denominator(k) < 12:
+        k += 1
+    return '$%s$'%latex(cf.convergent(k-1)*const)
 
 
 def get_matplotlib_linestyle(linestyle, return_type):
@@ -373,4 +381,3 @@ def get_matplotlib_linestyle(linestyle, return_type):
                              "'dashed', 'dotted', dashdot', 'None'}, "
                              "respectively {'-', '--', ':', '-.', ''}"%
                              (linestyle))
-

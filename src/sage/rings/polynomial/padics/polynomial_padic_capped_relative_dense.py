@@ -44,6 +44,13 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             sage: T.<t> = ZZ[]
             sage: R(t + 2)
             (1 + O(13^7))*t + (2 + O(13^7))
+
+        Check that :trac:`13620` has been fixed::
+
+            sage: f = R.zero()
+            sage: R(f.dict())
+            0
+
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
         parentbr = parent.base_ring()
@@ -97,8 +104,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
                 x = [parentbr(a) for a in x.list()]
                 check = False
         elif isinstance(x, dict):
-            zero = parentbr.zero_element()
-            n = max(x.keys())
+            zero = parentbr.zero()
+            n = max(x.keys()) if x else 0
             v = [zero for _ in xrange(n + 1)]
             for i, z in x.iteritems():
                 v[i] = z
@@ -113,7 +120,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
         # In contrast to other polynomials, the zero element is not distinguished
         # by having its list empty. Instead, it has list [0]
         if not x:
-            x = [parentbr.zero_element()]
+            x = [parentbr.zero()]
         if check:
             x = [parentbr(z) for z in x]
 
@@ -1050,7 +1057,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             ...
             PrecisionError: The coefficient of t^4 has not enough precision
 
-        TESTS:
+        TESTS::
 
             sage: (5*f).newton_polygon()
             Finite Newton polygon with 4 vertices: (0, 2), (1, 1), (4, 1), (10, 3)

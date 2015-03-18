@@ -5,13 +5,15 @@ Symbolic Calculus
    :maxdepth: 2
 
    sage/symbolic/expression
+   sage/symbolic/callable
+   sage/symbolic/assumptions
    sage/symbolic/relation
-   sage/symbolic/function_factory
    sage/calculus/calculus
    sage/symbolic/units
    sage/symbolic/ring
-   sage/calculus/functional
    sage/symbolic/function
+   sage/symbolic/function_factory
+   sage/calculus/functional
    sage/symbolic/integration/integral
    sage/calculus/test_sympy
    sage/calculus/tests

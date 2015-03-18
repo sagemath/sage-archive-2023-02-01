@@ -212,9 +212,10 @@ AUTHORS:
 ##########################################################################
 
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
-from sage.misc.misc import DOT_SAGE
+from sage.env import DOT_SAGE
 import re
 import sage.rings.integer
+from sage.structure.element import parent
 
 COMMANDS_CACHE = '%s/r_commandlist.sobj'%DOT_SAGE
 PROMPT = '__SAGE__R__PROMPT__> '
@@ -512,9 +513,8 @@ class R(Expect):
 
         EXAMPLES::
 
-            sage: print r._source("print.anova")
-            function (x, digits = max(getOption("digits") - 2L, 3L), signif.stars = getOption("show.signif.stars"),
-            ...
+            sage: print r._source("c")
+            function (..., recursive = FALSE)  .Primitive("c")
         """
         if s[-2:] == "()":
             s = s[-2:]
@@ -532,9 +532,8 @@ class R(Expect):
 
         EXAMPLES::
 
-            sage: print r.source("print.anova")
-            function (x, digits = max(getOption("digits") - 2L, 3L), signif.stars = getOption("show.signif.stars"),
-            ...
+            sage: print r.source("c")
+            function (..., recursive = FALSE)  .Primitive("c")
         """
         return self._source(s)
 
@@ -701,14 +700,11 @@ class R(Expect):
 
         EXAMPLES::
 
-            sage: r.help('print.anova')
-            anova                 package:stats                 R Documentation
-            ...
-                 Chambers, J. M. and Hastie, T. J. (1992) _Statistical Models in
-                 S_, Wadsworth & Brooks/Cole.
+            sage: r.help('c')
+            c                     package:base                     R Documentation
             ...
 
-        .. note::
+            .. note::
 
             This is similar to typing r.command?.
         """
@@ -1314,14 +1310,14 @@ class RElement(ExpectElement):
         if isinstance(n, basestring):
             n = n.replace('self', self._name)
             return P.new('%s[%s]'%(self._name, n))
-        elif (hasattr(n,'parent') and n.parent() is P): # the key is RElement itself
+        elif parent(n) is P:  # the key is RElement itself
             return P.new('%s[%s]'%(self._name, n.name()))
         elif not isinstance(n,tuple):
             return P.new('%s[%s]'%(self._name, n))
         else:
             L = []
             for i in xrange(len(n)):
-                if (hasattr(n[i],'parent') and n[i].parent() is P):
+                if parent(n[i]) is P:
                     L.append(n[i].name())
                 else:
                     L.append(str(n[i]))

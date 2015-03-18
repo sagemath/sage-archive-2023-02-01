@@ -70,10 +70,12 @@ class Bimodules(CategoryWithParameters):
         EXAMPLES::
 
             sage: Bimodules(QQ,ZZ)._make_named_class_key('parent_class')
-            (Category of quotient fields, Category of euclidean domains)
+            (Category of quotient fields,
+             Join of Category of euclidean domains and Category of infinite enumerated sets)
 
             sage: Bimodules(Fields(), ZZ)._make_named_class_key('element_class')
-            (Category of fields, Category of euclidean domains)
+            (Category of fields,
+             Join of Category of euclidean domains and Category of infinite enumerated sets)
 
             sage: Bimodules(QQ, Rings())._make_named_class_key('element_class')
             (Category of quotient fields, Category of rings)
@@ -87,7 +89,7 @@ class Bimodules(CategoryWithParameters):
     @classmethod
     def an_instance(cls):
         """
-        Returns an instance of this class
+        Return an instance of this class.
 
         EXAMPLES::
 
@@ -109,7 +111,7 @@ class Bimodules(CategoryWithParameters):
 
     def left_base_ring(self):
         """
-        Returns the left base ring over which elements of this category are
+        Return the left base ring over which elements of this category are
         defined.
 
         EXAMPLES::
@@ -121,7 +123,7 @@ class Bimodules(CategoryWithParameters):
 
     def right_base_ring(self):
         """
-        Returns the right base ring over which elements of this category are
+        Return the right base ring over which elements of this category are
         defined.
 
         EXAMPLES::
@@ -133,13 +135,17 @@ class Bimodules(CategoryWithParameters):
 
     def _latex_(self):
         """
+        Return a latex representation of ``self``.
+
         EXAMPLES::
 
             sage: print Bimodules(QQ, ZZ)._latex_()
-            {\mathbf{Bimodules}}_{\Bold{Q}}_{\Bold{Z}}
+            {\mathbf{Bimodules}}_{\Bold{Q}, \Bold{Z}}
         """
         from sage.misc.latex import latex
-        return "{%s}_{%s}_{%s}"%(Category._latex_(self), latex(self._left_base_ring), latex(self._right_base_ring))
+        return "{{{0}}}_{{{1}, {2}}}".format(Category._latex_(self),
+                                             latex(self._left_base_ring),
+                                             latex(self._right_base_ring))
 
     def super_categories(self):
         """
@@ -151,6 +157,24 @@ class Bimodules(CategoryWithParameters):
         R = self.left_base_ring()
         S = self.right_base_ring()
         return [LeftModules(R), RightModules(S)]
+
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, the category of bimodules defines no additional
+        structure: a left and right module morphism between two
+        bimodules is a bimodule morphism.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
+
+        EXAMPLES::
+
+            sage: Bimodules(QQ, ZZ).additional_structure()
+        """
+        return None
 
     class ParentMethods:
         pass

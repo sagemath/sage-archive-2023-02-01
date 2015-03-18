@@ -38,7 +38,7 @@ symmetric functions.
     sage: ps(2)
     2*p[]
 
-The important things to define are ._basis_keys which
+The important things to define are ._indices which
 specifies the combinatorial class that indexes the basis elements,
 ._one which specifies the identity element in the algebra, ._name
 which specifies the name of the algebra, .print_options is used to set
@@ -61,12 +61,11 @@ algebra.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#from sage.algebras.algebra import Algebra
-#from sage.algebras.algebra_element import AlgebraElement
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.misc.misc import repr_lincomb
 from sage.misc.cachefunc import cached_method
 from sage.categories.all import AlgebrasWithBasis
+from sage.structure.element import Element
 
 # TODO: migrate this completely to the combinatorial free module + categories framework
 
@@ -81,7 +80,8 @@ class CombinatorialAlgebraElementOld(CombinatorialFreeModule.Element):
 #         be called directly, but only through the parent combinatorial
 #         algebra's __call__ method.
 
-#         TESTS:
+#         TESTS::
+#
 #             sage: s = SFASchur(QQ)
 #             sage: a = s._element_class(s, {Partition([2,1]):QQ(2)}); a
 #             2*s[2, 1]
@@ -191,8 +191,9 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
             category = AlgebrasWithBasis(R)
 
         # for backward compatibility
-        if cc is None and hasattr(self, "_basis_keys"):
-            cc = self._basis_keys
+        if cc is None:
+            if hasattr(self, "_indices"):
+                cc = self._indices
         assert(cc is not None)
 
         CombinatorialFreeModule.__init__(self, R, cc, element_class, category = category)
@@ -217,7 +218,7 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
         R = self.base_ring()
         eclass = self._element_class
         #Coerce elements of the base ring
-        if not hasattr(x, 'parent'):
+        if not isinstance(x, Element):
             x = R(x)
         if x.parent() == R:
             if x == R(0):

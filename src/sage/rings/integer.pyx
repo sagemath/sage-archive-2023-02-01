@@ -130,50 +130,32 @@ real field R::
 # Do not create any Integer, especially non cdef'ed ones, before the hooked
 # creation and deletion are setup by the call to hook_fast_tp_functions
 
-doc="""
-Integers
-"""
-
-import cython
+cimport cython
 
 import operator
 
 import sys
 
-include "sage/ext/gmp.pxi"
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "sage/ext/stdsage.pxi"
+from sage.ext.memory cimport check_allocarray
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
+from libc.stdint cimport uint64_t
+cimport sage.structure.element
+from sage.structure.element cimport Element, EuclideanDomainElement, parent_c
 include "sage/ext/python_debug.pxi"
-include "../structure/coerce.pxi"   # for parent_c
 include "sage/libs/pari/decl.pxi"
+from sage.rings.rational cimport Rational
+from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
+from sage.libs.gmp.pylong cimport *
 
-cdef extern from "limits.h":
-    long LONG_MAX
-
-cdef extern from "math.h":
-    double sqrt_double "sqrt"(double)
-    cdef double log_c "log" (double)
-    cdef double ceil_c "ceil" (double)
-    int isnan(double)
-
-cdef extern from "mpz_pylong.h":
-    cdef mpz_get_pylong(mpz_t src)
-    cdef mpz_get_pyintlong(mpz_t src)
-    cdef int mpz_set_pylong(mpz_t dst, src) except -1
-    cdef long mpz_pythonhash(mpz_t src)
-
-cdef extern from "mpz_longlong.h":
-    cdef void mpz_set_longlong(mpz_t dst, long long src)
-    cdef void mpz_set_ulonglong(mpz_t dst, unsigned long long src)
-
-cdef extern from "convert.h":
-    cdef void t_INT_to_ZZ( mpz_t value, long *g )
+from libc.limits cimport LONG_MAX
+from libc.math cimport sqrt as sqrt_double, log as log_c, ceil as ceil_c, isnan
 
 from sage.libs.pari.gen cimport gen as pari_gen
-from sage.libs.pari.pari_instance cimport PariInstance
+from sage.libs.pari.pari_instance cimport PariInstance, INT_to_mpz
 from sage.libs.flint.ulong_extras cimport *
 
 import sage.rings.infinity
@@ -182,7 +164,6 @@ import sage.libs.pari.pari_instance
 cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 from sage.structure.element import canonical_coercion, coerce_binop
-from sage.misc.superseded import deprecated_function_alias
 
 cdef object numpy_long_interface = {'typestr': '=i4' if sizeof(long) == 4 else '=i8' }
 cdef object numpy_int64_interface = {'typestr': '=i8'}
@@ -191,14 +172,6 @@ cdef object numpy_object_interface = {'typestr': '|O'}
 cdef mpz_t mpz_tmp
 mpz_init(mpz_tmp)
 
-def init_mpz_globals():
-    init_mpz_globals_c()
-
-def clear_mpz_globals():
-    clear_mpz_globals_c()
-
-cdef int set_mpz(Integer self, mpz_t value):
-    mpz_set(self.value, value)
 
 cdef set_from_Integer(Integer self, Integer other):
     mpz_set(self.value, other.value)
@@ -248,35 +221,8 @@ cdef set_from_pari_gen(Integer self, pari_gen x):
             raise TypeError, "Unable to coerce PARI %s to an Integer"%x
 
     # Now we have a true PARI integer, convert it to Sage
-    t_INT_to_ZZ(self.value, (<pari_gen>x).g)
+    INT_to_mpz(self.value, (<pari_gen>x).g)
 
-cdef mpz_t* get_value(Integer self):
-    return &self.value
-
-
-def _test_mpz_set_longlong(long long v):
-    """
-    TESTS::
-
-        sage: from sage.rings.integer import _test_mpz_set_longlong
-        sage: _test_mpz_set_longlong(1)
-        1
-        sage: _test_mpz_set_longlong(-1)
-        -1
-        sage: _test_mpz_set_longlong(100)
-        100
-        sage: _test_mpz_set_longlong(100000000000)
-        100000000000
-        sage: _test_mpz_set_longlong(2^32) == 2^32
-        True
-        sage: _test_mpz_set_longlong(-2^32) == -2^32
-        True
-        sage: all([_test_mpz_set_longlong(2^n) == 2^n for n in range(63)])
-        True
-    """
-    cdef Integer z = PY_NEW(Integer)
-    mpz_set_longlong(z.value, v)
-    return z
 
 cdef _digits_naive(mpz_t v,l,int offset,Integer base,digits):
     """
@@ -390,10 +336,10 @@ import integer_ring
 the_integer_ring = integer_ring.ZZ
 
 # The documentation for the ispseudoprime() function in the PARI
-# manual states that its result is always prime up to this 10^13.
+# manual states that its result is always prime up to this 2^64.
 cdef mpz_t PARI_PSEUDOPRIME_LIMIT
 mpz_init(PARI_PSEUDOPRIME_LIMIT)
-mpz_set_str(PARI_PSEUDOPRIME_LIMIT, "10000000000000", 10)
+mpz_ui_pow_ui(PARI_PSEUDOPRIME_LIMIT, 2, 64)
 
 def is_Integer(x):
     """
@@ -413,10 +359,10 @@ def is_Integer(x):
         sage: is_Integer('5')
         False
     """
-    return PY_TYPE_CHECK(x, Integer)
+    return isinstance(x, Integer)
 
 cdef inline Integer as_Integer(x):
-    if PY_TYPE_CHECK(x, Integer):
+    if isinstance(x, Integer):
         return <Integer>x
     else:
         return Integer(x)
@@ -476,25 +422,28 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     integers. It derives from the ``Element`` class, so
     integers can be used as ring elements anywhere in Sage.
 
-    Integer() interprets numbers and strings that begin with 0 as octal
-    numbers, and numbers and strings that begin with 0x as hexadecimal
-    numbers.
+    Integer() interprets strings that begin with ``0o`` as octal numbers,
+    strings that begin with ``0x`` as hexadecimal numbers and strings
+    that begin with ``0b`` as binary numbers.
 
-        The class ``Integer`` is implemented in Cython, as a
-        wrapper of the GMP ``mpz_t`` integer type.
+    The class ``Integer`` is implemented in Cython, as a wrapper of the
+    GMP ``mpz_t`` integer type.
 
     EXAMPLES::
 
-        sage: Integer(010)
-        8
-        sage: Integer(0x10)
-        16
-        sage: Integer(10)
-        10
+        sage: Integer(123)
+        123
+        sage: Integer("123")
+        123
+
+    Sage Integers support :pep:`3127` literals::
+
         sage: Integer('0x12')
         18
-        sage: Integer('012')
-        10
+        sage: Integer('-0o12')
+        -10
+        sage: Integer('+0b101010')
+        42
 
     Conversion from PARI::
 
@@ -536,7 +485,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ('sage')
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x (=sage) to an integer
+            TypeError: unable to convert 'sage' to an integer
             sage: Integer('zz',36).str(36)
             'zz'
             sage: ZZ('0x3b').str(16)
@@ -662,7 +611,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef int paritype
         cdef Py_ssize_t j
         cdef object otmp
-        cdef unsigned int ibase
 
         cdef Element lift
 
@@ -674,7 +622,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             # First do all the type-check versions (these are fast to test),
             # except those for which the conversion itself will be slow.
 
-            if PY_TYPE_CHECK(x, Integer):
+            if isinstance(x, Integer):
                 set_from_Integer(self, <Integer>x)
 
             elif PyInt_Check(x):
@@ -690,7 +638,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 else:
                     raise TypeError, "Cannot convert non-integral float to integer"
 
-            elif PY_TYPE_CHECK(x, pari_gen):
+            elif isinstance(x, pari_gen):
                 set_from_pari_gen(self, x)
 
             else:
@@ -700,7 +648,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     set_from_Integer(self, otmp(the_integer_ring))
                     return
 
-                if PY_TYPE_CHECK(x, Element):
+                if isinstance(x, Element):
                     try:
                         lift = x.lift()
                         if lift._parent is the_integer_ring:
@@ -709,23 +657,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     except AttributeError:
                         pass
 
-                elif PyString_Check(x) or PY_TYPE_CHECK(x,unicode):
-                    if base < 0 or base > 36:
-                        raise ValueError, "`base` (=%s) must be between 2 and 36."%base
-                    ibase = base
-                    xs = x
-                    if xs[0] == c'+':
-                        xs += 1
-                    if mpz_set_str(self.value, xs, ibase) != 0:
-                        raise TypeError, "unable to convert x (=%s) to an integer"%x
+                elif isinstance(x, basestring):
+                    mpz_set_str_python(self.value, x, base)
                     return
 
-                elif (PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple)) and base > 1:
+                elif (isinstance(x, list) or isinstance(x, tuple)) and base > 1:
                     b = the_integer_ring(base)
                     if b == 2: # we use a faster method
                         for j from 0 <= j < len(x):
                             otmp = x[j]
-                            if not PY_TYPE_CHECK(otmp, Integer):
+                            if not isinstance(otmp, Integer):
                                 # should probably also have fast code for Python ints...
                                 otmp = Integer(otmp)
                             if mpz_cmp_si((<Integer>otmp).value, 1) == 0:
@@ -827,7 +768,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.__xor__(m)
             1
         """
-        if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
+        if isinstance(x, Integer) and isinstance(y, Integer):
             return (<Integer>x)._xor(y)
         return bin_op(x, y, operator.xor)
 
@@ -930,8 +871,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         cdef int c
         cdef double d
-        if PY_TYPE_CHECK(left, Integer):
-            if PY_TYPE_CHECK(right, Integer):
+        if isinstance(left, Integer):
+            if isinstance(right, Integer):
                 c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
             elif PyInt_CheckExact(right):
                 c = mpz_cmp_si((<Integer>left).value, PyInt_AS_LONG(right))
@@ -980,7 +921,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         cdef Integer z
         z = PY_NEW(Integer)
-        set_mpz(z,self.value)
+        mpz_set(z.value, self.value)
         return z
 
     def list(self):
@@ -1451,7 +1392,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef int i
         cdef size_t s
 
-        if PY_TYPE_CHECK(base, Integer):
+        if isinstance(base, Integer):
             _base = <Integer>base
         else:
             _base = Integer(base)
@@ -1593,12 +1534,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     cdef void set_from_mpz(Integer self, mpz_t value):
         mpz_set(self.value, value)
 
-    cdef mpz_t* get_value(Integer self):
-        return &self.value
-
     cdef void _to_ZZ(self, ZZ_c *z):
         sig_on()
-        mpz_to_ZZ(z, &self.value)
+        mpz_to_ZZ(z, self.value)
         sig_off()
 
     cpdef ModuleElement _add_(self, ModuleElement right):
@@ -1839,7 +1777,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         cdef Integer z = <Integer>PY_NEW(Integer)
         cdef long yy, res
-        if PY_TYPE(x) is PY_TYPE(y):
+        if type(x) is type(y):
             if not mpz_sgn((<Integer>y).value):
                 raise ZeroDivisionError, "Integer division by zero"
             if mpz_size((<Integer>x).value) > 100000:
@@ -1952,24 +1890,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             <type 'sage.rings.integer.Integer'>
             sage: type(int(3)^int(2))
             <type 'int'>
-
-        Check that a ``MemoryError`` is thrown if the resulting number
-        would be ridiculously large, see :trac:`15363`::
-
-            sage: 2^(2^63-2)
-            Traceback (most recent call last):
-            ...
-            RuntimeError: exponent must be at most 2147483647          # 32-bit
-            MemoryError: failed to allocate 1152921504606847008 bytes  # 64-bit
         """
         if modulus is not None:
             from sage.rings.finite_rings.integer_mod import Mod
             return Mod(self, modulus) ** n
 
-        if not PY_TYPE_CHECK(self, Integer):
+        if not isinstance(self, Integer):
             if isinstance(self, str):
                 return self * n
-            if not PY_TYPE_CHECK(self, int):
+            if not isinstance(self, int):
                 return self ** int(n)
             else:
                 self = Integer(self)        #convert from int to Integer
@@ -2375,7 +2304,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef size_t guess # this will contain the final answer
         cdef bint guess_filled = 0  # this variable is only used in one branch below
         cdef mpz_t z
-        if PY_TYPE_CHECK(m,Integer):
+        if isinstance(m, Integer):
             _m=<Integer>m
         else:
             _m=<Integer>Integer(m)
@@ -2608,6 +2537,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     prime_factors = prime_divisors
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     def divisors(self):
         """
         Returns a list of all positive integer divisors of the integer
@@ -2652,15 +2583,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS::
 
-            sage: prod(primes_first_n(60)).divisors()
+            sage: prod(primes_first_n(64)).divisors()
             Traceback (most recent call last):
             ...
             OverflowError: value too large
             sage: prod(primes_first_n(58)).divisors()
             Traceback (most recent call last):
             ...
-            OverflowError: value too large  # 32-bit
-            MemoryError                     # 64-bit
+            OverflowError: value too large                                 # 32-bit
+            MemoryError: failed to allocate 288230376151711744 * 24 bytes  # 64-bit
 
         Check for memory leaks and ability to interrupt
         (the ``divisors`` call below allocates about 800 MB every time,
@@ -2685,79 +2616,77 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            similar to that of the merge sort algorithm.
         """
         cdef list all, prev, sorted
-        cdef long tip, top
-        cdef long i, j, e, ee
+        cdef Py_ssize_t tip, top
+        cdef Py_ssize_t i, j, e, ee
         cdef Integer apn, p, pn, z, all_tip
 
         if not self:
             raise ValueError, "n must be nonzero"
         f = self.factor()
 
-        # All of the declarations below are for optimizing the long long-sized
+        # All of the declarations below are for optimizing the unsigned long-sized
         # case.  Operations are performed in C as far as possible without
         # overflow before moving to Python objects.
-        cdef long long p_c, pn_c, apn_c
-        cdef long all_len, sorted_len, prev_len
-        cdef long long* ptr
-        cdef long long* empty_c
-        cdef long long* swap_tmp
-        cdef long long* all_c
-        cdef long long* sorted_c
-        cdef long long* prev_c
+        cdef unsigned long p_c, pn_c, apn_c
+        cdef Py_ssize_t all_len, sorted_len, prev_len
+        cdef unsigned long* ptr
+        cdef unsigned long* empty_c
+        cdef unsigned long* swap_tmp
+        cdef unsigned long* all_c
+        cdef unsigned long* sorted_c
+        cdef unsigned long* prev_c
 
         # These are used to keep track of whether or not we are able to
-        # perform the operations in machine words. A factor of two safety
-        # margin is added to cover any floating-point rounding issues.
+        # perform the operations in machine words. A factor of 0.999
+        # safety margin is added to cover any floating-point rounding
+        # issues.
         cdef bint fits_c = True
         cdef double cur_max = 1
-        cdef double fits_max = 2.0**(sizeof(long long)*8-2)
+        cdef double fits_max = 0.999 * 2.0 ** (8*sizeof(unsigned long))
 
-        cdef long divisor_count = 1
+        cdef Py_ssize_t divisor_count = 1
         with cython.overflowcheck(True):
             for p, e in f:
                 # Using *= does not work, see http://trac.cython.org/cython_trac/ticket/825
                 divisor_count = divisor_count * (1 + e)
-            ptr = <long long*>sage_malloc(sizeof(long long) * 3 * divisor_count)
-            if not ptr:
-                raise MemoryError
+
+        ptr = <unsigned long*>check_allocarray(divisor_count, 3 * sizeof(unsigned long))
+        all_c = ptr
+        sorted_c = ptr + divisor_count
+        prev_c = sorted_c + divisor_count
 
         try:
-            all_c = ptr
-            sorted_c = ptr + divisor_count
-            prev_c = sorted_c + divisor_count
-    
             sorted_c[0] = 1
             sorted_len = 1
-    
+
             for p, e in f:
                 cur_max *= (<double>p)**e
                 if fits_c and cur_max > fits_max:
                     sorted = []
-                    for i from 0 <= i < sorted_len:
+                    for i in range(sorted_len):
                         z = <Integer>PY_NEW(Integer)
-                        mpz_set_longlong(z.value, sorted_c[i])
+                        mpz_set_ui(z.value, sorted_c[i])
                         sorted.append(z)
                     fits_c = False
                     sage_free(ptr)
                     ptr = NULL
-    
+
                 # The two cases below are essentially the same algorithm, one
-                # operating on Integers in Python lists, the other on long longs.
+                # operating on Integers in Python lists, the other on unsigned long's.
                 if fits_c:
-    
                     sig_on()
 
                     pn_c = p_c = p
-    
+
                     swap_tmp = sorted_c
                     sorted_c = prev_c
                     prev_c = swap_tmp
                     prev_len = sorted_len
                     sorted_len = 0
-    
+
                     tip = 0
                     prev_c[prev_len] = prev_c[prev_len-1] * pn_c
-                    for i from 0 <= i < prev_len:
+                    for i in range(prev_len):
                         apn_c = prev_c[i] * pn_c
                         while prev_c[tip] < apn_c:
                             sorted_c[sorted_len] = prev_c[tip]
@@ -2765,19 +2694,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                             tip += 1
                         sorted_c[sorted_len] = apn_c
                         sorted_len += 1
-    
+
                     for ee in range(1, e):
-    
+
                         swap_tmp = all_c
                         all_c = sorted_c
                         sorted_c = swap_tmp
                         all_len = sorted_len
                         sorted_len = 0
-    
+
                         pn_c *= p_c
                         tip = 0
                         all_c[all_len] = prev_c[prev_len-1] * pn_c
-                        for i from 0 <= i < prev_len:
+                        for i in range(prev_len):
                             apn_c = prev_c[i] * pn_c
                             while all_c[tip] < apn_c:
                                 sorted_c[sorted_len] = all_c[tip]
@@ -2787,7 +2716,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                             sorted_len += 1
 
                     sig_off()
-    
+
                 else:
                     # fits_c is False: use mpz integers
                     prev = sorted
@@ -2810,13 +2739,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                                 sorted.append(all_tip)
                                 tip += 1
                             sorted.append(apn)
-    
+
             if fits_c:
                 # all the data is in sorted_c
                 sorted = []
-                for i from 0 <= i < sorted_len:
+                for i in range(sorted_len):
                     z = <Integer>PY_NEW(Integer)
-                    mpz_set_longlong(z.value, sorted_c[i])
+                    mpz_set_ui(z.value, sorted_c[i])
                     sorted.append(z)
         finally:
             sage_free(ptr)
@@ -2849,6 +2778,24 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Integer x = PY_NEW(Integer)
         mpz_abs(x.value, self.value)
         return x
+
+    def euclidean_degree(self):
+        r"""
+        Return the degree of this element as an element of a euclidean domain.
+
+        If this is an element in the ring of integers, this is simply its
+        absolute value.
+
+        EXAMPLES::
+
+            sage: ZZ(1).euclidean_degree()
+            1
+
+        """
+        from sage.rings.all import ZZ
+        if self.parent() is ZZ:
+            return abs(self)
+        raise NotImplementedError
 
     def sign(self):
         """
@@ -2911,7 +2858,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef long yy, res
 
         # first case: Integer % Integer
-        if PY_TYPE(x) is PY_TYPE(y):
+        if type(x) is type(y):
             if not mpz_sgn((<Integer>y).value):
                 raise ZeroDivisionError, "Integer modulo by zero"
             if mpz_size((<Integer>x).value) > 100000:
@@ -3012,10 +2959,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     mpz_sub_ui(q.value, q.value, 1)
                     mpz_sub_ui(r.value, r.value, -d)
 
-        elif PY_TYPE_CHECK_EXACT(other, Integer):
+        elif type(other) is Integer:
             if mpz_sgn((<Integer>other).value) == 0:
                 raise ZeroDivisionError, "Integer division by zero"
-            if mpz_size((<Integer>x).value) > 100000:
+            if mpz_size(self.value) > 100000:
                 sig_on()
                 mpz_fdiv_qr(q.value, r.value, self.value, (<Integer>other).value)
                 sig_off()
@@ -3069,6 +3016,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         modulo m and whose numerator and denominator is bounded by
         sqrt(m/2).
 
+        INPUT:
+
+        - ``self`` -- Integer
+
+        - ``m`` -- Integer
+
+        OUTPUT:
+
+        - a :class:`Rational`
+
         EXAMPLES::
 
             sage: (3/7)%100
@@ -3076,22 +3033,27 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: (29).rational_reconstruction(100)
             3/7
 
-        TEST:
+        TESTS:
 
-        Check that ticket #9345 is fixed::
+        Check that trac:`9345` is fixed::
 
-            sage: ZZ(1).rational_reconstruction(0)
+            sage: 0.rational_reconstruction(0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: The modulus cannot be zero
-            sage: m = ZZ.random_element(-10^6,10^6)
-            sage: m.rational_reconstruction(0)
+            ZeroDivisionError: rational reconstruction with zero modulus
+            sage: ZZ.random_element(-10^6, 10^6).rational_reconstruction(0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: The modulus cannot be zero
+            ZeroDivisionError: rational reconstruction with zero modulus
         """
-        import rational
-        return rational.pyrex_rational_reconstruction(self, m)
+        cdef Integer a
+        cdef Rational x = <Rational>Rational.__new__(Rational)
+        try:
+            mpq_rational_reconstruction(x.value, self.value, m.value)
+        except ValueError:
+            a = self % m
+            raise ArithmeticError("rational reconstruction of %s (mod %s) does not exist" % (a, m))
+        return x
 
     def powermodm_ui(self, exp, mod):
         r"""
@@ -3139,37 +3101,43 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLES::
 
-            sage: n = 920938; n
-            920938
+            sage: n = 920938
             sage: int(n)
             920938
+            sage: int(-n)
+            -920938
             sage: type(n.__int__())
             <type 'int'>
-            sage: n = 99028390823409823904823098490238409823490820938; n
-            99028390823409823904823098490238409823490820938
+            sage: n = 99028390823409823904823098490238409823490820938
+            sage: int(n)
+            99028390823409823904823098490238409823490820938L
+            sage: int(-n)
+            -99028390823409823904823098490238409823490820938L
             sage: type(n.__int__())
             <type 'long'>
+            sage: int(-1), int(0), int(1)
+            (-1, 0, 1)
         """
-        # TODO -- this crashes on sage.math, since it is evidently written incorrectly.
         return mpz_get_pyintlong(self.value)
-        #return int(mpz_get_pylong(self.value))
 
     def __long__(self):
         """
-        Return long integer corresponding to this Sage integer.
+        Return the Python long corresponding to this Sage integer.
 
         EXAMPLES::
 
-            sage: n = 9023408290348092849023849820934820938490234290; n
-            9023408290348092849023849820934820938490234290
+            sage: n = 9023408290348092849023849820934820938490234290
             sage: long(n)
             9023408290348092849023849820934820938490234290L
-            sage: n = 920938; n
-            920938
+            sage: long(-n)
+            -9023408290348092849023849820934820938490234290L
+            sage: n = 920938
             sage: long(n)
             920938L
             sage: n.__long__()
             920938L
+            sage: long(-1), long(0), long(1)
+            (-1L, 0L, 1L)
         """
         return mpz_get_pylong(self.value)
 
@@ -3183,7 +3151,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n = Integer(17); float(n)
             17.0
             sage: n = Integer(902834098234908209348209834092834098); float(n)
-            9.028340982349081e+35
+            9.028340982349083e+35
             sage: n = Integer(-57); float(n)
             -57.0
             sage: n.__float__()
@@ -3191,7 +3159,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: type(n.__float__())
             <type 'float'>
         """
-        return mpz_get_d(self.value)
+        return mpz_get_d_nearest(self.value)
 
     def _rpy_(self):
         """
@@ -3230,10 +3198,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS::
 
-            sage: hash(0)
-            0
-            sage: hash(-1)
-            -2
+            sage: hash(-1), hash(0), hash(1)
+            (-2, 0, 1)
             sage: n = 2^31 + 2^63 + 2^95 + 2^127 + 2^128*(2^32-2)
             sage: hash(n) == hash(long(n))
             True
@@ -3253,7 +3219,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: hash(1-n) == hash(long(1-n))
             True
 
-        These tests come from Trac #4957:
+        These tests come from :trac:`4957`::
 
             sage: n = 2^31 + 2^13
             sage: hash(n)
@@ -3342,7 +3308,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError, "bound must be positive"
         if mpz_sgn(self.value) == 0:
             raise ValueError, "self must be nonzero"
-        cdef unsigned long n, m=7, i=1, limit, dif[8]
+        cdef unsigned long n, m=7, i=1, limit
+        cdef unsigned long dif[8]
         if start > 7:
             # We need to find i.
             m = start % 30
@@ -3687,7 +3654,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_sgn(self.value) == 0:
             return sage.rings.infinity.infinity
         if mpz_cmp_ui(p.value, 2) < 0:
-            raise ValueError, "You can only compute the valuation with respect to a integer larger than 1."
+            raise ValueError("You can only compute the valuation with respect to a integer larger than 1.")
 
         cdef Integer v = PY_NEW(Integer)
         cdef mpz_t u
@@ -4274,7 +4241,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         else:
             R = RealField(prec)
         if self.is_zero():
-            return R.zero_element()
+            return R.zero()
         return R(self).abs().log()
 
     cdef bint _is_power_of(Integer self, Integer n):
@@ -4487,21 +4454,30 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: cputime(t)      # random
             0.02800199999999986
         """
-        if not PY_TYPE_CHECK(n, Integer):
+        if not isinstance(n, Integer):
             n = Integer(n)
         return self._is_power_of(n)
 
-    def is_prime_power(self, flag=0):
+    def is_prime_power(self, flag=None, proof=None, bint get_data=False):
         r"""
-        Returns True if this integer is a prime power, and False otherwise.
+        Return ``True`` if this integer is a prime power, and ``False`` otherwise.
+
+        A prime power is a prime number raised to a positive power. Hence `1` is
+        not a prime power.
+
+        For a method that uses a pseudoprimality test instead see
+        :meth:`is_pseudoprime_power`.
 
         INPUT:
 
-        - ``flag`` (for primality testing) - int. Values are:
+        - ``proof`` -- Boolean or ``None`` (default). If ``False``, use a strong
+          pseudo-primality test (see :meth:`is_pseudoprime`).  If ``True``, use
+          a provable primality test. If unset, use the default arithmetic proof
+          flag.
 
-          - ``0`` (default): use a combination of algorithms.
-          - ``1``: certify primality using the Pocklington-Lehmer test.
-          - ``2``: certify primality using the APRCL test.
+        - ``get_data`` -- (default ``False``), if ``True`` return a pair
+          ``(p,k)`` such that this integer equals ``p^k`` with ``p`` a prime
+          and ``k`` a positive integer or the pair ``(self,0)`` otherwise.
 
         .. seealso::
 
@@ -4510,19 +4486,54 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             - :meth:`is_perfect_power`: Doesn't test whether the base is prime.
             - :meth:`is_power_of`: If you know the base already this method is
               the fastest option.
+            - :meth:`is_pseudoprime_power`: If the entry is very large.
 
         EXAMPLES::
 
-            sage: (-10).is_prime_power()
+            sage: 17.is_prime_power()
+            True
+            sage: 10.is_prime_power()
             False
-            sage: (10).is_prime_power()
-            False
-            sage: (64).is_prime_power()
+            sage: 64.is_prime_power()
             True
             sage: (3^10000).is_prime_power()
             True
-            sage: (10000).is_prime_power(flag=1)
+            sage: (10000).is_prime_power()
             False
+            sage: (-3).is_prime_power()
+            False
+            sage: 0.is_prime_power()
+            False
+            sage: 1.is_prime_power()
+            False
+            sage: p = next_prime(10^20); p
+            100000000000000000039
+            sage: p.is_prime_power()
+            True
+            sage: (p^97).is_prime_power()
+            True
+            sage: (p+1).is_prime_power()
+            False
+
+        With the ``get_data`` keyword set to ``True``::
+
+            sage: (3^100).is_prime_power(get_data=True)
+            (3, 100)
+            sage: 12.is_prime_power(get_data=True)
+            (12, 0)
+            sage: (p^97).is_prime_power(get_data=True)
+            (100000000000000000039, 97)
+            sage: q = p.next_prime(); q
+            100000000000000000129
+            sage: (p*q).is_prime_power(get_data=True)
+            (10000000000000000016800000000000000005031, 0)
+
+        The method works for large entries when `proof=False`::
+
+            sage: proof.arithmetic(False)
+            sage: ((10^500 + 961)^4).is_prime_power()
+            True
+            sage: proof.arithmetic(True)
 
         We check that :trac:`4777` is fixed::
 
@@ -4530,20 +4541,36 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.is_prime_power()
             True
         """
-        if self.is_zero():
-            return False
-        elif self.is_one():
-            return True
-        elif mpz_sgn(self.value) < 0:
-            return False
-        if self.is_prime():
-            return True
-        if not self.is_perfect_power():
-            return False
-        k, g = self._pari_().ispower()
-        if k == 1:
-            raise RuntimeError, "Inconsistent results between GMP and PARI"
-        return g.isprime(flag=flag)
+        if flag is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(16878, "the 'flag' argument to is_prime_power() is no longer used")
+        if mpz_sgn(self.value) <= 0:
+            return (self, zero) if get_data else False
+
+        cdef long p, n
+        if mpz_fits_slong_p(self.value):
+            # Note that self.value fits in a long, so there is no
+            # overflow possible because of mixing signed/unsigned longs.
+            # We call the PARI function uisprimepower()
+            n = uisprimepower(mpz_get_ui(self.value), <ulong*>(&p))
+            if n:
+                return (smallInteger(p), smallInteger(n)) if get_data else True
+            else:
+                return (self, zero) if get_data else False
+        else:
+            if proof is None:
+                from sage.structure.proof.proof import get_flag
+                proof = get_flag(proof, "arithmetic")
+
+            if proof:
+                n, pari_p = self._pari_().isprimepower()
+            else:
+                n, pari_p = self._pari_().ispseudoprimepower()
+
+            if n:
+                return (Integer(pari_p), smallInteger(n)) if get_data else True
+            else:
+                return (self, zero) if get_data else False
 
     def is_prime(self, proof=None):
         r"""
@@ -4603,12 +4630,43 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         IMPLEMENTATION: Calls the PARI ``isprime`` function.
         """
-        from sage.structure.proof.proof import get_flag
-        proof = get_flag(proof, "arithmetic")
+        if mpz_sgn(self.value) <= 0:
+            return False
+
+        if mpz_fits_ulong_p(self.value):
+            return bool(uisprime(mpz_get_ui(self.value)))
+
+        if proof is None:
+            from sage.structure.proof.proof import get_flag
+            proof = get_flag(proof, "arithmetic")
         if proof:
-            return bool(self._pari_().isprime())
+            return self._pari_().isprime()
         else:
-            return bool(self._pari_().ispseudoprime())
+            return self._pari_().ispseudoprime()
+
+    cdef bint _pseudoprime_is_prime(self, proof) except -1:
+        """
+        Given a pseudoprime, return ``self.is_prime(proof)``.
+
+        INPUT:
+
+        - ``self`` -- A PARI pseudoprime
+
+        - ``proof`` -- Mandatory proof flag (True, False or None)
+
+        OUTPUT:
+
+        - The result of ``self.is_prime(proof)`` but faster
+        """
+        if mpz_cmp(self.value, PARI_PSEUDOPRIME_LIMIT) < 0:
+            return True
+        if proof is None:
+            from sage.structure.proof.proof import get_flag
+            proof = get_flag(proof, "arithmetic")
+        if proof:
+            return self._pari_().isprime()
+        else:
+            return True
 
     def is_irreducible(self):
         r"""
@@ -4630,8 +4688,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z.is_irreducible()
             True
         """
-        n = self if self >= 0 else -self
-        return bool(n._pari_().isprime())
+        cdef Integer n = self if self >= 0 else -self
+        return n._pari_().isprime()
 
     def is_pseudoprime(self):
         r"""
@@ -4651,7 +4709,47 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z.is_pseudoprime()
             False
         """
-        return bool(self._pari_().ispseudoprime())
+        return self._pari_().ispseudoprime()
+
+    def is_pseudoprime_power(self, get_data=False):
+        r"""
+        Test if this number is a power of a pseudoprime number.
+
+        For large numbers, this method might be faster than
+        :meth:`is_prime_power`.
+
+        INPUT:
+
+        - ``get_data`` -- (default ``False``) if ``True`` return a pair `(p,k)`
+          such that this number equals `p^k` with `p` a pseudoprime and `k` a
+          positive integer or the pair ``(self,0)`` otherwise.
+
+        EXAMPLES::
+
+            sage: x = 10^200 + 357
+            sage: x.is_pseudoprime()
+            True
+            sage: (x^12).is_pseudoprime_power()
+            True
+            sage: (x^12).is_pseudoprime_power(get_data=True)
+            (1000...000357, 12)
+            sage: (997^100).is_pseudoprime_power()
+            True
+            sage: (998^100).is_pseudoprime_power()
+            False
+            sage: ((10^1000 + 453)^2).is_pseudoprime_power()
+            True
+
+        TESTS::
+
+            sage: 0.is_pseudoprime_power()
+            False
+            sage: (-1).is_pseudoprime_power()
+            False
+            sage: 1.is_pseudoprime_power()
+            False
+        """
+        return self.is_prime_power(proof=False, get_data=get_data)
 
     def is_perfect_power(self):
         r"""
@@ -4706,10 +4804,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 mpz_sqrt(tmp, tmp)
             res = mpz_perfect_power_p(tmp)
             mpz_clear(tmp)
-            if res:
-                return True
-            else:
-                return False
+            return res != 0
         return mpz_perfect_power_p(self.value)
 
     def is_norm(self, K, element=False, proof=True):
@@ -4750,8 +4845,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 3._bnfisnorm(QuadraticField(-1, 'i'))
             (1, 3)
             sage: 7._bnfisnorm(CyclotomicField(7))
-            (-zeta7 + 1, 1)            # 64-bit
-            (-zeta7^5 + zeta7^4, 1)    # 32-bit
+            (-zeta7^5 - zeta7^4 - 2*zeta7^3 - zeta7^2 - zeta7 - 1, 1)
         """
         from sage.rings.rational_field import QQ
         return QQ(self)._bnfisnorm(K, proof=proof, extra_primes=extra_primes)
@@ -4783,12 +4877,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
         """
         cdef long tmp
-        if PY_TYPE_CHECK(b, int):
+        if isinstance(b, int):
             tmp = b
             if (tmp & 1) == 0:
                 raise ValueError, "Jacobi symbol not defined for even b."
             return mpz_kronecker_si(self.value, tmp)
-        if not PY_TYPE_CHECK(b, Integer):
+        if not isinstance(b, Integer):
             b = Integer(b)
         if mpz_even_p((<Integer>b).value):
             raise ValueError, "Jacobi symbol not defined for even b."
@@ -4815,11 +4909,86 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: a.kronecker(b) == b.kronecker(a)
             True
         """
-        if PY_TYPE_CHECK(b, int):
+        if isinstance(b, int):
             return mpz_kronecker_si(self.value, b)
-        if not PY_TYPE_CHECK(b, Integer):
+        if not isinstance(b, Integer):
             b = Integer(b)
         return mpz_kronecker(self.value, (<Integer>b).value)
+
+    def class_number(self, proof=True):
+        r"""
+        Returns the class number of the quadratic order with this discriminant.
+
+        INPUT:
+
+        - ``self`` -- an integer congruent to `0` or `1\mod4` which is
+          not a square
+
+        - ``proof`` (boolean, default ``True``) -- if ``False`` then
+          for negative disscriminants a faster algorithm is used by
+          the PARI library which is known to give incorrect results
+          when the class group has many cyclic factors.
+
+        OUTPUT:
+
+        (integer) the class number of the quadratic order with this
+        discriminant.
+
+        .. NOTE::
+
+           This is not always equal to the number of classes of
+           primitive binary quadratic forms of discriminant `D`, which
+           is equal to the narrow class number. The two notions are
+           the same when `D<0`, or `D>0` and the fundamental unit of
+           the order has negative norm; otherwise the number of
+           classes of forms is twice this class number.
+
+        EXAMPLES::
+
+            sage: (-163).class_number()
+            1
+            sage: (-104).class_number()
+            6
+            sage: [((4*n+1),(4*n+1).class_number()) for n in [21..29]]
+            [(85, 2),
+            (89, 1),
+            (93, 1),
+            (97, 1),
+            (101, 1),
+            (105, 2),
+            (109, 1),
+            (113, 1),
+            (117, 1)]
+
+        TESTS:
+
+        The integer must not be a square or an error is raised::
+
+           sage: 100.class_number()
+           Traceback (most recent call last):
+           ...
+           ValueError: class_number not defined for square integers
+
+
+        The integer must be 0 or 1 mod 4 or an error is raised::
+
+           sage: 10.class_number()
+           Traceback (most recent call last):
+           ...
+           ValueError: class_number only defined for integers congruent to 0 or 1 modulo 4
+           sage: 3.class_number()
+           Traceback (most recent call last):
+           ...
+           ValueError: class_number only defined for integers congruent to 0 or 1 modulo 4
+
+
+        """
+        if self.is_square():
+            raise ValueError("class_number not defined for square integers")
+        if not self%4 in [0,1]:
+            raise ValueError("class_number only defined for integers congruent to 0 or 1 modulo 4")
+        flag =  self < 0 and proof
+        return pari(self).qfbclassno(flag).sage()
 
     def radical(self, *args, **kwds):
         r"""
@@ -4957,12 +5126,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLES::
 
-            sage: Integer(100).next_prime()
+            sage: 100.next_prime()
             101
+            sage: (10^50).next_prime()
+            100000000000000000000000000000000000000000000000151
 
-        Use Proof = False, which is way faster::
+        Use ``proof=False``, which is way faster since it does not need
+        a primality proof::
 
             sage: b = (2^1024).next_prime(proof=False)
+            sage: b - 2^1024
+            643
 
         ::
 
@@ -4971,21 +5145,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(1001).next_prime()
             1009
         """
-        if mpz_cmp(self.value, PARI_PSEUDOPRIME_LIMIT) < 0:
-            return Integer( self._pari_().nextprime(True) )
-        if proof is None:
-            from sage.structure.proof.proof import get_flag
-            proof = get_flag(proof, "arithmetic")
-        if not proof:
-            return Integer( self._pari_().nextprime(True) )
-        n = self
-        if n % 2 == 0:
-            n += 1
-        else:
-            n += 2
-        while not n.is_prime():  # PARI's isprime() is provably correct
-            n += 2
-        return integer_ring.ZZ(n)
+        # Use PARI to compute the next *pseudo*-prime
+        p = Integer(self._pari_().nextprime(True))
+        while not p._pseudoprime_is_prime(proof):
+            p = Integer(p._pari_().nextprime(True))
+        return p
 
     def additive_order(self):
         """
@@ -4998,8 +5162,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ(1).additive_order()
             +Infinity
         """
-        import sage.rings.infinity
-        if self.is_zero():
+        if mpz_sgn(self.value) == 0:
             return one
         else:
             return sage.rings.infinity.infinity
@@ -5019,13 +5182,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ(2).multiplicative_order()
             +Infinity
         """
-        import sage.rings.infinity
-        if  mpz_cmp_si(self.value, 1) == 0:
-                return one
+        if mpz_cmp_si(self.value, 1) == 0:
+            return one
         elif mpz_cmp_si(self.value, -1) == 0:
-                return Integer(2)
+            return smallInteger(2)
         else:
-                return sage.rings.infinity.infinity
+            return sage.rings.infinity.infinity
 
     def is_squarefree(self):
         """
@@ -5043,7 +5205,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self._pari_().issquarefree()
 
-    def _pari_(self):
+    cpdef _pari_(self):
         """
         Returns the PARI version of this integer.
 
@@ -5061,10 +5223,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: m = n._pari_() ## crash from trac 875
             sage: m % 1234567
             1041334
-        """
-        return self._pari_c()
 
-    cdef _pari_c(self):
+        """
         return pari.new_gen_from_mpz_t(self.value)
 
     def _interface_init_(self, I=None):
@@ -5428,10 +5588,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         Output may differ with and without the ``minimal`` option::
 
-            sage: 2._xgcd(-2)
-            (2, 1, 0)
-            sage: 2._xgcd(-2, minimal=True)
-            (2, 0, -1)
+            sage: 5._xgcd(6)
+            (1, -1, 1)
+            sage: 5._xgcd(6, minimal=True)
+            (1, 5, -4)
 
         Exhaustive tests, checking minimality conditions::
 
@@ -5535,7 +5695,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             n = PyInt_AS_LONG(y)
         else:
             # If it's not already an Integer, try to convert it.
-            if not PY_TYPE_CHECK(y, Integer):
+            if not isinstance(y, Integer):
                 try:
                     y = Integer(y)
                 except TypeError:
@@ -5596,7 +5756,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         # note that x need not be self -- int(3) << ZZ(2) will
         # dispatch this function
-        if not PY_TYPE_CHECK(x, Integer):
+        if not isinstance(x, Integer):
             return x << int(y)
         return (<Integer>x)._shift_helper(y, 1)
 
@@ -5626,7 +5786,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         # note that x need not be self -- int(3) >> ZZ(2) will
         # dispatch this function
-        if not PY_TYPE_CHECK(x, Integer):
+        if not isinstance(x, Integer):
             return x >> int(y)
         return (<Integer>x)._shift_helper(y, -1)
 
@@ -5647,7 +5807,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.__and__(m)
             2
         """
-        if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
+        if isinstance(x, Integer) and isinstance(y, Integer):
             return (<Integer>x)._and(y)
         return bin_op(x, y, operator.and_)
 
@@ -5666,7 +5826,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.__or__(m)
             12
         """
-        if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
+        if isinstance(x, Integer) and isinstance(y, Integer):
             return (<Integer>x)._or(y)
         return bin_op(x, y, operator.or_)
 
@@ -5875,9 +6035,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.popcount()
             +Infinity
         """
-        if self<0:
+        if mpz_sgn(self.value) < 0:
             return sage.rings.infinity.Infinity
-        return int(mpz_popcount(self.value))
+        return smallInteger(mpz_popcount(self.value))
 
 
     def conjugate(self):
@@ -5930,6 +6090,151 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return the_integer_ring(self._pari_().binomial(m))
         else:
             raise ValueError("algorithm must be one of: 'pari', 'mpir'")
+
+
+cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
+    """
+    Wrapper around ``mpz_set_str()`` which supports :pep:`3127`
+    literals.
+
+    If the string is invalid, a ``TypeError`` will be raised.
+
+    INPUT:
+
+    - ``z`` -- A pre-allocated ``mpz_t`` where the result will be
+      stored.
+
+    - ``s`` -- A string to be converted to an ``mpz_t``.
+
+    - ``base`` -- Either 0 or a base between 2 and 36: a base to use
+      for the string conversion. 0 means auto-detect using prefixes.
+
+    EXAMPLES::
+
+        sage: Integer('12345')
+        12345
+        sage: Integer('   -      1  2   3  4   5  ')
+        -12345
+        sage: Integer(u'  -  0x  1  2   3  4   5  ')
+        -74565
+        sage: Integer('-0012345', 16)
+        -74565
+        sage: Integer('+0x12345')
+        74565
+        sage: Integer('0X12345', 16)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert '0X12345' to an integer
+        sage: Integer('0x12345', 1000)
+        Traceback (most recent call last):
+        ...
+        ValueError: base (=1000) must be 0 or between 2 and 36
+        sage: Integer('0x00DeadBeef')
+        3735928559
+        sage: Integer('0x0x12345')
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert '0x0x12345' to an integer
+        sage: Integer('-0B100')
+        -4
+        sage: Integer('-0B100', 16)
+        -45312
+        sage: Integer('0B12345')
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert '0B12345' to an integer
+
+    Test zeros::
+
+        sage: Integer('')
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert '' to an integer
+        sage: Integer("0")
+        0
+        sage: Integer("  0O  0  ")  # second character is the letter O
+        0
+        sage: Integer("-00")
+        0
+        sage: Integer("+00000", 4)
+        0
+
+    For octals, the old leading-zero style is deprecated (unless an
+    explicit base is given)::
+
+        sage: Integer('0o12')
+        10
+        sage: Integer('012', 8)
+        10
+        sage: Integer('012')
+        doctest:...: DeprecationWarning: use 0o as octal prefix instead of 0
+        See http://trac.sagemath.org/17413 for details.
+        10
+
+    We disallow signs in unexpected places::
+
+        sage: Integer('+ -0')
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert '+ -0' to an integer
+        sage: Integer('0o-0')
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert '0o-0' to an integer
+    """
+    cdef int sign = 1
+    cdef int warnoctal = 0
+    cdef char* x = s
+
+    if base != 0 and (base < 2 or base > 36):
+        raise ValueError("base (=%s) must be 0 or between 2 and 36"%base)
+
+    while x[0] == c' ': x += 1  # Strip spaces
+
+    # Check for signs
+    if x[0] == c'-':
+        sign = -1
+        x += 1
+    elif x[0] == c'+':
+        x += 1
+
+    while x[0] == c' ': x += 1  # Strip spaces
+
+    # If no base was given, check for PEP 3127 prefixes
+    if base == 0:
+        if x[0] != c'0':
+            base = 10
+        else:
+            # String starts with "0"
+            if x[1] == c'b' or x[1] == c'B':
+                x += 2
+                base = 2
+            elif x[1] == c'o' or x[1] == c'O':
+                x += 2
+                base = 8
+            elif x[1] == c'x' or x[1] == c'X':
+                x += 2
+                base = 16
+            else:
+                # Give deprecation warning about octals, unless the
+                # number is zero (to allow for "0").
+                base = 8
+                warnoctal = 1
+
+    while x[0] == c' ': x += 1  # Strip spaces
+
+    # Disallow a sign here
+    if x[0] == '-' or x[0] == '+':
+        x = ""  # Force an error below
+
+    assert base >= 2
+    if mpz_set_str(z, x, base) != 0:
+        raise TypeError("unable to convert %r to an integer" % s)
+    if sign < 0:
+        mpz_neg(z, z)
+    if warnoctal and mpz_sgn(z) != 0:
+        from sage.misc.superseded import deprecation
+        deprecation(17413, "use 0o as octal prefix instead of 0")
 
 
 cpdef LCM_list(v):
@@ -5986,16 +6291,16 @@ cpdef LCM_list(v):
 
 def GCD_list(v):
     r"""
-    Return the GCD of a list v of integers. Elements of v are converted
-    to Sage integers if they aren't already.
-
-    This function is used, e.g., by rings/arith.py
+    Return the greatest common divisor of a list of integers.
 
     INPUT:
 
-    -  ``v`` - list or tuple
+    - ``v`` -- list or tuple
 
-    OUTPUT: integer
+    Elements of `v` are converted to Sage integers.  An empty list has
+    GCD zero.
+
+    This function is used, for example, by ``rings/arith.py``.
 
     EXAMPLES::
 
@@ -6005,7 +6310,7 @@ def GCD_list(v):
         sage: type(w)
         <type 'sage.rings.integer.Integer'>
 
-    Check that the bug reported in trac #3118 has been fixed::
+    Check that the bug reported in :trac:`3118` has been fixed::
 
         sage: sage.rings.integer.GCD_list([2,2,3])
         1
@@ -6018,6 +6323,11 @@ def GCD_list(v):
         3
         sage: type(w)
         <type 'sage.rings.integer.Integer'>
+
+    Check that the GCD of the empty list is zero (:trac:`17257`)::
+
+        sage: GCD_list([])
+        0
     """
     cdef int i, n = len(v)
     cdef Integer z = <Integer>PY_NEW(Integer)
@@ -6029,7 +6339,7 @@ def GCD_list(v):
             v[i] = Integer(v[i])
 
     if n == 0:
-        return one
+        return zero
     elif n == 1:
         return v[0].abs()
 
@@ -6178,32 +6488,7 @@ cdef class long_to_Z(Morphism):
 
 ############### INTEGER CREATION CODE #####################
 
-# We need a couple of internal GMP datatypes.
-
-# This may be potentially very dangerous as it reaches
-# deeply into the internal structure of GMP which may not
-# be consistent across future versions of GMP.
-# See extensive note in the fast_tp_new() function below.
-
 include "sage/ext/python_rich_object.pxi"
-cdef extern from "gmp.h":
-    ctypedef long mp_limb_t
-    ctypedef mp_limb_t* mp_ptr #"mp_ptr"
-
-    # We allocate _mp_d directly (mpz_t is typedef of this in GMP)
-    ctypedef struct __mpz_struct "__mpz_struct":
-        int _mp_alloc
-        int _mp_size
-        mp_ptr _mp_d
-
-    # sets the three free, alloc, and realloc function pointers to the
-    # memory management functions set in GMP. Accepts NULL pointer.
-    # Potentially dangerous if changed by calling
-    # mp_set_memory_functions again after we initialized this module.
-    void mp_get_memory_functions (void *(**alloc) (size_t), void *(**realloc)(void *, size_t, size_t), void (**free) (void *, size_t))
-
-    # GMP's configuration of how many Bits are stuffed into a limb
-    cdef int GMP_LIMB_BITS
 
 # This variable holds the size of any Integer object in bytes.
 cdef int sizeof_Integer
@@ -6213,28 +6498,8 @@ cdef int sizeof_Integer
 cdef Integer global_dummy_Integer
 global_dummy_Integer = Integer()
 
-# Accessing the .value attribute of an Integer object causes Cython to
-# refcount it. This is problematic, because that causes overhead and
-# more importantly an infinite loop in the destructor. If you refcount
-# in the destructor and the refcount reaches zero (which is true
-# every time) the destructor is called.
-#
-# To avoid this we calculate the byte offset of the value member and
-# remember it in this variable.
-#
-# Eventually this may be rendered obsolete by a change in Cython allowing
-# non-reference counted extension types.
-cdef long mpz_t_offset
-mpz_t_offset_python = None
 
-
-# stores the GMP alloc function
-cdef void * (* mpz_alloc)(size_t)
-
-# stores the GMP free function
-cdef void (* mpz_free)(void *, size_t)
-
-# A global  pool for performance when integers are rapidly created and destroyed.
+# A global pool for performance when integers are rapidly created and destroyed.
 # It operates on the following principles:
 #
 # - The pool starts out empty.
@@ -6242,8 +6507,6 @@ cdef void (* mpz_free)(void *, size_t)
 #   if available, otherwise a new Integer object is created
 # - When an integer is collected, it will add it to the pool
 #   if there is room, otherwise it will be deallocated.
-
-
 cdef int integer_pool_size = 100
 
 cdef PyObject** integer_pool
@@ -6259,6 +6522,7 @@ cdef PyObject* fast_tp_new(PyTypeObject *t, PyObject *a, PyObject *k):
     global integer_pool, integer_pool_count, total_alloc, use_pool
 
     cdef PyObject* new
+    cdef mpz_ptr new_mpz
 
     # for profiling pool usage
     # total_alloc += 1
@@ -6275,7 +6539,6 @@ cdef PyObject* fast_tp_new(PyTypeObject *t, PyObject *a, PyObject *k):
         new = <PyObject *> integer_pool[integer_pool_count]
 
     # Otherwise, we have to create one.
-
     else:
 
         # allocate enough room for the Integer, sizeof_Integer is
@@ -6288,13 +6551,14 @@ cdef PyObject* fast_tp_new(PyTypeObject *t, PyObject *a, PyObject *k):
 
         # Now set every member as set in z, the global dummy Integer
         # created before this tp_new started to operate.
-
         memcpy(new, (<void*>global_dummy_Integer), sizeof_Integer )
 
-        # We take the address 'new' and move mpz_t_offset bytes (chars)
-        # to the address of 'value'. We treat that address as a pointer
-        # to a mpz_t struct and allocate memory for the _mp_d element of
-        # that struct. We allocate one limb.
+        # We allocate memory for the _mp_d element of the value of this
+        # new Integer. We allocate one limb. Normally, one would use
+        # mpz_init() for this, but we allocate the memory directly.
+        # This saves time both by avoiding extra function calls and
+        # because the rest of the mpz struct was already initialized
+        # fully using the memcpy above.
         #
         # What is done here is potentially very dangerous as it reaches
         # deeply into the internal structure of GMP. Consequently things
@@ -6306,18 +6570,8 @@ cdef PyObject* fast_tp_new(PyTypeObject *t, PyObject *a, PyObject *k):
         #  various internals described here may change in future GMP releases.
         #  Applications expecting to be compatible with future releases should use
         #  only the documented interfaces described in previous chapters."
-        #
-        # If this line is used Sage is not such an application.
-        #
-        # The clean version of the following line is:
-        #
-        #  mpz_init( <mpz_t>(<char *>new + mpz_t_offset) )
-        #
-        # We save time both by avoiding an extra function call and
-        # because the rest of the mpz struct was already initialized
-        # fully using the memcpy above.
-
-        (<__mpz_struct *>( <char *>new + mpz_t_offset) )._mp_d = <mp_ptr>mpz_alloc(GMP_LIMB_BITS >> 3)
+        new_mpz = <mpz_ptr>((<Integer>new).value)
+        new_mpz._mp_d = <mp_ptr>sage_malloc(GMP_LIMB_BITS >> 3)
 
     # This line is only needed if Python is compiled in debugging mode
     # './configure --with-pydebug' or SAGE_DEBUG=yes. If that is the
@@ -6347,31 +6601,30 @@ cdef void fast_tp_dealloc(PyObject* o):
 
     global integer_pool, integer_pool_count
 
+    cdef mpz_ptr o_mpz = <mpz_ptr>((<Integer>o).value)
+
     if integer_pool_count < integer_pool_size:
 
         # Here we free any extra memory used by the mpz_t by
         # setting it to a single limb.
-        if (<__mpz_struct *>( <char *>o + mpz_t_offset))._mp_alloc > 10:
-            _mpz_realloc(<mpz_t *>( <char *>o + mpz_t_offset), 10)
+        if o_mpz._mp_alloc > 10:
+            _mpz_realloc(o_mpz, 1)
 
         # It's cheap to zero out an integer, so do it here.
-        (<__mpz_struct *>( <char *>o + mpz_t_offset))._mp_size = 0
+        o_mpz._mp_size = 0
 
         # And add it to the pool.
         integer_pool[integer_pool_count] = o
         integer_pool_count += 1
         return
 
-    # Again, we move to the mpz_t and clear it. See above, why this is evil.
-    # The clean version of this line would be:
-    #   mpz_clear(<mpz_t>(<char *>o + mpz_t_offset))
-
-    mpz_free((<__mpz_struct *>( <char *>o + mpz_t_offset) )._mp_d, 0)
+    # Again, we move to the mpz_t and clear it. As in fast_tp_new,
+    # we free the memory directly.
+    sage_free(o_mpz._mp_d)
 
     # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
     # set. If it was set another free function would need to be
     # called.
-
     PyObject_FREE(o)
 
 from sage.misc.allocator cimport hook_tp_functions
@@ -6379,38 +6632,22 @@ cdef hook_fast_tp_functions():
     """
     Initialize the fast integer creation functions.
     """
-    global global_dummy_Integer, mpz_t_offset, sizeof_Integer, integer_pool
+    global global_dummy_Integer, sizeof_Integer, integer_pool
 
     integer_pool = <PyObject**>sage_malloc(integer_pool_size * sizeof(PyObject*))
 
     cdef PyObject* o
     o = <PyObject *>global_dummy_Integer
 
-    # calculate the offset of the GMP mpz_t to avoid casting to/from
-    # an Integer which includes reference counting. Reference counting
-    # is bad in constructors and destructors as it potentially calls
-    # the destructor.
-    # Eventually this may be rendered obsolete by a change in Cython allowing
-    # non-reference counted extension types.
-    mpz_t_offset = <char *>(&global_dummy_Integer.value) - <char *>o
-    global mpz_t_offset_python
-    mpz_t_offset_python = mpz_t_offset
-
     # store how much memory needs to be allocated for an Integer.
     sizeof_Integer = (<RichPyTypeObject *>o.ob_type).tp_basicsize
-
-    # get the functions to do memory management for the GMP elements
-    # WARNING: if the memory management functions are changed after
-    # this initialisation, we are/you are doomed.
-
-    mp_get_memory_functions(&mpz_alloc, NULL, &mpz_free)
 
     # Finally replace the functions called when an Integer needs
     # to be constructed/destructed.
     hook_tp_functions(global_dummy_Integer, NULL, &fast_tp_new, NULL, &fast_tp_dealloc, False)
 
 cdef integer(x):
-    if PY_TYPE_CHECK(x, Integer):
+    if isinstance(x, Integer):
         return x
     return Integer(x)
 
@@ -6423,7 +6660,7 @@ def free_integer_pool():
 
     for i from 0 <= i < integer_pool_count:
         o = integer_pool[i]
-        mpz_clear(<__mpz_struct *>(<char*>o + mpz_t_offset))
+        mpz_clear( (<Integer>o).value )
         # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
         # set. If it was set another free function would need to be
         # called.
@@ -6443,7 +6680,6 @@ cdef set_zero_one_elements():
     if initialized: return
     the_integer_ring._zero_element = Integer(0)
     the_integer_ring._one_element = Integer(1)
-    init_mpz_globals()
     initialized = True
 set_zero_one_elements()
 
@@ -6468,3 +6704,111 @@ cdef inline Integer smallInteger(long value):
         z = PY_NEW(Integer)
         mpz_set_si(z.value, value)
         return z
+
+
+# The except value is just some random double, it doesn't matter what it is.
+cdef double mpz_get_d_nearest(mpz_t x) except? -648555075988944.5:
+    """
+    Convert a ``mpz_t`` to a ``double``, with round-to-nearest-even.
+    This differs from ``mpz_get_d()`` which does round-to-zero.
+
+    TESTS::
+
+        sage: x = ZZ(); float(x)
+        0.0
+        sage: x = 2^54 - 1
+        sage: float(x)
+        1.8014398509481984e+16
+        sage: float(-x)
+        -1.8014398509481984e+16
+        sage: x = 2^10000; float(x)
+        inf
+        sage: float(-x)
+        -inf
+
+    ::
+
+        sage: x = (2^53 - 1) * 2^971; float(x)  # Largest double
+        1.7976931348623157e+308
+        sage: float(-x)
+        -1.7976931348623157e+308
+        sage: x = (2^53) * 2^971; float(x)
+        inf
+        sage: float(-x)
+        -inf
+        sage: x = ZZ((2^53 - 1/2) * 2^971); float(x)
+        inf
+        sage: float(-x)
+        -inf
+        sage: x = ZZ((2^53 - 3/4) * 2^971); float(x)
+        1.7976931348623157e+308
+        sage: float(-x)
+        -1.7976931348623157e+308
+
+    AUTHORS:
+
+    - Jeroen Demeyer (:trac:`16385`, based on :trac:`14416`)
+    """
+    cdef mp_bitcnt_t sx = mpz_sizeinbase(x, 2)
+
+    # Easy case: x is exactly representable as double.
+    if sx <= 53:
+        return mpz_get_d(x)
+
+    cdef int resultsign = mpz_sgn(x)
+
+    # Check for overflow
+    if sx > 1024:
+        if resultsign < 0:
+            return -1.0/0.0
+        else:
+            return 1.0/0.0
+
+    # General case
+
+    # We should shift x right by this amount in order
+    # to have 54 bits remaining.
+    cdef mp_bitcnt_t shift = sx - 54
+
+    # Compute q = trunc(x / 2^shift) and let remainder_is_zero be True
+    # if and only if no truncation occurred.
+    cdef int remainder_is_zero
+    remainder_is_zero = mpz_divisible_2exp_p(x, shift)
+
+    sig_on()
+
+    cdef mpz_t q
+    mpz_init(q)
+    mpz_tdiv_q_2exp(q, x, shift)
+
+    # Convert abs(q) to a 64-bit integer.
+    cdef mp_limb_t* q_limbs = (<mpz_ptr>q)._mp_d
+    cdef uint64_t q64
+    if sizeof(mp_limb_t) >= 8:
+        q64 = q_limbs[0]
+    else:
+        assert sizeof(mp_limb_t) == 4
+        q64 = q_limbs[1]
+        q64 = (q64 << 32) + q_limbs[0]
+
+    mpz_clear(q)
+    sig_off()
+
+    # Round q from 54 to 53 bits of precision.
+    if ((q64 & 1) == 0):
+        # Round towards zero
+        pass
+    else:
+        if not remainder_is_zero:
+            # Remainder is non-zero: round away from zero
+            q64 += 1
+        else:
+            # Halfway case: round to even
+            q64 += (q64 & 2) - 1
+
+    # The conversion of q64 to double is *exact*.
+    # This is because q64 is even and satisfies 2^53 <= q64 <= 2^54.
+    cdef double d = <double>q64
+    if resultsign < 0:
+        d = -d
+    return ldexp(d, shift)

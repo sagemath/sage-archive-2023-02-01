@@ -32,7 +32,7 @@ import itertools
 import copy
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.flatten import flatten
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -83,7 +83,7 @@ class AlternatingSignMatrix(Element):
         """
         Initialize ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A = AlternatingSignMatrices(3)
             sage: elt = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
@@ -928,6 +928,14 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
     def _an_element_(self):
         """
         Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: A._an_element_()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
         """
         return self.element_class(self, self._matrix_space.identity_matrix())
 

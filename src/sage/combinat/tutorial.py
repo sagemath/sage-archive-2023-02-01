@@ -90,7 +90,7 @@ would cause us a problem later. We will therefore redefine our
 Cartesian product so that its elements are represented by tuples::
 
     sage: Cards = CartesianProduct(Values, Suits).map(tuple)
-    sage: Cards.an_element()               # todo: not implemented (see #10963)
+    sage: Cards.an_element()
     ('King', 'Hearts')
 
 Now we can define a set of cards::
@@ -319,7 +319,7 @@ We can now calculate the next terms::
 
 or calculate, more or less instantaneously, the 100-th coefficient::
 
-    sage: C.series(z, 101).coeff(z,100)
+    sage: C.series(z, 101).coefficient(z,100)
     227508830794229349661819540395688853956041682601541047340
 
 It is unfortunate to have to recalculate everything if at some point we
@@ -661,8 +661,9 @@ model the set `\mathcal P(\mathcal P(\mathcal P(E)))` and
 calculate its cardinality (`2^{2^{2^4}}`)::
 
     sage: E = Set([1,2,3,4])
-    sage: S = Subsets(Subsets(Subsets(E)))
-    sage: n = S.cardinality(); n              # long time (10s on sage.math, 2012)
+    sage: S = Subsets(Subsets(Subsets(E))); S
+    Subsets of Subsets of Subsets of {1, 2, 3, 4}
+    sage: n = S.cardinality(); n
     2003529930406846464979072351560255750447825475569751419265016973...
 
 which is roughly `2\cdot 10^{19728}`::
@@ -672,11 +673,9 @@ which is roughly `2\cdot 10^{19728}`::
 
 or ask for its `237102124`-th element::
 
-    sage: S.unrank(237102123)                 # not tested (20s, 2012)
-    {{{2}, {3}, {1, 2, 3, 4}, {1, 2}, {1, 4}, {}, {2, 3, 4},
-    {1, 2, 4}, {3, 4}, {4}, {2, 3}, {1, 2, 3}}, {{2}, {3},
-    {1, 2, 3, 4}, {1, 2}, {1, 4}, {2, 3, 4}, {3, 4},
-    {1, 3, 4}, {1}, {1, 3}, {1, 2, 3}}}
+    sage: S.unrank(237102123)
+    {{{2, 4}, {1, 4}, {}, {1, 3, 4}, {1, 2, 4}, {4}, {2, 3}, {1, 3}, {2}},
+      {{1, 3}, {2, 4}, {1, 2, 4}, {}, {3, 4}}}
 
 It would be physically impossible to construct explicitly all the
 elements of `S`, as there are many more of them than there are
@@ -691,8 +690,7 @@ sets::
     sage: len(S)
     Traceback (most recent call last):
     ...
-    AttributeError: __len__ has been removed; use .cardinality()
-    instead
+    OverflowError: Python int too large to convert to C long
 
 Partitions of integers
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -866,6 +864,7 @@ Partial orders on a set of `8` elements, up to isomorphism::
 ::
 
     sage: C.unrank(20).plot()
+    Graphics object consisting of 20 graphics primitives
 
 .. image:: ../../media/a_poset.png
 
@@ -1013,18 +1012,18 @@ following iterator ``it``::
 returns successively the binomial coefficients `\binom 3 i` with
 `i=0,1,2,3`::
 
-    sage: it.next()
+    sage: next(it)
     1
-    sage: it.next()
+    sage: next(it)
     3
-    sage: it.next()
+    sage: next(it)
     3
-    sage: it.next()
+    sage: next(it)
     1
 
 When the iterator is finally exhausted, an exception is raised::
 
-    sage: it.next()
+    sage: next(it)
     Traceback (most recent call last):
       ...
     StopIteration
@@ -1132,9 +1131,9 @@ Alternatively, we could construct an interator on the counter-examples::
     sage: counter_examples = \
     ...     (p for p in range(1000)
     ...        if is_prime(p) and not is_prime(mersenne(p)))
-    sage: counter_examples.next()
+    sage: next(counter_examples)
     11
-    sage: counter_examples.next()
+    sage: next(counter_examples)
     23
 
 .. topic:: Exercice
@@ -1319,18 +1318,18 @@ to be continued from the same point. The result of the function is
 therefore an iterator over the successive values returned by ``yield``::
 
     sage: g = f(4)
-    sage: g.next()
+    sage: next(g)
     0
-    sage: g.next()
+    sage: next(g)
     1
-    sage: g.next()
+    sage: next(g)
     2
-    sage: g.next()
+    sage: next(g)
     3
 
 ::
 
-    sage: g.next()
+    sage: next(g)
     Traceback (most recent call last):
       ...
     StopIteration

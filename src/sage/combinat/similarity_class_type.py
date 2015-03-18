@@ -177,7 +177,7 @@ AUTHOR:
 
 from operator import mul
 from itertools import chain
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.functions.all import factorial
 from sage.rings.arith import moebius
 from sage.structure.parent import Parent
@@ -191,6 +191,7 @@ from sage.rings.all import ZZ, QQ, FractionField, divisors
 from sage.misc.cachefunc import cached_in_parent_method, cached_function
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.misc import IterableFunctionCall
+from functools import reduce
 
 @cached_function
 def fq(n, q = None):
@@ -628,7 +629,7 @@ class PrimarySimilarityClassTypes(Parent, UniqueRepresentation):
         if self._min[0].divides(n):
             for par in Partitions(ZZ(n/self._min[0]), starting = self._min[1]):
                 yield self.element_class(self, self._min[0], par)
-        for d in filter(lambda d: d > self._min[0], divisors(n)):
+        for d in (d for d in divisors(n) if d > self._min[0]):
             for par in Partitions(ZZ(n/d)):
                 yield self.element_class(self, d, par)
 
@@ -1176,8 +1177,8 @@ def dictionary_from_generator(gen):
         high.
     """
     L = list(gen)
-    setofkeys = list(set([item[0] for item in L]))
-    return dict([(key, sum([entry[1] for entry in filter(lambda pair: pair[0] == key, L)])) for key in setofkeys])
+    setofkeys = list(set(item[0] for item in L))
+    return dict((key, sum(entry[1] for entry in (pair for pair in L if pair[0] == key))) for key in setofkeys)
 
 def matrix_similarity_classes(n, q = None, invertible = False):
     r"""
@@ -1557,7 +1558,7 @@ def matrix_centralizer_cardinalities_length_two(n, q = None, selftranspose = Fal
         (q^4 - q^2, 1/2*q^4 - 1/2*q^3)]
         sage: from sage.combinat.similarity_class_type import dictionary_from_generator
         sage: dictionary_from_generator(matrix_centralizer_cardinalities_length_two(2, q = 2))
-        {96: 4, 32: 4, 4: 4, 16: 2, 8: 8, 12: 4, 48: 2}
+        {4: 4, 8: 8, 12: 4, 16: 2, 32: 4, 48: 2, 96: 4}
     """
     if q is None:
         q = FractionField(QQ['q']).gen()

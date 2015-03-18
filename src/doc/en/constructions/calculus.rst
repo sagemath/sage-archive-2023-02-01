@@ -99,8 +99,8 @@ Taylor series:
     sage: g = f0/sinh(k*x)^4
     sage: g.taylor(x, 0, 3)
     -62/945*f0*k^2*x^2 + 11/45*f0 - 2/3*f0/(k^2*x^2) + f0/(k^4*x^4)
-    sage: maxima(g).powerseries('x',0)
-    16*f0*('sum((2^(2*i1-1)-1)*bern(2*i1)*k^(2*i1-1)*x^(2*i1-1)/factorial(2*i1),i1,0,inf))^4
+    sage: maxima(g).powerseries('_SAGE_VAR_x',0)    # TODO: write this without maxima
+    16*_SAGE_VAR_f0*('sum((2^(2*i1-1)-1)*bern(2*i1)*_SAGE_VAR_k^(2*i1-1)*_SAGE_VAR_x^(2*i1-1)/factorial(2*i1),i1,0,inf))^4
 
 Of course, you can view the LaTeX-ed version of this using
 ``view(g.powerseries('x',0))``.
@@ -115,8 +115,8 @@ The Maclaurin and power series of
     -1/467775*x^10 - 1/37800*x^8 - 1/2835*x^6 - 1/180*x^4 - 1/6*x^2
     sage: [bernoulli(2*i) for i in range(1,7)]
     [1/6, -1/30, 1/42, -1/30, 5/66, -691/2730]
-    sage: maxima(f).powerseries(x,0)
-    'sum((-1)^i2*2^(2*i2-1)*bern(2*i2)*x^(2*i2)/(i2*factorial(2*i2)),i2,1,inf)
+    sage: maxima(f).powerseries(x,0)    # TODO: write this without maxima
+    'sum((-1)^i3*2^(2*i3-1)*bern(2*i3)*_SAGE_VAR_x^(2*i3)/(i3*factorial(2*i3)),i3,1,inf)
 
 .. index::
    pair: calculus; integration
@@ -276,16 +276,16 @@ with Octave (an experimental package), or routines in the GSL (Gnu
 Scientific Library).
 
 An example, how to solve ODE's symbolically in Sage using the Maxima interface
-(do not type the ``...``):
+(do not type the ``....:``):
 
 ::
 
     sage: y=function('y',x); desolve(diff(y,x,2) + 3*x == y, dvar = y, ics = [1,1,1])
     3*x - 2*e^(x - 1)
     sage: desolve(diff(y,x,2) + 3*x == y, dvar = y)
-    k2*e^(-x) + k1*e^x + 3*x
+    _K2*e^(-x) + _K1*e^x + 3*x
     sage: desolve(diff(y,x) + 3*x == y, dvar = y)
-    (3*(x + 1)*e^(-x) + c)*e^x
+    (3*(x + 1)*e^(-x) + _C)*e^x
     sage: desolve(diff(y,x) + 3*x == y, dvar = y, ics = [1,1]).expand()
     3*x - 5*e^(x - 1) + 3
 
@@ -317,6 +317,7 @@ for :math:`0 <= t <= 2`. The same result can be obtained by using ``desolve_syst
     sage: p1 = list_plot([[i,j] for i,j,k in P], plotjoined=True)
     sage: p2 = list_plot([[i,k] for i,j,k in P], plotjoined=True, color='red')
     sage: p1+p2
+    Graphics object consisting of 2 graphics primitives
 
 Another way this system can be solved is to use the command ``desolve_system``.
 

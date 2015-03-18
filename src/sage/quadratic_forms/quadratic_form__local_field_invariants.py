@@ -315,7 +315,7 @@ def hasse_invariant(self, p):
         sage: K.<a>=NumberField(x^2-23)
         sage: Q=DiagonalQuadraticForm(K,[-a,a+2])
         sage: [Q.hasse_invariant(p) for p in K.primes_above(19)]
-        [1, -1]
+        [-1, 1]
 
     """
     ## TO DO: Need to deal with the case n=1 separately somewhere!
@@ -472,7 +472,7 @@ def is_hyperbolic(self, p):
     ## Compare local invariants
     ## (Note: since the dimension is even, the extra powers of 2 in
     ##        self.det() := Det(2*Q) don't affect the answer!)
-    m = ZZ(self.dim() / 2)
+    m = ZZ(self.dim() // 2)
     if p == "infinity":
         return (self.signature() == 0)
 

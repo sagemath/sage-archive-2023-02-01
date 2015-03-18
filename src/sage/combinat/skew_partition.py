@@ -1142,7 +1142,7 @@ def from_row_and_column_length(rowL, colL):
     EXAMPLES::
 
         sage: sage.combinat.skew_partition.from_row_and_column_length([3,1,2,2],[2,3,1,1,1])
-        doctest:1: DeprecationWarning: from_row_and_column_length is deprecated. Use SkewPartitions().from_row_and_column_length instead.
+        doctest:...: DeprecationWarning: from_row_and_column_length is deprecated. Use SkewPartitions().from_row_and_column_length instead.
         See http://trac.sagemath.org/14101 for details.
         [5, 2, 2, 2] / [2, 1]
     """
@@ -1388,7 +1388,7 @@ class SkewPartitions(Parent, UniqueRepresentation):
                     raise ValueError("Incompatible row and column length : %s and %s"%(rowL, colL))
             while colL_new != [] and colL_new[-1] == 0:
                 colL_new.pop()
-        return self.element_class(self, [resOut, filter(lambda x:x, resIn)])
+        return self.element_class(self, [resOut, [x for x in resIn if x]])
 
 class SkewPartitions_all(SkewPartitions):
     """
@@ -1422,7 +1422,7 @@ class SkewPartitions_all(SkewPartitions):
 
             sage: SP = SkewPartitions()
             sage: it = SP.__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[] / [],
              [1] / [],
              [2] / [],
@@ -1760,7 +1760,7 @@ class SkewPartitions_rowlengths(SkewPartitions):
             skp1 = map(lambda x: x + i + mm, skp1)
             skp1 += [ck]
             skp2 = map(lambda x: x + i + mm, skp2)
-            skp2 = filter(lambda x: x != 0, skp2)
+            skp2 = [x for x in skp2 if x != 0]
             yield SkewPartition([skp1, skp2])
 
     def __iter__(self):

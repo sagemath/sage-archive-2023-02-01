@@ -264,6 +264,22 @@ class AnInfinity(object):
         else:
             return 'inf'
 
+    def _fricas_init_(self):
+        """
+        TESTS::
+
+            sage: fricas(-oo)           # optional - fricas
+            %minusInfinity
+            sage: [x._fricas_init_() for x in [unsigned_infinity, oo, -oo]]   # optional - fricas
+            ['%infinity', '%plusInfinity', '%minusInfinity']
+        """
+        if self._sign_char == '':
+            return r"%infinity"
+        elif self._sign > 0:
+            return r"%plusInfinity"
+        else:
+            return r"%minusInfinity"
+
     def _pari_(self):
         """
         Convert ``self`` to a Pari object.
@@ -443,6 +459,17 @@ class AnInfinity(object):
             Traceback (most recent call last):
             ...
             SignError: cannot multiply infinity by zero
+
+        Check that :trac:`14857` is fixed::
+
+            sage: infinity / unsigned_infinity
+            Traceback (most recent call last):
+            ...
+            ValueError: unsigned oo times smaller number not defined
+            sage: SR(infinity) / unsigned_infinity
+            Traceback (most recent call last):
+            ...
+            ValueError: unsigned oo times smaller number not defined
         """
         return self * ~other
 
@@ -1143,6 +1170,12 @@ class InfinityRing_class(_uniq, Ring):
         from sage.rings.real_mpfi import RealIntervalField_class
         if isinstance(R, RealIntervalField_class):
             return True
+        try:
+            from sage.rings.real_arb import RealBallField
+            if isinstance(R, RealBallField):
+                return True
+        except ImportError:
+            pass
         return False
 
 

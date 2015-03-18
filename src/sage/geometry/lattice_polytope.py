@@ -110,7 +110,7 @@ from sage.interfaces.all import maxima
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.misc.all import cached_method, tmp_filename
-from sage.misc.misc import SAGE_SHARE
+from sage.env import SAGE_SHARE
 from sage.modules.all import vector, span
 from sage.misc.superseded import deprecated_function_alias, deprecation
 from sage.plot.plot3d.index_face_set import IndexFaceSet
@@ -128,6 +128,7 @@ import copy_reg
 import os
 import subprocess
 import StringIO
+from functools import reduce
 
 
 data_location = os.path.join(SAGE_SHARE,'reflexive_polytopes')
@@ -1293,7 +1294,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         # facet is described by the 5th equation."
         # The next line sorts 0-dimensional faces to make these enumerations
         # more transparent.
-        self._faces[0].sort(cmp = lambda x,y: cmp(x._vertices[0], y._vertices[0]))
+        self._faces[0].sort(key=lambda x: x._vertices[0])
         self._faces.set_immutable()
 
     def _read_nef_partitions(self, data):
@@ -2389,7 +2390,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: o = lattice_polytope.cross_polytope(3)
             sage: o.normal_form()
-            doctest:1: DeprecationWarning: normal_form() output will change,
+            doctest:...: DeprecationWarning: normal_form() output will change,
             please use normal_form_pc().column_matrix() instead
             or consider using normal_form_pc() directly!
             See http://trac.sagemath.org/15240 for details.
@@ -3074,6 +3075,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: c = lattice_polytope.cross_polytope(3).polar()
             sage: c.plot3d()
+            Graphics3d Object
 
         Plot without facets and points, shown without the frame::
 
@@ -3082,16 +3084,19 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         Plot with facets of different colors::
 
             sage: c.plot3d(facet_colors=rainbow(c.nfacets(), 'rgbtuple'))
+            Graphics3d Object
 
         It is also possible to plot lower dimensional polytops in 3D (let's
         also change labels of vertices)::
 
             sage: lattice_polytope.cross_polytope(2).plot3d(vlabels=["A", "B", "C", "D"])
+            Graphics3d Object
 
         TESTS::
 
             sage: p = LatticePolytope([[0,0,0],[0,1,1],[1,0,1],[1,1,0]])
             sage: p.plot3d()
+            Graphics3d Object
         """
         dim = self.dim()
         amb_dim = self.ambient_dim()
@@ -3215,7 +3220,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: o = lattice_polytope.cross_polytope(3)
             sage: o.points()
-            doctest:1: DeprecationWarning: points() output will change,
+            doctest:...: DeprecationWarning: points() output will change,
             please use points_pc().column_matrix() instead or
             consider using points_pc() directly!
             See http://trac.sagemath.org/15240 for details.
@@ -3615,7 +3620,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: o = lattice_polytope.cross_polytope(3)
             sage: o.vertices()
-            doctest:1: DeprecationWarning: vertices() output will change,
+            doctest:...: DeprecationWarning: vertices() output will change,
             please use vertices_pc().column_matrix() instead or
             consider using vertices_pc() directly!
             See http://trac.sagemath.org/15240 for details.
@@ -5394,7 +5399,7 @@ def always_use_files(new_state=None):
     EXAMPLES::
 
         sage: lattice_polytope.always_use_files()
-        doctest:1: DeprecationWarning: using PALP via pipes is deprecated and
+        doctest:...: DeprecationWarning: using PALP via pipes is deprecated and
         will be removed, if you have a use case for this,
         please email Andrey Novoseltsev
         See http://trac.sagemath.org/15240 for details.        
@@ -5544,7 +5549,7 @@ def filter_polytopes(f, polytopes, subseq=None, print_numbers=False):
     This filters polytopes of dimension at least 4::
 
         sage: lattice_polytope.filter_polytopes(lambda p: p.dim() >= 4, polytopes)
-        doctest:1: DeprecationWarning: filter_polytopes is deprecated,
+        doctest:...: DeprecationWarning: filter_polytopes is deprecated,
         use standard tools instead
         See http://trac.sagemath.org/15240 for details.
         [2, 3, 4]
@@ -5736,7 +5741,7 @@ def projective_space(dim):
     EXAMPLES: We construct 3- and 4-dimensional simplexes::
 
         sage: p = lattice_polytope.projective_space(3)
-        doctest:1: DeprecationWarning: this function is deprecated,
+        doctest:...: DeprecationWarning: this function is deprecated,
         perhaps toric_varieties.P(n) is what you are looking for?
         See http://trac.sagemath.org/15240 for details.        
         sage: p

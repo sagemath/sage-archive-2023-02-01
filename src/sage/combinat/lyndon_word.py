@@ -21,7 +21,7 @@ from combinat import CombinatorialClass
 from sage.combinat.composition import Composition, Compositions
 from sage.rings.all import divisors, gcd, moebius, Integer
 from sage.rings.arith import factorial
-from sage.misc.misc import prod
+from sage.misc.all import prod
 import __builtin__
 import necklace
 from integer_vector import IntegerVectors
@@ -337,7 +337,7 @@ class LyndonWords_nk(FiniteWords_length_k_over_OrderedAlphabet):
             [word: 112, word: 113, word: 122, word: 123, word: 132, word: 133, word: 223, word: 233]
         """
         for c in IntegerVectors(self.k, self.n):
-            cf = filter(lambda x: x != 0, c)
+            cf = [x for x in c if x != 0]
             nonzero_indices = []
             for i in range(len(c)):
                 if c[i] != 0:

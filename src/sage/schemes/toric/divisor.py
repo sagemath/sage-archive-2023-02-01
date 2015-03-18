@@ -1569,11 +1569,13 @@ class ToricDivisor_generic(Divisor_generic):
         fan = self.parent().scheme().fan()
         ray_is_negative = [ m*ray + self.coefficient(i) < 0
                             for i, ray in enumerate(fan.rays()) ]
+
         def cone_is_negative(cone): # and non-trivial
             if cone.is_trivial():
                 return False
             return all(ray_is_negative[i] for i in cone.ambient_ray_indices())
-        negative_cones = filter(cone_is_negative, flatten(fan.cones()))
+
+        negative_cones = [cone for cone in flatten(fan.cones()) if cone_is_negative(cone)]
         return SimplicialComplex([c.ambient_ray_indices() for c in negative_cones])
 
     def _sheaf_cohomology(self, cplx):
@@ -2097,7 +2099,7 @@ class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_pid):
         self._variety = group._variety
         self._lift_matrix = group._lift_matrix
         super(ToricRationalDivisorClassGroup_basis_lattice, self).__init__(
-            ZZ, group.dimension())
+            ZZ, group.dimension(), coordinate_ring=QQ)
 
     def _repr_(self):
         r"""

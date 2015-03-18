@@ -23,6 +23,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.ring import Algebra
 
 from sage.misc.cachefunc import cached_method
+from functools import reduce
 
 
 class FiniteDimensionalAlgebra(Algebra):
@@ -169,8 +170,7 @@ class FiniteDimensionalAlgebra(Algebra):
             sage: A._Hom_(B, A.category())
             Set of Homomorphisms from Finite-dimensional algebra of degree 1 over Rational Field to Finite-dimensional algebra of degree 2 over Rational Field
         """
-        if isinstance(B, FiniteDimensionalAlgebra):
-            category = FiniteDimensionalAlgebrasWithBasis(self.base_ring()).or_subcategory(category)
+        if category.is_subcategory(FiniteDimensionalAlgebrasWithBasis(self.base_ring())):
             from sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra_morphism import FiniteDimensionalAlgebraHomset
             return FiniteDimensionalAlgebraHomset(self, B, category=category)
         return super(FiniteDimensionalAlgebra, self)._Hom_(B, category)
@@ -230,7 +230,7 @@ class FiniteDimensionalAlgebra(Algebra):
         """
         if not self.is_finite():
             raise NotImplementedError("object does not support iteration")
-        V = self.zero_element().vector().parent()
+        V = self.zero().vector().parent()
         for v in V:
             yield self(v)
 
@@ -541,7 +541,7 @@ class FiniteDimensionalAlgebra(Algebra):
             sage: B.random_element(num_bound=1000)  # random
             215/981*e0 + 709/953*e1 + 931/264*e2
         """
-        return self(self.zero_element().vector().parent().random_element(*args, **kwargs))
+        return self(self.zero().vector().parent().random_element(*args, **kwargs))
 
     def _is_valid_homomorphism_(self, other, im_gens):
         """

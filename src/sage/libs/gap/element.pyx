@@ -159,6 +159,24 @@ cdef GapElement make_any_gap_element(parent, libGAP_Obj obj):
     automatically. Use this function to wrap GAP objects unless you
     know exactly which type it is (then you can use the specialized
     ``make_GapElement_...``)
+
+    TESTS::
+
+        sage: T_CHAR = libgap.eval("'c'");  T_CHAR
+        "c"
+        sage: type(T_CHAR)
+        <type 'sage.libs.gap.element.GapElement_String'>
+
+        sage: libgap.eval("['a', 'b', 'c']")   # gap strings are also lists of chars
+        "abc"
+        sage: t = libgap.UnorderedTuples('abc', 2);  t
+        [ "aa", "ab", "ac", "bb", "bc", "cc" ]
+        sage: t[1]
+        "ab"
+        sage: t[1].sage()
+        'ab'
+        sage: t.sage()
+        ['aa', 'ab', 'ac', 'bb', 'bc', 'cc']
     """
     if obj is NULL:
         return make_GapElement(parent, obj)
@@ -179,11 +197,17 @@ cdef GapElement make_any_gap_element(parent, libGAP_Obj obj):
         return make_GapElement_Permutation(parent, obj)
     elif num >= libGAP_FIRST_RECORD_TNUM and num <= libGAP_LAST_RECORD_TNUM:
         return make_GapElement_Record(parent, obj)
-    elif num >= libGAP_T_STRING and num <= libGAP_T_STRING_SSORT + libGAP_IMMUTABLE:
-        # GAP strings are lists, too. Make sure this comes before make_GapElement_List
+    elif num >= libGAP_FIRST_LIST_TNUM and num <= libGAP_LAST_LIST_TNUM and libGAP_LEN_PLIST(obj) == 0:
+        # Empty lists are lists and not strings in Python
+        return make_GapElement_List(parent, obj)
+    elif libGAP_IsStringConv(obj):
+        # GAP strings are lists, too. Make sure this comes before non-empty make_GapElement_List
         return make_GapElement_String(parent, obj)
     elif num >= libGAP_FIRST_LIST_TNUM and num <= libGAP_LAST_LIST_TNUM:
         return make_GapElement_List(parent, obj)
+    elif num == libGAP_T_CHAR:
+        ch = make_GapElement(parent, obj).IntChar().sage()
+        return make_GapElement_String(parent, make_gap_string(chr(ch)))
     result = make_GapElement(parent, obj)
     if num == libGAP_T_POSOBJ:
         if result.IsZmodnZObj():
@@ -858,7 +882,7 @@ cdef class GapElement(RingElement):
             ...
             ValueError: libGAP: Error, Variable: 'Infinity' must have a value
         """
-        if not PY_TYPE_CHECK(right, GapElement):
+        if not isinstance(right, GapElement):
             libgap = self.parent()
             right = libgap(right)
         cdef libGAP_Obj result
@@ -1203,13 +1227,19 @@ cdef class GapElement_Integer(GapElement):
             1361129467683753853853498429727072845824
             sage: large.sage()
             1361129467683753853853498429727072845824
+
+            sage: huge = libgap.eval('10^9999');  huge     # gap abbreviates very long ints
+            <integer 100...000 (10000 digits)>
+            sage: huge.sage().ndigits()
+            10000
         """
         if ring is None:
             ring = ZZ
         if self.is_C_int():
             return ring(libGAP_INT_INTOBJ(self.value))
         else:
-            return ring(str(self))
+            string = self.String().sage()
+            return ring(string)
 
 
 ############################################################################
@@ -1839,7 +1869,7 @@ cdef class GapElement_String(GapElement):
         libgap_exit()
         return s
 
-
+    __str__ = sage
 
 ############################################################################
 ### GapElement_Function ####################################################
@@ -2496,8 +2526,8 @@ cdef class GapElement_Record(GapElement):
 
             sage: rec = libgap.eval('rec(a:=123, b:=456, Sym3:=SymmetricGroup(3))')
             sage: rec.sage()
-            {'a': 123,
-             'Sym3': NotImplementedError('cannot construct equivalent Sage object',),
+            {'Sym3': NotImplementedError('cannot construct equivalent Sage object',),
+             'a': 123,
              'b': 456}
         """
         result = dict()

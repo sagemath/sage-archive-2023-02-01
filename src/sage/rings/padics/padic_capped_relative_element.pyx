@@ -157,16 +157,16 @@ cdef class pAdicCappedRelativeElement(CRElement):
                 mpz_set_ui(ans.value, 0)
             else:
                 mpz_set(ans.value, self.unit)
-                mpz_mul(ans.value, ans.value, self.prime_pow.pow_mpz_t_tmp(self.ordp)[0])
+                mpz_mul(ans.value, ans.value, self.prime_pow.pow_mpz_t_tmp(self.ordp))
             return ans
         else:
-            ansr = PY_NEW(Rational)
+            ansr = Rational.__new__(Rational)
             if self.relprec == 0:
                 mpq_set_si(ansr.value, 0, 1)
                 return self
             else:
                 mpz_set(mpq_numref(ansr.value), self.unit)
-                mpz_set(mpq_denref(ansr.value), self.prime_pow.pow_mpz_t_tmp(-self.ordp)[0])
+                mpz_set(mpq_denref(ansr.value), self.prime_pow.pow_mpz_t_tmp(-self.ordp))
             return ansr
 
     def _pari_(self):
@@ -207,7 +207,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
         else:
             return P.new_gen_from_padic(self.ordp, self.relprec,
                                         self.prime_pow.prime.value,
-                                        self.prime_pow.pow_mpz_t_tmp(self.relprec)[0],
+                                        self.prime_pow.pow_mpz_t_tmp(self.relprec),
                                         self.unit)
     def _integer_(self, Z=None):
         """
@@ -225,52 +225,73 @@ cdef class pAdicCappedRelativeElement(CRElement):
 
     def residue(self, absprec=1):
         """
-        Reduces this element modulo `p^{\mbox{absprec}}`.
+        Reduces this element modulo `p^{\mathrm{absprec}}`.
 
         INPUT:
 
-        - ``absprec`` - an integer (default: ``1``)
+        - ``absprec`` - a non-negative integer (default: ``1``)
 
         OUTPUT:
 
-        Element of `\ZZ/(p^{\mbox{absprec}} \ZZ)` -- the reduction modulo
-        `p^{\mbox{absprec}}`
+        This element reduced modulo `p^\mathrm{absprec}` as an element of
+        `\ZZ/p^\mathrm{absprec}\ZZ`
 
         EXAMPLES::
 
-            sage: R = Zp(7,4,'capped-rel'); a = R(8); a.residue(1)
+            sage: R = Zp(7,4)
+            sage: a = R(8)
+            sage: a.residue(1)
             1
-            sage: R = Qp(7,4,'capped-rel'); a = R(8); a.residue(1)
+            sage: a.residue(2)
+            8
+
+            sage: K = Qp(7,4)
+            sage: a = K(8)
+            sage: a.residue(1)
             1
-            sage: a.residue(6)
+            sage: a.residue(2)
+            8
+            sage: b = K(1/7)
+            sage: b.residue()
             Traceback (most recent call last):
             ...
-            PrecisionError: Not enough precision known in order to compute residue.
-            sage: b = a/7
-            sage: b.residue(1)
+            ValueError: element must have non-negative valuation in order to compute residue.
+
+        TESTS::
+
+            sage: R = Zp(7,4)
+            sage: a = R(8)
+            sage: a.residue(0)
+            0
+            sage: a.residue(-1)
             Traceback (most recent call last):
             ...
-            ValueError: Element must have non-negative valuation in order to compute residue.
+            ValueError: cannot reduce modulo a negative power of p.
+            sage: a.residue(5)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: not enough precision known in order to compute residue.
+
         """
         cdef Integer selfvalue, modulus
         cdef long aprec
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if absprec > self.precision_absolute():
-            raise PrecisionError, "Not enough precision known in order to compute residue."
+            raise PrecisionError("not enough precision known in order to compute residue.")
         elif absprec < 0:
-            raise ValueError, "cannot reduce modulo a negative power of p"
+            raise ValueError("cannot reduce modulo a negative power of p.")
         aprec = mpz_get_ui((<Integer>absprec).value)
         if self.ordp < 0:
-            raise ValueError, "Element must have non-negative valuation in order to compute residue."
+            raise ValueError("element must have non-negative valuation in order to compute residue.")
         modulus = PY_NEW(Integer)
-        mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
+        mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))
         selfvalue = PY_NEW(Integer)
         if self.relprec == 0:
             mpz_set_ui(selfvalue.value, 0)
         else:
             # Need to do this better.
-            mpz_mul(selfvalue.value, self.prime_pow.pow_mpz_t_tmp(self.ordp)[0], self.unit)
+            mpz_mul(selfvalue.value, self.prime_pow.pow_mpz_t_tmp(self.ordp), self.unit)
         return Mod(selfvalue, modulus)
 
 def unpickle_pcre_v1(R, unit, ordp, relprec):

@@ -215,6 +215,7 @@ TESTS::
 import urllib
 import sage.modules.free_module as fm
 import sage.modules.module as module
+from sage.categories.modules import Modules
 from sage.interfaces.all import gap
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -223,10 +224,10 @@ from sage.matrix.constructor import Matrix
 from sage.modules.free_module_element import vector
 from sage.rings.arith import GCD, rising_factorial, binomial
 from sage.groups.all import SymmetricGroup
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.misc.functional import log, is_even
 from sage.rings.rational_field import QQ
-from sage.structure.parent_gens import ParentWithGens
+from sage.structure.parent import Parent
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.fraction_field import FractionField
 from sage.rings.integer_ring import IntegerRing
@@ -272,7 +273,7 @@ def code2leon(C):
         sage: f.close()
 
     """
-    from sage.misc.misc import tmp_filename
+    from sage.misc.temporary_file import tmp_filename
     F = C.base_ring()
     p = F.order()  # must be prime and <11
     s = "LIBRARY code;\n"+"code=seq(%s,%s,%s,seq(\n"%(p,C.dimension(),C.length())
@@ -378,6 +379,7 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
     - David Joyner (11-2005)
     """
     current_randstate().set_seed_gap()
+
     if algorithm=="guava":
         gap.LoadPackage('"guava"')
         from sage.interfaces.gap import gfq_gap_to_sage
@@ -388,25 +390,28 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
         c = [gfq_gap_to_sage(cg[j],F) for j in range(1,n+1)]
         V = VectorSpace(F,n)
         return V(c)
-    qstr = str(F.order())
-    zerovec = [0 for i in range(n)]
-    zerovecstr = "Z("+qstr+")*"+str(zerovec)
-    all = []
+
+    q = F.order()
+    ans = None
+    dist_min = n
     gap.eval('Gmat:='+Gmat)
+    gap.eval('K:=GF({})'.format(q))
+    gap.eval('v:=Z({})*{}'.format(q,[0]*n))
     for i in range(1,k+1):
-        gap.eval("P:=AClosestVectorCombinationsMatFFEVecFFECoords(Gmat, GF("+qstr+"),"+zerovecstr+","+str(i)+",0); d:=WeightVecFFE(P[1])")
-        v = gap("[P[1]]")
-        m = gap("[P[2]]")
+        gap.eval("P:=AClosestVectorCombinationsMatFFEVecFFECoords(Gmat,K,v,{},1)".format(i))
+        gap.eval("d:=WeightVecFFE(P[1])")
+        v = gap("P[1]")
+        # P[2] is m = gap("[P[2]]")
         dist = gap("d")
-        #print v,m,dist
-        #print [gap.eval("v["+str(i+1)+"]") for i in range(n)]
-        all.append([v._matrix_(F), m._matrix_(F), int(dist)])
-    ans = all[0]
-    for x in all:
-        if x[2]<ans[2] and x[2]>0:
-            ans = x
-    #print ans[0], ans[0].parent()
-    return vector(F,[x for x in ans[0].rows()[0]]) # ugly 1xn matrix->vector coercion!
+        if dist and dist < dist_min:
+            dist_min = dist
+            ans = list(v)
+
+    if ans is None:
+        raise RuntimeError("there is a bug here!")
+
+    # return the result as a vector (and not a 1xn matrix)
+    return vector(F, ans)
 
 def best_known_linear_code(n, k, F):
     r"""
@@ -689,28 +694,29 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
 
 ############################ linear codes python class ########################
 
-class LinearCode(module.Module_old):
+class LinearCode(module.Module):
     r"""
-    A class for linear codes over a finite field or finite ring. Each instance
-    is a linear code determined by a generator matrix `G` (i.e., a
-    `k \times n` matrix of (full) rank `k`, `k \leq n` over a finite field `F`.
+    Linear codes over a finite field or finite ring.
+
+    A *linear code* is a subspace of a vector space over a finite field. It can
+    be defined by one of its basis or equivalently a generator matrix (a `k
+    \times n` matrix of full rank `k`).
+
+    See :wikipedia:`Linear_code` for more information.
 
     INPUT:
 
-    -  ``G`` - a generator matrix over `F`. (``G`` can be defined over a
-       finite ring but the matrices over that ring must have certain
-       attributes, such as ``rank``.)
+    - ``gen_mat`` -- a generator matrix over a finite field (``G`` can be
+      defined over a finite ring but the matrices over that ring must have
+      certain attributes, such as ``rank``)
 
-    - ``d`` - (Optional, default: ``None``) the minimum distance of the
-      code. This is an optional parameter.
+    - ``d`` -- (optional, default: ``None``) the minimum distance of the code
 
-    .. note::
+    .. NOTE::
+
         The veracity of the minimum distance ``d``, if provided, is not
         checked.
 
-    OUTPUT:
-
-    The linear code of length `n` over `F` having `G` as a generator matrix.
 
     EXAMPLES::
 
@@ -773,12 +779,56 @@ class LinearCode(module.Module_old):
             sage: C  = LinearCode(G, d=3)
             sage: C.minimum_distance()
             3
+
+        TESTS::
+
+            sage: C = codes.HammingCode(3, GF(2))
+            sage: TestSuite(C).run()
+
+        Check that it works even with input matrix with non full rank (see
+        :trac:`17452`)::
+
+            sage: K.<a> = GF(4)
+            sage: G = matrix([[a, a + 1, 1, a + 1, 1, 0, 0],
+            ....:             [0, a, a + 1, 1, a + 1, 1, 0],
+            ....:             [0, 0, a, a + 1, 1, a + 1, 1],
+            ....:             [a + 1, 0, 1, 0, a + 1, 1, a + 1],
+            ....:             [a, a + 1, a + 1, 0, 0, a + 1, 1],
+            ....:             [a + 1, a, a, 1, 0, 0, a + 1],
+            ....:             [a, a + 1, 1, a + 1, 1, 0, 0]])
+            sage: C = LinearCode(G)
+            sage: C.basis()
+            [(1, 0, 0, a + 1, 0, 1, 0),
+             (0, 1, 0, 0, a + 1, 0, 1),
+             (0, 0, 1, a, a + 1, a, a + 1)]
+            sage: C.minimum_distance()
+            3
+
+        Forbid the zero vector space (see :trac:`17452` and :trac:`6486`)::
+
+            sage: G = matrix(GF(2), [[0,0,0]])
+            sage: C = LinearCode(G)
+            Traceback (most recent call last):
+            ...
+            ValueError: this linear code contains no non-zero vector
         """
-        base_ring = gen_mat[0,0].parent()
-        ParentWithGens.__init__(self, base_ring)
+        base_ring = gen_mat.base_ring()
+        # if the matrix does not have full rank we replace it
+        if gen_mat.rank() != gen_mat.nrows():
+            from sage.matrix.constructor import matrix
+            basis = gen_mat.row_space().basis()
+            gen_mat = matrix(base_ring, basis)
+
+            if gen_mat.nrows() == 0:
+                raise ValueError("this linear code contains no non-zero vector")
+
+        cat = Modules(base_ring).FiniteDimensional().WithBasis().Finite()
+        facade_for = gen_mat.row(0).parent()
+        self.Element = type(gen_mat.row(0)) # for when we make this a non-facade parent
+        Parent.__init__(self, base=base_ring, facade=facade_for, category=cat)
         self.__gens = gen_mat.rows()
         self.__gen_mat = gen_mat
-        self.__length = len(gen_mat.row(0))
+        self.__length = gen_mat.ncols()
         self.__dim = gen_mat.rank()
         self.__distance = d
 
@@ -795,6 +845,22 @@ class LinearCode(module.Module_old):
             Linear code of length 7, dimension 4 over Finite Field of size 2
         """
         return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())
+
+    def _an_element_(self):
+        r"""
+        Return an element of the linear code. Currently, it simply returns
+        the first row of the generator matrix.
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(3, GF(2))
+            sage: C.an_element()
+            (1, 0, 0, 0, 0, 1, 1)
+            sage: C2 = C.cartesian_product(C)
+            sage: C2.an_element()
+            ((1, 0, 0, 0, 0, 1, 1), (1, 0, 0, 0, 0, 1, 1))
+        """
+        return self.__gens[0]
 
     def automorphism_group_gens(self, equivalence="semilinear"):
         r"""
@@ -1246,9 +1312,9 @@ class LinearCode(module.Module_old):
             # an easy thing to do. Some tricky gymnastics are used to
             # make Sage deal with objects over QQ(sqrt(q)) nicely.
             if is_even(n):
-                Pd = q**(k-n/2)*RT(Cd.zeta_polynomial())*T**(dperp - d)
-            if not(is_even(n)):
-                Pd = s*q**(k-(n+1)/2)*RT(Cd.zeta_polynomial())*T**(dperp - d)
+                Pd = q**(k-n//2) * RT(Cd.zeta_polynomial()) * T**(dperp - d)
+            else:
+                Pd = s * q**(k-(n+1)//2) * RT(Cd.zeta_polynomial()) * T**(dperp - d)
             CP = P+Pd
             f = CP/CP(1,s)
             return f(t,sqrt(q))
@@ -1418,10 +1484,20 @@ class LinearCode(module.Module_old):
 
         Does not work for very long codes since the syndrome table grows too
         large.
+
+        TESTS:
+
+        Test that the codeword returned is immutable (see :trac:`16469`)::
+
+            sage: (C.decode(v)).is_immutable()
+            True
+
         """
         from decoder import decode
         if algorithm == 'syndrome' or algorithm == 'nearest neighbor':
-            return decode(self,right)
+            c = decode(self, right)
+            c.set_immutable()
+            return c
         elif algorithm == 'guava':
             gap.load_package('guava')
             code = gap.GeneratorMatCode(self.gen_mat(), self.base_ring())
@@ -1431,7 +1507,9 @@ class LinearCode(module.Module_old):
             result = gap.VectorCodeword(result)
             from sage.interfaces.gap import gfq_gap_to_sage
             result = [gfq_gap_to_sage(v, self.base_ring()) for v in result]
-            return self.ambient_space()(result)
+            c = self.ambient_space()(result)
+            c.set_immutable()
+            return c
         else:
             raise NotImplementedError("Only 'syndrome','nearest neighbor','guava' are implemented.")
 
@@ -1550,7 +1628,17 @@ class LinearCode(module.Module_old):
             sage: C3 = C2.punctured([7])
             sage: C1 == C3
             True
+
+        TESTS:
+
+        We check that :trac:`16644` is fixed::
+
+            sage: C = codes.HammingCode(3,GF(2))
+            sage: C == ZZ
+            False
         """
+        if not isinstance(right, LinearCode):
+            return False
         slength = self.length()
         rlength = right.length()
         sdim = self.dimension()
@@ -2016,17 +2104,21 @@ class LinearCode(module.Module_old):
                 return False
         return True
 
-    def __len__(self):
+    def cardinality(self):
         r"""
         Return the size of this code.
 
         EXAMPLES::
 
             sage: C = codes.HammingCode(3, GF(2))
+            sage: C.cardinality()
+            16
             sage: len(C)
             16
         """
         return self.base_ring().order()**self.dimension()
+
+    __len__ = cardinality
 
     def length(self):
         r"""
@@ -2134,20 +2226,7 @@ class LinearCode(module.Module_old):
             Traceback (most recent call last):
             ...
             ValueError: The algorithm argument must be one of None, 'gap' or 'guava'; got 'something'
-
-        This shows that ticket :trac:`#6486` has been resolved::
-
-            sage: G = matrix(GF(2),[[0,0,0]])
-            sage: C = LinearCode(G)
-            sage: C.minimum_distance()
-            Traceback (most recent call last):
-            ...
-            ValueError: this linear code contains no non-zero vector
         """
-        # Special code to handle the case where there is no non-zero vector.
-        if self.dimension() == 0:
-            raise ValueError("this linear code contains no non-zero vector")
-
         # If the minimum distance has already been computed or provided by
         # the user then simply return the stored value.
         # This is done only if algorithm is None.
@@ -2465,10 +2544,21 @@ class LinearCode(module.Module_old):
 
             sage: C.random_element(prob=.5, distribution='1/n') # random test
             (1, 0, a, 0, 0, 0, 0, a + 1, 0, 0, 0, 0, 0, 0, 0, 0, a + 1, a + 1, 1, 0, 0)
+
+        TESTS:
+
+        Test that the codeword returned is immutable (see :trac:`16469`)::
+
+            sage: c = C.random_element()
+            sage: c.is_immutable()
+            True
+
         """
         V = self.ambient_space()
         S = V.subspace(self.basis())
-        return S.random_element(*args, **kwds)
+        c = S.random_element(*args, **kwds)
+        c.set_immutable()
+        return c
 
     def redundancy_matrix(C):
         """
@@ -2549,16 +2639,16 @@ class LinearCode(module.Module_old):
         n = C.length()
         d = C.minimum_distance()
         if i == 1:
-            v = (n-4*d)/2 + 4
+            v = (n-4*d)//2 + 4
             m = d-3
-        if i == 2:
-            v = (n-6*d)/8 + 3
+        elif i == 2:
+            v = (n-6*d)//8 + 3
             m = d-5
-        if i == 3:
-            v = (n-4*d)/4 + 3
+        elif i == 3:
+            v = (n-4*d)//4 + 3
             m = d-4
-        if i == 4:
-            v = (n-3*d)/2 + 3
+        elif i == 4:
+            v = (n-3*d)//2 + 3
             m = d-3
         return [v,m]
 
@@ -2618,17 +2708,17 @@ class LinearCode(module.Module_old):
             q = PR(qc)
         if i == 2:
             F = ((T+1)**8+14*T**4*(T+1)**4+T**8)**v
-            coefs = (c0*(1+T)**m*(1+4*T+6*T**2+4*T**3)**m*F).coeffs()
+            coefs = (c0*(1+T)**m*(1+4*T+6*T**2+4*T**3)**m*F).coefficients(sparse=False)
             qc = [coefs[j]/binomial(6*m+8*v,m+j) for j in range(4*m+8*v+1)]
             q = PR(qc)
         if i == 3:
             F = (3*T**2+4*T+1)**v*(1+3*T**2)**v
             # Note that: (3*T**2+4*T+1)(1+3*T**2)=(T+1)**4+8*T**3*(T+1)
-            coefs = (c0*(1+3*T+3*T**2)**m*F).coeffs()
+            coefs = (c0*(1+3*T+3*T**2)**m*F).coefficients(sparse=False)
             qc = [coefs[j]/binomial(4*m+4*v,m+j) for j in range(2*m+4*v+1)]
             q = PR(qc)
         if i == 4:
-            coefs = (c0*(1+2*T)**m*(4*T**2+2*T+1)**v).coeffs()
+            coefs = (c0*(1+2*T)**m*(4*T**2+2*T+1)**v).coefficients(sparse=False)
             qc = [coefs[j]/binomial(3*m+2*v,m+j) for j in range(m+2*v+1)]
             q = PR(qc)
         return q/q(1)
@@ -2799,7 +2889,7 @@ class LinearCode(module.Module_old):
             guava_bin_dir = gap.eval('DirectoriesPackagePrograms("guava")[1]')
             guava_bin_dir = guava_bin_dir[guava_bin_dir.index('"') + 1:guava_bin_dir.rindex('"')]
             input = code2leon(self)
-            from sage.misc.misc import tmp_filename
+            from sage.misc.temporary_file import tmp_filename
             output = tmp_filename()
             import os
             status = os.system(os.path.join(guava_bin_dir, 'wtdist')
@@ -2942,6 +3032,25 @@ class LinearCode(module.Module_old):
         x,y = R.gens()
         we = sum([spec[i]*x**(n-i)*y**i for i in range(n+1)])
         return we
+
+    @cached_method
+    def zero(self):
+        r"""
+        Return the zero vector.
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(3, GF(2))
+            sage: C.zero()
+            (0, 0, 0, 0, 0, 0, 0)
+            sage: C.sum(()) # indirect doctest
+            (0, 0, 0, 0, 0, 0, 0)
+            sage: C.sum((C.gens())) # indirect doctest
+            (1, 1, 1, 1, 1, 1, 1)
+        """
+        v = 0*self.__gens[0]
+        v.set_immutable()
+        return v
 
     def zeta_polynomial(self, name="T"):
         r"""

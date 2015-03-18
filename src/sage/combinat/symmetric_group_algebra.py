@@ -137,6 +137,15 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: S = SymmetricGroup(4)
             sage: SGA = S.algebra(QQ)
             sage: TestSuite(SGA).run()
+
+        Checking that coercion works between equivalent indexing sets::
+
+            sage: G = SymmetricGroup(4).algebra(QQ)
+            sage: S = SymmetricGroupAlgebra(QQ,4)
+            sage: S(G.an_element())
+            [1, 2, 3, 4] + 2*[1, 2, 4, 3] + 3*[1, 3, 2, 4] + [2, 3, 4, 1]
+            sage: G(S.an_element())
+            () + 2*(3,4) + 3*(2,3) + (2,3,4)
         """
         if index_set is None:
             index_set = Permutations(n)
@@ -537,6 +546,14 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: SGA5.retract_plain(8*SGA5([1,2,3,4,5]) - 6*SGA5([1,3,2,4,5]), 0)
             8*[]
 
+        TESTS:
+
+        Check this works with other indexing sets::
+
+            sage: G = SymmetricGroup(4).algebra(QQ)
+            sage: G.retract_plain(G.an_element(), 3)
+            () + 3*(2,3)
+
         .. SEEALSO::
 
             :meth:`retract_direct_product`, :meth:`retract_okounkov_vershik`
@@ -544,13 +561,14 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         try:
             I = self.basis().keys().__class__(m)
         except StandardError:
-            I = None
+            I = Permutations(m)
         RSm = SymmetricGroupAlgebra(self.base_ring(), m, I)
         pairs = []
+        P = Permutations(self.n)
         for (p, coeff) in f.monomial_coefficients().iteritems():
-            p_ret = p.retract_plain(m)
+            p_ret = P(p).retract_plain(m)
             if p_ret is not None:
-                pairs.append((p_ret, coeff))
+                pairs.append((I(p_ret), coeff))
         return RSm.sum_of_terms(pairs, distinct=True)
 
     def retract_direct_product(self, f, m):
@@ -597,6 +615,14 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: SGA5.retract_direct_product(8*SGA5([1,2,3,4,5]) - 6*SGA5([1,3,2,4,5]), 0)
             2*[]
 
+        TESTS:
+
+        Check this works with other indexing sets::
+
+            sage: G = SymmetricGroup(4).algebra(QQ)
+            sage: G.retract_direct_product(G.an_element(), 3)
+            () + 3*(2,3)
+
         .. SEEALSO::
 
             :meth:`retract_plain`, :meth:`retract_okounkov_vershik`
@@ -604,12 +630,14 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         try:
             I = self.basis().keys().__class__(m)
         except StandardError:
-            I = None
+            I = Permutations(m)
         RSm = SymmetricGroupAlgebra(self.base_ring(), m, I)
         dct = {}
+        P = Permutations(self.n)
         for (p, coeff) in f.monomial_coefficients().iteritems():
-            p_ret = p.retract_direct_product(m)
-            if not (p_ret is None):
+            p_ret = P(p).retract_direct_product(m)
+            if p_ret is not None:
+                p_ret = I(p_ret)
                 if not p_ret in dct:
                     dct[p_ret] = coeff
                 else:
@@ -653,6 +681,14 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: SGA5.retract_okounkov_vershik(8*SGA5([1,2,3,4,5]) - 6*SGA5([1,3,2,4,5]), 0)
             2*[]
 
+        TESTS:
+
+        Check this works with other indexing sets::
+
+            sage: G = SymmetricGroup(4).algebra(QQ)
+            sage: G.retract_okounkov_vershik(G.an_element(), 3)
+            3*() + 3*(2,3) + (1,2,3)
+
         .. SEEALSO::
 
             :meth:`retract_plain`, :meth:`retract_direct_product`
@@ -660,11 +696,12 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         try:
             I = self.basis().keys().__class__(m)
         except StandardError:
-            I = None
+            I = Permutations(m)
         RSm = SymmetricGroupAlgebra(self.base_ring(), m, I)
         dct = {}
+        P = Permutations(self.n)
         for (p, coeff) in f.monomial_coefficients().iteritems():
-            p_ret = p.retract_okounkov_vershik(m)
+            p_ret = I(P(p).retract_okounkov_vershik(m))
             if not p_ret in dct:
                 dct[p_ret] = coeff
             else:
@@ -704,6 +741,17 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             1/6*[1, 2, 3] + 1/6*[1, 3, 2] + 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] + 1/6*[3, 2, 1]
             sage: a[1]  # [2, 1]
             2/3*[1, 2, 3] - 1/3*[2, 3, 1] - 1/3*[3, 1, 2]
+
+        TESTS:
+
+        Check this works with other indexing sets::
+
+            sage: G = SymmetricGroup(3).algebra(QQ)
+            sage: a = G.cpis()
+            sage: a[0]
+            1/6*() + 1/6*(2,3) + 1/6*(1,2) + 1/6*(1,2,3) + 1/6*(1,3,2) + 1/6*(1,3)
+            sage: a[1]
+            2/3*() - 1/3*(1,2,3) - 1/3*(1,3,2)
         """
         return [self.cpi(p) for p in partition.Partitions_n(self.n)]
 
@@ -746,8 +794,9 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         big_coeff = character_table[p_index][0] / factorial(self.n)
 
         character_row = character_table[p_index]
-        P = self.basis().keys()
-        dct = { g : big_coeff * character_row[np.index(g.cycle_type())] for g in P }
+        P = Permutations(self.n)
+        dct = { self._indices(g): big_coeff * character_row[np.index(g.cycle_type())]
+                for g in P }
 
         return self._from_dict(dct)
 
@@ -876,7 +925,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             :meth:`semi_rsw_element`, :meth:`binary_unshuffle_sum`
         """
         P = self.basis().keys()
-        return self.sum_of_terms([(p, p.number_of_noninversions(k)) for p in P],
+        I = Permutations(self.n)
+        return self.sum_of_terms([(p, I(p).number_of_noninversions(k)) for p in P],
                                  distinct=True)
 
     def semi_rsw_element(self, k):
@@ -961,8 +1011,9 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             for x in xs:
                 res.remove(x)
             return res
-        P = Permutations()
-        return self.sum_of_monomials([P(complement(q) + list(q))
+        P = Permutations(n)
+        I = self._indices
+        return self.sum_of_monomials([I(P(complement(q) + list(q)))
                                       for q in Permutations_nk(n, n-k)])
 
     def binary_unshuffle_sum(self, k):
@@ -1053,8 +1104,9 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
                 res.remove(x)
             return res
         from sage.combinat.subset import Subsets
-        P = Permutations()
-        return self.sum_of_monomials([P(sorted(q) + complement(q)) for q in Subsets(n, k)])
+        P = Permutations(n)
+        return self.sum_of_monomials([self._indices(P(sorted(q) + complement(q)))
+                                      for q in Subsets(n, k)])
 
     def jucys_murphy(self, k):
         r"""

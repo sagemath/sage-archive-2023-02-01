@@ -73,7 +73,6 @@ from sage.rings.integer_ring import is_IntegerRing
 
 import sage.rings.polynomial.multi_polynomial_ideal as multi_polynomial_ideal
 
-
 from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic, is_MPolynomialRing
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
 from sage.rings.polynomial.polydict import PolyDict, ETuple
@@ -82,6 +81,7 @@ from sage.rings.polynomial.term_order import TermOrder
 from sage.interfaces.singular import is_SingularElement
 from sage.interfaces.all import macaulay2 as macaulay2_default
 from sage.interfaces.macaulay2 import is_Macaulay2Element
+from sage.libs.pari.all import pari_gen
 
 from sage.structure.element import Element
 
@@ -354,7 +354,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         TESTS:
 
-        Check if we still allow nonsense :trac:`7951`::
+        Check if we still allow nonsense (see :trac:`7951`)::
 
             sage: P = PolynomialRing(QQ, 0, '')
             sage: P('pi')
@@ -362,14 +362,30 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             ...
             TypeError: Unable to coerce pi (<class 'sage.symbolic.constants.Pi'>) to Rational
 
-        Check that it is possible to convert strings to iterated polynomial
-        rings :trac:`13327`::
+        Check that it is possible to convert strings to iterated
+        polynomial rings (see :trac:`13327`)::
 
             sage: Rm = QQ["a"]["b, c"]
             sage: Rm("a*b")
             a*b
             sage: parent(_) is Rm
             True
+
+        Check that conversion from PARI works correctly (see
+        :trac:`17974`)::
+
+            sage: A.<a> = PolynomialRing(QQ)
+            sage: B.<d,e> = PolynomialRing(A)
+            sage: f = pari(a*d)
+            sage: B(f)
+            a*d
+
+            sage: A.<a,b> = PolynomialRing(QQ)
+            sage: B.<d,e> = PolynomialRing(A)
+            sage: f = pari(a*d)
+            sage: B(f)
+            a*d
+
         """
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         import sage.rings.polynomial.polynomial_element as polynomial_element
@@ -480,6 +496,15 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             except (AttributeError, TypeError, NameError, SyntaxError):
                 raise TypeError("Unable to coerce macaulay2 object")
             return MPolynomial_polydict(self, x)
+
+        elif isinstance(x, pari_gen) and x.type() == 't_POL':
+            # This recursive approach is needed because PARI
+            # represents multivariate polynomials as iterated
+            # univariate polynomials.  Below, v is the variable
+            # with highest priority, and the x[i] are expressions
+            # in the remaining variables.
+            v = self.gens_dict_recursive()[str(x.variable())]
+            return sum(self(x[i]) * v**i for i in xrange(x.poldegree() + 1))
 
         if isinstance(x, dict):
             return MPolynomial_polydict(self, x)

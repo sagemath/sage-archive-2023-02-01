@@ -523,8 +523,11 @@ class WeylGroups(Category_singleton):
 
             OUTPUT:
 
-            A (central) hyperplane arrangement given by the inversions
-            of ``self`` given as roots.
+            A (central) hyperplane arrangement whose hyperplanes correspond
+            to the inversions of ``self`` given as roots.
+
+            The ``side`` parameter determines on which side
+            to compute the inversions.
 
             EXAMPLES::
 
@@ -548,13 +551,12 @@ class WeylGroups(Category_singleton):
             inv = self.inversions(side=side, inversion_type='roots')
             from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangements
             I = self.parent().cartan_type().index_set()
-            r = self.parent().cartan_type().rank()
-            H = HyperplaneArrangements(QQ, tuple(['a%s'%i for i in I]))
+            H = HyperplaneArrangements(QQ, tuple(['a{}'.format(i) for i in I]))
             gens = H.gens()
-            A = [sum(c*gens[I.index(i)] for (i,c) in root) for root in inv]
-            if not A: # Special case for the empty list
+            if not inv:
                 return H()
-            return H(A)
+            return H([sum(c * gens[I.index(i)] for (i, c) in root)
+                      for root in inv])
 
         def bruhat_lower_covers_coroots(self):
             r"""

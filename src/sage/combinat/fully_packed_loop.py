@@ -39,6 +39,10 @@ class FullyPackedLoop(SageObject):
             --> # -> # <- # <--
                 |    |    |
                 V    V    V
+            sage: fpl.six_vertex_model.to_alternating_sign_matrix()
+            [ 0  1  0]
+            [ 1 -1  1]
+            [ 0  1  0]
         """
         if isinstance(generator, AlternatingSignMatrix):
             generator = generator.to_six_vertex_model()
@@ -49,10 +53,19 @@ class FullyPackedLoop(SageObject):
         Return the ascii key
         """
 
-    def to_signed_matrix():
+    def to_alternating_sign_matrix(self):
         """
-        Just call from six vertex model
+        Returns the alternating sign matrix corresponding to this class::
+
+            sage: A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
+            sage: S = SixVertexModel(3, boundary_conditions='ice').from_alternating_sign_matrix(A)
+            sage: fpl = FullyPackedLoop(S)
+            sage: fpl.to_alternating_sign_matrix()
+            [ 0  1  0]
+            [ 1 -1  1]
+            [ 0  1  0]
         """
+        return self.six_vertex_model.to_alternating_sign_matrix()
 
     def plot():
         """

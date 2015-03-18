@@ -47,12 +47,6 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return self.zero().to_vector().parent()
 
-        def span(self, gens, check = True, already_echelonized = False):
-            return self.vectors_parent().span(
-                [g.to_vector() for g in gens],
-                check=check,
-                already_echelonized = already_echelonized)
-
         def annihilator(self, S, action=operator.mul, side='right', category=None):
             r"""
             INPUT:
@@ -74,7 +68,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             TODO: double check the convention for ``left/right``.
 
-            .. seealso:: :meth:`annihilator_basis` for lots of examples.
+            .. SEEALSO:: :meth:`annihilator_basis` for lots of examples.
 
             EXAMPLES::
 
@@ -86,20 +80,18 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 Basis matrix:
                 [   1    0 -1/2 -3/2]
 
-            Note: currently `A` forgot everything about `F`; its
-            ambient space is a :class:`FreeModule` of same dimension
-            as `F`. But one can, for example, compute inclusions::
+            Taking annihilator is order reversing for inclusion::
 
                 sage: A   = F.annihilator([]);    A  .rename("A")
                 sage: Ax  = F.annihilator([x]);   Ax .rename("Ax")
                 sage: Ay  = F.annihilator([y]);   Ay .rename("Ay")
                 sage: Axy = F.annihilator([x,y]); Axy.rename("Axy")
-                sage: P = Poset(([A, Ax, Ay, Axy], attrcall("is_subspace")))
+                sage: P = Poset(([A, Ax, Ay, Axy], attrcall("is_submodule")))
                 sage: P.cover_relations()
                 [[Axy, Ay], [Axy, Ax], [Ay, A], [Ax, A]]
 
             """
-            return self.span(self.annihilator_basis(S, action, side), already_echelonized=True)
+            return self.submodule(self.annihilator_basis(S, action, side), already_echelonized=True)
 
         def annihilator_basis(self, S, action=operator.mul, side='right'):
             """
@@ -179,7 +171,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: F.annihilator_basis(F.algebra_generators(), action = F.bracket)
                 [x + y]
 
-            .. seealso:: :meth:`FiniteAlgebrasWithBasis.ParentMethods.center_basis`.
+            .. SEEALSO:: :meth:`FiniteAlgebrasWithBasis.ParentMethods.center_basis`.
             """
             # TODO: optimize this!
             from sage.matrix.constructor import matrix

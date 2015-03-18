@@ -372,28 +372,32 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Py_ssize_t i, j, k
         cdef bint is_list
         cdef Integer x
+        cdef list entries_list
 
         if entries is None:
-            x = ZZ(0)
-            is_list = 0
+            x = ZZ.zero()
+            is_list = False
         elif isinstance(entries, (int,long,Element)):
             try:
                 x = ZZ(entries)
             except TypeError:
                 raise TypeError("unable to coerce entry to an integer")
-            is_list = 0
+            is_list = False
+        elif type(entries) is list:
+            entries_list = entries
+            is_list = True
         else:
-            entries = list(entries)
-            is_list = 1
+            entries_list = list(entries)
+            is_list = True
         if is_list:
             # Create the matrix whose entries are in the given entry list.
-            if len(entries) != self._nrows * self._ncols:
+            if len(entries_list) != self._nrows * self._ncols:
                 raise TypeError("entries has the wrong length")
             if coerce:
                 k = 0
                 for i from 0 <= i < self._nrows:
                     for j from 0 <= j < self._ncols:
-                        x = ZZ(entries[k])
+                        x = ZZ(entries_list[k])
                         k += 1
                         # todo -- see integer.pyx and the TODO there; perhaps this could be
                         # sped up by creating a mpz_init_set_sage function.
@@ -402,7 +406,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 k = 0
                 for i from 0 <= i < self._nrows:
                     for j from 0 <= j < self._ncols:
-                        fmpz_set_mpz(fmpz_mat_entry(self._matrix, i,j),(<Integer> entries[k]).value)
+                        fmpz_set_mpz(fmpz_mat_entry(self._matrix, i,j),(<Integer> entries_list[k]).value)
                         k += 1
         else:
             # If x is zero, make the zero matrix and be done.
@@ -651,7 +655,12 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def _unpickle(self, data, int version):
         if version == 0:
-            self._unpickle_version0(data)
+            if isinstance(data, str):
+                self._unpickle_version0(data)
+            elif isinstance(data, list):
+                self._unpickle_matrix_2x2_version0(data)
+            else:
+                raise RuntimeError("invalid pickle data")
         else:
             raise RuntimeError("unknown matrix version (=%s)"%version)
 
@@ -660,7 +669,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         data = data.split()
         n = self._nrows * self._ncols
         if len(data) != n:
-            raise RuntimeError("invalid pickle data.")
+            raise RuntimeError("invalid pickle data")
         k = 0
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
@@ -669,7 +678,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 if fmpz_set_str(fmpz_mat_entry(self._matrix,i,j), s, 32):
                     raise RuntimeError("invalid pickle data")
 
-    def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
+    def _unpickle_matrix_2x2_version0(self, data):
+        if len(data) != 4 or self._nrows != 2 or self._ncols != 2:
+            raise RuntimeError("invalid pickle data")
+        self.set_unsafe(0, 0, data[0])
+        self.set_unsafe(0, 1, data[1])
+        self.set_unsafe(1, 0, data[2])
+        self.set_unsafe(1, 1, data[3])
+
+    def __richcmp__(Matrix self, right, int op):  # needed since we override __hash__
         return self._richcmp(right, op)
 
     ########################################################################
@@ -2410,8 +2427,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: result[0]
             'computed-pari-int'
             sage: X = result[1]; X
-            [-26  31 -30  21   2 -10]
-            [-47 -13  48 -14 -11  18]
+            [ 26 -31  30 -21  -2  10]
+            [ 47  13 -48  14  11 -18]
             sage: A*X.transpose() == zero_matrix(ZZ, 4, 2)
             True
 
@@ -3804,6 +3821,32 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         A,d = self._invert_flint()
         return A/d
+
+    def _invert_unit(self):
+        r"""
+        If self is a matrix with determinant `1` or `-1` return the inverse of
+        ``self`` as a matrix over `ZZ`.
+
+        EXAMPLES::
+
+            sage: a = matrix(2, [1,2,1,1])
+            sage: a^(-1)
+            [-1  2]
+            [ 1 -1]
+            sage: m = a._invert_unit(); m
+            [-1  2]
+            [ 1 -1]
+            sage: m.parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+            sage: matrix(2, [2,1,0,1])._invert_unit()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: matrix is not invertible over Integer Ring
+        """
+        A,d = self._invert_flint()
+        if d != ZZ.one():
+            raise ZeroDivisionError("matrix is not invertible over {}".format(self.base_ring()))
+        return A
 
     def _solve_right_nonsingular_square(self, B, check_rank=True, algorithm = 'iml'):
         r"""

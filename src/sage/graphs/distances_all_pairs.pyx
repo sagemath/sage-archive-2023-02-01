@@ -980,6 +980,7 @@ cdef tuple diameter_lower_bound_multi_sweep(uint32_t n,
     # We perform new 2sweep calls for as long as we are able to improve the
     # lower bound.
     LB = 0
+    m = source
     while tmp>LB:
 
         LB = tmp
@@ -1193,6 +1194,13 @@ def diameter(G, method='iFUB', source=None):
         sage: lbm = G.diameter(method='multi-sweep')
         sage: if not (lb2<=lbm and lbm<=d3): print "Something goes wrong!"
 
+    TEST:
+
+    This was causing a segfault. Fixed in :trac:`17873` ::
+
+        sage: G = graphs.PathGraph(1)
+        sage: G.diameter(method='iFUB')
+        0
     """
     cdef int n = G.order()
     if n==0:

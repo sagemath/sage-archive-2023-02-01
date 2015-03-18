@@ -88,9 +88,31 @@ class Algebras(CategoryWithAxiom_over_base_ring):
     #     R = self.base_ring()
     #     return [Rings()] # TODO: won't be needed when Rings() will be Rngs().Unital()
 
+    class SubcategoryMethods:
+        def Semisimple(self):
+            """
+            Return the subcategory of semisimple objects of ``self``.
+
+            .. NOTE::
+
+                This mimics the syntax of axioms for a smooth
+                transition if ``Semisimple`` becomes one.
+
+            EXAMPLES::
+
+                sage: Algebras(QQ).SemiSimple()
+                Category of semisimple algebras over Rational Field
+                sage: Algebras(QQ).WithBasis().FiniteDimensional().SemiSimple()
+                Category of finite dimensional semisimple algebras with basis over Rational Field
+            """
+            from sage.categories.semisimple_algebras import SemisimpleAlgebras
+            return self & SemisimpleAlgebras(self.base_ring())
+
     Commutative = LazyImport('sage.categories.commutative_algebras', 'CommutativeAlgebras', at_startup=True)
     Graded      = LazyImport('sage.categories.graded_algebras',      'GradedAlgebras')
     WithBasis   = LazyImport('sage.categories.algebras_with_basis',  'AlgebrasWithBasis')
+    #if/when Semisimple becomes an axiom
+    #Semisimple  = LazyImport('sage.categories.semisimple_algebras',  'SemisimpleAlgebras')
 
     class ElementMethods:
         # TODO: move the content of AlgebraElement here or higher in the category hierarchy

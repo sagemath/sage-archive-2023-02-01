@@ -21,7 +21,7 @@ from sage.structure.element cimport Element, parent_c
 from expression cimport new_Expression_from_GEx, Expression
 from ring import SR
 
-from sage.structure.coerce cimport py_scalar_parent
+from sage.structure.coerce cimport py_scalar_to_element
 from sage.structure.element import get_coercion_model
 
 # we keep a database of symbolic functions initialized in a session
@@ -977,9 +977,7 @@ cdef class BuiltinFunction(Function):
         if len(args) == 1 and not hold and not dont_call_method_on_arg:
             arg = args[0]
             # If arg is a Python type (e.g. float), convert it to Sage
-            t = py_scalar_parent(type(arg))
-            if t is not None:
-                arg = t(arg)
+            arg = py_scalar_to_element(arg)
             method = getattr(arg, self._name, None)
             if callable(method):
                 res = method()

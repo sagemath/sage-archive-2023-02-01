@@ -137,7 +137,7 @@ Frac = FractionField
 
 # Arithmetic
 from arith import algdep, bernoulli, is_prime, is_prime_power, \
-    is_pseudoprime, is_pseudoprime_small_power, valuation, \
+    is_pseudoprime, is_pseudoprime_power, is_pseudoprime_small_power, \
     prime_powers, primes_first_n, eratosthenes, primes, \
     next_prime_power, next_probable_prime, next_prime, \
     previous_prime, previous_prime_power, random_prime, \
@@ -158,7 +158,7 @@ from arith import algdep, bernoulli, is_prime, is_prime_power, \
     fundamental_discriminant, squarefree_divisors, \
     Sigma, radical, Euler_Phi, binomial_coefficients, jacobi_symbol, \
     Moebius, dedekind_sum, \
-    prime_factors
+    prime_factors, valuation
 
 
 from fast_arith import prime_range

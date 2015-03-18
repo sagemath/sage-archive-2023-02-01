@@ -595,12 +595,28 @@ cdef class IntegerMulAction(Action):
             sage: 3^689 * mod(9, 101)
             42
 
+        TESTS:
+
         Use round off error to verify this is doing actual repeated addition
         instead of just multiplying::
 
             sage: act = IntegerMulAction(ZZ, RR)
             sage: act(49, 1/49) == 49*RR(1/49)
             False
+
+        This used to hang before :trac:`17844`::
+
+            sage: E = EllipticCurve(GF(5), [4,0])
+            sage: P = E.random_element()
+            sage: (-2^63)*P
+            (0 : 1 : 0)
+
+        Check that large multiplications can be interrupted::
+
+            sage: alarm(0.5); (2^(10^7)) * P
+            Traceback (most recent call last):
+            ...
+            AlarmInterrupt
         """
         if not self._is_left:
             a, nn = nn, a
@@ -636,32 +652,40 @@ cdef class IntegerMulAction(Action):
 
 
 cdef inline fast_mul(a, n):
-    # We cannot use sig_on() here because this may call arbitrary Python
-    # code raising exceptions. -- Jeroen Demeyer
     if n < 0:
         n = -n
         a = -a
     pow2a = a
     while n & 1 == 0:
+        sig_check()
         pow2a += pow2a
         n = n >> 1
     sum = pow2a
     n = n >> 1
     while n != 0:
+        sig_check()
         pow2a += pow2a
         if n & 1:
             sum += pow2a
         n = n >> 1
     return sum
 
-cdef inline fast_mul_long(a, long n):
-    # We cannot use sig_on() here because this may call arbitrary Python
-    # code raising exceptions. -- Jeroen Demeyer
-    if n < 0:
-        n = -n
+cdef inline fast_mul_long(a, long s):
+    # It's important to change the signed s to an unsigned n,
+    # since -LONG_MIN = LONG_MIN.  See Trac #17844.
+    cdef unsigned long n
+    if s < 0:
+        n = -s
         a = -a
+    else:
+        n = s
     if n < 4:
-        if n == 0: return parent_c(a)(0)
+        if n == 0:
+            p = parent_c(a)
+            try:
+                return p.zero()
+            except AttributeError:
+                return p(0)
         elif n == 1: return a
         elif n == 2: return a+a
         elif n == 3: return a+a+a

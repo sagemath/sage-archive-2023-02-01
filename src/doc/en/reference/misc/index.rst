@@ -51,6 +51,7 @@ Miscellaneous
    sage/misc/viewer
    sage/misc/session
    sage/misc/defaults
+   sage/misc/superseded
 
 
 Profiling and Performance Testing

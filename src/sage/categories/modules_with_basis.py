@@ -29,9 +29,11 @@ from sage.structure.element import Element, parent
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.modules.module_with_basis_morphism',
             ['ModuleMorphismByLinearity',
-             'TriangularModuleMorphismByLinearity',
+             'ModuleMorphismFromMatrix',
+             'ModuleMorphismFromFunction',
              'DiagonalModuleMorphism',
-             'ModuleMorphismFromMatrix'])
+             'TriangularModuleMorphismByLinearity',
+             'TriangularModuleMorphismFromFunction'])
 
 class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
     """
@@ -224,13 +226,14 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             - ``on_basis`` -- a function `f` from `I` to `Y`
             - ``diagonal`` -- a function `d` from `I` to `R`
-            - ``function`` -- a function `f` from `X` to `Y`
+            - ``function`` -- a function `f` from `X` to `Y`  (new since :trac:`8678`)
             - ``matrix``   -- a matrix of size `\dim X,\dim Y` or `\dim Y,\dim X`
 
             Further options include:
 
             - ``codomain`` -- the codomain `Y` of `f` (default:
-              ``f.codomain()`` if it's defined)
+              ``f.codomain()`` if it's defined; otherwise it must be
+              specified)
 
             - ``category`` -- a category or ``None`` (default: `None``)
 
@@ -440,13 +443,25 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: (phi^-1)(y[30])
                 -B[1] + B[2] + B[3] + B[5] - B[6] - B[10] - B[15] + B[30]
 
+            Since :trac:`8678`, one can also define a triangular
+            morphism from a function::
+
+                sage: X = CombinatorialFreeModule(QQ, [0,1,2,3,4]); x = X.basis()
+                sage: from sage.modules.module_with_basis_morphism import TriangularModuleMorphismFromFunction
+                sage: def f(x): return x + X.term(0, sum(x.coefficients()))
+                sage: phi = X.module_morphism(function=f, codomain=X, triangular="upper")
+                sage: phi(x[2] + 3*x[4])
+                4*B[0] + B[2] + 3*B[4]
+                sage: phi.preimage(_)
+                B[2] + 3*B[4]
+
             For details and further optional arguments, see
             :class:`sage.modules.module_with_basis_morphism.TriangularModuleMorphism`.
 
             .. WARNING::
 
-                As a temporary measure until multivariate morphism are
-                implemented, the constructed morphism is in
+                As a temporary measure, until multivariate morphism
+                are implemented, the constructed morphism is in
                 ``Hom(codomain, domain, category``). This is only
                 correct for unary functions.
 
@@ -461,29 +476,29 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             if not len([x for x in [matrix, on_basis, function, diagonal] if x is not None]) == 1:
                 raise ValueError("module_morphism() takes exactly one option out of `matrix`, `on_basis`, `function`, `diagonal`")
             if matrix is not None:
-                return ModuleMorphismFromMatrix(matrix=matrix, domain=self, **keywords)
+                return ModuleMorphismFromMatrix(domain=self, matrix=matrix, **keywords)
             if diagonal is not None:
-                return DiagonalModuleMorphism(diagonal=diagonal, domain=self, **keywords)
+                return DiagonalModuleMorphism(domain=self, diagonal=diagonal, **keywords)
             if unitriangular in ["upper", "lower"] and triangular is None:
                 triangular = unitriangular
                 unitriangular = True
             if triangular is not None:
                 if on_basis is not None:
                     return TriangularModuleMorphismByLinearity(
-                        on_basis, domain=self,
+                        domain=self, on_basis=on_basis,
                         triangular=triangular, unitriangular=unitriangular,
                         **keywords)
                 else:
                     return TriangularModuleMorphismFromFunction(
-                        function, domain=self,
+                        domain=self, function=function,
                         triangular=triangular, unitriangular=unitriangular,
                         **keywords)
             if on_basis is not None:
                 return ModuleMorphismByLinearity(
-                    on_basis=on_basis, domain=self, **keywords)
+                    domain=self, on_basis=on_basis, **keywords)
             else:
                 return ModuleMorphismFromFunction( # Or just SetMorphism?
-                    function,          domain=self, **keywords)
+                    domain=self, function=function, **keywords)
 
         _module_morphism = module_morphism
 
@@ -536,16 +551,19 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             - ``gens`` -- a list or family of elements of ``self``
             - ``check`` -- (default: True) whether to verify that the
                elements of ``gens`` are in ``self``.
-            - ``already_echelonized`` -- (default: False) whether the
-               elements of gens are already in (not necessarily reduced)
-               echelon form.
+            - ``already_echelonized`` -- (default: ``False``) whether
+               the elements of gens are already in (not necessarily
+               reduced) echelon form.
 
-            If ``already_echelonized`` is False, then the generators
-            are put in reduced echelon form using :meth:`echelonize`,
-            and reindexed by `0,1,...`.
+            If ``already_echelonized`` is ``False``, then the
+            generators are put in reduced echelon form using
+            :meth:`echelonize`, and reindexed by `0,1,...`.
 
-            .. warning:: at this point, this method only works for
-               finite dimensional submodules.
+            .. WARNING::
+
+                At this point, this method only works for finite
+                dimensional submodules and if matrices can be
+                echelonized over the base ring.
 
             The basis of the submodule uses the same index set as the
             generators, and the lifting map sends `y_i` to `gens[i]`.
@@ -554,7 +572,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x")
                 sage: x = X.basis()
-                sage: Y = X.submodule([x[0]-x[1], x[1]-x[2]], already_echelonized = True)
+                sage: Y = X.submodule([x[0]-x[1], x[1]-x[2]], already_echelonized=True)
                 sage: Y.print_options(prefix='y'); Y
                 Free module generated by {0, 1} over Rational Field
                 sage: y = Y.basis()
@@ -578,8 +596,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: basis
                 [B[()], B[(2,3)] + B[(1,2)] + B[(1,3)], B[(1,2,3)] + B[(1,3,2)]]
                 sage: center = S3A.submodule(basis,
-                ...                         category = AlgebrasWithBasis(QQ).Subobjects(),
-                ...                         already_echelonized = True)
+                ....:                        category=AlgebrasWithBasis(QQ).Subobjects(),
+                ....:                        already_echelonized=True)
                 sage: center
                 Free module generated by {0, 1, 2} over Rational Field
                 sage: center in Algebras
@@ -594,7 +612,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: e.is_idempotent()
                 True
 
-            Of course, the center is best constructed using::
+            Of course, this center is best constructed using::
 
                 sage: center = S3A.center()
 
@@ -606,9 +624,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             if not already_echelonized:
                 gens = self.echelonize(gens)
             from sage.modules.subquotient_module_with_basis import SubModuleWithBasis
-            return SubModuleWithBasis(gens, ambient=self, category = category)
+            return SubModuleWithBasis(gens, ambient=self, category=category)
 
-        def quotient(self, submodule, check = False, already_echelonized=False, category=None):
+        def quotient(self, submodule, check=False, already_echelonized=False, category=None):
             r"""
             Construct the quotient free module ``self``/``submodule``
 
@@ -618,13 +636,17 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
               be turned into one via self.submodule(submodule).
             - ``check``, ``already_echelonized`` -- passed down to :meth:`submodule`, which see
 
-            .. note:: At this point, only free quotients are implemented
+            .. WARNING::
+
+                At this point, only quotients of finite dimensional
+                modules with basis by free submodules with unitriangular
+                echelon form are supported.
 
             EXAMPLES::
 
                 sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x")
                 sage: x = X.basis()
-                sage: Y = X.quotient([x[0]-x[1], x[1]-x[2]], already_echelonized = True)
+                sage: Y = X.quotient([x[0]-x[1], x[1]-x[2]], already_echelonized=True)
                 sage: Y.print_options(prefix='y'); Y
                 Free module generated by {2} over Rational Field
                 sage: y = Y.basis()
@@ -637,8 +659,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             """
             from sage.modules.subquotient_module_with_basis import SubModuleWithBasis, QuotientModuleWithBasis
             if not isinstance(submodule, SubModuleWithBasis):
-                submodule = self.submodule(submodule, check=check, already_echelonized = already_echelonized)
-            return QuotientModuleWithBasis(submodule, category = category)
+                submodule = self.submodule(submodule, check=check,
+                                           already_echelonized=already_echelonized)
+            return QuotientModuleWithBasis(submodule, category=category)
 
         def tensor(*parents):
             """
@@ -1245,8 +1268,24 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: g == f
                 True
             """
-            monomial = self.domain().monomial
-            return lambda t: self(monomial(t))
+            return self._on_basis
+
+        def _on_basis(self, i):
+            """
+            Return the image of ``self`` on the basis element indexed by ``i``.
+
+            INPUT:
+
+            - ``i`` -- the index of an element of the basis of the domain of ``self``
+
+            EXAMPLES::
+
+                sage: X = CombinatorialFreeModule(QQ, [1,2,3]); X.rename("X")
+                sage: phi = End(X)(lambda x: 2*x)
+                sage: phi._on_basis(3)
+                2*B[3]
+            """
+            return self(self.domain().monomial(i))
 
     class CartesianProducts(CartesianProductsCategory):
         """

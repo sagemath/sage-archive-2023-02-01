@@ -199,6 +199,12 @@ testing whether something is infinity), so make sure it is satisfied::
 
     sage: loads(dumps(infinity)) is infinity
     True
+
+We check that #17990 is fixed::
+
+    sage: m = Matrix([Infinity])
+    sage: m.rows()
+    [(+Infinity)]
 """
 
 from sage.rings.ring_element import RingElement
@@ -989,6 +995,28 @@ class InfinityRing_class(_uniq, Ring):
             [+Infinity, -Infinity]
         """
         return [self.gen(0), self.gen(1)]
+
+    def is_zero(self):
+        """
+        The Infinity Ring is not zero
+
+        EXAMPLES::
+
+           sage: InfinityRing.is_zero()
+           False
+        """
+        return False
+
+    def is_commutative(self):
+        """
+        The Infinity Ring is commutative
+
+        EXAMPLES::
+
+            sage: InfinityRing.is_commutative()
+            True
+        """
+        return True
 
     def _repr_(self):
         """

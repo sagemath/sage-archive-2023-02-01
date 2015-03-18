@@ -307,7 +307,7 @@ class Tableau(CombinatorialObject, Element):
         """
         if isinstance(t, Tableau):
             Element.__init__(self, parent)
-            # Since we are (suppose to be) immutable, we can share the underlying data
+            # Since we are (supposed to be) immutable, we can share the underlying data
             CombinatorialObject.__init__(self, t._list)
             return
 

@@ -80,19 +80,18 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 names = self.variable_names()
             except ValueError:
                 names = tuple('b{}'.format(i) for i in range(self.dimension()))
-            I = self._ordered_indices
             F = FreeAlgebra(self.base_ring(), names)
             #gens = F.gens()
             d = F.gens_dict()
             rels = {}
             S = self.structure_coefficients(True)
             for k in S.keys():
-                g0 = d[names[I.index(k[0])]]
-                g1 = d[names[I.index(k[1])]]
+                g0 = d[names[k[0]]]
+                g1 = d[names[k[1]]]
                 if g0 < g1:
-                    rels[g1*g0] = g0*g1 - sum(val*d[names[I.index(g)]] for g, val in S[k])
+                    rels[g1*g0] = g0*g1 - sum(val*d[names[g]] for g, val in S[k])
                 else:
-                    rels[g0*g1] = g1*g0 + sum(val*d[names[I.index(g)]] for g, val in S[k])
+                    rels[g0*g1] = g1*g0 + sum(val*d[names[g]] for g, val in S[k])
             return F.g_algebra(rels)
 
         def killing_matrix(self, x, y):
@@ -595,7 +594,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 EXAMPLES::
 
                     sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                    sage: L.inject_variables()
+                    sage: a, b, c = L.lie_algebra_generators()
                     Defining a, b, c
                     sage: S = L.subalgebra([2*a+b, b + c], 'x,y')
                     sage: S.ambient() == L
@@ -610,7 +609,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 EXAMPLES::
 
                     sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                    sage: L.inject_variables()
+                    sage: a, b, c = L.lie_algebra_generators()
                     Defining a, b, c
                     sage: S = L.subalgebra([2*a+b, b + c], 'x,y')
                     sage: S.basis_matrix()

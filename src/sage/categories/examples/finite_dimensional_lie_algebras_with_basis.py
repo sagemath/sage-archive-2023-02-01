@@ -109,9 +109,6 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             ret += " with basis matrix:\n{!r}".format(B)
         return ret
 
-    def n(self):
-        return self._M.rank()
-
     def _element_constructor_(self, x):
         """
         Construct an element of ``self`` from ``x``.

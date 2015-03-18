@@ -273,7 +273,7 @@ class LieAlgebras(Category_over_base_ring):
             EXAMPLES::
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                sage: L.inject_variables()
+                sage: a, b, c = L.lie_algebra_generators()
                 Defining a, b, c
                 sage: lifted = L.lift(2*a + b - c); lifted
                 2*a + b - c
@@ -292,7 +292,7 @@ class LieAlgebras(Category_over_base_ring):
             EXAMPLES::
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                sage: L.inject_variables()
+                sage: a, b, c = L.lie_algebra_generators()
                 Defining a, b, c
                 sage: L.subalgebra([2*a - c, b + c])
                 An example of a finite dimensional Lie algebra with basis:
@@ -310,7 +310,7 @@ class LieAlgebras(Category_over_base_ring):
             EXAMPLES::
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                sage: L.inject_variables()
+                sage: a, b, c = L.lie_algebra_generators()
                 Defining a, b, c
                 sage: L.killing_form(a, b+c)
                 0
@@ -524,7 +524,7 @@ class LieAlgebras(Category_over_base_ring):
             EXAMPLES::
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                sage: L.inject_variables()
+                sage: a, b, c = L.lie_algebra_generators()
                 Defining a, b, c
                 sage: elt = 3*a + b - c
                 sage: elt.lift()
@@ -544,7 +544,7 @@ class LieAlgebras(Category_over_base_ring):
             EXAMPLES::
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                sage: L.inject_variables()
+                sage: a, b, c = L.lie_algebra_generators()
                 Defining a, b, c
                 sage: a.killing_form(b)
                 0
@@ -578,7 +578,7 @@ class LiftMorphism(Morphism):
         EXAMPLES::
 
             sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-            sage: L.inject_variables()
+            sage: a, b, c = L.lie_algebra_generators()
             Defining a, b, c
             sage: L.lift(3*a + b - c)
             3*a + b - c

@@ -3944,7 +3944,6 @@ class RootLatticeRealizations(Category_over_base_ring):
             #    return True
             #return False
 
-<<<<<<< HEAD
         def to_dual_type_cospace(self):
             r"""
             Map ``self`` to the dual type cospace.
@@ -4012,7 +4011,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 (2, 0, 1, -3)
 
             """
-=======
+
         def is_long_root(self):
             """
             Return ``True`` if ``self`` is a long (real) root.

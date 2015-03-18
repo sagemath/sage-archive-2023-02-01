@@ -124,10 +124,10 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
         def __invert__(self):
             """
-            Return the inverse morphism of ``self``
+            Return the inverse morphism of ``self``.
 
-            This is achieved by inverting the ``self.matrix()``. An
-            error is raised if ``self`` is not invertible.
+            This is achieved by inverting the ``self.matrix()``.
+            An error is raised if ``self`` is not invertible.
 
             EXAMPLES::
 

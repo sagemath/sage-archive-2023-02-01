@@ -222,28 +222,27 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
               basis `x=(x_i)_{i\in I}`.
 
             Exactly one of the four following options must be
-            specified to define the morphism from:
+            specified in order to define the morphism:
 
             - ``on_basis`` -- a function `f` from `I` to `Y`
             - ``diagonal`` -- a function `d` from `I` to `R`
-            - ``function`` -- a function `f` from `X` to `Y`  (new since :trac:`8678`)
-            - ``matrix``   -- a matrix of size `\dim X,\dim Y` or `\dim Y,\dim X`
+            - ``function`` -- a function `f` from `X` to `Y`
+            - ``matrix``   -- a matrix of size `\dim X \times \dim Y` or `\dim Y \times \dim X`
 
             Further options include:
 
-            - ``codomain`` -- the codomain `Y` of `f` (default:
-              ``f.codomain()`` if it's defined; otherwise it must be
-              specified)
+            - ``codomain`` -- the codomain `Y` of the morphism (default:
+              ``f.codomain()`` if it's defined; otherwise it must be specified)
 
             - ``category`` -- a category or ``None`` (default: `None``)
 
             - ``zero`` -- the zero of the codomain (default: ``codomain.zero()``);
               can be used (with care) to define affine maps.
-              Only meaningfull with ``on_basis``
+              Only meaningful with ``on_basis``.
 
             - ``position`` -- a non-negative integer specifying which
               positional argument in used as the input of the function `f`
-              (default: 0); this is currently only used with ``on_basis``
+              (default: 0); this is currently only used with ``on_basis``.
 
             - ``triangular`` --  (default: ``None``) ``"upper"`` or
               ``"lower"`` or ``None``:
@@ -251,12 +250,12 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
               * ``"upper"`` - if the :meth:`leading_support` of the image
                 of the basis vector `x_i` is `i`, or
               * ``"lower"`` - if the :meth:`trailing_support` of the image
-                of the basis vector `x_i` is `i`
+                of the basis vector `x_i` is `i`.
 
-            - ``unitriangular`` -- (default: ``False``) a boolean;
+            - ``unitriangular`` -- (default: ``False``) a boolean.
               Only meaningful for a triangular morphism.
               As a shorthand, one may use ``unitriangular="lower"``
-              for ``triangular="lower", unitriangular=True``
+              for ``triangular="lower", unitriangular=True``.
 
             - ``side`` -- "left" or "right" (default: "left")
               Only meaningful for a morphism built from a matrix.
@@ -289,7 +288,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             By default, the category is the first of
             ``Modules(R).WithBasis().FiniteDimensional()``,
-            ``Modules(R).WithBasis()`` ``Modules(R)``,
+            ``Modules(R).WithBasis()``, ``Modules(R)``, and
             ``CommutativeAdditiveMonoids()`` that contains both the
             domain and the codomain::
 
@@ -303,6 +302,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 11*B[1] + 2*B[2] + B[3] + 2*B[4]
 
             In this special case, the default category is ``Sets()``::
+
                 sage: phi.category_for()
                 Category of sets
 
@@ -401,7 +401,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             See also: :class:`sage.modules.module_with_basis_morphism.DiagonalModuleMorphism`.
 
-            With the ``matrix=m`` argument, this construct the module
+            With the ``matrix=m`` argument, this constructs the module
             morphism whose matrix in the distinguished basis of `X`
             and `Y` is `m`::
 
@@ -421,7 +421,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             assumed to be upper triangular; that is its matrix in the
             distinguished basis of `X` and `Y` would be upper triangular with
             invertible elements on its diagonal. This is used to compute
-            preimages and inverting the morphism::
+            preimages and to invert the morphism::
 
                 sage: I = range(1,200)
                 sage: X = CombinatorialFreeModule(QQ, I); X.rename("X"); x = X.basis()
@@ -460,9 +460,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             .. WARNING::
 
-                As a temporary measure, until multivariate morphism
+                As a temporary measure, until multivariate morphisms
                 are implemented, the constructed morphism is in
-                ``Hom(codomain, domain, category``). This is only
+                ``Hom(codomain, domain, category)``. This is only
                 correct for unary functions.
 
             .. TODO::
@@ -472,6 +472,39 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
                - Support for diagonal morphisms between modules not
                  sharing the same index set
+
+            TESTS::
+
+                sage: X = CombinatorialFreeModule(ZZ, [1,2,3]); X.rename("X")
+                sage: phi = X.module_morphism(codomain = X)
+                Traceback (most recent call last):
+                ...
+                ValueError: module_morphism() takes exactly one option out of `matrix`, `on_basis`, `function`, `diagonal`
+
+            ::
+
+                sage: X = CombinatorialFreeModule(ZZ, [1,2,3]); X.rename("X")
+                sage: phi = X.module_morphism(diagonal = factorial, matrix = matrix(), codomain = X)
+                Traceback (most recent call last):
+                ...
+                ValueError: module_morphism() takes exactly one option out of `matrix`, `on_basis`, `function`, `diagonal`
+
+            ::
+
+                sage: X = CombinatorialFreeModule(ZZ, [1,2,3]); X.rename("X")
+                sage: phi = X.module_morphism(matrix = factorial, codomain = X)
+                Traceback (most recent call last):
+                ...
+                ValueError:
+
+            ::
+
+                sage: X = CombinatorialFreeModule(ZZ, [1,2,3]); X.rename("X")
+                sage: phi = X.module_morphism(diagonal = matrix(), codomain = X)
+                Traceback (most recent call last):
+                ...
+                ValueError:
+
             """
             if not len([x for x in [matrix, on_basis, function, diagonal] if x is not None]) == 1:
                 raise ValueError("module_morphism() takes exactly one option out of `matrix`, `on_basis`, `function`, `diagonal`")

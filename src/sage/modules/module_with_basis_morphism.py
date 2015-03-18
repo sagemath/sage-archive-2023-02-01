@@ -12,13 +12,17 @@ with a basis (category :class:`Modules.WithBasis`):
 - :class:`TriangularModuleMorphismByLinearity`
 - :class:`TriangularModuleMorphismFromFunction`
 
-Those are internal classes; it is recommended *not* to use them
+These are internal classes; it is recommended *not* to use them
 directly, and instead to construct morphisms through the
 :meth:`ModulesWithBasis.ParentMethods.module_morphism` method of the
 domain, or through the homset. See the former for an overview
-description of the arguments.
+of the possible arguments.
 
-EXAMPLES::
+EXAMPLES:
+
+Construct a morphism through the
+:meth:`ModulesWithBasis.ParentMethods.module_morphism` method by specifying the
+image of each element of the distinguished basis::
 
     sage: X = CombinatorialFreeModule(QQ, [1,2,3]);   x = X.basis()
     sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4]); y = Y.basis()
@@ -55,7 +59,7 @@ compatibility is guaranteed in this case::
 .. WARNING::
 
     The hierarchy of classes implemented in this module is one of the
-    first non trivial hierarchy of classes for morphisms. It is
+    first non-trivial hierarchies of classes for morphisms. It is
     hitting a couple scaling issues:
 
     - There are many independent properties from which module
@@ -73,25 +77,25 @@ compatibility is guaranteed in this case::
       morphisms, and it's not clear such a category would be sensible.
 
     - How to properly handle ``__init__`` method calls and
-      multiple inheritance.
+      multiple inheritance?
 
     - Who should be in charge of setting the default category: the
       classes themselves, or
-      :meth:`ModulesWithBasis.ParentMethods.module_morphism`.
+      :meth:`ModulesWithBasis.ParentMethods.module_morphism`?
 
-    Because of this the hierarchy of classes, and their specific APIs,
+    Because of this, the hierarchy of classes, and the specific APIs,
     is likely to be refactored as better infrastructure and best
     practices emerge.
 
 AUTHORS:
 
-- Nicolas M. Thiery (2008-2015):
+- Nicolas M. Thiery (2008-2015)
 - Jason Bandlow and Florent Hivert (2010): Triangular Morphisms
 - Christian Stump (2010): :trac:`9648` module_morphism's to a wider class
   of codomains
 
 Before :trac:`8678`, this hierarchy of classes used to be in
-sage.categories.modules_with_basis, which see for the complete log.
+sage.categories.modules_with_basis; see :trac:`8678` for the complete log.
 """
 #*****************************************************************************
 #  Copyright (C) 2015 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -138,9 +142,9 @@ class ModuleMorphism(Morphism):
     .. SEEALSO::
 
         - :meth:`ModulesWithBasis.ParentMethods.module_morphism` for
-          usage information and examples,
+          usage information and examples;
         - :mod:`sage.modules_with_basis_morphism` for a technical
-          overview of the classes for module morphisms.
+          overview of the classes for module morphisms;
         - :class:`ModuleMorphismFromFunction` and
           :class:`TriangularModuleMorphism`.
 
@@ -189,13 +193,13 @@ class ModuleMorphism(Morphism):
                 category = Sets()
             else:
                 C = Modules(base_ring)
-                for C in [C.WithBasis().FiniteDimensional(),
+                for D in [C.WithBasis().FiniteDimensional(),
                           C.WithBasis(),
                           C,
                           # QQ is not in Modules(QQ)!
                           CommutativeAdditiveSemigroups()]:
-                    if codomain in C and domain in C:
-                        category = C
+                    if codomain in D and domain in D:
+                        category = D
                         break
                 if category is None:
                     raise ValueError("codomain=(%s) should at least be a commutative additive semigroup")
@@ -220,17 +224,16 @@ class ModuleMorphismFromFunction(ModuleMorphism, SetMorphism):
 
     INPUT:
 
-    - ``domain``, ``codomain``, ``category`` --
-      as for :class:`ModuleMorphism`, which see
+    - ``domain``, ``codomain``, ``category`` -- as for :class:`ModuleMorphism`
 
     - ``function`` -- any function or callable from domain to codomain
 
     .. SEEALSO::
 
         - :meth:`ModulesWithBasis.ParentMethods.module_morphism` for
-          usage information and examples,
+          usage information and examples;
         - :mod:`sage.modules_with_basis_morphism` for a technical
-          overview of the classes for module morphisms.
+          overview of the classes for module morphisms;
         - :class:`ModuleMorphismFromFunction` and
           :class:`TriangularModuleMorphism`.
     """
@@ -258,8 +261,7 @@ class ModuleMorphismByLinearity(ModuleMorphism):
 
     INPUT:
 
-    - ``domain``, ``codomain``, ``category`` --
-      as for :class:`ModuleMorphism`, which see
+    - ``domain``, ``codomain``, ``category`` -- as for :class:`ModuleMorphism`
     - ``on_basis`` -- a function which accepts indices of the basis of
       ``domain`` as ``position``-th argument
     - ``codomain`` -- a parent in ``Modules(...)``
@@ -270,9 +272,9 @@ class ModuleMorphismByLinearity(ModuleMorphism):
     .. SEEALSO::
 
         - :meth:`ModulesWithBasis.ParentMethods.module_morphism` for
-          usage information and examples,
+          usage information and examples;
         - :mod:`sage.modules_with_basis_morphism` for a technical
-          overview of the classes for module morphisms.
+          overview of the classes for module morphisms;
         - :class:`ModuleMorphismFromFunction` and
           :class:`TriangularModuleMorphism`.
 
@@ -311,7 +313,7 @@ class ModuleMorphismByLinearity(ModuleMorphism):
 
         ModuleMorphism.__init__(self, domain, codomain,
                                 category=category,
-                                affine=zero != codomain.zero())
+                                affine=(zero != codomain.zero()))
 
     def __eq__(self, other):
         """
@@ -393,7 +395,7 @@ class TriangularModuleMorphism(ModuleMorphism):
     An abstract class for triangular module morphisms
 
     Let `X` and `Y` be modules over the same base ring, with
-    distinguised bases `F` indexed by `I` and `G` indexed by `J`
+    distinguished bases `F` indexed by `I` and `G` indexed by `J`,
     respectively.
 
     A module morphism `\phi` from `X` to `Y` is *triangular* if its
@@ -416,10 +418,12 @@ class TriangularModuleMorphism(ModuleMorphism):
 
     - ``domain`` -- a module with basis `X`
     - ``codomain`` -- a module with basis `Y` (default: `X`)
-    - ``category`` -- a category, as for :class:`ModuleMorphism`, which see.
+    - ``category`` -- a category, as for :class:`ModuleMorphism`
 
-    - ``unitriangular`` -- boolean (default: ``False``)
     - ``triangular`` -- ``"upper"`` or ``"lower"`` (default: ``"upper"``)
+    - ``unitriangular`` -- boolean (default: ``False``)
+      As a shorthand, one may use ``unitriangular="lower"``
+      for ``triangular="lower", unitriangular=True``.
 
     - ``cmp`` -- a comparison function on `J`
       (default: the usual comparison function on `J`)
@@ -441,9 +445,9 @@ class TriangularModuleMorphism(ModuleMorphism):
     .. SEEALSO::
 
         - :meth:`ModulesWithBasis.ParentMethods.module_morphism` for
-          usage information and examples,
+          usage information and examples;
         - :mod:`sage.modules_with_basis_morphism` for a technical
-          overview of the classes for module morphisms.
+          overview of the classes for module morphisms;
         - :class:`ModuleMorphismFromFunction` and
           :class:`TriangularModuleMorphism`.
 
@@ -802,7 +806,7 @@ class TriangularModuleMorphism(ModuleMorphism):
                                self.preimage)
 
     # This should be removed and optimized as soon as triangular
-    # morphism not defined by linearity are available
+    # morphisms not defined by linearity are available
     # (the inverse should not be computed on the basis).
     def _invert_on_basis(self, i):
         r"""
@@ -872,7 +876,7 @@ class TriangularModuleMorphism(ModuleMorphism):
             ...
             ValueError: B[4] is not in the image
 
-        Over a base ring like `\ZZ`, the morphism can be non
+        Over a base ring like `\ZZ`, the morphism need not be
         surjective even when the dimensions match::
 
             sage: X = CombinatorialFreeModule(ZZ, [1, 2, 3]); x = X.basis()
@@ -951,7 +955,7 @@ class TriangularModuleMorphism(ModuleMorphism):
             sage: [phi.coreduced(v) for v in y]
             [B[1], 0, 0, -B[5], B[5]]
 
-        Now with a non uni-triangular morphism::
+        Now with a non unitriangular morphism::
 
             sage: ut = lambda i: sum( j*y[j] for j in range(i+1,6)  )
             sage: phi = X.module_morphism(ut, codomain = Y,
@@ -1109,9 +1113,9 @@ class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity, TriangularM
     .. SEEALSO::
 
         - :meth:`ModulesWithBasis.ParentMethods.module_morphism` for
-          usage information and examples,
+          usage information and examples;
         - :mod:`sage.modules_with_basis_morphism` for a technical
-          overview of the classes for module morphisms.
+          overview of the classes for module morphisms;
         - :class:`ModuleMorphismByLinearity` and
           :class:`TriangularModuleMorphism`.
     """
@@ -1139,9 +1143,9 @@ class TriangularModuleMorphismFromFunction(ModuleMorphismFromFunction, Triangula
     .. SEEALSO::
 
         - :meth:`ModulesWithBasis.ParentMethods.module_morphism` for
-          usage information and examples,
+          usage information and examples;
         - :mod:`sage.modules_with_basis_morphism` for a technical
-          overview of the classes for module morphisms.
+          overview of the classes for module morphisms;
         - :class:`ModuleMorphismFromFunction` and
           :class:`TriangularModuleMorphism`.
     """
@@ -1165,12 +1169,12 @@ class TriangularModuleMorphismFromFunction(ModuleMorphismFromFunction, Triangula
 
 class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
     r"""
-    A class for module morphisms built from from their matrix in the
+    A class for module morphisms built from a matrix in the
     distinguished bases of the domain and codomain.
 
     .. SEEALSO:
 
-        - :meth:`ModulesWithBasis.ParentMethods.module_morphism`.
+        - :meth:`ModulesWithBasis.ParentMethods.module_morphism`
         - :meth:`ModulesWithBasis.FiniteDimensional.MorphismMethods.matrix`
 
     INPUT:
@@ -1179,7 +1183,7 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
       the same base ring `R` with basis `F` and `G`, respectively
 
     - ``matrix`` -- a matrix with base ring `R` and dimensions
-      matching that of `F` and `G` respectively
+      matching that of `F` and `G`, respectively
 
     - ``side`` -- "left" or "right" (default: "left")
 
@@ -1214,7 +1218,7 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
         sage: phi(x[2])
         3*B[3] + 5*B[4]
 
-    .. TODO:
+    .. TODO::
 
         Possibly implement rank, addition, multiplication, matrix,
         etc, from the stored matrix.

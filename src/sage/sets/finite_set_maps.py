@@ -379,7 +379,7 @@ class FiniteSetMaps_Set(FiniteSetMaps_MN):
 
     - ``category`` -- the category in which the sets of maps is
       constructed. It must be a sub-category of
-      ``EnumeratedSets().Finite`` which is the default value.
+      ``EnumeratedSets().Finite()`` which is the default value.
     """
     def __init__(self, domain, codomain, category=None):
         """

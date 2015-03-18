@@ -2364,6 +2364,7 @@ def reshape(v, n, m):
 
     # Now v should be a single list.
     # First, make it have the right length.
+    v = list(v)   # do not mutate the argument
     for i in xrange(n*m - len(v)):
         v.append(G)
 
@@ -2379,20 +2380,21 @@ def reshape(v, n, m):
 
     return L
 
-def graphics_array(array, n=None, m=None):
+def graphics_array(array, nrows=None, ncols=None):
     r"""
     ``graphics_array`` take a list of lists (or tuples) of
     graphics objects and plots them all on one canvas (single plot).
 
     INPUT:
 
-    -  ``array`` - a list of lists or tuples
+    - ``array`` -- a list of lists or tuples. The graphics objects to
+       combine into a graphics array.
 
-    -  ``n, m`` - (optional) integers - if n and m are
-       given then the input array is flattened and turned into an n x m
-       array, with blank graphics objects padded at the end, if
-       necessary.
-
+    - ``nrows, ncols`` -- (optional) integers. If both are given then
+       the input array is flattened and turned into an ``nrows`` x
+       ``ncols`` array, with blank graphics objects padded at the end,
+       if necessary. If only one is specified, the other is chosen
+       automatically.
 
     EXAMPLE: Make some plots of `\sin` functions::
 
@@ -2429,20 +2431,41 @@ def graphics_array(array, n=None, m=None):
         sage: L = [plot(sin(k*x),(x,-pi,pi)) for k in [1..3]]
         sage: G = graphics_array(L)
         sage: G.show(figsize=[5,3])  # smallish and compact
-
-    ::
-
         sage: G.show(figsize=[10,20])  # bigger and tall and thin; long time (2s on sage.math, 2012)
-
-    ::
-
         sage: G.show(figsize=8)  # figure as a whole is a square
+
+    Specifying only the number of rows or the number of columns
+    computes the other dimension automatically::
+
+        sage: ga = graphics_array([plot(sin)] * 10, nrows=3)
+        sage: ga.nrows(), ga.ncols()
+        (3, 4)
+        sage: ga = graphics_array([plot(sin)] * 10, ncols=3)
+        sage: ga.nrows(), ga.ncols()
+        (4, 3)
     """
-    if not n is None:
-        # Flatten then reshape input
-        n = int(n)
-        m = int(m)
-        array = reshape(array, n, m)
+    # TODO: refactor the whole array flattening and reshaping into a class
+    if nrows is None and ncols is None:
+        pass
+    elif nrows is not None and ncols is not None:
+        nrows = int(nrows)
+        ncols = int(ncols)
+        array = reshape(array, nrows, ncols)
+    else:
+        # nrows is None xor ncols is None
+        if len(array) > 0 and isinstance(array[0], Graphics):
+            length = len(array)
+        else:
+            length = sum(map(len, array))
+        if nrows is None:
+            ncols = int(ncols)
+            nrows = length // ncols + 1
+        elif ncols is None:
+            nrows = int(nrows)
+            ncols = length // nrows + 1
+        else:
+            assert False
+        array = reshape(array, nrows, ncols)
     return GraphicsArray(array)
 
 def var_and_list_of_values(v, plot_points):

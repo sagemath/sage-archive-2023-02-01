@@ -2399,67 +2399,6 @@ def print_or_typeset(object):
     else:
         print(object)
 
-def pretty_print (*args):
-    r"""
-    Try to pretty print the arguments in an intelligent way. For graphics
-    objects, this returns their default representation. For other
-    objects, in the notebook, this calls the :func:`view` command,
-    while from the command line, this produces an html string suitable
-    for processing by MathJax.
-
-    INPUT:
-
-    - ``objects`` -- The input can be any Sage object, a list or tuple of
-      Sage objects, or Sage objects passed in as separate arguments.
-
-    This function is used in the notebook when the "Typeset" button is
-    checked.
-
-    EXAMPLES::
-
-        sage: pretty_print(ZZ)  # indirect doctest
-        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z}</script></html>
-        sage: pretty_print("Integers = ", ZZ) # trac 11775
-        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|Integers|\phantom{\verb!x!}\verb|=| \Bold{Z}</script></html>
-
-    To typeset LaTeX code as-is, use :class:`LatexExpr`::
-
-        sage: pretty_print(LatexExpr(r"\frac{x^2 + 1}{x - 2}"))
-        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{x^2 + 1}{x - 2}</script></html>
-    """
-    # view s if it is not empty. Used twice.
-    def _show_s(s):
-        if s != []:
-            if EMBEDDED_MODE:
-                view(tuple(s), combine_all=True)
-            else:
-                print(MathJax().eval(tuple(s), mode='inline',
-                        combine_all=True))
-
-    import __builtin__
-    in_ipython = hasattr(__builtin__, 'get_ipython')
-    s = []
-    for object in args:
-        if object is None:
-            continue
-        if in_ipython:
-            get_ipython().displayhook.update_user_ns(object)
-        else:
-            __builtin__._ = object
-
-        from sage.plot.plot import Graphics
-        from sage.plot.plot3d.base import Graphics3d
-        if isinstance(object, (Graphics, Graphics3d)):
-            _show_s(s)
-            s = []
-            print(repr(object))
-
-        else:
-            s.append(object)
-
-    _show_s(s)
-    return
-
 def pretty_print_default(enable=True):
     r"""
     Enable or disable default pretty printing. Pretty printing means

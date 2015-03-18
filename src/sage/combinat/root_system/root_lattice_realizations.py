@@ -1040,7 +1040,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             TESTS:
 
-            Check that `trac:xxxxx` is fixed::
+            Check that trac:`17982` is fixed::
 
                 sage: RootSystem(['A', 2]).ambient_space().root_poset()
                 Finite poset containing 3 elements

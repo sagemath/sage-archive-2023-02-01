@@ -16,6 +16,7 @@ This module defines the IPython backends for
 #*****************************************************************************
 
 import os
+from IPython.display import publish_display_data
 from sage.repl.rich_output.backend_base import BackendBase
 from sage.repl.rich_output.output_catalog import *
 
@@ -79,7 +80,36 @@ class BackendIPython(BackendBase):
         """
         pass
 
-    
+    def display_immediately(self, plain_text, rich_output):
+        """
+        Show output immediately.
+
+        This method is similar to the rich output :meth:`displayhook`,
+        except that it can be invoked at any time.
+
+        INPUT:
+
+        Same as :meth:`displayhook`.
+
+        OUTPUT:
+
+        This method does not return anything.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_basic import OutputPlainText
+            sage: plain_text = OutputPlainText.example()
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
+            sage: backend = BackendIPythonNotebook()
+            sage: _ = backend.display_immediately(plain_text, plain_text)
+            Example plain text output
+        """
+        formatted, metadata = self.displayhook(plain_text, rich_output)
+        if not formatted:
+            return
+        publish_display_data(data=formatted, metadata=metadata)
+                    
+
 class BackendIPythonCommandline(BackendIPython):
     """
     Backend for the IPython Command Line
@@ -460,28 +490,3 @@ class BackendIPythonNotebook(BackendIPython):
             raise TypeError('rich_output type not supported')
 
         
-    def display_immediately(self, plain_text, rich_output):
-        """
-        Show output immediately.
-
-        This method is similar to the rich output :meth:`displayhook`,
-        except that it can be invoked at any time.
-
-        .. TODO::
-
-            This does not work currently.
-        
-        INPUT/OUTPUT:
-
-        Same as :meth:`displayhook`.
-
-        EXAMPLES::
-
-            sage: from sage.repl.rich_output.output_basic import OutputPlainText
-            sage: plain_text = OutputPlainText.example()
-            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
-            sage: backend = BackendIPythonNotebook()
-            sage: backend.display_immediately(plain_text, plain_text)
-            ({u'text/plain': 'Example plain text output'}, {})
-        """
-        return self.displayhook(plain_text, rich_output)

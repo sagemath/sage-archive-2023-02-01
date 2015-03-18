@@ -48,6 +48,7 @@ from sage.sets.set import Set
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFunction
 from sage.combinat.permutation import Permutation
+from sage.combinat.six_vertex_model import SquareIceModel
 
 class AlternatingSignMatrix(Element):
     r"""
@@ -390,6 +391,40 @@ class AlternatingSignMatrix(Element):
         n = asm.nrows() + 1
         return matrix([[i+j-2*nw_corner_sum(asm,i,j) for i in range(n)] for j in range(n)])
  
+    def to_six_vertex_model(self):
+        r"""
+        Return the six vertex model configuration from ``self``.
+        This method calls :meth:`sage.combinat.six_vertex_model.from_alternating_sign_matrix`. 
+
+        EXAMPLES::
+
+            sage: asm = AlternatingSignMatrix([[0,1,0],[1,-1,1],[0,1,0]])
+            sage: asm.to_six_vertex_model()
+                ^    ^    ^
+                |    |    |
+            --> # -> # <- # <--
+                ^    |    ^
+                |    V    |
+            --> # <- # -> # <--
+                |    ^    |
+                V    |    V
+            --> # -> # <- # <--
+                |    |    |
+                V    V    V
+
+        TESTS::
+
+            sage: ASM = AlternatingSignMatrices(5)
+            sage: all((x.to_six_vertex_model()).to_alternating_sign_matrix() == x
+            ....:     for x in ASM)
+            True
+        """
+
+        asm = self.to_matrix()
+        n = asm.nrows()
+        M = SquareIceModel(n)
+        return M.from_alternating_sign_matrix(self)
+
     @combinatorial_map(name='gyration')    
     def gyration(self):
         r"""

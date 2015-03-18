@@ -164,7 +164,7 @@ class SageKernelSpec(object):
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
             sage: spec = SageKernelSpec()
             sage: spec.kernel_spec()
-            {'argv': ..., 'display_name': 'Sage 6.6.beta3'}
+            {'argv': ..., 'display_name': 'Sage ...'}
         """
         return dict(
             argv=self._kernel_cmd(),

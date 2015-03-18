@@ -55,7 +55,10 @@ class FullyPackedLoop(SageObject):
 
     def to_alternating_sign_matrix(self):
         """
-        Returns the alternating sign matrix corresponding to this class::
+
+        Returns the alternating sign matrix corresponding to this class.
+
+         EXAMPLES::
 
             sage: A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
             sage: S = SixVertexModel(3, boundary_conditions='ice').from_alternating_sign_matrix(A)
@@ -64,6 +67,14 @@ class FullyPackedLoop(SageObject):
             [ 0  1  0]
             [ 1 -1  1]
             [ 0  1  0]
+            sage: A = AlternatingSignMatrix([[0,1,0,0],[0,0,1,0],[1,-1,0,1],[0,1,0,0]])
+            sage: S = SixVertexModel(4, boundary_conditions='ice').from_alternating_sign_matrix(A)
+            sage: fpl = FullyPackedLoop(S)
+            sage: fpl.to_alternating_sign_matrix()
+            [ 0  1  0  0]
+            [ 0  0  1  0]
+            [ 1 -1  0  1]
+            [ 0  1  0  0]
         """
         return self.six_vertex_model.to_alternating_sign_matrix()
 

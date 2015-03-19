@@ -21,41 +21,41 @@ class FullyPackedLoop(SageObject):
 
         We can initiate a fully packed loop using an Alternating Sign Matrix::
 
-            sage: A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
+            sage: A = AlternatingSignMatrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
             sage: fpl = FullyPackedLoop(A)
-            sage: fpl.six_vertex_model
-                ^    ^    ^
-                |    |    |
-            --> # -> # <- # <--
-                ^    |    ^
-                |    V    |
-            --> # <- # -> # <--
-                |    ^    |
-                V    |    V
-            --> # -> # <- # <--
-                |    |    |
-                V    V    V
+            sage: fpl
+                |         |
+                |         |
+                # -- #    #
+                     |    |
+                     |    |
+             -- #    #    # --
+                |    |
+                |    |
+                #    # -- #
+                |         |
+                |         |
 
         Otherwise we initiate a fully packed loop using a six vertex model::
 
             sage: S = SixVertexModel(3, boundary_conditions='ice').from_alternating_sign_matrix(A)
             sage: fpl = FullyPackedLoop(S)
-            sage: fpl.six_vertex_model
-                ^    ^    ^
-                |    |    |
-            --> # -> # <- # <--
-                ^    |    ^
-                |    V    |
-            --> # <- # -> # <--
-                |    ^    |
-                V    |    V
-            --> # -> # <- # <--
-                |    |    |
-                V    V    V
+            sage: fpl
+                |         |
+                |         |
+                # -- #    #
+                     |    |
+                     |    |
+             -- #    #    # --
+                |    |
+                |    |
+                #    # -- #
+                |         |
+                |         |
             sage: fpl.six_vertex_model.to_alternating_sign_matrix()
-            [ 0  1  0]
-            [ 1 -1  1]
-            [ 0  1  0]
+            [0 0 1]
+            [0 1 0]
+            [1 0 0]
 
         Note that if anything else is used to generate the fully packed loop an error will occur::
 
@@ -77,26 +77,46 @@ class FullyPackedLoop(SageObject):
         else:
             raise TypeError('The generator for a fully packed loop must either be an AlternatingSignMatrix or a SixVertexConfiguration')
 
-
     def _repr_(self):
         """
         Return a string representation of ``self``.
 
         EXAMPLES::
 
-            sage: M = SixVertexModel(3, boundary_conditions='ice')
-            sage: M[0]
-                ^    ^    ^
+            sage: A = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+            sage: fpl = FullyPackedLoop(A)
+            sage: fpl
+                |         |
+                |         |
+                #    # -- #
+                |    |
+                |    |
+             -- #    #    # --
+                     |    |
+                     |    |
+                # -- #    #
+                |         |
+                |         |
+
+            sage: A = AlternatingSignMatrix([[0,1,0,0],[0,0,1,0],[1,-1,0,1],[0,1,0,0]])
+            sage: S = SixVertexModel(4, boundary_conditions='ice').from_alternating_sign_matrix(A)
+            sage: fpl = FullyPackedLoop(S)
+            sage: fpl
+                |         |
+                |         |
+                # -- # -- #    # --
+                               |
+                               |
+             -- #    # -- # -- #
+                |    |
+                |    |
+                #    #    # -- # --
                 |    |    |
-            --> # <- # <- # <--
-                |    ^    ^
-                V    |    |
-            --> # -> # <- # <--
-                |    |    ^
-                V    V    |
-            --> # -> # -> # <--
                 |    |    |
-                V    V    V
+             -- #    #    # -- #
+                     |         |
+                     |         |
+
         """
         # List are in the order of URDL
         # One set of rules for how to draw around even vertex, one set of rules for odd vertex

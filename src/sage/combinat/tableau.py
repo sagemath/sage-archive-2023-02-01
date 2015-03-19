@@ -1013,7 +1013,7 @@ class Tableau(CombinatorialObject, Element):
         return len(self.inversions()) - sum([ p.arm_length(*cell) for cell in self.descents() ])
 
     @combinatorial_map(order=2,name='Schuetzenberger involution')
-    def schuetzenberger_involution(self, n = None):
+    def schuetzenberger_involution(self, n = None, check=True):
         r"""
         Return the Schuetzenberger involution of the tableau ``self``.
 
@@ -1027,6 +1027,8 @@ class Tableau(CombinatorialObject, Element):
 
         - ``n`` -- an integer specifying the maximal letter in the
           alphabet (optional)
+        - ``check`` -- (Default: ``True``) Check to make sure ``self`` is
+          semistandard. Set to ``False`` to avoid this check. (optional)
 
         OUTPUT:
 
@@ -1055,6 +1057,8 @@ class Tableau(CombinatorialObject, Element):
             sage: s.parent()
             Standard tableaux
         """
+        if check and self not in SemistandardTableaux():
+            raise ValueError("the tableau must be semistandard")
         w = self.to_word()
         if w.length() == 0:
             return self
@@ -1067,6 +1071,55 @@ class Tableau(CombinatorialObject, Element):
         elif isinstance(self, SemistandardTableau):
             return SemistandardTableau(list(t))
         return t
+
+    @combinatorial_map(order=2,name='evacuation')
+    def evacuation(self, n = None, check=True):
+        r"""
+        Return the evacuation of the tableau ``self``.
+
+        This is an alias for ``schuetzenberger_involution``.
+
+        This method relies on the analogous method on words, which reverts the
+        word and then complements all letters within the underlying ordered
+        alphabet. If `n` is specified, the underlying alphabet is assumed to
+        be `[1, 2, \ldots, n]`. If no alphabet is specified, `n` is the maximal
+        letter appearing in ``self``.
+
+        INPUT:
+
+        - ``n`` -- an integer specifying the maximal letter in the
+          alphabet (optional)
+        - ``check`` -- (Default: ``True``) Check to make sure ``self`` is
+          semistandard. Set to ``False`` to avoid this check. (optional)
+
+        OUTPUT:
+
+        - a tableau, the evacuation of ``self``
+
+        EXAMPLES::
+
+           sage: t = Tableau([[1,1,1],[2,2]])
+           sage: t.evacuation(3)
+           [[2, 2, 3], [3, 3]]
+
+            sage: t = Tableau([[1,2,3],[4,5]])
+            sage: t.evacuation()
+            [[1, 2, 5], [3, 4]]
+
+            sage: t = Tableau([[1,3,5,7],[2,4,6],[8,9]])
+            sage: t.evacuation()
+            [[1, 2, 6, 8], [3, 4, 9], [5, 7]]
+
+            sage: t = Tableau([])
+            sage: t.evacuation()
+            []
+
+            sage: t = StandardTableau([[1,2,3],[4,5]])
+            sage: s = t.evacuation()
+            sage: s.parent()
+            Standard tableaux
+        """
+	return self.schuetzenberger_involution(n,check)
 
     @combinatorial_map(name="standardization")
     def standardization(self, check=True):

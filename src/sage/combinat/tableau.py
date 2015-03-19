@@ -1528,8 +1528,22 @@ class Tableau(CombinatorialObject, Element):
 
     def k_weight(self, k):
         """
-        Return the ``k``-weight of ``self``.
+        Return the `k`-weight of ``self``.
 
+        A tableau has `k`-weight `alpha=(alpha_1,...,alpha_n)` if there are exactly 
+        `alpha_i` distinct residues for the cells occupied by the letter `i` for each `i`.  
+        The residue of a cell in position `(a,b)` is `a-b` modulo `k+1`. 
+        This definition is the one used in [Ive2012]_ (p. 12).
+
+        REFERENCES:
+
+        .. [Ive2012] S. Iveson.
+	   “Tableaux on k + 1-cores, reduced words for affine 
+           permutations, and k-Schur expansions”.  
+           Operators on k-tableaux and the k-Littlewood-Richardson rule for a special case. 
+           UC Berkeley: Mathematics.  Ph.D. Thesis.
+           Retrieved from: https://escholarship.org/uc/item/7pd1v1b5
+           
         EXAMPLES::
 
             sage: Tableau([[1,2],[2,3]]).k_weight(1)

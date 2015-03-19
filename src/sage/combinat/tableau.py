@@ -77,6 +77,7 @@ from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.structure.element import Element
 from sage.structure.global_options import GlobalOptions
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.list_clone import ClonableList
 from sage.structure.parent import Parent
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.decorators import rename_keyword
@@ -190,7 +191,7 @@ TableauOptions=GlobalOptions(name='tableaux',
     notation = dict(alt_name="convention")
 )
 
-class Tableau(CombinatorialObject, Element):
+class Tableau(ClonableList):
     """
     A class to model a tableau.
 
@@ -284,11 +285,6 @@ class Tableau(CombinatorialObject, Element):
         except TypeError:
             raise ValueError("A tableau must be a list of iterables.")
 
-        # and that it has partition shape
-        from sage.combinat.partition import _Partitions
-        if not map(len,t) in _Partitions:
-            raise ValueError("A tableau must be a list of iterables of weakly decreasing length.")
-
         return Tableaux_all().element_class(Tableaux_all(), t)
 
     def __init__(self, parent, t):
@@ -311,16 +307,48 @@ class Tableau(CombinatorialObject, Element):
             False
         """
         if isinstance(t, Tableau):
-            Element.__init__(self, parent)
             # Since we are (supposed to be) immutable, we can share the underlying data
-            CombinatorialObject.__init__(self, t._list)
+            self._list = t
+            ClonableList.__init__(self, parent, t._list)
             return
 
         # Normalize t to be a list of tuples.
         t = map(tuple, t)
 
-        Element.__init__(self, parent)
-        CombinatorialObject.__init__(self, t)
+        self._list = t
+        ClonableList.__init__(self, parent, t)
+    
+    def __eq__(self, other):
+        if isinstance(other, Tableau):
+            return self._list.__eq__(other._list)
+        else:
+            return self._list.__eq__(other)
+    
+    def __ne__(self, other):
+#        return not self.__eq__(other)
+        if isinstance(other, Tableau):
+            return self._list.__ne__(other._list)
+        else:
+            return self._list.__ne__(other)
+
+    def check(self):
+        r"""
+        Check that ``self`` is a valid straight shape tableau.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1],[2]])
+            sage: t.check()
+
+            sage: t = Tableau([[None, None, 1], [2, 4], [3, 4, 5]])
+            Traceback (most recent call last):
+            ...
+            ValueError: A tableau must be a list of iterables of weakly decreasing length.
+        """
+        # and that it has partition shape
+        from sage.combinat.partition import _Partitions
+        if not map(len, self) in _Partitions:
+            raise ValueError("A tableau must be a list of iterables of weakly decreasing length.")
 
     def __setstate__(self, state):
         """

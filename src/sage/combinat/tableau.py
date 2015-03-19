@@ -308,28 +308,25 @@ class Tableau(ClonableList):
         """
         if isinstance(t, Tableau):
             # Since we are (supposed to be) immutable, we can share the underlying data
-            self._list = t
-            ClonableList.__init__(self, parent, t._list)
+            ClonableList.__init__(self, parent, list(t))
             return
 
         # Normalize t to be a list of tuples.
         t = map(tuple, t)
 
-        self._list = t
         ClonableList.__init__(self, parent, t)
     
     def __eq__(self, other):
         if isinstance(other, Tableau):
-            return self._list.__eq__(other._list)
+            return list(self).__eq__(list(other))
         else:
-            return self._list.__eq__(other)
+            return list(self).__eq__(other)
     
     def __ne__(self, other):
-#        return not self.__eq__(other)
         if isinstance(other, Tableau):
-            return self._list.__ne__(other._list)
+            return list(self).__ne__(list(other))
         else:
-            return self._list.__ne__(other)
+            return list(self).__ne__(other)
 
     def check(self):
         r"""
@@ -358,8 +355,6 @@ class Tableau(ClonableList):
 
         TESTS::
 
-            sage: loads('x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+IL\xcaIM,\xe5\n\x81\xd0\xf1\xc99\x89\xc5\xc5\\\x85\x8c\x9a\x8d\x85L\xb5\x85\xcc\x1a\xa1\xac\xf1\x19\x89\xc5\x19\x85,~@VNfqI!kl![l!;\xc4\x9c\xa2\xcc\xbc\xf4b\xbd\xcc\xbc\x92\xd4\xf4\xd4"\xae\xdc\xc4\xec\xd4x\x18\xa7\x90#\x94\xd1\xb05\xa8\x9031\xb14I\x0f\x00\xf6\xae)7')        # indirect doctest for unpickling a Tableau_class element
-            [[1]]
             sage: loads(dumps( Tableau([[1]]) ))  # indirect doctest for unpickling a Tableau element
             [[1]]
         """
@@ -400,7 +395,7 @@ class Tableau(ClonableList):
             sage: T._repr_list()
             '[[1, 2, 3], [4, 5]]'
         """
-        return repr(map(list, self._list))
+        return repr(map(list, self))
 
     # Overwrite the object from CombinatorialObject
     # until this is no longer around
@@ -438,9 +433,9 @@ class Tableau(ClonableList):
             sage: Tableau([])._repr_compact()
             '-'
         """
-        if len(self._list)==0:
+        if len(self)==0:
             return '-'
-        else: return '/'.join(','.join('%s'%r for r in row) for row in self._list)
+        else: return '/'.join(','.join('%s'%r for r in row) for row in self)
 
     def _ascii_art_(self):
         """
@@ -681,7 +676,7 @@ class Tableau(ClonableList):
         if not self.shape().contains(t):
             raise ValueError("the shape of the tableau must contain the partition")
 
-        st = [list(row) for row in self._list]    # create deep copy of t
+        st = [list(row) for row in self]    # create deep copy of t
 
         for i, t_i in enumerate(t):
             st_i = st[i]
@@ -1788,7 +1783,7 @@ class Tableau(ClonableList):
             sage: t.anti_restrict(5)
             [[None, None, None], [None, None]]
         """
-        t = [list(row) for row in self._list]  # create deep copy of t
+        t = [list(row) for row in self]  # create deep copy of t
 
         for row in t:
             for col in xrange(len(row)):
@@ -2017,7 +2012,7 @@ class Tableau(ClonableList):
             raise TypeError("right must be a Tableau")
 
         row = len(right)
-        product = Tableau([list(a) for a in left._list])   # create deep copy of left
+        product = Tableau([list(a) for a in left])   # create deep copy of left
         while row > 0:
             row -= 1
             for i in right[row]:
@@ -3558,7 +3553,7 @@ class StandardTableau(SemistandardTableau):
             raise ValueError("the entries in each row of a standard tableau must be strictly increasing")
 
         # and that the entries are in bijection with {1,2,...,n}
-        if sorted(flatten(self._list))!=range(1,self.size()+1):
+        if sorted(flatten(list(self)))!=range(1,self.size()+1):
             raise ValueError("the entries in a standard tableau must be in bijection with 1,2,...,n")
 
 

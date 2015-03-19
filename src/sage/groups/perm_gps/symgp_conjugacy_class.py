@@ -248,7 +248,7 @@ def default_representative(part, G):
 
     INPUT:
 
-    - ``part`` -- partition for the size of the subsets
+    - ``part`` -- partition
 
     - ``G`` -- a symmetric group
 
@@ -283,9 +283,15 @@ def conjugacy_class_iterator(part, S=None):
 
     INPUT:
 
-    - ``part`` -- partition for the size of the subsets
+    - ``part`` -- partition
 
-    - ``S`` -- (optional) a set, if not specified `{1, ..., n}` is used
+    - ``S`` -- (optional, default: `\{ 1, 2, \ldots, n \}`, where `n`
+      is the size of ``part``) a set
+
+    OUTPUT:
+
+    An iterator over the conjugacy class consisting of all
+    permutations of the set ``S`` whose cycle type is ``part``.
 
     EXAMPLES::
 
@@ -310,8 +316,8 @@ def conjugacy_class_iterator(part, S=None):
         (1,2,3)(4,5)
         (1,3,2)(4,5)
 
-    Check that the number of elements correspond to the number of elements in
-    the conjugacy class
+    Check that the number of elements is the number of elements in
+    the conjugacy class::
 
         sage: s = lambda p: sum(1 for _ in conjugacy_class_iterator(p))
         sage: all(s(p) == p.conjugacy_class_size() for p in Partitions(5))

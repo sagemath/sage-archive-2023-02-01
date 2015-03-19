@@ -62,8 +62,77 @@ class FullyPackedLoop(SageObject):
 
     def _repr_():
         """
-        Return the ascii key
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: M = SixVertexModel(3, boundary_conditions='ice')
+            sage: M[0]
+                ^    ^    ^
+                |    |    |
+            --> # <- # <- # <--
+                |    ^    ^
+                V    |    |  
+            --> # -> # <- # <--
+                |    |    ^
+                V    V    |
+            --> # -> # -> # <--
+                |    |    |
+                V    V    V
         """
+        # List are in the order of URDL
+        ascii = [[r'  V  ', ' -', r'  ^  ', '- '], # LR
+                 [r'  |  ', ' <', r'  ^  ', '- '], # LU
+                 [r'  V  ', ' <', r'  |  ', '- '], # LD
+                 [r'  |  ', ' <', r'  |  ', '> '], # UD
+                 [r'  |  ', ' -', r'  ^  ', '> '], # UR
+                 [r'  V  ', ' -', r'  |  ', '> ']] # RD
+        ret = '  '
+        # Do the top line
+        for entry in self[0]:
+            if entry == 1 or entry == 3 or entry == 4:
+                ret += '  ^  '
+            else:
+                ret += '  |  '
+
+        # Do the meat of the ascii art
+        for row in self:
+            ret += '\n  '
+            # Do the top row
+            for entry in row:
+                ret += ascii[entry][0]
+            ret += '\n'
+
+            # Do the left-most entry
+            if row[0] == 0 or row[0] == 1 or row[0] == 2:
+                ret += '<-'
+            else:
+                ret += '--'
+
+            # Do the middle row
+            for entry in row:
+                ret += ascii[entry][3] + '#' + ascii[entry][1]
+
+            # Do the right-most entry
+            if row[-1] == 0 or row[-1] == 4 or row[-1] == 5:
+                ret += '->'
+            else:
+                ret += '--'
+
+            # Do the bottom row
+            ret += '\n  '
+            for entry in row:
+                ret += ascii[entry][2]
+
+        # Do the bottom line
+        ret += '\n  '
+        for entry in self[-1]:
+            if entry == 2 or entry == 3 or entry == 5:
+                ret += '  V  '
+            else:
+                ret += '  |  '
+
+        return ret
 
     def to_alternating_sign_matrix(self):
         """

@@ -107,11 +107,13 @@ class FullyPackedLoop(SageObject):
         """
         return self.six_vertex_model.to_alternating_sign_matrix()
 
-    def plot(self):
+    def plot(self, figsize=4):
         """
         Return a graphical object of the Fully Packed Loop
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Here is the fully packed for :math:`\\begin{pmatrix}0&1&1\\\\1&-1&1\\\\0&1&0\end{pmatrix}`::
 
             sage: A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
             sage: fpl = FullyPackedLoop(A)
@@ -131,6 +133,136 @@ class FullyPackedLoop(SageObject):
             Line defined by 2 points:       [(2.0, 2.0), (2.0, 3.0)]
             Line defined by 2 points:       [(3.0, 1.0), (2.0, 1.0)]
             Line defined by 2 points:       [(3.0, 1.0), (2.0, 1.0)]
+
+    Here are the 3 by 3 Alternating Sign Matrices and their corresponding fully packed loops:
+
+    .. math::
+
+        A = \\begin{pmatrix}
+            0&1&0\\\\
+            1&-1&1\\\\
+            0&1&0\\\\
+            \end{pmatrix}
+
+    gives:
+
+    .. PLOT::
+        :width: 200 px
+
+        A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
+        fpl = FullyPackedLoop(A)
+        p = fpl.plot()
+        sphinx_plot(p)
+
+    .. math::
+
+        A = \\begin{pmatrix}
+            1&0&0\\\\
+            0&1&0\\\\
+            0&0&1\\\\
+            \end{pmatrix}
+
+    gives:
+
+    .. PLOT::
+        :width: 200 px
+
+        A = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        fpl = FullyPackedLoop(A)
+        p = fpl.plot()
+        sphinx_plot(p)
+
+    .. math::
+
+        A = \\begin{pmatrix}
+            1&0&0\\\\
+            0&0&1\\\\
+            0&1&0\\\\
+            \end{pmatrix}
+
+    gives:
+
+    .. PLOT::
+        :width: 200 px
+
+        A = AlternatingSignMatrix([[1, 0, 0], [0, 0, 1], [0, 1, 0]])
+        fpl = FullyPackedLoop(A)
+        p = fpl.plot()
+        sphinx_plot(p)
+
+    .. math::
+
+        A = \\begin{pmatrix}
+            0&1&0\\\\
+            1&0&0\\\\
+            0&0&1\\\\
+            \end{pmatrix}
+
+    gives:
+
+    .. PLOT::
+        :width: 200 px
+
+        A = AlternatingSignMatrix([[0, 1, 0], [1, 0, 0], [0, 0, 1]])
+        fpl = FullyPackedLoop(A)
+        p = fpl.plot()
+        sphinx_plot(p)
+
+    .. math::
+
+        A = \\begin{pmatrix}
+            0&1&0\\\\
+            0&0&1\\\\
+            1&0&0\\\\
+            \end{pmatrix}
+
+    gives:
+
+    .. PLOT::
+        :width: 200 px
+
+        A = AlternatingSignMatrix([[0, 1, 0], [0, 0, 1], [1, 0, 0]])
+        fpl = FullyPackedLoop(A)
+        p = fpl.plot()
+        sphinx_plot(p)
+
+    .. math::
+
+        A = \\begin{pmatrix}
+            0&0&1\\\\
+            1&0&0\\\\
+            0&1&0\\\\
+            \end{pmatrix}
+
+    gives:
+
+    .. PLOT::
+        :width: 200 px
+
+        A = AlternatingSignMatrix([[0, 0, 1], [1, 0, 0], [0, 1, 0]])
+        fpl = FullyPackedLoop(A)
+        p = fpl.plot()
+        sphinx_plot(p)
+
+    .. math::
+
+        A = \\begin{pmatrix}
+            0&0&1\\\\
+            0&1&0\\\\
+            1&0&0\\\\
+            \end{pmatrix}
+
+    gives:
+
+    .. PLOT::
+        :width: 200 px
+
+        A = AlternatingSignMatrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
+        fpl = FullyPackedLoop(A)
+        p = fpl.plot()
+        sphinx_plot(p)
+
+    EXAMPLES::
 
             sage: A = AlternatingSignMatrix([[0, 1, 0, 0], [1, -1, 0, 1], [0, 1, 0, 0],[0, 0, 1, 0]])
             sage: fpl = FullyPackedLoop(A)

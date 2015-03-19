@@ -425,6 +425,30 @@ class AlternatingSignMatrix(Element):
         M = SquareIceModel(n)
         return M.from_alternating_sign_matrix(self)
 
+    def to_fully_packed_loop(self):
+        r"""
+        Return the fully packed loop configuration from ``self``. 
+
+        EXAMPLES::
+
+            sage: asm = AlternatingSignMatrix([[0,1,0],[1,-1,1],[0,1,0]])
+            sage: asm.to_fully_packed_loop()
+
+        """
+        return FullyPackedLoop(self)
+
+    def to_link_pattern(self):
+        r"""
+        Return the link pattern of the fully packed loop configuration from ``self``. 
+
+        EXAMPLES::
+
+            sage: asm = AlternatingSignMatrix([[0,1,0],[1,-1,1],[0,1,0]])
+            sage: asm.to_link_pattern()
+
+        """
+        return FullyPackedLoop(self).to_link_pattern()
+
     @combinatorial_map(name='gyration')    
     def gyration(self):
         r"""

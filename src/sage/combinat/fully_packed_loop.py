@@ -90,6 +90,20 @@ class FullyPackedLoop(SageObject):
         """
         return self.six_vertex_model.to_alternating_sign_matrix()
 
+    def to_link_pattern(self):
+        r"""
+        Return the link pattern of ``self``. 
+
+        EXAMPLES::
+
+            sage: asm = AlternatingSignMatrix([[0,1,0],[1,-1,1],[0,1,0]])
+            sage: fpl = asm.to_fully_packed_loop()
+            sage: fpl.to_link_pattern()
+
+        """
+        linkpattern = []
+        return linkpattern
+
     def plot(self):
         """
         Return a graphical object of the Fully Packed Loop

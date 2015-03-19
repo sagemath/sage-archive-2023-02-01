@@ -1448,9 +1448,10 @@ class WeakTableau_bounded(WeakTableau_abstract):
         """
         k = parent.k
         self.k = k
+        self._list = [list(r) for r in t]
         if parent._outer_shape.conjugate().length() > k:
             raise ValueError("%s is not a %s-bounded tableau"%(t, k))
-        ClonableList.__init__(self, parent, [list(r) for r in t])
+        ClonableList.__init__(self, parent, self._list)
 
     def _repr_diagram(self):
         r"""

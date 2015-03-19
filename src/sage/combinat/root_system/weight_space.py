@@ -511,16 +511,3 @@ class WeightSpaceElement(CombinatorialFreeModuleElement):
         return all(self.coefficient(i) >= 0 for i in self.parent().index_set())
 
 WeightSpace.Element = WeightSpaceElement
-
-
-sage: sage: delta=P.null_root(); delta
-delta
-sage: delta
-delta
-sage: sage: Lam = P.fundamental_weights()
-sage: Lam[0].is_dominant()
-True
-sage: (Lam[0]-delta).is_dominant()
-True
-sage: (Lam[0]+delta).is_dominant()
-True

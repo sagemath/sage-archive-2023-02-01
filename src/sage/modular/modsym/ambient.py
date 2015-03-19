@@ -93,12 +93,17 @@ import sage.rings.polynomial.multi_polynomial_element
 import sage.structure.formal_sum as formal_sum
 import sage.categories.all as cat
 from sage.modular.cusps import Cusp
+from sage.modular.modsym.apply import apply_to_monomial
+from sage.modular.modsym.manin_symbol import ManinSymbol
+from sage.modular.modsym.manin_symbol_list import (ManinSymbolList_gamma0,
+                                                   ManinSymbolList_gamma1,
+                                                   ManinSymbolList_gamma_h,
+                                                   ManinSymbolList_character)
 import sage.structure.all
 
 import boundary
 import element
 import heilbronn
-import manin_symbols
 import modular_symbols
 import modsym
 import p1list
@@ -464,7 +469,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             #        x.parent().base_ring(), self.base_ring())
             return element.ModularSymbolsElement(self, x)
 
-        elif isinstance(x, (manin_symbols.ManinSymbol, element.ModularSymbolsElement)):
+        elif isinstance(x, (ManinSymbol, element.ModularSymbolsElement)):
             return self.element(x)
 
         elif isinstance(x, modular_symbols.ModularSymbol):
@@ -1110,7 +1115,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
                 # Apply h to the polynomial part
                 (a,b,c,d) = tuple(h)
                 # P gives the ordered coefficients of (a*X+b*Y)^i*(c*X+d*Y)^(j-i)
-                P = manin_symbols.apply_to_monomial(i, k-2, a,b,c,d)
+                P = apply_to_monomial(i, k-2, a,b,c,d)
                 # Apply h to the (u,v) part of the Manin symbol
                 (uu,vv) = (u*a+v*c, u*b+v*d)
 
@@ -1587,7 +1592,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             sage: M.T(3)(M.0).element()
             (28, 2, -1, -1)
         """
-        if isinstance(x, manin_symbols.ManinSymbol):
+        if isinstance(x, ManinSymbol):
             if not x.parent().weight() == self.weight():
                 raise ArithmeticError("incompatible weights: Manin symbol\
                     has weight %s, but modular symbols space has weight %s"%(
@@ -2606,7 +2611,7 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
         try:
             return self.__manin_symbols
         except AttributeError:
-            self.__manin_symbols = manin_symbols.ManinSymbolList_gamma0(
+            self.__manin_symbols = ManinSymbolList_gamma0(
                 level=self.level(), weight=self.weight())
         return self.__manin_symbols
 
@@ -3218,7 +3223,7 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
         try:
             return self.__manin_symbols
         except AttributeError:
-            self.__manin_symbols = manin_symbols.ManinSymbolList_gamma1(
+            self.__manin_symbols = ManinSymbolList_gamma1(
                 level=self.level(), weight=self.weight())
         return self.__manin_symbols
 
@@ -3396,7 +3401,7 @@ class ModularSymbolsAmbient_wtk_gamma_h(ModularSymbolsAmbient):
         try:
             return self.__manin_symbols
         except AttributeError:
-            self.__manin_symbols = manin_symbols.ManinSymbolList_gamma_h(
+            self.__manin_symbols = ManinSymbolList_gamma_h(
                 group=self.group(), weight=self.weight())
         return self.__manin_symbols
 
@@ -3706,7 +3711,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         try:
             return self.__manin_symbols
         except AttributeError:
-            self.__manin_symbols = manin_symbols.ManinSymbolList_character(
+            self.__manin_symbols = ManinSymbolList_character(
                 character=self.character(), weight=self.weight())
         return self.__manin_symbols
 

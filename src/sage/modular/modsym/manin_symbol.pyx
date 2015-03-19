@@ -22,7 +22,11 @@ as a formal sum of monomial Manin Symbols, with integer coefficients.
 
 """
 
+from sage.modular.cusps import Cusp
+from sage.rings.all import Infinity, ZZ
+from sage.rings.integer cimport Integer
 from sage.structure.element cimport Element
+from sage.structure.sage_object import register_unpickle_override
 
 
 def is_ManinSymbol(x):
@@ -31,7 +35,8 @@ def is_ManinSymbol(x):
 
     EXAMPLES::
 
-        sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0, is_ManinSymbol
+        sage: from sage.modular.modsym.manin_symbol import ManinSymbol, is_ManinSymbol
+        sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
         sage: m = ManinSymbolList_gamma0(6, 4)
         sage: s = ManinSymbol(m, m.symbol_list()[3])
         sage: s
@@ -56,7 +61,8 @@ cdef class ManinSymbol(Element):
 
     EXAMPLES::
 
-        sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+        sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+        sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
         sage: m = ManinSymbolList_gamma0(5,2)
         sage: s = ManinSymbol(m,(2,2,3)); s
         (2,3)
@@ -71,7 +77,8 @@ cdef class ManinSymbol(Element):
 
     ::
 
-        sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+        sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+        sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
         sage: m = ManinSymbolList_gamma0(5,8)
         sage: s = ManinSymbol(m,(2,2,3))
         sage: s.parent()
@@ -91,7 +98,8 @@ cdef class ManinSymbol(Element):
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,2)
             sage: s = ManinSymbol(m,(2,2,3)); s
             (2,3)
@@ -106,28 +114,38 @@ cdef class ManinSymbol(Element):
         self.__t = t
         Element.__init__(self, parent)
 
+    def __reduce__(self):
+        """
+        For pickling.
+
+        TESTS::
+
+            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma1
+            sage: m = ManinSymbolList_gamma1(3, 2)
+            sage: s = ManinSymbol(m, (2, 2, 3))
+            sage: loads(dumps(s))
+            (2,3)
+
+        """
+        return ManinSymbol, (self.parent(), self.__t)
+
     def __setstate__(self, state):
         """
         Needed to unpickle old :class:`ManinSymbol` objects.
 
-        In older versions of this class, which did not inherit from
-        :class:`Element`, the state was a ``dict`` which also stored
-        the parent.  We modify this to a pair ``(parent, dict)``, as
-        required by the unpickling code of :class:`Element`.
-
         TESTS::
 
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,2)
             sage: s = ManinSymbol(m,(2,2,3))
             sage: loads(dumps(s))
             (2,3)
 
         """
-        if isinstance(state, dict):
-            parent = state.pop('_ManinSymbol__parent')
-            state = (parent, state)
-        Element.__setstate__(self, state)
+        self._parent = state['_ManinSymbol__parent']
+        self.__t = state['_ManinSymbol__t']
 
     def tuple(self):
         r"""
@@ -135,7 +153,8 @@ cdef class ManinSymbol(Element):
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: s = ManinSymbol(m,(2,2,3))
             sage: s.tuple()
@@ -150,10 +169,11 @@ cdef class ManinSymbol(Element):
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: s = ManinSymbol(m,(2,2,3))
-            sage: s._ManinSymbol__get_i()
+            sage: s.__get_i()
             2
             sage: s.i
             2
@@ -161,19 +181,22 @@ cdef class ManinSymbol(Element):
         return self.__t[0]
 
     i = property(__get_i)
+
     def __get_u(self):
         """
         Return the `u` field of this ManinSymbol `(i,u,v)`.
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: s = ManinSymbol(m,(2,2,3))
             sage: s.u # indirect doctest
             2
         """
         return self.__t[1]
+
     u = property(__get_u)
 
     def __get_v(self):
@@ -182,7 +205,8 @@ cdef class ManinSymbol(Element):
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: s = ManinSymbol(m,(2,2,3))
             sage: s.v # indirect doctest
@@ -197,7 +221,8 @@ cdef class ManinSymbol(Element):
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: s = ManinSymbol(m,(2,2,3))
             sage: str(s)  # indirect doctest
@@ -215,7 +240,8 @@ cdef class ManinSymbol(Element):
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: s = ManinSymbol(m,(2,2,3))
             sage: latex(s) # indirect doctest
@@ -229,7 +255,8 @@ cdef class ManinSymbol(Element):
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: slist = m.manin_symbol_list()
             sage: cmp(slist[10],slist[20])
@@ -249,7 +276,8 @@ cdef class ManinSymbol(Element):
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,2)
             sage: s = ManinSymbol(m,(0,2,3))
             sage: s*[1,2,0,1]
@@ -276,8 +304,6 @@ cdef class ManinSymbol(Element):
                               (self.i,
                                matrix[0]*self.u + matrix[2]*self.v,
                                matrix[1]*self.u + matrix[3]*self.v))
-        raise ArithmeticError("Multiplication of %s by %s not defined." % (self, matrix))
-
 
     def apply(self, a,b,c,d):
         """
@@ -288,7 +314,8 @@ cdef class ManinSymbol(Element):
 
         EXAMPLE::
 
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,2)
             sage: m.apply(10,[1,0,0,1]) # not implemented for base class
         """
@@ -300,7 +327,8 @@ cdef class ManinSymbol(Element):
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: s = ManinSymbol(m,(2,2,3))
             sage: s2 = copy(s)
@@ -320,7 +348,8 @@ cdef class ManinSymbol(Element):
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: s = ManinSymbol(m,(2,2,3))
             sage: s
@@ -335,7 +364,7 @@ cdef class ManinSymbol(Element):
             return [ZZ.one(), ZZ.zero(), ZZ.zero(), ZZ.one()]
         c = Integer(self.u)
         d = Integer(self.v)
-        g, z1, z2 = xgcd(c,d)
+        g, z1, z2 = c.xgcd(d)
 
         # We're lucky: z1*c + z2*d = 1.
         if g==1:
@@ -343,26 +372,26 @@ cdef class ManinSymbol(Element):
 
         # Have to try harder.
         if c == 0:
-            c += N;
+            c += N
         if d == 0:
-            d += N;
-        m = c;
+            d += N
+        m = c
 
         # compute prime-to-d part of m.
         while True:
-            g = gcd(m,d)
+            g = m.gcd(d)
             if g == 1:
                 break
             m //= g
 
         # compute prime-to-N part of m.
         while True:
-            g = gcd(m,N);
+            g = m.gcd(N)
             if g == 1:
                 break
             m //= g
         d += N*m
-        g, z1, z2 = xgcd(c,d)
+        g, z1, z2 = c.xgcd(d)
         assert g==1
         return [z2, -z1, c, d]
 
@@ -373,7 +402,8 @@ cdef class ManinSymbol(Element):
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: s = ManinSymbol(m,(2,2,3)); s
             [X^2*Y^4,(2,3)]
@@ -387,7 +417,7 @@ cdef class ManinSymbol(Element):
             if N < 1:
                 raise ArithmeticError("N must be positive")
         a,b,c,d = self.lift_to_sl2z()
-        return cusps.Cusp(b,d), cusps.Cusp(a,c)
+        return Cusp(b, d), Cusp(a, c)
 
     def weight(self):
         """
@@ -395,7 +425,8 @@ cdef class ManinSymbol(Element):
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: s = ManinSymbol(m,(2,2,3))
             sage: s.weight()
@@ -410,7 +441,8 @@ cdef class ManinSymbol(Element):
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: s = ManinSymbol(m,(2,2,3))
             sage: s.level()
@@ -428,7 +460,8 @@ cdef class ManinSymbol(Element):
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
+            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: s = ManinSymbol(m,(2,2,3))
             sage: s.modular_symbol_rep()
@@ -449,7 +482,7 @@ def _print_polypart(i, j):
 
     EXAMPLES::
 
-    sage: from sage.modular.modsym.manin_symbols import _print_polypart
+    sage: from sage.modular.modsym.manin_symbol import _print_polypart
     sage: _print_polypart(2,3)
     'X^2*Y^3'
     sage: _print_polypart(2,0)
@@ -478,3 +511,7 @@ def _print_polypart(i, j):
     else:
         polypart = ""
     return polypart
+
+
+register_unpickle_override('sage.modular.modsym.manin_symbols',
+                           'ManinSymbol', ManinSymbol)

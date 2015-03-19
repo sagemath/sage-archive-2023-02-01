@@ -1370,7 +1370,7 @@ class Permutation(CombinatorialObject, Element):
             sage: q.left_action_product(p)
             [1, 3, 2]
         """
-        return Permutations()(left_action_product(self[:], lp[:]))
+        return Permutations()(left_action_product(self._list, lp[:]))
 
     _left_to_right_multiply_on_left = left_action_product
 
@@ -1402,7 +1402,7 @@ class Permutation(CombinatorialObject, Element):
             sage: q.right_action_product(p)
             [3, 2, 1]
         """
-        return Permutations()(right_action_product(self[:], rp[:]))
+        return Permutations()(right_action_product(self._list, rp[:]))
 
     _left_to_right_multiply_on_right = right_action_product
 
@@ -6341,9 +6341,9 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
                 # They have different parents (but both are (like) Permutations of n)
                 mul_order = self.parent().global_options['mult']
                 if mul_order == 'l2r':
-                    p = right_action_product(list(self), list(other))
+                    p = right_action_product(self._list, other._list)
                 elif mul_order == 'r2l':
-                    p = left_action_product(list(self), list(other))
+                    p = left_action_product(self._list, other._list)
                 return Permutations(len(p))(p)
             # They have the same parent
             return self._mul_(other)
@@ -6360,9 +6360,9 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             """
             mul_order = self.parent().global_options['mult']
             if mul_order == 'l2r':
-                p = right_action_same_n(list(self), list(other))
+                p = right_action_same_n(self._list, other._list)
             elif mul_order == 'r2l':
-                p = left_action_same_n(list(self), list(other))
+                p = left_action_same_n(self._list, other._list)
             return self.__class__(self.parent(), p)
 
         @combinatorial_map(order=2, name='inverse')

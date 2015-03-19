@@ -248,7 +248,7 @@ def default_representative(part, G):
 
     INPUT:
 
-    - ``part`` -- partition for the size of the subsets
+    - ``part`` -- partition
 
     - ``G`` -- a symmetric group
 

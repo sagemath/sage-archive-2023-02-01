@@ -5798,9 +5798,20 @@ class StandardPermutations_n_abstract(Permutations):
 
             sage: G = SymmetricGroup(4)
             sage: P = Permutations(4)
-            sage: x = G([4,3,1,2])
+            sage: x = G([4,3,1,2]); x
+            (1,4,2,3)
             sage: P(x)
             [4, 3, 1, 2]
+            sage: G(P(x))
+            (1,4,2,3)
+
+            sage: P = PermutationGroup([[(1,3,5),(2,4)],[(1,3)]])
+            sage: x = P([(3,5),(2,4)]); x
+            (2,4)(3,5)
+            sage: Permutations(6)(SymmetricGroup(6)(x))
+            [1, 4, 5, 2, 3, 6]
+            sage: Permutations(6)(x) # not tested -- we're not yet there
+            [1, 4, 5, 2, 3, 6]
         """
         if len(x) < self.n:
             x = list(x) + range(len(x)+1, self.n+1)
@@ -5898,7 +5909,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
     def _from_permutation_group_element(self, x):
         """
-        Return an element of ``self`` from a permtuation group element.
+        Return an element of ``self`` from a permutation group element.
 
         TESTS::
 

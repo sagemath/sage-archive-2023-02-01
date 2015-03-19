@@ -1104,6 +1104,8 @@ def plot(funcs, *args, **kwds):
         Graphics object consisting of 1 graphics primitive
         sage: plot(sin(x^2), (x, -3, 3), title='Plot of sin(x^2)', axes_labels=['x','y']) # These will not
         Graphics object consisting of 1 graphics primitive
+        sage: plot(sin(x^2), (x, -3, 3), axes_labels=['x','y'], axes_labels_size=2.5) # Large axes labels (w.r.t. the tick marks)
+        Graphics object consisting of 1 graphics primitive
 
     ::
 

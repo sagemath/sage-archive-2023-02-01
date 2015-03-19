@@ -11,7 +11,9 @@ AUTHORS:
 
 - Jeroen Demeyer (2012-04-19): split off this file from plot.py (:trac:`12857`)
 - Punarbasu Purkayastha (2012-05-20): Add logarithmic scale (:trac:`4529`)
-- Emily Chen (2013-01-05): Add documentation for :meth:`~sage.plot.graphics.Graphics.show` figsize parameter (:trac:`5956`)
+- Emily Chen (2013-01-05): Add documentation for
+  :meth:`~sage.plot.graphics.Graphics.show` figsize parameter (:trac:`5956`)
+- Eric Gourgoulhon (2015-03-19): Add parameter axes_labels_size (:trac:`18004`)
 
 """
 
@@ -148,6 +150,7 @@ class Graphics(SageObject):
         self._bbox_extra_artists = []
         self._extra_kwds = {}
         self._fontsize = 10
+        self._axes_labels_size = 1.7
         self._legend_colors = []
         self._legend_opts = {}
         self._objects = []
@@ -470,6 +473,9 @@ class Graphics(SageObject):
         """
         Set the font size of axes labels and tick marks.
 
+        Note that the relative size of the axes labels font w.r.t. the tick
+        marks font can be adjusted via :meth:`axes_labels_size`. 
+
         INPUT:
 
 
@@ -499,6 +505,40 @@ class Graphics(SageObject):
                 self._fontsize = 10
                 return self._fontsize
         self._fontsize = int(s)
+
+    def axes_labels_size(self, s=None):
+        """
+        Set the relative size of axes labels w.r.t. the axes tick marks.
+
+        INPUT:
+
+        - ``s`` - float, relative size of axes labels w.r.t. to the tick marks,
+          the size of the tick marks being set by :meth:`fontsize`.
+
+        If called with no input, return the current relative size.
+
+        EXAMPLES::
+
+            sage: p = plot(sin(x^2), (x, -3, 3), axes_labels=['$x$','$y$'])
+            sage: p.axes_labels_size() # default value
+            1.7
+            sage: p.axes_labels_size(2.5)
+            sage: p.axes_labels_size()
+            2.5
+
+        Now the axes labels are large w.r.t. the tick marks::
+
+            sage: p
+            Graphics object consisting of 1 graphics primitive
+
+        """
+        if s is None:
+            try:
+                return self._axes_labels_size
+            except AttributeError:
+                self._axes_labels_size = 1.7
+                return self._axes_labels_size
+        self._axes_labels_size = float(s)
 
     def axes(self, show=None):
         """
@@ -1255,8 +1295,8 @@ class Graphics(SageObject):
     # this dictionary to contain the default value for that parameter.
 
     SHOW_OPTIONS = dict(# axes options
-                        axes=None, axes_labels=None, axes_pad=None,
-                        base=None, scale=None,
+                        axes=None, axes_labels=None, axes_labels_size=None,
+                        axes_pad=None, base=None, scale=None,
                         xmin=None, xmax=None, ymin=None, ymax=None,
                         # Figure options
                         aspect_ratio=None, dpi=DEFAULT_DPI, fig_tight=True,
@@ -1321,6 +1361,10 @@ class Graphics(SageObject):
         - ``axes_labels`` - (default: None) list (or tuple) of two
           strings; the first is used as the label for the horizontal
           axis, and the second for the vertical axis.
+
+        - ``axes_labels_size`` - (default: current setting -- 1.7) scale factor
+          relating the size of the axes labels with respect to the size of the
+          tick marks. 
 
         - ``fontsize`` - (default: current setting -- 10) positive
           integer; used for axes labels; if you make this very large,
@@ -2362,8 +2406,8 @@ class Graphics(SageObject):
     def matplotlib(self, filename=None,
                    xmin=None, xmax=None, ymin=None, ymax=None,
                    figsize=None, figure=None, sub=None,
-                   axes=None, axes_labels=None, fontsize=None,
-                   frame=False, verify=True,
+                   axes=None, axes_labels=None, axes_labels_size=None,
+                   fontsize=None, frame=False, verify=True,
                    aspect_ratio = None,
                    gridlines=None, gridlinesstyle=None,
                    vgridlinesstyle=None, hgridlinesstyle=None,
@@ -2469,6 +2513,7 @@ class Graphics(SageObject):
 
         self.fontsize(fontsize)
         self.axes_labels(l=axes_labels)
+        self.axes_labels_size(s=axes_labels_size)
 
         if figsize is not None and not isinstance(figsize, (list, tuple)):
             # in this case, figsize is a number and should be positive
@@ -2831,7 +2876,7 @@ class Graphics(SageObject):
         if self._axes_labels is not None:
             label_options={}
             label_options['color']=self._axes_label_color
-            label_options['size']=self._fontsize
+            label_options['size']=int(self._axes_labels_size * self._fontsize)
             subplot.set_xlabel(self._axes_labels[0], **label_options)
             subplot.set_ylabel(self._axes_labels[1], **label_options)
 

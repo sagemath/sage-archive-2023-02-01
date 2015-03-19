@@ -1012,7 +1012,6 @@ class Tableau(CombinatorialObject, Element):
         p = self.shape()
         return len(self.inversions()) - sum([ p.arm_length(*cell) for cell in self.descents() ])
 
-    @combinatorial_map(order=2,name='Schuetzenberger involution')
     def schuetzenberger_involution(self, n = None, check=True):
         r"""
         Return the Schuetzenberger involution of the tableau ``self``.
@@ -1040,22 +1039,22 @@ class Tableau(CombinatorialObject, Element):
            sage: t.schuetzenberger_involution(3)
            [[2, 2, 3], [3, 3]]
 
-            sage: t = Tableau([[1,2,3],[4,5]])
-            sage: t.schuetzenberger_involution()
-            [[1, 2, 5], [3, 4]]
+           sage: t = Tableau([[1,2,3],[4,5]])
+           sage: t.schuetzenberger_involution()
+           [[1, 2, 5], [3, 4]]
 
-            sage: t = Tableau([[1,3,5,7],[2,4,6],[8,9]])
-            sage: t.schuetzenberger_involution()
-            [[1, 2, 6, 8], [3, 4, 9], [5, 7]]
+           sage: t = Tableau([[1,3,5,7],[2,4,6],[8,9]])
+           sage: t.schuetzenberger_involution()
+           [[1, 2, 6, 8], [3, 4, 9], [5, 7]]
 
-            sage: t = Tableau([])
-            sage: t.schuetzenberger_involution()
-            []
+           sage: t = Tableau([])
+           sage: t.schuetzenberger_involution()
+           []
 
-            sage: t = StandardTableau([[1,2,3],[4,5]])
-            sage: s = t.schuetzenberger_involution()
-            sage: s.parent()
-            Standard tableaux
+           sage: t = StandardTableau([[1,2,3],[4,5]])
+           sage: s = t.schuetzenberger_involution()
+           sage: s.parent()
+           Standard tableaux
         """
         if check and self not in SemistandardTableaux():
             raise ValueError("the tableau must be semistandard")
@@ -1102,22 +1101,22 @@ class Tableau(CombinatorialObject, Element):
            sage: t.evacuation(3)
            [[2, 2, 3], [3, 3]]
 
-            sage: t = Tableau([[1,2,3],[4,5]])
-            sage: t.evacuation()
-            [[1, 2, 5], [3, 4]]
+           sage: t = Tableau([[1,2,3],[4,5]])
+           sage: t.evacuation()
+           [[1, 2, 5], [3, 4]]
 
-            sage: t = Tableau([[1,3,5,7],[2,4,6],[8,9]])
-            sage: t.evacuation()
-            [[1, 2, 6, 8], [3, 4, 9], [5, 7]]
+           sage: t = Tableau([[1,3,5,7],[2,4,6],[8,9]])
+           sage: t.evacuation()
+           [[1, 2, 6, 8], [3, 4, 9], [5, 7]]
 
-            sage: t = Tableau([])
-            sage: t.evacuation()
-            []
+           sage: t = Tableau([])
+           sage: t.evacuation()
+           []
 
-            sage: t = StandardTableau([[1,2,3],[4,5]])
-            sage: s = t.evacuation()
-            sage: s.parent()
-            Standard tableaux
+           sage: t = StandardTableau([[1,2,3],[4,5]])
+           sage: s = t.evacuation()
+           sage: s.parent()
+           Standard tableaux
         """
 	return self.schuetzenberger_involution(n,check)
 

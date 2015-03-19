@@ -1910,17 +1910,17 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
         if 'list' in options:
             the_list = options['list']
         elif 'rows' in options:
-            rows=options['rows']
+            rows = options['rows']
 #            the_list=Tableau(rows).to_word_by_column()
-            rows=Tableau(rows).conjugate()
-            the_list=[]
+            rows = Tableau(rows).conjugate()
+            the_list = []
             for col in rows:
-                the_list+=reversed(list(col))
+                the_list += reversed(col)
         elif 'columns' in options:
-            columns=options['columns']
-            the_list=[]
+            columns = options['columns']
+            the_list = []
             for col in columns:
-                the_list+=col
+                the_list += col
         else:
             the_list = [i for i in args]
         TensorProductOfRegularCrystalsElement.__init__(self, parent, map(parent.letters, the_list))

@@ -110,7 +110,7 @@ from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method, cached_function
 # The identity function would deserve a more canonical location
 from sage.misc.c3_controlled import identity
-from sage.misc.superseded import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias, deprecation
 from sage.categories.commutative_additive_semigroups import CommutativeAdditiveSemigroups
 from sage.categories.homset import Hom
 from sage.categories.modules_with_basis import ModulesWithBasis
@@ -118,6 +118,7 @@ from sage.categories.morphism import SetMorphism, Morphism
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.structure.element import parent
+from sage.matrix.matrix import is_Matrix
 
 class ModuleMorphism(Morphism):
     """
@@ -642,6 +643,10 @@ class TriangularModuleMorphism(ModuleMorphism):
             ...
             TypeError: expected string or Unicode object, NoneType found
         """
+        if triangular is True:
+            deprecation(8678, "module_morphism(..., triangular=True) is deprecated; "
+                        "please use triangular='lower'.")
+            triangular = "lower"
         if triangular == "upper":
             self._dominant_item = attrcall("leading_item",  cmp)
         else:
@@ -767,8 +772,8 @@ class TriangularModuleMorphism(ModuleMorphism):
             sage: X = CombinatorialFreeModule(QQ, [1,2,3]); x = X.basis()
             sage: X.rename('X')
             sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
-            sage: uut = lambda i: sum(  y[j] for j in range(i+1,6)  ) # uni-upper
-            sage: phi = X.module_morphism(uut, triangular=True, codomain=Y,
+            sage: ult = lambda i: sum(  y[j] for j in range(i+1,6)  ) # uni-lower
+            sage: phi = X.module_morphism(ult, triangular="lower", codomain=Y,
             ....:      inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
             sage: ~phi
             Traceback (most recent call last):
@@ -817,8 +822,8 @@ class TriangularModuleMorphism(ModuleMorphism):
 
             sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); x = X.basis()
             sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3]); y = Y.basis()
-            sage: uut = lambda i: sum(  y[j] for j in range(i,4)  ) # uni-upper
-            sage: phi = X.module_morphism(uut, triangular=True, codomain=Y)
+            sage: ult = lambda i: sum(  y[j] for j in range(i,4)  ) # uni-upper
+            sage: phi = X.module_morphism(ult, triangular="lower", codomain=Y)
             sage: phi._invert_on_basis(2)
             B[2] - B[3]
         """
@@ -832,8 +837,8 @@ class TriangularModuleMorphism(ModuleMorphism):
 
             sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); x = X.basis()
             sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3]); y = Y.basis()
-            sage: uut = lambda i: sum(  y[j] for j in range(i,4)  ) # uni-upper
-            sage: phi = X.module_morphism(uut, triangular=True, codomain=Y)
+            sage: ult = lambda i: sum(  y[j] for j in range(i,4)  ) # uni-lower
+            sage: phi = X.module_morphism(ult, triangular="lower", codomain=Y)
             sage: phi.preimage(y[1] + y[2])
             B[1] - B[3]
 
@@ -842,8 +847,8 @@ class TriangularModuleMorphism(ModuleMorphism):
 
             sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); x = X.basis()
             sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3, 4]); y = Y.basis()
-            sage: uut = lambda i: sum(  y[j] for j in range(i,5)  ) # uni-upper
-            sage: phi = X.module_morphism(uut, triangular=True, codomain=Y)
+            sage: lt = lambda i: sum(  y[j] for j in range(i,5)  )
+            sage: phi = X.module_morphism(lt, triangular="lower", codomain=Y)
             sage: phi.preimage(y[1] + y[2])
             B[1] - B[3]
 
@@ -852,8 +857,8 @@ class TriangularModuleMorphism(ModuleMorphism):
 
             sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); x = X.basis()
             sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3, 4, 5]); y = Y.basis()
-            sage: uut = lambda i: sum(  y[j] for j in range(i+1,6)  ) # uni-upper
-            sage: phi = X.module_morphism(uut, triangular=True, codomain=Y,
+            sage: lt = lambda i: sum(  y[j] for j in range(i+1,6)  ) # lower
+            sage: phi = X.module_morphism(lt, triangular="lower", codomain=Y,
             ....:         inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
             sage: phi(x[1])
             B[2] + B[3] + B[4] + B[5]
@@ -881,8 +886,8 @@ class TriangularModuleMorphism(ModuleMorphism):
 
             sage: X = CombinatorialFreeModule(ZZ, [1, 2, 3]); x = X.basis()
             sage: Y = CombinatorialFreeModule(ZZ, [1, 2, 3]); y = Y.basis()
-            sage: uut = lambda i: sum( 2* y[j] for j in range(i,4)  ) # uni-upper
-            sage: phi = X.module_morphism(uut, triangular=True, codomain=Y)
+            sage: lt = lambda i: sum( 2* y[j] for j in range(i,4)  ) # lower
+            sage: phi = X.module_morphism(lt, triangular="lower", codomain=Y)
             sage: phi.preimage(2*y[1] + 2*y[2])
             B[1] - B[3]
 
@@ -1080,8 +1085,8 @@ class TriangularModuleMorphism(ModuleMorphism):
 
             sage: X = CombinatorialFreeModule(QQ, [1,2,3]); x = X.basis()
             sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
-            sage: ut = lambda i: sum(  y[j] for j in range(i+1,6)  ) # uni-upper
-            sage: phi = X.module_morphism(ut, triangular=True, codomain=Y,
+            sage: lt = lambda i: sum(  y[j] for j in range(i+1,6)  ) # lower
+            sage: phi = X.module_morphism(lt, triangular="lower", codomain=Y,
             ....:      inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
             sage: phipro = phi.cokernel_projection()
             sage: phipro(y[1] + y[2])
@@ -1253,7 +1258,8 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
             [1 2]
             [3 5]
 
-            sage: phi = ModuleMorphismFromMatrix(matrix=m, domain=X, codomain=Y, side="left")
+            sage: phi = ModuleMorphismFromMatrix(matrix=m, side="left",
+            ....:                                domain=X, codomain=Y)
             sage: phi._matrix
             [1 3]
             [2 5]
@@ -1265,6 +1271,8 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
             raise ValueError("The codomain %s should be specified")
         if not codomain in C:
             raise ValueError("The codomain %s should be finite dimensional"%codomain)
+        if not is_Matrix(matrix):
+            raise ValueError("matrix (=%s) should be a matrix"%matrix)
         import sage.combinat.ranker
         indices = tuple(domain.basis().keys())
         rank_domain  = sage.combinat.ranker.rank_from_list(indices)
@@ -1322,7 +1330,7 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
         sage: phi(x[1]), phi(x[2]), phi(x[3])
         (B[1], 2*B[2], 6*B[3])
     """
-    def __init__(self, domain, diagonal, codomain = None, category = None):
+    def __init__(self, domain, diagonal, codomain=None, category=None):
         r"""
         Initialize ``self``.
 
@@ -1334,9 +1342,15 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
             <class 'sage.modules.module_with_basis_morphism.DiagonalModuleMorphism_with_category'>
             sage: TestSuite(phi).run()
         """
-        assert codomain is not None
-        assert domain.basis().keys() == codomain.basis().keys()
-        assert domain.base_ring()    == codomain.base_ring()
+        if codomain is None:
+            raise ValueError("The codomain should be specified")
+        if not (domain.basis().keys() == codomain.basis().keys() and
+                domain.base_ring()    == codomain.base_ring()):
+            raise ValueError("The domain and codomain should have the same base ring "
+                             "and the same basis indexing")
+        import collections
+        if not isinstance(diagonal, collections.Callable):
+            raise ValueError("diagonal (=%s) should be a function"%diagonal)
         if category is None:
             category = ModulesWithBasis(domain.base_ring())
         ModuleMorphismByLinearity.__init__(
@@ -1373,7 +1387,7 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
             1/6*B[3]
 
         Caveat: this inverse morphism is only well defined if
-        `d(\lambda)` is always invertible in the base ring. This is
+        `d(\lambda)` is always invertible in the base ring. This
         condition is *not* tested for, so using an ill defined inverse
         morphism will trigger arithmetic errors.
         """

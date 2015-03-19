@@ -60,7 +60,7 @@ class FullyPackedLoop(SageObject):
             generator = generator.to_six_vertex_model()
         self.six_vertex_model = generator
 
-    def _repr_():
+    def _repr_(self):
         """
         Return a string representation of ``self``.
 
@@ -81,56 +81,85 @@ class FullyPackedLoop(SageObject):
                 V    V    V
         """
         # List are in the order of URDL
-        ascii = [[r'  V  ', ' -', r'  ^  ', '- '], # LR
-                 [r'  |  ', ' <', r'  ^  ', '- '], # LU
-                 [r'  V  ', ' <', r'  |  ', '- '], # LD
-                 [r'  |  ', ' <', r'  |  ', '> '], # UD
-                 [r'  |  ', ' -', r'  ^  ', '> '], # UR
-                 [r'  V  ', ' -', r'  |  ', '> ']] # RD
+        # One set of rules for how to draw around even vertex, one set of rules for odd vertex
+        n=len(self.six_vertex_model)-1
+        ascii1 = [[r'     ', ' -', r'     ', '- '], # LR
+                 [r'  |  ', '  ', r'     ', '- '], # LU
+                 [r'     ', '  ', r'  |  ', '- '], # LD
+                 [r'  |  ', '  ', r'  |  ', '  '], # UD
+                 [r'  |  ', ' -', r'     ', '  '], # UR
+                 [r'     ', ' -', r'  |  ', '  ']] # RD
+
+        ascii2 = [[r'  |  ', '  ', r'  |  ', '  '], # LR
+                 [r'     ', ' -', r'     ', '  '], # LU
+                 [r'  |  ', ' -', r'     ', '  '], # LD
+                 [r'     ', ' -', r'     ', '- '], # UD
+                 [r'     ', '  ', r'  |  ', '- '], # UR
+                 [r'  |  ', '  ', r'     ', '- ']] # RD
         ret = '  '
         # Do the top line
-        for entry in self[0]:
-            if entry == 1 or entry == 3 or entry == 4:
-                ret += '  ^  '
-            else:
+        for i,entry in enumerate(self.six_vertex_model[0]):
+            if i % 2 == 0:
                 ret += '  |  '
+            else:
+                ret += '     '
+#            if entry == 1 or entry == 3 or entry == 4:
+#                ret += '  ^  '
+#            else:
+#                ret += '  |  '
 
         # Do the meat of the ascii art
-        for row in self:
+        for j,row in enumerate(self.six_vertex_model):
             ret += '\n  '
             # Do the top row
-            for entry in row:
-                ret += ascii[entry][0]
+            for i,entry in enumerate(row):
+                if (i+j) % 2 == 0:
+                    ret += ascii1[entry][0]
+                else:
+                    ret += ascii2[entry][0]
             ret += '\n'
 
             # Do the left-most entry
-            if row[0] == 0 or row[0] == 1 or row[0] == 2:
-                ret += '<-'
+            if (j) % 2 == 0:
+                ret += '  '
             else:
-                ret += '--'
+                ret += ' -'
 
             # Do the middle row
-            for entry in row:
-                ret += ascii[entry][3] + '#' + ascii[entry][1]
+            for i,entry in enumerate(row):
+                if (i+j) % 2 == 0:
+                    ret += ascii1[entry][3] + '#' + ascii1[entry][1]
+                else:
+                    ret += ascii2[entry][3] + '#' + ascii2[entry][1]
 
             # Do the right-most entry
-            if row[-1] == 0 or row[-1] == 4 or row[-1] == 5:
-                ret += '->'
+            if (j+n) % 2 ==0:
+                ret += '  '
             else:
-                ret += '--'
+                ret += '- '
 
             # Do the bottom row
             ret += '\n  '
-            for entry in row:
-                ret += ascii[entry][2]
+            for i,entry in enumerate(row):
+                if (i+j) % 2 ==0:
+                    ret += ascii1[entry][2]
+                else:
+                    ret += ascii2[entry][2]
 
         # Do the bottom line
         ret += '\n  '
-        for entry in self[-1]:
-            if entry == 2 or entry == 3 or entry == 5:
-                ret += '  V  '
+        for i,entry in enumerate(self.six_vertex_model[-1]):
+            if (i+n+1) % 2 ==0:
+                ret += '     '
             else:
                 ret += '  |  '
+
+
+
+#            if entry == 2 or entry == 3 or entry == 5:
+#                ret += '  V  '
+#            else:
+#                ret += '  |  '
 
         return ret
 

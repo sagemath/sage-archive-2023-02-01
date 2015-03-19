@@ -372,4 +372,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
 
 def unreduce_retract(parent, ambient_element):
+    """
+    TODO:: what do this function?
+    """
     return parent.retract(ambient_element)

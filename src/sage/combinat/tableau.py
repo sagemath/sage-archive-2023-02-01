@@ -257,7 +257,7 @@ class Tableau(CombinatorialObject, Element):
     __metaclass__ = ClasscallMetaclass
 
     @staticmethod
-    def __classcall_private__(self, t):
+    def __classcall_private__(cls, t):
         r"""
         This ensures that a tableau is only ever constructed as an
         ``element_class`` call of an appropriate parent.
@@ -274,14 +274,8 @@ class Tableau(CombinatorialObject, Element):
             sage: type(t)
             <class 'sage.combinat.tableau.Tableaux_all_with_category.element_class'>
         """
-        if isinstance(t, Tableau):
+        if isinstance(t, cls):
             return t
-        
-        if isinstance(t, Tableau):
-            Element.__init__(self, parent)
-            # Since we are (supposed to be) immutable, we can share the underlying data
-            CombinatorialObject.__init__(self, t._list)
-            return
 
         # CombinatorialObject verifies that t is a list
         # We must verify t is a list of iterables
@@ -294,15 +288,6 @@ class Tableau(CombinatorialObject, Element):
         from sage.combinat.partition import _Partitions
         if not map(len,t) in _Partitions:
             raise ValueError("A tableau must be a list of iterables of weakly decreasing length.")
-        
-        # t is not a legal tableau so we raise the appropriate error
-#        if not isinstance(t, list) or not all(isinstance(row, list) for row in t):
-#            raise ValueError("A tableau must be a list of lists.")
-
-        #from sage.combinat.partition import _Partitions
-        #try:
-        #    if not map(len,t) in _Partitions:
-        #        raise ValueError("A tableau must be a list of lists of weakly decreasing length.")
 
         return Tableaux_all().element_class(Tableaux_all(), t)
 
@@ -331,7 +316,7 @@ class Tableau(CombinatorialObject, Element):
             CombinatorialObject.__init__(self, t._list)
             return
 
-        # Normalize ``t`` to be a list of tuples.
+        # Normalize t to be a list of tuples.
         t = map(tuple, t)
 
         Element.__init__(self, parent)
@@ -356,19 +341,6 @@ class Tableau(CombinatorialObject, Element):
         else:
             self._set_parent(state[0])
             self.__dict__ = state[1]
-
-    def __str__(self):
-        r"""
-        Return a string represetation of ``self``. Looks like a list of
-        lists for backwards compatibility.
-
-        EXAMPLES::
-
-            sage: T = Tableau([[3, 4], [1, 2], ['$']])
-            sage: str(T)
-            "[[3, 4], [1, 2], ['$']]"
-        """
-        return self._repr_list()
 
     def _repr_(self):
         """
@@ -401,6 +373,10 @@ class Tableau(CombinatorialObject, Element):
             '[[1, 2, 3], [4, 5]]'
         """
         return repr(map(list, self._list))
+
+    # Overwrite the object from CombinatorialObject
+    # until this is no longer around
+    __str__ = _repr_list
 
     def _repr_diagram(self):
         """

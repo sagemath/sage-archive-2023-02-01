@@ -82,11 +82,12 @@ class RibbonTableau(SkewTableau):
         if expr is not None:
             return RibbonTableaux().from_expr(expr)
 
-        for row in rt:
-            if not isinstance(row, list):
-                raise TypeError("each element of the ribbon tableau must be a list")
-            if row == []:
-                raise TypeError("a ribbon tableau cannot have an empty list for a row")
+        try:
+            rt = map(tuple, rt)
+        except TypeError:
+            raise TypeError("each element of the ribbon tableau must be an iterable")
+        if not all(row for row in rt):
+            raise TypeError("a ribbon tableau cannot have empty rows")
         #calls the inherited __init__ method (of SkewTableau )
         return RibbonTableaux()(rt)
 

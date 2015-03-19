@@ -83,7 +83,7 @@ class SkewTableau(CombinatorialObject, Element):
             sage: SkewTableau(expr=[[1,1],[[5],[3,4],[1,2]]])
             [[None, 1, 2], [None, 3, 4], [5]]
         """
-        if isinstance(st, SkewTableau):
+        if isinstance(st, cls):
             return st
         if expr is not None:
             return SkewTableaux().from_expr(expr)
@@ -112,7 +112,7 @@ class SkewTableau(CombinatorialObject, Element):
         except TypeError:
             raise TypeError("each element of the skew tableau must be an iterable")
 
-        CombinatorialObject.__init__(self, list(st))
+        CombinatorialObject.__init__(self, st)
         Element.__init__(self, parent)
 
     def __setstate__(self, state):
@@ -159,6 +159,10 @@ class SkewTableau(CombinatorialObject, Element):
             [[None, 2, 3], [None, 4], [5]]
         """
         return repr([list(row) for row in self])
+
+    # Overwrite the object from CombinatorialObject
+    # until this is no longer around
+    __str__ = _repr_list
 
     def _repr_diagram(self):
         """

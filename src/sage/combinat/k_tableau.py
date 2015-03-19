@@ -1416,7 +1416,7 @@ class WeakTableau_bounded(WeakTableau_abstract):
         INPUT:
 
         - ``t`` -- weak tableau in `k`-bounded representation; the input is supposed to be
-          a list of lists specifying the rows of the tableau;  ``None`` is allowed as an
+          a list of iterables specifying the rows of the tableau;  ``None`` is allowed as an
           entry for skew weak `k`-tableaux
 
         TESTS::
@@ -1448,10 +1448,9 @@ class WeakTableau_bounded(WeakTableau_abstract):
         """
         k = parent.k
         self.k = k
-        self._list = [r for r in t]
         if parent._outer_shape.conjugate().length() > k:
             raise ValueError("%s is not a %s-bounded tableau"%(t, k))
-        ClonableList.__init__(self, parent, t)
+        ClonableList.__init__(self, parent, [list(r) for r in t])
 
     def _repr_diagram(self):
         r"""

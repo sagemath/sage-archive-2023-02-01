@@ -493,9 +493,9 @@ class Posets(object):
             btstring = []
             c=0
             for i in range(len(a)):
-                atstring=atstring+a[i]
+                atstring+=a[i]
             for i in range(len(b)):
-                btstring=btstring+b[i]
+                btstring+=b[i]
             for i in range(len(atstring)):
                 if atstring[i] > btstring[i]:
                     c = c+1

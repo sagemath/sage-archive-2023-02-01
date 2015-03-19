@@ -357,6 +357,19 @@ class Tableau(CombinatorialObject, Element):
             self._set_parent(state[0])
             self.__dict__ = state[1]
 
+    def __str__(self):
+        r"""
+        Return a string represetation of ``self``. Looks like a list of
+        lists for backwards compatibility.
+
+        EXAMPLES::
+
+            sage: T = Tableau([[3, 4], [1, 2], ['$']])
+            sage: str(T)
+            "[[3, 4], [1, 2], ['$']]"
+        """
+        return self._repr_list()
+
     def _repr_(self):
         """
         Return a string representation of ``self``.

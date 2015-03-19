@@ -1051,7 +1051,7 @@ class PartitionTuple(CombinatorialObject,Element):
         ``cell``.
 
         If ``cell`` `= (k,a,c)` then `(k,a+1,c)` must belong to the diagram of
-        the :class:`PartitionTuple`. If this is not the case when we return
+        the :class:`PartitionTuple`. If this is not the case then we return
         ``False``.
 
         .. NOTE::
@@ -1115,10 +1115,12 @@ class PartitionTuple(CombinatorialObject,Element):
         if comp>=len(self) or row+1>=len(self[comp]) or col>=self[comp][row+1]:
             raise ValueError('(comp, row+1, col) must be inside the diagram')
         from tableau_tuple import TableauTuple
-        g = TableauTuple(self.initial_tableau().to_list())
+        
+        g = self.initial_tableau().to_list()
         a=g[comp][row][col]
         g[comp][row][col:]=range(a+col+1,g[comp][row+1][col]+1)
         g[comp][row+1][:col+1]=range(a,a+col+1)
+        g = TableauTuple(g)
         g._garnir_cell=(comp,row,col)
         return g
 

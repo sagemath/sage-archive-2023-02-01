@@ -27,7 +27,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.modules import Modules
 from sage.structure.element import Element, parent
 from sage.misc.lazy_import import lazy_import
-lazy_import('sage.modules.module_with_basis_morphism',
+lazy_import('sage.modules.modules_with_basis.morphism',
             ['ModuleMorphismByLinearity',
              'ModuleMorphismFromMatrix',
              'ModuleMorphismFromFunction',
@@ -400,7 +400,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: phi(x[1]), phi(x[2]), phi(x[3])
                 (B[1], 2*B[2], 6*B[3])
 
-            See also: :class:`sage.modules.module_with_basis_morphism.DiagonalModuleMorphism`.
+            See also: :class:`sage.modules.modules_with_basis.morphism.DiagonalModuleMorphism`.
 
             With the ``matrix=m`` argument, this constructs the module
             morphism whose matrix in the distinguished basis of `X`
@@ -416,7 +416,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 B[3] + 5*B[4]
 
 
-            See also: :class:`sage.modules.module_with_basis_morphism.ModuleMorphismFromMatrix`.
+            See also: :class:`sage.modules.modules_with_basis.morphism.ModuleMorphismFromMatrix`.
 
             With ``triangular="upper"``, the constructed module morphism is
             assumed to be upper triangular; that is its matrix in the
@@ -448,7 +448,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             morphism from a function::
 
                 sage: X = CombinatorialFreeModule(QQ, [0,1,2,3,4]); x = X.basis()
-                sage: from sage.modules.module_with_basis_morphism import TriangularModuleMorphismFromFunction
+                sage: from sage.modules.modules_with_basis.morphism import TriangularModuleMorphismFromFunction
                 sage: def f(x): return x + X.term(0, sum(x.coefficients()))
                 sage: phi = X.module_morphism(function=f, codomain=X, triangular="upper")
                 sage: phi(x[2] + 3*x[4])
@@ -457,7 +457,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 B[2] + 3*B[4]
 
             For details and further optional arguments, see
-            :class:`sage.modules.module_with_basis_morphism.TriangularModuleMorphism`.
+            :class:`sage.modules.modules_with_basis.morphism.TriangularModuleMorphism`.
 
             .. WARNING::
 

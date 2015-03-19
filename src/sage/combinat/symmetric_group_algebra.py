@@ -76,14 +76,14 @@ def SymmetricGroupAlgebra(R, W=None):
         sage: SGA.group()
         Standard permutations of 4
         sage: SGA.an_element()
-        [1, 2, 3, 4] + 2*[1, 2, 4, 3] + 3*[1, 3, 2, 4] + [1, 3, 4, 2]
+        [1, 2, 3, 4] + 2*[1, 2, 4, 3] + 3*[1, 3, 2, 4] + [4, 1, 2, 3]
 
         sage: SGA = SymmetricGroupAlgebra(QQ, SymmetricGroup(4)); SGA
         Symmetric group algebra of order 4 over Rational Field
         sage: SGA.group()
         Symmetric group of order 4! as a permutation group
         sage: SGA.an_element()
-        () + 2*(3,4) + 3*(2,3) + (1,2,3,4)
+        () + 2*(3,4) + 3*(2,3) + (1,4,3,2)
 
         Symmetric group of order 3! as a permutation group
         sage: SGA = SymmetricGroupAlgebra(QQ, WeylGroup(["A",3], prefix='s')); SGA

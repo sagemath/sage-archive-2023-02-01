@@ -5884,6 +5884,18 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         Return a coerce map or ``True`` if there exists a coerce map
         from ``G``.
 
+        .. WARNING::
+
+            The coerce maps between ``Permutations(n)`` and
+            ``SymmetricGroup(n)`` exist, but do not respect the
+            multiplication when the global variable
+            ``Permutations.global_options['mult']`` (see
+            :meth:`sage.combinat.permutation.Permutations.global_options` )
+            is set to ``'r2l'``. (Indeed, the multiplication
+            in ``Permutations(n)`` depends on this global
+            variable, while the multiplication in
+            ``SymmetricGroup(n)`` does not.)
+
         EXAMPLES::
 
             sage: P = Permutations(6)

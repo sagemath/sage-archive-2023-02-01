@@ -38,7 +38,7 @@ def SymmetricGroupAlgebra(R, n, index_set=None):
 
     - ``index_set`` -- (optional, default: ``Permutations(n)``) the
       indexing set as either :class:`Permutations` or
-      :class:`SymmetricGroup` (notice that the latter option leads to
+      :class:`SymmetricGroup` (but the latter option leads to
       an algebra with fewer features)
 
     EXAMPLES::
@@ -101,13 +101,20 @@ def SymmetricGroupAlgebra(R, n, index_set=None):
 
     .. WARNING::
 
-        The semantics of multiplication in symmetric group algebras is
-        determined by the order in which permutations are multiplied,
-        which currently defaults to "in such a way that multiplication
-        is associative with permutations acting on integers from the
-        right", but can be changed to the opposite order at runtime
-        by setting a global variable (see
+        The semantics of multiplication in symmetric group algebras
+        with index set ``Permutations(n)`` is determined by the order
+        in which permutations are multiplied, which currently defaults
+        to "in such a way that multiplication is associative with
+        permutations acting on integers from the right", but can be
+        changed to the opposite order at runtime by setting the global
+        variable ``Permutations.global_options['mult']`` (see
         :meth:`sage.combinat.permutation.Permutations.global_options` ).
+        On the other hand, the semantics of multiplication in symmetric
+        group algebras with index set ``SymmetricGroup(n)`` does not
+        depend on this global variable. (This has the awkward
+        consequence that the coercions between these two sorts of
+        symmetric group algebras do not respect multiplication when
+        this global variable is set to ``'r2l'``.)
         In view of this, it is recommended that code not rely on the
         usual multiplication function, but rather use the methods
         :meth:`left_action_product` and :meth:`right_action_product`
@@ -362,9 +369,10 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         """
         a = self(left)
         b = self(right)
-        I = self.basis().keys()
+        if not isinstance(self._indices, Permutations):
+            return b * a
         P = Permutations(self.n)
-        return self.sum_of_terms([(I(P([P(p)[i-1] for i in P(q)])), x * y)
+        return self.sum_of_terms([(P([p[i-1] for i in q]), x * y)
                                   for (p, x) in a for (q, y) in b])
         # Why did we use P([p[i-1] for i in q])
         # instead of p.left_action_product(q) ?
@@ -423,9 +431,10 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         """
         a = self(left)
         b = self(right)
-        I = self.basis().keys()
+        if not isinstance(self._indices, Permutations):
+            return a * b
         P = Permutations(self.n)
-        return self.sum_of_terms([(I(P([P(q)[i-1] for i in P(p)])), x * y)
+        return self.sum_of_terms([(P([q[i-1] for i in p]), x * y)
                                   for (p, x) in a for (q, y) in b])
         # Why did we use P([q[i-1] for i in p])
         # instead of p.right_action_product(q) ?
@@ -901,6 +910,11 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         Return a complete list of representatives of conjugacy
         classes of the underlying symmetric group.
 
+        .. WARNING::
+
+            This currently is only implemented when ``self`` is built using
+            the index set ``Permutations(n)``.
+
         EXAMPLES::
 
             sage: SG=SymmetricGroupAlgebra(ZZ,3)
@@ -908,7 +922,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             [[2, 3, 1], [2, 1, 3], [1, 2, 3]]
 
             sage: SGg = SymmetricGroup(3).algebra(ZZ)
-            sage: SGg._conjugacy_classes_representatives_underlying_group()
+            sage: SGg._conjugacy_classes_representatives_underlying_group() # not tested
             [(1,2,3), (1,2), ()]
         """
         P = self.basis().keys()

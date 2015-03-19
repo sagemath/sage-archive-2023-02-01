@@ -20,9 +20,9 @@ of the possible arguments.
 
 EXAMPLES:
 
-Construct a morphism through the
-:meth:`ModulesWithBasis.ParentMethods.module_morphism` method by specifying the
-image of each element of the distinguished basis::
+We construct a morphism through the method
+:meth:`ModulesWithBasis.ParentMethods.module_morphism`, by specifying
+the image of each element of the distinguished basis::
 
     sage: X = CombinatorialFreeModule(QQ, [1,2,3]);   x = X.basis()
     sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4]); y = Y.basis()
@@ -822,7 +822,7 @@ class TriangularModuleMorphism(ModuleMorphism):
 
             sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); x = X.basis()
             sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3]); y = Y.basis()
-            sage: ult = lambda i: sum(  y[j] for j in range(i,4)  ) # uni-upper
+            sage: ult = lambda i: sum(  y[j] for j in range(i,4)  ) # uni-lower
             sage: phi = X.module_morphism(ult, triangular="lower", codomain=Y)
             sage: phi._invert_on_basis(2)
             B[2] - B[3]

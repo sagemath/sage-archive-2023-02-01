@@ -1911,7 +1911,7 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
             the_list = options['list']
         elif 'rows' in options:
             rows=options['rows']
-#            list=Tableau(rows).to_word_by_column()
+#            the_list=Tableau(rows).to_word_by_column()
             rows=Tableau(rows).conjugate()
             the_list=[]
             for col in rows:

@@ -490,10 +490,8 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
                 1  1  1  1  1  1  1  1
                 2  2  2  2  4  4  4
                 3  4  4
-                sage: b.reduced_form().pp()
-                *
-                4  4  4
-                4  4
+                sage: b.reduced_form()
+                [['*'], [4, 4, 4], [4, 4]]
             """
             oldtab = self.to_tableau()
             newtab = []
@@ -508,6 +506,8 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
                     else:
                         j += 1
                 newtab.append(row)
+            from sage.misc.stopgap import stopgap
+            stopgap("Return value is no longer a Tableau.", 17997)
             return newtab
 
         def seg(self):

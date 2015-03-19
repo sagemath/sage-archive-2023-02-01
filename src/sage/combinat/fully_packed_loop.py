@@ -1,5 +1,71 @@
 r"""
 Fully packed loops
+
+A class for fully packed loops [Propp]_.
+We can create a fully packed loop using the corresponding alternating sign matrix::
+
+    sage: A = AlternatingSignMatrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
+    sage: fpl = FullyPackedLoop(A)
+    sage: fpl
+        |         |
+        |         |
+        # -- #    #
+             |    |
+             |    |
+     -- #    #    # --
+        |    |
+        |    |
+        #    # -- #
+        |         |
+        |         |
+
+The class also has a plot method::
+
+    sage: fpl.plot()
+    Graphics object consisting of 15 graphics primitives
+
+.. PLOT::
+    :width: 200 px
+
+    A = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    fpl = FullyPackedLoop(A)
+    p = fpl.plot()
+    sphinx_plot(p)
+
+Note that we can also create a fully packed loop from a six vertex model configuration::
+
+    sage: S = SixVertexModel(3, boundary_conditions='ice').from_alternating_sign_matrix(A)
+    sage: S
+        ^    ^    ^
+        |    |    |
+    --> # -> # -> # <--
+        ^    ^    |
+        |    |    V
+    --> # -> # <- # <--
+        ^    |    |
+        |    V    V
+    --> # <- # <- # <--
+        |    |    |
+        V    V    V
+    sage: fpl = FullyPackedLoop(S)
+    sage: fpl
+        |         |
+        |         |
+        # -- #    #
+             |    |
+             |    |
+     -- #    #    # --
+        |    |
+        |    |
+        #    # -- #
+        |         |
+        |         |
+
+REFERENCES:
+
+.. [Propp] James Propp.
+   *The Many Faces of Alternating Sign Matrices*
+   Discrete Mathematics and Theoretical Computer Science 43 (2001): 58
 """
 from sage.structure.sage_object import SageObject
 from sage.combinat.six_vertex_model import SquareIceModel, SixVertexConfiguration

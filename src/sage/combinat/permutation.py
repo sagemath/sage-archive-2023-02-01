@@ -1370,7 +1370,7 @@ class Permutation(CombinatorialObject, Element):
             sage: q.left_action_product(p)
             [1, 3, 2]
         """
-        return Permutations()(left_action_product(self[:], lp[:]))
+        return Permutations()(left_action_product(self._list, lp[:]))
 
     _left_to_right_multiply_on_left = left_action_product
 
@@ -1402,7 +1402,7 @@ class Permutation(CombinatorialObject, Element):
             sage: q.right_action_product(p)
             [3, 2, 1]
         """
-        return Permutations()(right_action_product(self[:], rp[:]))
+        return Permutations()(right_action_product(self._list, rp[:]))
 
     _left_to_right_multiply_on_right = right_action_product
 
@@ -5770,10 +5770,17 @@ class StandardPermutations_n_abstract(Permutations):
     """
     def __init__(self, n, category=None):
         """
-        TESTS::
+        TESTS:
+
+        We skip the reduced word method because it does not respect the
+        ordering for multiplication::
 
             sage: SP = Permutations(3)
+            sage: TestSuite(SP).run(skip='_test_reduced_word')
+
+            sage: SP.global_options(mult='r2l')
             sage: TestSuite(SP).run()
+            sage: SP.global_options.reset()
         """
         self.n = n
         if category is None:
@@ -5999,34 +6006,6 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         """
         return factorial(self.n)
 
-    def gens(self):
-        """
-        Return the generators of ``self`` (as a group).
-
-        EXAMPLES::
-
-            sage: P = Permutations(5)
-            sage: P.gens()
-            ([2, 3, 4, 5, 1], [2, 1, 3, 4, 5])
-
-        TESTS::
-
-            sage: P = Permutations(2)
-            sage: P.gens()
-            ([2, 1],)
-            sage: P = Permutations(1)
-            sage: P.gens()
-            ()
-        """
-        if self.n <= 1:
-            return ()
-        if self.n == 2:
-            return (self.element_class(self, [2,1]),)
-        c = range(2, self.n+1)
-        c.append(1)
-        s = [2, 1] + range(3, self.n+1)
-        return (self.element_class(self, c), self.element_class(self, s))
-
     def element_in_conjugacy_classes(self, nu):
         r"""
         Return a permutation with cycle type ``nu``.
@@ -6207,18 +6186,6 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         g[i] = i
         return self.element_class(self, g)
 
-    def _an_element_(self):
-        """
-        Return an element of ``self``.
-
-        EXAMPLES::
-
-            sage: P = Permutations(4)
-            sage: P._an_element_()
-            [1, 3, 4, 2]
-        """
-        return self.prod(self.gens())
-
     class Element(Permutation):
         def has_left_descent(self, i, mult=None):
             r"""
@@ -6253,6 +6220,11 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
                 differently than their Weyl group counterparts. In
                 particular, the indexing is 0-based. This could lead to
                 errors. Instead, construct the descent set as in the example.
+
+            .. WARNING::
+
+                The optional input ``mult`` might disappear once :trac:`14881`
+                is fixed.
 
             EXAMPLES::
 
@@ -6307,6 +6279,11 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
                 particular, the indexing is 0-based. This could lead to
                 errors. Instead, construct the descent set as in the example.
 
+            .. WARNING::
+
+                The optional input ``mult`` might disappear once :trac:`14881`
+                is fixed.
+
             EXAMPLES::
 
                 sage: P = Permutations(4)
@@ -6342,9 +6319,9 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
                 # They have different parents (but both are (like) Permutations of n)
                 mul_order = self.parent().global_options['mult']
                 if mul_order == 'l2r':
-                    p = right_action_product(list(self), list(other))
+                    p = right_action_product(self._list, other._list)
                 elif mul_order == 'r2l':
-                    p = left_action_product(list(self), list(other))
+                    p = left_action_product(self._list, other._list)
                 return Permutations(len(p))(p)
             # They have the same parent
             return self._mul_(other)
@@ -6356,14 +6333,14 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             EXAMPLES::
 
                 sage: P = Permutations(4)
-                sage: P.prod(P.gens()).parent() is P
+                sage: P.prod(P.group_generators()).parent() is P
                 True
             """
             mul_order = self.parent().global_options['mult']
             if mul_order == 'l2r':
-                p = right_action_same_n(list(self), list(other))
+                p = right_action_same_n(self._list, other._list)
             elif mul_order == 'r2l':
-                p = left_action_same_n(list(self), list(other))
+                p = left_action_same_n(self._list, other._list)
             return self.__class__(self.parent(), p)
 
         @combinatorial_map(order=2, name='inverse')

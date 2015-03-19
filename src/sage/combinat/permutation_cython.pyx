@@ -258,10 +258,15 @@ cpdef list left_action_product(list S, list lp):
         [3, 2, 1, 4]
         sage: left_action_product(q, p)
         [1, 3, 2, 4]
+        sage: q
+        [3, 1, 2]
     """
+    cdef int i
+
     # Pad the permutations if they are of
     # different sizes
-    cdef int i
+    S = S[:]
+    lp = lp[:]
     for i in range(len(S)+1, len(lp)+1):
         S.append(i)
     for i in range(len(lp)+1, len(S)+1):
@@ -287,8 +292,15 @@ cpdef list right_action_product(list S, list rp):
         [1, 3, 2, 4]
         sage: right_action_product(q, p)
         [3, 2, 1, 4]
+        sage: q
+        [3, 1, 2]
     """
     cdef int i
+
+    # Pad the permutations if they are of
+    # different sizes
+    S = S[:]
+    rp = rp[:]
     for i in range(len(S)+1, len(rp)+1):
         S.append(i)
     for i in range(len(rp)+1, len(S)+1):

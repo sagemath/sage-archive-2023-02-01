@@ -55,10 +55,27 @@ class FullyPackedLoop(SageObject):
             [ 0  1  0]
             [ 1 -1  1]
             [ 0  1  0]
+
+        Note that if anything else is used to generate the fully packed loop an error will occur::
+
+            sage: fpl = FullyPackedLoop(5)
+            Traceback (most recent call last):
+            ...
+            TypeError: The generator for a fully packed loop must either be an AlternatingSignMatrix or a SixVertexConfiguration
+
+            sage: fpl = FullyPackedLoop((1, 2, 3))
+            Traceback (most recent call last):
+            ...
+            TypeError: The generator for a fully packed loop must either be an AlternatingSignMatrix or a SixVertexConfiguration
+
         """
         if isinstance(generator, AlternatingSignMatrix):
-            generator = generator.to_six_vertex_model()
-        self.six_vertex_model = generator
+            self.six_vertex_model = generator.to_six_vertex_model()
+        elif isinstance(generator, SixVertexConfiguration):
+            self.six_vertex_model = generator
+        else:
+            raise TypeError('The generator for a fully packed loop must either be an AlternatingSignMatrix or a SixVertexConfiguration')
+
 
     def _repr_():
         """

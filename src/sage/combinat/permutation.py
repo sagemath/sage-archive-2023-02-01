@@ -263,7 +263,7 @@ from sage.combinat.permutation_cython import (left_action_product,
              right_action_product, left_action_same_n, right_action_same_n)
 
 PermutationOptions = GlobalOptions(name='permutations',
-    doc=r"""ht
+    doc=r"""
     Set the global options for elements of the permutation class. The
     defaults are for permutations to be displayed in list notation and
     the multiplication done from left to right (like in GAP) -- that
@@ -6337,11 +6337,15 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             """
             if not isinstance(other, StandardPermutations_n.Element):
                 return Permutation.__mul__(self, other)
-            # Make sure they have the same parent
-            if other.parent().n < self.parent().n:
-                other = self.parent()(other)
-            if other.parent().n > self.parent().n:
-                self = other.parent()(self)
+            if other.parent() is not self.parent():
+                # They have different parents (but both are (like) Permutations of n)
+                mul_order = self.parent().global_options['mult']
+                if mul_order == 'l2r':
+                    p = right_action_product(list(self), list(other))
+                elif mul_order == 'r2l':
+                    p = left_action_product(list(self), list(other))
+                return Permutations(len(p))(p)
+            # They have the same parent
             return self._mul_(other)
 
         def _mul_(self, other):

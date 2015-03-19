@@ -7,6 +7,7 @@ from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix
 from sage.plot.graphics import Graphics
 from sage.plot.line import line
 
+
 class FullyPackedLoop(SageObject):
     """
     A class for fully packed loops
@@ -89,7 +90,7 @@ class FullyPackedLoop(SageObject):
                 |    |    |
             --> # <- # <- # <--
                 |    ^    ^
-                V    |    |  
+                V    |    |
             --> # -> # <- # <--
                 |    |    ^
                 V    V    |
@@ -108,7 +109,7 @@ class FullyPackedLoop(SageObject):
                  [r'     ', ' -', r'  |  ', '  ']] # RD
 
         ascii2 = [[r'  |  ', '  ', r'  |  ', '  '], # LR
-                 [r'     ', ' -', r'     ', '  '], # LU
+                 [r'     ', ' -', r'  |  ', '  '], # LU
                  [r'  |  ', ' -', r'     ', '  '], # LD
                  [r'     ', ' -', r'     ', '- '], # UD
                  [r'     ', '  ', r'  |  ', '- '], # UR

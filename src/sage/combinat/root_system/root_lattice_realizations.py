@@ -1049,12 +1049,11 @@ class RootLatticeRealizations(Category_over_base_ring):
             rels = []
             pos_roots = set(self.positive_roots())
             simple_roots = self.simple_roots()
-            dim = len(simple_roots)
             if restricted:
                 pos_roots = [beta for beta in pos_roots if beta not in simple_roots]
             for root in pos_roots:
-                for i in range(1, dim+1):
-                    root_cover = root + simple_roots[i]
+                for simple_root in simple_roots:
+                    root_cover = root + simple_root
                     if root_cover in pos_roots:
                         rels.append((root, root_cover))
             return Poset((pos_roots, rels), cover_relations=True, facade=facade)

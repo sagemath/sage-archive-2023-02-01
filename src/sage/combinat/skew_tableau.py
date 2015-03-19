@@ -90,8 +90,8 @@ class SkewTableau(CombinatorialObject, Element):
 
         try:
             st = map(tuple, st)
-        except (TypeError, ValueError):
-            raise TypeError("each element of the skew tableau must be a list")
+        except TypeError:
+            raise TypeError("each element of the skew tableau must be an iterable")
 
         for row in st:
             if not row:
@@ -110,7 +110,7 @@ class SkewTableau(CombinatorialObject, Element):
         try:
             st = map(tuple, st)
         except TypeError:
-            raise TypeError("each element of the skew tableau must be a list")
+            raise TypeError("each element of the skew tableau must be an iterable")
 
         CombinatorialObject.__init__(self, list(st))
         Element.__init__(self, parent)
@@ -189,7 +189,7 @@ class SkewTableau(CombinatorialObject, Element):
             sage: Tableau([])._repr_compact()
             '-'
         """
-        if len(self._list)==0:
+        if not self._list:
             return '-'
         str_rep = lambda x: '%s'%x if x is not None else '.'
         return '/'.join(','.join(str_rep(r) for r in row) for row in self._list)

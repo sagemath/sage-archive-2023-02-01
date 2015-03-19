@@ -196,15 +196,16 @@ class Tableau(CombinatorialObject, Element):
 
     INPUT:
 
-    - ``t`` -- a Tableau, a list of lists, or an empty list
+    - ``t`` -- a Tableau, a list of iterables, or an empty list
 
     OUTPUT:
 
     - A Tableau object constructed from ``t``.
 
-    A tableau in Sage is a finite list of lists, whose lengths are weakly
-    decreasing, or an empty list, representing the empty tableau.  The entries
-    of a tableau can be any sage object.
+    A tableau in Sage is a finite list of lists (which can be entered as
+    arbitrary iterables), whose lengths are weakly decreasing. This list,
+    in particular, can be empty, representing the empty tableau.  The
+    entries of a tableau can be any Sage objects.
 
     Note that Sage uses the English convention for partitions and
     tableaux; the longer rows are displayed on top.
@@ -246,11 +247,11 @@ class Tableau(CombinatorialObject, Element):
         sage: Tableau([[1],[2,3]])
         Traceback (most recent call last):
         ...
-        ValueError: A tableau must be a list of lists of weakly decreasing length.
+        ValueError: A tableau must be a list of iterables of weakly decreasing length.
         sage: Tableau([1,2,3])
         Traceback (most recent call last):
         ...
-        ValueError: A tableau must be a list of lists.
+        ValueError: A tableau must be a list of iterables.
 
     """
     __metaclass__ = ClasscallMetaclass
@@ -283,16 +284,16 @@ class Tableau(CombinatorialObject, Element):
             return
 
         # CombinatorialObject verifies that t is a list
-        # We must verify t is a list of lists
+        # We must verify t is a list of iterables
         try:
             t = map(tuple, t)
         except TypeError:
-            raise ValueError("A tableau must be a list of lists.")
+            raise ValueError("A tableau must be a list of iterables.")
 
         # and that it has partition shape
         from sage.combinat.partition import _Partitions
         if not map(len,t) in _Partitions:
-            raise ValueError("A tableau must be a list of lists of weakly decreasing length.")
+            raise ValueError("A tableau must be a list of iterables of weakly decreasing length.")
         
         # t is not a legal tableau so we raise the appropriate error
 #        if not isinstance(t, list) or not all(isinstance(row, list) for row in t):
@@ -330,8 +331,7 @@ class Tableau(CombinatorialObject, Element):
             CombinatorialObject.__init__(self, t._list)
             return
 
-        # CombinatorialObject verifies that t is a list
-        # We must verify t is a list of lists
+        # Normalize ``t`` to be a list of tuples.
         t = map(tuple, t)
 
         Element.__init__(self, parent)
@@ -387,7 +387,7 @@ class Tableau(CombinatorialObject, Element):
             sage: T._repr_list()
             '[[1, 2, 3], [4, 5]]'
         """
-        return repr(map(list,self._list))
+        return repr(map(list, self._list))
 
     def _repr_diagram(self):
         """
@@ -2032,10 +2032,10 @@ class Tableau(CombinatorialObject, Element):
         else:
             l = len(left[0])
 
-        for row in range(len(right)):
-            st.append((None,)*l + right[row])
-        for row in range(len(left)):
-            st.append(left[row])
+        for row in right:
+            st.append((None,)*l + row)
+        for row in left:
+            st.append(row)
 
         from sage.combinat.skew_tableau import SkewTableau
         return SkewTableau(st).rectify()
@@ -3306,7 +3306,7 @@ class SemistandardTableau(Tableau):
 
     INPUT:
 
-    - ``t`` -- a tableau, a list of lists, or an empty list
+    - ``t`` -- a tableau, a list of iterables, or an empty list
 
     OUTPUT:
 
@@ -3418,6 +3418,11 @@ class SemistandardTableau(Tableau):
             Semistandard tableaux of size 3 and maximum entry 3
             sage: isinstance(r, Tableau)
             True
+            sage: s2 = SemistandardTableaux(3)([(1,1),(2,)])
+            sage: s2 == s
+            True
+            sage: s2.parent()
+            Semistandard tableaux of size 3 and maximum entry 3
         """
         super(SemistandardTableau, self).__init__(parent, t)
 
@@ -3441,7 +3446,7 @@ class StandardTableau(SemistandardTableau):
 
     INPUT:
 
-    - ``t`` -- a Tableau, a list of lists, or an empty list
+    - ``t`` -- a Tableau, a list of iterables, or an empty list
 
     OUTPUT:
 
@@ -3915,7 +3920,7 @@ class Tableaux(UniqueRepresentation, Parent):
 
     A tableau in Sage is a finite list of lists, whose lengths are weakly
     decreasing, or an empty list, representing the empty tableau.  The entries
-    of a tableau can be any sage object. Because of this, no enumeration
+    of a tableau can be any Sage objects. Because of this, no enumeration
     through the set of Tableaux is possible.
 
     EXAMPLES::
@@ -4079,11 +4084,11 @@ class Tableaux(UniqueRepresentation, Parent):
         elif isinstance(x, list):
             try:
                 for row in x:
-                    tuple(row)
+                    iter(row)
             except TypeError:
                 return False
             # any list of lists of partition shape is a tableau
-            return map(len,x) in _Partitions
+            return map(len, x) in _Partitions
         else:
             return False
 

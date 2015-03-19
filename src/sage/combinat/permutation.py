@@ -6182,10 +6182,11 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
             sage: A = SymmetricGroup([2,3,7]); A.cartan_type()
             ['A', 2]
+            sage: A = SymmetricGroup([]); A.cartan_type()
+            ['A', 0]
         """
         from sage.combinat.root_system.cartan_type import CartanType
-        return CartanType(['A', self.n - 1])
-        # TODO: Is the answer OK for n = 0 ?
+        return CartanType(['A', max(self.n - 1,0)])
 
     def simple_reflection(self, i):
         r"""

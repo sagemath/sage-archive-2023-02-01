@@ -345,9 +345,12 @@ class SymmetricGroup(PermutationGroup_symalt):
 
             sage: A = SymmetricGroup([2,3,7]); A.cartan_type()
             ['A', 2]
+
+            sage: A = SymmetricGroup([]); A.cartan_type()
+            ['A', 0]
         """
         from sage.combinat.root_system.cartan_type import CartanType
-        return CartanType(['A', self.degree() - 1])
+        return CartanType(['A', max(self.degree() - 1,0)])
 
     def simple_reflection(self, i):
         r"""
@@ -546,7 +549,7 @@ class SymmetricGroup(PermutationGroup_symalt):
             Symmetric group algebra of order 4 over Rational Field
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
-        return SymmetricGroupAlgebra(base_ring, len(self._domain), self)
+        return SymmetricGroupAlgebra(base_ring, self)
 
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):

@@ -28,18 +28,22 @@ permutation_options = PermutationOptions
 
 # TODO: Remove this function and replace it with the class
 # TODO: Create parents for other bases (such as the seminormal basis)
-def SymmetricGroupAlgebra(R, n, index_set=None):
+def SymmetricGroupAlgebra(R, W=None):
     """
-    Return the symmetric group algebra of order ``n`` over the ring ``R``.
+    Return the symmetric group algebra of order ``W`` over the ring ``R``.
 
     INPUT:
 
-    - ``n`` -- the order of the symmetric group algebra
+    - ``W`` -- a symmetric group; alternatively an integer `n` can be
+      provided, as shorthand for ``Permutations(n)``.
 
-    - ``index_set`` -- (optional, default: ``Permutations(n)``) the
-      indexing set as either :class:`Permutations` or
-      :class:`SymmetricGroup` (but the latter option leads to
-      an algebra with fewer features)
+    This support several implementations of the symmetric group. At
+    this point this has been tested with ``W=Permutations(n)``,
+    ``W=SymmetricGroup(n)`` or ``W=WeylGroup(['A',n-1])``.
+
+    .. WARNING::
+
+        Some features are failing in the later two cases.
 
     EXAMPLES::
 
@@ -63,6 +67,44 @@ def SymmetricGroupAlgebra(R, n, index_set=None):
         [1, 2, 3] + [1, 3, 2] + [2, 1, 3] + [2, 3, 1] + [3, 1, 2] + [3, 2, 1]
         sage: b*a == a
         True
+
+    We now construct the symmetric group algebra by providing
+    explicitly the underlying group::
+
+        sage: SGA = SymmetricGroupAlgebra(QQ, Permutations(4)); SGA
+        Symmetric group algebra of order 4 over Rational Field
+        sage: SGA.group()
+        Standard permutations of 4
+        sage: SGA.an_element()
+        [1, 2, 3, 4] + 2*[1, 2, 4, 3] + 3*[1, 3, 2, 4] + [1, 3, 4, 2]
+
+        sage: SGA = SymmetricGroupAlgebra(QQ, SymmetricGroup(4)); SGA
+        Symmetric group algebra of order 4 over Rational Field
+        sage: SGA.group()
+        Symmetric group of order 4! as a permutation group
+        sage: SGA.an_element()
+        () + 2*(3,4) + 3*(2,3) + (1,2,3,4)
+
+        Symmetric group of order 3! as a permutation group
+        sage: SGA = SymmetricGroupAlgebra(QQ, WeylGroup(["A",3], prefix='s')); SGA
+        Symmetric group algebra of order 4 over Rational Field
+        sage: SGA.group()
+        Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space)
+        sage: SGA.an_element()
+        2*s1*s2*s3*s2*s1 + 3*s1*s2*s3*s1 + s1*s2*s3 + 1
+
+    The preferred way to construct the symmetric group algebra is to
+    go through the usual ``algebra`` method::
+
+        sage: SGA = Permutations(3).algebra(QQ); SGA
+        Symmetric group algebra of order 3 over Rational Field
+        sage: SGA.group()
+        Standard permutations of 3
+
+        sage: SGA = SymmetricGroup(3).algebra(QQ); SGA
+        Symmetric group algebra of order 3 over Rational Field
+        sage: SGA.group()
+        Symmetric group of order 3! as a permutation group
 
     The canonical embedding from the symmetric group algebra of order
     `n` to the symmetric group algebra of order `p > n` is available as
@@ -123,15 +165,31 @@ def SymmetricGroupAlgebra(R, n, index_set=None):
 
     TESTS::
 
+        sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
         sage: TestSuite(QS3).run()
+
+        sage: QS3.group()
+        Standard permutations of 3
+
+        sage: QS3.one_basis()
+        [1, 2, 3]
+
+        sage: p1 = Permutation([1,2,3])
+        sage: p2 = Permutation([2,1,3])
+        sage: QS3.product_on_basis(p1,p2)
+        [2, 1, 3]
+
+        sage: W = WeylGroup(["A",3])
+        sage: SGA = SymmetricGroupAlgebra(QQ, W)
+        sage: SGA.group() is W
+        True
+        sage: TestSuite(SGA).run()
     """
-    if index_set is not None and not isinstance(index_set, (Permutations, SymmetricGroup)):
-        raise TypeError("the index set must be either Permutations or SymmetricGroup")
-    return SymmetricGroupAlgebra_n(R, n, index_set)
+    return SymmetricGroupAlgebra_n(R, W)
 
 class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
-    def __init__(self, R, n, index_set=None):
+    def __init__(self, R, W):
         """
         TESTS::
 
@@ -158,11 +216,21 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: G(S.an_element())
             () + 2*(3,4) + 3*(2,3) + (2,3,4)
         """
-        if index_set is None:
-            index_set = Permutations(n)
-        self.n = n
-        cat = WeylGroups().Algebras(R).FiniteDimensional()
-        CombinatorialFreeModule.__init__(self, R, index_set, prefix='',
+        from sage.rings.semirings.non_negative_integer_semiring import NN
+        if W in NN:
+            W = Permutations(W)
+        if not W in WeylGroups or W.cartan_type().type() != 'A':
+            raise ValueError("W (=%s) should be a symmetric group")
+        rank = W.cartan_type().rank()
+        if rank == 0:   # Ambiguous: n=0 or n=1?
+            # The following trick works for both SymmetricGroup(n) and
+            # Permutations(n) and it's currently not possible to
+            # construct the WeylGroup for n=0
+            self.n = len(W.one().fixed_points())
+        else:
+            self.n = W.cartan_type().rank() + 1
+        cat = W.category().Algebras(R)
+        CombinatorialFreeModule.__init__(self, R, W, prefix='',
                                          latex_prefix='', category=cat)
 
     def _repr_(self):
@@ -269,55 +337,37 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
         return super(SymmetricGroupAlgebra_n, self)._element_constructor_(x)
 
+    def _sibling(self, n):
+        r"""
+        Return the sibling group algebra of order `n`.
+
+        EXAMPLES::
+
+            sage: SGA = SymmetricGroupAlgebra(QQ, Permutations(3))._sibling(4); SGA
+            Symmetric group algebra of order 4 over Rational Field
+            sage: SGA.group()
+            Standard permutations of 4
+
+            sage: SGA = SymmetricGroupAlgebra(QQ, SymmetricGroup(3))._sibling(4); SGA
+            Symmetric group algebra of order 4 over Rational Field
+            sage: SGA.group()
+            Symmetric group of order 4! as a permutation group
+
+            sage: SGA = SymmetricGroupAlgebra(QQ, WeylGroup(["A",2]))._sibling(4); SGA
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Constructing the sibling algebra of a different order
+            only implemented for PermutationGroup and SymmetricGroup
+        """
+        try:
+            W = self.basis().keys().__class__(n)
+        except StandardError:
+            raise NotImplementedError("Constructing the sibling algebra of a different order only implemented for PermutationGroup and SymmetricGroup")
+        return SymmetricGroupAlgebra(self.base_ring(), W)
+
+
     # _repr_ customization: output the basis element indexed by [1,2,3] as [1,2,3]
     _repr_option_bracket = False
-
-    def group(self):
-        """
-        Return the underlying group.
-
-        .. WARNING::
-
-            This is not necessarily the index set of the basis
-            ``self``. The latter could also be
-            ``Permutations(n)``.
-
-        EXAMPLES::
-
-            sage: SymmetricGroupAlgebra(QQ,4).group()
-            Symmetric group of order 4! as a permutation group
-        """
-        return SymmetricGroup(self.n)
-
-    @cached_method
-    def one_basis(self):
-        """
-        Return the identity of the symmetric group, as per
-        ``AlgebrasWithBasis.ParentMethods.one_basis``.
-
-        EXAMPLES::
-
-            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
-            sage: QS3.one_basis()
-            [1, 2, 3]
-        """
-        P = self.basis().keys()
-        return P(range(1,self.n+1))
-
-    def product_on_basis(self, left, right):
-        """
-        Return the product of the basis elements indexed by ``left`` and
-        ``right``.
-
-        EXAMPLES::
-
-            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
-            sage: p1 = Permutation([1,2,3])
-            sage: p2 = Permutation([2,1,3])
-            sage: QS3.product_on_basis(p1,p2)
-            [2, 1, 3]
-        """
-        return self.monomial(left * right)
 
     def left_action_product(self, left, right):
         """
@@ -621,11 +671,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
             :meth:`retract_direct_product`, :meth:`retract_okounkov_vershik`
         """
-        try:
-            I = self.basis().keys().__class__(m)
-        except StandardError:
-            I = Permutations(m)
-        RSm = SymmetricGroupAlgebra(self.base_ring(), m, I)
+        RSm = self._sibling(m)
+        I = RSm.group()
         pairs = []
         P = Permutations(self.n)
         for (p, coeff) in f.monomial_coefficients().iteritems():
@@ -690,11 +737,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
             :meth:`retract_plain`, :meth:`retract_okounkov_vershik`
         """
-        try:
-            I = self.basis().keys().__class__(m)
-        except StandardError:
-            I = Permutations(m)
-        RSm = SymmetricGroupAlgebra(self.base_ring(), m, I)
+        RSm = self._sibling(m)
+        I = RSm.group()
         dct = {}
         P = Permutations(self.n)
         for (p, coeff) in f.monomial_coefficients().iteritems():
@@ -756,11 +800,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
             :meth:`retract_plain`, :meth:`retract_direct_product`
         """
-        try:
-            I = self.basis().keys().__class__(m)
-        except StandardError:
-            I = Permutations(m)
-        RSm = SymmetricGroupAlgebra(self.base_ring(), m, I)
+        RSm = self._sibling(m)
+        I = RSm.group()
         dct = {}
         P = Permutations(self.n)
         for (p, coeff) in f.monomial_coefficients().iteritems():

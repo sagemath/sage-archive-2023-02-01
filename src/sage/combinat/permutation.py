@@ -259,9 +259,11 @@ from sage.misc.cachefunc import cached_method
 from backtrack import GenericBacktracker
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.rsk import RSK, RSK_inverse
+from sage.combinat.permutation_cython import (left_action_product,
+             right_action_product, left_action_same_n, right_action_same_n)
 
 PermutationOptions = GlobalOptions(name='permutations',
-    doc=r"""
+    doc=r"""ht
     Set the global options for elements of the permutation class. The
     defaults are for permutations to be displayed in list notation and
     the multiplication done from left to right (like in GAP) -- that
@@ -1368,11 +1370,7 @@ class Permutation(CombinatorialObject, Element):
             sage: q.left_action_product(p)
             [1, 3, 2]
         """
-        # Pad the permutations if they are of
-        # different sizes
-        new_lp = lp[:] + [i+1 for i in range(len(lp), len(self))]
-        new_p1 = self[:] + [i+1 for i in range(len(self), len(lp))]
-        return Permutations()([ new_p1[i-1] for i in new_lp ])
+        return Permutations()(left_action_product(self[:], lp[:]))
 
     _left_to_right_multiply_on_left = left_action_product
 
@@ -1404,11 +1402,7 @@ class Permutation(CombinatorialObject, Element):
             sage: q.right_action_product(p)
             [3, 2, 1]
         """
-        # Pad the permutations if they are of
-        # different sizes
-        new_rp = rp[:] + [i+1 for i in range(len(rp), len(self))]
-        new_p1 = self[:] + [i+1 for i in range(len(self), len(rp))]
-        return Permutations()([ new_rp[i-1] for i in new_p1 ])
+        return Permutations()(right_action_product(self[:], rp[:]))
 
     _left_to_right_multiply_on_right = right_action_product
 
@@ -6318,9 +6312,13 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
                 sage: P.simple_reflection(1) * Permutation([6,5,4,3,2,1])
                 [5, 6, 4, 3, 2, 1]
             """
-            if (not isinstance(other, StandardPermutations_n.Element)
-                or self.parent() != other.parent()):
+            if not isinstance(other, StandardPermutations_n.Element):
                 return Permutation.__mul__(self, other)
+            # Make sure they have the same parent
+            if other.parent().n < self.parent().n:
+                other = self.parent()(other)
+            if other.parent().n > self.parent().n:
+                self = other.parent()(self)
             return self._mul_(other)
 
         def _mul_(self, other):
@@ -6333,7 +6331,11 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
                 sage: P.prod(P.gens()).parent() is P
                 True
             """
-            p = list(Permutation.__mul__(self, other))
+            mul_order = self.parent().global_options['mult']
+            if mul_order == 'l2r':
+                p = right_action_same_n(list(self), list(other))
+            elif mul_order == 'r2l':
+                p = left_action_same_n(list(self), list(other))
             return self.__class__(self.parent(), p)
 
         @combinatorial_map(order=2, name='inverse')

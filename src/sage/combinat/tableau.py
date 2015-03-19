@@ -286,7 +286,7 @@ class Tableau(CombinatorialObject, Element):
         # We must verify t is a list of lists
         try:
             t = map(tuple, t)
-        except (TypeError, ValueError):
+        except TypeError:
             raise ValueError("A tableau must be a list of lists.")
 
         # and that it has partition shape

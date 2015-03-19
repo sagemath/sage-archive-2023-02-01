@@ -495,17 +495,20 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
                 4  4  4
                 4  4
             """
-            tab = self.to_tableau()
-            for i in range(len(tab)):
-                j=0
-                while j < len(tab[i]):
-                    if tab[i][j] == i+1:
-                        tab[i].pop(j)
-                        if tab[i] == []:
-                            tab[i].append('*')
+            oldtab = self.to_tableau()
+            newtab = []
+            for i, row in enumerate(oldtab):
+                j = 0
+                row = list(row)
+                while j < len(row):
+                    if row[j] == i+1:
+                        row.pop(j)
+                        if not row:
+                            row.append('*')
                     else:
                         j += 1
-            return tab
+                newtab.append(row)
+            return newtab
 
         def seg(self):
             r"""

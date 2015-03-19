@@ -4,6 +4,8 @@ Fully packed loops
 from sage.structure.sage_object import SageObject
 from sage.combinat.six_vertex_model import SquareIceModel, SixVertexConfiguration
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix
+from sage.plot.graphics import Graphics
+from sage.plot.line import line
 
 class FullyPackedLoop(SageObject):
     """
@@ -88,7 +90,103 @@ class FullyPackedLoop(SageObject):
         """
         return self.six_vertex_model.to_alternating_sign_matrix()
 
-    def plot():
+    def plot(self):
         """
-        Tweak the six vertex model stuff
+        Return a graphical object of the Fully Packed Loop
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
+            sage: fpl = FullyPackedLoop(A)
+            sage: print fpl.plot().description()
+            Line defined by 2 points:       [(-1.0, 1.0), (0.0, 1.0)]
+            Line defined by 2 points:       [(0.0, 0.0), (0.0, -1.0)]
+            Line defined by 2 points:       [(0.0, 0.0), (1.0, 0.0)]
+            Line defined by 2 points:       [(0.0, 2.0), (0.0, 3.0)]
+            Line defined by 2 points:       [(0.0, 2.0), (0.0, 3.0)]
+            Line defined by 2 points:       [(0.0, 2.0), (1.0, 2.0)]
+            Line defined by 2 points:       [(1.0, 1.0), (0.0, 1.0)]
+            Line defined by 2 points:       [(1.0, 1.0), (2.0, 1.0)]
+            Line defined by 2 points:       [(2.0, 0.0), (1.0, 0.0)]
+            Line defined by 2 points:       [(2.0, 0.0), (2.0, -1.0)]
+            Line defined by 2 points:       [(2.0, 2.0), (1.0, 2.0)]
+            Line defined by 2 points:       [(2.0, 2.0), (2.0, 3.0)]
+            Line defined by 2 points:       [(2.0, 2.0), (2.0, 3.0)]
+            Line defined by 2 points:       [(3.0, 1.0), (2.0, 1.0)]
+            Line defined by 2 points:       [(3.0, 1.0), (2.0, 1.0)]
+
+            sage: A = AlternatingSignMatrix([[0, 1, 0, 0], [1, -1, 0, 1], [0, 1, 0, 0],[0, 0, 1, 0]])
+            sage: fpl = FullyPackedLoop(A)
+            sage: print fpl.plot().description()
+            Line defined by 2 points:       [(-1.0, 0.0), (0.0, 0.0)]
+            Line defined by 2 points:       [(-1.0, 2.0), (0.0, 2.0)]
+            Line defined by 2 points:       [(0.0, 1.0), (0.0, 0.0)]
+            Line defined by 2 points:       [(0.0, 1.0), (1.0, 1.0)]
+            Line defined by 2 points:       [(0.0, 3.0), (0.0, 4.0)]
+            Line defined by 2 points:       [(0.0, 3.0), (0.0, 4.0)]
+            Line defined by 2 points:       [(0.0, 3.0), (1.0, 3.0)]
+            Line defined by 2 points:       [(1.0, 0.0), (1.0, -1.0)]
+            Line defined by 2 points:       [(1.0, 0.0), (2.0, 0.0)]
+            Line defined by 2 points:       [(1.0, 2.0), (0.0, 2.0)]
+            Line defined by 2 points:       [(1.0, 2.0), (2.0, 2.0)]
+            Line defined by 2 points:       [(2.0, 1.0), (1.0, 1.0)]
+            Line defined by 2 points:       [(2.0, 1.0), (2.0, 2.0)]
+            Line defined by 2 points:       [(2.0, 3.0), (1.0, 3.0)]
+            Line defined by 2 points:       [(2.0, 3.0), (2.0, 4.0)]
+            Line defined by 2 points:       [(2.0, 3.0), (2.0, 4.0)]
+            Line defined by 2 points:       [(3.0, 0.0), (2.0, 0.0)]
+            Line defined by 2 points:       [(3.0, 0.0), (3.0, -1.0)]
+            Line defined by 2 points:       [(3.0, 2.0), (3.0, 1.0)]
+            Line defined by 2 points:       [(3.0, 2.0), (3.0, 3.0)]
+            Line defined by 2 points:       [(4.0, 1.0), (3.0, 1.0)]
+            Line defined by 2 points:       [(4.0, 1.0), (3.0, 1.0)]
+            Line defined by 2 points:       [(4.0, 3.0), (3.0, 3.0)]
+            Line defined by 2 points:       [(4.0, 3.0), (3.0, 3.0)]
+
         """
+        G = Graphics()
+        n=len(self.six_vertex_model)-1
+        for j,row in enumerate(reversed(self.six_vertex_model)):
+            for i,entry in enumerate(row):
+                if i == 0 and (i+j+n+1) % 2 ==0:
+                    G+= line([(i-1,j),(i,j)])
+                if i == n and (i+j+n+1) % 2 ==0:
+                    G+= line([(i+1,j),(i,j)])
+                if j == 0 and (i+j+n) % 2 ==0:
+                    G+= line([(i,j),(i,j-1)])
+                if j == n and (i+j+n) % 2 ==0:
+                    G+= line([(i,j),(i,j+1)])
+                if entry == 0: # LR
+                    if (i+j+n) % 2==0:
+                        G += line([(i,j), (i+1,j)])
+                    else:
+                        G += line([(i,j),(i,j+1)])
+                elif entry == 1: # LU
+                    if (i+j+n) % 2 ==0:
+                        G += line([(i,j), (i,j+1)])
+                    else:
+                        G += line([(i+1,j), (i,j)])
+                elif entry == 2: # LD
+                    if (i+j+n) % 2 == 0:
+                        pass
+                    else:
+                        G += line([(i,j+1), (i,j)])
+                        G += line([(i+1,j), (i,j)])
+                elif entry == 3: # UD
+                    if (i+j+n) % 2 == 0:
+                        G += line([(i,j), (i,j+1)])
+                    else:
+                        G += line([(i+1,j), (i,j)])
+                elif entry == 4: # UR
+                    if (i+j+n) % 2 ==0:
+                        G += line([(i,j), (i,j+1)])
+                        G += line([(i,j), (i+1,j)])
+                    else:
+                        pass
+                elif entry == 5: # RD
+                    if (i+j+n) % 2 ==0:
+                        G += line([(i,j), (i+1,j)])
+                    else:
+                        G += line([(i,j+1), (i,j)])
+        G.axes(False)
+        return G

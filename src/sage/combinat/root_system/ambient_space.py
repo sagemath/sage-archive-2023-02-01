@@ -343,6 +343,17 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
         This is present for uniformity of use; the corresponding method
         for abstract root and weight lattices/spaces, is not trivial.
 
+        EXAMPLES::
+
+            sage: P = RootSystem(['A',2]).ambient_space()
+            sage: f = P.to_ambient_space_morphism()
+            sage: p = P.an_element()
+            sage: p
+            (2, 2, 3)
+            sage: f(p)
+            (2, 2, 3)
+            sage: f(p)==p
+            True
         """
         def id(x):
             return x

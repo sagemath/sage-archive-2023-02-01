@@ -343,15 +343,15 @@ class Tableau(ClonableList):
         TESTS::
 
             sage: t = Tableau([[1,2]])
-            sage: t == Tableau([[2,3]])
+            sage: t == 0
             False
             sage: t == Tableaux(2)([[1,2]])
             True
         """
         if isinstance(other, Tableau):
-            return list(self).__eq__(list(other))
+            return list(self) == list(other)
         else:
-            return list(self).__eq__(other)
+            return list(self) == other
     
     def __ne__(self, other):
         r"""
@@ -374,9 +374,9 @@ class Tableau(ClonableList):
             True
         """
         if isinstance(other, Tableau):
-            return list(self).__ne__(list(other))
+            return list(self) != list(other)
         else:
-            return list(self).__ne__(other)
+            return list(self) != other
 
     def check(self):
         r"""

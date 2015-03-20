@@ -24,6 +24,8 @@ The class also has a plot method::
     sage: fpl.plot()
     Graphics object consisting of 15 graphics primitives
 
+which gives:
+
 .. PLOT::
     :width: 200 px
 
@@ -60,6 +62,13 @@ Note that we can also create a fully packed loop from a six vertex model configu
         #    # -- #
         |         |
         |         |
+
+Once we have a fully packed loop we can obtain the corresponding alternating sign matrix::
+
+    sage: fpl.to_alternating_sign_matrix()
+    [0 0 1]
+    [0 1 0]
+    [1 0 0]
 
 REFERENCES:
 

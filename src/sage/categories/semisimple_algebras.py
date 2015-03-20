@@ -12,8 +12,6 @@ from category_types import Category_over_base_ring
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.misc.cachefunc import cached_method
 from algebras import Algebras
-from sage.categories.associative_algebras import AssociativeAlgebras
-from sage.rings.integer_ring import ZZ
 
 
 class SemisimpleAlgebras(Category_over_base_ring):
@@ -75,7 +73,8 @@ class SemisimpleAlgebras(Category_over_base_ring):
                 @cached_method
                 def orthogonal_idempotents(self):
                     r"""
-                    Return a maximal list of orthogonal idempotents of ``self``.
+                    Return a maximal list of orthogonal idempotents of
+                    ``self``.
 
                     INPUT:
 
@@ -94,16 +93,15 @@ class SemisimpleAlgebras(Category_over_base_ring):
                     ::
 
                         sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
-                        An example of a finite dimensional algebra with basis: the path
-                        algebra of the Kronecker quiver (containing the arrows a:x->y
-                        and b:x->y) over Rational Field 
+                        An example of a finite dimensional algebra with basis:
+                        the path algebra of the Kronecker quiver (containing
+                        the arrows a:x->y and b:x->y) over Rational Field 
                         sage: Aquo = A.semisimple_quotient()
                         sage: Aquo.orthogonal_idempotents()
                         [B['y'], B['x']]
                     """
                     return [x.lift()
                             for x in self.center().orthogonal_idempotents()]
-
 
             class Commutative(CategoryWithAxiom_over_base_ring):
 
@@ -147,8 +145,8 @@ class SemisimpleAlgebras(Category_over_base_ring):
                             Improve the function by only using matrix
                             operations.
                         """
-                        #Terminal case and stuffs
-                        if listGen == None:
+                        # Terminal case and stuffs
+                        if listGen is None:
                             listGen = self.basis().list()
                         if self.dimension() == 1:
                             if topLevel:
@@ -156,11 +154,11 @@ class SemisimpleAlgebras(Category_over_base_ring):
                             else:
                                 return [x.lift() for x in self.basis()]
 
-                        #Searching for a good generator...
+                        # Searching for a good generator...
                         res = []
                         B = self.basis()
-                        while len(res)<2:
-                            if listGen==[]:
+                        while len(res) < 2:
+                            if listGen == []:
                                 raise Exception("Unable to fully decompose...")
                             curGen = listGen.pop()
                             phi = self.module_morphism(on_basis=lambda i:
@@ -170,35 +168,37 @@ class SemisimpleAlgebras(Category_over_base_ring):
                             aMat = phi.matrix(self.base_ring())
                             res = aMat.eigenspaces_right()
 
-                        #Gotcha! Let's settle the algebra...
-                        
-                        res = [vector_space for _,vector_space in res]
-                        res = [[self.from_vector(vector) for vector in eigenspace.basis()]
-                                for eigenspace in res]
-                        
-                        decomp = [self.submodule(v,
-                            category=SemisimpleAlgebras(self.base_ring()).WithBasis().FiniteDimensional().Commutative().Subobjects()) for v in res]
+                        # Gotcha! Let's settle the algebra...
 
-                        #Recursive on decomp
+                        res = [vector_space for _, vector_space in res]
+                        res = [[self.from_vector(vector)
+                            for vector in eigenspace.basis()]
+                            for eigenspace in res]
+
+                        decomp = [self.submodule(v,
+                            category=SemisimpleAlgebras(self.base_ring()).WithBasis().FiniteDimensional().Commutative().Subobjects())
+                            for v in res]
+
+                        # Recursive on decomp
                         res = [x for space in decomp for x in
                                 space._orthogonal_decomposition(topLevel=False)]
                         if topLevel:
                             return res
                         else:
-                            return map( lambda x: x.lift(), res)
+                            return map(lambda x: x.lift(), res)
 
                     @cached_method
                     def orthogonal_idempotents(self, dimSimple=False):
                         r"""
                         Return the minimal orthogonal idempotents of ``self``.
 
-                        INPUT::
+                        INPUT:
 
-                            - ``self`` a commutative semisimple algebra
+                        - ``self`` a commutative semisimple algebra
 
-                        OUTPUT::
+                        OUTPUT:
 
-                            - list of idempotents of ``self``
+                        - list of idempotents of ``self``
 
                         EXAMPLES::
 

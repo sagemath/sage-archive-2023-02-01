@@ -249,9 +249,10 @@ class Algebras(CategoryWithAxiom_over_base_ring):
             def _mul_(self, right):
                 r"""
                 Product of two elements.
-                INPUT::
 
-                    - ``self``, ``right`` -- two elements
+                INPUT:
+
+                - ``self``, ``right`` -- two elements
 
                 If B is a SubModuleWithBasis of A, then the multiplication law of B is
                 inherited from the multiplication of A.
@@ -264,4 +265,4 @@ class Algebras(CategoryWithAxiom_over_base_ring):
                     4*B[2] + 6*B[3] + 5*B[6]
                 """
                 p = self.parent()
-                return p.retract( self.lift() * right.lift())
+                return p.retract(self.lift() * right.lift())

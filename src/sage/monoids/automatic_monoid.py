@@ -1,3 +1,26 @@
+"""
+Automatic monoids.
+
+AUTHORS:
+
+- Nicolas M. Thiery
+"""
+
+#*****************************************************************************
+#  Copyright (C) 2015 Nicolas M. Thiery
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty
+#    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+#  See the GNU General Public License for more details; the full text
+#  is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from sage.misc.all import cached_method
 from sage.categories.all import Monoids
 from sage.structure.parent import Parent
@@ -7,10 +30,8 @@ from sage.sets.family import Family
 from sage.rings.integer import Integer
 import operator
 
-
 class AutomaticMonoid(UniqueRepresentation, Parent):
     r"""
-
     Construct (lazily) a monoid from a set of concrete generators
     living in an ambient monoid.
 
@@ -40,7 +61,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
     choice of reduced word is currently length-lexicographic
     (i.e. the chosen reduced word is of minimal length, and then
     minimal lexicographically w.r.t. the order of the indices of the
-    generators).
+    generators)::
 
         sage: M.cardinality()
         4
@@ -87,10 +108,8 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
         sage: map(attrcall('pseudo_order'), M.list())
         [[1, 0], [3, 1], [2, 0], [2, 1]]
 
-        We can also use it to get submonoids from groups. We check that in the
-        symmetric group, a transposition and a cyle generate the whole group.
-
-        ::
+    We can also use it to get submonoids from groups. We check that in the
+    symmetric group, a transposition and a cyle generate the whole group::
 
             sage: G5 = SymmetricGroup(5)
             sage: N = AutomaticMonoid(Family({1: G5([2,1,3,4,5]), 2: G5([2,3,4,5,1])}), G5.one())
@@ -100,7 +119,6 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             [1, 2, 1, 2, 2, 1, 2, 1, 2, 2]
             sage: N.from_reduced_word([1, 2, 1, 2, 2, 1, 2, 1, 2, 2]).lift()
             (1,4,3,5,2)
-
 
     TESTS::
 
@@ -141,11 +159,15 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
          False
 
     """
-
     @staticmethod
     def __classcall_private__(cls, generators, one=None, mul=operator.mul, category=Monoids().Finite()):
         """
-        TODO: documentation and tests
+        TESTS::
+
+            sage: R = IntegerModRing(21)
+            sage: M = AutomaticMonoid((), one = R.one())
+            sage: M.ambient() == R
+            True
         """
         generators = Family(generators)
         return super(AutomaticMonoid, cls).__classcall__(cls, generators, one=one, mul=mul, category=category)
@@ -162,7 +184,6 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             Traceback (most recent call last):
             ...
             ValueError: AutomaticMonoid requires at least one generator or `one` to determine the ambient space
-
         """
         Parent.__init__(self, category=category)
         self.generators = generators                    # todo: rename to self._generators?

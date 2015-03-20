@@ -536,3 +536,25 @@ class FullyPackedLoop(SageObject):
                         G += line([(i,j+1), (i,j)])
         G.axes(False)
         return G
+
+        def link_pattern(self):
+            link_pattern=[]
+            svm = self.six_vertex_model
+            n=len(svm)
+
+            vertices = {}
+            for i in range(n):
+                for j in range(n):
+                    vertices[(i, j)] = 0
+
+            end_points = [i for i in range(2*n)]
+
+            # top row
+            for k in range(n):
+                if k % 2 == 0:
+                    vertices[(0, k)] = 1 + k/2
+
+
+
+
+

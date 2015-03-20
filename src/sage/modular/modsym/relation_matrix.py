@@ -67,9 +67,7 @@ def modS_relations(syms):
 
     INPUT:
 
-
-    -  ``syms`` - manin_symbols.ManinSymbols
-
+    - ``syms`` -- :class:`ManinSymbolList`
 
     OUTPUT:
 
@@ -139,7 +137,7 @@ def modI_relations(syms, sign):
 
     INPUT:
 
-    -  ``syms`` - ManinSymbols
+    - ``syms`` -- :class:`ManinSymbolList`
 
     -  ``sign`` - int (either -1, 0, or 1)
 
@@ -204,7 +202,7 @@ def T_relation_matrix_wtk_g0(syms, mod, field, sparse):
 
     INPUT:
 
-    -  ``syms`` - ManinSymbols
+    - ``syms`` -- :class:`ManinSymbolList`
 
     -  ``mod`` - list that gives quotient modulo some two-term relations, i.e.,
        the S relations, and if sign is nonzero, the I relations.
@@ -265,7 +263,7 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
 
     INPUT:
 
-    -  ``syms`` - a ManinSymbols object
+    - ``syms`` -- :class:`ManinSymbolList`
 
     -  ``relation_matrix`` - as output by
        ``__compute_T_relation_matrix(self, mod)``
@@ -368,7 +366,7 @@ def compute_presentation(syms, sign, field, sparse=None):
 
     INPUT:
 
-    -  ``syms`` - manin_symbols.ManinSymbols
+    - ``syms`` -- :class:`ManinSymbolList`
 
     -  ``sign`` - integer (-1, 0, 1)
 
@@ -459,7 +457,7 @@ def relation_matrix_wtk_g0(syms, sign, field, sparse):
 
     INPUT:
 
-    - ``syms``: sage.modular.modsym.manin_symbols.ManinSymbolList object
+    - ``syms`` -- :class:`ManinSymbolList`
 
     - ``sign``: integer (0, 1 or -1)
 

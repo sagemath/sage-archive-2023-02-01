@@ -2,23 +2,23 @@
 """
 Manin symbols
 
-This module defines the class ManinSymbol.  A Manin Symbol of
+This module defines the class ManinSymbol.  A Manin symbol of
 weight `k`, level `N` has the form `[P(X,Y),(u:v)]` where
 `P(X,Y)\in\mathbb{Z}[X,Y]` is homogeneous of weight `k-2` and
 `(u:v)\in\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z}).`  The ManinSymbol class
-holds a "monomial Manin Symbol" of the simpler form
+holds a "monomial Manin symbol" of the simpler form
 `[X^iY^{k-2-i},(u:v)]`, which is stored as a triple `(i,u,v)`; the
 weight and level are obtained from the parent structure, which is a
-ManinSymbolList.
+:class:`sage.modular.modsym.manin_symbol_list.ManinSymbolList`.
 
-Integer matrices `[a,b;c,d]` act on Manin Symbols on the right,
+Integer matrices `[a,b;c,d]` act on Manin symbols on the right,
 sending `[P(X,Y),(u,v)]` to `[P(aX+bY,cX+dY),(u,v)g]`.  Diagonal
 matrices (with `b=c=0`, such as `I=[-1,0;0,1]` and `J=[-1,0;0,-1]`)
 and anti-diagonal matrices (with `a=d=0`, such as `S=[0,-1;1,0]`) map
-monomial Manin Symbols to monomial Manin Symbols, up to a scalar
+monomial Manin symbols to monomial Manin symbols, up to a scalar
 factor.  For general matrices (such as `T=[0,1,-1,-1]` and
-`T^2=[-1,-1;0,1]`) the image of a monomial Manin Symbol is expressed
-as a formal sum of monomial Manin Symbols, with integer coefficients.
+`T^2=[-1,-1;0,1]`) the image of a monomial Manin symbol is expressed
+as a formal sum of monomial Manin symbols, with integer coefficients.
 
 """
 
@@ -55,7 +55,7 @@ cdef class ManinSymbol(Element):
 
     INPUT:
 
-    - ``parent`` -- :class:`ManinSymbolList`
+    - ``parent`` -- :class:`~sage.modular.modsym.manin_symbol_list.ManinSymbolList`
 
     - ``t`` -- a triple `(i, u, v)` of integers
 
@@ -92,7 +92,7 @@ cdef class ManinSymbol(Element):
 
         INPUT:
 
-        - ``parent`` -- :class:`ManinSymbolList`
+        - ``parent`` -- :class:`~sage.modular.modsym.manin_symbol_list.ManinSymbolList`
 
         - ``t`` -- a triple `(i, u, v)` of integers
 
@@ -149,7 +149,7 @@ cdef class ManinSymbol(Element):
 
     def tuple(self):
         r"""
-        Return the 3-tuple `(i,u,v)` of this ManinSymbol.
+        Return the 3-tuple `(i,u,v)` of this Manin symbol.
 
         EXAMPLES::
 
@@ -165,7 +165,7 @@ cdef class ManinSymbol(Element):
 
     def __get_i(self):
         """
-        Return the `i` field of this ManinSymbol `(i,u,v)`.
+        Return the `i` field of this Manin symbol `(i,u,v)`.
 
         EXAMPLES::
 
@@ -184,7 +184,7 @@ cdef class ManinSymbol(Element):
 
     def __get_u(self):
         """
-        Return the `u` field of this ManinSymbol `(i,u,v)`.
+        Return the `u` field of this Manin symbol `(i,u,v)`.
 
         EXAMPLES::
 
@@ -201,7 +201,7 @@ cdef class ManinSymbol(Element):
 
     def __get_v(self):
         """
-        Return the `v` field of this ManinSymbol `(i,u,v)`.
+        Return the `v` field of this Manin symbol `(i,u,v)`.
 
         EXAMPLES::
 
@@ -217,7 +217,7 @@ cdef class ManinSymbol(Element):
 
     def _repr_(self):
         """
-        Returns a string representation of this ManinSymbol.
+        Return a string representation of this Manin symbol.
 
         EXAMPLES::
 
@@ -236,7 +236,7 @@ cdef class ManinSymbol(Element):
 
     def _latex_(self):
         """
-        Returns a LaTeX representation of this ManinSymbol.
+        Return a LaTeX representation of this Manin symbol.
 
         EXAMPLES::
 
@@ -272,7 +272,7 @@ cdef class ManinSymbol(Element):
 
     def __mul__(self, matrix):
         """
-        Return the result of applying a matrix to this ManinSymbol.
+        Return the result of applying a matrix to this Manin symbol.
 
         EXAMPLES::
 
@@ -323,7 +323,7 @@ cdef class ManinSymbol(Element):
 
     def __copy__(self):
         """
-        Return a copy of this ManinSymbol.
+        Return a copy of this Manin symbol.
 
         EXAMPLES::
 
@@ -339,7 +339,7 @@ cdef class ManinSymbol(Element):
 
     def lift_to_sl2z(self, N=None):
         r"""
-        Returns a lift of this Manin Symbol to `SL_2(\mathbb{Z})`.
+        Return a lift of this Manin symbol to `SL_2(\mathbb{Z})`.
 
         If this Manin symbol is `(c,d)` and `N` is its level, this
         function returns a list `[a,b, c',d']` that defines a 2x2
@@ -397,7 +397,7 @@ cdef class ManinSymbol(Element):
 
     def endpoints(self, N=None):
         r"""
-        Returns cusps `alpha`, `beta` such that this Manin symbol, viewed as a
+        Return cusps `alpha`, `beta` such that this Manin symbol, viewed as a
         symbol for level `N`, is `X^i*Y^{k-2-i} \{alpha, beta\}`.
 
         EXAMPLES::
@@ -421,7 +421,7 @@ cdef class ManinSymbol(Element):
 
     def weight(self):
         """
-        Return the weight of this ManinSymbol.
+        Return the weight of this Manin symbol.
 
         EXAMPLES::
 
@@ -437,7 +437,7 @@ cdef class ManinSymbol(Element):
 
     def level(self):
         """
-        Return the level of this ManinSymbol.
+        Return the level of this Manin symbol.
 
         EXAMPLES::
 
@@ -453,7 +453,7 @@ cdef class ManinSymbol(Element):
 
     def modular_symbol_rep(self):
         """
-        Returns a representation of self as a formal sum of modular
+        Return a representation of ``self`` as a formal sum of modular
         symbols.
 
         The result is not cached.

@@ -139,7 +139,7 @@ class ManinSymbolList(Parent):
 
     def __len__(self):
         """
-        Returns the length of this ManinSymbolList
+        Return the length of this :class:`ManinSymbolList`.
 
         EXAMPLES::
 
@@ -290,14 +290,14 @@ class ManinSymbolList(Parent):
 
     def manin_symbol_list(self):
         """
-        Returns all the ManinSymbols in this ManinSymbolList as a list
+        Return all the Manin symbols in ``self`` as a list.
 
         Cached for subsequent calls.
 
         OUTPUT:
 
-        a list of ``ManinSymbol`` objects, which is a copy of the complete list
-        of Manin symbols.
+        A list of :class:`ManinSymbol` objects, which is a copy of the
+        complete list of Manin symbols.
 
         EXAMPLES::
 
@@ -330,7 +330,7 @@ class ManinSymbolList(Parent):
 
     def manin_symbol(self, i):
         """
-        Returns the ``i``-th ManinSymbol in this ManinSymbolList.
+        Return the ``i``-th Manin symbol in this :class:`ManinSymbolList`.
 
         INPUT:
 
@@ -359,7 +359,7 @@ class ManinSymbolList(Parent):
 
     def normalize(self, x):
         """
-        Returns a normalized ManinSymbol from x.
+        Return a normalized Manin symbol from ``x``.
 
         To be implemented in derived classes.
 
@@ -374,7 +374,7 @@ class ManinSymbolList(Parent):
 
     def weight(self):
         """
-        Returns the weight of the ManinSymbols in this ManinSymbolList.
+        Return the weight of the Manin symbols in this :class:`ManinSymbolList`.
 
         OUTPUT:
 
@@ -441,7 +441,7 @@ class ManinSymbolList_group(ManinSymbolList):
 
     def level(self):
         """
-        Return the level of this ManinSymbolList.
+        Return the level of this :class:`ManinSymbolList`.
 
         EXAMPLES::
 
@@ -685,8 +685,8 @@ class ManinSymbolList_group(ManinSymbolList):
 
     def normalize(self, x):
         """
-        Returns the normalization of the ModSym ``x`` with respect to this
-        list.
+        Return the normalization of the Manin symbol ``x`` with
+        respect to this list.
 
         INPUT:
 
@@ -719,7 +719,7 @@ class ManinSymbolList_group(ManinSymbolList):
 
 class ManinSymbolList_gamma0(ManinSymbolList_group):
     r"""
-    Class for Manin Symbols for `\Gamma_0(N)`.
+    Class for Manin symbols for `\Gamma_0(N)`.
 
     INPUT:
 
@@ -772,7 +772,7 @@ class ManinSymbolList_gamma0(ManinSymbolList_group):
 
 class ManinSymbolList_gamma1(ManinSymbolList_group):
     r"""
-    Class for Manin Symbols for `\Gamma_1(N)`.
+    Class for Manin symbols for `\Gamma_1(N)`.
 
     INPUT:
 
@@ -814,7 +814,7 @@ class ManinSymbolList_gamma1(ManinSymbolList_group):
 
     def __repr__(self):
         """
-        Return the string representation of this ManinSymbbol list.
+        Return the string representation of this :class:`ManinSymbolList`.
 
         EXAMPLES::
 
@@ -829,7 +829,7 @@ class ManinSymbolList_gamma1(ManinSymbolList_group):
 
 class ManinSymbolList_gamma_h(ManinSymbolList_group):
     r"""
-    Class for Manin Symbols for `\Gamma_H(N)`.
+    Class for Manin symbols for `\Gamma_H(N)`.
 
     INPUT:
 
@@ -861,7 +861,7 @@ class ManinSymbolList_gamma_h(ManinSymbolList_group):
     """
     def __init__(self, group, weight):
         r"""
-        Constructor for Manin Symbols for `\Gamma_H(N)`.
+        Constructor for Manin symbols for `\Gamma_H(N)`.
 
         EXAMPLE::
 
@@ -899,7 +899,7 @@ class ManinSymbolList_gamma_h(ManinSymbolList_group):
 
 class ManinSymbolList_character(ManinSymbolList):
     """
-    List of Manin Symbols with character.
+    List of Manin symbols with character.
 
     INPUT:
 
@@ -920,7 +920,7 @@ class ManinSymbolList_character(ManinSymbolList):
     """
     def __init__(self, character, weight):
         """
-        Constructor for objects of class ManinSymbolList_character
+        Constructor for :class:`ManinSymbolList_character` objects.
 
         INPUT:
 
@@ -975,7 +975,7 @@ class ManinSymbolList_character(ManinSymbolList):
 
     def level(self):
         """
-        Return the level of this ManinSymbolList.
+        Return the level of this :class:`ManinSymbolList`.
 
         OUTPUT:
 
@@ -1200,7 +1200,7 @@ class ManinSymbolList_character(ManinSymbolList):
 
     def character(self):
         """
-        Return the character of this ManinSymbolList_character object.
+        Return the character of this :class:`ManinSymbolList_character` object.
 
         OUTPUT:
 
@@ -1220,22 +1220,20 @@ class ManinSymbolList_character(ManinSymbolList):
 
     def index(self, x):
         """
-        Returns the index in the list of standard Manin symbols of a
-        symbol that is equivalent, modulo a scalar `s`, to
-        ``x``. Returns the index and the scalar.
-
-        If ``x`` is not in the list, return (-1, 0).
+        Return the index of a standard Manin symbol equivalent to
+        ``x``, together with a scaling factor.
 
         INPUT:
 
-        - ``x`` -- 3-tuple of integers `(i,u,v)`, defining an element of
-          this list of Manin symbols, which need not be normalized
+        - ``x`` -- 3-tuple of integers defining an element of this
+          list of Manin symbols, which need not be normalized
 
         OUTPUT:
 
-        ``(i, s)`` where i (``int``) is the index of the Manin symbol
-        equivalent to `(i,u,v)` (or -1) and ``s`` is the scalar (an element of
-        the base field) or the int 0.
+        A pair ``(i, s)`` where ``i`` is the index of the Manin symbol
+        equivalent to ``x`` and ``s`` is the scalar (an element of the
+        base field).  If there is no Manin symbol equivalent to ``x``
+        in the list, then ``(-1, 0)`` is returned.
 
         EXAMPLE::
 
@@ -1262,8 +1260,8 @@ class ManinSymbolList_character(ManinSymbolList):
 
     def normalize(self, x):
         """
-        Returns the normalization of the Manin Symbol ``x`` with respect to this
-        list, together with the normalizing scalar.
+        Return the normalization of the Manin Symbol ``x`` with
+        respect to this list, together with the normalizing scalar.
 
         INPUT:
 

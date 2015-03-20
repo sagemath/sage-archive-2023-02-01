@@ -88,12 +88,11 @@ class SkewTableau(CombinatorialObject, Element):
         if expr is not None:
             return SkewTableaux().from_expr(expr)
 
-        try:
-            st = map(tuple, st)
-        except TypeError:
-            raise TypeError("each element of the skew tableau must be an iterable")
-
         for row in st:
+            try:
+                tuple(row)
+            except TypeError:
+                raise TypeError("each element of the skew tableau must be an iterable")
             if not row:
                 raise TypeError("a skew tableau cannot have an empty list for a row")
 
@@ -426,11 +425,16 @@ class SkewTableau(CombinatorialObject, Element):
 
             sage: SkewTableau([[None,2],[3,4],[None],[1]]).to_permutation()
             [1, 3, 4, 2]
+            sage: SkewTableau([[None,2],[None,4],[1],[3]]).to_permutation()
+            [3, 1, 4, 2]
             sage: SkewTableau([[None]]).to_permutation()
             []
         """
         from sage.combinat.permutation import Permutation
-        return Permutation(self.to_word())
+        word = []
+        for row in reversed(self):
+            word += [i for i in row if i is not None]
+        return Permutation(word)
 
     def weight(self):
         """

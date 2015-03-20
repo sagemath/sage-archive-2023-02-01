@@ -196,7 +196,7 @@ def pyx_preparse(s):
 
         sage: from sage.misc.cython import pyx_preparse
         sage: pyx_preparse("")
-        ('\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"  # ctrl-c interrupt block support\n\ninclude "cdefs.pxi"\n',
+        ('\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n\ninclude "cdefs.pxi"\n',
         ['mpfr',
         'gmp',
         'gmpxx',
@@ -270,8 +270,7 @@ def pyx_preparse(s):
     v, s = parse_keywords('cinclude', s)
     inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + include_dirs
     s = """\ninclude "cdefs.pxi"\n""" + s
-    if lang != "c++": # has issues with init_csage()
-        s = """\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"  # ctrl-c interrupt block support\n""" + s
+    s = """\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n""" + s
     args, s = parse_keywords('cargs', s)
     args = ['-w','-O2'] + args
 

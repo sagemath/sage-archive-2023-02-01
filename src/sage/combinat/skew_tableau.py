@@ -105,6 +105,19 @@ class SkewTableau(CombinatorialObject, Element):
             sage: st = SkewTableau([[None, 1],[2,3]])
             sage: st = SkewTableau([[None,1,1],[None,2],[4]])
             sage: TestSuite(st).run()
+
+        A skew tableau is immutable, see :trac:`15862`::
+
+            sage: T = SkewTableau([[None,2],[2]])
+            sage: t0 = T[0]
+            sage: t0[1] = 3
+            Traceback (most recent call last):
+            ...
+            TypeError: 'tuple' object does not support item assignment
+            sage: T[0][1] = 5
+            Traceback (most recent call last):
+            ...
+            TypeError: 'tuple' object does not support item assignment
         """
         try:
             st = map(tuple, st)

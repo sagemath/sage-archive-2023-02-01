@@ -309,7 +309,7 @@ class Tableau(CombinatorialObject, Element):
             False
             
         A tableau is immutable, see :trac:`15862`::
-        
+
             sage: T = Tableau([[1,2],[2]])
             sage: t0 = T[0]
             sage: t0[1] = 3
@@ -1782,6 +1782,8 @@ class Tableau(CombinatorialObject, Element):
 
     def to_list(self):
         """
+        Return ``self`` as a list of lists (not tuples!).
+
         EXAMPLES::
 
             sage: t = Tableau([[1,2],[3,4]])
@@ -2347,9 +2349,9 @@ class Tableau(CombinatorialObject, Element):
         """
         if self.is_rectangular():
             t = self.rotate_180()
-            t = [[n+2-i for i in row] for row in t.to_list()]
+            t = [tuple(n+2-i for i in row) for row in t]
             t = Tableau(t).promotion_inverse(n)
-            t = [[n+2-i for i in row] for row in t.to_list()]
+            t = [tuple(n+2-i for i in row) for row in t]
             return Tableau(t).rotate_180()
         p = self
         for c in self.cells_containing(n+1):
@@ -2714,7 +2716,7 @@ class Tableau(CombinatorialObject, Element):
 
         m = len(part)
 
-        w1 = flatten([row for row in reversed(self[m:])])
+        w1 = list(sum((row for row in reversed(self[m:])), ()))
 
         w2 = []
         for i,row in enumerate(reversed(self[:m])):
@@ -3111,8 +3113,8 @@ class Tableau(CombinatorialObject, Element):
         if self.is_key_tableau():
             return self
 
-        key = [[] for row in self.conjugate()]
-        cols_list = self.conjugate().to_list()
+        cols_list = self.conjugate()
+        key = [[] for row in cols_list]
 
         for i, col_a in enumerate(cols_list):
             right_cols = cols_list[i+1:]
@@ -3120,7 +3122,7 @@ class Tableau(CombinatorialObject, Element):
                 key_val = elem
                 update = []
                 for col_b in right_cols:
-                    if col_b != [] and key_val <= col_b[-1]:
+                    if col_b and key_val <= col_b[-1]:
                         key_val = col_b[-1]
                         update.append(col_b[:-1])
                     else:
@@ -3175,9 +3177,9 @@ class Tableau(CombinatorialObject, Element):
         if self.is_key_tableau():
             return self
 
-        key = [[] for row in self.conjugate()]
-        key[0] = self.conjugate()[0]
-        cols_list = self.conjugate().to_list()
+        cols_list = self.conjugate()
+        key = [[] for row in cols_list]
+        key[0] = list(cols_list[0])
 
         from bisect import bisect_right
         for i, col_a in enumerate(cols_list[1:],1):
@@ -3804,7 +3806,7 @@ class StandardTableau(SemistandardTableau):
         """
         if m is None:
             m = self.size() - 1
-        return StandardTableau(Tableau(self.to_list()).promotion_inverse(m))
+        return StandardTableau(Tableau(self[:]).promotion_inverse(m))
 
     def promotion(self, m=None):
         r"""
@@ -3840,7 +3842,7 @@ class StandardTableau(SemistandardTableau):
         """
         if m is None:
             m = self.size() - 1
-        return StandardTableau(Tableau(self.to_list()).promotion(m))
+        return StandardTableau(Tableau(self[:]).promotion(m))
 
 def from_chain(chain):
     """
@@ -4646,14 +4648,14 @@ class SemistandardTableaux(Tableaux):
         if isinstance(t, SemistandardTableau):
             return self.max_entry is None or \
                     len(t) == 0 or \
-                    max(flatten(t)) <= self.max_entry
+                    max(sum(t, ())) <= self.max_entry
         elif t == []:
             return True
         elif Tableaux.__contains__(self, t) and all(c>0 for row in t for c in row) \
                 and all(row[i] <= row[i+1] for row in t for i in range(len(row)-1)) \
                 and all(t[r][c] < t[r+1][c]
                         for r in range(len(t)-1) for c in range(len(t[r+1]))):
-            return self.max_entry is None or max(flatten(t)) <= self.max_entry
+            return self.max_entry is None or max(max(row) for row in t if row) <= self.max_entry
         else:
             return False
 

@@ -10,7 +10,9 @@ order to:
 
 AUTHORS:
 
-    - Thierry Monteil (2012-02-10 -- 2013-06-21): initial version.
+- Thierry Monteil (2012-02-10 -- 2013-06-21): initial version.
+
+- Vincent Delecroix (2014): modifies continued fractions because of trac:`14567`
 
 EXAMPLES::
 
@@ -928,7 +930,7 @@ class OEISSequence(SageObject):
 
             sage: s = oeis._imaginary_sequence('nonn,cofr')
             sage: s.natural_object().parent()
-            Field of all continued fractions
+            QQ as continued fractions
 
             sage: s = oeis._imaginary_sequence('nonn')
             sage: s.natural_object().parent()
@@ -1254,13 +1256,13 @@ class OEISSequence(SageObject):
             A007540: Wilson primes: primes p such that (p-1)! == -1 (mod p^2).
 
             sage: i = w.__iter__()                      # optional -- internet
-            sage: i.next()                              # optional -- internet
+            sage: next(i)                               # optional -- internet
             5
-            sage: i.next()                              # optional -- internet
+            sage: next(i)                               # optional -- internet
             13
-            sage: i.next()                              # optional -- internet
+            sage: next(i)                               # optional -- internet
             563
-            sage: i.next()                              # optional -- internet
+            sage: next(i)                               # optional -- internet
             Traceback (most recent call last):
             ...
             LookupError: Future values not provided by OEIS.

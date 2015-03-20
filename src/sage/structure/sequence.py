@@ -284,20 +284,16 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
             if universe is None:   # no type errors raised.
                 universe = coerce.parent(x[len(x)-1])
 
+    from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+    from sage.rings.polynomial.pbori import BooleanMonomialMonoid
     from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
     from sage.rings.quotient_ring import is_QuotientRing
-    from sage.rings.polynomial.pbori import BooleanMonomialMonoid
 
-    if is_MPolynomialRing(universe) or \
-            (is_QuotientRing(universe) and is_MPolynomialRing(universe.cover_ring())) or \
-            isinstance(universe, BooleanMonomialMonoid):
-        from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
-        try:
-            return PolynomialSequence(x, universe, immutable=immutable, cr=cr, cr_str=cr_str)
-        except (TypeError,AttributeError):
-            return Sequence_generic(x, universe, check, immutable, cr, cr_str, use_sage_types)
+    if is_MPolynomialRing(universe) or isinstance(universe, BooleanMonomialMonoid) or (is_QuotientRing(universe) and is_MPolynomialRing(universe.cover_ring())):
+        return PolynomialSequence(x, universe, immutable=immutable, cr=cr, cr_str=cr_str)
     else:
         return Sequence_generic(x, universe, check, immutable, cr, cr_str, use_sage_types)
+
 
 class Sequence_generic(sage.structure.sage_object.SageObject, list):
     """

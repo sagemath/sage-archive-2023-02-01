@@ -1,9 +1,5 @@
-#  Free for any use.
-#  Unfit for any purpose.
-#
-#  Copyright 2010, Tom Boothby
-
 """
+Permutations (Cython file)
 
 This is a nearly-straightforward implementation of what
 Knuth calls "Algorithm P" in TAOCP 7.2.1.2.  The intent is
@@ -24,7 +20,13 @@ to slow code.
 For those willing to sacrifice a (very small) amount of
 speed, we provide a class that wraps our struct.
 
+
 """
+
+#  Free for any use.
+#  Unfit for any purpose.
+#
+#  Copyright 2010, Tom Boothby
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
@@ -118,7 +120,8 @@ def permutation_iterator_transposition_list(int n):
     encouraged to avoid filling anything more than 4GB of
     memory with the output of this function.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.permutation_cython
         sage: from sage.combinat.permutation_cython import permutation_iterator_transposition_list
         sage: permutation_iterator_transposition_list(4)
@@ -141,7 +144,9 @@ def permutation_iterator_transposition_list(int n):
 
     """
 
-    cdef int *c, *o, N, m
+    cdef int *c
+    cdef int *o
+    cdef int N, m
     cdef list T
 
     if n <= 1:

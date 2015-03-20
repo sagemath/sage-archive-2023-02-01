@@ -624,17 +624,17 @@ class Polynomial_generic_sparse(Polynomial):
 
         d = other.degree()
         if self.degree() < d:
-            return R.zero_element(), self
+            return R.zero(), self
 
-        quo = R.zero_element()
+        quo = R.zero()
         rem = self
-        inv_lc = R.base_ring().one_element()/other.leading_coefficient()
+        inv_lc = R.base_ring().one()/other.leading_coefficient()
 
         while rem.degree() >= d:
 
             c = rem.leading_coefficient()*inv_lc
             e = rem.degree() - d
-            quo += c*R.one_element().shift(e)
+            quo += c*R.one().shift(e)
             # we know that the leading coefficient of rem vanishes
             # thus we avoid doing a useless computation
             rem = rem[:rem.degree()] - c*other[:d].shift(e)
@@ -702,7 +702,7 @@ class Polynomial_generic_field(Polynomial_singular_repr,
         A = self
         B = other
         R = A
-        Q = P.zero_element()
+        Q = P.zero()
         while R.degree() >= B.degree():
             aaa = R.leading_coefficient()/B.leading_coefficient()
             diff_deg=R.degree()-B.degree()
@@ -732,6 +732,13 @@ class Polynomial_generic_field(Polynomial_singular_repr,
             sage: (2*x).gcd(2*x^2)
             x
 
+            sage: zero = R.zero()
+            sage: zero.gcd(2*x)
+            x
+            sage: (2*x).gcd(zero)
+            x
+            sage: zero.gcd(zero)
+            0
         """
         from sage.categories.euclidean_domains import EuclideanDomains
         g = EuclideanDomains().ElementMethods().gcd(self, other)
@@ -774,25 +781,43 @@ class Polynomial_generic_field(Polynomial_singular_repr,
             sage: g == u*P(0) + v*x
             True
 
+        TESTS:
+
+        We check that the behavior of xgcd with zero elements is compatible with
+        gcd (:trac:`17671`)::
+
+            sage: R.<x> = QQbar[]
+            sage: zero = R.zero()
+            sage: zero.xgcd(2*x)
+            (x, 0, 1/2)
+            sage: (2*x).xgcd(zero)
+            (x, 1/2, 0)
+            sage: zero.xgcd(zero)
+            (0, 0, 0)
         """
-        if other.is_zero():
-            R = self.parent()
-            return self, R.one_element(), R.zero_element()
-        # Algorithm 3.2.2 of Cohen, GTM 138
         R = self.parent()
+        zero = R.zero()
+        one = R.one()
+        if other.is_zero():
+            if self.is_zero():
+                return (zero, zero, zero)
+            else:
+                c = self.leading_coefficient()
+                return (self/c, one/c, zero)
+        elif self.is_zero():
+            c = other.leading_coefficient()
+            return (other/c, zero, one/c)
+
+        # Algorithm 3.2.2 of Cohen, GTM 138
         A = self
         B = other
-        U = R.one_element()
+        U = one
         G = A
-        V1 = R.zero_element()
+        V1 = zero
         V3 = B
         while not V3.is_zero():
             Q, R = G.quo_rem(V3)
-            T = U - V1*Q
-            U = V1
-            G = V3
-            V1 = T
-            V3 = R
+            G, U, V1, V3 = V3, V1, U-V1*Q, R
         V = (G-A*U)//B
         lc = G.leading_coefficient()
         return G/lc, U/lc, V/lc

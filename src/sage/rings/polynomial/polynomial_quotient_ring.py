@@ -225,7 +225,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
 
     TESTS:
 
-    By trac ticket #11900, polynomial quotient rings use Sage's
+    By trac ticket :trac:`11900`, polynomial quotient rings use Sage's
     category framework. They do so in an unusual way: During their
     initialisation, they are declared to be objects in the category of
     quotients of commutative algebras over a base ring. However, if it
@@ -276,10 +276,11 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
     new methods from the category of fields, thanks to
     :meth:`Element.__getattr__`::
 
-        sage: isinstance(Q.an_element(),Q.element_class)
+        sage: e = Q.an_element()
+        sage: isinstance(e, Q.element_class)
         False
-        sage: Q.an_element().gcd.__module__
-        'sage.categories.fields'
+        sage: e.gcd(e+1)
+        1
 
     Since the category has changed, we repeat the test suite. However, we have to skip the test
     for its elements, since `an_element` has been cached in the previous run of the test suite,

@@ -1,4 +1,3 @@
-
 ======================================
 Welcome to the Sage Developer's Guide!
 ======================================
@@ -51,14 +50,12 @@ development!
   purpose.
 
   - :ref:`Here is <chapter-walkthrough>` an overview of our development flow.
-  - :ref:`Unfamiliar with Git or revision control ? <chapter-git_trac>`
-  - :ref:`How to install it ? <section-git-install>`
-  - :ref:`How to configure it for use with Trac ? <section-git-setup-name>`
-  - :ref:`The dev scripts <chapter-devscript>` may be used without installing
-    git, but are only intended as a bridge to using it properly.
+  - :ref:`Unfamiliar with Git or revision control? <chapter-git_trac>`
+  - :ref:`How to install it? <section-git-install>`
+  - :ref:`How to configure it for use with Trac? <section-git-setup-name>`
 
-Git and Trac
-============
+Git for Sage development
+========================
 
 First Steps with Git
 --------------------
@@ -71,27 +68,15 @@ Sage uses git for version control.
    git_setup
    walk_through
 
-Sage Trac and tickets
----------------------
-
-All changes to Sage source code require a ticket on the
-`Sage trac server <http://trac.sagemath.org>`_.
-
-.. toctree::
-   :maxdepth: 3
-
-   trac
-
-Git and Trac integration
-------------------------
+The git-trac command
+--------------------
 
 Putting your local changes on a Trac ticket.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    git_trac
-   dev_script
 
 .. _section-git-tricks-and-tips:
 
@@ -101,12 +86,23 @@ Git Tricks & Tips
 When ``git trac`` is not enough.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    manual_git
    git_background
    advanced_git
    workflows
+
+Sage Trac and tickets
+=====================
+
+All changes to Sage source code require a ticket on the
+`Sage trac server <http://trac.sagemath.org>`_.
+
+.. toctree::
+   :maxdepth: 2
+
+   trac
 
 
 .. _section-writing-code-for-sage:
@@ -114,13 +110,18 @@ When ``git trac`` is not enough.
 Writing Code for Sage
 =====================
 
-Basics of Writing and Testing Sage Code
----------------------------------------
-
 .. toctree::
    :maxdepth: 3
 
    coding_basics
+   reviewer_checklist
+
+Running Sage's tests
+--------------------
+
+.. toctree::
+   :maxdepth: 3
+
    doctesting
 
 Contributing to Manuals and Tutorials

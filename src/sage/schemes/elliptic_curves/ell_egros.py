@@ -86,7 +86,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.misc.all import xmrange
 from sage.rings.all import QQ
 from constructor import EllipticCurve, EllipticCurve_from_j

@@ -78,7 +78,7 @@ import sage.misc.latex as latex
 import sage.misc.misc as misc
 
 import sage.matrix.matrix_space as matrix_space
-from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2 as M2Z
+from sage.modular.arithgroup.arithgroup_element import M2Z
 import sage.modules.free_module_element as free_module_element
 import sage.modules.free_module as free_module
 import sage.misc.misc as misc
@@ -632,7 +632,10 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         """
         if alpha.is_infinity():
             return self.manin_symbol((i,0,1), check=False)
-        v, c = arith.continued_fraction_list(alpha._rational_(), partial_convergents=True)
+        # v, c = arith.continued_fraction_list(alpha._rational_(), partial_convergents=True)
+        cf = alpha._rational_().continued_fraction()
+        v = list(cf)
+        c = [(cf.p(k),cf.q(k)) for k in xrange(len(cf))]
         a = self(0)
         zero = rings.ZZ(0)
         one = rings.ZZ(1)
@@ -2530,12 +2533,11 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
         B = self.manin_basis()
         syms = self.manin_symbols()
         k = self.weight()
-        G = M2Z()
-        H = [G(h) for h in H]
+        H = [M2Z(h) for h in H]
         for n in B:
             z = M(0)
             s = syms.manin_symbol(n)
-            g = G(list(s.lift_to_sl2z(N)))
+            g = M2Z(list(s.lift_to_sl2z(N)))
             i = s.i
             # We apply each matrix in H according to the above formula
             for h in H:

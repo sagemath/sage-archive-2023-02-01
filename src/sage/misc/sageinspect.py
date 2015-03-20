@@ -193,7 +193,7 @@ def _extract_embedded_position(docstring):
         sage: print open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read()
         <BLANKLINE>
         include "interrupt.pxi"  # ctrl-c interrupt block support
-        include "stdsage.pxi"  # ctrl-c interrupt block support
+        include "stdsage.pxi"
         <BLANKLINE>
         include "cdefs.pxi"
         cpdef test_funct(x,y): return
@@ -1813,7 +1813,7 @@ def sage_getsourcelines(obj, is_binary=False):
           '    cpdef object pyobject(self):\n',
         ...)
         sage: sage_getsourcelines(x)[0][-1]    # last line
-        '        return self / x\n'
+        '        return S\n'
 
     We show some enhancements provided by :trac:`11768`. First, we
     use a dummy parent class that has defined an element class by a

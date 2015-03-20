@@ -461,7 +461,7 @@ class HighestWeightCrystals(Category_singleton):
                 ret = []
                 while it:
                     try:
-                        x = it[-1].next()
+                        x = next(it[-1])
                     except StopIteration:
                         it.pop()
                         if path:

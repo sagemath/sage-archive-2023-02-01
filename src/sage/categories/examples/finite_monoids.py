@@ -72,7 +72,8 @@ class IntegerModMonoid(UniqueRepresentation, Parent):
 
         """
         self.n = n
-        Parent.__init__(self, category = Monoids().Finite())
+        Parent.__init__(self, category =
+                Monoids().Finite().FinitelyGenerated())
 
     def _repr_(self):
         r"""
@@ -139,10 +140,6 @@ class IntegerModMonoid(UniqueRepresentation, Parent):
         """
         return self(ZZ(42) % self.n)
 
-    def __iter__(self):
-        for x in range(self.n):
-            yield x
-        return
 
     class Element (ElementWrapper):
         wrapped_class = Integer

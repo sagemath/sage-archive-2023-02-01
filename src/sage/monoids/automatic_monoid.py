@@ -265,7 +265,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             sage: R = IntegerModRing(16)
             sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one = R.one())
             sage: M.cardinality()
-            4
+            8
             sage: M.an_element()
             [1]
         """
@@ -421,6 +421,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             sage: G4 = SymmetricGroup(4)
             sage: M = AutomaticMonoid(Family({1:G4((1,2)), 2:G4((1,2,3,4))}), G4.one())
             sage: M.cardinality()
+            24
             sage: M.from_reduced_word([2, 1, 2, 2, 1])
             (1,3)
             sage: M.from_reduced_word([2, 1, 2, 2, 1]) == M.retract(G4((3,1)))

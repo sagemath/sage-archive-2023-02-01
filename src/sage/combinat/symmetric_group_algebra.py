@@ -37,13 +37,18 @@ def SymmetricGroupAlgebra(R, W=None):
     - ``W`` -- a symmetric group; alternatively an integer `n` can be
       provided, as shorthand for ``Permutations(n)``.
 
-    This support several implementations of the symmetric group. At
-    this point this has been tested with ``W=Permutations(n)``,
-    ``W=SymmetricGroup(n)`` or ``W=WeylGroup(['A',n-1])``.
+    This supports several implementations of the symmetric group. At
+    this point this has been tested with ``W=Permutations(n)`` and
+    ``W=SymmetricGroup(n)``.
 
     .. WARNING::
 
-        Some features are failing in the later two cases.
+        Some features are failing in the latter case.
+
+    .. NOTE::
+
+        The brave can also try setting ``W=WeylGroup(['A',n-1])``,
+        but very little support for this currently exists.
 
     EXAMPLES::
 
@@ -83,9 +88,8 @@ def SymmetricGroupAlgebra(R, W=None):
         sage: SGA.group()
         Symmetric group of order 4! as a permutation group
         sage: SGA.an_element()
-        () + 2*(3,4) + 3*(2,3) + (1,4,3,2)
+        () + 2*(3,4) + 3*(2,3) + (1,2,3,4)
 
-        Symmetric group of order 3! as a permutation group
         sage: SGA = SymmetricGroupAlgebra(QQ, WeylGroup(["A",3], prefix='s')); SGA
         Symmetric group algebra of order 4 over Rational Field
         sage: SGA.group()
@@ -214,13 +218,13 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: S(G.an_element())
             [1, 2, 3, 4] + 2*[1, 2, 4, 3] + 3*[1, 3, 2, 4] + [2, 3, 4, 1]
             sage: G(S.an_element())
-            () + 2*(3,4) + 3*(2,3) + (2,3,4)
+            () + 2*(3,4) + 3*(2,3) + (1,4,3,2)
         """
         from sage.rings.semirings.non_negative_integer_semiring import NN
         if W in NN:
             W = Permutations(W)
         if not W in WeylGroups or W.cartan_type().type() != 'A':
-            raise ValueError("W (=%s) should be a symmetric group")
+            raise ValueError("W (=%s) should be a symmetric group or a nonnegative integer")
         rank = W.cartan_type().rank()
         if rank == 0:   # Ambiguous: n=0 or n=1?
             # The following trick works for both SymmetricGroup(n) and

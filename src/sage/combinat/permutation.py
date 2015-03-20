@@ -6312,6 +6312,10 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
                 sage: P = Permutations(4)
                 sage: P.simple_reflection(1) * Permutation([6,5,4,3,2,1])
                 [5, 6, 4, 3, 2, 1]
+                sage: Permutations.global_options(mult='r2l')
+                sage: P.simple_reflection(1) * Permutation([6,5,4,3,2,1])
+                [6, 5, 4, 3, 1, 2]
+                sage: Permutations.global_options(mult='l2r')
             """
             if not isinstance(other, StandardPermutations_n.Element):
                 return Permutation.__mul__(self, other)

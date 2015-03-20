@@ -6,7 +6,7 @@ You can construct the following permutation groups:
 -- SymmetricGroup, $S_n$ of order $n!$ (n can also be a list $X$ of distinct
                    positive integers, in which case it returns $S_X$)
 
--- AlternatingGroup, $A_n$ or order $n!/2$ (n can also be a list $X$
+-- AlternatingGroup, $A_n$ of order $n!/2$ (n can also be a list $X$
                    of distinct positive integers, in which case it returns
                    $A_X$)
 
@@ -541,6 +541,23 @@ class SymmetricGroup(PermutationGroup_symalt):
     def algebra(self, base_ring):
         """
         Return the symmetric group algebra associated to ``self``.
+
+        .. WARNING::
+
+            This is broken!
+
+                sage: S = SymmetricGroup([2,3,5])
+                sage: S.an_element()
+                (2,3,5)
+                sage: S.algebra(QQ)(_)
+                Traceback (most recent call last):
+                ...
+                ValueError: The permutation has length 3 but its maximal element is 5. Some
+                 element may be repeated, or an element is missing, but there is something
+                 wrong with its length.
+
+            Best make it a usual group algebra with none of the bells and whistles
+            of the SGA but with functioning methods.
 
         EXAMPLES::
 

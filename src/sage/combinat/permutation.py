@@ -245,7 +245,6 @@ from sage.rings.all import ZZ, Integer, PolynomialRing
 from sage.rings.arith import factorial
 from sage.matrix.all import matrix
 from sage.combinat.tools import transitive_ideal
-import sage.combinat.subword as subword
 from sage.combinat.composition import Composition
 import tableau
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -1799,7 +1798,7 @@ class Permutation(CombinatorialObject, Element):
         """
         if k > len(self):
             return []
-        return [pos for pos in subword.Subwords(self, k) if all( pos[i] < pos[i+1] for i in range(k-1) )]
+        return [list(pos) for pos in itertools.combinations(self, k) if all( pos[i] < pos[i+1] for i in range(k-1) )]
 
     def number_of_noninversions(self, k):
         r"""
@@ -1863,7 +1862,7 @@ class Permutation(CombinatorialObject, Element):
             return 0
         incr_iterator = itertools.ifilter( lambda pos: all( pos[i] < pos[i+1]
                                                             for i in range(k-1) ),
-                                           iter(subword.Subwords(self, k)) )
+                                           itertools.combinations(self, k) )
         return sum(1 for _ in incr_iterator)
 
     def length(self):
@@ -3875,7 +3874,7 @@ class Permutation(CombinatorialObject, Element):
         l = len(patt)
         if l > n:
             return False
-        for pos in subword.Subwords(range(n),l):
+        for pos in itertools.combinations(range(n), l):
             if to_standard(map(lambda z: p[z] , pos)) == patt:
                 return True
         return False
@@ -3908,7 +3907,8 @@ class Permutation(CombinatorialObject, Element):
         """
         p = self
 
-        return list(itertools.ifilter(lambda pos: to_standard(map(lambda z: p[z], pos)) == patt, iter(subword.Subwords(range(len(p)), len(patt))) ))
+        return [list(pos) for pos in itertools.combinations(range(len(p)), len(patt))
+                if to_standard(map(lambda z: p[z], pos)) == patt]
 
     @combinatorial_map(name='Simion-Schmidt map')
     def simion_schmidt(self, avoid=[1,2,3]):
@@ -6312,6 +6312,10 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
                 sage: P = Permutations(4)
                 sage: P.simple_reflection(1) * Permutation([6,5,4,3,2,1])
                 [5, 6, 4, 3, 2, 1]
+                sage: Permutations.global_options(mult='r2l')
+                sage: P.simple_reflection(1) * Permutation([6,5,4,3,2,1])
+                [6, 5, 4, 3, 1, 2]
+                sage: Permutations.global_options(mult='l2r')
             """
             if not isinstance(other, StandardPermutations_n.Element):
                 return Permutation.__mul__(self, other)

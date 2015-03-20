@@ -23,6 +23,7 @@ from sage.modules.all import vector
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 import itertools
+from sage.combinat.permutation_cython import (left_action_same_n, right_action_same_n)
 
 permutation_options = PermutationOptions
 
@@ -37,13 +38,18 @@ def SymmetricGroupAlgebra(R, W):
     - ``W`` -- a symmetric group; alternatively an integer `n` can be
       provided, as shorthand for ``Permutations(n)``.
 
-    This support several implementations of the symmetric group. At
-    this point this has been tested with ``W=Permutations(n)``,
-    ``W=SymmetricGroup(n)`` or ``W=WeylGroup(['A',n-1])``.
+    This supports several implementations of the symmetric group. At
+    this point this has been tested with ``W=Permutations(n)`` and
+    ``W=SymmetricGroup(n)``.
 
     .. WARNING::
 
-        Some features are failing in the later two cases.
+        Some features are failing in the latter case.
+
+    .. NOTE::
+
+        The brave can also try setting ``W=WeylGroup(['A',n-1])``,
+        but very little support for this currently exists.
 
     EXAMPLES::
 
@@ -83,7 +89,7 @@ def SymmetricGroupAlgebra(R, W):
         sage: SGA.group()
         Symmetric group of order 4! as a permutation group
         sage: SGA.an_element()
-        () + 2*(3,4) + 3*(2,3) + (1,4,3,2)
+        () + 2*(3,4) + 3*(2,3) + (1,2,3,4)
 
         sage: SGA = SymmetricGroupAlgebra(QQ, WeylGroup(["A",3], prefix='s')); SGA
         Symmetric group algebra of order 4 over Rational Field
@@ -216,10 +222,10 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: S(G.an_element())
             [1, 2, 3, 4] + 2*[1, 2, 4, 3] + 3*[1, 3, 2, 4] + [2, 3, 4, 1]
             sage: G(S.an_element())
-            () + 2*(3,4) + 3*(2,3) + (2,3,4)
+            () + 2*(3,4) + 3*(2,3) + (1,4,3,2)
         """
         if not W in WeylGroups or W.cartan_type().type() != 'A':
-            raise ValueError("W (=%s) should be a symmetric group")
+            raise ValueError("W (=%s) should be a symmetric group or a nonnegative integer")
         rank = W.cartan_type().rank()
         if rank == 0:   # Ambiguous: n=0 or n=1?
             # The following trick works for both SymmetricGroup(n) and
@@ -422,10 +428,10 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         if not isinstance(self._indices, Permutations):
             return b * a
         P = Permutations(self.n)
-        return self.sum_of_terms([(P([p[i-1] for i in q]), x * y)
+        return self.sum_of_terms([(P(left_action_same_n(p._list, q._list)), x * y)
                                   for (p, x) in a for (q, y) in b])
-        # Why did we use P([p[i-1] for i in q])
-        # instead of p.left_action_product(q) ?
+        # Why did we use left_action_same_n instead of
+        # left_action_product?
         # Because having cast a and b into self, we already know that
         # p and q are permutations of the same number of elements,
         # and thus we don't need to waste our time on the input
@@ -484,10 +490,10 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         if not isinstance(self._indices, Permutations):
             return a * b
         P = Permutations(self.n)
-        return self.sum_of_terms([(P([q[i-1] for i in p]), x * y)
+        return self.sum_of_terms([(P(right_action_same_n(p._list, q._list)), x * y)
                                   for (p, x) in a for (q, y) in b])
-        # Why did we use P([q[i-1] for i in p])
-        # instead of p.right_action_product(q) ?
+        # Why did we use right_action_same_n instead of
+        # right_action_product?
         # Because having cast a and b into self, we already know that
         # p and q are permutations of the same number of elements,
         # and thus we don't need to waste our time on the input

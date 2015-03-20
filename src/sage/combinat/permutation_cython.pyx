@@ -189,9 +189,10 @@ def permutation_iterator_transposition_list(int n):
 
 cpdef list left_action_same_n(list S, list lp):
     r"""
-    Return the permutation obtained by composing ``S`` with ``lp``
-    in such an order that ``lp`` is applied first and ``S`` is
-    applied afterwards and ``S`` and ``lp`` are the same length.
+    Return the permutation obtained by composing a permutation
+    ``S`` with a permutation ``lp`` in such an order that ``lp``
+    is applied first and ``S`` is applied afterwards and ``S``
+    and ``lp`` are of the same length.
 
     .. SEEALSO::
 
@@ -215,9 +216,10 @@ cpdef list left_action_same_n(list S, list lp):
 
 cpdef list right_action_same_n(list S, list rp):
     """
-    Return the permutation obtained by composing ``S`` with ``rp``
-    in such an order that ``S`` is applied first and ``rp`` is
-    applied afterwards and ``S`` and ``rp`` are the same length.
+    Return the permutation obtained by composing a permutation
+    ``S`` with a permutation ``rp`` in such an order that ``S`` is
+    applied first and ``rp`` is applied afterwards and ``S`` and
+    ``rp`` are of the same length.
 
     .. SEEALSO::
 
@@ -241,9 +243,9 @@ cpdef list right_action_same_n(list S, list rp):
 
 cpdef list left_action_product(list S, list lp):
     r"""
-    Return the permutation obtained by composing ``S`` with ``lp``
-    in such an order that ``lp`` is applied first and ``S`` is
-    applied afterwards.
+    Return the permutation obtained by composing a permutation
+    ``S`` with a permutation ``lp`` in such an order that ``lp`` is
+    applied first and ``S`` is applied afterwards.
 
     .. SEEALSO::
 
@@ -275,9 +277,9 @@ cpdef list left_action_product(list S, list lp):
 
 cpdef list right_action_product(list S, list rp):
     """
-    Return the permutation obtained by composing ``S`` with
-    ``rp`` in such an order that ``S`` is applied first and
-    ``rp`` is applied afterwards.
+    Return the permutation obtained by composing a permutation
+    ``S`` with a permutation ``rp`` in such an order that ``S`` is
+    applied first and ``rp`` is applied afterwards.
 
     .. SEEALSO::
 

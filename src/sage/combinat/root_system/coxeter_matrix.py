@@ -4,6 +4,7 @@ Coxeter matrices
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #                     2015 Travis Scrimshaw <tscrim at ucdavis.edu>
+#                     2015 Jean-Philippe Labbe <labbe at math.huji.ac.il>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -27,7 +28,7 @@ from sage.matrix.matrix_integer_dense import Matrix_integer_dense
 from sage.matrix.matrix_generic_dense import Matrix_generic_dense
 from sage.graphs.graph import Graph
 from sage.graphs.generators.basic import CycleGraph
-from sage.rings.all import ZZ, QQ, QQbar, RR
+from sage.rings.all import ZZ, RR
 from sage.rings.infinity import infinity
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.coxeter_type import CoxeterType
@@ -189,9 +190,6 @@ class CoxeterMatrix(Matrix_generic_dense, CoxeterType):
                         else:
                             data[-1] += [2]
 
-                list_rings = [ZZ, QQ, QQbar, RR]
-                index_ring = 0
-                index_list = []
                 verts = sorted(G.vertices())
                 for e in G.edges():
                     m = e[2]
@@ -206,10 +204,7 @@ class CoxeterMatrix(Matrix_generic_dense, CoxeterType):
                     i = verts.index(e[0])
                     j = verts.index(e[1])
                     data[j][i] = data[i][j] = m
-                    new_index = min(index for index in range(len(list_rings)) if m in list_rings[index]) 
-                    if new_index > index_ring:
-                        index_ring = new_index
-                base_ring = list_rings[index_ring]
+                    base_ring = (base_ring.one()*m).parent()
                 data = MatrixSpace(base_ring,n)(data)
                 index_set = tuple(verts)
                 args = [data]
@@ -606,7 +601,7 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
                 types.append(['A', 1, 1])
                 continue
             else:
-                return None
+                return None #TODO: return hyperbolic type once implemented
         elif l == 3:
             # The `3`-node case. The finite groups to check for
             # here are `A_3`, `B_3` and `H_3`.

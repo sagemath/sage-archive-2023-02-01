@@ -25,7 +25,6 @@ AUTHORS:
 #*****************************************************************************
 
 import copy
-from sage.misc.misc import uniq
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 
 from sage.structure.parent import Parent

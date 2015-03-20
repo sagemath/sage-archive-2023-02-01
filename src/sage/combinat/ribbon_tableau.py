@@ -355,7 +355,7 @@ class RibbonTableaux_shape_weight_length(RibbonTableaux):
 
     def __contains__(self, x):
         """
-        Note that this just checks to see if ``x`` appears is in ``self``.
+        Note that this just checks to see if ``x`` appears in ``self``.
         This should be improved to provide actual checking.
 
         EXAMPLES::

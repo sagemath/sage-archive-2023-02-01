@@ -90,14 +90,23 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
         [[], [1, 1]]
         sage: G = M.cayley_graph(side = "twosided"); G
         Looped multi-digraph on 4 vertices
-        sage: sorted(G.edges())
-        [([], [1], (1, 'left')), ([], [1], (1, 'right')), ([], [2], (2,
-        'left')), ([], [2], (2, 'right')), ([1], [1], (2, 'left')), ([1], [1],
-        (2, 'right')), ([1], [1, 1], (1, 'left')), ([1], [1, 1], (1, 'right')),
-        ([1, 1], [1], (1, 'left')), ([1, 1], [1], (1, 'right')), ([1, 1], [1,
-        1], (2, 'left')), ([1, 1], [1, 1], (2, 'right')), ([2], [], (2,
-        'left')), ([2], [], (2, 'right')), ([2], [1], (1, 'left')), ([2], [1],
-        (1, 'right'))]
+        sage: sorted(G.edges(), key=str)
+        [([1, 1], [1, 1], (2, 'left')),
+         ([1, 1], [1, 1], (2, 'right')),
+         ([1, 1], [1], (1, 'left')),
+         ([1, 1], [1], (1, 'right')),
+         ([1], [1, 1], (1, 'left')),
+         ([1], [1, 1], (1, 'right')),
+         ([1], [1], (2, 'left')),
+         ([1], [1], (2, 'right')),
+         ([2], [1], (1, 'left')),
+         ([2], [1], (1, 'right')),
+         ([2], [], (2, 'left')),
+         ([2], [], (2, 'right')),
+         ([], [1], (1, 'left')),
+         ([], [1], (1, 'right')),
+         ([], [2], (2, 'left')),
+         ([], [2], (2, 'right'))]
         sage: map(sorted, M.j_classes())
         [[[], [2]], [[1, 1], [1]]]
         sage: M.j_classes_of_idempotents()

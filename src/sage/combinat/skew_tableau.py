@@ -38,6 +38,7 @@ from sage.rings.all import Integer, QQ, ZZ
 from sage.rings.arith import factorial
 from sage.rings.infinity import PlusInfinity
 from sage.matrix.all import zero_matrix
+import itertools
 
 from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.partition import Partition
@@ -531,21 +532,18 @@ class SkewTableau(CombinatorialObject, Element):
             sage: SkewTableau([[None, 2], [1, 2]]).is_semistandard()
             False
         """
-        t = self
+        if not self:
+            return True
 
-        #Check to make sure it is weakly increasing along the rows
-        for row in t:
-            for i in range(1, len(row)):
-                if row[i-1] is not None and row[i] < row[i-1]:
-                    return False
+        # Is it weakly increasing along the rows?
+        for row in self:
+            if any(row[c] is not None and row[c] > row[c+1] for c in xrange(len(row)-1)):
+                return False
 
-
-        #Check to make sure it is strictly increasing along the columns
-        conj = t.conjugate()
-        for row in conj:
-            for i in range(1, len(row)):
-                if row[i-1] is not None and row[i] <= row[i-1]:
-                    return False
+        # Is it strictly increasing down columns?
+        for row, next in itertools.izip(self, self[1:]):
+            if any(row[c] is not None and row[c] >= next[c] for c in xrange(len(next))):
+                return False
 
         return True
 

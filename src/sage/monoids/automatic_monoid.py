@@ -90,14 +90,23 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
         [[], [1, 1]]
         sage: G = M.cayley_graph(side = "twosided"); G
         Looped multi-digraph on 4 vertices
-        sage: sorted(G.edges())
-        [([], [1], (1, 'left')), ([], [1], (1, 'right')), ([], [2], (2,
-        'left')), ([], [2], (2, 'right')), ([1], [1], (2, 'left')), ([1], [1],
-        (2, 'right')), ([1], [1, 1], (1, 'left')), ([1], [1, 1], (1, 'right')),
-        ([1, 1], [1], (1, 'left')), ([1, 1], [1], (1, 'right')), ([1, 1], [1,
-        1], (2, 'left')), ([1, 1], [1, 1], (2, 'right')), ([2], [], (2,
-        'left')), ([2], [], (2, 'right')), ([2], [1], (1, 'left')), ([2], [1],
-        (1, 'right'))]
+        sage: sorted(G.edges(), key=str)
+        [([1, 1], [1, 1], (2, 'left')),
+         ([1, 1], [1, 1], (2, 'right')),
+         ([1, 1], [1], (1, 'left')),
+         ([1, 1], [1], (1, 'right')),
+         ([1], [1, 1], (1, 'left')),
+         ([1], [1, 1], (1, 'right')),
+         ([1], [1], (2, 'left')),
+         ([1], [1], (2, 'right')),
+         ([2], [1], (1, 'left')),
+         ([2], [1], (1, 'right')),
+         ([2], [], (2, 'left')),
+         ([2], [], (2, 'right')),
+         ([], [1], (1, 'left')),
+         ([], [1], (1, 'right')),
+         ([], [2], (2, 'left')),
+         ([], [2], (2, 'right'))]
         sage: map(sorted, M.j_classes())
         [[[], [2]], [[1, 1], [1]]]
         sage: M.j_classes_of_idempotents()
@@ -119,6 +128,24 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             [1, 2, 1, 2, 2, 1, 2, 1, 2, 2]
             sage: N.from_reduced_word([1, 2, 1, 2, 2, 1, 2, 1, 2, 2]).lift()
             (1,4,3,5,2)
+
+   We can also create a monoid of matrices, where we define the multiplication as matrix
+    multiplication::
+
+        sage: M1=matrix([[0,0,1],[1,0,0],[0,1,0]])
+        sage: M2=matrix([[0,0,0],[1,1,0],[0,0,1]])
+        sage: M1.set_immutable()
+        sage: M2.set_immutable()
+        sage: def prod_m(x,y):
+        ....:     z=x*y
+        ....:     z.set_immutable()
+        ....:     return z
+        ....:
+        sage: Mon = AutomaticMonoid([M1,M2], mul=prod_m)
+        sage: Mon.cardinality()
+        24
+        sage: Mon.one()
+        []
 
     TESTS::
 
@@ -208,12 +235,12 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
     def one(self):
         """
-        Return the identity element of ``self``.
+        Return one of ``self``.
 
         EXAMPLES::
 
-            sage: R = IntegerModRing(12)
-            sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one = R.one())
+            sage: R = IntegerModRing(21)
+            sage: M = AutomaticMonoid((), one = R.one())
             sage: M.one()
             []
         """

@@ -74,7 +74,6 @@ from hopf_algebras import HopfAlgebras
 from monoid_algebras import MonoidAlgebras
 from group_algebras import GroupAlgebras
 from matrix_algebras import MatrixAlgebras
-from semisimple_algebras import SemisimpleAlgebras
 
 # ideals
 from ring_ideals import RingIdeals

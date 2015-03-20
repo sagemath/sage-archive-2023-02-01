@@ -62,3 +62,27 @@ class SemisimpleAlgebras(Category_over_base_ring):
         """
         R = self.base_ring()
         return [Algebras(R)]
+
+    # TODO: trivial implementations for semisimple_quotient
+
+    class ParentMethods:
+
+        def radical_basis(self, **keywords):
+            r"""
+            Return a basis of the Jacobson radical of this algebra.
+
+            - ``keywords`` -- for compatibility; ignored.
+
+            OUTPUT: the empty list since this algebra is semisimple
+
+            EXAMPLES::
+
+                sage: A = SymmetricGroup(4).algebra(QQ)
+                sage: A.radical_basis()
+                []
+
+            TESTS::
+
+                sage: A.radical_basis.__module__
+            """
+            return []

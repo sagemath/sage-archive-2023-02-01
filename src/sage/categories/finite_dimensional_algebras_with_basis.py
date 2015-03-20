@@ -3,8 +3,8 @@ Finite dimensional algebras with basis
 """
 #*****************************************************************************
 #  Copyright (C) 2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2011-2014 Nicolas M. Thiery <nthiery at users.sf.net>
-#                2011-2014 Franco Saliola <saliola@gmail.com>
+#                2011-2015 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2011-2015 Franco Saliola <saliola@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -51,17 +51,20 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             .. NOTE::
 
-               This implementation also works for algebras over fields of
-               finite characteristic `p` in which we can compute `x^{1/p}`.
+               This implementation handles algebras over fields of
+               characteristic zero (using Dixon's lemma) or fields of
+               characteristic `p` in which we can compute `x^{1/p}`.
 
             INPUT:
 
-            - ``cache_products`` -- boolean (default: ``True``); if ``True``
-              then all products computed in this method are cached.
+            - ``cache_products`` -- a boolean (default: ``True``); if
+              ``True`` then all products computed in this method are cached.
 
             OUTPUT:
 
-            - ``list`` of elements of ``self``
+            - a list of elements of ``self``.
+
+            .. SEEALSO:: :meth:`radical`, :class:`SemisimpleAlgebras`
 
             EXAMPLES::
 
@@ -72,7 +75,8 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: A.radical_basis()
                 [a, b]
 
-            We construct the group algebra of the Klein Four-Group over the rationals::
+            We construct the group algebra of the Klein Four-Group
+            over the rationals::
 
                 sage: A = KleinFourGroup().algebra(QQ)
 
@@ -86,14 +90,43 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             tells us that the group algebra is semisimple. So its
             radical is the zero ideal::
 
+                sage: A in Algebras(QQ).SemiSimple()
+                True
                 sage: A.radical_basis()
                 []
 
             Let's work instead over a field of characteristic `2`::
 
                 sage: A = KleinFourGroup().algebra(GF(2))
+                sage: A in Algebras(GF(2)).SemiSimple()
+                False
                 sage: A.radical_basis()
                 [B[()] + B[(1,2)(3,4)], B[(3,4)] + B[(1,2)(3,4)], B[(1,2)] + B[(1,2)(3,4)]]
+
+            We now implement the algebra `A = K[x] / x^p-1`, where `K`
+            is a finite field of characteristic `p`, and check its
+            radical; alas, we currently need to wrap `A` to make it a
+            proper :class:`ModulesWithBasis`::
+
+                sage: class AnAlgebra(CombinatorialFreeModule):
+                ....:     def __init__(self, F):
+                ....:         R.<x> = PolynomialRing(F)
+                ....:         I = R.ideal(x**F.characteristic()-F.one())
+                ....:         self._xbar = R.quotient(I).gen()
+                ....:         basis_keys = [self._xbar**i for i in range(F.characteristic())]
+                ....:         CombinatorialFreeModule.__init__(self, F, basis_keys,
+                ....:                 category=FiniteDimensionalAlgebrasWithBasis(F))
+                ....:     def one(self):
+                ....:         return self.basis()[self.base_ring().one()]
+                ....:     def product_on_basis(self, w1, w2):
+                ....:         return self.from_vector(vector(w1*w2))
+                sage: AnAlgebra(GF(3)).radical_basis()
+                [B[1] + 2*B[xbar^2], B[xbar] + 2*B[xbar^2]]
+                sage: AnAlgebra(GF(16,'a')).radical_basis()
+                [B[1] + B[xbar]]
+                sage: AnAlgebra(GF(49,'a')).radical_basis()
+                [B[1] + 6*B[xbar^6], B[xbar] + 6*B[xbar^6], B[xbar^2] + 6*B[xbar^6],
+                 B[xbar^3] + 6*B[xbar^6], B[xbar^4] + 6*B[xbar^6], B[xbar^5] + 6*B[xbar^6]]
 
             TESTS::
 
@@ -103,54 +136,23 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: A.radical_basis(cache_products=False)
                 [B[()] + B[(1,2)(3,4)], B[(3,4)] + B[(1,2)(3,4)], B[(1,2)] + B[(1,2)(3,4)]]
 
-            ::
-
-                sage: A = KleinFourGroup().algebra(QQ)
+                sage: A = KleinFourGroup().algebra(QQ, category=Monoids())
+                sage: A.radical_basis.__module__
                 sage: A.radical_basis(cache_products=True)
                 []
                 sage: A.radical_basis(cache_products=False)
                 []
-
-            .. TODO:: explain and check this example
-
-            ::
-
-                sage: class AnAlgebra(CombinatorialFreeModule):
-                ...       def __init__(self, F):
-                ...           R.<x> = PolynomialRing(F)
-                ...           I = R.ideal(x**F.characteristic()-F.one())
-                ...           self._xbar = R.quotient(I).gen()
-                ...           basis_keys = [self._xbar**i for i in range(F.characteristic())]
-                ...           CombinatorialFreeModule.__init__(self, F, basis_keys,
-                ...                   category = FiniteDimensionalAlgebrasWithBasis(F))
-                ...       def one(self):
-                ...           return self.basis()[self.base_ring().one()]
-                ...       def product_on_basis(self, w1, w2):
-                ...           return self.from_vector(vector(w1*w2))
-                sage: AnAlgebra(GF(3)).radical_basis()
-                [B[1] + 2*B[xbar^2], B[xbar] + 2*B[xbar^2]]
-                sage: AnAlgebra(GF(16,'a')).radical_basis()
-                [B[1] + B[xbar]]
-                sage: AnAlgebra(GF(49,'a')).radical_basis()
-                [B[1] + 6*B[xbar^6], B[xbar] + 6*B[xbar^6], B[xbar^2] + 6*B[xbar^6], B[xbar^3] + 6*B[xbar^6], B[xbar^4] + 6*B[xbar^6], B[xbar^5] + 6*B[xbar^6]]
-
-            .. SEEALSO:: :meth:`radical`, :class:`SemisimpleAlgebras`
-
-            AUTHORS: TODO: polish this!
-
-            - Franco Saliola
             """
             F = self.base_ring()
             if not F.is_field():
-                raise NotImplementedError, "the base ring must be a field"
+                raise NotImplementedError("the base ring must be a field")
             p = F.characteristic()
             from sage.matrix.constructor import matrix
             from sage.modules.free_module_element import vector
 
+            product_on_basis = self.product_on_basis
             if cache_products is True:
-                product_on_basis = cached_function(self.product_on_basis)
-            else:
-                product_on_basis = self.product_on_basis
+                product_on_basis = cached_function(product_on_basis)
 
             if p == 0:
                 keys = self.basis().keys()
@@ -192,6 +194,11 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             r"""
             Return the Jacobson radical of ``self``.
 
+            This uses :meth:`radical_basis`, whose default
+            implementation handles algebras over fields of
+            characteristic zero or fields of characteristic `p` in
+            which we can compute `x^{1/p}`.
+
             .. SEEALSO:: :meth:`radical_basis`, :meth:`semisimple_quotient`
 
             EXAMPLES::
@@ -204,9 +211,16 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 Radical of An example of a finite dimensional algebra with basis:
                 the path algebra of the Kronecker quiver
                 (containing the arrows a:x->y and b:x->y) over Rational Field
+
+            The radical is an ideal of `A`, and thus a finite
+            dimensional non unital associative algebra::
+
                 sage: from sage.categories.associative_algebras import AssociativeAlgebras
                 sage: radical in AssociativeAlgebras(QQ).WithBasis().FiniteDimensional()
                 True
+                sage: radical in Algebras(QQ)
+                False
+
                 sage: radical.dimension()
                 2
                 sage: radical.basis()
@@ -218,10 +232,10 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             .. TODO::
 
-                - This is in fact an ideal.
-                - Add references
-                - Pickling by construction, as ``A.center()``
-                - Lazy evaluation of ``_repr_``
+                - Tell Sage that the radical is in fact an ideal;
+                - Add references;
+                - Pickling by construction, as ``A.center()``;
+                - Lazy evaluation of ``_repr_``.
 
             TESTS::
 
@@ -229,8 +243,8 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             category = AssociativeAlgebras(self.base_ring()).WithBasis().FiniteDimensional().Subobjects()
             radical = self.submodule(self.radical_basis(),
-                                     category = category,
-                                     already_echelonized = True)
+                                     category=category,
+                                     already_echelonized=True)
             radical.rename("Radical of {}".format(self))
             return radical
 
@@ -246,13 +260,15 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             EXAMPLES::
 
                 sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
-                An example of a finite dimensional algebra with basis: the path algebra of the Kronecker quiver (containing the arrows a:x->y and b:x->y) over Rational Field
+                An example of a finite dimensional algebra with basis:
+                the path algebra of the Kronecker quiver
+                (containing the arrows a:x->y and b:x->y) over Rational Field
                 sage: a,b,x,y = sorted(A.basis())
                 sage: S = A.semisimple_quotient(); S
                 Semisimple quotient of An example of a finite dimensional algebra with basis:
                 the path algebra of the Kronecker quiver
                 (containing the arrows a:x->y and b:x->y) over Rational Field
-                sage: S in SemisimpleAlgebras
+                sage: S in Algebras(QQ).Semisimple()
                 True
                 sage: S.basis()
                 Finite family {'y': B['y'], 'x': B['x']}
@@ -260,10 +276,18 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: (xs + ys) * xs
                 B['x']
 
+            Sanity check: the semisimple quotient of the `n`-th
+            descent algebra of the symmetric group is of dimension the
+            number of partitions of `n`::
+
+                sage: [ DescentAlgebra(QQ,n).B().semisimple_quotient().dimension()
+                ....:   for n in range(6) ]
+                [1, 1, 2, 3, 5, 7]
+                sage: [Partitions(n).cardinality() for n in range(10)]
+                [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
+
             .. TODO::
 
-               - This example is not very interesting because the
-                 semisimple quotient is actually a subalgebra.
                - Pickling by construction, as ``A.center()``
                - Lazy evaluation of ``_repr_``
 
@@ -272,8 +296,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: TestSuite(S).run()
             """
             ring = self.base_ring()
-            category=Algebras(ring).WithBasis().FiniteDimensional().Quotients() \
-                      & SemisimpleAlgebras(ring)
+            category = Algebras(ring).WithBasis().FiniteDimensional().Quotients().Semisimple()
             result = self.quotient(self.radical(), category=category)
             result.rename("Semisimple quotient of {}".format(self))
             return result
@@ -286,14 +309,16 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             OUTPUT:
 
-            - ``list`` of elements of ``self``
+            - a list of elements of ``self``.
 
             .. SEEALSO:: :meth:`center`
 
             EXAMPLES::
 
                 sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
-                An example of a finite dimensional algebra with basis: the path algebra of the Kronecker quiver (containing the arrows a:x->y and b:x->y) over Rational Field
+                An example of a finite dimensional algebra with basis:
+                the path algebra of the Kronecker quiver
+                (containing the arrows a:x->y and b:x->y) over Rational Field
                 sage: A.center_basis()
                 [x + y]
             """
@@ -326,7 +351,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 True
                 sage: [c.lift() for c in center.basis()]
                 [x + y]
-                sage: DihedralGroup(6).algebra(QQ).center() in SemisimpleAlgebras
+                sage: DihedralGroup(6).algebra(QQ).center() in Algebras(QQ).Semisimple()
                 True
 
             .. TODO::
@@ -340,7 +365,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             category = Algebras(self.base_ring()).FiniteDimensional().Subobjects().Commutative().WithBasis()
             if self in SemisimpleAlgebras:
-                category = category & SemisimpleAlgebras(self.base_ring())
+                category = category.Semisimple()
             center = self.submodule(self.center_basis(),
                                     category = category,
                                     already_echelonized = True)

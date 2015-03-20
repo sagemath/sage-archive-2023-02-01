@@ -153,12 +153,14 @@ class Algebras(CategoryWithAxiom_over_base_ring):
                 EXAMPLES::
 
                     sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
-                    An example of a finite dimensional algebra with basis: the path algebra of the Kronecker quiver (containing the arrows a:x->y and b:x->y) over Rational Field
+                    An example of a finite dimensional algebra with basis:
+                    the path algebra of the Kronecker quiver
+                    (containing the arrows a:x->y and b:x->y) over Rational Field
                     sage: S = A.semisimple_quotient()
                     sage: S.algebra_generators()
                     Finite family {'y': B['y'], 'x': B['x'], 'b': 0, 'a': 0}
 
-                .. TODO:: this could possibly remove the elements that retract to zero
+                .. TODO:: this could possibly remove the elements that retract to zero.
                 """
                 return self.ambient().algebra_generators().map(self.retract)
 

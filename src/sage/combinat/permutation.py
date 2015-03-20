@@ -6134,7 +6134,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             Symmetric group algebra of order 4 over Rational Field
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
-        return SymmetricGroupAlgebra(base_ring, self.n)
+        return SymmetricGroupAlgebra(base_ring, self)
 
     @cached_method
     def index_set(self):

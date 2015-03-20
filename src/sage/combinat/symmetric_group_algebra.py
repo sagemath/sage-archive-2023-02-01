@@ -28,7 +28,7 @@ permutation_options = PermutationOptions
 
 # TODO: Remove this function and replace it with the class
 # TODO: Create parents for other bases (such as the seminormal basis)
-def SymmetricGroupAlgebra(R, W=None):
+def SymmetricGroupAlgebra(R, W):
     """
     Return the symmetric group algebra of order ``W`` over the ring ``R``.
 
@@ -85,7 +85,6 @@ def SymmetricGroupAlgebra(R, W=None):
         sage: SGA.an_element()
         () + 2*(3,4) + 3*(2,3) + (1,4,3,2)
 
-        Symmetric group of order 3! as a permutation group
         sage: SGA = SymmetricGroupAlgebra(QQ, WeylGroup(["A",3], prefix='s')); SGA
         Symmetric group algebra of order 4 over Rational Field
         sage: SGA.group()
@@ -185,6 +184,9 @@ def SymmetricGroupAlgebra(R, W=None):
         True
         sage: TestSuite(SGA).run()
     """
+    from sage.rings.semirings.non_negative_integer_semiring import NN
+    if W in NN:
+        W = Permutations(W)
     return SymmetricGroupAlgebra_n(R, W)
 
 class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
@@ -216,9 +218,6 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: G(S.an_element())
             () + 2*(3,4) + 3*(2,3) + (2,3,4)
         """
-        from sage.rings.semirings.non_negative_integer_semiring import NN
-        if W in NN:
-            W = Permutations(W)
         if not W in WeylGroups or W.cartan_type().type() != 'A':
             raise ValueError("W (=%s) should be a symmetric group")
         rank = W.cartan_type().rank()
@@ -362,7 +361,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         try:
             W = self.basis().keys().__class__(n)
         except StandardError:
-            raise NotImplementedError("Constructing the sibling algebra of a different order only implemented for PermutationGroup and SymmetricGroup")
+            raise NotImplementedError("Constructing the sibling algebra of a different order"
+                                      "only implemented for PermutationGroup and SymmetricGroup")
         return SymmetricGroupAlgebra(self.base_ring(), W)
 
 

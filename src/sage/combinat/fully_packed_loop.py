@@ -292,7 +292,8 @@ class FullyPackedLoop(SageObject):
         """
         return self.six_vertex_model.to_alternating_sign_matrix()
 
-    def plot(self, figsize=4):
+
+    def plot(self):
         """
         Return a graphical object of the Fully Packed Loop
 

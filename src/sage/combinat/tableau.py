@@ -1058,13 +1058,18 @@ class Tableau(CombinatorialObject, Element):
         """
         if check and self not in SemistandardTableaux():
             raise ValueError("the tableau must be semistandard")
-        w = self.to_word()
-        if w.length() == 0:
+        w = [i for row in self for i in reversed(row)]
+        # ``w`` is now the Semitic reading word of ``self`` (that is,
+        # the reverse of the reading word of ``self``).
+        if not w:
             return self
-        wi = w.schuetzenberger_involution(n=n)
+        if n is None:
+            n = max(w)
+        N = n + 1
+        wi = [N - i for i in w]
         t = Tableau([[wi[0]]])
-        for k in range(1, w.length()):
-            t = t.bump(wi[k])
+        for k in wi[1:]:
+            t = t.bump(k)
         if isinstance(self, StandardTableau):
             return StandardTableau(list(t))
         elif isinstance(self, SemistandardTableau):
@@ -1076,7 +1081,7 @@ class Tableau(CombinatorialObject, Element):
         r"""
         Return the evacuation of the tableau ``self``.
 
-        This is an alias for ``schuetzenberger_involution``.
+        This is an alias for :meth:`schuetzenberger_involution`.
 
         This method relies on the analogous method on words, which reverts the
         word and then complements all letters within the underlying ordered
@@ -1118,7 +1123,7 @@ class Tableau(CombinatorialObject, Element):
             sage: s.parent()
             Standard tableaux
         """
-	return self.schuetzenberger_involution(n,check)
+        return self.schuetzenberger_involution(n,check)
 
     @combinatorial_map(name="standardization")
     def standardization(self, check=True):

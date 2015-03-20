@@ -129,6 +129,24 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             sage: N.from_reduced_word([1, 2, 1, 2, 2, 1, 2, 1, 2, 2]).lift()
             (1,4,3,5,2)
 
+   We can also create a monoid of matrices, where we define the multiplication as matrix
+    multiplication::
+
+        sage: M1=matrix([[0,0,1],[1,0,0],[0,1,0]])
+        sage: M2=matrix([[0,0,0],[1,1,0],[0,0,1]])
+        sage: M1.set_immutable()
+        sage: M2.set_immutable()
+        sage: def prod_m(x,y):
+        ....:     z=x*y
+        ....:     z.set_immutable()
+        ....:     return z
+        ....:
+        sage: Mon = AutomaticMonoid([M1,M2], mul=prod_m)
+        sage: Mon.cardinality()
+        24
+        sage: Mon.one()
+        []
+
     TESTS::
 
         sage: (g[1]).__hash__() == (g[1]*g[1]*g[1]).__hash__()
@@ -217,7 +235,14 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
     def one(self):
         """
-        TODO: example
+        Return one of ``self``.
+
+        EXAMPLES::
+
+            sage: R = IntegerModRing(21)
+            sage: M = AutomaticMonoid((), one = R.one())
+            sage: M.one()
+            []
         """
         return self._one
 

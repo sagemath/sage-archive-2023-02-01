@@ -2230,8 +2230,7 @@ class Tableau(CombinatorialObject, Element):
                 return self
             s = self.shape()[0]
             l = self.weight()[0]
-            word = [i for i in self.to_word() if i>1]
-            word = [i-1 for i in word]
+            word = [i-1 for row in reversed(self) for i in row if i>1]
             t = Tableau([])
             t = t.insert_word(word)
             t = t.to_list()

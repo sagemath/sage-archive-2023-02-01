@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+cd src
+
+
+$MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building PACKAGE_NAME."
+    exit 1
+fi
+
+cp homfly.h $SAGE_LOCAL/include/
+cp libhomfly.so $SAGE_LOCAL/lib/
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing PACKAGE_NAME."
+    exit 1
+fi

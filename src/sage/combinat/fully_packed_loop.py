@@ -152,6 +152,8 @@ class FullyPackedLoop(SageObject):
         else:
             raise TypeError('The generator for a fully packed loop must either be an AlternatingSignMatrix or a SixVertexConfiguration')
 
+        self.end_points = self._end_point_dictionary()
+
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -537,68 +539,103 @@ class FullyPackedLoop(SageObject):
         G.axes(False)
         return G
 
-        def link_pattern(self):
-            """
-            Return a :class:`PerfectMatching` class (a non-crossing partition)
-            corresponding to a fully packed loop. Note: by convention, we
-            choose the top left vertex to be even. See [Propp2001]_.
+    def link_pattern(self):
+        """
+        Return a :class:`PerfectMatching` class (a non-crossing partition)
+        corresponding to a fully packed loop. Note: by convention, we
+        choose the top left vertex to be even. See [Propp2001]_.
 
-            EXAMPLES:
+        EXAMPLES:
 
-            We can extract the underlying link pattern (a non-crossing
-            partition) from a fully packed loop::
-     
-                sage: A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
-                sage: fpl = FullyPackedLoop(A)
-                sage: fpl.link_pattern()
-                [(1, 2), (3, 6), (4, 5)]
-            """
-            link_pattern=[]
-            svm = self.six_vertex_model
-            n=len(svm)
+        We can extract the underlying link pattern (a non-crossing
+        partition) from a fully packed loop::
+ 
+            sage: A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
+            sage: fpl = FullyPackedLoop(A)
+            sage: fpl.link_pattern()
+            [(1, 2), (3, 6), (4, 5)]
+        """
+        link_pattern=[]
+        svm = self.six_vertex_model
+        n=len(svm)
 
-        def _end_point_vertex_dictionary(size):
-            """
-            A function to compute all vertices and their corresponding
-            endpoints.
-            """
-            # dictionary of vertices - endpoint
-            vertices = {}
-            for i in range(n):
-                for j in range(n):
-                    vertices[(i, j)] = 0
+    def _end_point_vertex_dictionary(size):
+        """
+        A function to compute all vertices and their corresponding
+        endpoints.
+        """
+        # dictionary of vertices - endpoint
+        vertices = {}
+        for i in range(n):
+            for j in range(n):
+                vertices[(i, j)] = 0
 
-            end_points = {}
+        end_points = {}
 
+        for k in range(n):
+            if k % 2 == 0:
+                # top row
+                vertices[(0, k)] = 1 + k/2
+                end_points[1 + k/2] = (0, k)
+
+                # bottom row
+                vertices[(n-1, n-1-k)] = n + 1 + k/2
+                end_points[n + 1 + k/2] = (n-1, n-1-k)
+
+        # sides for even case
+        if n % 2 == 0:
             for k in range(n):
                 if k % 2 == 0:
-                    # top row
-                    vertices[(0, k)] = 1 + k/2
-                    end_points[1 + k/2] = (0, k)
+                    # left side
+                    vertices[(n-1-k, 0)] = (3*n + 2 + k)/2
+                    end_points[((3*n + 2 + k)/2)] = (n-1-k, 0)
+                    # right side
+                    vertices[(k, n-1)] = (n + 2 + k)/2
+                    end_points[(n + 2 + k)/2] = (k, n-1)
 
-                    # bottom row
-                    vertices[(n-1, n-1-k)] = n + 1 + k/2
-                    end_points[n + 1 + k/2] = (n-1, n-1-k)
-            # sides for even case
-            if n % 2 == 0:
-                for k in range(n):
-                    if k % 2 == 0:
-                        # left side
-                        vertices[(n-1-k, 0)] = (3*n + 2 + k)/2
-                        end_points[((3*n + 2 + k)/2)] = (n-1-k, 0)
-                        # right side
-                        vertices[(k, n-1)] = (n + 2 + k)/2
-                        end_points[(n + 2 + k)/2] = (k, n-1)
+        # side for odd case
+        if n % 2 == 1:
+            for k in range(n):
+                if k % 2 == 1:
+                    # left side
+                    vertices[(n-1-k, 0)] = (3*n + 2 + k)/2
+                    end_points[(3*n + 2 + k)/2] = (n-1-k, 0)
+                    # right side
+                    vertices[(k, n-1)] = (n + 2 + k)/2
+                    end_points[(n + 2 + k)/2] = (k, n-1)
 
-            # side for odd case
-            if n % 2 == 1:
-                for k in range(n):
-                    if k % 2 == 1:
-                        # left side
-                        vertices[(n-1-k, 0)] = (3*n + 2 + k)/2
-                        end_points[(3*n + 2 + k)/2] = (n-1-k, 0)
-                        # right side
-                        vertices[(k, n-1)] = (n + 2 + k)/2
-                        end_points[(n + 2 + k)/2] = (k, n-1)
+        return vertices, end_points
 
-            return vertices, end_points
+    def _end_point_dictionary(self):
+        n = len(self.six_vertex_model)
+        end_points = {}
+
+        for k in range(n):
+            if k % 2 == 0:
+                # top row
+                end_points[1 + k/2] = (0, k)
+
+                # bottom row
+                end_points[n + 1 + k/2] = (n-1, n-1-k)
+
+        # sides for even case
+        if n % 2 == 0:
+            for k in range(n):
+                if k % 2 == 0:
+                    # left side
+                    end_points[((3*n + 2 + k)/2)] = (n-1-k, 0)
+
+                    # right side
+                    end_points[(n + 2 + k)/2] = (k, n-1)
+
+        # side for odd case
+        if n % 2 == 1:
+            for k in range(n):
+                if k % 2 == 1:
+                    # left side
+                    end_points[(3*n + 2 + k)/2] = (n-1-k, 0)
+
+                    # right side
+                    end_points[(n + 2 + k)/2] = (k, n-1)
+
+        return end_points

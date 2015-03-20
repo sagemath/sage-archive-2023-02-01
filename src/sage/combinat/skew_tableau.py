@@ -1030,9 +1030,9 @@ class SkewTableau(CombinatorialObject, Element):
 
     def is_ribbon(self):
         r"""
-        Return ``True`` if and only if the shape of ``self`` is a ribbon,
-        that is if it has exactly one cell in each of q consecutive diagonals
-        for some nonnegative integer q.
+        Return ``True`` if and only if the shape of ``self`` is a
+        ribbon, that is, if it has exactly one cell in each of `q`
+        consecutive diagonals for some nonnegative integer `q`.
 
         EXAMPLES::
 
@@ -1060,6 +1060,22 @@ class SkewTableau(CombinatorialObject, Element):
             sage: S.is_ribbon()
             False
 
+            sage: S=SkewTableau([[None, None, None, None],[None, None, 3],[1, 2, 4]])
+            sage: S.pp()
+              .  .  .  .
+              .  .  3
+              1  2  4
+            sage: S.is_ribbon()
+            True
+
+            sage: S=SkewTableau([[None, None, None, None],[None, None, 3],[None, 2, 4]])
+            sage: S.pp()
+              .  .  .  .
+              .  .  3
+              .  2  4
+            sage: S.is_ribbon()
+            True
+
             sage: S=SkewTableau([[None, None],[None]])
             sage: S.pp()
               .  .
@@ -1070,50 +1086,57 @@ class SkewTableau(CombinatorialObject, Element):
         """
         lam = list(self.outer_shape())
         mu = list(self.inner_shape())
-	l_out = len(lam)
-	l_in = len(mu)
+        l_out = len(lam)
+        l_in = len(mu)
         mu += [0]*(l_out-l_in)
         
-        if l_out==0:
-            ribbon_check = True
+        if l_out == 0:
+            return True
         else:
-            # Find the least u for which lam[u]>mu[u], if it exists
-            # If it does not exist then u will equal l_out
-            u=0
+            # Find the least u for which lam[u]>mu[u], if it exists.
+            # If it does not exist then u will equal l_out.
+            u = 0
             u_test = True
             while u_test:
-                if u>l_out-1 or lam[u]>mu[u]:
+                if u >= l_out or lam[u] > mu[u]:
                     u_test = False
                 else:
                     u += 1
 
             # Find the least v strictly greater than u for which 
             # lam[v] != mu[v-1]+1
-            v=u+1
+            v = u + 1
             v_test = True
             while v_test:
-                if v > l_out-1 or lam[v]!=mu[v-1]+1:
-                    v_test=False
+                if v >= l_out or lam[v] != mu[v-1] + 1:
+                    v_test = False
                 else:
                     v += 1
 
             # Check if lam[i]==mu[i] for all i >= v
-            ribbon_check = True
-            for i in range(v,l_out):
-                if lam[i]!=mu[i]:
-                    ribbon_check = False
-        return ribbon_check
+            for i in range(v, l_out):
+                if lam[i] != mu[i]:
+                    return False
 
-    def to_ribbon(self):
+        return True
+
+    def to_ribbon(self, check_input=True):
         """
-        Return the ribbon version of ``self``.
+        Return ``self`` as a ribbon-shaped tableau
+        (:class:`~sage.combinat.ribbon_shaped_tableau.RibbonShapedTableau`),
+        provided that the shape of ``self`` is a ribbon.
+
+        INPUT:
+
+        - ``check_input`` -- (default: ``True``) whether or not to check
+          that ``self`` indeed has ribbon shape
 
         EXAMPLES::
 
             sage: SkewTableau([[None,1],[2,3]]).to_ribbon()
             [[None, 1], [2, 3]]
         """
-        if not self.is_ribbon():
+        if check_input and not self.is_ribbon():
             raise ValueError("self must be a ribbon")
         from sage.combinat.ribbon_shaped_tableau import RibbonShapedTableau
         r = [[i for i in row if i is not None] for row in self]

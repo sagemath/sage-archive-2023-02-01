@@ -638,9 +638,9 @@ class SkewPartition(CombinatorialObject, Element):
 
     def is_ribbon(self):
         r"""
-        Return ``True`` if and only if ``self`` is a ribbon, 
-        that is if it has exactly one cell in each of q consecutive diagonals
-        for some nonnegative integer q.
+        Return ``True`` if and only if ``self`` is a ribbon, that is,
+        if it has exactly one cell in each of `q` consecutive
+        diagonals for some nonnegative integer `q`.
 
         EXAMPLES::
 
@@ -670,44 +670,62 @@ class SkewPartition(CombinatorialObject, Element):
             sage: P.is_ribbon()
             False
 
+            sage: P=SkewPartition([[4,4,3,3],[4,2,2,1]])
+            sage: P.pp()
+            <BLANKLINE>
+              **
+              *
+             **
+            sage: P.is_ribbon()
+            True
+
+            sage: P=SkewPartition([[4,4,3,3],[4,2,2]])
+            sage: P.pp()
+            <BLANKLINE>
+              **
+              *
+            ***
+            sage: P.is_ribbon()
+            True
+
             sage: SkewPartition([[2,2,1],[2,2,1]]).is_ribbon()
             True
         """
         lam = self[0]
         mu = self[1]
-	l_out = len(lam)
-	l_in = len(mu)
+        l_out = len(lam)
+        l_in = len(mu)
         mu += [0]*(l_out-l_in)
         
-        if l_out==0:
-            ribbon_check = True
+        if l_out == 0:
+            return True
         else:
             # Find the least u for which lam[u]>mu[u], if it exists
             # If it does not exist then u will equal l_out
-            u=0
+            u = 0
             u_test = True
             while u_test:
-                if u>l_out-1 or lam[u]>mu[u]:
+                if u >= l_out or lam[u] > mu[u]:
                     u_test = False
                 else:
                     u += 1
 
             # Find the least v strictly greater than u for which 
             # lam[v] != mu[v-1]+1
-            v=u+1
+            v = u + 1
             v_test = True
             while v_test:
-                if v > l_out-1 or lam[v]!=mu[v-1]+1:
-                    v_test=False
+                if v >= l_out or lam[v] != mu[v-1] + 1:
+                    v_test = False
                 else:
                     v += 1
 
             # Check if lam[i]==mu[i] for all i >= v
-            ribbon_check = True
-            for i in range(v,l_out):
-                if lam[i]!=mu[i]:
-                    ribbon_check = False
-        return ribbon_check
+            for i in range(v, l_out):
+                if lam[i] != mu[i]:
+                    return False
+
+        return True
 
     def conjugate(self):
         """

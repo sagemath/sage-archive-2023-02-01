@@ -1808,7 +1808,7 @@ class Tableau(CombinatorialObject, Element):
             i = 0
             #try to insert to_insert into row
             while i < len(new_t[row]):
-                if x < new_t[row][i]:
+                if to_insert < new_t[row][i]:
                     t = to_insert
                     to_insert = new_t[row][i]
                     new_t[row][i] = t
@@ -1831,7 +1831,6 @@ class Tableau(CombinatorialObject, Element):
 
     def schensted_insert(self, i, left=False):
         """
-        Insert ``i`` into ``self`` using Schensted's row-bumping (or
         row-insertion) algorithm.
 
         INPUT:

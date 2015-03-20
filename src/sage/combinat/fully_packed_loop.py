@@ -90,7 +90,7 @@ class FullyPackedLoop(SageObject):
 
     def __init__(self, generator):
         """
-        Initialise object: what are we going to use as generators? Perhaps multiple: ASM, and Six Vertex Model
+        Initialise object, can take ASM of FPL as generator.
 
         EXAMPLES:
 

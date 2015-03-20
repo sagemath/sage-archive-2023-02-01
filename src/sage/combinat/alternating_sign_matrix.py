@@ -412,7 +412,6 @@ class AlternatingSignMatrix(Element):
         n = asm.nrows() + 1
         return matrix([[i+j-2*nw_corner_sum(asm,i,j) for i in range(n)] for j in range(n)])
 
-<<<<<<< HEAD
     def to_six_vertex_model(self):
         r"""
         Return the six vertex model configuration from ``self``.
@@ -472,8 +471,7 @@ class AlternatingSignMatrix(Element):
         from sage.combinat.fully_packed_loop import FullyPackedLoop
         return FullyPackedLoop(self)
 
-=======
->>>>>>> develop
+
     @combinatorial_map(name='gyration')
     def gyration(self):
         r"""

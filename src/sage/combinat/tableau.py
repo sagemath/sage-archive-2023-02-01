@@ -3407,7 +3407,7 @@ class SemistandardTableau(Tableau):
 
     def __init__(self, parent, t):
         r"""
-        Initializes a semistandard tableau.
+        Initialize a semistandard tableau.
 
         TESTS::
 
@@ -3430,18 +3430,22 @@ class SemistandardTableau(Tableau):
         super(SemistandardTableau, self).__init__(parent, t)
 
         # Tableau() has checked that t is tableau, so it remains to check that
-        # the entries of t are positive integers
+        # the entries of t are positive integers which are weakly increasing
+        # along rows
         from sage.sets.positive_integers import PositiveIntegers
-        if any(c not in PositiveIntegers() for row in t for c in row):
-            raise ValueError("the entries of a semistandard tableau must be non-negative integers")
+        PI = PositiveIntegers()
 
-        # which are weakly increasing along rows
-        if any(row[c]>row[c+1] for row in t for c in xrange(len(row)-1)):
-            raise ValueError("the entries in each row of a semistandard tableau must be weakly increasing")
+        for row in t:
+            if any(c not in PI for c in row):
+                raise ValueError("the entries of a semistandard tableau must be non-negative integers")
+            if any(row[c] > row[c+1] for c in xrange(len(row)-1)):
+                raise ValueError("the entries in each row of a semistandard tableau must be weakly increasing")
 
         # and strictly increasing down columns
-        if len(t)>0 and any(t[r][c] >= t[r+1][c] for c in xrange(len(t[0])) for r in xrange(len(t)-1) if len(t[r+1])>c):
-            raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
+        if t:
+            for row, next in itertools.izip(t, t[1:]):
+                if not all(row[c] < next[c] for c in xrange(len(next))):
+                    raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
 
 class StandardTableau(SemistandardTableau):
     """

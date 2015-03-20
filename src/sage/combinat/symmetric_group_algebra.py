@@ -44,12 +44,13 @@ def SymmetricGroupAlgebra(R, W):
 
     .. WARNING::
 
-        Some features are failing in the latter case.
+        Some features are failing in the latter case, in particular if
+        the domain of the symmetric group is not `1,\ldots,n`.
 
     .. NOTE::
 
-        The brave can also try setting ``W=WeylGroup(['A',n-1])``,
-        but very little support for this currently exists.
+        The brave can also try setting ``W=WeylGroup(['A',n-1])``, but
+        little support for this currently exists.
 
     EXAMPLES::
 
@@ -367,7 +368,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         try:
             W = self.basis().keys().__class__(n)
         except StandardError:
-            raise NotImplementedError("Constructing the sibling algebra of a different order"
+            raise NotImplementedError("Constructing the sibling algebra of a different order "
                                       "only implemented for PermutationGroup and SymmetricGroup")
         return SymmetricGroupAlgebra(self.base_ring(), W)
 

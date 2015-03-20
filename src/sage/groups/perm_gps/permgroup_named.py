@@ -542,31 +542,27 @@ class SymmetricGroup(PermutationGroup_symalt):
         """
         Return the symmetric group algebra associated to ``self``.
 
-        .. WARNING::
-
-            This is broken!
-
-                sage: S = SymmetricGroup([2,3,5])
-                sage: S.an_element()
-                (2,3,5)
-                sage: S.algebra(QQ)(_)
-                Traceback (most recent call last):
-                ...
-                ValueError: The permutation has length 3 but its maximal element is 5. Some
-                 element may be repeated, or an element is missing, but there is something
-                 wrong with its length.
-
-            Best make it a usual group algebra with none of the bells and whistles
-            of the SGA but with functioning methods.
+        If ``self`` is the symmetric group on `1,\ldots,n`, then this
+        is special cased to take advantage of the features in
+        :class:`SymmetricGroupAlgebra`. Otherwise the usual group
+        algebra is returned.
 
         EXAMPLES::
 
             sage: S4 = SymmetricGroup(4)
             sage: S4.algebra(QQ)
             Symmetric group algebra of order 4 over Rational Field
+
+            sage: S = SymmetricGroup([2,3,5])
+            sage: S.algebra(QQ)
+            Group algebra of Symmetric group of order 3! as a permutation group over Rational Field
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
-        return SymmetricGroupAlgebra(base_ring, self)
+        domain = self.domain()
+        if list(domain) == range(1, len(domain)+1):
+            return SymmetricGroupAlgebra(base_ring, self)
+        else:
+            return super(SymmetricGroup, self).algebra(base_ring)
 
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):

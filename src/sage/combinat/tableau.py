@@ -317,12 +317,48 @@ class Tableau(ClonableList):
         ClonableList.__init__(self, parent, t)
     
     def __eq__(self, other):
+        r"""
+        Check whether ``self`` is equal to ``other``.
+        
+        TODO:
+        
+        This overwrites the equality check of
+        :class:`sage.structure.list_clone.ClonableList`
+        in order to circumvent the coercion framework.
+        Eventually this should be solved more elegantly,
+        for example along the lines of what was done for
+        k-tableaux.
+        
+        For now, two elements are equal if their underlying
+        defining lists compare equal.
+        
+        INPUT:
+        
+        ``other`` -- the element that ``self`` is compared to
+        
+        OUTPUT:
+        
+        A Boolean.
+        """
         if isinstance(other, Tableau):
             return list(self).__eq__(list(other))
         else:
             return list(self).__eq__(other)
     
     def __ne__(self, other):
+        r"""
+        Check whether ``self`` is unequal to ``other``.
+        
+        See the documentation of :meth:`__eq__`.
+        
+        INPUT:
+        
+        ``other`` -- the element that ``self`` is compared to
+        
+        OUTPUT:
+        
+        A Boolean.
+        """
         if isinstance(other, Tableau):
             return list(self).__ne__(list(other))
         else:

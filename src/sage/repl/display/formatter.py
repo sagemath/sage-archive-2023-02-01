@@ -61,7 +61,7 @@ This other facility uses a simple
 #*****************************************************************************
 
 
-from IPython.core.formatters import DisplayFormatter, PlainTextFormatter, warn_format_error
+from IPython.core.formatters import DisplayFormatter, PlainTextFormatter
 from IPython.utils.py3compat import str_to_unicode, unicode_to_str
 
 from sage.structure.sage_object import SageObject
@@ -160,7 +160,6 @@ class SagePlainTextFormatter(PlainTextFormatter):
         """
         super(SagePlainTextFormatter, self).__init__(*args, **kwds)
 
-    @warn_format_error
     def __call__(self, obj):
         """
         Compute the pretty representation of the object.

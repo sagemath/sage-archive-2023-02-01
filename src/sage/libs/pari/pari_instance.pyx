@@ -370,8 +370,10 @@ cdef void sage_flush():
     sys.stdout.flush()
 
 
+include 'auto_instance.pxi'
+
 @cython.final
-cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
+cdef class PariInstance(PariInstance_auto):
     def __init__(self, long size=1000000, unsigned long maxprime=500000):
         """
         Initialize the PARI system.
@@ -977,16 +979,16 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         return x
 
 
-
     cdef long get_var(self, v):
         """
-        Converts a Python string into a PARI variable reference number. Or
-        if v = -1, returns -1.
+        Convert a Python string into a PARI variable number.
         """
-        if v != -1:
-            s = str(v)
-            return fetch_user_var(s)
-        return -1
+        if v is None:
+            return -1
+        if v == -1:
+            return -1
+        cdef bytes s = bytes(v)
+        return fetch_user_var(s)
 
     ############################################################
     # Initialization
@@ -1260,15 +1262,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         self.init_primes(n+1)
         return self.prime_list(pari(n).primepi())
 
-##         cdef long k
-##         k = (n+10)/math.log(n)
-##         p = 2
-##         while p <= n:
-##             p = self.nth_prime(k)
-##             k = 2
-##         v = self.prime_list(k)
-##         return v[:pari(n).primepi()]
-
     def __nth_prime(self, long n):
         """
         nth_prime(n): returns the n-th prime, where n is a C-int
@@ -1287,7 +1280,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         except PariError:
             self.init_primes(max(2*maxprime(), 20*n))
             return self.nth_prime(n)
-
 
     def euler(self, unsigned long precision=0):
         """
@@ -1428,10 +1420,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         else:
             return plist
         #return self.new_gen(polsubcyclo(n, d, self.get_var(v)))
-
-    def polzagier(self, long n, long m):
-        pari_catch_sig_on()
-        return self.new_gen(polzag(n, m))
 
     def setrand(self, seed):
         """

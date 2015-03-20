@@ -1,7 +1,7 @@
 r"""
 Fully packed loops
 
-A class for fully packed loops [Propp]_.
+A class for fully packed loops [Propp2001]_.
 We can create a fully packed loop using the corresponding alternating sign matrix::
 
     sage: A = AlternatingSignMatrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
@@ -29,7 +29,7 @@ which gives:
 .. PLOT::
     :width: 200 px
 
-    A = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    A = AlternatingSignMatrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
     fpl = FullyPackedLoop(A)
     p = fpl.plot()
     sphinx_plot(p)
@@ -72,7 +72,7 @@ Once we have a fully packed loop we can obtain the corresponding alternating sig
 
 REFERENCES:
 
-.. [Propp] James Propp.
+.. [Propp2001] James Propp.
    *The Many Faces of Alternating Sign Matrices*
    Discrete Mathematics and Theoretical Computer Science 43 (2001): 58
 """

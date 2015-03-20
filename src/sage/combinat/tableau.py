@@ -1838,6 +1838,13 @@ class Tableau(CombinatorialObject, Element):
         Insert ``i`` into ``self`` using Schensted's row-bumping (or
         row-insertion) algorithm.
 
+        INPUT:
+            - ``i`` -- a number to insert
+            - ``left`` -- defaults to `False`; if set to `True`, the insertion
+            will be done from the left. That is, if one thinks of the algorithm
+            as appending a letter to the reading word of ``self``, we append the
+            letter to the left instead of the right
+ 
         EXAMPLES::
 
             sage: t = Tableau([[3,5],[7]])

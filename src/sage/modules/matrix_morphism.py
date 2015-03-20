@@ -113,10 +113,10 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         """
         Evaluate this matrix morphism at an element of the domain.
 
-        REMARK:
+        .. NOTE::
 
-        Coercion is done in the generic __call__ method, which calls
-        this method.
+            Coercion is done in the generic :meth:`__call__` method,
+            which calls this method.
 
         EXAMPLES::
 
@@ -159,7 +159,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: phi(V.0  - 1/4*V.1)
             (0, 3/4, 3/2)
 
-        We restrict phi to W and compute the image of an element::
+        We restrict ``phi`` to ``W`` and compute the image of an element::
 
             sage: psi = phi.restrict_domain(W)
             sage: psi(W.0) == phi(W.0)

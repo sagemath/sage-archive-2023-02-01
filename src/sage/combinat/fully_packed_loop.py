@@ -542,17 +542,47 @@ class FullyPackedLoop(SageObject):
             svm = self.six_vertex_model
             n=len(svm)
 
+            # dictionary of vertices - endpoint
             vertices = {}
             for i in range(n):
                 for j in range(n):
                     vertices[(i, j)] = 0
 
-            end_points = [i for i in range(2*n)]
+            end_points = {}
 
-            # top row
             for k in range(n):
                 if k % 2 == 0:
+                    # top row
                     vertices[(0, k)] = 1 + k/2
+                    end_points[1 + k/2] = (0, k)
+
+                    # bottom row
+                    vertices[(n, n-k)] = n + 1 + k/2
+                    end_points[n + 1 + k/2] = (n, n-k)
+
+            # sides for even case
+            if n % 2 == 0:
+                for k in range(n):
+                    if k % 2 == 0:
+                        # left side
+                        vertices[(n-k, 0)] = (3*n + 2 + k)/2
+                        end_points[((3*n + 2 + k)/2)] = (n-k, 0)
+                        # right side
+                        vertices[(k, n)] = (n + 2 + k)/2
+                        end_points[(n + 2 + k)/2] = (k, n)
+
+            # side for odd case
+            if n % 2 == 1:
+                for k in range(n):
+                    if k % 2 == 1:
+                        # left side
+                        vertices[(n-k, 0)] = (3*n + 2 + k)/2
+                        end_points[(3*n + 2 + k)/2] = (n-k, 0)
+                        # right side
+                        vertices[(k, n)] = (n + 2 + k)/2
+                        end_points[(n + 2 + k)/2] = (k, n)
+
+
 
 
 

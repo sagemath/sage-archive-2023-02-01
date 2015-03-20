@@ -553,9 +553,21 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: S4.algebra(QQ)
             Symmetric group algebra of order 4 over Rational Field
 
+            sage: S3 = SymmetricGroup([1,2,3])
+            sage: S3.algebra(QQ)
+            Symmetric group algebra of order 3 over Rational Field
+            sage: a = S3.an_element(); a
+            (1,2,3)
+            sage: S3.algebra(QQ)(a)
+            (1,2,3)
+
             sage: S = SymmetricGroup([2,3,5])
             sage: S.algebra(QQ)
             Group algebra of Symmetric group of order 3! as a permutation group over Rational Field
+            sage: a = S.an_element(); a
+            (2,3,5)
+            sage: S.algebra(QQ)(a)
+            B[(2,3,5)]
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
         domain = self.domain()

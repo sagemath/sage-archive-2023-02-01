@@ -17,7 +17,9 @@ TOP=`pwd`
 #######################################################################
 cd src
 for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
+    # Use --no-backup-if-mismatch to prevent .orig files (these confuse
+    # PARI's Perl script which creates pari.desc).
+    patch --no-backup-if-mismatch -p1 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error applying '$patch'"
         exit 1

@@ -4640,6 +4640,8 @@ class SemistandardTableaux(Tableaux):
             False
             sage: [[1,1],[5]] in T
             True
+            sage: [[1,3,2]] in T
+            False
 
         Check that :trac:`14145` is fixed::
 
@@ -4653,11 +4655,12 @@ class SemistandardTableaux(Tableaux):
         elif t == []:
             return True
         elif Tableaux.__contains__(self, t):
-            for row, next in itertools.izip(t, t[1:]):
+            for row in t:
                 if not all(c > 0 for c in row):
                     return False
                 if not all(row[i] <= row[i+1] for i in range(len(row)-1)):
                     return False
+            for row, next in itertools.izip(t, t[1:]):
                 if not all(row[c] < next[c] for c in range(len(next))):
                     return False
             return self.max_entry is None or max(max(row) for row in t) <= self.max_entry

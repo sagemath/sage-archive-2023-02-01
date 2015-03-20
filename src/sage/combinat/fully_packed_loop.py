@@ -153,6 +153,7 @@ class FullyPackedLoop(SageObject):
             raise TypeError('The generator for a fully packed loop must either be an AlternatingSignMatrix or a SixVertexConfiguration')
 
         self.end_points = self._end_point_dictionary()
+        self.configuration = list(self.six_vertex_model)
 
     def _repr_(self):
         """
@@ -559,6 +560,8 @@ class FullyPackedLoop(SageObject):
         svm = self.six_vertex_model
         n=len(svm)
 
+
+
     def _vertex_dictionary(size):
         """
         A function to create a dictionary of all the coordinates.
@@ -571,6 +574,37 @@ class FullyPackedLoop(SageObject):
 
         for end, vertex in self.endpoints:
             vertices[vertex] = end
+
+    def _get_coordinates(self, current):
+        # 0 UD, 1 RD, 2 UR, 3 LR, 4 LD, 5 LU
+        odd = {0: [[-1, 0], [1, 0]],
+               1: [[0, 1], [1, 0]],
+               2: [[-1, 0], [0, 1]],
+               3: [[0, -1], [0, 1]],
+               4: [[0, -1], [1, 0]],
+               5: [[0, -1], [-1, 0]]
+               }
+
+        # 0 LR, 1 LU, 2 LD, 3 UD, 4 UR, 5 RD
+        even = {0: [[0, -1], [0, 1]],
+                1: [[0, -1], [-1, 0]],
+                2: [[0, -1], [1, 0]],
+                3: [[-1, 0], [0, 1]],
+                4: [[-1, 0], [1, 0]],
+                5: [[0, 1], [1, 0]]
+                }
+
+        parity = sum(current)
+        c = self.configuration(current)
+
+        if parity % 2 == 0:
+            potential_directions = even[parity]
+        else:
+            potential_directions = odd[parity]
+
+        return [(c[0] + d[0], c[1] + d[1]) for d in potential_directions]
+
+
 
     def _end_point_dictionary(self):
         """

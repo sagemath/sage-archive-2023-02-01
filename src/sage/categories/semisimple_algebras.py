@@ -101,7 +101,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
                         [B['y'], B['x']]
                     """
                     return [x.lift()
-                            for x in self.center().orthogonal_idempotents()]
+                            for x in self.center().central_orthogonal_idempotents()]
 
             class Commutative(CategoryWithAxiom_over_base_ring):
 
@@ -188,9 +188,9 @@ class SemisimpleAlgebras(Category_over_base_ring):
                             return map(lambda x: x.lift(), res)
 
                     @cached_method
-                    def orthogonal_idempotents(self, dimSimple=False):
+                    def central_orthogonal_idempotents(self, dimSimple=False):
                         r"""
-                        Return the minimal orthogonal idempotents of ``self``.
+                        Return the minimum set of central orthogonal idempotents of ``self``.
 
                         INPUT:
 
@@ -204,7 +204,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
 
                             sage: A5 = SymmetricGroup(5).algebra(QQ)
                             sage: Z5 = A5.center()
-                            sage: orth = Z5.orthogonal_idempotents()
+                            sage: orth = Z5.central_orthogonal_idempotents()
                             sage: orth
                             [3/10*B[0] - 1/10*B[2] + 1/20*B[6], 1/120*B[0] +
                             1/120*B[1] + 1/120*B[2] + 1/120*B[3] + 1/120*B[4] +

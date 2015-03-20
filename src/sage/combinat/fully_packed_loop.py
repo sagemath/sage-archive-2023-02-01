@@ -559,54 +559,24 @@ class FullyPackedLoop(SageObject):
         svm = self.six_vertex_model
         n=len(svm)
 
-    def _end_point_vertex_dictionary(size):
+    def _vertex_dictionary(size):
         """
-        A function to compute all vertices and their corresponding
-        endpoints.
+        A function to create a dictionary of all the coordinates.
         """
-        # dictionary of vertices - endpoint
+        n = len(self.six_vertex_model)
         vertices = {}
         for i in range(n):
             for j in range(n):
                 vertices[(i, j)] = 0
 
-        end_points = {}
-
-        for k in range(n):
-            if k % 2 == 0:
-                # top row
-                vertices[(0, k)] = 1 + k/2
-                end_points[1 + k/2] = (0, k)
-
-                # bottom row
-                vertices[(n-1, n-1-k)] = n + 1 + k/2
-                end_points[n + 1 + k/2] = (n-1, n-1-k)
-
-        # sides for even case
-        if n % 2 == 0:
-            for k in range(n):
-                if k % 2 == 0:
-                    # left side
-                    vertices[(n-1-k, 0)] = (3*n + 2 + k)/2
-                    end_points[((3*n + 2 + k)/2)] = (n-1-k, 0)
-                    # right side
-                    vertices[(k, n-1)] = (n + 2 + k)/2
-                    end_points[(n + 2 + k)/2] = (k, n-1)
-
-        # side for odd case
-        if n % 2 == 1:
-            for k in range(n):
-                if k % 2 == 1:
-                    # left side
-                    vertices[(n-1-k, 0)] = (3*n + 2 + k)/2
-                    end_points[(3*n + 2 + k)/2] = (n-1-k, 0)
-                    # right side
-                    vertices[(k, n-1)] = (n + 2 + k)/2
-                    end_points[(n + 2 + k)/2] = (k, n-1)
-
-        return vertices, end_points
+        for end, vertex in self.endpoints:
+            vertices[vertex] = end
 
     def _end_point_dictionary(self):
+        """
+        A function create a dictionary of the endpoints and their
+        coordinates.
+        """
         n = len(self.six_vertex_model)
         end_points = {}
 

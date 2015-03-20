@@ -570,27 +570,28 @@ class FullyPackedLoop(SageObject):
                     end_points[1 + k/2] = (0, k)
 
                     # bottom row
-                    vertices[(n, n-k)] = n + 1 + k/2
-                    end_points[n + 1 + k/2] = (n, n-k)
-
+                    vertices[(n-1, n-1-k)] = n + 1 + k/2
+                    end_points[n + 1 + k/2] = (n-1, n-1-k)
             # sides for even case
             if n % 2 == 0:
                 for k in range(n):
                     if k % 2 == 0:
                         # left side
-                        vertices[(n-k, 0)] = (3*n + 2 + k)/2
-                        end_points[((3*n + 2 + k)/2)] = (n-k, 0)
+                        vertices[(n-1-k, 0)] = (3*n + 2 + k)/2
+                        end_points[((3*n + 2 + k)/2)] = (n-1-k, 0)
                         # right side
-                        vertices[(k, n)] = (n + 2 + k)/2
-                        end_points[(n + 2 + k)/2] = (k, n)
+                        vertices[(k, n-1)] = (n + 2 + k)/2
+                        end_points[(n + 2 + k)/2] = (k, n-1)
 
             # side for odd case
             if n % 2 == 1:
                 for k in range(n):
                     if k % 2 == 1:
                         # left side
-                        vertices[(n-k, 0)] = (3*n + 2 + k)/2
-                        end_points[(3*n + 2 + k)/a2] = (n-k, 0)
+                        vertices[(n-1-k, 0)] = (3*n + 2 + k)/2
+                        end_points[(3*n + 2 + k)/2] = (n-1-k, 0)
                         # right side
-                        vertices[(k, n)] = (n + 2 + k)/2
-                        end_points[(n + 2 + k)/2] = (k, n)
+                        vertices[(k, n-1)] = (n + 2 + k)/2
+                        end_points[(n + 2 + k)/2] = (k, n-1)
+
+            return vertices, end_points

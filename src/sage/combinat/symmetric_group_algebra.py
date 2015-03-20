@@ -23,6 +23,7 @@ from sage.modules.all import vector
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 import itertools
+from sage.combinat.permutation_cython import (left_action_same_n, right_action_same_n)
 
 permutation_options = PermutationOptions
 
@@ -426,10 +427,10 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         if not isinstance(self._indices, Permutations):
             return b * a
         P = Permutations(self.n)
-        return self.sum_of_terms([(P([p[i-1] for i in q]), x * y)
+        return self.sum_of_terms([(P(left_action_same_n(p._list, q._list)), x * y)
                                   for (p, x) in a for (q, y) in b])
-        # Why did we use P([p[i-1] for i in q])
-        # instead of p.left_action_product(q) ?
+        # Why did we use left_action_same_n instead of
+        # left_action_product?
         # Because having cast a and b into self, we already know that
         # p and q are permutations of the same number of elements,
         # and thus we don't need to waste our time on the input
@@ -488,10 +489,10 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         if not isinstance(self._indices, Permutations):
             return a * b
         P = Permutations(self.n)
-        return self.sum_of_terms([(P([q[i-1] for i in p]), x * y)
+        return self.sum_of_terms([(P(right_action_same_n(p._list, q._list)), x * y)
                                   for (p, x) in a for (q, y) in b])
-        # Why did we use P([q[i-1] for i in p])
-        # instead of p.right_action_product(q) ?
+        # Why did we use right_action_same_n instead of
+        # right_action_product?
         # Because having cast a and b into self, we already know that
         # p and q are permutations of the same number of elements,
         # and thus we don't need to waste our time on the input

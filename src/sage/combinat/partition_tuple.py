@@ -1115,13 +1115,12 @@ class PartitionTuple(CombinatorialObject,Element):
         if comp>=len(self) or row+1>=len(self[comp]) or col>=self[comp][row+1]:
             raise ValueError('(comp, row+1, col) must be inside the diagram')
         from tableau_tuple import TableauTuple
-        
         g = self.initial_tableau().to_list()
-        a=g[comp][row][col]
-        g[comp][row][col:]=range(a+col+1,g[comp][row+1][col]+1)
-        g[comp][row+1][:col+1]=range(a,a+col+1)
+        a = g[comp][row][col]
+        g[comp][row][col:] = range(a+col+1, g[comp][row+1][col]+1)
+        g[comp][row+1][:col+1] = range(a, a+col+1)
         g = TableauTuple(g)
-        g._garnir_cell=(comp,row,col)
+        g._garnir_cell = (comp,row,col)
         return g
 
     def top_garnir_tableau(self,e,cell):
@@ -1213,7 +1212,7 @@ class PartitionTuple(CombinatorialObject,Element):
 
         INPUT:
 
-        - ``k`` -- The compoenent
+        - ``k`` -- The component
         - ``r`` -- The row
         - ``c`` -- The cell
 
@@ -1245,7 +1244,7 @@ class PartitionTuple(CombinatorialObject,Element):
 
         INPUT:
 
-        - ``k`` -- The compoenent
+        - ``k`` -- The component
         - ``r`` -- The row
         - ``c`` -- The cell
 

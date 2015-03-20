@@ -27,4 +27,7 @@ Modules
 
    sage/modules/diamond_cutting
 
+   sage/modules/with_basis/__init__
+   sage/modules/with_basis/morphism
+
 .. include:: ../footer.txt

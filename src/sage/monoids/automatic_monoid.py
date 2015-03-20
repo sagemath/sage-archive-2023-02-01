@@ -51,9 +51,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
     ::
 
         sage: g = M.generators; g
-        Finite family {1: 3, 2: 5}
+        Finite family {1: [1], 2: [2]}
         sage: g[1]*g[2]
-        3
+        [1]
 
     Calling cardinality, or list, or iterating through the monoid will
     trigger its full construction and, as a side effect, compute all
@@ -174,7 +174,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
     ::
 
         sage: AutomaticMonoid(Family({1:2}), category = Monoids().Finite())
-        The (automatic) monoid with generators Finite family {1: 2}
+        The (automatic) monoid with generators Finite family {1: [1]}
 
     BUGS:
 
@@ -228,9 +228,13 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
         self.generators_in_ambient = generators
         self.generators = generators.map(self.retract)
 
-        self.elements     = [self.one()]
+        self.elements     = [self.one()] + list(self.generators)
         self.elements_set = set(self.elements)
+
+        # Reduced word of the identity and generators
         self.one()._reduced_word = []
+        for e in self.generators:
+            e._reduced_word = [self.generators.inverse_family()[e]]
         self.done         = 0
 
     def one(self):
@@ -314,9 +318,13 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
             sage: R = IntegerModRing(26)
             sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one = R.one())
+            sage: M.cardinality()
+            8
             sage: a = M.an_element()
-            sage: type(a.lift())
-            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
+            sage: a.lift() in R
+            True
+            sage: a.lift()
+            3
         """
         assert(x in self)
         return x.lift()
@@ -422,7 +430,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             sage: M = AutomaticMonoid(Family({1:G4((1,2)), 2:G4((1,2,3,4))}), G4.one())
             sage: M.cardinality()
             24
-            sage: M.from_reduced_word([2, 1, 2, 2, 1])
+            sage: M.from_reduced_word([2, 1, 2, 2, 1]).lift()
             (1,3)
             sage: M.from_reduced_word([2, 1, 2, 2, 1]) == M.retract(G4((3,1)))
             True
@@ -496,11 +504,13 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
                 sage: R = IntegerModRing(17)
                 sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one = R.one())
+                sage: M.cardinality()
+                16
                 sage: a = M.an_element()
                 sage: a.transition(1)
-                9
+                [1, 1]
                 sage: a.transition(2)
-                15
+                [1, 2]
             """
             parent = self.parent()
             assert(i in parent.generators.keys())
@@ -510,4 +520,4 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             rep = self.reduced_word()
             if rep is None:
                 rep = self.lift()
-            return "%s"%rep
+            return str(rep)

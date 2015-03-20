@@ -90,7 +90,7 @@ class SkewTableau(CombinatorialObject, Element):
 
         for row in st:
             try:
-                tuple(row)
+                iter(row)
             except TypeError:
                 raise TypeError("each element of the skew tableau must be an iterable")
             if not row:

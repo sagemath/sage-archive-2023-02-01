@@ -88,6 +88,7 @@ from integer_vector import IntegerVectors
 import sage.libs.symmetrica.all as symmetrica
 import sage.misc.prandom as random
 import permutation
+import itertools
 from sage.misc.flatten import flatten
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.misc.all import uniq, prod
@@ -4191,7 +4192,7 @@ class Tableaux_size(Tableaux):
             sage: 1 in sage.combinat.tableau.Tableaux_size(3)
             False
         """
-        return Tableaux.__contains__(self, x) and sum(map(len,x)) == self.size
+        return Tableaux.__contains__(self, x) and sum(len(row) for row in self) == self.size
 
     def _repr_(self):
         """
@@ -4651,11 +4652,15 @@ class SemistandardTableaux(Tableaux):
                     max(sum(t, ())) <= self.max_entry
         elif t == []:
             return True
-        elif Tableaux.__contains__(self, t) and all(c>0 for row in t for c in row) \
-                and all(row[i] <= row[i+1] for row in t for i in range(len(row)-1)) \
-                and all(t[r][c] < t[r+1][c]
-                        for r in range(len(t)-1) for c in range(len(t[r+1]))):
-            return self.max_entry is None or max(max(row) for row in t if row) <= self.max_entry
+        elif Tableaux.__contains__(self, t):
+            for row, next in itertools.izip(t, t[1:]):
+                if not all(c > 0 for c in row):
+                    return False
+                if not all(row[i] <= row[i+1] for i in range(len(row)-1)):
+                    return False
+                if not all(row[c] < next[c] for c in range(len(next))):
+                    return False
+            return self.max_entry is None or max(max(row) for row in t) <= self.max_entry
         else:
             return False
 

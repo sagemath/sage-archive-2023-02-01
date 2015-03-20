@@ -537,22 +537,35 @@ class FullyPackedLoop(SageObject):
         G.axes(False)
         return G
 
-        def link_pattern(self):
-            link_pattern=[]
-            svm = self.six_vertex_model
-            n=len(svm)
+    def link_pattern(self):
+        """ 
+        Return a :class:`PerfectMatching` class (a non-crossing partition) corresponding to a fully packed loop.
+        Note: by convention, we choose the top left vertex to be even. See [Propp2001]_.
 
-            vertices = {}
-            for i in range(n):
-                for j in range(n):
-                    vertices[(i, j)] = 0
+        EXAMPLES:
 
-            end_points = [i for i in range(2*n)]
+        We can extract the underlying link pattern (a non-crossing partition) from a fully packed loop::
+ 
+            sage: A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
+            sage: fpl = FullyPackedLoop(A) 
+            sage: fpl.link_pattern()
+            [(1, 2), (3, 6), (4, 5)]
+        """
+        link_pattern = []
+        svm = self.six_vertex_model
+        n=len(svm)
 
-            # top row
-            for k in range(n):
-                if k % 2 == 0:
-                    vertices[(0, k)] = 1 + k/2
+        vertices = {}
+        for i in range(n):
+            for j in range(n):
+                vertices[(i, j)] = 0
+
+        end_points = [i for i in range(2*n)]
+
+        # top row
+        for k in range(n):
+            if k % 2 == 0:
+                vertices[(0, k)] = 1 + k/2
 
 
 

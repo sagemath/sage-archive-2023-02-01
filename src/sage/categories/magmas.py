@@ -251,7 +251,7 @@ class Magmas(Category_singleton):
                 an additive structure. As of Sage 6.4, this is
                 correct.
 
-                The use of this shorthand should be reserved to casual
+                The use of this shorthand should be reserved for casual
                 interactive use or when there is no risk of ambiguity.
                 """
             from sage.categories.additive_magmas import AdditiveMagmas

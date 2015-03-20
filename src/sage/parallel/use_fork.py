@@ -11,7 +11,7 @@ Parallel iterator built using the ``fork()`` system call
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-from sage.ext.c_lib import AlarmInterrupt
+from sage.ext.interrupt import AlarmInterrupt
 from sage.misc.misc import alarm, cancel_alarm
 
 class p_iter_fork:

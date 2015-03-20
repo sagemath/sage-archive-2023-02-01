@@ -147,9 +147,9 @@ be accessible from the calling function after this operation.
 ##################################################################
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
 include "coerce.pxi"
+from sage.ext.stdsage cimport *
 
 from cpython.ref cimport PyObject
 

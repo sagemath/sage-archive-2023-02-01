@@ -29,7 +29,7 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.modules_with_basis import ModulesWithBasis
-from sage.modules.module_with_basis_morphism import ModuleMorphismByLinearity
+from sage.modules.with_basis.morphism import ModuleMorphismByLinearity
 from sage.combinat.composition import Compositions, Composition
 from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations

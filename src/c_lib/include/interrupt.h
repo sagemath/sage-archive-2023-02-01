@@ -18,8 +18,8 @@ redirects stdin from /dev/null, to cause interactive sessions to exit.
 These are critical because they cannot be ignored.  If they happen
 outside of sig_on(), we can only exit Sage with the dreaded
 "unhandled SIG..." message.  Inside of sig_on(), they can be handled
-and raise various exceptions (see sage/ext/c_lib.pyx).  SIGQUIT will
-never be handled and always causes Sage to exit.
+and raise various exceptions (see sage/ext/interrupt.pyx).  SIGQUIT
+will never be handled and always causes Sage to exit.
 
 
 AUTHORS:
@@ -108,9 +108,6 @@ void sage_signal_handler(int sig);
 
 /*
  * Setup the signal handlers. It is safe to call this more than once.
- *
- * We do not handle SIGALRM since there is code to deal with
- * alarms in sage/misc/misc.py
  */
 void setup_sage_signal_handler(void);
 

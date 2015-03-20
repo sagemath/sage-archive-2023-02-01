@@ -1592,13 +1592,13 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 sage: i.__invert__()
                 Identity endomorphism of Rational Field
 
-            This is method meant to be used with the Python inversion
-            operator `~`:
+            This method is meant to be used with the Python inversion
+            operator `~`::
 
                 sage: ~i
                 Identity endomorphism of Rational Field
 
-            We now try to inverse a couple morphisms defined by a matrix::
+            We now try to inverse a couple of morphisms defined by a matrix::
 
                 sage: H = End(QQ^2)
                 sage: phi = H(matrix([[1,1],[0,1]])); phi

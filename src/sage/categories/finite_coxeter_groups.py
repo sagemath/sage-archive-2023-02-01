@@ -25,7 +25,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         sage: FiniteCoxeterGroups().super_categories()
         [Category of coxeter groups,
          Category of finite groups,
-         Category of finite enumerated sets]
+         Category of finite finitely generated semigroups]
 
         sage: G = FiniteCoxeterGroups().example()
         sage: G.cayley_graph(side = "right").plot()

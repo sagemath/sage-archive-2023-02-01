@@ -4192,7 +4192,7 @@ class Tableaux_size(Tableaux):
             sage: 1 in sage.combinat.tableau.Tableaux_size(3)
             False
         """
-        return Tableaux.__contains__(self, x) and sum(len(row) for row in self) == self.size
+        return Tableaux.__contains__(self, x) and sum(len(row) for row in x) == self.size
 
     def _repr_(self):
         """

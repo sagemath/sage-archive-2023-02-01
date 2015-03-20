@@ -69,7 +69,7 @@ def is_RealDoubleField(x):
         sage: is_RealDoubleField(RealField(53))
         False
     """
-    return PY_TYPE_CHECK(x, RealDoubleField_class)
+    return isinstance(x, RealDoubleField_class)
 
 cdef class RealDoubleField_class(Field):
     """
@@ -221,7 +221,7 @@ cdef class RealDoubleField_class(Field):
             sage: loads(dumps(RDF)) == RDF
             True
         """
-        if PY_TYPE_CHECK(x, RealDoubleField_class):
+        if isinstance(x, RealDoubleField_class):
             return 0
         return cmp(type(self), type(x))
 
@@ -1910,15 +1910,15 @@ cdef class RealDoubleElement(FieldElement):
             (-2.3)^x
         """
         cdef RealDoubleElement base, exp
-        if PY_TYPE_CHECK(self, RealDoubleElement):
+        if isinstance(self, RealDoubleElement):
             base = self
-            if PY_TYPE_CHECK(exponent, RealDoubleElement):
+            if isinstance(exponent, RealDoubleElement):
                 return base.__pow_float((<RealDoubleElement>exponent)._value)
-            elif PY_TYPE_CHECK(exponent, float):
+            elif isinstance(exponent, float):
                 return base.__pow_float(exponent)
-            elif PY_TYPE_CHECK(exponent, int):
+            elif isinstance(exponent, int):
                 return base.__pow_int(exponent)
-            elif PY_TYPE_CHECK(exponent, Integer) and exponent < INT_MAX:
+            elif isinstance(exponent, Integer) and exponent < INT_MAX:
                 return base.__pow_int(exponent)
             try:
                 exp = base._parent(exponent)
@@ -2629,7 +2629,7 @@ def is_RealDoubleElement(x):
         sage: is_RealDoubleElement(RIF(3))
         False
     """
-    return PY_TYPE_CHECK(x, RealDoubleElement)
+    return isinstance(x, RealDoubleElement)
 
 
 ################# FAST CREATION CODE ######################

@@ -1,67 +1,82 @@
-Welcome to Sage's Reference Manual!
-===================================
+********
+Contents
+********
 
-This is a thematic index of all of `Sage's <http://www.sagemath.org/>`_
+Welcome to Sage's Reference Manual!
+
+This manual is a thematic index of all of `Sage's <http://www.sagemath.org/>`_
 features. It also contains many examples that illustrate their use, all of them
 systematically tested with each release.
 
 Enjoy Sage!
 
-Table of Contents
-=================
+User Interface
+==============
 
-* :doc:`The Sage Command Line <repl/index>`
-* :doc:`The Sage Notebook <notebook/index>`
+* :doc:`Command Line Interface (REPL) <repl/index>`
+* :doc:`Web Notebook <notebook/index>`
 
-Calculus, Plotting
-------------------
+Graphics
+========
 
-* :doc:`Symbolic Calculus <calculus/index>`
-* :doc:`Constants <constants/index>`
-* :doc:`Functions <functions/index>`
 * :doc:`2D Graphics <plotting/index>`
 * :doc:`3D Graphics <plot3d/index>`
 
-Combinatorics, Discrete Mathematics
------------------------------------
+Mathematics
+===========
+
+Parents, Elements and Categories
+--------------------------------
+
+* :doc:`Basic Infrastructure <structure/index>`
+* :doc:`Coercion <coercion/index>`
+* :doc:`Categories <categories/index>`
+
+Standard Algebraic Structures
+-----------------------------
+
+* :doc:`Monoids <monoids/index>`
+* :doc:`Groups <groups/index>`
+* :doc:`Semirings <semirings/index>`
+* :doc:`Rings <rings/index>`
+* :doc:`Algebras <algebras/index>`
+
+Standard Rings and Fields
+-------------------------
+
+* :doc:`Integers, Rationals, etc. <rings_standard/index>`
+* :doc:`Real and Complex Numbers <rings_numerical/index>`
+* :doc:`Finite Rings and Fields <finite_rings/index>`
+* :doc:`Polynomials <polynomial_rings/index>`
+* :doc:`Formal Power Series <power_series/index>`
+* :doc:`Algebraic Number Fields <number_fields/index>`
+* :doc:`Function Fields <function_fields/index>`
+* :doc:`p-Adic Numbers <padics/index>`
+* :doc:`Quaternion Algebras <quat_algebras/index>`
+
+Linear Algebra
+--------------
+
+* :doc:`Matrices and Spaces of Matrices <matrices/index>`
+* :doc:`Vectors and Modules <modules/index>`
+
+Discrete Mathematics
+--------------------
 
 * :doc:`Combinatorics <combinat/index>`
 * :doc:`Graph Theory <graphs/index>`
+* :doc:`Quivers <quivers/index>`
 * :doc:`Matroid Theory <matroids/index>`
 * :doc:`Discrete Dynamics <dynamics/index>`
-* :doc:`Quivers <quivers/index>`
+* :doc:`Coding Theory <coding/index>`
+* :doc:`Game Theory <game_theory/index>`
 
-Structures, Coercion, Categories
---------------------------------
+Calculus
+--------
 
-* :doc:`Basic Structures <structure/index>`
-* :doc:`Data Structures <data_structures/index>`
-* :doc:`Coercion <coercion/index>`
-* :doc:`Category Theory and Categories <categories/index>`
-
-Rings, Fields, Algebras
------------------------
-
-* :doc:`General Rings, Ideals, and Morphisms <rings/index>`
-* :doc:`Standard Commutative Rings <rings_standard/index>`
-* :doc:`Fixed and Arbitrary Precision Numerical Fields <rings_numerical/index>`
-* :doc:`Finite Rings <finite_rings/index>`
-* :doc:`Algebraic Number Fields <number_fields/index>`
-* :doc:`Function Fields <function_fields/index>`
-* :doc:`p-Adics <padics/index>`
-* :doc:`Polynomial Rings <polynomial_rings/index>`
-* :doc:`Power Series Rings <power_series/index>`
-* :doc:`Standard Semirings <semirings/index>`
-* :doc:`Algebras <algebras/index>`
-* :doc:`Quaternion Algebras <quat_algebras/index>`
-
-Groups, Monoids, Matrices, Modules
-----------------------------------
-
-* :doc:`Groups <groups/index>`
-* :doc:`Monoids <monoids/index>`
-* :doc:`Matrices and Spaces of Matrices <matrices/index>`
-* :doc:`Modules <modules/index>`
+* :doc:`Symbolic Calculus <calculus/index>`
+* :doc:`Mathematical Constants <constants/index>`
+* :doc:`Elementary and Special Functions <functions/index>`
 
 Geometry and Topology
 ---------------------
@@ -87,43 +102,45 @@ Number Theory, Algebraic Geometry
 * :doc:`Modular Abelian Varieties <modabvar/index>`
 * :doc:`Miscellaneous Modular-Form-Related Modules <modmisc/index>`
 
-Miscellaneous Mathematics
--------------------------
+Logic
+-----
 
-* :doc:`Games <games/index>`
 * :doc:`Symbolic Logic <logic/index>`
 * :doc:`SAT solvers <sat/index>`
-* :doc:`Cryptography <cryptography/index>`
-* :doc:`Numerical Optimization <numerical/index>`
+
+Probability and Statistics
+--------------------------
+
 * :doc:`Probability <probability/index>`
 * :doc:`Statistics <stats/index>`
 * :doc:`Quantitative Finance <finance/index>`
-* :doc:`Coding Theory <coding/index>`
-* :doc:`Game Theory <game_theory/index>`
 
-Doctesting, Interfaces, Databases, Miscellany
----------------------------------------------
+Miscellaneous
+-------------
 
-* :doc:`Doctesting <doctest/index>`
+* :doc:`Cryptography <cryptography/index>`
+* :doc:`Optimization <numerical/index>`
+* :doc:`Databases <databases/index>`
+* :doc:`Games <games/index>`
+
+Programming
+===========
+
+* :doc:`Data Structures <data_structures/index>`
+* :doc:`Utilities <misc/index>`
+* :doc:`Test Framework <doctest/index>`
+* :doc:`Parallel Computing <parallel/index>`
+
+Interfaces
+----------
+
 * :doc:`Interpreter Interfaces <interfaces/index>`
 * :doc:`C/C++ Library Interfaces <libs/index>`
-* :doc:`Databases <databases/index>`
-* :doc:`Parallel Computing <parallel/index>`
-* :doc:`Miscellaneous <misc/index>`
 
-Other
------
-
-.. toctree::
-   :maxdepth: 2
-
-   todolist
+General Information
+===================
 
 * :doc:`History and License <history_and_license/index>`
-
-Indices and Tables
-------------------
-
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`

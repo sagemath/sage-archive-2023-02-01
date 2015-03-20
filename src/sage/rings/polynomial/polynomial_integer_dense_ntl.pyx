@@ -199,7 +199,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
                 if type(a) is int:
                     ZZX_SetCoeff_long(self.__poly, i, a)
                 else:
-                    if not PY_TYPE_CHECK(a, Integer):
+                    if not isinstance(a, Integer):
                         a = ZZ(a)
                     mpz_to_ZZ(&y, (<Integer>a).value)
                     ZZX_SetCoeff(self.__poly, i, y)
@@ -232,7 +232,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             if type(a) is int:
                 ZZX_SetCoeff_long(self.__poly, i, a)
             else:
-                if not PY_TYPE_CHECK(a, Integer):
+                if not isinstance(a, Integer):
                     a = ZZ(a)
                 mpz_to_ZZ(&y, (<Integer>a).value)
                 ZZX_SetCoeff(self.__poly, i, y)

@@ -565,7 +565,7 @@ cdef class SetMorphism(Morphism):
             False
 
         """
-        return PY_TYPE_CHECK(other, SetMorphism) and self.parent() == other.parent() and self._function == (<SetMorphism>other)._function
+        return isinstance(other, SetMorphism) and self.parent() == other.parent() and self._function == (<SetMorphism>other)._function
 
     def __richcmp__(self, right, int op):
         """

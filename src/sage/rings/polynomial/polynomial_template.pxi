@@ -27,7 +27,7 @@ def make_element(parent, args):
     return parent(*args)
 
 cdef inline Polynomial_template element_shift(self, int n):
-     if not PY_TYPE_CHECK(self, Polynomial_template):
+     if not isinstance(self, Polynomial_template):
          if n > 0:
              error_msg = "Cannot shift %s << %n."%(self, n)
          else:
@@ -109,21 +109,21 @@ cdef class Polynomial_template(Polynomial):
             celement_construct(&self.x, (<Polynomial_template>self)._cparent)
             celement_gen(&self.x, 0, (<Polynomial_template>self)._cparent)
 
-        elif PY_TYPE_CHECK(x, Polynomial_template):
+        elif isinstance(x, Polynomial_template):
             try:
                 celement_construct(&self.x, (<Polynomial_template>self)._cparent)
                 celement_set(&self.x, &(<Polynomial_template>x).x, (<Polynomial_template>self)._cparent)
             except NotImplementedError:
                 raise TypeError("%s not understood."%x)
 
-        elif PY_TYPE_CHECK(x, int) or PY_TYPE_CHECK(x, Integer):
+        elif isinstance(x, int) or isinstance(x, Integer):
             try:
                 celement_construct(&self.x, (<Polynomial_template>self)._cparent)
                 celement_set_si(&self.x, int(x), (<Polynomial_template>self)._cparent)
             except NotImplementedError:
                 raise TypeError("%s not understood."%x)
 
-        elif PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple):
+        elif isinstance(x, list) or isinstance(x, tuple):
             celement_construct(&self.x, (<Polynomial_template>self)._cparent)
             gen = celement_new((<Polynomial_template>self)._cparent)
             monomial = celement_new((<Polynomial_template>self)._cparent)
@@ -142,7 +142,7 @@ cdef class Polynomial_template(Polynomial):
             celement_delete(gen, (<Polynomial_template>self)._cparent)
             celement_delete(monomial, (<Polynomial_template>self)._cparent)
 
-        elif PY_TYPE_CHECK(x, dict):
+        elif isinstance(x, dict):
             celement_construct(&self.x, (<Polynomial_template>self)._cparent)
             gen = celement_new((<Polynomial_template>self)._cparent)
             monomial = celement_new((<Polynomial_template>self)._cparent)
@@ -158,15 +158,15 @@ cdef class Polynomial_template(Polynomial):
             celement_delete(gen, (<Polynomial_template>self)._cparent)
             celement_delete(monomial, (<Polynomial_template>self)._cparent)
 
-        elif PY_TYPE_CHECK(x, pari_gen):
+        elif isinstance(x, pari_gen):
             k = (<Polynomial_template>self)._parent.base_ring()
             x = [k(w) for w in x.list()]
             self.__class__.__init__(self, parent, x, check=True, is_gen=False, construct=construct)
-        elif PY_TYPE_CHECK(x, Polynomial):
+        elif isinstance(x, Polynomial):
             k = (<Polynomial_template>self)._parent.base_ring()
             x = [k(w) for w in list(x)]
             Polynomial_template.__init__(self, parent, x, check=True, is_gen=False, construct=construct)
-        elif PY_TYPE_CHECK(x, FractionFieldElement) and (x.parent().base() is parent or x.parent().base() == parent) and x.denominator() == 1:
+        elif isinstance(x, FractionFieldElement) and (x.parent().base() is parent or x.parent().base() == parent) and x.denominator() == 1:
             x = x.numerator()
             self.__class__.__init__(self, parent, x, check=check, is_gen=is_gen, construct=construct)
         else:
@@ -608,7 +608,7 @@ cdef class Polynomial_template(Polynomial):
             sage: pow(f, 2, h)
             x^9 + x^8 + x^7 + x^5 + x^3
         """
-        if not PY_TYPE_CHECK(self, Polynomial_template):
+        if not isinstance(self, Polynomial_template):
             raise NotImplementedError("%s^%s not defined."%(ee,self))
         cdef bint recip = 0, do_sig
 

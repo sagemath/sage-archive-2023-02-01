@@ -1625,7 +1625,7 @@ cdef class Matrix(matrix0.Matrix):
             [5 4]
             [0 7]
         """
-        if not (PY_TYPE_CHECK(columns, list) or PY_TYPE_CHECK(columns, tuple)):
+        if not (isinstance(columns, list) or isinstance(columns, tuple)):
             raise TypeError, "columns (=%s) must be a list of integers"%columns
         cdef Matrix A
         cdef Py_ssize_t ncols,k,r
@@ -1694,7 +1694,7 @@ cdef class Matrix(matrix0.Matrix):
         AUTHORS:
             - Wai Yan Pong (2012-03-05)
         """
-        if not (PY_TYPE_CHECK(dcols, list) or PY_TYPE_CHECK(dcols, tuple)):
+        if not (isinstance(dcols, list) or isinstance(dcols, tuple)):
             raise TypeError("The argument must be a list or a tuple, not {l}".format(l=dcols))
         cdef list cols, diff_cols
 
@@ -1721,7 +1721,7 @@ cdef class Matrix(matrix0.Matrix):
             [6 7 0]
             [3 4 5]
         """
-        if not (PY_TYPE_CHECK(rows, list) or PY_TYPE_CHECK(rows, tuple)):
+        if not (isinstance(rows, list) or isinstance(rows, tuple)):
             raise TypeError, "rows must be a list of integers"
         cdef Matrix A
         cdef Py_ssize_t nrows,k,c
@@ -1790,7 +1790,7 @@ cdef class Matrix(matrix0.Matrix):
         AUTHORS:
             - Wai Yan Pong (2012-03-05)
         """
-        if not (PY_TYPE_CHECK(drows, list) or PY_TYPE_CHECK(drows, tuple)):
+        if not (isinstance(drows, list) or isinstance(drows, tuple)):
             raise TypeError("The argument must be a list or a tuple, not {l}".format(l=drows))
         cdef list rows, diff_rows
 
@@ -1841,9 +1841,9 @@ cdef class Matrix(matrix0.Matrix):
 
         - Didier Deshommes: some Pyrex speedups implemented
         """
-        if not PY_TYPE_CHECK(rows, list):
+        if not isinstance(rows, list):
             raise TypeError, "rows must be a list of integers"
-        if not PY_TYPE_CHECK(columns, list):
+        if not isinstance(columns, list):
             raise TypeError, "columns must be a list of integers"
 
         cdef Matrix A

@@ -352,7 +352,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             raise TypeError, "You must specify the names of the variables."
 
         if n is None:
-            if PY_TYPE_CHECK(names, tuple) or PY_TYPE_CHECK(names, list):
+            if isinstance(names, tuple) or isinstance(names, list):
                 n = len(names)
 
         try:
@@ -510,7 +510,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: P.gen(0)
             x
         """
-        if PY_TYPE_CHECK(i, BooleanMonomial):
+        if isinstance(i, BooleanMonomial):
             if len(i) == 1:
                 i = i.index()
             else:
@@ -766,15 +766,15 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         # we check for other PolyBoRi types first since this conversion
         # is used by the PolyBoRi python code often
         other = rhs
-        if PY_TYPE_CHECK(other, BooleSet):
+        if isinstance(other, BooleSet):
             other = new_BP_from_PBSet(other.ring(), (<BooleSet>other)._pbset)
 
-        if PY_TYPE_CHECK(other, int) or PY_TYPE_CHECK(other, Integer):
+        if isinstance(other, int) or isinstance(other, Integer):
             if (other %2) == 1:
                 return self._one_element
             else:
                 return self._zero_element
-        elif PY_TYPE_CHECK(other, BooleanMonomial):
+        elif isinstance(other, BooleanMonomial):
             if (<BooleanMonomial>other)._ring is self:
                 p = new_BP_from_PBMonom(self, (<BooleanMonomial>other)._pbmonom)
                 return p
@@ -791,7 +791,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             else:
                 raise TypeError, "cannot coerce monomial %s to %s"%(other,self)
 
-        elif PY_TYPE_CHECK(other,BooleanPolynomial) and \
+        elif isinstance(other, BooleanPolynomial) and \
             ((<BooleanPolynomialRing>(<BooleanPolynomial>other)\
             ._parent)._pbring.nVariables() <= self._pbring.nVariables()):
                     # try PolyBoRi's built-in coercions
@@ -810,8 +810,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                             new_monom *= var_mapping[i]
                         p += new_monom
                     return p
-        elif (PY_TYPE_CHECK(other, MPolynomial) or \
-                PY_TYPE_CHECK(other, Polynomial)) and \
+        elif (isinstance(other, MPolynomial) or \
+                isinstance(other, Polynomial)) and \
                 self.base_ring().has_coerce_map_from(other.base_ring()) and \
                 (other.parent().ngens() <= self._pbring.nVariables()):
                     try:
@@ -830,7 +830,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                             p += m
                     return p
 
-        elif PY_TYPE_CHECK(other, Element) and \
+        elif isinstance(other, Element) and \
                 self.base_ring().has_coerce_map_from(other.parent()):
                     if self.base_ring()(other).is_zero():
                         return self._zero_element
@@ -900,7 +900,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         except TypeError:
             pass
 
-        if PY_TYPE_CHECK(other, BooleanMonomial) and \
+        if isinstance(other, BooleanMonomial) and \
             ((<BooleanMonomial>other)._pbmonom.deg() <= self._pbring.nVariables()):
             try:
                 var_mapping = get_var_mapping(self, other)
@@ -910,7 +910,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             for i in other.iterindex():
                 p *= var_mapping[i]
             return p
-        elif PY_TYPE_CHECK(other,BooleanPolynomial) and \
+        elif isinstance(other, BooleanPolynomial) and \
                 ((<BooleanPolynomial>other)._pbpoly.nUsedVariables() <= \
             self._pbring.nVariables()):
             try:
@@ -924,8 +924,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                     new_monom *= var_mapping[i]
                 p += new_monom
             return p
-        elif (PY_TYPE_CHECK(other, MPolynomial) or \
-                PY_TYPE_CHECK(other, Polynomial)) and \
+        elif (isinstance(other, MPolynomial) or \
+                isinstance(other, Polynomial)) and \
                 self.base_ring().has_coerce_map_from(other.base_ring()):
             try:
                 var_mapping = get_var_mapping(self, other)
@@ -934,7 +934,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             p = self._zero_element
             exponents = other.exponents()
             coefs = other.coefficients()
-            if PY_TYPE_CHECK(other, Polynomial):
+            if isinstance(other, Polynomial):
                 # we have a univariate polynomial.
                 # That case had only been implemented
                 # in trac ticket #9138:
@@ -951,10 +951,10 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                             m *= var_mapping[j]
                     p += m
             return p
-        elif PY_TYPE_CHECK(other, SingularElement):
+        elif isinstance(other, SingularElement):
             other = str(other)
 
-        if PY_TYPE_CHECK(other, str):
+        if isinstance(other, str):
             gd = self.gens_dict()
             if other in gd:
                 return gd[other]
@@ -1507,14 +1507,14 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         from sage.misc.misc_c import prod
         n = self.ngens()
         x = self.gens()
-        if PY_TYPE_CHECK(zeros, BooleSet):
+        if isinstance(zeros, BooleSet):
             z = zeros
         else:
             z = sum([prod([x[i] for i in xrange(n) if v[i]],
                           self.one()) for v in zeros],
                     self.zero())
             z = z.set()
-        if PY_TYPE_CHECK(ones, BooleSet):
+        if isinstance(ones, BooleSet):
             o = ones
         else:
             o = sum([prod([x[i] for i in xrange(n) if v[i]],
@@ -1574,7 +1574,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: P.variable(0)
             x
         """
-        if PY_TYPE_CHECK(i, BooleanMonomial):
+        if isinstance(i, BooleanMonomial):
             if len(i) == 1:
                 i = i.index()
             else:
@@ -1794,9 +1794,9 @@ def get_var_mapping(ring, other):
         ovar_names = other._names
     else:
         ovar_names = other.parent().variable_names()
-        if PY_TYPE_CHECK(other, BooleanPolynomial):
+        if isinstance(other, BooleanPolynomial):
             indices = other.vars_as_monomial().iterindex()
-        elif PY_TYPE_CHECK(other, BooleanMonomial):
+        elif isinstance(other, BooleanMonomial):
             indices = other.iterindex()
         else:
             t = other.variables()
@@ -2022,7 +2022,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
             ...
             TypeError: list indices must be integers, not sage.rings.polynomial.pbori.BooleanMonomial
         """
-        if PY_TYPE_CHECK(other, BooleanMonomial) and \
+        if isinstance(other, BooleanMonomial) and \
             ((<BooleanMonomial>other)._parent.ngens() <= \
             (<BooleanPolynomialRing>self._ring)._pbring.nVariables()):
                 try:
@@ -2119,7 +2119,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
         except (ValueError,TypeError):
             pass
 
-        if PY_TYPE_CHECK(other, BooleanPolynomial) and \
+        if isinstance(other, BooleanPolynomial) and \
             (<BooleanPolynomial>other)._pbpoly.isSingleton():
                 if (<BooleanPolynomial>other)._parent is self._ring:
                     return new_BM_from_PBMonom(self,
@@ -2140,7 +2140,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
                 else:
                     raise ValueError, "cannot convert polynomial %s to %s"%(other,self)
 
-        elif PY_TYPE_CHECK(other, BooleanMonomial) and \
+        elif isinstance(other, BooleanMonomial) and \
             ((<BooleanMonomial>other)._pbmonom.deg() <= \
             (<BooleanPolynomialRing>self._ring)._pbring.nVariables()):
                 try:
@@ -2151,9 +2151,9 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
                 for i in other:
                     m *= var_mapping[i]
                 return m
-        elif PY_TYPE_CHECK(other, BooleSet):
+        elif isinstance(other, BooleSet):
             return self(self._ring(other))
-        elif PY_TYPE_CHECK(other, Element) and \
+        elif isinstance(other, Element) and \
                 self.base_ring().has_coerce_map_from(other.parent()) and \
                         self.base_ring()(other).is_one():
                             return self._one_element
@@ -2663,10 +2663,10 @@ cdef class BooleanMonomial(MonoidElement):
         # BooleanPolynomial handle the coercion.
         cdef BooleanPolynomial res
         cdef BooleanMonomial monom
-        if PY_TYPE_CHECK(left, BooleanMonomial):
+        if isinstance(left, BooleanMonomial):
             monom = left
             other = right
-        elif PY_TYPE_CHECK(right, BooleanMonomial):
+        elif isinstance(right, BooleanMonomial):
             monom = right
             other = left
         else:
@@ -2706,7 +2706,7 @@ cdef class BooleanMonomial(MonoidElement):
             return left
         elif right == 0:
             raise ZeroDivisionError
-        elif not PY_TYPE_CHECK(right, BooleanMonomial):
+        elif not isinstance(right, BooleanMonomial):
             other = left._parent(right)
         else:
             other = <BooleanMonomial>right
@@ -4099,7 +4099,7 @@ cdef class BooleanPolynomial(MPolynomial):
         fixed = {}
         if in_dict is not None:
             for var,val in in_dict.iteritems():
-                if PY_TYPE_CHECK(var, basestring):
+                if isinstance(var, basestring):
                     var = P(var)
                 elif var.parent() is not P:
                     var = P(var)
@@ -4603,9 +4603,9 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: f.zeros_in([(1,1,1,0), (1,1,0,0), (0,0,1,1), (0,0,0,0)])
             ((1, 1, 0, 0),)
         """
-        if PY_TYPE_CHECK(s, BooleSet):
+        if isinstance(s, BooleSet):
             return new_BS_from_PBSet(pb_zeros(self._pbpoly, (<BooleSet>s)._pbset), self._parent)
-        elif PY_TYPE_CHECK(s, list) or PY_TYPE_CHECK(s, tuple) or PY_TYPE_CHECK(s, set):
+        elif isinstance(s, list) or isinstance(s, tuple) or isinstance(s, set):
             from sage.misc.misc_c import prod
             B = self.parent()
             n = B.ngens()
@@ -4728,7 +4728,7 @@ cdef class BooleanPolynomial(MPolynomial):
         from polybori import red_tail
         if not I:
             return self
-        if PY_TYPE_CHECK(I, BooleanPolynomialIdeal):
+        if isinstance(I, BooleanPolynomialIdeal):
             I = I.gens()
         first = I[0]
         if first is None:
@@ -4771,13 +4771,13 @@ cdef class PolynomialConstruct:
             sage: PolynomialConstruct()(a)
             a
         """
-        if PY_TYPE_CHECK(x, BooleanPolynomial):
+        if isinstance(x, BooleanPolynomial):
             return x
-        elif PY_TYPE_CHECK(x, BooleSet):
+        elif isinstance(x, BooleSet):
             return (<BooleSet>x)._ring._element_constructor_(x)
-        elif PY_TYPE_CHECK(x, BooleanMonomial):
+        elif isinstance(x, BooleanMonomial):
             return (<BooleanMonomial>x)._ring(x)
-        elif PY_TYPE_CHECK(ring, BooleanPolynomialRing):
+        elif isinstance(ring, BooleanPolynomialRing):
             # It is a wrong use of the notion of "coercion"
             # to say that the boolean set is "coerced" into
             # a boolean polynomial ring: Boolean sets have
@@ -4810,18 +4810,18 @@ cdef class MonomialConstruct:
             sage: MonomialConstruct()(a)
             a
         """
-        if PY_TYPE_CHECK(x, BooleanMonomial):
+        if isinstance(x, BooleanMonomial):
             return x
-        elif PY_TYPE_CHECK(x, BooleanPolynomialRing):
+        elif isinstance(x, BooleanPolynomialRing):
             return (<BooleanPolynomialRing>x)._monom_monoid._one_element
-        elif PY_TYPE_CHECK(x, BooleanPolynomial) and x.is_singleton():
+        elif isinstance(x, BooleanPolynomial) and x.is_singleton():
             return (<BooleanPolynomial>x).lm()
         else:
             try:
                 result = x[-1]
                 for elt in reversed(x[:-1]):
                     result = result * elt
-                if PY_TYPE_CHECK(x, BooleanPolynomial):
+                if isinstance(x, BooleanPolynomial):
                    return result.lm()
                 return result
             except Exception:
@@ -4844,9 +4844,9 @@ cdef class VariableConstruct:
             sage: VariableConstruct()(0, B)
             a
         """
-        if PY_TYPE_CHECK(arg, BooleanPolynomialRing):
+        if isinstance(arg, BooleanPolynomialRing):
             return arg.variable(0)
-        elif PY_TYPE_CHECK(ring, BooleanPolynomialRing):
+        elif isinstance(ring, BooleanPolynomialRing):
             return (<BooleanPolynomialRing>ring).variable(arg)
         else:
             raise TypeError, "todo polynomial factory %s%s"%(str(type(arg)),str(type(ring)))
@@ -5330,19 +5330,19 @@ cdef class BooleSet:
     """
     def __init__(self, param=None, ring=None):
         cdef BooleanPolynomial p
-        if PY_TYPE_CHECK(param, CCuddNavigator):
+        if isinstance(param, CCuddNavigator):
             if ring is None:
                 raise TypeError, "BooleSet constructor requires parent ring argument"
             self._ring = ring
             self._pbset = PBSet_Constructor_nav((<CCuddNavigator>param)._pbnav,
                                                 (<BooleanPolynomialRing>ring)._pbring)
-        elif PY_TYPE_CHECK(param, BooleSet):
+        elif isinstance(param, BooleSet):
             self._pbset = (<BooleSet>param)._pbset
             self._ring = (<BooleSet>param)._ring
-        elif PY_TYPE_CHECK(param, BooleanPolynomial):
+        elif isinstance(param, BooleanPolynomial):
             self._pbset = PBSet_Constructor_poly((<BooleanPolynomial>param)._pbpoly)
             self._ring = (<BooleanPolynomial>param)._parent
-        elif PY_TYPE_CHECK(param, BooleanPolynomialRing):
+        elif isinstance(param, BooleanPolynomialRing):
             self._pbset = PBSet_Constructor_ring((<BooleanPolynomialRing>param)._pbring)
             self._ring =  param
         else:
@@ -5351,7 +5351,7 @@ cdef class BooleSet:
 
             if terms:
                 detected_ring = terms[0].ring()
-            elif PY_TYPE_CHECK(ring, BooleanPolynomialRing):
+            elif isinstance(ring, BooleanPolynomialRing):
                 detected_ring = ring
 
             if detected_ring is None:
@@ -5528,9 +5528,9 @@ cdef class BooleSet:
             {{x1,x2}}
         """
         cdef PBSet s
-        if PY_TYPE_CHECK(rhs, BooleSet):
+        if isinstance(rhs, BooleSet):
             s = (<BooleSet>rhs)._pbset
-        elif PY_TYPE_CHECK(rhs, BooleanPolynomial):
+        elif isinstance(rhs, BooleanPolynomial):
             s = (<BooleanPolynomial>rhs)._pbpoly.set()
         else:
             raise TypeError, "Argument 'rhs' has incorrect type (expected BooleSet or BooleanPolynomial, got %s)"%(type(rhs))
@@ -5562,9 +5562,9 @@ cdef class BooleSet:
             {{x1,x2}, {x2,x3}, {}}
         """
         cdef PBSet s
-        if PY_TYPE_CHECK(rhs, BooleSet):
+        if isinstance(rhs, BooleSet):
             s = (<BooleSet>rhs)._pbset
-        elif PY_TYPE_CHECK(rhs, BooleanPolynomial):
+        elif isinstance(rhs, BooleanPolynomial):
             s = (<BooleanPolynomial>rhs)._pbpoly.set()
         else:
             raise TypeError, "Argument 'rhs' has incorrect type (expected BooleSet or BooleanPolynomial, got %s)"%(type(rhs))
@@ -6167,7 +6167,7 @@ cdef class BooleanPolynomialVector:
             i += self._vec.size()
         if i >= self._vec.size():
             raise IndexError
-        if not PY_TYPE_CHECK(p, BooleanPolynomialVector):
+        if not isinstance(p, BooleanPolynomialVector):
             p = self._parent(p)
 
         PBPolyVector_set(self._vec, i, (<BooleanPolynomial>p)._pbpoly)
@@ -6190,9 +6190,9 @@ cdef class BooleanPolynomialVector:
         if not self._parent:
             self._parent = el.ring()
         cdef PBPoly p
-        if PY_TYPE_CHECK(el, BooleanPolynomial):
+        if isinstance(el, BooleanPolynomial):
             p = (<BooleanPolynomial>el)._pbpoly
-        elif PY_TYPE_CHECK(el, BooleanMonomial):
+        elif isinstance(el, BooleanMonomial):
             p = PBPoly_Constructor_monom((<BooleanMonomial>el)._pbmonom)
         else:
             raise TypeError, "Argument 'el' has incorrect type (expected BooleanPolynomial or BooleanMonomial, got %s)"%(type(el))
@@ -6560,16 +6560,16 @@ cdef class FGLMStrategy:
         """
         cdef BooleanPolynomialRing _from_ring, _to_ring
 
-        if PY_TYPE_CHECK(from_ring, BooleanPolynomialRing):
+        if isinstance(from_ring, BooleanPolynomialRing):
             _from_ring = <BooleanPolynomialRing>from_ring
-        elif PY_TYPE_CHECK(from_ring.ring, BooleanPolynomialRing):
+        elif isinstance(from_ring.ring, BooleanPolynomialRing):
             _from_ring = <BooleanPolynomialRing>from_ring.ring
         else:
             raise TypeError("from_ring has wrong type %s"%(type(from_ring),))
 
-        if PY_TYPE_CHECK(to_ring, BooleanPolynomialRing):
+        if isinstance(to_ring, BooleanPolynomialRing):
             _to_ring = <BooleanPolynomialRing>to_ring
-        elif PY_TYPE_CHECK(to_ring.ring, BooleanPolynomialRing):
+        elif isinstance(to_ring.ring, BooleanPolynomialRing):
             _to_ring = <BooleanPolynomialRing>to_ring.ring
         else:
             raise TypeError("to_ring has wrong type %s"%(type(to_ring),))
@@ -6624,12 +6624,12 @@ cdef class GroebnerStrategy:
             sage: H = GroebnerStrategy(G)
         """
 
-        if PY_TYPE_CHECK(param, GroebnerStrategy):
+        if isinstance(param, GroebnerStrategy):
 
             self._strat = (<GroebnerStrategy>param)._strat
             self._parent = (<GroebnerStrategy>param)._parent
             self._count = (<GroebnerStrategy>param)._count
-        elif PY_TYPE_CHECK(param, BooleanPolynomialRing):
+        elif isinstance(param, BooleanPolynomialRing):
             self._strat = new PBGBStrategy((<BooleanPolynomialRing>param)._pbring)
             self._parent = param
             self._count = PBRefCounter_Constructor()
@@ -7253,9 +7253,9 @@ def zeros(pol, BooleSet s):
 
     """
     cdef PBPoly p
-    if PY_TYPE_CHECK(pol, BooleanPolynomial):
+    if isinstance(pol, BooleanPolynomial):
         p = (<BooleanPolynomial>pol)._pbpoly
-    elif PY_TYPE_CHECK(pol, BooleanMonomial):
+    elif isinstance(pol, BooleanMonomial):
         p = PBPoly_Constructor_monom((<BooleanMonomial>pol)._pbmonom)
     else:
         raise TypeError, "Argument 'p' has incorrect type (expected BooleanPolynomial or BooleanMonomial, got %s)"%(type(pol))
@@ -7299,17 +7299,17 @@ def interpolate(zero, one):
     """
     cdef PBSet z, o
     cdef BooleanPolynomialRing ring
-    if PY_TYPE_CHECK(zero, BooleSet):
+    if isinstance(zero, BooleSet):
         z = (<BooleSet>zero)._pbset
         ring = (<BooleSet>zero)._ring
-    elif PY_TYPE_CHECK(zero, BooleanPolynomial):
+    elif isinstance(zero, BooleanPolynomial):
         z = (<BooleanPolynomial>zero)._pbpoly.set()
         ring = (<BooleanPolynomial>zero)._parent
     else:
         raise TypeError, "Argument 'zero' has incorrect type (expected BooleSet or BooleanPolynomial, got %s)"%(type(zero))
-    if PY_TYPE_CHECK(one, BooleSet):
+    if isinstance(one, BooleSet):
         o = (<BooleSet>one)._pbset
-    elif PY_TYPE_CHECK(one, BooleanPolynomial):
+    elif isinstance(one, BooleanPolynomial):
         o = (<BooleanPolynomial>one)._pbpoly.set()
     else:
         raise TypeError, "Argument 'one' has incorrect type (expected BooleSet or BooleanPolynomial, got %s)"%(type(one))
@@ -7378,22 +7378,22 @@ def interpolate_smallest_lex(zero, one):
     """
     cdef PBSet z, o
   #  cdef BooleanPolynomialRing ring
-    if PY_TYPE_CHECK(zero, BooleSet):
+    if isinstance(zero, BooleSet):
         z = (<BooleSet>zero)._pbset
 #        ring = (<BooleSet>zero)._ring
-    elif PY_TYPE_CHECK(zero, BooleanPolynomial):
+    elif isinstance(zero, BooleanPolynomial):
         z = (<BooleanPolynomial>zero)._pbpoly.set()
 #        ring = (<BooleanPolynomial>zero)._parent
     else:
         raise TypeError, "Argument 'zero' has incorrect type (expected BooleSet or BooleanPolynomial, got %s)"%(type(zero))
-    if PY_TYPE_CHECK(one, BooleSet):
+    if isinstance(one, BooleSet):
         o = (<BooleSet>one)._pbset
-    elif PY_TYPE_CHECK(one, BooleanPolynomial):
+    elif isinstance(one, BooleanPolynomial):
         o = (<BooleanPolynomial>one)._pbpoly.set()
     else:
         raise TypeError, "Argument 'one' has incorrect type (expected BooleSet or BooleanPolynomial, got %s)"%(type(one))
 
-  #  if PY_TYPE_CHECK(zero, BooleSet):
+  #  if isinstance(zero, BooleSet):
   #      return new_BP_from_PBPoly( (<BooleSet>zero)._ring, pb_interpolate_smallest_lex(z, o))
 
     return new_BP_from_PBPoly(zero.ring(), pb_interpolate_smallest_lex(z, o))
@@ -7442,13 +7442,13 @@ def ll_red_nf_redsb(p, BooleSet reductors):
     cdef PBPoly t
     cdef PBPoly res
     cdef BooleanPolynomialRing parent
-    if PY_TYPE_CHECK(p, BooleSet):
+    if isinstance(p, BooleSet):
         t = PBPoly_Constructor_set((<BooleSet>p)._pbset)
         parent = (<BooleSet>p)._ring
-    elif PY_TYPE_CHECK(p, BooleanPolynomial):
+    elif isinstance(p, BooleanPolynomial):
         t = (<BooleanPolynomial>p)._pbpoly
         parent = (<BooleanPolynomial>p)._parent
-    elif PY_TYPE_CHECK(p, BooleanMonomial):
+    elif isinstance(p, BooleanMonomial):
         t =  PBPoly_Constructor_monom((<BooleanMonomial>p)._pbmonom)
         parent = (<BooleanMonomial>p)._ring
     else:
@@ -7566,18 +7566,18 @@ def if_then_else(root, a, b):
     cdef PBSet a_set, b_set
     cdef PBSet res
     cdef BooleanPolynomialRing ring
-    if PY_TYPE_CHECK(b, BooleSet):
+    if isinstance(b, BooleSet):
         b_set = (<BooleSet>b)._pbset
         ring = (<BooleSet>b)._ring
-    elif PY_TYPE_CHECK(b, BooleanPolynomial):
+    elif isinstance(b, BooleanPolynomial):
         b_set = (<BooleanPolynomial>b)._pbpoly.set()
         ring = (<BooleanPolynomial>b)._parent
     else:
         raise TypeError, "Argument 'b' has incorrect type (expected BooleSet or BooleanPolynomial, got %s)"%(type(b))
 
-    if PY_TYPE_CHECK(a, BooleSet):
+    if isinstance(a, BooleSet):
         a_set = (<BooleSet>a)._pbset
-    elif PY_TYPE_CHECK(a, BooleanPolynomial):
+    elif isinstance(a, BooleanPolynomial):
         a_set = (<BooleanPolynomial>a)._pbpoly.set()
     else:
         raise TypeError, "Argument 'a' has incorrect type (expected BooleSet or BooleanPolynomial, got %s)"%(type(a))
@@ -7585,18 +7585,18 @@ def if_then_else(root, a, b):
     try:
         root = int(root)
     except TypeError:
-        if PY_TYPE_CHECK(root, BooleanPolynomial):
+        if isinstance(root, BooleanPolynomial):
             if len(root) == 1:
                 root = root.lm()
             else:
                 raise TypeError, "Only variables are acceptable as root."
-        if PY_TYPE_CHECK(root, BooleanMonomial):
+        if isinstance(root, BooleanMonomial):
             if len(root) == 1:
                 root = root.index()
             else:
                 raise TypeError, "Only variables are acceptable as root."
 
-        if not PY_TYPE_CHECK(root, int):
+        if not isinstance(root, int):
             raise TypeError, "Only variables are acceptable as root."
 
     cdef Py_ssize_t* pbind = ring.pbind
@@ -7629,11 +7629,11 @@ def top_index(s):
         0
     """
     cdef  Py_ssize_t idx = -1
-    if PY_TYPE_CHECK(s, BooleSet):
+    if isinstance(s, BooleSet):
         idx = (<BooleSet>s)._pbset.navigation().value()
-    elif PY_TYPE_CHECK(s, BooleanMonomial):
+    elif isinstance(s, BooleanMonomial):
         idx = (<BooleanMonomial>s)._pbmonom.firstIndex()
-    elif PY_TYPE_CHECK(s, BooleanPolynomial):
+    elif isinstance(s, BooleanPolynomial):
         idx = (<BooleanPolynomial>s)._pbpoly.navigation().value()
     else:
         raise TypeError, "Argument 's' has incorrect type (expected BooleSet, BooleanMonomial or BooleanPolynomial, got %s)"%(type(s))
@@ -7789,7 +7789,7 @@ def substitute_variables(BooleanPolynomialRing parent, vec, BooleanPolynomial po
     """
     cdef BooleanPolynomialVector _vec
 
-    if PY_TYPE_CHECK(vec, BooleanPolynomialVector):
+    if isinstance(vec, BooleanPolynomialVector):
         _vec = <BooleanPolynomialVector>vec
     else:
         _vec = BooleanPolynomialVector()
@@ -8017,7 +8017,7 @@ cdef object pb_block_order(n, order_str,blocks):
         return order_str
 
 cpdef object TermOrder_from_pb_order(int n, order, blocks):
-    if not PY_TYPE_CHECK(order, str):
+    if not isinstance(order, str):
         if order == pbblock_dlex:
             order_str = pb_block_order(n, "deglex", blocks)
         elif order == pbblock_dp:
@@ -8074,9 +8074,9 @@ cdef class VariableFactory:
         if ring is None and not self._ring is None:
             return new_BM_from_PBVar(self._ring._monom_monoid, self._ring,
                                      self._factory.call(<int>arg))
-        elif PY_TYPE_CHECK(arg, BooleanPolynomialRing):
+        elif isinstance(arg, BooleanPolynomialRing):
             return arg.variable(0)
-        elif PY_TYPE_CHECK(ring, BooleanPolynomialRing):
+        elif isinstance(ring, BooleanPolynomialRing):
             return (<BooleanPolynomialRing>ring).variable(arg)
         else:
             raise TypeError, \
@@ -8140,18 +8140,18 @@ cdef class MonomialFactory:
         if arg is None and not self._ring is None:
             return new_BM_from_PBMonom(self._ring._monom_monoid, self._ring,
                                        self._factory.call())
-        elif PY_TYPE_CHECK(arg, BooleanMonomial):
+        elif isinstance(arg, BooleanMonomial):
             return arg
-        elif PY_TYPE_CHECK(arg, BooleanPolynomialRing):
+        elif isinstance(arg, BooleanPolynomialRing):
             return (<BooleanPolynomialRing>arg)._monom_monoid._one_element
-        elif PY_TYPE_CHECK(arg, BooleanPolynomial) and arg.is_singleton():
+        elif isinstance(arg, BooleanPolynomial) and arg.is_singleton():
             return (<BooleanPolynomial>arg).lm()
         else:
             try:
                 result = arg[-1]
                 for elt in reversed(arg[:-1]):
                     result = result * elt
-                if PY_TYPE_CHECK(arg, BooleanPolynomial):
+                if isinstance(arg, BooleanPolynomial):
                    return result.lm()
                 return result
             except Exception:
@@ -8213,24 +8213,24 @@ cdef class PolynomialFactory:
 
         """
         if self._ring is None:
-            if PY_TYPE_CHECK(arg, BooleanPolynomial):
+            if isinstance(arg, BooleanPolynomial):
                 return arg
-            elif PY_TYPE_CHECK(arg, BooleSet):
+            elif isinstance(arg, BooleSet):
                 return (<BooleSet>arg)._ring._element_constructor_(arg)
-            elif PY_TYPE_CHECK(arg, BooleanMonomial):
+            elif isinstance(arg, BooleanMonomial):
                 return (<BooleanMonomial>arg)._ring._coerce_(arg)
-            elif PY_TYPE_CHECK(ring, BooleanPolynomialRing):
+            elif isinstance(ring, BooleanPolynomialRing):
                 return (<BooleanPolynomialRing>ring)._coerce_(arg)
         else:
-            if PY_TYPE_CHECK(arg, int) or PY_TYPE_CHECK(arg, Integer):
+            if isinstance(arg, int) or isinstance(arg, Integer):
                 return new_BP_from_PBPoly(self._ring,
                                           self._factory.call_int(<int>arg))
 
-            elif PY_TYPE_CHECK(arg, BooleanPolynomial):
+            elif isinstance(arg, BooleanPolynomial):
                 return new_BP_from_PBPoly(self._ring,
                                           self._factory.call_poly((<BooleanPolynomial>arg)._pbpoly))
 
-            elif PY_TYPE_CHECK(arg, BooleanMonomial):
+            elif isinstance(arg, BooleanMonomial):
                 return new_BP_from_PBPoly(self._ring,
                                           self._factory.call_monom((<BooleanMonomial>arg)._pbmonom))
 

@@ -53,6 +53,7 @@ In contrast, input to the ``%time`` magic command is preparsed::
     CPU times: user ...
     Wall time: ...
     2 * 3^3 * 11
+    sage: shell.quit()
 """
 
 from IPython.core.magic import Magics, magics_class, line_magic
@@ -81,6 +82,7 @@ class SageMagics(Magics):
             PROFILE: interrupts/evictions/bytes = ...
             Using local file ...
             Using local file ...
+            sage: shell.quit()
         """
         import sage.misc.gperftools
         sage.misc.gperftools.crun(s, evaluator=self.shell.ex)
@@ -106,6 +108,7 @@ class SageMagics(Magics):
             sage: shell.run_cell('%runfile '+tmp)
             sage: shell.run_cell('a')
             2
+            sage: shell.quit()
         """
         return self.shell.ex(load_wrap(s, attach=False))
 
@@ -146,6 +149,7 @@ class SageMagics(Magics):
             sage: shell.run_cell('attached_files()')
             []
             sage: os.remove(tmp)
+            sage: shell.quit()
         """
         return self.shell.ex(load_wrap(s, attach=True))
 
@@ -215,7 +219,8 @@ class SageMagics(Magics):
 
         Then when you want return in 'textual mode'::
 
-            sage: shell.run_cell('%display simple')
+            sage: shell.run_cell('%display text plain')
+            sage: shell.run_cell('%display plain')        # shortcut for "text plain"
             sage: shell.run_cell('sum(i^2*x^i, i, 0, 10)')
             100*x^10 + 81*x^9 + 64*x^8 + 49*x^7 + 36*x^6 + 25*x^5 + 16*x^4 + 9*x^3 + 4*x^2 + x
 
@@ -248,32 +253,38 @@ class SageMagics(Magics):
         As yet another option, typeset mode. This is used in the emacs
         interface::
 
-            sage: shell.run_cell('%display typeset')
+            sage: shell.run_cell('%display text latex')
             sage: shell.run_cell('1/2')
-            <html><script type="math/tex">...\frac{1}{2}</script></html>
+            \newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2}
 
         Switch back::
 
-            sage: shell.run_cell('%display simple')
+            sage: shell.run_cell('%display default')
+
+        Switch graphics to default to vector or raster graphics file
+        formats::
+
+            sage: shell.run_cell('%display graphics vector')
 
         TESTS::
 
             sage: shell.run_cell('%display invalid_mode')
-            ---------------------------------------------------------------------------
-            ValueError                                Traceback (most recent call last)
-            ...
-            ValueError: invalid mode set
+            value must be unset (None) or one of ('plain', 'ascii_art', 'latex'), got invalid_mode
+            sage: shell.quit()
         """
+        from sage.repl.rich_output import get_display_manager
+        dm = get_display_manager()
         args = args.strip().split()
         if not args:
-            # toggle
-            self._magic_display_status = ('ascii_art' if
-                    self._magic_display_status == 'simple' else 'simple')
-        else:
-            mode = args[0]
-            self._magic_display_status = mode
-
-        if self._magic_display_status == 'ascii_art' and len(args) > 1:
+            print(dm.preferences)
+            return
+        arg0 = args[0]
+        # deprecated values
+        if arg0 == 'simple':
+            dm.preferences.text = 'plain'
+        elif arg0 == 'typeset':
+            dm.preferences.text = 'latex'
+        elif arg0 == 'ascii_art' and len(args) > 1:
             try:
                 max_width = int(args[1])
             except ValueError:
@@ -283,9 +294,33 @@ class SageMagics(Magics):
                         "ascii_art max width must be a positive integer")
             import sage.misc.ascii_art as ascii_art
             ascii_art.MAX_WIDTH = max_width
+            dm.preferences.text = 'ascii_art'
+        # Unset
+        elif arg0 in ['default', 'None']:  # un-stringify "%display None"
+            dm.preferences.text = None  
+            dm.preferences.graphics = None  
+        # Normal argument handling
+        elif arg0 == 'text' and len(args) == 1:
+            print(dm.preferences.text)
+        elif arg0 == 'text' and len(args) == 2:
+            try:
+                dm.preferences.text = args[1]
+            except ValueError as err:
+                print(err)  # do not show traceback
+        elif arg0 == 'graphics' and len(args) == 1:
+            print(dm.preferences.graphics)
+        elif arg0 == 'graphics' and len(args) == 2:
+            try:
+                dm.preferences.graphics = args[1]
+            except ValueError as err:
+                print(err)  # do not show traceback
+        # If all else fails: assume text
+        else:
+            try:
+                dm.preferences.text = arg0
+            except ValueError as err:
+                print(err)  # do not show traceback
 
-        self.shell.display_formatter.formatters['text/plain'].set_display(
-                self._magic_display_status)
 
 class SageCustomizations(object):
 
@@ -300,7 +335,7 @@ class SageCustomizations(object):
 
         import sage.repl.display.formatter as formatter
         self.shell.display_formatter.formatters['text/plain'] = (
-                formatter.SageConsoleTextFormatter(config=shell.config))
+                formatter.SagePlainTextFormatter(config=shell.config))
 
         import sage.misc.edit_module as edit_module
         self.shell.set_hook('editor', edit_module.edit_devel)

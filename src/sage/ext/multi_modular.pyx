@@ -284,7 +284,7 @@ cdef class MultiModularBasis_base:
             sage: mm == 1
             False
         """
-        if not PY_TYPE_CHECK(other, MultiModularBasis_base):
+        if not isinstance(other, MultiModularBasis_base):
             return cmp(type(other), MultiModularBasis_base)
         return cmp((self.list(), self._u_bound, self._l_bound),
                 (other.list(), (<MultiModularBasis_base>other)._u_bound,

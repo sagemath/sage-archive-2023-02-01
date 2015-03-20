@@ -12,6 +12,7 @@ description = """
 # set) are automatically deleted, but with a negative value they are
 # never deleted.
 
+from __future__ import print_function
 
 import sys
 import os
@@ -156,12 +157,12 @@ if __name__ == '__main__':
         sys.exit(0)
 
     if not pid_exists(args.pid):
-        print 'There is no process with pid {0}.'.format(args.pid)
+        print('There is no process with pid {0}.'.format(args.pid))
         sys.exit(1)
 
-    print 'Attaching gdb to process id {0}.'.format(args.pid)
+    print('Attaching gdb to process id {0}.'.format(args.pid))
     trace = run_gdb(args.pid, not args.nocolor)
-    print trace
+    print(trace)
 
     fatalities = [
         ( 'Unable to start gdb',
@@ -176,16 +177,16 @@ if __name__ == '__main__':
     fail = False
     for key, msg in fatalities:
         if key in trace:
-            print
-            print msg
+            print()
+            print(msg)
             fail = True
             break
 
     if fail:
-        print 'Install the gdb spkg (sage -f gdb) for enhanced tracebacks.'
+        print('Install the gdb spkg (sage -f gdb) for enhanced tracebacks.')
     else:
         filename = save_backtrace(trace)
-        print 'Saved trace to {0}'.format(filename)
+        print('Saved trace to {0}'.format(filename))
 
     if args.kill:
         os.kill(args.pid, signal.SIGKILL)

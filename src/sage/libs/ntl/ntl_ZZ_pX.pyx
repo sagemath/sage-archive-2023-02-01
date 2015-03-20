@@ -87,12 +87,12 @@ cdef class ntl_ZZ_pX:
         cdef ntl_ZZ_p cc
         cdef Py_ssize_t i
 
-        if PY_TYPE_CHECK(v, ntl_ZZ_pX) and (<ntl_ZZ_pX>v).c is self.c:
+        if isinstance(v, ntl_ZZ_pX) and (<ntl_ZZ_pX>v).c is self.c:
             self.x = (<ntl_ZZ_pX>v).x
-        elif PY_TYPE_CHECK(v, list) or PY_TYPE_CHECK(v, tuple):
+        elif isinstance(v, list) or isinstance(v, tuple):
             for i from 0 <= i < len(v):
                 x = v[i]
-                if not PY_TYPE_CHECK(x, ntl_ZZ_p):
+                if not isinstance(x, ntl_ZZ_p):
                     cc = ntl_ZZ_p(x,self.c)
                 else:
                     cc = x
@@ -120,7 +120,7 @@ cdef class ntl_ZZ_pX:
         if modulus is None:
             ZZ_pX_construct(&self.x)
             return
-        if PY_TYPE_CHECK( modulus, ntl_ZZ_pContext_class ):
+        if isinstance(modulus, ntl_ZZ_pContext_class):
             self.c = <ntl_ZZ_pContext_class>modulus
             self.c.restore_c()
             ZZ_pX_construct(&self.x)
@@ -434,8 +434,7 @@ cdef class ntl_ZZ_pX:
             sage: f % g
             Traceback (most recent call last):
             ...
-            RuntimeError: ZZ_p: division by non-invertible element
-
+            NTLError: ZZ_p: division by non-invertible element
         """
         if self.c is not other.c:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."

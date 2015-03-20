@@ -679,7 +679,33 @@ class Polyhedron_base(Element):
                                           .format(self.ambient_dim()))
         return plot_method(*opts)
 
-    show = plot
+    def show(self, **kwds):
+        """
+        Display graphics immediately
+
+        This method attempts to display the graphics immediately,
+        without waiting for the currently running code (if any) to
+        return to the command line. Be careful, calling it from within
+        a loop will potentially launch a large number of external
+        viewer programs.
+
+        INPUT:
+        
+        - ``kwds`` -- optional keyword arguments. See :meth:`plot` for
+          the description of available options.
+
+        OUTPUT:
+
+        This method does not return anything. Use :meth:`plot` if you
+        want to generate a graphics object that can be saved or
+        further transformed.
+
+        EXAMPLES::
+
+            sage: square = polytopes.n_cube(2)
+            sage: square.show(point='red')
+        """
+        self.plot(**kwds).show()
 
     def _repr_(self):
         """
@@ -3729,7 +3755,7 @@ class Polyhedron_base(Element):
         INPUT:
 
         - ``threshold`` -- integer (default: 100000). Use the naive
-          algorith as long as the bounding box is smaller than this.
+          algorithm as long as the bounding box is smaller than this.
 
         OUTPUT:
 
@@ -3786,11 +3812,38 @@ class Polyhedron_base(Element):
             625 loops, best of 3: 1.41 ms per loop
             sage: timeit('LatticePolytope(v).points()')       # not tested - random
             25 loops, best of 3: 17.2 ms per loop
+
+        TESTS:
+
+        Test some trivial cases (see :trac:`17937`)::
+
+            sage: P = Polyhedron(ambient_dim=1)  # empty polyhedron in 1 dimension
+            sage: P.integral_points()
+            ()
+            sage: P = Polyhedron(ambient_dim=0)  # empty polyhedron in 0 dimensions
+            sage: P.integral_points()
+            ()
+            sage: P = Polyhedron([[3]])  # single point in 1 dimension
+            sage: P.integral_points()
+            ((3),)
+            sage: P = Polyhedron([[1/2]])  # single non-integral point in 1 dimension
+            sage: P.integral_points()
+            ()
+            sage: P = Polyhedron([[]])  # single point in 0 dimensions
+            sage: P.integral_points()
+            ((),)
         """
         if not self.is_compact():
             raise ValueError('Can only enumerate points in a compact polyhedron.')
+        # Trivial cases: polyhedron with 0 or 1 vertices
         if self.n_vertices() == 0:
-            return tuple()
+            return ()
+        if self.n_vertices() == 1:
+            v = self.vertices_list()[0]
+            try:
+                return (vector(ZZ, v),)
+            except TypeError:  # vertex not integral
+                return ()
 
         # for small bounding boxes, it is faster to naively iterate over the points of the box
         box_min, box_max = self.bounding_box(integral=True)

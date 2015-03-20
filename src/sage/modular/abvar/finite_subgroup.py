@@ -642,8 +642,6 @@ class FiniteSubgroup(Module):
             ...
             TypeError: x does not define an element of self
         """
-        if isinstance(x, self.element_class) and x.parent() is self:
-            return x
         if isinstance(x, TorsionPoint):
             if x.parent() == self:
                 return self.element_class(self, x.element(), check=False)

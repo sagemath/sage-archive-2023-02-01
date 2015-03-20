@@ -339,6 +339,14 @@ class Tableau(ClonableList):
         OUTPUT:
         
         A Boolean.
+        
+        TESTS::
+
+            sage: t = Tableau([[1,2]])
+            sage: t == Tableau([[2,3]])
+            False
+            sage: t == Tableaux(2)([[1,2]])
+            True
         """
         if isinstance(other, Tableau):
             return list(self).__eq__(list(other))
@@ -358,6 +366,12 @@ class Tableau(ClonableList):
         OUTPUT:
         
         A Boolean.
+        
+        TESTS::
+        
+            sage: t = Tableau([[2,3],[1]])
+            sage: t != []
+            True
         """
         if isinstance(other, Tableau):
             return list(self).__ne__(list(other))

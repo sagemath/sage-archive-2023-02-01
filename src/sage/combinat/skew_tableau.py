@@ -510,8 +510,8 @@ class SkewTableau(CombinatorialObject, Element):
             False
         """
         #Check to make sure that it is filled with 1...size
-        w = self.to_word()
-        if sorted(w) != range(1, self.size()+1):
+        w = [i for row in self for i in row if i is not None]
+        if sorted(w) != range(1, len(w)+1):
             return False
         else:
             return self.is_semistandard()
@@ -530,6 +530,16 @@ class SkewTableau(CombinatorialObject, Element):
             sage: SkewTableau([[None, 3], [2, 4]]).is_semistandard()
             True
             sage: SkewTableau([[None, 2], [1, 2]]).is_semistandard()
+            False
+            sage: SkewTableau([[None, 2, 3]]).is_semistandard()
+            True
+            sage: SkewTableau([[None, 3, 2]]).is_semistandard()
+            False
+            sage: SkewTableau([[None, 2, 3], [1, 4]]).is_semistandard()
+            True
+            sage: SkewTableau([[None, 2, 3], [1, 2]]).is_semistandard()
+            False
+            sage: SkewTableau([[None, 2, 3], [None, None, 4]]).is_semistandard()
             False
         """
         if not self:

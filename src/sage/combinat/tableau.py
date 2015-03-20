@@ -89,7 +89,6 @@ import sage.libs.symmetrica.all as symmetrica
 import sage.misc.prandom as random
 import permutation
 import itertools
-from sage.misc.flatten import flatten
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.misc.all import uniq, prod
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -3495,7 +3494,7 @@ class StandardTableau(SemistandardTableau):
         sage: StandardTableau([[1,2,3],[4,4]])
         Traceback (most recent call last):
         ...
-        ValueError: the entries in each row of a standard tableau must be strictly increasing
+        ValueError: the entries in a standard tableau must be in bijection with 1,2,...,n
         sage: StandardTableau([[1,3,2]])
         Traceback (most recent call last):
         ...
@@ -3543,12 +3542,10 @@ class StandardTableau(SemistandardTableau):
         """
         super(StandardTableau, self).__init__(parent, t)
 
-        # t is semistandard so we only need to check that it is standard
-        if any(row[c]==row[c+1] for row in self for c in xrange(len(row)-1)):
-            raise ValueError("the entries in each row of a standard tableau must be strictly increasing")
-
-        # and that the entries are in bijection with {1,2,...,n}
-        if sorted(flatten(self._list))!=range(1,self.size()+1):
+        # t is semistandard so we only need to check
+        # that its entries are in bijection with {1, 2, ..., n}
+        flattened_list = [i for row in self for i in row]
+        if sorted(flattened_list) != range(1, len(flattened_list)+1):
             raise ValueError("the entries in a standard tableau must be in bijection with 1,2,...,n")
 
 
@@ -4991,7 +4988,8 @@ class SemistandardTableaux_size(SemistandardTableaux):
             return x == []
 
         return SemistandardTableaux.__contains__(self, x) \
-            and sum(map(len,x)) == self.size and max(flatten(x)) <= self.max_entry
+            and sum(map(len,x)) == self.size \
+            and max(i for row in x for i in row) <= self.max_entry
 
     def cardinality(self):
         """
@@ -5946,7 +5944,7 @@ class StandardTableaux_shape(StandardTableaux):
 
         # iterate until we reach the last tableau which is
         # filled with the row indices.
-        last_tableau=flatten([ [row]*l for (row,l) in enumerate(pi)])
+        last_tableau = sum([[row]*l for (row,l) in enumerate(pi)], [])
 
         #Convert the tableau to "vector format"
         #tableau_vector[i] is the row that number i

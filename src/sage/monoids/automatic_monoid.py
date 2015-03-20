@@ -208,13 +208,24 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
     def one(self):
         """
-        TODO: example
+        Return the identity element of ``self``.
+
+        EXAMPLES::
+
+            sage: R = IntegerModRing(12)
+            sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one = R.one())
+            sage: M.one()
+            []
         """
         return self._one
 
     def _repr_(self):
         """
-        Doctest
+        EXAMPLES::
+
+            sage: R = IntegerModRing(12)
+            sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one = R.one()); M
+            The (automatic) monoid with generators Finite family {1: [1], 2: [2]}
         """
         return "The (automatic) monoid with generators %s"%self.generators
 
@@ -239,7 +250,10 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            TODO
+            sage: R = IntegerModRing(12)
+            sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one = R.one())
+            sage: M.some_elements()
+            Finite family {1: [1], 2: [2]}
         """
         return self.semigroup_generators()
 
@@ -256,7 +270,12 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            TODO
+            sage: G4 = SymmetricGroup(4)
+            sage: M = AutomaticMonoid(Family({1:G4((1,2)), 2:G4((1,2,3,4))}), G4.one())
+            sage: M.cardinality()
+            24
+            sage: M.retract(G4((3,1)))
+            [2, 1, 2, 2, 1]
         """
         return self.element_class(self, ambient_element)
 
@@ -370,7 +389,17 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
     def from_reduced_word(self, l):
         """
-        DOCTEST
+        EXAMPLES::
+
+            sage: G4 = SymmetricGroup(4)
+            sage: M = AutomaticMonoid(Family({1:G4((1,2)), 2:G4((1,2,3,4))}), G4.one())
+            sage: M.cardinality()
+            sage: M.from_reduced_word([2, 1, 2, 2, 1])
+            (1,3)
+            sage: M.from_reduced_word([2, 1, 2, 2, 1]) == M.retract(G4((3,1)))
+            True
+
+
         """
         result = self.one()
         for i in l:

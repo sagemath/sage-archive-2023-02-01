@@ -57,7 +57,7 @@ class CoxeterType(object):
         """
         Return the rank of ``self``.
 
-        This is the number of nodes of the associated Coxeter diagram.
+        This is the number of nodes of the associated Coxeter graph.
 
         EXAMPLES::
 
@@ -74,7 +74,7 @@ class CoxeterType(object):
         """
         Return the index set for ``self``.
 
-        This is the list of the nodes of the associated Coxeter diagram.
+        This is the list of the nodes of the associated Coxeter graph.
 
         EXAMPLES::
 
@@ -121,15 +121,15 @@ class CoxeterType(object):
         """
 
     @abstract_method
-    def coxeter_diagram(self):
+    def coxeter_graph(self):
         """
-        Return the Coxeter diagram associated to ``self``.
+        Return the Coxeter graph associated to ``self``.
 
         EXAMPLES::
 
-            sage: CoxeterType(['A', 3]).coxeter_diagram()
+            sage: CoxeterType(['A', 3]).coxeter_graph()
             Graph on 3 vertices
-            sage: CoxeterType(['A', 3, 1]).coxeter_diagram()
+            sage: CoxeterType(['A', 3, 1]).coxeter_graph()
             Graph on 4 vertices
         """
 
@@ -207,7 +207,7 @@ class CoxeterType(object):
         """
         return False
 
-    @cached_method
+#    @cached_method
     def bilinear_form(self, R=None):
         """
         Return the bilinear form over ``R`` associated to ``self``.
@@ -242,7 +242,7 @@ class CoxeterType(object):
         else:
             from sage.functions.trig import cos
             from sage.symbolic.constants import pi
-            val = lambda x: -R(cos(pi / x)) if x != -1 else -R.one()
+            val = lambda x: -R(cos(pi / x)) if x > -1 else x
 
         n = self.rank()
         MS = MatrixSpace(R, n, sparse=True)
@@ -315,14 +315,14 @@ class CoxeterTypeFromCartanType(SageObject, CoxeterType, UniqueRepresentation):
         """
         return self._cartan_type.coxeter_matrix()
 
-    def coxeter_diagram(self):
+    def coxeter_graph(self):
         """
-        Return the Coxeter digramh of ``self``.
+        Return the Coxeter graph of ``self``.
 
         EXAMPLES::
 
             sage: C = CoxeterType(['H',3])
-            sage: C.coxeter_diagram().edges()
+            sage: C.coxeter_graph().edges()
             [(1, 2, 3), (2, 3, 5)]
         """
         return self._cartan_type.coxeter_diagram()

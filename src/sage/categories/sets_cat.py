@@ -914,17 +914,11 @@ class Sets(Category_singleton):
                 sage: A._element_constructor
                 <bound method FreeModule_ambient_field_with_category._element_constructor_ of Vector space of dimension 3 over Rational Field>
 
-            Caveat: For some old parents, ``element_class`` is a
-            method, and not an attribute. We do not provide a default
-            implementation of ``_element_constructor`` for those::
-
-                sage: from sage.algebras.group_algebra import GroupAlgebra
-                doctest:...: DeprecationWarning: The module group_algebra is deprecated and will be removed in a future version of Sage. Use group_algebra_new instead.
-                See http://trac.sagemath.org/6670 for details.
                 sage: B = GroupAlgebra(SymmetricGroup(3), ZZ)
                 sage: B.element_class
-                <bound method GroupAlgebra_with_category.element_class of Group algebra of group "Symmetric group of order 3! as a permutation group" over base ring Integer Ring>
+                <class 'sage.combinat.free_module.GroupAlgebra_with_category.element_class'>
                 sage: B._element_constructor
+                <bound method GroupAlgebra_with_category._element_constructor_ of Group algebra of group "Symmetric group of order 3! as a permutation group" over base ring Integer Ring>
             """
             if hasattr(self, "element_class"):
                 return self._element_constructor_from_element_class

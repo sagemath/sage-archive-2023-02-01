@@ -3012,11 +3012,13 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: FreeModule(FiniteField(2), 7)
             Vector space of dimension 7 over Finite Field of size 2
 
-        We test that the issue at Trac #11166 is solved::
+        We test that objects of this type are initialised correctly;
+        see :trac:`11166` (the failing ``repr`` is fine because this
+        is an abstract base class)::
 
             sage: from sage.modules.free_module import FreeModule_generic_field
             sage: FreeModule_generic_field(QQ, 5, 5)
-            <class 'sage.modules.free_module.FreeModule_generic_field_with_category'>
+            <repr(<sage.modules.free_module.FreeModule_generic_field_with_category at 0x...>) failed: NotImplementedError>
         """
         if not isinstance(base_field, field.Field):
             raise TypeError("The base_field (=%s) must be a field"%base_field)

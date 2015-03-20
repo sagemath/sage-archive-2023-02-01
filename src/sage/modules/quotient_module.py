@@ -273,15 +273,26 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
 
             sage: V = QQ^2 / [[1, 2]]
             sage: V.coerce_map_from(ZZ^2)
-            Free module morphism defined by the matrix
-            [   1]
-            [-1/2]
-            Domain: Ambient free module of rank 2 over the principal ideal domain Integer Ring
-            Codomain: Vector space quotient V/W of dimension 1 over Rational Field where
-            V: Vector space of dimension 2 over Rational Field
-            W: Vector space of degree 2 and dimension 1 over Rational Field
-            Basis matrix:
-            [1 2]
+            Composite map:
+              From: Ambient free module of rank 2 over the principal ideal domain Integer Ring
+              To:   Vector space quotient V/W of dimension 1 over Rational Field where
+                    V: Vector space of dimension 2 over Rational Field
+                    W: Vector space of degree 2 and dimension 1 over Rational Field
+                    Basis matrix:
+                    [1 2]
+              Defn:   Conversion map:
+                      From: Ambient free module of rank 2 over the principal ideal domain Integer Ring
+                      To:   Vector space of dimension 2 over Rational Field
+                    then
+                      Vector space morphism represented by the matrix:
+                      [   1]
+                      [-1/2]
+                      Domain: Vector space of dimension 2 over Rational Field
+                      Codomain: Vector space quotient V/W of dimension 1 over Rational Field where
+                                V: Vector space of dimension 2 over Rational Field
+                                W: Vector space of degree 2 and dimension 1 over Rational Field
+                                Basis matrix:
+                                [1 2]
 
         Make sure :trac:`10513` is fixed (no coercion from an abstract
         vector space to an isomorphic quotient vector space)::

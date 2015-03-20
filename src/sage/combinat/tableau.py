@@ -1802,35 +1802,31 @@ class Tableau(CombinatorialObject, Element):
             sage: t.bump(2)
             [[1, 2, 2, 2], [2, 3, 3, 5], [4, 4, 5], [5, 6, 6]]
         """
-        new_t = self.to_list()
         to_insert = x
-        row = 0
-        done = False
-        while not done:
-            #if we are at the end of the tableau
-            #add to_insert as the last row
-            if row == len(new_t):
-                new_t.append([to_insert])
-                break
-
+        new_t = self.to_list()
+        for row in range(len(self)):
             i = 0
             #try to insert to_insert into row
             while i < len(new_t[row]):
-                if to_insert < new_t[row][i]:
+                if x < new_t[row][i]:
                     t = to_insert
                     to_insert = new_t[row][i]
                     new_t[row][i] = t
                     break
                 i += 1
 
-
             #if we haven't already inserted to_insert
             #append it to the end of row
             if i == len(new_t[row]):
                 new_t[row].append(to_insert)
-                done = True
-
-            row += 1
+                if isinstance(self, SemistandardTableau):
+                    return StandardTableau(new_t)
+                return Tableau(new_t)
+        #if we got here, we are at the end of the tableau
+        #add to_insert as the last row
+        new_t.append([to_insert])
+        if isinstance(self, SemistandardTableau):
+            return StandardTableau(new_t)
         return Tableau(new_t)
 
     def schensted_insert(self, i, left=False):

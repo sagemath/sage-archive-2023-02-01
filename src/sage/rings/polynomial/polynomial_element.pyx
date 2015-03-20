@@ -3411,7 +3411,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 factors = S[1]
                 exponents = S[2]
                 v = sorted([( P(factors[i+1]),
-                              sage.rings.integer.Integer(exponents[i+1]) ) 
+                              sage.rings.integer.Integer(exponents[i+1]))
                             for i in range(len(factors))])
                 unit = P.one()
                 for i in range(len(v)):
@@ -3578,7 +3578,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                Defn: a |--> b)
 
         .. SEEALSO::
-        
+
             :func:`sage.rings.number_field.splitting_field.splitting_field` for more examples over number fields
 
         TESTS::
@@ -5765,9 +5765,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [1 + O(3^5)]
             sage: parent(r[0])
             3-adic Ring with capped relative precision 5
-            
+
         Spurious crash with pari-2.5.5, see :trac:`16165`::
-        
+
             sage: f=(1+x+x^2)^3
             sage: f.roots(ring=CC)
             [(-0.500000000000000 - 0.866025403784439*I, 3),
@@ -6700,19 +6700,26 @@ cdef class Polynomial(CommutativeAlgebraElement):
             R = R.change_ring(f.codomain())
         return R(dict([(k,f(v)) for (k,v) in self.dict().items()]))
 
-    def is_cyclotomic(self, certificate=False):
+    def is_cyclotomic(self, certificate=False, algorithm="pari"):
         r"""
-        Return ``True`` if ``self`` is a cyclotomic polynomial. If
-        ``certificate`` is ``True``, the result is ``0`` if ``self`` is not
-        cyclotomic, and ``n`` if ``self`` is the n-th cyclotomic polynomial.
+        Test if ``self`` is a cyclotomic polynomial.
 
-        A cyclotomic polynomial is a monic, irreducible polynomial such that
+        If ``certificate`` is ``True``, the result is a non-negative integer: it
+        is ``0`` if ``self`` is not cyclotomic, and ``n`` if ``self`` is the
+        n-th cyclotomic polynomial.
+
+        A *cyclotomic polynomial* is a monic, irreducible polynomial such that
         all roots are roots of unity.
 
-        .. TODO::
+        .. SEEALSO::
 
-            Calling ``poliscyclo()`` from libpari would be much faster. See
-            :trac:`17730`.
+            :meth:`is_cyclotomic_product`
+
+        INPUT:
+
+        - ``certificate`` -- boolean
+
+        - ``algorithm`` -- either "pari" or "sage"
 
         ALGORITHM:
 
@@ -6745,10 +6752,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Some more tests::
 
-            sage: (x^16 + x^14 - x^10 + x^8 - x^6 + x^2 + 1).is_cyclotomic()
+            sage: (x^16 + x^14 - x^10 + x^8 - x^6 + x^2 + 1).is_cyclotomic(algorithm="pari")
             False
-            sage: (x^16 + x^14 - x^10 - x^8 - x^6 + x^2 + 1).is_cyclotomic()
+            sage: (x^16 + x^14 - x^10 + x^8 - x^6 + x^2 + 1).is_cyclotomic(algorithm="sage")
+            False
+
+            sage: (x^16 + x^14 - x^10 - x^8 - x^6 + x^2 + 1).is_cyclotomic(algorithm="pari")
             True
+            sage: (x^16 + x^14 - x^10 - x^8 - x^6 + x^2 + 1).is_cyclotomic(algorithm="sage")
+            True
+
             sage: y = polygen(QQ)
             sage: (y/2 - 1/2).is_cyclotomic()
             False
@@ -6762,6 +6775,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: not implemented in non-zero characteristic
+
+        TESTS::
+
+            sage: R = ZZ['x']
+            sage: for _ in range(20):
+            ....:     p = R.random_element(degree=randint(10,20))
+            ....:     ans_pari = p.is_cyclotomic(algorithm="pari")
+            ....:     ans_sage = p.is_cyclotomic(algorithm="sage")
+            ....:     assert ans_pari == ans_sage, "problem with p={}".format(p)
+            sage: for d in range(2,20):
+            ....:     p = cyclotomic_polynomial(d)
+            ....:     assert p.is_cyclotomic(algorithm="pari"), "pari problem with p={}".format(p)
+            ....:     assert p.is_cyclotomic(algorithm="sage"), "sage problem with p={}".format(p)
 
         REFERENCES:
 
@@ -6778,15 +6804,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return False
             return f.is_cyclotomic()
 
-        if certificate:
-            return self._gp_().poliscyclo()
+        if algorithm == "pari":
+            ans = self._pari_().poliscyclo()
+            return Integer(ans) if certificate else bool(ans)
+
+        elif algorithm != "sage":
+            raise ValueError("algorithm must be either 'pari' or 'sage'")
+
+        elif certificate:
+            raise ValueError("no implementation of the certificate within Sage")
 
         if not self.is_monic():
             return False
 
-        gen = self.parent().gen()
+        P = self.parent()
+        gen = P.gen()
 
-        if (self == gen - 1):  # the first cyc. pol. is treated apart
+        if self == gen - 1:  # the first cyc. pol. is treated apart
             return True
 
         if self.constant_coefficient() != 1:
@@ -6797,12 +6831,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         coefs = self.coefficients(sparse=False)
 
-        # construct the odd and even part of self
-        po_odd = sum(coefs[i]*(gen**((i-1)/2)) for i in xrange(1,len(coefs),2))
-        po_even = sum(coefs[i]*(gen**(i/2)) for i in xrange(0,len(coefs),2))
-
-        # f1 = graeffe(self)
-        f1  = po_even**2 - gen*(po_odd**2)
+        # compute the graeffe transform of self
+        po_odd = P(coefs[1::2])
+        po_even = P(coefs[0::2])
+        f1  = po_even*po_even - gen*(po_odd*po_odd)
 
         # first case
         if f1 == self:
@@ -6811,14 +6843,57 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # second case
         selfminus = self(-gen)
         if f1 == selfminus:
-            if selfminus.leading_coefficient() < 0 and ((-1)*selfminus).is_cyclotomic():
+            if selfminus.leading_coefficient() < 0 and (-selfminus).is_cyclotomic(algorithm="sage"):
                 return True
-            elif selfminus.is_cyclotomic():
+            elif selfminus.is_cyclotomic(algorithm="sage"):
                 return True
 
         # third case, we need to take a square root
         ans, ff1 = f1.is_square(True)
-        return ans and ff1.is_cyclotomic()
+        return ans and ff1.is_cyclotomic(algorithm="sage")
+
+    def is_cyclotomic_product(self):
+        r"""
+        Test whether self is a product of cyclotomic polynomials.
+
+        This method simply calls the function poliscycloprod from the Pari
+        library.
+
+        .. SEEALSO::
+
+            :meth:`is_cyclotomic`
+
+        EXAMPLES::
+
+            sage: x = polygen(ZZ)
+            sage: (x^5 - 1).is_cyclotomic_product()
+            True
+            sage: (x^5 + x^4 - x^2 + 1).is_cyclotomic_product()
+            False
+
+            sage: p = prod(cyclotomic_polynomial(i) for i in [2,5,7,12])
+            sage: p.is_cyclotomic_product()
+            True
+
+            sage: (x^5 - 1/3).is_cyclotomic_product()
+            False
+
+            sage: x = polygen(Zmod(5))
+            sage: (x-1).is_cyclotomic_product()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: not implemented in non-zero characteristic
+        """
+        if self.base_ring().characteristic() != 0:
+            raise NotImplementedError("not implemented in non-zero characteristic")
+        if self.base_ring() != ZZ:
+            try:
+                f = self.change_ring(ZZ)
+            except TypeError:
+                return False
+            return f.is_cyclotomic_product()
+
+        return bool(self._pari_().poliscycloprod())
 
     def homogenize(self, var='h'):
         r"""

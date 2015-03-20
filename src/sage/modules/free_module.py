@@ -4126,7 +4126,10 @@ class FreeModule_ambient(FreeModule_generic):
                 return None
             elif (self.base_ring().has_coerce_map_from(M.base_ring())
                   and self.rank() == M.rank()):
-                return M.hom(self.basis(), self)
+                # We could return M.hom(self.basis(), self), but the
+                # complexity of this is quadratic in space and time,
+                # since it constructs a matrix.
+                return True
         return super(FreeModule_ambient, self)._coerce_map_from_(M)
 
     def _dense_module(self):

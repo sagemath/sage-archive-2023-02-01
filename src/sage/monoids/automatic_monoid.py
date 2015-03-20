@@ -252,7 +252,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
         """
         assert(x in self)
-        return x.lift()
+        return x.value
 
     def semigroup_generators(self):
         """
@@ -314,7 +314,12 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
     def __contains__(self, x):
         """
-        TODO: DOCTEST
+        TESTS::
+
+            sage: R = IntegerModRing(34)
+            sage: M = AutomaticMonoid(Family({1: R(3), 2: R(7)}), one = R.one())
+            sage: M[3] in M
+            True
         """
         return x.parent() is self
 
@@ -355,12 +360,6 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
         def __init__(self, ambient_element, parent):
             ElementWrapper.__init__(self, ambient_element, parent)
             self._reduced_word = None
-
-        def lift(self):
-            """
-            DOCTEST
-            """
-            return self.value
 
         def reduced_word(self, computation=False):
             """

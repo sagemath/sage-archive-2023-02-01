@@ -398,7 +398,6 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             EXAMPLES::
 
-                sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example()
                 sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
                 An example of a finite dimensional algebra with basis: the path
                 algebra of the Kronecker quiver (containing the arrows a:x->y

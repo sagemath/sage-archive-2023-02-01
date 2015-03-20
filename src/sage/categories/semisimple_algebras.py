@@ -108,23 +108,23 @@ class SemisimpleAlgebras(Category_over_base_ring):
                 class ParentMethods:
 
                     @cached_method
-                    def _orthogonal_decomposition(self, listGen=None, topLevel=True):
+                    def _orthogonal_decomposition(self, generators=None, topLevel=True):
                         r"""
-                        Decompose a commutative finite dimensional semi-simple
-                        algebra ``A`` into a direct sum of simple A-modules.
+                        Return a list of orthogonal idempotents of a semisimple
+                        commutative finite dimensional algebra ``self``.
 
                         INPUT:
 
                         - ``self`` a finite dimensional semisimple commutative
                           algebra.
+                        - ``generators`` a list of generators of ``self``. By
+                          default it will be the basis of ``self``.
 
                         OUTPUT:
 
-                        - list of elements of ``self`` each generating a simple
-                          submodule of ``self`` in direct sum with the others.
-                          The list is maximal.
-
-                        Return a list of generators of simple A-modules.
+                        - list of elements of ``self`` each generating a one
+                          dimensional simple submodule of ``self`` in direct
+                          sum with the others. The list is maximal.
 
                         EXAMPLES::
 
@@ -146,8 +146,8 @@ class SemisimpleAlgebras(Category_over_base_ring):
                             operations.
                         """
                         # Terminal case and stuffs
-                        if listGen is None:
-                            listGen = self.basis().list()
+                        if generators is None:
+                            generators = self.basis().list()
                         if self.dimension() == 1:
                             if topLevel:
                                 return self.basis().list()
@@ -158,15 +158,14 @@ class SemisimpleAlgebras(Category_over_base_ring):
                         res = []
                         B = self.basis()
                         while len(res) < 2:
-                            if listGen == []:
+                            if generators == []:
                                 raise Exception("Unable to fully decompose...")
-                            curGen = listGen.pop()
+                            gen = generators.pop()
                             phi = self.module_morphism(on_basis=lambda i:
-                                    curGen*B[i],
+                                    gen*B[i],
                                     codomain=self,
                                     triangular=True)
-                            aMat = phi.matrix(self.base_ring())
-                            res = aMat.eigenspaces_right()
+                            res = phi.matrix(self.base_ring()).eigenspaces_right()
 
                         # Gotcha! Let's settle the algebra...
 

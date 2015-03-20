@@ -163,7 +163,7 @@ class SkewTableau(CombinatorialObject, Element):
 
     def _repr_list(self):
         """
-        Return a string represenation of ``self`` as a list of lists.
+        Return a string representation of ``self`` as a list of lists.
 
         EXAMPLES::
 

@@ -1820,13 +1820,13 @@ class Tableau(CombinatorialObject, Element):
             if i == len(new_t[row]):
                 new_t[row].append(to_insert)
                 if isinstance(self, SemistandardTableau):
-                    return StandardTableau(new_t)
+                    return SemistandardTableau(new_t)
                 return Tableau(new_t)
         #if we got here, we are at the end of the tableau
         #add to_insert as the last row
         new_t.append([to_insert])
         if isinstance(self, SemistandardTableau):
-            return StandardTableau(new_t)
+            return SemistandardTableau(new_t)
         return Tableau(new_t)
 
     def schensted_insert(self, i, left=False):

@@ -5542,8 +5542,8 @@ class StandardTableaux(SemistandardTableaux):
             flatx = sorted(sum((list(row) for row in x),[]))
             return flatx == range(1,len(flatx)+1) and (len(x)==0 or
                      (all(row[i]<row[i+1] for row in x for i in range(len(row)-1)) and
-                       all(x[r][c]<x[r+1][c] for c in range(len(x[0]))
-                                             for r in range(len(x)-1) if len(x[r+1])>c )
+                       all(x[r][c]<x[r+1][c] for r in range(len(x)-1)
+                                              for c in range(len(x[r+1])) )
                      ))
         return False
 

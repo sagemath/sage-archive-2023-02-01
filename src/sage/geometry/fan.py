@@ -1614,6 +1614,67 @@ class RationalPolyhedralFan(IntegralRayCollection,
         self_cones = [cone.ambient_ray_indices() for cone in self]
         return RationalPolyhedralFan(self_cones, new_rays, self.lattice())
 
+    def common_refinement(self, other):
+        """
+        Return the common refinement of this fan and ``other``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`fan <RationalPolyhedralFan>` in the same
+          :meth:`lattice` and with the same support as this fan
+
+        OUTPUT:
+
+        - a :class:`fan <RationalPolyhedralFan>`
+
+        EXAMPLES:
+
+        Refining a fan with itself gives itself::
+
+            sage: F0 = Fan2d([(1,0),(0,1),(-1,0),(0,-1)])
+            sage: F0.common_refinement(F0) == F0
+            True
+
+        A more complex example with complete fans::
+
+            sage: F1 = Fan([[0],[1]],[(1,),(-1,)])
+            sage: F2 = Fan2d([(1,0),(1,1),(0,1),(-1,0),(0,-1)])
+            sage: F3 = F2.cartesian_product(F1)
+            sage: F4 = F1.cartesian_product(F2)
+            sage: FF = F3.common_refinement(F4)
+            sage: F3.ngenerating_cones()
+            10
+            sage: F4.ngenerating_cones()
+            10
+            sage: FF.ngenerating_cones()
+            13
+
+        An example with two non-complete fans with the same support::
+
+            sage: F5 = Fan2d([(1,0),(1,2),(0,1)])
+            sage: F6 = Fan2d([(1,0),(2,1),(0,1)])
+            sage: F5.common_refinement(F6).ngenerating_cones()
+            3
+
+        Both fans must live in the same lattice::
+
+            sage: F0.common_refinement(F1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the fans are not in the same lattice
+        """
+        from sage.categories.homset import End
+        from sage.geometry.fan_morphism import FanMorphism
+        N = self.lattice()
+        if other.lattice() is not N:
+            raise ValueError('the fans are not in the same lattice')
+        id = End(N).identity()
+        subdivision = FanMorphism(id, self, other, subdivide=True).domain_fan()
+        if not self.is_complete():
+            # Construct the opposite morphism to ensure support equality
+            FanMorphism(id, other, self, subdivide=True)
+        return subdivision
+
     def _latex_(self):
         r"""
         Return a LaTeX representation of ``self``.

@@ -274,8 +274,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         .. warning::
 
            A table of values of the character is made the first time
-           you call this. This table is currently constructed in a
-           somewhat stupid way, though it is still pretty fast.
+           you call this (unless `m` equals -1)
 
         EXAMPLES::
 
@@ -283,6 +282,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e = prod(G.gens(), G(1))
             sage: e
             Dirichlet character modulo 60 of conductor 60 mapping 31 |--> -1, 41 |--> -1, 37 |--> zeta4
+            sage: e(-1)
+            -1
             sage: e(2)
             0
             sage: e(7)
@@ -300,18 +301,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: parent(e(31*37))
             Cyclotomic Field of order 4 and degree 2
         """
-        m = int(m%self.__modulus)
-        try:
-            return self.__values[m]
-        except AttributeError:
-            pass
-
-        val = self.__modulus - 1
-        if m == val:
-            return self.__eval_at_minus_one()
+        m = int(m % self.__modulus)
+        if self.values.is_in_cache() or m != self.__modulus - 1:
+            return self.values()[m]
         else:
-            self.values()  # compute all values
-            return self.__values[m]
+            return self.__eval_at_minus_one()
 
     def change_ring(self, R):
         """
@@ -1495,9 +1489,10 @@ class DirichletCharacter(MultiplicativeGroupElement):
         H = DirichletGroup(M, self.base_ring())
         return H(self)
 
+    @cached_method
     def values(self):
         """
-        Returns a list of the values of this character on each integer
+        Return a list of the values of this character on each integer
         between 0 and the modulus.
 
         EXAMPLES::
@@ -1543,88 +1538,50 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: chi(1)
             1
         """
-        try:
-            return self.__values
-        except AttributeError:
-            pass
-        # Build cache of all values of the Dirichlet character.
-        # I'm going to do it this way, since in my app the modulus
-        # is *always* small and we want to evaluate the character
-        # a *lot*.
         G = self.parent()
         R = G.base_ring()
-        zero = R(0)
-        one = R(1)
+
         mod = self.__modulus
+        if mod == 1:
+            return [R.one()]
+        elif mod == 2:
+            return [R.zero(), R.one()]
 
-        if self.is_trivial():  # easy special case
-            x = [ one ] * int(mod)
-
-            for p in mod.prime_divisors():
-                p_mult = p
-                while p_mult < mod:
-                    x[p_mult] = zero
-                    p_mult += p
-            if not (mod == 1):
-                x[0] = zero
-            self.__values = x
-            return x
-
-        result_list = [zero] * mod
-
-        zeta_order = G.zeta_order()
-        zeta = R.zeta(zeta_order)
-        A = rings.Integers(zeta_order)
-        A_zero = A.zero()
-        A_one = A.one()
-        ZZ = rings.ZZ
-
-        S = G._integers
+        result_list = [R.zero()] * mod
+        gens = G.unit_gens()
+        orders = G.integers_mod().unit_group().gens_orders()
 
         R_values = G._zeta_powers
+        val_on_gen = self.element()
 
-        gens = G.unit_gens()
-        last = [o - 1 for o in G.integers_mod().unit_group().gens_orders()]
+        exponents = [0] * len(orders)
+        n = G.integers_mod().one()
+        value = val_on_gen.base_ring().zero()
 
-        ngens = len(gens)
-        exponents = [0] * ngens
-        n = S(1)
-
-        value = A_zero
-        val_on_gen = [ A(R_values.index(x)) for x in self.values_on_gens() ]
-
-        final_index = ngens-1
-        stop = last[-1]
-        while exponents[-1] <= stop:
-
-            ########################
+        while True:
             # record character value on n
             result_list[n] = R_values[value]
             # iterate:
             #   increase the exponent vector by 1,
             #   increase n accordingly, and increase value
-            exponents[0] += 1   # inc exponent
-            value += val_on_gen[0]  # inc value
-            n *= gens[0]
-            ## n %= mod
             i = 0
-            while i < final_index and exponents[i] > last[i]:
+            while True:
+                try:
+                    exponents[i] += 1
+                except IndexError:  # Done!
+                    return result_list
+                value += val_on_gen[i]
+                n *= gens[i]
+                if exponents[i] < orders[i]:
+                    break
                 exponents[i] = 0
-                # now increment position i+1:
-                exponents[i+1] += 1
-                value += val_on_gen[i+1]
-                n *= gens[i+1]
-                ## n %= mod
                 i += 1
 
-        self.__values = result_list
-        return self.__values
 
     def values_on_gens(self):
-        """
-        Returns a tuple of the values of this character on each of the
-        minimal generators of `(\ZZ/N\ZZ)^*`, where
-        `N` is the modulus.
+        r"""
+        Return a tuple of the values of ``self`` on the standard
+        generators of `(\ZZ/N\ZZ)^*`, where `N` is the modulus.
 
         EXAMPLES::
 
@@ -2058,7 +2015,7 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         for u in self.unit_gens():
             v = u.lift()
             # have to do this, since e.g., unit gens mod 11 are not units mod 22.
-            while arith.GCD(x.modulus(),int(v)) != 1:
+            while x.modulus().gcd(v) != 1:
                 v += self.modulus()
             a.append(R(x(v)))
         return self(a)

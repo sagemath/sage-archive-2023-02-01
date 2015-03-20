@@ -548,13 +548,13 @@ def fibonacci(n, algorithm="pari"):
     else:
         raise ValueError("no algorithm {}".format(algorithm))
 
-def lucas_number1(n,P,Q):
-    """
+def lucas_number1(n, P, Q):
+    r"""
     Return the `n`-th Lucas number "of the first kind" (this is not
     standard terminology). The Lucas sequence `L^{(1)}_n` is
-    defined by the initial conditions `L^{(1)}_1=0`,
-    `L^{(1)}_2=1` and the recurrence relation
-    `L^{(1)}_{n+2} = P*L^{(1)}_{n+1} - Q*L^{(1)}_n`.
+    defined by the initial conditions `L^{(1)}_1 = 0`,
+    `L^{(1)}_2 = 1` and the recurrence relation
+    `L^{(1)}_{n+2} = P \cdot L^{(1)}_{n+1} - Q \cdot L^{(1)}_n`.
 
     Wraps GAP's ``Lucas(...)[1]``.
 
@@ -612,13 +612,13 @@ def lucas_number1(n,P,Q):
     from sage.libs.gap.libgap import libgap
     return libgap.Lucas(P, Q, n)[0].sage()
 
-def lucas_number2(n,P,Q):
+def lucas_number2(n, P, Q):
     r"""
     Return the `n`-th Lucas number "of the second kind" (this is not
     standard terminology). The Lucas sequence `L^{(2)}_n` is
-    defined by the initial conditions `L^{(2)}_1=2`,
-    `L^{(2)}_2=P` and the recurrence relation
-    `L^{(2)}_{n+2} = P*L^{(2)}_{n+1} - Q*L^{(2)}_n`.
+    defined by the initial conditions `L^{(2)}_1 = 2`,
+    `L^{(2)}_2 = P` and the recurrence relation
+    `L^{(2)}_{n+2} = P \cdot L^{(2)}_{n+1} - Q \cdot L^{(2)}_n`.
 
     Wraps GAP's Lucas(...)[2].
 
@@ -934,7 +934,6 @@ class CombinatorialObject(SageObject):
             sage: c == d
             False
         """
-
         if isinstance(other, CombinatorialObject):
             return self._list.__eq__(other._list)
         else:
@@ -951,7 +950,6 @@ class CombinatorialObject(SageObject):
             sage: c < [2,3,4]
             True
         """
-
         if isinstance(other, CombinatorialObject):
             return self._list.__lt__(other._list)
         else:
@@ -2196,127 +2194,267 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
 #####################################################
 #### combinatorial sets/lists
 
-def tuples(S,k):
-    """
+def tuples(S, k, algorithm='itertools'):
+    r"""
     Return a list of all `k`-tuples of elements of a given set ``S``.
 
     This function accepts the set ``S`` in the form of any iterable
-    (list, tuple or iterator), and returns a list of `k`-tuples
-    (themselves encoded as lists). If ``S`` contains duplicate entries,
-    then you should expect the method to return tuples multiple times!
+    (list, tuple or iterator), and returns a list of `k`-tuples.
+    If ``S`` contains duplicate entries, then you should expect the
+    method to return tuples multiple times!
 
     Recall that `k`-tuples are ordered (in the sense that two `k`-tuples
     differing in the order of their entries count as different) and
     can have repeated entries (even if ``S`` is a list with no
     repetition).
 
+    INPUT:
+
+    - ``S`` -- the base set
+    - ``k`` -- the length of the tuples
+    - ``algorithm`` -- can be one of the following:
+
+      * ``'itertools'`` - (default) use python's itertools
+      * ``'native'`` - use a native Sage implementation
+
+    .. NOTE::
+
+        The ordering of the list of tuples differs for the algorithms.
+
     EXAMPLES::
 
         sage: S = [1,2]
         sage: tuples(S,3)
-        [[1, 1, 1], [2, 1, 1], [1, 2, 1], [2, 2, 1], [1, 1, 2], [2, 1, 2], [1, 2, 2], [2, 2, 2]]
+        [(1, 1, 1), (1, 1, 2), (1, 2, 1), (1, 2, 2),
+         (2, 1, 1), (2, 1, 2), (2, 2, 1), (2, 2, 2)]
         sage: mset = ["s","t","e","i","n"]
-        sage: tuples(mset,2)
-        [['s', 's'], ['t', 's'], ['e', 's'], ['i', 's'], ['n', 's'], ['s', 't'], ['t', 't'],
-         ['e', 't'], ['i', 't'], ['n', 't'], ['s', 'e'], ['t', 'e'], ['e', 'e'], ['i', 'e'],
-         ['n', 'e'], ['s', 'i'], ['t', 'i'], ['e', 'i'], ['i', 'i'], ['n', 'i'], ['s', 'n'],
-         ['t', 'n'], ['e', 'n'], ['i', 'n'], ['n', 'n']]
-
-    The Set(...) comparisons are necessary because finite fields are
-    not enumerated in a standard order.
+        sage: tuples(mset, 2)
+        [('s', 's'), ('s', 't'), ('s', 'e'), ('s', 'i'), ('s', 'n'),
+         ('t', 's'), ('t', 't'), ('t', 'e'), ('t', 'i'), ('t', 'n'),
+         ('e', 's'), ('e', 't'), ('e', 'e'), ('e', 'i'), ('e', 'n'),
+         ('i', 's'), ('i', 't'), ('i', 'e'), ('i', 'i'), ('i', 'n'),
+         ('n', 's'), ('n', 't'), ('n', 'e'), ('n', 'i'), ('n', 'n')]
 
     ::
 
         sage: K.<a> = GF(4, 'a')
-        sage: mset = [x for x in K if x!=0]
-        sage: tuples(mset,2)
-        [[a, a], [a + 1, a], [1, a], [a, a + 1], [a + 1, a + 1], [1, a + 1], [a, 1], [a + 1, 1], [1, 1]]
+        sage: mset = [x for x in K if x != 0]
+        sage: tuples(mset, 2)
+        [(a, a), (a, a + 1), (a, 1), (a + 1, a), (a + 1, a + 1),
+         (a + 1, 1), (1, a), (1, a + 1), (1, 1)]
+
+    We check that the implementations agree (up to ordering)::
+
+        sage: tuples(S, 3, 'native')
+        [(1, 1, 1), (2, 1, 1), (1, 2, 1), (2, 2, 1),
+         (1, 1, 2), (2, 1, 2), (1, 2, 2), (2, 2, 2)]
+
+    Lastly we check on a multiset::
+
+        sage: S = [1,1,2]
+        sage: sorted(tuples(S, 3)) == sorted(tuples(S, 3, 'native'))
+        True
 
     AUTHORS:
 
     - Jon Hanke (2006-08)
     """
-    import copy
-    if k<=0:
-        return [[]]
-    if k==1:
-        return [[x] for x in S]
+    if algorithm == 'itertools':
+        import itertools
+        return list(itertools.product(S, repeat=k))
+    if algorithm == 'native':
+        return _tuples_native(S, k)
+    raise ValueError('invalid algorithm')
+
+def _tuples_native(S, k):
+    """
+    Return a list of all `k`-tuples of elements of a given set ``S``.
+
+    This is a helper method used in :meth:`tuples`. It returns the
+    same as ``tuples(S, k, algorithm="native")``.
+
+    EXAMPLES::
+
+        sage: S = [1,2,2]
+        sage: from sage.combinat.combinat import _tuples_native
+        sage: _tuples_native(S,2)
+        [(1, 1), (2, 1), (2, 1), (1, 2), (2, 2), (2, 2),
+         (1, 2), (2, 2), (2, 2)]
+    """
+    if k <= 0:
+        return [()]
+    if k == 1:
+        return [(x,) for x in S]
     ans = []
     for s in S:
-        for x in tuples(S,k-1):
-            y = copy.copy(x)
+        for x in _tuples_native(S, k-1):
+            y = list(x)
             y.append(s)
-            ans.append(y)
+            ans.append(tuple(y))
     return ans
 
-def number_of_tuples(S, k):
+def number_of_tuples(S, k, algorithm='naive'):
     """
-    Return the size of ``tuples(S,k)``. Wraps GAP's ``NrTuples``.
+    Return the size of ``tuples(S, k)`` when `S` is a set. More
+    generally, return the size of ``tuples(set(S), k)``. (So,
+    unlike :meth:`tuples`, this method removes redundant entries from
+    `S`.)
+
+    INPUT:
+
+    - ``S`` -- the base set
+    - ``k`` -- the length of the tuples
+    - ``algorithm`` -- can be one of the following:
+
+      * ``'naive'`` - (default) use the naive counting `|S|^k`
+      * ``'gap'`` - wraps GAP's ``NrTuples``
+
+    .. WARNING::
+
+        When using ``algorithm='gap'``, ``S`` must be a list of objects
+        that have string representations that can be interpreted by the GAP
+        interpreter. If ``S`` consists of at all complicated Sage
+        objects, this function might *not* do what you expect.
 
     EXAMPLES::
 
         sage: S = [1,2,3,4,5]
         sage: number_of_tuples(S,2)
         25
+        sage: number_of_tuples(S,2, algorithm="gap")
+        25
         sage: S = [1,1,2,3,4,5]
         sage: number_of_tuples(S,2)
         25
+        sage: number_of_tuples(S,2, algorithm="gap")
+        25
+        sage: number_of_tuples(S,0)
+        1
+        sage: number_of_tuples(S,0, algorithm="gap")
+        1
     """
-    k = ZZ(k)
-    from sage.libs.gap.libgap import libgap
-    S = libgap.eval(str(S))
-    return libgap.NrTuples(S, k).sage()
+    if algorithm == 'naive':
+        return ZZ( len(set(S)) )**k # The set is there to avoid duplicates
+    if algorithm == 'gap':
+        k = ZZ(k)
+        from sage.libs.gap.libgap import libgap
+        S = libgap.eval(str(S))
+        return libgap.NrTuples(S, k).sage()
+    raise ValueError('invalid algorithm')
 
-def unordered_tuples(S, k):
-    """
-    Return the set of all unordered tuples of length ``k`` of the
-    set ``S``. Wraps GAP's ``UnorderedTuples``.
+def unordered_tuples(S, k, algorithm='itertools'):
+    r"""
+    Return a list of all unordered tuples of length ``k`` of the set ``S``.
 
-    An unordered tuple of length `k` of a set `S` is a unordered selection
-    with repetitions of elements of `S`, and is represented by a sorted
-    list of length `k` containing elements from `S`.
+    An unordered tuple of length `k` of set `S` is a unordered selection
+    with repetitions of `S` and is represented by a sorted list of length
+    `k` containing elements from `S`.
+
+    Unlike :meth:`tuples`, the result of this method does not depend on
+    how often an element appears in `S`; only the *set* `S` is being
+    used. For example, ``unordered_tuples([1, 1, 1], 2)`` will return
+    ``[(1, 1)]``. If you want it to return
+    ``[(1, 1), (1, 1), (1, 1)]``, use Python's
+    ``itertools.combinations_with_replacement`` instead.
+
+    INPUT:
+
+    - ``S`` -- the base set
+    - ``k`` -- the length of the tuples
+    - ``algorithm`` -- can be one of the following:
+
+      * ``'itertools'`` - (default) use python's itertools
+      * ``'gap'`` - wraps GAP's ``UnorderedTuples``
 
     .. WARNING::
 
-       Wraps GAP -- hence ``S`` must be a list of objects that have
-       string representations that can be interpreted by the GAP
-       interpreter. If ``S`` contains any complicated Sage
-       objects, this function does *not* do what you expect. A proper
-       function should be written! (TODO!)
-
-    .. NOTE::
-
-        Repeated entries in ``S`` are being ignored -- i.e.,
-        ``unordered_tuples([1,2,3,3],2)`` doesn't return anything
-        different from ``unordered_tuples([1,2,3],2)``.
+        When using ``algorithm='gap'``, ``S`` must be a list of objects
+        that have string representations that can be interpreted by the GAP
+        interpreter. If ``S`` consists of at all complicated Sage
+        objects, this function might *not* do what you expect.
 
     EXAMPLES::
 
         sage: S = [1,2]
-        sage: unordered_tuples(S,3)
-        [[1, 1, 1], [1, 1, 2], [1, 2, 2], [2, 2, 2]]
-        sage: unordered_tuples(["a","b","c"],2)
-        ['aa', 'ab', 'ac', 'bb', 'bc', 'cc']
-    """
-    k = ZZ(k)
-    from sage.libs.gap.libgap import libgap
-    S = libgap.eval(str(S))
-    return libgap.UnorderedTuples(S, k).sage()
+        sage: unordered_tuples(S, 3)
+        [(1, 1, 1), (1, 1, 2), (1, 2, 2), (2, 2, 2)]
 
-def number_of_unordered_tuples(S,k):
+    We check that this agrees with GAP::
+
+        sage: unordered_tuples(S, 3, algorithm='gap')
+        [(1, 1, 1), (1, 1, 2), (1, 2, 2), (2, 2, 2)]
+
+    We check the result on strings::
+
+        sage: S = ["a","b","c"]
+        sage: unordered_tuples(S, 2)
+        [('a', 'a'), ('a', 'b'), ('a', 'c'), ('b', 'b'), ('b', 'c'), ('c', 'c')]
+        sage: unordered_tuples(S, 2, algorithm='gap')
+        [('a', 'a'), ('a', 'b'), ('a', 'c'), ('b', 'b'), ('b', 'c'), ('c', 'c')]
+
+    Lastly we check on a multiset::
+
+        sage: S = [1,1,2]
+        sage: unordered_tuples(S, 3) == unordered_tuples(S, 3, 'gap')
+        True
+        sage: unordered_tuples(S, 3)
+        [(1, 1, 1), (1, 1, 2), (1, 2, 2), (2, 2, 2)]
     """
-    Return the size of ``unordered_tuples(S,k)``. Wraps GAP's
-    ``NrUnorderedTuples``.
+    if algorithm == 'itertools':
+        import itertools
+        return list(itertools.combinations_with_replacement(sorted(set(S)), k))
+    if algorithm == 'gap':
+        k = ZZ(k)
+        from sage.libs.gap.libgap import libgap
+        S = libgap.eval(str(S))
+        return [tuple(x) for x in libgap.UnorderedTuples(S, k).sage()]
+    raise ValueError('invalid algorithm')
+
+def number_of_unordered_tuples(S, k, algorithm='naive'):
+    r"""
+    Return the size of ``unordered_tuples(S, k)`` when `S` is a set.
+
+    INPUT:
+
+    - ``S`` -- the base set
+    - ``k`` -- the length of the tuples
+    - ``algorithm`` -- can be one of the following:
+
+      * ``'naive'`` - (default) use the naive counting `\binom{|S|+k-1}{k}`
+      * ``'gap'`` - wraps GAP's ``NrUnorderedTuples``
+
+    .. WARNING::
+
+        When using ``algorithm='gap'``, ``S`` must be a list of objects
+        that have string representations that can be interpreted by the GAP
+        interpreter. If ``S`` consists of at all complicated Sage
+        objects, this function might *not* do what you expect.
 
     EXAMPLES::
 
         sage: S = [1,2,3,4,5]
         sage: number_of_unordered_tuples(S,2)
         15
+        sage: number_of_unordered_tuples(S,2, algorithm="gap")
+        15
+        sage: S = [1,1,2,3,4,5]
+        sage: number_of_unordered_tuples(S,2)
+        15
+        sage: number_of_unordered_tuples(S,2, algorithm="gap")
+        15
+        sage: number_of_unordered_tuples(S,0)
+        1
+        sage: number_of_unordered_tuples(S,0, algorithm="gap")
+        1
     """
-    from sage.libs.gap.libgap import libgap
-    S = libgap.eval(str(S))
-    return libgap.NrUnorderedTuples(S, k).sage()
+    if algorithm == 'naive':
+        return ZZ( len(set(S)) + k - 1 ).binomial(k) # The set is there to avoid duplicates
+    if algorithm == 'gap':
+        k = ZZ(k)
+        from sage.libs.gap.libgap import libgap
+        S = libgap.eval(str(S))
+        return libgap.NrUnorderedTuples(S, k).sage()
+    raise ValueError('invalid algorithm')
 
 def unshuffle_iterator(a, one=1):
     r"""
@@ -2523,7 +2661,7 @@ def bell_polynomial(n, k):
 
     OUTPUT:
 
-    - polynomial expression (SymbolicArithmetic)
+    - a polynomial in `n-k+1` variables over `\QQ`
 
     EXAMPLES::
 

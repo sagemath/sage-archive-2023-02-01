@@ -68,9 +68,12 @@ if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shel
     extra_compile_args.append('-fno-tree-dominator-opts')
 
 # Generate interpreters
-
 sage.ext.gen_interpreters.rebuild(os.path.join(SAGE_SRC, 'sage', 'ext', 'interpreters'))
 ext_modules = ext_modules + sage.ext.gen_interpreters.modules
+
+# Generate auto-generated files
+from sage_setup.autogen import autogen_all
+autogen_all()
 
 
 #########################################################

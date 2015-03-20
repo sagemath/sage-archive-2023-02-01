@@ -13,7 +13,7 @@ For design documentation see matrix/docs.py.
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-include 'sage/ext/stdsage.pxi'
+from sage.ext.stdsage cimport PY_SET_TP_NEW
 
 def is_Matrix(x):
     """

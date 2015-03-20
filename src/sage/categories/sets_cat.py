@@ -926,7 +926,7 @@ class Sets(Category_singleton):
                 <bound method GroupAlgebra_with_category.element_class of Group algebra of group "Symmetric group of order 3! as a permutation group" over base ring Integer Ring>
                 sage: B._element_constructor
             """
-            if hasattr(self, "element_class") and issubclass(self.element_class, object):
+            if hasattr(self, "element_class"):
                 return self._element_constructor_from_element_class
             else:
                 return NotImplemented

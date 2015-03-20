@@ -52,14 +52,8 @@ from sage.graphs.graph_generators import graphs
 
 ######################################################################
 
-#FINDSTAT_URL = 'http://www.findstat.org'
-#FINDSTAT_URL_DOWNLOADS = 'http://downloads.findstat.org'
-
-#FINDSTAT_URL = 'http://devel.findstat.org'
-#FINDSTAT_URL = 'http://localhost:8080'
-
-FINDSTAT_URL = 'http://localhost:8090'
-FINDSTAT_URL_DOWNLOADS = 'http://localhost:8090/moin_static196/Downloads'
+FINDSTAT_URL = 'http://www.findstat.org'
+FINDSTAT_URL_DOWNLOADS = 'http://downloads.findstat.org'
 
 FINDSTAT_URL_RESULT    = FINDSTAT_URL + "/StatisticFinder/Result/"
 FINDSTAT_URL_LOGIN     = FINDSTAT_URL + "/StatisticFinder?action=login"

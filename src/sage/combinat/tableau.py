@@ -1429,14 +1429,12 @@ class Tableau(CombinatorialObject, Element):
             False
             sage: Tableau([]).is_rectangular()
             True
+            sage: Tableau([[]]).is_rectangular()
+            True
         """
         if len(self) == 0:
             return True
-        width = len(self[0])
-        for row in self:
-            if len(row) != width:
-                return False
-        return True
+        return len(self[-1]) == len(self[0])
 
     def vertical_flip(self):
         """

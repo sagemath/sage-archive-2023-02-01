@@ -350,13 +350,34 @@ class AlternatingSignMatrix(Element):
             sage: asm = A([[0, 0, 1],[1, 0, 0],[0, 1, 0]])
             sage: asm.corner_sum_matrix()
             [0 0 0 0]
+            [0 0 0 1]
+            [0 1 1 2]
+            [0 1 2 3]
+
+        TESTS:
+
+        Some non-symmetric tests::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: asm = A([[0, 1, 0], [0, 0, 1], [1, 0, 0]])
+            sage: asm.corner_sum_matrix()
+            [0 0 0 0]
             [0 0 1 1]
             [0 0 1 2]
             [0 1 2 3]
+            sage: B = AlternatingSignMatrices(4)
+            sage: asm = B([[0, 0, 1, 0], [1, 0, 0, 0], [0, 1, -1, 1], [0, 0, 1, 0]])
+            sage: asm.corner_sum_matrix()
+            [0 0 0 0 0]
+            [0 0 0 1 1]
+            [0 1 1 2 2]
+            [0 1 2 2 3]
+            [0 1 2 3 4]
+
         """
         asm = self.to_matrix()
         n = asm.nrows() + 1
-        return matrix([[nw_corner_sum(asm,i,j) for i in range(n)] for j in range(n)])
+        return matrix([[nw_corner_sum(asm,i,j) for j in range(n)] for i in range(n)])
 
     def height_function(self):
         r"""
@@ -449,6 +470,7 @@ class AlternatingSignMatrix(Element):
         """
         from sage.combinat.fully_packed_loop import FullyPackedLoop
         return FullyPackedLoop(self)
+
 
     @combinatorial_map(name='gyration')
     def gyration(self):

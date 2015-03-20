@@ -29,7 +29,7 @@ cdef extern from '<stdarg.h>':
 
 from sage.libs.flint.types cimport ulong
 
-cdef extern from 'parisage.h':
+cdef extern from "sage/libs/pari/parisage.h":
     char* PARIVERSION
 
     ctypedef long* GEN
@@ -3931,7 +3931,7 @@ cdef extern from 'parisage.h':
     GEN    uutoineg(ulong x, ulong y)
     long   vali(GEN x)
 
-cdef extern from 'parisage.h':
+cdef extern from "sage/libs/pari/parisage.h":
     GEN set_gel(GEN x, long n, GEN z)              # gel(x,n) = z
     GEN set_gmael(GEN x, long i, long j, GEN z)    # gmael(x,i,j) = z
     GEN set_gcoeff(GEN x, long i, long j, GEN z)   # gcoeff(x,i,j) = z

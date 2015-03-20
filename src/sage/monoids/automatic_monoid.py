@@ -273,7 +273,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
         """
         assert(x in self)
-        return x.value
+        return x.lift()
 
     def semigroup_generators(self):
         """
@@ -422,6 +422,12 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
                 if x is self:
                     return self._reduced_word
             raise ValueError("%s is not in %s"%(self, self.parent()))
+
+        def lift(self):
+            """
+            Lift the element ``self`` into its ambient monoid
+            """
+            return self.value
 
         @cached_method
         def transition(self, i):

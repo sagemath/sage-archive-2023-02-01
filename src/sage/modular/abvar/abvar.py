@@ -44,7 +44,7 @@ from sage.matrix.all            import matrix, block_diagonal_matrix, identity_m
 from sage.modules.all           import vector
 from sage.groups.all            import AbelianGroup
 from sage.databases.cremona     import cremona_letter_code
-from sage.misc.misc             import prod
+from sage.misc.all              import prod
 
 from copy import copy
 

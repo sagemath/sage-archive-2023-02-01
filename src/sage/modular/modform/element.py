@@ -622,11 +622,13 @@ class ModularForm_abstract(ModuleElement):
             TypeError: matrix [-4 -3]
                               [15 11]
             is not an element of Congruence Subgroup Gamma0(11)
+
             sage: f = Newforms(Gamma0(15), 4)[0]
             sage: f.period(g)
             Traceback (most recent call last):
             ...
             ValueError: period pairing only defined for cusp forms of weight 2
+
             sage: S = Newforms(Gamma1(17), 2, names='a')
             sage: f = S[1]
             sage: g = Gamma1(17)([18, 1, 17, 1])
@@ -634,12 +636,18 @@ class ModularForm_abstract(ModuleElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: period pairing only implemented for cusp forms of trivial character
+
             sage: E = ModularForms(Gamma0(4), 2).eisenstein_series()[0]
             sage: gamma = Gamma0(4)([1, 0, 4, 1])
             sage: E.period(gamma)
             Traceback (most recent call last):
             ...
             NotImplementedError: Don't know how to compute Atkin-Lehner matrix acting on this space (try using a newform constructor instead)
+
+            sage: E = EllipticCurve('19a1')
+            sage: M = Gamma0(19)([10, 1, 19, 2])
+            sage: E.newform().period(M)  # abs tol 1e-14
+            -1.35975973348831 + 1.09365931898146e-16*I
 
         """
         R = rings.RealField(prec)
@@ -656,7 +664,7 @@ class ModularForm_abstract(ModuleElement):
         # coefficients of the matrix M
         (b, c, d) = (M.b(), M.c() / N, M.d())
         if d == 0:
-            return R.zero_element()
+            return R.zero()
         if d < 0:
             (b, c, d) = (-b, -c, -d)
 
@@ -1416,7 +1424,6 @@ class ModularFormElement_elliptic_curve(ModularFormElement):
         else:
             return self.__E.modular_symbol_space().atkin_lehner_operator(d).matrix()[0,0]
 
-######################################################################
 
 class EisensteinSeries(ModularFormElement):
     """

@@ -914,19 +914,13 @@ class Sets(Category_singleton):
                 sage: A._element_constructor
                 <bound method FreeModule_ambient_field_with_category._element_constructor_ of Vector space of dimension 3 over Rational Field>
 
-            Caveat: For some old parents, ``element_class`` is a
-            method, and not an attribute. We do not provide a default
-            implementation of ``_element_constructor`` for those::
-
-                sage: from sage.algebras.group_algebra import GroupAlgebra
-                doctest:...: DeprecationWarning: The module group_algebra is deprecated and will be removed in a future version of Sage. Use group_algebra_new instead.
-                See http://trac.sagemath.org/6670 for details.
                 sage: B = GroupAlgebra(SymmetricGroup(3), ZZ)
                 sage: B.element_class
-                <bound method GroupAlgebra_with_category.element_class of Group algebra of group "Symmetric group of order 3! as a permutation group" over base ring Integer Ring>
+                <class 'sage.combinat.free_module.GroupAlgebra_with_category.element_class'>
                 sage: B._element_constructor
+                <bound method GroupAlgebra_with_category._element_constructor_ of Group algebra of group "Symmetric group of order 3! as a permutation group" over base ring Integer Ring>
             """
-            if hasattr(self, "element_class") and issubclass(self.element_class, object):
+            if hasattr(self, "element_class"):
                 return self._element_constructor_from_element_class
             else:
                 return NotImplemented
@@ -1322,7 +1316,7 @@ class Sets(Category_singleton):
             This method should return an iterable, *not* an iterator.
             """
             try:
-                return [ self.an_element() ]
+                return [self.an_element()]
             except EmptySetError:
                 return []
 
@@ -2147,14 +2141,33 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
 
             def inject_shorthands(self, verbose=True):
                 """
+                Import standard shorthands into the global namespace.
+
+                INPUT:
+
+                - ``verbose`` -- boolean (default ``True``) if ``True``, prints the defined shorthands
+
                 EXAMPLES::
 
-                    sage: A = Sets().WithRealizations().example(QQ); A
-                    The subset algebra of {1, 2, 3} over Rational Field
-                    sage: A.inject_shorthands()
-                    Injecting F as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the Fundamental basis
-                    Injecting In as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the In basis
-                    ...
+                    sage: Q = QuasiSymmetricFunctions(ZZ)
+                    sage: Q.inject_shorthands()
+                    Injecting M as shorthand for Quasisymmetric functions over
+                    the Integer Ring in the Monomial basis
+                    Injecting F as shorthand for Quasisymmetric functions over
+                    the Integer Ring in the Fundamental basis
+                    Injecting dI as shorthand for Quasisymmetric functions over
+                    the Integer Ring in the dualImmaculate basis
+                    Injecting QS as shorthand for Quasisymmetric functions over
+                    the Integer Ring in the Quasisymmetric Schur basis
+                    sage: F[1,2,1] + 5*M[1,3] + F[2]^2
+                    5*F[1, 1, 1, 1] - 5*F[1, 1, 2] - 3*F[1, 2, 1] + 6*F[1, 3] +
+                    2*F[2, 2] + F[3, 1] + F[4]
+                    sage: F
+                    Quasisymmetric functions over the Integer Ring in the
+                    Fundamental basis
+                    sage: M
+                    Quasisymmetric functions over the Integer Ring in the
+                    Monomial basis
                 """
                 from sage.misc.misc import inject_variable
                 if not hasattr(self, "_shorthands"):

@@ -19,7 +19,7 @@ from sage.rings.rational cimport Rational
 
 def bell_number(unsigned long n):
     """
-    Returns the `n`th Bell number.
+    Returns the `n` th Bell number.
 
     EXAMPLES::
 

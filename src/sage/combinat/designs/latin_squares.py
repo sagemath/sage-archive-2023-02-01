@@ -541,7 +541,7 @@ def MOLS_table(start,stop=None,compare=False,width=None):
         return
 
     if compare:
-        from sage.misc.misc import SAGE_SHARE
+        from sage.env import SAGE_SHARE
         handbook_file = open(SAGE_SHARE+"/combinatorial_designs/MOLS_table.txt",'r')
         hb = map(int,handbook_file.readlines()[9].split(','))
         handbook_file.close()

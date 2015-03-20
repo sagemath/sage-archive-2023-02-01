@@ -68,6 +68,7 @@ from sage.rings.all import ZZ, QQ, divisors, IntegerModRing, Qp, Infinity
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
 from sage.misc.misc import verbose
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
 from sage.rings.padics.precision_error import PrecisionError
 import weakref
 
@@ -199,17 +200,19 @@ class WeightSpace_class(ParentWithBase):
             return ArbitraryWeight(self, arg1, arg2)
 
     @cached_method
-    def zero_element(self):
+    def zero(self):
         """
         Return the zero of this weight space.
 
         EXAMPLES::
 
             sage: W = pAdicWeightSpace(17)
-            sage: W.zero_element()
+            sage: W.zero()
             0
         """
         return self(0)
+
+    zero_element = deprecated_function_alias(17694, zero)
 
     def prime(self):
         r"""

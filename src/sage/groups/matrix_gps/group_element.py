@@ -67,7 +67,7 @@ from sage.interfaces.gap import gap
 from sage.structure.element import MultiplicativeGroupElement
 from sage.matrix.matrix import Matrix, is_Matrix
 from sage.structure.factorization import Factorization
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 from sage.libs.gap.element import GapElement, GapElement_List
 from sage.misc.cachefunc import cached_method
 from sage.groups.libgap_wrapper import ElementLibGAP
@@ -338,28 +338,6 @@ class MatrixGroupElement_generic(MatrixGroupElement_base):
 
     inverse = __invert__
 
-    def conjugacy_class(self):
-        r"""
-        Return the conjugacy class of ``self``.
-
-        OUTPUT:
-
-        The conjugacy class of ``g`` in the group ``self``. If ``self`` is the
-        group denoted by `G`, this method computes the set
-        `\{x^{-1}gx\ \vert\ x\in G\}`.
-
-        EXAMPLES::
-
-            sage: G = SL(2, GF(2))
-            sage: g = G.gens()[0]
-            sage: g.conjugacy_class()
-            Conjugacy class of [1 1]
-            [0 1] in Special Linear Group of degree 2 over Finite Field of size 2
-        """
-        from sage.groups.conjugacy_classes import ConjugacyClass
-        return ConjugacyClass(self.parent(), self)
-
-
 ###################################################################
 #
 # Matrix group elements implemented in GAP
@@ -446,26 +424,4 @@ class MatrixGroupElement_gap(GroupElementMixinLibGAP, MatrixGroupElement_base, E
         m = g.matrix(self.base_ring())
         m.set_immutable()
         return m
-
-    def conjugacy_class(self):
-        r"""
-        Return the conjugacy class of ``self``.
-
-        OUTPUT:
-
-        The conjugacy class of ``g`` in the group ``self``. If ``self`` is the
-        group denoted by `G`, this method computes the set
-        `\{x^{-1}gx\ \vert\ x\in G\}`.
-
-        EXAMPLES::
-
-            sage: G = SL(2, QQ)
-            sage: g = G([[1,1],[0,1]])
-            sage: g.conjugacy_class()
-            Conjugacy class of [1 1]
-            [0 1] in Special Linear Group of degree 2 over Rational Field
-        """
-        from sage.groups.conjugacy_classes import ConjugacyClassGAP
-        return ConjugacyClassGAP(self.parent(), self)
-
 

@@ -94,12 +94,13 @@ TESTS::
 ###########################################################################
 
 from sage.modular.abvar.torsion_point import TorsionPoint
-from sage.modules.module      import Module
+from sage.modules.module import Module
 from sage.modules.free_module import is_FreeModule
-from sage.structure.gens_py   import abelian_iterator
-from sage.structure.sequence  import Sequence
-from sage.rings.all           import gcd, lcm, QQ, ZZ, QQbar, Integer, composite_field
-from sage.misc.misc           import prod
+from sage.structure.element import ModuleElement
+from sage.structure.gens_py import abelian_iterator
+from sage.structure.sequence import Sequence
+from sage.rings.all import gcd, lcm, QQ, ZZ, QQbar, Integer, composite_field
+from sage.misc.all import prod
 
 import abvar as abelian_variety
 

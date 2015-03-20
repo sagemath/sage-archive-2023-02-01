@@ -35,7 +35,7 @@ Let's request the category of some objects::
 
     sage: V = VectorSpace(RationalField(), 3)
     sage: V.category()
-    Category of vector spaces over Rational Field
+    Category of vector spaces with basis over quotient fields
     sage: G = SymmetricGroup(9)
     sage: G.category()
     Join of Category of finite permutation groups and Category of finite weyl groups

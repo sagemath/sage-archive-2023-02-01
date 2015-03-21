@@ -276,8 +276,8 @@ class Tableau(ClonableList):
         if isinstance(t, cls):
             return t
 
-        # CombinatorialObject verifies that t is a list
-        # We must verify t is a list of iterables
+        # We must verify ``t`` is a list of iterables, and also
+        # normalize it to be a list of tuples.
         try:
             t = map(tuple, t)
         except TypeError:
@@ -326,31 +326,33 @@ class Tableau(ClonableList):
         t = map(tuple, t)
 
         ClonableList.__init__(self, parent, t)
+        # This dispatches the input verification to the :meth:`check`
+        # method.
     
     def __eq__(self, other):
         r"""
         Check whether ``self`` is equal to ``other``.
-        
+
         TODO:
-        
+
         This overwrites the equality check of
-        :class:`sage.structure.list_clone.ClonableList`
+        :class:`~sage.structure.list_clone.ClonableList`
         in order to circumvent the coercion framework.
         Eventually this should be solved more elegantly,
         for example along the lines of what was done for
         k-tableaux.
-        
+
         For now, two elements are equal if their underlying
         defining lists compare equal.
-        
+
         INPUT:
-        
+
         ``other`` -- the element that ``self`` is compared to
-        
+
         OUTPUT:
-        
+
         A Boolean.
-        
+
         TESTS::
 
             sage: t = Tableau([[1,2]])
@@ -367,19 +369,19 @@ class Tableau(ClonableList):
     def __ne__(self, other):
         r"""
         Check whether ``self`` is unequal to ``other``.
-        
+
         See the documentation of :meth:`__eq__`.
-        
+
         INPUT:
-        
+
         ``other`` -- the element that ``self`` is compared to
-        
+
         OUTPUT:
-        
+
         A Boolean.
-        
+
         TESTS::
-        
+
             sage: t = Tableau([[2,3],[1]])
             sage: t != []
             True
@@ -391,7 +393,7 @@ class Tableau(ClonableList):
 
     def check(self):
         r"""
-        Check that ``self`` is a valid straight shape tableau.
+        Check that ``self`` is a valid straight-shape tableau.
 
         EXAMPLES::
 
@@ -403,7 +405,8 @@ class Tableau(ClonableList):
             ...
             ValueError: A tableau must be a list of iterables of weakly decreasing length.
         """
-        # and that it has partition shape
+        # Check that it has partition shape. That's all we require from a
+        # general tableau.
         from sage.combinat.partition import _Partitions
         if not map(len, self) in _Partitions:
             raise ValueError("A tableau must be a list of iterables of weakly decreasing length.")

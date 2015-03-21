@@ -240,7 +240,7 @@ class CoxeterType(object):
         base_ring = sum(mat.list()).parent()
 
         from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import UniversalCyclotomicField
-        if base_ring in [ZZ,QQ]:
+        if UniversalCyclotomicField.has_coerce_map_from(base_ring):
             R = UniversalCyclotomicField()
         else:
             R = base_ring

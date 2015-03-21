@@ -412,10 +412,10 @@ class AlternatingSignMatrix(Element):
         return matrix([[i+j-2*nw_corner_sum(asm,i,j) for i in range(n)] for j in range(n)])
 
     @combinatorial_map(name='gyration')
-    def gyration(self):
+    def gyration(self, count=1):
         r"""
         Return the alternating sign matrix obtained by applying the gyration
-        action to the height function in bijection with ``self``.
+        action ``count`` times to the height function in bijection with ``self``.
 
         Gyration acts on height functions as follows. Go through the entries of
         the matrix, first those for which the sum of the row and column indices
@@ -442,31 +442,51 @@ class AlternatingSignMatrix(Element):
             [0 1 0]
             [0 0 1]
             sage: asm = A([[0, 0, 1],[1, 0, 0],[0, 1, 0]])
-            sage: asm.gyration()
+            sage: asm.gyration(1)
             [0 1 0]
             [0 0 1]
             [1 0 0]
+            
+            sage: A = AlternatingSignMatrices(3)
+            sage: A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]).gyration(2)
+            [ 0  1  0]
+            [ 1 -1  1]
+            [ 0  1  0]
+            sage: A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]).gyration(3)
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            
+            sage: A = AlternatingSignMatrices(4)
+            sage: A([[0,0,1,0],[1,0,0,0],[0,1,-1,1],[0,0,1,0]]).gyration(5)
+            [1 0 0 0]
+            [0 0 0 1]
+            [0 1 0 0]
+            [0 0 1 0]      
         """
         A = self.parent()
-        hf = list(self.height_function())
-        k = len(hf) - 1
-        for i in range(1,k):
-            for j in range(1,k):
-                if (i+j) % 2 == 0 \
-                        and hf[i-1][j] == hf[i+1][j] == hf[i][j+1] == hf[i][j-1]:
-                    if hf[i][j] < hf[i+1][j]:
-                        hf[i][j] += 2
-                    else:
-                        hf[i][j] -= 2
-        for i in range(1,k):
-            for j in range(1,k):
-                if (i+j) % 2 == 1 \
-                        and hf[i-1][j] == hf[i+1][j] == hf[i][j+1] == hf[i][j-1]:
-                    if hf[i][j] < hf[i+1][j]:
-                        hf[i][j] += 2
-                    else:
-                        hf[i][j] -= 2
-        return A.from_height_function(matrix(hf))
+        asm = self
+        for counter in range(0,count):
+            hf = list(asm.height_function())
+            k = len(hf) - 1
+            for i in range(1,k):
+                for j in range(1,k):
+                    if (i+j) % 2 == 0 \
+                            and hf[i-1][j] == hf[i+1][j] == hf[i][j+1] == hf[i][j-1]:
+                        if hf[i][j] < hf[i+1][j]:
+                            hf[i][j] += 2
+                        else:
+                            hf[i][j] -= 2
+            for i in range(1,k):
+                for j in range(1,k):
+                    if (i+j) % 2 == 1 \
+                            and hf[i-1][j] == hf[i+1][j] == hf[i][j+1] == hf[i][j-1]:
+                        if hf[i][j] < hf[i+1][j]:
+                            hf[i][j] += 2
+                        else:
+                            hf[i][j] -= 2
+            asm = A.from_height_function(matrix(hf))
+        return asm
 
     def obtain_gyration_orbit(self):
         r"""

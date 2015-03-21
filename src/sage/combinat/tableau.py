@@ -1710,7 +1710,7 @@ class Tableau(ClonableList):
             True
         """
         if not secondtab in Tableaux():
-            raise TypeError(secondtab + " must be a tableau")
+            raise TypeError(str(secondtab) + " must be a tableau")
         sh = self.shape()
         if sh != secondtab.shape():
             raise TypeError("the tableaux must be the same shape")
@@ -1718,13 +1718,13 @@ class Tableau(ClonableList):
                                                   for b in xrange(len(self[a])) )
 
     def k_weight(self, k):
-        """
+        r"""
         Return the `k`-weight of ``self``.
 
-        A tableau has `k`-weight `alpha=(alpha_1,...,alpha_n)` if there
-        are exactly `alpha_i` distinct residues for the cells occupied
-        by the letter `i` for each `i`.  The residue of a cell in 
-        position `(a,b)` is `a-b` modulo `k+1`. 
+        A tableau has `k`-weight `\alpha = (\alpha_1, ..., \alpha_n)`
+        if there are exactly `\alpha_i` distinct residues for the
+        cells occupied by the letter `i` for each `i`.  The residue
+        of a cell in position `(a,b)` is `a-b` modulo `k+1`.
 
         This definition is the one used in [Ive2012]_ (p. 12).
 
@@ -1732,12 +1732,12 @@ class Tableau(ClonableList):
 
         .. [Ive2012] S. Iveson,
            *Tableaux on `k + 1`-cores, reduced words for affine 
-           permutations, and `k`-Schur expansions*,  
+           permutations, and `k`-Schur expansions*,
            Operators on `k`-tableaux and the `k`-Littlewood-Richardson
            rule for a special case,
            UC Berkeley: Mathematics,  Ph.D. Thesis,
            https://escholarship.org/uc/item/7pd1v1b5
-           
+
         EXAMPLES::
 
             sage: Tableau([[1,2],[2,3]]).k_weight(1)
@@ -1765,7 +1765,7 @@ class Tableau(ClonableList):
 
             #If there are no elements that meet the condition
             if new_s == []:
-                res .append(0)
+                res.append(0)
                 continue
             x = uniq([ (i-j)%(k+1) for i,j in new_s ])
             res.append(len(x))
@@ -3908,10 +3908,10 @@ class StandardTableau(SemistandardTableau):
         for i in range(1, whatpart):
             #find out what row i and i+1 are in (we're using the
             #standardness of self here)
-            for j in range(len(self)):
-                if self[j].count(i+1) > 0:
+            for row in self:
+                if row.count(i+1) > 0:
                     break
-                if self[j].count(i) > 0:
+                if row.count(i) > 0:
                     descents.append(i)
                     break
         return descents

@@ -701,9 +701,6 @@ def prime_powers(start, stop=None):
         sage: prime_powers(100) == [i for i in range(100) if is_prime_power(i)]
         True
 
-        sage: len(prime_powers(1000))
-        193
-
         sage: prime_powers(10,7)
         []
         sage: prime_powers(-5)

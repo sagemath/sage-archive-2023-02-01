@@ -53,5 +53,5 @@ PYTHON_MAJOR_VERSION=$(cat ${SAGE_ROOT}/build/pkgs/python/package-version.txt | 
 cd ${SAGE_LOCAL}/lib/python/site-packages/sagenb-${SAGENB_VERSION}-py${PYTHON_MAJOR_VERSION}.egg/sagenb/data
 # the following line can be removed once sagenb does not ship mathjax anymore.
 rm -rf mathjax
-ln -s ../../../../../../share/mathjax/
+ln -s ../../../../../../share/mathjax/ mathjax
 

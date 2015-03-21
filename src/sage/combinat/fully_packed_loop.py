@@ -565,19 +565,19 @@ class FullyPackedLoop(SageObject):
 
         EXAMPLES:
 
-        We can extract the underlying link pattern (a non-crossing
+        We can extract the underlying link pattern (a non-crossing
         partition) from a fully packed loop::
- 
-            sage: A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
-            sage: fpl = FullyPackedLoop(A)
-            sage: fpl.link_pattern()
+
+            sage: A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
+            sage: fpl = FullyPackedLoop(A)
+            sage: fpl.link_pattern()
             [(1, 2), (3, 6), (4, 5)]
 
         Another example::
 
-            sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-            sage: fpl = FullyPackedLoop(B)
-            sage: fpl.link_pattern()
+            sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+            sage: fpl = FullyPackedLoop(B)
+            sage: fpl.link_pattern()
 
         """
         link_pattern = []
@@ -661,9 +661,9 @@ class FullyPackedLoop(SageObject):
 
         TESTS::
 
-            sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-            sage: fpl = FullyPackedLoop(B)
-            sage: fpl._end_point_dictionary()
+            sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+            sage: fpl = FullyPackedLoop(B)
+            sage: fpl._end_point_dictionary()
 
         """
         n = len(self.six_vertex_model)

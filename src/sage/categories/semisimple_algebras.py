@@ -101,14 +101,14 @@ class SemisimpleAlgebras(Category_over_base_ring):
                         [B['y'], B['x']]
                     """
                     return [x.lift()
-                            for x in self.center().central_orthogonal_idempotents()]
+                            for x in self.center().orthogonal_idempotents()]
 
             class Commutative(CategoryWithAxiom_over_base_ring):
 
                 class ParentMethods:
 
                     @cached_method
-                    def _orthogonal_decomposition(self, generators=None, topLevel=True):
+                    def _orthogonal_decomposition(self, generators=None):
                         r"""
                         Return a list of orthogonal idempotents of a semisimple
                         commutative finite dimensional algebra ``self``.
@@ -126,6 +126,20 @@ class SemisimpleAlgebras(Category_over_base_ring):
                           dimensional simple submodule of ``self`` in direct
                           sum with the others. The list is maximal.
 
+                        ALGORITHM:
+
+                            A commutative semisimple algebra `A` is a direct
+                            sum of dimension 1 sub-algebras thanks to Schur
+                            Lemma. The algorithm is recursive a proceed in two
+                            steps:
+
+                            0. If `A` is of dimension 1, return a non zero
+                            element.
+                            1. Find a generator `a \in A` such that the
+                            morphism `x \mapsto ax` has at least two (right)
+                            eigenspaces.
+                            2. Decompose both eigenspaces recursively.
+
                         EXAMPLES::
 
                             sage: G5 = SymmetricGroup(5)
@@ -142,52 +156,48 @@ class SemisimpleAlgebras(Category_over_base_ring):
 
                         .. TODO::
 
-                            Improve the function by only using matrix
-                            operations.
+                            Improve speed by only using matrix operations, if
+                            possible.
                         """
-                        # Terminal case and stuffs
+                        # Main program
                         if generators is None:
                             generators = self.basis().list()
                         if self.dimension() == 1:
-                            if topLevel:
-                                return self.basis().list()
-                            else:
-                                return [x.lift() for x in self.basis()]
+                            return self.basis().list()
 
-                        # Searching for a good generator...
-                        res = []
-                        B = self.basis()
-                        while len(res) < 2:
-                            if generators == []:
-                                raise Exception("Unable to fully decompose...")
-                            gen = generators.pop()
-                            phi = self.module_morphism(on_basis=lambda i:
-                                    gen*B[i],
-                                    codomain=self,
-                                    triangular=True)
-                            res = phi.matrix(self.base_ring()).eigenspaces_right()
+                        def rec(space, generators):
+                            if space.dimension() == 1:
+                                return space.basis().list()
+                            eigenspaces = []
 
-                        # Gotcha! Let's settle the algebra...
+                            # Searching a good generator...
+                            while len(eigenspaces) < 2:
+                                if generators == []:
+                                    raise Exception("Unable to fully decompose...")
+                                gen = generators.pop()
+                                phi = space.module_morphism(on_basis=lambda i:
+                                        gen*space.basis()[i],
+                                        codomain=space,
+                                        triangular=True)
+                                eigenspaces = phi.matrix(space.base_ring()).eigenspaces_right()
 
-                        res = [vector_space for _, vector_space in res]
-                        res = [[self.from_vector(vector)
-                            for vector in eigenspace.basis()]
-                            for eigenspace in res]
+                            # Gotcha! Let's settle the algebra...
+                            eigenspaces = [vector_space for _, vector_space in eigenspaces]
+                            eigenspaces = [[space.from_vector(vector)
+                                for vector in eigenspace.basis()]
+                                for eigenspace in eigenspaces]
+                            decomp = [space.submodule(v,
+                                category=SemisimpleAlgebras(space.base_ring()).WithBasis().FiniteDimensional().Commutative().Subobjects())
+                                for v in eigenspaces]
 
-                        decomp = [self.submodule(v,
-                            category=SemisimpleAlgebras(self.base_ring()).WithBasis().FiniteDimensional().Commutative().Subobjects())
-                            for v in res]
+                            # Decompose recursively each eigenspace
+                            return map(lambda x: x.lift(), [x for eigenspace in
+                                decomp for x in rec(eigenspace, eigenspace.basis().list())])
 
-                        # Recursive on decomp
-                        res = [x for space in decomp for x in
-                                space._orthogonal_decomposition(topLevel=False)]
-                        if topLevel:
-                            return res
-                        else:
-                            return map(lambda x: x.lift(), res)
+                        return rec(self, generators)
 
                     @cached_method
-                    def central_orthogonal_idempotents(self, dimSimple=False):
+                    def orthogonal_idempotents(self):
                         r"""
                         Return the minimum set of central orthogonal idempotents of ``self``.
 
@@ -203,7 +213,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
 
                             sage: A5 = SymmetricGroup(5).algebra(QQ)
                             sage: Z5 = A5.center()
-                            sage: orth = Z5.central_orthogonal_idempotents()
+                            sage: orth = Z5.orthogonal_idempotents()
                             sage: orth
                             [3/10*B[0] - 1/10*B[2] + 1/20*B[6], 1/120*B[0] +
                             1/120*B[1] + 1/120*B[2] + 1/120*B[3] + 1/120*B[4] +

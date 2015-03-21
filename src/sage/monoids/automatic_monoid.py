@@ -8,17 +8,9 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#  Copyright (C) 2015 Nicolas M. Thiery
+#  Copyright (C) 2010-2015 Nicolas M. Thiery
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty
-#    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#
-#  See the GNU General Public License for more details; the full text
-#  is available at:
-#
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -162,12 +154,12 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
         sage: sorted(M.elements_set, key=str)
         [[1, 2], [1, 3], [1, 4], [1], [2, 1], [2, 3], [2], [3], [4], []]
         sage: elt = M.from_reduced_word([3,1,2,4,2])
-        sage: M.compute_until(elt)
+        sage: M.construct(elt)
         sage: len(M.elements_set)
         36
         sage: M.cardinality()
         120
-    
+
     We check that the 0-Hecke monoid is `J`-trivial and contains `2^4`
     idempotents::
 
@@ -345,12 +337,46 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: G4 = SymmetricGroup(4)
+            sage: G4 = SymmetricGroup(5)
             sage: M = AutomaticMonoid(Family({1:G4((1,2)), 2:G4((1,2,3,4))}), G4.one())
             sage: M.cardinality()
             24
             sage: M.retract(G4((3,1)))
             [2, 1, 2, 2, 1]
+            sage: M.retract(G4((4,5)), check=False)
+            sage: M.retract(G4((4,5)))
+
+        .. NOTE::
+
+            With the current implementation, ``ambient_element``
+            remains stored in the cache of :meth:`_retract`, even if
+            ``ambient_element`` is not in ``self``.
+        """
+        element = self._retract(ambient_element)
+        if check:
+            self.construct(up_to=ambient_element)
+            if not element in self.element_set:
+                raise ValueError("%s not in %s"%(ambient_element, self))
+        return element
+
+    @cached_method
+    def _retract(self, ambient_element):
+        r"""
+        Retract an element of the ambient semigroup into ``self``.
+
+        This is an internal method which does not check that
+        ``ambient_element`` is indeed in this semigroup.
+
+        EXAMPLES::
+
+            sage: S5 = SymmetricGroup(5)
+            sage: S4 = AutomaticMonoid(Family({1:S5((1,2)), 2:S5((1,2,3,4))}), S5.one())
+            sage: S4._retract(S5((3,1)))
+            [2, 1, 2, 2, 1]
+
+        No check is done::
+
+            sage: S4._retract(S5((4,5)))
         """
         return self.element_class(self, ambient_element)
 
@@ -400,7 +426,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             []
             sage: list(M)
             [[], [0], [1], [0, 0], [0, 1], [1, 1], [1, 1, 1], [1, 1, 1, 1], [1,
-            1, 1, 1, 1]] 
+            1, 1, 1, 1]]
 
         ALGORITHM:
 
@@ -484,13 +510,13 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
     def from_reduced_word(self, l):
         """
         Return the element of ``self`` obtained from the reduced word ``l``.
-        
+
         INPUT:
 
         - ``l`` -- a list of indices of the generators
 
         .. NOTE::
-            
+
             We do not save the given reduced word ``l`` as an attribute of the
             element, as some elements above in the branches may hve not beem
             explored by the iterator yet.
@@ -511,18 +537,24 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             result = result.transition(i)
         return result
 
-    def compute_until(self, elt):
+    def construct(self, ambient_element=None, n=None):
         """
-        Compute the elements of the monoid ``self`` until finding ``elt``. If
-        ``elt`` is not in ``self``, all elements are computed.
+        Construct the elements of the ``self``.
 
         INPUT:
 
-        -``elt`` -- a potential element of ``self``
-        
+        - `n` -- an integer or ``None`` (default: ``None``)
+        - `ambient_element` -- an element of the ambient semigroup.
+
+        This construct all the elements of this semigroup, their
+        reduced words, and the right Cayley graph. If `n` is
+        specified, only the `n` first elements of the monoid are
+        constructed. If ``element`` is specified, only the elements up
+        to ``ambient_element`` are constructed.
+
         EXAMPLES::
 
-            sage: W = WeylGroup(['A',3]) 
+            sage: W = WeylGroup(['A',3])
             sage: ambient_monoid = FiniteSetMaps(W, action="right")
             sage: pi = W.simple_projections(length_increasing=True).map(ambient_monoid)
             sage: M = AutomaticMonoid(pi, one=ambient_monoid.one()); M
@@ -531,7 +563,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             sage: sorted(M.elements_set, key=str)
             [[1], [2], [3], []]
             sage: elt = M.from_reduced_word([2,3,1,2])
-            sage: M.compute_until(elt)
+            sage: M.construct(elt)
             sage: len(M.elements_set)
             19
             sage: M.cardinality()
@@ -561,11 +593,11 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             self._reduced_word = None
 
         def reduced_word(self, computation=False):
-            """
-            Return the reduced word of ``self``. 
+            r"""
+            Return the reduced word of ``self``.
 
             INPUT:
-  
+
             - ``computation`` -- (default: ``False``) if ``True``, forces the
               computation of the reduced word.
 
@@ -638,7 +670,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
                 sage: a = M.an_element(); a
                 [1]
                 sage: b = M.from_reduced_word([1,2,1]); b
-                9 
+                9
                 sage: c = M.retract(R(6)); c
                 6
                 sage: c in M

@@ -116,11 +116,12 @@ class SkewTableau(CombinatorialObject, Element):
             ...
             TypeError: 'tuple' object does not support item assignment
         """
+        try:
+            st = map(tuple, st)
+        except TypeError:
+            raise TypeError("each element of the skew tableau must be an iterable")
+
         for row in st:
-            try:
-                iter(row)
-            except TypeError:
-                raise TypeError("each element of the skew tableau must be an iterable")
             if not row:
                 raise TypeError("a skew tableau cannot have an empty list for a row")
 

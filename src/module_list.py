@@ -2095,6 +2095,13 @@ if is_package_installed('arb'):
                  include_dirs = [SAGE_INC + '/flint'],
                  depends = flint_depends)
        ])
+if is_package_installed('bliss'):
+    ext_modules.append(
+        Extension("sage.graphs.bliss",
+                  ["sage/graphs/bliss.pyx"],
+                  language = "c++",
+                  libraries= ["bliss"])
+        )
 
 # Only include darwin_utilities on OS_X >= 10.5
 UNAME = os.uname()

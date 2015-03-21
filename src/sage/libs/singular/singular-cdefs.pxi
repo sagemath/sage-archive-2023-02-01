@@ -6,10 +6,13 @@ AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
 NOTE: our ring, poly etc. types are not the SINGULAR ring, poly,
 etc. types. They are deferences. So a SINGULAR ring is a ring pointer
 here.
-
 """
+
 include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
+
+cdef extern from "ccobject.h":
+    pass
 
 cdef extern from "stdlib.h":
     void delete "delete" (void *ptr)

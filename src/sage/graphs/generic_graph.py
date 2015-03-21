@@ -7978,8 +7978,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.PetersenGraph()
             sage: G.dominating_set(total=True,value_only=True)
             4
+
+        The dominating set is calculated for both the directed and undirected
+        graphs (modification introduced in :trac:`17905`)::
+
+            sage: g=digraphs.Path(3)
+            sage: g.dominating_set(value_only=True)
+            2
+            sage: g=graphs.PathGraph(3)
+            sage: g.dominating_set(value_only=True)
+            1
+
         """
-        
         self._scream_if_not_simple(allow_multiple_edges=True, allow_loops=not total)
 
         from sage.numerical.mip import MixedIntegerLinearProgram
@@ -7988,10 +7998,13 @@ class GenericGraph(GenericGraph_pyx):
         b=p.new_variable(binary=True)
 
         # For any vertex v, one of its neighbors or v itself is in
-        # the minimum dominating set
-        for v in g.vertices():
-            p.add_constraint(int(not total)*b[v]+p.sum([b[u] for u in g.neighbors(v)]),min=1)
+        # the minimum dominating set. If g is directed, we use the
+        # in neighbors of v instead.
 
+        neighbors_iter=g.neighbor_in_iterator if g.is_directed() else g.neighbor_iterator
+
+        for v in g.vertices():
+            p.add_constraint(int(not total)*b[v]+p.sum([b[u] for u in neighbors_iter(v)]),min=1)
 
         if independent:
             # no two adjacent vertices are in the set

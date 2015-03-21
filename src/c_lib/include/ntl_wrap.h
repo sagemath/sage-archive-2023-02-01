@@ -31,7 +31,6 @@ using namespace NTL;
 #endif
 
 #include "Python.h"
-#include "ccobject.h"
 
 EXTERN void del_charstar(char*);
 

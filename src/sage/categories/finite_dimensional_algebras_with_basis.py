@@ -90,7 +90,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             tells us that the group algebra is semisimple. So its
             radical is the zero ideal::
 
-                sage: A in Algebras(QQ).SemiSimple()
+                sage: A in Algebras(QQ).Semisimple()
                 True
                 sage: A.radical_basis()
                 []
@@ -98,7 +98,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             Let's work instead over a field of characteristic `2`::
 
                 sage: A = KleinFourGroup().algebra(GF(2))
-                sage: A in Algebras(GF(2)).SemiSimple()
+                sage: A in Algebras(GF(2)).Semisimple()
                 False
                 sage: A.radical_basis()
                 [B[()] + B[(1,2)(3,4)], B[(3,4)] + B[(1,2)(3,4)], B[(1,2)] + B[(1,2)(3,4)]]
@@ -138,6 +138,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: A = KleinFourGroup().algebra(QQ, category=Monoids())
                 sage: A.radical_basis.__module__
+                'sage.categories.finite_dimensional_algebras_with_basis'
                 sage: A.radical_basis(cache_products=True)
                 []
                 sage: A.radical_basis(cache_products=False)
@@ -288,7 +289,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             .. TODO::
 
-               - Pickling by construction, as ``A.center()``
+               - Pickling by construction, as ``A.semisimple_quotient()``?
                - Lazy evaluation of ``_repr_``
 
             TESTS::
@@ -351,12 +352,15 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 True
                 sage: [c.lift() for c in center.basis()]
                 [x + y]
+
+            The center of a semisimple algebra is semisimple::
+
                 sage: DihedralGroup(6).algebra(QQ).center() in Algebras(QQ).Semisimple()
                 True
 
             .. TODO::
 
-                - Pickling by construction, as ``A.center()``
+                - Pickling by construction, as ``A.center()``?
                 - Lazy evaluation of ``_repr_``
 
             TESTS::
@@ -367,8 +371,8 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             if self in SemisimpleAlgebras:
                 category = category.Semisimple()
             center = self.submodule(self.center_basis(),
-                                    category = category,
-                                    already_echelonized = True)
+                                    category=category,
+                                    already_echelonized=True)
             center.rename("Center of {}".format(self))
             return center
 
@@ -377,10 +381,10 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             Return the matrix of the action of ``self`` on the algebra.
 
-            INPUT::
+            INPUT:
 
             - ``base_ring`` -- the base ring for the matrix to be constructed
-            - ``action`` -- a function (default: :func:`operator.mul`)
+            - ``action`` -- a bivariate function (default: :func:`operator.mul`)
             - ``side`` -- 'left' or 'right' (default: 'right')
 
             EXAMPLES::
@@ -394,6 +398,13 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 [0 0 0 0 0 1]
                 [0 1 0 0 0 0]
                 [0 0 0 1 0 0]
+                sage: a.to_matrix(side='right')
+                [0 0 1 0 0 0]
+                [0 0 0 1 0 0]
+                [1 0 0 0 0 0]
+                [0 1 0 0 0 0]
+                [0 0 0 0 0 1]
+                [0 0 0 0 1 0]
                 sage: a.to_matrix(base_ring=RDF, side="left")
                 [0.0 0.0 1.0 0.0 0.0 0.0]
                 [0.0 0.0 0.0 0.0 1.0 0.0]
@@ -402,7 +413,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 [0.0 1.0 0.0 0.0 0.0 0.0]
                 [0.0 0.0 0.0 1.0 0.0 0.0]
 
-            AUTHORS: Mike Hansen # TODO: polish this!
+            AUTHORS: Mike Hansen, ...
             """
             basis = self.parent().basis()
             action_left = action

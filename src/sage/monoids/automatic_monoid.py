@@ -524,8 +524,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
             sage: W = WeylGroup(['A',3]) 
             sage: ambient_monoid = FiniteSetMaps(W, action="right")
-            sage: pi =
-            W.simple_projections(length_increasing=True).map(ambient_monoid)
+            sage: pi = W.simple_projections(length_increasing=True).map(ambient_monoid)
             sage: M = AutomaticMonoid(pi, one=ambient_monoid.one()); M
             The (automatic) monoid with generators Finite family {1: [1],
             2: [2], 3: [3]}

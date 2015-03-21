@@ -566,7 +566,7 @@ class SkewTableau(ClonableList):
         res = [0] * m
         for row in self:
             for i in row:
-                if i > 0 and not (i is None):
+                if not (i is None) and i > 0:
                     res[i - 1] += 1
         return res
 
@@ -1402,25 +1402,24 @@ class SkewTableau(ClonableList):
         return all( kshapes[i+1].contains(kshapes[i]) for i in range(len(shapes)-1) )
 
 
-def _label_skew(list, sk):
+def _label_skew(list_of_cells, sk):
     """
-    Return a filled-in standard skew tableau given an ordered list
-    of the coordinates to fill in.
+    Return a filled-in standard standard skew tableau given an
+    ordered list ``list_of_cells`` of the coordinates to fill in
+    (as pairs) and an empty shape ``sk``.
 
     EXAMPLES::
 
         sage: import sage.combinat.skew_tableau as skew_tableau
-        sage: l = [ '0,0', '1,1', '1,0', '0,1' ]
+        sage: l = [(0, 0), (1, 1), (1, 0), (0, 1)]
         sage: empty = [[None,None],[None,None]]
         sage: skew_tableau._label_skew(l, empty)
         [[1, 4], [3, 2]]
     """
     i = 1
-    skew = copy.deepcopy(sk)
-    for coordstring in list:
-            coords = coordstring.split(",")
-            row = int(coords[0])
-            column = int(coords[1])
+    skew = [list(row) for row in sk]
+    for coords in list_of_cells:
+            (row, column) = coords
             skew[row][column] = i
             i += 1
     return skew
@@ -1799,7 +1798,7 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
              [[None, 2, 3], [None, 4], [1]],
              [[None, 2, 4], [None, 3], [1]]]
         """
-        dag = self.skp.to_dag()
+        dag = self.skp.to_dag(format="tuple")
         le_list = list(dag.topological_sort_generator())
 
         empty = [[None]*row_length for row_length in self.skp.outer()]

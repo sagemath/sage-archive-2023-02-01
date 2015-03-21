@@ -1575,8 +1575,6 @@ class Tableau(ClonableList):
             False
             sage: Tableau([]).is_rectangular()
             True
-            sage: Tableau([[]]).is_rectangular()
-            True
         """
         if len(self) == 0:
             return True

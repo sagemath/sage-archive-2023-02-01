@@ -680,6 +680,23 @@ def prime_powers(start, stop=None):
 
         sage: prime_powers(20)
         [2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19]
+        sage: len(prime_powers(1000))
+        193
+        sage: len(prime_range(1000))
+        168
+
+        sage: a = [z for z in range(95,1234) if is_prime_power(z)]
+        sage: b = prime_powers(95,1234)
+        sage: len(b)
+        194
+        sage: len(a)
+        194
+        sage: a[:10]
+        [97, 101, 103, 107, 109, 113, 121, 125, 127, 128]
+        sage: b[:10]
+        [97, 101, 103, 107, 109, 113, 121, 125, 127, 128]
+        sage: a == b
+        True
 
         sage: prime_powers(100) == [i for i in range(100) if is_prime_power(i)]
         True

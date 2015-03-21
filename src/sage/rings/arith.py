@@ -3034,7 +3034,6 @@ def binomial(x, m, **kwds):
 
         \binom{x}{m} = x (x-1) \cdots (x-m+1) / m!
 
-
     which is defined for `m \in \ZZ` and any
     `x`. We extend this definition to include cases when
     `x-m` is an integer but `m` is not by
@@ -3131,29 +3130,23 @@ def binomial(x, m, **kwds):
 
     Test more output types::
 
-        sage: type(binomial(5r, 2r))
-        <type 'int'>
         sage: type(binomial(5r, 2))
-        <type 'sage.rings.integer.Integer'>
+        <type 'int'>
         sage: type(binomial(5, 2r))
         <type 'sage.rings.integer.Integer'>
 
-        sage: type(binomial(5, 2.0r))
-        <type 'float'>
         sage: type(binomial(5.0r, 2))
         <type 'float'>
 
         sage: type(binomial(5/1, 2))
-        <type 'sage.rings.rational.Rational'>
-        sage: type(binomial(5, 2/1))
         <type 'sage.rings.rational.Rational'>
 
         sage: R = Integers(11)
         sage: b = binomial(R(7), R(3))
         sage: b
         2
-        sage: type(b)
-        <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
+        sage: b.parent()
+        Ring of integers modulo 11
 
     Test symbolic and uni/multivariate polynomials::
 
@@ -3191,7 +3184,16 @@ def binomial(x, m, **kwds):
         sage: binomial(R(5), R(2))
         Traceback (most recent call last):
         ...
-        ZeroDivisionError: Inverse does not exist.
+        ZeroDivisionError: factorial(2) not invertible in Ring of integers modulo 6
+
+    The last example failed to execute since `2!` is not invertible. One can
+    check that there there is no well defined value for that binomial
+    coefficient in the quotient::
+
+        sage: R(binomial(5,2))
+        4
+        sage: R(binomial(5+6,2))
+        1
 
     For symbolic manipulation, you should use the function
     :func:`~sage.functions.other.binomial` from the module
@@ -3201,15 +3203,6 @@ def binomial(x, m, **kwds):
         sage: binomial(k, i)
         binomial(k, i)
     """
-    P = parent(x)
-    if parent(m) is not P:
-        from sage.structure.element import get_coercion_model
-        cm = get_coercion_model()
-        x,m = cm.canonical_coercion(x,m)
-        P = parent(x)
-
-    x = py_scalar_to_element(x)
-
     try:
         m = ZZ(m)
     except TypeError:
@@ -3217,6 +3210,10 @@ def binomial(x, m, **kwds):
             m = ZZ(x-m)
         except TypeError:
             raise TypeError("either m or x-m must be an integer")
+
+    P = parent(x)
+    x = py_scalar_to_element(x)
+    Q = parent(x)
 
     # case 1: native binomial implemented on x
     try:
@@ -3234,15 +3231,23 @@ def binomial(x, m, **kwds):
         # makes no sense! As a drawback, the check below might be quite
         # slow in non integral domains.
         from sage.categories.integral_domains import IntegralDomains
-        if P not in IntegralDomains():
-            for k in range(1,m+1):
-                1/P(k)
+        if Q not in IntegralDomains():
+            try:
+                invertibility = all(Q(k).is_unit() for k in range(1,m+1))
+            except (AttributeError,NotImplementedError):
+                try:
+                    for k in range(1,m+1):
+                        Q(1)/Q(k)
+                    invertibility = True
+                except ZeroDivisionError:
+                    invertibility = False
+            if not invertibility:
+                raise ZeroDivisionError("factorial({}) not invertible in {}".format(m, Q))
         return P(x.binomial(m, **kwds))
 
     # case 3: rational, real numbers, complex numbers -> use pari
     if isinstance(x, (Rational, RealNumber, ComplexNumber)):
-        return P(pari(x).binomial(m))
-
+        return P(x._pari_().binomial(m))
 
     # case 4: naive method
     if m < ZZ.zero():
@@ -4423,6 +4428,10 @@ def integer_ceil(x):
 
         sage: integer_ceil(5.4)
         6
+        sage: integer_ceil(x)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: computation of ceil of x not implemented
     """
     try:
         return ZZ(x.ceil())
@@ -4431,7 +4440,7 @@ def integer_ceil(x):
             return ZZ(math.ceil(float(x)))
         except TypeError:
             pass
-    raise NotImplementedError("computation of floor of %s not implemented"%repr(x))
+    raise NotImplementedError("computation of ceil of %s not implemented"%x)
 
 def integer_floor(x):
     r"""
@@ -4439,10 +4448,8 @@ def integer_floor(x):
 
     INPUT:
 
-
     -  ``x`` - an object that has a floor method or is
        coercible to int
-
 
     OUTPUT: an Integer
 
@@ -4456,6 +4463,11 @@ def integer_floor(x):
         -3
         sage: integer_floor(RDF(-5/2))
         -3
+
+        sage: integer_floor(x)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: computation of floor of x not implemented
     """
     try:
         return ZZ(x.floor())

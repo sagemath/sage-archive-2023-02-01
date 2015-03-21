@@ -6082,11 +6082,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         Check that it can be interrupted::
 
-            sage: alarm(0.01); (2**100).binomial(2**19, algorithm='mpir')
+            sage: alarm(0.5); (2^100).binomial(2^22, algorithm='mpir')
             Traceback (most recent call last):
             ...
             AlarmInterrupt
-            sage: alarm(0.01); (2**100).binomial(2**19, algorithm='pari')
+            sage: alarm(0.5); (2^100).binomial(2^22, algorithm='pari')
             Traceback (most recent call last):
             ...
             AlarmInterrupt

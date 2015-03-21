@@ -50,8 +50,6 @@ For display options, see :meth:`Tableaux.global_options`.
     - Move methods that only apply to semistandard tableaux from tableau to
       semistandard tableau
 
-    - Tableau([[]]) is standard and distinct from Tableau([]). Is this bad?
-
     - Copy/move functionality to skew tableaux
 
     - Add a class for tableaux of a given shape (eg Tableaux_shape)
@@ -301,7 +299,7 @@ class Tableau(ClonableList):
             Tableaux
             sage: s is t # identical tableaux are distinct objects
             False
-            
+
         A tableau is immutable, see :trac:`15862`::
 
             sage: T = Tableau([[1,2],[2]])
@@ -405,9 +403,12 @@ class Tableau(ClonableList):
         """
         # Check that it has partition shape. That's all we require from a
         # general tableau.
-        from sage.combinat.partition import _Partitions
-        if not map(len, self) in _Partitions:
-            raise ValueError("A tableau must be a list of iterables of weakly decreasing length.")
+        lens = map(len, self)
+        for (a, b) in itertools.izip(lens, lens[1:]):
+            if a < b:
+                raise ValueError("A tableau must be a list of iterables of weakly decreasing length.")
+        if lens and lens[-1] == 0:
+            raise ValueError("A tableau must not have empty rows.")
 
     def __setstate__(self, state):
         """
@@ -1449,7 +1450,7 @@ class Tableau(ClonableList):
             False
             sage: Tableau([[5, 3], [2, 4]]).is_column_strict()
             False
-            sage: Tableau([[]]).is_column_strict()
+            sage: Tableau([]).is_column_strict()
             True
             sage: Tableau([[1, 4, 2]]).is_column_strict()
             True

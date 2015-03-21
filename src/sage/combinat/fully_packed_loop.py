@@ -19,6 +19,21 @@ We can create a fully packed loop using the corresponding alternating sign matri
         #    # -- #
         |         |
         |         |
+    sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    sage: fplb = FullyPackedLoop(B)
+    sage: fplb.link_pattern()
+    sage: fplb
+        |         |
+        |         |
+        #    # -- #
+        |    |
+        |    |
+     -- #    #    # --
+             |    |
+             |    |
+        # -- #    #
+        |         |
+        |         |
 
 The class also has a plot method::
 
@@ -287,7 +302,7 @@ class FullyPackedLoop(SageObject):
 
         Returns the alternating sign matrix corresponding to this class.
 
-         EXAMPLES::
+        EXAMPLES::
 
             sage: A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
             sage: S = SixVertexModel(3, boundary_conditions='ice').from_alternating_sign_matrix(A)
@@ -569,7 +584,7 @@ class FullyPackedLoop(SageObject):
         svm = self.six_vertex_model
         n = len(svm)
         boundary_d = self.end_points
-        vertices_d = self._vertex_dictionary(n)
+        vertices_d = self._vertex_dictionary()
 
         while len(boundary_d) > 2:
             startpoint = boundary_d.keys()[0]
@@ -591,11 +606,11 @@ class FullyPackedLoop(SageObject):
             link_pattern.append((startpoint, endpoint))
             boundary_d.pop(endpoint)
 
-        link_pattern.append(boundary_d.keys())
+        link_pattern.append(tuple(boundary_d.keys()))
 
-        return PerfectMatching(link_pattern)
+        return link_pattern
 
-    def _vertex_dictionary(self, size):
+    def _vertex_dictionary(self):
         """
         A function to create a dictionary of all the coordinates.
         """
@@ -640,9 +655,16 @@ class FullyPackedLoop(SageObject):
         return [(current[0] + d[0], current[1] + d[1]) for d in potential_directions]
 
     def _end_point_dictionary(self):
-        """
+        r"""
         A function create a dictionary of the endpoints and their
         coordinates.
+
+        TESTS::
+
+            sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+            sage: fpl = FullyPackedLoop(B)
+            sage: fpl._end_point_dictionary()
+
         """
         n = len(self.six_vertex_model)
         end_points = {}

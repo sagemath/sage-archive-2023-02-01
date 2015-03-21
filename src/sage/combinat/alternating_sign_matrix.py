@@ -468,6 +468,38 @@ class AlternatingSignMatrix(Element):
                         hf[i][j] -= 2
         return A.from_height_function(matrix(hf))
 
+    def obtain_gyration_orbit(self):
+        r"""
+        Return the gyration orbit of ``self`` (including ``self``)
+        
+        EXAMPLES::
+        
+            sage: AlternatingSignMatrix([[0,1,0],[1,-1,1],[0,1,0]]).obtain_gyration_orbit()
+            [
+            [ 0  1  0]  [1 0 0]  [0 0 1]
+            [ 1 -1  1]  [0 1 0]  [0 1 0]
+            [ 0  1  0], [0 0 1], [1 0 0]
+            ]
+            
+            sage: AlternatingSignMatrix([[0,1,0,0],[1,-1,1,0],[0,1,-1,1],[0,0,1,0]]).obtain_gyration_orbit()
+            [
+            [ 0  1  0  0]  [1 0 0 0]  [ 0  0  1  0]  [0 0 0 1]
+            [ 1 -1  1  0]  [0 1 0 0]  [ 0  1 -1  1]  [0 0 1 0]
+            [ 0  1 -1  1]  [0 0 1 0]  [ 1 -1  1  0]  [0 1 0 0]
+            [ 0  0  1  0], [0 0 0 1], [ 0  1  0  0], [1 0 0 0]
+            ]
+            
+            sage: len(AlternatingSignMatrix([[0,1,0,0,0,0],[0,0,1,0,0,0],[1,-1,0,0,0,1],\
+            [0,1,0,0,0,0],[0,0,0,1,0,0],[0,0,0,0,1,0]]).obtain_gyration_orbit())
+            12   
+        """
+        cyc = [self]
+        B = self.gyration()
+        while self != B:
+            cyc.append(B)
+            B = B.gyration()
+        return cyc
+    
     def ASM_compatible(self, B):
         r"""
         Return ``True`` if ``self`` and ``B`` are compatible alternating sign

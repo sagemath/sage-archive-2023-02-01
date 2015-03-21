@@ -88,11 +88,6 @@ class SkewTableau(CombinatorialObject, Element):
         if expr is not None:
             return SkewTableaux().from_expr(expr)
 
-        try:
-            st = map(tuple, st)
-        except TypeError:
-            raise TypeError("each element of the skew tableau must be an iterable")
-
         return SkewTableaux()(st)
 
     def __init__(self, parent, st):

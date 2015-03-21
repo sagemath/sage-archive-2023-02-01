@@ -1526,6 +1526,55 @@ class Tableau(CombinatorialObject, Element):
                     cell_list.append((r,c))
         return cell_list
 
+    def leq(self, secondtab):
+        """
+        Check whether each entry of ``self`` is less-or-equal to the
+        corresponding entry of a further tableau ``secondtab``.
+
+        INPUT:
+
+        - ``secondtab`` -- a tableau of the same shape as ``self``
+
+        EXAMPLES:
+
+            sage: T = Tableau([[1, 2], [3]])
+            sage: S = Tableau([[1, 3], [3]])
+            sage: G = Tableau([[2, 1], [4]])
+            sage: H = Tableau([[1, 2], [4]])
+            sage: T.leq(S)
+            True
+            sage: T.leq(T)
+            True
+            sage: T.leq(G)
+            False
+            sage: T.leq(H)
+            True
+            sage: S.leq(T)
+            False
+            sage: S.leq(G)
+            False
+            sage: S.leq(H)
+            False
+            sage: G.leq(H)
+            False
+            sage: H.leq(G)
+            False
+
+        TESTS::
+
+            sage: StandardTableau(T).leq(S)
+            True
+            sage: T.leq(SemistandardTableau(S))
+            True
+        """
+        if not secondtab in Tableaux():
+            raise TypeError(secondtab + " must be a tableau")
+        sh = self.shape()
+        if sh != secondtab.shape():
+            raise TypeError("the tableaux must be the same shape")
+        return all( self[a][b] <= secondtab[a][b] for a in xrange(len(self))
+                                                  for b in xrange(len(self[a])) )
+
     def k_weight(self, k):
         """
         Return the ``k``-weight of ``self``.

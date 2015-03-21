@@ -581,8 +581,6 @@ class FullyPackedLoop(SageObject):
 
         """
         link_pattern = []
-        svm = self.six_vertex_model
-        n = len(svm)
         boundary_d = self.end_points
         vertices_d = self._vertex_dictionary()
 
@@ -613,6 +611,21 @@ class FullyPackedLoop(SageObject):
     def _vertex_dictionary(self):
         """
         A function to create a dictionary of all the coordinates.
+
+        TESTS::
+
+            sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+            sage: fpl = FullyPackedLoop(B)
+            sage: fpl._vertex_dictionary()
+            {(0, 0): 1,
+             (0, 1): 0,
+             (0, 2): 2,
+             (1, 0): 6,
+             (1, 1): 0,
+             (1, 2): 3,
+             (2, 0): 5,
+             (2, 1): 0,
+             (2, 2): 4}
         """
         n = len(self.six_vertex_model)
         vertices = {}
@@ -664,6 +677,7 @@ class FullyPackedLoop(SageObject):
             sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
             sage: fpl = FullyPackedLoop(B)
             sage: fpl._end_point_dictionary()
+            {1: (0, 0), 2: (0, 2), 3: (1, 2), 4: (2, 2), 5: (2, 0), 6: (1, 0)}
 
         """
         n = len(self.six_vertex_model)

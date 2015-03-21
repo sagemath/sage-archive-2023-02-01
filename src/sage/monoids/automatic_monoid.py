@@ -167,7 +167,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
         36
         sage: M.cardinality()
         120
-    
+
     We check that the 0-Hecke monoid is `J`-trivial and contains `2^4`
     idempotents::
 
@@ -335,6 +335,19 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one = R.one())
             sage: M.ambient()
             Ring of integers modulo 12
+
+            sage: M1=matrix([[0,0,1],[1,0,0],[0,1,0]])
+            sage: M2=matrix([[0,0,0],[1,1,0],[0,0,1]])
+            sage: M1.set_immutable()
+            sage: M2.set_immutable()
+            sage: def prod_m(x,y):
+            ....:     z=x*y
+            ....:     z.set_immutable()
+            ....:     return z
+            ....:
+            sage: Mon = AutomaticMonoid([M1,M2], mul=prod_m)
+            sage: Mon.ambient()
+            Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
         """
         return self._ambient
 
@@ -484,15 +497,15 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
     def from_reduced_word(self, l):
         """
         Return the element of ``self`` obtained from the reduced word ``l``.
-        
+
         INPUT:
 
         - ``l`` -- a list of indices of the generators
 
         .. NOTE::
-            
+
             We do not save the given reduced word ``l`` as an attribute of the
-            element, as some elements above in the branches may hve not beem
+            element, as some elements above in the branches may have not been
             explored by the iterator yet.
 
         EXAMPLES::

@@ -305,7 +305,6 @@ class FullyPackedLoop(SageObject):
         """
         return self.six_vertex_model.to_alternating_sign_matrix()
 
-
     def plot(self):
         """
         Return a graphical object of the Fully Packed Loop
@@ -597,7 +596,7 @@ class FullyPackedLoop(SageObject):
             for j in range(n):
                 vertices[(i, j)] = 0
 
-        for end, vertex in self.end_points:
+        for end, vertex in self.end_points.iteritems():
             vertices[vertex] = end
 
         return vertices

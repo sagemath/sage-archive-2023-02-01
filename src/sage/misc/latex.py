@@ -2368,36 +2368,6 @@ def repr_lincomb(symbols, coeffs):
     s = s.replace("+ -","- ")
     return s
 
-def print_or_typeset(object):
-    r"""
-    'view' or 'print' the object depending on the situation.
-
-    In particular, if in notebook mode with the typeset box checked,
-    view the object. Otherwise, print the object.
-
-    INPUT:
-
-    - ``object`` -- Anything
-
-    EXAMPLES::
-
-        sage: sage.misc.latex.print_or_typeset(3)
-        3
-        sage: sage.misc.latex.EMBEDDED_MODE=True
-        sage: sage.misc.latex.print_or_typeset(3)
-        3
-        sage: TEMP = sys.displayhook
-        sage: sys.displayhook = sage.misc.latex.pretty_print
-        sage: sage.misc.latex.print_or_typeset(3)
-        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}3</script></html>
-        sage: sage.misc.latex.EMBEDDED_MODE=False
-        sage: sys.displayhook = TEMP
-    """
-    import sys
-    if EMBEDDED_MODE and sys.displayhook == pretty_print:
-        view(object)
-    else:
-        print(object)
 
 def pretty_print_default(enable=True):
     r"""

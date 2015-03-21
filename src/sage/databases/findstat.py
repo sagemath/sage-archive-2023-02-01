@@ -439,10 +439,10 @@ class FindStatStatistic(SageObject):
 
         TESTS::
 
-        sage: findstat(999999)
-        Traceback (most recent call last):
-        ...
-        ValueError: St999999 is not a FindStat statistic identifier.
+            sage: findstat(999999)
+            Traceback (most recent call last):
+            ...
+            ValueError: St999999 is not a FindStat statistic identifier.
         """
         self._query = "ID"
 
@@ -486,10 +486,10 @@ class FindStatStatistic(SageObject):
 
         TESTS::
 
-        sage: findstat(lambda x: 1, "Permutations", depth=100)
-        Traceback (most recent call last):
-        ...
-        ValueError: The depth must be a non-negative integer less than or equal to 5.
+            sage: findstat(lambda x: 1, "Permutations", depth=100)
+            Traceback (most recent call last):
+            ...
+            ValueError: The depth must be a non-negative integer less than or equal to 5.
         """
         self._query = "data"
         # FindStat allows to search for at most FINDSTAT_MAX_VALUES values.
@@ -701,7 +701,7 @@ class FindStatStatistic(SageObject):
     # editing and submitting is really the same thing
     edit = submit
 
-class FindStatCollection():
+class FindStatCollection(SageObject):
     r"""
     The class of FindStat collections.
 
@@ -746,7 +746,8 @@ class FindStatCollection():
              lambda x: x.node_number(),
              str,
              lambda x: BinaryTree(str(x))],
-        13: [None, None, None, Core,                  lambda x: Cores(*x),     None,
+        13: [None, None, None, Core,                  lambda x: Cores(x[1], x[0]),
+             None,
              lambda x: x.k(),
              lambda X: "( "+X._repr_()+", "+str(X.k())+" )",
              lambda x: (lambda pi, k: Core(pi, k))(*literal_eval(x))],
@@ -810,6 +811,15 @@ class FindStatCollection():
              lambda x: x.size(),
              str,
              lambda x: StandardTableau(literal_eval(x))]}
+
+    r"""
+
+    Objects are normalized using the method `to_string`.  This method
+    should apply to objects produced by `first_terms` as well as to
+    objects produced by `from_string`.
+
+    """
+
 
     def __init__(self, entry):
         r"""
@@ -890,7 +900,16 @@ class FindStatCollection():
             raise ValueError, "Could not find FindStat collection for " + str(entry)
 
     def __eq__(self, other):
-        return self.id == other.id
+        """
+        TESTS::
+
+            sage: FindStatCollection("Permutations") == FindStatCollection("Permutations")
+            True
+
+            sage: FindStatCollection("Permutations") != FindStatCollection("Integer Partitions")
+            True
+        """
+        return self.id() == other.id()
 
     def first_terms(self, statistic, max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         r"""
@@ -902,8 +921,7 @@ class FindStatCollection():
         else:
             g = self._sageconstructor_overridden
 
-        return [(x, statistic(x))
-                for (x,_) in zip(g, xrange(min(max_values, FINDSTAT_MAX_SUBMISSION_VALUES)))]
+        return [(x, statistic(x)) for (x,_) in zip(g, xrange(max_values))]
 
     def id(self):
         return self._id
@@ -971,7 +989,7 @@ class FindStatCollection():
         """
         return self._name
 
-class FindStatMap():
+class FindStatMap(SageObject):
     r"""
     The class of FindStat maps.
 

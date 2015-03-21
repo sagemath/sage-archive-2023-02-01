@@ -1406,7 +1406,8 @@ class Tableau(ClonableList):
         res = [0] * m
         for row in self:
             for i in row:
-                res[i - 1] += 1
+                if i > 0:
+                    res[i - 1] += 1
         return res
 
     evaluation = weight

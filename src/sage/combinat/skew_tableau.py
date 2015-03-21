@@ -566,7 +566,7 @@ class SkewTableau(ClonableList):
         res = [0] * m
         for row in self:
             for i in row:
-                if not (i is None):
+                if i > 0 and not (i is None):
                     res[i - 1] += 1
         return res
 

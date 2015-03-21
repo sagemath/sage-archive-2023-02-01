@@ -16,24 +16,28 @@ Ribbon Shaped Tableaux
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.skew_tableau import SkewTableau, StandardSkewTableaux
 from sage.combinat.tableau import TableauOptions
 from sage.combinat.permutation import Permutation, descents_composition_first, descents_composition_list, descents_composition_last
-from sage.combinat.skew_partition import SkewPartition
 from sage.rings.integer import Integer
-from combinat import CombinatorialObject
-from sage.combinat.words.words import Words
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 class RibbonShapedTableau(SkewTableau):
     r"""
-    A ribbon.
+    A ribbon shaped tableau.
 
-    A ribbon is a skew tableau that does not contain a `2 \times 2` box. A
-    ribbon is given by a list of the rows from top to bottom.
+    For the purposes of this class, a ribbon shaped tableau is a skew
+    tableau whose shape is a skew partition which:
+
+    - has at least one cell in row `1`;
+
+    - has at least one cell in column `1`;
+
+    - has exactly one cell in each of `q` consecutive diagonals, for
+      some nonnegative integer `q`.
+
+    A ribbon is given by a list of the rows from top to bottom.
 
     EXAMPLES::
 
@@ -47,29 +51,40 @@ class RibbonShapedTableau(SkewTableau):
         [5, 4, 2] / [3, 1]
 
     The entries labeled by ``None`` correspond to the inner partition.
-    Using ``None`` is optional, the entries will be shifted accordingly.  ::
+    Using ``None`` is optional; the entries will be shifted accordingly.  ::
 
         sage: x = RibbonShapedTableau([[2,3],[1,4,5],[3,2]]); x.pp()
           .  .  .  2  3
           .  1  4  5
           3  2
+
+    TESTS::
+
+        sage: r = RibbonShapedTableau([[1], [2,3], [4, 5, 6]])
+        sage: r.to_permutation()
+        [4, 5, 6, 2, 3, 1]
+
+        sage: RibbonShapedTableau([[1,2],[3,4]]).evaluation()
+        [1, 1, 1, 1]
     """
     @staticmethod
     def __classcall_private__(cls, r):
         r"""
-        Return a ribbon tableau object.
+        Return a ribbon shaped tableau object.
 
         EXAMPLES::
 
             sage: RibbonShapedTableau([[2,3],[1,4,5]])
             [[None, None, 2, 3], [1, 4, 5]]
         """
-        if isinstance(r, list):
-            if len(r) == 0:
-                return StandardRibbonShapedTableaux()(r)
-            if all(isinstance(i, list) for i in r):
-                if all(all(j is None or (isinstance(j, (int, Integer)) and j>0) for j in i) for i in r):
-                    return StandardRibbonShapedTableaux()(r)
+        try:
+            r = map(tuple, r)
+        except TypeError:
+            raise TypeError("r must be a list of positive integers")
+        if not r:
+            return StandardRibbonShapedTableaux()(r)
+        if all(all(j is None or (isinstance(j, (int, Integer)) and j>0) for j in i) for i in r):
+            return StandardRibbonShapedTableaux()(r)
         raise TypeError("r must be a list of positive integers")
 
     def __init__(self, parent, t):
@@ -105,6 +120,8 @@ class RibbonShapedTableau(SkewTableau):
 
         EXAMPLES::
 
+            sage: loads( 'x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+\xcaLJ\xca\xcf\xe3\n\x02S\xf1\xc99\x89\xc5\xc5\\\x85\x8c\x9a\x8d\x85L\xb5\x85\xcc\x1a\xa1\xac\xf1\x19\x89\xc5\x19\x85,~@VNfqI!kl!\x9bFl!\xbb\x06\xc4\x9c\xa2\xcc\xbc\xf4b\xbd\xcc\xbc\x92\xd4\xf4\xd4"\xae\xdc\xc4\xec\xd4x\x18\xa7\x90#\x94\xd1\xb05\xa8\x903\x03\xc80\x022\xb8Rc\x0b\xb95@<c \x8f\x07\xc40\x012xSSK\x93\xf4\x00l\x811\x17') # not tested -- broken. While fixing this, please also correct it; what comes below is not a ribbon-shaped tableau.
+            [[1, 2], [3, 4]]
             sage: loads(dumps( RibbonShapedTableau([[3,2,1], [1,1]]) ))  # indirect doctest
             [[None, 3, 2, 1], [1, 1]]
         """
@@ -155,48 +172,6 @@ class RibbonShapedTableau(SkewTableau):
         #return 1+sum([len(r)-1 for r in self])
         return len(self[0]) if len(self) > 0 else 0
 
-    def to_skew_tableau(self):
-        """
-        This is deprecated in :trac:`14101` since :class:`RibbonShapedTableau`
-        inherits from :class:`SkewTableau`.
-
-        EXAMPLES::
-
-            sage: RibbonShapedTableau([[2,3],[1,4,5]]).to_skew_tableau()
-            doctest:...: DeprecationWarning: this method is deprecated since ribbon shaped tableaux are skew partitions
-            See http://trac.sagemath.org/14101 for details.
-            [[None, None, 2, 3], [1, 4, 5]]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14101,'this method is deprecated since ribbon shaped tableaux are skew partitions')
-        return self
-
-    def to_permutation(self):
-        """
-        Returns the permutation corresponding to the ribbon tableau.
-
-        EXAMPLES::
-
-            sage: r = RibbonShapedTableau([[1], [2,3], [4, 5, 6]])
-            sage: r.to_permutation()
-            [4, 5, 6, 2, 3, 1]
-        """
-        return Permutation(self.to_word())
-
-    def evaluation(self):
-        """
-        Return the evaluation of the word from ribbon.
-
-        EXAMPLES::
-
-            sage: RibbonShapedTableau([[1,2],[3,4]]).evaluation()
-            [1, 1, 1, 1]
-        """
-        ed = self.to_word().evaluation_dict()
-        entries = ed.keys()
-        m = max(entries) + 1 if entries else -1
-        return [ed.get(k,0) for k in range(1,m)]
-
 
 class StandardRibbonShapedTableaux(StandardSkewTableaux):
     """
@@ -239,6 +214,15 @@ class StandardRibbonShapedTableaux(StandardSkewTableaux):
             category = InfiniteEnumeratedSets()
 
         StandardSkewTableaux.__init__(self, category=category)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: repr(StandardRibbonShapedTableaux())    # indirect doctest
+            'Standard ribbon shaped tableaux'
+        """
+        return "Standard ribbon shaped tableaux"
 
     def __iter__(self):
         """
@@ -320,12 +304,12 @@ class StandardRibbonShapedTableaux(StandardSkewTableaux):
 
 class StandardRibbonShapedTableaux_shape(StandardRibbonShapedTableaux):
     """
-    Class of standard ribbon tableaux of ribbon shape ``shape``.
+    Class of standard ribbon shaped tableaux of ribbon shape ``shape``.
 
     EXAMPLES::
 
         sage: StandardRibbonShapedTableaux([2,2])
-        Standard ribbon tableaux of shape [2, 2]
+        Standard ribbon shaped tableaux of shape [2, 2]
         sage: StandardRibbonShapedTableaux([2,2]).first()
         [[None, 2, 4], [1, 3]]
         sage: StandardRibbonShapedTableaux([2,2]).last()
@@ -370,9 +354,9 @@ class StandardRibbonShapedTableaux_shape(StandardRibbonShapedTableaux):
         TESTS::
 
             sage: StandardRibbonShapedTableaux([2,2])
-            Standard ribbon tableaux of shape [2, 2]
+            Standard ribbon shaped tableaux of shape [2, 2]
         """
-        return "Standard ribbon tableaux of shape %s"%list(self.shape)
+        return "Standard ribbon shaped tableaux of shape %s"%list(self.shape)
 
     def first(self):
         """

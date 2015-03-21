@@ -4,6 +4,8 @@ Algebras
 .. toctree::
    :maxdepth: 2
 
+   sage/algebras/associated_graded
+
    sage/algebras/catalog
 
    sage/algebras/clifford_algebra

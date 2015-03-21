@@ -1833,6 +1833,7 @@ class Tableau(CombinatorialObject, Element):
 
     def schensted_insert(self, i, left=False):
         """
+        Insert ``i`` into ``self`` using Schensted's row-bumping (or
         row-insertion) algorithm.
 
         INPUT:

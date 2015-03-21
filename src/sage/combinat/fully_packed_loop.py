@@ -6,6 +6,7 @@ We can create a fully packed loop using the corresponding alternating sign matri
 
     sage: A = AlternatingSignMatrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
     sage: fpl = FullyPackedLoop(A)
+    sage: fpl.link_pattern()
     sage: fpl
         |         |
         |         |
@@ -80,6 +81,7 @@ from sage.structure.sage_object import SageObject
 from sage.combinat.six_vertex_model import SquareIceModel, SixVertexConfiguration
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix
 from sage.plot.graphics import Graphics
+from sage.matrix.constructor import matrix
 from sage.plot.line import line
 from sage.combinat.perfect_matching import PerfectMatching
 
@@ -154,7 +156,7 @@ class FullyPackedLoop(SageObject):
             raise TypeError('The generator for a fully packed loop must either be an AlternatingSignMatrix or a SixVertexConfiguration')
 
         self.end_points = self._end_point_dictionary()
-        self.configuration = list(self.six_vertex_model)
+        self.configuration = matrix(list(self.six_vertex_model))
 
     def _repr_(self):
         """
@@ -555,6 +557,13 @@ class FullyPackedLoop(SageObject):
             sage: fpl = FullyPackedLoop(A)
             sage: fpl.link_pattern()
             [(1, 2), (3, 6), (4, 5)]
+
+        Another example::
+
+            sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+            sage: fpl = FullyPackedLoop(B)
+            sage: fpl.link_pattern()
+
         """
         link_pattern = []
         svm = self.six_vertex_model
@@ -621,14 +630,14 @@ class FullyPackedLoop(SageObject):
                 }
 
         parity = sum(current)
-        c = self.configuration(current)
+        c = self.configuration[current]
 
         if parity % 2 == 0:
             potential_directions = even[parity]
         else:
             potential_directions = odd[parity]
 
-        return [(c[0] + d[0], c[1] + d[1]) for d in potential_directions]
+        return [(current[0] + d[0], current[1] + d[1]) for d in potential_directions]
 
     def _end_point_dictionary(self):
         """

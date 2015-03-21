@@ -262,7 +262,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
     def an_element(self):
         """
-        Return the first given generator of ``self``
+        Return the first given generator of ``self``.
 
         EXAMPLES::
 
@@ -290,7 +290,14 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
     def ambient(self):
         """
-        TODO
+        Return the ambient monoid of ``self``.
+
+        EXAMPLES::
+
+            sage: R = IntegerModRing(12)
+            sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one = R.one())
+            sage: M.ambient()
+            Ring of integers modulo 12
         """
         return self._ambient
 
@@ -424,6 +431,12 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
     def from_reduced_word(self, l):
         """
+        Return the element of ``self`` obtained from the reduced word ``l``.
+        
+        INPUT:
+
+        - ``l`` -- a list of indices of the generators
+
         EXAMPLES::
 
             sage: G4 = SymmetricGroup(4)
@@ -517,6 +530,20 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             return parent.retract(parent.mul(self.lift(), parent.generators_in_ambient[i]))
 
         def _repr_(self):
+            """
+            EXAMPLES::
+
+                sage: R = IntegerModRing(17)
+                sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one = R.one())
+                sage: a = M.an_element(); a
+                [1]
+                sage: b = M.from_reduced_word([1,2,1]); b
+                11
+                sage: M.cardinality()
+                16
+                sage: b
+                [1, 1, 2]
+            """
             rep = self.reduced_word()
             if rep is None:
                 rep = self.lift()

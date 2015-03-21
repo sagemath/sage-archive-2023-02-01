@@ -21,7 +21,8 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.matrix.all import MatrixSpace
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, QQ
+from sage.symbolic.ring import SR
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
 from sage.combinat.root_system.cartan_type import CartanType
@@ -207,7 +208,7 @@ class CoxeterType(object):
         """
         return False
 
-#    @cached_method
+    @cached_method
     def bilinear_form(self, R=None):
         """
         Return the bilinear form over ``R`` associated to ``self``.
@@ -233,21 +234,27 @@ class CoxeterType(object):
             [-1  1 -1]
             [-1 -1  1]
         """
+        
+        n = self.rank()
+        mat = self.coxeter_matrix()
+        base_ring = sum(mat.list()).parent()
+
         from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import UniversalCyclotomicField
-        if R is None:
+        if base_ring in [ZZ,QQ]:
             R = UniversalCyclotomicField()
+        else:
+            R = base_ring
         # Compute the matrix with entries `- \cos( \pi / m_{ij} )`.
         if R is UniversalCyclotomicField():
-            val = lambda x: (R.gen(2*x) + ~R.gen(2*x)) / R(-2) if x != -1 else -R.one()
+            val = lambda x: (R.gen(2*x) + ~R.gen(2*x)) / R(-2) if x > -1 else R.one()*x
         else:
             from sage.functions.trig import cos
             from sage.symbolic.constants import pi
-            val = lambda x: -R(cos(pi / x)) if x > -1 else x
+            val = lambda x: -R(cos(pi / SR(x))) if x > -1 else x
 
-        n = self.rank()
         MS = MatrixSpace(R, n, sparse=True)
         MC = MS._get_matrix_class()
-        mat = self.coxeter_matrix()
+
         bilinear = MC(MS, entries={(i, j): val(mat[i, j])
                                    for i in range(n) for j in range(n)
                                    if mat[i, j] != 2},

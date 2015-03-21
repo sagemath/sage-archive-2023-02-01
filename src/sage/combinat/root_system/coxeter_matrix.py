@@ -28,7 +28,7 @@ from sage.matrix.matrix_integer_dense import Matrix_integer_dense
 from sage.matrix.matrix_generic_dense import Matrix_generic_dense
 from sage.graphs.graph import Graph
 from sage.graphs.generators.basic import CycleGraph
-from sage.rings.all import ZZ, RR
+from sage.rings.all import ZZ, QQ, RR
 from sage.rings.infinity import infinity
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.coxeter_type import CoxeterType
@@ -43,6 +43,8 @@ class CoxeterMatrix(Matrix_generic_dense, CoxeterType):
 
         Because there is no object `\ZZ \cup \{ \infty \}`, we define `-1`
         to represent `\infty`.
+        Make it possible to input algebraic number in the matrix and have the
+        corresponding base ring
 
     EXAMPLES::
 
@@ -227,8 +229,8 @@ class CoxeterMatrix(Matrix_generic_dense, CoxeterType):
                 data = [val for row in data for val in row]
             else:
                 M = matrix(args[0])
+                check_coxeter_matrix(args[0])
                 base_ring = M.base_ring()
-                check_coxeter_matrix(M)
                 n = M.ncols()
                 if "coxeter_type" in kwds:
                     coxeter_type = CoxeterType(kwds["coxeter_type"])
@@ -272,7 +274,7 @@ class CoxeterMatrix(Matrix_generic_dense, CoxeterType):
         """
         Matrix_generic_dense.__init__(self, parent, data, False, True)
 
-        if min(data)<-1:
+        if self.base_ring() not in [ZZ,QQ]:
             self._is_cyclotomic = False
         else:
             self._is_cyclotomic = True
@@ -360,7 +362,6 @@ class CoxeterMatrix(Matrix_generic_dense, CoxeterType):
         """
         return self
 
-    @cached_method # Transferred the caching here from CoxeterType
     def bilinear_form(self):
         r"""
         Return the bilinear form of ``self``.
@@ -368,10 +369,7 @@ class CoxeterMatrix(Matrix_generic_dense, CoxeterType):
         EXAMPLES::
         """
 
-        if self._is_cyclotomic:
-            return super(CoxeterMatrix, self).bilinear_form()
-        else:
-            return super(CoxeterMatrix, self).bilinear_form(R=RR) #FIXME put the right ring
+        return CoxeterType.bilinear_form(self)
 
     @cached_method
     def coxeter_graph(self):
@@ -916,17 +914,19 @@ def check_coxeter_matrix(m):
         ...
         ValueError: the matrix is not symmetric
 
-   """
-    if not m.is_square():
+    """
+    
+    mat=matrix(m)
+    if not mat.is_square():
         raise ValueError("not a square matrix")
-    for i, row in enumerate(m.rows()):
-        if m[i,i] != 1:
+    for i, row in enumerate(m):
+        if mat[i,i] != 1:
             raise ValueError("the matrix diagonal is not all 1")
         for j, val in enumerate(row[i+1:]):
-            if val != m[j+i+1,i]:
+            if val != m[j+i+1][i]:
                 raise ValueError("the matrix is not symmetric")
             if val not in ZZ:
-                if val > -1:
+                if val > -1 and val in RR:
                     raise ValueError("invalid Coxeter label {}".format(val))
             else:
                 if val == 1 or val == 0:

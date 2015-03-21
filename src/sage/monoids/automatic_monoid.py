@@ -120,14 +120,14 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
     We can also use it to get submonoids from groups. We check that in the
     symmetric group, a transposition and a cyle generate the whole group::
 
-            sage: G5 = SymmetricGroup(5)
-            sage: N = AutomaticMonoid(Family({1: G5([2,1,3,4,5]), 2: G5([2,3,4,5,1])}), G5.one())
-            sage: N.cardinality() == G5.cardinality()
-            True
-            sage: N.retract(G5((1,4,3,5,2)))
-            [1, 2, 1, 2, 2, 1, 2, 1, 2, 2]
-            sage: N.from_reduced_word([1, 2, 1, 2, 2, 1, 2, 1, 2, 2]).lift()
-            (1,4,3,5,2)
+        sage: G5 = SymmetricGroup(5)
+        sage: N = AutomaticMonoid(Family({1: G5([2,1,3,4,5]), 2: G5([2,3,4,5,1])}), G5.one())
+        sage: N.cardinality() == G5.cardinality()
+        True
+        sage: N.retract(G5((1,4,3,5,2)))
+        [1, 2, 1, 2, 2, 1, 2, 1, 2, 2]
+        sage: N.from_reduced_word([1, 2, 1, 2, 2, 1, 2, 1, 2, 2]).lift()
+        (1,4,3,5,2)
 
    We can also create a monoid of matrices, where we define the multiplication as matrix
     multiplication::
@@ -153,14 +153,19 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
         True
         sage: g[1] == g[1]*g[1]*g[1]
         True
-        sage: copy(g[1]) is g[1]
-        True
-        sage: from copy import deepcopy
-        sage: deepcopy(g[1]) is g[1]
-        True
         sage: M.__class__.mro()
         [<class 'sage.monoids.automatic_monoid.AutomaticMonoid_with_category'>, <class 'sage.monoids.automatic_monoid.AutomaticMonoid'>, <class 'sage.structure.unique_representation.UniqueRepresentation'>, <class 'sage.structure.unique_representation.CachedRepresentation'>, <type 'sage.misc.fast_methods.WithEqualityById'>, <type 'sage.structure.parent.Parent'>, <type 'sage.structure.category_object.CategoryObject'>, <type 'sage.structure.sage_object.SageObject'>, <class 'sage.categories.finite_monoids.FiniteMonoids.parent_class'>, <class 'sage.categories.monoids.Monoids.parent_class'>, <class 'sage.categories.finite_semigroups.FiniteSemigroups.parent_class'>, <class 'sage.categories.semigroups.Semigroups.parent_class'>, <class 'sage.categories.magmas.Magmas.Unital.parent_class'>, <class 'sage.categories.magmas.Magmas.parent_class'>, <class 'sage.categories.finite_enumerated_sets.FiniteEnumeratedSets.parent_class'>, <class 'sage.categories.enumerated_sets.EnumeratedSets.parent_class'>, <class 'sage.categories.finite_sets.FiniteSets.parent_class'>, <class 'sage.categories.sets_cat.Sets.parent_class'>, <class 'sage.categories.sets_with_partial_maps.SetsWithPartialMaps.parent_class'>, <class 'sage.categories.objects.Objects.parent_class'>, <type 'object'>]
         sage: TestSuite(M).run()
+
+    We need to pass in the ambient monoid to ``__init__`` to guarantee
+    :class:`UniqueRepresentation` works properly::
+
+        sage: R1 = IntegerModRing(12)
+        sage: R2 = IntegerModRing(16)
+        sage: M1 = AutomaticMonoid(Family({1: R1(3), 2: R1(5)}), one = R1.one())
+        sage: M2 = AutomaticMonoid(Family({1: R2(3), 2: R2(5)}), one = R2.one())
+        sage: M1 is M2
+        False
 
     CAVEATS:
 
@@ -187,7 +192,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
     """
     @staticmethod
-    def __classcall_private__(cls, generators, one=None, mul=operator.mul, category=Monoids().Finite()):
+    def __classcall_private__(cls, generators, ambient=None, one=None, mul=operator.mul, category=Monoids().Finite()):
         """
         TESTS::
 
@@ -197,9 +202,17 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             True
         """
         generators = Family(generators)
-        return super(AutomaticMonoid, cls).__classcall__(cls, generators, one=one, mul=mul, category=category)
+        if ambient is None:
+            # Try to guess the ambient monoid from the generators or the unit
+            if generators.cardinality() > 0:
+                ambient = generators.first().parent()
+            elif one is not None:
+                ambient = one.parent()
+            else:
+                raise ValueError("AutomaticMonoid requires at least one generator or `one` to determine the ambient space")
+        return super(AutomaticMonoid, cls).__classcall__(cls, generators, ambient=ambient, one=one, mul=mul, category=category)
 
-    def __init__(self, generators, one=None, mul=operator.mul, category=Monoids().Finite()):
+    def __init__(self, generators, ambient, one=None, mul=operator.mul, category=Monoids().Finite()):
         """
         TESTS::
 
@@ -214,12 +227,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
         """
         Parent.__init__(self, category=category)
         self.generators = generators                    # todo: rename to self._generators?
-        if self.generators.cardinality() > 0:
-            self._ambient = self.generators.first().parent()
-        elif one is not None:
-            self._ambient = one.parent()
-        else:
-            raise ValueError("AutomaticMonoid requires at least one generator or `one` to determine the ambient space")
+        self._ambient = ambient
 
         if one is None:
             one = self.generators.first().parent().one()
@@ -277,7 +285,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
     def some_elements(self):
         """
-        Return the familiy of generators of ``self``
+        Return the familiy of generators of ``self``.
 
         EXAMPLES::
 
@@ -304,7 +312,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
     @cached_method
     def retract(self, ambient_element):
         """
-        Retract an element of the ambiant monoid into ``self``
+        Retract an element of the ambiant monoid into ``self``.
 
         EXAMPLES::
 
@@ -319,11 +327,11 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
     def lift(self, x):
         """
-        Lift an element of ``self`` into its ambiant space
+        Lift an element of ``self`` into its ambient space.
 
         EXAMPLES::
 
-            sage: R = IntegerModRing(26)
+            sage: R = IntegerModRing(15)
             sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one = R.one())
             sage: M.cardinality()
             8
@@ -332,13 +340,15 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             True
             sage: a.lift()
             3
+            sage: [m.lift() for m in M]
+            [1, 3, 5, 9, 0, 10, 12, 6]
         """
         assert(x in self)
         return x.lift()
 
     def semigroup_generators(self):
         """
-        Return the family of generators of ``self``
+        Return the family of generators of ``self``.
 
         EXAMPLES::
 
@@ -548,3 +558,26 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             if rep is None:
                 rep = self.lift()
             return str(rep)
+
+        def __copy__(self, memo=None):
+            r"""
+            Return ``self`` since this has unique representation
+
+            INPUT:
+
+            - ``memo`` -- ignored, but required by the deepcopy API
+
+            EXAMPLES::
+
+                sage: R = IntegerModRing(12)
+                sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one = R.one())
+                sage: m = M.an_element()
+                sage: copy(m) is m
+                True
+                sage: from copy import deepcopy
+                sage: deepcopy(m) is m
+                True
+            """
+            return self
+
+        __deepcopy__ = __copy__

@@ -639,31 +639,52 @@ class FullyPackedLoop(SageObject):
         return vertices
 
     def _get_coordinates(self, current):
-        # 0 UD, 1 RD, 2 UR, 3 LR, 4 LD, 5 LU
-        odd = {0: [[-1, 0], [1, 0]],
-               1: [[0, 1], [1, 0]],
-               2: [[-1, 0], [0, 1]],
-               3: [[0, -1], [0, 1]],
-               4: [[0, -1], [1, 0]],
-               5: [[0, -1], [-1, 0]]
-               }
+        """
+        Returns a list of 2 coordinates that refer to the moves that could
+        potentialy be made.
 
-        # 0 LR, 1 LU, 2 LD, 3 UD, 4 UR, 5 RD
-        even = {0: [[0, -1], [0, 1]],
-                1: [[0, -1], [-1, 0]],
-                2: [[0, -1], [1, 0]],
-                3: [[-1, 0], [0, 1]],
-                4: [[-1, 0], [1, 0]],
-                5: [[0, 1], [1, 0]]
+        TESTS::
+
+            sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+            sage: fpl = FullyPackedLoop(B)
+            sage: matrix(list(fpl.six_vertex_model))
+            [3 1 1]
+            [5 3 1]
+            [5 5 3]
+            sage: fpl._get_coordinates((1, 1))
+            [(1, 0), (1, 2)]
+            sage: fpl._get_coordinates((0, 0))
+            [(0, -1), (0, 1)]
+            sage: fpl._get_coordinates((0, 2))
+            [(1, 2), (0, 3)]
+            sage: fpl._get_coordinates((2, 1))
+            [(3, 1), (2, 2)]
+        """
+        # 0 UD, 1 RD, 2 UR, 3 LR, 4 LD, 5 LU
+        even = {0: [(1, 0), (-1, 0)],
+                1: [(1, 0), (0, 1)],
+                2: [(-1, 0), (0, 1)],
+                3: [(0, -1), (0, 1)],
+                4: [(0, -1), (1, 0)],
+                5: [(-1, 0), (0, -1)]
                 }
 
+        # 0 LR, 1 LU, 2 LD, 3 UD, 4 UR, 5 RD
+        odd = {0: [(0, -1), (0, 1)],
+               1: [(-1, 0), (0, -1)],
+               2: [(0, -1), (1, 0)],
+               3: [(1, 0), (-1, 0)],
+               4: [(-1, 0), (0, 1)],
+               5: [(1, 0), (0, 1)]
+               }
+
         parity = sum(current)
-        c = self.configuration[current]
+        conf = self.configuration[current]
 
         if parity % 2 == 0:
-            potential_directions = even[parity]
+            potential_directions = even[conf]
         else:
-            potential_directions = odd[parity]
+            potential_directions = odd[conf]
 
         return [(current[0] + d[0], current[1] + d[1]) for d in potential_directions]
 

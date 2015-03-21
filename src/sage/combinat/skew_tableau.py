@@ -87,11 +87,6 @@ class SkewTableau(ClonableList):
         if expr is not None:
             return SkewTableaux().from_expr(expr)
 
-        try:
-            st = map(tuple, st)
-        except TypeError:
-            raise TypeError("each element of the skew tableau must be an iterable")
-
         return SkewTableaux()(st)
 
     def __init__(self, parent, st):
@@ -115,6 +110,11 @@ class SkewTableau(ClonableList):
             ...
             TypeError: 'tuple' object does not support item assignment
         """
+        try:
+            st = map(tuple, st)
+        except TypeError:
+            raise TypeError("each element of the skew tableau must be an iterable")
+
         ClonableList.__init__(self, parent, st)
 
     def __eq__(self, other):
@@ -201,10 +201,6 @@ class SkewTableau(ClonableList):
             TypeError: a skew tableau cannot have an empty list for a row
         """
         for row in self:
-            try:
-                iter(row)
-            except TypeError:
-                raise TypeError("each element of the skew tableau must be an iterable")
             if not row:
                 raise TypeError("a skew tableau cannot have an empty list for a row")
 

@@ -17,7 +17,6 @@ for these two notions.
 #******************************************************************************
 
 from sage.categories.filtered_modules import FilteredModulesCategory
-from sage.misc.cachefunc import cached_method
 
 class FilteredAlgebrasWithBasis(FilteredModulesCategory):
     """
@@ -46,7 +45,6 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
         sage: TestSuite(C).run()
     """
     class ParentMethods:
-        @cached_method
         def graded_algebra(self):
             r"""
             Return the associated graded algebra to ``self``.
@@ -116,7 +114,6 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
 
         # Maps
 
-        @cached_method
         def to_graded_conversion(self):
             r"""
             Return the canonical `R`-module isomorphism
@@ -144,7 +141,6 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
             return self.module_morphism(diagonal=lambda x: base_one,
                                         codomain=self.graded_algebra())
 
-        @cached_method
         def from_graded_conversion(self):
             r"""
             Return the inverse of the canonical `R`-module isomorphism
@@ -174,7 +170,6 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
             return self.graded_algebra().module_morphism(diagonal=lambda x: base_one,
                                                          codomain=self)
 
-        @cached_method
         def projection(self, i):
             r"""
             Return the `i`-th projection `p_i : F_i \to G_i` (in the

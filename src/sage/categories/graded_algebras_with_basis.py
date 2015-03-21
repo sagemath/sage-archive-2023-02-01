@@ -10,7 +10,6 @@ Graded algebras with basis
 #******************************************************************************
 
 from sage.categories.graded_modules import GradedModulesCategory
-from sage.misc.cachefunc import cached_method
 
 class GradedAlgebrasWithBasis(GradedModulesCategory):
     """
@@ -32,7 +31,6 @@ class GradedAlgebrasWithBasis(GradedModulesCategory):
     class ParentMethods:
         # This needs to be copied in GradedAlgebras because we need to have
         #   FilteredAlgebrasWithBasis as an extra super category
-        @cached_method
         def graded_algebra(self):
             """
             Return the associated graded algebra to ``self``.
@@ -77,12 +75,12 @@ class GradedAlgebrasWithBasis(GradedModulesCategory):
             return self
 
         # .. TODO::
-        #     Possibly override ``to_graded_conversion`` and
-        #     ``from_graded_conversion`` with identity morphisms?
-        #     I have to admit I don't know the right way to construct
-        #     identity morphisms other than using the identity matrix.
-        #     Also, ``projection`` could be overridden by, well, a
-        #     projection.
+        # Possibly override ``to_graded_conversion`` and
+        # ``from_graded_conversion`` with identity morphisms?
+        # I have to admit I don't know the right way to construct
+        # identity morphisms other than using the identity matrix.
+        # Also, ``projection`` could be overridden by, well, a
+        # projection.
 
     class ElementMethods:
         pass

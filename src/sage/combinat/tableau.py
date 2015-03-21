@@ -1801,24 +1801,26 @@ class Tableau(CombinatorialObject, Element):
             sage: t = Tableau([[1,2,2,3],[2,3,5,5],[4,4,6],[5,6]])
             sage: t.bump(2)
             [[1, 2, 2, 2], [2, 3, 3, 5], [4, 4, 5], [5, 6, 6]]
+            sage: t.bump(1)
+            [[1, 1, 2, 3], [2, 2, 5, 5], [3, 4, 6], [4, 6], [5]]
         """
         to_insert = x
         new_t = self.to_list()
-        for row in range(len(self)):
+        for row in new_t:
             i = 0
             #try to insert to_insert into row
-            while i < len(new_t[row]):
-                if to_insert < new_t[row][i]:
+            while i < len(row):
+                if to_insert < row[i]:
                     t = to_insert
-                    to_insert = new_t[row][i]
-                    new_t[row][i] = t
+                    to_insert = row[i]
+                    row[i] = t
                     break
                 i += 1
 
             #if we haven't already inserted to_insert
             #append it to the end of row
-            if i == len(new_t[row]):
-                new_t[row].append(to_insert)
+            if i == len(row):
+                row.append(to_insert)
                 if isinstance(self, SemistandardTableau):
                     return SemistandardTableau(new_t)
                 return Tableau(new_t)
@@ -1834,12 +1836,14 @@ class Tableau(CombinatorialObject, Element):
         row-insertion) algorithm.
 
         INPUT:
-            - ``i`` -- a number to insert
-            - ``left`` -- defaults to `False`; if set to `True`, the insertion
-            will be done from the left. That is, if one thinks of the algorithm
-            as appending a letter to the reading word of ``self``, we append the
-            letter to the left instead of the right
- 
+
+        - ``i`` -- a number to insert
+        - ``left`` -- (default: ``False``) boolean; if set to
+          ``True``, the insertion will be done from the left. That
+          is, if one thinks of the algorithm as appending a letter
+          to the reading word of ``self``, we append the letter to
+          the left instead of the right
+
         EXAMPLES::
 
             sage: t = Tableau([[3,5],[7]])

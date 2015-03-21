@@ -252,7 +252,7 @@ def text(string, xy, **options):
         sage: text("I had a dream!", (2,12), alpha=0.3, fontsize='large', fontweight='bold', color='red')
         Graphics object consisting of 1 graphics primitive
 
-    By setting `horizontal_alignment` to 'left' the text is guaranteed to be in
+    By setting ``horizontal_alignment`` to 'left' the text is guaranteed to be in
     the lower left no matter what::
 
         sage: text("I got a horse and he lives in a tree", (0,0), axis_coords=True, horizontal_alignment='left')
@@ -278,7 +278,7 @@ def text(string, xy, **options):
         sage: text("sage", (0,0), rgbcolor=(0,0,0)).save(os.path.join(SAGE_TMP, 'a.pdf'))
 
     Some examples of bounding box::
-    
+
         sage: bbox = {'boxstyle':"rarrow,pad=0.3", 'fc':"cyan", 'ec':"b", 'lw':2}
         sage: text("I feel good", (1,2), bounding_box=bbox)
         Graphics object consisting of 1 graphics primitive

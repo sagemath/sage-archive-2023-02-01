@@ -17,7 +17,6 @@ disable Ctrl-C.
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
-include 'sage/ext/stdsage.pxi'
 include 'sage/ext/interrupt.pxi'
 
 cdef extern from 'pythonrun.h':

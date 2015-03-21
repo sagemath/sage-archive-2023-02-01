@@ -19,6 +19,7 @@ AUTHORS:
 
 
 include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 include "sage/libs/pari/pari_err.pxi"
 
 from element_base cimport FinitePolyExtElement

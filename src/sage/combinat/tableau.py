@@ -1722,7 +1722,7 @@ class Tableau(ClonableList):
             Category of elements of Semistandard tableaux
         """
         res = [ [y for y in row if y <= n] for row in self ]
-        res = [row for row in res if row != []]
+        res = [row for row in res if row]
         # attempt to return a tableau of the same type
         try:
             return self.parent()( res )
@@ -2634,10 +2634,30 @@ class Tableau(ClonableList):
         return self.to_word().cocharge()
 
 
-    def add_entry(self,cell,m):
+    def add_entry(self, cell, m):
         """
-        Set the entry in ``cell`` equal to ``m``. If the cell does not exist then
-        extend the tableau, otherwise just replace the entry.
+        Return the result of setting the entry in cell ``cell`` equal
+        to ``m`` in the tableau ``self``.
+
+        This tableau has larger size than ``self`` if ``cell`` does not
+        belong to the shape of ``self``; otherwise, the tableau has the
+        same shape as ``self`` and has the appropriate entry replaced.
+
+        INPUT:
+
+        - ``cell`` -- a pair of nonnegative integers
+
+        OUTPUT:
+
+        The tableau ``self`` with the entry in cell ``cell`` set to ``m``. This
+        entry overwrites an existing entry if ``cell`` already belongs to
+        ``self``, or is added to the tableau if ``cell`` is a cocorner of the
+        shape ``self``. (Either way, the input is not modified.)
+
+        .. NOTE::
+
+            Both coordinates of ``cell`` are interpreted as starting at `0`.
+            So, ``cell == (0, 0)`` corresponds to the northwesternmost cell.
 
         EXAMPLES::
 
@@ -2664,21 +2684,24 @@ class Tableau(ClonableList):
             IndexError: (2, 2) is not an addable cell of the tableau
 
         """
-        tab=self.to_list()
-        (r,c)=cell
+        tab = self.to_list()
+        (r, c) = cell
         try:
-            tab[r][c]=m   # will work if we are replacing an entry
+            tab[r][c] = m   # will work if we are replacing an entry
         except IndexError:
             # Only add a new row if (r,c) is an addable cell (previous code
-            # added added m to the end of row r independently of the value of c)
-            if (r,c) in self.shape().outside_corners():  # an addable node
-                if r==len(tab):
-                    tab.append([])
-
-                tab[r].append(m)
-
+            # added m to the end of row r independently of the value of c)
+            if r >= len(tab):
+                if r == len(tab) and c == 0:
+                    tab.append([m])
+                else:
+                    raise IndexError('%s is not an addable cell of the tableau' % ((r,c),))
             else:
-                raise IndexError('%s is not an addable cell of the tableau' % ((r,c),))
+                tab_r = tab[r]
+                if c == len(tab_r):
+                    tab_r.append(m)
+                else:
+                    raise IndexError('%s is not an addable cell of the tableau' % ((r,c),))
 
         # attempt to return a tableau of the same type as self
         if tab in self.parent():

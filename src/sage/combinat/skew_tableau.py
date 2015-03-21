@@ -25,7 +25,6 @@ AUTHORS:
 #*****************************************************************************
 
 import copy
-from sage.misc.misc import uniq
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 
 from sage.structure.parent import Parent
@@ -39,6 +38,7 @@ from sage.rings.all import Integer, QQ, ZZ
 from sage.rings.arith import factorial
 from sage.rings.infinity import PlusInfinity
 from sage.matrix.all import zero_matrix
+import itertools
 
 from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.partition import Partition
@@ -88,12 +88,11 @@ class SkewTableau(CombinatorialObject, Element):
         if expr is not None:
             return SkewTableaux().from_expr(expr)
 
-        try:
-            st = map(tuple, st)
-        except TypeError:
-            raise TypeError("each element of the skew tableau must be an iterable")
-
         for row in st:
+            try:
+                iter(row)
+            except TypeError:
+                raise TypeError("each element of the skew tableau must be an iterable")
             if not row:
                 raise TypeError("a skew tableau cannot have an empty list for a row")
 
@@ -106,6 +105,19 @@ class SkewTableau(CombinatorialObject, Element):
             sage: st = SkewTableau([[None, 1],[2,3]])
             sage: st = SkewTableau([[None,1,1],[None,2],[4]])
             sage: TestSuite(st).run()
+
+        A skew tableau is immutable, see :trac:`15862`::
+
+            sage: T = SkewTableau([[None,2],[2]])
+            sage: t0 = T[0]
+            sage: t0[1] = 3
+            Traceback (most recent call last):
+            ...
+            TypeError: 'tuple' object does not support item assignment
+            sage: T[0][1] = 5
+            Traceback (most recent call last):
+            ...
+            TypeError: 'tuple' object does not support item assignment
         """
         try:
             st = map(tuple, st)
@@ -151,7 +163,7 @@ class SkewTableau(CombinatorialObject, Element):
 
     def _repr_list(self):
         """
-        Return a string represenation of ``self`` as a list of lists.
+        Return a string representation of ``self`` as a list of lists.
 
         EXAMPLES::
 
@@ -413,11 +425,16 @@ class SkewTableau(CombinatorialObject, Element):
 
             sage: SkewTableau([[None,2],[3,4],[None],[1]]).to_permutation()
             [1, 3, 4, 2]
+            sage: SkewTableau([[None,2],[None,4],[1],[3]]).to_permutation()
+            [3, 1, 4, 2]
             sage: SkewTableau([[None]]).to_permutation()
             []
         """
         from sage.combinat.permutation import Permutation
-        return Permutation(self.to_word())
+        word = []
+        for row in reversed(self):
+            word += [i for i in row if i is not None]
+        return Permutation(word)
 
     def weight(self):
         """
@@ -497,8 +514,8 @@ class SkewTableau(CombinatorialObject, Element):
             False
         """
         #Check to make sure that it is filled with 1...size
-        w = self.to_word()
-        if sorted(w) != range(1, self.size()+1):
+        w = [i for row in self for i in row if i is not None]
+        if sorted(w) != range(1, len(w)+1):
             return False
         else:
             return self.is_semistandard()
@@ -518,22 +535,29 @@ class SkewTableau(CombinatorialObject, Element):
             True
             sage: SkewTableau([[None, 2], [1, 2]]).is_semistandard()
             False
+            sage: SkewTableau([[None, 2, 3]]).is_semistandard()
+            True
+            sage: SkewTableau([[None, 3, 2]]).is_semistandard()
+            False
+            sage: SkewTableau([[None, 2, 3], [1, 4]]).is_semistandard()
+            True
+            sage: SkewTableau([[None, 2, 3], [1, 2]]).is_semistandard()
+            False
+            sage: SkewTableau([[None, 2, 3], [None, None, 4]]).is_semistandard()
+            False
         """
-        t = self
+        if not self:
+            return True
 
-        #Check to make sure it is weakly increasing along the rows
-        for row in t:
-            for i in range(1, len(row)):
-                if row[i-1] is not None and row[i] < row[i-1]:
-                    return False
+        # Is it weakly increasing along the rows?
+        for row in self:
+            if any(row[c] is not None and row[c] > row[c+1] for c in xrange(len(row)-1)):
+                return False
 
-
-        #Check to make sure it is strictly increasing along the columns
-        conj = t.conjugate()
-        for row in conj:
-            for i in range(1, len(row)):
-                if row[i-1] is not None and row[i] <= row[i-1]:
-                    return False
+        # Is it strictly increasing down columns?
+        for row, next in itertools.izip(self, self[1:]):
+            if any(row[c] is not None and row[c] >= next[c] for c in xrange(len(next))):
+                return False
 
         return True
 

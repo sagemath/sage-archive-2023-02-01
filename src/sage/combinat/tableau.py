@@ -80,7 +80,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableList
 from sage.structure.parent import Parent
 from sage.misc.classcall_metaclass import ClasscallMetaclass
-from sage.misc.decorators import rename_keyword
 from sage.rings.infinity import PlusInfinity
 from sage.rings.arith import factorial
 from sage.rings.integer import Integer
@@ -89,9 +88,8 @@ from sage.combinat.composition import Composition, Compositions
 from integer_vector import IntegerVectors
 import sage.libs.symmetrica.all as symmetrica
 import sage.misc.prandom as random
-import copy
 import permutation
-from sage.misc.flatten import flatten
+import itertools
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.misc.all import uniq, prod
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -289,7 +287,7 @@ class Tableau(ClonableList):
 
     def __init__(self, parent, t):
         r"""
-        Initializes a tableau.
+        Initialize a tableau.
 
         TESTS::
 
@@ -305,6 +303,19 @@ class Tableau(ClonableList):
             Tableaux
             sage: s is t # identical tableaux are distinct objects
             False
+            
+        A tableau is immutable, see :trac:`15862`::
+
+            sage: T = Tableau([[1,2],[2]])
+            sage: t0 = T[0]
+            sage: t0[1] = 3
+            Traceback (most recent call last):
+            ...
+            TypeError: 'tuple' object does not support item assignment
+            sage: T[0][1] = 5
+            Traceback (most recent call last):
+            ...
+            TypeError: 'tuple' object does not support item assignment
         """
         if isinstance(t, Tableau):
             # Since we are (supposed to be) immutable, we can share the underlying data
@@ -1844,6 +1855,8 @@ class Tableau(ClonableList):
 
     def to_list(self):
         """
+        Return ``self`` as a list of lists (not tuples!).
+
         EXAMPLES::
 
             sage: t = Tableau([[1,2],[3,4]])
@@ -2290,8 +2303,7 @@ class Tableau(ClonableList):
                 return self
             s = self.shape()[0]
             l = self.weight()[0]
-            word = [i for i in self.to_word() if i>1]
-            word = [i-1 for i in word]
+            word = [i-1 for row in reversed(self) for i in row if i>1]
             t = Tableau([])
             t = t.insert_word(word)
             t = t.to_list()
@@ -2409,9 +2421,9 @@ class Tableau(ClonableList):
         """
         if self.is_rectangular():
             t = self.rotate_180()
-            t = [[n+2-i for i in row] for row in t.to_list()]
+            t = [tuple(n+2-i for i in row) for row in t]
             t = Tableau(t).promotion_inverse(n)
-            t = [[n+2-i for i in row] for row in t.to_list()]
+            t = [tuple(n+2-i for i in row) for row in t]
             return Tableau(t).rotate_180()
         p = self
         for c in self.cells_containing(n+1):
@@ -2776,7 +2788,7 @@ class Tableau(ClonableList):
 
         m = len(part)
 
-        w1 = flatten([row for row in reversed(self[m:])])
+        w1 = list(sum((row for row in reversed(self[m:])), ()))
 
         w2 = []
         for i,row in enumerate(reversed(self[:m])):
@@ -3173,8 +3185,8 @@ class Tableau(ClonableList):
         if self.is_key_tableau():
             return self
 
-        key = [[] for row in self.conjugate()]
-        cols_list = self.conjugate().to_list()
+        cols_list = self.conjugate()
+        key = [[] for row in cols_list]
 
         for i, col_a in enumerate(cols_list):
             right_cols = cols_list[i+1:]
@@ -3182,7 +3194,7 @@ class Tableau(ClonableList):
                 key_val = elem
                 update = []
                 for col_b in right_cols:
-                    if col_b != [] and key_val <= col_b[-1]:
+                    if col_b and key_val <= col_b[-1]:
                         key_val = col_b[-1]
                         update.append(col_b[:-1])
                     else:
@@ -3237,9 +3249,9 @@ class Tableau(ClonableList):
         if self.is_key_tableau():
             return self
 
-        key = [[] for row in self.conjugate()]
-        key[0] = self.conjugate()[0]
-        cols_list = self.conjugate().to_list()
+        cols_list = self.conjugate()
+        key = [[] for row in cols_list]
+        key[0] = list(cols_list[0])
 
         from bisect import bisect_right
         for i, col_a in enumerate(cols_list[1:],1):
@@ -3466,7 +3478,7 @@ class SemistandardTableau(Tableau):
 
     def __init__(self, parent, t):
         r"""
-        Initializes a semistandard tableau.
+        Initialize a semistandard tableau.
 
         TESTS::
 
@@ -3489,18 +3501,22 @@ class SemistandardTableau(Tableau):
         super(SemistandardTableau, self).__init__(parent, t)
 
         # Tableau() has checked that t is tableau, so it remains to check that
-        # the entries of t are positive integers
+        # the entries of t are positive integers which are weakly increasing
+        # along rows
         from sage.sets.positive_integers import PositiveIntegers
-        if any(c not in PositiveIntegers() for row in t for c in row):
-            raise ValueError("the entries of a semistandard tableau must be non-negative integers")
+        PI = PositiveIntegers()
 
-        # which are weakly increasing along rows
-        if any(row[c]>row[c+1] for row in t for c in xrange(len(row)-1)):
-            raise ValueError("the entries in each row of a semistandard tableau must be weakly increasing")
+        for row in t:
+            if any(c not in PI for c in row):
+                raise ValueError("the entries of a semistandard tableau must be non-negative integers")
+            if any(row[c] > row[c+1] for c in xrange(len(row)-1)):
+                raise ValueError("the entries in each row of a semistandard tableau must be weakly increasing")
 
         # and strictly increasing down columns
-        if len(t)>0 and any(t[r][c] >= t[r+1][c] for c in xrange(len(t[0])) for r in xrange(len(t)-1) if len(t[r+1])>c):
-            raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
+        if t:
+            for row, next in itertools.izip(t, t[1:]):
+                if not all(row[c] < next[c] for c in xrange(len(next))):
+                    raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
 
 class StandardTableau(SemistandardTableau):
     """
@@ -3550,7 +3566,7 @@ class StandardTableau(SemistandardTableau):
         sage: StandardTableau([[1,2,3],[4,4]])
         Traceback (most recent call last):
         ...
-        ValueError: the entries in each row of a standard tableau must be strictly increasing
+        ValueError: the entries in a standard tableau must be in bijection with 1,2,...,n
         sage: StandardTableau([[1,3,2]])
         Traceback (most recent call last):
         ...
@@ -3598,12 +3614,10 @@ class StandardTableau(SemistandardTableau):
         """
         super(StandardTableau, self).__init__(parent, t)
 
-        # t is semistandard so we only need to check that it is standard
-        if any(row[c]==row[c+1] for row in self for c in xrange(len(row)-1)):
-            raise ValueError("the entries in each row of a standard tableau must be strictly increasing")
-
-        # and that the entries are in bijection with {1,2,...,n}
-        if sorted(flatten(list(self)))!=range(1,self.size()+1):
+        # t is semistandard so we only need to check
+        # that its entries are in bijection with {1, 2, ..., n}
+        flattened_list = [i for row in self for i in row]
+        if sorted(flattened_list) != range(1, len(flattened_list)+1):
             raise ValueError("the entries in a standard tableau must be in bijection with 1,2,...,n")
 
 
@@ -3866,7 +3880,7 @@ class StandardTableau(SemistandardTableau):
         """
         if m is None:
             m = self.size() - 1
-        return StandardTableau(Tableau(self.to_list()).promotion_inverse(m))
+        return StandardTableau(Tableau(self[:]).promotion_inverse(m))
 
     def promotion(self, m=None):
         r"""
@@ -3902,7 +3916,7 @@ class StandardTableau(SemistandardTableau):
         """
         if m is None:
             m = self.size() - 1
-        return StandardTableau(Tableau(self.to_list()).promotion(m))
+        return StandardTableau(Tableau(self[:]).promotion(m))
 
 def from_chain(chain):
     """
@@ -4251,7 +4265,7 @@ class Tableaux_size(Tableaux):
             sage: 1 in sage.combinat.tableau.Tableaux_size(3)
             False
         """
-        return Tableaux.__contains__(self, x) and sum(map(len,x)) == self.size
+        return Tableaux.__contains__(self, x) and sum(len(row) for row in x) == self.size
 
     def _repr_(self):
         """
@@ -4699,6 +4713,8 @@ class SemistandardTableaux(Tableaux):
             False
             sage: [[1,1],[5]] in T
             True
+            sage: [[1,3,2]] in T
+            False
 
         Check that :trac:`14145` is fixed::
 
@@ -4708,14 +4724,19 @@ class SemistandardTableaux(Tableaux):
         if isinstance(t, SemistandardTableau):
             return self.max_entry is None or \
                     len(t) == 0 or \
-                    max(flatten(t)) <= self.max_entry
+                    max(sum(t, ())) <= self.max_entry
         elif t == []:
             return True
-        elif Tableaux.__contains__(self, t) and all(c>0 for row in t for c in row) \
-                and all(row[i] <= row[i+1] for row in t for i in range(len(row)-1)) \
-                and all(t[r][c] < t[r+1][c]
-                        for r in range(len(t)-1) for c in range(len(t[r+1]))):
-            return self.max_entry is None or max(flatten(t)) <= self.max_entry
+        elif Tableaux.__contains__(self, t):
+            for row in t:
+                if not all(c > 0 for c in row):
+                    return False
+                if not all(row[i] <= row[i+1] for i in range(len(row)-1)):
+                    return False
+            for row, next in itertools.izip(t, t[1:]):
+                if not all(row[c] < next[c] for c in range(len(next))):
+                    return False
+            return self.max_entry is None or max(max(row) for row in t) <= self.max_entry
         else:
             return False
 
@@ -5039,7 +5060,8 @@ class SemistandardTableaux_size(SemistandardTableaux):
             return x == []
 
         return SemistandardTableaux.__contains__(self, x) \
-            and sum(map(len,x)) == self.size and max(flatten(x)) <= self.max_entry
+            and sum(map(len,x)) == self.size \
+            and max(i for row in x for i in row) <= self.max_entry
 
     def cardinality(self):
         """
@@ -5594,8 +5616,8 @@ class StandardTableaux(SemistandardTableaux):
             flatx = sorted(sum((list(row) for row in x),[]))
             return flatx == range(1,len(flatx)+1) and (len(x)==0 or
                      (all(row[i]<row[i+1] for row in x for i in range(len(row)-1)) and
-                       all(x[r][c]<x[r+1][c] for c in range(len(x[0]))
-                                             for r in range(len(x)-1) if len(x[r+1])>c )
+                       all(x[r][c]<x[r+1][c] for r in range(len(x)-1)
+                                              for c in range(len(x[r+1])) )
                      ))
         return False
 
@@ -5994,7 +6016,7 @@ class StandardTableaux_shape(StandardTableaux):
 
         # iterate until we reach the last tableau which is
         # filled with the row indices.
-        last_tableau=flatten([ [row]*l for (row,l) in enumerate(pi)])
+        last_tableau = sum([[row]*l for (row,l) in enumerate(pi)], [])
 
         #Convert the tableau to "vector format"
         #tableau_vector[i] is the row that number i

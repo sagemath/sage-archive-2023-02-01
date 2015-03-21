@@ -1846,14 +1846,9 @@ class Tableau(ClonableList):
             sage: t.anti_restrict(5)
             [[None, None, None], [None, None]]
         """
-        t = [list(row) for row in self]  # create deep copy of t
-
-        for row in t:
-            for col in xrange(len(row)):
-                if row[col] <= n:
-                    row[col] = None
+        t_new = [[None if g <= n else g for g in row] for row in self]
         from sage.combinat.skew_tableau import SkewTableau
-        return SkewTableau(t)
+        return SkewTableau(t_new)
 
     def to_list(self):
         """

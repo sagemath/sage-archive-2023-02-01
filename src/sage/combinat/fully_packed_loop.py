@@ -81,6 +81,7 @@ from sage.combinat.six_vertex_model import SquareIceModel, SixVertexConfiguratio
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix
 from sage.plot.graphics import Graphics
 from sage.plot.line import line
+from sage.combinat.perfect_matching import PerfectMatching
 
 
 class FullyPackedLoop(SageObject):
@@ -556,13 +557,37 @@ class FullyPackedLoop(SageObject):
             sage: fpl.link_pattern()
             [(1, 2), (3, 6), (4, 5)]
         """
-        link_pattern=[]
+        link_pattern = []
         svm = self.six_vertex_model
-        n=len(svm)
+        n = len(svm)
+        boundary_d = self.end_points
+        vertices_d = self._vertex_dictionary(n)
 
+        while len(boundary_d) > 2:
+            startpoint = boundary_d.keys()[0]
+            position = boundary_d[startpoint]
 
+            boundary_d.pop(startpoint)
+            vertices_d[position] = 0 # allows us to start
 
-    def _vertex_dictionary(size):
+            while not vertices_d[position]:
+                vertices_d.pop(position)
+                choices = self._get_coordinates(position)
+                if choices[0] in vertices_d:
+                    position = choices[0]
+                else:
+                    position = choices[1]
+
+            endpoint = vertices_d[position]
+            vertices_d.pop(position)
+            link_pattern.append((startpoint, endpoint))
+            boundary_d.pop(endpoint)
+
+        link_pattern.append(boundary_d.keys())
+
+        return PerfectMatching(link_pattern)
+
+    def _vertex_dictionary(self, size):
         """
         A function to create a dictionary of all the coordinates.
         """
@@ -572,8 +597,10 @@ class FullyPackedLoop(SageObject):
             for j in range(n):
                 vertices[(i, j)] = 0
 
-        for end, vertex in self.endpoints:
+        for end, vertex in self.end_points:
             vertices[vertex] = end
+
+        return vertices
 
     def _get_coordinates(self, current):
         # 0 UD, 1 RD, 2 UR, 3 LR, 4 LD, 5 LU
@@ -603,8 +630,6 @@ class FullyPackedLoop(SageObject):
             potential_directions = odd[parity]
 
         return [(c[0] + d[0], c[1] + d[1]) for d in potential_directions]
-
-
 
     def _end_point_dictionary(self):
         """

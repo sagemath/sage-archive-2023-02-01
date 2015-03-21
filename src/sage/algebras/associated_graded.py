@@ -16,16 +16,16 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from copy import copy
 
-from sage.categories.algebras_with_basis import AlgebrasWithBasis
+from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.sets.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
 
 class AssociatedGradedAlgebra(CombinatorialFreeModule):
     r"""
-    The associated graded algebra `\operatorname{gr} A`
-    of a filtered algebra with basis `A`.
+    The associated graded algebra/module `\operatorname{gr} A`
+    of a filtered algebra/module with basis `A`.
 
-    Let `A` be a filtered algebra over a commutative ring `R`.
+    Let `A` be a filtered module over a commutative ring `R`.
     Let `(F_i)_{i \in I}` be the filtration of `A`, with `I` being
     a totally ordered set. Define
 
@@ -42,7 +42,12 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
     There are canonical projections `p_i : F_i \to G_i` for
     every `i \in I`. Moreover `\operatorname{gr} A` is naturally a
     graded `R`-module with `G_i` being the `i`-th graded component.
+    This graded `R`-module is known as the *associated graded module*
+    (or, for short, just *graded module*) of `A`.
 
+    Now, assume that `A` (endowed with the filtration
+    `(F_i)_{i \in I}`) is not just a filtered `R`-module, but also
+    a filtered `R`-algebra.
     Let `u \in G_i` and `v \in G_j`, and let `u' \in F_i` and
     `v' \in F_j` be lifts of `u` and `v`, respectively (so that
     `u = p_i(u')` and `v = p_j(v')`). Then, we define a
@@ -93,9 +98,28 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
 
     INPUT:
 
-    - ``A`` -- a filtered algebra with basis
+    - ``A`` -- a filtered module (or algebra) with basis
 
-    EXAMPLES::
+    OUTPUT:
+
+    The associated graded module of `A`, if `A` is just a filtered
+    `R`-module.
+    The associated graded algebra of `A`, if `A` is a filtered
+    `R`-algebra.
+
+    EXAMPLES:
+
+    Associated graded module of a filtered module::
+
+        sage: A = Modules(QQ).WithBasis().Filtered().example()
+        sage: grA = A.graded_algebra()
+        sage: grA.category()
+        Category of graded modules with basis over Rational Field
+        sage: x = A.basis()[Partition([3,2,1])]
+        sage: grA(x)
+        Bbar[[3, 2, 1]]
+
+    Associated graded algebra of a filtered algebra::
 
         sage: A = Algebras(QQ).WithBasis().Filtered().example()
         sage: grA = A.graded_algebra()
@@ -147,7 +171,7 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
             sage: grA = A.graded_algebra()
             sage: TestSuite(grA).run(elements=[prod(grA.algebra_generators())])
         """
-        if A not in AlgebrasWithBasis(A.base_ring().category()).Filtered():
+        if A not in ModulesWithBasis(A.base_ring().category()).Filtered():
             raise ValueError("the base algebra must be filtered and with basis")
         self._A = A
 
@@ -180,7 +204,10 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
              the universal enveloping algebra of Lie algebra of RR^3
              with cross product over Rational Field
         """
-        return "Graded Algebra of {}".format(self._A)
+        from sage.categories.algebras_with_basis import AlgebrasWithBasis
+        if self in AlgebrasWithBasis:
+            return "Graded Algebra of {}".format(self._A)
+        return "Graded Module of {}".format(self._A)
 
     def _latex_(self):
         r"""

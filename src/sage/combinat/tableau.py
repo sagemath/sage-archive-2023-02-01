@@ -74,7 +74,6 @@ For display options, see :meth:`Tableaux.global_options`.
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.structure.element import Element
 from sage.structure.global_options import GlobalOptions
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableList
@@ -83,7 +82,6 @@ from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.rings.infinity import PlusInfinity
 from sage.rings.arith import factorial
 from sage.rings.integer import Integer
-from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.composition import Composition, Compositions
 from integer_vector import IntegerVectors
 import sage.libs.symmetrica.all as symmetrica

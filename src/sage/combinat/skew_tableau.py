@@ -29,7 +29,6 @@ from sage.misc.classcall_metaclass import ClasscallMetaclass
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import Element
 from sage.categories.sets_cat import Sets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -40,14 +39,14 @@ from sage.rings.infinity import PlusInfinity
 from sage.matrix.all import zero_matrix
 import itertools
 
-from sage.combinat.combinat import CombinatorialObject
+from sage.structure.list_clone import ClonableList
 from sage.combinat.partition import Partition
-from sage.combinat.tableau import TableauOptions
+from sage.combinat.tableau import Tableau, TableauOptions
 from sage.combinat.skew_partition import SkewPartition, SkewPartitions
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.words.words import Words
 
-class SkewTableau(CombinatorialObject, Element):
+class SkewTableau(ClonableList):
     """
     A skew tableau.
 
@@ -116,16 +115,98 @@ class SkewTableau(CombinatorialObject, Element):
             ...
             TypeError: 'tuple' object does not support item assignment
         """
-        for row in st:
+        ClonableList.__init__(self, parent, st)
+
+    def __eq__(self, other):
+        r"""
+        Check whether ``self`` is equal to ``other``.
+
+        TODO:
+
+        This overwrites the equality check of
+        :class:`~sage.structure.list_clone.ClonableList`
+        in order to circumvent the coercion framework.
+        Eventually this should be solved more elegantly,
+        for example along the lines of what was done for
+        k-tableaux.
+
+        For now, two elements are equal if their underlying
+        defining lists compare equal.
+
+        INPUT:
+
+        ``other`` -- the element that ``self`` is compared to
+
+        OUTPUT:
+
+        A Boolean.
+
+        TESTS::
+
+            sage: t = SkewTableau([[None,1,2]])
+            sage: t == 0
+            False
+            sage: t == SkewTableaux()([[None,1,2]])
+            True
+
+            sage: s = SkewTableau([[1,2]])
+            sage: s == 0
+            False
+            sage: s == Tableau([[1,2]])
+            True
+        """
+        if isinstance(other, (Tableau, SkewTableau)):
+            return list(self) == list(other)
+        else:
+            return list(self) == other
+    
+    def __ne__(self, other):
+        r"""
+        Check whether ``self`` is unequal to ``other``.
+
+        See the documentation of :meth:`__eq__`.
+
+        INPUT:
+
+        ``other`` -- the element that ``self`` is compared to
+
+        OUTPUT:
+
+        A Boolean.
+
+        TESTS::
+
+            sage: t = Tableau([[2,3],[1]])
+            sage: t != []
+            True
+        """
+        if isinstance(other, (Tableau, SkewTableau)):
+            return list(self) != list(other)
+        else:
+            return list(self) != other
+
+    def check(self):
+        r"""
+        Check that ``self`` is a valid skew tableau. This is currently far too
+        liberal, and only checks some trivial things.
+
+        EXAMPLES::
+
+            sage: t = SkewTableau([[None,1,1],[2]])
+            sage: t.check()
+
+            sage: t = SkewTableau([[None, None, 1], [2, 4], [], [3, 4, 5]])
+            Traceback (most recent call last):
+            ...
+            TypeError: a skew tableau cannot have an empty list for a row
+        """
+        for row in self:
             try:
                 iter(row)
             except TypeError:
                 raise TypeError("each element of the skew tableau must be an iterable")
             if not row:
                 raise TypeError("a skew tableau cannot have an empty list for a row")
-
-        CombinatorialObject.__init__(self, st)
-        Element.__init__(self, parent)
 
     def __setstate__(self, state):
         r"""
@@ -135,8 +216,6 @@ class SkewTableau(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: loads('x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+H,*\xc9,\xc9\xcc\xcf\xe3\n\x80\xb1\xe2\x93s\x12\x8b\x8b\xb9\n\x195\x1b\x0b\x99j\x0b\x995BY\xe33\x12\x8b3\nY\xfc\x80\xac\x9c\xcc\xe2\x92B\xd6\xd8B6\r\x88IE\x99y\xe9\xc5z\x99y%\xa9\xe9\xa9E\\\xb9\x89\xd9\xa9\xf10N!{(\xa3qkP!G\x06\x90a\x04dp\x82\x18\x86@\x06Wji\x92\x1e\x00x0.\xb5')
-            [3, 2, 1]
             sage: loads(dumps( SkewTableau([[1,1], [3,2,1]]) ))  # indirect doctest
             [[1, 1], [3, 2, 1]]
         """
@@ -205,10 +284,10 @@ class SkewTableau(CombinatorialObject, Element):
             sage: Tableau([])._repr_compact()
             '-'
         """
-        if not self._list:
+        if not self:
             return '-'
         str_rep = lambda x: '%s'%x if x is not None else '.'
-        return '/'.join(','.join(str_rep(r) for r in row) for row in self._list)
+        return '/'.join(','.join(str_rep(r) for r in row) for row in self)
 
     def pp(self):
         """
@@ -2162,7 +2241,7 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
         """
         from ribbon_tableau import RibbonTableaux_shape_weight_length
         for x in RibbonTableaux_shape_weight_length(self.p, self.mu, 1):
-            yield self.element_class(self, x._list)
+            yield self.element_class(self, x[:])
 
 # October 2012: fixing outdated pickles which use the classes being deprecated
 from sage.structure.sage_object import register_unpickle_override

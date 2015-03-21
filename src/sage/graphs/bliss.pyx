@@ -21,6 +21,7 @@ AUTHORS:
 include "sage/ext/interrupt.pxi"
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/cdefs.pxi'
+from cpython cimport PyObject
 
 cdef extern from "graph.hh" namespace "bliss":
 

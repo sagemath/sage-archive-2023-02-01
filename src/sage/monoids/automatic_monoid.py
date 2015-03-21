@@ -327,6 +327,19 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one = R.one())
             sage: M.ambient()
             Ring of integers modulo 12
+
+            sage: M1=matrix([[0,0,1],[1,0,0],[0,1,0]])
+            sage: M2=matrix([[0,0,0],[1,1,0],[0,0,1]])
+            sage: M1.set_immutable()
+            sage: M2.set_immutable()
+            sage: def prod_m(x,y):
+            ....:     z=x*y
+            ....:     z.set_immutable()
+            ....:     return z
+            ....:
+            sage: Mon = AutomaticMonoid([M1,M2], mul=prod_m)
+            sage: Mon.ambient()
+            Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
         """
         return self._ambient
 
@@ -518,7 +531,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
         .. NOTE::
 
             We do not save the given reduced word ``l`` as an attribute of the
-            element, as some elements above in the branches may hve not beem
+            element, as some elements above in the branches may have not been
             explored by the iterator yet.
 
         EXAMPLES::
@@ -589,6 +602,16 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
     class Element(ElementWrapper):
 
         def __init__(self, ambient_element, parent):
+            """
+            TESTS::
+
+                sage: R = IntegerModRing(21)
+                sage: M = AutomaticMonoid(Family(()), one = R.one())
+                sage: m = M(2); m
+                2
+                sage: type(m)
+                <class 'sage.monoids.automatic_monoid.AutomaticMonoid_with_category.element_class'>
+            """
             ElementWrapper.__init__(self, ambient_element, parent)
             self._reduced_word = None
 
@@ -604,8 +627,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             OUTPUT:
 
             - The length-lexicographic shortest reduced word for
-            self, or None if it has not yet been computed.
-
+              ``self``, or None if it has not yet been computed.
 
             ALGORITHM:
 
@@ -635,7 +657,20 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         def lift(self):
             """
-            Lift the element ``self`` into its ambient monoid
+            Lift the element ``self`` into its ambient monoid.
+
+            EXAMPLES::
+
+                sage: R = IntegerModRing(18)
+                sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one = R.one())
+                sage: m = M.an_element(); m
+                [1]
+                sage: type(m)
+                <class 'sage.monoids.automatic_monoid.AutomaticMonoid_with_category.element_class'>
+                sage: m.lift()
+                3
+                sage: type(m.lift())
+                <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
             """
             return self.value
 
@@ -643,7 +678,12 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
         def transition(self, i):
             """
             The multiplication on the right by a generator.
-            Namely, this returns x * self.generators[i]
+
+            INPUT:
+
+            - ``i`` -- an element from the indexing set of the generators
+
+            This method computes ``self * self.generators[i]``.
 
             EXAMPLES::
 
@@ -683,7 +723,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         def __copy__(self, memo=None):
             r"""
-            Return ``self`` since this has unique representation
+            Return ``self`` since this has unique representation.
 
             INPUT:
 

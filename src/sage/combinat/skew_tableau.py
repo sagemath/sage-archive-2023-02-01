@@ -42,7 +42,7 @@ from sage.matrix.all import zero_matrix
 
 from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.partition import Partition
-from sage.combinat.tableau import TableauOptions
+from sage.combinat.tableau import TableauOptions, Tableaux, SemistandardTableau, StandardTableau, Tableau
 from sage.combinat.skew_partition import SkewPartition, SkewPartitions
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.words.words import Words
@@ -761,7 +761,7 @@ class SkewTableau(CombinatorialObject, Element):
 
         return SkewTableau(new_st)
 
-    def rectify(self):
+    def rectify(self, force=None):
         """
         Return a :class:`Tableau` formed by applying the jeu de taquin
         process to ``self``. See page 15 of [FW]_.
@@ -772,6 +772,11 @@ class SkewTableau(CombinatorialObject, Element):
            *Young Tableaux*,
            Cambridge University Press 1997.
 
+        INPUT:
+        - ``force`` -- optional: if set to ``'jdt'``, rectifies by jeu de taquin;
+          if set to ``'schensted'``, rectifies by Schensted insertion of the 
+          reading word; otherwise, guesses which will be faster. 
+
         EXAMPLES::
 
             sage: s = SkewTableau([[None,1],[2,3]])
@@ -779,20 +784,33 @@ class SkewTableau(CombinatorialObject, Element):
             [[1, 3], [2]]
             sage: SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]]).rectify()
             [[1, 3, 4, 6], [2, 5]]
+            sage: SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]]).rectify('jdt')
+            [[1, 3, 4, 6], [2, 5]]
+            sage: SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]]).rectify('schensted')
+            [[1, 3, 4, 6], [2, 5]]
 
         TESTS::
 
             sage: s
             [[None, 1], [2, 3]]
         """
-        rect = copy.deepcopy(self)
-        inner_corners = rect.inner_shape().corners()
-
-        while len(inner_corners) > 0:
-            rect = rect.slide()
+        labda = self.outer_shape()
+        musize = self.inner_shape().size()
+        labdasize = labda.size()
+        if force == 'jdt' or (force != 'schensted' and musize < len(labda) * (labdasize - musize)**(1/2)):
+            rect = self
             inner_corners = rect.inner_shape().corners()
-
-        return rect.to_tableau()
+            while len(inner_corners) > 0:
+                rect = rect.slide()
+                inner_corners = rect.inner_shape().corners()
+        else:
+            w = self.to_word()
+            rect = Tableau([]).insert_word(w)
+        if self in SemistandardSkewTableaux():
+            return SemistandardTableau(rect[:])
+        if self in StandardSkewTableaux():
+            return StandardTableau(rect[:])
+        return Tableau(rect)
 
     def standardization(self, check=True):
         r"""

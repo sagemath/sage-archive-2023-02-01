@@ -1709,7 +1709,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             elimination implemented in Sage.
 
           - ``all`` - compute using both algorithms and verify that
-           the results are the same.
+            the results are the same.
 
         - ``**kwds`` - these are all ignored
 

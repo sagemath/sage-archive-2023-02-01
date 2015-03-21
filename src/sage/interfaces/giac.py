@@ -10,7 +10,7 @@ supporting "giac --sage" ( roughly after 0.9.1 ). In this case you do not have
 to install any  optional Sage packages. If giac is not already installed, you can
 download binaries or sources or spkg (follow the sources link) from the homepage:
 
-Homepage http://www-fourier.ujf-grenoble.fr/~parisse/giac.html
+Homepage <http://www-fourier.ujf-grenoble.fr/~parisse/giac.html>
 
 Type ``giac.[tab]`` for a list of all the functions
 available from your Giac install. Type
@@ -19,9 +19,9 @@ function. Type ``giac(...)`` to create a new Giac
 object, and ``giac.eval(...)`` to run a string using
 Giac (and get the result back as a string).
 
-If the giac spkg is installed, you should find the full html documentation there:
+If the giac spkg is installed, you should find the full html documentation there::
 
-$SAGE_LOCAL/share/giac/doc/en/cascmd_local/index.html
+    $SAGE_LOCAL/share/giac/doc/en/cascmd_local/index.html
 
 
 EXAMPLES::
@@ -135,11 +135,9 @@ command
 Note that the above two commands are slightly different, and the
 first is preferred.
 
-For example, for help on the giac command factors, we type
+For example, for help on the giac command factors, we type ::
 
-::
-
-sage: giac.help('factors')                     # not tested
+    sage: giac.help('factors')                     # not tested
 
 ::
 
@@ -427,15 +425,15 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
 
         EXAMPLES::
 
-        sage: giac_console()                   # not tested - giac
-        ...
-        Homepage http://www-fourier.ujf-grenoble.fr/~parisse/giac.html
-        Released under the GPL license 3.0 or above
-        See http://www.gnu.org for license details
-        -------------------------------------------------
-        Press CTRL and D simultaneously to finish session
-        Type ?commandname for help
-        0>>
+            sage: giac_console()                   # not tested - giac
+            ...
+            Homepage http://www-fourier.ujf-grenoble.fr/~parisse/giac.html
+            Released under the GPL license 3.0 or above
+            See http://www.gnu.org for license details
+            -------------------------------------------------
+            Press CTRL and D simultaneously to finish session
+            Type ?commandname for help
+            0>>
 
         """
         giac_console()
@@ -571,16 +569,18 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
 
 
     def eval(self, code, strip=True, **kwds):
-        """
+        r"""
         Send the code x to the Giac interpreter.
-        Remark: To enable multi-lines codes in the notebook magic mode: %giac,
-        the \\n are removed before sending the code to giac.
+        Remark: To enable multi-lines codes in the notebook magic mode: ``%giac``,
+        the ``\n`` are removed before sending the code to giac.
 
         INPUT:
-            code -- str
-            strip -- Default is True and removes \n
 
-        EXAMPLES:
+        - code -- str
+        - strip -- Default is True and removes ``\n``
+
+        EXAMPLES::
+
             sage: giac.eval("2+2;\n3") #optional - giac
             '4,3'
             sage: giac.eval("2+2;\n3",False) # optional - giac
@@ -724,7 +724,6 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
         the Giac console.
 
         INPUT:
-
 
         -  ``str`` - a string to search for in the giac help
            system

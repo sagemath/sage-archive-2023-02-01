@@ -68,6 +68,7 @@ all-sage: \
      $(INST)/$(LINBOX) \
      $(INST)/$(M4RI) \
      $(INST)/$(M4RIE) \
+     $(INST)/$(MARKUPSAFE) \
      $(INST)/$(MATHJAX) \
      $(INST)/$(MATPLOTLIB) \
      $(INST)/$(MAXIMA) \
@@ -467,7 +468,10 @@ $(INST)/$(SPHINX): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(DOCUTILS) \
                    $(INST)/$(JINJA2) $(INST)/$(PYGMENTS)
 	+$(PIPE) "$(SAGE_SPKG) $(SPHINX) 2>&1" "tee -a $(SAGE_LOGS)/$(SPHINX).log"
 
-$(INST)/$(JINJA2): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(DOCUTILS)
+$(INST)/$(MARKUPSAFE): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
+	+$(PIPE) "$(SAGE_SPKG) $(MARKUPSAFE) 2>&1" "tee -a $(SAGE_LOGS)/$(MARKUPSAFE).log"
+
+$(INST)/$(JINJA2): $(INST)/$(MARKUPSAFE) $(INST)/$(SPHINX)
 	+$(PIPE) "$(SAGE_SPKG) $(JINJA2) 2>&1" "tee -a $(SAGE_LOGS)/$(JINJA2).log"
 
 $(INST)/$(PYGMENTS): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)

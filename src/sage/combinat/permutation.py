@@ -360,7 +360,7 @@ class Permutation(CombinatorialObject, Element):
     .. WARNING::
 
         Since :trac:`13742` the input is checked for correctness : it is not
-        accepted unless actually is a permutation on `\{1, \ldots, n\}`. It
+        accepted unless it actually is a permutation on `\{1, \ldots, n\}`. It
         means that some :meth:`Permutation` objects cannot be created anymore
         without setting ``check_input = False``, as there is no certainty that
         its functions can handle them, and this should be fixed in a much

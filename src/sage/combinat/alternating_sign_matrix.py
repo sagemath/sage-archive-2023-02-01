@@ -849,6 +849,8 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
         self._matrix_space = MatrixSpace(ZZ, n)
         self._umt = use_monotone_triangles
         Parent.__init__(self, category=FiniteEnumeratedSets())
+        self._gyration_orbits = None
+        self._gyration_orbit_sizes = None
 
     def _repr_(self):
         r"""
@@ -1197,8 +1199,92 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
             Finite lattice containing 7 elements
 
         """
-        return LatticePoset(self._lattice_initializer(), cover_relations=True)
-
+        return LatticePoset(self._lattice_initializer(), cover_relations=True)        
+        
+    def gyration_orbits(self):
+        r"""
+        Return the list of gyration orbits of ``self``
+        and also save this information in ``self._gyration_orbits``
+        
+        EXAMPLES::
+        
+            sage: AlternatingSignMatrices(3).gyration_orbits()
+            [[
+            [1 0 0]  [0 0 1]  [ 0  1  0]
+            [0 1 0]  [0 1 0]  [ 1 -1  1]
+            [0 0 1], [1 0 0], [ 0  1  0]
+            ],
+            [
+            [0 1 0]  [1 0 0]
+            [1 0 0]  [0 0 1]
+            [0 0 1], [0 1 0]
+            ],
+            [
+            [0 0 1]  [0 1 0]
+            [1 0 0]  [0 0 1]
+            [0 1 0], [1 0 0]
+            ]]
+            
+            sage: A = AlternatingSignMatrices(4)
+            sage: A._gyration_orbits
+            sage: g_o = A.gyration_orbits()
+            sage: A._gyration_orbits == g_o
+            True
+        """
+        if self._gyration_orbits:
+            return self._gyration_orbits
+        else:
+            ASMs = list(self)
+            perm = Permutation([ASMs.index(asm.gyration())+1 for asm in ASMs])
+            list_of_orbits = [[ASMs[i-1] for i in cyc] for cyc in perm.cycle_tuples()]
+            self._gyration_orbits = list_of_orbits
+            return list_of_orbits
+        
+    def gyration_orbit_sizes(self):
+        r"""
+        Return the sizes of gyration orbits of ``self``
+        and also save this information is ``self._gyration_orbit_sizes``
+        
+        [TODO] Jessica or someone please check and add the orbit sizes in the EXAMPLES.
+        [TODO] Should the sizes be hard-coded for maybe n=2,...,7?
+        
+        EXAMPLES::
+        
+            sage: AlternatingSignMatrices(3).gyration_orbit_sizes()
+            [3, 2, 2]
+            sage: AlternatingSignMatrices(4).gyration_orbit_sizes()
+            [4, 8, 2, 8, 8, 8, 2, 2]
+            
+            sage: A = AlternatingSignMatrices(5)
+            sage: li = [5,10,10,10,10,10,2,5,10,10,10,10,10,10,10,10,10,10,10,10,\
+            4,10,10,10,10,10,10,4,5,10,10,10,10,10,10,10,2,4,5,10,10,10,10,10,10,\
+            4,5,10,10,2,2]
+            sage: A._gyration_orbit_sizes
+            sage: A.gyration_orbit_sizes() == li
+            True
+            sage: A._gyration_orbit_sizes == li
+            True
+        """
+        
+        #if self._n == 3:
+        #    self._gyration_orbit_sizes = [3,2,2]
+        #elif self._n == 4:
+        #    self._gyration_orbit_sizes = [4, 8, 2, 8, 8, 8, 2, 2]
+        #elif self._n == 5:
+        #    self._gyration_orbit_sizes = \
+        #    [5,10,10,10,10,10,2,5,10,10,10,10,10,10,10,10,10,10,10,10,\
+        #    4,10,10,10,10,10,10,4,5,10,10,10,10,10,10,10,2,4,5,10,10,10,10,10,10,\
+        #    4,5,10,10,2,2]
+        
+        if self._gyration_orbit_sizes:
+            return self._gyration_orbit_sizes
+        else:
+            gyration_orbits = self.gyration_orbits()
+            orbit_sizes = []
+            for orbit in gyration_orbits:
+                orbit_sizes.append(len(orbit))
+            self._gyration_orbit_sizes = orbit_sizes
+            return orbit_sizes
 
 class MonotoneTriangles(GelfandTsetlinPatternsTopRow):
     r"""

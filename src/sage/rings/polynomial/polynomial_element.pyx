@@ -6727,7 +6727,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         The native algorithm implemented in Sage uses the first algorithm of
         [BD89]_. The algorithm in pari is more subtle since it does compute the
-        inverse of the euler `\phi` function to determine the `n` such that the
+        inverse of the Euler `\phi` function to determine the `n` such that the
         polynomial is the `n`-th cyclotomic polynomial.
 
         EXAMPLES:

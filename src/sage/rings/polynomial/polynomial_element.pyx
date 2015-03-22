@@ -6876,9 +6876,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def is_cyclotomic_product(self):
         r"""
-        Test whether self is a product of cyclotomic polynomials.
+        Test whether ``self`` is a product of cyclotomic polynomials.
 
-        This method simply calls the function poliscycloprod from the Pari
+        This method simply calls the function ``poliscycloprod`` from the Pari
         library.
 
         .. SEEALSO::

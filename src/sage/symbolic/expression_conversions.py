@@ -20,6 +20,7 @@ from sage.symbolic.ring import SR,var
 from sage.symbolic.pynac import I
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator
+from sage.functions.piecewise import piecewise
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from functools import reduce
 GaussianField = I.pyobject().parent()
@@ -1289,7 +1290,7 @@ class FastFloatConverter(Converter):
         try:
             return self.ff.fast_float_constant(float(ex))
         except TypeError:
-            raise ValueError("free variable: %s" % repr(ex))
+            raise NotImplementedError, "free variable: %s" % repr(ex)
 
     def arithmetic(self, ex, operator):
         """

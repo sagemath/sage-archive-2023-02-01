@@ -659,6 +659,22 @@ class FullyPackedLoop(SageObject):
             [(1, 2), (0, 3)]
             sage: fpl._get_coordinates((2, 1))
             [(3, 1), (2, 2)]
+
+
+            sage: B = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
+            sage: fpl = FullyPackedLoop(B)
+            sage: matrix(list(fpl.six_vertex_model))
+            [3 1 1]
+            [5 3 1]
+            [5 5 3]
+            sage: fpl._get_coordinates((1, 1))
+            [(2, 1), (0, 1)]
+            sage: fpl._get_coordinates((0, 0))
+            [(0, -1), (1, 0)]
+            sage: fpl._get_coordinates((0, 2))
+            [(1, 2), (0, 3)]
+            sage: fpl._get_coordinates((2, 1))
+            [(3, 1), (1, 1)]
         """
         # 0 UD, 1 RD, 2 UR, 3 LR, 4 LD, 5 LU
         even = {0: [(1, 0), (-1, 0)],

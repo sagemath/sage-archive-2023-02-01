@@ -222,7 +222,7 @@ class LieAlgebras(Category_over_base_ring):
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
                 sage: L.universal_enveloping_algebra()
-                Noncommutative Multivariate Polynomial Ring in a, b, c
+                Noncommutative Multivariate Polynomial Ring in b0, b1, b2
                  over Rational Field, nc-relations: {}
 
             ::
@@ -242,7 +242,7 @@ class LieAlgebras(Category_over_base_ring):
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
                 sage: L._construct_UEA()
-                Noncommutative Multivariate Polynomial Ring in a, b, c
+                Noncommutative Multivariate Polynomial Ring in b0, b1, b2
                  over Rational Field, nc-relations: {}
 
             ::
@@ -274,9 +274,8 @@ class LieAlgebras(Category_over_base_ring):
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
                 sage: a, b, c = L.lie_algebra_generators()
-                Defining a, b, c
                 sage: lifted = L.lift(2*a + b - c); lifted
-                2*a + b - c
+                2*b0 + b1 - b2
                 sage: lifted.parent() is L.universal_enveloping_algebra()
                 True
             """
@@ -293,11 +292,10 @@ class LieAlgebras(Category_over_base_ring):
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
                 sage: a, b, c = L.lie_algebra_generators()
-                Defining a, b, c
                 sage: L.subalgebra([2*a - c, b + c])
                 An example of a finite dimensional Lie algebra with basis:
-                 the abelian Lie algebra with generators ('x0', 'x1')
-                 over Rational Field with basis matrix:
+                 the 2-dimensional abelian Lie algebra over Rational Field
+                 with basis matrix:
                 [   1    0 -1/2]
                 [   0    1    1]
             """
@@ -311,7 +309,6 @@ class LieAlgebras(Category_over_base_ring):
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
                 sage: a, b, c = L.lie_algebra_generators()
-                Defining a, b, c
                 sage: L.killing_form(a, b+c)
                 0
             """
@@ -525,10 +522,9 @@ class LieAlgebras(Category_over_base_ring):
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
                 sage: a, b, c = L.lie_algebra_generators()
-                Defining a, b, c
                 sage: elt = 3*a + b - c
                 sage: elt.lift()
-                3*a + b - c
+                3*b0 + b1 - b2
 
             ::
 
@@ -545,7 +541,6 @@ class LieAlgebras(Category_over_base_ring):
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
                 sage: a, b, c = L.lie_algebra_generators()
-                Defining a, b, c
                 sage: a.killing_form(b)
                 0
             """
@@ -579,9 +574,8 @@ class LiftMorphism(Morphism):
 
             sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
             sage: a, b, c = L.lie_algebra_generators()
-            Defining a, b, c
             sage: L.lift(3*a + b - c)
-            3*a + b - c
+            3*b0 + b1 - b2
         """
         return x.lift()
 

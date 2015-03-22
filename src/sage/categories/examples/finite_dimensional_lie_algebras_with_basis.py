@@ -11,7 +11,6 @@ Examples of a finite dimensional Lie algebra with basis
 from sage.misc.cachefunc import cached_method
 from sage.sets.family import Family
 from sage.categories.all import LieAlgebras
-from sage.rings.all import ZZ
 from sage.modules.free_module import FreeModule
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -103,7 +102,7 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
         """
         ret = "An example of a finite dimensional Lie algebra with basis:" \
               " the {}-dimensional abelian Lie algebra over {}".format(
-                         self.n(), self.base_ring())
+                         self.dimension(), self.base_ring())
         B = self._M.basis_matrix()
         if not B.is_one():
             ret += " with basis matrix:\n{!r}".format(B)
@@ -305,7 +304,7 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
                 sage: a, b, c = L.lie_algebra_generators()
                 sage: elt = 2*a + 2*b + 3*c
                 sage: elt.lift()
-                2*a + 2*b + 3*c
+                2*b0 + 2*b1 + 3*b2
             """
             UEA = self.parent().universal_enveloping_algebra()
             gens = UEA.gens()

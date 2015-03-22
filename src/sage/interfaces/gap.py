@@ -178,7 +178,7 @@ AUTHORS:
 import expect
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.env import SAGE_LOCAL, SAGE_EXTCODE, DOT_SAGE
-from sage.misc.misc import is_64_bit, is_in_string
+from sage.misc.misc import is_in_string
 import re
 import os
 import pexpect
@@ -649,15 +649,13 @@ class Gap_generic(Expect):
             2
             sage: import sage.tests.interrupt
             sage: try:
-            ...     sage.tests.interrupt.interrupt_after_delay()
-            ...     while True: SymmetricGroup(7).conjugacy_classes_subgroups()
-            ... except KeyboardInterrupt:
-            ...     pass
-            Interrupting Gap...
+            ....:     sage.tests.interrupt.interrupt_after_delay()
+            ....:     while True: SymmetricGroup(7).conjugacy_classes_subgroups()
+            ....: except KeyboardInterrupt:
+            ....:     pass
             sage: gap(2)
             2
         """
-        print "Interrupting %s..."%self
         self.quit()
         raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
 
@@ -1167,8 +1165,7 @@ class Gap(Gap_generic):
         except Exception:
             if self.__use_workspace_cache and first_try:
                 first_try = False
-                self.quit(timeout=0)
-                expect.failed_to_start.remove(self.name())
+                self.quit()
                 gap_reset_workspace(verbose=False)
                 Expect._start(self, "Failed to start GAP.")
                 self._session_number = n

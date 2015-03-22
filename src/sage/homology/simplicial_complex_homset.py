@@ -173,7 +173,7 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
         """
         X_vertices = self._domain.vertices().set()
         try:
-            i = self._codomain.vertices().set().__iter__().next()
+            i = next(self._codomain.vertices().set().__iter__())
         except StopIteration:
             if len(X_vertices) == 0:
                 return dict()

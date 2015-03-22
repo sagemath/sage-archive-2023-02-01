@@ -209,7 +209,7 @@ from sage.rings.infinity import infinity
 from sage.rings.arith import divisors, gcd
 from sage.groups.abelian_gps.abelian_group_element import AbelianGroupElement
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.misc.mrange import mrange, cartesian_product_iterator
 from sage.rings.arith import lcm
 from sage.groups.group import AbelianGroup as AbelianGroupBase

@@ -104,7 +104,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
                 x = [parentbr(a) for a in x.list()]
                 check = False
         elif isinstance(x, dict):
-            zero = parentbr.zero_element()
+            zero = parentbr.zero()
             n = max(x.keys()) if x else 0
             v = [zero for _ in xrange(n + 1)]
             for i, z in x.iteritems():
@@ -120,7 +120,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
         # In contrast to other polynomials, the zero element is not distinguished
         # by having its list empty. Instead, it has list [0]
         if not x:
-            x = [parentbr.zero_element()]
+            x = [parentbr.zero()]
         if check:
             x = [parentbr(z) for z in x]
 

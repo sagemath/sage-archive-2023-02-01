@@ -249,6 +249,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.element cimport ModuleElement, RingElement
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
 from sage.libs.gap.element cimport *
 
 
@@ -364,7 +365,6 @@ class Gap(Parent):
                 pass
             x = str(x._gap_init_())
             return make_any_gap_element(self, gap_eval(x))
-        raise ValueError('cannot represent '+str(x)+' as a GAP object')
 
     def _construct_matrix(self, M):
         """
@@ -567,7 +567,7 @@ class Gap(Parent):
         """
         return self(0)
 
-    def zero_element(self):
+    def zero(self):
         """
         Return (integer) zero in GAP.
 
@@ -577,11 +577,19 @@ class Gap(Parent):
 
         EXAMPLES::
 
+            sage: libgap.zero()
+            0
+
+        TESTS::
+
             sage: libgap.zero_element()
+            doctest:...: DeprecationWarning: zero_element is deprecated. Please use zero instead.
+            See http://trac.sagemath.org/17694 for details.
             0
         """
         return self(0)
 
+    zero_element = deprecated_function_alias(17694, zero)
 
     def __init__(self):
         r"""

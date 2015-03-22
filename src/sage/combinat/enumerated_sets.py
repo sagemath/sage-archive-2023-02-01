@@ -49,9 +49,11 @@ Permutations, ...
 -----------------
 
 - :ref:`sage.combinat.permutation`
+- :ref:`sage.combinat.permutation_cython`
 - :ref:`sage.combinat.affine_permutation`
 - :class:`~sage.combinat.permutation.Arrangements`
 - :ref:`sage.combinat.derangements`
+- :ref:`sage.combinat.baxter_permutations`
 
 .. SEEALSO::
 

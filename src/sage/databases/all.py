@@ -81,5 +81,5 @@ from symbolic_data import SymbolicData
 
 from cunningham_tables import cunningham_prime_factors
 
-from sage.databases.findstat import findstat
+lazy_import('sage.databases.findstat', 'findstat')
 

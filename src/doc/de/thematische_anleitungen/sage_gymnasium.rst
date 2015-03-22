@@ -572,7 +572,7 @@ Tupel besteht, welches das Interval des Definitionsbereichs angibt, also z.B. ``
 `[-\infty, 0]` und einer für das Interval geltende Funktionsgleichung. Als letztes Argument muss angegeben werden,
 welche Variable durch die Funktion gebunden werden soll::
 
-    sage: f = Piecewise([[(-oo,0), -x^2],[(0,oo), x^2]], x)
+    sage: f = piecewise([[(-oo,0), -x^2],[(0,oo), x^2]], var=x)
     sage: f(3)
     9
     sage: f(-3)

@@ -1,6 +1,6 @@
 from sage.misc.lazy_import import lazy_import
 
-lazy_import('sage.functions.piecewise', 'Piecewise')   # deprecated
+lazy_import('sage.functions.piecewise_old', 'Piecewise')   # deprecated
 lazy_import('sage.functions.piecewise', 'piecewise')
 
 from trig import ( sin, cos, sec, csc, cot, tan,

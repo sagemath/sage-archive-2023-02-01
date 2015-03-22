@@ -38,7 +38,7 @@ You can plot piecewise-defined functions:
     sage: f2 = lambda x:1-x
     sage: f3 = lambda x:exp(x)
     sage: f4 = lambda x:sin(2*x)
-    sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+    sage: f = piecewise([((0,1),f1), ((1,2),f2), ((2,3),f3), ((3,10),f4)])
     sage: f.plot()
     Graphics object consisting of 4 graphics primitives
 

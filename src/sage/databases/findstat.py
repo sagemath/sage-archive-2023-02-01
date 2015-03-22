@@ -220,14 +220,40 @@ class FindStat():
             sage: findstat(3)                            # optional -- internet
             St000003: The number of [[/StandardTableaux|standard Young tableaux]] of the partition.
 
-        The database can be searched by providing a dictionary::
+        The database can be searched by providing a list of pairs::
 
-            sage: stat = {pi: pi.length() for pi in Permutations(4)}
-            sage: findstat(stat)                         # optional -- internet
+            sage: q = findstat([(pi, pi.length()) for pi in Permutations(4)]); q # optional -- internet
             0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
             1: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [Mp00062: inversion-number to major-index bijection], 24)
-            2: (St000067: The inversion number of the alternating sign matrix., [Mp00063: to alternating sign matrix], 24)
-            3: (St000008: The major index of the composition., [Mp00062: inversion-number to major-index bijection, Mp00071: descent composition], 24)
+            ...
+
+        or a dictionary::
+
+            sage: p = findstat({pi: pi.length() for pi in Permutations(4)}); p # optional -- internet
+            0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
+            1: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [Mp00062: inversion-number to major-index bijection], 24)
+            ...
+
+        Note however, that the results of these two queries are not
+        necessarily the same, because we compare queries by the data
+        sent, and the ordering of the data might be different::
+
+            sage: p == q
+            False
+
+        Another possibility is to send a function and a collection::
+
+            sage: findstat(lambda pi: pi.length(), "Permutations") # optional -- internet
+            0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 200)
+            ...
+
+        To search for a distribution, send a list of lists, or a single pair:
+
+            sage: findstat((Permutations(4), [pi.length() for pi in Permutations(4)])) # optional -- internet
+            0: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [], 24)
+            1: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
+            ...
+
         """
         try:
             depth = int(depth)
@@ -818,6 +844,35 @@ class FindStatCollection(SageObject):
     should apply to objects produced by `first_terms` as well as to
     objects produced by `from_string`.
 
+    EXAMPLES::
+
+        sage: FindStatCollection("Permutations")                         # optional -- internet
+        Cc0001: Permutations
+
+    TESTS::
+
+        # when one of these tests does not pass, there is probably a new collection to be added.
+        sage: cdata = FindStatCollection._findstat_collections.values()  # optional -- internet
+        sage: cl = [FindStatCollection(x[0]) for x in cdata]
+        # create an object and find its collection
+        sage: [FindStatCollection(c.first_terms(lambda x: 0, max_values=1)[0][0]) for c in cl]
+        [Cc0001: Permutations,
+         Cc0002: Integer partitions,
+         Cc0005: Dyck paths,
+         Cc0006: Integer compositions,
+         Cc0007: Standard tableaux,
+         Cc0009: Set partitions,
+         Cc0010: Binary trees,
+         Cc0012: Perfect matchings,
+         Cc0013: Cores,
+         Cc0014: Posets,
+         Cc0017: Alternating sign matrices,
+         Cc0018: Gelfand-Tsetlin patterns,
+         Cc0019: Semistandard tableaux,
+         Cc0020: Graphs,
+         Cc0021: Ordered trees,
+         Cc0022: Finite Cartan types,
+         Cc0023: Parking functions]
     """
 
 
@@ -877,11 +932,20 @@ class FindStatCollection(SageObject):
             # CartanType.
 
             # TODO: entry == c[4] will work rarely because c[4] might be a function!
+            # also, the error handling is only necessary because of this...
             for (id, c) in FindStatCollection._findstat_collections.iteritems():
-                if isinstance(entry, c[3]) or entry == c[4]:
-                    initialize_with(id, c)
-                    bad = False
-                    break
+                try:
+                    if isinstance(entry, c[3]) or entry == c[4]:
+                        initialize_with(id, c)
+                        bad = False
+                        break
+                except:
+                    # examples are
+                    # graphs:
+                    # TypeError: cannot compare graph to non-graph (<class 'sage.combinat.permutation.Permutations'>)
+                    # perfect matchings:
+                    # TypeError: descriptor 'parent' of 'sage.structure.sage_object.SageObject' object needs an argument
+                    pass
 
             if bad:
                 # check whether entry is iterable (it's not a string!)
@@ -915,6 +979,7 @@ class FindStatCollection(SageObject):
         r"""
 
         given a statistic, compute the first few terms and return them as a list of pairs
+
         """
         if self._sageconstructor_overridden is None:
             g = (x for n in self._range for x in self._sageconstructor(n))
@@ -1029,7 +1094,6 @@ class FindStatMap(SageObject):
     def id_str(self):
         id = str(self.id())
         return 'Mp00000'[:-len(id)] + id
-
 
     def __repr__(self):
         r"""

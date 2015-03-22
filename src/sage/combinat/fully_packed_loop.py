@@ -589,15 +589,17 @@ class FullyPackedLoop(SageObject):
             position = boundary_d[startpoint]
 
             boundary_d.pop(startpoint)
-            vertices_d[position] = 0 # allows us to start
+            vertices_d[position] = False # allows us to start
 
             while not vertices_d[position]:
                 vertices_d.pop(position)
                 choices = self._get_coordinates(position)
                 if choices[0] in vertices_d:
                     position = choices[0]
-                else:
+                elif choices[1] in vertices_d:
                     position = choices[1]
+                else:
+                    raise ValueError('No valid choices')
 
             endpoint = vertices_d[position]
             vertices_d.pop(position)
@@ -651,6 +653,7 @@ class FullyPackedLoop(SageObject):
             [3 1 1]
             [5 3 1]
             [5 5 3]
+            sage: fpl._get_coordinates((0, 1))
             sage: fpl._get_coordinates((1, 1))
             [(1, 0), (1, 2)]
             sage: fpl._get_coordinates((0, 0))
@@ -664,9 +667,9 @@ class FullyPackedLoop(SageObject):
             sage: B = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
             sage: fpl = FullyPackedLoop(B)
             sage: matrix(list(fpl.six_vertex_model))
-            [3 1 1]
-            [5 3 1]
-            [5 5 3]
+            [4 3 1]
+            [3 0 3]
+            [5 3 2]
             sage: fpl._get_coordinates((1, 1))
             [(2, 1), (0, 1)]
             sage: fpl._get_coordinates((0, 0))
@@ -677,7 +680,7 @@ class FullyPackedLoop(SageObject):
             [(3, 1), (1, 1)]
         """
         # 0 UD, 1 RD, 2 UR, 3 LR, 4 LD, 5 LU
-        even = {0: [(1, 0), (-1, 0)],
+        odd = {0: [(1, 0), (-1, 0)],
                 1: [(1, 0), (0, 1)],
                 2: [(-1, 0), (0, 1)],
                 3: [(0, -1), (0, 1)],
@@ -686,7 +689,7 @@ class FullyPackedLoop(SageObject):
                 }
 
         # 0 LR, 1 LU, 2 LD, 3 UD, 4 UR, 5 RD
-        odd = {0: [(0, -1), (0, 1)],
+        even = {0: [(0, -1), (0, 1)],
                1: [(-1, 0), (0, -1)],
                2: [(0, -1), (1, 0)],
                3: [(1, 0), (-1, 0)],

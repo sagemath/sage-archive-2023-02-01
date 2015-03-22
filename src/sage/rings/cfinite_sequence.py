@@ -59,7 +59,7 @@ REFERENCES:
 
 .. [GK82] Greene, Daniel H.; Knuth, Donald E. (1982), "2.1.1 Constant
    coefficients - A) Homogeneous equations", Mathematics for the Analysis
-   of Algorithms (2nd ed.), Birkhäuser, p. 17.
+   of Algorithms (2nd ed.), Birkhauser, p. 17.
 .. [SZ94] Bruno Salvy and Paul Zimmermann. - Gfun: a Maple package for
    the manipulation of generating and holonomic functions in one variable.
    - Acm transactions on mathematical software, 20.2:163-177, 1994.

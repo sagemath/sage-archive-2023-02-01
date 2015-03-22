@@ -2,11 +2,13 @@ r"""
 Fully packed loops
 
 A class for fully packed loops [Propp2001]_.
-We can create a fully packed loop using the corresponding alternating sign matrix::
+We can create a fully packed loop using the corresponding alternating sign
+matrix and also extract the link pattern.::
 
     sage: A = AlternatingSignMatrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
     sage: fpl = FullyPackedLoop(A)
     sage: fpl.link_pattern()
+    [(1, 4), (2, 3), (5, 6)]
     sage: fpl
         |         |
         |         |
@@ -22,6 +24,7 @@ We can create a fully packed loop using the corresponding alternating sign matri
     sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
     sage: fplb = FullyPackedLoop(B)
     sage: fplb.link_pattern()
+    [(1, 6), (2, 5), (3, 4)]
     sage: fplb
         |         |
         |         |
@@ -85,6 +88,95 @@ Once we have a fully packed loop we can obtain the corresponding alternating sig
     [0 0 1]
     [0 1 0]
     [1 0 0]
+
+Here are some more examples using bigger AMS's::
+
+    sage: A = AlternatingSignMatrix([[0,1,0,0],[0,0,1,0],[1,-1,0,1],[0,1,0,0]])
+    sage: S = SixVertexModel(4, boundary_conditions='ice').from_alternating_sign_matrix(A)
+    sage: fpl = FullyPackedLoop(S)
+    sage: fpl.link_pattern()
+    [(1, 2), (3, 6), (4, 5), (7, 8)]
+    sage: fpl
+        |         |
+        |         |
+        # -- # -- #    # --
+                       |
+                       |
+     -- #    # -- # -- #
+        |    |
+        |    |
+        #    #    # -- # --
+        |    |    |
+        |    |    |
+     -- #    #    # -- #
+             |         |
+             |         |
+
+    sage: m = AlternatingSignMatrix([[0,0,1,0,0,0],
+    ....:                            [1,0,-1,0,1,0],
+    ....:                            [0,0,0,1,0,0],
+    ....:                            [0,1,0,0,-1,1],
+    ....:                            [0,0,0,0,1,0],
+    ....:                            [0,0,1,0,0,0]])
+    sage: fpl = FullyPackedLoop(m)
+    sage: fpl.link_pattern()
+    [(1, 12), (2, 7), (3, 4), (5, 6), (8, 9), (10, 11)]
+    sage: fpl
+        |         |         |
+        |         |         |
+        # -- #    #    # -- #    # --
+             |    |    |         |
+             |    |    |         |
+     -- # -- #    #    # -- # -- #
+                  |
+                  |
+        # -- #    # -- # -- #    # --
+        |    |              |    |
+        |    |              |    |
+     -- #    #    # -- #    #    #
+             |    |    |    |    |
+             |    |    |    |    |
+        # -- #    # -- #    #    # --
+        |                   |
+        |                   |
+     -- #    # -- # -- #    # -- #
+             |         |         |
+             |         |         |
+
+    sage: m = AlternatingSignMatrix([[0,1,0,0,0,0,0],
+    ....:                            [1,-1,0,0,1,0,0],
+    ....:                            [0,0,0,1,0,0,0],
+    ....:                            [0,1,0,0,-1,1,0],
+    ....:                            [0,0,0,0,1,0,0],
+    ....:                            [0,0,1,0,-1,0,1],
+    ....:                            [0,0,0,0,1,0,0]])
+    sage: fpl = FullyPackedLoop(m)
+    sage: fpl.link_pattern()
+    [(1, 2), (3, 4), (5, 6), (7, 8), (9, 14), (10, 11), (12, 13)]
+    sage: fpl
+        |         |         |         |
+        |         |         |         |
+        # -- # -- #    # -- #    # -- #
+                       |         |
+                       |         |
+     -- # -- # -- #    # -- # -- #    # --
+                  |                   |
+                  |                   |
+        # -- #    # -- # -- #    # -- #
+        |    |              |    |
+        |    |              |    |
+     -- #    #    # -- #    #    #    # --
+             |    |    |    |    |    |
+             |    |    |    |    |    |
+        # -- #    # -- #    #    # -- #
+        |                   |
+        |                   |
+     -- #    # -- # -- #    #    # -- # --
+             |         |    |    |
+             |         |    |    |
+        # -- #    # -- #    #    # -- #
+        |         |         |         |
+        |         |         |         |
 
 REFERENCES:
 
@@ -578,6 +670,7 @@ class FullyPackedLoop(SageObject):
             sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
             sage: fpl = FullyPackedLoop(B)
             sage: fpl.link_pattern()
+            [(1, 6), (2, 5), (3, 4)]
 
         """
         link_pattern = []
@@ -654,14 +747,15 @@ class FullyPackedLoop(SageObject):
             [5 3 1]
             [5 5 3]
             sage: fpl._get_coordinates((0, 1))
+            [(1, 1), (0, 2)]
             sage: fpl._get_coordinates((1, 1))
-            [(1, 0), (1, 2)]
+            [(2, 1), (0, 1)]
             sage: fpl._get_coordinates((0, 0))
-            [(0, -1), (0, 1)]
+            [(1, 0), (-1, 0)]
             sage: fpl._get_coordinates((0, 2))
-            [(1, 2), (0, 3)]
+            [(-1, 2), (0, 1)]
             sage: fpl._get_coordinates((2, 1))
-            [(3, 1), (2, 2)]
+            [(1, 1), (2, 0)]
 
 
             sage: B = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
@@ -671,13 +765,13 @@ class FullyPackedLoop(SageObject):
             [3 0 3]
             [5 3 2]
             sage: fpl._get_coordinates((1, 1))
-            [(2, 1), (0, 1)]
+            [(1, 0), (1, 2)]
             sage: fpl._get_coordinates((0, 0))
-            [(0, -1), (1, 0)]
+            [(-1, 0), (0, 1)]
             sage: fpl._get_coordinates((0, 2))
-            [(1, 2), (0, 3)]
+            [(-1, 2), (0, 1)]
             sage: fpl._get_coordinates((2, 1))
-            [(3, 1), (1, 1)]
+            [(2, 0), (2, 2)]
         """
         # 0 UD, 1 RD, 2 UR, 3 LR, 4 LD, 5 LU
         odd = {0: [(1, 0), (-1, 0)],

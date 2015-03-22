@@ -6704,12 +6704,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Test if ``self`` is a cyclotomic polynomial.
 
-        If ``certificate`` is ``True``, the result is a non-negative integer: it
-        is ``0`` if ``self`` is not cyclotomic, and ``n`` if ``self`` is the
-        n-th cyclotomic polynomial.
-
         A *cyclotomic polynomial* is a monic, irreducible polynomial such that
         all roots are roots of unity.
+
+        By default the answer is a boolean. But if ``certificate`` is ``True``,
+        the result is a non-negative integer: it is ``0`` if ``self`` is not
+        cyclotomic, and a positive integer ``n`` if ``self`` is the `n`-th
+        cyclotomic polynomial.
 
         .. SEEALSO::
 
@@ -6717,17 +6718,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``certificate`` -- boolean
+        - ``certificate`` -- boolean, default to ``False``. Only works with
+          ``algorithm`` set to "pari".
 
-        - ``algorithm`` -- either "pari" or "sage"
+        - ``algorithm`` -- either "pari" or "sage" (default is "pari")
 
         ALGORITHM:
 
-        The first cyclotomic polynomial ``x-1`` is treated apart,
-        otherwise the first algorithm of [BD89]_ is used.
-
-        If ``certificate`` is ``True``, the function ``poliscyclo`` of GP is
-        called.
+        The native algorithm implemented in Sage uses the first algorithm of
+        [BD89]_. The algorithm in pari is more subtle since it does compute the
+        inverse of the euler `\phi` function to determine the `n` such that the
+        polynomial is the `n`-th cyclotomic polynomial.
 
         EXAMPLES:
 
@@ -6768,6 +6769,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (2*(y/2 - 1/2)).is_cyclotomic()
             True
 
+        Invalid arguments::
+
+            sage: (x - 3).is_cyclotomic(algorithm="sage", certificate=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: no implementation of the certificate within Sage
+
         Test using other rings::
 
             sage: z = polygen(GF(5))
@@ -6789,6 +6797,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ....:     assert p.is_cyclotomic(algorithm="pari"), "pari problem with p={}".format(p)
             ....:     assert p.is_cyclotomic(algorithm="sage"), "sage problem with p={}".format(p)
 
+        Test the output type when ``certificate=True``::
+
+            sage: type((x^2 - 2).is_cyclotomic(certificate=True))
+            <type 'sage.rings.integer.Integer'>
+            sage: type((x -1).is_cyclotomic(certificate=True))
+            <type 'sage.rings.integer.Integer'>
+
+        Check that the arguments are forwarded when the input is not a
+        polynomial with coefficients in `\ZZ`::
+
+            sage: x = polygen(QQ)
+            sage: (x-1).is_cyclotomic(certificate=True)
+            1
+
         REFERENCES:
 
         .. [BD89] R. J. Bradford and J. H. Davenport, Effective tests
@@ -6802,7 +6824,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 f = self.change_ring(ZZ)
             except TypeError:
                 return False
-            return f.is_cyclotomic()
+            return f.is_cyclotomic(certificate=certificate, algorithm=algorithm)
 
         if algorithm == "pari":
             ans = self._pari_().poliscyclo()

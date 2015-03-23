@@ -58,7 +58,7 @@ We verify Lagrange's four squares identity::
 from sage.structure.element import CommutativeRingElement, canonical_coercion, coerce_binop
 
 
-import sage.misc.misc as misc
+from sage.misc.all import prod
 import sage.rings.integer
 
 import polydict
@@ -153,7 +153,7 @@ class MPolynomial_element(MPolynomial):
             K = self.parent().base_ring()
         y = K(0)
         for (m,c) in self.element().dict().iteritems():
-            y += c*misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0])
+            y += c*prod([ x[i]**m[i] for i in range(n) if m[i] != 0])
         return y
 
     def __cmp__(self, right):
@@ -205,7 +205,7 @@ class MPolynomial_element(MPolynomial):
             return codomain._coerce_(self)
         y = codomain(0)
         for (m,c) in self.element().dict().iteritems():
-            y += codomain(c)*misc.mul([ im_gens[i]**m[i] for i in range(n) if m[i] ])
+            y += codomain(c)*prod([ im_gens[i]**m[i] for i in range(n) if m[i] ])
         return y
 
 
@@ -1336,7 +1336,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             R = self.parent()
             f = self._MPolynomial_element__element.lcmt( R.term_order().greater_tuple )
             one = R.base_ring()(1)
-            self.__lm = MPolynomial_polydict(R,polydict.PolyDict({f:one},zero=R.base_ring().zero_element(),force_int_exponents=False,  force_etuples=False))
+            self.__lm = MPolynomial_polydict(R,polydict.PolyDict({f:one},zero=R.base_ring().zero(),force_int_exponents=False,  force_etuples=False))
             return self.__lm
 
     def lc(self):
@@ -1395,7 +1395,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             R = self.parent()
             f = self._MPolynomial_element__element.dict()
             res = self._MPolynomial_element__element.lcmt( R.term_order().greater_tuple )
-            self.__lt = MPolynomial_polydict(R,polydict.PolyDict({res:f[res]},zero=R.base_ring().zero_element(),force_int_exponents=False, force_etuples=False))
+            self.__lt = MPolynomial_polydict(R,polydict.PolyDict({res:f[res]},zero=R.base_ring().zero(),force_int_exponents=False, force_etuples=False))
             return self.__lt
 
     def __eq__(self,right):
@@ -1465,7 +1465,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         if len(right.dict()) == 1:
             P = self.parent()
             ret = P(0)
-            denC,denM = iter(right).next()
+            denC,denM = next(iter(right))
             for c,m in self:
                 t = c*m
                 if denC.divides(c) and P.monomial_divides(denM, m):

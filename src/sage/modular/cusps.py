@@ -36,6 +36,7 @@ from sage.structure.element import Element, is_InfinityElement
 from sage.modular.modsym.p1list import lift_to_sl2z_llong
 from sage.matrix.matrix import is_Matrix
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
 
 class Cusps_class(ParentWithBase):
     """
@@ -152,7 +153,7 @@ class Cusps_class(ParentWithBase):
             return self._coerce_try(x, QQ)
 
     @cached_method
-    def zero_element(self):
+    def zero(self):
         """
         Return the zero cusp.
 
@@ -163,11 +164,13 @@ class Cusps_class(ParentWithBase):
 
         EXAMPLE::
 
-            sage: Cusps.zero_element()
+            sage: Cusps.zero()
             0
 
         """
         return Cusp(0, parent=self)
+
+    zero_element = deprecated_function_alias(17694, zero)
 
 Cusps = Cusps_class()
 
@@ -678,8 +681,8 @@ class Cusp(Element):
         u2 = other.__a
         v2 = other.__b
 
-        zero = ZZ.zero_element()
-        one = ZZ.one_element()
+        zero = ZZ.zero()
+        one = ZZ.one()
 
         if transformation == "matrix":
             from sage.matrix.constructor import matrix

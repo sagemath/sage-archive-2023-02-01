@@ -18,7 +18,7 @@ from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.homsets import HomsetsCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.sets_cat import Sets
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 
 class AdditiveMagmas(Category_singleton):
     """
@@ -489,7 +489,7 @@ class AdditiveMagmas(Category_singleton):
                 sage: AdditiveMagmas().Homsets().extra_super_categories()
                 [Category of additive magmas]
                 sage: AdditiveMagmas().Homsets().super_categories()
-                [Category of additive magmas]
+                [Category of additive magmas, Category of homsets]
             """
             return [AdditiveMagmas()]
 
@@ -746,10 +746,15 @@ class AdditiveMagmas(Category_singleton):
 
                 TESTS::
 
-                    sage: S = CommutativeAdditiveMonoids().example()
-                    sage: S.zero_element()
-                    0
+                    sage: from sage.geometry.polyhedron.parent import Polyhedra
+                    sage: P = Polyhedra(QQ, 3)
+                    sage: P.zero_element()
+                    doctest:...: DeprecationWarning: .zero_element() is deprecated. Use .zero() instead
+                    See http://trac.sagemath.org/17694 for details.
+                    A 0-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex
                 """
+                from sage.misc.superseded import deprecation
+                deprecation(17694, ".zero_element() is deprecated. Use .zero() instead")
                 return self.zero()
 
         class ElementMethods:
@@ -864,7 +869,7 @@ class AdditiveMagmas(Category_singleton):
                     sage: AdditiveMagmas().AdditiveUnital().Homsets().extra_super_categories()
                     [Category of additive unital additive magmas]
                     sage: AdditiveMagmas().AdditiveUnital().Homsets().super_categories()
-                    [Category of additive unital additive magmas]
+                    [Category of additive unital additive magmas, Category of homsets]
                 """
                 return [AdditiveMagmas().AdditiveUnital()]
 

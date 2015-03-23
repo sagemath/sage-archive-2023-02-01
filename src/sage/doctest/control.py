@@ -23,7 +23,7 @@ import random, os, sys, time, json, re, types
 import sage.misc.flatten
 from sage.structure.sage_object import SageObject
 from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC
-from sage.ext.c_lib import AlarmInterrupt, _init_csage
+from sage.ext.interrupt import AlarmInterrupt, init_interrupts
 
 from sources import FileDocTestSource, DictAsObject
 from forker import DocTestDispatcher
@@ -579,7 +579,7 @@ class DocTestController(SageObject):
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
             sage: len(DC.sources)
-            9
+            10
             sage: DC.sources[0].options.optional
             True
 
@@ -679,6 +679,7 @@ class DocTestController(SageObject):
             sage.doctest.reporting
             sage.doctest.parsing
             sage.doctest.forker
+            sage.doctest.fixtures
             sage.doctest.control
             sage.doctest.all
             sage.doctest
@@ -910,7 +911,7 @@ class DocTestController(SageObject):
             return
 
         # Setup Sage signal handler
-        _init_csage()
+        init_interrupts()
 
         import signal, subprocess
         p = subprocess.Popen(cmd, shell=True)

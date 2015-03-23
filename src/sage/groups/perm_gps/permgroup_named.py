@@ -6,7 +6,7 @@ You can construct the following permutation groups:
 -- SymmetricGroup, $S_n$ of order $n!$ (n can also be a list $X$ of distinct
                    positive integers, in which case it returns $S_X$)
 
--- AlternatingGroup, $A_n$ or order $n!/2$ (n can also be a list $X$
+-- AlternatingGroup, $A_n$ of order $n!/2$ (n can also be a list $X$
                    of distinct positive integers, in which case it returns
                    $A_X$)
 
@@ -303,13 +303,13 @@ class SymmetricGroup(PermutationGroup_symalt):
 
             sage: S8 = SymmetricGroup(8)
             sage: S8.index_set()
-            [1, 2, 3, 4, 5, 6, 7]
+            (1, 2, 3, 4, 5, 6, 7)
 
             sage: S = SymmetricGroup([3,1,4,5])
             sage: S.index_set()
-            [3, 1, 4]
+            (3, 1, 4)
         """
-        return self.domain()[:-1]
+        return tuple(self.domain()[:-1])
 
     def __cmp__(self, x):
         """
@@ -345,9 +345,12 @@ class SymmetricGroup(PermutationGroup_symalt):
 
             sage: A = SymmetricGroup([2,3,7]); A.cartan_type()
             ['A', 2]
+
+            sage: A = SymmetricGroup([]); A.cartan_type()
+            ['A', 0]
         """
         from sage.combinat.root_system.cartan_type import CartanType
-        return CartanType(['A', self.degree() - 1])
+        return CartanType(['A', max(self.degree() - 1,0)])
 
     def simple_reflection(self, i):
         r"""
@@ -539,14 +542,39 @@ class SymmetricGroup(PermutationGroup_symalt):
         """
         Return the symmetric group algebra associated to ``self``.
 
+        If ``self`` is the symmetric group on `1,\ldots,n`, then this
+        is special cased to take advantage of the features in
+        :class:`SymmetricGroupAlgebra`. Otherwise the usual group
+        algebra is returned.
+
         EXAMPLES::
 
             sage: S4 = SymmetricGroup(4)
             sage: S4.algebra(QQ)
             Symmetric group algebra of order 4 over Rational Field
+
+            sage: S3 = SymmetricGroup([1,2,3])
+            sage: S3.algebra(QQ)
+            Symmetric group algebra of order 3 over Rational Field
+            sage: a = S3.an_element(); a
+            (1,2,3)
+            sage: S3.algebra(QQ)(a)
+            (1,2,3)
+
+            sage: S = SymmetricGroup([2,3,5])
+            sage: S.algebra(QQ)
+            Group algebra of Symmetric group of order 3! as a permutation group over Rational Field
+            sage: a = S.an_element(); a
+            (2,3,5)
+            sage: S.algebra(QQ)(a)
+            B[(2,3,5)]
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
-        return SymmetricGroupAlgebra(base_ring, len(self._domain))
+        domain = self.domain()
+        if list(domain) == range(1, len(domain)+1):
+            return SymmetricGroupAlgebra(base_ring, self)
+        else:
+            return super(SymmetricGroup, self).algebra(base_ring)
 
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):
@@ -1762,7 +1790,7 @@ class TransitiveGroupsAll(DisjointUnionEnumeratedSets):
         +Infinity
 
         sage: p = L.__iter__()            # optional - database_gap
-        sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next()) # optional - database_gap
+        sage: (next(p), next(p), next(p), next(p), next(p), next(p), next(p), next(p)) # optional - database_gap
         (Transitive group number 1 of degree 0, Transitive group number 1 of degree 1, Transitive group number 1 of degree 2, Transitive group number 1 of degree 3, Transitive group number 2 of degree 3, Transitive group number 1 of degree 4, Transitive group number 2 of degree 4, Transitive group number 3 of degree 4)
 
     TESTS::
@@ -2142,8 +2170,8 @@ class PrimitiveGroupsAll(DisjointUnionEnumeratedSets):
         +Infinity
 
         sage: p = L.__iter__()            # optional - database_gap
-        sage: (p.next(), p.next(), p.next(), p.next(), # optional - database_gap
-        ...    p.next(), p.next(), p.next(), p.next())
+        sage: (next(p), next(p), next(p), next(p), # optional - database_gap
+        ...    next(p), next(p), next(p), next(p))
         (Trivial group, Trivial group, S(2), A(3), S(3), A(4), S(4), C(5))
 
     TESTS::
@@ -2576,7 +2604,7 @@ class PSL(PermutationGroup_plg):
             raise ValueError("Degree must be 2.")
         F = self.base_ring()
         q = F.order()
-        from sage.misc.misc import SAGE_EXTCODE
+        from sage.env import SAGE_EXTCODE
         gapcode = SAGE_EXTCODE + '/gap/joyner/hurwitz_crv_rr_sp.gap'
         gap.eval('Read("'+gapcode+'")')
         mults = gap.eval("ram_module_hurwitz("+str(q)+")")
@@ -2620,7 +2648,7 @@ class PSL(PermutationGroup_plg):
             raise ValueError("Degree must be 2.")
         F = self.base_ring()
         q = F.order()
-        from sage.misc.misc import SAGE_EXTCODE
+        from sage.env import SAGE_EXTCODE
         gapcode = SAGE_EXTCODE + '/gap/joyner/modular_crv_rr_sp.gap'
         gap.eval('Read("'+gapcode+'")')
         mults = gap.eval("ram_module_X("+str(q)+")")

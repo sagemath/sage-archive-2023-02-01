@@ -200,7 +200,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             sage: I = R.ideal(x^10)
             sage: S.<xb> = R.quo(I)
             sage: pari(xb)^10
-            0
+            Mod(0, x^10)
         """
         return self._polynomial._pari_().Mod(self.parent().modulus()._pari_())
 

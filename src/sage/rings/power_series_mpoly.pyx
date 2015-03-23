@@ -25,7 +25,7 @@ cdef class PowerSeries_mpoly(PowerSeries):
             True
         """
         S = parent._mpoly_ring()
-        if PY_TYPE_CHECK(f, Element) and (<Element>f)._parent is S:
+        if isinstance(f, Element) and (<Element>f)._parent is S:
             #if check and not (prec is infinity):
             #    self.__f = f.truncate(S.gens()[-1], prec)
             #    self._truncated = 1

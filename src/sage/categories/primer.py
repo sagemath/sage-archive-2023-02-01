@@ -1,6 +1,9 @@
 r"""
 Elements, parents, and categories in Sage: a (draft of) primer
 
+.. contents::
+    :depth: 2
+
 Abstract
 ========
 

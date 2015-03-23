@@ -30,25 +30,6 @@ Next, we summarize some of the properties of the functions
 implemented here.
 
 
--  Airy function The function `Ai(x)` and the related
-   function `Bi(x)`, which is also called an Airy function,
-   are solutions to the differential equation
-
-
-   .. math::
-
-         y'' - xy = 0,
-
-   known as the Airy equation. They belong to the class of 'Bessel functions of
-   fractional order'. The initial conditions
-   `Ai(0) = (\Gamma(2/3)3^{2/3})^{-1}`,
-   `Ai'(0) = -(\Gamma(1/3)3^{1/3})^{-1}` define
-   `Ai(x)`. The initial conditions
-   `Bi(0) = 3^{1/2}Ai(0)`, `Bi'(0) = -3^{1/2}Ai'(0)`
-   define `Bi(x)`.
-
-   They are named after the British astronomer George Biddell Airy.
-
 -  Spherical harmonics: Laplace's equation in spherical coordinates
    is:
 
@@ -137,8 +118,6 @@ REFERENCES:
 - Abramowitz and Stegun: Handbook of Mathematical Functions,
   http://www.math.sfu.ca/~cbm/aands/
 
-- http://en.wikipedia.org/wiki/Airy_function
-
 - http://en.wikipedia.org/wiki/Spherical_harmonics
 
 - http://en.wikipedia.org/wiki/Helmholtz_equation
@@ -205,11 +184,12 @@ def _init():
         sage: sage.functions.special._done
         False
 
-    Then after using one of these functions, it changes::
+    Then after using one of the MaximaFunctions, it changes::
 
-        sage: from sage.functions.special import airy_ai
-        sage: airy_ai(1.0)
-        0.1352924163128814
+        sage: from sage.functions.special import elliptic_ec
+        sage: elliptic_ec(0.1)
+        1.53075763689776
+
         sage: sage.functions.special._done
         True
     """
@@ -222,14 +202,15 @@ def _init():
 
 def meval(x):
     """
-    Returns ``x`` evaluated in Maxima, then returned to Sage.
+    Return ``x`` evaluated in Maxima, then returned to Sage.
+
     This is used to evaluate several of these special functions.
 
     TEST::
 
-        sage: from sage.functions.special import airy_ai
-        sage: airy_bi(1.0)
-        1.207423594952871
+        sage: from sage.functions.special import spherical_bessel_J
+        sage: spherical_bessel_J(2.,3.)      # rel tol 1e-10
+        0.2986374970757335
     """
     return maxima(x).sage()
 
@@ -421,79 +402,6 @@ def maxima_function(name):
     return NewMaximaFunction()
 
 
-def airy_ai(x):
-   r"""
-   The function `Ai(x)` and the related function `Bi(x)`,
-   which is also called an *Airy function*, are
-   solutions to the differential equation
-
-   .. math::
-
-      y'' - xy = 0,
-
-   known as the *Airy equation*. The initial conditions
-   `Ai(0) = (\Gamma(2/3)3^{2/3})^{-1}`,
-   `Ai'(0) = -(\Gamma(1/3)3^{1/3})^{-1}` define `Ai(x)`.
-   The initial conditions `Bi(0) = 3^{1/2}Ai(0)`,
-   `Bi'(0) = -3^{1/2}Ai'(0)` define `Bi(x)`.
-
-   They are named after the British astronomer George Biddell Airy.
-   They belong to the class of "Bessel functions of fractional order".
-
-   EXAMPLES::
-
-       sage: airy_ai(1.0)        # last few digits are random
-       0.135292416312881400
-       sage: airy_bi(1.0)        # last few digits are random
-       1.20742359495287099
-
-   REFERENCE:
-
-   - Abramowitz and Stegun: Handbook of Mathematical Functions,
-     http://www.math.sfu.ca/~cbm/aands/
-
-   - http://en.wikipedia.org/wiki/Airy_function
-   """
-   _init()
-   return RDF(meval("airy_ai(%s)"%RDF(x)))
-
-def airy_bi(x):
-   r"""
-   The function `Ai(x)` and the related function `Bi(x)`,
-   which is also called an *Airy function*, are
-   solutions to the differential equation
-
-   .. math::
-
-      y'' - xy = 0,
-
-   known as the *Airy equation*. The initial conditions
-   `Ai(0) = (\Gamma(2/3)3^{2/3})^{-1}`,
-   `Ai'(0) = -(\Gamma(1/3)3^{1/3})^{-1}` define `Ai(x)`.
-   The initial conditions `Bi(0) = 3^{1/2}Ai(0)`,
-   `Bi'(0) = -3^{1/2}Ai'(0)` define `Bi(x)`.
-
-   They are named after the British astronomer George Biddell Airy.
-   They belong to the class of "Bessel functions of fractional order".
-
-   EXAMPLES::
-
-       sage: airy_ai(1)        # last few digits are random
-       0.135292416312881400
-       sage: airy_bi(1)        # last few digits are random
-       1.20742359495287099
-
-   REFERENCE:
-
-   - Abramowitz and Stegun: Handbook of Mathematical Functions,
-     http://www.math.sfu.ca/~cbm/aands/
-
-   - http://en.wikipedia.org/wiki/Airy_function
-   """
-   _init()
-   return RDF(meval("airy_bi(%s)"%RDF(x)))
-
-
 def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
     r"""
     Default is a wrap of PARI's hyperu(alpha,beta,x) function.
@@ -527,17 +435,17 @@ def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
         sage: hypergeometric_U(1,1,1,"pari",70)
         0.59634736232319407434...
     """
-    if algorithm=="scipy":
+    if algorithm == "scipy":
         if prec != 53:
             raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
-        return RDF(scipy.special.hyperu(float(alpha),float(beta),float(x)))
-    elif algorithm=='pari':
+        return RDF(scipy.special.hyperu(float(alpha), float(beta), float(x)))
+    elif algorithm == 'pari':
         from sage.libs.pari.all import pari
         R = RealField(prec)
         return R(pari(R(alpha)).hyperu(R(beta), R(x), precision=prec))
     else:
-        raise ValueError("unknown algorithm '%s'"%algorithm)
+        raise ValueError("unknown algorithm '%s'" % algorithm)
 
 class SphericalHarmonic(BuiltinFunction):
     r"""
@@ -769,8 +677,14 @@ class EllipticEC(MaximaFunction):
 
             sage: elliptic_ec(0.1)
             1.53075763689776
+
+        TESTS::
+
+            sage: elliptic_ec(x)._sympy_()
+            elliptic_e(x)
         """
-        MaximaFunction.__init__(self, "elliptic_ec", nargs=1)
+        MaximaFunction.__init__(self, "elliptic_ec", nargs=1,
+                                conversions=dict(sympy='elliptic_e'))
 
     def _derivative_(self, *args, **kwds):
         """
@@ -786,9 +700,10 @@ class EllipticEC(MaximaFunction):
 
 elliptic_ec = EllipticEC()
 
+
 class EllipticEU(MaximaFunction):
     r"""
-    This returns the value of the "incomplete elliptic integral of the
+    Return the value of the "incomplete elliptic integral of the
     second kind,"
 
     .. math::
@@ -842,8 +757,14 @@ class EllipticF(MaximaFunction):
 
             sage: elliptic_f (0.2, 0.1)
             0.200132506747543
+
+        TESTS::
+
+            sage: elliptic_f(x, 2)._sympy_()
+            elliptic_f(x, 2)
         """
-        MaximaFunction.__init__(self, "elliptic_f")
+        MaximaFunction.__init__(self, "elliptic_f",
+                                conversions=dict(sympy='elliptic_f'))
 
 elliptic_f = EllipticF()
 
@@ -871,8 +792,14 @@ class EllipticKC(MaximaFunction):
             1.85407467730137
             sage: elliptic_f(RR(pi/2), 0.5)
             1.85407467730137
+
+        TESTS::
+
+            sage: elliptic_kc(x)._sympy_()
+            elliptic_k(x)
         """
-        MaximaFunction.__init__(self, "elliptic_kc", nargs=1)
+        MaximaFunction.__init__(self, "elliptic_kc", nargs=1,
+                                conversions=dict(sympy='elliptic_k'))
 
 elliptic_kc = EllipticKC()
 
@@ -925,30 +852,16 @@ class EllipticPi(MaximaFunction):
 
             sage: elliptic_pi(0.1, 0.2, 0.3)
             0.200665068220979
+
+        TESTS::
+
+            sage: elliptic_pi(x, pi/4, 1)._sympy_()
+            elliptic_pi(x, pi/4, 1)
         """
-        MaximaFunction.__init__(self, "elliptic_pi", nargs=3)
+        MaximaFunction.__init__(self, "elliptic_pi", nargs=3,
+                                conversions=dict(sympy='elliptic_pi'))
 
 elliptic_pi = EllipticPi()
-
-
-def lngamma(t):
-    r"""
-    This method is deprecated, please use
-    :meth:`~sage.functions.other.log_gamma` instead.
-
-    See the :meth:`~sage.functions.other.log_gamma` function for '
-    documentation and examples.
-
-    EXAMPLES::
-
-        sage: lngamma(RR(6))
-        doctest:...: DeprecationWarning: The method lngamma() is deprecated. Use log_gamma() instead.
-        See http://trac.sagemath.org/6992 for details.
-        4.78749174278205
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(6992, "The method lngamma() is deprecated. Use log_gamma() instead.")
-    return log_gamma(t)
 
 def error_fcn(t):
     r"""

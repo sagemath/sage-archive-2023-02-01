@@ -565,21 +565,6 @@ class CubeGroup(PermutationGroup_generic):
         """
         return "The Rubik's cube group with generators R,L,F,B,U,D in SymmetricGroup(48)."
 
-    def group(self):
-        r"""
-        This is deprecated in trac:`11360`. Use the :class:`CubeGroup` instead.
-
-        EXAMPLES::
-
-            sage: CubeGroup().group()
-            doctest:...: DeprecationWarning: group() is deprecated. Use the CubeGroup instead.
-            See http://trac.sagemath.org/11360 for details.
-            The Rubik's cube group with generators R,L,F,B,U,D in SymmetricGroup(48).
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(11360, 'group() is deprecated. Use the CubeGroup instead.')
-        return self
-
     def B(self):
         """
         Return the generator `B` in Singmaster notation.

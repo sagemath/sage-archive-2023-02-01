@@ -25,27 +25,21 @@ from cpython.float cimport *
 from cpython.complex cimport *
 from cpython.number cimport *
 
-cdef extern from "math.h":
-    cdef double fpow "pow" (double, double)
-    cdef double fsqrt "sqrt" (double)
-    cdef double frexp "frexp" (double, int*)
+from libc.math cimport sqrt as fsqrt
+from libc.math cimport frexp
 
 from sage.libs.gmp.all cimport *
 from sage.libs.mpfr cimport *
 from sage.rings.integer cimport Integer
 
-cdef extern from "mpz_pylong.h":
-    cdef mpz_get_pylong(mpz_t src)
-    cdef mpz_get_pyintlong(mpz_t src)
-    cdef int mpz_set_pylong(mpz_t dst, src) except -1
-    cdef long mpz_pythonhash(mpz_t src)
+from sage.libs.gmp.pylong cimport *
 
 cdef mpz_set_integer(mpz_t v, x):
     if PyInt_Check(x):
         mpz_set_si(v, PyInt_AS_LONG(x))
     elif PyLong_Check(x):
         mpz_set_pylong(v, x)
-    elif PY_TYPE_CHECK(x, Integer):
+    elif isinstance(x, Integer):
         mpz_set(v, (<Integer>x).value)
     else:
         raise TypeError("cannot convert %s to an integer" % x)
@@ -273,7 +267,7 @@ cdef MPF_set_tuple(MPF *x, tuple value):
     #cdef int sign
     cdef Integer man
     sign, _man, exp, bc = value
-    if PY_TYPE_CHECK(_man, Integer):
+    if isinstance(_man, Integer):
         man = <Integer>_man
     else:
         # This is actually very unlikely; it should never happen
@@ -1147,6 +1141,7 @@ cdef cy_exp_basecase(mpz_t y, mpz_t x, int prec):
     mpz_fdiv_q_2exp(x2, x2, prec)
     mpz_set(a, x2)
     while mpz_sgn(a):
+        sig_check()
         mpz_fdiv_q_ui(a, a, k)
         mpz_add(s0, s0, a)
         k += 1
@@ -1160,6 +1155,7 @@ cdef cy_exp_basecase(mpz_t y, mpz_t x, int prec):
     mpz_add(s0, s0, s1)
     u = r
     while r:
+        sig_check()
         mpz_mul(s0, s0, s0)
         mpz_fdiv_q_2exp(s0, s0, prec)
         r -= 1
@@ -2037,6 +2033,7 @@ cdef MPF_hypsum(MPF *a, MPF *b, int p, int q, param_types, str ztype, coeffs, z,
     else:
         mpz_set_tuple_fixed(ZRE, z, wp)
     for i in range(0,p):
+        sig_check()
         if param_types[i] == 'Z':
             mpz_init(AINT[aint])
             mpz_set_integer(AINT[aint], coeffs[i])
@@ -2060,6 +2057,7 @@ cdef MPF_hypsum(MPF *a, MPF *b, int p, int q, param_types, str ztype, coeffs, z,
         else:
             raise ValueError
     for i in range(p,p+q):
+        sig_check()
         if param_types[i] == 'Z':
             mpz_init(BINT[bint])
             mpz_set_integer(BINT[bint], coeffs[i])
@@ -2113,22 +2111,28 @@ cdef MPF_hypsum(MPF *a, MPF *b, int p, int q, param_types, str ztype, coeffs, z,
 
         # Multiply real factors
         for k in range(0, cancellable_real):
+            sig_check()
             mpz_mul(PRE, PRE, AREAL[k])
             mpz_fdiv_q(PRE, PRE, BREAL[k])
         for k in range(cancellable_real, areal):
+            sig_check()
             mpz_mul(PRE, PRE, AREAL[k])
             mpz_fdiv_q_2exp(PRE, PRE, wp)
         for k in range(cancellable_real, breal):
+            sig_check()
             mpz_mul_2exp(PRE, PRE, wp)
             mpz_fdiv_q(PRE, PRE, BREAL[k])
         if have_complex:
             for k in range(0, cancellable_real):
+                sig_check()
                 mpz_mul(PIM, PIM, AREAL[k])
                 mpz_fdiv_q(PIM, PIM, BREAL[k])
             for k in range(cancellable_real, areal):
+                sig_check()
                 mpz_mul(PIM, PIM, AREAL[k])
                 mpz_fdiv_q_2exp(PIM, PIM, wp)
             for k in range(cancellable_real, breal):
+                sig_check()
                 mpz_mul_2exp(PIM, PIM, wp)
                 mpz_fdiv_q(PIM, PIM, BREAL[k])
 
@@ -2162,6 +2166,7 @@ cdef MPF_hypsum(MPF *a, MPF *b, int p, int q, param_types, str ztype, coeffs, z,
                 mpz_fdiv_q(PIM, PIM, DIV)
 
             for i in range(acomplex):
+                sig_check()
                 mpz_mul(TRE, PRE, ACRE[i])
                 mpz_submul(TRE, PIM, ACIM[i])
                 mpz_mul(TIM, PIM, ACRE[i])
@@ -2170,6 +2175,7 @@ cdef MPF_hypsum(MPF *a, MPF *b, int p, int q, param_types, str ztype, coeffs, z,
                 mpz_fdiv_q_2exp(PIM, TIM, wp)
 
             for i in range(bcomplex):
+                sig_check()
                 mpz_mul(URE, BCRE[i], BCRE[i])
                 mpz_addmul(URE, BCIM[i], BCIM[i])
                 mpz_mul(TRE, PRE, BCRE[i])

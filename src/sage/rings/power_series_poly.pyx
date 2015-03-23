@@ -15,6 +15,7 @@ import arith
 from sage.libs.all import PariError
 from power_series_ring_element import is_PowerSeries
 import rational_field
+from sage.misc.superseded import deprecated_function_alias
 
 cdef class PowerSeries_poly(PowerSeries):
 
@@ -38,12 +39,12 @@ cdef class PowerSeries_poly(PowerSeries):
             1 + O(t^5)
         """
         R = parent._poly_ring()
-        if PY_TYPE_CHECK(f, Element):
+        if isinstance(f, Element):
             if (<Element>f)._parent is R:
                 pass
             elif (<Element>f)._parent == R.base_ring():
                 f = R([f])
-            elif PY_TYPE_CHECK(f, PowerSeries_poly):
+            elif isinstance(f, PowerSeries_poly):
                 prec = (<PowerSeries_poly>f)._prec
                 f = R((<PowerSeries_poly>f).__f)
             else:
@@ -906,14 +907,14 @@ cdef class PowerSeries_poly(PowerSeries):
         return PowerSeries_poly(self._parent, self.__f.integral(var),
                                 self.prec()+1, check=False)
 
-    def reversion(self, precision=None):
+    def reverse(self, precision=None):
         """
-        Return the reversion of f, i.e., the series g such that g(f(x)) =
-        x.  Given an optional argument ``precision``, return the reversion
-        with given precision (note that the reversion can have precision at
-        most ``f.prec()``).  If ``f`` has infinite precision, and the argument
-        ``precision`` is not given, then the precision of the reversion
-        defaults to the default precision of ``f.parent()``.
+        Return the reverse of f, i.e., the series g such that g(f(x)) = x.
+        Given an optional argument ``precision``, return the reverse with given
+        precision (note that the reverse can have precision at most
+        ``f.prec()``).  If ``f`` has infinite precision, and the argument
+        ``precision`` is not given, then the precision of the reverse defaults
+        to the default precision of ``f.parent()``.
 
         Note that this is only possible if the valuation of self is exactly
         1.
@@ -925,14 +926,14 @@ cdef class PowerSeries_poly(PowerSeries):
         a message if passing to pari fails.
 
         If the base ring has positive characteristic, then we attempt to
-        lift to a characteristic zero ring and perform the reversion there.
+        lift to a characteristic zero ring and perform the reverse there.
         If this fails, an error is raised.
 
         EXAMPLES::
 
             sage: R.<x> = PowerSeriesRing(QQ)
             sage: f = 2*x + 3*x^2 - x^4 + O(x^5)
-            sage: g = f.reversion()
+            sage: g = f.reverse()
             sage: g
             1/2*x - 3/8*x^2 + 9/16*x^3 - 131/128*x^4 + O(x^5)
             sage: f(g)
@@ -942,7 +943,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
             sage: A.<t> = PowerSeriesRing(ZZ)
             sage: a = t - t^2 - 2*t^4 + t^5 + O(t^6)
-            sage: b = a.reversion(); b
+            sage: b = a.reverse(); b
             t + t^2 + 2*t^3 + 7*t^4 + 25*t^5 + O(t^6)
             sage: a(b)
             t + O(t^6)
@@ -952,7 +953,7 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: B.<b,c> = PolynomialRing(ZZ)
             sage: A.<t> = PowerSeriesRing(B)
             sage: f = t + b*t^2 + c*t^3 + O(t^4)
-            sage: g = f.reversion(); g
+            sage: g = f.reverse(); g
             t - b*t^2 + (2*b^2 - c)*t^3 + O(t^4)
             sage: f(g)
             t + O(t^4)
@@ -963,7 +964,7 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: B.<s> = A[[]]
             sage: f = (1 - 3*t + 4*t^3 + O(t^4))*s + (2 + t + t^2 + O(t^3))*s^2 + O(s^3)
             sage: set_verbose(1)
-            sage: g = f.reversion(); g
+            sage: g = f.reverse(); g
             verbose 1 (<module>) passing to pari failed; trying Lagrange inversion
             (1 + 3*t + 9*t^2 + 23*t^3 + O(t^4))*s + (-2 - 19*t - 118*t^2 + O(t^3))*s^2 + O(s^3)
             sage: set_verbose(0)
@@ -975,13 +976,13 @@ cdef class PowerSeries_poly(PowerSeries):
 
             sage: A.<t> = PowerSeriesRing(ZZ)
             sage: a = 2*t - 4*t^2 + t^4 - t^5 + O(t^6)
-            sage: a.reversion()
+            sage: a.reverse()
             1/2*t + 1/2*t^2 + t^3 + 79/32*t^4 + 437/64*t^5 + O(t^6)
 
             sage: B.<b> = PolynomialRing(ZZ)
             sage: A.<t> = PowerSeriesRing(B)
             sage: f = 2*b*t + b*t^2 + 3*b^2*t^3 + O(t^4)
-            sage: g = f.reversion(); g
+            sage: g = f.reverse(); g
             1/(2*b)*t - 1/(8*b^2)*t^2 + ((-3*b + 1)/(16*b^3))*t^3 + O(t^4)
             sage: f(g)
             t + O(t^4)
@@ -992,7 +993,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
             sage: A8.<t> = PowerSeriesRing(Zmod(8))
             sage: a = t - 15*t^2 - 2*t^4 + t^5 + O(t^6)
-            sage: b = a.reversion(); b
+            sage: b = a.reverse(); b
             t + 7*t^2 + 2*t^3 + 5*t^4 + t^5 + O(t^6)
             sage: a(b)
             t + O(t^6)
@@ -1003,7 +1004,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
             sage: R.<x> = PowerSeriesRing(QQ)
             sage: f = 2*x + 3*x^2 - 7*x^3 + x^4 + O(x^5)
-            sage: g = f.reversion(precision=3); g
+            sage: g = f.reverse(precision=3); g
             1/2*x - 3/8*x^2 + O(x^3)
             sage: f(g)
             x + O(x^3)
@@ -1015,9 +1016,9 @@ cdef class PowerSeries_poly(PowerSeries):
         ring::
 
             sage: R.<x> = PowerSeriesRing(QQ, default_prec=20)
-            sage: (x - x^2).reversion() # get some Catalan numbers
+            sage: (x - x^2).reverse() # get some Catalan numbers
             x + x^2 + 2*x^3 + 5*x^4 + 14*x^5 + 42*x^6 + 132*x^7 + 429*x^8 + 1430*x^9 + 4862*x^10 + 16796*x^11 + 58786*x^12 + 208012*x^13 + 742900*x^14 + 2674440*x^15 + 9694845*x^16 + 35357670*x^17 + 129644790*x^18 + 477638700*x^19 + O(x^20)
-            sage: (x - x^2).reversion(precision=3)
+            sage: (x - x^2).reverse(precision=3)
             x + x^2 + O(x^3)
 
 
@@ -1025,7 +1026,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
             sage: R.<x> = PowerSeriesRing(QQ)
             sage: f = 1 + 2*x + 3*x^2 - x^4 + O(x^5)
-            sage: f.reversion()
+            sage: f.reverse()
             Traceback (most recent call last):
             ...
             ValueError: Series must have valuation one for reversion.
@@ -1076,7 +1077,7 @@ cdef class PowerSeries_poly(PowerSeries):
             verbose("characteristic zero base is "+str(base_lift))
             f_lift = f.change_ring(base_lift)
             verbose("f_lift is "+str(f_lift))
-            rev_lift = f_lift.reversion()
+            rev_lift = f_lift.reverse()
             return rev_lift.change_ring(f.base_ring())
 
         t = f.parent().gen()
@@ -1090,6 +1091,8 @@ cdef class PowerSeries_poly(PowerSeries):
             g += R(k.padded_list(i)[i - 1]/i)*t**i
         g = g.add_bigoh(out_prec)
         return PowerSeries_poly(out_parent, g, out_prec, check=False)
+
+    reversion = deprecated_function_alias(17724, reverse)
 
     def pade(self, m, n):
         r"""

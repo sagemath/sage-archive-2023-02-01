@@ -103,6 +103,7 @@ def sage_inputhook():
         sage: shell.run_cell('detach({0})'.format(repr(tmp)))
         sage: shell.run_cell('attached_files()')
         []
+        sage: shell.quit()
     """
     reload_attached_files_if_modified()
     return 0

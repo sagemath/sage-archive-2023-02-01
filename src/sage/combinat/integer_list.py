@@ -959,23 +959,21 @@ class IntegerListsLex(Parent):
 
             loEnv = self._lower_envelope(m,j)
             upEnv = self._upper_envelope(m,j)
-            lower = m
-            upper = m
-            if m >= target_min and m <= target_max:
-                return True
+            lower = 0
+            upper = 0
 
             # get to smallest valid number of parts
-            for lo,up in [(loEnv(i),upEnv(i)) for i in range(j+1, p.min_length-1)]:
+            for lo,up in [(loEnv(i) if i!=j else m, upEnv(i) if i!=j else m) for i in range(j, p.min_length-1)]:
                 if lo > up:
                     return False
                 lower += lo
                 upper += up
 
-            i = max(p.min_length-1,j+1)
+            i = max(p.min_length-1,j)
             # check if any of the intervals intersect the target interval
             while i <= p.max_length - 1:
-                lo = loEnv(i)
-                up = upEnv(i)
+                lo = loEnv(i) if i!=j else m
+                up = upEnv(i) if i!=j else m
                 if lo > up:
                     break
                 elif p.max_slope <= 0 and up <= 0:

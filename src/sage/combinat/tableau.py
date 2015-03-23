@@ -2555,14 +2555,13 @@ class Tableau(ClonableList):
             sage: rs.order()
             1
         """
-
         # Ensure that the permutations involve all elements of the
         # tableau, by including the identity permutation on the set [1..k].
         k = self.size()
-        gens = [range(1,k+1)]
-        for i in range(len(self)):
-            for j in range(0, len(self[i])-1):
-                gens.append( (self[i][j], self[i][j+1]) )
+        gens = [range(1, k+1)]
+        for row in self:
+            for j in range(0, len(row)-1):
+                gens.append( (row[j], row[j+1]) )
         return PermutationGroup( gens )
 
 
@@ -2584,7 +2583,6 @@ class Tableau(ClonableList):
             sage: PermutationGroupElement([(1,4)]) in cs
             True
         """
-
         return self.conjugate().row_stabilizer()
 
     def height(self):
@@ -3954,7 +3952,7 @@ class StandardTableau(SemistandardTableau):
         """
         return sum(self.standard_descents())
 
-    def promotion_inverse(self, m=None):
+    def promotion_inverse(self, n=None):
         """
         Return the image of ``self`` under the inverse promotion operator.
         The optional variable `m` should be set to the size of ``self`` minus
@@ -3994,11 +3992,11 @@ class StandardTableau(SemistandardTableau):
             sage: all( bk_promotion_inverse7(st) == st.promotion_inverse() for st in ST ) # long time
             True
         """
-        if m is None:
-            m = self.size() - 1
-        return StandardTableau(Tableau(self[:]).promotion_inverse(m))
+        if n is None:
+            n = self.size() - 1
+        return StandardTableau(Tableau(self[:]).promotion_inverse(n))
 
-    def promotion(self, m=None):
+    def promotion(self, n=None):
         r"""
         Return the image of ``self`` under the promotion operator.
 
@@ -4030,9 +4028,9 @@ class StandardTableau(SemistandardTableau):
             sage: parent(st.promotion())
             Standard tableaux
         """
-        if m is None:
-            m = self.size() - 1
-        return StandardTableau(Tableau(self[:]).promotion(m))
+        if n is None:
+            n = self.size() - 1
+        return StandardTableau(Tableau(self[:]).promotion(n))
 
 def from_chain(chain):
     """

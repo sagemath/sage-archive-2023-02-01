@@ -141,7 +141,7 @@ ecl_eval("(setf *standard-output* *dev-null*)")
 # keepfloat -- don't automatically convert floats to rationals
 init_code = ['display2d : false', 'domain : complex', 'keepfloat : true',
             'load(to_poly_solve)', 'load(simplify_sum)',
-            'load(abs_integrate)']
+            'load(abs_integrate)', 'load(diag)']
 
 # Turn off the prompt labels, since computing them *very
 # dramatically* slows down the maxima interpret after a while.

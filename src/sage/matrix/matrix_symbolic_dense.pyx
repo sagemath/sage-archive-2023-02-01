@@ -148,7 +148,7 @@ Conversion to Maxima::
 
 """
 
-
+from sage.rings.polynomial.all import PolynomialRing
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.structure.factorization import Factorization
 
@@ -450,6 +450,39 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
 
         self.cache(cache_key, cp)
         return cp
+
+    def minpoly(self, var='x'):
+        """
+        Return the minimal polynomial of ``self``.
+
+        EXAMPLES::
+
+            sage: M = Matrix.identity(SR, 2)
+            sage: M.minpoly()
+            x - 1
+
+            sage: t = var('t')
+            sage: m = matrix(2, [1, 2, 4, t])
+            sage: m.minimal_polynomial()
+            x^2 + (-t - 1)*x + t - 8
+
+        TESTS:
+
+        Check that the variable `x` can occur in the matrix::
+
+            sage: m = matrix([[x]])
+            sage: m.minimal_polynomial('y')
+            y - x
+
+        """
+        mp = self.fetch('minpoly')
+        if mp is None:
+            mp = self._maxima_lib_().jordan().minimalPoly().expand()
+            d = mp.hipow('x')
+            mp = [mp.coeff('x', i) for i in xrange(0, d + 1)]
+            mp = PolynomialRing(self.base_ring(), 'x')(mp)
+            self.cache('minpoly', mp)
+        return mp.change_variable_name(var)
 
     def fcp(self, var='x'):
         """

@@ -674,7 +674,7 @@ class FullyPackedLoop(SageObject):
 
         """
         link_pattern = []
-        boundary_d = self.end_points
+        boundary_d = self.end_points.copy()
         vertices_d = self._vertex_dictionary()
 
         while len(boundary_d) > 2:

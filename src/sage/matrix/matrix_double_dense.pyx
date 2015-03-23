@@ -51,6 +51,7 @@ import sage.rings.real_double
 import sage.rings.complex_double
 
 from matrix cimport Matrix
+from sage.structure.element import is_Matrix
 from sage.structure.element cimport ModuleElement,Vector
 from constructor import matrix
 from sage.modules.free_module_element import vector
@@ -1625,15 +1626,18 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         INPUT:
 
         - ``self`` - a square matrix that is nonsigular (of full rank).
-        - ``b`` - a vector of the correct size.  Elements of the vector
+        - ``b`` - a vector, something that can be coerced into a vector, or
+          a matrix.  The dimension (if a vector), or the number of rows (if
+          a matrix) must match the dimension of self.  Elements of ``b``
           must coerce into the base ring of the coefficient matrix.  In
-          particular, if ``b`` has entries from ``CDF`` then ``self``
-          must have ``CDF`` as its base ring.
+          particular, if ``b`` has entries from ``CDF`` then ``self`` must
+          have ``CDF`` as its base ring.
 
         OUTPUT:
 
         The unique solution ``x`` to the matrix equation ``A*x = b``,
-        as a vector over the same base ring as ``self``.
+        as a vector over the same base ring as ``self``. If ``b`` is given
+        as a matrix, then ``x`` will be returned as a matrix.
 
         ALGORITHM:
 
@@ -1676,6 +1680,21 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A=matrix(CDF, 5, [1/(i+j+1) for i in range(5) for j in range(5)])
             sage: A.solve_right([1]*5)  # tol 1e-11
             (5.0, -120.0, 630.0, -1120.0, 630.0)
+
+        If ``b`` is given as a matrix, ``x`` will be returned as one ::
+
+            sage: A = matrix(RDF, 3,3, [1, 2, 2, 3, 4, 5, 2, 2, 2]); A
+            [1.0 2.0 2.0]
+            [3.0 4.0 5.0]
+            [2.0 2.0 2.0]
+            sage: b = matrix(RDF, 3,2, [3, 2, 3, 2, 3, 2]); b
+            [3.0 2.0]
+            [3.0 2.0]
+            [3.0 2.0]
+            sage: A.solve_right(b) # tol 1e-14
+            [ 0.0  0.0]
+            [ 4.5  3.0]
+            [-3.0 -2.0]
 
         TESTS:
 
@@ -1739,13 +1758,23 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         """
         if not self.is_square():
             raise ValueError("coefficient matrix of a system over RDF/CDF must be square, not %s x %s " % (self.nrows(), self.ncols()))
-        M = self._column_ambient_module()
-        try:
-            vec = M(b)
-        except TypeError:
-            raise TypeError("vector of constants over %s incompatible with matrix over %s" % (b.base_ring(), self.base_ring()))
-        if vec.degree() != self.nrows():
-            raise ValueError("vector of constants in linear system over RDF/CDF must have degree equal to the number of rows for the coefficient matrix, not %s" % vec.degree() )
+
+        # Turn b into a matrix over the same ring as self.
+        b_is_matrix = is_Matrix(b)
+        if b_is_matrix:
+            try:
+                b = b.change_ring(self.base_ring())
+            except TypeError:
+                raise TypeError("matrix over %s incompatible with matrix over %s", (b.base_ring(), self.base_ring()))
+        else:
+            M = self._column_ambient_module()
+            try:
+                vec = M(b)
+            except TypeError:
+                raise TypeError("vector of constants over %s incompatible with matrix over %s" % (b.base_ring(), self.base_ring()))
+            if vec.degree() != self.nrows():
+                raise ValueError("vector of constants in linear system over RDF/CDF must have degree equal to the number of rows for the coefficient matrix, not %s" % vec.degree() )
+            b = vec.column()
 
         if self._ncols == 0:
             return M.zero_vector()
@@ -1755,7 +1784,14 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             import scipy
         import scipy.linalg
         # may raise a LinAlgError for a singular matrix
-        return M(scipy.linalg.solve(self._matrix_numpy, vec.numpy()))
+        # AX = B. So X.nrows() = self.ncols() and X.ncols() = B.ncols().
+        X_space = MatrixSpace(self.base_ring(), self.ncols(), b.ncols())
+        X = X_space(scipy.linalg.solve(self._matrix_numpy, b.numpy()).tolist())
+        if b_is_matrix:
+            return X
+        else:
+            assert(X.ncols() == 1)
+            return X.column(0)
 
     def solve_left(self, b):
         r"""
@@ -1764,15 +1800,18 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         INPUT:
 
         - ``self`` - a square matrix that is nonsigular (of full rank).
-        - ``b`` - a vector of the correct size.  Elements of the vector
+        - ``b`` - a vector, something that can be coerced into a vector, or
+          a matrix.  The dimension (if a vector), or the number of rows (if
+          a matrix) must match the dimension of self.  Elements of ``b``
           must coerce into the base ring of the coefficient matrix.  In
-          particular, if ``b`` has entries from ``CDF`` then ``self``
-          must have ``CDF`` as its base ring.
+          particular, if ``b`` has entries from ``CDF`` then ``self`` must
+          have ``CDF`` as its base ring.
 
         OUTPUT:
 
         The unique solution ``x`` to the matrix equation ``x*A = b``,
-        as a vector over the same base ring as ``self``.
+        as a vector over the same base ring as ``self``. If ``b`` is given
+        as a matrix, then ``x`` will be returned as a matrix.
 
         ALGORITHM:
 
@@ -1816,6 +1855,19 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A=matrix(CDF, 5, [1/(i+j+1) for i in range(5) for j in range(5)])
             sage: A.solve_left([1]*5)  # tol 1e-11
             (5.0, -120.0, 630.0, -1120.0, 630.0)
+
+        If ``b`` is given as a matrix, ``x`` will be returned as one ::
+
+            sage: A = matrix(RDF, 3, 3, [2, 5, 0, 7, 7, -2, -4.3, 0, 1]); A
+            [ 2.0  5.0  0.0]
+            [ 7.0  7.0 -2.0]
+            [-4.3  0.0  1.0]
+            sage: b = matrix(RDF, 2, 3, [2, -4, -5, 1, 1, 0.1]); b
+            [ 2.0 -4.0 -5.0]
+            [ 1.0  1.0  0.1]
+            sage: A.solve_left(b) #tol 1e-14
+            [  -6.495454545454545    4.068181818181818   3.1363636363636354]
+            [  0.5277272727272727  -0.2340909090909091 -0.36818181818181817]
 
         TESTS:
 
@@ -1879,13 +1931,23 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         """
         if not self.is_square():
             raise ValueError("coefficient matrix of a system over RDF/CDF must be square, not %s x %s " % (self.nrows(), self.ncols()))
-        M = self._row_ambient_module()
-        try:
-            vec = M(b)
-        except TypeError:
-            raise TypeError("vector of constants over %s incompatible with matrix over %s" % (b.base_ring(), self.base_ring()))
-        if vec.degree() != self.ncols():
-            raise ValueError("vector of constants in linear system over RDF/CDF must have degree equal to the number of columns for the coefficient matrix, not %s" % vec.degree() )
+
+        # Turn b into a matrix over the same ring as self.
+        b_is_matrix = is_Matrix(b)
+        if b_is_matrix:
+            try:
+                b = b.change_ring(self.base_ring())
+            except TypeError:
+                raise TypeError("matrix over %s incompatible with matrix over %s", (b.base_ring(), self.base_ring()))
+        else:
+            M = self._column_ambient_module()
+            try:
+                vec = M(b)
+            except TypeError:
+                raise TypeError("vector of constants over %s incompatible with matrix over %s" % (b.base_ring(), self.base_ring()))
+            if vec.degree() != self.ncols():
+                raise ValueError("vector of constants in linear system over RDF/CDF must have degree equal to the number of columns for the coefficient matrix, not %s" % vec.degree() )
+            b = vec.row()
 
         if self._nrows == 0:
             return M.zero_vector()
@@ -1896,7 +1958,16 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         import scipy.linalg
         # may raise a LinAlgError for a singular matrix
         # call "right solve" routine with the transpose
-        return M(scipy.linalg.solve(self._matrix_numpy.T, vec.numpy()))
+        # XA = B. So X.nrows() = B.nrows() and X.ncols() = self.nrows().
+        # So here's where X's transpose lives:
+        X_T_space = MatrixSpace(self.base_ring(), self.nrows(), b.nrows())
+        X = X_T_space(scipy.linalg.solve(self._matrix_numpy.T, b.numpy().T).tolist())
+        if b_is_matrix:
+            # Be sure to transpose the result if it is a matrix.
+            return X.T
+        else:
+            assert(X.ncols() == 1)
+            return X.column(0)
 
     def determinant(self):
         """

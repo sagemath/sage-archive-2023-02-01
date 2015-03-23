@@ -169,9 +169,9 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             OUTPUT:
 
-            A dictionary whose keys are pairs of basis indices `(i, j)` and
-            whose values are the corresponding *element* of `[b_i, b_j]`
-            in the Lie algebra.
+            A dictionary whose keys are pairs of basis indices `(i, j)`
+            with `i < j`, and whose values are the corresponding
+            *elements* `[b_i, b_j]` in the Lie algebra.
 
             EXAMPLES::
 

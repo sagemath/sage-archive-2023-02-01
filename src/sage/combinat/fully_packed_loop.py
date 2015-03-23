@@ -178,6 +178,59 @@ Here are some more examples using bigger AMS's::
         |         |         |         |
         |         |         |         |
 
+
+    An gyration on an alternating-sign matrix/fully packed loop ``fpl``
+    corresponds to a rotation (i.e. (a,b) to (a-1,b-1) modulo 2*n)
+    of the link pattern corresponding to ``fpl``::
+
+        sage: ASMs = AlternatingSignMatrices(3).list()
+        sage: ncp = FullyPackedLoop(ASMs[1]).link_pattern() # fpl's gyration orbit size is 2
+        sage: rotated_ncp=[]
+        sage: for (a,b) in ncp:
+        ....:     for i in range(0,5):
+        ....:         a,b=a%6+1,b%6+1;
+        ....:     rotated_ncp.append((a,b))
+        sage: PerfectMatching(ASMs[1].gyration().to_fully_packed_loop().link_pattern()) ==\
+        PerfectMatching(rotated_ncp)
+        True
+
+        sage: fpl = FullyPackedLoop(ASMs[0])
+        sage: ncp = fpl.link_pattern() # fpl's gyration size is 3
+        sage: rotated_ncp=[]
+        sage: for (a,b) in ncp:
+        ....:     for i in range(0,5):
+        ....:         a,b=a%6+1,b%6+1;
+        ....:     rotated_ncp.append((a,b))
+        sage: PerfectMatching(ASMs[0].gyration().to_fully_packed_loop().link_pattern()) ==\
+        PerfectMatching(rotated_ncp)
+        True
+
+        sage: mat = AlternatingSignMatrix([[0,0,1,0,0,0,0],[1,0,-1,0,1,0,0],[0,0,1,0,0,0,0],\
+        [0,1,-1,0,0,1,0],[0,0,1,0,0,0,0],[0,0,0,1,0,0,0],[0,0,0,0,0,0,1]])
+        sage: fpl = FullyPackedLoop(mat) # n=7
+        sage: ncp = fpl.link_pattern()
+        sage: rotated_ncp=[]
+        sage: for (a,b) in ncp:
+        ....:     for i in range(0,13):
+        ....:         a,b=a%14+1,b%14+1;
+        ....:     rotated_ncp.append((a,b))
+        sage: PerfectMatching(mat.gyration().to_fully_packed_loop().link_pattern()) ==\
+        PerfectMatching(rotated_ncp)
+        True
+
+        sage: mat = AlternatingSignMatrix([[0,0,0,1,0,0], [0,0,1,-1,1,0], [0,1,0,0,-1,1], [1,0,-1,1,0,0], \
+        [0,0,1,0,0,0], [0,0,0,0,1,0]])
+        sage: fpl = FullyPackedLoop(mat) # n =6
+        sage: ncp = fpl.link_pattern()
+        sage: rotated_ncp=[]
+        sage: for (a,b) in ncp:
+        ....:     for i in range(0,11):
+        ....:         a,b=a%12+1,b%12+1;
+        ....:     rotated_ncp.append((a,b))
+        sage: PerfectMatching(mat.gyration().to_fully_packed_loop().link_pattern()) ==\
+        PerfectMatching(rotated_ncp)
+        True
+
 REFERENCES:
 
 .. [Propp2001] James Propp.

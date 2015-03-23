@@ -36,6 +36,7 @@ from sage.rings.infinity import PlusInfinity
 import integer_list
 import cartesian_product
 import functools
+from sage.combinat.integer_list import IntegerListsLex
 
 
 def is_gale_ryser(r,s):
@@ -1059,6 +1060,8 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
             sage: all(map(lambda x: x.cardinality() == len(x.list()), iv))
             True
         """
+        I = IntegerListsLex(self.n, **self.constraints)
+        return I.__iter__()
         return integer_list.iterator(self.n, *self._parameters())
 
 class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):

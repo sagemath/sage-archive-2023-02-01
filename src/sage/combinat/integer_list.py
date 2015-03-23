@@ -1,23 +1,7 @@
 r"""
 Tools for generating lists of integers in lexicographic order
-
-IMPORTANT NOTE (2009/02):
-The internal functions in this file will be deprecated soon.
-Please only use them through :class:`IntegerListsLex`.
-
-AUTHORS:
-
-- Mike Hansen
-
-- Travis Scrimshaw (2012-05-12): Fixed errors when returning ``None`` from
-  first. Added checks to make sure ``max_slope`` is satisfied.
-
-- Travis Scrimshaw (2012-10-29): Made ``IntegerListsLex`` into a parent with
-  the element class ``IntegerListsLexElement``.
 """
 #*****************************************************************************
-#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
-#       Copyright (C) 2012 Travis Scrimshaw <tscrim@ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -31,558 +15,45 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.arith import binomial
-from sage.rings.integer_ring import ZZ
+from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.constant_function import ConstantFunction
+from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableArray
-from sage.misc.lazy_attribute import lazy_attribute
-import __builtin__
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 
-def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
-    """
-    Returns the lexicographically smallest valid composition of `n`
-    satisfying the conditions.
-
-    .. warning::
-
-       INTERNAL FUNCTION! DO NOT USE DIRECTLY!
-
-    .. TODO::
-
-       Move this into Cython.
-
-    Preconditions:
-
-    - ``floor`` and ``ceiling`` need to satisfy the slope constraints,
-      e.g. be obtained ``fromcomp2floor`` or ``comp2ceil``
-
-    - ``floor`` must be below ``ceiling`` to ensure
-      the existence a valid composition
-
-    TESTS::
-
-        sage: import sage.combinat.integer_list as integer_list
-        sage: f = lambda l: lambda i: l[i-1]
-        sage: f([0,1,2,3,4,5])(1)
-        0
-        sage: integer_list.first(12, 4, 4, f([0,0,0,0]), f([4,4,4,4]), -1, 1)
-        [4, 3, 3, 2]
-        sage: integer_list.first(36, 9, 9, f([3,3,3,2,1,1,0,0,0]), f([7,6,5,5,5,5,5,4,4]), -1, 1)
-        [7, 6, 5, 5, 4, 3, 3, 2, 1]
-        sage: integer_list.first(25, 9, 9, f([3,3,3,2,1,1,0,0,0]), f([7,6,5,5,5,5,5,4,4]), -2, 1)
-        [7, 6, 5, 4, 2, 1, 0, 0, 0]
-        sage: integer_list.first(36, 9, 9, f([3,3,3,2,1,4,2,0,0]), f([7,6,5,5,5,5,5,4,4]), -2, 1)
-        [7, 6, 5, 5, 5, 4, 3, 1, 0]
-
-    ::
-
-        sage: I = integer_list.IntegerListsLex(6, max_slope=2, min_slope=2)
-        sage: list(I)
-        [[6], [2, 4], [0, 2, 4]]
-    """
-    # Check trivial cases, and standardize min_length to be at least 1
-    if n < 0:
-        return None
-    if max_length <= 0:
-        if n == 0:
-            return []
-        return None
-    if min_length <= 0:
-        if n == 0:
-            return []
-        min_length = 1
-
-    #Increase min_length until n <= sum([ceiling(i) for i in range(min_length)])
-    #This may run forever!
-    # Find the actual length the list needs to be
-    N = 0
-    for i in range(1,min_length+1):
-        ceil = ceiling(i)
-        if ceil < floor(i):
-            return None
-        N += ceil
-    while N < n:
-        min_length += 1
-        if min_length > max_length:
-            return None
-
-        ceil = ceiling(min_length)
-        if ceil == 0 and max_slope <= 0 or ceil < floor(min_length):
-            return None
-
-        N += ceil
-
-    # Trivial case
-    if min_length == 1:
-        if n < floor(1):
-            return None
-        return [n]
-
-    if max_slope < min_slope:
-        return None
-
-    # Compute the minimum values
-    # We are constrained below by the max slope
-    result = [floor(min_length)]
-    n -= floor(min_length)
-    for i in reversed(range(1, min_length)):
-        result.insert(0, max(floor(i), result[0] - max_slope))
-        n -= result[0]
-        if n < 0:
-            return None
-
-    if n == 0: # There is nothing more to do
-        return result
-
-    if min_slope == float('-inf'):
-        for i in range(1, min_length+1):
-            if n <= ceiling(i) - result[i-1]: #-1 for indexing
-                result[i-1] += n
-                break
-            else:
-                n -= ceiling(i) - result[i-1]
-                result[i-1] = ceiling(i)
-    else:
-        low_x = 1
-        low_y = result[0]
-        high_x = 1
-        high_y = result[0]
-
-        while n > 0:
-            #invariant after each iteration of the loop:
-            #[low_x, low_y] is the coordinate of the rightmost point of the
-            #current diagonal s.t. result[low_x] < low_y
-            low_y += 1
-            while low_x < min_length and low_y + min_slope > result[low_x]:
-                low_x += 1
-                low_y += min_slope
-
-            high_y += 1
-            while high_y > ceiling(high_x):
-                high_x += 1
-                high_y += min_slope
-
-            n -= low_x - high_x + 1
-
-        for j in range(1, high_x):
-            result[j-1] = ceiling(j)
-        for i in range(0, -n):
-            result[high_x+i-1] = high_y + min_slope * i - 1
-        for i in range(-n, low_x-high_x+1):
-            result[high_x+i-1] = high_y + min_slope * i
-
-    # Special check for equal slopes
-    if min_slope == max_slope and any(val + min_slope != result[i+1]
-                                      for i,val in enumerate(result[:-1])):
-            return None
-
-    return result
-
-def lower_regular(comp, min_slope, max_slope):
-    """
-    Returns the uppest regular composition below ``comp``
-
-    TESTS::
-
-        sage: import sage.combinat.integer_list as integer_list
-        sage: integer_list.lower_regular([4,2,6], -1, 1)
-        [3, 2, 3]
-        sage: integer_list.lower_regular([4,2,6], -1, infinity)
-        [3, 2, 6]
-        sage: integer_list.lower_regular([1,4,2], -1, 1)
-        [1, 2, 2]
-        sage: integer_list.lower_regular([4,2,6,3,7], -2, 1)
-        [4, 2, 3, 3, 4]
-        sage: integer_list.lower_regular([4,2,infinity,3,7], -2, 1)
-        [4, 2, 3, 3, 4]
-        sage: integer_list.lower_regular([1, infinity, 2], -1, 1)
-        [1, 2, 2]
-        sage: integer_list.lower_regular([infinity, 4, 2], -1, 1)
-        [4, 3, 2]
-    """
-
-    new_comp = comp[:]
-    for i in range(1, len(new_comp)):
-        new_comp[i] = min(new_comp[i], new_comp[i-1] + max_slope)
-
-    for i in reversed(range(len(new_comp)-1)):
-        new_comp[i] = min( new_comp[i], new_comp[i+1] - min_slope)
-
-    return new_comp
-
-def rightmost_pivot(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
-    """
-    TESTS::
-
-        sage: import sage.combinat.integer_list as integer_list
-        sage: f = lambda l: lambda i: l[i-1]
-        sage: integer_list.rightmost_pivot([7,6,5,5,4,3,3,2,1], 9, 9, f([3,3,3,2,1,1,0,0,0]), f([7,6,5,5,5,5,5,4,4]), -1, 0)
-        [7, 2]
-        sage: integer_list.rightmost_pivot([7,6,5,5,4,3,3,2,1], 9, 9,f([3,3,3,2,1,1,0,0,0]), f([7,6,5,5,5,5,5,4,4]), -2, 0)
-        [7, 1]
-        sage: integer_list.rightmost_pivot([7,6,5,5,4,3,3,2,1], 9, 9,f([3,3,3,2,1,1,0,0,0]), f([7,6,5,5,5,5,5,4,4]), -2, 4)
-        [8, 1]
-        sage: integer_list.rightmost_pivot([7,6,5,5,4,3,3,2,1], 9, 9,f([3,3,3,2,1,1,0,0,0]), f([7,6,5,5,5,5,5,4,4]), -2, 1)
-        [8, 1]
-        sage: integer_list.rightmost_pivot([7,6,5,5,5,5,5,4,4], 9, 9,f([3,3,3,2,1,1,0,0,0]), f([7,6,5,5,5,5,5,4,4]), -2, 1)
-        sage: integer_list.rightmost_pivot([3,3,3,2,1,1,0,0,0], 9, 9,f([3,3,3,2,1,1,0,0,0]), f([7,6,5,5,5,5,5,4,4]), -2, 1)
-        sage: g = lambda x: lambda i: x
-        sage: integer_list.rightmost_pivot([1],1,1,g(0),g(2),-10, 10)
-        sage: integer_list.rightmost_pivot([1,2],2,2,g(0),g(2),-10, 10)
-        sage: integer_list.rightmost_pivot([1,2],2,2,g(1),g(2), -10, 10)
-        sage: integer_list.rightmost_pivot([1,2],2,3,g(1),g(2), -10, 10)
-        [2, 1]
-        sage: integer_list.rightmost_pivot([2,2],2,3,g(2),g(2),-10, 10)
-        sage: integer_list.rightmost_pivot([2,3],2,3,g(2),g(2),-10,+10)
-        sage: integer_list.rightmost_pivot([3,2],2,3,g(2),g(2),-10,+10)
-        sage: integer_list.rightmost_pivot([3,3],2,3,g(2),g(2),-10,+10)
-        [1, 2]
-        sage: integer_list.rightmost_pivot([6],1,3,g(0),g(6),-1,0)
-        [1, 0]
-        sage: integer_list.rightmost_pivot([6],1,3,g(0),g(6),-2,0)
-        [1, 0]
-        sage: integer_list.rightmost_pivot([7,9,8,7],1,5,g(0),g(10),-1,10)
-        [2, 6]
-        sage: integer_list.rightmost_pivot([7,9,8,7],1,5,g(5),g(10),-10,10)
-        [3, 5]
-        sage: integer_list.rightmost_pivot([7,9,8,7],1,5,g(5),g(10),-1,10)
-        [2, 6]
-        sage: integer_list.rightmost_pivot([7,9,8,7],1,5,g(4),g(10),-2,10)
-        [3, 7]
-        sage: integer_list.rightmost_pivot([9,8,7],1,4,g(4),g(10),-2,0)
-        [1, 4]
-        sage: integer_list.rightmost_pivot([1,3],1,5,lambda i: i,g(10),-10,10)
-        sage: integer_list.rightmost_pivot([1,4],1,5,lambda i: i,g(10),-10,10)
-        sage: integer_list.rightmost_pivot([2,4],1,5,lambda i: i,g(10),-10,10)
-        [1, 1]
-    """
-    if max_slope < min_slope:
-        return None
-
-    x = len(comp)
-    if x == 0:
-        return None
-
-    y = len(comp) + 1
-    while y <= max_length:
-        if ceiling(y) > 0:
-            break
-        if max_slope <= 0:
-            y = max_length + 1
-            break
-        y += 1
-
-    ceilingx_x = comp[x-1]-1
-    floorx_x = floor(x)
-    if x > 1:
-        floorx_x = max(floorx_x, comp[x-2]+min_slope)
-
-    F = comp[x-1] - floorx_x
-    G = ceilingx_x - comp[x-1] #this is -1
-
-    highX = x
-    lowX  = x
-
-    while not (ceilingx_x >= floorx_x and
-               (G >= 0 or
-               ( y < max_length +1 and
-                 F - max(floor(y), floorx_x + (y-x)*min_slope) >= 0 and
-                 G + min(ceiling(y), ceilingx_x + (y-x)*max_slope) >= 0 ))):
-
-        if x == 1:
-            return None
-
-        x -= 1
-
-        oldfloorx_x    = floorx_x
-        ceilingx_x = comp[x-1] - 1
-        floorx_x   = floor(x)
-        if x > 1:
-            floorx_x = max(floorx_x, comp[x-2]+min_slope)
-
-        min_slope_lowX  = min_slope*(lowX - x)
-        max_slope_highX = max_slope*(highX - x)
-
-
-        #Update G
-        if max_slope == float('+inf'):
-            #In this case, we have
-            #  -- ceiling_x(i) = ceiling(i) for i > x
-            #  --G >= 0 or G = -1
-            G += ceiling(x+1)-comp[x]
-        else:
-            G += (highX - x)*( (comp[x-1]+max_slope) - comp[x]) - 1
-            temp = (ceilingx_x + max_slope_highX) - ceiling(highX)
-            while highX > x and ( temp >= 0 ):
-                G  -= temp
-                highX -= 1
-                max_slope_highX = max_slope*(highX-x)
-                temp = (ceilingx_x + max_slope_highX) - ceiling(highX)
-
-        if G >= 0 and comp[x-1] > floorx_x:
-            #By case 1, x is at the rightmost pivot position
-            break
-
-        #Update F
-        if y < max_length+1:
-            F += comp[x-1] - floorx_x
-            if min_slope != float('-inf'):
-                F += (lowX - x) * (oldfloorx_x - (floorx_x + min_slope))
-                temp = floor(lowX) - (floorx_x + min_slope_lowX)
-                while lowX > x and temp >= 0:
-                    F -= temp
-                    lowX -= 1
-                    min_slope_lowX = min_slope*(lowX-x)
-                    temp = floor(lowX) - (floorx_x + min_slope_lowX)
-
-    return [x, floorx_x]
-
-
-def next(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
-    """
-    Returns the next integer list after ``comp`` that satisfies the
-    constraints.
-
-    .. WARNING::
-
-       INTERNAL FUNCTION! DO NOT USE DIRECTLY!
-
-    EXAMPLES::
-
-        sage: from sage.combinat.integer_list import next
-        sage: IV = IntegerVectors(2,3,min_slope=0)
-        sage: params = IV._parameters()
-        sage: next([0,1,1], *params)
-        [0, 0, 2]
-    """
-    x = rightmost_pivot( comp, min_length, max_length, floor, ceiling, min_slope, max_slope)
-    if x is None:
-        return None
-    [x, low] = x
-    high = comp[x-1]-1
-
-##     // Build wrappers around floor and ceiling to take into
-##     // account the new constraints on the value of compo[x].
-##     //
-##     // Efficiency note: they are not wrapped more than once, since
-##     // the method Next calls first, but not the converse.
-
-    if min_slope == float('-inf'):
-        new_floor = lambda i: floor(x+(i-1))
-    else:
-        new_floor = lambda i: max(floor(x+(i-1)), low+(i-1)*min_slope)
-
-    if max_slope == float('+inf'):
-        new_ceiling = lambda i: comp[x-1] - 1 if i == 1 else ceiling(x+(i-1))
-    else:
-        new_ceiling = lambda i: min(ceiling(x+(i-1)), high+(i-1)*max_slope)
-
-    res = []
-    res += comp[:x-1]
-    f = first(sum(comp[x-1:]), max(min_length-x+1, 0), max_length-x+1,
-                 new_floor, new_ceiling, min_slope, max_slope)
-    if f is None: # Check to make sure it is valid
-        return None
-    res += f
-    return res
-
-
-def iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
-    """
-    .. WARNING::
-
-       INTERNAL FUNCTION! DO NOT USE DIRECTLY!
-
-    EXAMPLES::
-
-        sage: from sage.combinat.integer_list import iterator
-        sage: IV = IntegerVectors(2,3,min_slope=0)
-        sage: params = IV._parameters()
-        sage: list(iterator(2,*params))
-        [[0, 1, 1], [0, 0, 2]]
-    """
-    #from sage.misc.superseded import deprecation
-    #deprecation(13605, 'iterator(...) is deprecated. Use IntegerListLex(...) instead.')
-    succ = lambda x: next(x, min_length, max_length, floor, ceiling, min_slope, max_slope)
-
-    #Handle the case where n is a list of integers
-    if isinstance(n, __builtin__.list):
-        for i in range(n[0], min(n[1]+1,upper_bound(min_length, max_length, floor, ceiling, min_slope, max_slope))):
-            for el in iterator(i, min_length, max_length, floor, ceiling, min_slope, max_slope):
-                yield el
-    else:
-        f = first(n, min_length, max_length, floor, ceiling, min_slope, max_slope)
-        while not f is None:
-            yield f
-            f = succ(f)
-
-def upper_regular(comp, min_slope, max_slope):
-    """
-    Return the uppest regular composition above ``comp``.
-
-    TESTS::
-
-        sage: import sage.combinat.integer_list as integer_list
-        sage: integer_list.upper_regular([4,2,6],-1,1)
-        [4, 5, 6]
-        sage: integer_list.upper_regular([4,2,6],-2, 1)
-        [4, 5, 6]
-        sage: integer_list.upper_regular([4,2,6,3,7],-2, 1)
-        [4, 5, 6, 6, 7]
-        sage: integer_list.upper_regular([4,2,6,1], -2, 1)
-        [4, 5, 6, 4]
-    """
-
-    new_comp = comp[:]
-    for i in range(1, len(new_comp)):
-        new_comp[i] = max(new_comp[i], new_comp[i-1] + min_slope)
-
-    for i in reversed(range(len(new_comp)-1)):
-        new_comp[i] = max( new_comp[i], new_comp[i+1] - max_slope)
-
-    return new_comp
-
-def comp2floor(f, min_slope, max_slope):
-    """
-    Given a composition, returns the lowest regular function N->N above
-    it.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.integer_list import comp2floor
-        sage: f = comp2floor([2, 1, 1],-1,0)
-        sage: [f(i) for i in range(10)]
-        [2, 1, 1, 1, 2, 3, 4, 5, 6, 7]
-    """
-    if len(f) == 0: return lambda i: 0
-    floor = upper_regular(f, min_slope, max_slope)
-    return lambda i: floor[i] if i < len(floor) else max(0, floor[-1]-(i-len(floor))*min_slope)
-
-
-def comp2ceil(c, min_slope, max_slope):
-    """
-    Given a composition, returns the lowest regular function N->N below
-    it.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.integer_list import comp2ceil
-        sage: f = comp2ceil([2, 1, 1],-1,0)
-        sage: [f(i) for i in range(10)]
-        [2, 1, 1, 1, 2, 3, 4, 5, 6, 7]
-    """
-    if len(c) == 0: return lambda i: 0
-    ceil = lower_regular(c, min_slope, max_slope)
-    return lambda i: ceil[i] if i < len(ceil) else max(0, ceil[-1]-(i-len(ceil))*min_slope)
-
-
-def upper_bound(min_length, max_length, floor, ceiling, min_slope, max_slope):
-    """
-    Compute a coarse upper bound on the size of a vector satisfying the
-    constraints.
-
-    TESTS::
-
-        sage: import sage.combinat.integer_list as integer_list
-        sage: f = lambda x: lambda i: x
-        sage: integer_list.upper_bound(0,4,f(0), f(1),-infinity,infinity)
-        4
-        sage: integer_list.upper_bound(0, infinity, f(0), f(1), -infinity, infinity)
-        inf
-        sage: integer_list.upper_bound(0, infinity, f(0), f(1), -infinity, -1)
-        1
-        sage: integer_list.upper_bound(0, infinity, f(0), f(5), -infinity, -1)
-        15
-        sage: integer_list.upper_bound(0, infinity, f(0), f(5), -infinity, -2)
-        9
-    """
-    from sage.functions.all import floor as flr
-    if max_length < float('inf'):
-        return sum( [ ceiling(j) for j in range(max_length)] )
-    elif max_slope < 0 and ceiling(1) < float('inf'):
-        maxl = flr(-ceiling(1)/max_slope)
-        return ceiling(1)*(maxl+1) + binomial(maxl+1,2)*max_slope
-    #FIXME: only checking the first 10000 values, but that should generally
-    #be enough
-    elif [ceiling(j) for j in range(10000)] == [0]*10000:
-        return 0
-    else:
-        return float('inf')
-
-
-
-def is_a(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
-    """
-    Returns ``True`` if ``comp`` meets the constraints imposed by the
-    arguments.
-
-    .. WARNING::
-
-       INTERNAL FUNCTION! DO NOT USE DIRECTLY!
-
-    EXAMPLES::
-
-        sage: from sage.combinat.integer_list import is_a
-        sage: IV = IntegerVectors(2,3,min_slope=0)
-        sage: params = IV._parameters()
-        sage: all([is_a(iv, *params) for iv in IV])
-        True
-    """
-    if len(comp) < min_length or len(comp) > max_length:
-        return False
-    for i in range(len(comp)):
-        if comp[i] < floor(i+1):
-            return False
-        if comp[i] > ceiling(i+1):
-            return False
-    for i in range(len(comp)-1):
-        slope = comp[i+1] - comp[i]
-        if slope < min_slope or slope > max_slope:
-            return False
-    return True
-
-class IntegerListsLexElement(ClonableArray):
-    """
-    Element class for :class:`IntegerListsLex`.
-    """
-    def check(self):
-        """
-        Check to make sure this is a valid element in its
-        :class:`IntegerListsLex` parent.
-
-        .. TODO:: Placeholder. Implement a proper check.
-
-        EXAMPLES::
-
-            sage: C = IntegerListsLex(4)
-            sage: C([4]).check()
-            True
-        """
-        return True
+infinity = float('+inf')
 
 class IntegerListsLex(Parent):
     r"""
     A combinatorial class `C` for integer lists satisfying certain
     sum, length, upper/lower bound and regularity constraints. The
     purpose of this tool is mostly to provide a Constant Amortized
-    Time iterator through those lists, in lexicographic order.
+    Time iterator through these lists, in lexicographic order.
 
     INPUT:
 
-    - ``n`` -- a non negative integer
-    - ``min_length`` -- a non negative integer
-    - ``max_length`` -- an integer or `\infty`
-    - ``length`` -- an integer; overrides min_length and max_length if
-      specified
-    - ``min_part`` -- the minimum value of each part; defaults to ``0``
-    - ``max_part`` -- the maximum value of each part; defaults to `+\infty`
-    - ``floor`` -- a function `f` (or list);    defaults to
-      ``lambda i: min_part``
-    - ``ceiling`` -- a function `f` (or list);  defaults to
-      ``lambda i: max_part``
+    - ``min_n`` -- a nonnegative integer specifying the minimum number to which
+      the elements in the list sum; defaults to ``0``
+    - ``max_n`` -- a nonnegative integer or `\infty` specifying the maximum number to which
+      the elements in the list sum; defaults to ``0``
+    - ``n`` -- a nonnegative integer or list of nonnegative integers; overrides min_n and max_n if specified
+    - ``min_length`` -- a nonnegative integer specifying the minimal length of the vectors;
+      defaults to ``0``
+    - ``max_length`` -- a nonnegative integer or `\infty` specifying the maximal length of the vectors;
+      defaults to `\infty`
+    - ``length`` -- an integer; overrides min_length and max_length if specified
+    - ``floor`` -- an integer, a list of integers, or a function `f`;
+      defaults to the constant zero function
+    - ``ceiling`` -- an integer, a list of integers, or a function `f` (or list);
+      defaults to the constant `\infty` function
     - ``min_slope`` -- an integer or `-\infty`; defaults to `-\infty`
     - ``max_slope`` -- an integer or `+\infty`; defaults to `+\infty`
+    - ``category`` -- a category (default: EnumeratedSets); in certain cases, in which it is known
+      that the set is finite, this is set to FiniteEnumeratedSets
 
     An *integer list* is a list `l` of nonnegative integers, its
     *parts*. The *length* of `l` is the number of its parts;
@@ -594,14 +65,23 @@ class IntegerListsLex(Parent):
        differ by trailing zeroes. In this case, only the list with the
        least number of trailing zeroes will be produced.
 
-    The constraints on the lists are as follow:
+    The constraints on the lists are as follows:
 
-    - Sum: `sum(l) == n`
+    - Sum: `min_n \le sum(l) \le max_n` (with ``n = min_n = max_n`` if ``n`` is specified)
 
-    - Length: ``min_length <= len(l) <= max_length``
+    - Length: ``min_length <= len(l) <= max_length`` (with ``length = min_length = max_length`` if
+      ``length`` is specified)
 
     - Lower and upper bounds: ``floor(i) <= l[i] <= ceiling(i)``, for
-      ``i`` from 0 to ``len(l)``
+      ``i`` from 0 to ``len(l)``. If ``floor`` (resp. ``ceiling``) is an
+      integer `k`, then ``floor`` (resp. ``ceiling``) is considered to be
+      the constant function `k`.
+      If ``floor`` is a list of integers `v`, then ``floor(i) = v(i)``
+      for ``i`` from ``0`` to ``len(v)-1``. For ``i`` from ``len(v)`` to ``max_length-1``,
+      the ``floor`` function is considered to be zero.
+      Similarly, if ``ceiling`` is a list of integers `v`, then ``ceiling(i) = v(i)``
+      for ``i`` from ``0`` to ``len(v)-1``. For ``i`` from ``len(v)`` to ``max_length-1``,
+      the ``ceiling`` function is considered to be `\infty`.
 
     - Regularity condition: ``minSlope <= l[i+1]-l[i] <= maxSlope``,
       for ``i`` from 0 to ``len(l)-1``
@@ -635,7 +115,7 @@ class IntegerListsLex(Parent):
         sage: C.first()
         [2, 0, 0]
 
-    One can specify lower and upper bound on each part::
+    One can specify lower and upper bounds on each part::
 
         sage: list(IntegerListsLex(5, length = 3, floor = [1,2,0], ceiling = [3,2,3]))
         [[3, 2, 0], [2, 2, 1], [1, 2, 2]]
@@ -646,12 +126,12 @@ class IntegerListsLex(Parent):
         sage: list(IntegerListsLex(4, max_slope=0))
         [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
 
-    This is the list of all partitions of `7` with parts at least `2`::
+    The following is the list of all partitions of `7` with parts at least `2`::
 
-        sage: list(IntegerListsLex(7, max_slope = 0, min_part = 2))
+        sage: list(IntegerListsLex(7, max_slope = 0, floor = 2))
         [[7], [5, 2], [4, 3], [3, 2, 2]]
 
-    This is the list of all partitions of `5` and length at most 3
+    Next we list all partitions of `5` and length at most 3
     which are bounded below by [2,1,1]::
 
         sage: list(IntegerListsLex(5, max_slope = 0, max_length = 3, floor = [2,1,1]))
@@ -673,7 +153,7 @@ class IntegerListsLex(Parent):
 
     This is the list of all compositions of `4` (but see Compositions)::
 
-        sage: list(IntegerListsLex(4, min_part = 1))
+        sage: list(IntegerListsLex(4, floor = 1))
         [[4], [3, 1], [2, 2], [2, 1, 1], [1, 3], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
 
     This is the list of all integer vectors of sum `4` and length `3`::
@@ -683,9 +163,9 @@ class IntegerListsLex(Parent):
          [2, 0, 2], [1, 3, 0], [1, 2, 1], [1, 1, 2], [1, 0, 3],
          [0, 4, 0], [0, 3, 1], [0, 2, 2], [0, 1, 3], [0, 0, 4]]
 
-    There are all the lists of sum 4 and length 4 such that l[i] <= i::
+    Next we obtain all lists of sum 4 and length 4 such that l[i] <= i::
 
-        sage: list(IntegerListsLex(4, length=4, ceiling=lambda i: i))
+        sage: list(IntegerListsLex(4, length = 4, ceiling = lambda i: i))
         [[0, 1, 2, 1], [0, 1, 1, 2], [0, 1, 0, 3], [0, 0, 2, 2], [0, 0, 1, 3]]
 
     This is the list of all monomials of degree `4` which divide the
@@ -719,42 +199,20 @@ class IntegerListsLex(Parent):
        special cases, it would be possible to do better by counting
        techniques for integral point in polytopes.
 
+    In the following example, the floor conditions do not satisfy the
+    slope conditions since the floor for the third part is also 3. The algorithm
+    will nonetheless give the correct result::
+
+        sage: I = IntegerListsLex(16, min_length=2, max_slope=-1, floor=[5,3,3])
+        sage: I.list()
+        [[13, 3], [12, 4], [11, 5], [10, 6], [9, 7], [9, 4, 3], [8, 5, 3], [8, 4, 3, 1],
+         [7, 6, 3], [7, 5, 4], [7, 5, 3, 1], [7, 4, 3, 2], [6, 5, 4, 1], [6, 5, 3, 2],
+         [6, 4, 3, 2, 1]]
+
     .. NOTE::
 
-       Caveat: with the current implementation, the constraints should
-       satisfy the following conditions:
-
-       - The upper and lower bounds themselves should satisfy the
-         slope constraints.
-
-       - The maximal and minimal part values should not be equal.
-
-    Those conditions are not always checked by the algorithm, and the
-    result may be completely incorrect if they are not satisfied:
-
-    In the following example, the floor conditions do not satisfy the
-    slope conditions since the floor for the third part is also 3::
-
-        sage: I = IntegerListsLex(16, min_length=2, min_part=3, max_slope=-1, floor=[5,3])
-        Traceback (most recent call last):
-        ...
-        ValueError: floor does not satisfy the max slope condition
-
-    Compare this with the following input, which is equivalent
-    but it bypasses the checks because the floor is a function::
-
-        sage: f = lambda x: 5 if x == 0 else 3
-        sage: I = IntegerListsLex(16, min_length=2, max_slope=-1, floor=f)
-        sage: list(I)
-        [[13, 3], [12, 4], [11, 5], [10, 6]]
-
-    With some work, this could be fixed without affecting the overall
-    complexity and efficiency. Also, the generation algorithm could be
-    extended to deal with non-constant slope constraints and with
-    negative parts, as well as to accept a range parameter instead of
-    a single integer for the sum `n` of the lists (the later was
-    readily implemented in MuPAD-Combinat). Encouragements,
-    suggestions, and help are welcome.
+        The generation algorithm could in principle be extended to deal with non-constant
+        slope constraints and with negative parts.
 
     .. TODO:
 
@@ -772,23 +230,23 @@ class IntegerListsLex(Parent):
         [[]]
         sage: list(IntegerListsLex(0, max_length=0, floor = g(0), min_slope = 0, max_slope = 0))
         [[]]
-        sage: list(IntegerListsLex(0, min_part = 1, min_slope = 0))
+        sage: list(IntegerListsLex(0, floor = 1, min_slope = 0))
         [[]]
-        sage: list(IntegerListsLex(1, min_part = 1, min_slope = 0))
+        sage: list(IntegerListsLex(1, floor = 1, min_slope = 0))
         [[1]]
-        sage: list(IntegerListsLex(0, min_length = 1, min_part = 1, min_slope = 0))
+        sage: list(IntegerListsLex(0, min_length = 1, floor = 1, min_slope = 0))
         []
         sage: list(IntegerListsLex(0, min_length = 1, min_slope = 0))
         [[0]]
         sage: list(IntegerListsLex(3, max_length=2, ))
         [[3], [2, 1], [1, 2], [0, 3]]
-        sage: partitions = {"min_part": 1, "max_slope": 0}
+        sage: partitions = {"floor": 1, "max_slope": 0}
         sage: partitions_min_2 = {"floor": g(2), "max_slope": 0}
-        sage: compositions = {"min_part": 1}
+        sage: compositions = {"floor": 1}
         sage: integer_vectors = lambda l: {"length": l}
         sage: lower_monomials = lambda c: {"length": c, "floor": lambda i: c[i]}
         sage: upper_monomials = lambda c: {"length": c, "ceiling": lambda i: c[i]}
-        sage: constraints = { "min_part":1, "min_slope": -1, "max_slope": 0}
+        sage: constraints = { "floor":1, "min_slope": -1, "max_slope": 0}
         sage: list(IntegerListsLex(6, **partitions))
         [[6],
          [5, 1],
@@ -845,23 +303,77 @@ class IntegerListsLex(Parent):
 
     Noted on :trac:`17898`::
 
-        sage: list(IntegerListsLex(4, min_part=1, length=3, min_slope=1))
+        sage: list(IntegerListsLex(4, floor=1, length=3, min_slope=1))
         []
         sage: IntegerListsLex(6, ceiling=[4,2], floor=[3,3]).list()
         []
-        sage: IntegerListsLex(6, min_part=1, max_part=3, max_slope=-4).list()
+        sage: IntegerListsLex(6, floor=1, ceiling=3, max_slope=-4).list()
         []
+
+    Noted in :trac:`17548`, which are now fixed::
+
+        sage: IntegerListsLex(10, floor=2, max_slope=-1).list()
+        [[10], [8, 2], [7, 3], [6, 4], [5, 3, 2]]
+        sage: IntegerListsLex(5, ceiling=2, min_slope=1, floor=[2,1,1]).list()
+        []
+        sage: IntegerListsLex(4, min_slope=0, max_slope=0).list()
+        [[4], [2, 2], [1, 1, 1, 1]]
+        sage: IntegerListsLex(6, min_slope=-1, max_slope=-1).list()
+        [[6], [3, 2, 1]]
+        sage: IntegerListsLex(6, min_length=3, max_length=2, floor=1).list()
+        []
+        sage: I = IntegerListsLex(3, max_length=2, floor=1)
+        sage: I.list()
+        [[3], [2, 1], [1, 2]]
+        sage: [1,1,1] in I
+        False
+        sage: I = IntegerListsLex(10, ceiling=[4], max_length=1, floor = 1)
+        sage: I.list()
+        []
+        sage: [4,6] in I
+        False
+        sage: I = IntegerListsLex(4, ceiling=2, min_slope=1, floor=1)
+        sage: I.list()
+        []
+        sage: I = IntegerListsLex(7, ceiling=4, min_slope=1, floor=1)
+        sage: I.list()
+        [[3, 4], [1, 2, 4]]
+        sage: I = IntegerListsLex(4, floor=[2,1], ceiling=[2,2], max_length=2, min_slope=0)
+        sage: I.list()
+        [[2, 2]]
+        sage: I = IntegerListsLex(10, floor=1, max_slope=-1)
+        sage: I.list()
+        [[10], [9, 1], [8, 2], [7, 3], [7, 2, 1], [6, 4], [6, 3, 1], [5, 4, 1],
+         [5, 3, 2], [4, 3, 2, 1]]
+
+    .. RUBRIC:: Some timings
+
+        sage: P = IntegerListsLex(n=20, max_slope=0, floor=1)
+        sage: %time x = list(P)  # not tested
+        CPU times: user 359 ms, sys: 12.7 ms, total: 372 ms
+        Wall time: 348 ms
+        sage: P.cardinality()
+        627
+
+        sage: from sage.combinat.integer_list_old import IntegerListsLex as IntegerListsLexOld
+        sage: P = IntegerListsLexOld(n=20, max_slope=0, min_part=1)
+        sage: %time x = list(P)  # not tested
+        CPU times: user 203 ms, sys: 20.7 ms, total: 224 ms
+        Wall time: 197 ms
     """
+    __metaclass__ = ClasscallMetaclass
+
     def __init__(self,
-                 n,
-                 length = None, min_length=0, max_length=float('+inf'),
-                 floor=None, ceiling = None,
-                 min_part = 0, max_part = float('+inf'),
-                 min_slope=float('-inf'), max_slope=float('+inf'),
-                 name = None,
-                 element_constructor = None,
-                 element_class = None,
-                 global_options = None):
+                 n=None, min_n=0, max_n=0,
+                 length=None, min_length=0, max_length=infinity,
+                 floor=None, ceiling=None,
+                 min_part=None, max_part=None,
+                 min_slope=-infinity, max_slope=infinity,
+                 name=None,
+                 category=FiniteEnumeratedSets(),
+                 element_constructor=None, element_class=None,
+                 global_options=None,
+                 waiver=None):
         """
         Initialize ``self``.
 
@@ -878,101 +390,202 @@ class IntegerListsLex(Parent):
             True
             sage: TestSuite(C).run()
         """
+        ## TODO handle finiteness conditions Re: category, when possible, warn when not (waiver parameter)
+
         # Convert to float infinity
-        from sage.rings.infinity import infinity
-        if max_slope == infinity:
-            max_slope = float('+inf')
-        if min_slope == -infinity:
-            min_slope = float('-inf')
-        if max_length == infinity:
-            max_length = float('inf')
-        if max_part == infinity:
-            max_part = float('+inf')
+        # note that ``infinity`` here is defined as float('-inf'), so the equality is mathematical
 
+        self.waiver = waiver
+        self.warning = False # warning for dangerous (but possibly valid) usage
+
+        if n is not None:
+            if isinstance(n, Integer):
+                if n < 0:
+                    raise ValueError("value of n can't be less than 0")
+                self.n_list = [n]
+                self.min_n = n
+                self.max_n = n
+            elif isinstance(n, list):
+                self.n_list = n
+                self.min_n = min(self.n_list)
+                if self.min_n < 0:
+                    raise ValueError("can't have negative values of n")
+                self.max_n = max(self.n_list)
+            else:
+                raise ValueError("invalid value for parameter n")
+        else:
+            self.n_list = None
+            self.min_n = min_n
+            self.max_n = max_n
+
+        if length is not None:
+            self.min_length = length
+            self.max_length = length
+        else:
+            self.min_length = min_length
+            self.max_length = max_length
+
+        self.min_slope = min_slope
+        self.max_slope = max_slope
+
+        if min_part is None:
+            self.min_part = 0
+        elif min_part in ZZ:
+            if min_part < 0:
+                raise(ValueError("min_part can't be negative"))
+            else:
+                ## TODO warn user of deprecation
+                self.min_part = min_part
+        else:
+            if min_part == infinity:
+                raise(ValueError("min_part can't be infinite"))
+            elif min_part == -infinity:
+                raise(ValueError("min_part can't be negative or infinite"))
+            else:
+                raise(ValueError("unable to parse value of min_part"))
+
+        if max_part is None:
+            self.max_part = infinity
+        elif max_part in ZZ:
+            if max_part < 0:
+                raise(ValueError("max_part can't be negative"))
+            else:
+                ## TODO warn user of deprecation
+                self.max_part = max_part
+        else:
+            if max_part == -infinity:
+                raise(ValueError("max_part can't be negative"))
+            else:
+                raise(ValueError("unable to parse value of max_part"))
+
+        ## TODO: Warn user about using arbitrary functions?
+        # indexing for floor and ceiling functions is base 0 internally
         if floor is None:
-            self.floor_list = []
-        else:
-            try:
-                # Is ``floor`` an iterable?
-                # Not ``floor[:]`` because we want ``self.floor_list``
-                #    mutable, and applying [:] to a tuple gives a tuple.
-                self.floor_list = __builtin__.list(floor)
-                # Make sure the floor list will make the list satisfy the constraints
-                if min_slope != float('-inf'):
-                    for i in range(1, len(self.floor_list)):
-                        self.floor_list[i] = max(self.floor_list[i], self.floor_list[i-1] + min_slope)
-
-                # Some input checking
-                for i in range(1, len(self.floor_list)):
-                    if self.floor_list[i] - self.floor_list[i-1] > max_slope:
-                        raise ValueError("floor does not satisfy the max slope condition")
-                if self.floor_list and min_part - self.floor_list[-1] > max_slope:
-                    raise ValueError("floor does not satisfy the max slope condition")
-            except TypeError:
+            self.floor_type = "none"
+            self.floor = ConstantFunction(self.min_part)
+            self.floor_limit = 0
+            self.floor_limit_start = 0
+        elif isinstance(floor, Integer):
+            if floor < 0:
+                raise(ValueError("floor value can't be negative"))
+            self.floor_type = "constant"
+            self.floor = ConstantFunction(max(floor,self.min_part))
+            self.floor_limit = floor
+            self.floor_limit_start = 0
+        elif isinstance(floor, list) or isinstance(floor, tuple):
+            self.floor_type = "list"
+            if isinstance(floor, tuple):
+                (floor,default) = floor
+            else:
+                (floor,default) = (floor, 0)
+            floor_fn = IntegerListsLex._list_function(floor, default)
+            self.floor_limit = 0
+            self.floor_limit_start = len(floor)
+            if (self.min_part > 0):
+                self.floor = lambda i: max(self.min_part, floor_fn(i))
+            else:
+                self.floor = floor_fn
+        elif callable(floor):
+            # indexing is base 0
+            self.warning = True
+            self.floor_type = "function"
+            self.floor_limit = None
+            self.floor_limit_start = float('+inf')
+            if (self.min_part > 0):
+                self.floor = lambda i: max(self.min_part, floor(i))
+            else:
                 self.floor = floor
-        if ceiling is None:
-            self.ceiling_list = []
         else:
-            try:
-                # Is ``ceiling`` an iterable?
-                self.ceiling_list = __builtin__.list(ceiling)
-                # Make sure the ceiling list will make the list satisfy the constraints
-                if max_slope != float('+inf'):
-                    for i in range(1, len(self.ceiling_list)):
-                        self.ceiling_list[i] = min(self.ceiling_list[i], self.ceiling_list[i-1] + max_slope)
+            raise(ValueError("unable to parse value of parameter floor"))
 
-                # Some input checking
-                for i in range(1, len(self.ceiling_list)):
-                    if self.ceiling_list[i] - self.ceiling_list[i-1] < min_slope:
-                        raise ValueError("ceiling does not satisfy the min slope condition")
-                if self.ceiling_list and max_part - self.ceiling_list[-1] < min_slope:
-                    raise ValueError("ceiling does not satisfy the min slope condition")
-            except TypeError:
-                # ``ceiling`` is not an iterable.
+        if ceiling is None:
+            self.ceiling_type = "none"
+            self.ceiling = ConstantFunction(min(infinity,self.max_part))
+            self.ceiling_limit = infinity
+            self.ceiling_limit_start = 0
+        elif isinstance(ceiling, Integer) or ceiling == infinity:
+            if ceiling < 0:
+                raise(ValueError("ceiling value can't be negative"))
+            self.ceiling_type = "constant"
+            self.ceiling = ConstantFunction(min(ceiling,self.max_part))
+            self.ceiling_limit = ceiling
+            self.ceiling_limit_start = 0
+        elif isinstance(ceiling, list) or isinstance(ceiling, tuple):
+            self.ceiling_type = "list"
+            if isinstance(ceiling, tuple):
+                (ceiling, default) = ceiling
+            else:
+                (ceiling, default) = (ceiling, infinity)
+            ceiling_fn = IntegerListsLex._list_function(ceiling, default)
+            self.ceiling_limit = infinity
+            self.ceiling_limit_start = len(ceiling)
+            if (self.max_part < infinity):
+                self.ceiling = lambda i: min(self.max_part, ceiling_fn(i))
+            else:
+                self.ceiling = ceiling_fn
+        elif callable(ceiling):
+            self.warning = True
+            self.ceiling_type = "function"
+            self.ceiling_limit = None
+            self.ceiling_limit_start = infinity
+            if (self.max_part < infinity):
+                self.ceiling = lambda i: min(self.max_part, ceiling(i))
+            else:
                 self.ceiling = ceiling
+        else:
+            raise(ValueError("unable to parse value of parameter ceiling"))
+
         if name is not None:
             self.rename(name)
-        if n in ZZ:
-            self.n = n
-            self.n_range = [n]
-        else:
-            self.n_range = n
-        if length is not None:
-            min_length = length
-            max_length = length
-        self.min_length = min_length
-        self.max_length = max_length
-        self.min_part = min_part
-        self.max_part = max_part
-        # FIXME: the internal functions currently assume that floor and ceiling start at 1
-        # this is a workaround
-        self.max_slope = max_slope
-        self.min_slope = min_slope
+
+        if self.warning and not self.waiver:
+            pass
+            ## TODO warn user about potential hanging elements
+
+        # In case we want output to be of a different type,
         if element_constructor is not None:
             self._element_constructor_ = element_constructor
         if element_class is not None:
             self.Element = element_class
         if global_options is not None:
             self.global_options = global_options
-        Parent.__init__(self, category=FiniteEnumeratedSets())
 
-    Element = IntegerListsLexElement
+        Parent.__init__(self, category=category)
 
-    def _element_constructor_(self, lst):
-        """
-        Construct an element with ``self`` as parent.
+    @staticmethod
+    def _list_function(l, default):
+        r"""
+        Generate a function on the nonnegative integers from input.
+
+        This method generates a function on the nonnegative integers
+        whose values are taken from ``l`` when the input is a valid index
+        in the list ``l``, and has a default value ``default`` otherwise.
+
+        INPUT:
+
+        - `l` -- a list to use as a source of values
+        - `default` -- a default value to use for indices outside of the list
+
+        OUTPUT:
+
+        A function on the nonnegative integers.
 
         EXAMPLES::
 
-            sage: C = IntegerListsLex(4)
-            sage: C([4])
-            [4]
+            sage: C = IntegerListsLex(2, length=3)
+            sage: f = C._list_function([1,2],Infinity)
+            sage: f(1)
+            2
+            sage: f(3)
+            +Infinity
         """
-        return self.element_class(self, lst)
+        return lambda i: l[i] if (i >= 0 and i < len(l) and i in ZZ) else default
 
     def __cmp__(self, x):
         """
         Compares two different :class:`IntegerListsLex`.
+
+        TODO: Fix this to make it more robust!
 
         For now, the comparison is done just on their repr's which is
         not robust!
@@ -990,7 +603,7 @@ class IntegerListsLex(Parent):
 
     def _repr_(self):
         """
-        Returns the name of this combinatorial class.
+        Return the name of this combinatorial class.
 
         EXAMPLES::
 
@@ -1006,100 +619,53 @@ class IntegerListsLex(Parent):
             sage: C
             A given name
         """
-        if hasattr(self, "n"):
-            return "Integer lists of sum %s satisfying certain constraints"%self.n
+        if self.min_n == self.max_n:
+            return "Integer lists of sum %s satisfying certain constraints" % self.min_n
+        elif self.max_n == infinity:
+            if self.min_n == 0:
+                return "Integer lists with arbitrary sum satisfying certain constraints"
+            else:
+                return "Integer lists of sum at least %s satisfying certain constraints" % self.min_n
+        else:
+            if self.n_list is not None:
+                return "Integer lists of sum in %s satisfying certain constraints" % self.n_list
+            else:
+                return "Integer lists of sum between %s and %s satisfying certain constraints" % (self.min_n,self.max_n)
 
-        return "Integer lists of sum in %s satisfying certain constraints"%self.n_range
-
-    def floor(self, i):
+    def __contains__(self, comp):
         """
-        Returns the minimum part that can appear at the `i^{th}` position of
-        any list produced.
+        Return ``True`` if ``comp`` meets the constraints imposed by the arguments.
 
         EXAMPLES::
 
-            sage: C = IntegerListsLex(4, length=2, min_part=1)
-            sage: C.floor(0)
-            1
-            sage: C = IntegerListsLex(4, length=2, floor=[1,2])
-            sage: C.floor(0)
-            1
-            sage: C.floor(1)
-            2
+            sage: C = IntegerListsLex(n=2,max_length=3,min_slope=0)
+            sage: all([l in C for l in C])
+            True
         """
-        if i < len(self.floor_list):
-            return max(self.min_part, self.floor_list[i])
-        if self.min_slope != float('-inf') and self.min_slope > 0:
-            return self.min_part + (i - len(self.floor_list)) * self.min_slope
-        return self.min_part
+        if len(comp) < self.min_length or len(comp) > self.max_length:
+            return False
+        n = sum(comp)
+        if self.n_list is not None:
+            if not n in self.n_list:
+                return False
+        else:
+            if n < self.min_n or n > self.max_n:
+                return False
+        for i in range(len(comp)):
+            if comp[i] < self.floor(i):
+                return False
+            if comp[i] > self.ceiling(i):
+                return False
+        for i in range(len(comp)-1):
+            slope = comp[i+1] - comp[i]
+            if slope < self.min_slope or slope > self.max_slope:
+                return False
+        return True
 
-    def ceiling(self, i):
-        """
-        Returns the maximum part that can appear in the `i^{th}`
-        position in any list produced.
-
-        EXAMPLES::
-
-            sage: C = IntegerListsLex(4, length=2, max_part=3)
-            sage: C.ceiling(0)
-            3
-            sage: C = IntegerListsLex(4, length=2, ceiling=[3,2])
-            sage: C.ceiling(0)
-            3
-            sage: C.ceiling(1)
-            2
-        """
-        if i < len(self.ceiling_list):
-            return min(self.max_part, self.ceiling_list[i])
-        if self.max_slope != float('inf') and self.max_slope < 0:
-            return self.max_part + (i - len(self.ceiling_list)) * self.max_slope
-        return self.max_part
-
-    # Temporary adapter to use the preexisting list/iterator/is_a function above.
-    # FIXME: fix their specs so that floor and ceiling start from 0 instead of 1...
-    # FIXME: integrate them as methods of this class
-    def build_args(self):
-        """
-        Returns a list of arguments that can be passed into the pre-existing
-        ``first``, ``next``, ``is_a``, ... functions in this module.
-
-        ``n`` is currently not included in this list.
-
-        EXAMPLES::
-
-            sage: C = IntegerListsLex(2, length=3)
-            sage: C.build_args()
-            [3,
-             3,
-             <function <lambda> at 0x...>,
-             <function <lambda> at 0x...>,
-             -inf,
-             inf]
-
-        """
-        return [self.min_length, self.max_length,
-                lambda i: self.floor(i-1), lambda i: self.ceiling(i-1),
-                self.min_slope, self.max_slope]
-
-    def first(self):
-        """
-        Returns the lexicographically maximal element in ``self``.
-
-        EXAMPLES::
-
-            sage: C = IntegerListsLex(2, length=3)
-            sage: C.first()
-            [2, 0, 0]
-        """
-        # Make sure we have a valid return
-        f = first(self.n_range[0], *(self.build_args()))
-        if f is None:
-            return None
-        return self._element_constructor_(f)
 
     def __iter__(self):
         """
-        Returns an iterator for the elements of ``self``.
+        Return an iterator for the elements of ``self``.
 
         EXAMPLES::
 
@@ -1107,88 +673,340 @@ class IntegerListsLex(Parent):
             sage: list(C) #indirect doctest
             [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
         """
-        args = self.build_args()
-        for n in self.n_range:
-            l = first(n, *args)
-            while l is not None:
-                yield self._element_constructor_(l)
-                l = next(l, *args)
+        return IntegerListsLex._IntegerListsLexIter(self)
 
-    def count(self):
+    class _IntegerListsLexIter:
         """
-        Default brute force implementation of count by iteration
-        through all the objects.
-
-        Note that this skips the call to ``_element_constructor``, unlike
-        the default implementation.
-
-        .. TODO::
-
-            Do the iteration in place to save on copying time
-
-        EXAMPLES::
-
-            sage: C = IntegerListsLex(2, length=3)
-            sage: C.cardinality() == C.count()
-            True
+        Iterator class for IntegerListsLex
         """
-        args = self.build_args()
-        c = ZZ(0)
-        for n in self.n_range:
-            l = first(n, *args)
-            while l is not None:
-                c += 1
-                l = next(l, *args)
-        return c
+        def __init__(self, parent):
+            """
+            TESTS::
 
-    def __contains__(self, v):
+                sage: C = IntegerListsLex(2, length=3)
+                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: I.rho
+                []
+                sage: I.mu
+                []
+                sage: I.j
+                0
+                sage: I.finished
+                False
+            """
+            self.parent = parent
+
+            ## TODO either use SearchForest or use ranges / indices rather than endpoints / values (more modular)
+            self.rho = []   # vector of current search ranges
+            self.mu = []    # vector of elements
+            self.j = 0      # length of current list
+
+            self.finished = False
+
+        def next(self):
+            """
+            Return the next element in the iteration.
+
+            EXAMPLES::
+
+                sage: C = IntegerListsLex(2, length=3)
+                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: I.next()
+                [2, 0, 0]
+                sage: I.next()
+                [1, 1, 0]
+            """
+            if self.finished:
+                raise StopIteration()
+
+            rho = self.rho
+            mu = self.mu
+            p = self.parent
+            min_n = p.min_n
+            max_n = p.max_n
+            min_length = p.min_length
+            max_length = p.max_length
+
+            while self.j >= 0: # j = -1 means that we have finished the bottom iteration
+                # choose a new value of m to test
+
+                if len(rho) > self.j:   # decreasing the value of a given m
+                    mu[self.j] -= 1
+                else:                   # add new range of m-values for index j
+                    new_interval = None
+                    if self.j > 0:
+                        new_interval = self._m_interval(self.j, max_n - sum(mu), mu[self.j-1])
+                    else:
+                        new_interval = self._m_interval(self.j, max_n - sum(mu))
+                    rho.append( new_interval )
+                    mu.append( rho[self.j][1] ) # start at largest value
+
+                m = mu[self.j]
+                nu = sum(mu)
+
+                # check if the new value is valid, if not, pop to prefix, and now check if this is a solution
+
+                if m < rho[self.j][0]:
+                    mu.pop()
+                    rho.pop()
+                    self.j -= 1
+                    if self._internal_list_valid(mu):
+                        return p._element_constructor(mu)
+                    else:
+                        continue
+
+                # m is new and in range
+                # if we're at a solution that's obviously next in order, return it
+                # otherwise, check if any solutions are possible with this value of m
+                if (nu == max_n and self.j >= min_length) or self.j == max_length:
+                    if self._internal_list_valid(mu):
+                        return p._element_constructor(mu)
+                elif self._possible_m(m, self.j, min_n - (nu-m), max_n - (nu-m)):
+                    self.j += 1
+
+            self.finished = True
+            raise StopIteration()
+
+        def _internal_list_valid(self, mu):
+            """
+            Return whether ``mu`` is a valid list.
+
+            INPUT:
+
+            - ``mu`` -- a list of integers
+
+            This method checks whether the sum of the entries in ``mu``
+            is in the right range, whether its length is in the required
+            range, and whether there are trailing zeroes.
+
+            EXAMPLES::
+
+                sage: C = IntegerListsLex(2, length=3)
+                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: I._internal_list_valid([2,0,0])
+                True
+                sage: I._internal_list_valid([1,0,0])
+                False
+            """
+            p = self.parent
+            nu = sum(mu)
+            j = len(mu)
+            if p.n_list is not None:
+                good_sum = (nu in p.n_list)
+            else:
+                good_sum = (nu >= p.min_n and nu <= p.max_n)
+            good_length = (j >= p.min_length and j <= p.max_length)
+            no_trailing_zeros = (j <= p.min_length or mu[-1] != 0)
+            return good_sum and good_length and no_trailing_zeros
+
+        def _upper_envelope(self, m, j):
+            """
+            Return function of the upper envelope starting with value ``m`` at position ``j``.
+
+            INPUT:
+
+            - ``m`` -- a nonnegative integer (starting value)
+            - ``j`` -- a nonnegative integer (position)
+
+            This method returns a function of ``i`` which returns the upper envelope if the starting value
+            is ``m`` at position ``j``. The upper envelope is the minimum of the ceiling function and the
+            value restriction given by the slope conditions.
+
+            EXAMPLES::
+
+                sage: C = IntegerListsLex(2, length=3)
+                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: f = I._upper_envelope(1,1)
+                sage: type(f)
+                <type 'sage.misc.constant_function.ConstantFunction'>
+                sage: f(1)
+                inf
+                sage: f(2)
+                inf
+                sage: C = IntegerListsLex(6, max_slope=1, ceiling=3)
+                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: f = I._upper_envelope(1,1)
+                sage: f(1)
+                1
+                sage: f(2)
+                2
+                sage: f(3)
+                3
+                sage: f(4)
+                3
+            """
+            if self.parent.max_slope == infinity:
+                return self.parent.ceiling
+            return lambda i: min(m + (i-j)*self.parent.max_slope, self.parent.ceiling(i) )
+
+        def _lower_envelope(self, m, j):
+            """
+            Return function of the lower envelope starting with value ``m`` at position ``j``.
+
+            INPUT:
+
+            - ``m`` -- a nonnegative integer (starting value)
+            - ``j`` -- a nonnegative integer (position)
+
+            This method returns a function of ``i`` which returns the lower envelope if the starting value
+            is ``m`` at position ``j``. The lower envelope is the maximum of the floor function and the
+            value restriction given by the slope conditions.
+
+            EXAMPLES::
+
+                sage: C = IntegerListsLex(2, length=3)
+                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: f = I._lower_envelope(1,1)
+                sage: type(f)
+                <type 'sage.misc.constant_function.ConstantFunction'>
+                sage: f(1)
+                0
+                sage: f(2)
+                0
+                sage: C = IntegerListsLex(6, min_slope=-1, floor=1)
+                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: f = I._lower_envelope(3,1)
+                sage: f(1)
+                3
+                sage: f(2)
+                2
+                sage: f(3)
+                1
+                sage: f(4)
+                1
+            """
+            if self.parent.min_slope == -infinity:
+                return self.parent.floor
+            return lambda i: max( m + (i-j)*self.parent.min_slope, self.parent.floor(i) )
+
+        def _m_interval(self, i, target_max, prev=None):
+            r"""
+            Return an interval for possible values of ``m`` (entry) at position ``i``.
+
+            INPUT:
+
+            - ``i`` -- a nonnegative integer (position)
+            - ``target_max`` -- a nonnegative integer or +oo, the largest valid sum of a list tail.
+              If +oo, the ``max_slope`` or ``ceiling`` restrictions must give a finite bound for the current part
+            - ``prev`` -- a nonnegative integer, the last entry in the integer sequence prior to the desired tail,
+              if the sequence is non-empty
+
+            OUTPUT:
+
+            A tuple of two integers which bounds an interval containing (in general this is proper containment)
+            all possible suffix integers `m` which lead to a valid integer tail.
+
+            EXAMPLES::
+
+                sage: C = IntegerListsLex(2, length=3)
+                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: I._m_interval(1,2)
+                (0, 2)
+            """
+            p = self.parent
+
+            lower_bounds = [0, p.floor(i)]
+            upper_bounds = [target_max, p.ceiling(i)]
+            if prev != None:
+                lower_bounds.append(prev + p.min_slope)
+                upper_bounds.append(prev + p.max_slope)
+            lower_bound = max(lower_bounds)
+            upper_bound = min(upper_bounds)
+
+            ## check for infinite upper bound, in case target_max is infinite
+            if upper_bound == infinity:
+                raise ValueError("infinite upper bound for values of m")
+
+            return (lower_bound, upper_bound)
+
+        def _possible_m(self, m, j, target_min, target_max):
+            r"""
+            INPUT:
+
+            - ``m`` -- a nonnegative integer (value)
+            - ``j`` -- a nonnegative integer (position)
+            - ``target_min`` -- a nonnegative integer
+            - ``target_max`` -- a nonnegative integer or +oo
+
+            OUTPUT:
+
+            Whether there exists a vector suffix `(v_j,...)` satisfying
+            `v_j` equals ``m`` and the other conditions of ``self``, and
+            with sum between ``target_min`` and ``target_max``.
+
+            EXAMPLES::
+
+                sage: C = IntegerListsLex(2, length=3)
+                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: I._possible_m(1,1,2,2)
+                True
+                sage: I._possible_m(1,1,3,2)
+                False
+            """
+            # Check code for various termination conditions.  Possible cases:
+            # 0. interval [lower, upper] intersects interval [target_min, target_max] -- terminate True
+            # 1. lower sum surpasses target_max -- terminate False
+            # 2. iteration surpasses max_length -- terminate False
+            # 3. upper envelope is smaller than lower envelope -- terminate False
+            # 4. max_slope <= 0 -- terminate False after upper passes 0
+            # 5. ceiling_limit == 0 -- terminate False after reaching larger limit point
+            # 6. (uncomputable) ceiling function == 0 for all but finitely many input values -- terminate False after reaching (unknown) limit point -- currently hangs
+
+            if target_min > target_max:
+                return False
+
+            p = self.parent
+
+            loEnv = self._lower_envelope(m,j)
+            upEnv = self._upper_envelope(m,j)
+            lower = m
+            upper = m
+            if m >= target_min and m <= target_max:
+                return True
+
+            # get to smallest valid number of parts
+            for lo,up in [(loEnv(i),upEnv(i)) for i in range(j+1, p.min_length-1)]:
+                if lo > up:
+                    return False
+                lower += lo
+                upper += up
+
+            i = max(p.min_length-1,j+1)
+            # check if any of the intervals intersect the target interval
+            while i <= p.max_length - 1:
+                lo = loEnv(i)
+                up = upEnv(i)
+                if lo > up:
+                    break
+                elif p.max_slope <= 0 and up <= 0:
+                    break
+                elif lower > target_max:
+                    break
+                elif p.ceiling_limit == 0 and i > p.ceiling_limit_start:
+                    break
+                else:
+                    lower += lo
+                    upper += up
+                    i += 1
+                if lower <= target_max and upper >= target_min and lower <= upper:
+                    return True
+            return False
+
+    class Element(ClonableArray):
         """
-        Returns ``True`` if and only if ``v`` is in ``self``.
-
-        EXAMPLES::
-
-            sage: C = IntegerListsLex(2, length=3)
-            sage: [2, 0, 0] in C
-            True
-            sage: [2, 0] in C
-            False
-            sage: [3, 0, 0] in C
-            False
-            sage: all(v in C for v in C)
-            True
+        Element class for :class:`IntegerListsLex`.
         """
-        if isinstance(v, self.element_class) or isinstance(v, __builtin__.list):
-            return is_a(v, *(self.build_args())) and sum(v) in self.n_range
-        return False
+        def check(self):
+            """
+            Check to make sure this is a valid element in its
+            :class:`IntegerListsLex` parent.
 
-class IntegerListsLexPublic(IntegerListsLex):
-    # Just use the doc for IntegerListsLex
-    __doc__ = IntegerListsLex.__doc__
+            EXAMPLES::
 
-    def __init__(self,
-                 n,
-                 length = None, min_length=0, max_length=float('+inf'),
-                 floor=None, ceiling = None,
-                 min_part = 0, max_part = float('+inf'),
-                 min_slope=float('-inf'), max_slope=float('+inf'),
-                 name = None,
-                 element_constructor = None,
-                 element_class = None,
-                 global_options = None):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: C = IntegerListsLex(2, length=3)
-        """
-        from sage.misc.stopgap import stopgap
-        stopgap("IntegerListsLex does not allow for arbitrary input;"
-                " non-allowed input can return wrong results,"
-                " please see the documentation for IntegerListsLex for details.",
-                17548)
-        IntegerListsLex.__init__(self, n, length, min_length, max_length,
-                                 floor, ceiling, min_part, max_part,
-                                 min_slope, max_slope, name, element_constructor,
-                                 element_class, global_options)
-
+                sage: C = IntegerListsLex(4)
+                sage: C([4]).check()
+                True
+                sage: C([5]).check()
+                False
+            """
+            return self.parent().__contains__(self)

@@ -3180,20 +3180,33 @@ def binomial(x, m, **kwds):
         ...
         TypeError: either m or x-m must be an integer
 
-        sage: R = Integers(6)
-        sage: binomial(R(5), R(2))
+        sage: R6 = Zmod(6)
+        sage: binomial(R6(5), 2)
         Traceback (most recent call last):
         ...
         ZeroDivisionError: factorial(2) not invertible in Ring of integers modulo 6
 
-    The last example failed to execute since `2!` is not invertible. One can
-    check that there there is no well defined value for that binomial
-    coefficient in the quotient::
+        sage: R7 = Zmod(7)
+        sage: binomial(R7(10), 7)
+        Traceback (most recent call last):
+        ...
+        ZeroDivisionError: factorial(7) not invertible in Ring of integers modulo 7
 
-        sage: R(binomial(5,2))
+    The last two examples failed to execute since `2!` and `7!` are respectively
+    not invertible in `\ZZ/6\ZZ` and `\ZZ/7\ZZ`. One can check that there
+    is no well defined value for that binomial coefficient in the quotient::
+
+        sage: R6(binomial(5,2))
         4
-        sage: R(binomial(5+6,2))
+        sage: R6(binomial(5+6,2))
         1
+
+        sage: R7(binomial(3, 7))
+        0
+        sage: R7(binomial(10, 7))
+        1
+        sage: R7(binomial(17, 7))
+        2
 
     For symbolic manipulation, you should use the function
     :func:`~sage.functions.other.binomial` from the module
@@ -3213,7 +3226,6 @@ def binomial(x, m, **kwds):
 
     P = parent(x)
     x = py_scalar_to_element(x)
-    Q = parent(x)
 
     # case 1: native binomial implemented on x
     try:
@@ -3227,22 +3239,15 @@ def binomial(x, m, **kwds):
     except TypeError:
         pass
     else:
-        # we need to check invertibility of factorial(m) in P otherwise binomial
-        # makes no sense! As a drawback, the check below might be quite
-        # slow in non integral domains.
-        from sage.categories.integral_domains import IntegralDomains
-        if Q not in IntegralDomains():
-            try:
-                invertibility = all(Q(k).is_unit() for k in range(1,m+1))
-            except (AttributeError,NotImplementedError):
-                try:
-                    for k in range(1,m+1):
-                        Q(1)/Q(k)
-                    invertibility = True
-                except ZeroDivisionError:
-                    invertibility = False
-            if not invertibility:
-                raise ZeroDivisionError("factorial({}) not invertible in {}".format(m, Q))
+        # Check invertibility of factorial(m) in P
+        try:
+            c = P.characteristic()
+        except AttributeError:
+            # Assume that P has characteristic zero (can be int, float, ...)
+            pass
+        else:
+            if c > 0 and any(c.gcd(k) > 1 for k in range(2, m+1)):
+                raise ZeroDivisionError("factorial({}) not invertible in {}".format(m, P))
         return P(x.binomial(m, **kwds))
 
     # case 3: rational, real numbers, complex numbers -> use pari

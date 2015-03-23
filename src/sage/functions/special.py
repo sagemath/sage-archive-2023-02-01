@@ -208,7 +208,6 @@ def meval(x):
 
     TEST::
 
-        sage: from sage.functions.special import spherical_bessel_J
         sage: spherical_bessel_J(2.,3.)      # rel tol 1e-10
         0.2986374970757335
     """

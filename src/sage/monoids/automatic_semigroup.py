@@ -26,15 +26,18 @@ from sage.sets.family import Family
 from sage.rings.integer import Integer
 import operator
 
-class AutomaticMonoid(UniqueRepresentation, Parent):
+class AutomaticSemigroup(UniqueRepresentation, Parent):
     r"""
-    Construct (lazily) a monoid from a set of concrete generators
-    living in an ambient monoid.
+    Semigroups defined by generators living in an ambient semigroup.
+
+    This implementation lazily constructs the right Cayley graph of
+    the semigroup, and uses it as an automaton.
 
     EXAMPLES::
 
+        sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
         sage: R = IntegerModRing(12)
-        sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one=R.one())
+        sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
         sage: M.one()
         1
         sage: M.one() in M
@@ -63,13 +66,13 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
     monoid (TODO: illustrate)
 
 
-    Calling cardinality, or list, or iterating through the monoid will
-    trigger its full construction and, as a side effect, compute all
-    the reduced words. The order of the elements, and the induced
-    choice of reduced word is currently length-lexicographic
-    (i.e. the chosen reduced word is of minimal length, and then
-    minimal lexicographically w.r.t. the order of the indices of the
-    generators)::
+    Calling :meth:`construct`, :meth:`cardinality`, or :meth:`list`,
+    or iterating through the monoid will trigger its full construction
+    and, as a side effect, compute all the reduced words. The order of
+    the elements, and the induced choice of reduced word is currently
+    length-lexicographic (i.e. the chosen reduced word is of minimal
+    length, and then minimal lexicographically w.r.t. the order of the
+    indices of the generators)::
 
         sage: M.cardinality()
         4
@@ -127,7 +130,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
     symmetric group, a transposition and a cyle generate the whole group::
 
         sage: G5 = SymmetricGroup(5)
-        sage: N = AutomaticMonoid(Family({1: G5([2,1,3,4,5]), 2: G5([2,3,4,5,1])}), one=G5.one())
+        sage: N = AutomaticSemigroup(Family({1: G5([2,1,3,4,5]), 2: G5([2,3,4,5,1])}), one=G5.one())
         sage: N.repr_element_method("reduced_word")
         sage: N.cardinality() == G5.cardinality()
         True
@@ -148,7 +151,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
         ....:     z.set_immutable()
         ....:     return z
         ....:
-        sage: Mon = AutomaticMonoid([M1,M2], mul=prod_m)
+        sage: Mon = AutomaticSemigroup([M1,M2], mul=prod_m)
         sage: Mon.cardinality()
         24
 
@@ -157,7 +160,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
         sage: W = WeylGroup(['A',4]); W.rename("W")
         sage: ambient_monoid = FiniteSetMaps(W, action="right")
         sage: pi = W.simple_projections(length_increasing=True).map(ambient_monoid)
-        sage: M = AutomaticMonoid(pi, one=ambient_monoid.one()); M
+        sage: M = AutomaticSemigroup(pi, one=ambient_monoid.one()); M
         A submonoid of (Maps from W to itself) with 4 generators
         sage: M.repr_element_method("reduced_word")
         sage: sorted(M._elements_set, key=str)
@@ -187,7 +190,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
         sage: g[1] == g[1]*g[1]*g[1]
         True
         sage: M.__class__
-        <class 'sage.monoids.automatic_monoid.AutomaticMonoid_with_category'>
+        <class 'sage.monoids.automatic_monoid.AutomaticSemigroup_with_category'>
         sage: TestSuite(M).run()
 
     We need to pass in the ambient monoid to ``__init__`` to guarantee
@@ -195,14 +198,14 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         sage: R1 = IntegerModRing(12)
         sage: R2 = IntegerModRing(16)
-        sage: M1 = AutomaticMonoid(Family({1: R1(3), 2: R1(5)}), one=R1.one())
-        sage: M2 = AutomaticMonoid(Family({1: R2(3), 2: R2(5)}), one=R2.one())
+        sage: M1 = AutomaticSemigroup(Family({1: R1(3), 2: R1(5)}), one=R1.one())
+        sage: M2 = AutomaticSemigroup(Family({1: R2(3), 2: R2(5)}), one=R2.one())
         sage: M1 is M2
         False
 
     CAVEATS:
 
-    - AutomaticMonoid is designed primarily for finite monoids. This
+    - AutomaticSemigroup is designed primarily for finite monoids. This
       property is not checked automatically (this would be too costly
       if not impossible). Some of the features should still work with
       infinite monoids. In that case, the category Monoids() should
@@ -211,7 +214,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
     ::
 
-        sage: AutomaticMonoid(Family({1:2}), category = Monoids().Subobjects().Finite())
+        sage: AutomaticSemigroup(Family({1:2}), category = Monoids().Subobjects().Finite())
         A submonoid of (Integer Ring) with 1 generators
 
     BUGS:
@@ -227,22 +230,30 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
     @staticmethod
     def __classcall_private__(cls, generators, ambient=None, one=None, mul=operator.mul, category=None):
         """
+        Parse and straighten the arguments.
+
         TESTS::
 
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: R = IntegerModRing(9)
-            sage: M = AutomaticMonoid((), one=R.one())
+            sage: M = AutomaticSemigroup((), one=R.one())
             sage: M.ambient() == R
             True
-            sage: AutomaticMonoid((0,)).category()
+            sage: AutomaticSemigroup((0,)).category()
             Join of Category of subquotients of semigroups and Category of subobjects of sets
-            sage: AutomaticMonoid((0,), one=1).category()
+            sage: AutomaticSemigroup((0,), one=1).category()
             Join of Category of subquotients of monoids and Category of subobjects of sets
-            sage: AutomaticMonoid((0,), one=0).category()
+            sage: AutomaticSemigroup((0,), one=0).category()
             Join of Category of monoids and Category of subquotients of semigroups and Category of subobjects of sets
-            sage: AutomaticMonoid((0,), mul=operator.add).category()
+            sage: AutomaticSemigroup((0,), mul=operator.add).category()
             Join of Category of semigroups and Category of subobjects of sets
-            sage: AutomaticMonoid((0,), one=0, mul=operator.add).category()
+            sage: AutomaticSemigroup((0,), one=0, mul=operator.add).category()
             Join of Category of monoids and Category of subobjects of sets
+
+        .. TODO::
+
+            One would want a subsemigroup of a group to be
+            automatically a subgroup (in ``Groups().Subobjects()``).
         """
         generators = Family(generators)
         if ambient is None:
@@ -252,7 +263,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             elif one is not None:
                 ambient = one.parent()
             else:
-                raise ValueError("AutomaticMonoid requires at least one generator or `one` to determine the ambient space")
+                raise ValueError("AutomaticSemigroup requires at least one generator or `one` to determine the ambient space")
         elif ambient not in Sets:
             raise ValueError("ambient (=%s) should be a set"%ambient)
 
@@ -276,20 +287,23 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             default_category = default_category.Unital()
 
         category = default_category.or_subcategory(category)
-        return super(AutomaticMonoid, cls).__classcall__(cls, generators, ambient=ambient, one=one, mul=mul, category=category)
+        return super(AutomaticSemigroup, cls).__classcall__(cls, generators, ambient=ambient, one=one, mul=mul, category=category)
 
     def __init__(self, generators, ambient, one, mul, category):
         """
+        Initializes this semigroup.
+
         TESTS::
 
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: R = IntegerModRing(21)
-            sage: M = AutomaticMonoid(Family(()), one=R.one())
+            sage: M = AutomaticSemigroup(Family(()), one=R.one())
             sage: M.ambient() == R
             True
-            sage: M = AutomaticMonoid(Family(()))
+            sage: M = AutomaticSemigroup(Family(()))
             Traceback (most recent call last):
             ...
-            ValueError: AutomaticMonoid requires at least one generator or `one` to determine the ambient space
+            ValueError: AutomaticSemigroup requires at least one generator or `one` to determine the ambient space
         """
         Parent.__init__(self, category=category)
 
@@ -317,21 +331,24 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
     def _repr_(self):
         """
+        Return the string representation for ``self``.
+
         EXAMPLES::
 
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: R = IntegerModRing(12)
-            sage: AutomaticMonoid(Family({1: R(3), 2: R(5)}), one=R.one())
+            sage: AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
             A submonoid of (Ring of integers modulo 12) with 2 generators
-            sage: AutomaticMonoid(Family({1: R(3), 2: R(5)}))
+            sage: AutomaticSemigroup(Family({1: R(3), 2: R(5)}))
             A subsemigroup of (Ring of integers modulo 12) with 2 generators
 
-            sage: AutomaticMonoid(Family({1: R(3), 2: R(5)}), mul=operator.add)
+            sage: AutomaticSemigroup(Family({1: R(3), 2: R(5)}), mul=operator.add)
             A semigroup with 2 generators
-            sage: AutomaticMonoid(Family({1: R(3), 2: R(5)}), mul=operator.add, one=R.zero())
+            sage: AutomaticSemigroup(Family({1: R(3), 2: R(5)}), mul=operator.add, one=R.zero())
             A semigroup with 2 generators
 
             sage: S5 = SymmetricGroup(5); S5.rename("S5")
-            sage: AutomaticMonoid(Family({1: S5((1,2))}), category=Groups().Finite().Subobjects())
+            sage: AutomaticSemigroup(Family({1: S5((1,2))}), category=Groups().Finite().Subobjects())
             A subgroup of (S5) with 1 generators
         """
         categories = [Groups(), Monoids(), Semigroups()]
@@ -358,8 +375,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: R = IntegerModRing(16)
-            sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one=R.one())
+            sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
             sage: M.an_element()
             3
         """
@@ -371,8 +389,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: R = IntegerModRing(12)
-            sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one=R.one())
+            sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
             sage: M.some_elements()
             Finite family {1: [1], 2: [2]}
         """
@@ -384,8 +403,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: R = IntegerModRing(12)
-            sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one=R.one())
+            sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
             sage: M.ambient()
             Ring of integers modulo 12
 
@@ -398,7 +418,7 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             ....:     z.set_immutable()
             ....:     return z
             ....:
-            sage: Mon = AutomaticMonoid([M1,M2], mul=prod_m)
+            sage: Mon = AutomaticSemigroup([M1,M2], mul=prod_m)
             sage: Mon.ambient()
             Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
         """
@@ -410,8 +430,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: S5 = SymmetricGroup(5); S5.rename("S5")
-            sage: M = AutomaticMonoid(Family({1:S5((1,2)), 2:S5((1,2,3,4))}), one=S5.one())
+            sage: M = AutomaticSemigroup(Family({1:S5((1,2)), 2:S5((1,2,3,4))}), one=S5.one())
             sage: m = M.retract(S5((3,1))); m
             (1,3)
             sage: m.parent() is M
@@ -447,8 +468,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: S5 = SymmetricGroup(5)
-            sage: S4 = AutomaticMonoid(Family({1:S5((1,2)), 2:S5((1,2,3,4))}), one=S5.one())
+            sage: S4 = AutomaticSemigroup(Family({1:S5((1,2)), 2:S5((1,2,3,4))}), one=S5.one())
             sage: S4._retract(S5((3,1)))
             (1,3)
 
@@ -465,8 +487,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: R = IntegerModRing(15)
-            sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one=R.one())
+            sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
             sage: a = M.an_element()
             sage: a.lift() in R
             True
@@ -484,8 +507,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: R = IntegerModRing(21)
-            sage: M = AutomaticMonoid((), one=R.one())
+            sage: M = AutomaticSemigroup((), one=R.one())
             sage: M.one()
             1
             sage: M.one().parent() is M
@@ -499,8 +523,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: R = IntegerModRing(28)
-            sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one=R.one())
+            sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
             sage: M.semigroup_generators()
             Finite family {1: 3, 2: 5}
         """
@@ -512,8 +537,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: R = IntegerModRing(18)
-            sage: M = AutomaticMonoid([R(3), R(5)], one=R.one())
+            sage: M = AutomaticSemigroup([R(3), R(5)], one=R.one())
             sage: M.repr_element_method("reduced_word")
             sage: M.__iter__().next()
             []
@@ -552,8 +578,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         TESTS::
 
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: R = IntegerModRing(11)
-            sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one=R.one())
+            sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
             sage: f = iter(M)            # indirect doctest
             sage: g = iter(M)
             sage: f.next(), g.next()
@@ -602,8 +629,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: R = IntegerModRing(12)
-            sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one=R.one())
+            sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
             sage: M.cardinality()
             4
 
@@ -621,8 +649,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: R = IntegerModRing(12)
-            sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one=R.one())
+            sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
             sage: M.repr_element_method("reduced_word")
             sage: M.list()
             [[], [1], [2], [1, 1]]
@@ -639,8 +668,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
     """
     TESTS::
 
+        sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
         sage: R = IntegerModRing(34)
-        sage: M = AutomaticMonoid(Family({1: R(3), 2: R(7)}), one=R.one())
+        sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(7)}), one=R.one())
         sage: M[3] in M
         True
     """
@@ -652,8 +682,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: R = IntegerModRing(12)
-            sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one=R.one())
+            sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
             sage: a = M[1]
             sage: b = M[2]
             sage: a*b
@@ -685,8 +716,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: G4 = SymmetricGroup(4)
-            sage: M = AutomaticMonoid(Family({1:G4((1,2)), 2:G4((1,2,3,4))}), one=G4.one())
+            sage: M = AutomaticSemigroup(Family({1:G4((1,2)), 2:G4((1,2,3,4))}), one=G4.one())
             sage: M.from_reduced_word([2, 1, 2, 2, 1]).lift()
             (1,3)
             sage: M.from_reduced_word([2, 1, 2, 2, 1]) == M.retract(G4((3,1)))
@@ -714,10 +746,11 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: W = WeylGroup(['A',3]); W.rename("W")
             sage: ambient_monoid = FiniteSetMaps(W, action="right")
             sage: pi = W.simple_projections(length_increasing=True).map(ambient_monoid)
-            sage: M = AutomaticMonoid(pi, one=ambient_monoid.one()); M
+            sage: M = AutomaticSemigroup(pi, one=ambient_monoid.one()); M
             A submonoid of (Maps from W to itself) with 3 generators
             sage: M.repr_element_method("reduced_word")
             sage: sorted(M._elements_set, key=str)
@@ -754,12 +787,13 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             """
             TESTS::
 
+                sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
                 sage: R = IntegerModRing(21)
-                sage: M = AutomaticMonoid(Family(()), one=R.one())
+                sage: M = AutomaticSemigroup(Family(()), one=R.one())
                 sage: m = M(2); m
                 2
                 sage: type(m)
-                <class 'sage.monoids.automatic_monoid.AutomaticMonoid_with_category.element_class'>
+                <class 'sage.monoids.automatic_monoid.AutomaticSemigroup_with_category.element_class'>
             """
             ElementWrapper.__init__(self, ambient_element, parent)
             self._reduced_word = None
@@ -776,8 +810,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
+                sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
                 sage: R = IntegerModRing(15)
-                sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one=R.one())
+                sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
                 sage: M.construct()
                 sage: for m in M: print m, m.reduced_word()
                 1  []
@@ -799,13 +834,14 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
+                sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
                 sage: R = IntegerModRing(18)
-                sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one=R.one())
+                sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
                 sage: M.repr_element_method("reduced_word")
                 sage: m = M.an_element(); m
                 [1]
                 sage: type(m)
-                <class 'sage.monoids.automatic_monoid.AutomaticMonoid_with_category.element_class'>
+                <class 'sage.monoids.automatic_monoid.AutomaticSemigroup_with_category.element_class'>
                 sage: m.lift()
                 3
                 sage: type(m.lift())
@@ -826,8 +862,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
+                sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
                 sage: R = IntegerModRing(17)
-                sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one=R.one())
+                sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
                 sage: M.repr_element_method("reduced_word")
                 sage: M.construct()
                 sage: a = M.an_element()
@@ -844,8 +881,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
             """
             EXAMPLES::
 
+                sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
                 sage: R = IntegerModRing(19)
-                sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one=R.one())
+                sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
                 sage: a = M.an_element(); a
                 3
                 sage: b = M.from_reduced_word([1,2,1]); b
@@ -873,8 +911,9 @@ class AutomaticMonoid(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
+                sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
                 sage: R = IntegerModRing(12)
-                sage: M = AutomaticMonoid(Family({1: R(3), 2: R(5)}), one=R.one())
+                sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
                 sage: m = M.an_element()
                 sage: copy(m) is m
                 True

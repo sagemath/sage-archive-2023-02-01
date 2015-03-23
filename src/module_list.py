@@ -237,6 +237,9 @@ ext_modules = [
     Extension('sage.combinat.crystals.letters',
               sources=['sage/combinat/crystals/letters.pyx']),
 
+    Extension('sage.combinat.designs.subhypergraph_search',
+              sources=['sage/combinat/designs/subhypergraph_search.pyx']),
+
     Extension('sage.combinat.designs.designs_pyx',
               sources=['sage/combinat/designs/designs_pyx.pyx'],
               libraries=['gmp']),
@@ -400,11 +403,6 @@ ext_modules = [
 
     Extension('sage.graphs.base.static_sparse_backend',
               sources = ['sage/graphs/base/static_sparse_backend.pyx']),
-
-    Extension('sage.graphs.modular_decomposition.modular_decomposition',
-              sources = ['sage/graphs/modular_decomposition/modular_decomposition.pyx',
-                         'sage/graphs/modular_decomposition/src/dm.c'],
-              depends = ['sage/graphs/modular_decomposition/src/dm_english.h']),
 
     Extension('sage.graphs.weakly_chordal',
               sources = ['sage/graphs/weakly_chordal.pyx']),
@@ -690,6 +688,10 @@ ext_modules = [
               extra_compile_args=["-DFPLLL_V3_COMPAT"],
               depends = [SAGE_INC + "/fplll/fplll.h"] + flint_depends),
 
+    Extension('sage.libs.gmp.pylong',
+              sources = ['sage/libs/gmp/pylong.pyx'],
+              libraries = ['gmp']),
+
     Extension('sage.libs.gmp.rational_reconstruction',
               sources = ['sage/libs/gmp/rational_reconstruction.pyx'],
               libraries = ['gmp']),
@@ -890,6 +892,11 @@ ext_modules = [
         ##
         ###################################
 
+    Extension('sage.libs.ntl.error',
+              sources = ["sage/libs/ntl/error.pyx"],
+              libraries = ["ntl", "gmp", "gmpxx"],
+              language='c++'),
+
     Extension('sage.libs.ntl.ntl_GF2',
               sources = ["sage/libs/ntl/ntl_GF2.pyx"],
               libraries = ["ntl", "gmp", "gmpxx"],
@@ -1041,10 +1048,6 @@ ext_modules = [
     Extension('sage.matrix.matrix_generic_sparse',
               sources = ['sage/matrix/matrix_generic_sparse.pyx']),
 
-    Extension('sage.matrix.matrix_integer_2x2',
-              sources = ['sage/matrix/matrix_integer_2x2.pyx'],
-              libraries = ['gmp']),
-
     Extension('sage.matrix.matrix_integer_dense',
               sources = ['sage/matrix/matrix_integer_dense.pyx'],
               extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
@@ -1068,14 +1071,6 @@ ext_modules = [
               depends = [SAGE_INC + "/m4rie/m4rie.h"],
               include_dirs = [SAGE_INC + '/m4rie'],
               extra_compile_args = m4ri_extra_compile_args),
-
-    Extension('sage.matrix.matrix_modn_dense',
-              sources = ['sage/matrix/matrix_modn_dense.pyx'],
-              language="c++",
-              extra_compile_args = ["-D_XPG6"] + m4ri_extra_compile_args,
-              # order matters for cygwin!!
-              libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'flint', BLAS, BLAS2],
-              depends = [SAGE_INC + '/m4ri/m4ri.h'] + flint_depends),
 
     Extension('sage.matrix.matrix_modn_dense_float',
               sources = ['sage/matrix/matrix_modn_dense_float.pyx'],
@@ -1126,9 +1121,6 @@ ext_modules = [
 
     Extension('sage.matrix.matrix_window',
               sources = ['sage/matrix/matrix_window.pyx']),
-
-    Extension('sage.matrix.matrix_window_modn_dense',
-              sources = ['sage/matrix/matrix_window_modn_dense.pyx']),
 
     Extension('sage.matrix.misc',
               sources = ['sage/matrix/misc.pyx'],
@@ -1200,8 +1192,8 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.modular.arithgroup.congroup_pyx',
-              sources = ['sage/modular/arithgroup/congroup_pyx.pyx']),
+    Extension('sage.modular.arithgroup.congroup',
+              sources = ['sage/modular/arithgroup/congroup.pyx']),
 
     Extension('sage.modular.arithgroup.farey_symbol',
               sources = ['sage/modular/arithgroup/farey_symbol.pyx',
@@ -1224,6 +1216,9 @@ ext_modules = [
               libraries = ["flint", "gmp", "gmpxx", "m", "stdc++"],
               extra_compile_args=["-std=c99", "-D_XPG6"],
               depends = flint_depends),
+
+    Extension('sage.modular.modsym.manin_symbol',
+              sources = ['sage/modular/modsym/manin_symbol.pyx']),
 
     Extension('sage.modular.modsym.relation_matrix_pyx',
               sources = ['sage/modular/modsym/relation_matrix_pyx.pyx']),
@@ -2084,7 +2079,12 @@ if is_package_installed('mcqd'):
         Extension("sage.graphs.mcqd",
                   ["sage/graphs/mcqd.pyx"],
                   language = "c++"))
-#                  libraries = ["mcqd"]))
+
+if is_package_installed('modular_decomposition'):
+    ext_modules.append(
+        Extension('sage.graphs.modular_decomposition',
+                  sources = ['sage/graphs/modular_decomposition.pyx'],
+                  libraries = ['modulardecomposition']))
 
 if is_package_installed('arb'):
     ext_modules.extend([

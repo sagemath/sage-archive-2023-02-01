@@ -1030,36 +1030,113 @@ class SkewTableau(CombinatorialObject, Element):
 
     def is_ribbon(self):
         r"""
-        Return ``True`` if and only if the shape of ``self`` is a ribbon,
-        that is if it has no `2 \times 2` boxes.
+        Return ``True`` if and only if the shape of ``self`` is a
+        ribbon, that is, if it has exactly one cell in each of `q`
+        consecutive diagonals for some nonnegative integer `q`.
 
         EXAMPLES::
 
-            sage: SkewTableau([[None,1],[2,3]]).is_ribbon()
+            sage: S=SkewTableau([[None, None, 1, 2],[None, None, 3],[1, 3, 4]])
+            sage: S.pp()
+              .  .  1  2
+              .  .  3
+              1  3  4
+            sage: S.is_ribbon()
             True
-            sage: SkewTableau([[None,1,2],[3,4,5]]).is_ribbon()
-            False
-        """
-        outer = list(self.outer_shape())
-        inner = list(self.inner_shape())
-        inner += [0]*(len(outer)-len(inner))
 
-        for i in range(1, len(outer)):
-            if outer[i] > inner[i-1]+1:
-                return False
+            sage: S=SkewTableau([[None, 1, 1, 2],[None, 2, 3],[1, 3, 4]])
+            sage: S.pp()
+              .  1  1  2
+              .  2  3
+              1  3  4
+            sage: S.is_ribbon()
+            False
+
+            sage: S=SkewTableau([[None, None, 1, 2],[None, None, 3],[1]])
+            sage: S.pp()
+              .  .  1  2
+              .  .  3
+              1
+            sage: S.is_ribbon()
+            False
+
+            sage: S=SkewTableau([[None, None, None, None],[None, None, 3],[1, 2, 4]])
+            sage: S.pp()
+              .  .  .  .
+              .  .  3
+              1  2  4
+            sage: S.is_ribbon()
+            True
+
+            sage: S=SkewTableau([[None, None, None, None],[None, None, 3],[None, 2, 4]])
+            sage: S.pp()
+              .  .  .  .
+              .  .  3
+              .  2  4
+            sage: S.is_ribbon()
+            True
+
+            sage: S=SkewTableau([[None, None],[None]])
+            sage: S.pp()
+              .  .
+              .
+            sage: S.is_ribbon()
+            True
+
+        """
+        lam = list(self.outer_shape())
+        mu = list(self.inner_shape())
+        l_out = len(lam)
+        l_in = len(mu)
+        mu += [0]*(l_out-l_in)
+        
+        if l_out == 0:
+            return True
+        else:
+            # Find the least u for which lam[u]>mu[u], if it exists.
+            # If it does not exist then u will equal l_out.
+            u = 0
+            u_test = True
+            while u_test:
+                if u >= l_out or lam[u] > mu[u]:
+                    u_test = False
+                else:
+                    u += 1
+
+            # Find the least v strictly greater than u for which 
+            # lam[v] != mu[v-1]+1
+            v = u + 1
+            v_test = True
+            while v_test:
+                if v >= l_out or lam[v] != mu[v-1] + 1:
+                    v_test = False
+                else:
+                    v += 1
+
+            # Check if lam[i]==mu[i] for all i >= v
+            for i in range(v, l_out):
+                if lam[i] != mu[i]:
+                    return False
 
         return True
 
-    def to_ribbon(self):
+    def to_ribbon(self, check_input=True):
         """
-        Return the ribbon version of ``self``.
+        Return ``self`` as a ribbon-shaped tableau
+        (:class:`~sage.combinat.ribbon_shaped_tableau.RibbonShapedTableau`),
+        provided that the shape of ``self`` is a ribbon.
+
+        INPUT:
+
+        - ``check_input`` -- (default: ``True``) whether or not to check
+          that ``self`` indeed has ribbon shape
 
         EXAMPLES::
 
             sage: SkewTableau([[None,1],[2,3]]).to_ribbon()
             [[None, 1], [2, 3]]
         """
-        if not self.is_ribbon():
+        if check_input and not self.is_ribbon():
             raise ValueError("self must be a ribbon")
         from sage.combinat.ribbon_shaped_tableau import RibbonShapedTableau
         r = [[i for i in row if i is not None] for row in self]

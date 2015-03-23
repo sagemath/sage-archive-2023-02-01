@@ -1383,7 +1383,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 self.__minpoly = singular.eval('minpoly')[1:-1]
             self.__singular = r
 
-        elif PY_TYPE_CHECK(base_ring, NumberField) and base_ring.is_absolute():
+        elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
             gen = str(base_ring.gen())
             poly = base_ring.polynomial()
             poly_gen = str(poly.parent().gen())
@@ -4265,7 +4265,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef ring *r = self._parent_ring
         cdef ideal *res
 
-        if PY_TYPE_CHECK(I, MPolynomialIdeal):
+        if isinstance(I, MPolynomialIdeal):
             I = I.gens()
 
         _I = idInit(len(I),1)
@@ -4359,7 +4359,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         if r!=currRing: rChangeCurrRing(r)
 
-        if PY_TYPE_CHECK(I, MPolynomialIdeal):
+        if isinstance(I, MPolynomialIdeal):
             try:
                 strat = I._groebner_strategy()
                 return strat.normal_form(self)

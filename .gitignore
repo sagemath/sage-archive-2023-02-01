@@ -70,3 +70,10 @@ $RECYCLE.BIN/
 
 # SublimeText
 *.sublime-workspace
+
+#################
+# SageMathCloud #
+#################
+*.sage-chat
+*.sage-history
+*.syncdoc*

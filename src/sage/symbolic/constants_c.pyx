@@ -268,8 +268,8 @@ cdef class E(Expression):
             [51.968956198705044  74.73656456700327]
             [112.10484685050491 164.07380304920997]
         """
-        if PY_TYPE_CHECK(left, E):
-            if PY_TYPE_CHECK(right, E):
+        if isinstance(left, E):
+            if isinstance(right, E):
                 return exp_one.exp()
             try:
                 return right.exp()

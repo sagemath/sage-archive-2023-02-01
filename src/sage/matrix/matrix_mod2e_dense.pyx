@@ -46,7 +46,7 @@ EXAMPLE::
 
 AUTHOR:
 
- * Martin Albrecht <martinralbrecht@googlemail.com>
+* Martin Albrecht <martinralbrecht@googlemail.com>
 
 TESTS::
 
@@ -55,14 +55,15 @@ TESTS::
 
 TODO:
 
- - wrap ``mzd_slice_t``
+- wrap ``mzd_slice_t``
 
 
 REFERENCES:
 
 .. [BB09] Tomas J. Boothby and Robert W. Bradshaw. *Bitslicing
-   and the Method of Four Russians Over Larger Finite Fields*. arXiv:0901.1413v1,
-2009. http://arxiv.org/abs/0901.1413
+   and the Method of Four Russians Over Larger Finite Fields* .
+   arXiv:0901.1413v1, 2009.
+   http://arxiv.org/abs/0901.1413
 """
 
 include "sage/ext/interrupt.pxi"
@@ -1573,7 +1574,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
 
         cdef mzd_slice_t *v = mzd_slice_init(self._entries.finite_field, self._nrows, self._ncols)
         for i in range(self._entries.finite_field.degree):
-            if not PY_TYPE_CHECK(C[i], Matrix_mod2_dense):
+            if not isinstance(C[i], Matrix_mod2_dense):
                 mzd_slice_free(v)
                 raise TypeError("All input matrices must be over GF(2).")
             mzd_copy(v.x[i], (<Matrix_mod2_dense>C[i])._entries)

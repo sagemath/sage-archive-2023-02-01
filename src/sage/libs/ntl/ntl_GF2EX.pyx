@@ -69,7 +69,7 @@ cdef class ntl_GF2EX:
         ################################################
         if modulus is None:
             return
-        if PY_TYPE_CHECK( modulus, ntl_GF2EContext_class ):
+        if isinstance(modulus, ntl_GF2EContext_class):
             self.c = <ntl_GF2EContext_class>modulus
             self.c.restore_c()
             GF2EX_construct(&self.x)

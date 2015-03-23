@@ -56,7 +56,8 @@ cdef inline int min(int a, int b):
 ## essentially only for doctesting and debugging, have underscores.
 
 cdef int *hamming_weights():
-    cdef int *ham_wts, i
+    cdef int *ham_wts
+    cdef int i
     ham_wts = <int *> sage_malloc( 65536 * sizeof(int) )
     if ham_wts is NULL:
         sage_free(ham_wts)
@@ -1096,7 +1097,7 @@ cdef class BinaryCode:
 
         EXAMPLE:
             sage: from sage.coding.binary_code import *
-            sage: B = BinaryCode(codes.ExtendedBinaryGolayCode().gen_mat())
+            sage: B = BinaryCode(codes.ExtendedBinaryGolayCode().generator_matrix())
             sage: B
             Binary [24,12] linear code, generator matrix
             [100000000000101011100011]
@@ -3854,7 +3855,7 @@ cdef class BinaryCodeClassifier:
         EXAMPLE:
             sage: from sage.coding.binary_code import *
             sage: BC = BinaryCodeClassifier()
-            sage: B = BinaryCode(codes.ExtendedBinaryGolayCode().gen_mat())
+            sage: B = BinaryCode(codes.ExtendedBinaryGolayCode().generator_matrix())
             sage: B.apply_permutation(range(24,-1,-1))
             sage: B
             Binary [24,12] linear code, generator matrix
@@ -3954,7 +3955,8 @@ cdef class BinaryCodeClassifier:
         cdef WordPermutation **parent_generators
         cdef BinaryCode B_aug
         cdef int i, ii, j, jj, ij, k = 0, parity, combo, num_gens
-        cdef int base_size, *multimod2_index, row
+        cdef int base_size, row
+        cdef int *multimod2_index
         cdef int *ham_wts = self.ham_wts
         cdef int *num_inner_gens
         cdef int *num_outer_gens

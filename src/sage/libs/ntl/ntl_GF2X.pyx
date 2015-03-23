@@ -126,28 +126,28 @@ cdef class ntl_GF2X:
 
         cdef long _x
 
-        if PY_TYPE_CHECK(x,ntl_GF2):
+        if isinstance(x, ntl_GF2):
             GF2X_conv_GF2(self.x,(<ntl_GF2>x).x)
             return
-        elif PY_TYPE_CHECK(x,ntl_GF2X):
+        elif isinstance(x, ntl_GF2X):
             self.x = (<ntl_GF2X>x).x
             return
-        elif PY_TYPE_CHECK(x,int):
+        elif isinstance(x, int):
             _x = x
             GF2XFromBytes(self.x, <unsigned char *>(&_x),sizeof(long))
             return
 
-        if PY_TYPE_CHECK(x, Integer):
+        if isinstance(x, Integer):
             #binary repr, reversed, and "["..."]" added
             x="["+x.binary()[::-1].replace(""," ")+"]"
-        elif PY_TYPE_CHECK(x, Polynomial_GF2X):
+        elif isinstance(x, Polynomial_GF2X):
             x = x.list() # this is slow but cimport leads to circular imports
-        elif PY_TYPE_CHECK(x, FiniteField):
+        elif isinstance(x, FiniteField):
             if x.characteristic() == 2:
                 x= list(x.modulus())
-        elif PY_TYPE_CHECK(x, FiniteField_givaroElement):
+        elif isinstance(x, FiniteField_givaroElement):
             x = "0x"+hex(x.integer_representation())[2:][::-1]
-        elif PY_TYPE_CHECK(x, FiniteField_ntl_gf2eElement):
+        elif isinstance(x, FiniteField_ntl_gf2eElement):
             x = x.polynomial().list()
         s = str(x).replace(","," ")
         sig_on()
@@ -191,7 +191,7 @@ cdef class ntl_GF2X:
             [0 1 0 1 1]
         """
         cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
-        if not PY_TYPE_CHECK(other, ntl_GF2X):
+        if not isinstance(other, ntl_GF2X):
             other = ntl_GF2X(other)
         GF2X_mul(r.x, self.x, (<ntl_GF2X>other).x)
         return r
@@ -210,7 +210,7 @@ cdef class ntl_GF2X:
         cdef ntl_GF2X q = ntl_GF2X.__new__(ntl_GF2X)
         cdef int divisible
 
-        if not PY_TYPE_CHECK(b, ntl_GF2X):
+        if not isinstance(b, ntl_GF2X):
             b = ntl_GF2X(b)
 
         divisible = GF2X_divide(q.x, self.x, (<ntl_GF2X>b).x)
@@ -230,7 +230,7 @@ cdef class ntl_GF2X:
         cdef ntl_GF2X q = ntl_GF2X.__new__(ntl_GF2X)
         cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
 
-        if not PY_TYPE_CHECK(b, ntl_GF2X):
+        if not isinstance(b, ntl_GF2X):
             b = ntl_GF2X(b)
 
         GF2X_DivRem(q.x, r.x, self.x, (<ntl_GF2X>b).x)
@@ -247,7 +247,7 @@ cdef class ntl_GF2X:
         """
         cdef ntl_GF2X q = ntl_GF2X.__new__(ntl_GF2X)
 
-        if not PY_TYPE_CHECK(b, ntl_GF2X):
+        if not isinstance(b, ntl_GF2X):
             b = ntl_GF2X(b)
 
         GF2X_div(q.x, self.x, (<ntl_GF2X>b).x)
@@ -264,7 +264,7 @@ cdef class ntl_GF2X:
         """
         cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
 
-        if not PY_TYPE_CHECK(b, ntl_GF2X):
+        if not isinstance(b, ntl_GF2X):
             b = ntl_GF2X(b)
 
         GF2X_rem(r.x, self.x, (<ntl_GF2X>b).x)
@@ -280,7 +280,7 @@ cdef class ntl_GF2X:
             [1 1 1 1]
         """
         cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
-        if not PY_TYPE_CHECK(other, ntl_GF2X):
+        if not isinstance(other, ntl_GF2X):
             other = ntl_GF2X(other)
         GF2X_sub(r.x, self.x, (<ntl_GF2X>other).x)
         return r
@@ -293,7 +293,7 @@ cdef class ntl_GF2X:
             [1 1 1 1]
         """
         cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
-        if not PY_TYPE_CHECK(other, ntl_GF2X):
+        if not isinstance(other, ntl_GF2X):
             other = ntl_GF2X(other)
         GF2X_add(r.x, self.x, (<ntl_GF2X>other).x)
         return r
@@ -335,10 +335,10 @@ cdef class ntl_GF2X:
         if op != 2 and op != 3:
             raise TypeError, "elements in GF(2)[X] are not ordered."
 
-        if not PY_TYPE_CHECK(other, ntl_GF2X):
+        if not isinstance(other, ntl_GF2X):
             other = ntl_GF2X(other)
 
-        if not PY_TYPE_CHECK(self, ntl_GF2X):
+        if not isinstance(self, ntl_GF2X):
             self = ntl_GF2X(self)
 
         cdef int t
@@ -399,7 +399,7 @@ cdef class ntl_GF2X:
         """
         cdef ntl_GF2X gcd = ntl_GF2X.__new__(ntl_GF2X)
 
-        if not PY_TYPE_CHECK(other, ntl_GF2X):
+        if not isinstance(other, ntl_GF2X):
             other = ntl_GF2X(other)
 
         gcd.x = GF2X_GCD(self.x, (<ntl_GF2X>other).x)
@@ -426,7 +426,7 @@ cdef class ntl_GF2X:
         cdef ntl_GF2X s = ntl_GF2X.__new__(ntl_GF2X)
         cdef ntl_GF2X t = ntl_GF2X.__new__(ntl_GF2X)
 
-        if not PY_TYPE_CHECK(other, ntl_GF2X):
+        if not isinstance(other, ntl_GF2X):
             other = ntl_GF2X(other)
 
         GF2X_XGCD(r.x, s.x, t.x, self.x, (<ntl_GF2X>other).x)

@@ -138,7 +138,7 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
     cdef ZZ_pX_c* low_shifter_p
     cdef ZZ_pX_c* high_shifter_p
     cdef bint multiplier
-    if PY_TYPE_CHECK(prime_pow, PowComputer_ZZ_pX_FM_Eis):
+    if isinstance(prime_pow, PowComputer_ZZ_pX_FM_Eis):
         multiplier = 1
         (<PowComputer_ZZ_pX_FM_Eis>prime_pow).low_length = low_length
         (<PowComputer_ZZ_pX_FM_Eis>prime_pow).high_length = high_length
@@ -149,7 +149,7 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
         sig_off()
         low_shifter_m = (<PowComputer_ZZ_pX_FM_Eis>prime_pow).low_shifter
         high_shifter_m = (<PowComputer_ZZ_pX_FM_Eis>prime_pow).high_shifter
-    elif PY_TYPE_CHECK(prime_pow, PowComputer_ZZ_pX_small_Eis):
+    elif isinstance(prime_pow, PowComputer_ZZ_pX_small_Eis):
         multiplier = 0
         (<PowComputer_ZZ_pX_small_Eis>prime_pow).low_length = low_length
         (<PowComputer_ZZ_pX_small_Eis>prime_pow).high_length = high_length
@@ -160,7 +160,7 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
         sig_off()
         low_shifter_p = (<PowComputer_ZZ_pX_small_Eis>prime_pow).low_shifter
         high_shifter_p = (<PowComputer_ZZ_pX_small_Eis>prime_pow).high_shifter
-    elif PY_TYPE_CHECK(prime_pow, PowComputer_ZZ_pX_big_Eis):
+    elif isinstance(prime_pow, PowComputer_ZZ_pX_big_Eis):
         multiplier = 0
         (<PowComputer_ZZ_pX_big_Eis>prime_pow).low_length = low_length
         (<PowComputer_ZZ_pX_big_Eis>prime_pow).high_length = high_length
@@ -337,17 +337,17 @@ cdef int ZZ_pX_eis_shift_p(PowComputer_ZZ_pX self, ZZ_pX_c* x, ZZ_pX_c* a, long 
     cdef ZZ_pX_Multiplier_c* low_shifter_fm
     cdef bint fm
     cdef long high_length
-    if PY_TYPE_CHECK(self, PowComputer_ZZ_pX_small_Eis):
+    if isinstance(self, PowComputer_ZZ_pX_small_Eis):
         high_shifter = (<PowComputer_ZZ_pX_small_Eis>self).high_shifter
         low_shifter = (<PowComputer_ZZ_pX_small_Eis>self).low_shifter
         high_length = (<PowComputer_ZZ_pX_small_Eis>self).high_length
         fm = False
-    elif PY_TYPE_CHECK(self, PowComputer_ZZ_pX_big_Eis):
+    elif isinstance(self, PowComputer_ZZ_pX_big_Eis):
         high_shifter = (<PowComputer_ZZ_pX_big_Eis>self).high_shifter
         low_shifter = (<PowComputer_ZZ_pX_big_Eis>self).low_shifter
         high_length = (<PowComputer_ZZ_pX_big_Eis>self).high_length
         fm = False
-    elif PY_TYPE_CHECK(self, PowComputer_ZZ_pX_FM_Eis):
+    elif isinstance(self, PowComputer_ZZ_pX_FM_Eis):
         high_shifter_fm = (<PowComputer_ZZ_pX_FM_Eis>self).high_shifter
         low_shifter_fm = (<PowComputer_ZZ_pX_FM_Eis>self).low_shifter
         high_length = (<PowComputer_ZZ_pX_FM_Eis>self).high_length
@@ -757,7 +757,7 @@ cdef class PowComputer_ext(PowComputer_class):
 
 cdef class PowComputer_ZZ_pX(PowComputer_ext):
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed = None):
-        if not PY_TYPE_CHECK(poly, ntl_ZZ_pX):
+        if not isinstance(poly, ntl_ZZ_pX):
             raise TypeError
         self.deg = ZZ_pX_deg((<ntl_ZZ_pX>poly).x)
 
@@ -1261,7 +1261,7 @@ cdef class PowComputer_ZZ_pX_FM(PowComputer_ZZ_pX):
         self.c = self.get_context(prec_cap)
         self.c.restore_c()
         # For now, we don't do anything complicated with poly
-        if PY_TYPE_CHECK(poly, ntl_ZZ_pX) and (<ntl_ZZ_pX>poly).c is self.c:
+        if isinstance(poly, ntl_ZZ_pX) and (<ntl_ZZ_pX>poly).c is self.c:
             ZZ_pX_Modulus_construct(&self.mod)
             ZZ_pX_Modulus_build(self.mod, (<ntl_ZZ_pX>poly).x)
             if prec_cap == ram_prec_cap:
@@ -1370,7 +1370,7 @@ cdef class PowComputer_ZZ_pX_FM_Eis(PowComputer_ZZ_pX_FM):
         """
         # The __new__ method for PowComputer_ZZ_pX_FM has already run, so we have access to self.mod
         self._ext_type = 'e'
-        if not PY_TYPE_CHECK(shift_seed, ntl_ZZ_pX):
+        if not isinstance(shift_seed, ntl_ZZ_pX):
             raise TypeError, "shift_seed must be an ntl_ZZ_pX"
         ZZ_pX_Eis_init(self, <ntl_ZZ_pX>shift_seed)
 
@@ -1625,7 +1625,7 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
 
         self._prec_type = 'small'
         self._ext_type = 'u'
-        if not PY_TYPE_CHECK(poly, ntl_ZZ_pX):
+        if not isinstance(poly, ntl_ZZ_pX):
             self.cleanup_ext()
             raise TypeError
 
@@ -1645,7 +1645,7 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
         cdef ntl_ZZ_pX printer
         cdef Py_ssize_t i
         cdef ZZ_pX_c tmp, pol
-        if PY_TYPE_CHECK(poly, ntl_ZZ_pX):
+        if isinstance(poly, ntl_ZZ_pX):
             pol = (<ntl_ZZ_pX>poly).x
             self.c.append(None)
             for i from 1 <= i <= cache_limit:
@@ -1817,7 +1817,7 @@ cdef class PowComputer_ZZ_pX_small_Eis(PowComputer_ZZ_pX_small):
     """
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed = None):
         self._ext_type = 'e'
-        if not PY_TYPE_CHECK(shift_seed, ntl_ZZ_pX):
+        if not isinstance(shift_seed, ntl_ZZ_pX):
             raise TypeError, "shift_seed must be an ntl_ZZ_pX"
         ZZ_pX_Eis_init(self, <ntl_ZZ_pX>shift_seed)
 
@@ -1984,7 +1984,7 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
 
         self._prec_type = 'big'
         self._ext_type = 'u'
-        if not PY_TYPE_CHECK(poly, ntl_ZZ_pX):
+        if not isinstance(poly, ntl_ZZ_pX):
             self.cleanup_ext()
             raise TypeError
 
@@ -2001,7 +2001,7 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
 
         cdef Py_ssize_t i
         cdef ZZ_pX_c tmp, pol
-        if PY_TYPE_CHECK(poly, ntl_ZZ_pX):
+        if isinstance(poly, ntl_ZZ_pX):
             pol = (<ntl_ZZ_pX>poly).x
             self.context_list.append(None)
             for i from 1 <= i <= cache_limit:
@@ -2246,7 +2246,7 @@ cdef class PowComputer_ZZ_pX_big_Eis(PowComputer_ZZ_pX_big):
     """
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed = None):
         self._ext_type = 'e'
-        if not PY_TYPE_CHECK(shift_seed, ntl_ZZ_pX):
+        if not isinstance(shift_seed, ntl_ZZ_pX):
             raise TypeError, "shift_seed must be an ntl_ZZ_pX"
         ZZ_pX_Eis_init(self, <ntl_ZZ_pX>shift_seed)
 

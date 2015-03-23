@@ -360,6 +360,30 @@ class IntegerListsLex(Parent):
         sage: %time x = list(P)  # not tested
         CPU times: user 203 ms, sys: 20.7 ms, total: 224 ms
         Wall time: 197 ms
+
+    TESTS:
+
+    Internally, the iterator works on a single list that is mutated
+    along the way. This tests makes sure that we do make a copy of
+    this list before passing it to ``element_constructor`` in order to
+    avoid reference effects::
+
+        sage: from sage.misc.c3_controlled import identity
+        sage: P = IntegerListsLex(n=3, max_slope=0, min_part=1, element_constructor=identity)
+        sage: list(P)
+        [[3], [2, 1], [1, 1, 1]]
+
+    Same, step by step::
+
+        sage: it = iter(P)
+        sage: a = it.next(); a
+        [3]
+        sage: b = it.next(); b
+        [2, 1]
+        sage: a
+        [3]
+        sage: a is b
+        False
     """
     __metaclass__ = ClasscallMetaclass
 

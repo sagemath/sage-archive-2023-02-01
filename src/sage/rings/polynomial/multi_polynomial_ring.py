@@ -386,6 +386,18 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             sage: B(f)
             a*d
 
+        It is possible to convert `f` into `B` by using ``f.sage()``,
+        but this requires specifying a ``locals`` argument::
+
+            sage: f
+            d*a
+            sage: f.sage()
+            Traceback (most recent call last):
+            ...
+            NameError: name 'd' is not defined
+            sage: f.sage(locals={'a': a, 'd': d})
+            a*d
+
         """
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         import sage.rings.polynomial.polynomial_element as polynomial_element

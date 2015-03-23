@@ -50,6 +50,8 @@ class IntegerListsLex(Parent):
       defaults to the constant zero function
     - ``ceiling`` -- an integer, a list of integers, or a function `f` (or list);
       defaults to the constant `\infty` function
+    - ``min_part`` -- a nonnegative integer (default: None, in which case internally it defaults to 0)
+    - ``max_part`` -- a nonnegative integer (default: None, in which case internally it defaults to `\infty`)
     - ``min_slope`` -- an integer or `-\infty`; defaults to `-\infty`
     - ``max_slope`` -- an integer or `+\infty`; defaults to `+\infty`
     - ``category`` -- a category (default: EnumeratedSets); in certain cases, in which it is known
@@ -72,7 +74,7 @@ class IntegerListsLex(Parent):
     - Length: ``min_length <= len(l) <= max_length`` (with ``length = min_length = max_length`` if
       ``length`` is specified)
 
-    - Lower and upper bounds: ``floor(i) <= l[i] <= ceiling(i)``, for
+    - Lower and upper bounds: ``max(floor(i), min_part) <= l[i] <= min(ceiling(i), max_part)``, for
       ``i`` from 0 to ``len(l)``. If ``floor`` (resp. ``ceiling``) is an
       integer `k`, then ``floor`` (resp. ``ceiling``) is considered to be
       the constant function `k`.

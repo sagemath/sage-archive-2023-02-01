@@ -1,16 +1,22 @@
 r"""
-This is the Sage interface for the FindStat project at www.findstat.org.
+FindStat - the Combinatorial Statistic Finder.
 
-TODO:
+You can use the sage interface to FindStat to:
 
-- in FindStat, it would be nice if the post keys would coincide with
-  the json keys.  Below is a long list of constants, a good scheme
-  should be worked out.  Possibly it is best to use the database
-  field names themselves everywhere - also in the json templates.
+    - identify a combinatorial statistic from the values on a few small objects.
+    - obtain more terms, formulae, references, etc. for a given statistic.
+    - edit statistics and submit new statistics
 
-To run all doctests, run
+To access the database, use :class:`findstat<FindStat>`::
 
-sage -t --optional=sage,internet path/to/interface.sage
+    sage: findstat
+    The Combinatorial Statistic Finder (http://www.findstat.org/)
+
+AUTHORS:
+
+- Martin Rubey (2015): initial version.
+
+
 """
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import verbose
@@ -52,14 +58,14 @@ from sage.graphs.graph_generators import graphs
 
 ######################################################################
 
-FINDSTAT_URL = 'http://www.findstat.org'
+FINDSTAT_URL = 'http://www.findstat.org/'
 FINDSTAT_URL_DOWNLOADS = 'http://downloads.findstat.org'
 
-FINDSTAT_URL_RESULT    = FINDSTAT_URL + "/StatisticFinder/Result/"
-FINDSTAT_URL_LOGIN     = FINDSTAT_URL + "/StatisticFinder?action=login"
-FINDSTAT_URL_NEW       = FINDSTAT_URL + '/StatisticsDatabase/NewStatistic/'
-FINDSTAT_URL_EDIT      = FINDSTAT_URL + '/StatisticsDatabase/EditStatistic/'
-FINDSTAT_URL_BROWSE    = FINDSTAT_URL + '/StatisticsDatabase/'
+FINDSTAT_URL_RESULT    = FINDSTAT_URL + "StatisticFinder/Result/"
+FINDSTAT_URL_LOGIN     = FINDSTAT_URL + "StatisticFinder?action=login"
+FINDSTAT_URL_NEW       = FINDSTAT_URL + 'StatisticsDatabase/NewStatistic/'
+FINDSTAT_URL_EDIT      = FINDSTAT_URL + 'StatisticsDatabase/EditStatistic/'
+FINDSTAT_URL_BROWSE    = FINDSTAT_URL + 'StatisticsDatabase/'
 
 ######################################################################
 # the number of values FindStat allows to search for at most
@@ -141,24 +147,109 @@ class FindStat():
     r"""
     The Combinatorial Statistic Finder.
 
-    ``FindStat`` is a class representing results of queries, edits
-    and new submissions to the FindStat database.
+    :class:`FindStat` is a class representing results of queries to
+    the FindStat database.  This class is also the entry point to
+    edit statistics and new submissions.  Use the shorthand
+    :class:`findstat<FindStat>` to call it.
 
-    In principle there are two different results of a query:
+    INPUT:
 
-    - a FindStat ID yields a single statistic
+    - an integer or a string representing a valid FindStat ID
+      (e.g. 45 or 'St000045').  The optional argument ``collection``
+      should be ``None``, the optional arguments ``depth`` and
+      ``max_values`` are ignored.
 
-    - statistic data yield a list of triples (statistic, maps, quality)
+    - a list of pairs of the form (object, value), or a dictionary
+      from sage objects to integer values.  The optional argument
+      ``collection`` should be ``None``, the optional arguments
+      ``depth`` and ``max_values`` are passed to the finder.
 
-    We want a single entry point for both and we want to be able to
-    prepare a new statistic for submission by using the second type
-    of query.
+    - a list of pairs of the form (list of objects, list of values),
+      or a single pair of the form (list of objects, list of values).
+      In each pair there should be as many objects as values.  The
+      optional argument ``collection`` should be ``None``, the
+      optional arguments ``depth`` and ``max_values`` are passed to
+      the finder.
+
+    - a callable and a collection.  The callable is used to generate
+      ``max_values`` (object, value) pairs.  The number of terms
+      generated may also be controlled by passing an iterable
+      collection, such as Permutations(3).  The optional arguments
+      ``depth`` and ``max_values`` are passed to the finder.
+
+    OUTPUT:
+
+    an instance of a :class:`FindStatStatistic`, represented by
+
+    - the FindStat ID together with its name, or
+
+    - a list of triples, each consisting of
+
+        - the statistic
+
+        - a list of strings naming certain maps
+
+        - a number which says how many of the values submitted agree
+          with the values in the database, when applying the maps in
+          the given order to the object and then computing the
+          statistic on the result.
+
+    EXAMPLES:
+
+    A particular statistic can be retrieved by its St-identifier or
+    number::
+
+        sage: findstat('St000045')                   # optional -- internet
+        St000045: The number of linear extensions of the tree.
+
+        sage: findstat(3)                            # optional -- internet
+        St000003: The number of [[/StandardTableaux|standard Young tableaux]] of the partition.
+
+    The database can be searched by providing a list of pairs::
+
+        sage: q = findstat([(pi, pi.length()) for pi in Permutations(4)]); q # optional -- internet
+        0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
+        1: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [Mp00062: inversion-number to major-index bijection], 24)
+        ...
+
+    or a dictionary::
+
+        sage: p = findstat({pi: pi.length() for pi in Permutations(4)}); p # optional -- internet
+        0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
+        1: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [Mp00062: inversion-number to major-index bijection], 24)
+        ...
+
+    Note however, that the results of these two queries are not
+    necessarily the same, because we compare queries by the data
+    sent, and the ordering of the data might be different::
+
+        sage: p == q                                           # optional -- internet
+        False
+
+    Another possibility is to send a function and a collection.  In
+    this case, the function is applied to the first few objects of
+    the collection::
+
+        sage: findstat(lambda pi: pi.length(), "Permutations") # optional -- internet
+        0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 200)
+        ...
+
+    To search for a distribution, send a list of lists, or a single pair::
+
+        sage: findstat((Permutations(4), [pi.length() for pi in Permutations(4)])) # optional -- internet
+        0: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [], 24)
+        1: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
+        ...
 
     """
     def __init__(self):
-        # a cache from integers to ``FindStatStatistic`` instances
-        # that avoids retrieving the same statistic over and over
-        # again
+        r"""
+        Initialize a cache from integers to
+        :class:`FindStatStatistic` instances that avoids retrieving
+        the same statistic over and over again.
+
+        """
+
         self._statistic_cache = dict()
 
         # user credentials if provided
@@ -167,92 +258,12 @@ class FindStat():
 
     def __call__(self, query, collection=None, depth=2, max_values=FINDSTAT_MAX_VALUES):
         r"""
-        Returns an instance of a ``FindStatStatistic``.  This should
-        be the only way to access ``FindStatStatistic``.  We do the
-        preprocessing of the data here, and call the appropriate
-        method of ``FindStatStatistic`` to launch the query.
+        Return an instance of a :class:`FindStatStatistic`.
 
-        INPUT:
-
-        - an integer or a string representing a valid FindStat ID
-        (e.g. 45 or 'St000045').  ``collection`` should be ``None``,
-        ``depth`` and ``max_values`` are ignored.
-
-        - a list of pairs of the form (object, value), or a
-        dictionary from sage objects to integer values.
-        ``collection`` should be ``None``, ``depth`` and
-        ``max_values`` are passed to the finder.
-
-        - a list of pairs of the form (list of objects, list of
-        values), or a single pair of the form (list of objects, list
-        of values).  In each pair there should be as many objects as
-        values.  ``collection`` should be ``None``, ``depth`` and
-        ``max_values`` are passed to the finder.
-
-        - a callable and a collection.  The callable is used to
-        generate ``max_values`` (object, value) pairs.  The number of
-        terms generated may also be controlled by passing an iterable
-        collection, such as Permutations(3).  ``depth`` and
-        ``max_values`` are passed to the finder.
-
-        OUTPUT:
-
-        - the FindStat ID together with its name
-
-        - a list of triples, each consisting of
-
-          - the statistic
-
-          - a list of strings naming certain maps
-
-          - a number which says how many of the values submitted agree
-            with the values in the database, when applying the maps in
-            the given order to the object and then computing the
-            statistic on the result.
-
-        EXAMPLES::
-
-        A particular statistic can be called by its St-number or number::
-
-            sage: findstat('St000045')                   # optional -- internet
-            St000045: The number of linear extensions of the tree.
-
-            sage: findstat(3)                            # optional -- internet
-            St000003: The number of [[/StandardTableaux|standard Young tableaux]] of the partition.
-
-        The database can be searched by providing a list of pairs::
-
-            sage: q = findstat([(pi, pi.length()) for pi in Permutations(4)]); q # optional -- internet
-            0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
-            1: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [Mp00062: inversion-number to major-index bijection], 24)
-            ...
-
-        or a dictionary::
-
-            sage: p = findstat({pi: pi.length() for pi in Permutations(4)}); p # optional -- internet
-            0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
-            1: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [Mp00062: inversion-number to major-index bijection], 24)
-            ...
-
-        Note however, that the results of these two queries are not
-        necessarily the same, because we compare queries by the data
-        sent, and the ordering of the data might be different::
-
-            sage: p == q
-            False
-
-        Another possibility is to send a function and a collection::
-
-            sage: findstat(lambda pi: pi.length(), "Permutations") # optional -- internet
-            0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 200)
-            ...
-
-        To search for a distribution, send a list of lists, or a single pair:
-
-            sage: findstat((Permutations(4), [pi.length() for pi in Permutations(4)])) # optional -- internet
-            0: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [], 24)
-            1: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
-            ...
+        This should be the only way to access
+        :class:`FindStatStatistic`.  We do the preprocessing of the
+        data here, and call the appropriate method of
+        :class:`FindStatStatistic` to launch the query.
 
         """
         try:
@@ -348,20 +359,36 @@ class FindStat():
         EXAMPLES::
 
             sage: findstat
-            The Combinatorial Statistics Finder (http://www.findstat.org)
+            The Combinatorial Statistic Finder (http://www.findstat.org/)
 
         """
-        return "The Combinatorial Statistics Finder (%s)" % FINDSTAT_URL
+        return "The Combinatorial Statistic Finder (%s)" % FINDSTAT_URL
 
     def browse(self):
         r"""
         Open the FindStat web page in a browser.
+
+        EXAMPLES::
+
+            sage: findstat.browse()                              # optional -- internet, webbrowser
         """
         webbrowser.open(FINDSTAT_URL)
 
     def set_user(self, name=None, email=None):
         r"""
-        Sets the user for this session.
+        Set the user for this session.
+
+        INPUT:
+
+        - ``name`` -- the name of the user
+
+        - ``email`` -- an email address of the user
+
+        .. NOTE::
+
+            It is usually more convenient to login into the FindStat
+            web page using the :meth:`login` method.
+
         """
         if not isinstance(name, str):
             raise ValueError("The given name is not a string")
@@ -372,7 +399,7 @@ class FindStat():
 
     def login(self):
         r"""
-        Open the login page in a browser.
+        Open the FindStat login page in a browser.
         """
         webbrowser.open(FINDSTAT_URL_LOGIN)
 
@@ -382,15 +409,19 @@ class FindStat():
         r"""
 
         INPUT:
-        - id, an integer designating the FindStat id of a statistic
 
-        OUTUT:
-        - a FindStatStatistic instance
+        - ``id``, an integer designating the FindStat id of a statistic
 
-        TODO:
-        - this method caches the statistics.  It may make sense to
-        provide a method that clears the cache, or reloads a single
-        statistic
+        OUTPUT:
+
+        - a :class:`FindStatStatistic` instance.
+
+        .. TODO::
+
+            this method caches the statistics.  It may make sense to
+            provide a method that clears the cache, or reloads a
+            single statistic.
+
         """
         if id > 0:
             if id not in self._statistic_cache.keys():
@@ -403,6 +434,13 @@ class FindStat():
 
 # we use read-only properties, so we need a new-style class here.
 class FindStatStatistic(SageObject):
+    r"""
+    The class of FindStat statistics.
+
+    Do not instantiate this class directly.  Instead, use
+    :class:`findstat<FindStat>`.
+
+    """
     def __init__(self, id, first_terms=None, data=None, function=None, code="", collection=None, depth=None):
         self._depth = depth
         self._query = None
@@ -438,7 +476,9 @@ class FindStatStatistic(SageObject):
 
     def __eq__(self, other):
         """
-        TODO: this is *very* rudimentary
+        .. TODO::
+
+            this is *very* rudimentary
         """
         if self._query == "ID" and other._query == "ID":
             if self._modified or other._modified:
@@ -459,9 +499,12 @@ class FindStatStatistic(SageObject):
 
     def _find_by_id(self):
         r"""
+
         expects that _id is a valid identifier
 
-        OUTPUT: self
+        OUTPUT:
+
+        - self
 
         TESTS::
 
@@ -508,7 +551,9 @@ class FindStatStatistic(SageObject):
         objects, list of values), each containing as many values as
         objects, and that collection is appropriately set
 
-        OUTPUT: self
+        OUTPUT:
+
+        - self
 
         TESTS::
 
@@ -518,17 +563,26 @@ class FindStatStatistic(SageObject):
             ValueError: The depth must be a non-negative integer less than or equal to 5.
         """
         self._query = "data"
-        # FindStat allows to search for at most FINDSTAT_MAX_VALUES values.
-        data = self._data[:min(max_values, FINDSTAT_MAX_VALUES)]
 
-        # for distribution searches, we cannot simply restrict to the
-        # first values, so we raise an error
+        # FindStat allows to search for at most FINDSTAT_MAX_VALUES
+        # values.  For the user's convenience, from data, we take the
+        # first min(max_values, FINDSTAT_MAX_VALUES) such that all
+        # elements are in the precomputed range
+        data = []
+        total = min(max_values, FINDSTAT_MAX_VALUES)
+        for (elements, values) in self._data:
+            if total >= len(elements):
+                if all(self._collection.in_range(e) for e in elements):
+                    data += [(elements, values)]
+                    total -= len(elements)
+
+        # this might go wrong:
         try:
-            assert sum(len(objects) for objects, values in data) <= FINDSTAT_MAX_VALUES
+            assert data != []
         except:
-            raise NotImplementedError("It is unclear how to restrict distribution searches to at most %s values" %FINDSTAT_MAX_VALUES)
+            raise ValueError("after discarding elements not in the range, and keeping less than %s values, nothing remained to send to FindStat." %FINDSTAT_MAX_VALUES)
 
-        url = FINDSTAT_URL_RESULT + self._collection.url_name() + "/"
+        url = FINDSTAT_URL_RESULT + self._collection._url_name + "/"
 
         to_str = self._collection.to_string()
         stat = [(map(to_str, keys), str(values)[1:-1]) for (keys, values) in data]
@@ -655,7 +709,7 @@ class FindStatStatistic(SageObject):
 
     def browse(self):
         r"""
-        Open the FindStat web page associated to the statistic ``self`` in a browser.
+        Open the FindStat web page of the statistic in a browser.
 
         EXAMPLES::
 
@@ -672,12 +726,12 @@ class FindStatStatistic(SageObject):
 
     def submit(self, max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         r"""
-        Open the FindStat web page for edits in a browser.
+        Open the FindStat web page for editing the statistic ``self`` in a browser.
 
-        TODO:
+        .. TODO::
 
-        - decide whether we want to somehow take into account when
-          there is a statistic that matches the data with depth 0
+            decide whether we want to somehow take into account when
+            there is a statistic that matches the data with depth 0
 
         """
         # if the statistic is given as a function, and we have a new
@@ -774,11 +828,11 @@ class FindStatCollection(SageObject):
              lambda x: BinaryTree(str(x))],
         13: [None, None, None, Core,                  lambda x: Cores(x[1], x[0]),
              None,
-             lambda x: x.k(),
+             lambda x: (x.length(), x.k()),
              lambda X: "( "+X._repr_()+", "+str(X.k())+" )",
              lambda x: (lambda pi, k: Core(pi, k))(*literal_eval(x))],
         5:  [None, None, None, DyckWord,              DyckWords,               None,
-             lambda x: x.length(),
+             lambda x: x.length()/2,
              lambda x: str(list(DyckWord(x))),
              lambda x: DyckWord(literal_eval(x))],
         22: [None, None, None, CartanType_abstract,   _finite_irreducible_cartan_types_by_rank,
@@ -788,7 +842,7 @@ class FindStatCollection(SageObject):
              lambda x: CartanType(*literal_eval(str(x)))],
         18: [None, None, None, GelfandTsetlinPattern, lambda x: GelfandTsetlinPatterns(*x),
              None,
-             len,
+             lambda x: (len(x), max(max(row) for row in x)),
              str,
              lambda x: GelfandTsetlinPattern(literal_eval(x))],
         20: [None, None, None, Graph,                 graphs,
@@ -840,9 +894,9 @@ class FindStatCollection(SageObject):
 
     r"""
 
-    Objects are normalized using the method `to_string`.  This method
-    should apply to objects produced by `first_terms` as well as to
-    objects produced by `from_string`.
+    Objects are normalized using the method :meth:`to_string`.  This
+    method should apply to objects produced by :meth:`first_terms` as
+    well as to objects produced by :meth:`from_string`.
 
     EXAMPLES::
 
@@ -878,18 +932,32 @@ class FindStatCollection(SageObject):
 
     def __init__(self, entry):
         r"""
-        Initializes a FindStat collection from
+        Initialize a FindStat collection.
 
-        * a string, eg. 'Dyck paths' or "DyckPaths"
-        * a sage object
+        INPUT:
 
-        TODO:
+        - a string, eg. 'Dyck paths' or "DyckPaths", case-insensitve
+        - an integer designating the FindStat id of the collection
+        - a sage object belonging to a collection
+        - an iterable producing a sage object belonging to a collection
 
-        * a FindStat collection should also work.
+        .. TODO::
 
-        TESTS::
+            a FindStat collection should also work.
 
-            sage: FindStatCollection('Dyck paths')                 # optional -- internet
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: FindStatCollection("Dyck paths")                 # optional -- internet
+            Cc0005: Dyck paths
+
+            sage: FindStatCollection(5)                            # optional -- internet
+            Cc0005: Dyck paths
+
+            sage: FindStatCollection(DyckWord([1,0,1,0]))          # optional -- internet
+            Cc0005: Dyck paths
+
+            sage: FindStatCollection(DyckWords(2))                 # optional -- internet
             Cc0005: Dyck paths
 
         """
@@ -967,6 +1035,7 @@ class FindStatCollection(SageObject):
         """
         TESTS::
 
+            sage: from sage.databases.findstat import FindStatCollection
             sage: FindStatCollection("Permutations") == FindStatCollection("Permutations")
             True
 
@@ -975,10 +1044,36 @@ class FindStatCollection(SageObject):
         """
         return self.id() == other.id()
 
+    def in_range(self, element):
+        r"""
+        Check whether an element of the collection is in FindStat's precomputed range.
+
+        INPUT:
+
+        - ``element`` -- a sage object that belongs to the collection
+
+        OUTPUT:
+
+        - ``True``, if ``element`` is used by the FindStat search
+          engine, and ``False`` if it is ignored.
+
+        """
+        n = self.to_size()(element)
+        return element in self._sageconstructor(n)
+
     def first_terms(self, statistic, max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         r"""
+        Compute the first few terms of the given statistic.
 
-        given a statistic, compute the first few terms and return them as a list of pairs
+        INPUT:
+
+        - ``statistic`` -- a callable.
+
+        - ``max_values`` -- the number of terms to compute at most.
+
+        OUTPUT:
+
+        - a list of pairs of the form (object, value).
 
         """
         if self._sageconstructor_overridden is None:
@@ -989,51 +1084,100 @@ class FindStatCollection(SageObject):
         return [(x, statistic(x)) for (x,_) in zip(g, xrange(max_values))]
 
     def id(self):
+        r"""
+        Return the FindStat identifier of the collection as an integer.
+        """
         return self._id
 
     def id_str(self):
+        r"""
+        Return the FindStat identifier of the collection as a string.
+        """
         id = str(self.id())
         return 'Cc0000'[:-len(id)] + id
 
-    def url_name(self):
-        return self._url_name
+    def browse(self):
+        r"""
+        Open the FindStat web page of the collection in a browser.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: FindStatCollection("Permutations").browse()            # optional -- internet, webbrowser
+        """
+        webbrowser.open(FINDSTAT_URL + self._url_name)
 
     def to_size(self):
         r"""
+        Return a function that returns the FindStat size of an object.
 
-        returns a function that returns the FindStat size of a sage object
+        OUTPUT:
+
+        The function that produces the size as needed by the
+        constructor of the collection.
+
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: c = FindStatCollection("GelfandTsetlinPatterns")                 # optional -- internet
+            sage: c.to_size()(GelfandTsetlinPattern([[4, 1], [1]]))                # optional -- internet
+            (2, 4)
         """
         return self._to_size
 
 
     def to_string(self):
         r"""
+        Return a function that returns the FindStat normal
+        representation given an object.
 
-        returns a function that converts a sage object into a FindStat string
+        OUTPUT:
+
+        The function that produces the string representation as
+        needed by the FindStat search webpage.
+
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: p = Poset((range(3), [[0, 1], [1, 2]]))
+            sage: c = FindStatCollection("Posets")                                 # optional -- internet
+            sage: c.to_string()(p)                                                 # optional -- internet
+            '([(0, 2), (2, 1)], 3)'
         """
         return self._to_str
 
     def from_string(self):
         r"""
-        Returns the sage constructor corresponding to the combinatorial collection, or `None`.
+        Return a function that returns the object given the FindStat
+        normal representation.
 
         OUTPUT:
 
-        - string or `None`.
+        The function that produces the sage object given its FindStat
+        normal representation as a string.
+
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: c = FindStatCollection("Posets")                                 # optional -- internet
+            sage: p = c.from_string()('([(0, 2), (2, 1)], 3)')                     # optional -- internet
+            sage: p.cover_relations()                                              # optional -- internet
+            [[0, 2], [2, 1]]
 
         """
         return self._from_str
 
     def __repr__(self):
         r"""
-        Prints the name of the collection
+        Return the representation of the FindStat collection.
 
         OUTPUT:
 
-        - string.
+        The representation, including the identifier and the name.
 
         EXAMPLES::
 
+            sage: from sage.databases.findstat import FindStatCollection
             sage: FindStatCollection("Binary trees")                      # optional -- internet
             Cc0010: Binary trees
         """
@@ -1041,16 +1185,17 @@ class FindStatCollection(SageObject):
 
     def name(self):
         r"""
-        returns the name of the collection
+        Return the name of the FindStat collection.
 
         OUTPUT:
 
-        - string.
+        The name of the FindStat collection, in singular.
 
         EXAMPLES::
 
-            sage: FindStatCollection("Binary trees")                      # optional -- internet
-            Cc0010: Binary trees
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: FindStatCollection("Binary trees").name()               # optional -- internet
+            u'Binary tree'
         """
         return self._name
 
@@ -1058,19 +1203,21 @@ class FindStatMap(SageObject):
     r"""
     The class of FindStat maps.
 
+    INPUT:
+
+    - ``entry`` -- a string giving the FindStat name of the map, or
+      an integer giving its id.
+
     """
     _findstat_maps = []
 
     def __init__(self, entry):
-        r"""
-        Initializes a FindStat map
-        """
         if not self._findstat_maps:
             self._findstat_maps += json.load(urlopen(FINDSTAT_URL_DOWNLOADS + "/maps.json"))
 
         bad = True
         if isinstance(entry, (str, unicode)):
-            # find by name in _findstat_collections
+            # find by name in _findstat_maps
             for c in FindStatMap._findstat_maps:
                 if entry.upper() == c[FINDSTAT_MAP_NAME].upper():
                     self._map = c
@@ -1078,7 +1225,7 @@ class FindStatMap(SageObject):
                     break
 
         elif isinstance(entry, (int, Integer)):
-            # find by id in _findstat_collections
+            # find by id in _findstat_maps
             for c in FindStatMap._findstat_maps:
                 if entry == c[FINDSTAT_MAP_IDENTIFIER]:
                     self._map = c
@@ -1089,28 +1236,74 @@ class FindStatMap(SageObject):
             raise ValueError, "Could not find FindStat map for " + str(entry)
 
     def id(self):
+        r"""
+        Return the FindStat identifier of the map.
+
+        OUTPUT:
+
+        The identifier as an integer.
+        """
         return self._map[FINDSTAT_MAP_IDENTIFIER]
 
     def id_str(self):
+        r"""
+        Return the FindStat identifier of the map.
+
+        OUTPUT:
+
+        The identifier as a string.
+        """
+
         id = str(self.id())
         return 'Mp00000'[:-len(id)] + id
 
     def __repr__(self):
         r"""
-        Prints the name of the map
+        Return the representation of the FindStat map.
         """
         return "%s: %s" %(self.id_str(), self._map[FINDSTAT_MAP_NAME])
 
     def name(self):
+        r"""
+        Return the FindStat name of the map.
+
+        OUTPUT:
+
+        The name as a string.
+        """
+
         return self._map[FINDSTAT_MAP_NAME]
 
     def description(self):
+        r"""
+        Return the FindStat description of the map.
+
+        OUTPUT:
+
+        The description as a string.
+        """
         return self._map[FINDSTAT_MAP_DESCRIPTION]
 
     def domain(self):
+        r"""
+        Return the FindStat collection which is the domain of the map.
+
+        OUTPUT:
+
+        The domain of the map as a :class:`FindStatCollection`.
+
+        """
         return FindStatCollection(self._map[FINDSTAT_MAP_DOMAIN])
 
     def codomain(self):
+        r"""
+        Return the FindStat collection which is the codomain of the map.
+
+        OUTPUT:
+
+        The codomain of the map as a :class:`FindStatCollection`.
+
+        """
         return FindStatCollection(self._map[FINDSTAT_MAP_CODOMAIN])
 
 

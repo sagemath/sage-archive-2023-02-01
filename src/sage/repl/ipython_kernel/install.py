@@ -126,9 +126,8 @@ class SageKernelSpec(object):
         self.symlink(src, dst)
 
     def use_local_jsmol(self):
-        ipython_dir = os.environ['IPYTHONDIR']
         src = os.path.join(SAGE_LOCAL, 'share', 'jsmol')
-        dst = os.path.join(ipython_dir, 'nbextensions', 'jsmol')
+        dst = os.path.join(self._ipython_dir, 'nbextensions', 'jsmol')
         self.symlink(src, dst)
 
     def _kernel_cmd(self):

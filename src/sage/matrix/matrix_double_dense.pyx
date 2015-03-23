@@ -1744,8 +1744,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             vec = M(b)
         except TypeError:
             raise TypeError("vector of constants over %s incompatible with matrix over %s" % (b.base_ring(), self.base_ring()))
-        if vec.degree() != self.ncols():
-            raise ValueError("vector of constants in linear system over RDF/CDF must have degree equal to the number of columns for the coefficient matrix, not %s" % vec.degree() )
+        if vec.degree() != self.nrows():
+            raise ValueError("vector of constants in linear system over RDF/CDF must have degree equal to the number of rows for the coefficient matrix, not %s" % vec.degree() )
 
         if self._ncols == 0:
             return M.zero_vector()
@@ -1884,8 +1884,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             vec = M(b)
         except TypeError:
             raise TypeError("vector of constants over %s incompatible with matrix over %s" % (b.base_ring(), self.base_ring()))
-        if vec.degree() != self.nrows():
-            raise ValueError("vector of constants in linear system over RDF/CDF must have degree equal to the number of rows for the coefficient matrix, not %s" % vec.degree() )
+        if vec.degree() != self.ncols():
+            raise ValueError("vector of constants in linear system over RDF/CDF must have degree equal to the number of columns for the coefficient matrix, not %s" % vec.degree() )
 
         if self._nrows == 0:
             return M.zero_vector()

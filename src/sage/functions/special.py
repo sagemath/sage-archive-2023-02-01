@@ -218,9 +218,8 @@ def _init():
 
     Then after using one of the MaximaFunctions, it changes::
 
-        sage: from sage.functions.special import elliptic_ec
-        sage: elliptic_ec(0.1)
-        1.53075763689776
+        sage: spherical_hankel2(2,x)
+        (-I*x^2 - 3*x + 3*I)*e^(-I*x)/x^3
 
         sage: sage.functions.special._done
         True

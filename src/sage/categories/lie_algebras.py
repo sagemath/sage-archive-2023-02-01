@@ -19,14 +19,12 @@ from sage.misc.lazy_import import LazyImport
 from sage.categories.category import JoinCategory, Category
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
-from sage.categories.distributive_magmas_and_additive_magmas import DistributiveMagmasAndAdditiveMagmas
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.modules import Modules
 from sage.categories.sets_cat import Sets
 from sage.categories.homset import Hom
 from sage.categories.morphism import Morphism
-from sage.structure.sage_object import have_same_parent
-from sage.structure.element import get_coercion_model, coerce_binop
+from sage.structure.element import coerce_binop
 
 class LieAlgebras(Category_over_base_ring):
     """
@@ -209,6 +207,10 @@ class LieAlgebras(Category_over_base_ring):
                 sage: x,y = L.lie_algebra_generators()
                 sage: L.bracket(x, x + y)
                 -[1, 3, 2] + [3, 2, 1]
+                sage: L.bracket(x, 0)
+                0
+                sage: L.bracket(0, x)
+                0
             """
             return self(lhs)._bracket_(self(rhs))
 
@@ -496,14 +498,18 @@ class LieAlgebras(Category_over_base_ring):
                 sage: x,y = L.lie_algebra_generators()
                 sage: x.bracket(y)
                 -[1, 3, 2] + [3, 2, 1]
+                sage: x.bracket(0)
+                0
             """
             return self._bracket_(rhs)
 
-        # Implement this in order to avoid having to deal with the coercions
-        @abstract_method(optional=True)
+        # Implement this method to define the Lie bracket. You do not
+        # need to deal with the coercions here.
+        @abstract_method
         def _bracket_(self, y):
             """
-            Return the Lie bracket ``[self, y]``.
+            Return the Lie bracket ``[self, y]``, where ``y`` is an
+            element of the same Lie algebra as ``self``.
 
             EXAMPLES::
 
@@ -511,6 +517,10 @@ class LieAlgebras(Category_over_base_ring):
                 sage: x,y = L.lie_algebra_generators()
                 sage: x._bracket_(y)
                 -[1, 3, 2] + [3, 2, 1]
+                sage: y._bracket_(x)
+                [1, 3, 2] - [3, 2, 1]
+                sage: x._bracket_(x)
+                0
             """
 
         @abstract_method(optional=True)

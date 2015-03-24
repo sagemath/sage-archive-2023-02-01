@@ -4768,7 +4768,7 @@ class Partitions(UniqueRepresentation, Parent):
 
             sage: P = Partitions(5, min_slope=0)
             sage: list(P)
-            [[5]]
+            [[5], [1, 1, 1, 1, 1]]
         """
         if n == infinity:
             raise ValueError("n cannot be infinite")
@@ -6692,6 +6692,7 @@ class PartitionsGreatestEQ(IntegerListsLex, UniqueRepresentation):
             sage: TestSuite(p).run()
         """
         IntegerListsLex.__init__(self, n, max_slope = 0, max_part=k, floor = [k])
+        self.n = n
         self.k = k
 
     def _repr_(self):

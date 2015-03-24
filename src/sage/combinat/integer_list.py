@@ -398,6 +398,7 @@ class IntegerListsLex(Parent):
                  element_constructor=None, element_class=None,
                  global_options=None,
                  waiver=None):
+
         """
         Initialize ``self``.
 
@@ -416,24 +417,22 @@ class IntegerListsLex(Parent):
         """
         ## TODO handle finiteness conditions Re: category, when possible, warn when not (waiver parameter)
 
-        # Convert to float infinity
-        # note that ``infinity`` here is defined as float('-inf'), so the equality is mathematical
-
         self.waiver = waiver
         self.warning = False # warning for dangerous (but possibly valid) usage
 
         if n is not None:
-            if isinstance(n, Integer):
-                if n < 0:
-                    raise ValueError("value of n can't be less than 0")
+            if n in ZZ:
+                #if n < 0:
+                #    print n
+                #    raise ValueError("value of n can't be less than 0")
                 self.n_list = [n]
                 self.min_n = n
                 self.max_n = n
             elif isinstance(n, list):
                 self.n_list = n
                 self.min_n = min(self.n_list)
-                if self.min_n < 0:
-                    raise ValueError("can't have negative values of n")
+                #if self.min_n < 0:
+                #    raise ValueError("can't have negative values of n")
                 self.max_n = max(self.n_list)
             else:
                 raise ValueError("invalid value for parameter n")
@@ -489,7 +488,7 @@ class IntegerListsLex(Parent):
             self.floor = ConstantFunction(self.min_part)
             self.floor_limit = 0
             self.floor_limit_start = 0
-        elif isinstance(floor, Integer):
+        elif floor in ZZ:
             if floor < 0:
                 raise(ValueError("floor value can't be negative"))
             self.floor_type = "constant"
@@ -527,7 +526,7 @@ class IntegerListsLex(Parent):
             self.ceiling = ConstantFunction(min(infinity,self.max_part))
             self.ceiling_limit = infinity
             self.ceiling_limit_start = 0
-        elif isinstance(ceiling, Integer) or ceiling == infinity:
+        elif ceiling in ZZ or ceiling == infinity:
             if ceiling < 0:
                 raise(ValueError("ceiling value can't be negative"))
             self.ceiling_type = "constant"
@@ -775,16 +774,16 @@ class IntegerListsLex(Parent):
                     rho.pop()
                     self.j -= 1
                     if self._internal_list_valid(mu):
-                        return p._element_constructor(mu)
+                        return p._element_constructor(list(mu))
                     else:
                         continue
 
                 # m is new and in range
                 # if we're at a solution that's obviously next in order, return it
                 # otherwise, check if any solutions are possible with this value of m
-                if (nu == max_n and self.j >= min_length) or self.j == max_length:
+                if (nu == max_n and self.j >= min_length - 1) or self.j == max_length - 1:
                     if self._internal_list_valid(mu):
-                        return p._element_constructor(mu)
+                        return p._element_constructor(list(mu))
                 elif self._possible_m(m, self.j, min_n - (nu-m), max_n - (nu-m)):
                     self.j += 1
 
@@ -820,7 +819,7 @@ class IntegerListsLex(Parent):
             else:
                 good_sum = (nu >= p.min_n and nu <= p.max_n)
             good_length = (j >= p.min_length and j <= p.max_length)
-            no_trailing_zeros = (j <= p.min_length or mu[-1] != 0)
+            no_trailing_zeros = (j <= max(p.min_length,0) or mu[-1] != 0)
             return good_sum and good_length and no_trailing_zeros
 
         def _upper_envelope(self, m, j):
@@ -1000,7 +999,7 @@ class IntegerListsLex(Parent):
                 up = upEnv(i) if i!=j else m
                 if lo > up:
                     break
-                elif p.max_slope <= 0 and up <= 0:
+                elif p.max_slope <= 0 and up <= 0 and self.j >= p.min_length:
                     break
                 elif lower > target_max:
                     break

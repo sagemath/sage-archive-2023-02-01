@@ -436,21 +436,21 @@ def _default_function(l, default, i):
         sage: from sage.combinat.integer_vector import _default_function
         sage: import functools
         sage: f = functools.partial(_default_function, [1,2,3], 99)
-        sage: f(0)
+        sage: f(-1)
         99
-        sage: f(1)
+        sage: f(0)
         1
-        sage: f(2)
+        sage: f(1)
         2
-        sage: f(3)
+        sage: f(2)
         3
-        sage: f(4)
+        sage: f(3)
         99
     """
     try:
-        if i <= 0:
+        if i < 0:
             return default
-        return l[i-1]
+        return l[i]
     except IndexError:
         return default
 
@@ -458,19 +458,19 @@ infinity = PlusInfinity()
 def list2func(l, default=None):
     """
     Given a list l, return a function that takes in a value i and
-    return l[i-1]. If default is not None, then the function will
+    return l[i]. If default is not None, then the function will
     return the default value for out of range i's.
 
     EXAMPLES::
 
         sage: f = sage.combinat.integer_vector.list2func([1,2,3])
-        sage: f(1)
+        sage: f(0)
         1
-        sage: f(2)
+        sage: f(1)
         2
-        sage: f(3)
+        sage: f(2)
         3
-        sage: f(4)
+        sage: f(3)
         Traceback (most recent call last):
         ...
         IndexError: list index out of range
@@ -478,13 +478,13 @@ def list2func(l, default=None):
     ::
 
         sage: f = sage.combinat.integer_vector.list2func([1,2,3], 0)
-        sage: f(3)
+        sage: f(2)
         3
-        sage: f(4)
+        sage: f(3)
         0
     """
     if default is None:
-        return lambda i: l[i-1]
+        return lambda i: l[i]
     else:
         return functools.partial(_default_function, l, default)
 
@@ -928,36 +928,38 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
                 return len(self.list())
 
 
-    def _parameters(self):
+    def _parameters(self,return_tuple=False):
         """
-        Returns a tuple (min_length, max_length, floor, ceiling,
-        min_slope, max_slope) for the parameters of self.
+        Returns a dictionary with values (min_length, max_length, floor, ceiling,
+        min_slope, max_slope) for the parameters of self, as should be used in the
+        parameters of class IntegerListsLex.  ``tuple`` may also be set to True to
+        instead return in the format of a tuple, with ordering as specified above.
 
         EXAMPLES::
 
             sage: IV = IntegerVectors(2,3,min_slope=0)
-            sage: min_length, max_length, floor, ceiling, min_slope, max_slope = IV._parameters()
-            sage: min_length
+            sage: params = IV._parameters()
+            sage: params['min_length']
             3
-            sage: max_length
+            sage: params['max_length']
             3
-            sage: [floor(i) for i in range(1,10)]
-            [0, 0, 0, 0, 0, 0, 0, 0, 0]
-            sage: [ceiling(i) for i in range(1,5)]
-            [+Infinity, +Infinity, +Infinity, +Infinity]
-            sage: min_slope
+            sage: params['floor']
             0
-            sage: max_slope
+            sage: params['ceiling']
+            +Infinity
+            sage: params['min_slope']
+            0
+            sage: params['max_slope']
             +Infinity
 
             sage: IV = IntegerVectors(3,10,inner=[4,1,3], min_part = 2)
-            sage: min_length, max_length, floor, ceiling, min_slope, max_slope = IV._parameters()
-            sage: floor(1), floor(2), floor(3)
+            sage: floor = IV._parameters()['floor']
+            sage: floor(0), floor(1), floor(2)
             (4, 2, 3)
 
             sage: IV = IntegerVectors(3, 10, outer=[4,1,3], max_part = 3)
-            sage: min_length, max_length, floor, ceiling, min_slope, max_slope = IV._parameters()
-            sage: ceiling(1), ceiling(2), ceiling(3)
+            sage: ceiling = IV._parameters()['ceiling']
+            sage: ceiling(0), ceiling(1), ceiling(2)
             (3, 1, 3)
         """
         constraints = self.constraints
@@ -976,15 +978,23 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
         if 'outer' in self.constraints:
             ceiling = list2func( map(lambda i: min(max_part, i), self.constraints['outer']), default=max_part )
         else:
-            ceiling = constant_func(max_part)
+            ceiling = max_part
+            #ceiling = constant_func(max_part)
 
         if 'inner' in self.constraints:
             floor = list2func( map(lambda i: max(min_part, i), self.constraints['inner']), default=min_part )
         else:
-            floor = constant_func(min_part)
+            floor = min_part
 
-        return (min_length, max_length, floor, ceiling, min_slope, max_slope)
-
+        if return_tuple:
+            return (min_length, max_length, floor, ceiling, min_slope, max_slope)
+        else:
+            return {'min_length': min_length,
+                    'max_length': max_length,
+                    'floor': floor,
+                    'ceiling': ceiling,
+                    'min_slope': min_slope,
+                    'max_slope': max_slope}
 
     def first(self):
         """
@@ -993,7 +1003,7 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
             sage: IntegerVectors(2,3,min_slope=0).first()
             [0, 1, 1]
         """
-        return integer_list.first(self.n, *self._parameters())
+        return integer_list.first(self.n, *self._parameters(return_tuple=True))
 
     def next(self, x):
         """
@@ -1003,7 +1013,7 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
             sage: IntegerVectors(2,3,min_slope=0).next(a)
             [0, 0, 2]
         """
-        return integer_list.next(x, *self._parameters())
+        return integer_list.next(x, *self._parameters(return_tuple=True))
 
     def __iter__(self):
         """
@@ -1060,9 +1070,11 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
             sage: all(map(lambda x: x.cardinality() == len(x.list()), iv))
             True
         """
-        I = IntegerListsLex(self.n, **self.constraints)
-        return I.__iter__()
-        return integer_list.iterator(self.n, *self._parameters())
+        I = IntegerListsLex(self.n, **self._parameters())
+        for l in I:
+            yield list(l)
+        #return integer_list.iterator(self.n, *self._parameters())
+
 
 class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
     def __init__(self, n, constraints):

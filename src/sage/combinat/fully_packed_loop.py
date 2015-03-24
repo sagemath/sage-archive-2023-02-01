@@ -773,6 +773,18 @@ class FullyPackedLoop(SageObject):
             sage: PerfectMatching(mat.gyration().to_fully_packed_loop().link_pattern()) ==\
             PerfectMatching(rotated_ncp)
             True
+            
+        TESTS:
+        
+        We test a previous bug which showed up when this method is called twice::
+        
+            sage: A = AlternatingSignMatrices(6)
+            sage: B = A.random_element()
+            sage: C = FullyPackedLoop(B)
+            sage: D = C.link_pattern()
+            sage: E = C.link_pattern()
+            sage: D == E
+            True
 
         """
         link_pattern = []

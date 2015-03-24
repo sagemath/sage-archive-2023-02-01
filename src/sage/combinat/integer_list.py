@@ -24,6 +24,7 @@ from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+from warnings import warn
 
 infinity = float('+inf')
 
@@ -54,8 +55,8 @@ class IntegerListsLex(Parent):
     - ``max_part`` -- a nonnegative integer (default: None, in which case internally it defaults to `\infty`)
     - ``min_slope`` -- an integer or `-\infty`; defaults to `-\infty`
     - ``max_slope`` -- an integer or `+\infty`; defaults to `+\infty`
-    - ``category`` -- a category (default: EnumeratedSets); in certain cases, in which it is known
-      that the set is finite, this is set to FiniteEnumeratedSets
+    - ``category`` -- a category (default: FiniteEnumeratedSets)
+    - ``waiver`` -- boolean (default: False)
 
     An *integer list* is a list `l` of nonnegative integers, its
     *parts*. The *length* of `l` is the number of its parts;
@@ -167,8 +168,39 @@ class IntegerListsLex(Parent):
 
     Next we obtain all lists of sum 4 and length 4 such that l[i] <= i::
 
-        sage: list(IntegerListsLex(4, length = 4, ceiling = lambda i: i))
+        sage: list(IntegerListsLex(4, length = 4, ceiling = lambda i: i, waiver=True))
         [[0, 1, 2, 1], [0, 1, 1, 2], [0, 1, 0, 3], [0, 0, 2, 2], [0, 0, 1, 3]]
+
+    Note that when passing a function as the ceiling, the existence of a vector
+    with the specified conditions might be undecidable. For example, when ``ceiling`` is
+    a function and is zero for a long time, there might not be a solution up to an arbitrarily
+    high position. But the user specified function could in principle then increase and allow
+    for a solution::
+
+        sage: it = IntegerListsLex(2,ceiling=lambda i:0 if i<20 else 1).__iter__()
+        doctest:...
+        UserWarning: When the user specifies a method, then (s)he is responsible that the algorithm
+        will not hang. Also note that the specified function should start at 0 rather than 1.
+        Before trac#17979 the indexing was ambiguous and sometimes started at 1.
+        sage: it.next()
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
+        sage: it.next()
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1]
+        sage: it.next()
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1]
+
+    In the above example, there are infinitely many solutions, but they are returned.
+    In the next example, there are no solutions, but since the ceiling is given as a method,
+    the computer cannot decide whether there will be a solution or not. The code hangs::
+
+        sage: IntegerListsLex(2,ceiling=lambda i:0).list() # not tested
+
+    For this reason, the user needs to sign a waiver when providing a method rather than a
+    list. The same example does work when the computer is told that the function is a constant
+    zero:::
+
+        sage: IntegerListsLex(2,ceiling=0).list()
+        []
 
     This is the list of all monomials of degree `4` which divide the
     monomial `x^3y^1z^2` (a monomial being identified with its
@@ -399,7 +431,7 @@ class IntegerListsLex(Parent):
                  category=FiniteEnumeratedSets(),
                  element_constructor=None, element_class=None,
                  global_options=None,
-                 waiver=None):
+                 waiver=False):
         """
         Initialize ``self``.
 
@@ -565,8 +597,9 @@ class IntegerListsLex(Parent):
             self.rename(name)
 
         if self.warning and not self.waiver:
-            pass
-            ## TODO warn user about potential hanging elements
+            warn("""When the user specifies a method, then (s)he is responsible that the algorithm
+            will not hang. Also note that the specified function should start at 0 rather than 1.
+            Before trac#17979 the indexing was ambiguous and sometimes started at 1.""")
 
         # In case we want output to be of a different type,
         if element_constructor is not None:

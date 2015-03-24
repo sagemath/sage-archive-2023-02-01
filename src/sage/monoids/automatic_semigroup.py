@@ -1,5 +1,5 @@
 """
-Automatic monoids.
+Automatic semigroups.
 
 AUTHORS:
 
@@ -39,6 +39,8 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
         sage: R = IntegerModRing(12)
         sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
+        sage: M in Monoids()
+        True
         sage: M.one()
         1
         sage: M.one() in M
@@ -207,7 +209,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
     .. WARNING::
 
         :class:`AutomaticSemigroup` is designed primarily for finite
-        monoids. This property is not checked automatically (this
+        semigroups. This property is not checked automatically (this
         would be too costly, if not undecidable). Use with care for an
         infinite semigroup, as certain features may require
         constructing all of it::
@@ -252,7 +254,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         """
         generators = Family(generators)
         if ambient is None:
-            # Try to guess the ambient monoid from the generators or the unit
+            # Try to guess the ambient semigroup from the generators or the unit
             if generators.cardinality() > 0:
                 ambient = generators.first().parent()
             elif one is not None:
@@ -406,7 +408,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
 
     def ambient(self):
         """
-        Return the ambient monoid of ``self``.
+        Return the ambient semigroup of ``self``.
 
         EXAMPLES::
 
@@ -433,7 +435,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
 
     def retract(self, ambient_element, check=True):
         """
-        Retract an element of the ambiant monoid into ``self``.
+        Retract an element of the ambient semigroup into ``self``.
 
         EXAMPLES::
 
@@ -624,7 +626,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         # self._elements is never empty; so we are sure
         for x in self._elements:
             yield x
-            # some other iterator/ method of the monoid may have
+            # some other iterator/ method of the semigroup may have
             # been called before we move on to the next line
             i += 1
             if i == len(self._elements) and not self._constructed:
@@ -685,7 +687,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
     def product(self, x, y):
         """
         Return the product of two elements in ``self``. It is done by
-        retracting the multiplication in the ambient monoid.
+        retracting the multiplication in the ambient semigroup.
 
         EXAMPLES::
 
@@ -747,7 +749,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
 
         This construct all the elements of this semigroup, their
         reduced words, and the right Cayley graph. If `n` is
-        specified, only the `n` first elements of the monoid are
+        specified, only the `n` first elements of the semigroup are
         constructed. If ``element`` is specified, only the elements up
         to ``ambient_element`` are constructed.
 
@@ -840,7 +842,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
 
         def lift(self):
             """
-            Lift the element ``self`` into its ambient monoid.
+            Lift the element ``self`` into its ambient semigroup.
 
             EXAMPLES::
 

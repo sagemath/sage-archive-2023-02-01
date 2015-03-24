@@ -376,31 +376,31 @@ class IntegerListsLex(Parent):
 
     .. RUBRIC:: Some comparative timings with the former implementation
 
-        ::
+    ::
 
-            sage: from sage.combinat.integer_list_old import IntegerListsLex as IntegerListsLexOld
+        sage: from sage.combinat.integer_list_old import IntegerListsLex as IntegerListsLexOld
 
-            sage: P = IntegerListsLex(n=20, max_slope=0, floor=1)
-            sage: %time x = list(P)  # not tested
-            CPU times: user 264 ms, sys: 0 ns, total: 264 ms
-            Wall time: 276 ms
-            sage: P = IntegerListsLexOld(n=20, max_slope=0, min_part=1)
-            sage: %time x = list(P)  # not tested
-            CPU times: user 249 ms, sys: 15.8 ms, total: 265 ms
-            Wall time: 401 ms
-            sage: P.cardinality()
-            627
+        sage: P = IntegerListsLex(n=20, max_slope=0, floor=1)
+        sage: %time x = list(P)  # not tested
+        CPU times: user 264 ms, sys: 0 ns, total: 264 ms
+        Wall time: 276 ms
+        sage: P = IntegerListsLexOld(n=20, max_slope=0, min_part=1)
+        sage: %time x = list(P)  # not tested
+        CPU times: user 249 ms, sys: 15.8 ms, total: 265 ms
+        Wall time: 401 ms
+        sage: P.cardinality()
+        627
 
-            sage: P = IntegerListsLex(n=30, max_slope=0, floor=1)
-            sage: %time x = list(P)  # not tested
-            CPU times: user 2.98 s, sys: 6.52 ms, total: 2.99 s
-            Wall time: 3.81 s
-            sage: P = IntegerListsLexOld(n=30, max_slope=0, min_part=1)
-            sage: %time x = list(P)  # not tested
-            CPU times: user 2.55 s, sys: 7.05 ms, total: 2.55 s
-            Wall time: 3.49 s
-            sage: P.cardinality()
-            5604
+        sage: P = IntegerListsLex(n=30, max_slope=0, floor=1)
+        sage: %time x = list(P)  # not tested
+        CPU times: user 2.98 s, sys: 6.52 ms, total: 2.99 s
+        Wall time: 3.81 s
+        sage: P = IntegerListsLexOld(n=30, max_slope=0, min_part=1)
+        sage: %time x = list(P)  # not tested
+        CPU times: user 2.55 s, sys: 7.05 ms, total: 2.55 s
+        Wall time: 3.49 s
+        sage: P.cardinality()
+        5604
 
     TESTS:
 

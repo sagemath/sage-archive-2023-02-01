@@ -6,6 +6,7 @@ AUTHORS:
 
     TODO::
         Riemann Zeta Function
+
         Picard Number
 """
 import sys
@@ -35,7 +36,7 @@ _Fields = Fields()
 
 def WehlerK3Surface(polys):
     r"""
-    Defines a K3 Surface over `\mathbb{P}^2 \times \mathjbb{P}^2` defined as
+    Defines a K3 Surface over `\mathbb{P}^2 \times \mathbb{P}^2` defined as
     the intersection of a bi-linear and bi-quadratic form.
 
     INPUT: Bilinear and Biquadratic polynomials as a tuple or list
@@ -66,7 +67,7 @@ def WehlerK3Surface(polys):
 
 def random_WehlerK3Surface(PP):
     r"""
-    Produces a random K3 surface in `\mathbb{P}^2 \times \mathjbb{P}^2` defined as the
+    Produces a random K3 surface in `\mathbb{P}^2 \times \mathbb{P}^2` defined as the
     intersection of a bi-linear and bi-quadratic form.
 
     INPUT: Projective Space Cartesian Product
@@ -97,7 +98,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_projective):
     r"""
     #TODO - citations
 
-    A K3 surface in `\mathbb{P}^2 \times \mathjbb{P}^2` defined as the
+    A K3 surface in `\mathbb{P}^2 \times \mathbb{P}^2` defined as the
     intersection of a bi-linear and bi-quadratic form.
 
     EXAMPLES::
@@ -143,7 +144,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_projective):
 
     def change_ring(self,R):
         r"""
-        Changes the base ring on which the WhelerK3 Surface is defined
+        Changes the base ring on which the Wehler K3 Surface is defined
 
         INPUT: ``R`` - ring
 
@@ -205,9 +206,13 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_projective):
     def _Lcoeff(self, component, i):
         r"""
         Returns the polynomials defined as:
+
             `L^x_i` = the coefficients of `y_i` in `L(x,y)` ( Component = 0)
+
             `L^y_i` = the coefficients of `x_i` in `L(x,y)` ( Component = 1)
-            Definition and Notation borrowed from the following paper:
+
+            Definition and Notation from:
+
             G. Call and J. Silverman. Computing the canonical height on K3 surfaces. Math. Comp., 65:(259-290), 1996.
 
         INPUT:
@@ -247,9 +252,14 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_projective):
     def _Qcoeff(self, component, i, j):
         r"""
         Returns the polynomials defined as:
+
             `Q^x_{ij}` = the coefficients of `y_{i}y_{j}` in `Q(x,y)` ( Component = 0)
+
             `Q^y_{ij}` = the coefficients of `x_{i}x_{j}` in `Q(x,y)` ( Component = 1)
-            Definition and notation borrowed from Call & Silverman
+
+            Definition and Notation from:
+
+            G. Call and J. Silverman. Computing the canonical height on K3 surfaces. Math. Comp., 65:(259-290), 1996.
 
         INPUT:
 
@@ -371,8 +381,11 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_projective):
     def Lxa(self,a):
         r"""
         Function will return a fiber defined by:
+
         `L^{x}_{a} = \{(a,y) \in \mathbb{P}^{2} \times \mathbb{P}^{2} \colon L(a,y) = 0\}`
+
         Notation and definition from:
+
         G. Call and J. Silverman. Computing the canonical height on K3 surfaces. Math. Comp., 65:(259-290), 1996.
 
         INPUT: ``a`` - Point in `\mathbb{P}^2`
@@ -398,9 +411,13 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_projective):
 
     def Qxa(self,a):
         r"""
+
         Function will return a fiber defined by:
+
         `Q^{x}_{a} = \{(a,y) \in \mathbb{P}^{2} \times \mathbb{P}^{2} \colon Q(a,y) = 0\}`
+
         Notation and definition from:
+
         G. Call and J. Silverman. Computing the canonical height on K3 surfaces. Math. Comp., 65:(259-290), 1996.
 
         INPUT: ``a`` - Point in `\mathbb{P}^2`
@@ -427,8 +444,11 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_projective):
     def Sxa(self,a):
         r"""
         Function will return fiber defined by:
+
         `S^{x}_{a} = L^{x}_{a} \cap Q^{x}_{a}`
+
         Notation and definition from:
+
         G. Call and J. Silverman. Computing the canonical height on K3 surfaces. Math. Comp., 65:(259-290), 1996.
 
         INPUT: ``a`` - Point in `\mathbb{P}^2`
@@ -455,9 +475,13 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_projective):
 
     def Lyb(self,b):
         r"""
+
         Function will return a fiber defined by:
+
         `L^{y}_{b} = \{(x,b) \in \mathbb{P}^{2} \times \mathbb{P}^{2} \colon L(x,b) = 0\}`
+
         Notation and definition from:
+
         G. Call and J. Silverman. Computing the canonical height on K3 surfaces. Math. Comp., 65:(259-290), 1996.
 
         INPUT: ``a`` - Point in Projective Space
@@ -483,9 +507,13 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_projective):
 
     def Qyb(self,b):
         r"""
+
         Function will return a fiber defined by:
+
         `Q^{y}_{b} = \{(x,b) \in \mathbb{P}^{2} \times \mathbb{P}^{2} \colon Q(x,b) = 0\}`
+
         Notation and definition from:
+
         G. Call and J. Silverman. Computing the canonical height on K3 surfaces. Math. Comp., 65:(259-290), 1996.
 
         INPUT: ``b`` - Point in Projective Space
@@ -512,8 +540,11 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_projective):
     def Syb(self,b):
         r"""
         Function will return fiber defined by:
+
         `S^{y}_{b} = L^{y}_{b} \cap Q^{y}_{b}`
+
         Notation and definition from:
+
         G. Call and J. Silverman. Computing the canonical height on K3 surfaces. Math. Comp., 65:(259-290), 1996.
 
         INPUT: ``a`` - Point in `\mathbb{P}^2`
@@ -541,6 +572,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_projective):
     def Ramification_poly(self,i):
         r"""
         Function will return the Ramification polynomial defined by:
+
         `g^* = 2L^*_iL^*_jQ^*_{kk}`
 
         INPUT: ``i`` - Integer, either 0 (polynomial in y) or 1 (polynomial in x)
@@ -630,7 +662,9 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_projective):
 
         The criteria for degeneracy by the common vanishing of the polynomials `self.Gpoly(1,0)`, `self.Gpoly(1,1)`, `self.Gpoly(1,2)`, `self.Hpoly(1,0,1)`, `self.Hpoly(1,0,2)`, `self.Hpoly(1,1,2)`
         (for the first component) is from Proposition 1.4 in the following article:
+
         G. Call and J. Silverman. Computing the canonical height on K3 surfaces. Math. Comp., 65:(259-290), 1996.
+
         This function finds the common solution through elimination via Groebner bases by using the .variety()
         function on the three affine charts in each component.
 
@@ -871,6 +905,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_projective):
         INPUT:
 
         - ``P`` - a point in `\mathbb{P}^2 \times `\mathbb{P}^2`
+
         - ``check`` - Boolean (default True) checks to see if point is on the surface
 
         OUTPUT: A point in `\mathbb{P}^2 \times `\mathbb{P}^2`

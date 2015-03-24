@@ -767,7 +767,7 @@ class FindStatStatistic(SageObject):
         else:
             f.write(FINDSTAT_NEWSTATISTIC_FORM_HEADER %(FINDSTAT_URL_EDIT+self.id_str))
         for key, value in args.iteritems():
-            f.write(FINDSTAT_NEWSTATISTIC_FORM_FORMAT %(key, value))
+            f.write((FINDSTAT_NEWSTATISTIC_FORM_FORMAT %(key, value)).encode("utf-8"))
         f.write(FINDSTAT_NEWSTATISTIC_FORM_FOOTER)
         f.close()
         _ = verbose("Opening file with webbrowser", caller_name='FindStat')

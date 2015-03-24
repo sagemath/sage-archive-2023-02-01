@@ -4653,7 +4653,7 @@ class Partitions(UniqueRepresentation, Parent):
 
     Except for very special cases, counting is done by brute force iteration
     through all the partitions. However the iteration itself has a reasonable
-    complexity (constant memory, constant amortized time), which allow for
+    complexity (see :class:`IntegerListsLex`), which allows for
     manipulating large partitions::
 
         sage: Partitions(1000, max_length=1).list()

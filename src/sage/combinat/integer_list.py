@@ -225,7 +225,8 @@ class IntegerListsLex(Parent):
 
     The iteration algorithm uses a targeted tree-search.  The complexity of the algorithm
     has not been formally proven, but the runtime is suspected to be amortized bounded per
-    word by a low-degree polynomial in the length the word produced.
+    word by a low-degree polynomial in the length the word produced.  The space complexity
+    of the algorithm is very low, on the order of the length of the words produced.
 
     In the following example, the floor conditions do not satisfy the
     slope conditions since the floor for the third part is also 3. The algorithm
@@ -392,7 +393,7 @@ class IntegerListsLex(Parent):
     TESTS:
 
     Internally, the iterator works on a single list that is mutated
-    along the way. This tests makes sure that we do make a copy of
+    along the way. The following test makes sure that we actually make a copy of
     this list before passing it to ``element_constructor`` in order to
     avoid reference effects::
 

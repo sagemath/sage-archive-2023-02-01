@@ -188,7 +188,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             for i,x in enumerate(K):
                 for y in K[i+1:]:
                     bx = B[x]
-                    by = B[x]
+                    by = B[y]
                     val = self.bracket(bx, by)
                     if not include_zeros and val == zero:
                         continue

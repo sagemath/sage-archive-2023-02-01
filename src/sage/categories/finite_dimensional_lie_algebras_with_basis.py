@@ -105,25 +105,27 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             EXAMPLES::
 
-                sage: L.<x,y,z> = LieAlgebra(QQ, {})
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
                 sage: L._basis_ordering
-                ('x', 'y', 'z')
+                (0, 1, 2)
             """
             return tuple(self.basis().keys())
 
-        @lazy_attribute
-        def _dense_free_module(self):
+        @cached_method
+        def _dense_free_module(self, R=None):
             """
-            Return a dense free module associated to ``self``.
+            Return a dense free module associated to ``self`` over ``R``.
 
             EXAMPLES::
 
-                sage: L = lie_algebras.Heisenberg(QQ, 3)
-                sage: L._dense_free_module
-                Vector space of dimension 7 over Rational Field
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: L._dense_free_module()
+                Vector space of dimension 3 over Rational Field
             """
+            if R is None:
+                R = self.base_ring()
             from sage.modules.free_module import FreeModule
-            return FreeModule(self.base_ring(), len(self._basis_ordering))
+            return FreeModule(R, self.dimension())
 
         def killing_matrix(self, x, y):
             r"""

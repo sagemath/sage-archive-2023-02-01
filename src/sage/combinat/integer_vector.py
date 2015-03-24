@@ -3,7 +3,7 @@
 
 AUTHORS:
 
- *   Mike Hanson (2007) - original module
+ *   Mike Hansen (2007) - original module
  *   Nathann Cohen, David Joyner (2009-2010) - Gale-Ryser stuff
  *   Nathann Cohen, David Joyner (2011) - Gale-Ryser bugfix
  *   Travis Scrimshaw (2012-05-12) - Updated doc-strings to tell the user of
@@ -27,13 +27,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from combinat import CombinatorialClass
+import misc
 from __builtin__ import list as builtinlist
+from sage.categories.enumerated_sets import EnumeratedSets
+from combinat import CombinatorialClass
 from sage.rings.integer import Integer
 from sage.rings.arith import binomial
-import misc
 from sage.rings.infinity import PlusInfinity
-import integer_list
 import cartesian_product
 import functools
 from sage.combinat.integer_list import IntegerListsLex
@@ -561,23 +561,77 @@ def IntegerVectors(n=None, k=None, **kwargs):
         [0, 0, 5]
         sage: IV53.random_element()
         [4, 0, 1]
+
+    Further examples::
+
+        sage: IntegerVectors(-1, 0, min_part = 1).list()
+        []
+        sage: IntegerVectors(-1, 2, min_part = 1).list()
+        []
+        sage: IntegerVectors(0, 0, min_part=1).list()
+        [[]]
+        sage: IntegerVectors(3, 0, min_part=1).list()
+        []
+        sage: IntegerVectors(0, 1, min_part=1).list()
+        []
+        sage: IntegerVectors(2, 2, min_part=1).list()
+        [[1, 1]]
+        sage: IntegerVectors(2, 3, min_part=1).list()
+        []
+        sage: IntegerVectors(4, 2, min_part=1).list()
+        [[3, 1], [2, 2], [1, 3]]
+
+    ::
+
+        sage: IntegerVectors(0, 3, outer=[0,0,0]).list()
+        [[0, 0, 0]]
+        sage: IntegerVectors(1, 3, outer=[0,0,0]).list()
+        []
+        sage: IntegerVectors(2, 3, outer=[0,2,0]).list()
+        [[0, 2, 0]]
+        sage: IntegerVectors(2, 3, outer=[1,2,1]).list()
+        [[1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1]]
+        sage: IntegerVectors(2, 3, outer=[1,1,1]).list()
+        [[1, 1, 0], [1, 0, 1], [0, 1, 1]]
+        sage: IntegerVectors(2, 5, outer=[1,1,1,1,1]).list()
+        [[1, 1, 0, 0, 0],
+         [1, 0, 1, 0, 0],
+         [1, 0, 0, 1, 0],
+         [1, 0, 0, 0, 1],
+         [0, 1, 1, 0, 0],
+         [0, 1, 0, 1, 0],
+         [0, 1, 0, 0, 1],
+         [0, 0, 1, 1, 0],
+         [0, 0, 1, 0, 1],
+         [0, 0, 0, 1, 1]]
+
+    ::
+
+        sage: iv = [ IntegerVectors(n,k) for n in range(-2, 7) for k in range(7) ]
+        sage: all(map(lambda x: x.cardinality() == len(x.list()), iv))
+        True
+        sage: essai = [[1,1,1], [2,5,6], [6,5,2]]
+        sage: iv = [ IntegerVectors(x[0], x[1], max_part = x[2]-1) for x in essai ]
+        sage: all(map(lambda x: x.cardinality() == len(x.list()), iv))
+        True
     """
     if n is None:
         return IntegerVectors_all()
     elif k is None:
-        return IntegerVectors_nconstraints(n,kwargs)
+        return IntegerVectors_nconstraints(n, kwargs)
+    elif isinstance(k, builtinlist):
+        if kwargs:
+            raise ValueError("If k is a list, no optional argument is supported")
+        return IntegerVectors_nnondescents(n,k)
     else:
-        if isinstance(k, builtinlist):
-            return IntegerVectors_nnondescents(n,k)
+        if kwargs:
+            return IntegerVectors_nkconstraints(n,k,kwargs)
         else:
-            if len(kwargs) == 0:
-                return IntegerVectors_nk(n,k)
-            else:
-                return IntegerVectors_nkconstraints(n,k,kwargs)
+            return IntegerVectors_nk(n,k)
 
 
 class IntegerVectors_all(CombinatorialClass):
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 
@@ -825,27 +879,72 @@ class IntegerVectors_nk(CombinatorialClass):
 
         return r
 
-class IntegerVectors_nkconstraints(CombinatorialClass):
-    def __init__(self, n, k, constraints):
+class IntegerVectors_nkconstraints(IntegerListsLex):
+    def __init__(self, n, k, constraints, category=None):
         """
         EXAMPLES::
 
             sage: IV = IntegerVectors(2,3,min_slope=0)
             sage: IV == loads(dumps(IV))
             True
+
+            sage: IntegerVectors(2,3,min_slope=0).first()
+            [0, 1, 1]
+
+        TESTS:
+
+        All the attributes below are private; don't use them!
+
+            sage: IV.min_length
+            3
+            sage: IV.max_length
+            3
+            sage: floor = IV.floor
+            sage: [floor(i) for i in range(1,10)]
+            [0, 0, 0, 0, 0, 0, 0, 0, 0]
+            sage: ceiling = IV.ceiling
+            sage: [ceiling(i) for i in range(1,5)]
+            [inf, inf, inf, inf]
+            sage: IV.min_slope
+            0
+            sage: IV.max_slope
+            inf
+
+            sage: IV = IntegerVectors(3, 10, inner=[4,1,3], min_part=2)
+            sage: floor = IV.floor
+            sage: floor(0), floor(1), floor(2)
+            (4, 2, 3)
+
+            sage: IV = IntegerVectors(3, 10, outer=[4,1,3], max_part=3)
+            sage: ceiling = IV.ceiling
+            sage: ceiling(0), ceiling(1), ceiling(2)
+            (3, 1, 3)
         """
         self.n = n
         self.k = k
-        self.constraints = constraints
 
-    def __repr__(self):
+        args = constraints.copy()
+
+        if self.k >= 0:
+            args['length'] = self.k
+
+        if 'outer' in args:
+            args['ceiling'] = args['outer']
+            del args['outer']
+        if 'inner' in args:
+            args['floor'] = args['inner']
+            del args['inner']
+        self._constraints = constraints
+        IntegerListsLex.__init__(self, n, category=category, **args)
+
+    def _repr_(self):
         """
         EXAMPLES::
 
             sage: IntegerVectors(2,3,min_slope=0).__repr__()
             'Integer vectors of length 3 that sum to 2 with constraints: min_slope=0'
         """
-        return "Integer vectors of length %s that sum to %s with constraints: %s"%(self.k, self.n, ", ".join( ["%s=%s"%(key, self.constraints[key]) for key in sorted(self.constraints.keys())] ))
+        return "Integer vectors of length %s that sum to %s with constraints: %s"%(self.k, self.n, ", ".join( ["%s=%s"%(key, self._constraints[key]) for key in sorted(self._constraints.keys())] ))
 
 
     def __contains__(self, x):
@@ -894,8 +993,8 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
         if len(x) != self.k:
             return False
 
-        if self.constraints:
-            if not misc.check_integer_list_constraints(x, singleton=True, **self.constraints):
+        if self._constraints:
+            if not misc.check_integer_list_constraints(x, singleton=True, **self._constraints):
                 return False
 
         return True
@@ -911,96 +1010,23 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
             sage: IntegerVectors(13, 4, min_part=2, max_part=4).cardinality()
             16
         """
-        if not self.constraints:
+        if not self._constraints:
+            if self.k < 0:
+                return +infinity
             if self.n >= 0:
                 return binomial(self.n+self.k-1,self.n)
             else:
                 return 0
         else:
-            if len(self.constraints) == 1 and 'max_part' in self.constraints and self.constraints['max_part'] != infinity:
-                m = self.constraints['max_part']
+            if len(self._constraints) == 1 and 'max_part' in self._constraints and self._constraints['max_part'] != infinity:
+                m = self._constraints['max_part']
                 if m >= self.n:
                     return binomial(self.n+self.k-1,self.n)
                 else: #do by inclusion / exclusion on the number
                       #i of parts greater than m
                     return sum( [(-1)**i * binomial(self.n+self.k-1-i*(m+1), self.k-1)*binomial(self.k,i) for i in range(0, self.n/(m+1)+1)])
             else:
-                return len(self.list())
-
-
-    def _parameters(self,return_tuple=False):
-        """
-        Returns a dictionary with values (min_length, max_length, floor, ceiling,
-        min_slope, max_slope) for the parameters of self, as should be used in the
-        parameters of class IntegerListsLex.  ``tuple`` may also be set to True to
-        instead return in the format of a tuple, with ordering as specified above.
-
-        EXAMPLES::
-
-            sage: IV = IntegerVectors(2,3,min_slope=0)
-            sage: params = IV._parameters()
-            sage: params['min_length']
-            3
-            sage: params['max_length']
-            3
-            sage: params['floor']
-            0
-            sage: params['ceiling']
-            +Infinity
-            sage: params['min_slope']
-            0
-            sage: params['max_slope']
-            +Infinity
-
-            sage: IV = IntegerVectors(3,10,inner=[4,1,3], min_part = 2)
-            sage: IV._parameters()['floor']
-            ([4, 2, 3], 2)
-
-            sage: IV = IntegerVectors(3, 10, outer=[4,1,3], max_part = 3)
-            sage: IV._parameters()['ceiling']
-            ([3, 1, 3], 3)
-        """
-        constraints = self.constraints
-        #n, min_length, max_length, floor, ceiling, min_slope, max_slope
-        if self.k == -1:
-            min_length = constraints.get('min_length', 0)
-            max_length = constraints.get('max_length', infinity)
-        else:
-            min_length = self.k
-            max_length = self.k
-
-        min_part = constraints.get('min_part', 0)
-        max_part = constraints.get('max_part', infinity)
-        min_slope = constraints.get('min_slope', -infinity)
-        max_slope = constraints.get('max_slope', infinity)
-        if 'outer' in self.constraints:
-            ceiling = (map(lambda i: min(max_part, i), self.constraints['outer']), max_part)
-        else:
-            ceiling = max_part
-
-        if 'inner' in self.constraints:
-            floor = (map(lambda i: max(min_part, i), self.constraints['inner']), min_part)
-        else:
-            floor = min_part
-
-        if return_tuple:
-            return (min_length, max_length, floor, ceiling, min_slope, max_slope)
-        else:
-            return {'min_length': min_length,
-                    'max_length': max_length,
-                    'floor': floor,
-                    'ceiling': ceiling,
-                    'min_slope': min_slope,
-                    'max_slope': max_slope}
-
-    def first(self):
-        """
-        EXAMPLES::
-
-            sage: IntegerVectors(2,3,min_slope=0).first()
-            [0, 1, 1]
-        """
-        return integer_list.first(self.n, *self._parameters(return_tuple=True))
+                return super(IntegerVectors_nkconstraints, self).cardinality()
 
     def next(self, x):
         """
@@ -1010,68 +1036,8 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
             sage: IntegerVectors(2,3,min_slope=0).next(a)
             [0, 0, 2]
         """
-        return integer_list.next(x, *self._parameters(return_tuple=True))
-
-    def __iter__(self):
-        """
-        EXAMPLES::
-
-            sage: IntegerVectors(-1, 0, min_part = 1).list()
-            []
-            sage: IntegerVectors(-1, 2, min_part = 1).list()
-            []
-            sage: IntegerVectors(0, 0, min_part=1).list()
-            [[]]
-            sage: IntegerVectors(3, 0, min_part=1).list()
-            []
-            sage: IntegerVectors(0, 1, min_part=1).list()
-            []
-            sage: IntegerVectors(2, 2, min_part=1).list()
-            [[1, 1]]
-            sage: IntegerVectors(2, 3, min_part=1).list()
-            []
-            sage: IntegerVectors(4, 2, min_part=1).list()
-            [[3, 1], [2, 2], [1, 3]]
-
-        ::
-
-            sage: IntegerVectors(0, 3, outer=[0,0,0]).list()
-            [[0, 0, 0]]
-            sage: IntegerVectors(1, 3, outer=[0,0,0]).list()
-            []
-            sage: IntegerVectors(2, 3, outer=[0,2,0]).list()
-            [[0, 2, 0]]
-            sage: IntegerVectors(2, 3, outer=[1,2,1]).list()
-            [[1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1]]
-            sage: IntegerVectors(2, 3, outer=[1,1,1]).list()
-            [[1, 1, 0], [1, 0, 1], [0, 1, 1]]
-            sage: IntegerVectors(2, 5, outer=[1,1,1,1,1]).list()
-            [[1, 1, 0, 0, 0],
-             [1, 0, 1, 0, 0],
-             [1, 0, 0, 1, 0],
-             [1, 0, 0, 0, 1],
-             [0, 1, 1, 0, 0],
-             [0, 1, 0, 1, 0],
-             [0, 1, 0, 0, 1],
-             [0, 0, 1, 1, 0],
-             [0, 0, 1, 0, 1],
-             [0, 0, 0, 1, 1]]
-
-        ::
-
-            sage: iv = [ IntegerVectors(n,k) for n in range(-2, 7) for k in range(7) ]
-            sage: all(map(lambda x: x.cardinality() == len(x.list()), iv))
-            True
-            sage: essai = [[1,1,1], [2,5,6], [6,5,2]]
-            sage: iv = [ IntegerVectors(x[0], x[1], max_part = x[2]-1) for x in essai ]
-            sage: all(map(lambda x: x.cardinality() == len(x.list()), iv))
-            True
-        """
-        I = IntegerListsLex(self.n, **self._parameters())
-        for l in I:
-            yield list(l)
-        #return integer_list.iterator(self.n, *self._parameters())
-
+        from sage.combinat.integer_list_old import next
+        return next(x, self.min_length, self.max_length, self.floor, self.ceiling, self.min_slope, self.max_slope)
 
 class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
     def __init__(self, n, constraints):
@@ -1081,10 +1047,24 @@ class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
             sage: IV = IntegerVectors(3, max_length=2)
             sage: IV == loads(dumps(IV))
             True
-        """
-        IntegerVectors_nkconstraints.__init__(self, n, -1, constraints)
 
-    def __repr__(self):
+            sage: IntegerVectors(3, max_length=2).cardinality()
+            4
+            sage: IntegerVectors(3).cardinality()
+            +Infinity
+
+            sage: IntegerVectors(3, max_length=2).list()
+            [[3], [2, 1], [1, 2], [0, 3]]
+            sage: IntegerVectors(3).list()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: infinite list
+        """
+        category = EnumeratedSets().Infinite() if not constraints else None
+        IntegerVectors_nkconstraints.__init__(self, n, -1, constraints,
+                                              category=category)
+
+    def _repr_(self):
         """
         EXAMPLES::
 
@@ -1093,8 +1073,8 @@ class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
             sage: repr(IntegerVectors(3, max_length=2))
             'Integer vectors that sum to 3 with constraints: max_length=2'
         """
-        if self.constraints:
-            return "Integer vectors that sum to %s with constraints: %s"%(self.n,", ".join( ["%s=%s"%(key, self.constraints[key]) for key in sorted(self.constraints.keys())] ))
+        if self._constraints:
+            return "Integer vectors that sum to %s with constraints: %s"%(self.n,", ".join( ["%s=%s"%(key, self._constraints[key]) for key in sorted(self._constraints.keys())] ))
         else:
             return "Integer vectors that sum to %s"%(self.n,)
 
@@ -1107,41 +1087,10 @@ class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
             sage: [0,3,0,1,2] in IntegerVectors(6, max_length=3)
             False
         """
-        if self.constraints:
-            return x in IntegerVectors_all() and misc.check_integer_list_constraints(x, singleton=True, **self.constraints)
+        if self._constraints:
+            return x in IntegerVectors_all() and misc.check_integer_list_constraints(x, singleton=True, **self._constraints)
         else:
             return x in IntegerVectors_all() and sum(x) == self.n
-
-    def cardinality(self):
-        """
-        EXAMPLES::
-
-            sage: IntegerVectors(3, max_length=2).cardinality()
-            4
-            sage: IntegerVectors(3).cardinality()
-            +Infinity
-        """
-        if 'max_length' not in self.constraints:
-            return infinity
-        else:
-            return self._CombinatorialClass__cardinality_from_iterator()
-
-    def list(self):
-        """
-        EXAMPLES::
-
-            sage: IntegerVectors(3, max_length=2).list()
-            [[3], [2, 1], [1, 2], [0, 3]]
-            sage: IntegerVectors(3).list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: infinite list
-        """
-        if 'max_length' not in self.constraints:
-            raise NotImplementedError("infinite list") # no list from infinite iter
-        else:
-            return list(self)
-
 
 class IntegerVectors_nnondescents(CombinatorialClass):
     r"""

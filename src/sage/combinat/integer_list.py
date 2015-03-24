@@ -18,7 +18,6 @@ Tools for generating lists of integers in lexicographic order
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.enumerated_sets import EnumeratedSets
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableArray
@@ -423,7 +422,7 @@ class IntegerListsLex(Parent):
                  min_part=None, max_part=None,
                  min_slope=-infinity, max_slope=infinity,
                  name=None,
-                 category=FiniteEnumeratedSets(),
+                 category=None,
                  element_constructor=None, element_class=None,
                  global_options=None,
                  waiver=False):
@@ -444,6 +443,9 @@ class IntegerListsLex(Parent):
             sage: TestSuite(C).run()
         """
         ## TODO handle finiteness conditions Re: category, when possible, warn when not (waiver parameter)
+
+        if category is None:
+            category = EnumeratedSets().Finite()
 
         self.waiver = waiver
         self.warning = False # warning for dangerous (but possibly valid) usage

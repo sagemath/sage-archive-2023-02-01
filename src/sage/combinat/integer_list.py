@@ -80,10 +80,13 @@ class IntegerListsLex(Parent):
       the constant function `k`.
       If ``floor`` is a list of integers `v`, then ``floor(i) = v(i)``
       for ``i`` from ``0`` to ``len(v)-1``. For ``i`` from ``len(v)`` to ``max_length-1``,
-      the ``floor`` function is considered to be zero.
+      the ``floor`` function defaults to value ``0``.
       Similarly, if ``ceiling`` is a list of integers `v`, then ``ceiling(i) = v(i)``
       for ``i`` from ``0`` to ``len(v)-1``. For ``i`` from ``len(v)`` to ``max_length-1``,
-      the ``ceiling`` function is considered to be `\infty`.
+      the ``ceiling`` function defaults to value `\infty`.
+      To specify a different default value for ``floor`` and ``ceiling`` beyond the length
+      of a list of integers `v`, instead give a tuple for ``floor`` or ``ceiling``, of the
+      form (`v`, ``default_val``).
 
     - Regularity condition: ``minSlope <= l[i+1]-l[i] <= maxSlope``,
       for ``i`` from 0 to ``len(l)-1``
@@ -188,15 +191,20 @@ class IntegerListsLex(Parent):
         sage: it.next()
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1]
 
-    In the above example, there are infinitely many solutions, but they are returned.
+    In the above example, there are infinitely many solutions, but a sequence of them is
+    returned.  Notice also that not all solutions will be eventually returned since, for
+    instance, there is an infinite collection of solutions that lie between the solutions
+    `[0, ..., 0, 1, 1]` and `[0, ..., 0, 0, 1, 1]`.  This is a consequence of the structure
+    of the lexicographic ordering imposed on the results.
+
     In the next example, there are no solutions, but since the ceiling is given as a method,
     the computer cannot decide whether there will be a solution or not. The code hangs::
 
         sage: IntegerListsLex(2,ceiling=lambda i:0).list() # not tested
 
-    For this reason, the user needs to sign a waiver when providing a method rather than a
-    list. The same example does work when the computer is told that the function is a constant
-    zero:::
+    For this reason, the user needs to sign a waiver (specify the ``waiver`` parameter)
+    when providing a method rather than a list. The same example does work when the
+    computer is told that the function is a constant zero:::
 
         sage: IntegerListsLex(2,ceiling=0).list()
         []
@@ -215,22 +223,9 @@ class IntegerListsLex(Parent):
 
     Note the use of the element_constructor feature.
 
-    In general, the complexity of the iteration algorithm is constant
-    time amortized for each integer list produced.  There is one
-    degenerate case though where the algorithm may run forever without
-    producing anything. If max_length is `+\infty` and max_slope `>0`,
-    testing whether there exists a valid integer list of sum `n` may
-    be only semi-decidable. In the following example, the algorithm
-    will enter an infinite loop, because it needs to decide whether
-    `ceiling(i)` is nonzero for some `i`::
-
-        sage: list( IntegerListsLex(1, ceiling = lambda i: 0) ) # todo: not implemented
-
-    .. NOTE::
-
-       Caveat: counting is done by brute force generation. In some
-       special cases, it would be possible to do better by counting
-       techniques for integral point in polytopes.
+    The iteration algorithm uses a targeted tree-search.  The complexity of the algorithm
+    has not been formally proven, but the runtime is suspected to be amortized bounded per
+    word by a low-degree polynomial in the length the word produced.
 
     In the following example, the floor conditions do not satisfy the
     slope conditions since the floor for the third part is also 3. The algorithm

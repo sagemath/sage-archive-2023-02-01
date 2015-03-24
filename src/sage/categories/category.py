@@ -2583,13 +2583,14 @@ def category_sample():
         sage: sorted(category_sample(), key=str)
         [Category of G-sets for Symmetric group of order 8! as a permutation group,
          Category of Hecke modules over Rational Field,
+         Category of Lie algebras over Rational Field,
          Category of additive magmas, ...,
          Category of fields, ...,
          Category of graded hopf algebras with basis over Rational Field, ...,
          Category of modular abelian varieties over Rational Field, ...,
          Category of simplicial complexes, ...,
          Category of vector spaces over Rational Field, ...,
-         Category of weyl groups,...
+         Category of weyl groups, ...
     """
     import sage.categories.all
     abstract_classes_for_categories = [Category]
@@ -2625,7 +2626,7 @@ def category_graph(categories = None):
         Graphics object consisting of 20 graphics primitives
 
         sage: sage.categories.category.category_graph().plot()
-        Graphics object consisting of 312 graphics primitives
+        Graphics object consisting of 314 graphics primitives
     """
     from sage import graphs
     if categories is None:

@@ -179,7 +179,7 @@ Here are some more examples using bigger AMS's::
         |         |         |         |
 
 
-    An gyration on an alternating-sign matrix/fully packed loop ``fpl``
+    A gyration on an alternating-sign matrix/fully packed loop ``fpl``
     corresponds to a rotation (i.e. (a,b) to (a-1,b-1) modulo 2*n)
     of the link pattern corresponding to ``fpl``::
 
@@ -441,6 +441,26 @@ class FullyPackedLoop(SageObject):
 #                ret += '  |  '
 
         return ret
+        
+    def __eq__(self, other):
+        """
+        Check equality.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: M = A.random_element()
+            sage: FullyPackedLoop(M) == M.to_fully_packed_loop()
+            True
+            
+            sage: FullyPackedLoop(A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])) ==\
+            FullyPackedLoop(A([[1, 0, 0],[0, 0, 1],[0, 1, 0]]))
+            False
+            
+            sage: FullyPackedLoop(M) == M
+            False
+        """
+        return repr(self) == repr(other) and self.end_points == self.end_points
 
     def to_alternating_sign_matrix(self):
         """

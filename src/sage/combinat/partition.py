@@ -4827,7 +4827,7 @@ class Partitions(UniqueRepresentation, Parent):
 
             if 'inner' in kwargs:
                 inner = [x for x in kwargs['inner'] if x > 0]
-                kwargs['floor'] = lambda i: inner[i] if i < len(inner) else 1
+                kwargs['floor'] = (inner, 1)
                 if 'min_length' in kwargs:
                     kwargs['min_length'] = max( len(inner), kwargs['min_length'])
                 else:

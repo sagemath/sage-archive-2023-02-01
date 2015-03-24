@@ -14,6 +14,7 @@ AUTHORS:
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.lie_algebras import LieAlgebras
 from sage.categories.subobjects import SubobjectsCategory
@@ -77,23 +78,54 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             # Create the UEA relations
             # We need to get names for the basis elements, not just the generators
+            I = self._basis_ordering
             try:
-                names = self.variable_names()
+                names = [str(x) for x in I]
+                F = FreeAlgebra(self.base_ring(), names)
             except ValueError:
-                names = tuple('b{}'.format(i) for i in range(self.dimension()))
-            F = FreeAlgebra(self.base_ring(), names)
-            #gens = F.gens()
+                names = ['b{}'.format(i) for i in range(self.dimension())]
+                F = FreeAlgebra(self.base_ring(), names)
             d = F.gens_dict()
             rels = {}
             S = self.structure_coefficients(True)
+            get_var = lambda g: d[names[I.index(g)]]
             for k in S.keys():
-                g0 = d[names[k[0]]]
-                g1 = d[names[k[1]]]
+                g0 = get_var(k[0])
+                g1 = get_var(k[1])
                 if g0 < g1:
-                    rels[g1*g0] = g0*g1 - sum(val*d[names[g]] for g, val in S[k])
+                    rels[g1*g0] = g0*g1 - sum(val*get_var(g) for g, val in S[k])
                 else:
-                    rels[g0*g1] = g1*g0 + sum(val*d[names[g]] for g, val in S[k])
+                    rels[g0*g1] = g1*g0 + sum(val*get_var(g) for g, val in S[k])
             return F.g_algebra(rels)
+
+        @lazy_attribute
+        def _basis_ordering(self):
+            """
+            Return an order of the indices of the basis.
+
+            Override this attribute to get a specific ordering of the basis.
+
+            EXAMPLES::
+
+                sage: L.<x,y,z> = LieAlgebra(QQ, {})
+                sage: L._basis_ordering
+                ('x', 'y', 'z')
+            """
+            return tuple(self.basis().keys())
+
+        @lazy_attribute
+        def _dense_free_module(self):
+            """
+            Return a dense free module associated to ``self``.
+
+            EXAMPLES::
+
+                sage: L = lie_algebras.Heisenberg(QQ, 3)
+                sage: L._dense_free_module
+                Vector space of dimension 7 over Rational Field
+            """
+            from sage.modules.free_module import FreeModule
+            return FreeModule(self.base_ring(), len(self._basis_ordering))
 
         def killing_matrix(self, x, y):
             r"""

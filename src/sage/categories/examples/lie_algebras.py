@@ -243,10 +243,6 @@ class LieAlgebraFromAssociative(Parent, UniqueRepresentation):
                 sage: x,y = L.lie_algebra_generators()
                 sage: 3 * x
                 3*[2, 1, 3]
-                sage: y / QQ(4)
-                1/4*[2, 3, 1]
-                sage: y / 4 # not tested: todo
-                1/4*[2, 3, 1]
             """
             # This was copied, but IDK if it still applies:
             # With the current design, the coercion model does not have
@@ -262,6 +258,21 @@ class LieAlgebraFromAssociative(Parent, UniqueRepresentation):
             if self_on_left:
                 return self.__class__(self.parent(), self.value * scalar)
             return self.__class__(self.parent(), scalar * self.value)
+
+        def __div__(self, x, self_on_left=False ):
+            """
+            Division by coefficients.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).example()
+                sage: x,y = L.lie_algebra_generators()
+                sage: y / 4
+                1/4*[2, 3, 1]
+            """
+            if self_on_left:
+                return self * (~x)
+            return (~x) * self
 
         def __neg__(self):
             """

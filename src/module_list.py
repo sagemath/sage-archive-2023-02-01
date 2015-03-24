@@ -1217,6 +1217,9 @@ ext_modules = [
               extra_compile_args=["-std=c99", "-D_XPG6"],
               depends = flint_depends),
 
+    Extension('sage.modular.modsym.manin_symbol',
+              sources = ['sage/modular/modsym/manin_symbol.pyx']),
+
     Extension('sage.modular.modsym.relation_matrix_pyx',
               sources = ['sage/modular/modsym/relation_matrix_pyx.pyx']),
 

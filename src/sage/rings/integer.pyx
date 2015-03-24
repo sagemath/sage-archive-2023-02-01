@@ -6644,7 +6644,7 @@ cdef hook_fast_tp_functions():
 
     # Finally replace the functions called when an Integer needs
     # to be constructed/destructed.
-    hook_tp_functions(global_dummy_Integer, NULL, &fast_tp_new, NULL, &fast_tp_dealloc, False)
+    hook_tp_functions(global_dummy_Integer, NULL, <newfunc>(&fast_tp_new), NULL, &fast_tp_dealloc, False)
 
 cdef integer(x):
     if isinstance(x, Integer):

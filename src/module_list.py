@@ -404,11 +404,6 @@ ext_modules = [
     Extension('sage.graphs.base.static_sparse_backend',
               sources = ['sage/graphs/base/static_sparse_backend.pyx']),
 
-    Extension('sage.graphs.modular_decomposition.modular_decomposition',
-              sources = ['sage/graphs/modular_decomposition/modular_decomposition.pyx',
-                         'sage/graphs/modular_decomposition/src/dm.c'],
-              depends = ['sage/graphs/modular_decomposition/src/dm_english.h']),
-
     Extension('sage.graphs.weakly_chordal',
               sources = ['sage/graphs/weakly_chordal.pyx']),
 
@@ -1221,6 +1216,9 @@ ext_modules = [
               libraries = ["flint", "gmp", "gmpxx", "m", "stdc++"],
               extra_compile_args=["-std=c99", "-D_XPG6"],
               depends = flint_depends),
+
+    Extension('sage.modular.modsym.manin_symbol',
+              sources = ['sage/modular/modsym/manin_symbol.pyx']),
 
     Extension('sage.modular.modsym.relation_matrix_pyx',
               sources = ['sage/modular/modsym/relation_matrix_pyx.pyx']),
@@ -2081,7 +2079,12 @@ if is_package_installed('mcqd'):
         Extension("sage.graphs.mcqd",
                   ["sage/graphs/mcqd.pyx"],
                   language = "c++"))
-#                  libraries = ["mcqd"]))
+
+if is_package_installed('modular_decomposition'):
+    ext_modules.append(
+        Extension('sage.graphs.modular_decomposition',
+                  sources = ['sage/graphs/modular_decomposition.pyx'],
+                  libraries = ['modulardecomposition']))
 
 if is_package_installed('arb'):
     ext_modules.extend([

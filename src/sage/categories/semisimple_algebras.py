@@ -71,7 +71,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
             class ParentMethods:
 
                 @cached_method
-                def orthogonal_idempotents(self):
+                def central_orthogonal_idempotents(self):
                     r"""
                     Return a maximal list of orthogonal idempotents of
                     ``self``.
@@ -83,7 +83,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
                     EXAMPLES::
 
                         sage: A3 = SymmetricGroup(3).algebra(QQ)
-                        sage: A3.orthogonal_idempotents()
+                        sage: A3.central_orthogonal_idempotents()
                         [2/3*() - 1/3*(1,2,3) - 1/3*(1,3,2), 1/6*() + 1/6*(2,3)
                         + 1/6*(1,2) + 1/6*(1,2,3) + 1/6*(1,3,2) + 1/6*(1,3),
                         1/6*() - 1/6*(2,3) - 1/6*(1,2) + 1/6*(1,2,3) +
@@ -97,11 +97,11 @@ class SemisimpleAlgebras(Category_over_base_ring):
                         the path algebra of the Kronecker quiver (containing
                         the arrows a:x->y and b:x->y) over Rational Field 
                         sage: Aquo = A.semisimple_quotient()
-                        sage: Aquo.orthogonal_idempotents()
+                        sage: Aquo.central_orthogonal_idempotents()
                         [B['y'], B['x']]
                     """
                     return [x.lift()
-                            for x in self.center().orthogonal_idempotents()]
+                            for x in self.center().central_orthogonal_idempotents()]
 
             class Commutative(CategoryWithAxiom_over_base_ring):
 
@@ -197,7 +197,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
                         return rec(self, generators)
 
                     @cached_method
-                    def orthogonal_idempotents(self):
+                    def central_orthogonal_idempotents(self):
                         r"""
                         Return the minimum set of central orthogonal idempotents of ``self``.
 
@@ -213,7 +213,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
 
                             sage: A5 = SymmetricGroup(5).algebra(QQ)
                             sage: Z5 = A5.center()
-                            sage: orth = Z5.orthogonal_idempotents()
+                            sage: orth = Z5.central_orthogonal_idempotents()
                             sage: orth
                             [3/10*B[0] - 1/10*B[2] + 1/20*B[6], 1/120*B[0] +
                             1/120*B[1] + 1/120*B[2] + 1/120*B[3] + 1/120*B[4] +

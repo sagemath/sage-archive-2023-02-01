@@ -623,7 +623,7 @@ class FinitelyGeneratedLieAlgebra(LieAlgebra):
     @lazy_attribute
     def _ordered_indices(self):
         """
-        Return the index set of ``self`` in order.
+        Return the index set of the basis of ``self`` in (some) order.
 
         EXAMPLES::
     
@@ -631,7 +631,7 @@ class FinitelyGeneratedLieAlgebra(LieAlgebra):
             sage: L._ordered_indices
             ('x', 'y')
         """
-        return tuple(self._indices)
+        return tuple(self.basis().keys())
 
     def _an_element_(self):
         """

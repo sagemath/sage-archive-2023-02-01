@@ -27,8 +27,9 @@ from sage.misc.misc import repr_lincomb
 from sage.structure.indexed_generators import IndexedGenerators
 
 from sage.algebras.algebra import Algebra
-from sage.algebras.lie_algebras.lie_algebra import InfinitelyGeneratedLieAlgebra, \
-    LieAlgebraFromAssociative, FinitelyGeneratedLieAlgebra
+from sage.algebras.lie_algebras.lie_algebra import (LieAlgebra,
+    InfinitelyGeneratedLieAlgebra, LieAlgebraFromAssociative,
+    FinitelyGeneratedLieAlgebra)
 from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
 from sage.categories.lie_algebras import LieAlgebras
 from sage.combinat.cartesian_product import CartesianProduct
@@ -39,6 +40,7 @@ from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.sets.positive_integers import PositiveIntegers
 from sage.sets.set import Set
+from sage.rings.all import ZZ
 
 class HeisenbergAlgebra_abstract(IndexedGenerators):
     """
@@ -140,6 +142,25 @@ class HeisenbergAlgebra_abstract(IndexedGenerators):
             return m
         return "%s_{%s}" % m # else it is a tuple of length 2
 
+    class Element(LieAlgebra.Element):
+        def __getitem__(self, m):
+            """
+            Return the element indexed by ``m``.
+
+            We include a shortcut for strings such as `p1` and `q8`.
+
+            EXAMPLES::
+
+                sage: L = lie_algebras.Heisenberg(QQ, 3)
+                sage: x = L.an_element(); x
+                p1 + p2 + p3 + q1 + q2 + q3
+                sage: x['p1']
+                1
+            """
+            if isinstance(m, str) and len(m) != 1:
+                m = (m[0], ZZ(m[1]))
+            return super(HeisenbergAlgebra.Element, self).__getitem__(m)
+
 class HeisenbergAlgebra_fd:
     """
     Common methods for finite-dimensional Heisenberg algebras.
@@ -203,7 +224,7 @@ class HeisenbergAlgebra_fd:
         for i in range(1, self._n+1):
             d['p%s'%i] = self.p(i)
             d['q%s'%i] = self.q(i)
-        return Family(d)
+        return Family(self._indices, lambda i: d[i])
 
     @cached_method
     def basis(self):

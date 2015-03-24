@@ -30,6 +30,7 @@ from sage.structure.element import ModuleElement, RingElement, coerce_binop
 from sage.structure.sage_object import SageObject
 from sage.combinat.free_module import CombinatorialFreeModuleElement
 from sage.structure.element_wrapper import ElementWrapper
+from sage.categories.finite_dimensional_lie_algebras_with_basis import FiniteDimensionalLieAlgebrasWithBasis
 
 # TODO: Have the other classes inherit from this?
 # TODO: Should this be a mixin class (or moved to the category)?
@@ -148,6 +149,11 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
             [('x', 3), ('z', -1/2)]
         """
         return sorted(self._monomial_coefficients.items())
+
+    # FIXME: Use the methods defined in the category instead of
+    #   those given by CombinatorialFreeModuleElement
+    _vector_ = FiniteDimensionalLieAlgebrasWithBasis.ElementMethods.__dict__['to_vector']
+    to_vector = _vector_
 
 class LieAlgebraElementWrapper(ElementWrapper):
     """

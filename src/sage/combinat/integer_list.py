@@ -31,24 +31,52 @@ class IntegerListsLex(Parent):
 
     - ``min_n`` -- a nonnegative integer specifying the minimum number to which
       the elements in the list sum; defaults to ``0``
+
     - ``max_n`` -- a nonnegative integer or `\infty` specifying the maximum number to which
       the elements in the list sum; defaults to ``0``
+
     - ``n`` -- a nonnegative integer or list of nonnegative integers; overrides min_n and max_n if specified
+
+      If ``n`` is a list of nonnegative integers, it specifies the set of all allowable sums of
+      the elements in the list.
+
     - ``min_length`` -- a nonnegative integer specifying the minimal length of the vectors;
       defaults to ``0``
+
     - ``max_length`` -- a nonnegative integer or `\infty` specifying the maximal length of the vectors;
       defaults to `\infty`
+
     - ``length`` -- an integer; overrides min_length and max_length if specified
-    - ``floor`` -- an integer, a list of integers, or a function `f`;
-      defaults to the constant zero function
-    - ``ceiling`` -- an integer, a list of integers, or a function `f` (or list);
-      defaults to the constant `\infty` function
+
+    - ``floor`` -- an integer, a list of integers, a tuple with a list and a number, or a function `f`;
+      defaults to the constant zero.  The value of ``floor`` specifies the smallest allowable value for the
+      parts of the lists described by the object, as a function on the indices `\{0, 1, 2, \ldots\}`.
+
+      If ``floor`` is an integer, then a constant function is used.
+
+      If ``floor`` is a list of integers, then the floor function takes initial values from the list and
+      default value 0 for indices beyond the length of the list
+
+      If ``floor`` is a tuple (``l``, ``default``) where ``l`` is a list and ``default`` is an integer,
+      then ``default`` is used as the default value for indices beyond the length of the list
+
+      If ``floor`` is a function, this function is used directly.
+
+    - ``ceiling`` -- an integer or `\infty`, a list of integers or `\infty`, a tuple with a list and a number, or a function `f`; defaults to the constant `\infty`.  The value of ``ceiling`` specifies the largest allowable value for the parts of the lists described by the object, function on the indices `\{0, 1, 2, \ldots\}`.  All formats  functions allow `\infty`
+
+      The meanings of the parameters are the same as for those of a similar type for ``floor``, except that `\infty` is allowed in place of any integers, and the default value for list-type input is `\infty` when not specified.
+
     - ``min_part`` -- a nonnegative integer (default: None, in which case internally it defaults to 0)
+
     - ``max_part`` -- a nonnegative integer (default: None, in which case internally it defaults to `\infty`)
+
     - ``min_slope`` -- an integer or `-\infty`; defaults to `-\infty`
+
     - ``max_slope`` -- an integer or `+\infty`; defaults to `+\infty`
+
     - ``category`` -- a category (default: FiniteEnumeratedSets)
-    - ``waiver`` -- boolean (default: False)
+
+    - ``waiver`` -- boolean to suppress a warning raised in case of potentially hanging behavior (default: False)
 
     An *integer list* is a list `l` of nonnegative integers, its
     *parts*. The *length* of `l` is the number of its parts;
@@ -60,7 +88,7 @@ class IntegerListsLex(Parent):
        differ by trailing zeroes. In this case, only the list with the
        least number of trailing zeroes will be produced.
 
-    The constraints on the lists are as follows:
+    The constraints on the lists, denoted in the following by 'l', are as follows:
 
     - Sum: `min_n \le sum(l) \le max_n` (with ``n = min_n = max_n`` if ``n`` is specified)
 
@@ -68,21 +96,10 @@ class IntegerListsLex(Parent):
       ``length`` is specified)
 
     - Lower and upper bounds: ``max(floor(i), min_part) <= l[i] <= min(ceiling(i), max_part)``, for
-      ``i`` from 0 to ``len(l)``. If ``floor`` (resp. ``ceiling``) is an
-      integer `k`, then ``floor`` (resp. ``ceiling``) is considered to be
-      the constant function `k`.
-      If ``floor`` is a list of integers `v`, then ``floor(i) = v(i)``
-      for ``i`` from ``0`` to ``len(v)-1``. For ``i`` from ``len(v)`` to ``max_length-1``,
-      the ``floor`` function defaults to value ``0``.
-      Similarly, if ``ceiling`` is a list of integers `v`, then ``ceiling(i) = v(i)``
-      for ``i`` from ``0`` to ``len(v)-1``. For ``i`` from ``len(v)`` to ``max_length-1``,
-      the ``ceiling`` function defaults to value `\infty`.
-      To specify a different default value for ``floor`` and ``ceiling`` beyond the length
-      of a list of integers `v`, instead give a tuple for ``floor`` or ``ceiling``, of the
-      form (`v`, ``default_val``).
+      ``i`` from 0 to ``len(l)-1``.
 
     - Regularity condition: ``minSlope <= l[i+1]-l[i] <= maxSlope``,
-      for ``i`` from 0 to ``len(l)-1``
+      for ``i`` from 0 to ``len(l)-2``
 
     This is a generic low level tool. The interface has been designed
     with efficiency in mind. It is subject to incompatible changes in
@@ -161,7 +178,7 @@ class IntegerListsLex(Parent):
          [2, 0, 2], [1, 3, 0], [1, 2, 1], [1, 1, 2], [1, 0, 3],
          [0, 4, 0], [0, 3, 1], [0, 2, 2], [0, 1, 3], [0, 0, 4]]
 
-    Next we obtain all lists of sum 4 and length 4 such that l[i] <= i::
+    Next we obtain all lists of sum `4` and length `4` such that ``l[i] <= i``::
 
         sage: list(IntegerListsLex(4, length = 4, ceiling = lambda i: i, waiver=True))
         [[0, 1, 2, 1], [0, 1, 1, 2], [0, 1, 0, 3], [0, 0, 2, 2], [0, 0, 1, 3]]
@@ -174,9 +191,16 @@ class IntegerListsLex(Parent):
 
         sage: it = IntegerListsLex(2,ceiling=lambda i:0 if i<20 else 1).__iter__()
         doctest:...
-        UserWarning: When the user specifies a method, then (s)he is responsible that the algorithm
-        will not hang. Also note that the specified function should start at 0 rather than 1.
-        Before trac#17979 the indexing was ambiguous and sometimes started at 1.
+        You defined floor=[...] or ceiling=[...] to be a method rather than a constant
+        or a list.  Because it is impossible to check all of the values of a user-supplied
+        function, it is possible for the iteration algorithm of this class to hang, for instance
+        when the ceiling function stabilizes at the value 0.  See the documentation for more
+        information.  The user is responsible for verifying that the algorithm will not hang on
+        their input parameters.  Also note that the function you specify should start at 0
+        rather than 1.  Before trac#17979 the indexing was ambiguous and sometimes started at 1.
+        To verify that you understand the subtleties of using a custom floor or ceiling function
+        and to suppress this warning message, specify the parameter waiver=True in your object
+        constructor.
         sage: it.next()
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
         sage: it.next()
@@ -368,36 +392,6 @@ class IntegerListsLex(Parent):
         [[10], [9, 1], [8, 2], [7, 3], [7, 2, 1], [6, 4], [6, 3, 1], [5, 4, 1],
          [5, 3, 2], [4, 3, 2, 1]]
 
-    .. RUBRIC:: Some comparative timings with the former implementation
-
-    ::
-
-        sage: from sage.combinat.integer_list_old import IntegerListsLex as IntegerListsLexOld
-
-        sage: P = IntegerListsLex(n=20, max_slope=0, floor=1)
-        sage: %time x = list(P)  # not tested
-        CPU times: user 264 ms, sys: 0 ns, total: 264 ms
-        Wall time: 276 ms
-        sage: P = IntegerListsLexOld(n=20, max_slope=0, min_part=1)
-        sage: %time x = list(P)  # not tested
-        CPU times: user 249 ms, sys: 15.8 ms, total: 265 ms
-        Wall time: 401 ms
-        sage: P.cardinality()
-        627
-
-        sage: P = IntegerListsLex(n=30, max_slope=0, floor=1)
-        sage: %time x = list(P)  # not tested
-        CPU times: user 2.98 s, sys: 6.52 ms, total: 2.99 s
-        Wall time: 3.81 s
-        sage: P = IntegerListsLexOld(n=30, max_slope=0, min_part=1)
-        sage: %time x = list(P)  # not tested
-        CPU times: user 2.55 s, sys: 7.05 ms, total: 2.55 s
-        Wall time: 3.49 s
-        sage: P.cardinality()
-        5604
-
-    TESTS:
-
     Internally, the iterator works on a single list that is mutated
     along the way. The following test makes sure that we actually make a copy of
     this list before passing it to ``element_constructor`` in order to
@@ -455,7 +449,13 @@ class IntegerListsLex(Parent):
             category = EnumeratedSets().Finite()
 
         self.waiver = waiver
-        self.warning = False # warning for dangerous (but possibly valid) usage
+        # Warning for usage cases that could cause the algorithm to hang
+        # Any results will be correct regardless of input, but using custom
+        #  functions in some places could cause the algorithm to hang since it's
+        #  impossible to do all of the checks on an arbitrary function that can
+        #  be done on other input types since we can't look at all values of such
+        #  a function.  See the documentation for more details
+        self._warning = False
 
         if n is not None:
             if n in ZZ:
@@ -547,7 +547,7 @@ class IntegerListsLex(Parent):
                 self.floor = floor_fn
         elif callable(floor):
             # indexing is base 0
-            self.warning = True
+            self._warning = True
             self.floor_type = "function"
             self.floor_limit = None
             self.floor_limit_start = float('+inf')
@@ -584,7 +584,7 @@ class IntegerListsLex(Parent):
             else:
                 self.ceiling = ceiling_fn
         elif callable(ceiling):
-            self.warning = True
+            self._warning = True
             self.ceiling_type = "function"
             self.ceiling_limit = None
             self.ceiling_limit_start = infinity
@@ -598,10 +598,18 @@ class IntegerListsLex(Parent):
         if name is not None:
             self.rename(name)
 
-        if self.warning and not self.waiver:
-            warn("""When the user specifies a method, then (s)he is responsible that the algorithm
-            will not hang. Also note that the specified function should start at 0 rather than 1.
-            Before trac#17979 the indexing was ambiguous and sometimes started at 1.""")
+        if self._warning and not self.waiver:
+            warn("""
+You defined floor=[...] or ceiling=[...] to be a method rather than a constant
+or a list.  Because it is impossible to check all of the values of a user-supplied
+function, it is possible for the iteration algorithm of this class to hang, for instance
+when the ceiling function stabilizes at the value 0.  See the documentation for more
+information.  The user is responsible for verifying that the algorithm will not hang on
+their input parameters.  Also note that the function you specify should start at 0
+rather than 1.  Before trac#17979 the indexing was ambiguous and sometimes started at 1.
+To verify that you understand the subtleties of using a custom floor or ceiling function
+and to suppress this warning message, specify the parameter waiver=True in your object
+constructor.""")
 
         # In case we want output to be of a different type,
         if element_constructor is not None:

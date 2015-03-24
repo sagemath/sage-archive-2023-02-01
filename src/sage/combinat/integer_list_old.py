@@ -38,6 +38,7 @@ from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableArray
 from sage.misc.lazy_attribute import lazy_attribute
 import __builtin__
+from sage.misc.stopgap import stopgap
 
 def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """
@@ -62,7 +63,7 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
 
     TESTS::
 
-        sage: import sage.combinat.integer_list as integer_list
+        sage: import sage.combinat.integer_list_old as integer_list
         sage: f = lambda l: lambda i: l[i-1]
         sage: f([0,1,2,3,4,5])(1)
         0
@@ -81,6 +82,10 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
         sage: list(I)
         [[6], [2, 4], [0, 2, 4]]
     """
+    stopgap("First uses the old implementation of IntegerListsLex, which does not allow for arbitrary input;"
+            " non-allowed input can return wrong results,"
+            " please see the documentation for IntegerListsLex for details.",
+            17548)
     # Check trivial cases, and standardize min_length to be at least 1
     if n < 0:
         return None
@@ -185,7 +190,7 @@ def lower_regular(comp, min_slope, max_slope):
 
     TESTS::
 
-        sage: import sage.combinat.integer_list as integer_list
+        sage: import sage.combinat.integer_list_old as integer_list
         sage: integer_list.lower_regular([4,2,6], -1, 1)
         [3, 2, 3]
         sage: integer_list.lower_regular([4,2,6], -1, infinity)
@@ -215,7 +220,7 @@ def rightmost_pivot(comp, min_length, max_length, floor, ceiling, min_slope, max
     """
     TESTS::
 
-        sage: import sage.combinat.integer_list as integer_list
+        sage: import sage.combinat.integer_list_old as integer_list
         sage: f = lambda l: lambda i: l[i-1]
         sage: integer_list.rightmost_pivot([7,6,5,5,4,3,3,2,1], 9, 9, f([3,3,3,2,1,1,0,0,0]), f([7,6,5,5,5,5,5,4,4]), -1, 0)
         [7, 2]
@@ -350,12 +355,15 @@ def next(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
 
     EXAMPLES::
 
-        sage: from sage.combinat.integer_list import next
-        sage: IV = IntegerVectors(2,3,min_slope=0)
-        sage: params = IV._parameters()
-        sage: next([0,1,1], *params)
+        sage: from sage.combinat.integer_list_old import next
+        sage: IV = sage.combinat.integer_list_old.IntegerListsLex(n=2,length=3,min_slope=0)
+        sage: next([0,1,1], 3, 3, lambda i: 0, lambda i: 5, 0, 10)
         [0, 0, 2]
     """
+    stopgap("Next uses the old implementation of IntegerListsLex, which does not allow for arbitrary input;"
+            " non-allowed input can return wrong results,"
+            " please see the documentation for IntegerListsLex for details.",
+            17548)
     x = rightmost_pivot( comp, min_length, max_length, floor, ceiling, min_slope, max_slope)
     if x is None:
         return None
@@ -396,14 +404,17 @@ def iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
 
     EXAMPLES::
 
-        sage: from sage.combinat.integer_list import iterator
-        sage: IV = IntegerVectors(2,3,min_slope=0)
-        sage: params = IV._parameters()
-        sage: list(iterator(2,*params))
+        sage: from sage.combinat.integer_list_old import iterator
+        sage: IV = sage.combinat.integer_list_old.IntegerListsLex(n=2,length=3,min_slope=0)
+        sage: list(iterator(2, 3, 3, lambda i: 0, lambda i: 5, 0, 10))
         [[0, 1, 1], [0, 0, 2]]
     """
     #from sage.misc.superseded import deprecation
     #deprecation(13605, 'iterator(...) is deprecated. Use IntegerListLex(...) instead.')
+    stopgap("Iterator uses the old implementation of IntegerListsLex, which does not allow for arbitrary input;"
+            " non-allowed input can return wrong results,"
+            " please see the documentation for IntegerListsLex for details.",
+            17548)
     succ = lambda x: next(x, min_length, max_length, floor, ceiling, min_slope, max_slope)
 
     #Handle the case where n is a list of integers
@@ -423,7 +434,7 @@ def upper_regular(comp, min_slope, max_slope):
 
     TESTS::
 
-        sage: import sage.combinat.integer_list as integer_list
+        sage: import sage.combinat.integer_list_old as integer_list
         sage: integer_list.upper_regular([4,2,6],-1,1)
         [4, 5, 6]
         sage: integer_list.upper_regular([4,2,6],-2, 1)
@@ -450,7 +461,7 @@ def comp2floor(f, min_slope, max_slope):
 
     EXAMPLES::
 
-        sage: from sage.combinat.integer_list import comp2floor
+        sage: from sage.combinat.integer_list_old import comp2floor
         sage: f = comp2floor([2, 1, 1],-1,0)
         sage: [f(i) for i in range(10)]
         [2, 1, 1, 1, 2, 3, 4, 5, 6, 7]
@@ -467,7 +478,7 @@ def comp2ceil(c, min_slope, max_slope):
 
     EXAMPLES::
 
-        sage: from sage.combinat.integer_list import comp2ceil
+        sage: from sage.combinat.integer_list_old import comp2ceil
         sage: f = comp2ceil([2, 1, 1],-1,0)
         sage: [f(i) for i in range(10)]
         [2, 1, 1, 1, 2, 3, 4, 5, 6, 7]
@@ -484,7 +495,7 @@ def upper_bound(min_length, max_length, floor, ceiling, min_slope, max_slope):
 
     TESTS::
 
-        sage: import sage.combinat.integer_list as integer_list
+        sage: import sage.combinat.integer_list_old as integer_list
         sage: f = lambda x: lambda i: x
         sage: integer_list.upper_bound(0,4,f(0), f(1),-infinity,infinity)
         4
@@ -523,10 +534,9 @@ def is_a(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
 
     EXAMPLES::
 
-        sage: from sage.combinat.integer_list import is_a
-        sage: IV = IntegerVectors(2,3,min_slope=0)
-        sage: params = IV._parameters()
-        sage: all([is_a(iv, *params) for iv in IV])
+        sage: from sage.combinat.integer_list_old import is_a
+        sage: IV = sage.combinat.integer_list_old.IntegerListsLex(n=2,length=3,min_slope=0)
+        sage: all([is_a(iv, 3, 3, lambda i: 0, lambda i: 5, 0, 10) for iv in IV])
         True
     """
     if len(comp) < min_length or len(comp) > max_length:
@@ -615,7 +625,8 @@ class IntegerListsLex(Parent):
 
     We create the combinatorial class of lists of length 3 and sum 2::
 
-        sage: C = IntegerListsLex(2, length=3)
+        sage: import sage.combinat.integer_list_old as integer_list
+        sage: C = integer_list.IntegerListsLex(2, length=3)
         sage: C
         Integer lists of sum 2 satisfying certain constraints
         sage: C.cardinality()
@@ -637,24 +648,24 @@ class IntegerListsLex(Parent):
 
     One can specify lower and upper bound on each part::
 
-        sage: list(IntegerListsLex(5, length = 3, floor = [1,2,0], ceiling = [3,2,3]))
+        sage: list(integer_list.IntegerListsLex(5, length = 3, floor = [1,2,0], ceiling = [3,2,3]))
         [[3, 2, 0], [2, 2, 1], [1, 2, 2]]
 
     Using the slope condition, one can generate integer partitions
     (but see :mod:`sage.combinat.partition.Partitions`)::
 
-        sage: list(IntegerListsLex(4, max_slope=0))
+        sage: list(integer_list.IntegerListsLex(4, max_slope=0))
         [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
 
     This is the list of all partitions of `7` with parts at least `2`::
 
-        sage: list(IntegerListsLex(7, max_slope = 0, min_part = 2))
+        sage: list(integer_list.IntegerListsLex(7, max_slope = 0, min_part = 2))
         [[7], [5, 2], [4, 3], [3, 2, 2]]
 
     This is the list of all partitions of `5` and length at most 3
     which are bounded below by [2,1,1]::
 
-        sage: list(IntegerListsLex(5, max_slope = 0, max_length = 3, floor = [2,1,1]))
+        sage: list(integer_list.IntegerListsLex(5, max_slope = 0, max_length = 3, floor = [2,1,1]))
         [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1]]
 
     Note that ``[5]`` is considered valid, because the lower bound
@@ -662,30 +673,30 @@ class IntegerListsLex(Parent):
     obtain instead the partitions containing ``[2,1,1]``, one need to
     use ``min_length``::
 
-        sage: list(IntegerListsLex(5, max_slope = 0, min_length = 3, max_length = 3, floor = [2,1,1]))
+        sage: list(integer_list.IntegerListsLex(5, max_slope = 0, min_length = 3, max_length = 3, floor = [2,1,1]))
         [[3, 1, 1], [2, 2, 1]]
 
     This is the list of all partitions of `5` which are contained in
     ``[3,2,2]``::
 
-        sage: list(IntegerListsLex(5, max_slope = 0, max_length = 3, ceiling = [3,2,2]))
+        sage: list(integer_list.IntegerListsLex(5, max_slope = 0, max_length = 3, ceiling = [3,2,2]))
         [[3, 2], [3, 1, 1], [2, 2, 1]]
 
     This is the list of all compositions of `4` (but see Compositions)::
 
-        sage: list(IntegerListsLex(4, min_part = 1))
+        sage: list(integer_list.IntegerListsLex(4, min_part = 1))
         [[4], [3, 1], [2, 2], [2, 1, 1], [1, 3], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
 
     This is the list of all integer vectors of sum `4` and length `3`::
 
-        sage: list(IntegerListsLex(4, length = 3))
+        sage: list(integer_list.IntegerListsLex(4, length = 3))
         [[4, 0, 0], [3, 1, 0], [3, 0, 1], [2, 2, 0], [2, 1, 1],
          [2, 0, 2], [1, 3, 0], [1, 2, 1], [1, 1, 2], [1, 0, 3],
          [0, 4, 0], [0, 3, 1], [0, 2, 2], [0, 1, 3], [0, 0, 4]]
 
     There are all the lists of sum 4 and length 4 such that l[i] <= i::
 
-        sage: list(IntegerListsLex(4, length=4, ceiling=lambda i: i))
+        sage: list(integer_list.IntegerListsLex(4, length=4, ceiling=lambda i: i))
         [[0, 1, 2, 1], [0, 1, 1, 2], [0, 1, 0, 3], [0, 0, 2, 2], [0, 0, 1, 3]]
 
     This is the list of all monomials of degree `4` which divide the
@@ -697,7 +708,7 @@ class IntegerListsLex(Parent):
         sage: def term(exponents):
         ...       return x^exponents[0] * y^exponents[1] * z^exponents[2]
         ...
-        sage: list( IntegerListsLex(4, length = len(m), ceiling = m, element_constructor = term) )
+        sage: list( integer_list.IntegerListsLex(4, length = len(m), ceiling = m, element_constructor = term) )
         [x^3*y, x^3*z, x^2*y*z, x^2*z^2, x*y*z^2]
 
     Note the use of the element_constructor feature.
@@ -711,7 +722,7 @@ class IntegerListsLex(Parent):
     will enter an infinite loop, because it needs to decide whether
     `ceiling(i)` is nonzero for some `i`::
 
-        sage: list( IntegerListsLex(1, ceiling = lambda i: 0) ) # todo: not implemented
+        sage: list( integer_list.IntegerListsLex(1, ceiling = lambda i: 0) ) # todo: not implemented
 
     .. NOTE::
 
@@ -735,7 +746,7 @@ class IntegerListsLex(Parent):
     In the following example, the floor conditions do not satisfy the
     slope conditions since the floor for the third part is also 3::
 
-        sage: I = IntegerListsLex(16, min_length=2, min_part=3, max_slope=-1, floor=[5,3])
+        sage: I = integer_list.IntegerListsLex(16, min_length=2, min_part=3, max_slope=-1, floor=[5,3])
         Traceback (most recent call last):
         ...
         ValueError: floor does not satisfy the max slope condition
@@ -744,7 +755,7 @@ class IntegerListsLex(Parent):
     but it bypasses the checks because the floor is a function::
 
         sage: f = lambda x: 5 if x == 0 else 3
-        sage: I = IntegerListsLex(16, min_length=2, max_slope=-1, floor=f)
+        sage: I = integer_list.IntegerListsLex(16, min_length=2, max_slope=-1, floor=f)
         sage: list(I)
         [[13, 3], [12, 4], [11, 5], [10, 6]]
 
@@ -764,23 +775,23 @@ class IntegerListsLex(Parent):
     TESTS::
 
         sage: g = lambda x: lambda i: x
-        sage: list(IntegerListsLex(0, floor = g(1), min_slope = 0))
+        sage: list(integer_list.IntegerListsLex(0, floor = g(1), min_slope = 0))
         [[]]
-        sage: list(IntegerListsLex(0, floor = g(1), min_slope = 0, max_slope = 0))
+        sage: list(integer_list.IntegerListsLex(0, floor = g(1), min_slope = 0, max_slope = 0))
         [[]]
-        sage: list(IntegerListsLex(0, max_length=0, floor = g(1), min_slope = 0, max_slope = 0))
+        sage: list(integer_list.IntegerListsLex(0, max_length=0, floor = g(1), min_slope = 0, max_slope = 0))
         [[]]
-        sage: list(IntegerListsLex(0, max_length=0, floor = g(0), min_slope = 0, max_slope = 0))
+        sage: list(integer_list.IntegerListsLex(0, max_length=0, floor = g(0), min_slope = 0, max_slope = 0))
         [[]]
-        sage: list(IntegerListsLex(0, min_part = 1, min_slope = 0))
+        sage: list(integer_list.IntegerListsLex(0, min_part = 1, min_slope = 0))
         [[]]
-        sage: list(IntegerListsLex(1, min_part = 1, min_slope = 0))
+        sage: list(integer_list.IntegerListsLex(1, min_part = 1, min_slope = 0))
         [[1]]
-        sage: list(IntegerListsLex(0, min_length = 1, min_part = 1, min_slope = 0))
+        sage: list(integer_list.IntegerListsLex(0, min_length = 1, min_part = 1, min_slope = 0))
         []
-        sage: list(IntegerListsLex(0, min_length = 1, min_slope = 0))
+        sage: list(integer_list.IntegerListsLex(0, min_length = 1, min_slope = 0))
         [[0]]
-        sage: list(IntegerListsLex(3, max_length=2, ))
+        sage: list(integer_list.IntegerListsLex(3, max_length=2, ))
         [[3], [2, 1], [1, 2], [0, 3]]
         sage: partitions = {"min_part": 1, "max_slope": 0}
         sage: partitions_min_2 = {"floor": g(2), "max_slope": 0}
@@ -789,7 +800,7 @@ class IntegerListsLex(Parent):
         sage: lower_monomials = lambda c: {"length": c, "floor": lambda i: c[i]}
         sage: upper_monomials = lambda c: {"length": c, "ceiling": lambda i: c[i]}
         sage: constraints = { "min_part":1, "min_slope": -1, "max_slope": 0}
-        sage: list(IntegerListsLex(6, **partitions))
+        sage: list(integer_list.IntegerListsLex(6, **partitions))
         [[6],
          [5, 1],
          [4, 2],
@@ -801,7 +812,7 @@ class IntegerListsLex(Parent):
          [2, 2, 1, 1],
          [2, 1, 1, 1, 1],
          [1, 1, 1, 1, 1, 1]]
-        sage: list(IntegerListsLex(6, **constraints))
+        sage: list(integer_list.IntegerListsLex(6, **constraints))
         [[6],
          [3, 3],
          [3, 2, 1],
@@ -809,23 +820,23 @@ class IntegerListsLex(Parent):
          [2, 2, 1, 1],
          [2, 1, 1, 1, 1],
          [1, 1, 1, 1, 1, 1]]
-        sage: list(IntegerListsLex(1, **partitions_min_2))
+        sage: list(integer_list.IntegerListsLex(1, **partitions_min_2))
         []
-        sage: list(IntegerListsLex(2, **partitions_min_2))
+        sage: list(integer_list.IntegerListsLex(2, **partitions_min_2))
         [[2]]
-        sage: list(IntegerListsLex(3, **partitions_min_2))
+        sage: list(integer_list.IntegerListsLex(3, **partitions_min_2))
         [[3]]
-        sage: list(IntegerListsLex(4, **partitions_min_2))
+        sage: list(integer_list.IntegerListsLex(4, **partitions_min_2))
         [[4], [2, 2]]
-        sage: list(IntegerListsLex(5, **partitions_min_2))
+        sage: list(integer_list.IntegerListsLex(5, **partitions_min_2))
         [[5], [3, 2]]
-        sage: list(IntegerListsLex(6, **partitions_min_2))
+        sage: list(integer_list.IntegerListsLex(6, **partitions_min_2))
         [[6], [4, 2], [3, 3], [2, 2, 2]]
-        sage: list(IntegerListsLex(7, **partitions_min_2))
+        sage: list(integer_list.IntegerListsLex(7, **partitions_min_2))
         [[7], [5, 2], [4, 3], [3, 2, 2]]
-        sage: list(IntegerListsLex(9, **partitions_min_2))
+        sage: list(integer_list.IntegerListsLex(9, **partitions_min_2))
         [[9], [7, 2], [6, 3], [5, 4], [5, 2, 2], [4, 3, 2], [3, 3, 3], [3, 2, 2, 2]]
-        sage: list(IntegerListsLex(10, **partitions_min_2))
+        sage: list(integer_list.IntegerListsLex(10, **partitions_min_2))
         [[10],
          [8, 2],
          [7, 3],
@@ -838,18 +849,18 @@ class IntegerListsLex(Parent):
          [4, 2, 2, 2],
          [3, 3, 2, 2],
          [2, 2, 2, 2, 2]]
-        sage: list(IntegerListsLex(4, **compositions))
+        sage: list(integer_list.IntegerListsLex(4, **compositions))
         [[4], [3, 1], [2, 2], [2, 1, 1], [1, 3], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
-        sage: list(IntegerListsLex(6, min_length=1, floor=[7]))
+        sage: list(integer_list.IntegerListsLex(6, min_length=1, floor=[7]))
         []
 
     Noted on :trac:`17898`::
 
-        sage: list(IntegerListsLex(4, min_part=1, length=3, min_slope=1))
+        sage: list(integer_list.IntegerListsLex(4, min_part=1, length=3, min_slope=1))
         []
-        sage: IntegerListsLex(6, ceiling=[4,2], floor=[3,3]).list()
+        sage: integer_list.IntegerListsLex(6, ceiling=[4,2], floor=[3,3]).list()
         []
-        sage: IntegerListsLex(6, min_part=1, max_part=3, max_slope=-4).list()
+        sage: integer_list.IntegerListsLex(6, min_part=1, max_part=3, max_slope=-4).list()
         []
     """
     def __init__(self,
@@ -867,7 +878,8 @@ class IntegerListsLex(Parent):
 
         TESTS::
 
-            sage: C = IntegerListsLex(2, length=3)
+            sage: import sage.combinat.integer_list_old as integer_list
+            sage: C = integer_list.IntegerListsLex(2, length=3)
             sage: C == loads(dumps(C))
             True
             sage: C == loads(dumps(C)) # this did fail at some point, really!
@@ -878,6 +890,10 @@ class IntegerListsLex(Parent):
             True
             sage: TestSuite(C).run()
         """
+        stopgap("The old implementation of IntegerListsLex does not allow for arbitrary input;"
+                " non-allowed input can return wrong results,"
+                " please see the documentation for IntegerListsLex for details.",
+                17548)
         # Convert to float infinity
         from sage.rings.infinity import infinity
         if max_slope == infinity:
@@ -964,7 +980,8 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
-            sage: C = IntegerListsLex(4)
+            sage: import sage.combinat.integer_list_old as integer_list
+            sage: C = integer_list.IntegerListsLex(4)
             sage: C([4])
             [4]
         """
@@ -979,8 +996,9 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
-            sage: C = IntegerListsLex(2, length=3)
-            sage: D = IntegerListsLex(4, length=3)
+            sage: import sage.combinat.integer_list_old as integer_list
+            sage: C = integer_list.IntegerListsLex(2, length=3)
+            sage: D = integer_list.IntegerListsLex(4, length=3)
             sage: repr(C) == repr(D)
             False
             sage: C == D
@@ -994,15 +1012,16 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
-            sage: C = IntegerListsLex(2, length=3)
+            sage: import sage.combinat.integer_list_old as integer_list
+            sage: C = integer_list.IntegerListsLex(2, length=3)
             sage: C # indirect doctest
             Integer lists of sum 2 satisfying certain constraints
 
-            sage: C = IntegerListsLex([1,2,4], length=3)
+            sage: C = integer_list.IntegerListsLex([1,2,4], length=3)
             sage: C # indirect doctest
             Integer lists of sum in [1, 2, 4] satisfying certain constraints
 
-            sage: C = IntegerListsLex([1,2,4], length=3, name="A given name")
+            sage: C = integer_list.IntegerListsLex([1,2,4], length=3, name="A given name")
             sage: C
             A given name
         """
@@ -1018,10 +1037,11 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
-            sage: C = IntegerListsLex(4, length=2, min_part=1)
+            sage: import sage.combinat.integer_list_old as integer_list
+            sage: C = integer_list.IntegerListsLex(4, length=2, min_part=1)
             sage: C.floor(0)
             1
-            sage: C = IntegerListsLex(4, length=2, floor=[1,2])
+            sage: C = integer_list.IntegerListsLex(4, length=2, floor=[1,2])
             sage: C.floor(0)
             1
             sage: C.floor(1)
@@ -1040,10 +1060,11 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
-            sage: C = IntegerListsLex(4, length=2, max_part=3)
+            sage: import sage.combinat.integer_list_old as integer_list
+            sage: C = integer_list.IntegerListsLex(4, length=2, max_part=3)
             sage: C.ceiling(0)
             3
-            sage: C = IntegerListsLex(4, length=2, ceiling=[3,2])
+            sage: C = integer_list.IntegerListsLex(4, length=2, ceiling=[3,2])
             sage: C.ceiling(0)
             3
             sage: C.ceiling(1)
@@ -1067,7 +1088,8 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
-            sage: C = IntegerListsLex(2, length=3)
+            sage: import sage.combinat.integer_list_old as integer_list
+            sage: C = integer_list.IntegerListsLex(2, length=3)
             sage: C.build_args()
             [3,
              3,
@@ -1087,7 +1109,8 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
-            sage: C = IntegerListsLex(2, length=3)
+            sage: import sage.combinat.integer_list_old as integer_list
+            sage: C = integer_list.IntegerListsLex(2, length=3)
             sage: C.first()
             [2, 0, 0]
         """
@@ -1103,7 +1126,8 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
-            sage: C = IntegerListsLex(2, length=3)
+            sage: import sage.combinat.integer_list_old as integer_list
+            sage: C = integer_list.IntegerListsLex(2, length=3)
             sage: list(C) #indirect doctest
             [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
         """
@@ -1128,7 +1152,8 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
-            sage: C = IntegerListsLex(2, length=3)
+            sage: import sage.combinat.integer_list_old as integer_list
+            sage: C = integer_list.IntegerListsLex(2, length=3)
             sage: C.cardinality() == C.count()
             True
         """
@@ -1147,7 +1172,8 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
-            sage: C = IntegerListsLex(2, length=3)
+            sage: import sage.combinat.integer_list_old as integer_list
+            sage: C = integer_list.IntegerListsLex(2, length=3)
             sage: [2, 0, 0] in C
             True
             sage: [2, 0] in C
@@ -1160,35 +1186,3 @@ class IntegerListsLex(Parent):
         if isinstance(v, self.element_class) or isinstance(v, __builtin__.list):
             return is_a(v, *(self.build_args())) and sum(v) in self.n_range
         return False
-
-class IntegerListsLexPublic(IntegerListsLex):
-    # Just use the doc for IntegerListsLex
-    __doc__ = IntegerListsLex.__doc__
-
-    def __init__(self,
-                 n,
-                 length = None, min_length=0, max_length=float('+inf'),
-                 floor=None, ceiling = None,
-                 min_part = 0, max_part = float('+inf'),
-                 min_slope=float('-inf'), max_slope=float('+inf'),
-                 name = None,
-                 element_constructor = None,
-                 element_class = None,
-                 global_options = None):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: C = IntegerListsLex(2, length=3)
-        """
-        from sage.misc.stopgap import stopgap
-        stopgap("IntegerListsLex does not allow for arbitrary input;"
-                " non-allowed input can return wrong results,"
-                " please see the documentation for IntegerListsLex for details.",
-                17548)
-        IntegerListsLex.__init__(self, n, length, min_length, max_length,
-                                 floor, ceiling, min_part, max_part,
-                                 min_slope, max_slope, name, element_constructor,
-                                 element_class, global_options)
-

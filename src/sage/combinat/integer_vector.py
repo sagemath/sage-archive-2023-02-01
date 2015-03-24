@@ -888,8 +888,10 @@ class IntegerVectors_nkconstraints(IntegerListsLex):
             sage: IV == loads(dumps(IV))
             True
 
-            sage: IntegerVectors(2,3,min_slope=0).first()
+            sage: v = IntegerVectors(2,3,min_slope=0).first(); v
             [0, 1, 1]
+            sage: type(v)
+            <type 'list'>
 
         TESTS:
 
@@ -935,7 +937,8 @@ class IntegerVectors_nkconstraints(IntegerListsLex):
             args['floor'] = args['inner']
             del args['inner']
         self._constraints = constraints
-        IntegerListsLex.__init__(self, n, category=category, **args)
+        IntegerListsLex.__init__(self, n, element_constructor=list,
+                                 category=category, **args)
 
     def _repr_(self):
         """

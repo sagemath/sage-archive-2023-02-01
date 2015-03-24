@@ -30,8 +30,9 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
     r"""
     Semigroups defined by generators living in an ambient semigroup.
 
-    This implementation lazily constructs the right Cayley graph of
-    the semigroup, and uses it as an automaton.
+    This implementation lazily constructs all the elements of the
+    semigroup, and the right Cayley graph relations between them, and
+    uses the latter as an automaton.
 
     EXAMPLES::
 
@@ -203,34 +204,24 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         sage: M1 is M2
         False
 
-    CAVEATS:
+    .. WARNING::
 
-    - AutomaticSemigroup is designed primarily for finite monoids. This
-      property is not checked automatically (this would be too costly
-      if not impossible). Some of the features should still work with
-      infinite monoids. In that case, the category Monoids() should
-      be passed as extra argument, instead of the default
-      Monoids().Finite().
+        :class:`AutomaticSemigroup` is designed primarily for finite
+        monoids. This property is not checked automatically (this
+        would be too costly, if not undecidable). Use with care for an
+        infinite semigroup, as certain features may require
+        constructing all of it::
 
-    ::
-
-        sage: AutomaticSemigroup(Family({1:2}), category = Monoids().Subobjects().Finite())
-        A submonoid of (Integer Ring) with 1 generators
-
-    BUGS:
-
-    - Running a command like [ f(p) for p in M ] where f involves
-      computing products of elements and M.list() has not yet been
-      computed caused an infinite loop at least in one occasion looking like::
-
-         sage: all(operator.sub(*p.pseudo_order())==1 for p in M)
-         True
-
+            sage: M = AutomaticSemigroup([2], category = Monoids().Subobjects()); M
+            A submonoid of (Integer Ring) with 1 generators
+            sage: M.retract(2)
+            2
+            sage: M.retract(3)   # not tested: runs forever trying to find 3
     """
     @staticmethod
     def __classcall_private__(cls, generators, ambient=None, one=None, mul=operator.mul, category=None):
         """
-        Parse and straighten the arguments.
+        Parse and straighten the arguments; figure out the category.
 
         TESTS::
 
@@ -240,15 +231,19 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
             sage: M.ambient() == R
             True
             sage: AutomaticSemigroup((0,)).category()
-            Join of Category of subquotients of semigroups and Category of subobjects of sets
+            Join of Category of subquotients of semigroups and Category of commutative magmas and Category of subobjects of sets
             sage: AutomaticSemigroup((0,), one=1).category()
-            Join of Category of subquotients of monoids and Category of subobjects of sets
+            Join of Category of subquotients of monoids and Category of commutative monoids and Category of subobjects of sets
             sage: AutomaticSemigroup((0,), one=0).category()
-            Join of Category of monoids and Category of subquotients of semigroups and Category of subobjects of sets
+            Join of Category of commutative monoids and Category of subquotients of semigroups and Category of subobjects of sets
             sage: AutomaticSemigroup((0,), mul=operator.add).category()
             Join of Category of semigroups and Category of subobjects of sets
             sage: AutomaticSemigroup((0,), one=0, mul=operator.add).category()
             Join of Category of monoids and Category of subobjects of sets
+
+            sage: S5 = SymmetricGroup(5)
+            sage: AutomaticSemigroup([S5((1,2))]).category()
+            Join of Category of finite groups and Category of subquotients of monoids and Category of subquotients of finite sets and Category of subobjects of sets
 
         .. TODO::
 
@@ -269,13 +264,22 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
 
         # if mul is not operator.mul  and category.is_subcategory(Monoids().Subobjects())  error
 
-        if one is None and category is not None and category.is_subcategory(Monoids().Subobjects()):
-            one = ambient.one()
+        if one is None and category is not None:
+            if category.is_subcategory(Monoids().Subobjects()):
+                one=ambient.one()
+            elif category.is_subcategory(Monoids()):
+                raise ValueError("For a monoid which is just a subsemigroup, the unit should be specified")
 
+        # Try to determine the most specific category
+        # This logic should be in the categories
         if mul is operator.mul:
             default_category = Semigroups()
             if one is not None and one == ambient.one():
                 default_category = default_category.Unital()
+            if ambient in Semigroups().Commutative():
+                default_category = default_category.Commutative()
+            if ambient in Groups().Finite():
+                default_category = default_category & Groups()
         else:
             default_category = Sets()
 
@@ -286,7 +290,10 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         if one is not None:
             default_category = default_category.Unital()
 
-        category = default_category.or_subcategory(category)
+        if category is None:
+            category = default_category
+        else:
+            category = default_category & category
         return super(AutomaticSemigroup, cls).__classcall__(cls, generators, ambient=ambient, one=one, mul=mul, category=category)
 
     def __init__(self, generators, ambient, one, mul, category):
@@ -356,7 +363,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
             if self in category:
                 typ = "A "+category._repr_object_names()[:-1]
         for category in [Groups(), Monoids(), Semigroups()]:
-            if self in category.Subobjects():
+            if self.ambient() in category and self in category.Subobjects():
                 typ = "A sub"+category._repr_object_names()[:-1]
                 break
         if self._mul is operator.mul:
@@ -442,7 +449,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
             sage: M.retract(S5((4,5)))
             Traceback (most recent call last):
             ...
-            ValueError: (4,5) not in A submonoid of (S5) with 2 generators
+            ValueError: (4,5) not in A subgroup of (S5) with 2 generators
 
         TESTS::
 
@@ -736,7 +743,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         INPUT:
 
         - `n` -- an integer or ``None`` (default: ``None``)
-        - `up_to` -- an element of the ambient semigroup.
+        - `up_to` -- an element of ``self`` or of the ambient semigroup.
 
         This construct all the elements of this semigroup, their
         reduced words, and the right Cayley graph. If `n` is
@@ -756,7 +763,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
             sage: sorted(M._elements_set, key=str)
             [[1], [2], [3], []]
             sage: elt = M.from_reduced_word([2,3,1,2])
-            sage: M.construct(elt)
+            sage: M.construct(up_to=elt)
             sage: len(M._elements_set)
             19
             sage: M.cardinality()
@@ -772,6 +779,9 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
                 self._iter.next()
                 i += 1
         elif up_to is not None:
+            if up_to.parent() is self._ambient:
+                up_to = self._retract(up_to)
+                # TODO: remove up_to from the cache if not found at the end
             if up_to in self._elements_set:
                 return
             for x in self._iter:

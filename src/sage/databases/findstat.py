@@ -35,6 +35,8 @@ import tempfile
 import time
 import inspect
 import json
+import cgi
+
 
 # Combinatoral collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices
@@ -127,20 +129,20 @@ FINDSTAT_SEPARATOR_REFERENCES = "\r\n\r\n"
 ######################################################################
 
 # the format string for using POST
+# WARNING: we use cgi.escape to avoid injection problems, thus we expect double quotes as field delimiters.
 FINDSTAT_POST_HEADER = """
-<script src='http://www.google.com/jsapi'></script>
+<script src="http://www.google.com/jsapi"></script>
 <script>
-    google.load('jquery', '1.3.2');
+    google.load("jquery", "1.3.2");
 </script>
 
 <script>
     $(document).ready(function() {$("#form").submit(); });
 </script>
 """
-
-FINDSTAT_NEWSTATISTIC_FORM_HEADER = "<form id='form' name='NewStatistic' action='%s' enctype='multipart/form-data' method='post' />"
-FINDSTAT_NEWSTATISTIC_FORM_FORMAT = "<input type='hidden' name='%s' value='%s' />"
-FINDSTAT_NEWSTATISTIC_FORM_FOOTER = "</form>"
+FINDSTAT_NEWSTATISTIC_FORM_HEADER = '<form id="form" name="NewStatistic" action="%s" enctype="multipart/form-data" method="post" />'
+FINDSTAT_NEWSTATISTIC_FORM_FORMAT = '<input type="hidden" name="%s" value="%s" />'
+FINDSTAT_NEWSTATISTIC_FORM_FOOTER = '</form>'
 
 ######################################################################
 class FindStat():
@@ -767,7 +769,7 @@ class FindStatStatistic(SageObject):
         else:
             f.write(FINDSTAT_NEWSTATISTIC_FORM_HEADER %(FINDSTAT_URL_EDIT+self.id_str))
         for key, value in args.iteritems():
-            f.write((FINDSTAT_NEWSTATISTIC_FORM_FORMAT %(key, value)).encode("utf-8"))
+            f.write((FINDSTAT_NEWSTATISTIC_FORM_FORMAT %(key, cgi.escape(unicode(value), quote=True))).encode("utf-8"))
         f.write(FINDSTAT_NEWSTATISTIC_FORM_FOOTER)
         f.close()
         _ = verbose("Opening file with webbrowser", caller_name='FindStat')

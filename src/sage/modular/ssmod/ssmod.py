@@ -568,8 +568,8 @@ def supersingular_j(FF):
     Observe that in this example the j-invariant is not defined over
     the prime field::
 
-        sage: supersingular_j(GF(15073^2,'a'))  # optional - database
-        10630*a + 6033
+        sage: supersingular_j(GF(15073^2,'a'))  # optional - database_kohel
+        4443*a + 13964
 
         sage: supersingular_j(GF(83401^2, 'a'))
         67977

@@ -10,4 +10,4 @@ from string_ops import (
     coincidence_index,
     coincidence_discriminant)
 
-from automatic_monoid import AutomaticMonoid
+from automatic_semigroup import AutomaticSemigroup

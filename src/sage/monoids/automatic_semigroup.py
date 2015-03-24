@@ -190,7 +190,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         sage: g[1] == g[1]*g[1]*g[1]
         True
         sage: M.__class__
-        <class 'sage.monoids.automatic_monoid.AutomaticSemigroup_with_category'>
+        <class 'sage.monoids.automatic_semigroup.AutomaticSemigroup_with_category'>
         sage: TestSuite(M).run()
 
     We need to pass in the ambient monoid to ``__init__`` to guarantee
@@ -270,7 +270,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         # if mul is not operator.mul  and category.is_subcategory(Monoids().Subobjects())  error
 
         if one is None and category is not None and category.is_subcategory(Monoids().Subobjects()):
-            one=ambient.one()
+            one = ambient.one()
 
         if mul is operator.mul:
             default_category = Semigroups()
@@ -311,7 +311,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         self._ambient = ambient
         self._mul = mul
         if one is not None:
-            self._one=self._retract(one)
+            self._one = self._retract(one)
             self._one._reduced_word = []
         self._generators_in_ambient = generators
         self._generators = generators.map(self._retract)
@@ -320,7 +320,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
 
         # Attributes for the lazy construction of the elements
         self._constructed = False
-        self._done=0
+        self._done = 0
         self._elements = [self.one()] if one is not None else []
         self._elements += list(self._generators)
         self._elements_set = set(self._elements)
@@ -452,7 +452,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         element = self._retract(ambient_element)
         if check:
             self.construct(up_to=ambient_element)
-            if not element in self._elements_set:
+            if element not in self._elements_set:
                 cache = self._retract.get_cache()
                 del cache[((ambient_element,), ())]
                 raise ValueError("%s not in %s"%(ambient_element, self))
@@ -793,7 +793,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
                 sage: m = M(2); m
                 2
                 sage: type(m)
-                <class 'sage.monoids.automatic_monoid.AutomaticSemigroup_with_category.element_class'>
+                <class 'sage.monoids.automatic_semigroup.AutomaticSemigroup_with_category.element_class'>
             """
             ElementWrapper.__init__(self, ambient_element, parent)
             self._reduced_word = None
@@ -841,7 +841,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
                 sage: m = M.an_element(); m
                 [1]
                 sage: type(m)
-                <class 'sage.monoids.automatic_monoid.AutomaticSemigroup_with_category.element_class'>
+                <class 'sage.monoids.automatic_semigroup.AutomaticSemigroup_with_category.element_class'>
                 sage: m.lift()
                 3
                 sage: type(m.lift())

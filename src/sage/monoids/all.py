@@ -9,5 +9,3 @@ from string_ops import (
     frequency_distribution,
     coincidence_index,
     coincidence_discriminant)
-
-from automatic_monoid import AutomaticMonoid

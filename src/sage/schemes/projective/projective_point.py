@@ -850,6 +850,8 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         if not BR in NumberFields():
             raise NotImplementedError("Must be over a NumberField or a NumberField Order")
+        if not BR.is_absolute():
+            raise TypeError("Must be an absolute field")
 
         #For QQ the 'flip-trick' works better over RR or Qp
         if isinstance(v, (NumberFieldFractionalIdeal, RingHomomorphism_im_gens)):
@@ -1037,6 +1039,8 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                     P = P.change_ring(K, embedding=phi)
                     f = f.change_ring(K, embedding=psi)
         else:
+            if not K.is_absolute():
+                raise TypeError("Must be an absolute field")
             P = self
             f = F
 
@@ -1332,6 +1336,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ::
 
+            sage: set_verbose(-1)
             sage: P.<x,y,z> = ProjectiveSpace(QQbar,2)
             sage: H = End(P)
             sage: f = H([x^2,QQbar(sqrt(-1))*y^2,z^2])
@@ -1341,6 +1346,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ::
 
+            sage: set_verbose(-1)
             sage: P.<x,y,z> = ProjectiveSpace(QQbar,2)
             sage: H = End(P)
             sage: f = H([x^2,y^2,z^2])
@@ -1353,6 +1359,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             raise NotImplementedError("Must be over projective space")
         if not f.is_endomorphism():
             raise TypeError("Map must be an endomorphism")
+        if not f.is_morphism():
+            raise TypeError("Must be a morphism")
+        if not self.codomain() is f.domain():
+            raise TypeError("Point must be in domain of map")
 
         K = FractionField(self.codomain().base_ring())
         if not K in _NumberFields and not K is QQbar:

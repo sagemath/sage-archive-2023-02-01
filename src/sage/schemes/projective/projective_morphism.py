@@ -1195,10 +1195,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         F = self._polys
         defpolys = list(self.domain().defining_polynomials())
         if R.base_ring().is_field():
-            J = R.ideal(F + defpolys)
+            F.extend(defpolys)
+            J = R.ideal(F)
         else:
             S = PolynomialRing(R.base_ring().fraction_field(), R.gens(), R.ngens())
-            J = S.ideal([S(f) for f in F] + [S(f) for f in defpolys])
+            L = [S(f) for f in F] + [S(f) for f in defpolys]
+            J = S.ideal(L)
         if J.dimension() > 0:
             return False
         else:

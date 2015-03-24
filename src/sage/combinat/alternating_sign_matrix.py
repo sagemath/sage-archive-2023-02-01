@@ -907,7 +907,6 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
         self._umt = use_monotone_triangles
         Parent.__init__(self, category=FiniteEnumeratedSets())
         self._gyration_orbits = None
-        self._gyration_orbit_sizes = None
 
     def _repr_(self):
         r"""
@@ -1299,8 +1298,7 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
         
     def gyration_orbit_sizes(self):
         r"""
-        Return the sizes of gyration orbits of ``self``
-        and also save this information is ``self._gyration_orbit_sizes``
+        Return the sizes of gyration orbits of ``self``.
         
         EXAMPLES::
         
@@ -1313,22 +1311,14 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
             sage: li = [5,10,10,10,10,10,2,5,10,10,10,10,10,10,10,10,10,10,10,10,\
             4,10,10,10,10,10,10,4,5,10,10,10,10,10,10,10,2,4,5,10,10,10,10,10,10,\
             4,5,10,10,2,2]
-            sage: A._gyration_orbit_sizes
             sage: A.gyration_orbit_sizes() == li
             True
-            sage: A._gyration_orbit_sizes == li
-            True
         """
-        
-        if self._gyration_orbit_sizes:
-            return self._gyration_orbit_sizes
-        else:
-            gyration_orbits = self.gyration_orbits()
-            orbit_sizes = []
-            for orbit in gyration_orbits:
-                orbit_sizes.append(len(orbit))
-            self._gyration_orbit_sizes = orbit_sizes
-            return orbit_sizes
+        gyration_orbits = self.gyration_orbits()
+        orbit_sizes = []
+        for orbit in gyration_orbits:
+            orbit_sizes.append(len(orbit))
+        return orbit_sizes
 
 class MonotoneTriangles(GelfandTsetlinPatternsTopRow):
     r"""

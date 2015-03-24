@@ -347,7 +347,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                                            for a in K for b in LK])
             b_mat.echelonize()
             r = b_mat.rank()
-            gens = [A.element_class(A, {i: v for i,v in row.iteritems()})
+            I = A._basis_ordering
+            gens = [A.element_class(A, {I[i]: v for i,v in row.iteritems()})
                     for row in b_mat.rows()[:r]]
             return A.subalgebra(gens)
 
@@ -566,22 +567,6 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             return self.basis().cardinality()
 
     class ElementMethods:
-        def to_vector(self):
-            """
-            Return ``self`` as a vector.
-
-            EXAMPLES::
-
-                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                sage: L.an_element().to_vector()
-                (0, 0, 0)
-            """
-            M = self.parent().free_module()
-            if not self:
-                return M.zero()
-            B = M.basis()
-            return M.sum(B[k]*self[k] for k in self.parent()._ordered_indices)
-
         def adjoint_matrix(self): # In #11111 (more or less) by using matrix of a mophism
             """
             Return the matrix of the adjoint action of ``self``.

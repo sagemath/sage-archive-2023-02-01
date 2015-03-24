@@ -30,7 +30,6 @@ from sage.structure.element import ModuleElement, RingElement, coerce_binop
 from sage.structure.sage_object import SageObject
 from sage.combinat.free_module import CombinatorialFreeModuleElement
 from sage.structure.element_wrapper import ElementWrapper
-from sage.categories.finite_dimensional_lie_algebras_with_basis import FiniteDimensionalLieAlgebrasWithBasis
 
 # TODO: Have the other classes inherit from this?
 # TODO: Should this be a mixin class (or moved to the category)?
@@ -150,11 +149,6 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
         """
         return sorted(self._monomial_coefficients.items())
 
-    # FIXME: Use the methods defined in the category instead of
-    #   those given by CombinatorialFreeModuleElement
-    _vector_ = FiniteDimensionalLieAlgebrasWithBasis.ElementMethods.__dict__['to_vector']
-    to_vector = _vector_
-
 class LieAlgebraElementWrapper(ElementWrapper):
     """
     Wrap an element as a Lie algebra element.
@@ -246,6 +240,22 @@ class LieAlgebraElementWrapper(ElementWrapper):
             return self.parent().zero()
         # Otherwise we lift to the UEA
         return self.lift() * x
+
+    def __div__(self, x, self_on_left=False ):
+        """
+        Division by coefficients.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Heisenberg(QQ, 3)
+            sage: x = L.an_element(); x
+            p1 + p2 + p3 + q1 + q2 + q3
+            sage: x / 2
+            1/2*p1 + 1/2*p2 + 1/2*p3 + 1/2*q1 + 1/2*q2 + 1/2*q3
+        """
+        if self_on_left:
+            return self * (~x)
+        return (~x) * self
 
     def _acted_upon_(self, scalar, self_on_left=False):
         """

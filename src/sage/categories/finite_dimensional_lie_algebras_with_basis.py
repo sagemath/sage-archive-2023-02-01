@@ -75,22 +75,24 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             # Create the UEA relations
             # We need to get names for the basis elements, not just the generators
+            I = self._basis_ordering
             try:
-                names = self.variable_names()
+                names = [str(x) for x in I]
+                F = FreeAlgebra(self.base_ring(), names)
             except ValueError:
-                names = tuple('b{}'.format(i) for i in range(self.dimension()))
-            F = FreeAlgebra(self.base_ring(), names)
-            #gens = F.gens()
+                names = ['b{}'.format(i) for i in range(self.dimension())]
+                F = FreeAlgebra(self.base_ring(), names)
             d = F.gens_dict()
             rels = {}
             S = self.structure_coefficients(True)
+            get_var = lambda g: d[names[I.index(g)]]
             for k in S.keys():
-                g0 = d[names[k[0]]]
-                g1 = d[names[k[1]]]
+                g0 = get_var(k[0])
+                g1 = get_var(k[1])
                 if g0 < g1:
-                    rels[g1*g0] = g0*g1 - sum(val*d[names[g]] for g, val in S[k])
+                    rels[g1*g0] = g0*g1 - sum(val*get_var(g) for g, val in S[k])
                 else:
-                    rels[g0*g1] = g1*g0 + sum(val*d[names[g]] for g, val in S[k])
+                    rels[g0*g1] = g1*g0 + sum(val*get_var(g) for g, val in S[k])
             return F.g_algebra(rels)
 
         def killing_matrix(self, x, y):

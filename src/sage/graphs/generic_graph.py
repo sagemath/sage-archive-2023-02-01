@@ -446,7 +446,7 @@ class GenericGraph(GenericGraph_pyx):
             return False
         if any(x not in other for x in self):
             return False
-        if self._weighted != other._weighted:
+        if self.weighted() != other.weighted():
             return False
 
         verts = self.vertices()
@@ -2214,6 +2214,13 @@ class GenericGraph(GenericGraph_pyx):
             []
             sage: G.multiple_edges(to_undirected=True)
             [(1, 2, 'h'), (2, 1, 'g')]
+
+        A loop is not a multiedge::
+
+            sage: g = Graph(loops=True,multiedges=True)
+            sage: g.add_edge(0,0)
+            sage: g.has_multiple_edges()
+            False
         """
         if self.allows_multiple_edges() or (self._directed and to_undirected):
             if self._directed:
@@ -2236,7 +2243,7 @@ class GenericGraph(GenericGraph_pyx):
                             if b in s:
                                 return True
                             s.add(b)
-                        if b is u:
+                        elif b is u:
                             if a in s:
                                 return True
                             s.add(a)
@@ -2600,22 +2607,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = Graph({1:{2:3}})
             sage: G.weighted()
             False
-            sage: G.weighted('a')
             sage: G.weighted(True)
-            sage: G.weighted()
-            True
-            sage: G.weighted('a')
             sage: G.weighted()
             True
             sage: G.weighted(False)
             sage: G.weighted()
             False
-            sage: G.weighted('a')
-            sage: G.weighted()
-            False
-            sage: G.weighted(True)
-            sage: G.weighted()
-            True
 
         Ensure that graphs using the static sparse backend can not be mutated
         using this method, as fixed in :trac:`15278`::
@@ -2655,8 +2652,10 @@ class GenericGraph(GenericGraph_pyx):
                                 "Create a mutable copy, e.g., by `g.copy(immutable=False)`")
             if new in [True, False]:
                 self._weighted = new
+            else:
+                raise ValueError("'new' must be a boolean")
         else:
-            return self._weighted
+            return bool(self._weighted)
 
     ### Properties
 

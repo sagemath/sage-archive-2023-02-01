@@ -352,7 +352,7 @@ class IntegerListsLex(Parent):
     The iteration algorithm uses a depth first search through the
     prefix tree of the list of integers (see also
     :ref:`_section-generic-integerlistlex`). While doing so, it does
-    tests on the future which allows for cutting most dead branches.
+    some lookahead which allows for cutting most dead branches.
 
     The complexity of the algorithm has not been formally proven, but
     the average runtime for producing each list `l` is suspected to be

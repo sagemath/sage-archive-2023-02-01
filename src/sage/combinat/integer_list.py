@@ -822,9 +822,9 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
                 sage: C = IntegerListsLex(2, length=3)
                 sage: I = IntegerListsLex._IntegerListsLexIter(C)
                 sage: I.rho
-                []
+                [(0, 2)]
                 sage: I.mu
-                []
+                [3]
                 sage: I.j
                 0
                 sage: I.finished
@@ -832,12 +832,34 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             """
             self.parent = parent
 
-            ## TODO either use SearchForest or use ranges / indices rather than endpoints / values (more modular)
-            self.rho = []   # vector of current search ranges
-            self.mu = []    # vector of elements
-            self.j = 0      # length of current list
+            self.rho = []   # list of current search ranges
+            self.mu = []    # list of integers
+            self.j = -1     # index of last element of mu
+            self.nu = 0     # sum of values in mu
 
             self.finished = False
+
+            # initialize for beginning of iteration
+            self._push_search()
+
+        def _push_search(self):
+            if self.j >= 0:
+                prev = self.mu[self.j]
+            else:
+                prev = None
+            self.j += 1
+            interval = self._m_interval(self.j, self.parent.max_sum - self.nu, prev)
+            val = interval[1] + 1 # iterator decrements before acting
+            self.rho.append(interval)
+            self.mu.append(val)
+            self.nu += val
+
+        def _pop_search(self):
+            if self.j >= 0:
+                self.j -= 1
+                self.rho.pop()
+                self.nu -= self.mu[-1]
+                self.mu.pop()
 
         def next(self):
             """
@@ -864,72 +886,59 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             max_length = p.max_length
 
             while self.j >= 0: # j = -1 means that we have finished the bottom iteration
+
                 # choose a new value of m to test
 
-                if len(rho) > self.j:   # decreasing the value of a given m
-                    mu[self.j] -= 1
-                else:                   # add new range of m-values for index j
-                    new_interval = None
-                    if self.j > 0:
-                        new_interval = self._m_interval(self.j, max_sum - sum(mu), mu[self.j-1])
-                    else:
-                        new_interval = self._m_interval(self.j, max_sum - sum(mu))
-                    rho.append( new_interval )
-                    mu.append( rho[self.j][1] ) # start at largest value
-
-                m = mu[self.j]
-                nu = sum(mu)
+                mu[self.j] -= 1
+                # m = mu[self.j]
+                self.nu -= 1
 
                 # check if the new value is valid, if not, pop to prefix, and now check if this is a solution
 
-                if m < rho[self.j][0] or (self.j == max_length - 1 and nu< min_sum):
-                    mu.pop()
-                    rho.pop()
-                    self.j -= 1
-                    if self._internal_list_valid(mu):
+                if mu[self.j] < rho[self.j][0] or (self.j == max_length-1 and self.nu < min_sum):
+                    self._pop_search()
+                    if self._internal_list_valid():
                         return p._element_constructor(list(mu))
                     else:
                         continue
 
-                # m is new and in range
-                # if we're at a solution that's obviously next in order, return it
-                # otherwise, check if any solutions are possible with this value of m
-                if (nu == max_sum and self.j >= min_length - 1) or self.j == max_length - 1:
-                    if self._internal_list_valid(mu):
+                # m is new and in range:
+                # If we're at a leaf node, check if its a solution to return, pop the layer from the stack.
+                # Otherwise, check if any solutions are possible with this value of m.
+                #
+                # Possible cases to detect leaf nodes:
+                # 1. List is of maximal length
+                # 2. List is of maximal sum, and of at least minimal length (allow padding zeros)
+
+                if (self.nu == max_sum and self.j >= min_length - 1) or self.j == max_length - 1:
+                    if self._internal_list_valid():
                         return p._element_constructor(list(mu))
-                elif self._possible_m(m, self.j, min_sum - (nu-m), max_sum - (nu-m)):
-                    self.j += 1
+                elif self._possible_m(mu[self.j], self.j,
+                                      min_sum - (self.nu-mu[self.j]),
+                                      max_sum - (self.nu-mu[self.j])):
+                    self._push_search()
 
             self.finished = True
             raise StopIteration()
 
-        def _internal_list_valid(self, mu):
+        def _internal_list_valid(self):
             """
-            Return whether ``mu`` is a valid list.
+            Return whether the current list in the iteration variable ``self.mu`` is a valid list.
 
-            INPUT:
-
-            - ``mu`` -- a list of integers
-
-            This method checks whether the sum of the parts in ``mu``
+            This method checks whether the sum of the parts in ``self.mu``
             is in the right range, whether its length is in the
-            required range, and whether there are trailing zeroes.
-
-            EXAMPLES::
-
-                sage: C = IntegerListsLex(2, length=3)
-                sage: I = IntegerListsLex._IntegerListsLexIter(C)
-                sage: I._internal_list_valid([2,0,0])
-                True
-                sage: I._internal_list_valid([1,0,0])
-                False
+            required range, and whether there are trailing zeroes.  It does not check all of the
+            necessary conditions to verify that an arbitrary list satisfies the
+            constraints from the corresponding ``IntegerListsLex`` object, and should
+            not be used except internally in the iterator class.
             """
             p = self.parent
-            nu = sum(mu)
-            j = len(mu)
+            mu = self.mu
+            nu = self.nu
+            l = self.j + 1
             good_sum = (nu >= p.min_sum and nu <= p.max_sum)
-            good_length = (j >= p.min_length and j <= p.max_length)
-            no_trailing_zeros = (j <= max(p.min_length,0) or mu[-1] != 0)
+            good_length = (l >= p.min_length and l <= p.max_length)
+            no_trailing_zeros = (l <= max(p.min_length,0) or mu[-1] != 0)
             return good_sum and good_length and no_trailing_zeros
 
         def _upper_envelope(self, m, j):

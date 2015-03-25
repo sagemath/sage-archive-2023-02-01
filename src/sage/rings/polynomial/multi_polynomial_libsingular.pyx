@@ -4063,7 +4063,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f.factor()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Factorization of multivariate polynomials over non-integral domains is not implemented.
+            NotImplementedError: Factorization of multivariate polynomials over Ring of integers modulo 4 is not implemented.
 
         TESTS:
 
@@ -4188,13 +4188,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if p_IsConstant(self._poly, _ring):
             return self.constant_coefficient().factor()
 
-        from sage.symbolic.ring import is_SymbolicExpressionRing
-        if is_SymbolicExpressionRing(self._parent._base):
-            raise NotImplementedError, "Factorization of multivariate polynomials over Symbolic Ring is not implemented. Consider using multivariate polynomial rings instead."
-
-        if not self._parent._base.is_integral_domain():
-            raise NotImplementedError, "Factorization of multivariate polynomials over non-integral domains is not implemented."
-
         if not self._parent._base.is_field():
             try:
                 frac_field = self._parent._base.fraction_field()
@@ -4203,7 +4196,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                 U = self._parent._base(F.unit()).factor()
                 return Factorization(list(U) + FF, unit=U.unit())
             except Exception:
-                raise NotImplementedError, "Factorization of multivariate polynomials over %s is not implemented."%self._parent._base
+                raise NotImplementedError("Factorization of multivariate polynomials over %s is not implemented."%self._parent._base)
 
         if self._parent._base.is_finite():
             if self._parent._base.characteristic() > 1<<29:

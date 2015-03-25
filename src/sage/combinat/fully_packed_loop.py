@@ -12,13 +12,13 @@ matrix and also extract the link pattern.::
     sage: fpl
         |         |
         |         |
-        # -- #    #
+        + -- +    +
              |    |
              |    |
-     -- #    #    # --
+     -- +    +    + --
         |    |
         |    |
-        #    # -- #
+        +    + -- +
         |         |
         |         |
     sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
@@ -28,13 +28,13 @@ matrix and also extract the link pattern.::
     sage: fplb
         |         |
         |         |
-        #    # -- #
+        +    + -- +
         |    |
         |    |
-     -- #    #    # --
+     -- +    +    + --
              |    |
              |    |
-        # -- #    #
+        + -- +    +
         |         |
         |         |
 
@@ -72,13 +72,13 @@ Note that we can also create a fully packed loop from a six vertex model configu
     sage: fpl
         |         |
         |         |
-        # -- #    #
+        + -- +    +
              |    |
              |    |
-     -- #    #    # --
+     -- +    +    + --
         |    |
         |    |
-        #    # -- #
+        +    + -- +
         |         |
         |         |
 
@@ -99,16 +99,16 @@ Here are some more examples using bigger AMS's::
     sage: fpl
         |         |
         |         |
-        # -- # -- #    # --
+        + -- + -- +    + --
                        |
                        |
-     -- #    # -- # -- #
+     -- +    + -- + -- +
         |    |
         |    |
-        #    #    # -- # --
+        +    +    + -- + --
         |    |    |
         |    |    |
-     -- #    #    # -- #
+     -- +    +    + -- +
              |         |
              |         |
 
@@ -124,22 +124,22 @@ Here are some more examples using bigger AMS's::
     sage: fpl
         |         |         |
         |         |         |
-        # -- #    #    # -- #    # --
+        + -- +    +    + -- +    + --
              |    |    |         |
              |    |    |         |
-     -- # -- #    #    # -- # -- #
+     -- + -- +    +    + -- + -- +
                   |
                   |
-        # -- #    # -- # -- #    # --
+        + -- +    + -- + -- +    + --
         |    |              |    |
         |    |              |    |
-     -- #    #    # -- #    #    #
+     -- +    +    + -- +    +    +
              |    |    |    |    |
              |    |    |    |    |
-        # -- #    # -- #    #    # --
+        + -- +    + -- +    +    + --
         |                   |
         |                   |
-     -- #    # -- # -- #    # -- #
+     -- +    + -- + -- +    + -- +
              |         |         |
              |         |         |
 
@@ -156,25 +156,25 @@ Here are some more examples using bigger AMS's::
     sage: fpl
         |         |         |         |
         |         |         |         |
-        # -- # -- #    # -- #    # -- #
+        + -- + -- +    + -- +    + -- +
                        |         |
                        |         |
-     -- # -- # -- #    # -- # -- #    # --
+     -- + -- + -- +    + -- + -- +    + --
                   |                   |
                   |                   |
-        # -- #    # -- # -- #    # -- #
+        + -- +    + -- + -- +    + -- +
         |    |              |    |
         |    |              |    |
-     -- #    #    # -- #    #    #    # --
+     -- +    +    + -- +    +    +    + --
              |    |    |    |    |    |
              |    |    |    |    |    |
-        # -- #    # -- #    #    # -- #
+        + -- +    + -- +    +    + -- +
         |                   |
         |                   |
-     -- #    # -- # -- #    #    # -- # --
+     -- +    + -- + -- +    +    + -- + --
              |         |    |    |
              |         |    |    |
-        # -- #    # -- #    #    # -- #
+        + -- +    + -- +    +    + -- +
         |         |         |         |
         |         |         |         |
 
@@ -264,13 +264,13 @@ class FullyPackedLoop(SageObject):
             sage: fpl
                 |         |
                 |         |
-                # -- #    #
+                + -- +    +
                      |    |
                      |    |
-             -- #    #    # --
+             -- +    +    + --
                 |    |
                 |    |
-                #    # -- #
+                +    + -- +
                 |         |
                 |         |
 
@@ -281,13 +281,13 @@ class FullyPackedLoop(SageObject):
             sage: fpl
                 |         |
                 |         |
-                # -- #    #
+                + -- +    +
                      |    |
                      |    |
-             -- #    #    # --
+             -- +    +    + --
                 |    |
                 |    |
-                #    # -- #
+                +    + -- +
                 |         |
                 |         |
             sage: fpl.six_vertex_model.to_alternating_sign_matrix()
@@ -329,13 +329,13 @@ class FullyPackedLoop(SageObject):
             sage: fpl
                 |         |
                 |         |
-                #    # -- #
+                +    + -- +
                 |    |
                 |    |
-             -- #    #    # --
+             -- +    +    + --
                      |    |
                      |    |
-                # -- #    #
+                + -- +    +
                 |         |
                 |         |
 
@@ -345,16 +345,16 @@ class FullyPackedLoop(SageObject):
             sage: fpl
                 |         |
                 |         |
-                # -- # -- #    # --
+                + -- + -- +    + --
                                |
                                |
-             -- #    # -- # -- #
+             -- +    + -- + -- +
                 |    |
                 |    |
-                #    #    # -- # --
+                +    +    + -- + --
                 |    |    |
                 |    |    |
-             -- #    #    # -- #
+             -- +    +    + -- +
                      |         |
                      |         |
 
@@ -382,11 +382,9 @@ class FullyPackedLoop(SageObject):
                 ret += '  |  '
             else:
                 ret += '     '
-#            if entry == 1 or entry == 3 or entry == 4:
-#                ret += '  ^  '
-#            else:
-#                ret += '  |  '
 
+        plus_sign = '+'
+        
         # Do the meat of the ascii art
         for j,row in enumerate(self.six_vertex_model):
             ret += '\n  '
@@ -407,9 +405,9 @@ class FullyPackedLoop(SageObject):
             # Do the middle row
             for i,entry in enumerate(row):
                 if (i+j) % 2 == 0:
-                    ret += ascii1[entry][3] + '#' + ascii1[entry][1]
+                    ret += ascii1[entry][3] + plus_sign + ascii1[entry][1]
                 else:
-                    ret += ascii2[entry][3] + '#' + ascii2[entry][1]
+                    ret += ascii2[entry][3] + plus_sign + ascii2[entry][1]
 
             # Do the right-most entry
             if (j+n) % 2 ==0:
@@ -432,13 +430,6 @@ class FullyPackedLoop(SageObject):
                 ret += '     '
             else:
                 ret += '  |  '
-
-
-
-#            if entry == 2 or entry == 3 or entry == 5:
-#                ret += '  V  '
-#            else:
-#                ret += '  |  '
 
         return ret
         
@@ -526,7 +517,7 @@ class FullyPackedLoop(SageObject):
 
         Here are the other 3 by 3 Alternating Sign Matrices and their corresponding fully packed loops:
 
-        .. math::
+        .. MATH::
 
             A = \\begin{pmatrix}
                 1&0&0\\\\
@@ -544,7 +535,7 @@ class FullyPackedLoop(SageObject):
             p = fpl.plot()
             sphinx_plot(p)
 
-        .. math::
+        .. MATH::
 
             A = \\begin{pmatrix}
                 1&0&0\\\\
@@ -562,7 +553,7 @@ class FullyPackedLoop(SageObject):
             p = fpl.plot()
             sphinx_plot(p)
 
-        .. math::
+        .. MATH::
 
             A = \\begin{pmatrix}
                 0&1&0\\\\
@@ -580,7 +571,7 @@ class FullyPackedLoop(SageObject):
             p = fpl.plot()
             sphinx_plot(p)
 
-        .. math::
+        .. MATH::
 
             A = \\begin{pmatrix}
                 0&1&0\\\\
@@ -598,7 +589,7 @@ class FullyPackedLoop(SageObject):
             p = fpl.plot()
             sphinx_plot(p)
 
-        .. math::
+        .. MATH::
 
             A = \\begin{pmatrix}
                 0&0&1\\\\
@@ -616,7 +607,7 @@ class FullyPackedLoop(SageObject):
             p = fpl.plot()
             sphinx_plot(p)
 
-        .. math::
+        .. MATH::
 
             A = \\begin{pmatrix}
                 0&0&1\\\\

@@ -316,9 +316,8 @@ from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_list import IntegerListsLex
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.combinatorial_map import combinatorial_map
-
 from sage.groups.perm_gps.permgroup import PermutationGroup
-
+from sage.graphs.dot2tex_utils import have_dot2tex
 
 PartitionOptions=GlobalOptions(name='partitions',
     doc=r"""
@@ -4487,6 +4486,81 @@ class Partition(CombinatorialObject, Element):
         inside_contents = [self.content(*c) for c in self.corners()]
         return sum(abs(variable+c) for c in outside_contents)\
                        -sum(abs(variable+c) for c in inside_contents)
+
+    @cached_method
+    def dual_equivalence_graph(self):
+        r"""
+        Return the dual equivalence graph of ``self``.
+
+        Consider a permuation `p`, then an `i` *elementary dual
+        equivalence* is given by looking the sequence `i-1, i, i+1`
+        in `p`. If `i` does not occur in the middle of `i \pm 1`,
+        then we interchange the outer two entries in `p`. The *dual
+        equivalence graph* is the edge-colored graph formed by the set
+        of standard Young tableaux of shape `\lambda` where edges
+        colored by `i` are given by `i` elementary dual equivalences.
+
+        REFERENCES:
+
+        .. [AssafDEG] Sami Assaf. *Dual equivalence graphs and a
+           combinatorial proof of LLT and Macdonald positivity*.
+           (2008). :arxiv:`1005.3759`.
+
+        EXAMPLES::
+
+            sage: P = Partition([3,1,1])
+            sage: G = P.dual_equivalence_graph()
+            sage: sorted(G.edges())
+            [([[1, 2, 3], [4], [5]], [[1, 2, 4], [3], [5]], 3),
+             ([[1, 2, 4], [3], [5]], [[1, 2, 5], [3], [4]], 4),
+             ([[1, 2, 4], [3], [5]], [[1, 3, 4], [2], [5]], 2),
+             ([[1, 2, 5], [3], [4]], [[1, 3, 5], [2], [4]], 2),
+             ([[1, 3, 4], [2], [5]], [[1, 3, 5], [2], [4]], 4),
+             ([[1, 3, 5], [2], [4]], [[1, 4, 5], [2], [3]], 3)]
+        """
+        T = list(tableau.StandardTableaux(self))
+        n = sum(self)
+        edges = []
+        to_perms = {t: t.reading_word_permutation() for t in T}
+        to_tab = {to_perms[k]: k for k in to_perms}
+        for t in T:
+            pt = list(to_perms[t])
+            for i in range(2, n):
+                ii = pt.index(i)
+                iip = pt.index(i+1)
+                iim = pt.index(i-1)
+                l = sorted([iim, ii, iip])
+                if l[1] == ii:
+                    continue
+                x = pt[:]
+                x[l[0]], x[l[2]] = x[l[2]], x[l[0]]
+                e = [t, to_tab[permutation.Permutation(x)], i]
+                if e not in edges and [e[1], e[0], e[2]] not in edges:
+                    edges.append(e)
+
+        from sage.graphs.graph import Graph
+        G = Graph(edges, multiedges=True, immutable=True)
+        if have_dot2tex():
+            def coloring(i):
+                if i == 2:
+                    return 'red'
+                if i == 3:
+                    return 'blue'
+                if i == 4:
+                    return 'green'
+                if i == 5:
+                    return 'purple'
+                if i == 6:
+                    return 'brown'
+                if i == 7:
+                    return 'orange'
+                if i == 8:
+                    return 'yellow'
+                return 'black'
+            G.set_latex_options(format="dot2tex",
+                                edge_labels=True,
+                                color_by_label=coloring)
+        return G
 
 ##############
 # Partitions #

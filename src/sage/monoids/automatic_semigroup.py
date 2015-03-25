@@ -45,10 +45,12 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         1
         sage: M.one() in M
         True
-        sage: g =M._generators; g
+        sage: g = M._generators; g
         Finite family {1: 3, 2: 5}
         sage: g[1]*g[2]
         3
+        sage: M.some_elements()
+        A submonoid of (Ring of integers modulo 12) with 2 generators
 
         sage: M.list()
         [1, 3, 5, 9]
@@ -57,8 +59,8 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         [1, 9]
 
     As can be seen above, elements are represented by default the
-    corresponding element in the ambient monoid. One can request for
-    the elements to be represented by their reduced word::
+    corresponding element in the ambient monoid. One can also represent
+    the elements by their reduced word::
 
         sage: M.repr_element_method("reduced_word")
         sage: M.list()
@@ -66,8 +68,16 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
 
     In case the reduced word has not yet been calculated, the element
     will be represented by the corresponding element in the ambient
-    monoid (TODO: illustrate)
+    monoid::
 
+        sage: R = IntegerModRing(13)
+        sage: N = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
+        sage: N.repr_element_method("reduced_word")
+        sage: n = N.an_element()
+        sage: n
+        [1]
+        sage: n*n
+        9
 
     Calling :meth:`construct`, :meth:`cardinality`, or :meth:`list`,
     or iterating through the monoid will trigger its full construction
@@ -195,6 +205,12 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         sage: M.__class__
         <class 'sage.monoids.automatic_semigroup.AutomaticSemigroup_with_category'>
         sage: TestSuite(M).run()
+
+        sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
+        sage: R = IntegerModRing(34)
+        sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(7)}), one=R.one())
+        sage: M[3] in M
+        True
 
     We need to pass in the ambient monoid to ``__init__`` to guarantee
     :class:`UniqueRepresentation` works properly::
@@ -376,6 +392,24 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         return "%s%s with %s generators"%(typ, of, len(self._generators))
 
     def repr_element_method(self, style="ambient"):
+        """
+        Sets the representation of the elements of the monoid.
+
+        INPUT:
+
+        - ``style`` -- "ambient" or "reduced_word"
+
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
+            sage: R = IntegerModRing(17)
+            sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
+            sage: M.list()
+            [1, 3, 5, 9, 15, 8, 10, 11, 7, 6, 13, 16, 4, 14, 12, 2]
+            sage: M.repr_element_method("reduced_word")
+            sage: M.list()
+            [[], [1], [2], [1, 1], [1, 2], [2, 2], [1, 1, 1], [1, 1, 2], [1, 2, 2],
+             [2, 2, 2], [1, 1, 1, 1], [1, 1, 1, 2], [1, 1, 2, 2], [1, 1, 1, 1, 2],
+             [1, 1, 1, 2, 2], [1, 1, 1, 1, 2, 2]]
+        """
         self._repr_element_method = style
 
     def an_element(self):
@@ -391,20 +425,6 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
             3
         """
         return self._generators.first()
-
-    def some_elements(self):
-        """
-        Return the family of generators of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
-            sage: R = IntegerModRing(12)
-            sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
-            sage: M.some_elements()
-            Finite family {1: [1], 2: [2]}
-        """
-        return self.semigroup_generators()
 
     def ambient(self):
         """
@@ -575,6 +595,22 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         self._constructed = True
 
     def __iter__(self):
+        """
+        Return iterator over elements of the semigroup.
+
+        EXAMPLES::
+
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
+            sage: R = IntegerModRing(5)
+            sage: M = AutomaticSemigroup([R(3), R(4)], one=R.one())
+            sage: I = M.__iter__()
+            sage: I.next()
+            1
+            sage: M.list()
+            [1, 3, 4, 2]
+            sage: I.next()
+            3
+        """
         if self._constructed:
             return iter(self._elements)
         else:
@@ -674,16 +710,6 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
             self.construct()
         return list(self._elements)
 
-    """
-    TESTS::
-
-        sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
-        sage: R = IntegerModRing(34)
-        sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(7)}), one=R.one())
-        sage: M[3] in M
-        True
-    """
-
     def product(self, x, y):
         """
         Return the product of two elements in ``self``. It is done by
@@ -744,8 +770,9 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - `n` -- an integer or ``None`` (default: ``None``)
-        - `up_to` -- an element of ``self`` or of the ambient semigroup.
+        - ``up_to`` -- an element of ``self`` or of the ambient semigroup.
+
+        - ``n`` -- an integer or ``None`` (default: ``None``)
 
         This construct all the elements of this semigroup, their
         reduced words, and the right Cayley graph. If `n` is

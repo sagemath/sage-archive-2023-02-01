@@ -56,7 +56,7 @@ def homfly_polynomial(link):
 
         sage: from sage.libs.homfly import homfly_polynomial
         sage: trefoil = '1 6 0 1  1 -1  2 1  0 -1  1 1  2 -1 0 1 1 1 2 1'
-        sage: homfly_polynomial(trefoil)
+        sage: homfly_polynomial(trefoil) # optional - libhomfly
         ' - L^-4 - 2L^-2 + M^2L^-2'
 
     """

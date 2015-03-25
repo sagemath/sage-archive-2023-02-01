@@ -467,6 +467,9 @@ class IntegerListsLex(Parent):
         [[4], [3, 1], [2, 2], [2, 1, 1], [1, 3], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
         sage: list(IntegerListsLex(6, min_length=1, floor=[7]))
         []
+        sage: L = IntegerListsLex(10**100,length=1)
+        sage: L.list()
+        [[10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]]
 
     Noted on :trac:`17898`::
 
@@ -707,6 +710,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
         INPUT:
 
         - `l` -- a list to use as a source of values
+
         - `default` -- a default value to use for indices outside of the list
 
         OUTPUT:
@@ -878,7 +882,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
 
                 # check if the new value is valid, if not, pop to prefix, and now check if this is a solution
 
-                if m < rho[self.j][0]:
+                if m < rho[self.j][0] or (self.j == max_length - 1 and nu< min_sum):
                     mu.pop()
                     rho.pop()
                     self.j -= 1
@@ -935,6 +939,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             INPUT:
 
             - ``m`` -- a nonnegative integer (starting value)
+
             - ``j`` -- a nonnegative integer (position)
 
             This method returns a function of ``i`` which returns the upper envelope if the starting value
@@ -975,6 +980,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             INPUT:
 
             - ``m`` -- a nonnegative integer (starting value)
+
             - ``j`` -- a nonnegative integer (position)
 
             This method returns a function of ``i`` which returns the lower envelope if the starting value
@@ -1015,8 +1021,10 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             INPUT:
 
             - ``i`` -- a nonnegative integer (position)
+
             - ``target_max`` -- a nonnegative integer or +oo, the largest valid sum of a list tail.
               If +oo, the ``max_slope`` or ``ceiling`` restrictions must give a finite bound for the current part
+
             - ``prev`` -- a nonnegative integer, the last entry in the integer sequence prior to the desired tail,
               if the sequence is non-empty
 
@@ -1053,8 +1061,11 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             INPUT:
 
             - ``m`` -- a nonnegative integer (value)
+
             - ``j`` -- a nonnegative integer (position)
+
             - ``target_min`` -- a nonnegative integer
+
             - ``target_max`` -- a nonnegative integer or +oo
 
             OUTPUT:

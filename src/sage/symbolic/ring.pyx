@@ -499,8 +499,8 @@ cdef class SymbolicRing(CommutativeRing):
 
         EXAMPLES::
 
-        sage: SR.is_finite()
-        False
+            sage: SR.is_finite()
+            False
         """
         return False
 

@@ -646,6 +646,15 @@ def is_FreeModule(M):
 class FreeModule_generic(Module):
     """
     Base class for all free modules.
+
+    TESTS:
+
+    Check that :trac:`17576` is fixed::
+
+        sage: V = VectorSpace(RDF, 3)
+        sage: v = vector(RDF, [1, 2, 3, 4])
+        sage: v in V
+        False
     """
     def __init__(self, base_ring, rank, degree, sparse=False,
                  coordinate_ring=None, category=None):

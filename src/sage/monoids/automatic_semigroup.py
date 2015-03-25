@@ -164,9 +164,12 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         ....:     z.set_immutable()
         ....:     return z
         ....:
-        sage: Mon = AutomaticSemigroup([M1,M2], mul=prod_m)
+        sage: Mon = AutomaticSemigroup([M1,M2], mul=prod_m, category=Monoids().Finite().Subobjects())
         sage: Mon.cardinality()
         24
+        sage: C = Mon.cayley_graph()
+        sage: C.is_directed_acyclic()
+        False
 
     Let us construct and play with the 0-Hecke Monoid::
 

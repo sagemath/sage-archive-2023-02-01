@@ -1174,7 +1174,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
 
             sage: W = Words('ab')
             sage: it = W.iter_morphisms()
-            sage: for _ in range(7): print next(it)
+            sage: for _ in range(7): next(it)
             WordMorphism: a->a, b->a
             WordMorphism: a->a, b->b
             WordMorphism: a->b, b->a
@@ -1336,8 +1336,9 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
         # None, or [arg] otherwise)
         if arg is None:
             from sage.combinat.integer_list import IntegerListsLex
-            compositions = IntegerListsLex(itertools.count(),
-                    length=n, min_part = max(0,min_length))
+            from sage.rings.semirings.non_negative_integer_semiring import NN
+            compositions = IntegerListsLex(NN,
+                                           length=n, min_part=max(0,min_length))
         elif isinstance(arg, tuple):
             if not len(arg) == 2 or not all(isinstance(a, (int,Integer)) for a in arg):
                 raise TypeError("arg (=%s) must be a tuple of 2 integers" %arg)

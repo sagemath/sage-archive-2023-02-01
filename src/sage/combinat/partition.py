@@ -4817,21 +4817,17 @@ class Partitions(UniqueRepresentation, Parent):
                 raise ValueError("the minimum slope must be non-negative")
 
             if 'outer' in kwargs:
-                if 'max_length' in kwargs:
-                    kwargs['max_length'] = min(len(kwargs['outer']), kwargs['max_length'])
-                else:
-                    kwargs['max_length'] = len(kwargs['outer'])
+                kwargs['max_length'] = min(len(kwargs['outer']),
+                                           kwargs.get('max_length', infinity))
 
                 kwargs['ceiling'] = kwargs['outer']
                 del kwargs['outer']
 
             if 'inner' in kwargs:
                 inner = [x for x in kwargs['inner'] if x > 0]
-                kwargs['floor'] = (inner, 1)
-                if 'min_length' in kwargs:
-                    kwargs['min_length'] = max( len(inner), kwargs['min_length'])
-                else:
-                    kwargs['min_length'] = len(inner)
+                kwargs['floor'] = inner
+                kwargs['min_length'] = max(len(inner),
+                                           kwargs.get('min_length',0))
                 del kwargs['inner']
 
             kwargs['element_class'] = Partition

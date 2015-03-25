@@ -9,7 +9,6 @@ Tools for generating lists of integers in lexicographic order
 #*****************************************************************************
 
 import collections
-import itertools
 from warnings import warn
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.constant_function import ConstantFunction
@@ -67,36 +66,23 @@ class IntegerListsLex(Parent):
     - ``length`` -- an integer (optional); overrides ``min_length``
       and ``max_length`` if specified;
 
-    - ``floor`` -- an integer, a list of integers, a tuple with a list
-      and a number, or a function `f` (default: `0`): lower bounds on
-      the parts `l[i]`.
+    - ``min_part`` -- a nonnegative integer: a lower bounds on the
+       parts: ``min_part <= l[i]`` for ``0 <= i < len(l)``.
 
-      If ``floor`` is an integer, then ``floor <= l[i]`` for ``0 <= i < len(l)``.
+    - ``floor`` -- a list of nonnegative integers or a function: lower
+      bounds on the individual parts `l[i]`.
 
-      If ``floor`` is a list of integers, then ``floor<=l[i]`` for
-      ``0 <= i < min(len(l), len(floor)``, and ``min_part<=l[i]`` for
-      the other parts of ``l``.
+      If ``floor`` is a list of integers, then ``floor<=l[i]`` for ``0
+      <= i < min(len(l), len(floor)``. Similarly, if ``floor`` is a
+      function, then ``floor(i) <= l[i]`` for ``0 <= i < len(l)``.
 
-      .. TODO::
+    - ``max_part`` -- a nonnegative integer or `\infty`: an upper
+      bound on the parts: ``l[i] <= max_part`` for ``0 <= i < len(l)``.
 
-          Do we want to keep this feature:
-
-          If ``floor`` is a tuple (``l``, ``default``) where ``l`` is
-          a list and ``default`` is an integer, then ``default`` is
-          used as the default value for indices beyond the length of
-          the list
-
-      If ``floor`` is a function, then ``floor(i) <= l[i]`` for ``0 <= i < len(l)``.
-
-    - ``ceiling`` -- upper bounds on the parts ``l[i]``; this takes
-      the same type of input as ``floor``, except that `\infty` is
-      allowed in addition to any integers, and the default value is
-      `\infty`; also ``max_part`` is used as default upper bound when
-      a ``ceiling`` is a list.
-
-    - ``min_part`` -- to be used in combination with ``floor``, which see.
-
-    - ``max_part`` -- to be used in combination with ``ceiling``, which see.
+    - ``ceiling`` -- upper bounds on the individual parts ``l[i]``;
+      this takes the same type of input as ``floor``, except that
+      `\infty` is allowed in addition to integers, and the default
+      value is `\infty`.
 
     - ``min_slope`` -- an integer or `-\infty` (default: `-\infty`):
       an lower bound on the slope between consecutive parts:
@@ -163,8 +149,11 @@ class IntegerListsLex(Parent):
 
     The following is the list of all partitions of `7` with parts at least `2`::
 
-        sage: list(IntegerListsLex(7, max_slope=0, floor=2))
+        sage: list(IntegerListsLex(7, max_slope=0, min_part=2))
         [[7], [5, 2], [4, 3], [3, 2, 2]]
+
+
+    .. RUBRIC:: floor and ceiling conditions
 
     Next we list all partitions of `5` of length at most `3` which are
     bounded below by ``[2,1,1]``::
@@ -188,7 +177,7 @@ class IntegerListsLex(Parent):
 
     This is the list of all compositions of `4` (but see :class:`Compositions`)::
 
-        sage: list(IntegerListsLex(4, floor=1))
+        sage: list(IntegerListsLex(4, min_part=1))
         [[4], [3, 1], [2, 2], [2, 1, 1], [1, 3], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
 
     This is the list of all integer vectors of sum `4` and length `3`::
@@ -197,6 +186,28 @@ class IntegerListsLex(Parent):
         [[4, 0, 0], [3, 1, 0], [3, 0, 1], [2, 2, 0], [2, 1, 1],
          [2, 0, 2], [1, 3, 0], [1, 2, 1], [1, 1, 2], [1, 0, 3],
          [0, 4, 0], [0, 3, 1], [0, 2, 2], [0, 1, 3], [0, 0, 4]]
+
+    For whatever it's worth, the ``floor`` and ``min_part``
+    constraints can be combined::
+
+        sage: L = IntegerListsLex(5, floor=[2,0,2], min_part=1)
+        sage: L.list()
+        [[5], [4, 1], [3, 2], [2, 3], [2, 1, 2]]
+
+    This is achieved by updating the floor upon constructing ``L``::
+
+        sage: [L.floor(i) for i in range(5)]
+        [2, 1, 2, 1, 1]
+
+    Similarly, the ``ceiling`` and ``max_part`` constraints can be
+    combined::
+
+        sage: L = IntegerListsLex(4, ceiling=[2,3,1], max_part=2, length=3)
+        sage: L.list()
+        [[2, 2, 0], [2, 1, 1], [1, 2, 1]]
+        sage: [L.ceiling(i) for i in range(5)]
+        [2, 2, 1, 2, 2]
+
 
     .. RUBRIC:: Situations with improper lexicographic enumeration
 
@@ -225,6 +236,7 @@ class IntegerListsLex(Parent):
         sage: it = iter(L)
         sage: [it.next() for i in range(6)]
         [[3], [2, 1], [2, 0, 1], [2, 0, 0, 1], [2, 0, 0, 0, 1], [2, 0, 0, 0, 0, 1]]
+
 
     .. RUBRIC:: Specifying functions as input for the floor or ceiling
 
@@ -291,7 +303,7 @@ class IntegerListsLex(Parent):
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1]
 
 
-    .. RUBRIC:: Specifying how to construct elements.
+    .. RUBRIC:: Specifying how to construct elements
 
     This is the list of all monomials of degree `4` which divide the
     monomial `x^3y^1z^2` (a monomial being identified with its
@@ -300,13 +312,13 @@ class IntegerListsLex(Parent):
         sage: R.<x,y,z> = QQ[]
         sage: m = [3,1,2]
         sage: def term(exponents):
-        ...       return x^exponents[0] * y^exponents[1] * z^exponents[2]
-        ...
+        ....:     return x^exponents[0] * y^exponents[1] * z^exponents[2]
         sage: list( IntegerListsLex(4, length=len(m), ceiling=m, element_constructor=term) )
         [x^3*y, x^3*z, x^2*y*z, x^2*z^2, x*y*z^2]
 
     Note the use of the ``element_constructor`` option to specify how
     to construct elements from a plain list.
+
 
     .. RUBRIC:: list or iterable as input for the sum
 
@@ -344,9 +356,9 @@ class IntegerListsLex(Parent):
 
     The complexity of the algorithm has not been formally proven, but
     the average runtime for producing each list `l` is suspected to be
-    bounded by a low-degree polynomial in `lmax`, where `lmax` is the
-    length of the longest list. Similarly, the space complexity of the
-    algorithm is bounded by a low-degree polynomial in ``lmax``.
+    bounded by a low-degree polynomial in ``lmax``, where ``lmax`` is
+    the length of the longest list. Similarly, the space complexity of
+    the algorithm is bounded by a low-degree polynomial in ``lmax``.
 
     .. NOTE::
 
@@ -377,32 +389,31 @@ class IntegerListsLex(Parent):
 
         sage: Partitions(2, max_slope=-1, length=2).list()
         []
-        sage: g = lambda x: lambda i: x
-        sage: list(IntegerListsLex(0, floor=g(1), min_slope=0))
+        sage: list(IntegerListsLex(0, floor=ConstantFunction(1), min_slope=0))
         [[]]
-        sage: list(IntegerListsLex(0, floor=g(1), min_slope=0, max_slope=0))
+        sage: list(IntegerListsLex(0, floor=ConstantFunction(1), min_slope=0, max_slope=0))
         [[]]
-        sage: list(IntegerListsLex(0, max_length=0, floor=g(1), min_slope=0, max_slope=0))
+        sage: list(IntegerListsLex(0, max_length=0, floor=ConstantFunction(1), min_slope=0, max_slope=0))
         [[]]
-        sage: list(IntegerListsLex(0, max_length=0, floor=g(0), min_slope=0, max_slope=0))
+        sage: list(IntegerListsLex(0, max_length=0, floor=ConstantFunction(0), min_slope=0, max_slope=0))
         [[]]
-        sage: list(IntegerListsLex(0, floor=1, min_slope=0))
+        sage: list(IntegerListsLex(0, min_part=1, min_slope=0))
         [[]]
-        sage: list(IntegerListsLex(1, floor=1, min_slope=0))
+        sage: list(IntegerListsLex(1, min_part=1, min_slope=0))
         [[1]]
-        sage: list(IntegerListsLex(0, min_length=1, floor=1, min_slope=0))
+        sage: list(IntegerListsLex(0, min_length=1, min_part=1, min_slope=0))
         []
         sage: list(IntegerListsLex(0, min_length=1, min_slope=0))
         [[0]]
         sage: list(IntegerListsLex(3, max_length=2, ))
         [[3], [2, 1], [1, 2], [0, 3]]
-        sage: partitions = {"floor": 1, "max_slope": 0}
-        sage: partitions_min_2 = {"floor": g(2), "max_slope": 0}
-        sage: compositions = {"floor": 1}
+        sage: partitions = {"min_part": 1, "max_slope": 0}
+        sage: partitions_min_2 = {"floor": ConstantFunction(2), "max_slope": 0}
+        sage: compositions = {"min_part": 1}
         sage: integer_vectors = lambda l: {"length": l}
         sage: lower_monomials = lambda c: {"length": c, "floor": lambda i: c[i]}
         sage: upper_monomials = lambda c: {"length": c, "ceiling": lambda i: c[i]}
-        sage: constraints = { "floor":1, "min_slope": -1, "max_slope": 0}
+        sage: constraints = { "min_part":1, "min_slope": -1, "max_slope": 0}
         sage: list(IntegerListsLex(6, **partitions))
         [[6],
          [5, 1],
@@ -459,45 +470,45 @@ class IntegerListsLex(Parent):
 
     Noted on :trac:`17898`::
 
-        sage: list(IntegerListsLex(4, floor=1, length=3, min_slope=1))
+        sage: list(IntegerListsLex(4, min_part=1, length=3, min_slope=1))
         []
         sage: IntegerListsLex(6, ceiling=[4,2], floor=[3,3]).list()
         []
-        sage: IntegerListsLex(6, floor=1, ceiling=3, max_slope=-4).list()
+        sage: IntegerListsLex(6, min_part=1, max_part=3, max_slope=-4).list()
         []
 
     Noted in :trac:`17548`, which are now fixed::
 
-        sage: IntegerListsLex(10, floor=2, max_slope=-1).list()
+        sage: IntegerListsLex(10, min_part=2, max_slope=-1).list()
         [[10], [8, 2], [7, 3], [6, 4], [5, 3, 2]]
-        sage: IntegerListsLex(5, ceiling=2, min_slope=1, floor=[2,1,1]).list()
+        sage: IntegerListsLex(5, min_slope=1, floor=[2,1,1], max_part=2).list()
         []
         sage: IntegerListsLex(4, min_slope=0, max_slope=0).list()
         [[4], [2, 2], [1, 1, 1, 1]]
         sage: IntegerListsLex(6, min_slope=-1, max_slope=-1).list()
         [[6], [3, 2, 1]]
-        sage: IntegerListsLex(6, min_length=3, max_length=2, floor=1).list()
+        sage: IntegerListsLex(6, min_length=3, max_length=2, min_part=1).list()
         []
-        sage: I = IntegerListsLex(3, max_length=2, floor=1)
+        sage: I = IntegerListsLex(3, max_length=2, min_part=1)
         sage: I.list()
         [[3], [2, 1], [1, 2]]
         sage: [1,1,1] in I
         False
-        sage: I=IntegerListsLex(10, ceiling=[4], max_length=1, floor=1)
+        sage: I=IntegerListsLex(10, ceiling=[4], max_length=1, min_part=1)
         sage: I.list()
         []
         sage: [4,6] in I
         False
-        sage: I = IntegerListsLex(4, ceiling=2, min_slope=1, floor=1)
+        sage: I = IntegerListsLex(4, min_slope=1, min_part=1, max_part=2)
         sage: I.list()
         []
-        sage: I = IntegerListsLex(7, ceiling=4, min_slope=1, floor=1)
+        sage: I = IntegerListsLex(7, min_slope=1, min_part=1, max_part=4)
         sage: I.list()
         [[3, 4], [1, 2, 4]]
         sage: I = IntegerListsLex(4, floor=[2,1], ceiling=[2,2], max_length=2, min_slope=0)
         sage: I.list()
         [[2, 2]]
-        sage: I = IntegerListsLex(10, floor=1, max_slope=-1)
+        sage: I = IntegerListsLex(10, min_part=1, max_slope=-1)
         sage: I.list()
         [[10], [9, 1], [8, 2], [7, 3], [7, 2, 1], [6, 4], [6, 3, 1], [5, 4, 1],
          [5, 3, 2], [4, 3, 2, 1]]
@@ -545,7 +556,7 @@ class IntegerListsLex(Parent):
                  n=None, min_sum=0, max_sum=0,
                  length=None, min_length=0, max_length=infinity,
                  floor=None, ceiling=None,
-                 min_part=None, max_part=None,
+                 min_part=0, max_part=infinity,
                  min_slope=-infinity, max_slope=infinity,
                  name=None,
                  category=None,
@@ -600,111 +611,70 @@ class IntegerListsLex(Parent):
         self.min_slope = min_slope
         self.max_slope = max_slope
 
-        if min_part is None:
-            self.min_part = 0
-        elif min_part in ZZ:
-            if min_part < 0:
-                raise(ValueError("min_part can't be negative"))
-            else:
-                ## TODO warn user of deprecation
-                self.min_part = min_part
-        else:
-            if min_part == infinity:
-                raise(ValueError("min_part can't be infinite"))
-            elif min_part == -infinity:
-                raise(ValueError("min_part can't be negative or infinite"))
-            else:
-                raise(ValueError("unable to parse value of min_part"))
+        if min_part not in ZZ:
+            raise TypeError("min_part (={}) should be an integer".format(min_part))
+        elif min_part <0:
+            raise NotImplementedError("strictly negative min_part")
 
-        if max_part is None:
-            self.max_part = infinity
-        elif max_part in ZZ:
-            if max_part < 0:
-                raise(ValueError("max_part can't be negative"))
-            else:
-                ## TODO warn user of deprecation
-                self.max_part = max_part
-        else:
-            if max_part == -infinity:
-                raise(ValueError("max_part can't be negative"))
-            else:
-                raise(ValueError("unable to parse value of max_part"))
+        if max_part != infinity and max_part not in ZZ:
+            raise TypeError("max_part (={}) should be an integer or +oo".format(max_part))
 
-        # Since #17979, indexing for floor and ceiling functions is base 0
         if floor is None:
-            self.floor_type = "none"
-            self.floor = ConstantFunction(self.min_part)
-            self.floor_limit = 0
-            self.floor_limit_start = 0
-        elif floor in ZZ:
-            if floor < 0:
-                raise(ValueError("floor value can't be negative"))
+            self.floor = ConstantFunction(min_part)
             self.floor_type = "constant"
-            self.floor = ConstantFunction(max(floor,self.min_part))
-            self.floor_limit = floor
+            self.floor_limit = min_part
             self.floor_limit_start = 0
-        elif isinstance(floor, list) or isinstance(floor, tuple):
+        elif isinstance(floor, (list, tuple)):
+            if not all(i in ZZ for i in floor):
+                raise TypeError("the parts of floor={} should be non negative integers".format(floor))
+            if not all(i >= 0 for i in floor):
+                raise NotImplementedError("negative parts in floor={}".format(floor))
+            if min_part > 0:
+                floor = map(lambda i: max(i, min_part), floor)
+            self.floor = IntegerListsLex._list_function(floor, min_part)
             self.floor_type = "list"
-            if isinstance(floor, tuple):
-                (floor,default) = floor
-            else:
-                (floor,default) = (floor, 0)
-            floor_fn = IntegerListsLex._list_function(floor, default)
-            self.floor_limit = 0
+            self.floor_limit = min_part
             self.floor_limit_start = len(floor)
-            if (self.min_part > 0):
-                self.floor = lambda i: max(self.min_part, floor_fn(i))
-            else:
-                self.floor = floor_fn
         elif callable(floor):
-            # indexing is base 0
             self._warning = True
-            self.floor_type = "function"
-            self.floor_limit = None
-            self.floor_limit_start = float('+inf')
-            if (self.min_part > 0):
-                self.floor = lambda i: max(self.min_part, floor(i))
+            if min_part > 0:
+                self.floor = lambda i: max(min_part, floor(i))
             else:
                 self.floor = floor
+            self.floor_type = "function"
+            self.floor_limit = None
+            self.floor_limit_start = infinity
         else:
-            raise(ValueError("unable to parse value of parameter floor"))
+            raise TypeError("floor should be a list, tuple, or function")
 
         if ceiling is None:
-            self.ceiling_type = "none"
-            self.ceiling = ConstantFunction(min(infinity,self.max_part))
-            self.ceiling_limit = infinity
-            self.ceiling_limit_start = 0
-        elif ceiling in ZZ or ceiling == infinity:
-            if ceiling < 0:
-                raise(ValueError("ceiling value can't be negative"))
+            self.ceiling = ConstantFunction(max_part)
             self.ceiling_type = "constant"
-            self.ceiling = ConstantFunction(min(ceiling,self.max_part))
-            self.ceiling_limit = ceiling
+            self.ceiling_limit = max_part
             self.ceiling_limit_start = 0
-        elif isinstance(ceiling, list) or isinstance(ceiling, tuple):
+        elif isinstance(ceiling, (list, tuple)):
+            if not all(i==infinity or i in ZZ for i in ceiling):
+                raise TypeError("the parts of ceiling={} should be non negative integers".format(ceiling))
+            if not all(i >= 0 for i in ceiling):
+                raise NotImplementedError("negative parts in floor={}".format(ceiling))
+            if max_part < infinity:
+                ceiling = map(lambda i: min(i, max_part), ceiling)
+            self.ceiling = IntegerListsLex._list_function(ceiling, max_part)
             self.ceiling_type = "list"
-            if isinstance(ceiling, tuple):
-                (ceiling, default) = ceiling
-            else:
-                (ceiling, default) = (ceiling, infinity)
-            ceiling_fn = IntegerListsLex._list_function(ceiling, default)
-            self.ceiling_limit = infinity
+            self.ceiling_limit = max_part
             self.ceiling_limit_start = len(ceiling)
-            if (self.max_part < infinity):
-                self.ceiling = lambda i: min(self.max_part, ceiling_fn(i))
-            else:
-                self.ceiling = ceiling_fn
         elif callable(ceiling):
             self._warning = True
+            if max_part < infinity:
+                self.ceiling = lambda i: min(max_part, ceiling(i))
+            else:
+                self.ceiling = ceiling
+            self.ceiling = ceiling
             self.ceiling_type = "function"
             self.ceiling_limit = None
             self.ceiling_limit_start = infinity
-            if (self.max_part < infinity):
-                self.ceiling = lambda i: min(self.max_part, ceiling(i))
-            else:
-                self.ceiling = ceiling
         else:
-            raise(ValueError("unable to parse value of parameter ceiling"))
+            raise ValueError("unable to parse value of parameter ceiling")
 
         if name is not None:
             self.rename(name)
@@ -789,14 +759,14 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             A given name
         """
         if self.min_sum == self.max_sum:
-            return "Integer lists of sum %s satisfying certain constraints" % self.min_sum
+            return "Integer lists of sum {} satisfying certain constraints".format(self.min_sum)
         elif self.max_sum == infinity:
             if self.min_sum == 0:
                 return "Integer lists with arbitrary sum satisfying certain constraints"
             else:
-                return "Integer lists of sum at least %s satisfying certain constraints" % self.min_sum
+                return "Integer lists of sum at least {} satisfying certain constraints".format(self.min_sum)
         else:
-            return "Integer lists of sum between %s and %s satisfying certain constraints" % (self.min_sum,self.max_sum)
+            return "Integer lists of sum between {} and {} satisfying certain constraints".format(self.min_sum,self.max_sum)
 
     def __contains__(self, comp):
         """
@@ -982,7 +952,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
                 inf
                 sage: f(2)
                 inf
-                sage: C = IntegerListsLex(6, max_slope=1, ceiling=3)
+                sage: C = IntegerListsLex(6, max_slope=1, max_part=3)
                 sage: I = IntegerListsLex._IntegerListsLexIter(C)
                 sage: f = I._upper_envelope(1,1)
                 sage: f(1)
@@ -1022,7 +992,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
                 0
                 sage: f(2)
                 0
-                sage: C = IntegerListsLex(6, min_slope=-1, floor=1)
+                sage: C = IntegerListsLex(6, min_slope=-1, min_part=1)
                 sage: I = IntegerListsLex._IntegerListsLexIter(C)
                 sage: f = I._lower_envelope(3,1)
                 sage: f(1)

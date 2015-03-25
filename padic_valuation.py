@@ -792,6 +792,10 @@ class pAdicValuation_number_field(pAdicValuation_base):
     def lift(self, x):
         if x.parent() is not self.residue_field():
             raise ValueError("x must be in the residue field of the valuation")
+        if x.is_one():
+            return self.domain().one()
+        if x.is_zero():
+            return self.domain().zero()
 
         k = self.domain().residue_field(self._prime)
-        return self.domain()(x.polynomial(k.gen()))
+        return self.domain()(k.lift(x.polynomial()(k.gen())))

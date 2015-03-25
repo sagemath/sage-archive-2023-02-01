@@ -572,6 +572,22 @@ class DevelopingValuation(DiscreteValuation):
             sage: len(F)
             2
 
+        TESTS::
+
+        sage: R.<x> = QQ[]
+        sage: K1.<pi>=NumberField(x^3-2)
+        sage: K.<alpha>=K1.galois_closure()
+        sage: p=K.primes_above(2)[0]
+        sage: R.<x>=K[]
+        sage: vp=pAdicValuation(K,p)
+        sage: v0=GaussValuation(R,vp)
+        sage: G=x^36 + 36*x^35 + 630*x^34 + 7144*x^33 + 59055*x^32 + 379688*x^31 +1978792*x^30 + 8604440*x^29 + 31895428*x^28 + 102487784*x^27 + 289310720*x^26 + 725361352*x^25 + 1629938380*x^24 + 3307417800*x^23 + 6098786184*x^22+10273444280*x^21 + 15878121214*x^20 + 22596599536*x^19 + 29695703772*x^18 +36117601976*x^17 + 40722105266*x^16 + 42608585080*x^15 + 41395961848*x^14 +37344435656*x^13 + 31267160756*x^12 + 24271543640*x^11 + 17439809008*x^10 + 11571651608*x^9 + 7066815164*x^8 + 3953912472*x^7 + 2013737432*x^6 + 925014888*x^5 + 378067657*x^4 + 134716588*x^3 + 40441790*x^2 + 9532544*x + 1584151
+        sage: v1=v0.mac_lane_step(G)[0]
+        sage: V=v1.mac_lane_step(G)
+        sage: v2=V[0]
+        sage: v2.equivalence_decomposition(G)
+        (-80634880/9*alpha^5 + 102406400/3*alpha^4 - 259072000/3*alpha^3 + 163850240*alpha^2 - 208064000*alpha + 6144256) * (x^4 + 4*x^3 + 6*x^2 + 4*x - 35/54*alpha^5 + 13/18*alpha^4 - 2/9*alpha^3 - 11/3*alpha^2 + 41/3*alpha - 33)^3
+
         REFERENCES:
 
         .. [ML1936'] MacLane, S. (1936). A construction for absolute values in

@@ -709,6 +709,10 @@ ext_modules = [
 
     Extension('*', ["sage/libs/eclib/*.pyx"]),
 
+    Extension('sage.libs.homfly',
+              sources = ["sage/libs/homfly.pyx"],
+              libraries = ['homfly', 'gc']),
+
     ################################
     ##
     ## sage.libs.gap

@@ -912,7 +912,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
 
                 # check if the new value is valid, if not, pop to prefix, and now check if this is a solution
 
-                if m < rho[self.j][0] or (self.j == max_length - 1 and nu< min_n):
+                if m < rho[self.j][0] or (self.j == max_length - 1 and nu< min_sum):
                     mu.pop()
                     rho.pop()
                     self.j -= 1

@@ -8,15 +8,17 @@ Tools for generating lists of integers in lexicographic order
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+import collections
+import itertools
+from warnings import warn
+from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
-from sage.structure.list_clone import ClonableArray
-from sage.rings.integer import Integer
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
 from sage.rings.integer_ring import ZZ
-from warnings import warn
 
 infinity = float('+inf')
 
@@ -191,16 +193,9 @@ class IntegerListsLex(Parent):
 
         sage: it = IntegerListsLex(2,ceiling=lambda i:0 if i<20 else 1).__iter__()
         doctest:...
-        You defined floor=[...] or ceiling=[...] to be a method rather than a constant
-        or a list.  Because it is impossible to check all of the values of a user-supplied
-        function, it is possible for the iteration algorithm of this class to hang, for instance
-        when the ceiling function stabilizes at the value 0.  See the documentation for more
-        information.  The user is responsible for verifying that the algorithm will not hang on
-        their input parameters.  Also note that the function you specify should start at 0
-        rather than 1.  Before trac#17979 the indexing was ambiguous and sometimes started at 1.
-        To verify that you understand the subtleties of using a custom floor or ceiling function
-        and to suppress this warning message, specify the parameter waiver=True in your object
-        constructor.
+        A function has been given as input of the floor=[...] or ceiling=[...]
+        arguments of IntegerListsLex. Please see the documentation for the caveats.
+        If you know what you are doing, you can set waiver=True to skip this warning.
         sage: it.next()
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
         sage: it.next()
@@ -238,11 +233,38 @@ class IntegerListsLex(Parent):
         sage: list( IntegerListsLex(4, length = len(m), ceiling = m, element_constructor = term) )
         [x^3*y, x^3*z, x^2*y*z, x^2*z^2, x*y*z^2]
 
-    Note the use of the element_constructor feature.
+    Note the use of the ``element_constructor`` feature to specify how
+    to construct elements from a plain list.
+
+
+    One may pass a list or iterable `l` as input for the sum. In this
+    case, the elements will be generated lexicographically, for each
+    sum in `l` in turn::
+
+        sage: C = IntegerListsLex([0,1,2], length=2)
+        sage: C.list()
+        [[0, 0],  [1, 0], [0, 1],  [2, 0], [1, 1], [0, 2]]
+
+    This is in fact just a short hand for using
+    :class:`DisjointUnionEnumeratedSets`::
+
+        sage: C
+        Disjoint union of Finite family
+        {0: Integer lists of sum 0 satisfying certain constraints,
+         1: Integer lists of sum 1 satisfying certain constraints,
+         2: Integer lists of sum 2 satisfying certain constraints}
+
+    This feature is mostly here for backward compatibility, as using
+    :class:`DisjointEnumeratedSets` is more general and flexible::
+
+        sage: C = DisjointUnionEnumeratedSets(Family([0,1,2],
+        ....:         lambda n: IntegerListsLex(n, length=2)))
+        sage: C.list()
+        [[0, 0],  [1, 0], [0, 1],  [2, 0], [1, 1], [0, 2]]
 
     The iteration algorithm uses a targeted tree-search.  The complexity of the algorithm
     has not been formally proven, but the runtime is suspected to be amortized bounded per
-    word by a low-degree polynomial in the length the word produced.  The space complexity
+    word by a low-degree polynomial in the length of the list produced.  The space complexity
     of the algorithm is very low, on the order of the length of the words produced.
 
     In the following example, the floor conditions do not satisfy the
@@ -416,6 +438,21 @@ class IntegerListsLex(Parent):
     """
     __metaclass__ = ClasscallMetaclass
 
+    @staticmethod
+    def __classcall_private__(cls, n=None, **kwargs):
+        r"""
+        Return a disjoint union if ``n`` is a list or iterable.
+
+        EXAMPLES::
+
+            sage: IntegerListsLex(NN, max_length=3)
+            Disjoint union of Lazy family (<lambda>(i))_{i in Non negative integer semiring}
+        """
+        if isinstance(n, (list,collections.Iterable)):
+            return DisjointUnionEnumeratedSets(Family(n, lambda i: IntegerListsLex(i, **kwargs)))
+        else:
+            return typecall(cls, n=n, **kwargs)
+
     def __init__(self,
                  n=None, min_n=0, max_n=0,
                  length=None, min_length=0, max_length=infinity,
@@ -448,33 +485,20 @@ class IntegerListsLex(Parent):
         if category is None:
             category = EnumeratedSets().Finite()
 
-        self.waiver = waiver
-        # Warning for usage cases that could cause the algorithm to hang
-        # Any results will be correct regardless of input, but using custom
-        #  functions in some places could cause the algorithm to hang since it's
-        #  impossible to do all of the checks on an arbitrary function that can
-        #  be done on other input types since we can't look at all values of such
-        #  a function.  See the documentation for more details
-        self._warning = False
+        # self._warning will be set to ``True`` if a function is given
+        # as input for floor or ceiling; in this case a warning will
+        # be emitted, unless the user signs the waiver. See the
+        # documentation.
+        self._warning = False # warning for dangerous (but possibly valid) usage
+        self._waiver = waiver
 
         if n is not None:
             if n in ZZ:
-                #if n < 0:
-                #    print n
-                #    raise ValueError("value of n can't be less than 0")
-                self.n_list = [n]
                 self.min_n = n
                 self.max_n = n
-            elif isinstance(n, list):
-                self.n_list = n
-                self.min_n = min(self.n_list)
-                #if self.min_n < 0:
-                #    raise ValueError("can't have negative values of n")
-                self.max_n = max(self.n_list)
             else:
-                raise ValueError("invalid value for parameter n")
+                raise TypeError("invalid value for parameter n")
         else:
-            self.n_list = None
             self.min_n = min_n
             self.max_n = max_n
 
@@ -518,8 +542,7 @@ class IntegerListsLex(Parent):
             else:
                 raise(ValueError("unable to parse value of max_part"))
 
-        ## TODO: Warn user about using arbitrary functions?
-        # indexing for floor and ceiling functions is base 0 internally
+        # Since #17979, indexing for floor and ceiling functions is base 0
         if floor is None:
             self.floor_type = "none"
             self.floor = ConstantFunction(self.min_part)
@@ -598,18 +621,11 @@ class IntegerListsLex(Parent):
         if name is not None:
             self.rename(name)
 
-        if self._warning and not self.waiver:
+        if self._warning and not self._waiver:
             warn("""
-You defined floor=[...] or ceiling=[...] to be a method rather than a constant
-or a list.  Because it is impossible to check all of the values of a user-supplied
-function, it is possible for the iteration algorithm of this class to hang, for instance
-when the ceiling function stabilizes at the value 0.  See the documentation for more
-information.  The user is responsible for verifying that the algorithm will not hang on
-their input parameters.  Also note that the function you specify should start at 0
-rather than 1.  Before trac#17979 the indexing was ambiguous and sometimes started at 1.
-To verify that you understand the subtleties of using a custom floor or ceiling function
-and to suppress this warning message, specify the parameter waiver=True in your object
-constructor.""")
+A function has been given as input of the floor=[...] or ceiling=[...]
+arguments of IntegerListsLex. Please see the documentation for the caveats.
+If you know what you are doing, you can set waiver=True to skip this warning.""")
 
         # In case we want output to be of a different type,
         if element_constructor is not None:
@@ -680,11 +696,7 @@ constructor.""")
             sage: C # indirect doctest
             Integer lists of sum 2 satisfying certain constraints
 
-            sage: C = IntegerListsLex([1,2,4], length=3)
-            sage: C # indirect doctest
-            Integer lists of sum in [1, 2, 4] satisfying certain constraints
-
-            sage: C = IntegerListsLex([1,2,4], length=3, name="A given name")
+            sage: C = IntegerListsLex(2, length=3, name="A given name")
             sage: C
             A given name
         """
@@ -696,10 +708,7 @@ constructor.""")
             else:
                 return "Integer lists of sum at least %s satisfying certain constraints" % self.min_n
         else:
-            if self.n_list is not None:
-                return "Integer lists of sum in %s satisfying certain constraints" % self.n_list
-            else:
-                return "Integer lists of sum between %s and %s satisfying certain constraints" % (self.min_n,self.max_n)
+            return "Integer lists of sum between %s and %s satisfying certain constraints" % (self.min_n,self.max_n)
 
     def __contains__(self, comp):
         """
@@ -714,12 +723,8 @@ constructor.""")
         if len(comp) < self.min_length or len(comp) > self.max_length:
             return False
         n = sum(comp)
-        if self.n_list is not None:
-            if not n in self.n_list:
-                return False
-        else:
-            if n < self.min_n or n > self.max_n:
-                return False
+        if n < self.min_n or n > self.max_n:
+            return False
         for i in range(len(comp)):
             if comp[i] < self.floor(i):
                 return False
@@ -739,10 +744,10 @@ constructor.""")
         EXAMPLES::
 
             sage: C = IntegerListsLex(2, length=3)
-            sage: list(C) #indirect doctest
+            sage: list(C)     # indirect doctest
             [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
         """
-        return IntegerListsLex._IntegerListsLexIter(self)
+        return self._IntegerListsLexIter(self)
 
     class _IntegerListsLexIter:
         """
@@ -860,10 +865,7 @@ constructor.""")
             p = self.parent
             nu = sum(mu)
             j = len(mu)
-            if p.n_list is not None:
-                good_sum = (nu in p.n_list)
-            else:
-                good_sum = (nu >= p.min_n and nu <= p.max_n)
+            good_sum = (nu >= p.min_n and nu <= p.max_n)
             good_length = (j >= p.min_length and j <= p.max_length)
             no_trailing_zeros = (j <= max(p.min_length,0) or mu[-1] != 0)
             return good_sum and good_length and no_trailing_zeros

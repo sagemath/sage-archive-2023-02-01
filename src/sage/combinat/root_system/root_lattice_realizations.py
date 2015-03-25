@@ -2039,7 +2039,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             EXAMPLES::
 
-                sage: L = RootSystem(["A",2,1]).ambient_space().plot()
+                sage: L = RootSystem(["A",2,1]).ambient_space().plot()    # long time
 
             .. SEEALSO::
 
@@ -2886,10 +2886,10 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             And another with some foldings::
 
-                sage: L.plot_alcoves(bounding_box=3) + \
+                sage: L.plot_alcoves(bounding_box=3) + \            # long time (3s)
                 ....:   L.plot_alcove_walk([0,1,2,0,2,0,1,2,0,1],
                 ....:                      foldings = [False, False, True, False, False, False, True, False, True, False],
-                ....:                      color="green")            # long time (3s)
+                ....:                      color="green")
                 Graphics object consisting of 155 graphics primitives
 
             TESTS::
@@ -2990,12 +2990,14 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: B = crystals.LSPaths(['A',2], [1,1])
                 sage: L = RootSystem(['A',2]).ambient_space()
                 sage: L.plot_fundamental_weights() + L.plot_ls_paths(B)
+                Graphics object consisting of 14 graphics primitives
 
             This also works in 3 dimensions::
 
                 sage: B = crystals.LSPaths(['B',3], [2,0,0])
                 sage: L = RootSystem(['B',3]).ambient_space()
                 sage: L.plot_ls_paths(B)
+                Graphics3d Object
             """
             if not isinstance(paths, (list, tuple, set)):
                 from sage.combinat.crystals.littelmann_path import CrystalOfLSPaths
@@ -3062,6 +3064,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: L = RootSystem(['A',2]).ambient_space()
                 sage: C = crystals.Tableaux(['A',2], shape=[2,1])
                 sage: L.plot_crystal(C)
+                Graphics object consisting of 16 graphics primitives
                 sage: C = crystals.Tableaux(['A',2], shape=[8,4])
                 sage: p = L.plot_crystal(C, plot_labels='circles')
                 sage: p.show(figsize=15)
@@ -3070,7 +3073,8 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: L = RootSystem(['B',3]).ambient_space()
                 sage: C = crystals.Tableaux(['B',3], shape=[2,1])
-                sage: L.plot_crystal(C, plot_labels='circles', edge_labels=True)
+                sage: L.plot_crystal(C, plot_labels='circles', edge_labels=True) # long time
+                Graphics3d Object
             """
             from sage.plot.arrow import arrow
             from sage.plot.circle import circle

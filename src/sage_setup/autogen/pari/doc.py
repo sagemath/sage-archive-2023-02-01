@@ -34,6 +34,8 @@ escape_mid = re.compile(r"^(\S.*)[|]", re.MULTILINE)
 escape_percent = re.compile(r"^(\S.*)[%]", re.MULTILINE)
 escape_hash = re.compile(r"^(\S.*)[#]", re.MULTILINE)
 
+label_link = re.compile(r"(Section *)?\[@\[startbold\]Label: *(se:)?([^@]*)@\[endbold\]\]")
+
 
 def sub_loop(regex, repl, text):
     """
@@ -113,6 +115,9 @@ def raw_to_rest(doc):
     # Sphinx dislikes inline markup immediately followed by a letter:
     # insert a non-breaking space
     doc = end_space.sub("\\1" + unichr(0xa0) + "\\2", doc)
+
+    # Remove links
+    doc = label_link.sub("``\\3`` (in the PARI manual)", doc)
 
     # Bullet items
     doc = doc.replace("@3@[startbold]*@[endbold] ", "@BULLET  ")
@@ -328,6 +333,19 @@ def get_rest_doc(function):
         installed, the :literal:`SEA` algorithm becomes available, heuristically in
         :math:`~{O}(\log q)^4`, and primes of the order of 200 digits become feasible.
         In very small characteristic (2,3,5,7 or :math:`13`), we use Harley's algorithm.
+
+    ::
+
+        sage: print get_rest_doc("bitor")
+        bitwise (inclusive)
+        :literal:`or` of two integers :math:`x` and :math:`y`, that is the integer
+        <BLANKLINE>
+        .. MATH::
+        <BLANKLINE>
+            \sum
+            (x_i or y_i) 2^i
+        <BLANKLINE>
+        See ``bitand`` (in the PARI manual) for the behavior for negative arguments.
     """
     raw = get_raw_doc(function)
     return raw_to_rest(raw)

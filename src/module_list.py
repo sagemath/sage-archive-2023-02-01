@@ -833,6 +833,10 @@ ext_modules = [
               sources = ["sage/libs/mpmath/ext_libmp.pyx"],
               libraries = ['gmp']),
 
+    Extension('sage.libs.homfly',
+              sources = ["sage/libs/homfly.pyx"],
+              libraries = ['homfly', 'gc']),
+
         ################################
         ##
         ## sage.libs.gap

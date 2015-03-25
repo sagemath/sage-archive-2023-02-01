@@ -64,6 +64,7 @@ to be aware of the modules described in this chapter.
    sage/libs/ecl
    sage/libs/mwrank/interface
    sage/libs/mwrank/mwrank
+   sage/libs/homfly
 
    sage/gsl/gsl_array
 

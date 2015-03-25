@@ -220,6 +220,15 @@ class IntegerListsLex(Parent):
 
         This should kaboom!!!
 
+    Here is a variant which could be enumerated in lexicographically
+    increasing order but not in lexicographically decreasing order::
+
+        sage: L = IntegerListsLex(length=2, ceiling=[Infinity, 0], floor=[0,1])
+        sage: for l in L: print l
+        Traceback (most recent call last):
+        ...
+        ValueError: infinite upper bound for values of m
+
     Even when the sum is specified, it is not necessarily possible to
     enumerate all elements lexicographically. In the following
     example, the list `[1, 1, 1]` will never appear in the enumeration::
@@ -368,10 +377,18 @@ class IntegerListsLex(Parent):
 
     .. TODO:
 
-        Integrate all remaining tests from
-        http://mupad-combinat.svn.sourceforge.net/viewvc/mupad-combinat/trunk/MuPAD-Combinat/lib/COMBINAT/TEST/MachineIntegerListsLex.tst
+        - Integrate all remaining tests from
+          http://mupad-combinat.svn.sourceforge.net/viewvc/mupad-combinat/trunk/MuPAD-Combinat/lib/COMBINAT/TEST/MachineIntegerListsLex.tst
 
-        Integrate all tests from the ticket, sage-devel, ...
+        - Integrate all tests from the ticket, sage-devel, ...
+
+        - Improve the lookahead to get a proper complexity in the
+          following example; even just for n=1000 this is taking a
+          long time::
+
+              sage: n = 100
+              sage: IntegerListsLex(binomial(n,2)-1, length=n, min_slope=1).list()
+              []
 
     TESTS::
 
@@ -556,7 +573,7 @@ class IntegerListsLex(Parent):
             return typecall(cls, n=n, **kwargs)
 
     def __init__(self,
-                 n=None, min_sum=0, max_sum=0,
+                 n=None, min_sum=0, max_sum=_infinity,
                  length=None, min_length=0, max_length=_infinity,
                  floor=None, ceiling=None,
                  min_part=0, max_part=_infinity,

@@ -8,79 +8,109 @@ Tools for generating lists of integers in lexicographic order
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+import collections
+import itertools
+from warnings import warn
+from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
-from sage.structure.list_clone import ClonableArray
-from sage.rings.integer import Integer
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
 from sage.rings.integer_ring import ZZ
-from warnings import warn
 
 infinity = float('+inf')
 
 class IntegerListsLex(Parent):
     r"""
-    A combinatorial class `C` for integer lists satisfying certain
-    sum, length, upper/lower bound and regularity constraints. The
-    purpose of this tool is mostly to provide a Constant Amortized
-    Time iterator through these lists, in lexicographic order.
+    Lists of non negative integers with constraints, in lexicographic order.
+
+    An *integer list* is a list `l` of nonnegative integers, its
+    *parts*. The *length* ``len(l)`` of `l` is the number of its
+    parts. The *sum* `|l|` of `l` is the sum of its parts. The slope
+    (at position `i`) is the difference ``l[i+1]-l[i]`` between two
+    consecutive entries.
+
+    This class allows to construct the set of all integer lists `l`
+    satisfying specified bounds on the sum, the length, the slope, and
+    the individual parts, enumerated lexicographically. The main
+    purpose is to provide a generic iteration engine for all the
+    enumerated sets like :class:`Partitions`, :class:`Compositions`,
+    :class:`IntegerVectors`. It can also be used to generate many
+    other combinatorial objects like Dyck paths, Motzkin paths, etc.
+
+    Mathematically speaking, this is a special case of sets of
+    integral points of a polytope (or union thereof, when the length
+    is not fixed). The set of allowable has been specifically designed
+    to enable iteration with a good time and memory complexity, in
+    lexicographic order (see below).
 
     INPUT:
 
-    - ``min_n`` -- a nonnegative integer specifying the minimum number to which
-      the elements in the list sum; defaults to ``0``
+    - ``min_sum`` -- a nonnegative integer (default: 0):
+      a lower bound on `|l|`.
 
-    - ``max_n`` -- a nonnegative integer or `\infty` specifying the maximum number to which
-      the elements in the list sum; defaults to ``0``
+    - ``max_sum`` -- a nonnegative integer or `\infty` (default: `\infty`):
+      an upper bound on `|l|`.
 
-    - ``n`` -- a nonnegative integer or list of nonnegative integers; overrides min_n and max_n if specified
+    - ``n`` -- a nonnegative integer (optional): if specified, this
+      overrides ``min_sum`` and ``max_sum``. Alternatively a list or
+      iterable of nonnegative integers can be specified.
 
-      If ``n`` is a list of nonnegative integers, it specifies the set of all allowable sums of
-      the elements in the list.
+    - ``min_length`` -- a nonnegative integer (default: `0`): a lower
+      bound on ``len(l)``.
 
-    - ``min_length`` -- a nonnegative integer specifying the minimal length of the vectors;
-      defaults to ``0``
+    - ``max_length`` -- a nonnegative integer or `\infty` (default:
+      `\infty`): an upper bound on ``len(l)``.
 
-    - ``max_length`` -- a nonnegative integer or `\infty` specifying the maximal length of the vectors;
-      defaults to `\infty`
+    - ``length`` -- an integer (optional); overrides ``min_length``
+      and ``max_length`` if specified;
 
-    - ``length`` -- an integer; overrides min_length and max_length if specified
+    - ``floor`` -- an integer, a list of integers, a tuple with a list
+      and a number, or a function `f` (default: `0`): lower bounds on
+      the parts `l[i]`.
 
-    - ``floor`` -- an integer, a list of integers, a tuple with a list and a number, or a function `f`;
-      defaults to the constant zero.  The value of ``floor`` specifies the smallest allowable value for the
-      parts of the lists described by the object, as a function on the indices `\{0, 1, 2, \ldots\}`.
+      If ``floor`` is an integer, then ``floor <= l[i]`` for ``0 <= i < len(l)``.
 
-      If ``floor`` is an integer, then a constant function is used.
+      If ``floor`` is a list of integers, then ``floor<=l[i]`` for
+      ``0 <= i < min(len(l), len(floor)``, and ``min_part<=l[i]`` for
+      the other parts of ``l``.
 
-      If ``floor`` is a list of integers, then the floor function takes initial values from the list and
-      default value 0 for indices beyond the length of the list
+      .. TODO::
 
-      If ``floor`` is a tuple (``l``, ``default``) where ``l`` is a list and ``default`` is an integer,
-      then ``default`` is used as the default value for indices beyond the length of the list
+          Do we want to keep this feature:
 
-      If ``floor`` is a function, this function is used directly.
+          If ``floor`` is a tuple (``l``, ``default``) where ``l`` is
+          a list and ``default`` is an integer, then ``default`` is
+          used as the default value for indices beyond the length of
+          the list
 
-    - ``ceiling`` -- an integer or `\infty`, a list of integers or `\infty`, a tuple with a list and a number, or a function `f`; defaults to the constant `\infty`.  The value of ``ceiling`` specifies the largest allowable value for the parts of the lists described by the object, function on the indices `\{0, 1, 2, \ldots\}`.  All formats  functions allow `\infty`
+      If ``floor`` is a function, then ``floor(i) <= l[i]`` for ``0 <= i < len(l)``.
 
-      The meanings of the parameters are the same as for those of a similar type for ``floor``, except that `\infty` is allowed in place of any integers, and the default value for list-type input is `\infty` when not specified.
+    - ``ceiling`` -- upper bounds on the parts ``l[i]``; this takes
+      the same type of input as ``floor``, except that `\infty` is
+      allowed in addition to any integers, and the default value is
+      `\infty`; also ``max_part`` is used as default upper bound when
+      a ``ceiling`` is a list.
 
-    - ``min_part`` -- a nonnegative integer (default: None, in which case internally it defaults to 0)
+    - ``min_part`` -- to be used in combination with ``floor``, which see.
 
-    - ``max_part`` -- a nonnegative integer (default: None, in which case internally it defaults to `\infty`)
+    - ``max_part`` -- to be used in combination with ``ceiling``, which see.
 
-    - ``min_slope`` -- an integer or `-\infty`; defaults to `-\infty`
+    - ``min_slope`` -- an integer or `-\infty` (default: `-\infty`):
+      an lower bound on the slope between consecutive parts:
+      ``min_slope <= l[i+1]-l[i]`` for ``0 <= i < len(l)-1``
 
-    - ``max_slope`` -- an integer or `+\infty`; defaults to `+\infty`
+    - ``max_slope`` -- an integer or `+\infty` (defaults: `+\infty`)
+      an upper bound on the slope between consecutive parts:
+      `` l[i+1]-l[i] <= max_slope`` for ``0 <= i < len(l)-1``
 
-    - ``category`` -- a category (default: FiniteEnumeratedSets)
+    - ``category`` -- a category (default: :class:`FiniteEnumeratedSets`)
 
-    - ``waiver`` -- boolean to suppress a warning raised in case of potentially hanging behavior (default: False)
-
-    An *integer list* is a list `l` of nonnegative integers, its
-    *parts*. The *length* of `l` is the number of its parts;
-    the *sum* of `l` is the sum of its parts.
+    - ``waiver`` -- boolean (default: False): whether to suppress the
+      warning raised when functions are given as input to ``floor`` or
+      ``ceiling``
 
     .. NOTE::
 
@@ -88,27 +118,12 @@ class IntegerListsLex(Parent):
        differ by trailing zeroes. In this case, only the list with the
        least number of trailing zeroes will be produced.
 
-    The constraints on the lists, denoted in the following by 'l', are as follows:
-
-    - Sum: `min_n \le sum(l) \le max_n` (with ``n = min_n = max_n`` if ``n`` is specified)
-
-    - Length: ``min_length <= len(l) <= max_length`` (with ``length = min_length = max_length`` if
-      ``length`` is specified)
-
-    - Lower and upper bounds: ``max(floor(i), min_part) <= l[i] <= min(ceiling(i), max_part)``, for
-      ``i`` from 0 to ``len(l)-1``.
-
-    - Regularity condition: ``minSlope <= l[i+1]-l[i] <= maxSlope``,
-      for ``i`` from 0 to ``len(l)-2``
-
-    This is a generic low level tool. The interface has been designed
-    with efficiency in mind. It is subject to incompatible changes in
-    the future. More user friendly interfaces are provided by high
-    level tools like :class:`Partitions` or :class:`Compositions`.
+       .. TODO:: Do we really want to keep this "feature"?
 
     EXAMPLES:
 
-    We create the combinatorial class of lists of length 3 and sum 2::
+    We create the enumerated set of all lists of length `3` and sum
+    `2`::
 
         sage: C = IntegerListsLex(2, length=3)
         sage: C
@@ -126,105 +141,157 @@ class IntegerListsLex(Parent):
         False
         sage: ["a"] in C
         False
-
         sage: C.first()
         [2, 0, 0]
 
     One can specify lower and upper bounds on each part::
 
-        sage: list(IntegerListsLex(5, length = 3, floor = [1,2,0], ceiling = [3,2,3]))
+        sage: list(IntegerListsLex(5, length=3, floor=[1,2,0], ceiling=[3,2,3]))
         [[3, 2, 0], [2, 2, 1], [1, 2, 2]]
 
+    When the length is fixed as above, one can also use
+    :class:`IntegerVectors`::
+
+        sage: IntegerVectors(2,3).list()
+        [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
+
     Using the slope condition, one can generate integer partitions
-    (but see :mod:`sage.combinat.partition.Partitions`)::
+    (but see :class:`Partitions`)::
 
         sage: list(IntegerListsLex(4, max_slope=0))
         [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
 
     The following is the list of all partitions of `7` with parts at least `2`::
 
-        sage: list(IntegerListsLex(7, max_slope = 0, floor = 2))
+        sage: list(IntegerListsLex(7, max_slope=0, floor=2))
         [[7], [5, 2], [4, 3], [3, 2, 2]]
 
-    Next we list all partitions of `5` and length at most 3
-    which are bounded below by [2,1,1]::
+    Next we list all partitions of `5` of length at most `3` which are
+    bounded below by ``[2,1,1]``::
 
-        sage: list(IntegerListsLex(5, max_slope = 0, max_length = 3, floor = [2,1,1]))
+        sage: list(IntegerListsLex(5, max_slope=0, max_length=3, floor=[2,1,1]))
         [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1]]
 
-    Note that ``[5]`` is considered valid, because the lower bound
-    constraint only apply to existing positions in the list. To
-    obtain instead the partitions containing ``[2,1,1]``, one need to
-    use ``min_length``::
+    Note that ``[5]`` is considered valid, because the floor
+    constraints only apply to existing positions in the list. To
+    obtain instead the partitions containing ``[2,1,1]``, one needs to
+    use ``min_length`` or ``length``::
 
-        sage: list(IntegerListsLex(5, max_slope = 0, min_length = 3, max_length = 3, floor = [2,1,1]))
+        sage: list(IntegerListsLex(5, max_slope=0, length=3, floor=[2,1,1]))
         [[3, 1, 1], [2, 2, 1]]
 
-    This is the list of all partitions of `5` which are contained in
+    Here is the list of all partitions of `5` which are contained in
     ``[3,2,2]``::
 
-        sage: list(IntegerListsLex(5, max_slope = 0, max_length = 3, ceiling = [3,2,2]))
+        sage: list(IntegerListsLex(5, max_slope=0, max_length=3, ceiling=[3,2,2]))
         [[3, 2], [3, 1, 1], [2, 2, 1]]
 
-    This is the list of all compositions of `4` (but see Compositions)::
+    This is the list of all compositions of `4` (but see :class:`Compositions`)::
 
-        sage: list(IntegerListsLex(4, floor = 1))
+        sage: list(IntegerListsLex(4, floor=1))
         [[4], [3, 1], [2, 2], [2, 1, 1], [1, 3], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
 
     This is the list of all integer vectors of sum `4` and length `3`::
 
-        sage: list(IntegerListsLex(4, length = 3))
+        sage: list(IntegerListsLex(4, length=3))
         [[4, 0, 0], [3, 1, 0], [3, 0, 1], [2, 2, 0], [2, 1, 1],
          [2, 0, 2], [1, 3, 0], [1, 2, 1], [1, 1, 2], [1, 0, 3],
          [0, 4, 0], [0, 3, 1], [0, 2, 2], [0, 1, 3], [0, 0, 4]]
 
-    Next we obtain all lists of sum `4` and length `4` such that ``l[i] <= i``::
+    .. RUBRIC:: Situations with improper lexicographic enumeration
 
-        sage: list(IntegerListsLex(4, length = 4, ceiling = lambda i: i, waiver=True))
+    The set of all lists of integers cannot be enumerated
+    lexicographically, since there is no largest list (take `[n]` for
+    `n` as large as desired)::
+
+        sage: L = IntegerListsLex(3)
+        Traceback ...
+
+        This should kaboom!!!
+
+    Even when the sum is specified, it is not necessarily possible to
+    enumerate all elements lexicographically. In the following
+    example, the list `[1, 1, 1]` will never appear in the enumeration::
+
+        sage: L = IntegerListsLex(3)
+        This should kaboom
+
+    .. TODO:: Maybe this should be ``check=False`` in this case?
+
+    If one wants to proceed anyway, one can sign a waiver by setting
+    ``waiver=True``::
+
+        sage: L = IntegerListsLex(3, waiver=True)
+        sage: it = iter(L)
+        sage: [it.next() for i in range(6)]
+        [[3], [2, 1], [2, 0, 1], [2, 0, 0, 1], [2, 0, 0, 0, 1], [2, 0, 0, 0, 0, 1]]
+
+    .. RUBRIC:: Specifying functions as input for the floor or ceiling
+
+    We construct all lists of sum `4` and length `4` such that ``l[i] <= i``::
+
+        sage: list(IntegerListsLex(4, length=4, ceiling=lambda i: i, waiver=True))
         [[0, 1, 2, 1], [0, 1, 1, 2], [0, 1, 0, 3], [0, 0, 2, 2], [0, 0, 1, 3]]
 
-    Note that when passing a function as the ceiling, the existence of a vector
-    with the specified conditions might be undecidable. For example, when ``ceiling`` is
-    a function and is zero for a long time, there might not be a solution up to an arbitrarily
-    high position. But the user specified function could in principle then increase and allow
-    for a solution::
+    .. WARNING::
 
-        sage: it = IntegerListsLex(2,ceiling=lambda i:0 if i<20 else 1).__iter__()
-        doctest:...
-        You defined floor=[...] or ceiling=[...] to be a method rather than a constant
-        or a list.  Because it is impossible to check all of the values of a user-supplied
-        function, it is possible for the iteration algorithm of this class to hang, for instance
-        when the ceiling function stabilizes at the value 0.  See the documentation for more
-        information.  The user is responsible for verifying that the algorithm will not hang on
-        their input parameters.  Also note that the function you specify should start at 0
-        rather than 1.  Before trac#17979 the indexing was ambiguous and sometimes started at 1.
-        To verify that you understand the subtleties of using a custom floor or ceiling function
-        and to suppress this warning message, specify the parameter waiver=True in your object
-        constructor.
-        sage: it.next()
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
-        sage: it.next()
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1]
-        sage: it.next()
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1]
+        When passing a function as ``floor`` or ``ceiling``, it may
+        become undecidable to detect improper lexicographic
+        enumeration. For example, the following example as a finite
+        enumeration::
 
-    In the above example, there are infinitely many solutions, but a sequence of them is
-    returned.  Notice also that not all solutions will be eventually returned since, for
-    instance, there is an infinite collection of solutions that lie between the solutions
-    `[0, ..., 0, 1, 1]` and `[0, ..., 0, 0, 1, 1]`.  This is a consequence of the structure
-    of the lexicographic ordering imposed on the results.
+            sage: L = IntegerListsLex(3, floor=lambda i: 1 if i>=2 else 0, waiver=True)
+            sage: L.list()
+            [[3],
+             [2, 1],
+             [2, 0, 1],
+             [1, 2],
+             [1, 1, 1],
+             [1, 0, 2],
+             [1, 0, 1, 1],
+             [0, 3],
+             [0, 2, 1],
+             [0, 1, 2],
+             [0, 1, 1, 1],
+             [0, 0, 3],
+             [0, 0, 2, 1],
+             [0, 0, 1, 2],
+             [0, 0, 1, 1, 1]]
 
-    In the next example, there are no solutions, but since the ceiling is given as a method,
-    the computer cannot decide whether there will be a solution or not. The code hangs::
+        but one cannot decide whether the following has an improper
+        lexicographic enumeration without computing the floor all the
+        way to infinity::
 
-        sage: IntegerListsLex(2,ceiling=lambda i:0).list() # not tested
+            sage: L = IntegerListsLex(3, floor=lambda i: 0, waiver=True)
+            sage: it = iter(L)
+            sage: [it.next() for i in range(6)]
+            [[3], [2, 1], [2, 0, 1], [2, 0, 0, 1], [2, 0, 0, 0, 1], [2, 0, 0, 0, 0, 1]]
 
-    For this reason, the user needs to sign a waiver (specify the ``waiver`` parameter)
-    when providing a method rather than a list. The same example does work when the
-    computer is told that the function is a constant zero:::
+        Hence a warning is raised when a function is specified as
+        input, unless the waiver is signed::
 
-        sage: IntegerListsLex(2,ceiling=0).list()
-        []
+            sage: L = IntegerListsLex(3, floor=lambda i: 1 if i>=2 else 0)
+            doctest:...
+            A function has been given as input of the floor=[...] or ceiling=[...]
+            arguments of IntegerListsLex. Please see the documentation for the caveats.
+            If you know what you are doing, you can set waiver=True to skip this warning.
+
+        Similarly, the algorithm may need to search forever for a
+        solution when the ceiling is ultimately zero::
+
+            sage: L = IntegerListsLex(2,ceiling=lambda i:0, waiver=True)
+            sage: L.first()           # not tested: will hang forever
+            sage: L = IntegerListsLex(2,ceiling=lambda i:0 if i<20 else 1, waiver=True)
+            sage: it = iter(L)
+            sage: it.next()
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
+            sage: it.next()
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1]
+            sage: it.next()
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1]
+
+
+    .. RUBRIC:: Specifying how to construct elements.
 
     This is the list of all monomials of degree `4` which divide the
     monomial `x^3y^1z^2` (a monomial being identified with its
@@ -235,19 +302,70 @@ class IntegerListsLex(Parent):
         sage: def term(exponents):
         ...       return x^exponents[0] * y^exponents[1] * z^exponents[2]
         ...
-        sage: list( IntegerListsLex(4, length = len(m), ceiling = m, element_constructor = term) )
+        sage: list( IntegerListsLex(4, length=len(m), ceiling=m, element_constructor=term) )
         [x^3*y, x^3*z, x^2*y*z, x^2*z^2, x*y*z^2]
 
-    Note the use of the element_constructor feature.
+    Note the use of the ``element_constructor`` option to specify how
+    to construct elements from a plain list.
 
-    The iteration algorithm uses a targeted tree-search.  The complexity of the algorithm
-    has not been formally proven, but the runtime is suspected to be amortized bounded per
-    word by a low-degree polynomial in the length the word produced.  The space complexity
-    of the algorithm is very low, on the order of the length of the words produced.
+    .. RUBRIC:: list or iterable as input for the sum
 
-    In the following example, the floor conditions do not satisfy the
-    slope conditions since the floor for the third part is also 3. The algorithm
-    will nonetheless give the correct result::
+    One may pass a list or iterable `L` as input for the sum. In this
+    case, the elements will be generated lexicographically, for each
+    sum in `L` in turn::
+
+        sage: C = IntegerListsLex([0,1,2], length=2)
+        sage: C.list()
+        [[0, 0],  [1, 0], [0, 1],  [2, 0], [1, 1], [0, 2]]
+
+    This is in fact just a short hand for using
+    :class:`DisjointUnionEnumeratedSets`::
+
+        sage: C
+        Disjoint union of Finite family
+        {0: Integer lists of sum 0 satisfying certain constraints,
+         1: Integer lists of sum 1 satisfying certain constraints,
+         2: Integer lists of sum 2 satisfying certain constraints}
+
+    This feature is mostly here for backward compatibility, as using
+    :class:`DisjointEnumeratedSets` is more general and flexible::
+
+        sage: C = DisjointUnionEnumeratedSets(Family([0,1,2],
+        ....:         lambda n: IntegerListsLex(n, length=2)))
+        sage: C.list()
+        [[0, 0],  [1, 0], [0, 1],  [2, 0], [1, 1], [0, 2]]
+
+    ALGORITHM:
+
+    The iteration algorithm uses a depth first search through the
+    prefix tree of the list of integers (see also
+    :ref:`_section-generic-integerlistlex`). While doing so, it does
+    tests on the future which allows for cutting most dead branches.
+
+    The complexity of the algorithm has not been formally proven, but
+    the average runtime for producing each list `l` is suspected to be
+    bounded by a low-degree polynomial in `lmax`, where `lmax` is the
+    length of the longest list. Similarly, the space complexity of the
+    algorithm is bounded by a low-degree polynomial in ``lmax``.
+
+    .. NOTE::
+
+        The generation algorithm could in principle be extended to
+        deal with non-constant slope constraints and with negative
+        parts.
+
+    .. TODO:
+
+        Integrate all remaining tests from
+        http://mupad-combinat.svn.sourceforge.net/viewvc/mupad-combinat/trunk/MuPAD-Combinat/lib/COMBINAT/TEST/MachineIntegerListsLex.tst
+
+        Integrate all tests from the ticket, sage-devel, ...
+
+    TESTS::
+
+    This example from the combinatorics tutorial used to fail before
+    :trac:`17979` because the floor conditions did not satisfy the
+    slope conditions::
 
         sage: I = IntegerListsLex(16, min_length=2, max_slope=-1, floor=[5,3,3])
         sage: I.list()
@@ -255,34 +373,26 @@ class IntegerListsLex(Parent):
          [7, 6, 3], [7, 5, 4], [7, 5, 3, 1], [7, 4, 3, 2], [6, 5, 4, 1], [6, 5, 3, 2],
          [6, 4, 3, 2, 1]]
 
-    .. NOTE::
+    ::
 
-        The generation algorithm could in principle be extended to deal with non-constant
-        slope constraints and with negative parts.
-
-    .. TODO:
-
-        Integrate all remaining tests from
-        http://mupad-combinat.svn.sourceforge.net/viewvc/mupad-combinat/trunk/MuPAD-Combinat/lib/COMBINAT/TEST/MachineIntegerListsLex.tst
-
-    TESTS::
-
-        sage: g = lambda x: lambda i: x
-        sage: list(IntegerListsLex(0, floor = g(1), min_slope = 0))
-        [[]]
-        sage: list(IntegerListsLex(0, floor = g(1), min_slope = 0, max_slope = 0))
-        [[]]
-        sage: list(IntegerListsLex(0, max_length=0, floor = g(1), min_slope = 0, max_slope = 0))
-        [[]]
-        sage: list(IntegerListsLex(0, max_length=0, floor = g(0), min_slope = 0, max_slope = 0))
-        [[]]
-        sage: list(IntegerListsLex(0, floor = 1, min_slope = 0))
-        [[]]
-        sage: list(IntegerListsLex(1, floor = 1, min_slope = 0))
-        [[1]]
-        sage: list(IntegerListsLex(0, min_length = 1, floor = 1, min_slope = 0))
+        sage: Partitions(2, max_slope=-1, length=2).list()
         []
-        sage: list(IntegerListsLex(0, min_length = 1, min_slope = 0))
+        sage: g = lambda x: lambda i: x
+        sage: list(IntegerListsLex(0, floor=g(1), min_slope=0))
+        [[]]
+        sage: list(IntegerListsLex(0, floor=g(1), min_slope=0, max_slope=0))
+        [[]]
+        sage: list(IntegerListsLex(0, max_length=0, floor=g(1), min_slope=0, max_slope=0))
+        [[]]
+        sage: list(IntegerListsLex(0, max_length=0, floor=g(0), min_slope=0, max_slope=0))
+        [[]]
+        sage: list(IntegerListsLex(0, floor=1, min_slope=0))
+        [[]]
+        sage: list(IntegerListsLex(1, floor=1, min_slope=0))
+        [[1]]
+        sage: list(IntegerListsLex(0, min_length=1, floor=1, min_slope=0))
+        []
+        sage: list(IntegerListsLex(0, min_length=1, min_slope=0))
         [[0]]
         sage: list(IntegerListsLex(3, max_length=2, ))
         [[3], [2, 1], [1, 2], [0, 3]]
@@ -376,7 +486,7 @@ class IntegerListsLex(Parent):
         [[3], [2, 1], [1, 2]]
         sage: [1,1,1] in I
         False
-        sage: I = IntegerListsLex(10, ceiling=[4], max_length=1, floor = 1)
+        sage: I=IntegerListsLex(10, ceiling=[4], max_length=1, floor=1)
         sage: I.list()
         []
         sage: [4,6] in I
@@ -419,8 +529,23 @@ class IntegerListsLex(Parent):
     """
     __metaclass__ = ClasscallMetaclass
 
+    @staticmethod
+    def __classcall_private__(cls, n=None, **kwargs):
+        r"""
+        Return a disjoint union if ``n`` is a list or iterable.
+
+        EXAMPLES::
+
+            sage: IntegerListsLex(NN, max_length=3)
+            Disjoint union of Lazy family (<lambda>(i))_{i in Non negative integer semiring}
+        """
+        if isinstance(n, (list,collections.Iterable)):
+            return DisjointUnionEnumeratedSets(Family(n, lambda i: IntegerListsLex(i, **kwargs)))
+        else:
+            return typecall(cls, n=n, **kwargs)
+
     def __init__(self,
-                 n=None, min_n=0, max_n=0,
+                 n=None, min_sum=0, max_sum=0,
                  length=None, min_length=0, max_length=infinity,
                  floor=None, ceiling=None,
                  min_part=None, max_part=None,
@@ -451,35 +576,22 @@ class IntegerListsLex(Parent):
         if category is None:
             category = EnumeratedSets().Finite()
 
-        self.waiver = waiver
-        # Warning for usage cases that could cause the algorithm to hang
-        # Any results will be correct regardless of input, but using custom
-        #  functions in some places could cause the algorithm to hang since it's
-        #  impossible to do all of the checks on an arbitrary function that can
-        #  be done on other input types since we can't look at all values of such
-        #  a function.  See the documentation for more details
-        self._warning = False
+        # self._warning will be set to ``True`` if a function is given
+        # as input for floor or ceiling; in this case a warning will
+        # be emitted, unless the user signs the waiver. See the
+        # documentation.
+        self._warning = False # warning for dangerous (but possibly valid) usage
+        self._waiver = waiver
 
         if n is not None:
             if n in ZZ:
-                #if n < 0:
-                #    print n
-                #    raise ValueError("value of n can't be less than 0")
-                self.n_list = [n]
-                self.min_n = n
-                self.max_n = n
-            elif isinstance(n, list):
-                self.n_list = n
-                self.min_n = min(self.n_list)
-                #if self.min_n < 0:
-                #    raise ValueError("can't have negative values of n")
-                self.max_n = max(self.n_list)
+                self.min_sum = n
+                self.max_sum = n
             else:
-                raise ValueError("invalid value for parameter n")
+                raise TypeError("invalid value for parameter n")
         else:
-            self.n_list = None
-            self.min_n = min_n
-            self.max_n = max_n
+            self.min_sum = min_sum
+            self.max_sum = max_sum
 
         if length is not None:
             self.min_length = length
@@ -521,8 +633,7 @@ class IntegerListsLex(Parent):
             else:
                 raise(ValueError("unable to parse value of max_part"))
 
-        ## TODO: Warn user about using arbitrary functions?
-        # indexing for floor and ceiling functions is base 0 internally
+        # Since #17979, indexing for floor and ceiling functions is base 0
         if floor is None:
             self.floor_type = "none"
             self.floor = ConstantFunction(self.min_part)
@@ -601,18 +712,11 @@ class IntegerListsLex(Parent):
         if name is not None:
             self.rename(name)
 
-        if self._warning and not self.waiver:
+        if self._warning and not self._waiver:
             warn("""
-You defined floor=[...] or ceiling=[...] to be a method rather than a constant
-or a list.  Because it is impossible to check all of the values of a user-supplied
-function, it is possible for the iteration algorithm of this class to hang, for instance
-when the ceiling function stabilizes at the value 0.  See the documentation for more
-information.  The user is responsible for verifying that the algorithm will not hang on
-their input parameters.  Also note that the function you specify should start at 0
-rather than 1.  Before trac#17979 the indexing was ambiguous and sometimes started at 1.
-To verify that you understand the subtleties of using a custom floor or ceiling function
-and to suppress this warning message, specify the parameter waiver=True in your object
-constructor.""")
+A function has been given as input of the floor=[...] or ceiling=[...]
+arguments of IntegerListsLex. Please see the documentation for the caveats.
+If you know what you are doing, you can set waiver=True to skip this warning.""")
 
         # In case we want output to be of a different type,
         if element_constructor is not None:
@@ -684,26 +788,19 @@ constructor.""")
             sage: C # indirect doctest
             Integer lists of sum 2 satisfying certain constraints
 
-            sage: C = IntegerListsLex([1,2,4], length=3)
-            sage: C # indirect doctest
-            Integer lists of sum in [1, 2, 4] satisfying certain constraints
-
-            sage: C = IntegerListsLex([1,2,4], length=3, name="A given name")
+            sage: C = IntegerListsLex(2, length=3, name="A given name")
             sage: C
             A given name
         """
-        if self.min_n == self.max_n:
-            return "Integer lists of sum %s satisfying certain constraints" % self.min_n
-        elif self.max_n == infinity:
-            if self.min_n == 0:
+        if self.min_sum == self.max_sum:
+            return "Integer lists of sum %s satisfying certain constraints" % self.min_sum
+        elif self.max_sum == infinity:
+            if self.min_sum == 0:
                 return "Integer lists with arbitrary sum satisfying certain constraints"
             else:
-                return "Integer lists of sum at least %s satisfying certain constraints" % self.min_n
+                return "Integer lists of sum at least %s satisfying certain constraints" % self.min_sum
         else:
-            if self.n_list is not None:
-                return "Integer lists of sum in %s satisfying certain constraints" % self.n_list
-            else:
-                return "Integer lists of sum between %s and %s satisfying certain constraints" % (self.min_n,self.max_n)
+            return "Integer lists of sum between %s and %s satisfying certain constraints" % (self.min_sum,self.max_sum)
 
     def __contains__(self, comp):
         """
@@ -711,19 +808,15 @@ constructor.""")
 
         EXAMPLES::
 
-            sage: C = IntegerListsLex(n=2,max_length=3,min_slope=0)
+            sage: C = IntegerListsLex(n=2, max_length=3, min_slope=0)
             sage: all([l in C for l in C])
             True
         """
         if len(comp) < self.min_length or len(comp) > self.max_length:
             return False
         n = sum(comp)
-        if self.n_list is not None:
-            if not n in self.n_list:
-                return False
-        else:
-            if n < self.min_n or n > self.max_n:
-                return False
+        if n < self.min_sum or n > self.max_sum:
+            return False
         for i in range(len(comp)):
             if comp[i] < self.floor(i):
                 return False
@@ -743,10 +836,10 @@ constructor.""")
         EXAMPLES::
 
             sage: C = IntegerListsLex(2, length=3)
-            sage: list(C) #indirect doctest
+            sage: list(C)     # indirect doctest
             [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
         """
-        return IntegerListsLex._IntegerListsLexIter(self)
+        return self._IntegerListsLexIter(self)
 
     class _IntegerListsLexIter:
         """
@@ -795,8 +888,8 @@ constructor.""")
             rho = self.rho
             mu = self.mu
             p = self.parent
-            min_n = p.min_n
-            max_n = p.max_n
+            min_sum = p.min_sum
+            max_sum = p.max_sum
             min_length = p.min_length
             max_length = p.max_length
 
@@ -808,9 +901,9 @@ constructor.""")
                 else:                   # add new range of m-values for index j
                     new_interval = None
                     if self.j > 0:
-                        new_interval = self._m_interval(self.j, max_n - sum(mu), mu[self.j-1])
+                        new_interval = self._m_interval(self.j, max_sum - sum(mu), mu[self.j-1])
                     else:
-                        new_interval = self._m_interval(self.j, max_n - sum(mu))
+                        new_interval = self._m_interval(self.j, max_sum - sum(mu))
                     rho.append( new_interval )
                     mu.append( rho[self.j][1] ) # start at largest value
 
@@ -831,10 +924,10 @@ constructor.""")
                 # m is new and in range
                 # if we're at a solution that's obviously next in order, return it
                 # otherwise, check if any solutions are possible with this value of m
-                if (nu == max_n and self.j >= min_length - 1) or self.j == max_length - 1:
+                if (nu == max_sum and self.j >= min_length - 1) or self.j == max_length - 1:
                     if self._internal_list_valid(mu):
                         return p._element_constructor(list(mu))
-                elif self._possible_m(m, self.j, min_n - (nu-m), max_n - (nu-m)):
+                elif self._possible_m(m, self.j, min_sum - (nu-m), max_sum - (nu-m)):
                     self.j += 1
 
             self.finished = True
@@ -848,9 +941,9 @@ constructor.""")
 
             - ``mu`` -- a list of integers
 
-            This method checks whether the sum of the entries in ``mu``
-            is in the right range, whether its length is in the required
-            range, and whether there are trailing zeroes.
+            This method checks whether the sum of the parts in ``mu``
+            is in the right range, whether its length is in the
+            required range, and whether there are trailing zeroes.
 
             EXAMPLES::
 
@@ -864,10 +957,7 @@ constructor.""")
             p = self.parent
             nu = sum(mu)
             j = len(mu)
-            if p.n_list is not None:
-                good_sum = (nu in p.n_list)
-            else:
-                good_sum = (nu >= p.min_n and nu <= p.max_n)
+            good_sum = (nu >= p.min_sum and nu <= p.max_sum)
             good_length = (j >= p.min_length and j <= p.max_length)
             no_trailing_zeros = (j <= max(p.min_length,0) or mu[-1] != 0)
             return good_sum and good_length and no_trailing_zeros

@@ -1617,25 +1617,16 @@ prefix tree on the elements of `S`: a node of the tree at depth
 
 The usual problem with this type of approach is to avoid bad decisions
 which lead to leaving the prefix tree and exploring dead branches,
-particularly problematic because the growth of the number of elements is
-exponential in the depth. It turns out that the constraints listed above
-are simple enough to guarantee the following property: given a prefix
-`\ell_0,\dot,\ell_k` of `S`, the set of
-`\ell_{k+1}` such that `\ell_0,\dots,\ell_{k+1}` is a
+particularly problematic because the growth of the number of elements
+is exponential in the depth. It turns out that the constraints listed
+above are simple enough to guarantee the following property: except
+in degenerate cases, given a prefix `\ell_0,\dot,\ell_k` of `S`, the
+set of `\ell_{k+1}` such that `\ell_0,\dots,\ell_{k+1}` is a
 prefix of `S` is either empty or consists of an interval
 `[a,b]`, and the bounds `a` and `b` can be
-calculated in time linear in the length of the longest element of
-`S` having `\ell_0,\dots,\ell_k` as a prefix.
-
-Note that this algorithm was originally developed and implemented in
-``MuPAD-Combinat`` and was ported identically to ``Sage``; this
-implementation is not robust when the inputs are subtly incoherent, which
-can yield surprising results. For example, partitions of 2 of length 2 with
-a max slope of -1 returned the partition [1, 1]. This was slightly modified
-and now gives the proper result.
-
-    sage: Partitions(2, max_slope=-1, length=2).list()
-    []
+calculated in time linear (quadratic?) in the length of the longest element of
+`S` having `\ell_0,\dots,\ell_k` as a prefix. Hence, most dead
+branches can be pruned.
 
 .. _section-generic-polytopes:
 

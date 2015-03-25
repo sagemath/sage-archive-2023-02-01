@@ -589,7 +589,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
         names = names + tuple('d' + n for n in names)
         if len(names) != self._n * 2:
             raise ValueError("variable names cannot differ by a leading 'd'")
-        cat = AlgebrasWithBasis(R.category()).NoZeroDivisors().Filtered()
+        cat = AlgebrasWithBasis(R.category()).NoZeroDivisors().Super().Filtered()
         Algebra.__init__(self, R, names, category=cat)
 
     def _repr_(self):

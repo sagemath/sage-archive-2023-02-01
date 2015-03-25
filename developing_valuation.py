@@ -290,11 +290,15 @@ class DevelopingValuation(DiscreteValuation):
             sage: w = v.extension(t + 1, 5/4)
             sage: w = w.extension(t^4 + (a^8 + a^12 + a^14 + a^16 + a^17 + a^19 + a^20 + a^23)*t^3 + (a^6 + a^9 + a^13 + a^15 + a^18 + a^19 + a^21)*t^2 + a^10*t + 1 + a^4 + a^5 + a^8 + a^13 + a^14 + a^15, 17/2)
             sage: f = a^-15*t^2 + (a^-11 + a^-9 + a^-6 + a^-5 + a^-3 + a^-2)*t + a^-15
-            sage: w.equivalence_reciprocal(f)
-            (a^10 + a^13 + a^14 + a^17 + a^18 + a^21 + a^23 + O(a^26))*t^2 + a^10 + a^13 + O(a^26)
+            sage: f_ = w.equivalence_reciprocal(f); f_
+            (a^10 + a^13 + a^14 + a^17 + a^18 + a^19 + a^20 + a^24 + a^25 + O(a^26))*t^2 + a^10 + a^13 + a^18 + a^19 + a^22 + a^23 + a^24 + a^25 + O(a^26)
+            sage: w.reduce(f*f_)
+            1
             sage: f = f.parent()([f[0],f[1].add_bigoh(1),f[2]])
-            sage: w.equivalence_reciprocal(f)
-            (a^10 + a^13 + O(a^26))*t^2 + a^10 + a^13 + O(a^26)
+            sage: f_ = w.equivalence_reciprocal(f); f_
+            (a^10 + a^13 + a^14 + a^17 + a^18 + a^19 + a^20 + a^24 + a^25 + O(a^26))*t^2 + a^10 + a^13 + a^18 + a^19 + a^22 + a^23 + a^24 + a^25 + O(a^26)
+            sage: w.reduce(f*f_)
+            1
 
         .. SEEALSO::
 

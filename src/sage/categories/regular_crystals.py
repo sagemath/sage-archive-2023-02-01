@@ -267,6 +267,30 @@ class RegularCrystals(Category_singleton):
                  ([[1, 2, 5], [3, 4]], [[1, 3, 5], [2, 4]], 3),
                  ([[1, 2, 4], [3, 5]], [[1, 2, 3], [4, 5]], 3),
                  ([[1, 2, 3], [4, 5]], [[1, 2, 4], [3, 5]], 4)]
+
+                sage: G = T.dual_equivalence_graph(index_set=[1,2,3])
+                sage: G.vertices()
+                [[[1, 3, 4], [2]], [[1, 2, 4], [3]], [[1, 2, 3], [4]]]
+                sage: G.edges()
+                [([[1, 3, 4], [2]], [[1, 2, 4], [3]], 2),
+                 ([[1, 2, 4], [3]], [[1, 2, 3], [4]], 3)]
+
+            TESTS::
+
+                sage: G = T.dual_equivalence_graph(index_set=[2,3])
+                sage: sorted(G.edges())
+                [([[1, 2, 4], [3]], [[1, 2, 3], [4]], 3),
+                 ([[2, 4, 5], [3]], [[2, 3, 5], [4]], 3)]
+                sage: sorted(G.vertices())
+                [[[1, 3, 4], [2]],
+                 [[1, 2, 4], [3]],
+                 [[2, 4, 5], [3]],
+                 [[1, 2, 3], [4]],
+                 [[2, 3, 5], [4]],
+                 [[1, 1, 1], [5]],
+                 [[1, 1, 5], [5]],
+                 [[1, 5, 5], [5]],
+                 [[2, 3, 4], [5]]]
             """
             if index_set is None:
                 index_set = self.index_set()
@@ -290,6 +314,7 @@ class RegularCrystals(Category_singleton):
                         edges.append([x, x.e(i).e(im).f(i).f(im), i])
             from sage.graphs.all import DiGraph
             G = DiGraph(edges)
+            G.add_vertices(X)
             if have_dot2tex():
                 G.set_latex_options(format="dot2tex", edge_labels=True,
                                     color_by_label=self.cartan_type()._index_set_coloring)
@@ -625,7 +650,6 @@ class RegularCrystals(Category_singleton):
             tester.assertTrue(goodness)
             return goodness
 
-        @cached_method
         def dual_equivalence_class(self, index_set=None):
             r"""
             Return the dual equivalence class indexed by ``index_set``
@@ -685,7 +709,8 @@ class RegularCrystals(Category_singleton):
                         if y not in visited:
                             todo.add(y)
             from sage.graphs.graph import Graph
-            G = Graph(edges, immutable=True, multiedges=True)
+            G = Graph(edges, multiedges=True)
+            G.add_vertices(visited)
             if have_dot2tex():
                 G.set_latex_options(format="dot2tex", edge_labels=True,
                                     color_by_label=self.cartan_type()._index_set_coloring)

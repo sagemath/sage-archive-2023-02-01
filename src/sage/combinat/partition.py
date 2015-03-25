@@ -4517,6 +4517,9 @@ class Partition(CombinatorialObject, Element):
              ([[1, 2, 5], [3], [4]], [[1, 3, 5], [2], [4]], 2),
              ([[1, 3, 4], [2], [5]], [[1, 3, 5], [2], [4]], 4),
              ([[1, 3, 5], [2], [4]], [[1, 4, 5], [2], [3]], 3)]
+            sage: G = Partition([1]).dual_equivalence_graph()
+            sage: G.vertices()
+            [[[1]]]
         """
         T = list(tableau.StandardTableaux(self))
         n = sum(self)
@@ -4539,7 +4542,9 @@ class Partition(CombinatorialObject, Element):
                     edges.append(e)
 
         from sage.graphs.graph import Graph
-        G = Graph(edges, multiedges=True, immutable=True)
+        G = Graph(edges, multiedges=True)
+        G.add_vertices(T)
+        G = G.copy(immutable=True)
         if have_dot2tex():
             def coloring(i):
                 if i == 2:

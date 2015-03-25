@@ -322,7 +322,7 @@ class DevelopingValuation(DiscreteValuation):
         # - we can add anything which times e0 has positive valuation, e.g., we
         # may drop coefficients of positive valuation
         h = h.map_coefficients(lambda c:_lift_to_maximal_precision(c))
-        h = h.parent()([ c if self(e0*c) <= 0 else c.parent().zero() for c in h.coeffs()])
+        h = h.parent()([ c if self(e0*c) <= 0 else c.parent().zero() for c in h.coefficients(sparse=False)])
 
         assert self(f*h) == 0
         assert self(f*h - 1) > 0
@@ -802,7 +802,7 @@ class DevelopingValuation(DiscreteValuation):
 
         if self.phi().degree() == 1:
             from itertools import imap
-            return imap(f.parent(), f(self.phi().parent().gen() - self.phi()[0]).coeffs())
+            return imap(f.parent(), f(self.phi().parent().gen() - self.phi()[0]).coefficients(sparse=False))
         else:
             return self.__coefficients(f)
 
@@ -1013,8 +1013,8 @@ class DevelopingValuation(DiscreteValuation):
             if not NP:
                 q,r = G.quo_rem(phi)
                 assert not r.is_zero()
-                phi = phi.coeffs()
-                for i,c in enumerate(r.coeffs()):
+                phi = phi.coefficients(sparse=False)
+                for i,c in enumerate(r.coefficients(sparse=False)):
                     if not c.is_zero():
                         v = w(c)
                         # for a correct result we need to add O(pi^v) in degree i

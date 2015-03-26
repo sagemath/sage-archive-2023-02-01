@@ -33,16 +33,18 @@ if [ $SAGE64 = "yes" ]; then
     export CXXFLAGS="$CXXFLAGS $CFLAG64"
     export LDFLAGS="$LDFLAGS $CFLAG64"
 fi
-
 # End boilerplate
 
+# delete old sagenb install, if any
+rm -rf ${SAGE_LOCAL}/lib/python/site-packages/sagenb*
+
+# install new sagenb
 pip install --no-index \
     --find-links="file://$(pwd)/src/" sagenb
 if [ $? -ne 0 ]; then
     echo >&2 "Error: Installing SageNB failed."
     exit 1
 fi
-
 
 # let sagenb use mathjax spkg
 SAGENB_VERSION=$(cat ${SAGE_ROOT}/build/pkgs/sagenb/package-version.txt)

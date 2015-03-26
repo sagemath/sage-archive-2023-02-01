@@ -107,6 +107,24 @@ class IntegerListsLex(Parent):
 
        .. TODO:: Do we really want to keep this "feature"?
 
+            sage: list(IntegerListsLex(max_length=4, max_part=1))
+            [[1, 1, 1, 1],
+             [1, 1, 1],
+             [1, 1, 0, 1],
+             [1, 1],
+             [1, 0, 1, 1],
+             [1, 0, 1],
+             [1, 0, 0, 1],
+             [1],
+             [0, 1, 1, 1],
+             [0, 1, 1],
+             [0, 1, 0, 1],
+             [0, 1],
+             [0, 0, 1, 1],
+             [0, 0, 1],
+             [0, 0, 0, 1],
+             []]
+
     EXAMPLES:
 
     We create the enumerated set of all lists of length `3` and sum

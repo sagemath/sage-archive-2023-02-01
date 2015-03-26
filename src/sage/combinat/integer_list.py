@@ -12,6 +12,7 @@ import collections
 from warnings import warn
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.constant_function import ConstantFunction
+from sage.misc.cachefunc import cached_method
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
@@ -234,7 +235,9 @@ class IntegerListsLex(Parent):
     example, the list `[1, 1, 1]` will never appear in the enumeration::
 
         sage: IntegerListsLex(3).first()
-        This should kaboom
+        Traceback (most recent call last):
+        ...
+        ValueError: The specified parameters do not allow for a lexicographic iterator!
 
     .. TODO:: Maybe this should be ``check=False`` in this case?
 
@@ -715,6 +718,51 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
 
         Parent.__init__(self, category=category)
 
+    @cached_method
+    def _check_lexicographic_iterable(self):
+        """
+        Checks whether the parameters give a proper lexicographic iterator.
+
+        EXAMPLES::
+
+            sage: IntegerListsLex(4).list()
+            Traceback (most recent call last):
+            ...
+            ValueError: The specified parameters do not allow for a lexicographic iterator!
+
+            sage: it = iter(IntegerListsLex(4, waiver=True))
+            sage: for _ in range(20): print next(it)
+            [4]
+            [3, 1]
+            [3, 0, 1]
+            [3, 0, 0, 1]
+            [3, 0, 0, 0, 1]
+            [3, 0, 0, 0, 0, 1]
+            [3, 0, 0, 0, 0, 0, 1]
+            [3, 0, 0, 0, 0, 0, 0, 1]
+            [3, 0, 0, 0, 0, 0, 0, 0, 1]
+            [3, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+        """
+        if self._warning or self._waiver:
+            return
+        s = sum(self.floor(i) for i in range(self.floor_limit_start))
+        if self.max_sum < Infinity and self.max_length == Infinity and self.floor_limit == 0:
+            if self.min_slope<0 and self.max_slope>0 and s<self.min_sum:
+                raise ValueError("The specified parameters do not allow for a lexicographic iterator!")
+            if self.min_slope == 0 and s==0 and self.max_slope>0:
+                if self.max_sum>0: # this is assuming that we remove trailing zeroes
+                    raise ValueError("The specified parameters do not allow for a lexicographic iterator!")
+
     @staticmethod
     def _list_function(l, default):
         r"""
@@ -848,6 +896,8 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
                 False
             """
             self.parent = parent
+
+            parent._check_lexicographic_iterable()
 
             self.rho = []   # list of current search ranges
             self.mu = []    # list of integers
@@ -1048,7 +1098,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
                 inf
                 sage: f(2)
                 inf
-                sage: C = IntegerListsLex(6, max_slope=1, max_part=3)
+                sage: C = IntegerListsLex(6, max_slope=1, max_part=3, max_length=6)
                 sage: I = IntegerListsLex._IntegerListsLexIter(C)
                 sage: f = I._upper_envelope(1,1)
                 sage: f(1)

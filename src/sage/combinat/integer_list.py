@@ -24,7 +24,7 @@ Infinity = float('+inf')
 
 class IntegerListsLex(Parent):
     r"""
-    Lists of non negative integers with constraints, in lexicographic order.
+    Lists of non negative integers with constraints, in reverse lexicographic order.
 
     An *integer list* is a list `l` of nonnegative integers, its
     *parts*. The *length* ``len(l)`` of `l` is the number of its
@@ -34,7 +34,7 @@ class IntegerListsLex(Parent):
 
     This class allows to construct the set of all integer lists `l`
     satisfying specified bounds on the sum, the length, the slope, and
-    the individual parts, enumerated lexicographically. The main
+    the individual parts, enumerated reverse lexicographically. The main
     purpose is to provide a generic iteration engine for all the
     enumerated sets like :class:`Partitions`, :class:`Compositions`,
     :class:`IntegerVectors`. It can also be used to generate many
@@ -44,7 +44,7 @@ class IntegerListsLex(Parent):
     integral points of a polytope (or union thereof, when the length
     is not fixed). The set of allowable has been specifically designed
     to enable iteration with a good time and memory complexity, in
-    lexicographic order (see below).
+    reverse lexicographic order (see below).
 
     INPUT:
 
@@ -210,10 +210,10 @@ class IntegerListsLex(Parent):
         [2, 2, 1, 2, 2]
 
 
-    .. RUBRIC:: Situations with improper lexicographic enumeration
+    .. RUBRIC:: Situations with improper reverse lexicographic enumeration
 
     The set of all lists of integers cannot be enumerated
-    lexicographically, since there is no largest list (take `[n]` for
+    reverse lexicographically, since there is no largest list (take `[n]` for
     `n` as large as desired)::
 
         sage: IntegerListsLex().first()
@@ -221,8 +221,8 @@ class IntegerListsLex(Parent):
         ...
         ValueError: infinite upper bound for values of m
 
-    Here is a variant which could be enumerated in lexicographically
-    increasing order but not in lexicographically decreasing order::
+    Here is a variant which could be enumerated in reverse lexicographically
+    increasing order but not in reverse lexicographically decreasing order::
 
         sage: L = IntegerListsLex(length=2, ceiling=[Infinity, 0], floor=[0,1])
         sage: for l in L: print l
@@ -231,13 +231,13 @@ class IntegerListsLex(Parent):
         ValueError: infinite upper bound for values of m
 
     Even when the sum is specified, it is not necessarily possible to
-    enumerate all elements lexicographically. In the following
+    enumerate all elements reverse lexicographically. In the following
     example, the list `[1, 1, 1]` will never appear in the enumeration::
 
         sage: IntegerListsLex(3).first()
         Traceback (most recent call last):
         ...
-        ValueError: The specified parameters do not allow for a lexicographic iterator!
+        RuntimeError: the specified parameters do not allow for a reverse lexicographic iterator!
 
     .. TODO:: Maybe this should be ``check=False`` in this case?
 
@@ -260,8 +260,8 @@ class IntegerListsLex(Parent):
     .. WARNING::
 
         When passing a function as ``floor`` or ``ceiling``, it may
-        become undecidable to detect improper lexicographic
-        enumeration. For example, the following example as a finite
+        become undecidable to detect improper reverse lexicographic
+        enumeration. For example, the following example has a finite
         enumeration::
 
             sage: L = IntegerListsLex(3, floor=lambda i: 1 if i>=2 else 0, waiver=True)
@@ -282,7 +282,7 @@ class IntegerListsLex(Parent):
              [0, 0, 1, 2],
              [0, 0, 1, 1, 1]]
 
-        but one cannot decide whether the following has an improper
+        but one cannot decide whether the following has an improper reverse
         lexicographic enumeration without computing the floor all the
         way to Infinity::
 
@@ -335,7 +335,7 @@ class IntegerListsLex(Parent):
     .. RUBRIC:: list or iterable as input for the sum
 
     One may pass a list or iterable `L` as input for the sum. In this
-    case, the elements will be generated lexicographically, for each
+    case, the elements will be generated reverse lexicographically, for each
     sum in `L` in turn::
 
         sage: C = IntegerListsLex([0,1,2], length=2)
@@ -721,14 +721,14 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
     @cached_method
     def _check_lexicographic_iterable(self):
         """
-        Checks whether the parameters give a proper lexicographic iterator.
+        Checks whether the parameters give a proper reverse lexicographic iterator.
 
         EXAMPLES::
 
             sage: IntegerListsLex(4).list()
             Traceback (most recent call last):
             ...
-            ValueError: The specified parameters do not allow for a lexicographic iterator!
+            RuntimeError: the specified parameters do not allow for a reverse lexicographic iterator!
 
             sage: it = iter(IntegerListsLex(4, waiver=True))
             sage: for _ in range(20): print next(it)
@@ -771,10 +771,10 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
         s = sum(self.floor(i) for i in range(self.floor_limit_start))
         if self.max_sum < Infinity and self.max_length == Infinity and self.floor_limit == 0:
             if self.min_slope<0 and self.max_slope>0 and s<self.min_sum:
-                raise ValueError("The specified parameters do not allow for a lexicographic iterator!")
+                raise RuntimeError("the specified parameters do not allow for a reverse lexicographic iterator!")
             if self.min_slope == 0 and s==0 and self.max_slope>0:
                 if self.max_sum>0: # this is assuming that we remove trailing zeroes
-                    raise ValueError("The specified parameters do not allow for a lexicographic iterator!")
+                    raise RuntimeError("the specified parameters do not allow for a reverse lexicographic iterator!")
 
     @staticmethod
     def _list_function(l, default):

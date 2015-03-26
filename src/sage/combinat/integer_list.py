@@ -215,10 +215,10 @@ class IntegerListsLex(Parent):
     lexicographically, since there is no largest list (take `[n]` for
     `n` as large as desired)::
 
-        sage: L = IntegerListsLex(3)
-        Traceback ...
-
-        This should kaboom!!!
+        sage: IntegerListsLex().first()
+        Traceback (most recent call last):
+        ...
+        ValueError: infinite upper bound for values of m
 
     Here is a variant which could be enumerated in lexicographically
     increasing order but not in lexicographically decreasing order::
@@ -233,7 +233,7 @@ class IntegerListsLex(Parent):
     enumerate all elements lexicographically. In the following
     example, the list `[1, 1, 1]` will never appear in the enumeration::
 
-        sage: L = IntegerListsLex(3)
+        sage: IntegerListsLex(3).first()
         This should kaboom
 
     .. TODO:: Maybe this should be ``check=False`` in this case?
@@ -375,7 +375,7 @@ class IntegerListsLex(Parent):
         deal with non-constant slope constraints and with negative
         parts.
 
-    .. TODO:
+    .. TODO::
 
         - Integrate all remaining tests from
           http://mupad-combinat.svn.sourceforge.net/viewvc/mupad-combinat/trunk/MuPAD-Combinat/lib/COMBINAT/TEST/MachineIntegerListsLex.tst
@@ -390,7 +390,7 @@ class IntegerListsLex(Parent):
               sage: IntegerListsLex(binomial(n,2)-1, length=n, min_slope=1).list()
               []
 
-    TESTS::
+    TESTS:
 
     This example from the combinatorics tutorial used to fail before
     :trac:`17979` because the floor conditions did not satisfy the

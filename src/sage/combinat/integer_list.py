@@ -219,7 +219,7 @@ class IntegerListsLex(Parent):
         sage: IntegerListsLex().first()
         Traceback (most recent call last):
         ...
-        ValueError: infinite upper bound for values of m
+        RuntimeError: the specified parameters do not allow for a reverse lexicographic iterator!
 
     Here is a variant which could be enumerated in reverse lexicographically
     increasing order but not in reverse lexicographically decreasing order::
@@ -753,18 +753,16 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
             [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
 
-        .. NOTE::
-
-            This method assumes that all parts are bounded above,
-            either directly (`max_sum`, `max_part`, `ceiling`) or
-            through slope conditions with other bounded parts. This
-            property is checked by the iterator itself::
-
-                sage: L =  IntegerListsLex(length=2, ceiling=[Infinity, 0], floor=[0,1])
-                sage: L.first()
-                Traceback (most recent call last):
-                ...
-                ValueError: infinite upper bound for values of m
+            sage: L = IntegerListsLex(ceiling=[0], min_slope=1, max_slope=2)
+            sage: L.list()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: the specified parameters do not allow for a reverse lexicographic iterator!
+            sage: L = IntegerListsLex(ceiling=[0], min_slope=1, max_slope=1)
+            sage: L.list()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: the specified parameters do not allow for a reverse lexicographic iterator!
         """
         if self._warning or self._waiver:
             return
@@ -775,6 +773,8 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             if self.min_slope == 0 and s==0 and self.max_slope>0:
                 if self.max_sum>0: # this is assuming that we remove trailing zeroes
                     raise RuntimeError("the specified parameters do not allow for a reverse lexicographic iterator!")
+        elif self.max_sum == Infinity and self.max_length == Infinity and self.max_slope >= 0 and self.ceiling_limit>0:
+            raise RuntimeError("the specified parameters do not allow for a reverse lexicographic iterator!")
 
     @staticmethod
     def _list_function(l, default):

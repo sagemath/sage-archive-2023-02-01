@@ -78,7 +78,7 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
                 of the :meth:`induced_graded_map` method below) should
                 make sure to only communicate with them via the
                 :meth:`to_graded_conversion`,
-                :meth:`from_graded_conversion` and
+                :meth:`from_graded_conversion`, and
                 :meth:`projection` methods (in particular,
                 do not expect there to be a conversion from ``self``
                 to ``self.graded_algebra()``; this currently does not
@@ -459,15 +459,15 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
             map `f` between two Clifford algebras::
 
                 sage: Q = QuadraticForm(ZZ, 2, [1,2,3])
-                sage: B = CliffordAlgebra(Q, names=['u','v'], graded=False); B
-                The filtered Clifford algebra of the Quadratic form in 2
+                sage: B = CliffordAlgebra(Q, names=['u','v']); B
+                The Clifford algebra of the Quadratic form in 2
                  variables over Integer Ring with coefficients: 
                 [ 1 2 ]
                 [ * 3 ]
                 sage: m = Matrix(ZZ, [[1, 2], [1, -1]])
                 sage: f = B.lift_module_morphism(m, names=['x','y'])
                 sage: A = f.domain(); A
-                The filtered Clifford algebra of the Quadratic form in 2
+                The Clifford algebra of the Quadratic form in 2
                  variables over Integer Ring with coefficients: 
                 [ 6 0 ]
                 [ * 3 ]

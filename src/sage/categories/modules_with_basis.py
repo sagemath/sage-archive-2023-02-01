@@ -19,6 +19,7 @@ AUTHORS:
 from sage.misc.lazy_import import LazyImport
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import attrcall
+from sage.misc.abstract_method import abstract_method
 from sage.misc.sage_itertools import max_cmp, min_cmp
 from sage.categories.homsets import HomsetsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
@@ -463,6 +464,19 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 #             """
 #             return self._lmul_(-self.parent().base_ring().one(), self)
 
+        @abstract_method
+        def support(self):
+            """
+            Return the support of ``self``.
+
+            EXAMPLES::
+
+                sage: C = CombinatorialFreeModule(QQ, ZZ)
+                sage: x = C.an_element(); x
+                3*B[-1] + B[0] + 3*B[1]
+                sage: x.support()
+                [-1, 0, 1]
+            """
 
         def support_of_term(self):
             """

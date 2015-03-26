@@ -29,6 +29,7 @@ for further details.
 #******************************************************************************
 
 from sage.categories.filtered_modules import FilteredModulesCategory
+from sage.misc.abstract_method import abstract_method
 
 class FilteredModulesWithBasis(FilteredModulesCategory):
     r"""
@@ -80,15 +81,11 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
         `J_i` (as an iterable). If the latter conditions are not
         satisfied, then :meth:`basis` must be overridden.
 
-    .. TODO::
+    .. NOTE::
 
-        This deserves to be handled better, and the contracts
-        involved might also profit from some explicit writing-up.
-
-        What else should be part of the requirements for
-        inheriting from :class:`FilteredModulesWithBasis`?
-        At least having a ``degree_on_basis`` method? Is that
-        enough?
+        One should implement a ``degree_on_basis`` method in the parent
+        class in order to fully utilize the methods of this category.
+        This might become a required abstract method in the future.
 
     EXAMPLES::
 
@@ -102,6 +99,9 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
 
     TESTS::
 
+        sage: C = ModulesWithBasis(ZZ).Filtered()
+        sage: TestSuite(C).run()
+        sage: C = ModulesWithBasis(QQ).Filtered()
         sage: TestSuite(C).run()
     """
     class ParentMethods:
@@ -153,22 +153,15 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                  filtered module with basis: the free module on partitions
                  over Integer Ring(i))_{i in Partitions}
 
-            Checking this method on a filtered algebra::
+            Checking this method on a filtered algebra. Note that this
+            will typically raise an ``AttributeError`` when this feature
+            is not implemented. ::
 
                 sage: A = AlgebrasWithBasis(ZZ).Filtered().example()
                 sage: A.basis(4)
                 Traceback (most recent call last):
                 ...
                 AttributeError: 'IndexedFreeAbelianMonoid_with_category' object has no attribute 'subset'
-
-            .. TODO::
-
-                Oops! This doesn't work. This ``size=d`` thing seems very
-                frail to me. For how many families does it work, and
-                (more importantly) how many does it result in wrong
-                return values? What about leaving it to the instances to
-                define? (The ``basis`` method without extra parameters
-                should stay general, of course.)
 
             Without arguments, the full basis is returned::
 
@@ -179,10 +172,13 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                  of RR^3 with cross product over Integer Ring(i))_{i in
                  Free abelian monoid indexed by {'x', 'y', 'z'}}
 
-            .. TODO::
+            An example with a graded algebra::
 
-                Add doctests for some graded modules and algebras (which
-                seem to inherit this method).
+                sage: E.<x,y> = ExteriorAlgebra(QQ)
+                sage: E.basis()
+                Lazy family (Term map from Subsets of {0, 1} to
+                 The exterior algebra of rank 2 over Rational Field(i))_{i in
+                 Subsets of {0, 1}}
             """
             from sage.sets.family import Family
             if d is None:
@@ -235,16 +231,6 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 has the same indexing set as ``self``, and the partition
                 of this indexing set according to degree is the same as
                 for ``self``).
-
-            .. TODO::
-
-                Maybe the thing about the conversion from ``self``
-                to ``self.graded_algebra()`` on the Clifford at least
-                could be made to work? (I would still warn the user
-                against ASSUMING that it must work -- as there is
-                probably no way to guarantee it in all cases, and
-                we shouldn't require users to mess with
-                element constructors.)
 
             EXAMPLES::
 
@@ -333,7 +319,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
 
             EXAMPLES::
 
-                sage: A = Modules(QQ).WithBasis().Filtered().example()
+                sage: A = Modules(ZZ).WithBasis().Filtered().example()
                 sage: p = -2 * A.an_element(); p
                 -4*P[] - 4*P[1] - 6*P[2]
                 sage: q = A.projection(2)(p); q
@@ -648,6 +634,21 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                     if degree != degree_on_basis(m):
                         return False
             return True
+
+        @abstract_method(optional=True)
+        def degree_on_basis(self, m):
+            r"""
+            Return the degree of the basis element indexed by ``m``
+            in ``self``.
+
+            EXAMPLES::
+
+                sage: A = GradedModulesWithBasis(QQ).example()
+                sage: A.degree_on_basis(Partition((2,1)))
+                3
+                sage: A.degree_on_basis(Partition((4,2,1,1,1,1)))
+                10
+            """
 
         def homogeneous_degree(self):
             r"""

@@ -16,6 +16,10 @@ of the given module `M`.
 .. TODO::
 
     Implement filtrations for all concrete categories.
+
+.. TODO::
+
+    Implement `\operatorname{gr}` as a functor.
 """
 #*****************************************************************************
 #  Copyright (C) 2014 Travis Scrimshaw <tscrim at ucdavis.edu>

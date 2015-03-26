@@ -98,7 +98,27 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             sage: F.<a> = GF(4,'a')
             sage: P1(F).points()
             [(0 : 1), (1 : 0), (1 : 1), (a : 1), (a + 1 : 1)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: E=P.subscheme([(y^3-y*z^2) - (x^3-x*z^2),(y^3-y*z^2) + (x^3-x*z^2)])
+            sage: E(P.base_ring()).points()
+            [(1 : -1 : 1), (-1 : 0 : 1), (0 : 0 : 1), (-1 : 1 : 1), (0 : -1 : 1),
+            (-1 : -1 : 1), (1 : 1 : 1), (1 : 0 : 1), (0 : 1 : 1)]
         """
+        X = self.codomain() # self should be a homset
+
+        if X.defining_ideal().dimension() == 1: # if X a zero-dimensional scheme
+            points = set()
+            for i in range(X.ambient_space().dimension_relative() + 1):
+                Y = X.affine_patch(i)
+                phi = Y.projective_embedding()
+                aff_points = Y.rational_points()
+                for PP in aff_points:
+                    points.add(X.ambient_space()(list(phi(PP))))
+            points = list(points)
+            return points
         R = self.value_ring()
         if is_RationalField(R):
             if not B > 0:
@@ -106,6 +126,8 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             from sage.schemes.projective.projective_rational_point import enum_projective_rational_field
             return enum_projective_rational_field(self,B)
         elif R in NumberFields():
+            if not B > 0:
+                raise TypeError("A positive bound B (= %s) must be specified."%B)
             from sage.schemes.projective.projective_rational_point import enum_projective_number_field
             return enum_projective_number_field(self,B)
         elif is_FiniteField(R):

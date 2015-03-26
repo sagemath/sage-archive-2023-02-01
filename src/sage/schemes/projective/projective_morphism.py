@@ -2430,6 +2430,51 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         return(automorphism_group_QQ_fixedpoints(F, return_functions, iso_type))
 
+    def periodic_points(self, n, minimal = True):
+        r"""
+        Computes the periodic points of a given period of ``self``.
+
+        INPUT:
+
+        - ``n`` - a positive integer period
+
+        - ``minimal`` - specifies whether to find all periodic points or only minimal periodic points with given period
+
+        OUTPUT:
+
+        - a list of periodic points of ``self``
+
+        EXAMPLES::
+
+            
+        """
+        if n <= 0:
+            raise ValueError("A positive integer period must be specified")
+        if not self.is_morphism():
+           raise TypeError("self must be a projective morphism")
+
+        PS = self.domain().ambient_space()
+        N = PS.dimension_relative() + 1
+        R = PS.coordinate_ring()
+        F = self.nth_iterate_map(n)
+        L = [F[i]*R.gen(j) - F[j]*R.gen(i) for i in range(0,N) for j in range(i+1, N)] 
+        X=PS.subscheme(L)
+
+        points = X.rational_points()
+
+        if not minimal:
+            return points
+        else:
+            for Q in points:
+                # iterate points to check if minimal
+                P = Q
+                for i in range(1,n):
+                    P = self(P)
+                    if P == Q:
+                        points.remove(Q)
+                        break
+            return points
+
 class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial_projective_space):
 
     def lift_to_rational_periodic(self, points_modp, B=None):

@@ -159,7 +159,24 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             sage: A.<x,y> = AffineSpace(K,2)
             sage: len(A(K).points(9))
             361
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ,2)
+            sage: E=A.subscheme([x^2 + y^2 - 1, y^2 - x^3 + x^2 + x - 1])
+            sage: E(A.base_ring()).points()
+            [(0, -1), (-1, 0), (1, 0), (0, 1)]
         """
+        X = self.codomain() # self should be a homset
+
+        if X.defining_ideal().dimension() == 0: # if X a zero-dimensional scheme
+            vars = X.ambient_space().gens()
+            D = X.defining_ideal().variety()
+            points = []
+            for d in D:
+                P = [d[t] for t in vars]
+                points.append(X(P))
+            return points
         R = self.value_ring()
         if is_RationalField(R) or R == ZZ:
             if not B > 0:
@@ -167,6 +184,8 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             from sage.schemes.affine.affine_rational_point import enum_affine_rational_field
             return enum_affine_rational_field(self,B)
         if R in NumberFields():
+            if not B > 0:
+                raise TypeError("A positive bound B (= %s) must be specified."%B)
             from sage.schemes.affine.affine_rational_point import enum_affine_number_field
             return enum_affine_number_field(self,B)
         elif is_FiniteField(R):

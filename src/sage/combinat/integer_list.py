@@ -752,6 +752,19 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
             [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
             [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+
+        .. NOTE::
+
+            This method assumes that all parts are bounded above,
+            either directly (`max_sum`, `max_part`, `ceiling`) or
+            through slope conditions with other bounded parts. This
+            property is checked by the iterator itself::
+
+                sage: L =  IntegerListsLex(length=2, ceiling=[Infinity, 0], floor=[0,1])
+                sage: L.first()
+                Traceback (most recent call last):
+                ...
+                ValueError: infinite upper bound for values of m
         """
         if self._warning or self._waiver:
             return

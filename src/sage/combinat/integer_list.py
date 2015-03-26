@@ -737,13 +737,13 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
         EXAMPLES::
 
             sage: C = IntegerListsLex(2, length=3)
-            sage: f = C._list_function([1,2],Infinity)
+            sage: f = C._list_function([1,2], Infinity)
             sage: f(1)
             2
             sage: f(3)
             +Infinity
         """
-        return lambda i: l[i] if (i >= 0 and i < len(l) and i in ZZ) else default
+        return lambda i: l[i] if i < len(l) else default
 
     def __cmp__(self, x):
         """

@@ -53,6 +53,7 @@ Coxeter groups
 
 - :ref:`sage.combinat.root_system.coxeter_group`
 - :ref:`sage.combinat.root_system.weyl_group`
+- :ref:`sage.combinat.root_system.extended_affine_weyl_group`
 
 .. SEEALSO::
 

@@ -61,7 +61,7 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
       untwisted type A, returns the universal central extension
     - ``print_options`` -- Special instructions for printing elements (see below)
 
-    .. TOPIC:: Notation
+    .. TOPIC: Notation
 
         - "P" -- subgroup of translations
         - "Pv" -- subgroup of translations in a dual form
@@ -366,16 +366,19 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
 
     .. RUBRIC:: The general linear case
 
-    .. MATH::
+    The general linear group is not semisimple. Sage can build its extended
+    affine Weyl group::
 
         sage: E = ExtendedAffineWeylGroup(['A',2,1], general_linear=True); E
         Extended affine Weyl group of GL(3)
 
-    If the Cartan type is `['A', n-1, 1]` and ``general_linear`` is True, let `W_a` and `W_e` be the affine
-    and extended affine Weyl groups. We make the following nonstandard definition:
-    the extended affine Weyl group `W_e(GL_n)` is defined by::
+    If the Cartan type is ``['A', n-1, 1]`` and the parameter ``general_linear`` is not
+    True, the extended affine Weyl group that is built will be for `SL_n`, not
+    `GL_n`. But if ``general_linear`` is True, let `W_a` and `W_e` be the affine and
+    extended affine Weyl groups. We make the following nonstandard definition: the
+    extended affine Weyl group `W_e(GL_n)` is defined by
 
-        W_e(GL_n) = P(GL_n) \rtimes W
+    `W_e(GL_n) = P(GL_n) \rtimes W`
 
     where `W` is the finite Weyl group (the symmetric group `S_n`) and `P(GL_n)` is the weight lattice
     of `GL_n`, which is usually identified with the lattice `Z^n` of `n`-tuples of integers::
@@ -387,11 +390,11 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
 
     There is an isomorphism
 
-        W_e(GL_n) = Z \ltimes W_a
+    `W_e(GL_n) = Z \ltimes W_a`
 
     where the group of integers `Z` (with generator `\pi`) acts on `W_a` by
 
-        \pi s_i \pi^{-1} = s_{i+1}
+    `\pi\, s_i\, \pi^{-1} = s_{i+1}`
 
     and the indices of the simple reflections are taken modulo `n`::
 
@@ -1034,7 +1037,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
                 Return the unit element.
 
                 This default implementation takes the unit in the
-                PW0 realization and coerces it into `self`.
+                PW0 realization and coerces it into ``self``.
 
                 EXAMPLES::
 
@@ -1078,7 +1081,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
             def translation_group_morphism(self, la):
                 r"""
-                Return the image of `la` under the homomorphism of the translation lattice into
+                Return the image of ``la`` under the homomorphism of the translation lattice into
                 ``self``.
 
                 EXAMPLES::
@@ -1108,7 +1111,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
             def dual_translation_group_morphism(self, la):
                 r"""
-                Return the image of `la` under the homomorphism of the dual version of the
+                Return the image of ``la`` under the homomorphism of the dual version of the
                 translation lattice into ``self``.
 
                 EXAMPLES::
@@ -1150,6 +1153,8 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
                 r"""
                 Returns the `i`-th simple reflection in the realization of the extended affine
                 Weyl group.
+
+                EXAMPLES::
 
                     sage: ExtendedAffineWeylGroup(['A',3,1]).PW0().simple_reflection(0)
                     t[Lambdacheck[1] + Lambdacheck[3]] * s1*s2*s3*s2*s1
@@ -1275,9 +1280,9 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
                 INPUT:
 
-                    - `i` -- An affine Dynkin node
-                    - `side` -- 'right' or 'left' (default: 'right')
-                    - `positive` -- True or False (default: False)
+                    - ``i`` -- An affine Dynkin node
+                    - ``side`` -- 'right' or 'left' (default: 'right')
+                    - ``positive`` -- True or False (default: False)
 
                 If ``side``='left' then the reflection acts
                 on the left. If ``positive`` = True then the inequality is reversed.
@@ -1814,7 +1819,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
         def has_descent(self, i, side='right', positive=False):
             r"""
-            Whether `self` has `i` as a descent.
+            Returns whether ``self`` has `i` as a descent.
 
             INPUT:
 
@@ -2493,7 +2498,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
         def has_descent(self, i, side='right', positive=False):
             r"""
-            Whether `self` has `i` as a descent.
+            Returns whether ``self`` has `i` as a descent.
 
             INPUT:
 

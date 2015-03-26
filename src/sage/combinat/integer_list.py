@@ -101,11 +101,9 @@ class IntegerListsLex(Parent):
 
     .. NOTE::
 
-       Two valid integer lists are considered equivalent if they only
-       differ by trailing zeroes. In this case, only the list with the
-       least number of trailing zeroes will be produced.
-
-       .. TODO:: Do we really want to keep this "feature"?
+        Two valid integer lists are considered equivalent if they only
+        differ by trailing zeroes. In this case, only the list with the
+        least number of trailing zeroes will be produced::
 
             sage: list(IntegerListsLex(max_length=4, max_part=1))
             [[1, 1, 1, 1],
@@ -124,6 +122,8 @@ class IntegerListsLex(Parent):
              [0, 0, 1],
              [0, 0, 0, 1],
              []]
+
+       .. TODO:: Do we really want to keep this "feature"?
 
     EXAMPLES:
 

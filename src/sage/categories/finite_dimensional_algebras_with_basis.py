@@ -160,7 +160,6 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             if p == 0:
                 keys = list(self.basis().keys())
-                # x[i,j] = product_on_basis(x,i).coefficient(j)
                 cache = [{(i,j): c
                             for i in keys
                             for j,c in product_on_basis(y,i)}
@@ -380,7 +379,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             elif side == 'right':
                 phi = self.module_morphism(on_basis=lambda i: B[i]*a,
                         codomain=self,
-                        triangluar=True)
+                        triangular=True)
             else:
                 raise Exception("Side must be ``left`` or ``right``")
             ideal = phi.matrix().image()

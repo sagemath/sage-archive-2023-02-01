@@ -860,6 +860,31 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             self._push_search()
 
         def _push_search(self):
+            """
+            Push search forward. Resetting attributes.
+
+            EXAMPLES::
+
+                sage: C = IntegerListsLex(2, length=3)
+                sage: I = C.__iter__()
+                sage: I.j
+                0
+                sage: I.rho
+                [(0, 2)]
+                sage: I.mu
+                [3]
+                sage: I.nu
+                3
+                sage: I._push_search()
+                sage: I.j
+                1
+                sage: I.rho
+                [(0, 2), (0, -1)]
+                sage: I.mu
+                [3, 0]
+                sage: I.nu
+                3
+            """
             if self.j >= 0:
                 prev = self.mu[self.j]
             else:
@@ -872,6 +897,31 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             self.nu += val
 
         def _pop_search(self):
+            """
+            Go back in search tree. Resetting attributes.
+
+            EXAMPLES::
+
+                sage: C = IntegerListsLex(2, length=3)
+                sage: I = C.__iter__()
+                sage: I.j
+                0
+                sage: I.rho
+                [(0, 2)]
+                sage: I.nu
+                3
+                sage: I.mu
+                [3]
+                sage: I._pop_search()
+                sage: I.j
+                -1
+                sage: I.rho
+                []
+                sage: I.nu
+                0
+                sage: I.mu
+                []
+            """
             if self.j >= 0:
                 self.j -= 1
                 self.rho.pop()
@@ -948,6 +998,21 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             necessary conditions to verify that an arbitrary list satisfies the
             constraints from the corresponding ``IntegerListsLex`` object, and should
             not be used except internally in the iterator class.
+
+            EXAMPLES::
+
+                sage: C = IntegerListsLex(2, length=3)
+                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: I.mu
+                [3]
+                sage: I._internal_list_valid()
+                False
+                sage: I.next()
+                [2, 0, 0]
+                sage: I.mu
+                [2, 0, 0]
+                sage: I._internal_list_valid()
+                True
             """
             p = self.parent
             mu = self.mu

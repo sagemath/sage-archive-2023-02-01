@@ -19,7 +19,7 @@ from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.rings.integer_ring import ZZ
 
-_infinity = float('+inf')
+Infinity = float('+inf')
 
 class IntegerListsLex(Parent):
     r"""
@@ -215,10 +215,10 @@ class IntegerListsLex(Parent):
     lexicographically, since there is no largest list (take `[n]` for
     `n` as large as desired)::
 
-        sage: L = IntegerListsLex(3)
-        Traceback ...
-
-        This should kaboom!!!
+        sage: IntegerListsLex().first()
+        Traceback (most recent call last):
+        ...
+        ValueError: infinite upper bound for values of m
 
     Here is a variant which could be enumerated in lexicographically
     increasing order but not in lexicographically decreasing order::
@@ -233,7 +233,7 @@ class IntegerListsLex(Parent):
     enumerate all elements lexicographically. In the following
     example, the list `[1, 1, 1]` will never appear in the enumeration::
 
-        sage: L = IntegerListsLex(3)
+        sage: IntegerListsLex(3).first()
         This should kaboom
 
     .. TODO:: Maybe this should be ``check=False`` in this case?
@@ -281,7 +281,7 @@ class IntegerListsLex(Parent):
 
         but one cannot decide whether the following has an improper
         lexicographic enumeration without computing the floor all the
-        way to _infinity::
+        way to Infinity::
 
             sage: L = IntegerListsLex(3, floor=lambda i: 0, waiver=True)
             sage: it = iter(L)
@@ -375,7 +375,7 @@ class IntegerListsLex(Parent):
         deal with non-constant slope constraints and with negative
         parts.
 
-    .. TODO:
+    .. TODO::
 
         - Integrate all remaining tests from
           http://mupad-combinat.svn.sourceforge.net/viewvc/mupad-combinat/trunk/MuPAD-Combinat/lib/COMBINAT/TEST/MachineIntegerListsLex.tst
@@ -390,7 +390,7 @@ class IntegerListsLex(Parent):
               sage: IntegerListsLex(binomial(n,2)-1, length=n, min_slope=1).list()
               []
 
-    TESTS::
+    TESTS:
 
     This example from the combinatorics tutorial used to fail before
     :trac:`17979` because the floor conditions did not satisfy the
@@ -573,11 +573,11 @@ class IntegerListsLex(Parent):
             return typecall(cls, n=n, **kwargs)
 
     def __init__(self,
-                 n=None, min_sum=0, max_sum=_infinity,
-                 length=None, min_length=0, max_length=_infinity,
+                 n=None, min_sum=0, max_sum=Infinity,
+                 length=None, min_length=0, max_length=Infinity,
                  floor=None, ceiling=None,
-                 min_part=0, max_part=_infinity,
-                 min_slope=-_infinity, max_slope=_infinity,
+                 min_part=0, max_part=Infinity,
+                 min_slope=-Infinity, max_slope=Infinity,
                  name=None,
                  category=None,
                  element_constructor=None, element_class=None,
@@ -636,7 +636,7 @@ class IntegerListsLex(Parent):
         elif min_part <0:
             raise NotImplementedError("strictly negative min_part")
 
-        if max_part != _infinity and max_part not in ZZ:
+        if max_part != Infinity and max_part not in ZZ:
             raise TypeError("max_part (={}) should be an integer or +oo".format(max_part))
 
         if floor is None:
@@ -663,7 +663,7 @@ class IntegerListsLex(Parent):
                 self.floor = floor
             self.floor_type = "function"
             self.floor_limit = None
-            self.floor_limit_start = _infinity
+            self.floor_limit_start = Infinity
         else:
             raise TypeError("floor should be a list, tuple, or function")
 
@@ -673,11 +673,11 @@ class IntegerListsLex(Parent):
             self.ceiling_limit = max_part
             self.ceiling_limit_start = 0
         elif isinstance(ceiling, (list, tuple)):
-            if not all(i==_infinity or i in ZZ for i in ceiling):
+            if not all(i==Infinity or i in ZZ for i in ceiling):
                 raise TypeError("the parts of ceiling={} should be non negative integers".format(ceiling))
             if not all(i >= 0 for i in ceiling):
                 raise NotImplementedError("negative parts in floor={}".format(ceiling))
-            if max_part < _infinity:
+            if max_part < Infinity:
                 ceiling = map(lambda i: min(i, max_part), ceiling)
             self.ceiling = IntegerListsLex._list_function(ceiling, max_part)
             self.ceiling_type = "list"
@@ -685,14 +685,14 @@ class IntegerListsLex(Parent):
             self.ceiling_limit_start = len(ceiling)
         elif callable(ceiling):
             self._warning = True
-            if max_part < _infinity:
+            if max_part < Infinity:
                 self.ceiling = lambda i: min(max_part, ceiling(i))
             else:
                 self.ceiling = ceiling
             self.ceiling = ceiling
             self.ceiling_type = "function"
             self.ceiling_limit = None
-            self.ceiling_limit_start = _infinity
+            self.ceiling_limit_start = Infinity
         else:
             raise ValueError("unable to parse value of parameter ceiling")
 
@@ -781,7 +781,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
         """
         if self.min_sum == self.max_sum:
             return "Integer lists of sum {} satisfying certain constraints".format(self.min_sum)
-        elif self.max_sum == _infinity:
+        elif self.max_sum == Infinity:
             if self.min_sum == 0:
                 return "Integer lists with arbitrary sum satisfying certain constraints"
             else:
@@ -1060,7 +1060,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
                 sage: f(4)
                 3
             """
-            if self.parent.max_slope == _infinity:
+            if self.parent.max_slope == Infinity:
                 return self.parent.ceiling
             return lambda i: min(m + (i-j)*self.parent.max_slope, self.parent.ceiling(i) )
 
@@ -1101,7 +1101,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
                 sage: f(4)
                 1
             """
-            if self.parent.min_slope == -_infinity:
+            if self.parent.min_slope == -Infinity:
                 return self.parent.floor
             return lambda i: max( m + (i-j)*self.parent.min_slope, self.parent.floor(i) )
 
@@ -1142,7 +1142,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             upper_bound = min(upper_bounds)
 
             ## check for infinite upper bound, in case target_max is infinite
-            if upper_bound == _infinity:
+            if upper_bound == Infinity:
                 raise ValueError("infinite upper bound for values of m")
 
             return (lower_bound, upper_bound)

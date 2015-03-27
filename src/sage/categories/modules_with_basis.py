@@ -122,6 +122,12 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
     .. TODO:: ``End(X)`` is an algebra.
 
+    .. NOTE::
+
+        This category currently requires an implementation of an
+        element method ``support``. Once :trac:`18066`, an implementation
+        of an ``items`` method will be required.
+
     TESTS::
 
         sage: TestSuite(ModulesWithBasis(ZZ)).run()
@@ -463,20 +469,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 #             TODO: doctest
 #             """
 #             return self._lmul_(-self.parent().base_ring().one(), self)
-
-        @abstract_method
-        def support(self):
-            """
-            Return the support of ``self``.
-
-            EXAMPLES::
-
-                sage: C = CombinatorialFreeModule(QQ, ZZ)
-                sage: x = C.an_element(); x
-                3*B[-1] + B[0] + 3*B[1]
-                sage: x.support()
-                [-1, 0, 1]
-            """
 
         def support_of_term(self):
             """

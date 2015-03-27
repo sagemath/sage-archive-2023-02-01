@@ -286,6 +286,27 @@ class AlternatingSignMatrix(Element):
         l.reverse()
         return AlternatingSignMatrix(matrix(l))
 
+    def inversion_number(self):
+        r"""
+        Return the inversion number of ``self``.
+        
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]).inversion_number()
+            0
+            sage: asm = A([[0, 0, 1],[1, 0, 0],[0, 1, 0]])
+            sage: asm.inversion_number()
+            2
+        """
+        inversion_num = 0
+        asm_matrix = self.to_matrix()
+        for (i,j) in asm_matrix.nonzero_positions(): 
+            for (k,l) in asm_matrix.nonzero_positions(): 
+                if i>k and j<l:
+                    inversion_num = inversion_num + asm_matrix[i][j]*asm_matrix[k][l]
+        return inversion_num
+
     @combinatorial_map(name='rotate clockwise')
     def rotate_cw(self):
         r"""

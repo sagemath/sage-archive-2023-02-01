@@ -130,6 +130,12 @@ class LieAlgebras(Category_over_base_ring):
 
             sage: LieAlgebras(QQ)._repr_object_names()
             'Lie algebras over Rational Field'
+            sage: LieAlgebras(Fields())._repr_object_names()
+            'Lie algebras over fields'
+            sage: from sage.categories.category import JoinCategory
+            sage: from sage.categories.category_with_axiom import Blahs
+            sage: LieAlgebras(JoinCategory((Blahs().Flying(), Fields())))
+            Category of Lie algebras over (flying unital blahs and fields)
         """
         base = self.base()
         if isinstance(base, Category):
@@ -239,6 +245,11 @@ class LieAlgebras(Category_over_base_ring):
         def _construct_UEA(self):
             """
             Construct the universal enveloping algebra of ``self``.
+
+            .. TODO::
+
+                What is the difference between this and
+                :meth:`universal_enveloping_algebra`?
 
             EXAMPLES::
 

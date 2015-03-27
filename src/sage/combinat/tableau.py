@@ -197,9 +197,10 @@ class Tableau(ClonableList):
 
     - A Tableau object constructed from ``t``.
 
-    A tableau is abstractly a mapping of cells in a partition to arbitrary
-    entries. It is often thought of as a finite list of lists (or generally
-    an iterable of iterables) of weakly decreasing lengths. This list,
+    A tableau is abstractly a mapping from the cells in a partition to
+    arbitrary objects (called entries). It is often represented as a
+    finite list of nonempty lists (or generally an iterable of
+    iterables) of weakly decreasing lengths. This list,
     in particular, can be empty, representing the empty tableau.
 
     Note that Sage uses the English convention for partitions and

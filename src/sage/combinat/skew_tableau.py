@@ -1628,26 +1628,25 @@ class StandardSkewTableaux_all(StandardSkewTableaux):
 
     def __iter__(self):
         """
-        Iterate through ``self``.
+        Iterate through all standard skew tableaux having
+        no empty rows (before nonempty rows) and no empty columns
+        (before nonempty columns).
 
         EXAMPLES::
 
-            sage: it = StandardTableaux().__iter__()
+            sage: it = StandardSkewTableaux().__iter__()
             sage: [next(it) for x in range(10)]
             [[],
              [[1]],
-             [[1, 2]],
-             [[1], [2]],
-             [[1, 2, 3]],
-             [[1, 3], [2]],
-             [[1, 2], [3]],
-             [[1], [2], [3]],
-             [[1, 2, 3, 4]],
-             [[1, 3, 4], [2]]]
+             [[1, 2]], [[1], [2]], [[None, 1], [2]], [[None, 2], [1]],
+             [[1, 2, 3]], [[1, 2], [3]], [[1, 3], [2]],
+             [[None, 1, 2], [3]]]
         """
         n = 0
-        for st in StandardSkewTableaux_size(n):
-            yield self.element_class(self, st)
+        while True:
+            for st in StandardSkewTableaux_size(n):
+                yield self.element_class(self, st)
+            n += 1
 
 class StandardSkewTableaux_size(StandardSkewTableaux):
     """
@@ -1692,6 +1691,11 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
 
     def __iter__(self):
         """
+        Iterate through all standard skew tableaux of size `n` having
+        no empty rows (before nonempty rows) and no empty columns
+        (before nonempty columns). (The last two requirements
+        ensure that the iterator terminates after finitely many steps.)
+
         EXAMPLES::
 
             sage: StandardSkewTableaux(2).list()
@@ -1782,7 +1786,7 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
 
     def __iter__(self):
         """
-        An iterator for all the standard skew tableau with shape of the
+        An iterator for all the standard skew tableaux with shape of the
         skew partition ``skp``. The standard skew tableaux are ordered
         lexicographically by the word obtained from their row reading.
 

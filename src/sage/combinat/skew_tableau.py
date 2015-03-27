@@ -247,8 +247,9 @@ class SkewTableau(ClonableList):
         """
         return repr([list(row) for row in self])
 
-    # Overwrite the object from CombinatorialObject
-    # until this is no longer around
+    # See #18024. CombinatorialObject provided __str__, though ClonableList
+    # doesn't. Emulate the old functionality. Possibly remove when
+    # CombinatorialObject is removed.
     __str__ = _repr_list
 
     def _repr_diagram(self):
@@ -1418,8 +1419,7 @@ def _label_skew(list_of_cells, sk):
     """
     i = 1
     skew = [list(row) for row in sk]
-    for coords in list_of_cells:
-            (row, column) = coords
+    for row, column in list_of_cells:
             skew[row][column] = i
             i += 1
     return skew
@@ -2313,7 +2313,7 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
         """
         from ribbon_tableau import RibbonTableaux_shape_weight_length
         for x in RibbonTableaux_shape_weight_length(self.p, self.mu, 1):
-            yield self.element_class(self, x[:])
+            yield self.element_class(self, x)
 
 # October 2012: fixing outdated pickles which use the classes being deprecated
 from sage.structure.sage_object import register_unpickle_override

@@ -197,10 +197,10 @@ class Tableau(ClonableList):
 
     - A Tableau object constructed from ``t``.
 
-    A tableau in Sage is a finite list of lists (which can be entered as
-    arbitrary iterables), whose lengths are weakly decreasing. This list,
-    in particular, can be empty, representing the empty tableau.  The
-    entries of a tableau can be any Sage objects.
+    A tableau is abstractly a mapping of cells in a partition to arbitrary
+    entries. It is often thought of as a finite list of lists (or generally
+    an iterable of iterables) of weakly decreasing lengths. This list,
+    in particular, can be empty, representing the empty tableau.
 
     Note that Sage uses the English convention for partitions and
     tableaux; the longer rows are displayed on top.
@@ -300,7 +300,9 @@ class Tableau(ClonableList):
             sage: s is t # identical tableaux are distinct objects
             False
 
-        A tableau is immutable, see :trac:`15862`::
+        A tableau is shallowly immutable. See :trac:`15862`. The entries
+        themselves may be mutable objects, though in that case the
+        resulting Tableau should be unhashable.
 
             sage: T = Tableau([[1,2],[2]])
             sage: t0 = T[0]
@@ -315,7 +317,7 @@ class Tableau(ClonableList):
         """
         if isinstance(t, Tableau):
             # Since we are (supposed to be) immutable, we can share the underlying data
-            ClonableList.__init__(self, parent, list(t))
+            ClonableList.__init__(self, parent, t)
             return
 
         # Normalize t to be a list of tuples.
@@ -460,8 +462,9 @@ class Tableau(ClonableList):
         """
         return repr(map(list, self))
 
-    # Overwrite the object from CombinatorialObject
-    # until this is no longer around
+    # See #18024. CombinatorialObject provided __str__, though ClonableList
+    # doesn't. Emulate the old functionality. Possibly remove when
+    # CombinatorialObject is removed.
     __str__ = _repr_list
 
     def _repr_diagram(self):
@@ -4838,8 +4841,8 @@ class SemistandardTableaux(Tableaux):
         if isinstance(t, SemistandardTableau):
             return self.max_entry is None or \
                     len(t) == 0 or \
-                    max(sum(t, ())) <= self.max_entry
-        elif t == []:
+                    max(max(row) for row in t) <= self.max_entry
+        elif not t:
             return True
         elif Tableaux.__contains__(self, t):
             for row in t:
@@ -5173,9 +5176,9 @@ class SemistandardTableaux_size(SemistandardTableaux):
         if self.size==0:
             return x == []
 
-        return SemistandardTableaux.__contains__(self, x) \
-            and sum(map(len,x)) == self.size \
-            and max(i for row in x for i in row) <= self.max_entry
+        return (SemistandardTableaux.__contains__(self, x)
+            and sum(map(len,x)) == self.size
+            and max(max(row) for row in x) <= self.max_entry)
 
     def cardinality(self):
         """

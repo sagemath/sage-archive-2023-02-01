@@ -24,7 +24,7 @@ Infinity = float('+inf')
 
 class IntegerListsLex(Parent):
     r"""
-    Lists of non negative integers with constraints, in reverse lexicographic order.
+    Lists of non negative integers with constraints, in inverse lexicographic order.
 
     An *integer list* is a list `l` of nonnegative integers, its
     *parts*. The *length* ``len(l)`` of `l` is the number of its
@@ -34,17 +34,20 @@ class IntegerListsLex(Parent):
 
     This class allows to construct the set of all integer lists `l`
     satisfying specified bounds on the sum, the length, the slope, and
-    the individual parts, enumerated reverse lexicographically. The main
-    purpose is to provide a generic iteration engine for all the
-    enumerated sets like :class:`Partitions`, :class:`Compositions`,
-    :class:`IntegerVectors`. It can also be used to generate many
-    other combinatorial objects like Dyck paths, Motzkin paths, etc.
+    the individual parts, enumerated in *inverse* lexicographic order,
+    that is from largest to smallest in lexicographic order.
+
+    The main purpose is to provide a generic iteration engine for all
+    the enumerated sets like :class:`Partitions`,
+    :class:`Compositions`, :class:`IntegerVectors`. It can also be
+    used to generate many other combinatorial objects like Dyck paths,
+    Motzkin paths, etc.
 
     Mathematically speaking, this is a special case of sets of
     integral points of a polytope (or union thereof, when the length
-    is not fixed). The set of allowable has been specifically designed
-    to enable iteration with a good time and memory complexity, in
-    reverse lexicographic order (see below).
+    is not fixed). The set of allowable constraints has been
+    specifically designed to enable iteration with a good time and
+    memory complexity, and in inverse lexicographic order (see below).
 
     INPUT:
 
@@ -96,8 +99,9 @@ class IntegerListsLex(Parent):
     - ``category`` -- a category (default: :class:`FiniteEnumeratedSets`)
 
     - ``waiver`` -- boolean (default: False): whether to suppress the
-      warning raised when functions are given as input to ``floor`` or
-      ``ceiling``
+      warnings raised when functions are given as input to ``floor``
+      or ``ceiling`` and the errors raised when there is no proper
+      enumeration.
 
     .. NOTE::
 
@@ -228,19 +232,20 @@ class IntegerListsLex(Parent):
         [2, 2, 1, 2, 2]
 
 
-    .. RUBRIC:: Situations with improper reverse lexicographic enumeration
+    .. RUBRIC:: Situations with improper lexicographic enumeration
 
-    The set of all lists of integers cannot be enumerated
-    reverse lexicographically, since there is no largest list (take `[n]` for
-    `n` as large as desired)::
+    The set of all lists of integers cannot be enumerated in inverse
+    lexicographic order, since there is no largest list (take `[n]`
+    for `n` as large as desired)::
 
         sage: IntegerListsLex().first()
         Traceback (most recent call last):
         ...
-        RuntimeError: the specified parameters do not allow for a reverse lexicographic iterator!
+        RuntimeError: the specified parameters do not allow for an
+        inverse lexicographic iterator!
 
-    Here is a variant which could be enumerated in reverse lexicographically
-    increasing order but not in reverse lexicographically decreasing order::
+    Here is a variant which could be enumerated in inverse lexicographically
+    increasing order but not in inverse lexicographically decreasing order::
 
         sage: L = IntegerListsLex(length=2, ceiling=[Infinity, 0], floor=[0,1])
         sage: for l in L: print l
@@ -249,15 +254,14 @@ class IntegerListsLex(Parent):
         ValueError: infinite upper bound for values of m
 
     Even when the sum is specified, it is not necessarily possible to
-    enumerate all elements reverse lexicographically. In the following
+    enumerate all elements inverse lexicographically. In the following
     example, the list `[1, 1, 1]` will never appear in the enumeration::
 
         sage: IntegerListsLex(3).first()
         Traceback (most recent call last):
         ...
-        RuntimeError: the specified parameters do not allow for a reverse lexicographic iterator!
-
-    .. TODO:: Maybe this should be ``check=False`` in this case?
+        RuntimeError: the specified parameters do not allow for an
+        inverse lexicographic iterator!
 
     If one wants to proceed anyway, one can sign a waiver by setting
     ``waiver=True``::
@@ -267,6 +271,7 @@ class IntegerListsLex(Parent):
         sage: [it.next() for i in range(6)]
         [[3], [2, 1], [2, 0, 1], [2, 0, 0, 1], [2, 0, 0, 0, 1], [2, 0, 0, 0, 0, 1]]
 
+    .. TODO:: Maybe this should be ``check=False`` instead?
 
     .. RUBRIC:: Specifying functions as input for the floor or ceiling
 
@@ -278,7 +283,7 @@ class IntegerListsLex(Parent):
     .. WARNING::
 
         When passing a function as ``floor`` or ``ceiling``, it may
-        become undecidable to detect improper reverse lexicographic
+        become undecidable to detect improper inverse lexicographic
         enumeration. For example, the following example has a finite
         enumeration::
 
@@ -300,9 +305,9 @@ class IntegerListsLex(Parent):
              [0, 0, 1, 2],
              [0, 0, 1, 1, 1]]
 
-        but one cannot decide whether the following has an improper reverse
-        lexicographic enumeration without computing the floor all the
-        way to Infinity::
+        but one cannot decide whether the following has an improper
+        inverse lexicographic enumeration without computing the floor
+        all the way to ``Infinity``::
 
             sage: L = IntegerListsLex(3, floor=lambda i: 0, waiver=True)
             sage: it = iter(L)
@@ -353,8 +358,8 @@ class IntegerListsLex(Parent):
     .. RUBRIC:: list or iterable as input for the sum
 
     One may pass a list or iterable `L` as input for the sum. In this
-    case, the elements will be generated reverse lexicographically, for each
-    sum in `L` in turn::
+    case, the elements will be generated inverse lexicographically,
+    for each sum in `L` in turn::
 
         sage: C = IntegerListsLex([0,1,2], length=2)
         sage: C.list()
@@ -739,14 +744,15 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
     @cached_method
     def _check_lexicographic_iterable(self):
         """
-        Checks whether the parameters give a proper reverse lexicographic iterator.
+        Checks whether the parameters give a proper inverse lexicographic iterator.
 
         EXAMPLES::
 
             sage: IntegerListsLex(4).list()
             Traceback (most recent call last):
             ...
-            RuntimeError: the specified parameters do not allow for a reverse lexicographic iterator!
+            RuntimeError: the specified parameters do not allow for an
+            inverse lexicographic iterator!
 
             sage: it = iter(IntegerListsLex(4, waiver=True))
             sage: for _ in range(20): print next(it)
@@ -775,24 +781,27 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             sage: L.list()
             Traceback (most recent call last):
             ...
-            RuntimeError: the specified parameters do not allow for a reverse lexicographic iterator!
+            RuntimeError: the specified parameters do not allow for an
+            inverse lexicographic iterator!
             sage: L = IntegerListsLex(ceiling=[0], min_slope=1, max_slope=1)
             sage: L.list()
             Traceback (most recent call last):
             ...
-            RuntimeError: the specified parameters do not allow for a reverse lexicographic iterator!
+            RuntimeError: the specified parameters do not allow for an
+            inverse lexicographic iterator!
         """
         if self._warning or self._waiver:
             return
+        message = "the specified parameters do not allow for an inverse lexicographic iterator!"
         s = sum(self.floor(i) for i in range(self.floor_limit_start))
         if self.max_sum < Infinity and self.max_length == Infinity and self.floor_limit == 0:
             if self.min_slope<0 and self.max_slope>0 and s<self.min_sum:
-                raise RuntimeError("the specified parameters do not allow for a reverse lexicographic iterator!")
+                raise RuntimeError(message)
             if self.min_slope == 0 and s==0 and self.max_slope>0:
                 if self.max_sum>0: # this is assuming that we remove trailing zeroes
-                    raise RuntimeError("the specified parameters do not allow for a reverse lexicographic iterator!")
+                    raise RuntimeError(message)
         elif self.max_sum == Infinity and self.max_length == Infinity and self.max_slope >= 0 and self.ceiling_limit>0:
-            raise RuntimeError("the specified parameters do not allow for a reverse lexicographic iterator!")
+            raise RuntimeError(message)
 
     @staticmethod
     def _list_function(l, default):

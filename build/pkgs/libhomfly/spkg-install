@@ -14,6 +14,12 @@ echo >&2 "Error building libhomfly."
 exit 1
 fi
 
+$MAKE check
+if [ $? -ne 0 ]; then
+echo >&2 "Error in built libhomfly."
+exit 1
+fi
+
 $MAKE -j1 install
 if [ $? -ne 0 ]; then
 echo >&2 "Error installing libhomfly."

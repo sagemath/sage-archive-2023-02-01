@@ -790,8 +790,8 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             sage: IntegerListsLex(4).list()
             Traceback (most recent call last):
             ...
-            ValueError: the specified parameters do not allow for an
-            inverse lexicographic iterator!
+            ValueError: The specified parameters do not allow for an
+            inverse lexicographic iterator
 
             sage: it = iter(IntegerListsLex(4, waiver=True))
             sage: for _ in range(20): print next(it)
@@ -820,22 +820,22 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             sage: L.list()
             Traceback (most recent call last):
             ...
-            ValueError: the specified parameters do not allow for an
-            inverse lexicographic iterator!
+            ValueError: The specified parameters do not allow for an
+            inverse lexicographic iterator
 
             sage: L = IntegerListsLex(ceiling=[0], min_slope=1, max_slope=1)
             sage: L.list()
             Traceback (most recent call last):
             ...
-            ValueError: the specified parameters do not allow for an
-            inverse lexicographic iterator!
+            ValueError: The specified parameters do not allow for an
+            inverse lexicographic iterator
 
             sage: L = IntegerListsLex(ceiling=[1], min_slope=1, max_slope=1)
             sage: L.list()
             Traceback (most recent call last):
             ...
-            ValueError: the specified parameters do not allow for an
-            inverse lexicographic iterator!
+            ValueError: The specified parameters do not allow for an
+            inverse lexicographic iterator
         """
         if self._warning or self._waiver:
             return

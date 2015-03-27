@@ -2,16 +2,20 @@
 
 cd src
 
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
+if [ $? -ne 0 ]; then
+echo >&2 "Error configuring libhomfly."
+exit 1
+fi
 
 $MAKE
 if [ $? -ne 0 ]; then
-    echo >&2 "Error building PACKAGE_NAME."
-    exit 1
+echo >&2 "Error building libhomfly."
+exit 1
 fi
 
-cp homfly.h $SAGE_LOCAL/include/
-cp libhomfly.so $SAGE_LOCAL/lib/
+$MAKE -j1 install
 if [ $? -ne 0 ]; then
-    echo >&2 "Error installing PACKAGE_NAME."
-    exit 1
+echo >&2 "Error installing libhomfly."
+exit 1
 fi

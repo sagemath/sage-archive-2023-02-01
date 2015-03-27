@@ -1,5 +1,17 @@
 r"""
-Tools for generating lists of integers in lexicographic order
+Enumerated set of lists of integers with constraints, in inverse lexicographic order
+
+- :class:`IntegerListsLex`
+
+HISTORY:
+
+This generic tool was originally written by Hivert and Thiery in
+MuPAD-Combinat in 2000 and ported over to Sage by Mike Hansen in
+2007. It was then completely rewritten in 2015 by Gillespie,
+Schilling, and Thiery, with the help of many, to catter for
+limitations and lack of robustness w.r.t. input. The old
+implementation is still available in
+:mod:`sage.combinat.integer_list.old` for benchmarking purposes.
 """
 #*****************************************************************************
 #       Copyright (C) 2015 Bryan Gillespie <Brg008@gmail.com>,

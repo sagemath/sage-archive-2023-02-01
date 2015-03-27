@@ -2384,7 +2384,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         Return if the order of the facets given by ``shelling_order``
         is a shelling order for ``self``.
 
-        A sequence of facets `(F_i)_{i=1}^N` of a pure simplicial
+        A sequence of facets `(F_i)_{i=1}^N` of a simplicial
         complex of dimension `d` is a *shelling order* if for all
         `i = 2, 3, 4, \ldots`, the complex
 
@@ -2392,13 +2392,17 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
 
             X_i = \left( \bigcup_{j=1}^{i-1} F_j \right) \cap F_i
 
-        is pure and of dimension `d - 1`.
+        is pure and of dimension `\dim F_i - 1`.
 
         INPUT:
 
         - ``shelling_order`` -- an ordering of the facets of ``self``
         - ``certificate`` -- (default: ``False``) if ``True`` then returns
           the index of the first facet that violate the condition
+
+        .. SEEALSO::
+
+            :meth:`is_shellable`
 
         EXAMPLES::
 
@@ -2412,9 +2416,23 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             False
             sage: X.is_shelling_order(b, True)
             (False, 1)
+
+        A non-pure example::
+
+            sage: facets = [[1,2,3], [3,4], [4,5], [5,6], [4,6]]
+            sage: X = SimplicialComplex(facets)
+            sage: X.is_shelling_order(facets)
+            True
+
+        REFERENCES:
+
+        .. [BW96] Anders Bjorner and Michelle L. Wachs.
+           *Shellable nonpure complexes and posets. I*.
+           Trans. of Amer. Math. Soc. **348** No. 4. (1996)
         """
-        if not self.is_pure():
-            raise NotImplementedError
+        # Quick check by Lemma 2.2 in [BW96]
+        if self.dimension() != len(list(shelling_order[0])) - 1:
+            return False
 
         cur_complex = SimplicialComplex([])
         for i,F in enumerate(shelling_order):
@@ -2424,7 +2442,8 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
                 common = set(F).intersection(set(cur_complex.vertices()))
                 intersection = cur_complex.generated_subcomplex(list(common))
 
-                if not intersection.is_pure() or self.dimension() - 1 > intersection.dimension():
+                dim = len(list(F)) - 1
+                if not intersection.is_pure() or dim - 1 != intersection.dimension():
                     if certificate:
                         return (False, i)
                     return False
@@ -2453,23 +2472,76 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             sage: X = SimplicialComplex([[1,2,5], [2,3,5], [3,4,5], [1,4,5]])
             sage: X.is_shellable()
             True
-            sage: X.is_shellable(True)
+            sage: order = X.is_shellable(True); order
             ((2, 3, 5), (1, 2, 5), (1, 4, 5), (3, 4, 5))
+            sage: X.is_shelling_order(order)
+            True
 
             sage: X = SimplicialComplex([[1,2,3], [3,4,5]])
             sage: X.is_shellable()
             False
-        """
-        if not self.is_pure():
-            raise NotImplementedError
 
-        from sage.combinat.permutation import Permutations
-        for b in Permutations(list(self.facets())):
-            if self.is_shelling_order(b):
-                if certificate:
-                    return tuple(b)
-                return True
-        return False
+        Examples from Figure 1 in [BW96]_::
+
+            sage: X = SimplicialComplex([[1,2,3], [3,4], [4,5], [5,6], [4,6]])
+            sage: X.is_shellable()
+            True
+
+            sage: X = SimplicialComplex([[1,2,3], [3,4], [4,5,6]])
+            sage: X.is_shellable()
+            False
+
+        REFERENCES:
+
+        - :wikipedia:`Shelling_(topology)`
+        """
+        if not certificate:
+            return bool(self.is_shellable(certificate=True))
+
+        if self.is_pure() and any(x < 0 for x in self.h_vector()):
+            return False
+
+        facets = set(self.facets())
+        nfacets = len(facets)
+        cur_order = []
+        it = [iter(set(facets))]
+        cur_complex = SimplicialComplex([])
+        while facets:
+            try:
+                F = it[-1].next()
+            except StopIteration:
+                # Backtrace
+                if not cur_order:
+                    return False
+                it.pop()
+                facets.add(cur_order.pop())
+                cur_complex = SimplicialComplex(cur_order)
+                continue
+
+            # First facet must be top dimensional
+            if not cur_order:
+                if self.dimension() == F.dimension():
+                    cur_complex.add_face(F)
+                    cur_order.append(F)
+                    facets.remove(F)
+                    it.append(iter(set(facets)))
+                continue
+
+
+            # The shelling condition is precisely that intersection is
+            #    a pure complex of one dimension less and stop if this fails
+            common = set(F).intersection(set(cur_complex.vertices()))
+            intersection = cur_complex.generated_subcomplex(list(common))
+
+            if (not intersection.is_pure()
+                    or F.dimension() - 1 != intersection.dimension()):
+                continue
+            cur_complex.add_face(F)
+            cur_order.append(F)
+            facets.remove(F)
+            it.append(iter(set(facets))) # Iterate over a copy of the current facets
+
+        return tuple(cur_order)
 
     def restriction_sets(self, order):
         """

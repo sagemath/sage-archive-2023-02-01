@@ -240,8 +240,8 @@ class IntegerListsLex(Parent):
         sage: IntegerListsLex().first()
         Traceback (most recent call last):
         ...
-        RuntimeError: the specified parameters do not allow for an
-        inverse lexicographic iterator!
+        ValueError: The specified parameters do not allow for an
+        inverse lexicographic iterator
 
     Here is a variant which could be enumerated in inverse lexicographically
     increasing order but not in inverse lexicographically decreasing order::
@@ -259,8 +259,8 @@ class IntegerListsLex(Parent):
         sage: IntegerListsLex(3).first()
         Traceback (most recent call last):
         ...
-        RuntimeError: the specified parameters do not allow for an
-        inverse lexicographic iterator!
+        ValueError: The specified parameters do not allow for an
+        inverse lexicographic iterator
 
     If one wants to proceed anyway, one can sign a waiver by setting
     ``waiver=True``::
@@ -786,7 +786,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             sage: IntegerListsLex(4).list()
             Traceback (most recent call last):
             ...
-            RuntimeError: the specified parameters do not allow for an
+            ValueError: the specified parameters do not allow for an
             inverse lexicographic iterator!
 
             sage: it = iter(IntegerListsLex(4, waiver=True))
@@ -816,35 +816,35 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             sage: L.list()
             Traceback (most recent call last):
             ...
-            RuntimeError: the specified parameters do not allow for an
+            ValueError: the specified parameters do not allow for an
             inverse lexicographic iterator!
 
             sage: L = IntegerListsLex(ceiling=[0], min_slope=1, max_slope=1)
             sage: L.list()
             Traceback (most recent call last):
             ...
-            RuntimeError: the specified parameters do not allow for an
+            ValueError: the specified parameters do not allow for an
             inverse lexicographic iterator!
 
             sage: L = IntegerListsLex(ceiling=[1], min_slope=1, max_slope=1)
             sage: L.list()
             Traceback (most recent call last):
             ...
-            RuntimeError: the specified parameters do not allow for an
+            ValueError: the specified parameters do not allow for an
             inverse lexicographic iterator!
         """
         if self._warning or self._waiver:
             return
-        message = "the specified parameters do not allow for an inverse lexicographic iterator!"
+        message = "The specified parameters do not allow for an inverse lexicographic iterator"
         s = sum(self.floor(i) for i in range(self.floor_limit_start))
         if self.max_sum < Infinity and self.max_length == Infinity and self.floor_limit == 0:
             if self.min_slope<0 and self.max_slope>0 and s<self.min_sum:
-                raise RuntimeError(message)
+                raise ValueError(message)
             if self.min_slope == 0 and s==0 and self.max_slope>0:
                 if self.max_sum>0: # this is assuming that we remove trailing zeroes
-                    raise RuntimeError(message)
+                    raise ValueError(message)
         elif self.max_sum == Infinity and self.max_length == Infinity and self.max_slope >= 0 and self.ceiling_limit>0:
-            raise RuntimeError(message)
+            raise ValueError(message)
 
     @staticmethod
     def _list_function(l, default):

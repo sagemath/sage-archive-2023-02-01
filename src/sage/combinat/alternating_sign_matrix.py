@@ -447,7 +447,7 @@ class AlternatingSignMatrix(Element):
             [0 1 0]
             [0 0 1]
             [1 0 0]
-            
+
             sage: A = AlternatingSignMatrices(3)
             sage: A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]).gyration().gyration()
             [ 0  1  0]
@@ -457,7 +457,7 @@ class AlternatingSignMatrix(Element):
             [1 0 0]
             [0 1 0]
             [0 0 1]
-            
+
             sage: A = AlternatingSignMatrices(4)
             sage: M = A([[0,0,1,0],[1,0,0,0],[0,1,-1,1],[0,0,1,0]])
             sage: for i in range(5):
@@ -466,12 +466,10 @@ class AlternatingSignMatrix(Element):
             [1 0 0 0]
             [0 0 0 1]
             [0 1 0 0]
-            [0 0 1 0]      
+            [0 0 1 0]
         """
         A = self.parent()
-        asm = self
-        
-        hf = list(asm.height_function())
+        hf = list(self.height_function())
         k = len(hf) - 1
         for i in range(1,k):
             for j in range(1,k):
@@ -489,23 +487,21 @@ class AlternatingSignMatrix(Element):
                         hf[i][j] += 2
                     else:
                         hf[i][j] -= 2
-            
-            asm = A.from_height_function(matrix(hf))
-        return asm
+        return A.from_height_function(matrix(hf))
 
     def gyration_orbit(self):
         r"""
         Return the gyration orbit of ``self`` (including ``self``)
-        
+
         EXAMPLES::
-        
+
             sage: AlternatingSignMatrix([[0,1,0],[1,-1,1],[0,1,0]]).gyration_orbit()
             [
             [ 0  1  0]  [1 0 0]  [0 0 1]
             [ 1 -1  1]  [0 1 0]  [0 1 0]
             [ 0  1  0], [0 0 1], [1 0 0]
             ]
-            
+
             sage: AlternatingSignMatrix([[0,1,0,0],[1,-1,1,0],[0,1,-1,1],[0,0,1,0]]).gyration_orbit()
             [
             [ 0  1  0  0]  [1 0 0 0]  [ 0  0  1  0]  [0 0 0 1]
@@ -513,10 +509,10 @@ class AlternatingSignMatrix(Element):
             [ 0  1 -1  1]  [0 0 1 0]  [ 1 -1  1  0]  [0 1 0 0]
             [ 0  0  1  0], [0 0 0 1], [ 0  1  0  0], [1 0 0 0]
             ]
-            
+
             sage: len(AlternatingSignMatrix([[0,1,0,0,0,0],[0,0,1,0,0,0],[1,-1,0,0,0,1],\
             [0,1,0,0,0,0],[0,0,0,1,0,0],[0,0,0,0,1,0]]).gyration_orbit())
-            12   
+            12
         """
         cyc = [self]
         B = self.gyration()
@@ -524,7 +520,7 @@ class AlternatingSignMatrix(Element):
             cyc.append(B)
             B = B.gyration()
         return cyc
-    
+
     def ASM_compatible(self, B):
         r"""
         Return ``True`` if ``self`` and ``B`` are compatible alternating sign
@@ -906,7 +902,6 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
         self._matrix_space = MatrixSpace(ZZ, n)
         self._umt = use_monotone_triangles
         Parent.__init__(self, category=FiniteEnumeratedSets())
-        self._gyration_orbits = None
 
     def _repr_(self):
         r"""
@@ -1255,53 +1250,43 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
             Finite lattice containing 7 elements
 
         """
-        return LatticePoset(self._lattice_initializer(), cover_relations=True)        
-        
+        return LatticePoset(self._lattice_initializer(), cover_relations=True)
+
     @cached_method
     def gyration_orbits(self):
         r"""
         Return the list of gyration orbits of ``self``.
-        
+
         EXAMPLES::
-        
+
             sage: AlternatingSignMatrices(3).gyration_orbits()
-            [(
-            [1 0 0]  [0 0 1]  [ 0  1  0]
-            [0 1 0]  [0 1 0]  [ 1 -1  1]
-            [0 0 1], [1 0 0], [ 0  1  0]
-            ),
-            (
-            [0 1 0]  [1 0 0]
-            [1 0 0]  [0 0 1]
-            [0 0 1], [0 1 0]
-            ),
-            (
-            [0 0 1]  [0 1 0]
-            [1 0 0]  [0 0 1]
-            [0 1 0], [1 0 0]
-            )]
-            
-            sage: A = AlternatingSignMatrices(4)
-            sage: A._gyration_orbits
-            sage: g_o = A.gyration_orbits()
-            sage: A._gyration_orbits == g_o
-            True
+            ((
+              [1 0 0]  [0 0 1]  [ 0  1  0]
+              [0 1 0]  [0 1 0]  [ 1 -1  1]
+              [0 0 1], [1 0 0], [ 0  1  0]
+             ),
+             (
+              [0 1 0]  [1 0 0]
+              [1 0 0]  [0 0 1]
+              [0 0 1], [0 1 0]
+             ),
+             (
+              [0 0 1]  [0 1 0]
+              [1 0 0]  [0 0 1]
+              [0 1 0], [1 0 0]
+             ))
         """
-        if self._gyration_orbits:
-            return self._gyration_orbits
-        else:
-            ASMs = list(self)
-            perm = Permutation([ASMs.index(asm.gyration())+1 for asm in ASMs])
-            list_of_orbits = [tuple([ASMs[i-1] for i in cyc]) for cyc in perm.cycle_tuples()]
-            self._gyration_orbits = list_of_orbits
-            return list_of_orbits
-        
+        ASMs = list(self)
+        perm = Permutation([ASMs.index(asm.gyration())+1 for asm in ASMs])
+        return tuple([tuple([ASMs[i-1] for i in cyc])
+                      for cyc in perm.cycle_tuples()])
+
     def gyration_orbit_sizes(self):
         r"""
         Return the sizes of gyration orbits of ``self``.
-        
+
         EXAMPLES::
-        
+
             sage: AlternatingSignMatrices(3).gyration_orbit_sizes()
             [3, 2, 2]
             sage: AlternatingSignMatrices(4).gyration_orbit_sizes()
@@ -1314,11 +1299,7 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
             sage: A.gyration_orbit_sizes() == li
             True
         """
-        gyration_orbits = self.gyration_orbits()
-        orbit_sizes = []
-        for orbit in gyration_orbits:
-            orbit_sizes.append(len(orbit))
-        return orbit_sizes
+        return [len(orbit) for orbit in self.gyration_orbits()]
 
 class MonotoneTriangles(GelfandTsetlinPatternsTopRow):
     r"""

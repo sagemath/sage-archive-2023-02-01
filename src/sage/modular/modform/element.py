@@ -235,6 +235,23 @@ class ModularForm_abstract(ModuleElement):
         else:
             return self.element() == other.element()
 
+    def __ne__(self, other):
+        """
+        Return True if ``self != other``.
+
+        EXAMPLES::
+
+            sage: f = Newforms(Gamma1(30), 2, names='a')[1]
+            sage: g = ModularForms(23, 2).0
+            sage: f != g
+            True
+            sage: f != f
+            False
+            sage: f != loads(dumps(f))
+            False
+        """
+        return not (self == other)
+
     def __cmp__(self, other):
         """
         Compare self to other. If they are not the same object, but

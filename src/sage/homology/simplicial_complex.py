@@ -156,6 +156,7 @@ We can also make mutable copies of an immutable simplicial complex
 
 from copy import copy
 from sage.misc.lazy_import import lazy_import
+from sage.misc.cachefunc import cached_method
 from sage.homology.cell_complex import GenericCellComplex
 from sage.structure.sage_object import SageObject
 from sage.structure.category_object import CategoryObject
@@ -2377,6 +2378,147 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
                     faces.append(j)
         return SimplicialComplex(faces, maximality_check=True,
                                  is_mutable=is_mutable)
+
+    def is_shelling_order(self, shelling_order, certificate=False):
+        r"""
+        Return if the order of the facets given by ``shelling_order``
+        is a shelling order for ``self``.
+
+        A sequence of facets `(F_i)_{i=1}^N` of a pure simplicial
+        complex of dimension `d` is a *shelling order* if for all
+        `i = 2, 3, 4, \ldots`, the complex
+
+        .. MATH::
+
+            X_i = \left( \bigcup_{j=1}^{i-1} F_j \right) \cap F_i
+
+        is pure and of dimension `d - 1`.
+
+        INPUT:
+
+        - ``shelling_order`` -- an ordering of the facets of ``self``
+        - ``certificate`` -- (default: ``False``) if ``True`` then returns
+          the index of the first facet that violate the condition
+
+        EXAMPLES::
+
+            sage: facets = [[1,2,5],[2,3,5],[3,4,5],[1,4,5]]
+            sage: X = SimplicialComplex(facets)
+            sage: X.is_shelling_order(facets)
+            True
+
+            sage: b = [[1,2,5], [3,4,5], [2,3,5], [1,4,5]]
+            sage: X.is_shelling_order(b)
+            False
+            sage: X.is_shelling_order(b, True)
+            (False, 1)
+        """
+        if not self.is_pure():
+            raise NotImplementedError
+
+        cur_complex = SimplicialComplex([])
+        for i,F in enumerate(shelling_order):
+            if i > 0:
+                # The shelling condition is precisely that intersection is
+                #    a pure complex of one dimension less and stop if this fails
+                common = set(F).intersection(set(cur_complex.vertices()))
+                intersection = cur_complex.generated_subcomplex(list(common))
+
+                if not intersection.is_pure() or self.dimension() - 1 > intersection.dimension():
+                    if certificate:
+                        return (False, i)
+                    return False
+            cur_complex.add_face(F)
+        return True
+
+    @cached_method
+    def is_shellable(self, certificate=False):
+        r"""
+        Return if ``self`` is shellable.
+
+        A simplicial complex is shellable if there exists a shelling
+        order.
+
+        .. SEEALSO::
+
+            :meth:`is_shelling_order`.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) if ``True`` then
+          returns the shelling order (if it exists)
+
+        EXAMPLES::
+
+            sage: X = SimplicialComplex([[1,2,5], [2,3,5], [3,4,5], [1,4,5]])
+            sage: X.is_shellable()
+            True
+            sage: X.is_shellable(True)
+            ((2, 3, 5), (1, 2, 5), (1, 4, 5), (3, 4, 5))
+
+            sage: X = SimplicialComplex([[1,2,3], [3,4,5]])
+            sage: X.is_shellable()
+            False
+        """
+        if not self.is_pure():
+            raise NotImplementedError
+
+        from sage.combinat.permutation import Permutations
+        for b in Permutations(list(self.facets())):
+            if self.is_shelling_order(b):
+                if certificate:
+                    return tuple(b)
+                return True
+        return False
+
+    def restriction_sets(self, order):
+        """
+        Return the restriction sets of the facets according to ``order``.
+
+        A restriction set of a shelling order is the sequence of
+        smallest new faces that are created during the shelling order.
+
+        .. SEEALSO::
+
+            :meth:`is_shelling_order`
+
+        EXAMPLES::
+
+            sage: facets = [[1,2,5], [2,3,5], [3,4,5], [1,4,5]]
+            sage: X = SimplicialComplex(facets)
+            sage: X.restriction_sets(facets)
+            [(), (3,), (4,), (1, 4)]
+
+            sage: b = [[1,2,5], [3,4,5], [2,3,5], [1,4,5]]
+            sage: X.restriction_sets(b)
+            Traceback (most recent call last):
+            ...
+            ValueError: the complex must be shellable
+        """
+        # It starts with the first empty
+        restrictions = [()]
+
+        # Each time we hit a facet, the complement goes to the restriction
+        cur_complex = SimplicialComplex([])
+        for i,F in enumerate(order):
+            if i > 0:
+                # The shelling condition is precisely that intersection is
+                #    a pure complex of one dimension less and stop if this fails
+                common = set(F).intersection(set(cur_complex.vertices()))
+                intersection = cur_complex.generated_subcomplex(list(common))
+
+                if not intersection.is_pure() or self.dimension() - 1 > intersection.dimension():
+                    raise ValueError("the complex must be shellable")
+                faces = SimplicialComplex([F]).faces()
+                for k,v in intersection.faces().items():
+                    faces[k] = faces[k].difference(v)
+                for k in sorted(faces.keys()):
+                    if faces[k]:
+                        restrictions.append(faces[k].pop())
+                        break
+            cur_complex.add_face(F)
+
+        return restrictions
 
     def _complement(self, simplex):
         """

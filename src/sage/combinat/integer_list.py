@@ -637,11 +637,12 @@ class IntegerListsLex(Parent):
             return typecall(cls, n=n, **kwargs)
 
     def __init__(self,
-                 n=None, min_sum=0, max_sum=Infinity,
+                 n=None,
                  length=None, min_length=0, max_length=Infinity,
                  floor=None, ceiling=None,
                  min_part=0, max_part=Infinity,
                  min_slope=-Infinity, max_slope=Infinity,
+                 min_sum=0, max_sum=Infinity,
                  name=None,
                  category=None,
                  element_constructor=None, element_class=None,

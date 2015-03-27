@@ -118,28 +118,15 @@ class IntegerListsLex(Parent):
     .. NOTE::
 
         Two valid integer lists are considered equivalent if they only
-        differ by trailing zeroes. In this case, only the list with the
-        least number of trailing zeroes will be produced::
+        differ by trailing zeroes. In this case, only the valid list
+        with the least number of trailing zeroes will be produced.
 
-            sage: list(IntegerListsLex(max_length=4, max_part=1))
-            [[1, 1, 1, 1],
-             [1, 1, 1],
-             [1, 1, 0, 1],
-             [1, 1],
-             [1, 0, 1, 1],
-             [1, 0, 1],
-             [1, 0, 0, 1],
-             [1],
-             [0, 1, 1, 1],
-             [0, 1, 1],
-             [0, 1, 0, 1],
-             [0, 1],
-             [0, 0, 1, 1],
-             [0, 0, 1],
-             [0, 0, 0, 1],
-             []]
+        .. WARNING::
 
-       .. TODO:: Do we really want to keep this "feature"?
+            The specifications of this feature are fuzzy, leading to
+            potentially surprising consequences (see the examples
+            below).  It is recommended not to rely on it, as it may
+            eventually be discontinued.
 
     EXAMPLES:
 
@@ -284,6 +271,42 @@ class IntegerListsLex(Parent):
         [[3], [2, 1], [2, 0, 1], [2, 0, 0, 1], [2, 0, 0, 0, 1], [2, 0, 0, 0, 0, 1]]
 
     .. TODO:: Maybe this should be ``check=False`` instead?
+
+    .. RUBRIC:: On trailing zeroes, and their caveats
+
+    As mentionned above, lists are currently considered up to trailing
+    zeroes::
+
+        sage: list(IntegerListsLex(max_length=4, max_part=1))
+        [[1, 1, 1, 1],
+         [1, 1, 1],
+         [1, 1, 0, 1],
+         [1, 1],
+         [1, 0, 1, 1],
+         [1, 0, 1],
+         [1, 0, 0, 1],
+         [1],
+         [0, 1, 1, 1],
+         [0, 1, 1],
+         [0, 1, 0, 1],
+         [0, 1],
+         [0, 0, 1, 1],
+         [0, 0, 1],
+         [0, 0, 0, 1],
+         []]
+
+    ::
+
+        sage: L = IntegerListsLex(4,min_length=3,max_length=4)
+        sage: L.list()
+        [..., [2, 2, 0], ...]
+
+        sage: [2, 2, 0] in L       # in L.list()
+        True
+        sage: [2, 2, 0, 0] in L    # not in L.list() !
+        True
+        sage: [2, 2, 0, 0, 0] in L
+        False
 
     .. RUBRIC:: Specifying functions as input for the floor or ceiling
 
@@ -795,7 +818,15 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             ...
             RuntimeError: the specified parameters do not allow for an
             inverse lexicographic iterator!
+
             sage: L = IntegerListsLex(ceiling=[0], min_slope=1, max_slope=1)
+            sage: L.list()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: the specified parameters do not allow for an
+            inverse lexicographic iterator!
+
+            sage: L = IntegerListsLex(ceiling=[1], min_slope=1, max_slope=1)
             sage: L.list()
             Traceback (most recent call last):
             ...

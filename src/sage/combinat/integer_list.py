@@ -16,7 +16,7 @@ implementation is still available in
 #*****************************************************************************
 #       Copyright (C) 2015 Bryan Gillespie <Brg008@gmail.com>,
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+#  Distributed under the terms of the GNU General Public License (GPLv2+)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 

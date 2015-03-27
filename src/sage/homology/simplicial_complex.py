@@ -1275,6 +1275,66 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             g.append(h[i] - h[i-1])
         return g
 
+    def f_triangle(self):
+        r"""
+        Compute the `f`-triangle of ``self``.
+
+        The `f`-triangle is given by `f_{i,j}` being the number of
+        faces of size `j` which are a subface of a facet of size `i`.
+
+        EXAMPLES::
+
+            sage: X = SimplicialComplex([[1,2,3], [3,4,5], [1,4], [1,5], [2,4], [2,5]])
+            sage: X.f_triangle()
+            [[0],
+             [0, 0],
+             [0, 0, 4],
+             [1, 5, 6, 2]]
+        """
+        ret = [[0]*(i+1) for i in range(self.dimension() + 2)]
+        facets = [set(F) for F in self.facets()]
+        faces = self.faces()
+        for d in faces:
+            for f in faces[d]:
+                f = set(f)
+                L = [len(F) for F in facets if f.issubset(F)]
+                if not L:
+                    i = 0
+                else:
+                    i = max(L)
+                ret[i][len(f)] += 1
+        return ret
+
+    def h_triangle(self):
+        r"""
+        Compute the `h`-triangle of ``self``.
+
+        The `h`-triangle of a simplicial complex `\Delta` is given by
+
+        .. MATH::
+
+            h_{i,j} = \sum_{k=0}^j (-1)^{j-k} \binom{i-k}{j-k} f_{i,k},
+
+        where `f_{i,k}` is the `f`-triangle of `\Delta`.
+
+        EXAMPLES::
+
+            sage: X = SimplicialComplex([[1,2,3], [3,4,5], [1,4], [1,5], [2,4], [2,5]])
+            sage: X.h_triangle()
+            [[0],
+             [0, 0],
+             [0, 0, 4],
+             [1, 2, -1, 0]]
+        """
+        from sage.rings.arith import binomial
+        ret = [[0]*(i+1) for i in range(self.dimension() + 2)]
+        f = self.f_triangle()
+        for i,row in enumerate(ret):
+            for j in range(i+1):
+                row[j] = sum((-1)**(j-k) * binomial(i-k, j-k) * f[i][k]
+                             for k in range(j+1))
+        return ret
+
     def flip_graph(self):
         """
         If ``self`` is pure, then it returns the the flip graph of ``self``,
@@ -2498,8 +2558,12 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         if not certificate:
             return bool(self.is_shellable(certificate=True))
 
-        if self.is_pure() and any(x < 0 for x in self.h_vector()):
-            return False
+        if self.is_pure():
+            if any(x < 0 for x in self.h_vector()):
+                return False
+        else: # Non-pure complex
+            if any(x < 0 for row in self.h_triangle() for x in row):
+                return False
 
         facets = set(self.facets())
         nfacets = len(facets)

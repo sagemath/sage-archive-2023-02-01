@@ -1338,7 +1338,8 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
 
                 sage: C = IntegerListsLex(1, min_length=2, min_slope=0, max_slope=0)
                 sage: I = IntegerListsLex._IntegerListsLexIter(C)
-                sage: I._possible_m(0,0,1,1)    # not tested
+                sage: I._possible_m(0,0,1,1)
+                False
 
             """
             # Check code for various termination conditions.  Possible cases:
@@ -1368,17 +1369,20 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
                 upper += up
 
             i = max(p.min_length-1,j)
-            # check if any of the intervals intersect the target interval
+            # Check if any of the intervals intersect the target interval
             while i <= p.max_length - 1:
                 lo = loEnv(i) if i!=j else m
                 up = upEnv(i) if i!=j else m
                 if lo > up:
+                    # There exists no valid list of length >= i
                     break
-                elif p.max_slope <= 0 and up <= 0 and self._j >= p.min_length:
+                elif p.max_slope <= 0 and up <= 0 and i >= p.min_length:
+                    # From now on up<=0 and therefore lower and upper will never increase
                     break
                 elif lower > target_max:
                     break
                 elif p.ceiling_limit == 0 and i > p.ceiling_limit_start:
+                    # From now on up<=0 and therefore lower and upper will never increase
                     break
                 else:
                     lower += lo

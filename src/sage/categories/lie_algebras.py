@@ -275,11 +275,7 @@ class LieAlgebras(Category_over_base_ring):
         @abstract_method(optional=True)
         def module(self):
             """
-            Construct the underlying `R`-module of ``self``.
-
-            .. TODO::
-
-                Why optional?
+            Return the underlying `R`-module of ``self``.
 
             EXAMPLES::
 
@@ -398,6 +394,13 @@ class LieAlgebras(Category_over_base_ring):
             Return ``False`` since Lie algebras are never a field since
             they are not associative and antisymmetric.
 
+            .. TODO::
+
+                Do we need this method? It is confusing (some would misinterpret
+                it as checking for equality with the base field as an abelian
+                Lie algebra), and I don't see any contract that would require
+                it (our Lie algebras do not inherit from magmatic algebras).
+
             EXAMPLES::
 
                 sage: L = LieAlgebras(QQ).example()
@@ -432,8 +435,9 @@ class LieAlgebras(Category_over_base_ring):
 
         def _test_jacobi_identity(self, **options):
             """
-            Test that the Jacobi identity is satisfied on (not
-            necessarily all) elements of this set.
+            Test that the Jacobi identity and the antisymmetry axiom
+            (`[x, x] = 0`) are satisfied on (not necessarily all)
+            elements of this set.
 
             INPUT::
 
@@ -461,11 +465,12 @@ class LieAlgebras(Category_over_base_ring):
             jacobi = lambda x, y, z: self.bracket(x, self.bracket(y, z)) + \
                 self.bracket(y, self.bracket(z, x)) + \
                 self.bracket(z, self.bracket(x, y))
+            antisym = lambda x: self.bracket(x, x)
             zero = self.zero()
             for x in elts:
                 for y in elts:
                     if x == y:
-                        continue
+                        tester.assert_(antisym(x) == zero)
                     for z in elts:
                         tester.assert_(jacobi(x, y, z) == zero)
 
@@ -553,8 +558,8 @@ class LieAlgebras(Category_over_base_ring):
         @abstract_method(optional=True)
         def lift(self):
             """
-            Lift the element ``self`` to an element of the universal
-            enveloping algebra.
+            Return the image of ``self`` under the canonical lift from the Lie
+            algebra to its universal enveloping algebra.
 
             EXAMPLES::
 

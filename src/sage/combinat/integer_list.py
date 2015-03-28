@@ -14,7 +14,7 @@ implementation is still available in
 :mod:`sage.combinat.integer_list.old` for benchmarking purposes.
 """
 #*****************************************************************************
-#       Copyright (C) 2015 Bryan Gillespie <Brg008@gmail.com>,
+#       Copyright (C) 2015 Bryan Gillespie <Brg008@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPLv2+)
 #                  http://www.gnu.org/licenses/
@@ -801,6 +801,11 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             ...
             RuntimeError: the specified parameters do not allow for an
             inverse lexicographic iterator!
+
+        The next example shows a case that is finite since we remove trailing zeroes::
+
+            sage: list(IntegerListsLex(ceiling=[0], max_slope=0))
+            [[]]
         """
         if self._warning or self._waiver:
             return
@@ -812,8 +817,11 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             if self.min_slope == 0 and s==0 and self.max_slope>0:
                 if self.max_sum>0: # this is assuming that we remove trailing zeroes
                     raise RuntimeError(message)
-        elif self.max_sum == Infinity and self.max_length == Infinity and self.max_slope >= 0 and self.ceiling_limit>0:
-            raise RuntimeError(message)
+        elif self.max_sum == Infinity and self.max_length == Infinity:
+            if self.max_slope == 0 and min(self.ceiling(i) for i in range(self.ceiling_limit_start+1)) == 0:
+                return
+            elif self.max_slope >= 0 and self.ceiling_limit>0:
+                raise RuntimeError(message)
 
     @staticmethod
     def _list_function(l, default):
@@ -931,6 +939,11 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
     class _IntegerListsLexIter:
         """
         Iterator class for IntegerListsLex
+
+        The iterator is based on a depth-first search forest. If `I` is the iterator, the current state in the forest
+        is given by ``I._current_list``. The range for the next entry (which corresponds to the next depth
+        in the forest) is stored in ``I._search_range``. ``I._j`` stores the index of the last element of ``I._current_list``,
+        whereas ``I._current_sum`` is the sum over all element of ``I._current_list``.
         """
         def __init__(self, parent):
             """
@@ -938,11 +951,11 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
 
                 sage: C = IntegerListsLex(2, length=3)
                 sage: I = IntegerListsLex._IntegerListsLexIter(C)
-                sage: I.rho
+                sage: I._search_range
                 [(0, 2)]
-                sage: I.mu
+                sage: I._current_list
                 [3]
-                sage: I.j
+                sage: I._j
                 0
                 sage: I.finished
                 False
@@ -951,10 +964,10 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
 
             parent._check_lexicographic_iterable()
 
-            self.rho = []   # list of current search ranges
-            self.mu = []    # list of integers
-            self.j = -1     # index of last element of mu
-            self.nu = 0     # sum of values in mu
+            self._search_range = []   # list of current search ranges
+            self._current_list = []    # list of integers
+            self._j = -1     # index of last element of _current_list
+            self._current_sum = 0     # sum of values in _current_list
 
             self.finished = False
 
@@ -969,34 +982,34 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
 
                 sage: C = IntegerListsLex(2, length=3)
                 sage: I = C.__iter__()
-                sage: I.j
+                sage: I._j
                 0
-                sage: I.rho
+                sage: I._search_range
                 [(0, 2)]
-                sage: I.mu
+                sage: I._current_list
                 [3]
-                sage: I.nu
+                sage: I._current_sum
                 3
                 sage: I._push_search()
-                sage: I.j
+                sage: I._j
                 1
-                sage: I.rho
+                sage: I._search_range
                 [(0, 2), (0, -1)]
-                sage: I.mu
+                sage: I._current_list
                 [3, 0]
-                sage: I.nu
+                sage: I._current_sum
                 3
             """
-            if self.j >= 0:
-                prev = self.mu[self.j]
+            if self._j >= 0:
+                prev = self._current_list[self._j]
             else:
                 prev = None
-            self.j += 1
-            interval = self._m_interval(self.j, self.parent.max_sum - self.nu, prev)
+            self._j += 1
+            interval = self._m_interval(self._j, self.parent.max_sum - self._current_sum, prev)
             val = interval[1] + 1 # iterator decrements before acting
-            self.rho.append(interval)
-            self.mu.append(val)
-            self.nu += val
+            self._search_range.append(interval)
+            self._current_list.append(val)
+            self._current_sum += val
 
         def _pop_search(self):
             """
@@ -1006,29 +1019,29 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
 
                 sage: C = IntegerListsLex(2, length=3)
                 sage: I = C.__iter__()
-                sage: I.j
+                sage: I._j
                 0
-                sage: I.rho
+                sage: I._search_range
                 [(0, 2)]
-                sage: I.nu
+                sage: I._current_sum
                 3
-                sage: I.mu
+                sage: I._current_list
                 [3]
                 sage: I._pop_search()
-                sage: I.j
+                sage: I._j
                 -1
-                sage: I.rho
+                sage: I._search_range
                 []
-                sage: I.nu
+                sage: I._current_sum
                 0
-                sage: I.mu
+                sage: I._current_list
                 []
             """
-            if self.j >= 0:
-                self.j -= 1
-                self.rho.pop()
-                self.nu -= self.mu[-1]
-                self.mu.pop()
+            if self._j >= 0:
+                self._j -= 1
+                self._search_range.pop()
+                self._current_sum -= self._current_list[-1]
+                self._current_list.pop()
 
         def next(self):
             """
@@ -1046,25 +1059,25 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             if self.finished:
                 raise StopIteration()
 
-            rho = self.rho
-            mu = self.mu
+            rho = self._search_range
+            mu = self._current_list
             p = self.parent
             min_sum = p.min_sum
             max_sum = p.max_sum
             min_length = p.min_length
             max_length = p.max_length
 
-            while self.j >= 0: # j = -1 means that we have finished the bottom iteration
+            while self._j >= 0: # j = -1 means that we have finished the bottom iteration
 
                 # choose a new value of m to test
 
-                mu[self.j] -= 1
-                # m = mu[self.j]
-                self.nu -= 1
+                mu[self._j] -= 1
+                # m = mu[self._j]
+                self._current_sum -= 1
 
                 # check if the new value is valid, if not, pop to prefix, and now check if this is a solution
 
-                if mu[self.j] < rho[self.j][0] or (self.j == max_length-1 and self.nu < min_sum):
+                if mu[self._j] < rho[self._j][0] or (self._j == max_length-1 and self._current_sum < min_sum):
                     self._pop_search()
                     if self._internal_list_valid():
                         return p._element_constructor(list(mu))
@@ -1079,12 +1092,12 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
                 # 1. List is of maximal length
                 # 2. List is of maximal sum, and of at least minimal length (allow padding zeros)
 
-                if (self.nu == max_sum and self.j >= min_length - 1) or self.j == max_length - 1:
+                if (self._current_sum == max_sum and self._j >= min_length - 1) or self._j == max_length - 1:
                     if self._internal_list_valid():
                         return p._element_constructor(list(mu))
-                elif self._possible_m(mu[self.j], self.j,
-                                      min_sum - (self.nu-mu[self.j]),
-                                      max_sum - (self.nu-mu[self.j])):
+                elif self._possible_m(mu[self._j], self._j,
+                                      min_sum - (self._current_sum-mu[self._j]),
+                                      max_sum - (self._current_sum-mu[self._j])):
                     self._push_search()
 
             self.finished = True
@@ -1092,9 +1105,9 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
 
         def _internal_list_valid(self):
             """
-            Return whether the current list in the iteration variable ``self.mu`` is a valid list.
+            Return whether the current list in the iteration variable ``self._current_list`` is a valid list.
 
-            This method checks whether the sum of the parts in ``self.mu``
+            This method checks whether the sum of the parts in ``self._current_list``
             is in the right range, whether its length is in the
             required range, and whether there are trailing zeroes.  It does not check all of the
             necessary conditions to verify that an arbitrary list satisfies the
@@ -1105,21 +1118,21 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
 
                 sage: C = IntegerListsLex(2, length=3)
                 sage: I = IntegerListsLex._IntegerListsLexIter(C)
-                sage: I.mu
+                sage: I._current_list
                 [3]
                 sage: I._internal_list_valid()
                 False
                 sage: I.next()
                 [2, 0, 0]
-                sage: I.mu
+                sage: I._current_list
                 [2, 0, 0]
                 sage: I._internal_list_valid()
                 True
             """
             p = self.parent
-            mu = self.mu
-            nu = self.nu
-            l = self.j + 1
+            mu = self._current_list
+            nu = self._current_sum
+            l = self._j + 1
             good_sum = (nu >= p.min_sum and nu <= p.max_sum)
             good_length = (l >= p.min_length and l <= p.max_length)
             no_trailing_zeros = (l <= max(p.min_length,0) or mu[-1] != 0)
@@ -1309,7 +1322,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
                 up = upEnv(i) if i!=j else m
                 if lo > up:
                     break
-                elif p.max_slope <= 0 and up <= 0 and self.j >= p.min_length:
+                elif p.max_slope <= 0 and up <= 0 and self._j >= p.min_length:
                     break
                 elif lower > target_max:
                     break

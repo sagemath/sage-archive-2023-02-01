@@ -600,6 +600,12 @@ class IntegerListsLex(Parent):
         [[10], [9, 1], [8, 2], [7, 3], [7, 2, 1], [6, 4], [6, 3, 1], [5, 4, 1],
          [5, 3, 2], [4, 3, 2, 1]]
 
+
+    :trac:`17979`, comment 191::
+
+        sage: list(IntegerListsLex(1, min_length=2, min_slope=0, max_slope=0))
+        []
+
     Internally, the iterator works on a single list that is mutated
     along the way. The following test makes sure that we actually make a copy of
     this list before passing it to ``element_constructor`` in order to

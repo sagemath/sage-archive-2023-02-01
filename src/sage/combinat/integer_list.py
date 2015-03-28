@@ -120,21 +120,18 @@ class IntegerListsLex(Parent):
 
     .. NOTE::
 
-        Two valid integer lists are considered equivalent if they only
-        differ by trailing zeroes. In this case, only the valid list
-        with the least number of trailing zeroes will be produced.
+        When several lists satisfying the constraints differ only by
+        trailing zeroes, only the shortest one is enumerated (and
+        therefore counted). The others are still considered valid.
+        See the examples below.
 
-        .. WARNING::
-
-            The specifications of this feature are fuzzy, leading to
-            potentially surprising consequences (see the examples
-            below).  It is recommended not to rely on it, as it may
-            eventually be discontinued.
+        This feature is questionable. It is recommended not to rely on
+        it, as it may eventually be discontinued.
 
     EXAMPLES:
 
-    We create the enumerated set of all lists of length `3` and sum
-    `2`::
+    We create the enumerated set of all lists of non negative integers
+    of length `3` and sum `2`::
 
         sage: C = IntegerListsLex(2, length=3)
         sage: C
@@ -277,10 +274,11 @@ class IntegerListsLex(Parent):
 
     .. RUBRIC:: On trailing zeroes, and their caveats
 
-    As mentionned above, lists are currently considered up to trailing
-    zeroes::
+    As mentionned above, when several lists satisfying the constraints
+    differ only by trailing zeroes, only the shortest one is listed::
 
-        sage: list(IntegerListsLex(max_length=4, max_part=1))
+        sage: L = IntegerListsLex(max_length=4, max_part=1)
+        sage: L.list()
         [[1, 1, 1, 1],
          [1, 1, 1],
          [1, 1, 0, 1],
@@ -298,7 +296,12 @@ class IntegerListsLex(Parent):
          [0, 0, 0, 1],
          []]
 
-    ::
+    and counted::
+
+        sage: L.cardinality()
+        16
+
+    Still, the others are considered as elements of `L`::
 
         sage: L = IntegerListsLex(4,min_length=3,max_length=4)
         sage: L.list()

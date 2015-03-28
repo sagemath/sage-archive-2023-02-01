@@ -288,7 +288,12 @@ class AlternatingSignMatrix(Element):
 
     def inversion_number(self):
         r"""
-        Return the inversion number of ``self``.
+        Return the inversion number of ``self``. 
+
+        If we denote the entries of the alternating sign matrix as `a_{i,j}`, 
+        the inversion number is defined as `\sum_{i>k}\sum_{j<ℓ}a_{i,j}a_{k,ℓ}`.
+        When restricted to permutation matrices, this gives the usual inversion 
+        number of the permutation.
         
         EXAMPLES::
 
@@ -296,6 +301,9 @@ class AlternatingSignMatrix(Element):
             sage: A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]).inversion_number()
             0
             sage: asm = A([[0, 0, 1],[1, 0, 0],[0, 1, 0]])
+            sage: asm.inversion_number()
+            2
+            sage: asm = A([[0, 1, 0],[1, -1, 1],[0, 1, 0]])
             sage: asm.inversion_number()
             2
         """

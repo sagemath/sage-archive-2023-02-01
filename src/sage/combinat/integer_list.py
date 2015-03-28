@@ -687,10 +687,18 @@ class IntegerListsLex(Parent):
             self.max_sum = max_sum
 
         if length is not None:
+            if length not in ZZ:
+                raise TypeError("length (={}) should be an integer".format(length))
             self.min_length = length
             self.max_length = length
         else:
+            if min_length not in ZZ:
+                raise TypeError("min_length (={}) should be an integer".format(min_length))
+            if min_length < 0:
+                min_length = 0
             self.min_length = min_length
+            if max_length != Infinity and max_length not in ZZ:
+                raise TypeError("max_length (={}) should be an integer or +oo".format(max_length))
             self.max_length = max_length
 
         self.min_slope = min_slope
@@ -698,7 +706,7 @@ class IntegerListsLex(Parent):
 
         if min_part not in ZZ:
             raise TypeError("min_part (={}) should be an integer".format(min_part))
-        elif min_part <0:
+        elif min_part < 0:
             raise NotImplementedError("strictly negative min_part")
 
         if max_part != Infinity and max_part not in ZZ:

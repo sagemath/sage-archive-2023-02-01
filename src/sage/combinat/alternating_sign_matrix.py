@@ -306,6 +306,9 @@ class AlternatingSignMatrix(Element):
             sage: asm = A([[0, 1, 0],[1, -1, 1],[0, 1, 0]])
             sage: asm.inversion_number()
             2
+            sage: P=Permutations(5)
+            sage: all(p.number_of_inversions()==AlternatingSignMatrix(p.to_matrix()).inversion_number() for p in P)
+            True
         """
         inversion_num = 0
         asm_matrix = self.to_matrix()

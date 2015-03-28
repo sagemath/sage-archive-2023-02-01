@@ -104,7 +104,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         @lazy_attribute
         def _basis_ordering(self):
             """
-            Return a (fixed) order of the indices of the basis.
+            Return the indices of the basis of ``self`` as a tuple in
+            a fixed order.
 
             Override this attribute to get a specific ordering of the basis.
 
@@ -137,8 +138,9 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             Return the Killing matrix of ``x`` and ``y``.
 
             The Killing matrix is defined as the matrix corresponding
-            to the action of `\mathrm{ad}_x \circ \mathrm{ad}_y` in
-            the basis of ``self``.
+            to the action of
+            `\operatorname{ad}_x \circ \operatorname{ad}_y` in the
+            basis of ``self``.
 
             EXAMPLES::
 
@@ -578,8 +580,12 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
                 sage: L.an_element().to_vector()
                 (0, 0, 0)
+
+            .. TODO::
+
+                Doctest this implementation on an example not overshadowed.
             """
-            M = self.parent().free_module()
+            M = self.parent().module()
             if not self:
                 return M.zero()
             B = M.basis()

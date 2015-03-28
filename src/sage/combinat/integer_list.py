@@ -16,7 +16,10 @@ implementation is still available in
 #*****************************************************************************
 #       Copyright (C) 2015 Bryan Gillespie <Brg008@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPLv2+)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -117,34 +120,18 @@ class IntegerListsLex(Parent):
 
     .. NOTE::
 
-        Two valid integer lists are considered equivalent if they only
-        differ by trailing zeroes. In this case, only the list with the
-        least number of trailing zeroes will be produced::
+        When several lists satisfying the constraints differ only by
+        trailing zeroes, only the shortest one is enumerated (and
+        therefore counted). The others are still considered valid.
+        See the examples below.
 
-            sage: list(IntegerListsLex(max_length=4, max_part=1))
-            [[1, 1, 1, 1],
-             [1, 1, 1],
-             [1, 1, 0, 1],
-             [1, 1],
-             [1, 0, 1, 1],
-             [1, 0, 1],
-             [1, 0, 0, 1],
-             [1],
-             [0, 1, 1, 1],
-             [0, 1, 1],
-             [0, 1, 0, 1],
-             [0, 1],
-             [0, 0, 1, 1],
-             [0, 0, 1],
-             [0, 0, 0, 1],
-             []]
-
-       .. TODO:: Do we really want to keep this "feature"?
+        This feature is questionable. It is recommended not to rely on
+        it, as it may eventually be discontinued.
 
     EXAMPLES:
 
-    We create the enumerated set of all lists of length `3` and sum
-    `2`::
+    We create the enumerated set of all lists of non negative integers
+    of length `3` and sum `2`::
 
         sage: C = IntegerListsLex(2, length=3)
         sage: C
@@ -253,8 +240,8 @@ class IntegerListsLex(Parent):
         sage: IntegerListsLex().first()
         Traceback (most recent call last):
         ...
-        RuntimeError: the specified parameters do not allow for an
-        inverse lexicographic iterator!
+        ValueError: The specified parameters do not allow for an
+        inverse lexicographic iterator
 
     Here is a variant which could be enumerated in inverse lexicographically
     increasing order but not in inverse lexicographically decreasing order::
@@ -272,8 +259,8 @@ class IntegerListsLex(Parent):
         sage: IntegerListsLex(3).first()
         Traceback (most recent call last):
         ...
-        RuntimeError: the specified parameters do not allow for an
-        inverse lexicographic iterator!
+        ValueError: The specified parameters do not allow for an
+        inverse lexicographic iterator
 
     If one wants to proceed anyway, one can sign a waiver by setting
     ``waiver=True``::
@@ -284,6 +271,48 @@ class IntegerListsLex(Parent):
         [[3], [2, 1], [2, 0, 1], [2, 0, 0, 1], [2, 0, 0, 0, 1], [2, 0, 0, 0, 0, 1]]
 
     .. TODO:: Maybe this should be ``check=False`` instead?
+
+    .. RUBRIC:: On trailing zeroes, and their caveats
+
+    As mentionned above, when several lists satisfying the constraints
+    differ only by trailing zeroes, only the shortest one is listed::
+
+        sage: L = IntegerListsLex(max_length=4, max_part=1)
+        sage: L.list()
+        [[1, 1, 1, 1],
+         [1, 1, 1],
+         [1, 1, 0, 1],
+         [1, 1],
+         [1, 0, 1, 1],
+         [1, 0, 1],
+         [1, 0, 0, 1],
+         [1],
+         [0, 1, 1, 1],
+         [0, 1, 1],
+         [0, 1, 0, 1],
+         [0, 1],
+         [0, 0, 1, 1],
+         [0, 0, 1],
+         [0, 0, 0, 1],
+         []]
+
+    and counted::
+
+        sage: L.cardinality()
+        16
+
+    Still, the others are considered as elements of `L`::
+
+        sage: L = IntegerListsLex(4,min_length=3,max_length=4)
+        sage: L.list()
+        [..., [2, 2, 0], ...]
+
+        sage: [2, 2, 0] in L       # in L.list()
+        True
+        sage: [2, 2, 0, 0] in L    # not in L.list() !
+        True
+        sage: [2, 2, 0, 0, 0] in L
+        False
 
     .. RUBRIC:: Specifying functions as input for the floor or ceiling
 
@@ -611,11 +640,12 @@ class IntegerListsLex(Parent):
             return typecall(cls, n=n, **kwargs)
 
     def __init__(self,
-                 n=None, min_sum=0, max_sum=Infinity,
+                 n=None,
                  length=None, min_length=0, max_length=Infinity,
                  floor=None, ceiling=None,
                  min_part=0, max_part=Infinity,
                  min_slope=-Infinity, max_slope=Infinity,
+                 min_sum=0, max_sum=Infinity,
                  name=None,
                  category=None,
                  element_constructor=None, element_class=None,
@@ -660,10 +690,18 @@ class IntegerListsLex(Parent):
             self.max_sum = max_sum
 
         if length is not None:
+            if length not in ZZ:
+                raise TypeError("length (={}) should be an integer".format(length))
             self.min_length = length
             self.max_length = length
         else:
+            if min_length not in ZZ:
+                raise TypeError("min_length (={}) should be an integer".format(min_length))
+            if min_length < 0:
+                min_length = 0
             self.min_length = min_length
+            if max_length != Infinity and max_length not in ZZ:
+                raise TypeError("max_length (={}) should be an integer or +oo".format(max_length))
             self.max_length = max_length
 
         self.min_slope = min_slope
@@ -671,7 +709,7 @@ class IntegerListsLex(Parent):
 
         if min_part not in ZZ:
             raise TypeError("min_part (={}) should be an integer".format(min_part))
-        elif min_part <0:
+        elif min_part < 0:
             raise NotImplementedError("strictly negative min_part")
 
         if max_part != Infinity and max_part not in ZZ:
@@ -763,8 +801,8 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             sage: IntegerListsLex(4).list()
             Traceback (most recent call last):
             ...
-            RuntimeError: the specified parameters do not allow for an
-            inverse lexicographic iterator!
+            ValueError: The specified parameters do not allow for an
+            inverse lexicographic iterator
 
             sage: it = iter(IntegerListsLex(4, waiver=True))
             sage: for _ in range(20): print next(it)
@@ -793,35 +831,42 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             sage: L.list()
             Traceback (most recent call last):
             ...
-            RuntimeError: the specified parameters do not allow for an
-            inverse lexicographic iterator!
+            ValueError: The specified parameters do not allow for an
+            inverse lexicographic iterator
+
             sage: L = IntegerListsLex(ceiling=[0], min_slope=1, max_slope=1)
             sage: L.list()
             Traceback (most recent call last):
             ...
-            RuntimeError: the specified parameters do not allow for an
-            inverse lexicographic iterator!
+            ValueError: The specified parameters do not allow for an
+            inverse lexicographic iterator
 
         The next example shows a case that is finite since we remove trailing zeroes::
 
             sage: list(IntegerListsLex(ceiling=[0], max_slope=0))
             [[]]
+            sage: L = IntegerListsLex(ceiling=[1], min_slope=1, max_slope=1)
+            sage: L.list()
+            Traceback (most recent call last):
+            ...
+            ValueError: The specified parameters do not allow for an
+            inverse lexicographic iterator
         """
         if self._warning or self._waiver:
             return
-        message = "the specified parameters do not allow for an inverse lexicographic iterator!"
+        message = "The specified parameters do not allow for an inverse lexicographic iterator"
         s = sum(self.floor(i) for i in range(self.floor_limit_start))
         if self.max_sum < Infinity and self.max_length == Infinity and self.floor_limit == 0:
             if self.min_slope<0 and self.max_slope>0 and s<self.min_sum:
-                raise RuntimeError(message)
+                raise ValueError(message)
             if self.min_slope == 0 and s==0 and self.max_slope>0:
                 if self.max_sum>0: # this is assuming that we remove trailing zeroes
-                    raise RuntimeError(message)
+                    raise ValueError(message)
         elif self.max_sum == Infinity and self.max_length == Infinity:
             if self.max_slope == 0 and min(self.ceiling(i) for i in range(self.ceiling_limit_start+1)) == 0:
                 return
             elif self.max_slope >= 0 and self.ceiling_limit>0:
-                raise RuntimeError(message)
+                raise ValueError(message)
 
     @staticmethod
     def _list_function(l, default):

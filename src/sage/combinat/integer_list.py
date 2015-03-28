@@ -1129,8 +1129,8 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
                     else:
                         continue
 
-                # m is new and in range:
-                # If we're at a leaf node, check if its a solution to return, pop the layer from the stack.
+                # m = mu[self._j] is new and in range:
+                # If we're at a leaf node, check if it is a solution to return, pop the layer from the stack.
                 # Otherwise, check if any solutions are possible with this value of m.
                 #
                 # Possible cases to detect leaf nodes:
@@ -1333,6 +1333,13 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
                 True
                 sage: I._possible_m(1,1,3,2)
                 False
+
+            TESTS::
+
+                sage: C = IntegerListsLex(1, min_length=2, min_slope=0, max_slope=0)
+                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: I._possible_m(0,0,1,1)    # not tested
+
             """
             # Check code for various termination conditions.  Possible cases:
             # 0. interval [lower, upper] intersects interval [target_min, target_max] -- terminate True

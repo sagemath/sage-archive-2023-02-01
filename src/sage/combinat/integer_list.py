@@ -1313,23 +1313,32 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
 
             return (lower_bound, upper_bound)
 
-        def _possible_m(self, m, j, target_min, target_max):
+        def _possible_m(self, m, j, min_sum, max_sum):
             r"""
+            Look ahead whether `m` is a possible choice for `v_j` at this stage.
+
             INPUT:
 
             - ``m`` -- a nonnegative integer (value)
 
             - ``j`` -- a nonnegative integer (position)
 
-            - ``target_min`` -- a nonnegative integer
+            - ``min_sum`` -- a nonnegative integer
 
-            - ``target_max`` -- a nonnegative integer or +oo
+            - ``max_sum`` -- a nonnegative integer or ``+oo``
 
-            OUTPUT:
+            Tries to predict the existence of a vector suffix
+            `(v_j,...,v_k)` satisfying the constraints of ``self``,
+            starting at `v_j=m``, and with sum `v_j+\cdots+v_k`
+            between ``min_sum`` and ``max_sum``.
 
-            Whether there exists a vector suffix `(v_j,...)` satisfying
-            `v_j` equals ``m`` and the other conditions of ``self``, and
-            with sum between ``target_min`` and ``target_max``.
+            OUTPUT: ``False`` if it is guaranteed that no such vector
+            exists and ``True`` otherwise.
+
+            The current algorithm computes, for `k=j,j+1,\ldots`, a
+            lower bound `l_k` and an upper bound `u_k` for
+            `v_j+\dots+v_k`, and stops if none of the invervals `[l_k,
+            u_k]` intersect ``[min_sum, max_sum]``.
 
             EXAMPLES::
 
@@ -1346,18 +1355,17 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
                 sage: I = IntegerListsLex._IntegerListsLexIter(C)
                 sage: I._possible_m(0,0,1,1)
                 False
-
             """
             # Check code for various termination conditions.  Possible cases:
-            # 0. interval [lower, upper] intersects interval [target_min, target_max] -- terminate True
-            # 1. lower sum surpasses target_max -- terminate False
+            # 0. interval [lower, upper] intersects interval [min_sum, max_sum] -- terminate True
+            # 1. lower sum surpasses max_sum -- terminate False
             # 2. iteration surpasses max_length -- terminate False
             # 3. upper envelope is smaller than lower envelope -- terminate False
             # 4. max_slope <= 0 -- terminate False after upper passes 0
             # 5. ceiling_limit == 0 -- terminate False after reaching larger limit point
             # 6. (uncomputable) ceiling function == 0 for all but finitely many input values -- terminate False after reaching (unknown) limit point -- currently hangs
 
-            if target_min > target_max:
+            if min_sum > target_max:
                 return False
 
             p = self.parent
@@ -1394,7 +1402,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
                     lower += lo
                     upper += up
                     i += 1
-                if lower <= target_max and upper >= target_min and lower <= upper:
+                if lower <= target_max and upper >= min_sum and lower <= upper:
                     return True
             return False
 

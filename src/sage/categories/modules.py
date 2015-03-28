@@ -381,7 +381,7 @@ class Modules(Category_module):
         @cached_method
         def Super(self, base_ring=None):
             r"""
-            Return the subcategory of the super objects of ``self``.
+            Return the super-analogue category of ``self``.
 
             INPUT::
 
@@ -393,7 +393,8 @@ class Modules(Category_module):
                 Category of graded modules over Integer Ring
 
                 sage: Coalgebras(QQ).Super()
-                Join of Category of graded modules over Rational Field and Category of coalgebras over Rational Field
+                Join of Category of graded modules over Rational Field
+                    and Category of coalgebras over Rational Field
 
                 sage: AlgebrasWithBasis(QQ).Super()
                 Category of graded algebras with basis over Rational Field

@@ -273,22 +273,18 @@ class LieAlgebras(Category_over_base_ring):
             """
 
         @abstract_method(optional=True)
-        def free_module(self):
+        def module(self):
             """
-            Construct the underlying (free) `R`-module of ``self``.
-
-            This is an optional method, since Lie algebras are not
-            necessarily free as `R`-modules.
+            Construct the underlying `R`-module of ``self``.
 
             .. TODO::
 
-                Why :meth:`free_module` instead of a more general
-                and probably more useful ``module``?
+                Why optional?
 
             EXAMPLES::
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                sage: L.free_module()
+                sage: L.module()
                 Vector space of dimension 3 over Rational Field
             """
 

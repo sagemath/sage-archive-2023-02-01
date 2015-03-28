@@ -222,19 +222,19 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
         """
         return tuple(self._M.basis())
 
-    def free_module(self):
+    def module(self):
         """
-        Return ``self`` as a free module.
+        Return the underlying free module of ``self``.
 
         EXAMPLES::
 
             sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-            sage: L.free_module()
+            sage: L.module()
             Vector space of dimension 3 over Rational Field
 
             sage: a, b, c = L.lie_algebra_generators()
             sage: S = L.subalgebra([2*a+b, b + c])
-            sage: S.free_module()
+            sage: S.module()
             Vector space of degree 3 and dimension 2 over Rational Field
             Basis matrix:
             [   1    0 -1/2]

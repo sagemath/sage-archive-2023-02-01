@@ -83,23 +83,28 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             except ValueError:
                 names = ['b{}'.format(i) for i in range(self.dimension())]
                 F = FreeAlgebra(self.base_ring(), names)
+            # ``F`` is the free algebra over the basis of ``self``. The
+            # universal enveloping algebra of ``self`` will be constructed
+            # as a quotient of ``F``.
             d = F.gens_dict()
             rels = {}
             S = self.structure_coefficients(True)
             get_var = lambda g: d[names[I.index(g)]]
+            # The function ``get_var`` sends an element of the basis of
+            # ``self`` to the corresponding element of ``F``.
             for k in S.keys():
                 g0 = get_var(k[0])
                 g1 = get_var(k[1])
                 if g0 < g1:
-                    rels[g1*g0] = g0*g1 - sum(val*get_var(g) for g, val in S[k])
+                    rels[g1*g0] = g0*g1 - F.sum(val*get_var(g) for g, val in S[k])
                 else:
-                    rels[g0*g1] = g1*g0 + sum(val*get_var(g) for g, val in S[k])
+                    rels[g0*g1] = g1*g0 + F.sum(val*get_var(g) for g, val in S[k])
             return F.g_algebra(rels)
 
         @lazy_attribute
         def _basis_ordering(self):
             """
-            Return an order of the indices of the basis.
+            Return a (fixed) order of the indices of the basis.
 
             Override this attribute to get a specific ordering of the basis.
 

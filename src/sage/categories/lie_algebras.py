@@ -196,6 +196,8 @@ class LieAlgebras(Category_over_base_ring):
                 True
                 sage: LieAlgebras(ZZ).FiniteDimensional().is_subcategory(Sets().Finite())
                 False
+                sage: LieAlgebras(GF(5)).WithBasis().FiniteDimensional().is_subcategory(Sets().Finite())
+                True
             """
             if self.base_ring() in Sets().Finite():
                 return [Sets().Finite()]
@@ -220,8 +222,9 @@ class LieAlgebras(Category_over_base_ring):
             """
             return self(lhs)._bracket_(self(rhs))
 
-        # Do not override this, instead implement _construct_UEA() in order
-        #   to automatically setup the coercion
+        # Do not override this. Instead implement :meth:`_construct_UEA`;
+        #   then, :meth:`lift` and :meth:`universal_enveloping_algebra`
+        #   will automatically setup the coercion
         def universal_enveloping_algebra(self):
             """
             Return the universal enveloping algebra of ``self``.
@@ -238,18 +241,22 @@ class LieAlgebras(Category_over_base_ring):
                 sage: L = LieAlgebra(QQ, 3, 'x', abelian=True)  # todo: not implemented - #16820
                 sage: L.universal_enveloping_algebra()  # todo: not implemented - #16820
                 Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
+
+            .. SEEALSO::
+
+                :meth:`lift`
             """
             return self.lift.codomain()
 
         @abstract_method(optional=True)
         def _construct_UEA(self):
             """
-            Construct the universal enveloping algebra of ``self``.
+            Return the universal enveloping algebra of ``self``.
 
-            .. TODO::
-
-                What is the difference between this and
-                :meth:`universal_enveloping_algebra`?
+            Unlike :meth:`universal_enveloping_algebra`, this method does not
+            (usually) construct the canonical lift morphism from ``self``
+            to the universal enveloping algebra (let alone register it
+            as a coercion).
 
             EXAMPLES::
 
@@ -268,7 +275,15 @@ class LieAlgebras(Category_over_base_ring):
         @abstract_method(optional=True)
         def free_module(self):
             """
-            Construct the universal enveloping algebra of ``self``.
+            Construct the underlying (free) `R`-module of ``self``.
+
+            This is an optional method, since Lie algebras are not
+            necessarily free as `R`-modules.
+
+            .. TODO::
+
+                Why :meth:`free_module` instead of a more general
+                and probably more useful ``module``?
 
             EXAMPLES::
 
@@ -281,7 +296,12 @@ class LieAlgebras(Category_over_base_ring):
         def lift(self):
             """
             Construct the lift morphism from ``self`` to the universal
-            enveloping algebra of ``self``.
+            enveloping algebra of ``self`` (the latter is implemented
+            as :meth:`universal_enveloping_algebra`).
+
+            This is a Lie algebra homomorphism. It is injective if
+            ``self`` is a free module over its base ring, or if the
+            base ring is a `\QQ`-algebra.
 
             EXAMPLES::
 
@@ -537,7 +557,8 @@ class LieAlgebras(Category_over_base_ring):
         @abstract_method(optional=True)
         def lift(self):
             """
-            Lift ``self`` into an element of the universal enveloping algebra.
+            Lift the element ``self`` to an element of the universal
+            enveloping algebra.
 
             EXAMPLES::
 
@@ -569,7 +590,8 @@ class LieAlgebras(Category_over_base_ring):
 
 class LiftMorphism(Morphism):
     """
-    The natural lifting morphism from a Lie algebra to an enveloping algebra.
+    The natural lifting morphism from a Lie algebra to its
+    enveloping algebra.
     """
     def __init__(self, domain, codomain):
         """

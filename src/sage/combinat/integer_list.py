@@ -232,6 +232,41 @@ class IntegerListsLex(Parent):
         [2, 2, 1, 2, 2]
 
 
+    This can be used to generate Motzkin words (see
+    :wikipedia:`Motzkin_number`)::
+
+        sage: def motzkin_words(n):
+        ....:     return IntegerListsLex(length=n+1, min_slope=-1, max_slope=1,
+        ....:                ceiling=[0]+[+oo for i in range(n-1)]+[0])
+        sage: motzkin_words(4).list()
+        [[0, 1, 2, 1, 0],
+         [0, 1, 1, 1, 0],
+         [0, 1, 1, 0, 0],
+         [0, 1, 0, 1, 0],
+         [0, 1, 0, 0, 0],
+         [0, 0, 1, 1, 0],
+         [0, 0, 1, 0, 0],
+         [0, 0, 0, 1, 0],
+         [0, 0, 0, 0, 0]]
+        sage: [motzkin_words(n).cardinality() for n in range(8)]
+        [1, 1, 2, 4, 9, 21, 51, 127]
+        sage: oeis(_)                  # optional -- internet
+        0: A001006: Motzkin numbers: number of ways of drawing any number
+        of nonintersecting chords joining n (labeled) points on a circle.
+
+    or dyck words (see also :class:`DyckWords`), through the bijection
+    with paths from (0,0) to (n,n) with left and up steps that remain
+    below the diagonal::
+
+        sage: def dyck_words(n):
+        ....:     return IntegerListsLex(length=n, ceiling=range(n+1), min_slope=0)
+        sage: [dyck_words(n).cardinality() for n in range(8)]
+        [1, 1, 2, 5, 14, 42, 132, 429]
+        sage: dyck_words(3).list()
+        [[0, 1, 2], [0, 1, 1], [0, 0, 2], [0, 0, 1], [0, 0, 0]]
+
+
+
     .. RUBRIC:: Situations with improper lexicographic enumeration
 
     The set of all lists of integers cannot be enumerated in inverse

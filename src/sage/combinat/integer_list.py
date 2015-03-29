@@ -62,7 +62,8 @@ class IntegerListsLex(Parent):
     integral points of a polytope (or union thereof, when the length
     is not fixed). The set of allowable constraints has been
     specifically designed to enable iteration with a good time and
-    memory complexity, and in inverse lexicographic order (see below).
+    memory complexity in most practical use cases, and in inverse
+    lexicographic order (see below).
 
     INPUT:
 
@@ -428,13 +429,17 @@ class IntegerListsLex(Parent):
     The iteration algorithm uses a depth first search through the
     prefix tree of the list of integers (see also
     :ref:`section-generic-integerlistlex`). While doing so, it does
-    some lookahead which allows for cutting most dead branches.
+    some lookahead heuristics to attempt to cut dead branches.
 
-    The complexity of the algorithm has not been formally proven, but
-    the average runtime for producing each list `l` is suspected to be
-    bounded by a low-degree polynomial in ``lmax``, where ``lmax`` is
-    the length of the longest list. Similarly, the space complexity of
-    the algorithm is bounded by a low-degree polynomial in ``lmax``.
+    In most practical use cases, most dead branches are cut. Then,
+    roughly speaking, the time needed to iterate through all the
+    elements of `S` is proportional to the number of elements, where
+    the proportion factor is controlled by the length `l` of the
+    longest element of `S`. In addition, the memory usage is also
+    controlled by `l`, which is to say negligible in practice.
+
+    Still, there remains much room for efficiency improvements; see
+    :trac:`18055`, :trac:`18056`.
 
     .. NOTE::
 
@@ -444,18 +449,7 @@ class IntegerListsLex(Parent):
 
     .. TODO::
 
-        - Integrate all remaining tests from
-          http://mupad-combinat.svn.sourceforge.net/viewvc/mupad-combinat/trunk/MuPAD-Combinat/lib/COMBINAT/TEST/MachineIntegerListsLex.tst
-
-        - Integrate all tests from the ticket, sage-devel, ...
-
-        - Improve the lookahead to get a proper complexity in the
-          following example; even just for n=1000 this is taking a
-          long time::
-
-              sage: n = 100
-              sage: IntegerListsLex(binomial(n,2)-1, length=n, min_slope=1).list()
-              []
+        - Integrate all tests from sage-devel, ...
 
     TESTS:
 
@@ -627,6 +621,51 @@ class IntegerListsLex(Parent):
         [3]
         sage: a is b
         False
+
+    Tests from `MuPAD-Combinat <http://mupad-combinat.svn.sourceforge.net/viewvc/mupad-combinat/trunk/MuPAD-Combinat/lib/COMBINAT/TEST/MachineIntegerListsLex.tst>`_::
+
+        sage: IntegerListsLex(7, min_length=2, max_length=6, floor=[0,0,2,0,0,1], ceiling=[3,2,3,2,1,2]).cardinality()
+        83
+        sage: IntegerListsLex(7, min_length=2, max_length=6, floor=[0,0,2,0,1,1], ceiling=[3,2,3,2,1,2]).cardinality()
+        53
+        sage: IntegerListsLex(5, min_length=2, max_length=6, floor=[0,0,2,0,0,0], ceiling=[2,2,2,2,2,2]).cardinality()
+        30
+        sage: IntegerListsLex(5, min_length=2, max_length=6, floor=[0,0,1,1,0,0], ceiling=[2,2,2,2,2,2]).cardinality()
+        43
+
+        sage: IntegerListsLex(0, min_length=0, max_length=7, floor=[1,1,0,0,1,0], ceiling=[4,3,2,3,2,2,1]).first()
+        []
+
+        sage: IntegerListsLex(0, min_length=1, max_length=7, floor=[0,1,0,0,1,0], ceiling=[4,3,2,3,2,2,1]).first()
+        [0]
+        sage: IntegerListsLex(0, min_length=1, max_length=7, floor=[1,1,0,0,1,0], ceiling=[4,3,2,3,2,2,1]).cardinality()
+        0
+
+        sage: IntegerListsLex(2, min_length=0, max_length=7, floor=[1,1,0,0,0,0], ceiling=[4,3,2,3,2,2,1]).first()  # Was [1,1], due to slightly different specs
+        [2]
+        sage: IntegerListsLex(1, min_length=1, max_length=7, floor=[1,1,0,0,0,0], ceiling=[4,3,2,3,2,2,1]).first()
+        [1]
+        sage: IntegerListsLex(1, min_length=2, max_length=7, floor=[1,1,0,0,0,0], ceiling=[4,3,2,3,2,2,1]).cardinality()
+        0
+        sage: IntegerListsLex(2, min_length=5, max_length=7, floor=[1,1,0,0,0,0], ceiling=[4,3,2,3,2,2,1]).first()
+        [1, 1, 0, 0, 0]
+        sage: IntegerListsLex(2, min_length=5, max_length=7, floor=[1,1,0,0,0,1], ceiling=[4,3,2,3,2,2,1]).first()
+        [1, 1, 0, 0, 0]
+        sage: IntegerListsLex(2, min_length=5, max_length=7, floor=[1,1,0,0,1,0], ceiling=[4,3,2,3,2,2,1]).cardinality()
+        0
+
+        sage: IntegerListsLex(4, min_length=3, max_length=6, floor=[2, 1, 2, 1, 1, 1], ceiling=[3, 1, 2, 3, 2, 2]).cardinality()
+        0
+        sage: IntegerListsLex(5, min_length=3, max_length=6, floor=[2, 1, 2, 1, 1, 1], ceiling=[3, 1, 2, 3, 2, 2]).first()
+        [2, 1, 2]
+        sage: IntegerListsLex(6, min_length=3, max_length=6, floor=[2, 1, 2, 1, 1, 1], ceiling=[3, 1, 2, 3, 2, 2]).first()
+        [3, 1, 2]
+        sage: IntegerListsLex(12, min_length=3, max_length=6, floor=[2, 1, 2, 1, 1, 1], ceiling=[3, 1, 2, 3, 2, 2]).first()
+        [3, 1, 2, 3, 2, 1]
+        sage: IntegerListsLex(13, min_length=3, max_length=6, floor=[2, 1, 2, 1, 1, 1], ceiling=[3, 1, 2, 3, 2, 2]).first()
+        [3, 1, 2, 3, 2, 2]
+        sage: IntegerListsLex(14, min_length=3, max_length=6, floor=[2, 1, 2, 1, 1, 1], ceiling=[3, 1, 2, 3, 2, 2]).cardinality()
+        0
     """
     __metaclass__ = ClasscallMetaclass
 

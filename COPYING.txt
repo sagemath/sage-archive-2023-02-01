@@ -80,6 +80,7 @@ markupsafe                  Simplified BSD
 mathjax                     Apache License 2.0
 matplotlib                  Matplotlib License (BSD compatible, see below)
 maxima                      See below
+mistune                     Modified BSD
 mpc                         LGPLv3+
 mpfi                        COPYING is GPLv2, source files state LGPLv2.1+
 mpfr                        LGPLv3+

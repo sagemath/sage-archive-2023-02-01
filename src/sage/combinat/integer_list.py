@@ -45,7 +45,7 @@ class IntegerListsLex(Parent):
     *parts*. The *length* ``len(l)`` of `l` is the number of its
     parts. The *sum* `|l|` of `l` is the sum of its parts. The slope
     (at position `i`) is the difference ``l[i+1]-l[i]`` between two
-    consecutive entries.
+    consecutive parts.
 
     This class allows to construct the set of all integer lists `l`
     satisfying specified bounds on the sum, the length, the slope, and
@@ -690,14 +690,14 @@ class IntegerListsLex(Parent):
                 self.min_sum = n
                 self.max_sum = n
             else:
-                raise TypeError("invalid value for parameter n")
+                raise TypeError("Invalid value for parameter n")
         else:
             self.min_sum = min_sum
             self.max_sum = max_sum
 
         if length is not None:
             if length not in ZZ:
-                raise TypeError("length (={}) should be an integer".format(length))
+                raise TypeError("Length (={}) should be an integer".format(length))
             self.min_length = length
             self.max_length = length
         else:
@@ -776,7 +776,7 @@ class IntegerListsLex(Parent):
             self.ceiling_limit = None
             self.ceiling_limit_start = Infinity
         else:
-            raise ValueError("unable to parse value of parameter ceiling")
+            raise ValueError("Unable to parse value of parameter ceiling")
 
         if name is not None:
             self.rename(name)
@@ -1018,7 +1018,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             self._search_range = []   # list of current search ranges
             self._current_list = []    # list of integers
             self._j = -1     # index of last element of _current_list
-            self._current_sum = 0     # sum of values in _current_list
+            self._current_sum = 0     # sum of parts in _current_list
 
             self.finished = False
 
@@ -1120,7 +1120,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
 
             while self._j >= 0: # j = -1 means that we have finished the bottom iteration
 
-                # choose a new value of m to test
+                # choose a new value for m to test
 
                 mu[self._j] -= 1
                 # m = mu[self._j]
@@ -1191,7 +1191,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
 
         def _upper_envelope(self, m, j):
             """
-            Return function of the upper envelope starting with value ``m`` at position ``j``.
+            Return the upper envelope starting with value ``m`` at position ``j``.
 
             INPUT:
 
@@ -1199,9 +1199,11 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
 
             - ``j`` -- a nonnegative integer (position)
 
-            This method returns a function of ``i`` which returns the upper envelope if the starting value
-            is ``m`` at position ``j``. The upper envelope is the minimum of the ceiling function and the
-            value restriction given by the slope conditions.
+            This method returns a function of ``i`` which computes the
+            upper envelope if the starting value is ``m`` at position
+            ``j``. The upper envelope is the minimum of the ceiling
+            function and the value restriction given by the slope
+            conditions.
 
             EXAMPLES::
 
@@ -1228,11 +1230,12 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             """
             if self.parent.max_slope == Infinity:
                 return self.parent.ceiling
-            return lambda i: min(m + (i-j)*self.parent.max_slope, self.parent.ceiling(i) )
+            m = m - j*self.parent.max_slope
+            return lambda i: min(m + i*self.parent.max_slope, self.parent.ceiling(i) )
 
         def _lower_envelope(self, m, j):
             """
-            Return function of the lower envelope starting with value ``m`` at position ``j``.
+            Return  the lower envelope starting with value ``m`` at position ``j``.
 
             INPUT:
 
@@ -1240,9 +1243,11 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
 
             - ``j`` -- a nonnegative integer (position)
 
-            This method returns a function of ``i`` which returns the lower envelope if the starting value
-            is ``m`` at position ``j``. The lower envelope is the maximum of the floor function and the
-            value restriction given by the slope conditions.
+            This returns a function of ``i`` which compute the lower
+            envelope if the starting value is ``m`` at position
+            ``j``. The lower envelope is the maximum of the floor
+            function and the value restriction given by the slope
+            conditions.
 
             EXAMPLES::
 
@@ -1269,26 +1274,32 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             """
             if self.parent.min_slope == -Infinity:
                 return self.parent.floor
-            return lambda i: max( m + (i-j)*self.parent.min_slope, self.parent.floor(i) )
+            m = m-j*self.parent.min_slope
+            return lambda i: max( m + i*self.parent.min_slope, self.parent.floor(i) )
 
-        def _m_interval(self, i, target_max, prev=None):
+        def _m_interval(self, i, max_sum, prev=None):
             r"""
-            Return an interval for possible values of ``m`` (entry) at position ``i``.
+            Return coarse lower and upper bounds for the part ``m`` at position ``i``.
 
             INPUT:
 
             - ``i`` -- a nonnegative integer (position)
 
-            - ``target_max`` -- a nonnegative integer or +oo, the largest valid sum of a list tail.
-              If +oo, the ``max_slope`` or ``ceiling`` restrictions must give a finite bound for the current part
+            - ``max_sum`` -- a nonnegative integer or ``+oo``
 
-            - ``prev`` -- a nonnegative integer, the last entry in the integer sequence prior to the desired tail,
-              if the sequence is non-empty
+            - ``prev`` -- a nonnegative integer or ``None``
+
+            Return coarse lower and upper bounds for the value ``m``
+            of the part at position ``i`` so that there could exists
+            some list suffix `v_i,\ldots,v_k` of sum bounded by
+            ``max_sum`` and satisfying the floor and upper bound
+            constraints. If ``prev`` is specified, then the slope
+            conditions between ``v[i-1]=prev`` and ``v[i]=m`` should
+            also be satisfied.
 
             OUTPUT:
 
-            A tuple of two integers which bounds an interval containing (in general this is proper containment)
-            all possible suffix integers `m` which lead to a valid integer tail.
+            A tuple of two integers ``(lower_bound, upper_bound)``.
 
             EXAMPLES::
 
@@ -1299,15 +1310,13 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             """
             p = self.parent
 
-            lower_bounds = [0, p.floor(i)]
-            upper_bounds = [target_max, p.ceiling(i)]
+            lower_bound = max(0, p.floor(i))
+            upper_bound = min(max_sum, p.ceiling(i))
             if prev != None:
-                lower_bounds.append(prev + p.min_slope)
-                upper_bounds.append(prev + p.max_slope)
-            lower_bound = max(lower_bounds)
-            upper_bound = min(upper_bounds)
+                lower_bound = max(lower_bound, prev + p.min_slope)
+                upper_bound = min(upper_bound, prev + p.max_slope)
 
-            ## check for infinite upper bound, in case target_max is infinite
+            ## check for infinite upper bound, in case max_sum is infinite
             if upper_bound == Infinity:
                 raise ValueError("infinite upper bound for values of m")
 
@@ -1327,18 +1336,18 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
 
             - ``max_sum`` -- a nonnegative integer or ``+oo``
 
-            Tries to predict the existence of a vector suffix
-            `(v_j,...,v_k)` satisfying the constraints of ``self``,
-            starting at `v_j=m``, and with sum `v_j+\cdots+v_k`
-            between ``min_sum`` and ``max_sum``.
+            Tries to predict the existence of a list suffix
+            `(v_j,...,v_k)` which:
 
-            OUTPUT: ``False`` if it is guaranteed that no such vector
+            - satisfies the slope, ceiling, and length
+            (``min_length<=j<=max_length``) constraints of ``self``;
+
+            - starts with `v_j=m``;
+
+            - has sum `v_j+\cdots+v_k` between ``min_sum`` and ``max_sum``.
+
+            OUTPUT: ``False`` if it is guaranteed that no such list
             exists and ``True`` otherwise.
-
-            The current algorithm computes, for `k=j,j+1,\ldots`, a
-            lower bound `l_k` and an upper bound `u_k` for
-            `v_j+\dots+v_k`, and stops if none of the invervals `[l_k,
-            u_k]` intersect ``[min_sum, max_sum]``.
 
             EXAMPLES::
 
@@ -1348,6 +1357,43 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
                 True
                 sage: I._possible_m(1,1,3,2)
                 False
+
+            ALGORITHM::
+
+            The current algorithm computes, for `k=j,j+1,\ldots`, a
+            lower bound `l_k` and an upper bound `u_k` for
+            `v_j+\dots+v_k`, and stops if none of the invervals `[l_k,
+            u_k]` intersect ``[min_sum, max_sum]``.
+
+            The lower bound `l_k` is given by the area below the lower
+            envelope between `i` and `k` and starting at `m`. The
+            upper bound `u_k` is given by the area below the upper
+            enveloppe between `i` and `k` and starting at `m`.
+
+            The complexity of this algorithm is bounded above
+            ``O(max_length)``. When ``max_length=oo``, the algorithm
+            is guaranteed to terminate, unless ``floor`` is a function
+            which is eventually constant with value `0`, or which
+            reaches the value `0` while ``max_slope=0``.
+
+            Indeed, the lower bound `l_k` is increasing with `k`; in
+            fact it strictly increasing, unless the local lower bound
+            at `k` is `0`. Furthermore as soon as ``l_k >= min_sum``,
+            we can conclude; we can also conclude if we know that the
+            floor is eventually constant with value `0`, or there is a
+            local lower bound at `k` is `0` and ``max_slope=0``.
+
+            .. RUBRIC:: Room for improvement
+
+            Improved prediction: the lower bound `l_k` does not take
+            into account the slope conditions, except for that imposed
+            by the value `m` at `j`. Similarly for `u_k`.
+
+            Improved speed: given that `l_k` is increasing with `k`,
+            possibly some dichotomy could be used to search for `k`,
+            with appropriate caching / fast calculation of the partial
+            sums. Also, some of the information gained at depth `j`
+            could be reused at depth `j+1`.
 
             TESTS::
 
@@ -1365,44 +1411,46 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             # 5. ceiling_limit == 0 -- terminate False after reaching larger limit point
             # 6. (uncomputable) ceiling function == 0 for all but finitely many input values -- terminate False after reaching (unknown) limit point -- currently hangs
 
-            if min_sum > target_max:
+            if min_sum > max_sum:
                 return False
 
             p = self.parent
 
-            loEnv = self._lower_envelope(m,j)
-            upEnv = self._upper_envelope(m,j)
-            lower = 0
-            upper = 0
+            lower_enveloppe = self._lower_envelope(m,j)
+            upper_enveloppe = self._upper_envelope(m,j)
+            lower = 0    # The lower bound `l_k`
+            upper = 0    # The upper bound `u_k`
 
             # get to smallest valid number of parts
-            for lo,up in [(loEnv(i) if i!=j else m, upEnv(i) if i!=j else m) for i in range(j, p.min_length-1)]:
+            for k in range(j, p.min_length-1):
+                lo = lower_enveloppe(k)
+                up = upper_enveloppe(k)
                 if lo > up:
                     return False
                 lower += lo
                 upper += up
 
-            i = max(p.min_length-1,j)
+            k = max(p.min_length-1,j)
             # Check if any of the intervals intersect the target interval
-            while i <= p.max_length - 1:
-                lo = loEnv(i) if i!=j else m
-                up = upEnv(i) if i!=j else m
+            while k <= p.max_length - 1:
+                lo = lower_enveloppe(k)
+                up = upper_enveloppe(k)
                 if lo > up:
                     # There exists no valid list of length >= i
-                    break
-                elif p.max_slope <= 0 and up <= 0 and i >= p.min_length:
+                    return False
+                elif p.max_slope <= 0 and up <= 0 and k >= p.min_length:
                     # From now on up<=0 and therefore lower and upper will never increase
-                    break
-                elif lower > target_max:
-                    break
-                elif p.ceiling_limit == 0 and i > p.ceiling_limit_start:
+                    return False
+                elif lower > max_sum:
+                    return False
+                elif p.ceiling_limit == 0 and k > p.ceiling_limit_start:
                     # From now on up<=0 and therefore lower and upper will never increase
-                    break
+                    return False
                 else:
                     lower += lo
                     upper += up
-                    i += 1
-                if lower <= target_max and upper >= min_sum and lower <= upper:
+                    k += 1
+                if lower <= max_sum and upper >= min_sum and lower <= upper:
                     return True
             return False
 

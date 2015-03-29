@@ -1228,7 +1228,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
         def _lower_envelope(self, m, j):
             """
-            Return  the lower envelope starting with value ``m`` at position ``j``.
+            Return the lower envelope starting with value ``m`` at position ``j``.
 
             INPUT:
 
@@ -1333,7 +1333,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             `(v_j,...,v_k)` which:
 
             - satisfies the slope, ceiling, and length
-            (``min_length<=j<=max_length``) constraints of ``self``;
+              (``min_length<=j<=max_length``) constraints of ``self``;
 
             - starts with `v_j=m``;
 
@@ -1361,16 +1361,16 @@ If you know what you are doing, you can set check=False to skip this warning."""
             The lower bound `l_k` is given by the area below the lower
             envelope between `i` and `k` and starting at `m`. The
             upper bound `u_k` is given by the area below the upper
-            enveloppe between `i` and `k` and starting at `m`.
+            envelope between `i` and `k` and starting at `m`.
 
-            The complexity of this algorithm is bounded above
+            The complexity of this algorithm is bounded above by
             ``O(max_length)``. When ``max_length=oo``, the algorithm
             is guaranteed to terminate, unless ``floor`` is a function
             which is eventually constant with value `0`, or which
             reaches the value `0` while ``max_slope=0``.
 
             Indeed, the lower bound `l_k` is increasing with `k`; in
-            fact it strictly increasing, unless the local lower bound
+            fact it is strictly increasing, unless the local lower bound
             at `k` is `0`. Furthermore as soon as ``l_k >= min_sum``,
             we can conclude; we can also conclude if we know that the
             floor is eventually constant with value `0`, or there is a

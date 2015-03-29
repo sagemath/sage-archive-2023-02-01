@@ -1229,8 +1229,8 @@ If you know what you are doing, you can set check=False to skip this warning."""
             if self.finished:
                 raise StopIteration()
 
-            rho = self._search_ranges
-            mu = self._current_list
+            search_ranges = self._search_ranges
+            current_list = self._current_list
             p = self.parent
             min_sum = p._min_sum
             max_sum = p._max_sum
@@ -1241,20 +1241,20 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
                 # choose a new value for m to test
 
-                mu[self._j] -= 1
-                # m = mu[self._j]
+                current_list[self._j] -= 1
+                # m = current_list[self._j]
                 self._current_sum -= 1
 
                 # check if the new value is valid, if not, pop to prefix, and now check if this is a solution
 
-                if mu[self._j] < rho[self._j][0] or (self._j == max_length-1 and self._current_sum < min_sum):
+                if current_list[self._j] < search_ranges[self._j][0] or (self._j == max_length-1 and self._current_sum < min_sum):
                     self._pop_search()
                     if self._internal_list_valid():
-                        return p._element_constructor(list(mu))
+                        return p._element_constructor(list(current_list))
                     else:
                         continue
 
-                # m = mu[self._j] is new and in range:
+                # m = current_list[self._j] is new and in range:
                 # If we're at a leaf node, check if it is a solution to return, pop the layer from the stack.
                 # Otherwise, check if any solutions are possible with this value of m.
                 #
@@ -1264,10 +1264,10 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
                 if (self._current_sum == max_sum and self._j >= min_length - 1) or self._j == max_length - 1:
                     if self._internal_list_valid():
-                        return p._element_constructor(list(mu))
-                elif self._possible_m(mu[self._j], self._j,
-                                      min_sum - (self._current_sum-mu[self._j]),
-                                      max_sum - (self._current_sum-mu[self._j])):
+                        return p._element_constructor(list(current_list))
+                elif self._possible_m(current_list[self._j], self._j,
+                                      min_sum - (self._current_sum-current_list[self._j]),
+                                      max_sum - (self._current_sum-current_list[self._j])):
                     self._push_search()
 
             self.finished = True

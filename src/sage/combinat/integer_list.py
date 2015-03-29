@@ -805,7 +805,8 @@ class IntegerListsLex(Parent):
                 raise NotImplementedError("negative parts in floor={}".format(floor))
             if min_part > 0:
                 floor = map(lambda i: max(i, min_part), floor)
-            self._floor = IntegerListsLex._list_function(floor, min_part)
+            floor = lower_envelope_from_list(floor, min_slope, max_slope)
+            self._floor = list_function(floor, min_part)
             self._floor_type = "list"
             self._floor_limit = min_part
             self._floor_limit_start = len(floor)
@@ -833,7 +834,8 @@ class IntegerListsLex(Parent):
                 raise NotImplementedError("negative parts in floor={}".format(ceiling))
             if max_part < Infinity:
                 ceiling = map(lambda i: min(i, max_part), ceiling)
-            self._ceiling = IntegerListsLex._list_function(ceiling, max_part)
+            ceiling = upper_envelope_from_list(ceiling, min_slope, max_slope)
+            self._ceiling = list_function(ceiling, max_part)
             self._ceiling_type = "list"
             self._ceiling_limit = max_part
             self._ceiling_limit_start = len(ceiling)
@@ -960,36 +962,6 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 return
             elif self._max_slope >= 0 and self._ceiling_limit > 0:
                 raise ValueError(message)
-
-    @staticmethod
-    def _list_function(l, default):
-        r"""
-        Generate a function on the nonnegative integers from input.
-
-        This method generates a function on the nonnegative integers
-        whose values are taken from ``l`` when the input is a valid index
-        in the list ``l``, and has a default value ``default`` otherwise.
-
-        INPUT:
-
-        - `l` -- a list to use as a source of values
-
-        - `default` -- a default value to use for indices outside of the list
-
-        OUTPUT:
-
-        A function on the nonnegative integers.
-
-        EXAMPLES::
-
-            sage: C = IntegerListsLex(2, length=3)
-            sage: f = C._list_function([1,2], Infinity)
-            sage: f(1)
-            2
-            sage: f(3)
-            +Infinity
-        """
-        return lambda i: l[i] if i < len(l) else default
 
     def __cmp__(self, x):
         """
@@ -1387,6 +1359,11 @@ If you know what you are doing, you can set check=False to skip this warning."""
             conditions between ``v[i-1]=prev`` and ``v[i]=m`` should
             also be satisfied.
 
+            This also raises an error if it can be detected that some
+            part is neither directly nor indirectly bounded above,
+            which implies that the constraints do not allow for an
+            inverse lexicographic iterator.
+
             OUTPUT:
 
             A tuple of two integers ``(lower_bound, upper_bound)``.
@@ -1397,6 +1374,31 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: I = IntegerListsLex._Iter(C)
                 sage: I._m_interval(1,2)
                 (0, 2)
+
+            The second part is not bounded above, hence we can not
+            iterate lexicographically through all the elements::
+
+                sage: IntegerListsLex(ceiling=[2,infinity,3], max_length=3).first()
+                Traceback (most recent call last):
+                ...
+                ValueError: infinite upper bound for values of m
+
+            In the following examples, all parts are indirectly
+            bounded above::
+
+                sage: IntegerListsLex(ceiling=[2,infinity,2], max_length=3, min_slope=2).cardinality()
+                1
+                sage: IntegerListsLex(ceiling=[2,infinity,2], max_length=3, max_slope=3).cardinality()
+                45
+
+                sage: IntegerListsLex(max_part=2, max_length=3).cardinality()
+                27
+                sage: IntegerListsLex(3, max_length=3).cardinality()      # parts bounded by n
+                10
+                sage: IntegerListsLex(max_length=0, min_length=1).list()  # no part!
+                []
+                sage: IntegerListsLex(length=0).list()                    # no part!
+                [[]]
             """
             p = self.parent
 
@@ -1407,7 +1409,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 upper_bound = min(upper_bound, prev + p._max_slope)
 
             ## check for infinite upper bound, in case max_sum is infinite
-            if upper_bound == Infinity:
+            if p._check and upper_bound == Infinity:
                 raise ValueError("infinite upper bound for values of m")
 
             return (lower_bound, upper_bound)
@@ -1506,15 +1508,15 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
             p = self.parent
 
-            lower_enveloppe = self._lower_envelope(m,j)
-            upper_enveloppe = self._upper_envelope(m,j)
+            lower_envelope = self._lower_envelope(m,j)
+            upper_envelope = self._upper_envelope(m,j)
             lower = 0    # The lower bound `l_k`
             upper = 0    # The upper bound `u_k`
 
             # get to smallest valid number of parts
             for k in range(j, p._min_length-1):
-                lo = lower_enveloppe(k)
-                up = upper_enveloppe(k)
+                lo = lower_envelope(k)
+                up = upper_envelope(k)
                 if lo > up:
                     return False
                 lower += lo
@@ -1523,10 +1525,10 @@ If you know what you are doing, you can set check=False to skip this warning."""
             k = max(p._min_length-1,j)
             # Check if any of the intervals intersect the target interval
             while k <= p._max_length - 1:
-                lo = lower_enveloppe(k)
-                up = upper_enveloppe(k)
+                lo = lower_envelope(k)
+                up = upper_envelope(k)
                 if lo > up:
-                    # There exists no valid list of length >= i
+                    # There exists no valid list of length >= k
                     return False
                 elif p._max_slope <= 0 and up <= 0 and k >= p._min_length:
                     # From now on up<=0 and therefore lower and upper will never increase
@@ -1562,3 +1564,92 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 False
             """
             return self.parent().__contains__(self)
+
+##############################################################################
+# Utilities to massage list inputs for ceiling and floor
+##############################################################################
+
+def list_function(l, default):
+    r"""
+    Generate a function on the nonnegative integers from a list of values
+
+    INPUT:
+
+    - `l` -- a list
+
+    - `default` -- a default value to use for indices outside of the list
+
+    OUTPUT:
+
+    A function on the nonnegative integers which maps `i` to ``l[i]``
+    if ``i<len(l)`` and to ``default`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.integer_list import list_function
+        sage: C = IntegerListsLex(2, length=3)
+        sage: f = list_function([1,2], Infinity)
+        sage: f(1)
+        2
+        sage: f(3)
+        +Infinity
+    """
+    return lambda i: l[i] if i < len(l) else default
+
+def lower_envelope_from_list(list, min_slope, max_slope):
+    """
+    Return the lowest list above ``list`` that satisfies the slope constraints.
+
+    EXAMPLES::
+
+        sage: import sage.combinat.integer_list as integer_list
+        sage: integer_list.lower_envelope_from_list([4,2,6],-1,1)
+        [4, 5, 6]
+        sage: integer_list.lower_envelope_from_list([4,2,6],-2, 1)
+        [4, 5, 6]
+        sage: integer_list.lower_envelope_from_list([4,2,6,3,7],-2, 1)
+        [4, 5, 6, 6, 7]
+        sage: integer_list.lower_envelope_from_list([4,2,6,1], -2, 1)
+        [4, 5, 6, 4]
+    """
+
+    new_list = list[:]
+    for i in range(1, len(new_list)):
+        new_list[i] = max(new_list[i], new_list[i-1] + min_slope)
+
+    for i in reversed(range(len(new_list)-1)):
+        new_list[i] = max( new_list[i], new_list[i+1] - max_slope)
+
+    return new_list
+
+def upper_envelope_from_list(list, min_slope, max_slope):
+    """
+    Return the higest list below ``list`` that satisfies the slope constraints.
+
+    EXAMPLES::
+
+        sage: import sage.combinat.integer_list as integer_list
+        sage: integer_list.upper_envelope_from_list([4,2,6], -1, 1)
+        [3, 2, 3]
+        sage: integer_list.upper_envelope_from_list([4,2,6], -1, infinity)
+        [3, 2, 6]
+        sage: integer_list.upper_envelope_from_list([1,4,2], -1, 1)
+        [1, 2, 2]
+        sage: integer_list.upper_envelope_from_list([4,2,6,3,7], -2, 1)
+        [4, 2, 3, 3, 4]
+        sage: integer_list.upper_envelope_from_list([4,2,infinity,3,7], -2, 1)
+        [4, 2, 3, 3, 4]
+        sage: integer_list.upper_envelope_from_list([1, infinity, 2], -1, 1)
+        [1, 2, 2]
+        sage: integer_list.upper_envelope_from_list([infinity, 4, 2], -1, 1)
+        [4, 3, 2]
+    """
+
+    new_list = list[:]
+    for i in range(1, len(new_list)):
+        new_list[i] = min(new_list[i], new_list[i-1] + max_slope)
+
+    for i in reversed(range(len(new_list)-1)):
+        new_list[i] = min( new_list[i], new_list[i+1] - min_slope)
+
+    return new_list

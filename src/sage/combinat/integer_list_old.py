@@ -39,6 +39,9 @@ from sage.structure.list_clone import ClonableArray
 from sage.misc.lazy_attribute import lazy_attribute
 import __builtin__
 from sage.misc.stopgap import stopgap
+from integer_list import upper_enveloppe_of_list as lower_regular
+from integer_list import lower_enveloppe_of_list as upper_regular
+
 
 def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """
@@ -183,38 +186,6 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
             return None
 
     return result
-
-def lower_regular(comp, min_slope, max_slope):
-    """
-    Returns the uppest regular composition below ``comp``
-
-    TESTS::
-
-        sage: import sage.combinat.integer_list_old as integer_list
-        sage: integer_list.lower_regular([4,2,6], -1, 1)
-        [3, 2, 3]
-        sage: integer_list.lower_regular([4,2,6], -1, infinity)
-        [3, 2, 6]
-        sage: integer_list.lower_regular([1,4,2], -1, 1)
-        [1, 2, 2]
-        sage: integer_list.lower_regular([4,2,6,3,7], -2, 1)
-        [4, 2, 3, 3, 4]
-        sage: integer_list.lower_regular([4,2,infinity,3,7], -2, 1)
-        [4, 2, 3, 3, 4]
-        sage: integer_list.lower_regular([1, infinity, 2], -1, 1)
-        [1, 2, 2]
-        sage: integer_list.lower_regular([infinity, 4, 2], -1, 1)
-        [4, 3, 2]
-    """
-
-    new_comp = comp[:]
-    for i in range(1, len(new_comp)):
-        new_comp[i] = min(new_comp[i], new_comp[i-1] + max_slope)
-
-    for i in reversed(range(len(new_comp)-1)):
-        new_comp[i] = min( new_comp[i], new_comp[i+1] - min_slope)
-
-    return new_comp
 
 def rightmost_pivot(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """
@@ -427,32 +398,6 @@ def iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
         while not f is None:
             yield f
             f = succ(f)
-
-def upper_regular(comp, min_slope, max_slope):
-    """
-    Return the uppest regular composition above ``comp``.
-
-    TESTS::
-
-        sage: import sage.combinat.integer_list_old as integer_list
-        sage: integer_list.upper_regular([4,2,6],-1,1)
-        [4, 5, 6]
-        sage: integer_list.upper_regular([4,2,6],-2, 1)
-        [4, 5, 6]
-        sage: integer_list.upper_regular([4,2,6,3,7],-2, 1)
-        [4, 5, 6, 6, 7]
-        sage: integer_list.upper_regular([4,2,6,1], -2, 1)
-        [4, 5, 6, 4]
-    """
-
-    new_comp = comp[:]
-    for i in range(1, len(new_comp)):
-        new_comp[i] = max(new_comp[i], new_comp[i-1] + min_slope)
-
-    for i in reversed(range(len(new_comp)-1)):
-        new_comp[i] = max( new_comp[i], new_comp[i+1] - max_slope)
-
-    return new_comp
 
 def comp2floor(f, min_slope, max_slope):
     """

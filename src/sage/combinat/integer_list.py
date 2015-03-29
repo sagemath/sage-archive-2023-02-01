@@ -660,6 +660,15 @@ class IntegerListsLex(Parent):
         [3, 1, 2, 3, 2, 2]
         sage: IntegerListsLex(14, min_length=3, max_length=6, floor=[2, 1, 2, 1, 1, 1], ceiling=[3, 1, 2, 3, 2, 2]).cardinality()
         0
+
+    Indirect tests about specifying an iterable for `n`::
+
+        sage: P = Partitions(NonNegativeIntegers(), max_part = 3)
+        sage: P.first()
+        []
+        sage: P = Partitions(NonNegativeIntegers())
+        sage: P.first()
+        []
     """
     __metaclass__ = ClasscallMetaclass
 

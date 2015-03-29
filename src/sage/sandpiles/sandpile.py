@@ -240,7 +240,7 @@ class Sandpile(DiGraph):
 
         INPUT:
 
-         - ``g`` - dict for directed multgraph (see NOTES) edges weighted by
+         - ``g`` - dict for directed multigraph (see NOTES) edges weighted by
            nonnegative integers
 
          - ``sink`` - A sink vertex.  Any outgoing edges from the designated

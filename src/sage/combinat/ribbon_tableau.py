@@ -697,9 +697,9 @@ def spin_polynomial(part, weight, length):
         sage: spin_polynomial([[6]*6, [3,3]], [4,4,2], 3)
         3*t^9 + 5*t^8 + 9*t^7 + 6*t^6 + 3*t^5
     """
-    from sage.symbolic.ring import var
+    from sage.symbolic.ring import SR
     sp = spin_polynomial_square(part,weight,length)
-    t = var('t')
+    t = SR.var('t')
     c = sp.coefficients(sparse=False)
     return sum([c[i]*t**(QQ(i)/2) for i in range(len(c))])
 

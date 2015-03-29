@@ -312,7 +312,6 @@ from sage.combinat.subset import Subsets
 from sage.misc.misc import subsets
 
 from utilities import newlabel, sanitize_contractions_deletions
-from sage.calculus.all import var
 from sage.rings.all import ZZ
 from sage.numerical.mip import MixedIntegerLinearProgram
 

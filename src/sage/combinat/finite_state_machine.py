@@ -838,13 +838,13 @@ from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RR
 from sage.symbolic.ring import SR
-from sage.calculus.var import var
 from sage.misc.cachefunc import cached_function
 from sage.misc.latex import latex
 from sage.misc.misc import verbose
 from sage.misc.misc import srange
 from sage.functions.trig import cos, sin, atan2
 from sage.symbolic.constants import pi
+from sage.symbolic.ring import SR
 
 from copy import copy
 from copy import deepcopy
@@ -4853,7 +4853,7 @@ class FiniteStateMachine(SageObject):
 
         """
         def default_function(transitions):
-            var('x')
+            x = SR.var('x')
             return x**sum(transition.word_out)
 
         if entry is None:

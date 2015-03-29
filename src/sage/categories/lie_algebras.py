@@ -276,7 +276,36 @@ class LieAlgebras(Category_over_base_ring):
         @abstract_method(optional=True)
         def module(self):
             """
-            Return the underlying `R`-module of ``self``.
+            Return the underlying `R`-module of ``self`` as an
+            unindexed free `R`-module (i.e., as an `R`-module
+            of column vectors).
+
+            For instance, if ``self`` has ordered basis
+            `(e, f, h)`, then ``self.module()`` will be the
+            `R`-module `R^3`, and the elements `e`, `f` and
+            `h` of ``self`` will correspond to the basis
+            vectors `(1, 0, 0)`, `(0, 1, 0)` and `(0, 0, 1)`
+            of ``self.module()``.
+
+            This method :meth:`module` needs to be set whenever
+            a finite-dimensional Lie algebra with basis is
+            intended to support linear algebra (which is, e.g.,
+            used in the computation of centralizers and lower
+            central series). One then needs to also implement
+            a ``to_vector`` ElementMethod which sends every
+            element of ``self`` to the corresponding element of
+            ``self.to_module()``.
+
+            .. TODO::
+
+                Why is this method here and not in
+                :class:`FiniteDimensionalLieAlgebrasWithBasis` ?
+
+            .. TODO::
+
+                I see no ``from_vector`` method. How is one
+                supposed to take an element of ``self.module()``
+                back to ``self``? Via coercion/constructor?
 
             EXAMPLES::
 

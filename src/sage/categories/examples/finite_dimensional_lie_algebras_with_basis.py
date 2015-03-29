@@ -224,7 +224,25 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
 
     def module(self):
         """
-        Return the underlying free module of ``self``.
+        Return the underlying `R`-module of ``self`` as an
+        unindexed free `R`-module (i.e., as an `R`-module
+        of column vectors).
+
+        For instance, if ``self`` has ordered basis
+        `(e, f, h)`, then ``self.module()`` will be the
+        `R`-module `R^3`, and the elements `e`, `f` and
+        `h` of ``self`` will correspond to the basis
+        vectors `(1, 0, 0)`, `(0, 1, 0)` and `(0, 0, 1)`
+        of ``self.module()``.
+
+        This method :meth:`module` needs to be set whenever
+        a finite-dimensional Lie algebra with basis is
+        intended to support linear algebra (which is, e.g.,
+        used in the computation of centralizers and lower
+        central series). One then needs to also implement
+        a ``to_vector`` ElementMethod which sends every
+        element of ``self`` to the corresponding element of
+        ``self.to_module()``.
 
         EXAMPLES::
 
@@ -312,7 +330,11 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
 
         def to_vector(self):
             """
-            Return ``self`` as a vector.
+            Return ``self`` as a vector in
+            ``self.parent().module()``.
+
+            See the docstring of the latter method for the meaning
+            of this.
 
             EXAMPLES::
 

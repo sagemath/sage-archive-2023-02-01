@@ -573,7 +573,10 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     class ElementMethods:
         def to_vector(self):
             """
-            Return ``self`` as a vector.
+            Return ``self`` as a vector in ``self.parent().module()``.
+
+            See the docstring of the latter method for the meaning
+            of this.
 
             EXAMPLES::
 

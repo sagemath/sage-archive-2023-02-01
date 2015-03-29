@@ -61,7 +61,29 @@ AUTHORS:
 #*****************************************************************************
 
 
-user_globals = dict()
+user_globals = None
+
+
+def _check():
+    """
+    Raise ``RuntimeError`` if ``user_globals`` has not been initialized.
+
+    EXAMPLES::
+
+        sage: import sage.repl.user_globals
+        sage: sage.repl.user_globals._check()
+        sage: sage.repl.user_globals.user_globals = None
+        sage: sage.repl.user_globals._check()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: the user-space globals dictionary has not been initialized...
+    """
+    if user_globals is None:
+        raise RuntimeError(
+            "the user-space globals dictionary has not been initialized. "
+            "Use initialize_globals() or set_globals() or use a different "
+            "function which doesn't need these globals")
+
 
 def get_globals():
     """
@@ -74,6 +96,7 @@ def get_globals():
         sage: get_globals()["Matrix"]
         <sage.matrix.constructor.MatrixFactory object at ...>
     """
+    _check()
     return user_globals
 
 
@@ -157,6 +180,7 @@ def get_global(name):
         ...
         NameError: name 'the_question' is not defined
     """
+    _check()
     try:
         return user_globals[name]
     except KeyError:
@@ -181,4 +205,5 @@ def set_global(name, value):
         sage: the_answer
         42
     """
+    _check()
     user_globals[name] = value

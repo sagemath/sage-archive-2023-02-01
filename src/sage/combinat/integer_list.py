@@ -8,7 +8,7 @@ HISTORY:
 This generic tool was originally written by Hivert and Thiery in
 MuPAD-Combinat in 2000 and ported over to Sage by Mike Hansen in
 2007. It was then completely rewritten in 2015 by Gillespie,
-Schilling, and Thiery, with the help of many, to catter for
+Schilling, and Thiery, with the help of many, to deal with
 limitations and lack of robustness w.r.t. input. The old
 implementation is still available in
 :mod:`sage.combinat.integer_list.old` for benchmarking purposes.
@@ -254,7 +254,7 @@ class IntegerListsLex(Parent):
         0: A001006: Motzkin numbers: number of ways of drawing any number
         of nonintersecting chords joining n (labeled) points on a circle.
 
-    or dyck words (see also :class:`DyckWords`), through the bijection
+    or Dyck words (see also :class:`DyckWords`), through the bijection
     with paths from (0,0) to (n,n) with left and up steps that remain
     below the diagonal::
 
@@ -264,7 +264,6 @@ class IntegerListsLex(Parent):
         [1, 1, 2, 5, 14, 42, 132, 429]
         sage: dyck_words(3).list()
         [[0, 1, 2], [0, 1, 1], [0, 0, 2], [0, 0, 1], [0, 0, 0]]
-
 
 
     .. RUBRIC:: Situations with improper lexicographic enumeration
@@ -727,7 +726,7 @@ class IntegerListsLex(Parent):
             sage: IntegerListsLex(NN, max_length=3)
             Disjoint union of Lazy family (<lambda>(i))_{i in Non negative integer semiring}
         """
-        if isinstance(n, (list,collections.Iterable)):
+        if isinstance(n, collections.Iterable):
             return DisjointUnionEnumeratedSets(Family(n, lambda i: IntegerListsLex(i, **kwargs)))
         else:
             return typecall(cls, n=n, **kwargs)
@@ -882,7 +881,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
     @cached_method
     def _check_lexicographic_iterable(self):
         """
-        Checks whether the parameters give a proper inverse lexicographic iterator.
+        Check whether the parameters give a proper inverse lexicographic iterator.
 
         EXAMPLES::
 

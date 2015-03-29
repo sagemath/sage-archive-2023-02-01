@@ -1620,7 +1620,7 @@ which lead to leaving the prefix tree and exploring dead branches;
 this is particularly problematic because the growth of the number of
 elements is usually exponential in the depth. It turns out that the
 constraints listed above are simple enough to be able to reasonably
-predict when a sequence `\ell_0,\dot,\ell_k` is a prefix of some
+predict when a sequence `\ell_0,\dots,\ell_k` is a prefix of some
 element `S`. Hence, most dead branches can be pruned.
 
 .. _section-generic-polytopes:

@@ -929,6 +929,17 @@ If you know what you are doing, you can set check=False to skip this warning."""
             ...
             ValueError: The specified parameters do not allow for an
             inverse lexicographic iterator
+
+        In those examples, there is either no solution, or the region
+        is bounded::
+
+            sage: IntegerListsLex(min_sum=10, max_sum=5).list()
+            []
+            sage: IntegerListsLex(max_part=1, min_slope=10).list()
+            [[1], []]
+            sage: IntegerListsLex(max_part=100, min_slope=10,check=False).first()
+            [100]
+
         """
         if self._warning or not self._check:
             return

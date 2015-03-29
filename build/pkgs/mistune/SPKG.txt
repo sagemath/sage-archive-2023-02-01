@@ -14,6 +14,6 @@ Home Page: https://github.com/lepture/mistune
 
 == Dependencies ==
 
-Python, Pip
+Python, Cython, Pip
 
 

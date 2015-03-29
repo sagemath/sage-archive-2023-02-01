@@ -1057,24 +1057,27 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: list(C)     # indirect doctest
             [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
         """
-        return self._IntegerListsLexIter(self)
+        return self._Iter(self)
 
-    class _IntegerListsLexIter:
+    class _Iter:
         """
         Iterator class for IntegerListsLex
 
-        The iterator is based on a depth-first search forest. If `I` is the iterator, the current state in the forest
-        is given by ``I._current_list``. The range for the next entry (which corresponds to the next depth
-        in the forest) is stored in ``I._search_range``. ``I._j`` stores the index of the last element of ``I._current_list``,
-        whereas ``I._current_sum`` is the sum over all element of ``I._current_list``.
+        The iterator is based on a depth-first search forest. If `I`
+        is the iterator, the current state in the forest is given by
+        ``I._current_list``. The range for the next entry (which
+        corresponds to the next depth in the forest) is stored in
+        ``I._search_ranges``. ``I._j`` stores the index of the last
+        element of ``I._current_list``, whereas ``I._current_sum`` is
+        the sum over all element of ``I._current_list``.
         """
         def __init__(self, parent):
             """
             TESTS::
 
                 sage: C = IntegerListsLex(2, length=3)
-                sage: I = IntegerListsLex._IntegerListsLexIter(C)
-                sage: I._search_range
+                sage: I = IntegerListsLex._Iter(C)
+                sage: I._search_ranges
                 [(0, 2)]
                 sage: I._current_list
                 [3]
@@ -1087,8 +1090,8 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
             parent._check_lexicographic_iterable()
 
-            self._search_range = []   # list of current search ranges
-            self._current_list = []    # list of integers
+            self._search_ranges = []
+            self._current_list = []
             self._j = -1     # index of last element of _current_list
             self._current_sum = 0     # sum of parts in _current_list
 
@@ -1107,7 +1110,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: I = C.__iter__()
                 sage: I._j
                 0
-                sage: I._search_range
+                sage: I._search_ranges
                 [(0, 2)]
                 sage: I._current_list
                 [3]
@@ -1116,7 +1119,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: I._push_search()
                 sage: I._j
                 1
-                sage: I._search_range
+                sage: I._search_ranges
                 [(0, 2), (0, -1)]
                 sage: I._current_list
                 [3, 0]
@@ -1130,7 +1133,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             self._j += 1
             interval = self._m_interval(self._j, self.parent._max_sum - self._current_sum, prev)
             val = interval[1] + 1 # iterator decrements before acting
-            self._search_range.append(interval)
+            self._search_ranges.append(interval)
             self._current_list.append(val)
             self._current_sum += val
 
@@ -1144,7 +1147,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: I = C.__iter__()
                 sage: I._j
                 0
-                sage: I._search_range
+                sage: I._search_ranges
                 [(0, 2)]
                 sage: I._current_sum
                 3
@@ -1153,7 +1156,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: I._pop_search()
                 sage: I._j
                 -1
-                sage: I._search_range
+                sage: I._search_ranges
                 []
                 sage: I._current_sum
                 0
@@ -1162,7 +1165,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             """
             if self._j >= 0:
                 self._j -= 1
-                self._search_range.pop()
+                self._search_ranges.pop()
                 self._current_sum -= self._current_list[-1]
                 self._current_list.pop()
 
@@ -1173,7 +1176,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             EXAMPLES::
 
                 sage: C = IntegerListsLex(2, length=3)
-                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: I = IntegerListsLex._Iter(C)
                 sage: I.next()
                 [2, 0, 0]
                 sage: I.next()
@@ -1182,7 +1185,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             if self.finished:
                 raise StopIteration()
 
-            rho = self._search_range
+            rho = self._search_ranges
             mu = self._current_list
             p = self.parent
             min_sum = p._min_sum
@@ -1240,7 +1243,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             EXAMPLES::
 
                 sage: C = IntegerListsLex(2, length=3)
-                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: I = IntegerListsLex._Iter(C)
                 sage: I._current_list
                 [3]
                 sage: I._internal_list_valid()
@@ -1280,7 +1283,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             EXAMPLES::
 
                 sage: C = IntegerListsLex(2, length=3)
-                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: I = IntegerListsLex._Iter(C)
                 sage: f = I._upper_envelope(1,1)
                 sage: type(f)
                 <type 'sage.misc.constant_function.ConstantFunction'>
@@ -1289,7 +1292,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: f(2)
                 inf
                 sage: C = IntegerListsLex(6, max_slope=1, max_part=3, max_length=6)
-                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: I = IntegerListsLex._Iter(C)
                 sage: f = I._upper_envelope(1,1)
                 sage: f(1)
                 1
@@ -1324,7 +1327,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             EXAMPLES::
 
                 sage: C = IntegerListsLex(2, length=3)
-                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: I = IntegerListsLex._Iter(C)
                 sage: f = I._lower_envelope(1,1)
                 sage: type(f)
                 <type 'sage.misc.constant_function.ConstantFunction'>
@@ -1333,7 +1336,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: f(2)
                 0
                 sage: C = IntegerListsLex(6, min_slope=-1, min_part=1)
-                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: I = IntegerListsLex._Iter(C)
                 sage: f = I._lower_envelope(3,1)
                 sage: f(1)
                 3
@@ -1376,7 +1379,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             EXAMPLES::
 
                 sage: C = IntegerListsLex(2, length=3)
-                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: I = IntegerListsLex._Iter(C)
                 sage: I._m_interval(1,2)
                 (0, 2)
             """
@@ -1424,7 +1427,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             EXAMPLES::
 
                 sage: C = IntegerListsLex(2, length=3)
-                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: I = IntegerListsLex._Iter(C)
                 sage: I._possible_m(1,1,2,2)
                 True
                 sage: I._possible_m(1,1,3,2)
@@ -1470,7 +1473,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             TESTS::
 
                 sage: C = IntegerListsLex(1, min_length=2, min_slope=0, max_slope=0)
-                sage: I = IntegerListsLex._IntegerListsLexIter(C)
+                sage: I = IntegerListsLex._Iter(C)
                 sage: I._possible_m(0,0,1,1)
                 False
             """

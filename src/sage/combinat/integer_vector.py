@@ -30,7 +30,7 @@ AUTHORS:
 import misc
 from __builtin__ import list as builtinlist
 from sage.categories.enumerated_sets import EnumeratedSets
-from combinat import CombinatorialClass
+from sage.combinat.combinat import CombinatorialClass
 from sage.rings.integer import Integer
 from sage.rings.arith import binomial
 from sage.rings.infinity import PlusInfinity
@@ -457,9 +457,9 @@ def _default_function(l, default, i):
 infinity = PlusInfinity()
 def list2func(l, default=None):
     """
-    Given a list l, return a function that takes in a value i and
-    return l[i]. If default is not None, then the function will
-    return the default value for out of range i's.
+    Given a list ``l``, return a function that takes in a value `i` and
+    return `l[i]`. If default is not None, then the function will
+    return the default value for out of range `i`'s.
 
     EXAMPLES::
 
@@ -621,7 +621,7 @@ def IntegerVectors(n=None, k=None, **kwargs):
         return IntegerVectors_nconstraints(n, kwargs)
     elif isinstance(k, builtinlist):
         if kwargs:
-            raise ValueError("If k is a list, no optional argument is supported")
+            raise ValueError("if k is a list, no optional argument is supported")
         return IntegerVectors_nnondescents(n,k)
     else:
         if kwargs:
@@ -897,6 +897,8 @@ class IntegerVectors_nkconstraints(IntegerListsLex):
 
         All the attributes below are private; don't use them!
 
+        ::
+
             sage: IV._min_length
             3
             sage: IV._max_length
@@ -947,7 +949,8 @@ class IntegerVectors_nkconstraints(IntegerListsLex):
             sage: IntegerVectors(2,3,min_slope=0).__repr__()
             'Integer vectors of length 3 that sum to 2 with constraints: min_slope=0'
         """
-        return "Integer vectors of length %s that sum to %s with constraints: %s"%(self.k, self.n, ", ".join( ["%s=%s"%(key, self._constraints[key]) for key in sorted(self._constraints.keys())] ))
+        return "Integer vectors of length %s that sum to %s with constraints: \
+        %s"%(self.k, self.n, ", ".join( ["%s=%s"%(key, self._constraints[key]) for key in sorted(self._constraints.keys())] ))
 
 
     def __contains__(self, x):

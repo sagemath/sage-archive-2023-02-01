@@ -686,18 +686,19 @@ class IntegerListsLex(Parent):
         self._waiver = waiver
 
         if n is not None:
-            if n == ZZ(n):
-                self.min_sum = n
-                self.max_sum = n
+            n = ZZ(n)
+            self.min_sum = n
+            self.max_sum = n
         else:
             self.min_sum = min_sum
             self.max_sum = max_sum
 
         if length is not None:
-            if length == ZZ(length):
-                self.min_length = length
-                self.max_length = length
-        elif min_length == ZZ(min_length):
+            length = ZZ(length)
+            self.min_length = length
+            self.max_length = length
+        else:
+            min_length = ZZ(min_length)
             if min_length < 0:
                 min_length = 0
             self.min_length = min_length

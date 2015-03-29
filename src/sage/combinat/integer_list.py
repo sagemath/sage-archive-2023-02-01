@@ -218,7 +218,7 @@ class IntegerListsLex(Parent):
 
     This is achieved by updating the floor upon constructing ``L``::
 
-        sage: [L.floor(i) for i in range(5)]
+        sage: [L._floor(i) for i in range(5)]
         [2, 1, 2, 1, 1]
 
     Similarly, the ``ceiling`` and ``max_part`` constraints can be
@@ -227,7 +227,7 @@ class IntegerListsLex(Parent):
         sage: L = IntegerListsLex(4, ceiling=[2,3,1], max_part=2, length=3)
         sage: L.list()
         [[2, 2, 0], [2, 1, 1], [1, 2, 1]]
-        sage: [L.ceiling(i) for i in range(5)]
+        sage: [L._ceiling(i) for i in range(5)]
         [2, 2, 1, 2, 2]
 
 
@@ -272,7 +272,7 @@ class IntegerListsLex(Parent):
 
     .. RUBRIC:: On trailing zeroes, and their caveats
 
-    As mentionned above, when several lists satisfying the constraints
+    As mentioned above, when several lists satisfying the constraints
     differ only by trailing zeroes, only the shortest one is listed::
 
         sage: L = IntegerListsLex(max_length=4, max_part=1)
@@ -394,7 +394,7 @@ class IntegerListsLex(Parent):
     to construct elements from a plain list.
 
 
-    .. RUBRIC:: list or iterable as input for the sum
+    .. RUBRIC:: Input list or iterable for the sum
 
     One may pass a list or iterable `L` as input for the sum. In this
     case, the elements will be generated inverse lexicographically,
@@ -685,27 +685,27 @@ class IntegerListsLex(Parent):
 
         if n is not None:
             n = ZZ(n)
-            self.min_sum = n
-            self.max_sum = n
+            self._min_sum = n
+            self._max_sum = n
         else:
-            self.min_sum = min_sum
-            self.max_sum = max_sum
+            self._min_sum = min_sum
+            self._max_sum = max_sum
 
         if length is not None:
             length = ZZ(length)
-            self.min_length = length
-            self.max_length = length
+            self._min_length = length
+            self._max_length = length
         else:
             min_length = ZZ(min_length)
             if min_length < 0:
                 min_length = 0
-            self.min_length = min_length
+            self._min_length = min_length
             if max_length != Infinity:
                 max_length = ZZ(max_length)
-            self.max_length = max_length
+            self._max_length = max_length
 
-        self.min_slope = min_slope
-        self.max_slope = max_slope
+        self._min_slope = min_slope
+        self._max_slope = max_slope
 
         min_part = ZZ(min_part)
         if min_part < 0:
@@ -715,10 +715,10 @@ class IntegerListsLex(Parent):
             max_part = ZZ(max_part)
 
         if floor is None:
-            self.floor = ConstantFunction(min_part)
-            self.floor_type = "constant"
-            self.floor_limit = min_part
-            self.floor_limit_start = 0
+            self._floor = ConstantFunction(min_part)
+            self._floor_type = "constant"
+            self._floor_limit = min_part
+            self._floor_limit_start = 0
         elif isinstance(floor, (list, tuple)):
             if not all(i in ZZ for i in floor):
                 raise TypeError("the parts of floor={} should be non negative integers".format(floor))
@@ -726,27 +726,27 @@ class IntegerListsLex(Parent):
                 raise NotImplementedError("negative parts in floor={}".format(floor))
             if min_part > 0:
                 floor = map(lambda i: max(i, min_part), floor)
-            self.floor = IntegerListsLex._list_function(floor, min_part)
-            self.floor_type = "list"
-            self.floor_limit = min_part
-            self.floor_limit_start = len(floor)
+            self._floor = IntegerListsLex._list_function(floor, min_part)
+            self._floor_type = "list"
+            self._floor_limit = min_part
+            self._floor_limit_start = len(floor)
         elif callable(floor):
             self._warning = True
             if min_part > 0:
-                self.floor = lambda i: max(min_part, floor(i))
+                self._floor = lambda i: max(min_part, floor(i))
             else:
-                self.floor = floor
-            self.floor_type = "function"
-            self.floor_limit = None
-            self.floor_limit_start = Infinity
+                self._floor = floor
+            self._floor_type = "function"
+            self._floor_limit = None
+            self._floor_limit_start = Infinity
         else:
             raise TypeError("floor should be a list, tuple, or function")
 
         if ceiling is None:
-            self.ceiling = ConstantFunction(max_part)
-            self.ceiling_type = "constant"
-            self.ceiling_limit = max_part
-            self.ceiling_limit_start = 0
+            self._ceiling = ConstantFunction(max_part)
+            self._ceiling_type = "constant"
+            self._ceiling_limit = max_part
+            self._ceiling_limit_start = 0
         elif isinstance(ceiling, (list, tuple)):
             if not all(i==Infinity or i in ZZ for i in ceiling):
                 raise TypeError("the parts of ceiling={} should be non negative integers".format(ceiling))
@@ -754,20 +754,20 @@ class IntegerListsLex(Parent):
                 raise NotImplementedError("negative parts in floor={}".format(ceiling))
             if max_part < Infinity:
                 ceiling = map(lambda i: min(i, max_part), ceiling)
-            self.ceiling = IntegerListsLex._list_function(ceiling, max_part)
-            self.ceiling_type = "list"
-            self.ceiling_limit = max_part
-            self.ceiling_limit_start = len(ceiling)
+            self._ceiling = IntegerListsLex._list_function(ceiling, max_part)
+            self._ceiling_type = "list"
+            self._ceiling_limit = max_part
+            self._ceiling_limit_start = len(ceiling)
         elif callable(ceiling):
             self._warning = True
             if max_part < Infinity:
-                self.ceiling = lambda i: min(max_part, ceiling(i))
+                self._ceiling = lambda i: min(max_part, ceiling(i))
             else:
-                self.ceiling = ceiling
-            self.ceiling = ceiling
-            self.ceiling_type = "function"
-            self.ceiling_limit = None
-            self.ceiling_limit_start = Infinity
+                self._ceiling = ceiling
+            self._ceiling = ceiling
+            self._ceiling_type = "function"
+            self._ceiling_limit = None
+            self._ceiling_limit_start = Infinity
         else:
             raise ValueError("Unable to parse value of parameter ceiling")
 
@@ -854,17 +854,17 @@ If you know what you are doing, you can set check=False to skip this warning."""
         if self._warning or not self._check:
             return
         message = "The specified parameters do not allow for an inverse lexicographic iterator"
-        s = sum(self.floor(i) for i in range(self.floor_limit_start))
-        if self.max_sum < Infinity and self.max_length == Infinity and self.floor_limit == 0:
-            if self.min_slope<0 and self.max_slope>0 and s<self.min_sum:
+        s = sum(self._floor(i) for i in range(self._floor_limit_start))
+        if self._max_sum < Infinity and self._max_length == Infinity and self._floor_limit == 0:
+            if self._min_slope<0 and self._max_slope>0 and s<self._min_sum:
                 raise ValueError(message)
-            if self.min_slope == 0 and s==0 and self.max_slope>0:
-                if self.max_sum>0: # this is assuming that we remove trailing zeroes
+            if self._min_slope == 0 and s==0 and self._max_slope>0:
+                if self._max_sum>0: # this is assuming that we remove trailing zeroes
                     raise ValueError(message)
-        elif self.max_sum == Infinity and self.max_length == Infinity:
-            if self.max_slope == 0 and min(self.ceiling(i) for i in range(self.ceiling_limit_start+1)) == 0:
+        elif self._max_sum == Infinity and self._max_length == Infinity:
+            if self._max_slope == 0 and min(self._ceiling(i) for i in range(self._ceiling_limit_start+1)) == 0:
                 return
-            elif self.max_slope >= 0 and self.ceiling_limit>0:
+            elif self._max_slope >= 0 and self._ceiling_limit>0:
                 raise ValueError(message)
 
     @staticmethod
@@ -931,15 +931,15 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: C
             A given name
         """
-        if self.min_sum == self.max_sum:
-            return "Integer lists of sum {} satisfying certain constraints".format(self.min_sum)
-        elif self.max_sum == Infinity:
-            if self.min_sum == 0:
+        if self._min_sum == self._max_sum:
+            return "Integer lists of sum {} satisfying certain constraints".format(self._min_sum)
+        elif self._max_sum == Infinity:
+            if self._min_sum == 0:
                 return "Integer lists with arbitrary sum satisfying certain constraints"
             else:
-                return "Integer lists of sum at least {} satisfying certain constraints".format(self.min_sum)
+                return "Integer lists of sum at least {} satisfying certain constraints".format(self._min_sum)
         else:
-            return "Integer lists of sum between {} and {} satisfying certain constraints".format(self.min_sum,self.max_sum)
+            return "Integer lists of sum between {} and {} satisfying certain constraints".format(self._min_sum,self._max_sum)
 
     def __contains__(self, comp):
         """
@@ -951,19 +951,19 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: all([l in C for l in C])
             True
         """
-        if len(comp) < self.min_length or len(comp) > self.max_length:
+        if len(comp) < self._min_length or len(comp) > self._max_length:
             return False
         n = sum(comp)
-        if n < self.min_sum or n > self.max_sum:
+        if n < self._min_sum or n > self._max_sum:
             return False
         for i in range(len(comp)):
-            if comp[i] < self.floor(i):
+            if comp[i] < self._floor(i):
                 return False
-            if comp[i] > self.ceiling(i):
+            if comp[i] > self._ceiling(i):
                 return False
         for i in range(len(comp)-1):
             slope = comp[i+1] - comp[i]
-            if slope < self.min_slope or slope > self.max_slope:
+            if slope < self._min_slope or slope > self._max_slope:
                 return False
         return True
 
@@ -1049,7 +1049,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             else:
                 prev = None
             self._j += 1
-            interval = self._m_interval(self._j, self.parent.max_sum - self._current_sum, prev)
+            interval = self._m_interval(self._j, self.parent._max_sum - self._current_sum, prev)
             val = interval[1] + 1 # iterator decrements before acting
             self._search_range.append(interval)
             self._current_list.append(val)
@@ -1106,10 +1106,10 @@ If you know what you are doing, you can set check=False to skip this warning."""
             rho = self._search_range
             mu = self._current_list
             p = self.parent
-            min_sum = p.min_sum
-            max_sum = p.max_sum
-            min_length = p.min_length
-            max_length = p.max_length
+            min_sum = p._min_sum
+            max_sum = p._max_sum
+            min_length = p._min_length
+            max_length = p._max_length
 
             while self._j >= 0: # j = -1 means that we have finished the bottom iteration
 
@@ -1177,9 +1177,9 @@ If you know what you are doing, you can set check=False to skip this warning."""
             mu = self._current_list
             nu = self._current_sum
             l = self._j + 1
-            good_sum = (nu >= p.min_sum and nu <= p.max_sum)
-            good_length = (l >= p.min_length and l <= p.max_length)
-            no_trailing_zeros = (l <= max(p.min_length,0) or mu[-1] != 0)
+            good_sum = (nu >= p._min_sum and nu <= p._max_sum)
+            good_length = (l >= p._min_length and l <= p._max_length)
+            no_trailing_zeros = (l <= max(p._min_length,0) or mu[-1] != 0)
             return good_sum and good_length and no_trailing_zeros
 
         def _upper_envelope(self, m, j):
@@ -1221,10 +1221,10 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: f(4)
                 3
             """
-            if self.parent.max_slope == Infinity:
-                return self.parent.ceiling
-            m = m - j*self.parent.max_slope
-            return lambda i: min(m + i*self.parent.max_slope, self.parent.ceiling(i) )
+            if self.parent._max_slope == Infinity:
+                return self.parent._ceiling
+            m = m - j*self.parent._max_slope
+            return lambda i: min(m + i*self.parent._max_slope, self.parent._ceiling(i) )
 
         def _lower_envelope(self, m, j):
             """
@@ -1265,10 +1265,10 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: f(4)
                 1
             """
-            if self.parent.min_slope == -Infinity:
-                return self.parent.floor
-            m = m-j*self.parent.min_slope
-            return lambda i: max( m + i*self.parent.min_slope, self.parent.floor(i) )
+            if self.parent._min_slope == -Infinity:
+                return self.parent._floor
+            m = m-j*self.parent._min_slope
+            return lambda i: max( m + i*self.parent._min_slope, self.parent._floor(i) )
 
         def _m_interval(self, i, max_sum, prev=None):
             r"""
@@ -1303,11 +1303,11 @@ If you know what you are doing, you can set check=False to skip this warning."""
             """
             p = self.parent
 
-            lower_bound = max(0, p.floor(i))
-            upper_bound = min(max_sum, p.ceiling(i))
+            lower_bound = max(0, p._floor(i))
+            upper_bound = min(max_sum, p._ceiling(i))
             if prev != None:
-                lower_bound = max(lower_bound, prev + p.min_slope)
-                upper_bound = min(upper_bound, prev + p.max_slope)
+                lower_bound = max(lower_bound, prev + p._min_slope)
+                upper_bound = min(upper_bound, prev + p._max_slope)
 
             ## check for infinite upper bound, in case max_sum is infinite
             if upper_bound == Infinity:
@@ -1415,7 +1415,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             upper = 0    # The upper bound `u_k`
 
             # get to smallest valid number of parts
-            for k in range(j, p.min_length-1):
+            for k in range(j, p._min_length-1):
                 lo = lower_enveloppe(k)
                 up = upper_enveloppe(k)
                 if lo > up:
@@ -1423,20 +1423,20 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 lower += lo
                 upper += up
 
-            k = max(p.min_length-1,j)
+            k = max(p._min_length-1,j)
             # Check if any of the intervals intersect the target interval
-            while k <= p.max_length - 1:
+            while k <= p._max_length - 1:
                 lo = lower_enveloppe(k)
                 up = upper_enveloppe(k)
                 if lo > up:
                     # There exists no valid list of length >= i
                     return False
-                elif p.max_slope <= 0 and up <= 0 and k >= p.min_length:
+                elif p._max_slope <= 0 and up <= 0 and k >= p._min_length:
                     # From now on up<=0 and therefore lower and upper will never increase
                     return False
                 elif lower > max_sum:
                     return False
-                elif p.ceiling_limit == 0 and k > p.ceiling_limit_start:
+                elif p._ceiling_limit == 0 and k > p._ceiling_limit_start:
                     # From now on up<=0 and therefore lower and upper will never increase
                     return False
                 else:

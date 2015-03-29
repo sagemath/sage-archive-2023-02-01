@@ -1513,8 +1513,10 @@ If you know what you are doing, you can set check=False to skip this warning."""
             lower = 0    # The lower bound `l_k`
             upper = 0    # The upper bound `u_k`
 
+            assert j >= 0
             # get to smallest valid number of parts
             for k in range(j, p._min_length-1):
+                # We are looking at lists `v_j,...,v_k`
                 lo = lower_envelope(k)
                 up = upper_envelope(k)
                 if lo > up:
@@ -1524,26 +1526,32 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
             k = max(p._min_length-1,j)
             # Check if any of the intervals intersect the target interval
-            while k <= p._max_length - 1:
+            while k < p._max_length:
                 lo = lower_envelope(k)
                 up = upper_envelope(k)
                 if lo > up:
                     # There exists no valid list of length >= k
                     return False
-                elif p._max_slope <= 0 and up <= 0 and k >= p._min_length:
-                    # From now on up<=0 and therefore lower and upper will never increase
+                lower += lo
+                upper += up
+                assert lower <= upper
+
+                if lower > max_sum:
+                    # There cannot exist a valid list `v_j,\dots,v_l` with l>=k
                     return False
-                elif lower > max_sum:
+
+                if (p._max_slope <= 0 and up <= 0) or \
+                   (p._ceiling_limit == 0 and k > p._ceiling_limit_start):
+                    # This implies v_l=0 for l>=k: that is we would be generating
+                    # a list with trailing zeroes
                     return False
-                elif p._ceiling_limit == 0 and k > p._ceiling_limit_start:
-                    # From now on up<=0 and therefore lower and upper will never increase
-                    return False
-                else:
-                    lower += lo
-                    upper += up
-                    k += 1
-                if lower <= max_sum and upper >= min_sum and lower <= upper:
+
+                if min_sum <= upper and lower <= max_sum:
+                    # There could exist a valid list `v_j,\dots,v_k`
                     return True
+
+                k += 1
+
             return False
 
     class Element(ClonableArray):

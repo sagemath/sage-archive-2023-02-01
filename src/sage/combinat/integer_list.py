@@ -686,40 +686,35 @@ class IntegerListsLex(Parent):
         self._waiver = waiver
 
         if n is not None:
-            if n in ZZ:
-                self.min_sum = n
-                self.max_sum = n
-            else:
-                raise TypeError("Invalid value for parameter n")
+            n = ZZ(n)
+            self.min_sum = n
+            self.max_sum = n
         else:
             self.min_sum = min_sum
             self.max_sum = max_sum
 
         if length is not None:
-            if length not in ZZ:
-                raise TypeError("Length (={}) should be an integer".format(length))
+            length = ZZ(length)
             self.min_length = length
             self.max_length = length
         else:
-            if min_length not in ZZ:
-                raise TypeError("min_length (={}) should be an integer".format(min_length))
+            min_length = ZZ(min_length)
             if min_length < 0:
                 min_length = 0
             self.min_length = min_length
-            if max_length != Infinity and max_length not in ZZ:
-                raise TypeError("max_length (={}) should be an integer or +oo".format(max_length))
+            if max_length != Infinity:
+                max_length = ZZ(max_length)
             self.max_length = max_length
 
         self.min_slope = min_slope
         self.max_slope = max_slope
 
-        if min_part not in ZZ:
-            raise TypeError("min_part (={}) should be an integer".format(min_part))
-        elif min_part < 0:
+        min_part = ZZ(min_part)
+        if min_part < 0:
             raise NotImplementedError("strictly negative min_part")
 
-        if max_part != Infinity and max_part not in ZZ:
-            raise TypeError("max_part (={}) should be an integer or +oo".format(max_part))
+        if max_part != Infinity:
+            max_part = ZZ(max_part)
 
         if floor is None:
             self.floor = ConstantFunction(min_part)

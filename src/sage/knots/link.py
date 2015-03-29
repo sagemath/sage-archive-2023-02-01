@@ -70,9 +70,11 @@ class Link:
         sage: L = Link(B([-1, -1, -1, -2,1, -2,3,-2,3]))
         sage: L
         Knot represented by 9 crossings
-        sage: L = Link(B([1, 2,1, -2,-1]))
+        sage: L = Link(B([1, 2, 1, -2,-1]))
         sage: L
         Link with 2 components represented by 5 crossings
+
+    Note that the strands of the braid that have no crossings at all are ignored.
 
     - Oriented Gauss Code:
 
@@ -126,6 +128,22 @@ class Link:
         1. Braid
         2. Oriented Gauss Code
         3. Planar Diagram Code
+
+        TESTS::
+
+            sage: B = BraidGroup(8)  # indirect doctest
+            sage: L = Link(B([-1, -1, -1, -2,1, -2, 3, -2]))
+            sage: L
+            Link with 2 components represented by 8 crossings
+            sage: L = Link(B([1, 2, 1])) # indirect doctest
+            sage: L
+            Link with 2 components represented by 3 crossings
+            sage: L = Link([[1, 1, 2, 2]]) # indirect doctest
+            sage: L
+            Knot represented by 1 crossings
+
+
+
         """
         if isinstance(data, list):
             if not data:
@@ -175,14 +193,14 @@ class Link:
         EXAMPLES::
 
             sage: B = BraidGroup(8)
-            sage: L = Link(B([1, 2, 1, 2]))
+            sage: L = Link(B([1, 2, 1, 2])) # indirect doctest
             sage: L
             Knot represented by 4 crossings
             sage: L = Link([[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
-            sage: L
+            sage: L # indirect doctest
             Knot represented by 7 crossings
             sage: L = Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
-            sage: L
+            sage: L # indirect doctest
             Link with 3 components represented by 4 crossings
         """
         ncomponents = self.ncomponents()
@@ -802,7 +820,7 @@ class Link:
 
     def seifert_matrix(self):
         """
-        Return the Seifert Matrix associated with the braidword.
+        Return the Seifert Matrix associated with the link.
 
         OUTPUT:
 

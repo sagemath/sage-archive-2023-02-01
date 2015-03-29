@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+cd src
+
+./bootstrap --prefix=$SAGE_LOCAL
+if [ $? -ne 0 ]; then
+    echo >&2 "Error configuring CMake."
+    exit 1
+fi
+
+$MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building CMake."
+    exit 1
+fi
+
+$MAKE install
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing CMake."
+    exit 1
+fi

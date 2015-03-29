@@ -1397,6 +1397,12 @@ If you know what you are doing, you can set check=False to skip this warning."""
             conditions between ``v[i-1]=prev`` and ``v[i]=m`` should
             also be satisfied.
 
+
+            Additionally, this raises an error if it can be detected
+            that some part is neither directly nor indirectly bounded
+            above, which implies that the constraints do not allow for
+            an inverse lexicographic iterator.
+
             OUTPUT:
 
             A tuple of two integers ``(lower_bound, upper_bound)``.
@@ -1407,6 +1413,32 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: I = IntegerListsLex._Iter(C)
                 sage: I._m_interval(1,2)
                 (0, 2)
+
+
+            The second part is not bounded above, hence we can not
+            iterate lexicographically through all the elements::
+
+                sage: IntegerListsLex(ceiling=[2,infinity,3], max_length=3).first()
+                Traceback (most recent call last):
+                ...
+                ValueError: infinite upper bound for values of m
+
+            In the following examples, all parts are indirectly
+            bounded above::
+
+                sage: IntegerListsLex(ceiling=[2,infinity,2], max_length=3, min_slope=2).cardinality()
+                1
+                sage: IntegerListsLex(ceiling=[2,infinity,2], max_length=3, max_slope=3).cardinality()
+                45
+
+                sage: IntegerListsLex(max_part=2, max_length=3).cardinality()
+                27
+                sage: IntegerListsLex(3, max_length=3).cardinality()      # parts bounded by n
+                10
+                sage: IntegerListsLex(max_length=0, min_length=1).list()  # no part!
+                []
+                sage: IntegerListsLex(length=0).list()                    # no part!
+                [[]]
             """
             p = self.parent
 
@@ -1417,7 +1449,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 upper_bound = min(upper_bound, prev + p._max_slope)
 
             ## check for infinite upper bound, in case max_sum is infinite
-            if upper_bound == Infinity:
+            if p._check and upper_bound == Infinity:
                 raise ValueError("infinite upper bound for values of m")
 
             return (lower_bound, upper_bound)
@@ -1551,7 +1583,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 lo = lower_envelope(k)
                 up = upper_envelope(k)
                 if lo > up:
-                    # There exists no valid list of length >= i
+                    # There exists no valid list of length >= k
                     return False
                 lower += lo
                 upper += up

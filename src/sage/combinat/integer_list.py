@@ -624,10 +624,20 @@ class IntegerListsLex(Parent):
          [5, 3, 2], [4, 3, 2, 1]]
 
 
-    :trac:`17979`, comment 191::
+    .. RUBRIC:: TESTS from comments on :trac:`17979`
+
+    Comment 191::
 
         sage: list(IntegerListsLex(1, min_length=2, min_slope=0, max_slope=0))
         []
+
+    Comment 240::
+
+        sage: L = IntegerListsLex(min_length=2, max_part=0)
+        sage: L.list()
+        [[0, 0]]
+
+    .. RUBRIC:: Tests on the element constructor feature and mutability
 
     Internally, the iterator works on a single list that is mutated
     along the way. The following test makes sure that we actually make a copy of
@@ -1450,6 +1460,15 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: I._possible_m(1,1,3,2)
                 False
 
+                sage: L = IntegerListsLex(min_length=2, max_part=0)
+                sage: it = iter(L)
+                sage: it._possible_m(0, 0, 0, oo)
+                True
+                sage: it._possible_m(0, 1, 0, oo)
+                True
+                sage: it._possible_m(0, 2, 0, oo)
+                False
+
             ALGORITHM::
 
             The current algorithm computes, for `k=j,j+1,\ldots`, a
@@ -1523,6 +1542,10 @@ If you know what you are doing, you can set check=False to skip this warning."""
                     return False
                 lower += lo
                 upper += up
+
+            if j < p._min_length and min_sum <= upper and lower <= max_sum:
+                # There could exist a valid list `v_j,\dots,v_{min_length-1}`
+                return True
 
             k = max(p._min_length-1,j)
             # Check if any of the intervals intersect the target interval

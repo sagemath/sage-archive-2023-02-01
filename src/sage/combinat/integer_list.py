@@ -930,31 +930,35 @@ If you know what you are doing, you can set check=False to skip this warning."""
             ValueError: The specified parameters do not allow for an
             inverse lexicographic iterator
 
-        In those examples, there is either no solution, or the region
+        In the next examples, there is either no solution, or the region
         is bounded::
 
             sage: IntegerListsLex(min_sum=10, max_sum=5).list()
             []
             sage: IntegerListsLex(max_part=1, min_slope=10).list()
             [[1], []]
-            sage: IntegerListsLex(max_part=100, min_slope=10,check=False).first()
+            sage: IntegerListsLex(max_part=100, min_slope=10).first()
             [100]
-
+            sage: I = IntegerListsLex(ceiling=[1,Infinity], max_part=2, min_slope=1)
+            sage: I.list()
+            [[1, 2], [1], [0, 2], [0, 1, 2], [0, 1], []]
         """
         if self._warning or not self._check:
             return
         message = "The specified parameters do not allow for an inverse lexicographic iterator"
         s = sum(self._floor(i) for i in range(self._floor_limit_start))
         if self._max_sum < Infinity and self._max_length == Infinity and self._floor_limit == 0:
-            if self._min_slope<0 and self._max_slope>0 and s<self._min_sum:
+            if self._min_slope < 0 and self._max_slope > 0 and s < self._min_sum and self._min_sum <= self._max_sum:
                 raise ValueError(message)
-            if self._min_slope == 0 and s==0 and self._max_slope>0:
+            if self._min_slope == 0 and s==0 and self._max_slope > 0:
                 if self._max_sum>0: # this is assuming that we remove trailing zeroes
                     raise ValueError(message)
         elif self._max_sum == Infinity and self._max_length == Infinity:
             if self._max_slope == 0 and min(self._ceiling(i) for i in range(self._ceiling_limit_start+1)) == 0:
                 return
-            elif self._max_slope >= 0 and self._ceiling_limit>0:
+            elif self._min_slope > 0 and self._ceiling_limit < Infinity:
+                return
+            elif self._max_slope >= 0 and self._ceiling_limit > 0:
                 raise ValueError(message)
 
     @staticmethod

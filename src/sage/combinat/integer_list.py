@@ -47,10 +47,12 @@ class IntegerListsLex(Parent):
     (at position `i`) is the difference ``l[i+1]-l[i]`` between two
     consecutive parts.
 
-    This class allows to construct the set of all integer lists `l`
-    satisfying specified bounds on the sum, the length, the slope, and
-    the individual parts, enumerated in *inverse* lexicographic order,
-    that is from largest to smallest in lexicographic order.
+    This class allows to construct the set `S` of all integer lists
+    `l` satisfying specified bounds on the sum, the length, the slope,
+    and the individual parts, enumerated in *inverse* lexicographic
+    order, that is from largest to smallest in lexicographic
+    order. Note that, to admit such an enumeration, `S` is necessarily
+    finite (see :ref:``).
 
     The main purpose is to provide a generic iteration engine for all
     the enumerated sets like :class:`Partitions`,
@@ -58,7 +60,7 @@ class IntegerListsLex(Parent):
     used to generate many other combinatorial objects like Dyck paths,
     Motzkin paths, etc.
 
-    Mathematically speaking, this is a special case of sets of
+    Mathematically speaking, this is a special case of set of
     integral points of a polytope (or union thereof, when the length
     is not fixed). The set of allowable constraints has been
     specifically designed to enable iteration with a good time and
@@ -264,6 +266,20 @@ class IntegerListsLex(Parent):
         [1, 1, 2, 5, 14, 42, 132, 429]
         sage: dyck_words(3).list()
         [[0, 1, 2], [0, 1, 1], [0, 0, 2], [0, 0, 1], [0, 0, 0]]
+
+
+    .. _IntegerListsLex_finiteness:
+
+    .. RUBRIC:: On finiteness and lexicographic enumeration
+
+
+    .. TOPIC:: Lemma
+
+        Let `S` be any collection of lists of non negative integers.
+        Then `S` can be enumerated in inverse lexicographic order if
+        and only if `S` is finite.
+
+        The "if" part is obvious. For the converse, 
 
 
     .. RUBRIC:: Situations with improper lexicographic enumeration
@@ -792,7 +808,11 @@ class IntegerListsLex(Parent):
                 max_length = ZZ(max_length)
             self._max_length = max_length
 
+        if min_slope != -Infinity:
+            min_slope = ZZ(min_slope)
         self._min_slope = min_slope
+        if max_slope != Infinity:
+            max_slope = ZZ(max_slope)
         self._max_slope = max_slope
 
         min_part = ZZ(min_part)

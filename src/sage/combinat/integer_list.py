@@ -480,10 +480,6 @@ class IntegerListsLex(Parent):
         deal with non-constant slope constraints and with negative
         parts.
 
-    .. TODO::
-
-        - Integrate all tests from sage-devel, ...
-
     TESTS:
 
     This example from the combinatorics tutorial used to fail before

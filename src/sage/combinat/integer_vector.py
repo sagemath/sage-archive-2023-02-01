@@ -897,28 +897,28 @@ class IntegerVectors_nkconstraints(IntegerListsLex):
 
         All the attributes below are private; don't use them!
 
-            sage: IV.min_length
+            sage: IV._min_length
             3
-            sage: IV.max_length
+            sage: IV._max_length
             3
-            sage: floor = IV.floor
+            sage: floor = IV._floor
             sage: [floor(i) for i in range(1,10)]
             [0, 0, 0, 0, 0, 0, 0, 0, 0]
-            sage: ceiling = IV.ceiling
+            sage: ceiling = IV._ceiling
             sage: [ceiling(i) for i in range(1,5)]
             [inf, inf, inf, inf]
-            sage: IV.min_slope
+            sage: IV._min_slope
             0
-            sage: IV.max_slope
+            sage: IV._max_slope
             inf
 
             sage: IV = IntegerVectors(3, 10, inner=[4,1,3], min_part=2)
-            sage: floor = IV.floor
+            sage: floor = IV._floor
             sage: floor(0), floor(1), floor(2)
             (4, 2, 3)
 
             sage: IV = IntegerVectors(3, 10, outer=[4,1,3], max_part=3)
-            sage: ceiling = IV.ceiling
+            sage: ceiling = IV._ceiling
             sage: ceiling(0), ceiling(1), ceiling(2)
             (3, 1, 3)
         """
@@ -1040,7 +1040,7 @@ class IntegerVectors_nkconstraints(IntegerListsLex):
             [0, 0, 2]
         """
         from sage.combinat.integer_list_old import next
-        return next(x, self.min_length, self.max_length, self.floor, self.ceiling, self.min_slope, self.max_slope)
+        return next(x, self._min_length, self._max_length, self._floor, self._ceiling, self._min_slope, self._max_slope)
 
 class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
     def __init__(self, n, constraints):

@@ -7,7 +7,6 @@ from graph_database import GraphDatabase, GenericGraphQuery, GraphQuery
 from graph import Graph
 from digraph import DiGraph
 from bipartite_graph import BipartiteGraph
-from graph_bundle import GraphBundle
 import weakly_chordal
 import graph_list as graphs_list
 import sage.graphs.generic_graph_pyx

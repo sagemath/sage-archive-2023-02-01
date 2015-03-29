@@ -585,6 +585,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 Doctest this implementation on an example not overshadowed.
             """
+            # TODO:
+            # Why do we have this method? Shouldn't it just return ``self``?
             M = self.parent().module()
             if not self:
                 return M.zero()

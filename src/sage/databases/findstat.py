@@ -16,7 +16,8 @@ AUTHORS:
 
 - Martin Rubey (2015): initial version.
 
-
+Classes and methods
+-------------------
 """
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import verbose
@@ -181,7 +182,7 @@ class FindStat():
 
     OUTPUT:
 
-    an instance of a :class:`FindStatStatistic`, represented by
+    An instance of a :class:`FindStatStatistic`, represented by
 
     - the FindStat ID together with its name, or
 
@@ -416,7 +417,7 @@ class FindStat():
 
         OUTPUT:
 
-        - a :class:`FindStatStatistic` instance.
+        - A :class:`FindStatStatistic` instance.
 
         .. TODO::
 
@@ -434,7 +435,6 @@ class FindStat():
 
 ######################################################################
 
-# we use read-only properties, so we need a new-style class here.
 class FindStatStatistic(SageObject):
     r"""
     The class of FindStat statistics.
@@ -463,13 +463,13 @@ class FindStatStatistic(SageObject):
     def __repr__(self):
         if self._query == "ID":
             if self._modified:
-                return "%s(modified): %s" % (self.id_str, self.name)
+                return "%s(modified): %s" % (self.id_str(), self.name())
             else:
-                return "%s: %s" % (self.id_str, self.name)
+                return "%s: %s" % (self.id_str(), self.name())
 
         elif self._query == "data":
             if len(self._result) == 0:
-                return "a new statistic on " + self.collection.__repr__()
+                return "a new statistic on " + self._collection.__repr__()
             else:
                 return self._result.__repr__()
 
@@ -486,12 +486,12 @@ class FindStatStatistic(SageObject):
             if self._modified or other._modified:
                 return False
             else:
-                return self.id == other.id
+                return self._id == other._id
         elif self._query == "data" and other._query == "data":
             if self._modified or other._modified:
                 return False
             else:
-                return self.data == other.data
+                return self._data == other._data
         else:
             return False
 
@@ -502,7 +502,7 @@ class FindStatStatistic(SageObject):
     def _find_by_id(self):
         r"""
 
-        expects that _id is a valid identifier
+        expects that `_id` is a valid identifier
 
         OUTPUT:
 
@@ -518,19 +518,19 @@ class FindStatStatistic(SageObject):
         self._query = "ID"
 
         # get the database entry from FindStat
-        filename = "/statistics/" + self.id_str + ".json"
+        filename = "/statistics/" + self.id_str() + ".json"
         url = FINDSTAT_URL_DOWNLOADS + filename
         _ = verbose("Fetching URL %s ..." %url, caller_name='FindStat')
         try:
             self._raw = json.load(urlopen(url), object_pairs_hook=OrderedDict)
         except HTTPError, error:
             if error.code == 404:
-                raise ValueError("%s is not a FindStat statistic identifier." %self.id_str)
+                raise ValueError("%s is not a FindStat statistic identifier." %self.id_str())
             else:
                 raise
 
         self._description = self._raw[FINDSTAT_STATISTIC_DESCRIPTION]
-        self._references = FancyTuple(self._raw[FINDSTAT_STATISTIC_REFERENCES].split(FINDSTAT_SEPARATOR_REFERENCES))
+        self._references = self._raw[FINDSTAT_STATISTIC_REFERENCES]
         self._collection = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
         self._code = self._raw[FINDSTAT_STATISTIC_CODE]
 
@@ -590,7 +590,7 @@ class FindStatStatistic(SageObject):
         stat = [(map(to_str, keys), str(values)[1:-1]) for (keys, values) in data]
 
         stat_str = join([join(keys, "\n") + "\n====> " + values for (keys, values) in stat], "\n")
-        _ = verbose("Sending data to Findstat %s" %stat_str, caller_name='FindStat')
+        _ = verbose("Sending data to FindStat %s" %stat_str, caller_name='FindStat')
 
         values = urlencode({"freedata": stat_str, "depth": str(self._depth), "caller": "Sage"})
         _ = verbose("Fetching URL %s with encoded data %s" %(url, values), caller_name='FindStat')
@@ -623,42 +623,145 @@ class FindStatStatistic(SageObject):
         else:
             raise ValueError("self._query should be either 'ID' or 'data', but is %s" %self._query)
 
-    ######################################################################
-    # properties
-    ######################################################################
-
-    # read-only:
-    @property
     def id(self):
+        r"""
+        Return the FindStat ID of the statistic.
+
+        OUTPUT:
+
+        The FindStat ID of the statistic as an integer, or 0.
+
+        EXAMPLES::
+
+            sage: findstat(1).id()                              # optional -- internet
+            <BLANKLINE>
+            (process:...): GLib-CRITICAL **: g_slice_set_config: assertion 'sys_page_size == 0' failed
+            1
+
+        """
         return self._id
 
-    @property
     def id_str(self):
-        id = str(self.id)
+        r"""
+        Return the FindStat ID of the statistic.
+
+        OUTPUT:
+
+        The FindStat ID of the statistic as a string, or 'St000000'.
+
+        EXAMPLES::
+
+            sage: findstat(1).id_str()                              # optional -- internet
+            'St000001'
+
+        """
+        id = str(self._id)
         return 'St000000'[:-len(id)] + id
 
-    @property
     def data(self):
+        r"""
+        Return the data used for querying the FindStat database.
+
+        OUTPUT:
+
+        The data provided by the user to query the FindStat database.
+        When the database was searched using an identifier, ``data``
+        is ``None``.
+
+        EXAMPLES::
+
+            sage: findstat((Permutations(4), [pi.length() for pi in Permutations(4)])).data() # optional -- internet
+            [(Standard permutations of 4,
+              [0, 1, 1, 2, 2, 3, 1, 2, 2, 3, 3, 4, 2, 3, 3, 4, 4, 5, 3, 4, 4, 5, 5, 6])]
+
+        """
         return self._data
 
-    @property
     def modified(self):
+        r"""
+        Return whether the statistic was modified.
+
+        OUTPUT:
+
+        True, if the statistic was modified.
+        """
         return self._modified
 
-    @property
     def collection(self):
+        r"""
+        Return the FindStat collection of the statistic.
+
+        OUTPUT:
+
+        The FindStat collection of the statistic as an instance of
+        :class:`FindStatCollection`.
+
+        EXAMPLES::
+
+            sage: findstat(1).collection()                              # optional -- internet
+            Cc0001: Permutations
+
+        """        
         return self._collection
 
-    @property
     def function(self):
+        r"""
+        Return the function used to compute the values of the statistic.
+
+        OUTPUT:
+
+        The function used to compute the values of the statistic, or
+        ``None``.
+        
+        EXAMPLES::
+
+            sage: findstat(lambda pi: pi.length(), "Permutations").function() # optional -- internet
+            <function <lambda> at ...>
+        """
         return self._function
 
-    @property
     def first_terms(self):
+        r"""
+        Return the first terms of the statistic.
+
+        OUTPUT:
+
+        A list of pairs of the form ``(object, value)`` where object
+        is an object is a sage object representing an element of the
+        appropriate collection and value is an integer.  The list
+        contains exactly the pairs in the database.
+
+        EXAMPLES::
+
+            sage: findstat(1).first_terms()                           # optional -- internet
+            [([1], 1),
+             ([1, 2], 1),
+             ([2, 1], 1),
+             ([1, 2, 3], 1),
+             ([1, 3, 2], 1),
+             ([2, 1, 3], 1),
+             ...
+
+        """        
         return self._first_terms
 
-    @property
     def first_terms_str(self):
+        r""" 
+        Return the first terms of the statistic in the format needed
+        for a FindStat query.
+
+        OUTPUT:
+
+        A string, where each line is of the form `object => value`,
+        where `object` is the string representation of an element of
+        the appropriate collection as used by FindStat and value is
+        an integer.
+
+        EXAMPLES::
+
+            sage: findstat(1).first_terms_str()[:10]                                 # optional -- internet
+            '[1] => 1\r\n'
+        """        
         if self._first_terms != None:
             to_str = self._collection.to_string()
             return join([to_str(key) + " => " + str(val)
@@ -666,41 +769,135 @@ class FindStatStatistic(SageObject):
         else:
             return ""
 
-    # writable:
-    @property
     def description(self):
+        r"""
+        Return the description of the statistic.
+
+        OUTPUT:
+
+        A string, whose first line is used as the name of the
+        statistic.
+
+        EXAMPLES::
+
+            sage: print findstat(1).description()                                               # optional -- internet
+            The number of ways to write a permutation as a minimal length product of simple transpositions.
+            <BLANKLINE>
+            That is, the number of reduced words for the permutation.  E.g., there are two reduced words for $[3,2,1] = (1,2)(2,3)(1,2) = (2,3)(1,2)(2,3)$.
+        """
         return self._description
 
-    @description.setter
-    def description(self, value):
+    def set_description(self, value):
+        r"""
+        Set the description of the statistic.
+
+        INPUT:
+
+        A string, whose first line is used as the name of the
+        statistic.
+        """
         if value != self._description:
             self._modified = True
             self._description = value
 
-    @property
     def name(self):
-        return self.description.partition(FINDSTAT_SEPARATOR_NAME)[0]
+        r"""
+        Return the name of the statistic.
 
-    @name.setter
-    def name(self, value):
-        raise ValueError("The name is the first line of the description.  Please modify the description instead.")
+        OUTPUT:
 
-    @property
+        A string, which is just the first line of the description of
+        the statistic.
+
+        EXAMPLES::
+
+            sage: findstat(1).name()                                                 # optional -- internet
+            u'The number of ways to write a permutation as a minimal length product of simple transpositions.'
+        """
+        return self._description.partition(FINDSTAT_SEPARATOR_NAME)[0]
+
     def references(self):
-        return self._references
+        r"""
+        Return the references associated with the statistic.
 
-    @references.setter
-    def references(self, value):
+        OUTPUT:
+
+        An instance of :class:`FancyTuple`, each item corresponds to
+        a reference.
+
+        TODO::
+
+            Since the references in the database are sometimes not
+            formatted properly, this method is unreliable.  The
+            string representation can be obtained via
+            :attr:`_references`.
+
+        EXAMPLES::
+
+            sage: findstat(1).references()                                                 # optional -- internet
+            0: P. Edelman and C. Greene, Balanced tableaux, Adv. in Math., 63 (1987), pp. 42-99.
+            1: [[OEIS:A005118]]
+            2: [[oeis:A246865]]
+        """
+        return FancyTuple(self._references.split(FINDSTAT_SEPARATOR_REFERENCES))
+
+    def set_references(self, value):
+        r"""
+        Set the references associated with the statistic.
+
+        INPUT:
+
+        A string.  The individual references should be separated by
+        "\\r\\n\\r\\n".
+
+        EXAMPLES:
+        
+        """
         if value != self._references:
             self._modified = True
             self._references = value
 
-    @property
     def code(self):
+        r"""
+        Return the code associated with the statistic.
+
+        OUTPUT:
+
+        A string.  Contributors are encouraged to submit sage code in the form::
+
+            def statistic(x):
+                ...
+
+        but the string may also contain code for other computer
+        algebra systems.
+
+        EXAMPLES::
+
+            sage: print findstat(1).code()                        # optional -- internet
+            def statistic(x):
+                return len(x.reduced_words())
+
+            sage: print findstat(118).code()                      # optional -- internet
+            (* in Mathematica *)
+            tree = {{{{}, {}}, {{}, {}}}, {{{}, {}}, {{}, {}}}};
+            Count[tree, {{___}, {{___}, {{___}, {___}}}}, {0, Infinity}]
+      
+        """
         return self._code
 
-    @code.setter
-    def code(self, value):
+    def set_code(self, value):
+        r"""
+        Set the code associated with the statistic.
+
+        INPUT:
+
+        A string.  Contributors are encouraged to submit sage code in
+        the form::
+
+            def statistic(x):
+                ...
+
+        """
         if value != self._code:
             self._modified = True
             self._code = value
@@ -718,7 +915,7 @@ class FindStatStatistic(SageObject):
             sage: findstat(45).browse()                            # optional -- internet, webbrowser
         """
         if self._query == "ID":
-            webbrowser.open(FINDSTAT_URL_BROWSE + self.id_str)
+            webbrowser.open(FINDSTAT_URL_BROWSE + self.id_str())
         else:
             raise NotImplementedError("Would be nice to show the result of the query in the webbrowser.")
 
@@ -745,12 +942,12 @@ class FindStatStatistic(SageObject):
                                                             max_values=max_values)
 
         args = dict()
-        args[FINDSTAT_STATISTIC_IDENTIFIER]  = self.id
-        args[FINDSTAT_STATISTIC_COLLECTION]  = str(self.collection.id())
-        args[FINDSTAT_STATISTIC_DATA]        = self.first_terms_str
-        args[FINDSTAT_STATISTIC_DESCRIPTION] = self.description
-        args[FINDSTAT_STATISTIC_REFERENCES]  = join(self.references, FINDSTAT_SEPARATOR_REFERENCES)
-        args[FINDSTAT_STATISTIC_CODE]        = self.code
+        args[FINDSTAT_STATISTIC_IDENTIFIER]  = self.id()
+        args[FINDSTAT_STATISTIC_COLLECTION]  = str(self.collection().id())
+        args[FINDSTAT_STATISTIC_DATA]        = self.first_terms_str()
+        args[FINDSTAT_STATISTIC_DESCRIPTION] = self.description()
+        args[FINDSTAT_STATISTIC_REFERENCES]  = join(self.references(), FINDSTAT_SEPARATOR_REFERENCES)
+        args[FINDSTAT_STATISTIC_CODE]        = self.code()
         args[FINDSTAT_POST_SAGE_CELL]        = ""
         args[FINDSTAT_POST_EDIT]             = ""
         args[FINDSTAT_POST_AUTHOR]           = findstat._user_name
@@ -767,7 +964,7 @@ class FindStatStatistic(SageObject):
         if self.id == 0:
             f.write(FINDSTAT_NEWSTATISTIC_FORM_HEADER %FINDSTAT_URL_NEW)
         else:
-            f.write(FINDSTAT_NEWSTATISTIC_FORM_HEADER %(FINDSTAT_URL_EDIT+self.id_str))
+            f.write(FINDSTAT_NEWSTATISTIC_FORM_HEADER %(FINDSTAT_URL_EDIT+self.id_str()))
         for key, value in args.iteritems():
             f.write((FINDSTAT_NEWSTATISTIC_FORM_FORMAT %(key, cgi.escape(unicode(value), quote=True))).encode("utf-8"))
         f.write(FINDSTAT_NEWSTATISTIC_FORM_FOOTER)
@@ -902,6 +1099,7 @@ class FindStatCollection(SageObject):
 
     EXAMPLES::
 
+        sage: from sage.databases.findstat import FindStatCollection
         sage: FindStatCollection("Permutations")                         # optional -- internet
         Cc0001: Permutations
 

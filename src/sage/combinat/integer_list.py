@@ -113,7 +113,7 @@ class IntegerListsLex(Parent):
 
     - ``category`` -- a category (default: :class:`FiniteEnumeratedSets`)
 
-    - ``waiver`` -- boolean (default: False): whether to suppress the
+    - ``check`` -- boolean (default: True): whether to display the
       warnings raised when functions are given as input to ``floor``
       or ``ceiling`` and the errors raised when there is no proper
       enumeration.
@@ -263,14 +263,12 @@ class IntegerListsLex(Parent):
         inverse lexicographic iterator
 
     If one wants to proceed anyway, one can sign a waiver by setting
-    ``waiver=True``::
+    ``check=False``::
 
-        sage: L = IntegerListsLex(3, waiver=True)
+        sage: L = IntegerListsLex(3, check=False)
         sage: it = iter(L)
         sage: [it.next() for i in range(6)]
         [[3], [2, 1], [2, 0, 1], [2, 0, 0, 1], [2, 0, 0, 0, 1], [2, 0, 0, 0, 0, 1]]
-
-    .. TODO:: Maybe this should be ``check=False`` instead?
 
     .. RUBRIC:: On trailing zeroes, and their caveats
 
@@ -318,7 +316,7 @@ class IntegerListsLex(Parent):
 
     We construct all lists of sum `4` and length `4` such that ``l[i] <= i``::
 
-        sage: list(IntegerListsLex(4, length=4, ceiling=lambda i: i, waiver=True))
+        sage: list(IntegerListsLex(4, length=4, ceiling=lambda i: i, check=False))
         [[0, 1, 2, 1], [0, 1, 1, 2], [0, 1, 0, 3], [0, 0, 2, 2], [0, 0, 1, 3]]
 
     .. WARNING::
@@ -328,7 +326,7 @@ class IntegerListsLex(Parent):
         enumeration. For example, the following example has a finite
         enumeration::
 
-            sage: L = IntegerListsLex(3, floor=lambda i: 1 if i>=2 else 0, waiver=True)
+            sage: L = IntegerListsLex(3, floor=lambda i: 1 if i>=2 else 0, check=False)
             sage: L.list()
             [[3],
              [2, 1],
@@ -350,26 +348,26 @@ class IntegerListsLex(Parent):
         inverse lexicographic enumeration without computing the floor
         all the way to ``Infinity``::
 
-            sage: L = IntegerListsLex(3, floor=lambda i: 0, waiver=True)
+            sage: L = IntegerListsLex(3, floor=lambda i: 0, check=False)
             sage: it = iter(L)
             sage: [it.next() for i in range(6)]
             [[3], [2, 1], [2, 0, 1], [2, 0, 0, 1], [2, 0, 0, 0, 1], [2, 0, 0, 0, 0, 1]]
 
         Hence a warning is raised when a function is specified as
-        input, unless the waiver is signed::
+        input, unless the waiver is signed by setting ``check=False``::
 
             sage: L = IntegerListsLex(3, floor=lambda i: 1 if i>=2 else 0)
             doctest:...
             A function has been given as input of the floor=[...] or ceiling=[...]
             arguments of IntegerListsLex. Please see the documentation for the caveats.
-            If you know what you are doing, you can set waiver=True to skip this warning.
+            If you know what you are doing, you can set check=False to skip this warning.
 
         Similarly, the algorithm may need to search forever for a
         solution when the ceiling is ultimately zero::
 
-            sage: L = IntegerListsLex(2,ceiling=lambda i:0, waiver=True)
+            sage: L = IntegerListsLex(2,ceiling=lambda i:0, check=False)
             sage: L.first()           # not tested: will hang forever
-            sage: L = IntegerListsLex(2,ceiling=lambda i:0 if i<20 else 1, waiver=True)
+            sage: L = IntegerListsLex(2,ceiling=lambda i:0 if i<20 else 1, check=False)
             sage: it = iter(L)
             sage: it.next()
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
@@ -656,7 +654,7 @@ class IntegerListsLex(Parent):
                  category=None,
                  element_constructor=None, element_class=None,
                  global_options=None,
-                 waiver=False):
+                 check=True):
         """
         Initialize ``self``.
 
@@ -673,7 +671,7 @@ class IntegerListsLex(Parent):
             True
             sage: TestSuite(C).run()
         """
-        ## TODO handle finiteness conditions Re: category, when possible, warn when not (waiver parameter)
+        ## TODO handle finiteness conditions Re: category, when possible, warn when (check parameter)
 
         if category is None:
             category = EnumeratedSets().Finite()
@@ -683,7 +681,7 @@ class IntegerListsLex(Parent):
         # be emitted, unless the user signs the waiver. See the
         # documentation.
         self._warning = False # warning for dangerous (but possibly valid) usage
-        self._waiver = waiver
+        self._check = check
 
         if n is not None:
             n = ZZ(n)
@@ -776,11 +774,11 @@ class IntegerListsLex(Parent):
         if name is not None:
             self.rename(name)
 
-        if self._warning and not self._waiver:
+        if self._warning and self._check:
             warn("""
 A function has been given as input of the floor=[...] or ceiling=[...]
 arguments of IntegerListsLex. Please see the documentation for the caveats.
-If you know what you are doing, you can set waiver=True to skip this warning.""")
+If you know what you are doing, you can set check=False to skip this warning.""")
 
         # In case we want output to be of a different type,
         if element_constructor is not None:
@@ -805,7 +803,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             ValueError: The specified parameters do not allow for an
             inverse lexicographic iterator
 
-            sage: it = iter(IntegerListsLex(4, waiver=True))
+            sage: it = iter(IntegerListsLex(4, check=False))
             sage: for _ in range(20): print next(it)
             [4]
             [3, 1]
@@ -853,7 +851,7 @@ If you know what you are doing, you can set waiver=True to skip this warning."""
             ValueError: The specified parameters do not allow for an
             inverse lexicographic iterator
         """
-        if self._warning or self._waiver:
+        if self._warning or not self._check:
             return
         message = "The specified parameters do not allow for an inverse lexicographic iterator"
         s = sum(self.floor(i) for i in range(self.floor_limit_start))

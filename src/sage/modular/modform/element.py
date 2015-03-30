@@ -427,7 +427,7 @@ class ModularForm_abstract(ModuleElement):
                 vals.append(df[i] / self[i])
             return G(vals)
 
-    def twist(self, chi):
+    def twist(self, chi, level=None):
         r"""
         Return the twist of the modular form ``self`` by the Dirichlet
         character ``chi``.
@@ -472,10 +472,21 @@ class ModularForm_abstract(ModuleElement):
 
         """
         from sage.modular.all import ModularForms
-        from sage.rings.all import PowerSeriesRing
-        G = DirichletGroup(self.level() * chi.modulus()**2)
-        R = G.base_ring()
-        M = ModularForms(G(self.character()) * G(chi)**2, self.weight(), base_ring=R)
+        from sage.rings.all import PowerSeriesRing, lcm
+        epsilon = self.character()
+        R = self.base_ring()
+        if level is None:
+            # Let P be the product of the prime divisors of
+            # chi.modulus() that do not divide N_chi.  To compute
+            # f_\chi, we can first twist by the primitive character
+            # corresponding to chi and then by the trivial character
+            # modulo P.  We then use [Atkin-Li], Proposition 3.1, and
+            # [Koblitz], Proposition III.3.17.
+            Q = chi.conductor()
+            P = chi.modulus().prime_to_m_part(Q).radical()
+            level = lcm([self.level(), epsilon.conductor() * Q, Q**2]) * P**2
+        G = DirichletGroup(level)
+        M = ModularForms(G(epsilon) * G(chi)**2, self.weight(), base_ring=R)
         bound = M.sturm_bound() + 1
         S = PowerSeriesRing(R, 'q')
         f_twist = S([self[i] * chi(i) for i in xrange(bound)], prec=bound)

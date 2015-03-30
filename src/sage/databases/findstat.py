@@ -12,12 +12,130 @@ To access the database, use :class:`findstat<FindStat>`::
     sage: findstat
     The Combinatorial Statistic Finder (http://www.findstat.org/)
 
-.. TODO::
+A guided tour
+-------------
 
-    give real-life examples of:
+Introduction
+^^^^^^^^^^^^
 
-    - identifying a statistic given a definition.
-    - finding equidistributed statistics.
+Let us fix three notions:
+
+- a combinatorial collection is a set `S` with interesting combinatorial properties,
+- a combinatorial map is a combinatorially interesting map `f: S \to S'`,
+- a combinatorial statistic is a combinatorially interesting map `s: S \to \ZZ`.
+
+Retrieving information
+^^^^^^^^^^^^^^^^^^^^^^
+
+The most straightforward application of the FindStat interface is to
+gather information about a combinatorial statistic.  To do this, we
+supply :class:`findstat<FindStat>` with a list of `(object, value)`
+pairs.  For example::
+
+    sage: PM8 = PerfectMatchings(8)
+    sage: r = findstat([(m, m.number_of_nestings()) for m in PM8]); r           # optional -- internet,random
+    0: (St000041: The number of nestings of a perfect matching. , [], 105)
+    ...
+
+The result of this query is a list (presented as a
+:class:`sage.databases.oeis.FancyTuple`) of triples.  The first
+element of each triple is a :class:`FindStatStatistic` `s: S \to
+\ZZ`, the second element a list of :class:`FindStatMap`'s `f: S \to
+S'`, and the third element is an integer::
+
+    sage: (s, list_f, quality) = r[0]                                           # optional -- internet
+
+In the case at hand, the list of maps is empty and the integer
+`quality` equals the number of `(object, value)` pairs passed to
+FindStat.  This means, that the statistic `s` matches the data
+perfectly.  We can now retrieve the description from the database::
+
+    sage: print s.description()                                                 # optional -- internet,random
+    The number of nestings of a perfect matching.
+    <BLANKLINE>
+    <BLANKLINE>
+    This is the number of pairs of edges $((a,b), (c,d))$ such that $a\le c\le d\le b$. i.e., the edge $(c,d)$ is nested inside $(a,b)$.
+
+and check the references::
+
+    sage: s.references()                                                        # optional -- internet,random
+    0: [MV] combinatorics of orthogonal polynomials (A. de Medicis et X.Viennot, Moments des q-polynomes de Laguerre et la bijection de Foata-Zeilberger, Adv. Appl. Math., 15 (1994), 262-304)
+    1: [SS] R. Simion and D. Stanton. Octabasic Laguerre polynomials and permutation statistics. J. Comput. Appl. Math., ...
+
+If you prefer, you can look at this information also in your browser::
+
+    sage: findstat(41).browse()                                                 # optional -- webbrowser
+
+Another interesting possibility is to look for equidistributed
+statistics.  Instead of submitting a list of pairs, we pass a pair of
+lists::
+
+    sage: r = findstat((PM8, [m.number_of_nestings() for m in PM8])); r         # optional -- internet,random
+    0: (St000041: The number of nestings of a perfect matching. , [], 105)
+    1: (St000042: The number of crossings of a perfect matching. , [], 105)
+    ...
+
+
+Let us now look at a slightly more complicated example, where the
+submitted statistic is the composition of a sequence of combinatorial
+maps and a statistic known to FindStat.  We use the occasion to
+advertise yet another way to pass values to FindStat::
+
+    sage: r = findstat(lambda pi: pi.saliances()[0], Permutations(4)); r        # optional -- internet,random
+    0: (St000051: The size of the left subtree. , [Mp00069: complement, Mp00061: to increasing tree], 24)
+    ...
+    sage: (s, list_f, quality) = r[0]                                           # optional -- internet
+
+To obtain the value of the statistic sent to FindStat on a given
+object, apply the maps in the list in the given order to this object,
+and evaluate the statistic on the result.  For example, let us check
+that the result given by FindStat agrees with our statistic on the
+following permutation::
+
+    sage: pi = Permutation([3,1,4,5,2]); pi.saliances()[0]
+    3
+
+We first have to find out, what the maps and the statistic actually do::
+
+    sage: print s.description()                                                 # optional -- internet,random
+    The size of the left subtree.
+
+    sage: print s.code()                                                        # optional -- internet,random
+    def statistic(T):
+        return T[0].node_number()
+
+    sage: print list_f[0].code() + "\r\n" + list_f[1].code()                    # optional -- internet,random
+    def complement(elt):
+        n = len(elt)
+        return elt.__class__(elt.parent(), map(lambda x: n - x + 1, elt) )
+    <BLANKLINE>
+    def increasing_tree_shape(elt, compare=min):
+        return elt.increasing_tree(compare).shape()
+
+So, the following should coincide with what we sent FindStat::
+
+    sage: pi.complement().increasing_tree_shape()[0].node_number()
+    3
+
+Editing and submitting statistics
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Of course, often a statistic will not be in the database::
+
+    sage: findstat([(d, randint(1,1000)) for d in DyckWords(4)])                # optional -- internet
+    a new statistic on Cc0005: Dyck paths
+
+In this case, and if the statistic might be "interesting", please
+consider submitting it to the database using
+:meth:`FindStatStatistic.submit`.
+
+Also, you may notice omissions, typos or even mistakes in the
+description, the code and the references.  In this case, simply
+replace the value by using :meth:`FindStatStatistic.set_description`,
+:meth:`FindStatStatistic.set_code` or
+:meth:`FindStatStatistic.set_references`, and then
+:meth:`FindStatStatistic.submit` your changes for review by the
+FindStat team.
 
 AUTHORS:
 
@@ -115,7 +233,7 @@ FINDSTAT_MAP_DESCRIPTION = 'MapDescription'
 FINDSTAT_MAP_DOMAIN      = 'MapDomain'
 FINDSTAT_MAP_CODOMAIN    = 'MapCodomain'
 FINDSTAT_MAP_CODE        = 'MapCode'
-# we might want to use these, too: MapSageName, MapCode
+FINDSTAT_MAP_CODE_NAME   = 'MapSageName'
 
 FINDSTAT_QUERY_MATCHES       = 'QueryMatches'
 FINDSTAT_QUERY_MATCHING_DATA = 'QueryMatchingData'
@@ -136,7 +254,7 @@ FINDSTAT_EDIT_FIELDS = set([FINDSTAT_STATISTIC_IDENTIFIER,
 # separates name from description
 FINDSTAT_SEPARATOR_NAME = "\r\n"
 # separates references
-FINDSTAT_SEPARATOR_REFERENCES = "\r\n\r\n"
+FINDSTAT_SEPARATOR_REFERENCES = "\r\n"
 
 ######################################################################
 
@@ -499,6 +617,9 @@ class FindStatStatistic(SageObject):
         else:
             return False
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     ######################################################################
     # query = "ID"
     ######################################################################
@@ -667,7 +788,7 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: S4 = Permutations(4); findstat((S4, [pi.length() for pi in S4])).data() # optional -- internet
+            sage: S4 = Permutations(4); findstat((S4, [pi.length() for pi in S4])).data()           # optional -- internet
             [(Standard permutations of 4,
               [0, 1, 1, 2, 2, 3, 1, 2, 2, 3, 3, 4, 2, 3, 3, 4, 4, 5, 3, 4, 4, 5, 5, 6])]
         """
@@ -817,10 +938,10 @@ class FindStatStatistic(SageObject):
 
         OUTPUT:
 
-        An instance of :class:`FancyTuple`, each item corresponds to
-        a reference.
+        An instance of :class:`sage.databases.oeis.FancyTuple`, each
+        item corresponds to a reference.
 
-        TODO::
+        .. TODO::
 
             Since the references in the database are sometimes not
             formatted properly, this method is unreliable.  The
@@ -834,7 +955,8 @@ class FindStatStatistic(SageObject):
             1: [[OEIS:A005118]]
             2: [[oeis:A246865]]
         """
-        return FancyTuple(self._references.split(FINDSTAT_SEPARATOR_REFERENCES))
+        l = [ref.strip() for ref in self._references.encode("utf-8").split(FINDSTAT_SEPARATOR_REFERENCES)]
+        return FancyTuple([ref for ref in l if ref != ""])
 
     def set_references(self, value):
         r"""
@@ -843,7 +965,7 @@ class FindStatStatistic(SageObject):
         INPUT:
 
         A string.  The individual references should be separated by
-        "\\r\\n\\r\\n".
+        FINDSTAT_SEPARATOR_REFERENCES, which is "\\r\\n".
         """
         if value != self._references:
             self._modified = True
@@ -1128,10 +1250,6 @@ class FindStatCollection(SageObject):
         - a sage object belonging to a collection
         - an iterable producing a sage object belonging to a collection
 
-        .. TODO::
-
-            a FindStat collection should also work.
-
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatCollection
@@ -1222,13 +1340,26 @@ class FindStatCollection(SageObject):
         TESTS::
 
             sage: from sage.databases.findstat import FindStatCollection
-            sage: FindStatCollection("Permutations") == FindStatCollection("Permutations")
+            sage: FindStatCollection("Permutations") == FindStatCollection("Permutations")          # optional -- internet
             True
 
-            sage: FindStatCollection("Permutations") != FindStatCollection("Integer Partitions")
-            True
+            sage: FindStatCollection("Permutations") == FindStatCollection("Integer Partitions")    # optional -- internet
+            False
         """
         return self.id() == other.id()
+
+    def __ne__(self, other):
+        """
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: FindStatCollection("Permutations") != FindStatCollection("Permutations")          # optional -- internet
+            False
+
+            sage: FindStatCollection("Permutations") != FindStatCollection("Integer Partitions")    # optional -- internet
+            True
+        """
+        return not self.__eq__(other)
 
     def in_range(self, element):
         r"""
@@ -1504,11 +1635,38 @@ class FindStatMap(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.databases.findstat import FindStatMap               # optional -- internet
+            sage: from sage.databases.findstat import FindStatMap
             sage: FindStatMap(71)                                               # optional -- internet
             Mp00071: descent composition
         """
         return "%s: %s" %(self.id_str(), self._map[FINDSTAT_MAP_NAME])
+
+    def __eq__(self, other):
+        """
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatMap
+            sage: FindStatMap(71) == FindStatMap(71)                            # optional -- internet
+            True
+
+            sage: FindStatMap(62) == FindStatMap(71)                            # optional -- internet
+            False
+        """
+        return self.id() == other.id()
+
+    def __ne__(self, other):
+        """
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatMap
+            sage: FindStatMap(71) != FindStatMap(71)                            # optional -- internet
+            False
+
+            sage: FindStatMap(62) != FindStatMap(71)                            # optional -- internet
+            True
+        """
+        return not self.__eq__(other)
+
 
     def name(self):
         r"""
@@ -1601,5 +1759,21 @@ class FindStatMap(SageObject):
                 return Composition([ d[i+1]-d[i] for i in range(len(d)-1)])
         """
         return self._map[FINDSTAT_MAP_CODE]
+
+    def code_name(self):
+        r"""
+        Return the name of the function defined by :meth:`code`.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatMap               # optional -- internet
+            sage: print FindStatMap(71).code_name()                             # optional -- internet
+            descents_composition
+        """
+        return self._map[FINDSTAT_MAP_CODE_NAME]
 
 findstat = FindStat()

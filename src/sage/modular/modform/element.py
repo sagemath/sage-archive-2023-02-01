@@ -471,16 +471,14 @@ class ModularForm_abstract(ModuleElement):
         - \L. J. P. Kilford (2009-08-28)
 
         """
-        from sage.modular.dirichlet import DirichletGroup
+        from sage.modular.all import ModularForms
+        from sage.rings.all import PowerSeriesRing
         G = DirichletGroup(self.level() * chi.modulus()**2)
         R = G.base_ring()
-        from sage.modular.modform.constructor import ModularForms
         M = ModularForms(G(self.character()) * G(chi)**2, self.weight(), base_ring=R)
         bound = M.sturm_bound() + 1
-        from sage.rings.all import PowerSeriesRing, O
         S = PowerSeriesRing(R, 'q')
-        q = S.gen()
-        f_twist = S([self[i] * chi(i) for i in xrange(0, bound+2)]) + O(q**bound)
+        f_twist = S([self[i] * chi(i) for i in xrange(bound)], prec=bound)
         return M(f_twist)
 
     def __nonzero__(self):

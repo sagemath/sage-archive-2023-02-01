@@ -128,7 +128,7 @@ AUTHORS:
 
 from all import SL2Z
 from arithgroup_generic import ArithmeticSubgroup
-from sage.rings.all import ZZ, Zmod
+from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import verbose
 import sage.rings.arith as arith
@@ -1433,9 +1433,9 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         R = self.R() # action of R
 
         if self.is_even():
-            N = ZZ(L.order()) # generalised level of the group
+            N = L.order() # generalised level of the group
         else:
-            N = ZZ(2 * L.order())
+            N = 2 * L.order()
 
         # write N as N = em where e = 2^k and m odd
         m = N.odd_part()
@@ -1444,13 +1444,13 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         if e == 1:
             # N is odd
             # this only gets called if self is even
-            onehalf = ZZ(~Zmod(N)(2)) # i.e. 2^(-1) mod N
+            onehalf = ZZ(2).inverse_mod(N) # i.e. 2^(-1) mod N
             rel = (R*R*L**(-onehalf))**3
             return rel.is_one()
 
         elif m == 1:
             # N is a power of 2
-            onefifth = ZZ(~Zmod(N)(5)) # i.e. 5^(-1) mod N
+            onefifth = ZZ(5).inverse_mod(N) # i.e. 5^(-1) mod N
             S = L**20*R**onefifth*L**(-4)*~R
     
             # congruence if the three below permutations are trivial
@@ -1473,10 +1473,10 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         
         else:
             # e>1, m>1
-            onehalf = int(~Zmod(m)(2)) # i.e. 2^(-1) mod m
-            onefifth = int(~Zmod(e)(5)) # i.e. 5^(-1) mod e
-            c = int(~Zmod(m)(e))*e # c=0 mod e, c=1 mod m
-            d = int(~Zmod(e)(m))*m # d=1 mod e, d=0 mod m
+            onehalf = ZZ(2).inverse_mod(m) # i.e. 2^(-1) mod m
+            onefifth = ZZ(5).inverse_mod(e) # i.e. 5^(-1) mod e
+            c,d = arith.CRT_basis([m, e])
+            # c=0 mod e, c=1 mod m; d=1 mod e, d=0 mod m
             a = L**c
             b = R**c
             l = L**d

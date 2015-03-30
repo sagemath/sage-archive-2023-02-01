@@ -1050,8 +1050,10 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: prod(primes(150))
             1492182350939279320058875736615841068547583863326864530410
             sage: L = [tuple(range(sum(primes(p))+1, sum(primes(p))+1+p)) for p in primes(150)]
-            sage: PermutationGroupElement(L).order()
+            sage: t=PermutationGroupElement(L).order(); t
             1492182350939279320058875736615841068547583863326864530410
+            sage: type(t)
+            <type 'sage.rings.integer.Integer'>
         """
         order = None
         cdef long long order_c = 1
@@ -1075,7 +1077,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 if order_c > LONG_LONG_MAX / (self.n - i):
                     order = Integer(order_c)
         sage_free(seen)
-        return int(order_c) if order is None else order
+        return Integer(order_c) if order is None else order
 
     def inverse(self):
         r"""

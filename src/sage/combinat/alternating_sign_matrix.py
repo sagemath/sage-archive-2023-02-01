@@ -44,7 +44,6 @@ from sage.rings.arith import factorial
 from sage.rings.integer import Integer
 from sage.combinat.posets.lattices import LatticePoset
 from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPatternsTopRow
-from sage.sets.set import Set
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFunction
 from sage.combinat.permutation import Permutation
@@ -56,6 +55,16 @@ class AlternatingSignMatrix(Element):
     An alternating sign matrix is a square matrix of `0`'s, `1`'s and `-1`'s
     such that the sum of each row and column is `1` and the non-zero
     entries in each row and column alternate in sign.
+
+    These were introduced in [MiRoRu]_.
+
+    REFERENCES:
+
+    .. [MiRoRu] W. H. Mills, David P Robbins, Howard Rumsey Jr.,
+       *Alternating sign matrices and descending plane partitions*,
+       Journal of Combinatorial Theory, Series A,
+       Volume 34, Issue 3, May 1983, Pages 340--359.
+       http://www.sciencedirect.com/science/article/pii/0097316583900687
     """
     __metaclass__ = ClasscallMetaclass
 
@@ -291,9 +300,11 @@ class AlternatingSignMatrix(Element):
         Return the inversion number of ``self``. 
 
         If we denote the entries of the alternating sign matrix as `a_{i,j}`, 
-        the inversion number is defined as `\sum_{i>k}\sum_{j<ℓ}a_{i,j}a_{k,ℓ}`.
+        the inversion number is defined as `\sum_{i>k}\sum_{j<l}a_{i,j}a_{k,l}`.
         When restricted to permutation matrices, this gives the usual inversion 
         number of the permutation.
+
+        This definition is equivalent to the one given in [MiRoRu]_.
         
         EXAMPLES::
 
@@ -312,10 +323,11 @@ class AlternatingSignMatrix(Element):
         """
         inversion_num = 0
         asm_matrix = self.to_matrix()
-        for (i,j) in asm_matrix.nonzero_positions(): 
-            for (k,l) in asm_matrix.nonzero_positions(): 
-                if i>k and j<l:
-                    inversion_num = inversion_num + asm_matrix[i][j]*asm_matrix[k][l]
+        nonzero_cells = asm_matrix.nonzero_positions()
+        for (i,j) in nonzero_cells:
+            for (k,l) in nonzero_cells:
+                if i > k and j < l:
+                    inversion_num += asm_matrix[i][j]*asm_matrix[k][l]
         return inversion_num
 
     @combinatorial_map(name='rotate clockwise')
@@ -752,7 +764,7 @@ class AlternatingSignMatrix(Element):
             sage: parent(t)
             Semistandard tableaux
             """
-        from sage.combinat.tableau import SemistandardTableau, SemistandardTableaux
+        from sage.combinat.tableau import SemistandardTableau
         mt = self.to_monotone_triangle()
         ssyt = [[0]*(len(mt) - j) for j in range(len(mt))]
         for i in range(len(mt)):
@@ -794,8 +806,7 @@ class AlternatingSignMatrix(Element):
             [0 1 0]
             sage: parent(t)
             Alternating sign matrices of size 3
-            """
-        from sage.combinat.tableau import SemistandardTableau, SemistandardTableaux
+        """
         lkey = self.to_semistandard_tableau().left_key_tableau()
         mt = [[0]*(len(lkey) - j) for j in range(len(lkey))]
         for i in range(len(lkey)):
@@ -1135,6 +1146,15 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
         else:
             for c in ContreTableaux(self._n):
                 yield from_contre_tableau(c)
+                # This is broken!
+                # sage: A = AlternatingSignMatrices(3, use_monotone_triangles=False)
+                # sage: list(A)
+                # ---------------------------------------------------------------------------
+                # NameError                                 Traceback (most recent call last)
+                # ...
+                # NameError: global name 'from_contre_tableau' is not defined
+                # If this is really obsolete, the else-branch should be
+                # removed and the doc modified accordingly.
 
     def _lattice_initializer(self):
         r"""

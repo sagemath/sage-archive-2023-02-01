@@ -67,15 +67,18 @@ from sage.combinat.set_partition import SetPartition, SetPartitions
 from sage.graphs.graph_generators import graphs
 
 ######################################################################
+# the FindStat URLs
+FINDSTAT_URL                        = 'http://www.findstat.org/'
+FINDSTAT_URL_RESULT                 = FINDSTAT_URL + "StatisticFinder/Result/"
+FINDSTAT_URL_LOGIN                  = FINDSTAT_URL + "StatisticFinder?action=login"
+FINDSTAT_URL_NEW                    = FINDSTAT_URL + 'StatisticsDatabase/NewStatistic/'
+FINDSTAT_URL_EDIT                   = FINDSTAT_URL + 'StatisticsDatabase/EditStatistic/'
+FINDSTAT_URL_BROWSE                 = FINDSTAT_URL + 'StatisticsDatabase/'
 
-FINDSTAT_URL = 'http://www.findstat.org/'
-FINDSTAT_URL_DOWNLOADS = 'http://downloads.findstat.org'
-
-FINDSTAT_URL_RESULT    = FINDSTAT_URL + "StatisticFinder/Result/"
-FINDSTAT_URL_LOGIN     = FINDSTAT_URL + "StatisticFinder?action=login"
-FINDSTAT_URL_NEW       = FINDSTAT_URL + 'StatisticsDatabase/NewStatistic/'
-FINDSTAT_URL_EDIT      = FINDSTAT_URL + 'StatisticsDatabase/EditStatistic/'
-FINDSTAT_URL_BROWSE    = FINDSTAT_URL + 'StatisticsDatabase/'
+FINDSTAT_URL_DOWNLOADS              = 'http://downloads.findstat.org/'
+FINDSTAT_URL_DOWNLOADS_STATISTICS   = FINDSTAT_URL_DOWNLOADS + "statistics/%s.json"
+FINDSTAT_URL_DOWNLOADS_COLLECTIONS  = FINDSTAT_URL_DOWNLOADS + "collections.json"
+FINDSTAT_URL_DOWNLOADS_MAPS         = FINDSTAT_URL_DOWNLOADS + "maps.json"
 
 ######################################################################
 # the number of values FindStat allows to search for at most
@@ -518,8 +521,7 @@ class FindStatStatistic(SageObject):
         self._query = "ID"
 
         # get the database entry from FindStat
-        filename = "/statistics/" + self.id_str() + ".json"
-        url = FINDSTAT_URL_DOWNLOADS + filename
+        url = FINDSTAT_URL_DOWNLOADS_STATISTICS %self.id_str()
         _ = verbose("Fetching URL %s ..." %url, caller_name='FindStat')
         try:
             self._raw = json.load(urlopen(url), object_pairs_hook=OrderedDict)
@@ -1146,7 +1148,7 @@ class FindStatCollection(SageObject):
             Cc0005: Dyck paths
         """
         if not FindStatCollection._findstat_collections.values()[0][0]:
-            for j in json.load(urlopen(FINDSTAT_URL_DOWNLOADS + "/collections.json")):
+            for j in json.load(urlopen(FINDSTAT_URL_DOWNLOADS_COLLECTIONS)):
                 c = FindStatCollection._findstat_collections[j[FINDSTAT_COLLECTION_IDENTIFIER]]
                 c[0] = j[FINDSTAT_COLLECTION_NAME]
                 c[1] = j[FINDSTAT_COLLECTION_NAME_PLURAL]
@@ -1440,7 +1442,7 @@ class FindStatMap(SageObject):
 
     def __init__(self, entry):
         if not self._findstat_maps:
-            self._findstat_maps += json.load(urlopen(FINDSTAT_URL_DOWNLOADS + "/maps.json"))
+            self._findstat_maps += json.load(urlopen(FINDSTAT_URL_DOWNLOADS_MAPS))
 
         bad = True
         if isinstance(entry, (str, unicode)):

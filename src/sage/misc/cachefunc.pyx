@@ -798,7 +798,7 @@ cdef class CachedFunction(object):
             ....: def f():
             ....:     return 3
             sage: f._sage_doc_()
-            'File: <doctest ...> (starting at line 1)\n'
+            'File: ... (starting at line 1)\n'
         """
         from sage.misc.sageinspect import _extract_embedded_position
         f = self.f

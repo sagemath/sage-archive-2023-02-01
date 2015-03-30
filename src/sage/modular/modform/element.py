@@ -453,7 +453,8 @@ class ModularForm_abstract(ModuleElement):
         - ``level`` -- (optional) the level `N` of the twisted form.
           By default, the algorithm chooses some not necessarily
           minimal value for `N` using [Atkin-Li]_, Proposition 3.1,
-          and [Koblitz]_, Proposition III.3.17.
+          (See also [Koblitz]_, Proposition III.3.17, for a simpler
+          but slightly weaker bound.)
 
         OUTPUT:
 
@@ -495,15 +496,9 @@ class ModularForm_abstract(ModuleElement):
         epsilon = self.character()
         R = self.base_ring()
         if level is None:
-            # Let P be the product of the prime divisors of
-            # chi.modulus() that do not divide N_chi.  To compute
-            # f_\chi, we can first twist by the primitive character
-            # corresponding to chi and then by the trivial character
-            # modulo P.  We then use [Atkin-Li], Proposition 3.1, and
-            # [Koblitz], Proposition III.3.17.
-            Q = chi.conductor()
-            P = chi.modulus().prime_to_m_part(Q).radical()
-            level = lcm([self.level(), epsilon.conductor() * Q, Q**2]) * P**2
+            # See [Atkin-Li], Proposition 3.1.
+            Q = chi.modulus()
+            level = lcm([self.level(), epsilon.conductor() * Q, Q**2])
         G = DirichletGroup(level)
         constructor = CuspForms if self.is_cuspidal() else ModularForms
         M = constructor(G(epsilon) * G(chi)**2, self.weight(), base_ring=R)

@@ -58,8 +58,8 @@ class IntegerListsLex(Parent):
     `l` satisfying specified bounds on the sum, the length, the slope,
     and the individual parts, enumerated in *inverse* lexicographic
     order, that is from largest to smallest in lexicographic
-    order. Note that, to admit such an enumeration, `S` is necessarily
-    finite (see :ref:``).
+    order. Note that, to admit such an enumeration, `S` is almost
+    necessarily finite (see :ref:`IntegerListsLex_finiteness`).
 
     The main purpose is to provide a generic iteration engine for all
     the enumerated sets like :class:`Partitions`,
@@ -277,19 +277,9 @@ class IntegerListsLex(Parent):
 
     .. _IntegerListsLex_finiteness:
 
-    .. RUBRIC:: On finiteness and lexicographic enumeration
+    .. RUBRIC:: On finiteness and inverse lexicographic enumeration
 
-
-    .. TOPIC:: Lemma
-
-        Let `S` be any collection of lists of non negative integers.
-        Then `S` can be enumerated in inverse lexicographic order if
-        and only if `S` is finite.
-
-        The "if" part is obvious. For the converse, 
-
-
-    .. RUBRIC:: Situations with improper lexicographic enumeration
+    .. TODO:: Detail the link
 
     The set of all lists of integers cannot be enumerated in inverse
     lexicographic order, since there is no largest list (take `[n]`

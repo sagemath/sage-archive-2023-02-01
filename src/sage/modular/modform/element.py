@@ -463,10 +463,15 @@ class ModularForm_abstract(ModuleElement):
         EXAMPLES::
 
             sage: f = CuspForms(11, 2).0
+            sage: f.parent()
+            Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
             sage: f.q_expansion(6)
             q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
             sage: eps = DirichletGroup(3).0
-            sage: f.twist(eps)
+            sage: f_eps = f.twist(eps)
+            sage: f_eps.parent()
+            Cuspidal subspace of dimension 9 of Modular Forms space of dimension 16 for Congruence Subgroup Gamma0(99) of weight 2 over Rational Field
+            sage: f_eps.q_expansion(6)
             q + 2*q^2 + 2*q^4 - q^5 + O(q^6)
 
         REFERENCES:

@@ -1,16 +1,55 @@
 r"""
 FindStat - the Combinatorial Statistic Finder.
 
-You can use the sage interface to FindStat to::
+You can use the sage interface to FindStat to:
 
-    - identify a combinatorial statistic from the values on a few small objects.
-    - obtain more terms, formulae, references, etc. for a given statistic.
-    - edit statistics and submit new statistics
+- identify a combinatorial statistic from the values on a few small objects,
+- obtain more terms, formulae, references, etc. for a given statistic,
+- edit statistics and submit new statistics.
 
 To access the database, use :class:`findstat<FindStat>`::
 
     sage: findstat
     The Combinatorial Statistic Finder (http://www.findstat.org/)
+
+EXAMPLES:
+
+A particular statistic can be retrieved by its St-identifier or number::
+
+    sage: findstat('St000045')                   # optional -- internet
+    St000045: The number of linear extensions of the tree.
+
+    sage: findstat(3)                            # optional -- internet
+    St000003: The number of [[/StandardTableaux|standard Young tableaux]] of the partition.
+
+The database can be searched by providing a list of pairs::
+
+    sage: q = findstat([(pi, pi.length()) for pi in Permutations(4)]); q # optional -- internet
+    0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
+    1: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [Mp00062: inversion-number to major-index bijection], 24)
+    ...
+
+or a dictionary::
+
+    sage: p = findstat({pi: pi.length() for pi in Permutations(4)}); p # optional -- internet
+    0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
+    1: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [Mp00062: inversion-number to major-index bijection], 24)
+    ...
+
+Another possibility is to send a function and a collection.  In
+this case, the function is applied to the first few objects of
+the collection::
+
+    sage: findstat(lambda pi: pi.length(), "Permutations") # optional -- internet
+    0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 200)
+    ...
+
+To search for a distribution, send a list of lists, or a single pair::
+
+    sage: findstat((Permutations(4), [pi.length() for pi in Permutations(4)])) # optional -- internet
+    0: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [], 24)
+    1: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
+    ...
 
 AUTHORS:
 
@@ -259,7 +298,7 @@ class FindStat():
 
     def __call__(self, query, collection=None, depth=2, max_values=FINDSTAT_MAX_VALUES):
         r"""
-        Return an instance of a :class:`FindStatStatistic`
+        Return an instance of a :class:`FindStatStatistic`.
 
         This should be the only way to access
         :class:`FindStatStatistic`.  We do the preprocessing of the
@@ -355,7 +394,7 @@ class FindStat():
 
     def __repr__(self):
         r"""
-        Return the representation of ``self``
+        Return the representation of ``self``.
 
         EXAMPLES::
 
@@ -494,7 +533,7 @@ class FindStatStatistic(SageObject):
 
     def _find_by_id(self):
         r"""
-        expects that `_id` is a valid identifier
+        Expects that `_id` is a valid identifier.
 
         OUTPUT:
 
@@ -540,9 +579,9 @@ class FindStatStatistic(SageObject):
 
     def _find_by_values(self, max_values=FINDSTAT_MAX_VALUES):
         r"""
-        expects that data is a list of pairs of the form (list of
+        Expects that data is a list of pairs of the form (list of
         objects, list of values), each containing as many values as
-        objects, and that collection is appropriately set
+        objects, and that collection is appropriately set.
 
         OUTPUT:
 
@@ -616,7 +655,7 @@ class FindStatStatistic(SageObject):
 
     def id(self):
         r"""
-        Return the FindStat identifier of the statistic
+        Return the FindStat identifier of the statistic.
 
         OUTPUT:
 
@@ -631,7 +670,7 @@ class FindStatStatistic(SageObject):
 
     def id_str(self):
         r"""
-        Return the FindStat identifier of the statistic
+        Return the FindStat identifier of the statistic.
 
         OUTPUT:
 
@@ -647,7 +686,7 @@ class FindStatStatistic(SageObject):
 
     def data(self):
         r"""
-        Return the data used for querying the FindStat database
+        Return the data used for querying the FindStat database.
 
         OUTPUT:
 
@@ -665,7 +704,7 @@ class FindStatStatistic(SageObject):
 
     def modified(self):
         r"""
-        Return whether the statistic was modified
+        Return whether the statistic was modified.
 
         OUTPUT:
 
@@ -675,7 +714,7 @@ class FindStatStatistic(SageObject):
 
     def collection(self):
         r"""
-        Return the FindStat collection of the statistic
+        Return the FindStat collection of the statistic.
 
         OUTPUT:
 
@@ -691,7 +730,7 @@ class FindStatStatistic(SageObject):
 
     def function(self):
         r"""
-        Return the function used to compute the values of the statistic
+        Return the function used to compute the values of the statistic.
 
         OUTPUT:
 
@@ -708,7 +747,7 @@ class FindStatStatistic(SageObject):
 
     def first_terms(self):
         r"""
-        Return the first terms of the statistic
+        Return the first terms of the statistic.
 
         OUTPUT:
 
@@ -733,7 +772,7 @@ class FindStatStatistic(SageObject):
     def first_terms_str(self):
         r"""
         Return the first terms of the statistic in the format needed
-        for a FindStat query
+        for a FindStat query.
 
         OUTPUT:
 
@@ -756,7 +795,7 @@ class FindStatStatistic(SageObject):
 
     def description(self):
         r"""
-        Return the description of the statistic
+        Return the description of the statistic.
 
         OUTPUT:
 
@@ -787,7 +826,7 @@ class FindStatStatistic(SageObject):
 
     def name(self):
         r"""
-        Return the name of the statistic
+        Return the name of the statistic.
 
         OUTPUT:
 
@@ -803,7 +842,7 @@ class FindStatStatistic(SageObject):
 
     def references(self):
         r"""
-        Return the references associated with the statistic
+        Return the references associated with the statistic.
 
         OUTPUT:
 
@@ -841,7 +880,7 @@ class FindStatStatistic(SageObject):
 
     def code(self):
         r"""
-        Return the code associated with the statistic
+        Return the code associated with the statistic.
 
         OUTPUT:
 
@@ -1259,7 +1298,7 @@ class FindStatCollection(SageObject):
 
         - a list of pairs of the form (object, value).
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatCollection
             sage: c = FindStatCollection("GelfandTsetlinPatterns")                 # optional -- internet
@@ -1284,7 +1323,7 @@ class FindStatCollection(SageObject):
 
     def id(self):
         r"""
-        Return the FindStat identifier of the collection
+        Return the FindStat identifier of the collection.
 
         OUTPUT:
 
@@ -1301,7 +1340,7 @@ class FindStatCollection(SageObject):
 
     def id_str(self):
         r"""
-        Return the FindStat identifier of the collection
+        Return the FindStat identifier of the collection.
 
         OUTPUT:
 
@@ -1330,7 +1369,7 @@ class FindStatCollection(SageObject):
 
     def to_size(self):
         r"""
-        Return a function that returns the FindStat size of an object
+        Return a function that returns the FindStat size of an object.
 
         OUTPUT:
 
@@ -1350,7 +1389,7 @@ class FindStatCollection(SageObject):
     def to_string(self):
         r"""
         Return a function that returns the FindStat normal
-        representation given an object
+        representation given an object.
 
         OUTPUT:
 
@@ -1370,7 +1409,7 @@ class FindStatCollection(SageObject):
     def from_string(self):
         r"""
         Return a function that returns the object given the FindStat
-        normal representation
+        normal representation.
 
         OUTPUT:
 
@@ -1391,7 +1430,7 @@ class FindStatCollection(SageObject):
 
     def __repr__(self):
         r"""
-        Return the representation of the FindStat collection
+        Return the representation of the FindStat collection.
 
         OUTPUT:
 
@@ -1407,7 +1446,7 @@ class FindStatCollection(SageObject):
 
     def name(self):
         r"""
-        Return the name of the FindStat collection
+        Return the name of the FindStat collection.
 
         OUTPUT:
 
@@ -1458,7 +1497,7 @@ class FindStatMap(SageObject):
 
     def id(self):
         r"""
-        Return the FindStat identifier of the map
+        Return the FindStat identifier of the map.
 
         OUTPUT:
 
@@ -1474,7 +1513,7 @@ class FindStatMap(SageObject):
 
     def id_str(self):
         r"""
-        Return the FindStat identifier of the map
+        Return the FindStat identifier of the map.
 
         OUTPUT:
 
@@ -1492,7 +1531,7 @@ class FindStatMap(SageObject):
 
     def __repr__(self):
         r"""
-        Return the representation of the FindStat map
+        Return the representation of the FindStat map.
 
         EXAMPLES::
 
@@ -1504,7 +1543,7 @@ class FindStatMap(SageObject):
 
     def name(self):
         r"""
-        Return the FindStat name of the map
+        Return the FindStat name of the map.
 
         OUTPUT:
 
@@ -1520,7 +1559,7 @@ class FindStatMap(SageObject):
 
     def description(self):
         r"""
-        Return the FindStat description of the map
+        Return the FindStat description of the map.
 
         OUTPUT:
 
@@ -1544,7 +1583,7 @@ class FindStatMap(SageObject):
 
     def domain(self):
         r"""
-        Return the FindStat collection which is the domain of the map
+        Return the FindStat collection which is the domain of the map.
 
         OUTPUT:
 
@@ -1560,7 +1599,7 @@ class FindStatMap(SageObject):
 
     def codomain(self):
         r"""
-        Return the FindStat collection which is the codomain of the map
+        Return the FindStat collection which is the codomain of the map.
 
         OUTPUT:
 

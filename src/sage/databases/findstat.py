@@ -1,7 +1,7 @@
 r"""
 FindStat - the Combinatorial Statistic Finder.
 
-You can use the sage interface to FindStat to:
+You can use the sage interface to FindStat to::
 
     - identify a combinatorial statistic from the values on a few small objects.
     - obtain more terms, formulae, references, etc. for a given statistic.

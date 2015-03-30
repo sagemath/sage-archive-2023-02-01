@@ -614,7 +614,7 @@ class pAdicValuation_base(UniqueRepresentation, DiscreteValuation):
         K = self.domain()
         if L is K:
             return self
-        if L.base() is not K:
+        if L.base_ring() is not K:
             raise ValueError("L must be a simple finite extension of %s"%K)
 
         if algorithm == "ideal":

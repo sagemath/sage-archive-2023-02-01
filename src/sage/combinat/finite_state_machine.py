@@ -98,7 +98,7 @@ Properties
     :meth:`~FiniteStateMachine.is_monochromatic` | Checks whether the colors of all states are equal
     :meth:`~FiniteStateMachine.asymptotic_moments` | Main terms of expectation and variance of sums of labels
     :meth:`~FiniteStateMachine.epsilon_successors` | Epsilon successors of a state
-
+    :meth:`Automaton.transition_probabilities` | Compute transition probabilities
 
 Operations
 ^^^^^^^^^^
@@ -9862,6 +9862,83 @@ class Automaton(FiniteStateMachine):
             return (accept_input, current_state)
         else:
             return accept_input
+
+    def transition_probabilities(self):
+        """
+        Compute transition probabilities such that all paths of equal
+        length weighted by these probabilities have the same weight,
+        up to an exponentially small error.
+
+        OUTPUT:
+
+        A Markov chain. Its input labels are the transition probabilities,
+        the output labels the labels of the original automaton. The exit
+        weights are stored in the attribute ``color`` of the Markov chain.
+
+        EXAMPLES::
+
+            sage: NAF = Automaton([(0, 0, 0), (0, 1, 1), (0, 1, -1),
+            ....:                  (1, 0, 0)], initial_states=[0],
+            ....:                 final_states=[0, 1])
+            sage: P_NAF = NAF.transition_probabilities()
+            sage: P_NAF.transitions()
+            [Transition from 0 to 0: 1/2|0,
+             Transition from 0 to 1: 1/4|1,
+             Transition from 0 to 1: 1/4|-1,
+             Transition from 1 to 0: 1|0]
+            sage: for s in P_NAF.iter_states():
+            ....:     print s.color
+            3/4
+            3/2
+
+        ALGORITHM:
+
+        See [HKP2015a]_, Theorem 1.
+
+        REFERENCES:
+
+        .. [HKP2015a] Clemens Heuberger, Sara Kropf, and Helmut
+           Prodinger, *Analysis of Carries in Signed Digit Expansions*,
+           submitted.
+        """
+        from sage.modules.free_module_element import vector
+        if not self.digraph().is_aperiodic():
+            raise NotImplementedError("Automaton must be aperiodic.")
+        if not self.digraph().is_strongly_connected():
+            raise NotImplementedError("Automaton must be aperiodic.")
+        M = self.adjacency_matrix().change_ring(ZZ)
+        states = {state: i for i, state in enumerate(self.iter_states())}
+        w_all = sorted(M.eigenvectors_right(),
+                       key=lambda x: abs(x[0]),
+                       reverse=True)
+        w = w_all[0][1][0]
+        mu = w_all[0][0]
+        u_all = sorted(M.eigenvectors_left(),
+                       key=lambda x: abs(x[0]),
+                       reverse=True)
+        u = u_all[0][1][0]
+        u = 1/(u*w) * u
+        final = vector(int(s.is_final) for s in self.iter_states())
+        ff = u*final
+
+        assert u*w == 1
+        P = Transducer(initial_states=[s.label() for s in self.iter_initial_states()],
+                       final_states=[s.label() for s in self.iter_final_states()],
+                       on_duplicate_transition=duplicate_transition_add_input)
+        for t in self.iter_transitions():
+            P.add_transition(t.from_state.label(),
+                             t.to_state.label(),
+                             w[states[t.to_state]]/w[states[t.from_state]]/mu,
+                             t.word_in)
+        for s in self.iter_states():
+            P.state(s.label()).color = 1/(w[states[s]] * ff)
+        return P
+            
+ 
+
+        
+
+
 
 #*****************************************************************************
 

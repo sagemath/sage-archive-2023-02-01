@@ -286,6 +286,38 @@ class AlternatingSignMatrix(Element):
         l.reverse()
         return AlternatingSignMatrix(matrix(l))
 
+    def inversion_number(self):
+        r"""
+        Return the inversion number of ``self``. 
+
+        If we denote the entries of the alternating sign matrix as `a_{i,j}`, 
+        the inversion number is defined as `\sum_{i>k}\sum_{j<ℓ}a_{i,j}a_{k,ℓ}`.
+        When restricted to permutation matrices, this gives the usual inversion 
+        number of the permutation.
+        
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]).inversion_number()
+            0
+            sage: asm = A([[0, 0, 1],[1, 0, 0],[0, 1, 0]])
+            sage: asm.inversion_number()
+            2
+            sage: asm = A([[0, 1, 0],[1, -1, 1],[0, 1, 0]])
+            sage: asm.inversion_number()
+            2
+            sage: P=Permutations(5)
+            sage: all(p.number_of_inversions()==AlternatingSignMatrix(p.to_matrix()).inversion_number() for p in P)
+            True
+        """
+        inversion_num = 0
+        asm_matrix = self.to_matrix()
+        for (i,j) in asm_matrix.nonzero_positions(): 
+            for (k,l) in asm_matrix.nonzero_positions(): 
+                if i>k and j<l:
+                    inversion_num = inversion_num + asm_matrix[i][j]*asm_matrix[k][l]
+        return inversion_num
+
     @combinatorial_map(name='rotate clockwise')
     def rotate_cw(self):
         r"""

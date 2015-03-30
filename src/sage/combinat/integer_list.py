@@ -279,8 +279,6 @@ class IntegerListsLex(Parent):
 
     .. RUBRIC:: On finiteness and inverse lexicographic enumeration
 
-    .. TODO:: Detail the link
-
     The set of all lists of integers cannot be enumerated in inverse
     lexicographic order, since there is no largest list (take `[n]`
     for `n` as large as desired)::
@@ -288,8 +286,7 @@ class IntegerListsLex(Parent):
         sage: IntegerListsLex().first()
         Traceback (most recent call last):
         ...
-        ValueError: The specified parameters possibly do not allow for an
-        inverse lexicographic iterator
+        ValueError: Could not check that the specified parameters yield a finite set
 
     Here is a variant which could be enumerated in inverse lexicographically
     increasing order but not in inverse lexicographically decreasing order::
@@ -307,8 +304,7 @@ class IntegerListsLex(Parent):
         sage: IntegerListsLex(3).first()
         Traceback (most recent call last):
         ...
-        ValueError: The specified parameters possibly do not allow for an
-        inverse lexicographic iterator
+        ValueError: Could not check that the specified parameters yield a finite set
 
     If one wants to proceed anyway, one can sign a waiver by setting
     ``check=False``::
@@ -317,6 +313,14 @@ class IntegerListsLex(Parent):
         sage: it = iter(L)
         sage: [it.next() for i in range(6)]
         [[3], [2, 1], [2, 0, 1], [2, 0, 0, 1], [2, 0, 0, 0, 1], [2, 0, 0, 0, 0, 1]]
+
+    In fact, being inverse lexicographically enumerable is almost equivalent to
+    being finite. The only infinity that can occur would be from a tail of numbers
+    `0,1` as in the previous example, where the `1` moves further and further to the
+    right. If there is any vector that is inverse lexicographically smaller than such
+    a configuration, the iterator would not reach it and hence would not be considered
+    iterable. Given that the infinite cases are very specific, at this point only the
+    finite cases are supported (without signing the waiver).
 
     .. RUBRIC:: On trailing zeroes, and their caveats
 
@@ -772,8 +776,6 @@ class IntegerListsLex(Parent):
             True
             sage: TestSuite(C).run()
         """
-        ## TODO handle finiteness conditions Re: category, when possible, warn when (check parameter)
-
         if category is None:
             category = EnumeratedSets().Finite()
 
@@ -898,15 +900,18 @@ If you know what you are doing, you can set check=False to skip this warning."""
     @cached_method
     def _check_lexicographic_iterable(self):
         """
-        Check whether the parameters give a proper inverse lexicographic iterator.
+        Check whether the parameters give a finite set.
+
+        As mentioned in the description of this class, being inverse lexicographic
+        iterable is almost equivalent to being a finite set. This method checks
+        conditions that ensure that the set is finite.
 
         EXAMPLES::
 
             sage: IntegerListsLex(4).list()
             Traceback (most recent call last):
             ...
-            ValueError: The specified parameters possibly do not allow for an
-            inverse lexicographic iterator
+            ValueError: Could not check that the specified parameters yield a finite set
 
             sage: it = iter(IntegerListsLex(4, check=False))
             sage: for _ in range(20): print next(it)
@@ -935,15 +940,13 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: L.list()
             Traceback (most recent call last):
             ...
-            ValueError: The specified parameters possibly do not allow for an
-            inverse lexicographic iterator
+            ValueError: Could not check that the specified parameters yield a finite set
 
             sage: L = IntegerListsLex(ceiling=[0], min_slope=1, max_slope=1)
             sage: L.list()
             Traceback (most recent call last):
             ...
-            ValueError: The specified parameters possibly do not allow for an
-            inverse lexicographic iterator
+            ValueError: Could not check that the specified parameters yield a finite set
 
         The next example shows a case that is finite since we remove trailing zeroes::
 
@@ -953,8 +956,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: L.list()
             Traceback (most recent call last):
             ...
-            ValueError: The specified parameters possibly do not allow for an
-            inverse lexicographic iterator
+            ValueError: Could not check that the specified parameters yield a finite set
 
         In the next examples, there is either no solution, or the region
         is bounded::
@@ -971,7 +973,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
         """
         if self._warning or not self._check:
             return
-        message = "The specified parameters possibly do not allow for an inverse lexicographic iterator"
+        message = "Could not check that the specified parameters yield a finite set"
         s = sum(self._floor(i) for i in range(self._floor_limit_start))
         if self._max_sum < Infinity and self._max_length == Infinity and self._floor_limit == 0:
             if self._min_slope < 0 and self._max_slope > 0 and s < self._min_sum and self._min_sum <= self._max_sum:

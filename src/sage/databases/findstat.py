@@ -12,6 +12,13 @@ To access the database, use :class:`findstat<FindStat>`::
     sage: findstat
     The Combinatorial Statistic Finder (http://www.findstat.org/)
 
+.. TODO::
+
+    give real-life examples of:
+
+    - identifying a statistic given a definition.
+    - finding equidistributed statistics.
+
 AUTHORS:
 
 - Martin Rubey (2015): initial version.
@@ -104,6 +111,7 @@ FINDSTAT_MAP_NAME        = 'MapName'
 FINDSTAT_MAP_DESCRIPTION = 'MapDescription'
 FINDSTAT_MAP_DOMAIN      = 'MapDomain'
 FINDSTAT_MAP_CODOMAIN    = 'MapCodomain'
+FINDSTAT_MAP_CODE        = 'MapCode'
 # we might want to use these, too: MapSageName, MapCode
 
 FINDSTAT_QUERY_MATCHES       = 'QueryMatches'
@@ -1572,5 +1580,24 @@ class FindStatMap(SageObject):
         """
         return FindStatCollection(self._map[FINDSTAT_MAP_CODOMAIN])
 
+    def code(self):
+        r"""
+        Return the code associated with the map.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatMap               # optional -- internet
+            sage: print FindStatMap(71).code()                                  # optional -- internet
+            def descents_composition(elt):
+                if len(elt) == 0:
+                    return Composition([])
+                d = [-1] + elt.descents() + [len(elt)-1]
+                return Composition([ d[i+1]-d[i] for i in range(len(d)-1)])
+        """
+        return self._map[FINDSTAT_MAP_CODE]
 
 findstat = FindStat()

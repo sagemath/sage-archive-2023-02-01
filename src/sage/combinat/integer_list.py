@@ -36,6 +36,13 @@ from sage.sets.family import Family
 from sage.rings.integer_ring import ZZ
 
 Infinity = float('+inf')
+# Constants for Iter._next_state
+LOOKAHEAD = 5
+PUSH      = 4
+ME        = 3
+DECREASE  = 2
+POP       = 1
+STOP      = 0
 
 class IntegerListsLex(Parent):
     r"""
@@ -1122,13 +1129,13 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: C = IntegerListsLex(2, length=3)
                 sage: I = IntegerListsLex._Iter(C)
                 sage: I._search_ranges
-                [(0, 2)]
+                []
                 sage: I._current_list
-                [3]
+                []
                 sage: I._j
+                -1
+                sage: I._current_sum
                 0
-                sage: I.finished
-                False
             """
             self.parent = parent
 
@@ -1139,47 +1146,74 @@ If you know what you are doing, you can set check=False to skip this warning."""
             self._j = -1     # index of last element of _current_list
             self._current_sum = 0     # sum of parts in _current_list
 
-            self.finished = False
-
-            # initialize for beginning of iteration
-            self._push_search()
+            self._next_state = PUSH
 
         def _push_search(self):
             """
-            Push search forward. Resetting attributes.
+            Push search forward, resetting attributes.
+
+            The push may fail if it's discovered that
+            ``self._current_list`` cannot be extended in a valid way.
+
+            OUTPUT: a boolean: whether the push succeeded
 
             EXAMPLES::
 
                 sage: C = IntegerListsLex(2, length=3)
                 sage: I = C.__iter__()
                 sage: I._j
+                -1
+                sage: I._search_ranges
+                []
+                sage: I._current_list
+                []
+                sage: I._current_sum
+                0
+                sage: I._push_search()
+                True
+                sage: I._j
                 0
                 sage: I._search_ranges
                 [(0, 2)]
                 sage: I._current_list
-                [3]
+                [2]
                 sage: I._current_sum
-                3
+                2
                 sage: I._push_search()
+                True
                 sage: I._j
                 1
                 sage: I._search_ranges
-                [(0, 2), (0, -1)]
+                [(0, 2), (0, 0)]
                 sage: I._current_list
-                [3, 0]
+                [2, 0]
                 sage: I._current_sum
-                3
+                2
             """
+            p = self.parent
+            max_sum = p._max_sum
+            min_length = p._min_length
+            max_length = p._max_length
+            if  self._j+1 >= max_length:
+                return False
+            if self._j+1 >= min_length and self._current_sum == max_sum:
+                # Cannot add trailing zeroes
+                return False
+
             if self._j >= 0:
                 prev = self._current_list[self._j]
             else:
                 prev = None
+            interval = self._m_interval(self._j+1, self.parent._max_sum - self._current_sum, prev)
+            if interval[0] > interval[1]:
+                return False
+
             self._j += 1
-            interval = self._m_interval(self._j, self.parent._max_sum - self._current_sum, prev)
-            val = interval[1] + 1 # iterator decrements before acting
+            m = interval[1]
             self._search_ranges.append(interval)
-            self._current_list.append(val)
-            self._current_sum += val
+            self._current_list.append(m)
+            self._current_sum += m
+            return True
 
         def _pop_search(self):
             """
@@ -1189,14 +1223,16 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
                 sage: C = IntegerListsLex(2, length=3)
                 sage: I = C.__iter__()
+                sage: I._push_search()
+                True
                 sage: I._j
                 0
                 sage: I._search_ranges
                 [(0, 2)]
                 sage: I._current_sum
-                3
+                2
                 sage: I._current_list
-                [3]
+                [2]
                 sage: I._pop_search()
                 sage: I._j
                 -1
@@ -1207,14 +1243,14 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: I._current_list
                 []
             """
-            if self._j >= 0:
+            if self._j >= 0:  # TODO: get rid of this condition
                 self._j -= 1
                 self._search_ranges.pop()
                 self._current_sum -= self._current_list[-1]
                 self._current_list.pop()
 
         def next(self):
-            """
+            r"""
             Return the next element in the iteration.
 
             EXAMPLES::
@@ -1226,52 +1262,56 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: I.next()
                 [1, 1, 0]
             """
-            if self.finished:
-                raise StopIteration()
-
-            search_ranges = self._search_ranges
-            current_list = self._current_list
             p = self.parent
             min_sum = p._min_sum
             max_sum = p._max_sum
-            min_length = p._min_length
             max_length = p._max_length
+            search_ranges = self._search_ranges
 
-            while self._j >= 0: # j = -1 means that we have finished the bottom iteration
-
-                # choose a new value for m to test
-
-                current_list[self._j] -= 1
-                # m = current_list[self._j]
-                self._current_sum -= 1
-
-                # check if the new value is valid, if not, pop to prefix, and now check if this is a solution
-
-                if current_list[self._j] < search_ranges[self._j][0] or (self._j == max_length-1 and self._current_sum < min_sum):
-                    self._pop_search()
-                    if self._internal_list_valid():
-                        return p._element_constructor(list(current_list))
+            while True:
+                assert self._j == len(self._current_list) - 1
+                assert self._j == len(self._search_ranges) - 1
+                if self._next_state == LOOKAHEAD:
+                    m = self._current_list[-1]
+                    if self._possible_m(m, self._j,
+                                        min_sum - (self._current_sum-m),
+                                        max_sum - (self._current_sum-m)):
+                        self._next_state = PUSH
                     else:
+                        # We should reuse information about the
+                        # reasons for this failure, to avoid when
+                        # possible retrying with smaller values.
+                        # We just do a special case for now:
+                        if self._j + 1 == max_length and self._current_sum < min_sum:
+                            self._next_state = POP
+                        else:
+                            self._next_state = DECREASE
+                if self._next_state == PUSH:
+                    if self._push_search():
+                        self._next_state = LOOKAHEAD
                         continue
-
-                # m = current_list[self._j] is new and in range:
-                # If we're at a leaf node, check if it is a solution to return, pop the layer from the stack.
-                # Otherwise, check if any solutions are possible with this value of m.
-                #
-                # Possible cases to detect leaf nodes:
-                # 1. List is of maximal length
-                # 2. List is of maximal sum, and of at least minimal length (allow padding zeros)
-
-                if (self._current_sum == max_sum and self._j >= min_length - 1) or self._j == max_length - 1:
+                    self._next_state = ME
+                if self._next_state == ME:
+                    if self._j == -1:
+                        self._next_state = STOP
+                    else:
+                        self._next_state = DECREASE
                     if self._internal_list_valid():
-                        return p._element_constructor(list(current_list))
-                elif self._possible_m(current_list[self._j], self._j,
-                                      min_sum - (self._current_sum-current_list[self._j]),
-                                      max_sum - (self._current_sum-current_list[self._j])):
-                    self._push_search()
-
-            self.finished = True
-            raise StopIteration()
+                        return p._element_constructor(list(self._current_list))
+                if self._next_state == DECREASE:
+                    self._current_list[-1] -= 1
+                    self._current_sum -= 1
+                    if self._current_list[-1] >= search_ranges[self._j][0]:
+                        self._next_state = LOOKAHEAD
+                        continue
+                    self._next_state = POP
+                if self._next_state == POP:
+                    self._pop_search()
+                    self._next_state = ME
+                    continue
+                if self._next_state == STOP:
+                    raise StopIteration()
+                assert False
 
         def _internal_list_valid(self):
             """
@@ -1289,7 +1329,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: C = IntegerListsLex(2, length=3)
                 sage: I = IntegerListsLex._Iter(C)
                 sage: I._current_list
-                [3]
+                []
                 sage: I._internal_list_valid()
                 False
                 sage: I.next()
@@ -1518,6 +1558,15 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: it._possible_m(0, 2, 0, oo)
                 False
 
+                sage: n = 10**100
+                sage: L = IntegerListsLex(n, length=1); it = iter(L)
+                sage: it._possible_m(n-1,0, n, n)
+                False
+
+                sage: L = IntegerListsLex(n=3, min_part=2); it = iter(L)
+                sage: it._possible_m(2, 0, 3, 3)
+                False
+
             ALGORITHM::
 
             The current algorithm computes, for `k=j,j+1,\ldots`, a
@@ -1576,6 +1625,8 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
             p = self.parent
 
+            # Beware that without slope conditions, the functions below
+            # currently forget about the value m at k!
             lower_envelope = self._lower_envelope(m,j)
             upper_envelope = self._upper_envelope(m,j)
             lower = 0    # The lower bound `l_k`
@@ -1585,8 +1636,8 @@ If you know what you are doing, you can set check=False to skip this warning."""
             # get to smallest valid number of parts
             for k in range(j, p._min_length-1):
                 # We are looking at lists `v_j,...,v_k`
-                lo = lower_envelope(k)
-                up = upper_envelope(k)
+                lo = m if k == j else lower_envelope(k)
+                up = m if k == j else upper_envelope(k)
                 if lo > up:
                     return False
                 lower += lo
@@ -1599,8 +1650,8 @@ If you know what you are doing, you can set check=False to skip this warning."""
             k = max(p._min_length-1,j)
             # Check if any of the intervals intersect the target interval
             while k < p._max_length:
-                lo = lower_envelope(k)
-                up = upper_envelope(k)
+                lo = m if k == j else lower_envelope(k)
+                up = m if k == j else upper_envelope(k)
                 if lo > up:
                     # There exists no valid list of length >= k
                     return False

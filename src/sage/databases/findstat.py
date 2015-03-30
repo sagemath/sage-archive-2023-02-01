@@ -1,7 +1,7 @@
 r"""
 FindStat - the Combinatorial Statistic Finder.
 
-You can use the sage interface to FindStat to:
+You can use the sage interface to FindStat to::
 
     - identify a combinatorial statistic from the values on a few small objects.
     - obtain more terms, formulae, references, etc. for a given statistic.
@@ -374,7 +374,7 @@ class FindStat():
 
         EXAMPLES::
 
-            sage: findstat.browse()                              # optional -- internet, webbrowser
+            sage: findstat.browse()                              # optional -- webbrowser
         """
         webbrowser.open(FINDSTAT_URL)
 
@@ -635,8 +635,6 @@ class FindStatStatistic(SageObject):
         EXAMPLES::
 
             sage: findstat(1).id()                              # optional -- internet
-            <BLANKLINE>
-            (process:...): GLib-CRITICAL **: g_slice_set_config: assertion 'sys_page_size == 0' failed
             1
 
         """
@@ -915,7 +913,7 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(45).browse()                            # optional -- internet, webbrowser
+            sage: findstat(45).browse()                            # optional -- webbrowser
         """
         if self._query == "ID":
             webbrowser.open(FINDSTAT_URL_BROWSE + self.id_str())
@@ -1291,7 +1289,7 @@ class FindStatCollection(SageObject):
 
             sage: from sage.databases.findstat import FindStatCollection
             sage: c = FindStatCollection("GelfandTsetlinPatterns")                 # optional -- internet
-            sage: c.first_terms(lambda x: 1, max_values=10))                       # optional -- internet
+            sage: c.first_terms(lambda x: 1, max_values=10)                        # optional -- internet
             [([[0]], 1),
              ([[1]], 1),
              ([[2]], 1),
@@ -1355,7 +1353,7 @@ class FindStatCollection(SageObject):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatCollection
-            sage: FindStatCollection("Permutations").browse()            # optional -- internet, webbrowser
+            sage: FindStatCollection("Permutations").browse()            # optional -- webbrowser
 
         """
         webbrowser.open(FINDSTAT_URL + self._url_name)
@@ -1393,7 +1391,7 @@ class FindStatCollection(SageObject):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatCollection
-            sage: p = Poset((range(3), [[0, 1], [1, 2]]))
+            sage: p = Poset((range(3), [[0, 1], [1, 2]]))                          # optional -- internet
             sage: c = FindStatCollection("Posets")                                 # optional -- internet
             sage: c.to_string()(p)                                                 # optional -- internet
             '([(0, 2), (2, 1)], 3)'

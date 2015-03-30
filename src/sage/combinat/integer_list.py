@@ -286,7 +286,7 @@ class IntegerListsLex(Parent):
         sage: IntegerListsLex().first()
         Traceback (most recent call last):
         ...
-        ValueError: Could not check that the specified parameters yield a finite set
+        ValueError: Could not check that the specified constraints yield a finite set
 
     Here is a variant which could be enumerated in inverse lexicographically
     increasing order but not in inverse lexicographically decreasing order::
@@ -304,7 +304,7 @@ class IntegerListsLex(Parent):
         sage: IntegerListsLex(3).first()
         Traceback (most recent call last):
         ...
-        ValueError: Could not check that the specified parameters yield a finite set
+        ValueError: Could not check that the specified constraints yield a finite set
 
     If one wants to proceed anyway, one can sign a waiver by setting
     ``check=False``::
@@ -900,7 +900,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
     @cached_method
     def _check_lexicographic_iterable(self):
         """
-        Check whether the parameters give a finite set.
+        Check whether the constraints give a finite set.
 
         As mentioned in the description of this class, being inverse lexicographic
         iterable is almost equivalent to being a finite set. This method checks
@@ -911,7 +911,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: IntegerListsLex(4).list()
             Traceback (most recent call last):
             ...
-            ValueError: Could not check that the specified parameters yield a finite set
+            ValueError: Could not check that the specified constraints yield a finite set
 
             sage: it = iter(IntegerListsLex(4, check=False))
             sage: for _ in range(20): print next(it)
@@ -940,13 +940,13 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: L.list()
             Traceback (most recent call last):
             ...
-            ValueError: Could not check that the specified parameters yield a finite set
+            ValueError: Could not check that the specified constraints yield a finite set
 
             sage: L = IntegerListsLex(ceiling=[0], min_slope=1, max_slope=1)
             sage: L.list()
             Traceback (most recent call last):
             ...
-            ValueError: Could not check that the specified parameters yield a finite set
+            ValueError: Could not check that the specified constraints yield a finite set
 
         The next example shows a case that is finite since we remove trailing zeroes::
 
@@ -956,7 +956,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: L.list()
             Traceback (most recent call last):
             ...
-            ValueError: Could not check that the specified parameters yield a finite set
+            ValueError: Could not check that the specified constraints yield a finite set
 
         In the next examples, there is either no solution, or the region
         is bounded::
@@ -973,7 +973,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
         """
         if self._warning or not self._check:
             return
-        message = "Could not check that the specified parameters yield a finite set"
+        message = "Could not check that the specified constraints yield a finite set"
         s = sum(self._floor(i) for i in range(self._floor_limit_start))
         if self._max_sum < Infinity and self._max_length == Infinity and self._floor_limit == 0:
             if self._min_slope < 0 and self._max_slope > 0 and s < self._min_sum and self._min_sum <= self._max_sum:
@@ -1129,7 +1129,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: I._current_sum
                 0
             """
-            self.parent = parent
+            self._parent = parent
 
             parent._check_lexicographic_iterable()
 
@@ -1182,7 +1182,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: I._current_sum
                 2
             """
-            p = self.parent
+            p = self._parent
             max_sum = p._max_sum
             min_length = p._min_length
             max_length = p._max_length
@@ -1196,7 +1196,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 prev = self._current_list[self._j]
             else:
                 prev = None
-            interval = self._m_interval(self._j+1, self.parent._max_sum - self._current_sum, prev)
+            interval = self._m_interval(self._j+1, self._parent._max_sum - self._current_sum, prev)
             if interval[0] > interval[1]:
                 return False
 
@@ -1254,7 +1254,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: I.next()
                 [1, 1, 0]
             """
-            p = self.parent
+            p = self._parent
             min_sum = p._min_sum
             max_sum = p._max_sum
             max_length = p._max_length
@@ -1331,7 +1331,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: I._internal_list_valid()
                 True
             """
-            p = self.parent
+            p = self._parent
             mu = self._current_list
             nu = self._current_sum
             l = self._j + 1
@@ -1379,10 +1379,10 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: f(4)
                 3
             """
-            if self.parent._max_slope == Infinity:
-                return self.parent._ceiling
-            m = m - j*self.parent._max_slope
-            return lambda i: min(m + i*self.parent._max_slope, self.parent._ceiling(i) )
+            if self._parent._max_slope == Infinity:
+                return self._parent._ceiling
+            m = m - j*self._parent._max_slope
+            return lambda i: min(m + i*self._parent._max_slope, self._parent._ceiling(i) )
 
         def _lower_envelope(self, m, j):
             """
@@ -1423,10 +1423,10 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: f(4)
                 1
             """
-            if self.parent._min_slope == -Infinity:
-                return self.parent._floor
-            m = m-j*self.parent._min_slope
-            return lambda i: max( m + i*self.parent._min_slope, self.parent._floor(i) )
+            if self._parent._min_slope == -Infinity:
+                return self._parent._floor
+            m = m-j*self._parent._min_slope
+            return lambda i: max( m + i*self._parent._min_slope, self._parent._floor(i) )
 
         def _m_interval(self, i, max_sum, prev=None):
             r"""
@@ -1489,7 +1489,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: IntegerListsLex(length=0).list()                    # no part!
                 [[]]
             """
-            p = self.parent
+            p = self._parent
 
             lower_bound = max(0, p._floor(i))
             upper_bound = min(max_sum, p._ceiling(i))
@@ -1613,7 +1613,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             if min_sum > max_sum:
                 return False
 
-            p = self.parent
+            p = self._parent
 
             # Beware that without slope conditions, the functions below
             # currently forget about the value m at k!

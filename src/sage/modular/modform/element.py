@@ -432,13 +432,15 @@ class ModularForm_abstract(ModuleElement):
         Return the twist of the modular form ``self`` by the Dirichlet
         character ``chi``.
 
-        If ``self`` has `q`-expansion
+        If ``self`` is a modular form `f` with character `\epsilon`
+        and `q`-expansion
 
         .. math::
 
             f(q) = \sum_{n=0}^\infty a_n q^n,
 
-        then the twist by `\chi` has q-expansion
+        then the twist by `\chi` is a modular form `f_\chi` with
+        character `\epsilon\chi^2` and `q`-expansion
 
         .. math::
 
@@ -448,9 +450,15 @@ class ModularForm_abstract(ModuleElement):
 
         - ``chi`` -- a Dirichlet character
 
+        - ``level`` -- (optional) the level `N` of the twisted form.
+          By default, the algorithm chooses some not necessarily
+          minimal value for `N` using [Atkin-Li]_, Proposition 3.1,
+          and [Koblitz]_, Proposition III.3.17.
+
         OUTPUT:
 
-        the modular form `f_\chi`, the twist of ``f`` by ``chi``
+        The form `f_\chi` as an element of the space of modular forms
+        for `\Gamma_1(N)` with character `\epsilon\chi^2`.
 
         EXAMPLES::
 
@@ -463,12 +471,18 @@ class ModularForm_abstract(ModuleElement):
 
         REFERENCES:
 
+        .. [Atkin-Li] A. O. L. Atkin and Wen-Ch'ing Winnie Li, Twists
+           of newforms and pseudo-eigenvalues of `W`-operators.
+           Inventiones math. 48 (1978), 221–243.
+
         .. [Koblitz] Neal Koblitz, Introduction to Elliptic Curves and
-           Modular Forms.  Springer GTM 97, 1993, Proposition III.3.17.
+           Modular Forms.  Springer GTM 97, 1993.
 
         AUTHORS:
 
         - \L. J. P. Kilford (2009-08-28)
+
+        - Peter Bruin (2015-03-30)
 
         """
         from sage.modular.all import ModularForms

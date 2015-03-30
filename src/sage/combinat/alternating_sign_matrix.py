@@ -297,11 +297,11 @@ class AlternatingSignMatrix(Element):
 
     def inversion_number(self):
         r"""
-        Return the inversion number of ``self``. 
+        Return the inversion number of ``self``.
 
-        If we denote the entries of the alternating sign matrix as `a_{i,j}`, 
+        If we denote the entries of the alternating sign matrix as `a_{i,j}`,
         the inversion number is defined as `\sum_{i>k}\sum_{j<l}a_{i,j}a_{k,l}`.
-        When restricted to permutation matrices, this gives the usual inversion 
+        When restricted to permutation matrices, this gives the usual inversion
         number of the permutation.
 
         This definition is equivalent to the one given in [MiRoRu]_.

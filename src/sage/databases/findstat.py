@@ -157,7 +157,7 @@ class FindStat():
 
     INPUT:
 
-    - an integer or a string representing a valid FindStat ID
+    - an integer or a string representing a valid FindStat identifier
       (e.g. 45 or 'St000045').  The optional argument ``collection``
       should be ``None``, the optional arguments ``depth`` and
       ``max_values`` are ignored.
@@ -184,7 +184,7 @@ class FindStat():
 
     An instance of a :class:`FindStatStatistic`, represented by
 
-    - the FindStat ID together with its name, or
+    - the FindStat identifier together with its name, or
 
     - a list of triples, each consisting of
 
@@ -291,7 +291,7 @@ class FindStat():
                 collection = FindStatCollection(data[0][0][0])
                 return FindStatStatistic(id=0, data=data,
                                          first_terms=query,
-                                         collection = collection,
+                                         collection=collection,
                                          depth=depth)._find_by_values(max_values=max_values)
 
             elif isinstance(query, (list, tuple)):
@@ -340,7 +340,8 @@ class FindStat():
 
         else:
             if callable(query):
-                collection = FindStatCollection(collection)
+                if not isinstance(collection, FindStatCollection):
+                    collection = FindStatCollection(collection)
                 first_terms = collection.first_terms(query, max_values=max_values)
                 data = [([key], [value]) for (key, value) in first_terms]
                 try:
@@ -625,11 +626,11 @@ class FindStatStatistic(SageObject):
 
     def id(self):
         r"""
-        Return the FindStat ID of the statistic.
+        Return the FindStat identifier of the statistic.
 
         OUTPUT:
 
-        The FindStat ID of the statistic as an integer, or 0.
+        The FindStat identifier of the statistic (or 0), as an integer.
 
         EXAMPLES::
 
@@ -643,11 +644,11 @@ class FindStatStatistic(SageObject):
 
     def id_str(self):
         r"""
-        Return the FindStat ID of the statistic.
+        Return the FindStat identifier of the statistic.
 
         OUTPUT:
 
-        The FindStat ID of the statistic as a string, or 'St000000'.
+        The FindStat identifier of the statistic (or 'St000000'), as a string.
 
         EXAMPLES::
 
@@ -701,7 +702,7 @@ class FindStatStatistic(SageObject):
             sage: findstat(1).collection()                              # optional -- internet
             Cc0001: Permutations
 
-        """        
+        """
         return self._collection
 
     def function(self):
@@ -712,11 +713,12 @@ class FindStatStatistic(SageObject):
 
         The function used to compute the values of the statistic, or
         ``None``.
-        
+
         EXAMPLES::
 
             sage: findstat(lambda pi: pi.length(), "Permutations").function() # optional -- internet
             <function <lambda> at ...>
+
         """
         return self._function
 
@@ -742,11 +744,11 @@ class FindStatStatistic(SageObject):
              ([2, 1, 3], 1),
              ...
 
-        """        
+        """
         return self._first_terms
 
     def first_terms_str(self):
-        r""" 
+        r"""
         Return the first terms of the statistic in the format needed
         for a FindStat query.
 
@@ -761,7 +763,8 @@ class FindStatStatistic(SageObject):
 
             sage: findstat(1).first_terms_str()[:10]                                 # optional -- internet
             '[1] => 1\r\n'
-        """        
+
+        """
         if self._first_terms != None:
             to_str = self._collection.to_string()
             return join([to_str(key) + " => " + str(val)
@@ -813,6 +816,7 @@ class FindStatStatistic(SageObject):
 
             sage: findstat(1).name()                                                 # optional -- internet
             u'The number of ways to write a permutation as a minimal length product of simple transpositions.'
+
         """
         return self._description.partition(FINDSTAT_SEPARATOR_NAME)[0]
 
@@ -838,6 +842,7 @@ class FindStatStatistic(SageObject):
             0: P. Edelman and C. Greene, Balanced tableaux, Adv. in Math., 63 (1987), pp. 42-99.
             1: [[OEIS:A005118]]
             2: [[oeis:A246865]]
+
         """
         return FancyTuple(self._references.split(FINDSTAT_SEPARATOR_REFERENCES))
 
@@ -850,8 +855,6 @@ class FindStatStatistic(SageObject):
         A string.  The individual references should be separated by
         "\\r\\n\\r\\n".
 
-        EXAMPLES:
-        
         """
         if value != self._references:
             self._modified = True
@@ -881,7 +884,7 @@ class FindStatStatistic(SageObject):
             (* in Mathematica *)
             tree = {{{{}, {}}, {{}, {}}}, {{{}, {}}, {{}, {}}}};
             Count[tree, {{___}, {{___}, {{___}, {___}}}}, {0, Infinity}]
-      
+
         """
         return self._code
 
@@ -1257,9 +1260,18 @@ class FindStatCollection(SageObject):
         - ``True``, if ``element`` is used by the FindStat search
           engine, and ``False`` if it is ignored.
 
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: c = FindStatCollection("GelfandTsetlinPatterns")                 # optional -- internet
+            sage: c.in_range(GelfandTsetlinPattern([[3, 1], [1]]))                 # optional -- internet
+            True
+            sage: c.in_range(GelfandTsetlinPattern([[4, 1], [1]]))                 # optional -- internet
+            False
+
         """
         n = self.to_size()(element)
-        return element in self._sageconstructor(n)
+        return (n in self._range and element in self._sageconstructor(n))
 
     def first_terms(self, statistic, max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         r"""
@@ -1275,6 +1287,22 @@ class FindStatCollection(SageObject):
 
         - a list of pairs of the form (object, value).
 
+        EXAMPLES:
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: c = FindStatCollection("GelfandTsetlinPatterns")                 # optional -- internet
+            sage: c.first_terms(lambda x: 1, max_values=10))                       # optional -- internet
+            [([[0]], 1),
+             ([[1]], 1),
+             ([[2]], 1),
+             ([[3]], 1),
+             ([[0, 0], [0]], 1),
+             ([[1, 0], [0]], 1),
+             ([[1, 0], [1]], 1),
+             ([[1, 1], [1]], 1),
+             ([[2, 0], [0]], 1),
+             ([[2, 0], [1]], 1)]
+
         """
         if self._sageconstructor_overridden is None:
             g = (x for n in self._range for x in self._sageconstructor(n))
@@ -1285,13 +1313,37 @@ class FindStatCollection(SageObject):
 
     def id(self):
         r"""
-        Return the FindStat identifier of the collection as an integer.
+        Return the FindStat identifier of the collection.
+
+        OUTPUT:
+
+        The FindStat identifier of the collection as an integer.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: c = FindStatCollection("GelfandTsetlinPatterns")                 # optional -- internet
+            sage: c.id()                                                           # optional -- internet
+            18
+
         """
         return self._id
 
     def id_str(self):
         r"""
-        Return the FindStat identifier of the collection as a string.
+        Return the FindStat identifier of the collection.
+
+        OUTPUT:
+
+        The FindStat identifier of the collection as a string.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: c = FindStatCollection("GelfandTsetlinPatterns")                 # optional -- internet
+            sage: c.id_str()                                                       # optional -- internet
+            'Cc0018'
+
         """
         id = str(self.id())
         return 'Cc0000'[:-len(id)] + id
@@ -1304,6 +1356,7 @@ class FindStatCollection(SageObject):
 
             sage: from sage.databases.findstat import FindStatCollection
             sage: FindStatCollection("Permutations").browse()            # optional -- internet, webbrowser
+
         """
         webbrowser.open(FINDSTAT_URL + self._url_name)
 
@@ -1316,12 +1369,13 @@ class FindStatCollection(SageObject):
         The function that produces the size as needed by the
         constructor of the collection.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatCollection
             sage: c = FindStatCollection("GelfandTsetlinPatterns")                 # optional -- internet
             sage: c.to_size()(GelfandTsetlinPattern([[4, 1], [1]]))                # optional -- internet
             (2, 4)
+
         """
         return self._to_size
 
@@ -1336,13 +1390,14 @@ class FindStatCollection(SageObject):
         The function that produces the string representation as
         needed by the FindStat search webpage.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatCollection
             sage: p = Poset((range(3), [[0, 1], [1, 2]]))
             sage: c = FindStatCollection("Posets")                                 # optional -- internet
             sage: c.to_string()(p)                                                 # optional -- internet
             '([(0, 2), (2, 1)], 3)'
+
         """
         return self._to_str
 
@@ -1356,7 +1411,7 @@ class FindStatCollection(SageObject):
         The function that produces the sage object given its FindStat
         normal representation as a string.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatCollection
             sage: c = FindStatCollection("Posets")                                 # optional -- internet
@@ -1380,6 +1435,7 @@ class FindStatCollection(SageObject):
             sage: from sage.databases.findstat import FindStatCollection
             sage: FindStatCollection("Binary trees")                      # optional -- internet
             Cc0010: Binary trees
+
         """
         return "%s: %s" %(self.id_str(), self._name_plural)
 
@@ -1396,6 +1452,7 @@ class FindStatCollection(SageObject):
             sage: from sage.databases.findstat import FindStatCollection
             sage: FindStatCollection("Binary trees").name()               # optional -- internet
             u'Binary tree'
+
         """
         return self._name
 
@@ -1441,7 +1498,14 @@ class FindStatMap(SageObject):
 
         OUTPUT:
 
-        The identifier as an integer.
+        The FindStat identifier of the map as an integer.
+
+        EXAMPLES::
+
+            sage: m = findstat(lambda pi: pi.length(), "Permutations")[1][1][0] # optional -- internet
+            sage: m.id()                                                        # optional -- internet
+            62
+
         """
         return self._map[FINDSTAT_MAP_IDENTIFIER]
 
@@ -1451,7 +1515,14 @@ class FindStatMap(SageObject):
 
         OUTPUT:
 
-        The identifier as a string.
+        The FindStat identifier of the map as a string.
+
+        EXAMPLES::
+
+            sage: m = findstat(lambda pi: pi.length(), "Permutations")[1][1][0] # optional -- internet
+            sage: m.id_str()                                                    # optional -- internet
+            'Mp00062'
+
         """
 
         id = str(self.id())
@@ -1460,6 +1531,13 @@ class FindStatMap(SageObject):
     def __repr__(self):
         r"""
         Return the representation of the FindStat map.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatMap               # optional -- internet
+            sage: FindStatMap(71)                                               # optional -- internet
+            Mp00071: descent composition
+
         """
         return "%s: %s" %(self.id_str(), self._map[FINDSTAT_MAP_NAME])
 
@@ -1469,9 +1547,15 @@ class FindStatMap(SageObject):
 
         OUTPUT:
 
-        The name as a string.
-        """
+        The name of the map as a string, as used by FindStat.
 
+        EXAMPLES::
+
+            sage: m = findstat(lambda pi: pi.length(), "Permutations")[1][1][0] # optional -- internet
+            sage: m.name()                                                      # optional -- internet
+            u'inversion-number to major-index bijection'
+
+        """
         return self._map[FINDSTAT_MAP_NAME]
 
     def description(self):
@@ -1481,6 +1565,21 @@ class FindStatMap(SageObject):
         OUTPUT:
 
         The description as a string.
+
+        EXAMPLES::
+
+            sage: m = findstat(lambda pi: pi.length(), "Permutations")[1][1][0] # optional -- internet
+            sage: print m.description()                                         # optional -- internet
+            Let $\sigma \in \mathcal{S}_n$ be a permutation.
+            <BLANKLINE>
+            Maps $\sigma$ to the permutation $\tau$ such that the major code of $\tau$ is given by the Lehmer code of $\sigma$.
+            <BLANKLINE>
+            In particular, the number of inversions of $\sigma$ equals the major index of $\tau$.
+            <BLANKLINE>
+            EXAMPLES:
+            <BLANKLINE>
+            $[3,4,1,2] \mapsto [3,1,4,2]$
+
         """
         return self._map[FINDSTAT_MAP_DESCRIPTION]
 
@@ -1492,6 +1591,12 @@ class FindStatMap(SageObject):
 
         The domain of the map as a :class:`FindStatCollection`.
 
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatMap # optional -- internet
+            sage: FindStatMap(71).domain()                        # optional -- internet
+            Cc0001: Permutations
+
         """
         return FindStatCollection(self._map[FINDSTAT_MAP_DOMAIN])
 
@@ -1502,6 +1607,12 @@ class FindStatMap(SageObject):
         OUTPUT:
 
         The codomain of the map as a :class:`FindStatCollection`.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatMap # optional -- internet
+            sage: FindStatMap(71).codomain()                      # optional -- internet
+            Cc0006: Integer compositions
 
         """
         return FindStatCollection(self._map[FINDSTAT_MAP_CODOMAIN])

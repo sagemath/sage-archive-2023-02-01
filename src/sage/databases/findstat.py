@@ -202,22 +202,22 @@ class FindStat():
     A particular statistic can be retrieved by its St-identifier or
     number::
 
-        sage: findstat('St000045')                   # optional -- internet
+        sage: findstat('St000045')                   # optional -- internet,random
         St000045: The number of linear extensions of the tree.
 
-        sage: findstat(3)                            # optional -- internet
+        sage: findstat(3)                            # optional -- internet,random
         St000003: The number of [[/StandardTableaux|standard Young tableaux]] of the partition.
 
     The database can be searched by providing a list of pairs::
 
-        sage: q = findstat([(pi, pi.length()) for pi in Permutations(4)]); q # optional -- internet
+        sage: q = findstat([(pi, pi.length()) for pi in Permutations(4)]); q # optional -- internet,random
         0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
         1: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [Mp00062: inversion-number to major-index bijection], 24)
         ...
 
     or a dictionary::
 
-        sage: p = findstat({pi: pi.length() for pi in Permutations(4)}); p # optional -- internet
+        sage: p = findstat({pi: pi.length() for pi in Permutations(4)}); p # optional -- internet,random
         0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
         1: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [Mp00062: inversion-number to major-index bijection], 24)
         ...
@@ -233,13 +233,13 @@ class FindStat():
     this case, the function is applied to the first few objects of
     the collection::
 
-        sage: findstat(lambda pi: pi.length(), "Permutations") # optional -- internet
+        sage: findstat(lambda pi: pi.length(), "Permutations") # optional -- internet,random
         0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 200)
         ...
 
     To search for a distribution, send a list of lists, or a single pair::
 
-        sage: findstat((Permutations(4), [pi.length() for pi in Permutations(4)])) # optional -- internet
+        sage: findstat((Permutations(4), [pi.length() for pi in Permutations(4)])) # optional -- internet,random
         0: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [], 24)
         1: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
         ...
@@ -719,7 +719,7 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(1).first_terms()                           # optional -- internet
+            sage: findstat(1).first_terms()                           # optional -- internet,random
             [([1], 1),
              ([1, 2], 1),
              ([2, 1], 1),
@@ -744,7 +744,7 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(1).first_terms_str()[:10]                                 # optional -- internet
+            sage: findstat(1).first_terms_str()[:10]                                            # optional -- internet,random
             '[1] => 1\r\n'
         """
         if self._first_terms != None:
@@ -765,7 +765,7 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: print findstat(1).description()                                               # optional -- internet
+            sage: print findstat(1).description()                                               # optional -- internet,random
             The number of ways to write a permutation as a minimal length product of simple transpositions.
             <BLANKLINE>
             That is, the number of reduced words for the permutation.  E.g., there are two reduced words for $[3,2,1] = (1,2)(2,3)(1,2) = (2,3)(1,2)(2,3)$.
@@ -796,7 +796,7 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(1).name()                                                 # optional -- internet
+            sage: findstat(1).name()                                                 # optional -- internet,random
             u'The number of ways to write a permutation as a minimal length product of simple transpositions.'
         """
         return self._description.partition(FINDSTAT_SEPARATOR_NAME)[0]
@@ -819,7 +819,7 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(1).references()                                                 # optional -- internet
+            sage: findstat(1).references()                                                 # optional -- internet,random
             0: P. Edelman and C. Greene, Balanced tableaux, Adv. in Math., 63 (1987), pp. 42-99.
             1: [[OEIS:A005118]]
             2: [[oeis:A246865]]
@@ -855,11 +855,11 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: print findstat(1).code()                        # optional -- internet
+            sage: print findstat(1).code()                        # optional -- internet,random
             def statistic(x):
                 return len(x.reduced_words())
 
-            sage: print findstat(118).code()                      # optional -- internet
+            sage: print findstat(118).code()                      # optional -- internet,random
             (* in Mathematica *)
             tree = {{{{}, {}}, {{}, {}}}, {{{}, {}}, {{}, {}}}};
             Count[tree, {{___}, {{___}, {{___}, {___}}}}, {0, Infinity}]
@@ -1239,7 +1239,7 @@ class FindStatCollection(SageObject):
             sage: c = FindStatCollection("GelfandTsetlinPatterns")                 # optional -- internet
             sage: c.in_range(GelfandTsetlinPattern([[3, 1], [1]]))                 # optional -- internet
             True
-            sage: c.in_range(GelfandTsetlinPattern([[4, 1], [1]]))                 # optional -- internet
+            sage: c.in_range(GelfandTsetlinPattern([[4, 1], [1]]))                 # optional -- internet,random
             False
         """
         n = self.to_size()(element)
@@ -1263,7 +1263,7 @@ class FindStatCollection(SageObject):
 
             sage: from sage.databases.findstat import FindStatCollection
             sage: c = FindStatCollection("GelfandTsetlinPatterns")                 # optional -- internet
-            sage: c.first_terms(lambda x: 1, max_values=10)                        # optional -- internet
+            sage: c.first_terms(lambda x: 1, max_values=10)                        # optional -- internet,random
             [([[0]], 1),
              ([[1]], 1),
              ([[2]], 1),
@@ -1382,8 +1382,6 @@ class FindStatCollection(SageObject):
             sage: from sage.databases.findstat import FindStatCollection
             sage: c = FindStatCollection("Posets")                                 # optional -- internet
             sage: p = c.from_string()('([(0, 2), (2, 1)], 3)')                     # optional -- internet
-            <BLANKLINE>
-            ...
             sage: p.cover_relations()                                              # optional -- internet
             [[0, 2], [2, 1]]
         """
@@ -1529,7 +1527,7 @@ class FindStatMap(SageObject):
         EXAMPLES::
 
             sage: m = findstat(lambda pi: pi.length(), "Permutations")[1][1][0] # optional -- internet
-            sage: print m.description()                                         # optional -- internet
+            sage: print m.description()                                         # optional -- internet,random
             Let $\sigma \in \mathcal{S}_n$ be a permutation.
             <BLANKLINE>
             Maps $\sigma$ to the permutation $\tau$ such that the major code of $\tau$ is given by the Lehmer code of $\sigma$.

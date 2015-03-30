@@ -35,7 +35,7 @@ from sage.combinat.root_system.coxeter_type import CoxeterType
 from sage.combinat.root_system.root_system import RootSystem
 from sage.sets.family import Family
 
-class CoxeterMatrix(Matrix_generic_dense, CoxeterType):
+class CoxeterMatrix(CoxeterType):
     """
     A Coxeter matrix.
 
@@ -111,8 +111,7 @@ class CoxeterMatrix(Matrix_generic_dense, CoxeterType):
     @staticmethod
     def __classcall_private__(cls, *args, **kwds):
         """
-        Normalize input so we can inherit from a dense matrix with the 
-        appropriate ring.
+        Normalize input so we can get the appropriate ring.
 
         .. NOTE::
 
@@ -207,7 +206,6 @@ class CoxeterMatrix(Matrix_generic_dense, CoxeterType):
                     j = verts.index(e[1])
                     data[j][i] = data[i][j] = m
                     base_ring = (base_ring.one()*m).parent()
-                data = MatrixSpace(base_ring,n)(data)
                 index_set = tuple(verts)
                 args = [data]
             else:
@@ -272,15 +270,21 @@ class CoxeterMatrix(Matrix_generic_dense, CoxeterType):
             sage: C = CoxeterMatrix(['A', 2, 1])
             sage: TestSuite(C).run(skip=["_test_category", "_test_change_ring"])
         """
-        Matrix_generic_dense.__init__(self, parent, data, False, True)
+        
+        self._matrix = Matrix_generic_dense(parent,data,False,True)
+        self._matrix.set_immutable()
+        # Matrix_generic_dense.__init__(self, parent, data, False, True)
 
-        if self.base_ring() not in [ZZ,QQ]:
+        if self._matrix.base_ring() not in [ZZ,QQ]:
             self._is_cyclotomic = False
         else:
             self._is_cyclotomic = True
         self._coxeter_type = coxeter_type
         self._index_set = index_set
-        self.set_immutable()
+        self.rank = self._matrix.nrows()
+
+        self._dict = {(self._index_set[i],self._index_set[j]):self._matrix[i,j]
+                for i in range(self.rank) for j in range(self.rank)}
 
     def __reduce__(self):
         """
@@ -295,6 +299,27 @@ class CoxeterMatrix(Matrix_generic_dense, CoxeterType):
         """
         return (CoxeterMatrix, (self.parent(), self.list(),
                                 self._coxeter_type, self._index_set))
+
+    def __repr__(self):
+        """
+        String representation of the Coxeter matrix.
+        """
+
+        return self._matrix.__repr__()
+
+    def __getitem__(self, key):
+
+        return self._dict[key]
+
+    def _matrix_(self, R = None):
+        """
+        Return ``self`` as a matrix over the ring ``R``.
+        """
+
+        if R != None:
+            return self._matrix.change_ring(R)
+        else:
+            return self._matrix
 
     ##########################################################################
     # Coxeter type methods
@@ -336,18 +361,19 @@ class CoxeterMatrix(Matrix_generic_dense, CoxeterType):
             return self
         return self._coxeter_type
 
-    def rank(self):
-        r"""
-        Return the rank of ``self``.
-
-        EXAMPLES::
-
-            sage: CoxeterMatrix(['C',3]).rank()
-            3
-            sage: CoxeterMatrix(["A2","B2","F4"]).rank()
-            8
-        """
-        return len(self._index_set)
+    # It seems that this method should be an attribute
+    # def rank(self):
+    #     r"""
+    #     Return the rank of ``self``.
+    #
+    #     EXAMPLES::
+    #
+    #         sage: CoxeterMatrix(['C',3]).rank()
+    #         3
+    #         sage: CoxeterMatrix(["A2","B2","F4"]).rank()
+    #         8
+    #     """
+    #     return len(self._index_set)
 
     def coxeter_matrix(self):
         r"""
@@ -386,14 +412,14 @@ class CoxeterMatrix(Matrix_generic_dense, CoxeterType):
             sage: C.coxeter_graph()
             Graph on 4 vertices
         """
-        n = self.nrows()
+        n = self.rank
         I = self.index_set()
         val = lambda x: infinity if x == -1 else x
-        G = Graph([(I[i], I[j], val(self[i, j]))
+        G = Graph([(I[i], I[j], val((self._matrix)[i, j]))
                    for i in range(n) for j in range(i)
-                   if self[i, j] not in [1, 2]])
+                   if (self._matrix)[i, j] not in [1, 2]])
         G.add_vertices(I)
-        return G.copy(immutable=True)
+        return G.copy(immutable = True)
 
     def is_simply_laced(self):
         """

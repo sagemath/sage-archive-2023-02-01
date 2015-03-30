@@ -1406,6 +1406,14 @@ class Projection(SageObject):
                 edge/.style={color=black, thick},
             sage: open('polytope-tikz2.tex', 'w').write(Image)    # not tested
 
+
+        Scientific notation is not used in the output (:trac:`16519`)::
+
+            sage: P=Polyhedron([[2*10^-10,0],[0,1],[1,0]],base_ring=QQ)
+            sage: tikzstr=P.projection().tikz()
+            sage: 'e-10' in tikzstr
+            False
+
         .. NOTE::
 
             The ``facet_color`` is the filing color of the polytope (polygon).
@@ -1418,7 +1426,7 @@ class Projection(SageObject):
         edges = ''
         for vert in self.points:
             v = self.coords[vert]
-            v_vect = str([i.n(digits=3) for i in v])
+            v_vect = str(['%.5f' % i for i in v]).replace('\'','')
             v_vect = v_vect.replace('[', '(')
             v_vect = v_vect.replace(']', ')')
             tag = '%s' %v_vect
@@ -1522,7 +1530,7 @@ class Projection(SageObject):
             sage: print '\n'.join(Img.splitlines()[21:25])
             %% Drawing the interior
             %%
-            \fill[facet] (1.00, 0.000, 0.000) -- (0.000, 0.000, 1.00) -- (0.000, 1.00, 0.000) -- cycle {};
+            \fill[facet] (1.00000, 0.00000, 0.00000) -- (0.00000, 0.00000, 1.00000) -- (0.00000, 1.00000, 0.00000) -- cycle {};
             %%
 
         .. NOTE::
@@ -1539,7 +1547,7 @@ class Projection(SageObject):
         edges = ''
         for vert in self.points:
             v = self.coords[vert]
-            v_vect = str([i.n(digits=3) for i in v])
+            v_vect = str(['%.5f' % i for i in v]).replace('\'','')
             v_vect = v_vect.replace('[','(')
             v_vect = v_vect.replace(']',')')
             tag = '%s' %v_vect
@@ -1649,15 +1657,15 @@ class Projection(SageObject):
             sage: print '\n'.join(ImageAsso.splitlines()[29:41])
             %% Drawing edges in the back
             %%
-            \draw[edge,back] (-0.500, -0.500, -0.500) -- (-1.00, 0.000, 0.000);
-            \draw[edge,back] (-0.500, -0.500, -0.500) -- (0.000, -1.00, 0.000);
-            \draw[edge,back] (-0.500, -0.500, -0.500) -- (0.000, 0.000, -1.00);
-            \draw[edge,back] (-1.00, 0.000, 0.000) -- (-1.00, 0.000, 1.00);
-            \draw[edge,back] (-1.00, 0.000, 0.000) -- (-1.00, 1.00, 0.000);
-            \draw[edge,back] (0.000, -1.00, 0.000) -- (0.000, -1.00, 1.00);
-            \draw[edge,back] (0.000, -1.00, 0.000) -- (1.00, -1.00, 0.000);
-            \draw[edge,back] (0.000, 0.000, -1.00) -- (0.000, 1.00, -1.00);
-            \draw[edge,back] (0.000, 0.000, -1.00) -- (1.00, 0.000, -1.00);
+            \draw[edge,back] (-0.50000, -0.50000, -0.50000) -- (-1.00000, 0.00000, 0.00000);
+            \draw[edge,back] (-0.50000, -0.50000, -0.50000) -- (0.00000, -1.00000, 0.00000);
+            \draw[edge,back] (-0.50000, -0.50000, -0.50000) -- (0.00000, 0.00000, -1.00000);
+            \draw[edge,back] (-1.00000, 0.00000, 0.00000) -- (-1.00000, 0.00000, 1.00000);
+            \draw[edge,back] (-1.00000, 0.00000, 0.00000) -- (-1.00000, 1.00000, 0.00000);
+            \draw[edge,back] (0.00000, -1.00000, 0.00000) -- (0.00000, -1.00000, 1.00000);
+            \draw[edge,back] (0.00000, -1.00000, 0.00000) -- (1.00000, -1.00000, 0.00000);
+            \draw[edge,back] (0.00000, 0.00000, -1.00000) -- (0.00000, 1.00000, -1.00000);
+            \draw[edge,back] (0.00000, 0.00000, -1.00000) -- (1.00000, 0.00000, -1.00000);
             %%
         """
         view_vector = vector(RDF, view)
@@ -1702,7 +1710,7 @@ class Projection(SageObject):
 
         for vert in self.points:
             v = self.coords[vert]
-            v_vect = str([i.n(digits=3) for i in v])
+            v_vect = str(['%.5f' % i for i in v]).replace('\'','')
             v_vect = v_vect.replace('[','(')
             v_vect = v_vect.replace(']',')')
             tag = '%s' %v_vect

@@ -46,7 +46,7 @@ STOP      = 0
 
 class IntegerListsLex(Parent):
     r"""
-    Lists of non negative integers with constraints, in inverse lexicographic order.
+    Lists of nonnegative integers with constraints, in inverse lexicographic order.
 
     An *integer list* is a list `l` of nonnegative integers, its
     *parts*. The *length* ``len(l)`` of `l` is the number of its
@@ -95,7 +95,7 @@ class IntegerListsLex(Parent):
     - ``length`` -- an integer (optional); overrides ``min_length``
       and ``max_length`` if specified;
 
-    - ``min_part`` -- a nonnegative integer: a lower bounds on the
+    - ``min_part`` -- a nonnegative integer: a lower bounds on all
        parts: ``min_part <= l[i]`` for ``0 <= i < len(l)``.
 
     - ``floor`` -- a list of nonnegative integers or a function: lower
@@ -106,7 +106,7 @@ class IntegerListsLex(Parent):
       function, then ``floor(i) <= l[i]`` for ``0 <= i < len(l)``.
 
     - ``max_part`` -- a nonnegative integer or `\infty`: an upper
-      bound on the parts: ``l[i] <= max_part`` for ``0 <= i < len(l)``.
+      bound on all parts: ``l[i] <= max_part`` for ``0 <= i < len(l)``.
 
     - ``ceiling`` -- upper bounds on the individual parts ``l[i]``;
       this takes the same type of input as ``floor``, except that
@@ -264,7 +264,7 @@ class IntegerListsLex(Parent):
         of nonintersecting chords joining n (labeled) points on a circle.
 
     or Dyck words (see also :class:`DyckWords`), through the bijection
-    with paths from (0,0) to (n,n) with left and up steps that remain
+    with paths from `(0,0)` to `(n,n)` with left and up steps that remain
     below the diagonal::
 
         sage: def dyck_words(n):
@@ -288,7 +288,7 @@ class IntegerListsLex(Parent):
         sage: IntegerListsLex().first()
         Traceback (most recent call last):
         ...
-        ValueError: The specified parameters do not allow for an
+        ValueError: The specified parameters possibly do not allow for an
         inverse lexicographic iterator
 
     Here is a variant which could be enumerated in inverse lexicographically
@@ -307,7 +307,7 @@ class IntegerListsLex(Parent):
         sage: IntegerListsLex(3).first()
         Traceback (most recent call last):
         ...
-        ValueError: The specified parameters do not allow for an
+        ValueError: The specified parameters possibly do not allow for an
         inverse lexicographic iterator
 
     If one wants to proceed anyway, one can sign a waiver by setting
@@ -905,7 +905,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: IntegerListsLex(4).list()
             Traceback (most recent call last):
             ...
-            ValueError: The specified parameters do not allow for an
+            ValueError: The specified parameters possibly do not allow for an
             inverse lexicographic iterator
 
             sage: it = iter(IntegerListsLex(4, check=False))
@@ -935,14 +935,14 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: L.list()
             Traceback (most recent call last):
             ...
-            ValueError: The specified parameters do not allow for an
+            ValueError: The specified parameters possibly do not allow for an
             inverse lexicographic iterator
 
             sage: L = IntegerListsLex(ceiling=[0], min_slope=1, max_slope=1)
             sage: L.list()
             Traceback (most recent call last):
             ...
-            ValueError: The specified parameters do not allow for an
+            ValueError: The specified parameters possibly do not allow for an
             inverse lexicographic iterator
 
         The next example shows a case that is finite since we remove trailing zeroes::
@@ -953,7 +953,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: L.list()
             Traceback (most recent call last):
             ...
-            ValueError: The specified parameters do not allow for an
+            ValueError: The specified parameters possibly do not allow for an
             inverse lexicographic iterator
 
         In the next examples, there is either no solution, or the region
@@ -971,7 +971,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
         """
         if self._warning or not self._check:
             return
-        message = "The specified parameters do not allow for an inverse lexicographic iterator"
+        message = "The specified parameters possibly do not allow for an inverse lexicographic iterator"
         s = sum(self._floor(i) for i in range(self._floor_limit_start))
         if self._max_sum < Infinity and self._max_length == Infinity and self._floor_limit == 0:
             if self._min_slope < 0 and self._max_slope > 0 and s < self._min_sum and self._min_sum <= self._max_sum:
@@ -1142,7 +1142,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             """
             Push search forward, resetting attributes.
 
-            The push may fail if it's discovered that
+            The push may fail if it is discovered that
             ``self._current_list`` cannot be extended in a valid way.
 
             OUTPUT: a boolean: whether the push succeeded
@@ -1446,10 +1446,9 @@ If you know what you are doing, you can set check=False to skip this warning."""
             conditions between ``v[i-1]=prev`` and ``v[i]=m`` should
             also be satisfied.
 
-
             Additionally, this raises an error if it can be detected
             that some part is neither directly nor indirectly bounded
-            above, which implies that the constraints do not allow for
+            above, which implies that the constraints possibly do not allow for
             an inverse lexicographic iterator.
 
             OUTPUT:
@@ -1462,7 +1461,6 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: I = IntegerListsLex._Iter(C)
                 sage: I._m_interval(1,2)
                 (0, 2)
-
 
             The second part is not bounded above, hence we can not
             iterate lexicographically through all the elements::

@@ -429,22 +429,24 @@ class ModularForm_abstract(ModuleElement):
 
     def twist(self, chi):
         r"""
-        Return the twist of the modular form self by the Dirichlet character
-        ``chi``.
+        Return the twist of the modular form ``self`` by the Dirichlet
+        character ``chi``.
 
-        If self has q-expansion
-        .. math:
+        If ``self`` has `q`-expansion
+
+        .. math::
 
             f(q) = \sum_{n=0}^\infty a_n q^n,
 
         then the twist by `\chi` has q-expansion
-        .. math:
+
+        .. math::
 
             f_\chi(q) = \sum_{n=0}^\infty \chi(n) a_n q^n.
 
         INPUT:
 
-        - ``chi`` - a Dirichlet character
+        - ``chi`` -- a Dirichlet character
 
         OUTPUT:
 
@@ -461,12 +463,12 @@ class ModularForm_abstract(ModuleElement):
 
         REFERENCES:
 
-        - [Koblitz], Neal Koblitz, "Introduction to Elliptic Curves and
-          Modular Forms", Springer GTM 97, 1993, Proposition III.3.17.
+        .. [Koblitz] Neal Koblitz, Introduction to Elliptic Curves and
+           Modular Forms.  Springer GTM 97, 1993, Proposition III.3.17.
 
         AUTHORS:
 
-        - L. J. P. Kilford (2009-08-28)
+        - \L. J. P. Kilford (2009-08-28)
 
         """
         from sage.modular.dirichlet import DirichletGroup

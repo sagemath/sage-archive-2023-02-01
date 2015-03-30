@@ -485,7 +485,7 @@ class ModularForm_abstract(ModuleElement):
         - Peter Bruin (2015-03-30)
 
         """
-        from sage.modular.all import ModularForms
+        from sage.modular.all import CuspForms, ModularForms
         from sage.rings.all import PowerSeriesRing, lcm
         epsilon = self.character()
         R = self.base_ring()
@@ -500,7 +500,8 @@ class ModularForm_abstract(ModuleElement):
             P = chi.modulus().prime_to_m_part(Q).radical()
             level = lcm([self.level(), epsilon.conductor() * Q, Q**2]) * P**2
         G = DirichletGroup(level)
-        M = ModularForms(G(epsilon) * G(chi)**2, self.weight(), base_ring=R)
+        constructor = CuspForms if self.is_cuspidal() else ModularForms
+        M = constructor(G(epsilon) * G(chi)**2, self.weight(), base_ring=R)
         bound = M.sturm_bound() + 1
         S = PowerSeriesRing(R, 'q')
         f_twist = S([self[i] * chi(i) for i in xrange(bound)], prec=bound)

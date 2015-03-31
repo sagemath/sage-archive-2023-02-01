@@ -1812,6 +1812,25 @@ class Envelope(object):
                  min_part=0, max_part=Infinity,
                  min_slope=-Infinity, max_slope=Infinity,
                  min_length=0, max_length=Infinity):
+        r"""
+        Initialize this envelope.
+
+        TESTS::
+
+            sage: from sage.combinat.integer_list import Envelope
+            sage: f = Envelope(3, upper=False, max_slope=-1, min_length=4)
+            sage: f.__dict__
+            {'_f': The constant function (...) -> 3,
+             '_f_limit': 3,
+             '_f_limit_start': 0,
+             '_is_upper': False,
+             '_max_part': inf,
+             '_max_slope': -1,
+             '_min_part': 0,
+             '_min_slope': -inf,
+             '_precomputed': [6, 5, 4, 3]}
+            sage: TestSuite(f).run(skip="_test_pickling")
+        """
         self._is_upper = upper
         self._min_part = min_part
         self._max_part = max_part

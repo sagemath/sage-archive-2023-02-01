@@ -1048,9 +1048,9 @@ class FindStatStatistic(SageObject):
         # statistic then update first_terms
 
         # it is not clear whether we want to do this also for old statistics.
-        if self.function and self.id == 0:
-            self._first_terms = self.collection.first_terms(self.function,
-                                                            max_values=max_values)
+        if self.function() and self.id() == 0:
+            self._first_terms = self.collection().first_terms(self.function(),
+                                                              max_values=max_values)
 
         args = dict()
         args[FINDSTAT_STATISTIC_IDENTIFIER]  = self.id()
@@ -1072,7 +1072,7 @@ class FindStatStatistic(SageObject):
         f = tempfile.NamedTemporaryFile(delete=False)
         _ = verbose("Created temporary file %s" %f.name, caller_name='FindStat')
         f.write(FINDSTAT_POST_HEADER)
-        if self.id == 0:
+        if self.id() == 0:
             f.write(FINDSTAT_NEWSTATISTIC_FORM_HEADER %FINDSTAT_URL_NEW)
         else:
             f.write(FINDSTAT_NEWSTATISTIC_FORM_HEADER %(FINDSTAT_URL_EDIT+self.id_str()))

@@ -2432,7 +2432,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def periodic_points(self, n, minimal = True):
         r"""
-        Computes the periodic points of a given period of ``self``.
+        Computes the periodic points of a given period of ``self``. For now, ``self`` must be a projective morphism
+        over a number field.
 
         INPUT:
 
@@ -2446,18 +2447,29 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         EXAMPLES::
 
-            
+            sage: set_verbose(-1)
+            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2-x*y+y^2,x^2-y^2+x*y])
+            sage: f.periodic_points(2)
+            [(-0.500000000000000? + 0.866025403784439?*I : 1),
+            (0.6972243622680054? : 1), (4.302775637731994? : 1)]
         """
         if n <= 0:
             raise ValueError("A positive integer period must be specified")
+        if not self.is_endomorphism():
+            raise TypeError("self must be an endomorphism")
+        PS = self.domain().ambient_space()
+        from sage.rings.qqbar import QQbar
+        if not PS.base_ring() in NumberFields() and not PS.base_ring() is QQbar:
+            raise NotImplementedError("self must be a map over a number field")
         if not self.is_morphism():
            raise TypeError("self must be a projective morphism")
 
-        PS = self.domain().ambient_space()
         N = PS.dimension_relative() + 1
         R = PS.coordinate_ring()
         F = self.nth_iterate_map(n)
-        L = [F[i]*R.gen(j) - F[j]*R.gen(i) for i in range(0,N) for j in range(i+1, N)] 
+        L = [F[i]*R.gen(j) - F[j]*R.gen(i) for i in range(0,N) for j in range(i+1, N)]
         X=PS.subscheme(L)
 
         points = X.rational_points()

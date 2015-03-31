@@ -1,3 +1,4 @@
+from pickle import INST
 r"""
 Set of homomorphisms between two projective schemes
 
@@ -107,18 +108,24 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             [(1 : -1 : 1), (-1 : 0 : 1), (0 : 0 : 1), (-1 : 1 : 1), (0 : -1 : 1),
             (-1 : -1 : 1), (1 : 1 : 1), (1 : 0 : 1), (0 : 1 : 1)]
         """
-        X = self.codomain() # self should be a homset
+        X = self.codomain()
 
-        if X.defining_ideal().dimension() == 1: # if X a zero-dimensional scheme
-            points = set()
-            for i in range(X.ambient_space().dimension_relative() + 1):
-                Y = X.affine_patch(i)
-                phi = Y.projective_embedding()
-                aff_points = Y.rational_points()
-                for PP in aff_points:
-                    points.add(X.ambient_space()(list(phi(PP))))
-            points = list(points)
-            return points
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        from sage.categories.fields import Fields
+        if not is_ProjectiveSpace(X) and X.base_ring() in Fields:
+            #Then it must be a subscheme
+            if X.defining_ideal().dimension() < 1: # no points
+                return []
+            if X.defining_ideal().dimension() == 1: # if X zero-dimensional
+                points = set()
+                for i in range(X.ambient_space().dimension_relative() + 1):
+                    Y = X.affine_patch(i)
+                    phi = Y.projective_embedding()
+                    aff_points = Y.rational_points()
+                    for PP in aff_points:
+                        points.add(X.ambient_space()(list(phi(PP))))
+                points = list(points)
+                return points
         R = self.value_ring()
         if is_RationalField(R):
             if not B > 0:

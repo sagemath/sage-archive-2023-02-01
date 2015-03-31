@@ -167,16 +167,27 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             sage: E(A.base_ring()).points()
             [(0, -1), (-1, 0), (1, 0), (0, 1)]
         """
-        X = self.codomain() # self should be a homset
+        X = self.codomain()
 
-        if X.defining_ideal().dimension() == 0: # if X a zero-dimensional scheme
-            vars = X.ambient_space().gens()
-            D = X.defining_ideal().variety()
-            points = []
-            for d in D:
-                P = [d[t] for t in vars]
-                points.append(X(P))
-            return points
+        from sage.schemes.affine.affine_space import is_AffineSpace
+        from sage.categories.fields import Fields
+        if not is_AffineSpace(X) and X.base_ring() in Fields:
+            # Then X must be a subscheme
+            if X.defining_ideal().dimension() < 0: # no points
+                return []
+            if X.defining_ideal().dimension() == 0: # if X zero-dimensional
+                N = len(X.ambient_space().gens())
+                S=X.defining_polynomials()[0].parent()
+                from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+                R=PolynomialRing(S.base_ring(),'s',N,order='lex')
+                phi = S.hom(R.gens(),R)
+                J=R.ideal([phi(t) for t in X.defining_polynomials()])
+                D = J.variety()
+                points = []
+                for d in D:
+                    P = [d[t] for t in R.gens()]
+                    points.append(X(P))
+                return points
         R = self.value_ring()
         if is_RationalField(R) or R == ZZ:
             if not B > 0:

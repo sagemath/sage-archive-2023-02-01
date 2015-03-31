@@ -29,7 +29,7 @@ Note that while ``%time`` only runs the command once, ``%timeit`` tries to
 return a more meaningful value over several runs.
 
 For more information on ``%timeit``, see ``%timeit?`` or `this page
-<https://ipython.org/ipython-doc/dev/interactive/magics.html#magic-timeit>`_
+<https://ipython.org/ipython-doc/dev/interactive/magics.html#magic-timeit>`__.
 
 Note that Sage notebook instead offers a ``timeit`` function, see
 :class:`~sage.misc.sage_timeit_class.SageTimeit`.
@@ -71,7 +71,7 @@ further inspection::
   2547
 
 For more information on ``%prun``, see ``%prun?`` or `this page
-<http://ipython.org/ipython-doc/dev/interactive/magics.html#magic-prun>`_.
+<http://ipython.org/ipython-doc/dev/interactive/magics.html#magic-prun>`__.
 
 **Visualize the statistics:** you can obtain a more graphical output with
 `RunSnake <http://www.vrplumber.com/programming/runsnakerun/>`_ and Sage's

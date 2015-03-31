@@ -180,6 +180,16 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
     @lazy_attribute
     def _nb_arrows(self):
+        """
+        The number of arrows of the path semigroup's quiver.
+
+        EXAMPLES::
+
+            sage: P = DiGraph({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}}).path_semigroup()
+            sage: P._nb_arrows
+            4
+
+        """
         return max(len(self._quiver.edges()),1)
 
     def _repr_(self):

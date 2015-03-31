@@ -2007,10 +2007,13 @@ ext_modules = [
               sources = ['sage/schemes/projective/projective_morphism_helper.pyx']),
     ]
 
+# Add auto-generated modules
+import sage_setup.autogen.interpreters
+ext_modules += sage_setup.autogen.interpreters.modules
+
 # Optional extensions :
 # These extensions are to be compiled only if the
 # corresponding packages have been installed
-
 from sage.misc.package import is_package_installed
 
 if is_package_installed('fes'):

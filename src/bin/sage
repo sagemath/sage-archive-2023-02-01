@@ -635,7 +635,7 @@ fi
 
 build_sage() {
     maybe_sage_location
-    sage-build "$@" || exit $?
+    ( cd "$SAGE_SRC" && $MAKE ) || exit $?
 }
 
 if [[ "$1" =~ ^--notebook=.* || "$1" =~ ^-n=.* || "$1" =~ ^-notebook=.* ]] ; then

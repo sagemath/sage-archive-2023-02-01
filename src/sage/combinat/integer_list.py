@@ -314,13 +314,19 @@ class IntegerListsLex(Parent):
         sage: [it.next() for i in range(6)]
         [[3], [2, 1], [2, 0, 1], [2, 0, 0, 1], [2, 0, 0, 0, 1], [2, 0, 0, 0, 0, 1]]
 
-    In fact, being inverse lexicographically enumerable is almost equivalent to
-    being finite. The only infinity that can occur would be from a tail of numbers
-    `0,1` as in the previous example, where the `1` moves further and further to the
-    right. If there is any vector that is inverse lexicographically smaller than such
-    a configuration, the iterator would not reach it and hence would not be considered
-    iterable. Given that the infinite cases are very specific, at this point only the
-    finite cases are supported (without signing the waiver).
+    In fact, being inverse lexicographically enumerable is almost
+    equivalent to being finite. The only infinity that can occur would
+    be from a tail of numbers `0,1` as in the previous example, where
+    the `1` moves further and further to the right. If there is any
+    list that is inverse lexicographically smaller than such a
+    configuration, the iterator would not reach it and hence would not
+    be considered iterable. Given that the infinite cases are very
+    specific, at this point only the finite cases are supported
+    (without signing the waiver).
+
+    The finiteness detection is not complete yet, so some finite cases
+    may not be supported either, at least not without disabling the
+    checks. Practical examples of such are welcome.
 
     .. RUBRIC:: On trailing zeroes, and their caveats
 

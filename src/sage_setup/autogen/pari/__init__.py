@@ -12,7 +12,6 @@ def rebuild(force=False):
     except OSError:
         pass
 
-    print("Generating PARI functions.")
     G = PariFunctionGenerator()
     G()
 

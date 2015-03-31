@@ -15,8 +15,8 @@ performances of a piece of code. For more general information on profiling, see
 How long does it take? %time and %timeit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The two commands ``%time`` and ``%timeit`` measure the time it takes to run a
-command::
+The two IPython magics ``%time`` and ``%timeit`` measure the time it takes to
+run a command::
 
   sage: %time p=random_prime(2**500)
   CPU times: user 440 ms, sys: 0 ns, total: 440 ms
@@ -28,8 +28,8 @@ command::
 Note that while ``%time`` only runs the command once, ``%timeit`` tries to
 return a more meaningful value over several runs.
 
-For more information on ``%timeit``, `click here
-<https://docs.python.org/2/library/timeit.html>`_
+For more information on ``%timeit``, see ``%timeit?`` or `this page
+<https://ipython.org/ipython-doc/dev/interactive/magics.html#magic-timeit>`_
 
 Python-level function calls: %prun
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -66,7 +66,7 @@ further inspection::
   sage: stats_object.total_calls
   2547
 
-For more information on ``%prun``, see ``prun?`` or `this page
+For more information on ``%prun``, see ``%prun?`` or `this page
 <http://ipython.org/ipython-doc/dev/interactive/magics.html#magic-prun>`_.
 
 **Visualize the statistics:** you can obtain a more graphical output with
@@ -79,7 +79,7 @@ Python-level line-by-line profiling: %lprun
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 With `line_profiler <https://pypi.python.org/pypi/line_profiler/>`_ and its
-``%lprun`` function, you can find out which lines of one (or many) functions are
+``%lprun`` magic, you can find out which lines of one (or many) functions are
 the most time-consuming. The syntax is the following::
 
   %lprun -f function1 -f function2 code_to_run

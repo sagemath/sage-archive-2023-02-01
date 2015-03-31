@@ -943,7 +943,7 @@ cdef class Converter(SageObject):
             return res_poly
 
         elif rtyp == INT_CMD:
-            return <long>to_convert.data
+            return <int><long>to_convert.data
 
         elif rtyp == NUMBER_CMD:
             return si2sa(<number *>to_convert.data, self._singular_ring, self._sage_ring.base_ring())

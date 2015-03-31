@@ -762,6 +762,58 @@ class LinearCode(module.Module):
     #    3
     #    sage: C.minimum_distance_why()     # optional (net connection)
     #    Ub(7,4) = 3 follows by the Griesmer bound.
+
+    def _init_linear_code(self, base_field, length):
+        """
+        Initialize mandatory parameters for a Linear Code object.
+
+        This is a private method, which should be called by the constructor of
+        every linear code as it automatically initializes the some
+        mandatory parameters of a Linear Code object, and sets this object as
+        a valid member of the Sage category framework.
+
+        INPUT:
+
+        - ``base_field`` -- the base field of ``self``
+
+        - ``length`` -- the length of ``self``
+
+        EXAMPLES:
+
+        We first create a new LinearCode subclass
+        ::
+
+            sage: class CodeExample(LinearCode):
+            ....:   def __init__(self, field, length, dimension):
+            ....:       self._init_linear_code(field, length)
+            ....:       self._dimension = dimension
+
+        We now create a member of our newly made class
+        ::
+
+            sage: C = CodeExample(GF(17), 10, 5)            
+
+        We can check its existence and parameters
+        ::
+            
+            sage: C
+            Linear code of length 10, dimension 5 over Finite Field of size 17
+
+        And we can check that it is truly a part of the framework category
+        ::
+
+            sage: C.parent()
+            <class '__main__.CodeExample_with_category'>
+            sage: C.category()
+            Category of facade finite dimensional vector spaces with basis over Finite Field of size 17
+        """
+        self._base_field = base_field
+        self._length = length
+        cat = Modules(base_field).FiniteDimensional().WithBasis().Finite()
+        facade_for = VectorSpace(self._base_field, self._length)
+        self.Element = type(facade_for.an_element()) # for when we make this a non-facade parent
+        Parent.__init__(self, base=base_field, facade=facade_for, category=cat)
+
     def __init__(self, generator_matrix, d=None):
         r"""
         See the docstring for :meth:`LinearCode`.
@@ -823,13 +875,9 @@ class LinearCode(module.Module):
             if generator_matrix.nrows() == 0:
                 raise ValueError("this linear code contains no non-zero vector")
 
-        cat = Modules(base_ring).FiniteDimensional().WithBasis().Finite()
-        facade_for = generator_matrix.row(0).parent()
-        self.Element = type(generator_matrix.row(0)) # for when we make this a non-facade parent
-        Parent.__init__(self, base=base_ring, facade=facade_for, category=cat)
+        self._init_linear_code(base_ring, generator_matrix.ncols())
         self._gens = generator_matrix.rows()
         self._generator_matrix = generator_matrix
-        self._length = generator_matrix.ncols()
         self._dimension = generator_matrix.rank()
         self._minimum_distance = d
 

@@ -381,6 +381,25 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
         sage: sqrtn3 + zeta
         2*zeta^5 + zeta + 1
 
+    Comparison depends on the (real) embedding specified (or the one selected by default).::
+
+        sage: N.<g> = NumberField(x^3+2,embedding=1)
+        sage: 1 < g
+        False
+        sage: g > 1
+        False
+        sage: RR(g)
+        -1.25992104989487
+
+    If no embedding is specified or is complex, the comparison is not returning something
+    meaningful.::
+
+        sage: N.<g> = NumberField(x^3+2)
+        sage: 1 < g
+        False
+        sage: g > 1
+        True
+
     Since SageMath 6.9, number fields may be defined by polynomials
     that are not necessarily integral or monic.  The only notable
     practical point is that in the PARI interface, a monic integral

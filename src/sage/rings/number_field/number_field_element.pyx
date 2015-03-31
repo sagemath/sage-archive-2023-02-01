@@ -266,6 +266,26 @@ cdef class NumberFieldElement(FieldElement):
             sage: s = a^15 - 19*a + 3
             sage: loads(s.dumps()) == s
             True
+
+        If a real embedding is specified, then the element comparison works as expected::
+
+            sage: K.<g> = NumberField(x^3+2,embedding=1)
+            sage: RR(g)
+            -1.25992104989487
+            sage: -2 < g < -1
+            True
+            sage: g^2+1 < g + 1
+            False
+
+        TESTS:
+
+        Test round-trip conversion to PARI and back::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^3 - 1/2*x + 1/3)
+            sage: b = K.random_element()
+            sage: K(pari(b)) == b
+            True
         """
         FieldElement.__init__(self, parent)
         self.__fld_numerator, self.__fld_denominator = parent.absolute_polynomial_ntl()
@@ -698,7 +718,7 @@ cdef class NumberFieldElement(FieldElement):
 
     cpdef _richcmp_(left, sage.structure.element.Element right, int op):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 - 3*x + 8)
             sage: a  + 1 > a # indirect doctest
@@ -706,7 +726,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: a + 1 < a # indirect doctest
             False
 
-        Comaprison of embedded number fields::
+        Comparison of embedded number fields::
 
             sage: x = polygen(ZZ)
             sage: K.<cbrt2> = NumberField(x^3 - 2, embedding=AA(2).nth_root(3))
@@ -894,10 +914,12 @@ cdef class NumberFieldElement(FieldElement):
             sage: a_AA = AA.polynomial_root(p, RIF(1,2))
             sage: K.<a> = NumberField(p, embedding=a_AA)
             sage: b = a**5 + a/2 - 1/7
+            sage: RR(b)
+            4.13444473767055
             sage: b.floor()
             4
 
-        This function always succeed even if a tremendous precision is needed::
+        This function always succeeds even if a tremendous precision is needed::
 
             sage: c = b - 4772404052447/1154303505127 + 2
             sage: c.floor()
@@ -939,7 +961,7 @@ cdef class NumberFieldElement(FieldElement):
 
     def ceil(self):
         r"""
-        Return the ceil of this number field element.
+        Return the ceiling of this number field element.
 
         EXAMPLES::
 
@@ -948,10 +970,12 @@ cdef class NumberFieldElement(FieldElement):
             sage: a_AA = AA.polynomial_root(p, RIF(1,2))
             sage: K.<a> = NumberField(p, embedding=a_AA)
             sage: b = a**5 + a/2 - 1/7
+            sage: RR(b)
+            4.13444473767055
             sage: b.ceil()
             5
 
-        This function always succeed even if a tremendous precision is needed::
+        This function always succeeds even if a tremendous precision is needed::
 
             sage: c = b - 5065701199253/1225243417356 + 2
             sage: c.ceil()

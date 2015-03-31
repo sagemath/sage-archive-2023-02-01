@@ -41,9 +41,6 @@ cdef class NumberField(Field):
     # the docstring of the __init__ method inherited from IntegralDomain, which
     # is rather confusing.
 
-    def __cinit__(self, *args, **kwds):
-        self._embedded_real = self._embedded_complex = 0
-
     def ring_of_integers(self, *args, **kwds):
         r"""
         Synomym for ``self.maximal_order(...)``.
@@ -276,13 +273,22 @@ cdef class NumberField(Field):
     def _init_embedding_approx(self):
         r"""
         Initialize the approximation of embeddings.
+
+        This should be called only once.
         """
+
+        if self._gen_approx is not None:
+            return
+        coerce_embedding = self.coerce_embedding()
+        if coerce_embedding is None:
+            return
+
         from sage.rings.qqbar import AA
-        self._embedded_real = 0
-        if AA.has_coerce_map_from(self):
-            from sage.rings.real_mpfi import RealIntervalField
-            self._embedded_real = 1
+        from sage.rings.real_lazy import RLF
+        codomain = coerce_embedding.codomain()
+        if codomain is AA or codomain is RLF:
             self._gen_approx = []
+            self._embedded_real = 1
 
     cpdef _get_embedding_approx(self, size_t i):
         r"""
@@ -300,6 +306,11 @@ cdef class NumberField(Field):
             sage: K.<a> = NumberField(p, embedding=a_AA)
             sage: K._get_embedding_approx(2)
             0.3347341419433526870750989624732833071257517550374285560578335863?
+            sage: K._get_embedding_approx(1)
+            0.33473414194335268707509896247329?
+            sage: K._get_embedding_approx(1).str(style='brackets')
+            '[0.334734141943352687075098962473280 .. 0.334734141943352687075098962473287]'
+
 
             sage: K._get_embedding_approx(2).prec()
             212
@@ -307,12 +318,27 @@ cdef class NumberField(Field):
             106
             sage: K._get_embedding_approx(0).prec()
             53
+
+        If a real embedding is not specified, this method will result in an error::
+
+            sage: N.<g> = NumberField(x^3+2)
+            sage: N._get_embedding_approx(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: No embedding set. You need to specify a a real embedding.
+
+
+        .. SEEALSO::
+
+            :class:` RealIntervalField_class <sage.rings.real_mpfi.RealIntervalField_class>`
         """
-        if i < len(self._gen_approx):
+
+        if self._embedded_real and i < len(self._gen_approx):
             return self._gen_approx[i]
 
-        cdef size_t j = len(self._gen_approx)
+        cdef size_t j
         if self._embedded_real:
+            j = len(self._gen_approx)
             from sage.rings.real_mpfi import RealIntervalField
             gen = self.coerce_embedding()(self.gen())
             while j <= i:
@@ -320,5 +346,5 @@ cdef class NumberField(Field):
                 j += 1
             return self._gen_approx[i]
         else:
-            raise ValueError("no embedding set. You need to call ._init_embedding_approx() first")
+            raise ValueError("No embedding set. You need to specify a a real embedding.")
 

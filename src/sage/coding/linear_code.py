@@ -2996,6 +2996,44 @@ class LinearCode(module.Module):
         V = VectorSpace(F,n+1)
         return V(self.spectrum()).support()
 
+    def syndrome(self, r):
+        r"""
+        Returns the syndrome of a vector.
+
+        INPUT:
+
+        - ``r`` -- a vector of the same length as ``self``
+
+        OUTPUT:
+
+        - a column vector
+        
+        EXAMPLES::
+
+            sage: MS = MatrixSpace(GF(2),4,7)
+            sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+            sage: C  = LinearCode(G)
+            sage: r = vector(GF(2), (1,0,1,0,1,0,1)) 
+            sage: r in C
+            True
+            sage: C.syndrome(r)
+            [0]
+            [0]
+            [0]
+
+        If ``r`` is not a codeword, its syndrome is not equal to zero::
+
+            sage: r = vector(GF(2), (1,0,1,0,1,1,1)) 
+            sage: r in C
+            False
+            sage: C.syndrome(r)
+            [0]
+            [1]
+            [1]
+        """
+        return self.parity_check_matrix()*r.column()
+
+
     def weight_enumerator(self, names="xy", name2=None):
         """
         Returns the weight enumerator of the code.

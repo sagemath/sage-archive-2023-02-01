@@ -847,6 +847,22 @@ class LinearCode(module.Module):
         """
         return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())
 
+
+    def _latex_(self):
+        """
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: MS = MatrixSpace(GF(2),4,7)
+            sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+            sage: C  = LinearCode(G)
+            sage: latex(C)
+            [7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
+        """
+        return "[%s, %s]\\textnormal{ Linear code over }%s"\
+                % (self.length(), self.dimension(), self.base_ring()._latex_())
+
     def _an_element_(self):
         r"""
         Return an element of the linear code. Currently, it simply returns

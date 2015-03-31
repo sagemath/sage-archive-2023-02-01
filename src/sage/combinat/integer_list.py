@@ -15,6 +15,8 @@ implementation is still available in
 """
 #*****************************************************************************
 #       Copyright (C) 2015 Bryan Gillespie <Brg008@gmail.com>
+#                          Nicolas M. Thiery <nthiery at users.sf.net>
+#                          Anne Schilling <anne@math.ucdavis.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -1597,7 +1599,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             .. RUBRIC:: Room for improvement
 
             Improved prediction: the lower bound `l_k` does not take
-            into account the slope conditions, except for that imposed
+            the slope conditions into account, except for those imposed
             by the value `m` at `j`. Similarly for `u_k`.
 
             Improved speed: given that `l_k` is increasing with `k`,
@@ -1708,21 +1710,21 @@ class Envelope(object):
     - ``f`` -- a function, list, or tuple;
       if ``f`` is a list, it is considered as the function
       ``f(i)=f[i]``, completed for larger `i` with `f(i)=\infty` for
-      an upper enveloppe and `f(i)=0` for a lower enveloppe.
+      an upper envelope and `f(i)=0` for a lower envelope.
 
     - ``min_part``, ``max_part``, ``min_slope``, ``max_slope``, ...
-      as for :class:`IntegerListsLex, which see.
+      as for :class:`IntegerListsLex` (please consult for details).
 
     The *upper envelope* `U(f)` of f is the (pointwise) largest
     function which is bounded above by `f` and satisfies the
-    ``max_part`` and ``max_slope`` conditions.  Furthermore, for
-    ``i,i+1<min_length``, the upper enveloppe also satisfies the
+    ``max_part`` and ``max_slope`` conditions. Furthermore, for
+    ``i,i+1<min_length``, the upper envelope also satisfies the
     ``min_slope`` condition.
 
     Symmetrically, the *lower envelope* `L(f)` of `f` is the
     (pointwise) smallest function which is bounded above by `f` and
     satisfies the ``min_part`` and ``min_slope`` conditions.
-    Furthermore, for ``i,i+1 <= min_length``, the lower enveloppe also
+    Furthermore, for ``i,i+1 <= min_length``, the lower envelope also
     satisfies the ``max_slope`` condition.
 
     Upon computing `U(f)(i)` (or `L(f)(i)`), all the previous values
@@ -1908,7 +1910,7 @@ class Envelope(object):
         """
         Return a bound on the limit of ``self``.
 
-        For a lower (resp. upper) enveloppe, this provides a lower
+        For a lower (resp. upper) envelope, this provides a lower
         (resp. upper) bound for the value of this envelope for `i`
         large enough. This bound is valid at least from
         ``self.limit_start()`` on. Which specific bound is returned is

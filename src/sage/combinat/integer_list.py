@@ -1,7 +1,8 @@
 r"""
 Enumerated set of lists of integers with constraints, in inverse lexicographic order
 
-- :class:`IntegerListsLex`
+- Main class: :class:`IntegerListsLex`
+- Utility class :class:`Envelope`
 
 HISTORY:
 
@@ -892,7 +893,16 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
         EXAMPLES::
 
-            sage: IntegerListsLex(4).list()
+            sage: L = IntegerListsLex(4, max_length=4)
+            sage: L._check_lexicographic_iterable()
+
+            sage: L = IntegerListsLex(4)
+            sage: L._check_lexicographic_iterable()
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not check that the specified constraints yield a finite set
+
+            sage: L.list()
             Traceback (most recent call last):
             ...
             ValueError: Could not check that the specified constraints yield a finite set
@@ -1707,15 +1717,15 @@ class Envelope(object):
 
     INPUT:
 
-    - ``f`` -- a function, list, or tuple;
-      if ``f`` is a list, it is considered as the function
-      ``f(i)=f[i]``, completed for larger `i` with `f(i)=\infty` for
-      an upper envelope and `f(i)=0` for a lower envelope.
+    - ``f`` -- a function, list, or tuple; if ``f`` is a list, it is
+      considered as the function ``f(i)=f[i]``, completed for larger
+      `i` with ``f(i)=max_part`` for an upper envelope and
+      ``f(i)=min_part`` for a lower envelope.
 
     - ``min_part``, ``max_part``, ``min_slope``, ``max_slope``, ...
       as for :class:`IntegerListsLex` (please consult for details).
 
-    The *upper envelope* `U(f)` of f is the (pointwise) largest
+    The *upper envelope* `U(f)` of `f` is the (pointwise) largest
     function which is bounded above by `f` and satisfies the
     ``max_part`` and ``max_slope`` conditions. Furthermore, for
     ``i,i+1<min_length``, the upper envelope also satisfies the
@@ -1728,8 +1738,8 @@ class Envelope(object):
     satisfies the ``max_slope`` condition.
 
     Upon computing `U(f)(i)` (or `L(f)(i)`), all the previous values
-    for `j\leq i` are computed and cached; in particular, for each `i`
-    `f(i)` will be computed at most once.
+    for `j\leq i` are computed and cached; in particular `f(i)` will
+    be computed at most once for each `i`.
 
     .. TODO::
 

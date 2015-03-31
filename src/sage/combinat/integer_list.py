@@ -36,7 +36,8 @@ from sage.sets.family import Family
 from sage.rings.integer_ring import ZZ
 
 Infinity = float('+inf')
-# Constants for Iter._next_state
+
+# Constants for Iter._next_state; see IntegerListsLex.Iter
 LOOKAHEAD = 5
 PUSH      = 4
 ME        = 3
@@ -1090,13 +1091,33 @@ If you know what you are doing, you can set check=False to skip this warning."""
         """
         Iterator class for IntegerListsLex
 
-        The iterator is based on a depth-first search forest. If `I`
-        is the iterator, the current state in the forest is given by
-        ``I._current_list``. The range for the next entry (which
-        corresponds to the next depth in the forest) is stored in
-        ``I._search_ranges``. ``I._j`` stores the index of the last
-        element of ``I._current_list``, whereas ``I._current_sum`` is
-        the sum over all element of ``I._current_list``.
+        The iterator is based on a depth-first search exploration of
+        the prefix tree of the valid lists. Each call of ``next``
+        iterates through the nodes until it finds a valid list to
+        return.
+
+        The current node in the forest is stored in the attribute
+        ``_current_list``. The attribute ``_j`` stores the index of
+        the last element of ``I._current_list``, while
+        ``_current_sum`` is the sum of the parts of ``_current_list``.
+
+        The range for the next part (which corresponds to the next
+        depth in the forest) is stored in ``_search_ranges``.
+
+        Along this iteration, ``next`` switches between the following
+        states::
+
+        - LOOKAHEAD: determine whether the current list could be a
+          prefix of a valid list;
+        - PUSH: go deeper into the prefix tree by appending the
+          largest possible part to the current list;
+        - ME: check whether the current list is valid and if yes return it
+        - DECREASE: decrease the last part;
+        - POP: pop the last part of the current list;
+        - STOP: the iteration is finished.
+
+        The attribute ``_next_state`` contains the next state ``next``
+        should enter in.
         """
         def __init__(self, parent):
             """

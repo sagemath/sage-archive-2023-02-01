@@ -1157,6 +1157,19 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
             self._next_state = PUSH
 
+        def __iter__(self):
+            """
+            Return `self` as per the iterator protocol.
+
+            EXAMPLES::
+
+                sage: C = IntegerListsLex(2, length=3)
+                sage: it = IntegerListsLex._Iter(C)
+                sage: it.__iter__() is it
+                True
+            """
+            return self
+
         def _push_search(self):
             """
             Push search forward, resetting attributes.

@@ -796,16 +796,16 @@ class IntegerListsLex(Parent):
 
         if length is not None:
             length = ZZ(length)
-            self._min_length = length
-            self._max_length = length
+            min_length = length
+            max_length = length
         else:
             min_length = ZZ(min_length)
             if min_length < 0:
                 min_length = 0
-            self._min_length = min_length
             if max_length != Infinity:
                 max_length = ZZ(max_length)
-            self._max_length = max_length
+        self._max_length = max_length
+        self._min_length = min_length
 
         if min_slope != -Infinity:
             min_slope = ZZ(min_slope)
@@ -822,61 +822,36 @@ class IntegerListsLex(Parent):
             max_part = ZZ(max_part)
 
         if floor is None:
-            self._floor = ConstantFunction(min_part)
-            self._floor_type = "constant"
-            self._floor_limit = min_part
-            self._floor_limit_start = 0
+            floor = 0
         elif isinstance(floor, (list, tuple)):
             if not all(i in ZZ for i in floor):
                 raise TypeError("the parts of floor={} should be non negative integers".format(floor))
             if not all(i >= 0 for i in floor):
                 raise NotImplementedError("negative parts in floor={}".format(floor))
-            if min_part > 0:
-                floor = map(lambda i: max(i, min_part), floor)
-            self._floor = IntegerListsLex._list_function(floor, min_part)
-            self._floor_type = "list"
-            self._floor_limit = min_part
-            self._floor_limit_start = len(floor)
         elif callable(floor):
             self._warning = True
-            if min_part > 0:
-                self._floor = lambda i: max(min_part, floor(i))
-            else:
-                self._floor = floor
-            self._floor_type = "function"
-            self._floor_limit = None
-            self._floor_limit_start = Infinity
         else:
             raise TypeError("floor should be a list, tuple, or function")
+        self._floor = Envelope(floor, upper=False,
+                               min_part=min_part, max_part=max_part,
+                               min_slope=min_slope, max_slope=max_slope,
+                               min_length=min_length)
 
         if ceiling is None:
-            self._ceiling = ConstantFunction(max_part)
-            self._ceiling_type = "constant"
-            self._ceiling_limit = max_part
-            self._ceiling_limit_start = 0
+            ceiling = Infinity
         elif isinstance(ceiling, (list, tuple)):
             if not all(i==Infinity or i in ZZ for i in ceiling):
                 raise TypeError("the parts of ceiling={} should be non negative integers".format(ceiling))
             if not all(i >= 0 for i in ceiling):
                 raise NotImplementedError("negative parts in floor={}".format(ceiling))
-            if max_part < Infinity:
-                ceiling = map(lambda i: min(i, max_part), ceiling)
-            self._ceiling = IntegerListsLex._list_function(ceiling, max_part)
-            self._ceiling_type = "list"
-            self._ceiling_limit = max_part
-            self._ceiling_limit_start = len(ceiling)
         elif callable(ceiling):
             self._warning = True
-            if max_part < Infinity:
-                self._ceiling = lambda i: min(max_part, ceiling(i))
-            else:
-                self._ceiling = ceiling
-            self._ceiling = ceiling
-            self._ceiling_type = "function"
-            self._ceiling_limit = None
-            self._ceiling_limit_start = Infinity
         else:
             raise ValueError("Unable to parse value of parameter ceiling")
+        self._ceiling = Envelope(ceiling, upper=True,
+                                 min_part=min_part, max_part=max_part,
+                                 min_slope=min_slope, max_slope=max_slope,
+                                 min_length=min_length)
 
         if name is not None:
             self.rename(name)
@@ -974,19 +949,22 @@ If you know what you are doing, you can set check=False to skip this warning."""
         if self._warning or not self._check:
             return
         message = "Could not check that the specified constraints yield a finite set"
-        s = sum(self._floor(i) for i in range(self._floor_limit_start))
-        if self._max_sum < Infinity and self._max_length == Infinity and self._floor_limit == 0:
+        # since self._warning is False, the floor has been constructed
+        # from a list or constant
+        assert self._floor.limit_start() < Infinity
+        s = sum(self._floor(i) for i in range(self._floor.limit_start()))
+        if self._max_sum < Infinity and self._max_length == Infinity and self._floor.limit() == 0:
             if self._min_slope < 0 and self._max_slope > 0 and s < self._min_sum and self._min_sum <= self._max_sum:
                 raise ValueError(message)
             if self._min_slope == 0 and s==0 and self._max_slope > 0:
                 if self._max_sum>0: # this is assuming that we remove trailing zeroes
                     raise ValueError(message)
         elif self._max_sum == Infinity and self._max_length == Infinity:
-            if self._max_slope == 0 and min(self._ceiling(i) for i in range(self._ceiling_limit_start+1)) == 0:
+            if self._max_slope == 0 and min(self._ceiling(i) for i in range(self._ceiling.limit_start()+1)) == 0:
                 return
-            elif self._min_slope > 0 and self._ceiling_limit < Infinity:
+            elif self._min_slope > 0 and self._ceiling.limit() < Infinity:
                 return
-            elif self._max_slope >= 0 and self._ceiling_limit > 0:
+            elif self._max_slope >= 0 and self._ceiling.limit() > 0:
                 raise ValueError(message)
 
     @staticmethod
@@ -1362,7 +1340,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: I = IntegerListsLex._Iter(C)
                 sage: f = I._upper_envelope(1,1)
                 sage: type(f)
-                <type 'sage.misc.constant_function.ConstantFunction'>
+                <class 'sage.combinat.integer_list.Envelope'>
                 sage: f(1)
                 inf
                 sage: f(2)
@@ -1406,7 +1384,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: I = IntegerListsLex._Iter(C)
                 sage: f = I._lower_envelope(1,1)
                 sage: type(f)
-                <type 'sage.misc.constant_function.ConstantFunction'>
+                <class 'sage.combinat.integer_list.Envelope'>
                 sage: f(1)
                 0
                 sage: f(2)
@@ -1472,13 +1450,20 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 ...
                 ValueError: infinite upper bound for values of m
 
-            In the following examples, all parts are indirectly
-            bounded above::
+            Same here::
 
-                sage: IntegerListsLex(ceiling=[2,infinity,2], max_length=3, min_slope=2).cardinality()
-                1
-                sage: IntegerListsLex(ceiling=[2,infinity,2], max_length=3, max_slope=3).cardinality()
-                45
+                sage: IntegerListsLex(ceiling=[2,infinity,2], max_length=3, min_slope=-1).cardinality()
+                Traceback (most recent call last):
+                ...
+                ValueError: infinite upper bound for values of m
+
+            In the following examples however, all parts are
+            indirectly bounded above::
+
+                sage: IntegerListsLex(ceiling=[2,infinity,2], length=3,     min_slope=-1).cardinality()
+                24
+                sage: IntegerListsLex(ceiling=[2,infinity,2], max_length=3, max_slope=1).cardinality()
+                24
 
                 sage: IntegerListsLex(max_part=2, max_length=3).cardinality()
                 27
@@ -1654,7 +1639,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                     return False
 
                 if (p._max_slope <= 0 and up <= 0) or \
-                   (p._ceiling_limit == 0 and k > p._ceiling_limit_start):
+                   (p._ceiling.limit() == 0 and k > p._ceiling.limit_start()):
                     # This implies v_l=0 for l>=k: that is we would be generating
                     # a list with trailing zeroes
                     return False
@@ -1685,3 +1670,251 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 False
             """
             return self.parent().__contains__(self)
+
+class Envelope(object):
+    """
+    The (currently approximated) upper or lower envelope of a function
+    under the specified constraints.
+
+    INPUT:
+
+    - ``f`` -- a function, list, or tuple;
+      if ``f`` is a list, it is considered as the function
+      ``f(i)=f[i]``, completed for larger `i` with `f(i)=\infty` for
+      an upper enveloppe and `f(i)=0` for a lower enveloppe.
+
+    - ``min_part``, ``max_part``, ``min_slope``, ``max_slope``, ...
+      as for :class:`IntegerListsLex, which see.
+
+    The *upper envelope* `U(f)` of f is the (pointwise) largest
+    function which is bounded above by `f` and satisfies the
+    ``max_part`` and ``max_slope`` conditions.  Furthermore, for
+    ``i,i+1<min_length``, the upper enveloppe also satisfies the
+    ``min_slope`` condition.
+
+    Symmetrically, the *lower envelope* `L(f)` of `f` is the
+    (pointwise) smallest function which is bounded above by `f` and
+    satisfies the ``min_part`` and ``min_slope`` conditions.
+    Furthermore, for ``i,i+1 <= min_length``, the lower enveloppe also
+    satisfies the ``max_slope`` condition.
+
+    Upon computing `U(f)(i)` (or `L(f)(i)`), all the previous values
+    for `j\leq i` are computed and cached; in particular, for each `i`
+    `f(i)` will be computed at most once.
+
+    .. TODO::
+
+        - This class is a good candidate for Cythonization, especially
+          to get the critical path in ``__call__`` super fast.
+
+        - To get full envelopes, we would want both the ``min_slope``
+          and ``max_slope`` conditions to always be satisfied. This is
+          only properly defined for the restriction of `f` to a finite
+          interval `0,..,k`, and depends on `k`.
+
+        - This is the core "data structure" of
+          ``IntegerListsLex``. Improving the lookahead there
+          essentially depends on having functions with a good
+          complexity to compute the area below an envelope; and in
+          particular how it evolves when increasing the length.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.integer_list import Envelope
+
+    Trivial upper and lower envelopes::
+
+        sage: f = Envelope([3,2,2])
+        sage: [f(i) for i in range(10)]
+        [3, 2, 2, inf, inf, inf, inf, inf, inf, inf]
+        sage: f = Envelope([3,2,2], upper=False)
+        sage: [f(i) for i in range(10)]
+        [3, 2, 2, 0, 0, 0, 0, 0, 0, 0]
+
+    A more interesting lower envelope::
+
+        sage: f = Envelope([4,1,5,3,5], upper=False, min_part=2, min_slope=-1)
+        sage: [f(i) for i in range(10)]
+        [4, 3, 5, 4, 5, 4, 3, 2, 2, 2]
+
+    Currently, adding ``max_slope`` has no effect::
+
+        sage: f = Envelope([4,1,5,3,5], upper=False, min_part=2, min_slope=-1, max_slope=0)
+        sage: [f(i) for i in range(10)]
+        [4, 3, 5, 4, 5, 4, 3, 2, 2, 2]
+
+    unless ``min_length`` is large enough::
+
+        sage: f = Envelope([4,1,5,3,5], upper=False, min_part=2, min_slope=-1, max_slope=0, min_length=2)
+        sage: [f(i) for i in range(10)]
+        [4, 3, 5, 4, 5, 4, 3, 2, 2, 2]
+
+        sage: f = Envelope([4,1,5,3,5], upper=False, min_part=2, min_slope=-1, max_slope=0, min_length=4)
+        sage: [f(i) for i in range(10)]
+        [5, 5, 5, 4, 5, 4, 3, 2, 2, 2]
+
+        sage: f = Envelope([4,1,5,3,5], upper=False, min_part=2, min_slope=-1, max_slope=0, min_length=5)
+        sage: [f(i) for i in range(10)]
+        [5, 5, 5, 5, 5, 4, 3, 2, 2, 2]
+
+    A non trivial upper envelope::
+
+        sage: f = Envelope([9,1,5,4], upper=True, max_part=7, max_slope=2)
+        sage: [f(i) for i in range(10)]
+        [7, 1, 3, 4, 6, 7, 7, 7, 7, 7]
+
+    TESTS::
+
+        sage: f = Envelope(3, min_slope=1)
+        sage: [f(i) for i in range(10)]
+        [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+
+        sage: f = Envelope(3, min_slope=1, min_length=5)
+        sage: [f(i) for i in range(10)]
+        [-1, 0, 1, 2, 3, 3, 3, 3, 3, 3]
+
+        sage: f = Envelope(3, upper=False, min_slope=1)
+        sage: [f(i) for i in range(10)]
+        [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+
+        sage: f = Envelope(3, upper=False, max_slope=-1, min_length=4)
+        sage: [f(i) for i in range(10)]
+        [6, 5, 4, 3, 3, 3, 3, 3, 3, 3]
+    """
+    def __init__(self, f, upper=True,
+                 min_part=0, max_part=Infinity,
+                 min_slope=-Infinity, max_slope=Infinity,
+                 min_length=0, max_length=Infinity):
+        self._is_upper = upper
+        self._min_part = min_part
+        self._max_part = max_part
+        self._min_slope = min_slope
+        self._max_slope = max_slope
+
+        if f == Infinity or f == -Infinity or f in ZZ:
+            limit_start = 0
+            if upper:
+                f = min(f, max_part)
+            else:
+                f = max(f, min_part)
+            limit = f
+            f = ConstantFunction(f)
+        elif isinstance(f, (list, tuple)):
+            limit_start = len(f)
+            limit = max_part if upper else min_part
+            f_tab = f
+            f = lambda k: f_tab[k] if k < len(f_tab) else limit
+        else:
+            # At this point, this is not really used
+            # Otherwise, one could try to get bounds from min_part, ...
+            limit_start = Infinity
+            limit = None
+
+        self._f = f
+        self._f_limit = limit
+        # For i >= limit_start, f is constant
+        # This does not necessarily means that self is constant!
+        self._f_limit_start = limit_start
+        self._precomputed = []
+
+        if min_length > 0:
+            self(min_length-1)
+            for i in range(min_length-1,0,-1):
+                if upper:
+                    self._precomputed[i-1] = min(self._precomputed[i-1], self._precomputed[i]-min_slope)
+                else:
+                    self._precomputed[i-1] = max(self._precomputed[i-1], self._precomputed[i]-max_slope)
+
+    def limit_start(self):
+        """
+        Return from which `i` on the bound holds.
+
+        .. SEEALSO:: :meth:`limit`
+
+        EXAMPLES::
+
+            sage: from sage.combinat.integer_list import Envelope
+            sage: Envelope([4,1,5]).limit_start()
+            3
+            sage: Envelope([4,1,5], upper=False).limit_start()
+            3
+
+            sage: Envelope([4,1,5], max_part=2).limit_start()
+            3
+
+            sage: Envelope(4).limit_start()
+            0
+            sage: Envelope(4, upper=False).limit_start()
+            0
+
+            sage: Envelope(lambda x: 3).limit_start() == Infinity
+            True
+            sage: Envelope(lambda x: 3, max_part=2).limit_start() == Infinity
+            True
+
+            sage: Envelope(lambda x: 3, upper=False, min_part=2).limit_start() == Infinity
+            True
+
+        """
+        return self._f_limit_start
+
+    def limit(self):
+        """
+        Return a bound on the limit of ``self``.
+
+        For a lower (resp. upper) enveloppe, this provides a lower
+        (resp. upper) bound for the value of this envelope for `i`
+        large enough. This bound is valid at least from
+        ``self.limit_start()`` on. Which specific bound is returned is
+        not set in stone.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.integer_list import Envelope
+            sage: Envelope([4,1,5]).limit() == oo
+            True
+            sage: Envelope([4,1,5], max_part=2).limit()
+            2
+            sage: Envelope([4,1,5], max_slope=0).limit()   # todo: not implemented
+            1
+            sage: Envelope(lambda x: 3, max_part=2).limit()
+
+        .. SEEALSO:: :meth:`limit_start`
+        """
+        return self._f_limit
+
+    def __call__(self, k):
+        """
+        Return the value of this envelope at `k`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.integer_list import Envelope
+            sage: f = Envelope([4,1,5,3,5])
+            sage: f.__call__(2)
+            5
+            sage: [f(i) for i in range(10)]
+            [4, 1, 5, 3, 5, inf, inf, inf, inf, inf]
+
+        .. NOTE::
+
+            See the documentation of :class:`Envelope` for tests and
+            examples.
+        """
+        if k < len(self._precomputed):
+            # This is the critical path
+            return self._precomputed[k]
+        else:
+            for i in range(len(self._precomputed), k+1):
+                value = self._f(i)
+                if self._is_upper:
+                    value = min(value, self._max_part)
+                else:
+                    value = max(value, self._min_part)
+                if i>0:
+                    if self._is_upper:
+                        value = min(value, self._precomputed[i-1] + self._max_slope)
+                    else:
+                        value = max(value, self._precomputed[i-1] + self._min_slope)
+                self._precomputed.append(value)
+            return self._precomputed[k]

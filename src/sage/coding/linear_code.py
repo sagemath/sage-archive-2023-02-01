@@ -1108,6 +1108,19 @@ class LinearCode(module.Module):
             return ans
         return 0
 
+    def base_field(self):
+        r"""
+        Return the base field of ``self``.
+
+        EXAMPLES::
+
+            sage: G  = Matrix(GF(2), [[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+            sage: C  = LinearCode(G)
+            sage: C.base_field()
+            Finite Field of size 2 
+        """
+        return self._base_field
+
     def basis(self):
         r"""
         Returns a basis of `self`.

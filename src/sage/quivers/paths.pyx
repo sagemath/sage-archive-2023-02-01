@@ -337,12 +337,8 @@ cdef class QuiverPath(MonoidElement):
         """
         Comparison for :class:`QuiverPaths`.
 
-        As usual in Sage, the ``__cmp__`` method of a Python sub-class of
-        :class:`sage.structure.element.Element` can assume that both arguments
-        belong to the same parent.
-
-        If the QuiverPaths are unequal then one of the following data (listed
-        in order of preferance) is unequal and used for comparison:
+        The following data (listed in order of preferance) is used for
+        comparison:
 
         - **Negative** length of the paths
         - initial and terminal vertices of the paths
@@ -379,6 +375,7 @@ cdef class QuiverPath(MonoidElement):
             False
             sage: a < a
             False
+
         """
         # Since QuiverPath inherits from Element, it is guaranteed that
         # both arguments are elements of the same path semigroup

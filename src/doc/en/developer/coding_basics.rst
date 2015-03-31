@@ -271,11 +271,16 @@ information. You can use the existing functions of Sage as templates.
 
    They should have good coverage of the functionality in question.
 
--  A **SEEALSO** block (optional) with links to related parts of Sage. ::
+-  A **SEEALSO** block with links to related parts of Sage. You are
+   encouraged to include this block to make it easier finding these
+   related parts. ::
 
        .. SEEALSO::
 
-          :ref:`chapter-sage_manuals_links`
+          :ref:`chapter-sage_manuals_links`,
+	  :meth:`useful_method`,
+	  :meth:`other_useful_method`,
+	  :mod:`~sage.some.related.module`.
 
    See :ref:`chapter-sage_manuals_links` for details on how to setup
    link in Sage.

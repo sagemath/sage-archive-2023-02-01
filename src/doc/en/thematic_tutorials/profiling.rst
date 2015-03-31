@@ -18,21 +18,23 @@ How long does it take? %time and %timeit
 The two IPython magics ``%time`` and ``%timeit`` measure the time it takes to
 run a command::
 
-  sage: %time p=random_prime(2**500)
-  CPU times: user 440 ms, sys: 0 ns, total: 440 ms
-  Wall time: 440 ms
+  sage: %time p=random_prime(2**300)
+  CPU times: user 152 ms, sys: 0 ns, total: 152 ms
+  Wall time: 150 ms
 
-  sage: %timeit p=random_prime(2**500)
-  1 loops, best of 3: 334 ms per loop
+  sage: %timeit p=random_prime(2**300)
+  10 loops, best of 3: 62.2 ms per loop
+
 
 Note that while ``%time`` only runs the command once, ``%timeit`` tries to
 return a more meaningful value over several runs.
 
-For more information on ``%timeit``, see ``%timeit?`` or `this page
+For more information see ``%timeit?`` or `this page
 <https://ipython.org/ipython-doc/dev/interactive/magics.html#magic-timeit>`__.
 
-Note that Sage notebook instead offers a ``timeit`` function, see
-:class:`~sage.misc.sage_timeit_class.SageTimeit`.
+Note that Sage provides a :class:`timeit
+<sage.misc.sage_timeit_class.SageTimeit>` function which also runs in the Sage
+notebook.
 
 
 Python-level function calls: %prun
@@ -70,7 +72,7 @@ further inspection::
   sage: stats_object.total_calls
   2547
 
-For more information on ``%prun``, see ``%prun?`` or `this page
+For more information see ``%prun?`` or `this page
 <http://ipython.org/ipython-doc/dev/interactive/magics.html#magic-prun>`__.
 
 **Visualize the statistics:** you can obtain a more graphical output with

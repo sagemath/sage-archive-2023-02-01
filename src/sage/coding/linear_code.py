@@ -1396,8 +1396,9 @@ class LinearCode(module.Module):
              [0 1 1 0 0 1 1]
              [0 0 0 1 1 1 1]
         """
-        Cperp = self.dual_code()
-        return Cperp.generator_matrix()
+        G = self.generator_matrix()
+        H = G.right_kernel()
+        return H.basis_matrix()
 
     check_mat = deprecated_function_alias(17973, parity_check_matrix)
 

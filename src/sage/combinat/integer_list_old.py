@@ -706,8 +706,7 @@ class IntegerListsLex(Parent):
         sage: R.<x,y,z> = QQ[]
         sage: m = [3,1,2]
         sage: def term(exponents):
-        ...       return x^exponents[0] * y^exponents[1] * z^exponents[2]
-        ...
+        ....:     return x^exponents[0] * y^exponents[1] * z^exponents[2]
         sage: list( integer_list.IntegerListsLex(4, length = len(m), ceiling = m, element_constructor = term) )
         [x^3*y, x^3*z, x^2*y*z, x^2*z^2, x*y*z^2]
 

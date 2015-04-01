@@ -875,10 +875,13 @@ If you know what you are doing, you can set check=False to skip this warning."""
         # In case we want output to be of a different type,
         if element_constructor is not None:
             self._element_constructor_ = element_constructor
+        self._element_constructor_is_copy_safe = \
+            self._element_constructor is list or self._element_constructor is tuple
         if element_class is not None:
             self.Element = element_class
         if global_options is not None:
             self.global_options = global_options
+
 
         Parent.__init__(self, category=category)
 
@@ -1358,7 +1361,13 @@ If you know what you are doing, you can set check=False to skip this warning."""
                     else:
                         self._next_state = DECREASE
                     if self._internal_list_valid():
-                        return p._element_constructor(list(self._current_list))
+                        if p._element_constructor_is_copy_safe:
+                            # The constructor is safe and don't claim
+                            # ownership on the input list. No need to
+                            # make a copy.
+                            return p._element_constructor_(self._current_list)
+                        else:
+                            return p._element_constructor_(list(self._current_list))
                 if self._next_state == DECREASE:
                     self._current_list[-1] -= 1
                     self._current_sum -= 1

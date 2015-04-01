@@ -849,7 +849,7 @@ class IntegerListsLex(Parent):
 
         if ceiling is None:
             ceiling = Infinity
-        elif isinstance(ceiling, (list, tuple)):
+        elif isinstance(ceiling, (list, tuple, ClonableArray)):
             if not all(i==Infinity or i in ZZ for i in ceiling):
                 raise TypeError("the parts of ceiling={} should be non negative integers".format(ceiling))
             if not all(i >= 0 for i in ceiling):

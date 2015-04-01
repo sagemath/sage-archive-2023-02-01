@@ -652,8 +652,8 @@ class FindStatStatistic(SageObject):
             else:
                 raise
 
-        self._description = self._raw[FINDSTAT_STATISTIC_DESCRIPTION]
-        self._references = self._raw[FINDSTAT_STATISTIC_REFERENCES]
+        self._description = self._raw[FINDSTAT_STATISTIC_DESCRIPTION].encode("utf-8")
+        self._references = self._raw[FINDSTAT_STATISTIC_REFERENCES].encode("utf-8")
         self._collection = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
         self._code = self._raw[FINDSTAT_STATISTIC_CODE]
 
@@ -955,7 +955,7 @@ class FindStatStatistic(SageObject):
             1: [[OEIS:A005118]]
             2: [[oeis:A246865]]
         """
-        l = [ref.strip() for ref in self._references.encode("utf-8").split(FINDSTAT_SEPARATOR_REFERENCES)]
+        l = [ref.strip() for ref in self._references.split(FINDSTAT_SEPARATOR_REFERENCES)]
         return FancyTuple([ref for ref in l if ref != ""])
 
     def set_references(self, value):
@@ -1053,11 +1053,11 @@ class FindStatStatistic(SageObject):
                                                               max_values=max_values)
 
         args = dict()
-        args[FINDSTAT_STATISTIC_IDENTIFIER]  = self.id()
+        args[FINDSTAT_STATISTIC_IDENTIFIER]  = self._id
         args[FINDSTAT_STATISTIC_COLLECTION]  = str(self.collection().id())
         args[FINDSTAT_STATISTIC_DATA]        = self.first_terms_str()
-        args[FINDSTAT_STATISTIC_DESCRIPTION] = self.description()
-        args[FINDSTAT_STATISTIC_REFERENCES]  = join(self.references(), FINDSTAT_SEPARATOR_REFERENCES)
+        args[FINDSTAT_STATISTIC_DESCRIPTION] = self._description
+        args[FINDSTAT_STATISTIC_REFERENCES]  = self._references
         args[FINDSTAT_STATISTIC_CODE]        = self.code()
         args[FINDSTAT_POST_SAGE_CELL]        = ""
         args[FINDSTAT_POST_EDIT]             = ""
@@ -1065,8 +1065,6 @@ class FindStatStatistic(SageObject):
         args[FINDSTAT_POST_EMAIL]            = findstat._user_email
 
         assert set(args.keys()) == FINDSTAT_EDIT_FIELDS, "It appears that the list of required post variables for editing a statistic has changed.  Please update FindStatStatistic.submit()."
-
-        _ = verbose("Submitting arguments %s" %args, caller_name='FindStat')
 
         # write the file
         f = tempfile.NamedTemporaryFile(delete=False)
@@ -1077,7 +1075,10 @@ class FindStatStatistic(SageObject):
         else:
             f.write(FINDSTAT_NEWSTATISTIC_FORM_HEADER %(FINDSTAT_URL_EDIT+self.id_str()))
         for key, value in args.iteritems():
-            f.write((FINDSTAT_NEWSTATISTIC_FORM_FORMAT %(key, cgi.escape(unicode(value), quote=True))).encode("utf-8"))
+            _ = verbose("writing argument %s" %key, caller_name='FindStat')
+            value_encoded = cgi.escape(str(value), quote=True)
+            _ = verbose("%s" %value_encoded, caller_name='FindStat')
+            f.write((FINDSTAT_NEWSTATISTIC_FORM_FORMAT %(key, value_encoded)))
         f.write(FINDSTAT_NEWSTATISTIC_FORM_FOOTER)
         f.close()
         _ = verbose("Opening file with webbrowser", caller_name='FindStat')

@@ -4492,13 +4492,19 @@ class Partition(CombinatorialObject, Element):
         r"""
         Return the dual equivalence graph of ``self``.
 
-        Consider a permuation `p`, then an `i` *elementary dual
-        equivalence* is given by looking the sequence `i-1, i, i+1`
-        in `p`. If `i` does not occur in the middle of `i \pm 1`,
-        then we interchange the outer two entries in `p`. The *dual
-        equivalence graph* is the edge-colored graph formed by the set
-        of standard Young tableaux of shape `\lambda` where edges
-        colored by `i` are given by `i` elementary dual equivalences.
+        Two permutations `p` and `q` differ by an `i`-*elementary dual
+        equivalence (or Knuth) relation*, when, in one line notation,
+        the letter `i` does not occur between `i-1` and `i+1`, and `q`
+        is obtained from `p` by switching the places of `i-1` and `i+1`.
+
+        Two standard Young tableaux of shape `\lambda` differ by an
+        `i`-elementary dual equivalence relation (of color `i`), if
+        their content reading words differ by an `i`-elementary dual
+        equivalence relation.
+
+        The *dual equivalence graph* is the edge-colored graph formed by
+        the set of standard Young tableaux of shape `\lambda` where edges
+        colored by `i` are given by `i`-elementary dual equivalences.
 
         INPUT:
 

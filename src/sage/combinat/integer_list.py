@@ -977,6 +977,8 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
             sage: IntegerListsLex(floor=[0,2], ceiling=[3,1]).list()
             [[3], [2], [1], []]
+            sage: IntegerListsLex(7, ceiling=[2], floor=[4]).list()
+            []
         """
         if self._warning or not self._check:
             return
@@ -985,6 +987,9 @@ If you know what you are doing, you can set check=False to skip this warning."""
         # from a list or constant
         assert self._floor.limit_start() < Infinity
         s = sum(self._floor(i) for i in range(self._floor.limit_start()))
+        for i in range(max(self._ceiling.limit_start(), self._floor.limit_start())+1):
+            if self._ceiling(i) < self._floor(i):
+                return
         if self._max_sum < Infinity and self._max_length == Infinity and self._floor.limit() == 0:
             if self._min_slope < 0 and self._max_slope > 0 and s < self._min_sum and self._min_sum <= self._max_sum:
                 raise ValueError(message)
@@ -996,10 +1001,6 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 return
             elif self._min_slope > 0 and self._ceiling.limit() < Infinity:
                 return
-            for i in range(max(self._ceiling.limit_start(), self._floor.limit_start())+1):
-                if self._ceiling(i) < self._floor(i):
-                    for i in range(max(self._ceiling.limit_start(), self._floor.limit_start())+1):
-                        return
             if self._max_slope >= 0 and self._ceiling.limit() > 0:
                 raise ValueError(message)
 
@@ -1014,9 +1015,9 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
         INPUT:
 
-        - `l` -- a list to use as a source of values
+        - ``l`` -- a list to use as a source of values
 
-        - `default` -- a default value to use for indices outside of the list
+        - ``default`` -- a default value to use for indices outside of the list
 
         OUTPUT:
 

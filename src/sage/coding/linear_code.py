@@ -3015,7 +3015,10 @@ class LinearCode(module.Module):
 
     def syndrome(self, r):
         r"""
-        Returns the syndrome of a vector.
+        Returns the syndrome of ``r``.
+
+        The syndrome of ``r`` is the result of `H \times r` where `H` is
+        the parity check matrix of ``self``.
 
         INPUT:
 

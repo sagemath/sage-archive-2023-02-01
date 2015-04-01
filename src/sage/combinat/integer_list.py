@@ -1774,7 +1774,8 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: C([5]).check()
                 False
             """
-            return self.parent().__contains__(self)
+            # We trust that the parent gives us correct input
+            # return self.parent().__contains__(self)
 
 class Envelope(object):
     """

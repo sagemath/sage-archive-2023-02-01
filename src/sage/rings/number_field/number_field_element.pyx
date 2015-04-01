@@ -771,6 +771,8 @@ cdef class NumberFieldElement(FieldElement):
             P = left._parent.number_field()
         cdef size_t i = 0
         if P._embedded_real:
+            # TODO: optimize this computation without any call to the method
+            # polynomial!
             lp = left.polynomial()
             rp = _right.polynomial()
             la = lp(P._get_embedding_approx(0))

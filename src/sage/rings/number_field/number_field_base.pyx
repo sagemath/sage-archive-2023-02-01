@@ -277,15 +277,12 @@ cdef class NumberField(Field):
         This should be called only once.
         """
 
-        if self._gen_approx is not None:
-            return
-        coerce_embedding = self.coerce_embedding()
-        if coerce_embedding is None:
+        if self._gen_approx is not None or self._embedding is None:
             return
 
         from sage.rings.qqbar import AA
         from sage.rings.real_lazy import RLF
-        codomain = coerce_embedding.codomain()
+        codomain = self._embedding.codomain()
         if codomain is AA or codomain is RLF:
             self._gen_approx = []
             self._embedded_real = 1
@@ -332,7 +329,6 @@ cdef class NumberField(Field):
 
             :class:` RealIntervalField_class <sage.rings.real_mpfi.RealIntervalField_class>`
         """
-
         if self._embedded_real and i < len(self._gen_approx):
             return self._gen_approx[i]
 
@@ -340,7 +336,7 @@ cdef class NumberField(Field):
         if self._embedded_real:
             j = len(self._gen_approx)
             from sage.rings.real_mpfi import RealIntervalField
-            gen = self.coerce_embedding()(self.gen())
+            gen = self._embedding.gen_image()
             while j <= i:
                 self._gen_approx.append(RealIntervalField(53 << j)(gen))
                 j += 1

@@ -961,11 +961,22 @@ If you know what you are doing, you can set check=False to skip this warning."""
             [[1], []]
             sage: IntegerListsLex(max_part=100, min_slope=10).first()
             [100]
-            sage: I = IntegerListsLex(ceiling=[1,Infinity], max_part=2, min_slope=1)
-            sage: I.list()
+            sage: IntegerListsLex(ceiling=[1,Infinity], max_part=2, min_slope=1).list()
             [[1, 2], [1], [0, 2], [0, 1, 2], [0, 1], []]
             sage: IntegerListsLex(min_sum=1, floor=[1,2], max_part=1).list()
             [[1]]
+
+            sage: IntegerListsLex(min_length=2, max_length=1).list()
+            []
+            sage: IntegerListsLex(min_length=-2, max_length=-1).list()
+            []
+            sage: IntegerListsLex(min_length=-1, max_length=-2).list()
+            []
+            sage: IntegerListsLex(min_part=2, max_part=1).list()
+            [[]]
+
+            sage: IntegerListsLex(floor=[0,2], ceiling=[3,1]).list()
+            [[3], [2], [1], []]
         """
         if self._warning or not self._check:
             return
@@ -1106,21 +1117,39 @@ If you know what you are doing, you can set check=False to skip this warning."""
         return self._Iter(self)
 
     class _Iter:
-        """
-        Iterator class for IntegerListsLex
+        r"""
+        Iterator class for IntegerListsLex.
 
-        The iterator is based on a depth-first search exploration of
-        the prefix tree of the valid lists. Each call of ``next``
-        iterates through the nodes until it finds a valid list to
-        return.
+        Let `T` be the prefix tree of all lists of non negative
+        integers that satisfy all constraints except possibly for
+        ``min_length`` and ``min_sum``; let the children of a list
+        be sorted decreasingly according to their last part.
 
-        The current node in the forest is stored in the attribute
-        ``_current_list``. The attribute ``_j`` stores the index of
-        the last element of ``I._current_list``, while
-        ``_current_sum`` is the sum of the parts of ``_current_list``.
+        The iterator is based on a depth-first search exploration of a
+        subtree of this tree, trying to cut branches that do not
+        contain a valid list. Each call of ``next`` iterates through
+        the nodes of this tree until it finds a valid list to return.
 
-        The range for the next part (which corresponds to the next
-        depth in the forest) is stored in ``_search_ranges``.
+        Here are the attributes describing the current state of the
+        iterator,  and their invariants::
+
+        - ``_parent`` -- the :class:`IntegerListsLex` object this is
+          iterating on;
+
+        - ``_current_list`` -- the list corresponding to the current
+          node of the tree;
+
+        - ``_j`` -- the index of the last element of ``_current_list``:
+          ``self._j == len(self._current_list) - 1``;
+
+        - ``_current_sum`` -- the sum of the parts of ``_current_list``;
+
+        - ``_search_ranges`` -- a list of same length as
+          ``_current_list``: the range for each part.
+
+        Furthermore, we assume that:
+
+        - ``self._parent.min_length <= self._parent.max_length``.
 
         Along this iteration, ``next`` switches between the following
         states::
@@ -1161,7 +1190,11 @@ If you know what you are doing, you can set check=False to skip this warning."""
             self._j = -1     # index of last element of _current_list
             self._current_sum = 0     # sum of parts in _current_list
 
-            self._next_state = PUSH
+            if parent._max_length < parent._min_length:
+                # This guarantees that min_length <= max_length in the iterator
+                self._next_state = STOP
+            else:
+                self._next_state = PUSH
 
         def __iter__(self):
             """
@@ -1542,6 +1575,11 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
             ## check for infinite upper bound, in case max_sum is infinite
             if p._check and upper_bound == Infinity:
+                # This assumes that there exists a valid list (which
+                # is not yet always guaranteed). Then we just
+                # discovered that part 'i' of this list can be made as
+                # large as desired, which implies that `self._parent`
+                # cannot be iterated in inverse lexicographic order
                 raise ValueError("infinite upper bound for values of m")
 
             return (lower_bound, upper_bound)

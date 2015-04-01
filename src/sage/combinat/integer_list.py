@@ -964,6 +964,8 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: I = IntegerListsLex(ceiling=[1,Infinity], max_part=2, min_slope=1)
             sage: I.list()
             [[1, 2], [1], [0, 2], [0, 1, 2], [0, 1], []]
+            sage: IntegerListsLex(min_sum=1, floor=[1,2], max_part=1).list()
+            [[1]]
         """
         if self._warning or not self._check:
             return
@@ -983,7 +985,11 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 return
             elif self._min_slope > 0 and self._ceiling.limit() < Infinity:
                 return
-            elif self._max_slope >= 0 and self._ceiling.limit() > 0:
+            for i in range(max(self._ceiling.limit_start(), self._floor.limit_start())+1):
+                if self._ceiling(i) < self._floor(i):
+                    for i in range(max(self._ceiling.limit_start(), self._floor.limit_start())+1):
+                        return
+            if self._max_slope >= 0 and self._ceiling.limit() > 0:
                 raise ValueError(message)
 
     @staticmethod
@@ -1159,7 +1165,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
         def __iter__(self):
             """
-            Return `self` as per the iterator protocol.
+            Return ``self`` as per the iterator protocol.
 
             EXAMPLES::
 

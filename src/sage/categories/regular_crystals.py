@@ -27,18 +27,18 @@ class RegularCrystals(Category_singleton):
     r"""
     The category of regular crystals.
 
-    A crystal is called *regular* if:
+    A crystal is called *regular* if every vertex `b` satisfies
 
     .. MATH::
 
-        \epsilon_i(b) = \max\{ k \mid e_i^k(b) \neq 0 \} \quad \text{and}
-        \quad \phi_i(b) = \max\{ k \mid f_i^k(b) \neq 0 \}.
+        \varepsilon_i(b) = \max\{ k \mid e_i^k(b) \neq 0 \} \quad \text{and}
+        \quad \varphi_i(b) = \max\{ k \mid f_i^k(b) \neq 0 \}.
 
     .. NOTE::
 
         Regular crystals are sometimes referred to as *normal*. When only one
-        of the conditions (on either `\phi_i` or `epsilon_i`) holds, these
-        crystals are sometimes called *seminormal* or *semiregular*.
+        of the conditions (on either `\varphi_i` or `\varepsilon_i`) holds,
+        these crystals are sometimes called *seminormal* or *semiregular*.
 
     EXAMPLES::
 

@@ -946,7 +946,7 @@ class Crystals(Category_singleton):
         @abstract_method
         def weight(self):
             r"""
-            Returns the weight of this crystal element
+            Return the weight of this crystal element.
 
             This method should be implemented by the element class of
             the crystal.
@@ -959,10 +959,11 @@ class Crystals(Category_singleton):
             """
 
         def phi_minus_epsilon(self, i):
-            """
-            Returns `\phi_i - \epsilon_i` of self. There are sometimes
-            better implementations using the weight for this. It is used
-            for reflections along a string.
+            r"""
+            Return `\varphi_i - \varepsilon_i` of ``self``.
+
+            There are sometimes better implementations using the
+            weight for this. It is used for reflections along a string.
 
             EXAMPLES::
 

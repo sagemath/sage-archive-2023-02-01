@@ -984,19 +984,23 @@ If you know what you are doing, you can set check=False to skip this warning."""
             [[3], [2], [1], []]
             sage: IntegerListsLex(7, ceiling=[2], floor=[4]).list()
             []
+            sage: IntegerListsLex(7, max_part=0).list()
+            []
+            sage: IntegerListsLex(max_part=0).list()
+            [[]]
         """
         if self._warning or not self._check:
             return
         message = "Could not check that the specified constraints yield a finite set"
         # since self._warning is False, the floor has been constructed
         # from a list or constant
-        assert self._floor.limit_start() < Infinity
-        s = sum(self._floor(i) for i in range(self._floor.limit_start()))
         for i in range(max(self._ceiling.limit_start(), self._floor.limit_start())+1):
             if self._ceiling(i) < self._floor(i):
                 return
+        assert self._floor.limit_start() < Infinity
+        s = sum(self._floor(i) for i in range(self._floor.limit_start()))
         if self._max_sum < Infinity and self._max_length == Infinity and self._floor.limit() == 0:
-            if self._min_slope < 0 and self._max_slope > 0 and s < self._min_sum and self._min_sum <= self._max_sum:
+            if self._min_slope < 0 and self._max_slope > 0 and s < self._min_sum and self._min_sum <= self._max_sum and self._ceiling.limit()>0:
                 raise ValueError(message)
             if self._min_slope == 0 and s==0 and self._max_slope > 0:
                 if self._max_sum>0: # this is assuming that we remove trailing zeroes

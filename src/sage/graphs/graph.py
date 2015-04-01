@@ -1132,6 +1132,7 @@ class Graph(GenericGraph):
         # Input is a list of edges
         if format is None and isinstance(data,list):
             format = "list_of_edges"
+            if weighted is None: weighted = False
             num_verts=0
 
         if format is None:
@@ -1571,7 +1572,9 @@ class Graph(GenericGraph):
 
         if data_structure == "static_sparse":
             from sage.graphs.base.static_sparse_backend import StaticSparseBackend
-            ib = StaticSparseBackend(self, loops = loops, multiedges = multiedges)
+            ib = StaticSparseBackend(self,
+                                     loops = self.allows_loops(),
+                                     multiedges = self.allows_multiple_edges())
             self._backend = ib
             self._immutable = True
 

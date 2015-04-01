@@ -613,6 +613,7 @@ class DiGraph(GenericGraph):
         # Input is a list of edges
         if format is None and isinstance(data,list):
             format = "list_of_edges"
+            if weighted is None: weighted = False
             num_verts=0
 
         if format is None:

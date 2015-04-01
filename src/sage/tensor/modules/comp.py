@@ -248,6 +248,9 @@ In case of symmetries, only non-redundant components are stored::
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
+from sage.parallel.all import parallel
+from sage.tensor.modules.parallel_utilities import manifoldPara
+from operator import itemgetter
 
 class Components(SageObject):
     r"""
@@ -1294,9 +1297,39 @@ class Components(SageObject):
         if other._sindex != self._sindex:
             raise ValueError("the two sets of components do not have the " +
                              "same starting index")
-        result = self.copy()
-        for ind, val in other._comp.iteritems():
-            result[[ind]] += val
+
+
+        if manifoldPara.use_paral :
+            # parallel sum
+            result = self._new_instance()
+            nproc = manifoldPara.nproc 
+            lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+
+            ind_list = [ ind for ind, ocomp  in other._comp.iteritems()]
+            ind_step = max(1,int(len(ind_list)/nproc/2))
+            local_list = lol(ind_list,ind_step)
+            
+            # definition of the list of input parameters
+            listParalInput = [(self,other,ind_part) for ind_part in local_list]
+                
+            @parallel(p_iter='multiprocessing',ncpus=manifoldPara.nproc)
+            def paral_sum(a,b,local_list_ind):
+                partial = []
+                for ind in local_list_ind:
+                    partial.append([ind,a[[ind]]+b[[ind]]])
+                return partial
+            
+            for ii,val in paral_sum(listParalInput):
+                for jj in val:
+                    result[[jj[0]]] = jj[1]      
+
+        else:
+            # sequential
+            result = self.copy()
+
+            for ind, val in other._comp.iteritems():
+                result[[ind]] += val
+
         return result
 
     def __radd__(self, other):
@@ -1732,9 +1765,31 @@ class Components(SageObject):
             comp_for_contr = Components(self._ring, self._frame, ncontr,
                                         start_index=self._sindex)
             res = 0
-            for ind in comp_for_contr.index_generator():
-                res += self[[ind]] * other[[ind]]
+
+
+            if manifoldPara.use_paral:
+                # parallel contraction to scalar                
+
+                # parallel multiplication
+                @parallel(p_iter='multiprocessing',ncpus=manifoldPara.nproc)
+                def compprod(a,b):
+                    return a*b
+                
+                # parallel list of inputs
+                partial = list(compprod([(other[[ind]],self[[ind]]) for ind in
+                                     comp_for_contr.index_generator()
+                    ]))
+                res = sum(map(itemgetter(1),partial))
+            else:
+                # sequential
+                res = 0
+                for ind in comp_for_contr.index_generator():
+                    res += self[[ind]] * other[[ind]]
+
+            print 'time contraction scalar: ',time.time()-marco_t0
             return res
+            
+            
         #
         # Positions of self and other indices in the result
         #  (None = the position is involved in a contraction and therefore
@@ -1846,23 +1901,65 @@ class Components(SageObject):
         comp_for_contr = Components(self._ring, self._frame, ncontr,
                                     start_index=self._sindex)
         shift_o = self._nid - ncontr
-        for ind in res.non_redundant_index_generator():
-            ind_s = [None for i in range(self._nid)]  # initialization
-            ind_o = [None for i in range(other._nid)] # initialization
-            for i, pos in enumerate(rev_s):
-                ind_s[pos] = ind[i]
-            for i, pos in enumerate(rev_o):
-                ind_o[pos] = ind[shift_o+i]
-            sm = 0
-            for ind_c in comp_for_contr.index_generator():
-                ic = 0
-                for pos_s, pos_o in contractions:
-                    k = ind_c[ic]
-                    ind_s[pos_s] = k
-                    ind_o[pos_o] = k
-                    ic += 1
-                sm += self[[ind_s]] * other[[ind_o]]
-            res[[ind]] = sm
+
+        if manifoldPara.use_paral:
+            # parallel computation
+            nproc = manifoldPara.nproc
+            lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+            ind_list = [ind for ind in res.non_redundant_index_generator()]
+            ind_step = max(1,int(len(ind_list)/nproc/2))
+            local_list = lol(ind_list,ind_step)
+
+            listParalInput = []
+            for ind_part in local_list:
+                listParalInput.append((self,other,ind_part,rev_s,rev_o,shift_o,contractions,comp_for_contr))
+
+            # definition of the parallel function
+            @parallel(p_iter='multiprocessing',ncpus=nproc)
+            def make_Contraction(this,other,local_list,rev_s,rev_o,shift_o,contractions,comp_for_contr):
+                local_res = []
+                for ind in local_list:
+                    ind_s = [None for i in range(this._nid)]  # initialization
+                    ind_o = [None for i in range(other._nid)] # initialization
+                    for i, pos in enumerate(rev_s):
+                        ind_s[pos] = ind[i]
+                    for i, pos in enumerate(rev_o):
+                        ind_o[pos] = ind[shift_o+i]
+                    sm = 0
+                    for ind_c in comp_for_contr.index_generator():
+                        ic = 0
+                        for pos_s, pos_o in contractions:
+                            k = ind_c[ic]
+                            ind_s[pos_s] = k
+                            ind_o[pos_o] = k
+                            ic += 1
+                        sm += this[[ind_s]] * other[[ind_o]]
+                    local_res.append([ind,sm])
+                return local_res
+
+            for ii, val in make_Contraction(listParalInput):
+                for jj in val :
+                      res[[jj[0]]] = jj[1]
+        else:
+            # sequential        
+            for ind in res.non_redundant_index_generator():
+                ind_s = [None for i in range(self._nid)]  # initialization
+                ind_o = [None for i in range(other._nid)] # initialization
+                for i, pos in enumerate(rev_s):
+                    ind_s[pos] = ind[i]
+                for i, pos in enumerate(rev_o):
+                    ind_o[pos] = ind[shift_o+i]
+                sm = 0
+                for ind_c in comp_for_contr.index_generator():
+                    ic = 0
+                    for pos_s, pos_o in contractions:
+                        k = ind_c[ic]
+                        ind_s[pos_s] = k
+                        ind_o[pos_o] = k
+                        ic += 1
+                    sm += self[[ind_s]] * other[[ind_o]]
+                res[[ind]] = sm
+
         return res
 
 

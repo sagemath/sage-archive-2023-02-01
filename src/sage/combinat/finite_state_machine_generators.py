@@ -733,8 +733,10 @@ class TransducerGenerators(object):
                           final_states=[1],
                           with_final_word_out=[0])
 
+
     RecursionRule = collections.namedtuple('RecursionRule',
                                            ['K', 'r', 'k', 's', 't'])
+
 
     def _parse_recursion_equation_(self, equation, base, function, var,
                                    word_function=None, output_rings=[ZZ, QQ]):
@@ -1216,7 +1218,7 @@ class TransducerGenerators(object):
             ring, because ``f(2*n) == f(n) + 0`` would be equivalent to
             ``f(2*n) == f(n)`` and an empty output would be written.
             Therefore, we wrap the output in the symbolic function ``w``
-            and use the parameter ``word_function`` to announce that.
+            and use the parameter ``word_function`` to announce this.
 
             Similarly, we use ``w(-1, 0)`` to write an output word of
             length `2` in one interation. Finally, we write ``f(0) == w()``
@@ -1481,7 +1483,6 @@ class TransducerGenerators(object):
         rules = []
         if input_alphabet is None and base in ZZ:
             input_alphabet = list(srange(base.abs()))
-
 
         for equation in recursions:
             if isinstance(equation, self.RecursionRule):

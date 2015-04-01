@@ -473,14 +473,14 @@ for a new module.
 Deprecation
 ===========
 
-When making a **backward-incompatible** modification in Sage the old code should
+When making a **backward-incompatible** modification in Sage, the old code should
 keep working and display a message indicating how it should be updated/written
 in the future. We call this a *deprecation*.
 
 .. NOTE::
 
-    A deprecation can only be removed one year after the first stable release in
-    which it appeared.
+    Deprecated code can only be removed one year after the first
+    stable release in which it appeared.
 
 Each deprecation warning contains the number of the trac ticket that defines
 it. We use 666 in the examples below. For each entry, consult the function's

@@ -4488,7 +4488,7 @@ class Partition(CombinatorialObject, Element):
                        -sum(abs(variable+c) for c in inside_contents)
 
     @cached_method
-    def dual_equivalence_graph(self):
+    def dual_equivalence_graph(self, directed=False):
         r"""
         Return the dual equivalence graph of ``self``.
 
@@ -4499,6 +4499,12 @@ class Partition(CombinatorialObject, Element):
         equivalence graph* is the edge-colored graph formed by the set
         of standard Young tableaux of shape `\lambda` where edges
         colored by `i` are given by `i` elementary dual equivalences.
+
+        INPUT:
+
+        - ``directed`` -- (default: ``False``) whether to have the dual
+          equivalence graph be directed, where the head is if the `i`
+          appears to the left of `i+1` in the initial reading word
 
         REFERENCES:
 
@@ -4537,12 +4543,19 @@ class Partition(CombinatorialObject, Element):
                     continue
                 x = pt[:]
                 x[l[0]], x[l[2]] = x[l[2]], x[l[0]]
-                e = [t, to_tab[permutation.Permutation(x)], i]
-                if e not in edges and [e[1], e[0], e[2]] not in edges:
+                if ii < iip:
+                    e = [t, to_tab[permutation.Permutation(x)], i]
+                else:
+                    e = [to_tab[permutation.Permutation(x)], t, i]
+                if e not in edges:
                     edges.append(e)
 
-        from sage.graphs.graph import Graph
-        G = Graph(edges, multiedges=True)
+        if directed:
+            from sage.graphs.digraph import DiGraph
+            G = DiGraph(edges, multiedges=True)
+        else:
+            from sage.graphs.graph import Graph
+            G = Graph(edges, multiedges=True)
         G.add_vertices(T)
         G = G.copy(immutable=True)
         if have_dot2tex():

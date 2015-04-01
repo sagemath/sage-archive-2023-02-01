@@ -224,7 +224,7 @@ class RegularCrystals(Category_singleton):
             tester.assertTrue(goodness)
             return goodness
 
-        def dual_equivalence_graph(self, X=None, index_set=None):
+        def dual_equivalence_graph(self, X=None, index_set=None, directed=True):
             r"""
             Return the dual equivalence graph indexed by ``index_set``
             of the set ``X`` in ``self``.
@@ -238,6 +238,14 @@ class RegularCrystals(Category_singleton):
 
             We can do the inverse procedure by interchanging `i` and `i-1`
             above.
+
+            INPUT:
+
+            - ``X`` -- (optional) the vertex set
+            - ``index_set`` -- (optional) the set of possible indices
+            - ``directed`` -- (default: ``True``) whether to have the dual
+              equivalence graph be directed, where the head is `b` and the
+              tail is `b' = f_{i-1} f_i e_{i-1} e_i b`
 
             .. SEEALSO::
 
@@ -268,6 +276,7 @@ class RegularCrystals(Category_singleton):
                  ([[1, 2, 4], [3, 5]], [[1, 2, 3], [4, 5]], 3),
                  ([[1, 2, 3], [4, 5]], [[1, 2, 4], [3, 5]], 4)]
 
+                sage: T = crystals.Tableaux(['A',4], shape=[3,1])
                 sage: G = T.dual_equivalence_graph(index_set=[1,2,3])
                 sage: G.vertices()
                 [[[1, 3, 4], [2]], [[1, 2, 4], [3]], [[1, 2, 3], [4]]]
@@ -277,6 +286,7 @@ class RegularCrystals(Category_singleton):
 
             TESTS::
 
+                sage: T = crystals.Tableaux(['A',4], shape=[3,1])
                 sage: G = T.dual_equivalence_graph(index_set=[2,3])
                 sage: sorted(G.edges())
                 [([[1, 2, 4], [3]], [[1, 2, 3], [4]], 3),

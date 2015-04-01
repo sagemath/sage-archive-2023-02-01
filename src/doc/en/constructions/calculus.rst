@@ -90,33 +90,41 @@ You can find critical points of a piecewise defined function:
 Power series
 ------------
 
-Taylor series:
+Sage offers several ways to construct and work with power series.
 
-::
+To get Taylor series from function expressions use the method
+``.taylor()`` on the expression::
 
     sage: var('f0 k x')
     (f0, k, x)
     sage: g = f0/sinh(k*x)^4
     sage: g.taylor(x, 0, 3)
     -62/945*f0*k^2*x^2 + 11/45*f0 - 2/3*f0/(k^2*x^2) + f0/(k^4*x^4)
-    sage: maxima(g).powerseries('_SAGE_VAR_x',0)    # TODO: write this without maxima
-    16*_SAGE_VAR_f0*('sum((2^(2*i1-1)-1)*bern(2*i1)*_SAGE_VAR_k^(2*i1-1)*_SAGE_VAR_x^(2*i1-1)/factorial(2*i1),i1,0,inf))^4
 
-Of course, you can view the LaTeX-ed version of this using
-``view(g.powerseries('x',0))``.
+Formal power series expansions of functions can be had with the
+``.series()`` method::
 
-The Maclaurin and power series of
-:math:`\log({\frac{\sin(x)}{x}})`:
+    sage: (1/(2-cos(x))).series(x,7)
+    1 + (-1/2)*x^2 + 7/24*x^4 + (-121/720)*x^6 + Order(x^7)
 
-::
+Such series lack the ability to be fully manipulatable at the moment,
+however. There are two alternatives: either use the Maxima subsystem of
+Sage for full symbolic functionality::
 
     sage: f = log(sin(x)/x)
     sage: f.taylor(x, 0, 10)
     -1/467775*x^10 - 1/37800*x^8 - 1/2835*x^6 - 1/180*x^4 - 1/6*x^2
-    sage: [bernoulli(2*i) for i in range(1,7)]
-    [1/6, -1/30, 1/42, -1/30, 5/66, -691/2730]
-    sage: maxima(f).powerseries(x,0)    # TODO: write this without maxima
-    'sum((-1)^i3*2^(2*i3-1)*bern(2*i3)*_SAGE_VAR_x^(2*i3)/(i3*factorial(2*i3)),i3,1,inf)
+    sage: maxima(f).powerseries(x,0)._sage_()
+    sum(2^(2*i4 - 1)*(-1)^i4*x^(2*i4)*bern(2*i4)/(i4*factorial(2*i4)), i4, 1, +Infinity)
+
+Or you can use one the formal power series rings for fast computation.
+These are missing symbolic functions, on the other hand::
+
+    sage: R.<w> = QQ[[]]
+    sage: ps = w + 17/2*w^2 + 15/4*w^4 + O(w^6)
+    sage: (ps^1000).coefficients()
+    [1, 8500, 36088875, 102047312625, 1729600092867375/8]
+
 
 .. index::
    pair: calculus; integration

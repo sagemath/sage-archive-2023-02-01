@@ -872,16 +872,18 @@ A function has been given as input of the floor=[...] or ceiling=[...]
 arguments of IntegerListsLex. Please see the documentation for the caveats.
 If you know what you are doing, you can set check=False to skip this warning.""")
 
-        # In case we want output to be of a different type,
-        if element_constructor is not None:
-            self._element_constructor_ = element_constructor
-        self._element_constructor_is_copy_safe = \
-            self._element_constructor is list or self._element_constructor is tuple
+        # Customization of the class and constructor for the elements
         if element_class is not None:
             self.Element = element_class
+        if element_constructor is not None:
+            self._element_constructor_ = element_constructor
+        elif issubclass(self.Element, ClonableArray):
+            # Not all element class support check=False
+            self._element_constructor_ = self._element_constructor_nocheck
+        self._element_constructor_is_copy_safe = \
+            self._element_constructor is list or self._element_constructor is tuple
         if global_options is not None:
             self.global_options = global_options
-
 
         Parent.__init__(self, category=category)
 
@@ -1757,6 +1759,29 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
             return False
 
+    def _element_constructor_nocheck(self, l):
+        r"""
+        A variant of the standard element constructor that passes
+        ``check=False`` to the element class.
+
+        EXAMPLES::
+
+            sage: L = IntegerListsLex(4, max_slope=0)
+            sage: L._element_constructor_nocheck([1,2,3])
+            [1, 2, 3]
+
+        When relevant, this is assigned to
+        ``self._element_constructor`` by :meth:`__init__`, to avoid
+        overhead when constructing elements from trusted data in the
+        iterator::
+
+            sage: L._element_constructor_
+            <bound method IntegerListsLex._element_constructor_nocheck of ...>
+            sage: L._element_constructor([1,2,3])
+            [1, 2, 3]
+        """
+        return self.element_class(self, l, check=False)
+
     class Element(ClonableArray):
         """
         Element class for :class:`IntegerListsLex`.
@@ -1771,11 +1796,10 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: C = IntegerListsLex(4)
                 sage: C([4]).check()
                 True
-                sage: C([5]).check()
+                sage: C([5]).check()   # not implemented
                 False
             """
-            # We trust that the parent gives us correct input
-            # return self.parent().__contains__(self)
+            return self.parent().__contains__(self)
 
 class Envelope(object):
     """

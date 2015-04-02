@@ -992,6 +992,8 @@ If you know what you are doing, you can set check=False to skip this warning."""
             []
             sage: IntegerListsLex(max_part=0).list()
             [[]]
+            sage: IntegerListsLex(max_sum=1, min_sum=4, min_slope=0).list()
+            []
         """
         message = "Could not check that the specified constraints yield a finite set"
         # since self._warning is False, the floor has been constructed
@@ -1015,6 +1017,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             if (self._min_slope == 0 and
                 self._max_slope  > 0 and
                 self._max_sum    > 0 and # this is assuming that we remove trailing zeroes
+                self._max_sum   >= self._min_sum and
                 s==0):
                 raise ValueError(message)
 

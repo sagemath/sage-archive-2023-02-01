@@ -9165,6 +9165,10 @@ class FiniteStateMachine(SageObject):
           from inputs of length at most ``max_length`` will be
           considered.
 
+        - ``kwargs`` -- will be passed on to to the :class:`process
+          iterator <FSMProcessIterator>`. See :meth:`process` for a
+          description.
+
         OUTPUT:
 
         An iterator.
@@ -10095,6 +10099,10 @@ class Automaton(FiniteStateMachine):
 
         - ``max_length`` -- an integer. Only inputs of length at most
           ``max_length`` will be considered.
+
+        - ``kwargs`` -- will be passed on to to the :class:`process
+          iterator <FSMProcessIterator>`. See :meth:`process` for a
+          description.
 
         OUTPUT:
 

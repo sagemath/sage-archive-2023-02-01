@@ -52,6 +52,7 @@ Accessing parts of a finite state machine
     :meth:`~FiniteStateMachine.empty_copy` | Returns an empty deep copy
     :meth:`~FiniteStateMachine.deepcopy` | Returns a deep copy
     :meth:`~FiniteStateMachine.relabeled` | Returns a relabeled deep copy
+    :meth:`Automaton.transducer` | Extends an automaton to a transducer
 
 
 Manipulation
@@ -9941,6 +9942,51 @@ class Automaton(FiniteStateMachine):
             return (accept_input, current_state)
         else:
             return accept_input
+
+
+    def transducer(self, word_out_function=None):
+        r"""
+        Constructs a transducer out of this automaton.
+
+        INPUT:
+
+        ``word_out_function`` -- (default: ``None``) a function. It
+          transforms a :class:`transition <FSMTransition>` to the
+          output word for this transition.
+
+          If this is ``None``, then the output word will be equal to
+          the input word of each transition.
+
+        OUTPUT:
+
+        A transducer.
+
+        EXAMPLES::
+
+            sage: A = Automaton([(0, 0, 'A'), (0, 1, 'B'), (1, 2, 'C')])
+            sage: T = A.transducer(); T
+            Transducer with 3 states
+            sage: T.transitions()
+            [Transition from 0 to 0: 'A'|'A',
+             Transition from 0 to 1: 'B'|'B',
+             Transition from 1 to 2: 'C'|'C']
+
+        ::
+
+            sage: T2 = A.transducer(lambda t: [c.lower() for c in t.word_in])
+            sage: T2.transitions()
+            [Transition from 0 to 0: 'A'|'a',
+             Transition from 0 to 1: 'B'|'b',
+             Transition from 1 to 2: 'C'|'c']
+        """
+        if word_out_function is None:
+            word_out_function = lambda transition: copy(transition.word_in)
+        new = Transducer()
+        memo = dict()
+        new._copy_from_other_(self, memo=memo)
+        for t in new.iter_transitions():
+            t.word_out = word_out_function(t)
+        return new
 
 #*****************************************************************************
 

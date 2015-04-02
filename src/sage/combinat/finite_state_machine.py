@@ -5596,6 +5596,10 @@ class FiniteStateMachine(SageObject):
           iteration process (instead of only storing it after a branch
           of the process finished).
 
+        - ``process_iterator_class`` -- (default: ``None``) a class
+          inherited from :class:`FSMProcessIterator`. If ``None``,
+          then :class:`FSMProcessIterator` is taken.
+
         OUTPUT:
 
         A triple (or a list of triples,
@@ -5897,7 +5901,8 @@ class FiniteStateMachine(SageObject):
         return (accept_input, current_state, output)
 
 
-    def iter_process(self, input_tape=None, initial_state=None, **kwargs):
+    def iter_process(self, input_tape=None, initial_state=None,
+                     process_iterator_class=None, **kwargs):
         """
         This function returns an instance of
         :class:`FSMProcessIterator`. See :meth:`.process` (which runs
@@ -5931,7 +5936,9 @@ class FiniteStateMachine(SageObject):
             :meth:`~FiniteStateMachine.__call__`,
             :class:`FSMProcessIterator`.
         """
-        return FSMProcessIterator(self,
+        if process_iterator_class is None:
+            process_iterator_class = FSMProcessIterator
+        return process_iterator_class(self,
                                   input_tape=input_tape,
                                   initial_state=initial_state,
                                   **kwargs)
@@ -9725,6 +9732,10 @@ class Automaton(FiniteStateMachine):
           iteration process (instead of only storing it after a branch
           of the process finished).
 
+        - ``process_iterator_class`` -- (default: ``None``) a class
+          inherited from :class:`FSMProcessIterator`. If ``None``,
+          then :class:`FSMProcessIterator` is taken.
+
         OUTPUT:
 
         The full output is a pair (or a list of pairs,
@@ -10626,6 +10637,10 @@ class Transducer(FiniteStateMachine):
           If ``True``, then the output is stored in each step of the
           iteration process (instead of only storing it after a branch
           of the process finished).
+
+        - ``process_iterator_class`` -- (default: ``None``) a class
+          inherited from :class:`FSMProcessIterator`. If ``None``,
+          then :class:`FSMProcessIterator` is taken.
 
         OUTPUT:
 

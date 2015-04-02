@@ -346,9 +346,9 @@ class Semigroups(CategoryWithAxiom):
 
             INPUT:
 
-            - ``generators`` -- a family of elements of ``self``, or
-              a list, iterable, ... that can be converted into one
-              (see :class:`Family`).
+            - ``generators`` -- a finite family of elements of
+              ``self``, or a list, iterable, ... that can be converted
+              into one (see :class:`Family`).
 
             - ``one`` -- a unit for the subsemigroup, or ``None``.
 

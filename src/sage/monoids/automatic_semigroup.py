@@ -1,16 +1,19 @@
+# -*- coding: utf-8 -*-
 """
-Automatic semigroups.
+Semigroups defined by generators living in an ambient semigroup and represented by an automaton.
 
 AUTHORS:
 
-- Nicolas M. Thiery
+- Nicolas M. Thiéry
 - Aladin Virmaux
 """
-
 #*****************************************************************************
-#  Copyright (C) 2010-2015 Nicolas M. Thiery
+#       Copyright (C) 2010-2015 Nicolas M. Thiéry
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -50,7 +53,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         sage: g[1]*g[2]
         3
         sage: M.some_elements()
-        A submonoid of (Ring of integers modulo 12) with 2 generators
+        [1, 3, 5, 9]
 
         sage: M.list()
         [1, 3, 5, 9]
@@ -252,11 +255,11 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
             sage: M.ambient() == R
             True
             sage: AutomaticSemigroup((0,)).category()
-            Join of Category of subquotients of semigroups and Category of commutative magmas and Category of subobjects of sets
+            Join of Category of finitely generated semigroups and Category of subquotients of semigroups and Category of commutative magmas and Category of subobjects of sets
             sage: AutomaticSemigroup((0,), one=1).category()
-            Join of Category of subquotients of monoids and Category of commutative monoids and Category of subobjects of sets
+            Join of Category of subquotients of monoids and Category of commutative monoids and Category of finitely generated semigroups and Category of subobjects of sets
             sage: AutomaticSemigroup((0,), one=0).category()
-            Join of Category of commutative monoids and Category of subquotients of semigroups and Category of subobjects of sets
+            Join of Category of commutative monoids and Category of finitely generated semigroups and Category of subquotients of semigroups and Category of subobjects of sets
             sage: AutomaticSemigroup((0,), mul=operator.add).category()
             Join of Category of semigroups and Category of subobjects of sets
             sage: AutomaticSemigroup((0,), one=0, mul=operator.add).category()
@@ -264,7 +267,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
 
             sage: S5 = SymmetricGroup(5)
             sage: AutomaticSemigroup([S5((1,2))]).category()
-            Join of Category of finite groups and Category of subquotients of monoids and Category of subquotients of finite sets and Category of subobjects of sets
+            Join of Category of finite groups and Category of subquotients of monoids and Category of finite finitely generated semigroups and Category of subquotients of finite sets and Category of subobjects of sets
 
         .. TODO::
 
@@ -294,7 +297,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         # Try to determine the most specific category
         # This logic should be in the categories
         if mul is operator.mul:
-            default_category = Semigroups()
+            default_category = Semigroups().FinitelyGenerated()
             if one is not None and one == ambient.one():
                 default_category = default_category.Unital()
             if ambient in Semigroups().Commutative():
@@ -562,6 +565,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
             Finite family {1: 3, 2: 5}
         """
         return self._generators
+    gens = semigroup_generators
 
     def __init__iter(self):
         """

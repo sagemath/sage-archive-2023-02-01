@@ -9155,15 +9155,16 @@ class FiniteStateMachine(SageObject):
         return equal(s.color for s in self.iter_states())
 
 
-    def language(self, max_length, **kwargs):
+    def language(self, max_length=None, **kwargs):
         r"""
         Return all words that can be written by this transducer.
 
         INPUT:
 
-        - ``max_length`` -- an integer. Only output words which come
-          from inputs of length at most ``max_length`` will be
-          considered.
+        - ``max_length`` -- an integer or ``None`` (default). Only
+          output words which come from inputs of length at most
+          ``max_length`` will be considered. If ``None``, then this
+          iterates over all possible words without length restrictions.
 
         - ``kwargs`` -- will be passed on to to the :class:`process
           iterator <FSMProcessIterator>`. See :meth:`process` for a
@@ -9190,6 +9191,20 @@ class FiniteStateMachine(SageObject):
              [-1, 0, 1],
              [0, 0, 1],
              [1, 0, 1]]
+
+        ::
+
+            sage: iterator = NAF.language()
+            sage: next(iterator)
+            []
+            sage: next(iterator)
+            [0]
+            sage: next(iterator)
+            [1]
+            sage: next(iterator)
+            [0, 0]
+            sage: next(iterator)
+            [0, 1]
 
         .. SEEALSO::
 
@@ -10092,14 +10107,16 @@ class Automaton(FiniteStateMachine):
         return new
 
 
-    def language(self, max_length, **kwargs):
+    def language(self, max_length=None, **kwargs):
         r"""
         Return all words accepted by this automaton.
 
         INPUT:
 
-        - ``max_length`` -- an integer. Only inputs of length at most
-          ``max_length`` will be considered.
+        - ``max_length`` -- an integer or ``None`` (default). Only
+          inputs of length at most ``max_length`` will be
+          considered. If ``None``, then this iterates over all
+          possible words without length restrictions.
 
         - ``kwargs`` -- will be passed on to to the :class:`process
           iterator <FSMProcessIterator>`. See :meth:`process` for a

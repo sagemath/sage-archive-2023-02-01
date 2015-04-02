@@ -209,7 +209,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         sage: g[1] == g[1]*g[1]*g[1]
         True
         sage: M.__class__
-        <class 'sage.monoids.automatic_semigroup.AutomaticSemigroup_with_category'>
+        <class 'sage.monoids.automatic_semigroup.AutomaticMonoid_with_category'>
         sage: TestSuite(M).run()
 
         sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
@@ -313,6 +313,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         default_category = default_category.Subobjects() & Semigroups()
         if one is not None:
             default_category = default_category.Unital()
+            cls = AutomaticMonoid
 
         if category is None:
             category = default_category
@@ -536,22 +537,6 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         assert(x in self)
         return x.lift()
 
-    def one(self):
-        """
-        Return the unit of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
-            sage: R = IntegerModRing(21)
-            sage: M = AutomaticSemigroup((), one=R.one())
-            sage: M.one()
-            1
-            sage: M.one().parent() is M
-            True
-        """
-        return self._one
-
     def semigroup_generators(self):
         """
         Return the family of generators of ``self``.
@@ -560,7 +545,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
 
             sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: R = IntegerModRing(28)
-            sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
+            sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}))
             sage: M.semigroup_generators()
             Finite family {1: 3, 2: 5}
         """
@@ -835,7 +820,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
 
                 sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
                 sage: R = IntegerModRing(21)
-                sage: M = AutomaticSemigroup(Family(()), one=R.one())
+                sage: M = AutomaticSemigroup(Family([2]))
                 sage: m = M(2); m
                 2
                 sage: type(m)
@@ -882,7 +867,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
 
                 sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
                 sage: R = IntegerModRing(18)
-                sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
+                sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}))
                 sage: M.repr_element_method("reduced_word")
                 sage: m = M.an_element(); m
                 [1]
@@ -970,3 +955,45 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
             return self
 
         __deepcopy__ = __copy__
+
+class AutomaticMonoid(AutomaticSemigroup):
+
+    def one(self):
+        """
+        Return the unit of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
+            sage: R = IntegerModRing(21)
+            sage: M = R.submonoid(())
+            sage: M.one()
+            1
+            sage: M.one().parent() is M
+            True
+        """
+        return self._one
+
+    # This method takes the monoid generators and adds the unit
+    semigroup_generators = Monoids.ParentMethods.semigroup_generators.im_func
+
+    def monoid_generators(self):
+        """
+        Return the family of monoid generators of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
+            sage: R = IntegerModRing(28)
+            sage: M = R.submonoid(Family({1: R(3), 2: R(5)}))
+            sage: M.monoid_generators()
+            Finite family {1: 3, 2: 5}
+
+        Note that the monoid generators do not include the unit,
+        unlike the semigroup generators::
+
+            sage: M.semigroup_generators()
+            Family (1, 3, 5)
+        """
+        return self._generators
+    gens = monoid_generators

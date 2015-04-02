@@ -299,6 +299,7 @@ class Semigroups(CategoryWithAxiom):
               ``side``, ``simple``, and ``elements`` options, ...
             """
             from sage.graphs.digraph import DiGraph
+            from monoids import Monoids
             from groups import Groups
             if not side in ["left", "right", "twosided"]:
                 raise ValueError("option 'side' must be 'left', 'right' or 'twosided'")
@@ -315,7 +316,10 @@ class Semigroups(CategoryWithAxiom):
             if connecting_set is not None:
                 generators = connecting_set
             if generators is None:
-                generators = self.semigroup_generators()
+                if self in Monoids and hasattr(self, "monoid_generators"):
+                    generators = self.monoid_generators()
+                else:
+                    generators = self.semigroup_generators()
             if isinstance(generators, (list, tuple)):
                 generators = dict((self(g), self(g)) for g in generators)
             left  = (side == "left"  or side == "twosided")

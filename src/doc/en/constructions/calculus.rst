@@ -107,7 +107,7 @@ Formal power series expansions of functions can be had with the
     sage: (1/(2-cos(x))).series(x,7)
     1 + (-1/2)*x^2 + 7/24*x^4 + (-121/720)*x^6 + Order(x^7)
 
-Such series lack the ability to be fully manipulatable at the moment,
+Certain manipulations on such series are hard to perform at the moment,
 however. There are two alternatives: either use the Maxima subsystem of
 Sage for full symbolic functionality::
 
@@ -117,7 +117,7 @@ Sage for full symbolic functionality::
     sage: maxima(f).powerseries(x,0)._sage_()
     sum(2^(2*i4 - 1)*(-1)^i4*x^(2*i4)*bern(2*i4)/(i4*factorial(2*i4)), i4, 1, +Infinity)
 
-Or you can use one the formal power series rings for fast computation.
+Or you can use the formal power series rings for fast computation.
 These are missing symbolic functions, on the other hand::
 
     sage: R.<w> = QQ[[]]

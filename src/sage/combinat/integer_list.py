@@ -1351,6 +1351,8 @@ If you know what you are doing, you can set check=False to skip this warning."""
             while True:
                 assert self._j == len(self._current_list) - 1
                 assert self._j == len(self._search_ranges) - 1
+
+                # LOOK AHEAD
                 if self._next_state == LOOKAHEAD:
                     m = self._current_list[-1]
                     if self._possible_m(m, self._j,
@@ -1366,24 +1368,26 @@ If you know what you are doing, you can set check=False to skip this warning."""
                             self._next_state = POP
                         else:
                             self._next_state = DECREASE
+
+                # PUSH
                 if self._next_state == PUSH:
                     if self._push_search():
                         self._next_state = LOOKAHEAD
                         continue
                     self._next_state = ME
+
+                # ME
                 if self._next_state == ME:
                     if self._j == -1:
                         self._next_state = STOP
                     else:
                         self._next_state = DECREASE
                     if self._internal_list_valid():
-                        if p._element_constructor_is_copy_safe:
-                            # The constructor is safe and don't claim
-                            # ownership on the input list. No need to
-                            # make a copy.
-                            return p._element_constructor_(self._current_list)
-                        else:
-                            return p._element_constructor_(list(self._current_list))
+                        return p._element_constructor_(self._current_list
+                                                       if p._element_constructor_is_copy_safe
+                                                       else self._current_list[:])
+
+                # DECREASE
                 if self._next_state == DECREASE:
                     self._current_list[-1] -= 1
                     self._current_sum -= 1
@@ -1391,12 +1395,17 @@ If you know what you are doing, you can set check=False to skip this warning."""
                         self._next_state = LOOKAHEAD
                         continue
                     self._next_state = POP
+
+                # POP
                 if self._next_state == POP:
                     self._pop_search()
                     self._next_state = ME
                     continue
+
+                # STOP
                 if self._next_state == STOP:
                     raise StopIteration()
+
                 assert False
 
         def _internal_list_valid(self):

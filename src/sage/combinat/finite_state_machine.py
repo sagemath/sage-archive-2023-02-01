@@ -10084,6 +10084,51 @@ class Automaton(FiniteStateMachine):
             t.word_out = word_out_function(t)
         return new
 
+
+    def language(self, max_length, **kwargs):
+        r"""
+        Return all words accepted by this automaton.
+
+        INPUT:
+
+        - ``max_length`` -- an integer. Only inputs of length at most
+          ``max_length`` will be considered.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: NAF = Automaton(
+            ....:     {'A': [('A', 0), ('B', 1), ('B', -1)],
+            ....:      'B': [('A', 0)]},
+            ....:     initial_states=['A'], final_states=['A', 'B'])
+            sage: list(NAF.language(3))
+            [[],
+             [0], [-1], [1],
+             [-1, 0], [0, 0], [1, 0], [0, -1], [0, 1],
+             [-1, 0, 0], [0, -1, 0], [0, 0, 0], [0, 1, 0], [1, 0, 0],
+             [-1, 0, -1], [-1, 0, 1], [0, 0, -1],
+             [0, 0, 1], [1, 0, -1], [1, 0, 1]]
+
+        .. SEEALSO::
+
+            :meth:`FiniteStateMachine.language`
+
+        TESTS::
+
+            sage: def R(ell):
+            ....:     return (2^(ell+2)-(-1)^ell)/3
+            sage: import itertools
+            sage: all(len(list(NAFs)) == R(ell) for ell, NAFs in
+            ....:     itertools.groupby(NAF.language(5), key=len))
+            True
+        """
+        T = self.transducer()
+        return T.language(max_length)
+
+
 #*****************************************************************************
 
 

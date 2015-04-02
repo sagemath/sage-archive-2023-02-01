@@ -1586,3 +1586,69 @@ class ClusterQuiver(SageObject):
             return is_finite, path
         else:
             return is_finite
+
+    def fan(self):
+        """
+        Return the cluster fan associated with the quiver.
+
+        This is a complete simplicial (and even smooth) fan. It only makes
+        sense for acyclic quivers of finite type.
+
+        This fan is defined using the denominator vectors of the cluster
+        variables. Cones are in correspondance with clusters and
+        rays with cluster variables.
+
+        More precisely, starting from the seed made of the quiver `Q`
+        with `n` vertices and variables `x_1, ..., x_n`, one obtains
+        by iterating mutation a finite set of seeds. Each of these
+        seeds is made of a quiver and `n` cluster variables (that form
+        a cluster).
+
+        Each cluster variable is mapped to a vector `d` in `\ZZ^n` by
+        using its denominator written as
+
+        .. MATH::
+
+            \prod_{i=1}^{n} x_i^d_i.
+
+        By convention the denominator of each initial variable `x_i` is
+        `x_i^{-1}`.
+
+        Using this map, every cluster defines a cone in `\ZZ^n`. These
+        are the maximal cones of the cluster fan.
+
+        EXAMPLES::
+
+            sage: F = ClusterQuiver(DiGraph({0:[1]})).fan(); F
+            Rational polyhedral fan in 2-d lattice N
+            sage: F.ngenerating_cones()
+            5
+
+            sage: F = ClusterQuiver(['A',3]).fan(); F
+            Rational polyhedral fan in 3-d lattice N
+            sage: F.ngenerating_cones()
+            14
+            sage: F.is_smooth()
+            True
+
+        TESTS::
+
+            sage: ClusterQuiver(DiGraph({0:[1],1:[2],2:[0]})).fan()
+            Traceback (most recent call last):
+            ...
+            ValueError: only makes sense for acyclic quivers of finite type
+        """
+        from cluster_seed import ClusterSeed
+        from sage.geometry.fan import Fan
+        from sage.geometry.cone import Cone
+        from sage.modules.free_module_element import vector
+
+        if not(self.is_finite() and self.is_acyclic()):
+            raise ValueError('only makes sense for acyclic quivers'
+                             ' of finite type')
+        seed = ClusterSeed(self)
+        # could maybe use a direct custom "denominator" function
+        # instead of going through almost_positive_roots
+        return Fan([Cone([vector(v.almost_positive_root())
+                          for v in s.cluster()])
+                    for s in seed.mutation_class()])

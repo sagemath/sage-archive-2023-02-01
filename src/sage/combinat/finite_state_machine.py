@@ -9193,7 +9193,8 @@ class FiniteStateMachine(SageObject):
 
         .. SEEALSO::
 
-            :meth:`Automaton.language`
+            :meth:`Automaton.language`,
+            :meth:`process`.
 
         TESTS::
 
@@ -10124,7 +10125,8 @@ class Automaton(FiniteStateMachine):
 
         .. SEEALSO::
 
-            :meth:`FiniteStateMachine.language`
+            :meth:`FiniteStateMachine.language`,
+            :meth:`process`.
 
         TESTS::
 

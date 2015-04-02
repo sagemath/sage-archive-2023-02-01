@@ -5591,6 +5591,11 @@ class FiniteStateMachine(SageObject):
           process iterator is activated. See also the notes below for
           multi-tape machines.
 
+        - ``write_in_every_step`` -- (default: ``False``) a boolean.
+          If ``True``, then the output is stored in each step of the
+          iteration process (instead of only storing it after a branch
+          of the process finished).
+
         OUTPUT:
 
         A triple (or a list of triples,
@@ -9715,6 +9720,11 @@ class Automaton(FiniteStateMachine):
           process iterator is activated. See also the notes below for
           multi-tape machines.
 
+        - ``write_in_every_step`` -- (default: ``False``) a boolean.
+          If ``True``, then the output is stored in each step of the
+          iteration process (instead of only storing it after a branch
+          of the process finished).
+
         OUTPUT:
 
         The full output is a pair (or a list of pairs,
@@ -10611,6 +10621,11 @@ class Transducer(FiniteStateMachine):
           boolean. If ``True``, then the multi-tape mode of the
           process iterator is activated. See also the notes below for
           multi-tape machines.
+
+        - ``write_in_every_step`` -- (default: ``False``) a boolean.
+          If ``True``, then the output is stored in each step of the
+          iteration process (instead of only storing it after a branch
+          of the process finished).
 
         OUTPUT:
 

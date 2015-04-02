@@ -48,7 +48,7 @@ decode_type_number = {
 ### helper functions to construct lists and records ########################
 ############################################################################
 
-cdef libGAP_Obj make_gap_list(sage_list):
+cdef libGAP_Obj make_gap_list(sage_list) except NULL:
     """
     Convert Sage lists into Gap lists
 
@@ -68,7 +68,7 @@ cdef libGAP_Obj make_gap_list(sage_list):
     return l.value
 
 
-cdef libGAP_Obj make_gap_record(sage_dict):
+cdef libGAP_Obj make_gap_record(sage_dict) except NULL:
     """
     Convert Sage lists into Gap lists
 
@@ -100,7 +100,7 @@ cdef libGAP_Obj make_gap_record(sage_dict):
     return rec
 
 
-cdef libGAP_Obj make_gap_integer(sage_int):
+cdef libGAP_Obj make_gap_integer(sage_int) except NULL:
     """
     Convert Sage integer into Gap integer
 
@@ -123,7 +123,7 @@ cdef libGAP_Obj make_gap_integer(sage_int):
     return result
 
 
-cdef libGAP_Obj make_gap_string(sage_string):
+cdef libGAP_Obj make_gap_string(sage_string) except NULL:
     """
     Convert a Sage string to a Gap string
 

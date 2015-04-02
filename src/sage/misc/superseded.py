@@ -77,7 +77,7 @@ def deprecation(trac_number, message):
     - ``trac_number`` -- integer. The trac ticket number where the
       deprecation is introduced.
 
-    - ``message`` -- string. an explanation why things are deprecated
+    - ``message`` -- string. An explanation why things are deprecated
       and by what it should be replaced.
 
     EXAMPLES::

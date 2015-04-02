@@ -9153,6 +9153,81 @@ class FiniteStateMachine(SageObject):
         return equal(s.color for s in self.iter_states())
 
 
+    def language(self, max_length, **kwargs):
+        r"""
+        Return all words that can be written by this transducer.
+
+        INPUT:
+
+        - ``max_length`` -- an integer. Only output words which come
+          from inputs of length at most ``max_length`` will be
+          considered.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: NAF = Transducer([('I', 0, 0, None), ('I', 1, 1, None),
+            ....:                   (0, 0, 0, 0), (0, 1, 1, 0),
+            ....:                   (1, 0, 0, 1), (1, 2, 1, -1),
+            ....:                   (2, 1, 0, 0), (2, 2, 1, 0)],
+            ....:                  initial_states=['I'], final_states=[0],
+            ....:                  input_alphabet=[0, 1])
+            sage: sorted(NAF.language(4),
+            ....:        key=lambda o: (sum(d*2^e for e, d in enumerate(o)),
+            ....:                       len(o)))
+            [[], [0], [0, 0], [0, 0, 0],
+             [1], [1, 0], [1, 0, 0],
+             [0, 1], [0, 1, 0],
+             [-1, 0, 1],
+             [0, 0, 1],
+             [1, 0, 1]]
+
+        .. SEEALSO::
+
+            :meth:`Automaton.language`
+
+        TESTS::
+
+            sage: T = Transducer([(0, 1, 0, 'a'), (1, 2, 1, 'b')],
+            ....:                initial_states=[0], final_states=[0, 1, 2])
+            sage: T.determine_alphabets()
+            sage: list(T.language(2))
+            [[], ['a'], ['a', 'b']]
+            sage: list(T.language(3))
+            [[], ['a'], ['a', 'b']]
+            sage: from sage.combinat.finite_state_machine import  _FSMProcessIteratorAll_
+            sage: it = T.iter_process(
+            ....:     process_iterator_class=_FSMProcessIteratorAll_,
+            ....:     max_length=3,
+            ....:     write_in_every_step=True)
+            sage: for current in it:
+            ....:     print current
+            ....:     print "finished:", [o for accept, _, o in it._finished_]
+            process (1 branch)
+            + at state 1
+            +-- tape at 1, [['a']]
+            finished: [[]]
+            process (1 branch)
+            + at state 2
+            +-- tape at 2, [['a', 'b']]
+            finished: [[], ['a']]
+            process (0 branches)
+            finished: [[], ['a'], ['a', 'b']]
+        """
+        kwargs['process_iterator_class'] = _FSMProcessIteratorAll_
+        kwargs['max_length'] = max_length
+        kwargs['write_in_every_step'] = True
+        it = self.iter_process(**kwargs)
+        for _ in it:
+            for accept, _, o in it._finished_:
+                if accept:
+                    yield o
+            it._finished_ = []
+
+
 #*****************************************************************************
 
 

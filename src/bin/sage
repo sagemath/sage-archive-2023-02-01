@@ -365,7 +365,7 @@ fi
 
 if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
 	. "$SAGE_LOCAL"/bin/sage-version.sh
-	echo "Sage Version ${SAGE_VERSION}, Release Date: ${SAGE_RELEASE_DATE}"
+	echo "SageMath Version ${SAGE_VERSION}, Release Date: ${SAGE_RELEASE_DATE}"
 	exit 0
 fi
 

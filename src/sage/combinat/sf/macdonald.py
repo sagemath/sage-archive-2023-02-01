@@ -115,7 +115,7 @@ class Macdonald(UniqueRepresentation):
             sage: Sym = SymmetricFunctions(FractionField(QQ['t'])).macdonald()
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert string
+            TypeError: unable to evaluate 'q' in Fraction Field of Univariate Polynomial Ring in t over Rational Field
         """
         self._sym = Sym
         self._s = Sym.s()

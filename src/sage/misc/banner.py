@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Sage version and banner info
+SageMath version and banner info
 """
 
 #*****************************************************************************
@@ -25,14 +25,14 @@ def version(clone = False):
 
     EXAMPLES:
        sage: version()
-       'Sage Version ..., Release Date: ...'
+       'SageMath Version ..., Release Date: ...'
        sage: version(clone=True)
-       ('Sage Version ..., Release Date: ...',
+       ('SageMath Version ..., Release Date: ...',
         'Mercurial clone branch: ...')
     """
     import os
     branch = os.popen("ls -l "+SAGE_SRC).read().split()[-1][5:]
-    v = 'Sage Version %s, Release Date: %s'%(SAGE_VERSION, SAGE_DATE)
+    v = 'SageMath Version %s, Release Date: %s'%(SAGE_VERSION, SAGE_DATE)
     if clone:
         return v,"Mercurial clone branch: %s"%branch
     return v
@@ -54,7 +54,7 @@ def banner_text():
 
         sage: print sage.misc.banner.banner_text()
         ┌────────────────────────────────────────────────────────────────────┐
-        │ Sage Version ...
+        │ SageMath Version ...
     """
     bars = u"─"*68
     s = u'┌' + bars + u'┐'
@@ -91,7 +91,7 @@ def banner():
 
         sage: banner()
         ┌────────────────────────────────────────────────────────────────────┐
-        │ Sage Version ..., Release Date: ...
+        │ SageMath Version ..., Release Date: ...
         │ Type "notebook()" for the browser-based notebook interface.        │
         │ Type "help()" for help.                                            │
         ...
@@ -132,8 +132,8 @@ def version_dict():
 
     EXAMPLES:
         sage: from sage.misc.banner import version_dict
-        sage: print "Sage major version is %s" % version_dict()['major']
-        Sage major version is ...
+        sage: print "SageMath major version is %s" % version_dict()['major']
+        SageMath major version is ...
         sage: version_dict()['major'] == int(sage.version.version.split('.')[0])
         True
     """
@@ -191,7 +191,7 @@ def require_version(major, minor=0, tiny=0, prerelease=False,
         sage: require_version(821, 4)
         False
         sage: require_version(821, 4, print_message=True)
-        This code requires at least version 821.4 of Sage to run correctly.
+        This code requires at least version 821.4 of SageMath to run correctly.
         You are running version ...
         False
     """
@@ -206,7 +206,7 @@ def require_version(major, minor=0, tiny=0, prerelease=False,
         return True
     else:
         if print_message:
-            print("This code requires at least version {} of Sage to run correctly.". 
+            print("This code requires at least version {} of SageMath to run correctly.". 
                    format(major + 0.1 * minor + 0.01 * tiny))
             print("You are running version {}.".format(SAGE_VERSION))
         return False

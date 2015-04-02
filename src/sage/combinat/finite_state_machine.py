@@ -11799,6 +11799,11 @@ class FSMProcessIterator(SageObject, collections.Iterator):
       process iterator is activated. See also the notes below for
       multi-tape machines.
 
+    - ``write_in_every_step`` -- (default: ``False``) a boolean.
+      If ``True``, then the output is stored in each step of the
+      iteration process (instead of only storing it after a branch
+      of the process finished).
+
     OUTPUT:
 
     An iterator.
@@ -12047,6 +12052,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                  check_epsilon_transitions=True,
                  write_final_word_out=True,
                  format_output=None,
+                 write_in_every_step=False,
                  **kwargs):
         """
         See :class:`FSMProcessIterator` for more information.
@@ -12106,6 +12112,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         self.check_epsilon_transitions = check_epsilon_transitions
         self.write_final_word_out = write_final_word_out
+        self.write_in_every_step = write_in_every_step
 
         # init branches
         self._current_ = self.Current()
@@ -12436,14 +12443,26 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
             if not next_transitions:
                 # this branch has to end here...
-                if not (input_tape.finished() or state_said_finished):
+                if not (input_tape.finished() or
+                        state_said_finished or
+                        self.write_in_every_step):
                     return
+
+            if not next_transitions or self.write_in_every_step:
+                # this branch has to end here... (continued)
                 successful = current_state.is_final
+                if self.write_in_every_step:
+                    write_outputs = deepcopy(outputs)
+                else:
+                    write_outputs = outputs
                 if successful and self.write_final_word_out:
-                    write_word(outputs, current_state.final_word_out)
-                for o in outputs:
+                    write_word(write_outputs, current_state.final_word_out)
+                for o in write_outputs:
                     self._finished_.append((successful, current_state,
                                             self.format_output(o)))
+
+            if not next_transitions:
+                # this branch has to end here... (continued)
                 return
 
             # at this point we know that there is at least one

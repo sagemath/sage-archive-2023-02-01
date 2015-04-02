@@ -4488,35 +4488,59 @@ class Partition(CombinatorialObject, Element):
                        -sum(abs(variable+c) for c in inside_contents)
 
     @cached_method
-    def dual_equivalence_graph(self, directed=False):
+    def dual_equivalence_graph(self, directed=False, coloring=None):
         r"""
         Return the dual equivalence graph of ``self``.
 
-        Two permutations `p` and `q` differ by an `i`-*elementary dual
-        equivalence (or Knuth) relation*, when, in one line notation,
-        the letter `i` does not occur between `i-1` and `i+1`, and `q`
-        is obtained from `p` by switching the places of `i-1` and `i+1`.
+        Two permutations `p` and `q` in the symmetric group `S_n`
+        differ by an `i`-*elementary dual equivalence (or dual Knuth)
+        relation* (where `i` is an integer with `1 < i < n`) when the
+        following two conditions are satisfied:
+
+        - In the one-line notation of the permutation `p`, the letter
+          `i` appears either to the left of both `i-1` and `i+1`, or
+          to the right of both `i-1` and `i+1` (but not between the
+          two).
+
+        - The permutation `q` is obtained from `p` by switching two
+          of the three letters `i-1, i, i+1` (in its one-line
+          notation) -- namely, the leftmost and the rightmost one
+          in order of their appearance in `p`.
+
+        Notice that this is equivalent to the statement that the
+        permutations `p^{-1}` and `q^{-1}` differ by an elementary
+        Knuth equivalence at positions `i-1, i, i+1`.
 
         Two standard Young tableaux of shape `\lambda` differ by an
         `i`-elementary dual equivalence relation (of color `i`), if
-        their content reading words differ by an `i`-elementary dual
+        their reading words differ by an `i`-elementary dual
         equivalence relation.
 
-        The *dual equivalence graph* is the edge-colored graph formed by
-        the set of standard Young tableaux of shape `\lambda` where edges
-        colored by `i` are given by `i`-elementary dual equivalences.
+        The *dual equivalence graph* of the partition `\lambda` is the
+        edge-colored graph whose vertices are the standard Young
+        tableaux of shape `\lambda`, and whose edges colored by `i` are
+        given by the `i`-elementary dual equivalences.
 
         INPUT:
 
         - ``directed`` -- (default: ``False``) whether to have the dual
-          equivalence graph be directed, where the head is if the `i`
-          appears to the left of `i+1` in the initial reading word
+          equivalence graph be directed (where the head of an edge
+          `T - S` is `S` if `i` appears to the left of `i+1` in the
+          reading word of `T`, and `T` otherwise)
+
+        - ``coloring`` -- (optional) a function which sends each
+          integer `i > 1` to a color (as a string, e.g., ``'red'`` or
+          ``'black'``) to be used when visually representing the
+          resulting graph using dot2tex; the default choice is
+          ``2 -> 'red', 3 -> 'blue', 4 -> 'green', 5 -> 'purple',
+          6 -> 'brown', 7 -> 'orange', 8 -> 'yellow', anything greater
+          than 8 -> 'black'``.
 
         REFERENCES:
 
         .. [AssafDEG] Sami Assaf. *Dual equivalence graphs and a
            combinatorial proof of LLT and Macdonald positivity*.
-           (2008). :arxiv:`1005.3759`.
+           (2008). :arxiv:`1005.3759v5`.
 
         EXAMPLES::
 
@@ -4529,15 +4553,27 @@ class Partition(CombinatorialObject, Element):
              ([[1, 2, 5], [3], [4]], [[1, 3, 5], [2], [4]], 2),
              ([[1, 3, 4], [2], [5]], [[1, 3, 5], [2], [4]], 4),
              ([[1, 3, 5], [2], [4]], [[1, 4, 5], [2], [3]], 3)]
+            sage: G = P.dual_equivalence_graph(directed=True)
+            sage: sorted(G.edges())
+            [([[1, 2, 4], [3], [5]], [[1, 2, 3], [4], [5]], 3),
+             ([[1, 2, 5], [3], [4]], [[1, 2, 4], [3], [5]], 4),
+             ([[1, 3, 4], [2], [5]], [[1, 2, 4], [3], [5]], 2),
+             ([[1, 3, 5], [2], [4]], [[1, 2, 5], [3], [4]], 2),
+             ([[1, 3, 5], [2], [4]], [[1, 3, 4], [2], [5]], 4),
+             ([[1, 4, 5], [2], [3]], [[1, 3, 5], [2], [4]], 3)]
             sage: G = Partition([1]).dual_equivalence_graph()
             sage: G.vertices()
             [[[1]]]
+            sage: G = Partition([]).dual_equivalence_graph()
+            sage: G.vertices()
+            [[]]
         """
         T = list(tableau.StandardTableaux(self))
         n = sum(self)
         edges = []
         to_perms = {t: t.reading_word_permutation() for t in T}
         to_tab = {to_perms[k]: k for k in to_perms}
+        Perm = permutation.Permutations()
         for t in T:
             pt = list(to_perms[t])
             for i in range(2, n):
@@ -4545,15 +4581,15 @@ class Partition(CombinatorialObject, Element):
                 iip = pt.index(i+1)
                 iim = pt.index(i-1)
                 l = sorted([iim, ii, iip])
-                if l[1] == ii:
+                if l[0] != ii:
                     continue
                 x = pt[:]
                 x[l[0]], x[l[2]] = x[l[2]], x[l[0]]
                 if ii < iip:
-                    e = [t, to_tab[permutation.Permutation(x)], i]
+                    e = [t, to_tab[Perm(x)], i]
+                    edges.append(e)
                 else:
-                    e = [to_tab[permutation.Permutation(x)], t, i]
-                if e not in edges:
+                    e = [to_tab[Perm(x)], t, i]
                     edges.append(e)
 
         if directed:
@@ -4562,25 +4598,26 @@ class Partition(CombinatorialObject, Element):
         else:
             from sage.graphs.graph import Graph
             G = Graph(edges, multiedges=True)
-        G.add_vertices(T)
+        G.add_vertices(T) # Add isolated vertices.
         G = G.copy(immutable=True)
         if have_dot2tex():
-            def coloring(i):
-                if i == 2:
-                    return 'red'
-                if i == 3:
-                    return 'blue'
-                if i == 4:
-                    return 'green'
-                if i == 5:
-                    return 'purple'
-                if i == 6:
-                    return 'brown'
-                if i == 7:
-                    return 'orange'
-                if i == 8:
-                    return 'yellow'
-                return 'black'
+            if coloring is None:
+                def coloring(i):
+                    if i == 2:
+                        return 'red'
+                    if i == 3:
+                        return 'blue'
+                    if i == 4:
+                        return 'green'
+                    if i == 5:
+                        return 'purple'
+                    if i == 6:
+                        return 'brown'
+                    if i == 7:
+                        return 'orange'
+                    if i == 8:
+                        return 'yellow'
+                    return 'black'
             G.set_latex_options(format="dot2tex",
                                 edge_labels=True,
                                 color_by_label=coloring)

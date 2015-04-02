@@ -48,7 +48,7 @@ decode_type_number = {
 ### helper functions to construct lists and records ########################
 ############################################################################
 
-cdef libGAP_Obj make_gap_list(sage_list):
+cdef libGAP_Obj make_gap_list(sage_list) except NULL:
     """
     Convert Sage lists into Gap lists
 
@@ -68,7 +68,7 @@ cdef libGAP_Obj make_gap_list(sage_list):
     return l.value
 
 
-cdef libGAP_Obj make_gap_record(sage_dict):
+cdef libGAP_Obj make_gap_record(sage_dict) except NULL:
     """
     Convert Sage lists into Gap lists
 
@@ -100,7 +100,7 @@ cdef libGAP_Obj make_gap_record(sage_dict):
     return rec
 
 
-cdef libGAP_Obj make_gap_integer(sage_int):
+cdef libGAP_Obj make_gap_integer(sage_int) except NULL:
     """
     Convert Sage integer into Gap integer
 
@@ -123,7 +123,7 @@ cdef libGAP_Obj make_gap_integer(sage_int):
     return result
 
 
-cdef libGAP_Obj make_gap_string(sage_string):
+cdef libGAP_Obj make_gap_string(sage_string) except NULL:
     """
     Convert a Sage string to a Gap string
 
@@ -167,7 +167,9 @@ cdef GapElement make_any_gap_element(parent, libGAP_Obj obj):
         sage: type(T_CHAR)
         <type 'sage.libs.gap.element.GapElement_String'>
 
-        sage: t = libgap.eval("UnorderedTuples(['a', 'b', 'c'], 2)"); t
+        sage: libgap.eval("['a', 'b', 'c']")   # gap strings are also lists of chars
+        "abc"
+        sage: t = libgap.UnorderedTuples('abc', 2);  t
         [ "aa", "ab", "ac", "bb", "bc", "cc" ]
         sage: t[1]
         "ab"
@@ -880,7 +882,7 @@ cdef class GapElement(RingElement):
             ...
             ValueError: libGAP: Error, Variable: 'Infinity' must have a value
         """
-        if not PY_TYPE_CHECK(right, GapElement):
+        if not isinstance(right, GapElement):
             libgap = self.parent()
             right = libgap(right)
         cdef libGAP_Obj result
@@ -1867,7 +1869,7 @@ cdef class GapElement_String(GapElement):
         libgap_exit()
         return s
 
-
+    __str__ = sage
 
 ############################################################################
 ### GapElement_Function ####################################################

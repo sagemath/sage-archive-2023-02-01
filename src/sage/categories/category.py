@@ -323,7 +323,7 @@ class Category(UniqueRepresentation, SageObject):
 
         sage: Algebras(GF(5)).parent_class is Algebras(GF(7)).parent_class
         True
-        sage: Coalgebras(QQ).parent_class is Coalgebras(FractionField(QQ[x])).parent_class
+        sage: Coalgebras(QQ).parent_class is Coalgebras(FractionField(QQ['x'])).parent_class
         True
 
     We now construct a parent in the usual way::
@@ -1047,13 +1047,13 @@ class Category(UniqueRepresentation, SageObject):
         shall preserve more structure (e.g. operations) than that
         specified by the super categories of `C`. For example, the
         category of magmas defines additional structure, namely the
-        operation `+` that shall be preserved by magma morphisms.  On
-        the other and the category of rings does not define additional
+        operation `*` that shall be preserved by magma morphisms. On
+        the other hand the category of rings does not define additional
         structure: a function between two rings that is both a unital
         magma morphism and a unital additive magma morphism is
         automatically a ring morphism.
 
-        Formally speaking `C` *defines additional structure* if `C`,
+        Formally speaking `C` *defines additional structure*, if `C`
         is *not* a full subcategory of the join of its super
         categories: the morphisms need to preserve more structure, and
         thus the homsets are smaller.
@@ -1098,15 +1098,15 @@ class Category(UniqueRepresentation, SageObject):
             sage: MagmaticAlgebras(QQ).Unital().additional_structure()
 
         As of Sage 6.4, the only exceptions are the category of unital
-        magmas or the category of additive magmas (both define a unit
-        which shall be preserved by morphisms)::
+        magmas or the category of unital additive magmas (both define
+        a unit which shall be preserved by morphisms)::
 
             sage: Magmas().Unital().additional_structure()
             Category of unital magmas
             sage: AdditiveMagmas().AdditiveUnital().additional_structure()
             Category of additive unital additive magmas
 
-        Similarly :ref:`functorial construction categories
+        Similarly, :ref:`functorial construction categories
         <category-primer-functorial-constructions>` don't define
         additional structure, unless the construction is actually
         defined by their base category. For example, the category of
@@ -1155,18 +1155,18 @@ class Category(UniqueRepresentation, SageObject):
             settled. For example, should by default:
 
             - an euclidean domain morphism preserve euclidean
-              division?::
+              division? ::
 
                   sage: EuclideanDomains().additional_structure()
                   Category of euclidean domains
 
             - an enumerated set morphism preserve the distinguished
-              enumeration?::
+              enumeration? ::
 
                   sage: EnumeratedSets().additional_structure()
 
             - a module with basis morphism preserve the distinguished
-              basis?::
+              basis? ::
 
                   sage: Modules(QQ).WithBasis().additional_structure()
 
@@ -1297,7 +1297,7 @@ class Category(UniqueRepresentation, SageObject):
 
             The latter is a consequence of :class:`EuclideanDomains`
             currently being a structure category. Is this what we
-            want?::
+            want? ::
 
                 sage: EuclideanDomains().is_full_subcategory(Rings())
                 False

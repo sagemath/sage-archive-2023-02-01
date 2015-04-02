@@ -409,7 +409,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             if self.dynkin_diagram().rank() == 1:
                 return self.simple_roots()[self.index_set()[0]]
-            longest=self.dynkin_diagram().edge_iterator().next()
+            longest=next(self.dynkin_diagram().edge_iterator())
             for j in self.dynkin_diagram().edge_iterator():
                 if j[2]>longest[2]:
                     longest=j
@@ -714,10 +714,12 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             """
             if not self.cartan_type().is_finite():
-                raise NotImplementedError, "Only implemented for finite Cartan type"
+                raise NotImplementedError("Only implemented for "
+                                          "finite Cartan type")
             if index_set is None:
                 return []
-            return [x for x in self.positive_roots() if not x in self.positive_roots(index_set)]
+            return [x for x in self.positive_roots()
+                    if not x in self.positive_roots(index_set)]
 
         @cached_method
         def nonparabolic_positive_root_sum(self, index_set=None):
@@ -877,9 +879,9 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: L = RootSystem(['C',2]).root_lattice()
                 sage: L.positive_roots_by_height()
-                [alpha[1], alpha[2], alpha[1] + alpha[2], 2*alpha[1] + alpha[2]]
+                [alpha[2], alpha[1], alpha[1] + alpha[2], 2*alpha[1] + alpha[2]]
                 sage: L.positive_roots_by_height(increasing = False)
-                [2*alpha[1] + alpha[2], alpha[1] + alpha[2], alpha[1], alpha[2]]
+                [2*alpha[1] + alpha[2], alpha[1] + alpha[2], alpha[2], alpha[1]]
 
                 sage: L = RootSystem(['A',2,1]).root_lattice()
                 sage: L.positive_roots_by_height()
@@ -1035,20 +1037,26 @@ class RootLatticeRealizations(Category_over_base_ring):
                 [[alpha[1] + alpha[2], alpha[1] + 2*alpha[2]],
                  [alpha[1], alpha[1] + alpha[2]],
                  [alpha[2], alpha[1] + alpha[2]]]
+
+            TESTS:
+
+            Check that trac:`17982` is fixed::
+
+                sage: RootSystem(['A', 2]).ambient_space().root_poset()
+                Finite poset containing 3 elements
             """
             from sage.combinat.posets.posets import Poset
             rels = []
-            dim = self.dimension()
             pos_roots = set(self.positive_roots())
             simple_roots = self.simple_roots()
             if restricted:
-                pos_roots = [ beta for beta in pos_roots if beta not in simple_roots ]
+                pos_roots = [beta for beta in pos_roots if beta not in simple_roots]
             for root in pos_roots:
-                for i in range(1,dim+1):
-                    root_cover = root + simple_roots[i]
+                for simple_root in simple_roots:
+                    root_cover = root + simple_root
                     if root_cover in pos_roots:
-                        rels.append((root,root_cover))
-            return Poset((pos_roots,rels),cover_relations=True,facade=facade)
+                        rels.append((root, root_cover))
+            return Poset((pos_roots, rels), cover_relations=True, facade=facade)
 
         def nonnesting_partition_lattice(self, facade=False):
             r"""
@@ -1594,29 +1602,6 @@ class RootLatticeRealizations(Category_over_base_ring):
             # Should this use rename to set a nice name for this family?
             res.rename("pi")
             return res
-
-        @lazy_attribute
-        def pi(self):
-            r"""
-            The simple projections of ``self``
-
-            .. seealso:: :meth:`simple_projections`
-
-            .. warning:: this shortcut is deprecated
-
-            EXAMPLES::
-
-                sage: space = RootSystem(['A',2]).weight_lattice()
-                sage: pi = space.pi
-                sage: x = space.simple_roots()
-                sage: pi[1](x[2])
-                -Lambda[1] + 2*Lambda[2]
-            """
-            # _test_not_implemented_methods apparently evaluates all lazy
-            # attributes, which means that we can't use deprecation here!
-            # from sage.misc.superseded import deprecation
-            # deprecation(trac_number, "The lazy attribute pi is deprecated; please use the simple_projections method.")
-            return self.simple_projections()
 
         ##########################################################################
         # Weyl group
@@ -3437,18 +3422,15 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: (-Lambda[1]+Lambda[2]).is_dominant()
                 False
 
-            .. warning::
+           Tests that the scalar products with the coroots are all
+           nonnegative integers. For example, if `x` is the sum of a
+           dominant element of the weight lattice plus some other element
+           orthogonal to all coroots, then the implementation correctly
+           reports `x` to be a dominant weight::
 
-                The current implementation tests that the scalar products
-                with the coroots are all non negative integers, which is not
-                sufficient. For example, if `x` is the sum of a dominant
-                element of the weight lattice plus some other element
-                orthogonal to all coroots, then the current implementation
-                erroneously reports `x` to be a dominant weight::
-
-                    sage: x = Lambda[1] + L([-1,-1,-1])
-                    sage: x.is_dominant_weight()
-                    True
+               sage: x = Lambda[1] + L([-1,-1,-1])
+               sage: x.is_dominant_weight()
+               True
             """
             alphacheck = self.parent().simple_coroots()
             from sage.rings.semirings.non_negative_integer_semiring import NN

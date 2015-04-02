@@ -18,7 +18,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.sets_cat import Sets
 from sage.categories.realizations import RealizationsCategory
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 
 class Magmas(Category_singleton):
     """

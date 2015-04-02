@@ -778,7 +778,7 @@ class QuiverRepFactory(UniqueFactory):
             sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: from sage.quivers.representation import QuiverRep
             sage: key = QuiverRep.create_key(GF(5), Q)
-            sage: QuiverRep.create_object(Q.version(), key)
+            sage: QuiverRep.create_object(0, key)
             Representation with dimension vector (0, 0)
         """
 
@@ -1441,7 +1441,7 @@ class QuiverRep_generic(WithEqualityById, Module):
             elif x[2] in maps:
                 e = maps[x[2]]
             else:
-                e = self._spaces[x[0]].Hom(self._spaces[x[1]]).zero_element()
+                e = self._spaces[x[0]].Hom(self._spaces[x[1]]).zero()
 
             #If a morphism is specified use it, otherwise assume the hom
             # function can convert the object to a morphism.  Matrices and the
@@ -1483,7 +1483,7 @@ class QuiverRep_generic(WithEqualityById, Module):
             sage: M._spaces[1] = sv
             sage: M = Q.P(GF(3), 2)
             sage: sv = M._maps[(1, 2, 'a')]
-            sage: M._maps[(1, 2, 'a')] = (QQ^2).Hom(QQ^1).zero_element()
+            sage: M._maps[(1, 2, 'a')] = (QQ^2).Hom(QQ^1).zero()
             sage: M._assert_valid_quiverrep()
             Traceback (most recent call last):
             ...
@@ -2259,7 +2259,7 @@ class QuiverRep_generic(WithEqualityById, Module):
             # NOTE: This is no longer necessary. Keep around for speed or
             # remove? -- darij, 16 Feb 2014
             if spaces[e[1]].dimension() == 0:
-                maps[e] = spaces[e[0]].Hom(spaces[e[1]]).zero_element()
+                maps[e] = spaces[e[0]].Hom(spaces[e[1]]).zero()
             else:
                 factor = self._spaces[e[0]].hom(self._spaces[e[0]].gens(), spaces[e[0]])
                 # Now we create a homomorphism by specifying the images of

@@ -114,7 +114,7 @@ Breadth first search iterator::
 Elements of given depth iterator::
 
     sage: list(R.elements_of_depth_iterator(9))
-    [[5, 4, 2, 3, 1], [4, 5, 3, 2, 1], [5, 3, 4, 2, 1], [5, 4, 3, 1, 2]]
+    [[5, 3, 4, 2, 1], [4, 5, 3, 2, 1], [5, 4, 2, 3, 1], [5, 4, 3, 1, 2]]
     sage: list(R.elements_of_depth_iterator(10))
     [[5, 4, 3, 2, 1]]
 
@@ -137,7 +137,7 @@ graded, it may have other structure like not containing oriented cycle but
 this does not help for enumeration.
 
 In this example, the seed is 0 and the successor function is either ``+2``
-or ``+3``. This is the set of non negative linear combinaisons of 2 and 3::
+or ``+3``. This is the set of non negative linear combinations of 2 and 3::
 
     sage: succ = lambda a:[a+2,a+3]
     sage: C = RecursivelyEnumeratedSet([0], succ)
@@ -800,7 +800,7 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             sage: succ = attrcall("permutohedron_succ")
             sage: R = RecursivelyEnumeratedSet(seeds, succ)
             sage: list(R.naive_search_iterator())
-            [[1, 2, 3], [2, 1, 3], [1, 3, 2], [2, 3, 1], [3, 2, 1], [3, 1, 2]]
+            [[1, 2, 3], [2, 1, 3], [1, 3, 2], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
         """
         cdef set known, todo
         known = set(self._seeds)

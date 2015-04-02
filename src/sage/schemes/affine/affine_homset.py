@@ -34,6 +34,7 @@ AUTHORS:
 
 from sage.rings.all import ZZ
 from sage.rings.rational_field import is_RationalField
+from sage.categories.number_fields import NumberFields
 from sage.rings.finite_rings.constructor import is_FiniteField
 
 import sage.schemes.generic.homset
@@ -150,6 +151,14 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             sage: M = X(R)
             sage: M.points(1)
             [(-1, 0), (1, 0)]
+
+        ::
+
+            sage: u = QQ['u'].0
+            sage: K.<v> = NumberField(u^2 + 3)
+            sage: A.<x,y> = AffineSpace(K,2)
+            sage: len(A(K).points(9))
+            361
         """
         R = self.value_ring()
         if is_RationalField(R) or R == ZZ:
@@ -157,6 +166,9 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
                 raise TypeError("A positive bound B (= %s) must be specified."%B)
             from sage.schemes.affine.affine_rational_point import enum_affine_rational_field
             return enum_affine_rational_field(self,B)
+        if R in NumberFields():
+            from sage.schemes.affine.affine_rational_point import enum_affine_number_field
+            return enum_affine_number_field(self,B)
         elif is_FiniteField(R):
             from sage.schemes.affine.affine_rational_point import enum_affine_finite_field
             return enum_affine_finite_field(self)

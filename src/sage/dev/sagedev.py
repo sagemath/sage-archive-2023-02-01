@@ -895,17 +895,18 @@ class SageDev(MercurialPatchMixin):
             #  Use "sage --dev merge" to include another ticket/branch.
             #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.git.echo.stash('apply')
-            # On branch branch2
-            # Changes not staged for commit:
-            #   (use "git add <file>..." to update what will be committed)
-            #   (use "git checkout -- <file>..." to discard changes in working directory)
-            #
-            #   modified:   tracked
-            #
-            # Untracked files:
-            #   (use "git add <file>..." to include in what will be committed)
-            #
-            #   untracked
+            On branch branch2
+            Changes not staged for commit:
+              (use "git add <file>..." to update what will be committed)
+              (use "git checkout -- <file>..." to discard changes in working directory)
+            <BLANKLINE>
+              modified:   tracked
+            <BLANKLINE>
+            Untracked files:
+              (use "git add <file>..." to include in what will be committed)
+            <BLANKLINE>
+              untracked
+            <BLANKLINE>
             no changes added to commit (use "git add" and/or "git commit -a")
 
         Or we can just discard the changes::

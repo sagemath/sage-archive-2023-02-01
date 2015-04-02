@@ -14,11 +14,8 @@ public setting on `the Sage Trac server <http://trac.sagemath.org>`_
 (the Sage bug and enhancement tracker).
 
 One can use ``git`` :ref:`the hard way <chapter-manual-git>` for this,
-but this section presumes use of the helper ``git trac`` command, which
+but this section explains how to use the helper ``git trac`` command, which
 simplifies many of the most common actions in collaboration on Sage.
-Sage itself has a more limited set of actions built in to work with
-(see :ref:`chapter-devscript`), but the recommended path is using
-this section of the manual to get started.
 
 Most of the commands in the following section will not work unless
 you have an account on Trac. If you want to contribute to Sage, it
@@ -129,8 +126,8 @@ then you can set up the remote by hand as described in the section on
 :ref:`section-git-trac`.
 
 
-Trac Tickets to Local Branches
-==============================
+Trac Tickets and Git Branches
+=============================
 
 Now let's start adding code to Sage!
 
@@ -186,26 +183,19 @@ one if there is none yet. Just like the create command, you can
 specify the remote branch name explicitly using the ``-b`` switch if
 you want.
 
-
-
 .. _section-git_trac-branch-names:
 
 Note on Branch Names
 --------------------
 
-Trac tickets that are finished or in the process of being worked on
-can have a git branch attached to them. This is the "Branch:" field in
-the ticket description. The branch name is generally of the form
-``u/user/description``, where ``user`` is the name of the user who
-made the branch and ``description`` is some free-form short
-description (and can include further slashes, but not whitespace). Our
-git server implements the following access restrictions for **remote
-branch names**:
+The "Branch:" field of a trac ticket (see :ref:`section-trac-fields`) indicates
+the git branch containing its code. Our git server implements the following
+access restrictions for **remote branch names**:
 
-* Only the developer with the ``user`` trac account can create
-  branches starting with ``u/user/``.
+* You can read/write/create a branch named
+  ``u/your_username/whatever_you_like``. Everybody else can read.
 
-* Everybody can write to branches named ``public/description``.
+* Everybody can read/write/create a branch named ``public/whatever_you_like``.
 
 Depending on your style of collaboration, you can use one or the
 other. The ``git trac`` subcommands defaults to the former.
@@ -363,8 +353,8 @@ you need a new feature or if your branch conflicts.
 
 .. _section-git_trac-collaborate:
 
-Collaboration
-=============
+Collaboration and conflict resolution
+=====================================
 
 Exchanging Branches
 -------------------
@@ -528,13 +518,14 @@ end: git downloads both Alice's conflicting commit and her resolution.
 Reviewing
 =========
 
-This section gives an example how to review using the ``sage``
-command.  For a detailed discussion of Sage's review process, see
-:ref:`Reviewing Patches <section-review-patches>`. If you go to the
-`web interface to the Sage trac development server
-<http://trac.sagemath.org>`_ then you can click on the "Branch:" field
-and see the code that is added by combining all commits of the
-ticket. This is what needs to be reviewed.
+This section gives an example how to review using the ``sage`` command. For an
+explanation of what should be checked by the reviewer, see
+:ref:`chapter-review`.
+
+If you go to the `web interface to the Sage trac development server
+<http://trac.sagemath.org>`_ then you can click on the "Branch:" field and see
+the code that is added by combining all commits of the ticket. This is what
+needs to be reviewed.
 
 The ``git trac`` command gives you two commands that might be handy
 (replace ``12345`` with the actual ticket number) if you do not want

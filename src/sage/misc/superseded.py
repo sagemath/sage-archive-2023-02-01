@@ -88,13 +88,39 @@ def deprecation(trac_number, message):
         doctest:...: DeprecationWarning: the function foo is replaced by bar
         See http://trac.sagemath.org/13109 for details.
     """
+    warning(trac_number, message, DeprecationWarning)
+
+def warning(trac_number, message, warning_class):
+    r"""
+    Issues a warning.
+
+    INPUT:
+
+    - ``trac_number`` -- integer. The trac ticket number where the
+      deprecation is introduced.
+
+    - ``message`` -- string. An explanation what is going on.
+
+    - ``warning_class`` -- a class inherited from a Python ``Warning``.
+
+    EXAMPLES::
+
+        sage: def foo():
+        ....:     sage.misc.superseded.warning(
+        ....:         99999,
+        ....:         'The syntax will change in future.',
+        ....:         FutureWarning)
+        sage: foo()
+        doctest:...: FutureWarning: The syntax will change in future.
+        See http://trac.sagemath.org/99999 for details.
+    """
     _check_trac_number(trac_number)
     message += '\n'
     message += 'See http://trac.sagemath.org/'+ str(trac_number) + ' for details.'
     resetwarnings()
     # Stack level 3 to get the line number of the code which called
     # the deprecated function which called this function.
-    warn(message, DeprecationWarning, stacklevel=3)
+    warn(message, warning_class, stacklevel=3)
 
 class DeprecatedFunctionAlias(object):
     """

@@ -25,7 +25,7 @@ import power_series_ring
 import polynomial
 import commutative_ring
 import integral_domain
-import field
+import ring
 
 from sage.structure.parent_gens import ParentWithGens
 from sage.libs.pari.all import pari_gen
@@ -111,7 +111,7 @@ def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=None, spars
         x = laurent_series[key]()
         if x is not None: return x
 
-    if isinstance(base_ring, field.Field):
+    if isinstance(base_ring, ring.Field):
         R = LaurentSeriesRing_field(base_ring, name, default_prec, sparse)
     elif isinstance(base_ring, integral_domain.IntegralDomain):
         R = LaurentSeriesRing_domain(base_ring, name, default_prec, sparse)
@@ -679,7 +679,7 @@ class LaurentSeriesRing_domain(LaurentSeriesRing_generic, integral_domain.Integr
         """
         LaurentSeriesRing_generic.__init__(self, base_ring, name, default_prec, sparse)
 
-class LaurentSeriesRing_field(LaurentSeriesRing_generic, field.Field):
+class LaurentSeriesRing_field(LaurentSeriesRing_generic, ring.Field):
     _default_category = CompleteDiscreteValuationFields()
 
     def __init__(self, base_ring, name=None, default_prec=None, sparse=False):

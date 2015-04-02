@@ -479,7 +479,7 @@ class ModularForm_abstract(ModuleElement):
 
         .. [Atkin-Li] A. O. L. Atkin and Wen-Ch'ing Winnie Li, Twists
            of newforms and pseudo-eigenvalues of `W`-operators.
-           Inventiones math. 48 (1978), 221–243.
+           Inventiones math. 48 (1978), 221-243.
 
         .. [Koblitz] Neal Koblitz, Introduction to Elliptic Curves and
            Modular Forms.  Springer GTM 97, 1993.

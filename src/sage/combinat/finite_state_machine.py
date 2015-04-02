@@ -11647,34 +11647,54 @@ class _FSMTapeCacheDetectAll_(_FSMTapeCache_):
     This is a class is similar to :class:`_FSMTapeCache_` but accepts
     each transition.
     """
-    def _transition_possible_test_(self, word_in):
+    def compare_to_tape(self, track_number, word):
         """
-        This helper function returns ``True``, i.e., accepts every
-        ``word_in`` of every transition.
+        Returns whether it is possible to read a word of the same length
+        as ``word`` (but ignoring its actual content)
+        from the given track successfully.
 
         INPUT:
 
-        - ``word_in`` -- an input word of a transition.
+        - ``track_number`` -- an integer.
+
+        - ``word`` -- a tuple or list of letters. Only its length is used.
 
         OUTPUT:
 
-        ``True``.
+        ``True`` or ``False``.
+
+        Note that this method usually returns ``True``. ``False`` can
+        only be returned at the end of the input tape.
 
         TESTS::
 
-            sage: from sage.combinat.finite_state_machine import (
-            ....:     _FSMTapeCacheDetectAll_)
-            sage: TCA = _FSMTapeCacheDetectAll_([], (xsrange(37, 42), xsrange(11,15)),
-            ....:                      [False, False], ((0, 0), (0, 1)), True)
-            sage: TCA._transition_possible_test_([(37, 11), (38, 12)])
+            sage: from sage.combinat.finite_state_machine import _FSMTapeCacheDetectAll_
+            sage: TC = _FSMTapeCacheDetectAll_(
+            ....:     [], (iter((11, 12)),),
+            ....:     [False], ((0, 0),), False)
+            sage: TC.compare_to_tape(0, [])
             True
-            sage: TCA._transition_possible_test_([(37, 11), (38, 13)])
+            sage: TC.compare_to_tape(0, [37])
             True
-            sage: TCA._transition_possible_test_([])
+            sage: TC.compare_to_tape(0, [37, 38])
             True
-            sage: TCA._transition_possible_test_([(None, None)])
+            sage: TC.compare_to_tape(0, [37, 38, 39])
+            False
+            sage: TC.compare_to_tape(0, [1, 2])
             True
         """
+        track_cache = self.cache[track_number]
+        it_word = iter(word)
+
+        # process letters in cache
+        for _ in track_cache:
+            next(it_word)
+
+        # check letters not already cached
+        for letter_in_word in it_word:
+            successful, letter_on_track = self.read(track_number)
+            if not successful:
+                return False
         return True
 
 
@@ -13103,6 +13123,81 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         # updated manually.
         self._current_[tape_cache.position][state][0]._visited_states_.update(
             tape_cache._visited_states_)
+
+
+class _FSMProcessIteratorAll_(FSMProcessIterator):
+    r"""
+    This class is similar to :class:`FSMProcessIterator`, but only
+    accepts all transitions during process. See
+    :class:`FSMProcessIterator` for more information.
+
+    This is used in :meth:`FiniteStateMachine.language`.
+
+    EXAMPLES::
+
+        sage: F = FiniteStateMachine(
+        ....:     {'A': [('A', 0, 'z'), ('B', 1, 'o'), ('B', -1, 'm')],
+        ....:      'B': [('A', 0, 'z')]},
+        ....:     initial_states=['A'], final_states=['A', 'B'])
+        sage: from sage.combinat.finite_state_machine import _FSMProcessIteratorAll_
+        sage: it = _FSMProcessIteratorAll_(F, max_length=3,
+        ....:                              format_output=lambda o: ''.join(o))
+        sage: for current in it:
+        ....:     print current
+        process (2 branches)
+        + at state 'A'
+        +-- tape at 1, [['z']]
+        + at state 'B'
+        +-- tape at 1, [['m'], ['o']]
+        process (2 branches)
+        + at state 'A'
+        +-- tape at 2, [['m', 'z'], ['o', 'z'], ['z', 'z']]
+        + at state 'B'
+        +-- tape at 2, [['z', 'm'], ['z', 'o']]
+        process (2 branches)
+        + at state 'A'
+        +-- tape at 3, [['m', 'z', 'z'], ['o', 'z', 'z'], ['z', 'm', 'z'],
+                        ['z', 'o', 'z'], ['z', 'z', 'z']]
+        + at state 'B'
+        +-- tape at 3, [['m', 'z', 'm'], ['m', 'z', 'o'], ['o', 'z', 'm'],
+                        ['o', 'z', 'o'], ['z', 'z', 'm'], ['z', 'z', 'o']]
+        process (0 branches)
+        sage: it.result()
+        [(True, 'A', 'mzz'),
+         (True, 'A', 'ozz'),
+         (True, 'A', 'zmz'),
+         (True, 'A', 'zoz'),
+         (True, 'A', 'zzz'),
+         (True, 'B', 'mzm'),
+         (True, 'B', 'mzo'),
+         (True, 'B', 'ozm'),
+         (True, 'B', 'ozo'),
+         (True, 'B', 'zzm'),
+         (True, 'B', 'zzo')]
+    """
+    def __init__(self, *args, **kwargs):
+        """
+        See :class:`_FSMProcessIteratorAll_` and
+        :class:`FSMProcessIterator` for more information.
+
+        TESTS::
+
+            sage: T = Transducer([(0, 1, 0, 'a'), (1, 2, 1, 'b')],
+            ....:                initial_states=[0], final_states=[0, 1, 2])
+            sage: T.determine_alphabets()
+            sage: list(T.language(2))  # indirect doctest
+            [[], ['a'], ['a', 'b']]
+       """
+        max_length = kwargs.get('max_length')
+        if max_length is None:
+            kwargs['input_tape'] = itertools.count()
+        else:
+            kwargs['input_tape'] = iter(0 for _ in xrange(max_length))
+        self.TapeCache = _FSMTapeCacheDetectAll_
+        self.visited_states = {}
+        kwargs['check_epsilon_transitions'] = False
+        return super(_FSMProcessIteratorAll_, self).__init__(*args, **kwargs)
+
 
 #*****************************************************************************
 

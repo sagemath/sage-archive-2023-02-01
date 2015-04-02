@@ -530,6 +530,13 @@ class FractionField_generic(field.Field):
             sage: S(pari(x + y + 1/z))
             (x*z + y*z + 1)/z
 
+        Test a failed conversion::
+
+            sage: K = ZZ['x,y'].fraction_field()
+            sage: K._element_constructor_(1, 'z')
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to evaluate 'z' in Fraction Field of Multivariate Polynomial Ring in x, y over Integer Ring
         """
         Element = self._element_class
         if isinstance(x, Element) and y == 1:
@@ -537,18 +544,27 @@ class FractionField_generic(field.Field):
                 return x
             else:
                 return Element(self, x.numerator(), x.denominator())
-        elif isinstance(x, basestring):
+
+        recurse = False
+        if isinstance(x, basestring):
+            from sage.misc.sage_eval import sage_eval
             try:
-                from sage.misc.sage_eval import sage_eval
                 x = sage_eval(x, self.gens_dict_recursive())
-                y = sage_eval(str(y), self.gens_dict_recursive())
-                return self._element_constructor_(x, y)
             except NameError:
-                raise TypeError("unable to convert string")
+                raise TypeError("unable to evaluate {!r} in {}".format(x, self))
+            recurse = True
+        if isinstance(y, basestring):
+            try:
+                y = sage_eval(y, self.gens_dict_recursive())
+            except NameError:
+                raise TypeError("unable to evaluate {!r} in {}".format(y, self))
+            recurse = True
 
         try:
             return Element(self, x, y, coerce=coerce)
         except (TypeError, ValueError):
+            if recurse:
+                return self._element_constructor(x, y)
             if y == 1:
                 from sage.symbolic.expression import Expression
                 if isinstance(x, Expression):

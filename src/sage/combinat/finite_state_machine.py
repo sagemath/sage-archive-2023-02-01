@@ -130,6 +130,8 @@ Operations
     :meth:`Automaton.process` | Process input of an automaton (output differs from general case)
     :meth:`Transducer.process` | Process input of a transducer (output differs from general case)
     :meth:`~FiniteStateMachine.iter_process` | Return process iterator
+    :meth:`~FiniteStateMachine.language` | Return all possible output words
+    :meth:`Automaton.language` | Return all possible accepted words
 
 
 Simplification

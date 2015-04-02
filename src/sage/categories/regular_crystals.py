@@ -227,11 +227,12 @@ class RegularCrystals(Category_singleton):
         def dual_equivalence_graph(self, X=None, index_set=None, directed=True):
             r"""
             Return the dual equivalence graph indexed by ``index_set``
-            of the set ``X`` in ``self``.
+            on the subset ``X`` of ``self``.
 
             Let `b \in B` be an element such that `\varepsilon_j(b)
-            = \varphi_j(b)`, so it is of weight `0`. We say `b'` is an
-            `i` elementary dual equivalence transformation of `b` if
+            = \varphi_j(b)` for all `j` (so it is of weight `0`).
+            We say `b'` is an `i` elementary dual equivalence
+            transformation of `b` if
 
             * `\varepsilon_i(b) = 1` and `\varepsilon_{i-1}(b) = 0`, and
             * `b' = f_{i-1} f_i e_{i-1} e_i b`.
@@ -239,13 +240,23 @@ class RegularCrystals(Category_singleton):
             We can do the inverse procedure by interchanging `i` and `i-1`
             above.
 
+            This definition comes from [Assaf08]_ Section 4 (where our
+            `\varphi_j(b)` and `\varepsilon_j(b)` are denoted by
+            `\epsilon(b, j)` and `-\delta(b, j)`, respectively).
+
             INPUT:
 
-            - ``X`` -- (optional) the vertex set
+            - ``X`` -- (optional) the vertex set (default: the whole
+              vertex set of ``self``)
             - ``index_set`` -- (optional) the set of possible indices
+              (default: the whole index set of ``self``);
+              only edges colored by these indices are drawn, and the
+              condition `\varepsilon_j(b) = \varphi_j(b)` is only
+              checked for the `j` in this index set
             - ``directed`` -- (default: ``True``) whether to have the dual
-              equivalence graph be directed, where the head is `b` and the
-              tail is `b' = f_{i-1} f_i e_{i-1} e_i b`
+              equivalence graph be directed (where the head of an edge
+              `b - b'` is `b` and the tail is
+              `b' = f_{i-1} f_i e_{i-1} e_i b`)
 
             .. SEEALSO::
 
@@ -257,7 +268,7 @@ class RegularCrystals(Category_singleton):
                duality via crystal graphs and dual equivalence graphs*.
                FPSAC 2008, 141-152, Discrete Math. Theor. Comput. Sci. Proc.,
                AJ, Assoc. Discrete Math. Theor. Comput. Sci., (2008).
-               :arxiv:`0804.1587`
+               :arxiv:`0804.1587v1`
 
             EXAMPLES::
 

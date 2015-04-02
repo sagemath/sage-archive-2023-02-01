@@ -19,7 +19,7 @@ positive integers) such that the matrix `M = (m_{ab})` with
     (in our sense of this word) with an edge from `a` to `b` labelled
     by the pair `(i,-i)`.
 
-For the compendium on the cluster algebra and quiver package see
+For the compendium on the cluster algebra and quiver package see ::
 
     http://arxiv.org/abs/1102.4844.
 

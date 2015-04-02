@@ -1,12 +1,27 @@
 r"""
 Quiver
 
-A *quiver* is an oriented graphs without loops, two-cycles, or multiple edges. The edges are labelled by pairs `(i,-j)`
-such that the matrix `M = (m_{ab})` with `m_{ab} = i, m_{ba} = -j` for an edge `(i,-j)` between vertices `a` and `b` is skew-symmetrizable.
+A *quiver* is an oriented graph without loops, two-cycles, or multiple
+edges. The edges are labelled by pairs `(i,-j)` (with `i` and `j` being
+positive integers) such that the matrix `M = (m_{ab})` with
+`m_{ab} = i, m_{ba} = -j` for an edge `(i,-j)` between vertices
+`a` and `b` is skew-symmetrizable.
+
+.. WARNING:
+
+    This is not the standard definition of a quiver. Normally, in
+    cluster algebra theory, a quiver is defined as an oriented graph
+    without loops and two-cycles but with multiple edges allowed; the
+    edges are unlabelled. This notion of quivers, however, can be seen
+    as a particular case of our notion of quivers. Namely, if we have
+    a quiver (in the regular sense of this word) with (precisely)
+    `i` edges from `a` to `b`, then we represent it by a quiver
+    (in our sense of this word) with an edge from `a` to `b` labelled
+    by the pair `(i,-i)`.
 
 For the compendium on the cluster algebra and quiver package see
 
-        http://arxiv.org/abs/1102.4844.
+    http://arxiv.org/abs/1102.4844.
 
 AUTHORS:
 
@@ -24,15 +39,11 @@ AUTHORS:
 #*****************************************************************************
 from sage.structure.sage_object import SageObject
 from copy import copy
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.all import cached_method
 from sage.rings.all import ZZ, CC, infinity
 from sage.graphs.all import Graph, DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType, QuiverMutationType_Irreducible, QuiverMutationType_Reducible, _edge_list_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part, _digraph_mutate, _matrix_to_digraph, _dg_canonical_form, _mutation_class_iter, _digraph_to_dig6, _dig6_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_type import _connected_mutation_type, _mutation_type_from_data, is_mutation_finite
-
-from sage.groups.perm_gps.permgroup import PermutationGroup
 
 class ClusterQuiver(SageObject):
     """
@@ -909,7 +920,8 @@ class ClusterQuiver(SageObject):
 
     def canonical_label( self, certify=False ):
         """
-        Returns the canonical labelling of ``self``, see sage.graphs.graph.GenericGraph.canonical_label.
+        Returns the canonical labelling of ``self``, see
+        :meth:`sage.graphs.graph.GenericGraph.canonical_label`.
 
         INPUT:
 
@@ -1604,18 +1616,20 @@ class ClusterQuiver(SageObject):
         seeds is made of a quiver and `n` cluster variables (that form
         a cluster).
 
-        Each cluster variable is mapped to a vector `d` in `\ZZ^n` by
-        using its denominator written as
+        Each cluster variable is mapped to the vector
+        `d = (d_1, d_2, \ldots, d_n) \in \ZZ^n`, where
 
         .. MATH::
 
-            \prod_{i=1}^{n} x_i^d_i.
+            \prod_{i=1}^{n} x_i^d_i
 
-        By convention the denominator of each initial variable `x_i` is
-        `x_i^{-1}`.
+        is the denominator of this cluster variable (written in lowest
+        terms). By convention, the denominator of each initial
+        variable `x_i` is `x_i^{-1}`.
 
-        Using this map, every cluster defines a cone in `\ZZ^n`. These
-        are the maximal cones of the cluster fan.
+        Using this map, every cluster defines a cone in `\ZZ^n` --
+        the cone spanned by the vectors corresponding to its cluster
+        variables. These are the maximal cones of the cluster fan.
 
         EXAMPLES::
 
@@ -1652,3 +1666,4 @@ class ClusterQuiver(SageObject):
         return Fan([Cone([vector(v.almost_positive_root())
                           for v in s.cluster()])
                     for s in seed.mutation_class()])
+

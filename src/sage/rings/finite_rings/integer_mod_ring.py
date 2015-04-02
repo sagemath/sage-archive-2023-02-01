@@ -148,6 +148,7 @@ class IntegerModFactory(UniqueFactory):
         Join of Category of finite commutative rings
             and Category of subquotients of monoids
             and Category of quotients of semigroups
+            and Category of finite enumerated sets
         sage: R in Fields()
         True
         sage: R.category()
@@ -321,6 +322,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         Join of Category of finite commutative rings
             and Category of subquotients of monoids
             and Category of quotients of semigroups
+            and Category of finite enumerated sets
         sage: FF.is_field()
         True
         sage: FF.characteristic()
@@ -380,6 +382,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         Join of Category of finite commutative rings
             and Category of subquotients of monoids
             and Category of quotients of semigroups
+            and Category of finite enumerated sets
         sage: Z16.is_field()
         False
         sage: Z16.order()
@@ -716,6 +719,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             Join of Category of finite commutative rings
                 and Category of subquotients of monoids
                 and Category of quotients of semigroups
+                and Category of finite enumerated sets
             sage: R.is_field()
             True
             sage: R.category()

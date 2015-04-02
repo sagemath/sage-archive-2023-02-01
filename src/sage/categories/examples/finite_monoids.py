@@ -29,7 +29,7 @@ class IntegerModMonoid(UniqueRepresentation, Parent):
         An example of a finite multiplicative monoid: the integers modulo 12
 
         sage: S.category()
-        Category of finite monoids
+        Category of finitely generated finite monoids
 
     We conclude by running systematic tests on this monoid::
 
@@ -72,7 +72,7 @@ class IntegerModMonoid(UniqueRepresentation, Parent):
 
         """
         self.n = n
-        Parent.__init__(self, category = Monoids().Finite())
+        Parent.__init__(self, category = Monoids().Finite().FinitelyGenerated())
 
     def _repr_(self):
         r"""

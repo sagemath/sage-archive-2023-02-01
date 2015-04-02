@@ -26,15 +26,12 @@ implementation is still available in
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import collections
-from warnings import warn
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.cachefunc import cached_method
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
-from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.rings.integer_ring import ZZ
 
@@ -753,7 +750,9 @@ class IntegerListsLex(Parent):
             sage: IntegerListsLex(NN, max_length=3)
             Disjoint union of Lazy family (<lambda>(i))_{i in Non negative integer semiring}
         """
+        import collections
         if isinstance(n, collections.Iterable):
+            from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
             return DisjointUnionEnumeratedSets(Family(n, lambda i: IntegerListsLex(i, **kwargs)))
         else:
             return typecall(cls, n=n, **kwargs)
@@ -867,6 +866,7 @@ class IntegerListsLex(Parent):
             self.rename(name)
 
         if self._warning and self._check:
+            from warnings import warn
             warn("""
 A function has been given as input of the floor=[...] or ceiling=[...]
 arguments of IntegerListsLex. Please see the documentation for the caveats.

@@ -9,6 +9,9 @@ Super Algebras
 #******************************************************************************
 
 from sage.categories.super_modules import SuperModulesCategory
+from sage.categories.algebras import Algebras
+from sage.categories.modules import Modules
+from sage.misc.lazy_import import LazyImport
 
 class SuperAlgebras(SuperModulesCategory):
     """
@@ -18,14 +21,22 @@ class SuperAlgebras(SuperModulesCategory):
 
         sage: Algebras(ZZ).Super()
         Category of super algebras over Integer Ring
-        sage: Algebras(ZZ).Super().super_categories()
-        [Category of graded algebras over Integer Ring,
-         Category of super modules over Integer Ring]
 
     TESTS::
 
         sage: TestSuite(Algebras(ZZ).Super()).run()
     """
+    def super_categories(self):
+        """
+        EXAMPLES::
+
+            sage: Algebras(ZZ).Super().super_categories()
+            [Category of graded algebras over Integer Ring,
+             Category of super modules over Integer Ring]
+        """
+        R = self.base_ring()
+        return [Algebras(R).Graded(), Modules(R).Super()]
+
     class ParentMethods:
         pass
 

@@ -1412,7 +1412,8 @@ class ExteriorAlgebra(CliffordAlgebra):
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: TestSuite(E).run()
         """
-        CliffordAlgebra.__init__(self, QuadraticForm(R, len(names)), names, HopfAlgebrasWithBasis(R).Super())
+        cat = HopfAlgebrasWithBasis(R).Super().Graded()
+        CliffordAlgebra.__init__(self, QuadraticForm(R, len(names)), names, cat)
         # TestSuite will fail if the HopfAlgebra classes will ever have tests for
         # the coproduct being an algebra morphism -- since this is really a
         # Hopf superalgebra, not a Hopf algebra.

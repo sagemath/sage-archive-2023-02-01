@@ -124,31 +124,6 @@ class SuperModulesCategory(RegressiveCovariantConstructionCategory, Category_ove
         """
         return "super {}".format(self.base_category()._repr_object_names())
 
-    @classmethod
-    def default_super_categories(cls, category, *args):
-        """
-        Returns the default super categories of ``category.Subobjects()``
-
-        Mathematical meaning: if `A` is a super version of `B`,
-        then `A` is also a graded version of `B`.
-
-        INPUT:
-
-         - ``cls`` -- the class ``SubobjectsCategory``
-         - ``category`` -- a category `Cat`
-
-        OUTPUT: a (join) category
-
-        In practice, this returns ``category.Subquotients()``, joined
-        together with the result of the method
-        :meth:`RegressiveCovariantConstructionCategory.default_super_categories() <sage.categories.covariant_functorial_construction.RegressiveCovariantConstructionCategory.default_super_categories>`
-        (that is the join of ``category`` and ``cat.Subobjects()`` for
-        each ``cat`` in the super categories of ``category``).
-
-        EXAMPLES::
-        """
-        return Category.join([category.Graded(), super(SuperModulesCategory, cls).default_super_categories(category, *args)])
-
 class SuperModules(SuperModulesCategory):
     """
     The category of super modules.
@@ -170,6 +145,22 @@ class SuperModules(SuperModulesCategory):
 
         sage: TestSuite(Modules(ZZ).Super()).run()
     """
+    def super_categories(self):
+        """
+        EXAMPLES::
+
+            sage: Modules(ZZ).Super().super_categories()
+            [Category of graded modules over Integer Ring]
+
+        Nota bene::
+
+            sage: Modules(QQ).Super()
+            Category of super modules over Rational Field
+            sage: Modules(QQ).Super().super_categories()
+            [Category of graded modules over Rational Field]
+        """
+        return [Modules(self.base_ring()).Graded()]
+
     def extra_super_categories(self):
         r"""
         Adds :class:`VectorSpaces` to the super categories of ``self`` if

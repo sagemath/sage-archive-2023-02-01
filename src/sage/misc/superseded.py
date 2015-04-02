@@ -122,6 +122,31 @@ def warning(trac_number, message, warning_class):
     # the deprecated function which called this function.
     warn(message, warning_class, stacklevel=3)
 
+def experimental(trac_number, message):
+    r"""
+    Issue a warning that the functionality or class is experimental
+    and might change in future.
+
+    INPUT:
+
+    - ``trac_number`` -- an integer. The trac ticket number where the
+      deprecation is introduced.
+
+    - ``message`` -- a string. An explanation what is going on.
+
+    EXAMPLES::
+
+        sage: def foo():
+        ....:    sage.misc.superseded.experimental(
+        ....:        66666, 'This function is experimental and '
+        ....:               'might change in future.')
+        sage: foo()
+        doctest:...: FutureWarning: This function is experimental and
+        might change in future.
+        See http://trac.sagemath.org/66666 for details.
+    """
+    warning(trac_number, message, FutureWarning)
+
 class DeprecatedFunctionAlias(object):
     """
     A wrapper around methods or functions which automatically print

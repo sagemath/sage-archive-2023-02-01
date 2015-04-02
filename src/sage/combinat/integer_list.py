@@ -782,6 +782,11 @@ class IntegerListsLex(Parent):
             sage: C.cardinality().parent() is ZZ
             True
             sage: TestSuite(C).run()
+
+            sage: IntegerListsLex(min_sum=Infinity).list()
+            Traceback (most recent call last):
+            ...
+            ValueError: min_sum cannot be infinity!
         """
         if category is None:
             category = EnumeratedSets().Finite()
@@ -798,6 +803,8 @@ class IntegerListsLex(Parent):
             self._min_sum = n
             self._max_sum = n
         else:
+            if min_sum == Infinity:
+                raise ValueError("min_sum cannot be infinity!")
             self._min_sum = min_sum
             self._max_sum = max_sum
 
@@ -807,8 +814,7 @@ class IntegerListsLex(Parent):
             max_length = length
         else:
             min_length = ZZ(min_length)
-            if min_length < 0:
-                min_length = 0
+            min_length = max(min_length,0)
             if max_length != Infinity:
                 max_length = ZZ(max_length)
         self._max_length = max_length
@@ -886,7 +892,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
         Parent.__init__(self, category=category)
 
     @cached_method
-    def _check_lexicographic_iterable(self):
+    def _check_finiteness(self):
         """
         Check whether the constraints give a finite set.
 
@@ -897,10 +903,10 @@ If you know what you are doing, you can set check=False to skip this warning."""
         EXAMPLES::
 
             sage: L = IntegerListsLex(4, max_length=4)
-            sage: L._check_lexicographic_iterable()
+            sage: L._check_finiteness()
 
             sage: L = IntegerListsLex(4)
-            sage: L._check_lexicographic_iterable()
+            sage: L._check_finiteness()
             Traceback (most recent call last):
             ...
             ValueError: Could not check that the specified constraints yield a finite set
@@ -987,8 +993,6 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: IntegerListsLex(max_part=0).list()
             [[]]
         """
-        if self._warning or not self._check:
-            return
         message = "Could not check that the specified constraints yield a finite set"
         # since self._warning is False, the floor has been constructed
         # from a list or constant
@@ -1202,7 +1206,8 @@ If you know what you are doing, you can set check=False to skip this warning."""
             """
             self._parent = parent
 
-            parent._check_lexicographic_iterable()
+            if not parent._warning and parent._check:
+                parent._check_finiteness()
 
             self._search_ranges = []
             self._current_list = []

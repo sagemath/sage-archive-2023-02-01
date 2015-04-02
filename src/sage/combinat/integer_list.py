@@ -49,10 +49,8 @@ class IntegerListsLex(Parent):
     r"""
     Lists of nonnegative integers with constraints, in inverse lexicographic order.
 
-    An *integer list* is a list `l` of nonnegative integers, its
-    *parts*. The *length* ``len(l)`` of `l` is the number of its
-    parts. The *sum* `|l|` of `l` is the sum of its parts. The slope
-    (at position `i`) is the difference ``l[i+1]-l[i]`` between two
+    An *integer list* is a list `l` of nonnegative integers, its *parts*. The
+    slope (at position `i`) is the difference ``l[i+1]-l[i]`` between two
     consecutive parts.
 
     This class allows to construct the set `S` of all integer lists
@@ -78,10 +76,10 @@ class IntegerListsLex(Parent):
     INPUT:
 
     - ``min_sum`` -- a nonnegative integer (default: 0):
-      a lower bound on `|l|`.
+      a lower bound on ``sum(l)``.
 
     - ``max_sum`` -- a nonnegative integer or `\infty` (default: `\infty`):
-      an upper bound on `|l|`.
+      an upper bound on ``sum(l)``.
 
     - ``n`` -- a nonnegative integer (optional): if specified, this
       overrides ``min_sum`` and ``max_sum``. Alternatively a list or
@@ -120,7 +118,7 @@ class IntegerListsLex(Parent):
 
     - ``max_slope`` -- an integer or `+\infty` (defaults: `+\infty`)
       an upper bound on the slope between consecutive parts:
-      `` l[i+1]-l[i] <= max_slope`` for ``0 <= i < len(l)-1``
+      ``l[i+1]-l[i] <= max_slope`` for ``0 <= i < len(l)-1``
 
     - ``category`` -- a category (default: :class:`FiniteEnumeratedSets`)
 

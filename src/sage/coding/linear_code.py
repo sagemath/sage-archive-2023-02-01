@@ -1386,6 +1386,9 @@ class LinearCode(module.Module):
         r"""
         Returns the parity check matrix of ``self``.
 
+        The parity check matrix of a linear code `C` corresponds to the 
+        generator matrix of the dual code of `C`.
+
         EXAMPLES::
 
             sage: C = codes.HammingCode(3,GF(2))
@@ -3018,7 +3021,8 @@ class LinearCode(module.Module):
         Returns the syndrome of ``r``.
 
         The syndrome of ``r`` is the result of `H \times r` where `H` is
-        the parity check matrix of ``self``.
+        the parity check matrix of ``self``. If ``r`` belongs to ``self``, 
+        its syndrome equals to the zero vector.
 
         INPUT:
 
@@ -3037,9 +3041,7 @@ class LinearCode(module.Module):
             sage: r in C
             True
             sage: C.syndrome(r)
-            [0]
-            [0]
-            [0]
+            (0, 0, 0)
 
         If ``r`` is not a codeword, its syndrome is not equal to zero::
 
@@ -3047,11 +3049,16 @@ class LinearCode(module.Module):
             sage: r in C
             False
             sage: C.syndrome(r)
-            [0]
-            [1]
-            [1]
+            (0, 1, 1)
+
+        Syndrome computation works fine on bigger fields::
+
+            sage: C = codes.RandomLinearCode(12, 4, GF(59))
+            sage: r = C.random_element()
+            sage: C.syndrome(r)
+            (0, 0, 0, 0, 0, 0, 0, 0)
         """
-        return self.parity_check_matrix()*r.column()
+        return self.parity_check_matrix()*r
 
 
     def weight_enumerator(self, names="xy", name2=None):

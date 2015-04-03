@@ -249,7 +249,7 @@ In case of symmetries, only non-redundant components are stored::
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
 from sage.parallel.all import parallel
-from sage.tensor.modules.parallel_utilities import manifoldPara
+from sage.tensor.modules.parallel_utilities import TensorParallelism
 from operator import itemgetter
 
 class Components(SageObject):
@@ -283,7 +283,7 @@ class Components(SageObject):
     EXAMPLES:
 
     Set of components with 2 indices on a 3-dimensional vector space, the frame
-    being some basis of the vector space::
+    being some basis of the vector space::  
 
         sage: from sage.tensor.modules.comp import Components
         sage: V = VectorSpace(QQ,3)
@@ -1280,6 +1280,19 @@ class Components(SageObject):
             sage: s == a+b
             True
 
+        Parallel computation::
+
+            sage: TensorParallelism().set(2)
+            sage: print TensorParallelism()
+            Number of cpu used = 2
+            sage: s = a.__add__(b) ; s
+            1-index components w.r.t. [1, 2, 3]
+            sage: s[:]
+            [5, 5, 3]
+            sage: s == a+b
+            True
+            sage: TensorParallelism().set(1)
+
         """
         if other == 0:
             return +self
@@ -1299,10 +1312,10 @@ class Components(SageObject):
                              "same starting index")
 
 
-        if manifoldPara.use_paral :
+        if TensorParallelism().use_paral :
             # parallel sum
             result = self._new_instance()
-            nproc = manifoldPara.nproc 
+            nproc = TensorParallelism().nproc 
             lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
 
             ind_list = [ ind for ind, ocomp  in other._comp.iteritems()]
@@ -1312,7 +1325,7 @@ class Components(SageObject):
             # definition of the list of input parameters
             listParalInput = [(self,other,ind_part) for ind_part in local_list]
                 
-            @parallel(p_iter='multiprocessing',ncpus=manifoldPara.nproc)
+            @parallel(p_iter='multiprocessing',ncpus=TensorParallelism().nproc)
             def paral_sum(a,b,local_list_ind):
                 partial = []
                 for ind in local_list_ind:
@@ -1383,6 +1396,19 @@ class Components(SageObject):
             [-3, -5, -9]
             sage: s == a - b
             True
+
+        Parallel computation::
+
+            sage: TensorParallelism().set(2)
+            sage: print TensorParallelism()
+            Number of cpu used = 2
+            sage: s = a.__sub__(b) ; s
+            1-index components w.r.t. [1, 2, 3]
+            sage: s[:]
+            [-3, -5, -9]
+            sage: s == a - b
+            True
+            sage: TensorParallelism().set(1)
 
         """
         if other == 0:
@@ -1686,6 +1712,24 @@ class Components(SageObject):
             sage: [sum(a[j]*b[i,j] for j in range(3)) for i in range(3)]  # check
             [12, 24, 36]
 
+        Parallel computation::
+
+            sage: TensorParallelism().set(2)
+            sage: print TensorParallelism()
+            Number of cpu used = 2
+            sage: s = a.contract(0, b, 0) ; s
+            1-index components w.r.t. [
+            (1, 0, 0),
+            (0, 1, 0),
+            (0, 0, 1)
+            ]
+            sage: s[:]
+            [28, 32, 36]
+            sage: s = a.contract(0, b, 1) ; s[:]
+            [12, 24, 36]
+            sage: TensorParallelism().set(1)
+           
+            
         Contraction on 2 indices::
 
             sage: c = a*b ; c
@@ -1706,6 +1750,28 @@ class Components(SageObject):
             ....:      for j in range(3)) for i in range(3)]
             [-285, 570, 855]
 
+        Parallel computation::
+
+            sage: TensorParallelism().set(2)
+            sage: print TensorParallelism()
+            Number of cpu used = 2
+            sage: c = a*b ; c
+            3-indices components w.r.t. [
+            (1, 0, 0),
+            (0, 1, 0),
+            (0, 0, 1)
+            ]
+            sage: s = c.contract(1,2, b, 0,1) ; s
+            1-index components w.r.t. [
+            (1, 0, 0),
+            (0, 1, 0),
+            (0, 0, 1)
+            ]
+            sage: s[:]
+            [-285, 570, 855]
+            sage: TensorParallelism().set(1)
+
+        
         Consistency check with :meth:`trace`::
 
             sage: b = a*a ; b   # the tensor product of a with itself
@@ -1767,11 +1833,11 @@ class Components(SageObject):
             res = 0
 
 
-            if manifoldPara.use_paral:
+            if TensorParallelism().use_paral:
                 # parallel contraction to scalar                
 
                 # parallel multiplication
-                @parallel(p_iter='multiprocessing',ncpus=manifoldPara.nproc)
+                @parallel(p_iter='multiprocessing',ncpus=TensorParallelism().nproc)
                 def compprod(a,b):
                     return a*b
                 
@@ -1786,7 +1852,6 @@ class Components(SageObject):
                 for ind in comp_for_contr.index_generator():
                     res += self[[ind]] * other[[ind]]
 
-            print 'time contraction scalar: ',time.time()-marco_t0
             return res
             
             
@@ -1902,9 +1967,9 @@ class Components(SageObject):
                                     start_index=self._sindex)
         shift_o = self._nid - ncontr
 
-        if manifoldPara.use_paral:
+        if TensorParallelism().use_paral:
             # parallel computation
-            nproc = manifoldPara.nproc
+            nproc = TensorParallelism().nproc
             lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
             ind_list = [ind for ind in res.non_redundant_index_generator()]
             ind_step = max(1,int(len(ind_list)/nproc/2))
@@ -1936,7 +2001,7 @@ class Components(SageObject):
                         sm += this[[ind_s]] * other[[ind_o]]
                     local_res.append([ind,sm])
                 return local_res
-
+        
             for ii, val in make_Contraction(listParalInput):
                 for jj in val :
                       res[[jj[0]]] = jj[1]

@@ -123,6 +123,10 @@ class IntegerListsLex(Parent):
 
     - ``category`` -- a category (default: :class:`FiniteEnumeratedSets`)
 
+    - ``global_options`` -- a :class:`GlobalOptions` object that will
+      be assigned to the attribute ``_global_options``; for internal
+      use only (subclasses, ...).
+
     - ``check`` -- boolean (default: True): whether to display the
       warnings raised when functions are given as input to ``floor``
       or ``ceiling`` and the errors raised when there is no proper

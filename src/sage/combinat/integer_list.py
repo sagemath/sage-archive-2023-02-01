@@ -796,11 +796,11 @@ class IntegerListsLex(Parent):
         if category is None:
             category = EnumeratedSets().Finite()
 
-        # self._warning will be set to ``True`` if a function is given
+        # self._floor_or_ceiling_is_function will be set to ``True`` if a function is given
         # as input for floor or ceiling; in this case a warning will
         # be emitted, unless the user signs the waiver. See the
         # documentation.
-        self._warning = False # warning for dangerous (but possibly valid) usage
+        self._floor_or_ceiling_is_function = False # warning for dangerous (but possibly valid) usage
         self._check = check
 
         if n is not None:
@@ -848,7 +848,7 @@ class IntegerListsLex(Parent):
             if not all(i >= 0 for i in floor):
                 raise NotImplementedError("negative parts in floor={}".format(floor))
         elif callable(floor):
-            self._warning = True
+            self._floor_or_ceiling_is_function = True
         else:
             raise TypeError("floor should be a list, tuple, or function")
         self._floor = Envelope(floor, upper=False,
@@ -864,7 +864,7 @@ class IntegerListsLex(Parent):
             if not all(i >= 0 for i in ceiling):
                 raise NotImplementedError("negative parts in floor={}".format(ceiling))
         elif callable(ceiling):
-            self._warning = True
+            self._floor_or_ceiling_is_function = True
         else:
             raise ValueError("Unable to parse value of parameter ceiling")
         self._ceiling = Envelope(ceiling, upper=True,
@@ -875,7 +875,7 @@ class IntegerListsLex(Parent):
         if name is not None:
             self.rename(name)
 
-        if self._warning and self._check:
+        if self._floor_or_ceiling_is_function and self._check:
             from warnings import warn
             warn("""
 A function has been given as input of the floor=[...] or ceiling=[...]
@@ -904,9 +904,8 @@ If you know what you are doing, you can set check=False to skip this warning."""
         """
         Check whether the constraints give a finite set.
 
-        As mentioned in the description of this class, being inverse lexicographic
-        iterable is almost equivalent to being a finite set. This method checks
-        conditions that ensure that the set is finite.
+        As mentioned in the description of this class, this is almost
+        equivalent to being inverse lexicographic iterable.
 
         EXAMPLES::
 
@@ -1002,14 +1001,24 @@ If you know what you are doing, you can set check=False to skip this warning."""
             [[]]
             sage: IntegerListsLex(max_sum=1, min_sum=4, min_slope=0).list()
             []
+
+        If the ceiling or floor is a function, one cannot current
+        check whether the set is finite::
+
+            sage: IntegerListsLex(ceiling=lambda i: max(3-i,0))._check_finiteness()
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not check that the specified constraints yield a finite set
         """
         message = "Could not check that the specified constraints yield a finite set"
-        # since self._warning is False, the floor has been constructed
-        # from a list or constant
-        for i in range(max(self._ceiling.limit_start(), self._floor.limit_start())+1):
+
+        limit_start = max(self._ceiling.limit_start(), self._floor.limit_start())
+        if limit_start == Infinity:
+            raise ValueError(message)
+        for i in range(limit_start+1):
             if self._ceiling(i) < self._floor(i):
                 return
-        assert self._floor.limit_start() < Infinity
+
         s = sum(self._floor(i) for i in range(self._floor.limit_start()))
         if (self._max_sum        < Infinity and
             self._max_length    == Infinity and
@@ -1217,7 +1226,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             """
             self._parent = parent
 
-            if not parent._warning and parent._check:
+            if not parent._floor_or_ceiling_is_function and parent._check:
                 parent._check_finiteness()
 
             self._search_ranges = []

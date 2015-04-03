@@ -774,8 +774,8 @@ class SkewTableau(CombinatorialObject, Element):
 
         INPUT:
         - ``force`` -- optional: if set to ``'jdt'``, rectifies by jeu de taquin;
-          if set to ``'schensted'``, rectifies by Schensted insertion of the 
-          reading word; otherwise, guesses which will be faster. 
+          if set to ``'schensted'``, rectifies by Schensted insertion of the
+          reading word; otherwise, guesses which will be faster.
 
         EXAMPLES::
 
@@ -797,7 +797,7 @@ class SkewTableau(CombinatorialObject, Element):
         labda = self.outer_shape()
         musize = self.inner_shape().size()
         labdasize = labda.size()
-        if force == 'jdt' or (force != 'schensted' and musize < len(labda) * (labdasize - musize)**(1/2)):
+        if force == 'jdt' or (force != 'schensted' and musize**2 < len(labda) * (labdasize - musize)):
             rect = self
             inner_corners = rect.inner_shape().corners()
             while len(inner_corners) > 0:

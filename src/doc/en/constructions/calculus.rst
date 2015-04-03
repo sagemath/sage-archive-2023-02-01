@@ -115,7 +115,7 @@ Sage for full symbolic functionality::
     sage: f.taylor(x, 0, 10)
     -1/467775*x^10 - 1/37800*x^8 - 1/2835*x^6 - 1/180*x^4 - 1/6*x^2
     sage: maxima(f).powerseries(x,0)._sage_()
-    sum(2^(2*i4 - 1)*(-1)^i4*x^(2*i4)*bern(2*i4)/(i4*factorial(2*i4)), i4, 1, +Infinity)
+    sum(2^(2*i... - 1)*(-1)^i...*x^(2*i...)*bern(2*i...)/(i...*factorial(2*i...)), i..., 1, +Infinity)
 
 Or you can use the formal power series rings for fast computation.
 These are missing symbolic functions, on the other hand::

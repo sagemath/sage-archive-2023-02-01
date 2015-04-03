@@ -883,6 +883,10 @@ arguments of IntegerListsLex. Please see the documentation for the caveats.
 If you know what you are doing, you can set check=False to skip this warning.""")
 
         # Customization of the class and constructor for the elements
+
+        # We set the following attribute to True if the element
+        # constructor is known to be safe and don't claim ownership on
+        # the input list. In this case, we can save a copy in Iter.next.
         self._element_constructor_is_copy_safe = False
         if element_class is not None:
             self.Element = element_class
@@ -1408,9 +1412,10 @@ If you know what you are doing, you can set check=False to skip this warning."""
                     else:
                         self._next_state = DECREASE
                     if self._internal_list_valid():
-                        return p._element_constructor_(self._current_list
-                                                       if p._element_constructor_is_copy_safe
-                                                       else self._current_list[:])
+                        return p._element_constructor_(
+                            self._current_list
+                            if p._element_constructor_is_copy_safe
+                            else self._current_list[:])
 
                 # DECREASE
                 if self._next_state == DECREASE:

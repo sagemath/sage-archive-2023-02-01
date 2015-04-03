@@ -717,20 +717,23 @@ class AbstractLinearCode(module.Module):
         We first create a new LinearCode subclass::
 
             sage: class CodeExample(sage.coding.linear_code.AbstractLinearCode):
-            ....:   def __init__(self, field, length, dimension):
+            ....:   def __init__(self, field, length, dimension, generator_matrix):
             ....:       sage.coding.linear_code.AbstractLinearCode.__init__(self,field, length)
             ....:       self._dimension = dimension
+            ....:       self._generator_matrix = generator_matrix
             ....:   def generator_matrix(self):
-            ....:       return matrix(self.base_field(), self.dimension(), self.length(), {(i,i):1 for i in range(self.dimension())})
+            ....:       return self._generator_matrix
             ....:   def _repr_(self):
             ....:       return "Dummy code of length %d, dimension %d over %s" % (self.length(), self.dimension(), self.base_field())
 
         We now create a member of our newly made class::
 
-            sage: C = CodeExample(GF(17), 10, 5)            
+            sage: generator_matrix = matrix(GF(17), 5, 10,
+            ....:                           {(i,i):1 for i in range(5)})
+            sage: C = CodeExample(GF(17), 10, 5, generator_matrix)
 
         We can check its existence and parameters::
-            
+
             sage: C
             Dummy code of length 10, dimension 5 over Finite Field of size 17
 

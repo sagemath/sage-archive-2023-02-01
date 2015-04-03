@@ -693,84 +693,18 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
                     for N in self_orthogonal_binary_codes(n, k, d, child, BC, in_test=in_test):
                         if out_test(N): yield N
 
-############################ linear codes python class ########################
-
-class LinearCode(module.Module):
-    r"""
-    Linear codes over a finite field or finite ring.
-
-    A *linear code* is a subspace of a vector space over a finite field. It can
-    be defined by one of its basis or equivalently a generator matrix (a `k
-    \times n` matrix of full rank `k`).
-
-    See :wikipedia:`Linear_code` for more information.
-
-    INPUT:
-
-    - ``generator_matrix`` -- a generator matrix over a finite field (``G`` can be
-      defined over a finite ring but the matrices over that ring must have
-      certain attributes, such as ``rank``)
-
-    - ``d`` -- (optional, default: ``None``) the minimum distance of the code
-
-    .. NOTE::
-
-        The veracity of the minimum distance ``d``, if provided, is not
-        checked.
-
-
-    EXAMPLES::
-
-        sage: MS = MatrixSpace(GF(2),4,7)
-        sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
-        sage: C  = LinearCode(G)
-        sage: C
-        Linear code of length 7, dimension 4 over Finite Field of size 2
-        sage: C.base_ring()
-        Finite Field of size 2
-        sage: C.dimension()
-        4
-        sage: C.length()
-        7
-        sage: C.minimum_distance()
-        3
-        sage: C.spectrum()
-        [1, 0, 0, 7, 7, 0, 0, 1]
-        sage: C.weight_distribution()
-        [1, 0, 0, 7, 7, 0, 0, 1]
-
-    The minimum distance of the code, if known, can be provided as an
-    optional parameter.::
-
-        sage: C  = LinearCode(G, d=3)
-        sage: C.minimum_distance()
-        3
-
-    Another example.::
-
-        sage: MS = MatrixSpace(GF(5),4,7)
-        sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
-        sage: C  = LinearCode(G)
-        sage: C
-        Linear code of length 7, dimension 4 over Finite Field of size 5
-
-    AUTHORS:
-
-    - David Joyner (11-2005)
+class AbstractLinearCode(module.Module):
     """
-    #    sage: C.minimum_distance_upper_bound()   # optional (net connection)
-    #    3
-    #    sage: C.minimum_distance_why()     # optional (net connection)
-    #    Ub(7,4) = 3 follows by the Griesmer bound.
-
-    def _init_linear_code(self, base_field, length):
+    Abstract class for linear codes.
+    
+    This class contains all methods that can be used on Linear Codes
+    and on Linear Codes families. 
+    So, every Linear Code-related class should inherit from this abstract 
+    method.
+    """
+    def __init__(self, base_field, length):
         """
-        Initialize mandatory parameters for a Linear Code object.
-
-        This is a private method, which should be called by the constructor of
-        every linear code as it automatically initializes the some
-        mandatory parameters of a Linear Code object, and sets this object as
-        a valid member of the Sage category framework.
+        Initializes mandatory parameters for a Linear Code object.
 
         INPUT:
 
@@ -780,32 +714,41 @@ class LinearCode(module.Module):
 
         EXAMPLES:
 
-        We first create a new LinearCode subclass
-        ::
+        We first create a new LinearCode subclass::
 
-            sage: class CodeExample(LinearCode):
+            sage: class CodeExample(sage.coding.linear_code.AbstractLinearCode):
             ....:   def __init__(self, field, length, dimension):
-            ....:       self._init_linear_code(field, length)
+            ....:       sage.coding.linear_code.AbstractLinearCode.__init__(self,field, length)
             ....:       self._dimension = dimension
+            ....:   def generator_matrix(self):
+            ....:       return matrix(self.base_field(), self.dimension(), self.length(), {(i,i):1 for i in range(self.dimension())})
+            ....:   def _repr_(self):
+            ....:       return "Dummy code of length %d, dimension %d over %s" % (self.length(), self.dimension(), self.base_field())
 
-        We now create a member of our newly made class
-        ::
+        We now create a member of our newly made class::
 
             sage: C = CodeExample(GF(17), 10, 5)            
 
-        We can check its existence and parameters
-        ::
+        We can check its existence and parameters::
             
             sage: C
-            Linear code of length 10, dimension 5 over Finite Field of size 17
+            Dummy code of length 10, dimension 5 over Finite Field of size 17
 
-        And we can check that it is truly a part of the framework category
-        ::
+        We can check that it is truly a part of the framework category::
 
             sage: C.parent()
             <class '__main__.CodeExample_with_category'>
             sage: C.category()
             Category of facade finite dimensional vector spaces with basis over Finite Field of size 17
+
+        And any method that works on linear codes works for our new dummy code::
+
+            sage: C.minimum_distance()
+            1
+            sage: C.is_self_orthogonal()
+            False
+            sage: print C.is_permutation_equivalent(C.dual_code()) #long time
+            True
         """
         self._base_field = base_field
         self._length = length
@@ -813,87 +756,6 @@ class LinearCode(module.Module):
         facade_for = VectorSpace(self._base_field, self._length)
         self.Element = type(facade_for.an_element()) # for when we make this a non-facade parent
         Parent.__init__(self, base=base_field, facade=facade_for, category=cat)
-
-    def __init__(self, generator_matrix, d=None):
-        r"""
-        See the docstring for :meth:`LinearCode`.
-
-        EXAMPLES::
-
-            sage: MS = MatrixSpace(GF(2),4,7)
-            sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
-            sage: C  = LinearCode(G)    # indirect doctest
-            sage: C
-            Linear code of length 7, dimension 4 over Finite Field of size 2
-
-        The minimum distance of the code, if known, can be provided as an
-        optional parameter.::
-
-            sage: C  = LinearCode(G, d=3)
-            sage: C.minimum_distance()
-            3
-
-        TESTS::
-
-            sage: C = codes.HammingCode(3, GF(2))
-            sage: TestSuite(C).run()
-
-        Check that it works even with input matrix with non full rank (see
-        :trac:`17452`)::
-
-            sage: K.<a> = GF(4)
-            sage: G = matrix([[a, a + 1, 1, a + 1, 1, 0, 0],
-            ....:             [0, a, a + 1, 1, a + 1, 1, 0],
-            ....:             [0, 0, a, a + 1, 1, a + 1, 1],
-            ....:             [a + 1, 0, 1, 0, a + 1, 1, a + 1],
-            ....:             [a, a + 1, a + 1, 0, 0, a + 1, 1],
-            ....:             [a + 1, a, a, 1, 0, 0, a + 1],
-            ....:             [a, a + 1, 1, a + 1, 1, 0, 0]])
-            sage: C = LinearCode(G)
-            sage: C.basis()
-            [(1, 0, 0, a + 1, 0, 1, 0),
-             (0, 1, 0, 0, a + 1, 0, 1),
-             (0, 0, 1, a, a + 1, a, a + 1)]
-            sage: C.minimum_distance()
-            3
-
-        Forbid the zero vector space (see :trac:`17452` and :trac:`6486`)::
-
-            sage: G = matrix(GF(2), [[0,0,0]])
-            sage: C = LinearCode(G)
-            Traceback (most recent call last):
-            ...
-            ValueError: this linear code contains no non-zero vector
-        """
-        base_ring = generator_matrix.base_ring()
-        # if the matrix does not have full rank we replace it
-        if generator_matrix.rank() != generator_matrix.nrows():
-            from sage.matrix.constructor import matrix
-            basis = generator_matrix.row_space().basis()
-            generator_matrix = matrix(base_ring, basis)
-
-            if generator_matrix.nrows() == 0:
-                raise ValueError("this linear code contains no non-zero vector")
-
-        self._init_linear_code(base_ring, generator_matrix.ncols())
-        self._gens = generator_matrix.rows()
-        self._generator_matrix = generator_matrix
-        self._dimension = generator_matrix.rank()
-        self._minimum_distance = d
-
-    def _repr_(self):
-        r"""
-        See the docstring for :meth:`LinearCode`.
-
-        EXAMPLES::
-
-            sage: MS = MatrixSpace(GF(2),4,7)
-            sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
-            sage: C  = LinearCode(G)
-            sage: C                     # indirect doctest
-            Linear code of length 7, dimension 4 over Finite Field of size 2
-        """
-        return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())
 
     def _an_element_(self):
         r"""
@@ -953,31 +815,6 @@ class LinearCode(module.Module):
         aut_group_can_label = self._canonize(equivalence)
         return aut_group_can_label.get_autom_gens(), \
                aut_group_can_label.get_autom_order()
-
-    def __iter__(self):
-        """
-        Return an iterator over the elements of this linear code.
-
-        EXAMPLES::
-
-            sage: C = codes.HammingCode(3,GF(2))
-            sage: [list(c) for c in C if c.hamming_weight() < 4]
-            [[0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 1, 1],
-             [0, 1, 0, 0, 1, 0, 1], [0, 0, 1, 0, 1, 1, 0],
-             [1, 1, 1, 0, 0, 0, 0], [1, 0, 0, 1, 1, 0, 0],
-             [0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 1, 0, 0, 1]]
-
-        TESTS::
-
-            sage: C = codes.HammingCode(3,GF(2))
-            sage: L = list(C)
-            sage: L[10].is_immutable()
-            True
-
-        """
-        from sage.modules.finite_submodule_iter import \
-                                                FiniteFieldsubspace_iterator
-        return FiniteFieldsubspace_iterator(self.generator_matrix(), immutable=True)
 
     def ambient_space(self):
         r"""
@@ -1952,7 +1789,10 @@ class LinearCode(module.Module):
             sage: C.gens()
              [(1, 0, 0, 0, 0, 1, 1), (0, 1, 0, 0, 1, 0, 1), (0, 0, 1, 0, 1, 1, 0), (0, 0, 0, 1, 1, 1, 1)]
         """
-        return self._gens
+        if hasattr(self, "_gens"):
+            return self._gens
+        else:
+            return self.generator_matrix().rows()
 
     def genus(self):
         r"""
@@ -1977,6 +1817,32 @@ class LinearCode(module.Module):
         k = self.dimension()
         gammaC = n+1-k-d
         return gammaC
+
+    def __iter__(self):
+        """
+        Return an iterator over the elements of this linear code.
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(3,GF(2))
+            sage: [list(c) for c in C if c.hamming_weight() < 4]
+            [[0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 1, 1],
+             [0, 1, 0, 0, 1, 0, 1], [0, 0, 1, 0, 1, 1, 0],
+             [1, 1, 1, 0, 0, 0, 0], [1, 0, 0, 1, 1, 0, 0],
+             [0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 1, 0, 0, 1]]
+
+        TESTS::
+
+            sage: C = codes.HammingCode(3,GF(2))
+            sage: L = list(C)
+            sage: L[10].is_immutable()
+            True
+
+        """
+        from sage.modules.finite_submodule_iter import \
+                                                FiniteFieldsubspace_iterator
+        return FiniteFieldsubspace_iterator(self.generator_matrix(), immutable=True)
+
 
     def information_set(self):
         """
@@ -2298,8 +2164,6 @@ class LinearCode(module.Module):
         # If the minimum distance has already been computed or provided by
         # the user then simply return the stored value.
         # This is done only if algorithm is None.
-        if self._minimum_distance is not None and algorithm is None:
-            return self._minimum_distance
         if algorithm not in (None, "gap", "guava"):
             raise ValueError("The algorithm argument must be one of None, "
                         "'gap' or 'guava'; got '{0}'".format(algorithm))
@@ -2320,8 +2184,7 @@ class LinearCode(module.Module):
             #print "Running Guava's MinimumWeight ...\n"
             return ZZ(d)
         Gstr = "%s*Z(%s)^0"%(gapG, q)
-        self._minimum_distance = min_wt_vec_gap(Gstr,n,k,F).hamming_weight()
-        return self._minimum_distance
+        return min_wt_vec_gap(Gstr,n,k,F).hamming_weight()
 
     def module_composition_factors(self, gp):
         r"""
@@ -3255,3 +3118,153 @@ def LinearCodeFromVectorSpace(V, d=None):
     G = MS([B[i].list() for i in range(k)])
     return LinearCode(G, d=d)
 
+############################ linear codes python class ########################
+
+class LinearCode(AbstractLinearCode):
+    r"""
+    Linear codes over a finite field or finite ring.
+
+    A *linear code* is a subspace of a vector space over a finite field. It can
+    be defined by one of its basis or equivalently a generator matrix (a `k
+    \times n` matrix of full rank `k`).
+
+    See :wikipedia:`Linear_code` for more information.
+
+    INPUT:
+
+    - ``generator_matrix`` -- a generator matrix over a finite field (``G`` can be
+      defined over a finite ring but the matrices over that ring must have
+      certain attributes, such as ``rank``)
+
+    - ``d`` -- (optional, default: ``None``) the minimum distance of the code
+
+    .. NOTE::
+
+        The veracity of the minimum distance ``d``, if provided, is not
+        checked.
+
+
+    EXAMPLES::
+
+        sage: MS = MatrixSpace(GF(2),4,7)
+        sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+        sage: C  = LinearCode(G)
+        sage: C
+        Linear code of length 7, dimension 4 over Finite Field of size 2
+        sage: C.base_ring()
+        Finite Field of size 2
+        sage: C.dimension()
+        4
+        sage: C.length()
+        7
+        sage: C.minimum_distance()
+        3
+        sage: C.spectrum()
+        [1, 0, 0, 7, 7, 0, 0, 1]
+        sage: C.weight_distribution()
+        [1, 0, 0, 7, 7, 0, 0, 1]
+
+    The minimum distance of the code, if known, can be provided as an
+    optional parameter.::
+
+        sage: C  = LinearCode(G, d=3)
+        sage: C.minimum_distance()
+        3
+
+    Another example.::
+
+        sage: MS = MatrixSpace(GF(5),4,7)
+        sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+        sage: C  = LinearCode(G)
+        sage: C
+        Linear code of length 7, dimension 4 over Finite Field of size 5
+
+    AUTHORS:
+
+    - David Joyner (11-2005)
+    """
+    #    sage: C.minimum_distance_upper_bound()   # optional (net connection)
+    #    3
+    #    sage: C.minimum_distance_why()     # optional (net connection)
+    #    Ub(7,4) = 3 follows by the Griesmer bound.
+
+    def __init__(self, generator_matrix, d=None):
+        r"""
+        See the docstring for :meth:`LinearCode`.
+
+        EXAMPLES::
+
+            sage: MS = MatrixSpace(GF(2),4,7)
+            sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+            sage: C  = LinearCode(G)    # indirect doctest
+            sage: C
+            Linear code of length 7, dimension 4 over Finite Field of size 2
+
+        The minimum distance of the code, if known, can be provided as an
+        optional parameter.::
+
+            sage: C  = LinearCode(G, d=3)
+            sage: C.minimum_distance()
+            3
+
+        TESTS::
+
+            sage: C = codes.HammingCode(3, GF(2))
+            sage: TestSuite(C).run()
+
+        Check that it works even with input matrix with non full rank (see
+        :trac:`17452`)::
+
+            sage: K.<a> = GF(4)
+            sage: G = matrix([[a, a + 1, 1, a + 1, 1, 0, 0],
+            ....:             [0, a, a + 1, 1, a + 1, 1, 0],
+            ....:             [0, 0, a, a + 1, 1, a + 1, 1],
+            ....:             [a + 1, 0, 1, 0, a + 1, 1, a + 1],
+            ....:             [a, a + 1, a + 1, 0, 0, a + 1, 1],
+            ....:             [a + 1, a, a, 1, 0, 0, a + 1],
+            ....:             [a, a + 1, 1, a + 1, 1, 0, 0]])
+            sage: C = LinearCode(G)
+            sage: C.basis()
+            [(1, 0, 0, a + 1, 0, 1, 0),
+             (0, 1, 0, 0, a + 1, 0, 1),
+             (0, 0, 1, a, a + 1, a, a + 1)]
+            sage: C.minimum_distance()
+            3
+
+        Forbid the zero vector space (see :trac:`17452` and :trac:`6486`)::
+
+            sage: G = matrix(GF(2), [[0,0,0]])
+            sage: C = LinearCode(G)
+            Traceback (most recent call last):
+            ...
+            ValueError: this linear code contains no non-zero vector
+        """
+        base_ring = generator_matrix.base_ring()
+        # if the matrix does not have full rank we replace it
+        if generator_matrix.rank() != generator_matrix.nrows():
+            from sage.matrix.constructor import matrix
+            basis = generator_matrix.row_space().basis()
+            generator_matrix = matrix(base_ring, basis)
+
+            if generator_matrix.nrows() == 0:
+                raise ValueError("this linear code contains no non-zero vector")
+
+        super(LinearCode, self).__init__(base_ring, generator_matrix.ncols())
+        self._gens = generator_matrix.rows()
+        self._generator_matrix = generator_matrix
+        self._dimension = generator_matrix.rank()
+        self._minimum_distance = d
+
+    def _repr_(self):
+        r"""
+        See the docstring for :meth:`LinearCode`.
+
+        EXAMPLES::
+
+            sage: MS = MatrixSpace(GF(2),4,7)
+            sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+            sage: C  = LinearCode(G)
+            sage: C                     # indirect doctest
+            Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())

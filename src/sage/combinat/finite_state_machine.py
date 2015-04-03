@@ -9978,6 +9978,22 @@ class Automaton(FiniteStateMachine):
             [Transition from 0 to 0: 'A'|'a',
              Transition from 0 to 1: 'B'|'b',
              Transition from 1 to 2: 'C'|'c']
+
+        TESTS::
+
+            sage: A.transducer().input_projection() == A
+            True
+            sage: NAF = Automaton(
+            ....:     {'A': [('A', 0), ('B', 1), ('B', -1)], 'B': [('A', 0)]})
+            sage: NAF.transducer().input_projection() == NAF
+            True
+            sage: B = Automaton(
+            ....:     {0: [(0, 'a'), (1, ['b', 'c']), (2, ['d', 'e'])],
+            ....:      1: [(0, ['f', 'g']), (1, 'h'), (2, None)],
+            ....:      2: [(0, None), (1, None), (2, ['i', 'j'])]},
+            ....:     initial_states=[1, 2], final_states=[0])
+            sage: B.transducer(lambda t: [c.upper() for c in t.word_in]).input_projection() == B
+            True
         """
         if word_out_function is None:
             word_out_function = lambda transition: copy(transition.word_in)

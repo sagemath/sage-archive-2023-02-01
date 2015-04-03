@@ -517,6 +517,46 @@ documentation for more information on its behaviour and optional arguments.
 
       deprecation(666, "Do not use your computer to compute 1+1. Use your brain.")
 
+
+Experimental/Unstable Code
+--------------------------
+
+You can mark your newly created code (classes/functions/methods) as
+experimental/unstable. In this case, no deprecation warning is needed
+when changing this code, its functionality or its interface.
+
+This should allow you to put your stuff in Sage early, without worrying about
+making (design) changes later.
+
+When satisfied with the code (when stable for some time, say, one
+year), you can delete this warning.
+
+As usual, all code has to be fully doctested and go through our
+reviewing process.
+
+* **Experimental function/method:** use the decorator
+  :class:`~sage.misc.superseded.mark_as_experimental`. Here is an example::
+
+      @sage.misc.superseded.mark_as_experimental(66666)
+      def experimental_function():
+          # do something
+
+* **Experimental class:** use the decorator
+  :class:`~sage.misc.superseded.mark_as_experimental` for its ``__init__``.
+  Here is an example::
+
+      class experimental_class(SageObject):
+          @sage.misc.superseded.mark_as_experimental(66666)
+          def __init__(self, some, arguments):
+              # do something
+
+* **Any other case:** if none of the cases above apply, call
+  :func:`~sage.misc.superseded.experimental` in the code where you want to
+  warn. It will display the message of your choice::
+
+      @sage.misc.superseded.experimental(66666, 'This code is not foolproof.')
+
+
 Using Optional Packages
 =======================
 

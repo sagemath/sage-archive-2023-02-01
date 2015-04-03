@@ -5918,9 +5918,8 @@ class FiniteStateMachine(SageObject):
             ....:     initial_states=['A'], final_states=['A'])
             sage: it = inverter.iter_process(
             ....:     words.FibonacciWord(), iterator_type='simple')
-            sage: from itertools import islice
-            sage: [o for o in islice(it, 0, 5)]  # only output the first 5 letters
-            [1, 0, 1, 1, 0]
+            sage: Words([0,1])(it)
+            word: 1011010110110101101011011010110110101101...
 
         ::
 

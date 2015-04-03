@@ -530,9 +530,11 @@ class FractionField_generic(field.Field):
             sage: S(pari(x + y + 1/z))
             (x*z + y*z + 1)/z
 
-        Test a failed conversion::
+        Test conversions where `y` is a string but `x` not::
 
             sage: K = ZZ['x,y'].fraction_field()
+            sage: K._element_constructor_(2, 'x+y')
+            2/(x + y)
             sage: K._element_constructor_(1, 'z')
             Traceback (most recent call last):
             ...
@@ -554,6 +556,7 @@ class FractionField_generic(field.Field):
                 raise TypeError("unable to evaluate {!r} in {}".format(x, self))
             recurse = True
         if isinstance(y, basestring):
+            from sage.misc.sage_eval import sage_eval
             try:
                 y = sage_eval(y, self.gens_dict_recursive())
             except NameError:

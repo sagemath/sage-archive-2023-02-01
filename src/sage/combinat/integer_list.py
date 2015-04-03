@@ -796,50 +796,33 @@ class IntegerListsLex(Parent):
         if category is None:
             category = EnumeratedSets().Finite()
 
-        # self._floor_or_ceiling_is_function will be set to ``True`` if a function is given
-        # as input for floor or ceiling; in this case a warning will
-        # be emitted, unless the user signs the waiver. See the
-        # documentation.
-        self._floor_or_ceiling_is_function = False # warning for dangerous (but possibly valid) usage
         self._check = check
 
         if n is not None:
-            n = ZZ(n)
-            self._min_sum = n
-            self._max_sum = n
-        else:
-            min_sum = ZZ(min_sum)
-            if max_sum != Infinity:
-                max_sum = ZZ(max_sum)
-            self._min_sum = min_sum
-            self._max_sum = max_sum
+            min_sum = n
+            max_sum = n
+        self._min_sum = ZZ(min_sum)
+        self._max_sum = ZZ(max_sum) if max_sum != Infinity else max_sum
 
         if length is not None:
-            length = ZZ(length)
             min_length = length
             max_length = length
-        else:
-            min_length = ZZ(min_length)
-            min_length = max(min_length, 0)
-            if max_length != Infinity:
-                max_length = ZZ(max_length)
-        self._max_length = max_length
-        self._min_length = min_length
+        self._min_length = max(ZZ(min_length), 0)
+        self._max_length = ZZ(max_length) if max_length != Infinity else max_length
 
-        if min_slope != -Infinity:
-            min_slope = ZZ(min_slope)
-        self._min_slope = min_slope
-        if max_slope != Infinity:
-            max_slope = ZZ(max_slope)
-        self._max_slope = max_slope
+        self._min_slope = ZZ(min_slope) if min_slope != -Infinity else min_slope
+        self._max_slope = ZZ(max_slope) if max_slope !=  Infinity else max_slope
 
-        min_part = ZZ(min_part)
-        if min_part < 0:
+        self._min_part = ZZ(min_part)
+        if self._min_part < 0:
             raise NotImplementedError("strictly negative min_part")
+        self._max_part = ZZ(max_part) if max_part != Infinity else max_part
 
-        if max_part != Infinity:
-            max_part = ZZ(max_part)
-
+        # self._floor_or_ceiling_is_function will be set to ``True``
+        # if a function is given as input for floor or ceiling; in
+        # this case a warning will be emitted, unless the user sets
+        # check=False. See the documentation.
+        self._floor_or_ceiling_is_function = False
         if floor is None:
             floor = 0
         elif isinstance(floor, (list, tuple)):
@@ -852,9 +835,9 @@ class IntegerListsLex(Parent):
         else:
             raise TypeError("floor should be a list, tuple, or function")
         self._floor = Envelope(floor, upper=False,
-                               min_part=min_part, max_part=max_part,
-                               min_slope=min_slope, max_slope=max_slope,
-                               min_length=min_length)
+                               min_part=  self._min_part,  max_part= self._max_part,
+                               min_slope= self._min_slope, max_slope=self._max_slope,
+                               min_length=self._min_length)
 
         if ceiling is None:
             ceiling = Infinity
@@ -868,9 +851,9 @@ class IntegerListsLex(Parent):
         else:
             raise ValueError("Unable to parse value of parameter ceiling")
         self._ceiling = Envelope(ceiling, upper=True,
-                                 min_part=min_part, max_part=max_part,
-                                 min_slope=min_slope, max_slope=max_slope,
-                                 min_length=min_length)
+                               min_part=  self._min_part,  max_part= self._max_part,
+                               min_slope= self._min_slope, max_slope=self._max_slope,
+                               min_length=self._min_length)
 
         if name is not None:
             self.rename(name)

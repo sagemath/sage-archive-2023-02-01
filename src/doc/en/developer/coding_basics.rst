@@ -278,10 +278,8 @@ information. You can use the existing functions of Sage as templates.
        .. SEEALSO::
 
            :ref:`chapter-sage_manuals_links`,
-           :meth:`useful_method`,
-           :meth:`other useful method <method_name>`,
-           :meth:`sage.somewhere.related_method`
-           :mod:`~sage.some.related.module`.
+           :meth:`sage.somewhere.other_useful_method`,
+           :mod:`sage.some.related.module`.
 
    See :ref:`chapter-sage_manuals_links` for details on how to setup
    link in Sage.

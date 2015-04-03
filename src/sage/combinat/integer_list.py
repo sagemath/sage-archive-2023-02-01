@@ -1161,6 +1161,8 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: list(C)     # indirect doctest
             [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
         """
+        if self._check and not self._floor_or_ceiling_is_function:
+            self._check_finiteness()
         return self._Iter(self)
 
     class _Iter:
@@ -1229,9 +1231,6 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 0
             """
             self._parent = parent
-
-            if not parent._floor_or_ceiling_is_function and parent._check:
-                parent._check_finiteness()
 
             self._search_ranges = []
             self._current_list = []

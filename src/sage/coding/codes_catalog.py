@@ -32,8 +32,13 @@ The ``codes`` object may be used to access the codes that Sage can build.
 
 # Implementation note:
 #
-# This module is imported as "codes" in all.py so that codes.<tab> is available
-# in the global namespace.
+# We generate a new module "codes" which is filled with the sought
+# classes/functions. This immediately makes those classes/functions available using
+#   sage.coding.codes_catalog.codes.<tab>
+# In all.py sage.coding.codes_catalog.codes is imported (lazily) to make it available at top-level.
+# To also make it available as a module, to allow
+#   from codes import *
+# we need to add codes to sys.modules, also done in all.py
 
 import imp, sys
 codes = imp.new_module("codes")
@@ -51,4 +56,3 @@ from sage.coding.code_constructions import (BCHCode, BinaryGolayCode, CyclicCode
 from sage.coding.guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
 """
 exec(imp_stmts) in codes.__dict__
-sys.modules["codes"] = codes

@@ -147,6 +147,84 @@ def experimental(trac_number, message):
     """
     warning(trac_number, message, FutureWarning)
 
+
+class mark_as_experimental(object):
+    def __init__(self, trac_number):
+        """
+        A decorator which warns about the experimental/unstable status of
+        the decorated class/method/function.
+
+        INPUT:
+
+        - ``trac_number`` -- an integer. The trac ticket number where this
+          code was introduced.
+
+        EXAMPLES::
+
+            sage: @sage.misc.superseded.mark_as_experimental(trac_number=79997)
+            ....: def foo(*args, **kwargs):
+            ....:     print args, kwargs
+            sage: foo(7, what='Hello')
+            doctest:...: FutureWarning: This class/method/function is
+            marked as experimental. It, its functionality or its
+            interface might change without a deprecation warning.
+            See http://trac.sagemath.org/79997 for details.
+            (7,) {'what': 'Hello'}
+
+        ::
+
+            sage: class bird(SageObject):
+            ....:     @sage.misc.superseded.mark_as_experimental(trac_number=99999)
+            ....:     def __init__(self, *args, **kwargs):
+            ....:         print "piep", args, kwargs
+            sage: _ = bird(99)
+            doctest:...: FutureWarning: This class/method/function is
+            marked as experimental. It, its functionality or its
+            interface might change without a deprecation warning.
+            See http://trac.sagemath.org/99999 for details.
+            piep (99,) {}
+        """
+        self.trac_number = trac_number
+
+    def __call__(self, func):
+        """
+        Print experimental warning.
+
+        INPUT:
+
+        - ``func`` -- the function to decorate.
+
+        OUTPUT:
+
+        The wrapper to this function.
+
+        TESTS::
+
+            sage: def foo(*args, **kwargs):
+            ....:     print args, kwargs
+            sage: from sage.misc.superseded import mark_as_experimental
+            sage: ex_foo = mark_as_experimental(trac_number=99399)(foo)
+            sage: ex_foo(3, what='Hello')
+            doctest:...: FutureWarning: This class/method/function is
+            marked as experimental. It, its functionality or its
+            interface might change without a deprecation warning.
+            See http://trac.sagemath.org/99399 for details.
+            (3,) {'what': 'Hello'}
+        """
+        from sage.misc.decorators import sage_wraps
+        @sage_wraps(func)
+        def wrapper(*args, **kwds):
+            from sage.misc.superseded import experimental
+            experimental(self.trac_number,
+                         'This class/method/function is marked as '
+                         'experimental. It, its functionality or its '
+                         'interface might change without a '
+                         'deprecation warning.')
+            return func(*args, **kwds)
+
+        return wrapper
+
+
 class DeprecatedFunctionAlias(object):
     """
     A wrapper around methods or functions which automatically print

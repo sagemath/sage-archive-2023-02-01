@@ -750,8 +750,8 @@ class AbstractLinearCode(module.Module):
             1
             sage: C.is_self_orthogonal()
             False
-            sage: print C.is_permutation_equivalent(C.dual_code()) #long time
-            True
+            sage: print C.divisor() #long time
+            1
         """
         self._base_field = base_field
         self._length = length
@@ -1782,6 +1782,7 @@ class AbstractLinearCode(module.Module):
 
     gen_mat_systematic = deprecated_function_alias(17973, generator_matrix_systematic)
 
+    @cached_method
     def gens(self):
         r"""
         Returns the generators of this code as a list of vectors.
@@ -2099,6 +2100,7 @@ class AbstractLinearCode(module.Module):
         s = 'LinearCode(%s)' % G
         return s
 
+    @cached_method
     def minimum_distance(self, algorithm=None):
         r"""
         Returns the minimum distance of this linear code.

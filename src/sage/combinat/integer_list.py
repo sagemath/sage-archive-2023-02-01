@@ -26,6 +26,7 @@ implementation is still available in
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import inspect
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.cachefunc import cached_method
@@ -852,7 +853,7 @@ class IntegerListsLex(Parent):
 
         if ceiling is None:
             ceiling = Infinity
-        elif isinstance(ceiling, (list, tuple, ClonableArray)):
+        elif isinstance(ceiling, (list, tuple)):
             if not all(i==Infinity or i in ZZ for i in ceiling):
                 raise TypeError("the parts of ceiling={} should be non negative integers".format(ceiling))
             if not all(i >= 0 for i in ceiling):
@@ -877,15 +878,17 @@ arguments of IntegerListsLex. Please see the documentation for the caveats.
 If you know what you are doing, you can set check=False to skip this warning.""")
 
         # Customization of the class and constructor for the elements
+        self._element_constructor_is_copy_safe = False
         if element_class is not None:
             self.Element = element_class
         if element_constructor is not None:
             self._element_constructor_ = element_constructor
+            if element_constructor is list or element_constructor is tuple:
+                self._element_constructor_is_copy_safe = True
         elif issubclass(self.Element, ClonableArray):
             # Not all element class support check=False
             self._element_constructor_ = self._element_constructor_nocheck
-        self._element_constructor_is_copy_safe = \
-            self._element_constructor is list or self._element_constructor is tuple
+            self._element_constructor_is_copy_safe = True
         if global_options is not None:
             self.global_options = global_options
 

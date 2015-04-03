@@ -35,14 +35,20 @@ The ``codes`` object may be used to access the codes that Sage can build.
 # This module is imported as "codes" in all.py so that codes.<tab> is available
 # in the global namespace.
 
-from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
-                                CyclicCode, CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
-                                DuadicCodeOddPair, ExtendedBinaryGolayCode,
-                                ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,
-                                HammingCode, LinearCodeFromCheckMatrix,
-                                QuadraticResidueCode, QuadraticResidueCodeEvenPair,
-                                QuadraticResidueCodeOddPair, RandomLinearCode,
-                                ReedSolomonCode, TernaryGolayCode,
-                                ToricCode, TrivialCode, WalshCode)
+import imp, sys
+codes = imp.new_module("codes")
+imp_stmts = """
+from sage.coding.code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
+                                            CyclicCode, CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
+                                            DuadicCodeOddPair, ExtendedBinaryGolayCode,
+                                            ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,
+                                            HammingCode, LinearCodeFromCheckMatrix,
+                                            QuadraticResidueCode, QuadraticResidueCodeEvenPair,
+                                            QuadraticResidueCodeOddPair, RandomLinearCode,
+                                            ReedSolomonCode, TernaryGolayCode,
+                                            ToricCode, TrivialCode, WalshCode)
 
-from guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
+from sage.coding.guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
+"""
+exec(imp_stmts) in codes.__dict__
+sys.modules["codes"] = codes

@@ -838,7 +838,7 @@ class IntegerListsLex(Parent):
             self._floor_or_ceiling_is_function = True
         else:
             raise TypeError("floor should be a list, tuple, or function")
-        self._floor = Envelope(floor, upper=False,
+        self._floor = Envelope(floor, sign=-1,
                                min_part=  self._min_part,  max_part= self._max_part,
                                min_slope= self._min_slope, max_slope=self._max_slope,
                                min_length=self._min_length)
@@ -854,7 +854,7 @@ class IntegerListsLex(Parent):
             self._floor_or_ceiling_is_function = True
         else:
             raise ValueError("Unable to parse value of parameter ceiling")
-        self._ceiling = Envelope(ceiling, upper=True,
+        self._ceiling = Envelope(ceiling, sign=1,
                                min_part=  self._min_part,  max_part= self._max_part,
                                min_slope= self._min_slope, max_slope=self._max_slope,
                                min_length=self._min_length)
@@ -952,7 +952,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: IntegerListsLex(ceiling=[0], min_slope=1, max_slope=1).list()
             Traceback (most recent call last):
             ...
-            ValueError: Could not check that the specified constraints yield a finite
+            ValueError: Could not check that the specified constraints yield a finite set
 
         The next example shows a case that is finite since we remove trailing zeroes::
 
@@ -1855,18 +1855,21 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
 class Envelope(object):
     """
-    The (currently approximated) upper or lower envelope of a function
+    The (currently approximated) upper envelope of a function
     under the specified constraints.
 
     INPUT:
 
     - ``f`` -- a function, list, or tuple; if ``f`` is a list, it is
       considered as the function ``f(i)=f[i]``, completed for larger
-      `i` with ``f(i)=max_part`` for an upper envelope and
-      ``f(i)=min_part`` for a lower envelope.
+      `i` with ``f(i)=max_part``.
 
     - ``min_part``, ``max_part``, ``min_slope``, ``max_slope``, ...
       as for :class:`IntegerListsLex` (please consult for details).
+
+    - ``sign`` -- (+1 or -1) multiply the input values with ``sign``
+      and multiply the output with ``sign``. Setting this to -1 can be
+      used to implement a lower envelope.
 
     The *upper envelope* `U(f)` of `f` is the (pointwise) largest
     function which is bounded above by `f` and satisfies the
@@ -1874,13 +1877,7 @@ class Envelope(object):
     ``i,i+1<min_length``, the upper envelope also satisfies the
     ``min_slope`` condition.
 
-    Symmetrically, the *lower envelope* `L(f)` of `f` is the
-    (pointwise) smallest function which is bounded above by `f` and
-    satisfies the ``min_part`` and ``min_slope`` conditions.
-    Furthermore, for ``i,i+1 <= min_length``, the lower envelope also
-    satisfies the ``max_slope`` condition.
-
-    Upon computing `U(f)(i)` (or `L(f)(i)`), all the previous values
+    Upon computing `U(f)(i)`, all the previous values
     for `j\leq i` are computed and cached; in particular `f(i)` will
     be computed at most once for each `i`.
 
@@ -1909,39 +1906,39 @@ class Envelope(object):
         sage: f = Envelope([3,2,2])
         sage: [f(i) for i in range(10)]
         [3, 2, 2, inf, inf, inf, inf, inf, inf, inf]
-        sage: f = Envelope([3,2,2], upper=False)
+        sage: f = Envelope([3,2,2], sign=-1)
         sage: [f(i) for i in range(10)]
         [3, 2, 2, 0, 0, 0, 0, 0, 0, 0]
 
     A more interesting lower envelope::
 
-        sage: f = Envelope([4,1,5,3,5], upper=False, min_part=2, min_slope=-1)
+        sage: f = Envelope([4,1,5,3,5], sign=-1, min_part=2, min_slope=-1)
         sage: [f(i) for i in range(10)]
         [4, 3, 5, 4, 5, 4, 3, 2, 2, 2]
 
     Currently, adding ``max_slope`` has no effect::
 
-        sage: f = Envelope([4,1,5,3,5], upper=False, min_part=2, min_slope=-1, max_slope=0)
+        sage: f = Envelope([4,1,5,3,5], sign=-1, min_part=2, min_slope=-1, max_slope=0)
         sage: [f(i) for i in range(10)]
         [4, 3, 5, 4, 5, 4, 3, 2, 2, 2]
 
     unless ``min_length`` is large enough::
 
-        sage: f = Envelope([4,1,5,3,5], upper=False, min_part=2, min_slope=-1, max_slope=0, min_length=2)
+        sage: f = Envelope([4,1,5,3,5], sign=-1, min_part=2, min_slope=-1, max_slope=0, min_length=2)
         sage: [f(i) for i in range(10)]
         [4, 3, 5, 4, 5, 4, 3, 2, 2, 2]
 
-        sage: f = Envelope([4,1,5,3,5], upper=False, min_part=2, min_slope=-1, max_slope=0, min_length=4)
+        sage: f = Envelope([4,1,5,3,5], sign=-1, min_part=2, min_slope=-1, max_slope=0, min_length=4)
         sage: [f(i) for i in range(10)]
         [5, 5, 5, 4, 5, 4, 3, 2, 2, 2]
 
-        sage: f = Envelope([4,1,5,3,5], upper=False, min_part=2, min_slope=-1, max_slope=0, min_length=5)
+        sage: f = Envelope([4,1,5,3,5], sign=-1, min_part=2, min_slope=-1, max_slope=0, min_length=5)
         sage: [f(i) for i in range(10)]
         [5, 5, 5, 5, 5, 4, 3, 2, 2, 2]
 
     A non trivial upper envelope::
 
-        sage: f = Envelope([9,1,5,4], upper=True, max_part=7, max_slope=2)
+        sage: f = Envelope([9,1,5,4], max_part=7, max_slope=2)
         sage: [f(i) for i in range(10)]
         [7, 1, 3, 4, 6, 7, 7, 7, 7, 7]
 
@@ -1955,64 +1952,73 @@ class Envelope(object):
         sage: [f(i) for i in range(10)]
         [-1, 0, 1, 2, 3, 3, 3, 3, 3, 3]
 
-        sage: f = Envelope(3, upper=False, min_slope=1)
+        sage: f = Envelope(3, sign=-1, min_slope=1)
         sage: [f(i) for i in range(10)]
         [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
-        sage: f = Envelope(3, upper=False, max_slope=-1, min_length=4)
+        sage: f = Envelope(3, sign=-1, max_slope=-1, min_length=4)
         sage: [f(i) for i in range(10)]
         [6, 5, 4, 3, 3, 3, 3, 3, 3, 3]
     """
-    def __init__(self, f, upper=True,
+    def __init__(self, f,
                  min_part=0, max_part=Infinity,
                  min_slope=-Infinity, max_slope=Infinity,
-                 min_length=0, max_length=Infinity):
+                 min_length=0, max_length=Infinity, sign=1):
         r"""
         Initialize this envelope.
 
         TESTS::
 
             sage: from sage.combinat.integer_list import Envelope
-            sage: f = Envelope(3, upper=False, max_slope=-1, min_length=4)
+            sage: f = Envelope(3, sign=-1, max_slope=-1, min_length=4)
             sage: f.__dict__
-            {'_f': The constant function (...) -> 3,
-             '_f_limit': 3,
+            {'_f': The constant function (...) -> inf,
              '_f_limit_start': 0,
-             '_is_upper': False,
-             '_max_part': inf,
-             '_max_slope': -1,
-             '_min_part': 0,
-             '_min_slope': -inf,
-             '_precomputed': [6, 5, 4, 3]}
+             '_max_part': -3,
+             '_max_slope': inf,
+             '_min_slope': 1,
+             '_precomputed': [-6, -5, -4, -3],
+             '_sign': -1}
             sage: TestSuite(f).run(skip="_test_pickling")
+            sage: Envelope(3, sign=1/3, max_slope=-1, min_length=4)
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
+            sage: Envelope(3, sign=-2, max_slope=-1, min_length=4)
+            Traceback (most recent call last):
+            ...
+            ValueError: sign should be +1 or -1
         """
-        self._is_upper = upper
-        self._min_part = min_part
-        self._max_part = max_part
-        self._min_slope = min_slope
-        self._max_slope = max_slope
+        # self._sign = sign for the output values (the sign change for
+        # f is handled here in __init__)
+        self._sign = ZZ(sign)
+        if self._sign == 1:
+            self._max_part = max_part
+            self._min_slope = min_slope
+            self._max_slope = max_slope
+        elif self._sign == -1:
+            self._max_part = -min_part
+            self._min_slope = -max_slope
+            self._max_slope = -min_slope
+        else:
+            raise ValueError("sign should be +1 or -1")
 
+        # Handle different types of f and multiply f with sign
         if f == Infinity or f == -Infinity or f in ZZ:
             limit_start = 0
-            if upper:
-                f = min(f, max_part)
-            else:
-                f = max(f, min_part)
-            limit = f
-            f = ConstantFunction(f)
+            self._max_part = min(self._sign * f, self._max_part)
+            f = ConstantFunction(Infinity)
         elif isinstance(f, (list, tuple)):
             limit_start = len(f)
-            limit = max_part if upper else min_part
-            f_tab = f
-            f = lambda k: f_tab[k] if k < len(f_tab) else limit
+            f_tab = [self._sign * i for i in f]
+            f = lambda k: f_tab[k] if k < len(f_tab) else Infinity
         else:
+            g = f
+            f = lambda k: self._sign * g(k)
             # At this point, this is not really used
-            # Otherwise, one could try to get bounds from min_part, ...
             limit_start = Infinity
-            limit = None
 
         self._f = f
-        self._f_limit = limit
         # For i >= limit_start, f is constant
         # This does not necessarily means that self is constant!
         self._f_limit_start = limit_start
@@ -2021,10 +2027,7 @@ class Envelope(object):
         if min_length > 0:
             self(min_length-1)
             for i in range(min_length-1,0,-1):
-                if upper:
-                    self._precomputed[i-1] = min(self._precomputed[i-1], self._precomputed[i]-min_slope)
-                else:
-                    self._precomputed[i-1] = max(self._precomputed[i-1], self._precomputed[i]-max_slope)
+                self._precomputed[i-1] = min(self._precomputed[i-1], self._precomputed[i] - self._min_slope)
 
     def limit_start(self):
         """
@@ -2037,7 +2040,7 @@ class Envelope(object):
             sage: from sage.combinat.integer_list import Envelope
             sage: Envelope([4,1,5]).limit_start()
             3
-            sage: Envelope([4,1,5], upper=False).limit_start()
+            sage: Envelope([4,1,5], sign=-1).limit_start()
             3
 
             sage: Envelope([4,1,5], max_part=2).limit_start()
@@ -2045,7 +2048,7 @@ class Envelope(object):
 
             sage: Envelope(4).limit_start()
             0
-            sage: Envelope(4, upper=False).limit_start()
+            sage: Envelope(4, sign=-1).limit_start()
             0
 
             sage: Envelope(lambda x: 3).limit_start() == Infinity
@@ -2053,7 +2056,7 @@ class Envelope(object):
             sage: Envelope(lambda x: 3, max_part=2).limit_start() == Infinity
             True
 
-            sage: Envelope(lambda x: 3, upper=False, min_part=2).limit_start() == Infinity
+            sage: Envelope(lambda x: 3, sign=-1, min_part=2).limit_start() == Infinity
             True
 
         """
@@ -2063,26 +2066,29 @@ class Envelope(object):
         """
         Return a bound on the limit of ``self``.
 
-        For a lower (resp. upper) envelope, this provides a lower
-        (resp. upper) bound for the value of this envelope for `i`
-        large enough. This bound is valid at least from
+        This provides an upper bound for the value of this envelope for
+        `i` large enough. This bound is valid at least from
         ``self.limit_start()`` on. Which specific bound is returned is
         not set in stone.
 
         EXAMPLES::
 
             sage: from sage.combinat.integer_list import Envelope
-            sage: Envelope([4,1,5]).limit() == oo
-            True
+            sage: Envelope([4,1,5]).limit()
+            inf
             sage: Envelope([4,1,5], max_part=2).limit()
             2
-            sage: Envelope([4,1,5], max_slope=0).limit()   # todo: not implemented
+            sage: Envelope([4,1,5], max_slope=0).limit()
             1
             sage: Envelope(lambda x: 3, max_part=2).limit()
+            2
 
         .. SEEALSO:: :meth:`limit_start`
         """
-        return self._f_limit
+        if self.limit_start() < Infinity and self._max_slope <= 0:
+            return self(self.limit_start())
+        else:
+            return self._max_part * self._sign
 
     def __call__(self, k):
         """
@@ -2102,20 +2108,10 @@ class Envelope(object):
             See the documentation of :class:`Envelope` for tests and
             examples.
         """
-        if k < len(self._precomputed):
-            # This is the critical path
-            return self._precomputed[k]
-        else:
+        if k >= len(self._precomputed):
             for i in range(len(self._precomputed), k+1):
-                value = self._f(i)
-                if self._is_upper:
-                    value = min(value, self._max_part)
-                else:
-                    value = max(value, self._min_part)
+                value = min(self._f(i), self._max_part)
                 if i>0:
-                    if self._is_upper:
-                        value = min(value, self._precomputed[i-1] + self._max_slope)
-                    else:
-                        value = max(value, self._precomputed[i-1] + self._min_slope)
+                    value = min(value, self._precomputed[i-1] + self._max_slope)
                 self._precomputed.append(value)
-            return self._precomputed[k]
+        return self._precomputed[k] * self._sign

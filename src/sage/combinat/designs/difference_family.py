@@ -21,7 +21,6 @@ It defines the following functions:
     :func:`df_q_6_1` | Return a difference family with parameter `k=6` on a finite field.
     :func:`one_radical_difference_family` | Return a radical difference family using an exhaustive search.
     :func:`twin_prime_powers_difference_set` | Return a twin prime powers difference family.
-    :func:`wilson_1972_difference_family` | Return a radical difference family on a finite field following a construction of Wilson.
 
 REFERENCES:
 
@@ -623,145 +622,6 @@ def radical_difference_set(K, k, l=1, existence=False, check=True):
 
     return D
 
-def wilson_1972_difference_family(K, k, existence=False, check=True):
-    r"""
-    Wilson construction of difference families on finite field.
-
-    The construction appears in [Wi72]_.
-
-    INPUT:
-
-    - ``K`` -- a finite field
-
-    - ``k`` -- an integer such that `k(k-1)` divides `v-1` where `v` is the
-      cardinality of the finite field `K`
-
-    - ``existence`` -- if ``True`` then return either ``True`` if the
-      construction is possible or ``False`` if it can not.
-
-    - ``check`` -- boolean (default: ``True``) whether to check that the output
-      is valid. This should not be needed, but it guarantee that the output is
-      correct. It might be faster to set it to ``False``.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.difference_family import wilson_1972_difference_family
-
-        sage: wilson_1972_difference_family(GF(13),4)
-        [[0, 1, 3, 9]]
-
-        sage: wilson_1972_difference_family(GF(337), 7, existence=True)
-        True
-
-        sage: from itertools import ifilter, count
-        sage: ppap = lambda k,r: ifilter(is_prime_power, (k*i+r for i in count(1)))
-
-
-        sage: it4 = ppap(4*3,1)
-        sage: for _ in range(7):
-        ....:     v = next(it4)
-        ....:     existence = wilson_1972_difference_family(GF(v,'a'), 4, existence=True)
-        ....:     print "v = {}: {}".format(v, existence)
-        v = 13: True
-        v = 25: True
-        v = 37: False
-        v = 49: True
-        v = 61: False
-        v = 73: True
-        v = 97: True
-
-        sage: it5 = ppap(5*4,1)
-        sage: for _ in range(7):
-        ....:     v = next(it5)
-        ....:     existence = wilson_1972_difference_family(GF(v,'a'), 5, existence=True)
-        ....:     print "v = {:3}: {}".format(v, existence)
-        v =  41: True
-        v =  61: True
-        v =  81: False
-        v = 101: False
-        v = 121: False
-        v = 181: False
-        v = 241: True
-
-        sage: it6 = ppap(6*5,1)
-        sage: for _ in range(7):
-        ....:     v = next(it6)
-        ....:     existence = wilson_1972_difference_family(GF(v,'a'), 6, existence=True)
-        ....:     print "v = {:3}: {}".format(v, existence)
-        v =  31: False
-        v =  61: False
-        v = 121: False
-        v = 151: False
-        v = 181: True
-        v = 211: True
-        v = 241: True
-
-        sage: it7 = ppap(7*6,1)
-        sage: for _ in range(7):
-        ....:     v = next(it7)
-        ....:     existence = wilson_1972_difference_family(GF(v,'a'), 7, existence=True)
-        ....:     print "v = {:3}: {}".format(v, existence)
-        v =  43: False
-        v = 127: False
-        v = 169: False
-        v = 211: False
-        v = 337: True
-        v = 379: False
-        v = 421: True
-    """
-    v = K.cardinality()
-    zero = K.zero()
-    one = K.one()
-    x = K.multiplicative_generator()
-    e = k*(k-1)
-
-    if (v-1) % e != 0:
-        if existence:
-            return False
-        raise EmptySetError("In the wilson construction, k(k-1) must divide (v-1) but k={} and v={}".format(k,v))
-
-    t = (v-1) // (k*(k-1))
-
-    if k%2 == 1:
-        m = (k-1) // 2
-        r = x ** ((v-1) // k)     # k-th root of unity
-        xx = x ** m
-        A = set(r**i - one for i in range(1,m+1))
-    else:
-        m = k // 2
-        r = x ** ((v-1) // (k-1)) # (k-1)-th root of unity
-        xx = x ** m
-        A = set(r**i - one for i in range(1,m))
-        A.add(one)
-
-    # now, we check whether the elements of A belong to distinct cosets modulo
-    # H^m where H = K \ {0}
-    AA = set(y/x for x in A for y in A if x != y)
-    xxi = one
-    for i in range((v-1)/m):
-        if xxi in AA:
-                if existence:
-                    return False
-                raise EmptySetError("In the Wilson construction with v={} "
-                "and k={}, the roots of unity fail to belong to distinct "
-                "cosets modulo H^m")
-        xxi *= xx
-
-    if existence:
-        return True
-
-    D = K.cyclotomic_cosets(r, [xx**i for i in xrange(t)])
-    if k%2 == 0:
-        for d in D:
-            d.insert(0, zero)
-
-    if check and not is_difference_family(K,D,v,k,1):
-        raise RuntimeError("Wilson construction of difference family "
-                           "failed with parameters v={} and k={}. "
-                           "Please contact sage-devel@googlegroups.com".format(v,k))
-
-    return D
-
 def one_cyclic_tiling(A,n):
     r"""
     Given a subset ``A`` of the cyclic additive group `G = Z / nZ` return
@@ -773,7 +633,7 @@ def one_cyclic_tiling(A,n):
         sage: from sage.combinat.designs.difference_family import one_cyclic_tiling
         sage: tile = [0,2,4]
         sage: m = one_cyclic_tiling(tile,6); m
-        [0, 1]
+        [0, 3]
         sage: sorted((i+j)%6 for i in tile for j in m)
         [0, 1, 2, 3, 4, 5]
 
@@ -781,25 +641,41 @@ def one_cyclic_tiling(A,n):
         ....:     for x in translat:
         ....:         print ''.join('X' if (i-x)%n in tile else ' ' for i in range(n))
 
-        sage: tile0 = [0, 1, 2, 7]
-        sage: m = one_cyclic_tiling(tile0, 12)
-        sage: print_tiling(tile0, m, 12)
+        sage: tile = [0, 1, 2, 7]
+        sage: m = one_cyclic_tiling(tile, 12)
+        sage: print_tiling(tile, m, 12)
         XXX    X
             XXX    X
            X    XXX
 
-        sage: tile0 = [0, 1, 5]
-        sage: m = one_cyclic_tiling(tile0, 12)
-        sage: print_tiling(tile0, m, 12)
+        sage: tile = [0, 1, 5]
+        sage: m = one_cyclic_tiling(tile, 12)
+        sage: print_tiling(tile, m, 12)
         XX   X
            XX   X
-          X      XX
               XX   X
+          X      XX
+
+        sage: tile = [0, 2]
+        sage: m = one_cyclic_tiling(tile, 8)
+        sage: print_tiling(tile, m, 8)
+        X X     
+            X X 
+         X X    
+             X X
 
     ALGORITHM:
 
     Uses dancing links :mod:`sage.combinat.dlx`
     """
+    # we first try a naive approach which correspond to what Wilson used in his
+    # 1972 article
+    n = int(n)
+    d = len(A)
+    if len(set(a%d for a in A)) == d:
+        return [i*d for i in range(n//d)]
+
+    # next, we consider an exhaustive search
     from sage.combinat.dlx import DLXMatrix
 
     rows = []
@@ -871,17 +747,20 @@ def one_radical_difference_family(K, k):
         ....:    one_radical_difference_family,
         ....:    is_difference_family)
 
+        sage: one_radical_difference_family(GF(13),4)
+        [[0, 1, 3, 9]]
+
     The parameters that appear in [Bu95]_::
 
         sage: df = one_radical_difference_family(GF(449), 8); df
-        [[1, 18, 25, 176, 324, 359, 444, 0],
-         [9, 88, 162, 222, 225, 237, 404, 0],
-         [11, 140, 198, 275, 357, 394, 421, 0],
-         [40, 102, 249, 271, 305, 388, 441, 0],
-         [49, 80, 93, 161, 204, 327, 433, 0],
-         [70, 99, 197, 230, 362, 403, 435, 0],
-         [121, 141, 193, 293, 331, 335, 382, 0],
-         [191, 285, 295, 321, 371, 390, 392, 0]]
+        [[0, 1, 18, 25, 176, 324, 359, 444],
+         [0, 9, 88, 162, 222, 225, 237, 404],
+         [0, 11, 140, 198, 275, 357, 394, 421],
+         [0, 40, 102, 249, 271, 305, 388, 441],
+         [0, 49, 80, 93, 161, 204, 327, 433],
+         [0, 70, 99, 197, 230, 362, 403, 435],
+         [0, 121, 141, 193, 293, 331, 335, 382],
+         [0, 191, 285, 295, 321, 371, 390, 392]]
         sage: is_difference_family(GF(449), df, 449, 8, 1)
         True
     """
@@ -923,7 +802,7 @@ def one_radical_difference_family(K, k):
     D = K.cyclotomic_cosets(r, [x**i for i in c])
     if k%2 == 0:
         for d in D:
-            d.append(K.zero())
+            d.insert(K.zero(),0)
     return D
 
 def radical_difference_family(K, k, l=1, existence=False, check=True):
@@ -978,21 +857,26 @@ def radical_difference_family(K, k, l=1, existence=False, check=True):
          [111, 123, 155, 181, 273],
          [156, 209, 224, 264, 271]]
 
-         sage: for q in range(43, 2000, 42):
-         ....:     if is_prime_power(q):
-         ....:         K = GF(q,'a')
-         ....:         if radical_difference_family(K, 7, existence=True):
-         ....:             print q,
-         ....:             _ = radical_difference_family(K, 7)
-         337 421 463 883 1723
-
-         sage: for q in range(57, 2000, 56):
-         ....:     if is_prime_power(q):
-         ....:         K = GF(q,'a')
-         ....:         if radical_difference_family(K, 8, existence=True):
-         ....:             print q,
-         ....:             _ = radical_difference_family(K, 8)
-         449 1009
+        sage: for k in range(5,10):
+        ....:     print "k = {}".format(k)
+        ....:     for q in range(k*(k-1)+1, 2000, k*(k-1)):
+        ....:          if is_prime_power(q):
+        ....:              K = GF(q,'a')
+        ....:              if radical_difference_family(K, k, existence=True):
+        ....:                  print q,
+        ....:                  _ = radical_difference_family(K,k)
+        ....:     print
+        k = 5
+        41 61 81 241 281 401 421 601 641 661 701 761 821 881 1181 1201 1301 1321
+        1361 1381 1481 1601 1681 1801 1901
+        k = 6
+        181 211 241 631 691 1531 1831 1861
+        k = 7
+        337 421 463 883 1723
+        k = 8
+        449 1009
+        k = 9
+        73 1153 1873
     """
     v = K.cardinality()
     x = K.multiplicative_generator()
@@ -1018,17 +902,7 @@ def radical_difference_family(K, k, l=1, existence=False, check=True):
             return Unknown
         raise NotImplementedError("No radical families implemented for l > 2")
 
-    # Wilson (1972), Theorem 9 and 10
-    # This step is not needed as all difference family with l=1 can be built
-    # from one_radical_difference_family. Though, the one below is much
-    # faster and makes a huge difference in timings when it does exist.
-    elif wilson_1972_difference_family(K,k,existence=True):
-        if existence:
-            return True
-        D = wilson_1972_difference_family(K,k,check=False)
-
     else:
-        # here we try hard
         D = one_radical_difference_family(K,k)
         if D is None:
             if existence:

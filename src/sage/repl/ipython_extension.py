@@ -422,6 +422,7 @@ class SageCustomizations(object):
         import IPython.core.oinspect
         IPython.core.oinspect.getdoc = sageinspect.sage_getdoc
         IPython.core.oinspect.getsource = sagedoc.my_getsource
+        IPython.core.oinspect.find_file = sageinspect.sage_getfile
         IPython.core.oinspect.getargspec = sageinspect.sage_getargspec
 
     def init_line_transforms(self):

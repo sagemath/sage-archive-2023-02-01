@@ -804,8 +804,9 @@ class IntegerListsLex(Parent):
             self._min_sum = n
             self._max_sum = n
         else:
-            if min_sum == Infinity:
-                raise ValueError("min_sum cannot be infinity!")
+            min_sum = ZZ(min_sum)
+            if max_sum != Infinity:
+                max_sum = ZZ(max_sum)
             self._min_sum = min_sum
             self._max_sum = max_sum
 

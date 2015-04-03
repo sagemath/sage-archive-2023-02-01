@@ -86,7 +86,7 @@ Cython functions::
     sage: sage_getdoc(sage.rings.rational.make_rational).lstrip()
     'Make a rational number ...'
 
-    sage: sage_getsource(sage.rings.rational.make_rational, True)[4:]
+    sage: sage_getsource(sage.rings.rational.make_rational)[4:]
     'make_rational(s):...'
 
 Python functions::
@@ -1379,7 +1379,7 @@ def sage_getargspec(obj):
         return ['self'], None, None, None
     else:
         # Perhaps it is binary and defined in a Cython file
-        source = sage_getsource(obj, is_binary=True)
+        source = sage_getsource(obj)
         if source:
             return inspect.ArgSpec(*_sage_getargspec_cython(source))
         else:
@@ -1583,21 +1583,20 @@ def sage_getdoc(obj, obj_name='', embedded_override=False):
 
     return s
 
-def sage_getsource(obj, is_binary=False):
+def sage_getsource(obj):
     r"""
     Return the source code associated to obj as a string, or None.
 
     INPUT:
 
-    - ``obj`` - function, etc.
-    - ``is_binary`` - boolean, ignored
+    - ``obj`` -- function, etc.
 
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import sage_getsource
-        sage: sage_getsource(identity_matrix, True)[19:60]
+        sage: sage_getsource(identity_matrix)[19:60]
         'identity_matrix(ring, n=0, sparse=False):'
-        sage: sage_getsource(identity_matrix, False)[19:60]
+        sage: sage_getsource(identity_matrix)[19:60]
         'identity_matrix(ring, n=0, sparse=False):'
 
     AUTHORS:
@@ -1615,7 +1614,7 @@ def sage_getsource(obj, is_binary=False):
     except (AttributeError, TypeError):
         pass
 
-    t = sage_getsourcelines(obj, is_binary)
+    t = sage_getsourcelines(obj)
     if not t:
         return None
     (source_lines, lineno) = t
@@ -1755,27 +1754,26 @@ def _sage_getsourcelines_name_with_dot(object):
     raise IOError('could not find code object')
 
 
-def sage_getsourcelines(obj, is_binary=False):
+def sage_getsourcelines(obj):
     r"""
     Return a pair ([source_lines], starting line number) of the source
     code associated to obj, or None.
 
     INPUT:
 
-    - ``obj`` - function, etc.
-    - ``is_binary`` - boolean, ignored
+    - ``obj`` -- function, etc.
 
-    OUTPUT: (source_lines, lineno) or None: ``source_lines`` is a list
-    of strings, and ``lineno`` is an integer.
+    OUTPUT: 
 
-    At this time we ignore ``is_binary`` in favour of a 'do our best' strategy.
+    (source_lines, lineno) or None: ``source_lines`` is a list of
+    strings, and ``lineno`` is an integer.
 
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import sage_getsourcelines
-        sage: sage_getsourcelines(matrix, True)[1]
+        sage: sage_getsourcelines(matrix)[1]
         732
-        sage: sage_getsourcelines(matrix, False)[0][0][6:]
+        sage: sage_getsourcelines(matrix)[0][0][6:]
         'MatrixFactory(object):\n'
 
     TESTS::
@@ -2043,7 +2041,7 @@ def __internal_tests():
 
     This used to be problematic, but was fixed in #10094::
 
-        sage: sage_getsource(sage.rings.integer.Integer.__init__, is_binary=True)
+        sage: sage_getsource(sage.rings.integer.Integer.__init__)
         '    def __init__(self, x=None, base=0):\n...'
         sage: sage_getdef(sage.rings.integer.Integer.__init__, obj_name='__init__')
         '__init__(x=None, base=0)'

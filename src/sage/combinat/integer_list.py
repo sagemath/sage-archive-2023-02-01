@@ -1480,9 +1480,10 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
             - ``j`` -- a nonnegative integer (position)
 
-            This method returns a function of ``i`` which computes the
-            upper envelope if the starting value is ``m`` at position
-            ``j``. The upper envelope is the minimum of the ceiling
+            This method adapts the global ceiling function to the
+            additional local constraint imposed by having a part `m`
+            at position `j`. Namely, this returns a function which
+            computes, for any `i>k`, the minimum of the ceiling
             function and the value restriction given by the slope
             conditions.
 
@@ -1524,11 +1525,11 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
             - ``j`` -- a nonnegative integer (position)
 
-            This returns a function of ``i`` which compute the lower
-            envelope if the starting value is ``m`` at position
-            ``j``. The lower envelope is the maximum of the floor
-            function and the value restriction given by the slope
-            conditions.
+            This method adapts the global floor function to the
+            additional local constraint imposed by having a part `m`
+            at position `j`. Namely, this returns a function which
+            computes, for any `i>k`, the maximum of the floor function
+            and the value restriction given by the slope conditions.
 
             EXAMPLES::
 

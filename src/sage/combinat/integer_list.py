@@ -945,6 +945,11 @@ If you know what you are doing, you can set check=False to skip this warning."""
             ...
             ValueError: Could not check that the specified constraints yield a finite set
 
+            sage: IntegerListsLex(ceiling=[0], min_slope=1, max_slope=1).list()
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not check that the specified constraints yield a finite
+
         The next example shows a case that is finite since we remove trailing zeroes::
 
             sage: list(IntegerListsLex(ceiling=[0], max_slope=0))
@@ -974,6 +979,8 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: IntegerListsLex(min_length=-2, max_length=-1).list()
             []
             sage: IntegerListsLex(min_length=-1, max_length=-2).list()
+            []
+            sage: IntegerListsLex(min_length=2, max_slope=0, min_slope=1).list()
             []
             sage: IntegerListsLex(min_part=2, max_part=1).list()
             [[]]
@@ -1029,6 +1036,8 @@ If you know what you are doing, you can set check=False to skip this warning."""
             if self._max_slope == 0 and min(self._ceiling(i) for i in range(self._ceiling.limit_start()+1)) == 0:
                 return
             elif self._min_slope > 0 and self._ceiling.limit() < Infinity:
+                return
+            elif self._min_slope > self._max_slope:
                 return
             if self._max_slope >= 0 and self._ceiling.limit() > 0:
                 raise ValueError(message)
@@ -1179,9 +1188,12 @@ If you know what you are doing, you can set check=False to skip this warning."""
         - ``_search_ranges`` -- a list of same length as
           ``_current_list``: the range for each part.
 
-        Furthermore, we assume that:
+        Furthermore, we assume that there is no obvious contradiction
+        in the contraints::
 
-        - ``self._parent.min_length <= self._parent.max_length``.
+        - ``self._parent._min_length <= self._parent._max_length``;
+        - ``self._parent._min_slope <= self._parent._max_slope``
+          unless ``self._parent._min_length <= 1``.
 
         Along this iteration, ``next`` switches between the following
         states::
@@ -1220,11 +1232,12 @@ If you know what you are doing, you can set check=False to skip this warning."""
             self._j = -1     # index of last element of _current_list
             self._current_sum = 0     # sum of parts in _current_list
 
-            if parent._max_length < parent._min_length:
-                # This guarantees that min_length <= max_length in the iterator
-                self._next_state = STOP
-            else:
+            # Make sure that some invariants are respected in the iterator
+            if parent._min_length <= parent._max_length and \
+               (parent._min_slope <= parent._max_slope or parent._min_length <= 1):
                 self._next_state = PUSH
+            else:
+                self._next_state = STOP
 
         def __iter__(self):
             """

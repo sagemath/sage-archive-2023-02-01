@@ -271,7 +271,8 @@ information. You can use the existing functions of Sage as templates.
 
    They should have good coverage of the functionality in question.
 
--  A **SEEALSO** block with links to related parts of Sage. You are
+-  A **SEEALSO** block (highly recommended) with links to related parts
+   of Sage. You are
    encouraged to include this block to make it easier finding these
    related parts. ::
 

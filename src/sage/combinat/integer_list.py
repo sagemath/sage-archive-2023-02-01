@@ -1383,9 +1383,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 # LOOK AHEAD
                 if self._next_state == LOOKAHEAD:
                     m = self._current_list[-1]
-                    if self._possible_m(m, self._j,
-                                        min_sum - (self._current_sum-m),
-                                        max_sum - (self._current_sum-m)):
+                    if self._lookahead():
                         self._next_state = PUSH
                     else:
                         # We should reuse information about the
@@ -1647,71 +1645,72 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
             return (lower_bound, upper_bound)
 
-        def _possible_m(self, m, j, min_sum, max_sum):
+        def _lookahead(self):
             r"""
-            Look ahead whether `m` is a possible choice for `v_j` at this stage.
+            Return whether the current list can possibly be a prefix of a valid list.
 
-            INPUT:
-
-            - ``m`` -- a nonnegative integer (value)
-
-            - ``j`` -- a nonnegative integer (position)
-
-            - ``min_sum`` -- a nonnegative integer
-
-            - ``max_sum`` -- a nonnegative integer or ``+oo``
-
-            Tries to predict the existence of a list suffix
-            `(v_j,...,v_k)` which:
-
-            - satisfies the slope, ceiling, and length
-              (``min_length<=j<=max_length``) constraints of ``self``;
-
-            - starts with `v_j=m``;
-
-            - has sum `v_j+\cdots+v_k` between ``min_sum`` and ``max_sum``.
-
-            OUTPUT: ``False`` if it is guaranteed that no such list
-            exists and ``True`` otherwise.
+            OUTPUT: ``False`` if it is guaranteed that the current
+            list cannot be a prefix of a valid list and ``True``
+            otherwise.
 
             EXAMPLES::
 
-                sage: C = IntegerListsLex(2, length=3)
-                sage: I = IntegerListsLex._Iter(C)
-                sage: I._possible_m(1,1,2,2)
+                sage: it = iter(IntegerListsLex(length=3, min_sum=2, max_sum=2))
+                sage: it._current_list = [0,1]    # don't do this at home, kids
+                sage: it._current_sum = 1
+                sage: it._j = 1
+                sage: it._lookahead()
                 True
-                sage: I._possible_m(1,1,3,2)
+
+                sage: it = iter(IntegerListsLex(length=3, min_sum=3, max_sum=2))
+                sage: it._current_list = [0,1]
+                sage: it._current_sum = 1
+                sage: it._j = 1
+                sage: it._lookahead()
                 False
 
-                sage: L = IntegerListsLex(min_length=2, max_part=0)
-                sage: it = iter(L)
-                sage: it._possible_m(0, 0, 0, oo)
+                sage: it = iter(IntegerListsLex(min_length=2, max_part=0))
+                sage: it._current_list = [0]
+                sage: it._current_sum = 0
+                sage: it._j = 0
+                sage: it._lookahead()
                 True
-                sage: it._possible_m(0, 1, 0, oo)
+                sage: it._current_list = [0, 0]
+                sage: it._j = 1
+                sage: it._lookahead()
                 True
-                sage: it._possible_m(0, 2, 0, oo)
+                sage: it._current_list = [0, 0, 0]
+                sage: it._j = 2
+                sage: it._lookahead()
                 False
 
                 sage: n = 10**100
-                sage: L = IntegerListsLex(n, length=1); it = iter(L)
-                sage: it._possible_m(n-1,0, n, n)
+                sage: it = iter(IntegerListsLex(n, length=1))
+                sage: it._current_list = [n-1]
+                sage: it._current_sum = n-1
+                sage: it._j = 0
+                sage: it._lookahead()
                 False
 
-                sage: L = IntegerListsLex(n=3, min_part=2); it = iter(L)
-                sage: it._possible_m(2, 0, 3, 3)
+                sage: it = iter(IntegerListsLex(n=3, min_part=2, min_sum=3, max_sum=3))
+                sage: it._current_list = [2]
+                sage: it._current_sum = 2
+                sage: it._j = 0
+                sage: it._lookahead()
                 False
 
             ALGORITHM::
 
-            The current algorithm computes, for `k=j,j+1,\ldots`, a
-            lower bound `l_k` and an upper bound `u_k` for
-            `v_j+\dots+v_k`, and stops if none of the invervals `[l_k,
-            u_k]` intersect ``[min_sum, max_sum]``.
+            Let ``j=self._j`` be the position of the last part `m` of
+            ``self._current_list``. The current algorithm computes,
+            for `k=j,j+1,\ldots`, a lower bound `l_k` and an upper
+            bound `u_k` for `v_0+\dots+v_k`, and stops if none of the
+            invervals `[l_k, u_k]` intersect ``[min_sum, max_sum]``.
 
-            The lower bound `l_k` is given by the area below the lower
-            envelope between `i` and `k` and starting at `m`. The
-            upper bound `u_k` is given by the area below the upper
-            envelope between `i` and `k` and starting at `m`.
+            The lower bound `l_k` is given by the area below
+            `v_0,\dots,v_{j-1}` prolongated by the lower envelope
+            between `j` and `k` and starting at `m`. The upper bound
+            `u_k` is given similarly using the upper envelope.
 
             The complexity of this algorithm is bounded above by
             ``O(max_length)``. When ``max_length=oo``, the algorithm
@@ -1740,9 +1739,11 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
             TESTS::
 
-                sage: C = IntegerListsLex(1, min_length=2, min_slope=0, max_slope=0)
-                sage: I = IntegerListsLex._Iter(C)
-                sage: I._possible_m(0,0,1,1)
+                sage: it = iter(IntegerListsLex(1, min_length=2, min_slope=0, max_slope=0, min_sum=1, max_sum=1))
+                sage: it._current_list = [0]
+                sage: it._current_sum = 0
+                sage: it._j = 0
+                sage: it._lookahead()
                 False
             """
             # Check code for various termination conditions.  Possible cases:
@@ -1753,6 +1754,11 @@ If you know what you are doing, you can set check=False to skip this warning."""
             # 4. max_slope <= 0 -- terminate False after upper passes 0
             # 5. ceiling_limit == 0 -- terminate False after reaching larger limit point
             # 6. (uncomputable) ceiling function == 0 for all but finitely many input values -- terminate False after reaching (unknown) limit point -- currently hangs
+
+            m = self._current_list[-1]
+            j = self._j
+            min_sum = self._parent._min_sum - (self._current_sum-m)
+            max_sum = self._parent._max_sum - (self._current_sum-m)
 
             if min_sum > max_sum:
                 return False

@@ -787,7 +787,11 @@ class IntegerListsLex(Parent):
             sage: IntegerListsLex(min_sum=Infinity).list()
             Traceback (most recent call last):
             ...
-            ValueError: min_sum cannot be infinity!
+            TypeError: unable to coerce <class 'sage.rings.infinity.PlusInfinity'> to an integer
+            sage: IntegerListsLex(min_sum=1.4).list()
+            Traceback (most recent call last):
+            ...
+            TypeError: Attempt to coerce non-integral RealNumber to Integer
         """
         if category is None:
             category = EnumeratedSets().Finite()
@@ -816,7 +820,7 @@ class IntegerListsLex(Parent):
             max_length = length
         else:
             min_length = ZZ(min_length)
-            min_length = max(min_length,0)
+            min_length = max(min_length, 0)
             if max_length != Infinity:
                 max_length = ZZ(max_length)
         self._max_length = max_length

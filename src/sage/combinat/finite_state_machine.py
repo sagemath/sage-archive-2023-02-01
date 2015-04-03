@@ -5919,7 +5919,7 @@ class FiniteStateMachine(SageObject):
             sage: it = inverter.iter_process(
             ....:     words.FibonacciWord(), iterator_type='simple')
             sage: from itertools import islice
-            sage: [o for o in islice(it, 0, 5)]
+            sage: [o for o in islice(it, 0, 5)]  # only output the first 5 letters
             [1, 0, 1, 1, 0]
 
         ::
@@ -5979,10 +5979,31 @@ class FiniteStateMachine(SageObject):
             raise ValueError('Iterator type %s unknown.' % (iterator_type,))
 
 
-    def _iter_process_simple_(self, it):
+    def _iter_process_simple_(self, iterator):
         r"""
+        Converts a :class:`process iterator <FSMProcessIterator>` to a simpler
+        iterator, which only outputs the written letters.
+
+        INPUT:
+
+        - ``iterator`` -- in instance of :class:`FSMProcessIterator`.
+
+        OUTPUT:
+
+        A generator.
+
+        An exception is raised if the process branches.
+
+        EXAMPLES::
+
+            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: it = inverter.iter_process(words.FibonacciWord()[:10])
+            sage: it_simple = inverter._iter_process_simple_(it)
+            sage: list(it_simple)
+            [1, 0, 1, 1, 0, 1, 0, 1, 1, 0]
         """
-        for current in it:
+        for current in iterator:
             if not current:
                 return
             if len(current) > 1:

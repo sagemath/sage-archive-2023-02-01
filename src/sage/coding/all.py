@@ -75,8 +75,11 @@ from sd_codes import self_dual_codes_binary
 lazy_import("sage.coding.delsarte_bounds",
     ["Krawtchouk", "delsarte_bound_hamming_space", "delsarte_bound_additive_hamming_space"])
 
-#import codes_catalog as codes
+
+# Import sage.coding.codes_catalog (lazily) as 'codes' to make it available at top-level.
+# To also make it available as a module, as in
+#   from codes import *
+# we need to add 'codes' to sys.modules
 lazy_import('sage.coding','codes_catalog', "codes")
-# # Make codes available as "from codes import *"
 import sys
 sys.modules["codes"] = codes

@@ -34,14 +34,14 @@ The ``codes`` object may be used to access the codes that Sage can build.
 # This is a catalog for accessing the most important user-level classes. In
 # all.py it is imported to provide convenient access to coding theory classes.
 
-from sage.coding.code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
-                                            CyclicCode, CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
-                                            DuadicCodeOddPair, ExtendedBinaryGolayCode,
-                                            ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,
-                                            HammingCode, LinearCodeFromCheckMatrix,
-                                            QuadraticResidueCode, QuadraticResidueCodeEvenPair,
-                                            QuadraticResidueCodeOddPair, RandomLinearCode,
-                                            ReedSolomonCode, TernaryGolayCode,
-                                            ToricCode, TrivialCode, WalshCode)
+from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
+                                CyclicCode, CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
+                                DuadicCodeOddPair, ExtendedBinaryGolayCode,
+                                ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,
+                                HammingCode, LinearCodeFromCheckMatrix,
+                                QuadraticResidueCode, QuadraticResidueCodeEvenPair,
+                                QuadraticResidueCodeOddPair, RandomLinearCode,
+                                ReedSolomonCode, TernaryGolayCode,
+                                ToricCode, TrivialCode, WalshCode)
 
-from sage.coding.guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
+from guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava

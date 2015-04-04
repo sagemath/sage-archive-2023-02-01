@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Difference families
 
@@ -772,7 +773,7 @@ def one_radical_difference_family(K, k):
         raise ValueError("q%e is not 1")
 
     # We define A by (see the function's documentation):
-    # \Delta B = C.A
+    # ΔB = C.A
     if k%2 == 1:
         m = (k-1) // 2
         r = x ** ((q-1) // k)     # k-th root of unity
@@ -783,23 +784,22 @@ def one_radical_difference_family(K, k):
         A = [r**i - 1 for i in range(1,m)]
         A.append(K.one())
 
-    # instead of the complicated multiplicative group H/H^{mt} we use the
-    # discrete logarithm to convert everything into the additive group Z/mtZ
-    mt = m * (q-1) // e
+    # instead of the complicated multiplicative group K^*/(±C) we use the
+    # discrete logarithm to convert everything into the additive group Z/cZ
+    c = m * (q-1) // e # cardinal of ±C
     from sage.groups.generic import discrete_log
-    logA = [discrete_log(a,x)%mt for a in A]
+    logA = [discrete_log(a,x)%c for a in A]
 
-    # if two elments of A are in the same coset modulo H^{mt} then no tiling is
-    # possible
+    # if two elments of A are equal modulo c then no tiling is possible
     if len(set(logA)) != m:
         return None
 
     # brute force
-    c = one_cyclic_tiling(logA, mt)
-    if c is None:
+    tiling = one_cyclic_tiling(logA, c)
+    if tiling is None:
         return None
 
-    D = K.cyclotomic_cosets(r, [x**i for i in c])
+    D = K.cyclotomic_cosets(r, [x**i for i in tiling])
     if k%2 == 0:
         for d in D:
             d.insert(K.zero(),0)

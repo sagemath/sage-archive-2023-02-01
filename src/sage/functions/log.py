@@ -810,7 +810,7 @@ class Function_exp_polar(BuiltinFunction):
             sage: exp_polar(-4*pi*I)
             exp_polar(-4*I*pi)
 
-        This fixes :trac:`18085` (does not work with Sympy 0.7.6!)::
+        This fixes :trac:`18085`::
 
             sage: integrate(1/sqrt(1+x^3),x,algorithm='sympy')
             1/3*x*hypergeometric((1/3, 1/2), (4/3,), -x^3)*gamma(1/3)/gamma(4/3)
@@ -823,14 +823,10 @@ class Function_exp_polar(BuiltinFunction):
         REFERENCES:
 
             :wikipedia:`Complex_number#Polar_form`
-
-        WARNING:
-
-            This function currently does not work with Sympy 0.7.6.
-
         """
-        BuiltinFunction.__init__(self,"exp_polar",latex_name=r"\operatorname{exp\_polar}",
-            conversions=dict(sympy='exp_polar'))
+        BuiltinFunction.__init__(self, "exp_polar",
+                                latex_name=r"\operatorname{exp\_polar}",
+                                conversions=dict(sympy='exp_polar'))
 
     def _evalf_(self, z, parent=None, algorithm=None):
         r"""
@@ -858,7 +854,8 @@ class Function_exp_polar(BuiltinFunction):
         """
         from sage.functions.other import imag
 
-        if not isinstance(z,Expression) and bool(-const_pi < imag(z) <= const_pi):
+        if (not isinstance(z, Expression)
+            and bool(-const_pi < imag(z) <= const_pi)):
             return exp(z)
         else:
             return exp_polar(z)
@@ -874,7 +871,8 @@ class Function_exp_polar(BuiltinFunction):
             exp_polar(4*I*pi + x)
 
         """
-        if isinstance(z,Expression) and bool(-const_pi < z.imag_part() <= const_pi):
+        if (isinstance(z, Expression)
+            and bool(-const_pi < z.imag_part() <= const_pi)):
             return exp(z)
         else:
             return None

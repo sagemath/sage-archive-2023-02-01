@@ -1470,95 +1470,6 @@ If you know what you are doing, you can set check=False to skip this warning."""
             no_trailing_zeros = (l <= max(p._min_length,0) or mu[-1] != 0)
             return good_sum and good_length and no_trailing_zeros
 
-        def _upper_envelope(self, m, j):
-            """
-            Return the upper envelope starting with value ``m`` at position ``j``.
-
-            INPUT:
-
-            - ``m`` -- a nonnegative integer (starting value)
-
-            - ``j`` -- a nonnegative integer (position)
-
-            This method adapts the global ceiling function to the
-            additional local constraint imposed by having a part `m`
-            at position `j`. Namely, this returns a function which
-            computes, for any `i>k`, the minimum of the ceiling
-            function and the value restriction given by the slope
-            conditions.
-
-            EXAMPLES::
-
-                sage: C = IntegerListsLex(2, length=3)
-                sage: I = IntegerListsLex._Iter(C)
-                sage: f = I._upper_envelope(1,1)
-                sage: type(f)
-                <class 'sage.combinat.integer_list.Envelope'>
-                sage: f(1)
-                inf
-                sage: f(2)
-                inf
-                sage: C = IntegerListsLex(6, max_slope=1, max_part=3, max_length=6)
-                sage: I = IntegerListsLex._Iter(C)
-                sage: f = I._upper_envelope(1,1)
-                sage: f(1)
-                1
-                sage: f(2)
-                2
-                sage: f(3)
-                3
-                sage: f(4)
-                3
-            """
-            if self._parent._max_slope == Infinity:
-                return self._parent._ceiling
-            m = m - j*self._parent._max_slope
-            return lambda i: min(m + i*self._parent._max_slope, self._parent._ceiling(i) )
-
-        def _lower_envelope(self, m, j):
-            """
-            Return the lower envelope starting with value ``m`` at position ``j``.
-
-            INPUT:
-
-            - ``m`` -- a nonnegative integer (starting value)
-
-            - ``j`` -- a nonnegative integer (position)
-
-            This method adapts the global floor function to the
-            additional local constraint imposed by having a part `m`
-            at position `j`. Namely, this returns a function which
-            computes, for any `i>k`, the maximum of the floor function
-            and the value restriction given by the slope conditions.
-
-            EXAMPLES::
-
-                sage: C = IntegerListsLex(2, length=3)
-                sage: I = IntegerListsLex._Iter(C)
-                sage: f = I._lower_envelope(1,1)
-                sage: type(f)
-                <class 'sage.combinat.integer_list.Envelope'>
-                sage: f(1)
-                0
-                sage: f(2)
-                0
-                sage: C = IntegerListsLex(6, min_slope=-1, min_part=1)
-                sage: I = IntegerListsLex._Iter(C)
-                sage: f = I._lower_envelope(3,1)
-                sage: f(1)
-                3
-                sage: f(2)
-                2
-                sage: f(3)
-                1
-                sage: f(4)
-                1
-            """
-            if self._parent._min_slope == -Infinity:
-                return self._parent._floor
-            m = m-j*self._parent._min_slope
-            return lambda i: max( m + i*self._parent._min_slope, self._parent._floor(i) )
-
         def _m_interval(self, i, max_sum, prev=None):
             r"""
             Return coarse lower and upper bounds for the part ``m`` at position ``i``.
@@ -1768,8 +1679,8 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
             # Beware that without slope conditions, the functions below
             # currently forget about the value m at k!
-            lower_envelope = self._lower_envelope(m,j)
-            upper_envelope = self._upper_envelope(m,j)
+            lower_envelope = self._parent._floor.adapt(m,j)
+            upper_envelope = self._parent._ceiling.adapt(m,j)
             lower = 0    # The lower bound `l_k`
             upper = 0    # The upper bound `u_k`
 
@@ -2122,3 +2033,66 @@ class Envelope(object):
                     value = min(value, self._precomputed[i-1] + self._max_slope)
                 self._precomputed.append(value)
         return self._precomputed[k] * self._sign
+
+    def adapt(self, m, j):
+        """
+        Return this envelope adapted to an additional local constraint.
+
+        INPUT:
+
+        - ``m`` -- a nonnegative integer (starting value)
+
+        - ``j`` -- a nonnegative integer (position)
+
+        This method adapts this enveloppe to the additional local
+        constraint imposed by having a part `m` at position `j`.
+        Namely, this returns a function which computes, for any `i>j`,
+        the minimum of the ceiling function and the value restriction
+        given by the slope conditions.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.integer_list import Envelope
+            sage: f = Envelope(3)
+            sage: g = f.adapt(1,1)
+            sage: g is f
+            True
+            sage: [g(i) for i in range(10)]
+            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+
+            sage: f = Envelope(3, max_slope=1)
+            sage: g = f.adapt(1,1)
+            sage: [g(i) for i in range(10)]
+            [0, 1, 2, 3, 3, 3, 3, 3, 3, 3]
+
+        Note that, in both cases above, the adapted envelope is only
+        guaranteed to be valid for `i>j`! This is to leave potential
+        room in the future for sharing similar adapted envelopes::
+
+            sage: g = f.adapt(0,0)
+            sage: [g(i) for i in range(10)]
+            [0, 1, 2, 3, 3, 3, 3, 3, 3, 3]
+
+            sage: g = f.adapt(2,2)
+            sage: [g(i) for i in range(10)]
+            [0, 1, 2, 3, 3, 3, 3, 3, 3, 3]
+
+            sage: g = f.adapt(3,3)
+            sage: [g(i) for i in range(10)]
+            [0, 1, 2, 3, 3, 3, 3, 3, 3, 3]
+
+        Now with a lower envelope::
+
+            sage: f = Envelope(1, sign=-1, min_slope=-1)
+            sage: g = f.adapt(2,2)
+            sage: [g(i) for i in range(10)]
+            [4, 3, 2, 1, 1, 1, 1, 1, 1, 1]
+            sage: g = f.adapt(1,3)
+            sage: [g(i) for i in range(10)]
+            [4, 3, 2, 1, 1, 1, 1, 1, 1, 1]
+        """
+        if self._max_slope == Infinity:
+            return self
+        m *= self._sign
+        m = m - j * self._max_slope
+        return lambda i: self._sign * min(m + i*self._max_slope, self._sign*self(i) )

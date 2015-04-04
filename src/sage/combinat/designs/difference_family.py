@@ -640,30 +640,30 @@ def one_cyclic_tiling(A,n):
 
         sage: def print_tiling(tile, translat, n):
         ....:     for x in translat:
-        ....:         print ''.join('X' if (i-x)%n in tile else ' ' for i in range(n))
+        ....:         print ''.join('X' if (i-x)%n in tile else '.' for i in range(n))
 
         sage: tile = [0, 1, 2, 7]
         sage: m = one_cyclic_tiling(tile, 12)
         sage: print_tiling(tile, m, 12)
-        XXX    X
-            XXX    X
-           X    XXX
+        XXX....X....
+        ....XXX....X
+        ...X....XXX.
 
         sage: tile = [0, 1, 5]
         sage: m = one_cyclic_tiling(tile, 12)
         sage: print_tiling(tile, m, 12)
-        XX   X
-           XX   X
-              XX   X
-          X      XX
+        XX...X......
+        ...XX...X...
+        ......XX...X
+        ..X......XX.
 
         sage: tile = [0, 2]
         sage: m = one_cyclic_tiling(tile, 8)
         sage: print_tiling(tile, m, 8)
-        X X     
-            X X 
-         X X    
-             X X
+        X.X.....
+        ....X.X.
+        .X.X....
+        .....X.X
 
     ALGORITHM:
 

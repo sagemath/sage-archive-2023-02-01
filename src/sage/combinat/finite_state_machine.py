@@ -6017,7 +6017,7 @@ class FiniteStateMachine(SageObject):
             raise ValueError("Parameter 'automatic_output_type' set, but "
                              "'format_output' specified as well.")
         if automatic_output_type is None:
-            automatic_output_type = not kwargs.has_key('format_output')
+            automatic_output_type = not 'format_output' in kwargs
         if automatic_output_type:
             try:
                 kwargs['format_output'] = input_tape.parent()

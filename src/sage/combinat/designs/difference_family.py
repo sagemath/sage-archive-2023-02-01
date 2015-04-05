@@ -736,7 +736,7 @@ def one_radical_difference_family(K, k):
 
         .. MATH::
 
-            (k\text{ odd})\ m = (k-1)/2 \qquad \text{and} (k\text{ even})\ \qquad m = k/2.
+            (k\text{ odd})\ m = (k-1)/2 \quad \text{and} \quad (k\text{ even})\ m = k/2.
 
         Consequently, `\mathcal B = \{x_1 B, \ldots, x_k B\}` is a radical
         difference family if and only if `\{x_1 (\Delta B/(\pm C)), \ldots, x_k
@@ -1173,13 +1173,13 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         ....:     v = p*(p+2); k = (v-1)/2;  lmbda = (k-1)/2
         ....:     G,D = designs.difference_family(v,k,lmbda)
 
-    Check the database:
+    Check the database::
 
         sage: from sage.combinat.designs.database import DF
         sage: for v,k,l in DF:
         ....:     df = designs.difference_family(v,k,l,check=True)
 
-    Check a failing construction (:trac:`17528`):
+    Check a failing construction (:trac:`17528`)::
 
         sage: designs.difference_family(9,3)
         Traceback (most recent call last):

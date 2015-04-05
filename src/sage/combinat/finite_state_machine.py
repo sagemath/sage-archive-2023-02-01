@@ -3650,6 +3650,14 @@ class FiniteStateMachine(SageObject):
                 kwargs['list_of_outputs'] = False
             if not 'automatic_output_type' in kwargs:
                 kwargs['automatic_output_type'] = None
+            input_tape = args[0]
+            if hasattr(input_tape, 'is_finite') and \
+                    input_tape.is_finite() == False:
+                if not 'iterator_type' in kwargs:
+                    kwargs['iterator_type'] = 'simple'
+                if not 'automatic_output_type' in kwargs:
+                    kwargs['automatic_output_type'] = None
+                return self.iter_process(*args, **kwargs)
             return self.process(*args, **kwargs)
         raise TypeError("Do not know what to do with that arguments.")
 
@@ -5936,7 +5944,9 @@ class FiniteStateMachine(SageObject):
 
         An iterator.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        We can use :meth:`iter_process` to deal with infinite words::
 
             sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
             ....:     initial_states=['A'], final_states=['A'])
@@ -5945,7 +5955,20 @@ class FiniteStateMachine(SageObject):
             sage: Words([0,1])(it)
             word: 1011010110110101101011011010110110101101...
 
-        ::
+        This can be done simpler by::
+
+            sage: inverter.iter_process(words.FibonacciWord(),
+            ....:                       iterator_type='simple',
+            ....:                       automatic_output_type=True)
+            word: 1011010110110101101011011010110110101101...
+
+        or even more simpler by:
+
+            sage: inverter(words.FibonacciWord())
+            word: 1011010110110101101011011010110110101101...
+
+        To see what is going on, we use :meth:`iter_process` without
+        arguments::
 
             sage: it = inverter.iter_process(words.FibonacciWord())
             sage: for n, current in enumerate(it):
@@ -6010,7 +6033,11 @@ class FiniteStateMachine(SageObject):
         if iterator_type is None:
             return it
         elif iterator_type == 'simple':
-            return self._iter_process_simple_(it)
+            simple_it = self._iter_process_simple_(it)
+            if automatic_output_type:
+                return kwargs['format_output'](simple_it)
+            else:
+                return simple_it
         else:
             raise ValueError('Iterator type %s unknown.' % (iterator_type,))
 

@@ -3648,6 +3648,8 @@ class FiniteStateMachine(SageObject):
                 kwargs['full_output'] = False
             if not 'list_of_outputs' in kwargs:
                 kwargs['list_of_outputs'] = False
+            if not 'automatic_output_type' in kwargs:
+                kwargs['automatic_output_type'] = None
             return self.process(*args, **kwargs)
         raise TypeError("Do not know what to do with that arguments.")
 
@@ -5532,7 +5534,8 @@ class FiniteStateMachine(SageObject):
     _process_default_options_ = {'full_output': True,
                                  'list_of_outputs': None,
                                  'only_accepted': False,
-                                 'always_include_output': False}
+                                 'always_include_output': False,
+                                 'automatic_output_type': False}
 
     def process(self, *args, **kwargs):
         """
@@ -5601,6 +5604,13 @@ class FiniteStateMachine(SageObject):
         - ``process_iterator_class`` -- (default: ``None``) a class
           inherited from :class:`FSMProcessIterator`. If ``None``,
           then :class:`FSMProcessIterator` is taken.
+
+        - ``automatic_output_type`` -- (default: ``False``) a boolean
+          or ``None``. If set and the input has a parent, then the
+          output will have the same parent. If the input does not have
+          a parent, then the output will be of the same type as the
+          input. If ``None``, then ``automatic_output_type`` will check
+          whether ``format_output`` is present and use it instead.
 
         OUTPUT:
 
@@ -5905,7 +5915,8 @@ class FiniteStateMachine(SageObject):
 
     def iter_process(self, input_tape=None, initial_state=None,
                      process_iterator_class=None,
-                     iterator_type=None, **kwargs):
+                     iterator_type=None,
+                     automatic_output_type=False, **kwargs):
         """
         This function returns an iterator for processing the input.
         See :meth:`.process` (which runs this iterator until the end)
@@ -5979,6 +5990,17 @@ class FiniteStateMachine(SageObject):
             :meth:`~FiniteStateMachine.__call__`,
             :class:`FSMProcessIterator`.
         """
+        if automatic_output_type and kwargs.has_key('format_output'):
+            raise ValueError("Parameter 'automatic_output_type' set, but "
+                             "'format_output' specified as well.")
+        if automatic_output_type is None:
+            automatic_output_type = not kwargs.has_key('format_output')
+        if automatic_output_type:
+            try:
+                kwargs['format_output'] = input_tape.parent()
+            except AttributeError:
+                kwargs['format_output'] = type(input_tape)
+
         if process_iterator_class is None:
             process_iterator_class = FSMProcessIterator
         it = process_iterator_class(self,
@@ -10882,6 +10904,13 @@ class Transducer(FiniteStateMachine):
           inherited from :class:`FSMProcessIterator`. If ``None``,
           then :class:`FSMProcessIterator` is taken.
 
+        - ``automatic_output_type`` -- (default: ``False``) a boolean
+          or ``None``. If set and the input has a parent, then the
+          output will have the same parent. If the input does not have
+          a parent, then the output will be of the same type as the
+          input. If ``None``, then ``automatic_output_type`` will check
+          whether ``format_output`` is present and use it instead.
+
         OUTPUT:
 
         The full output is a triple (or a list of triples,
@@ -10955,6 +10984,24 @@ class Transducer(FiniteStateMachine):
 
             sage: binary_inverter([0, 1, 0, 0, 1, 1])
             [1, 0, 1, 1, 0, 0]
+
+        This can also be used with words as input::
+
+            sage: W = Words([0, 1]); W
+            Words over {0, 1}
+            sage: w = W([0, 1, 0, 0, 1, 1]); w
+            word: 010011
+            sage: binary_inverter(w)
+            word: 101100
+
+        In this case it is automatically determined that the output is
+        a word. The call above is equivalent to::
+
+            sage: binary_inverter.process(w,
+            ....:                         full_output=False,
+            ....:                         list_of_outputs=False,
+            ....:                         automatic_output_type=True)
+            word: 101100
 
         The following transducer transforms `0^n 1` to `1^n 2`::
 

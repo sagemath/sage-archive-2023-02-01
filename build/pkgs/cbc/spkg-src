@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+## What do we want ?
+VERSION=$(cat package-version.txt | sed -re "s/^(.*)\\.p.+$/\\1/")
+SOURCE_TARBALL=Cbc-$VERSION.tgz
+
+set -e
+
+wget http://www.coin-or.org/download/source/Cbc/$SOURCE_TARBALL
+
+# Convert .tgz to .tar.bz2
+gunzip $SOURCE_TARBALL
+bzip2 -9 Cbc-$VERSION.tar
+
+# More to upstream/ and fix checksums
+mv Cbc-$VERSION.tar.bz2 $SAGE_ROOT/upstream/cbc-$VERSION.tar.bz2
+sage -sh 'sage-fix-pkg-checksums'

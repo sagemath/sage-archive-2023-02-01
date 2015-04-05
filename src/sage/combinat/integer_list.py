@@ -995,6 +995,8 @@ If you know what you are doing, you can set check=False to skip this warning."""
             []
             sage: IntegerListsLex(7, max_part=0).list()
             []
+            sage: IntegerListsLex(5, max_part=0, min_slope=0).list()
+            []
             sage: IntegerListsLex(max_part=0).list()
             [[]]
             sage: IntegerListsLex(max_sum=1, min_sum=4, min_slope=0).list()
@@ -1008,43 +1010,72 @@ If you know what you are doing, you can set check=False to skip this warning."""
             ...
             ValueError: Could not check that the specified constraints yield a finite set
         """
-        message = "Could not check that the specified constraints yield a finite set"
+        # If a part has no bound on its value, it will be detected at some point
+
+        # Here we assume that every part is bounded, and focus on
+        # deducing that there is a bound on the length of lists
+        # satisfying the constraints.
+
+        # Trivial cases
+        if self._max_length < Infinity:
+            return
+        if self._max_sum < self._min_sum:
+            return
+        if self._min_slope > self._max_slope:
+            return
+        if self._max_slope < 0:
+            return
+        if self._ceiling.limit() < self._floor.limit():
+            return
+        if self._ceiling.limit() == 0:
+            # This assumes no trailing zeroes
+            return
+        if self._min_slope > 0 and self._ceiling.limit() < Infinity:
+            return
+
+        # Compute a lower bound on the sum of floor(i) for i=1 to infinity
+        if self._floor.limit() > 0 or self._min_slope > 0:
+            floor_sum_lower_bound = Infinity
+        elif self._floor.limit_start() < Infinity:
+            floor_sum_lower_bound = sum(self._floor(i) for i in range(self._floor.limit_start()))
+        else:
+            floor_sum_lower_bound = 0
+        if floor_sum_lower_bound > 0 and self._min_slope >= 0:
+            floor_sum_lower_bound = Infinity
+
+        if self._max_sum < floor_sum_lower_bound:
+            return
+        if self._max_sum == floor_sum_lower_bound and self._max_sum < Infinity:
+                # This assumes no trailing zeroes
+                return
+
+        # Variant on ceiling.limit() ==0 where we actually discover that the ceiling limit is 0
+        if self._max_slope == 0 and \
+           (self._max_sum < Infinity or
+            (self._ceiling.limit_start() < Infinity and
+             any(self._ceiling(i) == 0 for i in range(self._ceiling.limit_start()+1)))):
+            return
+
+            # s = sum(self._floor(i) for i in range(self._floor.limit_start()))
+            # if (self._min_slope < 0            and
+            #     self._max_slope > 0            and
+            #     self._min_sum > s):
+            #     raise ValueError(message)
+
+            # if (self._min_slope == 0 and
+            #     self._max_slope  > 0 and
+            #     self._max_sum    > 0 and # this is assuming that we remove trailing zeroes
+            #     s==0):
+            #     raise ValueError(message)
 
         limit_start = max(self._ceiling.limit_start(), self._floor.limit_start())
-        if limit_start == Infinity:
-            raise ValueError(message)
-        for i in range(limit_start+1):
-            if self._ceiling(i) < self._floor(i):
-                return
+        if limit_start < Infinity:
+            for i in range(limit_start+1):
+                if self._ceiling(i) < self._floor(i):
+                    return
 
-        s = sum(self._floor(i) for i in range(self._floor.limit_start()))
-        if (self._max_sum        < Infinity and
-            self._max_length    == Infinity and
-            self._floor.limit() == 0):
+        raise ValueError("Could not check that the specified constraints yield a finite set")
 
-            if (self._min_slope < 0            and
-                self._max_slope > 0            and
-                self._min_sum > s              and
-                self._min_sum <= self._max_sum and
-                self._ceiling.limit() > 0):
-                raise ValueError(message)
-
-            if (self._min_slope == 0 and
-                self._max_slope  > 0 and
-                self._max_sum    > 0 and # this is assuming that we remove trailing zeroes
-                self._max_sum   >= self._min_sum and
-                s==0):
-                raise ValueError(message)
-
-        elif self._max_sum == Infinity and self._max_length == Infinity:
-            if self._max_slope == 0 and min(self._ceiling(i) for i in range(self._ceiling.limit_start()+1)) == 0:
-                return
-            elif self._min_slope > 0 and self._ceiling.limit() < Infinity:
-                return
-            elif self._min_slope > self._max_slope:
-                return
-            if self._max_slope >= 0 and self._ceiling.limit() > 0:
-                raise ValueError(message)
 
     @staticmethod
     def _list_function(l, default):

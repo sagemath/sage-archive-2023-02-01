@@ -898,10 +898,20 @@ If you know what you are doing, you can set check=False to skip this warning."""
         As mentioned in the description of this class, this is almost
         equivalent to being inverse lexicographic iterable.
 
+        OUTPUT: ``None`` if this method finds a proof that this set is
+        finite.  Otherwise a ``ValueError`` is raised.
+
+        .. WARNING::
+
+            In some cases, this method may fail to prove that a set is
+            finite, even if it actually is. See the examples below.
+
         EXAMPLES::
 
             sage: L = IntegerListsLex(4, max_length=4)
             sage: L._check_finiteness()
+
+        The following example is infinite::
 
             sage: L = IntegerListsLex(4)
             sage: L._check_finiteness()
@@ -909,13 +919,10 @@ If you know what you are doing, you can set check=False to skip this warning."""
             ...
             ValueError: Could not check that the specified constraints yield a finite set
 
-            sage: L.list()
-            Traceback (most recent call last):
-            ...
-            ValueError: Could not check that the specified constraints yield a finite set
+        Indeed::
 
             sage: it = iter(IntegerListsLex(4, check=False))
-            sage: for _ in range(20): print next(it)
+            sage: for _ in range(10): print next(it)
             [4]
             [3, 1]
             [3, 0, 1]
@@ -926,16 +933,16 @@ If you know what you are doing, you can set check=False to skip this warning."""
             [3, 0, 0, 0, 0, 0, 0, 1]
             [3, 0, 0, 0, 0, 0, 0, 0, 1]
             [3, 0, 0, 0, 0, 0, 0, 0, 0, 1]
-            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
-            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
-            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
-            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
-            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
-            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
-            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
-            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
-            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
-            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+
+        Unless ``check=False`, :meth:`_check_finiteness` is called as
+        soon as an iteration is attempted::
+
+            sage: iter(L)
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not check that the specified constraints yield a finite set
+
+        Some other infinite examples::
 
             sage: L = IntegerListsLex(ceiling=[0], min_slope=1, max_slope=2)
             sage: L.list()
@@ -954,7 +961,26 @@ If you know what you are doing, you can set check=False to skip this warning."""
             ...
             ValueError: Could not check that the specified constraints yield a finite set
 
-        The next example shows a case that is finite since we remove trailing zeroes::
+        The following example is actually finite, but not detected as such::
+
+            sage: IntegerListsLex(7, floor=[4], max_part=4, min_slope=-1).list()
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not check that the specified constraints yield a finite set
+
+        This is sad because the following equivalent example works just fine::
+
+            sage: IntegerListsLex(7, floor=[4,3], max_part=4, min_slope=-1).list()
+            [[4, 3]]
+
+        Detecting this properly would require some deeper lookahead,
+        and the difficulty is to decide how far this lookahead should
+        search. Until this is fixed, once can disable the checks::
+
+            sage: IntegerListsLex(7, floor=[4], max_part=4, min_slope=-1, check=False).list()
+            [[4, 3]]
+
+        The next example shows a case that is finite because we remove trailing zeroes::
 
             sage: list(IntegerListsLex(ceiling=[0], max_slope=0))
             [[]]
@@ -963,6 +989,9 @@ If you know what you are doing, you can set check=False to skip this warning."""
             Traceback (most recent call last):
             ...
             ValueError: Could not check that the specified constraints yield a finite set
+
+        
+
 
         In the next examples, there is either no solution, or the region
         is bounded::

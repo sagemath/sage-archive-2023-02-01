@@ -290,7 +290,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
 
         if one is None and category is not None:
             if category.is_subcategory(Monoids().Subobjects()):
-                one=ambient.one()
+                one = ambient.one()
             elif category.is_subcategory(Monoids()):
                 raise ValueError("For a monoid which is just a subsemigroup, the unit should be specified")
 
@@ -320,6 +320,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         else:
             category = default_category & category
         return super(AutomaticSemigroup, cls).__classcall__(cls, generators, ambient=ambient, one=one, mul=mul, category=category)
+
 
     def __init__(self, generators, ambient, one, mul, category):
         """
@@ -956,6 +957,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
             return self
 
         __deepcopy__ = __copy__
+
 
 class AutomaticMonoid(AutomaticSemigroup):
 

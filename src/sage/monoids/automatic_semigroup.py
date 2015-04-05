@@ -228,6 +228,12 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         sage: M1 is M2
         False
 
+    .. NOTE::
+
+        Unlike what the name of the class may suggest, this currently
+        implements only a subclass of automatic semigroups;
+        essentially the finite ones. See :wikipedia:`Automatic_semigroup`.
+
     .. WARNING::
 
         :class:`AutomaticSemigroup` is designed primarily for finite

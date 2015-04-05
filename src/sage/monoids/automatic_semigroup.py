@@ -406,6 +406,8 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
 
         - ``style`` -- "ambient" or "reduced_word"
 
+        EXAMPLES::
+
             sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
             sage: R = IntegerModRing(17)
             sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
@@ -692,7 +694,6 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
             sage: M.repr_element_method("reduced_word")
             sage: M.list()
             [[], [1], [2], [1, 1]]
-
 
         TESTS::
 

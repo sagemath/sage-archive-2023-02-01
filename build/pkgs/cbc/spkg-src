@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ## What do we want ?
-VERSION=$(cat package-version.txt | sed -re "s/^(.*)\\.p.+$/\\1/")
+VERSION=$(cat package-version.txt | sed -e "s/^\(.*\)\.p.+$/\\1/")
 SOURCE_TARBALL=Cbc-$VERSION.tgz
 
 set -e

@@ -980,7 +980,22 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: IntegerListsLex(7, floor=[4], max_part=4, min_slope=-1, check=False).list()
             [[4, 3]]
 
-        The next example shows a case that is finite because we remove trailing zeroes::
+        If the ceiling or floor is a function, it's much more likely
+        that a finite set won't be detected as such::
+
+            sage: IntegerListsLex(ceiling=lambda i: max(3-i,0))._check_finiteness()
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not check that the specified constraints yield a finite set
+
+            sage: IntegerListsLex(7, ceiling=lambda i:0).list()
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not check that the specified constraints yield a finite set
+
+
+        The next example shows a case that is finite because we remove
+        trailing zeroes::
 
             sage: list(IntegerListsLex(ceiling=[0], max_slope=0))
             [[]]
@@ -989,9 +1004,6 @@ If you know what you are doing, you can set check=False to skip this warning."""
             Traceback (most recent call last):
             ...
             ValueError: Could not check that the specified constraints yield a finite set
-
-        
-
 
         In the next examples, there is either no solution, or the region
         is bounded::
@@ -1030,14 +1042,6 @@ If you know what you are doing, you can set check=False to skip this warning."""
             [[]]
             sage: IntegerListsLex(max_sum=1, min_sum=4, min_slope=0).list()
             []
-
-        If the ceiling or floor is a function, one cannot current
-        check whether the set is finite::
-
-            sage: IntegerListsLex(ceiling=lambda i: max(3-i,0))._check_finiteness()
-            Traceback (most recent call last):
-            ...
-            ValueError: Could not check that the specified constraints yield a finite set
         """
         # If a part has no bound on its value, it will be detected at some point
 
@@ -1217,7 +1221,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: list(C)     # indirect doctest
             [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
         """
-        if self._check and not self._floor_or_ceiling_is_function:
+        if self._check:
             self._check_finiteness()
         return self._Iter(self)
 

@@ -26,7 +26,6 @@ implementation is still available in
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import inspect
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.cachefunc import cached_method
@@ -1436,7 +1435,6 @@ If you know what you are doing, you can set check=False to skip this warning."""
             """
             p = self._parent
             min_sum = p._min_sum
-            max_sum = p._max_sum
             max_length = p._max_length
             search_ranges = self._search_ranges
 
@@ -1446,7 +1444,6 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
                 # LOOK AHEAD
                 if self._next_state == LOOKAHEAD:
-                    m = self._current_list[-1]
                     if self._lookahead():
                         self._next_state = PUSH
                     else:

@@ -18,10 +18,6 @@ Forrest at www.coin-or.org.
 Eclipse Public License, Version 1.0 (EPL-1.0)
 (http://opensource.org/licenses/eclipse-1.0)
 
-== SPKG Maintainers ==
-
- * Nathann Cohen / nathann.cohen@gmail.com
-
 == Upstream Contact ==
 
  * John Forrest <jjforre@us.ibm.com>

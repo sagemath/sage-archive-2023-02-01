@@ -364,6 +364,15 @@ Alternatively, we could call that by
 
 which gives additionally the state in which we arrived.
 
+We can also let an automaton act on a :mod:`word
+<sage.combinat.words.words>`::
+
+    sage: W = Words([-1, 0, 1]); W
+    Words over {-1, 0, 1}
+    sage: w = W([1, 0, 1, 0, -1]); w
+    word: 1,0,1,0,-1
+    sage: NAF(w)
+    True
 
 .. _finite_state_machine_LaTeX_output:
 
@@ -457,6 +466,38 @@ Now we apply a word to it and see what the transducer does::
 ``'A'``, and we also got an output.
 
 .. _finite_state_machine_division_by_3_example:
+
+
+Transducers and (in)finite Words
+--------------------------------
+
+A transducer can also act on everything iterable, in particular, on
+Sage's :mod:`~sage.combinat.words.words`.
+
+::
+
+    sage: W = Words([0, 1]); W
+    Words over {0, 1}
+
+Let us take the inverter from the previous section and feed some
+finite word into it::
+
+    sage: w = W([1, 1, 0, 1]); w
+    word: 1101
+    sage: inverter(w)
+    word: 0010
+
+We see that the output is again a word (this is a consequence of
+calling :meth:`~Transducer.process` with ``automatic_output_type``).
+
+We can even input something infinite like an infinite word::
+
+    sage: tm = words.ThueMorseWord()
+    sage: inverter(tm)
+    word: 1001011001101001011010011001011001101001...
+
+Here processing works with iterators in background.
+
 
 A transducer which performs division by `3` in binary
 -----------------------------------------------------

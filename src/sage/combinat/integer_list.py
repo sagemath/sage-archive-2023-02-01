@@ -739,6 +739,11 @@ class IntegerListsLex(Parent):
         sage: P = Partitions(NonNegativeIntegers())
         sage: P.first()
         []
+
+    This used to hang (see comment 389 and fix in :meth:`Envelope.__init__`)::
+
+        sage: IntegerListsLex(7, max_part=0, ceiling=lambda i:i, check=False).list()
+        []
     """
     __metaclass__ = ClasscallMetaclass
 
@@ -1975,6 +1980,12 @@ class Envelope(object):
             self._max_part = max_part
             self._min_slope = min_slope
             self._max_slope = max_slope
+            if max_part == 0:
+                # This uses that all entries are nonnegative.
+                # This is not for speed optimization but for
+                # setting the limit start and avoid hangs.
+                # See #17979: comment 389
+                f = 0
         elif self._sign == -1:
             self._max_part = -min_part
             self._min_slope = -max_slope

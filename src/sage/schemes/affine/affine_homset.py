@@ -34,8 +34,10 @@ AUTHORS:
 
 from sage.rings.all import ZZ
 from sage.rings.rational_field import is_RationalField
+from sage.categories.fields import Fields
 from sage.categories.number_fields import NumberFields
 from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 import sage.schemes.generic.homset
 
@@ -170,18 +172,16 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
         X = self.codomain()
 
         from sage.schemes.affine.affine_space import is_AffineSpace
-        from sage.categories.fields import Fields
-        if not is_AffineSpace(X) and X.base_ring() in Fields:
+        if not is_AffineSpace(X) and X.base_ring() in Fields():
             # Then X must be a subscheme
             if X.defining_ideal().dimension() < 0: # no points
                 return []
             if X.defining_ideal().dimension() == 0: # if X zero-dimensional
                 N = len(X.ambient_space().gens())
-                S=X.defining_polynomials()[0].parent()
-                from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-                R=PolynomialRing(S.base_ring(),'s',N,order='lex')
+                S = X.defining_polynomials()[0].parent()
+                R = PolynomialRing(S.base_ring(),'s',N,order='lex')
                 phi = S.hom(R.gens(),R)
-                J=R.ideal([phi(t) for t in X.defining_polynomials()])
+                J = R.ideal([phi(t) for t in X.defining_polynomials()])
                 D = J.variety()
                 points = []
                 for d in D:

@@ -41,6 +41,7 @@ from sage.rings.all import ZZ
 from sage.schemes.generic.homset import SchemeHomset_points
 
 from sage.rings.rational_field import is_RationalField
+from sage.categories.fields import Fields
 from sage.categories.number_fields import NumberFields
 from sage.rings.finite_rings.constructor import is_FiniteField
 
@@ -111,8 +112,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
         X = self.codomain()
 
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
-        from sage.categories.fields import Fields
-        if not is_ProjectiveSpace(X) and X.base_ring() in Fields:
+        if not is_ProjectiveSpace(X) and X.base_ring() in Fields():
             #Then it must be a subscheme
             if X.defining_ideal().dimension() < 1: # no points
                 return []

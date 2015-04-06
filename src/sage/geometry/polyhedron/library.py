@@ -379,7 +379,7 @@ class Polytopes():
             Rational Field
         """
         # Note: QQ would give some incorrecty subdivided facets
-        p = self.icosahedron(base_ring=RDF).edge_truncation()
+        p = self.icosahedron(base_ring=RDF).truncation()
         if base_ring==RDF:
             return p
         # Converting with low precision to save time.

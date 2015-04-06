@@ -143,7 +143,7 @@ class IntegerListsLex(Parent):
 
     EXAMPLES:
 
-    We create the enumerated set of all lists of non negative integers
+    We create the enumerated set of all lists of nonnegative integers
     of length `3` and sum `2`::
 
         sage: C = IntegerListsLex(2, length=3)
@@ -835,7 +835,7 @@ class IntegerListsLex(Parent):
             floor = 0
         elif isinstance(floor, (list, tuple)):
             if not all(i in ZZ for i in floor):
-                raise TypeError("the parts of floor={} should be non negative integers".format(floor))
+                raise TypeError("the parts of floor={} should be nonnegative integers".format(floor))
             if not all(i >= 0 for i in floor):
                 raise NotImplementedError("negative parts in floor={}".format(floor))
         elif callable(floor):
@@ -851,7 +851,7 @@ class IntegerListsLex(Parent):
             ceiling = Infinity
         elif isinstance(ceiling, (list, tuple)):
             if not all(i==Infinity or i in ZZ for i in ceiling):
-                raise TypeError("the parts of ceiling={} should be non negative integers".format(ceiling))
+                raise TypeError("the parts of ceiling={} should be nonnegative integers".format(ceiling))
             if not all(i >= 0 for i in ceiling):
                 raise NotImplementedError("negative parts in floor={}".format(ceiling))
         elif callable(ceiling):
@@ -1233,7 +1233,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
         r"""
         Iterator class for IntegerListsLex.
 
-        Let `T` be the prefix tree of all lists of non negative
+        Let `T` be the prefix tree of all lists of nonnegative
         integers that satisfy all constraints except possibly for
         ``min_length`` and ``min_sum``; let the children of a list
         be sorted decreasingly according to their last part.

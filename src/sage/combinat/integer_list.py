@@ -979,13 +979,13 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
         Detecting this properly would require some deeper lookahead,
         and the difficulty is to decide how far this lookahead should
-        search. Until this is fixed, once can disable the checks::
+        search. Until this is fixed, one can disable the checks::
 
             sage: IntegerListsLex(7, floor=[4], max_part=4, min_slope=-1, check=False).list()
             [[4, 3]]
 
-        If the ceiling or floor is a function, it's much more likely
-        that a finite set won't be detected as such::
+        If the ceiling or floor is a function, it is much more likely
+        that a finite set will not be detected as such::
 
             sage: IntegerListsLex(ceiling=lambda i: max(3-i,0))._check_finiteness()
             Traceback (most recent call last):
@@ -996,7 +996,6 @@ If you know what you are doing, you can set check=False to skip this warning."""
             Traceback (most recent call last):
             ...
             ValueError: Could not check that the specified constraints yield a finite set
-
 
         The next example shows a case that is finite because we remove
         trailing zeroes::
@@ -2116,7 +2115,7 @@ class Envelope(object):
 
         - ``j`` -- a nonnegative integer (position)
 
-        This method adapts this enveloppe to the additional local
+        This method adapts this envelope to the additional local
         constraint imposed by having a part `m` at position `j`.
         Namely, this returns a function which computes, for any `i>j`,
         the minimum of the ceiling function and the value restriction

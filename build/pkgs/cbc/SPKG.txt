@@ -15,9 +15,8 @@ Forrest at www.coin-or.org.
 
 == License ==
 
-Copyright 2005 IBM Coportation
-CBC and this documentation are provided under the terms of the Common
-Public License ("CPL").
+Eclipse Public License, Version 1.0 (EPL-1.0)
+(http://opensource.org/licenses/eclipse-1.0)
 
 == SPKG Maintainers ==
 

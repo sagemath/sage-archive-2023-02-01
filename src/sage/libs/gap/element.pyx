@@ -1030,6 +1030,9 @@ cdef class GapElement(RingElement):
             sage: libgap.eval('5 + 7*E(3)').sage()
             7*zeta3 + 5
 
+            sage: libgap.eval('infinity').sage()
+            +Infinity
+
             sage: libgap(True).sage()
             True
             sage: libgap(False).sage()
@@ -1045,6 +1048,11 @@ cdef class GapElement(RingElement):
         if self.value is NULL:
             return None
         libgap = self.parent()
+
+        if self.IsInfinity():
+            from sage.rings.infinity import Infinity
+            return Infinity
+
         raise NotImplementedError('cannot construct equivalent Sage object')
 
 
@@ -1156,7 +1164,7 @@ cdef GapElement_Integer make_GapElement_Integer(parent, libGAP_Obj obj):
 
 cdef class GapElement_Integer(GapElement):
     r"""
-    Derived class of GapElement for GAP rational numbers.
+    Derived class of GapElement for GAP integers.
 
     EXAMPLES::
 
@@ -1196,7 +1204,6 @@ cdef class GapElement_Integer(GapElement):
             true
         """
         return libGAP_IS_INTOBJ(self.value)
-
 
     def sage(self, ring=None):
         r"""
@@ -1241,6 +1248,24 @@ cdef class GapElement_Integer(GapElement):
             string = self.String().sage()
             return ring(string)
 
+    def __int__(self):
+        r"""
+        TESTS::
+
+            sage: int(libgap(3))
+            3
+            sage: type(_)
+            <type 'int'>
+
+            sage: int(libgap(2)**128)
+            340282366920938463463374607431768211456L
+            sage: type(_)
+            <type 'long'>
+        """
+        if self.is_C_int():
+            return libGAP_INT_INTOBJ(self.value)
+        else:
+            return int(self.String().sage())
 
 ############################################################################
 ### GapElement_IntegerMod #####################################################

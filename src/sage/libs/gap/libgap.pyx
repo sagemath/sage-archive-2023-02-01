@@ -601,6 +601,19 @@ class Gap(Parent):
 
     zero_element = deprecated_function_alias(17694, zero)
 
+    def one(self):
+        r"""
+        Return (integer) one in GAP.
+
+        EXAMPLES::
+
+            sage: libgap.one()
+            1
+            sage: parent(_)
+            C library interface to GAP
+        """
+        return self(1)
+
     def __init__(self):
         r"""
         The Python constructor.

@@ -40,6 +40,8 @@ heavily modified:
 import math
 import operator
 
+from sage.ext.interrupt cimport sig_on, sig_off
+
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
 from complex_number cimport ComplexNumber
 
@@ -1468,6 +1470,164 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
 #     def algebraic_dependancy( self, n ):
 #         return self.algdep( n )
+
+    def cos(self):
+        r"""
+        Compute the cosine of this complex interval.
+
+        EXAMPLES::
+
+            sage: CIF(1,1).cos()
+            0.833730025131149? - 0.988897705762865?*I
+            sage: CIF(3).cos()
+            -0.9899924966004455?
+            sage: CIF(0,2).cos()
+            3.762195691083632?
+
+        Check that :trac:`17285` is fixed::
+
+            sage: CIF(cos(2/3))
+            0.7858872607769480?
+        """
+        cdef ComplexIntervalFieldElement res = self._new()
+        cdef mpfi_t tmp
+        sig_on()
+        # cos(x + iy) = cos(x) cosh(y) - i sin (x) sinh(y)
+        mpfi_init2(tmp, self._parent.prec())
+        mpfi_cos(res.__re, self.__re)
+        mpfi_cosh(tmp, self.__im)
+        mpfi_mul(res.__re, res.__re, tmp)
+
+        mpfi_sin(res.__im, self.__re)
+        mpfi_sinh(tmp, self.__im)
+        mpfi_mul(res.__im, res.__im, tmp)
+        mpfi_neg(res.__im, res.__im)
+        mpfi_clear(tmp)
+        sig_off()
+        return res
+
+    def sin(self):
+        r"""
+        Compute the sine of this complex interval.
+
+        EXAMPLES::
+
+            sage: CIF(1,1).sin()
+            1.298457581415978? + 0.634963914784736?*I
+            sage: CIF(2).sin()
+            0.909297426825682?
+            sage: CIF(0,2).sin()
+            3.626860407847019?*I
+
+        Check that :trac:`17825` is fixed::
+
+            sage: CIF(sin(2/3))
+            0.618369803069737?
+        """
+        cdef ComplexIntervalFieldElement res = self._new()
+        cdef mpfi_t tmp
+        sig_on()
+        # sin(x + iy) = sin(x) cosh(y) + i cos (x) sinh(y)
+        mpfi_init2(tmp, self._parent.prec())
+        mpfi_sin(res.__re, self.__re)
+        mpfi_cosh(tmp, self.__im)
+        mpfi_mul(res.__re, res.__re, tmp)
+
+        mpfi_cos(res.__im, self.__re)
+        mpfi_sinh(tmp, self.__im)
+        mpfi_mul(res.__im, res.__im, tmp)
+        mpfi_clear(tmp)
+        sig_off()
+        return res
+
+    def tan(self):
+        r"""
+        Return the tangent of this complex interval.
+
+        EXAMPLES::
+
+            sage: CIF(1,1).tan()
+            0.27175258531952? + 1.08392332733870?*I
+            sage: CIF(2).tan()
+            -2.18503986326152?
+            sage: CIF(0,2).tan()
+            0.964027580075817?*I
+        """
+        return self.sin() / self.cos()
+
+    def cosh(self):
+        r"""
+        Return the hyperbolic cosine of this complex interval.
+
+        EXAMPLES::
+
+            sage: CIF(1,1).cosh()
+            0.833730025131149? + 0.988897705762865?*I
+            sage: CIF(2).cosh()
+            3.762195691083632?
+            sage: CIF(0,2).cosh()
+            -0.4161468365471424?
+        """
+        cdef ComplexIntervalFieldElement res = self._new()
+        cdef mpfi_t tmp
+        sig_on()
+        # cosh(x+iy) = cos(y) cosh(x) + i sin(y) sinh(x)
+        mpfi_init2(tmp, self._parent.prec())
+        mpfi_cos(res.__re, self.__im)
+        mpfi_cosh(tmp, self.__re)
+        mpfi_mul(res.__re, res.__re, tmp)
+
+        mpfi_sin(res.__im, self.__im)
+        mpfi_sinh(tmp, self.__re)
+        mpfi_mul(res.__im, res.__im, tmp)
+        mpfi_clear(tmp)
+        sig_off()
+        return res
+
+    def sinh(self):
+        r"""
+        Return the hyperbolic sine of this complex interval.
+
+        EXAMPLES::
+
+            sage: CIF(1,1).sinh()
+            0.634963914784736? + 1.298457581415978?*I
+            sage: CIF(2).sinh()
+            3.626860407847019?
+            sage: CIF(0,2).sinh()
+            0.909297426825682?*I
+        """
+        cdef ComplexIntervalFieldElement res = self._new()
+        cdef mpfi_t tmp
+        sig_on()
+        # sinh(x+iy) = cos(y) sinh(x) + i sin(y) cosh(x)
+        mpfi_init2(tmp, self._parent.prec())
+        mpfi_cos(res.__re, self.__im)
+        mpfi_sinh(tmp, self.__re)
+        mpfi_mul(res.__re, res.__re, tmp)
+
+        mpfi_sin(res.__im, self.__im)
+        mpfi_cosh(tmp, self.__re)
+        mpfi_mul(res.__im, res.__im, tmp)
+        mpfi_clear(tmp)
+        sig_off()
+        return res
+
+    def tanh(self):
+        r"""
+        Return the hyperbolic tangent of this complex interval.
+
+        EXAMPLES::
+
+            sage: CIF(1,1).tanh()
+            1.08392332733870? + 0.27175258531952?*I
+            sage: CIF(2).tanh()
+            0.964027580075817?
+            sage: CIF(0,2).tanh()
+            -2.18503986326152?*I
+        """
+        return self.sinh() / self.cosh()
+
 
 def make_ComplexIntervalFieldElement0( fld, re, im ):
     """

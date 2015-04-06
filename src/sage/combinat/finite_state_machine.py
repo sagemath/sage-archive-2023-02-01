@@ -3458,15 +3458,9 @@ class FiniteStateMachine(SageObject):
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False  # activate new output behavior
-            sage: binary_inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
-            ....:                              initial_states=['A'], final_states=['A'])
-            sage: binary_inverter([0, 1, 0, 0, 1, 1])
-            [1, 0, 1, 1, 0, 0]
-
-        ::
+        The following code performs a :meth:`~Transducer.composition`::
 
             sage: F = Transducer([('A', 'B', 1, 0), ('B', 'B', 1, 1),
             ....:                 ('B', 'B', 0, 0)],
@@ -3477,6 +3471,15 @@ class FiniteStateMachine(SageObject):
             sage: H = G(F)
             sage: H.states()
             [('A', 1), ('B', 1), ('B', 2)]
+
+        An automaton or transducer can also act on an input (an list
+        or other iterable of letters)::
+
+            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False  # activate new output behavior
+            sage: binary_inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:                              initial_states=['A'], final_states=['A'])
+            sage: binary_inverter([0, 1, 0, 0, 1, 1])
+            [1, 0, 1, 1, 0, 0]
 
         When only one successful path is found in a non-deterministic
         transducer, the result of that path is returned.

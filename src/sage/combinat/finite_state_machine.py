@@ -3450,7 +3450,7 @@ class FiniteStateMachine(SageObject):
         Calls either method :meth:`.composition` or :meth:`.process`
         (with ``full_output=False``). If the input is not finite
         (``is_finite`` of input is ``False``), then
-        :meth:`.iter_process` (with ``iterator_type='simple') is
+        :meth:`.iter_process` (with ``iterator_type='simple'``) is
         called. Moreover, the flag ``automatic_output_type`` is set.
         See the documentation of these functions for possible
         parameters.
@@ -3460,7 +3460,7 @@ class FiniteStateMachine(SageObject):
 
         EXAMPLES:
 
-        The following code performs a :meth:`~Transducer.composition`::
+        The following code performs a :meth:`composition`::
 
             sage: F = Transducer([('A', 'B', 1, 0), ('B', 'B', 1, 1),
             ....:                 ('B', 'B', 0, 0)],
@@ -3480,6 +3480,18 @@ class FiniteStateMachine(SageObject):
             ....:                              initial_states=['A'], final_states=['A'])
             sage: binary_inverter([0, 1, 0, 0, 1, 1])
             [1, 0, 1, 1, 0, 0]
+
+        We can also let them act on :mod:`~sage.combinat.words.words`::
+
+            sage: W = Words([0, 1]); W
+            Words over {0, 1}
+            sage: binary_inverter(W([0, 1, 1, 0, 1, 1]))
+            word: 100100
+
+        Infinite words work as well::
+
+            sage: binary_inverter(words.FibonacciWord())
+            word: 1011010110110101101011011010110110101101...
 
         When only one successful path is found in a non-deterministic
         transducer, the result of that path is returned.

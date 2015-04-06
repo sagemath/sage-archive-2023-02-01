@@ -3447,9 +3447,13 @@ class FiniteStateMachine(SageObject):
             already be achieved by setting
             ``FSMOldProcessOutput`` to ``False``.
 
-        Calls either method :meth:`.composition` or :meth:`.process` (with
-        ``full_output=False``). See the documentation of these functions for
-        possible parameters.
+        Calls either method :meth:`.composition` or :meth:`.process`
+        (with ``full_output=False``). If the input is not finite
+        (``is_finite`` of input is ``False``), then
+        :meth:`.iter_process` (with ``iterator_type='simple') is
+        called. Moreover, the flag ``automatic_output_type`` is set.
+        See the documentation of these functions for possible
+        parameters.
 
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.
@@ -3490,6 +3494,7 @@ class FiniteStateMachine(SageObject):
 
             :meth:`.composition`,
             :meth:`~FiniteStateMachine.process`,
+            :meth:`~FiniteStateMachine.iter_process`,
             :meth:`Automaton.process`,
             :meth:`Transducer.process`.
 

@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+if [ "$SAGE_ROOT" = "" ]; then
+   echo >&2 "SAGE_ROOT undefined ... exiting";
+   echo >&2 "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
 ## What do we want ?
 VERSION=$(cat package-version.txt | sed -e "s/^\(.*\)\.p.+$/\\1/")
 SOURCE_TARBALL=Cbc-$VERSION.tgz

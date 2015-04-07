@@ -2472,16 +2472,18 @@ class FiniteWord_class(Word_class):
             l[i] = None
         return l
 
-    def length_maximal_palindrome(self, j, m=0, f=None):
+    def length_maximal_palindrome(self, j, m=None, f=None):
         r"""
         Returns the length of the longest palindrome centered at position j.
 
         INPUT:
 
         - ``j`` -- rational, position of the symmetry axis of the palindrome.
-          Must return an integer when doubled. Integer if represents a letter.
+          Must return an integer when doubled. It is an integer when the
+          center of the palindrome is a letter.
 
-        - ``m`` -- integer (default: 0), minimal length of palindrome, if known.
+        - ``m`` -- integer (default: None), minimal length of palindrome, if known.
+          The parity of ``m`` can't be the same as the parity of ``2j``.
 
         - ``f`` -- involution (default: None), on the alphabet. It must be
           callable on letters as well as words (e.g. WordMorphism).
@@ -2498,8 +2500,45 @@ class FiniteWord_class(Word_class):
             4
             sage: Word('01010').length_maximal_palindrome(j=3, f='0->1,1->0')
             0
-        """
+            sage: Word('01010').length_maximal_palindrome(j=2.5, f='0->1,1->0')
+            4
+            sage: Word('0222220').length_maximal_palindrome(3, f='0->1,1->0,2->2')
+            5
 
+        ::
+
+            sage: w = Word('abcdcbaxyzzyx')
+            sage: w.length_maximal_palindrome(3)
+            7
+            sage: w.length_maximal_palindrome(3, 3)
+            7
+            sage: w.length_maximal_palindrome(3.5)
+            0
+            sage: w.length_maximal_palindrome(9.5)
+            6
+            sage: w.length_maximal_palindrome(9.5, 2)
+            6
+
+        TESTS:
+
+        These are wrong inputs::
+
+            sage: w.length_maximal_palindrome(9.6)
+            Traceback (most recent call last):
+            ...
+            ValueError: j must be positive, inferior to length of self
+            sage: w.length_maximal_palindrome(3, 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: j-(m+1)/2(=3/2) must be an integer, i.e., 2*j(=6) and
+            m(=2) can't have the same parity
+            sage: w.length_maximal_palindrome(9.5, 3)
+            Traceback (most recent call last):
+            ...
+            ValueError: j-(m+1)/2(=15/2) must be an integer, i.e., 2*j(=19) and
+            m(=3) can't have the same parity
+
+        """
         # Ensure `f` is an involutory word morphism
         if f is not None:
             from sage.combinat.words.morphism import WordMorphism
@@ -2508,41 +2547,35 @@ class FiniteWord_class(Word_class):
             if not f.is_involution():
                 raise ValueError("f must be an involution")
 
-        # Ensure 2j is a valid entry
-        Integer(2*j)
-        if (2*j) not in range(0, 2*len(self)):
+        # Ensure j is a valid entry
+        jj = 2*j
+        if not jj.is_integer() or j < 0 or j >= len(self):
             raise ValueError("j must be positive, inferior to length of self")
+        jj = Integer(jj)
 
-        g = int(j+0.5)
+        # Initialize length of the known palindrome
+        if m is None:
+            m = 0 if jj % 2 == 1 else -1
 
-        if m == 0:
-            m = -1 + (int(2*j) % 2)
+        # Initialize the next (left) position to check
+        i = (jj - m - 1) / 2
+        if not i.is_integer():
+            raise ValueError("j-(m+1)/2(={}) must be an integer, i.e., "
+                             "2*j(={}) and m(={}) can't "
+                             "have the same parity".format(i, jj, m))
+        i = Integer(i)
 
-        i = m + 1  # i counts the length of the longest palindrome
-
-        # Manage exception to avoid to count outside of the string
-        try:
-            if f is None:
-                sameLetter = (self[g-i] == self[g+i-int(2*j)%2])
-                while g - i >= 0 and sameLetter:
-                    i = i + 1
-                    sameLetter = (self[g-i] == self[g+i-int(2*j)%2])
-
-            else:
-                from sage.combinat.words.word import Word
-                fLetter = (Word(self[g-i]) == f(self[g+i-int(2*j)%2]))
-                while g - i >= 0 and fLetter:
-                    i = i + 1
-                    fLetter = (Word(self[g-i]) == f(self[g+i-int(2*j)%2]))
-
-        except IndexError:
-            pass
-        p = 2*i - 1 - (int(2*j) % 2)
-
-        if p < 0:
-            p = 0  # If the letter in j is not a `f`-palindrome
-
-        return p
+        # Compute
+        if f is None:
+            while i >= 0 and jj-i < len(self) and self[i] == self[jj-i]:
+                i -= 1
+        else:
+            while i >= 0 and jj-i < len(self) and self[i] == f(self[jj-i])[0]:
+                i -= 1
+        if jj == 2*i:
+            return 0
+        else:
+            return Integer(jj - 2*i - 1)
 
     def lengths_maximal_palindromes(self, f=None):
         r"""

@@ -63,16 +63,6 @@ Python classes::
     sage: sage_getsource(BlockFinder)
     'class BlockFinder:...'
 
-Python classes with no docstring, but an __init__ docstring::
-
-    sage: class Foo:
-    ...     def __init__(self):
-    ...         'docstring'
-    ...         pass
-    ...
-    sage: sage_getdoc(Foo)
-    'docstring\n'
-
 Test introspection of functions defined in Python and Cython files:
 
 Cython functions::
@@ -1499,20 +1489,6 @@ def _sage_getdoc_unformatted(obj):
         sage: _sage_getdoc_unformatted(isinstance.__class__)
         ''
 
-    If ``__init__`` has embedding information, we prefer that::
-
-        sage: C = QQ['x', 'y'].__class__
-        sage: print C.__doc__
-        MPolynomialRing_libsingular(base_ring, n, names, order='degrevlex')
-        sage: print C.__init__.__doc__
-        File: sage/rings/polynomial/multi_polynomial_libsingular.pyx (starting at line ...)
-        <BLANKLINE>
-                Construct a multivariate polynomial ring...
-        sage: print _sage_getdoc_unformatted(C)
-        File: sage/rings/polynomial/multi_polynomial_libsingular.pyx (starting at line ...)
-        <BLANKLINE>
-                Construct a multivariate polynomial ring...
-
     AUTHORS:
 
     - William Stein
@@ -1525,18 +1501,7 @@ def _sage_getdoc_unformatted(obj):
     except (AttributeError, TypeError): # the TypeError occurs if obj is a class
         r = obj.__doc__
 
-    # If r contains no embedding information, try __init__
-    if _extract_embedded_position(r) is None:
-        try:
-            initdoc = obj.__init__.__doc__
-        except AttributeError:
-            pass
-        else:
-            # Prefer initdoc if it does have embedding information
-            # or if r was None
-            if r is None or _extract_embedded_position(initdoc) is not None:
-                r = initdoc
-        if r is None:
+    if not r:
             return ''
 
     # Check if the __doc__ attribute was actually a string, and
@@ -1902,37 +1867,42 @@ def sage_getsourcelines(obj):
         if isinstance(obj,functools.partial):
             return sage_getsourcelines(obj.func)
         else:
-            #obj=obj.__class__
             return sage_getsourcelines(obj.__class__)
 
-    # If we can handle it, we do.  We first try Python's inspect, and
-    # if that fails then we try _sage_getdoc_unformatted. We can not use
-    # the latter right away, since otherwise there is an import problem
-    # at sage startup, believe it or not.
-    d = inspect.getdoc(obj)
+    # First, we deal with nested classes. Their name contains a dot, and we
+    # have a special function for that purpose.
+    if (not hasattr(obj, '__class__')) or hasattr(obj,'__metaclass__'):
+        # That hapens for ParentMethods
+        # of categories
+        if '.' in obj.__name__ or '.' in getattr(obj,'__qualname__',''):
+            return _sage_getsourcelines_name_with_dot(obj)
+
+    # Next, we try _sage_getdoc_unformatted. 
+    # d = inspect.getdoc(obj)
+    d = _sage_getdoc_unformatted(obj)
     pos = _extract_embedded_position(d)
     if pos is None:
-        if (not hasattr(obj, '__class__')) or hasattr(obj,'__metaclass__'):
-            # That hapens for ParentMethods
-            # of categories
-            if '.' in obj.__name__ or '.' in getattr(obj,'__qualname__',''):
-                return _sage_getsourcelines_name_with_dot(obj)
-        d = _sage_getdoc_unformatted(obj)
-        pos = _extract_embedded_position(d)
-        if pos is None:
+        try:
+            return inspect.getsourcelines(obj)
+        except (IOError, TypeError), err:
             try:
-                return inspect.getsourcelines(obj)
-            except (IOError, TypeError):
-                if inspect.isclass(obj):
-                    try:
-                        B = obj.__base__
-                    except AttributeError:
-                        B = None
-                    if B is not None and B is not obj:
-                        return sage_getsourcelines(B)
-                if obj.__class__ != type:
-                    return sage_getsourcelines(obj.__class__)
-                raise
+                objinit = obj.__init__
+            except AttributeError:
+                pass
+            else:
+                d = _sage_getdoc_unformatted(objinit)
+                pos = _extract_embedded_position(d)
+                if pos is None:
+                    if inspect.isclass(obj):
+                        try:
+                            B = obj.__base__
+                        except AttributeError:
+                            B = None
+                        if B is not None and B is not obj:
+                            return sage_getsourcelines(B)
+                    if obj.__class__ != type:
+                        return sage_getsourcelines(obj.__class__)
+                    raise err
 
     (orig, filename, lineno) = pos
     try:

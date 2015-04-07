@@ -90,7 +90,7 @@ def deprecation(trac_number, message):
     """
     warning(trac_number, message, DeprecationWarning)
 
-def warning(trac_number, message, warning_class):
+def warning(trac_number, message, warning_class=Warning):
     r"""
     Issues a warning.
 
@@ -101,7 +101,8 @@ def warning(trac_number, message, warning_class):
 
     - ``message`` -- string. An explanation what is going on.
 
-    - ``warning_class`` -- a class inherited from a Python ``Warning``.
+    - ``warning_class`` -- (default: ``Warning``) a class inherited
+      from a Python :class:`~exceptions.Warning`.
 
     EXAMPLES::
 

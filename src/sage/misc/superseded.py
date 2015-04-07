@@ -148,7 +148,7 @@ def experimental(trac_number, message, stacklevel=5):
     INPUT:
 
     - ``trac_number`` -- an integer. The trac ticket number where the
-      deprecation is introduced.
+      experimental functionality was introduced.
 
     - ``message`` -- a string. An explanation what is going on.
 

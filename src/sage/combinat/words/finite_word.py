@@ -2472,6 +2472,185 @@ class FiniteWord_class(Word_class):
             l[i] = None
         return l
 
+    def length_maximal_palindrome(self, j, m=0, f=None):
+        r"""
+        Returns the length of the longest palindrome centered at position j.
+
+        INPUT:
+
+        - ``j`` -- rational, position of the symmetry axis of the palindrome.
+          Must return an integer when doubled. Integer if represents a letter.
+
+        - ``m`` -- integer (default: 0), minimal length of palindrome, if known.
+
+        - ``f`` -- involution (default: None), on the alphabet. It must be
+          callable on letters as well as words (e.g. WordMorphism).
+
+        OUTPUT:
+
+        - The length of the longest `f`-palindrome centered at position j.
+
+        EXAMPLES::
+
+            sage: Word('01001010').length_maximal_palindrome(3/2)
+            0
+            sage: Word('01101001').length_maximal_palindrome(3/2)
+            4
+            sage: Word('01010').length_maximal_palindrome(j=3, f='0->1,1->0')
+            0
+        """
+
+        # Ensure `f` is an involutory word morphism
+        if f is not None:
+            from sage.combinat.words.morphism import WordMorphism
+            if not isinstance(f, WordMorphism):
+                f = WordMorphism(f)
+            if not f.is_involution():
+                raise ValueError("f must be an involution")
+
+        # Ensure 2j is a valid entry
+        Integer(2*j)
+        if (2*j) not in range(0, 2*len(self)):
+            raise ValueError("j must be positive, inferior to length of self")
+
+        g = int(j+0.5)
+
+        if m == 0:
+            m = -1 + (int(2*j) % 2)
+
+        i = m + 1  # i counts the length of the longest palindrome
+
+        # Manage exception to avoid to count outside of the string
+        try:
+            if f is None:
+                sameLetter = (self[g-i] == self[g+i-int(2*j)%2])
+                while g - i >= 0 and sameLetter:
+                    i = i + 1
+                    sameLetter = (self[g-i] == self[g+i-int(2*j)%2])
+
+            else:
+                from sage.combinat.words.word import Word
+                fLetter = (Word(self[g-i]) == f(self[g+i-int(2*j)%2]))
+                while g - i >= 0 and fLetter:
+                    i = i + 1
+                    fLetter = (Word(self[g-i]) == f(self[g+i-int(2*j)%2]))
+
+        except IndexError:
+            pass
+        p = 2*i - 1 - (int(2*j) % 2)
+
+        if p < 0:
+            p = 0  # If the letter in j is not a `f`-palindrome
+
+        return p
+
+    def lengths_maximal_palindromes(self, f=None):
+        r"""
+        Returns the length of maximal palindromes centered at each position.
+
+        INPUT:
+
+        - ``f`` - involution (default: None) on the alphabet of self. It must
+           be callable on letters as well as words (e.g. WordMorphism).
+
+        OUTPUT:
+            list -- The length of the maximal palindrome (or `f`-palindrome)
+            with a given symmetry axis (letter or space between two letters).
+
+        EXAMPLES::
+
+            sage: Word('01101001').lengths_maximal_palindromes()
+            [0, 1, 0, 1, 4, 1, 0, 3, 0, 3, 0, 1, 4, 1, 0, 1, 0]
+            sage: Word('00000').lengths_maximal_palindromes()
+            [0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0]
+            sage: Word('0').lengths_maximal_palindromes()
+            [0, 1, 0]
+            sage: Word('').lengths_maximal_palindromes()
+            [0]
+            sage: Word().lengths_maximal_palindromes()
+            [0]
+            sage: f = WordMorphism('a->b,b->a')
+            sage: Word('abbabaab').lengths_maximal_palindromes(f)
+            [0, 0, 2, 0, 0, 0, 2, 0, 8, 0, 2, 0, 0, 0, 2, 0, 0]
+        """
+        if f is not None :
+            from sage.combinat.words.morphism import WordMorphism
+            if not isinstance(f, WordMorphism):
+                f = WordMorphism(f)
+            if not f.is_involution():
+                raise ValueError("f must be an involution")
+
+        LPC = []  # lengths of the maximal palindromes centered at a position
+        LPC.append(0)
+
+        k = 0  # index, center of rightmost-ending `f`-palindrome encountered
+
+        for j in range(1, 2 * len(self) + 1):
+            if j >= k + LPC[k]:
+                p = self.length_maximal_palindrome((j-1)*0.5, -(j%2), f)
+                LPC.append(p)
+                if j + p > k + LPC[k]:
+                    k = j
+
+            # If the center is included in an encountered `f`-palindrome
+            else:
+                # If the `f`-palindrome centered at position j is not the
+                # longest proper `f`-palindromic suffix of the maximal
+                # `f`-palindrome centered at k
+                if LPC[k]+k-j != LPC[2*k - j]:
+                    LPC.append(min(LPC[k]+k-j, LPC[2*k - j]))
+
+                else:
+                    mp = (LPC[k]+k-j)//2 -1 +(j%2)
+                    p = self.length_maximal_palindrome((j-1)*0.5, mp, f)
+                    LPC.append(p)
+                    k = j
+        return LPC
+
+    def lps_lengths(self, f=None):
+        r"""
+        Returns the length of the longest palindromic suffix of each prefix.
+
+        INPUT:
+
+        - ``f`` - involution (default: None) on the alphabet of self. It must
+           be callable on letters as well as words (e.g. WordMorphism).
+
+        OUTPUT:
+            list -- The length of the longest palindromic (or `f`-palindromic)
+            suffix of each prefix of self.
+
+        EXAMPLES::
+
+            sage: Word('01101001').lps_lengths()
+            [0, 1, 1, 2, 4, 3, 3, 2, 4]
+            sage: Word('00000').lps_lengths()
+            [0, 1, 2, 3, 4, 5]
+            sage: Word('0').lps_lengths()
+            [0, 1]
+            sage: Word('').lps_lengths()
+            [0]
+            sage: Word().lps_lengths()
+            [0]
+            sage: f = WordMorphism('a->b,b->a')
+            sage: Word('abbabaab').lps_lengths(f)
+            [0, 0, 2, 0, 2, 2, 4, 6, 8]
+        """
+        LPC = self.lengths_maximal_palindromes(f)
+        LPS = []  # lengths of the longest palindromic suffix of prefixes
+
+        k = 0
+
+        LPS.append(0)
+
+        for j in range(1, 2*len(self)+1):
+            if j + LPC[j] > k + LPC[k]:
+                for i in range(k+LPC[k]+1, j+LPC[j]+1):
+                    if i % 2 == 0:
+                        LPS.append(i-j)
+                    k=j
+        return LPS
+
     def palindromes(self, f=None):
         r"""
         Returns the set of all palindromic (or `f`-palindromic) factors of self.
@@ -2502,7 +2681,14 @@ class FiniteWord_class(Word_class):
             sage: sorted(Word('abbabaab').palindromes(f))
             [word: , word: ab, word: abbabaab, word: ba, word: baba, word: bbabaa]
         """
-        return self.palindromic_lacunas_study(f=f)[2]
+        LPS = self.lps_lengths(f)
+
+        palindromes = set()
+
+        for i in range(len(self)+1):
+            palindromes.add(self[i-LPS[i] : i])
+
+        return palindromes
 
     def palindrome_prefixes(self):
         r"""

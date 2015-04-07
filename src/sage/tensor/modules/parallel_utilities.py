@@ -29,11 +29,16 @@ class TensorParallelism(Singleton, SageObject):
     r"""
     Class governing Tensors Parallelism.
 
-    Contains information about parallelism of Tensor algebra:
-    
-    * ``nproc`` -- (default: 1) number of processors to use in computations.   
-    * ``use_paral`` -- (default: ``False``) flag, ``True`` if parallelism is used.
-    
+    Contains information about parallelism of Tensor algebra.
+
+    EXAMPLE ::
+
+        sage: print TensorParallelism()
+        Number of cpu used = 1
+        sage: TensorParallelism().set(4)
+        sage: print TensorParallelism()
+        Number of cpu used = 4
+        
     """
     def __init__(self): 
         r"""
@@ -53,8 +58,8 @@ class TensorParallelism(Singleton, SageObject):
             True
             
         """
-        self.nproc = 1
-        self.use_paral = False
+        self._nproc = 1
+        self._use_paral = False
 
     def _repr_(self):
         r"""
@@ -66,11 +71,11 @@ class TensorParallelism(Singleton, SageObject):
             'Number of cpu used = 1'
 
         """
-        return "Number of cpu used = "+str(self.nproc)
+        return "Number of cpu used = "+str(self._nproc)
 
     def set(self,nproc=None):
         r"""
-        Changes the status of the parallelism in SageManifolds.
+        Changes the status of the parallelism in tensorial computations.
         If not argument is given, the number of processors will set
         to the maximum of cores found.
 
@@ -83,6 +88,40 @@ class TensorParallelism(Singleton, SageObject):
             Number of cpu used = 4
 
         """
-        self.nproc = ncpus() if nproc is None else nproc
-        self.use_paral = True if self.nproc!=1 else False
+        self._nproc = ncpus() if nproc is None else nproc
+        self._use_paral = True if self._nproc!=1 else False
 
+
+
+
+def set_nproc(nproc=None):
+    r"""
+    Changes the status of the parallelism in tensorial computations.
+    If not argument is given, the number of processors will set
+    to the maximum of cores found.
+
+    EXAMPLE ::
+
+        sage: get_nproc()
+        1
+        sage: set_nproc(4)
+        sage: get_nproc()
+        4
+
+    """
+
+    TensorParallelism().set(nproc)
+
+def get_nproc():
+    r"""
+    Return the number of processus used in tensorial computations.
+
+    TEST ::
+
+        sage: set_nproc(4)
+        sage: get_nproc()
+        4
+
+    """
+
+    return TensorParallelism()._nproc

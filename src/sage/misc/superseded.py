@@ -68,7 +68,7 @@ def _check_trac_number(trac_number):
     if trac_number <= 0:
         raise ValueError('%r is not a valid trac issue number'%trac_number)
 
-def deprecation(trac_number, message):
+def deprecation(trac_number, message, stacklevel=4):
     r"""
     Issue a deprecation warning.
 
@@ -79,6 +79,9 @@ def deprecation(trac_number, message):
 
     - ``message`` -- string. An explanation why things are deprecated
       and by what it should be replaced.
+
+    - ``stack_level`` -- (default: ``4``) an integer. This is passed on to
+      :func:`warnings.warn`.
 
     EXAMPLES::
 
@@ -93,7 +96,7 @@ def deprecation(trac_number, message):
         :func:`experimental`,
         :func:`warning`.
     """
-    warning(trac_number, message, DeprecationWarning, stacklevel=4)
+    warning(trac_number, message, DeprecationWarning, stacklevel)
 
 def warning(trac_number, message, warning_class=Warning, stacklevel=3):
     r"""
@@ -137,7 +140,7 @@ def warning(trac_number, message, warning_class=Warning, stacklevel=3):
     # the deprecated function which called this function.
     warn(message, warning_class, stacklevel)
 
-def experimental(trac_number, message):
+def experimental(trac_number, message, stacklevel=5):
     r"""
     Issue a warning that the functionality or class is experimental
     and might change in future.
@@ -148,6 +151,9 @@ def experimental(trac_number, message):
       deprecation is introduced.
 
     - ``message`` -- a string. An explanation what is going on.
+
+    - ``stack_level`` -- (default: ``4``) an integer. This is passed on to
+      :func:`warnings.warn`.
 
     EXAMPLES::
 
@@ -166,11 +172,11 @@ def experimental(trac_number, message):
         :func:`warning`,
         :func:`deprecation`.
     """
-    warning(trac_number, message, FutureWarning, stacklevel=4)
+    warning(trac_number, message, FutureWarning, stacklevel)
 
 
 class mark_as_experimental(object):
-    def __init__(self, trac_number):
+    def __init__(self, trac_number, stacklevel=5):
         """
         A decorator which warns about the experimental/unstable status of
         the decorated class/method/function.
@@ -179,6 +185,9 @@ class mark_as_experimental(object):
 
         - ``trac_number`` -- an integer. The trac ticket number where this
           code was introduced.
+
+        - ``stack_level`` -- (default: ``5``) an integer. This is passed on to
+          :func:`warnings.warn`.
 
         EXAMPLES::
 
@@ -212,6 +221,7 @@ class mark_as_experimental(object):
             :func:`deprecation`.
         """
         self.trac_number = trac_number
+        self.stacklevel = stacklevel
 
     def __call__(self, func):
         """
@@ -246,7 +256,8 @@ class mark_as_experimental(object):
                          'This class/method/function is marked as '
                          'experimental. It, its functionality or its '
                          'interface might change without a '
-                         'deprecation warning.')
+                         'deprecation warning.',
+                         self.stacklevel)
             return func(*args, **kwds)
 
         return wrapper

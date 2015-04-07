@@ -87,6 +87,11 @@ def deprecation(trac_number, message):
         sage: foo()
         doctest:...: DeprecationWarning: the function foo is replaced by bar
         See http://trac.sagemath.org/13109 for details.
+
+    .. SEEALSO::
+
+        :func:`experimental`,
+        :func:`warning`.
     """
     warning(trac_number, message, DeprecationWarning)
 
@@ -114,6 +119,12 @@ def warning(trac_number, message, warning_class=Warning):
         sage: foo()
         doctest:...: FutureWarning: The syntax will change in future.
         See http://trac.sagemath.org/99999 for details.
+
+    .. SEEALSO::
+
+        :func:`deprecation`,
+        :func:`experimental`,
+        :class:`exceptions.Warning`.
     """
     _check_trac_number(trac_number)
     message += '\n'
@@ -145,6 +156,12 @@ def experimental(trac_number, message):
         doctest:...: FutureWarning: This function is experimental and
         might change in future.
         See http://trac.sagemath.org/66666 for details.
+
+    .. SEEALSO::
+
+        :class:`mark_as_experimental`,
+        :func:`warning`,
+        :func:`deprecation`.
     """
     warning(trac_number, message, FutureWarning)
 
@@ -184,6 +201,12 @@ class mark_as_experimental(object):
             interface might change without a deprecation warning.
             See http://trac.sagemath.org/99999 for details.
             piep (99,) {}
+
+        .. SEEALSO::
+
+            :func:`experimental`,
+            :func:`warning`,
+            :func:`deprecation`.
         """
         self.trac_number = trac_number
 

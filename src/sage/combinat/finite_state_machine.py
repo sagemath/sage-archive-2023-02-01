@@ -9971,10 +9971,37 @@ class Automaton(FiniteStateMachine):
              Transition from 0 to 1: 'B'|'B',
              Transition from 1 to 2: 'C'|'C']
 
-        ::
+        This result is in contrast to::
+
+            sage: Transducer(A).transitions()
+            [Transition from 0 to 0: 'A'|-,
+             Transition from 0 to 1: 'B'|-,
+             Transition from 1 to 2: 'C'|-]
+
+        where no output labels are created.
+
+        Here is another example::
 
             sage: T2 = A.with_output(lambda t: [c.lower() for c in t.word_in])
             sage: T2.transitions()
+            [Transition from 0 to 0: 'A'|'a',
+             Transition from 0 to 1: 'B'|'b',
+             Transition from 1 to 2: 'C'|'c']
+
+        We can obtain the same result by composing two transducers. As inner
+        transducer of the composition, we use :meth:`.with_output`
+        without the optional argument
+        ``word_out_function`` (which makes the output of each
+        transition equal to its input); as outer transducer we use a
+        :meth:`map-transducer
+        <sage.combinat.finite_state_machine_generators.TransducerGenerators.map>`
+        (for converting to lower case).
+        This gives
+
+        ::
+
+            sage: L = transducers.map(lambda x: x.lower(), ['A', 'B', 'C'])
+            sage: L.composition(A.with_output()).relabeled().transitions()
             [Transition from 0 to 0: 'A'|'a',
              Transition from 0 to 1: 'B'|'b',
              Transition from 1 to 2: 'C'|'c']

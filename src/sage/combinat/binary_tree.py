@@ -1972,6 +1972,52 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
              [B([g, self[1]]) for g in self[0].tamari_succ()] +
              [B([self[0], d]) for d in self[1].tamari_succ()])
 
+    def possible_cut_shapes(self):
+        """
+        Return the list of possible cut shapes for the binary tree.
+
+        This is used in :meth:`sage.combinat.interval_posets.TamariIntervalPoset.is_new`.
+
+        OUTPUT:
+
+        a list of triples `(m, i, n)` of integers
+
+        This is a list running over all inner edges of the binary
+        tree. The removal of each inner edge defines two binary trees,
+        the root-tree and the sub-tree.
+
+        Here `m` is the node number of the root-tree `R`, `n` the node
+        number of the sub-tree `S`. The integer `i` is the index of
+        the leaf of `R` on which `S` was grafted. The leaves of `R` are
+        numbered starting from `1`, hence `1 leq i \ leq m+1`.
+
+        In fact, each of `m` and `n` determines the other, as the
+        total node number is the node number of ``self``.
+
+        EXAMPLES::
+
+            sage: BT = BinaryTrees(3)
+            sage: [t.possible_cut_shapes() for t in BT]
+            [[(2, 3, 1), (1, 2, 2)],
+            [(2, 2, 1), (1, 2, 2)],
+            [(2, 1, 1), (2, 3, 1)],
+            [(2, 2, 1), (1, 1, 2)],
+            [(2, 1, 1), (1, 1, 2)]]
+        """
+        resu = []
+        left, right = list(self)
+        L = left.node_number()
+        R = right.node_number()
+        if L:
+            resu += [(m + R + 1, i, n)
+                     for m, i, n in left.possible_cut_shapes()]
+            resu += [(R + 1, 1, L)]
+        if R:
+            resu += [(m + L + 1, i + L + 1, n)
+                     for m, i, n in right.possible_cut_shapes()]
+            resu += [(L + 1, L + 2, R)]
+        return resu
+
     def q_hook_length_fraction(self, q=None, q_factor=False):
         r"""
         Compute the ``q``-hook length fraction of the binary tree ``self``,

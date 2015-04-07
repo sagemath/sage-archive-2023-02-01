@@ -31,6 +31,7 @@ from sage.combinat.cartesian_product import CartesianProduct
 
 from constructor import Polyhedron
 
+from sage.misc.superseded import deprecated_function_alias
 
 #########################################################################
 # Notes if you want to implement your own backend:
@@ -2632,6 +2633,8 @@ class Polyhedron_base(Element):
         return Polyhedron(vertices=new_vertices, rays=new_rays,
                           lines=new_lines,
                           base_ring=self.parent()._coerce_base_ring(cut_frac))
+
+    edge_truncation = deprecated_function_alias(18128, truncation)
 
     def face_truncation(self, face, linear_coefficients=None, cut_frac=Integer(1)/3):
         r"""

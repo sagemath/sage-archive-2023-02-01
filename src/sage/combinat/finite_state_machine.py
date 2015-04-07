@@ -10010,7 +10010,9 @@ class Automaton(FiniteStateMachine):
 
            :meth:`.input_projection`,
            :meth:`.output_projection`,
-           :class:`Transducer`.
+           :class:`Transducer`,
+           :meth:`transducers.map()
+           <sage.combinat.finite_state_machine_generators.TransducerGenerators.map>`.
 
         TESTS::
 

@@ -52,7 +52,7 @@ Accessing parts of a finite state machine
     :meth:`~FiniteStateMachine.empty_copy` | Returns an empty deep copy
     :meth:`~FiniteStateMachine.deepcopy` | Returns a deep copy
     :meth:`~FiniteStateMachine.relabeled` | Returns a relabeled deep copy
-    :meth:`Automaton.transducer` | Extends an automaton to a transducer
+    :meth:`Automaton.with_output` | Extends an automaton to a transducer
 
 
 Manipulation
@@ -9944,7 +9944,7 @@ class Automaton(FiniteStateMachine):
             return accept_input
 
 
-    def transducer(self, word_out_function=None):
+    def with_output(self, word_out_function=None):
         r"""
         Construct a transducer out of this automaton.
 
@@ -9964,7 +9964,7 @@ class Automaton(FiniteStateMachine):
         EXAMPLES::
 
             sage: A = Automaton([(0, 0, 'A'), (0, 1, 'B'), (1, 2, 'C')])
-            sage: T = A.transducer(); T
+            sage: T = A.with_output(); T
             Transducer with 3 states
             sage: T.transitions()
             [Transition from 0 to 0: 'A'|'A',
@@ -9973,7 +9973,7 @@ class Automaton(FiniteStateMachine):
 
         ::
 
-            sage: T2 = A.transducer(lambda t: [c.lower() for c in t.word_in])
+            sage: T2 = A.with_output(lambda t: [c.lower() for c in t.word_in])
             sage: T2.transitions()
             [Transition from 0 to 0: 'A'|'a',
              Transition from 0 to 1: 'B'|'b',
@@ -9987,18 +9987,18 @@ class Automaton(FiniteStateMachine):
 
         TESTS::
 
-            sage: A.transducer().input_projection() == A
+            sage: A.with_output().input_projection() == A
             True
             sage: NAF = Automaton(
             ....:     {'A': [('A', 0), ('B', 1), ('B', -1)], 'B': [('A', 0)]})
-            sage: NAF.transducer().input_projection() == NAF
+            sage: NAF.with_output().input_projection() == NAF
             True
             sage: B = Automaton(
             ....:     {0: [(0, 'a'), (1, ['b', 'c']), (2, ['d', 'e'])],
             ....:      1: [(0, ['f', 'g']), (1, 'h'), (2, None)],
             ....:      2: [(0, None), (1, None), (2, ['i', 'j'])]},
             ....:     initial_states=[1, 2], final_states=[0])
-            sage: B.transducer(lambda t: [c.upper() for c in t.word_in]).input_projection() == B
+            sage: B.with_output(lambda t: [c.upper() for c in t.word_in]).input_projection() == B
             True
         """
         if word_out_function is None:

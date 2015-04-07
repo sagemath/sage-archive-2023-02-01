@@ -40,7 +40,7 @@ heavily modified:
 import math
 import operator
 
-from sage.ext.interrupt cimport sig_on, sig_off
+include "sage/ext/interrupt.pxi"
 
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
 from complex_number cimport ComplexNumber
@@ -1488,12 +1488,19 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
             sage: CIF(cos(2/3))
             0.7858872607769480?
+
+        ALGORITHM:
+
+        The implementation uses the following trigonometric identity
+
+        .. MATH::
+
+            \cos(x + iy) = \cos(x) \cosh(y) - i \sin(x) \sinh(y)
         """
         cdef ComplexIntervalFieldElement res = self._new()
         cdef mpfi_t tmp
-        sig_on()
-        # cos(x + iy) = cos(x) cosh(y) - i sin (x) sinh(y)
         mpfi_init2(tmp, self._parent.prec())
+        sig_on()
         mpfi_cos(res.__re, self.__re)
         mpfi_cosh(tmp, self.__im)
         mpfi_mul(res.__re, res.__re, tmp)
@@ -1502,8 +1509,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_sinh(tmp, self.__im)
         mpfi_mul(res.__im, res.__im, tmp)
         mpfi_neg(res.__im, res.__im)
-        mpfi_clear(tmp)
         sig_off()
+        mpfi_clear(tmp)
         return res
 
     def sin(self):
@@ -1523,12 +1530,19 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
             sage: CIF(sin(2/3))
             0.618369803069737?
+
+        ALGORITHM:
+
+        The implementation uses the following trigonometric identity
+
+        .. MATH::
+
+            \sin(x + iy) = \sin(x) \cosh(y) + i \cos (x) \sinh(y)
         """
         cdef ComplexIntervalFieldElement res = self._new()
         cdef mpfi_t tmp
-        sig_on()
-        # sin(x + iy) = sin(x) cosh(y) + i cos (x) sinh(y)
         mpfi_init2(tmp, self._parent.prec())
+        sig_on()
         mpfi_sin(res.__re, self.__re)
         mpfi_cosh(tmp, self.__im)
         mpfi_mul(res.__re, res.__re, tmp)
@@ -1536,8 +1550,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_cos(res.__im, self.__re)
         mpfi_sinh(tmp, self.__im)
         mpfi_mul(res.__im, res.__im, tmp)
-        mpfi_clear(tmp)
         sig_off()
+        mpfi_clear(tmp)
         return res
 
     def tan(self):
@@ -1567,12 +1581,19 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             3.762195691083632?
             sage: CIF(0,2).cosh()
             -0.4161468365471424?
+
+        ALGORITHM:
+
+        The implementation uses the following trigonometric identity
+
+        .. MATH::
+
+            \cosh(x+iy) = \cos(y) \cosh(x) + i \sin(y) \sinh(x)
         """
         cdef ComplexIntervalFieldElement res = self._new()
         cdef mpfi_t tmp
-        sig_on()
-        # cosh(x+iy) = cos(y) cosh(x) + i sin(y) sinh(x)
         mpfi_init2(tmp, self._parent.prec())
+        sig_on()
         mpfi_cos(res.__re, self.__im)
         mpfi_cosh(tmp, self.__re)
         mpfi_mul(res.__re, res.__re, tmp)
@@ -1580,8 +1601,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_sin(res.__im, self.__im)
         mpfi_sinh(tmp, self.__re)
         mpfi_mul(res.__im, res.__im, tmp)
-        mpfi_clear(tmp)
         sig_off()
+        mpfi_clear(tmp)
         return res
 
     def sinh(self):
@@ -1596,12 +1617,19 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             3.626860407847019?
             sage: CIF(0,2).sinh()
             0.909297426825682?*I
+
+        ALGORITHM:
+
+        The implementation uses the following trigonometric identity
+
+        .. MATH::
+
+            \sinh(x+iy) = \cos(y) \sinh(x) + i \sin(y) \cosh(x)
         """
         cdef ComplexIntervalFieldElement res = self._new()
         cdef mpfi_t tmp
-        sig_on()
-        # sinh(x+iy) = cos(y) sinh(x) + i sin(y) cosh(x)
         mpfi_init2(tmp, self._parent.prec())
+        sig_on()
         mpfi_cos(res.__re, self.__im)
         mpfi_sinh(tmp, self.__re)
         mpfi_mul(res.__re, res.__re, tmp)
@@ -1609,8 +1637,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_sin(res.__im, self.__im)
         mpfi_cosh(tmp, self.__re)
         mpfi_mul(res.__im, res.__im, tmp)
-        mpfi_clear(tmp)
         sig_off()
+        mpfi_clear(tmp)
         return res
 
     def tanh(self):

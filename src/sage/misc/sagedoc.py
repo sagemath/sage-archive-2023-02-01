@@ -428,10 +428,10 @@ def format(s, embedded=False):
     EXAMPLES::
 
         sage: from sage.misc.sagedoc import format
-        sage: identity_matrix(2).rook_vector.__doc__[110:182]
+        sage: identity_matrix(2).rook_vector.__doc__[201:273]
         'Let `A` be an `m` by `n` (0,1)-matrix. We identify `A` with a chessboard'
 
-        sage: format(identity_matrix(2).rook_vector.__doc__[110:182])
+        sage: format(identity_matrix(2).rook_vector.__doc__[201:273])
         'Let A be an m by n (0,1)-matrix. We identify A with a chessboard\n'
 
     If the first line of the string is 'nodetex', remove 'nodetex' but
@@ -516,15 +516,19 @@ def format(s, embedded=False):
     # be subject to formatting (line breaks must not be inserted).
     # Hence, we first try to find out whether there is an embedding
     # information.
-    first_newline = s.find(os.linesep)
+    from sage.misc.sageinspect import _extract_embedded_position
+
+    # Check for embedding info in first two lines
+    L = s.splitlines()
     embedding_info = ''
-    if first_newline > -1:
-        first_line = s[:first_newline]
-        from sage.misc.sageinspect import _extract_embedded_position
-        if _extract_embedded_position(first_line) is not None:
-            embedding_info = first_line + os.linesep
-            s = s[first_newline+len(os.linesep):]
-            # Hence, by now, s starts with the second line.
+    if len(L) >= 2 and _extract_embedded_position(L[0]) is not None:
+        # Embedding info is on first line
+        embedding_info = L[0] + os.linesep
+        s = os.linesep.join(L[1:])
+    if len(L) >= 3 and _extract_embedded_position(L[1]) is not None:
+        # Embedding info is on second line
+        embedding_info = L[1] + os.linesep
+        s = os.linesep.join(L[2:])
     else:
         from sage.misc.sageinspect import _extract_embedded_position
         if _extract_embedded_position(s) is not None:

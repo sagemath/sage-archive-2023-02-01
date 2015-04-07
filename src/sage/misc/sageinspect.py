@@ -162,7 +162,7 @@ import re
 # Parse strings of form "File: sage/rings/rational.pyx (starting at line 1080)"
 # "\ " protects a space in re.VERBOSE mode.
 __embedded_position_re = re.compile(r'''
-\A                                          # anchor to the beginning of the string
+^                                           # anchor to the beginning of the line
 File:\ (?P<FILENAME>.*?)                    # match File: then filename
 \ \(starting\ at\ line\ (?P<LINENO>\d+)\)   # match line number
 \n?                                         # if there is a newline, eat it
@@ -204,19 +204,22 @@ def _extract_embedded_position(docstring):
     - Extensions by Nick Alexander
     - Extension for interactive Cython code by Simon King
     """
-    if docstring is None:
+    try:
+        res = __embedded_position_re.search(docstring)
+    except TypeError:
         return None
-    res = __embedded_position_re.match(docstring)
-    if res is not None:
-        raw_filename = res.group('FILENAME')
-        filename = os.path.join(SAGE_SRC, raw_filename)
-        if not os.path.isfile(filename):
-            from sage.misc.misc import SPYX_TMP
-            filename = os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]), raw_filename)
-        lineno = int(res.group('LINENO'))
-        original = res.group('ORIGINAL')
-        return (original, filename, lineno)
-    return None
+
+    if res is None:
+        return None
+
+    raw_filename = res.group('FILENAME')
+    filename = os.path.join(SAGE_SRC, raw_filename)
+    if not os.path.isfile(filename):
+        from sage.misc.misc import SPYX_TMP
+        filename = os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]), raw_filename)
+    lineno = int(res.group('LINENO'))
+    original = res.group('ORIGINAL')
+    return (original, filename, lineno)
 
 
 class BlockFinder:
@@ -1490,31 +1493,51 @@ def _sage_getdoc_unformatted(obj):
 
     TESTS:
 
-    Test that we suppress useless built-in output (Ticket #3342)
+    Test that we suppress useless built-in output (:trac:`3342`)::
 
         sage: from sage.misc.sageinspect import _sage_getdoc_unformatted
         sage: _sage_getdoc_unformatted(isinstance.__class__)
         ''
+
+    If ``__init__`` has embedding information, we prefer that::
+
+        sage: C = QQ['x', 'y'].__class__
+        sage: print C.__doc__
+        MPolynomialRing_libsingular(base_ring, n, names, order='degrevlex')
+        sage: print C.__init__.__doc__
+        File: sage/rings/polynomial/multi_polynomial_libsingular.pyx (starting at line ...)
+        <BLANKLINE>
+                Construct a multivariate polynomial ring...
+        sage: print _sage_getdoc_unformatted(C)
+        File: sage/rings/polynomial/multi_polynomial_libsingular.pyx (starting at line ...)
+        <BLANKLINE>
+                Construct a multivariate polynomial ring...
 
     AUTHORS:
 
     - William Stein
     - extensions by Nick Alexander
     """
-    if obj is None: return ''
-    r = None
+    if obj is None:
+        return ''
     try:
         r = obj._sage_doc_()
     except (AttributeError, TypeError): # the TypeError occurs if obj is a class
         r = obj.__doc__
 
-    #Check to see if there is an __init__ method, and if there
-    #is, use its docstring.
-    if r is None and hasattr(obj, '__init__'):
-        r = obj.__init__.__doc__
-
-    if r is None:
-        return ''
+    # If r contains no embedding information, try __init__
+    if _extract_embedded_position(r) is None:
+        try:
+            initdoc = obj.__init__.__doc__
+        except AttributeError:
+            pass
+        else:
+            # Prefer initdoc if it does have embedding information
+            # or if r was None
+            if r is None or _extract_embedded_position(initdoc) is not None:
+                r = initdoc
+        if r is None:
+            return ''
 
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.

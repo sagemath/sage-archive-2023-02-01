@@ -93,9 +93,9 @@ def deprecation(trac_number, message):
         :func:`experimental`,
         :func:`warning`.
     """
-    warning(trac_number, message, DeprecationWarning)
+    warning(trac_number, message, DeprecationWarning, stacklevel=4)
 
-def warning(trac_number, message, warning_class=Warning):
+def warning(trac_number, message, warning_class=Warning, stacklevel=3):
     r"""
     Issues a warning.
 
@@ -108,6 +108,9 @@ def warning(trac_number, message, warning_class=Warning):
 
     - ``warning_class`` -- (default: ``Warning``) a class inherited
       from a Python :class:`~exceptions.Warning`.
+
+    - ``stack_level`` -- (default: ``3``) an integer. This is passed on to
+      :func:`warnings.warn`.
 
     EXAMPLES::
 
@@ -132,7 +135,7 @@ def warning(trac_number, message, warning_class=Warning):
     resetwarnings()
     # Stack level 3 to get the line number of the code which called
     # the deprecated function which called this function.
-    warn(message, warning_class, stacklevel=3)
+    warn(message, warning_class, stacklevel)
 
 def experimental(trac_number, message):
     r"""
@@ -163,7 +166,7 @@ def experimental(trac_number, message):
         :func:`warning`,
         :func:`deprecation`.
     """
-    warning(trac_number, message, FutureWarning)
+    warning(trac_number, message, FutureWarning, stacklevel=4)
 
 
 class mark_as_experimental(object):

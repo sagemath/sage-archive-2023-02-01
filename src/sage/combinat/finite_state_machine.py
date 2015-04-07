@@ -9946,11 +9946,11 @@ class Automaton(FiniteStateMachine):
 
     def transducer(self, word_out_function=None):
         r"""
-        Constructs a transducer out of this automaton.
+        Construct a transducer out of this automaton.
 
         INPUT:
 
-        ``word_out_function`` -- (default: ``None``) a function. It
+        - ``word_out_function`` -- (default: ``None``) a function. It
           transforms a :class:`transition <FSMTransition>` to the
           output word for this transition.
 
@@ -9978,6 +9978,12 @@ class Automaton(FiniteStateMachine):
             [Transition from 0 to 0: 'A'|'a',
              Transition from 0 to 1: 'B'|'b',
              Transition from 1 to 2: 'C'|'c']
+
+        .. SEEALSO::
+
+           :meth:`.input_projection`,
+           :meth:`.output_projection`,
+           :class:`Transducer`.
 
         TESTS::
 

@@ -706,6 +706,10 @@ class AbstractLinearCode(module.Module):
         """
         Initializes mandatory parameters for a Linear Code object.
 
+        This method only exists for inheritance purposes as it initializes
+        parameters that need to be known by every linear code. An abstract 
+        linear code object should never be created.
+
         INPUT:
 
         - ``base_field`` -- the base field of ``self``

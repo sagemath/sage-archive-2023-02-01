@@ -415,6 +415,9 @@ class sage_build_ext(build_ext):
         if not (self.force or newer_group(depends, ext_filename, 'newer')):
             log.debug("skipping '%s' extension (up-to-date)", ext.name)
             need_to_compile = False
+        elif getattr(ext, "skip_build", False):
+            log.debug("skipping '%s' extension (optional)", ext.name)
+            need_to_compile = False
         else:
             log.info("building '%s' extension", ext.name)
             need_to_compile = True

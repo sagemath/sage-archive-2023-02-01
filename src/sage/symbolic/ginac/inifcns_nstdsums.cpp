@@ -3870,6 +3870,15 @@ static ex zeta1_eval(const ex& m)
 	return zeta(m).hold();
 }
 
+static ex zeta1_series(const ex& m, const relational& rel, int order, unsigned options)
+{
+	// use taylor expansion everywhere except at the singularity at 1
+	const numeric val = ex_to<numeric>(m.subs(rel, subs_options::no_pattern));
+	if (val != 1)
+		throw do_taylor();  // caught by function::series()
+	// at 1, use zeta's functional equation and develop the resulting expression
+	return (pow(2,m) * pow(Pi, m-1) * sin(Pi*m/2) * tgamma(1-m) * zeta(1-m)).series(rel, order, options);
+}
 
 static ex zeta1_deriv(const ex& m, unsigned deriv_param)
 {
@@ -3906,6 +3915,7 @@ unsigned zeta1_SERIAL::serial = function::register_new(function_options("zeta", 
                                 evalf_func(zeta1_evalf).
                                 eval_func(zeta1_eval).
                                 derivative_func(zeta1_deriv).
+                                series_func(zeta1_series).
                                 print_func<print_latex>(zeta1_print_latex).
                                 do_not_evalf_params().
                                 overloaded(2));

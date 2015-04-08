@@ -172,8 +172,6 @@ CIF = ComplexIntervalField()
 
 from misc import composite_field
 
-import tests
-
 # Universal Cyclotomic Field
 from sage.rings.universal_cyclotomic_field.all import *
 

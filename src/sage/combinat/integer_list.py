@@ -813,21 +813,21 @@ class IntegerListsLex(Parent):
             min_sum = n
             max_sum = n
         self._min_sum = ZZ(min_sum)
-        self._max_sum = ZZ(max_sum) if max_sum != Infinity else max_sum
+        self._max_sum = ZZ(max_sum) if max_sum != Infinity else Infinity
 
         if length is not None:
             min_length = length
             max_length = length
         self._min_length = max(ZZ(min_length), 0)
-        self._max_length = ZZ(max_length) if max_length != Infinity else max_length
+        self._max_length = ZZ(max_length) if max_length != Infinity else Infinity
 
-        self._min_slope = ZZ(min_slope) if min_slope != -Infinity else min_slope
-        self._max_slope = ZZ(max_slope) if max_slope !=  Infinity else max_slope
+        self._min_slope = ZZ(min_slope) if min_slope != -Infinity else -Infinity
+        self._max_slope = ZZ(max_slope) if max_slope !=  Infinity else Infinity
 
         self._min_part = ZZ(min_part)
         if self._min_part < 0:
             raise NotImplementedError("strictly negative min_part")
-        self._max_part = ZZ(max_part) if max_part != Infinity else max_part
+        self._max_part = ZZ(max_part) if max_part != Infinity else Infinity
 
         # self._floor_or_ceiling_is_function will be set to ``True``
         # if a function is given as input for floor or ceiling; in
@@ -837,8 +837,7 @@ class IntegerListsLex(Parent):
         if floor is None:
             floor = 0
         elif isinstance(floor, (list, tuple)):
-            if not all(i in ZZ for i in floor):
-                raise TypeError("the parts of floor={} should be nonnegative integers".format(floor))
+            floor = tuple(ZZ(i) for i in floor)
             if not all(i >= 0 for i in floor):
                 raise NotImplementedError("negative parts in floor={}".format(floor))
         elif callable(floor):
@@ -853,8 +852,8 @@ class IntegerListsLex(Parent):
         if ceiling is None:
             ceiling = Infinity
         elif isinstance(ceiling, (list, tuple)):
-            if not all(i==Infinity or i in ZZ for i in ceiling):
-                raise TypeError("the parts of ceiling={} should be nonnegative integers".format(ceiling))
+            ceiling = tuple(ZZ(i) if i != Infinity else Infinity
+                            for i in ceiling)
             if not all(i >= 0 for i in ceiling):
                 raise NotImplementedError("negative parts in floor={}".format(ceiling))
         elif callable(ceiling):

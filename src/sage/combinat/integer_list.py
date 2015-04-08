@@ -88,8 +88,8 @@ class IntegerListsLex(Parent):
       overrides ``min_sum`` and ``max_sum``.
 
       As a syntactic sugar, a list or iterable `L` can alternatively
-      be specified; in this case the disjoint union of the enumerated
-      sets, for each sum in `L`, will be returned. See :ref:`the
+      be specified; this will construct the disjoint union of the
+      enumerated sets for each sum in `L` in turn. See :ref:`the
       examples <IntegerListsLex_disjoint_union>` for details.
 
     - ``min_length`` -- a nonnegative integer (default: `0`): a lower

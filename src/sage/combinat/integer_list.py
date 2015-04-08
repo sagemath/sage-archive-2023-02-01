@@ -242,7 +242,7 @@ class IntegerListsLex(Parent):
          [2, 0, 2], [1, 3, 0], [1, 2, 1], [1, 1, 2], [1, 0, 3],
          [0, 4, 0], [0, 3, 1], [0, 2, 2], [0, 1, 3], [0, 0, 4]]
 
-    For whatever it's worth, the ``floor`` and ``min_part``
+    For whatever it is worth, the ``floor`` and ``min_part``
     constraints can be combined::
 
         sage: L = IntegerListsLex(5, floor=[2,0,2], min_part=1)
@@ -512,7 +512,6 @@ class IntegerListsLex(Parent):
         sage: IntegerListsLex([2,2], length=2).list()
         [[2, 0], [1, 1], [0, 2], [2, 0], [1, 1], [0, 2]]
 
-
     This feature is in fact just a short hand for using
     :class:`DisjointUnionEnumeratedSets`::
 
@@ -529,13 +528,6 @@ class IntegerListsLex(Parent):
         ....:         lambda n: IntegerListsLex(n, length=2)))
         sage: C.list()
         [[0, 0],  [1, 0], [0, 1],  [2, 0], [1, 1], [0, 2]]
-
-    Note, that when certain values are repeated, then the corresponding lists
-    are repeated as well::
-
-        sage: IntegerListsLex([2,2],length=3).list()
-        [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2],
-         [2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
 
     ALGORITHM:
 

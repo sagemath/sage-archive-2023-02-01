@@ -3728,24 +3728,23 @@ class FiniteWord_class(Word_class):
             0
             sage: w.find(Word('a'))
             0
+
+        TESTS:
+
+        Check that :trac:`12804` is fixed::
+
+            sage: w = Word(iter("ababab"))
+            sage: w.find("ab")
+            0
+            sage: w.find("ab", start=1)
+            2
+            sage: w.find("aa")
+            -1
         """
-        w = self[start:end]
-        if isinstance(sub, FiniteWord_class):
-            p = sub.first_pos_in(w)
-            if p is None:
-                return -1
-            else:
-                return p + start
-        else:
-            L = len(sub)
-            if start is None:
-                i = len(self) - L
-            else:
-                i = start - L
-            while i >= end:
-                if self[i:i+L] == sub: return i
-                i -= 1
-            return -1
+        if not isinstance(sub, FiniteWord_class):
+            sub = self.parent()(sub)
+        p = sub.first_pos_in(self[start:end])
+        return -1 if p is None else p+start
 
     def rfind(self, sub, start=0, end=None):
         r"""
@@ -3787,12 +3786,27 @@ class FiniteWord_class(Word_class):
             2
             sage: w.rfind(Word('a'))
             2
+
+        TESTS:
+
+        Check that :trac:`12804` is fixed::
+
+            sage: w = Word(iter("abab"))
+            sage: w.rfind("ab")
+            2
+            sage: w.rfind("ab", end=3)
+            0
+            sage: w.rfind("aa")
+            -1
         """
+        if not isinstance(sub, FiniteWord_class):
+            sub = self.parent()(sub)
         L = len(sub)
+        start = max(0, int(start))
         if end is None:
             i = len(self) - L
         else:
-            i = end - L
+            i = min(end, len(self)) - L
         while i >= start:
             if self[i:i+L] == sub: return i
             i -= 1

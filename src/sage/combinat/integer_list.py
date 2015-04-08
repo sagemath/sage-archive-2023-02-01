@@ -2112,10 +2112,14 @@ class Envelope(object):
         """
         Return a bound on the limit of ``self``.
 
-        This provides an upper bound for the value of this envelope for
-        `i` large enough. This bound is valid at least from
-        ``self.limit_start()`` on. Which specific bound is returned is
-        not set in stone.
+        OUTPUT: a nonnegative integer or `\infty`
+
+        This returns some upper bound for the value of this upper
+        envelope for `i` large enough. The bound is valid at least
+        from ``self.limit_start()`` on. Which specific bound is
+        returned is not set in stone.
+
+        For a lower envelope, a lower bound is returned instead.
 
         EXAMPLES::
 
@@ -2128,6 +2132,15 @@ class Envelope(object):
             1
             sage: Envelope(lambda x: 3, max_part=2).limit()
             2
+
+        Lower envelopes::
+
+            sage: Envelope(lambda x: 3, min_part=2, sign=-1).limit()
+            2
+            sage: Envelope([4,1,5], min_slope=0, sign=-1).limit()
+            5
+            sage: Envelope([4,1,5], sign=-1).limit()
+            0
 
         .. SEEALSO:: :meth:`limit_start`
         """

@@ -701,6 +701,35 @@ class AbstractLinearCode(module.Module):
     and on Linear Codes families. 
     So, every Linear Code-related class should inherit from this abstract 
     method.
+
+    This class provides:
+
+    - ``base_field``, the base field over which the code is defined
+
+    - ``length``, the length of the code
+
+    - numerous methods that will work for any linear code (including families)
+
+    To implement a linear code, you need to:
+
+    - inherit from AbstractLinearCode
+
+    - call AbstractLinearCode ``__init__`` method in the subclass constructor. Example:
+      ``super(SubclassName, self).__init__(base_field, length)``.
+      By doing that, your subclass will have its ``base_field`` and ``length`` parameters 
+      initialized and will be properly set as a member of the category framework.
+      You need of course to complete the constructor by adding any additional parameter
+      needed to describe properly the code defined in the subclass.
+
+    As AbstractLinearCode is not designed to be implemented, it does not have any representation
+    methods. You should implement ``_repr_`` and ``_latex_`` methods on the sublclass.
+
+    NOTE::
+
+        AbstractLinearCode embeds some generic implementations of helper methods like ``__cmp__`` or ``__eq__``. 
+        As they are designed to fit for every linear code, they mostly use the generator matrix 
+        and thus can be long for certain families of code. In that case, overriding these methods is encouraged.
+
     """
     def __init__(self, base_field, length):
         """
@@ -1269,7 +1298,7 @@ class AbstractLinearCode(module.Module):
         """
         if not isinstance(right, LinearCode):
             return cmp(type(self), type(right))
-        return cmp(self._generator_matrix, right._generator_matrix)
+        return cmp(self.generator_matrix(), right.generator_matrix())
 
     def parity_check_matrix(self):
         r"""

@@ -44,6 +44,9 @@ def centrality_betweenness(G, exact=False, normalize=True):
 
     - ``G`` -- a graph
 
+    - ``exact`` (boolean, default: ``False``) -- whether to compute over
+      rationals or on ``double`` C variables.
+
     - ``normalize`` (boolean; default: ``True``) -- whether to renormalize the
       values by dividing them by `\binom {n-1} 2` (for graphs) or `2\binom {n-1}
       2` (for digraphs).
@@ -106,7 +109,7 @@ def centrality_betweenness(G, exact=False, normalize=True):
         return centrality_betweenness_C(G,<double>0,normalize=normalize)
 
 @cython.cdivision(True)
-cdef centrality_betweenness_C(G, numerical_type _, normalize=True):
+cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
     r"""
     Return the centrality betweenness of G (C implementation)
 

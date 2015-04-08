@@ -700,7 +700,7 @@ class AbstractLinearCode(module.Module):
     This class contains all methods that can be used on Linear Codes
     and on Linear Codes families. 
     So, every Linear Code-related class should inherit from this abstract 
-    method.
+    class.
 
     This class provides:
 
@@ -722,7 +722,7 @@ class AbstractLinearCode(module.Module):
       needed to describe properly the code defined in the subclass.
 
     As AbstractLinearCode is not designed to be implemented, it does not have any representation
-    methods. You should implement ``_repr_`` and ``_latex_`` methods on the sublclass.
+    methods. You should implement ``_repr_`` and ``_latex_`` methods in the sublclass.
 
     NOTE::
 

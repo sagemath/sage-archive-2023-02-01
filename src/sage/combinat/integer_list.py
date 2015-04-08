@@ -542,7 +542,7 @@ class IntegerListsLex(Parent):
         []
         sage: list(IntegerListsLex(0, min_length=1, min_slope=0))
         [[0]]
-        sage: list(IntegerListsLex(3, max_length=2, ))
+        sage: list(IntegerListsLex(3, max_length=2))
         [[3], [2, 1], [1, 2], [0, 3]]
         sage: partitions = {"min_part": 1, "max_slope": 0}
         sage: partitions_min_2 = {"floor": ConstantFunction(2), "max_slope": 0}

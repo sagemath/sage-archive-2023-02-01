@@ -319,6 +319,8 @@ bool power::info(unsigned inf) const
 			return (flags & status_flags::expanded);
 		case info_flags::positive:
 			return basis.info(info_flags::positive) && exponent.info(info_flags::real);
+		case info_flags::nonnegative:
+			return basis.info(info_flags::real) && exponent.info(info_flags::integer) && exponent.info(info_flags::even);
 		case info_flags::has_indices: {
 			if (flags & status_flags::has_indices)
 				return true;

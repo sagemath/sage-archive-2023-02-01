@@ -21,14 +21,13 @@ from libc.stdint cimport uint32_t
 from sage.libs.gmp.mpq cimport *
 from sage.rings.rational cimport Rational
 
-ctypedef mpq_t QQ
 ctypedef fused numerical_type:
-    QQ
+    mpq_t
     double
 
 import cython
 
-def centrality_betweenness(G,exact=False,normalize=True):
+def centrality_betweenness(G, exact=False, normalize=True):
     r"""
     Return the centrality betweenness of `G`
 
@@ -81,7 +80,7 @@ def centrality_betweenness(G,exact=False,normalize=True):
 
     Exact computations::
 
-        sage: graphs.PetersenGraph().centrality_betweenness(exact=1)
+        sage: graphs.PetersenGraph().centrality_betweenness(exact=True)
         {0: 1/12, 1: 1/12, 2: 1/12, 3: 1/12, 4: 1/12, 5: 1/12, 6: 1/12, 7: 1/12, 8: 1/12, 9: 1/12}
 
     TESTS:
@@ -102,12 +101,12 @@ def centrality_betweenness(G,exact=False,normalize=True):
        Journal of Mathematical Sociology 25.2 (2001): 163-177
     """
     if exact:
-        return centrality_betweenness_C(G,<QQ>0,normalize=normalize)
+        return centrality_betweenness_C(G,<mpq_t>0,normalize=normalize)
     else:
         return centrality_betweenness_C(G,<double>0,normalize=normalize)
 
 @cython.cdivision(True)
-cdef centrality_betweenness_C(G,numerical_type _,normalize=True):
+cdef centrality_betweenness_C(G, numerical_type _, normalize=True):
     r"""
     Return the centrality betweenness of G (C implementation)
 
@@ -116,7 +115,7 @@ cdef centrality_betweenness_C(G,numerical_type _,normalize=True):
     - ``G`` -- a graph
 
     - ``_`` -- this variable is ignored, only its type matters. If it is of type
-      `QQ` then computations are made on `Q`, if it is ``double`` the
+      `mpq_t` then computations are made on `Q`, if it is ``double`` the
       computations are made on ``double``.
 
     - ``normalize`` (boolean; default: ``True``) -- whether to renormalize the
@@ -149,17 +148,14 @@ cdef centrality_betweenness_C(G,numerical_type _,normalize=True):
     cdef numerical_type * n_paths_from_source
     cdef numerical_type * betweenness_source
     cdef numerical_type * betweenness
-    cdef mpq_t mpq_tmp
+    cdef numerical_type mpq_tmp
 
-    if numerical_type is double:
-        n_paths_from_source = <double *>   sage_malloc(n*sizeof(double))
-        betweenness_source  = <double *>   sage_malloc(n*sizeof(double))
-        betweenness         = <double *>   sage_malloc(n*sizeof(double))
-    else:
+    n_paths_from_source = <numerical_type *> sage_malloc(n*sizeof(numerical_type))
+    betweenness_source  = <numerical_type *> sage_malloc(n*sizeof(numerical_type))
+    betweenness         = <numerical_type *> sage_malloc(n*sizeof(numerical_type))
+
+    if numerical_type is mpq_t:
         mpq_init(mpq_tmp)
-        n_paths_from_source = <mpq_t *>   sage_malloc(n*sizeof(mpq_t))
-        betweenness_source  = <mpq_t *>   sage_malloc(n*sizeof(mpq_t))
-        betweenness         = <mpq_t *>   sage_malloc(n*sizeof(mpq_t))
 
     if (queue               == NULL or
         degrees             == NULL or
@@ -279,7 +275,7 @@ cdef centrality_betweenness_C(G,numerical_type _,normalize=True):
     if numerical_type is double:
         betweenness_list = [betweenness[i] for i in range(n)]
     else:
-        betweenness_list = [Rational(0) for x in range(n)]
+        betweenness_list = [Rational(None) for x in range(n)]
 
         for i in range(n):
             (<Rational> (betweenness_list[i])).set_from_mpq(betweenness[i])

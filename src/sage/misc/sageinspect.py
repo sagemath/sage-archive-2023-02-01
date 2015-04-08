@@ -1593,13 +1593,10 @@ def sage_getdoc(obj, obj_name='', embedded_override=False):
     - extensions by Nick Alexander
     """
     import sage.misc.sagedoc
-    if obj is None: return ''
-    r = sage_getdoc_original(obj)
-
-    if r is None:
+    if obj is None:
         return ''
-
-    s = sage.misc.sagedoc.format(str(r), embedded=(embedded_override or EMBEDDED_MODE))
+    r = sage_getdoc_original(obj)
+    s = sage.misc.sagedoc.format(r, embedded=(embedded_override or EMBEDDED_MODE))
 
     # Fix object naming
     if obj_name != '':

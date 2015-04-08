@@ -477,7 +477,7 @@ ex expairseq::subs(const exmap & m, unsigned options) const
 {
 	std::auto_ptr<epvector> vp = subschildren(m, options);
 	if (vp.get())
-		return ex_to<basic>(thisexpairseq(vp, overall_coeff, true));
+		return ex_to<basic>(thisexpairseq(vp, overall_coeff, (options & subs_options::no_index_renaming) == 0));
 	else if ((options & subs_options::algebraic) && is_exactly_a<mul>(*this))
 		return static_cast<const mul *>(this)->algebraic_subs_mul(m, options);
 	else

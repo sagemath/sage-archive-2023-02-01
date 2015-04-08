@@ -39,10 +39,12 @@ except KeyError:
 SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 
 # search for dependencies and add to gcc -I<path>
+import numpy
 include_dirs = [SAGE_INC,
                 SAGE_SRC,
                 os.path.join(SAGE_SRC, 'c_lib', 'include'),
-                os.path.join(SAGE_SRC, 'sage', 'ext')]
+                os.path.join(SAGE_SRC, 'sage', 'ext'),
+                os.path.join(numpy.get_include())]
 
 # Manually add -fno-strict-aliasing, which is needed to compile Cython
 # and disappears from the default flags if the user has set CFLAGS.

@@ -466,10 +466,6 @@ bool mul::info(unsigned inf) const
 		case info_flags::integer:
 		case info_flags::crational:
 		case info_flags::cinteger:
-		case info_flags::positive:
-		case info_flags::nonnegative:
-		case info_flags::posint:
-		case info_flags::nonnegint:
 		case info_flags::even:
 		case info_flags::crational_polynomial:
 		case info_flags::rational_function: {
@@ -492,39 +488,73 @@ bool mul::info(unsigned inf) const
 			}
 			return false;
 		}
+		case info_flags::positive:
 		case info_flags::negative: {
-			bool neg = false;
+			bool pos = true;
 			epvector::const_iterator i = seq.begin(), end = seq.end();
 			while (i != end) {
 				const ex& factor = recombine_pair_to_ex(*i++);
 				if (factor.info(info_flags::positive))
 					continue;
 				else if (factor.info(info_flags::negative))
-					neg = !neg;
+					pos = !pos;
 				else
 					return false;
 			}
 			if (overall_coeff.info(info_flags::negative))
-				neg = !neg;
-			return neg;
+				pos = !pos;
+			return (inf ==info_flags::positive? pos : !pos);
 		}
+		case info_flags::nonnegative: {
+			bool pos = true;
+			epvector::const_iterator i = seq.begin(), end = seq.end();
+			while (i != end) {
+				const ex& factor = recombine_pair_to_ex(*i++);
+				if (factor.info(info_flags::nonnegative) || factor.info(info_flags::positive))
+					continue;
+				else if (factor.info(info_flags::negative))
+					pos = !pos;
+				else
+					return false;
+			}
+			return (overall_coeff.info(info_flags::negative)? pos : !pos);
+		}
+		case info_flags::posint:
 		case info_flags::negint: {
-			bool neg = false;
+			bool pos = true;
 			epvector::const_iterator i = seq.begin(), end = seq.end();
 			while (i != end) {
 				const ex& factor = recombine_pair_to_ex(*i++);
 				if (factor.info(info_flags::posint))
 					continue;
 				else if (factor.info(info_flags::negint))
-					neg = !neg;
+					pos = !pos;
 				else
 					return false;
 			}
 			if (overall_coeff.info(info_flags::negint))
-				neg = !neg;
+				pos = !pos;
 			else if (!overall_coeff.info(info_flags::posint))
 				return false;
-			return neg;
+			return (inf ==info_flags::posint? pos : !pos); 
+		}
+		case info_flags::nonnegint: {
+			bool pos = true;
+			epvector::const_iterator i = seq.begin(), end = seq.end();
+			while (i != end) {
+				const ex& factor = recombine_pair_to_ex(*i++);
+				if (factor.info(info_flags::nonnegint) || factor.info(info_flags::posint))
+					continue;
+				else if (factor.info(info_flags::negint))
+					pos = !pos;
+				else
+					return false;
+			}
+			if (overall_coeff.info(info_flags::negint))
+				pos = !pos;
+			else if (!overall_coeff.info(info_flags::posint))
+				return false;
+			return pos; 
 		}
 	}
 	return inherited::info(inf);

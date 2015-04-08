@@ -1467,19 +1467,26 @@ def sage_getdef(obj, obj_name=''):
 def _sage_getdoc_unformatted(obj):
     r"""
     Return the unformatted docstring associated to ``obj`` as a
-    string.  Feed the results from this into the
-    sage.misc.sagedoc.format for printing to the screen.
-
-    INPUT: ``obj``, a function, module, etc.: something with a docstring.
+    string.
 
     If ``obj`` is a Cython object with an embedded position in its
-    docstring, the embedded position is stripped.
+    docstring, the embedded position is **not** stripped.
+
+    INPUT:
+
+    - ``obj`` -- a function, module, etc.: something with a docstring.
 
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import _sage_getdoc_unformatted
-        sage: _sage_getdoc_unformatted(identity_matrix)[87:126]
-        'Return the `n \\times n` identity matrix'
+        sage: print _sage_getdoc_unformatted(sage.rings.integer.Integer)
+        Integer(x=None, base=0)
+        File: sage/rings/integer.pyx (starting at line ...)
+        <BLANKLINE>
+            The ``Integer`` class represents arbitrary precision
+            integers. It derives from the ``Element`` class, so
+            integers can be used as ring elements anywhere in Sage.
+        ...
 
     TESTS:
 
@@ -1502,22 +1509,55 @@ def _sage_getdoc_unformatted(obj):
         r = obj.__doc__
 
     if not r:
-            return ''
+        return ''
 
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.
     import types
     if not isinstance(r, types.StringTypes):
         return ''
+    elif isinstance(r, unicode):
+        return r.encode('utf-8', 'ignore')
+    else:
+        return r
 
-    from sagenb.misc.misc import encoded_str
-    return encoded_str(r)
+
+def sage_getdoc_original(obj):
+    r"""
+    Return the unformatted docstring associated to ``obj`` as a
+    string.
+
+    If ``obj`` is a Cython object with an embedded position in its
+    docstring, the embedded position is stripped.
+
+    Feed the results from this into the function
+    :func:`sage.misc.sagedoc.format` for printing to the screen.
+
+    INPUT:
+
+    - ``obj`` -- a function, module, etc.: something with a docstring.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import sage_getdoc_original
+        sage: print sage_getdoc_original(sage.rings.integer.Integer)
+        <BLANKLINE>
+            The ``Integer`` class represents arbitrary precision
+            integers. It derives from the ``Element`` class, so
+            integers can be used as ring elements anywhere in Sage.
+        ...
+    """
+    s = _sage_getdoc_unformatted(obj)
+    pos = _extract_embedded_position(s)
+    if pos is None:
+        return s
+    else:
+        return pos[0]
+
 
 def sage_getdoc(obj, obj_name='', embedded_override=False):
     r"""
     Return the docstring associated to ``obj`` as a string.
-
-    INPUT: ``obj``, a function, module, etc.: something with a docstring.
 
     If ``obj`` is a Cython object with an embedded position in its
     docstring, the embedded position is stripped.
@@ -1526,6 +1566,10 @@ def sage_getdoc(obj, obj_name='', embedded_override=False):
     value), then the string is formatted according to the value of
     EMBEDDED_MODE.  If this argument is True, then it is formatted as
     if EMBEDDED_MODE were True.
+
+    INPUT:
+
+    - ``obj`` -- a function, module, etc.: something with a docstring.
 
     EXAMPLES::
 
@@ -1550,17 +1594,12 @@ def sage_getdoc(obj, obj_name='', embedded_override=False):
     """
     import sage.misc.sagedoc
     if obj is None: return ''
-    r = _sage_getdoc_unformatted(obj)
+    r = sage_getdoc_original(obj)
 
     if r is None:
         return ''
 
     s = sage.misc.sagedoc.format(str(r), embedded=(embedded_override or EMBEDDED_MODE))
-
-    # If there is a Cython embedded position, it needs to be stripped
-    pos = _extract_embedded_position(s)
-    if pos is not None:
-        s, _, _ = pos
 
     # Fix object naming
     if obj_name != '':
@@ -1751,7 +1790,7 @@ def sage_getsourcelines(obj):
 
     - ``obj`` -- function, etc.
 
-    OUTPUT: 
+    OUTPUT:
 
     (source_lines, lineno) or None: ``source_lines`` is a list of
     strings, and ``lineno`` is an integer.
@@ -1877,8 +1916,7 @@ def sage_getsourcelines(obj):
         if '.' in obj.__name__ or '.' in getattr(obj,'__qualname__',''):
             return _sage_getsourcelines_name_with_dot(obj)
 
-    # Next, we try _sage_getdoc_unformatted. 
-    # d = inspect.getdoc(obj)
+    # Next, we try _sage_getdoc_unformatted()
     d = _sage_getdoc_unformatted(obj)
     pos = _extract_embedded_position(d)
     if pos is None:

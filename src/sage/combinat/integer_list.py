@@ -15,7 +15,7 @@ MuPAD-Combinat in 2000 and ported over to Sage by Mike Hansen in
 Schilling, and Thiery, with the help of many, to deal with
 limitations and lack of robustness w.r.t. input. The old
 implementation is still available in
-:mod:`sage.combinat.integer_list.old` for benchmarking purposes.
+:mod:`sage.combinat.integer_list_old` for benchmarking purposes.
 """
 #*****************************************************************************
 #       Copyright (C) 2015 Bryan Gillespie <Brg008@gmail.com>
@@ -125,9 +125,9 @@ class IntegerListsLex(Parent):
 
     - ``category`` -- a category (default: :class:`FiniteEnumeratedSets`)
 
-    - ``global_options`` -- a :class:`GlobalOptions` object that will
-      be assigned to the attribute ``_global_options``; for internal
-      use only (subclasses, ...).
+    - ``global_options`` -- a :class:`~sage.structure.global_options.GlobalOptions`
+      object that will be assigned to the attribute
+      ``_global_options``; for internal use only (subclasses, ...).
 
     - ``check`` -- boolean (default: True): whether to display the
       warnings raised when functions are given as input to ``floor``
@@ -478,7 +478,7 @@ class IntegerListsLex(Parent):
          2: Integer lists of sum 2 satisfying certain constraints}
 
     This feature is mostly here for backward compatibility, as using
-    :class:`DisjointEnumeratedSets` is more general and flexible::
+    :class:`DisjointUnionEnumeratedSets` is more general and flexible::
 
         sage: C = DisjointUnionEnumeratedSets(Family([0,1,2],
         ....:         lambda n: IntegerListsLex(n, length=2)))
@@ -855,7 +855,7 @@ class IntegerListsLex(Parent):
             ceiling = tuple(ZZ(i) if i != Infinity else Infinity
                             for i in ceiling)
             if not all(i >= 0 for i in ceiling):
-                raise NotImplementedError("negative parts in floor={}".format(ceiling))
+                raise NotImplementedError("negative parts in ceiling={}".format(ceiling))
         elif callable(ceiling):
             self._floor_or_ceiling_is_function = True
         else:
@@ -1944,6 +1944,8 @@ class Envelope(object):
         sage: f = Envelope(3, sign=-1, max_slope=-1, min_length=4)
         sage: [f(i) for i in range(10)]
         [6, 5, 4, 3, 3, 3, 3, 3, 3, 3]
+
+    .. automethod:: __init__
     """
     def __init__(self, f,
                  min_part=0, max_part=Infinity,

@@ -111,6 +111,7 @@ Comprehensive Module list
     sage/combinat/gray_codes
     sage/combinat/hall_polynomial
     sage/combinat/integer_list
+    sage/combinat/integer_list_old
     sage/combinat/integer_matrices
     sage/combinat/integer_vector
     sage/combinat/integer_vector_weighted

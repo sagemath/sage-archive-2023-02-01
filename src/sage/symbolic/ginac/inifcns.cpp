@@ -208,6 +208,12 @@ static ex abs_eval(const ex & arg)
 			return pow(abs(base), exponent.real_part());
 	}
 
+	if (is_ex_the_function(arg, conjugate_function))
+		return abs(arg.op(0));
+
+	if (is_ex_the_function(arg, step))
+		return arg;
+
 	return abs(arg).hold();
 }
 

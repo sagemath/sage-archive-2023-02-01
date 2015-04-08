@@ -2634,7 +2634,7 @@ class FiniteWord_class(Word_class):
                     LPC.append(min(LPC[k]+k-j, LPC[2*k - j]))
 
                 else:
-                    mp = (LPC[k]+k-j)//2 -1 +(j%2)
+                    mp = LPC[k]+k-j
                     p = self.length_maximal_palindrome((j-1)*0.5, mp, f)
                     LPC.append(p)
                     k = j
@@ -2715,13 +2715,7 @@ class FiniteWord_class(Word_class):
             [word: , word: ab, word: abbabaab, word: ba, word: baba, word: bbabaa]
         """
         LPS = self.lps_lengths(f)
-
-        palindromes = set()
-
-        for i in range(len(self)+1):
-            palindromes.add(self[i-LPS[i] : i])
-
-        return palindromes
+        return set([self[i-LPS[i] : i] for i in range(len(self)+1)])
 
     def palindrome_prefixes(self):
         r"""

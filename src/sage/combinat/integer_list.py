@@ -487,6 +487,13 @@ class IntegerListsLex(Parent):
         sage: C.list()
         [[0, 0],  [1, 0], [0, 1],  [2, 0], [1, 1], [0, 2]]
 
+    Note, that when certain values are repeated, then the corresponding lists
+    are repeated as well::
+
+        sage: IntegerListsLex([2,2],length=3).list()
+        [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2],
+         [2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
+
     ALGORITHM:
 
     The iteration algorithm uses a depth first search through the
@@ -542,7 +549,7 @@ class IntegerListsLex(Parent):
         []
         sage: list(IntegerListsLex(0, min_length=1, min_slope=0))
         [[0]]
-        sage: list(IntegerListsLex(3, max_length=2, ))
+        sage: list(IntegerListsLex(3, max_length=2))
         [[3], [2, 1], [1, 2], [0, 3]]
         sage: partitions = {"min_part": 1, "max_slope": 0}
         sage: partitions_min_2 = {"floor": ConstantFunction(2), "max_slope": 0}

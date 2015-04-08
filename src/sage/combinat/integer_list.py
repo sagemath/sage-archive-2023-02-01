@@ -309,7 +309,7 @@ class IntegerListsLex(Parent):
         sage: IntegerListsLex().first()
         Traceback (most recent call last):
         ...
-        ValueError: Could not check that the specified constraints yield a finite set
+        ValueError: Could not prove that the specified constraints yield a finite set
 
     Here is a variant which could be enumerated in inverse lexicographically
     increasing order but not in inverse lexicographically decreasing order::
@@ -327,7 +327,7 @@ class IntegerListsLex(Parent):
         sage: IntegerListsLex(3).first()
         Traceback (most recent call last):
         ...
-        ValueError: Could not check that the specified constraints yield a finite set
+        ValueError: Could not prove that the specified constraints yield a finite set
 
     If one wants to proceed anyway, one can sign a waiver by setting
     ``check=False``::
@@ -944,18 +944,32 @@ If you know what you are doing, you can set check=False to skip this warning."""
     @cached_method
     def _check_finiteness(self):
         """
-        Check whether the constraints give a finite set.
+        Check that the constraints define a finite set.
 
-        As mentioned in the description of this class, this is almost
-        equivalent to being inverse lexicographic iterable.
+        As mentioned in the description of this class, being finite is
+        almost equivalent to being inverse lexicographic iterable,
+        which is what we really care about.
 
-        OUTPUT: ``None`` if this method finds a proof that this set is
-        finite.  Otherwise a ``ValueError`` is raised.
+        This set is finite if and only if:
 
-        .. WARNING::
+        #. For each `i` such that there exists a list of length at
+           least `i+1` satisfying the constraints, there exists a
+           direct or indirect upper bound on the `i`-th part, that
+           is ``self._ceiling(i)`` is finite.
 
-            In some cases, this method may fail to prove that a set is
-            finite, even if it actually is. See the examples below.
+        #. There exists a global upper bound on the length.
+
+        Failures for 1. are detected and reported later, during the
+        iteration, namely the first time a prefix including the `i`-th
+        part is explored.
+
+        This method therefore focuses on 2., namely trying to prove
+        the existence of an upper bound on the length. It may fail
+        to do so even when the set is actually finite.
+
+        OUTPUT: ``None`` if this method finds a proof that there
+        exists an upper bound on the length. Otherwise a
+        ``ValueError`` is raised.
 
         EXAMPLES::
 
@@ -968,7 +982,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: L._check_finiteness()
             Traceback (most recent call last):
             ...
-            ValueError: Could not check that the specified constraints yield a finite set
+            ValueError: Could not prove that the specified constraints yield a finite set
 
         Indeed::
 
@@ -991,7 +1005,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: iter(L)
             Traceback (most recent call last):
             ...
-            ValueError: Could not check that the specified constraints yield a finite set
+            ValueError: Could not prove that the specified constraints yield a finite set
 
         Some other infinite examples::
 
@@ -999,25 +1013,25 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: L.list()
             Traceback (most recent call last):
             ...
-            ValueError: Could not check that the specified constraints yield a finite set
+            ValueError: Could not prove that the specified constraints yield a finite set
 
             sage: L = IntegerListsLex(ceiling=[0], min_slope=1, max_slope=1)
             sage: L.list()
             Traceback (most recent call last):
             ...
-            ValueError: Could not check that the specified constraints yield a finite set
+            ValueError: Could not prove that the specified constraints yield a finite set
 
             sage: IntegerListsLex(ceiling=[0], min_slope=1, max_slope=1).list()
             Traceback (most recent call last):
             ...
-            ValueError: Could not check that the specified constraints yield a finite set
+            ValueError: Could not prove that the specified constraints yield a finite set
 
         The following example is actually finite, but not detected as such::
 
             sage: IntegerListsLex(7, floor=[4], max_part=4, min_slope=-1).list()
             Traceback (most recent call last):
             ...
-            ValueError: Could not check that the specified constraints yield a finite set
+            ValueError: Could not prove that the specified constraints yield a finite set
 
         This is sad because the following equivalent example works just fine::
 
@@ -1037,12 +1051,12 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: IntegerListsLex(ceiling=lambda i: max(3-i,0))._check_finiteness()
             Traceback (most recent call last):
             ...
-            ValueError: Could not check that the specified constraints yield a finite set
+            ValueError: Could not prove that the specified constraints yield a finite set
 
             sage: IntegerListsLex(7, ceiling=lambda i:0).list()
             Traceback (most recent call last):
             ...
-            ValueError: Could not check that the specified constraints yield a finite set
+            ValueError: Could not prove that the specified constraints yield a finite set
 
         The next example shows a case that is finite because we remove
         trailing zeroes::
@@ -1053,7 +1067,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: L.list()
             Traceback (most recent call last):
             ...
-            ValueError: Could not check that the specified constraints yield a finite set
+            ValueError: Could not prove that the specified constraints yield a finite set
 
         In the next examples, there is either no solution, or the region
         is bounded::
@@ -1093,12 +1107,6 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: IntegerListsLex(max_sum=1, min_sum=4, min_slope=0).list()
             []
         """
-        # If a part has no bound on its value, it will be detected at some point
-
-        # Here we assume that every part is bounded, and focus on
-        # deducing that there is a bound on the length of lists
-        # satisfying the constraints.
-
         # Trivial cases
         if self._max_length < Infinity:
             return
@@ -1157,7 +1165,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 if self._ceiling(i) < self._floor(i):
                     return
 
-        raise ValueError("Could not check that the specified constraints yield a finite set")
+        raise ValueError("Could not prove that the specified constraints yield a finite set")
 
 
     @staticmethod

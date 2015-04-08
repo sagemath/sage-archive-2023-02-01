@@ -6780,8 +6780,13 @@ cdef class Matrix(matrix1.Matrix):
         return extended
 
     def weak_popov_form(self, ascend=True):
+        from sage.misc.superseded import deprecation
+        deprecation(16888, 'You can just call row_reduced_form() instead')
+        return self.row_reduced_form(ascend)
+
+    def row_reduced_form(self, ascend=True):
         """
-        This function computes a weak Popov form of a matrix over a rational
+        This function computes a row reduced form of a matrix over a rational
         function field `k(x)`, for `k` a field.
 
         INPUT:
@@ -6794,7 +6799,7 @@ cdef class Matrix(matrix1.Matrix):
 
         A 3-tuple `(W,N,d)` consisting of:
 
-        1. `W` - a matrix over `k(x)` giving a weak the Popov form of self
+        1. `W` - a matrix over `k(x)` giving a row reduced form of `self`
         2. `N` - a matrix over `k[x]` representing row operations used to
             transform `self` to `W`
         3. `d` - degree of respective columns of W; the degree of a column is
@@ -6814,7 +6819,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: R.<t> = GF(3)['t']
             sage: K = FractionField(R)
             sage: M = matrix([[(t-1)^2/t],[(t-1)]])
-            sage: M.weak_popov_form()
+            sage: M.row_reduced_form()
             (
             [          0]  [      t 2*t + 1]
             [(2*t + 1)/t], [      1       2], [-Infinity, 0]
@@ -6827,7 +6832,7 @@ cdef class Matrix(matrix1.Matrix):
         ::
 
             sage: M1 = matrix([[t*(t-1)*(t+1)],[t*(t-2)*(t+2)],[t]])
-            sage: output1 = M1.weak_popov_form()
+            sage: output1 = M1.row_reduced_form()
             sage: output1
             (
             [0]  [        1         0 2*t^2 + 1]
@@ -6842,7 +6847,7 @@ cdef class Matrix(matrix1.Matrix):
         ::
 
             sage: M2 = M1.change_ring(K)
-            sage: output2 = M2.weak_popov_form()
+            sage: output2 = M2.row_reduced_form()
             sage: output1 == output2
             True
             sage: output1[0].base_ring() is K
@@ -6861,7 +6866,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: R.<t> = QQ['t']
             sage: M = matrix([[t^3 - t,t^2 - 2],[0,t]]).transpose()
-            sage: M.weak_popov_form()
+            sage: M.row_reduced_form()
             (
             [      t    -t^2]  [ 1 -t]
             [t^2 - 2       t], [ 0  1], [2, 2]
@@ -6874,7 +6879,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: R.<t> = GF(5)['t']
             sage: K = FractionField(R)
             sage: M = matrix([[K(0),K(0)],[K(0),K(0)]])
-            sage: M.weak_popov_form()
+            sage: M.row_reduced_form()
             (
             [0 0]  [1 0]
             [0 0], [0 1], [-Infinity, -Infinity]
@@ -6886,7 +6891,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: R.<t> = QQ['t']
             sage: M = matrix([[t,t,t],[0,0,t]], ascend=False)
-            sage: M.weak_popov_form()
+            sage: M.row_reduced_form()
             (
             [t t t]  [1 0]
             [0 0 t], [0 1], [1, 1]
@@ -6898,7 +6903,7 @@ cdef class Matrix(matrix1.Matrix):
         ::
 
             sage: M = matrix([[1,0],[1,1]])
-            sage: M.weak_popov_form()
+            sage: M.row_reduced_form()
             Traceback (most recent call last):
             ...
             TypeError: the coefficients of M must lie in a univariate
@@ -6911,26 +6916,18 @@ cdef class Matrix(matrix1.Matrix):
            for row operations; however, references such as [H] transpose and use
            column operations.
 
-         - There are multiple weak Popov forms of a matrix, so one may want to
-           extend this code to produce a Popov form (see section 1.2 of [V]).  The
-           latter is canonical, but more work to produce.
-
         REFERENCES:
 
         .. [H] F. Hess, "Computing Riemann-Roch spaces in algebraic function
           fields and related topics," J. Symbolic Comput. 33 (2002), no. 4,
           425--445.
 
-        .. [MS] T. Mulders, A. Storjohann, "On lattice reduction for polynomial
-          matrices," J. Symbolic Comput. 35 (2003), no. 4, 377--401
+        .. [K] T. Kaliath, "Linear Systems", Prentice-Hall, 1980, 383--386.
 
-        .. [V] G. Villard, "Computing Popov and Hermite forms of polynomial
-          matrices", ISSAC '96: Proceedings of the 1996 international symposium
-          on Symbolic and algebraic computation, 250--258.
 
         """
         import sage.matrix.matrix_misc
-        return sage.matrix.matrix_misc.weak_popov_form(self)
+        return sage.matrix.matrix_misc.row_reduced_form(self)
 
     ##########################################################################
     # Functions for symmetries of a matrix under row and column permutations #

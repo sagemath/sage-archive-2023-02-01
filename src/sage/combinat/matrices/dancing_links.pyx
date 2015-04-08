@@ -41,8 +41,10 @@ cdef extern from "dancing_links_c.h":
         int search()
         void freemem()
 
+cdef extern from "ccobject.h":
     dancing_links* dancing_links_construct "Construct<dancing_links>"(void *mem)
     void dancing_links_destruct "Destruct<dancing_links>"(dancing_links *mem)
+
 
 from sage.rings.integer cimport Integer
 

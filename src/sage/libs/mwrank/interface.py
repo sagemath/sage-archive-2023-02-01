@@ -637,6 +637,13 @@ class mwrank_EllipticCurve(SageObject):
             sage: E.gens()
             [[-1001107, -4004428, 1]]
 
+        Check that :trac:`18031` is fixed::
+
+            sage: E = EllipticCurve([0,-1,1,-266,968])
+            sage: Q1 = E([-1995,3674,125])
+            sage: Q2 = E([157,1950,1])
+            sage: E.saturation([Q1,Q2])
+            ([(1 : -27 : 1), (157 : 1950 : 1)], 3, 0.801588644684981)
         """
         bound = int(bound)
         if self.__saturate < bound:

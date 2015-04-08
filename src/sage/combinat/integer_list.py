@@ -129,14 +129,27 @@ class IntegerListsLex(Parent):
 
     - ``category`` -- a category (default: :class:`FiniteEnumeratedSets`)
 
+    - ``check`` -- boolean (default: ``True``): whether to display the
+      warnings raised when functions are given as input to ``floor``
+      or ``ceiling`` and the errors raised when there is no proper
+      enumeration.
+
+    - ``name`` -- a string or ``None`` (default: ``None``) if set,
+      this will be passed down to :meth:`Parent.rename` to specify the
+      name of ``self``. It is recommented to use directly the rename
+      method as this feature may become deprecated.
+
+    - ``element_constructor`` -- a function (or callable) that creates
+      elements of ``self`` from a list. See also :class:`Parent`.
+
+    - ``element_class`` -- a class for the elements of ``self``
+      (default: `ClonableArray`). This merely sets the attribute
+      ``self.Element``. See the examples for details.
+
     - ``global_options`` -- a :class:`~sage.structure.global_options.GlobalOptions`
       object that will be assigned to the attribute
       ``_global_options``; for internal use only (subclasses, ...).
 
-    - ``check`` -- boolean (default: True): whether to display the
-      warnings raised when functions are given as input to ``floor``
-      or ``ceiling`` and the errors raised when there is no proper
-      enumeration.
 
     .. NOTE::
 
@@ -460,6 +473,23 @@ class IntegerListsLex(Parent):
 
     Note the use of the ``element_constructor`` option to specify how
     to construct elements from a plain list.
+
+    A variant is to specify a class for the elements. With the default
+    element constructor, this class should take as input the parent
+    ``self`` and a list. Here we want the elements to be constructed
+    in the class :class:`Partition`::
+
+        sage: IntegerListsLex(3, max_slope=0, element_class=Partition, global_options=Partitions.global_options).list()
+        [[3], [2, 1], [1, 1, 1]]
+
+    Note that the :class:`Partition` further assumes the existence of
+    an attribute `_global_options` in the parent, hence the use of the
+    `global_options` parameter.
+
+    .. WARNING::
+
+        The protocol for specifying the element class and constructor
+        is subject to changes.
 
     .. _IntegerListsLex_disjoint_union:
 
@@ -899,17 +929,17 @@ If you know what you are doing, you can set check=False to skip this warning."""
         if element_class is not None:
             self.Element = element_class
         if element_constructor is not None:
-            self._element_constructor_ = element_constructor
             if element_constructor is list or element_constructor is tuple:
                 self._element_constructor_is_copy_safe = True
         elif issubclass(self.Element, ClonableArray):
             # Not all element class support check=False
-            self._element_constructor_ = self._element_constructor_nocheck
+            element_constructor = self._element_constructor_nocheck
             self._element_constructor_is_copy_safe = True
         if global_options is not None:
             self.global_options = global_options
 
-        Parent.__init__(self, category=category)
+        Parent.__init__(self, element_constructor=element_constructor,
+                        category=category)
 
     @cached_method
     def _check_finiteness(self):
@@ -1491,7 +1521,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                     else:
                         self._next_state = DECREASE
                     if self._internal_list_valid():
-                        return p._element_constructor_(
+                        return p._element_constructor(
                             self._current_list
                             if p._element_constructor_is_copy_safe
                             else self._current_list[:])
@@ -1827,7 +1857,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
         overhead when constructing elements from trusted data in the
         iterator::
 
-            sage: L._element_constructor_
+            sage: L._element_constructor
             <bound method IntegerListsLex._element_constructor_nocheck of ...>
             sage: L._element_constructor([1,2,3])
             [1, 2, 3]

@@ -1,8 +1,11 @@
 r"""
 Enumerated set of lists of integers with constraints, in inverse lexicographic order
 
-- Main class: :class:`IntegerListsLex`
-- Utility class :class:`Envelope`
+- :class:`IntegerListsLex`: the enumerated set of lists of nonnegative
+  integers with specified constraints, in inverse lexicographic order.
+
+- :class:`Envelope`: a utility class for upper (lower) envelope of a
+  function under constraints.
 
 HISTORY:
 
@@ -1838,7 +1841,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
 
 class Envelope(object):
     """
-    The (currently approximated) upper envelope of a function
+    The (currently approximated) upper (lower) envelope of a function
     under the specified constraints.
 
     INPUT:
@@ -1851,8 +1854,8 @@ class Envelope(object):
       as for :class:`IntegerListsLex` (please consult for details).
 
     - ``sign`` -- (+1 or -1) multiply the input values with ``sign``
-      and multiply the output with ``sign``. Setting this to -1 can be
-      used to implement a lower envelope.
+      and multiply the output with ``sign``. Setting this to `-1` can
+      be used to implement a lower envelope.
 
     The *upper envelope* `U(f)` of `f` is the (pointwise) largest
     function which is bounded above by `f` and satisfies the

@@ -522,7 +522,7 @@ def bounds_minimum_distance(n, k, F):
 
     The values for the lower and upper bound are obtained from a table
     constructed by Cen Tjhai for GUAVA, derived from the table of
-    Brouwer. (See http://www.win.tue.nl/ aeb/voorlincod.html or use the
+    Brouwer. (See http://www.codetables.de/ or use the
     Sage function ``minimum_distance_why`` for the most recent data.)
     These tables contain lower and upper bounds for `q=2` (when ``n <= 257``),
     `q=3` (when ``n <= 243``), `q=4` (``n <= 256``). (Current as of
@@ -2568,7 +2568,7 @@ class LinearCode(module.Module):
         return c
 
     def redundancy_matrix(C):
-        """
+        r"""
         If C is a linear [n,k,d] code then this function returns a
         `k \times (n-k)` matrix A such that G = (I,A) generates a code (in
         standard form) equivalent to C. If C is already in standard form and

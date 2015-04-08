@@ -213,7 +213,7 @@ static void abs_print_csrc_float(const ex & arg, const print_context & c)
 
 static ex abs_conjugate(const ex & arg)
 {
-	return abs(arg);
+	return abs(arg).hold();
 }
 
 static ex abs_real_part(const ex & arg)
@@ -228,7 +228,8 @@ static ex abs_imag_part(const ex& arg)
 
 static ex abs_power(const ex & arg, const ex & exp)
 {
-	if (arg.is_equal(arg.conjugate()) && is_a<numeric>(exp) && ex_to<numeric>(exp).is_even())
+	if (arg.is_equal(arg.conjugate()) && ((is_a<numeric>(exp) && ex_to<numeric>(exp).is_even())
+						|| exp.info(info_flags::even)))
 		return power(arg, exp);
 	else
 		return power(abs(arg), exp).hold();
@@ -408,7 +409,7 @@ static ex csgn_power(const ex & arg, const ex & exp)
 {
 	if (is_a<numeric>(exp) && exp.info(info_flags::positive) && ex_to<numeric>(exp).is_integer()) {
 		if (ex_to<numeric>(exp).is_odd())
-			return csgn(arg);
+			return csgn(arg).hold();
 		else
 			return power(csgn(arg), _ex2).hold();
 	} else
@@ -499,7 +500,7 @@ static ex eta_series(const ex & x, const ex & y,
 
 static ex eta_conjugate(const ex & x, const ex & y)
 {
-	return -eta(x, y);
+	return -eta(x, y).hold();
 }
 
 static ex eta_real_part(const ex & x, const ex & y)
@@ -658,7 +659,7 @@ static ex Li2_conjugate(const ex & x)
 	// conjugate(Li2(x))==Li2(conjugate(x)) unless on the branch cuts which
 	// run along the positive real axis beginning at 1.
 	if (x.info(info_flags::negative)) {
-		return Li2(x);
+		return Li2(x).hold();
 	}
 	if (is_exactly_a<numeric>(x) &&
 	    (!x.imag_part().is_zero() || x < *_num1_p)) {
@@ -699,7 +700,7 @@ static ex zetaderiv_eval(const ex & n, const ex & x)
 	if (n.info(info_flags::numeric)) {
 		// zetaderiv(0,x) -> zeta(x)
 		if (n.is_zero())
-			return zeta(x);
+			return zeta(x).hold();
 	}
 	
 	return zetaderiv(n, x).hold();

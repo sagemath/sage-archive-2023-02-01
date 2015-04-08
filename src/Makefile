@@ -1,5 +1,6 @@
 .PHONY: all sage csage clean
 
+# By default, build csage and sage (in this order)
 all:
 	$(MAKE) csage
 	$(MAKE) sage

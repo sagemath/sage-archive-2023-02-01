@@ -255,6 +255,27 @@ static ex abs_eval(const ex & arg)
 	return abs(arg).hold();
 }
 
+static ex abs_expand(const ex & arg, unsigned options)
+{
+	if ((options & expand_options::expand_transcendental)
+		&& is_exactly_a<mul>(arg)) {
+		exvector prodseq;
+		prodseq.reserve(arg.nops());
+		for (const_iterator i = arg.begin(); i != arg.end(); ++i) {
+			if (options & expand_options::expand_function_args)
+				prodseq.push_back(abs(i->expand(options)));
+			else
+				prodseq.push_back(abs(*i));
+		}
+		return (new mul(prodseq))->setflag(status_flags::dynallocated | status_flags::expanded);
+	}
+
+	if (options & expand_options::expand_function_args)
+		return abs(arg.expand(options)).hold();
+	else
+		return abs(arg).hold();
+}
+
 static void abs_print_latex(const ex & arg, const print_context & c)
 {
 	c.s << "{\\left| "; arg.print(c); c.s << " \\right|}";
@@ -326,6 +347,7 @@ bool abs_info(const ex & arg, unsigned inf)
 
 REGISTER_FUNCTION(abs, eval_func(abs_eval).
                        evalf_func(abs_evalf).
+                       expand_func(abs_expand).
                        info_func(abs_info).
                        print_func<print_latex>(abs_print_latex).
                        print_func<print_csrc_float>(abs_print_csrc_float).

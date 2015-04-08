@@ -24,6 +24,8 @@
 #include "inifcns.h"
 #include "ex.h"
 #include "constant.h"
+#include "add.h"
+#include "mul.h"
 #include "infinity.h"
 #include "numeric.h"
 #include "power.h"
@@ -114,6 +116,27 @@ static ex exp_eval(const ex & x)
 	return exp(x).hold();
 }
 
+static ex exp_expand(const ex & arg, unsigned options)
+{
+	ex exp_arg;
+	if (options & expand_options::expand_function_args)
+		exp_arg = arg.expand(options);
+	else
+		exp_arg=arg;
+
+	if ((options & expand_options::expand_transcendental)
+		&& is_exactly_a<add>(exp_arg)) {
+		exvector prodseq;
+		prodseq.reserve(exp_arg.nops());
+		for (const_iterator i = exp_arg.begin(); i != exp_arg.end(); ++i)
+			prodseq.push_back(exp(*i));
+
+		return (new mul(prodseq))->setflag(status_flags::dynallocated | status_flags::expanded);
+	}
+
+	return exp(exp_arg).hold();
+}
+
 static ex exp_deriv(const ex & x, unsigned deriv_param)
 {
 	GINAC_ASSERT(deriv_param==0);
@@ -198,6 +221,7 @@ static ex exp_conjugate(const ex & x)
 
 REGISTER_FUNCTION(exp, eval_func(exp_eval).
                        evalf_func(exp_evalf).
+                       expand_func(exp_expand).
                        derivative_func(exp_deriv).
                        real_part_func(exp_real_part).
                        imag_part_func(exp_imag_part).
@@ -365,6 +389,53 @@ static ex log_imag_part(const ex & x)
 	return atan2(GiNaC::imag_part(x), GiNaC::real_part(x));
 }
 
+static ex log_expand(const ex & arg, unsigned options)
+{
+	if ((options & expand_options::expand_transcendental)
+		&& is_exactly_a<mul>(arg) && !arg.info(info_flags::indefinite)) {
+		exvector sumseq;
+		exvector prodseq;
+		sumseq.reserve(arg.nops());
+		prodseq.reserve(arg.nops());
+		bool possign=true;
+
+		// searching for positive/negative factors
+		for (const_iterator i = arg.begin(); i != arg.end(); ++i) {
+			ex e;
+			if (options & expand_options::expand_function_args)
+				e=i->expand(options);
+			else
+				e=*i;
+			if (e.info(info_flags::positive))
+				sumseq.push_back(log(e));
+			else if (e.info(info_flags::negative)) {
+				sumseq.push_back(log(-e));
+				possign = !possign;
+			} else
+				prodseq.push_back(e);
+		}
+
+		if (sumseq.size() > 0) {
+			ex newarg;
+			if (options & expand_options::expand_function_args)
+				newarg=((possign?_ex1:_ex_1)*mul(prodseq)).expand(options);
+			else {
+				newarg=(possign?_ex1:_ex_1)*mul(prodseq);
+				ex_to<basic>(newarg).setflag(status_flags::purely_indefinite);
+			}
+			return add(sumseq)+log(newarg);
+		} else {
+			if (!(options & expand_options::expand_function_args))
+				ex_to<basic>(arg).setflag(status_flags::purely_indefinite);
+		}
+	}
+
+	if (options & expand_options::expand_function_args)
+		return log(arg.expand(options)).hold();
+	else
+		return log(arg).hold();
+}
+
 static ex log_conjugate(const ex & x)
 {
 	// conjugate(log(x))==log(conjugate(x)) unless on the branch cut which
@@ -381,6 +452,7 @@ static ex log_conjugate(const ex & x)
 
 REGISTER_FUNCTION(log, eval_func(log_eval).
                        evalf_func(log_evalf).
+                       expand_func(log_expand).
                        derivative_func(log_deriv).
                        series_func(log_series).
                        real_part_func(log_real_part).

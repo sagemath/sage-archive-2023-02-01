@@ -200,7 +200,7 @@ testing whether something is infinity), so make sure it is satisfied::
     sage: loads(dumps(infinity)) is infinity
     True
 
-We check that #17990 is fixed::
+We check that :trac:`17990` is fixed::
 
     sage: m = Matrix([Infinity])
     sage: m.rows()

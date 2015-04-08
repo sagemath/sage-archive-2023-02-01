@@ -530,6 +530,13 @@ class IntegerListsLex(Parent):
         sage: C.list()
         [[0, 0],  [1, 0], [0, 1],  [2, 0], [1, 1], [0, 2]]
 
+    Note, that when certain values are repeated, then the corresponding lists
+    are repeated as well::
+
+        sage: IntegerListsLex([2,2],length=3).list()
+        [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2],
+         [2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
+
     ALGORITHM:
 
     The iteration algorithm uses a depth first search through the

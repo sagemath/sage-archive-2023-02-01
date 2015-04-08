@@ -439,7 +439,7 @@ ex power::coeff(const ex & s, int n) const
  *  - ^(1,x) -> 1
  *  - ^(c1,c2) -> *(c1^n,c1^(c2-n))  (so that 0<(c2-n)<1, try to evaluate roots, possibly in numerator and denominator of c1)
  *  - ^(^(x,c1),c2) -> ^(x,c1*c2)  if x is positive and c1 is real.
- *  - ^(^(x,c1),c2) -> ^(x,c1*c2)  (c2 integer or -1 < c1 <= 1, case c1=1 should not happen, see below!)
+ *  - ^(^(x,c1),c2) -> ^(x,c1*c2)  (c2 integer or -1 < c1 <= 1 or (c1=-1 and c2>0), case c1=1 should not happen, see below!)
  *  - ^(*(x,y,z),c) -> *(x^c,y^c,z^c)  (if c integer)
  *  - ^(*(x,c1),c2) -> ^(x,c2)*c1^c2  (c1>0)
  *  - ^(*(x,c1),c2) -> ^(-x,c2)*c1^c2  (c1<0)
@@ -616,7 +616,7 @@ ex power::eval(int level) const
 		}
 	
 		// ^(^(x,c1),c2) -> ^(x,c1*c2)
-		// (c1, c2 numeric(), c2 integer or -1 < c1 <= 1,
+		// (c1, c2 numeric(), c2 integer or -1 < c1 <= 1 or (c1=-1 and c2>0),
 		// case c1==1 should not happen, see below!)
 		if (is_exactly_a<power>(ebasis)) {
 			const power & sub_power = ex_to<power>(ebasis);
@@ -625,7 +625,8 @@ ex power::eval(int level) const
 			if (is_exactly_a<numeric>(sub_exponent)) {
 				const numeric & num_sub_exponent = ex_to<numeric>(sub_exponent);
 				GINAC_ASSERT(num_sub_exponent!=numeric(1));
-				if (num_exponent->is_integer() || (abs(num_sub_exponent) - (*_num1_p)).is_negative()) {
+				if (num_exponent->is_integer() || (abs(num_sub_exponent) - (*_num1_p)).is_negative() 
+						|| (num_sub_exponent == *_num_1_p && num_exponent->is_positive())) {
 					return power(sub_basis,num_sub_exponent.mul(*num_exponent));
 				}
 			}

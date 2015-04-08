@@ -198,6 +198,16 @@ static ex abs_eval(const ex & arg)
 	if (is_ex_the_function(arg, abs))
 		return arg;
 
+	if (is_ex_the_function(arg, exp))
+		return exp(arg.op(0).real_part());
+
+	if (is_exactly_a<power>(arg)) {
+		const ex& base = arg.op(0);
+		const ex& exponent = arg.op(1);
+		if (base.info(info_flags::positive) || exponent.info(info_flags::real))
+			return pow(abs(base), exponent.real_part());
+	}
+
 	return abs(arg).hold();
 }
 

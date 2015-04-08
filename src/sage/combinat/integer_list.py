@@ -2114,12 +2114,22 @@ class Envelope(object):
 
         OUTPUT: a nonnegative integer or `\infty`
 
-        This returns some upper bound for the value of this upper
-        envelope for `i` large enough. The bound is valid at least
-        from ``self.limit_start()`` on. Which specific bound is
-        returned is not set in stone.
+        This returns some upper bound for the accumulation points of
+        this upper envelope. For a lower envelope, a lower bound is
+        returned instead.
 
-        For a lower envelope, a lower bound is returned instead.
+        In particular this gives a bound for the value of ``self`` at
+        `i` for `i` large enough. Special case: for a lower envelop,
+        and when the limit is `\infty`, the envelope is guaranteed to
+        tend to `\infty` instead.
+
+        When ``s=self.limit_start()`` is finite, this bound is
+        guaranteed to be valid for `i>=s`.
+
+        Sometimes it's better to have a loose bound that starts early;
+        sometimes the converse holds. At this point which specific
+        bound and starting point is returned is not set in stone, in
+        order to leave room for later optimizations.
 
         EXAMPLES::
 

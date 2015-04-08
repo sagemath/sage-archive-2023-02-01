@@ -85,9 +85,12 @@ class IntegerListsLex(Parent):
       an upper bound on ``sum(l)``.
 
     - ``n`` -- a nonnegative integer (optional): if specified, this
-      overrides ``min_sum`` and ``max_sum``. Alternatively a list or
-      iterable of allowable values for the sum can be specified; see
-      :ref:`the examples for details <IntegerListsLex_disjoint_union>`.
+      overrides ``min_sum`` and ``max_sum``.
+
+      As a syntactic sugar, a list or iterable `L` can alternatively
+      be specified; in this case the disjoint union of the enumerated
+      sets, for each sum in `L`, will be returned. See :ref:`the
+      examples <IntegerListsLex_disjoint_union>` for details.
 
     - ``min_length`` -- a nonnegative integer (default: `0`): a lower
       bound on ``len(l)``.
@@ -466,14 +469,24 @@ class IntegerListsLex(Parent):
     case, the elements will be generated inverse lexicographically,
     for each sum in `L` in turn::
 
-        sage: C = IntegerListsLex([0,1,2], length=2)
-        sage: C.list()
+        sage: IntegerListsLex([0,1,2], length=2).list()
         [[0, 0],  [1, 0], [0, 1],  [2, 0], [1, 1], [0, 2]]
 
-    This is in fact just a short hand for using
+        sage: IntegerListsLex([2,1,0], length=2).list()
+        [[2, 0], [1, 1], [0, 2], [1, 0], [0, 1], [0, 0]]
+
+    Note in particular that the output is *not* globally sorted
+    lexicographically; also, if a given value appears several times,
+    the corresponding elements will be enumerated several times::
+
+        sage: IntegerListsLex([2,2], length=2).list()
+        [[2, 0], [1, 1], [0, 2], [2, 0], [1, 1], [0, 2]]
+
+
+    This feature is in fact just a short hand for using
     :class:`DisjointUnionEnumeratedSets`::
 
-        sage: C
+        sage: IntegerListsLex([0,1,2], length=2)
         Disjoint union of Finite family
         {0: Integer lists of sum 0 satisfying certain constraints,
          1: Integer lists of sum 1 satisfying certain constraints,

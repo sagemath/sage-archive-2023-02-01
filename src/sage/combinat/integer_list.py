@@ -86,7 +86,8 @@ class IntegerListsLex(Parent):
 
     - ``n`` -- a nonnegative integer (optional): if specified, this
       overrides ``min_sum`` and ``max_sum``. Alternatively a list or
-      iterable of nonnegative integers can be specified.
+      iterable of allowable values for the sum can be specified; see
+      :ref:`the examples for details <IntegerListsLex_disjoint_union>`.
 
     - ``min_length`` -- a nonnegative integer (default: `0`): a lower
       bound on ``len(l)``.
@@ -457,6 +458,7 @@ class IntegerListsLex(Parent):
     Note the use of the ``element_constructor`` option to specify how
     to construct elements from a plain list.
 
+    .. _IntegerListsLex_disjoint_union:
 
     .. RUBRIC:: Input list or iterable for the sum
 

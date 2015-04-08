@@ -165,7 +165,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
         ::
 
             sage: A.<x,y> = AffineSpace(QQ,2)
-            sage: E=A.subscheme([x^2 + y^2 - 1, y^2 - x^3 + x^2 + x - 1])
+            sage: E = A.subscheme([x^2 + y^2 - 1, y^2 - x^3 + x^2 + x - 1])
             sage: E(A.base_ring()).points()
             [(0, -1), (-1, 0), (1, 0), (0, 1)]
         """

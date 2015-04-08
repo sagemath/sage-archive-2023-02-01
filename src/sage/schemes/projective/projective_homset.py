@@ -104,7 +104,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
-            sage: E=P.subscheme([(y^3-y*z^2) - (x^3-x*z^2),(y^3-y*z^2) + (x^3-x*z^2)])
+            sage: E = P.subscheme([(y^3-y*z^2) - (x^3-x*z^2),(y^3-y*z^2) + (x^3-x*z^2)])
             sage: E(P.base_ring()).points()
             [(1 : -1 : 1), (-1 : 0 : 1), (0 : 0 : 1), (-1 : 1 : 1), (0 : -1 : 1),
             (-1 : -1 : 1), (1 : 1 : 1), (1 : 0 : 1), (0 : 1 : 1)]

@@ -1559,13 +1559,13 @@ class Components(SageObject):
                         
             # definition of the list of input parameters
             listParalInput = [(self,other,ind_part) for ind_part in local_list]
-            
+
             @parallel(p_iter='multiprocessing',ncpus=nproc)
             def paral_mul(a,b,local_list_ind):
                 partial = []
                 for ind in local_list_ind:
                     for ind_o, val_o in b._comp.iteritems():
-                        partial.append([ind + ind_o,a[ind]*val_o])
+                        partial.append([ind + ind_o,a._comp[ind]*val_o])
                 return partial
 
             for ii,val in paral_mul(listParalInput):
@@ -3284,7 +3284,7 @@ class CompWithSym(Components):
                 partial = []
                 for ind in local_list_ind:
                     for ind_o, val_o in b._comp.iteritems():
-                        partial.append([ind + ind_o,a[ind]*val_o])
+                        partial.append([ind + ind_o,a._comp[ind]*val_o])
                 return partial
 
             for ii,val in paral_mul(listParalInput):
@@ -4544,6 +4544,21 @@ class CompFullySym(CompWithSym):
             sage: s == a + c
             True
 
+        Parallel computation::
+
+            sage: set_nproc(2); print get_nproc()
+            2
+            sage: s = a.__add__(c) ; s  # the symmetry is lost
+            2-indices components w.r.t. (1, 2, 3)
+            sage: s[:]
+            [ 0  7  7]
+            [ 1  0  5]
+            [-7  5  0]
+            sage: s == a + c
+            True
+            sage: set_nproc(1)
+            
+
         """
         if other == 0:
             return +self
@@ -4560,9 +4575,36 @@ class CompFullySym(CompWithSym):
             if other._sindex != self._sindex:
                 raise ValueError("the two sets of components do not have the " +
                                  "same starting index")
-            result = self.copy()
-            for ind, val in other._comp.iteritems():
-                result[[ind]] += val
+
+            if TensorParallelism()._use_paral :
+                # parallel sum
+                result = self._new_instance()
+                nproc = TensorParallelism()._nproc 
+                lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+
+                ind_list = [ ind for ind, ocomp  in other._comp.iteritems()]
+                ind_step = max(1,int(len(ind_list)/nproc/2))
+                local_list = lol(ind_list,ind_step)
+
+                # definition of the list of input parameters
+                listParalInput = [(self,other,ind_part) for ind_part in local_list]
+
+                @parallel(p_iter='multiprocessing',ncpus=nproc)
+                def paral_sum(a,b,local_list_ind):
+                    partial = []
+                    for ind in local_list_ind:
+                        partial.append([ind,a[[ind]]+b[[ind]]])
+                    return partial
+
+                for ii,val in paral_sum(listParalInput):
+                    for jj in val:
+                        result[[jj[0]]] = jj[1]      
+
+            else:
+                # sequential
+                result = self.copy()
+                for ind, val in other._comp.iteritems():
+                    result[[ind]] += val
             return result
         else:
             return CompWithSym.__add__(self, other)

@@ -31,7 +31,8 @@ public:
 	enum {
 		expand_indexed = 0x0001,      ///< expands (a+b).i to a.i+b.i
 		expand_function_args = 0x0002, ///< expands the arguments of functions
-		expand_rename_idx = 0x0004 ///< used internally by mul::expand()
+		expand_rename_idx = 0x0004, ///< used internally by mul::expand()
+		expand_transcendental = 0x0008 ///< expands trancendental functions like log and exp
 	};
 };
 

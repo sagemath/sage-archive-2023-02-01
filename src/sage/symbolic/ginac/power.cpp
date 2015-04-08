@@ -871,8 +871,7 @@ ex power::imag_part() const
 	ex b=basis.imag_part();
 	ex c=exponent.real_part();
 	ex d=exponent.imag_part();
-	return
-		power(abs(basis),c)*exp(-d*atan2(b,a))*sin(c*atan2(b,a)+d*log(abs(basis)));
+	return power(abs(basis),c)*exp(-d*atan2(b,a))*sin(c*atan2(b,a)+d*log(abs(basis)));
 }
 
 // protected

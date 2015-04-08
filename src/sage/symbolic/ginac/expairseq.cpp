@@ -1042,7 +1042,7 @@ void expairseq::construct_from_exvector(const exvector &v, bool hold)
 {
 	// simplifications: +(a,+(b,c),d) -> +(a,b,c,d) (associativity)
 	//                  +(d,b,c,a) -> +(a,b,c,d) (canonicalization)
-	//                  +(...,x,*(x,c1),*(x,c2)) -> +(...,*(x,1+c1+c2)) (c1, c2 numeric())
+	//                  +(...,x,*(x,c1),*(x,c2)) -> +(...,*(x,1+c1+c2)) (c1, c2 numeric)
 	//                  (same for (+,*) -> (*,^)
 
 	make_flat(v, hold);
@@ -1060,8 +1060,8 @@ void expairseq::construct_from_epvector(const epvector &v, bool do_index_renamin
 {
 	// simplifications: +(a,+(b,c),d) -> +(a,b,c,d) (associativity)
 	//                  +(d,b,c,a) -> +(a,b,c,d) (canonicalization)
-	//                  +(...,x,*(x,c1),*(x,c2)) -> +(...,*(x,1+c1+c2)) (c1, c2 numeric())
-	//                  (same for (+,*) -> (*,^)
+	//                  +(...,x,*(x,c1),*(x,c2)) -> +(...,*(x,1+c1+c2)) (c1, c2 numeric)
+	//                  same for (+,*) -> (*,^)
 
 	make_flat(v, do_index_renaming);
 #if EXPAIRSEQ_USE_HASHTAB
@@ -1484,7 +1484,7 @@ bool expairseq::has_coeff_0() const
 }
 
 void expairseq::add_numerics_to_hashtab(epvector::iterator first_numeric,
-										epvector::const_iterator last_non_zero)
+                                        epvector::const_iterator last_non_zero)
 {
 	if (first_numeric == seq.end()) return; // no numerics
 	

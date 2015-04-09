@@ -117,6 +117,7 @@ import inspect
 import functools
 import os
 import tokenize
+import types
 EMBEDDED_MODE = False
 from sage.env import SAGE_SRC
 
@@ -1508,12 +1509,8 @@ def _sage_getdoc_unformatted(obj):
     except (AttributeError, TypeError): # the TypeError occurs if obj is a class
         r = obj.__doc__
 
-    if not r:
-        return ''
-
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.
-    import types
     if not isinstance(r, types.StringTypes):
         return ''
     elif isinstance(r, unicode):
@@ -1563,6 +1560,15 @@ def sage_getdoc_original(obj):
         objects in computer science.
         ...
 
+    Old-style classes are supported::
+
+        sage: class OldStyleClass:
+        ....:     def __init__(self):
+        ....:         '''The __init__ docstring'''
+        ....:         pass
+        sage: print sage_getdoc_original(OldStyleClass)
+        The __init__ docstring
+
     If an instance of a class does not have its own docstring, the docstring
     of its class results::
 
@@ -1570,6 +1576,13 @@ def sage_getdoc_original(obj):
         True
 
     """
+    # typ is the type corresponding to obj, which is obj itself if
+    # that was a type or old-style class
+    if isinstance(obj, (type, types.ClassType) ):
+        typ = obj
+    else:
+        typ = type(obj)
+
     s = _sage_getdoc_unformatted(obj)
     if s:
         pos = _extract_embedded_position(s)
@@ -1578,21 +1591,19 @@ def sage_getdoc_original(obj):
             # class' __init__ method, but does not contain embedding
             # information. This is particularly critical if it contains * or
             # **, which would be misinterpreted by sphinx.
-            L = s.splitlines()
-            if isinstance(obj, type):
-                name = obj.__name__
-            else:
-                name = type(obj).__name__
-            if L[0].startswith(name.split('.')[-1]+'('):
-                s = os.linesep.join(L[1:])
+            name = typ.__name__.split('.')[-1]
+            if s.startswith(name + "("):
+                L = s.split(os.linesep, 1)
+                if len(L) < 2:
+                    s = ""    # The doc was just one line with the signature
+                else:
+                    s = L[1]  # Remove first line, keep the rest
         else:
             s = pos[0]
     if not s:
-        if not isinstance(obj, type):
-            obj = type(obj)
-        if (getattr(obj.__init__,'__objclass__',None) or
-            getattr(obj.__init__, 'im_class', None)) == obj:
-            return sage_getdoc_original(obj.__init__)
+        if (getattr(typ.__init__, '__objclass__', None) or
+            getattr(typ.__init__, 'im_class', None)) == typ:
+            return sage_getdoc_original(typ.__init__)
     return s
 
 def sage_getdoc(obj, obj_name='', embedded_override=False):

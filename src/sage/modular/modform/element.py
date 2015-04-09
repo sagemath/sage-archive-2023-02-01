@@ -1363,9 +1363,11 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             sage: f.q_expansion(6)
             q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
             sage: eps = DirichletGroup(3).0
+            sage: eps.parent()
+            Group of Dirichlet characters of modulus 3 over Cyclotomic Field of order 2 and degree 1
             sage: f_eps = f.twist(eps)
             sage: f_eps.parent()
-            Cuspidal subspace of dimension 9 of Modular Forms space of dimension 16 for Congruence Subgroup Gamma0(99) of weight 2 over Rational Field
+            Cuspidal subspace of dimension 9 of Modular Forms space of dimension 16 for Congruence Subgroup Gamma0(99) of weight 2 over Cyclotomic Field of order 2 and degree 1
             sage: f_eps.q_expansion(6)
             q + 2*q^2 + 2*q^4 - q^5 + O(q^6)
 
@@ -1377,6 +1379,18 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             sage: chi = DirichletGroup(2)[0]
             sage: f.twist(chi)
             60*q^3 + 240*q^5 + O(q^6)
+
+        The base field of the twisted form is extended if necessary::
+
+            sage: E4 = ModularForms(1, 4).gen(0)
+            sage: E4.parent()
+            Modular Forms space of dimension 1 for Modular Group SL(2,Z) of weight 4 over Rational Field
+            sage: chi = DirichletGroup(5)[1]
+            sage: chi.base_ring()
+            Cyclotomic Field of order 4 and degree 2
+            sage: E4_chi = E4.twist(chi)
+            sage: E4_chi.parent()
+            Modular Forms space of dimension 10, character [-1] and weight 4 over Cyclotomic Field of order 4 and degree 2
 
         REFERENCES:
 
@@ -1396,7 +1410,9 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         """
         from sage.modular.all import CuspForms, ModularForms
         from sage.rings.all import PowerSeriesRing, lcm
-        R = self.base_ring()
+        from sage.structure.element import get_coercion_model
+        coercion_model = get_coercion_model()
+        R = coercion_model.common_parent(self.base_ring(), chi.base_ring())
         N = self.level()
         Q = chi.modulus()
         try:
@@ -1408,7 +1424,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             if level is None:
                 # See [Atkin-Li], Proposition 3.1.
                 level = lcm([N, epsilon.conductor() * Q, Q**2])
-            G = DirichletGroup(level)
+            G = DirichletGroup(level, base_ring=R)
             M = constructor(G(epsilon) * G(chi)**2, self.weight(), base_ring=R)
         else:
             from sage.modular.arithgroup.all import Gamma1

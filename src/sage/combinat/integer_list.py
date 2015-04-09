@@ -29,6 +29,7 @@ implementation is still available in
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from inspect import ismethod
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.cachefunc import cached_method
@@ -1197,29 +1198,81 @@ If you know what you are doing, you can set check=False to skip this warning."""
         """
         return lambda i: l[i] if i < len(l) else default
 
-    def __cmp__(self, x):
-        """
-        Compares two different :class:`IntegerListsLex`.
-
-        TODO: Fix this to make it more robust!
-
-        For now, the comparison is done just on their repr's which is
-        not robust!
+    def __eq__(self, other):
+        r"""
+        Return whether ``self == other``.
 
         EXAMPLES::
 
             sage: C = IntegerListsLex(2, length=3)
-            sage: D = IntegerListsLex(4, length=3)
-            sage: repr(C) == repr(D)
+            sage: D = IntegerListsLex(2, length=3); L = D.list();
+            sage: E = IntegerListsLex(2, min_length=3)
+            sage: F = IntegerListsLex(2, length=3, element_constructor=list)
+            sage: G = IntegerListsLex(4, length=3)
+            sage: C == C
+            True
+            sage: C == D
+            True
+            sage: C == E
             False
+            sage: C == F
+            False
+            sage: C == None
+            False
+            sage: C == G
+            False
+
+        This is a minimal implementation enabling pickling tests. It
+        is safe, but one would want the two following objects to be
+        detected as equal::
+
+            sage: C = IntegerListsLex(2, ceiling=[1,1,1])
+            sage: D = IntegerListsLex(2, ceiling=[1,1,1])
             sage: C == D
             False
+
+        TESTS:
+
+        This used to fail due to poor equality testing. See
+        :trac:17979, comment 433::
+
+            sage: IntegerListsLex([2,2],length=2).list()
+            [[2, 0], [1, 1], [0, 2], [2, 0], [1, 1], [0, 2]]
+            sage: IntegerListsLex([2,2],length=1).list()
+            [[2], [2]]
         """
-        return cmp(repr(self), repr(x))
+        if self.__class__ != other.__class__:
+            return False
+        for key in ["_min_length", "_max_length", "_floor", "_ceiling", "_min_part", "_max_part", "_min_sum", "_max_sum", "Element"]:
+            if getattr(self, key) != getattr(other, key):
+                return False
+        a = self._element_constructor
+        b = other._element_constructor
+        if ismethod(a):
+            a = a.im_func
+        if ismethod(b):
+            b = b.im_func
+        return a == b
+
+    def __ne__(self, other):
+        r"""
+        Return whether ``self != other``.
+
+        EXAMPLES::
+
+            sage: C = IntegerListsLex(2, length=3)
+            sage: D = IntegerListsLex(2, length=3); L = D.list();
+            sage: E = IntegerListsLex(2, max_length=3)
+            sage: C != D
+            False
+            sage: C != E
+            True
+        """
+        return not self == other
 
     def _repr_(self):
         """
-        Return the name of this combinatorial class.
+        Return the name of this enumerated set.
 
         EXAMPLES::
 
@@ -2073,6 +2126,50 @@ class Envelope(object):
             self(min_length-1)
             for i in range(min_length-1,0,-1):
                 self._precomputed[i-1] = min(self._precomputed[i-1], self._precomputed[i] - self._min_slope)
+
+    def __eq__(self, other):
+        r"""
+        Return whether ``self == other``.
+
+        This is a minimal implementation enabling pickling tests.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.integer_list import Envelope
+            sage: f = Envelope([3,2,2])
+            sage: g = Envelope([3,2,2])
+            sage: h = Envelope([3,2,2], min_part=2)
+            sage: f == f, f == h, f == None
+            (True, False, False)
+
+        This would be desirable::
+
+            sage: f == g          # todo: not implemented
+            True
+        """
+        return self.__class__ == other.__class__ and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        r"""
+        Return whether ``self != other``.
+
+        This is a minimal implementation enabling pickling tests.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.integer_list import Envelope
+            sage: f = Envelope([3,2,2])
+            sage: g = Envelope([3,2,2])
+            sage: h = Envelope([3,2,2], min_part=2)
+            sage: f != f, f != h, f != None
+            (False, True, True)
+
+        This would be desirable::
+
+            sage: f != g           # todo: not implemented
+            False
+        """
+        return not self == other
 
     def limit_start(self):
         """

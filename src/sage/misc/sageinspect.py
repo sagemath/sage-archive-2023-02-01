@@ -1569,6 +1569,13 @@ def sage_getdoc_original(obj):
         sage: print sage_getdoc_original(OldStyleClass)
         The __init__ docstring
 
+    When there is no ``__init__`` method, we just get an empty string::
+
+        sage: class OldStyleClass:
+        ....:     pass
+        sage: sage_getdoc_original(OldStyleClass)
+        ''
+
     If an instance of a class does not have its own docstring, the docstring
     of its class results::
 
@@ -1601,9 +1608,14 @@ def sage_getdoc_original(obj):
         else:
             s = pos[0]
     if not s:
-        if (getattr(typ.__init__, '__objclass__', None) or
-            getattr(typ.__init__, 'im_class', None)) == typ:
-            return sage_getdoc_original(typ.__init__)
+        try:
+            init = typ.__init__
+        except AttributeError:
+            pass
+        else:
+            if (getattr(init, '__objclass__', None) or
+                getattr(init, 'im_class', None)) == typ:
+                return sage_getdoc_original(init)
     return s
 
 def sage_getdoc(obj, obj_name='', embedded_override=False):

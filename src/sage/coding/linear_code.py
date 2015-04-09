@@ -721,6 +721,8 @@ class AbstractLinearCode(module.Module):
       You need of course to complete the constructor by adding any additional parameter
       needed to describe properly the code defined in the subclass.
 
+    - reimplement ``generator_matrix()`` method
+
     As AbstractLinearCode is not designed to be implemented, it does not have any representation
     methods. You should implement ``_repr_`` and ``_latex_`` methods in the sublclass.
 
@@ -1772,26 +1774,7 @@ class AbstractLinearCode(module.Module):
         return codeword
 
     def generator_matrix(self):
-        r"""
-        Return a generator matrix of this code.
-
-        EXAMPLES::
-
-            sage: C1 = codes.HammingCode(3,GF(2))
-            sage: C1.generator_matrix()
-            [1 0 0 0 0 1 1]
-            [0 1 0 0 1 0 1]
-            [0 0 1 0 1 1 0]
-            [0 0 0 1 1 1 1]
-            sage: C2 = codes.HammingCode(2,GF(4,"a"))
-            sage: C2.generator_matrix()
-            [    1     0     0 a + 1     a]
-            [    0     1     0     1     1]
-            [    0     0     1     a a + 1]
-        """
-        return self._generator_matrix
-
-    gen_mat = deprecated_function_alias(17973, generator_matrix)
+        return NotImplementedError("This method must be set in subclasses") 
 
     def generator_matrix_systematic(self):
         """
@@ -3306,3 +3289,19 @@ class LinearCode(AbstractLinearCode):
             Linear code of length 7, dimension 4 over Finite Field of size 2
         """
         return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())
+
+    def generator_matrix(self):
+        r"""
+        Return a generator matrix of this code.
+
+        EXAMPLES::
+
+            sage: G = matrix(GF(3),2,[1,-1,1,-1,1,1])
+            sage: code = LinearCode(G)
+            sage: code.generator_matrix()
+            [1 2 1]
+            [2 1 1]
+        """
+        return self._generator_matrix
+
+    gen_mat = deprecated_function_alias(17973, generator_matrix)

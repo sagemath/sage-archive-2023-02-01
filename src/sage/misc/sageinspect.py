@@ -1982,7 +1982,7 @@ def sage_getsourcelines(obj):
     if pos is None:
         try:
             return inspect.getsourcelines(obj)
-        except (IOError, TypeError), err:
+        except (IOError, TypeError) as err:
             try:
                 objinit = obj.__init__
             except AttributeError:

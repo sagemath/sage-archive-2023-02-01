@@ -18,7 +18,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from discrete_valuation import DiscreteValuation
+from discrete_valuation import DiscreteValuation, DiscretePseudoValuation
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
 from sage.misc.fast_methods import WithEqualityById
@@ -85,10 +85,15 @@ class PadicValuationFactory(UniqueFactory):
         elif is_NumberField(R):
             if prime is None:
                 raise ValueError("prime must be specified for this ring")
-            prime = R.ideal(prime)
-            if check and not prime.is_prime():
-                raise ValueError("prime must be prime")
-            return (id(R), prime.gens()), {"R":R, "prime":prime}
+            if not isinstance(prime, DiscretePseudoValuation):
+                raise ValueError("prime must be a discrete (pseudo) valuation on a polynomial ring over the base of the number field")
+            normalized_primes = prime._base_valuation._base_valuation.mac_lane_approximants(R.relative_polynomial())
+            normalized_prime = [v for v in normalized_primes if v(prime.phi()) == prime(prime.phi())]
+            if len(normalized_prime) == 0:
+                raise ValueError("prime does not define a valuation on this number field.")
+            if len(normalized_prime) > 1:
+                raise ValueError("prime does not define a unique valuation on this number field.")
+            return (id(R), normalized_prime[0]), {"R":R}
         else:
             raise NotImplementedError("p-adic valuation not implemented for this ring")
 
@@ -101,7 +106,7 @@ class PadicValuationFactory(UniqueFactory):
         elif isinstance(R, pAdicGeneric):
             return pAdicValuation_padic(R)
         else:
-            R, prime = extra_args['R'], extra_args['prime']
+            R = extra_args['R']
             return pAdicValuation_number_field(R, prime)
             # TODO:
             # The code below tries to turn a relative extension into an absolute extension and then speed up PARI through the maximize_at_primes=(p,) switch. However, in large examples this crashes PARI.
@@ -669,8 +674,7 @@ class pAdicValuation_base(WithEqualityById, DiscreteValuation):
             W = self.mac_lane_approximants(L.defining_polynomial())
             if len(W) > 1:
                 raise ValueError("extension to %s is not unique"%L)
-            prime = L.ideal(W[0].uniformizer()(L.gen()), self.residue_field().characteristic())
-            return pAdicValuation(L, prime, check=False)
+            return pAdicValuation(L, W[0], check=False)
         else: raise ValueError
 
 class pAdicValuation_padic(pAdicValuation_base):
@@ -808,29 +812,57 @@ class pAdicValuation_int(pAdicValuation_base):
     pass
 
 class pAdicValuation_number_field(pAdicValuation_base):
-    @cached_method
-    def uniformizer(self):
-        #assert self._prime.is_principal()
-        #return self._prime.gen(0)
-        for g in self._prime.gens():
-            if g.valuation(self._prime) == 1:
-                return g
-        raise NotImplementedError
+    def __init__(self, R, valuation):
+        p = valuation.residue_field().characteristic()
+        assert(p>0)
+        pAdicValuation_base.__init__(self, R, valuation.uniformizer()(R.gen()))
+        self._valuation = valuation
+
+    def _mac_lane_step(self):
+        E,F = self._valuation.E(),self._valuation.F()
+        self._valuation = self._valuation.mac_lane_step(self.domain().relative_polynomial())
+        assert len(self._valuation)== 1
+        self._valuation = self._valuation[0]
+        assert E == self._valuation.E()
+        assert F == self._valuation.F()
 
     @cached_method
     def residue_field(self):
-        from sage.rings.all import GF
-        return GF(self._prime.residue_field().order(), names=('u',))
+        return self._valuation.residue_field()
 
     def _repr_(self):
         return "%s-adic valuation"%(self._prime)
+
+    def _call_(self, x):
+        if x.parent() is not self.domain():
+            raise ValueError("x must be in the domain of the valuation")
+
+        if x.is_zero():
+            return infinity
+        
+        f = self._valuation.domain()(x.list())
+        while True:
+            vals = self._valuation.valuations(f)
+            ret = min(vals)
+            argmin = [1 for t in vals if t == ret]
+            if len(argmin)>1:
+                self._mac_lane_step()
+                continue
+            return ret*self._valuation.E()
 
     def reduce(self, x):
         if x.parent() is not self.domain():
             raise ValueError("x must be in the domain of the valuation")
 
-        k = self.domain().residue_field(self._prime)
-        return self.residue_field()(k(x).polynomial())
+        if self(x)>0:
+            return self.residue_field().zero()
+        f = self._valuation.domain()(x.list())
+        while True:
+            ret = self._valuation.reduce(f)
+            if ret.degree():
+                self._mac_lane_step()
+                continue
+            return ret[0]
 
     def lift(self, x):
         if x.parent() is not self.residue_field():
@@ -840,50 +872,4 @@ class pAdicValuation_number_field(pAdicValuation_base):
         if x.is_zero():
             return self.domain().zero()
 
-        k = self.domain().residue_field(self._prime)
-        return self.domain()(k.lift(x.polynomial()(k.gen())))
-
-class pAdicValuation_number_field_relative(pAdicValuation_base):
-    def __init__(self, R, prime):
-        pAdicValuation_base.__init__(self, R, prime)
-        if R.base_ring() is R.base():
-            raise ValueError("R must be a relative extension")
-        from sage.rings.all import ZZ
-        p = None
-        for g in prime.gens():
-            if g in ZZ: p = ZZ(g)
-        if p is None:
-            raise NotImplementedError("determine prime below in ZZ")
-        self._absolute_field = R.absolute_field(R.variable_name()+"_",maximize_at_primes=(p,))
-        self._to_absolute_field = self._absolute_field.structure()[1]
-        self._from_absolute_field = self._absolute_field.structure()[0]
-        self._absolute_ideal = self._absolute_field.ideal([self._to_absolute_field(g) for g in prime.gens()])
-        self._implementation = pAdicValuation(self._absolute_field, self._absolute_ideal, check=False)
-
-    @cached_method
-    def uniformizer(self):
-        return self._from_absolute_field(self._implementation.uniformizer())
-
-    @cached_method
-    def residue_field(self):
-        return self._implementation.residue_field()
-
-    def _repr_(self):
-        return "%s-adic valuation"%(self._prime)
-
-    def reduce(self, x):
-        if x.parent() is not self.domain():
-            raise ValueError("x must be in the domain of the valuation")
-
-        return self._implementation.reduce(self._to_absolute_field(x))
-
-    def lift(self, x):
-        if x.parent() is not self.residue_field():
-            raise ValueError("x must be in the residue field of the valuation")
-        return self._from_absolute_field(self._implementation.lift(x))
-
-    def _call_(self, x):
-        if x.parent() is not self.domain():
-            raise ValueError("x must be in the domain of the valuation")
-
-        return self._implementation(self._to_absolute_field(x))
+        return self._valuation.lift(x)(self.domain().gen())

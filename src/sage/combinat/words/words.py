@@ -1467,8 +1467,9 @@ class FiniteWords_over_OrderedAlphabet(Words_over_OrderedAlphabet):
         r"""
         Returns an iterator over all the words of self.
 
-        The iterator outputs the words in lexicographic order,
-        based on the order of the letters in the alphabet.
+        The iterator outputs the words in shortlex order (see
+        :wikipedia:`Shortlex_order`), i.e. first by increasing length and then
+        lexicographically.
 
         EXAMPLES::
 

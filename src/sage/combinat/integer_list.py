@@ -2173,9 +2173,9 @@ class Envelope(object):
 
     def limit_start(self):
         """
-        Return from which `i` on the bound holds.
+        Return from which `i` on the bound returned by ``limit`` holds.
 
-        .. SEEALSO:: :meth:`limit`
+        .. SEEALSO:: :meth:`limit` for the precise specifications.
 
         EXAMPLES::
 

@@ -275,11 +275,6 @@ static ex log_eval(const ex & x)
 		return Infinity;
 	}
 
-	// log(p^a) -> a*log(p), if p>0 and a is real
-	if (is_exactly_a<power>(x) && x.op(0).info(info_flags::positive) && x.op(1).info(info_flags::real)) {
-		return x.op(1)*log(x.op(0));
-	}
-
 	return log(x).hold();
 }
 

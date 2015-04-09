@@ -427,86 +427,6 @@ class ModularForm_abstract(ModuleElement):
                 vals.append(df[i] / self[i])
             return G(vals)
 
-    def twist(self, chi, level=None):
-        r"""
-        Return the twist of the modular form ``self`` by the Dirichlet
-        character ``chi``.
-
-        If ``self`` is a modular form `f` with character `\epsilon`
-        and `q`-expansion
-
-        .. math::
-
-            f(q) = \sum_{n=0}^\infty a_n q^n,
-
-        then the twist by `\chi` is a modular form `f_\chi` with
-        character `\epsilon\chi^2` and `q`-expansion
-
-        .. math::
-
-            f_\chi(q) = \sum_{n=0}^\infty \chi(n) a_n q^n.
-
-        INPUT:
-
-        - ``chi`` -- a Dirichlet character
-
-        - ``level`` -- (optional) the level `N` of the twisted form.
-          By default, the algorithm chooses some not necessarily
-          minimal value for `N` using [Atkin-Li]_, Proposition 3.1,
-          (See also [Koblitz]_, Proposition III.3.17, for a simpler
-          but slightly weaker bound.)
-
-        OUTPUT:
-
-        The form `f_\chi` as an element of the space of modular forms
-        for `\Gamma_1(N)` with character `\epsilon\chi^2`.
-
-        EXAMPLES::
-
-            sage: f = CuspForms(11, 2).0
-            sage: f.parent()
-            Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
-            sage: f.q_expansion(6)
-            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
-            sage: eps = DirichletGroup(3).0
-            sage: f_eps = f.twist(eps)
-            sage: f_eps.parent()
-            Cuspidal subspace of dimension 9 of Modular Forms space of dimension 16 for Congruence Subgroup Gamma0(99) of weight 2 over Rational Field
-            sage: f_eps.q_expansion(6)
-            q + 2*q^2 + 2*q^4 - q^5 + O(q^6)
-
-        REFERENCES:
-
-        .. [Atkin-Li] A. O. L. Atkin and Wen-Ch'ing Winnie Li, Twists
-           of newforms and pseudo-eigenvalues of `W`-operators.
-           Inventiones math. 48 (1978), 221-243.
-
-        .. [Koblitz] Neal Koblitz, Introduction to Elliptic Curves and
-           Modular Forms.  Springer GTM 97, 1993.
-
-        AUTHORS:
-
-        - \L. J. P. Kilford (2009-08-28)
-
-        - Peter Bruin (2015-03-30)
-
-        """
-        from sage.modular.all import CuspForms, ModularForms
-        from sage.rings.all import PowerSeriesRing, lcm
-        epsilon = self.character()
-        R = self.base_ring()
-        if level is None:
-            # See [Atkin-Li], Proposition 3.1.
-            Q = chi.modulus()
-            level = lcm([self.level(), epsilon.conductor() * Q, Q**2])
-        G = DirichletGroup(level)
-        constructor = CuspForms if self.is_cuspidal() else ModularForms
-        M = constructor(G(epsilon) * G(chi)**2, self.weight(), base_ring=R)
-        bound = M.sturm_bound() + 1
-        S = PowerSeriesRing(R, 'q')
-        f_twist = S([self[i] * chi(i) for i in xrange(bound)], prec=bound)
-        return M(f_twist)
-
     def __nonzero__(self):
         """
         Return True if self is nonzero, and False if not.
@@ -1400,6 +1320,87 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             return -1
         else:
             return None
+
+    def twist(self, chi, level=None):
+        r"""
+        Return the twist of the modular form ``self`` by the Dirichlet
+        character ``chi``.
+
+        If ``self`` is a modular form `f` with character `\epsilon`
+        and `q`-expansion
+
+        .. math::
+
+            f(q) = \sum_{n=0}^\infty a_n q^n,
+
+        then the twist by `\chi` is a modular form `f_\chi` with
+        character `\epsilon\chi^2` and `q`-expansion
+
+        .. math::
+
+            f_\chi(q) = \sum_{n=0}^\infty \chi(n) a_n q^n.
+
+        INPUT:
+
+        - ``chi`` -- a Dirichlet character
+
+        - ``level`` -- (optional) the level `N` of the twisted form.
+          By default, the algorithm chooses some not necessarily
+          minimal value for `N` using [Atkin-Li]_, Proposition 3.1,
+          (See also [Koblitz]_, Proposition III.3.17, for a simpler
+          but slightly weaker bound.)
+
+        OUTPUT:
+
+        The form `f_\chi` as an element of the space of modular forms
+        for `\Gamma_1(N)` with character `\epsilon\chi^2`.
+
+        EXAMPLES::
+
+            sage: f = CuspForms(11, 2).0
+            sage: f.parent()
+            Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
+            sage: f.q_expansion(6)
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+            sage: eps = DirichletGroup(3).0
+            sage: f_eps = f.twist(eps)
+            sage: f_eps.parent()
+            Cuspidal subspace of dimension 9 of Modular Forms space of dimension 16 for Congruence Subgroup Gamma0(99) of weight 2 over Rational Field
+            sage: f_eps.q_expansion(6)
+            q + 2*q^2 + 2*q^4 - q^5 + O(q^6)
+
+        REFERENCES:
+
+        .. [Atkin-Li] A. O. L. Atkin and Wen-Ch'ing Winnie Li, Twists
+           of newforms and pseudo-eigenvalues of `W`-operators.
+           Inventiones math. 48 (1978), 221-243.
+
+        .. [Koblitz] Neal Koblitz, Introduction to Elliptic Curves and
+           Modular Forms.  Springer GTM 97, 1993.
+
+        AUTHORS:
+
+        - \L. J. P. Kilford (2009-08-28)
+
+        - Peter Bruin (2015-03-30)
+
+        """
+        from sage.modular.all import CuspForms, ModularForms
+        from sage.rings.all import PowerSeriesRing, lcm
+        epsilon = self.character()
+        R = self.base_ring()
+        if level is None:
+            # See [Atkin-Li], Proposition 3.1.
+            Q = chi.modulus()
+            level = lcm([self.level(), epsilon.conductor() * Q, Q**2])
+        G = DirichletGroup(level)
+        constructor = CuspForms if self.is_cuspidal() else ModularForms
+        M = constructor(G(epsilon) * G(chi)**2, self.weight(), base_ring=R)
+        bound = M.sturm_bound() + 1
+        S = PowerSeriesRing(R, 'q')
+        f_twist = S([self[i] * chi(i) for i in xrange(bound)], prec=bound)
+        return M(f_twist)
+
 
 class ModularFormElement_elliptic_curve(ModularFormElement):
     """

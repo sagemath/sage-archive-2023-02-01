@@ -888,8 +888,16 @@ contraction_done:
 					// Non-commutative products are always re-expanded to give
 					// eval_ncmul() the chance to re-order and canonicalize
 					// the product
+					bool is_a_product = (is_exactly_a<mul>(*it1) || is_exactly_a<ncmul>(*it1)) &&
+					                    (is_exactly_a<mul>(*it2) || is_exactly_a<ncmul>(*it2));
 					ex r = (non_commutative ? ex(ncmul(v, true)) : ex(mul(v)));
-					return simplify_indexed(r, free_indices, dummy_indices, sp);
+
+					// If new expression is a product we can call this function again,
+					// otherwise we need to pass argument to simplify_indexed() to be expanded
+					if (is_a_product)
+						return simplify_indexed_product(r, free_indices, dummy_indices, sp);
+					else
+						return simplify_indexed(r, free_indices, dummy_indices, sp);
 				}
 
 				// Both objects may have new indices now or they might

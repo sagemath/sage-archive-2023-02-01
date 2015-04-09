@@ -408,6 +408,12 @@ bool expairseq::match(const ex & pattern, lst & repl_lst) const
 			}
 		}
 
+		// Even if the expression does not match the pattern, some of
+		// its subexpressions could match it. For example, x^5*y^(-1)
+		// does not match the pattern $0^5, but its subexpression x^5
+		// does. So, save repl_lst in order to not add bogus entries.
+		exmap tmp_repl = repl_lst;
+
 		// Unfortunately, this is an O(N^2) operation because we can't
 		// sort the pattern in a useful way...
 
@@ -427,7 +433,7 @@ bool expairseq::match(const ex & pattern, lst & repl_lst) const
 			while (it != itend) {
 				lst::const_iterator last_el = repl_lst.end();
 				--last_el;
-				if (it->match(p, repl_lst)) {
+				if (it->match(p, tmp_repl)) {
 					ops.erase(it);
 					goto found;
 				}
@@ -456,10 +462,16 @@ found:		;
 			for (size_t i=0; i<num; i++)
 				vp->push_back(split_ex_to_pair(ops[i]));
 			ex rest = thisexpairseq(vp, default_overall_coeff());
-			for (lst::const_iterator it = repl_lst.begin(); it != repl_lst.end(); ++it) {
-				if (it->op(0).is_equal(global_wildcard))
-					return rest.is_equal(it->op(1));
-			}
+            for (lst::const_iterator it = tmp_repl.begin(); it != tmp_repl.end(); ++it) {
+                if (it->op(0).is_equal(global_wildcard)) {
+                    if (rest.is_equal(it->op(1))) {
+                        repl_lst = tmp_repl;
+                        return true;
+                    }
+                return false;
+                }
+            }
+            repl_lst = tmp_repl;
 			repl_lst.append(global_wildcard == rest);
 			return true;
 
@@ -467,7 +479,11 @@ found:		;
 
 			// No global wildcard, then the match fails if there are any
 			// unmatched terms left
-			return ops.empty();
+			if (ops.empty()) {
+				repl_lst = tmp_repl;
+				return true;
+			}
+			return false;
 		}
 	}
 	return inherited::match(pattern, repl_lst);

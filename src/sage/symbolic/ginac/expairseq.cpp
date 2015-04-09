@@ -412,7 +412,7 @@ bool expairseq::match(const ex & pattern, lst & repl_lst) const
 		// its subexpressions could match it. For example, x^5*y^(-1)
 		// does not match the pattern $0^5, but its subexpression x^5
 		// does. So, save repl_lst in order to not add bogus entries.
-		exmap tmp_repl = repl_lst;
+		lst tmp_repl = repl_lst;
 
 		// Unfortunately, this is an O(N^2) operation because we can't
 		// sort the pattern in a useful way...

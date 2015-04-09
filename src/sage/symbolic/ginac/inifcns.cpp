@@ -77,46 +77,8 @@ static ex conjugate_imag_part(const ex & arg)
 	return -arg.imag_part();
 }
 
-static bool func_arg_info(const ex & arg, unsigned inf)
-{
-	// for some functions we can return the info() of its argument
-	// (think of conjugate())
-	switch (inf) {
-		case info_flags::polynomial:
-		case info_flags::integer_polynomial:
-		case info_flags::cinteger_polynomial:
-		case info_flags::rational_polynomial:
-		case info_flags::real:
-		case info_flags::rational:
-		case info_flags::integer:
-		case info_flags::crational:
-		case info_flags::cinteger:
-		case info_flags::even:
-		case info_flags::odd:
-		case info_flags::prime:
-		case info_flags::crational_polynomial:
-		case info_flags::rational_function:
-		case info_flags::algebraic:
-		case info_flags::positive:
-		case info_flags::negative:
-		case info_flags::nonnegative:
-		case info_flags::posint:
-		case info_flags::negint:
-		case info_flags::nonnegint:
-		case info_flags::has_indices:
-			return arg.info(inf);
-	}
-	return false;
-}
-
-static bool conjugate_info(const ex & arg, unsigned inf)
-{
-	return func_arg_info(arg, inf);
-}
-
 REGISTER_FUNCTION(conjugate_function, eval_func(conjugate_eval).
                                       evalf_func(conjugate_evalf).
-                                      info_func(conjugate_info).
                                       print_func<print_latex>(conjugate_print_latex).
                                       conjugate_func(conjugate_conjugate).
                                       real_part_func(conjugate_real_part).
@@ -255,27 +217,6 @@ static ex abs_eval(const ex & arg)
 	return abs(arg).hold();
 }
 
-static ex abs_expand(const ex & arg, unsigned options)
-{
-	if ((options & expand_options::expand_transcendental)
-		&& is_exactly_a<mul>(arg)) {
-		exvector prodseq;
-		prodseq.reserve(arg.nops());
-		for (const_iterator i = arg.begin(); i != arg.end(); ++i) {
-			if (options & expand_options::expand_function_args)
-				prodseq.push_back(abs(i->expand(options)));
-			else
-				prodseq.push_back(abs(*i));
-		}
-		return (new mul(prodseq))->setflag(status_flags::dynallocated | status_flags::expanded);
-	}
-
-	if (options & expand_options::expand_function_args)
-		return abs(arg.expand(options)).hold();
-	else
-		return abs(arg).hold();
-}
-
 static void abs_print_latex(const ex & arg, const print_context & c)
 {
 	c.s << "{\\left| "; arg.print(c); c.s << " \\right|}";
@@ -320,37 +261,9 @@ static ex abs_deriv(const ex & x, unsigned deriv_param)
 	return x/abs(x);
 }
 
-bool abs_info(const ex & arg, unsigned inf)
-{
-	switch (inf) {
-		case info_flags::integer:
-		case info_flags::even:
-		case info_flags::odd:
-		case info_flags::prime:
-			return arg.info(inf);
-		case info_flags::nonnegint:
-			return arg.info(info_flags::integer);
-		case info_flags::nonnegative:
-		case info_flags::real:
-			return true;
-		case info_flags::negative:
-			return false;
-		case info_flags::positive:
-			return arg.info(info_flags::positive) || arg.info(info_flags::negative);
-		case info_flags::has_indices: {
-			if (arg.info(info_flags::has_indices))
-				return true;
-			else
-				return false;
-		}
-	}
-	return false;
-}
 
 REGISTER_FUNCTION(abs, eval_func(abs_eval).
                        evalf_func(abs_evalf).
-                       expand_func(abs_expand).
-                       info_func(abs_info).
                        print_func<print_latex>(abs_print_latex).
                        print_func<print_csrc_float>(abs_print_csrc_float).
                        print_func<print_csrc_double>(abs_print_csrc_float).

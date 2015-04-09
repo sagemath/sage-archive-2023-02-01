@@ -452,6 +452,69 @@ class IntegerListsLex(Parent):
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1]
 
 
+    .. RUBRIC:: Tip: using disjoint union enumerated sets for additional flexibility
+
+    Sometimes, specifying a range for the sum or the length may be too
+    restrictive. One would want instead to specify a list, or
+    iterable `L`, of acceptable values. This is easy to achieve using
+    a :class:`disjoint union of enumerated sets <DisjointUnionEnumeratedSets>`.
+    Here we want to accept the values `n=0,2,3`::
+
+        sage: C = DisjointUnionEnumeratedSets(Family([0,2,3],
+        ....:         lambda n: IntegerListsLex(n, length=2)))
+        sage: C
+        Disjoint union of Finite family
+        {0: Integer lists of sum 0 satisfying certain constraints,
+         2: Integer lists of sum 2 satisfying certain constraints,
+         3: Integer lists of sum 3 satisfying certain constraints}
+        sage: C.list()
+        [[0, 0],
+         [2, 0], [1, 1], [0, 2],
+         [3, 0], [2, 1], [1, 2], [0, 3]]
+
+    The price to pay is that the enumeration order is now *graded
+    lexicographic* instead of lexicographic: first choose the value
+    according to the order specified by `L`, and use lexicographic
+    order within each value. Here is we reverse `L`:
+
+        sage: DisjointUnionEnumeratedSets(Family([3,2,0],
+        ....:     lambda n: IntegerListsLex(n, length=2))).list()
+        [[3, 0], [2, 1], [1, 2], [0, 3],
+         [2, 0], [1, 1], [0, 2],
+         [0, 0]]
+
+    Note that if a given value appears several times, the
+    corresponding elements will be enumerated several times, which
+    may, or not, be what one wants::
+
+        sage: DisjointUnionEnumeratedSets(Family([2,2],
+        ....:     lambda n: IntegerListsLex(n, length=2))).list()
+        [[2, 0], [1, 1], [0, 2], [2, 0], [1, 1], [0, 2]]
+
+    Here is a variant where we specify acceptable values for the
+    length::
+
+        sage: DisjointUnionEnumeratedSets(Family([0,1,3],
+        ....:     lambda l: IntegerListsLex(2, length=l))).list()
+        [[2],
+         [2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
+
+
+    This technique can also be useful to obtain a proper enumeration
+    on infinite sets by using a graded lexicographic enumeration::
+
+        sage: C = DisjointUnionEnumeratedSets(Family(NN,
+        ....:         lambda n: IntegerListsLex(n, length=2)))
+        sage: C
+        Disjoint union of Lazy family (<lambda>(i))_{i in Non negative integer semiring}
+        sage: it = iter(C)
+        sage: [it.next() for i in range(10)]
+        [[0, 0],
+         [1, 0], [0, 1],
+         [2, 0], [1, 1], [0, 2],
+         [3, 0], [2, 1], [1, 2], [0, 3]]
+
+
     .. RUBRIC:: Specifying how to construct elements
 
     This is the list of all monomials of degree `4` which divide the
@@ -484,16 +547,6 @@ class IntegerListsLex(Parent):
 
         The protocol for specifying the element class and constructor
         is subject to changes.
-
-    .. SEEALSO::
-
-        If you want to have a sum which cannot be given by the ``min_sum``
-        and ``max_sum`` arguments, use :class:`DisjointUnionEnumeratedSets`::
-
-            sage: C = DisjointUnionEnumeratedSets(Family([0,1,3],
-            ....:         lambda n: IntegerListsLex(n, length=2)))
-            sage: C.list()
-            [[0, 0], [1, 0], [0, 1], [3, 0], [2, 1], [1, 2], [0, 3]]
 
     ALGORITHM:
 
@@ -1182,6 +1235,18 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: D = IntegerListsLex(2, ceiling=[1,1,1])
             sage: C == D
             False
+
+        TESTS:
+
+        This used to fail due to poor equality testing. See
+        :trac:17979, comment 433::
+
+            sage: DisjointUnionEnumeratedSets(Family([2,2],
+            ....:     lambda n: IntegerListsLex(n, length=2))).list()
+            [[2, 0], [1, 1], [0, 2], [2, 0], [1, 1], [0, 2]]
+            sage: DisjointUnionEnumeratedSets(Family([2,2],
+            ....:     lambda n: IntegerListsLex(n, length=1))).list()
+            [[2], [2]]
         """
         if self.__class__ != other.__class__:
             return False

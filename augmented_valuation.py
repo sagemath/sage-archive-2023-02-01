@@ -508,6 +508,11 @@ class AugmentedValuation(DevelopingValuation):
                 raise NotImplementedError
             return self.residue_ring()(self.coefficients(f).next())(self.residue_field_generator())
 
+        # if this is an infinite valuation, then we can simply drop all but the
+        # constant term
+        if self._mu is infinity:
+            return self.residue_ring()(self._base_valuation.reduce(self.coefficients(f).next()))
+
         CV = zip(self.coefficients(f), self.valuations(f))
         # rewrite as sum of f_i phi^{i tau}, i.e., drop most coefficients
         assert not any([v==0 for i,(c,v) in enumerate(CV) if i % self.tau() != 0])

@@ -366,11 +366,16 @@ ex power::map(map_function & f) const
 
 bool power::is_polynomial(const ex & var) const
 {
-	if (exponent.has(var))
-		return false;
-	if (!exponent.info(info_flags::nonnegint))
-		return false;
-	return basis.is_polynomial(var);
+	if (basis.is_polynomial(var)) {
+		if (basis.has(var))
+			// basis is non-constant polynomial in var
+			return exponent.info(info_flags::nonnegint);
+		else
+			// basis is constant in var
+			return !exponent.has(var);
+	}
+	// basis is a non-polynomial function of var
+	return false;
 }
 
 int power::degree(const ex & s) const

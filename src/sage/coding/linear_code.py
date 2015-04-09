@@ -716,7 +716,7 @@ class AbstractLinearCode(module.Module):
 
     - call AbstractLinearCode ``__init__`` method in the subclass constructor. Example:
       ``super(SubclassName, self).__init__(base_field, length)``.
-      By doing that, your subclass will have its ``base_field`` and ``length`` parameters 
+      By doing that, your subclass will have its ``length`` parameter
       initialized and will be properly set as a member of the category framework.
       You need of course to complete the constructor by adding any additional parameter
       needed to describe properly the code defined in the subclass.
@@ -726,7 +726,7 @@ class AbstractLinearCode(module.Module):
     As AbstractLinearCode is not designed to be implemented, it does not have any representation
     methods. You should implement ``_repr_`` and ``_latex_`` methods in the sublclass.
 
-    NOTE::
+    .. NOTE::
 
         AbstractLinearCode embeds some generic implementations of helper methods like ``__cmp__`` or ``__eq__``. 
         As they are designed to fit for every linear code, they mostly use the generator matrix 
@@ -788,11 +788,9 @@ class AbstractLinearCode(module.Module):
             sage: print C.divisor() #long time
             1
         """
-        self._base_field = base_field
         self._length = length
         cat = Modules(base_field).FiniteDimensional().WithBasis().Finite()
-        facade_for = VectorSpace(self._base_field, self._length)
-        self.Element = type(facade_for.an_element()) # for when we make this a non-facade parent
+        facade_for = VectorSpace(base_field, self._length)
         Parent.__init__(self, base=base_field, facade=facade_for, category=cat)
 
     def _an_element_(self):
@@ -994,7 +992,7 @@ class AbstractLinearCode(module.Module):
             sage: C.base_field()
             Finite Field of size 2 
         """
-        return self._base_field
+        return self.base_ring()
 
     def basis(self):
         r"""

@@ -304,6 +304,10 @@ static ex log_series(const ex &arg,
 	if (arg_pt.is_zero())
 		must_expand_arg = true;
 	
+	if (arg.diff(ex_to<symbol>(rel.lhs())).is_zero()) {
+		throw do_taylor();
+	}
+
 	if (must_expand_arg) {
 		// method:
 		// This is the branch point: Series expand the argument first, then

@@ -704,8 +704,6 @@ class AbstractLinearCode(module.Module):
 
     This class provides:
 
-    - ``base_field``, the base field over which the code is defined
-
     - ``length``, the length of the code
 
     - numerous methods that will work for any linear code (including families)

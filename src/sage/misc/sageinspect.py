@@ -1601,10 +1601,11 @@ def sage_getdoc_original(obj):
             name = typ.__name__.split('.')[-1]
             if s.startswith(name + "("):
                 L = s.split(os.linesep, 1)
-                if len(L) < 2:
-                    s = ""    # The doc was just one line with the signature
-                else:
-                    s = L[1]  # Remove first line, keep the rest
+                if L[0].endswith(")"):
+                    if len(L) < 2:
+                        s = ""    # The doc was just one line with the signature
+                    else:
+                        s = L[1]  # Remove first line, keep the rest
         else:
             s = pos[0]
     if not s:
@@ -1613,6 +1614,11 @@ def sage_getdoc_original(obj):
         except AttributeError:
             pass
         else:
+            # The docstring of obj is empty. To get something, we want to use
+            # the documentation of the __init__ method, but only if it belongs
+            # to (the type of) obj. The type for which a method is defined is
+            # either stored in the attribute `__objclass__` (cython) or
+            # `im_class` (python) of the method.
             if (getattr(init, '__objclass__', None) or
                 getattr(init, 'im_class', None)) == typ:
                 return sage_getdoc_original(init)

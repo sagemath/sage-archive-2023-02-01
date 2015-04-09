@@ -203,6 +203,7 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
         # initialize data
         bitset_set_first_n(seen, 0)
         bitset_add(seen,source)
+        bitset_set_first_n(next_layer, 0)
 
         memset(degrees,0,n*sizeof(uint32_t))
 
@@ -215,7 +216,6 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
         #
         # It is a BFS. The graph is explored layer by layer.
         while layer_current_beginning<layer_current_end:
-            bitset_set_first_n(next_layer, 0)
 
             # Looking for all non-discovered neighbors of some vertex of the
             # current layer.
@@ -247,7 +247,9 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
                         mpq_add(n_paths_from_source[v],n_paths_from_source[v],n_paths_from_source[u])
 
             # 'next_layer' becomes 'current_layer'
-            bitset_union(seen,seen,next_layer)
+            for j in range(layer_current_end, layer_next_end):
+                bitset_add(seen,queue[j])
+
             layer_current_beginning = layer_current_end
             layer_current_end       = layer_next_end
 

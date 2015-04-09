@@ -88,11 +88,6 @@ class IntegerListsLex(Parent):
     - ``n`` -- a nonnegative integer (optional): if specified, this
       overrides ``min_sum`` and ``max_sum``.
 
-      As a syntactic sugar, a list or iterable `L` can alternatively
-      be specified; this will construct the disjoint union of the
-      enumerated sets for each sum in `L` in turn. See :ref:`the
-      examples <IntegerListsLex_disjoint_union>` for details.
-
     - ``min_length`` -- a nonnegative integer (default: `0`): a lower
       bound on ``len(l)``.
 
@@ -492,43 +487,15 @@ class IntegerListsLex(Parent):
         The protocol for specifying the element class and constructor
         is subject to changes.
 
-    .. _IntegerListsLex_disjoint_union:
+    .. SEEALSO::
 
-    .. RUBRIC:: Input list or iterable for the sum
+        If you want to have a sum which cannot be given by the ``min_sum``
+        and ``max_sum`` arguments, use :class:`DisjointUnionEnumeratedSets`::
 
-    One may pass a list or iterable `L` as input for the sum. In this
-    case, the elements will be generated inverse lexicographically,
-    for each sum in `L` in turn::
-
-        sage: IntegerListsLex([0,1,2], length=2).list()
-        [[0, 0],  [1, 0], [0, 1],  [2, 0], [1, 1], [0, 2]]
-
-        sage: IntegerListsLex([2,1,0], length=2).list()
-        [[2, 0], [1, 1], [0, 2], [1, 0], [0, 1], [0, 0]]
-
-    Note in particular that the output is *not* globally sorted
-    lexicographically; also, if a given value appears several times,
-    the corresponding elements will be enumerated several times::
-
-        sage: IntegerListsLex([2,2], length=2).list()
-        [[2, 0], [1, 1], [0, 2], [2, 0], [1, 1], [0, 2]]
-
-    This feature is in fact just a short hand for using
-    :class:`DisjointUnionEnumeratedSets`::
-
-        sage: IntegerListsLex([0,1,2], length=2)
-        Disjoint union of Finite family
-        {0: Integer lists of sum 0 satisfying certain constraints,
-         1: Integer lists of sum 1 satisfying certain constraints,
-         2: Integer lists of sum 2 satisfying certain constraints}
-
-    This feature is mostly here for backward compatibility, as using
-    :class:`DisjointUnionEnumeratedSets` is more general and flexible::
-
-        sage: C = DisjointUnionEnumeratedSets(Family([0,1,2],
-        ....:         lambda n: IntegerListsLex(n, length=2)))
-        sage: C.list()
-        [[0, 0],  [1, 0], [0, 1],  [2, 0], [1, 1], [0, 2]]
+            sage: C = DisjointUnionEnumeratedSets(Family([0,1,3],
+            ....:         lambda n: IntegerListsLex(n, length=2)))
+            sage: C.list()
+            [[0, 0], [1, 0], [0, 1], [3, 0], [2, 1], [1, 2], [0, 3]]
 
     ALGORITHM:
 
@@ -779,15 +746,6 @@ class IntegerListsLex(Parent):
         sage: IntegerListsLex(14, min_length=3, max_length=6, floor=[2, 1, 2, 1, 1, 1], ceiling=[3, 1, 2, 3, 2, 2]).cardinality()
         0
 
-    Indirect tests about specifying an iterable for `n`::
-
-        sage: P = Partitions(NonNegativeIntegers(), max_part = 3)
-        sage: P.first()
-        []
-        sage: P = Partitions(NonNegativeIntegers())
-        sage: P.first()
-        []
-
     This used to hang (see comment 389 and fix in :meth:`Envelope.__init__`)::
 
         sage: IntegerListsLex(7, max_part=0, ceiling=lambda i:i, check=False).list()
@@ -800,13 +758,21 @@ class IntegerListsLex(Parent):
         r"""
         Return a disjoint union if ``n`` is a list or iterable.
 
-        EXAMPLES::
+        TESTS:
 
+        Specifying a list or iterable as argument is deprecated::
+
+            sage: IntegerListsLex([2,2], length=2).list()
+            doctest:...: DeprecationWarning: Calling IntegerListsLex with n an iterable is deprecated. Either use IntegerListsNN or DisjointUnionEnumeratedSets or use the min_sum and max_sum arguments instead
+            See http://trac.sagemath.org/17979 for details.
+            [[2, 0], [1, 1], [0, 2], [2, 0], [1, 1], [0, 2]]
             sage: IntegerListsLex(NN, max_length=3)
             Disjoint union of Lazy family (<lambda>(i))_{i in Non negative integer semiring}
         """
         import collections
         if isinstance(n, collections.Iterable):
+            from sage.misc.superseded import deprecation
+            deprecation(17979, 'Calling IntegerListsLex with n an iterable is deprecated. Either use IntegerListsNN or DisjointUnionEnumeratedSets or use the min_sum and max_sum arguments instead')
             from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
             return DisjointUnionEnumeratedSets(Family(n, lambda i: IntegerListsLex(i, **kwargs)))
         else:
@@ -1147,18 +1113,6 @@ If you know what you are doing, you can set check=False to skip this warning."""
              any(self._ceiling(i) == 0 for i in range(self._ceiling.limit_start()+1)))):
             return
 
-            # s = sum(self._floor(i) for i in range(self._floor.limit_start()))
-            # if (self._min_slope < 0            and
-            #     self._max_slope > 0            and
-            #     self._min_sum > s):
-            #     raise ValueError(message)
-
-            # if (self._min_slope == 0 and
-            #     self._max_slope  > 0 and
-            #     self._max_sum    > 0 and # this is assuming that we remove trailing zeroes
-            #     s==0):
-            #     raise ValueError(message)
-
         limit_start = max(self._ceiling.limit_start(), self._floor.limit_start())
         if limit_start < Infinity:
             for i in range(limit_start+1):
@@ -1230,16 +1184,6 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: D = IntegerListsLex(2, ceiling=[1,1,1])
             sage: C == D
             False
-
-        TESTS:
-
-        This used to fail due to poor equality testing. See
-        :trac:17979, comment 433::
-
-            sage: IntegerListsLex([2,2],length=2).list()
-            [[2, 0], [1, 1], [0, 2], [2, 0], [1, 1], [0, 2]]
-            sage: IntegerListsLex([2,2],length=1).list()
-            [[2], [2]]
         """
         if self.__class__ != other.__class__:
             return False
@@ -2343,3 +2287,45 @@ class Envelope(object):
         m *= self._sign
         m = m - j * self._max_slope
         return lambda i: self._sign * min(m + i*self._max_slope, self._sign*self(i) )
+
+
+def IntegerListsNN(**kwds):
+    """
+    Lists of nonnegative integers with constraints.
+
+    This function returns the union of ``IntegerListsLex(n, **kwds)``
+    where `n` ranges over all nonnegative integers.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.integer_list import IntegerListsNN
+        sage: L = IntegerListsNN(max_length=3, max_slope=-1)
+        sage: L
+        Disjoint union of Lazy family (<lambda>(i))_{i in Non negative integer semiring}
+        sage: it = iter(L)
+        sage: for _ in range(20):
+        ....:     print next(it)
+        []
+        [1]
+        [2]
+        [3]
+        [2, 1]
+        [4]
+        [3, 1]
+        [5]
+        [4, 1]
+        [3, 2]
+        [6]
+        [5, 1]
+        [4, 2]
+        [3, 2, 1]
+        [7]
+        [6, 1]
+        [5, 2]
+        [4, 3]
+        [4, 2, 1]
+        [8]
+    """
+    from sage.rings.semirings.non_negative_integer_semiring import NN
+    from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+    return DisjointUnionEnumeratedSets(Family(NN, lambda i: IntegerListsLex(i, **kwds)))

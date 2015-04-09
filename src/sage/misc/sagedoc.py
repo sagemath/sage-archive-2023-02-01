@@ -409,12 +409,6 @@ def format(s, embedded=False):
 
     Directives must be separated by a comma.
 
-    NOTE:
-
-    If the first line of the string provides embedding information,
-    which is the case for doc strings from extension modules, then
-    the first line will not be changed.
-
     INPUT:
 
     - ``s`` - string
@@ -424,6 +418,11 @@ def format(s, embedded=False):
 
     Set ``embedded`` equal to True if formatting for use in the
     notebook; this just gets passed as an argument to ``detex``.
+
+    .. SEEALSO::
+
+        :func:`sage.misc.sageinspect.sage_getdoc` to get the formatted
+        documentation of a given object.
 
     EXAMPLES::
 
@@ -456,18 +455,6 @@ def format(s, embedded=False):
         sage: sage.misc.sagedoc.format(sage.combinat.ranker.on_fly.__doc__)
         "   Returns ...  Todo: add tests as in combinat::rankers\n"
 
-    We check that the embedding information of a doc string from an extension
-    module is preserved, even if it is longer than a usual line. Moreover,
-    a ``nodetex`` directive in the first "essential" line of the doc string
-    is recognised. That has been implemented in trac ticket #11815::
-
-        sage: r = 'File: _local_user_with_a_very_long_name_that_would_normally_be_wrapped_sage_temp_machine_name_1234_tmp_1_spyx_0.pyx (starting at line 6)\nnodetex\nsome doc for a cython method\n`x \geq y`'
-        sage: print format(r)
-        File: _local_user_with_a_very_long_name_that_would_normally_be_wrapped_sage_temp_machine_name_1234_tmp_1_spyx_0.pyx (starting at line 6)
-        <BLANKLINE>
-        some doc for a cython method
-        `x \geq y`
-
     In the following use case, the ``nodetex`` directive would have been ignored prior
     to #11815::
 
@@ -488,11 +475,10 @@ def format(s, embedded=False):
             `x \geq y`
         <BLANKLINE>
 
-    We check that the ``noreplace`` directive works, even combined with ``nodetex`` and
-    an embedding information (see trac ticket #11817)::
+    We check that the ``noreplace`` directive works, even combined with
+    ``nodetex`` (see :trac:`11817`)::
 
-        sage: print format('File: bla.py (starting at line 1)\nnodetex, noreplace\n<<<identity_matrix>>>`\\not= 0`')
-        File: bla.py (starting at line 1)
+        sage: print format('''nodetex, noreplace\n<<<identity_matrix>>>`\\not= 0`''')
         <<<identity_matrix>>>`\not= 0`
 
     If replacement is impossible, then no error is raised::
@@ -511,28 +497,6 @@ def format(s, embedded=False):
     """
     if not isinstance(s, str):
         raise TypeError("s must be a string")
-
-    # Doc strings may contain embedding information, which should not
-    # be subject to formatting (line breaks must not be inserted).
-    # Hence, we first try to find out whether there is an embedding
-    # information.
-    from sage.misc.sageinspect import _extract_embedded_position
-
-    # Check for embedding info in first two lines
-    L = s.splitlines()
-    embedding_info = ''
-    if len(L) >= 2 and _extract_embedded_position(L[0]) is not None:
-        # Embedding info is on first line
-        embedding_info = L[0] + os.linesep
-        s = os.linesep.join(L[1:])
-    if len(L) >= 3 and _extract_embedded_position(L[1]) is not None:
-        # Embedding info is on second line
-        embedding_info = L[1] + os.linesep
-        s = os.linesep.join(L[2:])
-    else:
-        from sage.misc.sageinspect import _extract_embedded_position
-        if _extract_embedded_position(s) is not None:
-            return s
 
     # Leading empty lines must be removed, since we search for directives
     # in the first line.
@@ -591,7 +555,7 @@ def format(s, embedded=False):
             s = process_mathtt(s)
         s = process_extlinks(s, embedded=embedded)
         s = detex(s, embedded=embedded)
-    return embedding_info+s
+    return s
 
 def format_src(s):
     """

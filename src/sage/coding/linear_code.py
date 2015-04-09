@@ -1809,10 +1809,7 @@ class AbstractLinearCode(module.Module):
             sage: C.gens()
              [(1, 0, 0, 0, 0, 1, 1), (0, 1, 0, 0, 1, 0, 1), (0, 0, 1, 0, 1, 1, 0), (0, 0, 0, 1, 1, 1, 1)]
         """
-        if hasattr(self, "_gens"):
-            return self._gens
-        else:
-            return self.generator_matrix().rows()
+        return self.generator_matrix().rows()
 
     def genus(self):
         r"""
@@ -3271,7 +3268,6 @@ class LinearCode(AbstractLinearCode):
                 raise ValueError("this linear code contains no non-zero vector")
 
         super(LinearCode, self).__init__(base_ring, generator_matrix.ncols())
-        self._gens = generator_matrix.rows()
         self._generator_matrix = generator_matrix
         self._dimension = generator_matrix.rank()
         self._minimum_distance = d

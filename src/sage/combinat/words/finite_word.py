@@ -2530,12 +2530,12 @@ class FiniteWord_class(Word_class):
             sage: w.length_maximal_palindrome(3, 2)
             Traceback (most recent call last):
             ...
-            ValueError: (jj-m-1)/2(=3/2) must be an integer, i.e., 2*j(=6) and
+            ValueError: (2*j-m-1)/2(=3/2) must be an integer, i.e., 2*j(=6) and
             m(=2) can't have the same parity
             sage: w.length_maximal_palindrome(9.5, 3)
             Traceback (most recent call last):
             ...
-            ValueError: (jj-m-1)/2(=15/2) must be an integer, i.e., 2*j(=19) and
+            ValueError: (2*j-m-1)/2(=15/2) must be an integer, i.e., 2*j(=19) and
             m(=3) can't have the same parity
 
         """
@@ -2560,7 +2560,7 @@ class FiniteWord_class(Word_class):
         # Initialize the next (left) position to check
         i = (jj - m - 1) / 2
         if not i.is_integer():
-            raise ValueError("(jj-m-1)/2(={}) must be an integer, i.e., "
+            raise ValueError("(2*j-m-1)/2(={}) must be an integer, i.e., "
                              "2*j(={}) and m(={}) can't "
                              "have the same parity".format(i, jj, m))
         i = Integer(i)
@@ -2584,7 +2584,7 @@ class FiniteWord_class(Word_class):
         INPUT:
 
         - ``f`` - involution (default: None) on the alphabet of self. It must
-           be callable on letters as well as words (e.g. WordMorphism).
+          be callable on letters as well as words (e.g. WordMorphism).
 
         OUTPUT:
 
@@ -2648,7 +2648,7 @@ class FiniteWord_class(Word_class):
         INPUT:
 
         - ``f`` - involution (default: None) on the alphabet of self. It must
-           be callable on letters as well as words (e.g. WordMorphism).
+          be callable on letters as well as words (e.g. WordMorphism).
 
         OUTPUT:
 
@@ -2695,8 +2695,8 @@ class FiniteWord_class(Word_class):
 
         OUTPUT:
 
-            set -- If f is None, the set of all palindromic factors of self;
-                   otherwise, the set of all f-palindromic factors of self.
+            set - If f is None, the set of all palindromic factors of self;
+            otherwise, the set of all f-palindromic factors of self.
 
         EXAMPLES::
 

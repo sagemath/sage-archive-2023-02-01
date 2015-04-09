@@ -1527,8 +1527,10 @@ def sage_getdoc_original(obj):
     Return the unformatted docstring associated to ``obj`` as a
     string.
 
-    If ``obj`` is a Cython object with an embedded position in its
-    docstring, the embedded position is stripped.
+    If ``obj`` is a Cython object with an embedded position or signature in
+    its docstring, the embedded information is stripped. If the stripped
+    docstring is empty, then the stripped docstring of ``obj.__init__`` is
+    returned instead.
 
     Feed the results from this into the function
     :func:`sage.misc.sagedoc.format` for printing to the screen.
@@ -1540,20 +1542,58 @@ def sage_getdoc_original(obj):
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import sage_getdoc_original
+
+    Here is a class that has its own docstring::
+
         sage: print sage_getdoc_original(sage.rings.integer.Integer)
         <BLANKLINE>
             The ``Integer`` class represents arbitrary precision
             integers. It derives from the ``Element`` class, so
             integers can be used as ring elements anywhere in Sage.
         ...
+
+    Here is a class that does not have its own docstring, so that the
+    docstring of the ``__init__`` method is used::
+
+        sage: print sage_getdoc_original(Parent)
+        <BLANKLINE>
+        Base class for all parents.
+        <BLANKLINE>
+        Parents are the Sage/mathematical analogues of container
+        objects in computer science.
+        ...
+
+    If an instance of a class does not have its own docstring, the docstring
+    of its class results::
+
+        sage: sage_getdoc_original(sage.plot.colors.aliceblue) == sage_getdoc_original(sage.plot.colors.Color)
+        True
+
     """
     s = _sage_getdoc_unformatted(obj)
-    pos = _extract_embedded_position(s)
-    if pos is None:
-        return s
-    else:
-        return pos[0]
-
+    if s:
+        pos = _extract_embedded_position(s)
+        if pos is None:
+            # It can still be that the doc starts with the signature of the
+            # class' __init__ method, but does not contain embedding
+            # information. This is particularly critical if it contains * or
+            # **, which would be misinterpreted by sphinx.
+            L = s.splitlines()
+            if isinstance(obj, type):
+                name = obj.__name__
+            else:
+                name = type(obj).__name__
+            if L[0].startswith(name.split('.')[-1]+'('):
+                s = os.linesep.join(L[1:])
+        else:
+            s = pos[0]
+    if not s:
+        if not isinstance(obj, type):
+            obj = type(obj)
+        if (getattr(obj.__init__,'__objclass__',None) or
+            getattr(obj.__init__, 'im_class', None)) == obj:
+            return sage_getdoc_original(obj.__init__)
+    return s
 
 def sage_getdoc(obj, obj_name='', embedded_override=False):
     r"""

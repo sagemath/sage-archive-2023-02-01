@@ -30,7 +30,7 @@ from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.all import ZZ
 from sage.rings.infinity import infinity
-from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import UniversalCyclotomicField
+from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 
 
 class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentation):

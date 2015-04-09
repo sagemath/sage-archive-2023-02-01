@@ -28,7 +28,6 @@
 #include "config.h"
 #endif
 #include "tostring.h"
-#include "version.h"
 
 #include <iostream>
 #include <stdexcept>
@@ -221,7 +220,7 @@ std::ostream &operator<<(std::ostream &os, const archive &ar)
 	os.put('A');
 	os.put('R');
 	os.put('C');
-	write_unsigned(os, GINACLIB_ARCHIVE_VERSION);
+	write_unsigned(os, ARCHIVE_VERSION);
 
 	// Write atoms
 	unsigned num_atoms = ar.atoms.size();
@@ -268,11 +267,9 @@ std::istream &operator>>(std::istream &is, archive &ar)
 	is.get(c1); is.get(c2); is.get(c3); is.get(c4);
 	if (c1 != 'G' || c2 != 'A' || c3 != 'R' || c4 != 'C')
 		throw (std::runtime_error("not a GiNaC archive (signature not found)"));
-	static const unsigned max_version = GINACLIB_ARCHIVE_VERSION;
-	static const unsigned min_version = GINACLIB_ARCHIVE_VERSION - GINACLIB_ARCHIVE_AGE;
 	unsigned version = read_unsigned(is);
-	if ((version > max_version) || (version < min_version))
-		throw (std::runtime_error("archive version " + ToString(version) + " cannot be read by this GiNaC library (which supports versions " + ToString(min_version) + " thru " + ToString(max_version)));
+	if (version > ARCHIVE_VERSION || version < ARCHIVE_VERSION - ARCHIVE_AGE)
+		throw (std::runtime_error("archive version " + ToString(version) + " cannot be read by this GiNaC library (which supports versions " + ToString(ARCHIVE_VERSION-ARCHIVE_AGE) + " thru " + ToString(ARCHIVE_VERSION)));
 
 	// Read atoms
 	unsigned num_atoms = read_unsigned(is);

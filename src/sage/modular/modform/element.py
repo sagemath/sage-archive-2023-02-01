@@ -1369,6 +1369,15 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             sage: f_eps.q_expansion(6)
             q + 2*q^2 + 2*q^4 - q^5 + O(q^6)
 
+        Modular forms without character are supported::
+
+            sage: M = ModularForms(Gamma1(5), 2)
+            sage: f = M.gen(0); f
+            1 + 60*q^3 - 120*q^4 + 240*q^5 + O(q^6)
+            sage: chi = DirichletGroup(2)[0]
+            sage: f.twist(chi)
+            60*q^3 + 240*q^5 + O(q^6)
+
         REFERENCES:
 
         .. [Atkin-Li] A. O. L. Atkin and Wen-Ch'ing Winnie Li, Twists
@@ -1387,15 +1396,26 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         """
         from sage.modular.all import CuspForms, ModularForms
         from sage.rings.all import PowerSeriesRing, lcm
-        epsilon = self.character()
         R = self.base_ring()
-        if level is None:
-            # See [Atkin-Li], Proposition 3.1.
-            Q = chi.modulus()
-            level = lcm([self.level(), epsilon.conductor() * Q, Q**2])
-        G = DirichletGroup(level)
+        N = self.level()
+        Q = chi.modulus()
+        try:
+            epsilon = self.character()
+        except ValueError:
+            epsilon = None
         constructor = CuspForms if self.is_cuspidal() else ModularForms
-        M = constructor(G(epsilon) * G(chi)**2, self.weight(), base_ring=R)
+        if epsilon is not None:
+            if level is None:
+                # See [Atkin-Li], Proposition 3.1.
+                level = lcm([N, epsilon.conductor() * Q, Q**2])
+            G = DirichletGroup(level)
+            M = constructor(G(epsilon) * G(chi)**2, self.weight(), base_ring=R)
+        else:
+            from sage.modular.arithgroup.all import Gamma1
+            if level is None:
+                # See [Atkin-Li], Proposition 3.1.
+                level = lcm([N, Q]) * Q
+            M = constructor(Gamma1(level), self.weight(), base_ring=R)
         bound = M.sturm_bound() + 1
         S = PowerSeriesRing(R, 'q')
         f_twist = S([self[i] * chi(i) for i in xrange(bound)], prec=bound)

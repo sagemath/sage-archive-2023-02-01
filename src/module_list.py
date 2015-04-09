@@ -1556,10 +1556,6 @@ ext_modules = [
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']),
 
-    Extension('sage.rings.universal_cyclotomic_field.universal_cyclotomic_field_c',
-              sources = ['sage/rings/universal_cyclotomic_field/universal_cyclotomic_field_c.pyx'],
-              libraries = ['gmp']),
-
     ################################
     ##
     ## sage.rings.finite_rings

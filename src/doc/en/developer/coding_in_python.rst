@@ -537,8 +537,8 @@ reviewing process.
 * **Experimental function/method:** use the decorator
   :class:`~sage.misc.superseded.mark_as_experimental`. Here is an example::
 
-      from sage.misc.superseded import mark_as_experimental
-      @mark_as_experimental(66666)
+      from sage.misc.superseded import experimental
+      @experimental(66666)
       def experimental_function():
           # do something
 
@@ -546,9 +546,9 @@ reviewing process.
   :class:`~sage.misc.superseded.mark_as_experimental` for its ``__init__``.
   Here is an example::
 
-      from sage.misc.superseded import mark_as_experimental
+      from sage.misc.superseded import experimental
       class experimental_class(SageObject):
-          @mark_as_experimental(66666)
+          @experimental(66666)
           def __init__(self, some, arguments):
               # do something
 
@@ -556,8 +556,8 @@ reviewing process.
   :func:`~sage.misc.superseded.experimental` in the code where you want to
   warn. It will display the message of your choice::
 
-      from sage.misc.superseded import experimental
-      experimental(66666, 'This code is not foolproof.')
+      from sage.misc.superseded import experimental_warning
+      experimental_warning(66666, 'This code is not foolproof.')
 
 
 Using Optional Packages

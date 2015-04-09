@@ -140,7 +140,7 @@ def warning(trac_number, message, warning_class=Warning, stacklevel=3):
     # the deprecated function which called this function.
     warn(message, warning_class, stacklevel)
 
-def experimental(trac_number, message, stacklevel=5):
+def experimental_warning(trac_number, message, stacklevel=5):
     r"""
     Issue a warning that the functionality or class is experimental
     and might change in future.
@@ -158,7 +158,7 @@ def experimental(trac_number, message, stacklevel=5):
     EXAMPLES::
 
         sage: def foo():
-        ....:    sage.misc.superseded.experimental(
+        ....:    sage.misc.superseded.experimental_warning(
         ....:        66666, 'This function is experimental and '
         ....:               'might change in future.')
         sage: foo()
@@ -175,7 +175,7 @@ def experimental(trac_number, message, stacklevel=5):
     warning(trac_number, message, FutureWarning, stacklevel)
 
 
-class mark_as_experimental(object):
+class experimental(object):
     def __init__(self, trac_number, stacklevel=5):
         """
         A decorator which warns about the experimental/unstable status of
@@ -191,7 +191,7 @@ class mark_as_experimental(object):
 
         EXAMPLES::
 
-            sage: @sage.misc.superseded.mark_as_experimental(trac_number=79997)
+            sage: @sage.misc.superseded.experimental(trac_number=79997)
             ....: def foo(*args, **kwargs):
             ....:     print args, kwargs
             sage: foo(7, what='Hello')
@@ -204,7 +204,7 @@ class mark_as_experimental(object):
         ::
 
             sage: class bird(SageObject):
-            ....:     @sage.misc.superseded.mark_as_experimental(trac_number=99999)
+            ....:     @sage.misc.superseded.experimental(trac_number=99999)
             ....:     def __init__(self, *args, **kwargs):
             ....:         print "piep", args, kwargs
             sage: _ = bird(99)
@@ -239,8 +239,8 @@ class mark_as_experimental(object):
 
             sage: def foo(*args, **kwargs):
             ....:     print args, kwargs
-            sage: from sage.misc.superseded import mark_as_experimental
-            sage: ex_foo = mark_as_experimental(trac_number=99399)(foo)
+            sage: from sage.misc.superseded import experimental
+            sage: ex_foo = experimental(trac_number=99399)(foo)
             sage: ex_foo(3, what='Hello')
             doctest:...: FutureWarning: This class/method/function is
             marked as experimental. It, its functionality or its
@@ -251,8 +251,8 @@ class mark_as_experimental(object):
         from sage.misc.decorators import sage_wraps
         @sage_wraps(func)
         def wrapper(*args, **kwds):
-            from sage.misc.superseded import experimental
-            experimental(self.trac_number,
+            from sage.misc.superseded import experimental_warning
+            experimental_warning(self.trac_number,
                          'This class/method/function is marked as '
                          'experimental. It, its functionality or its '
                          'interface might change without a '

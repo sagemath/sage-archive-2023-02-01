@@ -13,9 +13,7 @@ This generic tool was originally written by Hivert and Thiery in
 MuPAD-Combinat in 2000 and ported over to Sage by Mike Hansen in
 2007. It was then completely rewritten in 2015 by Gillespie,
 Schilling, and Thiery, with the help of many, to deal with
-limitations and lack of robustness w.r.t. input. The old
-implementation is still available in
-:mod:`sage.combinat.integer_list_old` for benchmarking purposes.
+limitations and lack of robustness w.r.t. input.
 """
 #*****************************************************************************
 #       Copyright (C) 2015 Bryan Gillespie <Brg008@gmail.com>

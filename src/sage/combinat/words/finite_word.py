@@ -2490,7 +2490,7 @@ class FiniteWord_class(Word_class):
 
         OUTPUT:
 
-        - The length of the longest `f`-palindrome centered at position j.
+            The length of the longest `f`-palindrome centered at position j.
 
         EXAMPLES::
 
@@ -2551,7 +2551,6 @@ class FiniteWord_class(Word_class):
         jj = 2*j
         if not jj.is_integer() or j < 0 or j >= len(self):
             raise ValueError("j must be positive, inferior to length of self")
-        jj = Integer(jj)
 
         # Initialize length of the known palindrome
         if m is None:
@@ -2560,10 +2559,9 @@ class FiniteWord_class(Word_class):
         # Initialize the next (left) position to check
         i = (jj - m - 1) / 2
         if not i.is_integer():
-            raise ValueError("j-(m+1)/2(={}) must be an integer, i.e., "
+            raise ValueError("jj-m-1/2(={}) must be an integer, i.e., "
                              "2*j(={}) and m(={}) can't "
                              "have the same parity".format(i, jj, m))
-        i = Integer(i)
 
         # Compute
         if f is None:
@@ -2572,10 +2570,10 @@ class FiniteWord_class(Word_class):
         else:
             while i >= 0 and jj-i < len(self) and self[i] == f(self[jj-i])[0]:
                 i -= 1
-        if jj == 2*i:
+        if jj == 2 * i:
             return 0
         else:
-            return Integer(jj - 2*i - 1)
+            return jj - 2*i - 1
 
     def lengths_maximal_palindromes(self, f=None):
         r"""
@@ -2587,6 +2585,7 @@ class FiniteWord_class(Word_class):
            be callable on letters as well as words (e.g. WordMorphism).
 
         OUTPUT:
+
             list -- The length of the maximal palindrome (or `f`-palindrome)
             with a given symmetry axis (letter or space between two letters).
 
@@ -2620,7 +2619,7 @@ class FiniteWord_class(Word_class):
 
         for j in range(1, 2 * len(self) + 1):
             if j >= k + LPC[k]:
-                p = self.length_maximal_palindrome((j-1)*0.5, -(j%2), f)
+                p = self.length_maximal_palindrome((j - 1)*0.5, -(j%2), f)
                 LPC.append(p)
                 if j + p > k + LPC[k]:
                     k = j
@@ -2630,11 +2629,11 @@ class FiniteWord_class(Word_class):
                 # If the `f`-palindrome centered at position j is not the
                 # longest proper `f`-palindromic suffix of the maximal
                 # `f`-palindrome centered at k
-                if LPC[k]+k-j != LPC[2*k - j]:
-                    LPC.append(min(LPC[k]+k-j, LPC[2*k - j]))
+                if LPC[k] + k - j != LPC[2*k - j]:
+                    LPC.append(min(LPC[k] + k - j, LPC[2*k - j]))
 
                 else:
-                    mp = LPC[k]+k-j
+                    mp = LPC[k] + k - j
                     p = self.length_maximal_palindrome((j-1)*0.5, mp, f)
                     LPC.append(p)
                     k = j
@@ -2650,6 +2649,7 @@ class FiniteWord_class(Word_class):
            be callable on letters as well as words (e.g. WordMorphism).
 
         OUTPUT:
+
             list -- The length of the longest palindromic (or `f`-palindromic)
             suffix of each prefix of self.
 
@@ -2671,17 +2671,15 @@ class FiniteWord_class(Word_class):
         """
         LPC = self.lengths_maximal_palindromes(f)
         LPS = []  # lengths of the longest palindromic suffix of prefixes
-
         k = 0
-
         LPS.append(0)
 
         for j in range(1, 2*len(self)+1):
             if j + LPC[j] > k + LPC[k]:
-                for i in range(k+LPC[k]+1, j+LPC[j]+1):
+                for i in range(k + LPC[k] + 1, j + LPC[j] + 1):
                     if i % 2 == 0:
                         LPS.append(i-j)
-                    k=j
+                    k = j
         return LPS
 
     def palindromes(self, f=None):
@@ -2715,7 +2713,7 @@ class FiniteWord_class(Word_class):
             [word: , word: ab, word: abbabaab, word: ba, word: baba, word: bbabaa]
         """
         LPS = self.lps_lengths(f)
-        return set([self[i-LPS[i] : i] for i in range(len(self)+1)])
+        return set(self[i-LPS[i] : i] for i in range(len(self)+1))
 
     def palindrome_prefixes(self):
         r"""

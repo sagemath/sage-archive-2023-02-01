@@ -528,6 +528,7 @@ Methods
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from copy import copy
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.misc.superseded import deprecation
 from sage.rings.integer import Integer
@@ -3316,7 +3317,7 @@ class Graph(GenericGraph):
 
         try:
             p.solve(log=verbose)
-            g = self.copy(immutable=False)
+            g = copy(self)
             b = p.get_values(b)
             g.delete_edges([(x,y) for x,y,_ in g.edge_iterator() if b[reorder(x,y)] < 0.5])
             return g
@@ -4242,7 +4243,7 @@ class Graph(GenericGraph):
         self._scream_if_not_simple()
         from sage.numerical.mip import MixedIntegerLinearProgram
 
-        g = self.copy(immutable=False)
+        g = copy(self)
         p = MixedIntegerLinearProgram(solver=solver, constraint_generation = True)
 
         # One variable per edge
@@ -4940,7 +4941,6 @@ class Graph(GenericGraph):
             D.add_edge(u,v,l)
             D.add_edge(v,u,l)
         if hasattr(self, '_embedding'):
-            from copy import copy
             D._embedding = copy(self._embedding)
         D._weighted = self._weighted
 
@@ -5877,7 +5877,7 @@ class Graph(GenericGraph):
 
             # We first create manually a copy of the graph to prevent creating
             # multi-edges when merging vertices, if edges have labels (e.g., weights).
-            g = self.copy(immutable=False)
+            g = copy(self)
 
             degree_at_most_two = set([u for u,du in g.degree(labels = True).items() if du <= 2])
 

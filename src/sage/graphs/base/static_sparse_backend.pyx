@@ -1079,6 +1079,42 @@ class StaticSparseBackend(CGraphBackend):
             for i in range(out_degree(cg.g,v)):
                 yield self._vertex_to_labels[cg.g.neighbors[v][i]]
 
+    def add_vertex(self,v):
+        r"""
+        Addition of vertices is not available on an immutable graph.
+
+        EXAMPLE::
+
+            sage: g = DiGraph(graphs.PetersenGraph(), data_structure="static_sparse")
+            sage: g.add_vertex(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Thou shalt not add a vertex to an immutable graph
+            sage: g.add_vertices([1,2,3])
+            Traceback (most recent call last):
+            ...
+            ValueError: Thou shalt not add a vertex to an immutable graph
+        """
+        (<StaticSparseCGraph> self._cg).add_vertex(v)
+
+    def del_vertex(self,v):
+        r"""
+        Removal of vertices is not available on an immutable graph.
+
+        EXAMPLE::
+
+            sage: g = DiGraph(graphs.PetersenGraph(), data_structure="static_sparse")
+            sage: g.delete_vertex(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Thou shalt not remove a vertex from an immutable graph
+            sage: g.delete_vertices([1,2,3])
+            Traceback (most recent call last):
+            ...
+            ValueError: Thou shalt not remove a vertex from an immutable graph
+        """
+        (<StaticSparseCGraph> self._cg).del_vertex(v)
+
 def _run_it_on_static_instead(f):
     r"""
     A decorator function to force the (Di)Graph functions to compute from a

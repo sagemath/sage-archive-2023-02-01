@@ -1,4 +1,4 @@
-r"""
+"""
 Knots and links.
 
 A knot is defined as embedding of the circle `\\mathbb{S}^1` in the 3-dimensional
@@ -141,9 +141,6 @@ class Link:
             sage: L = Link([[1, 1, 2, 2]]) # indirect doctest
             sage: L
             Knot represented by 1 crossings
-
-
-
         """
         if isinstance(data, list):
             if not data:
@@ -1491,7 +1488,7 @@ class Link:
 
             sage: L = Link([[[-1, 2, -3, 1, -2, 3], [4, -5, 6, -4, 5, -6]], [1, 1, 1, 1, 1, 1]])
             sage: L.plot()
-
+            Graphics object consisting of 28 graphics primitives
         """
         comp = self._isolated_components_()
         if len(comp) > 1:

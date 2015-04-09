@@ -2530,12 +2530,12 @@ class FiniteWord_class(Word_class):
             sage: w.length_maximal_palindrome(3, 2)
             Traceback (most recent call last):
             ...
-            ValueError: j-(m+1)/2(=3/2) must be an integer, i.e., 2*j(=6) and
+            ValueError: (jj-m-1)/2(=3/2) must be an integer, i.e., 2*j(=6) and
             m(=2) can't have the same parity
             sage: w.length_maximal_palindrome(9.5, 3)
             Traceback (most recent call last):
             ...
-            ValueError: j-(m+1)/2(=15/2) must be an integer, i.e., 2*j(=19) and
+            ValueError: (jj-m-1)/2(=15/2) must be an integer, i.e., 2*j(=19) and
             m(=3) can't have the same parity
 
         """
@@ -2551,6 +2551,7 @@ class FiniteWord_class(Word_class):
         jj = 2*j
         if not jj.is_integer() or j < 0 or j >= len(self):
             raise ValueError("j must be positive, inferior to length of self")
+        jj = Integer(jj)
 
         # Initialize length of the known palindrome
         if m is None:
@@ -2559,9 +2560,10 @@ class FiniteWord_class(Word_class):
         # Initialize the next (left) position to check
         i = (jj - m - 1) / 2
         if not i.is_integer():
-            raise ValueError("jj-m-1/2(={}) must be an integer, i.e., "
+            raise ValueError("(jj-m-1)/2(={}) must be an integer, i.e., "
                              "2*j(={}) and m(={}) can't "
                              "have the same parity".format(i, jj, m))
+        i = Integer(i)
 
         # Compute
         if f is None:

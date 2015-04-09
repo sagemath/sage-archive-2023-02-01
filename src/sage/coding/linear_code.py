@@ -789,6 +789,7 @@ class AbstractLinearCode(module.Module):
         self._length = length
         cat = Modules(base_field).FiniteDimensional().WithBasis().Finite()
         facade_for = VectorSpace(base_field, self._length)
+        self.Element = type(facade_for.an_element()) #for when we made this a non-facade parent 
         Parent.__init__(self, base=base_field, facade=facade_for, category=cat)
 
     def _an_element_(self):

@@ -86,6 +86,7 @@ Geometry and Topology
 * :doc:`Cell Complexes and their Homology <homology/index>`
 * :doc:`Differential Forms <tensor/index>`
 * :doc:`Parametrized Surfaces <riemannian_geometry/index>`
+* :doc:`Knot Theory <knots/index>`
 
 Number Theory, Algebraic Geometry
 ---------------------------------

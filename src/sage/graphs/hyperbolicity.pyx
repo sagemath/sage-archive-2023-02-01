@@ -973,20 +973,24 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
         raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
     if approximation_factor is None:
         approximation_factor = 1.0
+    elif approximation_factor==1.0:
+        pass
     elif algorithm=='cuts':
         if not approximation_factor in RR or approximation_factor < 1.0:
             raise ValueError("The approximation factor must be >= 1.0.")
     else:
-        print "The approximation_factor is ignored when using the '%s' algorithm." %(algorithm)
+        raise ValueError("The approximation_factor is ignored when using the '%s' algorithm." %(algorithm))
     if additive_gap is None:
         additive_gap = 0.0
+    elif additive_gap==0.0:
+        pass
     elif algorithm=='cuts':
         if not additive_gap in RR:
             raise ValueError("The additive gap must be a real positive number.")
         elif additive_gap < 0.0:
             raise ValueError("The additive gap must be >= 0 when using the '%s' algorithm." %(algorithm))
     else:
-        print "The additive_gap is ignored when using the '%s' algorithm." %(algorithm)
+        raise ValueError("The additive_gap is ignored when using the '%s' algorithm." %(algorithm))
 
     # The hyperbolicity is defined on connected graphs
     if not G.is_connected():

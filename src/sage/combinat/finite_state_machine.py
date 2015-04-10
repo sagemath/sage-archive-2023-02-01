@@ -993,6 +993,7 @@ tikz_automata_where = {"right": 0,
                        "left": 180,
                        "below": 270}
 
+
 def FSMLetterSymbol(letter):
     """
     Returns a string associated to the input letter.
@@ -2038,6 +2039,7 @@ class FSMTransition(sage.structure.sage_object.SageObject):
     word_out = None
     """Output word of the transition. Read-only."""
 
+
     def __init__(self, from_state, to_state,
                  word_in=None, word_out=None,
                  hook=None):
@@ -2130,6 +2132,7 @@ class FSMTransition(sage.structure.sage_object.SageObject):
 
 
     copy = __copy__
+
 
     def __deepcopy__(self, memo):
         """
@@ -3171,6 +3174,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         from copy import deepcopy
         return deepcopy(self, memo)
 
+
     def _copy_from_other_(self, other, memo=None, empty=False):
         """
         Copy all data from other to self, to be used in the constructor.
@@ -3388,7 +3392,9 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         if is_FiniteStateMachine(other):
             return self.disjoint_union(other)
 
+
     __add__ = __or__
+
 
     def __iadd__(self, other):
         """
@@ -4099,6 +4105,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         else:
             return EmptyWordLaTeX
 
+
     format_transition_label = default_format_transition_label
 
 
@@ -4693,6 +4700,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             ' '
         """
         return ' '
+
 
     def set_coordinates(self, coordinates, default=True):
         """
@@ -5538,6 +5546,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                                  'list_of_outputs': None,
                                  'only_accepted': False,
                                  'always_include_output': False}
+
 
     def process(self, *args, **kwargs):
         """
@@ -8770,6 +8779,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 done.append(s)
         return(done)
 
+
     def asymptotic_moments(self, variable=sage.symbolic.ring.SR.var('n')):
         r"""
         Returns the main terms of expectation and variance of the sum
@@ -9453,6 +9463,7 @@ class Automaton(FiniteStateMachine):
         """
         return "Automaton with %s states" % len(self._states_)
 
+
     def _latex_transition_label_(self, transition,
                                  format_function=sage.misc.latex.latex):
         r"""
@@ -9585,7 +9596,9 @@ class Automaton(FiniteStateMachine):
             function,
             only_accessible_components=only_accessible_components)
 
+
     cartesian_product = intersection
+
 
     def determinisation(self):
         """
@@ -10397,6 +10410,7 @@ class Transducer(FiniteStateMachine):
             'Transducer with 0 states'
         """
         return "Transducer with %s states" % len(self._states_)
+
 
     def _latex_transition_label_(self, transition,
                                  format_function=sage.misc.latex.latex):

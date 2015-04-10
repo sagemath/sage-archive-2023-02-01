@@ -835,26 +835,9 @@ Methods
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.sage_object import SageObject
-from sage.graphs.digraph import DiGraph
-from sage.matrix.constructor import matrix
-from sage.rings.integer_ring import ZZ
-from sage.rings.real_mpfr import RR
-from sage.symbolic.ring import SR
-from sage.calculus.var import var
-from sage.misc.cachefunc import cached_function
-from sage.misc.latex import latex
-from sage.misc.misc import verbose
-from sage.misc.misc import srange
-from sage.functions.trig import cos, sin, atan2
-from sage.symbolic.constants import pi
-
-
-import itertools
-from itertools import imap, ifilter, izip
 import collections
-from collections import defaultdict, OrderedDict
-import heapq
+import itertools
+import sage
 
 
 def full_group_by(l, key=lambda x: x):
@@ -911,7 +894,7 @@ def full_group_by(l, key=lambda x: x):
     Here, the result ``r`` has been sorted in order to guarantee a
     consistent order for the doctest suite.
     """
-    elements = defaultdict(list)
+    elements = collections.defaultdict(list)
     original_keys = {}
     for item in l:
         k = key(item)
@@ -1081,7 +1064,7 @@ def is_FSMState(S):
     return isinstance(S, FSMState)
 
 
-class FSMState(SageObject):
+class FSMState(sage.structure.sage_object.SageObject):
     """
     Class for a state of a finite state machine.
 
@@ -2008,7 +1991,7 @@ def is_FSMTransition(T):
     return isinstance(T, FSMTransition)
 
 
-class FSMTransition(SageObject):
+class FSMTransition(sage.structure.sage_object.SageObject):
     """
     Class for a transition of a finite state machine.
 
@@ -2493,7 +2476,7 @@ def duplicate_transition_add_input(old_transition, new_transition):
     return old_transition
 
 
-class FiniteStateMachine(SageObject):
+class FiniteStateMachine(sage.structure.sage_object.SageObject):
     """
     Class for a finite state machine.
 
@@ -3948,7 +3931,7 @@ class FiniteStateMachine(SageObject):
         """
         return "Finite state machine with %s states" % len(self._states_)
 
-    default_format_letter = latex
+    default_format_letter = sage.misc.latex.latex
     format_letter = default_format_letter
 
 
@@ -3978,10 +3961,11 @@ class FiniteStateMachine(SageObject):
             \path[->] (v0) edge[loop above] node {$\overline{1}$} ();
             \end{tikzpicture}
         """
+        from sage.rings.integer_ring import ZZ
         if letter in ZZ and letter < 0:
             return r'\overline{%d}' % -letter
         else:
-            return latex(letter)
+            return sage.misc.latex.latex(letter)
 
 
     def format_transition_label_reversed(self, word):
@@ -4109,7 +4093,7 @@ class FiniteStateMachine(SageObject):
                 sage: T.default_format_transition_label(iter([]))
                 '\\varepsilon'
         """
-        result = " ".join(imap(self.format_letter, word))
+        result = " ".join(itertools.imap(self.format_letter, word))
         if result:
             return result
         else:
@@ -4466,7 +4450,7 @@ class FiniteStateMachine(SageObject):
                     state.accepting_where = where
                 elif hasattr(state, 'final_word_out') \
                         and state.final_word_out:
-                    if where in RR:
+                    if where in sage.rings.real_mpfr.RR:
                         state.accepting_where = where
                     else:
                         raise ValueError('accepting_where for %s must '
@@ -4525,6 +4509,9 @@ class FiniteStateMachine(SageObject):
                 \path[->] (v4) edge[loop above] node {$\varepsilon\mid \varepsilon$} ();
                 \end{tikzpicture}
         """
+        from sage.functions.trig import sin, cos
+        from sage.symbolic.constants import pi
+
         def label_rotation(angle, both_directions):
             """
             Given an angle of a transition, compute the TikZ string to
@@ -4606,7 +4593,7 @@ class FiniteStateMachine(SageObject):
             elif hasattr(self, "format_state_label"):
                 label = self.format_state_label(vertex)
             else:
-                label = latex(vertex.label())
+                label = sage.misc.latex.latex(vertex.label())
             result += "\\node[state%s] (v%d) at (%f, %f) {$%s$};\n" % (
                 options, j, vertex.coordinates[0],
                 vertex.coordinates[1], label)
@@ -4633,7 +4620,7 @@ class FiniteStateMachine(SageObject):
         # transitions have to be sorted anyway, the performance
         # penalty should be bearable; nevertheless, this is only
         # required for doctests.
-        adjacent = OrderedDict(
+        adjacent = collections.OrderedDict(
             (pair, list(transitions))
             for pair, transitions in
             itertools.groupby(
@@ -4653,7 +4640,7 @@ class FiniteStateMachine(SageObject):
                                 transition, self.format_transition_label))
                 label = ", ".join(labels)
                 if source != target:
-                    angle = atan2(
+                    angle = sage.functions.trig.atan2(
                         target.coordinates[1] - source.coordinates[1],
                         target.coordinates[0] - source.coordinates[0]) * 180/pi
                     both_directions = (target, source) in adjacent
@@ -4683,7 +4670,8 @@ class FiniteStateMachine(SageObject):
         return result
 
 
-    def _latex_transition_label_(self, transition, format_function=latex):
+    def _latex_transition_label_(self, transition,
+                                 format_function=sage.misc.latex.latex):
         r"""
         Returns the proper transition label.
 
@@ -4738,6 +4726,9 @@ class FiniteStateMachine(SageObject):
             sage: F.state(2).coordinates
             (2, 1)
         """
+        from sage.functions.trig import sin, cos
+        from sage.symbolic.constants import pi
+
         states_without_coordinates = []
         for state in self.iter_states():
             try:
@@ -4865,8 +4856,10 @@ class FiniteStateMachine(SageObject):
             [1 1 0]
 
         """
+        from sage.rings.integer_ring import ZZ
+
         def default_function(transitions):
-            var('x')
+            x = sage.symbolic.ring.SR.var('x')
             return x**sum(transition.word_out)
 
         if entry is None:
@@ -4891,7 +4884,8 @@ class FiniteStateMachine(SageObject):
                     dictionary[(transition.from_state.label(),
                                 transition.to_state.label())] \
                                 = entry(transition)
-        return matrix(len(relabeledFSM.states()), dictionary)
+        return sage.matrix.constructor.matrix(
+            len(relabeledFSM.states()), dictionary)
 
 
     def determine_alphabets(self, reset=True):
@@ -7933,7 +7927,7 @@ class FiniteStateMachine(SageObject):
                                 + [common_output[0]]
                             found_inbound_transition = True
                     if not found_inbound_transition:
-                        verbose(
+                        sage.misc.misc.verbose(
                             "All transitions leaving state %s have an "
                             "output label with prefix %s. However, "
                             "there is no inbound transition and it is "
@@ -8690,7 +8684,7 @@ class FiniteStateMachine(SageObject):
                 graph_data.append((t.from_state.label(), t.to_state.label(),
                                    label_fct(t)))
 
-        G = DiGraph(graph_data, multiedges=True, loops=True)
+        G = sage.graphs.digraph.DiGraph(graph_data, multiedges=True, loops=True)
         G.add_vertices(isolated_vertices)
         return G
 
@@ -8776,7 +8770,7 @@ class FiniteStateMachine(SageObject):
                 done.append(s)
         return(done)
 
-    def asymptotic_moments(self, variable=SR.var('n')):
+    def asymptotic_moments(self, variable=sage.symbolic.ring.SR.var('n')):
         r"""
         Returns the main terms of expectation and variance of the sum
         of output labels and its covariance with the sum of input
@@ -9161,6 +9155,7 @@ class FiniteStateMachine(SageObject):
         from sage.calculus.functional import derivative
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.rational_field import QQ
+        from sage.symbolic.ring import SR
 
         if self.input_alphabet is None:
             raise ValueError("No input alphabet is given. "
@@ -9201,8 +9196,9 @@ class FiniteStateMachine(SageObject):
         try:
             M = get_matrix(self, x, y)
         except TypeError:
-            verbose("Non-integer output weights lead to "
-                    "significant performance degradation.", level=0)
+            sage.misc.misc.verbose(
+                "Non-integer output weights lead to "
+                "significant performance degradation.", level=0)
             # fall back to symbolic ring
             R = SR
             x = R.symbol()
@@ -9457,7 +9453,8 @@ class Automaton(FiniteStateMachine):
         """
         return "Automaton with %s states" % len(self._states_)
 
-    def _latex_transition_label_(self, transition, format_function=latex):
+    def _latex_transition_label_(self, transition,
+                                 format_function=sage.misc.latex.latex):
         r"""
         Returns the proper transition label.
 
@@ -10401,7 +10398,8 @@ class Transducer(FiniteStateMachine):
         """
         return "Transducer with %s states" % len(self._states_)
 
-    def _latex_transition_label_(self, transition, format_function=latex):
+    def _latex_transition_label_(self, transition,
+                                 format_function=sage.misc.latex.latex):
         r"""
         Returns the proper transition label.
 
@@ -11239,7 +11237,7 @@ class Transducer(FiniteStateMachine):
 #*****************************************************************************
 
 
-class _FSMTapeCache_(SageObject):
+class _FSMTapeCache_(sage.structure.sage_object.SageObject):
     """
     This is a class for caching an input tape. It is used in
     :class:`FSMProcessIterator`.
@@ -11774,7 +11772,7 @@ class _FSMTapeCache_(SageObject):
             increments = (length(transition.word_in),)
 
         for track_number, (track_cache, inc) in \
-                enumerate(izip(self.cache, increments)):
+                enumerate(itertools.izip(self.cache, increments)):
             for _ in range(inc):
                 if not track_cache:
                     if not self.read(track_number)[0]:
@@ -12130,7 +12128,8 @@ def is_FSMProcessIterator(PI):
 #*****************************************************************************
 
 
-class FSMProcessIterator(SageObject, collections.Iterator):
+class FSMProcessIterator(sage.structure.sage_object.SageObject,
+                         collections.Iterator):
     """
     This class takes an input, feeds it into a finite state machine
     (automaton or transducer, in particular), tests whether this was
@@ -12580,6 +12579,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
              (True, 3, 'i:)'), (True, 3, 'l:)'), (True, 3, 'n:)')]
 
         """
+        import heapq
+
         if tape_cache.position in self._current_:
             states = self._current_[tape_cache.position]
         else:
@@ -12774,6 +12775,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             (False, 0, [1, 1])
         """
         from copy import deepcopy
+        import heapq
 
         if not self._current_:
             raise StopIteration
@@ -12850,10 +12852,10 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             if len(next_transitions) > 1:
                 new_currents.extend(
                     [deepcopy(new_currents[0])
-                     for _ in srange(len(next_transitions) - 1)])
+                     for _ in range(len(next_transitions) - 1)])
 
             # process transitions
-            for transition, (tape, out) in izip(next_transitions, new_currents):
+            for transition, (tape, out) in itertools.izip(next_transitions, new_currents):
                 if hasattr(transition, 'hook'):
                     transition.hook(transition, self)
                 write_word(out, transition.word_out)
@@ -13560,7 +13562,7 @@ class _FSMProcessIteratorAll_(FSMProcessIterator):
 #*****************************************************************************
 
 
-@cached_function
+@sage.misc.cachefunc.cached_function
 def setup_latex_preamble():
     r"""
     This function adds the package ``tikz`` with support for automata
@@ -13585,6 +13587,7 @@ def setup_latex_preamble():
         sage: ("\usepackage{tikz}" in latex.extra_preamble()) == latex.has_file("tikz.sty")
         True
     """
+    from sage.misc.latex import latex
     latex.add_package_to_preamble_if_available('tikz')
     latex.add_to_mathjax_avoid_list("tikz")
     if latex.has_file("tikz.sty"):

@@ -802,12 +802,12 @@ class SkewTableau(CombinatorialObject, Element):
             sage: T
             [[None, None, None, 4], [None, None, 1, 6], [None, None, 5], [2, 3]]
         """
-        la = self.outer_shape()
         mu_size = self.inner_shape().size()
-        la_size = la.size()
 
         # Roughly, use jdt with a small inner shape, Schensted with a large one
         if algorithm is None:
+            la = self.outer_shape()
+            la_size = la.size()
             if mu_size^2 < len(la) * (la_size - mu_size):
                 algorithm = 'jdt'
             else:
@@ -821,11 +821,10 @@ class SkewTableau(CombinatorialObject, Element):
             rect = Tableau([]).insert_word(self.to_word())
         else:
             raise ValueError("algorithm must be 'jdt', 'schensted', or None")
-
-        if self in SemistandardSkewTableaux():
-            return SemistandardTableau(rect[:])
         if self in StandardSkewTableaux():
             return StandardTableau(rect[:])
+        if self in SemistandardSkewTableaux():
+            return SemistandardTableau(rect[:])
         return Tableau(rect)
 
     def standardization(self, check=True):

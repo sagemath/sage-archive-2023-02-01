@@ -31,6 +31,7 @@ namespace GiNaC {
 GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(wildcard, basic,
   print_func<print_context>(&wildcard::do_print).
   print_func<print_tree>(&wildcard::do_print_tree).
+  print_func<print_latex>(&wildcard::do_print_latex).
   print_func<print_python_repr>(&wildcard::do_print_python_repr))
 
 //////////
@@ -99,6 +100,11 @@ void wildcard::do_print_tree(const print_tree & c, unsigned level) const
 void wildcard::do_print_python_repr(const print_python_repr & c, unsigned level) const
 {
 	c.s << class_name() << '(' << label << ')';
+}
+
+void wildcard::do_print_latex(const print_latex & c, unsigned level) const
+{
+    c.s << "\\$" << label;
 }
 
 unsigned wildcard::calchash() const

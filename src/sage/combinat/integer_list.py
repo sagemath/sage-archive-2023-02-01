@@ -62,18 +62,12 @@ class IntegerListsLex(Parent):
     order. Note that, to admit such an enumeration, `S` is almost
     necessarily finite (see :ref:`IntegerListsLex_finiteness`).
 
-    The main purpose is to provide a generic iteration engine for all
-    the enumerated sets like :class:`Partitions`,
-    :class:`Compositions`, :class:`IntegerVectors`. It can also be
-    used to generate many other combinatorial objects like Dyck paths,
-    Motzkin paths, etc.
-
-    Mathematically speaking, this is a special case of set of
-    integral points of a polytope (or union thereof, when the length
-    is not fixed). The set of allowable constraints has been
-    specifically designed to enable iteration with a good time and
-    memory complexity in most practical use cases, and in inverse
-    lexicographic order (see below).
+    The main purpose is to provide a generic iteration engine for all the
+    enumerated sets like :class:`Partitions`, :class:`Compositions`,
+    :class:`IntegerVectors`. It can also be used to generate many other
+    combinatorial objects like Dyck paths, Motzkin paths, etc. Mathematically
+    speaking, this is a special case of set of integral points of a polytope (or
+    union thereof, when the length is not fixed).
 
     INPUT:
 
@@ -325,7 +319,7 @@ class IntegerListsLex(Parent):
         ValueError: Could not prove that the specified constraints yield a finite set
 
     If one wants to proceed anyway, one can sign a waiver by setting
-    ``check=False``::
+    ``check=False`` (again, be warned that some valid lists may never appear)::
 
         sage: L = IntegerListsLex(3, check=False)
         sage: it = iter(L)

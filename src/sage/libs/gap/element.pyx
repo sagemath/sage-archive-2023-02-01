@@ -880,7 +880,8 @@ cdef class GapElement(RingElement):
             sage: libgap(3) ^ Infinity
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, Variable: 'Infinity' must have a value
+            ValueError: libGAP: Error, no method found! Error, no 1st choice
+            method found for `InverseMutable' on 1 arguments
         """
         if not isinstance(right, GapElement):
             libgap = self.parent()
@@ -1030,9 +1031,9 @@ cdef class GapElement(RingElement):
             sage: libgap.eval('5 + 7*E(3)').sage()
             7*zeta3 + 5
 
-            sage: libgap.eval('infinity').sage()
+            sage: libgap(Infinity).sage()
             +Infinity
-            sage: libgap.eval('-infinity').sage()
+            sage: libgap(-Infinity).sage()
             -Infinity
 
             sage: libgap(True).sage()

@@ -849,8 +849,6 @@ from sage.misc.misc import srange
 from sage.functions.trig import cos, sin, atan2
 from sage.symbolic.constants import pi
 
-from copy import copy
-from copy import deepcopy
 
 import itertools
 from itertools import imap, ifilter, izip
@@ -1575,6 +1573,8 @@ class FSMState(SageObject):
             sage: deepcopy(A)
             'A'
         """
+        from copy import deepcopy
+
         try:
             label = self._deepcopy_relabel_
         except AttributeError:
@@ -1626,6 +1626,7 @@ class FSMState(SageObject):
             sage: B.final_word_out is A.final_word_out
             False
         """
+        from copy import deepcopy
         return deepcopy(self, memo)
 
 
@@ -1652,6 +1653,7 @@ class FSMState(SageObject):
             'B'
 
         """
+        from copy import deepcopy
         self._deepcopy_relabel_ = label
         new = deepcopy(self, memo)
         del self._deepcopy_relabel_
@@ -2165,6 +2167,7 @@ class FSMTransition(SageObject):
             sage: deepcopy(t)
             Transition from 'A' to 'B': 0|-
         """
+        from copy import deepcopy
         new = FSMTransition(deepcopy(self.from_state, memo),
                             deepcopy(self.to_state, memo),
                             deepcopy(self.word_in, memo),
@@ -2194,6 +2197,7 @@ class FSMTransition(SageObject):
             sage: deepcopy(t)
             Transition from 'A' to 'B': 0|-
         """
+        from copy import deepcopy
         return deepcopy(self, memo)
 
 
@@ -3181,6 +3185,7 @@ class FiniteStateMachine(SageObject):
             True
 
         """
+        from copy import deepcopy
         return deepcopy(self, memo)
 
     def _copy_from_other_(self, other, memo=None, empty=False):
@@ -3205,6 +3210,7 @@ class FiniteStateMachine(SageObject):
             sage: A == B
             True
         """
+        from copy import deepcopy
         if memo is None:
             memo = {}
         self.input_alphabet = deepcopy(other.input_alphabet, memo)
@@ -3275,6 +3281,8 @@ class FiniteStateMachine(SageObject):
             ...
             TypeError: labels must be None, a callable or a dictionary.
         """
+        from copy import deepcopy
+
         self._deepcopy_relabel_ = True
         self._deepcopy_labels_ = labels
         new = deepcopy(self, memo)
@@ -3322,6 +3330,8 @@ class FiniteStateMachine(SageObject):
             True
 
         """
+        from copy import deepcopy
+
         good_states = set()
         for state in states:
             if not self.has_state(state):
@@ -4962,6 +4972,7 @@ class FiniteStateMachine(SageObject):
             ['1', '2']
 
         """
+        from copy import copy
         return copy(self._states_)
 
 
@@ -5828,6 +5839,8 @@ class FiniteStateMachine(SageObject):
             sage: T.process([3])
             (False, None, None)
         """
+        from copy import copy
+
         # set default values
         options = copy(self._process_default_options_)
         options.update(kwargs)
@@ -6642,6 +6655,7 @@ class FiniteStateMachine(SageObject):
             sage: F.accessible_components()
             Automaton with 3 states
         """
+        from copy import deepcopy
         if len(self.initial_states()) == 0:
             return deepcopy(self)
 
@@ -7536,6 +7550,8 @@ class FiniteStateMachine(SageObject):
              Transition from 'A' to 'A': 1|-,
              Transition from 'B' to 'B': 0|-]
         """
+        from copy import copy, deepcopy
+
         new = Automaton()
         # TODO: use empty_copy() in order to
         # preserve on_duplicate_transition and future extensions.
@@ -7625,6 +7641,8 @@ class FiniteStateMachine(SageObject):
             NotImplementedError: Transposition for transducers with
             final output words is not implemented.
         """
+        from copy import deepcopy
+
         transposition = self.empty_copy()
 
         for state in self.iter_states():
@@ -8192,7 +8210,7 @@ class FiniteStateMachine(SageObject):
             sage: T2 is T1
             True
         """
-
+        from copy import deepcopy
         def key(transition):
             return (transition.to_state, transition.word_out)
 
@@ -8517,6 +8535,8 @@ class FiniteStateMachine(SageObject):
                     ...
                     ValueError: letters is not allowed to be an empty list.
         """
+        from copy import deepcopy
+
         new = deepcopy(self)
         new.construct_final_word_out(letters, allow_non_final)
         return new
@@ -10080,6 +10100,8 @@ class Automaton(FiniteStateMachine):
             :meth:`~FiniteStateMachine.__call__`,
             :class:`FSMProcessIterator`.
         """
+        from copy import copy
+
         if FSMOldProcessOutput:
             from sage.misc.superseded import deprecation
             deprecation(16132, "The output of Automaton.process "
@@ -10239,6 +10261,8 @@ class Automaton(FiniteStateMachine):
             sage: B.with_output(lambda t: [c.upper() for c in t.word_in]).input_projection() == B
             True
         """
+        from copy import copy
+
         if word_out_function is None:
             word_out_function = lambda transition: copy(transition.word_in)
         new = Transducer()
@@ -10848,6 +10872,8 @@ class Transducer(FiniteStateMachine):
              Transition from (1,) to (0,): 0|0,
              Transition from (1,) to (1,): 1|1]
         """
+        from copy import deepcopy
+
         fsm = deepcopy(self)
         fsm.prepone_output()
         return fsm.quotient(fsm.equivalence_classes())
@@ -11134,6 +11160,8 @@ class Transducer(FiniteStateMachine):
             ...
             TypeError: No input tape given.
         """
+        from copy import copy
+
         if FSMOldProcessOutput:
             from sage.misc.superseded import deprecation
             deprecation(16132, "The output of Transducer.process "
@@ -11362,6 +11390,8 @@ class _FSMTapeCache_(SageObject):
             sage: TC2.tape_cache_manager is TC3.tape_cache_manager
             True
         """
+        from copy import deepcopy
+
         new = type(self)(self.tape_cache_manager,
                          self.tape, self.tape_ended,
                          self.position, self.is_multitape)
@@ -11398,6 +11428,7 @@ class _FSMTapeCache_(SageObject):
             sage: TC2.cache is TC3.cache
             False
         """
+        from copy import deepcopy
         return deepcopy(self, memo)
 
 
@@ -11924,6 +11955,8 @@ class _FSMTapeCacheDetectEpsilon_(_FSMTapeCache_):
             sage: TC3._visited_states_
             {1}
         """
+        from copy import copy
+
         new = super(_FSMTapeCacheDetectEpsilon_, self).__deepcopy__(memo)
         new._visited_states_ = copy(self._visited_states_)
         return new
@@ -12623,6 +12656,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             + at state 'c'
             +-- tape at 0, [[]]
          """
+        from copy import deepcopy
+
         self._push_branch_(state, tape_cache, outputs)
         if not self.check_epsilon_transitions:
             return
@@ -12738,6 +12773,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             0 [[1, 1]]
             (False, 0, [1, 1])
         """
+        from copy import deepcopy
+
         if not self._current_:
             raise StopIteration
 

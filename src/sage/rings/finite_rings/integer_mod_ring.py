@@ -1495,14 +1495,19 @@ In the latter case, please inform the developers.""".format(self.order()))
         """
         Return a random element of this ring.
 
-        If ``bound`` is not ``None``, return the coercion of an integer in the
-        interval ``[-bound, bound]`` into this ring.
+        INPUT:
+
+        - ``bound``, a positive integer or ``None`` (the default). Is given,
+          return  the coercion of an integer in the interval
+          ``[-bound, bound]`` into this ring.
 
         EXAMPLES::
 
             sage: R = IntegerModRing(18)
             sage: R.random_element()
             2
+            sage: R.random_element(2) # random, but always 16, 17, 0, 1 or 2.
+            17 
         """
         if not (bound is None):
             return commutative_ring.CommutativeRing.random_element(self, bound)

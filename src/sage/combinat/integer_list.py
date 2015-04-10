@@ -305,8 +305,8 @@ class IntegerListsLex(Parent):
         ...
         ValueError: Could not prove that the specified constraints yield a finite set
 
-    Here is a variant which could be enumerated in inverse lexicographically
-    increasing order but not in inverse lexicographically decreasing order::
+    Here is a variant which could be enumerated in lexicographic order
+    but not in inverse lexicographic order::
 
         sage: L = IntegerListsLex(length=2, ceiling=[Infinity, 0], floor=[0,1])
         sage: for l in L: print l
@@ -315,8 +315,9 @@ class IntegerListsLex(Parent):
         ValueError: infinite upper bound for values of m
 
     Even when the sum is specified, it is not necessarily possible to
-    enumerate all elements inverse lexicographically. In the following
-    example, the list `[1, 1, 1]` will never appear in the enumeration::
+    enumerate *all* elements in inverse lexicographic order. In the
+    following example, the list ``[1, 1, 1]`` will never appear in the
+    enumeration::
 
         sage: IntegerListsLex(3).first()
         Traceback (most recent call last):

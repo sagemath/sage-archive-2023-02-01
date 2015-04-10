@@ -622,7 +622,7 @@ def format_src(s):
             t = ''
         else:
             x = eval('sage.all.%s'%obj, locals())
-            t = my_getsource(x, False)
+            t = my_getsource(x)
             docs.add(obj)
         if t is None:
             print(x)
@@ -1172,26 +1172,30 @@ def format_search_as_html(what, r, search):
 #######################################
 import sageinspect
 
-def my_getsource(obj, is_binary):
+def my_getsource(obj, oname=''):
     """
     Retrieve the source code for ``obj``.
 
     INPUT:
 
-    - ``obj`` - a Sage object, function, etc.
-    - ``is_binary`` - (boolean) ignored argument.
+    - ``obj`` -- a Sage object, function, etc.
 
-    OUTPUT: its documentation (string)
+    - ``oname`` -- str (optional). A name under which the object is
+      known. Currently ignored by Sage.
+
+    OUTPUT: 
+
+    Its documentation (string)
 
     EXAMPLES::
 
         sage: from sage.misc.sagedoc import my_getsource
-        sage: s = my_getsource(identity_matrix, True)
+        sage: s = my_getsource(identity_matrix)
         sage: s[15:34]
         'def identity_matrix'
     """
     try:
-        s = sageinspect.sage_getsource(obj, is_binary)
+        s = sageinspect.sage_getsource(obj)
         return format_src(s)
     except Exception as msg:
         print('Error getting source:', msg)

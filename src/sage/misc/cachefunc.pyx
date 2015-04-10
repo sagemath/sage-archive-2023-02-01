@@ -790,13 +790,20 @@ cdef class CachedFunction(object):
             sage: type(I.groebner_basis)
             <type 'sage.misc.cachefunc.CachedMethodCaller'>
             sage: os.path.exists(sage_getfile(I.groebner_basis))
-            True        
+            True
 
+        Test that :trac:`18064` is fixed::
+
+            sage: @cached_function
+            ....: def f():
+            ....:     return 3
+            sage: f._sage_doc_()
+            'File: ... (starting at line 1)\n'
         """
         from sage.misc.sageinspect import _extract_embedded_position
         f = self.f
         doc = f.__doc__ or ''
-        if _extract_embedded_position(doc.splitlines()[0]) is None:
+        if not doc or _extract_embedded_position(doc.splitlines()[0]) is None:
             try:
                 sourcelines = sage_getsourcelines(f)
                 from sage.env import SAGE_SRC, SAGE_LIB

@@ -179,7 +179,7 @@ class RealLazyField_class(LazyField):
     For the most part it simply wraps exact elements and defers evaluation
     until a specified precision is requested.
 
-    It's primary use is to connect the exact rings (such as number fields) to
+    Its primary use is to connect the exact rings (such as number fields) to
     fixed precision real numbers. For example, to specify an embedding of a
     number field `K` into `\RR` one can map into this field and the
     coercion will then be able to carry the mapping to real fields of any
@@ -333,7 +333,7 @@ def RealLazyField():
 
 class ComplexLazyField_class(LazyField):
     """
-    This class represents the set of real numbers to unspecified precision.
+    This class represents the set of complex numbers to unspecified precision.
     For the most part it simply wraps exact elements and defers evaluation
     until a specified precision is requested.
 

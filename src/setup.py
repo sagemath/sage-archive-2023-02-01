@@ -536,9 +536,11 @@ def run_cythonize():
         print('Enabling Cython profiling support')
         profile = True
 
-    # Enable Cython caching (the cache is stored in ~/.cycache which is
+    # Disable Cython caching (the cache is stored in ~/.cycache which is
     # Cython's default).
-    Cython.Compiler.Main.default_options['cache'] = True
+    # Cycache is currently too broken to use reliably:
+    # http://trac.sagemath.org/ticket/17851
+    Cython.Compiler.Main.default_options['cache'] = False
 
     force = True
     version_file = os.path.join(os.path.dirname(__file__), '.cython_version')

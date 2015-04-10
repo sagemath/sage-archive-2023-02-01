@@ -1032,6 +1032,8 @@ cdef class GapElement(RingElement):
 
             sage: libgap.eval('infinity').sage()
             +Infinity
+            sage: libgap.eval('-infinity').sage()
+            -Infinity
 
             sage: libgap(True).sage()
             True
@@ -1052,6 +1054,9 @@ cdef class GapElement(RingElement):
         if self.IsInfinity():
             from sage.rings.infinity import Infinity
             return Infinity
+        elif self.IsNegInfinity():
+            from sage.rings.infinity import Infinity
+            return -Infinity
 
         raise NotImplementedError('cannot construct equivalent Sage object')
 
@@ -1262,10 +1267,7 @@ cdef class GapElement_Integer(GapElement):
             sage: type(_)
             <type 'long'>
         """
-        if self.is_C_int():
-            return libGAP_INT_INTOBJ(self.value)
-        else:
-            return int(self.String().sage())
+        return self.sage(ring=int)
 
 ############################################################################
 ### GapElement_IntegerMod #####################################################

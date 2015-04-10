@@ -898,33 +898,20 @@ class DiGraph(GenericGraph):
         elif format == 'DiGraph':
             self.name(data.name())
         elif format == 'rule':
-            verts = list(verts)
-            for u in xrange(num_verts):
-                for v in xrange(num_verts):
-                    uu,vv = verts[u], verts[v]
-                    if f(uu,vv):
-                        self._backend.add_edge(uu,vv,None,True)
+            self.add_edges((u,v) for u in verts for v in verts if f(u,v))
         elif format == 'dict_of_dicts':
             if convert_empty_dict_labels_to_None:
-                for u in data:
-                    for v in data[u]:
-                        if multiedges:
-                            for l in data[u][v]:
-                                self._backend.add_edge(u,v,l,True)
-                        else:
-                            self._backend.add_edge(u,v,data[u][v] if data[u][v] != {} else None,True)
+                r = lambda x:None if x=={} else x
             else:
-                for u in data:
-                    for v in data[u]:
-                        if multiedges:
-                            for l in data[u][v]:
-                                self._backend.add_edge(u,v,l,True)
-                        else:
-                            self._backend.add_edge(u,v,data[u][v],True)
+                r = lambda x:x
+
+            if multiedges:
+                self.add_edges((u,v,r(l)) for u,Nu in data.iteritems() for v,labels in Nu.iteritems() for l in labels)
+            else:
+                self.add_edges((u,v,r(l)) for u,Nu in data.iteritems() for v,l in Nu.iteritems())
+
         elif format == 'dict_of_lists':
-            for u in data:
-                for v in data[u]:
-                    self._backend.add_edge(u,v,None,True)
+            self.add_edges((u,v) for u,Nu in data.iteritems() for v in Nu)
         elif format == "list_of_edges":
             self.allow_multiple_edges(False if multiedges is False else True)
             self.allow_loops(False if loops is False else True)

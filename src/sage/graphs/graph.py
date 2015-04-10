@@ -1281,17 +1281,9 @@ class Graph(GenericGraph):
                 multiedges = (  len(set(positions)) < total  )
             num_verts = data.nrows()
         elif format == 'Graph':
-            if loops is None: loops = data.allows_loops()
-            elif not loops and data.has_loops():
-                raise ValueError("The graph was built with loops=False but input data has a loop")
+            if loops is None:      loops      = data.allows_loops()
             if multiedges is None: multiedges = data.allows_multiple_edges()
-            elif not multiedges:
-                e = data.edges(labels=False)
-                e = [sorted(f) for f in e]
-                if len(e) != len(set(e)):
-                    raise ValueError("No multiple edges but input graph"+
-                    " has multiple edges.")
-            if weighted is None: weighted = data.weighted()
+            if weighted is None:   weighted   = data.weighted()
             num_verts = data.num_verts()
             verts = data.vertex_iterator()
             if data.get_pos() is not None:
@@ -1485,12 +1477,9 @@ class Graph(GenericGraph):
             self.name(data.name())
 
         elif format == 'rule':
-            verts = list(verts)
-            for u in xrange(num_verts):
-                for v in xrange(u+1):
-                    uu,vv = verts[u], verts[v]
-                    if f(uu,vv):
-                        self._backend.add_edge(uu,vv,None,False)
+            from itertools import combinations
+            self.add_edges(e for e in combinations(verts,2) if f(*e))
+            self.add_edges((v,v) for v in verts if f(v,v))
 
         elif format == 'dict_of_dicts':
             if convert_empty_dict_labels_to_None:
@@ -4974,12 +4963,11 @@ class Graph(GenericGraph):
 
         We say that a graph `G` has a topological `H`-minor (or that
         it has a graph isomorphic to `H` as a topological minor), if
-        `G` contains a subdivision of a graph isomorphic to `H` (=
+        `G` contains a subdivision of a graph isomorphic to `H` (i.e.
         obtained from `H` through arbitrary subdivision of its edges)
         as a subgraph.
 
-        For more information, see the `Wikipedia article on graph minor
-        :wikipedia:`Minor_(graph_theory)`.
+        For more information, see the :wikipedia:`Minor_(graph_theory)`.
 
         INPUT:
 

@@ -97,6 +97,15 @@ def centrality_betweenness(G, exact=False, normalize=True):
         sage: max(abs(nw[x]-sg[x]) for x in g) # abs tol 1e-10
         0
 
+    Stupid cases::
+
+        sage: centrality_betweenness(Graph())
+        {}
+        sage: centrality_betweenness(Graph(2))
+        {0: 0.0, 1: 0.0}
+        sage: centrality_betweenness(Graph(2),exact=1)
+        {0: 0, 1: 0}
+
     REFERENCES:
 
     .. [Brandes01] Ulrik Brandes,
@@ -104,7 +113,7 @@ def centrality_betweenness(G, exact=False, normalize=True):
        Journal of Mathematical Sociology 25.2 (2001): 163-177
     """
     if exact:
-        return centrality_betweenness_C(G,<mpq_t>0,normalize=normalize)
+        return centrality_betweenness_C(G,<mpq_t> 0,normalize=normalize)
     else:
         return centrality_betweenness_C(G,<double>0,normalize=normalize)
 
@@ -127,6 +136,11 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
 
     For more information, see the documentation of ``centrality_betweenness``.
     """
+    # Trivial case
+    if G.order() <= 2:
+        zero = 0. if numerical_type is double else Rational(0)
+        return {v:zero for v in G}
+
     # A copy of G, for faster neighbor enumeration
     cdef short_digraph g
     init_short_digraph(g, G, edge_labelled = False)

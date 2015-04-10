@@ -1507,7 +1507,7 @@ In the latter case, please inform the developers.""".format(self.order()))
             sage: R.random_element()
             2
             sage: R.random_element(2) # random, but always 16, 17, 0, 1 or 2.
-            17 
+            17
         """
         if not (bound is None):
             return commutative_ring.CommutativeRing.random_element(self, bound)

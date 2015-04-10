@@ -8756,7 +8756,7 @@ class FiniteStateMachine(SageObject):
                 done.append(s)
         return(done)
 
-    def asymptotic_moments(self, variable=SR.symbol('n')):
+    def asymptotic_moments(self, variable=SR.var('n')):
         r"""
         Returns the main terms of expectation and variance of the sum
         of output labels and its covariance with the sum of input

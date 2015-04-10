@@ -1337,6 +1337,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
         # create an iterable of compositions (all "compositions" if arg is
         # None, or [arg] otherwise)
         if arg is None:
+            # TODO in #17927: use IntegerVectors(length=n, min_part=min_length)
             from sage.combinat.integer_list import IntegerListsNN
             compositions = IntegerListsNN(length=n, min_part=min_length)
         elif isinstance(arg, tuple):

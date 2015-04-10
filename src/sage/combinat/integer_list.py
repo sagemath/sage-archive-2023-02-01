@@ -814,7 +814,7 @@ class IntegerListsLex(Parent):
         Specifying a list or iterable as argument is deprecated::
 
             sage: IntegerListsLex([2,2], length=2).list()
-            doctest:...: DeprecationWarning: Calling IntegerListsLex with n an iterable is deprecated. Either use IntegerListsNN or DisjointUnionEnumeratedSets or use the min_sum and max_sum arguments instead
+            doctest:...: DeprecationWarning: Calling IntegerListsLex with n an iterable is deprecated. Please use DisjointUnionEnumeratedSets or the min_sum and max_sum arguments instead
             See http://trac.sagemath.org/17979 for details.
             [[2, 0], [1, 1], [0, 2], [2, 0], [1, 1], [0, 2]]
             sage: IntegerListsLex(NN, max_length=3)
@@ -823,7 +823,7 @@ class IntegerListsLex(Parent):
         import collections
         if isinstance(n, collections.Iterable):
             from sage.misc.superseded import deprecation
-            deprecation(17979, 'Calling IntegerListsLex with n an iterable is deprecated. Either use IntegerListsNN or DisjointUnionEnumeratedSets or use the min_sum and max_sum arguments instead')
+            deprecation(17979, 'Calling IntegerListsLex with n an iterable is deprecated. Please use DisjointUnionEnumeratedSets or the min_sum and max_sum arguments instead')
             from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
             return DisjointUnionEnumeratedSets(Family(n, lambda i: IntegerListsLex(i, **kwargs)))
         else:
@@ -2358,6 +2358,8 @@ def IntegerListsNN(**kwds):
 
     This function returns the union of ``IntegerListsLex(n, **kwds)``
     where `n` ranges over all nonnegative integers.
+
+    .. WARNING:: this function is likely to disappear in :trac:`17927`.
 
     EXAMPLES::
 

@@ -10,53 +10,54 @@ Draw polytopes in LateX using TikZ
 .. MODULEAUTHOR:: Jean-Philippe Labbé <labbe@math.huji.ac.il>
 
 
-It is sometimes very helpful to draw 3-dimensional polytope in a paper. TikZ is 
-a very versatile tool to draw in scientific documents and Sage can deal easily 
-with 3-dimensional polytopes. Finally sagetex makes everything work together 
-nicely between Sage, tikz and latex. Since version 6.3 of Sage, there is a 
-function for (projection of) polytopes to output a TikZ picture of the polytope. 
-This short tutorial shows how it all works.
+It is sometimes very helpful to draw 3-dimensional polytopes in a
+paper. TikZ is a very versatile tool to draw in scientific documents
+and Sage can deal easily with 3-dimensional polytopes. Finally sagetex
+makes everything work together nicely between Sage, TikZ and
+LaTeX. Since version 6.3 of Sage, there is a function for (projection
+of) polytopes to output a TikZ picture of the polytope.  This short
+tutorial shows how it all works.
 
 Instructions
 """"""""""""
 
-To put an image of a 3d-polytope in latex using TikZ and Sage, simply follow the instructions:
+To put an image of a 3d-polytope in LaTeX using TikZ and Sage, simply follow the instructions:
 
-- Install `SageTex <http://www.sagemath.org/doc/tutorial/sagetex.html>`_ (optionnal but recommended!)
+- Install `SageTex <http://www.sagemath.org/doc/tutorial/sagetex.html>`_ (optional but recommended!)
 - Put ``\usepackage{tikz}`` in the preamble of your article
 - Open Sage and change the directory to your article's by the command ``cd /path/to/article``
-- Input your polytope, called P, to Sage
+- Input your polytope, called P for example, to Sage
 - Visualize the polytope P using the command ``P.show(aspect_ratio=1)``
-- Once the wished view angle is found, right click on the image and select *Console*
+- This will open an interactive viewer named Jmol, in which you can rotate the polytope. Once the wished view angle is found, right click on the image and select *Console*
 - In the dialog box click the button *State*
 - Scroll up to the line starting with *moveto*
-- It reads something like moveto 0.0 {x y z angle} scale
+- It reads something like ``moveto 0.0 {x y z angle} scale``
 - Go back to Sage and type ``Img = P.projection().tikz([x,y,z],angle)``
-- *Img* contains a Sage object of type LatexExpr containing the raw tikz picture of your polytope
+- *Img* now contains a Sage object of type ``LatexExpr`` containing the raw TikZ picture of your polytope
 
-Then, you can either copy-paste it to your article by typing Img in Sage or save it to a file, by doing
+Then, you can either copy-paste it to your article by typing ``Img`` in Sage or save it to a file, by doing
 
 ::
 
-  f=open('Img_poly.tex','w')
+  f = open('Img_poly.tex','w')
   f.write(Img)
   f.close()
 
 .. end of output
 
 Then in the pwd (present working directory of sage, the one of your article) 
-you will have a file named Img_poly.tex containing the tikzpicture of your polytope
+you will have a file named ``Img_poly.tex`` containing the tikzpicture of your polytope.
 
 Customization
 """""""""""""
 
 You can customize the polytope using the following options in the command ``P.tikz()``
 
-- ``scale`` : positive number to scale the polytope
-- ``edge_color`` : string (default: ``blue!95!black``) representing colors which tikz recognize
-- ``facet_color`` : string (default: ``blue!95!black``) representing colors which tikz recognize
-- ``vertex_color`` : string (default: ``green``) representing colors which tikz recognize
-- ``opacity`` : real number (default: ``0.8``) between 0 and 1 giving the opacity of the front facets.
+- ``scale`` : positive number to scale the polytope,
+- ``edge_color`` : string (default: ``blue!95!black``) representing colors which tikz recognize,
+- ``facet_color`` : string (default: ``blue!95!black``) representing colors which tikz recognize,
+- ``vertex_color`` : string (default: ``green``) representing colors which tikz recognize,
+- ``opacity`` : real number (default: ``0.8``) between 0 and 1 giving the opacity of the front facets,
 - ``axis`` : Boolean (default: ``False``) draw the axes at the origin or not.
 
 Examples
@@ -70,31 +71,30 @@ In Sage, you type:
 
 ::
 
-    P=Polyhedron(vertices=[[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]).polar()``
+    P = Polyhedron(vertices=[[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]).polar()
 
 .. end of output
 
 Then, you visualize the polytope by typing ``P.show(aspect_ratio=1)``
 
-When you found a good angle, I follow the above procedure to obtain the values 
+When you found a good angle, follow the above procedure to obtain the values 
 [674,108,-731] and angle=112, for example.
 
 ::
 
-    Img=P.projection().tikz([674,108,-731],112)
+    Img = P.projection().tikz([674,108,-731],112)
 
 .. end of output
 
-Then, you may want to customize using the command
+Or you may want to customize using the command
 
 ::
 
-    Img=P.projection().tikz([674,108,-731],112,scale=2, edge_color='orange',facet_color='red',vertex_color='blue',opacity=0.4)
+    Img = P.projection().tikz([674,108,-731],112,scale=2, edge_color='orange',facet_color='red',vertex_color='blue',opacity=0.4)
 
 .. end of output
 
-Further, you may want to edit deeper the style of the polytope inside the 
-tikzpicture. For example, line 6-9 in the tikzpicture reads:
+Further, you may want to edit deeper the style of the polytope, directly inside the tikzpicture. For example, line 6-9 in the tikzpicture reads:
 
 ::
 
@@ -154,7 +154,7 @@ in your preamble and use them with a sagesilent in your article:
 ::
 
   \begin{sagesilent}
-  Polytope=polytopes.great_rhombicuboctahedron()
+  Polytope = polytopes.great_rhombicuboctahedron()
   \end{sagesilent}
 
 .. end of output
@@ -166,4 +166,7 @@ in your preamble and use them with a sagesilent in your article:
 
 .. end of output
 
-Then, run pdflatex, execute Sage on the file article_name.sagetex.sage and run pdflatex again.
+Then, run pdflatex, execute Sage on the file ``article_name.sagetex.sage`` and run pdflatex again.
+
+For more information on SageTeX, see the tutorial http://www.sagemath.org/doc/tutorial/sagetex.html.
+

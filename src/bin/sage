@@ -707,6 +707,7 @@ if [ "$1" = '-t' -o "$1" = '-bt' -o "$1" = '-tp' -o "$1" = '-btp' ]; then
     fi
     SAGE_BANNER="no"
     sage_setup
+    export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     if [ "$1" = '-tp' -o "$1" = '-btp' ]; then
         shift
         exec sage-runtests -p "$@"
@@ -723,6 +724,7 @@ if [ "$1" = '-tnew' -o "$1" = '-btnew' ]; then
     shift
     SAGE_BANNER="no"
     sage_setup
+    export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     exec sage-runtests --new "$@"
 fi
 
@@ -730,6 +732,7 @@ if [ "$1" = '-testall' -o "$1" = "--testall" ]; then
     shift
     SAGE_BANNER="no"
     sage_setup
+    export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     exec sage-runtests -a "$@"
 fi
 

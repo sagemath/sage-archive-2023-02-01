@@ -167,16 +167,17 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             sage: A.<x,y> = AffineSpace(QQ,2)
             sage: E = A.subscheme([x^2 + y^2 - 1, y^2 - x^3 + x^2 + x - 1])
             sage: E(A.base_ring()).points()
-            [(0, -1), (-1, 0), (1, 0), (0, 1)]
+            [(-1, 0), (0, -1), (0, 1), (1, 0)]
         """
         X = self.codomain()
 
         from sage.schemes.affine.affine_space import is_AffineSpace
         if not is_AffineSpace(X) and X.base_ring() in Fields():
             # Then X must be a subscheme
-            if X.defining_ideal().dimension() < 0: # no points
+            dim_ideal = X.defining_ideal().dimension()
+            if dim_ideal < 0: # no points
                 return []
-            if X.defining_ideal().dimension() == 0: # if X zero-dimensional
+            if dim_ideal == 0: # if X zero-dimensional
                 N = len(X.ambient_space().gens())
                 S = X.defining_polynomials()[0].parent()
                 R = PolynomialRing(S.base_ring(),'s',N,order='lex')
@@ -187,6 +188,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
                 for d in D:
                     P = [d[t] for t in R.gens()]
                     points.append(X(P))
+                points.sort()
                 return points
         R = self.value_ring()
         if is_RationalField(R) or R == ZZ:

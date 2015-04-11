@@ -2454,8 +2454,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2-x*y+y^2,x^2-y^2+x*y])
             sage: f.periodic_points(1)
-            [(1 : 1), (-0.500000000000000? + 0.866025403784439?*I : 1),
-            (-0.500000000000000? - 0.866025403784439?*I : 1)]
+            [(-0.500000000000000? - 0.866025403784439?*I : 1), (-0.500000000000000? + 0.866025403784439?*I : 1),
+            (1 : 1)]
 
         ::
 
@@ -2463,9 +2463,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2 - 21/16*z^2,y^2-z^2,z^2])
             sage: f.periodic_points(2)
-            [(1/4 : -1/2*t + 1/2 : 1), (1/4 : 1/2*t + 1/2 : 1), (-5/4 : -1/2*t + 1/2 : 1), (7/4 : -1 : 1),
-            (-3/4 : -1 : 1), (-5/4 : 0 : 1), (1/4 : -1 : 1), (-5/4 : -1 : 1), (-3/4 : 0 : 1),
-            (-5/4 : 1/2*t + 1/2 : 1), (7/4 : 0 : 1), (1/4 : 0 : 1)]
+            [(-5/4 : -1 : 1), (-5/4 : -1/2*t + 1/2 : 1), (-5/4 : 0 : 1), (-5/4 : 1/2*t + 1/2 : 1), (-3/4 : -1 : 1),
+            (-3/4 : 0 : 1), (1/4 : -1 : 1), (1/4 : -1/2*t + 1/2 : 1), (1/4 : 0 : 1), (1/4 : 1/2*t + 1/2 : 1),
+            (7/4 : -1 : 1), (7/4 : 0 : 1)]
 
         ::
 
@@ -2488,8 +2488,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2 - 21/16*z^2,y^2-2*z^2,z^2])
             sage: f.periodic_points(2,False)
-            [(-3/4 : 2 : 1), (0 : 1 : 0), (-5/4 : 2 : 1), (1/4 : -1 : 1), (7/4 : -1 : 1), (-3/4 : -1 : 1),
-            (7/4 : 2 : 1), (-5/4 : -1 : 1), (1 : 0 : 0), (1 : 1 : 0), (1/4 : 2 : 1)]
+            [(-5/4 : -1 : 1), (-5/4 : 2 : 1), (-3/4 : -1 : 1), (-3/4 : 2 : 1), (0 : 1 : 0), (1/4 : -1 : 1),
+            (1/4 : 2 : 1), (1 : 0 : 0), (1 : 1 : 0), (7/4 : -1 : 1), (7/4 : 2 : 1)]
 
         ::
 
@@ -2497,7 +2497,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2 - 21/16*z^2,y^2-2*z^2,z^2])
             sage: f.periodic_points(2)
-            [(-5/4 : 2 : 1), (1/4 : -1 : 1), (-5/4 : -1 : 1), (1/4 : 2 : 1)]
+            [(-5/4 : -1 : 1), (-5/4 : 2 : 1), (1/4 : -1 : 1), (1/4 : 2 : 1)]
         """
         if n <= 0:
             raise ValueError("A positive integer period must be specified")

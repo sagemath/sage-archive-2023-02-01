@@ -6044,13 +6044,13 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 raise RuntimeError("Process has branched. Try it "
                                    "without the option 'simple'.")
             state, branch = next(states.iteritems())
-            if len(branch.outputs) >1:
+            if len(branch.outputs) > 1:
                 raise RuntimeError("Process has branched. Try it "
                                    "without the option 'simple'.")
             output = branch.outputs[0]
             for o in output:
                 yield o
-            branch.outputs[0] = []        
+            branch.outputs[0] = []
 
 
     #*************************************************************************

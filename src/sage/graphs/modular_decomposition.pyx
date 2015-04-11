@@ -2,6 +2,10 @@ r"""
 Modular decomposition
 """
 
+include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
+
 #####################################################
 # The following code is mainly a Cythonized
 # copy of code found in src/random.c and src/dm.c

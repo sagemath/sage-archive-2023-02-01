@@ -1,4 +1,6 @@
 """
+Divisor groups
+
 AUTHORS:
 
 - David Kohel (2006): Initial version

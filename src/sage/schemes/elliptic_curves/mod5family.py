@@ -8,8 +8,9 @@ def mod5family(a,b):
     congruent mod-5 representation.
 
     AUTHORS:
-        -- Alice Silverberg and Karl Rubin (original PARI/GP version)
-        -- William Stein -- Sage version.
+
+    - Alice Silverberg and Karl Rubin (original PARI/GP version)
+    - William Stein -- Sage version.
     """
     J = 4*a**3 / (4*a**3+27*b**2)
 

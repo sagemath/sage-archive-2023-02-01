@@ -855,7 +855,8 @@ def test_qpls(a,b,c,d,e,p):
     """
     Testing function for Qp_soluble.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: from sage.schemes.elliptic_curves.descent_two_isogeny import test_qpls as tq
         sage: tq(1,2,3,4,5,7)
         1

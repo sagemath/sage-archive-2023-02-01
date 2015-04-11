@@ -4,8 +4,8 @@ Automorphism groups of endomorphisms of the projective line
 AUTHORS:
 
 - Xander Faber, Michelle Manes, Bianca Viray: algorithm and original code
-    "Computing Conjugating Sets and Automorphism Groups of Rational Functions"
-    by Xander Faber, Michelle Manes, and Bianca Viray [FMV]
+  "Computing Conjugating Sets and Automorphism Groups of Rational Functions" by
+  Xander Faber, Michelle Manes, and Bianca Viray [FMV]
 
 - Joao de Faria, Ben Hutz, Bianca Thompson (11-2013): adaption for inclusion in Sage
 

@@ -17,4 +17,6 @@ finite number of indeterminates.
    sage/monoids/string_monoid_element
    sage/monoids/string_monoid
 
+   sage/monoids/string_ops
+
 .. include:: ../footer.txt

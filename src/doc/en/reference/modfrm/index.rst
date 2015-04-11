@@ -23,6 +23,8 @@ Modular Forms
    sage/modular/modform/ambient
    sage/modular/modform/half_integral
    sage/modular/modform/find_generators
-
+   sage/modular/modform/j_invariant
+   sage/modular/modform/notes
+   sage/modular/modform/theta
 
 .. include:: ../footer.txt

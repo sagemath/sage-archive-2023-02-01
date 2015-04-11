@@ -74,7 +74,6 @@ givaro_extra_compile_args =['-D__STDC_LIMIT_MACROS']
 polybori_extra_compile_args = []
 polybori_major_version = '0.8'
 
-
 #############################################################
 ### List of modules
 ###
@@ -84,11 +83,15 @@ polybori_major_version = '0.8'
 ###
 #############################################################
 
+from sage_setup.optional_extension import OptionalExtension
+UNAME = os.uname()
+
 def uname_specific(name, value, alternative):
-    if name in os.uname()[0]:
+    if name in UNAME[0]:
         return value
     else:
         return alternative
+
 
 ext_modules = [
 
@@ -413,6 +416,16 @@ ext_modules = [
               extra_compile_args = ['-std=c99'],
               depends = flint_depends),
 
+    OptionalExtension("sage.graphs.mcqd",
+              ["sage/graphs/mcqd.pyx"],
+              language = "c++",
+              package = 'mcqd'),
+
+    OptionalExtension('sage.graphs.modular_decomposition',
+              sources = ['sage/graphs/modular_decomposition.pyx'],
+              libraries = ['modulardecomposition'],
+              package = 'modular_decomposition'),
+
     Extension('sage.graphs.planarity',
               sources = ['sage/graphs/planarity.pyx',
                          'sage/graphs/planarity_c/graphColorVertices.c',
@@ -656,11 +669,24 @@ ext_modules = [
     ##
     ################################
 
+    OptionalExtension('sage.libs.coxeter3.coxeter',
+              sources = ['sage/libs/coxeter3/coxeter.pyx'],
+              include_dirs = [os.path.join(SAGE_INC, 'coxeter')],
+              language="c++",
+              libraries = ['coxeter3'],
+              package = 'coxeter3'),
+
     Extension('sage.libs.ecl',
               sources = ["sage/libs/ecl.pyx"],
               libraries = ["ecl", "gmp"],
               include_dirs = [SAGE_INC + '/ecl'],
               depends = [SAGE_INC + '/ecl/ecl.h']),
+
+    OptionalExtension("sage.libs.fes",
+             ["sage/libs/fes.pyx"],
+             language = "c",
+             libraries = ['fes'],
+             package = 'fes'),
 
     Extension('sage.libs.flint.flint',
               sources = ["sage/libs/flint/flint.pyx"],
@@ -720,6 +746,11 @@ ext_modules = [
               extra_link_args = uname_specific("Linux", ["-Wl,-z,noexecstack"],
                                                         []),
               depends = [SAGE_INC + "/ecm.h"]),
+
+    Extension('sage.libs.lrcalc.lrcalc',
+              sources = ["sage/libs/lrcalc/lrcalc.pyx"],
+              include_dirs = [SAGE_INC + '/lrcalc/'],
+              libraries = ["lrcalc"]),
 
     Extension('sage.libs.mwrank.mwrank',
               sources = ["sage/libs/mwrank/mwrank.pyx",
@@ -1186,6 +1217,13 @@ ext_modules = [
 
     Extension('*', ['sage/misc/*.pyx']),
 
+    # Only include darwin_utilities on OS_X >= 10.5
+    OptionalExtension('sage.misc.darwin_utilities',
+        sources = ['sage/misc/darwin_memory_usage.c',
+                   'sage/misc/darwin_utilities.pyx'],
+        depends = ['sage/misc/darwin_memory_usage.h'],
+        condition = (UNAME[0] == "Darwin" and not UNAME[2].startswith('8.'))),
+
     ################################
     ##
     ## sage.modular
@@ -1330,6 +1368,24 @@ ext_modules = [
               ["sage/numerical/backends/glpk_graph_backend.pyx"],
               language = 'c++',
               libraries=["stdc++", "glpk", "gmp", "z"]),
+
+    OptionalExtension("sage.numerical.backends.gurobi_backend",
+              ["sage/numerical/backends/gurobi_backend.pyx"],
+              libraries = ["stdc++", "gurobi"],
+              condition = os.path.isfile(SAGE_INC + "/gurobi_c.h") and
+                  os.path.isfile(SAGE_LOCAL + "/lib/libgurobi.so")),
+
+    OptionalExtension("sage.numerical.backends.cplex_backend",
+              ["sage/numerical/backends/cplex_backend.pyx"],
+              libraries = ["stdc++", "cplex"],
+              condition = os.path.isfile(SAGE_INC + "/cplex.h") and
+                  os.path.isfile(SAGE_LOCAL + "/lib/libcplex.a")),
+
+    OptionalExtension("sage.numerical.backends.coin_backend",
+              ["sage/numerical/backends/coin_backend.pyx"],
+              language = 'c++',
+              libraries = ["Cbc", "CbcSolver", "Cgl", "Clp", "CoinUtils", "OsiCbc", "OsiClp", "Osi", "lapack"],
+              package = 'cbc'),
 
     ################################
     ##
@@ -1500,6 +1556,13 @@ ext_modules = [
     Extension('sage.rings.real_interval_absolute',
               sources = ['sage/rings/real_interval_absolute.pyx'],
               libraries = ['gmp']),
+
+   OptionalExtension("sage.rings.real_arb",
+             ["sage/rings/real_arb.pyx"],
+             libraries = ['arb', 'mpfi', 'mpfr'],
+             include_dirs = [SAGE_INC + '/flint'],
+             depends = flint_depends,
+             package = 'arb'),
 
     Extension('sage.rings.real_lazy',
               sources = ['sage/rings/real_lazy.pyx']),
@@ -1994,6 +2057,20 @@ ext_modules = [
     ##
     ################################
 
+    OptionalExtension("sage.sat.solvers.cryptominisat.cryptominisat",
+              ["sage/sat/solvers/cryptominisat/cryptominisat.pyx"],
+              include_dirs = [SAGE_INC, SAGE_INC+"/cmsat"],
+              language = "c++",
+              libraries = ['cryptominisat', 'z'],
+              package = 'cryptominisat'),
+
+    OptionalExtension("sage.sat.solvers.cryptominisat.solverconf",
+              ["sage/sat/solvers/cryptominisat/solverconf.pyx", "sage/sat/solvers/cryptominisat/solverconf_helper.cpp"],
+              include_dirs = [SAGE_INC, SAGE_INC+"/cmsat"],
+              language = "c++",
+              libraries = ['cryptominisat', 'z'],
+              package = 'cryptominisat'),
+
     Extension('sage.sat.solvers.satsolver',
               sources = ['sage/sat/solvers/satsolver.pyx']),
 
@@ -2005,116 +2082,8 @@ ext_modules = [
 
     Extension('sage.schemes.projective.projective_morphism_helper',
               sources = ['sage/schemes/projective/projective_morphism_helper.pyx']),
-    ]
+]
 
 # Add auto-generated modules
 import sage_setup.autogen.interpreters
 ext_modules += sage_setup.autogen.interpreters.modules
-
-# Optional extensions :
-# These extensions are to be compiled only if the
-# corresponding packages have been installed
-from sage.misc.package import is_package_installed
-
-if is_package_installed('fes'):
-    ext_modules.extend([
-       Extension("sage.libs.fes",
-                 ["sage/libs/fes.pyx"],
-                 language = "c",
-                 libraries = ['fes'])
-       ])
-
-
-if (os.path.isfile(SAGE_INC + "/gurobi_c.h") and
-    os.path.isfile(SAGE_LOCAL + "/lib/libgurobi.so")):
-    ext_modules.append(
-        Extension("sage.numerical.backends.gurobi_backend",
-                  ["sage/numerical/backends/gurobi_backend.pyx"],
-                  language = 'c',
-                  libraries = ["stdc++", "gurobi"])
-        )
-
-
-if is_package_installed('coxeter3'):
-    ext_modules.append(
-        Extension('sage.libs.coxeter3.coxeter',
-                  sources = ['sage/libs/coxeter3/coxeter.pyx'],
-                  include_dirs = [os.path.join(SAGE_INC, 'coxeter')],
-                  language="c++",
-                  libraries = ['coxeter3'])
-        )
-
-
-if (os.path.isfile(SAGE_INC + "/cplex.h") and
-    os.path.isfile(SAGE_LOCAL + "/lib/libcplex.a")):
-    ext_modules.append(
-        Extension("sage.numerical.backends.cplex_backend",
-                  ["sage/numerical/backends/cplex_backend.pyx"],
-                  language = 'c',
-                  libraries = ["stdc++", "cplex"])
-        )
-
-if is_package_installed('cbc'):
-    ext_modules.append(
-        Extension("sage.numerical.backends.coin_backend",
-                  ["sage/numerical/backends/coin_backend.pyx"],
-                  language = 'c++',
-                  libraries = ["stdc++", "Cbc", "CbcSolver", "Cgl", "Clp", "CoinUtils", "OsiCbc", "OsiClp", "Osi", "lapack"])
-        )
-
-
-if is_package_installed('cryptominisat'):
-    ext_modules.extend([
-        Extension("sage.sat.solvers.cryptominisat.cryptominisat",
-                  ["sage/sat/solvers/cryptominisat/cryptominisat.pyx"],
-                  include_dirs = [SAGE_INC, SAGE_INC+"/cmsat"],
-                  language = "c++",
-                  libraries = ['cryptominisat', 'z']),
-        Extension("sage.sat.solvers.cryptominisat.solverconf",
-                  ["sage/sat/solvers/cryptominisat/solverconf.pyx", "sage/sat/solvers/cryptominisat/solverconf_helper.cpp"],
-                  include_dirs = [SAGE_INC, SAGE_INC+"/cmsat"],
-                  language = "c++",
-                  libraries = ['cryptominisat', 'z'])
-        ])
-
-if is_package_installed('mcqd'):
-    ext_modules.append(
-        Extension("sage.graphs.mcqd",
-                  ["sage/graphs/mcqd.pyx"],
-                  language = "c++"))
-
-if is_package_installed('modular_decomposition'):
-    ext_modules.append(
-        Extension('sage.graphs.modular_decomposition',
-                  sources = ['sage/graphs/modular_decomposition.pyx'],
-                  libraries = ['modulardecomposition']))
-
-if is_package_installed('arb'):
-    ext_modules.extend([
-       Extension("sage.rings.real_arb",
-                 ["sage/rings/real_arb.pyx"],
-                 language = "c",
-                 libraries = ['arb', 'mpfi', 'mpfr'],
-                 include_dirs = [SAGE_INC + '/flint'],
-                 depends = flint_depends)
-       ])
-
-# Only include darwin_utilities on OS_X >= 10.5
-UNAME = os.uname()
-if UNAME[0] == "Darwin" and not UNAME[2].startswith('8.'):
-    ext_modules.append(
-        Extension('sage.misc.darwin_utilities',
-            sources = ['sage/misc/darwin_memory_usage.c',
-                       'sage/misc/darwin_utilities.pyx'],
-            depends = ['sage/misc/darwin_memory_usage.h'])
-        )
-
-
-if is_package_installed('lrcalc'):
-    ext_modules.append(
-        Extension('sage.libs.lrcalc.lrcalc',
-                  sources = ["sage/libs/lrcalc/lrcalc.pyx"],
-                  include_dirs = [SAGE_INC + '/lrcalc/'],
-                  libraries = ["lrcalc"],
-                  depends = [SAGE_INC + "/lrcalc/symfcn.h"]), # should include all .h
-        )

@@ -82,11 +82,12 @@ class RibbonTableau(SkewTableau):
         if expr is not None:
             return RibbonTableaux().from_expr(expr)
 
-        for row in rt:
-            if not isinstance(row, list):
-                raise TypeError("each element of the ribbon tableau must be a list")
-            if row == []:
-                raise TypeError("a ribbon tableau cannot have an empty list for a row")
+        try:
+            rt = map(tuple, rt)
+        except TypeError:
+            raise TypeError("each element of the ribbon tableau must be an iterable")
+        if not all(row for row in rt):
+            raise TypeError("a ribbon tableau cannot have empty rows")
         #calls the inherited __init__ method (of SkewTableau )
         return RibbonTableaux()(rt)
 
@@ -354,7 +355,7 @@ class RibbonTableaux_shape_weight_length(RibbonTableaux):
 
     def __contains__(self, x):
         """
-        Note that this just checks to see if ``x`` appears is in ``self``.
+        Note that this just checks to see if ``x`` appears in ``self``.
         This should be improved to provide actual checking.
 
         EXAMPLES::

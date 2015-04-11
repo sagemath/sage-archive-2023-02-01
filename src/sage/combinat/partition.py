@@ -2287,10 +2287,11 @@ class Partition(CombinatorialObject, Element):
 
         if row+1>=len(self) or col>=self[row+1]:
             raise ValueError('(row+1, col) must be inside the diagram')
-        g=tableau.Tableau(self.initial_tableau().to_list())
+        g=self.initial_tableau().to_list()
         a=g[row][col]
         g[row][col:]=range(a+col+1,g[row+1][col]+1)
         g[row+1][:col+1]=range(a,a+col+1)
+        g=tableau.Tableau(g)
         g._garnir_cell=cell
         return g
 

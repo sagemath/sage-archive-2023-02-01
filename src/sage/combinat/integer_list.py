@@ -470,7 +470,7 @@ class IntegerListsLex(Parent):
     The price to pay is that the enumeration order is now *graded
     lexicographic* instead of lexicographic: first choose the value
     according to the order specified by `L`, and use lexicographic
-    order within each value. Here is we reverse `L`:
+    order within each value. Here is we reverse `L`::
 
         sage: DisjointUnionEnumeratedSets(Family([3,2,0],
         ....:     lambda n: IntegerListsLex(n, length=2))).list()
@@ -1352,7 +1352,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
         the nodes of this tree until it finds a valid list to return.
 
         Here are the attributes describing the current state of the
-        iterator,  and their invariants::
+        iterator,  and their invariants:
 
         - ``_parent`` -- the :class:`IntegerListsLex` object this is
           iterating on;
@@ -1369,7 +1369,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
           ``_current_list``: the range for each part.
 
         Furthermore, we assume that there is no obvious contradiction
-        in the contraints::
+        in the contraints:
 
         - ``self._parent._min_length <= self._parent._max_length``;
         - ``self._parent._min_slope <= self._parent._max_slope``
@@ -1785,7 +1785,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 sage: it._lookahead()
                 False
 
-            ALGORITHM::
+            ALGORITHM:
 
             Let ``j=self._j`` be the position of the last part `m` of
             ``self._current_list``. The current algorithm computes,

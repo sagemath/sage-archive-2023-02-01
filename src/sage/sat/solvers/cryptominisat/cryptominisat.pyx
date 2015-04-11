@@ -28,6 +28,7 @@ AUTHORS:
 ##############################################################################
 
 include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
 
 from libc.stdint cimport uint32_t
 from decl cimport lbool, Var, Lit, Clause, l_Undef, l_False, RetClause

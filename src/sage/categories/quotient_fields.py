@@ -101,7 +101,7 @@ class QuotientFields(Category_singleton):
                 sage: gcd(t, i)
                 Traceback (most recent call last):
                 ...
-                TypeError: unable to find gcd
+                NotImplementedError: Maximal Order in Number Field in i with defining polynomial x^2 + 1 does not provide a gcd implementation for univariate polynomials
                 sage: q = t/(t+1); q.parent()
                 Fraction Field of Univariate Polynomial Ring in t over Maximal Order in Number Field in i with defining polynomial x^2 + 1
                 sage: gcd(q, q)
@@ -177,7 +177,7 @@ class QuotientFields(Category_singleton):
                 sage: lcm(t, i)
                 Traceback (most recent call last):
                 ...
-                AttributeError: 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense' object has no attribute 'gcd'
+                NotImplementedError: Maximal Order in Number Field in i with defining polynomial x^2 + 1 does not provide a gcd implementation for univariate polynomials
                 sage: q = t/(t+1); q.parent()
                 Fraction Field of Univariate Polynomial Ring in t over Maximal Order in Number Field in i with defining polynomial x^2 + 1
                 sage: lcm(q, q)

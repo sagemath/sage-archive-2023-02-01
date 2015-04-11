@@ -471,7 +471,7 @@ $(INST)/$(SPHINX): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(DOCUTILS) \
 $(INST)/$(MARKUPSAFE): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(MARKUPSAFE) 2>&1" "tee -a $(SAGE_LOGS)/$(MARKUPSAFE).log"
 
-$(INST)/$(JINJA2): $(INST)/$(MARKUPSAFE) $(INST)/$(SPHINX)
+$(INST)/$(JINJA2): $(INST)/$(MARKUPSAFE)  $(INST)/$(SETUPTOOLS) $(INST)/$(DOCUTILS)
 	+$(PIPE) "$(SAGE_SPKG) $(JINJA2) 2>&1" "tee -a $(SAGE_LOGS)/$(JINJA2).log"
 
 $(INST)/$(PYGMENTS): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
@@ -523,7 +523,7 @@ $(INST)/sage: \
 		 $(INST)/csage
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && \
-		$(PIPE) 'time python setup.py install 2>&1' 'tee -a $(SAGE_LOGS)/sage-$(SAGE_VERSION).log' && \
+		$(PIPE) 'time $(MAKE) sage 2>&1' 'tee -a $(SAGE_LOGS)/sage-$(SAGE_VERSION).log' && \
 		touch $@; \
 	fi
 
@@ -534,8 +534,8 @@ $(INST)/csage: $(INST)/$(SCONS) \
        $(INST)/$(PYTHON) \
        $(CSAGE_SOURCES)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
-		cd $(SAGE_SRC) && source bin/sage-env && cd c_lib && \
-		$(PIPE) 'time scons -Q install 2>&1' 'tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log' && \
+		cd $(SAGE_SRC) && source bin/sage-env && \
+		$(PIPE) 'time $(MAKE) csage 2>&1' 'tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log' && \
 		touch $@; \
 	fi
 

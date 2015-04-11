@@ -1,6 +1,7 @@
 """
 Integrable Representations of Affine Lie Algebras
 """
+
 #*****************************************************************************
 #  Copyright (C) 2014 Daniel Bump <bump at match.stanford.edu>
 #
@@ -8,26 +9,30 @@ Integrable Representations of Affine Lie Algebras
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
-from cartan_type import CartanType
+from sage.structure.category_object import CategoryObject
+#from sage.structure.parent import Parent
+from sage.categories.modules import Modules
+from sage.combinat.root_system.cartan_type import CartanType
 from sage.rings.all import ZZ, QQ
 from sage.misc.all import cached_method
 from root_space import RootSpace
 from weight_space import WeightSpace
 from sage.functions.other import floor
 
-class IntegrableRepresentation():
-    """
-    This is a class for an irreducible representation of affine Lie algebras.
+# TODO: Make this a proper parent and implement actions
+class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
+    r"""
+    An irreducible highest weight representation of an affine Lie algebra.
 
     INPUT:
 
-        - ``Lam`` - a dominant weight in an extended weight lattice of affine type.
+    - ``Lam`` -- a dominant weight in an extended weight lattice
+      of affine type
 
     OPTIONAL:
 
-        - ``depth`` - a parameter indicating how far to push computations.
+    - ``depth`` -- a parameter indicating how far to push computations
 
     REFERENCES:
 
@@ -41,25 +46,30 @@ class IntegrableRepresentation():
     .. [KacPeterson] Kac and Peterson. Infinite-dimensional Lie algebras, theta
        functions and modular forms. Adv. in Math. 53 (1984), no. 2, 125-264.
 
-    If `\Lambda` is a dominant integral weight for an affine root system, there exists a unique
-    integrable representation of highest weight `\Lambda`. If `\mu` is another weight such that
-    `\Lambda-\mu` is in the root lattice, then multiplicity of `\mu` in this representation will
+    If `\Lambda` is a dominant integral weight for an affine root system,
+    there exists a unique integrable representation of highest weight
+    `\Lambda`. If `\mu` is another weight such that `\Lambda - \mu` is in
+    the root lattice, then multiplicity of `\mu` in this representation will
     be denoted `m(\mu)`.
 
-    Let `\delta` be the nullroot. Then for fixed `\mu` the function `m(\mu-k\delta)` is
-    a monotone increasing function of `\mu`. It is useful to take `\mu` to be such that this
-    function is nonzero if and only if `k\ge 0`. Therefore we make the following definition.
-    If `\mu` is such that `m(\mu)\\ne 0` but `m(\mu+\delta)=0` then `\mu` is called *maximal*.
+    Let `\delta` be the nullroot. Then for fixed `\mu` the function
+    `m(\mu - k\delta)` is a monotone increasing function of `\mu`. It is
+    useful to take `\mu` to be such that this function is nonzero if and
+    only if `k \geq 0`. Therefore we make the following definition.
+    If `\mu` is such that `m(\mu) \neq 0` but `m(\mu + \delta) = 0`
+    then `\mu` is called *maximal*.
 
     Since `\delta` is fixed under the action of the affine Weyl group,
-    and since the weight multiplicities are Weyl group invariant, the *string
-    function* `k \mapsto m(\mu-k\delta)` is unchanged if `\mu` is replaced by an equivalent
-    weight. Therefore in tabulating the string functions, we may assume that `\mu`
-    is dominant. There are only a finite number of dominant maximal weights.
+    and since the weight multiplicities are Weyl group invariant, the
+    *string function* `k \mapsto m(\mu-k\delta)` is unchanged if `\mu`
+    is replaced by an equivalent weight. Therefore in tabulating the
+    string functions, we may assume that `\mu` is dominant. There are
+    only a finite number of dominant maximal weights.
 
-    Since every nonzero weight multiplicity appears in the string `\mu-k\delta` for
-    one of the finite number of dominant maximal weights `\mu`, it is important to
-    be able to compute these. We may do this as follows.
+    Since every nonzero weight multiplicity appears in the string
+    `\mu - k\delta` for one of the finite number of dominant maximal
+    weights `\mu`, it is important to be able to compute these. We may
+    do this as follows.
 
     EXAMPLE::
 
@@ -75,35 +85,37 @@ class IntegrableRepresentation():
          Lambda[3] + Lambda[4] - delta: 3 25 136 590 2205 7391 22780 65613 178660 463842 1155717 2777795
          Lambda[0] + Lambda[1]: 1 10 62 293 1165 4097 13120 38997 109036 289575 735870 1799620
 
-    In this example, we construct the extended weight lattice of Cartan type ['A',3,1],
-    then define ``Lambda`` to be the fundamental weights. We find there are 5 maximal
-    dominant weights in irreducible representation of highest weight ``Lambda[1]+Lambda[2]+Lambda[3]``,
-    and we determine their string functions. If you want more values, give IntegrableRepresentation
-    the optional parameter ``depth``, which defaults to 12.
+    In this example, we construct the extended weight lattice of Cartan
+    type `A_3^{(1)}`, then define ``Lambda`` to be the fundamental
+    weights. We find there are 5 maximal dominant weights in irreducible
+    representation of highest weight ``Lambda[1]+Lambda[2]+Lambda[3]``,
+    and we determine their string functions.
 
-    It was shown by Kac and Peterson that each string function is the set of
-    Fourier coefficients of a modular form.
+    It was shown by Kac and Peterson that each string function is the
+    set of Fourier coefficients of a modular form.
 
-    Every weight `\mu` such that the weight multiplicity `m(\mu)` is nonzero has the
-    form
+    Every weight `\mu` such that the weight multiplicity `m(\mu)` is
+    nonzero has the form
 
       .. MATH::
-          \Lambda - n_0\\alpha_0 - n_1\\alpha_1 - \cdots,
 
-    where the `n_i` are nonnegative integers. This is represented internally as a
-    tuple ``(n0, n1, n2, ...)``. If you want an individual multiplicity you use
-    the method ``m`` and supply it with this tuple::
+          \Lambda - n_0 \alpha_0 - n_1 \alpha_1 - \cdots,
+
+    where the `n_i` are nonnegative integers. This is represented internally
+    as a tuple ``(n0, n1, n2, ...)``. If you want an individual multiplicity
+    you use the method ``m`` and supply it with this tuple::
 
         sage: Lambda = RootSystem(['C',2,1]).weight_lattice(extended=true).fundamental_weights()
         sage: v = IntegrableRepresentation(2*Lambda[0]); v
-        The IntegrableRepresentation of ['C', 2, 1] with highest weight 2*Lambda[0]
+        Integrable representation of ['C', 2, 1] with highest weight 2*Lambda[0]
         sage: v.m((3,5,3))
         18
 
-    The ``IntegrableRepresentation`` class has methods ``to_weight`` and ``from_weight``
-    to convert between this internal representation and the weight lattice::
+    The :class:`IntegrableRepresentation` class has methods :meth:`to_weight`
+    and :meth:`from_weight` to convert between this internal representation
+    and the weight lattice::
 
-        sage: delta = v._delta
+        sage: delta = v._Q.null_root()
         sage: v.to_weight((4,3,2))
         -3*Lambda[0] + 6*Lambda[1] - Lambda[2] - 4*delta
         sage: v.from_weight(-3*Lambda[0] + 6*Lambda[1] - Lambda[2] - 4*delta)
@@ -113,67 +125,69 @@ class IntegrableRepresentation():
 
         sage: L0 = RootSystem(["A",1,1]).weight_lattice(extended=true).fundamental_weight(0); L0
         Lambda[0]
-        sage: IntegrableRepresentation(4*L0, depth=20).strings()
+        sage: IntegrableRepresentation(4*L0).strings(depth=20)
         4*Lambda[1] - 2*delta: 1 2 6 11 23 41 75 126 215 347 561 878 1368 2082 3153 4690 6936 10121 14677 21055
         2*Lambda[0] + 2*Lambda[1] - delta: 1 2 5 10 20 36 66 112 190 310 501 788 1230 1880 2850 4256 6303 9222 13396 19262
         4*Lambda[0]: 1 1 3 6 13 23 44 75 131 215 354 561 889 1368 2097 3153 4712 6936 10151 14677
-
     """
-    def __init__(self, Lam, depth=12, debug=False, new=True):
-        self._depth = depth
-        if debug:
-            self._debug_depth = 0
-        self._debug = debug
+    def __init__(self, Lam):
+        """
+        Initialize ``self``.
+        """
+        CategoryObject.__init__(self, base=ZZ, category=Modules(ZZ))
+
+        self._Lam = Lam
         self._P = Lam.parent()
-        self._RS = self._P.root_system
-        self._Q = self._RS.root_lattice()
-        self._Lam = self._P(Lam)
-        self._cartan_matrix = self._RS.cartan_matrix()
-        self._cartan_type = self._RS.cartan_type()
+        self._Q = self._P.root_system.root_lattice()
+
+        self._cartan_matrix = self._P.root_system.cartan_matrix()
+        self._cartan_type = self._P.root_system.cartan_type()
         self._classical_rank = self._cartan_type.classical().rank()
-        self._Lambda = self._P.fundamental_weights()
-        self._W = self._P.weyl_group(prefix="s")
-        self._s = self._W.simple_reflections()
         self._index_set = self._P.index_set()
-        self._index_set_classical = [i for i in self._index_set if i != 0]
-        self._alpha = self._Q.simple_roots()
-        self._alphacheck = self._Q.simple_coroots()
-        self._rho = self._P.rho()
+        self._index_set_classical = self._cartan_type.classical().index_set()
+
         cmi = self._cartan_type.classical().cartan_matrix().inverse()
         self._cminv = {}
         for i in self._index_set_classical:
             for j in self._index_set_classical:
                 self._cminv[(i,j)] = cmi[i-1][j-1]
+
         self._smat = {}
         for i in self._index_set:
             for j in self._index_set:
                 self._smat[(i,j)] = -self._cartan_matrix[i][j]
             self._smat[(i,i)] += 1
+
         self._shift = {}
+        alphacheck = self._Q.simple_coroots()
         for i in self._index_set:
-            self._shift[i] = self._Lam.scalar(self._alphacheck[i])
+            self._shift[i] = self._Lam.scalar(alphacheck[i])
+
         self._ddict = {}
-        self._mdict = {tuple(0 for i in self._index_set):1}
-        self._new = new
-        self._den0 = (self._Lam+self._rho).symmetric_form(self._Lam+self._rho)
+        self._mdict = {tuple(0 for i in self._index_set): 1}
+
+        Lam_rho = self._Lam + self._P.rho()
+        self._den0 = Lam_rho.symmetric_form(Lam_rho)
+
         def from_classical_root(h):
             """
-            Coerces a classical root into P.
+            Coerces a classical root into Q.
             """
-            return sum(self._alpha[i]*h.monomial_coefficients().get(i,0) for i in self._index_set_classical)
-        self._classical_roots = [from_classical_root(al) for al in self._Q.classical().roots()]
-        self._classical_positive_roots = [from_classical_root(al) for al in self._Q.classical().positive_roots()]
+            return self._Q._from_dict(h._monomial_coefficients)
+        self._classical_roots = [from_classical_root(al)
+                                 for al in self._Q.classical().roots()]
+        self._classical_positive_roots = [from_classical_root(al)
+                                          for al in self._Q.classical().positive_roots()]
+
         self._eps = {}
         for i in self._index_set:
-            self._eps[i] = self._cartan_type.a()[i]/self._cartan_type.dual().a()[i]
-        self._delta = sum(self._cartan_type.a()[i]*self._alpha[i] for i in self._index_set)
-        self.string(self._Lam)
+            self._eps[i] = self._cartan_type.a()[i] / self._cartan_type.dual().a()[i]
 
     def __repr__(self):
-        return "The IntegrableRepresentation of %s with highest weight %s"%(self._cartan_type, self._Lam)
-
-    def parent(self):
-        return self._P
+        """
+        Return a string representation of ``self``.
+        """
+        return "Integrable representation of %s with highest weight %s"%(self._cartan_type, self._Lam)
 
     def inner_qq(self, qelt1, qelt2):
         """
@@ -202,39 +216,46 @@ class IntegrableRepresentation():
             this code robust, parents should be checked. This is not done
             since in the application the parents are known, so checking would
             unnecessarily slow us down.
-
         """
         return sum(pelt.monomial_coefficients().get(i,0)*qelt.monomial_coefficients().get(i,0)/self._eps[i] for i in self._index_set)
 
     def to_weight(self, n):
         """
-        returns `Lam - \sum n[i]*alpha[i]`
+        Return the weight associated to the tuple ``n``.
+
+        If ``n`` is the tuple `(n_1, n_2, \ldots)`, then the associated
+        weight is `\Lambda - \sum_i n_i alpha_i`, where `\Lambda` is the
+        weight of the representation.
         """
-        return self._Lam - sum(ZZ(n[i])*self._alpha[i] for i in self._index_set)
+        alpha = self._P.simple_roots()
+        I = self._index_set
+        return self._Lam - self._P.sum(ZZ(val) * alpha[I[i]]
+                                       for i,val in enumerate(n))
 
     def _from_weight_helper(self, mu):
         """
-        It is assumeed that mu is in the root lattice.
-        returns `(n[0], n[1], ...)` such that `mu = \sum n[i]*alpha[i]`
+        It is assumeed that ``mu`` is in the root lattice.
+        returns ``(n[0], n[1], ...)`` such that ``mu = \sum n[i]*alpha[i]``
         """
         mu = self._P(mu)
-        n0 = mu.monomial_coefficients().get('delta',0)
-        mu0 = mu - n0*self._P(self._alpha[0])
+        n0 = mu.monomial_coefficients().get('delta', 0)
+        mu0 = mu - n0*self._P.simple_root(0)
         ret = [n0]
         for i in self._index_set_classical:
-            ret.append(sum(self._cminv[(i,j)]*mu0.monomial_coefficients().get(j,0) for j in self._index_set_classical))
+            ret.append(sum(self._cminv[(i,j)]*mu0.monomial_coefficients().get(j,0)
+                           for j in self._index_set_classical))
         return tuple(ZZ(i) for i in ret)
     
     def from_weight(self, mu):
         """
-        returns `(n[0], n[1], ...)` such that `mu = Lam - \sum n[i]*alpha[i]`
+        Return ``(n[0], n[1], ...)`` such that ``mu = Lam - \sum n[i]*alpha[i]``
         """
         return self._from_weight_helper(self._Lam - mu)
 
     def s(self, n, i):
         """
-        Implements the `i`-th simple reflection in the internal representation of
-        weights by tuples.
+        Implements the `i`-th simple reflection in the internal
+        representation of weights by tuples.
         """
         ret = [n[j] for j in self._index_set]
         ret[i] += self._Lam.monomial_coefficients().get(i,0)
@@ -254,25 +275,28 @@ class IntegrableRepresentation():
         return n
 
     def freudenthal_roots_imaginary(self, nu):
-        """
-        It is assumed that `nu` is in `Q`. Returns the set of imaginary roots
-        `\alpha\in\Delta^+` such that `nu-\alpha\in Q^+`.
+        r"""
+        It is assumed that ``nu`` is in `Q`. Returns the set of imaginary roots
+        `\alpha \in \Delta^+` such that `nu - \alpha \in Q^+`.
 
-        kp = min(ZZ(nu.symmetric_form(self._Lambda[i])) for i in self._index_set)
-        return [u*self._delta for u in [1..kp]]
+        Lambda = self._P.fundamental_weights()
+        kp = min(ZZ(nu.symmetric_form(Lambda[i])) for i in self._index_set)
+        delta = self._Q.null_root()
+        return [u*delta for u in [1..kp]]
         """
         l = self._from_weight_helper(nu)
-        kp = min(floor(l[i]/self._cartan_type.a()[i]) for i in self._index_set)
-        return [u*self._delta for u in range(1,kp+1)]
+        kp = min(floor(l[i] / self._cartan_type.a()[i]) for i in self._index_set)
+        delta = self._Q.null_root()
+        return [u*delta for u in range(1,kp+1)]
 
     def freudenthal_roots_real(self, nu):
-        """
-        It is assumed that `nu` is in `Q`. Returns the set of real positive
-        roots `\alpha\in\Delta^+` such that `nu-\alpha\in Q^+`.
+        r"""
+        It is assumed that ``nu`` is in `Q`. Returns the set of real positive
+        roots `\alpha \in \Delta^+` such that `nu - \alpha \in Q^+`.
         """
         ret = []
         for al in self._classical_positive_roots:
-            if all(x>=0 for x in self._from_weight_helper(nu-al)):
+            if all(x >= 0 for x in self._from_weight_helper(nu-al)):
                 ret.append(al)
         for al in self._classical_roots:
             for ir in self.freudenthal_roots_imaginary(nu-al):
@@ -280,9 +304,9 @@ class IntegrableRepresentation():
         return ret
 
     def freudenthal_roots(self, nu):
-        """
-        It is assumed that `nu` is in `Q`. Returns the set of realroots
-        `\alpha\in\Delta^+` such that `nu-\alpha\in Q^+`.
+        r"""
+        It is assumed that ``nu`` is in `Q`. Returns the set of real roots
+        `\alpha \in \Delta^+` such that `nu - \alpha \in Q^+`.
 
         This code is not called in the main algorithm.
         """
@@ -296,40 +320,41 @@ class IntegrableRepresentation():
     def _freudenthal_accum(self, nu, al):
         ret = 0
         k = 1
-        while 1:
-            if min(self._from_weight_helper(self._Lam-nu-k*al))<0:
-                break
-            mk = self.m(self.from_weight(nu+k*al))
-            ip = self.inner_pq(nu+k*al,al)
+        while min(self._from_weight_helper(self._Lam - nu - k*al)) >= 0:
+            mk = self.m(self.from_weight(nu + k*al))
+            ip = self.inner_pq(nu + k*al, al)
             ret += 2*mk*ip
             k += 1
         return ret
 
     def m_freudenthal(self, n):
         """
-        Computes the weight multiplicity using the Freudenthal multiplicity formula.
+        Compute the weight multiplicity using the Freudenthal multiplicity formula.
         """
-        if min(n)<0:
+        if min(n) < 0:
             return 0
         mu = self.to_weight(n)
-        al = sum(n[i]*self._alpha[i] for i in self._index_set)
-        den = 2*self.inner_pq(self._Lam+self._rho, al)-self.inner_qq(al,al)
+        I = self._index_set
+        al = self._Q._from_dict({I[i]: val for i,val in enumerate(n) if val},
+                                remove_zeros=False)
+        den = 2*self.inner_pq(self._Lam+self._P.rho(), al) - self.inner_qq(al,al)
         num = 0
-        for al in self.freudenthal_roots_real(self._Lam-mu):
+        for al in self.freudenthal_roots_real(self._Lam - mu):
             num += self._freudenthal_accum(mu, al)
-        for al in self.freudenthal_roots_imaginary(self._Lam-mu):
+        for al in self.freudenthal_roots_imaginary(self._Lam - mu):
             num += self._classical_rank*self._freudenthal_accum(mu, al)
         if den == 0 and num == 0:
             print "m_freudenthal","m: n=%s, num=den=0"%n.__repr__()
         try:
-            return ZZ(num/den)
+            return ZZ(num / den)
         except:
             return None
 
     def m(self, n):
         """
-        Returns the multiplicity
+        Return the multiplicity.
         """
+        # TODO: Make this non-recursive by implementing our own stack
         if self._mdict.has_key(n):
             return self._mdict[n]
         elif self._ddict.has_key(n):
@@ -346,42 +371,48 @@ class IntegrableRepresentation():
 
     def dominant_maximal(self):
         """
-        Returns the finite set of dominant maximal weights.
+        Return the finite set of dominant maximal weights.
         """
         ret = set()
+        delta = self._Q.null_root()
         for x in self._ddict.values():
             if self.m(x) > 0:
                 if min(x) == 0:
                     ret.add(x)
                 else:
-                    y = self.from_weight(self.to_weight(x)+self._delta)
+                    y = self.from_weight(self.to_weight(x) + delta)
                     if self.m(y) == 0:
                         ret.add(x)
         return [self.to_weight(x) for x in ret]
 
-    def string(self, max):
+    def string(self, max_weight, depth=12):
         """
+        Return the list of multiplicities `m(\Lambda - k \delta)` where
+        `\Lambda` is ``max_weight`` and `k` runs from `0` to ``depth``.
+
         INPUT:
 
-            - ``max`` - a dominant maximal weight.
-
-        Returns the list of multiplicities ``m(max-k*delta)``
-        for ``k = 0,1,2,`` up to ``self._depth``.
+        - ``max_weight`` -- a dominant maximal weight
+        - ``depth`` -- (default: 12) the maximum value of `k`
             """
         ret = []
-        k = self._depth
-        for j in range(k):
-            ret.append(self.m(self.from_weight(max-j*self._delta)))
+        delta = self._Q.null_root()
+        for k in range(depth):
+            ret.append(self.m( self.from_weight(max_weight - k*delta) ))
         return ret
 
-    def strings(self):
+    def strings(self, depth=12):
         """
-        Returns the set of dominant maximal weights of self, together with the string
-        coefficients for each.
+        Return the set of dominant maximal weights of ``self``, together
+        with the string coefficients for each.
         """
-        for max in self.dominant_maximal():
-            s = self.string(max)
-            print "%s:"%max,
+        # FIXME: This call to string should not be necessary as it is
+        #   highly redundant to generate the data for dominant_maximal
+        self.string(self._Lam, depth)
+        for max_weight in self.dominant_maximal():
+            s = self.string(max_weight, depth)
+            print "%s:"%max_weight,
             for j in s:
                 print j,
             print
+

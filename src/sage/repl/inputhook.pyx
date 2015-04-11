@@ -72,7 +72,7 @@ def uninstall():
 
 
 def sage_inputhook():
-    """
+    r"""
     The input hook.
 
     This function will be called every 100ms when IPython is idle at

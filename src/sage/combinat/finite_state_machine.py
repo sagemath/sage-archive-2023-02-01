@@ -774,7 +774,11 @@ See also methods :meth:`Automaton.process` and
 :class:`FSMProcessIterator` for more information on processing and
 hooks.
 
-REFERENCE:
+REFERENCES:
+
+.. [HKP2015] Clemens Heuberger, Sara Kropf, and Helmut Prodinger,
+   *Output sum of transducers: Limiting distribution and periodic
+   fluctuation*, :arxiv:`1502.01412`.
 
 .. [HKW2014] Clemens Heuberger, Sara Kropf and Stephan Wagner,
    *Variances and Covariances in the Central Limit Theorem for the Output
@@ -7632,12 +7636,6 @@ class FiniteStateMachine(SageObject):
             sage: T.final_components()[0].transitions()
             [Transition from 0 to 1: 0|-,
              Transition from 1 to 0: 0|-]
-
-        REFERENCES:
-
-        .. [HKP2015] Clemens Heuberger, Sara Kropf, and Helmut
-           Prodinger, *Output sum of transducers: Limiting distribution
-           and periodic fluctuation*, :arxiv:`1502.01412`.
         """
         DG = self.digraph()
         condensation = DG.strongly_connected_components_digraph()

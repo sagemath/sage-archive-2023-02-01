@@ -28,6 +28,10 @@ REFERENCES:
 .. [LLM1998] L. Lapointe, A. Lascoux, J. Morse, Determinantal Expressions for
    Macdonald Polynomials, IRMN no. 18 (1998).
    :arXiv:`math/9808050`.
+
+.. [BH2013] Tableaux Formulas for Macdonald Polynomials, Special edition
+    in honour of Christophe Reutenauer 60 birthday, International Journal
+    of Algebra and Computation, Volume 23, Issue 4, (2013), pp. 833-852.
 """
 
 #*****************************************************************************
@@ -51,10 +55,12 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 import sfa
 import sage.combinat.partition
+from sage.combinat.partition import Partition
 from sage.matrix.all import MatrixSpace
 from sage.rings.all import QQ
 from sage.misc.all import prod
 from sage.rings.fraction_field import FractionField
+from sage.misc.cachefunc import cached_function
 import functools
 
 # cache in q,t globally and subs locally with q and t values
@@ -68,8 +74,7 @@ _h_to_s_cache = {}
 _s_to_h_cache = {}
 
 #Ht basis cache
-_ht_to_s_cache = {}
-_s_to_ht_cache = {}
+_ht_to_m_cache = {}
 
 #S basis cache
 _S_to_s_cache = {}
@@ -611,6 +616,101 @@ def c2(part, q, t):
         res *= 1-q**(sum(part.arm_lengths(),[])[i])*t**(sum(part.leg_lengths(),[])[i]+1)
     return res
 
+@cached_function
+def Bmu( mu ):
+    r"""
+    Returns the bi-exponent generator for the cells of ``mu``.
+    
+    The weight in the bi-exponent generator is `t` raised the
+    `x`-coordinate of the cell, `q` raised to the `y` coordinate.
+    
+    INPUT:
+
+    - ``mu`` -- a partition or a skew partition
+
+    OUTPUT:
+
+    - a polynomial in `q` and `t`
+
+    EXAMPLES::
+
+        sage: Bmu(Partition([2,1]))
+        q + t + 1
+        sage: Bmu(SkewPartition([[3,3],[2]]))
+        q^2*t + q^2 + q*t + t
+    """
+    return sum(t**c[0]*q**c[1] for c in mu.cells())
+
+@cached_function
+def cmunu1(mu, nu):
+    r"""
+    Return the coefficient of `{\tilde H}_\nu` in `h_1^\perp {\tilde H}_\mu`.
+
+    INPUT:
+
+    - ``mu``, ``nu`` -- partitions with ``nu`` preceeds ``mu``
+
+    OUTPUT:
+
+    - a rational polynomial in `q` and `t`
+
+    EXAMPLES::
+
+        sage: cmunu1(Partition([2,1]),Partition([2]))
+        (-t^2 + q)/(q - t)
+        sage: cmunu1(Partition([2,1]),Partition([1,1]))
+        (-q^2 + t)/(-q + t)
+        sage: Sym = SymmetricFunctions(QQ['q','t'].fraction_field())
+        sage: h = Sym.h()
+        sage: Ht = Sym.macdonald().Ht()
+        sage: all(Ht[3,2,1].skew_by(h[1]).coefficient(nu) == cmunu(Partition([3,2,1]),nu) for nu in Partition([3,2,1]).down_list())
+        True
+    """
+    # mu and nu should both be Partitions
+    c = sage.combinat.skew_partition.SkewPartition([mu,nu]).cells()[0]
+    A = prod((t**mu.leg_length(*s)-q**(mu.arm_length(*s)+1))/(t**nu.leg_length(*s)-q**(nu.arm_length(*s)+1)) for s in nu.cells() if s[0]==c[0])
+    B = prod((q**mu.arm_length(*s)-t**(mu.leg_length(*s)+1))/(q**nu.arm_length(*s)-t**(nu.leg_length(*s)+1)) for s in nu.cells() if s[1]==c[1])
+    return A*B
+    
+@cached_function
+def cmunu(mu, nu):
+    r"""
+    Return the coefficient of `{\tilde H}_\nu` in `h_r^\perp {\tilde H}_\mu`.
+    A theorem of F. Bergeron, A. Garsia and M. Haiman [BH2013]_ states
+
+    .. MATH::
+
+        c_{\mu\nu} = \sum_{\alpha \leftarrow \nu} c_{\mu\alpha} c_{\alpha\nu} B_{\alpha/\nu}/B_{\mu/\nu}
+    
+    where `c_{\mu\nu}` is the coefficient of `{\tilde H}_\nu` in `h_r^\perp {\tilde H}_\mu`.
+
+    INPUT:
+
+    - ``mu``, ``nu`` -- partitions with ``nu`` contained in ``mu``
+
+    OUTPUT:
+
+    - a rational polynomial in `q` and `t`
+
+    EXAMPLES::
+
+        sage: cmunu(Partition([2,1]),Partition([1]))
+        q + t + 1
+        sage: cmunu(Partition([2,2]),Partition([1,1]))
+        (-q^3 - q^2 + q*t + t)/(-q + t)
+        sage: Sym = SymmetricFunctions(QQ['q','t'].fraction_field())
+        sage: h = Sym.h()
+        sage: Ht = Sym.macdonald().Ht()
+        sage: all(Ht[2,2].skew_by(h[r]).coefficient(nu) == cmunu(Partition([2,2]),nu) for r in range(1,5) for nu in Partitions(4-r))
+        True
+    """
+    if nu==[]:
+        return 1
+    if not mu.contains(nu):
+        return 0
+    if mu.size()==nu.size()+1:
+        return cmunu1(mu, nu)
+    return sum(cmunu(mu, al)*cmunu1(al, nu)*Bmu(sage.combinat.skew_partition.SkewPartition([al,nu])) for al in nu.up_list())/Bmu(sage.combinat.skew_partition.SkewPartition([mu,nu]))
 
 #Generic MacdonaldPolynomials
 class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
@@ -1173,6 +1273,8 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         r"""
         The `Ht` basis is defined from the `H` basis by replacing `t \to 1/t`
         and multiplying by a normalizing power of `t`.
+        Here we define it by using a Pieri formula due to F. Bergeron,
+        A. Garsia and M. Haiman [BH2013]_.
 
         INPUT:
 
@@ -1187,38 +1289,62 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
             sage: TestSuite(Ht).run(elements = [Ht.t*Ht[1,1]+Ht.q*Ht[2], Ht[1]+(Ht.q+Ht.t)*Ht[1,1]])  # long time (depends on previous)
         """
         MacdonaldPolynomials_generic.__init__(self, macdonald)
-        self._self_to_s_cache = _ht_to_s_cache
-        self._s_to_self_cache = _s_to_ht_cache
-        self._J = macdonald.J()
+        self._self_to_m_cache = _ht_to_m_cache
+        self._m = self._sym.m()
+        category = sage.categories.all.ModulesWithBasis(self.base_ring())
+        self._m.register_coercion(SetMorphism(Hom(self, self._m, category), self._self_to_m))
+        # in this case need to implement _self_to_m (similar to generic _self_to_s) and _m_cache
 
-    def _s_cache(self, n):
+    def _Lmunu(self, nu, mu ):
         r"""
-        Compute the change of basis and its inverse between the Macdonald
-        polynomials on the `Ht` basis and the Schur functions.
-        These computations are completed with coefficients in fraction
-        field of polynomials in `q` and `t`
+        Return the coefficient of `m_\nu` in `{\tilde H}_\mu`.
+
+        The coefficient is a `(q,t)`-analogue of `n` choose `\nu`.
+        A theorem of F. Bergeron, A. Garsia and M. Haiman [BH2013]_ says that
+
+        .. MATH::
+
+            L_{\mu\nu} = \sum_{\gamma} c_{\mu\gamma} L_{\overline{\nu}\gamma}
+
+        where the sum is over partitions `\gamma \subseteq \mu` with 
+        `\gamma \vdash |(\nu_1, \ldots, \nu_{\ell(\nu)-1})|`.
 
         INPUT:
 
-        - ``self`` -- a Macdonald `Ht` basis
-        - ``n`` -- a positive integer
+        - ``nu``, ``mu`` -- partitions of the same size
+
+        OUTPUT:
+
+        - a polynomial in `q` and `t`
 
         EXAMPLES::
 
-            sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
-            sage: Ht = Sym.macdonald().Ht()
-            sage: Ht._s_cache(2)
-            sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
-            sage: l( Ht._s_to_self_cache[2] )
-            [([1, 1], [([1, 1], 1/(-q + t)), ([2], (-1)/(-q + t))]),
-             ([2], [([1, 1], (-q)/(-q + t)), ([2], t/(-q + t))])]
-            sage: l( Ht._self_to_s_cache[2] )
-            [([1, 1], [([1, 1], t), ([2], 1)]), ([2], [([1, 1], q), ([2], 1)])]
+            sage: Lmunu(Partition([3,1]),Partition([3,1]))
+            q^2 + q + t + 1
+            sage: Lmunu(Partition([3,1]),Partition([2,2]))
+            q*t + q + t + 1
+            sage: Lmunu(Partition([3,1]),Partition([2,1,1]))
+            t^2 + q + t + 1
+            sage: Lmunu(Partition([2,2]),Partition([2,1,1]))
+            q*t + 2*t^2 + q + t + 1
         """
-        self._invert_morphism(n, QQqt, self._self_to_s_cache, \
-                              self._s_to_self_cache, to_other_function = self._to_s)
+        if len(mu)==0:
+            if len(nu)==0:
+                return 1
+            else:
+                return 0
+        if (mu,nu) in self._self_to_m_cache:
+            return self._self_to_m_cache[(mu,nu)]
+        if len(nu)==1:
+            return 1
+        if nu[-1]==1:
+            self._self_to_m_cache[(mu,nu)] = self._base(sum(cmunu1(mu,ga)*self._Lmunu(Partition(nu[:-1]), ga) for ga in mu.down_list()))
+            return self._self_to_m_cache[(mu,nu)]
+        self._self_to_m_cache[(mu,nu)] = self._base(sum( cmunu(mu,ga)*self._Lmunu(Partition(nu[:-1]), ga)
+          for ga in sage.combinat.partition.Partitions(nu.size()-nu[-1]) if mu.contains(ga)))
+        return self._self_to_m_cache[(mu,nu)]
 
-    def _to_s(self, part):
+    def _self_to_m(self, x):
         r"""
         Returns a function which gives the coefficient of a partition in
         the Schur expansion of ``self``(``part``).
@@ -1247,16 +1373,9 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
             sage: [f22(part) for part in Partitions(4)]
             [1, q*t + q + t, q^2 + t^2, q^2*t + q*t^2 + q*t, q^2*t^2]
         """
-        (q,t) = QQqt.gens()
-        Sym = self._sym
-        J = Sym.macdonald().J()
-        s = self._s
-        res = 0
-        ve = part.weighted_size()
-        for p in sage.combinat.partition.Partitions(sum(part)):
-            res += t**ve*(J(part).scalar_t(s(p), t)).subs(t=1/t)*s(p)
-        f = lambda part2: res.coefficient(part2)
-        return f
+        return self._m._from_dict({ part2: sum(x.coefficient(mu)*self._Lmunu(part2, mu) 
+           for mu in x.homogeneous_component(d).support()) 
+                for d in range(x.degree()+1) for part2 in sage.combinat.partition.Partitions(d)})
 
     class Element(MacdonaldPolynomials_generic.Element):
         def nabla(self, q=None, t=None, power=1):

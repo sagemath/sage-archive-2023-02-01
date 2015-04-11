@@ -1061,7 +1061,7 @@ cdef class ImplicitSurface(IndexFaceSet):
         """
         Return a representation of this object in the .obj format.
 
-        TESTS::
+        TESTS:
 
         We graph a simple plane::
 

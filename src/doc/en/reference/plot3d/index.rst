@@ -19,4 +19,11 @@
    sage/plot/plot3d/texture
    sage/plot/plot3d/index_face_set
 
+   sage/plot/java3d
+   sage/plot/plot3d/help
+   sage/plot/plot3d/implicit_surface
+   sage/plot/plot3d/shapes
+   sage/plot/plot3d/transform
+   sage/plot/plot3d/tri_plot
+
 .. include:: ../footer.txt

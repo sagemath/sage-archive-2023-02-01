@@ -1,3 +1,5 @@
+"Plotting utilities"
+
 #*****************************************************************************
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

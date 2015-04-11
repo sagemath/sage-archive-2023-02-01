@@ -1945,16 +1945,18 @@ ex sqrfree_parfrac(const ex & a, const symbol & x)
  *  @see ex::normal */
 static ex replace_with_symbol(const ex & e, exmap & repl, exmap & rev_lookup)
 {
+	// Since the repl contains replaced expressions we should search for them
+	ex e_replaced = e.subs(repl, subs_options::no_pattern);
+
 	// Expression already replaced? Then return the assigned symbol
-	exmap::const_iterator it = rev_lookup.find(e);
+	exmap::const_iterator it = rev_lookup.find(e_replaced);
 	if (it != rev_lookup.end())
 		return it->second;
-	
+
 	// Otherwise create new symbol and add to list, taking care that the
 	// replacement expression doesn't itself contain symbols from repl,
 	// because subs() is not recursive
 	ex es = (new symbol)->setflag(status_flags::dynallocated);
-	ex e_replaced = e.subs(repl, subs_options::no_pattern);
 	repl.insert(std::make_pair(es, e_replaced));
 	rev_lookup.insert(std::make_pair(e_replaced, es));
 	return es;
@@ -1967,16 +1969,18 @@ static ex replace_with_symbol(const ex & e, exmap & repl, exmap & rev_lookup)
  *  @see basic::to_polynomial */
 static ex replace_with_symbol(const ex & e, exmap & repl)
 {
+	// Since the repl contains replaced expressions we should search for them
+	ex e_replaced = e.subs(repl, subs_options::no_pattern);
+
 	// Expression already replaced? Then return the assigned symbol
 	for (exmap::const_iterator it = repl.begin(); it != repl.end(); ++it)
-		if (it->second.is_equal(e))
+		if (it->second.is_equal(e_replaced))
 			return it->first;
-	
+
 	// Otherwise create new symbol and add to list, taking care that the
 	// replacement expression doesn't itself contain symbols from repl,
 	// because subs() is not recursive
 	ex es = (new symbol)->setflag(status_flags::dynallocated);
-	ex e_replaced = e.subs(repl, subs_options::no_pattern);
 	repl.insert(std::make_pair(es, e_replaced));
 	return es;
 }

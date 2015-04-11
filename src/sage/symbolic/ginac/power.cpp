@@ -319,6 +319,8 @@ bool power::info(unsigned inf) const
 			return (flags & status_flags::expanded);
 		case info_flags::positive:
 			return basis.info(info_flags::positive) && exponent.info(info_flags::real);
+		case info_flags::nonnegative:
+			return basis.info(info_flags::real) && exponent.info(info_flags::integer) && exponent.info(info_flags::even);
 		case info_flags::has_indices: {
 			if (flags & status_flags::has_indices)
 				return true;
@@ -364,11 +366,16 @@ ex power::map(map_function & f) const
 
 bool power::is_polynomial(const ex & var) const
 {
-	if (exponent.has(var))
-		return false;
-	if (!exponent.info(info_flags::nonnegint))
-		return false;
-	return basis.is_polynomial(var);
+	if (basis.is_polynomial(var)) {
+		if (basis.has(var))
+			// basis is non-constant polynomial in var
+			return exponent.info(info_flags::nonnegint);
+		else
+			// basis is constant in var
+			return !exponent.has(var);
+	}
+	// basis is a non-polynomial function of var
+	return false;
 }
 
 int power::degree(const ex & s) const
@@ -439,7 +446,7 @@ ex power::coeff(const ex & s, int n) const
  *  - ^(1,x) -> 1
  *  - ^(c1,c2) -> *(c1^n,c1^(c2-n))  (so that 0<(c2-n)<1, try to evaluate roots, possibly in numerator and denominator of c1)
  *  - ^(^(x,c1),c2) -> ^(x,c1*c2)  if x is positive and c1 is real.
- *  - ^(^(x,c1),c2) -> ^(x,c1*c2)  (c2 integer or -1 < c1 <= 1, case c1=1 should not happen, see below!)
+ *  - ^(^(x,c1),c2) -> ^(x,c1*c2)  (c2 integer or -1 < c1 <= 1 or (c1=-1 and c2>0), case c1=1 should not happen, see below!)
  *  - ^(*(x,y,z),c) -> *(x^c,y^c,z^c)  (if c integer)
  *  - ^(*(x,c1),c2) -> ^(x,c2)*c1^c2  (c1>0)
  *  - ^(*(x,c1),c2) -> ^(-x,c2)*c1^c2  (c1<0)
@@ -616,7 +623,7 @@ ex power::eval(int level) const
 		}
 	
 		// ^(^(x,c1),c2) -> ^(x,c1*c2)
-		// (c1, c2 numeric(), c2 integer or -1 < c1 <= 1,
+		// (c1, c2 numeric(), c2 integer or -1 < c1 <= 1 or (c1=-1 and c2>0),
 		// case c1==1 should not happen, see below!)
 		if (is_exactly_a<power>(ebasis)) {
 			const power & sub_power = ex_to<power>(ebasis);
@@ -625,7 +632,8 @@ ex power::eval(int level) const
 			if (is_exactly_a<numeric>(sub_exponent)) {
 				const numeric & num_sub_exponent = ex_to<numeric>(sub_exponent);
 				GINAC_ASSERT(num_sub_exponent!=numeric(1));
-				if (num_exponent->is_integer() || (abs(num_sub_exponent) - (*_num1_p)).is_negative()) {
+				if (num_exponent->is_integer() || (abs(num_sub_exponent) - (*_num1_p)).is_negative() 
+						|| (num_sub_exponent == *_num_1_p && num_exponent->is_positive())) {
 					return power(sub_basis,num_sub_exponent.mul(*num_exponent));
 				}
 			}
@@ -871,8 +879,7 @@ ex power::imag_part() const
 	ex b=basis.imag_part();
 	ex c=exponent.real_part();
 	ex d=exponent.imag_part();
-	return
-		power(abs(basis),c)*exp(-d*atan2(b,a))*sin(c*atan2(b,a)+d*log(abs(basis)));
+	return power(abs(basis),c)*exp(-d*atan2(b,a))*sin(c*atan2(b,a)+d*log(abs(basis)));
 }
 
 // protected

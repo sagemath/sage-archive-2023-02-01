@@ -466,10 +466,6 @@ bool mul::info(unsigned inf) const
 		case info_flags::integer:
 		case info_flags::crational:
 		case info_flags::cinteger:
-		case info_flags::positive:
-		case info_flags::nonnegative:
-		case info_flags::posint:
-		case info_flags::nonnegint:
 		case info_flags::even:
 		case info_flags::crational_polynomial:
 		case info_flags::rational_function: {
@@ -492,39 +488,98 @@ bool mul::info(unsigned inf) const
 			}
 			return false;
 		}
+		case info_flags::positive:
 		case info_flags::negative: {
-			bool neg = false;
+			if ((inf==info_flags::positive) && (flags & status_flags::is_positive))
+				return true;
+			else if ((inf==info_flags::negative) && (flags & status_flags::is_negative))
+				return true;
+			if (flags & status_flags::purely_indefinite)
+				return false;
+
+			bool pos = true;
 			epvector::const_iterator i = seq.begin(), end = seq.end();
 			while (i != end) {
 				const ex& factor = recombine_pair_to_ex(*i++);
 				if (factor.info(info_flags::positive))
 					continue;
 				else if (factor.info(info_flags::negative))
-					neg = !neg;
+					pos = !pos;
 				else
 					return false;
 			}
 			if (overall_coeff.info(info_flags::negative))
-				neg = !neg;
-			return neg;
+				pos = !pos;
+			setflag(pos ? status_flags::is_positive : status_flags::is_negative);
+			return (inf == info_flags::positive? pos : !pos);
 		}
+		case info_flags::nonnegative: {
+			if  (flags & status_flags::is_positive)
+				return true;
+			bool pos = true;
+			epvector::const_iterator i = seq.begin(), end = seq.end();
+			while (i != end) {
+				const ex& factor = recombine_pair_to_ex(*i++);
+				if (factor.info(info_flags::nonnegative) || factor.info(info_flags::positive))
+					continue;
+				else if (factor.info(info_flags::negative))
+					pos = !pos;
+				else
+					return false;
+			}
+			return (overall_coeff.info(info_flags::negative)? pos : !pos);
+		}
+		case info_flags::posint:
 		case info_flags::negint: {
-			bool neg = false;
+			bool pos = true;
 			epvector::const_iterator i = seq.begin(), end = seq.end();
 			while (i != end) {
 				const ex& factor = recombine_pair_to_ex(*i++);
 				if (factor.info(info_flags::posint))
 					continue;
 				else if (factor.info(info_flags::negint))
-					neg = !neg;
+					pos = !pos;
 				else
 					return false;
 			}
 			if (overall_coeff.info(info_flags::negint))
-				neg = !neg;
+				pos = !pos;
 			else if (!overall_coeff.info(info_flags::posint))
 				return false;
-			return neg;
+			return (inf ==info_flags::posint? pos : !pos); 
+		}
+		case info_flags::nonnegint: {
+			bool pos = true;
+			epvector::const_iterator i = seq.begin(), end = seq.end();
+			while (i != end) {
+				const ex& factor = recombine_pair_to_ex(*i++);
+				if (factor.info(info_flags::nonnegint) || factor.info(info_flags::posint))
+					continue;
+				else if (factor.info(info_flags::negint))
+					pos = !pos;
+				else
+					return false;
+			}
+			if (overall_coeff.info(info_flags::negint))
+				pos = !pos;
+			else if (!overall_coeff.info(info_flags::posint))
+				return false;
+			return pos; 
+		}
+		case info_flags::indefinite: {
+			if (flags & status_flags::purely_indefinite)
+				return true;
+			if (flags & (status_flags::is_positive | status_flags::is_negative))
+				return false;
+			epvector::const_iterator i = seq.begin(), end = seq.end();
+			while (i != end) {
+				const ex& term = recombine_pair_to_ex(*i);
+				if (term.info(info_flags::positive) || term.info(info_flags::negative))
+					return false;
+				++i;
+			}
+			setflag(status_flags::purely_indefinite);
+			return true;
 		}
 	}
 	return inherited::info(inf);
@@ -534,7 +589,7 @@ bool mul::is_polynomial(const ex & var) const
 {
 	for (epvector::const_iterator i=seq.begin(); i!=seq.end(); ++i) {
 		if (!i->rest.is_polynomial(var) ||
-		    (i->rest.has(var) && !i->coeff.info(info_flags::integer))) {
+		    (i->rest.has(var) && !i->coeff.info(info_flags::nonnegint))) {
 			return false;
 		}
 	}

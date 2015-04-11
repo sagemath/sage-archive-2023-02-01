@@ -677,7 +677,7 @@ expair add::combine_pair_with_coeff_to_pair(const expair & p,
 
 	return expair(p.rest,ex_to<numeric>(p.coeff).mul_dyn(ex_to<numeric>(c)));
 }
-	
+
 ex add::recombine_pair_to_ex(const expair & p) const
 {
 	if (ex_to<numeric>(p.coeff).is_equal(*_num1_p))

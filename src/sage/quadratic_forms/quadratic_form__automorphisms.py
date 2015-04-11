@@ -14,8 +14,7 @@ from sage.rings.arith import GCD
 from sage.misc.sage_eval import sage_eval
 from sage.env import SAGE_LOCAL
 
-import tempfile, os
-from random import random
+import random, tempfile, os
 
 
 def basis_of_short_vectors(self, show_lengths=False, safe_flag=True):
@@ -29,6 +28,7 @@ def basis_of_short_vectors(self, show_lengths=False, safe_flag=True):
     vulnerable to being corrupted by the user.
 
     OUTPUT:
+
         a list of vectors, and optionally a list of values for each vector.
 
     EXAMPLES::
@@ -279,6 +279,7 @@ def short_primitive_vector_list_up_to_length(self, len_bound, up_to_sign_flag=Fa
     Note:  This processes the PARI/GP output to always give elements of type `ZZ`.
 
     OUTPUT:
+
         a list of lists of vectors.
 
     EXAMPLES::
@@ -425,6 +426,7 @@ def number_of_automorphisms(self, recompute=None):
     the quadratic form.
 
     OUTPUT:
+
         an integer >= 2.
 
     EXAMPLES::
@@ -450,7 +452,6 @@ def number_of_automorphisms(self, recompute=None):
     except AttributeError:
         self._compute_automorphisms()
         return self.__number_of_automorphisms
-
 
 def set_number_of_automorphisms(self, num_autos):
     """

@@ -16,10 +16,7 @@ from quadratic_form import is_QuadraticForm
 
 from sage.env import SAGE_LOCAL
 
-import tempfile, os
-
-from random import random
-
+import random, tempfile, os
 
 ################################################################################
 ## Routines to test if two quadratic forms over ZZ are globally equivalent.   ##
@@ -31,9 +28,11 @@ def is_globally_equivalent__souvigner(self, other, return_transformation=False):
     Uses the Souvigner code to compute the number of automorphisms.
 
     INPUT:
+
         a QuadraticForm
 
     OUTPUT:
+
         boolean, and optionally a matrix
 
     EXAMPLES::
@@ -49,7 +48,7 @@ def is_globally_equivalent__souvigner(self, other, return_transformation=False):
 
     """
     ## Write an input text file
-    F_filename = '/tmp/tmp_isom_input' + str(random()) + ".txt"
+    F_filename = '/tmp/tmp_isom_input' + str(random.random()) + ".txt"
     F = open(F_filename, 'w')
     #F = tempfile.NamedTemporaryFile(prefix='tmp_isom_input', suffix=".txt")  ## This failed because it may have hyphens, which are interpreted badly by the Souvigner code.
     F.write("\n #1 \n")
@@ -135,9 +134,11 @@ def is_globally_equivalent_to(self, other, return_matrix=False, check_theta_to_p
     the transformation matrix M so that self(M) == other.
 
     INPUT:
+
         a QuadraticForm
 
     OUTPUT:
+
         boolean, and optionally a matrix
 
     EXAMPLES::
@@ -249,9 +250,11 @@ def is_locally_equivalent_to(self, other, check_primes_only=False, force_jordan_
     prime, and the dimension and signature at the real place.
 
     INPUT:
+
         a QuadraticForm
 
     OUTPUT:
+
         boolean
 
     EXAMPLES::
@@ -307,9 +310,11 @@ def has_equivalent_Jordan_decomposition_at_prime(self, other, p):
     equivalent to that of self.
 
     INPUT:
+
         a QuadraticForm
 
     OUTPUT:
+
         boolean
 
     EXAMPLES::

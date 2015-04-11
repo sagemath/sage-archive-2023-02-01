@@ -535,8 +535,8 @@ class IntegerListsLex(Parent):
         [[3], [2, 1], [1, 1, 1]]
 
     Note that the :class:`Partition` further assumes the existence of
-    an attribute `_global_options` in the parent, hence the use of the
-    `global_options` parameter.
+    an attribute ``_global_options`` in the parent, hence the use of the
+    ``global_options`` parameter.
 
     .. WARNING::
 
@@ -1234,7 +1234,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
         TESTS:
 
         This used to fail due to poor equality testing. See
-        :trac:17979, comment 433::
+        :trac:`17979`, comment 433::
 
             sage: DisjointUnionEnumeratedSets(Family([2,2],
             ....:     lambda n: IntegerListsLex(n, length=2))).list()
@@ -1341,7 +1341,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
         r"""
         Iterator class for IntegerListsLex.
 
-        Let `T` be the prefix tree of all lists of nonnegative
+        Let ``T`` be the prefix tree of all lists of nonnegative
         integers that satisfy all constraints except possibly for
         ``min_length`` and ``min_sum``; let the children of a list
         be sorted decreasingly according to their last part.
@@ -1376,7 +1376,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
           unless ``self._parent._min_length <= 1``.
 
         Along this iteration, ``next`` switches between the following
-        states::
+        states:
 
         - LOOKAHEAD: determine whether the current list could be a
           prefix of a valid list;

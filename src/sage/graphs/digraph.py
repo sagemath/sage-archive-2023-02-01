@@ -109,6 +109,7 @@ Methods
 -------
 """
 
+from copy import copy
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.misc.superseded import deprecation
@@ -557,8 +558,8 @@ class DiGraph(GenericGraph):
             NotImplementedError
             sage: {g:1}[g]
             1
-            sage: copy(g) is g
-            True
+            sage: copy(g) is g    # copy is mutable again
+            False
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -1156,7 +1157,6 @@ class DiGraph(GenericGraph):
         G.add_vertices(self.vertex_iterator())
         G.add_edges(self.edge_iterator())
         if hasattr(self, '_embedding'):
-            from copy import copy
             G._embedding = copy(self._embedding)
         G._weighted = self._weighted
 
@@ -1930,7 +1930,7 @@ class DiGraph(GenericGraph):
         if not self.has_edge(u,v,label):
             raise ValueError("Input edge must exist in the digraph.")
 
-        tempG = self if inplace else self.copy(immutable=False)
+        tempG = self if inplace else copy(self)
 
         if label is None:
             if not tempG.allows_multiple_edges():
@@ -2064,7 +2064,7 @@ class DiGraph(GenericGraph):
             sage: Dr.edges() == D.reverse().edges()
             True
         """
-        tempG = self if inplace else self.copy(immutable=False)
+        tempG = self if inplace else copy(self)
         for e in edges:
             tempG.reverse_edge(e,inplace=True,multiedges=multiedges)
         if not inplace:
@@ -2500,7 +2500,7 @@ class DiGraph(GenericGraph):
             for id, component in enumerate(sccs):
                 for v in component:
                     d[v] = id
-            h = self.copy(immutable=False)
+            h = copy(self)
             h.delete_edges([(u,v) for (u,v) in h.edge_iterator(labels=False) if d[u] != d[v]])
         else:
             h = self
@@ -2633,7 +2633,7 @@ class DiGraph(GenericGraph):
         for id, component in enumerate(sccs):
             for v in component:
                 d[v] = id
-        h = self.copy(immutable=False)
+        h = copy(self)
         h.delete_edges([ (u,v) for (u,v) in h.edge_iterator(labels=False)
                 if d[u] != d[v] ])
         # We create one cycles iterator per vertex. This is necessary if we

@@ -470,7 +470,7 @@ class IntegerListsLex(Parent):
     The price to pay is that the enumeration order is now *graded
     lexicographic* instead of lexicographic: first choose the value
     according to the order specified by `L`, and use lexicographic
-    order within each value. Here is we reverse `L`:
+    order within each value. Here is we reverse `L`::
 
         sage: DisjointUnionEnumeratedSets(Family([3,2,0],
         ....:     lambda n: IntegerListsLex(n, length=2))).list()

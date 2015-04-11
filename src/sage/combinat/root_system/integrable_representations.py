@@ -155,7 +155,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         self._smat = {}
         for i in self._index_set:
             for j in self._index_set:
-                self._smat[(i,j)] = -self._cartan_matrix[i][j]
+                self._smat[(i,j)] = -self._cartan_matrix[i,j]
             self._smat[(i,i)] += 1
 
         self._shift = {}
@@ -169,19 +169,15 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         Lam_rho = self._Lam + self._P.rho()
         self._den0 = Lam_rho.symmetric_form(Lam_rho)
 
-        def from_classical_root(h):
-            """
-            Coerces a classical root into Q.
-            """
-            return self._Q._from_dict(h._monomial_coefficients)
-        self._classical_roots = [from_classical_root(al)
+        # Coerce a classical root into Q
+        from_cl_root = lambda h: self._Q._from_dict(h._monomial_coefficients)
+        self._classical_roots = [from_cl_root(al)
                                  for al in self._Q.classical().roots()]
-        self._classical_positive_roots = [from_classical_root(al)
+        self._classical_positive_roots = [from_cl_root(al)
                                           for al in self._Q.classical().positive_roots()]
 
-        self._eps = {}
-        for i in self._index_set:
-            self._eps[i] = self._cartan_type.a()[i] / self._cartan_type.dual().a()[i]
+        self._eps = {i: self._cartan_type.a()[i] / self._cartan_type.dual().a()[i]
+                     for i in self._index_set}
 
     def __repr__(self):
         """
@@ -202,8 +198,12 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             the parents are known, so checking would unnecessarily slow
             us down.
         """
-        return sum(qelt1.monomial_coefficients().get(i,0)*qelt2.monomial_coefficients().get(j,0)* \
-                   self._cartan_matrix[i][j]/self._eps[i] for i in self._index_set for j in self._index_set)
+        mc1 = qelt1.monomial_coefficients()
+        mc2 = qelt2.monomial_coefficients()
+        zero = ZZ.zero()
+        return sum(mc1.get(i, zero) * mc2.get(j, zero)
+                   * self._cartan_matrix[i,j] / self._eps[i]
+                   for i in self._index_set for j in self._index_set)
 
     def inner_pq(self, pelt, qelt):
         """
@@ -217,7 +217,11 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             since in the application the parents are known, so checking would
             unnecessarily slow us down.
         """
-        return sum(pelt.monomial_coefficients().get(i,0)*qelt.monomial_coefficients().get(i,0)/self._eps[i] for i in self._index_set)
+        mcp = pelt.monomial_coefficients()
+        mcq = qelt.monomial_coefficients()
+        zero = ZZ.zero()
+        return sum(mcp.get(i, zero) * mcq.get(i, zero) / self._eps[i]
+                   for i in self._index_set)
 
     def to_weight(self, n):
         """
@@ -232,6 +236,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         return self._Lam - self._P.sum(ZZ(val) * alpha[I[i]]
                                        for i,val in enumerate(n))
 
+    # This recieves a significant number of calls.
+    # TODO: Try to reduce the number of such calls.
     def _from_weight_helper(self, mu):
         """
         It is assumeed that ``mu`` is in the root lattice.
@@ -239,12 +245,14 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         """
         mu = self._P(mu)
         n0 = mu.monomial_coefficients().get('delta', 0)
-        mu0 = mu - n0*self._P.simple_root(0)
-        ret = [n0]
+        mu0 = mu - n0*self._P.simple_root(self._cartan_type.special_node())
+        ret = [ZZ(n0)]
+        mc_mu0 = mu0.monomial_coefficients()
+        zero = ZZ.zero()
         for i in self._index_set_classical:
-            ret.append(sum(self._cminv[(i,j)]*mu0.monomial_coefficients().get(j,0)
-                           for j in self._index_set_classical))
-        return tuple(ZZ(i) for i in ret)
+            ret.append( ZZ.sum(self._cminv[(i,j)] * mc_mu0.get(j, zero)
+                               for j in self._index_set_classical) )
+        return tuple(ret)
     
     def from_weight(self, mu):
         """
@@ -257,9 +265,10 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         Implements the `i`-th simple reflection in the internal
         representation of weights by tuples.
         """
-        ret = [n[j] for j in self._index_set]
-        ret[i] += self._Lam.monomial_coefficients().get(i,0)
-        ret[i] -= sum(n[j]*self._cartan_matrix[i][j] for j in self._index_set)
+        ret = list(n) # This makes a copy
+        ret[i] += self._Lam.monomial_coefficients().get(i, ZZ.zero())
+        row = self._cartan_matrix[i]
+        ret[i] -= sum(n[j] * row[j] for j in self._index_set)
         return tuple(ret)
 
     def to_dominant(self, n):
@@ -267,7 +276,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             return self._ddict[n]
         mc = self.to_weight(n).monomial_coefficients()
         for i in self._index_set:
-            if mc.get(i,0) < 0:
+            if mc.get(i, 0) < 0:
                 m = self.s(n, i)
                 v = self.to_dominant(m)
                 self._ddict[n] = v
@@ -285,9 +294,10 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         return [u*delta for u in [1..kp]]
         """
         l = self._from_weight_helper(nu)
-        kp = min(floor(l[i] / self._cartan_type.a()[i]) for i in self._index_set)
+        a = self._cartan_type.a()
+        kp = min(floor(l[i] / a[i]) for i in self._index_set)
         delta = self._Q.null_root()
-        return [u*delta for u in range(1,kp+1)]
+        return [u*delta for u in range(1, kp+1)]
 
     def freudenthal_roots_real(self, nu):
         r"""
@@ -317,11 +327,12 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             ret.append(alpha)
         return ret
 
+    # TODO: (mostly to self) try to optimize starting here
     def _freudenthal_accum(self, nu, al):
         ret = 0
         k = 1
-        while min(self._from_weight_helper(self._Lam - nu - k*al)) >= 0:
-            mk = self.m(self.from_weight(nu + k*al))
+        while all(val >= 0 for val in self._from_weight_helper(self._Lam - nu - k*al)):
+            mk = self.m( self.from_weight(nu + k*al) )
             ip = self.inner_pq(nu + k*al, al)
             ret += 2*mk*ip
             k += 1
@@ -369,6 +380,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             print "m: error - failed to compute m%s"%n.__repr__()
         return ret
 
+    # FIXME: Make this generate itself without having needing to be called by string()
+    #@lazy_attribute
     def dominant_maximal(self):
         """
         Return the finite set of dominant maximal weights.

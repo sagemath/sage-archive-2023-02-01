@@ -54,7 +54,7 @@ from sage.modules.free_module_element import vector
 
 from sage.libs.pari.all import pari_gen
 from sage.structure.element cimport Element, generic_power_c
-from sage.structure.element import canonical_coercion, parent
+from sage.structure.element import canonical_coercion, parent, coerce_binop
 
 QQ = sage.rings.rational_field.QQ
 ZZ = sage.rings.integer_ring.ZZ
@@ -1463,7 +1463,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: factor(K(3))
             Traceback (most recent call last):
             ...
-            ValueError: Non-principal ideal in factorization
+            ArithmeticError: non-principal ideal in factorization
 
         Factorization of 0 is not allowed::
 
@@ -1471,24 +1471,98 @@ cdef class NumberFieldElement(FieldElement):
             sage: K(0).factor()
             Traceback (most recent call last):
             ...
-            ArithmeticError: Factorization of 0 not defined.
+            ArithmeticError: factorization of 0 is not defined
 
         """
         if self.is_zero():
-            raise ArithmeticError, "Factorization of 0 not defined."
+            raise ArithmeticError("factorization of 0 is not defined")
 
         K = self.parent()
         fac = K.ideal(self).factor()
         # Check whether all prime ideals in `fac` are principal
         for P,e in fac:
             if not P.is_principal():
-                raise ValueError, "Non-principal ideal in factorization"
+                raise ArithmeticError("non-principal ideal in factorization")
         element_fac = [(P.gens_reduced()[0],e) for P,e in fac]
         # Compute the product of the p^e to figure out the unit
         from sage.misc.all import prod
         element_product = prod([p**e for p,e in element_fac], K(1))
         from sage.structure.all import Factorization
         return Factorization(element_fac, unit=self/element_product)
+
+    @coerce_binop
+    def gcd(self, other):
+        """
+        Return the greatest common divisor of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``self``, ``other`` -- elements of a number field or maximal
+          order.
+
+        OUTPUT:
+
+        - A generator of the ideal ``(self, other)``. If the parent is
+          a number field, this always returns 0 or 1. For maximal orders,
+          this raises ``ArithmeticError`` if the ideal is not principal.
+
+        EXAMPLES::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: (i+1).gcd(2)
+            1
+            sage: K(1).gcd(0)
+            1
+            sage: K(0).gcd(0)
+            0
+            sage: R = K.maximal_order()
+            sage: R(i+1).gcd(2)
+            i + 1
+
+        Non-maximal orders are not supported::
+
+            sage: R = K.order(2*i)
+            sage: R(1).gcd(R(4*i))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: gcd() for Order in Number Field in i with defining polynomial x^2 + 1 is not implemented
+
+        The following field has class number 3, but if the ideal
+        ``(self, other)`` happens to be principal, this still works::
+
+            sage: K.<a> = NumberField(x^3 - 7)
+            sage: K.class_number()
+            3
+            sage: a.gcd(7)
+            1
+            sage: R = K.maximal_order()
+            sage: R(a).gcd(7)
+            a
+            sage: R(a+1).gcd(2)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: ideal (a + 1, 2) is not principal, gcd is not defined
+            sage: R(2*a - a^2).gcd(0)
+            a
+        """
+        # gcd(0,0) = 0
+        if not self and not other:
+            return self
+
+        R = self.parent()
+        if R.is_field():
+            return R.one()
+
+        from order import is_NumberFieldOrder
+        if not is_NumberFieldOrder(R) or not R.is_maximal():
+            raise NotImplementedError("gcd() for %r is not implemented" % R)
+
+        g = R.ideal(self, other).gens_reduced()
+        if len(g) > 1:
+            raise ArithmeticError("ideal (%r, %r) is not principal, gcd is not defined" % (self, other) )
+
+        return g[0]
+
 
     def is_totally_positive(self):
         """

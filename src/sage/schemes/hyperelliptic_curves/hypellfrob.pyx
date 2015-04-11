@@ -5,8 +5,9 @@ for largish p
 This is a wrapper for the matrix() function in hypellfrob.cpp.
 
 AUTHOR:
-    -- David Harvey (2007-05)
-    -- David Harvey (2007-12): rewrote for hypellfrob version 2.0
+
+- David Harvey (2007-05)
+- David Harvey (2007-12): rewrote for hypellfrob version 2.0
 """
 
 #################################################################################
@@ -38,28 +39,32 @@ cdef extern from "hypellfrob.h":
 def hypellfrob(p, N, Q):
    r"""
    Computes the matrix of Frobenius acting on the Monsky-Washnitzer cohomology
-   of a hyperelliptic curve $y^2 = Q(x)$, with respect to the basis $x^i dx/y$,
-   $0 \leq i < 2g$.
+   of a hyperelliptic curve `y^2 = Q(x)`, with respect to the basis `x^i dx/y`,
+   `0 \leq i < 2g`.
 
    INPUT:
-      p -- a prime
-      Q -- a monic polynomial in $\Z[x]$ of odd degree. Must have no multiple
-           roots mod p.
-      N -- precision parameter; the output matrix will be correct modulo $p^N$.
+
+   - p -- a prime
+   - Q -- a monic polynomial in `\Z[x]` of odd degree. Must have no multiple roots mod p.
+   - N -- precision parameter; the output matrix will be correct modulo `p^N`.
 
    PRECONDITIONS:
-      Must have $p > (2g+1)(2N-1)$, where $g = (\deg(Q)-1)/2$ is the genus
+
+      Must have `p > (2g+1)(2N-1)`, where `g = (\deg(Q)-1)/2` is the genus
       of the curve.
 
    ALGORITHM:
-      Described in ``Kedlaya's algorithm in larger characteristic'' by David
-      Harvey. Running time is theoretically soft-$O(p^{1/2} N^{5/2} g^3)$.
+
+      Described in "Kedlaya's algorithm in larger characteristic" by David
+      Harvey. Running time is theoretically soft-`O(p^{1/2} N^{5/2} g^3)`.
 
    TODO:
-      Remove the restriction on $p$. Probably by merging in Robert's code,
+
+      Remove the restriction on `p`. Probably by merging in Robert's code,
       which eventually needs a fast C++/NTL implementation.
 
-   EXAMPLES:
+   EXAMPLES::
+
       sage: from sage.schemes.hyperelliptic_curves.hypellfrob import hypellfrob
       sage: R.<x> = PolynomialRing(ZZ)
       sage: f = x^5 + 2*x^2 + x + 1; p = 101
@@ -81,8 +86,9 @@ def hypellfrob(p, N, Q):
        [ 0 + O(101)  0 + O(101) 89 + O(101) 29 + O(101)]
 
    AUTHORS:
-      -- David Harvey (2007-05)
-      -- David Harvey (2007-12): updated for hypellfrob version 2.0
+
+   - David Harvey (2007-05)
+   - David Harvey (2007-12): updated for hypellfrob version 2.0
 
    """
 

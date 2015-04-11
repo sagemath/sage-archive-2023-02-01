@@ -12381,11 +12381,11 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
             sage: for current in it:
             ....:     print dict(current)
             ....:     print current
-            {((1, 0),): {'A': (tape at 1, [[1]])}}
+            {((1, 0),): {'A': Branch(tape_cache=tape at 1, outputs=[[1]])}}
             process (1 branch)
             + at state 'A'
             +-- tape at 1, [[1]]
-            {((2, 0),): {'A': (tape at 2, [[1, 0]])}}
+            {((2, 0),): {'A': Branch(tape_cache=tape at 2, outputs=[[1, 0]])}}
             process (1 branch)
             + at state 'A'
             +-- tape at 2, [[1, 0]]
@@ -12529,6 +12529,13 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
         self._finished_ = []  # contains (accept, state, output)
 
 
+    _branch_ = collections.namedtuple('Branch', 'tape_cache, outputs')
+    r"""
+    A :func:`named tuple <collections.namedtuple>` representing the
+    attributes of a branch at a particular state during processing.
+    """
+
+
     def _push_branch_(self, state, tape_cache, outputs):
         """
         This helper function pushes a ``state`` together with
@@ -12611,13 +12618,15 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
             heapq.heappush(self._current_positions_, tape_cache.position)
 
         if state in states:
-            existing_tape_cache, existing_outputs = states[state]
-            existing_outputs.extend(outputs)
-            existing_outputs = [t for t, _ in
-                                itertools.groupby(sorted(existing_outputs))]
-            states[state] = (existing_tape_cache, existing_outputs)
+            existing = states[state]
+            new_outputs = existing.outputs
+            new_outputs.extend(outputs)
+            new_outputs = [t for t, _ in
+                           itertools.groupby(sorted(new_outputs))]
+            states[state] = FSMProcessIterator._branch_(
+                existing.tape_cache, new_outputs)
         else:
-            states[state] = (tape_cache, outputs)
+            states[state] = FSMProcessIterator._branch_(tape_cache, outputs)
 
 
     def _push_branches_(self, state, tape_cache, outputs):

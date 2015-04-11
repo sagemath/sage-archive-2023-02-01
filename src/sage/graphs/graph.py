@@ -1157,8 +1157,8 @@ class Graph(GenericGraph):
             if n == -1:
                 n = len(data)
             ss = data[:n]
-            n, s = generic_graph_pyx.N_inverse(ss)
-            m = generic_graph_pyx.R_inverse(s, n)
+            n, s = generic_graph_pyx.length_and_string_from_graph6(ss)
+            m = generic_graph_pyx.binary_string_from_graph6(s, n)
             expected = n*(n-1)/2 + (6 - n*(n-1)/2)%6
             if len(m) > expected:
                 raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too long."%(ss,n))
@@ -1175,7 +1175,7 @@ class Graph(GenericGraph):
             if n == -1:
                 n = len(data)
             s = data[:n]
-            n, s = generic_graph_pyx.N_inverse(s[1:])
+            n, s = generic_graph_pyx.length_and_string_from_graph6(s[1:])
             if n == 0:
                 edges = []
             else:
@@ -1183,7 +1183,7 @@ class Graph(GenericGraph):
                 ords = [ord(i) for i in s]
                 if any(o > 126 or o < 63 for o in ords):
                     raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join([chr(i) for i in xrange(63,127)]))
-                bits = ''.join([generic_graph_pyx.binary(o-63).zfill(6) for o in ords])
+                bits = ''.join([generic_graph_pyx.int_to_binary_string(o-63).zfill(6) for o in ords])
                 b = []
                 x = []
                 for i in xrange(int(floor(len(bits)/(k+1)))):
@@ -1587,7 +1587,7 @@ class Graph(GenericGraph):
         elif self.has_loops() or self.has_multiple_edges():
             raise ValueError('graph6 format supports only simple graphs (no loops, no multiple edges)')
         else:
-            return generic_graph_pyx.N(n) + generic_graph_pyx.R(self._bit_vector())
+            return generic_graph_pyx.small_integer_to_graph6(n) + generic_graph_pyx.binary_string_to_graph6(self._bit_vector())
 
     def sparse6_string(self):
         """
@@ -1638,18 +1638,18 @@ class Graph(GenericGraph):
             s = ''
             while m < len(edges):
                 if edges[m][1] > v + 1:
-                    sp = generic_graph_pyx.binary(edges[m][1])
+                    sp = generic_graph_pyx.int_to_binary_string(edges[m][1])
                     sp = '0'*(k-len(sp)) + sp
                     s += '1' + sp
                     v = edges[m][1]
                 elif edges[m][1] == v + 1:
-                    sp = generic_graph_pyx.binary(edges[m][0])
+                    sp = generic_graph_pyx.int_to_binary_string(edges[m][0])
                     sp = '0'*(k-len(sp)) + sp
                     s += '1' + sp
                     v += 1
                     m += 1
                 else:
-                    sp = generic_graph_pyx.binary(edges[m][0])
+                    sp = generic_graph_pyx.int_to_binary_string(edges[m][0])
                     sp = '0'*(k-len(sp)) + sp
                     s += '0' + sp
                     m += 1
@@ -1662,7 +1662,7 @@ class Graph(GenericGraph):
             six_bits = ''
             for i in range(len(s)//6):
                 six_bits += chr( int( s[6*i:6*(i+1)], 2) + 63 )
-            return ':' + generic_graph_pyx.N(n) + six_bits
+            return ':' + generic_graph_pyx.small_integer_to_graph6(n) + six_bits
 
     ### Attributes
 

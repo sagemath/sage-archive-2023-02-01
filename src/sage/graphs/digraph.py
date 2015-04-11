@@ -638,8 +638,8 @@ class DiGraph(GenericGraph):
             if n == -1:
                 n = len(data)
             ss = data[:n]
-            n, s = generic_graph_pyx.N_inverse(ss)
-            m = generic_graph_pyx.D_inverse(s, n)
+            n, s = generic_graph_pyx.length_and_string_from_graph6(ss)
+            m = generic_graph_pyx.binary_string_from_dig6(s, n)
             expected = n**2
             if len(m) > expected:
                 raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too long."%(ss,n))
@@ -966,7 +966,7 @@ class DiGraph(GenericGraph):
         elif self.has_multiple_edges():
             raise ValueError('dig6 format does not support multiple edges.')
         else:
-            return generic_graph_pyx.N(n) + generic_graph_pyx.R(self._bit_vector())
+            return generic_graph_pyx.small_integer_to_graph6(n) + generic_graph_pyx.binary_string_to_graph6(self._bit_vector())
 
     ### Attributes
 

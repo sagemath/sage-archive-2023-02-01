@@ -5985,7 +5985,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             +-- tape at 3, [[1, 0, 0]]
             process (0 branches)
             sage: it.result()
-            [(True, 'A', [1, 0, 0])]
+            [Branch(accept=True, state='A', output=[1, 0, 0])]
 
         .. SEEALSO::
 
@@ -9344,7 +9344,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             ....:     write_in_every_step=True)
             sage: for current in it:
             ....:     print current
-            ....:     print "finished:", [o for accept, _, o in it._finished_]
+            ....:     print "finished:", [branch.output for branch in it._finished_]
             process (1 branch)
             + at state 1
             +-- tape at 1, [['a']]
@@ -9361,9 +9361,9 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         kwargs['write_in_every_step'] = True
         it = self.iter_process(**kwargs)
         for _ in it:
-            for accept, _, o in it._finished_:
-                if accept:
-                    yield o
+            for branch in it._finished_:
+                if branch.accept:
+                    yield branch.output
             it._finished_ = []
 
 
@@ -12293,7 +12293,7 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
         +-- tape at 10, [[1, 0, 0, 1, 0, 1, 0]]
         process (0 branches)
         sage: it.result()
-        [(True, 'A', [1, 0, 0, 1, 0, 1, 0])]
+        [Branch(accept=True, state='A', output=[1, 0, 0, 1, 0, 1, 0])]
 
     ::
 
@@ -12324,7 +12324,8 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
         +-- tape at 3, [['a', 'b', 'c']]
         process (0 branches)
         sage: it.result()
-        [(False, 1, 'abcd'), (True, 2, 'abc')]
+        [Branch(accept=False, state=1, output='abcd'),
+         Branch(accept=True, state=2, output='abc')]
 
     .. SEEALSO::
 
@@ -12432,6 +12433,14 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
             return result
 
 
+    FinishedBranch = collections.namedtuple('Branch', 'accept, state, output')
+    r"""
+    A :func:`named tuple <collections.namedtuple>` representing the
+    attributes of a branch, once
+    it is fully processed.
+    """
+
+
     def __init__(self, fsm,
                  input_tape=None,
                  initial_state=None, initial_states=[],
@@ -12460,7 +12469,7 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
             +-- tape at 2, [[1, 0]]
             process (0 branches)
             sage: it.result()
-            [(True, 'A', [1, 0])]
+            [Branch(accept=True, state='A', output=[1, 0])]
         """
         # FSM
         self.fsm = fsm
@@ -12852,8 +12861,11 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
                 if successful and self.write_final_word_out:
                     write_word(write_outputs, current_state.final_word_out)
                 for o in write_outputs:
-                    self._finished_.append((successful, current_state,
-                                            self.format_output(o)))
+                    self._finished_.append(
+                        FSMProcessIterator.FinishedBranch(
+                            accept=successful,
+                            state=current_state,
+                            output=self.format_output(o)))
 
             if not next_transitions:
                 # this branch has to end here... (continued)
@@ -12915,7 +12927,7 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
             sage: for _ in it:
             ....:     pass
             sage: it.result()
-            [(True, 'A', ['one', 'zero', 'zero'])]
+            [Branch(accept=True, state='A', output=['one', 'zero', 'zero'])]
             sage: it.result(lambda L: ', '.join(L))
             [(True, 'A', 'one, zero, zero')]
 
@@ -12929,7 +12941,7 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
             sage: for _ in it:
             ....:     pass
             sage: it.result()
-            [(True, 'A', 'one, zero, zero')]
+            [Branch(accept=True, state='A', output='one, zero, zero')]
             sage: it.result(lambda L: ', '.join(L))
             [(True, 'A', 'o, n, e, ,,  , z, e, r, o, ,,  , z, e, r, o')]
         """
@@ -12986,7 +12998,7 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
             Next on the tape is a 1.
             We are now in state A.
             sage: it.result()
-            [(True, 'A', ['one', 'zero', 'zero'])]
+            [Branch(accept=True, state='A', output=['one', 'zero', 'zero'])]
         """
         return self._current_branch_input_tape_.preview_word(
             track_number, length, return_word)
@@ -13108,7 +13120,7 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
             sage: for _ in it:
             ....:     pass
             sage: it.result()
-            [(True, 'A', [1, 0, 0])]
+            [Branch(accept=True, state='A', output=[1, 0, 0])]
             sage: it.accept_input
             doctest:...: DeprecationWarning: This attribute will be removed
             in future releases. Use result() at the end of our iteration
@@ -13121,7 +13133,7 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
                     'releases. Use result() at the end of our iteration '
                     'or the output of next().')
         try:
-            return self._finished_[0][0]
+            return self._finished_[0].accept
         except KeyError:
             raise AttributeError
 
@@ -13537,17 +13549,17 @@ class _FSMProcessIteratorAll_(FSMProcessIterator):
                         ['o', 'z', 'o'], ['z', 'z', 'm'], ['z', 'z', 'o']]
         process (0 branches)
         sage: it.result()
-        [(True, 'A', 'mzz'),
-         (True, 'A', 'ozz'),
-         (True, 'A', 'zmz'),
-         (True, 'A', 'zoz'),
-         (True, 'A', 'zzz'),
-         (True, 'B', 'mzm'),
-         (True, 'B', 'mzo'),
-         (True, 'B', 'ozm'),
-         (True, 'B', 'ozo'),
-         (True, 'B', 'zzm'),
-         (True, 'B', 'zzo')]
+        [Branch(accept=True, state='A', output='mzz'),
+         Branch(accept=True, state='A', output='ozz'),
+         Branch(accept=True, state='A', output='zmz'),
+         Branch(accept=True, state='A', output='zoz'),
+         Branch(accept=True, state='A', output='zzz'),
+         Branch(accept=True, state='B', output='mzm'),
+         Branch(accept=True, state='B', output='mzo'),
+         Branch(accept=True, state='B', output='ozm'),
+         Branch(accept=True, state='B', output='ozo'),
+         Branch(accept=True, state='B', output='zzm'),
+         Branch(accept=True, state='B', output='zzo')]
     """
     def __init__(self, *args, **kwargs):
         """

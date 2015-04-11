@@ -1,61 +1,34 @@
-from string import join
-import os
-from sage.symbolic.all import I, pi
-from sage.functions.log import exp
-from sage.graphs.all import DiGraph, Graph, graphs, digraphs
-from copy import deepcopy
-from sage.rings.all import PolynomialRing, QQ, ZZ, lcm
-from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator, srange
-from sage.modules.free_module_element import vector
-from sage.matrix.constructor import matrix, identity_matrix
-from sage.interfaces.singular import singular
-from sage.combinat.combinat import CombinatorialClass
-from sage.combinat.set_partition import SetPartitions
-from sage.homology.simplicial_complex import SimplicialComplex
-from sage.plot.colors import rainbow
-from sage.env import SAGE_LOCAL
-
 r"""
-To calculate linear systems associated with divisors, 4ti2 must be installed.
-One way to do this is to run sage -i to install glpk, then 4ti2.  See
-http://sagemath.org/download-packages.html to get the exact names of these
-packages.  An alternative is to install 4ti2 separately, then point the
-following variable to the correct path.
-"""
-
-path_to_zsolve = os.path.join(SAGE_LOCAL,'bin','zsolve')
-
-r"""
-Sage Sandpiles
+Sandpiles
 
 Functions and classes for mathematical sandpiles.
 
 Version: 2.3
 
 AUTHOR:
-    -- Marshall Hampton (2010-1-10) modified for inclusion as a module
-       within Sage library.
 
-    -- David Perkinson (2010-12-14) added show3d(), fixed bug in resolution(),
-       replaced elementary_divisors() with invariant_factors(), added show() for
-       SandpileConfig and SandpileDivisor.
+- Marshall Hampton (2010-1-10) modified for inclusion as a module within Sage
+  library.
 
-    -- David Perkinson (2010-9-18): removed is_undirected, added show(), added
-       verbose arguments to several functions to display SandpileConfigs and divisors as
-       lists of integers
+- David Perkinson (2010-12-14) added show3d(), fixed bug in resolution(),
+  replaced elementary_divisors() with invariant_factors(), added show() for
+  SandpileConfig and SandpileDivisor.
 
-    -- David Perkinson (2010-12-19): created separate SandpileConfig, SandpileDivisor, and
-       Sandpile classes
+- David Perkinson (2010-9-18): removed is_undirected, added show(), added
+  verbose arguments to several functions to display SandpileConfigs and
+  divisors as lists of integers
 
-    -- David Perkinson (2009-07-15): switched to using config_to_list instead
-       of .values(), thus fixing a few bugs when not using integer labels for
-       vertices.
+- David Perkinson (2010-12-19): created separate SandpileConfig,
+  SandpileDivisor, and Sandpile classes
 
-    -- David Perkinson (2009): many undocumented improvements
+- David Perkinson (2009-07-15): switched to using config_to_list instead of
+  .values(), thus fixing a few bugs when not using integer labels for vertices.
 
-    -- David Perkinson (2008-12-27): initial version
+- David Perkinson (2009): many undocumented improvements
 
-EXAMPLES::
+- David Perkinson (2008-12-27): initial version
+
+EXAMPLES:
 
 A weighted directed graph given as a Python dictionary::
 
@@ -228,6 +201,33 @@ Distribution of avalanche sizes::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from string import join
+import os
+from sage.symbolic.all import I, pi
+from sage.functions.log import exp
+from sage.graphs.all import DiGraph, Graph, graphs, digraphs
+from copy import deepcopy
+from sage.rings.all import PolynomialRing, QQ, ZZ, lcm
+from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator, srange
+from sage.modules.free_module_element import vector
+from sage.matrix.constructor import matrix, identity_matrix
+from sage.interfaces.singular import singular
+from sage.combinat.combinat import CombinatorialClass
+from sage.combinat.set_partition import SetPartitions
+from sage.homology.simplicial_complex import SimplicialComplex
+from sage.plot.colors import rainbow
+from sage.env import SAGE_LOCAL
+
+r"""
+To calculate linear systems associated with divisors, 4ti2 must be installed.
+One way to do this is to run sage -i to install glpk, then 4ti2.  See
+http://sagemath.org/download-packages.html to get the exact names of these
+packages.  An alternative is to install 4ti2 separately, then point the
+following variable to the correct path.
+"""
+
+path_to_zsolve = os.path.join(SAGE_LOCAL,'bin','zsolve')
 
 class Sandpile(DiGraph):
     """
@@ -586,7 +586,7 @@ class Sandpile(DiGraph):
             [ 0 -1  0 -1  2  0]
             [ 0  0 -1 -1  0  2]
 
-        NOTES::
+        NOTES:
 
         The function ``laplacian_matrix`` should be avoided.  It returns the
         indegree version of the laplacian.
@@ -1338,7 +1338,7 @@ class Sandpile(DiGraph):
 
         list (of maximal superstables)
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: S=sandlib('riemann-roch2')
             sage: S.max_superstables()
@@ -4725,9 +4725,11 @@ def grid_sandpile(m,n):
     The mxn grid sandpile.  Each nonsink vertex has degree 4.
 
     INPUT:
+
     ``m``, ``n`` - positive integers
 
     OUTPUT:
+
     Sandpile with sink named ``sink``.
 
     EXAMPLES::
@@ -5308,8 +5310,8 @@ def firing_vector(S,D,E):
 
     INPUT:
 
-    - ``S`` -Sandpile
-    ``D``, ``E`` - tuples (representing linearly equivalent divisors)
+    - ``S`` - Sandpile
+    - ``D``, ``E`` - tuples (representing linearly equivalent divisors)
 
     OUTPUT:
 

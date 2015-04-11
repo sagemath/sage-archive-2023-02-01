@@ -10,7 +10,7 @@ hyperplane arrangements includes the following:
   hyperplane (default: equally spread range of hues).
 
 - ``hyperplane_labels`` -- Boolean, ``'short'``, ``'long'`` (default:
-  ``False``).  If False, no labels are shown; if 'short' or 'long',
+  ``False``).  If ``False``, no labels are shown; if 'short' or 'long',
   the hyperplanes are given short or long labels, respectively.  If
   ``True``, the hyperplanes are given long labels.
 

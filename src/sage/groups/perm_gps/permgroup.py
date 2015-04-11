@@ -392,8 +392,10 @@ class PermutationGroup_generic(group.Group):
             sage: TestSuite(PermutationGroup([])).run()
             sage: TestSuite(PermutationGroup([(0,1)])).run()
         """
-        from sage.categories.finite_permutation_groups import FinitePermutationGroups
-        super(PermutationGroup_generic, self).__init__(category = FinitePermutationGroups().or_subcategory(category))
+        from sage.categories.permutation_groups import PermutationGroups
+        category = PermutationGroups().FinitelyGenerated().Finite() \
+                   .or_subcategory(category)
+        super(PermutationGroup_generic, self).__init__(category=category)
         if (gens is None and gap_group is None):
             raise ValueError("you must specify gens or gap_group")
 

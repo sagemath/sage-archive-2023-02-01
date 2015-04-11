@@ -78,7 +78,7 @@ cdef extern from *:
 cdef GEN call_python(GEN arg1, GEN arg2, GEN arg3, GEN arg4, GEN arg5, unsigned long py_func):
     """
     This function, which will be installed in PARI, is a front-end for
-    ``call_python_impl``.
+    ``call_python_func_impl``.
 
     It has 5 optional ``GEN``s as argument and one ``unsigned long``.
     This last argument is actually a Python callable object cast to
@@ -98,7 +98,9 @@ cdef GEN call_python(GEN arg1, GEN arg2, GEN arg3, GEN arg4, GEN arg5, unsigned 
 
     sig_block()
     # Disallow interrupts during the Python code inside
-    # call_python_impl()
+    # call_python_func_impl(). We need to do this because this function
+    # is very likely called within sig_on() and interrupting arbitrary
+    # Python code is bad.
     cdef GEN r = call_python_func(args, <PyObject*>py_func)
     sig_unblock()
     if not r:  # An exception was raised

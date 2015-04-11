@@ -6043,14 +6043,14 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             if len(states) > 1:
                 raise RuntimeError("Process has branched. Try it "
                                    "without the option 'simple'.")
-            state, (tape_cache, outputs) = next(states.iteritems())
-            if len(outputs) >1:
+            state, branch = next(states.iteritems())
+            if len(branch.outputs) >1:
                 raise RuntimeError("Process has branched. Try it "
                                    "without the option 'simple'.")
-            output = outputs[0]
+            output = branch.outputs[0]
             for o in output:
                 yield o
-            outputs[0] = []        
+            branch.outputs[0] = []        
 
 
     #*************************************************************************
@@ -12902,8 +12902,8 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
             return
 
         states_dict = self._current_.pop(heapq.heappop(self._current_positions_))
-        for state, (tape, outputs) in states_dict.iteritems():
-            step(state, tape, outputs)
+        for state, branch in states_dict.iteritems():
+            step(state, branch.tape_cache, branch.outputs)
 
         return self._current_
 
@@ -13106,7 +13106,7 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
                     'or the output of next().')
         if not self._current_:
             return None
-        return next(next(self._current_.itervalues()).itervalues())[1][0]
+        return next(next(self._current_.itervalues()).itervalues()).outputs[0]
 
 
     @property
@@ -13516,8 +13516,8 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         # As tape_cache may have been discarded because current already
         # contains a branch at the same state, _visited_states_ is
         # updated manually.
-        self._current_[tape_cache.position][state][0]._visited_states_.update(
-            tape_cache._visited_states_)
+        tape_at_state = self._current_[tape_cache.position][state].tape_cache
+        tape_at_state._visited_states_.update(tape_cache._visited_states_)
 
 
 class _FSMProcessIteratorAll_(FSMProcessIterator):

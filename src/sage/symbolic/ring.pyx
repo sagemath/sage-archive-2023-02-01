@@ -400,6 +400,13 @@ cdef class SymbolicRing(CommutativeRing):
             True
             sage: f.subs(pattern == x^2)
             arctan(x^2)
+
+        TESTS:
+
+        Check that :trac:`15048` is fixed::
+
+            sage: latex(SR.wild(0))
+            \$0
         """
         return new_Expression_from_GEx(self, g_wild(n))
 

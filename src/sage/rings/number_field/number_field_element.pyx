@@ -47,6 +47,7 @@ import number_field
 
 from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.rational cimport Rational
+from sage.rings.infinity import infinity
 from sage.categories.fields import Fields
 
 from sage.modules.free_module_element import vector
@@ -1720,14 +1721,17 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: 2^I
             2^I
-            sage: K.<sqrt2> = QuadraticField(2) # :trac:`14895`
+
+        Test :trac:`14895`::
+
+            sage: K.<sqrt2> = QuadraticField(2)
             sage: 2^sqrt2
             2^sqrt(2)
             sage: K.<a> = NumberField(x^2+1)
             sage: 2^a
             Traceback (most recent call last):
             ...
-            TypeError: An embedding into RR or CC must be specified.
+            TypeError: an embedding into RR or CC must be specified
         """
         if (isinstance(base, NumberFieldElement) and
             (isinstance(exp, Integer) or type(exp) is int or exp in ZZ)):
@@ -2149,7 +2153,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: SR(a) # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: An embedding into RR or CC must be specified.
+            TypeError: an embedding into RR or CC must be specified
 
         Now a more complicated example::
 
@@ -2180,68 +2184,70 @@ cdef class NumberFieldElement(FieldElement):
             e^(10/19*I*pi) + 2
 
         For degree greater than 5, sometimes Galois theory prevents a
-        closed-form solution.  In this case, a numerical approximation
-        is used::
+        closed-form solution.  In this case, an algebraic number is
+        embedded into the symbolic ring, which will usually get
+        printed as a numerical approximation::
 
             sage: K.<a> = NumberField(x^5-x+1, embedding=-1)
             sage: SR(a)
-            -1.167304015296367
+            -1.167303978261419?
 
         ::
 
             sage: K.<a> = NumberField(x^6-x^3-1, embedding=1)
             sage: SR(a)
             (1/2*sqrt(5) + 1/2)^(1/3)
+
+        In this field, general elements cannot be written in terms of
+        radicals, but particular elements might be::
+
+            sage: K.<a> = NumberField(x^10 + 6*x^6 + 9*x^2 + 1, embedding=CC(0.332*I))
+            sage: SR(a)
+            0.3319890295845093?*I
+            sage: SR(a^5+3*a)
+            I
+
+        Conversely, some elements are too complicated to be written in
+        terms of radicals directly. At least until :trac:`17516` gets
+        addressed. In those cases, the generator might be converted
+        and its expression be used to convert other elements. This
+        avoids regressions but can lead to fairly complicated
+        expressions::
+
+            sage: K.<a> = NumberField(QQ['x']([6, -65, 163, -185, 81, -15, 1]), embedding=4.9)
+            sage: b = a + a^3
+            sage: SR(b.minpoly()).solve(SR('x'), explicit_solutions=True)
+            []
+            sage: SR(b)
+            1/8*((sqrt(4*(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) - 4/3/(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) + 17) + 5)^2 + 4)*(sqrt(4*(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) - 4/3/(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) + 17) + 5)
+
         """
-        if self.__symbolic is None:
+        K = self._parent.fraction_field()
 
-            K = self._parent.fraction_field()
+        embedding = K.specified_complex_embedding()
+        if embedding is None:
+            raise TypeError("an embedding into RR or CC must be specified")
 
-            gen = K.gen()
-            if not self is gen:
-                try:
-                    # share the hard work...
-                    gen_image = gen._symbolic_(SR)
-                    self.__symbolic = self.polynomial()(gen_image)
-                    return self.__symbolic
-                except TypeError:
-                    pass # we may still be able to do this particular element...
-
-            embedding = K.specified_complex_embedding()
-            if embedding is None:
-                raise TypeError, "An embedding into RR or CC must be specified."
-
-            if isinstance(K, number_field.NumberField_cyclotomic):
-                # solution by radicals may be difficult, but we have a closed form
-                from sage.all import exp, I, pi, ComplexField, RR
-                CC = ComplexField(53)
-                two_pi_i = 2 * pi * I
-                k = ( K._n()*CC(K.gen()).log() / CC(two_pi_i) ).real().round() # n ln z / (2 pi i)
-                gen_image = exp(k*two_pi_i/K._n())
-                if self is gen:
-                    self.__symbolic = gen_image
-                else:
-                    self.__symbolic = self.polynomial()(gen_image)
-            else:
-                # try to solve the minpoly and choose the closest root
-                poly = self.minpoly()
-                roots = []
-                var = SR(poly.variable_name())
-                for soln in SR(poly).solve(var, to_poly_solve=True):
-                    if soln.lhs() == var:
-                        roots.append(soln.rhs())
-                if len(roots) != poly.degree():
-                    raise TypeError, "Unable to solve by radicals."
-                from number_field_morphisms import matching_root
-                from sage.rings.complex_field import ComplexField
-                gen_image = matching_root(roots, self, ambient_field=ComplexField(53), margin=2)
-                if gen_image is not None:
-                    self.__symbolic = gen_image
-                else:
-                    # should be rare, e.g. if there is insufficient precision
-                    raise TypeError, "Unable to determine which root in SR is this element."
-
-        return self.__symbolic
+        if isinstance(K, number_field.NumberField_cyclotomic):
+            # solution by radicals may be difficult, but we have a closed form
+            from sage.all import exp, I, pi, ComplexField, RR
+            CC = ComplexField(53)
+            two_pi_i = 2 * pi * I
+            k = ( K._n()*CC(K.gen()).log() / CC(two_pi_i) ).real().round() # n ln z / (2 pi i)
+            gen_image = exp(k*two_pi_i/K._n())
+            return self.polynomial()(gen_image)
+        else:
+            # Convert the embedding to an embedding into AA or QQbar
+            embedding = number_field.refine_embedding(embedding, infinity)
+            a = embedding(self).radical_expression()
+            if a.parent() == SR:
+                return a
+            # Once #17516 gets fixed, the next three lines can be dropped
+            # and the remaining lines be simplified to undo df03633.
+            b = embedding.im_gens()[0].radical_expression()
+            if b.parent() == SR:
+                return self.polynomial()(b)
+            return SR(a)
 
     def galois_conjugates(self, K):
         r"""
@@ -2976,7 +2982,6 @@ cdef class NumberFieldElement(FieldElement):
             [2, 2]
         """
         from number_field_ideal import is_NumberFieldIdeal
-        from sage.rings.infinity import infinity
         if not is_NumberFieldIdeal(P):
             if is_NumberFieldElement(P):
                 P = self.number_field().fractional_ideal(P)

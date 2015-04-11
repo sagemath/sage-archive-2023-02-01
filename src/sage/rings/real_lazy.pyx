@@ -1598,7 +1598,7 @@ cdef class LazyAlgebraic(LazyFieldElement):
         if isinstance(R, type):
             if self._prec < 53:
                 self.eval(self.parent().interval_field(64)) # up the prec
-        elif self._prec < R.prec():
+        elif R.is_exact() or self._prec < R.prec():
             # Carl Witty said:
             # Quadratic equation faster and more accurate than roots(),
             # but the current code doesn't do the right thing with interval

@@ -1,3 +1,5 @@
+"Operators"
+
 import operator
 from sage.symbolic.ring import is_SymbolicVariable, var
 

@@ -1,7 +1,7 @@
 """
 Plotting of Hyperplane Arrangements
 
-PLOT OPTIONS::
+PLOT OPTIONS:
 
 Beside the usual plot options (enter ``plot?``), the plot command for
 hyperplane arrangements includes the following:

@@ -974,10 +974,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
         REFERENCES:
 
-        ..  [BSS]
-            David Bremner, Mathieu Dutour Sikiric, Achill Schuermann:
-            Polyhedral representation conversion up to symmetries.
-            http://arxiv.org/abs/math/0702239
+        [BSS]_
 
         EXAMPLES::
 

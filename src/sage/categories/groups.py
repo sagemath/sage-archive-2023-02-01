@@ -18,6 +18,7 @@ from sage.categories.monoids import Monoids
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.cartesian_product import CartesianProductsCategory, cartesian_product
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.topological_spaces import TopologicalSpacesCategory
 
 class Groups(CategoryWithAxiom):
     """
@@ -479,6 +480,7 @@ class Groups(CategoryWithAxiom):
             return self.parent().conjugacy_class(self)
 
     Finite = LazyImport('sage.categories.finite_groups', 'FiniteGroups')
+    Lie = LazyImport('sage.categories.lie_groups', 'LieGroups', 'Lie')
     #Algebras = LazyImport('sage.categories.group_algebras', 'GroupAlgebras')
 
     class Commutative(CategoryWithAxiom):
@@ -944,4 +946,31 @@ class Groups(CategoryWithAxiom):
                                                       lambda g: (i, g))
                                                for i,G in enumerate(F)])
                 return Family(gens_prod, lift, name="gen")
+
+    class Topological(TopologicalSpacesCategory):
+        """
+        Category of topological groups.
+
+        A topological group `G` is a group which has a topology such that
+        multiplication and taking inverses are continuous functions.
+
+        REFERENCES:
+
+        - :wikipedia:`Topological_group`
+        """
+        def additional_structure(self):
+            r"""
+            Return ``None``.
+
+            Indeed, the category of topolgocial groups defines no new
+            structure: a morphism of groups and of topological spaces
+            between two topological groups is a topological group morphism.
+
+            .. SEEALSO:: :meth:`Category.additional_structure`
+
+            EXAMPLES::
+
+                sage: Groups().Topological().additional_structure()
+            """
+            return None
 

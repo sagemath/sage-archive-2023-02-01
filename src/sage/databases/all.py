@@ -63,7 +63,7 @@ lazy_import('sage.databases.oeis', 'oeis')
 
 from symbolic_data import SymbolicData
 
-from odlyzko import zeta_zeros
+lazy_import('sage.databases.odlyzko', 'zeta_zeros')
 
 from db_modular_polynomials import \
      ClassicalModularPolynomialDatabase, \

@@ -4527,7 +4527,8 @@ class Partitions(UniqueRepresentation, Parent):
       be contained inside the partition `p`.
 
     - ``min_slope=k`` specifies that the partitions have slope at least
-      `k`; the slope is the difference between successive parts.
+      `k`; the slope at position `i` is the difference between the
+      `(i+1)`-th part and the `i`-th part.
 
     - ``parts_in=S`` specifies that the partitions have parts in the set
       `S`, which can be any sequence of pairwise distinct positive
@@ -4732,15 +4733,17 @@ class Partitions(UniqueRepresentation, Parent):
     Check that calling ``Partitions`` with ``outer=a`` no longer
     mutates ``a`` (:trac:`16234`)::
 
-        sage: a = [4,2,1,1,1,1,1]
+        sage: a = [4,3,2,1,1,1,1]
         sage: for p in Partitions(8, outer=a, min_slope=-1):
         ....:    print p
-        ....:     
+        [3, 3, 2]
+        [3, 2, 2, 1]
         [3, 2, 1, 1, 1]
+        [2, 2, 2, 1, 1]
         [2, 2, 1, 1, 1, 1]
         [2, 1, 1, 1, 1, 1, 1]
         sage: a
-        [4, 2, 1, 1, 1, 1, 1]
+        [4, 3, 2, 1, 1, 1, 1]
     """
     @staticmethod
     def __classcall_private__(cls, n=None, **kwargs):
@@ -4760,6 +4763,12 @@ class Partitions(UniqueRepresentation, Parent):
             sage: P2 = Partitions(int(4))
             sage: P is P2
             True
+
+        Check that :trac:`17898` is fixed::
+
+            sage: P = Partitions(5, min_slope=0)
+            sage: list(P)
+            [[5]]
         """
         if n == infinity:
             raise ValueError("n cannot be infinite")
@@ -4803,6 +4812,9 @@ class Partitions(UniqueRepresentation, Parent):
 
             # max_slope is at most 0, and it is 0 by default
             kwargs['max_slope'] = min(0,kwargs.get('max_slope',0))
+
+            if kwargs.get('min_slope', -float('inf')) > 0:
+                raise ValueError("the minimum slope must be non-negative")
 
             if 'outer' in kwargs:
                 if 'max_length' in kwargs:
@@ -5166,7 +5178,7 @@ class Partitions_all(Partitions):
             sage: Partitions().from_core_and_quotient([2,1], [[2,1],[3],[1,1,1]])
             [11, 5, 5, 3, 2, 2, 2]
 
-        TESTS:
+        TESTS::
 
             sage: Partitions().from_core_and_quotient([2,1], [[2,1],[2,3,1],[1,1,1]])
             Traceback (most recent call last):

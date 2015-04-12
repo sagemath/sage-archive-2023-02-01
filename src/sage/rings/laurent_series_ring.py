@@ -84,17 +84,26 @@ def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=None, spars
 
     TESTS:
 
-    Check if changing global series precision does it right::
+    Check if changing global series precision does it right (and
+    that :trac:`17955` is fixed)::
 
         sage: set_series_precision(3)
         sage: R.<x> = LaurentSeriesRing(ZZ)
         sage: 1/(1 - 2*x)
         1 + 2*x + 4*x^2 + O(x^3)
+        sage: set_series_precision(5)
+        sage: R.<x> = LaurentSeriesRing(ZZ)
+        sage: 1/(1 - 2*x)
+        1 + 2*x + 4*x^2 + 8*x^3 + 16*x^4 + O(x^5)
         sage: set_series_precision(20)
     """
     if not names is None: name = names
     if name is None:
         raise TypeError("You must specify the name of the indeterminate of the Laurent series ring.")
+
+    if default_prec is None:
+        from sage.misc.defaults import series_precision
+        default_prec = series_precision()
 
     global laurent_series
     key = (base_ring, name, default_prec, sparse)

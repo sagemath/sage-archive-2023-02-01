@@ -177,17 +177,16 @@ Animation of the solutions::
     sage: from sage.combinat.tiling import Polyomino, TilingSolver
     sage: Y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='yellow')
     sage: T = TilingSolver([Y], box=(15,15), reusable=True, reflection=True)
-    sage: a = T.animate(stop=40)            # long time
-    sage: a                                 # long time
+    sage: a = T.animate(stop=40)            # long time  # optional -- ImageMagick
+    sage: a                                 # long time  # optional -- ImageMagick
     Animation with 40 frames
-    sage: a.show()                          # not tested  - requires convert command
 
 Incremental animation of the solutions (one piece is removed/added at a time)::
 
-    sage: a = T.animate('incremental', stop=40)   # long time
-    sage: a                                       # long time
+    sage: a = T.animate('incremental', stop=40)   # long time  # optional -- ImageMagick
+    sage: a                                       # long time  # optional -- ImageMagick
     Animation with 40 frames
-    sage: a.show(delay=50, iterations=1)     # not tested  - requires convert command
+    sage: a.show(delay=50, iterations=1)          # long time  # optional -- ImageMagick
 
 5d Easy Example
 ---------------
@@ -1650,20 +1649,20 @@ class TilingSolver(SageObject):
             sage: y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='cyan')
             sage: T = TilingSolver([y], box=(5,10), reusable=True, reflection=True)
             sage: a = T.animate()
-            sage: a
+            sage: a             # optional -- ImageMagick
             Animation with 10 frames
 
         Include partial solutions (common prefix between two consecutive
         solutions)::
 
             sage: a = T.animate('common_prefix')
-            sage: a
+            sage: a             # optional -- ImageMagick
             Animation with 19 frames
 
         Incremental solutions (one piece removed or added at a time)::
 
             sage: a = T.animate('incremental')      # long time (2s)
-            sage: a                                 # long time (2s)
+            sage: a                                 # long time (2s)  # optional -- ImageMagick
             Animation with 123 frames
 
         ::

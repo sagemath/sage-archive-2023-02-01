@@ -233,7 +233,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         # The i,j entry is the (i * self._ncols + j)'th column.
         c = i * self._ncols + j
 
-        if PY_TYPE_CHECK_EXACT(value, NumberFieldElement_quadratic):
+        if type(value) is NumberFieldElement_quadratic:
             # Must be coded differently, since elements of
             # quadratic number fields are stored differently.
             if self._n == 4:
@@ -895,12 +895,14 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         Return an upper bound for the (complex) absolute values of all
         entries of self with respect to all embeddings.
 
-        Use \code{self.height()} for a sharper bound.
+        Use ``self.height()`` for a sharper bound.
 
         This is computed using just the Cauchy-Schwarz inequality, i.e.,
-        we use the fact that
-        $$ \left| \sum_i a_i\zeta^i \right| \leq \sum_i |a_i|, $$
-        as $|\zeta| = 1$.
+        we use the fact that ::
+
+             \left| \sum_i a_i\zeta^i \right| \leq \sum_i |a_i|,
+
+        as `|\zeta| = 1`.
 
         EXAMPLES::
 
@@ -935,12 +937,12 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         r"""
         Return the height of self.
 
-        If we let $a_{ij}$ be the $i,j$ entry of self, then we define
+        If we let `a_{ij}` be the `i,j` entry of self, then we define
         the height of self to be
-        $$
-          \max_v \max_{i,j} |a_{ij}|_v,
-        $$
-        where $v$ runs over all complex embeddings of \code{self.base_ring()}.
+
+            `\max_v \max_{i,j} |a_{ij}|_v`,
+
+        where `v` runs over all complex embeddings of ``self.base_ring()``.
 
         EXAMPLES::
 
@@ -1134,7 +1136,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
           and minimal polynomials." J. Inequal. Pure Appl. Math. 8
           (2007), no. 2.
 
-        This bound only applies for self._nrows >= 4, so in all
+        This bound only applies for `self._nrows >= 4`, so in all
         smaller cases, we just use a naive bound.
 
         EXAMPLES::
@@ -1204,18 +1206,20 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         over the base ring.
 
         INPUT:
-            algorithm -- 'multimodular' (default): reduce modulo
-                                        primes, compute charpoly mod
-                                        p, and lift (very fast)
-                         'pari': use pari (quite slow; comparable to
-                                        Magma v2.14 though)
-                         'hessenberg': put matrix in Hessenberg form
-                                        (double dog slow)
-            proof -- bool (default: None) proof flag determined by
-                                          global linalg proof.
+
+        - algorithm
+
+            - 'multimodular' (default): reduce modulo primes, compute charpoly
+              mod p, and lift (very fast)
+            - 'pari': use pari (quite slow; comparable to Magma v2.14 though)
+            - 'hessenberg': put matrix in Hessenberg form (double dog slow)
+
+        - proof -- bool (default: None) proof flag determined by global linalg
+          proof.
 
         OUTPUT:
-            polynomial
+
+        polynomial
 
         EXAMPLES::
 

@@ -264,7 +264,9 @@ def find_objects_from_name(name, module_name=None):
     import sys
 
     obj = []
-    for smodule_name, smodule in sys.modules.iteritems():
+    modules = sys.modules.keys()
+    for smodule_name in modules:
+        smodule = sys.modules[smodule_name]
         if module_name and not smodule_name.startswith(module_name):
             continue
         if hasattr(smodule, '__dict__') and name in smodule.__dict__:

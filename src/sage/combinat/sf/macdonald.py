@@ -639,6 +639,7 @@ def Bmu( mu ):
         sage: Bmu(SkewPartition([[3,3],[2]]))
         q^2*t + q^2 + q*t + t
     """
+    q,t = QQqt.gens()
     return sum(t**c[0]*q**c[1] for c in mu.cells())
 
 @cached_function
@@ -666,7 +667,7 @@ def cmunu1(mu, nu):
         sage: all(Ht[3,2,1].skew_by(h[1]).coefficient(nu) == cmunu(Partition([3,2,1]),nu) for nu in Partition([3,2,1]).down_list())
         True
     """
-    # mu and nu should both be Partitions
+    q,t = QQqt.gens()
     c = sage.combinat.skew_partition.SkewPartition([mu,nu]).cells()[0]
     A = prod((t**mu.leg_length(*s)-q**(mu.arm_length(*s)+1))/(t**nu.leg_length(*s)-q**(nu.arm_length(*s)+1)) for s in nu.cells() if s[0]==c[0])
     B = prod((q**mu.arm_length(*s)-t**(mu.leg_length(*s)+1))/(q**nu.arm_length(*s)-t**(nu.leg_length(*s)+1)) for s in nu.cells() if s[1]==c[1])
@@ -1293,6 +1294,7 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         self._m = self._sym.m()
         category = sage.categories.all.ModulesWithBasis(self.base_ring())
         self._m.register_coercion(SetMorphism(Hom(self, self._m, category), self._self_to_m))
+        self.register_coercion(SetMorphism(Hom(self._m, self, category), self._m_to_self))
         # in this case need to implement _self_to_m (similar to generic _self_to_s) and _m_cache
 
     def _Lmunu(self, nu, mu ):
@@ -1319,6 +1321,7 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
 
         EXAMPLES::
 
+            sage: Lmunu = SymmetricFunctions(FractionField(QQ['q','t'])).macdonald().Ht()._Lmunu
             sage: Lmunu(Partition([3,1]),Partition([3,1]))
             q^2 + q + t + 1
             sage: Lmunu(Partition([3,1]),Partition([2,2]))
@@ -1338,9 +1341,9 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         if len(nu)==1:
             return 1
         if nu[-1]==1:
-            self._self_to_m_cache[(mu,nu)] = self._base(sum(cmunu1(mu,ga)*self._Lmunu(Partition(nu[:-1]), ga) for ga in mu.down_list()))
+            self._self_to_m_cache[(mu,nu)] = QQqt(sum(cmunu1(mu,ga)*self._Lmunu(Partition(nu[:-1]), ga) for ga in mu.down_list()))
             return self._self_to_m_cache[(mu,nu)]
-        self._self_to_m_cache[(mu,nu)] = self._base(sum( cmunu(mu,ga)*self._Lmunu(Partition(nu[:-1]), ga)
+        self._self_to_m_cache[(mu,nu)] = QQqt(sum( cmunu(mu,ga)*self._Lmunu(Partition(nu[:-1]), ga)
           for ga in sage.combinat.partition.Partitions(nu.size()-nu[-1]) if mu.contains(ga)))
         return self._self_to_m_cache[(mu,nu)]
 
@@ -1373,9 +1376,22 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
             sage: [f22(part) for part in Partitions(4)]
             [1, q*t + q + t, q^2 + t^2, q^2*t + q*t^2 + q*t, q^2*t^2]
         """
-        return self._m._from_dict({ part2: sum(x.coefficient(mu)*self._Lmunu(part2, mu) 
-           for mu in x.homogeneous_component(d).support()) 
-                for d in range(x.degree()+1) for part2 in sage.combinat.partition.Partitions(d)})
+        return self._m._from_dict({ part2: 
+            self._base(sum(x.coefficient(mu)*QQqt(self._Lmunu(part2, mu)).subs(q=self.q,t=self.t)
+                for mu in x.homogeneous_component(d).support()))
+                    for d in range(x.degree()+1) for part2 in sage.combinat.partition.Partitions(d)})
+
+    def _m_to_self( self, f ):
+        r"""
+        """
+        g = f(self._m([1])*(self.t-1))
+        out = {}
+        while not g.is_zero():
+            sprt = g.support()
+            Htmu = self._self_to_m(self(sprt[-1]))(self._m([1])*(self.t-1))
+            out[sprt[-1]] = g.coefficient(sprt[-1])/Htmu.coefficient(sprt[-1])
+            g -= out[sprt[-1]]*Htmu
+        return self._from_dict(out)
 
     class Element(MacdonaldPolynomials_generic.Element):
         def nabla(self, q=None, t=None, power=1):

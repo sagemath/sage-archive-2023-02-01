@@ -421,6 +421,12 @@ ext_modules = [
               language = "c++",
               package = 'mcqd'),
 
+    OptionalExtension("sage.graphs.bliss",
+              ["sage/graphs/bliss.pyx"],
+              language = "c++",
+              libraries = ['bliss'],
+              package = 'bliss'),
+
     OptionalExtension('sage.graphs.modular_decomposition',
               sources = ['sage/graphs/modular_decomposition.pyx'],
               libraries = ['modulardecomposition'],

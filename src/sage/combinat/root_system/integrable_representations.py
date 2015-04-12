@@ -239,7 +239,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         """
         alpha = self._P.simple_roots()
         I = self._index_set
-        return self._Lam - self._P.sum(ZZ(val) * alpha[I[i]]
+        return self._Lam - self._P.sum(val * alpha[I[i]]
                                        for i,val in enumerate(n))
 
     def _from_weight_helper(self, mu):
@@ -258,13 +258,13 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         mu = self._P(mu)
         n0 = mu.monomial_coefficients().get('delta', 0)
         mu0 = mu - n0*self._P.simple_root(self._cartan_type.special_node())
-        ret = [ZZ(n0)]
+        ret = [n0] # This should be in ZZ because it is in the weight lattice
         mc_mu0 = mu0.monomial_coefficients()
         zero = ZZ.zero()
         for i in self._index_set_classical:
             # -1 for indexing
-            ret.append( ZZ.sum(self._cminv[i-1,j-1] * mc_mu0.get(j, zero)
-                               for j in self._index_set_classical) )
+            ret.append( ZZ(sum(self._cminv[i-1,j-1] * mc_mu0.get(j, zero)
+                               for j in self._index_set_classical)) )
         return tuple(ret)
     
     def from_weight(self, mu):
@@ -290,15 +290,37 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         if n in self._ddict:
             return self._ddict[n]
 
-        mc = self.to_weight(n).monomial_coefficients()
-        # Most weights are dense over the index set
-        for i in self._index_set:
-            if mc.get(i, 0) < 0:
-                m = self.s(n, i)
-                v = self.to_dominant(m)
-                self._ddict[n] = v
-                return v
-        return n
+        path = [n]
+        alpha = self._P.simple_roots()
+        next = True
+        cur_wt = self.to_weight(n)
+
+        while next:
+            if path[-1] in self._ddict:
+                path.append( self._ddict[path[-1]] )
+                break
+
+            next = False
+            mc = cur_wt.monomial_coefficients()
+            # Most weights are dense over the index set
+            for i in self._index_set:
+                if mc.get(i, 0) < 0:
+                    m = self.s(path[-1], i)
+                    if m in self._ddict:
+                        path.append(self._ddict[m])
+                    else:
+                        cur_wt -= (m[i] - path[-1][i]) * alpha[i]
+                        path.append(m)
+                        next = True
+                    break
+
+        # We don't want any dominat weight to refer to itself in self._ddict
+        #   as this leads to an infinite loop with self.m() when the dominant
+        #   weight does not have a known multiplicity.
+        v = path.pop()
+        for m in path:
+            self._ddict[m] = v
+        return v
 
     def freudenthal_roots_imaginary(self, nu):
         r"""

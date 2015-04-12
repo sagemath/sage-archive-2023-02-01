@@ -143,8 +143,10 @@ class FiniteSemigroups(CategoryWithAxiom):
                 ['y', 'x', 'xy', 'yx']
 
             """
-            from sage.combinat.backtrack import TransitiveIdeal
-            return TransitiveIdeal(self.succ_generators(side = "right"), self.semigroup_generators()).__iter__()
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+            return RecursivelyEnumeratedSet(self.semigroup_generators(),
+                        self.succ_generators(side = "right"),
+                        structure=None).naive_search_iterator()
 
         def ideal(self, gens, side="twosided"):
             r"""
@@ -180,8 +182,9 @@ class FiniteSemigroups(CategoryWithAxiom):
                 'adbc', 'bcda']
 
             """
-            from sage.combinat.backtrack import TransitiveIdeal
-            return TransitiveIdeal(self.succ_generators(side = side), gens)
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+            return RecursivelyEnumeratedSet(gens, self.succ_generators(side=side),
+                        structure=None, enumeration='naive')
 
         @cached_method
         def j_classes(self):

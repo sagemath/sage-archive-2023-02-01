@@ -1,4 +1,3 @@
-from pickle import INST
 r"""
 Set of homomorphisms between two projective schemes
 

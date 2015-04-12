@@ -279,10 +279,10 @@ def canonical_form(G, partition=None, return_graph=False, certify=False):
     if return_graph:
         if G.is_directed():
             from sage.graphs.graph import DiGraph
-            G = DiGraph(edges)
+            G = DiGraph(edges,loops=G.allows_loops(),multiedges=G.allows_multiple_edges())
         else:
             from sage.graphs.graph import Graph
-            G = Graph(edges)
+            G = Graph(edges,loops=G.allows_loops(),multiedges=G.allows_multiple_edges())
 
         G.add_vertices(vert2int.values())
         return (G, vert2int) if certify else G

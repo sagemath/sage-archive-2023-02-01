@@ -177,19 +177,29 @@ class ConjugacyClass(Parent):
             sage: a = matrix(ZZ,2,[1,1,0,1])
             sage: b = matrix(ZZ,2,[1,0,1,1])
             sage: G = MatrixGroup([a,b])        # takes 1s
-            sage: g = G(a)
-            sage: C = ConjugacyClass(G, g)
+            sage: a = G(a)
+            sage: C = ConjugacyClass(G, a)
             sage: it = iter(C)
             sage: [next(it) for _ in range(5)]
             [
-            [1 1]  [ 0  1]  [-1  1]  [-1  4]  [-5  9]
-            [0 1], [-1  2], [-4  3], [-1  3], [-4  7]
+            [1 1]  [ 2  1]  [ 0  1]  [ 3  1]  [ 3  4]
+            [0 1], [-1  0], [-1  2], [-4 -1], [-1 -1]
             ]
+
+        We check that two matrices are in C::
+
+            sage: b = G(b)
+            sage: m1 = b * a * ~b
+            sage: m2 = ~b * a * b
+            sage: any(x == m1 for x in C)
+            True
+            sage: any(x == m2 for x in C)
+            True
 
         """
         from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
         g = self._representative
-        gens = self._parent.gens()
+        gens = self._parent.monoid_generators()
         R = RecursivelyEnumeratedSet([g],
                                      lambda y: [c*y*c**-1 for c in gens],
                                      structure=None)

@@ -4773,15 +4773,15 @@ class Graph(GenericGraph):
 
         EXAMPLES::
 
-            sage: (graphs.ChvatalGraph()).centrality_betweenness() # abs tol abs 1e10
+            sage: g = graphs.ChvatalGraph()
+            sage: g.centrality_betweenness() # abs tol 1e-10
             {0: 0.06969696969696969, 1: 0.06969696969696969,
              2: 0.0606060606060606, 3: 0.0606060606060606,
              4: 0.06969696969696969, 5: 0.06969696969696969,
              6: 0.0606060606060606, 7: 0.0606060606060606,
              8: 0.0606060606060606, 9: 0.0606060606060606,
              10: 0.0606060606060606, 11: 0.0606060606060606}
-            sage: (graphs.ChvatalGraph()).centrality_betweenness(
-            ....:   normalized=False) # abs tol abs 1e10
+            sage: g.centrality_betweenness(normalized=False) # abs tol 1e-10
             {0: 3.833333333333333, 1: 3.833333333333333, 2: 3.333333333333333,
              3: 3.333333333333333, 4: 3.833333333333333, 5: 3.833333333333333,
              6: 3.333333333333333, 7: 3.333333333333333, 8: 3.333333333333333,
@@ -4791,7 +4791,7 @@ class Graph(GenericGraph):
             sage: D.show(figsize=[2,2])
             sage: D = D.to_undirected()
             sage: D.show(figsize=[2,2])
-            sage: D.centrality_betweenness() # abs tol abs 1e10
+            sage: D.centrality_betweenness() # abs tol abs 1e-10
             {0: 0.16666666666666666, 1: 0.16666666666666666, 2: 0.0, 3: 0.0}
         """
         if algorithm == "NetworkX" and exact:

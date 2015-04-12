@@ -1,7 +1,7 @@
 r"""
 Canonical forms and automorphism group computation for linear codes over finite fields.
 
-We implemented the algorithm described in [Feu2009] which computes the unique
+We implemented the algorithm described in [Feu2009]_ which computes the unique
 semilinearly isometric code (canonical form) in the equivalence class of a given
 linear code ``C``. Furthermore, this algorithm will return the automorphism
 group of ``C``, too.
@@ -125,7 +125,7 @@ cdef class InnerGroup:
     - The support of the columns given by `i \in I` intersect exactly one
       cell of the partition. The entry `\varphi_i` is equal to the entries
       of the corresponding diagonal entry of `A`.
-    - `alpha` is a power of `\tau^{frob_pow}`, where `tau` denotes the
+    - `\alpha` is a power of `\tau^{frob_pow}`, where `\tau` denotes the
        Frobenius automorphism of the finite field `\GF{q}`.
 
     See [Feu2009]_ for more details.

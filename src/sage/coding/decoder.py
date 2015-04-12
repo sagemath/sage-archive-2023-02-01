@@ -10,9 +10,9 @@ AUTHOR:
 
 - David Joyner (2009-02-01): initial version
 
-TODO:
+.. TODO::
 
-Add lots more methods!
+    Add lots more methods!
 """
 #*****************************************************************************
 #       Copyright (C) 2009 David Joyner <wdjoyner@gmail.com>

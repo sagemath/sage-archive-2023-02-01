@@ -42,9 +42,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from sage.misc.cachefunc import cached_function, cached_method
+from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.categories.category import Category
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.dynamic_class import DynamicMetaclass
 
 class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
     r"""
@@ -225,8 +227,74 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
     functorial construction
     """
 
+    @lazy_class_attribute
+    def _base_category_class(cls):
+        """
+        Recover the class of the base category.
+
+        OUTPUT:
+
+        A *tuple* whose first entry is the base category class.
+
+        .. WARNING::
+
+            This is only used for categories that are not implemented
+            as nested classes, and won't work otherwise.
+
+        .. SEEALSO:: :meth:`__classcall__`
+
+        EXAMPLES::
+
+            sage: GradedModules._base_category_class
+            (<class 'sage.categories.modules.Modules'>,)
+            sage: GradedAlgebrasWithBasis._base_category_class
+            (<class 'sage.categories.algebras_with_basis.AlgebrasWithBasis'>,)
+
+        The reason for wrapping the base category class in a tuple is
+        that, often, the base category class implements a
+        :meth:`__classget__` method which would get in the way upon
+        attribute access::
+
+            sage: F = GradedAlgebrasWithBasis
+            sage: F._foo = F._base_category_class[0]
+            sage: F._foo
+            Traceback (most recent call last):
+            ...
+            ValueError: could not infer axiom for the nested class
+            <...AlgebrasWithBasis'> of <...GradedAlgebrasWithBasis'>
+        """
+        module_name = cls.__module__.replace(cls._functor_category.lower() + "_","")
+        import sys
+        name   = cls.__name__.replace(cls._functor_category, "")
+        __import__(module_name)
+        module = sys.modules[module_name]
+        return (module.__dict__[name],)
+
     @staticmethod
-    def __classget__(cls, category, owner):
+    def __classcall__(cls, category=None, *args):
+        """
+        Magic support for putting categories created by a functorial
+        construction in their own file.
+
+        EXAMPLES::
+
+            sage: GradedModules(ZZ)   # indirect doctest
+            Category of graded modules over Integer Ring
+            sage: Modules(ZZ).Graded()
+            Category of graded modules over Integer Ring
+            sage: GradedModules(ZZ) is Modules(ZZ).Graded()
+            True
+
+        .. SEEALSO:: :meth:`_base_category_class`
+        """
+        base_category_class = cls._base_category_class[0]
+        if isinstance(category, base_category_class):
+            return super(FunctorialConstructionCategory, cls).__classcall__(cls, category, *args)
+        else:
+            return cls.category_of(base_category_class(category, *args))
+
+    @staticmethod
+    def __classget__(cls, base_category, base_category_class):
         r"""
         Special binding for covariant constructions
 
@@ -242,9 +310,20 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
             sage: Sets().Subquotients
             Cached version of <function Subquotients at ...>
         """
-        if category is None:
+        if base_category is None:
             return cls
-        return getattr(super(category.__class__.__base__, category), cls._functor_category)
+
+        if isinstance(base_category_class, DynamicMetaclass):
+            base_category_class = base_category_class.__base__
+        if "_base_category_class" not in cls.__dict__:
+            cls._base_category_class = (base_category_class,)
+        else:
+            assert cls._base_category_class[0] is base_category_class, \
+                "base category class for {} mismatch; expected {}, got {}".format(
+                 cls, cls._base_category_class[0], base_category_class)
+
+        return getattr(super(base_category.__class__.__base__, base_category),
+                       cls._functor_category)
 
     @classmethod
     @cached_function
@@ -286,7 +365,8 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
 
             sage: from sage.categories.covariant_functorial_construction import CovariantConstructionCategory
             sage: class FooBars(CovariantConstructionCategory):
-            ...       _functor_category = "FooBars"
+            ....:     _functor_category = "FooBars"
+            ....:     _base_category_class = (Category,)
             sage: Category.FooBars = lambda self: FooBars.category_of(self)
             sage: C = FooBars(ModulesWithBasis(ZZ))
             sage: C

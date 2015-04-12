@@ -29,9 +29,9 @@ REFERENCES:
    Macdonald Polynomials, IRMN no. 18 (1998).
    :arXiv:`math/9808050`.
 
-.. [BH2013] Tableaux Formulas for Macdonald Polynomials, Special edition
-    in honour of Christophe Reutenauer 60 birthday, International Journal
-    of Algebra and Computation, Volume 23, Issue 4, (2013), pp. 833-852.
+.. [BH2013] F. Bergeron, M. Haiman, Tableaux Formulas for Macdonald Polynomials,
+   Special edition in honor of Christophe Reutenauer 60 birthday, International
+   Journal of Algebra and Computation, Volume 23, Issue 4, (2013), pp. 833-852.
 """
 
 #*****************************************************************************
@@ -1178,9 +1178,11 @@ class MacdonaldPolynomials_j(MacdonaldPolynomials_generic):
 class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
     def __init__(self, macdonald):
         r"""
-        The `H` basis is expanded in the Schur basis by extracting the
-        `q,t`-Kostka coefficient through the `t`-scalar product of `J_{\mu}`
-        and `s_{\lambda}`.
+        The `H` basis is defined as `H_\mu = \sum_{\lambda} K_{\lambda\mu}(q,t) s_\lambda`
+        where `K_{\lambda\mu}(q,t)` are the Macdonald Kostka coefficients.
+
+        In this implementation, it is calculated by using the Macdonald `Ht` basis and
+        substituting `t \rightarrow 1/t` and multiplying by `t^{n(\mu)}`.
 
         INPUT:
 
@@ -1194,77 +1196,32 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
             sage: TestSuite(H).run(skip=["_test_associativity","_test_distributivity","_test_prod"])
             sage: TestSuite(H).run(elements = [H.t*H[1,1]+H.q*H[2], H[1]+(H.q+H.t)*H[1,1]])  # long time (26s on sage.math, 2012)
         """
-        self._self_to_s_cache = _h_to_s_cache
-        self._s_to_self_cache = _s_to_h_cache
         MacdonaldPolynomials_generic.__init__(self, macdonald)
-        self._Ht = macdonald.Ht()
+        self._m = self._sym.m()
+        self._Lmunu = macdonald.Ht()._Lmunu
+        category = sage.categories.all.ModulesWithBasis(self.base_ring())
+        self._m.register_coercion(SetMorphism(Hom(self, self._m, category), self._self_to_m))
+        self.register_coercion(SetMorphism(Hom(self._m, self, category), self._m_to_self))
 
-
-    def _s_cache(self, n):
+    def _self_to_m( self, x ):
         r"""
-        Compute the change of basis and its inverse between the Macdonald
-        polynomials on the `H` basis and the Schur functions.
-        these computations are completed with coefficients in fraction
-        field of polynomials in `q` and `t`
-
-        INPUT:
-
-        - ``self`` -- a Macdonald `H` basis
-        - ``n`` -- a non-negative integer
-
-        EXAMPLES::
-
-            sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
-            sage: H = Sym.macdonald().H()
-            sage: H._s_cache(2)
-            sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
-            sage: l( H._s_to_self_cache[2] )
-            [([1, 1], [([1, 1], 1/(-q*t + 1)), ([2], (-t)/(-q*t + 1))]),
-             ([2], [([1, 1], (-q)/(-q*t + 1)), ([2], 1/(-q*t + 1))])]
-            sage: l( H._self_to_s_cache[2] )
-            [([1, 1], [([1, 1], 1), ([2], t)]), ([2], [([1, 1], q), ([2], 1)])]
         """
-        self._invert_morphism(n, QQqt, self._self_to_s_cache, \
-                              self._s_to_self_cache, to_other_function = self._to_s)
+        return self._m._from_dict({ part2: 
+            self._base(sum(x.coefficient(mu)*QQqt(self._Lmunu(part2, mu)).subs(q=self.q,t=1/self.t)*self.t**mu.weighted_size()
+                for mu in x.homogeneous_component(d).support()))
+                    for d in range(x.degree()+1) for part2 in sage.combinat.partition.Partitions(d)})
 
-    def _to_s(self, part):
+    def _m_to_self( self, f ):
         r"""
-        Returns a function which gives the coefficient of a partition in
-        the Schur expansion of self(part).
-        these computations are completed with coefficients in fraction
-        field of polynomials in `q` and `t`
-
-        INPUT:
-
-        - ``self`` -- a Macdonald `H` basis
-        - ``part`` -- a partition
-
-        OUTPUT:
-
-        - returns a function which returns the coefficients of the expansion of `H`
-          in the Schur basis
-
-        EXAMPLES::
-
-            sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
-            sage: H = Sym.macdonald().H()
-            sage: f21 = H._to_s(Partition([2,1]))
-            sage: [f21(part) for part in Partitions(3)]
-            [t, q*t + 1, q]
-            sage: Sym.schur()( H[2,1] )
-            q*s[1, 1, 1] + (q*t+1)*s[2, 1] + t*s[3]
-            sage: f22 = H._to_s(Partition([2,2]))
-            sage: [f22(part) for part in Partitions(4)]
-            [t^2, q*t^2 + q*t + t, q^2*t^2 + 1, q^2*t + q*t + q, q^2]
         """
-        (q,t) = QQqt.gens()
-        J = self._macdonald.J()
-        s = self._s
-        res = 0
-        for p in sage.combinat.partition.Partitions(sum(part)):
-            res += (J(part).scalar_t(s(p), t))*s(p)
-        f = lambda part2: res.coefficient(part2)
-        return f
+        g = f(self._m([1])*(1-self.t))
+        out = {}
+        while not g.is_zero():
+            sprt = g.support()
+            Hmu = self._self_to_m(self(sprt[-1]))(self._m([1])*(1-self.t))
+            out[sprt[-1]] = g.coefficient(sprt[-1])/Hmu.coefficient(sprt[-1])
+            g -= out[sprt[-1]]*Hmu
+        return self._from_dict(out)
 
     class Element(MacdonaldPolynomials_generic.Element):
         pass
@@ -1272,9 +1229,11 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
 class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
     def __init__(self, macdonald):
         r"""
-        The `Ht` basis is defined from the `H` basis by replacing `t \to 1/t`
-        and multiplying by a normalizing power of `t`.
-        Here we define it by using a Pieri formula due to F. Bergeron,
+        The `Ht` basis is defined as `{\tilde H}_\mu = t^{n(\mu)} \sum_{\lambda}
+        K_{\lambda\mu}(q,t^{-1}) s_\lambda` where `K_{\lambda\mu}(q,t)` are the
+        Macdonald `(q,t)`-Kostka coefficients and `n(\mu) = \sum_{i} (i-1) \mu_i`.
+
+        It is implemented here by using a Pieri formula due to F. Bergeron,
         A. Garsia and M. Haiman [BH2013]_.
 
         INPUT:
@@ -1295,7 +1254,6 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         category = sage.categories.all.ModulesWithBasis(self.base_ring())
         self._m.register_coercion(SetMorphism(Hom(self, self._m, category), self._self_to_m))
         self.register_coercion(SetMorphism(Hom(self._m, self, category), self._m_to_self))
-        # in this case need to implement _self_to_m (similar to generic _self_to_s) and _m_cache
 
     def _Lmunu(self, nu, mu ):
         r"""

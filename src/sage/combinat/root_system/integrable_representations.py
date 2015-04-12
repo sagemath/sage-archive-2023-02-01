@@ -129,6 +129,16 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         4*Lambda[1] - 2*delta: 1 2 6 11 23 41 75 126 215 347 561 878 1368 2082 3153 4690 6936 10121 14677 21055
         2*Lambda[0] + 2*Lambda[1] - delta: 1 2 5 10 20 36 66 112 190 310 501 788 1230 1880 2850 4256 6303 9222 13396 19262
         4*Lambda[0]: 1 1 3 6 13 23 44 75 131 215 354 561 889 1368 2097 3153 4712 6936 10151 14677
+
+    An example in type `C_2^{(1)}`::
+
+        sage: Lambda = RootSystem(['C',2,1]).weight_lattice(extended=true).fundamental_weights()
+        sage: v = IntegrableRepresentation(2*Lambda[0])
+        sage: v.strings()    # long time
+        2*Lambda[1] - delta: 1 4 15 44 122 304 721 1612 3469 7176 14414 28124
+        Lambda[0] + Lambda[2] - delta: 1 5 18 55 149 372 872 1941 4141 8523 17005 33019
+        2*Lambda[0]: 1 2 9 26 77 194 477 1084 2387 5010 10227 20198
+        2*Lambda[2] - 2*delta: 2 7 26 72 194 467 1084 2367 5010 10191 20198 38907
     """
     def __init__(self, Lam):
         """
@@ -239,9 +249,17 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
     # This recieves a significant number of calls.
     # TODO: Try to reduce the number of such calls.
     def _from_weight_helper(self, mu):
-        """
-        It is assumeed that ``mu`` is in the root lattice.
-        returns ``(n[0], n[1], ...)`` such that ``mu = \sum n[i]*alpha[i]``
+        r"""
+        Return ``(n[0], n[1], ...)`` such that ``mu = \sum n[i]*alpha[i]``.
+
+        INPUT:
+
+        - ``mu`` -- an element in the root lattice
+
+        .. TODO::
+
+            Implement this as a section map of the inverse of the
+            coercion from `Q \to P`.
         """
         mu = self._P(mu)
         n0 = mu.monomial_coefficients().get('delta', 0)
@@ -266,8 +284,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         representation of weights by tuples.
         """
         ret = list(n) # This makes a copy
-        ret[i] += self._Lam.monomial_coefficients().get(i, ZZ.zero())
         row = self._cartan_matrix[i]
+        ret[i] += self._Lam.monomial_coefficients().get(i, ZZ.zero())
         ret[i] -= sum(n[j] * row[j] for j in self._index_set)
         return tuple(ret)
 
@@ -285,8 +303,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
     def freudenthal_roots_imaginary(self, nu):
         r"""
-        It is assumed that ``nu`` is in `Q`. Returns the set of imaginary roots
-        `\alpha \in \Delta^+` such that `nu - \alpha \in Q^+`.
+        It is assumed that ``nu`` is in `Q`. Returns the set of imaginary
+        roots `\alpha \in \Delta^+` such that `nu - \alpha \in Q^+`.
 
         Lambda = self._P.fundamental_weights()
         kp = min(ZZ(nu.symmetric_form(Lambda[i])) for i in self._index_set)
@@ -327,15 +345,24 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             ret.append(alpha)
         return ret
 
-    # TODO: (mostly to self) try to optimize starting here
     def _freudenthal_accum(self, nu, al):
+        """
+        Helper method for something with computing the Freudenthal formula.
+        """
         ret = 0
-        k = 1
-        while all(val >= 0 for val in self._from_weight_helper(self._Lam - nu - k*al)):
-            mk = self.m( self.from_weight(nu + k*al) )
-            ip = self.inner_pq(nu + k*al, al)
+        n = list(self._from_weight_helper(self._Lam - nu))
+        ip = self.inner_pq(nu, al)
+        n_shift = self._from_weight_helper(al)
+        ip_shift = self.inner_qq(al, al)
+
+        while all(val >= 0 for val in n):
+            # Change in data by adding ``al`` to our current weight
+            ip += ip_shift
+            for i,val in enumerate(n_shift):
+                n[i] -= val
+            # Compute the multiplicity
+            mk = self.m(tuple(n))
             ret += 2*mk*ip
-            k += 1
         return ret
 
     def m_freudenthal(self, n):
@@ -348,12 +375,12 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         I = self._index_set
         al = self._Q._from_dict({I[i]: val for i,val in enumerate(n) if val},
                                 remove_zeros=False)
-        den = 2*self.inner_pq(self._Lam+self._P.rho(), al) - self.inner_qq(al,al)
+        den = 2*self.inner_pq(self._Lam+self._P.rho(), al) - self.inner_qq(al, al)
         num = 0
         for al in self.freudenthal_roots_real(self._Lam - mu):
             num += self._freudenthal_accum(mu, al)
         for al in self.freudenthal_roots_imaginary(self._Lam - mu):
-            num += self._classical_rank*self._freudenthal_accum(mu, al)
+            num += self._classical_rank * self._freudenthal_accum(mu, al)
         if den == 0 and num == 0:
             print "m_freudenthal","m: n=%s, num=den=0"%n.__repr__()
         try:
@@ -410,10 +437,13 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             """
         ret = []
         delta = self._Q.null_root()
+        cur_weight = max_weight
         for k in range(depth):
-            ret.append(self.m( self.from_weight(max_weight - k*delta) ))
+            ret.append(self.m( self.from_weight(cur_weight) ))
+            cur_weight -= delta
         return ret
 
+    # FIXME: Return a dictionary
     def strings(self, depth=12):
         """
         Return the set of dominant maximal weights of ``self``, together

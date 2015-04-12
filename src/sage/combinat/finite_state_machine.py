@@ -9067,7 +9067,7 @@ class FiniteStateMachine(SageObject):
         Relies on a (classical and easy) probabilistic argument,
         cf. [FGT1992]_, Eqns. (6) and (7).
 
-        For the variance, see [FHP2014]_, Section 2.
+        For the variance, see [FHP2015]_, Section 2.
 
         EXAMPLES:
 
@@ -9158,7 +9158,7 @@ class FiniteStateMachine(SageObject):
                 \frac1{p_i^{-1}+\cdots+p_i^{-h}}\biggr)^2}
                 \end{aligned}
 
-            cf. [S1986]_, p. 62, or [FHP2014]_, Theorem 1. We now
+            cf. [S1986]_, p. 62, or [FHP2015]_, Theorem 1. We now
             verify this with a transducer approach. We need to set
             ``FSMOldCodeTransducerCartesianProduct``,
             cf. :meth:`Transducer.cartesian_product`.
@@ -9218,7 +9218,7 @@ class FiniteStateMachine(SageObject):
             letters occur independently with the given probabilities.
             The random variable `B_j` is the first position `n` such
             that there exist `j` of the `r` letters having an `h`-run.
-            The expectation of `B_j` is given in [FHP2014]_, Theorem 2.
+            The expectation of `B_j` is given in [FHP2015]_, Theorem 2.
             Here, we verify this result by using transducers::
 
                 sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
@@ -9290,9 +9290,9 @@ class FiniteStateMachine(SageObject):
            self-organizing search*, Discrete Appl. Math. 39 (1992),
            207--229, :doi:`10.1016/0166-218X(92)90177-C`.
 
-        .. [FHP2014] Uta Freiberg, Clemens Heuberger, Helmut Prodinger,
+        .. [FHP2015] Uta Freiberg, Clemens Heuberger, Helmut Prodinger,
            *Application of Smirnov Words to Waiting Time Distributions
-           of Runs*, in preparation.
+           of Runs*, :arxiv:`1503.08096`.
 
         .. [S1986] Gábor J. Székely, *Paradoxes in Probability Theory
            and Mathematical Statistics*, D. Reidel Publishing Company.

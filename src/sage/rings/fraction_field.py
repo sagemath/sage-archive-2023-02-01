@@ -72,7 +72,6 @@ TESTS::
 #*****************************************************************************
 
 import ring
-import field
 import fraction_field_element
 import sage.misc.latex as latex
 from sage.misc.cachefunc import cached_method
@@ -142,7 +141,7 @@ def is_FractionField(x):
     """
     return isinstance(x, FractionField_generic)
 
-class FractionField_generic(field.Field):
+class FractionField_generic(ring.Field):
     """
     The fraction field of an integral domain.
     """

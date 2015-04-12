@@ -356,6 +356,9 @@ ext_modules = [
               sources = ['sage/graphs/cliquer.pyx', 'sage/graphs/cliquer/cl.c'],
               libraries = ['cliquer']),
 
+    Extension('sage.graphs.centrality',
+              sources = ['sage/graphs/centrality.pyx']),
+
     Extension('sage.graphs.independent_sets',
               sources = ['sage/graphs/independent_sets.pyx'],
               libraries=['gmp']),

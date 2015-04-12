@@ -15,8 +15,11 @@ from sage.misc.lazy_import import LazyImport
 from sage.categories.category import Category
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.sets_cat import Sets
+from sage.categories.groups import Groups
+from sage.categories.manifolds import Manifolds
+from sage.rings.all import RR
 
-class Manifolds(Category_over_base_ring):
+class LieGroups(Category_over_base_ring):
     r"""
     The category of Lie groups.
 
@@ -42,6 +45,12 @@ class Manifolds(Category_over_base_ring):
 
         sage: TestSuite(C).run()
     """
+    def __init__(self, R=RR):
+        """
+        Initialize ``self``.
+        """
+        Category_over_base_ring.__init__(self, RR)
+
     @cached_method
     def super_categories(self):
         """

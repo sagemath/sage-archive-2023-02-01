@@ -958,19 +958,4 @@ class Groups(CategoryWithAxiom):
 
         - :wikipedia:`Topological_group`
         """
-        def additional_structure(self):
-            r"""
-            Return ``None``.
-
-            Indeed, the category of topolgocial groups defines no new
-            structure: a morphism of groups and of topological spaces
-            between two topological groups is a topological group morphism.
-
-            .. SEEALSO:: :meth:`Category.additional_structure`
-
-            EXAMPLES::
-
-                sage: Groups().Topological().additional_structure()
-            """
-            return None
 

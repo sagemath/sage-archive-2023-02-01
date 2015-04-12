@@ -14,10 +14,11 @@ from sage.structure.category_object import CategoryObject
 #from sage.structure.parent import Parent
 from sage.categories.modules import Modules
 from sage.combinat.root_system.cartan_type import CartanType
+from sage.combinat.root_system.root_space import RootSpace
+from sage.combinat.root_system.weight_space import WeightSpace
 from sage.rings.all import ZZ, QQ
 from sage.misc.all import cached_method
-from root_space import RootSpace
-from weight_space import WeightSpace
+from sage.matrix.matrix_space import MatrixSpace
 from sage.functions.other import floor
 
 # TODO: Make this a proper parent and implement actions
@@ -155,12 +156,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         self._classical_rank = self._cartan_type.classical().rank()
         self._index_set = self._P.index_set()
         self._index_set_classical = self._cartan_type.classical().index_set()
-
-        cmi = self._cartan_type.classical().cartan_matrix().inverse()
-        self._cminv = {}
-        for i in self._index_set_classical:
-            for j in self._index_set_classical:
-                self._cminv[(i,j)] = cmi[i-1][j-1]
+        self._cminv = self._cartan_type.classical().cartan_matrix().inverse()
 
         self._smat = {}
         for i in self._index_set:
@@ -195,7 +191,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         """
         return "Integrable representation of %s with highest weight %s"%(self._cartan_type, self._Lam)
 
-    def inner_qq(self, qelt1, qelt2):
+    def _inner_qq(self, qelt1, qelt2):
         """
         Symmetric form between two elements of the root lattice.
 
@@ -215,7 +211,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
                    * self._cartan_matrix[i,j] / self._eps[i]
                    for i in self._index_set for j in self._index_set)
 
-    def inner_pq(self, pelt, qelt):
+    def _inner_pq(self, pelt, qelt):
         """
         Symmetric form between an element of the weight and root lattices
 
@@ -230,8 +226,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         mcp = pelt.monomial_coefficients()
         mcq = qelt.monomial_coefficients()
         zero = ZZ.zero()
-        return sum(mcp.get(i, zero) * mcq.get(i, zero) / self._eps[i]
-                   for i in self._index_set)
+        return sum(mcp.get(i, zero) * mcq[i] / self._eps[i]
+                   for i in mcq) # Only need non-zero entries
 
     def to_weight(self, n):
         """
@@ -246,8 +242,6 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         return self._Lam - self._P.sum(ZZ(val) * alpha[I[i]]
                                        for i,val in enumerate(n))
 
-    # This recieves a significant number of calls.
-    # TODO: Try to reduce the number of such calls.
     def _from_weight_helper(self, mu):
         r"""
         Return ``(n[0], n[1], ...)`` such that ``mu = \sum n[i]*alpha[i]``.
@@ -268,7 +262,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         mc_mu0 = mu0.monomial_coefficients()
         zero = ZZ.zero()
         for i in self._index_set_classical:
-            ret.append( ZZ.sum(self._cminv[(i,j)] * mc_mu0.get(j, zero)
+            # -1 for indexing
+            ret.append( ZZ.sum(self._cminv[i-1,j-1] * mc_mu0.get(j, zero)
                                for j in self._index_set_classical) )
         return tuple(ret)
     
@@ -284,15 +279,19 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         representation of weights by tuples.
         """
         ret = list(n) # This makes a copy
-        row = self._cartan_matrix[i]
-        ret[i] += self._Lam.monomial_coefficients().get(i, ZZ.zero())
-        ret[i] -= sum(n[j] * row[j] for j in self._index_set)
+        ret[i] += self._Lam._monomial_coefficients.get(i, ZZ.zero())
+        ret[i] -= sum(val * self._cartan_matrix[i,j] for j,val in enumerate(n))
         return tuple(ret)
 
     def to_dominant(self, n):
-        if self._ddict.has_key(n):
+        """
+        Return a dominant weight of ``n`` obtained under reflections.
+        """
+        if n in self._ddict:
             return self._ddict[n]
+
         mc = self.to_weight(n).monomial_coefficients()
+        # Most weights are dense over the index set
         for i in self._index_set:
             if mc.get(i, 0) < 0:
                 m = self.s(n, i)
@@ -351,9 +350,9 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         """
         ret = 0
         n = list(self._from_weight_helper(self._Lam - nu))
-        ip = self.inner_pq(nu, al)
+        ip = self._inner_pq(nu, al)
         n_shift = self._from_weight_helper(al)
-        ip_shift = self.inner_qq(al, al)
+        ip_shift = self._inner_qq(al, al)
 
         while all(val >= 0 for val in n):
             # Change in data by adding ``al`` to our current weight
@@ -375,7 +374,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         I = self._index_set
         al = self._Q._from_dict({I[i]: val for i,val in enumerate(n) if val},
                                 remove_zeros=False)
-        den = 2*self.inner_pq(self._Lam+self._P.rho(), al) - self.inner_qq(al, al)
+        den = 2*self._inner_pq(self._Lam+self._P.rho(), al) - self._inner_qq(al, al)
         num = 0
         for al in self.freudenthal_roots_real(self._Lam - mu):
             num += self._freudenthal_accum(mu, al)
@@ -393,6 +392,10 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         Return the multiplicity.
         """
         # TODO: Make this non-recursive by implementing our own stack
+        # The recursion follows:
+        #   - m
+        #   - m_freudenthal
+        #   - _freudenthal_accum
         if self._mdict.has_key(n):
             return self._mdict[n]
         elif self._ddict.has_key(n):

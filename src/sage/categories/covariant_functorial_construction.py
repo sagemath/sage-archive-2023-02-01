@@ -43,6 +43,7 @@ AUTHORS:
 #******************************************************************************
 from sage.misc.cachefunc import cached_function, cached_method
 from sage.misc.lazy_attribute import lazy_class_attribute
+from sage.misc.lazy_import import LazyImport
 from sage.categories.category import Category
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
@@ -317,12 +318,27 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
         ``Category``, even if it has been overriden by a
         ``Subquotients`` class.
 
-        TESTS::
+        EXAMPLES::
 
             sage: Sets.Subquotients
             <class 'sage.categories.sets_cat.Sets.Subquotients'>
             sage: Sets().Subquotients
             Cached version of <function Subquotients at ...>
+
+        This method also initializes the attribute
+        ``_base_category_class`` if not already set::
+
+            sage: Sets.Subquotients._base_category_class
+            (<class 'sage.categories.sets_cat.Sets'>,)
+
+        It also forces the resolution of lazy imports (see :trac:`15648`)::
+
+            sage: type(Algebras.__dict__["Graded"])
+            <type 'sage.misc.lazy_import.LazyImport'>
+            sage: Algebras.Graded
+            <class 'sage.categories.graded_algebras.GradedAlgebras'>
+            sage: type(Algebras.__dict__["Graded"])
+            <type 'sage.misc.classcall_metaclass.ClasscallMetaclass'>
 
         .. TODO::
 
@@ -330,9 +346,9 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
             :class:`CategoryWithAxiom.__classget__`. Find a way to
             refactor this to avoid the duplication.
         """
-        if base_category is None:
-            return cls
-
+        if base_category is not None:
+            assert base_category.__class__ is base_category_class
+            assert isinstance(base_category_class, DynamicMetaclass)
         if isinstance(base_category_class, DynamicMetaclass):
             base_category_class = base_category_class.__base__
         if "_base_category_class" not in cls.__dict__:
@@ -342,6 +358,13 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
                 "base category class for {} mismatch; expected {}, got {}".format(
                  cls, cls._base_category_class[0], base_category_class)
 
+        # Workaround #15648: if Sets.Subquotients is a LazyImport object,
+        # this forces the substitution of the object back into Sets
+        # to avoid resolving the lazy import over and over
+        if isinstance(base_category_class.__dict__[cls._functor_category], LazyImport):
+            setattr(base_category_class, cls._functor_category, cls)
+        if base_category is None:
+            return cls
         return getattr(super(base_category.__class__.__base__, base_category),
                        cls._functor_category)
 

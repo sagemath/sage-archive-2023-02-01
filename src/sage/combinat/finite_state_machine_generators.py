@@ -334,6 +334,11 @@ class TransducerGenerators(object):
             [0]
             sage: T([-1, 1, 0, 1])
             [1, 1, 0, 1]
+
+        .. SEEALSO::
+
+            :meth:`Automaton.with_output()
+            <sage.combinat.finite_state_machine.Automaton.with_output>`.
         """
         return Transducer(lambda state, input: (0, f(input)),
                           input_alphabet=input_alphabet,

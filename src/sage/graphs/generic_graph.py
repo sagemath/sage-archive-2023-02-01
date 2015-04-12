@@ -17329,8 +17329,7 @@ class GenericGraph(GenericGraph_pyx):
     def automorphism_group(self, partition=None, verbosity=0,
                            edge_labels=False, order=False,
                            return_group=True, orbits=False, algorithm=None):
-        """
-        Returns the largest subgroup of the automorphism group of the
+        """Returns the largest subgroup of the automorphism group of the
         (di)graph whose orbit partition is finer than the partition given.
         If no partition is given, the unit partition is used and the entire
         automorphism group is given.
@@ -17354,10 +17353,10 @@ class GenericGraph(GenericGraph_pyx):
            on the vertices of the graph
 
         - ``algorithm`` - If ``algorithm = "bliss"`` the automorphism group is
-            computed using the optional package bliss
-            (`http://www.tcs.tkk.fi/Software/bliss/index.html`_).  Setting it to
-            "sage" uses Sage's implementation. If set to ``None`` (default),
-            bliss is used when available.
+          computed using the optional package bliss
+          (http://www.tcs.tkk.fi/Software/bliss/index.html).  Setting it to
+          "sage" uses Sage's implementation. If set to ``None`` (default), bliss
+          is used when available.
 
         .. WARNING::
 
@@ -17785,8 +17784,7 @@ class GenericGraph(GenericGraph_pyx):
             return False
 
     def is_isomorphic(self, other, certify=False, verbosity=0, edge_labels=False, algorithm=None):
-        """
-        Tests for isomorphism between self and other.
+        """Tests for isomorphism between self and other.
 
         INPUT:
 
@@ -17797,9 +17795,10 @@ class GenericGraph(GenericGraph_pyx):
         -  ``edge_labels`` - default False, otherwise allows
            only permutations respecting edge labels.
 
-        -  ``algorithm`` - If ``algorithm = "bliss"`` the automorphism group
-            is computed using bliss (`http://www.tcs.tkk.fi/Software/bliss/index.html`_).
-            Note that bliss package must be installed. 
+        - ``algorithm`` - If ``algorithm = "bliss"`` the automorphism group is
+          computed using bliss
+          (http://www.tcs.tkk.fi/Software/bliss/index.html).  Note that bliss
+          package must be installed.
 
         EXAMPLES: Graphs::
 
@@ -18108,10 +18107,10 @@ class GenericGraph(GenericGraph_pyx):
            only permutations respecting edge labels.
 
         - ``algorithm`` - If ``algorithm = "bliss"`` the automorphism group is
-            computed using the optional package bliss
-            (`http://www.tcs.tkk.fi/Software/bliss/index.html`_). Setting it to
-            "sage" uses Sage's implementation. If set to ``None`` (default),
-            bliss is used when available.
+          computed using the optional package bliss
+          (http://www.tcs.tkk.fi/Software/bliss/index.html). Setting it to
+          "sage" uses Sage's implementation. If set to ``None`` (default), bliss
+          is used when available.
 
             .. NOTE::
 

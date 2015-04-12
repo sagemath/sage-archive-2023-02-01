@@ -12,18 +12,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.categories.category import Category
 from sage.categories.covariant_functorial_construction import RegressiveCovariantConstructionCategory
 
-class MetricSpaces(RegressiveCovariantConstructionCategory):
-    r"""
-    The category of metric spaces.
-
-    A *metric* on a set `S` is a function `d : S \times S \to \RR`
-    such that:
-
-    - `d(a, b) \geq 0`,
-    - `d(a, b) = 0` if and only if `a = b`.
-
-    A metric space is a set `S` with a distinguished metric.
-    """
+class MetricSpacesCategory(RegressiveCovariantConstructionCategory):
 
     _functor_category = "Metric"
 
@@ -71,6 +60,37 @@ class MetricSpaces(RegressiveCovariantConstructionCategory):
         """
         return Category.join([category.Topological(),
                               super(MetricSpaces, cls).default_super_categories(category)])
+
+    # We currently don't have a use for this, but we probably will
+    def _repr_object_names(self):
+        """
+        EXAMPLES::
+
+            sage: Groups().Metric()  # indirect doctest
+            Category of metric groups
+        """
+        return "metric {}".format(self.base_category()._repr_object_names())
+
+class MetricSpaces(MetricSpacesCategory):
+    r"""
+    The category of metric spaces.
+
+    A *metric* on a set `S` is a function `d : S \times S \to \RR`
+    such that:
+
+    - `d(a, b) \geq 0`,
+    - `d(a, b) = 0` if and only if `a = b`.
+
+    A metric space is a set `S` with a distinguished metric.
+    """
+    def _repr_object_names(self):
+        """
+        EXAMPLES::
+
+            sage: Sets().Metric()  # indirect doctest
+            Category of metric spaces
+        """
+        return "metric spaces"
 
     class ParentMethods:
         def _test_metric(self, **options):

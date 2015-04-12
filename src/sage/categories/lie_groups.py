@@ -8,49 +8,28 @@ Lie Groups
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.abstract_method import abstract_method
+#from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.lazy_import import LazyImport
-from sage.categories.category import Category
-from sage.categories.category_types import Category_over_base_ring
-from sage.categories.sets_cat import Sets
+from sage.categories.category_singleton import Category_singleton
 from sage.categories.groups import Groups
 from sage.categories.manifolds import Manifolds
-from sage.rings.all import RR
 
-class LieGroups(Category_over_base_ring):
+class LieGroups(Category_singleton):
     r"""
     The category of Lie groups.
 
-    A Lie group is a topological group with a smooth differentiable
-    manifold structure.
-
-    INPUT:
-
-    - ``k`` -- (default: ``RR``) the field `k`
+    A Lie group is a topological group with a smooth manifold structure.
 
     EXAMPLES::
 
         sage: from sage.categories.lie_groups import LieGroups
         sage: C = LieGroups(); C
-        Category of manifolds over Real Field
-        sage: C.super_categories()
-        [Category of additive commutative additive associative additive unital distributive magmas and additive magmas,
-         Category of modules over Integer Ring]
-        sage: C = LieGroups(CC); C
-        Category of manifolds over Complex Field
+        Category of Lie groups
 
     TESTS::
 
         sage: TestSuite(C).run()
     """
-    def __init__(self, R=RR):
-        """
-        Initialize ``self``.
-        """
-        Category_over_base_ring.__init__(self, RR)
-
     @cached_method
     def super_categories(self):
         """
@@ -58,10 +37,9 @@ class LieGroups(Category_over_base_ring):
 
             sage: from sage.categories.lie_groups import LieGroups
             sage: LieGroups().super_categories()
+            [Category of topological groups, Category of smooth manifolds]
         """
-        R = self.base_ring()
-        # TODO: Make this smooth differentiable manifolds
-        return [Groups().Topological(), Manifolds(R)]
+        return [Groups().Topological(), Manifolds().Smooth()]
 
     def additional_structure(self):
         r"""
@@ -69,7 +47,7 @@ class LieGroups(Category_over_base_ring):
 
         Indeed, the category of Lie groups defines no new
         structure: a morphism of topological spaces and of smooth
-        differentiable manifolds is a morphism as Lie groups.
+        manifolds is a morphism as Lie groups.
 
         .. SEEALSO:: :meth:`Category.additional_structure`
 
@@ -79,4 +57,15 @@ class LieGroups(Category_over_base_ring):
             sage: LieGroups().additional_structure()
         """
         return None
+
+    # Because Lie is a name that deserves to be capitalized
+    def _repr_object_names(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.categories.lie_groups import LieGroups
+            sage: LieGroups() # indirect doctest
+            Category of Lie groups
+        """
+        return "Lie groups"
 

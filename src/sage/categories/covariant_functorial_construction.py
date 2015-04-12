@@ -234,12 +234,13 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
 
         OUTPUT:
 
-        A *tuple* whose first entry is the base category class.
+        A *tuple* whose single entry is the base category class.
 
         .. WARNING::
 
-            This is only used for categories that are not implemented
-            as nested classes, and won't work otherwise.
+            This is only used for functorial construction categories
+            that are not implemented as nested classes, and won't work
+            otherwise.
 
         .. SEEALSO:: :meth:`__classcall__`
 
@@ -262,6 +263,12 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
             ...
             ValueError: could not infer axiom for the nested class
             <...AlgebrasWithBasis'> of <...GradedAlgebrasWithBasis'>
+
+        .. TODO::
+
+            The logic is very similar to that implemented in
+            :class:`CategoryWithAxiom._base_category_class`. Find a
+            way to refactor this to avoid the duplication.
         """
         module_name = cls.__module__.replace(cls._functor_category.lower() + "_","")
         import sys
@@ -273,8 +280,7 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
     @staticmethod
     def __classcall__(cls, category=None, *args):
         """
-        Magic support for putting categories created by a functorial
-        construction in their own file.
+        Make ``XXXCat(**)`` a shorthand for ``Cat(**).XXX()``.
 
         EXAMPLES::
 
@@ -282,10 +288,18 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
             Category of graded modules over Integer Ring
             sage: Modules(ZZ).Graded()
             Category of graded modules over Integer Ring
+            sage: Modules.Graded(ZZ)
+            Category of graded modules over Integer Ring
             sage: GradedModules(ZZ) is Modules(ZZ).Graded()
             True
 
         .. SEEALSO:: :meth:`_base_category_class`
+
+        .. TODO::
+
+            The logic is very similar to that implemented in
+            :class:`CategoryWithAxiom.__classcall__`. Find a way to
+            refactor this to avoid the duplication.
         """
         base_category_class = cls._base_category_class[0]
         if isinstance(category, base_category_class):
@@ -296,7 +310,7 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
     @staticmethod
     def __classget__(cls, base_category, base_category_class):
         r"""
-        Special binding for covariant constructions
+        Special binding for covariant constructions.
 
         This implements a hack allowing e.g. ``category.Subquotients``
         to recover the default ``Subquotients`` method defined in
@@ -309,6 +323,12 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
             <class 'sage.categories.sets_cat.Sets.Subquotients'>
             sage: Sets().Subquotients
             Cached version of <function Subquotients at ...>
+
+        .. TODO::
+
+            The logic is very similar to that implemented in
+            :class:`CategoryWithAxiom.__classget__`. Find a way to
+            refactor this to avoid the duplication.
         """
         if base_category is None:
             return cls

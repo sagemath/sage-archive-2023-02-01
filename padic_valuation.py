@@ -87,7 +87,7 @@ class PadicValuationFactory(UniqueFactory):
                 raise ValueError("prime must be specified for this ring")
             if not isinstance(prime, DiscretePseudoValuation):
                 raise ValueError("prime must be a discrete (pseudo) valuation on a polynomial ring over the base of the number field")
-            normalized_primes = prime._base_valuation._base_valuation.mac_lane_approximants(R.relative_polynomial())
+            normalized_primes = prime.constant_valuation().mac_lane_approximants(R.relative_polynomial())
             normalized_prime = [v for v in normalized_primes if v(prime.phi()) == prime(prime.phi())]
             if len(normalized_prime) == 0:
                 raise ValueError("prime does not define a valuation on this number field.")
@@ -838,6 +838,7 @@ class pAdicValuation_number_field(pAdicValuation_base):
             raise ValueError("x must be in the domain of the valuation")
 
         if x.is_zero():
+            from sage.rings.all import infinity
             return infinity
         
         f = self._valuation.domain()(x.list())

@@ -1195,6 +1195,7 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
             sage: H = Sym.macdonald().H()
             sage: TestSuite(H).run(skip=["_test_associativity","_test_distributivity","_test_prod"])
             sage: TestSuite(H).run(elements = [H.t*H[1,1]+H.q*H[2], H[1]+(H.q+H.t)*H[1,1]])  # long time (26s on sage.math, 2012)
+
         """
         MacdonaldPolynomials_generic.__init__(self, macdonald)
         self._m = self._sym.m()
@@ -1205,6 +1206,32 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
 
     def _self_to_m( self, x ):
         r"""
+        Takes an element of the ``H`` basis and returns the expansion in the
+        monomial basis.
+
+        INPUT:
+
+        - ``x`` -- an element of ``H`` basis
+
+        OUTPUT:
+
+        - an element of the monomial basis
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
+            sage: H = Sym.macdonald().H()
+            sage: m = Sym.m()
+            sage: m(H[2,1])
+            (2*q*t+q+t+2)*m[1, 1, 1] + (q*t+t+1)*m[2, 1] + t*m[3]
+
+            sage: Sym = SymmetricFunctions(FractionField(QQ['x']))
+            sage: x = Sym.base_ring().gen()
+            sage: H = Sym.macdonald(q=x,t=1/x).H()
+            sage: m = Sym.m()
+            sage: m(H[2,1])
+            ((x^2+4*x+1)/x)*m[1, 1, 1] + ((2*x+1)/x)*m[2, 1] + 1/x*m[3]
+
         """
         return self._m._from_dict({ part2: 
             self._base(sum(x.coefficient(mu)*QQqt(self._Lmunu(part2, mu)).subs(q=self.q,t=1/self.t)*self.t**mu.weighted_size()
@@ -1213,6 +1240,39 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
 
     def _m_to_self( self, f ):
         r"""
+        Convert an element ``f`` from the monomial basis to the ``H`` basis.
+
+        This calculation is performed by using the fact that `{\tilde H}_\mu[X(t-1)]`
+        is `c_\mu m_\mu` plus terms which are smaller in dominance order.  The leading
+        coefficient of the expansion of ``f`` in the `{\tilde H}_\mu` basis is equal to
+        the leading coefficient of `c_\mu^{-1} f[X(t-1)]`.
+
+        INPUT:
+
+        - ``f`` -- an element of the monomial basis
+
+        OUTPUT:
+
+        - an element of the ``H`` basis
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
+            sage: H = Sym.macdonald().H()
+            sage: m = Sym.m()
+            sage: H(m[1,1])
+            -(1/(q*t-1))*McdH[1, 1] + (t/(q*t-1))*McdH[2]
+            sage: (q,t) = Sym.base_ring().gens()
+            sage: H((2*q*t+q+t+2)*m[1, 1, 1] + (q*t+t+1)*m[2, 1] + t*m[3])
+            McdH[2, 1]
+
+            sage: Sym = SymmetricFunctions(FractionField(QQ['x']))
+            sage: x = Sym.base_ring().gen()
+            sage: H = Sym.macdonald(q=x,t=1/x).H()
+            sage: m = Sym.m()
+            sage: H(((x^2+4*x+1)/x)*m[1, 1, 1] + ((2*x+1)/x)*m[2, 1] + 1/x*m[3])
+            McdH[2, 1]
+            
         """
         g = f(self._m([1])*(1-self.t))
         out = {}
@@ -1247,6 +1307,7 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
             sage: Ht = Sym.macdonald().Ht()
             sage: TestSuite(Ht).run(skip=["_test_associativity","_test_distributivity","_test_prod"])  # long time (26s on sage.math, 2012)
             sage: TestSuite(Ht).run(elements = [Ht.t*Ht[1,1]+Ht.q*Ht[2], Ht[1]+(Ht.q+Ht.t)*Ht[1,1]])  # long time (depends on previous)
+
         """
         MacdonaldPolynomials_generic.__init__(self, macdonald)
         self._self_to_m_cache = _ht_to_m_cache
@@ -1288,6 +1349,7 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
             t^2 + q + t + 1
             sage: Lmunu(Partition([2,2]),Partition([2,1,1]))
             q*t + 2*t^2 + q + t + 1
+
         """
         if len(mu)==0:
             if len(nu)==0:
@@ -1307,32 +1369,32 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
 
     def _self_to_m(self, x):
         r"""
-        Returns a function which gives the coefficient of a partition in
-        the Schur expansion of ``self``(``part``).
-        These computations are completed with coefficients in fraction
-        field of polynomials in `q` and `t`
+        Takes an element of the ``Ht`` basis and returns the expansion in the
+        monomial basis.
 
         INPUT:
 
-        - ``self`` -- a Macdonald `Ht` basis
-        - ``part`` -- a partition
+        - ``x`` -- an element of ``Ht`` basis
 
         OUTPUT:
 
-        - returns a function which accepts a partition ``part2`` and
-          this function returns the coefficient of the Schur function
-          indexed by ``part2`` in ``Ht(part)``
+        - an element of the monomial basis
 
         EXAMPLES::
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
             sage: Ht = Sym.macdonald().Ht()
-            sage: f21 = Ht._to_s(Partition([2,1]))
-            sage: [f21(part) for part in Partitions(3)]
-            [1, q + t, q*t]
-            sage: f22 = Ht._to_s(Partition([2,2]))
-            sage: [f22(part) for part in Partitions(4)]
-            [1, q*t + q + t, q^2 + t^2, q^2*t + q*t^2 + q*t, q^2*t^2]
+            sage: m = Sym.m()
+            sage: m(Ht[2,1])
+            (q*t+2*q+2*t+1)*m[1, 1, 1] + (q+t+1)*m[2, 1] + m[3]
+
+            sage: Sym = SymmetricFunctions(FractionField(QQ['x']))
+            sage: x = Sym.base_ring().gen()
+            sage: Ht = Sym.macdonald(q=x,t=1/x).Ht()
+            sage: m = Sym.m()
+            sage: m(Ht[2,1])
+            ((2*x^2+2*x+2)/x)*m[1, 1, 1] + ((x^2+x+1)/x)*m[2, 1] + m[3]
+
         """
         return self._m._from_dict({ part2: 
             self._base(sum(x.coefficient(mu)*QQqt(self._Lmunu(part2, mu)).subs(q=self.q,t=self.t)
@@ -1341,13 +1403,46 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
 
     def _m_to_self( self, f ):
         r"""
+        Convert an element ``f`` from the monomial basis to the ``Ht`` basis.
+
+        This calculation is performed by using the fact that `{\tilde H}_\mu[X(t-1)]`
+        is `c_\mu m_\mu` plus terms which are smaller in dominance order.  The leading
+        coefficient of the expansion of ``f`` in the `{\tilde H}_\mu` basis is equal to
+        the leading coefficient of `c_\mu^{-1} f[X(t-1)]`.
+
+        INPUT:
+
+        - ``f`` -- an element of the monomial basis
+
+        OUTPUT:
+
+        - an element of the ``Ht`` basis
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
+            sage: Ht = Sym.macdonald().Ht()
+            sage: m = Sym.m()
+            sage: Ht(m[1,1])
+            (1/(-q+t))*McdHt[1, 1] - (1/(-q+t))*McdHt[2]
+            sage: (q,t) = Sym.base_ring().gens()
+            sage: Ht((q*t+2*q+2*t+1)*m[1, 1, 1] + (q+t+1)*m[2, 1] + m[3])
+            McdHt[2, 1]
+
+            sage: Sym = SymmetricFunctions(FractionField(QQ['x']))
+            sage: x = Sym.base_ring().gen()
+            sage: Ht = Sym.macdonald(q=x,t=1/x).Ht()
+            sage: m = Sym.m()
+            sage: Ht(((2*x^2+2*x+2)/x)*m[1, 1, 1] + ((x^2+x+1)/x)*m[2, 1] + m[3])
+            McdHt[2, 1]
+            
         """
         g = f(self._m([1])*(self.t-1))
         out = {}
         while not g.is_zero():
             sprt = g.support()
             Htmu = self._self_to_m(self(sprt[-1]))(self._m([1])*(self.t-1))
-            out[sprt[-1]] = g.coefficient(sprt[-1])/Htmu.coefficient(sprt[-1])
+            out[sprt[-1]] = self._base(g.coefficient(sprt[-1])/Htmu.coefficient(sprt[-1]))
             g -= out[sprt[-1]]*Htmu
         return self._from_dict(out)
 
@@ -1400,6 +1495,7 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
                 sage: a = sum(Ht(p) for p in Partitions(3))
                 sage: s(a.nabla())
                 (t^6+9*t^2+729)*s[1, 1, 1] + (t^5+t^4+3*t^2+9*t+324)*s[2, 1] + (t^3+3*t+27)*s[3]
+
             """
             P = self.parent()
             Ht = P._macdonald.Ht()

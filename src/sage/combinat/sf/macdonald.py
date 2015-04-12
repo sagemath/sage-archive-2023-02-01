@@ -1242,10 +1242,10 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
         r"""
         Convert an element ``f`` from the monomial basis to the ``H`` basis.
 
-        This calculation is performed by using the fact that `{\tilde H}_\mu[X(t-1)]`
+        This calculation is performed by using the fact that `H_\mu[X(1-t)]`
         is `c_\mu m_\mu` plus terms which are smaller in dominance order.  The leading
-        coefficient of the expansion of ``f`` in the `{\tilde H}_\mu` basis is equal to
-        the leading coefficient of `c_\mu^{-1} f[X(t-1)]`.
+        coefficient of the expansion of ``f`` in the `H_\mu` basis is equal to
+        the leading coefficient of `c_\mu^{-1} f[X(1-t)]`.
 
         INPUT:
 
@@ -1320,15 +1320,18 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         r"""
         Return the coefficient of `m_\nu` in `{\tilde H}_\mu`.
 
-        The coefficient is a `(q,t)`-analogue of `n` choose `\nu`.
-        A theorem of F. Bergeron, A. Garsia and M. Haiman [BH2013]_ says that
+        The coefficient is a `(q,t)`-analogue of `n` choose `\nu`.  Let `c_{\mu\gamma}`
+        be the coefficient of `{\tilde H}_\gamma` in `h_r^\perp {\tilde H}_\mu`.  The
+        coefficient of `m_\nu` in `{\tilde H}_\mu` is
 
         .. MATH::
 
-            L_{\mu\nu} = \sum_{\gamma} c_{\mu\gamma} L_{\overline{\nu}\gamma}
+            L_{\mu\nu} = \sum_{\gamma} c_{\mu\gamma} L_{\gamma\overline{\nu}}
 
         where the sum is over partitions `\gamma \subseteq \mu` with 
-        `\gamma \vdash |(\nu_1, \ldots, \nu_{\ell(\nu)-1})|`.
+        `\gamma \vdash |(\nu_1, \ldots, \nu_{\ell(\nu)-1})|`.  There is a recursive
+        formula for `c_{\mu\gamma}` which is due to F. Bergeron, A. Garsia, and M.
+        Haiman [BH2013]_.
 
         INPUT:
 

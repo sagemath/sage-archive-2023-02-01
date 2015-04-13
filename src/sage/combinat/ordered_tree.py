@@ -766,6 +766,32 @@ class OrderedTrees_size(OrderedTrees):
             from combinat import catalan_number
             return catalan_number(self._size-1)
 
+    def random_element(self):
+        """
+        Return a random ``OrderedTree`` with uniform probability.
+
+        This method generates a random ``DyckWord`` and then uses a
+        bijection between Dyck words and ordered trees.
+
+        EXAMPLES::
+
+            sage: OrderedTrees(5).random_element() # random
+            [[[], []], []]
+            sage: OrderedTrees(0).random_element()
+            Traceback (most recent call last):
+            ...
+            EmptySetError: 
+            sage: OrderedTrees(1).random_element()
+            []
+
+        TESTS::
+
+            sage: all([OrderedTrees(10).random_element() in OrderedTrees(10) for i in range(20)])
+            True
+        """
+        from sage.combinat.dyck_word import CompleteDyckWords_size
+        return CompleteDyckWords_size(self._size - 1).random_element().to_ordered_tree()
+
     def __iter__(self):
         """
         A basic generator

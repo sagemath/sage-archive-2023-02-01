@@ -1449,11 +1449,11 @@ class Sets(Category_singleton):
             does not divide the characteristic of the base field, the
             algebra is semisimple::
 
-                sage: SymmetricGroup(5).algebra(QQ) in SemisimpleAlgebras(QQ)
+                sage: SymmetricGroup(5).algebra(QQ) in Algebras(QQ).Semisimple()
                 True
-                sage: CyclicPermutationGroup(10).algebra(FiniteField(5)) in SemisimpleAlgebras
+                sage: CyclicPermutationGroup(10).algebra(FiniteField(5)) in Algebras.Semisimple
                 False
-                sage: CyclicPermutationGroup(10).algebra(FiniteField(7)) in SemisimpleAlgebras
+                sage: CyclicPermutationGroup(10).algebra(FiniteField(7)) in Algebras.Semisimple
                 True
 
 

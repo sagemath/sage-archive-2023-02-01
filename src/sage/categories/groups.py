@@ -707,7 +707,7 @@ class Groups(CategoryWithAxiom):
                 EXAMPLES::
 
                     sage: SymmetricGroup(3).algebra(QQ).center_basis()
-                    [B[()], B[(2,3)] + B[(1,2)] + B[(1,3)], B[(1,2,3)] + B[(1,3,2)]]
+                    [(), (2,3) + (1,2) + (1,3), (1,2,3) + (1,3,2)]
 
                 .. SEEALSO::
 

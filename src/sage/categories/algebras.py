@@ -100,9 +100,9 @@ class Algebras(CategoryWithAxiom_over_base_ring):
 
             EXAMPLES::
 
-                sage: Algebras(QQ).SemiSimple()
+                sage: Algebras(QQ).Semisimple()
                 Category of semisimple algebras over Rational Field
-                sage: Algebras(QQ).WithBasis().FiniteDimensional().SemiSimple()
+                sage: Algebras(QQ).WithBasis().FiniteDimensional().Semisimple()
                 Category of finite dimensional semisimple algebras with basis over Rational Field
             """
             from sage.categories.semisimple_algebras import SemisimpleAlgebras
@@ -112,7 +112,7 @@ class Algebras(CategoryWithAxiom_over_base_ring):
     Graded      = LazyImport('sage.categories.graded_algebras',      'GradedAlgebras')
     WithBasis   = LazyImport('sage.categories.algebras_with_basis',  'AlgebrasWithBasis')
     #if/when Semisimple becomes an axiom
-    #Semisimple  = LazyImport('sage.categories.semisimple_algebras',  'SemisimpleAlgebras')
+    Semisimple  = LazyImport('sage.categories.semisimple_algebras',  'SemisimpleAlgebras')
 
     class ElementMethods:
         # TODO: move the content of AlgebraElement here or higher in the category hierarchy

@@ -2,12 +2,13 @@ r"""
 Semisimple Algebras
 """
 #*****************************************************************************
-#  Copyright (C) 2011 Nicolas M. Thiery <nthiery at users.sf.net>
+#  Copyright (C) 2011-2015 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.misc.bindable_class import BoundClass
 from category_types import Category_over_base_ring
 from algebras import Algebras
 from sage.misc.cachefunc import cached_method
@@ -19,7 +20,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
 
     EXAMPLES::
 
-        from sage.categories.semisimple_algebras import SemisimpleAlgebras
+        sage: from sage.categories.semisimple_algebras import SemisimpleAlgebras
         sage: C = SemisimpleAlgebras(QQ); C
         Category of semisimple algebras over Rational Field
 
@@ -52,12 +53,31 @@ class SemisimpleAlgebras(Category_over_base_ring):
 
         sage: TestSuite(C).run()
     """
+    @staticmethod
+    def __classget__(cls, base_category, base_category_class):
+        """
+        Implement the shorthand ``Algebras(K).Semisimple()`` for ``SemisimpleAlgebras(K)``.
+
+        This magic mimics the syntax of axioms for a smooth transition
+        if ``Semisimple`` becomes one.
+
+        EXAMPLES::
+
+            sage: Algebras(QQ).Semisimple()
+            Category of semisimple algebras over Rational Field
+            sage: Algebras.Semisimple
+            <class 'sage.categories.semisimple_algebras.SemisimpleAlgebras'>
+        """
+        if base_category is None:
+            return cls
+        return BoundClass(cls, base_category.base_ring())
+
     @cached_method
     def super_categories(self):
         """
         EXAMPLES::
 
-            sage: SemisimpleAlgebras(QQ).super_categories()
+            sage: Algebras(QQ).Semisimple().super_categories()
             [Category of algebras over Rational Field]
         """
         R = self.base_ring()
@@ -84,5 +104,6 @@ class SemisimpleAlgebras(Category_over_base_ring):
             TESTS::
 
                 sage: A.radical_basis.__module__
+                'sage.categories.finite_dimensional_algebras_with_basis'
             """
             return []

@@ -15,7 +15,6 @@ from sage.misc.cachefunc import cached_method, cached_function
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.algebras import Algebras
 from sage.categories.associative_algebras import AssociativeAlgebras
-from sage.categories.semisimple_algebras import SemisimpleAlgebras
 
 class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     r"""
@@ -64,7 +63,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             - a list of elements of ``self``.
 
-            .. SEEALSO:: :meth:`radical`, :class:`SemisimpleAlgebras`
+            .. SEEALSO:: :meth:`radical`, :class:`Algebras.Semisimple`
 
             EXAMPLES::
 
@@ -368,7 +367,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: TestSuite(center).run()
             """
             category = Algebras(self.base_ring()).FiniteDimensional().Subobjects().Commutative().WithBasis()
-            if self in SemisimpleAlgebras:
+            if self in Algebras.Semisimple:
                 category = category.Semisimple()
             center = self.submodule(self.center_basis(),
                                     category=category,

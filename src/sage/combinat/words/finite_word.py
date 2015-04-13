@@ -3756,6 +3756,10 @@ class FiniteWord_class(Word_class):
             -1
             sage: w.find("abc")
             -1
+            sage: w = Words('ab')(tuple('babaabaaab'))
+            sage: w.find('abc')
+            -1
+
         """
         if not isinstance(sub, FiniteWord_class):
             try:

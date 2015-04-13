@@ -699,7 +699,7 @@ class AbstractLinearCode(module.Module):
     
     This class contains all methods that can be used on Linear Codes
     and on Linear Codes families. 
-    So, every Linear Code-related class should inherit from this abstract 
+    So, every Linear Code-related class should inherit from this abstract
     class.
 
     This class provides:
@@ -726,8 +726,8 @@ class AbstractLinearCode(module.Module):
 
     .. NOTE::
 
-        AbstractLinearCode embeds some generic implementations of helper methods like ``__cmp__`` or ``__eq__``. 
-        As they are designed to fit for every linear code, they mostly use the generator matrix 
+        AbstractLinearCode embeds some generic implementations of helper methods like ``__cmp__`` or ``__eq__``.
+        As they are designed to fit for every linear code, they mostly use the generator matrix
         and thus can be long for certain families of code. In that case, overriding these methods is encouraged.
 
     """
@@ -736,7 +736,7 @@ class AbstractLinearCode(module.Module):
         Initializes mandatory parameters for a Linear Code object.
 
         This method only exists for inheritance purposes as it initializes
-        parameters that need to be known by every linear code. An abstract 
+        parameters that need to be known by every linear code. An abstract
         linear code object should never be created.
 
         INPUT:
@@ -789,7 +789,7 @@ class AbstractLinearCode(module.Module):
         self._length = length
         cat = Modules(base_field).FiniteDimensional().WithBasis().Finite()
         facade_for = VectorSpace(base_field, self._length)
-        self.Element = type(facade_for.an_element()) #for when we made this a non-facade parent 
+        self.Element = type(facade_for.an_element()) #for when we made this a non-facade parent
         Parent.__init__(self, base=base_field, facade=facade_for, category=cat)
 
     def _an_element_(self):
@@ -3137,7 +3137,7 @@ def LinearCodeFromVectorSpace(V, d=None):
 
 class LinearCode(AbstractLinearCode):
     r"""
-    Linear codes over a finite field or finite ring.
+    Linear codes over a finite field or finite ring.   
 
     A *linear code* is a subspace of a vector space over a finite field. It can
     be defined by one of its basis or equivalently a generator matrix (a `k

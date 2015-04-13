@@ -100,7 +100,7 @@ def deprecation(trac_number, message, stacklevel=4):
 
 def warning(trac_number, message, warning_class=Warning, stacklevel=3):
     r"""
-    Issues a warning.
+    Issue a warning.
 
     INPUT:
 
@@ -152,7 +152,7 @@ def experimental_warning(trac_number, message, stacklevel=5):
 
     - ``message`` -- a string. An explanation what is going on.
 
-    - ``stack_level`` -- (default: ``4``) an integer. This is passed on to
+    - ``stack_level`` -- (default: ``5``) an integer. This is passed on to
       :func:`warnings.warn`.
 
     EXAMPLES::

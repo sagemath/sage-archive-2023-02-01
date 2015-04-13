@@ -18,8 +18,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from copy import copy
 
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
-from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
-from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
+from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.categories.modules_with_basis import ModuleMorphismByLinearity
 from sage.categories.poor_man_map import PoorManMap
 from sage.rings.all import ZZ
@@ -479,11 +478,6 @@ class CliffordAlgebra(CombinatorialFreeModule):
         a*d
         sage: d*c*b*a + a + 4*b*c
         a*b*c*d + 4*b*c + a
-
-    .. WARNING::
-
-        The Clifford algebra is not graded, but instead filtered. This
-        will be changed once :trac:`17096` is finished.
     """
     @staticmethod
     def __classcall_private__(cls, Q, names=None):
@@ -536,7 +530,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         self._quadratic_form = Q
         R = Q.base_ring()
         if category is None:
-            category = GradedAlgebrasWithBasis(R)
+            category = AlgebrasWithBasis(R).Super()
         indices = SubsetsSorted(range(Q.dim()))
         CombinatorialFreeModule.__init__(self, R, indices, category=category)
         self._assign_names(names)
@@ -1050,7 +1044,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
                                                  remove_zeros=True )
                                 for i in x)
         return Cl.module_morphism(on_basis=f, codomain=self,
-                                  category=GradedAlgebrasWithBasis(self.base_ring()))
+                                  category=AlgebrasWithBasis(self.base_ring()).Graded())
 
     def lift_isometry(self, m, names=None):
         r"""
@@ -1115,7 +1109,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
                                              remove_zeros=True )
                               for i in x)
         return self.module_morphism(on_basis=f, codomain=Cl,
-                                    category=GradedAlgebrasWithBasis(self.base_ring()))
+                                    category=AlgebrasWithBasis(self.base_ring()).Super())
 
     # This is a general method for finite dimensional algebras with bases
     #   and should be moved to the corresponding category once there is
@@ -1418,7 +1412,8 @@ class ExteriorAlgebra(CliffordAlgebra):
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: TestSuite(E).run()
         """
-        CliffordAlgebra.__init__(self, QuadraticForm(R, len(names)), names, GradedHopfAlgebrasWithBasis(R))
+        cat = HopfAlgebrasWithBasis(R).Super().Graded()
+        CliffordAlgebra.__init__(self, QuadraticForm(R, len(names)), names, cat)
         # TestSuite will fail if the HopfAlgebra classes will ever have tests for
         # the coproduct being an algebra morphism -- since this is really a
         # Hopf superalgebra, not a Hopf algebra.
@@ -1562,7 +1557,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         f = lambda x: E.prod(E._from_dict( {(j,): phi[j,i] for j in range(n)},
                                            remove_zeros=True )
                              for i in x)
-        return self.module_morphism(on_basis=f, codomain=E, category=GradedAlgebrasWithBasis(R))
+        return self.module_morphism(on_basis=f, codomain=E, category=AlgebrasWithBasis(R).Super())
 
     def volume_form(self):
         """

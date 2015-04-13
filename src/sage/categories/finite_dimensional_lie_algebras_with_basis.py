@@ -135,7 +135,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         def killing_matrix(self, x, y):
             r"""
-            Return the Killing matrix of ``x`` and ``y``.
+            Return the Killing matrix of ``x`` and ``y``, where ``x``
+            and ``y`` are two elements of ``self``.
 
             The Killing matrix is defined as the matrix corresponding
             to the action of
@@ -162,14 +163,16 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         def killing_form(self, x, y):
             r"""
-            Return the Killing form on ``x`` and ``y``.
+            Return the Killing form on ``x`` and ``y``, where ``x``
+            and ``y`` are two elements of ``self``.
 
             The Killing form is defined as
 
             .. MATH::
 
-                \langle x \mid y \rangle = \mathrm{tr}\left( \mathrm{ad}_x
-                \circ \mathrm{ad}_y \right).
+                \langle x \mid y \rangle
+                = \operatorname{tr}\left( \operatorname{ad}_x
+                \circ \operatorname{ad}_y \right).
 
             EXAMPLES::
 
@@ -185,6 +188,10 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             Return the matrix of the Killing form of ``self``.
 
+            The rows and the columns of this matrix are indexed by the
+            elements of the basis of ``self`` (in the order provided by
+            :meth:`basis`).
+
             EXAMPLES::
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
@@ -192,9 +199,16 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 [0 0 0]
                 [0 0 0]
                 [0 0 0]
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example(0)
+                sage: m = L.killing_form_matrix()
+                []
+                sage: parent(m)
+                Full MatrixSpace of 0 by 0 dense matrices over Rational Field
             """
             B = self.basis()
-            m = matrix([[self.killing_form(x, y) for x in B] for y in B])
+            m = matrix(self.base_ring(),
+                       [[self.killing_form(x, y) for x in B] for y in B])
             m.set_immutable()
             return m
 
@@ -224,7 +238,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             d = {}
             B = self.basis()
-            K = self.basis().keys()
+            K = B.keys()
             zero = self.zero()
             for i,x in enumerate(K):
                 for y in K[i+1:]:

@@ -35,13 +35,18 @@ from sage.structure.element_wrapper import ElementWrapper
 @total_ordering
 class LieGenerator(SageObject): # Does this need to be SageObject?
     """
-    A wrapper around an object so it can compare with :class:`LieBracket`.
+    A wrapper around an object so it can ducktype with and do
+    comparison operations with :class:`LieBracket`.
     """
     def __init__(self, name):
         """
         Initalize ``self``.
 
         EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator
+            sage: x = LieGenerator('x')
+            sage: TestSuite(x).run()
         """
         self._name = name
 
@@ -50,14 +55,29 @@ class LieGenerator(SageObject): # Does this need to be SageObject?
         Return a string representation of ``self``.
 
         EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator
+            sage: LieGenerator('x')
+            x
         """
         return self._name
+
+    _latex_ = _repr_
 
     def __eq__(self, rhs):
         """
         Compare equals.
 
         EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator
+            sage: x = LieGenerator('x')
+            sage: y = LieGenerator('y')
+            sage: x == y
+            False
+            sage: z = LieGenerator('x')
+            sage: x == z
+            True
         """
         return isinstance(rhs, LieGenerator) and self._name == rhs._name
 
@@ -66,6 +86,17 @@ class LieGenerator(SageObject): # Does this need to be SageObject?
         Compare less than.
 
         EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, LieBracket
+            sage: x = LieGenerator('x')
+            sage: y = LieGenerator('y')
+            sage: x < y
+            True
+            sage: y < x
+            False
+            sage: z = LieBracket(x, y)
+            sage: x < z
+            True
         """
         if isinstance(rhs, LieGenerator):
             return self._name < rhs._name
@@ -87,6 +118,11 @@ class LieGenerator(SageObject): # Does this need to be SageObject?
         Return ``self`` as a word in the variable names.
 
         EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator
+            sage: x = LieGenerator('x')
+            sage: x.to_word()
+            ['x']
         """
         return [self._name]
 
@@ -100,6 +136,12 @@ class LieBracket(SageObject): # Does this need to be SageObject?
         Initialize ``self``.
 
         EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, LieBracket
+            sage: x = LieGenerator('x')
+            sage: y = LieGenerator('y')
+            sage: z = LieBracket(x, y)
+            sage: TestSuite(z).run()
         """
         self._left = l
         self._right = r
@@ -109,6 +151,12 @@ class LieBracket(SageObject): # Does this need to be SageObject?
         Return a string representation of ``self``.
 
         EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, LieBracket
+            sage: x = LieGenerator('x')
+            sage: y = LieGenerator('y')
+            sage: LieBracket(x, y)
+            [x, y]
         """
         return "[{!s}, {!s}]".format(self._left, self._right)
 
@@ -117,6 +165,13 @@ class LieBracket(SageObject): # Does this need to be SageObject?
         Return a `\LaTeX` representation of ``self``.
 
         EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, LieBracket
+            sage: x = LieGenerator('x')
+            sage: y = LieGenerator('y')
+            sage: z = LieBracket(x, y)
+            sage: latex(z)
+            \left[ x , y \right]
         """
         from sage.misc.latex import latex
         return "\\left[" + latex(self._left) + "," + latex(self._right) + "\\right]"
@@ -126,18 +181,46 @@ class LieBracket(SageObject): # Does this need to be SageObject?
         Return the `i`-th item of ``self``.
 
         EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, LieBracket
+            sage: x = LieGenerator('x')
+            sage: y = LieGenerator('y')
+            sage: z = LieBracket(x, y)
+            sage: z[0]
+            x
+            sage: z[1] is y
+            True
+            sage: z[2]
+            Traceback (most recent call last):
+            ...
+            IndexError: must be either 0 or 1
         """
         if i == 0:
             return self._left
         if i == 1:
             return self._right
-        raise IndexError("i must be either 0 or 1")
+        raise IndexError("must be either 0 or 1")
 
     def __eq__(self, rhs):
         """
         Check equality.
 
         EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, LieBracket
+            sage: x = LieGenerator('x')
+            sage: y = LieGenerator('y')
+            sage: b = LieBracket(x, y)
+            sage: c = LieBracket(y, x)
+            sage: b == c
+            False
+            sage: b == x
+            False
+            sage: a = LieBracket(x, y)
+            sage: a == b
+            True
+            sage: a == [x, y]
+            True
         """
         if isinstance(rhs, list):
             if len(rhs) != 2:
@@ -153,6 +236,19 @@ class LieBracket(SageObject): # Does this need to be SageObject?
         Check less than.
 
         EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, LieBracket
+            sage: x = LieGenerator('x')
+            sage: y = LieGenerator('y')
+            sage: z = LieGenerator('z')
+            sage: b = LieBracket(x, y)
+            sage: b < x
+            False
+            sage: b < z
+            False
+            sage: c = LieBracket(x, z)
+            sage: b < c
+            True
         """
         if not isinstance(rhs, LieBracket):
             return False
@@ -167,6 +263,14 @@ class LieBracket(SageObject): # Does this need to be SageObject?
         Return the hash value of ``self``.
 
         EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, LieBracket
+            sage: x = LieGenerator('x')
+            sage: y = LieGenerator('y')
+            sage: z = LieGenerator('z')
+            sage: b = LieBracket(x, y)
+            sage: hash(b) == hash(b)
+            True
         """
         return hash((self._left, self._right))
 
@@ -202,6 +306,14 @@ class LieBracket(SageObject): # Does this need to be SageObject?
         Return ``self`` as a word expressed in the variable names.
 
         EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, LieBracket
+            sage: x = LieGenerator('x')
+            sage: y = LieGenerator('y')
+            sage: b = LieBracket(x, y)
+            sage: c = LieBracket(b, x)
+            sage: c.to_word()
+            ['x', 'y', 'x']
         """
         return self._left.to_word() + self._right.to_word()
 
@@ -214,6 +326,12 @@ class GradedLieBracket(LieBracket):
         Initialize ``self``.
 
         EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, GradedLieBracket
+            sage: x = LieGenerator('x')
+            sage: y = LieGenerator('y')
+            sage: b = GradedLieBracket(x, y, 2)
+            sage: TestSuite(b).run()
         """
         self._grade = grade
         LieBracket.__init__(self, l, r)
@@ -223,6 +341,22 @@ class GradedLieBracket(LieBracket):
         Check less than.
 
         EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, GradedLieBracket
+            sage: x = LieGenerator('x')
+            sage: y = LieGenerator('y')
+            sage: z = LieGenerator('z')
+            sage: b = GradedLieBracket(x, y, 2)
+            sage: b < x
+            False
+            sage: b < z
+            False
+            sage: c = GradedLieBracket(x, z, 2)
+            sage: b < c
+            True
+            sage: c = GradedLieBracket(x, z, 1)
+            sage: b < c
+            False
         """
         if isinstance(rhs, GradedLieBracket) and self._grade != rhs._grade:
             return self._grade < rhs._grade
@@ -235,6 +369,14 @@ class GradedLieBracket(LieBracket):
         Return the hash value of ``self``.
 
         EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, GradedLieBracket
+            sage: x = LieGenerator('x')
+            sage: y = LieGenerator('y')
+            sage: z = LieGenerator('z')
+            sage: b = GradedLieBracket(x, y, 2)
+            sage: hash(b) == hash(b)
+            True
         """
         return hash((self._grade, self._left, self._right))
 

@@ -103,12 +103,34 @@ class FreeLieBasis_abstract(FinitelyGeneratedLieAlgebra, IndexedGenerators, Bind
     def _repr_term(self, x):
         """
         Return a string representation for ``x``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, 'x,y')
+            sage: H = L.Hall()
+            sage: x,y = H.gens()
+            sage: H._repr_term(x.leading_support())
+            'x'
+            sage: a = H([x, y]).leading_support()
+            sage: H._repr_term(a)
+            '[x, y]'
         """
         return x._repr_()
 
     def _latex_term(self, x):
-        """
+        r"""
         Return a string representation for ``x``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, 'x,y')
+            sage: H = L.Hall()
+            sage: x,y = H.gens()
+            sage: H._latex_term(x.leading_support())
+            'x'
+            sage: a = H([x, y]).leading_support()
+            sage: H._latex_term(a)
+            \left[ x , y \right]
         """
         return x._latex_()
 

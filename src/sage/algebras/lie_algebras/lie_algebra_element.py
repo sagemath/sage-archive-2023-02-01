@@ -461,6 +461,22 @@ class LieAlgebraElementWrapper(ElementWrapper):
         # Otherwise we lift to the UEA
         return self.lift() * x
 
+    def __div__(self, x, self_on_left=False ):
+        """
+        Division by coefficients.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Heisenberg(QQ, 3)
+            sage: x = L.an_element(); x
+            p1 + p2 + p3 + q1 + q2 + q3
+            sage: x / 2
+            1/2*p1 + 1/2*p2 + 1/2*p3 + 1/2*q1 + 1/2*q2 + 1/2*q3
+        """
+        if self_on_left:
+            return self * (~x)
+        return (~x) * self
+
     def _acted_upon_(self, scalar, self_on_left=False):
         """
         Return the action of a scalar on ``self``.

@@ -491,7 +491,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         EXAMPLES::
 
             sage: L = lie_algebras.Heisenberg(QQ, oo)
-            sage: d = {('p', 1): 4, ('q', 3): 1/2, 'z': -2}
+            sage: d = {'p1': 4, 'q3': 1/2, 'z': -2}
             sage: L._from_dict(d)
             -2*z + 4*p1 + 1/2*q3
         """
@@ -510,7 +510,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         EXAMPLES::
 
             sage: L = lie_algebras.Heisenberg(QQ, oo)
-            sage: L.monomial(('p', 1))
+            sage: L.monomial('p1')
             p1
         """
         return self.element_class(self, {i: self.base_ring().one()})
@@ -522,7 +522,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         EXAMPLES::
 
             sage: L = lie_algebras.Heisenberg(QQ, oo)
-            sage: L.term(('p', 1), 4)
+            sage: L.term('p1', 4)
             4*p1
         """
         if c is None:
@@ -542,6 +542,28 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             Finite family {'y': y, 'x': x}
         """
         return Family(self._indices, self.monomial, name="monomial map")
+
+    def get_order(self):
+        """
+        Return an ordering of the basis indices.
+
+        .. TODO::
+
+            Remove this method and in :class:`CombinatorialFreeModule`
+            in favor of a method in the category of (finite dimensional)
+            modules with basis.
+
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LieAlgebra(QQ, {})
+            sage: L.get_order()
+            ('x', 'y')
+        """
+        try:
+            return self._basis_ordering
+        except AttributeError:
+            raise ValueError("the Lie algebra is not finite dimensional with a basis")
 
     Element = LieAlgebraElement # Default for all Lie algebras
 
@@ -623,7 +645,7 @@ class FinitelyGeneratedLieAlgebra(LieAlgebra):
     @lazy_attribute
     def _ordered_indices(self):
         """
-        Return the index set of ``self`` in order.
+        Return the index set of the basis of ``self`` in (some) order.
 
         EXAMPLES::
     
@@ -631,7 +653,7 @@ class FinitelyGeneratedLieAlgebra(LieAlgebra):
             sage: L._ordered_indices
             ('x', 'y')
         """
-        return tuple(self._indices)
+        return tuple(self.basis().keys())
 
     def _an_element_(self):
         """
@@ -657,7 +679,7 @@ class InfinitelyGeneratedLieAlgebra(LieAlgebra):
 
             sage: L = lie_algebras.Heisenberg(QQ, oo)
             sage: L._an_element_()
-            z + p2 + q2 - 1/2*q3
+            p2 + q2 - 1/2*q3 + z
         """
         return self.lie_algebra_generators()[self._indices.an_element()]
 

@@ -27,8 +27,8 @@ from sage.misc.misc import repr_lincomb
 from sage.structure.indexed_generators import IndexedGenerators
 
 from sage.algebras.algebra import Algebra
-from sage.algebras.lie_algebras.lie_algebra import InfinitelyGeneratedLieAlgebra, \
-    LieAlgebraFromAssociative, FinitelyGeneratedLieAlgebra
+from sage.algebras.lie_algebras.lie_algebra import (InfinitelyGeneratedLieAlgebra,
+    LieAlgebraFromAssociative, FinitelyGeneratedLieAlgebra)
 from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
 from sage.categories.lie_algebras import LieAlgebras
 from sage.combinat.cartesian_product import CartesianProduct
@@ -39,6 +39,7 @@ from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.sets.positive_integers import PositiveIntegers
 from sage.sets.set import Set
+from sage.rings.all import ZZ
 
 class HeisenbergAlgebra_abstract(IndexedGenerators):
     """
@@ -64,7 +65,7 @@ class HeisenbergAlgebra_abstract(IndexedGenerators):
             sage: L.p(2)
             p2
         """
-        return self.element_class(self, {('p', i): self.base_ring().one()})
+        return self.element_class(self, {'p%i'%i: self.base_ring().one()})
 
     def q(self, i):
         """
@@ -76,7 +77,7 @@ class HeisenbergAlgebra_abstract(IndexedGenerators):
             sage: L.q(2)
             q2
         """
-        return self.element_class(self, {('q', i): self.base_ring().one()})
+        return self.element_class(self, {'q%i'%i: self.base_ring().one()})
 
     def z(self):
         """
@@ -115,14 +116,12 @@ class HeisenbergAlgebra_abstract(IndexedGenerators):
         EXAMPLES::
 
             sage: H = lie_algebras.Heisenberg(QQ, 3)
-            sage: H._repr_term(('p', 1))
+            sage: H._repr_term('p1')
             'p1'
             sage: H._repr_term('z')
             'z'
         """
-        if isinstance(m, str):
-            return m
-        return m[0] + str(m[1])
+        return m
 
     def _latex_term(self, m):
         r"""
@@ -136,9 +135,9 @@ class HeisenbergAlgebra_abstract(IndexedGenerators):
             sage: H._latex_term('z')
             'z'
         """
-        if isinstance(m, str):
+        if len(m) == 1:
             return m
-        return "%s_{%s}" % m # else it is a tuple of length 2
+        return "%s_{%s}"%(m[0], m[1]) # else it is of length 2
 
 class HeisenbergAlgebra_fd:
     """
@@ -203,7 +202,7 @@ class HeisenbergAlgebra_fd:
         for i in range(1, self._n+1):
             d['p%s'%i] = self.p(i)
             d['q%s'%i] = self.q(i)
-        return Family(d)
+        return Family(self._indices, lambda i: d[i])
 
     @cached_method
     def basis(self):
@@ -221,7 +220,7 @@ class HeisenbergAlgebra_fd:
             d['p%s'%i] = self.p(i)
             d['q%s'%i] = self.q(i)
         d['z'] = self.z()
-        return Family(d)
+        return Family(self._indices + ('z',), lambda i: d[i])
 
 class HeisenbergAlgebra(HeisenbergAlgebra_fd, HeisenbergAlgebra_abstract,
                         FinitelyGeneratedLieAlgebra):
@@ -310,9 +309,9 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
         EXAMPLES::
 
             sage: lie_algebras.Heisenberg(QQ, oo)
-            The infinite Heisenberg algebra over Rational Field
+            Infinite Heisenberg algebra over Rational Field
         """
-        return "The infinite Heisenberg algebra over {}".format(self.base_ring())
+        return "Infinite Heisenberg algebra over {}".format(self.base_ring())
 
     def _an_element_(self):
         """
@@ -322,7 +321,7 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
 
             sage: L = lie_algebras.Heisenberg(QQ, oo)
             sage: L._an_element_()
-            z + p2 + q2 - 1/2*q3
+            p2 + q2 - 1/2*q3 + z
         """
         c = self.base_ring().an_element()
         return self.p(2) + self.q(2) - c * self.q(3) + self.z()
@@ -338,7 +337,7 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
             Lazy family (generator map(i))_{i in Cartesian product of
                                             Positive integers, ['p', 'q']}
         """
-        return Family(self._indices, lambda x: self.monomial(tuple(x)),
+        return Family(self._indices, lambda x: self.monomial(x[1] + str(x[0])),
                       name='generator map')
 
     def basis(self):
@@ -354,7 +353,11 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
         """
         S = CartesianProduct(PositiveIntegers(), ['p','q'])
         I = DisjointUnionEnumeratedSets([Set(['z']), S])
-        return Family(I, self.monomial, name="basis map")
+        def basis_elt(x):
+            if isinstance(x, str):
+                return self.monomial(x)
+            return self.monomial(x[1] + str(x[0]))
+        return Family(I, basis_elt, name="basis map")
 
 #######################################################
 ## Finite rank Heisenberg algebra using matrices
@@ -431,10 +434,10 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
         p = tuple(MS({(0,i):one}) for i in range(1, n+1))
         q = tuple(MS({(i,n+1):one}) for i in range(1, n+1))
         names = tuple('p%s'%i for i in range(1,n+1))
-        names = names + tuple('q%s'%i for i in range(1,n+1)) + ('z',)
+        names = names + tuple('q%s'%i for i in range(1,n+1))
         cat = LieAlgebras(R).FiniteDimensional().WithBasis()
-        LieAlgebraFromAssociative.__init__(self, MS, p + q + (MS({(0,n+1):one}),),
-                                           names=names, index_set=names, category=cat)
+        LieAlgebraFromAssociative.__init__(self, MS, p + q, names=names,
+                                           index_set=names, category=cat)
 
     def _repr_(self):
         """
@@ -475,6 +478,7 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
         """
         return self._gens['q%s'%i]
 
+    @cached_method
     def z(self):
         """
         Return the generator `z`.
@@ -487,5 +491,6 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
             [0 0 0]
             [0 0 0]
         """
-        return self._gens['z']
+        d = {(0,self._n+1): self.base_ring().one()}
+        return self.element_class( self, self._assoc(d) )
 

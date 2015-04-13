@@ -244,6 +244,13 @@ class RegularCrystals(Category_singleton):
             `\varphi_j(b)` and `\varepsilon_j(b)` are denoted by
             `\epsilon(b, j)` and `-\delta(b, j)`, respectively).
 
+            The dual equivalence graph of `B` is defined to be the
+            colored graph whose vertices are the elements of `B` of
+            weight `0`, and whose edges connect pairs `\{ b, b' \}`
+            such that `b'` is an `i` elementary dual equivalence
+            transformation of `b` for some `i` in the index set of `B`.
+            The color of such an edge is the index `i`.
+
             INPUT:
 
             - ``X`` -- (optional) the vertex set (default: the whole
@@ -682,30 +689,35 @@ class RegularCrystals(Category_singleton):
             of ``self``.
 
             The dual equivalence class of an element `b \in B`
-            indexed by a subset `I` of the index set of the
-            crystal is the set of all elements of `B` reachable from
+            is the set of all elements of `B` reachable from
             `b` via sequences of `i` elementary dual equivalence
-            relations (i.e., transformations and their inverses) for
-            `i \in I`.
+            relations (i.e., `i` elementary dual equivalence
+            transformations and their inverses) for `i` in the index
+            set of `B`.
 
             For this to be well-defined, the element `b` has to be
             of weight `0` with respect to `I`; that is, we need to have
             `\varepsilon_j(b) = \varphi_j(b)` for all `j \in I`.
 
-            See [Assaf08]_.
+            See [Assaf08]_. See also :meth:`dual_equivalence_graph` for
+            a definition of `i` elementary dual equivalence
+            transformations.
 
             INPUT:
 
             - ``index_set`` (optional): a subset `I` of the index set
               of the crystal, which determines which elementary dual
-              equivalence relations are to be used; defaults to the
-              whole index set
+              equivalence relations are to be used (also, ``self``
+              is checked to be of weight zero only with respect to
+              the indices `j` in ``self``); defaults to the whole
+              index set of the crystal
 
             OUTPUT:
 
             The dual equivalence class of ``self`` indexed by the
             subset ``index_set``. This class is returned as an
-            undirected edge-colored multigraph.
+            undirected edge-colored multigraph. The colors of the
+            edges correspond to the indices `i`.
 
             .. SEEALSO::
 

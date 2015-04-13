@@ -634,6 +634,7 @@ def Bmu( mu ):
 
     EXAMPLES::
 
+        sage: from sage.combinat.sf.macdonald import Bmu
         sage: Bmu(Partition([2,1]))
         q + t + 1
         sage: Bmu(SkewPartition([[3,3],[2]]))
@@ -657,6 +658,7 @@ def cmunu1(mu, nu):
 
     EXAMPLES::
 
+        sage: from sage.combinat.sf.macdonald import cmunu1
         sage: cmunu1(Partition([2,1]),Partition([2]))
         (-t^2 + q)/(q - t)
         sage: cmunu1(Partition([2,1]),Partition([1,1]))
@@ -664,7 +666,7 @@ def cmunu1(mu, nu):
         sage: Sym = SymmetricFunctions(QQ['q','t'].fraction_field())
         sage: h = Sym.h()
         sage: Ht = Sym.macdonald().Ht()
-        sage: all(Ht[3,2,1].skew_by(h[1]).coefficient(nu) == cmunu(Partition([3,2,1]),nu) for nu in Partition([3,2,1]).down_list())
+        sage: all(Ht[3,2,1].skew_by(h[1]).coefficient(nu) == cmunu1(Partition([3,2,1]),nu) for nu in Partition([3,2,1]).down_list())
         True
     """
     q,t = QQqt.gens()
@@ -695,6 +697,7 @@ def cmunu(mu, nu):
 
     EXAMPLES::
 
+        sage: from sage.combinat.sf.macdonald import cmunu
         sage: cmunu(Partition([2,1]),Partition([1]))
         q + t + 1
         sage: cmunu(Partition([2,2]),Partition([1,1]))

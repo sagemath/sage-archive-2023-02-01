@@ -681,12 +681,17 @@ class RegularCrystals(Category_singleton):
             Return the dual equivalence class indexed by ``index_set``
             of ``self``.
 
-            The dual equivalence class of an element `b \in B` (of
-            weight `0`) indexed by a subset `I` of the index set of the
+            The dual equivalence class of an element `b \in B`
+            indexed by a subset `I` of the index set of the
             crystal is the set of all elements of `B` reachable from
             `b` via sequences of `i` elementary dual equivalence
             relations (i.e., transformations and their inverses) for
             `i \in I`.
+
+            For this to be well-defined, the element `b` has to be
+            of weight `0` with respect to `I`; that is, we need to have
+            `\varepsilon_j(b) = \varphi_j(b)` for all `j \in I`.
+
             See [Assaf08]_.
 
             INPUT:

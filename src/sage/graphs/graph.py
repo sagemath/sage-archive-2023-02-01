@@ -1081,31 +1081,16 @@ class Graph(GenericGraph):
                                  "'data_structure'. Please do not define both.")
             data_structure = "dense"
 
+        # Choice of the backend
+
         if implementation == 'networkx':
             import networkx
             from sage.graphs.base.graph_backends import NetworkXGraphBackend
-            if format == 'Graph':
-                self._backend = NetworkXGraphBackend(data.networkx_graph())
-                self._weighted = weighted
-                self.allow_loops(loops)
-                self.allow_multiple_edges(multiedges)
-            else:
-                if multiedges:
-                    self._backend = NetworkXGraphBackend(networkx.MultiGraph())
-                else:
-                    self._backend = NetworkXGraphBackend(networkx.Graph())
-                self._weighted = weighted
-                self.allow_loops(loops)
-                self.allow_multiple_edges(multiedges)
-                if verts is not None:
-                    self.add_vertices(verts)
-                else:
-                    self.add_vertices(range(num_verts))
+            self._backend = NetworkXGraphBackend()
         elif implementation == 'c_graph':
             if multiedges or weighted:
                 if data_structure == "dense":
                     raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
-
             if immutable:
                 data_structure = 'static_sparse'
 
@@ -1121,23 +1106,7 @@ class Graph(GenericGraph):
             else:
                 raise ValueError("data_structure must be equal to 'sparse', "
                                  "'static_sparse' or 'dense'")
-            if format == 'Graph':
-                self._backend = CGB(0, directed=False)
-                self.add_vertices(verts)
-                self._weighted = weighted
-                self.allow_loops(loops, check=False)
-                self.allow_multiple_edges(multiedges, check=False)
-                for u,v,l in data.edge_iterator():
-                    self._backend.add_edge(u,v,l,False)
-            else:
-                if verts is not None:
-                    self._backend = CGB(0, directed=False)
-                    self.add_vertices(verts)
-                else:
-                    self._backend = CGB(num_verts, directed=False)
-                self._weighted = weighted
-                self.allow_loops(loops, check=False)
-                self.allow_multiple_edges(multiedges, check=False)
+            self._backend = CGB(0, directed=False)
         else:
             raise NotImplementedError("Supported implementations: networkx, c_graph.")
 
@@ -1433,7 +1402,10 @@ class Graph(GenericGraph):
             if weighted   is None: weighted   = False
             if multiedges is None: multiedges = False
             if loops      is None: loops      = False
-            if format == 'int': num_verts = data
+            if format == 'int':
+                num_verts = data
+                if num_verts<0:
+                    raise ValueError("The number of vertices cannot be strictly negative!")
             else:
                 num_verts = len(data)
                 curves = data
@@ -1442,6 +1414,14 @@ class Graph(GenericGraph):
         # weighted, multiedges, loops, verts and num_verts should now be set
         #
         # From now on, we actually build the graph
+
+        self._weighted = weighted
+        self.allow_loops(loops, check=False)
+        self.allow_multiple_edges(multiedges, check=False)
+        if verts is not None:
+            self.add_vertices(verts)
+        elif num_verts:
+            self.add_vertices(range(num_verts))
 
         if format == 'graph6':
             k = 0
@@ -1475,6 +1455,8 @@ class Graph(GenericGraph):
 
         elif format == 'Graph':
             self.name(data.name())
+            self.add_vertices(data.vertices())
+            self.add_edges(data.edge_iterator())
 
         elif format == 'rule':
             from itertools import combinations

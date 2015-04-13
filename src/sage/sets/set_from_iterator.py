@@ -443,8 +443,7 @@ class Decorator:
             sage: print sage_getdoc(d)   # indirect doctest
                Test whether "self" is prime.
             ...
-               IMPLEMENTATION: Calls the PARI "isprime" function.
-            <BLANKLINE>
+               Calls the PARI "isprime" function.
         """
         from sage.misc.sageinspect import sage_getsourcelines, sage_getfile, _extract_embedded_position
         f = self.f

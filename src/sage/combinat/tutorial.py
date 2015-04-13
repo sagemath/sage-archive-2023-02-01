@@ -1589,15 +1589,15 @@ examples::
     sage: list(IntegerListsLex(5, max_length=2, min_part=1))
     [[5], [4, 1], [3, 2], [2, 3], [1, 4]]
 
-The point of the model of ``IntegerListsLex`` is in the good compromise
-between generality and efficiency in the iteration. The main algorithm
-permits iteration through the elements of such a set `S` in
-reverse lexicographic order, and in constant amortized time (CAT),
-except in very degenerate cases; roughly speaking the time needed to
-iterate through all the elements is proportional to the number of
-elements, which is optimal. In addition, the memory usage is
-proportional to the largest element found, which is to say negligible in
-practice.
+The point of the model of ``IntegerListsLex`` is in the compromise
+between generality and efficiency. The main algorithm permits
+iteration through the elements of such a set `S` in reverse
+lexicographic order with a good complexity in most practical use
+cases. Roughly speaking, the time needed to iterate through all the
+elements of `S` is proportional to the number of elements, where the
+proportion factor is controlled by the length `l` of the longest
+element of `S`. In addition, the memory usage is also controlled by
+`l`, which is to say negligible in practice.
 
 This algorithm is based on a very general principle for traversing a
 decision tree, called *branch and bound*: at the top level, we run
@@ -1616,26 +1616,12 @@ prefix tree on the elements of `S`: a node of the tree at depth
     Figure: The prefix tree of the partitions of 5.
 
 The usual problem with this type of approach is to avoid bad decisions
-which lead to leaving the prefix tree and exploring dead branches,
-particularly problematic because the growth of the number of elements is
-exponential in the depth. It turns out that the constraints listed above
-are simple enough to guarantee the following property: given a prefix
-`\ell_0,\dot,\ell_k` of `S`, the set of
-`\ell_{k+1}` such that `\ell_0,\dots,\ell_{k+1}` is a
-prefix of `S` is either empty or consists of an interval
-`[a,b]`, and the bounds `a` and `b` can be
-calculated in time linear in the length of the longest element of
-`S` having `\ell_0,\dots,\ell_k` as a prefix.
-
-Note that this algorithm was originally developed and implemented in
-``MuPAD-Combinat`` and was ported identically to ``Sage``; this
-implementation is not robust when the inputs are subtly incoherent, which
-can yield surprising results. For example, partitions of 2 of length 2 with
-a max slope of -1 returned the partition [1, 1]. This was slightly modified
-and now gives the proper result.
-
-    sage: Partitions(2, max_slope=-1, length=2).list()
-    []
+which lead to leaving the prefix tree and exploring dead branches;
+this is particularly problematic because the growth of the number of
+elements is usually exponential in the depth. It turns out that the
+constraints listed above are simple enough to be able to reasonably
+predict when a sequence `\ell_0,\dots,\ell_k` is a prefix of some
+element `S`. Hence, most dead branches can be pruned.
 
 .. _section-generic-polytopes:
 

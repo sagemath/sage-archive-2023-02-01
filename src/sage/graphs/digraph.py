@@ -571,24 +571,12 @@ class DiGraph(GenericGraph):
                                  "'data_structure'. Please do not define both.")
             data_structure = "dense"
 
+        # Choice of the backend
 
         if implementation == 'networkx':
             import networkx
             from sage.graphs.base.graph_backends import NetworkXGraphBackend
-            if format == 'DiGraph':
-                self._backend = NetworkXGraphBackend(data.networkx_graph())
-                self._weighted = weighted
-                self.allow_loops(loops)
-                self.allow_multiple_edges(multiedges)
-            else:
-                self._backend = NetworkXGraphBackend(networkx.MultiDiGraph())
-                self._weighted = weighted
-                self.allow_loops(loops)
-                self.allow_multiple_edges(multiedges)
-                if verts is not None:
-                    self.add_vertices(verts)
-                else:
-                    self.add_vertices(range(num_verts))
+            self._backend = NetworkXGraphBackend(networkx.MultiDiGraph())
         elif implementation == 'c_graph':
             if multiedges or weighted:
                 if data_structure == "dense":
@@ -609,24 +597,7 @@ class DiGraph(GenericGraph):
             else:
                 raise ValueError("data_structure must be equal to 'sparse', "
                                  "'static_sparse' or 'dense'")
-            if format == 'DiGraph':
-                self._backend = CGB(0, directed=True)
-                self.add_vertices(verts)
-                self._weighted = weighted
-                self.allow_loops(loops, check=False)
-                self.allow_multiple_edges(multiedges, check=False)
-                for u,v,l in data.edge_iterator():
-                    self._backend.add_edge(u,v,l,True)
-            else:
-                self._backend = CGB(0, directed=True)
-                if verts is not None:
-                    self._backend = CGB(0, directed=True)
-                    self.add_vertices(verts)
-                else:
-                    self._backend = CGB(num_verts, directed=True)
-                self._weighted = weighted
-                self.allow_loops(loops, check=False)
-                self.allow_multiple_edges(multiedges, check=False)
+            self._backend = CGB(0, directed=True)
         else:
             raise NotImplementedError("Supported implementations: networkx, c_graph.")
 
@@ -872,8 +843,17 @@ class DiGraph(GenericGraph):
             if multiedges is None: multiedges = False
             if loops      is None: loops      = False
             num_verts = data
+            if num_verts<0:
+                raise ValueError("The number of vertices cannot be strictly negative!")
 
         # weighted, multiedges, loops, verts and num_verts should now be set
+        self._weighted = weighted
+        self.allow_loops(loops, check=False)
+        self.allow_multiple_edges(multiedges, check=False)
+        if verts is not None:
+            self.add_vertices(verts)
+        elif num_verts:
+            self.add_vertices(range(num_verts))
 
         if format == 'dig6':
             k = 0
@@ -897,6 +877,8 @@ class DiGraph(GenericGraph):
         elif format == 'incidence_matrix':
             self.add_edges(positions)
         elif format == 'DiGraph':
+            self.add_vertices(data.vertices())
+            self.add_edges(data.edge_iterator())
             self.name(data.name())
         elif format == 'rule':
             self.add_edges((u,v) for u in verts for v in verts if f(u,v))

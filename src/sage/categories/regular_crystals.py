@@ -747,8 +747,9 @@ class RegularCrystals(Category_singleton):
 
             The dual equivalence class of ``self`` indexed by the
             subset ``index_set``. This class is returned as an
-            undirected edge-colored multigraph. The colors of the
-            edges correspond to the indices `i`.
+            undirected edge-colored multigraph. The color of an edge
+            is the index `i` of the dual equivalence relation it
+            encodes.
 
             .. SEEALSO::
 

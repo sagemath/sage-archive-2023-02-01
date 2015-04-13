@@ -3488,10 +3488,10 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
 
-        -  ``kuratowski`` - returns a tuple with boolean as
-           first entry. If the graph is nonplanar, will return the Kuratowski
-           subgraph (i.e. an edge subdivision of `K_5` or `K_{3,3}`) as the second tuple entry.
-           If the graph is planar, returns None as the second entry.
+        - ``kuratowski`` - returns a tuple with boolean as first entry. If the
+          graph is nonplanar, will return the Kuratowski subgraph (i.e. an edge
+          subdivision of `K_5` or `K_{3,3}`) as the second tuple entry.  If the
+          graph is planar, returns ``None`` as the second entry.
 
         -  ``on_embedding`` - the embedding dictionary to test
            planarity on. (i.e.: will return True or False only for the given

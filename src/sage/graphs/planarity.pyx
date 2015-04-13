@@ -29,8 +29,9 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
     False otherwise.  If kuratowski is True, returns a tuple, first
     entry is a boolean (whether or not the graph is planar) and second
     entry is a Kuratowski subgraph, i.e. an edge subdivision of
-    `K_5` or `K_{3,3}` (if not planar) or None (if planar).  Also, will set
-    an _embedding attribute for the graph g if set_embedding is set to True.
+    `K_5` or `K_{3,3}` (if not planar) or ``None`` (if planar).  Also, will set
+    an ``_embedding`` attribute for the graph ``g`` if ``set_embedding`` is set
+    to True.
 
     INPUT:
         kuratowski -- If True, return a tuple of a boolean and either None

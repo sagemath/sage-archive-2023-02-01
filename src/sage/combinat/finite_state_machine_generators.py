@@ -815,7 +815,7 @@ class TransducerGenerators(object):
                 ....:     2, f, n)
                 Traceback (most recent call last):
                 ....:
-                ValueError: Could not convert 1/n to a polynomial in n.
+                ValueError: 1/n is not a polynomial in n.
 
             ::
 
@@ -902,14 +902,6 @@ class TransducerGenerators(object):
 
             ::
 
-                sage: transducers._parse_recursion_equation_(f(2*n + 1) == f(n^2 + 5),
-                ....:     2, f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: n^2 + 5 is not a polynomial of degree 1.
-
-            ::
-
                 sage: transducers._parse_recursion_equation_(f(2*n + 1) == f(3*n + 5),
                 ....:     2, f, n)
                 Traceback (most recent call last):
@@ -970,7 +962,7 @@ class TransducerGenerators(object):
         try:
             polynomial_left = base_ring[var](left_side.operands()[0])
         except:
-            raise ValueError("Could not convert %s to a polynomial "
+            raise ValueError("%s is not a polynomial "
                              "in %s." % (left_side.operands()[0], var))
         if polynomial_left in base_ring and is_scalar(right_side):
             return {polynomial_left: to_list(right_side)}

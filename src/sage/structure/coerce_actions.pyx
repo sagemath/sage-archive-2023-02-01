@@ -65,17 +65,19 @@ cdef class GenericAction(Action):
         """
         TESTS::
 
-            sage: sage.structure.coerce_actions.ActedUponAction(MatrixSpace(ZZ, 2), Cusps, True)
+            sage: M = MatrixSpace(ZZ,2)
+            sage: sage.structure.coerce_actions.ActedUponAction(M, Cusps, True)
             Left action by Full MatrixSpace of 2 by 2 dense matrices over Integer Ring on Set P^1(QQ) of all cusps
 
-            sage: sage.structure.coerce_actions.GenericAction(QQ, Zmod(6), True)
+            sage: Z6 = Zmod(6)
+            sage: sage.structure.coerce_actions.GenericAction(QQ, Z6, True)
             Traceback (most recent call last):
             ...
             NotImplementedError: Action not implemented.
 
         This will break if we tried to use it::
 
-            sage: sage.structure.coerce_actions.GenericAction(QQ, Zmod(6), True, check=False)
+            sage: sage.structure.coerce_actions.GenericAction(QQ, Z6, True, check=False)
             Left action by Rational Field on Ring of integers modulo 6
 
         """
@@ -94,10 +96,14 @@ cdef class GenericAction(Action):
 
         EXAMPLES::
 
-            sage: A = sage.structure.coerce_actions.ActedUponAction(MatrixSpace(ZZ, 2), Cusps, True)
+            sage: M = MatrixSpace(ZZ,2)
+            sage: A = sage.structure.coerce_actions.ActedUponAction(M, Cusps, True)
             sage: A.codomain()
             Set P^1(QQ) of all cusps
-            sage: A = sage.structure.coerce_actions.ActOnAction(SymmetricGroup(3), QQ['x,y,z'], False)
+
+            sage: S3 = SymmetricGroup(3)
+            sage: QQxyz = QQ['x,y,z']
+            sage: A = sage.structure.coerce_actions.ActOnAction(S3, QQxyz, False)
             sage: A.codomain()
             Multivariate Polynomial Ring in x, y, z over Rational Field
         """
@@ -139,7 +145,8 @@ cdef class ActedUponAction(GenericAction):
         """
         TESTS::
 
-            sage: A = sage.structure.coerce_actions.ActedUponAction(MatrixSpace(ZZ, 2), Cusps, True)
+            sage: M = MatrixSpace(ZZ,2)
+            sage: A = sage.structure.coerce_actions.ActedUponAction(M, Cusps, True)
             sage: A.act(matrix(ZZ, 2, [1,0,2,-1]), Cusp(1,2))
             Infinity
             sage: A._call_(matrix(ZZ, 2, [1,0,2,-1]), Cusp(1,2))
@@ -160,13 +167,15 @@ def detect_element_action(Parent X, Y, bint X_on_left, X_el=None, Y_el=None):
     EXAMPLES::
 
         sage: from sage.structure.coerce_actions import detect_element_action
-        sage: detect_element_action(ZZ['x'], ZZ, False)
+        sage: ZZx = ZZ['x']
+        sage: M = MatrixSpace(ZZ,2)
+        sage: detect_element_action(ZZx, ZZ, False)
         Left scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
-        sage: detect_element_action(ZZ['x'], QQ, True)
+        sage: detect_element_action(ZZx, QQ, True)
         Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring
-        sage: detect_element_action(Cusps, MatrixSpace(ZZ, 2), False)
+        sage: detect_element_action(Cusps, M, False)
         Left action by Full MatrixSpace of 2 by 2 dense matrices over Integer Ring on Set P^1(QQ) of all cusps
-        sage: detect_element_action(Cusps, MatrixSpace(ZZ, 2), True),
+        sage: detect_element_action(Cusps, M, True),
         (None,)
         sage: detect_element_action(ZZ, QQ, True),
         (None,)
@@ -266,13 +275,17 @@ cdef class ModuleAction(Action):
         EXAMPLES::
 
             sage: from sage.structure.coerce_actions import LeftModuleAction
-            sage: LeftModuleAction(ZZ, ZZ['x'])
+            sage: ZZx = ZZ['x']
+            sage: QQx = QQ['x']
+            sage: QQy = QQ['y']
+            sage: ZZxy = ZZ['x']['y']
+            sage: LeftModuleAction(ZZ, ZZx)
             Left scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
-            sage: LeftModuleAction(ZZ, QQ['x'])
+            sage: LeftModuleAction(ZZ, QQx)
             Left scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Rational Field
-            sage: LeftModuleAction(QQ, ZZ['x'])
+            sage: LeftModuleAction(QQ, ZZx)
             Left scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring
-            sage: LeftModuleAction(QQ, ZZ['x']['y'])
+            sage: LeftModuleAction(QQ, ZZxy)
             Left scalar multiplication by Rational Field on Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Integer Ring
 
         The following tests against a problem that was relevant during work on
@@ -351,11 +364,15 @@ cdef class ModuleAction(Action):
         EXAMPLES::
 
             sage: from sage.structure.coerce_actions import LeftModuleAction, RightModuleAction
-            sage: A = LeftModuleAction(ZZ, ZZ['x']); A
+            sage: ZZx = ZZ['x']
+            sage: A = LeftModuleAction(ZZ, ZZx); A
             Left scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
             sage: A._repr_name_()
             'scalar multiplication'
-            sage: RightModuleAction(GF(5), GF(5)[['t']])
+
+            sage: GF5 = GF(5)
+            sage: GF5t = GF5[['t']]
+            sage: RightModuleAction(GF5, GF5t)
             Right scalar multiplication by Finite Field of size 5 on Power Series Ring in t over Finite Field of size 5
         """
         return "scalar multiplication"
@@ -587,7 +604,8 @@ cdef class IntegerMulAction(Action):
         EXAMPLES::
 
             sage: from sage.structure.coerce_actions import IntegerMulAction
-            sage: act = IntegerMulAction(ZZ, GF(101))
+            sage: GF101 = GF(101)
+            sage: act = IntegerMulAction(ZZ, GF101)
             sage: act(3, 9)
             27
             sage: act(3^689, 9)
@@ -606,7 +624,8 @@ cdef class IntegerMulAction(Action):
 
         This used to hang before :trac:`17844`::
 
-            sage: E = EllipticCurve(GF(5), [4,0])
+            sage: GF5 = GF(5)
+            sage: E = EllipticCurve(GF5, [4,0])
             sage: P = E.random_element()
             sage: (-2^63)*P
             (0 : 1 : 0)
@@ -644,7 +663,8 @@ cdef class IntegerMulAction(Action):
         EXAMPLES::
 
             sage: from sage.structure.coerce_actions import IntegerMulAction
-            sage: IntegerMulAction(ZZ, GF(5))
+            sage: GF5 = GF(5)
+            sage: IntegerMulAction(ZZ, GF5)
             Left Integer Multiplication by Integer Ring on Finite Field of size 5
         """
         return "Integer Multiplication"

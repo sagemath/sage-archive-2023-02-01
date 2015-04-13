@@ -140,7 +140,7 @@ def warning(trac_number, message, warning_class=Warning, stacklevel=3):
     # the deprecated function which called this function.
     warn(message, warning_class, stacklevel)
 
-def experimental_warning(trac_number, message, stacklevel=5):
+def experimental_warning(trac_number, message, stacklevel=4):
     r"""
     Issue a warning that the functionality or class is experimental
     and might change in future.
@@ -152,7 +152,7 @@ def experimental_warning(trac_number, message, stacklevel=5):
 
     - ``message`` -- a string. An explanation what is going on.
 
-    - ``stack_level`` -- (default: ``5``) an integer. This is passed on to
+    - ``stack_level`` -- (default: ``4``) an integer. This is passed on to
       :func:`warnings.warn`.
 
     EXAMPLES::

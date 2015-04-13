@@ -49,10 +49,12 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
         def annihilator(self, S, action=operator.mul, side='right', category=None):
             r"""
+
+
             INPUT:
+
              - ``S`` -- a finite set of objects
              - ``side`` -- 'left' or 'right' (default: 'right')
-
              - ``action`` -- a function (default: `operator.mul`)
 
             Assumptions: ``action`` takes elements of ``self`` as
@@ -164,7 +166,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: F.annihilator_basis([a+b], action = F.bracket)
                 [x + y, a, b]
 
-            In particular one can computer the center of the
+            In particular one can compute the center of the
             algebra. In our example, it is reduced to the
             identity::
 
@@ -182,7 +184,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             mat = matrix(self.base_ring(), self.dimension(), 0)
             for s in S:
                 mat = mat.augment(matrix(self.base_ring(),
-                                         [action(s,b).to_vector() for b in self.basis()]))
+                                         [action(s, b).to_vector() for b in self.basis()]))
             return map(self.from_vector, mat.left_kernel().basis())
 
     class ElementMethods:

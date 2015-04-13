@@ -3490,7 +3490,7 @@ class GenericGraph(GenericGraph_pyx):
 
         -  ``kuratowski`` - returns a tuple with boolean as
            first entry. If the graph is nonplanar, will return the Kuratowski
-           subgraph (i.e. an edge subdivision of K5 or K3,3) as the second tuple entry.
+           subgraph (i.e. an edge subdivision of `K_5` or `K_{3,3}`) as the second tuple entry.
            If the graph is planar, returns None as the second entry.
 
         -  ``on_embedding`` - the embedding dictionary to test
@@ -3631,7 +3631,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``kuratowski`` (boolean) - if set to True, returns a tuple with
            boolean first entry and the Kuratowski subgraph (i.e. an edge
-           subdivision of K5 or K3,3) as the second entry (see OUTPUT below).
+           subdivision of `K_5` or `K_{3,3}`) as the second entry (see OUTPUT below).
            It is set to ``False`` by default.
 
         - ``on_embedding`` (boolean) - the embedding dictionary to test
@@ -3666,7 +3666,7 @@ class GenericGraph(GenericGraph_pyx):
 
         If ``kuratowski`` is set to ``True``, then this function will return a
         tuple, whose first entry is a boolean and whose second entry is the
-        Kuratowski subgraph (i.e. an edge subdivison of K5 or K3,3)
+        Kuratowski subgraph (i.e. an edge subdivison of `K_5` or `K_{3,3}`)
         isolated by the Boyer-Myrvold algorithm. Note that this graph
         might contain a vertex or edges that were not in the initial graph.
         These would be elements referred to below

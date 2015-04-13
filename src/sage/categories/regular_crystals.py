@@ -229,16 +229,21 @@ class RegularCrystals(Category_singleton):
             Return the dual equivalence graph indexed by ``index_set``
             on the subset ``X`` of ``self``.
 
-            Let `b \in B` be an element such that `\varepsilon_j(b)
-            = \varphi_j(b)` for all `j` (so it is of weight `0`).
-            We say `b'` is an `i` elementary dual equivalence
-            transformation of `b` if
+            Let `b \in B` be an element of weight `0`, so `\varepsilon_j(b)
+            = \varphi_j(b)` for all `j \in I`, where `I` is the indexing
+            set. We say `b'` is an `i`-elementary dual equivalence
+            transformation (where `i \in I`) of `b` if
 
             * `\varepsilon_i(b) = 1` and `\varepsilon_{i-1}(b) = 0`, and
             * `b' = f_{i-1} f_i e_{i-1} e_i b`.
 
             We can do the inverse procedure by interchanging `i` and `i-1`
             above.
+
+            .. NOTE::
+
+                If the index set is not an ordered interval, we consider
+                `i - 1` to be the index appearing before `i` in `I`.
 
             This definition comes from [Assaf08]_ Section 4 (where our
             `\varphi_j(b)` and `\varepsilon_j(b)` are denoted by
@@ -247,51 +252,29 @@ class RegularCrystals(Category_singleton):
             The dual equivalence graph of `B` is defined to be the
             colored graph whose vertices are the elements of `B` of
             weight `0`, and whose edges connect pairs `\{ b, b' \}`
-            such that `b'` is an `i` elementary dual equivalence
-            transformation of `b` for some `i` in the index set of `B`.
-            The color of such an edge is the index `i`.
+            such that `b'` is an `i`-elementary dual equivalence
+            transformation of `b` for some `i \in I` and has color `i`.
 
             .. NOTE::
 
-                This dual equivalence graph is close to the
-                `\mathcal{G}\left(\mathcal{X}\right)` of [Assaf08]_
-                Section 4, but slightly different in the details.
-                [Assaf08]_ requires the vertices of the dual
-                equivalence graph to satisfy
-                `\varepsilon_j(b) = \varphi_j(b) = 0 \text{ or } 1`,
-                while we only require the weaker condition
-                `\varepsilon_j(b) = \varphi_j(b)`.
+                This dual equivalence graph is a generalization of
+                `\mathcal{G}\left(\mathcal{X}\right)` in [Assaf08]_
+                Section 4 except we do not require
+                `\varepsilon_i(b) = 0, 1` for all `i`.
 
-            This definition can be generalized in two directions:
-
-            * We can choose an interval `I` of the index set of `B`.
-              Then, the dual equivalence graph of `B` indexed by `I`
-              is defined just as the dual equivalence graph of `B`,
-              except that we only require the vertices to be of weight
-              `0` with respect to `I` (that is, we only require
-              `\varepsilon_j(b) = \varphi_j(b)` for `j \in I`), and we
-              only allow `i` elementary dual equivalence
-              transformations with `i \in I`.
-
-            * We can choose a subset `X` of the set of all vertices
-              of `B` of weight `0`, and restrict the dual equivalence
-              graph to the vertex set `X`.
+            This definition can be generalized by choosing a subset `X`
+            of the set of all vertices of `B` of weight `0`, and
+            restrict the dual equivalence graph to the vertex set `X`.
 
             INPUT:
 
-            - ``X`` -- (optional) the vertex set (this is the `X` in
-              the above description; default: the whole set of vertices
-              of ``self`` of weight `0`)
-            - ``index_set`` -- (optional) an interval of the index set
-              of ``self``, provided as a strictly increasing list or
-              tuple (this is the `I` in the above description; default:
-              the whole index set of ``self``);
-              only edges colored by these indices are drawn, and the
-              condition `\varepsilon_j(b) = \varphi_j(b)` is only
-              checked for the `j` in this index set
-            - ``directed`` -- (default: ``True``) whether to have the dual
-              equivalence graph be directed (where the head of an edge
-              `b - b'` is `b` and the tail is
+            - ``X`` -- (optional) the vertex set `X` (default:
+              the whole set of vertices of ``self`` of weight `0`)
+            - ``index_set`` -- (optional) the index set `I`
+              (default: the whole index set of ``self``)
+            - ``directed`` -- (default: ``True``) whether to have the
+              dual equivalence graph be directed, where the head of
+              an edge `b - b'` is `b` and the tail is
               `b' = f_{i-1} f_i e_{i-1} e_i b`)
 
             .. SEEALSO::

@@ -571,6 +571,65 @@ class DiGraph(GenericGraph):
                                  "'data_structure'. Please do not define both.")
             data_structure = "dense"
 
+
+        if implementation == 'networkx':
+            import networkx
+            from sage.graphs.base.graph_backends import NetworkXGraphBackend
+            if format == 'DiGraph':
+                self._backend = NetworkXGraphBackend(data.networkx_graph())
+                self._weighted = weighted
+                self.allow_loops(loops)
+                self.allow_multiple_edges(multiedges)
+            else:
+                self._backend = NetworkXGraphBackend(networkx.MultiDiGraph())
+                self._weighted = weighted
+                self.allow_loops(loops)
+                self.allow_multiple_edges(multiedges)
+                if verts is not None:
+                    self.add_vertices(verts)
+                else:
+                    self.add_vertices(range(num_verts))
+        elif implementation == 'c_graph':
+            if multiedges or weighted:
+                if data_structure == "dense":
+                    raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
+
+            if immutable:
+                data_structure = 'static_sparse'
+
+            # If the data structure is static_sparse, we first build a graph
+            # using the sparse data structure, then reencode the resulting graph
+            # as a static sparse graph.
+            from sage.graphs.base.sparse_graph import SparseGraphBackend
+            from sage.graphs.base.dense_graph import DenseGraphBackend
+            if data_structure in ["sparse", "static_sparse"]:
+                CGB = SparseGraphBackend
+            elif data_structure == "dense":
+                 CGB = DenseGraphBackend
+            else:
+                raise ValueError("data_structure must be equal to 'sparse', "
+                                 "'static_sparse' or 'dense'")
+            if format == 'DiGraph':
+                self._backend = CGB(0, directed=True)
+                self.add_vertices(verts)
+                self._weighted = weighted
+                self.allow_loops(loops, check=False)
+                self.allow_multiple_edges(multiedges, check=False)
+                for u,v,l in data.edge_iterator():
+                    self._backend.add_edge(u,v,l,True)
+            else:
+                self._backend = CGB(0, directed=True)
+                if verts is not None:
+                    self._backend = CGB(0, directed=True)
+                    self.add_vertices(verts)
+                else:
+                    self._backend = CGB(num_verts, directed=True)
+                self._weighted = weighted
+                self.allow_loops(loops, check=False)
+                self.allow_multiple_edges(multiedges, check=False)
+        else:
+            raise NotImplementedError("Supported implementations: networkx, c_graph.")
+
         if format is None and isinstance(data, str):
             format = 'dig6'
             if data[:8] == ">>dig6<<":
@@ -815,64 +874,6 @@ class DiGraph(GenericGraph):
             num_verts = data
 
         # weighted, multiedges, loops, verts and num_verts should now be set
-
-        if implementation == 'networkx':
-            import networkx
-            from sage.graphs.base.graph_backends import NetworkXGraphBackend
-            if format == 'DiGraph':
-                self._backend = NetworkXGraphBackend(data.networkx_graph())
-                self._weighted = weighted
-                self.allow_loops(loops)
-                self.allow_multiple_edges(multiedges)
-            else:
-                self._backend = NetworkXGraphBackend(networkx.MultiDiGraph())
-                self._weighted = weighted
-                self.allow_loops(loops)
-                self.allow_multiple_edges(multiedges)
-                if verts is not None:
-                    self.add_vertices(verts)
-                else:
-                    self.add_vertices(range(num_verts))
-        elif implementation == 'c_graph':
-            if multiedges or weighted:
-                if data_structure == "dense":
-                    raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
-
-            if immutable:
-                data_structure = 'static_sparse'
-
-            # If the data structure is static_sparse, we first build a graph
-            # using the sparse data structure, then reencode the resulting graph
-            # as a static sparse graph.
-            from sage.graphs.base.sparse_graph import SparseGraphBackend
-            from sage.graphs.base.dense_graph import DenseGraphBackend
-            if data_structure in ["sparse", "static_sparse"]:
-                CGB = SparseGraphBackend
-            elif data_structure == "dense":
-                 CGB = DenseGraphBackend
-            else:
-                raise ValueError("data_structure must be equal to 'sparse', "
-                                 "'static_sparse' or 'dense'")
-            if format == 'DiGraph':
-                self._backend = CGB(0, directed=True)
-                self.add_vertices(verts)
-                self._weighted = weighted
-                self.allow_loops(loops, check=False)
-                self.allow_multiple_edges(multiedges, check=False)
-                for u,v,l in data.edge_iterator():
-                    self._backend.add_edge(u,v,l,True)
-            else:
-                self._backend = CGB(0, directed=True)
-                if verts is not None:
-                    self._backend = CGB(0, directed=True)
-                    self.add_vertices(verts)
-                else:
-                    self._backend = CGB(num_verts, directed=True)
-                self._weighted = weighted
-                self.allow_loops(loops, check=False)
-                self.allow_multiple_edges(multiedges, check=False)
-        else:
-            raise NotImplementedError("Supported implementations: networkx, c_graph.")
 
         if format == 'dig6':
             k = 0

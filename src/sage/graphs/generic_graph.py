@@ -3672,8 +3672,7 @@ class GenericGraph(GenericGraph_pyx):
         These would be elements referred to below
         as parts of the wheel and the star, which were added to the graph to
         require that the boundary can be drawn on the boundary of a disc, with
-        all other vertices drawn inside (and no edge crossings). For more
-        information, see [Kirkman]_.
+        all other vertices drawn inside (and no edge crossings).
 
         ALGORITHM:
 
@@ -3689,9 +3688,6 @@ class GenericGraph(GenericGraph_pyx):
           Simplified O(n) Planarity by Edge Addition. Journal of Graph
           Algorithms and Applications, Vol. 8, No. 3, pp. 241-273,
           2004.
-
-        .. [Kirkman] Kirkman, Emily A. O(n) Circular Planarity Testing.
-          [Online] Available: soon!
 
         EXAMPLES::
 

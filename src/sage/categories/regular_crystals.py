@@ -251,12 +251,41 @@ class RegularCrystals(Category_singleton):
             transformation of `b` for some `i` in the index set of `B`.
             The color of such an edge is the index `i`.
 
+            .. NOTE::
+
+                This dual equivalence graph is close to the
+                `\mathcal{G}\left(\mathcal{X}\right)` of [Assaf08]_
+                Section 4, but slightly different in the details.
+                [Assaf08]_ requires the vertices of the dual
+                equivalence graph to satisfy
+                `\varepsilon_j(b) = \varphi_j(b) = 0 \text{ or } 1`,
+                while we only require the weaker condition
+                `\varepsilon_j(b) = \varphi_j(b)`.
+
+            This definition can be generalized in two directions:
+
+            * We can choose an interval `I` of the index set of `B`.
+              Then, the dual equivalence graph of `B` indexed by `I`
+              is defined just as the dual equivalence graph of `B`,
+              except that we only require the vertices to be of weight
+              `0` with respect to `I` (that is, we only require
+              `\varepsilon_j(b) = \varphi_j(b)` for `j \in I`), and we
+              only allow `i` elementary dual equivalence
+              transformations with `i \in I`.
+
+            * We can choose a subset `X` of the set of all vertices
+              of `B` of weight `0`, and restrict the dual equivalence
+              graph to the vertex set `X`.
+
             INPUT:
 
-            - ``X`` -- (optional) the vertex set (default: the whole
-              vertex set of ``self``)
-            - ``index_set`` -- (optional) the set of possible indices
-              (default: the whole index set of ``self``);
+            - ``X`` -- (optional) the vertex set (this is the `X` in
+              the above description; default: the whole set of vertices
+              of ``self`` of weight `0`)
+            - ``index_set`` -- (optional) an interval of the index set
+              of ``self``, provided as a strictly increasing list or
+              tuple (this is the `I` in the above description; default:
+              the whole index set of ``self``);
               only edges colored by these indices are drawn, and the
               condition `\varepsilon_j(b) = \varphi_j(b)` is only
               checked for the `j` in this index set
@@ -339,7 +368,7 @@ class RegularCrystals(Category_singleton):
 
             edges = []
             for x in X:
-                for k,i in enumerate(index_set[1:]):
+                for k, i in enumerate(index_set[1:]):
                     im = index_set[k]
                     if x.epsilon(i) == 1 and x.epsilon(im) == 0:
                         y = x.e(i).e(im).f(i).f(im)
@@ -705,12 +734,14 @@ class RegularCrystals(Category_singleton):
 
             INPUT:
 
-            - ``index_set`` (optional): a subset `I` of the index set
-              of the crystal, which determines which elementary dual
-              equivalence relations are to be used (also, ``self``
-              is checked to be of weight zero only with respect to
-              the indices `j` in ``self``); defaults to the whole
-              index set of the crystal
+            - ``index_set`` -- (optional) an interval of the index set
+              of the crystal, provided as a strictly increasing list or
+              tuple (this is the `I` in the above description; default:
+              the whole index set of ``self``);
+              this determines which elementary dual equivalence
+              relations are to be used (also, ``self`` is checked to be
+              of weight zero only with respect to the indices `j` in
+              ``self``); defaults to the whole index set of the crystal
 
             OUTPUT:
 
@@ -754,7 +785,7 @@ class RegularCrystals(Category_singleton):
             while todo:
                 x = todo.pop()
                 visited.add(x)
-                for k,i in enumerate(index_set[1:]):
+                for k, i in enumerate(index_set[1:]):
                     im = index_set[k]
                     if x.epsilon(i) == 1 and x.epsilon(im) == 0:
                         y = x.e(i).e(im).f(i).f(im)

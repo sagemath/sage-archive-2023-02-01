@@ -197,7 +197,7 @@ class experimental(object):
             sage: foo(7, what='Hello')
             doctest:...: FutureWarning: This class/method/function is
             marked as experimental. It, its functionality or its
-            interface might change without a deprecation warning.
+            interface might change without a formal deprecation.
             See http://trac.sagemath.org/79997 for details.
             (7,) {'what': 'Hello'}
 
@@ -210,7 +210,7 @@ class experimental(object):
             sage: _ = bird(99)
             doctest:...: FutureWarning: This class/method/function is
             marked as experimental. It, its functionality or its
-            interface might change without a deprecation warning.
+            interface might change without a formal deprecation.
             See http://trac.sagemath.org/99999 for details.
             piep (99,) {}
 
@@ -244,7 +244,7 @@ class experimental(object):
             sage: ex_foo(3, what='Hello')
             doctest:...: FutureWarning: This class/method/function is
             marked as experimental. It, its functionality or its
-            interface might change without a deprecation warning.
+            interface might change without a formal deprecation.
             See http://trac.sagemath.org/99399 for details.
             (3,) {'what': 'Hello'}
         """
@@ -256,7 +256,7 @@ class experimental(object):
                          'This class/method/function is marked as '
                          'experimental. It, its functionality or its '
                          'interface might change without a '
-                         'deprecation warning.',
+                         'formal deprecation.',
                          self.stacklevel)
             return func(*args, **kwds)
 

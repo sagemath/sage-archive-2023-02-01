@@ -34,19 +34,6 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
     class ParentMethods:
 
-        @cached_method
-        def vectors_parent(self):
-            """
-            Return the parent of the vectors created with ``x.to_vector()``.
-
-            EXAMPLES::
-
-                sage: F = Algebras(QQ).FiniteDimensional().WithBasis().example()
-                sage: F.vectors_parent()
-                Vector space of dimension 4 over Rational Field
-            """
-            return self.zero().to_vector().parent()
-
         def annihilator(self, S, action=operator.mul, side='right', category=None):
             r"""
             INPUT:

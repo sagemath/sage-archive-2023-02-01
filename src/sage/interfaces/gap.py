@@ -1658,13 +1658,11 @@ def gfq_gap_to_sage(x, F):
     """
     INPUT:
 
+    - ``x`` -- GAP finite field element
 
-    -  ``x`` - gap finite field element
+    - ``F`` -- Sage finite field
 
-    -  ``F`` - Sage finite field
-
-
-    OUTPUT: element of F
+    OUTPUT: element of ``F``
 
     EXAMPLES::
 
@@ -1684,31 +1682,39 @@ def gfq_gap_to_sage(x, F):
         sage: F.multiplicative_generator()^3
         12*a + 11
 
+    TESTS:
+
+    Check that :trac:`18048` is fixed::
+
+        sage: K.<a> = GF(16)
+        sage: b = a^2 + a
+        sage: K(b._gap_())
+        a^2 + a
+
     AUTHOR:
 
     - David Joyner and William Stein
     """
-    from sage.rings.finite_rings.constructor import FiniteField
-
     s = str(x)
     if s[:2] == '0*':
         return F(0)
     i1 = s.index("(")
     i2 = s.index(")")
     q  = eval(s[i1+1:i2].replace('^','**'))
-    if q == F.order():
-        K = F
-    else:
-        K = FiniteField(q, F.variable_name())
+    if not F.cardinality().is_power_of(q):
+        raise ValueError('%r has no subfield of size %r' % (F, q))
     if s.find(')^') == -1:
         e = 1
     else:
         e = int(s[i2+2:])
     if F.degree() == 1:
-        g = int(gap.eval('Int(Z(%s))'%q))
+        g = F(gap.eval('Int(Z(%s))' % q))
+    elif F.is_conway():
+        f = (F.cardinality() - 1) // (q - 1)
+        g = F.multiplicative_generator() ** f
     else:
-        g = K.multiplicative_generator()
-    return F(K(g**e))
+        raise ValueError('%r is not prime or defined by a Conway polynomial' % F)
+    return g**e
 
 def intmod_gap_to_sage(x):
     r"""
@@ -1730,14 +1736,14 @@ def intmod_gap_to_sage(x):
         sage: b = sage.interfaces.gap.intmod_gap_to_sage(a); b
         3
         sage: b.parent()
-        Ring of integers modulo 17
+        Finite Field of size 17
 
         sage: a = gap(Mod(0, 17)); a
         0*Z(17)
         sage: b = sage.interfaces.gap.intmod_gap_to_sage(a); b
         0
         sage: b.parent()
-        Ring of integers modulo 17
+        Finite Field of size 17
 
         sage: a = gap(Mod(3, 65537)); a
         ZmodpZObj( 3, 65537 )
@@ -1746,12 +1752,12 @@ def intmod_gap_to_sage(x):
         sage: b.parent()
         Ring of integers modulo 65537
     """
+    from sage.rings.finite_rings.all import FiniteField
     from sage.rings.finite_rings.integer_mod import Mod
-    from sage.rings.finite_rings.integer_mod_ring import Zmod
     s = str(x)
     m = re.search(r'Z\(([0-9]*)\)', s)
     if m:
-        return gfq_gap_to_sage(x, Zmod(m.group(1)))
+        return gfq_gap_to_sage(x, FiniteField(m.group(1)))
     m = re.match(r'Zmod[np]ZObj\( ([0-9]*), ([0-9]*) \)', s)
     if m:
         return Mod(m.group(1), m.group(2))

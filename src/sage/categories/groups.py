@@ -642,7 +642,7 @@ class Groups(CategoryWithAxiom):
 
                     sage: GroupAlgebras(QQ).example(GL(3, GF(11))).group()
                     General Linear Group of degree 3 over Finite Field of size 11
-                    sage: SymmetricGroupAlgebra(QQ,10).group()
+                    sage: SymmetricGroup(10).algebra(QQ).group()
                     Symmetric group of order 10! as a permutation group
                 """
                 return self.basis().keys()

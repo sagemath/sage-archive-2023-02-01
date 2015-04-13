@@ -324,15 +324,20 @@ class RegularCrystals(Category_singleton):
 
             if X is None:
                 X = [x for x in self if wt_zero(x)]
+                checker = lambda x: True
             elif any(not wt_zero(x) for x in X):
                 raise ValueError("the elements are not all weight 0")
+            else:
+                checker = lambda x: x in X
 
             edges = []
             for x in X:
                 for k,i in enumerate(index_set[1:]):
                     im = index_set[k]
                     if x.epsilon(i) == 1 and x.epsilon(im) == 0:
-                        edges.append([x, x.e(i).e(im).f(i).f(im), i])
+                        y = x.e(i).e(im).f(i).f(im)
+                        if checker(y):
+                            edges.append([x, y, i])
             from sage.graphs.all import DiGraph
             G = DiGraph(edges)
             G.add_vertices(X)

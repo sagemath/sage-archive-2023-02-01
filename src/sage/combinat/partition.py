@@ -4498,9 +4498,7 @@ class Partition(CombinatorialObject, Element):
         following two conditions are satisfied:
 
         - In the one-line notation of the permutation `p`, the letter
-          `i` appears either to the left of both `i-1` and `i+1`, or
-          to the right of both `i-1` and `i+1` (but not between the
-          two).
+          `i` does not appears inbetween `i-1` and `i+1`.
 
         - The permutation `q` is obtained from `p` by switching two
           of the three letters `i-1, i, i+1` (in its one-line
@@ -4524,9 +4522,10 @@ class Partition(CombinatorialObject, Element):
         INPUT:
 
         - ``directed`` -- (default: ``False``) whether to have the dual
-          equivalence graph be directed (where the head of an edge
-          `T - S` is `S` if `i` appears to the left of `i+1` in the
-          reading word of `T`, and `T` otherwise)
+          equivalence graph be directed (where we have a directed edge
+          `S \to T` is `S` if `i` appears to the left of `i+1` in the
+          reading word of `T`; otherwise we have the directed edge
+          `T \to S`)
 
         - ``coloring`` -- (optional) a function which sends each
           integer `i > 1` to a color (as a string, e.g., ``'red'`` or

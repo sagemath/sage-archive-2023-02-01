@@ -176,7 +176,7 @@ def experimental_warning(trac_number, message, stacklevel=4):
 
 
 class experimental(object):
-    def __init__(self, trac_number, stacklevel=5):
+    def __init__(self, trac_number, stacklevel=4):
         """
         A decorator which warns about the experimental/unstable status of
         the decorated class/method/function.
@@ -186,7 +186,7 @@ class experimental(object):
         - ``trac_number`` -- an integer. The trac ticket number where this
           code was introduced.
 
-        - ``stack_level`` -- (default: ``5``) an integer. This is passed on to
+        - ``stack_level`` -- (default: ``4``) an integer. This is passed on to
           :func:`warnings.warn`.
 
         EXAMPLES::

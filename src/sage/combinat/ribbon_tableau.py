@@ -35,9 +35,10 @@ class RibbonTableau(SkewTableau):
     r"""
     A ribbon tableau.
 
-    A ribbon is a skew tableau such that the skew shape does not
-    contain any `2 \times 2` boxes.  A ribbon tableau is a skew tableau
-    that is partitioned into ribbons.
+    A ribbon is a connected skew shape which does not contain any
+    `2 \times 2` boxes.  A ribbon tableau is a skew tableau
+    whose shape is partitioned into ribbons, each of which is filled
+    with identical entries.
 
     EXAMPLES::
 
@@ -65,6 +66,11 @@ class RibbonTableau(SkewTableau):
 
         sage: RibbonTableau(expr=[[1,1],[[5],[3,4],[1,2]]])
         [[None, 1, 2], [None, 3, 4], [5]]
+
+    TESTS::
+
+        sage: RibbonTableau([[0, 0, 3, 0], [1, 1, 0], [2, 0, 4]]).evaluation()
+        [2, 1, 1, 1]
     """
     #The following method is private and will only get called
     #when calling RibbonTableau() directly, and not via element_class
@@ -82,11 +88,12 @@ class RibbonTableau(SkewTableau):
         if expr is not None:
             return RibbonTableaux().from_expr(expr)
 
-        for row in rt:
-            if not isinstance(row, list):
-                raise TypeError("each element of the ribbon tableau must be a list")
-            if row == []:
-                raise TypeError("a ribbon tableau cannot have an empty list for a row")
+        try:
+            rt = map(tuple, rt)
+        except TypeError:
+            raise TypeError("each element of the ribbon tableau must be an iterable")
+        if not all(row for row in rt):
+            raise TypeError("a ribbon tableau cannot have empty rows")
         #calls the inherited __init__ method (of SkewTableau )
         return RibbonTableaux()(rt)
 
@@ -97,9 +104,6 @@ class RibbonTableau(SkewTableau):
         default ``__setstate__``.
 
         EXAMPLES::
-
-            sage: loads('x\x9c5\xcc\xbd\x0e\xc2 \x14@\xe1\xb4Z\x7f\xd0\x07\xc1\x85D}\x8f\x0e\x8d\x1d\t\xb9\x90\x1bJ\xa44\x17\xe8h\xa2\x83\xef-\xda\xb8\x9do9\xcf\xda$\xb0(\xcc4j\x17 \x8b\xe8\xb4\x9e\x82\xca\xa0=\xc2\xcc\xba\x1fo\x8b\x94\xf1\x90\x12\xa3\xea\xf4\xa2\xfaA+\xde7j\x804\xd0\xba-\xe5]\xca\xd4H\xdapI[\xde.\xdf\xe8\x82M\xc2\x85\x8c\x16#\x1b\xe1\x8e\xea\x0f\xda\xf5\xd5\xf9\xdd\xd1\x1e%1>\x14]\x8a\x0e\xdf\xb8\x968"\xceZ|\x00x\xef5\x11')
-            [[None, 1], [2, 3]]
 
             sage: loads(dumps( RibbonTableau([[None, 1],[2,3]]) ))
             [[None, 1], [2, 3]]
@@ -153,20 +157,6 @@ class RibbonTableau(SkewTableau):
             w += row
         return Word(w)
 
-    def evaluation(self):
-        """
-        Return the evaluation of the ribbon tableau.
-
-        EXAMPLES::
-
-            sage: RibbonTableau([[0, 0, 3, 0], [1, 1, 0], [2, 0, 4]]).evaluation()
-            [2, 1, 1, 1]
-        """
-        ed = self.to_word().evaluation_dict()
-        entries = ed.keys()
-        m = max(entries) + 1 if entries else -1
-        return [ed.get(k,0) for k in range(1,m)]
-
 #####################
 # Ribbon Tableaux   #
 #####################
@@ -181,7 +171,7 @@ class RibbonTableaux(Parent, UniqueRepresentation):
 
     .. NOTE::
 
-        Here we inpose the condition that the ribbon tableaux are semistandard.
+        Here we impose the condition that the ribbon tableaux are semistandard.
 
     INPUT(Optional):
 
@@ -216,7 +206,7 @@ class RibbonTableaux(Parent, UniqueRepresentation):
 
     REFRENCES:
 
-    .. [vanLeeuwen91] Marc. A. A. van Leeuwen *Edge sequences, ribbon tableaux,
+    .. [vanLeeuwen91] Marc. A. A. van Leeuwen, *Edge sequences, ribbon tableaux,
        and an action of affine permutations*. Europe J. Combinatorics. **20**
        (1999). http://wwwmathlabo.univ-poitiers.fr/~maavl/pdf/edgeseqs.pdf
     """
@@ -354,7 +344,7 @@ class RibbonTableaux_shape_weight_length(RibbonTableaux):
 
     def __contains__(self, x):
         """
-        Note that this just checks to see if ``x`` appears is in ``self``.
+        Note that this just checks to see if ``x`` appears in ``self``.
         This should be improved to provide actual checking.
 
         EXAMPLES::
@@ -817,7 +807,7 @@ def graph_implementation_rec(skp, weight, length, function):
 
 class MultiSkewTableau(CombinatorialObject, Element):
     """
-    A multi skew tableau which is a tuple of skew tableau.
+    A multi skew tableau which is a tuple of skew tableaux.
 
     EXAMPLES::
 

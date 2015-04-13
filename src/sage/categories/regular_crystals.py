@@ -232,7 +232,7 @@ class RegularCrystals(Category_singleton):
             Let `b \in B` be an element of weight `0`, so `\varepsilon_j(b)
             = \varphi_j(b)` for all `j \in I`, where `I` is the indexing
             set. We say `b'` is an `i`-elementary dual equivalence
-            transformation (where `i \in I`) of `b` if
+            transformation of `b` (where `i \in I`) if
 
             * `\varepsilon_i(b) = 1` and `\varepsilon_{i-1}(b) = 0`, and
             * `b' = f_{i-1} f_i e_{i-1} e_i b`.
@@ -242,8 +242,8 @@ class RegularCrystals(Category_singleton):
 
             .. NOTE::
 
-                If the index set is not an ordered interval, we consider
-                `i - 1` to be the index appearing before `i` in `I`.
+                If the index set is not an ordered interval, we let
+                `i - 1` mean the index appearing before `i` in `I`.
 
             This definition comes from [Assaf08]_ Section 4 (where our
             `\varphi_j(b)` and `\varepsilon_j(b)` are denoted by
@@ -251,9 +251,9 @@ class RegularCrystals(Category_singleton):
 
             The dual equivalence graph of `B` is defined to be the
             colored graph whose vertices are the elements of `B` of
-            weight `0`, and whose edges connect pairs `\{ b, b' \}`
-            such that `b'` is an `i`-elementary dual equivalence
-            transformation of `b` for some `i \in I` and has color `i`.
+            weight `0`, and whose edges of color `i` (for `i \in I`)
+            connect pairs `\{ b, b' \}` such that `b'` is an
+            `i`-elementary dual equivalence transformation of `b`.
 
             .. NOTE::
 
@@ -264,14 +264,17 @@ class RegularCrystals(Category_singleton):
 
             This definition can be generalized by choosing a subset `X`
             of the set of all vertices of `B` of weight `0`, and
-            restrict the dual equivalence graph to the vertex set `X`.
+            restricting the dual equivalence graph to the vertex set
+            `X`.
 
             INPUT:
 
             - ``X`` -- (optional) the vertex set `X` (default:
               the whole set of vertices of ``self`` of weight `0`)
             - ``index_set`` -- (optional) the index set `I`
-              (default: the whole index set of ``self``)
+              (default: the whole index set of ``self``); this has
+              to be a subset of the index set of ``self`` (as a list
+              or tuple)
             - ``directed`` -- (default: ``True``) whether to have the
               dual equivalence graph be directed, where the head of
               an edge `b - b'` is `b` and the tail is

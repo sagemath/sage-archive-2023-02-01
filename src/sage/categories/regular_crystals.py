@@ -705,8 +705,8 @@ class RegularCrystals(Category_singleton):
 
             The dual equivalence class of an element `b \in B`
             is the set of all elements of `B` reachable from
-            `b` via sequences of `i` elementary dual equivalence
-            relations (i.e., `i` elementary dual equivalence
+            `b` via sequences of `i`-elementary dual equivalence
+            relations (i.e., `i`-elementary dual equivalence
             transformations and their inverses) for `i` in the index
             set of `B`.
 
@@ -715,19 +715,15 @@ class RegularCrystals(Category_singleton):
             `\varepsilon_j(b) = \varphi_j(b)` for all `j \in I`.
 
             See [Assaf08]_. See also :meth:`dual_equivalence_graph` for
-            a definition of `i` elementary dual equivalence
+            a definition of `i`-elementary dual equivalence
             transformations.
 
             INPUT:
 
-            - ``index_set`` -- (optional) an interval of the index set
-              of the crystal, provided as a strictly increasing list or
-              tuple (this is the `I` in the above description; default:
-              the whole index set of ``self``);
-              this determines which elementary dual equivalence
-              relations are to be used (also, ``self`` is checked to be
-              of weight zero only with respect to the indices `j` in
-              ``self``); defaults to the whole index set of the crystal
+            - ``index_set`` -- (optional) the index set `I`
+              (default: the whole index set of the crystal); this has
+              to be a subset of the index set of the crystal (as a list
+              or tuple)
 
             OUTPUT:
 

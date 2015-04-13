@@ -681,9 +681,26 @@ class RegularCrystals(Category_singleton):
             Return the dual equivalence class indexed by ``index_set``
             of ``self``.
 
-            The dual equivalence class of an element `b \in B` is the
-            transitive closure of all `i` elementary dual equivalence
-            relations (or transformations and their inverses) [Assaf08]_.
+            The dual equivalence class of an element `b \in B` (of
+            weight `0`) indexed by a subset `I` of the index set of the
+            crystal is the set of all elements of `B` reachable from
+            `b` via sequences of `i` elementary dual equivalence
+            relations (i.e., transformations and their inverses) for
+            `i \in I`.
+            See [Assaf08]_.
+
+            INPUT:
+
+            - ``index_set`` (optional): a subset `I` of the index set
+              of the crystal, which determines which elementary dual
+              equivalence relations are to be used; defaults to the
+              whole index set
+
+            OUTPUT:
+
+            The dual equivalence class of ``self`` indexed by the
+            subset ``index_set``. This class is returned as an
+            undirected edge-colored multigraph.
 
             .. SEEALSO::
 

@@ -31,8 +31,9 @@ The ``codes`` object may be used to access the codes that Sage can build.
 """
 
 # Implementation note:
-# This is a catalog for accessing the most important user-level classes. In
-# all.py it is imported to provide convenient access to coding theory classes.
+#
+# This module is imported as "codes" in all.py so that codes.<tab> is available
+# in the global namespace.
 
 from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
                                 CyclicCode, CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,

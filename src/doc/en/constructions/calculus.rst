@@ -121,10 +121,14 @@ Or you can use the formal power series rings for fast computation.
 These are missing symbolic functions, on the other hand::
 
     sage: R.<w> = QQ[[]]
-    sage: ps = w + 17/2*w^2 + 15/4*w^4 + O(w^6)
+    sage: ps = w + 17/2*w^2 + 15/4*w^4 + O(w^6); ps
+    w + 17/2*w^2 + 15/4*w^4 + O(w^6)
+    sage: ps.exp()
+    1 + w + 9*w^2 + 26/3*w^3 + 265/6*w^4 + 413/10*w^5 + O(w^6)
+    sage: (1+ps).log()  
+    w + 8*w^2 - 49/6*w^3 - 193/8*w^4 + 301/5*w^5 + O(w^6)
     sage: (ps^1000).coefficients()
     [1, 8500, 36088875, 102047312625, 1729600092867375/8]
-
 
 .. index::
    pair: calculus; integration

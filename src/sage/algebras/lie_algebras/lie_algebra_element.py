@@ -31,25 +31,12 @@ from sage.structure.sage_object import SageObject
 from sage.combinat.free_module import CombinatorialFreeModuleElement
 from sage.structure.element_wrapper import ElementWrapper
 
+# TODO: Refactor this with Element wrapper
 @total_ordering
 class LieGenerator(SageObject): # Does this need to be SageObject?
     """
     A wrapper around an object so it can compare with :class:`LieBracket`.
     """
-    __metaclass__ = ClasscallMetaclass
-
-    @staticmethod
-    def __classcall_private__(cls, name):
-        """
-        Return ``name`` if it is a :class:`LieGenerator`, otherwise construct
-        a new object.
-
-        EXAMPLES::
-        """
-        if isinstance(name, LieGenerator):
-            return name
-        return typecall(cls, name)
-
     def __init__(self, name):
         """
         Initalize ``self``.
@@ -292,20 +279,20 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
         # Otherwise we lift to the UEA
         return self.lift() * y
 
-    #def _im_gens_(self, codomain, im_gens):
-    #    """
-    #    Return the image of ``self`` in ``codomain`` under the map that sends
-    #    the images of the generators of the parent of ``self`` to the
-    #    tuple of elements of ``im_gens``.
-    #
-    #    EXAMPLES::
-    #    """
-    #    s = codomain.zero()
-    #    if not self: # If we are 0
-    #        return s
-    #    names = self.parent().variable_names()
-    #    return codomain.sum(c * t._im_gens_(codomain, im_gens, names)
-    #                        for t, c in self._monomial_coefficients.iteritems())
+    def _im_gens_(self, codomain, im_gens):
+        """
+        Return the image of ``self`` in ``codomain`` under the map that sends
+        the images of the generators of the parent of ``self`` to the
+        tuple of elements of ``im_gens``.
+    
+        EXAMPLES::
+        """
+        s = codomain.zero()
+        if not self: # If we are 0
+            return s
+        names = self.parent().variable_names()
+        return codomain.sum(c * t._im_gens_(codomain, im_gens, names)
+                            for t, c in self._monomial_coefficients.iteritems())
 
     # TODO: Move to the category/lift morphism?
     def lift(self):

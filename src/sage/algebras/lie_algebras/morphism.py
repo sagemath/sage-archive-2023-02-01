@@ -38,12 +38,12 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
             <type 'sage.rings.morphism.RingHomomorphism_im_gens'>
 
         Here's another example where the domain isn't free::
-        
+
             sage: S.<xx,yy> = R.quotient(x - y)
             sage: phi = S.hom([xx+1,xx+1])
 
         Note that one has to specify valid images::
-        
+
             sage: phi = S.hom([xx+1,xx-1])
             Traceback (most recent call last):
             ...
@@ -99,7 +99,7 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
 
         EXAMPLES::
 
-            sage: 
+            sage: R.<x,y> = QQ[]
             sage: f = R.hom([x,x+y])
             sage: f.im_gens()
             [x, x + y]
@@ -137,7 +137,7 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
         D = self.domain()
         ig = self.__im_gens
         return '\n'.join(['%s |--> %s'%(x, ig[i]) for i, x in enumerate(D.gens())])
-            
+
     def _call_(self, x):
         """
         Evaluate this homomorphism at ``x``.

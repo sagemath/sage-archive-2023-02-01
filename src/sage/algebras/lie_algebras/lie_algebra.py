@@ -263,7 +263,8 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             F = FreeAlgebra(R, names)
             return LieAlgebraFromAssociative(F, F.gens(), names=names, index_set=index_set)
 
-        raise NotImplementedError("the free Lie algebra has only been implemented using polynomials in the free algebra, see trac ticket #16823")
+        from sage.algebras.lie_algebras.free_lie_algebra import FreeLieAlgebra
+        return FreeLieAlgebra(R, names, index_set)
 
     @staticmethod
     def _standardize_names_index_set(names=None, index_set=None, ngens=None):
@@ -365,7 +366,6 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             Category of finite dimensional lie algebras with basis over Rational Field
         """
         category = LieAlgebras(R).or_subcategory(category)
-
         self._indices = index_set
         Parent.__init__(self, base=R, names=names, category=category)
 

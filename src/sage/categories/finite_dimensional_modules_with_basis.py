@@ -62,7 +62,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             The subspace of the elements `x` of ``self`` such that
             ``action(x,s) = 0`` for all `s\in S`. If ``side`` is
-            'left' replace the above equation by ``action(s,x) = 0`.
+            'left' replace the above equation by ``action(s,x) = 0``.
 
             If ``self`` is a ring, ``action`` an action of ``self`` on
             a module `M` and `S` is a subset of `M`, we recover the

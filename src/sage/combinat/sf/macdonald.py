@@ -964,9 +964,9 @@ class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
                 ((t^2+q-t-1)/(q*t-1))*McdH[1, 1] + ((-t^3+t^2+t-1)/(q*t-1))*McdH[2]
                 sage: H(0).nabla()
                 0
-                sage: H([2,2,1]).nabla(t=1/H.t)  # long time (4s on sage.math, 2012)
+                sage: H([2,2,1]).nabla(t=1/H.t)
                 q^2/t^4*McdH[2, 2, 1]
-                sage: H([2,2,1]).nabla(t=1/H.t,power=-1)  # long time (4s on sage.math, 2013)
+                sage: H([2,2,1]).nabla(t=1/H.t,power=-1)
                 t^4/q^2*McdH[2, 2, 1]
             """
             parent = self.parent()

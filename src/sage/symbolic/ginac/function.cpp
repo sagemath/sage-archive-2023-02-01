@@ -788,7 +788,7 @@ ex function::eval(int level) const
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.eval_f with this list
 		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.eval_f,
-				"_eval_", "O", args);
+				const_cast<char*>("_eval_"), const_cast<char*>("O"), args);
 		Py_DECREF(args);
 		if (!pyresult) { 
 			throw(std::runtime_error("function::eval(): python function raised exception"));
@@ -1001,7 +1001,7 @@ ex function::subs(const exmap & m, unsigned options) const
 		// call opt.subs_f with this list
 		PyObject* pyresult = PyObject_CallMethod(
 				(PyObject*)opt.subs_f,
-				"_subs_", "O", args);
+				const_cast<char*>("_subs_"), const_cast<char*>("O"), args);
 		Py_DECREF(args);
 		if (!pyresult) { 
 			throw(std::runtime_error("function::subs(): python method (_subs_) raised exception"));
@@ -1033,7 +1033,7 @@ ex function::conjugate() const
 		// call opt.conjugate_f with this list
 		PyObject* pyresult = PyObject_CallMethod(
 				(PyObject*)opt.conjugate_f,
-				"_conjugate_", "O", args);
+				const_cast<char*>("_conjugate_"), const_cast<char*>("O"), args);
 		Py_DECREF(args);
 		if (!pyresult) { 
 			throw(std::runtime_error("function::conjugate(): python function raised exception"));
@@ -1078,7 +1078,7 @@ ex function::real_part() const
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.real_part_f with this list
 		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.real_part_f,
-				"_real_part_", "O", args);
+				const_cast<char*>("_real_part_"), const_cast<char*>("O"), args);
 		Py_DECREF(args);
 		if (!pyresult) { 
 			throw(std::runtime_error("function::real_part(): python function raised exception"));
@@ -1122,7 +1122,7 @@ ex function::imag_part() const
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.imag_part_f with this list
 		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.imag_part_f,
-				"_imag_part_", "O", args);
+				const_cast<char*>("_imag_part_"), const_cast<char*>("O"), args);
 		Py_DECREF(args);
 		if (!pyresult) { 
 			throw(std::runtime_error("function::imag_part(): python function raised exception"));

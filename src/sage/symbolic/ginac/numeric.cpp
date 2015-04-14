@@ -170,7 +170,7 @@ PyObject* Integer(const long int& x) {
   PyObject* Integer = PyObject_GetAttrString(m, "Integer");
   if (!Integer)
     py_error("Error getting Integer attribute");
-  PyObject* ans = PyObject_CallFunction(Integer, "l", x);
+  PyObject* ans = PyObject_CallFunction(Integer, const_cast<char*>("l"), x);
   Py_DECREF(m);
   Py_DECREF(Integer);
   return ans;
@@ -260,7 +260,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	return;
       case PYOBJECT:
 	verbose("About to coerce a C long to an Integer");
-	if (!(o = PyObject_CallFunction(pyfunc_Integer, "l", left.v._long))) {
+	if (!(o = PyObject_CallFunction(pyfunc_Integer, const_cast<char*>("l"), left.v._long))) {
 	  py_error("Error coercing a long to an Integer");
 	}
 	new_left = o;

@@ -64,7 +64,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             ``action(x,s) = 0`` for all `s\in S`. If ``side`` is
             'left' replace the above equation by ``action(s,x) = 0`.
 
-            If ``self`` is a ring, action is an action of ``self`` on
+            If ``self`` is a ring, ``action`` an action of ``self`` on
             a module `M` and `S` is a subset of `M`, we recover the
             :Wikipedia:`Annihilator_%28ring_theory%29`. Similarly this
             can be used to compute torsion or orthogonals.
@@ -141,8 +141,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: x*x, y*x, a*x, b*x
                 (x, 0, 0, 0)
 
-            So the annihilator is the subspace spanned by `y`,`a`,and
-            `b`::
+            So the annihilator is the subspace spanned by `y`, `a`, and `b`::
 
                 sage: F.annihilator_basis([x])
                 [y, a, b]
@@ -154,7 +153,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: F.annihilator_basis([a])
                 [y, a, b]
 
-            On the other hand, `y` kills only `x`::
+            On the other hand, `y` annihilates only `x`::
 
                 sage: F.annihilator_basis([y])
                 [x]

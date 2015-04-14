@@ -432,7 +432,7 @@ class FindStat():
                     isinstance(query[1][0], (int, Integer))):
                     # just a pair
                     if len(query[0]) != len(query[1]):
-                           raise ValueError, "FindStat expects the same number of objects as values!"
+                           raise ValueError("FindStat expects the same number of objects as values!")
 
                     data = [(query[0], list(query[1]))]
                     collection = FindStatCollection(data[0][0][0])
@@ -446,7 +446,7 @@ class FindStat():
                         if isinstance(value, (list, tuple)):
                             data += [(key, list(value))]
                             if len(key) != len(value):
-                                raise ValueError, "FindStat expects the same number of objects as values!"
+                                raise ValueError("FindStat expects the same number of objects as values!")
                             is_statistic = False
                         else:
                             data += [([key], [value])]
@@ -519,9 +519,9 @@ class FindStat():
             web page using the :meth:`login` method.
         """
         if not isinstance(name, str):
-            raise ValueError("The given name is not a string")
+            raise ValueError("The given name is not a string.")
         if not isinstance(email, str):
-            raise ValueError("The given email address is not a string")
+            raise ValueError("The given email address is not a string.")
         self._user_name  = name
         self._user_email = email
 
@@ -596,7 +596,7 @@ class FindStatStatistic(SageObject):
                 return self._result.__repr__()
 
         else:
-            raise ValueError("self._query should be either 'ID' or 'data', but is %s" %self._query)
+            raise ValueError("self._query should be either 'ID' or 'data', but is %s." %self._query)
 
     def __eq__(self, other):
         """
@@ -731,7 +731,7 @@ class FindStatStatistic(SageObject):
                                       for match in result[FINDSTAT_QUERY_MATCHES])
             return self
         except:
-            raise IOError, "FindStat did not answer with a json response."
+            raise IOError("FindStat did not answer with a json response.")
 
     ######################################################################
 
@@ -743,7 +743,7 @@ class FindStatStatistic(SageObject):
             return self._result[key]
 
         else:
-            raise ValueError("self._query should be either 'ID' or 'data', but is %s" %self._query)
+            raise ValueError("self._query should be either 'ID' or 'data', but is %s." %self._query)
 
     def id(self):
         r"""
@@ -1152,7 +1152,7 @@ class FindStatCollection(SageObject):
              lambda x: CartanType(*literal_eval(str(x)))],
         18: [None, None, None, GelfandTsetlinPattern, lambda x: GelfandTsetlinPatterns(*x),
              None,
-             lambda x: (len(x), max(max(row) for row in x)),
+             lambda x: (len(x), max([0] + [max(row) for row in x])),
              str,
              lambda x: GelfandTsetlinPattern(literal_eval(x))],
         20: [None, None, None, Graph,                 graphs,
@@ -1334,7 +1334,7 @@ class FindStatCollection(SageObject):
                 except TypeError:
                     pass
         if bad:
-            raise ValueError, "Could not find FindStat collection for " + str(entry)
+            raise ValueError("Could not find FindStat collection for %s." %str(entry))
 
     def __eq__(self, other):
         """
@@ -1383,9 +1383,30 @@ class FindStatCollection(SageObject):
             True
             sage: c.in_range(GelfandTsetlinPattern([[4, 1], [1]]))              # optional -- internet,random
             False
+
+        .. TODO::
+
+            This algorithm is extremely slow and moreover unreliable.
+            For example, the Gelfand Tsetlin patterns of size (2,3)
+            contain those of size (2,2), but only the former are
+            explicitely in the range reported by FindStat.
+
+            So possibly I need to hardcode a membership check for
+            every collection.
+
+        TESTS::
+
+            sage: s = findstat(81); s                                           # optional -- internet,random
+            St000081: The number of edges of a graph.
+            sage: number_of_terms_in_range(s)                                   # optional -- internet,random
+            ...
+
+            sage: c.in_range(GelfandTsetlinPattern([[2, 1], [1]]))              # optional -- internet
+            True
         """
         n = self.to_size()(element)
-        return (n in self._range and element in self._sageconstructor(n))
+        to_string = self.to_string()
+        return (n in self._range and to_string(element) in [to_string(x) for x in self._sageconstructor(n)])
 
     def first_terms(self, statistic, max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         r"""
@@ -1594,7 +1615,7 @@ class FindStatMap(SageObject):
                     break
 
         if bad:
-            raise ValueError, "Could not find FindStat map for " + str(entry)
+            raise ValueError("Could not find FindStat map for %s." %str(entry))
 
     def id(self):
         r"""

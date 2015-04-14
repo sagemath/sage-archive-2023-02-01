@@ -17,7 +17,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.homsets import HomsetsCategory
 from category import Category, JoinCategory
 from category_types import Category_module, Category_over_base_ring
-from tensor import TensorProductsCategory
+from sage.categories.tensor import TensorProductsCategory, tensor
 from dual import DualObjectsCategory
 from sage.categories.sets_cat import Sets
 from sage.categories.bimodules import Bimodules
@@ -390,14 +390,13 @@ class Modules(Category_module):
             EXAMPLES::
 
                 sage: Modules(ZZ).Super()
-                Category of graded modules over Integer Ring
+                Category of super modules over Integer Ring
 
                 sage: Coalgebras(QQ).Super()
-                Join of Category of graded modules over Rational Field
-                    and Category of coalgebras over Rational Field
+                Category of super coalgebras over Rational Field
 
                 sage: AlgebrasWithBasis(QQ).Super()
-                Category of graded algebras with basis over Rational Field
+                Category of super algebras with basis over Rational Field
 
             .. TODO::
 
@@ -463,7 +462,18 @@ class Modules(Category_module):
     WithBasis = LazyImport('sage.categories.modules_with_basis', 'ModulesWithBasis')
 
     class ParentMethods:
-        pass
+        @cached_method
+        def tensor_square(self):
+            """
+            Returns the tensor square of ``self``
+
+            EXAMPLES::
+
+                sage: A = HopfAlgebrasWithBasis(QQ).example()
+                sage: A.tensor_square()
+                An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field # An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
+            """
+            return tensor([self, self])
 
     class ElementMethods:
 

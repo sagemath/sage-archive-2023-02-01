@@ -43,6 +43,11 @@ class SuperModulesCategory(CovariantConstructionCategory, Category_over_base_rin
 
         This implements the property that subcategories constructed by
         the set of whitelisted axioms is a subcategory.
+
+        EXAMPLES::
+
+            sage: HopfAlgebras(ZZ).WithBasis().FiniteDimensional().Super() # indirect doctest
+            Category of finite dimensional super hopf algebras with basis over Integer Ring
         """
         axioms = axiom_whitelist.intersection(category.axioms())
         C = super(SuperModulesCategory, cls).default_super_categories(category, *args)

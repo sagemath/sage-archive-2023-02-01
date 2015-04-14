@@ -1,5 +1,5 @@
 r"""
-Super algebras with basis
+Super Algebras
 """
 #*****************************************************************************
 #  Copyright (C) 2015 Travis Scrimshaw <tscrim at ucdavis.edu>
@@ -11,29 +11,28 @@ Super algebras with basis
 from sage.categories.super_modules import SuperModulesCategory
 from sage.categories.algebras import Algebras
 from sage.categories.modules import Modules
+from sage.misc.lazy_import import LazyImport
 
-class SuperAlgebrasWithBasis(SuperModulesCategory):
+class SuperAlgebras(SuperModulesCategory):
     """
-    The category of super algebras with a distinguished basis
+    The category of super algebras.
 
     EXAMPLES::
 
-        sage: C = Algebras(ZZ).WithBasis().Super(); C
-        Category of super algebras with basis over Integer Ring
+        sage: Algebras(ZZ).Super()
+        Category of super algebras over Integer Ring
 
     TESTS::
 
-        sage: TestSuite(C).run()
+        sage: TestSuite(Algebras(ZZ).Super()).run()
     """
     def extra_super_categories(self):
         """
         EXAMPLES::
 
-            sage: C = Algebras(ZZ).WithBasis().Super()
-            sage: sorted(C.super_categories(), key=str) # indirect doctest
-            [Category of graded algebras with basis over Integer Ring,
-             Category of super algebras over Integer Ring,
-             Category of super modules with basis over Integer Ring]
+            sage: Algebras(ZZ).Super().super_categories()
+            [Category of graded algebras over Integer Ring,
+             Category of super modules over Integer Ring]
         """
         return [self.base_category().Graded()]
 

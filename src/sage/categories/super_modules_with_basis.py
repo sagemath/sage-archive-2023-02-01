@@ -37,6 +37,15 @@ class SuperModulesWithBasis(SuperModulesCategory):
 
             ``0`` if ``m`` is for an even element or ``1`` if ``m``
             is for an odd element.
+
+            EXAMPLES::
+
+                sage: Q = QuadraticForm(QQ, 2, [1,2,3])
+                sage: C.<x,y> = CliffordAlgebra(Q)
+                sage: C._even_odd_on_basis((0,))
+                1
+                sage: C._even_odd_on_basis((0,1))
+                0
             """
             return self.degree_on_basis(m) % 2
 

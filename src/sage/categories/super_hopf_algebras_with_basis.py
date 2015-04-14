@@ -19,9 +19,9 @@ class SuperHopfAlgebrasWithBasis(SuperModulesCategory):
         sage: C = HopfAlgebras(ZZ).WithBasis().Super(); C
         Category of super hopf algebras with basis over Integer Ring
         sage: sorted(C.super_categories(), key=str)
-        [Category of hopf algebras with basis over Integer Ring,
-         Category of super algebras over Integer Ring,
-         Category of super algebras with basis over Integer Ring]
+        [Category of super algebras with basis over Integer Ring,
+         Category of super coalgebras with basis over Integer Ring,
+         Category of super hopf algebras over Integer Ring]
 
     TESTS::
 

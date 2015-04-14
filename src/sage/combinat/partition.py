@@ -4580,11 +4580,10 @@ class Partition(CombinatorialObject, Element):
         # We do some custom caching to not recreate the graph, but to make
         #   copies with the desired coloring (i.e., act like a factory).
         try:
-            from copy import copy
             if directed:
-                G = copy(self._DDEG)
+                G = self._DDEG.copy(immutable=False)
             else:
-                G = copy(self._DEG)
+                G = self._DEG.copy(immutable=False)
             if have_dot2tex():
                 if coloring is None:
                     d = {2: 'red', 3: 'blue', 4: 'green', 5: 'purple',

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 The abstract Matroid class
 
@@ -2888,7 +2889,7 @@ cdef class Matroid(SageObject):
 
             :meth:`independence_matroid_polytope`
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: M = matroids.Whirl(4)
             sage: P = M.matroid_polytope(); P
@@ -2903,7 +2904,9 @@ cdef class Matroid(SageObject):
         REFERENCE:
 
         .. [DLHK2007] J. A. De Loera, D. C. Haws, M. Köppe, Ehrhart polynomials
-          of matroid polytopes and polymatroids. :arxiv:`0710.4346`
+          of matroid polytopes and polymatroids. Discrete & Computational
+          Geometry, Volume 42, Issue 4. :arxiv:`0710.4346`,
+          :doi:`10.1007/s00454-008-9120-8`
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         from sage.modules.free_module import FreeModule

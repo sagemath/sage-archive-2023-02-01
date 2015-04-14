@@ -445,7 +445,7 @@ class Macdonald(UniqueRepresentation):
             sage: H = Sym.macdonald().H()
             sage: s = Sym.schur()
             sage: H(s([2]))
-            ((-q)/(-q*t+1))*McdH[1, 1] + (1/(-q*t+1))*McdH[2]
+            (q/(q*t-1))*McdH[1, 1] - (1/(q*t-1))*McdH[2]
         """
         return MacdonaldPolynomials_h(self)
 
@@ -894,7 +894,7 @@ class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
             sage: J._multiply( J[1], J[2] )
             ((-q^2+1)/(-q^2*t+1))*McdJ[2, 1] + ((-t+1)/(-q^2*t+1))*McdJ[3]
             sage: H._multiply( H[1], H[2] )
-            ((-q^2+1)/(-q^2*t+1))*McdH[2, 1] + ((-t+1)/(-q^2*t+1))*McdH[3]
+            ((q^2-1)/(q^2*t-1))*McdH[2, 1] + ((-t+1)/(-q^2*t+1))*McdH[3]
             sage: P._multiply( P[1], P[2] )
             ((-q^3*t^2+q*t^2+q^2-1)/(-q^3*t^2+q^2*t+q*t-1))*McdP[2, 1] + McdP[3]
             sage: Q._multiply(Q[1],Q[2])
@@ -1271,9 +1271,9 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['x']))
             sage: x = Sym.base_ring().gen()
-            sage: H = Sym.macdonald(q=x,t=1/x).H()
+            sage: H = Sym.macdonald(q=x,t=1).H()
             sage: m = Sym.m()
-            sage: H(((x^2+4*x+1)/x)*m[1, 1, 1] + ((2*x+1)/x)*m[2, 1] + 1/x*m[3])
+            sage: H((3*x+3)*m[1, 1, 1] + (x+2)*m[2, 1] + m[3])
             McdH[2, 1]
             
         """
@@ -1447,9 +1447,9 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['x']))
             sage: x = Sym.base_ring().gen()
-            sage: Ht = Sym.macdonald(q=x,t=1/x).Ht()
+            sage: Ht = Sym.macdonald(q=x,t=1).Ht()
             sage: m = Sym.m()
-            sage: Ht(((2*x^2+2*x+2)/x)*m[1, 1, 1] + ((x^2+x+1)/x)*m[2, 1] + m[3])
+            sage: Ht((3*x+3)*m[1, 1, 1] + (x+2)*m[2, 1] + m[3])
             McdHt[2, 1]
             
         """

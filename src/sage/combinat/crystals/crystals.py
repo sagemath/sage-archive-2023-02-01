@@ -19,7 +19,7 @@ automaton whose dual is also deterministic; in this context, the
 automaton and of its dual, and `\emptyset` is the sink.
 
 A crystal comes further endowed with a weight function
-`\operatorname{wt}: \mathcal{B}\mapsto L` which satisfies
+`\operatorname{wt} : \mathcal{B} \to L` which satisfies
 appropriate conditions.
 
 In combinatorial representation theory, crystals are used as
@@ -185,7 +185,7 @@ class CrystalBacktracker(GenericBacktracker):
 
         Principle of the algorithm:
 
-        Let `C` be a classical crystal. It's an acyclic graph where all
+        Let `C` be a classical crystal. It's an acyclic graph where each
         connected component has a unique element without predecessors (the
         highest weight element for this component). Let's assume for
         simplicity that `C` is irreducible (i.e. connected) with highest
@@ -202,7 +202,7 @@ class CrystalBacktracker(GenericBacktracker):
 
         Morally, the iterator implemented below just does a depth first
         search walk through this spanning tree. In practice, this can be
-        achieved recursively as follow: take an element `x`, and
+        achieved recursively as follows: take an element `x`, and
         consider in turn each successor `y = f_i(x)`, ignoring
         those such that `y = f_j(x^{\prime})` for some `x^{\prime}` and
         `j<i` (this can be tested by computing `e_j(y)`

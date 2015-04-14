@@ -513,6 +513,13 @@ class FindStat():
 
         - ``email`` -- an email address of the user
 
+        This information is used when submitting a statistic with
+        :meth:`FindStatStatistic.submit`.
+
+        EXAMPLES::
+        
+            sage: findstat.set_user(name="Anonymous", email="invalid@org")
+
         .. NOTE::
 
             It is usually more convenient to login into the FindStat
@@ -528,6 +535,10 @@ class FindStat():
     def login(self):
         r"""
         Open the FindStat login page in a browser.
+
+        EXAMPLES::
+        
+            sage: findstat.login()                                             # optional -- webbrowser
         """
         webbrowser.open(FINDSTAT_URL_LOGIN)
 
@@ -566,6 +577,41 @@ class FindStatStatistic(SageObject):
     :class:`findstat<FindStat>`.
     """
     def __init__(self, id, first_terms=None, data=None, function=None, code="", collection=None, depth=None):
+        r"""
+        Initialize a FindStat query for a statistic from preprocessed
+        data.
+
+        INPUT:
+
+        - ``id``, an integer designating the FindStat id of a
+          statistic, or 0.
+
+        - ``first_terms`` (optional), a list of (object, value)
+          pairs, see :meth:`first_terms`.
+
+        - ``data`` (optional), a list of pairs of the form (list of
+          objects, list of values), see :meth:`data`.
+
+        - ``function`` (optional), a function taking a sage object as
+          input and returning the value of the statistic on this
+          object, see :meth:`function`.
+
+        - ``code`` (optional), a string containing code (possibly
+          pseudocode or code for a different computer algebra
+          system), see :meth:`code`.
+
+        - ``collection`` (optional), an instance of
+          :class:`FindStatCollection`, see :meth:`collection`.
+
+        - ``depth`` (optional), an integer between 0 and
+          FINDSTAT_MAX_DEPTH, which determines how many maps FindStat
+          should compose at most to find a match.
+
+        This method by itself does not launch the query, because
+        there are two rather different queries possible, see
+        :meth:`_find_by_id` and :meth:`_find_by_values`.
+
+        """
         self._depth = depth
         self._query = None
         self._modified = False
@@ -583,6 +629,34 @@ class FindStatStatistic(SageObject):
         self._references = ""
 
     def __repr__(self):
+        r"""
+        Return the representation of the FindStat query.
+
+        OUTPUT:
+
+        A string.  If the query was by identifier, the identifier and
+        the name of the statistic.  If the statistic was modified
+        (see :meth:`modified`) this is also indicated.
+
+        If the query was by values and at least one match was found,
+        the list of matches.
+
+        Otherwise, if no match was found, a message saying this.
+
+        EXAMPLES::
+
+            sage: findstat(1)                                                   # optional -- internet
+            St000001: ...
+
+            sage: findstat([(pi, randint(1,100)) for pi in Permutations(3)])    # optional -- internet
+            a new statistic on Cc0001: Permutations
+
+            sage: findstat([(pi, pi(1)) for pi in Permutations(3)])             # optional -- internet
+            0: (St000054: ...
+            1: ...
+            2: ...
+
+        """
         if self._query == "ID":
             if self._modified:
                 return "%s(modified): %s" % (self.id_str(), self.name())
@@ -599,7 +673,29 @@ class FindStatStatistic(SageObject):
             raise ValueError("self._query should be either 'ID' or 'data', but is %s." %self._query)
 
     def __eq__(self, other):
-        """
+        """Returns ``True`` if ``self`` is equal to ``other`` and ``False``
+        otherwise.
+
+        INPUT:
+
+        - ``other`` - a FindStat query.
+
+        OUTPUT:
+
+        - boolean.
+
+        Two queries are considered equal if all of the following
+        applies:
+
+        - the queries are both of the same type, i.e., both are by
+          identifier or both are by values,
+
+        - if the queries are by identifier, the identifiers agree and
+          the statistics are both unmodified,
+
+        - if the queries are by values, the submitted data are the
+          same and the statistic data are both unmodified.
+
         .. TODO::
 
             this is *very* rudimentary
@@ -618,6 +714,9 @@ class FindStatStatistic(SageObject):
             return False
 
     def __ne__(self, other):
+        """
+        Determine whether ``other`` is a different query.
+        """
         return not self.__eq__(other)
 
     ######################################################################
@@ -626,11 +725,15 @@ class FindStatStatistic(SageObject):
 
     def _find_by_id(self):
         r"""
-        Expects that `_id` is a valid identifier.
+        Retrieve the statistic matching ``self._id``.
 
         OUTPUT:
 
         - self
+
+        Expects that ``_id`` is a valid identifier.  Overwrites all
+        variables associated with the statistic, such as
+        ``_description``, ``_code``, ``_references``, etc.
 
         TESTS::
 
@@ -671,13 +774,15 @@ class FindStatStatistic(SageObject):
 
     def _find_by_values(self, max_values=FINDSTAT_MAX_VALUES):
         r"""
-        Expects that data is a list of pairs of the form (list of
-        objects, list of values), each containing as many values as
-        objects, and that collection is appropriately set.
+        Retrieve the statistics matching ``self._data``.
 
         OUTPUT:
 
         - self
+
+        Expects that ``_data`` is a list of pairs of the form (list
+        of objects, list of values), each containing as many values
+        as objects, and that ``_collection`` is appropriately set.
 
         TESTS::
 
@@ -736,6 +841,18 @@ class FindStatStatistic(SageObject):
     ######################################################################
 
     def __getitem__(self, key):
+        r"""
+        Return the match corresponding to ``key``.
+
+        INPUT:
+
+        - ``key``, an integer
+
+        OUTPUT:
+
+        The match corresponding to ``key``.  Raise an error if the
+        query was by identifier.
+        """
         if self._query == "ID":
             raise TypeError("Use 'first_terms' to access the values of the statistic.")
 
@@ -800,7 +917,16 @@ class FindStatStatistic(SageObject):
 
         OUTPUT:
 
-        True, if the statistic was modified.
+        True, if the statistic was modified using
+        :meth:`set_description`, :meth:`set_code`,
+        :meth:`set_references`, etc.
+
+        EXAMPLES::
+
+            sage: findstat(41).set_description("")                              # optional -- internet
+            sage: findstat(41).modified()                                       # optional -- internet
+            True
+        
         """
         return self._modified
 
@@ -843,10 +969,11 @@ class FindStatStatistic(SageObject):
 
         OUTPUT:
 
-        A list of pairs of the form ``(object, value)`` where object
-        is an object is a sage object representing an element of the
-        appropriate collection and value is an integer.  The list
-        contains exactly the pairs in the database.
+        A list of pairs of the form ``(object, value)`` where
+        ``object`` is a sage object representing an element of the
+        appropriate collection and ``value`` is an integer.  If the
+        statistic is in the FindStat database, the list contains
+        exactly the pairs in the database.
 
         EXAMPLES::
 
@@ -911,6 +1038,22 @@ class FindStatStatistic(SageObject):
 
         A string, whose first line is used as the name of the
         statistic.
+
+        This information is used when submitting the statistic with
+        :meth:`FindStatStatistic.submit`.
+
+        EXAMPLES::
+
+            sage: s = findstat([(d, randint(1,1000)) for d in DyckWords(4)]); s   # optional -- internet
+            a new statistic on Cc0005: Dyck paths
+            sage: s.set_description("Random values on Dyck paths.\r\nThis is not going to be submitted.")     # optional -- internet
+            sage: s                                                               # optional -- internet
+            a new statistic on Cc0005: Dyck paths
+            sage: s.name()                                                        # optional -- internet
+            'Random values on Dyck paths.'
+            sage: print s.description()                                           # optional -- internet
+            Random values on Dyck paths.
+            This is not going to be submitted.
         """
         if value != self._description:
             self._modified = True
@@ -966,6 +1109,19 @@ class FindStatStatistic(SageObject):
 
         A string.  The individual references should be separated by
         FINDSTAT_SEPARATOR_REFERENCES, which is "\\r\\n".
+
+        This information is used when submitting the statistic with
+        :meth:`FindStatStatistic.submit`.
+
+        EXAMPLES::
+
+            sage: s = findstat([(d, randint(1,1000)) for d in DyckWords(4)]); s   # optional -- internet
+            a new statistic on Cc0005: Dyck paths
+            sage: s.set_references("[1] The wonders of random Dyck paths, Anonymous Coward, [[arXiv:1102.4226]].\r\n[2] [[oeis:A000001]]") # optional -- internet
+            sage: s.references()                                                  # optional -- internet
+            0: [1] The wonders of random Dyck paths, Anonymous Coward, [[arXiv:1102.4226]].
+            1: [2] [[oeis:A000001]]
+
         """
         if value != self._references:
             self._modified = True
@@ -1009,6 +1165,9 @@ class FindStatStatistic(SageObject):
 
             def statistic(x):
                 ...
+
+        This information is used when submitting the statistic with
+        :meth:`FindStatStatistic.submit`.
         """
         if value != self._code:
             self._modified = True
@@ -1095,9 +1254,22 @@ class FindStatStatistic(SageObject):
 class FindStatCollection(SageObject):
     r"""
     The class of FindStat collections.
+
+    .. automethod:: __init__
     """
     # helper for generation of CartanTypes
     def _finite_irreducible_cartan_types_by_rank(n):
+        """
+        Return the Cartan types of rank n.
+
+        INPUT:
+
+        - n, an integer.
+
+        OUTPUT:
+
+        The list of Cartan types of rank n.
+        """
         cartan_types      = [ CartanType(['A',n]) ]
         if n >= 2:
             cartan_types += [ CartanType(['B',n]) ]
@@ -1239,7 +1411,6 @@ class FindStatCollection(SageObject):
          Cc0023: Parking functions]
     """
 
-
     def __init__(self, entry):
         r"""
         Initialize a FindStat collection.
@@ -1379,6 +1550,8 @@ class FindStatCollection(SageObject):
 
             sage: from sage.databases.findstat import FindStatCollection
             sage: c = FindStatCollection("GelfandTsetlinPatterns")              # optional -- internet
+            sage: c.in_range(GelfandTsetlinPattern([[2, 1], [1]]))              # optional -- internet
+            True
             sage: c.in_range(GelfandTsetlinPattern([[3, 1], [1]]))              # optional -- internet
             True
             sage: c.in_range(GelfandTsetlinPattern([[4, 1], [1]]))              # optional -- internet,random
@@ -1386,27 +1559,21 @@ class FindStatCollection(SageObject):
 
         .. TODO::
 
-            This algorithm is extremely slow and moreover unreliable.
-            For example, the Gelfand Tsetlin patterns of size (2,3)
-            contain those of size (2,2), but only the former are
-            explicitely in the range reported by FindStat.
+            This method is currently unreliable.  For example, the
+            Gelfand Tsetlin patterns of size (2,3) contain those of
+            size (2,2), but only the former are explicitely in the
+            range reported by FindStat.
 
             So possibly I need to hardcode a membership check for
             every collection.
 
-        TESTS::
-
-            sage: s = findstat(81); s                                           # optional -- internet,random
-            St000081: The number of edges of a graph.
-            sage: number_of_terms_in_range(s)                                   # optional -- internet,random
-            ...
-
-            sage: c.in_range(GelfandTsetlinPattern([[2, 1], [1]]))              # optional -- internet
-            True
         """
-        n = self.to_size()(element)
-        to_string = self.to_string()
-        return (n in self._range and to_string(element) in [to_string(x) for x in self._sageconstructor(n)])
+        return self.to_size()(element) in self._range
+
+        # even worse, because slow and unreliable.
+#        n = self.to_size()(element)
+#        to_string = self.to_string()
+#        return (n in self._range and to_string(element) in [to_string(x) for x in self._sageconstructor(n)])
 
     def first_terms(self, statistic, max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         r"""
@@ -1586,14 +1753,25 @@ class FindStatMap(SageObject):
     r"""
     The class of FindStat maps.
 
-    INPUT:
-
-    - ``entry`` -- a string giving the FindStat name of the map, or
-      an integer giving its id.
+    .. automethod:: __init__
     """
     _findstat_maps = []
 
     def __init__(self, entry):
+        """Initialize a FindStat map.
+
+        INPUT:
+
+        - ``entry`` -- a string containing the FindStat name of the
+          map, or an integer giving its id.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatMap
+            sage: FindStatMap(71)                                               # optional -- internet
+            Mp00071: descent composition
+
+        """
         if not self._findstat_maps:
             self._findstat_maps += json.load(urlopen(FINDSTAT_URL_DOWNLOADS_MAPS))
 

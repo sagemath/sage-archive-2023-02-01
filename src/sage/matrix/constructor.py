@@ -1024,7 +1024,9 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
 
         Matrices generated are not uniformly distributed. For unimodular
         matrices over finite field this function does not even generate
-        all of them. This function is made for teaching purposes.
+        all of them: for example ``Matrix.random(GF(3), 2)`` never
+        generates ``[[2,0],[0,2]]``. This function is made for
+        teaching purposes.
 
     .. warning::
 

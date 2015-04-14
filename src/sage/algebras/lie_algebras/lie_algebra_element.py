@@ -31,9 +31,9 @@ from sage.structure.sage_object import SageObject
 from sage.combinat.free_module import CombinatorialFreeModuleElement
 from sage.structure.element_wrapper import ElementWrapper
 
-# TODO: Refactor this with Element wrapper
+# TODO: Refactor this with Element wrapper to a generic SageObject wrapper?
 @total_ordering
-class LieGenerator(SageObject): # Does this need to be SageObject?
+class LieGenerator(SageObject):
     """
     A wrapper around an object so it can ducktype with and do
     comparison operations with :class:`LieBracket`.
@@ -109,6 +109,14 @@ class LieGenerator(SageObject): # Does this need to be SageObject?
         Return the image of ``self``.
 
         EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, 'x,y,z')
+            sage: Lyn = L.Lyndon()
+            sage: H = L.Hall()
+            sage: im = H(Lyn.lie_algebra_generators()['x']); im # indirect doctest
+            x
+            sage: im.parent() is H
+            True
         """
         x = im_gens[names.index(self._name)]
         return im_gens[names.index(self._name)]
@@ -279,6 +287,15 @@ class LieBracket(SageObject): # Does this need to be SageObject?
         Return the image of ``self``.
 
         EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, 'x,y,z')
+            sage: Lyn = L.Lyndon()
+            sage: H = L.Hall()
+            sage: x,y,z = Lyn.gens()
+            sage: im = H(Lyn([z, [[x, y], x]])); im # indirect doctest
+            -[z, [x, [x, y]]]
+            sage: im.parent() is H
+            True
         """
         return codomain.bracket(self._left._im_gens_(codomain, im_gens, names),
                                 self._right._im_gens_(codomain, im_gens, names))
@@ -288,16 +305,24 @@ class LieBracket(SageObject): # Does this need to be SageObject?
         Lift ``self`` to the universal enveloping algebra.
 
         EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, 'x,y,z')
+            sage: Lyn = L.Lyndon()
+            sage: x,y,z = Lyn.gens()
+            sage: a = Lyn([z, [[x, y], x]]); a
+            [x, [x, [y, z]]] + [x, [[x, z], y]] - [[x, y], [x, z]]
+            sage: a.lift() # indirect doctest
+            x^2*y*z - 2*x*y*x*z + y*x^2*z - z*x^2*y + 2*z*x*y*x - z*y*x^2
         """
         if isinstance(self._left, LieBracket):
             l = self._left.lift(UEA_gens_dict)
         else:
-            l = UEA._gens_dict[self._left]
+            l = UEA_gens_dict[self._left._name]
 
         if isinstance(self._right, LieBracket):
             r = self._right.lift(UEA_gens_dict)
         else:
-            r = UEA_gens_dict[self._right]
+            r = UEA_gens_dict[self._right._name]
 
         return l*r - r*l
 
@@ -426,8 +451,17 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
         Return the image of ``self`` in ``codomain`` under the map that sends
         the images of the generators of the parent of ``self`` to the
         tuple of elements of ``im_gens``.
-    
+
         EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, 'x,y,z')
+            sage: Lyn = L.Lyndon()
+            sage: H = L.Hall()
+            sage: x,y,z = Lyn.gens()
+            sage: im = H(Lyn([z, [[x, y], x]])); im # indirect doctest
+            -[z, [x, [x, y]]]
+            sage: im.parent() is H
+            True
         """
         s = codomain.zero()
         if not self: # If we are 0

@@ -459,6 +459,42 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
 
         return self.base_ring().has_coerce_map_from(R.base_ring())
 
+    def _Hom_(self, Y, category):
+        """
+        Return the homset from ``self`` to ``Y`` in the category ``category``.
+
+        INPUT:
+
+        - ``Y`` -- a Lie algebra
+        - ``category`` -- a subcategory of :class:`LieAlgebras` or ``None``
+
+        The sole purpose of this method is to construct the homset
+        as a :class:`~sage.algebras.lie_algebras.morphism.LieAlgebraHomset`.
+
+        This method is not meant to be called directly. Please use
+        :func:`sage.categories.homset.Hom` instead.
+
+        EXAMPLES::
+
+            sage: H = QQ._Hom_(QQ, category = Rings()); H
+            Set of Homomorphisms from Rational Field to Rational Field
+
+        TESTS::
+
+            sage: Hom(QQ, QQ, category = Rings()).__class__
+            <class 'sage.rings.homset.RingHomset_generic_with_category'>
+            sage: Hom(CyclotomicField(3), QQ, category = Rings()).__class__
+            <class 'sage.rings.number_field.morphism.CyclotomicFieldHomset_with_category'>
+            sage: TestSuite(Hom(QQ, QQ, category = Rings())).run()
+        """
+        cat = LieAlgebras(self.base_ring())
+        if category is not None and not category.is_subcategory(cat):
+            raise TypeError("%s is not a subcategory of Lie algebras"%category)
+        if Y not in cat:
+            raise TypeError("%s is not a Lie algebra"%Y)
+        from sage.algebras.lie_algebras.morphism import LieAlgebraHomset
+        return LieAlgebraHomset(self, Y, category=category)
+
     @cached_method
     def zero(self):
         """

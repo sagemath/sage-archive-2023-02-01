@@ -115,7 +115,7 @@ class FreeLieBasis_abstract(FinitelyGeneratedLieAlgebra, IndexedGenerators, Bind
             sage: H._repr_term(a)
             '[x, y]'
         """
-        return x._repr_()
+        return repr(x)
 
     def _latex_term(self, x):
         r"""
@@ -282,6 +282,32 @@ class FreeLieBasis_abstract(FinitelyGeneratedLieAlgebra, IndexedGenerators, Bind
         """
 
     class Element(LieAlgebraElement):
+        # TODO: Move to the category/lift morphism?
+        # TODO: Don't override the LieAlgebraElement.lift or should we move
+        #    LieAlgebraElement.lift because it is for a specific implementation?
+        def lift(self):
+            """
+            Lift ``self`` to the universal enveloping algebra.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebra(QQ, 'x,y,z')
+                sage: Lyn = L.Lyndon()
+                sage: x,y,z = Lyn.gens()
+                sage: a = Lyn([z, [[x, y], x]]); a
+                [x, [x, [y, z]]] + [x, [[x, z], y]] - [[x, y], [x, z]]
+                sage: a.lift()
+                x^2*y*z - 2*x*y*x*z + y*x^2*z - z*x^2*y + 2*z*x*y*x - z*y*x^2
+            """
+            UEA = self.parent().universal_enveloping_algebra()
+            gen_dict = UEA.gens_dict()
+            s = UEA.zero()
+            if not self:
+                return s
+            for t, c in self._monomial_coefficients.iteritems():
+                s += c * t.lift(gen_dict)
+            return s
+
         def list(self):
             """
             Return ``self`` as a list of pairs ``(m, c)`` where ``m`` is a

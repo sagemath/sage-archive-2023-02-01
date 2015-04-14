@@ -210,6 +210,14 @@ class CartesianProduct(UniqueRepresentation, Parent):
         from sage.categories.cartesian_product import cartesian_product
         return cartesian_product, self.cartesian_factors()
 
+    def _coerce_map_from_(self, S):
+        if isinstance(S, CartesianProduct):
+            S_factors = S.cartesian_factors()
+            R_factors = self.cartesian_factors()
+            if len(S_factors) == len(R_factors):
+                if all(r.has_coerce_map_from(s) for r,s in zip(R_factors, S_factors)):
+                    return True
+
     an_element = Sets.CartesianProducts.ParentMethods.an_element
 
     class Element(ElementWrapper):

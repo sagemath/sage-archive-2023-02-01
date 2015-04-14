@@ -1981,6 +1981,8 @@ class FractionField(ConstructionFunctor):
             sage: F(ZZ['t'])
             Fraction Field of Univariate Polynomial Ring in t over Integer Ring
         """
+        from sage.categories.integral_domains import IntegralDomains
+        from sage.categories.fields import Fields
         Functor.__init__(self, IntegralDomains(), Fields())
 
     def _apply_functor(self, R):
@@ -3285,6 +3287,7 @@ def pushout(R, S):
         R_tower, S_tower = S_tower, R_tower
 
     # look for join
+    Z = None
     if Ss[-1] in Rs:
         if Rs[-1] == Ss[-1]:
             while Rs and Ss and Rs[-1] == Ss[-1]:
@@ -3309,12 +3312,14 @@ def pushout(R, S):
             Ss.pop()
         Z = Rs.pop()
 
-    else:
+    if Z is None:
         Z = R_tower[-1][0].common_base(S_tower[-1][0], R_tower[-1][1], S_tower[-1][1])
-
-    # Rc is a list of functors from Z to R and Sc is a list of functors from Z to S
-    R_tower = expand_tower(R_tower[:len(Rs)+1])
-    S_tower = expand_tower(S_tower[:len(Ss)+1])
+        R_tower = expand_tower(R_tower[:len(Rs)])
+        S_tower = expand_tower(S_tower[:len(Ss)])
+    else:
+        # Rc is a list of functors from Z to R and Sc is a list of functors from Z to S
+        R_tower = expand_tower(R_tower[:len(Rs)+1])
+        S_tower = expand_tower(S_tower[:len(Ss)+1])
     Rc = [c[0] for c in R_tower[1:]]
     Sc = [c[0] for c in S_tower[1:]]
 

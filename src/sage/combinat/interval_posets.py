@@ -1926,7 +1926,7 @@ class TamariIntervalPoset(Element):
     def tamari_inversions(self):
         r"""
         Return the Tamari inversions of ``self``. A Tamari inversion is 
-        a pair of vertices `(a,b)' with `a < b` such that:
+        a pair of vertices `(a,b)` with `a < b` such that:
 
         - the decreasing parent of `b` is strictly smaller than `a` (or
           does not exist), and

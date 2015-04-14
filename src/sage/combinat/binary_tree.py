@@ -1982,17 +1982,20 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         a list of triples `(m, i, n)` of integers
 
-        This is a list running over all inner edges of the binary
-        tree. The removal of each inner edge defines two binary trees,
-        the root-tree and the sub-tree.
-
-        Here `m` is the node number of the root-tree `R`, `n` the node
-        number of the sub-tree `S`. The integer `i` is the index of
-        the leaf of `R` on which `S` was grafted. The leaves of `R` are
-        numbered starting from `1`, hence `1 leq i \leq m+1`.
+        This is a list running over all inner edges (i.e., edges
+        joining two non-leaf vertices) of the binary tree. The removal
+        of each inner edge defines two binary trees (connected
+        components), the root-tree and the sub-tree. Thus, to every
+        inner edge, we can assign three positive integers:
+        `m` is the node number of the root-tree `R`, and `n` is
+        the node number of the sub-tree `S`. The integer `i` is the
+        index of the leaf of `R` on which `S` is grafted to obtain the
+        original tree. The leaves of `R` are numbered starting from
+        `1` (from left to right), hence `1 \leq i \leq m+1`.
 
         In fact, each of `m` and `n` determines the other, as the
-        total node number is the node number of ``self``.
+        total node number of `R` and `S` is the node number of
+        ``self``.
 
         EXAMPLES::
 
@@ -2003,6 +2006,14 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [(2, 1, 1), (2, 3, 1)],
             [(2, 2, 1), (1, 1, 2)],
             [(2, 1, 1), (1, 1, 2)]]
+
+            sage: BT = BinaryTrees(2)
+            sage: [t.single_edge_cut_shapes() for t in BT]
+            [[(1, 2, 1)], [(1, 1, 1)]]
+
+            sage: BT = BinaryTrees(1)
+            sage: [t.single_edge_cut_shapes() for t in BT]
+            [[]]
         """
         resu = []
         left, right = list(self)

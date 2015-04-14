@@ -57,82 +57,6 @@ class FilteredModulesCategory(RegressiveCovariantConstructionCategory, Category_
 
     _functor_category = "Filtered"
 
-    @lazy_class_attribute
-    def _base_category_class(cls):
-        """
-        Recover the class of the base category.
-
-        OUTPUT:
-
-        A *tuple* whose first entry is the base category class.
-
-        .. WARNING::
-
-            This is only used for filtered categories that are not
-            implemented as nested classes, and won't work otherwise.
-
-        .. SEEALSO:: :meth:`__classcall__`
-
-        EXAMPLES::
-
-            sage: from sage.categories.filtered_modules import FilteredModules
-            sage: FilteredModules._base_category_class
-            (<class 'sage.categories.modules.Modules'>,)
-            sage: from sage.categories.filtered_algebras_with_basis import FilteredAlgebrasWithBasis
-            sage: FilteredAlgebrasWithBasis._base_category_class
-            (<class 'sage.categories.algebras_with_basis.AlgebrasWithBasis'>,)
-
-        The reason for wrapping the base category class in a tuple is
-        that, often, the base category class implements a
-        :meth:`__classget__` method which would get in the way upon
-        attribute access::
-
-            sage: F = FilteredAlgebrasWithBasis
-            sage: F._foo = F._base_category_class[0]
-            sage: F._foo
-            Traceback (most recent call last):
-            ...
-            AssertionError: base category class for <...AlgebrasWithBasis'> mismatch;
-            expected <...Algebras'>, got <...FilteredAlgebrasWithBasis'>
-        """
-        module_name = cls.__module__.replace("filtered_","")
-        import sys
-        name   = cls.__name__.replace("Filtered","")
-        __import__(module_name)
-        module = sys.modules[module_name]
-        return (module.__dict__[name],)
-
-    @staticmethod
-    def __classcall__(cls, category, *args):
-        """
-        Magic support for putting Filtered categories in their own file.
-
-        EXAMPLES::
-
-            sage: from sage.categories.filtered_modules import FilteredModules
-            sage: FilteredModules(ZZ)   # indirect doctest
-            Category of filtered modules over Integer Ring
-            sage: Modules(ZZ).Filtered()
-            Category of filtered modules over Integer Ring
-            sage: FilteredModules(ZZ) is Modules(ZZ).Filtered()
-            True
-
-        .. TODO::
-
-            Generalize this support for all other functorial
-            constructions if at some point we have a category ``Blah`` for
-            which we want to implement the construction ``Blah.Foo`` in a
-            separate file like we do for e.g. :class:`FilteredModules`,
-            :class:`FilteredAlgebras`, ...
-
-        .. SEEALSO:: :meth:`_base_category_class`
-        """
-        base_category_class = cls._base_category_class[0]
-        if isinstance(category, base_category_class):
-            return super(FilteredModulesCategory, cls).__classcall__(cls, category, *args)
-        else:
-            return base_category_class(category, *args).Filtered()
-
     def _repr_object_names(self):
         """
         EXAMPLES::
@@ -168,7 +92,6 @@ class FilteredModules(FilteredModulesCategory):
 
     - :wikipedia:`Filtration_(mathematics)`
     """
-
     def extra_super_categories(self):
         r"""
         Add :class:`VectorSpaces` to the super categories of ``self`` if
@@ -234,11 +157,5 @@ class FilteredModules(FilteredModulesCategory):
             return self._with_axiom("Connected")
 
     class Connected(CategoryWithAxiom_over_base_ring):
-        pass
-
-    class ParentMethods:
-        pass
-
-    class ElementMethods:
         pass
 

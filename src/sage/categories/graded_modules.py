@@ -96,8 +96,7 @@ class GradedModulesCategory(RegressiveCovariantConstructionCategory, Category_ov
              and Category of graded modules over Rational Field
         """
         cat = super(GradedModulesCategory, cls).default_super_categories(category, *args)
-        return Category.join([category.Filtered(),
-                              cat])
+        return Category.join([category.Filtered(), cat])
 
 class GradedModules(GradedModulesCategory):
     r"""

@@ -60,6 +60,3 @@ class FilteredAlgebras(FilteredModulesCategory):
                  Lie algebra of RR^3 with cross product over Integer Ring
             """
 
-    class ElementMethods:
-        pass
-

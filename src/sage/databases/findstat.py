@@ -882,6 +882,17 @@ class FindStatStatistic(SageObject):
 
         The match corresponding to ``key``.  Raise an error if the
         query was by identifier.
+
+        EXAMPLES::
+        
+            sage: q = findstat([(pi, pi.length()) for pi in Permutations(4)]); q          # optional -- internet,random
+                0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
+                1: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [Mp00062: inversion-number to major-index bijection], 24)
+                ...
+
+            sage: q[1]                                                          # optional -- internet,random
+            (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [Mp00062: inversion-number to major-index bijection], 24)
+
         """
         if self._query == "ID":
             raise TypeError("Use 'first_terms' to access the values of the statistic.")

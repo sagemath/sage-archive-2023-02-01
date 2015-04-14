@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cd "src"
+
+gcc -o "$SAGE_LOCAL/lib/libplanarity.so" *.c -fPIC --shared &&
+rm -rf "$SAGE_LOCAL/include/planarity/" &&
+mkdir  "$SAGE_LOCAL/include/planarity/" &&
+mv *.h "$SAGE_LOCAL/include/planarity/"
+
+if [ $? -ne 0 ]; then
+    echo "An error occurred whilst building planarity"
+    exit 1
+fi

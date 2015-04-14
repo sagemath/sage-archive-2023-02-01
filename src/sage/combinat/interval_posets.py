@@ -2048,7 +2048,7 @@ class TamariIntervalPoset(Element):
         Here 'new' means that the interval is not contained in any proper
         facet of the associahedra.
 
-        They have been considered in [ChapTamari08]_.
+        They have been considered in section 9 of [ChapTamari08]_.
 
         EXAMPLES::
 
@@ -2056,8 +2056,8 @@ class TamariIntervalPoset(Element):
             sage: len([u for u in TIP4 if u.is_new()])
             12
         """
-        c_up = self.upper_binary_tree().possible_cut_shapes()
-        c_down = self.lower_binary_tree().possible_cut_shapes()
+        c_up = self.upper_binary_tree().single_edge_cut_shapes()
+        c_down = self.lower_binary_tree().single_edge_cut_shapes()
         return not any(x in c_up for x in c_down)
 
 

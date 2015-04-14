@@ -16,6 +16,18 @@ from sage.categories.all import ModulesWithBasis
 class QuotientModuleWithBasis(CombinatorialFreeModule):
     r"""
     A class for quotients of a module with basis by a submodule.
+
+    INPUT:
+
+    - ``submodule`` -- a submodule
+    - ``category`` -- a category (default: ``ModulesWithBasis(submodule.base_ring())``)
+
+    ``submodule`` is typically :class:`SubModuleWithBasis`
+
+        # FIXME: The following currently works only if:
+        #  - The ambient space is finite dimensional
+        #  - The embedding is unitriangular
+    TODO: polish
     """
     @staticmethod
     def __classcall_private__(cls, submodule, category=None):
@@ -24,7 +36,7 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
 
         TESTS::
 
-            sage: from sage.modules.subquotient_module_with_basis import QuotientModuleWithBasis
+            sage: from sage.modules.with_basis.subquotient import QuotientModuleWithBasis
             sage: X = CombinatorialFreeModule(QQ, range(3)); x = X.basis()
             sage: I = X.submodule( (x[0]-x[1], x[1]-x[2]) )
             sage: J1 = QuotientModuleWithBasis(I)
@@ -41,7 +53,7 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
         r"""
         TESTS::
 
-            sage: from sage.modules.subquotient_module_with_basis import QuotientModuleWithBasis
+            sage: from sage.modules.with_basis.subquotient import QuotientModuleWithBasis
             sage: X = CombinatorialFreeModule(QQ, range(3)); x = X.basis()
             sage: I = X.submodule( (x[0]-x[1], x[1]-x[2]) )
             sage: Y = QuotientModuleWithBasis(I)
@@ -58,9 +70,6 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
         embedding = submodule.lift
         # Morphism that computes normal forms module submodule
         self._normal = embedding.cokernel_projection()
-        # FIXME: The following currently works only if:
-        #  - The ambient space is finite dimensional
-        #  - The embedding is unitriangular
         indices = embedding.cokernel_basis_indices()
         CombinatorialFreeModule.__init__(self,
                                          submodule.base_ring(), indices,
@@ -133,7 +142,7 @@ class SubModuleWithBasis(CombinatorialFreeModule):
 
         TESTS::
 
-            sage: from sage.modules.subquotient_module_with_basis import SubModuleWithBasis
+            sage: from sage.modules.with_basis.subquotient import SubModuleWithBasis
             sage: X = CombinatorialFreeModule(QQ, range(3)); x = X.basis()
             sage: Y1 = SubModuleWithBasis((x[0]-x[1], x[1]-x[2]), X)
             sage: Y2 = SubModuleWithBasis([x[0]-x[1], x[1]-x[2]], X)
@@ -152,7 +161,7 @@ class SubModuleWithBasis(CombinatorialFreeModule):
         r"""
         TESTS::
 
-            sage: from sage.modules.subquotient_module_with_basis import SubModuleWithBasis
+            sage: from sage.modules.with_basis.subquotient import SubModuleWithBasis
             sage: X = CombinatorialFreeModule(QQ, range(3)); x = X.basis()
             sage: ybas = (x[0]-x[1], x[1]-x[2])
             sage: Y = SubModuleWithBasis(ybas, X)

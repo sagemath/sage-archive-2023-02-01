@@ -659,7 +659,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             """
             if not already_echelonized:
                 gens = self.echelonize(gens)
-            from sage.modules.subquotient_module_with_basis import SubModuleWithBasis
+            from sage.modules.with_basis.subquotient import SubModuleWithBasis
             return SubModuleWithBasis(gens, ambient=self, category=category)
 
         def quotient(self, submodule, check=False, already_echelonized=False, category=None):
@@ -669,7 +669,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             INPUT:
 
             - ``submodule`` -- a free submodule of ``self``, or something that can
-              be turned into one via self.submodule(submodule).
+              be turned into one via ``self.submodule(submodule)``.
             - ``check``, ``already_echelonized`` -- passed down to :meth:`submodule`, which see
 
             .. WARNING::
@@ -693,7 +693,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: Y.retract(x[0]+2*x[1])
                 3*y[2]
             """
-            from sage.modules.subquotient_module_with_basis import SubModuleWithBasis, QuotientModuleWithBasis
+            from sage.modules.with_basis.subquotient import SubModuleWithBasis, QuotientModuleWithBasis
             if not isinstance(submodule, SubModuleWithBasis):
                 submodule = self.submodule(submodule, check=check,
                                            already_echelonized=already_echelonized)

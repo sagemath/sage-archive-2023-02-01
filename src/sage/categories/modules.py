@@ -194,7 +194,7 @@ class Modules(Category_module):
             Return the base ring (category) for ``self``.
 
             This implements a ``base_ring`` method for all
-            subcategories ``Modules(K)``.
+            subcategories of ``Modules(K)``.
 
             EXAMPLES::
 

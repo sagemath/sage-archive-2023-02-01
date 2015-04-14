@@ -3909,9 +3909,11 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        -  ``sub`` - string or word to search for.
+        -  ``sub`` - string, list, tuple or word to search for.
+
         -  ``start`` - non negative integer (default: 0) specifying
            the position from which to start the search.
+
         -  ``end`` - non negative integer (default: None) specifying
            the position at which the search must stop. If None, then
            the search is performed up to the end of the string.
@@ -3923,8 +3925,18 @@ class FiniteWord_class(Word_class):
         EXAMPLES::
 
             sage: w = Word([0,1,0,0,1])
-            sage: w.find(Word([0,1]))
-            0
+            sage: w.find(Word([1,0]))
+            1
+
+        The ``sub`` argument can also be a tuple or a list::
+
+            sage: w.find([1,0])
+            1
+            sage: w.find((1,0))
+            1
+
+        Examples using ``start`` and ``end``::
+
             sage: w.find(Word([0,1]), start=1)
             3
             sage: w.find(Word([0,1]), start=1, end=5)
@@ -3933,32 +3945,42 @@ class FiniteWord_class(Word_class):
             True
             sage: w.find(Word([1,1])) == -1
             True
+            sage: w.find("aa")
+            -1
 
         Instances of Word_str handle string inputs as well::
 
             sage: w = Word('abac')
             sage: w.find('a')
             0
-            sage: w.find(Word('a'))
+            sage: w.find('ba')
+            1
+
+        TESTS:
+
+        Check that :trac:`12804` is fixed::
+
+            sage: w = Word(iter("ababab"))
+            sage: w.find("ab")
             0
+            sage: w.find("ab", start=1)
+            2
+            sage: w.find("aa")
+            -1
+            sage: w.find("abc")
+            -1
+            sage: w = Words('ab')(tuple('babaabaaab'))
+            sage: w.find('abc')
+            -1
+
         """
-        w = self[start:end]
-        if isinstance(sub, FiniteWord_class):
-            p = sub.first_pos_in(w)
-            if p is None:
+        if not isinstance(sub, FiniteWord_class):
+            try:
+                sub = self.parent()(sub)
+            except (ValueError,TypeError):
                 return -1
-            else:
-                return p + start
-        else:
-            L = len(sub)
-            if start is None:
-                i = len(self) - L
-            else:
-                i = start - L
-            while i >= end:
-                if self[i:i+L] == sub: return i
-                i -= 1
-            return -1
+        p = sub.first_pos_in(self[start:end])
+        return -1 if p is None else p+start
 
     def rfind(self, sub, start=0, end=None):
         r"""
@@ -3968,9 +3990,11 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        -  ``sub`` - string or word to search for.
+        -  ``sub`` - string, list, tuple or word to search for.
+
         -  ``start`` - non negative integer (default: 0) specifying
            the position at which the search must stop.
+
         -  ``end`` - non negative integer (default: None) specifying
            the position from which to start the search. If None, then
            the search is performed up to the end of the string.
@@ -3984,14 +4008,24 @@ class FiniteWord_class(Word_class):
             sage: w = Word([0,1,0,0,1])
             sage: w.rfind(Word([0,1]))
             3
+
+        The ``sub`` parameter can also be a list or a tuple::
+
+            sage: w.rfind([0,1])
+            3
+            sage: w.rfind((0,1))
+            3
+
+        Examples using the argument ``start`` and ``end``::
+
             sage: w.rfind(Word([0,1]), end=4)
             0
             sage: w.rfind(Word([0,1]), end=5)
             3
             sage: w.rfind(Word([0,0]), start=2, end=5)
             2
-            sage: w.rfind(Word([0,0]), start=3, end=5) == -1
-            True
+            sage: w.rfind(Word([0,0]), start=3, end=5)
+            -1
 
         Instances of Word_str handle string inputs as well::
 
@@ -4000,12 +4034,34 @@ class FiniteWord_class(Word_class):
             2
             sage: w.rfind(Word('a'))
             2
+            sage: w.rfind([0,1])
+            -1
+
+        TESTS:
+
+        Check that :trac:`12804` is fixed::
+
+            sage: w = Word(iter("abab"))
+            sage: w.rfind("ab")
+            2
+            sage: w.rfind("ab", end=3)
+            0
+            sage: w.rfind("aa")
+            -1
+            sage: w.rfind([0,0,0])
+            -1
         """
+        if not isinstance(sub, FiniteWord_class):
+            try:
+                sub = self.parent()(sub)
+            except (ValueError,TypeError):
+                return -1
         L = len(sub)
+        start = max(0, int(start))
         if end is None:
             i = len(self) - L
         else:
-            i = end - L
+            i = min(end, len(self)) - L
         while i >= start:
             if self[i:i+L] == sub: return i
             i -= 1

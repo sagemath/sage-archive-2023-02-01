@@ -614,6 +614,10 @@ cdef class CategoryObject(sage_object.SageObject):
             category) so as not to pollute the namespace of all
             category objects.
         """
+        try:
+            return super(CategoryObject, self).base_ring()
+        except AttributeError:
+            pass
         return self._base
 
     def base(self):

@@ -1059,7 +1059,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
         f = lambda x: self.prod(self._from_dict( {(j,): m[j,i] for j in range(n)},
                                                  remove_zeros=True )
                                 for i in x)
-        return Cl.module_morphism(on_basis=f, codomain=self)
+        return Cl.module_morphism(on_basis=f, codomain=self,
+                                  category=AlgebrasWithBasis(self.base_ring()).Super())
 
     def lift_isometry(self, m, names=None):
         r"""
@@ -1422,7 +1423,7 @@ class ExteriorAlgebra(CliffordAlgebra):
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: TestSuite(E).run()
         """
-        cat = HopfAlgebrasWithBasis(R.category()).Super().Graded()
+        cat = HopfAlgebrasWithBasis(R).Super()
         CliffordAlgebra.__init__(self, QuadraticForm(R, len(names)), names, cat)
         # TestSuite will fail if the HopfAlgebra classes will ever have tests for
         # the coproduct being an algebra morphism -- since this is really a

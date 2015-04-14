@@ -9,6 +9,8 @@ Super algebras with basis
 #******************************************************************************
 
 from sage.categories.super_modules import SuperModulesCategory
+from sage.categories.algebras import Algebras
+from sage.categories.modules import Modules
 
 class SuperAlgebrasWithBasis(SuperModulesCategory):
     """
@@ -18,18 +20,20 @@ class SuperAlgebrasWithBasis(SuperModulesCategory):
 
         sage: C = Algebras(ZZ).WithBasis().Super(); C
         Category of super algebras with basis over Integer Ring
-        sage: sorted(C.super_categories(), key=str)
-        [Category of graded algebras with basis over Integer Ring,
-         Category of super algebras over Integer Ring,
-         Category of super modules with basis over Integer Ring]
 
     TESTS::
 
         sage: TestSuite(C).run()
     """
-    class ParentMethods:
-        pass
+    def extra_super_categories(self):
+        """
+        EXAMPLES::
 
-    class ElementMethods:
-        pass
+            sage: C = Algebras(ZZ).WithBasis().Super()
+            sage: sorted(C.super_categories(), key=str) # indirect doctest
+            [Category of graded algebras with basis over Integer Ring,
+             Category of super algebras over Integer Ring,
+             Category of super modules with basis over Integer Ring]
+        """
+        return [self.base_category().Graded()]
 

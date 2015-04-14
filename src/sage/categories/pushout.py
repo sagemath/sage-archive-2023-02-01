@@ -1,10 +1,10 @@
 """
 Coercion via Construction Functors
 """
-from functor import Functor
-from basic import *
+from sage.misc.lazy_import import lazy_import
+from functor import Functor, IdentityFunctor_generic
 
-from sage.structure.parent import CoercionException
+lazy_import('sage.structure.parent', 'CoercionException')
 
 # TODO, think through the rankings, and override pushout where necessary.
 
@@ -290,6 +290,15 @@ class ConstructionFunctor(Functor):
     # See the pushout() function below for explanation.
     coercion_reversed = False
 
+    def common_base(self, other, R_bases, S_bases):
+        """
+        This function is called by :func:`pushout` when no common parent
+        is found in the construction tower.
+
+        The main use is for multivariate construction functors, which
+        use this function to implement recursion for :func:`pushout`.
+        """
+        raise CoercionException("No common base")
 
 class CompositeConstructionFunctor(ConstructionFunctor):
     """
@@ -486,6 +495,7 @@ class IdentityConstructionFunctor(ConstructionFunctor):
             True
 
         """
+        from sage.categories.sets_cat import Sets
         ConstructionFunctor.__init__(self, Sets(), Sets())
 
     def _apply_functor(self, x):
@@ -564,6 +574,19 @@ class IdentityConstructionFunctor(ConstructionFunctor):
         else:
             return self
 
+class MultivariateConstructionFunctor(ConstructionFunctor):
+    """
+    An abstract base class for functors that take multiple inputs (e.g. CartesianProduct)
+    """
+    def common_base(self, other_functor, R_bases, S_bases):
+        """
+        """
+        if self != other_functor:
+            raise CoercionException("Incompatible multivariate construction functors")
+        if len(R_bases) != len(S_bases):
+            raise CoercionException("Multivariate construction functors need the same number of inputs")
+        Z_bases = tuple(pushout(R, S) for R, S in zip(R_bases, S_bases))
+        return self(Z_bases)
 
 class PolynomialFunctor(ConstructionFunctor):
     """
@@ -3241,6 +3264,15 @@ def pushout(R, S):
     Rs = [c[1] for c in R_tower]
     Ss = [c[1] for c in S_tower]
 
+    # If there is a multivariate construction functor in the tower, we must chop off the end
+    # because tuples don't have has_coerce_map_from functions and to align with the
+    # modification of Rs and Ss below
+    from sage.structure.parent import Parent
+    if not isinstance(Rs[-1], Parent):
+        Rs = Rs[:-1]
+    if not isinstance(Ss[-1], Parent):
+        Ss = Ss[:-1]
+
     if R in Ss:
         if not any(c[0].coercion_reversed for c in S_tower[1:]):
             return S
@@ -3278,7 +3310,7 @@ def pushout(R, S):
         Z = Rs.pop()
 
     else:
-        raise CoercionException("No common base")
+        Z = R_tower[-1][0].common_base(S_tower[-1][0], R_tower[-1][1], S_tower[-1][1])
 
     # Rc is a list of functors from Z to R and Sc is a list of functors from Z to S
     R_tower = expand_tower(R_tower[:len(Rs)+1])
@@ -3563,11 +3595,14 @@ def construction_tower(R):
     """
     tower = [(None, R)]
     c = R.construction()
+    from sage.structure.parent import Parent
     while c is not None:
         f, R = c
         if not isinstance(f, ConstructionFunctor):
             f = BlackBoxConstructionFunctor(f)
         tower.append((f,R))
+        if not isinstance(R, Parent):
+            break
         c = R.construction()
     return tower
 

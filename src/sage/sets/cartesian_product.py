@@ -206,6 +206,10 @@ class CartesianProduct(UniqueRepresentation, Parent):
         assert len(elements) == len(self._sets)
         return self.element_class(self, elements)
 
+    def construction(self):
+        from sage.categories.cartesian_product import cartesian_product
+        return cartesian_product, self.cartesian_factors()
+
     an_element = Sets.CartesianProducts.ParentMethods.an_element
 
     class Element(ElementWrapper):

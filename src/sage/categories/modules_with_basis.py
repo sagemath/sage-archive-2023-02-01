@@ -19,6 +19,7 @@ AUTHORS:
 from sage.misc.lazy_import import LazyImport
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import attrcall
+from sage.misc.abstract_method import abstract_method
 from sage.misc.sage_itertools import max_cmp, min_cmp
 from sage.categories.homsets import HomsetsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
@@ -121,6 +122,12 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
     .. TODO:: ``End(X)`` is an algebra.
 
+    .. NOTE::
+
+        This category currently requires an implementation of an
+        element method ``support``. Once :trac:`18066`, an implementation
+        of an ``items`` method will be required.
+
     TESTS::
 
         sage: TestSuite(ModulesWithBasis(ZZ)).run()
@@ -179,7 +186,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
         return self.base_ring().is_field()
 
     FiniteDimensional = LazyImport('sage.categories.finite_dimensional_modules_with_basis', 'FiniteDimensionalModulesWithBasis')
+    Filtered = LazyImport('sage.categories.filtered_modules_with_basis', 'FilteredModulesWithBasis')
     Graded = LazyImport('sage.categories.graded_modules_with_basis', 'GradedModulesWithBasis')
+    Super = LazyImport('sage.categories.super_modules_with_basis', 'SuperModulesWithBasis')
 
     class ParentMethods:
         @cached_method
@@ -460,7 +469,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 #             TODO: doctest
 #             """
 #             return self._lmul_(-self.parent().base_ring().one(), self)
-
 
         def support_of_term(self):
             """

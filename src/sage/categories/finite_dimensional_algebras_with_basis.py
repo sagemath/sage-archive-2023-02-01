@@ -52,7 +52,18 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                This implementation handles algebras over fields of
                characteristic zero (using Dixon's lemma) or fields of
-               characteristic `p` in which we can compute `x^{1/p}`.
+               characteristic `p` in which we can compute `x^{1/p}`
+               [FR85], [Eb89].
+
+            REFERENCES:
+
+            [Eb89] Eberly, Wayne. "Computations for algebras and group
+            representations." Ph.D. Thesis, University of Toronto, 1989.
+
+            [FR85] Friedl, Katalin, and Lajos Rónyai. "Polynomial time
+            solutions of some problems of computational algebra." Proceedings
+            of the seventeenth annual ACM symposium on Theory of computing.
+            ACM, 1985.
 
             INPUT:
 
@@ -233,7 +244,6 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             .. TODO::
 
                 - Tell Sage that the radical is in fact an ideal;
-                - Add references;
                 - Pickling by construction, as ``A.center()``;
                 - Lazy evaluation of ``_repr_``.
 

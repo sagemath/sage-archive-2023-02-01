@@ -1,9 +1,10 @@
+# -*- coding: utf-8 -*-
 r"""
 Finite dimensional algebras with basis
 """
 #*****************************************************************************
 #  Copyright (C) 2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2011-2015 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2011-2015 Nicolas M. Thiéry <nthiery at users.sf.net>
 #                2011-2015 Franco Saliola <saliola@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)

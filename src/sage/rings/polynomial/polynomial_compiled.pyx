@@ -104,10 +104,9 @@ cdef class CompiledPolynomialFunction:
             if algorithm == 'binary':
                 self._fill_gaps_binary(gaps)
             elif algorithm == 'pippenger':
-                raise NotImplementedError, "Implementation of Pippenger's Algorithm is not ready for prime time."
-                self._fill_gaps_pippenger()
+                raise NotImplementedError("Implementation of Pippenger's Algorithm is not ready for prime time.")
             else:
-                raise RuntimeError, "Method '%s' not supported."
+                raise RuntimeError("Method '%s' not supported.")
 
         self._dag = dag.nodummies()
 

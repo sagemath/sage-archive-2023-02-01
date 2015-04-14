@@ -17,7 +17,9 @@ TOP=`pwd`
 #######################################################################
 cd src
 for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
+    # Use --no-backup-if-mismatch to prevent .orig files (these confuse
+    # PARI's Perl script which creates pari.desc).
+    patch --no-backup-if-mismatch -p1 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error applying '$patch'"
         exit 1
@@ -156,6 +158,7 @@ build()
     # Note that "--graphic=none" is (usually) added to PARI_CONFIGURE:
     bash ./Configure --prefix="$SAGE_LOCAL" \
         --with-readline="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" \
+        --with-runtime-perl="/usr/bin/env perl" \
         --kernel=gmp $PARI_CONFIGURE
 
     if [ $? -ne 0 ]; then
@@ -195,13 +198,6 @@ install()
     fi
 
     cd "$CUR"
-
-    # Copy gprc.expect to $SAGE_LOCAL/etc
-    cp -f "$TOP/gprc.expect" "$SAGE_LOCAL/etc"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error installing gprc.expect"
-        exit 1
-    fi
 }
 
 

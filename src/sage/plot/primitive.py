@@ -95,7 +95,7 @@ class GraphicPrimitive(SageObject):
             sage: q.thickness
             4
             sage: q.texture.opacity
-            0.500000000000000
+            0.5
         """
         if options is None:
             options = self.options()

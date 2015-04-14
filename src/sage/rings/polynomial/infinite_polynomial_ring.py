@@ -236,7 +236,7 @@ all constituents coerce.
 #*****************************************************************************
 
 from sage.rings.ring import CommutativeRing
-from sage.structure.all import SageObject
+from sage.structure.all import SageObject, parent
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
 import operator, re
@@ -759,40 +759,6 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         from sage.rings.polynomial.infinite_polynomial_element import InfinitePolynomial
         return InfinitePolynomial(self,self._base(1))
 
-    @cached_method
-    def one_element(self):
-        """
-        TESTS::
-
-            sage: X.<x,y> = InfinitePolynomialRing(QQ)
-            sage: X.one_element()
-            1
-        """
-        from sage.rings.polynomial.infinite_polynomial_element import InfinitePolynomial
-        return InfinitePolynomial(self,1)
-
-    @cached_method
-    def zero_element(self):
-        """
-        TESTS::
-
-            sage: X.<x,y> = InfinitePolynomialRing(QQ)
-            sage: X.zero_element()
-            0
-        """
-        return self(0)
-
-    @cached_method
-    def zero(self):
-        """
-        TESTS::
-
-            sage: X.<x,y> = InfinitePolynomialRing(QQ)
-            sage: X.zero()
-            0
-        """
-        return self(0)
-
     #####################
     ## coercion
 
@@ -882,7 +848,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
         """
         # if x is in self, there's nothing left to do
-        if hasattr(x, 'parent') and (x.parent() is self):
+        if parent(x) is self:
             return x
         from sage.rings.polynomial.infinite_polynomial_element import InfinitePolynomial
         # In many cases, the easiest solution is to "simply" evaluate
@@ -894,7 +860,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             except Exception:
                 raise ValueError("Can't convert %s into an element of %s" % (x, self))
 
-        if hasattr(x, 'parent') and isinstance(x.parent(), InfinitePolynomialRing_sparse):
+        if isinstance(parent(x), InfinitePolynomialRing_sparse):
             # the easy case - parent == self - is already past
             if x.parent() is self._base: # another easy case
                 return InfinitePolynomial(self,x)
@@ -1069,7 +1035,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             return InfinitePolynomialRing(B.change_ring(R), self._names, self._order, implementation='sparse')
         # try to find the correct base ring in other ways:
         try:
-            o = B.one_element()*R.one_element()
+            o = B.one()*R.one()
         except Exception:
             raise TypeError("We can't tensor with "+repr(R))
         return InfinitePolynomialRing(o.parent(), self._names, self._order, implementation='sparse')
@@ -1569,7 +1535,7 @@ class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
             return InfinitePolynomialRing(B.change_ring(R), self._names, self._order, implementation='dense')
         # try to find the correct base ring in other ways:
         try:
-            o = B.one_element()*R.one_element()
+            o = B.one()*R.one()
         except Exception:
             raise TypeError("We can't tensor with "+repr(R))
         return InfinitePolynomialRing(o.parent(), self._names, self._order, implementation='dense')

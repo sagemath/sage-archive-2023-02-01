@@ -40,8 +40,8 @@ SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 
 # search for dependencies and add to gcc -I<path>
 include_dirs = [SAGE_INC,
-                os.path.join(SAGE_INC, 'csage'),
                 SAGE_SRC,
+                os.path.join(SAGE_SRC, 'c_lib', 'include'),
                 os.path.join(SAGE_SRC, 'sage', 'ext')]
 
 # Manually add -fno-strict-aliasing, which is needed to compile Cython
@@ -68,9 +68,12 @@ if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shel
     extra_compile_args.append('-fno-tree-dominator-opts')
 
 # Generate interpreters
-
 sage.ext.gen_interpreters.rebuild(os.path.join(SAGE_SRC, 'sage', 'ext', 'interpreters'))
 ext_modules = ext_modules + sage.ext.gen_interpreters.modules
+
+# Generate auto-generated files
+from sage_setup.autogen import autogen_all
+autogen_all()
 
 
 #########################################################
@@ -533,9 +536,11 @@ def run_cythonize():
         print('Enabling Cython profiling support')
         profile = True
 
-    # Enable Cython caching (the cache is stored in ~/.cycache which is
+    # Disable Cython caching (the cache is stored in ~/.cycache which is
     # Cython's default).
-    Cython.Compiler.Main.default_options['cache'] = True
+    # Cycache is currently too broken to use reliably:
+    # http://trac.sagemath.org/ticket/17851
+    Cython.Compiler.Main.default_options['cache'] = False
 
     force = True
     version_file = os.path.join(os.path.dirname(__file__), '.cython_version')

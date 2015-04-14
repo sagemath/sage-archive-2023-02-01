@@ -230,7 +230,7 @@ class FiniteDimensionalAlgebra(Algebra):
         """
         if not self.is_finite():
             raise NotImplementedError("object does not support iteration")
-        V = self.zero_element().vector().parent()
+        V = self.zero().vector().parent()
         for v in V:
             yield self(v)
 
@@ -541,7 +541,7 @@ class FiniteDimensionalAlgebra(Algebra):
             sage: B.random_element(num_bound=1000)  # random
             215/981*e0 + 709/953*e1 + 931/264*e2
         """
-        return self(self.zero_element().vector().parent().random_element(*args, **kwargs))
+        return self(self.zero().vector().parent().random_element(*args, **kwargs))
 
     def _is_valid_homomorphism_(self, other, im_gens):
         """

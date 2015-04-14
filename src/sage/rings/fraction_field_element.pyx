@@ -90,9 +90,9 @@ cdef class FractionFieldElement(FieldElement):
 
         sage: P.<n> = QQ[]
         sage: F = P.fraction_field()
-        sage: P.one_element()//F.one_element()
+        sage: P.one()//F.one()
         1
-        sage: F.one_element().quo_rem(F.one_element())
+        sage: F.one().quo_rem(F.one())
         (1, 0)
     """
     cdef object __numerator
@@ -190,7 +190,7 @@ cdef class FractionFieldElement(FieldElement):
             if not den.is_one() and den.is_unit():
                 try:
                     num *= den.inverse_of_unit()
-                    den  = den.parent().one_element()
+                    den  = den.parent().one()
                 except Exception:
                     pass
             self.__numerator   = num
@@ -529,7 +529,7 @@ cdef class FractionFieldElement(FieldElement):
                     tnum = rnum * sden + rden * snum
                     if tnum.is_zero():
                         return self.__class__(self._parent, tnum,
-                            self._parent.ring().one_element(), coerce=False,
+                            self._parent.ring().one(), coerce=False,
                             reduce=False)
                     else:
                         tden = self.__denominator * sden
@@ -540,7 +540,7 @@ cdef class FractionFieldElement(FieldElement):
                         if not tden.is_one() and tden.is_unit():
                             try:
                                 tnum = tnum * tden.inverse_of_unit()
-                                tden = self._parent.ring().one_element()
+                                tden = self._parent.ring().one()
                             except AttributeError:
                                 pass
                             except NotImplementedError:
@@ -608,7 +608,7 @@ cdef class FractionFieldElement(FieldElement):
         sden = (<FractionFieldElement> right).__denominator
 
         if (rnum.is_zero() or snum.is_zero()):
-            return self._parent.zero_element()
+            return self._parent.zero()
 
         if self._parent.is_exact():
             try:
@@ -625,7 +625,7 @@ cdef class FractionFieldElement(FieldElement):
                 if not tden.is_one() and tden.is_unit():
                     try:
                         tnum = tnum * tden.inverse_of_unit()
-                        tden = self._parent.ring().one_element()
+                        tden = self._parent.ring().one()
                     except AttributeError:
                         pass
                     except NotImplementedError:
@@ -780,7 +780,7 @@ cdef class FractionFieldElement(FieldElement):
         if right == 0:
             R = self.parent().ring()
             return self.__class__(self.parent(),
-                R.one_element(), R.one_element(),
+                R.one(), R.one(),
                 coerce=False, reduce=False)
         elif right > 0:
             return self.__class__(self.parent(),

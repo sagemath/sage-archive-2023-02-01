@@ -226,7 +226,7 @@ cdef class Cache_ntl_gf2e(SageObject):
         """
         cdef FiniteField_ntl_gf2eElement y
         self.F.restore()
-        y = PY_NEW(FiniteField_ntl_gf2eElement)
+        y = FiniteField_ntl_gf2eElement.__new__(FiniteField_ntl_gf2eElement)
         y._parent = self._parent
         y._cache = self
         return y
@@ -285,7 +285,7 @@ cdef class Cache_ntl_gf2e(SageObject):
             sage: K(c^20)
             a^6 + a^3 + a^2 + a
         """
-        if PY_TYPE_CHECK(e, FiniteField_ntl_gf2eElement) and e.parent() is self._parent: return e
+        if isinstance(e, FiniteField_ntl_gf2eElement) and e.parent() is self._parent: return e
         cdef FiniteField_ntl_gf2eElement res = self._new()
         cdef FiniteField_ntl_gf2eElement x
         cdef FiniteField_ntl_gf2eElement g
@@ -293,20 +293,20 @@ cdef class Cache_ntl_gf2e(SageObject):
 
         if is_IntegerMod(e):
             e = e.lift()
-        if PY_TYPE_CHECK(e, int) or \
-             PY_TYPE_CHECK(e, Integer) or \
-             PY_TYPE_CHECK(e, long):
+        if isinstance(e, int) or \
+             isinstance(e, Integer) or \
+             isinstance(e, long):
             GF2E_conv_long(res.x,int(e&1))
             return res
 
-        elif PY_TYPE_CHECK(e, float):
+        elif isinstance(e, float):
             GF2E_conv_long(res.x,int(e))
             return res
 
-        elif PY_TYPE_CHECK(e, str):
+        elif isinstance(e, str):
             return self._parent(eval(e.replace("^","**"),self._parent.gens_dict()))
 
-        elif PY_TYPE_CHECK(e, FreeModuleElement):
+        elif isinstance(e, FreeModuleElement):
             if self._parent.vector_space() != e.parent():
                 raise TypeError, "e.parent must match self.vector_space"
             ztmp = Integer(e.list(),2)
@@ -323,19 +323,19 @@ cdef class Cache_ntl_gf2e(SageObject):
             ztmp = Integer(e,2)
             return self.fetch_int(ztmp)
 
-        elif PY_TYPE_CHECK(e, MPolynomial):
+        elif isinstance(e, MPolynomial):
             if e.is_constant():
                 return self._parent(e.constant_coefficient())
             else:
                 raise TypeError, "no coercion defined"
 
-        elif PY_TYPE_CHECK(e, Polynomial):
+        elif isinstance(e, Polynomial):
             if e.is_constant():
                 return self._parent(e.constant_coefficient())
             else:
                 return e(self._parent.gen())
 
-        elif PY_TYPE_CHECK(e, Rational):
+        elif isinstance(e, Rational):
             num = e.numer()
             den = e.denom()
             if den % 2:
@@ -344,11 +344,11 @@ cdef class Cache_ntl_gf2e(SageObject):
                 return self._zero_element
             raise ZeroDivisionError
 
-        elif PY_TYPE_CHECK(e, gen):
+        elif isinstance(e, gen):
             pass # handle this in next if clause
 
-        elif PY_TYPE_CHECK(e, FiniteFieldElement_pari_ffelt) or \
-             PY_TYPE_CHECK(e, FiniteField_ext_pariElement):
+        elif isinstance(e, FiniteFieldElement_pari_ffelt) or \
+             isinstance(e, FiniteField_ext_pariElement):
             # Reduce to pari
             e = e._pari_()
 
@@ -359,7 +359,7 @@ cdef class Cache_ntl_gf2e(SageObject):
             raise TypeError("unable to coerce %r" % type(e))
 
         cdef GEN t
-        if PY_TYPE_CHECK(e, gen):
+        if isinstance(e, gen):
             pari_catch_sig_on()
             t = (<gen>e).g
             if typ(t) == t_FFELT:
@@ -423,13 +423,13 @@ cdef class Cache_ntl_gf2e(SageObject):
         if number < 0 or number >= self.order():
             raise TypeError, "n must be between 0 and self.order()"
 
-        if PY_TYPE_CHECK(number, int) or PY_TYPE_CHECK(number, long):
+        if isinstance(number, int) or isinstance(number, long):
             if not number:
                 n = 0
             else:
                 from sage.misc.functional import log
                 n = int(log(number,2))/8 + 1
-        elif PY_TYPE_CHECK(number, Integer):
+        elif isinstance(number, Integer):
             n = int(number.nbits())/8 + 1
         else:
             raise TypeError, "number %s is not an integer"%number
@@ -516,7 +516,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         """
         if parent is None:
             return
-        if PY_TYPE_CHECK(parent, FiniteField_ntl_gf2e):
+        if isinstance(parent, FiniteField_ntl_gf2e):
             self._parent = parent
             (<Cache_ntl_gf2e>self._parent._cache).F.restore()
             GF2E_construct(&self.x)
@@ -527,7 +527,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
     cdef FiniteField_ntl_gf2eElement _new(FiniteField_ntl_gf2eElement self):
         cdef FiniteField_ntl_gf2eElement y
         (<Cache_ntl_gf2e>self._parent._cache).F.restore()
-        y = PY_NEW(FiniteField_ntl_gf2eElement)
+        y = FiniteField_ntl_gf2eElement.__new__(FiniteField_ntl_gf2eElement)
         y._parent = self._parent
         y._cache = self._cache
         return y
@@ -1255,7 +1255,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             (0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
         """
         #vector(foo) might pass in ZZ
-        if PY_TYPE_CHECK(reverse, Parent):
+        if isinstance(reverse, Parent):
             raise TypeError, "Base field is fixed to prime subfield."
 
         cdef GF2X_c r = GF2E_rep(self.x)

@@ -4601,22 +4601,15 @@ class Partition(CombinatorialObject, Element):
         G = G.copy(immutable=True)
         if have_dot2tex():
             if coloring is None:
+                d = {2: 'red', 3: 'blue', 4: 'green', 5: 'purple',
+                     6: 'brown', 7: 'orange', 8: 'yellow'}
                 def coloring(i):
-                    if i == 2:
-                        return 'red'
-                    if i == 3:
-                        return 'blue'
-                    if i == 4:
-                        return 'green'
-                    if i == 5:
-                        return 'purple'
-                    if i == 6:
-                        return 'brown'
-                    if i == 7:
-                        return 'orange'
-                    if i == 8:
-                        return 'yellow'
+                    if i in d:
+                        return d[i]
                     return 'black'
+            elif isinstance(coloring, dict):
+                d = coloring
+                coloring = lambda x: d[x]
             G.set_latex_options(format="dot2tex",
                                 edge_labels=True,
                                 color_by_label=coloring)

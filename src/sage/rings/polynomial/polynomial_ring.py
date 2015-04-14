@@ -639,7 +639,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             if is_PolynomialRing(P):
                 if self.__is_sparse and not P.is_sparse():
                     return False
-                if P.variable_name() == self.variable_name():
+                if P.construction()[0] == self.construction()[0]:
                     if P.base_ring() is base_ring and \
                             base_ring is ZZ_sage:
                         # We're trying to coerce from FLINT->NTL

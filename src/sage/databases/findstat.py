@@ -884,7 +884,7 @@ class FindStatStatistic(SageObject):
         query was by identifier.
 
         EXAMPLES::
-        
+
             sage: q = findstat([(pi, pi.length()) for pi in Permutations(4)]); q          # optional -- internet,random
                 0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
                 1: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [Mp00062: inversion-number to major-index bijection], 24)
@@ -1094,7 +1094,7 @@ class FindStatStatistic(SageObject):
             'Random values on Dyck paths.'
             sage: print s.description()                                         # optional -- internet
             Random values on Dyck paths.
-            This is not going to be submitted.
+            Not for submssion.
         """
         if value != self._description:
             self._modified = True
@@ -1343,83 +1343,83 @@ class FindStatCollection(SageObject):
     # * sage element constructor
     # * sage constructor                                         (would be parent_initializer)
     # * list of arguments for constructor                        (FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED)
-    # * a method to get the size of the sage object
+    # * a function to check whether an object is produced by applying the constructor to some element in the list
     # * the (FindStat) string representations of the sage object (would be element_repr)
     # * sage constructors of the FindStat string representation  (would be element_constructor)
 
     # several fields are initialised with 'None', they are updated upon the first call to this class
     _findstat_collections = {
         17: [None, None, None, AlternatingSignMatrix, AlternatingSignMatrices, None,
-             lambda x: x.to_matrix().nrows(),
+             lambda x, l: x.to_matrix().nrows() in l,
              lambda x: str(map(list, list(x._matrix))),
              lambda x: AlternatingSignMatrix(literal_eval(x))],
         10: [None, None, None, BinaryTree,            BinaryTrees,             None,
-             lambda x: x.node_number(),
+             lambda x, l: x.node_number() in l,
              str,
              lambda x: BinaryTree(str(x))],
         13: [None, None, None, Core,                  lambda x: Cores(x[1], x[0]),
              None,
-             lambda x: (x.length(), x.k()),
+             lambda x, l: (x.length(), x.k()) in l,
              lambda X: "( "+X._repr_()+", "+str(X.k())+" )",
              lambda x: (lambda pi, k: Core(pi, k))(*literal_eval(x))],
         5:  [None, None, None, DyckWord,              DyckWords,               None,
-             lambda x: x.length()/2,
+             lambda x, l: (x.length()/2) in l,
              lambda x: str(list(DyckWord(x))),
              lambda x: DyckWord(literal_eval(x))],
         22: [None, None, None, CartanType_abstract,   _finite_irreducible_cartan_types_by_rank,
              None,
-             lambda x: x.rank(),
+             lambda x, l: x.rank() in l,
              str,
              lambda x: CartanType(*literal_eval(str(x)))],
         18: [None, None, None, GelfandTsetlinPattern, lambda x: GelfandTsetlinPatterns(*x),
              None,
-             lambda x: (len(x), max([0] + [max(row) for row in x])),
+             lambda x, l: any(len(x) == s and max([0] + [max(row) for row in x]) <= m for s, m in l),
              str,
              lambda x: GelfandTsetlinPattern(literal_eval(x))],
         20: [None, None, None, Graph,                 graphs,
              None,
-             lambda x: x.num_verts(),
+             lambda x, l: x.num_verts() in l,
              lambda X: str((sorted(X.canonical_label().edges(False)), X.num_verts())),
              lambda x: (lambda E, V: Graph([range(V), lambda i,j: (i,j) in E or (j,i) in E], immutable=True))(*literal_eval(x))],
         6:  [None, None, None, Composition,           Compositions,            None,
-             lambda x: x.size(),
+             lambda x, l: x.size() in l,
              str,
              lambda x: Composition(literal_eval(x))],
         2:  [None, None, None, Partition,             Partitions,              None,
-             lambda x: x.size(),
+             lambda x, l: x.size() in l,
              str,
              lambda x: Partition(literal_eval(x))],
         21: [None, None, None, OrderedTree,           OrderedTrees,            None,
-             lambda x: x.node_number(),
+             lambda x, l: x.node_number() in l,
              str,
              lambda x: OrderedTree(literal_eval(x))],
         23: [None, None, None, ParkingFunction_class, ParkingFunctions,        None,
-             len,
+             lambda x, l: len(x) in l,
              str,
              lambda x: ParkingFunction(literal_eval(x))],
         12: [None, None, None, PerfectMatching,       PerfectMatchings,        None,
-             lambda x: x.size(),
+             lambda x, l: x.size() in l,
              str,
              lambda x: PerfectMatching(literal_eval(x))],
         1:  [None, None, None, Permutation,           Permutations,            None,
-             lambda x: x.size(),
+             lambda x, l: x.size() in l,
              str,
              lambda x: Permutation(literal_eval(x))],
         14: [None, None, None, FinitePoset,           posets,                  None,
-             lambda x: x.cardinality(),
+             lambda x, l: x.cardinality() in l,
              lambda X: str((sorted(X._hasse_diagram.canonical_label().cover_relations()), len(X._hasse_diagram.vertices()))),
              lambda x: (lambda R, E: Poset((range(E), R)))(*literal_eval(x))],
         19: [None, None, None, SemistandardTableau,   lambda x: SemistandardTableaux(x, max_entry=4),
              None,
-             lambda x: x.size(),
+             lambda x, l: x.size() in l,
              str,
              lambda x: SemistandardTableau(literal_eval(x))],
         9:  [None, None, None, SetPartition,          SetPartitions,           None,
-             lambda x: x.size(),
+             lambda x, l: x.size() in l,
              str,
              lambda x: SetPartition(literal_eval(x.replace('{','[').replace('}',']')))],
         7:  [None, None, None, StandardTableau,       StandardTableaux,        None,
-             lambda x: x.size(),
+             lambda x, l: x.size() in l,
              str,
              lambda x: StandardTableau(literal_eval(x))]}
 
@@ -1500,7 +1500,7 @@ class FindStatCollection(SageObject):
             self._id = id
             (self._name, self._name_plural, self._url_name,
              self._sageclass, self._sageconstructor, self._range,
-             self._to_size, self._to_str, self._from_str) = c
+             self._in_range, self._to_str, self._from_str) = c
 
         if isinstance(entry, (str, unicode)):
             # find by name in _findstat_collections
@@ -1606,23 +1606,33 @@ class FindStatCollection(SageObject):
             sage: c.in_range(GelfandTsetlinPattern([[4, 1], [1]]))              # optional -- internet,random
             False
 
-        .. TODO::
 
-            This method is currently unreliable.  For example, the
-            Gelfand Tsetlin patterns of size (2,3) contain those of
-            size (2,2), but only the former are explicitely in the
-            range reported by FindStat.
+        TESTS::
 
-            So possibly I need to hardcode a membership check for
-            every collection.
+            sage: l = FindStatCollection._findstat_collections.keys()           # optional -- internet
+            sage: long = [9, 12, 14, 20]; [l.remove(e) for e in long]           # optional -- internet
+            [None, None, None, None]
+            sage: for i in l:                                                   # optional -- internet
+            ....:     c = FindStatCollection(i)
+            ....:     f = c.first_terms(lambda x: 1, max_values=10000)
+            ....:     print c, len(f), all(c.in_range(e) for e, _ in f)
+            ....:
+            Cc0001: Permutations 10000 True
+            Cc0002: Integer partitions 270 True
+            Cc0005: Dyck paths 2054 True
+            Cc0006: Integer compositions 510 True
+            Cc0007: Standard tableaux 3734 True
+            Cc0010: Binary trees 2054 True
+            Cc0013: Cores 100 True
+            Cc0017: Alternating sign matrices 7916 True
+            Cc0018: Gelfand-Tsetlin patterns 934 True
+            Cc0019: Semistandard tableaux 2100 True
+            Cc0021: Ordered trees 2055 True
+            Cc0022: Finite Cartan types 31 True
+            Cc0023: Parking functions 10000 True
 
         """
-        return self.to_size()(element) in self._range
-
-        # even worse, because slow and unreliable.
-#        n = self.to_size()(element)
-#        to_string = self.to_string()
-#        return (n in self._range and to_string(element) in [to_string(x) for x in self._sageconstructor(n)])
+        return self._in_range(element, self._range)
 
     def first_terms(self, statistic, max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         r"""
@@ -1706,25 +1716,6 @@ class FindStatCollection(SageObject):
             sage: FindStatCollection("Permutations").browse()                   # optional -- webbrowser
         """
         webbrowser.open(FINDSTAT_URL + self._url_name)
-
-    def to_size(self):
-        r"""
-        Return a function that returns the FindStat size of an object.
-
-        OUTPUT:
-
-        The function that produces the size as needed by the
-        constructor of the collection.
-
-        EXAMPLES::
-
-            sage: from sage.databases.findstat import FindStatCollection
-            sage: c = FindStatCollection("GelfandTsetlinPatterns")              # optional -- internet
-            sage: c.to_size()(GelfandTsetlinPattern([[4, 1], [1]]))             # optional -- internet
-            (2, 4)
-        """
-        return self._to_size
-
 
     def to_string(self):
         r"""

@@ -19,7 +19,7 @@ from sage.combinat.root_system.root_space import RootSpace
 from sage.combinat.root_system.weight_space import WeightSpace
 from sage.rings.all import ZZ, QQ
 from sage.misc.all import cached_method
-from sage.matrix.matrix_space import MatrixSpace
+from sage.matrix.constructor import Matrix
 from sage.functions.other import floor
 
 # TODO: Make this a proper parent and implement actions
@@ -184,9 +184,12 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
                                  for al in self._Q.classical().roots()]
         self._classical_positive_roots = [from_cl_root(al)
                                           for al in self._Q.classical().positive_roots()]
-
         self._eps = {i: self._cartan_type.a()[i] / self._cartan_type.dual().a()[i]
                      for i in self._index_set}
+        self._a = self._cartan_type.a()
+        self._ac = self._cartan_type.dual().a()
+        E = Matrix.diagonal([self._eps[i] for i in self._index_set_classical])
+        self._ip = (self._cartan_type.classical().cartan_matrix()*E).inverse()
 
     def highest_weight(self):
         """
@@ -240,6 +243,19 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
     def _inner_qq(self, qelt1, qelt2):
         """
         Symmetric form between two elements of the root lattice.
+        
+        EXAMPLES::
+            
+            sage: P = RootSystem(['F',4,1]).weight_lattice(extended=true)
+            sage: Lambda = P.fundamental_weights()
+            sage: v = IntegrableRepresentation(Lambda[0])
+            sage: alpha = v.root_lattice().simple_roots()
+            sage: Matrix([[v._inner_qq(alpha[i], alpha[j]) for j in v._index_set] for i in v._index_set])
+            [   2   -1    0    0    0]
+            [  -1    2   -1    0    0]
+            [   0   -1    2   -1    0]
+            [   0    0   -1    1 -1/2]
+            [   0    0    0 -1/2    1]
 
         .. WARNING:
 
@@ -248,7 +264,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             and it will be wrong. To make this code robust, parents
             should be checked. This is not done since in the application
             the parents are known, so checking would unnecessarily slow
-            us down.
+=            us down.
         """
         mc1 = qelt1.monomial_coefficients()
         mc2 = qelt2.monomial_coefficients()
@@ -259,7 +275,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
     def _inner_pq(self, pelt, qelt):
         """
-        Symmetric form between an element of the weight and root lattices
+        Symmetric form between an element of the weight and root lattices.
 
         .. WARNING:
 
@@ -268,11 +284,59 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             this code robust, parents should be checked. This is not done
             since in the application the parents are known, so checking would
             unnecessarily slow us down.
+
+        EXAMPLES::
+
+            sage: P = RootSystem(['F',4,1]).weight_lattice(extended=true)
+            sage: Lambda = P.fundamental_weights()
+            sage: v = IntegrableRepresentation(Lambda[0])
+            sage: alpha = v.root_lattice().simple_roots()
+            sage: Matrix([[v._inner_pq(P(alpha[i]), alpha[j]) for j in v._index_set] for i in v._index_set])
+            [   2   -1    0    0    0]
+            [  -1    2   -1    0    0]
+            [   0   -1    2   -1    0]
+            [   0    0   -1    1 -1/2]
+            [   0    0    0 -1/2    1]
+            sage: P = RootSystem(['G',2,1]).weight_lattice(extended=true)
+            sage: P = RootSystem(['G',2,1]).weight_lattice(extended=true)
+            sage: Lambda = P.fundamental_weights()
+            sage: v = IntegrableRepresentation(Lambda[0])
+            sage: alpha = v.root_lattice().simple_roots()
+            sage: Matrix([[v._inner_pq(Lambda[i],alpha[j]) for j in v._index_set] for i in v._index_set])
+            [  1   0   0]
+            [  0 1/3   0]
+            [  0   0   1]
         """
         mcp = pelt.monomial_coefficients()
         mcq = qelt.monomial_coefficients()
         zero = ZZ.zero()
         return sum(mcp.get(i, zero) * mcq[i] / self._eps[i] for i in mcq) 
+
+    def _inner_pp(self, pelt1, pelt2):
+        """
+        Symmetric form between an two elements of the weight lattice.
+
+        EXAMPLES::
+
+            sage: P = RootSystem(['G',2,1]).weight_lattice(extended=true)
+            sage: Lambda = P.fundamental_weights()
+            sage: v = IntegrableRepresentation(Lambda[0])
+            sage: alpha = v.root_lattice().simple_roots()
+            sage: Matrix([[v._inner_pp(Lambda[i],P(alpha[j])) for j in v._index_set] for i in v._index_set])
+            [  1   0   0]
+            [  0 1/3   0]
+            [  0   0   1]
+            sage: Matrix([[v._inner_pp(Lambda[i],Lambda[j]) for j in v._index_set] for i in v._index_set])
+            [  0   0   0]
+            [  0 2/3   1]
+            [  0   1   2]
+
+        """
+        mc1 = pelt1.monomial_coefficients()
+        mc2 = pelt2.monomial_coefficients()
+        return sum(mc1.get(i,0)*self._ac[i]*mc2.get('delta',0) for i in self._index_set) +\
+           sum(mc2.get(i,0)*self._ac[i]*mc1.get('delta',0) for i in self._index_set) +\
+           sum(mc1.get(i,0)*mc2.get(j,0)*self._ip[i-1][j-1] for i in self._index_set_classical for j in self._index_set_classical)
 
     def to_weight(self, n):
         """
@@ -373,8 +437,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         roots `\alpha \in \Delta^+` such that `\nu - \alpha \in Q^+`.
         """
         l = self._from_weight_helper(nu)
-        a = self._cartan_type.a()
-        kp = min(floor(l[i] / a[i]) for i in self._index_set)
+        kp = min(floor(l[i] / self._a[i]) for i in self._index_set)
         delta = self._Q.null_root()
         return [u*delta for u in range(1, kp+1)]
 

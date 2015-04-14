@@ -555,6 +555,8 @@ class Animation(SageObject):
             sage: td = tmp_dir()
             sage: a.gif()              # not tested
             sage: a.gif(savefile=td + 'my_animation.gif', delay=35, iterations=3)  # optional -- ImageMagick
+            sage: with open(td + 'my_animation.gif', 'rb') as f: print '\x21\xf9\x04\x08\x23\x00' in f.read()  # optional -- ImageMagick
+            True
             sage: a.gif(savefile=td + 'my_animation.gif', show_path=True) # optional -- ImageMagick
             Animation saved to .../my_animation.gif.
             sage: a.gif(savefile=td + 'my_animation_2.gif', show_path=True, use_ffmpeg=True) # optional -- ffmpeg
@@ -795,6 +797,8 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         TESTS::
 
             sage: a.ffmpeg(output_format='gif',delay=30,iterations=5)     # optional -- ffmpeg
+            doctest:...: DeprecationWarning: use tmp_filename instead
+            See http://trac.sagemath.org/17234 for details.
         """
         if not self._have_ffmpeg():
             msg = """Error: ffmpeg does not appear to be installed. Saving an animation to
@@ -924,7 +928,7 @@ please install it and try again."""
         if show_path:
             print "Animation saved to file %s." % savefile
 
-    def save(self, filename=None, show_path=False, use_ffmpeg=False):
+    def save(self, filename=None, show_path=False, use_ffmpeg=False, **kwds):
         """
         Save this animation.
 
@@ -964,6 +968,27 @@ please install it and try again."""
             sage: a.save(td + 'wave0.sobj')
             sage: a.save(td + 'wave1.sobj', show_path=True)
             Animation saved to file .../wave1.sobj.
+
+        TESTS:
+
+        Ensure that we can pass delay and iteration count to the saved
+        GIF image (see :trac:`18176`)::
+
+            sage: a.save(td + 'wave.gif')   # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print '!\xf9\x04\x08\x14\x00' in f.read()  # optional -- ImageMagick
+            True
+            sage: with open(td + 'wave.gif', 'rb') as f: print '!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read()  # optional -- ImageMagick
+            True
+            sage: a.save(td + 'wave.gif', delay=35)   # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print '!\xf9\x04\x08\x14\x00' in f.read()  # optional -- ImageMagick
+            False
+            sage: with open(td + 'wave.gif', 'rb') as f: print '!\xf9\x04\x08\x23\x00' in f.read()  # optional -- ImageMagick
+            True
+            sage: a.save(td + 'wave.gif', iterations=3)   # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print '!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read()  # optional -- ImageMagick
+            False
+            sage: with open(td + 'wave.gif', 'rb') as f: print '!\xff\x0bNETSCAPE2.0\x03\x01\x03\x00\x00' in f.read()  # optional -- ImageMagick
+            True
         """
         if filename is None:
             suffix = '.gif'
@@ -974,16 +999,13 @@ please install it and try again."""
 
         if filename is None or suffix == '.gif':
             self.gif(savefile=filename, show_path=show_path,
-                     use_ffmpeg=use_ffmpeg)
-            return
+                     use_ffmpeg=use_ffmpeg, **kwds)
         elif suffix == '.sobj':
             SageObject.save(self, filename)
             if show_path:
                 print "Animation saved to file %s." % filename
-            return
         else:
-            self.ffmpeg(savefile=filename, show_path=show_path)
-            return
+            self.ffmpeg(savefile=filename, show_path=show_path, **kwds)
 
 
 class APngAssembler(object):

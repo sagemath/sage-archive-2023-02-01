@@ -929,7 +929,7 @@ please install it and try again."""
             print "Animation saved to file %s." % savefile
 
     def save(self, filename=None, show_path=False, use_ffmpeg=False, **kwds):
-        """
+        r"""
         Save this animation.
 
         INPUT:

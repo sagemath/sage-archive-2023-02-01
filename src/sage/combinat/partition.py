@@ -4487,7 +4487,6 @@ class Partition(CombinatorialObject, Element):
         return sum(abs(variable+c) for c in outside_contents)\
                        -sum(abs(variable+c) for c in inside_contents)
 
-    @cached_method
     def dual_equivalence_graph(self, directed=False, coloring=None):
         r"""
         Return the dual equivalence graph of ``self``.
@@ -4560,13 +4559,50 @@ class Partition(CombinatorialObject, Element):
              ([[1, 3, 5], [2], [4]], [[1, 2, 5], [3], [4]], 2),
              ([[1, 3, 5], [2], [4]], [[1, 3, 4], [2], [5]], 4),
              ([[1, 4, 5], [2], [3]], [[1, 3, 5], [2], [4]], 3)]
+
+        TESTS::
+
             sage: G = Partition([1]).dual_equivalence_graph()
             sage: G.vertices()
             [[[1]]]
             sage: G = Partition([]).dual_equivalence_graph()
             sage: G.vertices()
             [[]]
+
+            sage: P = Partition([3,1,1])
+            sage: G = P.dual_equivalence_graph(coloring=lambda x: 'red')
+            sage: G2 = P.dual_equivalence_graph(coloring={2: 'black', 3: 'blue', 4: 'cyan', 5: 'grey'})
+            sage: G is G2
+            False
+            sage: G == G2
+            True
         """
+        # We do some custom caching to not recreate the graph, but to make
+        #   copies with the desired coloring (i.e., act like a factory).
+        try:
+            from copy import copy
+            if directed:
+                G = copy(self._DDEG)
+            else:
+                G = copy(self._DEG)
+            if have_dot2tex():
+                if coloring is None:
+                    d = {2: 'red', 3: 'blue', 4: 'green', 5: 'purple',
+                         6: 'brown', 7: 'orange', 8: 'yellow'}
+                    def coloring(i):
+                        if i in d:
+                            return d[i]
+                        return 'black'
+                elif isinstance(coloring, dict):
+                    d = coloring
+                    coloring = lambda x: d[x]
+                G.set_latex_options(format="dot2tex",
+                                    edge_labels=True,
+                                    color_by_label=coloring)
+            return G
+        except AttributeError:
+            pass
+
         T = list(tableau.StandardTableaux(self))
         n = sum(self)
         edges = []
@@ -4594,26 +4630,14 @@ class Partition(CombinatorialObject, Element):
         if directed:
             from sage.graphs.digraph import DiGraph
             G = DiGraph(edges, multiedges=True)
+            G.add_vertices(T) # Add isolated vertices
+            self._DDEG = G.copy(immutable=True)
         else:
             from sage.graphs.graph import Graph
             G = Graph(edges, multiedges=True)
-        G.add_vertices(T) # Add isolated vertices.
-        G = G.copy(immutable=True)
-        if have_dot2tex():
-            if coloring is None:
-                d = {2: 'red', 3: 'blue', 4: 'green', 5: 'purple',
-                     6: 'brown', 7: 'orange', 8: 'yellow'}
-                def coloring(i):
-                    if i in d:
-                        return d[i]
-                    return 'black'
-            elif isinstance(coloring, dict):
-                d = coloring
-                coloring = lambda x: d[x]
-            G.set_latex_options(format="dot2tex",
-                                edge_labels=True,
-                                color_by_label=coloring)
-        return G
+            G.add_vertices(T) # Add isolated vertices
+            self._DEG = G.copy(immutable=True)
+        return self.dual_equivalence_graph(directed, coloring)
 
 ##############
 # Partitions #
@@ -5353,7 +5377,7 @@ class Partitions_all_bounded(Partitions):
         """
         TESTS::
 
-            sage: TestSuite( sage.combinat.partition.Partitions_all_bounded(3) ).run()
+            sage: TestSuite( sage.combinat.partition.Partitions_all_bounded(3) ).run() # long time
         """
         self.k = k
         Partitions.__init__(self, is_infinite=True)

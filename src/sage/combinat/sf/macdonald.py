@@ -1277,13 +1277,19 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
             McdH[2, 1]
             
         """
-        g = f(self._m([1])*(1-self.t))
+        if self.t==1:
+            subsval = 1/self.q
+            fl = lambda x: x.conjugate()
+        else:
+            subsval = self.t
+            fl = lambda x: x
+        g = f.theta_qt(q=subsval,t=0)
         out = {}
         while not g.is_zero():
             sprt = g.support()
-            Hmu = self._self_to_m(self(sprt[-1]))(self._m([1])*(1-self.t))
-            out[sprt[-1]] = g.coefficient(sprt[-1])/Hmu.coefficient(sprt[-1])
-            g -= out[sprt[-1]]*Hmu
+            Hmu = self._self_to_m(self(fl(sprt[-1]))).theta_qt(q=subsval,t=0)
+            out[fl(sprt[-1])] = self._base(g.coefficient(sprt[-1])/Hmu.coefficient(sprt[-1]))
+            g -= out[fl(sprt[-1])]*Hmu
         return self._from_dict(out)
 
     class Element(MacdonaldPolynomials_generic.Element):
@@ -1415,6 +1421,10 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         is `c_\mu m_\mu` plus terms which are smaller in dominance order.  The leading
         coefficient of the expansion of ``f`` in the `{\tilde H}_\mu` basis is equal to
         the leading coefficient of `c_\mu^{-1} f[X(t-1)]`.
+        
+        If `t=1`, we must appeal to another triangularity since ``Ht`` is (usually)
+        still a basis, however `{\tilde H}_\mu[X(t-1)]=0`.  In this case we assume that
+        it is a basis and 
 
         INPUT:
 
@@ -1443,13 +1453,19 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
             McdHt[2, 1]
             
         """
-        g = f(self._m([1])*(self.t-1))
+        if self.t==1:
+            subsval = 1/self.q
+            fl = lambda x: x.conjugate()
+        else:
+            subsval = 1/self.t
+            fl = lambda x: x
+        g = f.theta_qt(q=subsval,t=0)
         out = {}
         while not g.is_zero():
             sprt = g.support()
-            Htmu = self._self_to_m(self(sprt[-1]))(self._m([1])*(self.t-1))
-            out[sprt[-1]] = self._base(g.coefficient(sprt[-1])/Htmu.coefficient(sprt[-1]))
-            g -= out[sprt[-1]]*Htmu
+            Htmu = self._self_to_m(self(fl(sprt[-1]))).theta_qt(q=subsval,t=0)
+            out[fl(sprt[-1])] = self._base(g.coefficient(sprt[-1])/Htmu.coefficient(sprt[-1]))
+            g -= out[fl(sprt[-1])]*Htmu
         return self._from_dict(out)
 
     class Element(MacdonaldPolynomials_generic.Element):

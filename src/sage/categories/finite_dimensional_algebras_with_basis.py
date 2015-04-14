@@ -308,7 +308,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             ring = self.base_ring()
             category = Algebras(ring).WithBasis().FiniteDimensional().Quotients().Semisimple()
-            result = self.quotient(self.radical(), category=category)
+            result = self.quotient_module(self.radical(), category=category)
             result.rename("Semisimple quotient of {}".format(self))
             return result
 

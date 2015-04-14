@@ -82,7 +82,7 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: X = CombinatorialFreeModule(QQ, range(3), prefix = "x"); x = X.basis()
-            sage: Y = X.quotient((x[0]-x[1], x[1]-x[2]))
+            sage: Y = X.quotient_module((x[0]-x[1], x[1]-x[2]))
             sage: Y.ambient() is X
             True
         """
@@ -99,7 +99,7 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: X = CombinatorialFreeModule(QQ, range(3), prefix = "x"); x = X.basis()
-            sage: Y = X.quotient((x[0]-x[1], x[1]-x[2]));                  y = Y.basis()
+            sage: Y = X.quotient_module((x[0]-x[1], x[1]-x[2]));           y = Y.basis()
             sage: Y.lift(y[2])
             x[2]
         """
@@ -117,7 +117,7 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: X = CombinatorialFreeModule(QQ, range(3), prefix = "x"); x = X.basis()
-            sage: Y = X.quotient((x[0]-x[1], x[1]-x[2]));                  y = Y.basis()
+            sage: Y = X.quotient_module((x[0]-x[1], x[1]-x[2]));           y = Y.basis()
             sage: Y.print_options(prefix='y')
             sage: Y.retract(x[0])
             y[2]

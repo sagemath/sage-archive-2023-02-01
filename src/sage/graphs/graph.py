@@ -1,3 +1,4 @@
+
 r"""
 Undirected graphs
 
@@ -982,6 +983,12 @@ class Graph(GenericGraph):
           sage: {G_imm:1}[H_imm]
           1
 
+    TESTS::
+
+        sage: Graph(4,format="HeyHeyHey")
+        Traceback (most recent call last):
+        ...
+        ValueError: Unknown input format 'HeyHeyHey'
     """
     _directed = False
 
@@ -1168,18 +1175,19 @@ class Graph(GenericGraph):
         if format is None:
             raise ValueError("This input cannot be turned into a graph")
 
-        # At this point, format has been set.
+        if format == 'weighted_adjacency_matrix':
+            if weighted is False:
+                raise ValueError("Format was weighted_adjacency_matrix but weighted was False.")
+            if weighted   is None: weighted   = True
+            if multiedges is None: multiedges = False
+            format = 'adjacency_matrix'
 
-        # adjust for empty dicts instead of None in NetworkX default edge labels
-        if convert_empty_dict_labels_to_None is None:
-            convert_empty_dict_labels_to_None = (format == 'NX')
-
-        verts = None
+        # At this point, 'format' has been set. We build the graph
 
         if format == 'graph6':
-            if loops      is None: loops      = False
             if weighted   is None: weighted   = False
-            if multiedges is None: multiedges = False
+            self.allow_loops(loops if loops else False, check=False)
+            self.allow_multiple_edges(multiedges if multiedges else False, check=False)
             if not isinstance(data, str):
                 raise ValueError('If input format is graph6, then data must be a string.')
             n = data.find('\n')
@@ -1193,11 +1201,18 @@ class Graph(GenericGraph):
                 raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too long."%(ss,n))
             elif len(m) < expected:
                 raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too short."%(ss,n))
-            num_verts = n
+            self.add_vertices(range(n))
+            k = 0
+            for i in xrange(n):
+                for j in xrange(i):
+                    if m[k] == '1':
+                        self._backend.add_edge(i, j, None, False)
+                    k += 1
+
         elif format == 'sparse6':
-            if loops      is None: loops      = True
             if weighted   is None: weighted   = False
-            if multiedges is None: multiedges = True
+            self.allow_loops(False if loops is False else True, check=False)
+            self.allow_multiple_edges(False if multiedges is False else True, check=False)
             from math import ceil, floor
             from sage.misc.functional import log
             n = data.find('\n')
@@ -1228,16 +1243,10 @@ class Graph(GenericGraph):
                     else:
                         if v < n:
                             edges.append((x[i],v))
-            num_verts = n
-        elif format in ['adjacency_matrix', 'incidence_matrix']:
+            self.add_vertices(range(n))
+            self.add_edges(edges)
+        elif format == 'adjacency_matrix':
             assert is_Matrix(data)
-        if format == 'weighted_adjacency_matrix':
-            if weighted is False:
-                raise ValueError("Format was weighted_adjacency_matrix but weighted was False.")
-            if weighted   is None: weighted   = True
-            if multiedges is None: multiedges = False
-            format = 'adjacency_matrix'
-        if format == 'adjacency_matrix':
             # note: the adjacency matrix might be weighted and hence not
             # necessarily consists of integers
             if not weighted and data.base_ring() != ZZ:
@@ -1275,9 +1284,25 @@ class Graph(GenericGraph):
                 loops = True
             if loops is None:
                 loops = False
-
-            num_verts = data.nrows()
+            self.allow_loops(loops, check=False)
+            self.allow_multiple_edges(multiedges, check=False)
+            self.add_vertices(range(data.nrows()))
+            e = []
+            if weighted:
+                for i,j in data.nonzero_positions():
+                    if i <= j:
+                        e.append((i,j,data[i][j]))
+            elif multiedges:
+                for i,j in data.nonzero_positions():
+                    if i <= j:
+                        e += [(i,j)]*int(data[i][j])
+            else:
+                for i,j in data.nonzero_positions():
+                    if i <= j:
+                        e.append((i,j))
+            self.add_edges(e)
         elif format == 'incidence_matrix':
+            assert is_Matrix(data)
             positions = []
             for c in data.columns():
                 NZ = c.nonzero_positions()
@@ -1303,29 +1328,63 @@ class Graph(GenericGraph):
                 if L != desirable:
                     msg += "Each column represents an edge: -1 goes to 1."
                     raise ValueError(msg)
-            if loops      is None: loops     = False
             if weighted   is None: weighted  = False
             if multiedges is None:
                 total = len(positions)
                 multiedges = (  len(set(positions)) < total  )
-            num_verts = data.nrows()
+            self.allow_loops(loops if loops else False, check=False)
+            self.allow_multiple_edges(multiedges, check=False)
+            self.add_vertices(range(data.nrows()))
+            self.add_edges(positions)
         elif format == 'Graph':
             if loops is None:      loops      = data.allows_loops()
             if multiedges is None: multiedges = data.allows_multiple_edges()
             if weighted is None:   weighted   = data.weighted()
-            num_verts = data.num_verts()
-            verts = data.vertex_iterator()
+            self.allow_loops(loops, check=False)
+            self.allow_multiple_edges(multiedges, check=False)
             if data.get_pos() is not None:
                 pos = data.get_pos().copy()
-
+            self.name(data.name())
+            self.add_vertices(data.vertices())
+            self.add_edges(data.edge_iterator())
+        elif format == 'NX'
+            if convert_empty_dict_labels_to_None is not False:
+                r = lambda x:None if x=={} else x
+            else:
+                r = lambda x:x
+            if weighted is None:
+                if isinstance(data, networkx.Graph):
+                    weighted = False
+                    if multiedges is None:
+                        multiedges = False
+                    if loops is None:
+                        loops = False
+                else:
+                    weighted = True
+                    if multiedges is None:
+                        multiedges = True
+                    if loops is None:
+                        loops = True
+            self.allow_loops(loops, check=False)
+            self.allow_multiple_edges(multiedges, check=False)
+            self.add_vertices(data.nodes())
+            self.add_edges((u,v,r(l)) for u,v,l in data.edges_iter(data=True))
         elif format == 'rule':
             f = data[1]
-            if loops is None: loops = any(f(v,v) for v in data[0])
-            if multiedges is None: multiedges = False
-            if weighted is None: weighted = False
-            num_verts = len(data[0])
             verts = data[0]
+            if loops is None: loops = any(f(v,v) for v in verts)
+            if weighted is None: weighted = False
+            self.allow_loops(loops, check=False)
+            self.allow_multiple_edges(True if multiedges else False, check=False)
+            from itertools import combinations
+            self.add_vertices(verts)
+            self.add_edges(e for e in combinations(verts,2) if f(*e))
+            self.add_edges((v,v) for v in verts if f(v,v))
         elif format == 'dict_of_dicts':
+            # adjust for empty dicts instead of None in NetworkX default edge labels
+            if convert_empty_dict_labels_to_None is None:
+                convert_empty_dict_labels_to_None = (format == 'NX')
+
             if not all(isinstance(data[u], dict) for u in data):
                 raise ValueError("Input dict must be a consistent format.")
 
@@ -1351,9 +1410,28 @@ class Graph(GenericGraph):
                             raise ValueError("Dict of dicts for multigraph must be in the format {v : {u : list}}")
             if multiedges is None and len(data) > 0:
                 multiedges = True
-
+            self.allow_loops(loops, check=False)
+            self.allow_multiple_edges(multiedges, check=False)
             verts = set().union(data.keys(), *data.values())
-            num_verts = len(verts)
+            self.add_vertices(verts)
+            if convert_empty_dict_labels_to_None:
+                for u in data:
+                    for v in data[u]:
+                        if hash(u) <= hash(v) or v not in data or u not in data[v]:
+                            if multiedges:
+                                for l in data[u][v]:
+                                    self._backend.add_edge(u,v,l,False)
+                            else:
+                                self._backend.add_edge(u,v,data[u][v] if data[u][v] != {} else None,False)
+            else:
+                for u in data:
+                    for v in data[u]:
+                        if hash(u) <= hash(v) or v not in data or u not in data[v]:
+                            if multiedges:
+                                for l in data[u][v]:
+                                    self._backend.add_edge(u,v,l,False)
+                            else:
+                                self._backend.add_edge(u,v,data[u][v],False)
         elif format == 'dict_of_lists':
             if not all(isinstance(data[u], list) for u in data):
                 raise ValueError("Input dict must be a consistent format.")
@@ -1379,121 +1457,30 @@ class Graph(GenericGraph):
                     if multiedges is None:
                         multiedges = True
             if multiedges is None: multiedges = False
-            num_verts = len(verts)
-        elif format == 'NX':
-            if weighted is None:
-                if isinstance(data, networkx.Graph):
-                    weighted = False
-                    if multiedges is None:
-                        multiedges = False
-                    if loops is None:
-                        loops = False
-                else:
-                    weighted = True
-                    if multiedges is None:
-                        multiedges = True
-                    if loops is None:
-                        loops = True
-            num_verts = data.order()
-            verts = data.nodes()
-            data = data.adj
-            format = 'dict_of_dicts'
-        elif format in ['int', 'elliptic_curve_congruence']:
-            if weighted   is None: weighted   = False
-            if multiedges is None: multiedges = False
-            if loops      is None: loops      = False
-            if format == 'int':
-                num_verts = data
-                if num_verts<0:
-                    raise ValueError("The number of vertices cannot be strictly negative!")
-            else:
-                num_verts = len(data)
-                curves = data
-                verts = [curve.cremona_label() for curve in data]
-
-        # weighted, multiedges, loops, verts and num_verts should now be set
-        #
-        # From now on, we actually build the graph
-
-        self._weighted = weighted
-        self.allow_loops(loops, check=False)
-        self.allow_multiple_edges(multiedges, check=False)
-        if verts is not None:
+            self.allow_loops(loops, check=False)
+            self.allow_multiple_edges(multiedges, check=False)
             self.add_vertices(verts)
-        elif num_verts:
-            self.add_vertices(range(num_verts))
-
-        if format == 'graph6':
-            k = 0
-            for i in xrange(n):
-                for j in xrange(i):
-                    if m[k] == '1':
-                        self._backend.add_edge(i, j, None, False)
-                    k += 1
-
-        elif format == 'sparse6':
-            self.add_edges(edges)
-
-        elif format == 'adjacency_matrix':
-            e = []
-            if weighted:
-                for i,j in data.nonzero_positions():
-                    if i <= j:
-                        e.append((i,j,data[i][j]))
-            elif multiedges:
-                for i,j in data.nonzero_positions():
-                    if i <= j:
-                        e += [(i,j)]*int(data[i][j])
-            else:
-                for i,j in data.nonzero_positions():
-                    if i <= j:
-                        e.append((i,j))
-            self.add_edges(e)
-
-        elif format == 'incidence_matrix':
-            self.add_edges(positions)
-
-        elif format == 'Graph':
-            self.name(data.name())
-            self.add_vertices(data.vertices())
-            self.add_edges(data.edge_iterator())
-
-        elif format == 'rule':
-            from itertools import combinations
-            self.add_edges(e for e in combinations(verts,2) if f(*e))
-            self.add_edges((v,v) for v in verts if f(v,v))
-
-        elif format == 'dict_of_dicts':
-            if convert_empty_dict_labels_to_None:
-                for u in data:
-                    for v in data[u]:
-                        if hash(u) <= hash(v) or v not in data or u not in data[v]:
-                            if multiedges:
-                                for l in data[u][v]:
-                                    self._backend.add_edge(u,v,l,False)
-                            else:
-                                self._backend.add_edge(u,v,data[u][v] if data[u][v] != {} else None,False)
-            else:
-                for u in data:
-                    for v in data[u]:
-                        if hash(u) <= hash(v) or v not in data or u not in data[v]:
-                            if multiedges:
-                                for l in data[u][v]:
-                                    self._backend.add_edge(u,v,l,False)
-                            else:
-                                self._backend.add_edge(u,v,data[u][v],False)
-
-        elif format == 'dict_of_lists':
             for u in data:
                 for v in data[u]:
                     if (multiedges or hash(u) <= hash(v) or
                         v not in data or u not in data[v]):
                         self._backend.add_edge(u,v,None,False)
-
+        elif format == 'int':
+            self.allow_loops(loops if loops else False, check=False)
+            self.allow_multiple_edges(multiedges if multiedges else False, check=False)
+            if data<0:
+                raise ValueError("The number of vertices cannot be strictly negative!")
+            if data:
+                self.add_vertices(range(data))
         elif format == 'elliptic_curve_congruence':
+            self.allow_loops(loops if loops else False, check=False)
+            self.allow_multiple_edges(multiedges if multiedges else False, check=False)
             from sage.rings.arith import lcm, prime_divisors
             from sage.rings.fast_arith import prime_range
             from sage.misc.all import prod
+            curves = data
+            verts = [curve.cremona_label() for curve in data]
+            self.add_vertices(verts)
             for i in xrange(self.order()):
                 for j in xrange(i):
                     E = curves[i]
@@ -1514,9 +1501,10 @@ class Graph(GenericGraph):
                             p_edges = [p for p in p_edges if p in P]
                     if len(p_edges) > 0:
                         self._backend.add_edge(E.cremona_label(), F.cremona_label(), str(p_edges)[1:-1], False)
-        elif format == "list_of_edges":
-            self.allow_multiple_edges(False if multiedges is False else True)
-            self.allow_loops(False if loops is False else True)
+
+        elif format == 'list_of_edges':
+            self.allow_multiple_edges(False if multiedges is False else True, check=False)
+            self.allow_loops(False if loops is False else True, check=False)
             self.add_edges(data)
             if multiedges is not True and self.has_multiple_edges():
                 deprecation(15706, "You created a graph with multiple edges "
@@ -1524,7 +1512,7 @@ class Graph(GenericGraph):
                             "when you do so, as in the future the default "
                             "behaviour will be to ignore those edges")
             elif multiedges is None:
-                self.allow_multiple_edges(False)
+                self.allow_multiple_edges(False, check=False)
 
             if loops is not True and self.has_loops():
                 deprecation(15706, "You created a graph with loops from a list. "+
@@ -1532,10 +1520,12 @@ class Graph(GenericGraph):
                             "the future the default behaviour will be to ignore "+
                             "those edges")
             elif loops is None:
-                self.allow_loops(False)
-
+                self.allow_loops(False, check=False)
         else:
-            assert format == 'int'
+            raise ValueError("Unknown input format '{}'".format(format))
+
+        if weighted   is None: weighted   = False
+        self._weighted = weighted
 
         self._pos = pos
         self._boundary = boundary if boundary is not None else []

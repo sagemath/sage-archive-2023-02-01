@@ -3050,7 +3050,7 @@ class GenericGraph(GenericGraph_pyx):
         TESTS::
 
             sage: Graph({'H': ['G','L','L','D'], 'L': ['G','D']}).eulerian_circuit(labels=False)
-            [('H', 'D'), ('D', 'L'), ('L', 'G'), ('G', 'H'), ('H', 'L'), ('L', 'H')]
+            [('H', 'L'), ('L', 'H'), ('H', 'G'), ('G', 'L'), ('L', 'D'), ('D', 'H')]
             sage: Graph({0: [0, 1, 1, 1, 1]}).eulerian_circuit(labels=False)
             [(0, 1), (1, 0), (0, 1), (1, 0), (0, 0)]
         """

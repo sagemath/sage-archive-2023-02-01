@@ -69,10 +69,6 @@ import functools
 _j_to_s_cache = {}
 _s_to_j_cache = {}
 
-#H basis cache
-_h_to_s_cache = {}
-_s_to_h_cache = {}
-
 #Ht basis cache
 _ht_to_m_cache = {}
 
@@ -1249,6 +1245,11 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
         is `c_\mu m_\mu` plus terms which are smaller in dominance order.  The leading
         coefficient of the expansion of ``f`` in the `H_\mu` basis is equal to
         the leading coefficient of `c_\mu^{-1} f[X(1-t)]`.
+        
+        If `t=1`, we must appeal to another triangularity since ``Ht`` is (usually)
+        still a basis, however `H_\mu[X(1-t)]=0`.  In this case we assume that
+        it is a basis and `H_\mu[X(q-1)]` is `c_\mu m_{\mu'}` plus terms which
+        are lower in dominance order.
 
         INPUT:
 
@@ -1424,7 +1425,8 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         
         If `t=1`, we must appeal to another triangularity since ``Ht`` is (usually)
         still a basis, however `{\tilde H}_\mu[X(t-1)]=0`.  In this case we assume that
-        it is a basis and 
+        it is a basis and `{\tilde H}_\mu[X(q-1)]` is `c_\mu m_{\mu'}` plus terms which
+        are lower in dominance order.
 
         INPUT:
 

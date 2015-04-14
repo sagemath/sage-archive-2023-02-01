@@ -2041,6 +2041,25 @@ class TamariIntervalPoset(Element):
         """
         return len(self.tamari_inversions())
 
+    def is_new(self):
+        """
+        Return ``True`` if ``self`` is a new Tamari interval.
+
+        Here 'new' means that the interval is not contained in any proper
+        facet of the associahedra.
+
+        They have been considered in [ChapTamari08]_.
+
+        EXAMPLES::
+
+            sage: TIP4 = TamariIntervalPosets(4)
+            sage: len([u for u in TIP4 if u.is_new()])
+            12
+        """
+        c_up = self.upper_binary_tree().possible_cut_shapes()
+        c_down = self.lower_binary_tree().possible_cut_shapes()
+        return not any(x in c_up for x in c_down)
+
 
 # Abstract class to serve as a Factory ; no instances are created.
 class TamariIntervalPosets(UniqueRepresentation, Parent):

@@ -27,14 +27,11 @@ from sage.categories.quotients    import QuotientsCategory
 from sage.categories.subobjects   import SubobjectsCategory
 from sage.categories.isomorphic_objects   import IsomorphicObjectsCategory
 from sage.categories.algebra_functor import AlgebrasCategory
-#from sage.categories.cartesian_product import cartesian_product, CartesianProductsCategory
+from sage.categories.cartesian_product import CartesianProductsCategory, CartesianProductFunctor
 from sage.categories.realizations import RealizationsCategory, Category_realization_of_parent
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom
-
 lazy_import('sage.sets.cartesian_product', 'CartesianProduct')
-#from sage.sets.cartesian_product import CartesianProduct
-from sage.categories.cartesian_product import CartesianProductsCategory, CartesianProductFunctor
 
 def print_compare(x, y):
     """

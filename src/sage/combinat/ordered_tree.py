@@ -22,6 +22,8 @@ from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.combinat.dyck_word import CompleteDyckWords_size
+from sage.categories.sets_cat import EmptySetError 
 
 
 class OrderedTree(AbstractClonableTree, ClonableList):
@@ -780,7 +782,7 @@ class OrderedTrees_size(OrderedTrees):
             sage: OrderedTrees(0).random_element()
             Traceback (most recent call last):
             ...
-            EmptySetError: 
+            EmptySetError: There are no ordered trees of size 0
             sage: OrderedTrees(1).random_element()
             []
 
@@ -789,7 +791,8 @@ class OrderedTrees_size(OrderedTrees):
             sage: all([OrderedTrees(10).random_element() in OrderedTrees(10) for i in range(20)])
             True
         """
-        from sage.combinat.dyck_word import CompleteDyckWords_size
+        if self._size == 0:
+            raise EmptySetError("There are no ordered trees of size 0")
         return CompleteDyckWords_size(self._size - 1).random_element().to_ordered_tree()
 
     def __iter__(self):

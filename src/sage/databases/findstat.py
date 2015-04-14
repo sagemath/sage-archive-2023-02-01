@@ -379,7 +379,6 @@ class FindStat():
         :class:`FindStatStatistic` instances that avoids retrieving
         the same statistic over and over again.
         """
-
         self._statistic_cache = dict()
 
         # user credentials if provided
@@ -394,6 +393,13 @@ class FindStat():
         :class:`FindStatStatistic`.  We do the preprocessing of the
         data here, and call the appropriate method of
         :class:`FindStatStatistic` to launch the query.
+
+        TESTS::
+
+            sage: findstat(lambda x: 1, "Permutations", depth=100)
+            Traceback (most recent call last):
+            ...
+            ValueError: The depth must be a non-negative integer less than or equal to 5.
         """
         try:
             depth = int(depth)
@@ -404,12 +410,12 @@ class FindStat():
         if collection is None:
             if isinstance(query, str):
                 if re.match('^St[0-9]{6}$', query):
-                    return self._statistic(Integer(query[2:].lstrip("0")))
+                    return self._statistic_find_by_id_cached(Integer(query[2:].lstrip("0")))
                 else:
                     raise ValueError("The value %s is not a valid statistic identifier." %query)
 
             elif isinstance(query, (int, Integer)):
-                return self._statistic(query)
+                return self._statistic_find_by_id_cached(query)
 
             elif isinstance(query, dict):
                 # we expect a dictionary from objects to integers
@@ -517,7 +523,7 @@ class FindStat():
         :meth:`FindStatStatistic.submit`.
 
         EXAMPLES::
-        
+
             sage: findstat.set_user(name="Anonymous", email="invalid@org")
 
         .. NOTE::
@@ -537,14 +543,14 @@ class FindStat():
         Open the FindStat login page in a browser.
 
         EXAMPLES::
-        
-            sage: findstat.login()                                             # optional -- webbrowser
+
+            sage: findstat.login()                                              # optional -- webbrowser
         """
         webbrowser.open(FINDSTAT_URL_LOGIN)
 
     ######################################################################
 
-    def _statistic(self, id):
+    def _statistic_find_by_id_cached(self, id):
         r"""
         INPUT:
 
@@ -699,6 +705,16 @@ class FindStatStatistic(SageObject):
         .. TODO::
 
             this is *very* rudimentary
+
+        EXAMPLES::
+
+            sage: findstat(1) == findstat(2)                                    # optional -- internet
+            False
+
+            sage: r1 = findstat(lambda pi: pi.saliances()[0], Permutations(3))  # optional -- internet
+            sage: r2 = findstat(lambda pi: pi.saliances()[0], Permutations(4))  # optional -- internet
+            sage: r1 == r2                                                      # optional -- internet
+            False
         """
         if self._query == "ID" and other._query == "ID":
             if self._modified or other._modified:
@@ -716,6 +732,26 @@ class FindStatStatistic(SageObject):
     def __ne__(self, other):
         """
         Determine whether ``other`` is a different query.
+
+        INPUT:
+
+        - ``other`` - a FindStat query.
+
+        OUTPUT:
+
+        - boolean.
+
+        SEEALSO:
+
+        :meth:`__eq__`
+
+        EXAMPLES::
+
+            sage: r1 = findstat(lambda pi: pi.saliances()[0], Permutations(3))  # optional -- internet
+            sage: r2 = findstat(lambda pi: pi.saliances()[0], Permutations(4))  # optional -- internet
+            sage: r1 != r2                                                      # optional -- internet
+            True
+
         """
         return not self.__eq__(other)
 
@@ -784,12 +820,6 @@ class FindStatStatistic(SageObject):
         of objects, list of values), each containing as many values
         as objects, and that ``_collection`` is appropriately set.
 
-        TESTS::
-
-            sage: findstat(lambda x: 1, "Permutations", depth=100)
-            Traceback (most recent call last):
-            ...
-            ValueError: The depth must be a non-negative integer less than or equal to 5.
         """
         self._query = "data"
 
@@ -926,7 +956,7 @@ class FindStatStatistic(SageObject):
             sage: findstat(41).set_description("")                              # optional -- internet
             sage: findstat(41).modified()                                       # optional -- internet
             True
-        
+
         """
         return self._modified
 
@@ -1044,14 +1074,14 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: s = findstat([(d, randint(1,1000)) for d in DyckWords(4)]); s   # optional -- internet
+            sage: s = findstat([(d, randint(1,1000)) for d in DyckWords(4)]); s # optional -- internet
             a new statistic on Cc0005: Dyck paths
-            sage: s.set_description("Random values on Dyck paths.\r\nThis is not going to be submitted.")     # optional -- internet
-            sage: s                                                               # optional -- internet
+            sage: s.set_description("Random values on Dyck paths.\r\nNot for submssion.")           # optional -- internet
+            sage: s                                                             # optional -- internet
             a new statistic on Cc0005: Dyck paths
-            sage: s.name()                                                        # optional -- internet
+            sage: s.name()                                                      # optional -- internet
             'Random values on Dyck paths.'
-            sage: print s.description()                                           # optional -- internet
+            sage: print s.description()                                         # optional -- internet
             Random values on Dyck paths.
             This is not going to be submitted.
         """
@@ -1115,10 +1145,10 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: s = findstat([(d, randint(1,1000)) for d in DyckWords(4)]); s   # optional -- internet
+            sage: s = findstat([(d, randint(1,1000)) for d in DyckWords(4)]); s # optional -- internet
             a new statistic on Cc0005: Dyck paths
-            sage: s.set_references("[1] The wonders of random Dyck paths, Anonymous Coward, [[arXiv:1102.4226]].\r\n[2] [[oeis:A000001]]") # optional -- internet
-            sage: s.references()                                                  # optional -- internet
+            sage: s.set_references("[1] The wonders of random Dyck paths, Anonymous Coward, [[arXiv:1102.4226]].\r\n[2] [[oeis:A000001]]")  # optional -- internet
+            sage: s.references()                                                # optional -- internet
             0: [1] The wonders of random Dyck paths, Anonymous Coward, [[arXiv:1102.4226]].
             1: [2] [[oeis:A000001]]
 
@@ -1168,6 +1198,14 @@ class FindStatStatistic(SageObject):
 
         This information is used when submitting the statistic with
         :meth:`FindStatStatistic.submit`.
+
+        EXAMPLES::
+
+            sage: s = findstat([(d, randint(1,1000)) for d in DyckWords(4)])    # optional -- internet
+            sage: s.set_code("def statistic(x):\r\n    return randint(1,1000)") # optional -- internet
+            sage: print s.code()                                                # optional -- internet
+            def statistic(x):
+                return randint(1,1000)
         """
         if value != self._code:
             self._modified = True

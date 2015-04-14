@@ -208,6 +208,9 @@ Methods
 ################################################################################
 
 include 'sage/ext/stdsage.pxi'
+
+from copy import copy
+
 #####################
 # Greedy Algorithms #
 #####################
@@ -370,7 +373,7 @@ def greedy_is_comparability_with_certificate(g, certificate = False):
     elif not certificate:
         return True
 
-    gg = g.copy(immutable=False)
+    gg = copy(g)
     from sage.graphs.digraph import DiGraph
     h = DiGraph()
     h.add_vertices(gg.vertices())

@@ -1,5 +1,5 @@
 r"""
-Super algebras with basis
+Super Hopf algebras with basis
 """
 #*****************************************************************************
 #  Copyright (C) 2015 Travis Scrimshaw <tscrim at ucdavis.edu>
@@ -27,9 +27,4 @@ class SuperHopfAlgebrasWithBasis(SuperModulesCategory):
 
         sage: TestSuite(C).run()
     """
-    class ParentMethods:
-        pass
-
-    class ElementMethods:
-        pass
 

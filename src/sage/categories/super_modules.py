@@ -13,10 +13,41 @@ from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.categories.category import Category
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
-from sage.categories.covariant_functorial_construction import RegressiveCovariantConstructionCategory
+from sage.categories.covariant_functorial_construction import CovariantConstructionCategory
 from sage.categories.modules import Modules
 
-class SuperModulesCategory(RegressiveCovariantConstructionCategory, Category_over_base_ring):
+axiom_whitelist = frozenset(["Facade", "Finite", "Infinite",
+                             "FiniteDimensional", "Connected", "WithBasis",
+                             # "Commutative",
+                             "Associative", "Inverse", "Unital", "Division",
+                             "AdditiveCommutative", "AdditiveAssociative",
+                             "AdditiveInverse", "AdditiveUnital",
+                             "NoZeroDivisors", "Distributive"])
+
+class SuperModulesCategory(CovariantConstructionCategory, Category_over_base_ring):
+    @classmethod
+    def default_super_categories(cls, category, *args):
+        """
+        Return the default super categories of `F_{Cat}(A,B,...)` for
+        `A,B,...` parents in `Cat`.
+
+        INPUT:
+
+        - ``cls`` -- the category class for the functor `F`
+        - ``category`` -- a category `Cat`
+        - ``*args`` -- further arguments for the functor
+
+        OUTPUT:
+
+        A join category.
+
+        This implements the property that subcategories constructed by
+        the set of whitelisted axioms is a subcategory.
+        """
+        axioms = axiom_whitelist.intersection(category.axioms())
+        C = super(SuperModulesCategory, cls).default_super_categories(category, *args)
+        return C._with_axioms(axioms)
+
     def __init__(self, base_category):
         """
         EXAMPLES::
@@ -83,7 +114,7 @@ class SuperModules(SuperModulesCategory):
             sage: Modules(QQ).Super().super_categories()
             [Category of graded modules over Rational Field]
         """
-        return [Modules(self.base_ring()).Graded()]
+        return [self.base_category().Graded()]
 
     def extra_super_categories(self):
         r"""

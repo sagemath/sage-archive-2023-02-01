@@ -478,6 +478,11 @@ class CliffordAlgebra(CombinatorialFreeModule):
         a*d
         sage: d*c*b*a + a + 4*b*c
         a*b*c*d + 4*b*c + a
+
+    .. WARNING::
+
+        The Clifford algebra is not graded, but instead filtered. This
+        will be changed once :trac:`17096` is finished.
     """
     @staticmethod
     def __classcall_private__(cls, Q, names=None):
@@ -1044,7 +1049,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
                                                  remove_zeros=True )
                                 for i in x)
         return Cl.module_morphism(on_basis=f, codomain=self,
-                                  category=AlgebrasWithBasis(self.base_ring()).Graded())
+                                  category=AlgebrasWithBasis(self.base_ring()).Super())
 
     def lift_isometry(self, m, names=None):
         r"""
@@ -1412,7 +1417,7 @@ class ExteriorAlgebra(CliffordAlgebra):
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: TestSuite(E).run()
         """
-        cat = HopfAlgebrasWithBasis(R).Super().Graded()
+        cat = HopfAlgebrasWithBasis(R).Super()
         CliffordAlgebra.__init__(self, QuadraticForm(R, len(names)), names, cat)
         # TestSuite will fail if the HopfAlgebra classes will ever have tests for
         # the coproduct being an algebra morphism -- since this is really a

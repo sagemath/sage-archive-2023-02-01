@@ -28,7 +28,7 @@ class SuperAlgebrasWithBasis(SuperModulesCategory):
 
         sage: TestSuite(C).run()
     """
-    def super_categories(self):
+    def extra_super_categories(self):
         """
         EXAMPLES::
 
@@ -36,13 +36,5 @@ class SuperAlgebrasWithBasis(SuperModulesCategory):
             [Category of graded algebras with basis over Integer Ring,
              Category of super modules with basis over Integer Ring]
         """
-        R = self.base_ring()
-        return [Algebras(R).WithBasis().Graded(),
-                Modules(R).WithBasis().Super()]
-
-    class ParentMethods:
-        pass
-
-    class ElementMethods:
-        pass
+        return [self.base_category().Graded()]
 

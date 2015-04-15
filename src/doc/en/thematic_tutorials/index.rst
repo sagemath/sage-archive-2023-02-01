@@ -71,6 +71,7 @@ Geometry
 --------
 
 * :ref:`polytutorial`
+* :ref:`polytikz`
 
 Combinatorics
 -------------

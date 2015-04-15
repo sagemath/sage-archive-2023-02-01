@@ -27,7 +27,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
 include "sage/ext/interrupt.pxi"
 

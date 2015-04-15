@@ -21,7 +21,6 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 from cpython.list cimport *

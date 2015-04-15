@@ -42,7 +42,6 @@ AUTHORS:
 
 from libc.stdint cimport uint32_t, uint64_t
 
-include "sage/ext/stdsage.pxi"
 
 cdef class SolverConf(object):
     """

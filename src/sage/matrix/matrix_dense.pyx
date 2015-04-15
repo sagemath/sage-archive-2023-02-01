@@ -15,7 +15,6 @@ import sage.matrix.matrix_space
 import sage.structure.sequence
 
 include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
 
 cdef class Matrix_dense(matrix.Matrix):
     cdef bint is_sparse_c(self):

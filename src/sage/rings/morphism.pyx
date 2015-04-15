@@ -352,7 +352,6 @@ TESTS::
 #*****************************************************************************
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
 
 import ideal
 

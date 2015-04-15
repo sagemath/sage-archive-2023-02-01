@@ -300,7 +300,6 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.element import parent
 
-include "stdsage.pxi"
 
 def fast_callable(x, domain=None, vars=None,
                   _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality=False,

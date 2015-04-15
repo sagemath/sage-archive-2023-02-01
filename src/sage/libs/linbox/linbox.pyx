@@ -14,7 +14,6 @@ from sage.misc.misc import verbose, get_verbose, cputime, UNAME
 ##########################################################################
 
 include 'sage/modules/vector_modn_sparse_c.pxi'
-include 'sage/ext/stdsage.pxi'
 
 cdef extern from "linbox/linbox-sage.h":
     ctypedef struct vector_uint "std::vector<unsigned int>":

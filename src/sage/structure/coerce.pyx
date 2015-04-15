@@ -73,7 +73,6 @@ see the documentation for Parent.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 from cpython.object cimport *
 
 cdef add, sub, mul, div, iadd, isub, imul, idiv

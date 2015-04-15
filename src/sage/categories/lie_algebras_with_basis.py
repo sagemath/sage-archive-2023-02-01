@@ -115,7 +115,8 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: parent(u) is L
                 True
             """
-            return self(v)
+            B = self.basis()
+            return self.sum(v[i] * B[i] for i in v.support())
 
     class ElementMethods:
         def _bracket_(self, y):
@@ -155,10 +156,14 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             EXAMPLES::
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                sage: u = L((1, 0, 0)).to_vector(); u
-                (1, 0, 0)
-                sage: parent(u)
-                Vector space of dimension 3 over Rational Field
+                sage: L.an_element().to_vector()
+                (0, 0, 0)
+
+            .. TODO::
+
+                Doctest this implementation on an example not overshadowed.
             """
-            return self.parent().module(self)
+            M = self.parent().module()
+            B = M.basis()
+            return M.sum(self[i] * B[i] for i in self.support())
 

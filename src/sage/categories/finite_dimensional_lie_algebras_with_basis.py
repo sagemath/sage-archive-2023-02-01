@@ -134,31 +134,6 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             from sage.modules.free_module import FreeModule
             return FreeModule(R, self.dimension())
 
-        def from_vector(self, v):
-            """
-            Return the element of ``self`` corresponding to the
-            vector ``v`` in ``self.module()``.
-
-            Implement this if you implement :meth:`module`; see the
-            documentation of
-            :meth:`sage.categories.lie_algebras.LieAlgebras.module`
-            for how this is to be done.
-
-            EXAMPLES::
-
-                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                sage: u = L.from_vector(vector(QQ, (1, 0, 0))); u
-                (1, 0, 0)
-                sage: parent(u) is L
-                True
-            """
-            M = self.module()
-            if not v:
-                return self.zero()
-            B = M.basis()
-            selfB = self.basis()
-            return self.sum(v[k]*selfB[k] for k in self._basis_ordering)
-
         def killing_matrix(self, x, y):
             r"""
             Return the Killing matrix of ``x`` and ``y``, where ``x``
@@ -612,32 +587,6 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             return self.basis().cardinality()
 
     class ElementMethods:
-        def to_vector(self):
-            """
-            Return the vector in ``g.module()`` corresponding to the
-            element ``self`` of ``g`` (where ``g`` is the parent of
-            ``self``).
-
-            Implement this if you implement ``g.module()``.
-            See :meth:`sage.categories.lie_algebras.LieAlgebras.module`
-            for how this is to be done.
-
-            EXAMPLES::
-
-                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                sage: L.an_element().to_vector()
-                (0, 0, 0)
-
-            .. TODO::
-
-                Doctest this implementation on an example not overshadowed.
-            """
-            M = self.parent().module()
-            if not self:
-                return M.zero()
-            B = M.basis()
-            return M.sum(Bk*self[k] for k, Bk in B.iteritems())
-
         def adjoint_matrix(self): # In #11111 (more or less) by using matrix of a mophism
             """
             Return the matrix of the adjoint action of ``self``.

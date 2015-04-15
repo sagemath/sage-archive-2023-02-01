@@ -4,6 +4,7 @@
 /local
 /logs
 /upstream
+/src/mac-app/build
 
 #############################
 # Autotools generated files #

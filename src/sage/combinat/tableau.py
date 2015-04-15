@@ -332,17 +332,17 @@ class Tableau(ClonableList):
         r"""
         Check whether ``self`` is equal to ``other``.
 
-        TODO:
+        .. TODO::
 
-        This overwrites the equality check of
-        :class:`~sage.structure.list_clone.ClonableList`
-        in order to circumvent the coercion framework.
-        Eventually this should be solved more elegantly,
-        for example along the lines of what was done for
-        k-tableaux.
+            This overwrites the equality check of
+            :class:`~sage.structure.list_clone.ClonableList`
+            in order to circumvent the coercion framework.
+            Eventually this should be solved more elegantly,
+            for example along the lines of what was done for
+            `k`-tableaux.
 
-        For now, two elements are equal if their underlying
-        defining lists compare equal.
+            For now, two elements are equal if their underlying
+            defining lists compare equal.
 
         INPUT:
 
@@ -413,24 +413,6 @@ class Tableau(ClonableList):
         if lens and lens[-1] == 0:
             raise ValueError("A tableau must not have empty rows.")
 
-    def __setstate__(self, state):
-        """
-        In order to maintain backward compatibility and be able to unpickle an
-        old pickle from the now deprecated :class:`Tableau_class` we have to
-        override the default :meth:`__setstate__`.
-
-        TESTS::
-
-            sage: loads(dumps( Tableau([[1]]) ))  # indirect doctest for unpickling a Tableau element
-            [[1]]
-        """
-        if isinstance(state, dict):   # for old pickles from Tableau_class
-            self._set_parent(Tableaux())
-            self.__dict__ = state
-        else:
-            self._set_parent(state[0])
-            self.__dict__ = state[1]
-
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -500,9 +482,9 @@ class Tableau(ClonableList):
             sage: Tableau([])._repr_compact()
             '-'
         """
-        if len(self)==0:
+        if not self:
             return '-'
-        else: return '/'.join(','.join('%s'%r for r in row) for row in self)
+        return '/'.join(','.join('%s'%r for r in row) for row in self)
 
     def _ascii_art_(self):
         """
@@ -1714,7 +1696,7 @@ class Tableau(ClonableList):
             True
         """
         if not secondtab in Tableaux():
-            raise TypeError(str(secondtab) + " must be a tableau")
+            raise TypeError("{} must be a tableau".format(secondtab))
         sh = self.shape()
         if sh != secondtab.shape():
             raise TypeError("the tableaux must be the same shape")
@@ -6365,9 +6347,29 @@ def symmetric_group_action_on_values(word, perm):
                 w[i] = l
     return w
 
+
+
+class Tableau_class(Tableau):
+    """
+    This exists solely for unpickling ``Tableau_class`` objects.
+    """
+    def __setstate__(self, state):
+        r"""
+        Unpickle old ``Tableau_class`` objects.
+
+        TESTS::
+
+            sage: loads('x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+IL\xcaIM,\xe5\n\x81\xd0\xf1\xc99\x89\xc5\xc5\\\x85\x8c\x9a\x8d\x85L\xb5\x85\xcc\x1a\xa1\xac\xf1\x19\x89\xc5\x19\x85,~@VNfqI!kl![l!;\xc4\x9c\xa2\xcc\xbc\xf4b\xbd\xcc\xbc\x92\xd4\xf4\xd4"\xae\xdc\xc4\xec\xd4x\x18\xa7\x90#\x94\xd1\xb05\xa8\x9031\xb14I\x0f\x00\xf6\xae)7')
+            [[1]]
+            sage: loads(dumps( Tableau([[1]]) ))
+            [[1]]
+        """
+        self.__class__ = Tableau
+        self.__init__(Tableaux(), state['_list'])
+
 # October 2012: fixing outdated pickles which use classed being deprecated
 from sage.structure.sage_object import register_unpickle_override
-register_unpickle_override('sage.combinat.tableau', 'Tableau_class',  Tableau)
+register_unpickle_override('sage.combinat.tableau', 'Tableau_class',  Tableau_class)
 register_unpickle_override('sage.combinat.tableau', 'Tableaux_n',  Tableaux_size)
 register_unpickle_override('sage.combinat.tableau', 'StandardTableaux_n',  StandardTableaux_size)
 register_unpickle_override('sage.combinat.tableau', 'StandardTableaux_partition',  StandardTableaux_shape)

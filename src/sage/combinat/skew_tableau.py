@@ -121,17 +121,17 @@ class SkewTableau(ClonableList):
         r"""
         Check whether ``self`` is equal to ``other``.
 
-        TODO:
+        .. TODO::
 
-        This overwrites the equality check of
-        :class:`~sage.structure.list_clone.ClonableList`
-        in order to circumvent the coercion framework.
-        Eventually this should be solved more elegantly,
-        for example along the lines of what was done for
-        k-tableaux.
+            This overwrites the equality check of
+            :class:`~sage.structure.list_clone.ClonableList`
+            in order to circumvent the coercion framework.
+            Eventually this should be solved more elegantly,
+            for example along the lines of what was done for
+            `k`-tableaux.
 
-        For now, two elements are equal if their underlying
-        defining lists compare equal.
+            For now, two elements are equal if their underlying
+            defining lists compare equal.
 
         INPUT:
 
@@ -203,24 +203,6 @@ class SkewTableau(ClonableList):
         for row in self:
             if not row:
                 raise TypeError("a skew tableau cannot have an empty list for a row")
-
-    def __setstate__(self, state):
-        r"""
-        In order to maintain backwards compatibility and be able to unpickle
-        a old pickle from ``SkewTableau_class`` we have to override the
-        default ``__setstate__``.
-
-        EXAMPLES::
-
-            sage: loads(dumps( SkewTableau([[1,1], [3,2,1]]) ))  # indirect doctest
-            [[1, 1], [3, 2, 1]]
-        """
-        if isinstance(state, dict):   # for old pickles from SkewTableau_class
-            self._set_parent(SkewTableaux())
-            self.__dict__ = state
-        else:
-            self._set_parent(state[0])
-            self.__dict__ = state[1]
 
     def _repr_(self):
         """
@@ -2319,6 +2301,24 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
         for x in RibbonTableaux_shape_weight_length(self.p, self.mu, 1):
             yield self.element_class(self, x)
 
+class SkewTableau_class(SkewTableau):
+    """
+    This exists solely for unpickling ``SkewTableau_class`` objects.
+    """
+    def __setstate__(self, state):
+        r"""
+        Unpickle old ``SkewTableau_class`` objects.
+
+        TESTS::
+
+            sage: loads('x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+H,*\xc9,\xc9\xcc\xcf\xe3\n\x80\xb1\xe2\x93s\x12\x8b\x8b\xb9\n\x195\x1b\x0b\x99j\x0b\x995BY\xe33\x12\x8b3\nY\xfc\x80\xac\x9c\xcc\xe2\x92B\xd6\xd8B6\r\x88IE\x99y\xe9\xc5z\x99y%\xa9\xe9\xa9E\\\xb9\x89\xd9\xa9\xf10N!{(\xa3qkP!G\x06\x90a\x04dp\x82\x18\x86@\x06Wji\x92\x1e\x00x0.\xb5')
+            [3, 2, 1]
+            sage: loads(dumps( SkewTableau([[1,1], [3,2,1]]) ))  # indirect doctest
+            [[1, 1], [3, 2, 1]]
+        """
+        self.__class__ = SkewTableau
+        self.__init__(SkewTableaux(), state['_list'])
+
 # October 2012: fixing outdated pickles which use the classes being deprecated
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.skew_tableau', 'StandardSkewTableaux_n',  StandardSkewTableaux_size)
@@ -2328,5 +2328,5 @@ register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTablea
 register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_pmu',  SemistandardSkewTableaux_shape_weight)
 # July 2013: But wait, there more!
 register_unpickle_override('sage.combinat.skew_tableau', 'StandardSkewTableaux_skewpartition',  StandardSkewTableaux_shape)
-register_unpickle_override('sage.combinat.skew_tableau', 'SkewTableau_class',  SkewTableau)
+register_unpickle_override('sage.combinat.skew_tableau', 'SkewTableau_class',  SkewTableau_class)
 

@@ -112,24 +112,6 @@ class RibbonShapedTableau(SkewTableau):
 
         SkewTableau.__init__(self, parent, t)
 
-    def __setstate__(self, state):
-        r"""
-        In order to maintain backwards compatibility and be able to unpickle
-        a old pickle from ``Ribbon_class`` we have to override the
-        default ``__setstate__``.
-
-        EXAMPLES::
-
-            sage: loads(dumps( RibbonShapedTableau([[3,2,1], [1,1]]) ))  # indirect doctest
-            [[None, 3, 2, 1], [1, 1]]
-        """
-        if isinstance(state, dict):   # for old pickles from Ribbon_class
-            self._set_parent(StandardRibbonShapedTableaux())
-            self.__dict__ = state
-        else:
-            self._set_parent(state[0])
-            self.__dict__ = state[1]
-
     def height(self):
         """
         Return the height of ``self``.
@@ -394,7 +376,25 @@ class StandardRibbonShapedTableaux_shape(StandardRibbonShapedTableaux):
         for p in descents_composition_list(self.shape):
             yield self.from_permutation(p)
 
+class Ribbon_class(RibbonShapedTableau):
+    """
+    This exists solely for unpickling ``Ribbon_class`` objects.
+    """
+    def __setstate__(self, state):
+        r"""
+        Unpickle old ``Ribbon_class`` objects.
+
+        EXAMPLES::
+
+            sage: loads('x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+\xcaLJ\xca\xcf\xe3\n\x02S\xf1\xc99\x89\xc5\xc5\\\x85\x8c\x9a\x8d\x85L\xb5\x85\xcc\x1a\xa1\xac\xf1\x19\x89\xc5\x19\x85,~@VNfqI!kl!\x9bFl!\xbb\x06\xc4\x9c\xa2\xcc\xbc\xf4b\xbd\xcc\xbc\x92\xd4\xf4\xd4"\xae\xdc\xc4\xec\xd4x\x18\xa7\x90#\x94\xd1\xb05\xa8\x903\x03\xc80\x022\xb8Rc\x0b\xb95@<c \x8f\x07\xc40\x012xSSK\x93\xf4\x00l\x811\x17')
+            [[None, 1, 2], [3, 4]]
+            sage: loads(dumps( RibbonShapedTableau([[3,2,1], [1,1]]) ))  # indirect doctest
+            [[None, 3, 2, 1], [1, 1]]
+        """
+        self.__class__ = RibbonShapedTableau
+        self.__init__(StandardRibbonShapedTableaux(), state['_list'])
+
 from sage.structure.sage_object import register_unpickle_override
-register_unpickle_override('sage.combinat.ribbon', 'Ribbon_class', RibbonShapedTableau)
+register_unpickle_override('sage.combinat.ribbon', 'Ribbon_class', Ribbon_class)
 register_unpickle_override('sage.combinat.ribbon', 'StandardRibbons_shape', StandardRibbonShapedTableaux)
 

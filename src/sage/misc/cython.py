@@ -620,15 +620,19 @@ def cython_lambda(vars, expr,
         sage: g(0,0)
         3.2
 
-    The following should work but doesn't, see :trac:`12446`::
+    In order to access Sage globals, prefix them with ``sage.``::
 
+        sage: f = cython_lambda('double x', 'sage.sin(x) + sage.a')
+        sage: f(0)
+        Traceback (most recent call last):
+        ...
+        NameError: global 'a' is not defined
         sage: a = 25
-        sage: f = cython_lambda('double x', 'sage.math.sin(x) + sage.a')
-        sage: f(10)  # known bug
-        24.455978889110629
+        sage: f(10)
+        24.45597888911063
         sage: a = 50
-        sage: f(10)  # known bug
-        49.455978889110632
+        sage: f(10)
+        49.45597888911063
     """
     if isinstance(vars, str):
         v = vars
@@ -636,14 +640,23 @@ def cython_lambda(vars, expr,
         v = ', '.join(['%s %s'%(typ,var) for typ, var in vars])
 
     s = """
-class _s:
-   def __getattr__(self, x):
-       return globals()[x]
+cdef class _s:
+    cdef globals
+
+    def __init__(self):
+        from sage.repl.user_globals import get_globals
+        self.globals = get_globals()
+
+    def __getattr__(self, name):
+        try:
+            return self.globals[name]
+        except KeyError:
+            raise NameError("global {!r} is not defined".format(name))
 
 sage = _s()
 
 def f(%s):
- return %s
+    return %s
     """%(v, expr)
     if verbose:
         print(s)

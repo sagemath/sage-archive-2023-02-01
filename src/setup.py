@@ -36,10 +36,12 @@ except KeyError:
 SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 
 # search for dependencies and add to gcc -I<path>
+import numpy
 include_dirs = [SAGE_INC,
                 SAGE_SRC,
                 os.path.join(SAGE_SRC, 'c_lib', 'include'),
-                os.path.join(SAGE_SRC, 'sage', 'ext')]
+                os.path.join(SAGE_SRC, 'sage', 'ext'),
+                os.path.join(numpy.get_include())]
 
 # Manually add -fno-strict-aliasing, which is needed to compile Cython
 # and disappears from the default flags if the user has set CFLAGS.
@@ -537,6 +539,7 @@ def run_cythonize():
     version_file = os.path.join(os.path.dirname(__file__), '.cython_version')
     version_stamp = '\n'.join([
         'cython version: ' + str(Cython.__version__),
+        'embedsignature: True'
         'debug: ' + str(debug),
         'profile: ' + str(profile),
     ])
@@ -550,6 +553,7 @@ def run_cythonize():
         build_dir='build/cythonized',
         force=force,
         compiler_directives={
+            'embedsignature': True,
             'profile': profile,
         })
 

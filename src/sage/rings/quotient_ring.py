@@ -483,7 +483,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         """
         from sage.categories.pushout import QuotientFunctor
         # Is there a better generic way to distinguish between things like Z/pZ as a field and Z/pZ as a ring?
-        from sage.rings.field import Field
+        from sage.rings.ring import Field
         try:
             names = self.variable_names()
         except ValueError:

@@ -174,9 +174,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
         self._ddict = {}
         self._mdict = {tuple(0 for i in self._index_set): 1}
-
-        Lam_rho = self._Lam + self._P.rho()
-        self._den0 = Lam_rho.symmetric_form(Lam_rho)
+        self._rho = self._P.rho()
 
         # Coerce a classical root into Q
         from_cl_root = lambda h: self._Q._from_dict(h._monomial_coefficients)
@@ -190,6 +188,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         self._ac = self._cartan_type.dual().a()
         E = Matrix.diagonal([self._eps[i] for i in self._index_set_classical])
         self._ip = (self._cartan_type.classical().cartan_matrix()*E).inverse()
+        self._den0 = self._inner_pp(self._Lam+self._rho, self._Lam+self._rho)
 
     def highest_weight(self):
         """

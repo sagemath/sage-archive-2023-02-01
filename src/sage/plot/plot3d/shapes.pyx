@@ -165,10 +165,10 @@ def ColorCube(size, colors, opacity=1, **kwds):
 
     INPUT:
 
-    - size -- 3-tuple of sizes (same as for box and frame)
-    - colors -- a list of either 3 or 6 colors
-    - opacity -- (default: 1) opacity of cube sides
-    - **kwds -- passed to the face constructor
+    - ``size`` -- 3-tuple of sizes (same as for box and frame)
+    - ``colors`` -- a list of either 3 or 6 colors
+    - ``opacity`` -- (default: 1) opacity of cube sides
+    - ``**kwds`` -- passed to the face constructor
 
     OUTPUT:
 
@@ -366,7 +366,7 @@ cdef class Cylinder(ParametricSurface):
                                                         self.height)
 
     def tachyon_repr(self, render_params):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.plot.plot3d.shapes import Cylinder
@@ -404,7 +404,7 @@ cdef class Cylinder(ParametricSurface):
             return cyl
 
     def jmol_repr(self, render_params):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.plot.plot3d.shapes import Cylinder
@@ -710,7 +710,7 @@ cdef class Sphere(ParametricSurface):
         return "<Sphere radius='%s'/>"%(self.radius)
 
     def tachyon_repr(self, render_params):
-        """
+        r"""
         Tachyon can natively handle spheres. Ellipsoids rendering is done
         as a parametric surface.
 
@@ -743,7 +743,7 @@ cdef class Sphere(ParametricSurface):
         return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], rad, self.texture.id)
 
     def jmol_repr(self, render_params):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.plot.plot3d.shapes import Sphere

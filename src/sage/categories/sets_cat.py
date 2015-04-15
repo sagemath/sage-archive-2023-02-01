@@ -1366,9 +1366,22 @@ class Sets(Category_singleton):
         # Functorial constructions
 
         CartesianProduct = CartesianProduct
-        def cartesian_product(*parents):
+        def cartesian_product(*parents, **kwargs):
             """
             Return the cartesian product of the parents.
+
+            INPUT:
+
+            - ``parents`` -- a list (or other iterable) of parents.
+
+            - ``category`` -- (default: ``None``) the category the
+              cartesian product belongs to. If ``None``, then
+              :meth:`~sage.categories.covariant_functorial_construction.CovariantFactorialConstruction.category_from_parents`
+              is used the determine category.
+
+            OUTPUT:
+
+            The cartesian product.
 
             EXAMPLES::
 
@@ -1389,10 +1402,23 @@ class Sets(Category_singleton):
                 sage: C.category()
                 Join of Category of rings and ...
                     and Category of Cartesian products of commutative additive groups
+
+            ::
+
+                sage: cartesian_product([ZZ, ZZ], category=Sets()).category()
+                Category of sets
+                sage: cartesian_product([ZZ, ZZ], blub=None).category()
+                Traceback (most recent call last)
+                ...
+                TypeError: unknown parameters: blub
             """
+            category = kwargs.pop('category', None)
+            if kwargs:
+                raise TypeError('unknown parameters: %s' %
+                                ', '.join(str(k) for k in kwargs.iterkeys()))
             return parents[0].CartesianProduct(
                 parents,
-                category = cartesian_product.category_from_parents(parents))
+                category=category or cartesian_product.category_from_parents(parents))
 
         def algebra(self, base_ring, category=None):
             """

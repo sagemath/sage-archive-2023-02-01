@@ -201,7 +201,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
         """
         return "The %s functorial construction"%self._functor_name
 
-    def __call__(self, args):
+    def __call__(self, args, **kwargs):
         """
         Functorial construction application
 
@@ -220,7 +220,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
         args = tuple(args) # a bit brute force; let's see if this becomes a bottleneck later
         assert(all( hasattr(arg, self._functor_name) for arg in args))
         assert(len(args) > 0)
-        return getattr(args[0], self._functor_name)(*args[1:])
+        return getattr(args[0], self._functor_name)(*args[1:], **kwargs)
 
 class FunctorialConstructionCategory(Category): # Should this be CategoryWithBase?
     """

@@ -2608,7 +2608,7 @@ def is_squarefree(n):
         sage: is_squarefree(a - 3)
         Traceback (most recent call last):
         ...
-        ValueError: Non-principal ideal in factorization
+        ArithmeticError: non-principal ideal in factorization
     """
     if isinstance(n, (int,long)):
         n = Integer(n)

@@ -202,7 +202,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         EXAMPLES::
 
-            sage: G, e = DirichletGroup(13).objgen()
+            sage: G.<e> = DirichletGroup(13)
             sage: G
             Group of Dirichlet characters of modulus 13 over Cyclotomic Field of order 12 and degree 4
             sage: e
@@ -212,7 +212,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         ::
 
-            sage: G, x = DirichletGroup(35).objgens()
+            sage: G.<x> = DirichletGroup(35)
             sage: e = x[0]*x[1]; e
             Dirichlet character modulo 35 of conductor 35 mapping 22 |--> zeta12^3, 31 |--> zeta12^2
             sage: e.order()

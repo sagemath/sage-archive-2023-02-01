@@ -119,9 +119,10 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
 
     Create elements directly from polynomials::
 
-        sage: A, z = R.poly_ring().objgen()
+        sage: A = R.poly_ring()
         sage: A
         Univariate Polynomial Ring in T over Ring of integers modulo 125
+        sage: z = A.gen()
         sage: R.create_element(z^2, z+1, 3)
         (T^2) + (T + 1)*x + (3)*x^2
 
@@ -292,7 +293,8 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
 
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
-            sage: A, z = R.poly_ring().objgen()
+            sage: A = R.poly_ring()
+            sage: z = R.gen()
             sage: R.create_element(z^2, z+1, 3)
             (T^2) + (T + 1)*x + (3)*x^2
         """

@@ -237,7 +237,7 @@ class AffineCurve_finite_field(AffineCurve_generic):
 
         EXAMPLE::
 
-            sage: A, (x,y) = AffineSpace(2,GF(9,'a')).objgens()
+            sage: A.<x,y> = AffineSpace(2,GF(9,'a'))
             sage: C = Curve(x^2 + y^2 - 1)
             sage: C
             Affine Curve over Finite Field in a of size 3^2 defined by x0^2 + x1^2 - 1

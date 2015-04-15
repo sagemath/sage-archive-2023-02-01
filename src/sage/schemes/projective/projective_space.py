@@ -27,16 +27,22 @@ base rings.
     Projective Space of dimension 5 over Complex Field with 53 bits of precision
 
 The third argument specifies the printing names of the generators
-of the homogenous coordinate ring. Using objgens() you can obtain
-both the space and the generators as ready to use variables.
+of the homogenous coordinate ring. Using the special syntax with
+``<`` and ``>>`` you can obtain both the space and the generators as ready to
+use variables.
 
 ::
 
-    sage: P2, (x,y,z) = ProjectiveSpace(2, QQ, 'xyz').objgens()
+    sage: P2.<x,y,z> = ProjectiveSpace(2, QQ)
     sage: P2
     Projective Space of dimension 2 over Rational Field
     sage: x.parent()
     Multivariate Polynomial Ring in x, y, z over Rational Field
+
+The first of the three lines above is just equivalent to::
+
+    sage: P2 = ProjectiveSpace(2, QQ, 'xyz')
+    sage: x,y,z = P2.gens()
 
 For example, we use `x,y,z` to define the intersection of
 two lines.
@@ -538,7 +544,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             for col in range(M.ncols()):
                 f = monoms[col][:i] + monoms[col][i+1:]
                 if min([f[j]-e[j] for j in range(n)]) >= 0:
-                    M[row,col] = prod([ binomial(f[j],e[j]) * pt[j]**(f[j]-e[j]) 
+                    M[row,col] = prod([ binomial(f[j],e[j]) * pt[j]**(f[j]-e[j])
                                         for j in (k for k in range(n) if f[k] > e[k]) ])
         return M
 

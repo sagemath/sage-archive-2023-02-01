@@ -4057,7 +4057,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         from sage.misc.misc_c import prod
         from sage.rings.power_series_ring import PowerSeriesRing
 
-        R,z = PowerSeriesRing(QQ,'z', default_prec=sum(degs)).objgen()
+        R = PowerSeriesRing(QQ,'z', default_prec=sum(degs))
+        z = R.gen()
         dreg = 0
         s = prod([1-z**d for d in degs]) / (1-z)**n
         for dreg in xrange(0,sum(degs)):

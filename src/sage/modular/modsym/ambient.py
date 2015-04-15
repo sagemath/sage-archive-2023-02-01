@@ -3480,7 +3480,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
 
         Here is another example::
 
-            sage: G, e = DirichletGroup(5).objgen()
+            sage: G.<e> = DirichletGroup(5)
             sage: M = ModularSymbols(e,3)
             sage: loads(M.dumps()) == M
             True
@@ -3500,7 +3500,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
 
         EXAMPLES::
 
-            sage: G, e = DirichletGroup(5).objgen()
+            sage: G.<e> = DirichletGroup(5)
             sage: M = ModularSymbols(e,3)
             sage: M # indirect doctest
             Modular Symbols space of dimension 2 and level 5, weight 3, character [zeta4], sign 0, over Cyclotomic Field of order 4 and degree 2
@@ -3516,7 +3516,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
 
         EXAMPLES::
 
-            sage: G, e = DirichletGroup(50).objgen()
+            sage: G.<e> = DirichletGroup(50)
             sage: M = ModularSymbols(e^2,2)
             sage: M.dimension()
             16
@@ -3537,7 +3537,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
 
         EXAMPLES::
 
-            sage: G, e = DirichletGroup(50).objgen()
+            sage: G.<e> = DirichletGroup(50)
             sage: M = ModularSymbols(e,3)
             sage: M.dimension()
             30
@@ -3577,7 +3577,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
 
         EXAMPLES::
 
-            sage: G, e = DirichletGroup(5).objgen()
+            sage: G.<e> = DirichletGroup(5)
             sage: M = ModularSymbols(e,3)
             sage: M.dimension()
             2
@@ -3825,7 +3825,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
 
         EXAMPLES::
 
-            sage: G, e = DirichletGroup(50,QQ).objgen()
+            sage: G.<e> = DirichletGroup(50,QQ)
             sage: M = ModularSymbols(e^2,2)
             sage: M.dimension()
             15

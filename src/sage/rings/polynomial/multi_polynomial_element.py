@@ -344,8 +344,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         """
         EXAMPLES::
 
-            sage: R, x = PolynomialRing(QQbar, 10, 'x').objgens()
-            sage: x
+            sage: R = PolynomialRing(QQbar, 10, 'x')
+            sage: R.gens()
             (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9)
             sage: loads(dumps(x)) == x
             True

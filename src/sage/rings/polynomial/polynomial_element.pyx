@@ -181,8 +181,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     EXAMPLE::
 
-        sage: R.<y> = QQ['y']
-        sage: S.<x> = R['x']
+        sage: R = QQ['x']['y']
+        sage: R
+        Univariate Polynomial Ring in y over Univariate Polynomial Ring in x
+        over Rational Field
+        sage: y = R.gen()
+        sage: x = R.base_ring().gen()
         sage: f = x*y; f
         y*x
         sage: type(f)

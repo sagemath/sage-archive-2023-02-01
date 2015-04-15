@@ -62,6 +62,7 @@ from sage.rings.number_field.order import is_NumberFieldOrder
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.qqbar              import QQbar, number_field_elements_from_algebraics
 from sage.rings.quotient_ring      import QuotientRing_generic
+from sage.rings.qqbar              import QQbar
 from sage.rings.rational_field     import QQ
 from sage.rings.real_mpfr          import RealField_class,RealField
 from sage.rings.real_mpfi          import RealIntervalField_class
@@ -2449,6 +2450,106 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             return(automorphism_group_QQ_CRT(F, p, return_functions, iso_type))
 
         return(automorphism_group_QQ_fixedpoints(F, return_functions, iso_type))
+
+    def periodic_points(self, n, minimal = True):
+        r"""
+        Computes the periodic points of period ``n`` of ``self``. For now, ``self`` must be a projective morphism
+        over a number field.
+
+        INPUT:
+
+        - ``n`` - a positive integer
+
+        - ``minimal`` - Boolean. True specifies to find only the periodic points of minimal period ``n``.
+            False specifies to find all periodic points of period ``n``. Default: True.
+
+        OUTPUT:
+
+        - a list of periodic points of ``self``
+
+        EXAMPLES::
+
+            sage: set_verbose(None)
+            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2-x*y+y^2,x^2-y^2+x*y])
+            sage: f.periodic_points(1)
+            [(-0.500000000000000? - 0.866025403784439?*I : 1), (-0.500000000000000? + 0.866025403784439?*I : 1),
+            (1 : 1)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QuadraticField(5,'t'),2)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2 - 21/16*z^2,y^2-z^2,z^2])
+            sage: f.periodic_points(2)
+            [(-5/4 : -1 : 1), (-5/4 : -1/2*t + 1/2 : 1), (-5/4 : 0 : 1), (-5/4 : 1/2*t + 1/2 : 1), (-3/4 : -1 : 1),
+            (-3/4 : 0 : 1), (1/4 : -1 : 1), (1/4 : -1/2*t + 1/2 : 1), (1/4 : 0 : 1), (1/4 : 1/2*t + 1/2 : 1),
+            (7/4 : -1 : 1), (7/4 : 0 : 1)]
+
+        ::
+
+            sage: w = QQ['w'].0
+            sage: K = NumberField(w^6 - 3*w^5 + 5*w^4 - 5*w^3 + 5*w^2 - 3*w + 1,'s')
+            sage: P.<x,y,z> = ProjectiveSpace(K,2)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+z^2,y^2+x^2,z^2+y^2])
+            sage: f.periodic_points(1)
+            [(-s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 3*s + 1 : s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 4*s - 1 : 1),
+            (2*s^5 - 6*s^4 + 9*s^3 - 8*s^2 + 7*s - 4 : 2*s^5 - 5*s^4 + 7*s^3 - 5*s^2 + 6*s - 2 : 1),
+            (-2*s^5 + 4*s^4 - 5*s^3 + 3*s^2 - 4*s : -2*s^5 + 5*s^4 - 7*s^3 + 6*s^2 - 7*s + 3 : 1),
+            (-s^5 + 3*s^4 - 4*s^3 + 4*s^2 - 4*s + 2 : -s^5 + 2*s^4 - 2*s^3 + s^2 - s : 1),
+            (s^5 - 2*s^4 + 2*s^3 + s : s^5 - 3*s^4 + 4*s^3 - 3*s^2 + 2*s - 1 : 1), (1 : 1 : 1),
+            (s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 3*s - 1 : -s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 4*s + 2 : 1)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2 - 21/16*z^2,y^2-2*z^2,z^2])
+            sage: f.periodic_points(2,False)
+            [(-5/4 : -1 : 1), (-5/4 : 2 : 1), (-3/4 : -1 : 1), (-3/4 : 2 : 1), (0 : 1 : 0), (1/4 : -1 : 1),
+            (1/4 : 2 : 1), (1 : 0 : 0), (1 : 1 : 0), (7/4 : -1 : 1), (7/4 : 2 : 1)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2 - 21/16*z^2,y^2-2*z^2,z^2])
+            sage: f.periodic_points(2)
+            [(-5/4 : -1 : 1), (-5/4 : 2 : 1), (1/4 : -1 : 1), (1/4 : 2 : 1)]
+        """
+        if n <= 0:
+            raise ValueError("A positive integer period must be specified")
+        if not self.is_endomorphism():
+            raise TypeError("self must be an endomorphism")
+        PS = self.domain().ambient_space()
+        if not PS.base_ring() in NumberFields() and not PS.base_ring() is QQbar:
+            raise NotImplementedError("self must be a map over a number field")
+        if not self.is_morphism():
+           raise TypeError("self must be a projective morphism")
+
+        N = PS.dimension_relative() + 1
+        R = PS.coordinate_ring()
+        F = self.nth_iterate_map(n)
+        L = [F[i]*R.gen(j) - F[j]*R.gen(i) for i in range(0,N) for j in range(i+1, N)]
+        X = PS.subscheme(L)
+
+        points = X.rational_points()
+
+        if not minimal:
+            return points
+        else:
+            rem_indices = []
+            for i in range(len(points)-1,-1,-1):
+                # iterate points to check if minimal
+                P = points[i]
+                for j in range(1,n):
+                    P = self(P)
+                    if P == points[i]:
+                        points.pop(i)
+                        break
+            return points
 
 class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial_projective_space):
 

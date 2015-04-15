@@ -253,11 +253,20 @@ def canonical_form(G, partition=None, return_graph=False, certify=False):
         sage: g = digraphs.RandomTournament(40)                             # optional - bliss
         sage: g.is_isomorphic(canonical_form(g,return_graph=True))          # optional - bliss
         True
+
+        sage: g1 = graphs.RandomGNP(100,.4)                                 # optional - bliss
+        sage: r = Permutations(range(100)).random_element()                 # optional - bliss
+        sage: g2 = Graph([(r[u],r[v]) for u,v in g1.edges(labels=False)])   # optional - bliss
+        sage: g1 = canonical_form(g1,return_graph=True)                     # optional - bliss
+        sage: g2 = canonical_form(g2,return_graph=True)                     # optional - bliss
+        sage: g2 == g2                                                      # optional - bliss
+        True
     """
     cdef const unsigned int *aut
     cdef Graph   *g = NULL
     cdef Digraph *d = NULL
     cdef Stats s
+    cdef dict relabel
 
     vert2int = {}
 
@@ -266,6 +275,7 @@ def canonical_form(G, partition=None, return_graph=False, certify=False):
         aut = d.canonical_form(s, empty_hook, NULL)
         edges = [(aut[ vert2int[x] ], aut[ vert2int[y] ])
                  for x,y in G.edges(labels=False)]
+        relabel = {v:aut[vert2int[v]] for v in G}
         del d
     else:
         g = bliss_graph(G, partition, vert2int, {})
@@ -274,6 +284,7 @@ def canonical_form(G, partition=None, return_graph=False, certify=False):
         for x,y in G.edges(labels=False):
             e,f = aut[ vert2int[x] ], aut[ vert2int[y] ]
             edges.append( (e,f) if e > f else (f,e))
+        relabel = {v:aut[vert2int[v]] for v in G}
         del g
 
     if return_graph:
@@ -285,9 +296,9 @@ def canonical_form(G, partition=None, return_graph=False, certify=False):
             G = Graph(edges,loops=G.allows_loops(),multiedges=G.allows_multiple_edges())
 
         G.add_vertices(vert2int.values())
-        return (G, vert2int) if certify else G
+        return (G, relabel) if certify else G
 
     if certify:
-        return sorted(edges),vert2int
+        return sorted(edges),relabel
 
     return sorted(edges)

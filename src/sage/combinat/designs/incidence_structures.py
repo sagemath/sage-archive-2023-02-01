@@ -1496,7 +1496,9 @@ class IncidenceStructure(object):
             sage: G.is_isomorphic(PGL(3,2))
             True
             sage: G
-            Permutation Group with generators [(2,3)(4,5), (2,4)(3,5), (1,2)(4,6), (0,1)(4,5)]
+            Permutation Group with generators [...]
+            sage: G.cardinality()
+            168
 
         A non self-dual example::
 

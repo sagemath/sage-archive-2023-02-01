@@ -1662,8 +1662,11 @@ class ContreTableaux_n(ContreTableaux):
 
 def _next_column_iterator(previous_column, height, i = None):
     """
-    Returns a generator for all columns of height height properly
-    filled from row 1 to ``i``
+    Return a generator for all columns of height ``height``
+    properly filled from row 1 to ``i``.
+    ("Properly filled" means strictly increasing and having
+    the property that the `k`-th entry is `\geq` to the `k`-th
+    entry of ``previous_column`` for each `k`.)
 
     EXAMPLES::
 
@@ -1685,7 +1688,7 @@ def _next_column_iterator(previous_column, height, i = None):
             if i > 1:
                 min_value = max(min_value, column[i-2]+1)
             for value in range(min_value, previous_column[i]+1):
-                c = copy.copy(column)
+                c = column[:]
                 c[i-1] = value
                 yield c
 
@@ -1823,6 +1826,6 @@ def nw_corner_sum(M,i,j):
         4
     """
     if i >= 0 and j >= 0:
-        return sum([sum([M[i2][j2] for j2 in range(j)]) for i2 in range(i)])
+        return sum([sum(M[i2][:j]) for i2 in range(i)])
     return 0
 

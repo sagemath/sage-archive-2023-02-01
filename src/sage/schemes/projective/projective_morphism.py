@@ -2441,7 +2441,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         - ``n`` - a positive integer
 
         - ``minimal`` - Boolean. True specifies to find only the periodic points of minimal period ``n``.
-        False specifies to find all periodic points of period ``n``. Default: True.
+            False specifies to find all periodic points of period ``n``. Default: True.
 
         OUTPUT:
 

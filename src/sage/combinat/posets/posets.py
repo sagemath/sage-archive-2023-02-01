@@ -2409,9 +2409,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         r"""
         Return the dimension of the Poset.
 
-        The dimension of a Poset defined on a set `X` of points is the smallest
-        integer `n` such that there exists `P_1,...,P_n` linear extensions of
-        `P` satisfying the following property:
+        The (Dushnik-Miller) dimension of a Poset defined on a set `X` of points
+        is the smallest integer `n` such that there exists `P_1,...,P_n` linear
+        extensions of `P` satisfying the following property:
 
         .. MATH::
 
@@ -2424,6 +2424,12 @@ class FinitePoset(UniqueRepresentation, Parent):
         - ``certificate`` (boolean; default:``False``) -- whether to return an
           integer (the dimension) or a certificate, i.e. a smallest set of
           linear extensions.
+
+        .. NOTE::
+
+            The speed of this function greatly improves when more efficient MILP
+            solvers (e.g. Gurobi, CPLEX) are installed. See
+            :class:`MixedIntegerLinearProgram` for more information.
 
         **Algorithm:**
 
@@ -2472,7 +2478,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: G = graphs.CompleteBipartiteGraph(3,3)
             sage: P = Poset(DiGraph({(u,v):[u,v] for u,v,_ in G.edges()}))
-            sage: P.dimension() # not tested - around 4s
+            sage: P.dimension() # not tested - around 4s with CPLEX
             4
 
         TESTS:
@@ -2543,7 +2549,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                 if x == 1:
                     linear_extensions[i].add_edge(u,v)
 
-            # We check that all color class induce an acyclic graph, and add a
+            # We check that all color classes induce an acyclic graph, and add a
             # constraint otherwise.
             okay = True
             for g in linear_extensions:

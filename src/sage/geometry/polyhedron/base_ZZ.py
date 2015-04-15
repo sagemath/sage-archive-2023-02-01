@@ -118,6 +118,71 @@ class Polyhedron_ZZ(Polyhedron_base):
         """
         return True
 
+    def ehrhart_polynomial(self):
+        r"""
+        Return the Ehrhart polynomial of this polyhedron.
+
+        Let `P` be a lattice polytope in `\RR^d` and define `L(P,t) = \# (tP
+        \cap \ZZ^d)`. Then E. Ehrhart proved in in 1962 that `L` coincide with a
+        rational polynomial of degree `d` for integer `t`. `L` is called the
+        *Ehrhart polynomial* of `P`. For more information see
+        :wikipedia:`Ehrhart_polynomial`.
+
+        ALGORITHM:
+
+        This method calls the program ``count`` from LattE integral, a program
+        for lattice point enumeration (see
+        https://www.math.ucdavis.edu/~latte/).
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)])
+            sage: p = P.ehrhart_polynomial()    # optional - latte_int
+            sage: p                             # optional - latte_int
+            7/2*t^3 + 2*t^2 - 1/2*t + 1
+            sage: p(1)                          # optional - latte_int
+            6
+            sage: len(P.integral_points())
+            6
+
+        The unit hypercubes::
+
+            sage: from itertools import product
+            sage: def hypercube(d):
+            ....:     return Polyhedron(vertices=list(product([0,1],repeat=d)))
+            sage: hypercube(3).ehrhart_polynomial()   # optional - latte_int
+            t^3 + 3*t^2 + 3*t + 1
+            sage: hypercube(4).ehrhart_polynomial()   # optional - latte_int
+            t^4 + 4*t^3 + 6*t^2 + 4*t + 1
+            sage: hypercube(5).ehrhart_polynomial()   # optional - latte_int
+            t^5 + 5*t^4 + 10*t^3 + 10*t^2 + 5*t + 1
+            sage: hypercube(6).ehrhart_polynomial()   # optional - latte_int
+            t^6 + 6*t^5 + 15*t^4 + 20*t^3 + 15*t^2 + 6*t + 1
+        """
+        if not self.is_lattice_polytope():
+            raise ValueError("this must be a lattice polytope")
+
+        from sage.misc.package import is_package_installed, package_mesg
+        if not is_package_installed('latte_int'):
+            raise ValueError("The package latte_int must be installed!\n" + package_mesg())
+
+        from sage.misc.temporary_file import tmp_filename
+        from subprocess import Popen, PIPE
+
+        in_str = self.cdd_Hrepresentation()
+        in_filename = tmp_filename() + '.ine'
+        in_file = open(in_filename, 'w')
+        in_file.write(self.cdd_Hrepresentation())
+        in_file.close()
+
+        latte_proc = Popen(['count', '--ehrhart-polynomial', '--cdd', in_filename],
+                       stdin = PIPE, stdout=PIPE, stderr=PIPE)
+        ans, err = latte_proc.communicate()
+
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        R = PolynomialRing(QQ, 't')
+        return R(ans)
+
     @cached_method
     def polar(self):
         """

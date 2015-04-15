@@ -1,8 +1,3 @@
-include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
-include 'sage/ext/stdsage.pxi'
-
-
 from sage.structure.element import Element, CommutativeAlgebraElement
 from sage.structure.element cimport Element, CommutativeAlgebraElement, ModuleElement
 from sage.structure.parent cimport Parent

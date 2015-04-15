@@ -15,19 +15,22 @@ AUTHORS:
   handling.
 
 - Robert Bradshaw, Jeroen Demeyer, William Stein (2010-08-15):
-  Upgrade to PARI 2.4.3 (#9343)
+  Upgrade to PARI 2.4.3 (:trac:`9343`)
 
 - Jeroen Demeyer (2011-11-12): rewrite various conversion routines
-  (#11611, #11854, #11952)
+  (:trac:`11611`, :trac:`11854`, :trac:`11952`)
 
 - Peter Bruin (2013-11-17): move PariInstance to a separate file
-  (#15185)
+  (:trac:`15185`)
 
-- Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (#15767)
+- Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (:trac:`15767`)
 
-- Martin von Gagern (2014-12-17): Added some Galois functions (#17519)
+- Martin von Gagern (2014-12-17): Added some Galois functions (:trac:`17519`)
 
-- Jeroen Demeyer (2015-01-12): upgrade to PARI 2.8 (#16997)
+- Jeroen Demeyer (2015-01-12): upgrade to PARI 2.8 (:trac:`16997`)
+
+- Jeroen Demeyer (2015-03-17): automatically generate methods from
+  ``pari.desc`` (:trac:`17631` and :trac:`17860`)
 
 """
 
@@ -36,7 +39,7 @@ AUTHORS:
 #       Copyright (C) ???? Justin Walker
 #       Copyright (C) ???? Gonzalo Tornaria
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
-#       Copyright (C) 2010-2014 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#       Copyright (C) 2010-2015 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of

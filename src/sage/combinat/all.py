@@ -48,7 +48,7 @@ from perfect_matching import PerfectMatching, PerfectMatchings
 
 # Integer lists lex
 
-from integer_list import IntegerListsLexPublic as IntegerListsLex
+from integer_list import IntegerListsLex as IntegerListsLex
 
 #Compositions
 from composition import Composition, Compositions

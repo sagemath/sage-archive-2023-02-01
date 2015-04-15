@@ -25,7 +25,6 @@ AUTHORS:
 #*****************************************************************************
 
 import copy
-from sage.misc.misc import uniq
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 
 from sage.structure.parent import Parent
@@ -39,6 +38,7 @@ from sage.rings.all import Integer, QQ, ZZ
 from sage.rings.arith import factorial
 from sage.rings.infinity import PlusInfinity
 from sage.matrix.all import zero_matrix
+import itertools
 
 from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.partition import Partition
@@ -83,16 +83,10 @@ class SkewTableau(CombinatorialObject, Element):
             sage: SkewTableau(expr=[[1,1],[[5],[3,4],[1,2]]])
             [[None, 1, 2], [None, 3, 4], [5]]
         """
-        if isinstance(st, SkewTableau):
+        if isinstance(st, cls):
             return st
         if expr is not None:
             return SkewTableaux().from_expr(expr)
-
-        for row in st:
-            if not isinstance(row, list):
-                raise TypeError("each element of the skew tableau must be a list")
-            if len(row) == 0:
-                raise TypeError("a skew tableau cannot have an empty list for a row")
 
         return SkewTableaux()(st)
 
@@ -103,8 +97,30 @@ class SkewTableau(CombinatorialObject, Element):
             sage: st = SkewTableau([[None, 1],[2,3]])
             sage: st = SkewTableau([[None,1,1],[None,2],[4]])
             sage: TestSuite(st).run()
+
+        A skew tableau is immutable, see :trac:`15862`::
+
+            sage: T = SkewTableau([[None,2],[2]])
+            sage: t0 = T[0]
+            sage: t0[1] = 3
+            Traceback (most recent call last):
+            ...
+            TypeError: 'tuple' object does not support item assignment
+            sage: T[0][1] = 5
+            Traceback (most recent call last):
+            ...
+            TypeError: 'tuple' object does not support item assignment
         """
-        CombinatorialObject.__init__(self, list(st))
+        try:
+            st = map(tuple, st)
+        except TypeError:
+            raise TypeError("each element of the skew tableau must be an iterable")
+
+        for row in st:
+            if not row:
+                raise TypeError("a skew tableau cannot have an empty list for a row")
+
+        CombinatorialObject.__init__(self, st)
         Element.__init__(self, parent)
 
     def __setstate__(self, state):
@@ -143,14 +159,18 @@ class SkewTableau(CombinatorialObject, Element):
 
     def _repr_list(self):
         """
-        Return a string represenation of ``self`` as a list of lists.
+        Return a string representation of ``self`` as a list of lists.
 
         EXAMPLES::
 
             sage: print SkewTableau([[None,2,3],[None,4],[5]])._repr_list()
             [[None, 2, 3], [None, 4], [5]]
         """
-        return repr(list(self))
+        return repr([list(row) for row in self])
+
+    # Overwrite the object from CombinatorialObject
+    # until this is no longer around
+    __str__ = _repr_list
 
     def _repr_diagram(self):
         """
@@ -181,7 +201,7 @@ class SkewTableau(CombinatorialObject, Element):
             sage: Tableau([])._repr_compact()
             '-'
         """
-        if len(self._list)==0:
+        if not self._list:
             return '-'
         str_rep = lambda x: '%s'%x if x is not None else '.'
         return '/'.join(','.join(str_rep(r) for r in row) for row in self._list)
@@ -355,7 +375,7 @@ class SkewTableau(CombinatorialObject, Element):
         """
         word = []
         for row in self:
-            word = row + word
+            word = list(row) + word
 
         return Words("positive integers")([i for i in word if i is not None])
 
@@ -401,11 +421,16 @@ class SkewTableau(CombinatorialObject, Element):
 
             sage: SkewTableau([[None,2],[3,4],[None],[1]]).to_permutation()
             [1, 3, 4, 2]
+            sage: SkewTableau([[None,2],[None,4],[1],[3]]).to_permutation()
+            [3, 1, 4, 2]
             sage: SkewTableau([[None]]).to_permutation()
             []
         """
         from sage.combinat.permutation import Permutation
-        return Permutation(self.to_word())
+        word = []
+        for row in reversed(self):
+            word += [i for i in row if i is not None]
+        return Permutation(word)
 
     def weight(self):
         """
@@ -485,8 +510,8 @@ class SkewTableau(CombinatorialObject, Element):
             False
         """
         #Check to make sure that it is filled with 1...size
-        w = self.to_word()
-        if sorted(w) != range(1, self.size()+1):
+        w = [i for row in self for i in row if i is not None]
+        if sorted(w) != range(1, len(w)+1):
             return False
         else:
             return self.is_semistandard()
@@ -506,22 +531,29 @@ class SkewTableau(CombinatorialObject, Element):
             True
             sage: SkewTableau([[None, 2], [1, 2]]).is_semistandard()
             False
+            sage: SkewTableau([[None, 2, 3]]).is_semistandard()
+            True
+            sage: SkewTableau([[None, 3, 2]]).is_semistandard()
+            False
+            sage: SkewTableau([[None, 2, 3], [1, 4]]).is_semistandard()
+            True
+            sage: SkewTableau([[None, 2, 3], [1, 2]]).is_semistandard()
+            False
+            sage: SkewTableau([[None, 2, 3], [None, None, 4]]).is_semistandard()
+            False
         """
-        t = self
+        if not self:
+            return True
 
-        #Check to make sure it is weakly increasing along the rows
-        for row in t:
-            for i in range(1, len(row)):
-                if row[i-1] is not None and row[i] < row[i-1]:
-                    return False
+        # Is it weakly increasing along the rows?
+        for row in self:
+            if any(row[c] is not None and row[c] > row[c+1] for c in xrange(len(row)-1)):
+                return False
 
-
-        #Check to make sure it is strictly increasing along the columns
-        conj = t.conjugate()
-        for row in conj:
-            for i in range(1, len(row)):
-                if row[i-1] is not None and row[i] <= row[i-1]:
-                    return False
+        # Is it strictly increasing down columns?
+        for row, next in itertools.izip(self, self[1:]):
+            if any(row[c] is not None and row[c] >= next[c] for c in xrange(len(next))):
+                return False
 
         return True
 
@@ -702,7 +734,7 @@ class SkewTableau(CombinatorialObject, Element):
             sage: st
             [[None, None, None, None, 2], [None, None, None, None, 6], [None, 2, 4, 4], [2, 3, 6], [5, 5]]
         """
-        new_st = [x[:] for x in self]
+        new_st = [list(x) for x in self]
         inner_corners = self.inner_shape().corners()
         outer_corners = self.outer_shape().corners()
         if corner is not None:
@@ -968,7 +1000,7 @@ class SkewTableau(CombinatorialObject, Element):
 
         # result_tab is going to be the result tableau (as a list of lists);
         # we will build it up step by step, starting with a deep copy of self.
-        result_tab = [row[:] for row in self]
+        result_tab = [list(row) for row in self]
         for i in rows:
             if i >= l:
                 continue

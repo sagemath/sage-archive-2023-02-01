@@ -1,7 +1,5 @@
 from sage.misc.lazy_import import lazy_import
 
-from ag_code import ag_code
-
 from code_constructions import (permutation_action,
                    walsh_matrix,cyclotomic_cosets)
 

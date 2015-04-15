@@ -23,10 +23,36 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
     - ``category`` -- a category (default: ``ModulesWithBasis(submodule.base_ring())``)
 
     ``submodule`` is typically a :class:`SubmoduleWithBasis`. It
-    should implement a method ``reduce``, and it's ``lift`` method
-    should have a method ``.cokernel_basis_indices`` that compute the
-    indexing set of a subset of the basis of ``self`` that spans some
-    suplementary of ``submodule`` in the ambient space.
+    should implement a method ``reduce``. Futheremore its ``lift``
+    method should have a method ``.cokernel_basis_indices`` that
+    computes the indexing set of a subset of the basis of ``self``
+    that spans some suplementary of ``submodule`` in the ambient
+    space. Mathematically speaking, ``submodule`` should be a free
+    submodule whose basis can be put in unitriangular echelon form.
+
+    This is meant to be constructed via
+    :meth:`Modules.WithBasis.FiniteDimensional.ParentMethods.quotient_module`
+
+    This differs from :class:`sage.rings.quotient_ring.QuotientRing`
+    in the following ways:
+
+    - The submodule needs not be an ideal. If it is, the
+      transportation of the ring structure is taken care of by the
+      ``Subquotients`` categories.
+
+    - Thanks to ``.cokernel_basis_indices``, we know the indices of a
+      basis of the quotient, and elements are represented directly in
+      the free module spanned by those indices rather than by wrapping
+      elements of the ambient space.
+
+    There is room for sharing more code between those two
+    implementations and generalizing them. See :trac:`18204`.
+
+    .. SEEALSO::
+
+        - :meth:`Modules.WithBasis.FiniteDimensional.ParentMethods.quotient_module`
+        - :class:`SubmoduleWithBasis`
+        - :class:`sage.rings.quotient_ring.QuotientRing`
     """
     @staticmethod
     def __classcall_private__(cls, submodule, category=None):
@@ -130,12 +156,33 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
     r"""
     A base class for submodules of a ModuleWithBasis spanned by a
     (possibly infinite) basis in echelon form.
+
+    INPUT:
+
+    - ``basis`` -- a family of vectors in echelon form in some
+      :class:`module with basis <ModulesWithBasis>` `V`, or data that
+      can be converted into such a family
+
+    - ``ambient`` -- the ambient space `V`
+
+    - ``category`` -- a category
+
+    Further arguments are passed down to
+    :class:`CombinatorialFreeModule`.
+
+    This is meant to be constructed via
+    :meth:`Modules.WithBasis.ParentMethods.submodule`.
+
+    .. SEEALSO::
+
+        - :meth:`Modules.WithBasis.ParentMethods.submodule`
+        - :class:`QuotientModuleWithBasis`
     """
 
     @staticmethod
     def __classcall_private__(cls, basis, ambient=None, category=None, *args, **opts):
         r"""
-        Normalize the input
+        Normalize the input.
 
         TESTS::
 
@@ -156,6 +203,8 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
 
     def __init__(self, basis, ambient, category):
         r"""
+        Initialization.
+
         TESTS::
 
             sage: from sage.modules.with_basis.subquotient import SubmoduleWithBasis

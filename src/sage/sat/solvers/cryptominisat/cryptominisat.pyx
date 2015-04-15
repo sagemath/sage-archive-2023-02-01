@@ -112,9 +112,7 @@ cdef class CryptoMiniSat(SatSolver):
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
             sage: del cms                                    # optional - cryptominisat
         """
-        sig_on()
         del self
-        sig_off()
 
     def __repr__(self):
          """

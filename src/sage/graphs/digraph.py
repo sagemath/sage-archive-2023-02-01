@@ -560,6 +560,13 @@ class DiGraph(GenericGraph):
             1
             sage: copy(g) is g    # copy is mutable again
             False
+
+        TESTS::
+
+            sage: DiGraph(4,format="HeyHeyHey")
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown input format 'HeyHeyHey'
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -647,21 +654,20 @@ class DiGraph(GenericGraph):
             if weighted is None: weighted = False
             num_verts=0
 
+        if format == 'weighted_adjacency_matrix':
+            if weighted is False:
+                raise ValueError("Format was weighted_adjacency_matrix but weighted was False.")
+            if weighted   is None: weighted   = True
+            if multiedges is None: multiedges = False
+            format = 'adjacency_matrix'
+
         if format is None:
             raise ValueError("This input cannot be turned into a graph")
 
-        # At this point, format has been set.
-
-        # adjust for empty dicts instead of None in NetworkX default edge labels
-        if convert_empty_dict_labels_to_None is None:
-            convert_empty_dict_labels_to_None = (format == 'NX')
-
-        verts = None
+        # At this point, format has been set. We build the graph
 
         if format == 'dig6':
-            if loops      is None: loops      = False
             if weighted   is None: weighted   = False
-            if multiedges is None: multiedges = False
             if not isinstance(data, str):
                 raise ValueError('If input format is dig6, then data must be a string.')
             n = data.find('\n')
@@ -675,16 +681,17 @@ class DiGraph(GenericGraph):
                 raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too long."%(ss,n))
             elif len(m) < expected:
                 raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too short."%(ss,n))
-            num_verts = n
-        elif format in ['adjacency_matrix', 'incidence_matrix']:
+            self.allow_loops(True if loops else False,check=False)
+            self.allow_multiple_edges(True if multiedges else False,check=False)
+            self.add_vertices(range(n))
+            k = 0
+            for i in xrange(n):
+                for j in xrange(n):
+                    if m[k] == '1':
+                        self._backend.add_edge(i, j, None, True)
+                    k += 1
+        elif format == 'adjacency_matrix':
             assert is_Matrix(data)
-        if format == 'weighted_adjacency_matrix':
-            if weighted is False:
-                raise ValueError("Format was weighted_adjacency_matrix but weighted was False.")
-            if weighted   is None: weighted   = True
-            if multiedges is None: multiedges = False
-            format = 'adjacency_matrix'
-        if format == 'adjacency_matrix':
             # note: the adjacency matrix might be weighted and hence not
             # necessarily consists of integers
             if not weighted and data.base_ring() != ZZ:
@@ -720,11 +727,22 @@ class DiGraph(GenericGraph):
                     raise ValueError("Non-looped digraph's adjacency"+
                     " matrix must have zeroes on the diagonal.")
                 loops = True
-            if loops is None:
-                loops = False
-
-            num_verts = data.nrows()
+            self.allow_multiple_edges(multiedges,check=False)
+            self.allow_loops(True if loops else False,check=False)
+            self.add_vertices(range(data.nrows()))
+            e = []
+            if weighted:
+                for i,j in data.nonzero_positions():
+                    e.append((i,j,data[i][j]))
+            elif multiedges:
+                for i,j in data.nonzero_positions():
+                    e += [(i,j)]*int(data[i][j])
+            else:
+                for i,j in data.nonzero_positions():
+                    e.append((i,j))
+            self.add_edges(e)
         elif format == 'incidence_matrix':
+            assert is_Matrix(data)
             positions = []
             for c in data.columns():
                 NZ = c.nonzero_positions()
@@ -739,12 +757,14 @@ class DiGraph(GenericGraph):
                     positions.append(tuple(NZ))
                 else:
                     positions.append((NZ[1],NZ[0]))
-            if loops      is None: loops     = False
             if weighted   is None: weighted  = False
             if multiedges is None:
                 total = len(positions)
                 multiedges = (  len(set(positions)) < total  )
-            num_verts = data.nrows()
+            self.allow_loops(True if loops else False,check=False)
+            self.allow_multiple_edges(multiedges,check=False)
+            self.add_vertices(range(data.nrows()))
+            self.add_edges(positions)
         elif format == 'DiGraph':
             if loops is None: loops = data.allows_loops()
             elif not loops and data.has_loops():
@@ -755,18 +775,22 @@ class DiGraph(GenericGraph):
                 if len(e) != len(set(e)):
                     raise ValueError("No multiple edges but input digraph"+
                     " has multiple edges.")
+            self.allow_multiple_edges(multiedges,check=False)
+            self.allow_loops(loops,check=False)
             if weighted is None: weighted = data.weighted()
-            num_verts = data.num_verts()
-            verts = data.vertex_iterator()
             if data.get_pos() is not None:
                 pos = data.get_pos().copy()
+            self.add_vertices(data.vertices())
+            self.add_edges(data.edge_iterator())
+            self.name(data.name())
         elif format == 'rule':
             f = data[1]
             if loops is None: loops = any(f(v,v) for v in data[0])
-            if multiedges is None: multiedges = False
             if weighted is None: weighted = False
-            num_verts = len(data[0])
-            verts = data[0]
+            self.allow_multiple_edges(True if multiedges else False,check=False)
+            self.allow_loops(loops,check=False)
+            self.add_vertices(data[0])
+            self.add_edges((u,v) for u in data[0] for v in data[0] if f(u,v))
         elif format == 'dict_of_dicts':
             if not all(isinstance(data[u], dict) for u in data):
                 raise ValueError("Input dict must be a consistent format.")
@@ -793,8 +817,14 @@ class DiGraph(GenericGraph):
                             raise ValueError("Dict of dicts for multidigraph must be in the format {v : {u : list}}")
             if multiedges is None and len(data) > 0:
                 multiedges = True
+            self.allow_multiple_edges(multiedges,check=False)
+            self.allow_loops(loops,check=False)
+            self.add_vertices(verts)
 
-            num_verts = len(verts)
+            if multiedges:
+                self.add_edges((u,v,l) for u,Nu in data.iteritems() for v,labels in Nu.iteritems() for l in labels)
+            else:
+                self.add_edges((u,v,l) for u,Nu in data.iteritems() for v,l in Nu.iteritems())
         elif format == 'dict_of_lists':
             # convert to a dict of lists if not already one
             if not all(isinstance(data[u], list) for u in data):
@@ -817,10 +847,16 @@ class DiGraph(GenericGraph):
                 multiedges = True
             if multiedges is None:
                 multiedges = False
-
+            self.allow_multiple_edges(multiedges,check=False)
+            self.allow_loops(loops,check=False)
             verts = set().union(data.keys(),*data.values())
-            num_verts = len(verts)
+            self.add_vertices(verts)
+            self.add_edges((u,v) for u,Nu in data.iteritems() for v in Nu)
         elif format == 'NX':
+            # adjust for empty dicts instead of None in NetworkX default edge labels
+            if convert_empty_dict_labels_to_None is None:
+                convert_empty_dict_labels_to_None = (format == 'NX')
+
             if weighted is None:
                 if isinstance(data, networkx.DiGraph):
                     weighted = False
@@ -834,68 +870,24 @@ class DiGraph(GenericGraph):
                         multiedges = data.multiedges
                     if loops is None:
                         loops = data.selfloops
-            num_verts = data.order()
-            verts = data.nodes()
-            data = data.adj
-            format = 'dict_of_dicts'
-        elif format == 'int':
-            if weighted   is None: weighted   = False
-            if multiedges is None: multiedges = False
-            if loops      is None: loops      = False
-            num_verts = data
-            if num_verts<0:
-                raise ValueError("The number of vertices cannot be strictly negative!")
-
-        # weighted, multiedges, loops, verts and num_verts should now be set
-        self._weighted = weighted
-        self.allow_loops(loops, check=False)
-        self.allow_multiple_edges(multiedges, check=False)
-        if verts is not None:
-            self.add_vertices(verts)
-        elif num_verts:
-            self.add_vertices(range(num_verts))
-
-        if format == 'dig6':
-            k = 0
-            for i in xrange(n):
-                for j in xrange(n):
-                    if m[k] == '1':
-                        self._backend.add_edge(i, j, None, True)
-                    k += 1
-        elif format == 'adjacency_matrix':
-            e = []
-            if weighted:
-                for i,j in data.nonzero_positions():
-                    e.append((i,j,data[i][j]))
-            elif multiedges:
-                for i,j in data.nonzero_positions():
-                    e += [(i,j)]*int(data[i][j])
-            else:
-                for i,j in data.nonzero_positions():
-                    e.append((i,j))
-            self.add_edges(e)
-        elif format == 'incidence_matrix':
-            self.add_edges(positions)
-        elif format == 'DiGraph':
-            self.add_vertices(data.vertices())
-            self.add_edges(data.edge_iterator())
-            self.name(data.name())
-        elif format == 'rule':
-            self.add_edges((u,v) for u in verts for v in verts if f(u,v))
-        elif format == 'dict_of_dicts':
             if convert_empty_dict_labels_to_None:
                 r = lambda x:None if x=={} else x
             else:
                 r = lambda x:x
 
-            if multiedges:
-                self.add_edges((u,v,r(l)) for u,Nu in data.iteritems() for v,labels in Nu.iteritems() for l in labels)
-            else:
-                self.add_edges((u,v,r(l)) for u,Nu in data.iteritems() for v,l in Nu.iteritems())
-
-        elif format == 'dict_of_lists':
-            self.add_edges((u,v) for u,Nu in data.iteritems() for v in Nu)
-        elif format == "list_of_edges":
+            self.allow_multiple_edges(multiedges,check=False)
+            self.allow_loops(loops,check=False)
+            self.add_vertices(data.nodes())
+            self.add_edges((u,v,r(l)) for u,v,l in data.edges_iter(data=True))
+        elif format == 'int':
+            if weighted   is None: weighted   = False
+            self.allow_loops(True if loops else False,check=False)
+            self.allow_multiple_edges(True if multiedges else False,check=False)
+            if data<0:
+                raise ValueError("The number of vertices cannot be strictly negative!")
+            elif data:
+                self.add_vertices(range(data))
+        elif format == 'list_of_edges':
             self.allow_multiple_edges(False if multiedges is False else True)
             self.allow_loops(False if loops is False else True)
             self.add_edges(data)
@@ -915,7 +907,11 @@ class DiGraph(GenericGraph):
             elif loops is None:
                 self.allow_loops(False)
         else:
-            assert format == 'int'
+            raise ValueError("Unknown input format '{}'".format(format))
+
+        # weighted, multiedges, loops, verts and num_verts should now be set
+        self._weighted = weighted
+
         self._pos = pos
         self._boundary = boundary if boundary is not None else []
         if format != 'DiGraph' or name is not None:

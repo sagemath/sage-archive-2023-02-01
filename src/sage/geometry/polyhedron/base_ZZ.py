@@ -119,7 +119,7 @@ class Polyhedron_ZZ(Polyhedron_base):
         return True
 
     def ehrhart_polynomial(self, dual=None, irrational_primal=None,
-            irrational_all_primal=None, maxdet=None, verbose=False):
+            irrational_all_primal=None, maxdet=None, no_decomposition=None, verbose=False):
         r"""
         Return the Ehrhart polynomial of this polyhedron.
 
@@ -135,18 +135,18 @@ class Polyhedron_ZZ(Polyhedron_base):
           space
 
         - ``irrational_primal`` - (boolean) triangulate in the dual space,
-          signed-decompose in the primal space using irrationalization
+          signed-decompose in the primal space using irrationalization.
 
         - ``irrational_all_primal`` - (boolean) Triangulate and signed-decompose
-          in the primal space using irrationalization
+          in the primal space using irrationalization.
 
         - ``maxdet`` -- (integer) decompose down to an index (determinant) of
-          ``maxdet`` instead of index 1 (unimodular cones)
+          ``maxdet`` instead of index 1 (unimodular cones).
 
-        - ``no_decomposition`` -- do not signed-decompose simplicial cones
+        - ``no_decomposition`` -- (boolean) do not signed-decompose simplicial cones.
 
         - ``verbose`` - (boolean, default to ``False``) if ``True``, print the
-          whole output of the LattE command
+          whole output of the LattE command.
 
         ALGORITHM:
 
@@ -214,7 +214,7 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: p = P.ehrhart_polynomial(irrational_primal=True, verbose=True)   # optional - latte_int
             This is LattE integrale 1.7.2
             ...
-            Invocation: count --ehrhart-polynomial '--redundancy-check=none' --irrational_primal --cdd ...
+            Invocation: count --ehrhart-polynomial '--redundancy-check=none' --irrational-primal --cdd ...
             ...
             sage: p   # optional - latte_int
             1/2*t^2 + 3/2*t + 1
@@ -222,7 +222,7 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: p = P.ehrhart_polynomial(irrational_all_primal=True, verbose=True)  # optional - latte_int
             This is LattE integrale 1.7.2
             ...
-            Invocation: count --ehrhart-polynomial '--redundancy-check=none' --irrational_all_primal --cdd ...
+            Invocation: count --ehrhart-polynomial '--redundancy-check=none' --irrational-all-primal --cdd ...
             sage: p   # optional - latte_int
             1/2*t^2 + 3/2*t + 1
         """
@@ -251,14 +251,16 @@ class Polyhedron_ZZ(Polyhedron_base):
         if dual:
             args.append('--dual')
         if irrational_primal:
-            args.append('--irrational_primal')
+            args.append('--irrational-primal')
         if irrational_all_primal:
-            args.append('--irrational_all_primal')
+            args.append('--irrational-all-primal')
         if maxdet:
             maxdet = int(maxdet)
             if maxdet < 0:
                 raise ValueError("maxdet must be a positive integer")
             args.append('--maxdet={}'.format(maxdet))
+        if no_decomposition:
+            args.append('--no-decomposition')
 
         args.append('--cdd')
         args.append(in_filename)

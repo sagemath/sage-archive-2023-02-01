@@ -2745,7 +2745,7 @@ cdef void fast_tp_dealloc(PyObject* o):
 
 
 from sage.misc.allocator cimport hook_tp_functions
-hook_tp_functions(global_dummy_element, NULL, &fast_tp_new, NULL, &fast_tp_dealloc, False)
+hook_tp_functions(global_dummy_element, NULL, <newfunc>(&fast_tp_new), NULL, &fast_tp_dealloc, False)
 
 
 def time_alloc_list(n):

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 description = """
     Attach the debugger to a Python process (given by its pid) and
     extract as much information about its internal state as possible
@@ -11,8 +13,6 @@ description = """
 # $SAGE_CRASH_DAYS (default: 7 if SAGE_CRASH_LOGS unset, -1 if
 # set) are automatically deleted, but with a negative value they are
 # never deleted.
-
-from __future__ import print_function
 
 import sys
 import os

@@ -488,12 +488,6 @@ class IncidenceStructure(object):
         r"""
         Return whether the two incidence structures are isomorphic.
 
-        .. NOTE::
-
-            If you need to test isomorphisms between one incidence
-            structure and many others, you should consider using
-            :meth:`canonical_label` instead of this function.
-
         INPUT:
 
         - ``other`` -- an incidence structure.
@@ -528,19 +522,32 @@ class IncidenceStructure(object):
             False
             sage: IS2.is_isomorphic(IS,certificate=True)
             {}
+
+        Checking whether two :class:`IncidenceStructure` are isomorphic
+        incidentally computes their canonical label (if necessary). Thus,
+        subsequent calls to :meth:`is_isomorphic` will be faster::
+
+            sage: IS1 = designs.projective_plane(3)
+            sage: IS2 = IS1.relabel(Permutations(IS1.ground_set()).random_element(),inplace=False)
+            sage: IS2 = IncidenceStructure(IS2.blocks())
+            sage: IS1._canonical_label is None and IS2._canonical_label is None
+            True
+            sage: IS1.is_isomorphic(IS2)
+            True
+            sage: IS1._canonical_label is None or IS2._canonical_label is None
+            False
+
         """
         if (self.num_points() != other.num_points() or
             self.num_blocks() != other.num_blocks() or
             sorted(self.block_sizes()) != sorted(other.block_sizes())):
             return {} if certificate else False
 
-        A = self.copy()
-        B = other.copy()
+        A_canon = self.canonical_label()
+        B_canon = other.canonical_label()
 
-        A_canon = A.canonical_label()
-        B_canon = B.canonical_label()
-        A.relabel(A_canon)
-        B.relabel(B_canon)
+        A = self.relabel(A_canon,inplace=False)
+        B = other.relabel(B_canon,inplace=False)
 
         if A == B:
             if certificate:

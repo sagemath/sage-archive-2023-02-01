@@ -238,9 +238,11 @@ class Sandpile(DiGraph):
         r"""
         Create a sandpile.
 
+        A sandpile is always a weighted graph.
+
         INPUT:
 
-         - ``g`` - dict for directed multgraph (see NOTES) edges weighted by
+         - ``g`` - dict for directed multigraph (see NOTES) edges weighted by
            nonnegative integers
 
          - ``sink`` - A sink vertex.  Any outgoing edges from the designated
@@ -286,6 +288,13 @@ class Sandpile(DiGraph):
 
             sage: S = complete_sandpile(4)
             sage: TestSuite(S).run()
+
+        Make sure we cannot make an unweighted sandpile::
+
+            sage: G = Sandpile({0:[]}, 0, weighted=False)
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() got an unexpected keyword argument 'weighted'
         """
         # preprocess a graph, if necessary
         if isinstance(g, dict) and isinstance(g.values()[0], dict):
@@ -336,6 +345,23 @@ class Sandpile(DiGraph):
         temp = range(self.num_verts())
         del temp[self._sink_ind]
         self._reduced_laplacian = self._laplacian[temp,temp]
+
+    def __copy__(self):
+        """
+        Make a copy of this sandpile
+
+        OUTPUT:
+
+        A new :class:`Sandpile` instance.
+
+        EXAMPLES::
+
+            sage: G = complete_sandpile(4)
+            sage: G_copy = copy(G)
+            sage: G_copy == G == G.__copy__()
+            True
+        """
+        return self.__class__(self, self._sink)
 
     def __getattr__(self, name):
         """

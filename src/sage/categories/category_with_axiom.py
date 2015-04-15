@@ -1675,13 +1675,14 @@ from sage.categories.category_cy_helper import AxiomContainer, canonicalize_axio
 
 all_axioms = AxiomContainer()
 all_axioms += ("Flying", "Blue",
-              "Facade", "Finite", "Infinite",
-              "FiniteDimensional", "Connected", "WithBasis",
-              "Irreducible",
-              "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors",
-              "AdditiveCommutative", "AdditiveAssociative", "AdditiveInverse", "AdditiveUnital",
-              "Distributive",
-              "Endset"
+               "FinitelyGeneratedAsMagma",
+               "Facade", "Finite", "Infinite",
+               "FiniteDimensional", "Connected", "WithBasis",
+               "Irreducible",
+               "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors",
+               "AdditiveCommutative", "AdditiveAssociative", "AdditiveInverse", "AdditiveUnital",
+               "Distributive",
+               "Endset"
               )
 
 def uncamelcase(s,separator=" "):
@@ -2129,17 +2130,9 @@ class CategoryWithAxiom(Category):
         ``self``, as per :meth:`Category.super_categories`.
 
         This implements the property that if ``As`` is a subcategory
-        of ``Bs``, then the intersection of As with ``FiniteSets()``
+        of ``Bs``, then the intersection of ``As`` with ``FiniteSets()``
         is a subcategory of ``As`` and of the intersection of ``Bs``
         with ``FiniteSets()``.
-
-        EXAMPLES::
-
-            sage: FiniteSets().super_categories()
-            [Category of sets]
-
-            sage: FiniteSemigroups().super_categories()
-            [Category of semigroups, Category of finite enumerated sets]
 
         EXAMPLES:
 
@@ -2147,6 +2140,16 @@ class CategoryWithAxiom(Category):
 
             sage: Magmas().Finite().super_categories()
             [Category of magmas, Category of finite sets]
+
+        Variants::
+
+            sage: Sets().Finite().super_categories()
+            [Category of sets]
+
+            sage: Monoids().Finite().super_categories()
+            [Category of monoids, Category of finite semigroups]
+
+        EXAMPLES:
 
         TESTS::
 
@@ -2232,7 +2235,12 @@ class CategoryWithAxiom(Category):
             sage: from sage.categories.homsets import Homsets
             sage: CategoryWithAxiom._repr_object_names_static(Homsets(), ["Endset"])
             'endsets'
+            sage: CategoryWithAxiom._repr_object_names_static(PermutationGroups(), ["FinitelyGeneratedAsMagma"])
+            'finitely generated permutation groups'
+            sage: CategoryWithAxiom._repr_object_names_static(Rings(), ["FinitelyGeneratedAsMagma"])
+            'finitely generated as magma rings'
         """
+        from sage.categories.additive_magmas import AdditiveMagmas
         axioms = canonicalize_axioms(all_axioms,axioms)
         base_category = category._without_axioms(named=True)
         if isinstance(base_category, CategoryWithAxiom): # Smelly runtime type checking
@@ -2254,6 +2262,9 @@ class CategoryWithAxiom(Category):
             elif axiom == "Endset" and "homsets" in result:
                 # Without the space at the end to handle Homsets().Endset()
                 result = result.replace("homsets", "endsets", 1)
+            elif axiom == "FinitelyGeneratedAsMagma" and \
+                 not base_category.is_subcategory(AdditiveMagmas()):
+                result = "finitely generated " + result
             else:
                 result = uncamelcase(axiom) + " " + result
         return result

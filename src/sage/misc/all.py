@@ -198,6 +198,6 @@ class logstr(str):
         return r"""\verb%s%s%s"""%(delim, self.replace('\n\n','\n').replace('\n','; '), delim)
 
 
-import messaging
+lazy_import("sage.misc", "messaging", deprecation=18140)
 
 from ascii_art import ascii_art

@@ -1321,11 +1321,11 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
     def epsilon(self, i):
         r"""
-        Compute `\epsilon_i` of ``self``.
+        Compute `\varepsilon_i` of ``self``.
 
         .. TODO::
 
-            Implement a direct action of `\epsilon_0` without moving to
+            Implement a direct action of `\varepsilon_0` without moving to
             KR crystals.
 
         EXAMPLES::
@@ -1340,11 +1340,11 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
     def phi(self, i):
         r"""
-        Compute `\phi_i` of ``self``.
+        Compute `\varphi_i` of ``self``.
 
         .. TODO::
 
-            Compute `\phi_0` without moving to KR crystals.
+            Compute `\varphi_0` without moving to KR crystals.
 
         EXAMPLES::
 

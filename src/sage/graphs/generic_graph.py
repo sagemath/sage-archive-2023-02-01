@@ -3502,10 +3502,10 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
 
-        -  ``kuratowski`` - returns a tuple with boolean as
-           first entry. If the graph is nonplanar, will return the Kuratowski
-           subgraph or minor as the second tuple entry. If the graph is
-           planar, returns None as the second entry.
+        - ``kuratowski`` - returns a tuple with boolean as first entry. If the
+          graph is nonplanar, will return the Kuratowski subgraph (i.e. an edge
+          subdivision of `K_5` or `K_{3,3}`) as the second tuple entry.  If the
+          graph is planar, returns ``None`` as the second entry.
 
         -  ``on_embedding`` - the embedding dictionary to test
            planarity on. (i.e.: will return True or False only for the given
@@ -3644,8 +3644,9 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``kuratowski`` (boolean) - if set to True, returns a tuple with
-           boolean first entry and the Kuratowski subgraph or minor as the
-           second entry (see OUTPUT below). It is set to ``False`` by default.
+           boolean first entry and the Kuratowski subgraph (i.e. an edge
+           subdivision of `K_5` or `K_{3,3}`) as the second entry (see OUTPUT below).
+           It is set to ``False`` by default.
 
         - ``on_embedding`` (boolean) - the embedding dictionary to test
            planarity on. (i.e.: will return ``True`` or ``False`` only for the
@@ -3679,13 +3680,13 @@ class GenericGraph(GenericGraph_pyx):
 
         If ``kuratowski`` is set to ``True``, then this function will return a
         tuple, whose first entry is a boolean and whose second entry is the
-        Kuratowski subgraph or minor isolated by the Boyer-Myrvold
-        algorithm. Note that this graph might contain a vertex or edges that
-        were not in the initial graph. These would be elements referred to below
+        Kuratowski subgraph (i.e. an edge subdivison of `K_5` or `K_{3,3}`)
+        isolated by the Boyer-Myrvold algorithm. Note that this graph
+        might contain a vertex or edges that were not in the initial graph.
+        These would be elements referred to below
         as parts of the wheel and the star, which were added to the graph to
         require that the boundary can be drawn on the boundary of a disc, with
-        all other vertices drawn inside (and no edge crossings). For more
-        information, see [Kirkman]_.
+        all other vertices drawn inside (and no edge crossings).
 
         ALGORITHM:
 
@@ -3701,9 +3702,6 @@ class GenericGraph(GenericGraph_pyx):
           Simplified O(n) Planarity by Edge Addition. Journal of Graph
           Algorithms and Applications, Vol. 8, No. 3, pp. 241-273,
           2004.
-
-        .. [Kirkman] Kirkman, Emily A. O(n) Circular Planarity Testing.
-          [Online] Available: soon!
 
         EXAMPLES::
 

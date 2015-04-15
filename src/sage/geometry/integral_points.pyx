@@ -12,6 +12,7 @@ Cython helper methods to compute integral points in polyhedra.
 
 from sage.matrix.constructor import matrix, column_matrix, vector, diagonal_matrix
 from sage.rings.all import QQ, RR, ZZ, gcd, lcm
+from sage.rings.integer cimport Integer
 from sage.combinat.permutation import Permutation
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.misc.all import prod, uniq
@@ -533,7 +534,7 @@ def rectangular_box_points(box_min, box_max, polyhedron=None,
         for p in loop_over_rectangular_box_points(box_min, box_max, inequalities, d, count_only):
             #  v = vector(ZZ, orig_perm.action(p))   # too slow
             for i in range(0,d):
-                v.set(i, p[orig_perm_list[i]])
+                v.set(i, Integer(p[orig_perm_list[i]]))
             v_copy = copy.copy(v)
             v_copy.set_immutable()
             points.append(v_copy)
@@ -541,7 +542,7 @@ def rectangular_box_points(box_min, box_max, polyhedron=None,
         for p, saturated in \
                 loop_over_rectangular_box_points_saturated(box_min, box_max, inequalities, d):
             for i in range(0,d):
-                v.set(i, p[orig_perm_list[i]])
+                v.set(i, Integer(p[orig_perm_list[i]]))
             v_copy = copy.copy(v)
             v_copy.set_immutable()
             points.append( (v_copy, saturated) )

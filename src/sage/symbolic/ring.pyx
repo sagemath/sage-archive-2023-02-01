@@ -493,6 +493,17 @@ cdef class SymbolicRing(CommutativeRing):
         """
         return True
 
+    def is_finite(self):
+        """
+        Return False, since the Symbolic Ring is infinite.
+
+        EXAMPLES::
+
+            sage: SR.is_finite()
+            False
+        """
+        return False
+
     cpdef bint is_exact(self) except -2:
         """
         Return False, because there are approximate elements in the

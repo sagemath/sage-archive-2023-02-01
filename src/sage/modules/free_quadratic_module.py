@@ -77,11 +77,9 @@ import sage.matrix.matrix_space
 
 import sage.misc.latex as latex
 
-import sage.rings.principal_ideal_domain as principal_ideal_domain
-import sage.rings.field as field
+import sage.rings.ring as ring
 import sage.rings.integral_domain as integral_domain
 import sage.rings.integer
-import sage.structure.parent_gens as gens
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 import free_module
 
@@ -618,7 +616,7 @@ class FreeQuadraticModule_generic_field(
             [0 0 0 0 0 1 0]
             [0 0 0 0 0 0 1]
         """
-        if not isinstance(base_field, field.Field):
+        if not isinstance(base_field, ring.Field):
             raise TypeError("The base_field (=%s) must be a field" % base_field)
         free_module.FreeModule_generic_field.__init__(
             self, base_field=base_field, dimension=dimension, degree=degree, sparse=sparse)

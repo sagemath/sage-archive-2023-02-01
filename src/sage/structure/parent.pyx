@@ -2436,6 +2436,20 @@ cdef class Parent(category_object.CategoryObject):
             Conversion map:
             From: Rational Field
             To:   Number Field in a with defining polynomial x^2 - 2 over its base field
+
+        Test that :trac:`17981` is fixed::
+
+            sage: class P(Parent):
+            ....:     def __init__(self):
+            ....:         Parent.__init__(self, category=Sets())
+            ....:     def _coerce_map_from_(self, A):
+            ....:         if A == ZZ:
+            ....:             return lambda x: self.element_class(self, x)
+            ....:         return False
+            ....:     Element=ElementWrapper
+            sage: X = P()
+            sage: X.has_coerce_map_from(ZZ)
+            True
         """
         best_mor = None
         if isinstance(S, Parent) and (<Parent>S)._embedding is not None:
@@ -2461,7 +2475,7 @@ cdef class Parent(category_object.CategoryObject):
             elif isinstance(user_provided_mor, Map):
                 mor = <map.Map>user_provided_mor
             elif callable(user_provided_mor):
-                mor = CallableConvertMap(user_provided_mor)
+                mor = CallableConvertMap(S, self, user_provided_mor)
             else:
                 raise TypeError("_coerce_map_from_ must return None, a boolean, a callable, or an explicit Map (called on %s, got %s)" % (type(self), type(user_provided_mor)))
 
@@ -2600,20 +2614,9 @@ cdef class Parent(category_object.CategoryObject):
                 return user_provided_mor
             elif callable(user_provided_mor):
                 from coerce_maps import CallableConvertMap
-                return CallableConvertMap(user_provided_mor)
+                return CallableConvertMap(S, self, user_provided_mor)
             else:
                 raise TypeError("_convert_map_from_ must return a map or callable (called on %s, got %s)" % (type(self), type(user_provided_mor)))
-
-        if not isinstance(S, type) and not isinstance(S, Parent):
-            # Sequences is not a Parent but a category!! As we would like to
-            # consider them as a parent we consider a workaround by using
-            # Set_PythonType from sage.structure.parent
-            from sage.categories.category_types import Sequences
-            from sage.structure.coerce_maps import ListMorphism
-            if isinstance(S, Sequences):
-                from sage.structure.sequence import Sequence_generic
-                SS = Set_PythonType(Sequence_generic)
-                return ListMorphism(SS, self.convert_map_from(list))
 
         mor = self._generic_convert_map(S)
         return mor

@@ -2046,7 +2046,7 @@ class TamariIntervalPoset(Element):
         Return ``True`` if ``self`` is a new Tamari interval.
 
         Here 'new' means that the interval is not contained in any
-        facet of the associahedra.
+        facet of the associahedron.
 
         They have been considered in section 9 of [ChapTamari08]_.
 

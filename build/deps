@@ -379,7 +379,7 @@ $(INST)/$(FREETYPE): $(INST)/$(LIBPNG)
 $(INST)/$(LIBPNG): $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(LIBPNG) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBPNG).log"
 
-$(INST)/$(SIX): $(INST)/$(PYTHON)
+$(INST)/$(SIX): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(SIX) 2>&1" "tee -a $(SAGE_LOGS)/$(SIX).log"
 
 $(INST)/$(DATEUTIL): $(INST)/$(PYTHON) $(INST)/$(SIX) $(INST)/$(SETUPTOOLS)

@@ -224,25 +224,15 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
 
     def module(self):
         """
-        Return the underlying `R`-module of ``self`` as an
-        unindexed free `R`-module (i.e., as an `R`-module
-        of column vectors).
+        Return an `R`-module which is isomorphic to the
+        underlying `R`-module of ``self``.
 
-        For instance, if ``self`` has ordered basis
-        `(e, f, h)`, then ``self.module()`` will be the
-        `R`-module `R^3`, and the elements `e`, `f` and
-        `h` of ``self`` will correspond to the basis
-        vectors `(1, 0, 0)`, `(0, 1, 0)` and `(0, 0, 1)`
-        of ``self.module()``.
+        See
+        :meth:`sage.categories.lie_algebras.LieAlgebras.module` for
+        an explanation.
 
-        This method :meth:`module` needs to be set whenever
-        a finite-dimensional Lie algebra with basis is
-        intended to support linear algebra (which is, e.g.,
-        used in the computation of centralizers and lower
-        central series). One then needs to also implement
-        a ``to_vector`` ElementMethod which sends every
-        element of ``self`` to the corresponding element of
-        ``self.to_module()``.
+        In this particular example, this returns the module `M`
+        that was used to construct ``self``.
 
         EXAMPLES::
 
@@ -259,6 +249,26 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             [   0    1    1]
         """
         return self._M
+
+    def from_vector(self, v):
+        """
+        Return the element of ``self`` corresponding to the
+        vector ``v`` in ``self.module()``.
+
+        Implement this if you implement :meth:`module`; see the
+        documentation of
+        :meth:`sage.categories.lie_algebras.LieAlgebras.module`
+        for how this is to be done.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+            sage: u = L.from_vector(vector(QQ, (1, 0, 0))); u
+            (1, 0, 0)
+            sage: parent(u) is L
+            True
+        """
+        return self.element_class(self, self._M(v))
 
     class Element(BaseExample.Element):
         def __iter__(self):

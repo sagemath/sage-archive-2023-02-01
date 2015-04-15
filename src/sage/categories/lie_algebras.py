@@ -276,9 +276,19 @@ class LieAlgebras(Category_over_base_ring):
         @abstract_method(optional=True)
         def module(self):
             """
-            Return the underlying `R`-module of ``self`` as an
-            unindexed free `R`-module (i.e., as an `R`-module
-            of column vectors).
+            Return an `R`-module which is isomorphic to the
+            underlying `R`-module of ``self``.
+
+            The rationale behind this method is to enable linear
+            algebraic functionality on ``self`` (such as
+            computing the span of a list of vectors in ``self``)
+            via an isomorphism from ``self`` to an `R`-module
+            (typically, although not always, an `R`-module of
+            the form `R^n` for an `n \in \NN`) on which such
+            functionality already exists. For this method to be
+            of any use, it should return an `R`-module which has
+            linear algebraic functionality that ``self`` does
+            not have.
 
             For instance, if ``self`` has ordered basis
             `(e, f, h)`, then ``self.module()`` will be the
@@ -292,26 +302,50 @@ class LieAlgebras(Category_over_base_ring):
             intended to support linear algebra (which is, e.g.,
             used in the computation of centralizers and lower
             central series). One then needs to also implement
-            a ``to_vector`` ElementMethod which sends every
-            element of ``self`` to the corresponding element of
-            ``self.to_module()``.
+            the `R`-module isomorphism from ``self`` to
+            ``self.module()`` in both directions; that is,
+            implement:
+
+            * a ``to_vector`` ElementMethod which sends every
+              element of ``self`` to the corresponding element of
+              ``self.module()``;
+
+            * a ``from_vector`` ParentMethod which sends every
+              element of ``self.module()`` to an element
+              of ``self``.
+
+            The ``from_vector`` method will automatically serve
+            as an element constructor of ``self`` (that is,
+            ``self(v)`` for any ``v`` in ``self.module()`` will
+            return ``self.from_vector(v)``).
 
             .. TODO::
 
-                Why is this method here and not in
-                :class:`FiniteDimensionalLieAlgebrasWithBasis` ?
-
-            .. TODO::
-
-                I see no ``from_vector`` method. How is one
-                supposed to take an element of ``self.module()``
-                back to ``self``? Via coercion/constructor?
+                Ensure that this is actually so.
 
             EXAMPLES::
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
                 sage: L.module()
                 Vector space of dimension 3 over Rational Field
+            """
+
+        @abstract_method(optional=True)
+        def from_vector(self, v):
+            """
+            Return the element of ``self`` corresponding to the
+            vector ``v`` in ``self.module()``.
+
+            Implement this if you implement :meth:`module`; see the
+            documentation of the latter for how this is to be done.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: u = L.from_vector(vector(QQ, (1, 0, 0))); u
+                (1, 0, 0)
+                sage: parent(u) is L
+                True
             """
 
         @lazy_attribute
@@ -593,6 +627,25 @@ class LieAlgebras(Category_over_base_ring):
                 [1, 3, 2] - [3, 2, 1]
                 sage: x._bracket_(x)
                 0
+            """
+
+        @abstract_method(optional=True)
+        def to_vector(self):
+            """
+            Return the vector in ``g.module()`` corresponding to the
+            element ``self`` of ``g`` (where ``g`` is the parent of
+            ``self``).
+
+            Implement this if you implement ``g.module()``.
+            See :meth:`LieAlgebras.module` for how this is to be done.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: u = L((1, 0, 0)).to_vector(); u
+                (1, 0, 0)
+                sage: parent(u)
+                Vector space of dimension 3 over Rational Field
             """
 
         @abstract_method(optional=True)

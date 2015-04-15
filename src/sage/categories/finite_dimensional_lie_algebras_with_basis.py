@@ -21,6 +21,7 @@ from sage.categories.subobjects import SubobjectsCategory
 from sage.algebras.free_algebra import FreeAlgebra
 from sage.sets.family import Family
 from sage.matrix.constructor import matrix
+from sage.modules.free_module_element import vector
 
 class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
@@ -133,6 +134,31 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             from sage.modules.free_module import FreeModule
             return FreeModule(R, self.dimension())
 
+        def from_vector(self, v):
+            """
+            Return the element of ``self`` corresponding to the
+            vector ``v`` in ``self.module()``.
+
+            Implement this if you implement :meth:`module`; see the
+            documentation of
+            :meth:`sage.categories.lie_algebras.LieAlgebras.module`
+            for how this is to be done.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: u = L.from_vector(vector(QQ, (1, 0, 0))); u
+                (1, 0, 0)
+                sage: parent(u) is L
+                True
+            """
+            M = self.module()
+            if not v:
+                return self.zero()
+            B = M.basis()
+            selfB = self.basis()
+            return self.sum(v[k]*selfB[k] for k in self._basis_ordering)
+
         def killing_matrix(self, x, y):
             r"""
             Return the Killing matrix of ``x`` and ``y``, where ``x``
@@ -201,7 +227,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 [0 0 0]
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example(0)
-                sage: m = L.killing_form_matrix()
+                sage: m = L.killing_form_matrix(); m
                 []
                 sage: parent(m)
                 Full MatrixSpace of 0 by 0 dense matrices over Rational Field
@@ -287,11 +313,12 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             X = self.basis().keys()
             d = self.dimension()
             K = sc.keys()
-            c_mat = matrix([[sum(r[j]*sc[x,X[j]][k] for j in range(d) if (x, X[j]) in K)
+            c_mat = matrix(self.base_ring(),
+                           [[sum(r[j]*sc[x,X[j]][k] for j in range(d) if (x, X[j]) in K)
                              for x in X]
                             for r in m for k in range(d)])
             C = c_mat.right_kernel().basis_matrix()
-            return self.subalgebra(map(self, C))
+            return self.subalgebra([self.from_vector(v) for v in C])
 
         def center(self):
             """
@@ -587,10 +614,13 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     class ElementMethods:
         def to_vector(self):
             """
-            Return ``self`` as a vector in ``self.parent().module()``.
+            Return the vector in ``g.module()`` corresponding to the
+            element ``self`` of ``g`` (where ``g`` is the parent of
+            ``self``).
 
-            See the docstring of the latter method for the meaning
-            of this.
+            Implement this if you implement ``g.module()``.
+            See :meth:`sage.categories.lie_algebras.LieAlgebras.module`
+            for how this is to be done.
 
             EXAMPLES::
 
@@ -602,13 +632,11 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 Doctest this implementation on an example not overshadowed.
             """
-            # TODO:
-            # Why do we have this method? Shouldn't it just return ``self``?
             M = self.parent().module()
             if not self:
                 return M.zero()
             B = M.basis()
-            return M.sum(B[k]*self[k] for k in self.parent()._ordered_indices)
+            return M.sum(Bk*self[k] for k, Bk in B.iteritems())
 
         def adjoint_matrix(self): # In #11111 (more or less) by using matrix of a mophism
             """
@@ -634,7 +662,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             P = self.parent()
             basis = P.basis()
-            return matrix([P.bracket(self, b).to_vector() for b in basis])
+            return matrix(self.base_ring(),
+                          [vector(P.bracket(self, b).to_vector()) for b in basis])
 
     class Subobjects(SubobjectsCategory):
         """

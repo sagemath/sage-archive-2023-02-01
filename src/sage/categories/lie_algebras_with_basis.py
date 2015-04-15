@@ -76,11 +76,12 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         def module(self):
             """
-            Return the underlying free `R`-module of ``self``.
+            Return an `R`-module which is isomorphic to the
+            underlying `R`-module of ``self``.
 
-            This method becomes useful when ``self`` does not belong to
-            the :class:`FreeModules` category and thus does not
-            natively support linear-algebra methods.
+            See
+            :meth:`sage.categories.lie_algebras.LieAlgebras.module` for
+            an explanation.
 
             EXAMPLES::
 
@@ -95,6 +96,26 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             except AttributeError:
                 # Otherwise just index by the basis of ``self`` as a fallback
                 return CombinatorialFreeModule(self.base_ring(), self.basis())
+
+        def from_vector(self, v):
+            """
+            Return the element of ``self`` corresponding to the
+            vector ``v`` in ``self.module()``.
+
+            Implement this if you implement :meth:`module`; see the
+            documentation of
+            :meth:`sage.categories.lie_algebras.LieAlgebras.module`
+            for how this is to be done.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: u = L.from_vector(vector(QQ, (1, 0, 0))); u
+                (1, 0, 0)
+                sage: parent(u) is L
+                True
+            """
+            return self(v)
 
     class ElementMethods:
         def _bracket_(self, y):
@@ -120,4 +141,24 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     return P.bracket_on_basis(ml, mr)
                 return -P.bracket_on_basis(mr, ml)
             return P.sum(cl*cr * term(ml,mr) for ml,cl in self for mr,cr in y)
+
+        def to_vector(self):
+            """
+            Return the vector in ``g.module()`` corresponding to the
+            element ``self`` of ``g`` (where ``g`` is the parent of
+            ``self``).
+
+            Implement this if you implement ``g.module()``.
+            See :meth:`sage.categories.lie_algebras.LieAlgebras.module`
+            for how this is to be done.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: u = L((1, 0, 0)).to_vector(); u
+                (1, 0, 0)
+                sage: parent(u)
+                Vector space of dimension 3 over Rational Field
+            """
+            return self.parent().module(self)
 

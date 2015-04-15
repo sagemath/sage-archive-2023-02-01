@@ -383,6 +383,20 @@ class FindStat():
         0: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [], 24)
         1: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
         ...
+
+    Note that there is a limit, ``FINDSTAT_MAX_DEPTH``, on the number
+    of elements that may be submitted to FindStat, which is currently
+    200.  Therefore, the interface tries to truncate queries
+    appropriately, but this may be impossible, especially with
+    distribution searches:
+
+            sage: S6 = Permutations(6); S6.cardinality()                        # optional -- internet
+            720
+            sage: findstat((S6, [1 for a in S6]))                               # optional -- internet
+            Traceback (most recent call last):
+            ...
+            ValueError: after discarding elements not in the range, and keeping less than 200 values, nothing remained to send to FindStat.
+
     """
     def __init__(self):
         r"""

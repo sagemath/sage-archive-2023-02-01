@@ -587,7 +587,7 @@ def arrow3d(start, end, width=1, radius=None, head_radius=None, head_len=None, *
         sage: arrow3d((2,1,0), (1,1,1), color='green', head_radius=0.3, aspect_ratio=[1,1,1])
         Graphics3d Object
 
-    Many arrow arranged in a circle (flying spears?)::
+    Many arrows arranged in a circle (flying spears?)::
 
         sage: sum([arrow3d((cos(t),sin(t),0),(cos(t),sin(t),1)) for t in [0,0.3,..,2*pi]])
         Graphics3d Object
@@ -906,7 +906,7 @@ class Text(PrimitiveObject):
 
     def obj_repr(self, render_params):
         """
-        The obj file format doesn't support text strings::
+        The obj file format does not support text strings::
 
             sage: from sage.plot.plot3d.shapes import Text
             sage: Text("Hi").obj_repr(None)

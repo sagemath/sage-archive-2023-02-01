@@ -130,7 +130,7 @@ class Polyhedron_ZZ(Polyhedron_base):
 
         ALGORITHM:
 
-        This method calls the program ``count`` from LattE integral, a program
+        This method calls the program ``count`` from LattE integrale, a program
         for lattice point enumeration (see
         https://www.math.ucdavis.edu/~latte/).
 

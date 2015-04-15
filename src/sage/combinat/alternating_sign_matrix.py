@@ -1211,10 +1211,6 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
         r"""
         Iterator on the alternating sign matrices of size `n`.
 
-        If defined using ``use_monotone_triangles``, this iterator
-        will use the iteration on the monotone triangles. Else, it
-        will use the iteration on contre-tableaux.
-
         TESTS::
 
             sage: A = AlternatingSignMatrices(4)

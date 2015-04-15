@@ -7,7 +7,6 @@ from graph_database import GraphDatabase, GenericGraphQuery, GraphQuery
 from graph import Graph
 from digraph import DiGraph
 from bipartite_graph import BipartiteGraph
-from graph_bundle import GraphBundle
 import weakly_chordal
 import graph_list as graphs_list
 import sage.graphs.generic_graph_pyx
@@ -18,6 +17,7 @@ import sage.graphs.digraph
 lazy_import("sage.graphs", "graph_coloring")
 import sage.graphs.graph_decompositions
 import sage.graphs.comparability
+import sage.graphs.centrality
 from sage.graphs.cliquer import *
 from graph_database import graph_db_info
 lazy_import("sage.graphs.graph_editor", "graph_editor")

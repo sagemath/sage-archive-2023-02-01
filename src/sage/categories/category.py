@@ -2625,7 +2625,7 @@ def category_graph(categories = None):
         Graphics object consisting of 20 graphics primitives
 
         sage: sage.categories.category.category_graph().plot()
-        Graphics object consisting of 312 graphics primitives
+        Graphics object consisting of ... graphics primitives
     """
     from sage import graphs
     if categories is None:

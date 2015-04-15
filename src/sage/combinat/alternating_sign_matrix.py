@@ -39,6 +39,7 @@ from sage.structure.element import Element
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
+from sage.misc.all import cached_method
 from sage.rings.all import ZZ
 from sage.rings.arith import factorial
 from sage.rings.integer import Integer
@@ -415,7 +416,7 @@ class AlternatingSignMatrix(Element):
     def gyration(self):
         r"""
         Return the alternating sign matrix obtained by applying the gyration
-        action to the height function in bijection with ``self``.
+        to the height function in bijection with ``self``.
 
         Gyration acts on height functions as follows. Go through the entries of
         the matrix, first those for which the sum of the row and column indices
@@ -446,6 +447,26 @@ class AlternatingSignMatrix(Element):
             [0 1 0]
             [0 0 1]
             [1 0 0]
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]).gyration().gyration()
+            [ 0  1  0]
+            [ 1 -1  1]
+            [ 0  1  0]
+            sage: A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]).gyration().gyration().gyration()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+
+            sage: A = AlternatingSignMatrices(4)
+            sage: M = A([[0,0,1,0],[1,0,0,0],[0,1,-1,1],[0,0,1,0]])
+            sage: for i in range(5):
+            ....:     M = M.gyration()
+            sage: M
+            [1 0 0 0]
+            [0 0 0 1]
+            [0 1 0 0]
+            [0 0 1 0]
         """
         A = self.parent()
         hf = list(self.height_function())
@@ -467,6 +488,38 @@ class AlternatingSignMatrix(Element):
                     else:
                         hf[i][j] -= 2
         return A.from_height_function(matrix(hf))
+
+    def gyration_orbit(self):
+        r"""
+        Return the gyration orbit of ``self`` (including ``self``)
+
+        EXAMPLES::
+
+            sage: AlternatingSignMatrix([[0,1,0],[1,-1,1],[0,1,0]]).gyration_orbit()
+            [
+            [ 0  1  0]  [1 0 0]  [0 0 1]
+            [ 1 -1  1]  [0 1 0]  [0 1 0]
+            [ 0  1  0], [0 0 1], [1 0 0]
+            ]
+
+            sage: AlternatingSignMatrix([[0,1,0,0],[1,-1,1,0],[0,1,-1,1],[0,0,1,0]]).gyration_orbit()
+            [
+            [ 0  1  0  0]  [1 0 0 0]  [ 0  0  1  0]  [0 0 0 1]
+            [ 1 -1  1  0]  [0 1 0 0]  [ 0  1 -1  1]  [0 0 1 0]
+            [ 0  1 -1  1]  [0 0 1 0]  [ 1 -1  1  0]  [0 1 0 0]
+            [ 0  0  1  0], [0 0 0 1], [ 0  1  0  0], [1 0 0 0]
+            ]
+
+            sage: len(AlternatingSignMatrix([[0,1,0,0,0,0],[0,0,1,0,0,0],[1,-1,0,0,0,1],\
+            [0,1,0,0,0,0],[0,0,0,1,0,0],[0,0,0,0,1,0]]).gyration_orbit())
+            12
+        """
+        cyc = [self]
+        B = self.gyration()
+        while self != B:
+            cyc.append(B)
+            B = B.gyration()
+        return cyc
 
     def ASM_compatible(self, B):
         r"""
@@ -1199,6 +1252,54 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
         """
         return LatticePoset(self._lattice_initializer(), cover_relations=True)
 
+    @cached_method
+    def gyration_orbits(self):
+        r"""
+        Return the list of gyration orbits of ``self``.
+
+        EXAMPLES::
+
+            sage: AlternatingSignMatrices(3).gyration_orbits()
+            ((
+              [1 0 0]  [0 0 1]  [ 0  1  0]
+              [0 1 0]  [0 1 0]  [ 1 -1  1]
+              [0 0 1], [1 0 0], [ 0  1  0]
+             ),
+             (
+              [0 1 0]  [1 0 0]
+              [1 0 0]  [0 0 1]
+              [0 0 1], [0 1 0]
+             ),
+             (
+              [0 0 1]  [0 1 0]
+              [1 0 0]  [0 0 1]
+              [0 1 0], [1 0 0]
+             ))
+        """
+        ASMs = list(self)
+        perm = Permutation([ASMs.index(asm.gyration())+1 for asm in ASMs])
+        return tuple([tuple([ASMs[i-1] for i in cyc])
+                      for cyc in perm.cycle_tuples()])
+
+    def gyration_orbit_sizes(self):
+        r"""
+        Return the sizes of gyration orbits of ``self``.
+
+        EXAMPLES::
+
+            sage: AlternatingSignMatrices(3).gyration_orbit_sizes()
+            [3, 2, 2]
+            sage: AlternatingSignMatrices(4).gyration_orbit_sizes()
+            [4, 8, 2, 8, 8, 8, 2, 2]
+
+            sage: A = AlternatingSignMatrices(5)
+            sage: li = [5,10,10,10,10,10,2,5,10,10,10,10,10,10,10,10,10,10,10,10,\
+            4,10,10,10,10,10,10,4,5,10,10,10,10,10,10,10,2,4,5,10,10,10,10,10,10,\
+            4,5,10,10,2,2]
+            sage: A.gyration_orbit_sizes() == li
+            True
+        """
+        return [len(orbit) for orbit in self.gyration_orbits()]
 
 class MonotoneTriangles(GelfandTsetlinPatternsTopRow):
     r"""

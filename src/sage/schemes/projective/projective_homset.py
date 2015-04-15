@@ -60,20 +60,30 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
         sage: SchemeHomset_points_projective_field(Spec(QQ), ProjectiveSpace(QQ,2))
         Set of rational points of Projective Space of dimension 2 over Rational Field
     """
-    def points(self, B=0):
+    def points(self, B=0, prec=53):
         """
         Return some or all rational points of a projective scheme.
 
         INPUT:
 
-        - `B` -- integer (optional, default=0). The bound for the
+        - `B` - integer (optional, default=0). The bound for the
           coordinates.
+
+        - ``prec`` - he precision to use to compute the elements of bounded height for number fields
 
         OUTPUT:
 
         A list of points. Over a finite field, all points are
         returned. Over an infinite field, all points satisfying the
         bound are returned.
+
+        .. WARNING::
+
+           In the current implementation, the output of the [Doyle-Krumm] algorithm
+           cannot be guaranteed to be correct due to the necessity of floating point
+           computations. In some cases, the default 53-bit precision is
+           considerably lower than would be required for the algorithm to
+           generate correct output.
 
         EXAMPLES::
 
@@ -89,7 +99,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             sage: u = QQ['u'].0
             sage: K.<v> = NumberField(u^2 + 3)
             sage: P.<x,y,z> = ProjectiveSpace(K,2)
-            sage: len(P(K).points(9))
+            sage: len(P(K).points(1.8))
             381
 
         ::
@@ -107,7 +117,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             return enum_projective_rational_field(self,B)
         elif R in NumberFields():
             from sage.schemes.projective.projective_rational_point import enum_projective_number_field
-            return enum_projective_number_field(self,B)
+            return enum_projective_number_field(self,B, prec=prec)
         elif is_FiniteField(R):
             from sage.schemes.projective.projective_rational_point import enum_projective_finite_field
             return enum_projective_finite_field(self.extended_codomain())

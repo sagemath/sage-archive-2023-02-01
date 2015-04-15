@@ -704,8 +704,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             """
             if not already_echelonized:
                 gens = self.echelonize(gens)
-            from sage.modules.with_basis.subquotient import SubModuleWithBasis
-            return SubModuleWithBasis(gens, ambient=self, category=category)
+            from sage.modules.with_basis.subquotient import SubmoduleWithBasis
+            return SubmoduleWithBasis(gens, ambient=self, category=category)
 
         def quotient_module(self, submodule, check=False, already_echelonized=False, category=None):
             r"""
@@ -738,8 +738,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: Y.retract(x[0]+2*x[1])
                 3*y[2]
             """
-            from sage.modules.with_basis.subquotient import SubModuleWithBasis, QuotientModuleWithBasis
-            if not isinstance(submodule, SubModuleWithBasis):
+            from sage.modules.with_basis.subquotient import SubmoduleWithBasis, QuotientModuleWithBasis
+            if not isinstance(submodule, SubmoduleWithBasis):
                 submodule = self.submodule(submodule, check=check,
                                            already_echelonized=already_echelonized)
             return QuotientModuleWithBasis(submodule, category=category)

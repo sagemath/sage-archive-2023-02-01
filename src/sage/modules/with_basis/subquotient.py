@@ -22,7 +22,7 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
     - ``submodule`` -- a submodule
     - ``category`` -- a category (default: ``ModulesWithBasis(submodule.base_ring())``)
 
-    ``submodule`` is typically :class:`SubModuleWithBasis`
+    ``submodule`` is typically :class:`SubmoduleWithBasis`
 
         # FIXME: The following currently works only if:
         #  - The ambient space is finite dimensional
@@ -129,7 +129,7 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
         return self._from_dict(self._normal(x)._monomial_coefficients)
 
 
-class SubModuleWithBasis(CombinatorialFreeModule):
+class SubmoduleWithBasis(CombinatorialFreeModule):
     r"""
     A base class for submodules of a ModuleWithBasis spanned by a
     (possibly infinite) basis in echelon form.
@@ -142,10 +142,10 @@ class SubModuleWithBasis(CombinatorialFreeModule):
 
         TESTS::
 
-            sage: from sage.modules.with_basis.subquotient import SubModuleWithBasis
+            sage: from sage.modules.with_basis.subquotient import SubmoduleWithBasis
             sage: X = CombinatorialFreeModule(QQ, range(3)); x = X.basis()
-            sage: Y1 = SubModuleWithBasis((x[0]-x[1], x[1]-x[2]), X)
-            sage: Y2 = SubModuleWithBasis([x[0]-x[1], x[1]-x[2]], X)
+            sage: Y1 = SubmoduleWithBasis((x[0]-x[1], x[1]-x[2]), X)
+            sage: Y2 = SubmoduleWithBasis([x[0]-x[1], x[1]-x[2]], X)
             sage: Y1 is Y2
             True
         """
@@ -154,17 +154,17 @@ class SubModuleWithBasis(CombinatorialFreeModule):
             ambient = basis.an_element().parent()
         default_category=ModulesWithBasis(ambient.category().base_ring()).Subobjects()
         category = default_category.or_subcategory(category, join=True)
-        return super(SubModuleWithBasis, cls).__classcall__(
+        return super(SubmoduleWithBasis, cls).__classcall__(
             cls, basis, ambient, category, *args, **opts)
 
     def __init__(self, basis, ambient, category):
         r"""
         TESTS::
 
-            sage: from sage.modules.with_basis.subquotient import SubModuleWithBasis
+            sage: from sage.modules.with_basis.subquotient import SubmoduleWithBasis
             sage: X = CombinatorialFreeModule(QQ, range(3)); x = X.basis()
             sage: ybas = (x[0]-x[1], x[1]-x[2])
-            sage: Y = SubModuleWithBasis(ybas, X)
+            sage: Y = SubmoduleWithBasis(ybas, X)
             sage: Y.basis().list()
             [B[0], B[1]]
             sage: [ y.lift() for y in Y.basis() ]
@@ -261,7 +261,7 @@ class SubModuleWithBasis(CombinatorialFreeModule):
         """
         if other is self.ambient():
             return True
-        if not isinstance(self, SubModuleWithBasis) and self.ambient() is other.ambient():
+        if not isinstance(self, SubmoduleWithBasis) and self.ambient() is other.ambient():
             raise ValueError("other (=%s) should be a submodule of the same ambient space"%other)
         if not self in ModulesWithBasis.FiniteDimensional:
             raise NotImplementedError("is_submodule for infinite dimensional modules")

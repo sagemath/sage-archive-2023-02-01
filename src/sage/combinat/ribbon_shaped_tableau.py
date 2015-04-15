@@ -16,12 +16,13 @@ Ribbon Shaped Tableaux
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.combinat.skew_tableau import SkewTableau, StandardSkewTableaux
+from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux
 from sage.combinat.tableau import TableauOptions
 from sage.combinat.permutation import Permutation, descents_composition_first, descents_composition_list, descents_composition_last
 from sage.rings.integer import Integer
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.sets_cat import Sets
 
 class RibbonShapedTableau(SkewTableau):
     r"""
@@ -153,6 +154,74 @@ class RibbonShapedTableau(SkewTableau):
         return len(self[0]) if len(self) > 0 else 0
 
 
+class RibbonShapedTableaux(SkewTableaux):
+    """
+    The set of all ribbon shaped tableaux.
+    """
+    @staticmethod
+    def __classcall_private__(cls, shape=None, **kwds):
+        """
+        Normalize input to ensure a unique representation and pick the correct
+        class based on input.
+
+        The ``shape`` parameter is currently ignored.
+
+        EXAMPLES::
+
+            sage: S1 = RibbonShapedTableaux([4, 2, 2, 1])
+            sage: S2 = RibbonShapedTableaux((4, 2, 2, 1))
+            sage: S1 is S2
+            True
+        """
+        #if shape is not None:
+        #    from sage.combinat.partition import Partition
+        #    return RibbonShapedTableaux_shape(Partition(shape))
+
+        # Otherwise arg0 takes the place of the category in pickling
+        return super(RibbonShapedTableaux, cls).__classcall__(cls, **kwds)
+
+    def __init__(self, category=None):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: S = RibbonShapedTableaux()
+            sage: TestSuite(S).run()
+        """
+        if category is None:
+            category = Sets()
+
+        SkewTableaux.__init__(self, category=category)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: repr(RibbonShapedTableaux())    # indirect doctest
+            'Ribbon shaped tableaux'
+        """
+        return "Ribbon shaped tableaux"
+
+    Element = RibbonShapedTableau
+    global_options = TableauOptions
+
+    def from_shape_and_word(self, shape, word):
+        """
+        Return the ribbon corresponding to the given ribbon shape and word.
+
+        EXAMPLES::
+
+            sage: RibbonShapedTableaux().from_shape_and_word([1,3],[1,3,3,7])
+            [[None, None, 1], [3, 3, 7]]
+        """
+        pos = 0
+        r = []
+        for l in shape:
+            r.append(word[pos:pos+l])
+            pos += l
+        return self.element_class(self, r)
+
 class StandardRibbonShapedTableaux(StandardSkewTableaux):
     """
     The set of all standard ribbon shaped tableaux.
@@ -221,8 +290,7 @@ class StandardRibbonShapedTableaux(StandardSkewTableaux):
              [[None, 1], [2, 3]],
              [[1], [2], [3]],
              [[1, 2, 3, 4]],
-             [[None, None, 3],
-             [1, 2, 4]]]
+             [[None, None, 3], [1, 2, 4]]]
         """
         from sage.combinat.partition import _Partitions
         for p in _Partitions:
@@ -383,6 +451,10 @@ class Ribbon_class(RibbonShapedTableau):
     def __setstate__(self, state):
         r"""
         Unpickle old ``Ribbon_class`` objects.
+
+        Due to a bug in the implementation, the result will have parent
+        :class:`StandardRibbonShapedTableaux`, even if it is not
+        standard. Rebuild the tableau to get it into the right parent.
 
         EXAMPLES::
 

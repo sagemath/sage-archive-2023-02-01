@@ -60,7 +60,7 @@ class RibbonTableau(SkewTableau):
 
     .. NOTE::
 
-       Sanity checks are not performed, lists can contain anyobject.
+        Sanity checks are not performed; lists can contain any object.
 
     ::
 
@@ -126,6 +126,12 @@ class RibbonTableau(SkewTableau):
     def to_word(self):
         """
         Return a word obtained from a row reading of ``self``.
+
+        .. WARNING::
+
+            Unlike the ``to_word`` method on skew tableaux (which are a
+            superclass of this), this method does not filter out
+            ``None`` entries.
 
         EXAMPLES::
 

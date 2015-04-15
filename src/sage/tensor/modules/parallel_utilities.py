@@ -25,7 +25,7 @@ from sage.misc.fast_methods import Singleton
 from sage.parallel.ncpus import ncpus
 
 
-class TensorParallelism(Singleton, SageObject):
+class TensorParallelCompute(Singleton, SageObject):
     r"""
     Class governing Tensors Parallelism.
 
@@ -33,10 +33,10 @@ class TensorParallelism(Singleton, SageObject):
 
     EXAMPLE ::
 
-        sage: print TensorParallelism()
+        sage: print TensorParallelCompute()
         Number of cpu used = 1
-        sage: TensorParallelism().set(4)
-        sage: print TensorParallelism()
+        sage: TensorParallelCompute().set(4)
+        sage: print TensorParallelCompute()
         Number of cpu used = 4
         
     """
@@ -48,13 +48,13 @@ class TensorParallelism(Singleton, SageObject):
 
         TEST ::
 
-            sage: TP = TensorParallelism()
+            sage: TP = TensorParallelCompute()
             sage: print TP
             Number of cpu used = 1
 
         Test of the singleton character::
 
-            sage: TensorParallelism() is TP
+            sage: TensorParallelCompute() is TP
             True
             
         """
@@ -67,7 +67,7 @@ class TensorParallelism(Singleton, SageObject):
 
         TEST ::
 
-            sage: TensorParallelism()._repr_()
+            sage: TensorParallelCompute()._repr_()
             'Number of cpu used = 1'
 
         """
@@ -81,10 +81,10 @@ class TensorParallelism(Singleton, SageObject):
 
         EXAMPLE ::
 
-            sage: print TensorParallelism()
+            sage: print TensorParallelCompute()
             Number of cpu used = 1
-            sage: TensorParallelism().set(4)
-            sage: print TensorParallelism()
+            sage: TensorParallelCompute().set(4)
+            sage: print TensorParallelCompute()
             Number of cpu used = 4
 
         """
@@ -110,7 +110,7 @@ def set_nproc(nproc=None):
 
     """
 
-    TensorParallelism().set(nproc)
+    TensorParallelCompute().set(nproc)
 
 def get_nproc():
     r"""
@@ -124,4 +124,4 @@ def get_nproc():
 
     """
 
-    return TensorParallelism()._nproc
+    return TensorParallelCompute()._nproc

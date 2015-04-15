@@ -249,7 +249,7 @@ In case of symmetries, only non-redundant components are stored::
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
 from sage.parallel.all import parallel
-from sage.tensor.modules.parallel_utilities import TensorParallelism
+from sage.tensor.modules.parallel_utilities import TensorParallelCompute
 from operator import itemgetter
 
 class Components(SageObject):
@@ -1311,10 +1311,10 @@ class Components(SageObject):
                              "same starting index")
 
 
-        if TensorParallelism()._use_paral :
+        if TensorParallelCompute()._use_paral :
             # parallel sum
             result = self._new_instance()
-            nproc = TensorParallelism()._nproc 
+            nproc = TensorParallelCompute()._nproc 
             lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
 
             ind_list = [ ind for ind, ocomp  in other._comp.iteritems()]
@@ -1519,8 +1519,8 @@ class Components(SageObject):
                 # So we use a loop specific to the current case and return the
                 # result:
 
-                if TensorParallelism()._use_paral :
-                    nproc = TensorParallelism()._nproc 
+                if TensorParallelCompute()._use_paral :
+                    nproc = TensorParallelCompute()._nproc 
                     lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
 
                     ind_list = [ ind for ind  in result.non_redundant_index_generator()]
@@ -1549,8 +1549,8 @@ class Components(SageObject):
             result = Components(self._ring, self._frame, self._nid + other._nid,
                                 self._sindex, self._output_formatter)
 
-        if TensorParallelism()._use_paral :
-            nproc = TensorParallelism()._nproc 
+        if TensorParallelCompute()._use_paral :
+            nproc = TensorParallelCompute()._nproc 
             lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
 
             ind_list = [ ind for ind, ocomp  in self._comp.iteritems()]
@@ -1889,11 +1889,11 @@ class Components(SageObject):
             res = 0
 
 
-            if TensorParallelism()._use_paral:
+            if TensorParallelCompute()._use_paral:
                 # parallel contraction to scalar                
 
                 # parallel multiplication
-                @parallel(p_iter='multiprocessing',ncpus=TensorParallelism()._nproc)
+                @parallel(p_iter='multiprocessing',ncpus=TensorParallelCompute()._nproc)
                 def compprod(a,b):
                     return a*b
                 
@@ -2023,9 +2023,9 @@ class Components(SageObject):
                                     start_index=self._sindex)
         shift_o = self._nid - ncontr
 
-        if TensorParallelism()._use_paral:
+        if TensorParallelCompute()._use_paral:
             # parallel computation
-            nproc = TensorParallelism()._nproc
+            nproc = TensorParallelCompute()._nproc
             lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
             ind_list = [ind for ind in res.non_redundant_index_generator()]
             ind_step = max(1,int(len(ind_list)/nproc/2))
@@ -3268,8 +3268,8 @@ class CompWithSym(Components):
                              self._sindex, self._output_formatter, sym, antisym)
 
 
-        if TensorParallelism()._use_paral :
-            nproc = TensorParallelism()._nproc 
+        if TensorParallelCompute()._use_paral :
+            nproc = TensorParallelCompute()._nproc 
             lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
 
             ind_list = [ ind for ind, ocomp  in self._comp.iteritems()]
@@ -4576,10 +4576,10 @@ class CompFullySym(CompWithSym):
                 raise ValueError("the two sets of components do not have the " +
                                  "same starting index")
 
-            if TensorParallelism()._use_paral :
+            if TensorParallelCompute()._use_paral :
                 # parallel sum
                 result = self._new_instance()
-                nproc = TensorParallelism()._nproc 
+                nproc = TensorParallelCompute()._nproc 
                 lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
 
                 ind_list = [ ind for ind, ocomp  in other._comp.iteritems()]

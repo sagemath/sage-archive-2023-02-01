@@ -40,15 +40,24 @@ pairs.  For example::
 The result of this query is a list (presented as a
 :class:`sage.databases.oeis.FancyTuple`) of triples.  The first
 element of each triple is a :class:`FindStatStatistic` `s: S \to
-\ZZ`, the second element a list of :class:`FindStatMap`'s `f: S \to
-S'`, and the third element is an integer::
+\ZZ`, the second element a list of :class:`FindStatMap`'s `f_i: S_i
+\to S_{i+1}`, and the third element is an integer::
 
     sage: (s, list_f, quality) = r[0]                                           # optional -- internet
 
+The precise meaning of the result is as follows:
+
+    The composition `f_n o ... o f_2 o f_1` applied to
+    the objects sent to FindStat agrees with `quality` many `(object,
+    value)` pairs of `s` in the database.  Moreover, there are no
+    other `(object, value)` pairs of `s` stored in the database,
+    i.e., there is no disagreement of values.
+
 In the case at hand, the list of maps is empty and the integer
 `quality` equals the number of `(object, value)` pairs passed to
-FindStat.  This means, that the statistic `s` matches the data
-perfectly.  We can now retrieve the description from the database::
+FindStat.  This means, that the set of `(object, value)` pairs of the
+statistic `s` as stored in the FindStat database is a superset of the
+data sent.  We can now retrieve the description from the database::
 
     sage: print s.description()                                                 # optional -- internet,random
     The number of nestings of a perfect matching.
@@ -286,6 +295,8 @@ class FindStat():
 
     INPUT:
 
+    One of the following:
+
     - an integer or a string representing a valid FindStat identifier
       (e.g. 45 or 'St000045').  The optional argument ``collection``
       should be ``None``, the optional arguments ``depth`` and
@@ -515,9 +526,9 @@ class FindStat():
 
         INPUT:
 
-        - ``name`` -- the name of the user
+        - ``name`` -- the name of the user.
 
-        - ``email`` -- an email address of the user
+        - ``email`` -- an email address of the user.
 
         This information is used when submitting a statistic with
         :meth:`FindStatStatistic.submit`.
@@ -554,11 +565,11 @@ class FindStat():
         r"""
         INPUT:
 
-        - ``id``, an integer designating the FindStat id of a statistic
+        - ``id`` -- an integer designating the FindStat id of a statistic.
 
         OUTPUT:
 
-        - A :class:`FindStatStatistic` instance.
+        An instance of :class:`FindStatStatistic`.
 
         .. TODO::
 
@@ -589,27 +600,27 @@ class FindStatStatistic(SageObject):
 
         INPUT:
 
-        - ``id``, an integer designating the FindStat id of a
+        - ``id`` -- an integer designating the FindStat id of a
           statistic, or 0.
 
-        - ``first_terms`` (optional), a list of (object, value)
+        - ``first_terms`` -- (optional) a list of (object, value)
           pairs, see :meth:`first_terms`.
 
-        - ``data`` (optional), a list of pairs of the form (list of
+        - ``data`` -- (optional) a list of pairs of the form (list of
           objects, list of values), see :meth:`data`.
 
-        - ``function`` (optional), a function taking a sage object as
-          input and returning the value of the statistic on this
+        - ``function`` -- (optional) a function taking a sage object
+          as input and returning the value of the statistic on this
           object, see :meth:`function`.
 
-        - ``code`` (optional), a string containing code (possibly
+        - ``code`` -- (optional) a string containing code (possibly
           pseudocode or code for a different computer algebra
           system), see :meth:`code`.
 
-        - ``collection`` (optional), an instance of
+        - ``collection`` -- (optional) an instance of
           :class:`FindStatCollection`, see :meth:`collection`.
 
-        - ``depth`` (optional), an integer between 0 and
+        - ``depth`` -- (optional) an integer between 0 and
           FINDSTAT_MAX_DEPTH, which determines how many maps FindStat
           should compose at most to find a match.
 
@@ -684,11 +695,11 @@ class FindStatStatistic(SageObject):
 
         INPUT:
 
-        - ``other`` - a FindStat query.
+        - ``other`` -- a FindStat query, i.e., instance of :class:`FindStatStatistic`.
 
         OUTPUT:
 
-        - boolean.
+        A boolean.
 
         Two queries are considered equal if all of the following
         applies:
@@ -730,16 +741,16 @@ class FindStatStatistic(SageObject):
             return False
 
     def __ne__(self, other):
-        """
-        Determine whether ``other`` is a different query.
+        """Determine whether ``other`` is a different query.
 
         INPUT:
 
-        - ``other`` - a FindStat query.
+        - ``other`` -- a FindStat query, i.e., instance of
+          :class:`FindStatStatistic`..
 
         OUTPUT:
 
-        - boolean.
+        A boolean.
 
         SEEALSO:
 
@@ -765,7 +776,7 @@ class FindStatStatistic(SageObject):
 
         OUTPUT:
 
-        - self
+        The statistic ``self``.
 
         Expects that ``_id`` is a valid identifier.  Overwrites all
         variables associated with the statistic, such as
@@ -814,7 +825,7 @@ class FindStatStatistic(SageObject):
 
         OUTPUT:
 
-        - self
+        The query ``self``.
 
         Expects that ``_data`` is a list of pairs of the form (list
         of objects, list of values), each containing as many values
@@ -847,7 +858,7 @@ class FindStatStatistic(SageObject):
         stat = [(map(to_str, keys), str(values)[1:-1]) for (keys, values) in data]
 
         stat_str = join([join(keys, "\n") + "\n====> " + values for (keys, values) in stat], "\n")
-        _ = verbose("Sending data to FindStat %s" %stat_str, caller_name='FindStat')
+        _ = verbose("Sending the following data to FindStat\r\n %s" %stat_str, caller_name='FindStat')
 
         values = urlencode({"freedata": stat_str, "depth": str(self._depth), "caller": "Sage"})
         _ = verbose("Fetching URL %s with encoded data %s" %(url, values), caller_name='FindStat')
@@ -876,7 +887,7 @@ class FindStatStatistic(SageObject):
 
         INPUT:
 
-        - ``key``, an integer
+        - ``key`` -- an integer.
 
         OUTPUT:
 
@@ -960,7 +971,7 @@ class FindStatStatistic(SageObject):
 
         True, if the statistic was modified using
         :meth:`set_description`, :meth:`set_code`,
-        :meth:`set_references`, etc.
+        :meth:`set_references`, etc.  False otherwise.
 
         EXAMPLES::
 
@@ -1036,10 +1047,10 @@ class FindStatStatistic(SageObject):
 
         OUTPUT:
 
-        A string, where each line is of the form `object => value`,
-        where `object` is the string representation of an element of
-        the appropriate collection as used by FindStat and value is
-        an integer.
+        A string, where each line is of the form ``object => value``,
+        where ``object`` is the string representation of an element
+        of the appropriate collection as used by FindStat and value
+        is an integer.
 
         EXAMPLES::
 
@@ -1077,8 +1088,8 @@ class FindStatStatistic(SageObject):
 
         INPUT:
 
-        A string, whose first line is used as the name of the
-        statistic.
+        - a string -- the name of the statistic followed by its
+          description on a separate line.
 
         This information is used when submitting the statistic with
         :meth:`FindStatStatistic.submit`.
@@ -1148,8 +1159,8 @@ class FindStatStatistic(SageObject):
 
         INPUT:
 
-        A string.  The individual references should be separated by
-        FINDSTAT_SEPARATOR_REFERENCES, which is "\\r\\n".
+        - a string -- the individual references should be separated
+          by FINDSTAT_SEPARATOR_REFERENCES, which is "\\r\\n".
 
         This information is used when submitting the statistic with
         :meth:`FindStatStatistic.submit`.
@@ -1201,8 +1212,8 @@ class FindStatStatistic(SageObject):
 
         INPUT:
 
-        A string.  Contributors are encouraged to submit sage code in
-        the form::
+        - a string -- contributors are encouraged to submit sage code
+          in the form::
 
             def statistic(x):
                 ...
@@ -1313,7 +1324,7 @@ class FindStatCollection(SageObject):
 
         INPUT:
 
-        - n, an integer.
+        - n -- an integer.
 
         OUTPUT:
 
@@ -1466,10 +1477,13 @@ class FindStatCollection(SageObject):
 
         INPUT:
 
-        - a string, eg. 'Dyck paths' or "DyckPaths", case-insensitve
-        - an integer designating the FindStat id of the collection
-        - a sage object belonging to a collection
-        - an iterable producing a sage object belonging to a collection
+        - a string eg. 'Dyck paths' or "DyckPaths", case-insensitve, or
+
+        - an integer designating the FindStat id of the collection, or
+
+        - a sage object belonging to a collection, or
+
+        - an iterable producing a sage object belonging to a collection.
 
         EXAMPLES::
 
@@ -1588,12 +1602,12 @@ class FindStatCollection(SageObject):
 
         INPUT:
 
-        - ``element`` -- a sage object that belongs to the collection
+        - ``element`` -- a sage object that belongs to the collection.
 
         OUTPUT:
 
-        - ``True``, if ``element`` is used by the FindStat search
-          engine, and ``False`` if it is ignored.
+        ``True``, if ``element`` is used by the FindStat search
+        engine, and ``False`` if it is ignored.
 
         EXAMPLES::
 
@@ -1646,7 +1660,7 @@ class FindStatCollection(SageObject):
 
         OUTPUT:
 
-        - a list of pairs of the form (object, value).
+        A list of pairs of the form (object, value).
 
         EXAMPLES::
 

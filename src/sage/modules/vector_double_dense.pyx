@@ -177,11 +177,11 @@ cdef class Vector_double_dense(FreeModuleElement):
             (0.0, 1.0, 2.0, 3.0)
 
             sage: V = RDF^2
-            sage: V._element_class(V, 5)
+            sage: V.element_class(V, 5)
             Traceback (most recent call last):
             ...
             TypeError: entries must be a list or 0
-            sage: V._element_class(V, 0)
+            sage: V.element_class(V, 0)
             (0.0, 0.0)
         """
         cdef Py_ssize_t i,j

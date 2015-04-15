@@ -1109,12 +1109,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.coercion_maps(V, W)
             (None, (map internal to coercion system -- copy before use)
-            Call morphism:
+            Conversion map:
               From: Vector space of dimension 3 over Rational Field
               To:   Vector space of dimension 3 over Rational Field)
             sage: cm.coercion_maps(W, V)
             (None, (map internal to coercion system -- copy before use)
-            Call morphism:
+            Conversion map:
               From: Vector space of dimension 3 over Rational Field
               To:   Vector space of dimension 3 over Rational Field)
             sage: v = V([1,2,3])

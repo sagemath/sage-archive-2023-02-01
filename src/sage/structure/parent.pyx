@@ -1376,7 +1376,8 @@ cdef class Parent(category_object.CategoryObject):
             ...
             NotImplementedError: since it is infinite, cannot list Integer Ring
 
-        This is the motivation for :trac:`10470` ::
+        Trying to list an infinite vector space raises an error
+        instead of running forever (see :trac:`10470`)::
 
             sage: (QQ^2).list()
             Traceback (most recent call last):

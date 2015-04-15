@@ -851,10 +851,7 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
 
     - `n` -- an integer, the size of the matrices.
 
-    - ``use_monotone_triangle`` -- (Default: ``True``) If ``True``, the
-      generation of the matrices uses monotone triangles, else it will use the
-      earlier and now obsolete contre-tableaux implementation;
-      must be ``True`` to generate a lattice (with the ``lattice`` method)
+    - ``use_monotone_triangle`` -- deprecated
 
     EXAMPLES:
 
@@ -877,7 +874,7 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
          and Category of finite enumerated sets
          and Category of facade sets
     """
-    def __init__(self, n, use_monotone_triangles=True):
+    def __init__(self, n, use_monotone_triangles=None):
         r"""
         Initialize ``self``.
 
@@ -885,12 +882,12 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
 
             sage: A = AlternatingSignMatrices(4)
             sage: TestSuite(A).run()
-            sage: A == AlternatingSignMatrices(4, use_monotone_triangles=False)
-            False
         """
         self._n = n
         self._matrix_space = MatrixSpace(ZZ, n)
-        self._umt = use_monotone_triangles
+        if use_monotone_triangles is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(18208, 'use_monotone_triangles is deprecated')
         Parent.__init__(self, category=FiniteEnumeratedSets())
 
     def _repr_(self):
@@ -1083,6 +1080,37 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
                                               for i in range(len(list(height)))]
                                              for j in range(len(list(height)))] ))
 
+    def from_contre_tableau(self, comps):
+        r"""
+        Return an alternating sign matrix from a contre-tableau.
+
+        EXAMPLES::
+
+            sage: ASM = AlternatingSignMatrices(3)
+            sage: ASM.from_contre_tableau([[1, 2, 3], [1, 2], [1]])
+            [0 0 1]
+            [0 1 0]
+            [1 0 0]
+            sage: ASM.from_contre_tableau([[1, 2, 3], [2, 3], [3]])
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
+        n = len(comps)
+        M = [ [0 for _ in range(n)] for _ in range(n) ]
+
+        previous_set = set([])
+        for col in range(n-1, -1, -1):
+            s = set( comps[col] )
+            for x in s.difference(previous_set):
+                M[x-1][col] = 1
+            for x in previous_set.difference(s):
+                M[x-1][col] = -1
+
+            previous_set = s
+
+        return AlternatingSignMatrix(M)
+
     def size(self):
         r"""
         Return the size of the matrices in ``self``.
@@ -1140,21 +1168,8 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
             sage: len(list(A))
             42
         """
-        if self._umt:
-            for t in MonotoneTriangles(self._n):
-                yield self.from_monotone_triangle(t)
-        else:
-            for c in ContreTableaux(self._n):
-                yield from_contre_tableau(c)
-                # This is broken!
-                # sage: A = AlternatingSignMatrices(3, use_monotone_triangles=False)
-                # sage: list(A)
-                # ---------------------------------------------------------------------------
-                # NameError                                 Traceback (most recent call last)
-                # ...
-                # NameError: global name 'from_contre_tableau' is not defined
-                # If this is really obsolete, the else-branch should be
-                # removed and the doc modified accordingly.
+        for t in MonotoneTriangles(self._n):
+            yield self.from_monotone_triangle(t)
 
     def _lattice_initializer(self):
         r"""
@@ -1175,7 +1190,6 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
             sage: P.is_lattice()
             True
         """
-        assert(self._umt)
         (mts, rels) = MonotoneTriangles(self._n)._lattice_initializer()
         bij = dict((t, self.from_monotone_triangle(t)) for t in mts)
         asms, rels = bij.itervalues(), [(bij[a], bij[b]) for (a,b) in rels]
@@ -1429,76 +1443,9 @@ def _is_a_cover(mt0, mt1):
             return False
     return diffs == 1
 
-# Deprecated methods
-
-def to_monotone_triangle(matrix):
-    """
-    Deprecated method, use :meth:`AlternatingSignMatrix.to_monotone_triangle()`
-    instead.
-
-    EXAMPLES::
-
-        sage: sage.combinat.alternating_sign_matrix.to_monotone_triangle([[0,1],[1,0]])
-        doctest:...: DeprecationWarning: to_monotone_triangle() is deprecated. Use AlternatingSignMatrix.to_monotone_triangle() instead
-        See http://trac.sagemath.org/14301 for details.
-        [[2, 1], [2]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14301,'to_monotone_triangle() is deprecated. Use AlternatingSignMatrix.to_monotone_triangle() instead')
-    return AlternatingSignMatrix(matrix).to_monotone_triangle()
-
-def from_monotone_triangle(triangle):
-    """
-    Deprecated method, use
-    :meth:`AlternatingSignMatrices.from_monotone_triangle()` instead.
-
-    EXAMPLES::
-
-        sage: sage.combinat.alternating_sign_matrix.from_monotone_triangle([[1, 2], [2]])
-        doctest:...: DeprecationWarning: from_monotone_triangle() is deprecated. Use AlternatingSignMatrix.from_monotone_triangle() instead
-        See http://trac.sagemath.org/14301 for details.
-        [0 1]
-        [1 0]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14301,'from_monotone_triangle() is deprecated. Use AlternatingSignMatrix.from_monotone_triangle() instead')
-    return AlternatingSignMatrices(len(triangle)).from_monotone_triangle(triangle)
-
-# For old pickles
-def AlternatingSignMatrices_n(n):
-    """
-    For old pickles of ``AlternatingSignMatrices_n``.
-
-    EXAMPLES::
-
-        sage: sage.combinat.alternating_sign_matrix.AlternatingSignMatrices_n(3)
-        doctest:...: DeprecationWarning: this class is deprecated. Use sage.combinat.alternating_sign_matrix.AlternatingSignMatrices instead
-        See http://trac.sagemath.org/14301 for details.
-        Alternating sign matrices of size 3
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14301,'this class is deprecated. Use sage.combinat.alternating_sign_matrix.AlternatingSignMatrices instead')
-    return AlternatingSignMatrices(n)
-
-def MonotoneTriangles_n(n):
-    """
-    For old pickles of ``MonotoneTriangles_n``.
-
-    EXAMPLES::
-
-        sage: sage.combinat.alternating_sign_matrix.MonotoneTriangles_n(3)
-        doctest:...: DeprecationWarning: this class is deprecated. Use sage.combinat.alternating_sign_matrix.MonotoneTriangles instead
-        See http://trac.sagemath.org/14301 for details.
-        Monotone triangles with 3 rows
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14301,'this class is deprecated. Use sage.combinat.alternating_sign_matrix.MonotoneTriangles instead')
-    return MonotoneTriangles(n)
-
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.alternating_sign_matrix', 'AlternatingSignMatrices_n', AlternatingSignMatrices)
 register_unpickle_override('sage.combinat.alternating_sign_matrix', 'MonotoneTriangles_n', MonotoneTriangles)
-register_unpickle_override('sage.combinat.alternating_sign_matrix', 'MonotoneTriangles_n', MonotoneTriangles_n)
 
 class ContreTableaux(Parent):
     """
@@ -1612,7 +1559,6 @@ class ContreTableaux_n(ContreTableaux):
              [[1, 2, 3], [2, 3], [2]],
              [[1, 2, 3], [2, 3], [3]]]
         """
-
         for z in self._iterator_rec(self.n):
             yield z
 

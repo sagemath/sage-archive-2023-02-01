@@ -109,6 +109,7 @@ Methods
 -------
 """
 
+from copy import copy
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.misc.superseded import deprecation
@@ -200,13 +201,9 @@ class DiGraph(GenericGraph):
 
        #.  A dictionary of lists
 
-       #.  A numpy matrix or ndarray
-
        #.  A Sage adjacency matrix or incidence matrix
 
        #.  A pygraphviz graph
-
-       #.  A SciPy sparse matrix
 
        #.  A NetworkX digraph
 
@@ -339,13 +336,6 @@ class DiGraph(GenericGraph):
             [0 0 0 0 0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0 0 0 0 0]
-
-    #. A numpy matrix or ndarray::
-
-            sage: import numpy
-            sage: A = numpy.array([[0,1,0],[1,0,0],[1,1,0]])
-            sage: DiGraph(A)
-            Digraph on 3 vertices
 
     #. A Sage matrix: Note: If format is not specified, then Sage
        assumes a square matrix is an adjacency matrix, and a nonsquare
@@ -519,16 +509,7 @@ class DiGraph(GenericGraph):
             sage: g = DiGraph([(1,2),(2,3),(2,3,4)])
             Traceback (most recent call last):
             ...
-            ValueError: Edges input must all follow the same format.
-
-
-        Two different labels given for the same edge in a graph
-        without multiple edges::
-
-            sage: g = Graph([(1,2,3),(1,2,4)], multiedges = False)
-            Traceback (most recent call last):
-            ...
-            ValueError: Two different labels given for the same edge in a graph without multiple edges.
+            ValueError: too many values to unpack
 
         Detection of multiple edges::
 
@@ -577,24 +558,8 @@ class DiGraph(GenericGraph):
             NotImplementedError
             sage: {g:1}[g]
             1
-            sage: copy(g) is g
-            True
-
-        Check the error when multiple edges are sent but ``multiple_edges`` is
-        set to ``False`` (:trac:`16215`)::
-
-            sage: DiGraph([(0,1),(1,0),(0,1)], multiedges=False)
-            Traceback (most recent call last):
-            ...
-            ValueError: Non-multidigraph got several edges (0,1)
-
-        Check the error when the input has a loop but ``loops`` is set to False
-        (:trac:`17385`)::
-
-            sage: DiGraph([(0,0)], loops=False)
-            Traceback (most recent call last):
-            ...
-            ValueError: The digraph was built with loops=False but input data has a loop at 0.
+            sage: copy(g) is g    # copy is mutable again
+            False
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -647,98 +612,13 @@ class DiGraph(GenericGraph):
             data = 0
 
         # Input is a list of edges
-        if format is None and isinstance(data, list):
+        if format is None and isinstance(data,list):
+            format = "list_of_edges"
+            if weighted is None: weighted = False
+            num_verts=0
 
-            # If we are given a list (we assume it is a list of
-            # edges), we convert the problem to a dict_of_dicts or a
-            # dict_of_lists
-
-            edges = data
-
-            # Along the process, we are assuming all edges have the
-            # same length. If it is not true, a ValueError will occur
-            try:
-
-                # The list is empty
-                if not data:
-                    data = {}
-                    format = 'dict_of_dicts'
-
-                # The edges are not labelled
-                elif len(data[0]) == 2:
-                    data = {}
-                    for u,v in edges:
-                        if not u in data:
-                            data[u] = []
-
-                        data[u].append(v)
-
-                    format = 'dict_of_lists'
-
-                # The edges are labelled
-                elif len(data[0]) == 3:
-                    data = {}
-                    for u,v,l in edges:
-
-                        if not u in data:
-                            data[u] = {}
-
-                        # Now the key exists, and is a dictionary ...
-
-                        # If we notice for the first time that there
-                        # are multiple edges, we update the whole
-                        # dictionary so that data[u][v] is a list
-
-                        if (multiedges is None and
-                            (v in data[u])):
-                            multiedges = True
-                            deprecation(15706, "You created a graph with multiple "+
-                                        "edges from a list. Please set 'multiedges' "+
-                                        "to 'True' when you do so, as in the "+
-                                        "future the default behaviour will "+
-                                        "be to ignore those edges")
-                            for uu, dd in data.iteritems():
-                                for vv, ddd in dd.iteritems():
-                                    dd[vv] = [ddd]
-
-                        # If multiedges is set to False while the same
-                        # edge is present in the list with different
-                        # values of its label
-                        elif (multiedges is False and
-                            (v in data[u] and data[u][v] != l)):
-                                raise ValueError("MULTIEDGE")
-
-                        # Now we are behaving as if multiedges == None
-                        # means multiedges = False. If something bad
-                        # happens later, the whole dictionary will be
-                        # updated anyway
-
-                        if multiedges is True:
-                            if v not in data[u]:
-                                data[u][v] = []
-
-                            data[u][v].append(l)
-
-                        else:
-                            data[u][v] = l
-
-                    format = 'dict_of_dicts'
-
-            except ValueError as ve:
-                if str(ve) == "MULTIEDGE":
-                    raise ValueError("Two different labels given for the same edge in a graph without multiple edges.")
-                else:
-                    raise ValueError("Edges input must all follow the same format.")
-
-            if loops is None and any(x in dx for x,dx in data.iteritems()):
-                deprecation(15706, "You created a graph with loops from a list. "+
-                            "Please set 'loops' to 'True' when you do so, as in "+
-                            "the future the default behaviour will be to ignore "+
-                            "those edges")
         if format is None:
-            import networkx
-            data = networkx.MultiDiGraph(data)
-            format = 'NX'
+            raise ValueError("This input cannot be turned into a graph")
 
         # At this point, format has been set.
 
@@ -1045,6 +925,25 @@ class DiGraph(GenericGraph):
             for u in data:
                 for v in data[u]:
                     self._backend.add_edge(u,v,None,True)
+        elif format == "list_of_edges":
+            self.allow_multiple_edges(False if multiedges is False else True)
+            self.allow_loops(False if loops is False else True)
+            self.add_edges(data)
+            if multiedges is not True and self.has_multiple_edges():
+                deprecation(15706, "You created a graph with multiple edges "
+                            "from a list. Please set 'multiedges' to 'True' "
+                            "when you do so, as in the future the default "
+                            "behaviour will be to ignore those edges")
+            elif multiedges is None:
+                self.allow_multiple_edges(False)
+
+            if loops is not True and self.has_loops():
+                deprecation(15706, "You created a graph with loops from a list. "+
+                            "Please set 'loops' to 'True' when you do so, as in "+
+                            "the future the default behaviour will be to ignore "+
+                            "those edges")
+            elif loops is None:
+                self.allow_loops(False)
         else:
             assert format == 'int'
         self._pos = pos
@@ -1258,7 +1157,6 @@ class DiGraph(GenericGraph):
         G.add_vertices(self.vertex_iterator())
         G.add_edges(self.edge_iterator())
         if hasattr(self, '_embedding'):
-            from copy import copy
             G._embedding = copy(self._embedding)
         G._weighted = self._weighted
 
@@ -2032,7 +1930,7 @@ class DiGraph(GenericGraph):
         if not self.has_edge(u,v,label):
             raise ValueError("Input edge must exist in the digraph.")
 
-        tempG = self if inplace else self.copy(immutable=False)
+        tempG = self if inplace else copy(self)
 
         if label is None:
             if not tempG.allows_multiple_edges():
@@ -2166,7 +2064,7 @@ class DiGraph(GenericGraph):
             sage: Dr.edges() == D.reverse().edges()
             True
         """
-        tempG = self if inplace else self.copy(immutable=False)
+        tempG = self if inplace else copy(self)
         for e in edges:
             tempG.reverse_edge(e,inplace=True,multiedges=multiedges)
         if not inplace:
@@ -2602,7 +2500,7 @@ class DiGraph(GenericGraph):
             for id, component in enumerate(sccs):
                 for v in component:
                     d[v] = id
-            h = self.copy(immutable=False)
+            h = copy(self)
             h.delete_edges([(u,v) for (u,v) in h.edge_iterator(labels=False) if d[u] != d[v]])
         else:
             h = self
@@ -2735,7 +2633,7 @@ class DiGraph(GenericGraph):
         for id, component in enumerate(sccs):
             for v in component:
                 d[v] = id
-        h = self.copy(immutable=False)
+        h = copy(self)
         h.delete_edges([ (u,v) for (u,v) in h.edge_iterator(labels=False)
                 if d[u] != d[v] ])
         # We create one cycles iterator per vertex. This is necessary if we

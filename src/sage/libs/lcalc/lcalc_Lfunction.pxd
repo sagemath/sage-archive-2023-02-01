@@ -1,7 +1,3 @@
-include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
-
 cdef extern from "lcalc_sage.h":
 
     ctypedef struct doublevec "std::vector<double>":

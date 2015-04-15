@@ -136,7 +136,7 @@ def enum_projective_rational_field(X,B):
     return pts
 
 
-def enum_projective_number_field(X,B):
+def enum_projective_number_field(X,B, prec=53):
     """
     Enumerates projective points on scheme ``X`` defined over a number field. Simply checks all of the
     points of absolute height of at most ``B`` and adds those that are on the scheme to the list.
@@ -147,10 +147,20 @@ def enum_projective_number_field(X,B):
 
     - ``B`` - a real number
 
+    - ``prec`` - the precision to use for computing the elements of bounded height of number fields
+
     OUTPUT:
 
      - a list containing the projective points of ``X`` of absolute height up to ``B``,
        sorted.
+
+    .. WARNING::
+
+       In the current implementation, the output of the [Doyle-Krumm] algorithm
+       for elements of bounded height cannot be guaranteed to be correct due to
+       the necessity of floating point computations. In some cases, the default
+       53-bit precision is considerably lower than would be required for the
+       algorithm to generate correct output.
 
     EXAMPLES::
 
@@ -159,18 +169,18 @@ def enum_projective_number_field(X,B):
         sage: K = NumberField(u^3 - 5,'v')
         sage: P.<x,y,z> = ProjectiveSpace(K, 2)
         sage: X = P.subscheme([x - y])
-        sage: enum_projective_number_field(X(K),125)
+        sage: enum_projective_number_field(X(K), 5^(1/3), prec=2^10)
         [(0 : 0 : 1), (-1 : -1 : 1), (1 : 1 : 1), (-1/5*v^2 : -1/5*v^2 : 1), (-v : -v : 1),
         (1/5*v^2 : 1/5*v^2 : 1), (v : v : 1), (1 : 1 : 0)]
 
     ::
 
         sage: u = QQ['u'].0
-        sage: K = NumberField(u^2 + 3,'v')
+        sage: K = NumberField(u^2 + 3, 'v')
         sage: A.<x,y> = ProjectiveSpace(K,1)
         sage: X=A.subscheme(x-y)
         sage: from sage.schemes.projective.projective_rational_point import enum_projective_number_field
-        sage: enum_projective_number_field(X,3)
+        sage: enum_projective_number_field(X, 2)
         [(1 : 1)]
     """
     from sage.schemes.projective.projective_space import is_ProjectiveSpace
@@ -186,7 +196,7 @@ def enum_projective_number_field(X,B):
 
     pts = []
 
-    for P in R.points_of_bounded_height(B):
+    for P in R.points_of_bounded_height(B, prec):
         try:
             pts.append(X(P))
         except TypeError:

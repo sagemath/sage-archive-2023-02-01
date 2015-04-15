@@ -2671,6 +2671,29 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             mpq_init(v._entries[j]); mpq_set(v._entries[j], self._matrix[j][i])
         return v
 
+    ################################################
+    # LLL
+    ################################################
+
+    def LLL(self, *args, **kwargs):
+        """
+        Return an LLL reduced or approximated LLL reduced lattice for
+        ``self`` interpreted as a lattice.
+
+        For details on input parameters, see
+        :meth:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`.
+
+        EXAMPLE::
+
+            sage: A = Matrix(QQ, 3, 3, [1/n for n in range(1, 10)])
+            sage: A.LLL()
+            [ 1/28 -1/40 -1/18]
+            [ 1/28 -1/40  1/18]
+            [    0 -3/40     0]
+        """
+        A, d = self._clear_denom()
+        return A.LLL(*args, **kwargs) / d
+
 
 cdef new_matrix_from_pari_GEN(parent, GEN d):
     """

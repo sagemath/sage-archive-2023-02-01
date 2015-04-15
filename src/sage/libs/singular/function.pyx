@@ -925,6 +925,18 @@ cdef class Converter(SageObject):
         INPUT:
 
         - ``to_convert`` - a Singular ``leftv``
+
+        TEST:
+
+        Check that negative integers come through unscathed::
+
+            sage: P.<x,y,z> = QQ[]
+            sage: C= Curve((x-y)*(y-z)*(z-x)); 
+            sage: import sage.libs.singular.function_factory
+            sage: sing_genus = sage.libs.singular.function_factory.ff.normal__lib.genus
+            sage: I=C.defining_ideal()
+            sage: sing_genus(I)
+            -2
         """
         #FIXME
         cdef MPolynomial_libsingular res_poly
@@ -943,7 +955,7 @@ cdef class Converter(SageObject):
             return res_poly
 
         elif rtyp == INT_CMD:
-            return <long>to_convert.data
+            return <int><long>to_convert.data
 
         elif rtyp == NUMBER_CMD:
             return si2sa(<number *>to_convert.data, self._singular_ring, self._sage_ring.base_ring())

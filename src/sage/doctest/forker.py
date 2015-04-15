@@ -42,6 +42,7 @@ from sources import DictAsObject
 from parsing import OriginalSource, reduce_hex
 from sage.structure.sage_object import SageObject
 from parsing import SageOutputChecker, pre_hash, get_source
+from sage.repl.user_globals import set_globals
 
 
 def init_sage():
@@ -426,6 +427,9 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: DTR.run(doctests[0], clear_globs=False) # indirect doctest
             TestResults(failed=0, attempted=4)
         """
+        # Ensure that injecting globals works as expected in doctests
+        set_globals(test.globs)
+
         # Keep track of the number of failures and tries.
         failures = tries = 0
 

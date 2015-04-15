@@ -858,6 +858,22 @@ cdef class LazyFieldElement(FieldElement):
         else:
             return FieldElement.__getattribute__(self, name)
 
+    def continued_fraction(self):
+        r"""
+        Return the continued fraction of self.
+
+        EXAMPLES::
+
+            sage: a = RLF(sqrt(2)) + RLF(sqrt(3))
+            sage: cf = a.continued_fraction()
+            sage: cf
+            [3; 6, 1, 5, 7, 1, 1, 4, 1, 38, 43, 1, 3, 2, 1, 1, 1, 1, 2, 4, ...]
+            sage: cf.convergent(100)
+            444927297812646558239761867973501208151173610180916865469/141414466649174973335183571854340329919207428365474086063
+        """
+        from sage.rings.continued_fraction import ContinuedFraction_real
+        return ContinuedFraction_real(self)
+
 
 def make_element(parent, *args):
     """
@@ -1004,6 +1020,20 @@ cdef class LazyWrapper(LazyFieldElement):
         """
         return make_element, (self._parent, self._value)
 
+    def continued_fraction(self):
+        r"""
+        Return the continued fraction of self.
+
+        EXAMPLES::
+
+            sage: a = RLF(sqrt(2))
+            sage: a.continued_fraction()
+            [1; 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, ...]
+        """
+        from sage.rings.continued_fraction import ContinuedFraction_real, ContinuedFraction_infinite
+        if isinstance(self._value, (ContinuedFraction_infinite, ContinuedFraction_real)):
+            return self._value
+        return ContinuedFraction_real(self)
 
 
 cdef class LazyBinop(LazyFieldElement):
@@ -1598,7 +1628,7 @@ cdef class LazyAlgebraic(LazyFieldElement):
         if isinstance(R, type):
             if self._prec < 53:
                 self.eval(self.parent().interval_field(64)) # up the prec
-        elif self._prec < R.prec():
+        elif R.is_exact() or self._prec < R.prec():
             # Carl Witty said:
             # Quadratic equation faster and more accurate than roots(),
             # but the current code doesn't do the right thing with interval

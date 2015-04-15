@@ -168,9 +168,6 @@ import sage.matrix.matrix_space
 
 import sage.misc.latex as latex
 
-import sage.rings.commutative_ring as commutative_ring
-import sage.rings.principal_ideal_domain as principal_ideal_domain
-import sage.rings.field as field
 import sage.rings.finite_rings.constructor as finite_field
 import sage.rings.integral_domain as integral_domain
 import sage.rings.ring as ring
@@ -179,10 +176,7 @@ import sage.rings.rational_field
 import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.infinity
 import sage.rings.integer
-from sage.rings.integer_ring import ZZ
-import sage.structure.parent_gens as gens
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
-from sage.categories.commutative_rings import CommutativeRings
 from sage.misc.randstate import current_randstate
 from sage.structure.sequence import Sequence
 
@@ -3173,7 +3167,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: FreeModule_generic_field(QQ, 5, 5)
             <class 'sage.modules.free_module.FreeModule_generic_field_with_category'>
         """
-        if not isinstance(base_field, field.Field):
+        if not isinstance(base_field, ring.Field):
             raise TypeError("The base_field (=%s) must be a field"%base_field)
         FreeModule_generic_pid.__init__(self, base_field, dimension, degree, sparse=sparse)
 

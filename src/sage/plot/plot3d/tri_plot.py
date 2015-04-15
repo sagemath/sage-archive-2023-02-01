@@ -7,10 +7,10 @@ AUTHOR:
 - Joshua Kantor -- Algorithm design
 - Marshall Hampton -- Docstrings and doctests
 
-TODO:
+.. TODO::
 
-- Parametrizations (cylindrical, spherical)
-- Massive optimization
+    - Parametrizations (cylindrical, spherical)
+    - Massive optimization
 """
 
 ###########################################################################

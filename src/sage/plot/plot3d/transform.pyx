@@ -132,7 +132,7 @@ cdef class Transformation:
 def rotate_arbitrary(v, double theta):
     """
     Return a matrix that rotates the coordinate space about
-    the axis v by the angle theta.
+    the axis v by the angle ``theta``.
 
     INPUT:
 

@@ -520,13 +520,13 @@ def LineSegment(start, end, thickness=1, radius=None, **kwds):
         sage: from sage.plot.plot3d.shapes import LineSegment, Sphere
         sage: P = (0,0,0.1)
         sage: Q = (0.5,0.6,0.7)
-        sage: S = Sphere(.2, color='red').translate(P) +
-        ....:   Sphere(.2, color='blue').translate(Q) +
-        ....:   LineSegment(P, Q, .05, color='black')
+        sage: S = Sphere(.2, color='red').translate(P)
+        sage: S += Sphere(.2, color='blue').translate(Q)
+        sage: S += LineSegment(P, Q, .05, color='black')
         sage: S.show()
-        sage: S = Sphere(.1, color='red').translate(P) +
-        ....:   Sphere(.1, color='blue').translate(Q) +
-        ....:   LineSegment(P, Q, .15, color='black')
+        sage: S = Sphere(.1, color='red').translate(P)
+        sage: S += Sphere(.1, color='blue').translate(Q)
+        sage: S += LineSegment(P, Q, .15, color='black')
         sage: S.show()
 
     AUTHOR:

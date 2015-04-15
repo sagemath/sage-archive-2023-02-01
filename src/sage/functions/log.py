@@ -626,7 +626,7 @@ class Function_lambert_w(BuiltinFunction):
             sage: parent(lambert_w(Integer(0)))
             Integer Ring
             sage: parent(lambert_w(e))
-            Integer Ring
+            Symbolic Ring
         """
         if not isinstance(z, Expression):
             if n == 0 and z == 0:

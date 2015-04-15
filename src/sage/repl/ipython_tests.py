@@ -26,8 +26,6 @@ calls when you ask for the single-questionmark help, like `foo?` ::
        EXAMPLES:
     ...
     Class docstring:
-    function(code, globals[, name[, argdefs[, closure]]])
-    <BLANKLINE>
     Create a function object from a code object and a dictionary. The
     optional name string overrides the name from the code object. The
     optional argdefs tuple specifies the default argument values. The

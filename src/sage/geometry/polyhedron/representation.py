@@ -338,10 +338,8 @@ class Hrepresentation(PolyhedronRepresentation):
         if len(data) != self._vector.degree():
             raise ValueError('H-representation data requires a list of length ambient_dim+1')
 
-        for i in range(0, self._vector.degree()):
-            self._vector.set(i, data[i])
-        for i in range(0, self._A.degree()):
-            self._A.set(i, data[i+1])
+        self._vector[:] = data
+        self._A[:] = data[1:]
         self._b = self._base_ring(data[0])
 
         self._index = len(polyhedron._Hrepresentation)
@@ -853,8 +851,7 @@ class Vrepresentation(PolyhedronRepresentation):
         if len(data) != self._vector.degree():
             raise ValueError('V-representation data requires a list of length ambient_dim')
 
-        for i in range(0, self._vector.degree()):
-            self._vector.set(i, data[i])
+        self._vector[:] = data
 
         self._index = len(polyhedron._Vrepresentation)
         polyhedron._Vrepresentation.append(self)

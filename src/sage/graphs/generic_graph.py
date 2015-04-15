@@ -303,6 +303,7 @@ Methods
 -------
 """
 
+from copy import copy
 from sage.misc.decorators import options
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import random
@@ -446,7 +447,7 @@ class GenericGraph(GenericGraph_pyx):
             return False
         if any(x not in other for x in self):
             return False
-        if self._weighted != other._weighted:
+        if self.weighted() != other.weighted():
             return False
 
         verts = self.vertices()
@@ -576,7 +577,6 @@ class GenericGraph(GenericGraph_pyx):
             if n < 1:
                 raise TypeError('multiplication of a graph and a nonpositive integer is not defined')
             if n == 1:
-                from copy import copy
                 return copy(self)
             return sum([self]*(n-1), self)
         else:
@@ -774,10 +774,10 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Formats
 
-    def __copy__(self, weighted=None, implementation='c_graph', data_structure=None,
-                 sparse=None, immutable=None):
+    def copy(self, weighted=None, implementation='c_graph', data_structure=None,
+             sparse=None, immutable=None):
         """
-        Return a copy of the graph.
+        Change the graph implementation
 
         INPUT:
 
@@ -910,7 +910,7 @@ class GenericGraph(GenericGraph_pyx):
             1833517720
             sage: g==G
             True
-            sage: g is copy(g) is g.copy()
+            sage: (g is g.copy()) and (g is not copy(g))
             True
 
         ``immutable=True`` is a short-cut for ``data_structure='static_sparse'``::
@@ -1020,7 +1020,6 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 data_structure = "sparse"
 
-        from copy import copy
         G = self.__class__(self, name=self.name(), pos=copy(self._pos),
                            boundary=copy(self._boundary), weighted=weighted,
                            implementation=implementation,
@@ -1036,7 +1035,6 @@ class GenericGraph(GenericGraph_pyx):
                         try:
                             copy_attr[v] = value.copy()
                         except AttributeError:
-                            from copy import copy
                             copy_attr[v] = copy(value)
                     setattr(G, attr, copy_attr)
                 else:
@@ -1044,7 +1042,28 @@ class GenericGraph(GenericGraph_pyx):
 
         return G
 
-    copy = __copy__
+    def __copy__(self):
+        """
+        Copy the graph.
+
+        OUTPUT:
+
+        A new graph instance that is as close as possible to the
+        original graph. The output is always mutable.
+
+        EXAMPLES:
+
+            sage: g = Graph({0:[1,2,3], 2:[4]}, immutable=True)
+            sage: g.weighted(range(5))
+            Traceback (most recent call last):
+            ...
+            TypeError: This graph is immutable and can thus not be changed.
+            Create a mutable copy, e.g., by `copy(g)`
+            sage: h = copy(g)    # indirect doctest
+            sage: h.add_vertex()
+            5
+        """
+        return self.copy(immutable=False)
 
     def _scream_if_not_simple(self, allow_loops=False, allow_multiple_edges=False):
         r"""
@@ -1529,7 +1548,6 @@ class GenericGraph(GenericGraph_pyx):
             [ 0  0  0  0  0  0  1 -1  0  0]
         """
         from sage.matrix.constructor import matrix
-        from copy import copy
         n = self.order()
         verts = self.vertices()
         d = [0]*n
@@ -2214,6 +2232,13 @@ class GenericGraph(GenericGraph_pyx):
             []
             sage: G.multiple_edges(to_undirected=True)
             [(1, 2, 'h'), (2, 1, 'g')]
+
+        A loop is not a multiedge::
+
+            sage: g = Graph(loops=True,multiedges=True)
+            sage: g.add_edge(0,0)
+            sage: g.has_multiple_edges()
+            False
         """
         if self.allows_multiple_edges() or (self._directed and to_undirected):
             if self._directed:
@@ -2236,7 +2261,7 @@ class GenericGraph(GenericGraph_pyx):
                             if b in s:
                                 return True
                             s.add(b)
-                        if b is u:
+                        elif b is u:
                             if a in s:
                                 return True
                             s.add(a)
@@ -2600,22 +2625,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = Graph({1:{2:3}})
             sage: G.weighted()
             False
-            sage: G.weighted('a')
             sage: G.weighted(True)
-            sage: G.weighted()
-            True
-            sage: G.weighted('a')
             sage: G.weighted()
             True
             sage: G.weighted(False)
             sage: G.weighted()
             False
-            sage: G.weighted('a')
-            sage: G.weighted()
-            False
-            sage: G.weighted(True)
-            sage: G.weighted()
-            True
 
         Ensure that graphs using the static sparse backend can not be mutated
         using this method, as fixed in :trac:`15278`::
@@ -2638,8 +2653,8 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             TypeError: This graph is immutable and can thus not be changed.
-            Create a mutable copy, e.g., by `g.copy(immutable=False)`
-            sage: G_mut = G_imm.copy(immutable=False)
+            Create a mutable copy, e.g., by `copy(g)`
+            sage: G_mut = copy(G)
             sage: G_mut == G_imm
             True
             sage: G_mut.weighted(True)
@@ -2652,11 +2667,13 @@ class GenericGraph(GenericGraph_pyx):
         if new is not None:
             if getattr(self, '_immutable', False):
                 raise TypeError("This graph is immutable and can thus not be changed. "
-                                "Create a mutable copy, e.g., by `g.copy(immutable=False)`")
+                                "Create a mutable copy, e.g., by `copy(g)`")
             if new in [True, False]:
                 self._weighted = new
+            else:
+                raise ValueError("'new' must be a boolean")
         else:
-            return self._weighted
+            return bool(self._weighted)
 
     ### Properties
 
@@ -2684,7 +2701,6 @@ class GenericGraph(GenericGraph_pyx):
                 return False
             else:
                 return True
-        from copy import copy
         g = copy(self)
         g.allow_multiple_edges(False)
         g.allow_loops(False)
@@ -2928,7 +2944,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: o.out_degree()
             [1, 1, 1, 1, 1, 2, 2, 2, 2, 2]
         """
-        from copy import copy
         g=copy(self)
         from sage.graphs.digraph import DiGraph
         d=DiGraph()
@@ -3058,7 +3073,6 @@ class GenericGraph(GenericGraph_pyx):
         if self.is_directed():
             g = self.reverse()  # so the output will be in the proper order
         else:
-            from copy import copy
             g = copy(self)
 
         if not path:
@@ -6534,7 +6548,7 @@ class GenericGraph(GenericGraph_pyx):
         ############################
 
         if self.has_loops() or self.has_multiple_edges():
-            g = self.copy(immutable=False)
+            g = copy(self)
         else:
             g = self
 
@@ -10888,7 +10902,7 @@ class GenericGraph(GenericGraph_pyx):
         if inplace:
             G = self
         else:
-            G = self.copy(immutable=False)
+            G = copy(self)
         G.name("Subgraph of (%s)"%self.name())
 
         G.delete_vertices([v for v in G if v not in vertices])
@@ -11052,7 +11066,7 @@ class GenericGraph(GenericGraph_pyx):
             if induced:
                 return self.subgraph(g)
             else:
-                Gcopy=G.copy(immutable=False)
+                Gcopy = copy(G)
                 Gcopy.relabel(g)
                 return self.subgraph(vertices=Gcopy.vertices(), edges=Gcopy.edges())
 
@@ -11405,7 +11419,7 @@ class GenericGraph(GenericGraph_pyx):
                 return all( gg.is_chordal() for gg in self.connected_components_subgraphs() )
 
         hole = None
-        g = self.copy(immutable=False)
+        g = copy(self)
 
         # Algorithms
         #
@@ -11738,7 +11752,7 @@ class GenericGraph(GenericGraph_pyx):
         cliques = []
 
         # As we will be deleting vertices ...
-        g = self.copy(immutable=False)
+        g = copy(self)
 
         for cc in self.connected_components_subgraphs():
 
@@ -12543,7 +12557,6 @@ class GenericGraph(GenericGraph_pyx):
         Rob Beezer, 2009-11-25
         """
         from sage.rings.infinity import Infinity
-        from copy import copy
         # If input is not a list, make a list with this single object
         if not isinstance(dist, list):
             dist = [dist]
@@ -12813,7 +12826,6 @@ class GenericGraph(GenericGraph_pyx):
         from sage.misc.superseded import deprecation
         deprecation(15494, "The boundary parameter is deprecated and will soon disappear.")
 
-        from copy import copy
         H = copy(self)
         for vertex in self.get_boundary():
             if (vertex != start and vertex != end):
@@ -14001,7 +14013,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.has_multiple_edges():
             raise TypeError('complement not well defined for (di)graphs with multiple edges')
         self._scream_if_not_simple()
-        G = self.copy(immutable=False) # Make sure it's a mutable copy
+        G = copy(self)
         G.delete_edges(G.edges())
         G.name('complement(%s)'%self.name())
         for u in self:
@@ -14591,7 +14603,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: digraphs.Path(5).copy(immutable=True).transitive_closure()
             Transitive closure of Path: Digraph on 5 vertices
         """
-        G = self.copy(immutable=False)
+        G = copy(self)
         G.name('Transitive closure of ' + self.name())
         G.add_edges((v, e) for v in G for e in G.breadth_first_search(v))
         return G
@@ -14626,7 +14638,7 @@ class GenericGraph(GenericGraph_pyx):
             from sage.graphs.generic_graph_pyx import transitive_reduction_acyclic
             return transitive_reduction_acyclic(self)
 
-        G = self.copy(immutable=False)
+        G = copy(self)
         n = G.order()
         for e in self.edge_iterator():
             # Try deleting the edge, see if we still have a path
@@ -14658,7 +14670,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: d.is_transitively_reduced()
             False
         """
-        from copy import copy
         from sage.rings.infinity import Infinity
         G = copy(self)
         for e in self.edge_iterator():
@@ -17033,7 +17044,7 @@ class GenericGraph(GenericGraph_pyx):
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 
         if not inplace:
-            G = self.copy(immutable=False)
+            G = copy(self)
             perm2 = G.relabel(perm,
                               return_map= return_map,
                               check_input = check_input,
@@ -17064,7 +17075,6 @@ class GenericGraph(GenericGraph_pyx):
 
             # If all vertices do not have a new label, the code will touch the
             # dictionary. Let us keep the one we received from the user clean !
-            from copy import copy
             perm = copy(perm)
 
         elif isinstance(perm, (list, tuple)):
@@ -17304,7 +17314,6 @@ class GenericGraph(GenericGraph_pyx):
             raise TypeError("Partition (%s) is not valid for this graph: there is a cell of length 0."%partition)
         if self.has_multiple_edges():
             raise TypeError("Refinement function does not support multiple edges.")
-        from copy import copy
         G = copy(self)
         perm_to = G.relabel(return_map=True)
         partition = [[perm_to[b] for b in cell] for cell in partition]
@@ -18118,7 +18127,7 @@ class GenericGraph(GenericGraph_pyx):
             partition = [[G_to[v] for v in cell] for cell in partition]
             a,b,c = search_tree(GC, partition, certify=True, dig=dig, verbosity=verbosity)
             # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
-            H = self.copy(immutable=False)
+            H = copy(self)
             c_new = {}
             for v in self.vertices():
                 c_new[v] = c[G_to[relabeling[v]]]
@@ -18141,7 +18150,7 @@ class GenericGraph(GenericGraph_pyx):
         GC = HB._cg
         partition = [[G_to[v] for v in cell] for cell in partition]
         a,b,c = search_tree(GC, partition, certify=True, dig=dig, verbosity=verbosity)
-        H = self.copy(immutable=False)
+        H = copy(self)
         c_new = {}
         for v in G_to:
             c_new[v] = c[G_to[v]]
@@ -18312,7 +18321,6 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         False
 
     """
-    from copy import copy
     from sage.graphs.all import Graph, DiGraph
 
     g_has_multiple_edges = g.has_multiple_edges()

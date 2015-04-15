@@ -847,6 +847,22 @@ class LinearCode(module.Module):
         """
         return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())
 
+
+    def _latex_(self):
+        """
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: MS = MatrixSpace(GF(2),4,7)
+            sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+            sage: C  = LinearCode(G)
+            sage: latex(C)
+            [7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
+        """
+        return "[%s, %s]\\textnormal{ Linear code over }%s"\
+                % (self.length(), self.dimension(), self.base_ring()._latex_())
+
     def _an_element_(self):
         r"""
         Return an element of the linear code. Currently, it simply returns
@@ -1370,6 +1386,9 @@ class LinearCode(module.Module):
         r"""
         Returns the parity check matrix of ``self``.
 
+        The parity check matrix of a linear code `C` corresponds to the 
+        generator matrix of the dual code of `C`.
+
         EXAMPLES::
 
             sage: C = codes.HammingCode(3,GF(2))
@@ -1396,8 +1415,9 @@ class LinearCode(module.Module):
              [0 1 1 0 0 1 1]
              [0 0 0 1 1 1 1]
         """
-        Cperp = self.dual_code()
-        return Cperp.generator_matrix()
+        G = self.generator_matrix()
+        H = G.right_kernel()
+        return H.basis_matrix()
 
     check_mat = deprecated_function_alias(17973, parity_check_matrix)
 
@@ -2995,6 +3015,51 @@ class LinearCode(module.Module):
         F = self.base_ring()
         V = VectorSpace(F,n+1)
         return V(self.spectrum()).support()
+
+    def syndrome(self, r):
+        r"""
+        Returns the syndrome of ``r``.
+
+        The syndrome of ``r`` is the result of `H \times r` where `H` is
+        the parity check matrix of ``self``. If ``r`` belongs to ``self``, 
+        its syndrome equals to the zero vector.
+
+        INPUT:
+
+        - ``r`` -- a vector of the same length as ``self``
+
+        OUTPUT:
+
+        - a column vector
+        
+        EXAMPLES::
+
+            sage: MS = MatrixSpace(GF(2),4,7)
+            sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+            sage: C  = LinearCode(G)
+            sage: r = vector(GF(2), (1,0,1,0,1,0,1)) 
+            sage: r in C
+            True
+            sage: C.syndrome(r)
+            (0, 0, 0)
+
+        If ``r`` is not a codeword, its syndrome is not equal to zero::
+
+            sage: r = vector(GF(2), (1,0,1,0,1,1,1)) 
+            sage: r in C
+            False
+            sage: C.syndrome(r)
+            (0, 1, 1)
+
+        Syndrome computation works fine on bigger fields::
+
+            sage: C = codes.RandomLinearCode(12, 4, GF(59))
+            sage: r = C.random_element()
+            sage: C.syndrome(r)
+            (0, 0, 0, 0, 0, 0, 0, 0)
+        """
+        return self.parity_check_matrix()*r
+
 
     def weight_enumerator(self, names="xy", name2=None):
         """

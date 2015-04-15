@@ -713,9 +713,18 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             INPUT:
 
-            - ``submodule`` -- a free submodule of ``self``, or something that can
-              be turned into one via ``self.submodule(submodule)``.
-            - ``check``, ``already_echelonized`` -- passed down to :meth:`submodule`, which see
+            - ``submodule`` -- a submodule with basis of ``self``, or
+              something that can be turned into one via
+              ``self.submodule(submodule)``.
+
+            - ``check``, ``already_echelonized`` -- passed down to
+              :meth:`submodule`, which see.
+
+
+            This     # FIXME: The following currently works only if:
+            #  - The ambient space is finite dimensional
+            #  - The embedding is unitriangular
+            TODO: polish
 
             .. WARNING::
 

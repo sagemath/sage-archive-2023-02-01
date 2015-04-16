@@ -638,8 +638,14 @@ def IntegerVectors(n=None, k=None, **kwargs):
         Traceback (most recent call last):
         ...
         TypeError: __init__() got an unexpected keyword argument 'length'
+        sage: IntegerVectors(None, 4)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: k must be None when n is None
     """
     if n is None:
+        if k is not None:
+            raise NotImplementedError("k must be None when n is None")
         return IntegerVectors_all(**kwargs)
     elif k is None:
         return IntegerVectors_nconstraints(n, kwargs)

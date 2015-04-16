@@ -167,6 +167,22 @@ class LieAlgebraElementWrapper(ElementWrapper):
             return self.value == 0 and rhs == 0
         return self.parent() == rhs.parent() and self.value == rhs.value
 
+    def __ne__(self, rhs):
+        """
+        Check non-equality.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3)
+            sage: L.bracket(L.gen(0), L.gen(1)) != -L.bracket(L.gen(1), L.gen(0))
+            False
+            sage: L.zero() == 0
+            True
+            sage: L.zero() != 0
+            False
+        """
+        return not (self == rhs)
+
     def _repr_(self):
         """
         Return a string representation of ``self``.

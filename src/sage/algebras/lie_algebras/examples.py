@@ -48,6 +48,7 @@ def three_dimensional(R, a, b, c, d, names=['X', 'Y', 'Z']):
         sage: L = lie_algebras.three_dimensional(QQ, 4, 1, -1, 2)
         sage: L.structure_coefficients()
         Finite family {('X', 'Y'): 2*Y + 4*Z, ('X', 'Z'): Y - 2*Z, ('Y', 'Z'): X}
+        sage: TestSuite(L).run()
         sage: L = lie_algebras.three_dimensional(QQ, 1, 0, 0, 0)
         sage: L.structure_coefficients()
         Finite family {('X', 'Y'): Z}
@@ -71,13 +72,15 @@ def three_dimensional(R, a, b, c, d, names=['X', 'Y', 'Z']):
 
 def cross_product(R, names=['X', 'Y', 'Z']):
     r"""
-    The Lie algebra of `\RR^3` defined by `\times` as the usual cross product.
+    The Lie algebra of `\RR^3` defined by the usual cross product
+    `\times`.
 
     EXAMPLES::
 
         sage: L = lie_algebras.cross_product(QQ)
         sage: L.structure_coefficients()
         Finite family {('X', 'Y'): Z, ('X', 'Z'): -Y, ('Y', 'Z'): X}
+        sage: TestSuite(L).run()
     """
     L = three_dimensional(R, 1, 1, 1, 0, names=names)
     L.rename("Lie algebra of RR^3 under cross product over {}".format(R))

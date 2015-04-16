@@ -252,6 +252,18 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         """
         return FreeModule(self.base_ring(), self.dimension(), sparse=sparse)
 
+    def some_elements(self):
+        """
+        Return some elements of ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.three_dimensional(QQ, 4, 1, -1, 2)
+            sage: L.some_elements()
+            [X, Y, Z, X + Y + Z]
+        """
+        return list(self.basis()) + [self.sum(self.basis())]
+
     class Element(LieAlgebraElement):
         """
         An element of a Lie algebra given by structure coefficients.

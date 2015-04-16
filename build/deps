@@ -68,9 +68,11 @@ all-sage: \
      $(INST)/$(LINBOX) \
      $(INST)/$(M4RI) \
      $(INST)/$(M4RIE) \
+     $(INST)/$(MARKUPSAFE) \
      $(INST)/$(MATHJAX) \
      $(INST)/$(MATPLOTLIB) \
      $(INST)/$(MAXIMA) \
+     $(INST)/$(MISTUNE) \
      $(INST)/$(MPC) \
      $(INST)/$(MPFI) \
      $(INST)/$(MPFR) \
@@ -315,6 +317,9 @@ $(INST)/$(LIBGAP): $(INST)/$(GAP)
 $(INST)/$(JSONSCHEMA): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(JSONSCHEMA) 2>&1" "tee -a $(SAGE_LOGS)/$(JSONSCHEMA).log"
 
+$(INST)/$(MISTUNE): $(INST)/$(SETUPTOOLS) $(INST)/$(CYTHON)
+	+$(PIPE) "$(SAGE_SPKG) $(MISTUNE) 2>&1" "tee -a $(SAGE_LOGS)/$(MISTUNE).log"
+
 $(INST)/$(IPYTHON): $(INST)/$(PYTHON) $(INST)/$(JINJA2) $(INST)/$(TORNADO) $(INST)/$(PYZMQ)
 	+$(PIPE) "$(SAGE_SPKG) $(IPYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(IPYTHON).log"
 
@@ -374,7 +379,7 @@ $(INST)/$(FREETYPE): $(INST)/$(LIBPNG)
 $(INST)/$(LIBPNG): $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(LIBPNG) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBPNG).log"
 
-$(INST)/$(SIX): $(INST)/$(PYTHON)
+$(INST)/$(SIX): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(SIX) 2>&1" "tee -a $(SAGE_LOGS)/$(SIX).log"
 
 $(INST)/$(DATEUTIL): $(INST)/$(PYTHON) $(INST)/$(SIX) $(INST)/$(SETUPTOOLS)
@@ -467,7 +472,10 @@ $(INST)/$(SPHINX): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(DOCUTILS) \
                    $(INST)/$(JINJA2) $(INST)/$(PYGMENTS)
 	+$(PIPE) "$(SAGE_SPKG) $(SPHINX) 2>&1" "tee -a $(SAGE_LOGS)/$(SPHINX).log"
 
-$(INST)/$(JINJA2): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(DOCUTILS)
+$(INST)/$(MARKUPSAFE): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
+	+$(PIPE) "$(SAGE_SPKG) $(MARKUPSAFE) 2>&1" "tee -a $(SAGE_LOGS)/$(MARKUPSAFE).log"
+
+$(INST)/$(JINJA2): $(INST)/$(MARKUPSAFE)  $(INST)/$(SETUPTOOLS) $(INST)/$(DOCUTILS)
 	+$(PIPE) "$(SAGE_SPKG) $(JINJA2) 2>&1" "tee -a $(SAGE_LOGS)/$(JINJA2).log"
 
 $(INST)/$(PYGMENTS): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
@@ -519,7 +527,7 @@ $(INST)/sage: \
 		 $(INST)/csage
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && \
-		$(PIPE) 'time python setup.py install 2>&1' 'tee -a $(SAGE_LOGS)/sage-$(SAGE_VERSION).log' && \
+		$(PIPE) 'time $(MAKE) sage 2>&1' 'tee -a $(SAGE_LOGS)/sage-$(SAGE_VERSION).log' && \
 		touch $@; \
 	fi
 
@@ -530,8 +538,8 @@ $(INST)/csage: $(INST)/$(SCONS) \
        $(INST)/$(PYTHON) \
        $(CSAGE_SOURCES)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
-		cd $(SAGE_SRC) && source bin/sage-env && cd c_lib && \
-		$(PIPE) 'time scons -Q install 2>&1' 'tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log' && \
+		cd $(SAGE_SRC) && source bin/sage-env && \
+		$(PIPE) 'time $(MAKE) csage 2>&1' 'tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log' && \
 		touch $@; \
 	fi
 

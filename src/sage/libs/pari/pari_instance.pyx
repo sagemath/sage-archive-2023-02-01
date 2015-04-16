@@ -13,16 +13,20 @@ AUTHORS:
   handling.
 
 - Robert Bradshaw, Jeroen Demeyer, William Stein (2010-08-15):
-  Upgrade to PARI 2.4.3 (#9343)
+  Upgrade to PARI 2.4.3 (:trac:`9343`)
 
 - Jeroen Demeyer (2011-11-12): rewrite various conversion routines
-  (#11611, #11854, #11952)
+  (:trac:`11611`, :trac:`11854`, :trac:`11952`)
 
-- Peter Bruin (2013-11-17): split off this file from gen.pyx (#15185)
+- Peter Bruin (2013-11-17): split off this file from gen.pyx
+  (:trac:`15185`)
 
-- Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (#15767)
+- Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (:trac:`15767`)
 
-- Jeroen Demeyer (2014-09-19): upgrade to PARI 2.8 (#16997)
+- Jeroen Demeyer (2014-09-19): upgrade to PARI 2.8 (:trac:`16997`)
+
+- Jeroen Demeyer (2015-03-17): automatically generate methods from
+  ``pari.desc`` (:trac:`17631` and :trac:`17860`)
 
 EXAMPLES::
 
@@ -150,7 +154,7 @@ Number fields and precision: TODO
 TESTS:
 
 Check that output from PARI's print command is actually seen by
-Sage (ticket #9636)::
+Sage (:trac:`9636`)::
 
     sage: pari('print("test")')
     test
@@ -158,7 +162,6 @@ Sage (ticket #9636)::
 """
 
 include 'pari_err.pxi'
-include 'sage/ext/stdsage.pxi'
 include 'sage/ext/interrupt.pxi'
 
 import sys
@@ -166,6 +169,8 @@ import sys
 cimport libc.stdlib
 cimport cython
 
+from sage.ext.memory cimport sage_malloc, sage_free
+from sage.ext.memory import init_memory_functions
 from sage.structure.parent cimport Parent
 from sage.libs.flint.fmpz cimport fmpz_get_mpz
 from sage.libs.flint.fmpz_mat cimport *
@@ -370,8 +375,10 @@ cdef void sage_flush():
     sys.stdout.flush()
 
 
+include 'auto_instance.pxi'
+
 @cython.final
-cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
+cdef class PariInstance(PariInstance_auto):
     def __init__(self, long size=1000000, unsigned long maxprime=500000):
         """
         Initialize the PARI system.
@@ -640,7 +647,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         TESTS:
 
         Check that the hash of an integer does not depend on existing
-        garbage on the stack (#11611)::
+        garbage on the stack (:trac:`11611`)::
 
             sage: foo = pari(2^(32*1024));  # Create large integer to put PARI stack in known state
             sage: a5 = pari(5);
@@ -690,7 +697,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         TESTS:
 
         Check that the hash of a rational does not depend on existing
-        garbage on the stack (#11854)::
+        garbage on the stack (:trac:`11854`)::
 
             sage: foo = pari(2^(32*1024));  # Create large integer to put PARI stack in known state
             sage: a5 = pari(5/7);
@@ -977,16 +984,16 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         return x
 
 
-
     cdef long get_var(self, v):
         """
-        Converts a Python string into a PARI variable reference number. Or
-        if v = -1, returns -1.
+        Convert a Python string into a PARI variable number.
         """
-        if v != -1:
-            s = str(v)
-            return fetch_user_var(s)
-        return -1
+        if v is None:
+            return -1
+        if v == -1:
+            return -1
+        cdef bytes s = bytes(v)
+        return fetch_user_var(s)
 
     ############################################################
     # Initialization
@@ -1260,15 +1267,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         self.init_primes(n+1)
         return self.prime_list(pari(n).primepi())
 
-##         cdef long k
-##         k = (n+10)/math.log(n)
-##         p = 2
-##         while p <= n:
-##             p = self.nth_prime(k)
-##             k = 2
-##         v = self.prime_list(k)
-##         return v[:pari(n).primepi()]
-
     def __nth_prime(self, long n):
         """
         nth_prime(n): returns the n-th prime, where n is a C-int
@@ -1287,7 +1285,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         except PariError:
             self.init_primes(max(2*maxprime(), 20*n))
             return self.nth_prime(n)
-
 
     def euler(self, unsigned long precision=0):
         """
@@ -1428,10 +1425,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         else:
             return plist
         #return self.new_gen(polsubcyclo(n, d, self.get_var(v)))
-
-    def polzagier(self, long n, long m):
-        pari_catch_sig_on()
-        return self.new_gen(polzag(n, m))
 
     def setrand(self, seed):
         """

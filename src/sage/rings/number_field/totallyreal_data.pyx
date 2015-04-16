@@ -12,20 +12,19 @@ AUTHORS:
         * Initial version.
 """
 
-#**************************************************************************************
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein and John Voight
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#**************************************************************************************
+#*****************************************************************************
+
+
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 
 from sage.rings.arith import binomial, gcd
 from sage.rings.rational_field import RationalField
@@ -33,20 +32,12 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.real_mpfi import RealIntervalField
 from sage.rings.real_mpfr import RealField
 from sage.rings.integer_ring import ZZ
-
-from sage.rings.integer import Integer
 from sage.rings.integer cimport Integer
 
 # Other global variables
 ZZx = PolynomialRing(ZZ, 'x')
 
-cdef extern from "math.h":
-    cdef long lrint(double x)
-    cdef double floor(double x)
-    cdef double ceil(double x)
-    cdef double fabs(double x)
-    cdef double round(double x)
-    cdef int abs(int x)
+from libc.math cimport lrint, floor, ceil, fabs, round
 
 
 #*********************************************************************

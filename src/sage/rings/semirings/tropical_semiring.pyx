@@ -20,7 +20,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../../ext/stdsage.pxi"
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent

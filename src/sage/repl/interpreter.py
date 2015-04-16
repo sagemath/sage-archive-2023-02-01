@@ -755,7 +755,8 @@ class SageTerminalApp(TerminalIPythonApp):
             sage: from sage.misc.temporary_file import tmp_dir
             sage: from sage.repl.interpreter import SageTerminalApp
             sage: d = tmp_dir()
-            sage: IPYTHONDIR = os.environ['IPYTHONDIR']
+            sage: from IPython.utils.path import get_ipython_dir
+            sage: IPYTHONDIR = get_ipython_dir()
             sage: os.environ['IPYTHONDIR'] = d
             sage: SageTerminalApp().load_config_file()
             sage: os.environ['IPYTHONDIR'] = IPYTHONDIR
@@ -794,6 +795,14 @@ class SageTerminalApp(TerminalIPythonApp):
             ipython_dir=self.ipython_dir)
         self.shell.configurables.append(self)
         self.shell.has_sage_extensions = SAGE_EXTENSION in self.extensions
+
+        # Load the %lprun extension if available
+        try:
+            import line_profiler
+        except ImportError:
+            pass
+        else:
+            self.extensions.append('line_profiler')
 
         if self.shell.has_sage_extensions:
             self.extensions.remove(SAGE_EXTENSION)

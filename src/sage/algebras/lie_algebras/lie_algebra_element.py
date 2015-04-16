@@ -327,11 +327,15 @@ class LieAlgebraElementWrapper(ElementWrapper):
             3*x
             sage: parent(3*x) == parent(x)
             True
-            sage: x / 2   # not tested -- :trac:`18221`
+            sage: x / 2
             1/2*x
             sage: y * (1/2)
             1/2*y
-            sage: y * 1/2   # not tested -- :trac:`18221`
+            sage: y * 1/2
+            1/2*y
+            sage: 1/2 * y
+            1/2*y
+            sage: QQ(1/2) * y
             1/2*y
 
         .. TODO::

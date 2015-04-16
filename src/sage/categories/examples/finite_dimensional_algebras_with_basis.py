@@ -1,8 +1,8 @@
 r"""
-Examples of finite dimensional algebras with basis
+Example of a finite dimensional algebra with basis
 """
 #*****************************************************************************
-#  Copyright (C) 2008-2014 Franco Saliola <saliola@gmail.com>
+#  Copyright (C) 2008-2015 Franco Saliola <saliola@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -14,11 +14,13 @@ from sage.combinat.free_module import CombinatorialFreeModule
 
 class KroneckerQuiverPathAlgebra(CombinatorialFreeModule):
     r"""
-    An example of a finite dimensional algebra with basis: the path algebra of
-    the Kronecker quiver.
+    An example of a finite dimensional algebra with basis: the path
+    algebra of the Kronecker quiver.
 
-    This class illustrates a minimal implementation of a finite dimensional
-    algebra with basis.
+    This class illustrates a minimal implementation of a finite
+    dimensional algebra with basis. See
+    :class:`sage.quiver.algebra.PathAlgebra` for a full-featured
+    implementation of path algebras.
     """
 
     def __init__(self, base_ring):
@@ -26,7 +28,9 @@ class KroneckerQuiverPathAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
-            An example of a finite dimensional algebra with basis: the path algebra of the Kronecker quiver (containing the arrows a:x->y and b:x->y) over Rational Field 
+            An example of a finite dimensional algebra with basis:
+            the path algebra of the Kronecker quiver
+            (containing the arrows a:x->y and b:x->y) over Rational Field
             sage: TestSuite(A).run()
         """
         basis_keys = ['x', 'y', 'a', 'b']
@@ -35,16 +39,22 @@ class KroneckerQuiverPathAlgebra(CombinatorialFreeModule):
             'yy':'y', 'ay':'a', 'by':'b'
             }
 
-        CombinatorialFreeModule.__init__(self, base_ring, basis_keys, category = FiniteDimensionalAlgebrasWithBasis(base_ring))
+        CombinatorialFreeModule.__init__(
+            self, base_ring, basis_keys,
+            category=FiniteDimensionalAlgebrasWithBasis(base_ring))
 
     def _repr_(self):
         r"""
         EXAMPLES::
 
             sage: FiniteDimensionalAlgebrasWithBasis(QQ).example() # indirect doctest
-            An example of a finite dimensional algebra with basis: the path algebra of the Kronecker quiver (containing the arrows a:x->y and b:x->y) over Rational Field 
+            An example of a finite dimensional algebra with basis:
+            the path algebra of the Kronecker quiver
+            (containing the arrows a:x->y and b:x->y) over Rational Field
         """
-        return "An example of a finite dimensional algebra with basis: the path algebra of the Kronecker quiver (containing the arrows a:x->y and b:x->y) over %s "%(self.base_ring())
+        return "An example of a finite dimensional algebra with basis: " \
+            "the path algebra of the Kronecker quiver " \
+            "(containing the arrows a:x->y and b:x->y) over %s "%(self.base_ring())
 
     def one(self):
         r"""
@@ -100,14 +110,16 @@ class KroneckerQuiverPathAlgebra(CombinatorialFreeModule):
     @cached_method
     def algebra_generators(self):
         r"""
-        Return the generators of this algebra.
+        Return algebra generators for this algebra.
 
         .. SEEALSO:: :meth:`Algebras.ParentMethods.algebra_generators`.
 
         EXAMPLES::
 
             sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
-            An example of a finite dimensional algebra with basis: the path algebra of the Kronecker quiver (containing the arrows a:x->y and b:x->y) over Rational Field
+            An example of a finite dimensional algebra with basis:
+            the path algebra of the Kronecker quiver
+            (containing the arrows a:x->y and b:x->y) over Rational Field
             sage: A.algebra_generators()
             Finite family {'y': y, 'x': x, 'b': b, 'a': a}
         """
@@ -115,9 +127,11 @@ class KroneckerQuiverPathAlgebra(CombinatorialFreeModule):
 
     def _repr_term(self, p):
         r"""
-        This method customizes the string representation of the basis element indexed by ``p``.
+        This method customizes the string representation of the basis
+        element indexed by ``p``.
 
-        In this example, we just return the string representation of ``p`` itself.
+        In this example, we just return the string representation of
+        ``p`` itself.
 
         EXAMPLES::
 
@@ -128,4 +142,3 @@ class KroneckerQuiverPathAlgebra(CombinatorialFreeModule):
         return str(p)
 
 Example = KroneckerQuiverPathAlgebra
-

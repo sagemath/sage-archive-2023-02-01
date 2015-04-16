@@ -194,19 +194,19 @@ class FiniteGroups(CategoryWithAxiom):
 
             EXAMPLES::
 
-                sage: FiniteGroups().Algebras(QQ).is_subcategory(SemisimpleAlgebras(QQ))
+                sage: FiniteGroups().Algebras(QQ).is_subcategory(Algebras(QQ).Semisimple())
                 True
-                sage: FiniteGroups().Algebras(FiniteField(7)).is_subcategory(SemisimpleAlgebras(QQ))
+                sage: FiniteGroups().Algebras(FiniteField(7)).is_subcategory(Algebras(QQ).Semisimple())
                 False
-                sage: FiniteGroups().Algebras(ZZ).is_subcategory(SemisimpleAlgebras(ZZ))
+                sage: FiniteGroups().Algebras(ZZ).is_subcategory(Algebras(ZZ).Semisimple())
                 False
-                sage: FiniteGroups().Algebras(Fields()).is_subcategory(SemisimpleAlgebras(Fields()))
+                sage: FiniteGroups().Algebras(Fields()).is_subcategory(Algebras(Fields()).Semisimple())
                 False
             """
-            from sage.categories.semisimple_algebras import SemisimpleAlgebras
             from sage.categories.fields import Fields
             K = self.base_ring()
             if (K in Fields) and K.characteristic() == 0:
-                return [SemisimpleAlgebras(self.base_ring())]
+                from sage.categories.algebras import Algebras
+                return [Algebras(self.base_ring()).Semisimple()]
             else:
                 return []

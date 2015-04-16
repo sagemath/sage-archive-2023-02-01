@@ -660,31 +660,6 @@ class Groups(CategoryWithAxiom):
                 from sage.sets.family import Family
                 return Family(self.group().gens(), self.term)
 
-            def _conjugacy_classes_representatives_underlying_group(self):
-                r"""
-                Return a complete list of representatives of conjugacy
-                classes of the underlying group.
-
-                This works only for permutation groups. The ordering is
-                that given by GAP.
-
-                EXAMPLES::
-
-                    sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4)]])
-                    sage: SG = GroupAlgebras(QQ).example(G)
-                    sage: SG._conjugacy_classes_representatives_underlying_group()
-                    [(), (2,4), (1,2)(3,4), (1,2,3,4), (1,3)(2,4)]
-
-                .. NOTE::
-
-                    This function is overloaded for SymmetricGroupAlgebras to
-                    return Permutations and not Elements of the symmetric group::
-
-                    sage: SymmetricGroupAlgebra(ZZ,3)._conjugacy_classes_representatives_underlying_group()
-                    [[2, 3, 1], [2, 1, 3], [1, 2, 3]]
-                """
-                return self.group().conjugacy_classes_representatives()
-
             def center_basis(self):
                 r"""
                 Return a basis of the center of the group algebra.
@@ -702,21 +677,21 @@ class Groups(CategoryWithAxiom):
                 .. WARNING::
 
                     - This method requires the underlying group to
-                      have a method ``conjugacy_classes_representatives``
+                      have a method ``conjugacy_classes``
                       (every permutation group has one, thanks GAP!).
 
                 EXAMPLES::
 
                     sage: SymmetricGroup(3).algebra(QQ).center_basis()
-                    [B[()], B[(2,3)] + B[(1,2)] + B[(1,3)], B[(1,2,3)] + B[(1,3,2)]]
+                    [(), (2,3) + (1,2) + (1,3), (1,2,3) + (1,3,2)]
 
                 .. SEEALSO::
 
                     - :meth:`Groups.Algebras.ElementMethods.central_form`
                     - :meth:`Monoids.Algebras.ElementMethods.is_central`
                 """
-                return [sum([self(c) for c in conj]) for conj  in
-                    self.basis().keys().conjugacy_classes()]
+                return [self.sum_of_monomials(conj) for conj  in
+                        self.basis().keys().conjugacy_classes()]
 
             # Coalgebra structure
 
@@ -809,26 +784,26 @@ class Groups(CategoryWithAxiom):
 
             def central_form(self):
                 r"""
-                Return ``self`` in the canonical basis of the center
+                Return ``self`` expressed in the canonical basis of the center
                 of the group algebra.
 
                 INPUT:
 
-                - ``self`` -- a central element of the group algebra
+                - ``self`` -- an element of the center of the group algebra
 
                 OUTPUT:
 
                 - A formal linear combination of the conjugacy class
                   representatives representing its coordinates in the
                   canonical basis of the center. See
-                  :meth:`Groups.Algebras.ParentMethods.center` for
+                  :meth:`Groups.Algebras.ParentMethods.center_basis` for
                   details.
 
                 .. WARNING::
 
                     - This method requires the underlying group to
-                      have a method
-                      ``conjugacy_classes_representatives_underlying_group``.
+                      have a method ``conjugacy_classes_representatives``
+                      (every permutation group has one, thanks GAP!).
                     - This method does not check that the element is
                       indeed central. Use the method
                       :meth:`Monoids.Algebras.ElementMethods.is_central`
@@ -856,12 +831,12 @@ class Groups(CategoryWithAxiom):
 
                 .. SEEALSO::
 
-                    - :meth:`Groups.Algebras.ParentMethods.center`
+                    - :meth:`Groups.Algebras.ParentMethods.center_basis`
                     - :meth:`Monoids.Algebras.ElementMethods.is_central`
                 """
                 from sage.combinat.free_module import CombinatorialFreeModule
-                Z = CombinatorialFreeModule(self.base_ring(),
-                        self.parent()._conjugacy_classes_representatives_underlying_group())
+                conj_classes_reps = self.parent().basis().keys().conjugacy_classes_representatives()
+                Z = CombinatorialFreeModule(self.base_ring(), conj_classes_reps)
                 return sum(self[i] * Z.basis()[i] for i in Z.basis().keys())
 
     class CartesianProducts(CartesianProductsCategory):

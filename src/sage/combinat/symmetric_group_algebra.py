@@ -190,6 +190,14 @@ def SymmetricGroupAlgebra(R, W):
         sage: SGA.group() is W
         True
         sage: TestSuite(SGA).run()
+
+        sage: SG = SymmetricGroupAlgebra(ZZ, 3)
+        sage: SG.group().conjugacy_classes_representatives()
+        [[1, 2, 3], [2, 1, 3], [2, 3, 1]]
+
+        sage: SGg = SymmetricGroup(3).algebra(ZZ)
+        sage: SGg.group().conjugacy_classes_representatives()
+        [(), (1,2), (1,2,3)]
     """
     from sage.rings.semirings.non_negative_integer_semiring import NN
     if W in NN:

@@ -1590,11 +1590,11 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         the one used in the generation of the elements of self's
         associated enumerated set.
 
-        .. warning:: many cached methods depend on this order, in
-           particular for constructing subspaces and
-           quotients. Changing the order after computing such does
-           currently not invalidate those cache, and is likely to
-           bring in inconsistencies.
+        .. WARNING:: Many cached methods depend on this order, in
+           particular for constructing subspaces and quotients.
+           Changing the order after some computations have been
+           cached does not invalidate the cache, and is likely to
+           introduce inconsistencies.
 
         EXAMPLES::
 
@@ -1626,7 +1626,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
     def get_order_cmp(self):
         """
-        Returns a comparison function on the basis indices which is
+        Return a comparison function on the basis indices that is
         compatible with the current term order.
 
         EXAMPLES::
@@ -1644,6 +1644,29 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         return self._order_cmp
 
     def _order_cmp(self, x, y):
+        """
+        Compare `x` and `y` w.r.t. the term order.
+
+        INPUT:
+
+        - ``x``, ``y`` -- indices of the basis of ``self``
+
+        OUTPUT:
+
+        `-1`, `0`, or `1` depending on whether `x<y`, `x==y`, or `x>y`
+        w.r.t. the term order.
+
+        EXAMPLES::
+
+            sage: A = CombinatorialFreeModule(QQ, ['x','y','a','b'])
+            sage: A.set_order(['x', 'y', 'a', 'b'])
+            sage: A._order_cmp('x', 'y')
+            -1
+            sage: A._order_cmp('y', 'y')
+            0
+            sage: A._order_cmp('a', 'y')
+            1
+        """
         return cmp( self._rank_basis(x), self._rank_basis(y) )
 
 
@@ -2060,48 +2083,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if remove_zeros:
             d = dict( (key, coeff) for key, coeff in d.iteritems() if coeff)
         return self.element_class( self, d )
-
-    def echelon_form(self, elements, base_ring=None):
-        r"""
-        Compute the echelon form of the given elements.
-
-        INPUT:
-
-        - ``elements`` - a list of elements of ``self``.
-        
-        - ``base_ring`` - ring (default: ``None``): compute the echelon
-          form over the given ring; if ``base_ring`` is ``None``, then uses
-          the base ring of ``self``.
-
-        OUTPUT:
-        
-        - list of elements of ``self``
-        
-        EXAMPLES::
-
-            sage: F = CombinatorialFreeModule(ZZ, [1,2,3,4])
-            sage: B = F.basis()
-            sage: elements = [B[1]-17*B[2]+6*B[3], B[1]-17*B[2]+B[4]]
-            sage: F.echelon_form(elements)
-            [B[1] - 17*B[2] + B[4], 6*B[3] - B[4]]
-            sage: F.echelon_form(elements, base_ring=QQ)
-            [B[1] - 17*B[2] + B[4], B[3] - 1/6*B[4]]
-
-        ::
-
-            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
-            sage: a,b,c = F.basis()
-            sage: F.echelon_form([8*a+b+10*c, -3*a+b-c, a-b-c])
-            [B['a'] + B['c'], B['b'] + 2*B['c']]
-        """
-        from sage.matrix.constructor import matrix
-        if base_ring is None:
-            base_ring = self.base_ring()
-        mat = matrix(base_ring, map(vector,elements))
-        mat.echelonize()
-        return [self.from_vector(vec) for vec in mat if vec != 0]
-
-    quotient = ModulesWithBasis.ParentMethods.__dict__["quotient"]
 
 class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         """

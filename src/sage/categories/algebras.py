@@ -100,9 +100,9 @@ class Algebras(CategoryWithAxiom_over_base_ring):
 
             EXAMPLES::
 
-                sage: Algebras(QQ).SemiSimple()
+                sage: Algebras(QQ).Semisimple()
                 Category of semisimple algebras over Rational Field
-                sage: Algebras(QQ).WithBasis().FiniteDimensional().SemiSimple()
+                sage: Algebras(QQ).WithBasis().FiniteDimensional().Semisimple()
                 Category of finite dimensional semisimple algebras with basis over Rational Field
             """
             from sage.categories.semisimple_algebras import SemisimpleAlgebras
@@ -112,7 +112,7 @@ class Algebras(CategoryWithAxiom_over_base_ring):
     Graded      = LazyImport('sage.categories.graded_algebras',      'GradedAlgebras')
     WithBasis   = LazyImport('sage.categories.algebras_with_basis',  'AlgebrasWithBasis')
     #if/when Semisimple becomes an axiom
-    #Semisimple  = LazyImport('sage.categories.semisimple_algebras',  'SemisimpleAlgebras')
+    Semisimple  = LazyImport('sage.categories.semisimple_algebras',  'SemisimpleAlgebras')
 
     class ElementMethods:
         # TODO: move the content of AlgebraElement here or higher in the category hierarchy
@@ -153,12 +153,14 @@ class Algebras(CategoryWithAxiom_over_base_ring):
                 EXAMPLES::
 
                     sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
-                    An example of a finite dimensional algebra with basis: the path algebra of the Kronecker quiver (containing the arrows a:x->y and b:x->y) over Rational Field
+                    An example of a finite dimensional algebra with basis:
+                    the path algebra of the Kronecker quiver
+                    (containing the arrows a:x->y and b:x->y) over Rational Field
                     sage: S = A.semisimple_quotient()
                     sage: S.algebra_generators()
                     Finite family {'y': B['y'], 'x': B['x'], 'b': 0, 'a': 0}
 
-                .. TODO:: this could possibly remove the elements that retract to zero
+                .. TODO:: this could possibly remove the elements that retract to zero.
                 """
                 return self.ambient().algebra_generators().map(self.retract)
 

@@ -118,7 +118,11 @@ class Polyhedron_ZZ(Polyhedron_base):
         """
         return True
 
-    def ehrhart_polynomial(self, verbose=False, **kwds):
+    def ehrhart_polynomial(self, verbose=False, dual=None,
+            irrational_primal=None, irrational_all_primal=None, maxdet=None,
+            no_decomposition=None, compute_vertex_cones=None, smith_form=None,
+            dualization=None, triangulation=None, triangulation_max_height=None,
+            **kwds):
         r"""
         Return the Ehrhart polynomial of this polyhedron.
 
@@ -269,11 +273,29 @@ class Polyhedron_ZZ(Polyhedron_base):
         args = ['count', '--ehrhart-polynomial']
         if 'redundancy_check' not in kwds:
             args.append('--redundancy-check=none')
-        for key,value in kwds.iteritems():
+
+        # note: the options below are explicitely written in the function
+        # declaration in order to keep tab completion (see #18211).
+        kwds['dual'] = dual
+        kwds['irrational_primal'] = irrational_primal
+        kwds['irrational_all_primal'] = irrational_all_primal
+        kwds['maxdet'] = maxdet
+        kwds['no_decomposition'] = no_decomposition
+        kwds['compute_vertex_cones'] = compute_vertex_cones
+        kwds['smith_form'] = smith_form
+        kwds['dualization'] = dualization
+        kwds['triangulation'] = triangulation
+        kwds['triangulation_max_height'] = triangulation_max_height
+
+        for key,value in kwds.items():
+            if value is None or value is False:
+                kwds.pop(key)
+                continue
+
             key = key.replace('_','-')
             if value is True:
                 args.append('--{}'.format(key))
-            elif value is not False:
+            else:
                 args.append('--{}={}'.format(key, value))
         args.append('--cdd')
         args.append(in_filename)

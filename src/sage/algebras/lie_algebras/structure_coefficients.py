@@ -240,14 +240,14 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             return val
         return -val
 
-    def free_module(self, sparse=True):
+    def module(self, sparse=True):
         """
         Return ``self`` as a free module.
 
         EXAMPLES::
 
             sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}})
-            sage: L.free_module()
+            sage: L.module()
             Sparse vector space of dimension 3 over Rational Field
         """
         return FreeModule(self.base_ring(), self.dimension(), sparse=sparse)
@@ -279,7 +279,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
                 sage: a.to_vector()
                 (1, 3, -1/2)
             """
-            V = self.parent().free_module()
+            V = self.parent().module()
             return V([self[k] for k in self.parent()._ordered_indices])
 
 class AbelianLieAlgebra(LieAlgebraWithStructureCoefficients):

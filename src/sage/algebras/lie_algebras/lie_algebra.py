@@ -421,15 +421,15 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         TESTS::
 
             sage: L.<x,y> = LieAlgebra(QQ, abelian=True)
-            sage: L._coerce_map_from_(L.free_module())
+            sage: L._coerce_map_from_(L.module())
             True
             sage: L._coerce_map_from_(FreeModule(ZZ, 2))
             True
         """
         if not isinstance(R, LieAlgebra):
             # Should be moved to LieAlgebrasWithBasis somehow since it is a generic coercion
-            if self.free_module is not NotImplemented:
-                return self.free_module().has_coerce_map_from(R)
+            if self.module is not NotImplemented:
+                return self.module().has_coerce_map_from(R)
             return False
 
         # We check if it is a subalgebra of something that can coerce into ``self``
@@ -493,7 +493,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             sage: L = lie_algebras.Heisenberg(QQ, oo)
             sage: d = {'p1': 4, 'q3': 1/2, 'z': -2}
             sage: L._from_dict(d)
-            -2*z + 4*p1 + 1/2*q3
+            4*p1 + 1/2*q3 - 2*z
         """
         assert isinstance(d, dict)
         if coerce:

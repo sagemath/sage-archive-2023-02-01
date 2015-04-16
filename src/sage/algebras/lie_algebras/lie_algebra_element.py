@@ -267,9 +267,13 @@ class LieAlgebraElementWrapper(ElementWrapper):
             sage: L.<x,y,z> = LieAlgebra(associative=R)
             sage: 3*x
             3*x
-            sage: x / 2
+            sage: parent(3*x) == parent(x)  # this is broken
+            False
+            sage: x / 2   # not tested -- :trac:`18221`
             1/2*x
-            sage: y * 1/2
+            sage: y * (1/2)
+            1/2*y
+            sage: y * 1/2   # not tested -- :trac:`18221`
             1/2*y
         """
         # This was copied and IDK if it still applies (TCS):

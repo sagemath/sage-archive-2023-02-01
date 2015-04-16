@@ -27,7 +27,7 @@ AUTHORS:
 #******************************************************************************
 
 #from sage.algebras.lie_algebras.classical_lie_algebra import gl, sl, so, sp
-#from sage.algebras.lie_algebras.virasoro import VirasoroAlgebra
+from sage.algebras.lie_algebras.virasoro import VirasoroAlgebra
 
 def three_dimensional(R, a, b, c, d, names=['X', 'Y', 'Z']):
     r"""

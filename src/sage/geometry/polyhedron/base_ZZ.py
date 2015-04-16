@@ -204,6 +204,8 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: parent(_)                 # optional - latte_int
             Univariate Polynomial Ring in t over Rational Field
 
+        TESTS:
+
         Test options::
 
             sage: P = Polyhedron(ieqs=[[1,-1,1,0], [-1,2,-1,0], [1,1,-2,0]], eqns=[[-1,2,-1,-3]], base_ring=ZZ)
@@ -238,6 +240,13 @@ class Polyhedron_ZZ(Polyhedron_base):
             Invocation: count --ehrhart-polynomial '--redundancy-check=none' --irrational-all-primal --cdd ...
             sage: p   # optional - latte_int
             1/2*t^2 + 3/2*t + 1
+
+        Test bad options::
+
+            sage: P.ehrhart_polynomial(bim_bam_boum=19)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Something is wrong with LattE command count with options {'bim_bam_boum': 19}
         """
         if not self.is_lattice_polytope():
             raise ValueError("this must be a lattice polytope")
@@ -285,7 +294,12 @@ class Polyhedron_ZZ(Polyhedron_base):
                 msg += "Here is the content of stderr:\n"+err
             raise ValueError(msg)
 
-        return R(ans.splitlines()[-2])
+        try:
+            p = ans.splitlines()[-2]
+        except IndexError:
+            raise RuntimeError("Something is wrong with LattE command count with options {}".format(kwds))
+
+        return R(p)
 
     @cached_method
     def polar(self):

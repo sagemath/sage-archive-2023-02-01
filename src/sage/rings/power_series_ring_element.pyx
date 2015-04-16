@@ -327,7 +327,7 @@ cdef class PowerSeries(AlgebraElement):
         """
         return (<Element>left)._cmp(right)
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         r"""
         Comparison of self and ``right``.
 

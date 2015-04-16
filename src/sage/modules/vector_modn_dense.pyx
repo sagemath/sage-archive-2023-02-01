@@ -166,7 +166,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
         if self._entries:
             sage_free(self._entries)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         EXAMPLES:
             sage: v = vector(GF(5), [0,0,0,0])

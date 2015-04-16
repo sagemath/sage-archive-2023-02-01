@@ -686,7 +686,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef _richcmp_c_impl(left, Element _right, int op):
+    cpdef _richcmp_(left, Element _right, int op):
         r"""
         C implementation of comparison.
 
@@ -886,7 +886,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         """
         return (<Element>left)._cmp(right)
 
-    cdef int _cmp_c_impl(left, Element _right) except -2:
+    cpdef int _cmp_(left, Element _right) except -2:
         """
         C implementation of comparison.
         """

@@ -905,9 +905,6 @@ cdef class Element(SageObject):
         """
         return not self
 
-    def _cmp_(left, right):
-        return left._cmp_c_impl(right)
-
     cdef _cmp(left, right):
         """
         Compare left and right.
@@ -929,17 +926,9 @@ cdef class Element(SageObject):
                 if r == 0:
                     r = -1
                 return r
-        else:
-            if HAS_DICTIONARY(left):
-                left_cmp = left._cmp_
-                if isinstance(left_cmp, MethodType):
-                    # it must have been overridden
-                    return left_cmp(right)
 
-            return left._cmp_c_impl(right)
-
-    def _richcmp_(left, right, op):
-        return left._richcmp(right, op)
+        # Same parents
+        return left._cmp_(<Element>right)
 
     cdef _richcmp(left, right, int op):
         """
@@ -955,7 +944,7 @@ cdef class Element(SageObject):
             try:
                 _left, _right = coercion_model.canonical_coercion(left, right)
                 if isinstance(_left, Element):
-                    return (<Element>_left)._richcmp_(_right, op)
+                    return (<Element>_left)._richcmp(_right, op)
                 return _rich_to_bool(op, cmp(_left, _right))
             except (TypeError, NotImplementedError):
                 r = cmp(type(left), type(right))
@@ -979,65 +968,54 @@ cdef class Element(SageObject):
                 except TypeError:
                     return _rich_to_bool(op, r)
 
-        if HAS_DICTIONARY(left):   # fast check
-            left_cmp = left.__cmp__
-            if isinstance(left_cmp, MethodType):
-                # it must have been overridden
-                return _rich_to_bool(op, left_cmp(right))
-
-        return left._richcmp_c_impl(right, op)
+        # Same parents
+        return left._richcmp_(<Element>right, op)
 
     cdef _rich_to_bool(self, int op, int r):
         return _rich_to_bool(op, r)
 
     ####################################################################
-    # For a derived Cython class, you **must** put the following in
-    # your subclasses, in order for it to take advantage of the
-    # above generic comparison code.  You must also define
-    # either _cmp_c_impl (if your subclass is totally ordered),
-    # _richcmp_c_impl (if your subclass is partially ordered), or both
-    # (if your class has both a total order and a partial order;
-    # then the total order will be available with cmp(), and the partial
-    # order will be available with the relation operators; in this case
-    # you must also define __cmp__ in your subclass).
-    # This is simply how Python works.
+    # For a derived Cython class, you **must** put the __richcmp__
+    # method below in your subclasses, in order for it to take
+    # advantage of the above generic comparison code.
     #
-    # For a *Python* class just define __cmp__ as always.
-    # But note that when this gets called you can assume that
-    # both inputs have identical parents.
+    # You must also define either _cmp_ (if your subclass is totally
+    # ordered), _richcmp_ (if your subclass is partially ordered), or
+    # both (if your class has both a total order and a partial order).
+    # If you want to use cmp(), then you must also define __cmp__ in
+    # your subclass.
     #
-    # If your __cmp__ methods are not getting called, verify that the
-    # canonical_coercion(x,y) is not throwing errors.
-    #
+    # In the _cmp_ and _richcmp_ methods, you can assume that both
+    # arguments have identical parents.
     ####################################################################
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
-    ####################################################################
-    # If your subclass has both a partial order (available with the
-    # relation operators) and a total order (available with cmp()),
-    # you **must** put the following in your subclass.
-    #
-    # Note that in this case the total order defined by cmp() will
-    # not properly respect coercions.
-    ####################################################################
     def __cmp__(left, right):
         return (<Element>left)._cmp(right)
 
-    cdef _richcmp_c_impl(left, Element right, int op):
-        if (<Element>left)._richcmp_c_impl == Element._richcmp_c_impl and \
-               (<Element>left)._cmp_c_impl == Element._cmp_c_impl:
-            # Not implemented, try some basic defaults
-            if op == Py_EQ:
-                 return left is right
-            elif op == Py_NE:
-                return left is not right
-        return left._rich_to_bool(op, left._cmp_c_impl(right))
+    cpdef _richcmp_(left, Element right, int op):
+        # Obvious case
+        if left is right:
+            return _rich_to_bool(op, 0)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
-        ### For derived Cython code, you *MUST* ALSO COPY the __richcmp__ above
-        ### into your class!!!  For Python code just use __cmp__.
-        raise NotImplementedError("BUG: sort algorithm for elements of '%s' not implemented"%right.parent())
+        cdef int c
+        try:
+            c = left._cmp_(right)
+        except NotImplementedError:
+            # Check equality by id(), knowing that left is not right
+            if op == Py_EQ: return False
+            if op == Py_NE: return True
+            raise
+        return _rich_to_bool(op, c)
+
+    cpdef int _cmp_(left, Element right) except -2:
+        # Check for Python class defining __cmp__
+        left_cmp = left.__cmp__
+        if isinstance(left_cmp, MethodType):
+            return left_cmp(right)
+        raise NotImplementedError("comparison not implemented for %r"%type(left))
+
 
 cdef inline bint _rich_to_bool(int op, int r):
     if op == Py_LT:  #<
@@ -1124,7 +1102,7 @@ cdef class ElementWithCachedMethod(Element):
         ... "        return (<Element>left)._cmp(right)",
         ... "    def __richcmp__(left, right, op):",
         ... "        return (<Element>left)._richcmp(right,op)",
-        ... "    cdef int _cmp_c_impl(left, Element right) except -2:",
+        ... "    cpdef int _cmp_(left, Element right) except -2:",
         ... "        return cmp(left.x,right.x)",
         ... "    def raw_test(self):",
         ... "        return -self",
@@ -1143,7 +1121,7 @@ cdef class ElementWithCachedMethod(Element):
         ... "        return (<Element>left)._cmp(right)",
         ... "    def __richcmp__(left, right, op):",
         ... "        return (<Element>left)._richcmp(right,op)",
-        ... "    cdef int _cmp_c_impl(left, Element right) except -2:",
+        ... "    cpdef int _cmp_(left, Element right) except -2:",
         ... "        return cmp(left.x,right.x)",
         ... "    def raw_test(self):",
         ... "        return -self",

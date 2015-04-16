@@ -94,6 +94,7 @@ This came up in some subtle bug once::
 
 """
 
+from types import MethodType
 from element cimport parent_c
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
@@ -183,7 +184,7 @@ def is_Parent(x):
     return isinstance(x, Parent)
 
 cdef bint guess_pass_parent(parent, element_constructor):
-    if isinstance(element_constructor, types.MethodType):
+    if isinstance(element_constructor, MethodType):
         return False
     elif isinstance(element_constructor, BuiltinMethodType):
         return element_constructor.__self__ is not parent
@@ -1475,7 +1476,7 @@ cdef class Parent(category_object.CategoryObject):
         """
         return True
 
-    cpdef bint _richcmp_helper(left, right, int op) except -2:
+    cpdef bint _richcmp(left, right, int op) except -2:
         """
         Compare left and right.
 
@@ -1497,10 +1498,7 @@ cdef class Parent(category_object.CategoryObject):
 
         else:
             # Both are parents -- but need *not* have the same type.
-            if HAS_DICTIONARY(left):
-                r = left.__cmp__(right)
-            else:
-                r = left._cmp_(right)
+            r = left._cmp_(right)
 
         if op == 0:  #<
             return r  < 0
@@ -1514,6 +1512,21 @@ cdef class Parent(category_object.CategoryObject):
             return r != 0
         elif op == 5: #>=
             return r >= 0
+
+    cpdef int _cmp_(left, right) except -2:
+        # Check for Python class defining __cmp__
+        try:
+            return left.__cmp__(right)
+        except AttributeError:
+            pass
+        # Default: compare by id
+        if left is right:
+            return 0
+        if (<PyObject*>left) < (<PyObject*>right):
+            return -1
+        else:
+            return 1
+
 
     # Should be moved and merged into the EnumeratedSets() category (#12955)
     def __len__(self):
@@ -3099,7 +3112,7 @@ cdef class Set_PythonType_class(Set_generic):
         """
         return -hash(self._type)
 
-    cpdef int _cmp_(self, other) except -100:
+    cpdef int _cmp_(self, other) except -2:
         """
         Two Python type sets are considered the same if they contain the same
         type.

@@ -334,7 +334,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
     def __richcmp__(left, right, int op):
         return (<ParentWithGens>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Parent right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         if not is_MPolynomialRing(right):
             return cmp(type(left),type(right))
         else:

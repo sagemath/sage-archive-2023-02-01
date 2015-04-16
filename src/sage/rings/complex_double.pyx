@@ -182,11 +182,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: cmp(CDF, CDF)
             0
         """
-        return (<Parent>left)._richcmp_helper(right, op)
-
-    cdef int _cmp_c_impl(left, Parent right) except -2:
-        # There is only one CDF.
-        return cmp(type(left),type(right))
+        return (<Parent>left)._richcmp(right, op)
 
     def __hash__(self):
         """
@@ -263,7 +259,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         return r"\Bold{C}"
 
-    def _cmp_(self, x):
+    cpdef int _cmp_(self, x) except -2:
         """
         Compare ``x`` to ``self``.
 
@@ -802,7 +798,7 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         We order the complex numbers in dictionary order by real parts then
         imaginary parts.

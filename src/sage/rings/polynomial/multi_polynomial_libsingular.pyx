@@ -1456,9 +1456,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P == R
             False
         """
-        return (<Parent>left)._richcmp_helper(right, op)
+        return (<Parent>left)._richcmp(right, op)
 
-    def _cmp_(left, right):
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare ``left`` with ``right``.
 
@@ -2200,7 +2200,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         if left is right:
             return 0
         cdef poly *p = (<MPolynomial_libsingular>left)._poly

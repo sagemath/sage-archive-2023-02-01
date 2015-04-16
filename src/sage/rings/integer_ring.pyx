@@ -359,9 +359,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: cmp(ZZ,QQ)
             -1
         """
-        return (<Parent>left)._richcmp_helper(right, op)
+        return (<Parent>left)._richcmp(right, op)
 
-    def _cmp_(left, right):
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare ``left`` and ``right``.
 
@@ -373,7 +373,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: IntegerRing_class._cmp_(ZZ,QQ)
             -1
         """
-
         if isinstance(right,IntegerRing_class):
             return 0
         if isinstance(right, sage.rings.rational_field.RationalField):

@@ -1626,7 +1626,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
     def get_order_cmp(self):
         """
-        Returns a comparison function on the basis indices that is
+        Return a comparison function on the basis indices that is
         compatible with the current term order.
 
         EXAMPLES::
@@ -1644,6 +1644,29 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         return self._order_cmp
 
     def _order_cmp(self, x, y):
+        """
+        Compare `x` and `y` w.r.t. the term order.
+
+        INPUT:
+
+        - ``x``, ``y`` -- indices of the basis of ``self``
+
+        OUTPUT:
+
+        `-1`, `0`, or `1` depending on whether `x<y`, `x==y`, or `x>y`
+        w.r.t. the term order.
+
+        EXAMPLES::
+
+            sage: A = CombinatorialFreeModule(QQ, ['x','y','a','b'])
+            sage: A.set_order(['x', 'y', 'a', 'b'])
+            sage: A._order_cmp('x', 'y')
+            -1
+            sage: A._order_cmp('y', 'y')
+            0
+            sage: A._order_cmp('a', 'y')
+            1
+        """
         return cmp( self._rank_basis(x), self._rank_basis(y) )
 
 

@@ -681,8 +681,9 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Implementing new bases
 
-    In order to implement a new basis Sage will need to know at minimum how to multiply,
-    comultiply and change the basis.  For many of the other functions we can use the
+    In order to implement a new basis Sage will need to know at minimum how to change
+    back and forth between at least one other basis.  For many of
+    the other functions we can use the
     standard implementation.  To present an idea of how this is done, we will present
     here the example of how to implement the basis `h_\mu[X(1-t)]`.
 

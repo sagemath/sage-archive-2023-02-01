@@ -68,7 +68,6 @@ import sage.structure.element
 from weakref import ref
 from sage.misc.constant_function import ConstantFunction
 
-include "sage/ext/stdsage.pxi"
 
 cdef inline category(x):
     try:

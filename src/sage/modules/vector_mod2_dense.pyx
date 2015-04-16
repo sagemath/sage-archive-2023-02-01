@@ -26,7 +26,6 @@ EXAMPLES::
 ##############################################################################
 
 include 'sage/ext/interrupt.pxi'
-include 'sage/ext/stdsage.pxi'
 
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 from sage.rings.integer cimport Integer

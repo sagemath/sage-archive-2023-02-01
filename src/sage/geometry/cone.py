@@ -582,7 +582,7 @@ def normalize_rays(rays, lattice):
             length = lambda ray: integral_length(V.coordinate_vector(ray))
         for n, ray in enumerate(rays):
             try:
-                if isinstance(ray, (list, tuple, V._element_class)):
+                if isinstance(ray, (list, tuple, V.element_class)):
                     ray = V(ray)
                 else:
                     ray = V(list(ray))
@@ -2148,9 +2148,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                 normals = self.facet_normals()
                 facet_to_atoms = [[] for normal in normals]
                 for i, ray in enumerate(self):
-                    if ray in S:
+                    # This try...except tests whether ray lies in S;
+                    # "ray in S" does not work because ray lies in a
+                    # toric lattice and S is a "plain" vector space,
+                    # and there is only a conversion (no coercion)
+                    # between them as of Trac ticket #10513.
+                    try:
+                        _ = S(ray)
                         subspace_rays.append(i)
-                    else:
+                    except (TypeError, ValueError):
                         facets = [j for j, normal in enumerate(normals)
                                     if ray * normal == 0]
                         atom_to_facets.append(facets)
@@ -3826,7 +3832,14 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             def not_in_linear_subspace(x): return True
         else:
             linear_subspace = self.linear_subspace()
-            def not_in_linear_subspace(x): return not x in linear_subspace
+            def not_in_linear_subspace(x):
+                # "x in linear_subspace" does not work, due to absence
+                # of coercion maps as of Trac ticket #10513.
+                try:
+                    _ = linear_subspace(x)
+                    return False
+                except (TypeError, ValueError):
+                    return True
 
         irreducible = list(self.rays())  # these are irreducible for sure
         gens = list(self.semigroup_generators())

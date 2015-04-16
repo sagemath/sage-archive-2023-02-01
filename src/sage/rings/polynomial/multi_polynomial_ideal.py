@@ -4242,7 +4242,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: P = PolynomialRing(GF(127), 10, 'x')
             sage: I = sage.rings.ideal.Katsura(P)
             sage: I.random_element(degree=3)
-            7*x0^2*x1 + 14*x1^3 + 57*x0*x1*x2 - 32*x1^2*x2 - ... + 49*x4 + 48*x5 - 40*x7 - 6*x8
+            -25*x0^2*x1 + 14*x1^3 + 57*x0*x1*x2 + ... + 19*x7*x9 + 40*x8*x9 + 49*x1
 
         We show that the default method does not sample uniformly at random from the ideal::
 
@@ -4258,7 +4258,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: P.<x,y> = QQ[]
             sage: I = P.ideal([x^2,y^2])
             sage: I.random_element(degree=2)
-            52*x^2 - 8/3*y^2
+            -x^2
 
         """
         if compute_gb:

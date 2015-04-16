@@ -10,7 +10,6 @@ The symbolic ring
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 
 #################################################################

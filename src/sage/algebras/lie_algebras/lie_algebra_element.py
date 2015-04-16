@@ -159,17 +159,14 @@ class LieAlgebraElementWrapper(ElementWrapper):
         """
         Check equality.
 
-        .. TODO::
-
-            The doctest is not legit, as the elements it acts on are not
-            instances of LieAlgebraElementWrapper. It should be moved
-            somewhere and we need a real test.
-
         EXAMPLES::
 
             sage: L = lie_algebras.sl(QQ, 2, representation='matrix')
             sage: L.bracket(L.gen(0), L.gen(1)) == -L.bracket(L.gen(1), L.gen(0))
             True
+
+        The next doctests show similar behavior, although on elements of
+        other classes::
 
             sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3)
             sage: L.bracket(L.gen(0), L.gen(1)) == -L.bracket(L.gen(1), L.gen(0))
@@ -187,16 +184,6 @@ class LieAlgebraElementWrapper(ElementWrapper):
         """
         Check non-equality.
 
-        .. TODO::
-
-            The doctest is not legit, as the elements it acts on are not
-            instances of LieAlgebraElementWrapper. It should be moved
-            somewhere and we need a real test.
-
-        .. TODO::
-
-            The doctest fails, although not on this class's fault.
-
         EXAMPLES::
 
             sage: L = lie_algebras.sl(QQ, 2, representation='matrix')
@@ -206,6 +193,9 @@ class LieAlgebraElementWrapper(ElementWrapper):
             True
             sage: L.zero() != 0
             False
+
+        The next doctests show similar behavior, although on elements of
+        other classes::
 
             sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3)
             sage: L.bracket(L.gen(0), L.gen(1)) != -L.bracket(L.gen(1), L.gen(0))

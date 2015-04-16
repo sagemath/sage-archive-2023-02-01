@@ -83,8 +83,6 @@ class SemisimpleAlgebras(Category_over_base_ring):
         R = self.base_ring()
         return [Algebras(R)]
 
-    # TODO: trivial implementations for semisimple_quotient
-
     class ParentMethods:
 
         def radical_basis(self, **keywords):

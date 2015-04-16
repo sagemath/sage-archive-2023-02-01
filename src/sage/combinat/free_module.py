@@ -2084,46 +2084,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             d = dict( (key, coeff) for key, coeff in d.iteritems() if coeff)
         return self.element_class( self, d )
 
-    def echelon_form(self, elements, base_ring=None):
-        r"""
-        Compute the echelon form of the given elements.
-
-        INPUT:
-
-        - ``elements`` - a list of elements of ``self``.
-
-        - ``base_ring`` - ring (default: ``None``): compute the echelon
-          form over the given ring; if ``base_ring`` is ``None``, then uses
-          the base ring of ``self``.
-
-        OUTPUT:
-
-        - list of elements of ``self``
-
-        EXAMPLES::
-
-            sage: F = CombinatorialFreeModule(ZZ, [1,2,3,4])
-            sage: B = F.basis()
-            sage: elements = [B[1]-17*B[2]+6*B[3], B[1]-17*B[2]+B[4]]
-            sage: F.echelon_form(elements)
-            [B[1] - 17*B[2] + B[4], 6*B[3] - B[4]]
-            sage: F.echelon_form(elements, base_ring=QQ)
-            [B[1] - 17*B[2] + B[4], B[3] - 1/6*B[4]]
-
-        ::
-
-            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
-            sage: a,b,c = F.basis()
-            sage: F.echelon_form([8*a+b+10*c, -3*a+b-c, a-b-c])
-            [B['a'] + B['c'], B['b'] + 2*B['c']]
-        """
-        from sage.matrix.constructor import matrix
-        if base_ring is None:
-            base_ring = self.base_ring()
-        mat = matrix(base_ring, map(vector,elements))
-        mat.echelonize()
-        return [self.from_vector(vec) for vec in mat if vec != 0]
-
 class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         """
         Tensor Product of Free Modules

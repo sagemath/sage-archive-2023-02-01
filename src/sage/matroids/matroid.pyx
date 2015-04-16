@@ -70,6 +70,8 @@ additional functionality (e.g. linear extensions).
     - :meth:`coflats() <sage.matroids.matroid.Matroid.coflats>`
     - :meth:`hyperplanes() <sage.matroids.matroid.Matroid.hyperplanes>`
     - :meth:`f_vector() <sage.matroids.matroid.Matroid.f_vector>`
+    - :meth:`broken_circuits() <sage.matroids.matroid.Matroid.broken_circuits>`
+    - :meth:`no_broken_circuits_sets() <sage.matroids.matroid.Matroid.no_broken_circuits_sets>`
 
 - Comparison
     - :meth:`is_isomorphic() <sage.matroids.matroid.Matroid.is_isomorphic>`
@@ -117,6 +119,9 @@ additional functionality (e.g. linear extensions).
 - Visualization
     - :meth:`show() <sage.matroids.matroid.Matroid.show>`
     - :meth:`plot() <sage.matroids.matroid.Matroid.plot>`
+
+- Misc
+    - :meth:`broken_circuit_complex() <sage.matroids.matroid.Matroid.broken_circuit_complex>`
 
 In addition to these, all methods provided by
 :class:`SageObject <sage.structure.sage_object.SageObject>` are available,
@@ -2714,6 +2719,21 @@ cdef class Matroid(SageObject):
         """
         return self.dual().flats(r)
 
+    def lattice_of_flats(self):
+        """
+        Return the lattice of flats of the matroid.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.lattice_of_flats()
+            Finite lattice containing 16 elements
+        """
+        from sage.combinat.posets.lattices import LatticePoset
+        F = [X for i in range(self.rank() + 1)
+             for X in self.flats(i)]
+        return LatticePoset((F, lambda x, y: x < y))
+
     cpdef hyperplanes(self):
         """
         Return the set of hyperplanes of the matroid.
@@ -2763,6 +2783,88 @@ cdef class Matroid(SageObject):
             flags = self._extend_flags(flags)
             f_vec.append(len(flags))
         return f_vec
+
+    cpdef broken_circuits(self, ordering=None):
+        r"""
+        Return the list of broken circuits of ``self``.
+
+        A *broken circuit* `B` for is a subset of the ground set under
+        some total ordering `<` such that `B \cup \{ u \}` is a circuit
+        and `u < b` for all `b \in B`.
+
+        INPUT:
+
+        - ``ordering`` -- a total ordering of the groundset given as a list
+
+        EXAMPLES::
+
+            sage: M = Matroid(circuits=[[1,2,3], [3,4,5], [1,2,4,5]])
+            sage: M.broken_circuits()
+            frozenset({frozenset({2, 3}), frozenset({4, 5}), frozenset({2, 4, 5})})
+            sage: M.broken_circuits([5,4,3,2,1])
+            frozenset({frozenset({1, 2}), frozenset({3, 4}), frozenset({1, 2, 4})})
+
+        ::
+
+            sage: M = Matroid(circuits=[[1,2,3], [1,4,5], [2,3,4,5]])
+            sage: M.broken_circuits([5,4,3,2,1])
+            frozenset({frozenset({1, 2}), frozenset({1, 4}), frozenset({2, 3, 4})})
+        """
+        if ordering is None:
+            ordering = sorted(self.groundset())
+        else:
+            orderset = frozenset(ordering)
+            if len(orderset) != len(self.groundset()) or orderset != self.groundset():
+                raise ValueError("not an ordering of the ground set")
+            ordering = list(ordering)
+        ret = set()
+        for C in self.circuits():
+            for k in ordering:
+                if k in C:
+                    ret.add(C.difference([k]))
+                    break
+        return frozenset(ret)
+
+    cpdef no_broken_circuits_sets(self, ordering=None):
+        r"""
+        Return the no broken circuits (NBC) sets of ``self``.
+
+        An NBC set is a subset `A` of the ground set under some total
+        ordering `<` such that `A` contains no broken circuit.
+
+        INPUT:
+
+        - ``ordering`` -- a total ordering of the groundset given as a list
+
+        EXAMPLES::
+
+            sage: M = Matroid(circuits=[[1,2,3], [3,4,5], [1,2,4,5]])
+            sage: SimplicialComplex(M.no_broken_circuits_sets())
+            Simplicial complex with vertex set (1, 2, 3, 4, 5)
+             and facets {(1, 3, 4), (1, 3, 5), (1, 2, 5), (1, 2, 4)}
+            sage: SimplicialComplex(M.no_broken_circuits_sets([5,4,3,2,1]))
+            Simplicial complex with vertex set (1, 2, 3, 4, 5)
+             and facets {(1, 4, 5), (2, 3, 5), (1, 3, 5), (2, 4, 5)}
+
+        ::
+
+            sage: M = Matroid(circuits=[[1,2,3], [1,4,5], [2,3,4,5]])
+            sage: SimplicialComplex(M.no_broken_circuits_sets([5,4,3,2,1]))
+            Simplicial complex with vertex set (1, 2, 3, 4, 5)
+             and facets {(2, 3, 5), (1, 3, 5), (2, 4, 5), (3, 4, 5)}
+        """
+        ret = []
+        BC = self.broken_circuits(ordering)
+        for r in range(self.rank() + 1):
+            for I in self.independent_r_sets(r):
+                add = True
+                for b in BC:
+                    if b.issubset(I):
+                        add = False
+                        break
+                if add:
+                    ret.append(I)
+        return ret
 
     # isomorphism and equality
 
@@ -5040,4 +5142,33 @@ cdef class Matroid(SageObject):
             if matroids_plot_helpers.posdict_is_sane(self,pos_dict) ==True:
                 self._cached_info={'plot_positions':pos_dict,'lineorders':lineorders}
         return
+
+    def broken_circuit_complex(self, ordering=None):
+        r"""
+        Return the broken circuit complex of ``self``.
+
+        The broken circuit complex of a matroid with a total ordering `<`
+        on the ground set is obtained from the
+        :meth:`NBC sets <no_broken_circuits_sets>` under subset inclusion.
+
+        INPUT:
+
+        - ``ordering`` -- a total ordering of the groundset given as a list
+
+        OUTPUT:
+
+        A simplicial complex of the NBC sets under inclusion.
+
+        EXAMPLES::
+
+            sage: M = Matroid(circuits=[[1,2,3], [3,4,5], [1,2,4,5]])
+            sage: M.broken_circuit_complex()
+            Simplicial complex with vertex set (1, 2, 3, 4, 5)
+             and facets {(1, 3, 4), (1, 3, 5), (1, 2, 5), (1, 2, 4)}
+            sage: M.broken_circuit_complex([5,4,3,2,1])
+            Simplicial complex with vertex set (1, 2, 3, 4, 5)
+             and facets {(1, 4, 5), (2, 3, 5), (1, 3, 5), (2, 4, 5)}
+        """
+        from sage.homology.simplicial_complex import SimplicialComplex
+        return SimplicialComplex(self.no_broken_circuits_sets(ordering))
 

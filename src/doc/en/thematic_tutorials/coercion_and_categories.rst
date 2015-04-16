@@ -5,6 +5,10 @@
 =================================================
 How to implement new algebraic structures in Sage
 =================================================
+
+.. contents::
+   :depth: 3
+
 --------------------------------------
 Sage's category and coercion framework
 --------------------------------------
@@ -15,12 +19,7 @@ Sage's category and coercion framework
     <simon.king@uni-jena.de>
     © 2011/2013
 
-.. toctree::
-   :maxdepth: 2
-
 .. linkall
-
-
 
 The aim of this tutorial is to explain how one can benefit from Sage's
 category framework and coercion model when implementing new algebraic
@@ -105,27 +104,84 @@ it makes sense to build on top of the base class
 This base class provides a lot more methods than a general parent::
 
     sage: [p for p in dir(Field) if p not in dir(Parent)]
-    ['__div__', '__fraction_field', '__ideal_monoid', '__iter__',
-     '__pow__', '__rdiv__', '__rpow__', '__rxor__', '__xor__',
-     '_an_element', '_an_element_c', '_an_element_impl', '_coerce_',
-     '_coerce_c', '_coerce_impl', '_coerce_self', '_coerce_try',
-     '_default_category', '_gens', '_gens_dict',
-     '_has_coerce_map_from', '_ideal_class_', '_latex_names', '_list',
-     '_one_element', '_pseudo_fraction_field',
-     '_random_nonzero_element', '_richcmp', '_unit_ideal',
-     '_zero_element', '_zero_ideal', 'algebraic_closure',
-     'base_extend', 'cardinality', 'class_group', 'coerce_map_from_c',
-     'coerce_map_from_impl', 'content', 'divides', 'extension',
-     'fraction_field', 'frobenius_endomorphism', 'gcd', 'gen', 'gens',
-     'get_action_c', 'get_action_impl', 'has_coerce_map_from_c',
-     'has_coerce_map_from_impl', 'ideal', 'ideal_monoid',
-     'integral_closure', 'is_commutative', 'is_field', 'is_finite',
-     'is_integral_domain', 'is_integrally_closed', 'is_noetherian',
-     'is_prime_field', 'is_ring', 'is_subring',
-     'krull_dimension', 'list', 'ngens', 'one', 'one_element',
-     'order', 'prime_subfield', 'principal_ideal', 'quo', 'quotient',
-     'quotient_ring', 'random_element', 'unit_ideal', 'zero',
-     'zero_element', 'zero_ideal', 'zeta', 'zeta_order']
+    ['__div__',
+     '__fraction_field',
+     '__ideal_monoid',
+     '__iter__',
+     '__pow__',
+     '__rdiv__',
+     '__rpow__',
+     '__rxor__',
+     '__xor__',
+     '_an_element',
+     '_an_element_c',
+     '_an_element_impl',
+     '_coerce_',
+     '_coerce_c',
+     '_coerce_impl',
+     '_coerce_self',
+     '_coerce_try',
+     '_default_category',
+     '_gens',
+     '_gens_dict',
+     '_has_coerce_map_from',
+     '_ideal_class_',
+     '_latex_names',
+     '_list',
+     '_one_element',
+     '_pseudo_fraction_field',
+     '_random_nonzero_element',
+     '_richcmp',
+     '_unit_ideal',
+     '_zero_element',
+     '_zero_ideal',
+     'algebraic_closure',
+     'base_extend',
+     'cardinality',
+     'class_group',
+     'coerce_map_from_c',
+     'coerce_map_from_impl',
+     'content',
+     'divides',
+     'epsilon',
+     'extension',
+     'fraction_field',
+     'frobenius_endomorphism',
+     'gcd',
+     'gen',
+     'gens',
+     'get_action_c',
+     'get_action_impl',
+     'has_coerce_map_from_c',
+     'has_coerce_map_from_impl',
+     'ideal',
+     'ideal_monoid',
+     'integral_closure',
+     'is_commutative',
+     'is_field',
+     'is_finite',
+     'is_integral_domain',
+     'is_integrally_closed',
+     'is_noetherian',
+     'is_prime_field',
+     'is_ring',
+     'is_subring',
+     'krull_dimension',
+     'list',
+     'ngens',
+     'one',
+     'order',
+     'prime_subfield',
+     'principal_ideal',
+     'quo',
+     'quotient',
+     'quotient_ring',
+     'random_element',
+     'unit_ideal',
+     'zero',
+     'zero_ideal',
+     'zeta',
+     'zeta_order']
 
 The following is a very basic implementation of fraction fields, that needs to
 be complemented later.
@@ -282,7 +338,7 @@ This gives rise to the following code::
     ....:     def __init__(self, parent,n,d=None):
     ....:         B = parent.base()
     ....:         if d is None:
-    ....:             d = B.one_element()
+    ....:             d = B.one()
     ....:         if n not in B or d not in B:
     ....:             raise ValueError("Numerator and denominator must be elements of %s"%B)
     ....:         # Numerator and denominator should not just be "in" B,
@@ -551,7 +607,7 @@ does not work, yet::
 .. end of output
 
 The reason is that the ``sum`` method starts with the return value of
-``P.zero_element()``, which defaults to ``P(0)``\---but the conversion of
+``P.zero()``, which defaults to ``P(0)``\---but the conversion of
 integers into ``P`` is not implemented, yet.
 
 Implementing the category framework for the elements
@@ -584,9 +640,9 @@ This little change provides several benefits:
       sage: P(1), P(2,3)
       ((1):(1), (2):(3))
 
-- There is a method ``zero_element`` returning the expected result::
+- There is a method ``zero`` returning the expected result::
 
-      sage: P.zero_element()
+      sage: P.zero()
       (0):(1)
 
 - The ``sum`` method mentioned above suddenly works::
@@ -637,9 +693,9 @@ In particular, these elements are instances of that new dynamic class::
     them as instances of ``self.__class__`` in the arithmetic methods of
     ``MyElement``.
 
-``P.zero_element()`` defaults to returning ``P(0)`` and thus returns an
+``P.zero()`` defaults to returning ``P(0)`` and thus returns an
 instance of ``P.element_class``. Since ``P.sum([...])`` starts the summation with
-``P.zero_element()`` and the class of the sum only depends on the first
+``P.zero()`` and the class of the sum only depends on the first
 summand, by our implementation, we have::
 
     sage: type(a)
@@ -1487,6 +1543,7 @@ Here are the tests that form the test suite of quotient fields::
      '_test_elements_eq_transitive',
      '_test_elements_neq',
      '_test_euclidean_degree',
+     '_test_gcd_vs_xgcd',
      '_test_one', '_test_prod',
      '_test_quo_rem',
      '_test_some_elements',
@@ -1538,6 +1595,7 @@ Let us see what tests are actually performed::
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
+    running ._test_gcd_vs_xgcd() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass
@@ -1706,6 +1764,7 @@ interesting.
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
+    running ._test_gcd_vs_xgcd() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass
@@ -1747,7 +1806,7 @@ Appendix: The complete code
             B = parent.base()
             if d is None:
                 # The default denominator is one
-                d = B.one_element()
+                d = B.one()
             # verify that both numerator and denominator belong to the base
             if n not in B or d not in B:
                 raise ValueError("Numerator and denominator must be elements of %s"%B)

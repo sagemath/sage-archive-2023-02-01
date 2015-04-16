@@ -296,10 +296,10 @@ from random import randint, randrange, sample, choice
 
 import sage.structure.parent_base
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import FieldElement, Element
+from sage.structure.element import FieldElement, Element, parent
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 
 from sage.categories.morphism import SetMorphism
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
@@ -526,10 +526,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             return self.from_gap(arg)
 
         error_str = "No coercion to the universal cyclotomic field found for the input %s"%str(arg)
-        if hasattr(arg,"parent"):
-            error_str ="%s with parent %s."%(error_str,str(arg.parent()))
-        else:
-            error_str ="%s."%(error_str)
+        error_str += " with parent %s."%(parent(arg),)
         raise TypeError(error_str)
 
     def _coerce_map_from_(self, other):
@@ -1053,7 +1050,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         from sage.rings.number_field.number_field import NumberField_cyclotomic
         if not self._has_standard_embedding:
             raise TypeError("This method can only be used if %s uses the standard embedding."%self)
-        if not hasattr(elem,'parent') or not isinstance(elem.parent(), NumberField_cyclotomic):
+        if not isinstance(parent(elem), NumberField_cyclotomic):
             raise TypeError("The given data (%s) is not a cyclotomic field element."%elem)
         n = elem.parent()._n()
         CF = CyclotomicField(n)
@@ -1570,7 +1567,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             elif self.is_rational():
                 return self.parent()._from_dict({ (1,0) : self.value._monomial_coefficients[(1,0)]**k }, remove_zeros=False)
             elif len(self.value._monomial_coefficients) == 1:
-                mon,coeff = self.value._monomial_coefficients.iteritems().next()
+                mon,coeff = next(self.value._monomial_coefficients.iteritems())
                 n = self.field_order()
                 return self.parent()._from_dict(push_down_cython(n,dict_linear_combination([ (ZumbroichDecomposition(n, k*mon[1] % n), coeff**k,) ])), remove_zeros=False)
             elif k < 0:
@@ -1596,10 +1593,10 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
                 2*E(3)
             """
             # With the current design, the coercion model does not have
-            # enough information to detect apriori that this method only
+            # enough information to detect a priori that this method only
             # accepts scalars; so it tries on some elements(), and we need
             # to make sure to report an error.
-            if hasattr(scalar, 'parent') and scalar.parent() != self.base_ring():
+            if isinstance(scalar, Element) and scalar.parent() is not self.base_ring():
                 # Temporary needed by coercion (see Polynomial/FractionField tests).
                 if self.base_ring().has_coerce_map_from(scalar.parent()):
                     scalar = self.base_ring()(scalar)
@@ -1899,7 +1896,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
                 3
             """
             if bool(self.value._monomial_coefficients):
-                return self.value._monomial_coefficients.iterkeys().next()[0]
+                return next(self.value._monomial_coefficients.iterkeys())[0]
             else:
                 return 1
 

@@ -220,7 +220,7 @@ from sage.combinat.partition import _Partitions, Partitions
 import sage.libs.symmetrica.all as symmetrica  # used in eval()
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
-from sage.misc.misc import prod, uniq
+from sage.misc.all import prod, uniq
 from copy import copy
 from functools import reduce
 

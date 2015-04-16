@@ -89,16 +89,16 @@ a device which runs through a bunch of objects, returning one at each
 call to the ``next`` method. Iterators are built using parentheses::
 
     sage: it = (binomial(8, i) for i in range(9))
-    sage: it.next()
+    sage: next(it)
     1
 
 ::
 
-    sage: it.next()
+    sage: next(it)
     8
-    sage: it.next()
+    sage: next(it)
     28
-    sage: it.next()
+    sage: next(it)
     56
 
 You can get the list of the results that are not yet *consumed*::
@@ -108,7 +108,7 @@ You can get the list of the results that are not yet *consumed*::
 
 Asking for more elements triggers a ``StopIteration`` exception::
 
-    sage: it.next()
+    sage: next(it)
     Traceback (most recent call last):
     ...
     StopIteration
@@ -189,7 +189,7 @@ should hold::
 An alternative way to achieve this is::
 
     sage: counter_examples = (p for p in range(1000) if is_prime(p) and not is_prime(mersenne(p)))
-    sage: counter_examples.next()
+    sage: next(counter_examples)
     11
 
 .. TOPIC:: Exercises
@@ -373,5 +373,5 @@ Infinite loops can nevertheless be very useful::
 
 
     sage: counter_examples = (p for p in Primes() if not is_prime(mersenne(p)))
-    sage: counter_examples.next()
+    sage: next(counter_examples)
     11

@@ -33,6 +33,7 @@ Miscellaneous
    sage/misc/unknown
    sage/misc/func_persist
    sage/misc/sage_eval
+   sage/misc/sage_input
    sage/misc/random_testing
    sage/misc/sageinspect
    sage/misc/sagedoc
@@ -49,6 +50,8 @@ Miscellaneous
    sage/misc/messaging
    sage/misc/viewer
    sage/misc/session
+   sage/misc/defaults
+   sage/misc/superseded
 
 
 Profiling and Performance Testing

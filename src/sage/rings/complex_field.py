@@ -344,7 +344,7 @@ class ComplexField_class(field.Field):
             Complex Field with 53 bits of precision
         """
         if x is None:
-            return self.zero_element()
+            return self.zero()
         # we leave this here to handle the imaginary parameter
         if im is not None:
             x = x, im

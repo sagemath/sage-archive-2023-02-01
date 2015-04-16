@@ -647,8 +647,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return True
 
-    @cached_method
-    def is_integral_domain(self, proof = True):
+    def is_integral_domain(self, proof=None):
         """
         Return ``True`` if and only if the order of ``self`` is prime.
 
@@ -658,8 +657,16 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             True
             sage: Integers(389^2).is_integral_domain()
             False
+
+        TESTS:
+
+        Check that :trac:`17453` is fixed::
+
+            sage: R = Zmod(5)
+            sage: R in IntegralDomains()
+            True
         """
-        return self.order().is_prime()
+        return self.is_field(proof)
 
     def is_unique_factorization_domain(self, proof=None):
         """
@@ -1159,14 +1166,9 @@ In the latter case, please inform the developers.""".format(self.order()))
         except TypeError:
             if sage.interfaces.gap.is_GapElement(x):
                 from sage.interfaces.gap import intmod_gap_to_sage
-                try:
-                    y = intmod_gap_to_sage(x)
-                    return self.coerce(y)
-                except (ValueError, IndexError, TypeError) as msg:
-                    raise TypeError("{}\nerror coercing to finite field".format(msg))
-
+                y = intmod_gap_to_sage(x)
+                return integer_mod.IntegerMod(self, y)
             raise # Continue up with the original TypeError
-
 
     def __iter__(self):
         """

@@ -476,7 +476,7 @@ class Composition(CombinatorialObject, Element):
             while True:
                 if i == 0:
                     try:
-                        i = I_iter.next()
+                        i = next(I_iter)
                     except StopIteration:
                         factors.append(Compositions()(current_factor))
                         return (tuple(factors), tuple(signs))
@@ -608,7 +608,7 @@ class Composition(CombinatorialObject, Element):
             while True:
                 if i == 0:
                     try:
-                        i = I_iter.next()
+                        i = next(I_iter)
                     except StopIteration:
                         return Compositions()(factors)
                 if current_factor_size + i <= j:
@@ -728,7 +728,7 @@ class Composition(CombinatorialObject, Element):
             while True:
                 if i == 0:
                     try:
-                        i = I_iter.next()
+                        i = next(I_iter)
                     except StopIteration:
                         factors.append(current_part)
                         return Compositions()(factors)
@@ -1396,10 +1396,10 @@ class Compositions(Parent, UniqueRepresentation):
         sage: [4,1] in Compositions(5, inner=[2,1], max_slope = 0)
         True
 
-    Note that the given constraints should be compatible::
+    An example with incompatible constraints::
 
         sage: [4,2] in Compositions(6, inner=[2,2], min_part=3)
-        True
+        False
 
     The options ``length``, ``min_length``, and ``max_length`` can be used
     to set length constraints on the compositions. For example, the
@@ -1838,7 +1838,7 @@ class Compositions_all(Compositions):
 
             sage: C = Compositions()
             sage: it = C.__iter__()
-            sage: [it.next() for i in range(10)]
+            sage: [next(it) for i in range(10)]
             [[], [1], [1, 1], [2], [1, 1, 1], [1, 2], [2, 1], [3], [1, 1, 1, 1], [1, 1, 2]]
         """
         n = 0

@@ -18,9 +18,7 @@ AUTHOR:
 
 - Simon King (2011-10): Choice of categories for polynomial rings.
 
-EXAMPLES:
-
-Creating a polynomial ring injects the variable into the interpreter namespace::
+EXAMPLES::
 
     sage: z = QQ['z'].0
     sage: (z^3 + z - 1)^3
@@ -38,8 +36,8 @@ Saving and loading of polynomial rings works::
     Sparse Univariate Polynomial Ring in y over Integer Ring
 
 Rings with different variable names are not equal; in fact,
-by trac ticket #9944, poynomial rings are equal if and only
-if they are identic (which should be the  case for all parent
+by :trac:`9944`, polynomial rings are equal if and only
+if they are identical (which should be the  case for all parent
 structures in Sage)::
 
     sage: QQ['y'] != QQ['x']
@@ -62,7 +60,7 @@ We create a polynomial ring over a quaternion algebra::
     sage: g * f
     w^2 + (i + j)*w - k
 
-Trac ticket #9944 introduced some changes related with
+:trac:`9944` introduced some changes related with
 coercion. Previously, a dense and a sparse polynomial ring with the
 same variable name over the same base ring evaluated equal, but of
 course they were not identical.Coercion maps are cached - but if a
@@ -379,7 +377,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         TESTS:
 
-        This shows that the issue at trac #4106 is fixed::
+        This shows that the issue at :trac:`4106` is fixed::
 
             sage: x = var('x')
             sage: R = IntegerModRing(4)
@@ -388,7 +386,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             x
 
         Throw a TypeError if any of the coefficients cannot be coerced
-        into the base ring (trac #6777)::
+        into the base ring (:trac:`6777`)::
 
             sage: RealField(300)['x']( [ 1, ComplexField(300).gen(), 0 ])
             Traceback (most recent call last):
@@ -559,11 +557,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         - a multivariate polynomial ring P such that self's variable name
           is among the variable names of P, and the ring obtained by
           removing that variable is different from the base ring of self,
-          but coerces into it. (see trac ticket #813 for a discussion of this)
+          but coerces into it. (see :trac:`813` for a discussion of this)
 
         Caveat: There is no coercion from a dense into a sparse
         polynomial ring. So, when adding a dense and a sparse
-        polynomial, the result will be dense. See trac ticket #9944.
+        polynomial, the result will be dense. See :trac:`9944`.
 
         EXAMPLES::
 
@@ -592,7 +590,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                       To:   Univariate Polynomial Ring in x over Rational Field
 
         Here we test against the change in the coercions introduced
-        in trac ticket #9944::
+        in :trac:`9944`::
 
             sage: R.<x> = PolynomialRing(QQ, sparse=True)
             sage: S.<x> = QQ[]
@@ -601,7 +599,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: (S.0+R.0).parent()
             Univariate Polynomial Ring in x over Rational Field
 
-        Here we test a feature that was implemented in trac ticket #813::
+        Here we test a feature that was implemented in :trac:`813`::
 
             sage: P = QQ['x','y']
             sage: Q = Frac(QQ['x'])['y']
@@ -785,7 +783,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             # of the polynomial ring canonically coerce into codomain.
             # Since poly rings are free, any image of the gen
             # determines a homomorphism
-            codomain.coerce(self.base_ring().one_element())
+            codomain.coerce(self.base_ring().one())
         except TypeError:
             return False
         return True
@@ -1229,7 +1227,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Refer to monics() for full documentation.
         """
         base = self.base_ring()
-        for coeffs in sage.misc.mrange.xmrange_iter([[base.one_element()]]+[base]*of_degree):
+        for coeffs in sage.misc.mrange.xmrange_iter([[base.one()]]+[base]*of_degree):
             # Each iteration returns a *new* list!
             # safe to mutate the return
             coeffs.reverse()
@@ -1248,7 +1246,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Refer to polynomials() for full documentation.
         """
         base = self.base_ring()
-        base0 = base.zero_element()
+        base0 = base.zero()
         for leading_coeff in base:
             if leading_coeff != base0:
                 for lt1 in sage.misc.mrange.xmrange_iter([base]*(of_degree)):
@@ -1575,7 +1573,8 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: type(R.gen())
             <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
 
-            #Demonstrate that Trac #8762 is fixed
+        Demonstrate that :trac:`8762` is fixed::
+
             sage: R.<x> = PolynomialRing(GF(next_prime(10^20)), sparse=True)
             sage: x^(10^20) # this should be fast
             x^100000000000000000000

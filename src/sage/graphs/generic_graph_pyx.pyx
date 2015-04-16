@@ -17,8 +17,8 @@ AUTHORS:
 
 include "sage/ext/interrupt.pxi"
 include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
-include "sage/misc/binary_matrix.pxi"
+from sage.ext.memory cimport check_allocarray, sage_malloc, sage_free
+include "sage/data_structures/binary_matrix.pxi"
 
 # import from Python standard library
 from sage.misc.prandom import random
@@ -125,9 +125,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     if n == 0:
         return {}
 
-    cdef double* pos = <double*>sage_malloc(n * dim * sizeof(double))
-    if pos is NULL:
-            raise MemoryError, "error allocating scratch space for spring layout"
+    cdef double* pos = <double*>check_allocarray(n, dim * sizeof(double))
 
     # convert or create the starting positions as a flat list of doubles
     if vpos is None:  # set the initial positions randomly in 1x1 box
@@ -142,10 +140,12 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
 
     # here we construct a lexicographically ordered list of all edges
     # where elist[2*i], elist[2*i+1] represents the i-th edge
-    cdef int* elist = <int*>sage_malloc( (2 * len(G.edges()) + 2) * sizeof(int)  )
-    if elist is NULL:
+    cdef int* elist
+    try:
+        elist = <int*>check_allocarray(2 * len(G.edges()) + 2, sizeof(int))
+    except MemoryError:
         sage_free(pos)
-        raise MemoryError, "error allocating scratch space for spring layout"
+        raise
 
     cdef int cur_edge = 0
 
@@ -167,11 +167,12 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     cdef double* cen
     cdef double r, r2, max_r2 = 0
     if rescale:
-        cen = <double *>sage_malloc(sizeof(double) * dim)
-        if cen is NULL:
+        try:
+            cen = <double *>check_allocarray(dim, sizeof(double))
+        except MemoryError:
             sage_free(elist)
             sage_free(pos)
-            raise MemoryError, "error allocating scratch space for spring layout"
+            raise
         for x from 0 <= x < dim: cen[x] = 0
         for i from 0 <= i < n:
             for x from 0 <= x < dim:
@@ -245,9 +246,7 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
     cdef double* disp_j
     cdef double* delta
 
-    cdef double* disp = <double*>sage_malloc((n+1) * dim * sizeof(double))
-    if disp is NULL:
-            raise MemoryError, "error allocating scratch space for spring layout"
+    cdef double* disp = <double*>check_allocarray(n+1, dim * sizeof(double))
     delta = &disp[n*dim]
 
     if height:
@@ -873,8 +872,8 @@ def _test_vectors_equal_inferior():
     """
     from sage.misc.prandom import randint
     n = randint(500, 10**3)
-    cdef int *u = <int *>sage_malloc(n * sizeof(int))
-    cdef int *v = <int *>sage_malloc(n * sizeof(int))
+    cdef int *u = <int *>check_allocarray(n, sizeof(int))
+    cdef int *v = <int *>check_allocarray(n, sizeof(int))
     cdef int i
     # equal vectors: u = v
     for 0 <= i < n:
@@ -1092,11 +1091,11 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
     cdef int m = G.num_edges()
 
     #Initialize the path.
-    cdef int *path = <int *>sage_malloc(n * sizeof(int))
+    cdef int *path = <int *>check_allocarray(n, sizeof(int))
     memset(path, -1, n * sizeof(int))
 
     #Initialize the membership array
-    cdef bint *member = <bint *>sage_malloc(n * sizeof(int))
+    cdef bint *member = <bint *>check_allocarray(n, sizeof(int))
     memset(member, 0, n * sizeof(int))
 
     # static copy of the graph for more efficient operations
@@ -1139,14 +1138,14 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
     cdef int longest = length
 
     #Initialize a path to contain the longest path
-    cdef int *longest_path = <int *>sage_malloc(n * sizeof(int))
+    cdef int *longest_path = <int *>check_allocarray(n, sizeof(int))
     memset(longest_path, -1, n * sizeof(int))
     i = 0
     for 0 <= i < length:
         longest_path[ i ] = path[ i ]
 
     #Initialize a temporary path for flipping
-    cdef int *temp_path = <int *>sage_malloc(n * sizeof(int))
+    cdef int *temp_path = <int *>check_allocarray(n, sizeof(int))
     memset(temp_path, -1, n * sizeof(int))
 
     cdef bint longer = False
@@ -1315,14 +1314,12 @@ def transitive_reduction_acyclic(G):
     # A point is reachable from u if it is one of its neighbours, or if it is
     # reachable from one of its neighbours.
     binary_matrix_init(closure, n, n)
-    binary_matrix_fill(closure, 0)
     for uu in linear_extension:
         u = v_to_int[uu]
         for vv in G.neighbors_out(uu):
             v = v_to_int[vv]
             binary_matrix_set1(closure, u, v)
-            for i in range(closure.width):
-                closure.rows[u][i] |= closure.rows[v][i]
+            bitset_or(closure.rows[u], closure.rows[u], closure.rows[v])
 
     # Build the transitive reduction of G
     #
@@ -1334,8 +1331,7 @@ def transitive_reduction_acyclic(G):
         u = v_to_int[uu]
         for vv in G.neighbors_out(uu):
             v = v_to_int[vv]
-            for i in range(closure.width):
-                closure.rows[u][i] &= ~closure.rows[v][i]
+            bitset_difference(closure.rows[u], closure.rows[u], closure.rows[v])
         for vv in G.neighbors_out(uu):
             v = v_to_int[vv]
             if binary_matrix_get(closure, u, v):

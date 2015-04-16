@@ -1456,6 +1456,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
               To:   Finite Field of size 5
             sage: cm.bin_op(GF(5)['x'].gen(), 7, operator.div).parent()
             Univariate Polynomial Ring in x over Finite Field of size 5
+
+        Bug :trac:`18221`::
+
+            sage: F.<x> = FreeAlgebra(QQ)
+            sage: x / 2
+            1/2*x
         """
         #print "looking", R, <int><void *>R, op, S, <int><void *>S
 
@@ -1510,7 +1516,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             right_mul = self.get_action(R, S, mul)
             if right_mul and not right_mul.is_left():
                 try:
-                    return ~right_mul
+                    action = ~right_mul
+                    if action.right_domain() != S:
+                        action = PrecomposedAction(action, None,
+                                                   action.right_domain()._internal_coerce_map_from(S))
+                    return action
                 except TypeError: # action may not be invertible
                     self._record_exception()
 

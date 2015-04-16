@@ -1447,7 +1447,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
               From: Integer Ring
               To:   Rational Field
 
-        Bug :trac:`17740`::
+        Check that :trac:`17740` is fixed::
 
             sage: cm.discover_action(GF(5)['x'], ZZ, operator.div)
             Right inverse action by Finite Field of size 5 on Univariate Polynomial Ring in x over Finite Field of size 5
@@ -1457,7 +1457,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.bin_op(GF(5)['x'].gen(), 7, operator.div).parent()
             Univariate Polynomial Ring in x over Finite Field of size 5
 
-        Bug :trac:`18221`::
+        Check that :trac:`18221` is fixed::
 
             sage: F.<x> = FreeAlgebra(QQ)
             sage: x / 2

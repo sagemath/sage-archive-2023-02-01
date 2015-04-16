@@ -118,8 +118,7 @@ class Polyhedron_ZZ(Polyhedron_base):
         """
         return True
 
-    def ehrhart_polynomial(self, dual=None, irrational_primal=None,
-            irrational_all_primal=None, maxdet=None, no_decomposition=None, verbose=False):
+    def ehrhart_polynomial(self, verbose=False, **kwds):
         r"""
         Return the Ehrhart polynomial of this polyhedron.
 
@@ -130,6 +129,12 @@ class Polyhedron_ZZ(Polyhedron_base):
         :wikipedia:`Ehrhart_polynomial`.
 
         INPUT:
+
+        - ``verbose`` - (boolean, default to ``False``) if ``True``, print the
+          whole output of the LattE command.
+
+        The following options are passed to the LattE command, for details you
+        should consult LattE documentation:
 
         - ``dual`` - (boolean) triangulate and signed-decompose in the dual
           space
@@ -145,8 +150,16 @@ class Polyhedron_ZZ(Polyhedron_base):
 
         - ``no_decomposition`` -- (boolean) do not signed-decompose simplicial cones.
 
-        - ``verbose`` - (boolean, default to ``False``) if ``True``, print the
-          whole output of the LattE command.
+        - ``compute_vertex_cones`` -- (string) either 'cdd' or 'lrs' or '4ti2'
+
+        - ``smith_form`` -- (string) either 'ilio' or 'lidia'
+
+        - ``dualization`` -- (string) either 'cdd' or '4ti2'
+
+        - ``triangulation`` - (string) 'cddlib', '4ti2' or 'topcom'
+
+        - ``triangulation_max_height`` - (integer) use a uniform distribution of
+          height from 1 to this number
 
         ALGORITHM:
 
@@ -244,21 +257,15 @@ class Polyhedron_ZZ(Polyhedron_base):
         in_file.write(self.cdd_Hrepresentation())
         in_file.close()
 
-        args = ['count', '--ehrhart-polynomial', '--redundancy-check=none']
-        if dual:
-            args.append('--dual')
-        if irrational_primal:
-            args.append('--irrational-primal')
-        if irrational_all_primal:
-            args.append('--irrational-all-primal')
-        if maxdet is not None:
-            maxdet = int(maxdet)
-            if maxdet < 1:
-                raise ValueError("maxdet must be a positive integer")
-            args.append('--maxdet={}'.format(maxdet))
-        if no_decomposition:
-            args.append('--no-decomposition')
-
+        args = ['count', '--ehrhart-polynomial']
+        if 'redundancy_check' not in kwds:
+            args.append('--redundancy-check=none')
+        for key,value in kwds.iteritems():
+            key = key.replace('_','-')
+            if value is True:
+                args.append('--{}'.format(key))
+            elif value is not False:
+                args.append('--{}={}'.format(key, value))
         args.append('--cdd')
         args.append(in_filename)
 

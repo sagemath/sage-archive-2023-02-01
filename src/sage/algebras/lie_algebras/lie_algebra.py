@@ -57,9 +57,9 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
     r"""
     A Lie algebra `L` over a base ring `R`.
 
-    A Lie algebra is an algebra with a bilinear operation called Lie bracket
-    `[\cdot, \cdot] : L \times L \to L` such that `[x, x] = 0` and
-    the following relation holds:
+    A Lie algebra is an `R`-module `L` with a bilinear operation called
+    Lie bracket `[\cdot, \cdot] : L \times L \to L` such that
+    `[x, x] = 0` and the following relation holds:
 
     .. MATH::
 
@@ -124,7 +124,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         Noncommutative Multivariate Polynomial Ring in e, f, h over Rational Field,
          nc-relations: {f*e: e*f - h, h*f: f*h - 2*f, h*e: e*h + 2*e}
 
-    For convienence, there is are two shorthand notations for computing
+    For convienence, there are two shorthand notations for computing
     Lie backets::
 
         sage: L([h,e])
@@ -384,6 +384,9 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         """
         if isinstance(x, list) and len(x) == 2:
             return self(x[0])._bracket_(self(x[1]))
+
+        if hasattr(self, "module") and x in self.module():
+            return self.from_vector(x)
 
         if x in self.base_ring():
             if x != 0:
@@ -990,7 +993,7 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
 
     def associative_algebra(self):
         """
-        Construct the associative algebra used to construct ``self``.
+        Return the associative algebra used to construct ``self``.
 
         EXAMPLES::
 
@@ -1130,6 +1133,13 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
         def lift(self):
             """
             Lift ``self`` to the universal enveloping algebra.
+
+            .. TODO::
+
+                Something seems off about this method. The universal
+                enveloping algebra of ``self`` does not have to be
+                the algebra from which ``self`` was constructed; it
+                is usually larger.
 
             EXAMPLES::
 

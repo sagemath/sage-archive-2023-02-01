@@ -157,6 +157,12 @@ class LieAlgebraElementWrapper(ElementWrapper):
         """
         Check equality.
 
+        .. TODO::
+
+            The doctest is not legit, as the elements it acts on are not
+            instances of LieAlgebraElementWrapper. It should be moved
+            somewhere and we need a real test.
+
         EXAMPLES::
 
             sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3)
@@ -170,6 +176,16 @@ class LieAlgebraElementWrapper(ElementWrapper):
     def __ne__(self, rhs):
         """
         Check non-equality.
+
+        .. TODO::
+
+            The doctest is not legit, as the elements it acts on are not
+            instances of LieAlgebraElementWrapper. It should be moved
+            somewhere and we need a real test.
+
+        .. TODO::
+
+            The doctest fails, although not on this class's fault.
 
         EXAMPLES::
 

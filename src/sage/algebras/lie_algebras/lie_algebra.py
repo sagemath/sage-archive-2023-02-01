@@ -393,8 +393,8 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
 
     def __getitem__(self, x):
         """
-        If `x` is a pair `(a, b)`, return the Lie bracket `(a, b)`. Otherwise
-        try to return the `x`-th element of ``self``.
+        If `x` is a pair `(a, b)`, return the Lie bracket `[a, b]`.
+        Otherwise try to return the `x`-th element of ``self``.
 
         EXAMPLES::
 

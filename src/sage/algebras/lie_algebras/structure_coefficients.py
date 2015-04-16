@@ -55,9 +55,38 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
     r"""
     A Lie algebra with a set of specified structure coefficients.
 
-    The structure coefficients are specified as a dictionary whose keys are
-    pairs of generators and values are dictionaries of generators mapped
-    to coefficients.
+    The structure coefficients are specified as a dictionary `d` whose
+    keys are pairs of basis indices, and whose values are
+    dictionaries which in turn are indexed by basis indices. The value
+    of `d` at a pair `(u, v)` of basis indices is the dictionary whose
+    `w`-th entry (for `w` a basis index) is the coefficient of `b_w`
+    in the Lie bracket `[b_u, b_v]` (where `b_x` means the basis
+    element with index `x`).
+
+    INPUT:
+
+    - ``R`` -- a ring, to be used as the base ring
+
+    - ``s_coeff`` -- a dictionary, indexed by pairs of basis indices
+      (see below), and whose values are dictionaries which are
+      indexed by (single) basis indices and whose values are elements
+      of `R`
+
+    - ``names`` -- list or tuple of strings
+
+    - ``index_set`` -- list or tuple of hashable and comparable
+      elements
+
+    OUTPUT:
+
+    A Lie algebra over ``R`` which (as an `R`-module) is free with
+    a basis indexed by the elements of ``index_set``. The `i`-th
+    basis element is displayed using the name ``names[i]``.
+    If we let `b_i` denote this `i`-th basis element, then the Lie
+    bracket is given by the requirement that the `b_k`-coefficient
+    of `[b_i, b_j]` is ``s_coeff[(i, j)][k]`` if
+    ``s_coeff[(i, j)]`` exists, otherwise ``-s_coeff[(j, i)][k]``
+    if ``s_coeff[(j, i)]`` exists, otherwise `0`.
 
     EXAMPLES:
 
@@ -125,12 +154,16 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
                 key = (k[1], k[0])
                 vals = tuple((g, -val) for g, val in v if val != 0)
             else:
-                assert k[0] < k[1], "elements {} not ordered".format(k)
+                if not k[0] < k[1]:
+                    if k[0] == k[1] and not all(val = 0 for g, val in v):
+                        raise "elements {} are equal but their bracket is not set to 0".format(k)
+                    if not k[0] <= k[1]:
+                        raise "elements {} are not comparable".format(k)
                 key = tuple(k)
                 vals = tuple((g, val) for g, val in v if val != 0)
 
             if key in sc.keys() and sorted(sc[key]) != sorted(vals):
-                raise ValueError("non-equal brackets")
+                raise ValueError("two distinct values given for one and the same bracket")
 
             if len(vals) > 0:
                 sc[key] = vals

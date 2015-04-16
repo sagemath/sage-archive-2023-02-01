@@ -144,6 +144,7 @@ from sage.ext.memory cimport check_allocarray
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
+from cpython.object cimport *
 from libc.stdint cimport uint64_t
 cimport sage.structure.element
 from sage.structure.element cimport Element, EuclideanDomainElement, parent_c
@@ -6523,8 +6524,6 @@ cdef class long_to_Z(Morphism):
 
 ############### INTEGER CREATION CODE #####################
 
-include "sage/ext/python_rich_object.pxi"
-
 # This variable holds the size of any Integer object in bytes.
 cdef int sizeof_Integer
 
@@ -6552,8 +6551,7 @@ cdef int total_alloc = 0
 cdef int use_pool = 0
 
 
-cdef PyObject* fast_tp_new(PyTypeObject *t, PyObject *a, PyObject *k):
-
+cdef PyObject* fast_tp_new(type t, args, kwds):
     global integer_pool, integer_pool_count, total_alloc, use_pool
 
     cdef PyObject* new
@@ -6577,12 +6575,12 @@ cdef PyObject* fast_tp_new(PyTypeObject *t, PyObject *a, PyObject *k):
     else:
 
         # allocate enough room for the Integer, sizeof_Integer is
-        # sizeof(Integer). The use of PyObject_MALLOC directly
+        # sizeof(Integer). The use of PyObject_Malloc directly
         # assumes that Integers are not garbage collected, i.e.
         # they do not possess references to other Python
         # objects (as indicated by the Py_TPFLAGS_HAVE_GC flag).
         # See below for a more detailed description.
-        new = PyObject_MALLOC( sizeof_Integer )
+        new = <PyObject*>PyObject_Malloc( sizeof_Integer )
 
         # Now set every member as set in z, the global dummy Integer
         # created before this tp_new started to operate.
@@ -6613,8 +6611,8 @@ cdef PyObject* fast_tp_new(PyTypeObject *t, PyObject *a, PyObject *k):
     # case a Python object has a bunch of debugging fields which are
     # initialized with this macro.
 
-    if_Py_TRACE_REFS_then_PyObject_INIT\
-        (new, (<PyObject*>global_dummy_Integer).ob_type)
+    if_Py_TRACE_REFS_then_PyObject_INIT(
+            new, Py_TYPE(global_dummy_Integer))
 
     # The global_dummy_Integer may have a reference count larger than
     # one, but it is expected that newly created objects have a
@@ -6660,7 +6658,7 @@ cdef void fast_tp_dealloc(PyObject* o):
     # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
     # set. If it was set another free function would need to be
     # called.
-    PyObject_FREE(o)
+    PyObject_Free(o)
 
 from sage.misc.allocator cimport hook_tp_functions
 cdef hook_fast_tp_functions():
@@ -6675,11 +6673,11 @@ cdef hook_fast_tp_functions():
     o = <PyObject *>global_dummy_Integer
 
     # store how much memory needs to be allocated for an Integer.
-    sizeof_Integer = (<RichPyTypeObject *>o.ob_type).tp_basicsize
+    sizeof_Integer = o.ob_type.tp_basicsize
 
     # Finally replace the functions called when an Integer needs
     # to be constructed/destructed.
-    hook_tp_functions(global_dummy_Integer, NULL, <newfunc>(&fast_tp_new), NULL, &fast_tp_dealloc, False)
+    hook_tp_functions(global_dummy_Integer, <newfunc>(&fast_tp_new), <destructor>(&fast_tp_dealloc), False)
 
 cdef integer(x):
     if isinstance(x, Integer):
@@ -6699,7 +6697,7 @@ def free_integer_pool():
         # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
         # set. If it was set another free function would need to be
         # called.
-        PyObject_FREE(o)
+        PyObject_Free(o)
 
     integer_pool_size = 0
     integer_pool_count = 0

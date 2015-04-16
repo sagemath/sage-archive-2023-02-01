@@ -370,6 +370,8 @@ def BubbleSortGraph(n):
     `1 \leq i \leq n-1`. In total, `B(n)` has order `n!`. Thus, the order
     of `B(n)` increases according to `f(n) = n!`.
 
+    The bubble sort graph is the underlying graph of the permutahedron.
+
     INPUT:
 
     - ``n`` -- positive integer. The number of symbols to permute.
@@ -397,6 +399,10 @@ def BubbleSortGraph(n):
         sage: g = graphs.BubbleSortGraph(n)
         sage: g.order() == factorial(n)
         True
+
+    .. SEEALSO::
+
+        * :meth:`~sage.geometry.polyhedron.library.Polytopes.permutahedron`
 
     TESTS:
 

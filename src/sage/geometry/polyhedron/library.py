@@ -581,6 +581,9 @@ class Polytopes():
         The standard permutahedron of (1,...,n) projected into n-1
         dimensions.
 
+        If we take the graph in which the vertices correspond to vertices of the
+        polyhedron, and edges to edges, we get the bubble sort graph.
+
         INPUT:
 
         - ``n`` -- the numbers ``(1,...,n)`` are permuted
@@ -598,6 +601,16 @@ class Polytopes():
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 24 vertices
             sage: polytopes.permutahedron(5).plot()    # long time
             Graphics3d Object
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.graph_generators.GraphGenerators.BubbleSortGraph`
+
+        TESTS::
+
+            sage: perm4 = polytopes.permutahedron(4)
+            sage: perm4.graph().is_isomorphic(graphs.BubbleSortGraph(4))
+            True
         """
         verts = range(1,n+1)
         verts = Permutations(verts).list()

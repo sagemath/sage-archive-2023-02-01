@@ -10307,7 +10307,7 @@ cdef class Expression(CommutativeRingElement):
         return fast_callable(self, etb)
 
     def show(self):
-        """
+        r"""
         Pretty-Print this symbolic expression
 
         This typeset it nicely and prints it immediately.

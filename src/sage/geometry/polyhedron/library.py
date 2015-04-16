@@ -177,6 +177,7 @@ class Polytopes():
             sage: b3.is_lattice_polytope()
             True
             sage: p3 = b3.ehrhart_polynomial()     # optional - latte_int
+            sage: p3                               # optional - latte_int
             1/8*t^4 + 3/4*t^3 + 15/8*t^2 + 9/4*t + 1
             sage: [p3(i) for i in [1,2,3,4]]       # optional - latte_int
             [6, 21, 55, 120]

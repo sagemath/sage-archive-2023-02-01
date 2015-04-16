@@ -188,7 +188,7 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: P = Polyhedron(ambient_dim=3, vertices=[])
             sage: P.ehrhart_polynomial()    # optional - latte_int
             0
-            sage: parent(_)
+            sage: parent(_)                 # optional - latte_int
             Univariate Polynomial Ring in t over Rational Field
 
         Test options::
@@ -229,16 +229,13 @@ class Polyhedron_ZZ(Polyhedron_base):
         if not self.is_lattice_polytope():
             raise ValueError("this must be a lattice polytope")
 
-        from sage.misc.package import is_package_installed, package_mesg
-        if not is_package_installed('latte_int'):
-            raise ValueError("The package latte_int must be installed!\n" + package_mesg())
-
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         R = PolynomialRing(QQ, 't')
         if self.is_empty():
             return R.zero()
 
         from sage.misc.temporary_file import tmp_filename
+        from sage.misc.misc import SAGE_TMP
         from subprocess import Popen, PIPE
 
         in_str = self.cdd_Hrepresentation()
@@ -254,9 +251,9 @@ class Polyhedron_ZZ(Polyhedron_base):
             args.append('--irrational-primal')
         if irrational_all_primal:
             args.append('--irrational-all-primal')
-        if maxdet:
+        if maxdet is not None:
             maxdet = int(maxdet)
-            if maxdet < 0:
+            if maxdet < 1:
                 raise ValueError("maxdet must be a positive integer")
             args.append('--maxdet={}'.format(maxdet))
         if no_decomposition:
@@ -265,16 +262,22 @@ class Polyhedron_ZZ(Polyhedron_base):
         args.append('--cdd')
         args.append(in_filename)
 
-        latte_proc = Popen(args, stdin = PIPE, stdout=PIPE, stderr=PIPE)
+        try:
+            latte_proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=str(SAGE_TMP))
+        except OSError:
+            raise ValueError("The package latte_int must be installed (type "
+                    "'sage -i latte_int') in a console or "
+                    "'install_package('latte_int') at a Sage prompt)!\n")
+
         ans, err = latte_proc.communicate()
+        if verbose:
+            print err
+
         ret_code = latte_proc.poll()
         if ret_code:
             raise ValueError("LattE program 'count' ended with a nonzero value"
                              "(={}). Here is the content of stderr:\n{}".format(
                                  ret_code, err))
-        if verbose:
-            print err
-
         return R(ans.splitlines()[-2])
 
     @cached_method

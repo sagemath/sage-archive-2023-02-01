@@ -4,10 +4,10 @@ Lie Algebras
 .. toctree::
    :maxdepth: 2
 
-   sage/algebras/lie_algebras/examples.py
-   sage/algebras/lie_algebras/heisenberg.py
-   sage/algebras/lie_algebras/lie_algebra.py
-   sage/algebras/lie_algebras/lie_algebra_element.py
-   sage/algebras/lie_algebras/structure_coefficients.py
-   sage/algebras/lie_algebras/virasoro.py
+   sage/algebras/lie_algebras/examples.
+   sage/algebras/lie_algebras/heisenberg
+   sage/algebras/lie_algebras/lie_algebra
+   sage/algebras/lie_algebras/lie_algebra_element
+   sage/algebras/lie_algebras/structure_coefficients
+   sage/algebras/lie_algebras/virasoro
 

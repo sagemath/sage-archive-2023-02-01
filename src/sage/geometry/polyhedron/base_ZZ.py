@@ -475,7 +475,7 @@ class Polyhedron_ZZ(Polyhedron_base):
 
         EXAMPLES::
 
-            sage: X = polytopes.n_cube(3)
+            sage: X = polytopes.cube()
             sage: X.find_translation(X + vector([2,3,5]))
             (2, 3, 5)
             sage: X.find_translation(2*X)

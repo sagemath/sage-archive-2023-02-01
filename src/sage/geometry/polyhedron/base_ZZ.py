@@ -124,7 +124,7 @@ class Polyhedron_ZZ(Polyhedron_base):
         Return the Ehrhart polynomial of this polyhedron.
 
         Let `P` be a lattice polytope in `\RR^d` and define `L(P,t) = \# (tP
-        \cap \ZZ^d)`. Then E. Ehrhart proved in in 1962 that `L` coincides with a
+        \cap \ZZ^d)`. Then E. Ehrhart proved in 1962 that `L` coincides with a
         rational polynomial of degree `d` for integer `t`. `L` is called the
         *Ehrhart polynomial* of `P`. For more information see the
         :wikipedia:`Ehrhart_polynomial`.

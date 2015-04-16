@@ -138,7 +138,8 @@ class Polyhedron_ZZ(Polyhedron_base):
           whole output of the LattE command.
 
         The following options are passed to the LattE command, for details you
-        should consult LattE documentation:
+        should consult `the LattE documentation
+        <https://www.math.ucdavis.edu/~latte/software/packages/latte_current/>`__:
 
         - ``dual`` - (boolean) triangulate and signed-decompose in the dual
           space
@@ -164,6 +165,11 @@ class Polyhedron_ZZ(Polyhedron_base):
 
         - ``triangulation_max_height`` - (integer) use a uniform distribution of
           height from 1 to this number
+
+        .. NOTE::
+
+            Any additional argument is forwarded to LattE's executable
+            ``count``. All occurrences of '_' will be replaced with a '-'.
 
         ALGORITHM:
 
@@ -250,7 +256,9 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: P.ehrhart_polynomial(bim_bam_boum=19)
             Traceback (most recent call last):
             ...
-            RuntimeError: Something is wrong with LattE command count with options {'bim_bam_boum': 19}
+            RuntimeError: Something went wrong (see output above) when running:
+            count --ehrhart-polynomial --redundancy-check=none --bim-bam-boum=19 --cdd ...
+
         """
         if not self.is_lattice_polytope():
             raise ValueError("this must be a lattice polytope")
@@ -276,20 +284,20 @@ class Polyhedron_ZZ(Polyhedron_base):
 
         # note: the options below are explicitely written in the function
         # declaration in order to keep tab completion (see #18211).
-        kwds['dual'] = dual
-        kwds['irrational_primal'] = irrational_primal
-        kwds['irrational_all_primal'] = irrational_all_primal
-        kwds['maxdet'] = maxdet
-        kwds['no_decomposition'] = no_decomposition
-        kwds['compute_vertex_cones'] = compute_vertex_cones
-        kwds['smith_form'] = smith_form
-        kwds['dualization'] = dualization
-        kwds['triangulation'] = triangulation
-        kwds['triangulation_max_height'] = triangulation_max_height
+        kwds.update({
+            'dual'                    : dual,
+            'irrational_primal'       : irrational_primal,
+            'irrational_all_primal'   : irrational_all_primal,
+            'maxdet'                  : maxdet,
+            'no_decomposition'        : no_decomposition,
+            'compute_vertex_cones'    : compute_vertex_cones,
+            'smith_form'              : smith_form,
+            'dualization'             : dualization,
+            'triangulation'           : triangulation,
+            'triangulation_max_height': triangulation_max_height})
 
         for key,value in kwds.items():
             if value is None or value is False:
-                kwds.pop(key)
                 continue
 
             key = key.replace('_','-')
@@ -309,17 +317,12 @@ class Polyhedron_ZZ(Polyhedron_base):
 
         ans, err = latte_proc.communicate()
 
-        ret_code = latte_proc.poll()
-        if ret_code:
-            msg = "LattE's program 'count' ended with a nonzero value (={})".format(ret_code)
-            if not verbose:
-                msg += "Here is the content of stderr:\n"+err
-            raise ValueError(msg)
-
         try:
             p = ans.splitlines()[-2]
         except IndexError:
-            raise RuntimeError("Something is wrong with LattE command count with options {}".format(kwds))
+            if not verbose:
+                print err
+            raise RuntimeError("Something went wrong (see output above) when running:\n{}".format(' '.join(args)))
 
         return R(p)
 

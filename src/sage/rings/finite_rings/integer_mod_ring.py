@@ -71,7 +71,7 @@ import sage.misc.prandom as random
 
 from sage.rings.arith import factor, primitive_root
 import sage.rings.commutative_ring as commutative_ring
-import sage.rings.field as field
+import sage.rings.ring as ring
 import integer_mod
 import sage.rings.integer as integer
 import sage.rings.integer_ring as integer_ring
@@ -1254,7 +1254,7 @@ In the latter case, please inform the developers.""".format(self.order()))
         elif S is integer_ring.ZZ:
             return integer_mod.Integer_to_IntegerMod(self)
         elif isinstance(S, IntegerModRing_generic):
-            if isinstance(S, field.Field):
+            if isinstance(S, ring.Field):
                 return None
             try:
                 return integer_mod.IntegerMod_to_IntegerMod(S, self)

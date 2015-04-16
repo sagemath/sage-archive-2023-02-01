@@ -347,6 +347,7 @@ MARKUPSAFE=`newest_version markupsafe`
 MATHJAX=`newest_version mathjax`
 MATPLOTLIB=`newest_version matplotlib`
 MAXIMA=`newest_version maxima`
+MISTUNE=`newest_version mistune`
 MPC=`newest_version mpc`
 MPFI=`newest_version mpfi`
 MPFR=`newest_version mpfr`

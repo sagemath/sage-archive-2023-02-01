@@ -17,6 +17,7 @@ import sage.graphs.digraph
 lazy_import("sage.graphs", "graph_coloring")
 import sage.graphs.graph_decompositions
 import sage.graphs.comparability
+import sage.graphs.centrality
 from sage.graphs.cliquer import *
 from graph_database import graph_db_info
 lazy_import("sage.graphs.graph_editor", "graph_editor")

@@ -3558,6 +3558,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         Returns True if this is a symmetric matrix.
 
+        A symmetric matrix is necessarily square.
+
         EXAMPLES::
 
             sage: m=Matrix(QQ,2,range(0,4))

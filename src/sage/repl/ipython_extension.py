@@ -397,9 +397,9 @@ class SageCustomizations(object):
         Set up Sage command-line environment
         """
         # import outside of cell so we don't get a traceback
-        import sage.all_cmdline as sage
-        self.shell.user_ns.update((key, getattr(sage, key))
-                for key in dir(sage) if key[0] != '_')
+        from sage import all_cmdline
+        from sage.repl.user_globals import initialize_globals
+        initialize_globals(all_cmdline, self.shell.user_ns)
         self.run_init()
 
     def run_init(self):

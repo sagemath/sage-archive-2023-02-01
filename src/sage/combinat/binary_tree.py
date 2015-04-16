@@ -1226,12 +1226,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         EXAMPLES::
 
             sage: bt = BinaryTree([[],[None,[]]])
-            sage: bt.canonical_labelling()
-            2[1[., .], 3[., 4[., .]]]
-            sage: bt.canonical_labelling().to_undirected_graph().edges()
-            [(1, 2, None), (2, 3, None), (3, 4, None)]
-            sage: bt.to_undirected_graph().edges()
-            [(0, 3, None), (1, 2, None), (2, 3, None)]
             sage: bt.canonical_labelling().to_undirected_graph() == bt.to_undirected_graph()
             False
             sage: BinaryTree([[],[]]).to_undirected_graph() == BinaryTree([[[],None],None]).to_undirected_graph()

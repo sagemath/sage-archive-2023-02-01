@@ -1590,11 +1590,11 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         the one used in the generation of the elements of self's
         associated enumerated set.
 
-        .. warning:: many cached methods depend on this order, in
-           particular for constructing subspaces and
-           quotients. Changing the order after computing such does
-           currently not invalidate those cache, and is likely to
-           bring in inconsistencies.
+        .. warning:: Many cached methods depend on this order, in
+           particular for constructing subspaces and quotients.
+           Changing the order after some computations have been
+           cached does not invalidate the cache, and is likely to
+           introduce inconsistencies.
 
         EXAMPLES::
 
@@ -1626,7 +1626,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
     def get_order_cmp(self):
         """
-        Returns a comparison function on the basis indices which is
+        Returns a comparison function on the basis indices that is
         compatible with the current term order.
 
         EXAMPLES::
@@ -2068,15 +2068,15 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         INPUT:
 
         - ``elements`` - a list of elements of ``self``.
-        
+
         - ``base_ring`` - ring (default: ``None``): compute the echelon
           form over the given ring; if ``base_ring`` is ``None``, then uses
           the base ring of ``self``.
 
         OUTPUT:
-        
+
         - list of elements of ``self``
-        
+
         EXAMPLES::
 
             sage: F = CombinatorialFreeModule(ZZ, [1,2,3,4])

@@ -191,7 +191,7 @@ def SymmetricGroupAlgebra(R, W):
         True
         sage: TestSuite(SGA).run()
 
-        sage: SG=SymmetricGroupAlgebra(ZZ,3)
+        sage: SG = SymmetricGroupAlgebra(ZZ, 3)
         sage: SG.group().conjugacy_classes_representatives()
         [[1, 2, 3], [2, 1, 3], [2, 3, 1]]
 

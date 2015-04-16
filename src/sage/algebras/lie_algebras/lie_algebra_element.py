@@ -69,6 +69,8 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
         """
         if self == 0 or y == 0:
             return self.parent().zero()
+        if y in self.base_ring():
+            return y * self
         # Otherwise we lift to the UEA
         return self.lift() * y
 
@@ -299,8 +301,8 @@ class LieAlgebraElementWrapper(ElementWrapper):
             sage: L.<x,y,z> = LieAlgebra(associative=R)
             sage: 3*x
             3*x
-            sage: parent(3*x) == parent(x)  # this is broken in this particular ticket
-            False
+            sage: parent(3*x) == parent(x)
+            True
             sage: x / 2   # not tested -- :trac:`18221`
             1/2*x
             sage: y * (1/2)

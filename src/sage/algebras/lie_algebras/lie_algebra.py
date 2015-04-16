@@ -743,7 +743,7 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
         sage: L.bracket(x-y, L.bracket(x,y))
         a^2*b - 2*a*b*a + a*b^2 + b*a^2 - 2*b*a*b + b^2*a
 
-    We can also use a subset of the generators to use as a generating set
+    We can also use a subset of the generators as a generating set
     of the Lie algebra::
 
         sage: R.<a,b,c> = FreeAlgebra(QQ, 3)
@@ -991,6 +991,8 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
             True
             sage: L([x, y])
             (2,3) - (1,3)
+            sage: L(2)
+            2*()
         """
         if isinstance(x, list) and len(x) == 2:
             return self(x[0])._bracket_(self(x[1]))

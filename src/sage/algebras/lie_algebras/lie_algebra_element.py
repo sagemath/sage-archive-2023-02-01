@@ -293,9 +293,19 @@ class LieAlgebraElementWrapper(ElementWrapper):
             sage: L.<x,y> = LieAlgebra(associative=S.gens())
             sage: x*y - y*x
             (2,3) - (1,3)
+            sage: u = x*3; u
+            3*(1,2,3)
+            sage: parent(u) == L
+            True
+            sage: u = x*(3/2); u
+            3/2*(1,2,3)
+            sage: parent(u) == L
+            True
         """
         if self.value == 0 or x == 0:
             return self.parent().zero()
+        if x in self.base_ring():
+            return x * self
         # Otherwise we lift to the UEA
         return self.lift() * x
 
@@ -337,13 +347,6 @@ class LieAlgebraElementWrapper(ElementWrapper):
             1/2*y
             sage: QQ(1/2) * y
             1/2*y
-
-        .. TODO::
-
-            Do we want to fix this?
-
-                sage: parent(x*(1/3))
-                Free Algebra on 3 generators (x, y, z) over Rational Field
         """
         # This was copied and IDK if it still applies (TCS):
         # With the current design, the coercion model does not have

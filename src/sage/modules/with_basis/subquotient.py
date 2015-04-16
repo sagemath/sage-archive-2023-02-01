@@ -76,7 +76,7 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
 
     def __init__(self, submodule, category):
         r"""
-        Initialization quotients of a module with basis by a submodule.
+        Initialize this quotient of a module with basis by a submodule.
 
         TESTS::
 

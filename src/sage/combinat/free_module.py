@@ -1590,7 +1590,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         the one used in the generation of the elements of self's
         associated enumerated set.
 
-        .. warning:: Many cached methods depend on this order, in
+        .. WARNING:: Many cached methods depend on this order, in
            particular for constructing subspaces and quotients.
            Changing the order after some computations have been
            cached does not invalidate the cache, and is likely to

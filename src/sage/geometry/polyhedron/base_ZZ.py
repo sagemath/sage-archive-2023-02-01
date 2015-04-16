@@ -124,9 +124,9 @@ class Polyhedron_ZZ(Polyhedron_base):
         Return the Ehrhart polynomial of this polyhedron.
 
         Let `P` be a lattice polytope in `\RR^d` and define `L(P,t) = \# (tP
-        \cap \ZZ^d)`. Then E. Ehrhart proved in in 1962 that `L` coincide with a
+        \cap \ZZ^d)`. Then E. Ehrhart proved in in 1962 that `L` coincides with a
         rational polynomial of degree `d` for integer `t`. `L` is called the
-        *Ehrhart polynomial* of `P`. For more information see
+        *Ehrhart polynomial* of `P`. For more information see the
         :wikipedia:`Ehrhart_polynomial`.
 
         INPUT:
@@ -273,9 +273,11 @@ class Polyhedron_ZZ(Polyhedron_base):
 
         ret_code = latte_proc.poll()
         if ret_code:
-            raise ValueError("LattE program 'count' ended with a nonzero value"
-                             "(={}). Here is the content of stderr:\n{}".format(
-                                 ret_code, err))
+            msg = "LattE's program 'count' ended with a nonzero value (={})".format(ret_code)
+            if not verbose:
+                msg += "Here is the content of stderr:\n"+err
+            raise ValueError(msg)
+
         return R(ans.splitlines()[-2])
 
     @cached_method

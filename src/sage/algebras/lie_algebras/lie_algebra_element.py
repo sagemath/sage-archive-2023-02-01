@@ -170,6 +170,10 @@ class LieAlgebraElementWrapper(ElementWrapper):
             sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3)
             sage: L.bracket(L.gen(0), L.gen(1)) == -L.bracket(L.gen(1), L.gen(0))
             True
+
+            sage: L = lie_algebras.three_dimensional_by_rank(QQ, 1)
+            sage: L.bracket(L.gen(0), L.gen(1)) == -L.bracket(L.gen(1), L.gen(0))
+            True
         """
         if not isinstance(rhs, LieAlgebraElementWrapper):
             return self.value == 0 and rhs == 0
@@ -192,6 +196,14 @@ class LieAlgebraElementWrapper(ElementWrapper):
         EXAMPLES::
 
             sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3)
+            sage: L.bracket(L.gen(0), L.gen(1)) != -L.bracket(L.gen(1), L.gen(0))
+            False
+            sage: L.zero() == 0
+            True
+            sage: L.zero() != 0
+            False
+
+            sage: L = lie_algebras.three_dimensional_by_rank(QQ, 1)
             sage: L.bracket(L.gen(0), L.gen(1)) != -L.bracket(L.gen(1), L.gen(0))
             False
             sage: L.zero() == 0
@@ -309,6 +321,13 @@ class LieAlgebraElementWrapper(ElementWrapper):
             1/2*y
             sage: y * 1/2   # not tested -- :trac:`18221`
             1/2*y
+
+        .. TODO::
+
+            Do we want to fix this?
+
+                sage: parent(x*(1/3))
+                Free Algebra on 3 generators (x, y, z) over Rational Field
         """
         # This was copied and IDK if it still applies (TCS):
         # With the current design, the coercion model does not have

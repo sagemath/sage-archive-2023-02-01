@@ -472,8 +472,8 @@ def best_known_linear_code_www(n, k, F, verbose=False):
         Construction of a linear code
         [72,36,15] over GF(2):
         [1]:  [73, 36, 16] Cyclic Linear Code over GF(2)
-             CyclicCode of length 73 with generating polynomial x^37 + x^36 + x^34 +
-        x^33 + x^32 + x^27 + x^25 + x^24 + x^22 + x^21 + x^19 + x^18 + x^15 + x^11 +
+             CyclicCode of length 73 with generating polynomial x^37 + x^36 + x^34
+        x^33 + x^32 + x^27 + x^25 + x^24 + x^22 + x^21 + x^19 + x^18 + x^15 + x^11
         x^10 + x^8 + x^7 + x^5 + x^3 + 1
         [2]:  [72, 36, 15] Linear Code over GF(2)
              Puncturing of [1] at 1
@@ -785,8 +785,20 @@ class AbstractLinearCode(module.Module):
             False
             sage: print C.divisor() #long time
             1
+
+        TESTS:
+
+        If the length field is neither a Python int nor a Sage Integer, it will
+        raise an exception::
+
+            sage: C = CodeExample(GF(17), 10.0, 5, generator_matrix)
+            Traceback (most recent call last): 
+            ...
+            ValueError: length must be a Python int or a Sage Integer
         """
-        self._length = length
+        if not isinstance(length, (int, Integer)):
+            raise ValueError("length must be a Python int or a Sage Integer")
+        self._length = Integer(length)
         cat = Modules(base_field).FiniteDimensional().WithBasis().Finite()
         facade_for = VectorSpace(base_field, self._length)
         self.Element = type(facade_for.an_element()) #for when we made this a non-facade parent

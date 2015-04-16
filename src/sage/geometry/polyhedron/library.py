@@ -204,6 +204,11 @@ class Polytopes():
 
         - ``n`` -- a positive integer giving the size of the permutation matrices.
 
+        .. SEEALSO::
+
+            :meth:`sage.matrix.matrix2.Matrix.as_sum_of_permutations` -- return
+            the current matrix as a sum of permutation matrices
+
         EXAMPLES::
 
             sage: b3 = polytopes.Birkhoff_polytope(3)

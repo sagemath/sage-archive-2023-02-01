@@ -22,13 +22,19 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
     - ``submodule`` -- a submodule of ``self``
     - ``category`` -- a category (default: ``ModulesWithBasis(submodule.base_ring())``)
 
-    ``submodule`` is typically a :class:`SubmoduleWithBasis`. It
-    should implement a method ``reduce``. Futheremore its ``lift``
-    method should have a method ``.cokernel_basis_indices`` that
-    computes the indexing set of a subset of the basis of ``self``
-    that spans some supplementary of ``submodule`` in the ambient
-    space. Mathematically speaking, ``submodule`` should be a free
-    submodule whose basis can be put in unitriangular echelon form.
+    ``submodule`` should be a free submodule admitting a basis in
+    unitriangular echelon form. Typically ``submodule`` is a
+    :class:`SubmoduleWithBasis` as returned by
+    :meth:`Modules.WithBasis.ParentMethods.submodule`.
+
+    The ``lift`` method should have a method
+    ``.cokernel_basis_indices`` that computes the indexing set of a
+    subset `B` of the basis of ``self`` that spans some supplementary
+    of ``submodule`` in ``self`` (typically the non characteristic
+    columns of the aforementioned echelon form). ``submodule`` should
+    further implement a ``submodule.reduce(x)`` method that returns
+    the unique element in the span of `B` which is equivalent to `x`
+    modulo ``submodule``.
 
     This is meant to be constructed via
     :meth:`Modules.WithBasis.FiniteDimensional.ParentMethods.quotient_module`
@@ -36,7 +42,7 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
     This differs from :class:`sage.rings.quotient_ring.QuotientRing`
     in the following ways:
 
-    - The submodule needs not be an ideal. If it is, the
+    - ``submodule`` needs not be an ideal. If it is, the
       transportation of the ring structure is taken care of by the
       ``Subquotients`` categories.
 
@@ -50,6 +56,7 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
 
     .. SEEALSO::
 
+        - :meth:`Modules.WithBasis.ParentMethods.submodule`
         - :meth:`Modules.WithBasis.FiniteDimensional.ParentMethods.quotient_module`
         - :class:`SubmoduleWithBasis`
         - :class:`sage.rings.quotient_ring.QuotientRing`

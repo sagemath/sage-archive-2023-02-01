@@ -219,7 +219,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
         def quotient_module(self, submodule, check=True, already_echelonized=False, category=None):
             r"""
-            Construct a free quotient module ``self``/``submodule``.
+            Construct the quotient module ``self``/``submodule``.
 
             INPUT:
 
@@ -232,9 +232,11 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             .. WARNING::
 
-                At this point, only quotients by free submodules whose
-                basis admits a unitriangular echelon form are supported
-                (so that the quotient is also a free module).
+                At this point, this only supports quotients by free
+                submodules admitting a basis in unitriangular echelon
+                form. In this case, the quotient is also a free
+                module, with a basis consisting of the retract of a
+                subset of the basis of ``self``.
 
             EXAMPLES::
 

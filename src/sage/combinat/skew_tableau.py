@@ -42,7 +42,7 @@ import itertools
 
 from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.partition import Partition
-from sage.combinat.tableau import TableauOptions
+from sage.combinat.tableau import TableauOptions, Tableaux, SemistandardTableau, StandardTableau, Tableau
 from sage.combinat.skew_partition import SkewPartition, SkewPartitions
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.words.words import Words
@@ -717,8 +717,8 @@ class SkewTableau(CombinatorialObject, Element):
 
     def slide(self, corner=None):
         """
-        Apply a jeu-de-taquin slide to ``self`` on the specified corner and
-        returns the new tableau.  If no corner is given an arbitrary corner
+        Apply a jeu-de-taquin slide to ``self`` on the specified inner corner and
+        returns the new tableau.  If no corner is given an arbitrary inner corner
         is chosen.
 
         See [FW]_ p12-13.
@@ -793,9 +793,10 @@ class SkewTableau(CombinatorialObject, Element):
 
         return SkewTableau(new_st)
 
-    def rectify(self):
+    def rectify(self, algorithm=None):
         """
-        Return a :class:`Tableau` formed by applying the jeu de taquin
+        Return a :class:`StandardTableau`, :class:`SemistandardTableau`,
+        or just :class:`Tableau` formed by applying the jeu de taquin
         process to ``self``. See page 15 of [FW]_.
 
         REFERENCES:
@@ -804,27 +805,59 @@ class SkewTableau(CombinatorialObject, Element):
            *Young Tableaux*,
            Cambridge University Press 1997.
 
+        INPUT:
+        - ``algorithm`` -- optional: if set to ``'jdt'``, rectifies by jeu de taquin;
+          if set to ``'schensted'``, rectifies by Schensted insertion of the
+          reading word; otherwise, guesses which will be faster.
+
         EXAMPLES::
 
-            sage: s = SkewTableau([[None,1],[2,3]])
-            sage: s.rectify()
+            sage: S = SkewTableau([[None,1],[2,3]])
+            sage: S.rectify()
             [[1, 3], [2]]
-            sage: SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]]).rectify()
+            sage: T = SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]])
+            sage: T.rectify()
             [[1, 3, 4, 6], [2, 5]]
+            sage: T.rectify(algorithm='jdt')
+            [[1, 3, 4, 6], [2, 5]]
+            sage: T.rectify(algorithm='schensted')
+            [[1, 3, 4, 6], [2, 5]]
+            sage: T.rectify(algorithm='spaghetti')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be 'jdt', 'schensted', or None
 
         TESTS::
 
-            sage: s
+            sage: S
             [[None, 1], [2, 3]]
+            sage: T
+            [[None, None, None, 4], [None, None, 1, 6], [None, None, 5], [2, 3]]
         """
-        rect = copy.deepcopy(self)
-        inner_corners = rect.inner_shape().corners()
+        mu_size = self.inner_shape().size()
 
-        while len(inner_corners) > 0:
-            rect = rect.slide()
-            inner_corners = rect.inner_shape().corners()
+        # Roughly, use jdt with a small inner shape, Schensted with a large one
+        if algorithm is None:
+            la = self.outer_shape()
+            la_size = la.size()
+            if mu_size^2 < len(la) * (la_size - mu_size):
+                algorithm = 'jdt'
+            else:
+                algorithm = 'schensted'
 
-        return rect.to_tableau()
+        if algorithm == 'jdt':
+            rect = self
+            for i in range(mu_size):
+                rect = rect.slide()
+        elif algorithm == 'schensted':
+            rect = Tableau([]).insert_word(self.to_word())
+        else:
+            raise ValueError("algorithm must be 'jdt', 'schensted', or None")
+        if self in StandardSkewTableaux():
+            return StandardTableau(rect[:])
+        if self in SemistandardSkewTableaux():
+            return SemistandardTableau(rect[:])
+        return Tableau(rect)
 
     def standardization(self, check=True):
         r"""

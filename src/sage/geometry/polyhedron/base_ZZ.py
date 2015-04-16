@@ -263,15 +263,13 @@ class Polyhedron_ZZ(Polyhedron_base):
         args.append(in_filename)
 
         try:
-            latte_proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=str(SAGE_TMP))
+            latte_proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=(None if verbose else PIPE), cwd=str(SAGE_TMP))
         except OSError:
             raise ValueError("The package latte_int must be installed (type "
                     "'sage -i latte_int') in a console or "
                     "'install_package('latte_int') at a Sage prompt)!\n")
 
         ans, err = latte_proc.communicate()
-        if verbose:
-            print err
 
         ret_code = latte_proc.poll()
         if ret_code:

@@ -681,7 +681,38 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Implementing new bases
 
-    .. todo:: to be described
+    In order to implement a new basis Sage will need to know at minimum how to multiply,
+    comultiply and change the basis.  For many of the other functions we can use the
+    standard implementation.  To present an idea of how this is done, we will present
+    here the example of how to implement the basis `h_\mu[X(1-t)]`.
+
+    Since this is a multiplicative basis, we will start with the generic implementation
+    of a multiplicative basis.  In this way, the product is already defined and we
+    only need to tell Sage how to comultiply on the generators.::
+
+        sage: from sage.combinat.sf.multiplicative import SymmetricFunctionAlgebra_multiplicative as SFA_mult
+
+    Now this basis in particular has a parameter `t` which is possible to specialize.
+    In this example we will convert to and from the Schur basis.  For this we implement
+    functions ``_self_to_h`` and ``_h_to_self``.  By registering these two functions
+    as coercions this makes it possible to change between any two bases for which there
+    is a path of changes of bases.::
+
+        sage: class SFA_st( SFA_mult ):
+                  def __init__(self, Sym, t):
+                      SFA_mult.__init__(self, Sym, basis_name="Homogeneous symmetric functions with a plethystic substitution of X -> X(1-t)", prefix='ht')
+                      self._h = Sym.h()
+                      self.t = Sym.base_ring()(t)
+                      category = sage.categories.all.ModulesWithBasis(Sym.base_ring())
+                      self.register_coercion(SetMorphism(Hom(self._h, self, category), self._h_to_self))
+                      self._h.register_coercion(SetMorphism(Hom(self, self._h, category), self._self_to_h))
+                  def _h_to_self(self, mu):
+                      return self._h(mu).theta_qt(t,0)
+                  def _self_to_h(self, f):
+                      return self._from_dict(f.theta_qt(0,t).monomial_coefficients())
+
+    In addition to an initi
+
 
     .. rubric:: Acknowledgements
 

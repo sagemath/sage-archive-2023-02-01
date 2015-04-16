@@ -8,7 +8,7 @@ Examples of a Lie algebra
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.cachefunc import cached_method
+#from sage.misc.cachefunc import cached_method
 from sage.sets.family import Family
 from sage.categories.all import LieAlgebras
 from sage.structure.parent import Parent

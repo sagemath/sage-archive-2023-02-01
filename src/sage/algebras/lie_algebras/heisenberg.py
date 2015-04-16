@@ -21,25 +21,24 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import repr_lincomb
+#from sage.misc.misc import repr_lincomb
 from sage.structure.indexed_generators import IndexedGenerators
 
-from sage.algebras.algebra import Algebra
+#from sage.algebras.algebra import Algebra
 from sage.algebras.lie_algebras.lie_algebra import (InfinitelyGeneratedLieAlgebra,
     LieAlgebraFromAssociative, FinitelyGeneratedLieAlgebra)
-from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
+#from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
 from sage.categories.lie_algebras import LieAlgebras
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.matrix.matrix_space import MatrixSpace
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.infinity import infinity
+#from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+#from sage.rings.infinity import infinity
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.sets.positive_integers import PositiveIntegers
 from sage.sets.set import Set
-from sage.rings.all import ZZ
+#from sage.rings.all import ZZ
 
 class HeisenbergAlgebra_abstract(IndexedGenerators):
     """

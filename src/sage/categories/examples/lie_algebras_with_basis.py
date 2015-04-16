@@ -8,7 +8,7 @@ Examples of a Lie algebra with basis
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.cachefunc import cached_method
+#from sage.misc.cachefunc import cached_method
 from sage.sets.family import Family
 from sage.categories.lie_algebras import LieAlgebras
 from sage.categories.algebras import Algebras

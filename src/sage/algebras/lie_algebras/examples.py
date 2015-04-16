@@ -9,6 +9,12 @@ There are the following examples of Lie algebras:
 - The Lie algebra of upper triangular matrices
 - The Lie algebra of strictly upper triangular matrices
 
+See also
+:class:`sage.algebras.lie_algebras.virasoro.LieAlgebraRegularVectorFields`
+and
+:class:`sage.algebras.lie_algebras.virasoro.VirasoroAlgebra` for
+other examples.
+
 AUTHORS:
 
 - Travis Scrimshaw (07-15-2013): Initial implementation
@@ -21,7 +27,7 @@ AUTHORS:
 #******************************************************************************
 
 #from sage.algebras.lie_algebras.classical_lie_algebra import gl, sl, so, sp
-from sage.algebras.lie_algebras.virasoro import VirasoroAlgebra
+#from sage.algebras.lie_algebras.virasoro import VirasoroAlgebra
 
 def three_dimensional(R, a, b, c, d, names=['X', 'Y', 'Z']):
     r"""

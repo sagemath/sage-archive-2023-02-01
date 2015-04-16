@@ -1462,6 +1462,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: F.<x> = FreeAlgebra(QQ)
             sage: x / 2
             1/2*x
+            sage: cm.discover_action(F, ZZ, operator.div)
+            Right inverse action by Rational Field on Free Algebra on 1 generators (x,) over Rational Field
+            with precomposition on right by Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
         """
         #print "looking", R, <int><void *>R, op, S, <int><void *>S
 

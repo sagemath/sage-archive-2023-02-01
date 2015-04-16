@@ -908,15 +908,19 @@ class Sets(Category_singleton):
                 sage: S(17) # indirect doctest
                 17
 
-            Caveat: For some parents, ``element_class`` is a method, and
-            not an attribute. We do not provide a default
-            implementation of ``_element_constructor`` for those.
+                sage: A = FreeModule(QQ, 3)
+                sage: A.element_class
+                <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
+                sage: A._element_constructor
+                <bound method FreeModule_ambient_field_with_category._element_constructor_ of Vector space of dimension 3 over Rational Field>
 
-                sage: FreeModule(QQ,3).element_class
-                <bound method FreeModule_ambient_field_with_category.element_class of Vector space of dimension 3 over Rational Field>
-                sage: FreeModule(QQ,3)._element_constructor
+                sage: B = GroupAlgebra(SymmetricGroup(3), ZZ)
+                sage: B.element_class
+                <class 'sage.combinat.free_module.GroupAlgebra_with_category.element_class'>
+                sage: B._element_constructor
+                <bound method GroupAlgebra_with_category._element_constructor_ of Group algebra of group "Symmetric group of order 3! as a permutation group" over base ring Integer Ring>
             """
-            if hasattr(self, "element_class") and issubclass(self.element_class, object):
+            if hasattr(self, "element_class"):
                 return self._element_constructor_from_element_class
             else:
                 return NotImplemented
@@ -1592,13 +1596,13 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 sage: i.__invert__()
                 Identity endomorphism of Rational Field
 
-            This is method meant to be used with the Python inversion
-            operator `~`:
+            This method is meant to be used with the Python inversion
+            operator `~`::
 
                 sage: ~i
                 Identity endomorphism of Rational Field
 
-            We now try to inverse a couple morphisms defined by a matrix::
+            We now try to inverse a couple of morphisms defined by a matrix::
 
                 sage: H = End(QQ^2)
                 sage: phi = H(matrix([[1,1],[0,1]])); phi

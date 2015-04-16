@@ -54,6 +54,7 @@ def pushover(message, **kwds):
 
     EXAMPLE::
 
+        sage: import sage.misc.messaging
         sage: sage.misc.messaging.pushover("Hi, how are you?", user="XXX") # not tested
 
     To set default values populate ``pushover_defaults``::

@@ -55,7 +55,7 @@ from sage.functions.other import real, imag, sqrt
 from sage.functions.trig import sin, cos, arccos
 from sage.functions.log import exp
 from sage.functions.hyperbolic import sinh, cosh, arcsinh
-
+from sage.symbolic.ring import SR
 from sage.geometry.hyperbolic_space.hyperbolic_constants import EPSILON
 
 from sage.misc.lazy_import import lazy_import
@@ -816,9 +816,8 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             if abs(theta1 - theta2) < EPSILON:
                 theta2 += pi
             [theta1, theta2] = sorted([theta1, theta2])
-            from sage.calculus.var import var
             from sage.plot.plot import parametric_plot
-            x = var('x')
+            x = SR.var('x')
             pic = parametric_plot((radius*cos(x) + real(center),
                                    radius*sin(x) + imag(center)),
                                   (x, theta1, theta2), **opts)
@@ -1250,9 +1249,8 @@ class HyperbolicGeodesicPD(HyperbolicGeodesic):
             theta2 = CC(end_2 - center).arg()
             if theta2 < theta1:
                 theta1, theta2 = theta2, theta1
-            from sage.calculus.var import var
             from sage.plot.plot import parametric_plot
-            x = var('x')
+            x = SR.var('x')
             mid = (theta1 + theta2)/2.0
             if (radius*cos(mid) + real(center))**2 + \
                (radius*sin(mid) + imag(center))**2 > 1.0:
@@ -1341,8 +1339,9 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
             sage: g.show()
             Graphics3d Object
         """
-        from sage.calculus.var import var
-        (x,y,z) = var('x,y,z')
+        x = SR.var('x')
+        y = SR.var('y')
+        z = SR.var('z')
         opts = self.graphics_options()
         opts.update(graphics_options)
         v1,u2 = [vector(k.coordinates()) for k in self.endpoints()]

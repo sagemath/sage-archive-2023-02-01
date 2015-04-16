@@ -29,8 +29,8 @@ import sage.rings.rational_field
 import sage.rings.complex_field
 
 import sage.rings.commutative_ring
-import sage.rings.field as field
 import sage.rings.integral_domain
+from sage.rings.ring import Field
 
 from sage.misc.cachefunc import cached_method
 from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement
@@ -171,7 +171,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
     if isinstance(R, sage.rings.integral_domain.IntegralDomain):
         try:
             if polynomial.is_irreducible():
-                if isinstance(R, field.Field):
+                if isinstance(R, Field):
                     return PolynomialQuotientRing_field(ring, polynomial, names)
                 else:
                     return PolynomialQuotientRing_domain(ring, polynomial, names)
@@ -1575,7 +1575,7 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, sage.rings.i
 
 
 
-class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
+class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, Field):
     """
     EXAMPLES::
 

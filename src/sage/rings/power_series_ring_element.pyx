@@ -93,7 +93,6 @@ With power series the behavior is the same.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 
 import operator
 

@@ -16,6 +16,7 @@ AUTHOR:
 
 from sage.libs.ntl.ntl_GF2_decl cimport *
 from sage.libs.ntl.ntl_GF2X_decl cimport *
+include "sage/ext/interrupt.pxi"
 
 
 cdef GF2X_c *celement_new(long parent):

@@ -21,7 +21,6 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 from cpython.list cimport *
@@ -3557,6 +3556,8 @@ cdef class Matrix(sage.structure.element.Matrix):
     def is_symmetric(self):
         """
         Returns True if this is a symmetric matrix.
+
+        A symmetric matrix is necessarily square.
 
         EXAMPLES::
 

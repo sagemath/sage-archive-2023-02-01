@@ -385,8 +385,11 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         if isinstance(x, list) and len(x) == 2:
             return self(x[0])._bracket_(self(x[1]))
 
-        if hasattr(self, "module") and x in self.module():
-            return self.from_vector(x)
+        try:
+            if x in self.module():
+                return self.from_vector(x)
+        except AttributeError:
+            pass
 
         if x in self.base_ring():
             if x != 0:

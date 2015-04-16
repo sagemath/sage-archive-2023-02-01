@@ -167,6 +167,10 @@ class LieAlgebraElementWrapper(ElementWrapper):
 
         EXAMPLES::
 
+            sage: L = lie_algebras.sl(QQ, 2, representation='matrix')
+            sage: L.bracket(L.gen(0), L.gen(1)) == -L.bracket(L.gen(1), L.gen(0))
+            True
+
             sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3)
             sage: L.bracket(L.gen(0), L.gen(1)) == -L.bracket(L.gen(1), L.gen(0))
             True
@@ -194,6 +198,14 @@ class LieAlgebraElementWrapper(ElementWrapper):
             The doctest fails, although not on this class's fault.
 
         EXAMPLES::
+
+            sage: L = lie_algebras.sl(QQ, 2, representation='matrix')
+            sage: L.bracket(L.gen(0), L.gen(1)) != -L.bracket(L.gen(1), L.gen(0))
+            False
+            sage: L.zero() == 0
+            True
+            sage: L.zero() != 0
+            False
 
             sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3)
             sage: L.bracket(L.gen(0), L.gen(1)) != -L.bracket(L.gen(1), L.gen(0))

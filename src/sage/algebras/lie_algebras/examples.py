@@ -60,6 +60,11 @@ def three_dimensional(R, a, b, c, d, names=['X', 'Y', 'Z']):
         Finite family {('Y', 'Z'): X}
         sage: lie_algebras.three_dimensional(QQ, 0, 0, 0, 0)
         Abelian Lie algebra on 3 generators (X, Y, Z) over Rational Field
+        sage: Q.<a,b,c,d> = PolynomialRing(QQ)
+        sage: L = lie_algebras.three_dimensional(Q, a, b, c, d)
+        sage: L.structure_coefficients()
+        Finite family {('X', 'Y'): d*Y + a*Z, ('X', 'Z'): (-c)*Y + (-d)*Z, ('Y', 'Z'): b*X}
+        sage: TestSuite(L).run()
     """
     if isinstance(names, str):
         names = names.split(',')
@@ -285,6 +290,18 @@ def regular_vector_fields(R):
     """
     from sage.algebras.lie_algebras.virasoro import LieAlgebraRegularVectorFields
     return LieAlgebraRegularVectorFields(R)
+
+def pwitt(R, p):
+    r"""
+    Return the `p`-Witt Lie algebra over `R`.
+
+    EXAMPLES::
+
+        sage: lie_algebras.pwitt(GF(5), 5)
+        The 5-Witt Lie algebra over Finite Field of size 5
+    """
+    from sage.algebras.lie_algebras.virasoro import WittLieAlgebra_charp
+    return WittLieAlgebra_charp(R, p)
 
 def upper_triangluar_matrices(R, n):
     r"""

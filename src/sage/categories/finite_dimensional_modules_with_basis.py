@@ -193,13 +193,13 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             By specifying the standard Lie bracket as action, one can
             compute the commutator of a subspace of `F`::
 
-                sage: F.annihilator_basis([a+b], action = F.bracket)
+                sage: F.annihilator_basis([a+b], action=F.bracket)
                 [x + y, a, b]
 
             In particular one can compute a basis of the center of the
             algebra. In our example, it is reduced to the identity::
 
-                sage: F.annihilator_basis(F.algebra_generators(), action = F.bracket)
+                sage: F.annihilator_basis(F.algebra_generators(), action=F.bracket)
                 [x + y]
 
             But see also

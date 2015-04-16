@@ -169,7 +169,8 @@ class HeisenbergAlgebra_fd:
         """
         L  = [self.p(i) for i in range(1, self._n+1)]
         L += [self.q(i) for i in range(1, self._n+1)]
-        #L += [self.z()]
+        if self._n == 0:
+            L += [self.z()]
         return tuple(L)
 
     def gen(self, i):
@@ -189,18 +190,22 @@ class HeisenbergAlgebra_fd:
     @cached_method
     def lie_algebra_generators(self):
         """
-        Return the algebra generators of ``self``.
+        Return the Lie algebra generators of ``self``.
 
         EXAMPLES::
 
             sage: H = lie_algebras.Heisenberg(QQ, 1)
             sage: H.lie_algebra_generators()
-            Finite family {'q1': q1, 'p1': p1}
+            Finite family {'q1': q1, 'p1': p1, 'z': z}
+            sage: H = lie_algebras.Heisenberg(QQ, 0)
+            sage: H.lie_algebra_generators()
+            Finite family {'z': z}
         """
         d = {}
         for i in range(1, self._n+1):
             d['p%s'%i] = self.p(i)
             d['q%s'%i] = self.q(i)
+        d['z'] = self.z()
         return Family(self._indices, lambda i: d[i])
 
     @cached_method
@@ -219,7 +224,7 @@ class HeisenbergAlgebra_fd:
             d['p%s'%i] = self.p(i)
             d['q%s'%i] = self.q(i)
         d['z'] = self.z()
-        return Family(self._indices + ('z',), lambda i: d[i])
+        return Family(self._indices, lambda i: d[i])
 
 class HeisenbergAlgebra(HeisenbergAlgebra_fd, HeisenbergAlgebra_abstract,
                         FinitelyGeneratedLieAlgebra):
@@ -261,9 +266,11 @@ class HeisenbergAlgebra(HeisenbergAlgebra_fd, HeisenbergAlgebra_abstract,
 
             sage: L = lie_algebras.Heisenberg(QQ, 2)
             sage: TestSuite(L).run()
+            sage: L = lie_algebras.Heisenberg(QQ, 0)  # not tested -- :trac:`18224`
+            sage: TestSuite(L).run()
         """
         HeisenbergAlgebra_fd.__init__(self, n)
-        names = ['p%s'%i for i in range(1,n+1)] + ['q%s'%i for i in range(1,n+1)] #+ ['z']
+        names = ['p%s'%i for i in range(1,n+1)] + ['q%s'%i for i in range(1,n+1)] + ['z']
         names = tuple(names)
         FinitelyGeneratedLieAlgebra.__init__(self, R, names=names, index_set=names,
             category=LieAlgebras(R).FiniteDimensional().WithBasis())

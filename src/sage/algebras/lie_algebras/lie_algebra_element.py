@@ -249,9 +249,9 @@ class LieAlgebraElementWrapper(ElementWrapper):
 
             sage: L = lie_algebras.Heisenberg(QQ, 3)
             sage: x = L.an_element(); x
-            p1 + p2 + p3 + q1 + q2 + q3
+            p1 + p2 + p3 + q1 + q2 + q3 + z
             sage: x / 2
-            1/2*p1 + 1/2*p2 + 1/2*p3 + 1/2*q1 + 1/2*q2 + 1/2*q3
+            1/2*p1 + 1/2*p2 + 1/2*p3 + 1/2*q1 + 1/2*q2 + 1/2*q3 + 1/2*z
         """
         if self_on_left:
             return self * (~x)
@@ -267,7 +267,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
             sage: L.<x,y,z> = LieAlgebra(associative=R)
             sage: 3*x
             3*x
-            sage: parent(3*x) == parent(x)  # this is broken
+            sage: parent(3*x) == parent(x)  # this is broken in this particular ticket
             False
             sage: x / 2   # not tested -- :trac:`18221`
             1/2*x

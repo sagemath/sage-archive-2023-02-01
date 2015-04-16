@@ -178,7 +178,7 @@ class Modules(Category_module):
 
         .. SEEALSO:: :meth:`Category.additional_structure`
 
-        .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
+        .. TODO:: Should this category be a :class:`~sage.categories.category_with_axiom.CategoryWithAxiom`?
 
         EXAMPLES::
 

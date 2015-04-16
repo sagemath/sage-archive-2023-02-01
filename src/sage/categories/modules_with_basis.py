@@ -247,10 +247,13 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             - ``triangular`` --  (default: ``None``) ``"upper"`` or
               ``"lower"`` or ``None``:
 
-              * ``"upper"`` - if the :meth:`leading_support` of the image
-                of the basis vector `x_i` is `i`, or
-              * ``"lower"`` - if the :meth:`trailing_support` of the image
-                of the basis vector `x_i` is `i`.
+              * ``"upper"`` - if the
+                :meth:`~ModulesWithBasis.ElementMethods.leading_support`
+                of the image of the basis vector `x_i` is `i`, or
+
+              * ``"lower"`` - if the
+                :meth:`~ModulesWithBasis.ElementMethods.trailing_support`
+                of the image of the basis vector `x_i` is `i`.
 
             - ``unitriangular`` -- (default: ``False``) a boolean.
               Only meaningful for a triangular morphism.
@@ -624,8 +627,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             .. SEEALSO::
 
-                 - :meth:`Modules.WithBasis.ParentMethods.submodule`
-                 - :meth:`Modules.WithBasis.FiniteDimensional.ParentMethods.quotient_module`
+                 - :meth:`ModulesWithBasis.FiniteDimensional.ParentMethods.quotient_module`
                  - :class:`sage.modules.with_basis.subquotient.SubmoduleWithBasis`
 
             EXAMPLES:

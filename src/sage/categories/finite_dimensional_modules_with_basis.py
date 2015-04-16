@@ -228,7 +228,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
               ``self.submodule(submodule)``.
 
             - ``check``, ``already_echelonized`` -- passed down to
-              :meth:`submodule`, which see.
+              :meth:`ModulesWithBasis.ParentMethods.submodule`.
 
             .. WARNING::
 
@@ -287,7 +287,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             The order of the rows and columns matches with the order
             in which the bases are enumerated.
 
-            .. SEEALSO:: :func:`_from_matrix`
+            .. SEEALSO:: :func:`Modules.WithBasis.ParentMethods.module_morphism`
 
             EXAMPLES::
 

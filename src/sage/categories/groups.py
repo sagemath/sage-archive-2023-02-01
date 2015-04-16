@@ -795,7 +795,7 @@ class Groups(CategoryWithAxiom):
                 - A formal linear combination of the conjugacy class
                   representatives representing its coordinates in the
                   canonical basis of the center. See
-                  :meth:`Groups.Algebras.ParentMethods.center` for
+                  :meth:`Groups.Algebras.ParentMethods.center_basis` for
                   details.
 
                 .. WARNING::
@@ -830,7 +830,7 @@ class Groups(CategoryWithAxiom):
 
                 .. SEEALSO::
 
-                    - :meth:`Groups.Algebras.ParentMethods.center`
+                    - :meth:`Groups.Algebras.ParentMethods.center_basis`
                     - :meth:`Monoids.Algebras.ElementMethods.is_central`
                 """
                 from sage.combinat.free_module import CombinatorialFreeModule

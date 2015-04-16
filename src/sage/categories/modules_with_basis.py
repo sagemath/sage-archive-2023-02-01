@@ -182,6 +182,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
     FiniteDimensional = LazyImport('sage.categories.finite_dimensional_modules_with_basis', 'FiniteDimensionalModulesWithBasis')
     Graded = LazyImport('sage.categories.graded_modules_with_basis', 'GradedModulesWithBasis')
+    Super = LazyImport('sage.categories.super_modules_with_basis', 'SuperModulesWithBasis')
 
     class ParentMethods:
         @cached_method

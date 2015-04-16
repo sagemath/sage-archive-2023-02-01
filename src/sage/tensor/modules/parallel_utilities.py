@@ -33,14 +33,18 @@ class TensorParallelCompute(Singleton, SageObject):
 
     EXAMPLE ::
 
+        sage: from sage.tensor.modules.parallel_utilities import TensorParallelCompute
         sage: print TensorParallelCompute()
         Number of cpu used = 1
         sage: TensorParallelCompute().set(4)
         sage: print TensorParallelCompute()
         Number of cpu used = 4
-        
+        sage: TensorParallelCompute().set(1)
+        sage: print TensorParallelCompute()
+        Number of cpu used = 1
+
     """
-    def __init__(self): 
+    def __init__(self):
         r"""
         Intializes the parallelism. Only an instance (Singleton) of this
         class is created.
@@ -48,6 +52,7 @@ class TensorParallelCompute(Singleton, SageObject):
 
         TEST ::
 
+            sage: from sage.tensor.modules.parallel_utilities import TensorParallelCompute
             sage: TP = TensorParallelCompute()
             sage: print TP
             Number of cpu used = 1
@@ -56,7 +61,7 @@ class TensorParallelCompute(Singleton, SageObject):
 
             sage: TensorParallelCompute() is TP
             True
-            
+
         """
         self._nproc = 1
         self._use_paral = False
@@ -67,6 +72,7 @@ class TensorParallelCompute(Singleton, SageObject):
 
         TEST ::
 
+            sage: from sage.tensor.modules.parallel_utilities import TensorParallelCompute
             sage: TensorParallelCompute()._repr_()
             'Number of cpu used = 1'
 
@@ -81,11 +87,13 @@ class TensorParallelCompute(Singleton, SageObject):
 
         EXAMPLE ::
 
+            sage: from sage.tensor.modules.parallel_utilities import TensorParallelCompute
             sage: print TensorParallelCompute()
             Number of cpu used = 1
             sage: TensorParallelCompute().set(4)
             sage: print TensorParallelCompute()
             Number of cpu used = 4
+            sage: TensorParallelCompute().set(1)
 
         """
         self._nproc = ncpus() if nproc is None else nproc

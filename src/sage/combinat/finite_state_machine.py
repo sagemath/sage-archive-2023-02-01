@@ -5942,6 +5942,7 @@ class FiniteStateMachine(SageObject):
             +-- tape at 4, [[1, 0, 1, 1]]
 
         ::
+
             sage: it = inverter.iter_process(input_tape=[0, 1, 1])
             sage: for current in it:
             ....:     print current

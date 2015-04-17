@@ -238,7 +238,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: from sage.structure.coerce import CoercionModel_cache_maps
             sage: cm = CoercionModel_cache_maps(4, .95)
-            sage: A = cm.get_action(ZZ, NumberField(x^2-2, 'a'), operator.mul)
+            sage: K = NumberField(x^2-2, 'a')
+            sage: A = cm.get_action(ZZ, K, operator.mul)
             sage: f, g = cm.coercion_maps(QQ, int)
             sage: f, g = cm.coercion_maps(ZZ, int)
 
@@ -475,7 +476,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Result lives in Rational Field
             Rational Field
 
-            sage: cm.explain(ZZ['x'], QQ)
+            sage: R = ZZ['x']
+            sage: cm.explain(R, QQ)
             Action discovered.
                 Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring
             Result lives in Univariate Polynomial Ring in x over Rational Field
@@ -501,10 +503,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         Sometimes with non-sage types there is not enough information to deduce
         what will actually happen::
 
-            sage: cm.explain(RealField(100), float, operator.add)
+            sage: R100 = RealField(100)
+            sage: cm.explain(R100, float, operator.add)
             Right operand is numeric, will attempt coercion in both directions.
             Unknown result parent.
-            sage: parent(RealField(100)(1) + float(1))
+            sage: parent(R100(1) + float(1))
             <type 'float'>
             sage: cm.explain(QQ, float, operator.add)
             Right operand is numeric, will attempt coercion in both directions.
@@ -520,7 +523,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Result lives in Rational Field
             Rational Field
 
-            sage: cm.explain(ZZ['x'], QQ['x'], operator.div)
+            sage: ZZx = ZZ['x']
+            sage: QQx = QQ['x']
+            sage: cm.explain(ZZx, QQx, operator.div)
             Coercion on left operand via
                 Ring morphism:
                   From: Univariate Polynomial Ring in x over Integer Ring
@@ -542,7 +547,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Result lives in Rational Field
             Rational Field
 
-            sage: cm.explain(ZZ['x'], ZZ, operator.div)
+            sage: cm.explain(ZZx, ZZ, operator.div)
             Action discovered.
                 Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
                 with precomposition on right by Natural morphism:
@@ -582,7 +587,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         EXAMPLES::
 
             sage: cm = sage.structure.element.get_coercion_model()
-            sage: steps, res = cm.analyse(GF(7), ZZ)
+            sage: GF7 = GF(7)
+            sage: steps, res = cm.analyse(GF7, ZZ)
             sage: print steps
             ['Coercion on right operand via', Natural morphism:
               From: Integer Ring
@@ -690,23 +696,29 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Rational Field
             sage: cm.common_parent(ZZ, QQ, RR)
             Real Field with 53 bits of precision
-            sage: cm.common_parent(ZZ[['T']], QQ['T'], RDF)
+            sage: ZZT = ZZ[['T']]
+            sage: QQT = QQ['T']
+            sage: cm.common_parent(ZZT, QQT, RDF)
             Power Series Ring in T over Real Double Field
             sage: cm.common_parent(4r, 5r)
             <type 'int'>
             sage: cm.common_parent(int, float, ZZ)
             <type 'float'>
-            sage: cm.common_parent(*[RealField(prec) for prec in [10,20..100]])
+            sage: real_fields = [RealField(prec) for prec in [10,20..100]]
+            sage: cm.common_parent(*real_fields)
             Real Field with 10 bits of precision
 
         There are some cases where the ordering does matter, but if a parent
         can be found it is always the same::
 
-            sage: cm.common_parent(QQ['x,y'], QQ['y,z']) == cm.common_parent(QQ['y,z'], QQ['x,y'])
+            sage: QQxy = QQ['x,y']
+            sage: QQyz = QQ['y,z']
+            sage: cm.common_parent(QQxy, QQyz) == cm.common_parent(QQyz, QQxy)
             True
-            sage: cm.common_parent(QQ['x,y'], QQ['y,z'], QQ['z,t'])
+            sage: QQzt = QQ['z,t']
+            sage: cm.common_parent(QQxy, QQyz, QQzt)
             Multivariate Polynomial Ring in x, y, z, t over Rational Field
-            sage: cm.common_parent(QQ['x,y'], QQ['z,t'], QQ['y,z'])
+            sage: cm.common_parent(QQxy, QQzt, QQyz)
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents: 'Multivariate Polynomial Ring in x, y over Rational Field' and 'Multivariate Polynomial Ring in z, t over Rational Field'
@@ -741,13 +753,17 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Rational Field
             sage: cm.division_parent(QQ)
             Rational Field
-            sage: cm.division_parent(ZZ['x'])
+            sage: ZZx = ZZ['x']
+            sage: cm.division_parent(ZZx)
             Fraction Field of Univariate Polynomial Ring in x over Integer Ring
-            sage: cm.division_parent(GF(41))
+            sage: K = GF(41)
+            sage: cm.division_parent(K)
             Finite Field of size 41
-            sage: cm.division_parent(Integers(100))
+            sage: Zmod100 = Integers(100)
+            sage: cm.division_parent(Zmod100)
             Ring of integers modulo 100
-            sage: cm.division_parent(SymmetricGroup(5))
+            sage: S5 = SymmetricGroup(5)
+            sage: cm.division_parent(S5)
             Symmetric group of order 5! as a permutation group
         """
         try:
@@ -1081,7 +1097,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: print g
             None
 
-            sage: f, g = cm.coercion_maps(ZZ['x'], QQ)
+            sage: ZZx = ZZ['x']
+            sage: f, g = cm.coercion_maps(ZZx, QQ)
             sage: print f
             (map internal to coercion system -- copy before use)
             Ring morphism:
@@ -1093,7 +1110,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
               From: Rational Field
               To:   Univariate Polynomial Ring in x over Rational Field
 
-            sage: cm.coercion_maps(QQ, GF(7)) is None
+            sage: K = GF(7)
+            sage: cm.coercion_maps(QQ, K) is None
             True
 
         Note that to break symmetry, if there is a coercion map in both
@@ -1247,7 +1265,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         Otherwise, try and compute an appropriate cover::
 
-            sage: cm.discover_coercion(ZZ['x,y'], RDF)
+            sage: ZZxy = ZZ['x,y']
+            sage: cm.discover_coercion(ZZxy, RDF)
             ((map internal to coercion system -- copy before use)
             Call morphism:
               From: Multivariate Polynomial Ring in x, y over Integer Ring
@@ -1306,24 +1325,26 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         EXAMPLES::
 
             sage: cm = sage.structure.element.get_coercion_model()
-            sage: cm.get_action(ZZ['x'], ZZ, operator.mul)
+            sage: ZZx = ZZ['x']
+            sage: cm.get_action(ZZx, ZZ, operator.mul)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
-            sage: cm.get_action(ZZ['x'], ZZ, operator.imul)
+            sage: cm.get_action(ZZx, ZZ, operator.imul)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
-            sage: cm.get_action(ZZ['x'], QQ, operator.mul)
+            sage: cm.get_action(ZZx, QQ, operator.mul)
             Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring
-            sage: cm.get_action(QQ['x'], int, operator.mul)
+            sage: QQx = QQ['x']
+            sage: cm.get_action(QQx, int, operator.mul)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Rational Field
             with precomposition on right by Native morphism:
               From: Set of Python objects of type 'int'
               To:   Integer Ring
 
-            sage: R.<x> = QQ['x']
-            sage: A = cm.get_action(R, ZZ, operator.div); A
+            sage: A = cm.get_action(QQx, ZZ, operator.div); A
             Right inverse action by Rational Field on Univariate Polynomial Ring in x over Rational Field
             with precomposition on right by Natural morphism:
               From: Integer Ring
               To:   Rational Field
+            sage: x = QQx.gen()
             sage: A(x+10, 5)
             1/5*x + 2
 
@@ -1448,12 +1469,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         Bug :trac:`17740`::
 
-            sage: cm.discover_action(GF(5)['x'], ZZ, operator.div)
+            sage: R = GF(5)['x']
+            sage: cm.discover_action(R, ZZ, operator.div)
             Right inverse action by Finite Field of size 5 on Univariate Polynomial Ring in x over Finite Field of size 5
             with precomposition on right by Natural morphism:
               From: Integer Ring
               To:   Finite Field of size 5
-            sage: cm.bin_op(GF(5)['x'].gen(), 7, operator.div).parent()
+            sage: cm.bin_op(R.gen(), 7, operator.div).parent()
             Univariate Polynomial Ring in x over Finite Field of size 5
         """
         #print "looking", R, <int><void *>R, op, S, <int><void *>S

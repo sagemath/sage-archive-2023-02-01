@@ -65,6 +65,7 @@ class PadicValuationFactory(UniqueFactory):
         sage: F=v.phi()
         sage: L.<alpha>=K.extension(F)
         sage: vK.mac_lane_approximants(F)
+        [[ Gauss valuation induced by theta-adic valuation, v(x + 1) = 9/4 ]]
         sage: vL = vK.extension(L)
 
     """
@@ -598,11 +599,26 @@ class pAdicValuation_base(WithEqualityById, DiscreteValuation):
 
         A similar example::
 
-            sage: R.<x> = QQ[]
-            sage: v = pAdicValuation(QQ, 3)
-            sage: G = (x^3 + 3)^3 - 81
-            sage: v.mac_lane_approximants(G)
-            [[ Gauss valuation induced by 3-adic valuation, v(x) = 1/3, v(x^3 + 3*x + 3) = 13/9 ]]
+          sage: R.<x> = QQ[]
+          sage: v = pAdicValuation(QQ, 3)
+          sage: G = (x^3 + 3)^3 - 81
+          sage: v.mac_lane_approximants(G)
+          [[ Gauss valuation induced by 3-adic valuation, v(x) = 1/3, v(x^3 + 3*x + 3) = 13/9 ]]
+
+        Another problematic case::
+
+            sage: R.<x>=QQ[] 
+            sage: Delta=x^12 + 20*x^11 + 154*x^10 + 664*x^9 + 1873*x^8 + 3808*x^7 + 5980*x^6 + 7560*x^5 + 7799*x^4 + 6508*x^3 + 4290*x^2 + 2224*x + 887 
+            sage: K.<theta>=NumberField(x^6+108) 
+            sage: K.is_galois()
+            True
+            sage: vK=pAdicValuation(QQ,2).extension(K)
+            sage: vK(2) 
+            3 
+            sage: vK(theta) 
+            1 
+            sage: G=Delta.change_ring(K) 
+            sage: V=vK.mac_lane_approximants(G) 
 
         OUTPUT:
 

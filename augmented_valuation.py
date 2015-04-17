@@ -511,7 +511,7 @@ class AugmentedValuation(DevelopingValuation):
         # if this is an infinite valuation, then we can simply drop all but the
         # constant term
         if self._mu is infinity:
-            return self.residue_ring()(self._base_valuation.reduce(self.coefficients(f).next()))
+            return self.residue_ring()(self._base_valuation.reduce(self.coefficients(f).next())(self.residue_field().gen()))
 
         CV = zip(self.coefficients(f), self.valuations(f))
         # rewrite as sum of f_i phi^{i tau}, i.e., drop most coefficients
@@ -600,6 +600,8 @@ class AugmentedValuation(DevelopingValuation):
             True
 
         """
+        if F.parent() is self.residue_ring().base():
+            F = self.residue_ring()(F)
         if F.parent() is not self.residue_ring():
             raise ValueError("F must be an element of the residue ring of the valuation")
         if not self.domain().base_ring().is_field():
@@ -630,11 +632,16 @@ class AugmentedValuation(DevelopingValuation):
         coeffs = [ self._base_valuation.lift(c) for c in coeffs ]
         # now the coefficients correspond to the expansion with (f_iQ^i)(Q^{-1} phi)^i
 
-        # now we undo the factors of Q^i
-        coeffs = [ (c*self.Q_()**i).map_coefficients(lambda d:_lift_to_maximal_precision(d)) for i,c in enumerate(coeffs) ]
+        # now we undo the factors of Q^i (the if else is necessary to handle the case when mu is infinity, i.e., when Q_() is undefined)
+        coeffs = [ (c if i == 0 else c*self.Q_()**i).map_coefficients(lambda d:_lift_to_maximal_precision(d)) for i,c in enumerate(coeffs) ]
 
         RR = self.domain().change_ring(self.domain())
-        ret = RR(coeffs)(self.phi()**self.tau())
+
+        if self._mu is infinity:
+            assert len(coeffs) <= 1
+            ret = RR(coeffs)[0]
+        else:
+            ret = RR(coeffs)(self.phi()**self.tau())
         ret = ret.map_coefficients(lambda c:_lift_to_maximal_precision(c))
         return ret
 

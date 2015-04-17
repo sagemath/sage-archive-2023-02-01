@@ -2640,6 +2640,8 @@ class NumberField_generic(number_field_base.NumberField):
             False
 
         """
+        if self is other:
+            return 0
         if not isinstance(other, NumberField_generic):
             return cmp(type(self), type(other))
         c = cmp(self.base_field(), other.base_field())

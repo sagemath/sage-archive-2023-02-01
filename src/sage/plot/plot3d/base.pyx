@@ -238,7 +238,7 @@ cdef class Graphics3d(SageObject):
             opts['aspect_ratio'],
             zoom,
         )
-        T.export_jmol(scene_zip, zoom=zoom*100, **opts)
+        T.export_jmol(scene_zip, **opts)
         from sage.interfaces.jmoldata import JmolData
         jdata = JmolData()
         if not jdata.is_jvm_available():
@@ -821,7 +821,7 @@ end_scene""" % (render_params.antialiasing,
         return "\n".join(flatten_list([self.obj_repr(self.default_render_params()), ""]))
 
     def export_jmol(self, filename='jmol_shape.jmol', force_reload=False,
-                    zoom=100, spin=False, background=(1,1,1), stereo=False,
+                    zoom=1, spin=False, background=(1,1,1), stereo=False,
                     mesh=False, dots=False,
                     perspective_depth = True,
                     orientation = (-764,-346,-545,76.39), **ignored_kwds):
@@ -916,7 +916,7 @@ end_scene""" % (render_params.antialiasing,
             f.write('moveto 0 %s %s %s %s\n'%tuple(orientation))
 
         f.write('centerAt absolute {0 0 0}\n')
-        f.write('zoom %s\n'%zoom)
+        f.write('zoom {0}\n'.format(zoom * 100))
         f.write('frank OFF\n') # jmol logo
 
         if perspective_depth:

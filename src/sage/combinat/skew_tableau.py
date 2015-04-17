@@ -24,7 +24,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import copy
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 
 from sage.structure.parent import Parent
@@ -41,7 +40,7 @@ import itertools
 
 from sage.structure.list_clone import ClonableList
 from sage.combinat.partition import Partition
-from sage.combinat.tableau import TableauOptions, Tableaux, SemistandardTableau, StandardTableau, Tableau
+from sage.combinat.tableau import TableauOptions, SemistandardTableau, StandardTableau, Tableau
 from sage.combinat.skew_partition import SkewPartition, SkewPartitions
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.words.words import Words
@@ -405,12 +404,19 @@ class SkewTableau(ClonableList):
 
         return SkewTableau(conj)
 
-    def to_word_by_row(self):
+    def to_word_by_row(self, as_word=True):
         """
         Return a word obtained from a row reading of ``self``.
         Specifically, this is the word obtained by concatenating the
         rows from the bottommost one (in English notation) to the
         topmost one.
+
+        INPUT:
+
+        - ``as_word`` -- boolean (default: ``True``); if ``True``,
+          the result is returned as a word (i.e., an element of
+          :class:`Words`), while otherwise it is returned as a
+          list
 
         EXAMPLES::
 
@@ -427,6 +433,8 @@ class SkewTableau(ClonableList):
               1
             sage: s.to_word_by_row()
             word: 1324
+            sage: s.to_word_by_row(as_word=False)
+            [1, 3, 2, 4]
 
         TESTS::
 
@@ -439,15 +447,24 @@ class SkewTableau(ClonableList):
         for row in self:
             word = list(row) + word
 
+        if not as_word:
+            return filter(lambda x: x is not None, word)
         return Words("positive integers")([i for i in word if i is not None])
 
-    def to_word_by_column(self):
+    def to_word_by_column(self, as_word=True):
         """
         Return the word obtained from a column reading of the skew
         tableau.
         Specifically, this is the word obtained by concatenating the
         columns from the rightmost one (in English notation) to the
         leftmost one.
+
+        INPUT:
+
+        - ``as_word`` -- boolean (default: ``True``); if ``True``,
+          the result is returned as a word (i.e., an element of
+          :class:`Words`), while otherwise it is returned as a
+          list
 
         EXAMPLES::
 
@@ -467,8 +484,10 @@ class SkewTableau(ClonableList):
             1
             sage: s.to_word_by_column()
             word: 4231
+            sage: s.to_word_by_column(as_word=False)
+            [4, 2, 3, 1]
         """
-        return self.conjugate().to_word_by_row()
+        return self.conjugate().to_word_by_row(as_word=as_word)
 
     to_word = to_word_by_row
 
@@ -780,8 +799,8 @@ class SkewTableau(ClonableList):
     def slide(self, corner=None):
         """
         Apply a jeu-de-taquin slide to ``self`` on the specified inner corner and
-        returns the new tableau.  If no corner is given an arbitrary inner corner
-        is chosen.
+        return the resulting tableau.  If no corner is given, an arbitrary inner
+        corner is chosen.
 
         See [FW]_ p12-13.
 
@@ -902,7 +921,7 @@ class SkewTableau(ClonableList):
         if algorithm is None:
             la = self.outer_shape()
             la_size = la.size()
-            if mu_size^2 < len(la) * (la_size - mu_size):
+            if mu_size ** 2 < len(la) * (la_size - mu_size):
                 algorithm = 'jdt'
             else:
                 algorithm = 'schensted'
@@ -912,7 +931,7 @@ class SkewTableau(ClonableList):
             for i in range(mu_size):
                 rect = rect.slide()
         elif algorithm == 'schensted':
-            rect = Tableau([]).insert_word(self.to_word())
+            rect = Tableau([]).insert_word(self.to_word(as_word=False))
         else:
             raise ValueError("algorithm must be 'jdt', 'schensted', or None")
         if self in StandardSkewTableaux():
@@ -1801,9 +1820,10 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
 
     def __iter__(self):
         """
-        An iterator for all the standard skew tableaux with shape of the
-        skew partition ``skp``. The standard skew tableaux are ordered
-        lexicographically by the word obtained from their row reading.
+        An iterator for all the standard skew tableaux whose shape is
+        the skew partition ``skp``. The standard skew tableaux are
+        ordered lexicographically by the word obtained from their row
+        reading.
 
         EXAMPLES::
 

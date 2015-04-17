@@ -9274,8 +9274,7 @@ class FiniteStateMachine(SageObject):
             ....:                  initial_states=['I'], final_states=[0],
             ....:                  input_alphabet=[0, 1])
             sage: sorted(NAF.language(4),
-            ....:        key=lambda o: (sum(d*2^e for e, d in enumerate(o)),
-            ....:                       len(o)))
+            ....:        key=lambda o: (ZZ(o, base=2), len(o)))
             [[], [0], [0, 0], [0, 0, 0],
              [1], [1, 0], [1, 0, 0],
              [0, 1], [0, 1, 0],

@@ -70,7 +70,7 @@ cdef class Graphics3d(SageObject):
     def __cinit__(self):
         """
         The Cython constructor
-        
+
         EXAMPLES::
 
             sage: gfx = sage.plot.plot3d.base.Graphics3d()
@@ -78,7 +78,7 @@ cdef class Graphics3d(SageObject):
             {}
         """
         self._extra_kwds = dict()
-    
+
     def _repr_(self):
         """
         Return a string representation.
@@ -133,7 +133,7 @@ cdef class Graphics3d(SageObject):
         if viewer == 'jmol' and not can_view_jmol:           viewer = 'tachyon'
         ### Second, return the corresponding graphics file
         if viewer == 'jmol':
-            return self._rich_repr_jmol(**kwds)
+            return self._rich_repr_jmol(**opts)
         elif viewer == 'tachyon':
             preferred = (
                 types.OutputImagePng,
@@ -142,11 +142,11 @@ cdef class Graphics3d(SageObject):
             )
             for output_container in preferred:
                 if output_container in display_manager.supported_output():
-                    return self._rich_repr_tachyon(output_container, **kwds)
+                    return self._rich_repr_tachyon(output_container, **opts)
         elif viewer == 'canvas3d':
-            return self._rich_repr_canvas3d(**kwds)            
+            return self._rich_repr_canvas3d(**opts)
         elif viewer == 'wavefront':
-            return self._rich_repr_wavefront(**kwds)            
+            return self._rich_repr_wavefront(**opts)
         else:
             assert False   # unreachable
 
@@ -167,7 +167,7 @@ cdef class Graphics3d(SageObject):
 
         Instance of
         :class:`~sage.repl.rich_output.output_graphics.OutputImagePng`,
-        :class:`~sage.repl.rich_output.output_graphics.OutputImageGif`, or 
+        :class:`~sage.repl.rich_output.output_graphics.OutputImageGif`, or
         :class:`~sage.repl.rich_output.output_graphics.OutputImageJpg`.
 
         EXAMPLES::
@@ -1367,7 +1367,7 @@ end_scene""" % (render_params.antialiasing,
     def _save_image_png(self, filename, **kwds):
         r"""
         Save a PNG rendering.
-        
+
         This private method is only for use by :meth:`save_image`.
 
         EXAMPLES::

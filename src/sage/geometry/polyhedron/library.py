@@ -267,7 +267,8 @@ class Polytopes():
         - ``project`` -- (boolean, default ``False``) if ``True``, the polytope
           is (isometrically) projected to a vector space of dimension ``dim-1``.
           This operation turns the coordinates into floating point
-          approximations.
+          approximations and corresponds to the projection given by the matrix
+          from :func:`zero_sum_projection`.
 
         EXAMPLES::
 
@@ -313,10 +314,11 @@ class Polytopes():
         - ``exact`` -- (boolean, default ``True``) If ``False`` use an
           approximate ring for the coordinates.
 
-        - ``base_ring`` -- the ring in which the coordinates will belong to. If
-          it is not provided and ``exact=True`` it will be a the number field
-          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False`` it
-          will be the real double field.
+        - ``base_ring`` -- (optional) the ring in which the coordinates will
+          belong to.  Note that this ring must contain `\sqrt(5)`. If it is not
+          provided and ``exact=True`` it will be the number field
+          `\QQ[\sqrt(5)]` and if ``exact=False`` it will be the real double
+          field.
 
         EXAMPLES::
 
@@ -372,19 +374,18 @@ class Polytopes():
         """
         Return a dodecahedron.
 
-        .. SEEALSO::
-
-            :meth:`icosahedron`
+        The dodecahedron is the Platonic solid dual to the :meth:`icosahedron`.
 
         INPUT:
 
         - ``exact`` -- (boolean, default ``True``) If ``False`` use an
           approximate ring for the coordinates.
 
-        - ``base_ring`` -- the ring in which the coordinates will belong to. If
-          it is not provided and ``exact=True`` it will be a the number field
-          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False`` it
-          will be the real double field.
+        - ``base_ring`` -- (optional) the ring in which the coordinates will
+          belong to.  Note that this ring must contain `\sqrt(5)`. If it is not
+          provided and ``exact=True`` it will be the number field
+          `\QQ[\sqrt(5)]` and if ``exact=False`` it will be the real double
+          field.
 
         EXAMPLES::
 
@@ -399,8 +400,15 @@ class Polytopes():
             sage: d12 = polytopes.dodecahedron(exact=False)
             sage: d12.base_ring()
             Real Double Field
+
+        Here is an error with a field that does not contain `\sqrt(5)`::
+
+            sage: polytopes.dodecahedron(base_ring=QQ)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert 1/4*sqrt(5) + 1/4 to a rational
         """
-        return self.icosahedron(exact=exact).polar()
+        return self.icosahedron(exact=exact, base_ring=base_ring).polar()
 
     def small_rhombicuboctahedron(self, exact=True, base_ring=None):
         """
@@ -757,7 +765,7 @@ class Polytopes():
 
         .. WARNING::
 
-            The coordinates are not exact. The computation with exact
+            The coordinates are not exact by default. The computation with exact
             coordinates takes a huge amount of time.
 
         INPUT:
@@ -779,12 +787,6 @@ class Polytopes():
             sage: len(list(p600.bounded_edges()))               # not tested - very long time
             120
         """
-        q12 = QQ((1,2))
-        verts = [[s1*q12, s2*q12, s3*q12, s4*q12] for s1,s2,s3,s4 in itertools.product([1,-1], repeat=4)]
-        V = ZZ**4
-        verts.extend(V.basis())
-        verts.extend(-v for v in V.basis())
-
         if exact:
             from sage.rings.number_field.number_field import QuadraticField
             K = QuadraticField(5, 'sqrt5')
@@ -795,7 +797,13 @@ class Polytopes():
             g = (1 + RDF(5).sqrt()) / 2
             base_ring = RDF
 
-        pts = [[s1 * q12, s2*g/2, s3/(2*g), 0] for (s1,s2,s3) in itertools.product([1,-1], repeat=3)]
+        q12 = base_ring(1) / base_ring(2)
+        z   = base_ring.zero()
+        verts = [[s1*q12, s2*q12, s3*q12, s4*q12] for s1,s2,s3,s4 in itertools.product([1,-1], repeat=4)]
+        V = (base_ring)**4
+        verts.extend(V.basis())
+        verts.extend(-v for v in V.basis())
+        pts = [[s1 * q12, s2*g/2, s3/(2*g), z] for (s1,s2,s3) in itertools.product([1,-1], repeat=3)]
         for p in AlternatingGroup(4):
             verts.extend(p(x) for x in pts)
         return Polyhedron(vertices=verts, base_ring=base_ring)
@@ -816,8 +824,6 @@ class Polytopes():
         - ``n`` -- positive integer. the number of vertices.
 
         - ``base_ring`` -- either ``QQ`` (default) or ``RDF``.
-
-        OUTPUT:
 
         EXAMPLES::
 
@@ -851,7 +857,8 @@ class Polytopes():
         - ``project`` -- (boolean, default ``False``) if ``True``, the polytope
           is (isometrically) projected to a vector space of dimension ``dim-1``.
           This operation turns the coordinates into floating point
-          approximations.
+          approximations and corresponds to the projection given by the matrix
+          from :func:`zero_sum_projection`.
 
         EXAMPLES::
 
@@ -887,14 +894,10 @@ class Polytopes():
         - ``project`` -- (boolean, default ``False``) if ``True``, the polytope
           is (isometrically) projected to a vector space of dimension ``dim-1``.
           This operation turns the coordinates into floating point
-          approximations.
-
-        OUTPUT:
-
-        A Polyhedron object representing the permutahedron.
+          approximations and corresponds to the projection given by the matrix
+          from :func:`zero_sum_projection`.
 
         EXAMPLES::
-
 
             sage: perm4 = polytopes.permutahedron(4)
             sage: perm4

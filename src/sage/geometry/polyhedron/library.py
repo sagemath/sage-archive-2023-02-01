@@ -72,7 +72,13 @@ def zero_sum_projection(d):
     Return a matrix corresponding to the projection on the orthogonal of
     `(1,1,\ldots,1)` in dimension `d`.
 
-    The matrix has dimensions `(d-1)\times d` and is defined over :class:`RDF
+    The projection maps the orthonormal basis `(1,-1,0,\ldots,0) / \sqrt(2)`,
+    `(1,1,-1,0,\ldots,0) / \sqrt(3)`, \ldots, `(1,1,\ldots,1,-1) / \sqrt(d)` to
+    the canonical basis in `\RR^{d-1}`.
+
+    OUTPUT:
+    
+    A matrix of dimensions `(d-1)\times d` defined over :class:`RDF
     <sage.rings.real_double.RealDoubleField_class>`.
 
     EXAMPLES::
@@ -97,6 +103,8 @@ def project_points(*points):
     made of zero sum vector. Hence, if the set of points have all equal sums,
     then their projection is isometric (as a set of points).
 
+    The projection used is the matrix given by :func:`zero_sum_projection`.
+
     EXAMPLES::
 
         sage: from sage.geometry.polyhedron.library import project_points
@@ -105,8 +113,9 @@ def project_points(*points):
         sage: project_points([1,2,3],[3,3,5])
         [(-0.7071067811865475, -1.2247448713915892), (0.0, -1.6329931618554523)]
 
-    This projection is the only one compatible with the restriction to the first
-    coordinates::
+    These projections are compatible with the restriction. More precisely, given
+    a vector `v`, the projection of `v` restricted to the first `i` coordinates
+    will be equal to the projection of the first `i+1` coordinates of `v`::
 
         sage: project_points([1,2])
         [(-0.7071067811865475)]
@@ -114,6 +123,8 @@ def project_points(*points):
         [(-0.7071067811865475, -1.2247448713915892)]
         sage: project_points([1,2,3,4])
         [(-0.7071067811865475, -1.2247448713915892, -1.7320508075688776)]
+        sage: project_points([1,2,3,4,0])
+        [(-0.7071067811865475, -1.2247448713915892, -1.7320508075688776, 2.23606797749979)]
 
     Check that it is (almost) an isometry::
 
@@ -273,14 +284,14 @@ class Polytopes():
         Its volume is `\sqrt{d+1} / d!`::
 
             sage: s5 = polytopes.simplex(5, project=True)
-            sage: s5.volume()
-            0.020412414522984975
+            sage: s5.volume()      # abs tol 1e-10
+            0.0204124145231931
             sage: sqrt(6.) / factorial(5)
             0.0204124145231931
 
             sage: s6 = polytopes.simplex(6, project=True)
-            sage: s6.volume()
-            0.003674654598885692
+            sage: s6.volume()      # abs tol 1e-10
+            0.00367465459870082
             sage: sqrt(7.) / factorial(6)
             0.00367465459870082
         """
@@ -295,7 +306,7 @@ class Polytopes():
         Return an icosahedron with edge length 1.
 
         The icosahedron is one of the Platonic sold. It has 20 faces and is dual
-        to the :meth:`dodecahedron`
+        to the :meth:`dodecahedron`.
 
         INPUT:
 
@@ -322,6 +333,22 @@ class Polytopes():
             Real Double Field
             sage: ico.volume()
             2.1816949907715726
+
+        A version using `AA <sage.rings.qqbar.AlgebraicRealField>`::
+
+            sage: ico = polytopes.icosahedron(base_ring=AA)   # long time
+            sage: ico.base_ring()                             # long time
+            Algebraic Real Field
+            sage: ico.volume()                                # long time
+            2.181694990624913?
+
+        Note that if base ring is provided it must contain the square root of
+        `5`. Otherwise you will get an error::
+
+            sage: polytopes.icosahedron(base_ring=QQ)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert 1/4*sqrt(5) + 1/4 to a rational
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField

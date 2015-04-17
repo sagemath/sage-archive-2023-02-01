@@ -385,13 +385,16 @@ class Posets(object):
     @staticmethod
     def PartitionsDominanceOrder(n):
         r"""
-        Returns the poset of integer partitions on the integer `n`
-        ordered by dominance. That is, if `p=(p_1,\ldots,p_i)` and `q=(q_1,\ldots,q_j)` are integer partitions
-        of `n`, then `p` is greater than `q` if and only if `p_1+\cdots+p_k > q_1+\cdots+q_k` for all `k`.
+        Return the poset of integer partitions on the integer `n`
+        ordered by dominance.
+
+        That is, if `p=(p_1,\ldots,p_i)` and `q=(q_1,\ldots,q_j)` are
+        integer partitions of `n`, then `p` is greater than `q` if and
+        only if `p_1+\cdots+p_k > q_1+\cdots+q_k` for all `k`.
 
         INPUT:
 
-        - ``n`` - a positive integer
+        - ``n`` -- a positive integer
 
         EXAMPLES::
 
@@ -412,7 +415,7 @@ class Posets(object):
              [[5, 1], [6]]]
         """
         from sage.combinat.partition import Partitions, Partition
-        return Poset((Partitions(n),Partition.dominates)).dual()
+        return Poset((Partitions(n), Partition.dominates)).dual()
 
     @staticmethod
     def RandomPoset(n,p):
@@ -492,11 +495,12 @@ class Posets(object):
     @staticmethod
     def SetPartitions(n):
         r"""
-        Returns the poset of set partitions of the set `\{1,\ldots,n\}` ordered by refinement.
+        Return the poset of set partitions of the set `\{1,\ldots,n\}`
+        ordered by refinement.
 
         INPUT:
 
-        - ``n`` - a positive integer
+        - ``n`` -- a positive integer
 
         EXAMPLES::
 

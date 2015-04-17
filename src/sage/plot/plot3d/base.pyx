@@ -238,13 +238,13 @@ cdef class Graphics3d(SageObject):
             opts['aspect_ratio'],
             zoom,
         )
-        T.export_jmol(scene_zip, zoom=zoom*100, **kwds)
+        T.export_jmol(scene_zip, zoom=zoom*100, **opts)
         from sage.interfaces.jmoldata import JmolData
         jdata = JmolData()
         if not jdata.is_jvm_available():
             # We can only use JMol to generate preview if a jvm is installed
             from sage.repl.rich_output.output_graphics import OutputImagePng
-            tachyon = self._rich_repr_tachyon(OutputImagePng, **kwds)
+            tachyon = self._rich_repr_tachyon(OutputImagePng, **opts)
             tachyon.png.save_as(preview_png)
         else:
             # Java needs absolute paths
@@ -1388,10 +1388,10 @@ end_scene""" % (render_params.antialiasing,
         viewer = opts['viewer']
         if viewer == 'tachyon':
             from sage.repl.rich_output.output_catalog import OutputImagePng
-            render = self._rich_repr_tachyon(OutputImagePng, **kwds)
+            render = self._rich_repr_tachyon(OutputImagePng, **opts)
             render.png.save_as(filename)
         elif viewer == 'jmol':
-            scene = self._rich_repr_jmol(**kwds)
+            scene = self._rich_repr_jmol(**opts)
             scene.preview_png.save_as(filename)
         else:
             raise ValueError('cannot use viewer={0} to render image'.format(viewer))

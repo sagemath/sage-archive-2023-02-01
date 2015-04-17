@@ -21,6 +21,7 @@ from sage.rings.all import ZZ, QQ
 from sage.misc.all import cached_method
 from sage.matrix.constructor import Matrix
 from sage.functions.other import floor
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 
 # TODO: Make this a proper parent and implement actions
 class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
@@ -251,7 +252,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         The level of the representation equals `(\\rho|\delta)`. See [Kac] section 12.4.
 
         """
-        return self._inner_pq(self._Lam, self._delta)
+        return ZZ(self._inner_pq(self._Lam, self._delta))
 
     def coxeter_number(self):
         """
@@ -411,7 +412,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         return self._Lam - self._P.sum(val * alpha[I[i]]
                                        for i,val in enumerate(n))
 
-    def _from_weight_helper(self, mu):
+    def _from_weight_helper(self, mu, check=False):
         r"""
         Return ``(n[0], n[1], ...)`` such that ``mu = sum n[i]*alpha[i]``.
 
@@ -432,9 +433,12 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         zero = ZZ.zero()
         for i in self._index_set_classical:
             # -1 for indexing
-            ret.append( ZZ(sum(self._cminv[i-1,j-1] * mc_mu0.get(j, zero)
-                               for j in self._index_set_classical)) )
-        return tuple(ret)
+            ret.append( sum(self._cminv[i-1,j-1] * mc_mu0.get(j, zero)
+                               for j in self._index_set_classical) )
+        if check:
+            return all(x in ZZ for x in ret)
+        else:
+            return tuple(ZZ(x) for x in ret)
     
     def from_weight(self, mu):
         """
@@ -619,6 +623,31 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             self._mdict[n] = ret
         else:
             print "m: error - failed to compute m%s"%n.__repr__()
+        return ret
+
+    def dommax(self):
+        """
+        A weight `\\mu` is *maximal* if it has nonzero multiplicity but
+        `\\mu+\\delta`` has multiplicity zero. There are a finite number
+        of dominant maximal weights.
+
+        This function will replace dominant maximal after it has been
+        fully tested.
+
+        """
+        k = self.level()
+        Lambda = self._P.fundamental_weights()
+        def next_level(wt):
+            return [wt + Lambda[i] for i in self._index_set_classical if (wt + Lambda[i]).level() <= k]
+        R = RecursivelyEnumeratedSet([self._P.zero()], next_level)
+        candidates = [x + (k - x.level())*Lambda[0] for x in list(R)]
+        ret = []
+        for x in candidates:
+            if self._from_weight_helper(x, check=True):
+                t = 0
+                while self.m(self.from_weight(x-t*self._delta)) == 0:
+                    t += 1
+                ret.append(x-t*self._delta)
         return ret
 
     # FIXME: Make this generate itself without having needing to be called by string()

@@ -1258,6 +1258,25 @@ class FindStatStatistic(SageObject):
         r"""
         Open the FindStat web page for editing the statistic ``self`` in a browser.
 
+        INPUT:
+
+        - ``max_values`` -- integer (default:
+          ``FINDSTAT_MAX_SUBMISSION_VALUES``); if :meth:`function` is
+          defined and the statistic is a new statistic, use
+          :meth:`FindStatCollection.first_terms` to produce at most
+          ``max_values`` terms.
+
+        EXAMPLES::
+
+            sage: s = findstat(lambda x: randint(1,1000), DyckWords(4)); s      # optional -- internet
+            a new statistic on Cc0005: Dyck paths
+
+        The following uses ``lambda x: randint(1,1000)`` to produce
+        14 terms, because ``min(DyckWords(4).cardinality(),
+        FINDSTAT_MAX_SUBMISSION_VALUES)`` is 14::
+
+            sage: s.submit()                                                    # optional -- webbrowser
+
         .. TODO::
 
             decide whether we want to somehow take into account when
@@ -1434,43 +1453,6 @@ class FindStatCollection(SageObject):
              str,
              lambda x: StandardTableau(literal_eval(x))]}
 
-    r"""
-    Objects are normalized using the method :meth:`to_string`.  This
-    method should apply to objects produced by :meth:`first_terms` as
-    well as to objects produced by :meth:`from_string`.
-
-    EXAMPLES::
-
-        sage: from sage.databases.findstat import FindStatCollection
-        sage: FindStatCollection("Permutations")                                # optional -- internet
-        Cc0001: Permutations
-
-    TESTS::
-
-        # when one of these tests does not pass, there is probably a new collection to be added.
-        sage: cdata = FindStatCollection._findstat_collections.values()         # optional -- internet
-        sage: cl = [FindStatCollection(x[0]) for x in cdata]
-        # create an object and find its collection
-        sage: [FindStatCollection(c.first_terms(lambda x: 0, max_values=1)[0][0]) for c in cl]
-        [Cc0001: Permutations,
-         Cc0002: Integer partitions,
-         Cc0005: Dyck paths,
-         Cc0006: Integer compositions,
-         Cc0007: Standard tableaux,
-         Cc0009: Set partitions,
-         Cc0010: Binary trees,
-         Cc0012: Perfect matchings,
-         Cc0013: Cores,
-         Cc0014: Posets,
-         Cc0017: Alternating sign matrices,
-         Cc0018: Gelfand-Tsetlin patterns,
-         Cc0019: Semistandard tableaux,
-         Cc0020: Graphs,
-         Cc0021: Ordered trees,
-         Cc0022: Finite Cartan types,
-         Cc0023: Parking functions]
-    """
-
     def __init__(self, entry):
         r"""
         Initialize a FindStat collection.
@@ -1499,6 +1481,45 @@ class FindStatCollection(SageObject):
 
             sage: FindStatCollection(DyckWords(2))                              # optional -- internet
             Cc0005: Dyck paths
+
+    Objects are normalized using the method :meth:`to_string`.  This
+    method should apply to objects produced by :meth:`first_terms` as
+    well as to objects produced by :meth:`from_string`.
+
+    EXAMPLES::
+
+        sage: from sage.databases.findstat import FindStatCollection
+        sage: FindStatCollection("Permutations")                                # optional -- internet
+        Cc0001: Permutations
+
+    TESTS:
+
+    When one of these tests does not pass, there is probably a new collection to be added::
+
+        sage: cdata = FindStatCollection._findstat_collections.values()         # optional -- internet
+        sage: cl = [FindStatCollection(x[0]) for x in cdata]                    # optional -- internet
+
+    Create an object and find its collection::
+
+        sage: [FindStatCollection(c.first_terms(lambda x: 0, max_values=1)[0][0]) for c in cl]      # optional -- internet
+        [Cc0001: Permutations,
+         Cc0002: Integer partitions,
+         Cc0005: Dyck paths,
+         Cc0006: Integer compositions,
+         Cc0007: Standard tableaux,
+         Cc0009: Set partitions,
+         Cc0010: Binary trees,
+         Cc0012: Perfect matchings,
+         Cc0013: Cores,
+         Cc0014: Posets,
+         Cc0017: Alternating sign matrices,
+         Cc0018: Gelfand-Tsetlin patterns,
+         Cc0019: Semistandard tableaux,
+         Cc0020: Graphs,
+         Cc0021: Ordered trees,
+         Cc0022: Finite Cartan types,
+         Cc0023: Parking functions]
+
         """
         if not FindStatCollection._findstat_collections.values()[0][0]:
             for j in json.load(urlopen(FINDSTAT_URL_DOWNLOADS_COLLECTIONS)):

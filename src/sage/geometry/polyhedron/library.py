@@ -67,10 +67,13 @@ from constructor import Polyhedron
 
 from sage.graphs.digraph import DiGraph
 
-def zero_sum_projection(dim):
+def zero_sum_projection(d):
     r"""
     Return a matrix corresponding to the projection on the orthogonal of
-    `(1,1,\ldots,1)` in dimension `dim`.
+    `(1,1,\ldots,1)` in dimension `d`.
+
+    The matrix has dimensions `(d-1)\times d` and is defined over :class:`RDF
+    <sage.rings.real_double.RealDoubleField_class>`.
 
     EXAMPLES::
 
@@ -83,7 +86,7 @@ def zero_sum_projection(dim):
     """
     from sage.matrix.constructor import matrix
     from sage.modules.free_module_element import vector
-    basis = [vector(RDF,[1]*i + [-i] + [0]*(dim-i-1)) for i in range(1,dim)]
+    basis = [vector(RDF,[1]*i + [-i] + [0]*(d-i-1)) for i in range(1,d)]
     return matrix(RDF, [v / v.norm() for v in basis])
 
 def project_points(*points):
@@ -121,7 +124,7 @@ def project_points(*points):
         ....:         assert abs((V[i]-V[j]).norm() - (P[i]-P[j]).norm()) < 0.00001
     """
     if not points:
-        return
+        return []
     from sage.modules.free_module_element import vector
     vecs = [vector(RDF,p) for p in points]
     m = zero_sum_projection(len(vecs[0]))
@@ -292,11 +295,7 @@ class Polytopes():
         Return an icosahedron with edge length 1.
 
         The icosahedron is one of the Platonic sold. It has 20 faces and is dual
-        to the Dodecahedron.
-
-        .. SEEALSO::
-
-            :meth:`dodecahedron`
+        to the :meth:`dodecahedron`
 
         INPUT:
 

@@ -711,7 +711,11 @@ class PermutationGroup_generic(group.Group):
 
             sage: G = PermutationGroup([[(1,2,3,4)], [(1,2)]])
             sage: G.list()
-            [(), (3,4), (2,3), (2,3,4), (2,4,3), (2,4), (1,2), (1,2)(3,4), (1,2,3), (1,2,3,4), (1,2,4,3), (1,2,4), (1,3,2), (1,3,4,2), (1,3), (1,3,4), (1,3)(2,4), (1,3,2,4), (1,4,3,2), (1,4,2), (1,4,3), (1,4), (1,4,2,3), (1,4)(2,3)]
+            [(), (1,2), (1,2,3,4), (1,3,4), (2,3,4), (1,3)(2,4),
+             (1,4,3,2), (1,3,2,4), (1,2,4,3), (1,3,4,2),
+             (1,4,2,3), (2,4,3), (1,4,3), (1,3,2), (1,4)(2,3),
+             (1,4,2), (3,4), (2,4), (1,4), (2,3), (1,3),  (1,2,3),
+             (1,2,4), (1,2)(3,4)]
 
             sage: G = PermutationGroup([[('a','b')]], domain=('a', 'b')); G
             Permutation Group with generators [('a','b')]
@@ -780,7 +784,7 @@ class PermutationGroup_generic(group.Group):
 
             sage: G = PermutationGroup([[(1,2,3)], [(1,2)]])
             sage: [a for a in G]
-            [(), (2,3), (1,2), (1,2,3), (1,3,2), (1,3)]
+            [(), (1,2), (1,2,3), (2,3), (1,3,2), (1,3)]
 
         Test that it is possible to iterate through moderately large groups
         (trac:`18239`)::
@@ -790,8 +794,8 @@ class PermutationGroup_generic(group.Group):
             sage: A = PermutationGroup([p,q])
             sage: A.cardinality()
             60000
-            sage: for x in A:
-            ....:     pass
+            sage: for x in A:    # long time - 2 secs
+            ....:     pass       # long time
         """
         from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
         return iter(RecursivelyEnumeratedSet(seeds=[self.one()],
@@ -3084,7 +3088,7 @@ class PermutationGroup_generic(group.Group):
         is possible.  ::
 
             sage: A = AlternatingGroup(4)
-            sage: face_turn = A.list()[4]; face_turn
+            sage: face_turn = A('(1,2,3)'); face_turn
             (1,2,3)
             sage: stabilizer = A.subgroup([face_turn])
             sage: rc = A.cosets(stabilizer, side='right'); rc

@@ -1250,15 +1250,18 @@ class GeneralDihedralGroup(PermutationGroup_generic):
 class DihedralGroup(PermutationGroup_unique):
     def __init__(self, n):
         """
-        The Dihedral group of order $2n$ for any integer $n\geq 1$.
+        The Dihedral group of order `2n` for any integer `n\geq 1`.
 
         INPUT:
-            n -- a positive integer
+
+        - ``n`` -- a positive integer
 
         OUTPUT:
-            -- the dihedral group of order 2*n, as a permutation group
 
-        .. note::
+        The dihedral group of order `2n`, as a permutation group
+
+        .. NOTE::
+
           This group is also available via ``groups.permutation.Dihedral()``.
 
         EXAMPLES::
@@ -1274,7 +1277,8 @@ class DihedralGroup(PermutationGroup_unique):
             sage: DihedralGroup(5).gens()
             [(1,2,3,4,5), (1,5)(2,4)]
             sage: list(DihedralGroup(5))
-            [(), (2,5)(3,4), (1,2)(3,5), (1,2,3,4,5), (1,3)(4,5), (1,3,5,2,4), (1,4)(2,3), (1,4,2,5,3), (1,5,4,3,2), (1,5)(2,4)]
+            [(), (1,5)(2,4), (1,2,3,4,5), (2,5)(3,4), (1,4)(2,3), (1,3,5,2,4),
+            (1,5,4,3,2), (1,4,2,5,3), (1,2)(3,5), (1,3)(4,5)]
 
             sage: G = DihedralGroup(6)
             sage: G.order()

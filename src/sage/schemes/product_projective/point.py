@@ -319,17 +319,22 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         for i in range(self.codomain().ambient_space().num_components()):
             self[i].scale_by(t[i])
 
-    def change_ring(self, R, check = True):
+    def change_ring(self, R, **kwds):
         r"""
         Returns a new :class:`ProductProjectiveSpaces_point` which is ``self`` coerced to ``R``.
 
-        If ``check`` is ``True``, then the initialization checks are performed.
+        If the keyword ``check`` is ``True``, then the initialization checks are performed.
+        The user may specify the embedding into ``R`` with a keyword.
 
         INPUT:
 
-        - ``R`` -- a ring
+        - ``R`` -- ring
 
-        - ``check`` -- Boolean (optional)
+        kwds:
+
+        - ``check`` -- Boolean
+
+        - ``embedding`` -- field embedding from the base ring of ``self`` to ``R``.
 
         OUTPUT:
 
@@ -342,6 +347,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             sage: P.change_ring(GF(3))
             (1 : 0 , 0 : 1 , 1 : 0)
         """
+        check = kwds.get('check', True)
         S = self.codomain().change_ring(R)
-        Q = [P.change_ring(R,check) for P in self._points]
+        Q = [P.change_ring(R,**kwds) for P in self._points]
         return(S.point(Q, check))

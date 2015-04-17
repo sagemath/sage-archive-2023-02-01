@@ -490,13 +490,6 @@ bool mul::info(unsigned inf) const
 		}
 		case info_flags::positive:
 		case info_flags::negative: {
-			if ((inf==info_flags::positive) && (flags & status_flags::is_positive))
-				return true;
-			else if ((inf==info_flags::negative) && (flags & status_flags::is_negative))
-				return true;
-			if (flags & status_flags::purely_indefinite)
-				return false;
-
 			bool pos = true;
 			epvector::const_iterator i = seq.begin(), end = seq.end();
 			while (i != end) {
@@ -510,12 +503,9 @@ bool mul::info(unsigned inf) const
 			}
 			if (overall_coeff.info(info_flags::negative))
 				pos = !pos;
-			setflag(pos ? status_flags::is_positive : status_flags::is_negative);
-			return (inf == info_flags::positive? pos : !pos);
+			return (inf ==info_flags::positive? pos : !pos);
 		}
 		case info_flags::nonnegative: {
-			if  (flags & status_flags::is_positive)
-				return true;
 			bool pos = true;
 			epvector::const_iterator i = seq.begin(), end = seq.end();
 			while (i != end) {
@@ -565,21 +555,6 @@ bool mul::info(unsigned inf) const
 			else if (!overall_coeff.info(info_flags::posint))
 				return false;
 			return pos; 
-		}
-		case info_flags::indefinite: {
-			if (flags & status_flags::purely_indefinite)
-				return true;
-			if (flags & (status_flags::is_positive | status_flags::is_negative))
-				return false;
-			epvector::const_iterator i = seq.begin(), end = seq.end();
-			while (i != end) {
-				const ex& term = recombine_pair_to_ex(*i);
-				if (term.info(info_flags::positive) || term.info(info_flags::negative))
-					return false;
-				++i;
-			}
-			setflag(status_flags::purely_indefinite);
-			return true;
 		}
 	}
 	return inherited::info(inf);

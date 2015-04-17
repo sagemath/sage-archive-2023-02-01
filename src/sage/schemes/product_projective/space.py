@@ -37,7 +37,7 @@ We can also construct the product by specifying the dimensions and the base ring
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
 
-from sage.rings.all import (PolynomialRing, ZZ, QQ)
+from sage.rings.all import (PolynomialRing, ZZ, QQ, Integer)
 from sage.rings.commutative_ring import is_CommutativeRing
 from sage.rings.polynomial.polydict import ETuple
 
@@ -205,7 +205,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             Multivariate Polynomial Ring in z0, z1, z2, z3 over Rational Field
         """
         assert isinstance(N, (tuple, list))
-        assert all(x.parent() is ZZ for x in N)
+        N = [Integer(n) for n in N]
         assert is_CommutativeRing(R)
         if len(N) < 2:
             raise ValueError("Must be at least two components for a product")

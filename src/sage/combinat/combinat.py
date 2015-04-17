@@ -830,6 +830,11 @@ class CombinatorialObject(SageObject):
         list and the hash of its parent's class. Thus, each
         CombinatorialObject should have a unique string representation.
 
+        .. WARNING::
+
+            This class is slowly being deprecated. Use
+            :class:`~sage.structure.list_clone.ClonableList` instead.
+
         INPUT:
 
         -  ``l`` -- a list or any object that can be converted to a

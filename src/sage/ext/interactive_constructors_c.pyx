@@ -20,7 +20,7 @@ def inject_on(verbose=True):
 
     INPUT:
 
-    - verbose (default: True) if True, print which constructors become
+    - verbose (default: ``True``) if ``True``, print which constructors become
       interactive, and also print variables as they are implicitly defined.
 
     EXAMPLES::
@@ -107,7 +107,7 @@ def FiniteField(*args, **kwds):
     """
     Construct a finite field and inject the variables of the
     finite field to the global interactive interpreter.  Use
-    inject=False to not inject the variables.  This is a wrapper
+    ``inject=False`` to not inject the variables.  This is a wrapper
     around the following function: FiniteField
     """
     t = _do_inject(kwds)
@@ -120,7 +120,7 @@ def FractionField(*args, **kwds):
     """
     Construct the fraction field of a field and inject the generators
     of the fraction field to the global interactive interpreter.  Use
-    inject=False to not inject the variables.  This is a wrapper
+    ``inject=False`` to not inject the variables.  This is a wrapper
     around the following function: FractionField
 
     EXAMPLES (that illustrate interactive injection of variables)::
@@ -141,7 +141,7 @@ Frac = FractionField
 def FreeMonoid(*args, **kwds):
     """
     Construct a free monoid and inject the variables of the monoid
-    into the global interactive interpreter.  Use inject=False to not
+    into the global interactive interpreter.  Use ``inject=False`` to not
     inject the variables.  This is a wrapper around the following
     function: FreeMonoid
 
@@ -170,7 +170,7 @@ def LaurentSeriesRing(*args, **kwds):
     """
     Construct the Laurent series ring over a ring, and inject the
     generator into the interpreter's global namespace.  Use
-    inject=False to not inject the variables.  This is a wrapper
+    ``inject=False`` to not inject the variables.  This is a wrapper
     around the following function:
 
     LaurentSeries
@@ -183,7 +183,7 @@ def NumberField(*args, **kwds):
     """
     Construct a number field, and inject the generator of the number
     fraction field into the interpreters global namespace.  Use
-    inject=False to not inject the variables.  This is a wrapper
+    ``inject=False`` to not inject the variables.  This is a wrapper
     around the following function:
     NumberField
     """
@@ -194,7 +194,7 @@ def NumberField(*args, **kwds):
 def quotient(R, I, names, inject=True):
     """
     Construct the quotient R/I and name the generators, which are
-    then injected into the module scope (if inject=True).
+    then injected into the module scope (if ``inject=True``).
 
     EXAMPLES::
 
@@ -222,7 +222,7 @@ def PolynomialRing(*args, **kwds):
     """
     Construct a polynomial ring and inject the variables of the
     polynomial ring to the global interactive interpreter.  Use
-    inject=False to not inject the variables.  This is a wrapper
+    ``inject=False`` to not inject the variables.  This is a wrapper
     around the following function: PolynomialRing
 
     MORE EXAMPLES:

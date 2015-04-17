@@ -681,10 +681,10 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Implementing new bases
 
-    In order to implement a new basis Sage will need to know at minimum how to change
-    back and forth between at least one other basis.  All of the standard functions
-    associated with the basis will have a default implementation (although a more
-    specific implementation may be more efficient).
+    In order to implement a new symmetric function basis, Sage will need to know at a
+    minimum how to change back and forth between at least one other basis.  All of
+    the standard functions associated with the basis will have a default implementation
+    (although a more specific implementation may be more efficient).
     
     To present an idea of how this is done, we will create 
     here the example of how to implement the basis `s_\mu[X(1-t)]`.
@@ -696,27 +696,28 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     Now the basis we are creating has a parameter `t` which is possible to specialize.
     In this example we will convert to and from the Schur basis.  For this we implement
-    functions ``_self_to_s`` and ``_s_to_self``.  By registering these two functions
-    as coercions this makes it possible to change between any two bases for which there
-    is a path of changes of bases.::
+    methods ``_self_to_s`` and ``_s_to_self``.  By registering these two functions
+    as coercions Sage then knows automatically how it possible to change between any two
+    bases for which there is a path of changes of bases.::
 
+        sage: from sage.categories.morphism import SetMorphism as SM
         sage: class SFA_st(SFA_generic):
-                  def __init__(self, Sym, t):
-                      SFA_generic.__init__(self, Sym, basis_name="Schur functions with a plethystic substitution of X -> X(1-t)", prefix='st')
-                      self._s = Sym.s()
-                      self.t = Sym.base_ring()(t)
-                      category = sage.categories.all.ModulesWithBasis(Sym.base_ring())
-                      self.register_coercion(SetMorphism(Hom(self._s, self, category), self._s_to_self))
-                      self._s.register_coercion(SetMorphism(Hom(self, self._s, category), self._self_to_s))
-                  def _s_to_self(self, f):
-                      # f is a Schur function and the output is in the st basis
-                      return self._from_dict(f.theta_qt(0,self.t)._monomial_coefficients)
-                  def _self_to_h(self, f):
-                      # f is in the st basis and the output is in the Schur basis
-                      return self._s.sum(cmu*self._s(mu).theta_qt(self.t,0) for mu,cmu in f)
-
-                  class Element(SFA_generic.Element):
-                      pass
+        ....:     def __init__(self, Sym, t):
+        ....:         SFA_generic.__init__(self, Sym, basis_name="Schur functions with a plethystic substitution of X -> X(1-t)", prefix='st')
+        ....:         self._s = Sym.s()
+        ....:         self.t = Sym.base_ring()(t)
+        ....:         category = sage.categories.all.ModulesWithBasis(Sym.base_ring())
+        ....:         self.register_coercion(SM(Hom(self._s, self, category), self._s_to_self))
+        ....:         self._s.register_coercion(SM(Hom(self, self._s, category), self._self_to_s))
+        ....:     def _s_to_self(self, f):
+        ....:         # f is a Schur function and the output is in the st basis
+        ....:         return self._from_dict(f.theta_qt(0,self.t)._monomial_coefficients)
+        ....:     def _self_to_s(self, f):
+        ....:         # f is in the st basis and the output is in the Schur basis
+        ....:         return self._s.sum(cmu*self._s(mu).theta_qt(self.t,0) for mu,cmu in f)
+        ....:
+        ....:     class Element(SFA_generic.Element):
+        ....:         pass
 
     An instance of this basis is created by calling it with a symmetric function
     ring ``Sym`` and a parameter ``t`` which is in the base ring of ``Sym``.

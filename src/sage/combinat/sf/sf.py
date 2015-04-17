@@ -724,11 +724,15 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     In the reference [MAC]_ on page 354 this basis is denoted `S_\lambda(x;t)` and the
     change of basis coefficients of the Macdonald ``J`` basis are the
-    coefficients `K_{\lambda\mu}(q,t)`.::
+    coefficients `K_{\lambda\mu}(q,t)`.  Here is an example of its use.::
 
         sage: QQqt=QQ['q','t'].fraction_field()
         sage: (q,t) = QQqt.gens()
         sage: st = SFA_st(SymmetricFunctions(QQqt),t)
+        sage: st[2,1]*st[1]
+        st[2, 1, 1] + st[2, 2] + st[3, 1]
+        sage: st([2]).coproduct()
+        st[] # st[2] + st[1] # st[1] + st[2] # st[]
         sage: J = st.symmetric_function_ring().macdonald().J()
         sage: st(J[2,1])
         q*st[1, 1, 1] + (q*t+1)*st[2, 1] + t*st[3]

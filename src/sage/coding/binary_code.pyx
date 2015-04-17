@@ -954,7 +954,7 @@ cdef class BinaryCode:
             10011001
             01101001
         """
-        from sage.graphs.generic_graph_pyx import binary
+        from sage.graphs.generic_graph_pyx import int_to_binary_string
         cdef int ui
         cdef int i
         s = ''
@@ -964,13 +964,13 @@ cdef class BinaryCode:
         s += "\nradix:" + str(self.radix)
         s += "\nbasis:\n"
         for i from 0 <= i < self.nrows:
-            b = list(binary(self.basis[i]).zfill(self.ncols))
+            b = list(int_to_binary_string(self.basis[i]).zfill(self.ncols))
             b.reverse()
             b.append('\n')
             s += ''.join(b)
         s += "\nwords:\n"
         for ui from 0 <= ui < self.nwords:
-            b = list(binary(self.words[ui]).zfill(self.ncols))
+            b = list(int_to_binary_string(self.words[ui]).zfill(self.ncols))
             b.reverse()
             b.append('\n')
             s += ''.join(b)

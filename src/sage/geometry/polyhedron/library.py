@@ -117,13 +117,13 @@ def project_points(*points):
     a vector `v`, the projection of `v` restricted to the first `i` coordinates
     will be equal to the projection of the first `i+1` coordinates of `v`::
 
-        sage: project_points([1,2])
+        sage: project_points([1,2])    # abs tol 1e-15
         [(-0.7071067811865475)]
-        sage: project_points([1,2,3])
+        sage: project_points([1,2,3])  # abs tol 1e-15
         [(-0.7071067811865475, -1.2247448713915892)]
-        sage: project_points([1,2,3,4])
+        sage: project_points([1,2,3,4])     # abs tol 1e-15
         [(-0.7071067811865475, -1.2247448713915892, -1.7320508075688776)]
-        sage: project_points([1,2,3,4,0])
+        sage: project_points([1,2,3,4,0])   # abs tol 1e-15
         [(-0.7071067811865475, -1.2247448713915892, -1.7320508075688776, 2.23606797749979)]
 
     Check that it is (almost) an isometry::

@@ -403,7 +403,7 @@ cdef class SymbolicRing(CommutativeRing):
 
         TESTS:
 
-        Check that :trac:`15048` is fixed::
+        Check that :trac:`15047` is fixed::
 
             sage: latex(SR.wild(0))
             \$0

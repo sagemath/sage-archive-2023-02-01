@@ -3173,6 +3173,8 @@ class DyckWords(Parent, UniqueRepresentation):
                 if complete:
                     return CompleteDyckWords_all()
                 return DyckWords_all()
+            if k1 < 0:
+                raise ValueError("k1 (= %s) must be nonnegative" % k1)
             return CompleteDyckWords_size(k1)
 
         if k1 < 0 or (k2 is not None and k2 < 0):

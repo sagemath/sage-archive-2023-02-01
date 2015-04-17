@@ -182,6 +182,7 @@ class HomsetsOf(HomsetsCategory):
         sage: TestSuite(C).run(skip=['_test_category_graph'])
         sage: TestSuite(C).run()
     """
+    _base_category_class = (Category,)
 
     def _repr_object_names(self):
         """

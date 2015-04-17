@@ -1,7 +1,6 @@
 r"""
 Elements of Laurent polynomial rings
 """
-include "sage/ext/stdsage.pxi"
 
 from sage.rings.integer import Integer
 from sage.structure.element import is_Element, coerce_binop

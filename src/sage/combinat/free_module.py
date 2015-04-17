@@ -832,9 +832,9 @@ class CombinatorialFreeModuleElement(Element):
         parent = self.parent()
         dense_free_module = parent._dense_free_module(new_base_ring)
         d = self._monomial_coefficients
-        return dense_free_module._element_class(dense_free_module,
-                                                [d.get(m, 0) for m in parent.get_order()],
-                                                coerce=True, copy=False)
+        return dense_free_module.element_class(dense_free_module,
+                                               [d.get(m, 0) for m in parent.get_order()],
+                                               coerce=True, copy=False)
 
     to_vector = _vector_
 

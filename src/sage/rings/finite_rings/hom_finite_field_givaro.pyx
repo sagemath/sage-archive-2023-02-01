@@ -22,7 +22,6 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
-include "../../ext/stdsage.pxi"
 
 from sage.rings.finite_rings.constructor import FiniteField
 

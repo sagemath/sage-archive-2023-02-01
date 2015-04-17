@@ -757,8 +757,8 @@ cdef class CategoryObject(sage_object.SageObject):
                         from sage.structure.generators import Generators
                         self._generators = Generators(self, None, Objects())
                     else:
-                        from sage.structure.generators import Generator_list
-                        self._generators = Generator_list(self, d['_gens'], Objects())
+                        from sage.structure.generators import Generators_list
+                        self._generators = Generators_list(self, d['_gens'], Objects())
                     self._generator_orders = d['_generator_orders'] # this may raise a KeyError, but that's okay.
                     # We throw away d['_latex_names'] and d['_list'] and d['_gens_dict']
                 except (AttributeError, KeyError):

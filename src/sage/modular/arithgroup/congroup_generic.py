@@ -556,19 +556,20 @@ def _minimize_level(G):
     N = G.base_ring().characteristic()
     i = Gamma(N).index()
 
-    for p in N.prime_divisors():
-        j = Gamma(N // p).index()
-        k = len([g for g in Glist if g.matrix().change_ring(Zmod(N // p)) == 1])
+    for d in N.divisors()[:-1]:
+        j = Gamma(d).index()
+        k = len([g for g in Glist if g.matrix().change_ring(Zmod(d)) == 1])
         if k == i // j:
-            if N // p == 1:
+            if d == 1:
                 return ZZ(1)
-            H = MatrixGroup([g.matrix().change_ring(Zmod(N//p)) for g in G.gens()])
-            return _minimize_level(H)
+            G = MatrixGroup([g.matrix().change_ring(Zmod(d)) for g in G.gens()])
+            N = d
+            break
 
     # now sanitize the generators (remove duplicates and copies of the identity)
     new_gens = [x.matrix() for x in G.gens() if x.matrix() != 1]
     all([x.set_immutable() for x in new_gens])
     new_gens = list(Set(new_gens))
     if new_gens == []:
-        return ZZ(G.base_ring().characteristic())
+        return ZZ(N)
     return MatrixGroup(new_gens)

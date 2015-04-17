@@ -16,7 +16,7 @@ cdef extern from "pynac_cc.h":
     long double sage_lgammal(long double)
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
+from sage.ext.stdsage cimport PY_NEW
 include "sage/ext/python.pxi"
 
 from ginac cimport *

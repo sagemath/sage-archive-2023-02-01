@@ -129,7 +129,6 @@ Classes and Methods
 
 include 'sage/ext/interrupt.pxi'
 include "sage/ext/python.pxi"
-include "sage/ext/stdsage.pxi"
 
 import operator
 

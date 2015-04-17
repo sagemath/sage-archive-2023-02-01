@@ -550,7 +550,7 @@ cdef class Element(SageObject):
     cpdef base_extend(self, R):
         cdef Parent V
         V = self._parent.base_extend(R)
-        return V._coerce_c(self)
+        return V.coerce(self)
 
     def base_ring(self):
         """

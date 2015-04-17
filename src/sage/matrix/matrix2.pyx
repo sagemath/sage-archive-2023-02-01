@@ -27,7 +27,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
 include "sage/ext/interrupt.pxi"
 
@@ -1924,12 +1923,6 @@ cdef class Matrix(matrix1.Matrix):
             sage: factor(A.minpoly('y'))
             (y + 1) * (y + 2)^2
 
-        We can take the minimal polynomial of symbolic matrices::
-
-            sage: t = var('t')
-            sage: m = matrix(2,[1,2,4,t])
-            sage: m.minimal_polynomial()
-            x^2 + (-t - 1)*x + t - 8
         """
         f = self.fetch('minpoly')
         if not f is None:

@@ -225,7 +225,6 @@ import math # for log
 import sys
 
 include 'sage/ext/interrupt.pxi'
-include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 from cpython.mem cimport *
 from cpython.string cimport *

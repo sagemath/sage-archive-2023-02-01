@@ -39,14 +39,6 @@ from sage.rings.integer_ring import ZZ
 
 Infinity = float('+inf')
 
-# Constants for Iter._next_state; see IntegerListsLex.Iter
-LOOKAHEAD = 5
-PUSH      = 4
-ME        = 3
-DECREASE  = 2
-POP       = 1
-STOP      = 0
-
 class IntegerListsLex(Parent):
     r"""
     Lists of nonnegative integers with constraints, in inverse lexicographic order.
@@ -1335,573 +1327,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
         """
         if self._check:
             self._check_finiteness()
-        return self._Iter(self)
-
-    class _Iter:
-        r"""
-        Iterator class for IntegerListsLex.
-
-        Let ``T`` be the prefix tree of all lists of nonnegative
-        integers that satisfy all constraints except possibly for
-        ``min_length`` and ``min_sum``; let the children of a list
-        be sorted decreasingly according to their last part.
-
-        The iterator is based on a depth-first search exploration of a
-        subtree of this tree, trying to cut branches that do not
-        contain a valid list. Each call of ``next`` iterates through
-        the nodes of this tree until it finds a valid list to return.
-
-        Here are the attributes describing the current state of the
-        iterator,  and their invariants:
-
-        - ``_parent`` -- the :class:`IntegerListsLex` object this is
-          iterating on;
-
-        - ``_current_list`` -- the list corresponding to the current
-          node of the tree;
-
-        - ``_j`` -- the index of the last element of ``_current_list``:
-          ``self._j == len(self._current_list) - 1``;
-
-        - ``_current_sum`` -- the sum of the parts of ``_current_list``;
-
-        - ``_search_ranges`` -- a list of same length as
-          ``_current_list``: the range for each part.
-
-        Furthermore, we assume that there is no obvious contradiction
-        in the contraints:
-
-        - ``self._parent._min_length <= self._parent._max_length``;
-        - ``self._parent._min_slope <= self._parent._max_slope``
-          unless ``self._parent._min_length <= 1``.
-
-        Along this iteration, ``next`` switches between the following
-        states:
-
-        - LOOKAHEAD: determine whether the current list could be a
-          prefix of a valid list;
-        - PUSH: go deeper into the prefix tree by appending the
-          largest possible part to the current list;
-        - ME: check whether the current list is valid and if yes return it
-        - DECREASE: decrease the last part;
-        - POP: pop the last part of the current list;
-        - STOP: the iteration is finished.
-
-        The attribute ``_next_state`` contains the next state ``next``
-        should enter in.
-        """
-        def __init__(self, parent):
-            """
-            TESTS::
-
-                sage: C = IntegerListsLex(2, length=3)
-                sage: I = IntegerListsLex._Iter(C)
-                sage: I._search_ranges
-                []
-                sage: I._current_list
-                []
-                sage: I._j
-                -1
-                sage: I._current_sum
-                0
-            """
-            self._parent = parent
-
-            self._search_ranges = []
-            self._current_list = []
-            self._j = -1     # index of last element of _current_list
-            self._current_sum = 0     # sum of parts in _current_list
-
-            # Make sure that some invariants are respected in the iterator
-            if parent._min_length <= parent._max_length and \
-               (parent._min_slope <= parent._max_slope or parent._min_length <= 1):
-                self._next_state = PUSH
-            else:
-                self._next_state = STOP
-
-        def __iter__(self):
-            """
-            Return ``self`` as per the iterator protocol.
-
-            EXAMPLES::
-
-                sage: C = IntegerListsLex(2, length=3)
-                sage: it = IntegerListsLex._Iter(C)
-                sage: it.__iter__() is it
-                True
-            """
-            return self
-
-        def _push_search(self):
-            """
-            Push search forward, resetting attributes.
-
-            The push may fail if it is discovered that
-            ``self._current_list`` cannot be extended in a valid way.
-
-            OUTPUT: a boolean: whether the push succeeded
-
-            EXAMPLES::
-
-                sage: C = IntegerListsLex(2, length=3)
-                sage: I = C.__iter__()
-                sage: I._j
-                -1
-                sage: I._search_ranges
-                []
-                sage: I._current_list
-                []
-                sage: I._current_sum
-                0
-                sage: I._push_search()
-                True
-                sage: I._j
-                0
-                sage: I._search_ranges
-                [(0, 2)]
-                sage: I._current_list
-                [2]
-                sage: I._current_sum
-                2
-                sage: I._push_search()
-                True
-                sage: I._j
-                1
-                sage: I._search_ranges
-                [(0, 2), (0, 0)]
-                sage: I._current_list
-                [2, 0]
-                sage: I._current_sum
-                2
-            """
-            p = self._parent
-            max_sum = p._max_sum
-            min_length = p._min_length
-            max_length = p._max_length
-            if  self._j+1 >= max_length:
-                return False
-            if self._j+1 >= min_length and self._current_sum == max_sum:
-                # Cannot add trailing zeroes
-                return False
-
-            if self._j >= 0:
-                prev = self._current_list[self._j]
-            else:
-                prev = None
-            interval = self._m_interval(self._j+1, self._parent._max_sum - self._current_sum, prev)
-            if interval[0] > interval[1]:
-                return False
-
-            self._j += 1
-            m = interval[1]
-            self._search_ranges.append(interval)
-            self._current_list.append(m)
-            self._current_sum += m
-            return True
-
-        def _pop_search(self):
-            """
-            Go back in search tree. Resetting attributes.
-
-            EXAMPLES::
-
-                sage: C = IntegerListsLex(2, length=3)
-                sage: I = C.__iter__()
-                sage: I._push_search()
-                True
-                sage: I._j
-                0
-                sage: I._search_ranges
-                [(0, 2)]
-                sage: I._current_sum
-                2
-                sage: I._current_list
-                [2]
-                sage: I._pop_search()
-                sage: I._j
-                -1
-                sage: I._search_ranges
-                []
-                sage: I._current_sum
-                0
-                sage: I._current_list
-                []
-            """
-            if self._j >= 0:  # TODO: get rid of this condition
-                self._j -= 1
-                self._search_ranges.pop()
-                self._current_sum -= self._current_list[-1]
-                self._current_list.pop()
-
-        def next(self):
-            r"""
-            Return the next element in the iteration.
-
-            EXAMPLES::
-
-                sage: C = IntegerListsLex(2, length=3)
-                sage: I = IntegerListsLex._Iter(C)
-                sage: I.next()
-                [2, 0, 0]
-                sage: I.next()
-                [1, 1, 0]
-            """
-            p = self._parent
-            min_sum = p._min_sum
-            max_length = p._max_length
-            search_ranges = self._search_ranges
-
-            while True:
-                assert self._j == len(self._current_list) - 1
-                assert self._j == len(self._search_ranges) - 1
-
-                # LOOK AHEAD
-                if self._next_state == LOOKAHEAD:
-                    if self._lookahead():
-                        self._next_state = PUSH
-                    else:
-                        # We should reuse information about the
-                        # reasons for this failure, to avoid when
-                        # possible retrying with smaller values.
-                        # We just do a special case for now:
-                        if self._j + 1 == max_length and self._current_sum < min_sum:
-                            self._next_state = POP
-                        else:
-                            self._next_state = DECREASE
-
-                # PUSH
-                if self._next_state == PUSH:
-                    if self._push_search():
-                        self._next_state = LOOKAHEAD
-                        continue
-                    self._next_state = ME
-
-                # ME
-                if self._next_state == ME:
-                    if self._j == -1:
-                        self._next_state = STOP
-                    else:
-                        self._next_state = DECREASE
-                    if self._internal_list_valid():
-                        return p._element_constructor(
-                            self._current_list
-                            if p._element_constructor_is_copy_safe
-                            else self._current_list[:])
-
-                # DECREASE
-                if self._next_state == DECREASE:
-                    self._current_list[-1] -= 1
-                    self._current_sum -= 1
-                    if self._current_list[-1] >= search_ranges[self._j][0]:
-                        self._next_state = LOOKAHEAD
-                        continue
-                    self._next_state = POP
-
-                # POP
-                if self._next_state == POP:
-                    self._pop_search()
-                    self._next_state = ME
-                    continue
-
-                # STOP
-                if self._next_state == STOP:
-                    raise StopIteration()
-
-                assert False
-
-        def _internal_list_valid(self):
-            """
-            Return whether the current list in the iteration variable ``self._current_list`` is a valid list.
-
-            This method checks whether the sum of the parts in ``self._current_list``
-            is in the right range, whether its length is in the
-            required range, and whether there are trailing zeroes.  It does not check all of the
-            necessary conditions to verify that an arbitrary list satisfies the
-            constraints from the corresponding ``IntegerListsLex`` object, and should
-            not be used except internally in the iterator class.
-
-            EXAMPLES::
-
-                sage: C = IntegerListsLex(2, length=3)
-                sage: I = IntegerListsLex._Iter(C)
-                sage: I._current_list
-                []
-                sage: I._internal_list_valid()
-                False
-                sage: I.next()
-                [2, 0, 0]
-                sage: I._current_list
-                [2, 0, 0]
-                sage: I._internal_list_valid()
-                True
-            """
-            p = self._parent
-            mu = self._current_list
-            nu = self._current_sum
-            l = self._j + 1
-            good_sum = (nu >= p._min_sum and nu <= p._max_sum)
-            good_length = (l >= p._min_length and l <= p._max_length)
-            no_trailing_zeros = (l <= max(p._min_length,0) or mu[-1] != 0)
-            return good_sum and good_length and no_trailing_zeros
-
-        def _m_interval(self, i, max_sum, prev=None):
-            r"""
-            Return coarse lower and upper bounds for the part ``m`` at position ``i``.
-
-            INPUT:
-
-            - ``i`` -- a nonnegative integer (position)
-
-            - ``max_sum`` -- a nonnegative integer or ``+oo``
-
-            - ``prev`` -- a nonnegative integer or ``None``
-
-            Return coarse lower and upper bounds for the value ``m``
-            of the part at position ``i`` so that there could exists
-            some list suffix `v_i,\ldots,v_k` of sum bounded by
-            ``max_sum`` and satisfying the floor and upper bound
-            constraints. If ``prev`` is specified, then the slope
-            conditions between ``v[i-1]=prev`` and ``v[i]=m`` should
-            also be satisfied.
-
-            Additionally, this raises an error if it can be detected
-            that some part is neither directly nor indirectly bounded
-            above, which implies that the constraints possibly do not allow for
-            an inverse lexicographic iterator.
-
-            OUTPUT:
-
-            A tuple of two integers ``(lower_bound, upper_bound)``.
-
-            EXAMPLES::
-
-                sage: C = IntegerListsLex(2, length=3)
-                sage: I = IntegerListsLex._Iter(C)
-                sage: I._m_interval(1,2)
-                (0, 2)
-
-            The second part is not bounded above, hence we can not
-            iterate lexicographically through all the elements::
-
-                sage: IntegerListsLex(ceiling=[2,infinity,3], max_length=3).first()
-                Traceback (most recent call last):
-                ...
-                ValueError: infinite upper bound for values of m
-
-            Same here::
-
-                sage: IntegerListsLex(ceiling=[2,infinity,2], max_length=3, min_slope=-1).cardinality()
-                Traceback (most recent call last):
-                ...
-                ValueError: infinite upper bound for values of m
-
-            In the following examples however, all parts are
-            indirectly bounded above::
-
-                sage: IntegerListsLex(ceiling=[2,infinity,2], length=3,     min_slope=-1).cardinality()
-                24
-                sage: IntegerListsLex(ceiling=[2,infinity,2], max_length=3, max_slope=1).cardinality()
-                24
-
-                sage: IntegerListsLex(max_part=2, max_length=3).cardinality()
-                27
-                sage: IntegerListsLex(3, max_length=3).cardinality()      # parts bounded by n
-                10
-                sage: IntegerListsLex(max_length=0, min_length=1).list()  # no part!
-                []
-                sage: IntegerListsLex(length=0).list()                    # no part!
-                [[]]
-            """
-            p = self._parent
-
-            lower_bound = max(0, p._floor(i))
-            upper_bound = min(max_sum, p._ceiling(i))
-            if prev != None:
-                lower_bound = max(lower_bound, prev + p._min_slope)
-                upper_bound = min(upper_bound, prev + p._max_slope)
-
-            ## check for infinite upper bound, in case max_sum is infinite
-            if p._check and upper_bound == Infinity:
-                # This assumes that there exists a valid list (which
-                # is not yet always guaranteed). Then we just
-                # discovered that part 'i' of this list can be made as
-                # large as desired, which implies that `self._parent`
-                # cannot be iterated in inverse lexicographic order
-                raise ValueError("infinite upper bound for values of m")
-
-            return (lower_bound, upper_bound)
-
-        def _lookahead(self):
-            r"""
-            Return whether the current list can possibly be a prefix of a valid list.
-
-            OUTPUT: ``False`` if it is guaranteed that the current
-            list cannot be a prefix of a valid list and ``True``
-            otherwise.
-
-            EXAMPLES::
-
-                sage: it = iter(IntegerListsLex(length=3, min_sum=2, max_sum=2))
-                sage: it._current_list = [0,1]    # don't do this at home, kids
-                sage: it._current_sum = 1
-                sage: it._j = 1
-                sage: it._lookahead()
-                True
-
-                sage: it = iter(IntegerListsLex(length=3, min_sum=3, max_sum=2))
-                sage: it._current_list = [0,1]
-                sage: it._current_sum = 1
-                sage: it._j = 1
-                sage: it._lookahead()
-                False
-
-                sage: it = iter(IntegerListsLex(min_length=2, max_part=0))
-                sage: it._current_list = [0]
-                sage: it._current_sum = 0
-                sage: it._j = 0
-                sage: it._lookahead()
-                True
-                sage: it._current_list = [0, 0]
-                sage: it._j = 1
-                sage: it._lookahead()
-                True
-                sage: it._current_list = [0, 0, 0]
-                sage: it._j = 2
-                sage: it._lookahead()
-                False
-
-                sage: n = 10**100
-                sage: it = iter(IntegerListsLex(n, length=1))
-                sage: it._current_list = [n-1]
-                sage: it._current_sum = n-1
-                sage: it._j = 0
-                sage: it._lookahead()
-                False
-
-                sage: it = iter(IntegerListsLex(n=3, min_part=2, min_sum=3, max_sum=3))
-                sage: it._current_list = [2]
-                sage: it._current_sum = 2
-                sage: it._j = 0
-                sage: it._lookahead()
-                False
-
-            ALGORITHM:
-
-            Let ``j=self._j`` be the position of the last part `m` of
-            ``self._current_list``. The current algorithm computes,
-            for `k=j,j+1,\ldots`, a lower bound `l_k` and an upper
-            bound `u_k` for `v_0+\dots+v_k`, and stops if none of the
-            invervals `[l_k, u_k]` intersect ``[min_sum, max_sum]``.
-
-            The lower bound `l_k` is given by the area below
-            `v_0,\dots,v_{j-1}` prolongated by the lower envelope
-            between `j` and `k` and starting at `m`. The upper bound
-            `u_k` is given similarly using the upper envelope.
-
-            The complexity of this algorithm is bounded above by
-            ``O(max_length)``. When ``max_length=oo``, the algorithm
-            is guaranteed to terminate, unless ``floor`` is a function
-            which is eventually constant with value `0`, or which
-            reaches the value `0` while ``max_slope=0``.
-
-            Indeed, the lower bound `l_k` is increasing with `k`; in
-            fact it is strictly increasing, unless the local lower bound
-            at `k` is `0`. Furthermore as soon as ``l_k >= min_sum``,
-            we can conclude; we can also conclude if we know that the
-            floor is eventually constant with value `0`, or there is a
-            local lower bound at `k` is `0` and ``max_slope=0``.
-
-            .. RUBRIC:: Room for improvement
-
-            Improved prediction: the lower bound `l_k` does not take
-            the slope conditions into account, except for those imposed
-            by the value `m` at `j`. Similarly for `u_k`.
-
-            Improved speed: given that `l_k` is increasing with `k`,
-            possibly some dichotomy could be used to search for `k`,
-            with appropriate caching / fast calculation of the partial
-            sums. Also, some of the information gained at depth `j`
-            could be reused at depth `j+1`.
-
-            TESTS::
-
-                sage: it = iter(IntegerListsLex(1, min_length=2, min_slope=0, max_slope=0, min_sum=1, max_sum=1))
-                sage: it._current_list = [0]
-                sage: it._current_sum = 0
-                sage: it._j = 0
-                sage: it._lookahead()
-                False
-            """
-            # Check code for various termination conditions.  Possible cases:
-            # 0. interval [lower, upper] intersects interval [min_sum, max_sum] -- terminate True
-            # 1. lower sum surpasses max_sum -- terminate False
-            # 2. iteration surpasses max_length -- terminate False
-            # 3. upper envelope is smaller than lower envelope -- terminate False
-            # 4. max_slope <= 0 -- terminate False after upper passes 0
-            # 5. ceiling_limit == 0 -- terminate False after reaching larger limit point
-            # 6. (uncomputable) ceiling function == 0 for all but finitely many input values -- terminate False after reaching (unknown) limit point -- currently hangs
-
-            m = self._current_list[-1]
-            j = self._j
-            min_sum = self._parent._min_sum - (self._current_sum-m)
-            max_sum = self._parent._max_sum - (self._current_sum-m)
-
-            if min_sum > max_sum:
-                return False
-
-            p = self._parent
-
-            # Beware that without slope conditions, the functions below
-            # currently forget about the value m at k!
-            lower_envelope = self._parent._floor.adapt(m,j)
-            upper_envelope = self._parent._ceiling.adapt(m,j)
-            lower = 0    # The lower bound `l_k`
-            upper = 0    # The upper bound `u_k`
-
-            assert j >= 0
-            # get to smallest valid number of parts
-            for k in range(j, p._min_length-1):
-                # We are looking at lists `v_j,...,v_k`
-                lo = m if k == j else lower_envelope(k)
-                up = m if k == j else upper_envelope(k)
-                if lo > up:
-                    return False
-                lower += lo
-                upper += up
-
-            if j < p._min_length and min_sum <= upper and lower <= max_sum:
-                # There could exist a valid list `v_j,\dots,v_{min_length-1}`
-                return True
-
-            k = max(p._min_length-1,j)
-            # Check if any of the intervals intersect the target interval
-            while k < p._max_length:
-                lo = m if k == j else lower_envelope(k)
-                up = m if k == j else upper_envelope(k)
-                if lo > up:
-                    # There exists no valid list of length >= k
-                    return False
-                lower += lo
-                upper += up
-                assert lower <= upper
-
-                if lower > max_sum:
-                    # There cannot exist a valid list `v_j,\dots,v_l` with l>=k
-                    return False
-
-                if (p._max_slope <= 0 and up <= 0) or \
-                   (p._ceiling.limit() == 0 and k > p._ceiling.limit_start()):
-                    # This implies v_l=0 for l>=k: that is we would be generating
-                    # a list with trailing zeroes
-                    return False
-
-                if min_sum <= upper and lower <= max_sum:
-                    # There could exist a valid list `v_j,\dots,v_k`
-                    return True
-
-                k += 1
-
-            return False
+        return IntegerListsLexIter(self)
 
     def _element_constructor_nocheck(self, l):
         r"""
@@ -1944,6 +1370,587 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 False
             """
             return self.parent().__contains__(self)
+
+
+# Constants for IntegerListsLexIter._next_state
+LOOKAHEAD = 5
+PUSH      = 4
+ME        = 3
+DECREASE  = 2
+POP       = 1
+STOP      = 0
+
+class IntegerListsLexIter:
+    r"""
+    Iterator class for IntegerListsLex.
+
+    Let ``T`` be the prefix tree of all lists of nonnegative
+    integers that satisfy all constraints except possibly for
+    ``min_length`` and ``min_sum``; let the children of a list
+    be sorted decreasingly according to their last part.
+
+    The iterator is based on a depth-first search exploration of a
+    subtree of this tree, trying to cut branches that do not
+    contain a valid list. Each call of ``next`` iterates through
+    the nodes of this tree until it finds a valid list to return.
+
+    Here are the attributes describing the current state of the
+    iterator,  and their invariants:
+
+    - ``_parent`` -- the :class:`IntegerListsLex` object this is
+      iterating on;
+
+    - ``_current_list`` -- the list corresponding to the current
+      node of the tree;
+
+    - ``_j`` -- the index of the last element of ``_current_list``:
+      ``self._j == len(self._current_list) - 1``;
+
+    - ``_current_sum`` -- the sum of the parts of ``_current_list``;
+
+    - ``_search_ranges`` -- a list of same length as
+      ``_current_list``: the range for each part.
+
+    Furthermore, we assume that there is no obvious contradiction
+    in the contraints:
+
+    - ``self._parent._min_length <= self._parent._max_length``;
+    - ``self._parent._min_slope <= self._parent._max_slope``
+      unless ``self._parent._min_length <= 1``.
+
+    Along this iteration, ``next`` switches between the following
+    states:
+
+    - LOOKAHEAD: determine whether the current list could be a
+      prefix of a valid list;
+    - PUSH: go deeper into the prefix tree by appending the
+      largest possible part to the current list;
+    - ME: check whether the current list is valid and if yes return it
+    - DECREASE: decrease the last part;
+    - POP: pop the last part of the current list;
+    - STOP: the iteration is finished.
+
+    The attribute ``_next_state`` contains the next state ``next``
+    should enter in.
+    """
+    def __init__(self, parent):
+        """
+        TESTS::
+
+            sage: from sage.combinat.integer_list import IntegerListsLexIter
+            sage: C = IntegerListsLex(2, length=3)
+            sage: I = IntegerListsLexIter(C)
+            sage: I._search_ranges
+            []
+            sage: I._current_list
+            []
+            sage: I._j
+            -1
+            sage: I._current_sum
+            0
+        """
+        self._parent = parent
+
+        self._search_ranges = []
+        self._current_list = []
+        self._j = -1     # index of last element of _current_list
+        self._current_sum = 0     # sum of parts in _current_list
+
+        # Make sure that some invariants are respected in the iterator
+        if parent._min_length <= parent._max_length and \
+           (parent._min_slope <= parent._max_slope or parent._min_length <= 1):
+            self._next_state = PUSH
+        else:
+            self._next_state = STOP
+
+    def __iter__(self):
+        """
+        Return ``self`` as per the iterator protocol.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.integer_list import IntegerListsLexIter
+            sage: C = IntegerListsLex(2, length=3)
+            sage: it = IntegerListsLexIter(C)
+            sage: it.__iter__() is it
+            True
+        """
+        return self
+
+    def _push_search(self):
+        """
+        Push search forward, resetting attributes.
+
+        The push may fail if it is discovered that
+        ``self._current_list`` cannot be extended in a valid way.
+
+        OUTPUT: a boolean: whether the push succeeded
+
+        EXAMPLES::
+
+            sage: C = IntegerListsLex(2, length=3)
+            sage: I = C.__iter__()
+            sage: I._j
+            -1
+            sage: I._search_ranges
+            []
+            sage: I._current_list
+            []
+            sage: I._current_sum
+            0
+            sage: I._push_search()
+            True
+            sage: I._j
+            0
+            sage: I._search_ranges
+            [(0, 2)]
+            sage: I._current_list
+            [2]
+            sage: I._current_sum
+            2
+            sage: I._push_search()
+            True
+            sage: I._j
+            1
+            sage: I._search_ranges
+            [(0, 2), (0, 0)]
+            sage: I._current_list
+            [2, 0]
+            sage: I._current_sum
+            2
+        """
+        p = self._parent
+        max_sum = p._max_sum
+        min_length = p._min_length
+        max_length = p._max_length
+        if  self._j+1 >= max_length:
+            return False
+        if self._j+1 >= min_length and self._current_sum == max_sum:
+            # Cannot add trailing zeroes
+            return False
+
+        if self._j >= 0:
+            prev = self._current_list[self._j]
+        else:
+            prev = None
+        interval = self._m_interval(self._j+1, self._parent._max_sum - self._current_sum, prev)
+        if interval[0] > interval[1]:
+            return False
+
+        self._j += 1
+        m = interval[1]
+        self._search_ranges.append(interval)
+        self._current_list.append(m)
+        self._current_sum += m
+        return True
+
+    def _pop_search(self):
+        """
+        Go back in search tree. Resetting attributes.
+
+        EXAMPLES::
+
+            sage: C = IntegerListsLex(2, length=3)
+            sage: I = C.__iter__()
+            sage: I._push_search()
+            True
+            sage: I._j
+            0
+            sage: I._search_ranges
+            [(0, 2)]
+            sage: I._current_sum
+            2
+            sage: I._current_list
+            [2]
+            sage: I._pop_search()
+            sage: I._j
+            -1
+            sage: I._search_ranges
+            []
+            sage: I._current_sum
+            0
+            sage: I._current_list
+            []
+        """
+        if self._j >= 0:  # TODO: get rid of this condition
+            self._j -= 1
+            self._search_ranges.pop()
+            self._current_sum -= self._current_list[-1]
+            self._current_list.pop()
+
+    def next(self):
+        r"""
+        Return the next element in the iteration.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.integer_list import IntegerListsLexIter
+            sage: C = IntegerListsLex(2, length=3)
+            sage: I = IntegerListsLexIter(C)
+            sage: I.next()
+            [2, 0, 0]
+            sage: I.next()
+            [1, 1, 0]
+        """
+        p = self._parent
+        min_sum = p._min_sum
+        max_length = p._max_length
+        search_ranges = self._search_ranges
+
+        while True:
+            assert self._j == len(self._current_list) - 1
+            assert self._j == len(self._search_ranges) - 1
+
+            # LOOK AHEAD
+            if self._next_state == LOOKAHEAD:
+                if self._lookahead():
+                    self._next_state = PUSH
+                else:
+                    # We should reuse information about the
+                    # reasons for this failure, to avoid when
+                    # possible retrying with smaller values.
+                    # We just do a special case for now:
+                    if self._j + 1 == max_length and self._current_sum < min_sum:
+                        self._next_state = POP
+                    else:
+                        self._next_state = DECREASE
+
+            # PUSH
+            if self._next_state == PUSH:
+                if self._push_search():
+                    self._next_state = LOOKAHEAD
+                    continue
+                self._next_state = ME
+
+            # ME
+            if self._next_state == ME:
+                if self._j == -1:
+                    self._next_state = STOP
+                else:
+                    self._next_state = DECREASE
+                if self._internal_list_valid():
+                    return p._element_constructor(
+                        self._current_list
+                        if p._element_constructor_is_copy_safe
+                        else self._current_list[:])
+
+            # DECREASE
+            if self._next_state == DECREASE:
+                self._current_list[-1] -= 1
+                self._current_sum -= 1
+                if self._current_list[-1] >= search_ranges[self._j][0]:
+                    self._next_state = LOOKAHEAD
+                    continue
+                self._next_state = POP
+
+            # POP
+            if self._next_state == POP:
+                self._pop_search()
+                self._next_state = ME
+                continue
+
+            # STOP
+            if self._next_state == STOP:
+                raise StopIteration()
+
+            assert False
+
+    def _internal_list_valid(self):
+        """
+        Return whether the current list in the iteration variable ``self._current_list`` is a valid list.
+
+        This method checks whether the sum of the parts in ``self._current_list``
+        is in the right range, whether its length is in the
+        required range, and whether there are trailing zeroes.  It does not check all of the
+        necessary conditions to verify that an arbitrary list satisfies the
+        constraints from the corresponding ``IntegerListsLex`` object, and should
+        not be used except internally in the iterator class.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.integer_list import IntegerListsLexIter
+            sage: C = IntegerListsLex(2, length=3)
+            sage: I = IntegerListsLexIter(C)
+            sage: I._current_list
+            []
+            sage: I._internal_list_valid()
+            False
+            sage: I.next()
+            [2, 0, 0]
+            sage: I._current_list
+            [2, 0, 0]
+            sage: I._internal_list_valid()
+            True
+        """
+        p = self._parent
+        mu = self._current_list
+        nu = self._current_sum
+        l = self._j + 1
+        good_sum = (nu >= p._min_sum and nu <= p._max_sum)
+        good_length = (l >= p._min_length and l <= p._max_length)
+        no_trailing_zeros = (l <= max(p._min_length,0) or mu[-1] != 0)
+        return good_sum and good_length and no_trailing_zeros
+
+    def _m_interval(self, i, max_sum, prev=None):
+        r"""
+        Return coarse lower and upper bounds for the part ``m`` at position ``i``.
+
+        INPUT:
+
+        - ``i`` -- a nonnegative integer (position)
+
+        - ``max_sum`` -- a nonnegative integer or ``+oo``
+
+        - ``prev`` -- a nonnegative integer or ``None``
+
+        Return coarse lower and upper bounds for the value ``m``
+        of the part at position ``i`` so that there could exists
+        some list suffix `v_i,\ldots,v_k` of sum bounded by
+        ``max_sum`` and satisfying the floor and upper bound
+        constraints. If ``prev`` is specified, then the slope
+        conditions between ``v[i-1]=prev`` and ``v[i]=m`` should
+        also be satisfied.
+
+        Additionally, this raises an error if it can be detected
+        that some part is neither directly nor indirectly bounded
+        above, which implies that the constraints possibly do not allow for
+        an inverse lexicographic iterator.
+
+        OUTPUT:
+
+        A tuple of two integers ``(lower_bound, upper_bound)``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.integer_list import IntegerListsLexIter
+            sage: C = IntegerListsLex(2, length=3)
+            sage: I = IntegerListsLexIter(C)
+            sage: I._m_interval(1,2)
+            (0, 2)
+
+        The second part is not bounded above, hence we can not
+        iterate lexicographically through all the elements::
+
+            sage: IntegerListsLex(ceiling=[2,infinity,3], max_length=3).first()
+            Traceback (most recent call last):
+            ...
+            ValueError: infinite upper bound for values of m
+
+        Same here::
+
+            sage: IntegerListsLex(ceiling=[2,infinity,2], max_length=3, min_slope=-1).cardinality()
+            Traceback (most recent call last):
+            ...
+            ValueError: infinite upper bound for values of m
+
+        In the following examples however, all parts are
+        indirectly bounded above::
+
+            sage: IntegerListsLex(ceiling=[2,infinity,2], length=3,     min_slope=-1).cardinality()
+            24
+            sage: IntegerListsLex(ceiling=[2,infinity,2], max_length=3, max_slope=1).cardinality()
+            24
+
+            sage: IntegerListsLex(max_part=2, max_length=3).cardinality()
+            27
+            sage: IntegerListsLex(3, max_length=3).cardinality()      # parts bounded by n
+            10
+            sage: IntegerListsLex(max_length=0, min_length=1).list()  # no part!
+            []
+            sage: IntegerListsLex(length=0).list()                    # no part!
+            [[]]
+        """
+        p = self._parent
+
+        lower_bound = max(0, p._floor(i))
+        upper_bound = min(max_sum, p._ceiling(i))
+        if prev != None:
+            lower_bound = max(lower_bound, prev + p._min_slope)
+            upper_bound = min(upper_bound, prev + p._max_slope)
+
+        ## check for infinite upper bound, in case max_sum is infinite
+        if p._check and upper_bound == Infinity:
+            # This assumes that there exists a valid list (which
+            # is not yet always guaranteed). Then we just
+            # discovered that part 'i' of this list can be made as
+            # large as desired, which implies that `self._parent`
+            # cannot be iterated in inverse lexicographic order
+            raise ValueError("infinite upper bound for values of m")
+
+        return (lower_bound, upper_bound)
+
+    def _lookahead(self):
+        r"""
+        Return whether the current list can possibly be a prefix of a valid list.
+
+        OUTPUT: ``False`` if it is guaranteed that the current
+        list cannot be a prefix of a valid list and ``True``
+        otherwise.
+
+        EXAMPLES::
+
+            sage: it = iter(IntegerListsLex(length=3, min_sum=2, max_sum=2))
+            sage: it._current_list = [0,1]    # don't do this at home, kids
+            sage: it._current_sum = 1
+            sage: it._j = 1
+            sage: it._lookahead()
+            True
+
+            sage: it = iter(IntegerListsLex(length=3, min_sum=3, max_sum=2))
+            sage: it._current_list = [0,1]
+            sage: it._current_sum = 1
+            sage: it._j = 1
+            sage: it._lookahead()
+            False
+
+            sage: it = iter(IntegerListsLex(min_length=2, max_part=0))
+            sage: it._current_list = [0]
+            sage: it._current_sum = 0
+            sage: it._j = 0
+            sage: it._lookahead()
+            True
+            sage: it._current_list = [0, 0]
+            sage: it._j = 1
+            sage: it._lookahead()
+            True
+            sage: it._current_list = [0, 0, 0]
+            sage: it._j = 2
+            sage: it._lookahead()
+            False
+
+            sage: n = 10**100
+            sage: it = iter(IntegerListsLex(n, length=1))
+            sage: it._current_list = [n-1]
+            sage: it._current_sum = n-1
+            sage: it._j = 0
+            sage: it._lookahead()
+            False
+
+            sage: it = iter(IntegerListsLex(n=3, min_part=2, min_sum=3, max_sum=3))
+            sage: it._current_list = [2]
+            sage: it._current_sum = 2
+            sage: it._j = 0
+            sage: it._lookahead()
+            False
+
+        ALGORITHM:
+
+        Let ``j=self._j`` be the position of the last part `m` of
+        ``self._current_list``. The current algorithm computes,
+        for `k=j,j+1,\ldots`, a lower bound `l_k` and an upper
+        bound `u_k` for `v_0+\dots+v_k`, and stops if none of the
+        invervals `[l_k, u_k]` intersect ``[min_sum, max_sum]``.
+
+        The lower bound `l_k` is given by the area below
+        `v_0,\dots,v_{j-1}` prolongated by the lower envelope
+        between `j` and `k` and starting at `m`. The upper bound
+        `u_k` is given similarly using the upper envelope.
+
+        The complexity of this algorithm is bounded above by
+        ``O(max_length)``. When ``max_length=oo``, the algorithm
+        is guaranteed to terminate, unless ``floor`` is a function
+        which is eventually constant with value `0`, or which
+        reaches the value `0` while ``max_slope=0``.
+
+        Indeed, the lower bound `l_k` is increasing with `k`; in
+        fact it is strictly increasing, unless the local lower bound
+        at `k` is `0`. Furthermore as soon as ``l_k >= min_sum``,
+        we can conclude; we can also conclude if we know that the
+        floor is eventually constant with value `0`, or there is a
+        local lower bound at `k` is `0` and ``max_slope=0``.
+
+        .. RUBRIC:: Room for improvement
+
+        Improved prediction: the lower bound `l_k` does not take
+        the slope conditions into account, except for those imposed
+        by the value `m` at `j`. Similarly for `u_k`.
+
+        Improved speed: given that `l_k` is increasing with `k`,
+        possibly some dichotomy could be used to search for `k`,
+        with appropriate caching / fast calculation of the partial
+        sums. Also, some of the information gained at depth `j`
+        could be reused at depth `j+1`.
+
+        TESTS::
+
+            sage: it = iter(IntegerListsLex(1, min_length=2, min_slope=0, max_slope=0, min_sum=1, max_sum=1))
+            sage: it._current_list = [0]
+            sage: it._current_sum = 0
+            sage: it._j = 0
+            sage: it._lookahead()
+            False
+        """
+        # Check code for various termination conditions.  Possible cases:
+        # 0. interval [lower, upper] intersects interval [min_sum, max_sum] -- terminate True
+        # 1. lower sum surpasses max_sum -- terminate False
+        # 2. iteration surpasses max_length -- terminate False
+        # 3. upper envelope is smaller than lower envelope -- terminate False
+        # 4. max_slope <= 0 -- terminate False after upper passes 0
+        # 5. ceiling_limit == 0 -- terminate False after reaching larger limit point
+        # 6. (uncomputable) ceiling function == 0 for all but finitely many input values -- terminate False after reaching (unknown) limit point -- currently hangs
+
+        m = self._current_list[-1]
+        j = self._j
+        min_sum = self._parent._min_sum - (self._current_sum-m)
+        max_sum = self._parent._max_sum - (self._current_sum-m)
+
+        if min_sum > max_sum:
+            return False
+
+        p = self._parent
+
+        # Beware that without slope conditions, the functions below
+        # currently forget about the value m at k!
+        lower_envelope = self._parent._floor.adapt(m,j)
+        upper_envelope = self._parent._ceiling.adapt(m,j)
+        lower = 0    # The lower bound `l_k`
+        upper = 0    # The upper bound `u_k`
+
+        assert j >= 0
+        # get to smallest valid number of parts
+        for k in range(j, p._min_length-1):
+            # We are looking at lists `v_j,...,v_k`
+            lo = m if k == j else lower_envelope(k)
+            up = m if k == j else upper_envelope(k)
+            if lo > up:
+                return False
+            lower += lo
+            upper += up
+
+        if j < p._min_length and min_sum <= upper and lower <= max_sum:
+            # There could exist a valid list `v_j,\dots,v_{min_length-1}`
+            return True
+
+        k = max(p._min_length-1,j)
+        # Check if any of the intervals intersect the target interval
+        while k < p._max_length:
+            lo = m if k == j else lower_envelope(k)
+            up = m if k == j else upper_envelope(k)
+            if lo > up:
+                # There exists no valid list of length >= k
+                return False
+            lower += lo
+            upper += up
+            assert lower <= upper
+
+            if lower > max_sum:
+                # There cannot exist a valid list `v_j,\dots,v_l` with l>=k
+                return False
+
+            if (p._max_slope <= 0 and up <= 0) or \
+               (p._ceiling.limit() == 0 and k > p._ceiling.limit_start()):
+                # This implies v_l=0 for l>=k: that is we would be generating
+                # a list with trailing zeroes
+                return False
+
+            if min_sum <= upper and lower <= max_sum:
+                # There could exist a valid list `v_j,\dots,v_k`
+                return True
+
+            k += 1
+
+        return False
+
 
 class Envelope(object):
     """

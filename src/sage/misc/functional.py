@@ -124,7 +124,7 @@ def category(x):
 
         sage: V = VectorSpace(QQ,3)
         sage: category(V)
-        Category of vector spaces over Rational Field
+        Category of vector spaces with basis over quotient fields
     """
     try:
         return x.category()
@@ -463,7 +463,7 @@ def symbolic_sum(expression, *args, **kwds):
             sage: sum(valuation(n,2),n,1,5)
             Traceback (most recent call last):
             ...
-            AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'valuation'
+            TypeError: unable to convert n to an integer
             
         Again, use python ``sum()``::
         

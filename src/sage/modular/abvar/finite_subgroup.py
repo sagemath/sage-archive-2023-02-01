@@ -95,10 +95,10 @@ TESTS::
 
 from sage.modules.module      import Module_old
 from sage.modules.free_module import is_FreeModule
-from sage.structure.element   import ModuleElement
-from sage.structure.sequence  import Sequence
-from sage.rings.all           import gcd, lcm, QQ, ZZ, QQbar, Integer, composite_field
-from sage.misc.misc           import prod
+from sage.structure.element import ModuleElement
+from sage.structure.sequence import Sequence
+from sage.rings.all import gcd, lcm, QQ, ZZ, QQbar, Integer, composite_field
+from sage.misc.all import prod
 
 import abvar as abelian_variety
 from sage.categories.fields import Fields
@@ -1096,5 +1096,6 @@ class TorsionPoint(ModuleElement):
             sage: x._relative_element()
             (0, 1/7, 6/7, 5/7)
         """
-        return self.parent().abelian_variety().lattice().coordinate_vector(self.__element)
-
+        # check=False prevents testing that the element is really in
+        # the lattice, not just in the corresponding QQ-vector space.
+        return self.parent().abelian_variety().lattice().coordinate_vector(self.__element, check=False)

@@ -18,7 +18,7 @@ AUTHORS:
 #*****************************************************************************
 
 include "sage/libs/pari/decl.pxi"
-include "sage/ext/stdsage.pxi"
+from sage.ext.stdsage cimport PY_NEW
 
 from sage.rings.integer cimport Integer
 from sage.rings.fast_arith import prime_range

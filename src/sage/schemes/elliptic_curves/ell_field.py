@@ -394,7 +394,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         if not is_EllipticCurve(E) or not is_EllipticCurve(F):
             raise ValueError("arguments are not elliptic curves")
         K = E.base_ring()
-        zero = K.zero_element()
+        zero = K.zero()
         if not K == F.base_ring():
             return zero
         j=E.j_invariant()
@@ -404,7 +404,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         if E.is_isomorphic(F):
             if K is rings.QQ:
                 return rings.ZZ(1)
-            return K.one_element()
+            return K.one()
 
         char=K.characteristic()
 
@@ -493,7 +493,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         if not is_EllipticCurve(E) or not is_EllipticCurve(F):
             raise ValueError("arguments are not elliptic curves")
         K = E.base_ring()
-        zero = K.zero_element()
+        zero = K.zero()
         if not K == F.base_ring():
             return zero
         j=E.j_invariant()
@@ -501,7 +501,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             return zero
 
         if E.is_isomorphic(F):
-            return K.one_element()
+            return K.one()
 
         char=K.characteristic()
 
@@ -562,7 +562,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         if not is_EllipticCurve(E) or not is_EllipticCurve(F):
             raise ValueError("arguments are not elliptic curves")
         K = E.base_ring()
-        zero = K.zero_element()
+        zero = K.zero()
         if not K == F.base_ring():
             return zero
         j=E.j_invariant()
@@ -570,7 +570,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             return zero
 
         if E.is_isomorphic(F):
-            return K.one_element()
+            return K.one()
 
         char=K.characteristic()
 

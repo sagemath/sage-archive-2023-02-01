@@ -128,8 +128,8 @@ cdef class TimeSeries:
         if isinstance(values, (int, long, Integer)):
             self._length = values
             values = None
-        elif PY_TYPE_CHECK(values, Vector_real_double_dense) or PY_TYPE_CHECK(values, cnumpy.ndarray):
-            if PY_TYPE_CHECK(values, Vector_real_double_dense):
+        elif isinstance(values, Vector_real_double_dense) or isinstance(values, cnumpy.ndarray):
+            if isinstance(values, Vector_real_double_dense):
                 np  = values._vector_numpy
             else:
                 np = values
@@ -997,7 +997,7 @@ cdef class TimeSeries:
             sage: v.add_entries([3,4,7,18.5])
             [4.0000, 6.0000, 2.0000, 18.5000]
         """
-        if not PY_TYPE_CHECK(t, TimeSeries):
+        if not isinstance(t, TimeSeries):
             t = TimeSeries(t)
         cdef Py_ssize_t i, n
         cdef TimeSeries T = t, shorter, longer
@@ -2556,7 +2556,7 @@ cdef new_time_series(Py_ssize_t length):
     """
     if length < 0:
         raise ValueError, "length must be nonnegative"
-    cdef TimeSeries t = PY_NEW(TimeSeries)
+    cdef TimeSeries t = TimeSeries.__new__(TimeSeries)
     t._length = length
     t._values = <double*> sage_malloc(sizeof(double)*length)
     return t

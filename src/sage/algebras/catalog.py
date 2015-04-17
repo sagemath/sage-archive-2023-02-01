@@ -18,7 +18,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.Free <sage.algebras.free_algebra.FreeAlgebraFactory>`
 - :func:`algebras.GradedCommutative
   <sage.algebras.commutative_dga.GradedCommutativeAlgebra>`
-- :class:`algebras.Group <sage.algebras.group_algebra_new.GroupAlgebra>`
+- :class:`algebras.Group <sage.algebras.group_algebra.GroupAlgebra>`
 - :class:`algebras.Hall <sage.algebras.hall_algebra.HallAlgebra>`
 - :class:`algebras.IwahoriHecke
   <sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra>`
@@ -36,7 +36,7 @@ from sage.algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra as IwahoriHe
 from sage.algebras.quatalg.quaternion_algebra import QuaternionAlgebra as Quaternion
 from sage.algebras.steenrod.steenrod_algebra import SteenrodAlgebra as Steenrod
 from sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra import FiniteDimensionalAlgebra as FiniteDimensional
-from sage.algebras.group_algebra_new import GroupAlgebra as Group
+from sage.algebras.group_algebra import GroupAlgebra as Group
 from sage.algebras.clifford_algebra import CliffordAlgebra as Clifford
 from sage.algebras.clifford_algebra import ExteriorAlgebra as Exterior
 from sage.algebras.weyl_algebra import DifferentialWeylAlgebra as DifferentialWeyl

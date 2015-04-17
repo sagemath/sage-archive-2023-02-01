@@ -2967,9 +2967,9 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
             +Infinity
 
             sage: it = iter(B)
-            sage: (it.next(), it.next(), it.next(), it.next(), it.next())
+            sage: (next(it), next(it), next(it), next(it), next(it))
             (., [., .], [., [., .]], [[., .], .], [., [., [., .]]])
-            sage: it.next().parent()
+            sage: next(it).parent()
             Binary trees
             sage: B([])
             [., .]

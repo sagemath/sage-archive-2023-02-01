@@ -32,24 +32,15 @@ other types will also coerce to the integers, when it makes sense.
 """
 
 #*****************************************************************************
-#
-#   Sage
-#
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-###########################################################################
 
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
@@ -70,8 +61,8 @@ from sage.categories.basic import EuclideanDomains
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
-
 from sage.structure.sequence import Sequence
+from sage.misc.misc_c import prod
 
 cimport integer
 cimport rational
@@ -111,7 +102,7 @@ def is_IntegerRing(x):
         sage: is_IntegerRing(parent(1/3))
         False
     """
-    return PY_TYPE_CHECK(x, IntegerRing_class)
+    return isinstance(x, IntegerRing_class)
 
 import integer_ring_python
 
@@ -439,7 +430,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             ...
             ZeroDivisionError: Rational division by zero
         """
-        cdef rational.Rational x = PY_NEW(rational.Rational)
+        cdef rational.Rational x = rational.Rational.__new__(rational.Rational)
         if mpz_sgn(right.value) == 0:
             raise ZeroDivisionError('Rational division by zero')
         mpz_set(mpq_numref(x.value), left.value)
@@ -520,13 +511,13 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         if step is None:
             step = 1
         if not PyInt_CheckExact(step):
-            if not PY_TYPE_CHECK(step, integer.Integer):
+            if not isinstance(step, integer.Integer):
                 step = integer.Integer(step)
             if mpz_fits_slong_p((<Integer>step).value):
                 step = int(step)
-        if not PY_TYPE_CHECK(start, integer.Integer):
+        if not isinstance(start, integer.Integer):
             start = integer.Integer(start)
-        if not PY_TYPE_CHECK(end, integer.Integer):
+        if not isinstance(end, integer.Integer):
             end = integer.Integer(end)
         cdef integer.Integer a = <Integer>start
         cdef integer.Integer b = <Integer>end
@@ -811,11 +802,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 if x is None:
                     mpz_set_si(value, rstate.c_random()%5 - 2)
                 else:
-                    n_max = x if PY_TYPE_CHECK(x, integer.Integer) else self(x)
+                    n_max = x if isinstance(x, integer.Integer) else self(x)
                     mpz_urandomm(value, rstate.gmp_state, n_max.value)
             else:
-                n_min = x if PY_TYPE_CHECK(x, integer.Integer) else self(x)
-                n_max = y if PY_TYPE_CHECK(y, integer.Integer) else self(y)
+                n_min = x if isinstance(x, integer.Integer) else self(x)
+                n_max = y if isinstance(y, integer.Integer) else self(y)
                 n_width = n_max - n_min
                 if mpz_sgn(n_width.value) <= 0:
                     n_min = self(-2)
@@ -1328,7 +1319,6 @@ def IntegerRing():
     """
     return ZZ
 
-import sage.misc.misc
 def crt_basis(X, xgcd=None):
     r"""
     Compute and return a Chinese Remainder Theorem basis for the list ``X``
@@ -1391,16 +1381,16 @@ def crt_basis(X, xgcd=None):
     if len(X) == 0:
         return []
 
-    P = sage.misc.misc.prod(X)
+    P = prod(X)
 
     Y = []
     # 2. Compute extended GCD's
     ONE=X[0].parent()(1)
     for i in range(len(X)):
         p = X[i]
-        prod = P//p
-        g,s,t = p.xgcd(prod)
+        others = P//p
+        g,s,t = p.xgcd(others)
         if g != ONE:
-            raise ArithmeticError, "The elements of the list X must be coprime in pairs."
-        Y.append(t*prod)
+            raise ArithmeticError("the elements of the list X must be coprime in pairs")
+        Y.append(t*others)
     return Y

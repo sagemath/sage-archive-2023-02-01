@@ -27,7 +27,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.misc.prandom import random, randint
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.all import ZZ, QQ

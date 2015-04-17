@@ -166,13 +166,13 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
         cdef NumberFieldElement_quadratic gen
 
-        if PY_TYPE_CHECK(f, NumberFieldElement_quadratic):
+        if isinstance(f, NumberFieldElement_quadratic):
             self._parent = parent   # NOTE: We do *not* call NumberFieldElement_absolute.__init__, for speed reasons.
             mpz_set(self.a, (<NumberFieldElement_quadratic>f).a)
             mpz_set(self.b, (<NumberFieldElement_quadratic>f).b)
             mpz_set(self.denom, (<NumberFieldElement_quadratic>f).denom)
 
-        elif PY_TYPE_CHECK_EXACT(f, tuple) and len(f) == 2:
+        elif type(f) is tuple and len(f) == 2:
             NumberFieldElement_absolute.__init__(self, parent, None)
             ad, bd = f
             mpz_lcm(self.denom, mpq_denref(ad.value), mpq_denref(bd.value))
@@ -181,7 +181,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             mpz_divexact(self.b, self.denom, mpq_denref(bd.value))
             mpz_mul(self.b, self.b, mpq_numref(bd.value))
 
-        elif PY_TYPE_CHECK_EXACT(f, tuple) and len(f) == 3:
+        elif type(f) is tuple and len(f) == 3:
             NumberFieldElement_absolute.__init__(self, parent, None)
             a, b, denom = f
             mpz_set(self.a, a.value)
@@ -234,8 +234,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: b + b # indirect doctest
             2*b
         """
-        cdef NumberFieldElement_quadratic x
-        x = <NumberFieldElement_quadratic>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef NumberFieldElement_quadratic x = <NumberFieldElement_quadratic>t.__new__(t)
         x._parent = self._parent
         x.standard_embedding = self.standard_embedding
         x.D = self.D
@@ -463,7 +463,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         cdef mpz_t tmp_mpz
         cdef long tmp_const
 
-        x = <NumberFieldElement_absolute>PY_NEW(NumberFieldElement_absolute)
+        x = <NumberFieldElement_absolute>NumberFieldElement_absolute.__new__(NumberFieldElement_absolute)
 
         mpz_to_ZZ(&elt_den, self.denom)
 
@@ -552,7 +552,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: a._coefficients()
             [0, 1]
         """
-        cdef Rational ad = <Rational>PY_NEW(Rational), bd = <Rational>PY_NEW(Rational)
+        cdef Rational ad = <Rational>Rational.__new__(Rational)
+        cdef Rational bd = <Rational>Rational.__new__(Rational)
         if mpz_cmp_ui(self.a, 0) == 0:
             mpq_set_ui(ad.value, 0, 1)
         else:
@@ -897,6 +898,68 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         if left > right:
             return 1
         return -1
+
+    def continued_fraction_list(self):
+        r"""
+        Return the preperiod and the period of the continued fraction expansion
+        of ``self``.
+
+        EXAMPLES::
+
+            sage: K.<sqrt2> = QuadraticField(2)
+            sage: sqrt2.continued_fraction_list()
+            ((1,), (2,))
+            sage: (1/2+sqrt2/3).continued_fraction_list()
+            ((0, 1, 33), (1, 32))
+
+        For rational entries a pair of tuples is also returned but the second
+        one is empty::
+
+            sage: K(123/567).continued_fraction_list()
+            ((0, 4, 1, 1, 1, 1, 3, 2), ())
+        """
+        cdef NumberFieldElement_quadratic x
+
+        if mpz_sgn(self.b) == 0:
+            return tuple(Rational(self).continued_fraction_list()),()
+
+        if mpz_sgn(self.D.value) < 0:
+            raise ValueError("the method is only available for positive discriminant")
+
+        x = self
+        orbit = []
+        quots = []
+        while x not in orbit:
+            quots.append(x.floor())
+            orbit.append(x)
+            x = ~(x - quots[-1])
+
+        i = orbit.index(x)
+
+        return tuple(quots[:i]), tuple(quots[i:])
+
+    def continued_fraction(self):
+        r"""
+        Return the (finite or ultimately periodic) continued fraction of ``self``.
+
+        EXAMPLES::
+
+            sage: K.<sqrt2> = QuadraticField(2)
+            sage: cf = sqrt2.continued_fraction(); cf
+            [1; (2)*]
+            sage: cf.n()
+            1.41421356237310
+            sage: sqrt2.n()
+            1.41421356237310
+            sage: cf.value()
+            sqrt2
+
+            sage: (sqrt2/3 + 1/4).continued_fraction()
+            [0; 1, (2, 1, 1, 2, 3, 2, 1, 1, 2, 5, 1, 1, 14, 1, 1, 5)*]
+        """
+        t1,t2 = self.continued_fraction_list()
+        from sage.rings.continued_fraction import ContinuedFraction_periodic
+        return ContinuedFraction_periodic(t1,t2)
 
 #########################################################
 # Arithmetic
@@ -1296,7 +1359,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         if mpz_cmp_ui(self.b, 0)!=0:
             raise TypeError("Unable to coerce %s to a rational" % self)
         else:
-            res = <Rational>PY_NEW(Rational)
+            res = <Rational>Rational.__new__(Rational)
             mpz_set(mpq_numref(res.value), self.a)
             mpz_set(mpq_denref(res.value), self.denom)
             mpq_canonicalize(res.value)
@@ -1330,7 +1393,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         if mpz_sgn(self.D.value) > 0:
             return self  # totally real
         else:
-            res = <Rational>PY_NEW(Rational)
+            res = <Rational>Rational.__new__(Rational)
             mpz_set(mpq_numref(res.value), self.a)
             mpz_set(mpq_denref(res.value), self.denom)
             mpq_canonicalize(res.value)
@@ -1374,7 +1437,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
         """
         if mpz_sgn(self.D.value) > 0:
-            return PY_NEW(Rational)  # = 0
+            return Rational.__new__(Rational)  # = 0
         embedding =  self._parent.coerce_embedding()
         cdef Integer negD = -self.D
         cdef NumberFieldElement_quadratic q = <NumberFieldElement_quadratic>self._new()
@@ -1386,7 +1449,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             # D = -1 is the most common case we'll see here
             if embedding is None:
                 raise ValueError("Embedding must be specified.")
-            res = <Rational>PY_NEW(Rational)
+            res = <Rational>Rational.__new__(Rational)
             if mpz_cmp_ui(negD.value, 1) == 0:
                 mpz_set(mpq_numref(res.value), self.b)
             else:
@@ -1429,7 +1492,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         """
         # In terms of the generator...
         cdef NumberFieldElement_quadratic gen = self.number_field().gen()  # should this be cached?
-        cdef Rational const = <Rational>PY_NEW(Rational), lin = <Rational>PY_NEW(Rational)
+        cdef Rational const = <Rational>Rational.__new__(Rational)
+        cdef Rational lin = <Rational>Rational.__new__(Rational)
         ad, bd = self.parts()
         if not self:
             return []
@@ -1535,7 +1599,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             2
         """
         # trace = 2*self.a / self.denom
-        cdef Rational res = <Rational>PY_NEW(Rational)
+        cdef Rational res = <Rational>Rational.__new__(Rational)
         if mpz_odd_p(self.denom):
             mpz_mul_2exp(mpq_numref(res.value), self.a, 1)
             mpz_set(mpq_denref(res.value), self.denom)
@@ -1586,7 +1650,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             ValueError: no way to embed L into parent's base ring K
 
         """
-        cdef Rational res = <Rational>PY_NEW(Rational)
+        cdef Rational res = <Rational>Rational.__new__(Rational)
 
         if K is None or K == QQ:
         # norm = (a^2 - d b^2) / self.denom^2
@@ -2065,7 +2129,7 @@ cdef class Z_to_quadratic_field_element(Morphism):
         """
         import sage.categories.homset
         Morphism.__init__(self, sage.categories.homset.Hom(ZZ, K))
-        self.zero_element = K.zero_element()
+        self.zero_element = K.zero()
 
     cdef dict _extra_slots(self, dict _slots):
         """
@@ -2186,7 +2250,7 @@ cdef class Q_to_quadratic_field_element(Morphism):
         """
         import sage.categories.homset
         Morphism.__init__(self, sage.categories.homset.Hom(QQ, K))
-        self.zero_element = K.zero_element()
+        self.zero_element = K.zero()
 
     cdef dict _extra_slots(self, dict _slots):
         """

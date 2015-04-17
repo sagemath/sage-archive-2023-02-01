@@ -25,7 +25,7 @@ import power_series_ring
 import polynomial
 import commutative_ring
 import integral_domain
-import field
+import ring
 
 from sage.structure.parent_gens import ParentWithGens
 from sage.libs.pari.all import pari_gen
@@ -84,17 +84,26 @@ def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=None, spars
 
     TESTS:
 
-    Check if changing global series precision does it right::
+    Check if changing global series precision does it right (and
+    that :trac:`17955` is fixed)::
 
         sage: set_series_precision(3)
         sage: R.<x> = LaurentSeriesRing(ZZ)
         sage: 1/(1 - 2*x)
         1 + 2*x + 4*x^2 + O(x^3)
+        sage: set_series_precision(5)
+        sage: R.<x> = LaurentSeriesRing(ZZ)
+        sage: 1/(1 - 2*x)
+        1 + 2*x + 4*x^2 + 8*x^3 + 16*x^4 + O(x^5)
         sage: set_series_precision(20)
     """
     if not names is None: name = names
     if name is None:
         raise TypeError("You must specify the name of the indeterminate of the Laurent series ring.")
+
+    if default_prec is None:
+        from sage.misc.defaults import series_precision
+        default_prec = series_precision()
 
     global laurent_series
     key = (base_ring, name, default_prec, sparse)
@@ -102,7 +111,7 @@ def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=None, spars
         x = laurent_series[key]()
         if x is not None: return x
 
-    if isinstance(base_ring, field.Field):
+    if isinstance(base_ring, ring.Field):
         R = LaurentSeriesRing_field(base_ring, name, default_prec, sparse)
     elif isinstance(base_ring, integral_domain.IntegralDomain):
         R = LaurentSeriesRing_domain(base_ring, name, default_prec, sparse)
@@ -670,7 +679,7 @@ class LaurentSeriesRing_domain(LaurentSeriesRing_generic, integral_domain.Integr
         """
         LaurentSeriesRing_generic.__init__(self, base_ring, name, default_prec, sparse)
 
-class LaurentSeriesRing_field(LaurentSeriesRing_generic, field.Field):
+class LaurentSeriesRing_field(LaurentSeriesRing_generic, ring.Field):
     _default_category = CompleteDiscreteValuationFields()
 
     def __init__(self, base_ring, name=None, default_prec=None, sparse=False):

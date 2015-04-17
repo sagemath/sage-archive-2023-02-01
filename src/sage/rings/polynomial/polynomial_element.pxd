@@ -1,8 +1,3 @@
-include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
-include 'sage/ext/stdsage.pxi'
-
-
 from sage.structure.element import Element, CommutativeAlgebraElement
 from sage.structure.element cimport Element, CommutativeAlgebraElement, ModuleElement
 from sage.structure.parent cimport Parent
@@ -29,7 +24,6 @@ cdef class Polynomial_generic_dense(Polynomial):
 #    cdef _dict_to_list(self, x, zero)
 
 cpdef is_Polynomial(f)
-cpdef Polynomial_generic_dense _new_constant_dense_poly(list coeffs, Parent P, sample)
 
 #cdef class Polynomial_generic_sparse(Polynomial):
 #    cdef object __coeffs # a python dict (for now)

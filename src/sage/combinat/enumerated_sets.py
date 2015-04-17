@@ -24,6 +24,7 @@ Integer lists
   (see also: :ref:`sage.combinat.catalog_partitions`)
 - :ref:`sage.combinat.composition`
 - :class:`~sage.combinat.composition_signed.SignedCompositions`
+- :class:`IntegerListsLex`
 
 - :class:`~sage.combinat.integer_vector.IntegerVectors`
 - :func:`~sage.combinat.integer_vector_weighted.WeightedIntegerVectors`
@@ -49,9 +50,11 @@ Permutations, ...
 -----------------
 
 - :ref:`sage.combinat.permutation`
+- :ref:`sage.combinat.permutation_cython`
 - :ref:`sage.combinat.affine_permutation`
 - :class:`~sage.combinat.permutation.Arrangements`
 - :ref:`sage.combinat.derangements`
+- :ref:`sage.combinat.baxter_permutations`
 
 .. SEEALSO::
 

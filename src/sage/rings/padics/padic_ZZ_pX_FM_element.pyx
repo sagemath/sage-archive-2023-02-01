@@ -199,7 +199,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         cdef ZZ_c tmp_z
         cdef Integer tmp_Int
         cdef Py_ssize_t i
-        if PY_TYPE_CHECK(x, pAdicGenericElement):
+        if isinstance(x, pAdicGenericElement):
             if x.valuation() < 0:
                 raise ValueError, "element has negative valuation"
             if x._is_base_elt(self.prime_pow.prime):
@@ -238,7 +238,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             z = parent.gen()
             poly = x.polynomial().list()
             x = sum([poly[i].lift() * (z ** i) for i in range(len(poly))], parent.zero())
-        elif PY_TYPE_CHECK(x, ntl_ZZ_p):
+        elif isinstance(x, ntl_ZZ_p):
             ctx_prec = ZZ_remove(tmp_z, (<ntl_ZZ>x.modulus()).x, self.prime_pow.pow_ZZ_tmp(1)[0])
             if ZZ_IsOne(tmp_z):
                 x = x.lift()
@@ -247,21 +247,21 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
                 x = tmp_Int
             else:
                 raise TypeError, "cannot coerce the given ntl_ZZ_p (modulus not a power of the same prime)"
-        elif PY_TYPE_CHECK(x, ntl_ZZ):
+        elif isinstance(x, ntl_ZZ):
             tmp_Int = PY_NEW(Integer)
             ZZ_to_mpz(tmp_Int.value, &(<ntl_ZZ>x).x)
             x = tmp_Int
         elif isinstance(x, (int, long)):
             x = Integer(x)
-        if PY_TYPE_CHECK(x, Integer):
+        if isinstance(x, Integer):
             self._set_from_mpz((<Integer>x).value)
-        elif PY_TYPE_CHECK(x, Rational):
+        elif isinstance(x, Rational):
             self._set_from_mpq((<Rational>x).value)
-        elif PY_TYPE_CHECK(x, ntl_ZZ_pX):
+        elif isinstance(x, ntl_ZZ_pX):
             self._set_from_ZZ_pX(&(<ntl_ZZ_pX>x).x, (<ntl_ZZ_pX>x).c)
-        elif PY_TYPE_CHECK(x, ntl_ZZX):
+        elif isinstance(x, ntl_ZZX):
             self._set_from_ZZX((<ntl_ZZX>x).x)
-        elif PY_TYPE_CHECK(x, pAdicExtElement):
+        elif isinstance(x, pAdicExtElement):
             if x.parent() is parent:
                 self._set_from_ZZ_pX(&(<pAdicZZpXFMElement>x).value, self.prime_pow.get_top_context())
             else:
@@ -405,7 +405,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             True
         """
         self.prime_pow.restore_top_context()
-        cdef ntl_ZZ_pX holder = PY_NEW(ntl_ZZ_pX)
+        cdef ntl_ZZ_pX holder = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
         holder.c = self.prime_pow.get_top_context()
         holder.x = self.value
         return make_ZZpXFMElement, (self.parent(), holder)
@@ -439,7 +439,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             1 + w^5 + O(w^25)
         """
         self.prime_pow.restore_top_context()
-        cdef pAdicZZpXFMElement ans = PY_NEW(pAdicZZpXFMElement)
+        cdef pAdicZZpXFMElement ans = pAdicZZpXFMElement.__new__(pAdicZZpXFMElement)
         ans._parent = self._parent
         ZZ_pX_construct(&ans.value)
         ans.prime_pow = self.prime_pow
@@ -611,7 +611,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             w^4 + w^5 + 2*w^6 + 4*w^7 + 3*w^9 + w^11 + 4*w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^19 + w^20 + 4*w^23 + 4*w^24 + O(w^25)
         """
         cdef pAdicZZpXFMElement ans
-        if not PY_TYPE_CHECK(shift, Integer):
+        if not isinstance(shift, Integer):
             shift = Integer(shift)
         if mpz_fits_slong_p((<Integer>shift).value) == 0:
             ans = self._new_c()
@@ -701,7 +701,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             w^4 + w^9 + w^10 + 2*w^11 + 4*w^12 + 3*w^14 + w^16 + 4*w^17 + 4*w^18 + 4*w^19 + 4*w^20 + 4*w^21 + 4*w^24 + O(w^25)
         """
         cdef pAdicZZpXFMElement ans
-        if not PY_TYPE_CHECK(shift, Integer):
+        if not isinstance(shift, Integer):
             shift = Integer(shift)
         if mpz_fits_slong_p((<Integer>shift).value) == 0:
             ans = self._new_c()
@@ -771,12 +771,12 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             True
 
         """
-        if not PY_TYPE_CHECK(right, Integer):
+        if not isinstance(right, Integer):
             right = Integer(right)
         if right == 0 and self == 0:
             return self.parent(1)
         cdef pAdicZZpXFMElement ans = self._new_c()
-        cdef ntl_ZZ rZZ = PY_NEW(ntl_ZZ)
+        cdef ntl_ZZ rZZ = ntl_ZZ.__new__(ntl_ZZ)
         mpz_to_ZZ(&rZZ.x, (<Integer>right).value)
         if mpz_sgn((<Integer>right).value) < 0:
             if self.valuation_c() > 0:
@@ -948,7 +948,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         if absprec is None:
             ans = ZZ_pX_IsZero(self.value)
         else:
-            if not PY_TYPE_CHECK(absprec, Integer):
+            if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
             if mpz_fits_slong_p((<Integer>absprec).value) == 0:
                 if mpz_sgn((<Integer>absprec).value) < 0:
@@ -980,7 +980,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: a.add_bigoh(1)
             1 + O(7^4)
         """
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if mpz_cmp_ui((<Integer>absprec).value, self.prime_pow.prec_cap) >= 0:
             return self
@@ -1189,7 +1189,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             [89 9 4 1]
         """
         self.prime_pow.restore_top_context()
-        cdef ntl_ZZ_pX ans = PY_NEW(ntl_ZZ_pX)
+        cdef ntl_ZZ_pX ans = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
         ans.c = self.prime_pow.get_top_context()
         ans.x = self.value
         return ans

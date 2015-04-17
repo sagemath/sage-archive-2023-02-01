@@ -830,7 +830,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
 
         """
         if not D:
-            return self.zero_element()
+            return self.zero()
         cdef int l
         for e in D.iterkeys():
             l = len(e)

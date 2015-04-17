@@ -310,15 +310,22 @@ It is highly recommended that you have
 `Latex <http://en.wikipedia.org/wiki/LaTeX>`_
 installed, but it is not required.
 
-On Linux systems, it is usually provided by packages derived from
-`TeX Live <www.tug.org/texlive/>`_  and can be installed using::
+The most popular packaging is `TeX Live <www.tug.org/texlive/>`_ ,
+which you can install locally inside Sage with the commands::
 
-    sudo apt-get install texlive
+    sage -sh -c '$SAGE_ROOT/src/ext/texlive/texlive-install'
 
-or similar commands.
+On Linux systems you can alternatively install your distribution's
+texlive packages::
 
-On other systems it might be necessary to install TeX Live from source code,
-which is quite easy, though a rather time-consuming process.
+    sudo apt-get install texlive       # debian
+    sudo yum install texlive           # redhat
+
+or similar commands. In addition to the base texlive install you will
+probably need a number of optional texlive packages, for example
+country-specific babel packages for the localized Sage
+documentation. The required texlive packages are listed in
+`SAGE_ROOT/src/ext/texlive/package-list.txt`.
 
 If you don't have either ImageMagick or ffmpeg, you won't be able to
 view animations.
@@ -760,6 +767,20 @@ how it is built:
   requires that Sage be built first, so it will automatically run ``make
   build``.
 
+- ``make doc-html-no-plot`` builds Sage's documentation in html format
+  but skips the inclusion of graphics auto-generated using the
+  ``.. PLOT`` markup and the ``sphinx_plot`` function. This is
+  primarily intended for use when producing certain binary
+  distributions of Sage, to lower the size of the distribution. As of
+  this writing (December 2014, Sage 6.5), there are only a few such
+  plots, adding about 4M to the :file:`src/doc/output/` directory. In
+  the future, this may grow, of course. Note: after using this, if you
+  want to build the documentation and include the pictures, you should
+  run ``make doc-clean``, because the presence, or lack, of pictures
+  is cached in the documentation output.
+  You can benefit from this no-plot feature with other make targets by doing
+  ``export SAGE_DOCBUILD_OPTS+=' --no-plot'``
+
 - ``make build-serial`` builds the components of Sage serially, rather
   than in parallel (parallel building is the default).
   Running ``make build-serial`` is equivalent to setting the environment
@@ -776,6 +797,9 @@ how it is built:
   If you want to run tests depending on optional packages and additional
   software, you can use ``make testall``, ``make ptestall``,
   ``make testalllong``, or ``make ptestalllong``.
+
+- ``make doc-clean`` removes several directories which are produced
+  when building the documentation.
 
 - ``make distclean`` restores the Sage directory to its state before doing any
   building: it is almost equivalent to deleting Sage's entire home directory and
@@ -941,9 +965,11 @@ Here are some of the more commonly used variables affecting the build process:
   Typically, building the documentation using LaTeX and dvipng takes longer
   and uses more memory and disk space than using MathJax.
 
-- :envvar:`SAGE_DOCBUILD_OPTS` - the value of this variable is passed
-  as an argument to ``sage --docbuild all html`` or ``sage --docbuild
-  all pdf`` when you run ``make``, ``make doc``, or ``make doc-pdf``.
+- :envvar:`SAGE_DOCBUILD_OPTS` - the value of this variable is passed as an
+  argument to ``sage --docbuild all html`` or ``sage --docbuild all pdf`` when
+  you run ``make``, ``make doc``, or ``make doc-pdf``.
+  For example, you can add ``--no-plot`` to this variable to avoid building
+  the graphics coming from the ``.. PLOT`` directive within the documentation.
 
 - :envvar:`SAGE_BUILD_DIR` - the default behavior is to build each spkg in a
   subdirectory of :file:`$SAGE_ROOT/local/var/tmp/sage/build/`; for
@@ -1434,4 +1460,4 @@ would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 
-**This page was last updated in November 2014 (Sage 6.5).**
+**This page was last updated in December 2014 (Sage 6.5).**

@@ -185,6 +185,9 @@ from sage.schemes.toric.variety import CohomologyRing, is_ToricVariety
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import is_Vector
 
+# forward declaration
+class ToricDivisor_generic(Divisor_generic):
+    pass
 
 #********************************************************
 class ToricDivisorGroup(DivisorGroup_generic):
@@ -401,6 +404,9 @@ class ToricDivisorGroup(DivisorGroup_generic):
         else:
             raise ValueError("the base of %s cannot be extended to %s!"
                              % ( self, R))
+
+    Element = ToricDivisor_generic
+
 
 #********************************************************
 def is_ToricDivisor(x):
@@ -2050,10 +2056,9 @@ class ToricRationalDivisorClassGroup(FreeModule_ambient_field, UniqueRepresentat
             x = self._projection_matrix * vector(x)
         if is_Vector(x):
             x = list(x)
-        return ToricRationalDivisorClass(self, x)
+        return self.element_class(self, x)
 
-    # parent does not conform to the new-style coercion model
-    __call__ = _element_constructor_
+    Element = ToricRationalDivisorClass
 
 
 class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_pid):
@@ -2099,7 +2104,7 @@ class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_pid):
         self._variety = group._variety
         self._lift_matrix = group._lift_matrix
         super(ToricRationalDivisorClassGroup_basis_lattice, self).__init__(
-            ZZ, group.dimension())
+            ZZ, group.dimension(), coordinate_ring=QQ)
 
     def _repr_(self):
         r"""
@@ -2137,4 +2142,4 @@ class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_pid):
         """
         return r"\text{{Basis lattice of }} {}".format(latex(self._group))
 
-    _element_class = ToricRationalDivisorClass
+    Element = ToricRationalDivisorClass

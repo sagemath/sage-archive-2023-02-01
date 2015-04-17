@@ -10,7 +10,6 @@ The symbolic ring
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 
 #################################################################
@@ -493,6 +492,17 @@ cdef class SymbolicRing(CommutativeRing):
         """
         return True
 
+    def is_finite(self):
+        """
+        Return False, since the Symbolic Ring is infinite.
+
+        EXAMPLES::
+
+            sage: SR.is_finite()
+            False
+        """
+        return False
+
     cpdef bint is_exact(self) except -2:
         """
         Return False, because there are approximate elements in the
@@ -572,7 +582,7 @@ cdef class SymbolicRing(CommutativeRing):
 
         else: # initialize a new symbol
             # Construct expression
-            e = <Expression>PY_NEW(Expression)
+            e = <Expression>Expression.__new__(Expression)
             e._parent = SR
 
             if name is None: # Check if we need a temporary anonymous new symbol

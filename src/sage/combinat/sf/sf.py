@@ -682,38 +682,55 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     .. rubric:: Implementing new bases
 
     In order to implement a new basis Sage will need to know at minimum how to change
-    back and forth between at least one other basis.  For many of
-    the other functions we can use the
-    standard implementation.  To present an idea of how this is done, we will present
-    here the example of how to implement the basis `h_\mu[X(1-t)]`.
+    back and forth between at least one other basis.  All of the standard functions
+    associated with the basis will have a default implementation (although a more
+    specific implementation may be more efficient).
+    
+    To present an idea of how this is done, we will create 
+    here the example of how to implement the basis `s_\mu[X(1-t)]`.
 
-    Since this is a multiplicative basis, we will start with the generic implementation
-    of a multiplicative basis.  In this way, the product is already defined and we
-    only need to tell Sage how to comultiply on the generators.::
+    To begin, we import the class of a generic symmetric function algebra.  Our
+    new basis will inherit all of the default methods from here.::
 
-        sage: from sage.combinat.sf.multiplicative import SymmetricFunctionAlgebra_multiplicative as SFA_mult
+        sage: from sage.combinat.sf.sfa import SymmetricFunctionAlgebra_generic as SFA_generic
 
-    Now this basis in particular has a parameter `t` which is possible to specialize.
+    Now the basis we are creating has a parameter `t` which is possible to specialize.
     In this example we will convert to and from the Schur basis.  For this we implement
-    functions ``_self_to_h`` and ``_h_to_self``.  By registering these two functions
+    functions ``_self_to_s`` and ``_s_to_self``.  By registering these two functions
     as coercions this makes it possible to change between any two bases for which there
     is a path of changes of bases.::
 
-        sage: class SFA_st( SFA_mult ):
+        sage: class SFA_st(SFA_generic):
                   def __init__(self, Sym, t):
-                      SFA_mult.__init__(self, Sym, basis_name="Homogeneous symmetric functions with a plethystic substitution of X -> X(1-t)", prefix='ht')
-                      self._h = Sym.h()
+                      SFA_generic.__init__(self, Sym, basis_name="Schur functions with a plethystic substitution of X -> X(1-t)", prefix='st')
+                      self._s = Sym.s()
                       self.t = Sym.base_ring()(t)
                       category = sage.categories.all.ModulesWithBasis(Sym.base_ring())
-                      self.register_coercion(SetMorphism(Hom(self._h, self, category), self._h_to_self))
-                      self._h.register_coercion(SetMorphism(Hom(self, self._h, category), self._self_to_h))
-                  def _h_to_self(self, mu):
-                      return self._h(mu).theta_qt(t,0)
+                      self.register_coercion(SetMorphism(Hom(self._s, self, category), self._s_to_self))
+                      self._s.register_coercion(SetMorphism(Hom(self, self._s, category), self._self_to_s))
+                  def _s_to_self(self, f):
+                      # f is a Schur function and the output is in the st basis
+                      return self._from_dict(f.theta_qt(0,self.t)._monomial_coefficients)
                   def _self_to_h(self, f):
-                      return self._from_dict(f.theta_qt(0,t).monomial_coefficients())
+                      # f is in the st basis and the output is in the Schur basis
+                      return self._s.sum(cmu*self._s(mu).theta_qt(self.t,0) for mu,cmu in f)
 
-    In addition to an initi
+                  class Element(SFA_generic.Element):
+                      pass
 
+    An instance of this basis is created by calling it with a symmetric function
+    ring ``Sym`` and a parameter ``t`` which is in the base ring of ``Sym``.
+
+    In the reference [MAC]_ on page 354 this basis is denoted `S_\lambda(x;t)` and the
+    change of basis coefficients of the Macdonald ``J`` basis are the
+    coefficients `K_{\lambda\mu}(q,t)`.::
+
+        sage: QQqt=QQ['q','t'].fraction_field()
+        sage: (q,t) = QQqt.gens()
+        sage: st = SFA_st(SymmetricFunctions(QQqt),t)
+        sage: J = st.symmetric_function_ring().macdonald().J()
+        sage: st(J[2,1])
+        q*st[1, 1, 1] + (q*t+1)*st[2, 1] + t*st[3]
 
     .. rubric:: Acknowledgements
 

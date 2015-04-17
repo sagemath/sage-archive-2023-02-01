@@ -338,7 +338,7 @@ def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, 
                                     canonicalize=canonicalize, category=category)
 
 
-class PermutationGroup_generic(group.Group):
+class PermutationGroup_generic(group.FiniteGroup):
     """
     EXAMPLES::
 

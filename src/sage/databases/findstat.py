@@ -893,6 +893,27 @@ class FindStatStatistic(SageObject):
         except:
             raise IOError("FindStat did not answer with a json response.")
 
+    def _raise_error_modifying_statistic_with_perfect_match(self):
+        r"""
+        Raise an error when there is a result with depth 0.
+
+        TESTS::
+
+            sage: s = findstat([(pi, pi[0]) for pi in Permutations(3)])         # optional -- internet
+            sage: s._raise_error_modifying_statistic_with_perfect_match()       # optional -- internet
+            Traceback (most recent call last):
+            ...
+            ValueError: Your input data matches St000054.  Consider modifying this statistic instead.
+
+            sage: s = findstat(1)                                               # optional -- internet
+            sage: s._raise_error_modifying_statistic_with_perfect_match()       # optional -- internet
+
+            sage: s = findstat([(d, randint(1,1000)) for d in DyckWords(4)])    # optional -- internet
+            sage: s._raise_error_modifying_statistic_with_perfect_match()       # optional -- internet
+        """
+        if self._query == "data" and len(self._result) > 0 and len(self._result[0][1]) == 0:
+            raise ValueError("Your input data matches %s.  Consider modifying this statistic instead." %self._result[0][0].id_str())
+
     ######################################################################
 
     def __getitem__(self, key):
@@ -1105,6 +1126,11 @@ class FindStatStatistic(SageObject):
         - a string -- the name of the statistic followed by its
           description on a separate line.
 
+        OUTPUT:
+
+        - Raise an error, if the query has a match with no
+          intermediate combinatorial maps.
+
         This information is used when submitting the statistic with
         :meth:`FindStatStatistic.submit`.
 
@@ -1121,6 +1147,8 @@ class FindStatStatistic(SageObject):
             Random values on Dyck paths.
             Not for submssion.
         """
+        self._raise_error_modifying_statistic_with_perfect_match()
+
         if value != self._description:
             self._modified = True
             self._description = value
@@ -1176,6 +1204,11 @@ class FindStatStatistic(SageObject):
         - a string -- the individual references should be separated
           by FINDSTAT_SEPARATOR_REFERENCES, which is "\\r\\n".
 
+        OUTPUT:
+
+        - Raise an error, if the query has a match with no
+          intermediate combinatorial maps.
+
         This information is used when submitting the statistic with
         :meth:`FindStatStatistic.submit`.
 
@@ -1189,6 +1222,8 @@ class FindStatStatistic(SageObject):
             1: [2] [[oeis:A000001]]
 
         """
+        self._raise_error_modifying_statistic_with_perfect_match()
+
         if value != self._references:
             self._modified = True
             self._references = value
@@ -1232,6 +1267,11 @@ class FindStatStatistic(SageObject):
             def statistic(x):
                 ...
 
+        OUTPUT:
+
+        - Raise an error if the query has a match with no
+          intermediate combinatorial maps.
+
         This information is used when submitting the statistic with
         :meth:`FindStatStatistic.submit`.
 
@@ -1243,6 +1283,8 @@ class FindStatStatistic(SageObject):
             def statistic(x):
                 return randint(1,1000)
         """
+        self._raise_error_modifying_statistic_with_perfect_match()
+
         if value != self._code:
             self._modified = True
             self._code = value
@@ -1270,7 +1312,7 @@ class FindStatStatistic(SageObject):
 
     def submit(self, max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         r"""
-        Open the FindStat web page for editing the statistic ``self`` in a browser.
+        Open the FindStat web page for editing the statistic in a browser.
 
         INPUT:
 
@@ -1279,6 +1321,11 @@ class FindStatStatistic(SageObject):
           defined and the statistic is a new statistic, use
           :meth:`FindStatCollection.first_terms` to produce at most
           ``max_values`` terms.
+
+        OUTPUT:
+
+        - Raise an error if the query has a match with no
+          intermediate combinatorial maps.
 
         EXAMPLES::
 
@@ -1291,11 +1338,9 @@ class FindStatStatistic(SageObject):
 
             sage: s.submit()                                                    # optional -- webbrowser
 
-        .. TODO::
-
-            decide whether we want to somehow take into account when
-            there is a statistic that matches the data with depth 0.
         """
+        self._raise_error_modifying_statistic_with_perfect_match()
+
         # if the statistic is given as a function, and we have a new
         # statistic then update first_terms
 

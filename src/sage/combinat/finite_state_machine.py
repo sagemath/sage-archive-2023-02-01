@@ -5916,6 +5916,8 @@ class FiniteStateMachine(SageObject):
 
             sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
             ....:     initial_states=['A'], final_states=['A'])
+            sage: words.FibonacciWord()
+            word: 0100101001001010010100100101001001010010...
             sage: it = inverter.iter_process(
             ....:     words.FibonacciWord(), iterator_type='simple')
             sage: Words([0,1])(it)

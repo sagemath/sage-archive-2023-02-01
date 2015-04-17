@@ -703,7 +703,6 @@ class PermutationGroup_generic(group.Group):
                 return self._element_class()(x.cycle_tuples(), self, check=False)
         raise TypeError("no implicit coercion of element into permutation group")
 
-    @cached_method
     def list(self):
         """
         Return list of all elements of this group.
@@ -782,9 +781,21 @@ class PermutationGroup_generic(group.Group):
             sage: G = PermutationGroup([[(1,2,3)], [(1,2)]])
             sage: [a for a in G]
             [(), (2,3), (1,2), (1,2,3), (1,3,2), (1,3)]
+
+        Test that it is possible to iterate through moderately large groups
+        (trac:`18239`)::
+
+            sage: p = [(i,i+1) for i in range(1,601,2)]
+            sage: q = [tuple(range(1+i,601,3)) for i in range(3)]
+            sage: A = PermutationGroup([p,q])
+            sage: A.cardinality()
+            60000
+            sage: for x in A:
+            ....:     pass
         """
-        for g in self._gap_().Elements():
-            yield self._element_class()(g, self, check=False)
+        from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+        return iter(RecursivelyEnumeratedSet(seeds=[self.one()],
+                successors=lambda g: (g._mul_(h) for h in self.gens())))
 
     def gens(self):
         """

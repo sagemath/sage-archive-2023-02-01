@@ -2561,6 +2561,31 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         m = self.realization_of().m()
         return self(m.from_polynomial(poly, check=check))
 
+    def product_by_coercion(self, left, right):
+        r"""
+        Return the product of elements ``left`` and ``right`` by coercion to
+        the Schur basis.
+
+        INPUT:
+
+        - ``left``, ``right`` -- instances of this basis
+
+        OUTPUT:
+
+        - the product of ``left`` and ``right`` expressed in the basis ``self``
+
+        EXAMPLES::
+
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: p.product_by_coercion(p[3,1,1], p[2,2])
+            p[3, 2, 2, 1, 1]
+            sage: m = SymmetricFunctions(QQ).m()
+            sage: m.product_by_coercion(m[2,1],m[1,1]) == m[2,1]*m[1,1]
+            True
+        """
+        s = self.realization_of().schur()
+        return self(s.product(left,right))
+
     def coproduct_by_coercion(self, elt):
         r"""
         Return the coproduct of the element ``elt`` by coercion to

@@ -2584,7 +2584,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             True
         """
         s = self.realization_of().schur()
-        return self(s.product(left,right))
+        return self(s.product(s(left),s(right)))
 
     def coproduct_by_coercion(self, elt):
         r"""

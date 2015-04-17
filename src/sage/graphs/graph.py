@@ -1347,7 +1347,7 @@ class Graph(GenericGraph):
             self.name(data.name())
             self.add_vertices(data.vertices())
             self.add_edges(data.edge_iterator())
-        elif format == 'NX'
+        elif format == 'NX':
             if convert_empty_dict_labels_to_None is not False:
                 r = lambda x:None if x=={} else x
             else:

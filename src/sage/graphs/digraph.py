@@ -780,7 +780,7 @@ class DiGraph(GenericGraph):
             if weighted is None: weighted = data.weighted()
             if data.get_pos() is not None:
                 pos = data.get_pos().copy()
-            self.add_vertices(data.vertices())
+            self.add_vertices(data.vertex_iterator())
             self.add_edges(data.edge_iterator())
             self.name(data.name())
         elif format == 'rule':

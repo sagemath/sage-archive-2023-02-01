@@ -736,9 +736,9 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: (q,t) = QQqt.gens()
         sage: st = SFA_st(SymmetricFunctions(QQqt),t)
         sage: st
-        Symmetric Functions over Fraction Field of Multivariate Polynomial Ring
-        in q, t over Rational Field in the Schur functions with a plethystic
-        substitution of X -> X(1-t) basis
+        Symmetric Functions over Fraction Field of Multivariate Polynomial 
+        Ring in q, t over Rational Field in the Schur functions with a 
+        plethystic substitution of X -> X(1-t) basis
         sage: st[2,1]*st[1]
         st[2, 1, 1] + st[2, 2] + st[3, 1]
         sage: st([2]).coproduct()

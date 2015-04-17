@@ -8954,10 +8954,10 @@ cdef class Expression(CommutativeRingElement):
 
         This tests that :trac:`11668` has been fixed (by :trac:`12780`)::
 
-            sage: a,b = var('a b')
+            sage: a,b = var('a b', domain='real')
             sage: A = abs((a+I*b))^2
             sage: A.canonicalize_radical()
-            abs(a + I*b)^2
+            a^2 + b^2
             sage: imag(A)
             0
             sage: imag(A.canonicalize_radical())
@@ -10431,8 +10431,9 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES::
 
+            sage: x = var('x', domain='real')
             sage: s = abs((1+I*x)^4); s
-            abs((I*x + 1)^4)
+            (I*x + 1)^2*(-I*x + 1)^2
             sage: s._plot_fast_callable(x)
             <sage.ext.interpreters.wrapper_py.Wrapper_py object at ...>
             sage: s._plot_fast_callable(x)(10)

@@ -1029,10 +1029,10 @@ def norm(x):
         sage: v = vector([-1,2,3])
         sage: norm(v)
         sqrt(14)
-        sage: _ = var("a b c d")
+        sage: _ = var("a b c d", domain='real')
         sage: v = vector([a, b, c, d])
         sage: norm(v)
-        sqrt(abs(a)^2 + abs(b)^2 + abs(c)^2 + abs(d)^2)
+        sqrt(a^2 + b^2 + c^2 + d^2)
 
     The norm of matrices::
 

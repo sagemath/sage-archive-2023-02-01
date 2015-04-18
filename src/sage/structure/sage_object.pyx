@@ -1033,24 +1033,6 @@ def register_unpickle_override(module, name, callable, call_name=None):
     you can specify the module name and class name, for the benefit of
     :func:`~sage.misc.explain_pickle.explain_pickle` when called with ``in_current_sage=True``).)
 
-    EXAMPLES::
-
-        sage: from sage.structure.sage_object import unpickle_override, register_unpickle_override
-        sage: unpickle_global('sage.rings.integer', 'Integer')
-        <type 'sage.rings.integer.Integer'>
-
-    Now we horribly break the pickling system::
-
-        sage: register_unpickle_override('sage.rings.integer', 'Integer', Rational, call_name=('sage.rings.rational', 'Rational'))
-        sage: unpickle_global('sage.rings.integer', 'Integer')
-        <type 'sage.rings.rational.Rational'>
-
-    and we reach into the internals and put it back::
-
-        sage: del unpickle_override[('sage.rings.integer', 'Integer')]
-        sage: unpickle_global('sage.rings.integer', 'Integer')
-        <type 'sage.rings.integer.Integer'>
-
     In many cases, unpickling problems for old pickles can be resolved with a
     simple call to ``register_unpickle_override``, as in the example above and
     in many of the ``sage`` source files.  However, if the underlying data
@@ -1492,12 +1474,14 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
                 if run_test_suite:
                     TestSuite(object).run(catch = False)
                 i += 1
-            except Exception as msg:
+            except Exception:
                 j += 1
                 if run_test_suite:
                     print " * unpickle failure: TestSuite(load('%s')).run()"%os.path.join(dir,A)
                 else:
                     print " * unpickle failure: load('%s')"%os.path.join(dir,A)
+                from traceback import print_exc
+                print_exc()
                 failed.append(A)
                 if debug:
                     tracebacks.append(sys.exc_info())

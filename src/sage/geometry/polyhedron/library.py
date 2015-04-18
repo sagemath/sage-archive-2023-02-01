@@ -162,7 +162,7 @@ class Polytopes():
 
     def Birkhoff_polytope(self, n):
         """
-        Return the Birkhoff polytope with n! vertices.  Each vertex
+        Return the Birkhoff polytope with `n!` vertices.  Each vertex
         is a (flattened) n by n permutation matrix.
 
         INPUT:
@@ -174,13 +174,25 @@ class Polytopes():
             sage: b3 = polytopes.Birkhoff_polytope(3)
             sage: b3.n_vertices()
             6
-        """
-        verts = []
-        for p in Permutations(range(1,n+1)):
-            verts += [ [Polytopes._pfunc(i,j,p) for j in range(1,n+1)
-                        for i in range(1,n+1) ] ]
-        return Polyhedron(vertices=verts)
+            sage: b3.is_lattice_polytope()
+            True
+            sage: p3 = b3.ehrhart_polynomial()     # optional - latte_int
+            sage: p3                               # optional - latte_int
+            1/8*t^4 + 3/4*t^3 + 15/8*t^2 + 9/4*t + 1
+            sage: [p3(i) for i in [1,2,3,4]]       # optional - latte_int
+            [6, 21, 55, 120]
+            sage: [len((i*b3).integral_points()) for i in [1,2,3,4]]
+            [6, 21, 55, 120]
 
+            sage: b4 = polytopes.Birkhoff_polytope(4)
+            sage: b4.n_vertices() == factorial(4)
+            True
+        """
+        from itertools import permutations
+        verts = []
+        for p in permutations(range(n)):
+            verts.append( [int(p[i]==j) for j in range(n) for i in range(n) ] )
+        return Polyhedron(vertices=verts)
 
     def n_simplex(self, dim_n=3, project = True):
         """

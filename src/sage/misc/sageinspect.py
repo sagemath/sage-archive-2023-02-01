@@ -93,13 +93,14 @@ Python functions::
     sage: sage_getsource(sage.misc.sageinspect.sage_getfile)[4:]
     'sage_getfile(obj):...'
 
-Unfortunately, there is no argspec extractable from builtins::
+Unfortunately, no argspec is extractable from builtins. Hence, we use a
+generic argspec::
 
     sage: sage_getdef(''.find, 'find')
-    'find( [noargspec] )'
+    'find(*args, **kwds)'
 
     sage: sage_getdef(str.find, 'find')
-    'find( [noargspec] )'
+    'find(*args, **kwds)'
 
 By :trac:`9976` and :trac:`14017`, introspection also works for interactively
 defined Cython code, and with rather tricky argument lines::
@@ -1196,6 +1197,12 @@ def sage_getfile(obj):
         sage: sage_getfile(Foo)
         '...pyx'
 
+    By :trac:`18249`, we return an empty string for Python builtins. In that
+    way, there is no error when the user types, for example, ``range?``::
+
+        sage: sage_getfile(range)
+        ''
+
     AUTHORS:
 
     - Nick Alexander
@@ -1216,7 +1223,10 @@ def sage_getfile(obj):
         return sage_getfile(obj.__class__) #inspect.getabsfile(obj.__class__)
 
     # No go? fall back to inspect.
-    sourcefile = inspect.getabsfile(obj)
+    try:
+        sourcefile = inspect.getabsfile(obj)
+    except TypeError: # this happens for Python builtins
+        return ''
     if sourcefile.endswith(os.path.extsep+'so'):
         return sourcefile[:-3]+os.path.extsep+'pyx'
     return sourcefile
@@ -1374,6 +1384,17 @@ def sage_getargspec(obj):
         sage: sage_getargspec(MainClass.NestedClass.NestedSubClass.dummy)
         ArgSpec(args=['self', 'x', 'r'], varargs='args', keywords='kwds', defaults=((1, 2, 3.4),))
 
+    In :trac:`18249` was decided to return a generic signature for Python
+    builtin functions, rather than to raise an error (which is what Python's
+    inspect module does)::
+
+        sage: import inspect
+        sage: inspect.getargspec(range)
+        Traceback (most recent call last):
+        ...
+        TypeError: <built-in function range> is not a Python function
+        sage: sage_getargspec(range)
+        ArgSpec(args=[], varargs='args', keywords='kwds', defaults=None)
 
     AUTHORS:
 
@@ -1432,7 +1453,10 @@ def sage_getargspec(obj):
         # expensive, but should only be needed for functions defined outside
         # of the Sage library (since otherwise the signature should be
         # embedded in the docstring)
-        source = sage_getsource(obj)
+        try:
+            source = sage_getsource(obj)
+        except TypeError: # happens for Python builtins
+            source = ''
         if source:
             return inspect.ArgSpec(*_sage_getargspec_cython(source))
         else:
@@ -1445,12 +1469,18 @@ def sage_getargspec(obj):
         try:
             args, varargs, varkw = inspect.getargs(func_obj)
         except TypeError: # arg is not a code object
-        # The above "hopefully" was wishful thinking:
-            return inspect.ArgSpec(*_sage_getargspec_cython(sage_getsource(obj)))
+            # The above "hopefully" was wishful thinking:
+            try:
+                return inspect.ArgSpec(*_sage_getargspec_cython(sage_getsource(obj)))
+            except TypeError: # This happens for Python builtins
+                # The best we can do is to return a generic argspec
+                args = []
+                varargs = 'args'
+                varkw = 'kwds'
     try:
         defaults = func_obj.__defaults__
     except AttributeError:
-        defaults = tuple([])
+        defaults = None
     return inspect.ArgSpec(args, varargs, varkw, defaults)
 
 def sage_getdef(obj, obj_name=''):

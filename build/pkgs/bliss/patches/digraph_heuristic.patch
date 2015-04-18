@@ -1,11 +1,10 @@
---- bliss-0.72/graph.hh	2011-05-12 15:29:46.000000000 +0200
-+++ /home/azi/bliss-0.72/graph.hh	2014-12-30 11:14:20.917059666 +0100
-@@ -843,7 +843,7 @@
-   bool is_equitable() const;
+--- src/graph.cc	2015-02-11 13:20:39.922021355 +0100
++++ src-patched/graph_new.cc	2015-02-11 13:20:15.546020960 +0100
+@@ -1920,6 +1920,7 @@
+ Digraph::Digraph(const unsigned int nof_vertices)
+ {
+   vertices.resize(nof_vertices);
++  sh = shs_f;
+ }
  
-   /* Splitting heuristics, documented in more detail in the cc-file. */
--  SplittingHeuristic sh;
-+  SplittingHeuristic sh = shs_f;
-   Partition::Cell* find_next_cell_to_be_splitted(Partition::Cell *cell);
-   Partition::Cell* sh_first();
-   Partition::Cell* sh_first_smallest();
+ 

@@ -2962,10 +2962,10 @@ class PermutationGroup_generic(group.Group):
             sage: ag.blocks_all()
             [[0, 15]]
 
-        Now the full blocks::
+        Now the full block::
 
-            sage: ag.blocks_all(representatives = False)
-            [[[0, 15], [1, 16], [14, 19], [8, 17], [5, 10], [2, 12], [7, 18], [3, 13], [4, 9], [6, 11]]]
+            sage: sorted(ag.blocks_all(representatives = False)[0])
+            [[0, 15], [1, 16], [2, 12], [3, 13], [4, 9], [5, 10], [6, 11], [7, 18], [8, 17], [14, 19]]
 
         TESTS::
 
@@ -3161,7 +3161,9 @@ class PermutationGroup_generic(group.Group):
 
             sage: g = graphs.CompleteGraph(4)
             sage: g.relabel(['a','b','c','d'])
-            sage: g.automorphism_group().minimal_generating_set()
+            sage: mgs = g.automorphism_group().minimal_generating_set(); len(mgs)
+            2
+            sage: mgs # random
             [('b','d','c'), ('a','c','b','d')]
 
 

@@ -80,9 +80,7 @@ VERIFY_RESULT = True
 
 import itertools
 
-from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
-from sage.matrix.constructor import matrix, identity_matrix
 from sage.modules.free_module_element import vector
 from sage.rings.all import QQ
 
@@ -115,7 +113,7 @@ def random_inequalities(d, n):
     return StandardAlgorithm(A)
 
 
-class DoubleDescriptionPair(SageObject):
+class DoubleDescriptionPair:
 
     def __init__(self, problem, A_rows, R_cols):
         r"""
@@ -225,7 +223,7 @@ class DoubleDescriptionPair(SageObject):
         """
         return self.__class__(self.problem, A_rows, R_cols)
 
-    def _repr_(self):
+    def __repr__(self):
         r"""
         Return string representation.
 
@@ -239,12 +237,13 @@ class DoubleDescriptionPair(SageObject):
             ....:     DoubleDescriptionPair, StandardAlgorithm
             sage: A = matrix(QQ, [(1,0,1), (0,1,1), (-1,-1,1)])
             sage: DD = StandardAlgorithm(A).run()
-            sage: DD._repr_()
+            sage: DD.__repr__()
             'Double description pair (A, R) defined by\n    [ 1  0  1]
              [ 2/3 -1/3 -1/3]\nA = [ 0  1  1],   R = [-1/3  2/3 -1/3]\n
              [-1 -1  1]        [ 1/3  1/3  1/3]'
         """
         from sage.misc.ascii_art import ascii_art
+        from sage.matrix.constructor import matrix
         s = ascii_art('Double description pair (A, R) defined by')
         A = ascii_art(matrix(self.A))
         A._baseline = (len(self.A) / 2)
@@ -426,7 +425,7 @@ class DoubleDescriptionPair(SageObject):
             sage: DD.is_extremal(DD.R[0])
             True
         """
-        A_Zray = matrix(self.problem.base_ring(), self.zero_set(ray))
+        A_Zray = self._matrix(self.zero_set(ray))
         return A_Zray.rank() == self.problem.dim() - 1
 
     def are_adjacent(self, r1, r2):
@@ -521,7 +520,7 @@ class DoubleDescriptionPair(SageObject):
         return new
 
 
-class Problem(SageObject):
+class Problem:
 
     pair_class = DoubleDescriptionPair
 
@@ -650,7 +649,7 @@ class Problem(SageObject):
 
         return self._A.ncols()
 
-    def _repr_(self):
+    def __repr__(self):
         """
         Return a string representation.
 
@@ -662,7 +661,7 @@ class Problem(SageObject):
 
             sage: A = matrix(QQ, [(1, 1), (-1, 1)])
             sage: from sage.geometry.polyhedron.double_description import Problem
-            sage: Problem(A)._repr_()
+            sage: Problem(A).__repr__()
             'Pointed cone with inequalities\n(1, 1)\n(-1, 1)'
         """
         return 'Pointed cone with inequalities\n' + '\n'.join(map(str, self.A()))
@@ -696,8 +695,8 @@ class Problem(SageObject):
         pivot_rows = self.A_matrix().pivot_rows()
         A0 = [self.A()[pivot] for pivot in pivot_rows]
         Ac = [self.A()[i] for i in range(len(self.A())) if i not in pivot_rows]
-        I = identity_matrix(self.base_ring(), self.dim())
-        R = matrix(A0).solve_right(I)
+        I = self._matrix_space(self.dim(), self.dim()).identity_matrix()
+        R = self._matrix_space(len(A0), self.A_matrix().ncols())(A0).solve_right(I)
         return self.pair_class(self, A0, R.columns()), list(Ac)
 
 
@@ -712,8 +711,6 @@ class StandardDoubleDescriptionPair(DoubleDescriptionPair):
         sage: A = matrix([(-1, 1, 0), (-1, 2, 1), (1/2, -1/2, -1)])
         sage: from sage.geometry.polyhedron.double_description import StandardAlgorithm
         sage: DD, _ = StandardAlgorithm(A).initial_pair()
-        sage: type(DD)
-        <class 'sage.geometry.polyhedron.double_description.StandardDoubleDescriptionPair'>
     """
 
     def add_inequality(self, a):

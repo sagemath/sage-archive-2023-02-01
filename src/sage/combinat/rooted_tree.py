@@ -7,7 +7,6 @@ AUTHORS:
 """
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
-from sage.combinat.ranker import on_fly
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
 from sage.misc.cachefunc import cached_function
@@ -21,6 +20,7 @@ from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.structure.list_clone import NormalizedClonableList
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.cachefunc import cached_method
 
 
 @cached_function
@@ -175,7 +175,20 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         children = [self.__class__(parent, x) for x in children]
         NormalizedClonableList.__init__(self, parent, children, check=check)
 
-    _unordered_ranker = on_fly()
+    def sort_key(self):
+        """
+        Return a list of numbers
+
+        The tree ``self`` must be normalized before calling this !
+        """
+        l = len(self)
+        if l == 0:
+            return (0,)
+        resu = [l] + [u for t in self for u in t.sort_key()]
+        return tuple(resu)
+
+    def __hash__(self):
+        return hash(self.sort_key())
 
     def normalize(self):
         r"""
@@ -206,20 +219,16 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
             sage: rt2 = RT([[[]],[]])
             sage: rt1 is rt2
             False
-            sage: rt1._get_list() is rt2._get_list()
+            sage: rt1._get_list() == rt2._get_list()
             True
         """
-        rank, unrank = self._unordered_ranker
         self._require_mutable()
         for st in self:
             assert st.is_immutable(), "Subtree {} is not normalized".format(st)
-        self._get_list().sort(key=rank)
+        self._get_list().sort(key=lambda t: t.sort_key())
 
         # ensure unique representation
         self.set_immutable()
-        res = unrank(rank(self))
-        if self is not res:
-            self._set_list(res._get_list())
 
     def is_empty(self):
         r"""
@@ -679,11 +688,11 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
 
     Children are reordered in a session dependent order::
 
-        sage: y = LabelledRootedTree([], label = 5); x
-        3[]
-        sage: xyy2 = LabelledRootedTree((x, y, y), label = 2); xyy2  #random
+        sage: y = LabelledRootedTree([], label = 5); y
+        5[]
+        sage: xyy2 = LabelledRootedTree((x, y, y), label = 2); xyy2
         2[3[], 5[], 5[]]
-        sage: yxy2 = LabelledRootedTree((y, x, y), label = 2); yxy2  #random
+        sage: yxy2 = LabelledRootedTree((y, x, y), label = 2); yxy2
         2[3[], 5[], 5[]]
         sage: xyy2 == yxy2
         True
@@ -699,7 +708,7 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
 
     TESTS::
 
-        sage: xyy2._get_list() is yxy2._get_list()
+        sage: xyy2._get_list() == yxy2._get_list()
         True
     """
     __metaclass__ = ClasscallMetaclass
@@ -738,6 +747,21 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
             Labelled rooted trees
         """
         return LabelledRootedTrees()
+
+    def sort_key(self):
+        """
+        Return a list of numbers and labels
+
+        The tree ``self`` must be normalized before calling this !
+        """
+        l = len(self)
+        if l == 0:
+            return ((0, self.label()),)
+        resu = [(l, self.label())] + [u for t in self for u in t.sort_key()]
+        return tuple(resu)
+
+    def __hash__(self):
+        return hash(self.sort_key())
 
     _UnLabelled = RootedTree
 
@@ -811,7 +835,7 @@ class LabelledRootedTrees_all(LabelledRootedTrees):
         EXAMPLE::
 
             sage: LabelledRootedTrees().an_element()   # indirect doctest
-            alpha[3[], 42[3[], 3[]], 5[None[]]]
+            alpha[3[], 5[None[]], 42[3[], 3[]]]
         """
         LT = self._element_constructor_
         t = LT([], label=3)

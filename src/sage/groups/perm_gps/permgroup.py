@@ -711,11 +711,10 @@ class PermutationGroup_generic(group.FiniteGroup):
 
             sage: G = PermutationGroup([[(1,2,3,4)], [(1,2)]])
             sage: G.list()
-            [(), (1,2), (1,2,3,4), (1,3,4), (2,3,4), (1,3)(2,4),
-             (1,4,3,2), (1,3,2,4), (1,2,4,3), (1,3,4,2),
-             (1,4,2,3), (2,4,3), (1,4,3), (1,3,2), (1,4)(2,3),
-             (1,4,2), (3,4), (2,4), (1,4), (2,3), (1,3),  (1,2,3),
-             (1,2,4), (1,2)(3,4)]
+            [(), (1,2), (1,2,3,4), (1,3)(2,4), (1,3,4), (2,3,4), (1,4,3,2),
+             (1,3,2,4), (1,3,4,2), (1,2,4,3), (1,4,2,3), (2,4,3), (1,4,3),
+             (1,4)(2,3), (1,4,2), (1,3,2), (1,3), (3,4), (2,4), (1,4), (2,3),
+             (1,2)(3,4), (1,2,3), (1,2,4)]
 
             sage: G = PermutationGroup([[('a','b')]], domain=('a', 'b')); G
             Permutation Group with generators [('a','b')]
@@ -3057,7 +3056,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         need for sorting the elements of the cosets.  ::
 
             sage: G = DihedralGroup(8)
-            sage: quarter_turn = G.list()[5]; quarter_turn
+            sage: quarter_turn = G('(1,3,5,7)(2,4,6,8)'); quarter_turn
             (1,3,5,7)(2,4,6,8)
             sage: S = G.subgroup([quarter_turn])
             sage: rc = G.cosets(S); rc

@@ -975,14 +975,14 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
     def __hash__(self):
         """
-        Return hash of this permutation.
+        Return a hash for this permutation.
 
         EXAMPLES::
 
             sage: G = SymmetricGroup(5)
             sage: hash(G([2,1,5,3,4]))
-            -405124782            # 32-bit
-            -1701105524078393006  # 64-bit
+            -1203337681           # 32-bit
+            -1527414595000039889  # 64-bit
 
         Check that the hash looks reasonable::
 

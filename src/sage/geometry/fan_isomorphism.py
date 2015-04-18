@@ -86,8 +86,8 @@ def fan_isomorphism_generator(fan1, fan2):
         sage: from sage.geometry.fan_isomorphism import fan_isomorphism_generator
         sage: tuple( fan_isomorphism_generator(fan, fan) )
         (
-        [1 0]  [0 1]  [ 1  0]  [-1 -1]  [ 0  1]  [-1 -1]
-        [0 1], [1 0], [-1 -1], [ 1  0], [-1 -1], [ 0  1]
+        [1 0]  [0 1]  [ 1  0]  [ 0  1]  [-1 -1]  [-1 -1]
+        [0 1], [1 0], [-1 -1], [-1 -1], [ 1  0], [ 0  1]
         )
 
         sage: m1 = matrix([(1, 0), (0, -5), (-3, 4)])

@@ -251,7 +251,7 @@ cdef class Graphics3d(SageObject):
             script = '''set defaultdirectory "%s"\nscript SCRIPT\n''' % scene_zip
             jdata.export_image(targetfile=preview_png, datafile=script,
                                image_type="PNG",
-                               figsize=opts['figsize'])
+                               figsize=opts['figsize'][0])
         from sage.repl.rich_output.output_graphics3d import OutputSceneJmol
         from sage.repl.rich_output.buffer import OutputBuffer
         scene_zip     = OutputBuffer.from_file(scene_zip)

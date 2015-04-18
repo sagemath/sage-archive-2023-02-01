@@ -80,6 +80,7 @@ Media
 .. toctree::
    :maxdepth: 1
 
+   sage/structure/graphics_file
    sage/media/channels
    sage/media/wav
 

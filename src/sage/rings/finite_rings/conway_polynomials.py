@@ -157,32 +157,45 @@ class PseudoConwayLattice(SageObject):
         else:
             self.nodes = {}
 
-    def __cmp__(self, other):
-        """
-        TEST::
+    def __hash__(self):
+        r"""
+        An instance is immutable, but it is based on some randomization. The
+        hash is simply the id of ``self``.
+
+        EXAMPLES::
 
             sage: from sage.rings.finite_rings.conway_polynomials import PseudoConwayLattice
-            sage: PCL3 = PseudoConwayLattice(3)
-            sage: PCL5 = PseudoConwayLattice(5)
-            sage: PCL3 == PCL3
-            True
-            sage: PCL3 == PCL5
-            False
-            sage: PCL3 = PseudoConwayLattice(3, use_database=False)
-            sage: PCL5 = PseudoConwayLattice(5, use_database=False)
-            sage: PCL5 == PCL5
-            True
-            sage: PCL3 == PCL5
-            False
-
+            sage: PCL = PseudoConwayLattice(3)
+            sage: hash(PCL)  # random
+            8738829832350
         """
-        if self is other:
-            return 0
-        c = cmp(type(self), type(other))
-        if c != 0:
-            return c
-        return cmp((self.p, self.nodes),
-                   (other.p, other.nodes))
+        return id(self)
+
+    def __eq__(self, other):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.finite_rings.conway_polynomials import PseudoConwayLattice
+            sage: PseudoConwayLattice(3) == PseudoConwayLattice(3)
+            False
+            sage: P = PseudoConwayLattice(5)
+            sage: P == P
+            True
+        """
+        return self is other
+
+    def __ne__(self, other):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.finite_rings.conway_polynomials import PseudoConwayLattice
+            sage: PseudoConwayLattice(3) != PseudoConwayLattice(3)
+            True
+            sage: P = PseudoConwayLattice(7)
+            sage: P != P
+            False
+        """
+        return self is not other
 
     def polynomial(self, n):
         r"""

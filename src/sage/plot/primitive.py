@@ -50,6 +50,15 @@ class GraphicPrimitive(SageObject):
         """
         self._options = options
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: hash(circle((0,0),1))  # random
+            42
+        """
+        return id(self)
+
     def _allowed_options(self):
         """
         Return the allowed options for a graphics primitive.

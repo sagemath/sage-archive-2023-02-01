@@ -159,6 +159,17 @@ class Graphics(SageObject):
         self._show_legend = False
         self._tick_label_color = (0, 0, 0)
 
+    def __hash__(self):
+        r"""
+        Graphics objects are all different!
+
+        TESTS::
+
+            sage: hash(Graphics()) # random
+            42
+        """
+        return id(self)
+
     def set_aspect_ratio(self, ratio):
         """
         Set the aspect ratio, which is the ratio of height and width

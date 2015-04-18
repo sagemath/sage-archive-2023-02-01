@@ -780,6 +780,7 @@ class TermOrder(SageObject):
 
             from sage.matrix.constructor import matrix
             self._matrix = matrix(n,name)  # defined only for matrix term order
+            self._matrix.set_immutable()
             self._weights = name[:n] # the first row of the matrix gives weights
         else:
             raise TypeError("%s is not a valid term order"%(name,))

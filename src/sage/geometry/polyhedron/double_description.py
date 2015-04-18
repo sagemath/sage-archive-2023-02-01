@@ -81,9 +81,9 @@ VERIFY_RESULT = True
 import itertools
 
 from sage.misc.cachefunc import cached_method
-from sage.modules.free_module_element import vector
 from sage.rings.all import QQ
-
+from sage.modules.free_module_element import vector
+from sage.matrix.matrix_space import MatrixSpace
 
 def random_inequalities(d, n):
     """
@@ -156,37 +156,8 @@ class DoubleDescriptionPair:
         self.one  = problem._field.one()
         self.zero = problem._field.zero()
 
-        # a cache for scalar product
-        self.cache = {}
-
-    def _matrix(self, data):
-        r"""
-        Create a new matrix using the cached matrix spaces in ``self.problem``.
-
-        INPUT:
-
-        - ``data`` -- a list of lists
-
-        EXAMPLES::
-
-            sage: from sage.geometry.polyhedron.double_description import \
-            ....:     DoubleDescriptionPair, Problem
-            sage: A = matrix(QQ, [(1,0,1), (0,1,1), (-1,-1,1)])
-            sage: alg = Problem(A)
-            sage: DD = DoubleDescriptionPair(alg,
-            ....:     [(1, 0, 1), (0, 1, 1), (-1, -1, 1)],
-            ....:     [(2/3, -1/3, 1/3), (-1/3, 2/3, 1/3), (-1/3, -1/3, 1/3)])
-            sage: DD._matrix([[1,2],[3,4]])
-            [1 2]
-            [3 4]
-            sage: parent(_)
-            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
-        """
-        if data:
-            M = self.problem._matrix_space(len(data), len(data[0]))
-            return M(data)
-        else:
-            return self.problem._matrix_space(0,0)()
+        # a cache for scalar products (see the method zero_set)
+        self.zero_set_cache = {}
 
     def _make_new(self, A_rows, R_cols):
         r"""
@@ -277,7 +248,8 @@ class DoubleDescriptionPair:
             [0 1 0]
             [0 0 1]
         """
-        return self._matrix([[a.inner_product(r) for r in self.R] for a in self.A])
+        from sage.matrix.constructor import matrix
+        return matrix(self.problem.base_ring(), [[a.inner_product(r) for r in self.R] for a in self.A])
 
     def cone(self):
         """
@@ -384,16 +356,13 @@ class DoubleDescriptionPair:
         """
         Return the zero set (active set) `Z(r)`.
 
-        This method is cached, but the cache is reset to zero in case
-        :meth:`add_inequality` is called.
-
         INPUT:
 
         - ``ray`` -- a ray vector.
 
         OUTPUT:
 
-        A tuple containing the inequality vectors that are zero on ``ray``.
+        A set containing the inequality vectors that are zero on ``ray``.
 
         EXAMPLES::
 
@@ -403,14 +372,14 @@ class DoubleDescriptionPair:
             sage: r = DD.R[0];  r
             (2/3, -1/3, 1/3)
             sage: DD.zero_set(r)
-            [(0, 1, 1), (-1, -1, 1)]
+            {(-1, -1, 1), (0, 1, 1)}
         """
-        if ray not in self.cache:
-            self.cache[ray] = (0, [])
-        n, t = self.cache[ray]
+        if ray not in self.zero_set_cache:
+            self.zero_set_cache[ray] = (0, set())
+        n, t = self.zero_set_cache[ray]
         if n != len(self.A):
-            t.extend(self.A[i] for i in range(n,len(self.A)) if self.A[i].inner_product(ray) == self.zero)
-            self.cache[ray] = (len(self.A), t)
+            t.update(self.A[i] for i in range(n,len(self.A)) if self.A[i].inner_product(ray) == self.zero)
+            self.zero_set_cache[ray] = (len(self.A), t)
         return t
 
     def is_extremal(self, ray):
@@ -425,8 +394,37 @@ class DoubleDescriptionPair:
             sage: DD.is_extremal(DD.R[0])
             True
         """
-        A_Zray = self._matrix(self.zero_set(ray))
+        from sage.matrix.constructor import matrix
+        A_Zray = matrix(self.problem.base_ring(), list(self.zero_set(ray)))
         return A_Zray.rank() == self.problem.dim() - 1
+
+    @cached_method
+    def matrix_space(self, nrows, ncols):
+        r"""
+        Return a matrix space of size ``nrows`` and ``ncols`` over the base ring
+        of ``self``.
+
+        These matrix spaces are cached to avoid the their creation in the very
+        demanding :meth:`add_inequality` and more precisely :meth:`are_adjacent`.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.double_description import Problem
+            sage: A = matrix(QQ, [(1,0,1), (0,1,1), (-1,-1,1)])
+            sage: DD, _ = Problem(A).initial_pair()
+            sage: DD.matrix_space(2,2)
+            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: DD.matrix_space(3,2)
+            Full MatrixSpace of 3 by 2 dense matrices over Rational Field
+
+            sage: K.<sqrt2> = QuadraticField(2)
+            sage: A = matrix([[1,sqrt2],[2,0]])
+            sage: DD, _  = Problem(A).initial_pair()
+            sage: DD.matrix_space(1,2)
+            Full MatrixSpace of 1 by 2 dense matrices over Number Field in sqrt2
+            with defining polynomial x^2 - 2
+        """
+        return MatrixSpace(self.problem.base_ring(), nrows, ncols)
 
     def are_adjacent(self, r1, r2):
         """
@@ -452,10 +450,14 @@ class DoubleDescriptionPair:
             sage: DD.are_adjacent(DD.R[0], DD.R[3])
             False
         """
-        Z_r1 = self.zero_set(r1)
-        Z_r2 = self.zero_set(r2)
-        Z_12 = set(Z_r1).intersection(Z_r2)
-        A_Z12 = self._matrix(list(Z_12))
+        Z = self.zero_set(r1).intersection(self.zero_set(r2))
+        if not Z:
+            return self.problem.dim() == 2
+        Z = list(Z)
+
+        # here we try to create a matrix as fast as possible
+        # since the generic matrix constructor is very slow (trac #18231)
+        A_Z12 = self.matrix_space(len(Z), len(Z[0])).matrix(Z, coerce=False)
         return A_Z12.rank() == self.problem.dim() - 2
 
     def dual(self):
@@ -546,34 +548,11 @@ class Problem:
             (-1, 1)
         """
         assert A.rank() == A.ncols()    # implementation assumes maximal rank
+        if A.is_mutable():
+            A = A.__copy__()
+            A.set_immutable()
         self._A = A
         self._field = A.base_ring().fraction_field()
-
-    @cached_method
-    def _matrix_space(self, nrows, ncols):
-        r"""
-        Cache of matrix spaces to avoid their creation in the very demanding
-        :meth:`StandardDoubleDescriptionPair.add_inequality`.
-
-        EXAMPLES::
-
-            sage: A = matrix([(1, 1), (-1, 1)])
-            sage: from sage.geometry.polyhedron.double_description import Problem
-            sage: P = Problem(A)
-            sage: P._matrix_space(2,2)
-            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
-            sage: P._matrix_space(3,2)
-            Full MatrixSpace of 3 by 2 dense matrices over Rational Field
-
-            sage: K.<sqrt2> = QuadraticField(2)
-            sage: A = matrix([[1,sqrt2],[2,0]])
-            sage: P = Problem(A)
-            sage: P._matrix_space(1,2)
-            Full MatrixSpace of 1 by 2 dense matrices over Number Field in sqrt2
-            with defining polynomial x^2 - 2
-        """
-        from sage.matrix.matrix_space import MatrixSpace
-        return MatrixSpace(self.base_ring(), nrows, ncols)
 
     @cached_method
     def A(self):
@@ -646,7 +625,6 @@ class Problem:
             sage: Problem(A).dim()
             2
         """
-
         return self._A.ncols()
 
     def __repr__(self):
@@ -695,8 +673,9 @@ class Problem:
         pivot_rows = self.A_matrix().pivot_rows()
         A0 = [self.A()[pivot] for pivot in pivot_rows]
         Ac = [self.A()[i] for i in range(len(self.A())) if i not in pivot_rows]
-        I = self._matrix_space(self.dim(), self.dim()).identity_matrix()
-        R = self._matrix_space(len(A0), self.A_matrix().ncols())(A0).solve_right(I)
+        from sage.matrix.constructor import identity_matrix, matrix
+        I = identity_matrix(self.base_ring(), self.dim())
+        R = matrix(self.base_ring(), A0).solve_right(I)
         return self.pair_class(self, A0, R.columns()), list(Ac)
 
 

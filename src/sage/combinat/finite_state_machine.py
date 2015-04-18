@@ -492,7 +492,8 @@ calling :meth:`~Transducer.process` with ``automatic_output_type``).
 
 We can even input something infinite like an infinite word::
 
-    sage: tm = words.ThueMorseWord()
+    sage: tm = words.ThueMorseWord(); tm
+    word: 0110100110010110100101100110100110010110...
     sage: inverter(tm)
     word: 1001011001101001011010011001011001101001...
 
@@ -3531,6 +3532,8 @@ class FiniteStateMachine(SageObject):
 
         Infinite words work as well::
 
+            sage: words.FibonacciWord()
+            word: 0100101001001010010100100101001001010010...
             sage: binary_inverter(words.FibonacciWord())
             word: 1011010110110101101011011010110110101101...
 

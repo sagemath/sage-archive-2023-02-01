@@ -10406,7 +10406,7 @@ class Automaton(FiniteStateMachine):
             ....:     itertools.groupby(NAF.language(5), key=len))
             True
         """
-        T = self.transducer()
+        T = self.with_output()
         return T.language(max_length)
 
 

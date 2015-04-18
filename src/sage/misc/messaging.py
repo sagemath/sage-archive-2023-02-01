@@ -1,5 +1,5 @@
 """
-Message delivery.
+Message delivery
 
 Various interfaces to messaging services. Currently:
 

@@ -1,5 +1,5 @@
 """
-The threaded map function.
+Threaded map function
 """
 
 def map_threaded(function, sequence):

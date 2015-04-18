@@ -1,5 +1,5 @@
 """
-This module provides a parser for symbolic equations and expressions.
+A parser for symbolic equations and expressions
 
 It is both safer and more powerful than using Python's eval, as one has
 complete control over what names are used (including dynamically creating

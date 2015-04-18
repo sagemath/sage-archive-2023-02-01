@@ -638,12 +638,54 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
             OutputImageGif container
         """
         OutputImageGif = display_manager.types.OutputImageGif
-        if OutputImageGif not in display_manager.supported_output():
-            return
-        return display_manager.graphics_from_save(
-            self.save, kwds, '.gif', OutputImageGif)
+        OutputVideoAny = display_manager.types.OutputVideoAny
+        supported = display_manager.supported_output()
+        format = kwds.pop("format", None)
+        mimetype = kwds.pop("mimetype", None)
+        if format is None and mimetype is not None:
+            import mimetypes
+            format = mimetypes.guess_extension(mimetype, strict=False)
+            if format is None:
+                raise ValueError("MIME type without associated extension")
+            else:
+                format = format.lstrip(".")
+        if format is None:
+            if OutputImageGif in supported:
+                format = "gif"
+            else:
+                return # No supported format could be guessed
+        suffix = None # we might want to translate from format to suffix
+        outputType = OutputVideoAny
+        if format == "gif":
+            outputType = OutputImageGif
+        if suffix is None: # may change this in some of the rules above
+            suffix = "." + format
+        if not outputType in supported:
+            return # Sorry, requested format is not supported
+        if outputType is not OutputVideoAny:
+            return display_manager.graphics_from_save(
+                self.save, kwds, suffix, outputType)
 
-    def show(self, delay=20, iterations=0):
+        # Now we save for OutputVideoAny
+        filename = tmp_filename(ext=suffix)
+        attrs = { "autoplay": True, "controls": True, "loop": True }
+        iterations = kwds.get('iterations', 0)
+        if iterations:
+            attrs["loop"] = False
+        for k in attrs:
+            if k in kwds:
+                attrs[k] = kwds.pop(k)
+        if mimetype is None:
+            import mimetypes
+            mimetype = mimetypes.guess_type(filename, strict=False)[0]
+            if mimetype is None:
+                mimetype = 'video/' + format
+        self.save(filename, **kwds)
+        from sage.repl.rich_output.buffer import OutputBuffer
+        buf = OutputBuffer.from_file(filename)
+        return OutputVideoAny(buf, suffix, mimetype, attrs)
+
+    def show(self, delay=None, iterations=None, **kwds):
         r"""
         Show this animation immediately.
 
@@ -660,6 +702,11 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
         -  ``iterations`` -- integer (default: 0); number of
            iterations of animation. If 0, loop forever.
+
+        - ``format`` - (default: gif) format to use for output.
+
+        - ``mimetype`` - (default: 'video/'+format) the mime type to be
+          used in an HTML5 video tag.
 
         OUTPUT:
 
@@ -690,6 +737,19 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
             sage: a.show(delay=50)        # optional -- ImageMagick
 
+        You can also make use of the HTML5 video element in the Sage Notebook::
+
+            sage: a.show(format="webm")                  # optional -- ffmpeg
+            sage: a.show(mimetype="video/ogg")           # optional -- ffmpeg
+            sage: a.show(format="webm", iterations=1, autoplay=False)  # optional -- ffmpeg
+
+        TESTS:
+
+        Use of positional parameters is discouraged, will likely get
+        deprecated, but should still work for the time being::
+
+            sage: a.show(50, 3)           # optional -- ImageMagick
+
         .. note::
 
            If you don't have ffmpeg or ImageMagick installed, you will
@@ -701,9 +761,16 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
         """
+
+        # Positional parameters for the sake of backwards compatibility
+        if delay is not None:
+            kwds.setdefault("delay", delay)
+        if iterations is not None:
+            kwds.setdefault("iterations", iterations)
+
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()
-        dm.display_immediately(self, delay=delay, iterations=iterations)
+        dm.display_immediately(self, **kwds)
 
     def _have_ffmpeg(self):
         """

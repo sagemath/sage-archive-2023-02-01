@@ -52,6 +52,7 @@ filenames::
 import os
 import stat
 from sage.misc.cachefunc import cached_method
+from sage.misc.html import html
 from sage.misc.temporary_file import graphics_filename
 from sage.doctest import DOCTEST_MODE
 from sage.repl.rich_output.backend_base import BackendBase
@@ -308,6 +309,7 @@ class BackendSageNB(BackendBase):
             OutputImagePdf, OutputImageSvg,
             SageNbOutputSceneJmol,
             OutputSceneCanvas3d,
+            OutputVideoAny,
         ])
 
     def display_immediately(self, plain_text, rich_output):
@@ -361,6 +363,8 @@ class BackendSageNB(BackendBase):
             rich_output.embed()
         elif isinstance(rich_output, OutputSceneCanvas3d):
             self.embed_image(rich_output.canvas3d, '.canvas3d')
+        elif isinstance(rich_output, OutputVideoAny):
+            self.embed_video(rich_output)
         else:
             raise TypeError('rich_output type not supported, got {0}'.format(rich_output))
 
@@ -400,4 +404,11 @@ class BackendSageNB(BackendBase):
         output_buffer.save_as(filename)
         world_readable(filename)
 
-
+    def embed_video(self, video_output):
+        filename = graphics_filename(ext=video_output.ext)
+        video_output.video.save_as(filename)
+        world_readable(filename)
+        html(video_output.html_fragment(
+            url='cell://' + filename,
+            link_attrs='class="file_link"',
+        ))

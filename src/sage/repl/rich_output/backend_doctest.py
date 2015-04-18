@@ -137,6 +137,7 @@ class BackendDoctest(BackendBase):
             OutputImagePng, OutputImageGif, OutputImageJpg, 
             OutputImageSvg, OutputImagePdf, OutputImageDvi,
             OutputSceneJmol, OutputSceneCanvas3d, OutputSceneWavefront,
+            OutputVideoAny
         ])
 
     def displayhook(self, plain_text, rich_output):
@@ -275,5 +276,9 @@ class BackendDoctest(BackendBase):
             assert rich_output.mtl.get().startswith('newmtl ')
         elif isinstance(rich_output, OutputSceneCanvas3d):
             assert rich_output.canvas3d.get().startswith('[{vertices:')
+        elif isinstance(rich_output, OutputVideoAny):
+            assert rich_output.ext
+            assert rich_output.mimetype
+            assert rich_output.video
         else:
             raise TypeError('rich_output type not supported')

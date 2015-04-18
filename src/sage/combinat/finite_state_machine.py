@@ -6021,14 +6021,14 @@ class FiniteStateMachine(SageObject):
             sage: Words([0,1])(it)
             word: 1011010110110101101011011010110110101101...
 
-        This can be done simpler by::
+        This can also be done by::
 
             sage: inverter.iter_process(words.FibonacciWord(),
             ....:                       iterator_type='simple',
             ....:                       automatic_output_type=True)
             word: 1011010110110101101011011010110110101101...
 
-        or even more simpler by:
+        or even simpler by::
 
             sage: inverter(words.FibonacciWord())
             word: 1011010110110101101011011010110110101101...

@@ -234,6 +234,8 @@ def _extract_embedded_signature(docstring, name):
         ...
         sage: _extract_embedded_signature(MainClass.NestedClass.NestedSubClass.dummy.__doc__, 'dummy')[1]
         ArgSpec(args=['self', 'x', 'r'], varargs='args', keywords='kwds', defaults=((1, 2, 3.4),))
+        sage: _extract_embedded_signature(range.__call__.__doc__, '__call__')
+        ('x.__call__(...) <==> x(...)', None)
 
     """
     # If there is an embedded signature, it is in the first line
@@ -247,7 +249,10 @@ def _extract_embedded_signature(docstring, name):
     if signature.startswith("(") and signature.endswith(")"):
         docstring = L[1] if len(L)>1 else '' # Remove first line, keep the rest
         def_string = "def "+name+signature+": pass"
-        return docstring, inspect.ArgSpec(*_sage_getargspec_cython(def_string))
+        try:
+            return docstring, inspect.ArgSpec(*_sage_getargspec_cython(def_string))
+        except SyntaxError:
+            docstring = os.linesep.join(L)
     return docstring, None
 
 class BlockFinder:

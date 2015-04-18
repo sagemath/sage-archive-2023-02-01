@@ -90,7 +90,7 @@ def SymmetricGroupAlgebra(R, W):
         sage: SGA.group()
         Symmetric group of order 4! as a permutation group
         sage: SGA.an_element()
-        () + 2*(3,4) + 3*(2,3) + (1,2,3,4)
+        () + 2*(1,2) + 4*(1,2,3,4)
 
         sage: SGA = SymmetricGroupAlgebra(QQ, WeylGroup(["A",3], prefix='s')); SGA
         Symmetric group algebra of order 4 over Rational Field
@@ -221,7 +221,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: G = SymmetricGroup(4).algebra(QQ)
             sage: S = SymmetricGroupAlgebra(QQ,4)
             sage: S(G.an_element())
-            [1, 2, 3, 4] + 2*[1, 2, 4, 3] + 3*[1, 3, 2, 4] + [2, 3, 4, 1]
+            [1, 2, 3, 4] + 2*[2, 1, 3, 4] + 4*[2, 3, 4, 1]
             sage: G(S.an_element())
             () + 2*(3,4) + 3*(2,3) + (1,4,3,2)
         """
@@ -672,7 +672,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
             sage: G = SymmetricGroup(4).algebra(QQ)
             sage: G.retract_plain(G.an_element(), 3)
-            () + 3*(2,3)
+            () + 2*(1,2)
 
         .. SEEALSO::
 
@@ -738,7 +738,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
             sage: G = SymmetricGroup(4).algebra(QQ)
             sage: G.retract_direct_product(G.an_element(), 3)
-            () + 3*(2,3)
+            () + 2*(1,2)
 
         .. SEEALSO::
 
@@ -801,7 +801,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
             sage: G = SymmetricGroup(4).algebra(QQ)
             sage: G.retract_okounkov_vershik(G.an_element(), 3)
-            3*() + 3*(2,3) + (1,2,3)
+            () + 2*(1,2) + 4*(1,2,3)
 
         .. SEEALSO::
 

@@ -78,15 +78,15 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
          sage: Lambda = RootSystem(['A',3,1]).weight_lattice(extended=true).fundamental_weights()
          sage: IntegrableRepresentation(Lambda[1]+Lambda[2]+Lambda[3]).strings()
-         3*Lambda[2] - delta: 3 21 107 450 1638 5367 16194 45687 121876 310056 757056 1783324
          2*Lambda[0] + Lambda[2]: 4 31 161 665 2380 7658 22721 63120 166085 417295 1007601 2349655
-         Lambda[1] + Lambda[2] + Lambda[3]: 1 10 60 274 1056 3601 11199 32354 88009 227555 563390 1343178
-         Lambda[0] + 2*Lambda[3]: 2 18 99 430 1593 5274 16005 45324 121200 308829 754884 1779570
          Lambda[0] + 2*Lambda[1]: 2 18 99 430 1593 5274 16005 45324 121200 308829 754884 1779570
+         Lambda[0] + 2*Lambda[3]: 2 18 99 430 1593 5274 16005 45324 121200 308829 754884 1779570
+         Lambda[1] + Lambda[2] + Lambda[3]: 1 10 60 274 1056 3601 11199 32354 88009 227555 563390 1343178
+         3*Lambda[2] - delta: 3 21 107 450 1638 5367 16194 45687 121876 310056 757056 1783324
          sage: Lambda = RootSystem(['D',4,1]).weight_lattice(extended=true).fundamental_weights()
          sage: IntegrableRepresentation(Lambda[0]+Lambda[1]).strings()                        # long time
-         Lambda[3] + Lambda[4] - delta: 3 25 136 590 2205 7391 22780 65613 178660 463842 1155717 2777795
          Lambda[0] + Lambda[1]: 1 10 62 293 1165 4097 13120 38997 109036 289575 735870 1799620
+         Lambda[3] + Lambda[4] - delta: 3 25 136 590 2205 7391 22780 65613 178660 463842 1155717 2777795
 
     In this example, we construct the extended weight lattice of Cartan
     type `A_3^{(1)}`, then define ``Lambda`` to be the fundamental
@@ -129,18 +129,18 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         sage: L0 = RootSystem(["A",1,1]).weight_lattice(extended=true).fundamental_weight(0); L0
         Lambda[0]
         sage: IntegrableRepresentation(4*L0).strings(depth=20)
-        4*Lambda[1] - 2*delta: 1 2 6 11 23 41 75 126 215 347 561 878 1368 2082 3153 4690 6936 10121 14677 21055
-        2*Lambda[0] + 2*Lambda[1] - delta: 1 2 5 10 20 36 66 112 190 310 501 788 1230 1880 2850 4256 6303 9222 13396 19262
         4*Lambda[0]: 1 1 3 6 13 23 44 75 131 215 354 561 889 1368 2097 3153 4712 6936 10151 14677
+        2*Lambda[0] + 2*Lambda[1] - delta: 1 2 5 10 20 36 66 112 190 310 501 788 1230 1880 2850 4256 6303 9222 13396 19262
+        4*Lambda[1] - 2*delta: 1 2 6 11 23 41 75 126 215 347 561 878 1368 2082 3153 4690 6936 10121 14677 21055
 
     An example in type `C_2^{(1)}`::
 
         sage: Lambda = RootSystem(['C',2,1]).weight_lattice(extended=true).fundamental_weights()
         sage: v = IntegrableRepresentation(2*Lambda[0])
         sage: v.strings()    # long time
-        2*Lambda[1] - delta: 1 4 15 44 122 304 721 1612 3469 7176 14414 28124
-        Lambda[0] + Lambda[2] - delta: 1 5 18 55 149 372 872 1941 4141 8523 17005 33019
         2*Lambda[0]: 1 2 9 26 77 194 477 1084 2387 5010 10227 20198
+        Lambda[0] + Lambda[2] - delta: 1 5 18 55 149 372 872 1941 4141 8523 17005 33019
+        2*Lambda[1] - delta: 1 4 15 44 122 304 721 1612 3469 7176 14414 28124
         2*Lambda[2] - 2*delta: 2 7 26 72 194 467 1084 2367 5010 10191 20198 38907
     """
     def __init__(self, Lam):
@@ -625,7 +625,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             print "m: error - failed to compute m%s"%n.__repr__()
         return ret
 
-    def dommax(self):
+    def dominant_maximal(self):
         """
         A weight `\\mu` is *maximal* if it has nonzero multiplicity but
         `\\mu+\\delta`` has multiplicity zero. There are a finite number
@@ -649,24 +649,6 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
                     t += 1
                 ret.append(x-t*self._delta)
         return ret
-
-    # FIXME: Make this generate itself without having needing to be called by string()
-    #@lazy_attribute
-    def dominant_maximal(self):
-        """
-        Find the finite set of dominant maximal weights.
-        """
-        ret = set()
-        delta = self._Q.null_root()
-        for x in self._ddict.values():
-            if self.m(x) > 0:
-                if min(x) == 0:
-                    ret.add(x)
-                else:
-                    y = self.from_weight(self.to_weight(x) + delta)
-                    if self.m(y) == 0:
-                        ret.add(x)
-        return [self.to_weight(x) for x in ret]
 
     def string(self, max_weight, depth=12):
         """
@@ -702,8 +684,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
             sage: Lambda = RootSystem(['A',1,1]).weight_lattice(extended=true).fundamental_weights()
             sage: IntegrableRepresentation(2*Lambda[0]).strings(depth=25)
-            2*Lambda[1] - delta: 1 2 4 7 13 21 35 55 86 130 196 287 420 602 858 1206 1687 2331 3206 4368 5922 7967 10670 14193 18803
             2*Lambda[0]: 1 1 3 5 10 16 28 43 70 105 161 236 350 501 722 1016 1431 1981 2741 3740 5096 6868 9233 12306 16357
+            2*Lambda[1] - delta: 1 2 4 7 13 21 35 55 86 130 196 287 420 602 858 1206 1687 2331 3206 4368 5922 7967 10670 14193 18803
 
         """
         # FIXME: This call to string should not be necessary as it is

@@ -3092,7 +3092,7 @@ class Graphics(SageObject):
 
         EXAMPLES::
 
-            sage: print polytopes.n_cube(2).plot().description()
+            sage: print polytopes.hypercube(2).plot().description()
             Polygon defined by 4 points: [(1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)]
             Line defined by 2 points: [(-1.0, -1.0), (-1.0, 1.0)]
             Line defined by 2 points: [(-1.0, -1.0), (1.0, -1.0)]

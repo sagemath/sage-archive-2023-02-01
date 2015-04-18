@@ -108,9 +108,9 @@ def project_points(*points):
     EXAMPLES::
 
         sage: from sage.geometry.polyhedron.library import project_points
-        sage: project_points([2,-1,3,2])
+        sage: project_points([2,-1,3,2])          # abs tol 1e-15
         [(2.1213203435596424, -2.041241452319315, -0.577350269189626)]
-        sage: project_points([1,2,3],[3,3,5])
+        sage: project_points([1,2,3],[3,3,5])     # abs tol 1e-15
         [(-0.7071067811865475, -1.2247448713915892), (0.0, -1.6329931618554523)]
 
     These projections are compatible with the restriction. More precisely, given

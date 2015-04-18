@@ -694,8 +694,7 @@ class StandardDoubleDescriptionPair(DoubleDescriptionPair):
 
     def add_inequality(self, a):
         """
-        Add an inequality to the double description with the inequality ``a``
-        added.
+        Add the inequality ``a`` to the matrix `A` of the double description.
 
         INPUT:
 

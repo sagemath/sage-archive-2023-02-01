@@ -643,7 +643,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         candidates = [x + (k - x.level())*Lambda[0] for x in list(R)]
         ret = []
         for x in candidates:
-            if self._from_weight_helper(x, check=True):
+            if self._from_weight_helper(self._Lam-x, check=True):
                 t = 0
                 while self.m(self.from_weight(x-t*self._delta)) == 0:
                     t += 1

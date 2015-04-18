@@ -253,7 +253,7 @@ class Polyhedron_ZZ(Polyhedron_base):
 
         Test bad options::
 
-            sage: P.ehrhart_polynomial(bim_bam_boum=19)
+            sage: P.ehrhart_polynomial(bim_bam_boum=19)   # optional - latte_int
             Traceback (most recent call last):
             ...
             RuntimeError: Something went wrong (see output above) when running:

@@ -212,7 +212,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         ::
 
-            sage: G.<x> = DirichletGroup(35)
+            sage: G, x = DirichletGroup(35).objgens()
             sage: e = x[0]*x[1]; e
             Dirichlet character modulo 35 of conductor 35 mapping 22 |--> zeta12^3, 31 |--> zeta12^2
             sage: e.order()

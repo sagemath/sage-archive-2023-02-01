@@ -447,12 +447,12 @@ def _multiply_point(E, R, P, m):
         ....:      naive = R(Q[0].numerator()), \
         ....:              R(Q[1].numerator()), \
         ....:              R(Q[0].denominator().sqrt())
-        ....:    triple = _multiply_point(E, R, P, n)
-        ....:    assert (triple[0] == naive[0]) and ( \
-        ....:      (triple[1] == naive[1] and triple[2] == naive[2]) or \
-        ....:      (triple[1] == -naive[1] and triple[2] == -naive[2])), \
-        ....:         "_multiply_point() gave an incorrect answer"
-        ....:    Q = Q + P
+        ....:      triple = _multiply_point(E, R, P, n)
+        ....:      assert (triple[0] == naive[0]) and ( \
+        ....:        (triple[1] == naive[1] and triple[2] == naive[2]) or \
+        ....:        (triple[1] == -naive[1] and triple[2] == -naive[2])), \
+        ....:           "_multiply_point() gave an incorrect answer"
+        ....:      Q = Q + P
     """
     assert m >= 1
 

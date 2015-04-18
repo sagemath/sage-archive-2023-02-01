@@ -293,8 +293,7 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
 
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
-            sage: A = R.poly_ring()
-            sage: z = R.gen()
+            sage: A, z = R.poly_ring().objgen()
             sage: R.create_element(z^2, z+1, 3)
             (T^2) + (T + 1)*x + (3)*x^2
         """

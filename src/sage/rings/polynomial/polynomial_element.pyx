@@ -183,8 +183,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         sage: R.<y> = QQ['y']
         sage: S.<x> = R['x']
-        sage: R
-        Univariate Polynomial Ring in y over Univariate Polynomial Ring in x
+        sage: S
+        Univariate Polynomial Ring in x over Univariate Polynomial Ring in y
         over Rational Field
         sage: f = x*y; f
         y*x

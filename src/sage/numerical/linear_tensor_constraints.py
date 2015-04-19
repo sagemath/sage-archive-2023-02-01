@@ -123,7 +123,7 @@ class LinearTensorConstraint(Element):
 
     .. warning::
 
-        This class has no reason to be instanciated by the user, and
+        This class has no reason to be instantiated by the user, and
         is meant to be used by instances of
         :class:`MixedIntegerLinearProgram`.
 

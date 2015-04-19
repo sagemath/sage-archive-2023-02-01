@@ -32,7 +32,7 @@ def number_of_rooted_trees(n):
 
     .. math::
 
-        a(n+1) = 1/n \sum_{k=1}^{n} ( \sum_{d|k} d a(d) ) a(n-k+1)
+        a(n+1) = \frac{1}{n} \sum_{k=1}^{n} \left( \sum_{d|k} d a(d) \right) a(n-k+1)
 
     EXAMPLES::
 

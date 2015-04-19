@@ -29,6 +29,7 @@ from sage.rings.integer import Integer
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
+from sage.rings.infinity import Infinity
 
 
 class OrderedTree(AbstractClonableTree, ClonableList):
@@ -246,7 +247,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         if isinstance(children, str):
             children = eval(children)
         if (children.__class__ is self.__class__ and
-            children.parent() == parent):
+                children.parent() == parent):
             children = list(children)
         else:
             children = [self.__class__(parent, x) for x in children]
@@ -274,7 +275,9 @@ class OrderedTree(AbstractClonableTree, ClonableList):
     def _to_binary_tree_rec(self, bijection="left"):
         r"""
         Internal recursive method to obtain a binary tree from an ordered
-        tree. See :meth:`to_binary_tree_left_branch` and
+        tree.
+
+        See :meth:`to_binary_tree_left_branch` and
         :meth:`to_binary_tree_right_branch` for what it does.
 
         EXAMPLES::
@@ -292,16 +295,17 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         """
         from sage.combinat.binary_tree import BinaryTree
         root = BinaryTree()
-        if (bijection == "left"):
+        if bijection == "left":
             for child in self:
-                root = BinaryTree([root,child._to_binary_tree_rec(bijection)])
-        elif (bijection == "right"):
+                root = BinaryTree([root, child._to_binary_tree_rec(bijection)])
+        elif bijection == "right":
             children = list(self)
             children.reverse()
             for child in children:
-                root = BinaryTree([child._to_binary_tree_rec(bijection),root])
+                root = BinaryTree([child._to_binary_tree_rec(bijection), root])
         else:
-            raise ValueError("the bijection argument should be either left or right")
+            raise ValueError("the bijection argument should be either "
+                             "left or right")
         return root
 
     @combinatorial_map(name="To binary tree, left brother = left child")
@@ -437,7 +441,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             relabel = True
         roots = [self]
         g.add_vertex(name=self.label())
-        while len(roots)!=0:
+        while len(roots) != 0:
             node = roots.pop()
             for child in node:
                 g.add_vertex(name=child.label())
@@ -448,7 +452,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         return g
 
     @combinatorial_map(name="To poset")
-    def to_poset(self, root_to_leaf = False):
+    def to_poset(self, root_to_leaf=False):
         r"""
         Return the poset obtained by interpreting the tree as a hasse
         diagram. The default orientation is from leaves to root but you can
@@ -488,11 +492,13 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         relations = []
         elements = [self.label()]
         roots = [self]
-        while len(roots)!=0:
+        while len(roots) != 0:
             node = roots.pop()
             for child in node:
                 elements.append(child.label())
-                relations.append((node.label(),child.label()) if root_to_leaf else (child.label(),node.label()))
+                relations.append((node.label(), child.label())
+                                 if root_to_leaf else (child.label(),
+                                                       node.label()))
                 roots.append(child)
         from sage.combinat.posets.posets import Poset
         p = Poset([elements, relations])
@@ -500,7 +506,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             p = p.canonical_label()
         return p
 
-    @combinatorial_map(order=2,name="Left-right symmetry")
+    @combinatorial_map(order=2, name="Left-right symmetry")
     def left_right_symmetry(self):
         r"""
         Return the symmetric tree of ``self``
@@ -518,8 +524,28 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         children.reverse()
         return OrderedTree(children)
 
-    import sage.combinat.ranker
-    _unordered_ranker = sage.combinat.ranker.on_fly()
+    def sort_key(self):
+        """
+        Return a tuple of numbers that can be used to sort the trees.
+
+        This tuple is in fact an encoding of the tree. The values are
+        the valences of the vertices. The first value is the valence of the
+        root. Then the rest of the tuple is the concatenation of the tuples
+        associated to subtrees from left to right.
+
+        EXAMPLES::
+
+            sage: RT = OrderedTree
+            sage: RT([[],[[]]]).sort_key()
+            (2, 0, 1, 0)
+            sage: RT([[[]],[]]).sort_key()
+            (2, 1, 0, 0)
+        """
+        l = len(self)
+        if l == 0:
+            return (0,)
+        resu = [l] + [u for t in self for u in t.sort_key()]
+        return tuple(resu)
 
     @cached_method
     def normalize(self, inplace=False):
@@ -541,15 +567,14 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         which picks a representative from every equivalence class with
         respect to the relation of "being isomorphic as unordered
         trees", and maps every ordered tree to the representative
-        chosen from its class. This map is non-deterministically
-        constructed based on the choices of the user. (More
-        specifically, it proceeds recursively by first normalizing
-        every subtree, and then sorting the subtrees. Here the sort is
-        performed according to the rank function which is constructed
-        "on the fly", basically sorting the trees in the order in which
-        they have been first encountered in the given Sage session.
-        See :meth:`dendrog_normalize` for a deterministic alternative
-        that works for unlabelled trees.)
+        chosen from its class.
+
+        This map proceeds recursively by first normalizing every
+        subtree, and then sorting the subtrees according to the value
+        of the :meth:`sort_key` method.
+
+        See also :meth:`dendrog_normalize` for an alternative
+        that works for unlabelled trees.
 
         Consider the quotient map `\pi` that sends a planar rooted tree to
         the associated unordered rooted tree. Normalization is the
@@ -575,19 +600,18 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             sage: tb.normalize(inplace=True); tb
             [[], [[]]]
         """
-        rank, unrank = self._unordered_ranker
         if not inplace:
             with self.clone() as res:
                 resl = res._get_list()
                 for i in range(len(resl)):
                     resl[i] = resl[i].normalize()
-                resl.sort(key=rank)
-            return unrank(rank(res))
+                resl.sort(key=lambda t: t.sort_key())
+            return res
         else:
             resl = self._get_list()
             for i in range(len(resl)):
                 resl[i] = resl[i].normalize()
-            resl.sort(key=rank)
+            resl.sort(key=lambda t: t.sort_key())
 
     def dendrog_cmp(self, other):
         r"""
@@ -675,9 +699,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         (:meth:`dendrog_cmp`).
 
         This can be viewed as an alternative to :meth:`normalize`
-        for the case of unlabelled ordered rooted trees. It has the
-        advantage of giving path-independent results, which can be
-        used for doctesting output.
+        for the case of unlabelled ordered rooted trees.
 
         EXAMPLES::
 
@@ -888,6 +910,8 @@ from sage.combinat.cartesian_product import CartesianProduct
 #################################################################
 # Enumerated set of binary trees of a given size
 #################################################################
+
+
 class OrderedTrees_size(OrderedTrees):
     """
     The enumerated sets of binary trees of a given size
@@ -909,7 +933,7 @@ class OrderedTrees_size(OrderedTrees):
             sage: TestSuite(OrderedTrees_size(0)).run()
             sage: for i in range(6): TestSuite(OrderedTrees_size(i)).run()
         """
-        super(OrderedTrees_size, self).__init__(category = FiniteEnumeratedSets())
+        super(OrderedTrees_size, self).__init__(category=FiniteEnumeratedSets())
         self._size = size
 
     def _repr_(self):
@@ -919,7 +943,7 @@ class OrderedTrees_size(OrderedTrees):
             sage: OrderedTrees(3)   # indirect doctest
             Ordered trees of size 3
         """
-        return "Ordered trees of size %s"%(self._size)
+        return "Ordered trees of size {}".format(self._size)
 
     def __contains__(self, x):
         """
@@ -963,7 +987,7 @@ class OrderedTrees_size(OrderedTrees):
             return Integer(0)
         else:
             from combinat import catalan_number
-            return catalan_number(self._size-1)
+            return catalan_number(self._size - 1)
 
     def random_element(self):
         """
@@ -1014,7 +1038,7 @@ class OrderedTrees_size(OrderedTrees):
         if self._size == 0:
             return
         else:
-            for c in Compositions(self._size-1):
+            for c in Compositions(self._size - 1):
                 for lst in CartesianProduct(*(map(self.__class__, c))):
                     yield self._element_constructor_(lst)
 
@@ -1130,7 +1154,6 @@ class LabelledOrderedTree(AbstractLabelledClonableTree, OrderedTree):
     _UnLabelled = OrderedTree
 
 
-from sage.rings.infinity import Infinity
 class LabelledOrderedTrees(UniqueRepresentation, Parent):
     """
     This is a parent stub to serve as a factory class for trees with various
@@ -1157,7 +1180,7 @@ class LabelledOrderedTrees(UniqueRepresentation, Parent):
         """
         if category is None:
             category = Sets()
-        Parent.__init__(self, category = category)
+        Parent.__init__(self, category=category)
 
     def _repr_(self):
         """
@@ -1170,7 +1193,7 @@ class LabelledOrderedTrees(UniqueRepresentation, Parent):
 
     def cardinality(self):
         """
-        Return the cardinality of `self`.
+        Return the cardinality of ``self``.
 
         EXAMPLE::
 
@@ -1189,10 +1212,10 @@ class LabelledOrderedTrees(UniqueRepresentation, Parent):
             toto[3[], 42[3[], 3[]], 5[None[]]]
         """
         LT = self._element_constructor_
-        t  = LT([], label = 3)
-        t1 = LT([t,t], label = 42)
-        t2  = LT([[]], label = 5)
-        return LT([t,t1,t2], label = "toto")
+        t = LT([], label=3)
+        t1 = LT([t, t], label=42)
+        t2 = LT([[]], label=5)
+        return LT([t, t1, t2], label="toto")
 
     def _element_constructor_(self, *args, **keywords):
         """

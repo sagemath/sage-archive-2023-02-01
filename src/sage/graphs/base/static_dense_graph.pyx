@@ -233,7 +233,7 @@ def triangles_count(G):
 
     INPUT:
 
-    - `G`-- a graph
+    - ``G``-- a simple graph
 
     EXAMPLE::
 
@@ -267,4 +267,3 @@ def triangles_count(G):
 
     from sage.rings.integer import Integer
     return Integer(count)//3
-

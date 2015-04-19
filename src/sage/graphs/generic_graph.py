@@ -12974,15 +12974,15 @@ class GenericGraph(GenericGraph_pyx):
         Comparison on algorithms::
 
             sage: for i in xrange(10): # long test
-            ...       G = graphs.RandomBarabasiAlbert(50,2)
-            ...       results = []
-            ...       results.append(G.triangles_count(algorithm='matrix'))
-            ...       results.append(G.triangles_count(algorithm='iter'))
-            ...       results.append(G.triangles_count(algorithm='sparse_copy'))
-            ...       results.append(G.triangles_count(algorithm='dense_copy'))
-            ...       if any(x != results[0] for x in results):
-            ...          print results
-            ...          print "That's not good!"
+            ....:     G = graphs.RandomBarabasiAlbert(50,2)
+            ....:     results = []
+            ....:     results.append(G.triangles_count(algorithm='matrix'))
+            ....:     results.append(G.triangles_count(algorithm='iter'))
+            ....:     results.append(G.triangles_count(algorithm='sparse_copy'))
+            ....:     results.append(G.triangles_count(algorithm='dense_copy'))
+            ....:     if any(x != results[0] for x in results):
+            ....:        print results
+            ....:        print "That's not good!"
 
         Asking for an unknown algorithm::
 

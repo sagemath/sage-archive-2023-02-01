@@ -12997,7 +12997,6 @@ class GenericGraph(GenericGraph_pyx):
             self._scream_if_not_simple(allow_loops=True)
             from sage.graphs.digraph_generators import digraphs
             return self.subgraph_search_count(digraphs.Circuit(3)) // 3
-
         else:
             self._scream_if_not_simple()
             if algorithm=='iter':
@@ -13006,7 +13005,7 @@ class GenericGraph(GenericGraph_pyx):
                     Nu = set(self.neighbors(u))
                     for v in Nu:
                         tr += len(Nu.intersection(self.neighbors(v)))
-                return tr//6
+                return Integer(tr//6)
             elif algorithm=="sparse_copy":
                 from sage.graphs.base.static_sparse_graph import triangles_count
                 return triangles_count(self)
@@ -13015,7 +13014,6 @@ class GenericGraph(GenericGraph_pyx):
                 return triangles_count(self)
             elif algorithm=='matrix':
                 return (self.adjacency_matrix()**3).trace() // 6
-
             else:
                 raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
 

@@ -160,6 +160,7 @@ cimport cpython
 
 from sage.graphs.base.c_graph cimport CGraph
 from libc.stdint cimport INT32_MAX
+from static_sparse_backend cimport StaticSparseCGraph
 
 cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1:
     r"""
@@ -511,8 +512,11 @@ def triangles_count(G):
         True
     """
     G._scream_if_not_simple()
+
+    # g is a copy of G. If G is internally a static sparse graph, we use it.
     cdef short_digraph g
-    init_short_digraph(g, G, edge_labelled = False)
+    G = G.copy(immutable=True)
+    g[0] = (<StaticSparseCGraph?> (G._backend._cg)).g[0]
 
     cdef uint64_t count = 0
     cdef uint32_t u,v,i
@@ -538,6 +542,5 @@ def triangles_count(G):
                 else:
                     p2 += 1
 
-    free_short_digraph(g)
     from sage.rings.integer import Integer
     return Integer(count)//3

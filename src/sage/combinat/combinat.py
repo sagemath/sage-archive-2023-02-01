@@ -1219,7 +1219,7 @@ class CombinatorialClass(Parent):
     """
     __metaclass__ = ClasscallMetaclass
 
-    def __init__(self, category = None, *keys, **opts):
+    def __init__(self, category = None):
         """
         TESTS::
 

@@ -12917,7 +12917,7 @@ class GenericGraph(GenericGraph_pyx):
         return all_paths
 
 
-    def triangles_count(self, algorithm='sparse_copy'):
+    def triangles_count(self, algorithm=None):
         r"""
         Returns the number of triangles in the (di)graph.
 
@@ -12925,8 +12925,8 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``algorithm`` -- (default: ``'sparse_copy'``) specifies the algorithm to
-          use among:
+        - ``algorithm`` -- (default: ``None``) specifies the algorithm to use
+          (note that only ``'iter'`` is available for directed graphs):
 
             - ``'sparse_copy'`` -- counts the triangles in a sparse copy of the
               graph (see :mod:`sage.graphs.base.static_sparse_graph`). Calls
@@ -12940,8 +12940,12 @@ class GenericGraph(GenericGraph_pyx):
 
             - ``'matrix'`` uses the trace of the cube of the adjacency matrix.
 
-            - ``'iter'`` iterates over the pairs of neighbors of each
-              vertex. No copy of the graph is performed
+            - ``'iter'`` iterates over the pairs of neighbors of each vertex. No
+              copy of the graph is performed
+
+            - ``None`` -- for undirected graphs, uses ``"sparse_copy"`` or
+              ``"dense_copy"`` depending on whether the graph is stored as dense
+              or sparse. For directed graphs, uses ``'iter'``.
 
         EXAMPLES:
 
@@ -12991,14 +12995,26 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: Algorithm 'tip top' not yet implemented. Please contribute.
-
+            sage: digraphs.Path(5).triangles_count(algorithm="sparse_copy")
+            Traceback (most recent call last):
+            ...
+            ValueError: The value of algorithm(=sparse_copy) must be 'iter' or None for direcetd graphs
         """
         if self.is_directed():
+            if algorithm is not None and algorithm != "iter":
+                raise ValueError("The value of algorithm(={}) must be 'iter' "
+                                 "or None for direcetd graphs".format(algorithm))
+
             self._scream_if_not_simple(allow_loops=True)
             from sage.graphs.digraph_generators import digraphs
             return self.subgraph_search_count(digraphs.Circuit(3)) // 3
         else:
             self._scream_if_not_simple()
+            if algorithm is None:
+                from sage.graphs.base.dense_graph import DenseGraphBackend
+                algorithm = ('dense_copy' if isinstance(self._backend, DenseGraphBackend) else
+                             'sparse_copy')
+
             if algorithm=='iter':
                 tr = 0
                 for u in self:

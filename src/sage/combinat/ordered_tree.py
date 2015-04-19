@@ -526,12 +526,22 @@ class OrderedTree(AbstractClonableTree, ClonableList):
 
     def sort_key(self):
         """
-        Return a tuple of numbers that can be used to sort the trees.
+        Return a tuple of nonnegative integers encoding the tree
+        ``self``.
 
-        This tuple is in fact an encoding of the tree. The values are
-        the valences of the vertices. The first value is the valence of the
-        root. Then the rest of the tuple is the concatenation of the tuples
-        associated to subtrees from left to right.
+        The first entry of the tuple is the number of children of the
+        root. Then the rest of the tuple is the concatenation of the
+        tuples associated to subtrees from left to right.
+
+        This tuple characterizes the tree uniquely, and can be used to
+        sort the ordered trees.
+
+        .. NOTE::
+
+            On the :class:`LabelledOrderedTree` subclass, this method
+            is overridden by a slightly different method, which encodes
+            not only the numbers of children of the nodes of ``self``,
+            but also their labels.
 
         EXAMPLES::
 
@@ -1101,7 +1111,7 @@ class LabelledOrderedTree(AbstractLabelledClonableTree, OrderedTree):
 
     - ``children`` -- a list or tuple or more generally any iterable
                       of trees or object convertible to trees
-    - ``label`` -- any Sage object default to ``None``
+    - ``label`` -- any Sage object (default: ``None``)
 
     EXAMPLES::
 
@@ -1152,6 +1162,62 @@ class LabelledOrderedTree(AbstractLabelledClonableTree, OrderedTree):
         return LabelledOrderedTrees()
 
     _UnLabelled = OrderedTree
+
+    @combinatorial_map(order=2, name="Left-right symmetry")
+    def left_right_symmetry(self):
+        r"""
+        Return the symmetric tree of ``self``
+
+        EXAMPLES::
+
+            sage: L2 = LabelledOrderedTree([], label=2)
+            sage: L3 = LabelledOrderedTree([], label=3)
+            sage: T23 = LabelledOrderedTree([L2, L3], label=4)
+            sage: T23.left_right_symmetry()
+            4[3[], 2[]]
+            sage: T223 = LabelledOrderedTree([L2, T23], label=17)
+            sage: T223.left_right_symmetry()
+            17[4[3[], 2[]], 2[]]
+            sage: T223.left_right_symmetry().left_right_symmetry() == T223
+            True
+        """
+        children = [c.left_right_symmetry() for c in self]
+        children.reverse()
+        return LabelledOrderedTree(children, label=self.label())
+
+    def sort_key(self):
+        """
+        Return a tuple of nonnegative integers encoding the labelled
+        tree ``self``.
+
+        The first entry of the tuple is a pair consisting of the
+        number of children of the root and the label of the root. Then
+        the rest of the tuple is the concatenation of the tuples
+        associated to subtrees from left to right.
+
+        This tuple characterizes the labelled tree uniquely, and can
+        be used to sort the labelled ordered trees provided that the
+        labels belong to a type which is totally ordered.
+
+        EXAMPLES::
+
+            sage: L2 = LabelledOrderedTree([], label=2)
+            sage: L3 = LabelledOrderedTree([], label=3)
+            sage: T23 = LabelledOrderedTree([L2, L3], label=4)
+            sage: T23.sort_key()
+            ((2, 4), (0, 2), (0, 3))
+            sage: T32 = LabelledOrderedTree([L3, L2], label=5)
+            sage: T32.sort_key()
+            ((2, 5), (0, 3), (0, 2))
+            sage: T23322 = LabelledOrderedTree([T23, T32, L2], label=14)
+            sage: T23322.sort_key()
+            ((3, 14), (2, 4), (0, 2), (0, 3), (2, 5), (0, 3), (0, 2), (0, 2))
+        """
+        l = len(self)
+        if l == 0:
+            return ((0, self.label()),)
+        resu = [(l, self.label())] + [u for t in self for u in t.sort_key()]
+        return tuple(resu)
 
 
 class LabelledOrderedTrees(UniqueRepresentation, Parent):

@@ -429,6 +429,15 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             - ``self`` -- a finite dimensional algebra
 
+            ALGORITHM:
+
+            Let '\overline{e}' be a central orthogonal idempotent of the
+            semisimple quotient `\overline{A}` of a finite dimensional algebra
+            `A`. Let `e \in A` such that the projection of `e` in
+            `\overline{A}` is `\overline{e}`. We iterate the formula
+            `1 - (1 - e^2)^2` until having an idempotent. See [CR62] for
+            correctness and termination proofs.
+
             EXAMPLES::
 
                 sage: import itertools
@@ -445,9 +454,9 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: orth = A.central_orthogonal_idempotents(); orth
                 [-1/2*B[8] + 1/2*B[4], 1/4*B[1] - 1/2*B[4] - 1/4*B[5] +
                 1/4*B[7] + 1/2*B[8] - 1/4*B[11], 1/4*B[1] + 1/2*B[3] + 1/4*B[5]
-                - 1/4*B[7] - 1/2*B[9] - 1/4*B[11], 1/2*B[9] - 1/2*B[3], B[0],
-                -B[0] + 1/2*B[8] + 1/2*B[4], 1/4*B[1] - 1/4*B[5] - 1/4*B[7] +
-                1/4*B[11], -B[0] + 1/2*B[9] + 1/2*B[3], B[0] + 1/4*B[1] -
+                - 1/4*B[7] - 1/2*B[9] - 1/4*B[11], -1/2*B[3] + 1/2*B[9], B[0],
+                -B[0] + 1/2*B[4] + 1/2*B[8], 1/4*B[1] + 1/4*B[11] - 1/4*B[5] -
+                1/4*B[7], -B[0] + 1/2*B[3] + 1/2*B[9], B[0] + 1/4*B[1] -
                 1/2*B[3] - 1/2*B[4] + 1/4*B[5] + 1/4*B[7] - 1/2*B[8] - 1/2*B[9]
                 + 1/4*B[11]]
                 sage: all(e*f == f*e for e,f in itertools.product(orth, orth))
@@ -467,40 +476,6 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: all(e*f == f*e for e,f in itertools.product(orth, orth))
                 True
 
-            TODO: More documentation, explanation algorithm, merge with
-            _lift_idempotent ?
-            """
-            Aquo = self.semisimple_quotient()
-            orths = [self._lift_idempotent(x) for x in Aquo.central_orthogonal_idempotents()]
-            # Construction of the orthogonal idempotents
-            idems = []
-            one = self.one()
-            for g in orths:
-                f = sum(idems) # 0 if idems is empty
-                idems.append((one - f) * g * (one - f))
-            return idems
-
-        def _lift_idempotent(self, x):
-            r"""
-            Lift an idempotent of the semisimple quotient of ``self`` into an
-            idempotent of ``self``.
-
-            ALGORITHM:
-
-            Let '\overline{e}' be a central orthogonal idempotent of the
-            semisimple quotient `\overline{A}` of a finite dimensional algebra
-            `A`. Let `e \in A` such that the projection of `e` in
-            `\overline{A}` is `\overline{e}`. We iterate the formula
-            `1 - (1 - e^2)^2` until having an idempotent. See [CR62] for
-            correctness and termination proofs.
-
-            EXAMPLES::
-
-                sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example()
-                sage: Aquo = A.semisimple_quotient()
-                sage: orth = Aquo.central_orthogonal_idempotents()
-                sage: A._lift_idempotent(orth[1])
-                x
 
             REFERENCES:
 
@@ -511,18 +486,24 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 division of John Wiley & Sons, New York-London 1962
                 pp 545--546
 
-            TODO: merge in central_orthogonal_idempotents?
+            TODO: More documentation, explanation algorithm
             """
-            idempOld = None
-            assert x in self.semisimple_quotient()
-            assert (x == x*x), "Element is not an idempotent"
-            idemp = x.lift()
-            one = idemp.parent().one()
-            while idemp != idempOld:
-                tmp = idemp
-                idemp = (one - (one - idemp**2)**2)
-                idempOld = tmp
-            return idemp
+            def lift(idemp, one):
+                idempOld = None
+                while idemp != idempOld:
+                    tmp = idemp
+                    idemp = (one - (one - idemp**2)**2)
+                    idempOld = tmp
+                return idemp
+            Aquo = self.semisimple_quotient()
+            one = self.one()
+            orths = [lift(x.lift(), one) for x in Aquo.central_orthogonal_idempotents()]
+            # Construction of the orthogonal idempotents
+            idems = []
+            for g in orths:
+                f = sum(idems) # 0 if idems is empty
+                idems.append(lift((one - f) * g * (one - f), one))
+            return idems
 
         @cached_method
         def cartan_invariants_matrix(self, side='left'):
@@ -577,7 +558,8 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             # Dimension of simple modules
             dimSimples = [sqrt(Aquo.principal_ideal(e, side).dimension()) for e in
                     orth_quo]
-            orth = [self._lift_idempotent(x) for x in orth_quo]
+            # Orthogonal idempotents
+            orth = self.central_orthogonal_idempotents()
             return Matrix(self.base_ring(),
                     len(orth),
                     lambda i,j: self.pierce_decomposition_component(orth[i],

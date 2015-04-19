@@ -12917,21 +12917,31 @@ class GenericGraph(GenericGraph_pyx):
         return all_paths
 
 
-    def triangles_count(self, algorithm='iter'):
-        """
+    def triangles_count(self, algorithm='sparse_copy'):
+        r"""
         Returns the number of triangles in the (di)graph.
 
         For digraphs, we count the number of directed circuit of length 3.
 
         INPUT:
 
-        - ``algorithm`` -- (default: ``'matrix'``) specifies the algorithm to
+        - ``algorithm`` -- (default: ``'sparse_copy'``) specifies the algorithm to
           use among:
+
+            - ``'sparse_copy'`` -- counts the triangles in a sparse copy of the
+              graph (see :mod:`sage.graphs.base.static_sparse_graph`). Calls
+              :func:`static_sparse_graph.triangles_count
+              <sage.graphs.base.static_sparse_graph.triangles_count>`
+
+            - ``'dense_copy'`` -- counts the triangles in a dense copy of the
+              graph (see :mod:`sage.graphs.base.static_dense_graph`). Calls
+              :func:`static_dense_graph.triangles_count
+              <sage.graphs.base.static_dense_graph.triangles_count>`
 
             - ``'matrix'`` uses the trace of the cube of the adjacency matrix.
 
             - ``'iter'`` iterates over the pairs of neighbors of each
-              vertex. This is faster for sparse graphs.
+              vertex. No copy of the graph is performed
 
         EXAMPLES:
 
@@ -12965,9 +12975,13 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: for i in xrange(10): # long test
             ...       G = graphs.RandomBarabasiAlbert(50,2)
-            ...       tm = G.triangles_count(algorithm='matrix')
-            ...       te = G.triangles_count(algorithm='iter')
-            ...       if tm!=te:
+            ...       results = []
+            ...       results.append(G.triangles_count(algorithm='matrix'))
+            ...       results.append(G.triangles_count(algorithm='iter'))
+            ...       results.append(G.triangles_count(algorithm='sparse_copy'))
+            ...       results.append(G.triangles_count(algorithm='dense_copy'))
+            ...       if any(x != results[0] for x in results):
+            ...          print results
             ...          print "That's not good!"
 
         Asking for an unknown algorithm::
@@ -12980,18 +12994,25 @@ class GenericGraph(GenericGraph_pyx):
 
         """
         if self.is_directed():
+            self._scream_if_not_simple(allow_loops=True)
             from sage.graphs.digraph_generators import digraphs
             return self.subgraph_search_count(digraphs.Circuit(3)) // 3
 
         else:
+            self._scream_if_not_simple()
             if algorithm=='iter':
-                from sage.combinat.combination import Combinations
                 tr = 0
-                ggnx = self.networkx_graph()
-                for u in ggnx.nodes_iter():
-                    tr += sum(ggnx.has_edge(v,w) for v,w in Combinations(ggnx.neighbors(u),2))
-                return tr//3
-
+                for u in self:
+                    Nu = set(self.neighbors(u))
+                    for v in Nu:
+                        tr += len(Nu.intersection(self.neighbors(v)))
+                return tr//6
+            elif algorithm=="sparse_copy":
+                from sage.graphs.base.static_sparse_graph import triangles_count
+                return triangles_count(self)
+            elif algorithm=="dense_copy":
+                from sage.graphs.base.static_dense_graph import triangles_count
+                return triangles_count(self)
             elif algorithm=='matrix':
                 return (self.adjacency_matrix()**3).trace() // 6
 

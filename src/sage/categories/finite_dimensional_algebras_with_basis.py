@@ -174,8 +174,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                             for i in keys
                             for j,c in product_on_basis(y,i)}
                          for y in keys]
-                mat = [
-                        [ sum(x.get((j, i), 0) * c for (i,j),c in y.items())
+                mat = [ [ sum(x.get((j, i), 0) * c for (i,j),c in y.items())
                             for x in cache]
                         for y in cache]
 
@@ -432,6 +431,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             EXAMPLES::
 
+                sage: import itertools
                 sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
                 An example of a finite dimensional algebra with basis: the path
                 algebra of the Kronecker quiver (containing the arrows a:x->y
@@ -442,23 +442,48 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 An example of a finite multiplicative monoid: the integers
                 modulo 12
                 sage: A = Z12.algebra(QQ)
-                sage: A.central_orthogonal_idempotents()
-                [-1/2*B[8] + 1/2*B[4], 1/4*B[1] - 1/2*B[4] - 1/4*B[5] + 1/4*B[7]
-                + 1/2*B[8] - 1/4*B[11], 1/4*B[1] + 1/2*B[3] + 1/4*B[5] -
-                1/4*B[7] - 1/2*B[9] - 1/4*B[11], -1/2*B[3] + 1/2*B[9], B[0],
-                1/2*B[8] + 1/2*B[4] - B[0], 1/4*B[1] + 1/4*B[11] - 1/4*B[5] -
-                1/4*B[7], -B[0] + 1/2*B[3] + 1/2*B[9], B[0] + 1/4*B[1] -
+                sage: orth = A.central_orthogonal_idempotents(); orth
+                [-1/2*B[8] + 1/2*B[4], 1/4*B[1] - 1/2*B[4] - 1/4*B[5] +
+                1/4*B[7] + 1/2*B[8] - 1/4*B[11], 1/4*B[1] + 1/2*B[3] + 1/4*B[5]
+                - 1/4*B[7] - 1/2*B[9] - 1/4*B[11], 1/2*B[9] - 1/2*B[3], B[0],
+                -B[0] + 1/2*B[8] + 1/2*B[4], 1/4*B[1] - 1/4*B[5] - 1/4*B[7] +
+                1/4*B[11], -B[0] + 1/2*B[9] + 1/2*B[3], B[0] + 1/4*B[1] -
                 1/2*B[3] - 1/2*B[4] + 1/4*B[5] + 1/4*B[7] - 1/2*B[8] - 1/2*B[9]
                 + 1/4*B[11]]
+                sage: all(e*f == f*e for e,f in itertools.product(orth, orth))
+                True
+
+            We construct the minimum orthogonal idempotents of the `0`-Hecke
+            monoid algebra::
+
+                sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
+                sage: W = WeylGroup(['A', 3]); W.rename("W")
+                sage: ambient_monoid = FiniteSetMaps(W, action="right")
+                sage: pi = W.simple_projections(length_increasing=True).map(ambient_monoid)
+                sage: M = AutomaticSemigroup(pi, one=ambient_monoid.one()); M
+                A submonoid of (Maps from W to itself) with 3 generators
+                sage: A = M.algebra(QQ)
+                sage: orth = A.central_orthogonal_idempotents()
+                sage: all(e*f == f*e for e,f in itertools.product(orth, orth))
+                True
+
+            TODO: More documentation, explanation algorithm, merge with
+            _lift_idempotent ?
             """
             Aquo = self.semisimple_quotient()
-            orth_quo = Aquo.central_orthogonal_idempotents()
-            return [self._lift_idempotent(x) for x in orth_quo]
+            orths = [self._lift_idempotent(x) for x in Aquo.central_orthogonal_idempotents()]
+            # Construction of the orthogonal idempotents
+            idems = []
+            one = self.one()
+            for g in orths:
+                f = sum(idems) # 0 if idems is empty
+                idems.append((one - f) * g * (one - f))
+            return idems
 
         def _lift_idempotent(self, x):
             r"""
-            Lift a central orthogonal idempotent of the semisimple quotient of
-            ``self`` into a central orthogonal idempotent of ``self``.
+            Lift an idempotent of the semisimple quotient of ``self`` into an
+            idempotent of ``self``.
 
             ALGORITHM:
 
@@ -484,16 +509,18 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 algebras."
                 Pure and Applied Mathematics, Vol. XI Interscience Publishers, a
                 division of John Wiley & Sons, New York-London 1962
-                pp 545--556
+                pp 545--546
+
+            TODO: merge in central_orthogonal_idempotents?
             """
             idempOld = None
             assert x in self.semisimple_quotient()
             assert (x == x*x), "Element is not an idempotent"
             idemp = x.lift()
-            p = idemp.parent()
+            one = idemp.parent().one()
             while idemp != idempOld:
                 tmp = idemp
-                idemp = (p.one() - (p.one() - idemp**2)**2)
+                idemp = (one - (one - idemp**2)**2)
                 idempOld = tmp
             return idemp
 
@@ -525,6 +552,25 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 [0 0 0 0 0 0 1 0 0]
                 [0 0 0 0 0 0 0 2 0]
                 [0 0 0 0 0 0 0 0 2]
+
+            With the 0-Hecke monoid algebra::
+
+                sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
+                sage: W = WeylGroup(['A', 3]); W.rename("W")
+                sage: ambient_monoid = FiniteSetMaps(W, action="right")
+                sage: pi = W.simple_projections(length_increasing=True).map(ambient_monoid)
+                sage: M = AutomaticSemigroup(pi, one=ambient_monoid.one()); M
+                A submonoid of (Maps from W to itself) with 3 generators
+                sage: A = M.algebra(QQ)
+                sage: A.cartan_invariants_matrix()
+                [1 0 0 0 0 0 0 0]
+                [0 1 1 1 0 0 0 0]
+                [0 1 1 1 0 0 0 0]
+                [0 1 1 2 0 1 0 0]
+                [0 0 0 0 1 1 1 0]
+                [0 0 0 1 1 2 1 0]
+                [0 0 0 0 1 1 1 0]
+                [0 0 0 0 0 0 0 1]
             """
             Aquo = self.semisimple_quotient()
             orth_quo = Aquo.central_orthogonal_idempotents()

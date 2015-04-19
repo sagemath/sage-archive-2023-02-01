@@ -80,6 +80,9 @@ class PadicValuationFactory(UniqueFactory):
         elif isinstance(R, pAdicGeneric):
             if prime is None:
                 prime = R.prime()
+            if isinstance(prime, DiscretePseudoValuation):
+                if prime(R.prime())==1:
+                    prime = R.prime()
             if prime != R.prime():
                 raise NotImplementedError("p-adic valuation not implemented for this ring")
             return (R, None), {}

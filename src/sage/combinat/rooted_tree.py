@@ -20,7 +20,6 @@ from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.structure.list_clone import NormalizedClonableList
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.cachefunc import cached_method
 
 
 @cached_function
@@ -177,9 +176,23 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
 
     def sort_key(self):
         """
-        Return a list of numbers
+        Return a tuple of numbers that can be used to sort the rooted trees.
 
-        The tree ``self`` must be normalized before calling this !
+        This tuple is in fact an encoding of the tree. The values are
+        the valences of the vertices. The first value is the valence of the
+        root. Then the rest of the tuple is the concatenation of the tuples
+        associated to subtrees.
+
+        The tree ``self`` must be normalized before calling this, meaning
+        that it subtrees have to be sorted according to their sort key.
+
+        EXAMPLES::
+
+            sage: RT = RootedTree
+            sage: RT([[],[[]]]).sort_key()
+            (2, 0, 1, 0)
+            sage: RT([[[]],[]]).sort_key()
+            (2, 0, 1, 0)
         """
         l = len(self)
         if l == 0:
@@ -188,6 +201,17 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         return tuple(resu)
 
     def __hash__(self):
+        """
+        Return a hash for ``self``.
+
+        This is based on :meth:`sort_key`.
+
+        EXAMPLES::
+
+            sage: RT = RootedTree
+            sage: hash(RT([[],[[]]]))  # indirect doctest
+            2578595415271398032
+        """
         return hash(self.sort_key())
 
     def normalize(self):
@@ -206,9 +230,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         The normalization has a recursive definition. It means first
         that every sub-tree is itself normalized, and also that
         sub-trees are sorted. Here the sort is performed according to
-        the rank function, which is constructed "on the fly" (and is
-        session-dependent). See
-        :meth:`~sage.combinat.ordered_tree.normalize` for details.
+        the values of the :meth:`sort_key` method.
 
         EXAMPLES::
 
@@ -226,7 +248,6 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         for st in self:
             assert st.is_immutable(), "Subtree {} is not normalized".format(st)
         self._get_list().sort(key=lambda t: t.sort_key())
-
         # ensure unique representation
         self.set_immutable()
 
@@ -686,7 +707,7 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
         sage: LabelledRootedTree([[],[[], []]], label = 3)
         3[None[], None[None[], None[]]]
 
-    Children are reordered in a session dependent order::
+    Children are reordered using the value of the :meth:`sort_key` method::
 
         sage: y = LabelledRootedTree([], label = 5); y
         5[]
@@ -750,9 +771,35 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
 
     def sort_key(self):
         """
-        Return a list of numbers and labels
+        Return a tuple that can be used to sort the labelled rooted trees.
 
-        The tree ``self`` must be normalized before calling this !
+        Each term is a pair (valence, label).
+
+        This tuple is in fact an encoding of the tree. The values are
+        the valences and labels of the vertices. The first value is
+        the valence of the root. Then the rest of the tuple is the
+        concatenation of the tuples associated to subtrees.
+
+        The tree ``self`` must be normalized before calling this, meaning
+        that it subtrees have to be sorted according to their sort key.
+
+        EXAMPLES::
+
+            sage: LRT = LabelledRootedTrees(); LRT
+            Labelled rooted trees
+            sage: x = LRT([], label = 3); x
+            3[]
+            sage: x.sort_key()
+            ((0, 3),)
+            sage: y = LRT([x, x, x], label = 2); y
+            2[3[], 3[], 3[]]
+            sage: y.sort_key()
+            ((3, 2), (0, 3), (0, 3), (0, 3))
+            sage: LRT.an_element().sort_key()
+            ((3, 'alpha'), (0, 3), (1, 5), (0, None), (2, 42), (0, 3), (0, 3))
+            sage: lb = RootedTrees()([[],[[], []]]).canonical_labelling()
+            sage: lb.sort_key()
+            ((2, 1), (0, 2), (2, 3), (0, 4), (0, 5))
         """
         l = len(self)
         if l == 0:
@@ -761,6 +808,15 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
         return tuple(resu)
 
     def __hash__(self):
+        """
+        Return a hash for ``self``.
+
+        EXAMPLES::
+
+            sage: lb = RootedTrees()([[],[[], []]]).canonical_labelling()
+            sage: hash(lb)  # indirect doctest
+            686798862222558969
+        """
         return hash(self.sort_key())
 
     _UnLabelled = RootedTree
@@ -798,6 +854,7 @@ class LabelledRootedTrees(UniqueRepresentation, Parent):
             True
         """
         return LabelledRootedTrees_all()
+
 
 class LabelledRootedTrees_all(LabelledRootedTrees):
     r"""
@@ -866,4 +923,3 @@ class LabelledRootedTrees_all(LabelledRootedTrees):
         return self
 
     Element = LabelledRootedTree
-

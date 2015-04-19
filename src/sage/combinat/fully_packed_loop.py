@@ -1,7 +1,10 @@
 r"""
 Fully packed loops
 
-A class for fully packed loops [Propp2001]_.
+A fully packed loop is a collection of non-intersecting lattice paths on a square grid such that every vertex is part of some path, and the paths are either closed internal loops or have endpoints corresponding to alternate points on the boundary [Propp2001]_. They are known to be in bijection with alternating sign matrices. 
+
+To each fully packed loop, we assign a link pattern, which is the non-crossing matching attained by seeing which points on the boundary are connected by open paths in the fully packed loop.
+
 We can create a fully packed loop using the corresponding alternating sign
 matrix and also extract the link pattern.::
 
@@ -89,7 +92,7 @@ Once we have a fully packed loop we can obtain the corresponding alternating sig
     [0 1 0]
     [1 0 0]
 
-Here are some more examples using bigger AMS's::
+Here are some more examples using bigger ASMs::
 
     sage: A = AlternatingSignMatrix([[0,1,0,0],[0,0,1,0],[1,-1,0,1],[0,1,0,0]])
     sage: S = SixVertexModel(4, boundary_conditions='ice').from_alternating_sign_matrix(A)
@@ -179,8 +182,7 @@ Here are some more examples using bigger AMS's::
         |         |         |         |
 
 
-    A gyration on an alternating-sign matrix/fully packed loop ``fpl``
-    corresponds to a rotation (i.e. (a,b) to (a-1,b-1) modulo 2*n)
+    Gyration on an alternating sign matrix/fully packed loop ``fpl``
     of the link pattern corresponding to ``fpl``::
 
         sage: ASMs = AlternatingSignMatrices(3).list()
@@ -257,7 +259,7 @@ class FullyPackedLoop(SageObject):
 
         EXAMPLES:
 
-        We can initiate a fully packed loop using an Alternating Sign Matrix::
+        We can initiate a fully packed loop using an alternating sign matrix::
 
             sage: A = AlternatingSignMatrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
             sage: fpl = FullyPackedLoop(A)
@@ -733,8 +735,8 @@ class FullyPackedLoop(SageObject):
             sage: fpl.link_pattern()
             [(1, 6), (2, 5), (3, 4)]
             
-        An gyration on an alternating-sign matrix/fully packed loop ``fpl``
-        corresponds to a rotation (i.e. a becomes a-1)
+        Gyration on an alternating sign matrix/fully packed loop ``fpl``
+        corresponds to a rotation (i.e. a becomes a-1 mod 2n)
         of the link pattern corresponding to ``fpl``::
             
             sage: ASMs = AlternatingSignMatrices(3).list()

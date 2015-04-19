@@ -675,13 +675,15 @@ def cmunu1(mu, nu):
 def cmunu(mu, nu):
     r"""
     Return the coefficient of `{\tilde H}_\nu` in `h_r^\perp {\tilde H}_\mu`.
-    A theorem of F. Bergeron, A. Garsia and M. Haiman [BH2013]_ states
+    Proposition 5 of F. Bergeron and M. Haiman [BH2013]_ states
 
     .. MATH::
 
         c_{\mu\nu} = \sum_{\alpha \leftarrow \nu} c_{\mu\alpha} c_{\alpha\nu} B_{\alpha/\nu}/B_{\mu/\nu}
     
-    where `c_{\mu\nu}` is the coefficient of `{\tilde H}_\nu` in `h_r^\perp {\tilde H}_\mu`.
+    where `c_{\mu\nu}` is the coefficient of `{\tilde H}_\nu` in 
+    `h_r^\perp {\tilde H}_\mu` and `B_{\mu/\nu}` is the bi-exponent generator
+    implemented in the function :func:`sage.combinat.sf.macdonald.Bmu`.
 
     INPUT:
 
@@ -1303,8 +1305,8 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         K_{\lambda\mu}(q,t^{-1}) s_\lambda` where `K_{\lambda\mu}(q,t)` are the
         Macdonald `(q,t)`-Kostka coefficients and `n(\mu) = \sum_{i} (i-1) \mu_i`.
 
-        It is implemented here by using a Pieri formula due to F. Bergeron,
-        A. Garsia and M. Haiman [BH2013]_.
+        It is implemented here by using a Pieri formula due to F. Bergeron
+        and M. Haiman [BH2013]_.
 
         INPUT:
 
@@ -1340,8 +1342,9 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
 
         where the sum is over partitions `\gamma \subseteq \mu` with 
         `\gamma \vdash |(\nu_1, \ldots, \nu_{\ell(\nu)-1})|`.  There is a recursive
-        formula for `c_{\mu\gamma}` which is due to F. Bergeron, A. Garsia, and M.
-        Haiman [BH2013]_.
+        formula for `c_{\mu\gamma}` which is due to F. Bergeron and M.
+        Haiman [BH2013]_ and this is implemented in
+        :func:`sage.combinat.sf.macdonald.cmunu`.
 
         INPUT:
 

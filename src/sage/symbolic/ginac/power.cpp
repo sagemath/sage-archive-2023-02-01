@@ -519,10 +519,7 @@ ex power::eval(int level) const
 	if (eexponent.is_zero() && 
 		!(basis_is_numerical && 
 			num_basis->is_parent_pos_char())) {
-		if (ebasis.is_zero())
-			throw (std::domain_error("power::eval(): pow(0,0) is undefined"));
-		else
-			return _ex1;
+		return _ex1;
 	}
 	
 	// ^(x,1) -> x

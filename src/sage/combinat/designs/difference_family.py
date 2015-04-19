@@ -1230,7 +1230,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
 
         return G,df
 
-    elif l == 1 and k in EDS and v in EDS[k] and EDS[k][v] is not False:
+    elif l == 1 and k in EDS and v in EDS[k]:
         if existence:
             return True
         elif explain_construction:

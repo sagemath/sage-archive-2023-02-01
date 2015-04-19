@@ -12,7 +12,6 @@ Integrable Representations of Affine Lie Algebras
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.category_object import CategoryObject
-#from sage.structure.parent import Parent
 from sage.categories.modules import Modules
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_space import RootSpace
@@ -629,10 +628,13 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         """
         A weight `\\mu` is *maximal* if it has nonzero multiplicity but
         `\\mu+\\delta`` has multiplicity zero. There are a finite number
-        of dominant maximal weights.
+        of dominant maximal weights. Indeed, [Kac] Proposition 12.6
+        shows that the dominant maximal weights are in bijection with
+        the classical weights in `k\cdot F` where `F` is the fundamental
+        alcove and `k` is the level. The construction used in this
+        method is based on that Proposition.
 
-        This function will replace dominant maximal after it has been
-        fully tested.
+        
 
         """
         k = self.level()
@@ -688,9 +690,6 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             2*Lambda[1] - delta: 1 2 4 7 13 21 35 55 86 130 196 287 420 602 858 1206 1687 2331 3206 4368 5922 7967 10670 14193 18803
 
         """
-        # FIXME: This call to string should not be necessary as it is
-        #   highly redundant to generate the data for dominant_maximal
-        self.string(self._Lam, depth)
         for max_weight in self.dominant_maximal():
             s = self.string(max_weight, depth)
             print "%s:"%max_weight,

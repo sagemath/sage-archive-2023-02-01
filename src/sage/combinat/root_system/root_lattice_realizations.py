@@ -16,7 +16,7 @@ from sage.misc.abstract_method import abstract_method, AbstractMethod
 from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.lazy_import import lazy_import, LazyImport
+from sage.misc.lazy_import import LazyImport
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.modules_with_basis import ModulesWithBasis
@@ -27,6 +27,7 @@ from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.combinat.backtrack import TransitiveIdeal, TransitiveIdealGraded
 from sage.combinat.root_system.plot import PlotOptions, barycentric_projection_matrix
+
 
 class RootLatticeRealizations(Category_over_base_ring):
     r"""
@@ -2179,7 +2180,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                 (0, 0, 0)
 
             """
-            from sage.matrix.constructor import matrix
             from sage.symbolic.constants import pi
             m = matrix(QQ, barycentric_projection_matrix(self.dimension()-1, angle=2*pi/3).n(20))
             # We want to guarantee that the sum of the columns of the
@@ -3748,7 +3748,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
         def height(self):
             r"""
-            Return the hieght of ``self``.
+            Return the height of ``self``.
 
             The height of a root `\alpha = \sum_i a_i \alpha_i` is defined
             to be `h(\alpha) := \sum_i a_i`.
@@ -3760,29 +3760,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                 5
             """
             return sum(self.coefficients())
-
-        def norm_squared(self):
-            r"""
-            Return the norm squared of ``self``.
-
-            Given a root `\alpha \in \Phi`, we define
-
-            .. MATH::
-
-                \lVert\alpha\rVert^2 = (\alpha, \alpha) = \sum_{\beta\in\Phi}
-                \lvert\langle \alpha, \beta^{\vee} \rangle\rvert^2
-
-            where `(\alpha, \beta)` can be though of as the usual Euclidean
-            inner product in the ambient space.
-
-            EXAMPLES::
-
-                sage: Q = RootSystem(['G', 2]).root_lattice()
-                sage: Q.highest_root().norm_squared()
-                48
-            """
-            L = self.parent().root_system.ambient_space()
-            return L(self).scalar(L(self))
 
         ##########################################################################
         # Level

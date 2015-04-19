@@ -759,8 +759,8 @@ def implicit_plot(f, xrange, yrange, **options):
         raise ValueError("fill=%s is not supported" % options['fill'])
 
 
-@options(plot_points=100, incol='blue', outcol='white', bordercol=None, borderstyle=None, borderwidth=None,frame=False,axes=True, legend_label=None, aspect_ratio=1)
-def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, borderstyle, borderwidth,**options):
+@options(plot_points=100, incol='blue', outcol=None, bordercol=None, borderstyle=None, borderwidth=None,frame=False,axes=True, legend_label=None, aspect_ratio=1, alpha=1)
+def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, borderstyle, borderwidth, alpha, **options):
     r"""
     ``region_plot`` takes a boolean function of two variables, `f(x,y)`
     and plots the region where f is True over the specified
@@ -783,7 +783,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
     - ``incol`` -- a color (default: ``'blue'``), the color inside the region
 
-    - ``outcol`` -- a color (default: ``'white'``), the color of the outside
+    - ``outcol`` -- a color (default: ``None``), the color of the outside
       of the region
 
     If any of these options are specified, the border will be shown as indicated,
@@ -798,6 +798,8 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
       ``'--'``, ``':'``, ``'-.'``.
 
     - ``borderwidth``  -- integer (default: None), the width of the border in pixels
+
+    - ``alpha`` -- (default: 1) How transparent the fill is. A number between 0 and 1.
 
     - ``legend_label`` -- the label for this item in the legend
 
@@ -897,6 +899,16 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
         sage: region_plot(x^2+y^2<100, (x,1,10), (y,1,10), scale='loglog')
         Graphics object consisting of 1 graphics primitive
 
+    TESTS:
+
+    To check that ticket 16907 is fixed::
+
+        sage: x, y = var('x, y')
+        sage: disc1 = region_plot(x^2+y^2 < 1, (x, -1, 1), (y, -1, 1), alpha=0.5)
+        sage: disc2 = region_plot((x-0.7)^2+(y-0.7)^2 < 0.5, (x, -2, 2), (y, -2, 2), incol='red', alpha=0.5)
+        sage: disc1 + disc2
+        Graphics object consisting of 2 graphics primitives
+
     """
 
     from sage.plot.all import Graphics
@@ -922,10 +934,15 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
     from matplotlib.colors import ListedColormap
     incol = rgbcolor(incol)
-    outcol = rgbcolor(outcol)
-    cmap = ListedColormap([incol, outcol])
-    cmap.set_over(outcol)
-    cmap.set_under(incol)
+    if outcol:
+        outcol = rgbcolor(outcol)
+        cmap = ListedColormap([incol, outcol])
+        cmap.set_over(outcol, alpha=alpha)
+    else:
+        outcol = rgbcolor('white')
+        cmap = ListedColormap([incol, outcol])
+        cmap.set_over(outcol, alpha=0)
+    cmap.set_under(incol, alpha=alpha)
 
     g = Graphics()
 
@@ -939,7 +956,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
     g.add_primitive(ContourPlot(xy_data_array, xrange,yrange,
-                                dict(contours=[-1e307, 0, 1e307], cmap=cmap, fill=True, **options)))
+                                dict(contours=[-1e-20, 0, 1e-20], cmap=cmap, fill=True, **options)))
 
     if bordercol or borderstyle or borderwidth:
         cmap = [rgbcolor(bordercol)] if bordercol else ['black']

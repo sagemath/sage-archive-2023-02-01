@@ -3740,8 +3740,8 @@ class RootLatticeRealizations(Category_over_base_ring):
             p_roots = self.parent().positive_roots_by_height()
             # We won't need any roots higher than us
             p_roots = p_roots[:p_roots.index(r)]
-            for i,a in enumerate(p_roots):
-                for b in p_roots[i+1:]:
+            for i, a in enumerate(p_roots):
+                for b in p_roots[i + 1:]:
                     if a + b == r:
                         return (a, b)
             raise ValueError("Unable to find an extraspecial pair")

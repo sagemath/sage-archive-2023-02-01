@@ -727,9 +727,9 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 raise ValueError, "Must be in the domain or a list, tuple or string."
 
             permuted = [i[self.perm[j]] for j from 0 <= j < self.n]
-            if PY_TYPE_CHECK(i, tuple):
+            if isinstance(i, tuple):
                 permuted = tuple(permuted)
-            elif PY_TYPE_CHECK(i, str):
+            elif isinstance(i, str):
                 permuted = ''.join(permuted)
             permuted += i[self.n:]
             return permuted
@@ -1051,8 +1051,10 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: prod(primes(150))
             1492182350939279320058875736615841068547583863326864530410
             sage: L = [tuple(range(sum(primes(p))+1, sum(primes(p))+1+p)) for p in primes(150)]
-            sage: PermutationGroupElement(L).order()
+            sage: t=PermutationGroupElement(L).order(); t
             1492182350939279320058875736615841068547583863326864530410
+            sage: type(t)
+            <type 'sage.rings.integer.Integer'>
         """
         order = None
         cdef long long order_c = 1
@@ -1076,7 +1078,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 if order_c > LONG_LONG_MAX / (self.n - i):
                     order = Integer(order_c)
         sage_free(seen)
-        return int(order_c) if order is None else order
+        return Integer(order_c) if order is None else order
 
     def inverse(self):
         r"""
@@ -1437,20 +1439,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             print "         ",l1
             print "         ",l5
         return l1,l2
-
-    def conjugacy_class(self):
-        r"""
-        Return the conjugacy class of ``self``.
-
-        EXAMPLES::
-
-            sage: D = DihedralGroup(5)
-            sage: g = D((1,3,5,2,4))
-            sage: g.conjugacy_class()
-            Conjugacy class of (1,3,5,2,4) in Dihedral group of order 10 as a permutation group
-        """
-        return self.parent().conjugacy_class(self)
-
 
 cdef bint is_valid_permutation(int* perm, int n):
     """

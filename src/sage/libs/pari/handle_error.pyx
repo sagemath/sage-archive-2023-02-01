@@ -43,7 +43,7 @@ class PariError(RuntimeError):
             ....:     pari('1/0')
             ....: except PariError as err:
             ....:     print err.errnum()
-            30
+            31
         """
         return self.args[0]
 

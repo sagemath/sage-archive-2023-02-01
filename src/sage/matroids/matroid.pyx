@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 The abstract Matroid class
 
@@ -122,6 +123,8 @@ additional functionality (e.g. linear extensions).
 
 - Misc
     - :meth:`broken_circuit_complex() <sage.matroids.matroid.Matroid.broken_circuit_complex>`
+    - :meth:`matroid_polytope() <sage.matroids.matroid.Matroid.matroid_polytope>`
+    - :meth:`independence_matroid_polytope() <sage.matroids.matroid.Matroid.independence_matroid_polytope>`
 
 In addition to these, all methods provided by
 :class:`SageObject <sage.structure.sage_object.SageObject>` are available,
@@ -312,7 +315,6 @@ from sage.combinat.subset import Subsets
 from sage.misc.misc import subsets
 
 from utilities import newlabel, sanitize_contractions_deletions
-from sage.calculus.all import var
 from sage.rings.all import ZZ
 from sage.numerical.mip import MixedIntegerLinearProgram
 
@@ -2865,6 +2867,99 @@ cdef class Matroid(SageObject):
                 if add:
                     ret.append(I)
         return ret
+
+    # polytopes
+
+    def matroid_polytope(self):
+        r"""
+        Return the matroid polytope of ``self``.
+
+        This is defined as the convex hull of the vertices
+
+        .. MATH::
+
+            e_B = \sum_{i \in B} e_i
+
+        over all bases `B` of the matroid. Here `e_i` are the standard
+        basis vectors of `\RR^n`. An arbitrary labelling of the
+        groundset by `{0,\dots,n-1}` is chosen.
+
+        .. SEEALSO::
+
+            :meth:`independence_matroid_polytope`
+
+        EXAMPLES::
+
+            sage: M = matroids.Whirl(4)
+            sage: P = M.matroid_polytope(); P
+            A 7-dimensional polyhedron in ZZ^8 defined as the convex hull
+            of 46 vertices
+
+            sage: M = matroids.named_matroids.NonFano()
+            sage: M.matroid_polytope()
+            A 6-dimensional polyhedron in ZZ^7 defined as the convex hull
+            of 29 vertices
+
+        REFERENCE:
+
+        .. [DLHK2007] J. A. De Loera, D. C. Haws, M. Köppe, Ehrhart polynomials
+          of matroid polytopes and polymatroids. Discrete & Computational
+          Geometry, Volume 42, Issue 4. :arxiv:`0710.4346`,
+          :doi:`10.1007/s00454-008-9120-8`
+        """
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        from sage.modules.free_module import FreeModule
+        n = self.size()
+        vector_e = FreeModule(ZZ, n).basis()
+        convert = {ind: i for i, ind in enumerate(self.groundset())}
+        vertices = [sum(vector_e[convert[i]] for i in B)
+                    for B in self.bases()]
+        return Polyhedron(vertices)
+
+    def independence_matroid_polytope(self):
+        """
+        Return the independence matroid polytope of ``self``.
+
+        This is defined as the convex hull of the vertices
+
+        .. MATH::
+
+            \sum_{i \in I} e_i
+
+        over all independent sets `I` of the matroid. Here `e_i` are
+        the standard basis vectors of `\RR^n`. An arbitrary labelling
+        of the groundset by `{0,\dots,n-1}` is chosen.
+
+        .. SEEALSO::
+
+            :meth:`matroid_polytope`
+
+        EXAMPLES::
+
+            sage: M = matroids.Whirl(4)
+            sage: M.independence_matroid_polytope()
+            A 8-dimensional polyhedron in ZZ^8 defined as the convex hull
+            of 135 vertices
+
+            sage: M = matroids.named_matroids.NonFano()
+            sage: M.independence_matroid_polytope()
+            A 7-dimensional polyhedron in ZZ^7 defined as the convex hull
+            of 58 vertices
+
+        REFERENCE:
+
+        [DLHK2007]_
+        """
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        from sage.modules.free_module import FreeModule
+        n = self.size()
+        ambient = FreeModule(ZZ, n)
+        vector_e = ambient.basis()
+        convert = {ind: i for i, ind in enumerate(self.groundset())}
+        vertices = [ambient.sum(vector_e[convert[i]] for i in IS)
+                    for r in range(self.full_rank() + 1)
+                    for IS in self.independent_r_sets(r)]
+        return Polyhedron(vertices)
 
     # isomorphism and equality
 

@@ -20,7 +20,6 @@ from sage.misc.all import prod
 
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/cdefs.pxi'
-include "sage/ext/stdsage.pxi"
 
 cpdef julia(ff_j, z, int iterations):
     """

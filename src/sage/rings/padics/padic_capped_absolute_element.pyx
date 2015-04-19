@@ -181,7 +181,7 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
 
         """
         cdef Integer selfvalue, modulus
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if mpz_cmp_si((<Integer>absprec).value, self.absprec) > 0:
             raise PrecisionError("not enough precision known in order to compute residue.")

@@ -2,7 +2,6 @@ r"""
 Base class for elements of multivariate polynomial rings
 """
 
-include "sage/ext/stdsage.pxi"
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 
@@ -733,7 +732,7 @@ cdef class MPolynomial(CommutativeRingElement):
         if self.is_homogeneous():
             return self
 
-        if PY_TYPE_CHECK(var, basestring):
+        if isinstance(var, basestring):
             V = list(P.variable_names())
             try:
                 i = V.index(var)
@@ -742,7 +741,7 @@ cdef class MPolynomial(CommutativeRingElement):
                 P = PolynomialRing(P.base_ring(), len(V)+1, V + [var], order=P.term_order())
                 return P(self)._homogenize(len(V))
 
-        elif PY_TYPE_CHECK(var, MPolynomial) and \
+        elif isinstance(var, MPolynomial) and \
              ((<MPolynomial>var)._parent is P or (<MPolynomial>var)._parent == P):
             V = list(P.gens())
             try:
@@ -752,7 +751,7 @@ cdef class MPolynomial(CommutativeRingElement):
                 P = P.change_ring(names=P.variable_names() + [str(var)])
                 return P(self)._homogenize(len(V))
 
-        elif PY_TYPE_CHECK(var, int) or PY_TYPE_CHECK(var, Integer):
+        elif isinstance(var, int) or isinstance(var, Integer):
             if 0 <= var < P.ngens():
                 return self._homogenize(var)
             else:

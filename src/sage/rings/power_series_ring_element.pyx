@@ -93,7 +93,6 @@ With power series the behavior is the same.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 
 import operator
 
@@ -376,7 +375,7 @@ cdef class PowerSeries(AlgebraElement):
             True
         """
         # A very common case throughout code
-        if PY_TYPE_CHECK(right, int):
+        if isinstance(right, int):
             return self.is_zero()
 
         prec = self.common_prec(right)

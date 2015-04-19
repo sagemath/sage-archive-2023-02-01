@@ -102,8 +102,8 @@ try:
     with open(input, 'r') as f:
         rst = f.read()
 except IOError as e:
-    print "IOError: %s" % e
-    print "Unable to open source file for reading ('%s').  Exiting." % input
+    print("IOError: {}".format(e))
+    print("Unable to open source file for reading ('{}').  Exiting.".format(input))
     sys.exit(1)
 
 # docutils loses the single backslashes, so we precede them with escapes

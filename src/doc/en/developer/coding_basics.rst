@@ -271,11 +271,15 @@ information. You can use the existing functions of Sage as templates.
 
    They should have good coverage of the functionality in question.
 
--  A **SEEALSO** block (optional) with links to related parts of Sage. ::
+-  A **SEEALSO** block (highly recommended) with links to related parts of
+   Sage. This helps users find the features that interests them and discover the
+   new ones. ::
 
        .. SEEALSO::
 
-          :ref:`chapter-sage_manuals_links`
+           :ref:`chapter-sage_manuals_links`,
+           :meth:`sage.somewhere.other_useful_method`,
+           :mod:`sage.some.related.module`.
 
    See :ref:`chapter-sage_manuals_links` for details on how to setup
    link in Sage.
@@ -814,14 +818,14 @@ framework. Here is a comprehensive list:
        sage: sloane_sequence(60843)       # optional - internet
 
   - **bug:** For lines that describe bugs. Alternatively, use ``# known bug``
-    instead: it is an alias for ``optional bug``.::
+    instead: it is an alias for ``optional bug``. ::
 
-      The following should yield 4.  See :trac:`2`. ::
+        The following should yield 4.  See :trac:`2`. ::
 
-          sage: 2+2  # optional: bug
-          5
-          sage: 2+2  # known bug
-          5
+            sage: 2+2  # optional: bug
+            5
+            sage: 2+2  # known bug
+            5
 
   .. NOTE::
 
@@ -837,16 +841,28 @@ framework. Here is a comprehensive list:
       - Optional tags are case-insensitive, so you could also write ``optional:
         chOMP``.
 
+- **indirect doctest:** in the docstring of a function ``A(...)``, a line
+  calling ``A`` and in which the name ``A`` does not appear should have this
+  flag. This prevents ``sage --coverage <file>`` from reporting the docstring as
+  "not testing what it should test".
+
+  Use it when testing special functions like ``__repr__``, ``__add__``,
+  etc. Use it also when you test the function by calling ``B`` which
+  internally calls ``A``::
+
+      This is the docstring of an ``__add__`` method. The following
+      example tests it, but ``__add__`` is not written anywhere::
+
+          sage: 1+1 # indirect doctest
+          2
+
 - **32-bit** or **64-bit:** for tests that behave differently on 32-bit or
   64-bit machines. Note that this particular flag is to be applied on the
   **output** lines, not the input lines::
 
-      sage: z = 32
-      sage: z.powermodm_ui(2^32-1, 14)
-      Traceback (most recent call last):                              # 32-bit
-      ...                                                             # 32-bit
-      OverflowError: exp (=4294967295) must be <= 4294967294          # 32-bit
-      8                                                               # 64-bit
+      sage: hash(-920390823904823094890238490238484)
+      -873977844            # 32-bit
+      6874330978542788722   # 64-bit
 
 Using ``search_src`` from the Sage prompt (or ``grep``), one can
 easily find the aforementioned keywords. In the case of ``todo: not

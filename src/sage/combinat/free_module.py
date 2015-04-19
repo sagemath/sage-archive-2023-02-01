@@ -26,7 +26,7 @@ from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.misc.cachefunc import cached_method
 from sage.misc.all import lazy_attribute
 from sage.categories.poor_man_map import PoorManMap
-from sage.categories.all import ModulesWithBasis
+from sage.categories.all import Category, Sets, ModulesWithBasis
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
 from sage.sets.family import Family
 from sage.misc.ascii_art import AsciiArt, empty_ascii_art
@@ -239,7 +239,7 @@ class CombinatorialFreeModuleElement(Element):
         TESTS::
 
             sage: M = QuasiSymmetricFunctions(QQ).M()
-            sage: ascii_art(M[1,3]**2)
+            sage: ascii_art(M[1,3]**2)  # indirect doctest
             4*M      + 2*M       + 2*M      + 2*M       + 2*M       + M
                  ***      ******        ***         ***         ***     ******
                ***        *             *        ****         ***      **
@@ -832,9 +832,9 @@ class CombinatorialFreeModuleElement(Element):
         parent = self.parent()
         dense_free_module = parent._dense_free_module(new_base_ring)
         d = self._monomial_coefficients
-        return dense_free_module._element_class(dense_free_module,
-                                                [d.get(m, 0) for m in parent.get_order()],
-                                                coerce=True, copy=False)
+        return dense_free_module.element_class(dense_free_module,
+                                               [d.get(m, 0) for m in parent.get_order()],
+                                               coerce=True, copy=False)
 
     to_vector = _vector_
 
@@ -992,7 +992,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
     - ``category`` - the category in which this module lies (optional,
       default None, in which case use the "category of modules with
-      basis" over the base ring ``R``)
+      basis" over the base ring ``R``); this should be a subcategory
+      of :class:`ModulesWithBasis`
 
     For the options controlling the printing of elements, see
     :class:`~sage.structure.indexed_generators.IndexedGenerators`.
@@ -1087,11 +1088,21 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
         sage: F2.print_options(prefix='F') #reset for following doctests
 
-    The default category is the category of modules with basis over
-    the base ring::
+    The constructed module is in the category of modules with basis
+    over the base ring::
 
-        sage: CombinatorialFreeModule(GF(3), ((1,2), (3,4))).category()
-        Category of vector spaces with basis over Finite Field of size 3
+        sage: CombinatorialFreeModule(QQ, Partitions()).category()
+        Category of vector spaces with basis over Rational Field
+
+    If furthermore the index set is finite (i.e. in the category
+    ``Sets().Finite()``), then the module is declared as being finite
+    dimensional::
+
+        sage: CombinatorialFreeModule(QQ, [1,2,3,4]).category()
+        Category of finite dimensional vector spaces with basis over Rational Field
+        sage: CombinatorialFreeModule(QQ, Partitions(3),
+        ....:                         category=Algebras(QQ).WithBasis()).category()
+        Category of finite dimensional algebras with basis over Rational Field
 
     See :mod:`sage.categories.examples.algebras_with_basis` and
     :mod:`sage.categories.examples.hopf_algebras_with_basis` for
@@ -1219,19 +1230,27 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
 
             sage: F.category()
-            Category of vector spaces with basis over Rational Field
+            Category of finite dimensional vector spaces with basis over Rational Field
 
         One may specify the category this module belongs to::
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'], category=AlgebrasWithBasis(QQ))
             sage: F.category()
-            Category of algebras with basis over Rational Field
+            Category of finite dimensional algebras with basis over Rational Field
+
+            sage: F = CombinatorialFreeModule(GF(3), ['a','b','c'],
+            ....:                             category=(Modules(GF(3)).WithBasis(), Semigroups()))
+            sage: F.category()
+            Join of Category of finite semigroups
+                 and Category of finite dimensional modules with basis over Finite Field of size 3
+                 and Category of vector spaces with basis over Finite Field of size 3
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'], category = FiniteDimensionalModulesWithBasis(QQ))
             sage: F.basis()
             Finite family {'a': B['a'], 'c': B['c'], 'b': B['b']}
             sage: F.category()
             Category of finite dimensional vector spaces with basis over Rational Field
+
             sage: TestSuite(F).run()
 
         TESTS:
@@ -1266,9 +1285,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if R not in Rings():
             raise TypeError("Argument R must be a ring.")
 
-        if category is None:
-            category = ModulesWithBasis(R)
-
         if element_class is not None:
             self.Element = element_class
 
@@ -1284,6 +1300,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             kwds['generator_cmp'] = kwds['monomial_cmp']
             del kwds['monomial_cmp']
         IndexedGenerators.__init__(self, basis_keys, prefix, **kwds)
+
+        if category is None:
+            category = ModulesWithBasis(R)
+        elif isinstance(category, tuple):
+            category = Category.join(category)
+        if basis_keys in Sets().Finite():
+            category = category.FiniteDimensional()
 
         Parent.__init__(self, base = R, category = category,
                         # Could we get rid of this?
@@ -1302,7 +1325,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         TESTS::
 
             sage: R = NonCommutativeSymmetricFunctions(QQ).R()
-            sage: ascii_art(R.one())
+            sage: ascii_art(R.one())  # indirect doctest
             1
         """
         from sage.misc.ascii_art import AsciiArt
@@ -2517,15 +2540,22 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
             sage: F = CombinatorialFreeModule(ZZ, [4,5]); F.__custom_name = "F"
             sage: G = CombinatorialFreeModule(ZZ, [4,6]); G.__custom_name = "G"
             sage: S = cartesian_product([F, G])
-            sage: phi = S.summand_embedding(0)
+            sage: phi = S.cartesian_embedding(0)
             sage: phi(F.monomial(4) + 2 * F.monomial(5))
             B[(0, 4)] + 2*B[(0, 5)]
             sage: phi(F.monomial(4) + 2 * F.monomial(6)).parent() == S
             True
-            sage: phi(G.monomial(4)) # not implemented Should raise an error!  problem: G(F.monomial(4)) does not complain!!!!
+
+        TESTS::
+
+            sage: phi(G.monomial(4))
+            Traceback (most recent call last):
+            ...
+            AssertionError
         """
         assert i in self._sets_keys()
-        return self._sets[i]._module_morphism(lambda t: self.monomial((i,t)), codomain = self)
+        return self._sets[i]._module_morphism(lambda t: self.monomial((i, t)),
+                                              codomain = self)
 
     summand_embedding = cartesian_embedding
 

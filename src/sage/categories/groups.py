@@ -427,9 +427,56 @@ class Groups(CategoryWithAxiom):
             import operator
             return OperationTable(self, operation=operator.mul, names=names, elements=elements)
 
+        def conjugacy_class(self, g):
+            r"""
+            Return the conjugacy class of the element ``g``.
+
+            This is a fall-back method for groups not defined over GAP.
+
+            EXAMPLES::
+
+                sage: A = AbelianGroup([2,2])
+                sage: c = A.conjugacy_class(A.an_element())
+                sage: type(c)
+                <class 'sage.groups.conjugacy_classes.ConjugacyClass_with_category'>
+            """
+            from sage.groups.conjugacy_classes import ConjugacyClass
+            return ConjugacyClass(self, g)
+
     class ElementMethods:
-        ## inv(x), x/y
-        pass
+        def conjugacy_class(self):
+            r"""
+            Return the conjugacy class of ``self``.
+
+            EXAMPLES::
+
+                sage: D = DihedralGroup(5)
+                sage: g = D((1,3,5,2,4))
+                sage: g.conjugacy_class()
+                Conjugacy class of (1,3,5,2,4) in Dihedral group of order 10 as a permutation group
+
+                sage: H = MatrixGroup([matrix(GF(5),2,[1,2, -1, 1]), matrix(GF(5),2, [1,1, 0,1])])
+                sage: h = H(matrix(GF(5),2,[1,2, -1, 1]))
+                sage: h.conjugacy_class()
+                Conjugacy class of [1 2]
+                [4 1] in Matrix group over Finite Field of size 5 with 2 generators (
+                [1 2]  [1 1]
+                [4 1], [0 1]
+                )
+
+                sage: G = SL(2, GF(2))
+                sage: g = G.gens()[0]
+                sage: g.conjugacy_class()
+                Conjugacy class of [1 1]
+                [0 1] in Special Linear Group of degree 2 over Finite Field of size 2
+
+                sage: G = SL(2, QQ)
+                sage: g = G([[1,1],[0,1]])
+                sage: g.conjugacy_class()
+                Conjugacy class of [1 1]
+                [0 1] in Special Linear Group of degree 2 over Rational Field
+            """
+            return self.parent().conjugacy_class(self)
 
     Finite = LazyImport('sage.categories.finite_groups', 'FiniteGroups')
     #Algebras = LazyImport('sage.categories.group_algebras', 'GroupAlgebras')
@@ -595,7 +642,7 @@ class Groups(CategoryWithAxiom):
 
                     sage: GroupAlgebras(QQ).example(GL(3, GF(11))).group()
                     General Linear Group of degree 3 over Finite Field of size 11
-                    sage: SymmetricGroupAlgebra(QQ,10).group()
+                    sage: SymmetricGroup(10).algebra(QQ).group()
                     Symmetric group of order 10! as a permutation group
                 """
                 return self.basis().keys()
@@ -608,15 +655,6 @@ class Groups(CategoryWithAxiom):
 
                     sage: GroupAlgebras(QQ).example(AlternatingGroup(10)).algebra_generators()
                     Finite family {(1,2,3,4,5,6,7,8,9): B[(1,2,3,4,5,6,7,8,9)], (8,9,10): B[(8,9,10)]}
-
-                .. NOTE::
-
-                    This function is overloaded for SymmetricGroupAlgebras
-                    to return Permutations and not Elements of the
-                    symmetric group::
-
-                        sage: GroupAlgebras(QQ).example(SymmetricGroup(10)).algebra_generators()
-                        [[2, 1, 3, 4, 5, 6, 7, 8, 9, 10], [2, 3, 4, 5, 6, 7, 8, 9, 10, 1]]
                 """
                 from sage.sets.family import Family
                 return Family(self.group().gens(), self.term)

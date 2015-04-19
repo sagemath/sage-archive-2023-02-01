@@ -25,8 +25,6 @@ from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.sets.family import Family
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
 from sage.combinat.free_module import _divide_if_possible
-from sage.combinat.integer_list import IntegerListsLex
-from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.rings.ring import Algebra
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic
@@ -697,7 +695,9 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
              dx^2, dx*dy, dy^2, x^3, x^2*y, x^2*dx, x^2*dy, x*y^2]
         """
         n = self._n
-        I = IntegerListsLex(NonNegativeIntegers(), length=n*2)
+        # TODO in #17927: use IntegerVectors(length=2*n)
+        from sage.combinat.integer_list import IntegerListsNN
+        I = IntegerListsNN(length=n*2)
         one = self.base_ring().one()
         f = lambda x: self.element_class(self, {(tuple(x[:n]),tuple(x[n:])): one})
         return Family(I, f, name="basis map")

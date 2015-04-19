@@ -423,7 +423,6 @@ class FGP_Morphism(Morphism):
 
             # Stack it on top of the basis for W'.
             Wp = CD.V().coordinate_module(CD.W()).basis_matrix()
-            Wp = Wp.change_ring(A.base_ring())
             B = A.stack(Wp)
 
             # Compute Hermite form of C with transformation
@@ -500,6 +499,14 @@ class FGP_Homset_class(Homset):
             sage: type(Q.Hom(Q))
             <class 'sage.modules.fg_pid.fgp_morphism.FGP_Homset_class_with_category'>
         """
+        if category is None:
+            from sage.modules.free_module import is_FreeModule
+            if is_FreeModule(X) and is_FreeModule(Y):
+                from sage.all import FreeModules
+                category = FreeModules(X.base_ring())
+            else:
+                from sage.all import Modules
+                category = Modules(X.base_ring())
         Homset.__init__(self, X, Y, category)
         self._populate_coercion_lists_(element_constructor = FGP_Morphism,
                                        coerce_list = [])

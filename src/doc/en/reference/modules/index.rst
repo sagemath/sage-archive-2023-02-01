@@ -8,6 +8,7 @@ Modules
    sage/modules/free_module
    sage/modules/free_module_integer
    sage/modules/free_module_element
+   sage/tensor/modules/finite_rank_free_module
 
    sage/modules/complex_double_vector
    sage/modules/real_double_vector
@@ -26,5 +27,8 @@ Modules
    sage/modules/fg_pid/fgp_morphism
 
    sage/modules/diamond_cutting
+
+   sage/modules/with_basis/__init__
+   sage/modules/with_basis/morphism
 
 .. include:: ../footer.txt

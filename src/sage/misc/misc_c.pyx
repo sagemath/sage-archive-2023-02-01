@@ -28,7 +28,6 @@ AUTHORS:
 #*****************************************************************************
 import sys
 
-include "sage/ext/stdsage.pxi"
 from cpython.sequence cimport *
 from cpython.list cimport *
 from cpython.tuple cimport *

@@ -6,7 +6,6 @@ AUTHORS::
 - David Roe (2010-1-14) -- factored out of sage.structure.element
 
 """
-include "sage/ext/stdsage.pxi"
 
 from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
@@ -210,7 +209,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1)
         """
         #vector(foo) might pass in ZZ
-        if PY_TYPE_CHECK(reverse, Parent):
+        if isinstance(reverse, Parent):
             raise TypeError, "Base field is fixed to prime subfield."
 
         k = self.parent()

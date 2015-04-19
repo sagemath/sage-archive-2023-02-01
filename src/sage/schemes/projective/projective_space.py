@@ -918,7 +918,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         """
         return SchemeMorphism_polynomial_projective_space_field(*args, **kwds)
 
-    def points_of_bounded_height(self,bound):
+    def points_of_bounded_height(self,bound, prec=53):
         r"""
         Returns an iterator of the points in self of absolute height of at most the given bound. Bound check
         is strict for the rational field. Requires self to be projective space over a number field. Uses the
@@ -928,9 +928,19 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         - ``bound`` - a real number
 
+        - ``prec`` - the precision to use to compute the elements of bounded height for number fields
+
         OUTPUT:
 
         - an iterator of points in self
+
+        .. WARNING::
+
+           In the current implementation, the output of the [Doyle-Krumm] algorithm
+           cannot be guaranteed to be correct due to the necessity of floating point
+           computations. In some cases, the default 53-bit precision is
+           considerably lower than would be required for the algorithm to
+           generate correct output.
 
         EXAMPLES::
 
@@ -944,8 +954,8 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
             sage: u = QQ['u'].0
             sage: P.<x,y,z> = ProjectiveSpace(NumberField(u^2 - 2,'v'), 2)
-            sage: len(list(P.points_of_bounded_height(6)))
-            133
+            sage: len(list(P.points_of_bounded_height(1.5)))
+            57
         """
         if (is_RationalField(self.base_ring())):
             ftype = False # stores whether the field is a number field or the rational field
@@ -954,7 +964,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         else:
             raise NotImplementedError("self must be projective space over a number field.")
 
-        bound = bound**(1/self.base_ring().absolute_degree()) # convert to relative height
+        bound = bound**(self.base_ring().absolute_degree()) # convert to relative height
 
         n = self.dimension_relative()
         R = self.base_ring()
@@ -966,7 +976,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             if (ftype == False): # if rational field
                 iters = [ R.range_by_height(bound) for _ in range(i) ]
             else: # if number field
-                iters = [ R.elements_of_bounded_height(bound) for _ in range(i) ]
+                iters = [ R.elements_of_bounded_height(bound, precision=prec) for _ in range(i) ]
             for x in iters: x.next() # put at zero
             j = 0
             while j < i:
@@ -978,7 +988,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                     if (ftype == False): # if rational field
                         iters[j] = R.range_by_height(bound) # reset
                     else: # if number field
-                        iters[j] = R.elements_of_bounded_height(bound) # reset
+                        iters[j] = R.elements_of_bounded_height(bound, precision=prec) # reset
                     iters[j].next() # put at zero
                     P[j] = zero
                     j += 1

@@ -14,7 +14,6 @@
 #*****************************************************************************
 
 include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -152,9 +151,9 @@ cdef class ntl_mat_ZZ:
             ]
         """
         cdef ntl_mat_ZZ r = ntl_mat_ZZ.__new__(ntl_mat_ZZ)
-        if not PY_TYPE_CHECK(self, ntl_mat_ZZ):
+        if not isinstance(self, ntl_mat_ZZ):
             self = ntl_mat_ZZ(self)
-        if not PY_TYPE_CHECK(other, ntl_mat_ZZ):
+        if not isinstance(other, ntl_mat_ZZ):
             other = ntl_mat_ZZ(other)
         sig_on()
         mat_ZZ_mul(r.x, (<ntl_mat_ZZ>self).x, (<ntl_mat_ZZ>other).x)
@@ -174,9 +173,9 @@ cdef class ntl_mat_ZZ:
             ]
         """
         cdef ntl_mat_ZZ r = ntl_mat_ZZ.__new__(ntl_mat_ZZ)
-        if not PY_TYPE_CHECK(self, ntl_mat_ZZ):
+        if not isinstance(self, ntl_mat_ZZ):
             self = ntl_mat_ZZ(self)
-        if not PY_TYPE_CHECK(other, ntl_mat_ZZ):
+        if not isinstance(other, ntl_mat_ZZ):
             other = ntl_mat_ZZ(other)
         sig_on()
         mat_ZZ_sub(r.x, (<ntl_mat_ZZ>self).x, (<ntl_mat_ZZ>other).x)
@@ -196,9 +195,9 @@ cdef class ntl_mat_ZZ:
             ]
         """
         cdef ntl_mat_ZZ r = ntl_mat_ZZ.__new__(ntl_mat_ZZ)
-        if not PY_TYPE_CHECK(self, ntl_mat_ZZ):
+        if not isinstance(self, ntl_mat_ZZ):
             self = ntl_mat_ZZ(self)
-        if not PY_TYPE_CHECK(other, ntl_mat_ZZ):
+        if not isinstance(other, ntl_mat_ZZ):
             other = ntl_mat_ZZ(other)
         sig_on()
         mat_ZZ_add(r.x, (<ntl_mat_ZZ>self).x, (<ntl_mat_ZZ>other).x)
@@ -501,7 +500,7 @@ cdef class ntl_mat_ZZ:
             rank = mat_ZZ_BKZ_FP(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
             return rank
-        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+        elif isinstance(U, ntl_mat_ZZ):
             sig_on()
             rank = mat_ZZ_BKZ_FP_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
@@ -570,7 +569,7 @@ cdef class ntl_mat_ZZ:
             rank = mat_ZZ_BKZ_QP(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
             return rank
-        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+        elif isinstance(U, ntl_mat_ZZ):
             sig_on()
             rank = mat_ZZ_BKZ_QP_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
@@ -639,7 +638,7 @@ cdef class ntl_mat_ZZ:
             rank = mat_ZZ_BKZ_QP1(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
             return rank
-        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+        elif isinstance(U, ntl_mat_ZZ):
             sig_on()
             rank = mat_ZZ_BKZ_QP1_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
@@ -708,7 +707,7 @@ cdef class ntl_mat_ZZ:
             rank = mat_ZZ_BKZ_XD(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
             return rank
-        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+        elif isinstance(U, ntl_mat_ZZ):
             sig_on()
             rank = mat_ZZ_BKZ_XD_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
@@ -777,7 +776,7 @@ cdef class ntl_mat_ZZ:
             rank = mat_ZZ_BKZ_RR(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
             return rank
-        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+        elif isinstance(U, ntl_mat_ZZ):
             sig_on()
             rank = mat_ZZ_BKZ_RR_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
@@ -846,7 +845,7 @@ cdef class ntl_mat_ZZ:
             rank = mat_ZZ_G_BKZ_FP(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
             return rank
-        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+        elif isinstance(U, ntl_mat_ZZ):
             sig_on()
             rank = mat_ZZ_G_BKZ_FP_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
@@ -915,7 +914,7 @@ cdef class ntl_mat_ZZ:
             rank = mat_ZZ_G_BKZ_QP(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
             return rank
-        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+        elif isinstance(U, ntl_mat_ZZ):
             sig_on()
             rank = mat_ZZ_G_BKZ_QP_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
@@ -984,7 +983,7 @@ cdef class ntl_mat_ZZ:
             rank = mat_ZZ_G_BKZ_QP1(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
             return rank
-        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+        elif isinstance(U, ntl_mat_ZZ):
             sig_on()
             rank = mat_ZZ_G_BKZ_QP1_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
@@ -1053,7 +1052,7 @@ cdef class ntl_mat_ZZ:
             rank = mat_ZZ_G_BKZ_XD(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
             return rank
-        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+        elif isinstance(U, ntl_mat_ZZ):
             sig_on()
             rank = mat_ZZ_G_BKZ_XD_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
@@ -1122,7 +1121,7 @@ cdef class ntl_mat_ZZ:
             rank = mat_ZZ_G_BKZ_RR(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()
             return rank
-        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+        elif isinstance(U, ntl_mat_ZZ):
             sig_on()
             rank = mat_ZZ_G_BKZ_RR_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
             sig_off()

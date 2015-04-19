@@ -1170,6 +1170,12 @@ class InfinityRing_class(_uniq, Ring):
         from sage.rings.real_mpfi import RealIntervalField_class
         if isinstance(R, RealIntervalField_class):
             return True
+        try:
+            from sage.rings.real_arb import RealBallField
+            if isinstance(R, RealBallField):
+                return True
+        except ImportError:
+            pass
         return False
 
 
@@ -1460,6 +1466,18 @@ class MinusInfinity(_uniq, AnInfinity, MinusInfinityElement):
         import sympy
         return -sympy.oo
 
+    def _gap_init_(self):
+        r"""
+        Conversion to gap and libgap.
+
+        EXAMPLES::
+
+            sage: gap(-Infinity)
+            -infinity
+            sage: libgap(-Infinity)
+            -infinity
+        """
+        return '-infinity'
 
 class PlusInfinity(_uniq, AnInfinity, PlusInfinityElement):
 
@@ -1516,6 +1534,19 @@ class PlusInfinity(_uniq, AnInfinity, PlusInfinityElement):
         """
         import sympy
         return sympy.oo
+
+    def _gap_init_(self):
+        r"""
+        Conversion to gap and libgap.
+
+        EXAMPLES::
+
+            sage: gap(+Infinity)
+            infinity
+            sage: libgap(+Infinity)
+            infinity
+        """
+        return 'infinity'
 
 InfinityRing = InfinityRing_class()
 infinity = InfinityRing.gen(0)

@@ -35,14 +35,15 @@ cdef class EvenlyDistributedSetsBacktracker:
         multiplicative group of invertible elements in `K`. A `k`-*evenly
         distributed set* in `K` is a set `B = \{b_1, b_2, \ldots, b_k\}` of `k`
         elements of `K` so that the `k(k-1)` differences `\Delta B = \{b_i -
-        b_j; i \not= j\}` fill each coset modulo `H^{2(q-1)/(k(k-1))}` exactly
+        b_j; i \not= j\}` hit each coset modulo `H^{2(q-1)/(k(k-1))}` exactly
         twice.
 
-    Evenly distributed sets were introduced by Wilson [Wi72]_. He proved that
-    for any `k`, and for any prime power `q` large enough such that `k(k-1)`
-    divides `k` there exists a `k`-evenly distributed set in the field of
-    cardinality `q`. This existence result based on a counting argument does
-    not provide a simple method to generate them.
+    Evenly distributed sets were introduced by Wilson [Wi72]_ (see also
+    [BJL99-1]_, Chapter VII.6). He proved that for any `k`, and for any prime power
+    `q` large enough such that `k(k-1)` divides `k` there exists a `k`-evenly
+    distributed set in the field of cardinality `q`. This existence result based
+    on a counting argument (using Dirichlet theorem) does not provide a simple
+    method to generate them.
 
     From a `k`-evenly distributed set, it is straightforward to build a
     `(q,k,1)`-difference family (see :meth:`to_difference_family`). Another
@@ -50,6 +51,13 @@ cdef class EvenlyDistributedSetsBacktracker:
     radical difference family (see in particular
     :func:`~sage.combinat.designs.difference_family.radical_difference_family`
     from the module :mod:`~sage.combinat.designs.difference_family`).
+
+    By default, this backtracker only considers evenly distributed sets up to
+    affine automorphisms, i.e. `B` is considered equivalent to `s B + t` for any
+    invertible element `s` and any element `t` in the field `K`. Note that the
+    set of differences is just multiplicatively translated by `s` as
+    `\Delta (s B + t) = s (\Delta B)`. This can be modified via the argument
+    ``up_to_isomorphisms`` (see the input section and the examples below).
 
     INPUT:
 
@@ -97,6 +105,40 @@ cdef class EvenlyDistributedSetsBacktracker:
         sage: E = EvenlyDistributedSetsBacktracker(Zmod(13), 4, up_to_isomorphism=True)
         sage: for B in E: print B
         [0, 1, 11, 5]
+
+    Or only count them::
+
+        sage: for k in range(13, 200, 12):
+        ....:     if is_prime_power(k):
+        ....:         K = GF(k,'a')
+        ....:         E1 = EvenlyDistributedSetsBacktracker(K, 4, False)
+        ....:         E2 = EvenlyDistributedSetsBacktracker(K, 4, True)
+        ....:         print "{:3} {:3} {:3}".format(k, E1.cardinality(), E2.cardinality())
+         13   4   1
+         25  40   4
+         37  12   1
+         49  24   2
+         61  12   1
+         73  12   1
+         97  24   2
+        109  60   5
+        121 168  14
+        157  24   2
+        169  60   5
+        181  84   7
+        193 168  14
+
+    Note that by definition, the number of evenly distributed sets up to
+    isomorphisms is at most `k(k-1)` times smaller than without isomorphisms.
+    But it might not be exactly `k(k-1)` as some of them might have symmetries::
+
+        sage: B = EvenlyDistributedSetsBacktracker(Zmod(13), 4).an_element()
+        sage: B
+        [0, 1, 11, 5]
+        sage: [9*x + 5 for x in B]
+        [5, 1, 0, 11]
+        sage: [3*x + 11 for x in B]
+        [11, 1, 5, 0]
     """
     # PYTHON DATA
     cdef K                       # the underlying field
@@ -198,7 +240,7 @@ cdef class EvenlyDistributedSetsBacktracker:
         assert self.K_to_int[one] == 0
         assert set(K) == set(list_K)
 
-        self.min_orb[0] = self.min_orb[q-1] = UINT_MAX
+        self.min_orb[0] = self.min_orb[q-1] = 0
         for i,x in enumerate(self.list_K):
             if x != zero and x != one:
                 self.min_orb[i] = min(K_to_int[z] for z in \
@@ -316,9 +358,11 @@ cdef class EvenlyDistributedSetsBacktracker:
         r"""
         Check whether `self.B` is minimal among its relabelization.
 
-        If `B=\{x_1,...,x_k\}` and contains 0 and 1, then for any two distinct
-        `i,j` we define `f_{ij} : x \mapsto (x-x_j)/(x_i-x_j)` which maps `B` on
-        a set of size `k` containing 0 and 1.
+        If `B=\{b_1,...,b_k\}` is an evenly distributed set and contains `0` and
+        `1`, then for any two distinct `i,j` we define `f_{ij} : x \mapsto
+        (x-b_j)/(b_i-b_j)` which maps `B` on another evenly distributed set of
+        size `k` containing `0` and `1`. For each pair `i,j` we consider check
+        whether the set `f_{ij}(B)` is smaller than `B`.
 
         This is an internal function and should only be call by the backtracker
         implemented in the method `__iter__`.
@@ -327,9 +371,9 @@ cdef class EvenlyDistributedSetsBacktracker:
 
         - ``False`` if ``self.B`` is not minimal
 
-        - ``True`` if ``self.B`` is minimal and ``self.up_to_isom = 1``
-
-        - the list of relabeled versions if ``self.B`` is minimal and ``self.up_to_isom = 0``
+        - the list of evenly distributed sets isomorphs to ``self.B`` given as a
+          list of tuples if ``self.up_to_isom=0`` or list containing only
+          ``self.B`` as a tuple if ``self.up_to_isom=1``.
 
         TESTS::
 
@@ -377,8 +421,7 @@ cdef class EvenlyDistributedSetsBacktracker:
                 if not self.up_to_isom:
                     if not verify:
                         BB.sort()
-                    if BB > B:
-                        relabs.add(tuple(BB))
+                    relabs.add(tuple(BB))
 
         return sorted(relabs)
 

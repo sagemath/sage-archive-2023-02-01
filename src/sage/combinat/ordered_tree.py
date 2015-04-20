@@ -509,7 +509,14 @@ class OrderedTree(AbstractClonableTree, ClonableList):
     @combinatorial_map(order=2, name="Left-right symmetry")
     def left_right_symmetry(self):
         r"""
-        Return the symmetric tree of ``self``
+        Return the symmetric tree of ``self``.
+
+        The symmetric tree `s(T)` of an ordered tree `T` is
+        defined as follows:
+        If `T` is an ordered tree with children `C_1, C_2, \ldots, C_k`
+        (listed from left to right), then the symmetric tree `s(T)` of
+        `T` is the ordered tree with children
+        `s(C_k), s(C_{k-1}), \ldots, s(C_1)` (from left to right).
 
         EXAMPLES::
 
@@ -1189,7 +1196,26 @@ class LabelledOrderedTree(AbstractLabelledClonableTree, OrderedTree):
     @combinatorial_map(order=2, name="Left-right symmetry")
     def left_right_symmetry(self):
         r"""
-        Return the symmetric tree of ``self``
+        Return the symmetric tree of ``self``.
+
+        The symmetric tree `s(T)` of a labelled ordered tree `T` is
+        defined as follows:
+        If `T` is a labelled ordered tree with children
+        `C_1, C_2, \ldots, C_k` (listed from left to right), then the
+        symmetric tree `s(T)` of `T` is a labelled ordered tree with
+        children `s(C_k), s(C_{k-1}), \ldots, s(C_1)` (from left to
+        right), and with the same root label as `T`.
+
+        .. NOTE::
+
+            If you have a subclass of :meth:`LabelledOrderedTree`
+            which also inherits from another subclass of
+            :meth:`OrderedTree` which does not come with a labelling,
+            then (depending on the method resolution order) it might
+            happen that this method gets overridden by an
+            implementation from that other subclass, and thus forgets
+            about the labels. In this case you need to manually
+            override this method on your subclass.
 
         EXAMPLES::
 

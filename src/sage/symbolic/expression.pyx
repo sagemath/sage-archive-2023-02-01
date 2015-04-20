@@ -3620,7 +3620,7 @@ cdef class Expression(CommutativeRingElement):
         sig_on()
         try:
             x = self._gobj.series(symbol0._gobj, prec, 0)
-            nex = <SymbolicSeries>PY_NEW(SymbolicSeries)
+            nex = SymbolicSeries.__new__(SymbolicSeries)
             nex._parent = self._parent
             GEx_construct_ex(&nex._gobj, x)
         finally:

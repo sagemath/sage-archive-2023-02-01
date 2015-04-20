@@ -171,6 +171,7 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
     if numerical_type is mpq_t:
         mpq_init(mpq_tmp)
 
+    try:
         init_short_digraph(g, G, edge_labelled = False)
         init_reverse(bfs_dag, g)
 
@@ -293,6 +294,8 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
                 else:
                     mpq_add(betweenness[i],betweenness[i],betweenness_source[i])
 
+            sig_check() # check for KeyboardInterrupt
+
         if numerical_type is double:
             betweenness_list = [betweenness[i] for i in range(n)]
         else:
@@ -306,6 +309,7 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
                 mpq_clear(n_paths_from_source[i])
             mpq_clear(mpq_tmp)
 
+    finally:
         free_short_digraph(g)
         free_short_digraph(bfs_dag)
         bitset_free(seen)

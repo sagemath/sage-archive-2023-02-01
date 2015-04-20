@@ -237,7 +237,7 @@ class FiniteField_pari_ffelt(FiniteField):
         the polynomial at the field's generator::
 
             sage: R.<x> = QQ[]
-            sage: k, a = FiniteField(5^2, 'a', impl='pari_ffelt').objgen()
+            sage: k.<a> = FiniteField(5^2, 'a', impl='pari_ffelt')
             sage: k(R(2/3))
             4
             sage: k(x^2)
@@ -251,7 +251,7 @@ class FiniteField_pari_ffelt(FiniteField):
             sage: k(x^25)
             a
 
-            sage: Q, q = FiniteField(5^7, 'q', impl='pari_ffelt').objgen()
+            sage: Q.<q> = FiniteField(5^7, 'q', impl='pari_ffelt')
             sage: L = GF(5)
             sage: LL.<xx> = L[]
             sage: Q(xx^2 + 2*xx + 4)

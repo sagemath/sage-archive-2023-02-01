@@ -34,7 +34,8 @@ EXAMPLE::
 In Python (as opposed to Sage) create the power series ring and
 its generator as follows::
 
-    sage: R, x = objgen(PowerSeriesRing(ZZ, 'x'))
+    sage: R = PowerSeriesRing(ZZ, 'x')
+    sage: x = R.gen()
     sage: parent(x)
     Power Series Ring in x over Integer Ring
 

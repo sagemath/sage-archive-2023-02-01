@@ -139,7 +139,8 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
     EXAMPLES::
 
-        sage: K, q = LaurentSeriesRing(CC, 'q').objgen(); K
+        sage: K = LaurentSeriesRing(CC, 'q')
+        sage: K
         Laurent Series Ring in q over Complex Field with 53 bits of precision
         sage: loads(K.dumps()) == K
         True

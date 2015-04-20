@@ -665,7 +665,7 @@ cdef class CategoryObject(sage_object.SageObject):
 
         EXAMPLES::
 
-         sage: R, x = PolynomialRing(QQ,'x',12).objgens()
+         sage: R, x = PolynomialRing(QQ, 'x', 12).objgens()
          sage: x
          (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11)
          sage: print R.latex_variable_names ()

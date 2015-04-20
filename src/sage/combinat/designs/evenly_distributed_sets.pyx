@@ -10,6 +10,9 @@ difference family as even for small parameters it already takes time to run.
 Instead, its output has been stored into a database
 :mod:`sage.combinat.designs.database`. If the backtracker is improved, then one
 might want to update this database with more values.
+
+Classes and methods
+-------------------
 """
 
 include "sage/ext/stdsage.pxi"
@@ -20,7 +23,7 @@ from libc.limits cimport UINT_MAX
 from libc.string cimport memset
 from libc.stdlib cimport qsort
 
-from sage.ext.memory cimport check_malloc
+from sage.ext.memory cimport check_malloc, check_calloc
 from sage.libs.gmp.types cimport mpz_t
 
 from sage.rings.integer cimport Integer,smallInteger
@@ -29,12 +32,13 @@ cdef class EvenlyDistributedSetsBacktracker:
     r"""
     Set of evenly distributed subsets in finite fields.
 
-    Let `K` be a finite field of cardinality `q` and `k` an integer so that
-    `k(k-1)` divides `q-1`. Let `H = K^*` be the multiplicative group of
-    invertible elements in `K`. A `k`-*evenly distributed set* in `K` is a set
-    `B = \{b_1, b_2, \ldots, b_k\}` of `k` elements of `K` so that the `k(k-1)`
-    differences `\Delta B = \{b_i - b_j; i \not= j\}` fill each coset modulo
-    `H^{2(q-1)/(k(k-1))}` exactly twice.
+        **Definition:** Let `K` be a finite field of cardinality `q` and `k` an
+        integer so that `k(k-1)` divides `q-1`. Let `H = K^*` be the
+        multiplicative group of invertible elements in `K`. A `k`-*evenly
+        distributed set* in `K` is a set `B = \{b_1, b_2, \ldots, b_k\}` of `k`
+        elements of `K` so that the `k(k-1)` differences `\Delta B = \{b_i -
+        b_j; i \not= j\}` fill each coset modulo `H^{2(q-1)/(k(k-1))}` exactly
+        twice.
 
     Evenly distributed sets were introduced by Wilson [Wi72]_. He proved that
     for any `k`, and for any prime power `q` large enough such that `k(k-1)`
@@ -43,9 +47,9 @@ cdef class EvenlyDistributedSetsBacktracker:
     not provide a simple method to generate them.
 
     From a `k`-evenly distributed set, it is straightforward to build a
-    `(q,k,1)`-difference family. Another approach to generate difference family,
-    somehow dual to this one, is via radical difference family (see in
-    particular
+    `(q,k,1)`-difference family (see :meth:`to_difference_family`). Another
+    approach to generate a difference family, somehow dual to this one, is via
+    radical difference family (see in particular
     :func:`~sage.combinat.designs.difference_family.radical_difference_family`
     from the module :mod:`~sage.combinat.designs.difference_family`).
 
@@ -63,13 +67,12 @@ cdef class EvenlyDistributedSetsBacktracker:
       intermediate steps of the iterator. This is mainly intended for debugging
       purpose. Setting it to ``True`` will considerably slow the iteration.
 
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.evenly_distributed_sets import EvenlyDistributedSetsBacktracker
+    EXAMPLES:
 
     The main part of the code is contained in the iterator. To get one evenly
     distributed set just do::
 
+        sage: from sage.combinat.designs.evenly_distributed_sets import EvenlyDistributedSetsBacktracker
         sage: E = EvenlyDistributedSetsBacktracker(Zmod(151),6)
         sage: B = E.an_element()
         sage: B
@@ -145,10 +148,10 @@ cdef class EvenlyDistributedSetsBacktracker:
             sage: EvenlyDistributedSetsBacktracker(Zmod(71),7)
             Traceback (most recent call last):
             ...
-            ValueError: k(k-1)=42 does not divide q-1=71
+            ValueError: k(k-1)=42 does not divide q-1=70
         """
-        self.check      = 1 if check else 0
-        self.up_to_isom = 1 if up_to_isomorphism else 0
+        self.check      = bool(check)
+        self.up_to_isom = bool(up_to_isomorphism)
         self.count      = 0
 
         cdef unsigned int i,j,ell
@@ -158,7 +161,7 @@ cdef class EvenlyDistributedSetsBacktracker:
         cdef unsigned int q = K.cardinality()
         cdef unsigned int e = k*(k-1)/2
         if (q-1) % (2*e) != 0:
-            raise ValueError("k(k-1)={} does not divide q-1={}".format(k*(k-1),q))
+            raise ValueError("k(k-1)={} does not divide q-1={}".format(k*(k-1),q-1))
         cdef unsigned int m = (q-1)/e
 
         self.q = q
@@ -166,18 +169,19 @@ cdef class EvenlyDistributedSetsBacktracker:
         self.k = k
         self.K = K
 
-        self.diff = <unsigned int **> check_malloc(q*sizeof(unsigned int *))
-        self.diff[0] = <unsigned int *> check_malloc(q*q*sizeof(unsigned int))
+        self.diff    = <unsigned int **> check_calloc(q, sizeof(unsigned int *))
+        self.diff[0] = <unsigned int *>  check_malloc(q*q*sizeof(unsigned int))
         for i in range(1,self.q):
             self.diff[i] = self.diff[i-1] + q
-        self.ratio = <unsigned int **> check_malloc(q*sizeof(unsigned int *))
-        self.ratio[0] = <unsigned int *> check_malloc(q*q*sizeof(unsigned int))
+
+        self.ratio    = <unsigned int **> check_calloc(q, sizeof(unsigned int *))
+        self.ratio[0] = <unsigned int *>  check_malloc(q*q*sizeof(unsigned int))
         for i in range(1,self.q):
             self.ratio[i] = self.ratio[i-1] + q
 
-        self.B  = <unsigned int *> check_malloc(k*sizeof(unsigned int))
+        self.B      = <unsigned int *> check_malloc(k*sizeof(unsigned int))
         self.cosets = <unsigned int *> check_malloc(e*sizeof(unsigned int))
-        self.t = <unsigned int *> check_malloc(e*sizeof(unsigned int))
+        self.t      = <unsigned int *> check_malloc(e*sizeof(unsigned int))
 
         x = K.multiplicative_generator()
         list_K = []
@@ -202,8 +206,12 @@ cdef class EvenlyDistributedSetsBacktracker:
         r"""
         Given an evenly distributed set ``B`` convert it to a difference family.
 
-        This is useful if you want to obtain the difference family from the
-        output of the iterator.
+        As for any `x\in K^*=H` we have `|\Delta B \cap x
+        H^{2(q-1)/(k(k-1))}|=2` (see :class:`EvenlyDistributedSetsBacktracker`),
+        the difference family is produced as `\{xB:x\in H^{2(q-1)/(k(k-1))}\}`
+
+        This method is useful if you want to obtain the difference family from
+        the output of the iterator.
 
         EXAMPLES::
 
@@ -225,7 +233,8 @@ cdef class EvenlyDistributedSetsBacktracker:
         r"""
         Return an evenly distributed set.
 
-        If there is no such subset raise an ``EmptySetError``.
+        If there is no such subset raise an
+        :class:`~sage.categories.sets_cat.EmptySetError`.
 
         EXAMPLES::
 
@@ -297,7 +306,11 @@ cdef class EvenlyDistributedSetsBacktracker:
 
     def _B_automorphisms(self):
         r"""
-        Check whether B is minimal among its relabelization.
+        Check whether `self.B` is minimal among its relabelization.
+
+        If `B=\{x_1,...,x_k\}` and contains 0 and 1, then for any two distinct
+        `i,j` we define `f_{ij} : x \mapsto (x-x_j)/(x_i-x_j)` which maps `B` on
+        a set of size `k` containing 0 and 1.
 
         This is an internal function and should only be call by the backtracker
         implemented in the method `__iter__`.
@@ -392,7 +405,7 @@ cdef class EvenlyDistributedSetsBacktracker:
         B[1] = 0    # the element 1 in K
 
         memset(self.cosets, 0, e * sizeof(unsigned int))
-        memset(self.t, 0, e * sizeof(unsigned int))
+        memset(self.t,      0, e * sizeof(unsigned int))
 
         self.cosets[0] = 1  # the coset of 1
 

@@ -245,7 +245,7 @@ class Algebras(CategoryWithAxiom_over_base_ring):
 
 
     class Subobjects(SubobjectsCategory):
-        
+
         class ElementMethods:
 
             def _mul_(self, right):
@@ -256,8 +256,8 @@ class Algebras(CategoryWithAxiom_over_base_ring):
 
                 - ``self``, ``right`` -- two elements
 
-                If B is a SubModuleWithBasis of A, then the multiplication law of B is
-                inherited from the multiplication of A.
+                If `B` is a `SubModuleWithBasis` of `A`, then the
+                multiplication law of `B` is inherited from `A`.
 
                 EXAMPLES::
 

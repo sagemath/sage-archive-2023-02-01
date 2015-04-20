@@ -106,7 +106,7 @@ cdef class PathAlgebraElement(RingElement):
     letterplace implementation currently is the only option.
 
     """
-    def __cinit__(self, *args, **kwds):
+    def __cinit__(self):
         """
         EXAMPLES::
 

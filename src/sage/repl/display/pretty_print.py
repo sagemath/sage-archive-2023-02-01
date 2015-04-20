@@ -156,29 +156,3 @@ class SagePrettyPrinter(PrettyPrinter):
             self.end_group()
             self.stack.pop()
 
-
-
-class AsciiArtPrettyPrinter(SagePrettyPrinter):
-    """
-    Pretty printer returning ASCII art
-    """
-
-    pretty_repr = (
-        AsciiArtRepr(),
-    ) + SagePrettyPrinter.pretty_repr
-
-
-class TypesetPrettyPrinter(SagePrettyPrinter):
-    """
-    Pretty printer returning typeset html
-
-    This is also used in the emacs-mode.
-    """
-
-    pretty_repr = (
-        TypesetRepr(),
-    ) + SagePrettyPrinter.pretty_repr
-
-
-
-

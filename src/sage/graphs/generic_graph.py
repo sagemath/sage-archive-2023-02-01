@@ -15414,6 +15414,21 @@ class GenericGraph(GenericGraph_pyx):
         from sage.graphs.graph_plot import GraphPlot
         return GraphPlot(graph=self, options=options)
 
+    def _rich_repr_(self, display_manager, **kwds):
+        """
+        Rich Output Magic Method
+
+        See :mod:`sage.repl.rich_output` for details.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: Graph()._rich_repr_(dm, edge_labels=True)
+            OutputImagePng container
+        """
+        return self.plot(**kwds)._rich_repr_(display_manager)
+        
     @options()
     def plot(self, **options):
         r"""

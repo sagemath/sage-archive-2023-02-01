@@ -1419,6 +1419,9 @@ ext_modules = [
     Extension('sage.quivers.paths',
               sources = ['sage/quivers/paths.pyx']),
 
+    Extension('sage.quivers.algebra_elements',
+              sources = ['sage/quivers/algebra_elements.pyx']),
+
     ################################
     ##
     ## sage.repl

@@ -139,7 +139,6 @@ class IntegerModMonoid(UniqueRepresentation, Parent):
         """
         return self(ZZ(42) % self.n)
 
-
     class Element (ElementWrapper):
         wrapped_class = Integer
 

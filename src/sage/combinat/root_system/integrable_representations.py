@@ -32,10 +32,6 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
     - ``Lam`` -- a dominant weight in an extended weight lattice
       of affine type
 
-    OPTIONAL:
-
-    - ``depth`` -- a parameter indicating how far to push computations
-
     REFERENCES:
 
     .. [Kac] Kac, *Infinite-dimensional Lie algebras*, Third Edition.
@@ -49,24 +45,36 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
        functions and modular forms. Adv. in Math. 53 (1984), no. 2, 125-264.
 
     If `\Lambda` is a dominant integral weight for an affine root system,
-    there exists a unique integrable representation of highest weight
-    `\Lambda`. If `\mu` is another weight such that `\Lambda - \mu` is in
-    the root lattice, then multiplicity of `\mu` in this representation will
-    be denoted `m(\mu)`.
+    there exists a unique integrable representation `V=V_\Lambda` of highest weight
+    `\Lambda`. If `\mu` is another weight, let `m(\mu)` denote the
+    multiplicity of the weight `\mu` in this representation. The set
+    `\text{supp}(V)` of `\mu` such that `m(\mu)>0` is contained in the
+    paraboloid
 
-    Let `\delta` be the nullroot. Then for fixed `\mu` the function
-    `m(\mu - k\delta)` is a monotone increasing function of `\mu`. It is
-    useful to take `\mu` to be such that this function is nonzero if and
-    only if `k \geq 0`. Therefore we make the following definition.
-    If `\mu` is such that `m(\mu) \neq 0` but `m(\mu + \delta) = 0`
-    then `\mu` is called *maximal*.
+    .. MATH::
+             (\Lambda+\rho|\Lambda+\rho) - (\mu+\rho|\mu+\rho) \ge 0
+
+    where `(\,|\,)` is the invariant inner product on the weight
+    lattice and `\rho` is the Weyl vector. Moreover every `\mu` differs from
+    `\Lambda` by an element of the root lattice. ([Kac], Propositions 11.3 and
+    11.4) such that `\Lambda - \mu` is in the root lattice, then multiplicity
+    of `\mu` in this representation will be denoted `m(\mu)`. The set of `\mu`
+    such that the multiplicity
+    
+    Let `\delta` be the nullroot, which is the lowest positive imaginary
+    root. Then by [Kac], Proposition 11.3 or Corollary 11.9, for fixed `\mu`
+    the function `m(\mu - k\delta)` is a monotone increasing function of
+    `k`. It is useful to take `\mu` to be such that this function is nonzero
+    if and only if `k \geq 0`. Therefore we make the following definition.  If
+    `\mu` is such that `m(\mu) \neq 0` but `m(\mu + \delta) = 0` then `\mu` is
+    called *maximal*.
 
     Since `\delta` is fixed under the action of the affine Weyl group,
     and since the weight multiplicities are Weyl group invariant, the
-    *string function* `k \mapsto m(\mu-k\delta)` is unchanged if `\mu`
-    is replaced by an equivalent weight. Therefore in tabulating the
-    string functions, we may assume that `\mu` is dominant. There are
-    only a finite number of dominant maximal weights.
+    function `k \mapsto m(\mu-k\delta)` is unchanged if `\mu` is replaced by
+    an equivalent weight. Therefore in tabulating these functions, we may
+    assume that `\mu` is dominant. There are only a finite number of dominant
+    maximal weights.
 
     Since every nonzero weight multiplicity appears in the string
     `\mu - k\delta` for one of the finite number of dominant maximal
@@ -93,8 +101,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
     representation of highest weight ``Lambda[1]+Lambda[2]+Lambda[3]``,
     and we determine their string functions.
 
-    It was shown by Kac and Peterson that each string function is the
-    set of Fourier coefficients of a modular form.
+    It was shown in [KacPeterson] that each string is the set of Fourier
+    coefficients of a modular form.
 
     Every weight `\mu` such that the weight multiplicity `m(\mu)` is
     nonzero has the form
@@ -248,7 +256,13 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
     def level(self):
         """
-        The level of the representation equals `(\\rho|\delta)`. See [Kac] section 12.4.
+        The level of the representation equals `(\Lambda|\delta)`. See [Kac] section 12.4.
+
+        EXAMPLES::
+
+            sage: Lambda = RootSystem(['G',2,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: [IntegrableRepresentation(Lambda[i]).level() for i in [0,1,2]]
+            [1, 1, 2]
 
         """
         return ZZ(self._inner_pq(self._Lam, self._delta))
@@ -395,7 +409,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
         Returns the weight associated to the tuple ``n``.  If ``n``
         is the tuple `(n_1, n_2, \ldots)`, then the associated
-        weight is `\Lambda - sum_i n_i \alpha_i`, where `\Lambda`
+        weight is `\Lambda - \sum_i n_i \\alpha_i`, where `\Lambda`
         is the weight of the representation.
 
         EXAMPLES::
@@ -460,6 +474,13 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         """
         Implements the `i`-th simple reflection in the internal
         representation of weights by tuples.
+
+        EXAMPLES::
+
+            sage: v = IntegrableRepresentation(RootSystem(['A',2,1]).weight_lattice(extended=true).fundamental_weight(0))
+            sage: [v.s((0,0,0),i) for i in v._index_set]
+            [(1, 0, 0), (0, 0, 0), (0, 0, 0)]
+
         """
         ret = list(n) # This makes a copy
         ret[i] += self._Lam._monomial_coefficients.get(i, ZZ.zero())
@@ -469,6 +490,15 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
     def to_dominant(self, n):
         """
         Return the dominant weight equivalent to ``n`` under the affine Weyl group.
+
+        EXAMPLES::
+
+            sage: Lambda = RootSystem(['A',2,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: v = IntegrableRepresentation(3*Lambda[0])
+            sage: n = v.to_dominant((13,11,7)); n
+            (4, 3, 3)
+            sage: v.to_weight(n)
+            Lambda[0] + Lambda[1] + Lambda[2] - 4*delta
         """
         if n in self._ddict:
             return self._ddict[n]
@@ -508,7 +538,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
     def _freudenthal_roots_imaginary(self, nu):
         r"""
         It is assumed that ``nu`` is in `Q`. Returns the set of imaginary
-        roots `\alpha \in \Delta^+` such that `\nu - \alpha \in Q^+`.
+        roots `\alpha \in \Delta^+` such that `\\nu - \alpha \in Q^+`.
         """
         l = self._from_weight_helper(nu)
         kp = min(floor(l[i] / self._a[i]) for i in self._index_set)
@@ -518,7 +548,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
     def _freudenthal_roots_real(self, nu):
         r"""
         It is assumed that ``nu`` is in `Q`. Returns the set of real positive
-        roots `\alpha \in \Delta^+` such that `\nu - \alpha \in Q^+`.
+        roots `\alpha \in \Delta^+` such that `\\nu - \alpha \in Q^+`.
         """
         ret = []
         for al in self._classical_positive_roots:
@@ -527,20 +557,6 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         for al in self._classical_roots:
             for ir in self._freudenthal_roots_imaginary(nu-al):
                 ret.append(al+ir)
-        return ret
-
-    def freudenthal_roots(self, nu):
-        r"""
-        It is assumed that ``nu`` is in `Q`. Returns the set of real roots
-        `\alpha \in \Delta^+` such that `nu - \alpha \in Q^+`.
-
-        This code is not called in the main algorithm.
-        """
-        ret = []
-        for alpha in self._freudenthal_roots_imaginary(nu):
-            ret.append(alpha)
-        for alpha in self._freudenthal_roots_real(nu):
-            ret.append(alpha)
         return ret
 
     def _freudenthal_accum(self, nu, al):
@@ -590,7 +606,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         """
         INPUT:
         
-        - ``n`` -- a representing a weight `\mu`.
+        - ``n`` -- a tuple representing a weight `\mu`.
 
         Return the multiplicity of the weight `\mu` in ``self``, where
         `\mu = \Lambda - \sum_i n_i \\alpha_i`.
@@ -624,7 +640,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             print "m: error - failed to compute m%s"%n.__repr__()
         return ret
 
-    def dominant_maximal(self):
+    def dominant_maximal_weights(self):
         """
         A weight `\\mu` is *maximal* if it has nonzero multiplicity but
         `\\mu+\\delta`` has multiplicity zero. There are a finite number
@@ -634,8 +650,17 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         alcove and `k` is the level. The construction used in this
         method is based on that Proposition.
 
-        
+        EXAMPLES::
 
+            sage: Lambda = RootSystem(['C',3,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: IntegrableRepresentation(2*Lambda[0]).dominant_maximal_weights()
+            [2*Lambda[0],
+            Lambda[0] + Lambda[2] - delta,
+            2*Lambda[1] - delta,
+            Lambda[1] + Lambda[3] - 2*delta,
+            2*Lambda[2] - 2*delta,
+            2*Lambda[3] - 3*delta]
+     
         """
         k = self.level()
         Lambda = self._P.fundamental_weights()
@@ -690,19 +715,15 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             2*Lambda[1] - delta: 1 2 4 7 13 21 35 55 86 130 196 287 420 602 858 1206 1687 2331 3206 4368 5922 7967 10670 14193 18803
 
         """
-        for max_weight in self.dominant_maximal():
+        for max_weight in self.dominant_maximal_weights():
             s = self.string(max_weight, depth)
             print "%s:"%max_weight,
             for j in s:
                 print j,
             print
 
-    def modular_characteristic(self, n=None):
+    def modular_characteristic(self, mu=None):
         """
-        OPTIONAL:
-
-        - ``mu`` -- 
-
         The modular characteristic is a rational number introduced
         by Kac and Peterson (1984), required to interpret the string
         functions as Fourier coefficients of modular forms. See
@@ -721,13 +742,25 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             
         OPTIONAL:
 
+        - ``mu`` -- a weight; or alternatively:
         - ``n`` -- a tuple representing a weight `\mu`.
 
-        The weight `\mu` is `\Lambda - \sum_i n_i \\alpha_i`. The function
-        returns `m_\Lambda` if `n` is omitted, otherwise it returns
-        `m_{\Lambda,\mu}`.
+        If not optional parameter is specified, The function returns `m_\Lambda`.
+        If ``mu`` is specified, it returns `m_{\Lambda,\mu}`. You may use the
+        tuple ``n`` to specify `\mu`. If you do this, `\mu` is
+        `\Lambda - \sum_i n_i \\alpha_i`.
         
+        EXAMPLES::
+
+            sage: Lambda = RootSystem(['A',1,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: v = IntegrableRepresentation(3*Lambda[0]+2*Lambda[1])
+            sage: [v.modular_characteristic(x) for x in v.dominant_maximal_weights()]
+            [11/56, -1/280, 111/280]
         """
+        if type(mu) is tuple:
+            n = mu
+        else:
+            n = self.from_weight(mu)
         k = self.level()
         hd = self._dual_coxeter_number
         m_Lambda = self._inner_pp(self._Lam+self._rho, self._Lam+self._rho)/(2*(k+hd)) - \

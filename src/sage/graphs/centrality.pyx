@@ -144,36 +144,41 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
 
     # A copy of G, for faster neighbor enumeration
     cdef short_digraph g
-    init_short_digraph(g, G, edge_labelled = False)
 
     # A second copy, to remember the edges used during the BFS (see doc)
     cdef short_digraph bfs_dag
-    init_reverse(bfs_dag, g)
 
-    cdef int n = g.n
+    cdef int n = G.order()
 
-    # The vertices whose neighbors have been explored by the BFS
-    cdef bitset_t seen
-    bitset_init(seen,n)
+    cdef bitset_t seen # Vertices whose neighbors have been explored
+    cdef bitset_t next_layer # Unexplored neighbors of vertices in 'seen'
 
-    # The unexplored neighbors of vertices in 'seen'
-    cdef bitset_t next_layer
-    bitset_init(next_layer,n)
-
-    cdef uint32_t * queue               = <uint32_t *> sage_malloc(n*sizeof(uint32_t))
-    cdef uint32_t * degrees             = <uint32_t *> sage_malloc(n*sizeof(uint32_t))
+    cdef uint32_t * queue # BFS queue
+    cdef uint32_t * degrees # degree[v] = nb of vertices which discovered v
 
     cdef numerical_type * n_paths_from_source
     cdef numerical_type * betweenness_source
     cdef numerical_type * betweenness
     cdef numerical_type mpq_tmp
 
-    n_paths_from_source = <numerical_type *> sage_malloc(n*sizeof(numerical_type))
-    betweenness_source  = <numerical_type *> sage_malloc(n*sizeof(numerical_type))
-    betweenness         = <numerical_type *> sage_malloc(n*sizeof(numerical_type))
+    cdef int layer_current_beginning
+    cdef int layer_current_end
+    cdef int layer_next_end
+
+    cdef int source,i,j,u,v
+    cdef uint32_t * p_tmp
 
     if numerical_type is mpq_t:
         mpq_init(mpq_tmp)
+
+    init_short_digraph(g, G, edge_labelled = False)
+    init_reverse(bfs_dag, g)
+
+    queue               = <uint32_t *> sage_malloc(n*sizeof(uint32_t))
+    degrees             = <uint32_t *> sage_malloc(n*sizeof(uint32_t))
+    n_paths_from_source = <numerical_type *> sage_malloc(n*sizeof(numerical_type))
+    betweenness_source  = <numerical_type *> sage_malloc(n*sizeof(numerical_type))
+    betweenness         = <numerical_type *> sage_malloc(n*sizeof(numerical_type))
 
     if (queue               == NULL or
         degrees             == NULL or
@@ -187,12 +192,8 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
         sage_free(betweenness)
         raise MemoryError
 
-    cdef int layer_current_beginning
-    cdef int layer_current_end
-    cdef int layer_next_end
-
-    cdef int source,i,j,u,v
-    cdef uint32_t * p_tmp
+    bitset_init(seen,n)
+    bitset_init(next_layer,n)
 
     if numerical_type is double:
         memset(betweenness,0,n*sizeof(double))
@@ -305,15 +306,6 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
             mpq_clear(n_paths_from_source[i])
         mpq_clear(mpq_tmp)
 
-    if not G.is_directed():
-        betweenness_list = [x/2 for x in betweenness_list]
-
-    if normalize:
-        if G.is_directed():
-            betweenness_list = [  x/((n-1)*(n-2)) for x in betweenness_list]
-        else:
-            betweenness_list = [2*x/((n-1)*(n-2)) for x in betweenness_list]
-
     free_short_digraph(g)
     free_short_digraph(bfs_dag)
     bitset_free(seen)
@@ -323,5 +315,15 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
     sage_free(degrees)
     sage_free(betweenness_source)
     sage_free(betweenness)
+
+    if not G.is_directed():
+        betweenness_list = [x/2 for x in betweenness_list]
+
+    if normalize:
+        if G.is_directed():
+            betweenness_list = [  x/((n-1)*(n-2)) for x in betweenness_list]
+        else:
+            betweenness_list = [2*x/((n-1)*(n-2)) for x in betweenness_list]
+
 
     return {vv:betweenness_list[i] for i,vv in enumerate(G.vertices())}

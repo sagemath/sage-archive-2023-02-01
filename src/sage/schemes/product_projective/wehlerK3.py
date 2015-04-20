@@ -2158,7 +2158,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         r"""
         Checks to see if the orbit is symmetric (i.e. if one of the points on the orbit is fixed by '\sigma_x' or '\sigma_y')
 
-        INPUT: ``orbit`` list of points on the K3 surface
+        INPUT: ``orbit`` a periodic cycle of either `\psi` or `\phi`
 
         OUTPUT: Boolean
 
@@ -2170,7 +2170,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             -4*x1*x2*y0*y2 + 7*x0^2*y1*y2 + 4*x1^2*y1*y2 + x0*x1*y2^2 + 3*x2^2*y2^2
             sage: Y = x0*y0 + x1*y1 + x2*y2
             sage: X = WehlerK3Surface([Z,Y])
-            sage: T = PP(0,0,1,1,0,0)
+            sage: T = PP([0,0,1,1,0,0])
             sage: orbit = X.orbit_psi(T,4)
             sage: X.is_symmetric_orbit(orbit)
             True

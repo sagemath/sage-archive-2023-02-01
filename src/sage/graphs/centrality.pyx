@@ -20,6 +20,7 @@ from sage.graphs.base.static_sparse_graph cimport *
 from libc.stdint cimport uint32_t
 from sage.libs.gmp.mpq cimport *
 from sage.rings.rational cimport Rational
+from sage.ext.memory cimport check_malloc, check_calloc
 
 ctypedef fused numerical_type:
     mpq_t
@@ -175,23 +176,11 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
         init_short_digraph(g, G, edge_labelled = False)
         init_reverse(bfs_dag, g)
 
-        queue               = <uint32_t *> sage_malloc(n*sizeof(uint32_t))
-        degrees             = <uint32_t *> sage_malloc(n*sizeof(uint32_t))
-        n_paths_from_source = <numerical_type *> sage_malloc(n*sizeof(numerical_type))
-        betweenness_source  = <numerical_type *> sage_malloc(n*sizeof(numerical_type))
-        betweenness         = <numerical_type *> sage_malloc(n*sizeof(numerical_type))
-
-        if (queue               == NULL or
-            degrees             == NULL or
-            n_paths_from_source == NULL or
-            betweenness_source  == NULL or
-            betweenness         == NULL):
-            sage_free(queue)
-            sage_free(n_paths_from_source)
-            sage_free(degrees)
-            sage_free(betweenness_source)
-            sage_free(betweenness)
-            raise MemoryError
+        queue               = <uint32_t *> check_malloc(n*sizeof(uint32_t))
+        degrees             = <uint32_t *> check_malloc(n*sizeof(uint32_t))
+        n_paths_from_source = <numerical_type *> check_malloc(n*sizeof(numerical_type))
+        betweenness_source  = <numerical_type *> check_malloc(n*sizeof(numerical_type))
+        betweenness         = <numerical_type *> check_malloc(n*sizeof(numerical_type))
 
         bitset_init(seen,n)
         bitset_init(next_layer,n)

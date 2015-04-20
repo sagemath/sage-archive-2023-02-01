@@ -1800,6 +1800,8 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         correctly (see :trac:`9787`)::
 
             sage: R.<x> = GF(101)[]
+            sage: R.lagrange_polynomial([[1, 0], [2, 0]])
+            0
             sage: R.lagrange_polynomial([[1, 0], [2, 0], [3, 0]])
             0
 

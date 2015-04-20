@@ -42,7 +42,7 @@ def centrality_betweenness(G, exact=False, normalize=True):
 
     INPUT:
 
-    - ``G`` -- a graph
+    - ``G`` -- a (di)graph
 
     - ``exact`` (boolean, default: ``False``) -- whether to compute over
       rationals or on ``double`` C variables.
@@ -60,7 +60,7 @@ def centrality_betweenness(G, exact=False, normalize=True):
     For every vertex `s`, we compute the value of `c_s(v)` for all `v`, using
     the following remark (see [Brandes01]_):
 
-        Let `v_1,...,v_k` be the neighbors of `v` such that
+        Let `v_1,...,v_k` be the out-neighbors of `v` such that
         `dist(s,v_i)=dist(s,v)+1`. Then
 
         .. MATH::
@@ -77,7 +77,7 @@ def centrality_betweenness(G, exact=False, normalize=True):
 
         sage: from sage.graphs.centrality import centrality_betweenness
         sage: centrality_betweenness(digraphs.Circuit(6)) # abs tol 1e-10
-        {0: 1.0, 1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0}
+        {0: 0.5, 1: 0.5, 2: 0.5, 3: 0.5, 4: 0.5, 5: 0.5}
         sage: centrality_betweenness(graphs.CycleGraph(6)) # abs tol 1e-10
         {0: 0.2, 1: 0.2, 2: 0.2, 3: 0.2, 4: 0.2, 5: 0.2}
 
@@ -147,7 +147,7 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
 
     # A second copy, to remember the edges used during the BFS (see doc)
     cdef short_digraph bfs_dag
-    init_short_digraph(bfs_dag, G, edge_labelled = False)
+    init_reverse(bfs_dag, g)
 
     cdef int n = g.n
 
@@ -304,12 +304,15 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
             mpq_clear(n_paths_from_source[i])
         mpq_clear(mpq_tmp)
 
-    if normalize:
-        betweenness_list = [x/((n-1)*(n-2)) for x in betweenness_list]
-    else:
+    if not G.is_directed():
         betweenness_list = [x/2 for x in betweenness_list]
-    if G.is_directed():
-        betweenness_list = [2*x for x in betweenness_list]
+
+    if normalize:
+        if G.is_directed():
+            betweenness_list = [  x/((n-1)*(n-2)) for x in betweenness_list]
+        else:
+            betweenness_list = [2*x/((n-1)*(n-2)) for x in betweenness_list]
+
     free_short_digraph(g)
     free_short_digraph(bfs_dag)
     bitset_free(seen)

@@ -531,7 +531,8 @@ class OrderedTree(AbstractClonableTree, ClonableList):
 
         The first entry of the tuple is the number of children of the
         root. Then the rest of the tuple is the concatenation of the
-        tuples associated to subtrees from left to right.
+        tuples associated to these children (we view the children of
+        a tree as trees themselves) from left to right.
 
         This tuple characterizes the tree uniquely, and can be used to
         sort the ordered trees.
@@ -1215,7 +1216,8 @@ class LabelledOrderedTree(AbstractLabelledClonableTree, OrderedTree):
         The first entry of the tuple is a pair consisting of the
         number of children of the root and the label of the root. Then
         the rest of the tuple is the concatenation of the tuples
-        associated to subtrees from left to right.
+        associated to these children (we view the children of
+        a tree as trees themselves) from left to right.
 
         This tuple characterizes the labelled tree uniquely, and can
         be used to sort the labelled ordered trees provided that the

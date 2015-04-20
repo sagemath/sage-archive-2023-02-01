@@ -95,6 +95,29 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         sage: RT = RootedTrees()
         sage: from_hexacode('32001010', RT)
         [[[]], [[]], [[], []]]
+
+    .. NOTE::
+
+        Unlike an ordered tree, an (unordered) rooted tree is a
+        multiset (rather than a list) of children. That is, two
+        ordered trees which differ from each other by switching
+        the order of children are equal to each other as (unordered)
+        rooted trees. Internally, rooted trees are encoded as
+        :class:`sage.structure.list_clone.NormalizedClonableList`
+        instances, and instead of storing their children as an
+        actual multiset, they store their children as a list which
+        is sorted according to their :meth:`sort_key` value. This
+        is as good as storing them as multisets, since the
+        :meth:`sort_key` values are sortable and distinguish
+        different (unordered) trees. However, if you wish to define
+        a subclass of :class:`RootedTree` which implements rooted
+        trees with extra structure (say, a class of edge-colored
+        rooted trees, or a class of rooted trees with a cyclic
+        order on the list of children), then the inherited
+        :meth:`sort_key` method will no longer distinguish different
+        trees (and, as a consequence, equal trees will be regarded
+        as distinct). Thus, you will have to override the method by
+        one that does distinguish different trees.
     """
     # Standard auto-parent trick
     __metaclass__ = ClasscallMetaclass
@@ -176,15 +199,39 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
 
     def sort_key(self):
         """
-        Return a tuple of numbers that can be used to sort the rooted trees.
+        Return a tuple of nonnegative integers encoding the rooted
+        tree ``self``.
 
-        This tuple is in fact an encoding of the tree. The values are
-        the valences of the vertices. The first value is the valence of the
-        root. Then the rest of the tuple is the concatenation of the tuples
-        associated to subtrees.
+        The first entry of the tuple is the number of children of the
+        root. Then the rest of the tuple is obtained as follows: List
+        the tuples corresponding to all children (we are regarding the
+        children themselves as trees). Order this list (not the
+        tuples!) in lexicographically increasing order, and flatten
+        it into a single tuple.
 
-        The tree ``self`` must be normalized before calling this, meaning
-        that it subtrees have to be sorted according to their sort key.
+        This tuple characterizes the rooted tree uniquely, and can be
+        used to sort the rooted trees.
+
+        .. NOTE::
+
+            The tree ``self`` must be normalized before calling this
+            method (see :meth:`normalize`). This doesn't matter
+            unless you are inside the :meth:`clone` context manager,
+            because outside of it every rooted tree is already
+            normalized.
+
+        .. NOTE::
+
+            By default, this method does not encode any extra
+            structure that ``self`` might have. If you have a subclass
+            inheriting from :class:`RootedTree` which allows for some
+            extra structure, you need to override :meth:`sort_key` in
+            order to preserve this structure (for example, the
+            :class:`LabelledRootedTree` class does this in
+            :meth:`LabelledRootedTree.sort_key`). See the note in the
+            docstring of
+            :meth:`sage.combinat.ordered_tree.OrderedTree.sort_key`
+            for a pitfall.
 
         EXAMPLES::
 
@@ -241,6 +288,8 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
             sage: rt2 = RT([[[]],[]])
             sage: rt1 is rt2
             False
+            sage: rt1 == rt2
+            True
             sage: rt1._get_list() == rt2._get_list()
             True
         """
@@ -771,17 +820,42 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
 
     def sort_key(self):
         """
-        Return a tuple that can be used to sort the labelled rooted trees.
+        Return a tuple of nonnegative integers encoding the labelled
+        rooted tree ``self``.
 
-        Each term is a pair (valence, label).
+        The first entry of the tuple is a pair consisting of the
+        number of children of the root and the label of the root. Then
+        the rest of the tuple is obtained as follows: List
+        the tuples corresponding to all children (we are regarding the
+        children themselves as trees). Order this list (not the
+        tuples!) in lexicographically increasing order, and flatten
+        it into a single tuple.
 
-        This tuple is in fact an encoding of the tree. The values are
-        the valences and labels of the vertices. The first value is
-        the valence of the root. Then the rest of the tuple is the
-        concatenation of the tuples associated to subtrees.
+        This tuple characterizes the labelled rooted tree uniquely, and
+        can be used to sort the labelled rooted trees provided that the
+        labels belong to a type which is totally ordered.
 
-        The tree ``self`` must be normalized before calling this, meaning
-        that it subtrees have to be sorted according to their sort key.
+        .. NOTE::
+
+            The tree ``self`` must be normalized before calling this
+            method (see :meth:`normalize`). This doesn't matter
+            unless you are inside the :meth:`clone` context manager,
+            because outside of it every rooted tree is already
+            normalized.
+
+        .. NOTE::
+
+            This method overrides :meth:`RootedTree.sort_key`
+            and returns a result different from what the latter
+            would return, as it wants to encode the whole labelled
+            tree including its labelling rather than just the
+            unlabelled tree. Therefore, be careful with using this
+            method on subclasses of :class:`RootedOrderedTree`;
+            under some circumstances they could inherit it from
+            another superclass instead of from :class:`RootedTree`,
+            which would cause the method to forget the labelling.
+            See the docstrings of :meth:`RootedTree.sort_key` and
+            :meth:`sage.combinat.ordered_tree.OrderedTree.sort_key`.
 
         EXAMPLES::
 

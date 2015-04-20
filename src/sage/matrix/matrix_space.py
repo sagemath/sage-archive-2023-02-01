@@ -79,12 +79,6 @@ from sage.categories.fields import Fields
 _Rings = Rings()
 _Fields = Fields()
 
-# Fix unpickling Matrix_modn_dense
-from sage.matrix.matrix_modn_dense_double import Matrix_modn_dense_double
-from sage.structure.sage_object import register_unpickle_override
-register_unpickle_override('sage.matrix.matrix_modn_dense',
-    'Matrix_modn_dense', Matrix_modn_dense_double)
-
 
 def is_MatrixSpace(x):
     """
@@ -103,7 +97,6 @@ def is_MatrixSpace(x):
         sage: is_MatrixSpace(5)
         False
     """
-
     return isinstance(x, MatrixSpace)
 
 
@@ -474,6 +467,17 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
             cannot be converted to a matrix in
             Full MatrixSpace of 3 by 5 dense matrices over Integer Ring!
+
+        Check that trac:`15110` is fixed::
+
+            sage: S.<t> = LaurentSeriesRing(ZZ)
+            sage: MS = MatrixSpace(S,1,1)
+            sage: MS([[t]])   # given as a list of lists
+            [t]
+            sage: MS([t])     # given as a list of coefficients
+            [t]
+            sage: MS(t)       # given as a scalar matrix
+            [t]
         """
         return self.matrix(entries, coerce, copy)
 
@@ -1314,6 +1318,16 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: MatrixSpace(Qp(3),1,1)([Qp(3)(4/3)])
             [3^-1 + 1 + O(3^19)]
 
+        One-rowed matrices over combinatorial free modules used to break
+        the constructor (:trac:`17124`). Check that this is fixed::
+
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: h = Sym.h()
+            sage: MatrixSpace(h,1,1)([h[1]])
+            [h[1]]
+            sage: MatrixSpace(h,2,1)([h[1], h[2]])
+            [h[1]]
+            [h[2]]
         """
         if x is None or isinstance(x, (int, integer.Integer)) and x == 0:
             if self._copy_zero: # faster to copy than to create a new one.
@@ -1355,7 +1369,15 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 for v in x:
                     l = len(new_x)
                     try:
-                        new_x.extend(v)
+                        from sage.structure.element import is_Vector
+                        if isinstance(v, (list, tuple)) or is_Vector(v):
+                            # The isinstance check should prevent the "flattening"
+                            # of v if v is an iterable but not meant to be
+                            # iterated (e.g., an element of a combinatorial free
+                            # module).
+                            new_x.extend(v)
+                        else:
+                            raise TypeError
                         if len(new_x) - l != n:
                             raise TypeError
                     except TypeError:
@@ -1705,3 +1727,15 @@ def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
     assert(inv == m1)
     if checkrank:
         assert(m1.rank() == 1)
+
+
+# Fix unpickling Matrix_modn_dense and Matrix_integer_2x2
+from sage.matrix.matrix_modn_dense_double import Matrix_modn_dense_double
+from sage.matrix.matrix_integer_dense import Matrix_integer_dense
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.matrix.matrix_modn_dense',
+    'Matrix_modn_dense', Matrix_modn_dense_double)
+register_unpickle_override('sage.matrix.matrix_integer_2x2',
+    'Matrix_integer_2x2', Matrix_integer_dense)
+register_unpickle_override('sage.matrix.matrix_integer_2x2',
+    'MatrixSpace_ZZ_2x2_class', MatrixSpace)

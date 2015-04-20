@@ -88,6 +88,8 @@ We test corner cases for multiplication::
 from libc.stdint cimport uint64_t
 from cpython.string cimport *
 
+from sage.ext.memory cimport sage_malloc, sage_free
+
 from sage.libs.linbox.fflas cimport fflas_trans_enum, fflas_no_trans, fflas_trans, \
     fflas_right, vector, list as std_list
 
@@ -1709,7 +1711,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             elimination implemented in Sage.
 
           - ``all`` - compute using both algorithms and verify that
-           the results are the same.
+            the results are the same.
 
         - ``**kwds`` - these are all ignored
 

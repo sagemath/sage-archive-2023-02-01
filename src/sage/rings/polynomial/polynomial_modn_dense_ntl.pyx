@@ -53,7 +53,6 @@ from sage.libs.ntl.ntl_ZZ_pX_decl cimport *
 def make_element(parent, args):
     return parent(*args)
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
 
@@ -1172,7 +1171,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
                 map = self._parent._base.coerce_map_from((<Element>arg)._parent)
                 if map is not None:
                     x = ntl_zz_p(map(arg), self.c)
-        if <PyObject *>x == <PyObject *>None: # c++ pointer compare error
+        if x is None:
             return Polynomial.__call__(self, *args, **kwds)
         else:
             zz_pX_eval(fx.x, self.x, x.x)
@@ -1736,7 +1735,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
                 map = self._parent._base.coerce_map_from((<Element>arg)._parent)
                 if map is not None:
                     x = ntl_ZZ_p(map(arg), self.c)
-        if <PyObject *>x == <PyObject *>None: # c++ pointer compare error
+        if x is None:
             return Polynomial.__call__(self, *args, **kwds)
         else:
             ZZ_pX_eval(fx.x, self.x, x.x)

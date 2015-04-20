@@ -101,7 +101,7 @@ class ConjugacyClass(Parent):
         else: # If the group is not finite, then we do not know if we are finite or not
             Parent.__init__(self, category=EnumeratedSets())
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         EXAMPLES::
 

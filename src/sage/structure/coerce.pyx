@@ -73,7 +73,6 @@ see the documentation for Parent.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 from cpython.object cimport *
 
 cdef add, sub, mul, div, iadd, isub, imul, idiv
@@ -97,6 +96,7 @@ from coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
 from sage.misc.lazy_import import LazyImport
 parent = LazyImport('sage.structure.all', 'parent', deprecation=17533)
 
+
 cpdef py_scalar_parent(py_type):
     """
     Returns the Sage equivalent of the given python type, if one exists.
@@ -113,10 +113,12 @@ cpdef py_scalar_parent(py_type):
         Real Double Field
         sage: py_scalar_parent(complex)
         Complex Double Field
+        sage: py_scalar_parent(bool)
+        Integer Ring
         sage: py_scalar_parent(dict),
         (None,)
     """
-    if py_type is int or py_type is long:
+    if py_type is int or py_type is long or py_type is bool:
         import sage.rings.integer_ring
         return sage.rings.integer_ring.ZZ
     elif py_type is float:
@@ -128,8 +130,66 @@ cpdef py_scalar_parent(py_type):
     else:
         return None
 
-cdef object _native_coercion_ranks_inv = (bool, int, long, float, complex)
-cdef object _native_coercion_ranks = dict([(t, k) for k, t in enumerate(_native_coercion_ranks_inv)])
+cpdef py_scalar_to_element(x):
+    """
+    Convert ``x`` to a Sage :class:`~sage.structure.element.Element` if possible.
+
+    If ``x`` was already an :class:`~sage.structure.element.Element` or if there is no obvious
+    conversion possible, just return ``x`` itself.
+
+    EXAMPLES::
+
+        sage: from sage.structure.coerce import py_scalar_to_element
+        sage: x = py_scalar_to_element(42)
+        sage: x, parent(x)
+        (42, Integer Ring)
+        sage: x = py_scalar_to_element(int(42))
+        sage: x, parent(x)
+        (42, Integer Ring)
+        sage: x = py_scalar_to_element(long(42))
+        sage: x, parent(x)
+        (42, Integer Ring)
+        sage: x = py_scalar_to_element(float(42))
+        sage: x, parent(x)
+        (42.0, Real Double Field)
+        sage: x = py_scalar_to_element(complex(42))
+        sage: x, parent(x)
+        (42.0, Complex Double Field)
+        sage: py_scalar_to_element('hello')
+        'hello'
+
+    Note that bools are converted to 0 or 1::
+
+        sage: py_scalar_to_element(False), py_scalar_to_element(True)
+        (0, 1)
+
+    Test compatibility with :func:`py_scalar_parent`::
+
+        sage: from sage.structure.coerce import py_scalar_parent
+        sage: elt = [True, int(42), long(42), float(42), complex(42)]
+        sage: for x in elt:
+        ....:     assert py_scalar_parent(type(x)) == py_scalar_to_element(x).parent()
+    """
+    if isinstance(x, Element):
+        return x
+    elif isinstance(x, int):
+        from sage.rings.integer import Integer
+        return Integer(x)
+    elif isinstance(x, float):
+        from sage.rings.real_double import RDF
+        return RDF(x)
+    elif isinstance(x, long):
+        from sage.rings.integer import Integer
+        return Integer(x)
+    elif isinstance(x, complex):
+        from sage.rings.complex_double import CDF
+        return CDF(x)
+    else:
+        return x
+
+
+cdef _native_coercion_ranks_inv = (bool, int, long, float, complex)
+cdef dict _native_coercion_ranks = dict([(t, k) for k, t in enumerate(_native_coercion_ranks_inv)])
 
 cdef object _Integer
 cdef bint is_Integer(x):
@@ -707,7 +767,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         Execute the operation op on x and y. It first looks for an action
         corresponding to op, and failing that, it tries to coerces x and y
-        into the a common parent and calls op on them.
+        into a common parent and calls op on them.
 
         If it cannot make sense of the operation, a TypeError is raised.
 
@@ -932,9 +992,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                     return x_elt,y_elt
             self._coercion_error(x, x_map, x_elt, y, y_map, y_elt)
 
-
-        cdef bint x_numeric = PY_IS_NUMERIC(x)
-        cdef bint y_numeric = PY_IS_NUMERIC(y)
+        cdef bint x_numeric = isinstance(x, (int, long, float, complex))
+        cdef bint y_numeric = isinstance(y, (int, long, float, complex))
 
         if x_numeric and y_numeric:
             x_rank = _native_coercion_ranks[type(x)]
@@ -1049,12 +1108,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.coercion_maps(V, W)
             (None, (map internal to coercion system -- copy before use)
-            Call morphism:
+            Conversion map:
               From: Vector space of dimension 3 over Rational Field
               To:   Vector space of dimension 3 over Rational Field)
             sage: cm.coercion_maps(W, V)
             (None, (map internal to coercion system -- copy before use)
-            Call morphism:
+            Conversion map:
               From: Vector space of dimension 3 over Rational Field
               To:   Vector space of dimension 3 over Rational Field)
             sage: v = V([1,2,3])

@@ -75,7 +75,6 @@ See :trac:`12091` ::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
 from cpython.object cimport *

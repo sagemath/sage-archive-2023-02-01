@@ -225,7 +225,6 @@ import math # for log
 import sys
 
 include 'sage/ext/interrupt.pxi'
-include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 from cpython.mem cimport *
 from cpython.string cimport *
@@ -4818,7 +4817,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         except ImportError:
             raise TypeError("The optional arb package is not installed. "
                             "Consider installing it via 'sage -i arb'")
-        return RealBallField(self.precision())(self).psi()._interval()
+        return RealBallField(self.precision())(self).psi()._real_mpfi_(self._parent)
 
 # MPFI does not have: agm, erf, gamma, zeta
 #     def agm(self, other):

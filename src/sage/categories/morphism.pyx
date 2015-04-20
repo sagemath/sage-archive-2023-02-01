@@ -246,9 +246,6 @@ cdef class Morphism(Map):
         except (AttributeError, NotImplementedError):
             return NotImplementedError
 
-    def __invert__(self):  # notation in python is (~f) for the inverse of f.
-        raise NotImplementedError
-
     def pushforward(self, I):
         raise NotImplementedError
 

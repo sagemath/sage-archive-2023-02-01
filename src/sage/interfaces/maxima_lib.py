@@ -66,7 +66,7 @@ which is anyway set to raise an error::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.symbolic.ring import SR, var
+from sage.symbolic.ring import SR
 
 from sage.libs.ecl import *
 
@@ -141,7 +141,7 @@ ecl_eval("(setf *standard-output* *dev-null*)")
 # keepfloat -- don't automatically convert floats to rationals
 init_code = ['display2d : false', 'domain : complex', 'keepfloat : true',
             'load(to_poly_solve)', 'load(simplify_sum)',
-            'load(abs_integrate)']
+            'load(abs_integrate)', 'load(diag)']
 
 # Turn off the prompt labels, since computing them *very
 # dramatically* slows down the maxima interpret after a while.
@@ -1572,8 +1572,8 @@ def sr_to_max(expr):
                 # temporary variable e.g. `t0` and then evaluate the
                 # derivative f'(t0) symbolically at t0=1. See trac
                 # #12796.
-                temp_args=[var("t%s"%i) for i in range(len(args))]
-                f =sr_to_max(op.function()(*temp_args))
+                temp_args = [SR.var("t%s"%i) for i in range(len(args))]
+                f = sr_to_max(op.function()(*temp_args))
                 params = op.parameter_set()
                 deriv_max = [[mdiff],f]
                 for i in set(params):

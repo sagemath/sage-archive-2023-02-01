@@ -91,7 +91,6 @@ from sage.rings.all import RDF
 from sage.plot.misc import setup_for_eval_on_grid
 
 include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
 include 'sage/gsl/gsl.pxi'
 from cpython.string cimport *
 

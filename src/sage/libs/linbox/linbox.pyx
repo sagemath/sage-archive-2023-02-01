@@ -1,3 +1,7 @@
+r"""
+Linbox interface
+"""
+
 ## NOTE: The sig_on()/sig_off() stuff can't go in here -- it has to be in the
 ## code that calls these functions.  Otherwise strangely objects get left
 ## in an incorrect state.
@@ -10,7 +14,6 @@ from sage.misc.misc import verbose, get_verbose, cputime, UNAME
 ##########################################################################
 
 include 'sage/modules/vector_modn_sparse_c.pxi'
-include 'sage/ext/stdsage.pxi'
 
 cdef extern from "linbox/linbox-sage.h":
     ctypedef struct vector_uint "std::vector<unsigned int>":

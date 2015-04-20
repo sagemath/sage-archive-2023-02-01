@@ -35,8 +35,7 @@ from special import (hypergeometric_U,
                      spherical_harmonic,
                      error_fcn, elliptic_e,
                      elliptic_f, elliptic_ec, elliptic_eu,
-                     elliptic_kc, elliptic_pi, elliptic_j,
-                     airy_ai, airy_bi)
+                     elliptic_kc, elliptic_pi, elliptic_j)
 
 from jacobi import (jacobi, inverse_jacobi, jacobi_nd, jacobi_ns, jacobi_nc,
                     jacobi_dn, jacobi_ds, jacobi_dc, jacobi_sn, jacobi_sd,
@@ -70,6 +69,8 @@ from generalized import (dirac_delta, heaviside, unit_step, sgn, sign,
                          kronecker_delta)
 
 from min_max import max_symbolic, min_symbolic
+
+from airy import airy_ai, airy_ai_prime, airy_bi, airy_bi_prime
 
 from exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li,
                           log_integral_offset,

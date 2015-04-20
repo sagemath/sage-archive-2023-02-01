@@ -336,7 +336,7 @@ class AllBuilder(object):
                     documents.append(os.path.join(lang, document))
 
         # Ensure that the reference guide is compiled first so that links from
-        # the other document to it are correctly resolved.
+        # the other documents to it are correctly resolved.
         if 'en/reference' in documents:
             documents.remove('en/reference')
         documents.insert(0, 'en/reference')
@@ -633,7 +633,10 @@ for a webpage listing all of the documents.''' % (output_dir,
             sage: b = builder.ReferenceBuilder('reference')
             sage: refdir = os.path.join(os.environ['SAGE_DOC'], 'en', b.name)
             sage: sorted(b.get_all_documents(refdir))
-            ['reference/algebras', 'reference/arithgroup', ..., 'reference/tensor']
+            ['reference/algebras',
+             'reference/arithgroup',
+             ...,
+             'reference/tensor_free_modules']
         """
         documents = []
 

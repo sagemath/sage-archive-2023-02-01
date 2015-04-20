@@ -21,10 +21,8 @@ cimport cython
 
 from libc.limits cimport UINT_MAX
 from libc.string cimport memset
-from libc.stdlib cimport qsort
 
 from sage.ext.memory cimport check_malloc, check_calloc
-from sage.libs.gmp.types cimport mpz_t
 
 from sage.rings.integer cimport Integer,smallInteger
 
@@ -96,7 +94,6 @@ cdef class EvenlyDistributedSetsBacktracker:
         [0, 1, 9, 3]
         [0, 1, 8, 10]
 
-
         sage: E = EvenlyDistributedSetsBacktracker(Zmod(13), 4, up_to_isomorphism=True)
         sage: for B in E: print B
         [0, 1, 11, 5]
@@ -117,6 +114,8 @@ cdef class EvenlyDistributedSetsBacktracker:
     cdef unsigned int e          # k(k-1)/2
     cdef unsigned int ** diff    # qxq array: diff[x][y]  = x - y
     cdef unsigned int ** ratio   # qxq array: ratio[x][y] = x / y
+    cdef unsigned int * min_orb  # q array  : min_orb[x]  = min {x, 1-x, 1/x,
+                                 #                   1/(1-x), (x-1)/x, x/(x-1)}
 
     # DYNAMIC DATA
     cdef unsigned int * B        # current stack of elements of {0,...,q-1}
@@ -130,6 +129,7 @@ cdef class EvenlyDistributedSetsBacktracker:
         if self.ratio != NULL:
             sage_free(self.ratio[0])
             sage_free(self.ratio)
+        sage_free(self.min_orb)
         sage_free(self.B)
         sage_free(self.cosets)
         sage_free(self.t)
@@ -179,9 +179,10 @@ cdef class EvenlyDistributedSetsBacktracker:
         for i in range(1,self.q):
             self.ratio[i] = self.ratio[i-1] + q
 
-        self.B      = <unsigned int *> check_malloc(k*sizeof(unsigned int))
-        self.cosets = <unsigned int *> check_malloc(e*sizeof(unsigned int))
-        self.t      = <unsigned int *> check_malloc(e*sizeof(unsigned int))
+        self.B       = <unsigned int *> check_malloc(k*sizeof(unsigned int))
+        self.min_orb = <unsigned int *> check_malloc(q*sizeof(unsigned int))
+        self.cosets  = <unsigned int *> check_malloc(e*sizeof(unsigned int))
+        self.t       = <unsigned int *> check_malloc(e*sizeof(unsigned int))
 
         x = K.multiplicative_generator()
         list_K = []
@@ -190,11 +191,18 @@ cdef class EvenlyDistributedSetsBacktracker:
         list_K.append(K.zero())
         self.list_K = list_K
         K_to_int = self.K_to_int = {y:i for i,y in enumerate(list_K)}
-        assert self.K_to_int[K.zero()] == q-1
-        assert self.K_to_int[K.one()] == 0
+
+        zero = K.zero()
+        one = K.one()
+        assert self.K_to_int[zero] == q-1
+        assert self.K_to_int[one] == 0
         assert set(K) == set(list_K)
 
+        self.min_orb[0] = self.min_orb[q-1] = UINT_MAX
         for i,x in enumerate(self.list_K):
+            if x != zero and x != one:
+                self.min_orb[i] = min(K_to_int[z] for z in \
+                        [x, one/x, one-x, one/(one-x), (x-one)/x, x/(x-one)])
             for j,y in enumerate(self.list_K):
                 self.diff[i][j]  = K_to_int[x-y]
                 if y:
@@ -458,32 +466,35 @@ cdef class EvenlyDistributedSetsBacktracker:
         Add the element ``x`` to ``B`` in position kk if the resulting set is
         still evenly distributed.
         """
-        cdef unsigned int i,j
-        cdef unsigned int tmp
+        cdef unsigned int i, j, x_m_i, x_m_j
         cdef unsigned int m = (self.q-1)/self.e
 
-        # we check that we do not get a smaller evenly distributed set by a
-        # relabeling of the form
-        #   1. z -> (z - x) / (B[i] - x)    that maps x -> 0 and B[i] -> 1
-        #   2. z -> (z - B[i]) / (x - B[i]) that maps B[i] -> 0 and x -> 1
-        if kk > 2:
-            for i in range(kk):
-                # isom of form 1
-                tmp = self.diff[self.B[i]][x]
-                for j in range(kk):
-                    if j == i:
-                        continue
-                    if self.ratio[tmp][self.diff[self.B[j]][x]] < self.B[2]:
+        # We first check that applying some automorphisms we will not get an
+        # element smaller than B[2]. We should test all linear functions that
+        # send a subset of the form {x, B[i], B[j]} to {0, 1, z}.
+        # Given one such function, the values of the other are 1/z, 1-z,
+        # 1/(1-z), (z-1)/z and z/(z-1). The attribute 'min_orbit[z]' is
+        # exactly the minimum among these values.
+        # So it is enough to test one of these functions. We choose
+        #    t -> (x - t)/ (x - B[j])
+        #  (that maps x to 0 and B[i] to 1). Its value at B[i] is just
+        #    z = (x - B[i]) / (x - B[j]).
+        #
+        # In the special case when kk=2, or equivalently when we are testing if x
+        # fits as a new B[2], then we just check that x is the minimum among
+        # {x, 1/x, 1-x, 1/(1-x), (x-1)/x and x/(x-1)}.
+        if kk == 2:
+            if self.min_orb[x] < x:
+                return 0
+        else:
+            for i in range(1,kk):
+                x_m_i = self.diff[x][self.B[i]]
+                for j in range(i):
+                    x_m_j = self.diff[x][self.B[j]]
+                    if self.min_orb[self.ratio[x_m_i][x_m_j]] < self.B[2]:
                         return 0
 
-                # isom of form 2
-                tmp = self.diff[x][self.B[i]]
-                for j in range(kk):
-                    if j == i:
-                        continue
-                    if self.ratio[self.diff[self.B[j]][self.B[i]]][tmp] < self.B[2]:
-                        return 0
-
+        # Next we compute the cosets hit by the differences
         for j in range(kk):
             i = self.diff[x][self.B[j]] / m
             if self.cosets[i] or self.t[i]:
@@ -491,6 +502,7 @@ cdef class EvenlyDistributedSetsBacktracker:
                 return 0
             self.t[i] = 1
 
+        # If everything went smoothly, we add x to B
         self.B[kk] = x
         for i in range(self.e):
             if self.t[i]:

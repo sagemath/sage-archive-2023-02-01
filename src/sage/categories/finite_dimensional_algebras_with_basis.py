@@ -429,6 +429,11 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             - ``self`` -- a finite dimensional algebra
 
+            OUTPUT:
+
+            - a list of a complete set of orthogonal idempotents of the
+              algebra.
+
             ALGORITHM:
 
             Let '\overline{e}' be a central orthogonal idempotent of the
@@ -459,11 +464,13 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 1/4*B[7], -B[0] + 1/2*B[3] + 1/2*B[9], B[0] + 1/4*B[1] -
                 1/2*B[3] - 1/2*B[4] + 1/4*B[5] + 1/4*B[7] - 1/2*B[8] - 1/2*B[9]
                 + 1/4*B[11]]
-                sage: all(e*f == f*e for e,f in itertools.product(orth, orth))
+                sage: all(e*e == e for e in orth)
+                True
+                sage: all(e*f == f*e and e*f == 0 for e,f in itertools.product(orth, orth) if e!= f)
                 True
 
-            We construct the minimum orthogonal idempotents of the `0`-Hecke
-            monoid algebra::
+            We construct the orthogonal idempotents of the `0`-Hecke monoid
+            algebra::
 
                 sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
                 sage: W = WeylGroup(['A', 3]); W.rename("W")
@@ -473,9 +480,10 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 A submonoid of (Maps from W to itself) with 3 generators
                 sage: A = M.algebra(QQ)
                 sage: orth = A.central_orthogonal_idempotents()
-                sage: all(e*f == f*e for e,f in itertools.product(orth, orth))
+                sage: all(e*e == e for e in orth)
                 True
-
+                sage: all(e*f == f*e and e*f == 0 for e,f in itertools.product(orth, orth) if e!= f)
+                True
 
             REFERENCES:
 
@@ -500,9 +508,10 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             orths = [lift(x.lift(), one) for x in Aquo.central_orthogonal_idempotents()]
             # Construction of the orthogonal idempotents
             idems = []
+            f = 0
             for g in orths:
-                f = sum(idems) # 0 if idems is empty
                 idems.append(lift((one - f) * g * (one - f), one))
+                f = f + idems[-1]
             return idems
 
         @cached_method

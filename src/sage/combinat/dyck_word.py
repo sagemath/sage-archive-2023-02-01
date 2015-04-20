@@ -3503,7 +3503,7 @@ class DyckWords_size(DyckWords):
     """
     def __init__(self, k1, k2):
         r"""
-        TESTS::
+        TESTS:
 
         Check that :trac:`18244` is fixed::
 

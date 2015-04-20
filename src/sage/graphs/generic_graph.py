@@ -194,6 +194,7 @@ can be applied on both. Here is what it can do:
     :widths: 30, 70
     :delim: |
 
+    :meth:`~GenericGraph.centrality_betweenness` | Returns the betweenness centrality
     :meth:`~GenericGraph.distance` | Returns the (directed) distance from u to v in the (di)graph
     :meth:`~GenericGraph.distance_all_pairs` | Returns the distances between all pairs of vertices.
     :meth:`~GenericGraph.distances_distribution` | Returns the distances distribution of the (di)graph in a dictionary.

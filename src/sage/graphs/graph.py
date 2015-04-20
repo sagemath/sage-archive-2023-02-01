@@ -31,7 +31,6 @@ graphs.
 
     :meth:`~Graph.centrality_closeness` | Returns the closeness centrality (1/average distance to all vertices)
     :meth:`~Graph.centrality_degree` | Returns the degree centrality
-    :meth:`~Graph.centrality_betweenness` | Returns the betweenness centrality
 
 
 **Graph properties:**

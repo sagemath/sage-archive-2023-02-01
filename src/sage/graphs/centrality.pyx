@@ -110,7 +110,8 @@ def centrality_betweenness(G, exact=False, normalize=True):
 
     .. [Brandes01] Ulrik Brandes,
        A faster algorithm for betweenness centrality,
-       Journal of Mathematical Sociology 25.2 (2001): 163-177
+       Journal of Mathematical Sociology 25.2 (2001): 163-177,
+       http://www.inf.uni-konstanz.de/algo/publications/b-fabc-01.pdf
     """
     if exact:
         return centrality_betweenness_C(G,<mpq_t> 0,normalize=normalize)

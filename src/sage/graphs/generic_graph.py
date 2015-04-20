@@ -12779,12 +12779,6 @@ class GenericGraph(GenericGraph_pyx):
           :mod:`~sage.graphs.centrality`), ``"NetworkX"`` or ``"None"``. In the
           latter case, Sage's algorithm will be used whenever possible.
 
-        REFERENCE:
-
-        .. [Brandes2003] Ulrik Brandes. (2003). Faster Evaluation of
-           Shortest-Path Based Centrality Indices. [Online] Available:
-           http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.43.1504
-
         EXAMPLES::
 
             sage: g = graphs.ChvatalGraph()

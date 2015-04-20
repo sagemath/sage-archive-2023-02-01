@@ -483,7 +483,7 @@ class Macdonald(UniqueRepresentation):
             sage: Ht = Sym.macdonald().Ht()
             sage: s = Sym.schur()
             sage: Ht(s([2,1]))
-            ((-q)/(-q*t^2+t^3+q^2-q*t))*McdHt[1, 1, 1] + ((q^2+q*t+t^2)/(-q^2*t^2+q^3+t^3-q*t))*McdHt[2, 1] + ((-t)/(q^3-q^2*t-q*t+t^2))*McdHt[3]
+            ((-q)/(-q*t^2+t^3+q^2-q*t))*McdHt[1, 1, 1] + ((q^2+q*t+t^2)/(-q^2*t^2+q^3+t^3-q*t))*McdHt[2, 1] + (t/(-q^3+q^2*t+q*t-t^2))*McdHt[3]
             sage: Ht(s([2]))
             ((-q)/(-q+t))*McdHt[1, 1] + (t/(-q+t))*McdHt[2]
         """
@@ -907,7 +907,7 @@ class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
             sage: Q._multiply(Q[1],Q[2])
             McdQ[2, 1] + ((q^2*t-q^2+q*t-q+t-1)/(q^2*t-1))*McdQ[3]
             sage: Ht._multiply(Ht[1],Ht[2])
-            ((-q^2+1)/(-q^2+t))*McdHt[2, 1] + ((t-1)/(-q^2+t))*McdHt[3]
+            ((-q^2+1)/(-q^2+t))*McdHt[2, 1] + ((-t+1)/(q^2-t))*McdHt[3]
         """
         return self( self._s(left)*self._s(right) )
 
@@ -1241,11 +1241,12 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
             sage: m(H[2,1])
             ((x^2+4*x+1)/x)*m[1, 1, 1] + ((2*x+1)/x)*m[2, 1] + 1/x*m[3]
         """
+        (q,t)=QQqt.gens()
         return self._m._from_dict({ part2:
-            self._base(sum(x.coefficient(mu) * QQqt(self._Lmunu(part2, mu)).subs(q=self.q,t=1/self.t)
-                           * self.t**mu.weighted_size()
-                           for mu in x.homogeneous_component(d).support()))
-                    for d in range(x.degree()+1) for part2 in Partitions(d) })
+            self._base(sum(x.coefficient(mu)* (QQqt(self._Lmunu(part2, mu)).subs(t=1/t)*
+                t**mu.weighted_size()).subs(q=self.q,t=self.t)
+                    for mu in x.homogeneous_component(d).support()))
+                        for d in range(x.degree()+1) for part2 in Partitions(d) })
 
     def _m_to_self( self, f ):
         r"""
@@ -1288,16 +1289,17 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
             McdH[2, 1]
         """
         if self.t == 1:
-            subsval = 1 / self.q
+            g = f.omega_qt(q=self.q, t=0)
             fl = lambda x: x.conjugate()
+            mu_to_H = lambda mu: self._self_to_m(self(mu.conjugate())).omega_qt(q=self.q, t=0)
         else:
-            subsval = self.t
+            g = f.theta_qt(q=self.t, t=0)
             fl = lambda x: x
-        g = f.theta_qt(q=subsval, t=0)
+            mu_to_H = lambda mu: self._self_to_m(self(mu)).theta_qt(q=self.t, t=0)
         out = {}
         while not g.is_zero():
             sprt = g.support()
-            Hmu = self._self_to_m( self(fl(sprt[-1])) ).theta_qt(q=subsval, t=0)
+            Hmu = mu_to_H(sprt[-1])
             out[fl(sprt[-1])] = self._base(g.coefficient(sprt[-1]) / Hmu.coefficient(sprt[-1]))
             g -= out[fl(sprt[-1])] * Hmu
         return self._from_dict(out)
@@ -1469,16 +1471,16 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
 
         """
         if self.t == 1:
-            subsval = ~self.q
+            subsval = self.q
             fl = lambda x: x.conjugate()
         else:
-            subsval = ~self.t
+            subsval = self.t
             fl = lambda x: x
-        g = f.theta_qt(q=subsval, t=0)
+        g = f.omega_qt(q=subsval, t=0)
         out = {}
         while not g.is_zero():
             sprt = g.support()
-            Htmu = self._self_to_m(self(fl(sprt[-1]))).theta_qt(q=subsval, t=0)
+            Htmu = self._self_to_m(self(fl(sprt[-1]))).omega_qt(q=subsval, t=0)
             out[fl(sprt[-1])] = self._base(g.coefficient(sprt[-1]) / Htmu.coefficient(sprt[-1]))
             g -= out[fl(sprt[-1])] * Htmu
         return self._from_dict(out)

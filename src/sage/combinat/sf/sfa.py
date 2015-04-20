@@ -4063,7 +4063,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s(1).nabla()
             s[]
             sage: s([2,1]).nabla(power=-1)
-            ((-q-t)/(q^2*t^2))*s[2, 1] + ((-q^2-q*t-t^2)/(q^3*t^3))*s[3]
+            ((-q-t)/(q^2*t^2))*s[2, 1] + ((q^2+q*t+t^2)/(-q^3*t^3))*s[3]
             sage: (s([2])+s([3])).nabla()
             (-q*t)*s[1, 1] + (q^3*t^2+q^2*t^3)*s[1, 1, 1] + q^2*t^2*s[2, 1]
         """

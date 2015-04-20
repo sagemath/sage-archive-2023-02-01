@@ -67,7 +67,6 @@ import operator
 from sage.misc.randstate cimport randstate, current_randstate
 
 include 'sage/ext/interrupt.pxi'
-include 'sage/ext/stdsage.pxi'
 include 'sage/libs/pari/pari_err.pxi'
 
 cdef extern from "<complex.h>":

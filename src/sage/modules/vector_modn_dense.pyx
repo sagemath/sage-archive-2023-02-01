@@ -215,32 +215,10 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
         """
         return free_module_element.FreeModuleElement.__hash__(self)
 
-    def __setitem__(self, i, value):
-        if not self._is_mutable:
-            raise ValueError("vector is immutable; please change a copy instead (use copy())")
-        cdef Py_ssize_t k, d, n
-        if isinstance(i, slice):
-            start, stop = i.start, i.stop
-            d = self.degree()
-            R = self.base_ring()
-            n = 0
-            for k from start <= k < stop:
-                if k >= d:
-                    return
-                if k >= 0:
-                    self[k] = R(value[n])
-                    n = n + 1
-        else:
-            if i < 0 or i >= self._degree:
-                raise IndexError
-            else:
-                self._entries[i] = ivalue(self.base_ring()(value))
-
-    def __getitem__(self, i):
+    cdef get_unsafe(self, Py_ssize_t i):
         """
-        Returns `i`-th entry or slice of self.
+        EXAMPLES::
 
-        EXAMPLES:
             sage: R = Integers(7)
             sage: v = vector(R, [1,2,3]); v
             (1, 2, 3)
@@ -255,33 +233,39 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             sage: v[5]
             Traceback (most recent call last):
             ...
-            IndexError: index out of range
+            IndexError: vector index out of range
             sage: v[-5]
             Traceback (most recent call last):
             ...
-            IndexError: index out of range
+            IndexError: vector index out of range
         """
-        if isinstance(i, slice):
-            start, stop, step = i.indices(len(self))
-            return vector(self.base_ring(), self.list()[start:stop])
-
-        if i < 0:
-            i += self._degree
-        if i < 0 or i >= self._degree:
-            raise IndexError('index out of range')
         cdef IntegerMod_int n
         cdef IntegerMod_int64 m
 
         if use_32bit_type(self._p):
-            n =  IntegerMod_int.__new__(IntegerMod_int)
+            n = IntegerMod_int.__new__(IntegerMod_int)
             IntegerMod_abstract.__init__(n, self.base_ring())
             n.ivalue = self._entries[i]
             return n
         else:
-            m =  IntegerMod_int64.__new__(IntegerMod_int64)
+            m = IntegerMod_int64.__new__(IntegerMod_int64)
             IntegerMod_abstract.__init__(m, self.base_ring())
             m.ivalue = self._entries[i]
             return m
+
+    cdef int set_unsafe(self, Py_ssize_t i, value) except -1:
+        """
+        EXAMPLES::
+
+            sage: R = Integers(7)
+            sage: v = vector(R, [1,2,3]); v
+            (1, 2, 3)
+            sage: v[0] = 7^7
+            sage: v
+            (0, 2, 3)
+        """
+        self._entries[i] = ivalue(<IntegerMod_abstract>value)
+
 
     def __reduce__(self):
         return unpickle_v1, (self._parent, self.list(), self._degree, self._p, self._is_mutable)

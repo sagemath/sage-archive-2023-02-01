@@ -449,7 +449,7 @@ class Decorator:
         from sage.misc.sageinspect import sage_getsourcelines, sage_getfile, _extract_embedded_position
         f = self.f
         doc = f.__doc__ or ''
-        if _extract_embedded_position(doc.splitlines()[0]) is None:
+        if _extract_embedded_position(doc) is None:
             try:
                 sourcelines = sage_getsourcelines(f)
                 from sage.env import SAGE_LIB, SAGE_SRC

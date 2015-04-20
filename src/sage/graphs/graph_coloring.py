@@ -52,9 +52,11 @@ Methods
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from copy import copy
 from sage.combinat.matrices.dlxcpp import DLXCPP
 from sage.plot.colors import rainbow
 from graph_generators import GraphGenerators
+
 
 def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dict=False):
     r"""
@@ -1304,9 +1306,9 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
         answer = [[] for i in range(k)]
         add = lambda (u,v),i : answer[i].append((u,v))
     else:
-        gg = g.copy(immutable=False)
+        gg = copy(g)
         gg.delete_edges(g.edges())
-        answer = [gg.copy() for i in range(k)]
+        answer = [copy(gg) for i in range(k)]
         add = lambda (u,v),i : answer[i].add_edge((u,v))
 
     for i in range(k):
@@ -1509,9 +1511,9 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
         answer = [[] for i in range(k)]
         add = lambda (u,v),i : answer[i].append((u,v))
     else:
-        gg = g.copy(immutable=False)
+        gg = copy(g)
         gg.delete_edges(g.edges())
-        answer = [gg.copy() for i in range(k)]
+        answer = [copy(gg) for i in range(k)]
         add = lambda (u,v),i : answer[i].add_edge((u,v))
 
     for i in range(k):

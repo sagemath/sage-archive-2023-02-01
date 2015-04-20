@@ -2039,7 +2039,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             EXAMPLES::
 
-                sage: L = RootSystem(["A",2,1]).ambient_space().plot()
+                sage: L = RootSystem(["A",2,1]).ambient_space().plot()    # long time
 
             .. SEEALSO::
 
@@ -2050,6 +2050,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 - :meth:`plot_reflection_hyperplanes`
                 - :meth:`plot_alcoves`
                 - :meth:`plot_alcove_walk`
+                - :meth:`plot_ls_paths`
+                - :meth:`plot_crystal`
             """
             plot_options = self.plot_parse_options(**options)
             G = plot_options.empty()
@@ -2962,6 +2964,182 @@ class RootLatticeRealizations(Category_over_base_ring):
                 raise NotImplementedError("Implemented only for irreducible finite root systems")
             L = self.root_system.ambient_space() # uses peculiarities of ambient embedding
             return max([root.scalar(root) for root in L.simple_roots()])
+
+        def plot_ls_paths(self, paths, plot_labels=None, colored_labels=True, **options):
+            r"""
+            Plot LS paths.
+
+            INPUT:
+
+            - ``paths`` -- a finite crystal or list of LS paths
+            - ``plot_labels`` -- (default: ``None``) the distance to plot
+              the LS labels from the endpoint of the path; set to ``None``
+              to not display the labels
+            - ``colored_labels`` -- (default: ``True``) if ``True``, then
+              color the labels the same color as the LS path
+            - ``**options`` -- plotting options
+
+            .. SEEALSO::
+
+                - :meth:`plot` for a description of the plotting options
+                - :ref:`sage.combinat.root_system.plot` for a tutorial
+                  on root system plotting
+
+            EXAMPLES::
+
+                sage: B = crystals.LSPaths(['A',2], [1,1])
+                sage: L = RootSystem(['A',2]).ambient_space()
+                sage: L.plot_fundamental_weights() + L.plot_ls_paths(B)
+                Graphics object consisting of 14 graphics primitives
+
+            This also works in 3 dimensions::
+
+                sage: B = crystals.LSPaths(['B',3], [2,0,0])
+                sage: L = RootSystem(['B',3]).ambient_space()
+                sage: L.plot_ls_paths(B)
+                Graphics3d Object
+            """
+            if not isinstance(paths, (list, tuple, set)):
+                from sage.combinat.crystals.littelmann_path import CrystalOfLSPaths
+                from sage.categories.finite_crystals import FiniteCrystals
+                if not isinstance(paths, CrystalOfLSPaths):
+                    raise ValueError("the input must be LS paths")
+                if paths not in FiniteCrystals():
+                    raise ValueError("the crystal must be finite")
+
+            from sage.plot.line import line
+            from sage.plot.colors import rainbow
+            plot_options = self.plot_parse_options(**options)
+            color = rainbow(len(paths), 'rgbtuple')
+            G = plot_options.empty()
+            for i,b in enumerate(paths):
+                prev = plot_options.projection(self.zero())
+                for x in b.value:
+                    next = plot_options.projection(self(x))
+                    G += line([prev, next], rgbcolor=color[i])
+                    prev = next
+                if plot_labels is not None:
+                    if colored_labels:
+                        G += plot_options.text(b, prev + prev.normalized()*plot_labels, rgbcolor=color[i])
+                    else:
+                        G += plot_options.text(b, prev + prev.normalized()*plot_labels)
+            return G
+
+        def plot_crystal(self, crystal,
+                         plot_labels=True, label_color='black',
+                         edge_labels=False,
+                         circle_size=0.06, circle_thickness=1.6,
+                         **options):
+            r"""
+            Plot a finite crystal.
+
+            INPUT:
+
+            - ``crystal`` -- the finite crystal to plot
+            - ``plot_labels`` -- (default: ``True``) can be one of the
+              following:
+
+              * ``True`` - use the latex labels
+              * ``'circles'`` - use circles for multiplicity up to 4; if the
+                multiplicity is larger, then it uses the multiplicity
+              * ``'multiplicities'`` - use the multiplicities
+
+            - ``label_color`` -- (default: ``'black'``) the color of the
+              labels
+            - ``edge_labels`` -- (default: ``False``) if ``True``, then draw
+              in the edge label
+            - ``circle_size`` -- (default: 0.06) the size of the circles
+            - ``circle_thickness`` -- (default: 1.6) the thinkness of the
+              extra rings of circles
+            - ``**options`` -- plotting options
+
+            .. SEEALSO::
+
+                - :meth:`plot` for a description of the plotting options
+                - :ref:`sage.combinat.root_system.plot` for a tutorial
+                  on root system plotting
+
+            EXAMPLES::
+
+                sage: L = RootSystem(['A',2]).ambient_space()
+                sage: C = crystals.Tableaux(['A',2], shape=[2,1])
+                sage: L.plot_crystal(C)
+                Graphics object consisting of 16 graphics primitives
+                sage: C = crystals.Tableaux(['A',2], shape=[8,4])
+                sage: p = L.plot_crystal(C, plot_labels='circles')
+                sage: p.show(figsize=15)
+
+            A 3-dimensional example::
+
+                sage: L = RootSystem(['B',3]).ambient_space()
+                sage: C = crystals.Tableaux(['B',3], shape=[2,1])
+                sage: L.plot_crystal(C, plot_labels='circles', edge_labels=True) # long time
+                Graphics3d Object
+            """
+            from sage.plot.arrow import arrow
+            from sage.plot.circle import circle
+            from sage.plot.colors import rgbcolor
+            from sage.categories.finite_crystals import FiniteCrystals
+
+            if crystal not in FiniteCrystals():
+                raise ValueError("only implemented for finite crystals")
+            plot_options = self.plot_parse_options(**options)
+            label_color = rgbcolor(label_color)
+
+            g = crystal.digraph()
+            mults = {}
+            for x in g.vertices():
+                wt = self(x.weight())
+                mults[wt] = mults.get(wt, []) + [x]
+            positions = {x: plot_options.projection(x) for x in mults.keys()}
+
+            G = plot_options.empty()
+            if plot_labels == 'circles':
+                for wt,m in mults.items():
+                    m = len(m)
+                    if m > 4:
+                        G += plot_options.text(m, positions[wt], rgbcolor=label_color)
+                        continue
+
+                    if m >= 1:
+                        G += circle(positions[wt], circle_size, fill=True,
+                                    thickness=circle_thickness,
+                                    rgbcolor=label_color)
+                    for i in range(2,m+1):
+                        G += circle(positions[wt], i*circle_size,
+                                    thickness=circle_thickness,
+                                    rgbcolor=label_color)
+
+            elif plot_labels == 'multiplicities':
+                for wt,m in mults.items():
+                    G += plot_options.text(len(m), positions[wt], rgbcolor=label_color)
+
+            elif plot_labels:
+                for wt,m in mults.items():
+                    for elt in m:
+                        # TODO: Destack the multiple weights
+                        G += plot_options.text(elt, positions[wt], rgbcolor=label_color)
+
+            for h,t,i in g.edges():
+                G += arrow(positions[h.weight()], positions[t.weight()],
+                           zorder=1, rgbcolor=plot_options.color(i),
+                           arrowsize=plot_options._arrowsize)
+                if edge_labels:
+                    mid = (positions[h.weight()] + positions[t.weight()]) / QQ(2)
+                    if plot_options.dimension >= 2:
+                        diff = (positions[h.weight()] - positions[t.weight()]).normalized()
+                        if plot_options.dimension >= 3:
+                            from copy import copy
+                            diff2 = copy(diff)
+                            diff[0], diff[1] = -diff[1], diff[0]
+                            if abs(diff.dot_product(diff2)) > 0.9:
+                                diff[1], diff[2] = -diff[2], diff[1]
+                        else:
+                            diff[0], diff[1] = -diff[1], diff[0]
+
+                        mid += diff / QQ(10)
+                    G += plot_options.text(i, mid, rgbcolor=plot_options.color(i))
+            return G
 
     ##########################################################################
 

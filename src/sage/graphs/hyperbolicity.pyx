@@ -912,6 +912,15 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
         ...       if (not d1==d2==d3==d4) or l3>d1 or u3<d1:
         ...          print "That's not good!"
 
+
+    The hyperbolicity of a graph is the maximum value over all its biconnected components::
+
+        sage: from sage.graphs.hyperbolicity import hyperbolicity
+        sage: G = graphs.PetersenGraph() * 2
+        sage: G.add_edge(0, 11)
+        sage: hyperbolicity(G)
+        (1/2, [0, 1, 2, 3], 1/2)
+
     TESTS:
 
     Giving anything else than a Graph::
@@ -964,20 +973,24 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
         raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
     if approximation_factor is None:
         approximation_factor = 1.0
+    elif approximation_factor==1.0:
+        pass
     elif algorithm=='cuts':
         if not approximation_factor in RR or approximation_factor < 1.0:
             raise ValueError("The approximation factor must be >= 1.0.")
     else:
-        print "The approximation_factor is ignored when using the '%s' algorithm." %(algorithm)
+        raise ValueError("The approximation_factor is ignored when using the '%s' algorithm." %(algorithm))
     if additive_gap is None:
         additive_gap = 0.0
+    elif additive_gap==0.0:
+        pass
     elif algorithm=='cuts':
         if not additive_gap in RR:
             raise ValueError("The additive gap must be a real positive number.")
         elif additive_gap < 0.0:
             raise ValueError("The additive gap must be >= 0 when using the '%s' algorithm." %(algorithm))
     else:
-        print "The additive_gap is ignored when using the '%s' algorithm." %(algorithm)
+        raise ValueError("The additive_gap is ignored when using the '%s' algorithm." %(algorithm))
 
     # The hyperbolicity is defined on connected graphs
     if not G.is_connected():
@@ -1000,13 +1013,13 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
         return 0, G.vertices()[:4], 0
 
 
-    cdef int i, j, hh, hh_UB, D
+    cdef int i, j, D
     cdef list certificate = []
     cdef list certif
 
     cdef int N = G.num_verts()
-    cdef int hyp = 0
-    cdef int hyp_UB = N
+    hyp = 0
+    hyp_UB = 0
 
     #
     # The hyperbolicity of a graph is the maximum over its 2-connected
@@ -1042,7 +1055,7 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
                 hyp_UB = max(hyp_UB, hh_UB)
 
         # Last, we return the computed value and the certificate
-        return  ZZ(hyp)/2, sorted(certificate), ZZ(hyp_UB)/2
+        return  hyp, sorted(certificate), hyp_UB
 
 
     #

@@ -7,6 +7,8 @@ from sage.structure.parent import Parent
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.combinat.permutation import Permutation, Permutations
 
+from sage.rings.integer_ring import ZZ
+
 
 class BaxterPermutations(UniqueRepresentation, Parent):
     r"""
@@ -82,7 +84,7 @@ class BaxterPermutations_size(BaxterPermutations):
             Baxter permutations of size 5
         """
         self.element_class = Permutations(n).element_class
-        self._n = n
+        self._n = ZZ(n)
         from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
         super(BaxterPermutations, self).__init__(category=FiniteEnumeratedSets())
 
@@ -231,13 +233,18 @@ class BaxterPermutations_size(BaxterPermutations):
 
             sage: [BaxterPermutations(n).cardinality() for n in xrange(13)]
             [1, 1, 2, 6, 22, 92, 422, 2074, 10754, 58202, 326240, 1882960, 11140560]
+
+            sage: BaxterPermutations(3r).cardinality()
+            6
+            sage: parent(_)
+            Integer Ring
         """
         if self._n == 0:
             return 1
         from sage.rings.arith import binomial
         return sum((binomial(self._n + 1, k) *
                     binomial(self._n + 1, k + 1) *
-                    binomial(self._n + 1, k + 2)) /
+                    binomial(self._n + 1, k + 2)) //
                    ((self._n + 1) * binomial(self._n + 1, 2))
                    for k in xrange(self._n))
 

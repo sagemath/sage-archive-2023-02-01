@@ -150,7 +150,7 @@ class Graphics(SageObject):
         self._bbox_extra_artists = []
         self._extra_kwds = {}
         self._fontsize = 10
-        self._axes_labels_size = 1.7
+        self._axes_labels_size = 1.6
         self._legend_colors = []
         self._legend_opts = {}
         self._objects = []
@@ -474,7 +474,7 @@ class Graphics(SageObject):
         Set the font size of axes labels and tick marks.
 
         Note that the relative size of the axes labels font w.r.t. the tick
-        marks font can be adjusted via :meth:`axes_labels_size`. 
+        marks font can be adjusted via :meth:`axes_labels_size`.
 
         INPUT:
 
@@ -521,7 +521,7 @@ class Graphics(SageObject):
 
             sage: p = plot(sin(x^2), (x, -3, 3), axes_labels=['$x$','$y$'])
             sage: p.axes_labels_size() # default value
-            1.7
+            1.6
             sage: p.axes_labels_size(2.5)
             sage: p.axes_labels_size()
             2.5
@@ -536,7 +536,7 @@ class Graphics(SageObject):
             try:
                 return self._axes_labels_size
             except AttributeError:
-                self._axes_labels_size = 1.7
+                self._axes_labels_size = 1.6
                 return self._axes_labels_size
         self._axes_labels_size = float(s)
 
@@ -898,7 +898,7 @@ class Graphics(SageObject):
             if output_container in display_manager.supported_output():
                 return display_manager.graphics_from_save(
                     self.save, kwds, file_ext, output_container)
-    
+
     def __str__(self):
         r"""
         Return string representation of this plot.
@@ -1362,9 +1362,9 @@ class Graphics(SageObject):
           strings; the first is used as the label for the horizontal
           axis, and the second for the vertical axis.
 
-        - ``axes_labels_size`` - (default: current setting -- 1.7) scale factor
+        - ``axes_labels_size`` - (default: current setting -- 1.6) scale factor
           relating the size of the axes labels with respect to the size of the
-          tick marks. 
+          tick marks.
 
         - ``fontsize`` - (default: current setting -- 10) positive
           integer; used for axes labels; if you make this very large,
@@ -1908,9 +1908,9 @@ class Graphics(SageObject):
         specify ``ticks`` manually, this safety measure can be defeated::
 
             sage: list_plot_loglog([(1,2),(2,3)], plotjoined=True, ticks=[[1],[1]])
-            doctest:...: UserWarning: The x-axis contains fewer than 2 ticks; 
+            doctest:...: UserWarning: The x-axis contains fewer than 2 ticks;
             the logarithmic scale of the plot may not be apparent to the reader.
-            doctest:...: UserWarning: The y-axis contains fewer than 2 ticks; 
+            doctest:...: UserWarning: The y-axis contains fewer than 2 ticks;
             the logarithmic scale of the plot may not be apparent to the reader.
             Graphics object consisting of 1 graphics primitive
 
@@ -2011,7 +2011,7 @@ class Graphics(SageObject):
             else:
                 html("<img src='cell://%s'>" % filename)
                 return
-            
+
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()
         dm.display_immediately(self, **kwds)
@@ -2469,7 +2469,7 @@ class Graphics(SageObject):
 
             sage: plot(x, typeset='garbage')
             doctest:...: RichReprWarning: Exception in _rich_repr_ while
-            displaying object: typeset must be set to one of 'default', 
+            displaying object: typeset must be set to one of 'default',
             'latex', or 'type1'; got 'garbage'.
             Graphics object consisting of 1 graphics primitive
 

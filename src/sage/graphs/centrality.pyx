@@ -171,150 +171,150 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
     if numerical_type is mpq_t:
         mpq_init(mpq_tmp)
 
-    init_short_digraph(g, G, edge_labelled = False)
-    init_reverse(bfs_dag, g)
+        init_short_digraph(g, G, edge_labelled = False)
+        init_reverse(bfs_dag, g)
 
-    queue               = <uint32_t *> sage_malloc(n*sizeof(uint32_t))
-    degrees             = <uint32_t *> sage_malloc(n*sizeof(uint32_t))
-    n_paths_from_source = <numerical_type *> sage_malloc(n*sizeof(numerical_type))
-    betweenness_source  = <numerical_type *> sage_malloc(n*sizeof(numerical_type))
-    betweenness         = <numerical_type *> sage_malloc(n*sizeof(numerical_type))
+        queue               = <uint32_t *> sage_malloc(n*sizeof(uint32_t))
+        degrees             = <uint32_t *> sage_malloc(n*sizeof(uint32_t))
+        n_paths_from_source = <numerical_type *> sage_malloc(n*sizeof(numerical_type))
+        betweenness_source  = <numerical_type *> sage_malloc(n*sizeof(numerical_type))
+        betweenness         = <numerical_type *> sage_malloc(n*sizeof(numerical_type))
 
-    if (queue               == NULL or
-        degrees             == NULL or
-        n_paths_from_source == NULL or
-        betweenness_source  == NULL or
-        betweenness         == NULL):
+        if (queue               == NULL or
+            degrees             == NULL or
+            n_paths_from_source == NULL or
+            betweenness_source  == NULL or
+            betweenness         == NULL):
+            sage_free(queue)
+            sage_free(n_paths_from_source)
+            sage_free(degrees)
+            sage_free(betweenness_source)
+            sage_free(betweenness)
+            raise MemoryError
+
+        bitset_init(seen,n)
+        bitset_init(next_layer,n)
+
+        if numerical_type is double:
+            memset(betweenness,0,n*sizeof(double))
+        else:
+            for i in range(n):
+                mpq_init(betweenness[i])
+                mpq_set_ui(betweenness[i],0,1)
+                mpq_init(betweenness_source[i])
+                mpq_init(n_paths_from_source[i])
+
+        for source in range(n):
+
+            if numerical_type is double:
+                memset(betweenness_source ,0,n*sizeof(double))
+                memset(n_paths_from_source,0,n*sizeof(double))
+                n_paths_from_source[source]=1
+            else:
+                for i in range(n):
+                    mpq_set_ui(betweenness_source[i] ,0,1)
+                    mpq_set_ui(n_paths_from_source[i],0,1)
+                mpq_set_ui(n_paths_from_source[source],1,1)
+
+            # initialize data
+            bitset_set_first_n(seen, 0)
+            bitset_add(seen,source)
+            bitset_set_first_n(next_layer, 0)
+
+            memset(degrees,0,n*sizeof(uint32_t))
+
+            queue[0] = source
+            layer_current_beginning = 0
+            layer_current_end       = 1
+            layer_next_end          = 1
+
+            # The number of shortest paths from 'source' to every other vertex.
+            #
+            # It is a BFS. The graph is explored layer by layer.
+            while layer_current_beginning<layer_current_end:
+
+                # Looking for all non-discovered neighbors of some vertex of the
+                # current layer.
+                for j in range(layer_current_beginning,layer_current_end):
+                    u = queue[j]
+
+                    # List the neighors of u
+                    p_tmp = g.neighbors[u]
+                    while p_tmp<g.neighbors[u+1]:
+                        v = p_tmp[0]
+                        p_tmp += 1
+
+                        # Is it a new vertex ?
+                        if bitset_in(seen,v):
+                            continue
+
+                        # Is it the first time we see it ?
+                        elif not bitset_in(next_layer,v):
+                            bitset_add(next_layer,v)
+                            queue[layer_next_end] = v
+                            layer_next_end += 1
+
+                        # update the count of paths and the BFS dag.
+                        bfs_dag.neighbors[v][degrees[v]] = u
+                        degrees[v] += 1
+                        if numerical_type is double:
+                            n_paths_from_source[v] += n_paths_from_source[u]
+                        else:
+                            mpq_add(n_paths_from_source[v],n_paths_from_source[v],n_paths_from_source[u])
+
+                # 'next_layer' becomes 'current_layer'
+                for j in range(layer_current_end, layer_next_end):
+                    bitset_add(seen,queue[j])
+
+                layer_current_beginning = layer_current_end
+                layer_current_end       = layer_next_end
+
+            # Compute the betweenness from the number of paths
+            #
+            # We enumerate vertices in reverse order of discovery.
+            for i in range(layer_current_end-1,-1,-1):
+                u = queue[i]
+                for j in range(degrees[u]):
+                    v = bfs_dag.neighbors[u][j]
+                    if v != source: # better to not 'if' but set it to 0 afterwards?
+                        if numerical_type is double:
+                            betweenness_source[v] += (betweenness_source[u]+1)*(n_paths_from_source[v]/n_paths_from_source[u])
+                        else:
+                            mpq_set_ui(mpq_tmp,1,1)
+                            mpq_add(mpq_tmp,betweenness_source[u],mpq_tmp)
+                            mpq_mul(mpq_tmp,mpq_tmp,n_paths_from_source[v])
+                            mpq_div(mpq_tmp,mpq_tmp,n_paths_from_source[u])
+                            mpq_add(betweenness_source[v],betweenness_source[v],mpq_tmp)
+
+            # update betweenness from betweenness_source
+            for i in range(n):
+                if numerical_type is double:
+                    betweenness[i] += betweenness_source[i]
+                else:
+                    mpq_add(betweenness[i],betweenness[i],betweenness_source[i])
+
+        if numerical_type is double:
+            betweenness_list = [betweenness[i] for i in range(n)]
+        else:
+            betweenness_list = [Rational(None) for x in range(n)]
+
+            for i in range(n):
+                (<Rational> (betweenness_list[i])).set_from_mpq(betweenness[i])
+            for i in range(n):
+                mpq_clear(betweenness_source[i])
+                mpq_clear(betweenness[i])
+                mpq_clear(n_paths_from_source[i])
+            mpq_clear(mpq_tmp)
+
+        free_short_digraph(g)
+        free_short_digraph(bfs_dag)
+        bitset_free(seen)
+        bitset_free(next_layer)
         sage_free(queue)
         sage_free(n_paths_from_source)
         sage_free(degrees)
         sage_free(betweenness_source)
         sage_free(betweenness)
-        raise MemoryError
-
-    bitset_init(seen,n)
-    bitset_init(next_layer,n)
-
-    if numerical_type is double:
-        memset(betweenness,0,n*sizeof(double))
-    else:
-        for i in range(n):
-            mpq_init(betweenness[i])
-            mpq_set_ui(betweenness[i],0,1)
-            mpq_init(betweenness_source[i])
-            mpq_init(n_paths_from_source[i])
-
-    for source in range(n):
-
-        if numerical_type is double:
-            memset(betweenness_source ,0,n*sizeof(double))
-            memset(n_paths_from_source,0,n*sizeof(double))
-            n_paths_from_source[source]=1
-        else:
-            for i in range(n):
-                mpq_set_ui(betweenness_source[i] ,0,1)
-                mpq_set_ui(n_paths_from_source[i],0,1)
-            mpq_set_ui(n_paths_from_source[source],1,1)
-
-        # initialize data
-        bitset_set_first_n(seen, 0)
-        bitset_add(seen,source)
-        bitset_set_first_n(next_layer, 0)
-
-        memset(degrees,0,n*sizeof(uint32_t))
-
-        queue[0] = source
-        layer_current_beginning = 0
-        layer_current_end       = 1
-        layer_next_end          = 1
-
-        # The number of shortest paths from 'source' to every other vertex.
-        #
-        # It is a BFS. The graph is explored layer by layer.
-        while layer_current_beginning<layer_current_end:
-
-            # Looking for all non-discovered neighbors of some vertex of the
-            # current layer.
-            for j in range(layer_current_beginning,layer_current_end):
-                u = queue[j]
-
-                # List the neighors of u
-                p_tmp = g.neighbors[u]
-                while p_tmp<g.neighbors[u+1]:
-                    v = p_tmp[0]
-                    p_tmp += 1
-
-                    # Is it a new vertex ?
-                    if bitset_in(seen,v):
-                        continue
-
-                    # Is it the first time we see it ?
-                    elif not bitset_in(next_layer,v):
-                        bitset_add(next_layer,v)
-                        queue[layer_next_end] = v
-                        layer_next_end += 1
-
-                    # update the count of paths and the BFS dag.
-                    bfs_dag.neighbors[v][degrees[v]] = u
-                    degrees[v] += 1
-                    if numerical_type is double:
-                        n_paths_from_source[v] += n_paths_from_source[u]
-                    else:
-                        mpq_add(n_paths_from_source[v],n_paths_from_source[v],n_paths_from_source[u])
-
-            # 'next_layer' becomes 'current_layer'
-            for j in range(layer_current_end, layer_next_end):
-                bitset_add(seen,queue[j])
-
-            layer_current_beginning = layer_current_end
-            layer_current_end       = layer_next_end
-
-        # Compute the betweenness from the number of paths
-        #
-        # We enumerate vertices in reverse order of discovery.
-        for i in range(layer_current_end-1,-1,-1):
-            u = queue[i]
-            for j in range(degrees[u]):
-                v = bfs_dag.neighbors[u][j]
-                if v != source: # better to not 'if' but set it to 0 afterwards?
-                    if numerical_type is double:
-                        betweenness_source[v] += (betweenness_source[u]+1)*(n_paths_from_source[v]/n_paths_from_source[u])
-                    else:
-                        mpq_set_ui(mpq_tmp,1,1)
-                        mpq_add(mpq_tmp,betweenness_source[u],mpq_tmp)
-                        mpq_mul(mpq_tmp,mpq_tmp,n_paths_from_source[v])
-                        mpq_div(mpq_tmp,mpq_tmp,n_paths_from_source[u])
-                        mpq_add(betweenness_source[v],betweenness_source[v],mpq_tmp)
-
-        # update betweenness from betweenness_source
-        for i in range(n):
-            if numerical_type is double:
-                betweenness[i] += betweenness_source[i]
-            else:
-                mpq_add(betweenness[i],betweenness[i],betweenness_source[i])
-
-    if numerical_type is double:
-        betweenness_list = [betweenness[i] for i in range(n)]
-    else:
-        betweenness_list = [Rational(None) for x in range(n)]
-
-        for i in range(n):
-            (<Rational> (betweenness_list[i])).set_from_mpq(betweenness[i])
-        for i in range(n):
-            mpq_clear(betweenness_source[i])
-            mpq_clear(betweenness[i])
-            mpq_clear(n_paths_from_source[i])
-        mpq_clear(mpq_tmp)
-
-    free_short_digraph(g)
-    free_short_digraph(bfs_dag)
-    bitset_free(seen)
-    bitset_free(next_layer)
-    sage_free(queue)
-    sage_free(n_paths_from_source)
-    sage_free(degrees)
-    sage_free(betweenness_source)
-    sage_free(betweenness)
 
     if not G.is_directed():
         betweenness_list = [x/2 for x in betweenness_list]

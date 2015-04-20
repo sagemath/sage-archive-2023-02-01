@@ -12738,7 +12738,6 @@ class GenericGraph(GenericGraph_pyx):
             return []
         return [v for v in e if e[v]==r]
 
-
     ### Centrality
 
     def centrality_betweenness(self, k=None, normalized=True, weight=None,
@@ -12807,6 +12806,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.show(figsize=[2,2])
             sage: D.centrality_betweenness() # abs tol abs 1e-10
             {0: 0.16666666666666666, 1: 0.16666666666666666, 2: 0.0, 3: 0.0}
+
+        TESTS::
+
+            sage: tests = ([graphs.RandomGNP(30,.1) for i in range(10)]+
+            ....:          [digraphs.RandomDirectedGNP(30,.1) for i in range(10)])
+            sage: for g in tests:
+            ....:     r1 = g.centrality_betweenness(algorithm="Sage",exact=0)
+            ....:     r2 = g.centrality_betweenness(algorithm="Sage",exact=1)
+            ....:     r3 = g.centrality_betweenness(algorithm="NetworkX")
+            ....:     for x in g:
+            ....:         if max([r1[x],r2[x],r3[x]])-min([r1[x],r2[x],r3[x]]) > 0.01:
+            ....:             print "Error",x,[r1[x],r2[x],r3[x]]
         """
         if algorithm == "NetworkX" and exact:
             raise ValueError("'exact' is not available with the NetworkX implementation")

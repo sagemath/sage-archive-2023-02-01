@@ -52,9 +52,10 @@ REFERENCES:
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
+from sage.categories.modules_with_basis import ModulesWithBasis
 import sfa
-import sage.combinat.partition
-from sage.combinat.partition import Partition
+from sage.combinat.partition import Partition, Partitions
+from sage.combinat.skew_partition import SkewPartition
 from sage.matrix.all import MatrixSpace
 from sage.rings.all import QQ
 from sage.misc.all import prod
@@ -608,13 +609,13 @@ def c2(part, q, t):
     return res
 
 @cached_function
-def Bmu( mu ):
+def Bmu(mu):
     r"""
-    Returns the bi-exponent generator for the cells of ``mu``.
-    
+    Return the bi-exponent generator for the cells of ``mu``.
+
     The weight in the bi-exponent generator is `t` raised the
     `x`-coordinate of the cell, `q` raised to the `y` coordinate.
-    
+
     INPUT:
 
     - ``mu`` -- a partition or a skew partition
@@ -632,7 +633,7 @@ def Bmu( mu ):
         q^2*t + q^2 + q*t + t
     """
     q,t = QQqt.gens()
-    return sum(t**c[0]*q**c[1] for c in mu.cells())
+    return QQqt.sum(t**c[0] * q**c[1] for c in mu.cells())
 
 @cached_function
 def cmunu1(mu, nu):
@@ -657,26 +658,35 @@ def cmunu1(mu, nu):
         sage: Sym = SymmetricFunctions(QQ['q','t'].fraction_field())
         sage: h = Sym.h()
         sage: Ht = Sym.macdonald().Ht()
-        sage: all(Ht[3,2,1].skew_by(h[1]).coefficient(nu) == cmunu1(Partition([3,2,1]),nu) for nu in Partition([3,2,1]).down_list())
+        sage: all(Ht[3,2,1].skew_by(h[1]).coefficient(nu)
+        ....:     == cmunu1(Partition([3,2,1]),nu)
+        ....:     for nu in Partition([3,2,1]).down_list())
         True
     """
     q,t = QQqt.gens()
-    c = sage.combinat.skew_partition.SkewPartition([mu,nu]).cells()[0]
-    A = prod((t**mu.leg_length(*s)-q**(mu.arm_length(*s)+1))/(t**nu.leg_length(*s)-q**(nu.arm_length(*s)+1)) for s in nu.cells() if s[0]==c[0])
-    B = prod((q**mu.arm_length(*s)-t**(mu.leg_length(*s)+1))/(q**nu.arm_length(*s)-t**(nu.leg_length(*s)+1)) for s in nu.cells() if s[1]==c[1])
+    from sage.combinat.skew_partition import SkewPartition
+    c = SkewPartition([mu,nu]).cells()[0]
+    A = prod((t**mu.leg_length(*s) - q**(mu.arm_length(*s)+1))
+             / (t**nu.leg_length(*s) - q**(nu.arm_length(*s)+1))
+             for s in nu.cells() if s[0] == c[0])
+    B = prod((q**mu.arm_length(*s) - t**(mu.leg_length(*s)+1))
+             / (q**nu.arm_length(*s) - t**(nu.leg_length(*s)+1))
+             for s in nu.cells() if s[1] == c[1])
     return A*B
-    
+
 @cached_function
 def cmunu(mu, nu):
     r"""
     Return the coefficient of `{\tilde H}_\nu` in `h_r^\perp {\tilde H}_\mu`.
+
     Proposition 5 of F. Bergeron and M. Haiman [BH2013]_ states
 
     .. MATH::
 
-        c_{\mu\nu} = \sum_{\alpha \leftarrow \nu} c_{\mu\alpha} c_{\alpha\nu} B_{\alpha/\nu}/B_{\mu/\nu}
-    
-    where `c_{\mu\nu}` is the coefficient of `{\tilde H}_\nu` in 
+        c_{\mu\nu} = \sum_{\alpha \leftarrow \nu} c_{\mu\alpha}
+        c_{\alpha\nu} B_{\alpha/\nu}/B_{\mu/\nu}
+
+    where `c_{\mu\nu}` is the coefficient of `{\tilde H}_\nu` in
     `h_r^\perp {\tilde H}_\mu` and `B_{\mu/\nu}` is the bi-exponent generator
     implemented in the function :func:`sage.combinat.sf.macdonald.Bmu`.
 
@@ -698,16 +708,20 @@ def cmunu(mu, nu):
         sage: Sym = SymmetricFunctions(QQ['q','t'].fraction_field())
         sage: h = Sym.h()
         sage: Ht = Sym.macdonald().Ht()
-        sage: all(Ht[2,2].skew_by(h[r]).coefficient(nu) == cmunu(Partition([2,2]),nu) for r in range(1,5) for nu in Partitions(4-r))
+        sage: all(Ht[2,2].skew_by(h[r]).coefficient(nu)
+        ....:     == cmunu(Partition([2,2]),nu)
+        ....:     for r in range(1,5) for nu in Partitions(4-r))
         True
     """
-    if nu==[]:
+    if not nu:
         return 1
     if not mu.contains(nu):
         return 0
-    if mu.size()==nu.size()+1:
+    if mu.size() == nu.size() + 1:
         return cmunu1(mu, nu)
-    return sum(cmunu(mu, al)*cmunu1(al, nu)*Bmu(sage.combinat.skew_partition.SkewPartition([al,nu])) for al in nu.up_list())/Bmu(sage.combinat.skew_partition.SkewPartition([mu,nu]))
+    num = sum(cmunu(mu, al) * cmunu1(al, nu) * Bmu(SkewPartition([al,nu]))
+              for al in nu.up_list())
+    return num / Bmu(SkewPartition([mu,nu]))
 
 #Generic MacdonaldPolynomials
 class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
@@ -752,7 +766,7 @@ class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
         # common category BasesByOrthotriangularity (shared with Jack, HL, orthotriang, Mcdo)
         if hasattr(self, "_s_cache"):
             # temporary until Hom(GradedHopfAlgebrasWithBasis work better)
-            category = sage.categories.all.ModulesWithBasis(self.base_ring())
+            category = ModulesWithBasis(self.base_ring())
             self   .register_coercion(SetMorphism(Hom(self._s, self, category), self._s_to_self))
             self._s.register_coercion(SetMorphism(Hom(self, self._s, category), self._self_to_s))
 
@@ -996,7 +1010,7 @@ class MacdonaldPolynomials_p(MacdonaldPolynomials_generic):
 
         self._J = macdonald.J()
         # temporary until Hom(GradedHopfAlgebrasWithBasis work better)
-        category = sage.categories.all.ModulesWithBasis(self.base_ring())
+        category = ModulesWithBasis(self.base_ring())
         phi = self._J.module_morphism(diagonal = self.c2, codomain = self, category = category)
         self.register_coercion( phi)
         self._J.register_coercion(~phi)
@@ -1067,7 +1081,7 @@ class MacdonaldPolynomials_q(MacdonaldPolynomials_generic):
         self._P = macdonald.P()
 
         # temporary until Hom(GradedHopfAlgebrasWithBasis) works better
-        category = sage.categories.all.ModulesWithBasis(self.base_ring())
+        category = ModulesWithBasis(self.base_ring())
         phi = self._P.module_morphism(diagonal = self._P.scalar_qt_basis, codomain = self, category = category)
         self   .register_coercion( phi)
         self._P.register_coercion(~phi)
@@ -1196,14 +1210,13 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
         MacdonaldPolynomials_generic.__init__(self, macdonald)
         self._m = self._sym.m()
         self._Lmunu = macdonald.Ht()._Lmunu
-        category = sage.categories.all.ModulesWithBasis(self.base_ring())
+        category = ModulesWithBasis(self.base_ring())
         self._m.register_coercion(SetMorphism(Hom(self, self._m, category), self._self_to_m))
         self.register_coercion(SetMorphism(Hom(self._m, self, category), self._m_to_self))
 
-    def _self_to_m( self, x ):
+    def _self_to_m(self, x):
         r"""
-        Takes an element of the ``H`` basis and returns the expansion in the
-        monomial basis.
+        Return an element ``x`` of ``self`` expanded in the monomial basis.
 
         INPUT:
 
@@ -1227,26 +1240,26 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
             sage: m = Sym.m()
             sage: m(H[2,1])
             ((x^2+4*x+1)/x)*m[1, 1, 1] + ((2*x+1)/x)*m[2, 1] + 1/x*m[3]
-
         """
-        return self._m._from_dict({ part2: 
-            self._base(sum(x.coefficient(mu)*QQqt(self._Lmunu(part2, mu)).subs(q=self.q,t=1/self.t)*self.t**mu.weighted_size()
-                for mu in x.homogeneous_component(d).support()))
-                    for d in range(x.degree()+1) for part2 in sage.combinat.partition.Partitions(d)})
+        return self._m._from_dict({ part2:
+            self._base(sum(x.coefficient(mu) * QQqt(self._Lmunu(part2, mu)).subs(q=self.q,t=1/self.t)
+                           * self.t**mu.weighted_size()
+                           for mu in x.homogeneous_component(d).support()))
+                    for d in range(x.degree()+1) for part2 in Partitions(d) })
 
     def _m_to_self( self, f ):
         r"""
         Convert an element ``f`` from the monomial basis to the ``H`` basis.
 
         This calculation is performed by using the fact that `H_\mu[X(1-t)]`
-        is `c_\mu m_\mu` plus terms which are smaller in dominance order.  The leading
-        coefficient of the expansion of ``f`` in the `H_\mu` basis is equal to
-        the leading coefficient of `c_\mu^{-1} f[X(1-t)]`.
-        
-        If `t=1`, we must appeal to another triangularity since ``Ht`` is (usually)
-        still a basis, however `H_\mu[X(1-t)]=0`.  In this case we assume that
-        it is a basis and `H_\mu[X(q-1)]` is `c_\mu m_{\mu'}` plus terms which
-        are lower in dominance order.
+        is `c_\mu m_\mu` plus terms which are smaller in dominance order. 
+        The leading coefficient of the expansion of ``f`` in the `H_\mu`
+        basis is equal to the leading coefficient of `c_\mu^{-1} f[X(1-t)]`.
+
+        If `t=1`, we must appeal to another triangularity since ``Ht``
+        is (usually) still a basis, however `H_\mu[X(1-t)]=0`.  In this
+        case we assume that it is a basis and `H_\mu[X(q-1)]` is
+        `c_\mu m_{\mu'}` plus terms which are lower in dominance order.
 
         INPUT:
 
@@ -1273,21 +1286,20 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
             sage: m = Sym.m()
             sage: H((3*x+3)*m[1, 1, 1] + (x+2)*m[2, 1] + m[3])
             McdH[2, 1]
-            
         """
-        if self.t==1:
-            subsval = 1/self.q
+        if self.t == 1:
+            subsval = 1 / self.q
             fl = lambda x: x.conjugate()
         else:
             subsval = self.t
             fl = lambda x: x
-        g = f.theta_qt(q=subsval,t=0)
+        g = f.theta_qt(q=subsval, t=0)
         out = {}
         while not g.is_zero():
             sprt = g.support()
-            Hmu = self._self_to_m(self(fl(sprt[-1]))).theta_qt(q=subsval,t=0)
-            out[fl(sprt[-1])] = self._base(g.coefficient(sprt[-1])/Hmu.coefficient(sprt[-1]))
-            g -= out[fl(sprt[-1])]*Hmu
+            Hmu = self._self_to_m( self(fl(sprt[-1])) ).theta_qt(q=subsval, t=0)
+            out[fl(sprt[-1])] = self._base(g.coefficient(sprt[-1]) / Hmu.coefficient(sprt[-1]))
+            g -= out[fl(sprt[-1])] * Hmu
         return self._from_dict(out)
 
     class Element(MacdonaldPolynomials_generic.Element):
@@ -1319,7 +1331,7 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         MacdonaldPolynomials_generic.__init__(self, macdonald)
         self._self_to_m_cache = _ht_to_m_cache
         self._m = self._sym.m()
-        category = sage.categories.all.ModulesWithBasis(self.base_ring())
+        category = ModulesWithBasis(self.base_ring())
         self._m.register_coercion(SetMorphism(Hom(self, self._m, category), self._self_to_m))
         self.register_coercion(SetMorphism(Hom(self._m, self, category), self._m_to_self))
 
@@ -1327,18 +1339,19 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         r"""
         Return the coefficient of `m_\nu` in `{\tilde H}_\mu`.
 
-        The coefficient is a `(q,t)`-analogue of `n` choose `\nu`.  Let `c_{\mu\gamma}`
-        be the coefficient of `{\tilde H}_\gamma` in `h_r^\perp {\tilde H}_\mu`.  The
-        coefficient of `m_\nu` in `{\tilde H}_\mu` is
+        The coefficient is a `(q,t)`-analogue of `n` choose `\nu`.  Let
+        `c_{\mu\gamma}` be the coefficient of `{\tilde H}_\gamma` in
+        `h_r^\perp {\tilde H}_\mu`.  The coefficient of `m_\nu` in
+        `{\tilde H}_\mu` is
 
         .. MATH::
 
-            L_{\mu\nu} = \sum_{\gamma} c_{\mu\gamma} L_{\gamma\overline{\nu}}
+            L_{\mu\nu} = \sum_{\gamma} c_{\mu\gamma} L_{\gamma\overline{\nu}},
 
-        where the sum is over partitions `\gamma \subseteq \mu` with 
-        `\gamma \vdash |(\nu_1, \ldots, \nu_{\ell(\nu)-1})|`.  There is a recursive
-        formula for `c_{\mu\gamma}` which is due to F. Bergeron and M.
-        Haiman [BH2013]_ and this is implemented in
+        where the sum is over partitions `\gamma \subseteq \mu` with
+        `\gamma \vdash |(\nu_1, \ldots, \nu_{\ell(\nu)-1})|`.  There is a
+        recursive formula for `c_{\mu\gamma}` which is due to F. Bergeron
+        and M. Haiman [BH2013]_ and this is implemented in
         :func:`sage.combinat.sf.macdonald.cmunu`.
 
         INPUT:
@@ -1362,20 +1375,21 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
             q*t + 2*t^2 + q + t + 1
 
         """
-        if len(mu)==0:
-            if len(nu)==0:
+        if not mu:
+            if not nu:
                 return 1
             else:
                 return 0
         if (mu,nu) in self._self_to_m_cache:
             return self._self_to_m_cache[(mu,nu)]
-        if len(nu)==1:
+        if len(nu) == 1:
             return 1
-        if nu[-1]==1:
-            self._self_to_m_cache[(mu,nu)] = QQqt(sum(cmunu1(mu,ga)*self._Lmunu(Partition(nu[:-1]), ga) for ga in mu.down_list()))
+        if nu[-1] == 1:
+            self._self_to_m_cache[(mu,nu)] = QQqt( sum(cmunu1(mu,ga) * self._Lmunu(Partition(nu[:-1]), ga)
+                                                       for ga in mu.down_list()) )
             return self._self_to_m_cache[(mu,nu)]
-        self._self_to_m_cache[(mu,nu)] = QQqt(sum( cmunu(mu,ga)*self._Lmunu(Partition(nu[:-1]), ga)
-          for ga in sage.combinat.partition.Partitions(nu.size()-nu[-1]) if mu.contains(ga)))
+        self._self_to_m_cache[(mu,nu)] = QQqt(sum( cmunu(mu,ga) * self._Lmunu(Partition(nu[:-1]), ga)
+                  for ga in Partitions(nu.size()-nu[-1]) if mu.contains(ga) ))
         return self._self_to_m_cache[(mu,nu)]
 
     def _self_to_m(self, x):
@@ -1407,24 +1421,25 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
             ((2*x^2+2*x+2)/x)*m[1, 1, 1] + ((x^2+x+1)/x)*m[2, 1] + m[3]
 
         """
-        return self._m._from_dict({ part2: 
-            self._base(sum(x.coefficient(mu)*QQqt(self._Lmunu(part2, mu)).subs(q=self.q,t=self.t)
-                for mu in x.homogeneous_component(d).support()))
-                    for d in range(x.degree()+1) for part2 in sage.combinat.partition.Partitions(d)})
+        return self._m._from_dict({ part2:
+            self._base( sum(x.coefficient(mu) * QQqt(self._Lmunu(part2, mu)).subs(q=self.q, t=self.t)
+                            for mu in x.homogeneous_component(d).support()) )
+                    for d in range(x.degree()+1) for part2 in Partitions(d) })
 
     def _m_to_self( self, f ):
         r"""
         Convert an element ``f`` from the monomial basis to the ``Ht`` basis.
 
-        This calculation is performed by using the fact that `{\tilde H}_\mu[X(t-1)]`
-        is `c_\mu m_\mu` plus terms which are smaller in dominance order.  The leading
-        coefficient of the expansion of ``f`` in the `{\tilde H}_\mu` basis is equal to
+        This calculation is performed by using the fact that
+        `{\tilde H}_\mu[X(t-1)]` is `c_\mu m_\mu` plus terms which are
+        smaller in dominance order.  The leading coefficient of the
+        expansion of ``f`` in the `{\tilde H}_\mu` basis is equal to
         the leading coefficient of `c_\mu^{-1} f[X(t-1)]`.
-        
-        If `t=1`, we must appeal to another triangularity since ``Ht`` is (usually)
-        still a basis, however `{\tilde H}_\mu[X(t-1)]=0`.  In this case we assume that
-        it is a basis and `{\tilde H}_\mu[X(q-1)]` is `c_\mu m_{\mu'}` plus terms which
-        are lower in dominance order.
+
+        If `t=1`, we must appeal to another triangularity since ``Ht``
+        is (usually) still a basis, however `{\tilde H}_\mu[X(t-1)]=0`.
+        In this case we assume that it is a basis and `{\tilde H}_\mu[X(q-1)]`
+        is `c_\mu m_{\mu'}` plus terms which are lower in dominance order.
 
         INPUT:
 
@@ -1451,21 +1466,21 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
             sage: m = Sym.m()
             sage: Ht((3*x+3)*m[1, 1, 1] + (x+2)*m[2, 1] + m[3])
             McdHt[2, 1]
-            
+
         """
-        if self.t==1:
-            subsval = 1/self.q
+        if self.t == 1:
+            subsval = ~self.q
             fl = lambda x: x.conjugate()
         else:
-            subsval = 1/self.t
+            subsval = ~self.t
             fl = lambda x: x
-        g = f.theta_qt(q=subsval,t=0)
+        g = f.theta_qt(q=subsval, t=0)
         out = {}
         while not g.is_zero():
             sprt = g.support()
-            Htmu = self._self_to_m(self(fl(sprt[-1]))).theta_qt(q=subsval,t=0)
-            out[fl(sprt[-1])] = self._base(g.coefficient(sprt[-1])/Htmu.coefficient(sprt[-1]))
-            g -= out[fl(sprt[-1])]*Htmu
+            Htmu = self._self_to_m(self(fl(sprt[-1]))).theta_qt(q=subsval, t=0)
+            out[fl(sprt[-1])] = self._base(g.coefficient(sprt[-1]) / Htmu.coefficient(sprt[-1]))
+            g -= out[fl(sprt[-1])] * Htmu
         return self._from_dict(out)
 
     class Element(MacdonaldPolynomials_generic.Element):
@@ -1682,7 +1697,8 @@ class MacdonaldPolynomials_s(MacdonaldPolynomials_generic):
                 (q^3*t-q^2*t-q+1)*McdS[2, 1] + (q^3-q^2*t-q+t)*McdS[3]
             """
             (q,t) = QQqt.gens()
-            S = sage.combinat.sf.sf.SymmetricFunctions(QQqt).macdonald().S()
+            from sage.combinat.sf.sf import SymmetricFunctions
+            S = SymmetricFunctions(QQqt).macdonald().S()
 
             part += [0]*(k-len(part))
 
@@ -1833,8 +1849,8 @@ def qt_kostka(lam, mu):
         sage: qt_kostka([2,1],[1,1,1,1])
         0
     """
-    lam = sage.combinat.partition.Partition(lam)
-    mu = sage.combinat.partition.Partition(mu)
+    lam = Partition(lam)
+    mu = Partition(mu)
 
     if lam.size() != mu.size():
         return QQqt.zero()
@@ -1842,11 +1858,12 @@ def qt_kostka(lam, mu):
     if (lam,mu) in _qt_kostka_cache:
         return _qt_kostka_cache[(lam,mu)]
 
-    Sym = sage.combinat.sf.sf.SymmetricFunctions(QQqt)
+    from sage.combinat.sf.sf import SymmetricFunctions
+    Sym = SymmetricFunctions(QQqt)
     H = Sym.macdonald().H()
     s = Sym.schur()
 
-    parts = sage.combinat.partition.Partitions(mu.size())
+    parts = Partitions(mu.size())
 
     for p2 in parts:
         res = s(H(p2))

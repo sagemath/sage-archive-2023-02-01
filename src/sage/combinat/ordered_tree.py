@@ -526,8 +526,8 @@ class OrderedTree(AbstractClonableTree, ClonableList):
 
     def sort_key(self):
         """
-        Return a tuple of nonnegative integers encoding the tree
-        ``self``.
+        Return a tuple of nonnegative integers encoding the ordered
+        tree ``self``.
 
         The first entry of the tuple is the number of children of the
         root. Then the rest of the tuple is the concatenation of the
@@ -538,10 +538,32 @@ class OrderedTree(AbstractClonableTree, ClonableList):
 
         .. NOTE::
 
-            On the :class:`LabelledOrderedTree` subclass, this method
-            is overridden by a slightly different method, which encodes
-            not only the numbers of children of the nodes of ``self``,
-            but also their labels.
+            By default, this method does not encode any extra
+            structure that ``self`` might have -- e.g., if you were
+            to define a class ``EdgeColoredOrderedTree`` which
+            implements edge-colored trees and which inherits from
+            :class:`OrderedTree`, then the :meth:`sort_key` method
+            it would inherit would forget about the colors of the
+            edges (and thus would not characterize edge-colored
+            trees uniquely). If you want to preserve extra data,
+            you need to override this method or use a new method.
+            For instance, on the :class:`LabelledOrderedTree`
+            subclass, this method is overridden by a slightly
+            different method, which encodes not only the numbers
+            of children of the nodes of ``self``, but also their
+            labels.
+            Be careful with using overridden methods, however:
+            If you have (say) a class ``BalancedTree`` which
+            inherits from :class:`OrderedTree` and which encodes
+            balanced trees, and if you have another class
+            ``BalancedLabelledOrderedTree`` which inherits both
+            from ``BalancedOrderedTree`` and from
+            :class:`LabelledOrderedTree`, then (depending on the MRO)
+            the default :meth:`sort_key` method on
+            ``BalancedLabelledOrderedTree`` (unless manually
+            overridden) will be taken either from ``BalancedTree``
+            or from :class:`LabelledOrderedTree`, and in the former
+            case will ignore the labelling!
 
         EXAMPLES::
 
@@ -1198,6 +1220,19 @@ class LabelledOrderedTree(AbstractLabelledClonableTree, OrderedTree):
         This tuple characterizes the labelled tree uniquely, and can
         be used to sort the labelled ordered trees provided that the
         labels belong to a type which is totally ordered.
+
+        .. WARNING::
+
+            This method overrides :meth:`OrderedTree.sort_key`
+            and returns a result different from what the latter
+            would return, as it wants to encode the whole labelled
+            tree including its labelling rather than just the
+            unlabelled tree. Therefore, be careful with using this
+            method on subclasses of :class:`LabelledOrderedTree`;
+            under some circumstances they could inherit it from
+            another superclass instead of from :class:`OrderedTree`,
+            which would cause the method to forget the labelling.
+            See the docstring of :meth:`OrderedTree.sort_key`.
 
         EXAMPLES::
 

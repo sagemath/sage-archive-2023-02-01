@@ -8,9 +8,9 @@ the input space (the message) and transforms it into an element of the output sp
 This file contains the following elements:
 
     - *AbstractChannel*, the abstract class for Channels
-    - *ChannelStaticErrorRate*, which creates a specific number of errors in each
+    - *StaticErrorRateChannel*, which creates a specific number of errors in each
       transmitted message
-    - *ChannelErrorErasure*, which creates a specific number of errors and a
+    - *ErrorErasureChannel*, which creates a specific number of errors and a
       specific number of erasures in each transmitted message
 """
 
@@ -201,7 +201,7 @@ class AbstractChannel(object):
 
             sage: F = VectorSpace(GF(59), 6)
             sage: n_err = 2
-            sage: Chan = channels.ChannelStaticErrorRate(F, n_err)
+            sage: Chan = channels.StaticErrorRateChannel(F, n_err)
             sage: msg = F((4, 8, 15, 16, 23, 42))
             sage: Chan.transmit(msg) # random
             (4, 14, 15, 16, 17, 42)
@@ -210,7 +210,7 @@ class AbstractChannel(object):
 
             sage: F = VectorSpace(GF(59), 6)
             sage: n_err = 2
-            sage: Chan = channels.ChannelStaticErrorRate(F, n_err)
+            sage: Chan = channels.StaticErrorRateChannel(F, n_err)
             sage: msg = (4, 8, 15, 16, 23, 42)
             sage: Chan.transmit(msg)
             Traceback (most recent call last):
@@ -230,7 +230,7 @@ class AbstractChannel(object):
 
             sage: F = VectorSpace(GF(59), 6)
             sage: n_err = 2
-            sage: Chan = channels.ChannelStaticErrorRate(F, n_err)
+            sage: Chan = channels.StaticErrorRateChannel(F, n_err)
             sage: Chan.input_space()
             Vector space of dimension 6 over Finite Field of size 59
 
@@ -245,7 +245,7 @@ class AbstractChannel(object):
 
             sage: F = VectorSpace(GF(59), 6)
             sage: n_err = 2
-            sage: Chan = channels.ChannelStaticErrorRate(F, n_err)
+            sage: Chan = channels.StaticErrorRateChannel(F, n_err)
             sage: Chan.output_space()
             Vector space of dimension 6 over Finite Field of size 59
         """
@@ -272,7 +272,7 @@ class AbstractChannel(object):
 
 
 
-class ChannelStaticErrorRate(AbstractChannel):
+class StaticErrorRateChannel(AbstractChannel):
     r"""
     Constructs a channel which adds a static number of errors to each message
     it transmits. The input space and the output space of this channel
@@ -289,12 +289,12 @@ class ChannelStaticErrorRate(AbstractChannel):
 
     EXAMPLES:
 
-    We construct a ChannelStaticErrorRate which adds 2 errors
+    We construct a StaticErrorRateChannel which adds 2 errors
     to any transmitted message::
 
         sage: F = VectorSpace(GF(59), 40)
         sage: n_err = 2
-        sage: Chan = channels.ChannelStaticErrorRate(F, n_err)
+        sage: Chan = channels.StaticErrorRateChannel(F, n_err)
         sage: Chan
         Static error rate channel creating 2 error(s)
 
@@ -302,7 +302,7 @@ class ChannelStaticErrorRate(AbstractChannel):
 
         sage: F = VectorSpace(GF(59), 40)
         sage: n_err = (1, 10)
-        sage: Chan = channels.ChannelStaticErrorRate(F, n_err)
+        sage: Chan = channels.StaticErrorRateChannel(F, n_err)
         sage: Chan
         Static error rate channel creating between 1 and 10 errors
     """
@@ -316,12 +316,12 @@ class ChannelStaticErrorRate(AbstractChannel):
 
             sage: F = VectorSpace(GF(59), 40)
             sage: n_err = 42
-            sage: Chan = channels.ChannelStaticErrorRate(F, n_err)
+            sage: Chan = channels.StaticErrorRateChannel(F, n_err)
             Traceback (most recent call last):
             ...
             ValueError: There might be more errors than the dimension of the input space
         """
-        super(ChannelStaticErrorRate, self).__init__(space, space)
+        super(StaticErrorRateChannel, self).__init__(space, space)
         no_err = number_errors if not hasattr(number_errors, "__iter__") else number_errors[1]
         if no_err > space.dimension():
             raise ValueError("There might be more errors than the dimension of the input space")
@@ -335,7 +335,7 @@ class ChannelStaticErrorRate(AbstractChannel):
 
             sage: F = VectorSpace(GF(59), 50)
             sage: n_err = 42
-            sage: Chan = channels.ChannelStaticErrorRate(F, n_err)
+            sage: Chan = channels.StaticErrorRateChannel(F, n_err)
             sage: Chan
             Static error rate channel creating 42 error(s)
         """
@@ -355,7 +355,7 @@ class ChannelStaticErrorRate(AbstractChannel):
 
             sage: F = VectorSpace(GF(59), 50)
             sage: n_err = 42
-            sage: Chan = channels.ChannelStaticErrorRate(F, n_err)
+            sage: Chan = channels.StaticErrorRateChannel(F, n_err)
             sage: Chan._latex_()
             '\\textnormal{Static error rate channel, creating }42 \\textnormal{ error(s)}'
         """
@@ -375,12 +375,12 @@ class ChannelStaticErrorRate(AbstractChannel):
         
             sage: F = VectorSpace(GF(59), 50)
             sage: n_err = 42
-            sage: Chan1 = channels.ChannelStaticErrorRate(F, n_err)
-            sage: Chan2 = channels.ChannelStaticErrorRate(F, n_err)
+            sage: Chan1 = channels.StaticErrorRateChannel(F, n_err)
+            sage: Chan2 = channels.StaticErrorRateChannel(F, n_err)
             sage: Chan1 == Chan2
             True
         """
-        return isinstance(other, ChannelStaticErrorRate)\
+        return isinstance(other, StaticErrorRateChannel)\
                 and self.input_space() == other.input_space()\
                 and self.number_errors() == other.number_errors()
 
@@ -403,7 +403,7 @@ class ChannelStaticErrorRate(AbstractChannel):
 
             sage: F = VectorSpace(GF(59), 6)
             sage: n_err = 2
-            sage: Chan = channels.ChannelStaticErrorRate(F, n_err)
+            sage: Chan = channels.StaticErrorRateChannel(F, n_err)
             sage: msg = F((4, 8, 15, 16, 23, 42))
             sage: Chan.transmit_unsafe(msg) # random
             (4, 14, 15, 16, 17, 42)
@@ -423,9 +423,233 @@ class ChannelStaticErrorRate(AbstractChannel):
 
             sage: F = VectorSpace(GF(59), 6)
             sage: n_err = 3
-            sage: Chan = channels.ChannelStaticErrorRate(F, n_err)
+            sage: Chan = channels.StaticErrorRateChannel(F, n_err)
             sage: Chan.number_errors()
             3
         """
         return self._number_errors
 
+
+
+
+
+
+
+
+
+
+class ErrorErasureChannel(AbstractChannel):
+    r"""
+    Constructs a channel which adds errors to any message it transmits. It also erases several positions
+    in the transmitted message. The output space of this channel is a cartesian product
+    between its input space and a VectorSpace of the same dimension over GF(2)
+
+    INPUT:
+
+    - ``space`` -- the input and output space
+
+    - ``number_errors`` -- the number of errors created in each transmitted
+      message. It can be either an integer of a tuple. If an tuple is passed as
+      an argument, the number of errors will be a random integer between the
+      two bounds of this tuple.
+
+    - ``number_erasures`` -- the number of erasures created in each transmitted
+      message. It can be either an integer of a tuple. If an tuple is passed as an
+      argument, the number of erasures will be a random integer between the
+      two bounds of this tuple.
+
+    EXAMPLES:
+
+    We construct a ErrorErasureChannel which adds 2 errors
+    and 2 erasures to any transmitted message::
+
+        sage: F = VectorSpace(GF(59), 40)
+        sage: n_err, n_era = 2, 2
+        sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
+        sage: Chan
+        Error-and-erasure channel creating 2 error(s) and 2 erasure(s)
+
+    We can also pass the number of errors and erasures as a couple of integers::
+
+        sage: F = VectorSpace(GF(59), 40)
+        sage: n_err, n_era = (1, 10), (1, 10)
+        sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
+        sage: Chan
+        Error-and-erasure channel creating between 1 and 10 errors and between 1 and 10 erasures
+    """
+
+    def __init__(self, space, number_errors, number_erasures):
+        r"""
+
+
+        TESTS:
+
+        If the sum of number of errors and number of erasures
+        exceeds (or may exceed, in the case of tuples) the dimension of the input space,
+        it will return an error::
+
+            sage: F = VectorSpace(GF(59), 40)
+            sage: n_err, n_era = 21, 21
+            sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
+            Traceback (most recent call last):
+            ...
+            ValueError: The total number of errors and erasures can exceed the dimension of the input space
+        """
+        output_space = CartesianProduct(space, VectorSpace(GF(2), space.dimension()))
+        super(ErrorErasureChannel, self).__init__(space, output_space)
+        no_err = number_errors if not hasattr(number_errors, "__iter__")\
+                else number_errors[1]
+        no_era = number_erasures if not hasattr(number_erasures, "__iter__")\
+                else number_erasures[1]
+        if no_err + no_era > space.dimension():
+            raise ValueError("The total number of errors and erasures can exceed the dimension of the input space")
+        self._number_errors = number_errors
+        self._number_erasures = number_erasures
+
+    def __repr__(self):
+        r"""
+        Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = VectorSpace(GF(59), 50)
+            sage: n_err, n_era = 21, 21
+            sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
+            sage: Chan
+            Error-and-erasure channel creating 21 error(s) and 21 erasure(s)
+        """
+        if not hasattr(self.number_errors(), "__iter__"):
+            return "Error-and-erasure channel creating %s error(s) and %s erasure(s)"\
+                    %(self.number_errors(), self.number_erasures())
+        else:
+            no_err = self.number_errors()
+            no_era = self.number_erasures()
+            return "Error-and-erasure channel creating between %s and %s errors and between %s and %s erasures"\
+            % (no_err[0], no_err[1], no_era[0], no_era[1])
+
+    def _latex_(self):
+        r"""
+        Returns a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = VectorSpace(GF(59), 50)
+            sage: n_err, n_era = 21, 21
+            sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
+            sage: latex(Chan)
+            \textnormal{Error-and-erasure channel creating 21 error(s) and 21 erasure(s)}
+        """
+        if not hasattr(self.number_errors(), "__iter__"):
+            return "\\textnormal{Error-and-erasure channel creating %s error(s) and %s erasure(s)}"\
+                    %(self.number_errors(), self.number_erasures())
+        else:
+            no_err = self.number_errors()
+            no_era = self.number_erasures()
+            return "\\textnormal{Error-and-erasure channel creating between %s and %s errors and between %s and %s erasures}"\
+            % (no_err[0], no_err[1], no_era[0], no_era[1])
+
+    def __eq__(self, other):
+        r"""
+        Checks if ``self`` is equal to ``other``.
+
+        EXAMPLES::
+
+            sage: F = VectorSpace(GF(59), 50)
+            sage: n_err = 17
+            sage: n_era = 7
+            sage: Chan1 = channels.ErrorErasureChannel(F, n_err, n_era)
+            sage: Chan2 = channels.ErrorErasureChannel(F, n_err, n_era)
+            sage: Chan1 == Chan2
+            True
+        """
+        return isinstance(other, ErrorErasureChannel)\
+                and self.input_space() == other.input_space()\
+                and self.number_errors() == other.number_errors()\
+                and self.number_erasures() == other.number_erasures()
+
+    def transmit_unsafe(self, message):
+        r"""
+        Returns ``message`` with as many errors as ``self._number_errors`` in it, and as many erasures
+        as ``self._number_erasures`` in it.
+        If ``self._number_errors`` was passed as an tuple for the number of errors, it will
+        pick a random integer between the bounds of the tuple and use it as the number of errors.
+        The same method applies with ``self._number_erasures``.
+
+        All erased positions are set to 0 in the transmitted message.
+        It is guaranteed that the erasures and the errors will never overlap:
+        the received message will always contains exactly as many errors and erasures
+        as expected.
+
+        This method does not check if ``message`` belongs to the input space of``self``.
+
+        INPUT:
+
+        - ``message`` -- a vector
+
+        OUTPUT:
+
+        - a couple of vectors, namely:
+
+            - the transmitted message, which is ``message`` with erroneous and erased positions
+            - the erasure vector, which contains ``1`` at the erased positions of the transmitted message
+              , 0 elsewhere.
+
+        EXAMPLES::
+
+            sage: F = VectorSpace(GF(59), 11)
+            sage: n_err, n_era = 2, 2
+            sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
+            sage: msg = F((3, 14, 15, 9, 26, 53, 58, 9, 7, 9, 3))
+            sage: Chan.transmit_unsafe(msg) # random
+            ((0, 14, 15, 0, 26, 53, 45, 9, 7, 14, 3), (1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0))
+        """
+        number_errors = _tuple_to_integer(self.number_errors())
+        number_erasures = _tuple_to_integer(self.number_erasures())
+        V = self.input_space()
+        n = V.dimension()
+
+        erroneous_positions = _random_error_position(n,\
+                number_errors + number_erasures)
+        error_split = _random_error_position(number_errors + number_erasures,\
+                number_errors)
+        error_positions = [ erroneous_positions[i] for i in\
+                range(number_errors + number_erasures) if i in error_split ]
+        erasure_positions = [ erroneous_positions[i] for i in\
+                range(number_errors + number_erasures) if i not in error_split]
+
+        error_vector = _random_error_vector(n, V.base_ring(), error_positions)
+        erasure_vector = _random_error_vector(n , GF(2), erasure_positions)
+
+        message = message + error_vector
+
+        for i in erasure_positions:
+            message[i] = 0
+        return message, erasure_vector
+
+    def number_errors(self):
+        r"""
+        Returns the number of errors created by ``self``.
+
+        EXAMPLES::
+
+            sage: F = VectorSpace(GF(59), 6)
+            sage: n_err, n_era = 3, 0
+            sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
+            sage: Chan.number_errors()
+            3
+        """
+        return self._number_errors
+
+    def number_erasures(self):
+        r"""
+        Returns the number of erasures created by ``self``.
+
+        EXAMPLES::
+
+            sage: F = VectorSpace(GF(59), 6)
+            sage: n_err, n_era = 0, 3
+            sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
+            sage: Chan.number_erasures()
+            3
+        """
+        return self._number_erasures

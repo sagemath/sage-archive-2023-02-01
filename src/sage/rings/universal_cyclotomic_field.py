@@ -739,6 +739,18 @@ class UniversalCyclotomicFieldElement(FieldElement):
         P = self.parent()
         return P.element_class(P, self._obj._sub_(other._obj))
 
+    def __neg__(self):
+        r"""
+        Return the inverse of ``self``.
+
+        TESTS::
+
+            sage: -E(5)
+            -E(5)
+        """
+        P = self.parent()
+        return P.element_class(P, -self._obj)
+
     def _mul_(self, other):
         r"""
         TESTS::

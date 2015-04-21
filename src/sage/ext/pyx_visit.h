@@ -1,9 +1,9 @@
-/* Cython-compatible version of Py_VISIT */
+/* 3-argument version of Py_VISIT, easier to use from Cython */
 
-#define Pyx_VISIT(op)                                                   \
+#define Py_VISIT3(op, visit, arg)                                       \
     do {                                                                \
         if (op) {                                                       \
-            int vret = __pyx_v_visit((PyObject *)(op), __pyx_v_arg);    \
+            int vret = visit((PyObject *)(op), arg);                    \
             if (vret)                                                   \
                 return vret;                                            \
         }                                                               \

@@ -68,30 +68,7 @@ cdef extern from "Python.h":
     int PyList_SetItem(object list, Py_ssize_t index, PyObject * item) except -1
 
 cdef extern from "pyx_visit.h":
-    void Pyx_VISIT(PyObject*)
-
-#this serves no purpose here anymore. Perhaps elsewhere?
-cpdef inline Py_ssize_t signed_id(x):
-    """
-    A function like Python's :func:`id` returning *signed* integers,
-    which are guaranteed to fit in a ``Py_ssize_t``.
-
-    Theoretically, there is no guarantee that two different Python
-    objects have different ``signed_id()`` values. However, under the
-    mild assumption that a C pointer fits in a ``Py_ssize_t``, this
-    is guaranteed.
-
-    TESTS::
-
-        sage: a = 1.23e45  # some object
-        sage: from sage.structure.coerce_dict import signed_id
-        sage: s = signed_id(a)
-        sage: id(a) == s or id(a) == s + 2**32 or id(a) == s + 2**64
-        True
-        sage: signed_id(a) <= sys.maxsize
-        True
-    """
-    return <Py_ssize_t><void *>(x)
+    void Py_VISIT3(PyObject*, visitproc, void* arg)
 
 #it's important that this is not an interned string: this object
 #must be a unique sentinel. We could reuse the "dummy" sentinel
@@ -845,13 +822,13 @@ cdef class MonoDict:
 cdef int MonoDict_traverse(MonoDict op, visitproc visit, void *arg):
     if op.table == NULL:
         return 0
-    Pyx_VISIT(<PyObject*>op.eraser)
+    Py_VISIT3(<PyObject*>op.eraser, visit, arg)
     cdef size_t i
     for i in range(op.mask + 1):
         cursor = &op.table[i]
         if cursor.key_id != NULL and cursor.key_id != dummy:
-            Pyx_VISIT(cursor.key_weakref)
-            Pyx_VISIT(cursor.value)
+            Py_VISIT3(cursor.key_weakref, visit, arg)
+            Py_VISIT3(cursor.value, visit, arg)
     return 0
 
 
@@ -1557,15 +1534,15 @@ cdef class TripleDict:
 cdef int TripleDict_traverse(TripleDict op, visitproc visit, void *arg):
     if op.table == NULL:
         return 0
-    Pyx_VISIT(<PyObject*>op.eraser)
+    Py_VISIT3(<PyObject*>op.eraser, visit, arg)
     cdef size_t i
     for i in range(op.mask + 1):
         cursor = &op.table[i]
         if cursor.key_id1 != NULL and cursor.key_id1 != dummy:
-            Pyx_VISIT(cursor.key_weakref1)
-            Pyx_VISIT(cursor.key_weakref2)
-            Pyx_VISIT(cursor.key_weakref3)
-            Pyx_VISIT(cursor.value)
+            Py_VISIT3(cursor.key_weakref1, visit, arg)
+            Py_VISIT3(cursor.key_weakref2, visit, arg)
+            Py_VISIT3(cursor.key_weakref3, visit, arg)
+            Py_VISIT3(cursor.value, visit, arg)
     return 0
 
 cdef int TripleDict_clear(TripleDict op):

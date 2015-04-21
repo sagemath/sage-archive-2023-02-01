@@ -263,3 +263,169 @@ class AbstractChannel(object):
         """
         raise NotImplementedError
 
+
+
+
+
+
+
+
+
+
+class ChannelStaticErrorRate(AbstractChannel):
+    r"""
+    Constructs a channel which adds a static number of errors to each message
+    it transmits. The input space and the output space of this channel
+    are the same.
+
+    INPUT:
+
+    - ``space`` -- the space of both input and output
+
+    - ``number_errors`` -- the number of errors added to each transmitted message
+      It can be either an integer of a tuple. If a tuple is passed as
+      argument, the number of errors will be a random integer between the
+      two bounds of the tuple.
+
+    EXAMPLES:
+
+    We construct a ChannelStaticErrorRate which adds 2 errors
+    to any transmitted message::
+
+        sage: F = VectorSpace(GF(59), 40)
+        sage: n_err = 2
+        sage: Chan = channels.ChannelStaticErrorRate(F, n_err)
+        sage: Chan
+        Static error rate channel creating 2 error(s)
+
+    We can also pass a tuple for the number of errors::
+
+        sage: F = VectorSpace(GF(59), 40)
+        sage: n_err = (1, 10)
+        sage: Chan = channels.ChannelStaticErrorRate(F, n_err)
+        sage: Chan
+        Static error rate channel creating between 1 and 10 errors
+    """
+
+    def __init__(self, space, number_errors):
+        r"""
+        TESTS:
+        
+        If the number of errors exceeds the dimension of the input space,
+        it will return an error::
+
+            sage: F = VectorSpace(GF(59), 40)
+            sage: n_err = 42
+            sage: Chan = channels.ChannelStaticErrorRate(F, n_err)
+            Traceback (most recent call last):
+            ...
+            ValueError: There might be more errors than the dimension of the input space
+        """
+        super(ChannelStaticErrorRate, self).__init__(space, space)
+        no_err = number_errors if not hasattr(number_errors, "__iter__") else number_errors[1]
+        if no_err > space.dimension():
+            raise ValueError("There might be more errors than the dimension of the input space")
+        self._number_errors = number_errors
+
+    def __repr__(self):
+        r"""
+        Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = VectorSpace(GF(59), 50)
+            sage: n_err = 42
+            sage: Chan = channels.ChannelStaticErrorRate(F, n_err)
+            sage: Chan
+            Static error rate channel creating 42 error(s)
+        """
+        if not hasattr(self.number_errors(), "__iter__"):
+            return "Static error rate channel creating %s error(s)"\
+                    % self.number_errors()
+        else:
+            no_err = self.number_errors()
+            return "Static error rate channel creating between %s and %s errors"\
+                    % (no_err[0], no_err[1])
+
+    def _latex_(self):
+        r"""
+        Returns a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = VectorSpace(GF(59), 50)
+            sage: n_err = 42
+            sage: Chan = channels.ChannelStaticErrorRate(F, n_err)
+            sage: Chan._latex_()
+            '\\textnormal{Static error rate channel, creating }42 \\textnormal{ error(s)}'
+        """
+        if not hasattr(self.number_errors(), "__iter__"): 
+            return "\\textnormal{Static error rate channel, creating }%s \\textnormal{ error(s)}"\
+                    % self.number_errors()
+        else:
+            no_err = self.number_errors()
+            return "\\textnormal{Static error rate channel, creating between %s and %s errors}"\
+                    % (no_err[0], no_err[1])
+
+    def __eq__(self, other):
+        r"""
+        Checks if ``self`` is equal to ``other``.
+
+        EXAMPLES::
+        
+            sage: F = VectorSpace(GF(59), 50)
+            sage: n_err = 42
+            sage: Chan1 = channels.ChannelStaticErrorRate(F, n_err)
+            sage: Chan2 = channels.ChannelStaticErrorRate(F, n_err)
+            sage: Chan1 == Chan2
+            True
+        """
+        return isinstance(other, ChannelStaticErrorRate)\
+                and self.input_space() == other.input_space()\
+                and self.number_errors() == other.number_errors()
+
+    def transmit_unsafe(self, message):
+        r"""
+        Returns ``message`` with as many errors as ``self._number_errors`` in it.
+        If ``self._number_errors`` was passed as a tuple for the number of errors, it will
+        pick a random integer between the bounds of the tuple and use it as the number of errors.
+        This method does not check if ``message`` belongs to the input space of``self``.
+
+        INPUT:
+
+        - ``message`` -- a vector
+
+        OUTPUT:
+
+        - a vector of the output space
+
+        EXAMPLES::
+
+            sage: F = VectorSpace(GF(59), 6)
+            sage: n_err = 2
+            sage: Chan = channels.ChannelStaticErrorRate(F, n_err)
+            sage: msg = F((4, 8, 15, 16, 23, 42))
+            sage: Chan.transmit_unsafe(msg) # random
+            (4, 14, 15, 16, 17, 42)
+        """
+        number_errors = _tuple_to_integer(self.number_errors())
+        V = self.input_space()
+        n = V.dimension()
+        error_vector = _random_error_vector(n, V.base_ring(),\
+                _random_error_position(n, number_errors))
+        return message + error_vector
+    
+    def number_errors(self):
+        r"""
+        Returns the number of errors created by ``self``.
+
+        EXAMPLES::
+
+            sage: F = VectorSpace(GF(59), 6)
+            sage: n_err = 3
+            sage: Chan = channels.ChannelStaticErrorRate(F, n_err)
+            sage: Chan.number_errors()
+            3
+        """
+        return self._number_errors
+

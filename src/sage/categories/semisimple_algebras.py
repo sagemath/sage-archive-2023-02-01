@@ -92,7 +92,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
 
             - ``keywords`` -- for compatibility; ignored.
 
-            OUTPUT: the empty list since this algebra is semisimple
+            OUTPUT: the empty list since this algebra is semisimple.
 
             EXAMPLES::
 
@@ -126,7 +126,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
 
                     INPUT:
 
-                    - ``self`` -- a semisimple algebra
+                    - ``self`` -- a semisimple algebra.
 
                     OUTPUT:
 
@@ -176,31 +176,31 @@ class SemisimpleAlgebras(Category_over_base_ring):
                         INPUT:
 
                         - ``self`` a finite dimensional semisimple commutative
-                          algebra
+                          algebra.
                         - ``generators`` a list of generators of ``self``. By
-                          default it will be the basis of ``self``
+                          default it will be the basis of ``self``.
 
                         OUTPUT:
 
                         - list of elements of ``self`` each generating a one
-                          dimensional simple submodule of ``self`` in direct
-                          sum with the others. The list is maximal in the sens
-                          that no quasi-idempotent `e` can be decomposed as a
-                          sum `e = e_1 + e_2` of quasi-idempotents elements.
+                          dimensional simple submodule summand of ``self``. The
+                          list is maximal in the sense that no quasi-idempotent
+                          `e` can be decomposed as a sum `e = e_1 + e_2` of
+                          quasi-idempotents elements.
 
                         ALGORITHM:
 
-                            A commutative semisimple algebra `A` is a direct
-                            sum of dimension 1 sub-algebras thanks to Schur
-                            Lemma. The algorithm is recursive a proceed in two
-                            steps:
+                        A commutative semisimple algebra `A` is a direct
+                        sum of dimension 1 sub-algebras thanks to Schur
+                        Lemma. The algorithm is recursive a proceed in two
+                        steps:
 
-                            0. If `A` is of dimension 1, return a non zero
-                            element.
-                            1. Find a generator `a \in A` such that the
-                            morphism `x \mapsto ax` has at least two (right)
-                            eigenspaces.
-                            2. Decompose both eigenspaces recursively.
+                        0. If `A` is of dimension 1, return a non zero
+                           element.
+                        1. Find a generator `a \in A` such that the
+                           morphism `x \mapsto ax` has at least two (right)
+                           eigenspaces.
+                        2. Decompose both eigenspaces recursively.
 
                         EXAMPLES::
 
@@ -261,15 +261,19 @@ class SemisimpleAlgebras(Category_over_base_ring):
                     @cached_method
                     def central_orthogonal_idempotents(self):
                         r"""
-                        Return the minimum set of central orthogonal idempotents of ``self``.
+                        Return the set of central orthogonal idempotents of ``self``.
 
                         INPUT:
 
-                        - ``self`` a commutative semisimple algebra
+                        - ``self`` a commutative semisimple algebra.
 
                         OUTPUT:
 
-                        - list of idempotents of ``self``
+                        - list of central orthogonal idempotents of ``self``.
+
+                        .. NOTE::
+
+                            All idempotents returned are primitive.
 
                         EXAMPLES::
 

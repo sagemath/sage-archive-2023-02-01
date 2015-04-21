@@ -468,6 +468,8 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             See [CR62] for correctness and termination proofs.
 
+            .. SEEALSO:: :meth:`idempotent_lift`
+
 
             EXAMPLES::
 
@@ -521,11 +523,11 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             idems = []
             f = 0
             for g in Aquo.central_orthogonal_idempotents():
-                idems.append(self.indempotent_lift((one - f) * g.lift() * (one - f)))
+                idems.append(self.idempotent_lift((one - f) * g.lift() * (one - f)))
                 f = f + idems[-1]
             return idems
 
-        def indempotent_lift(self, x):
+        def idempotent_lift(self, x):
             r"""
             Return an idempotent of ``self`` which projection on the semisimple
             quotient is the same as `x`.
@@ -560,15 +562,16 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example()
                 sage: S = A.semisimple_quotient()
-                sage: A.indempotent_lift(S.basis()['x'])
+                sage: A.idempotent_lift(S.basis()['x'])
                 x
-                sage: A.indempotent_lift(A.basis()['y'])
+                sage: A.idempotent_lift(A.basis()['y'])
                 y
             """
             if not self.is_parent_of(x):
                 x = x.lift()
             p = self.semisimple_quotient().retract(x)
-            assert (p*p == p)
+            if p*p != p:
+                raise ValueError("%s does not retract to an idempotent."%p)
             xOld = None
             one = self.one()
             while x != xOld:
@@ -578,9 +581,13 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             return x
 
         @cached_method
-        def cartan_invariants_matrix(self, side='left'):
+        def cartan_invariants_matrix(self):
             r"""
-            Return the Cartan invariants matrix of the algebra ``self``.
+            Return the Cartan invariants matrix of the algebra.
+
+            OUTPUT:
+
+            - The Cartan invariants matrix of the algebra.
 
             EXAMPLES::
 
@@ -628,7 +635,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             Aquo = self.semisimple_quotient()
             orth_quo = Aquo.central_orthogonal_idempotents()
             # Dimension of simple modules
-            dimSimples = [sqrt(Aquo.principal_ideal(e, side).dimension()) for e in
+            dimSimples = [sqrt(Aquo.principal_ideal(e).dimension()) for e in
                     orth_quo]
             # Orthogonal idempotents
             orth = self.orthogonal_idempotents_central_mod_rad()
@@ -646,7 +653,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             representation `A` can be decomposed as a direct sum
             `\bigoplus_i P_i` with `P_i = e_i A`.
             The projective modules `P_i` are isotypic in the sense that all
-            their direct summands are isomoprhic.
+            their direct summands are isomorphic.
 
             .. NOTE::
 
@@ -692,8 +699,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             - `e_i A e_j` as a subspace of `A`
 
-            .. SEEALSO::
-                :meth:`peirce_decomposition`
+            .. SEEALSO:: :meth:`peirce_decomposition`
 
             EXAMPLES::
 
@@ -719,18 +725,28 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                                   already_echelonized=True)
 
 
-        def peirce_decomposition(self):
+        def peirce_decomposition(self, list_idempotents=None, check=True):
             r"""
             Return the Peirce decomposition of ``self``.
 
-            Let `(e_i)` be orthogonal idempotents of `A` with sum `1`,
+            Let `(e_i)` be a set of orthogonal idempotents of `A` with sum `1`,
             then `A` is the direct sum of the subspaces `e_i A e_j`.
+
+            INPUT:
+
+            - ``list_idempotents`` -- (default: None) A list of orthogonal
+              idempotents of the algebra. By default, the list of orthogonal
+              idempotents will be lifted from the central orthogonal
+              idempotents of the semisimple quotient.
+            - ``check`` -- (default: True) If set to True ``list_idempotents``
+              is checked to be orthogonal.
 
             OUTPUT:
 
-            The list of subspaces `e_i A e_j`, where `e_i` and `e_j` run
-            through the commuting orthogonal idempotents lifted from the
-            central orthogonal idempotents of the semisimple quotient.
+            - The list of subspaces `e_i A e_j`, where `e_i` and `e_j` run
+            through ``list_idempotents``.
+
+            .. SEEALSO:: :meth:`orthogonal_idempotents_central_mod_rad`
 
             EXAMPLES::
 
@@ -740,13 +756,17 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 generated by {} over Rational Field, Free module generated by
                 {0, 1} over Rational Field, Free module generated by {0} over
                 Rational Field]
-
             """
             import itertools
-            decomp = []
-            for (ei, ej) in itertools.product(self.orthogonal_idempotents_central_mod_rad(), repeat=2):
-                decomp.append(self.peirce_summand(ei, ej))
-            return decomp
+            if list_idempotents is None:
+                list_idempotents = self.orthogonal_idempotents_central_mod_rad()
+            if check:
+                if not (all(e*e == e for e in list_idempotents) and
+                        all(e*f == f*e and e*f == 0 for e, f in
+                            itertools.product(list_idempotents, repeat=2) if e != f)):
+                    raise ValueError("Not an orthogonal list of idempotents.")
+            return [self.peirce_summand(ei, ej) for ei, ej in
+                    itertools.product(list_idempotents, repeat=2)]
 
 
     class ElementMethods:

@@ -124,7 +124,7 @@ def category(x):
 
         sage: V = VectorSpace(QQ,3)
         sage: category(V)
-        Category of vector spaces over Rational Field
+        Category of vector spaces with basis over quotient fields
     """
     try:
         return x.category()

@@ -12,7 +12,7 @@ import copy
 
 from IPython.kernel.kernelspec import (
     get_kernel_spec, install_kernel_spec, NoSuchKernel)
-    
+from IPython.utils.path import get_ipython_dir
 
 from sage.env import (
     SAGE_ROOT, SAGE_DOC, SAGE_LOCAL, SAGE_EXTCODE,
@@ -35,7 +35,7 @@ class SageKernelSpec(object):
             'Sage 6.6.beta2'
         """
         self._display_name = 'Sage {0}'.format(SAGE_VERSION)
-        self._ipython_dir = os.environ['IPYTHONDIR']
+        self._ipython_dir = get_ipython_dir()
         self._mkdirs()
 
     def _mkdirs(self):
@@ -113,15 +113,21 @@ class SageKernelSpec(object):
         EXAMPLES::
 
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
+            sage: from IPython.utils.path import get_ipython_dir
             sage: spec = SageKernelSpec()
             sage: spec.use_local_mathjax()
-            sage: ipython_dir = os.environ['IPYTHONDIR']
+            sage: ipython_dir = get_ipython_dir()
             sage: mathjax = os.path.join(ipython_dir, 'nbextensions', 'mathjax')
             sage: os.path.exists(mathjax)
             True
         """
         src = os.path.join(SAGE_LOCAL, 'share', 'mathjax')
         dst = os.path.join(self._ipython_dir, 'nbextensions', 'mathjax')
+        self.symlink(src, dst)
+
+    def use_local_jsmol(self):
+        src = os.path.join(SAGE_LOCAL, 'share', 'jsmol')
+        dst = os.path.join(self._ipython_dir, 'nbextensions', 'jsmol')
         self.symlink(src, dst)
 
     def _kernel_cmd(self):
@@ -241,10 +247,11 @@ class SageKernelSpec(object):
         """
         instance = cls()
         instance.use_local_mathjax()
+        instance.use_local_jsmol()
         instance._install_spec()
         instance._symlink_resources()
-        
 
+        
 def have_prerequisites():
     """
     Check that we have all prerequisites to run the IPython notebook.

@@ -136,6 +136,8 @@ import operator
 
 import sys
 
+from sage.misc.superseded import deprecated_function_alias
+
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "sage/ext/stdsage.pxi"
 from sage.ext.memory cimport check_allocarray
@@ -180,8 +182,8 @@ cdef set_from_pari_gen(Integer self, pari_gen x):
     r"""
     EXAMPLES::
 
-        sage: [Integer(pari(x)) for x in [1, 2^60, 2., GF(3)(1)]]
-        [1, 1152921504606846976, 2, 1]
+        sage: [Integer(pari(x)) for x in [1, 2^60, 2., GF(3)(1), GF(9,'a')(2)]]
+        [1, 1152921504606846976, 2, 1, 2]
         sage: Integer(pari(2.1)) # indirect doctest
         Traceback (most recent call last):
         ...
@@ -218,7 +220,7 @@ cdef set_from_pari_gen(Integer self, pari_gen x):
             sig_on()
             x = pari.new_gen(FF_to_FpXQ_i((<pari_gen>x).g))
         else:
-            raise TypeError, "Unable to coerce PARI %s to an Integer"%x
+            raise TypeError("Unable to coerce PARI %s to an Integer"%x)
 
     # Now we have a true PARI integer, convert it to Sage
     INT_to_mpz(self.value, (<pari_gen>x).g)
@@ -317,15 +319,6 @@ cdef _digits_internal(mpz_t v,l,int offset,int power_index,power_list,digits):
             _digits_internal(mpz_quot,l,offset+(1<<power_index),power_index-1,power_list,digits)
         mpz_clear(mpz_quot)
         mpz_clear(mpz_res)
-
-arith = None
-cdef void late_import():
-    global arith
-    if arith is None:
-        import sage.rings.arith
-        arith = sage.rings.arith
-
-MAX_UNSIGNED_LONG = 2 * sys.maxsize
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport EuclideanDomainElement, ModuleElement, Element
@@ -850,7 +843,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: all([(a > b) == (RR(a) > RR(b)) for (a, b) in zip(Ilist, flist)])
             True
 
-        Verify that trac 12149 was fixed (and the fix is consistent
+        Verify that :trac:`12149` was fixed (and the fix is consistent
         with Python ints)::
 
             sage: a = int(1); b = 1; n = float('nan')
@@ -1405,7 +1398,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         cdef bint do_sig_on
         if mpz_sgn(self.value) == 0:
-            l = [the_integer_ring._zero_element if digits is None else digits[0]]*padto
+            l = [zero if digits is None else digits[0]]*padto
         elif mpz_cmp_si(_base.value,2) == 0:
             s = mpz_sizeinbase(self.value, 2)
             if digits:
@@ -1413,10 +1406,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 z = digits[0]
             else:
                 if mpz_sgn(self.value) == 1:
-                    o = the_integer_ring._one_element
+                    o = one
                 else:
-                    o = -the_integer_ring._one_element
-                z = the_integer_ring._zero_element
+                    o = -one
+                z = zero
             l = [z]*(s if s >= padto else padto)
             for i from 0<= i < s:
                 # mpz_tstbit seems to return 0 for the high-order bit of
@@ -1438,7 +1431,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             # faster (especially for large values of self) than trimming off
             # trailing zeros after the fact.  It also seems that it would
             # avoid duplicating the list in memory with a list-slice.
-            z = the_integer_ring._zero_element if digits is None else digits[0]
+            z = zero if digits is None else digits[0]
             s = self_abs.exact_log(_base)
             l = [z]*(s+1 if s+1 >= padto else padto)
 
@@ -1569,6 +1562,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Fast path for adding a C long.
 
         TESTS::
+
             sage: int(10) + Integer(100)
             110
             sage: Integer(100) + int(10)
@@ -2498,7 +2492,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     def prime_to_m_part(self, m):
         """
         Returns the prime-to-m part of self, i.e., the largest divisor of
-        self that is coprime to m.
+        ``self`` that is coprime to ``m``.
 
         INPUT:
 
@@ -2508,12 +2502,34 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLES::
 
-            sage: z = 43434
-            sage: z.prime_to_m_part(20)
+            sage: 43434.prime_to_m_part(20)
             21717
+            sage: 2048.prime_to_m_part(2)
+            1
+            sage: 2048.prime_to_m_part(3)
+            2048
+
+            sage: 0.prime_to_m_part(2)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: self must be nonzero
         """
-        late_import()
-        return sage.rings.arith.prime_to_m_part(self, m)
+        cdef Integer mm = Integer(m)
+
+        if not self:
+            raise ArithmeticError("self must be nonzero")
+        if not mm:
+            return one
+
+        cdef Integer n = Integer(self)  # need a copy as it is modified below
+
+        sig_on()
+        while mpz_cmp_ui(mm.value, 1):
+            mpz_gcd(mm.value, n.value, mm.value)
+            mpz_divexact(n.value, n.value, mm.value)
+        sig_off()
+
+        return n
 
     def prime_divisors(self):
         """
@@ -2532,8 +2548,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: a = 2004; a.prime_divisors()
             [2, 3, 167]
         """
-        late_import()
-        return sage.rings.arith.prime_divisors(self)
+        return [r[0] for r in self.factor()]
 
     prime_factors = prime_divisors
 
@@ -2847,7 +2862,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: [int(a) % b for a,b in signs] == control
             True
 
-        This example caused trouble in trac #6083::
+        This example caused trouble in :trac:`6083`::
 
             sage: a = next_prime(2**31)
             sage: b = Integers(a)(100)
@@ -2934,7 +2949,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         TESTS:
 
         The divisor can be rational as well, although the remainder
-        will always be zero (trac #7965)::
+        will always be zero (:trac:`7965`)::
 
             sage: 5.quo_rem(QQ(2))
             (5/2, 0)
@@ -2999,7 +3014,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Integer x, _exp, _mod
         _exp = Integer(exp); _mod = Integer(mod)
         if mpz_cmp_si(_mod.value,0) == 0:
-            raise ZeroDivisionError, "cannot raise to a power modulo 0"
+            raise ZeroDivisionError("cannot raise to a power modulo 0")
 
         x = PY_NEW(Integer)
 
@@ -3055,44 +3070,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ArithmeticError("rational reconstruction of %s (mod %s) does not exist" % (a, m))
         return x
 
-    def powermodm_ui(self, exp, mod):
-        r"""
-        Computes self\*\*exp modulo mod, where exp is an unsigned long
-        integer.
-
-        EXAMPLES::
-
-            sage: z = 32
-            sage: z.powermodm_ui(2, 4)
-            0
-            sage: z.powermodm_ui(2, 14)
-            2
-            sage: z.powermodm_ui(2^32-2, 14)
-            2
-            sage: z.powermodm_ui(2^32-1, 14)
-            Traceback (most recent call last):                              # 32-bit
-            ...                                                             # 32-bit
-            OverflowError: exp (=4294967295) must be <= 4294967294          # 32-bit
-            8              # 64-bit
-            sage: z.powermodm_ui(2^65, 14)
-            Traceback (most recent call last):
-            ...
-            OverflowError: exp (=36893488147419103232) must be <= 4294967294  # 32-bit
-            OverflowError: exp (=36893488147419103232) must be <= 18446744073709551614     # 64-bit
-        """
-        if exp < 0:
-            raise ValueError, "exp (=%s) must be nonnegative"%exp
-        elif exp > MAX_UNSIGNED_LONG:
-            raise OverflowError, "exp (=%s) must be <= %s"%(exp, MAX_UNSIGNED_LONG)
-        cdef Integer x, _mod
-        _mod = Integer(mod)
-        x = PY_NEW(Integer)
-
-        sig_on()
-        mpz_powm_ui(x.value, self.value, exp, _mod.value)
-        sig_off()
-
-        return x
+    powermodm_ui = deprecated_function_alias(17852, powermod)
 
     def __int__(self):
         """
@@ -4041,8 +4019,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_sgn(self.value) > 0:
             return (self-one).factorial()
         else:
-            from sage.rings.infinity import unsigned_infinity
-            return unsigned_infinity
+            return sage.rings.infinity.unsigned_infinity
 
     def floor(self):
         """
@@ -5196,11 +5173,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLES::
 
-            sage: Integer(100).is_squarefree()
+            sage: 100.is_squarefree()
             False
-            sage: Integer(102).is_squarefree()
+            sage: 102.is_squarefree()
             True
-            sage: Integer(0).is_squarefree()
+            sage: 0.is_squarefree()
             False
         """
         return self._pari_().issquarefree()
@@ -6058,15 +6035,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         INPUT:
 
-            - ``m`` -- an integer
+        - ``m`` -- an integer
 
-            - ``algorithm`` -- ``'mpir'`` (default) or ``'pari'``; ``'mpir'`` is
-              faster for small ``m``, and ``'pari'`` tends to be faster for
-              large ``m``
+        - ``algorithm`` -- ``'mpir'`` (default) or ``'pari'``; ``'mpir'`` is
+          faster for small ``m``, and ``'pari'`` tends to be faster for
+          large ``m``
 
         OUTPUT:
 
-            - integer
+        - integer
 
         EXAMPLES::
 
@@ -6076,18 +6053,76 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             45
             sage: 10.binomial(-2)
             0
+            sage: (-2).binomial(3)
+            -4
+            sage: (-3).binomial(0)
+            1
+
+        The argument ``m`` or (``self-m``) must fit into unsigned long::
+
+            sage: (2**256).binomial(2**256)
+            1
+            sage: (2**256).binomial(2**256-1)
+            115792089237316195423570985008687907853269984665640564039457584007913129639936
+            sage: (2**256).binomial(2**128)
+            Traceback (most recent call last):
+            ...
+            OverflowError: m must fit in an unsigned long
+
+        TESTS::
+
+            sage: 0.binomial(0)
+            1
+            sage: 0.binomial(1)
+            0
+            sage: 0.binomial(-1)
+            0
+            sage: 13.binomial(2r)
+            78
+
+        Check that it can be interrupted::
+
+            sage: alarm(0.5); (2^100).binomial(2^22, algorithm='mpir')
+            Traceback (most recent call last):
+            ...
+            AlarmInterrupt
+            sage: alarm(0.5); (2^100).binomial(2^22, algorithm='pari')
+            Traceback (most recent call last):
+            ...
+            AlarmInterrupt
         """
         cdef Integer x
-        if m < 0:
-            return the_integer_ring.zero()
+        cdef Integer mm
+
+        if isinstance(m, Integer):
+            mm = m
+        else:
+            mm = Integer(m)
+
+        # trivial cases and potential simplification binom(n,x) -> binom(n,n-x)
+        if self == zero or mm < zero or mm > self > zero:
+            return one if mm == zero else zero
+
+        if 2*mm > self > zero:
+            mm = self - mm
+
+        if mm == zero:
+            return one
+        if mm == one:
+            return self
+
+        # now call the various backend
         if algorithm == 'mpir':
             x = PY_NEW(Integer)
-            sig_on()
-            mpz_bin_ui(x.value, self.value, m)
-            sig_off()
+            if mpz_fits_ulong_p(mm.value):
+                sig_on()
+                mpz_bin_ui(x.value, self.value, mpz_get_ui(mm.value))
+                sig_off()
+            else:
+                raise OverflowError("m must fit in an unsigned long")
             return x
         elif algorithm == 'pari':
-            return the_integer_ring(self._pari_().binomial(m))
+            return the_integer_ring(self._pari_().binomial(mm))
         else:
             raise ValueError("algorithm must be one of: 'pari', 'mpir'")
 
@@ -6644,7 +6679,7 @@ cdef hook_fast_tp_functions():
 
     # Finally replace the functions called when an Integer needs
     # to be constructed/destructed.
-    hook_tp_functions(global_dummy_Integer, NULL, &fast_tp_new, NULL, &fast_tp_dealloc, False)
+    hook_tp_functions(global_dummy_Integer, NULL, <newfunc>(&fast_tp_new), NULL, &fast_tp_dealloc, False)
 
 cdef integer(x):
     if isinstance(x, Integer):

@@ -108,7 +108,7 @@ class Test:
         self.congroups = []
         i = 1
         self.odd_probability = odd_probability
-        if index%2:
+        if index % 4:
             self.odd_probability=0
         while Gamma(i).index() < index_max:
             self.congroups.append(Gamma(i))

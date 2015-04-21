@@ -59,6 +59,7 @@ Linear Algebra
 
 * :doc:`Matrices and Spaces of Matrices <matrices/index>`
 * :doc:`Vectors and Modules <modules/index>`
+* :doc:`Tensors on free modules of finite rank <tensor_free_modules/index>`
 
 Discrete Mathematics
 --------------------

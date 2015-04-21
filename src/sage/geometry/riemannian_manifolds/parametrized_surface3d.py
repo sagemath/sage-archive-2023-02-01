@@ -1505,12 +1505,12 @@ class ParametrizedSurface3D(SageObject):
 
         """
         from sage.ext.fast_eval import fast_float
-        from sage.calculus.var import var
         from sage.gsl.ode import ode_solver
 
         u1 = self.variables[1]
         u2 = self.variables[2]
-        v1, v2 = var('v1, v2', domain='real')
+        v1 = SR.var('v1', domain='real')
+        v2 = SR.var('v2', domain='real')
 
         C = self.connection_coefficients()
 
@@ -1618,12 +1618,12 @@ class ParametrizedSurface3D(SageObject):
         """
 
         from sage.ext.fast_eval import fast_float
-        from sage.calculus.var import var
         from sage.gsl.ode import ode_solver
 
         u1 = self.variables[1]
         u2 = self.variables[2]
-        v1, v2 = var('v1, v2', domain='real')
+        v1 = SR.var('v1', domain='real')
+        v2 = SR.var('v2', domain='real')
 
         du1 = diff(curve[0], t)
         du2 = diff(curve[1], t)

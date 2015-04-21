@@ -4,6 +4,7 @@
 /local
 /logs
 /upstream
+/src/mac-app/build
 
 #############################
 # Autotools generated files #
@@ -70,3 +71,10 @@ $RECYCLE.BIN/
 
 # SublimeText
 *.sublime-workspace
+
+#################
+# SageMathCloud #
+#################
+*.sage-chat
+*.sage-history
+*.syncdoc*

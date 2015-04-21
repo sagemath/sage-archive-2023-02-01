@@ -642,7 +642,7 @@ class Groups(CategoryWithAxiom):
 
                     sage: GroupAlgebras(QQ).example(GL(3, GF(11))).group()
                     General Linear Group of degree 3 over Finite Field of size 11
-                    sage: SymmetricGroupAlgebra(QQ,10).group()
+                    sage: SymmetricGroup(10).algebra(QQ).group()
                     Symmetric group of order 10! as a permutation group
                 """
                 return self.basis().keys()
@@ -655,15 +655,6 @@ class Groups(CategoryWithAxiom):
 
                     sage: GroupAlgebras(QQ).example(AlternatingGroup(10)).algebra_generators()
                     Finite family {(1,2,3,4,5,6,7,8,9): B[(1,2,3,4,5,6,7,8,9)], (8,9,10): B[(8,9,10)]}
-
-                .. NOTE::
-
-                    This function is overloaded for SymmetricGroupAlgebras
-                    to return Permutations and not Elements of the
-                    symmetric group::
-
-                        sage: GroupAlgebras(QQ).example(SymmetricGroup(10)).algebra_generators()
-                        [[2, 1, 3, 4, 5, 6, 7, 8, 9, 10], [2, 3, 4, 5, 6, 7, 8, 9, 10, 1]]
                 """
                 from sage.sets.family import Family
                 return Family(self.group().gens(), self.term)

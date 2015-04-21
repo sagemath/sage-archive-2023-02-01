@@ -46,7 +46,6 @@ REFERENCES:
 #*****************************************************************************
 
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.calculus.var import var
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 import sfa
@@ -116,15 +115,11 @@ class Macdonald(UniqueRepresentation):
             sage: Sym = SymmetricFunctions(FractionField(QQ['t'])).macdonald()
             Traceback (most recent call last):
             ...
-            ValueError: parameter q must be in the base ring
+            TypeError: unable to evaluate 'q' in Fraction Field of Univariate Polynomial Ring in t over Rational Field
         """
         self._sym = Sym
         self._s = Sym.s()
-        if not (q in Sym.base_ring() or var(q) in Sym.base_ring()):
-            raise ValueError("parameter q must be in the base ring")
         self.q = Sym.base_ring()(q)
-        if not (t in Sym.base_ring() or var(t) in Sym.base_ring()):
-            raise ValueError("parameter t must be in the base ring")
         self.t = Sym.base_ring()(t)
         self._name_suffix = ""
         if str(q) !='q':

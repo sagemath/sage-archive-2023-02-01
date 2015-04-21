@@ -147,9 +147,9 @@ be accessible from the calling function after this operation.
 ##################################################################
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
 include "coerce.pxi"
+from sage.ext.stdsage cimport *
 
 from cpython.ref cimport PyObject
 
@@ -550,7 +550,7 @@ cdef class Element(SageObject):
     cpdef base_extend(self, R):
         cdef Parent V
         V = self._parent.base_extend(R)
-        return V._coerce_c(self)
+        return V.coerce(self)
 
     def base_ring(self):
         """

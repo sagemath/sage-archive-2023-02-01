@@ -29,7 +29,7 @@ cdef extern from '<stdarg.h>':
 
 from sage.libs.flint.types cimport ulong
 
-cdef extern from 'parisage.h':
+cdef extern from "sage/libs/pari/parisage.h":
     char* PARIVERSION
 
     ctypedef long* GEN
@@ -2084,6 +2084,10 @@ cdef extern from 'parisage.h':
     long    hyperell_locally_soluble(GEN pol, GEN p)
     long    nf_hyperell_locally_soluble(GEN nf, GEN pol, GEN p)
 
+    # classpoly.c
+
+    GEN     polclass(GEN D, long xvar)
+
     # compile.c
 
     GEN     closure_deriv(GEN G)
@@ -3053,6 +3057,14 @@ cdef extern from 'parisage.h':
     GEN     member_zk(GEN x)
     GEN     member_zkst(GEN bid)
 
+    # modpoly.c
+
+    GEN     Flm_Fl_polmodular_evalx(GEN phi, long L, ulong j, ulong p, ulong pi)
+    GEN     Fp_polmodular_evalx(long L, GEN J, GEN P, long v, int compute_derivs)
+    GEN     polmodular_ZM(long L)
+    GEN     polmodular_ZXX(long L, long xvar, long yvar)
+    GEN     polmodular(long L, GEN x, long yvar, int compute_derivs)
+
     # mp.c
 
     GEN     addmulii(GEN x, GEN y, GEN z)
@@ -3931,7 +3943,7 @@ cdef extern from 'parisage.h':
     GEN    uutoineg(ulong x, ulong y)
     long   vali(GEN x)
 
-cdef extern from 'parisage.h':
+cdef extern from "sage/libs/pari/parisage.h":
     GEN set_gel(GEN x, long n, GEN z)              # gel(x,n) = z
     GEN set_gmael(GEN x, long i, long j, GEN z)    # gmael(x,i,j) = z
     GEN set_gcoeff(GEN x, long i, long j, GEN z)   # gcoeff(x,i,j) = z

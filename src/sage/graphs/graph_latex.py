@@ -44,7 +44,7 @@ To use LaTeX in Sage you of course need a working TeX installation and it will w
 - TeX: http://ctan.org/
 - dvipng: http://sourceforge.net/projects/dvipng/
 - convert: http://www.imagemagick.org (the ImageMagick suite)
-- tkz-graph: http://altermundus.com/pages/graph.html
+- tkz-graph: http://altermundus.com/pages/tkz/
 
 Customizing the output is accomplished in several ways.  Suppose ``g`` is a graph, then ``g.set_latex_options()`` can be used to efficiently set or modify various options.  Setting individual options, or querying options, can be accomplished by first using a command like ``opts = g.latex_options()`` to obtain a :class:`sage.graphs.graph_latex.GraphLatex` object which has several methods to set and retrieve options.
 
@@ -395,10 +395,10 @@ def check_tkz_graph():
 Visit '...'.
 """)
     latex.check_file("tkz-graph.sty", """This package is required to render graphs in LaTeX.
-Visit 'http://altermundus.com/pages/graph.html'.
+Visit 'http://altermundus.com/pages/tkz/'.
 """)
     latex.check_file("tkz-berge.sty", """This package is required to render graphs in LaTeX.
-Visit 'http://altermundus.com/pages/graph.html'.
+Visit 'http://altermundus.com/pages/tkz/'.
 """)
 
 def have_tkz_graph():

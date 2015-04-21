@@ -454,7 +454,7 @@ def polar_P2_polytope():
 
 @cached_function
 def polar_P1xP1_polytope():
-    """
+    r"""
     The polar of the `P^1 \times P^1` polytope
 
     EXAMPLES::
@@ -522,7 +522,7 @@ def subpolygons_of_polar_P2_112():
 
 @cached_function
 def subpolygons_of_polar_P1xP1():
-    """
+    r"""
     The lattice sub-polygons of the polar `P^1 \times P^1` polytope
 
     OUTPUT:

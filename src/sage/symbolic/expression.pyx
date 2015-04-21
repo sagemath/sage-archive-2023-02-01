@@ -132,7 +132,6 @@ Test if :trac:`9947` is fixed::
 ###############################################################################
 
 include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 
@@ -1757,6 +1756,8 @@ cdef class Expression(CommutativeRingElement):
 
     def is_numeric(self):
         """
+        A Pynac numeric is an object you can do arithmetic with
+        that is not a symbolic variable, function, or constant.
         Return True if this expression only consists of a numeric object.
 
         EXAMPLES::
@@ -1766,6 +1767,8 @@ cdef class Expression(CommutativeRingElement):
             sage: x.is_numeric()
             False
             sage: pi.is_numeric()
+            False
+            sage: sin(x).is_numeric()
             False
         """
         return is_a_numeric(self._gobj)

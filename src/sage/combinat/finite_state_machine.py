@@ -52,6 +52,7 @@ Accessing parts of a finite state machine
     :meth:`~FiniteStateMachine.empty_copy` | Returns an empty deep copy
     :meth:`~FiniteStateMachine.deepcopy` | Returns a deep copy
     :meth:`~FiniteStateMachine.relabeled` | Returns a relabeled deep copy
+    :meth:`Automaton.with_output` | Extends an automaton to a transducer
 
 
 Manipulation
@@ -774,11 +775,16 @@ See also methods :meth:`Automaton.process` and
 :class:`FSMProcessIterator` for more information on processing and
 hooks.
 
-REFERENCE:
+REFERENCES:
 
-.. [HKW2014] Clemens Heuberger, Sara Kropf and Stephan Wagner,
+.. [HKP2015] Clemens Heuberger, Sara Kropf, and Helmut Prodinger,
+   *Output sum of transducers: Limiting distribution and periodic
+   fluctuation*, :arxiv:`1502.01412`.
+
+.. [HKW2015] Clemens Heuberger, Sara Kropf and Stephan Wagner,
    *Variances and Covariances in the Central Limit Theorem for the Output
-   of a Transducer*, :arxiv:`1404.3680v2`.
+   of a Transducer*, European J. Combin. 49 (2015), 167-187,
+   :doi:`10.1016/j.ejc.2015.03.004`.
 
 AUTHORS:
 
@@ -838,13 +844,13 @@ from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RR
 from sage.symbolic.ring import SR
-from sage.calculus.var import var
 from sage.misc.cachefunc import cached_function
 from sage.misc.latex import latex
 from sage.misc.misc import verbose
 from sage.misc.misc import srange
 from sage.functions.trig import cos, sin, atan2
 from sage.symbolic.constants import pi
+from sage.symbolic.ring import SR
 
 from copy import copy
 from copy import deepcopy
@@ -4853,7 +4859,7 @@ class FiniteStateMachine(SageObject):
 
         """
         def default_function(transitions):
-            var('x')
+            x = SR.var('x')
             return x**sum(transition.word_out)
 
         if entry is None:
@@ -7609,7 +7615,7 @@ class FiniteStateMachine(SageObject):
 
         The final components are the only parts of a transducer which
         influence the main terms of the asympotic behaviour of the sum
-        of output labels of a transducer, see [HKP2015]_ and [HKW2014]_.
+        of output labels of a transducer, see [HKP2015]_ and [HKW2015]_.
 
         EXAMPLES::
 
@@ -7632,12 +7638,6 @@ class FiniteStateMachine(SageObject):
             sage: T.final_components()[0].transitions()
             [Transition from 0 to 1: 0|-,
              Transition from 1 to 0: 0|-]
-
-        REFERENCES:
-
-        .. [HKP2015] Clemens Heuberger, Sara Kropf, and Helmut
-           Prodinger, *Output sum of transducers: Limiting distribution
-           and periodic fluctuation*, :arxiv:`1502.01412`.
         """
         DG = self.digraph()
         condensation = DG.strongly_connected_components_digraph()
@@ -8684,7 +8684,7 @@ class FiniteStateMachine(SageObject):
 
         Then the expectation of `X_n` is `en+O(1)`, the variance
         of `X_n` is `vn+O(1)` and the covariance of `X_n` and
-        the sum of input labels is `cn+O(1)`, cf. [HKW2014]_,
+        the sum of input labels is `cn+O(1)`, cf. [HKW2015]_,
         Theorem 3.9.
 
         In the case of non-integer input or output labels, performance
@@ -8694,7 +8694,7 @@ class FiniteStateMachine(SageObject):
         much more efficiently than over the symbolic ring. In fact, we
         compute (parts) of a trivariate generating function where the
         input and output labels are exponents of some indeterminates,
-        see [HKW2014]_, Theorem 3.9 for details. If those exponents are
+        see [HKW2015]_, Theorem 3.9 for details. If those exponents are
         integers, we can use a polynomial ring.
 
         EXAMPLES:
@@ -8782,7 +8782,7 @@ class FiniteStateMachine(SageObject):
                 sage: moments['covariance']
                 Order(1)
 
-        #.  This is Example 3.16 in [HKW2014]_, where a transducer with
+        #.  This is Example 3.16 in [HKW2015]_, where a transducer with
             variable output labels is given. There, the aim was to
             choose the output labels of this very simple transducer such
             that the input and output sum are asymptotically
@@ -8806,7 +8806,7 @@ class FiniteStateMachine(SageObject):
             Therefore, the asymptotic covariance vanishes if and only if
             `a_2=a_1`.
 
-        #.  This is Example 4.3 in [HKW2014]_, dealing with the
+        #.  This is Example 4.3 in [HKW2015]_, dealing with the
             transducer converting the binary expansion of an integer
             into Gray code (cf. the :wikipedia:`Gray_code` and the
             :ref:`example on Gray code
@@ -8820,7 +8820,7 @@ class FiniteStateMachine(SageObject):
                 sage: moments['covariance']
                 Order(1)
 
-        #.  This is the first part of Example 4.4 in [HKW2014]_,
+        #.  This is the first part of Example 4.4 in [HKW2015]_,
             counting the number of 10 blocks in the standard binary
             expansion. The least significant digit is at the left-most
             position::
@@ -8841,7 +8841,7 @@ class FiniteStateMachine(SageObject):
                 sage: moments['covariance']
                 Order(1)
 
-        #.  This is the second part of Example 4.4 in [HKW2014]_,
+        #.  This is the second part of Example 4.4 in [HKW2015]_,
             counting the number of 11 blocks in the standard binary
             expansion. The least significant digit is at the left-most
             position::
@@ -8866,7 +8866,7 @@ class FiniteStateMachine(SageObject):
                 sage: correlation
                 2/5*sqrt(5)
 
-        #.  This is Example 4.5 in [HKW2014]_, counting the number of
+        #.  This is Example 4.5 in [HKW2015]_, counting the number of
             01 blocks minus the number of 10 blocks in the standard binary
             expansion. The least significant digit is at the left-most
             position::
@@ -9023,7 +9023,7 @@ class FiniteStateMachine(SageObject):
 
         ALGORITHM:
 
-        See [HKW2014]_, Theorem 3.9.
+        See [HKW2015]_, Theorem 3.9.
 
         REFERENCES:
 
@@ -9941,6 +9941,102 @@ class Automaton(FiniteStateMachine):
             return (accept_input, current_state)
         else:
             return accept_input
+
+
+    def with_output(self, word_out_function=None):
+        r"""
+        Construct a transducer out of this automaton.
+
+        INPUT:
+
+        - ``word_out_function`` -- (default: ``None``) a function. It
+          transforms a :class:`transition <FSMTransition>` to the
+          output word for this transition.
+
+          If this is ``None``, then the output word will be equal to
+          the input word of each transition.
+
+        OUTPUT:
+
+        A transducer.
+
+        EXAMPLES::
+
+            sage: A = Automaton([(0, 0, 'A'), (0, 1, 'B'), (1, 2, 'C')])
+            sage: T = A.with_output(); T
+            Transducer with 3 states
+            sage: T.transitions()
+            [Transition from 0 to 0: 'A'|'A',
+             Transition from 0 to 1: 'B'|'B',
+             Transition from 1 to 2: 'C'|'C']
+
+        This result is in contrast to::
+
+            sage: Transducer(A).transitions()
+            [Transition from 0 to 0: 'A'|-,
+             Transition from 0 to 1: 'B'|-,
+             Transition from 1 to 2: 'C'|-]
+
+        where no output labels are created.
+
+        Here is another example::
+
+            sage: T2 = A.with_output(lambda t: [c.lower() for c in t.word_in])
+            sage: T2.transitions()
+            [Transition from 0 to 0: 'A'|'a',
+             Transition from 0 to 1: 'B'|'b',
+             Transition from 1 to 2: 'C'|'c']
+
+        We can obtain the same result by composing two transducers. As inner
+        transducer of the composition, we use :meth:`.with_output`
+        without the optional argument
+        ``word_out_function`` (which makes the output of each
+        transition equal to its input); as outer transducer we use a
+        :meth:`map-transducer
+        <sage.combinat.finite_state_machine_generators.TransducerGenerators.map>`
+        (for converting to lower case).
+        This gives
+
+        ::
+
+            sage: L = transducers.map(lambda x: x.lower(), ['A', 'B', 'C'])
+            sage: L.composition(A.with_output()).relabeled().transitions()
+            [Transition from 0 to 0: 'A'|'a',
+             Transition from 0 to 1: 'B'|'b',
+             Transition from 1 to 2: 'C'|'c']
+
+        .. SEEALSO::
+
+           :meth:`.input_projection`,
+           :meth:`.output_projection`,
+           :class:`Transducer`,
+           :meth:`transducers.map()
+           <sage.combinat.finite_state_machine_generators.TransducerGenerators.map>`.
+
+        TESTS::
+
+            sage: A.with_output().input_projection() == A
+            True
+            sage: NAF = Automaton(
+            ....:     {'A': [('A', 0), ('B', 1), ('B', -1)], 'B': [('A', 0)]})
+            sage: NAF.with_output().input_projection() == NAF
+            True
+            sage: B = Automaton(
+            ....:     {0: [(0, 'a'), (1, ['b', 'c']), (2, ['d', 'e'])],
+            ....:      1: [(0, ['f', 'g']), (1, 'h'), (2, None)],
+            ....:      2: [(0, None), (1, None), (2, ['i', 'j'])]},
+            ....:     initial_states=[1, 2], final_states=[0])
+            sage: B.with_output(lambda t: [c.upper() for c in t.word_in]).input_projection() == B
+            True
+        """
+        if word_out_function is None:
+            word_out_function = lambda transition: copy(transition.word_in)
+        new = Transducer()
+        memo = dict()
+        new._copy_from_other_(self, memo=memo)
+        for t in new.iter_transitions():
+            t.word_out = word_out_function(t)
+        return new
 
 #*****************************************************************************
 

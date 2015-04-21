@@ -1185,6 +1185,59 @@ class MacdonaldPolynomials_j(MacdonaldPolynomials_generic):
     class Element(MacdonaldPolynomials_generic.Element):
         pass
 
+def self_to_s(self, x):
+    r"""
+    Convert an element of either the ``H`` or ``Ht`` basis to the Schur basis
+
+    This function is here to force the coercion path to the Schur basis.
+
+    INPUT:
+
+    - ``self`` - either a ``H`` or an ``Ht`` Macdonald basis
+    - ``x`` - an element of ``self``
+
+    OUTPUT:
+
+    - an element of the Schur basis
+
+    EXAMPLES::
+
+        sage: Ht = SymmetricFunctions(FractionField(QQ['q','t'])).macdonald().Ht()
+        sage: sage.combinat.sf.macdonald.self_to_s(Ht, Ht[2,1])
+        q*t*s[1, 1, 1] + (q+t)*s[2, 1] + s[3]
+        sage: H = SymmetricFunctions(FractionField(QQ['q','t'])).macdonald().H()
+        sage: sage.combinat.sf.macdonald.self_to_s(H, H[2,1])
+        q*s[1, 1, 1] + (q*t+1)*s[2, 1] + t*s[3]
+    """
+    return self._s(self._self_to_m(x))
+
+def s_to_self( self, x ):
+    r"""
+    Convert an element of either the Schur basis to either the ``H`` or ``Ht`` basis
+
+    This function is here to force the coercion path from the Schur basis.
+
+    INPUT:
+
+    - ``self`` - either a ``H`` or an ``Ht`` Macdonald basis
+    - ``x`` - an element of ``s`` basis
+
+    OUTPUT:
+
+    - an element of the basis ``self``
+
+    EXAMPLES::
+        sage: s = SymmetricFunctions(FractionField(QQ['q','t'])).s()
+        sage: Ht = s.symmetric_function_ring().macdonald().Ht()
+        sage: sage.combinat.sf.macdonald.s_to_self(Ht, s[2])
+        ((-q)/(-q+t))*McdHt[1, 1] + (t/(-q+t))*McdHt[2]
+        sage: H = s.symmetric_function_ring().macdonald().H()
+        sage: sage.combinat.sf.macdonald.s_to_self(H, s[2])
+        (q/(q*t-1))*McdH[1, 1] - (1/(q*t-1))*McdH[2]
+    """
+    return self._m_to_self(self._m(x))
+
+
 class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
     def __init__(self, macdonald):
         r"""
@@ -1211,8 +1264,13 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
         self._m = self._sym.m()
         self._Lmunu = macdonald.Ht()._Lmunu
         category = ModulesWithBasis(self.base_ring())
+        self._s.register_coercion(SetMorphism(Hom(self, self._s, category), self._self_to_s))
+        self.register_coercion(SetMorphism(Hom(self._s, self, category), self._s_to_self))
         self._m.register_coercion(SetMorphism(Hom(self, self._m, category), self._self_to_m))
         self.register_coercion(SetMorphism(Hom(self._m, self, category), self._m_to_self))
+
+    _self_to_s = self_to_s
+    _s_to_self = s_to_self
 
     def _self_to_m(self, x):
         r"""
@@ -1334,8 +1392,13 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         self._self_to_m_cache = _ht_to_m_cache
         self._m = self._sym.m()
         category = ModulesWithBasis(self.base_ring())
+        self._s.register_coercion(SetMorphism(Hom(self, self._s, category), self._self_to_s))
+        self.register_coercion(SetMorphism(Hom(self._s, self, category), self._s_to_self))
         self._m.register_coercion(SetMorphism(Hom(self, self._m, category), self._self_to_m))
         self.register_coercion(SetMorphism(Hom(self._m, self, category), self._m_to_self))
+
+    _self_to_s = self_to_s
+    _s_to_self = s_to_self
 
     def _Lmunu(self, nu, mu ):
         r"""

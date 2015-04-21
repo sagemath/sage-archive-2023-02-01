@@ -5368,10 +5368,10 @@ class SemistandardTableaux_shape(SemistandardTableaux):
             sage: SemistandardTableaux([3,2,1], max_entry=7).cardinality()
             2352
         """
-        c = 0
-        for comp in IntegerVectors(sum(self.shape), self.max_entry):
-            c += SemistandardTableaux_shape_weight(self.shape, Composition(comp)).cardinality()
-        return c
+        from sage.combinat.partition import Partitions
+        number = prod((self.max_entry + self.shape.content(*c)) / self.shape.hook_length(*c)
+                      for c in self.shape.cells())
+        return Integer(number)
 
 class SemistandardTableaux_shape_weight(SemistandardTableaux_shape):
     r"""

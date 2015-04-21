@@ -269,7 +269,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: A.pre_Lie_product_on_basis(x, x)
             B[[[], [[]]]] + B[[[[[]]]]]
         """
-        return sum(self.basis()[u] for u in x.graft_list(y))
+        return self.sum(self.basis()[u] for u in x.graft_list(y))
 
     @lazy_attribute
     def pre_Lie_product(self):
@@ -339,13 +339,13 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: R = FreePreLieAlgebra(QQ, 'xy')
             sage: x, y = R.gens()
             sage: R(x)
-            B[[x]]
+            B[x[]]
             sage: R(x+4*y)
-            4*B[y[]] + B[x[]]
+            B[x[]] + 4*B[y[]]
 
             sage: Trees = R.basis().keys()
-            sage: R(Trees([],'x')
-
+            sage: R(Trees([],'x'))
+            B[x[]]
             sage: D = FreePreLieAlgebra(ZZ, 'xy')
             sage: X, Y = D.gens()
             sage: R(X-Y).parent()
@@ -393,7 +393,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: G = FreePreLieAlgebra(ZZ, 'xyz')
             sage: Gx,Gy,Gz = G.gens()
             sage: z = F.coerce(Gx+Gy); z
-            ??<>??
+            B[x[]] + B[y[]]
             sage: z.parent() is F
             True
 

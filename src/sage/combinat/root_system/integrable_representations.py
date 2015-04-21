@@ -304,6 +304,12 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         """
         return "The Integrable representation of %s with highest weight %s"%(self._cartan_type, self._Lam)
 
+    def cartan_type(self):
+        """
+        Return the Cartan Type of ``self``.
+        """
+        return self._cartan_type
+
     def _inner_qq(self, qelt1, qelt2):
         """
         Symmetric form between two elements of the root lattice.
@@ -799,6 +805,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             6*A2(0,0) + 9*A2(0,3) + 20*A2(1,1) + 9*A2(3,0) + 3*A2(1,4) + 12*A2(2,2) + 3*A2(4,1) + A2(3,3)]
 
         """
+        if wcring.cartan_type() != self.cartan_type().classical():
+            raise ValueError("Cartan Type of WeylCharacterRing must be %s"%self.cartan_type().classical())
         def next_level(x):
             ret = []
             for i in self._index_set:

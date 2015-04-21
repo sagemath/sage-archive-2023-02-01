@@ -38,5 +38,12 @@ from .output_graphics3d import (
 )
 
 from .output_video import (
-    OutputVideoAny,
+    OutputVideoOgg,
+    OutputVideoWebM,
+    OutputVideoMp4,
+    OutputVideoFlash,
+    OutputVideoMatroska,
+    OutputVideoAvi,
+    OutputVideoWmv,
+    OutputVideoQuicktime,
 )

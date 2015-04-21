@@ -21,40 +21,28 @@ from sage.repl.rich_output.output_basic import OutputBase
 from sage.repl.rich_output.buffer import OutputBuffer
 
 
-class OutputVideoAny(OutputBase):
+class OutputVideoBase(OutputBase):
 
-    def __init__(self, video, ext, mimetype, attrs = {}):
+    def __init__(self, video, attrs = {}):
         """
-        Video of any common video format
-
-        If a backend claims support for this class, then it should
-        accept files in common video formats and at least present
-        video controls to the user, or open a video player.
-        Due to the large number of video container formats, codecs,
-        possible bit rate requirements and so on, it might well be
-        that the video still won't be played, but the user should at
-        least see a useful message about what is going on.
+        Abstract base class for rich video output
 
         INPUT:
 
         - ``video`` --
           :class:`~sage.repl.rich_output.buffer.OutputBuffer`.
           The video data.
-        - ``ext`` -- string. The file name extension for this video format.
-        - ``mimetype`` -- string. The MIME type of the video format.
         - ``attrs`` -- dict. Attributes for a ``<video>`` tag in HTML.
           Keys are strings, and values either strings or boolean values.
 
         EXAMPLES::
 
-            sage: from sage.repl.rich_output.output_catalog import OutputVideoAny
-            sage: OutputVideoAny.example()  # indirect doctest
-            OutputVideoAny container
+            sage: from sage.repl.rich_output.output_catalog import OutputVideoOgg
+            sage: OutputVideoOgg.example()  # indirect doctest
+            OutputVideoOgg container
         """
         assert isinstance(video, OutputBuffer)
         self.video = video
-        self.ext = ext
-        self.mimetype = mimetype
         self.attrs = attrs
 
     @classmethod
@@ -63,28 +51,31 @@ class OutputVideoAny(OutputBase):
         Construct a sample video output container
 
         This static method is meant for doctests, so they can easily
-        construct an example.
+        construct an example.  The method is implemented in the abstract
+        :class:`OutputVideoBase` class, but should get invoked on a
+        concrete subclass for which an actual example can exist.
 
         OUTPUT:
 
-        An instance of :class:`OutputVideoAny`.
+        An instance of the class on which this method is called.
         
         EXAMPLES::
 
-            sage: from sage.repl.rich_output.output_catalog import OutputVideoAny
-            sage: OutputVideoAny.example()
-            OutputVideoAny container
-            sage: OutputVideoAny.example().video
-            buffer containing 5540 bytes
-            sage: OutputVideoAny.example().ext
+            sage: from sage.repl.rich_output.output_catalog import OutputVideoOgg
+            sage: OutputVideoOgg.example()
+            OutputVideoOgg container
+            sage: OutputVideoOgg.example().video
+            buffer containing 5612 bytes
+            sage: OutputVideoOgg.example().ext
             '.ogv'
-            sage: OutputVideoAny.example().mimetype
+            sage: OutputVideoOgg.example().mimetype
             'video/ogg'
         """
         from sage.env import SAGE_EXTCODE
-        filename = os.path.join(SAGE_EXTCODE, 'doctest', 'rich_output', 'example.ogv')
-        return cls(OutputBuffer.from_file(filename), '.ogv', 'video/ogg',
-                   {'controls': True})
+        filename = os.path.join(SAGE_EXTCODE, 'doctest', 'rich_output',
+                                'example' + cls.ext)
+        return cls(OutputBuffer.from_file(filename),
+                   {'controls': True, 'loop': False})
 
     def html_fragment(self, url, link_attrs=''):
         r"""
@@ -98,8 +89,8 @@ class OutputVideoAny(OutputBase):
           which is presented to the user if the video is not supported.
 
         EXAMPLES::
-            sage: from sage.repl.rich_output.output_catalog import OutputVideoAny
-            sage: print(OutputVideoAny.example().html_fragment
+            sage: from sage.repl.rich_output.output_catalog import OutputVideoOgg
+            sage: print(OutputVideoOgg.example().html_fragment
             ....:       ('foo', 'class="bar"').replace('><','>\n<'))
             <video controls="controls">
             <source src="foo" type="video/ogg" />
@@ -121,3 +112,117 @@ class OutputVideoAny(OutputBase):
                  attrs=attrs,
                  link_attrs=link_attrs,
         )
+
+class OutputVideoOgg(OutputVideoBase):
+    """
+    Ogg video, Ogg Theora in particular
+
+    EXAMPLES::
+
+        sage: from sage.repl.rich_output.output_catalog import OutputVideoOgg
+        sage: OutputVideoOgg.example()
+        OutputVideoOgg container
+    """
+
+    ext = ".ogv"
+    mimetype = "video/ogg"
+
+class OutputVideoWebM(OutputVideoBase):
+    """
+    WebM video
+
+    The video can be encoded using VP8, VP9 or an even more recent codec.
+
+    EXAMPLES::
+
+        sage: from sage.repl.rich_output.output_catalog import OutputVideoWebM
+        sage: OutputVideoWebM.example()
+        OutputVideoWebM container
+    """
+
+    ext = ".webm"
+    mimetype = "video/webm"
+
+class OutputVideoMp4(OutputVideoBase):
+    """
+    MPEG 4 video
+
+    EXAMPLES::
+
+        sage: from sage.repl.rich_output.output_catalog import OutputVideoMp4
+        sage: OutputVideoMp4.example()
+        OutputVideoMp4 container
+    """
+
+    ext = ".mp4"
+    mimetype = "video/mp4"
+
+class OutputVideoFlash(OutputVideoBase):
+    """
+    Flash video
+
+    EXAMPLES::
+
+        sage: from sage.repl.rich_output.output_catalog import OutputVideoFlash
+        sage: OutputVideoFlash.example()
+        OutputVideoFlash container
+    """
+
+    ext = ".flv"
+    mimetype = "video/x-flv"
+
+class OutputVideoMatroska(OutputVideoBase):
+    """
+    Matroska Video
+
+    EXAMPLES::
+
+        sage: from sage.repl.rich_output.output_catalog import OutputVideoMatroska
+        sage: OutputVideoMatroska.example()
+        OutputVideoMatroska container
+    """
+
+    ext = ".mkv"
+    mimetype = "video/x-matroska"
+
+class OutputVideoAvi(OutputVideoBase):
+    """
+    AVI video
+
+    EXAMPLES::
+
+        sage: from sage.repl.rich_output.output_catalog import OutputVideoAvi
+        sage: OutputVideoAvi.example()
+        OutputVideoAvi container
+    """
+
+    ext = ".avi"
+    mimetype = "video/x-msvideo"
+
+class OutputVideoWmv(OutputVideoBase):
+    """
+    Windows Media Video
+
+    EXAMPLES::
+
+        sage: from sage.repl.rich_output.output_catalog import OutputVideoWmv
+        sage: OutputVideoWmv.example()
+        OutputVideoWmv container
+    """
+
+    ext = ".wmv"
+    mimetype = "video/x-ms-wmv"
+
+class OutputVideoQuicktime(OutputVideoBase):
+    """
+    Quicktime video
+
+    EXAMPLES::
+
+        sage: from sage.repl.rich_output.output_catalog import OutputVideoQuicktime
+        sage: OutputVideoQuicktime.example()
+        OutputVideoQuicktime container
+    """
+
+    ext = ".mov"
+    mimetype = "video/quicktime"

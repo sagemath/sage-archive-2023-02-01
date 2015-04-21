@@ -637,37 +637,8 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
             sage: a._rich_repr_(dm)       # optional -- ImageMagick
             OutputImageGif container
         """
-        OutputImageGif = display_manager.types.OutputImageGif
-        OutputVideoAny = display_manager.types.OutputVideoAny
-        supported = display_manager.supported_output()
-        format = kwds.pop("format", None)
-        mimetype = kwds.pop("mimetype", None)
-        if format is None and mimetype is not None:
-            import mimetypes
-            format = mimetypes.guess_extension(mimetype, strict=False)
-            if format is None:
-                raise ValueError("MIME type without associated extension")
-            else:
-                format = format.lstrip(".")
-        if format is None:
-            if OutputImageGif in supported:
-                format = "gif"
-            else:
-                return # No supported format could be guessed
-        suffix = None # we might want to translate from format to suffix
-        outputType = OutputVideoAny
-        if format == "gif":
-            outputType = OutputImageGif
-        if suffix is None: # may change this in some of the rules above
-            suffix = "." + format
-        if not outputType in supported:
-            return # Sorry, requested format is not supported
-        if outputType is not OutputVideoAny:
-            return display_manager.graphics_from_save(
-                self.save, kwds, suffix, outputType)
 
-        # Now we save for OutputVideoAny
-        filename = tmp_filename(ext=suffix)
+        # Pop attributes for HTML5 <video> tag from kwds
         attrs = { "autoplay": True, "controls": True, "loop": True }
         iterations = kwds.get('iterations', 0)
         if iterations:
@@ -675,15 +646,50 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         for k in attrs:
             if k in kwds:
                 attrs[k] = kwds.pop(k)
-        if mimetype is None:
-            import mimetypes
-            mimetype = mimetypes.guess_type(filename, strict=False)[0]
-            if mimetype is None:
-                mimetype = 'video/' + format
+
+        t = display_manager.types
+        supported = display_manager.supported_output()
+        format = kwds.pop("format", None)
+        if format is None:
+            if t.OutputImageGif in supported:
+                format = "gif"
+            else:
+                return # No supported format could be guessed
+        suffix = None
+        outputType = None
+        if format == "gif":
+            outputType = t.OutputImageGif
+            suffix = ".gif"
+        if format == "ogg":
+            outputType = t.OutputVideoOgg
+        if format == "webm":
+            outputType = t.OutputVideoWebM
+        if format == "mp4":
+            outputType = t.OutputVideoMp4
+        if format == "flash":
+            outputType = t.OutputVideoFlash
+        if format == "matroska":
+            outputType = t.OutputVideoMatroska
+        if format == "avi":
+            outputType = t.OutputVideoAvi
+        if format == "wmv":
+            outputType = t.OutputVideoWmv
+        if format == "quicktime":
+            outputType = t.OutputVideoQuicktime
+        if format is None:
+            raise ValueError("Unknown video format")
+        if outputType not in supported:
+            return # Sorry, requested format is not supported
+        if suffix is not None:
+            return display_manager.graphics_from_save(
+                self.save, kwds, suffix, outputType)
+
+        # Now we save for OutputVideoBase
+        filename = tmp_filename(ext=outputType.ext)
         self.save(filename, **kwds)
         from sage.repl.rich_output.buffer import OutputBuffer
         buf = OutputBuffer.from_file(filename)
-        return OutputVideoAny(buf, suffix, mimetype, attrs)
+        return outputType(buf, attrs)
 
     def show(self, delay=None, iterations=None, **kwds):
         r"""
@@ -698,15 +704,20 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         INPUT:
 
         -  ``delay`` -- (default: 20) delay in hundredths of a
-           second between frames
+           second between frames.
 
         -  ``iterations`` -- integer (default: 0); number of
            iterations of animation. If 0, loop forever.
 
         - ``format`` - (default: gif) format to use for output.
+          Currently supported formats are: gif,
+          ogg, webm, mp4, flash, matroska, avi, wmv, quicktime.
 
-        - ``mimetype`` - (default: 'video/'+format) the mime type to be
-          used in an HTML5 video tag.
+        - ``autoplay`` - (default: True) whether to automatically
+          start playback e.g. in a browser interface.
+
+        - ``controls`` - (default: True) whether to show playback
+          controls, e.g. in a browser interface.
 
         OUTPUT:
 
@@ -739,9 +750,18 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
         You can also make use of the HTML5 video element in the Sage Notebook::
 
-            sage: a.show(format="webm")                  # optional -- ffmpeg
-            sage: a.show(mimetype="video/ogg")           # optional -- ffmpeg
+            sage: a.show(format="ogg")         # optional -- ffmpeg
+            sage: a.show(format="webm")        # optional -- ffmpeg
+            sage: a.show(format="mp4")         # optional -- ffmpeg
             sage: a.show(format="webm", iterations=1, autoplay=False)  # optional -- ffmpeg
+
+        Other backends may support other file formats as well::
+
+            sage: a.show(format="flash")       # optional -- ffmpeg
+            sage: a.show(format="matroska")    # optional -- ffmpeg
+            sage: a.show(format="avi")         # optional -- ffmpeg
+            sage: a.show(format="wmv")         # optional -- ffmpeg
+            sage: a.show(format="quicktime")   # optional -- ffmpeg
 
         TESTS:
 

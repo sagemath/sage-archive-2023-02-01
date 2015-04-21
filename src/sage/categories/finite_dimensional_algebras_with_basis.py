@@ -437,8 +437,9 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         @cached_method
         def orthogonal_idempotents_central_mod_rad(self):
             r"""
-            Return a maximal family of primitive orthogonal idempotents of
-            ``self``.
+            Return a maximal family of orthogonal idempotents of
+            ``self`` obtained by lifting the central orthogonal idempotents of
+            the semisimple quotient.
 
             INPUT:
 
@@ -446,13 +447,12 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             OUTPUT:
 
-            - a list of a complete set of orthogonal idempotents of the
-              algebra.
+            - a list of orthogonal idempotents of the algebra.
 
             ALGORITHM:
 
-            The primitive orthogonal idempotents of `A` are obtained by lifting
-            the central orthogonal idempotents of the semisimple quotient
+            The orthogonal idempotents of `A` are obtained by lifting the
+            central orthogonal idempotents of the semisimple quotient
             `\overline{A}`.
 
             Let `\pi` be the projection `A \rightarrow \overline{A}`.
@@ -526,7 +526,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             TESTS:
 
-            We test that the above idempotents are central orthogonal idempotents::
+            We test that the above idempotents are orthogonal idempotents::
 
                 sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example()
                 sage: E = A.orthogonal_idempotents_central_mod_rad()

@@ -126,10 +126,10 @@ class AbstractChannel(object):
     r"""
     Abstract top-class for Channel objects.
 
-    All channel objects must heritate from this class. To implement a channel subclass, one should
+    All channel objects must inherit from this class. To implement a channel subclass, one should
     do the following:
 
-    - heritate from this class,
+    - inherit from this class,
 
     - call the super constructor,
 

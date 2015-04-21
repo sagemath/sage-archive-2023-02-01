@@ -143,6 +143,7 @@ AUTHORS:
 - Vincent Delecroix (2015): complete rewriting using libgap (see :trac:`18152`)
 """
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import FieldElement, parent
@@ -437,6 +438,8 @@ class UniversalCyclotomicFieldElement(FieldElement):
             15
         """
         return self._obj.Conductor().sage()
+
+    field_order = deprecated_function_alias(18152, conductor)
 
     def _symbolic_(self, R):
         r"""

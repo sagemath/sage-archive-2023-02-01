@@ -1671,8 +1671,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             s = 'dense'
         return "{} x {} {} matrix over {}".format(self._nrows, self._ncols, s, self.base_ring())
 
-    def str(self, rep_mapping=None, zero=None, plus_one=None, minus_one=None):
-        r"""
+    def str(self, rep_mapping=None, zero=None, plus_one=None, minus_one=None,
+            unicode_symbols=False):
+        ur"""
         Return a nice string representation of the matrix.
 
         INPUT:
@@ -1705,6 +1706,10 @@ cdef class Matrix(sage.structure.element.Matrix):
           use the value of ``minus_one`` as the representation of the
           negative of the one element.
 
+        - ``unicode_symbols`` - boolean (default: ``False``).
+          Whether to use Unicode symbols instead of ASCII symbols
+          for brackets and subdivision lines.
+
         EXAMPLES::
 
             sage: R = PolynomialRing(QQ,6,'z')
@@ -1731,6 +1736,22 @@ cdef class Matrix(sage.structure.element.Matrix):
             '[+ .]\n[+ -]'
             sage: M.str(repr)
             '[ 1  0]\n[ 2 -1]'
+
+            sage: M = matrix([[1,2,3],[4,5,6],[7,8,9]])
+            sage: M.subdivide(None, 2)
+            sage: print(M.str(unicode_symbols=True))
+            ⎡1 2│3⎤
+            ⎢4 5│6⎥
+            ⎣7 8│9⎦
+            sage: M.subdivide([0,1,1,3], [0,2,3,3])
+            sage: print(M.str(unicode_symbols=True))
+            ⎡┼───┼─┼┼⎤
+            ⎢│1 2│3││⎥
+            ⎢┼───┼─┼┼⎥
+            ⎢┼───┼─┼┼⎥
+            ⎢│4 5│6││⎥
+            ⎢│7 8│9││⎥
+            ⎣┼───┼─┼┼⎦
 
         TESTS:
 
@@ -1786,16 +1807,26 @@ cdef class Matrix(sage.structure.element.Matrix):
         rows = []
         m = 0
 
-        left_bracket = "["
-        right_bracket = "]"
+        if unicode_symbols:
+            left_bracket = u"⎢"
+            right_bracket = u"⎥"
+            vertical_line = u"│"
+        else:
+            left_bracket = "["
+            right_bracket = "]"
+            vertical_line = "|"
         while nc in col_divs:
-            right_bracket = "|" + right_bracket
+            right_bracket = vertical_line + right_bracket
             col_divs.remove(nc)
         while 0 in col_divs:
-            left_bracket += "|"
+            left_bracket += vertical_line
             col_divs.remove(0)
         line = '+'.join(['-'*((width+1)*(b-a)-1) for a,b in zip([0] + col_divs, col_divs + [nc])])
-        hline = (left_bracket + line + right_bracket).replace('|', '+')
+        if unicode_symbols:
+            line = line.replace("+", u"┼").replace("-", u"─")
+            hline = (left_bracket + line + right_bracket).replace(u"│", u"┼")
+        else:
+            hline = (left_bracket + line + right_bracket).replace('|', '+')
 
         # compute rows
         for r from 0 <= r < nr:
@@ -1803,11 +1834,11 @@ cdef class Matrix(sage.structure.element.Matrix):
             s = ""
             for c from 0 <= c < nc:
                 if c+1 in col_divs:
-                    sep = "|"*col_divs.count(c+1)
+                    sep = vertical_line * col_divs.count(c+1)
                 elif c == nc - 1:
-                    sep=""
+                    sep = ""
                 else:
-                    sep=" "
+                    sep = " "
                 entry = S[r*nc+c]
                 if c == 0:
                     m = max(m, len(entry))
@@ -1817,6 +1848,12 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         rows += [hline] * row_divs.count(nr)
 
+        if len(rows) == 1:
+            return "[" + rows[0][1:-1] + "]"
+
+        if unicode_symbols:
+            rows[0] = u"⎡" + rows[0][1:-1] + u"⎤"
+            rows[-1] = u"⎣" + rows[-1][1:-1] + u"⎦"
         s = "\n".join(rows)
         #self.cache('repr',s)
         return s

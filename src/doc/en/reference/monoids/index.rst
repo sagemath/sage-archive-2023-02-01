@@ -7,6 +7,7 @@ finite number of indeterminates.
 .. toctree::
    :maxdepth: 2
 
+   sage/monoids/automatic_semigroup
    sage/monoids/monoid
    sage/monoids/free_monoid
    sage/monoids/free_monoid_element

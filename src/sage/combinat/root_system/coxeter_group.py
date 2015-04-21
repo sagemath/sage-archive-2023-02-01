@@ -57,7 +57,7 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
 
         sage: W = CoxeterGroup(["A",2])
         sage: W
-        Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
         [1 3]
         [3 1]
 
@@ -69,7 +69,7 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
         [3 2 3 1]
 
         sage: W = CoxeterGroup(['H',3]); W
-        Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
         [1 3 2]
         [3 1 5]
         [2 5 1]
@@ -88,14 +88,14 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
 
         sage: W = CoxeterGroup(["H",3], implementation="matrix")
         sage: W
-        Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
         [1 3 2]
         [3 1 5]
         [2 5 1]
 
         sage: W = CoxeterGroup(["H",3], implementation="reflection")
         sage: W
-        Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
         [1 3 2]
         [3 1 5]
         [2 5 1]
@@ -109,13 +109,13 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
 
         sage: W = CoxeterGroup(["H",3], implementation="reflection", base_ring=RR)
         sage: W
-        Coxeter group over Real Field with 53 bits of precision with Coxeter matrix:
+        Finite Coxeter group over Real Field with 53 bits of precision with Coxeter matrix:
         [1 3 2]
         [3 1 5]
         [2 5 1]
         sage: W = CoxeterGroup([[1,10],[10,1]], implementation="reflection", index_set=['a','b'], base_ring=SR)
         sage: W
-        Coxeter group over Symbolic Ring with Coxeter matrix:
+        Finite Coxeter group over Symbolic Ring with Coxeter matrix:
         [ 1 10]
         [10  1]
 

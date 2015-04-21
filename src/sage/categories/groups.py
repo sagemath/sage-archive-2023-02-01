@@ -13,6 +13,7 @@ Groups
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
+from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.monoids import Monoids
 from sage.categories.algebra_functor import AlgebrasCategory
@@ -427,9 +428,56 @@ class Groups(CategoryWithAxiom):
             import operator
             return OperationTable(self, operation=operator.mul, names=names, elements=elements)
 
+        def conjugacy_class(self, g):
+            r"""
+            Return the conjugacy class of the element ``g``.
+
+            This is a fall-back method for groups not defined over GAP.
+
+            EXAMPLES::
+
+                sage: A = AbelianGroup([2,2])
+                sage: c = A.conjugacy_class(A.an_element())
+                sage: type(c)
+                <class 'sage.groups.conjugacy_classes.ConjugacyClass_with_category'>
+            """
+            from sage.groups.conjugacy_classes import ConjugacyClass
+            return ConjugacyClass(self, g)
+
     class ElementMethods:
-        ## inv(x), x/y
-        pass
+        def conjugacy_class(self):
+            r"""
+            Return the conjugacy class of ``self``.
+
+            EXAMPLES::
+
+                sage: D = DihedralGroup(5)
+                sage: g = D((1,3,5,2,4))
+                sage: g.conjugacy_class()
+                Conjugacy class of (1,3,5,2,4) in Dihedral group of order 10 as a permutation group
+
+                sage: H = MatrixGroup([matrix(GF(5),2,[1,2, -1, 1]), matrix(GF(5),2, [1,1, 0,1])])
+                sage: h = H(matrix(GF(5),2,[1,2, -1, 1]))
+                sage: h.conjugacy_class()
+                Conjugacy class of [1 2]
+                [4 1] in Matrix group over Finite Field of size 5 with 2 generators (
+                [1 2]  [1 1]
+                [4 1], [0 1]
+                )
+
+                sage: G = SL(2, GF(2))
+                sage: g = G.gens()[0]
+                sage: g.conjugacy_class()
+                Conjugacy class of [1 1]
+                [0 1] in Special Linear Group of degree 2 over Finite Field of size 2
+
+                sage: G = SL(2, QQ)
+                sage: g = G([[1,1],[0,1]])
+                sage: g.conjugacy_class()
+                Conjugacy class of [1 1]
+                [0 1] in Special Linear Group of degree 2 over Rational Field
+            """
+            return self.parent().conjugacy_class(self)
 
     Finite = LazyImport('sage.categories.finite_groups', 'FiniteGroups')
     #Algebras = LazyImport('sage.categories.group_algebras', 'GroupAlgebras')
@@ -595,7 +643,7 @@ class Groups(CategoryWithAxiom):
 
                     sage: GroupAlgebras(QQ).example(GL(3, GF(11))).group()
                     General Linear Group of degree 3 over Finite Field of size 11
-                    sage: SymmetricGroupAlgebra(QQ,10).group()
+                    sage: SymmetricGroup(10).algebra(QQ).group()
                     Symmetric group of order 10! as a permutation group
                 """
                 return self.basis().keys()
@@ -608,47 +656,13 @@ class Groups(CategoryWithAxiom):
 
                     sage: GroupAlgebras(QQ).example(AlternatingGroup(10)).algebra_generators()
                     Finite family {(1,2,3,4,5,6,7,8,9): B[(1,2,3,4,5,6,7,8,9)], (8,9,10): B[(8,9,10)]}
-
-                .. NOTE::
-
-                    This function is overloaded for SymmetricGroupAlgebras
-                    to return Permutations and not Elements of the
-                    symmetric group::
-
-                        sage: GroupAlgebras(QQ).example(SymmetricGroup(10)).algebra_generators()
-                        [[2, 1, 3, 4, 5, 6, 7, 8, 9, 10], [2, 3, 4, 5, 6, 7, 8, 9, 10, 1]]
                 """
                 from sage.sets.family import Family
                 return Family(self.group().gens(), self.term)
 
-            def _conjugacy_classes_representatives_underlying_group(self):
+            def center_basis(self):
                 r"""
-                Return a complete list of representatives of conjugacy
-                classes of the underlying group.
-
-                This works only for permutation groups. The ordering is
-                that given by GAP.
-
-                EXAMPLES::
-
-                    sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4)]])
-                    sage: SG = GroupAlgebras(QQ).example(G)
-                    sage: SG._conjugacy_classes_representatives_underlying_group()
-                    [(), (2,4), (1,2)(3,4), (1,2,3,4), (1,3)(2,4)]
-
-                .. NOTE::
-
-                    This function is overloaded for SymmetricGroupAlgebras to
-                    return Permutations and not Elements of the symmetric group::
-
-                    sage: SymmetricGroupAlgebra(ZZ,3)._conjugacy_classes_representatives_underlying_group()
-                    [[2, 3, 1], [2, 1, 3], [1, 2, 3]]
-                """
-                return self.group().conjugacy_classes_representatives()
-
-            def center(self):
-                r"""
-                Return the center of the group algebra.
+                Return a basis of the center of the group algebra.
 
                 The canonical basis of the center of the group algebra
                 is the family `(f_\sigma)_{\sigma\in C}`, where `C` is
@@ -658,31 +672,26 @@ class Groups(CategoryWithAxiom):
 
                 OUTPUT:
 
-                - A free module `V` indexed by conjugacy class
-                  representatives of the group; its elements represent
-                  formal linear combinations of the canonical basis
-                  elements.
+                - ``list`` of elements of ``self``
 
                 .. WARNING::
 
                     - This method requires the underlying group to
-                      have a method ``conjugacy_classes_representatives``
+                      have a method ``conjugacy_classes``
                       (every permutation group has one, thanks GAP!).
-                    - The product has not been implemented yet.
 
                 EXAMPLES::
 
-                    sage: SymmetricGroupAlgebra(ZZ,3).center()
-                    Free module generated by {[2, 3, 1], [2, 1, 3], [1, 2, 3]} over Integer Ring
+                    sage: SymmetricGroup(3).algebra(QQ).center_basis()
+                    [(), (2,3) + (1,2) + (1,3), (1,2,3) + (1,3,2)]
 
                 .. SEEALSO::
 
                     - :meth:`Groups.Algebras.ElementMethods.central_form`
                     - :meth:`Monoids.Algebras.ElementMethods.is_central`
                 """
-                I = self._conjugacy_classes_representatives_underlying_group()
-                from sage.combinat.free_module import CombinatorialFreeModule
-                return CombinatorialFreeModule(self.base_ring(), I)
+                return [self.sum_of_monomials(conj) for conj  in
+                        self.basis().keys().conjugacy_classes()]
 
             # Coalgebra structure
 
@@ -775,19 +784,19 @@ class Groups(CategoryWithAxiom):
 
             def central_form(self):
                 r"""
-                Return ``self`` in the canonical basis of the center
+                Return ``self`` expressed in the canonical basis of the center
                 of the group algebra.
 
                 INPUT:
 
-                - ``self`` -- a central element of the group algebra
+                - ``self`` -- an element of the center of the group algebra
 
                 OUTPUT:
 
                 - A formal linear combination of the conjugacy class
                   representatives representing its coordinates in the
                   canonical basis of the center. See
-                  :meth:`Groups.Algebras.ParentMethods.center` for
+                  :meth:`Groups.Algebras.ParentMethods.center_basis` for
                   details.
 
                 .. WARNING::
@@ -807,24 +816,27 @@ class Groups(CategoryWithAxiom):
 
                 EXAMPLES::
 
-                    sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
-                    sage: A=QS3([2,3,1])+QS3([3,1,2])
+                    sage: QS3 = SymmetricGroup(3).algebra(QQ)
+                    sage: A = QS3([2,3,1]) + QS3([3,1,2])
                     sage: A.central_form()
-                    B[[2, 3, 1]]
-                    sage: QS4 = SymmetricGroupAlgebra(QQ, 4)
-                    sage: B=sum(len(s.cycle_type())*QS4(s) for s in Permutations(4))
+                    B[(1,2,3)]
+                    sage: QS4 = SymmetricGroup(4).algebra(QQ)
+                    sage: B = sum(len(s.cycle_type())*QS4(s) for s in Permutations(4))
                     sage: B.central_form()
-                    4*B[[1, 2, 3, 4]] + 3*B[[2, 1, 3, 4]] + 2*B[[2, 1, 4, 3]] + 2*B[[2, 3, 1, 4]] + B[[2, 3, 4, 1]]
-                    sage: QG=GroupAlgebras(QQ).example(PermutationGroup([[(1,2,3),(4,5)],[(3,4)]]))
+                    4*B[()] + 3*B[(1,2)] + 2*B[(1,2)(3,4)] + 2*B[(1,2,3)] + B[(1,2,3,4)]
+
+                    sage: QG = GroupAlgebras(QQ).example(PermutationGroup([[(1,2,3),(4,5)],[(3,4)]]))
                     sage: sum(i for i in QG.basis()).central_form()
                     B[()] + B[(4,5)] + B[(3,4,5)] + B[(2,3)(4,5)] + B[(2,3,4,5)] + B[(1,2)(3,4,5)] + B[(1,2,3,4,5)]
 
                 .. SEEALSO::
 
-                    - :meth:`Groups.Algebras.ParentMethods.center`
+                    - :meth:`Groups.Algebras.ParentMethods.center_basis`
                     - :meth:`Monoids.Algebras.ElementMethods.is_central`
                 """
-                Z = self.parent().center()
+                from sage.combinat.free_module import CombinatorialFreeModule
+                conj_classes_reps = self.parent().basis().keys().conjugacy_classes_representatives()
+                Z = CombinatorialFreeModule(self.base_ring(), conj_classes_reps)
                 return sum(self[i] * Z.basis()[i] for i in Z.basis().keys())
 
     class CartesianProducts(CartesianProductsCategory):

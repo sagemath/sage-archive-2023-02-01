@@ -238,9 +238,11 @@ class Sandpile(DiGraph):
         r"""
         Create a sandpile.
 
+        A sandpile is always a weighted graph.
+
         INPUT:
 
-         - ``g`` - dict for directed multgraph (see NOTES) edges weighted by
+         - ``g`` - dict for directed multigraph (see NOTES) edges weighted by
            nonnegative integers
 
          - ``sink`` - A sink vertex.  Any outgoing edges from the designated
@@ -286,6 +288,13 @@ class Sandpile(DiGraph):
 
             sage: S = complete_sandpile(4)
             sage: TestSuite(S).run()
+
+        Make sure we cannot make an unweighted sandpile::
+
+            sage: G = Sandpile({0:[]}, 0, weighted=False)
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() got an unexpected keyword argument 'weighted'
         """
         # preprocess a graph, if necessary
         if isinstance(g, dict) and isinstance(g.values()[0], dict):
@@ -336,6 +345,23 @@ class Sandpile(DiGraph):
         temp = range(self.num_verts())
         del temp[self._sink_ind]
         self._reduced_laplacian = self._laplacian[temp,temp]
+
+    def __copy__(self):
+        """
+        Make a copy of this sandpile
+
+        OUTPUT:
+
+        A new :class:`Sandpile` instance.
+
+        EXAMPLES::
+
+            sage: G = complete_sandpile(4)
+            sage: G_copy = copy(G)
+            sage: G_copy == G == G.__copy__()
+            True
+        """
+        return self.__class__(self, self._sink)
 
     def __getattr__(self, name):
         """
@@ -839,8 +865,8 @@ class Sandpile(DiGraph):
         bc = {} # burning config
         bs = {} # burning script
         for v in self._nonsink_vertices:
-            bc[v] = b.next()
-            bs[v] = s.next()
+            bc[v] = next(b)
+            bs[v] = next(s)
         self._burning_config = SandpileConfig(self,bc)
         self._burning_script = SandpileConfig(self,bs)
 
@@ -3502,7 +3528,13 @@ class SandpileDivisor(dict):
             sage: D = SandpileDivisor(S, [0,1,1])
             sage: eff = D.effective_div() # optional - 4ti2
             sage: D.__dict__ # optional - 4ti2
-            {'_sandpile': Digraph on 3 vertices, '_effective_div': [{0: 2, 1: 0, 2: 0}, {0: 0, 1: 1, 2: 1}], '_linear_system': {'inhomog': [[1, 0, 0], [0, 0, 0], [0, -1, -1]], 'num_inhomog': 3, 'num_homog': 2, 'homog': [[1, 1, 1], [-1, -1, -1]]}, '_vertices': [0, 1, 2]}
+            {'_effective_div': [{0: 2, 1: 0, 2: 0}, {0: 0, 1: 1, 2: 1}],
+             '_linear_system': {'homog': [[1, 1, 1], [-1, -1, -1]],
+              'inhomog': [[1, 0, 0], [0, 0, 0], [0, -1, -1]],
+              'num_homog': 2,
+              'num_inhomog': 3},
+             '_sandpile': Digraph on 3 vertices,
+             '_vertices': [0, 1, 2]}
             sage: D[0] += 1 # optional - 4ti2
             sage: D.__dict__ # optional - 4ti2
             {'_sandpile': Digraph on 3 vertices, '_vertices': [0, 1, 2]}
@@ -4141,7 +4173,10 @@ class SandpileDivisor(dict):
             sage: S = sandlib('generic')
             sage: D = SandpileDivisor(S, [0,0,0,0,0,2])
             sage: D.linear_system() # optional - 4ti2
-            {'inhomog': [[0, 0, 0, 0, 0, -1], [0, 0, -1, -1, 0, -2], [0, 0, 0, 0, 0, 0]], 'num_inhomog': 3, 'num_homog': 2, 'homog': [[1, 0, 0, 0, 0, 0], [-1, 0, 0, 0, 0, 0]]}
+            {'homog': [[1, 0, 0, 0, 0, 0], [-1, 0, 0, 0, 0, 0]],
+             'inhomog': [[0, 0, 0, 0, 0, -1], [0, 0, -1, -1, 0, -2], [0, 0, 0, 0, 0, 0]],
+             'num_homog': 2,
+             'num_inhomog': 3}
 
         NOTES:
 

@@ -40,6 +40,7 @@ Index
 Functions
 ---------
 """
+include "sage/data_structures/binary_matrix.pxi"
 
 cdef dict dense_graph_init(binary_matrix_t m, g, translation=False):
     r"""
@@ -59,8 +60,7 @@ cdef dict dense_graph_init(binary_matrix_t m, g, translation=False):
     cdef int is_undirected = isinstance(g, Graph)
     cdef int n = g.order()
 
-    binary_matrix_init(m,n,n)
-    binary_matrix_fill(m,0)
+    binary_matrix_init(m, n, n)
 
     # If the vertices are 0...n-1, let's avoid an unnecessary dictionary
     if g.vertices() == range(n):
@@ -68,16 +68,16 @@ cdef dict dense_graph_init(binary_matrix_t m, g, translation=False):
             d_translation = {i:i for i in range(n)}
 
         for i,j in g.edge_iterator(labels = False):
-            binary_matrix_set1(m,i,j)
+            binary_matrix_set1(m, i, j)
             if is_undirected:
-                binary_matrix_set1(m,j,i)
+                binary_matrix_set1(m, j, i)
     else:
         d_translation = {v:i for i,v in enumerate(g.vertices())}
 
         for u,v in g.edge_iterator(labels = False):
-            binary_matrix_set1(m,d_translation[u],d_translation[v])
+            binary_matrix_set1(m, d_translation[u], d_translation[v])
             if is_undirected:
-                binary_matrix_set1(m,d_translation[v],d_translation[u])
+                binary_matrix_set1(m, d_translation[v], d_translation[u])
 
     if translation:
         return d_translation
@@ -171,6 +171,7 @@ def is_strongly_regular(g, parameters = False):
     """
     g._scream_if_not_simple()
     cdef binary_matrix_t m
+    cdef bitset_t b_tmp
     cdef int n = g.order()
     cdef int inter
     cdef int i,j,l, k
@@ -186,6 +187,8 @@ def is_strongly_regular(g, parameters = False):
     if not all(d == k for d in degree):
         return False
 
+    bitset_init(b_tmp, n)
+    
     # m i now our copy of the graph
     dense_graph_init(m, g)
 
@@ -197,9 +200,8 @@ def is_strongly_regular(g, parameters = False):
 
             # The intersection of the common neighbors of i and j is a AND of
             # their respective rows. A popcount then returns its cardinality.
-            inter = 0
-            for l in range(m.width):
-                inter += __builtin_popcountl(m.rows[i][l] & m.rows[j][l])
+            bitset_and(b_tmp, m.rows[i], m.rows[j])
+            inter = bitset_len(b_tmp)
 
             # Check that this cardinality is correct according to the values of lambda and mu
             if binary_matrix_get(m,i,j):
@@ -207,15 +209,18 @@ def is_strongly_regular(g, parameters = False):
                     llambda = inter
                 elif llambda != inter:
                     binary_matrix_free(m)
+                    bitset_free(b_tmp)
                     return False
             else:
                 if mu == -1:
                     mu = inter
                 elif mu != inter:
                     binary_matrix_free(m)
+                    bitset_free(b_tmp)
                     return False
 
     binary_matrix_free(m)
+    bitset_free(b_tmp)
 
     if parameters:
         return (n,k,llambda,mu)

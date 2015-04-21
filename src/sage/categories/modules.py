@@ -178,7 +178,7 @@ class Modules(Category_module):
 
         .. SEEALSO:: :meth:`Category.additional_structure`
 
-        .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
+        .. TODO:: Should this category be a :class:`~sage.categories.category_with_axiom.CategoryWithAxiom`?
 
         EXAMPLES::
 
@@ -190,25 +190,11 @@ class Modules(Category_module):
 
         @cached_method
         def base_ring(self):
-            """
+            r"""
             Return the base ring (category) for ``self``.
 
-            This implements a ``base_ring`` method for join categories
-            which are subcategories of some ``Modules(K)``.
-
-            .. TODO:: handle base being a category
-
-            .. NOTE::
-
-                - This uses the fact that join categories are
-                  flattened; thus some direct subcategory of
-                  ``self`` should be a category over a base ring.
-                - Generalize this to any :class:`Category_over_base_ring`.
-                - Should this code be in :class:`JoinCategory`?
-                - This assumes that a subcategory of a
-                  :class`~.category_types.Category_over_base_ring` is a
-                  :class:`~.category.JoinCategory` or a
-                  :class`~.category_types.Category_over_base_ring`.
+            This implements a ``base_ring`` method for all
+            subcategories of ``Modules(K)``.
 
             EXAMPLES::
 
@@ -218,12 +204,31 @@ class Modules(Category_module):
                 Rational Field
                 sage: C.base_ring.__module__
                 'sage.categories.modules'
+
+                sage: C = Modules(Rings()) & Semigroups(); C
+                Join of Category of semigroups and Category of modules over rings
+                sage: C.base_ring()
+                Category of rings
+                sage: C.base_ring.__module__
+                'sage.categories.modules'
+
+                sage: C = DescentAlgebra(QQ,3).B().category()
+                sage: C.base_ring.__module__
+                'sage.categories.modules'
+                sage: C.base_ring()
+                Rational Field
+
+                sage: C = QuasiSymmetricFunctions(QQ).F().category()
+                sage: C.base_ring.__module__
+                'sage.categories.modules'
+                sage: C.base_ring()
+                Rational Field
             """
-            assert isinstance(self, JoinCategory)
-            for x in self.super_categories():
-                if isinstance(x, Category_over_base_ring):
-                    return x.base_ring()
-            assert False, "some subcategory of {} should be a category over base ring".format(self)
+            for C in self.super_categories():
+                # Is there a better way to ask if C is a subcategory of Modules?
+                if hasattr(C, "base_ring"):
+                    return C.base_ring()
+            assert False, "some super category of {} should be a category over base ring".format(self)
 
         def TensorProducts(self):
             r"""

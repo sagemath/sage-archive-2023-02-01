@@ -20,7 +20,8 @@ tutorial.
    sage/repl/readline_extra_commands
    sage/repl/interpreter
    sage/repl/ipython_extension
-   sage/repl/notebook_ipython
+   sage/repl/ipython_kernel/install
+   sage/repl/ipython_kernel/kernel
 
 
 Preparsing
@@ -63,7 +64,26 @@ this works using a modified displayhook in Python.
    sage/repl/display/pretty_print
    sage/repl/display/fancy_repr
    sage/repl/display/util
-   sage/repl/display/python_hook
    
+
+Display Backend Infrastructure
+------------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/repl/rich_output/display_manager
+   sage/repl/rich_output/preferences
+   sage/repl/rich_output/buffer
+   sage/repl/rich_output/output_basic
+   sage/repl/rich_output/output_graphics
+   sage/repl/rich_output/output_graphics3d
+   sage/repl/rich_output/output_catalog
+   
+   sage/repl/rich_output/backend_base   
+   sage/repl/rich_output/backend_test
+   sage/repl/rich_output/backend_doctest
+   sage/repl/rich_output/backend_ipython
+
 
 .. include:: ../footer.txt

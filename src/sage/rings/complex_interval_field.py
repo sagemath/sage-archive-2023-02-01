@@ -34,7 +34,7 @@ heavily modified:
 #*****************************************************************************
 
 import complex_double
-import field
+import ring
 import integer
 import weakref
 import real_mpfi
@@ -103,7 +103,7 @@ def ComplexIntervalField(prec=53, names=None):
     return C
 
 
-class ComplexIntervalField_class(field.Field):
+class ComplexIntervalField_class(ring.Field):
     """
     The field of complex (interval) numbers.
 

@@ -82,11 +82,12 @@ class RibbonTableau(SkewTableau):
         if expr is not None:
             return RibbonTableaux().from_expr(expr)
 
-        for row in rt:
-            if not isinstance(row, list):
-                raise TypeError("each element of the ribbon tableau must be a list")
-            if row == []:
-                raise TypeError("a ribbon tableau cannot have an empty list for a row")
+        try:
+            rt = map(tuple, rt)
+        except TypeError:
+            raise TypeError("each element of the ribbon tableau must be an iterable")
+        if not all(row for row in rt):
+            raise TypeError("a ribbon tableau cannot have empty rows")
         #calls the inherited __init__ method (of SkewTableau )
         return RibbonTableaux()(rt)
 
@@ -354,7 +355,7 @@ class RibbonTableaux_shape_weight_length(RibbonTableaux):
 
     def __contains__(self, x):
         """
-        Note that this just checks to see if ``x`` appears is in ``self``.
+        Note that this just checks to see if ``x`` appears in ``self``.
         This should be improved to provide actual checking.
 
         EXAMPLES::
@@ -697,9 +698,9 @@ def spin_polynomial(part, weight, length):
         sage: spin_polynomial([[6]*6, [3,3]], [4,4,2], 3)
         3*t^9 + 5*t^8 + 9*t^7 + 6*t^6 + 3*t^5
     """
-    from sage.symbolic.ring import var
+    from sage.symbolic.ring import SR
     sp = spin_polynomial_square(part,weight,length)
-    t = var('t')
+    t = SR.var('t')
     c = sp.coefficients(sparse=False)
     return sum([c[i]*t**(QQ(i)/2) for i in range(len(c))])
 

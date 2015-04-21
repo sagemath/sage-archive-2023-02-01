@@ -146,6 +146,8 @@ cdef int singular_polynomial_call(poly **ret, poly *p, ring *r, list args, poly 
         sage: (3*x*z)(x,x,x)
         3*x^2
 
+    TESTS:
+
     Test that there is no memory leak in evaluating polynomials. Note
     that (lib)Singular has pre-allocated buckets, so we have to run a
     lot of iterations to fill those up first::
@@ -162,9 +164,30 @@ cdef int singular_polynomial_call(poly **ret, poly *p, ring *r, list args, poly 
         ....:         _ = p(a, a)
         ....:     after = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
         ....:     return (after - before) * 1024   # ru_maxrss is in kilobytes
-        sage: _ = leak(50000)   # warmup and fill up pre-allocated buckets
-        sage: leak(10000)
-        0
+
+    Loop (at most 30 times) until we have 6 consecutive zeros when
+    calling ``leak(10000)``. Depending on the operating system, it is
+    possible to have several non-zero leak values in the beginning, but
+    after a while we should get only zeros. The fact that we require 6
+    zeros also means that Singular's pre-allocated buckets should not
+    be sufficient if there really would be a memory leak. ::
+
+        sage: zeros = 0
+        sage: for i in range(30):  # long time
+        ....:     n = leak(10000)
+        ....:     print("Leaked {} bytes".format(n))
+        ....:     if n == 0:
+        ....:         zeros += 1
+        ....:         if zeros >= 6:
+        ....:             break
+        ....:     else:
+        ....:         zeros = 0
+        Leaked...
+        Leaked 0 bytes
+        Leaked 0 bytes
+        Leaked 0 bytes
+        Leaked 0 bytes
+        Leaked 0 bytes
     """
     cdef long l = len(args)
     cdef ideal *to_id = idInit(l,1)

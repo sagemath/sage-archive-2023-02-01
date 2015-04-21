@@ -7,7 +7,6 @@
 #*******************************************************************************
 
 from c_graph cimport CGraph
-include 'sage/ext/stdsage.pxi'
 
 cdef struct SparseGraphLLNode:
     int label

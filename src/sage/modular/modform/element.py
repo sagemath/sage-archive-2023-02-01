@@ -622,11 +622,13 @@ class ModularForm_abstract(ModuleElement):
             TypeError: matrix [-4 -3]
                               [15 11]
             is not an element of Congruence Subgroup Gamma0(11)
+
             sage: f = Newforms(Gamma0(15), 4)[0]
             sage: f.period(g)
             Traceback (most recent call last):
             ...
             ValueError: period pairing only defined for cusp forms of weight 2
+
             sage: S = Newforms(Gamma1(17), 2, names='a')
             sage: f = S[1]
             sage: g = Gamma1(17)([18, 1, 17, 1])
@@ -634,12 +636,18 @@ class ModularForm_abstract(ModuleElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: period pairing only implemented for cusp forms of trivial character
+
             sage: E = ModularForms(Gamma0(4), 2).eisenstein_series()[0]
             sage: gamma = Gamma0(4)([1, 0, 4, 1])
             sage: E.period(gamma)
             Traceback (most recent call last):
             ...
             NotImplementedError: Don't know how to compute Atkin-Lehner matrix acting on this space (try using a newform constructor instead)
+
+            sage: E = EllipticCurve('19a1')
+            sage: M = Gamma0(19)([10, 1, 19, 2])
+            sage: E.newform().period(M)  # abs tol 1e-14
+            -1.35975973348831 + 1.09365931898146e-16*I
 
         """
         R = rings.RealField(prec)
@@ -656,7 +664,7 @@ class ModularForm_abstract(ModuleElement):
         # coefficients of the matrix M
         (b, c, d) = (M.b(), M.c() / N, M.d())
         if d == 0:
-            return R.zero_element()
+            return R.zero()
         if d < 0:
             (b, c, d) = (-b, -c, -d)
 
@@ -1035,7 +1043,7 @@ class Newform(ModularForm_abstract):
             q - 2*q^2 + (-a1 - 2)*q^3 + 4*q^4 + (2*a1 + 10)*q^5 + O(q^6),
             q + 2*q^2 + (1/2*a2 - 1)*q^3 + 4*q^4 + (-3/2*a2 + 12)*q^5 + O(q^6)]
             sage: type(ls2[0])
-            <class 'sage.modular.modform.element.ModularFormElement'>
+            <class 'sage.modular.modform.element.CuspidalSubmodule_g0_Q_with_category.element_class'>
             sage: ls2[2][3].minpoly()
             x^2 - 9*x + 2
         """
@@ -1313,6 +1321,123 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         else:
             return None
 
+    def twist(self, chi, level=None):
+        r"""
+        Return the twist of the modular form ``self`` by the Dirichlet
+        character ``chi``.
+
+        If ``self`` is a modular form `f` with character `\epsilon`
+        and `q`-expansion
+
+        .. math::
+
+            f(q) = \sum_{n=0}^\infty a_n q^n,
+
+        then the twist by `\chi` is a modular form `f_\chi` with
+        character `\epsilon\chi^2` and `q`-expansion
+
+        .. math::
+
+            f_\chi(q) = \sum_{n=0}^\infty \chi(n) a_n q^n.
+
+        INPUT:
+
+        - ``chi`` -- a Dirichlet character
+
+        - ``level`` -- (optional) the level `N` of the twisted form.
+          By default, the algorithm chooses some not necessarily
+          minimal value for `N` using [Atkin-Li]_, Proposition 3.1,
+          (See also [Koblitz]_, Proposition III.3.17, for a simpler
+          but slightly weaker bound.)
+
+        OUTPUT:
+
+        The form `f_\chi` as an element of the space of modular forms
+        for `\Gamma_1(N)` with character `\epsilon\chi^2`.
+
+        EXAMPLES::
+
+            sage: f = CuspForms(11, 2).0
+            sage: f.parent()
+            Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
+            sage: f.q_expansion(6)
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+            sage: eps = DirichletGroup(3).0
+            sage: eps.parent()
+            Group of Dirichlet characters of modulus 3 over Cyclotomic Field of order 2 and degree 1
+            sage: f_eps = f.twist(eps)
+            sage: f_eps.parent()
+            Cuspidal subspace of dimension 9 of Modular Forms space of dimension 16 for Congruence Subgroup Gamma0(99) of weight 2 over Cyclotomic Field of order 2 and degree 1
+            sage: f_eps.q_expansion(6)
+            q + 2*q^2 + 2*q^4 - q^5 + O(q^6)
+
+        Modular forms without character are supported::
+
+            sage: M = ModularForms(Gamma1(5), 2)
+            sage: f = M.gen(0); f
+            1 + 60*q^3 - 120*q^4 + 240*q^5 + O(q^6)
+            sage: chi = DirichletGroup(2)[0]
+            sage: f.twist(chi)
+            60*q^3 + 240*q^5 + O(q^6)
+
+        The base field of the twisted form is extended if necessary::
+
+            sage: E4 = ModularForms(1, 4).gen(0)
+            sage: E4.parent()
+            Modular Forms space of dimension 1 for Modular Group SL(2,Z) of weight 4 over Rational Field
+            sage: chi = DirichletGroup(5)[1]
+            sage: chi.base_ring()
+            Cyclotomic Field of order 4 and degree 2
+            sage: E4_chi = E4.twist(chi)
+            sage: E4_chi.parent()
+            Modular Forms space of dimension 10, character [-1] and weight 4 over Cyclotomic Field of order 4 and degree 2
+
+        REFERENCES:
+
+        .. [Atkin-Li] A. O. L. Atkin and Wen-Ch'ing Winnie Li, Twists
+           of newforms and pseudo-eigenvalues of `W`-operators.
+           Inventiones math. 48 (1978), 221-243.
+
+        .. [Koblitz] Neal Koblitz, Introduction to Elliptic Curves and
+           Modular Forms.  Springer GTM 97, 1993.
+
+        AUTHORS:
+
+        - \L. J. P. Kilford (2009-08-28)
+
+        - Peter Bruin (2015-03-30)
+
+        """
+        from sage.modular.all import CuspForms, ModularForms
+        from sage.rings.all import PowerSeriesRing, lcm
+        from sage.structure.element import get_coercion_model
+        coercion_model = get_coercion_model()
+        R = coercion_model.common_parent(self.base_ring(), chi.base_ring())
+        N = self.level()
+        Q = chi.modulus()
+        try:
+            epsilon = self.character()
+        except ValueError:
+            epsilon = None
+        constructor = CuspForms if self.is_cuspidal() else ModularForms
+        if epsilon is not None:
+            if level is None:
+                # See [Atkin-Li], Proposition 3.1.
+                level = lcm([N, epsilon.conductor() * Q, Q**2])
+            G = DirichletGroup(level, base_ring=R)
+            M = constructor(G(epsilon) * G(chi)**2, self.weight(), base_ring=R)
+        else:
+            from sage.modular.arithgroup.all import Gamma1
+            if level is None:
+                # See [Atkin-Li], Proposition 3.1.
+                level = lcm([N, Q]) * Q
+            M = constructor(Gamma1(level), self.weight(), base_ring=R)
+        bound = M.sturm_bound() + 1
+        S = PowerSeriesRing(R, 'q')
+        f_twist = S([self[i] * chi(i) for i in xrange(bound)], prec=bound)
+        return M(f_twist)
+
+
 class ModularFormElement_elliptic_curve(ModularFormElement):
     """
     A modular form attached to an elliptic curve.
@@ -1416,7 +1541,6 @@ class ModularFormElement_elliptic_curve(ModularFormElement):
         else:
             return self.__E.modular_symbol_space().atkin_lehner_operator(d).matrix()[0,0]
 
-######################################################################
 
 class EisensteinSeries(ModularFormElement):
     """

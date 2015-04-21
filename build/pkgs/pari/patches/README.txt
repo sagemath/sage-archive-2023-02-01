@@ -13,8 +13,6 @@ Patches to configuration files:
   Darwin. Submitted upstream, but upstream only applied it for PowerPC.
   Since this doesn't break anything and only improves performance, add
   the flag unconditionally.
-* perl_path.patch (Jeroen Demeyer): change first line of all perl
-  scripts to "#!/usr/bin/env perl" (#10559).
 * KERNELCFLAGS.patch (Jeroen Demeyer): when SAGE_DEBUG=yes, compile
   kernel files with -O1 instead of -funroll-loops; -O0 gives a
   segmentation fault on some OS X systems when doing
@@ -23,16 +21,9 @@ Patches to configuration files:
   - http://pari.math.u-bordeaux.fr/archives/pari-dev-1301/msg00000.html
 
 C files:
-* GCC_PR49330.patch (Jeroen Demeyer): in pari_init_functions(), reorder
-  code to work around a GCC bug concerning pointer arithmetic:
-  http://gcc.gnu.org/bugzilla/show_bug.cgi?id=49330
-  This bug manifests itself as a Bus Error on OS X 10.4 PPC with
-  gcc-4.6.3. Discussed with upstream:
-  - http://pari.math.u-bordeaux.fr/archives/pari-dev-1203/msg00001.html
-  - http://pari.math.u-bordeaux.fr/archives/pari-dev-1202/msg00006.html
 * det_garbage.patch (Jeroen Demeyer, #15654): When computing a
   determinant(), only collect garbage once per outer loop iteration.
   Better increase PARI stack size instead of collecting garbage too
   often.
-* nffactor.patch (Jeroen Demeyer, #16894): Fix an nffactor() bug, taken
-  from PARI git commit 7630f584371c3db43c5fd6f57900c70a2c832b8e.
+* public_memory_functions.patch (Jeroen Demeyer, #16997): Make some of
+  PARI's private memory functions public to improve interface with Sage.

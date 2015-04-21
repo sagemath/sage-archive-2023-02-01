@@ -64,7 +64,8 @@ cdef class BinaryMatrix(LeanMatrix):
 
 
 cdef class TernaryMatrix(LeanMatrix):
-    cdef bitset_t *_M0, *_M1    # _M0[i] = support of row i, _M1[i] = negative support of row i
+    cdef bitset_t *_M0    # _M0[i] = support of row i
+    cdef bitset_t *_M1    # _M1[i] = negative support of row i
     cdef bitset_t _s, _t, _u    # registers
 
     cdef inline long get(self, long r, long c)   # Not a Sage matrix operation
@@ -79,7 +80,8 @@ cdef class TernaryMatrix(LeanMatrix):
 
 
 cdef class QuaternaryMatrix(LeanMatrix):
-    cdef bitset_t *_M0, *_M1    # _M0[i] = 1-support of row i, _M1[i] = x- support of row i
+    cdef bitset_t *_M0    # _M0[i] = 1-support of row i
+    cdef bitset_t *_M1    # _M1[i] = x- support of row i
     cdef bitset_t _s, _t, _u    # registers
     cdef object _gf4, _zero, _one, _x_zero, _x_one
 

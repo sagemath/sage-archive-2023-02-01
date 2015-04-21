@@ -710,7 +710,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         cdef FreeAlgebra_letterplace P = self._parent
         if not isinstance(G,(list,tuple)):
             if G==P:
-                return P.zero_element()
+                return P.zero()
             if not (isinstance(G,MPolynomialIdeal) and G.ring()==P._current_ring):
                 G = G.gens()
         C = P.current_ring()

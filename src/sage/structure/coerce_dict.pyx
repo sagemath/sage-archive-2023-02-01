@@ -45,6 +45,7 @@ used with weak references on the values.
 from cpython.object cimport *
 from cpython.list cimport PyList_New
 from cpython.mem cimport *
+from cpython.weakref cimport PyWeakref_GetObject
 from cpython.string cimport PyString_FromString
 from cpython cimport Py_XINCREF, Py_XDECREF
 from libc.string cimport memset
@@ -63,7 +64,6 @@ cdef type fixed_ref = ref
 from cpython.pycapsule cimport PyCapsule_New, PyCapsule_GetPointer
 
 cdef extern from "Python.h":
-    PyObject* PyWeakref_GetObject(object r)
     PyObject* Py_None
     int PyList_SetItem(object list, Py_ssize_t index, PyObject * item) except -1
 

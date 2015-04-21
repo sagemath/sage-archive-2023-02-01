@@ -837,6 +837,45 @@ class UniversalCyclotomicFieldElement(FieldElement):
         k = obj.Conductor().sage()
         return libgap.Product(libgap([obj.GaloisCyc(i) for i in range(k) if k.gcd(i) == 1])).sage()
 
+    def minpoly(self, var='x'):
+        r"""
+        The minimal polynomial of ``self`` element over `\QQ`.
+
+        INPUT:
+
+        - ``var`` -- (optional, default 'x') the name of the variable to use.
+
+        EXAMPLES::
+
+            sage: UCF.<E> = UniversalCyclotomicField()
+
+            sage: UCF(4).minpoly()
+            x - 4
+
+            sage: UCF(4).minpoly(var='y')
+            y - 4
+
+            sage: E(3).minpoly()
+            x^2 + x + 1
+
+            sage: E(3).minpoly(var='y')
+            y^2 + y + 1
+
+        TESTS::
+
+            sage: for elt in UCF.some_elements():
+            ....:     assert elt.minpoly() == elt.to_cyclotomic_field().minpoly()
+            ....:     assert elt.minpoly(var='y') == elt.to_cyclotomic_field().minpoly(var='y')
+
+        .. TODO::
+
+            Polynomials with libgap currently does not implement a ``.sage()`` method
+            (see :trac:`18266`). It would be faster/safer to not use string to
+            construct the polynomial.
+        """
+        gap_p = libgap.MinimalPolynomial(libgap.eval("Rationals"), self._obj)
+        return QQ[var](QQ['x_1'](str(gap_p)))
+
 class UniversalCyclotomicField(UniqueRepresentation, Field):
     r"""
     The universal cyclotomic field.

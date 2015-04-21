@@ -147,6 +147,7 @@ Categories
    sage/categories/schemes
    sage/categories/semigroups
    sage/categories/semirings
+   sage/categories/semisimple_algebras
    sage/categories/sets_cat
    sage/categories/sets_with_grading
    sage/categories/sets_with_partial_maps

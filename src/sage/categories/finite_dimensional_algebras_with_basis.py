@@ -1,6 +1,16 @@
 # -*- coding: utf-8 -*-
 r"""
 Finite dimensional algebras with basis
+
+
+REFERENCES:
+
+..  [CR62] Curtis, Charles W.; Reiner, Irving
+    "Representation theory of finite groups and associative
+    algebras."
+    Pure and Applied Mathematics, Vol. XI Interscience Publishers, a
+    division of John Wiley & Sons, New York-London 1962
+    pp 545--547
 """
 #*****************************************************************************
 #  Copyright (C) 2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
@@ -155,25 +165,19 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             from sage.matrix.constructor import matrix
             from sage.modules.free_module_element import vector
 
+            product_on_basis = self.product_on_basis
+
             if p == 0:
-                index_set = list(self.basis().keys())
+                keys = list(self.basis().keys())
+                cache = [{(i,j): c
+                    for i in keys
+                    for j,c in product_on_basis(y,i)}
+                    for y in keys]
+                mat = [ [ sum(x.get((j, i), 0) * c for (i,j),c in y.items())
+                    for x in cache]
+                    for y in cache]
 
-                cached_products = {}
-                for y in index_set:
-                    for i in index_set:
-                        cached_products[y, i] = self.product_on_basis(y, i)
-
-                mat = []
-                for y in index_set:
-                    row = []
-                    for x in index_set:
-                        row.append( F.sum(cached_products[x, j][i] *
-                                          cached_products[y, i][j]
-                                            for i in index_set
-                                            for j in index_set) )
-                    mat.append(row)
                 mat = matrix(self.base_ring(), mat)
-
                 rad_basis = mat.kernel().basis()
 
             else:
@@ -437,9 +441,8 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         @cached_method
         def orthogonal_idempotents_central_mod_rad(self):
             r"""
-            Return a maximal family of orthogonal idempotents of
-            ``self`` obtained by lifting the central orthogonal idempotents of
-            the semisimple quotient.
+            Return a family of orthogonal idempotents of ``self`` that project
+            on the central orthogonal idempotents of the semisimple quotient.
 
             INPUT:
 
@@ -447,7 +450,8 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             OUTPUT:
 
-            - a list of orthogonal idempotents of the algebra.
+            - a list of orthogonal idempotents obtained by lifting the central
+              orthogonal idempotents of the semisimple quotient.
 
             ALGORITHM:
 
@@ -455,24 +459,14 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             central orthogonal idempotents of the semisimple quotient
             `\overline{A}`.
 
-            Let `\pi` be the projection `A \rightarrow \overline{A}`.
-
-            Fact: for `\overline{e}` a central orthogonal idempotent of
-            `\overline{A}`, we construct `e \in A` idempotent such that `\pi(e)
-            = \overline{e}`. Namely, we find an element of `A` for which the
-            projection on `\overline{A}` is `\overline(e)` via the method
-            :meth:`lift`, and then iterate the formula `1 - (1 - e^2)^2` until
-            having an idempotent.
-
             Let `(\overline{e_i})` be a set of central orthogonal idempotents
             of the semisimple quotient of `A` and `(e_i)` their lift in `A`.
             We recursively construct orthogonal idempotents of `A`: if
             `(f_i)_{i < n}` is a set of already constructed orthogonal
-            idempotent, then we can construct `f_n` by lifting the element
+            idempotent, we then construct `f_n` by lifting the element
             `(1 - \sum_{i < n} f_i) e_n (1 - \sum_{i < n} f_i)`.
 
-            See [CR62] for correctness and termination
-            proofs.
+            See [CR62] for correctness and termination proofs.
 
 
             EXAMPLES::
@@ -488,8 +482,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             ::
 
                 sage: Z12 = Monoids().Finite().example(); Z12
-                An example of a finite multiplicative monoid: the integers
-                modulo 12
+                An example of a finite multiplicative monoid: the integers modulo 12
                 sage: A = Z12.algebra(QQ)
                 sage: orth = A.orthogonal_idempotents_central_mod_rad(); orth
                 [-1/2*B[8] + 1/2*B[4],
@@ -506,8 +499,6 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: all(e*f == f*e and e*f == 0 for e,f in itertools.product(orth, orth) if e!= f)
                 True
 
-
-
             We construct the minimal orthogonal idempotents of the `0`-Hecke
             monoid algebra::
 
@@ -523,52 +514,6 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 True
                 sage: all(e*f == f*e and e*f == 0 for e,f in itertools.product(orth, orth) if e!= f)
                 True
-
-            TESTS:
-
-            We test that the above idempotents are orthogonal idempotents::
-
-                sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example()
-                sage: E = A.orthogonal_idempotents_central_mod_rad()
-                sage: all(e.is_idempotent() for e in E)
-                True
-                sage: all(e * f == 0 for e in E for f in E if e != f)
-                True
-
-            ::
-
-                sage: Z12 = Monoids().Finite().example()
-                sage: A = Z12.algebra(QQ)
-                sage: E = A.orthogonal_idempotents_central_mod_rad()
-                sage: all(e.is_idempotent() for e in E)
-                True
-                sage: all(e * f == 0 for e in E for f in E if e != f)
-                True
-
-            ::
-
-                sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
-                sage: W = WeylGroup(['A', 3]); W.rename("W")
-                sage: ambient_monoid = FiniteSetMaps(W, action="right")
-                sage: pi = W.simple_projections(length_increasing=True).map(ambient_monoid)
-                sage: M = AutomaticSemigroup(pi, one=ambient_monoid.one())
-                sage: A = M.algebra(QQ)
-                sage: E = A.orthogonal_idempotents_central_mod_rad()
-                sage: all(e.is_idempotent() for e in E)
-                True
-                sage: all(e * f == 0 for e in E for f in E if e != f)
-                True
-
-            REFERENCES:
-
-            ..  [CR62] Curtis, Charles W.; Reiner, Irving
-                "Representation theory of finite groups and associative
-                algebras."
-                Pure and Applied Mathematics, Vol. XI Interscience Publishers, a
-                division of John Wiley & Sons, New York-London 1962
-                pp 545--547
-
-            TODO: More documentation, explanation algorithm
             """
             Aquo = self.semisimple_quotient()
             one = self.one()
@@ -576,33 +521,48 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             idems = []
             f = 0
             for g in Aquo.central_orthogonal_idempotents():
-                idems.append(self.lifting_idempotent((one - f) * g.lift() * (one - f)))
+                idems.append(self.indempotent_lift((one - f) * g.lift() * (one - f)))
                 f = f + idems[-1]
             return idems
 
-        def lifting_idempotent(self, x):
+        def indempotent_lift(self, x):
             r"""
-            Return an idempotent of self with same image as `x` in the
-            semisimple quotient. If `x` is an element of the semisimple
-            quotient, return an idempotent of `A` with image `x`.
+            Return an idempotent of ``self`` which projection on the semisimple
+            quotient is the same as `x`.
+
+            Let `\pi` be the projection `A \rightarrow \overline{A}` on the
+            quotient by the radical.
 
             INPUT:
 
-            - `x` -- an element of an algebra `A`
+            1. either `x` -- an idempotent of the semisimple quotient of `A`
+            2. or `x` -- an element of an algebra `A` which project on an
+               idempotent element of the semisimple quotient of `A`
 
             OUTPUT:
 
-            - an idempotent of `A` with image
-                1. `\pi(x)` if `x \in A`
-                2. `x` if `x` is the semisimple quotient of `A`
+            1. if `x` is in the semisimple quotient of `A`, return an idempotent
+               `e` such that `\pi(e) = x`.
+            2. if `x` is in `A`, return the unique idempotent `e` of `A` such
+               that `\pi(e) = \pi(x)` and `e` is polynomial in `x`.
+
+            ALGORITHM:
+
+            For `\overline{e}` an idempotent of `\overline{A}`, we construct `e
+            \in A` idempotent such that `\pi(e) = \overline{e}`. Namely, we
+            find an element of `A` for which the projection on `\overline{A}`
+            is `\overline{e}` and then iterate the formula `1 - (1 - e^2)^2`
+            until having an idempotent.
+
+            See [CR62] for correctness and termination proofs.
 
             EXAMPLES::
 
                 sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example()
                 sage: S = A.semisimple_quotient()
-                sage: A.lifting_idempotent(S.basis()['x'])
+                sage: A.indempotent_lift(S.basis()['x'])
                 x
-                sage: A.lifting_idempotent(A.basis()['y'])
+                sage: A.indempotent_lift(A.basis()['y'])
                 y
             """
             if not self.is_parent_of(x):
@@ -677,15 +637,32 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     lambda i,j: self.peirce_summand(orth[i],
                         orth[j]).dimension()/(dimSimples[i]*dimSimples[j]))
 
-        def projective_indecomposables(self, side='left'):
+        def projective_isotypics(self, side='left'):
             r"""
-            Return the list of indecomposable projective ``side``
-            ``self``-modules.
+            Return the list of isotypic projective ``side`` ``self``-modules.
+
+            Let `(e_i)` be the orthogonal idempotents lifted from the central
+            orthogonal idempotents of the semisimple algebra. The regular
+            representation `A` can be decomposed as a direct sum
+            `\bigoplus_i P_i` with `P_i = e_i A`.
+            The projective modules `P_i` are isotypic in the sense that all
+            their direct summands are isomoprhic.
+
+            .. NOTE::
+
+                The number of summands of `P_i` is the dimension of the associated
+                simple module.
+
+            OUTPUT:
+
+            - return a list of modules `e_i A` for `(e_i)` a set of orthogonal
+              idempotents lifted from central orthogonal idempotents of the
+              semisimple quotient.
 
             EXAMPLES::
 
                 sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example()
-                sage: projs = A.projective_indecomposables(); projs
+                sage: projs = A.projective_isotypics(side="left"); projs
                 [Free module generated by {0, 1, 2} over Rational Field,
                  Free module generated by {0} over Rational Field]
 
@@ -746,13 +723,14 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             r"""
             Return the Peirce decomposition of ``self``.
 
-            TODO: polish this
+            Let `(e_i)` be orthogonal idempotents of `A` with sum `1`,
+            then `A` is the direct sum of the subspaces `e_i A e_j`.
 
             OUTPUT:
 
             The list of subspaces `e_i A e_j`, where `e_i` and `e_j` run
-            through a complete system of primitive orthogonal idempotents of
-            this algebra `A`.
+            through the commuting orthogonal idempotents lifted from the
+            central orthogonal idempotents of the semisimple quotient.
 
             EXAMPLES::
 

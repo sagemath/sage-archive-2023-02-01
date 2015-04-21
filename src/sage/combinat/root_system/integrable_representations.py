@@ -21,6 +21,7 @@ from sage.misc.all import cached_method
 from sage.matrix.constructor import Matrix
 from sage.functions.other import floor
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+import sage.combinat.root_system.weyl_characters
 
 # TODO: Make this a proper parent and implement actions
 class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
@@ -770,3 +771,59 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         else:
             mu = self.to_weight(n)
             return m_Lambda-self._inner_pp(mu,mu)/(2*k)
+
+    def branch(self, wcring, depth):
+        """
+        If ``self`` is a representation of the untwisted affine Lie algebra of Cartan
+        type ``[X, r, 1]``, then corresponding to the inclusion of ``[X, r]`` in
+        ``[X, r, 1]``, there is a branching rule producing a sequence of representations
+        of type ``[X, r]``. The `k`-th representation of this sequence is the restriction
+        of all weights in which `\delta` has coefficient `k`.
+
+        INPUT:
+
+        - ``wcring`` -- a WeylCharacterRing of Cartan Type `[X, r]`
+        - ``depth`` -- an upper bound for `k` determining how many terms to give.
+
+        EXAMPLES::
+
+            sage: Lambda = RootSystem(['A',2,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: v = IntegrableRepresentation(2*Lambda[0])
+            sage: A2 = WeylCharacterRing("A2",style="coroots")
+            sage: v.branch(A2, 5)
+            [A2(0,0),
+            A2(1,1),
+            A2(0,0) + 2*A2(1,1) + A2(2,2),
+            2*A2(0,0) + 2*A2(0,3) + 4*A2(1,1) + 2*A2(3,0) + 2*A2(2,2),
+            4*A2(0,0) + 3*A2(0,3) + 10*A2(1,1) + 3*A2(3,0) + A2(1,4) + 6*A2(2,2) + A2(4,1),
+            6*A2(0,0) + 9*A2(0,3) + 20*A2(1,1) + 9*A2(3,0) + 3*A2(1,4) + 12*A2(2,2) + 3*A2(4,1) + A2(3,3)]
+
+        """
+        def next_level(x):
+            ret = []
+            for i in self._index_set:
+                t = list(x[0])
+                t[i] += 1
+                t = tuple(t)
+                u = self.to_weight(t)
+                m = self.m(t)
+                if m > 0 and t[0] <= depth:
+                    ret.append((t,m))
+            return ret
+        hwv = (tuple([0 for i in self._index_set]), 1)
+        terms = RecursivelyEnumeratedSet([hwv], next_level)
+        fw = wcring.fundamental_weights()
+        P = self.weight_lattice()
+        ret = []
+        for l in range(depth+1):
+            lterms = [x for x in terms if x[0][0] == l]
+            ldict = {}
+            for x in lterms:
+                mc = P(self.to_weight(x[0])).monomial_coefficients()
+                contr = sum(fw[i]*mc.get(i,0) for i in self._index_set_classical).coerce_to_sl()
+                if ldict.has_key(contr):
+                    ldict[contr] += x[1]
+                else:
+                    ldict[contr] = x[1]
+            ret.append(wcring.char_from_weights(ldict))
+        return ret

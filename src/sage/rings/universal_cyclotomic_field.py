@@ -166,6 +166,7 @@ lazy_import("sage.rings", "universal_cyclotomic_field", deprecation=18152)
 libgap = GapElement_Integer = GapElement_Rational = GapElement_Cyclotomic = None
 gap = gap3 = None
 _UCF = None
+
 def late_import():
     r"""
     This function avoids importing libgap on startup. It is called once through
@@ -1062,7 +1063,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             if not isinstance(obj, (GapElement_Integer, GapElement_Rational, GapElement_Cyclotomic)):
                 raise TypeError("{} of type {} not valid to initialize an element of the universal cyclotomic field".format(obj, type(obj)))
             return self.element_class(self, obj)
-        
+
         # late import to avoid slowing down the above conversions
         from sage.rings.number_field.number_field_element import NumberFieldElement
         from sage.rings.number_field.number_field import NumberField_cyclotomic, CyclotomicField

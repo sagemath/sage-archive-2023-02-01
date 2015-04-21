@@ -106,6 +106,7 @@ Comprehensive Module list
     sage/combinat/finite_state_machine
     sage/combinat/finite_state_machine_generators
     sage/combinat/free_module
+    sage/combinat/free_prelie_algebras
     sage/combinat/gelfand_tsetlin_patterns
     sage/combinat/graph_path
     sage/combinat/gray_codes

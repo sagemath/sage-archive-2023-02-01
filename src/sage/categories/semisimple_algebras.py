@@ -116,35 +116,51 @@ class SemisimpleAlgebras(Category_over_base_ring):
                 @cached_method
                 def central_orthogonal_idempotents(self):
                     r"""
-                    Return a maximal list of orthogonal idempotents of
+                    Return a maximal list of central orthogonal idempotents of
                     ``self``.
+
+                    Central orthogonal idempotents of an algebra `A` are
+                    idempotents `(e_1, \dots, e_n)` such that `e_i e_j = 0` if
+                    `i \neq j`. Moreover, all `e_i` commute with all elements
+                    of `A` (central).
 
                     INPUT:
 
-                    - ``self`` -- semisimple algebra
+                    - ``self`` -- a semisimple algebra
+
+                    OUTPUT:
+
+                    - a complete list of central orthogonal idempotents.
 
                     EXAMPLES::
 
+                        sage: import itertools
                         sage: A3 = SymmetricGroup(3).algebra(QQ)
-                        sage: A3.central_orthogonal_idempotents()
+                        sage: orths = A3.central_orthogonal_idempotents(); orths
                         [2/3*() - 1/3*(1,2,3) - 1/3*(1,3,2), 1/6*() + 1/6*(2,3)
                         + 1/6*(1,2) + 1/6*(1,2,3) + 1/6*(1,3,2) + 1/6*(1,3),
                         1/6*() - 1/6*(2,3) - 1/6*(1,2) + 1/6*(1,2,3) +
                         1/6*(1,3,2) - 1/6*(1,3)]
-
+                        sage: all(e*e == e for e in orths)
+                        True
+                        sage: all(e*f == f*e and e*f == 0 for e,f in itertools.product(orths, orths) if e != f)
+                        True
+                        sage: all(e*a == a*e for e in orths for a in A3.basis())
+                        True
 
                     ::
 
                         sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
                         An example of a finite dimensional algebra with basis:
                         the path algebra of the Kronecker quiver (containing
-                        the arrows a:x->y and b:x->y) over Rational Field 
+                        the arrows a:x->y and b:x->y) over Rational Field
                         sage: Aquo = A.semisimple_quotient()
                         sage: Aquo.central_orthogonal_idempotents()
                         [B['y'], B['x']]
                     """
                     return [x.lift()
                             for x in self.center().central_orthogonal_idempotents()]
+
 
             class Commutative(CategoryWithAxiom_over_base_ring):
 
@@ -153,21 +169,24 @@ class SemisimpleAlgebras(Category_over_base_ring):
                     @cached_method
                     def _orthogonal_decomposition(self, generators=None):
                         r"""
-                        Return a list of orthogonal idempotents of a semisimple
-                        commutative finite dimensional algebra ``self``.
+                        Return a list of orthogonal quasi-idempotents of a
+                        semisimple commutative finite dimensional algebra
+                        ``self``.
 
                         INPUT:
 
                         - ``self`` a finite dimensional semisimple commutative
-                          algebra.
+                          algebra
                         - ``generators`` a list of generators of ``self``. By
-                          default it will be the basis of ``self``.
+                          default it will be the basis of ``self``
 
                         OUTPUT:
 
                         - list of elements of ``self`` each generating a one
                           dimensional simple submodule of ``self`` in direct
-                          sum with the others. The list is maximal.
+                          sum with the others. The list is maximal in the sens
+                          that no quasi-idempotent `e` can be decomposed as a
+                          sum `e = e_1 + e_2` of quasi-idempotents elements.
 
                         ALGORITHM:
 
@@ -254,10 +273,10 @@ class SemisimpleAlgebras(Category_over_base_ring):
 
                         EXAMPLES::
 
+                            sage: import itertools
                             sage: A5 = SymmetricGroup(5).algebra(QQ)
                             sage: Z5 = A5.center()
-                            sage: orth = Z5.central_orthogonal_idempotents()
-                            sage: orth
+                            sage: orths = Z5.central_orthogonal_idempotents(); orths
                             [3/10*B[0] - 1/10*B[2] + 1/20*B[6], 1/120*B[0] +
                             1/120*B[1] + 1/120*B[2] + 1/120*B[3] + 1/120*B[4] +
                             1/120*B[5] + 1/120*B[6], 1/120*B[0] - 1/120*B[1] +
@@ -268,9 +287,9 @@ class SemisimpleAlgebras(Category_over_base_ring):
                             1/24*B[5], 2/15*B[0] + 1/15*B[1] + 1/30*B[3] -
                             1/30*B[4] - 1/30*B[6], 2/15*B[0] - 1/15*B[1] +
                             1/30*B[3] + 1/30*B[4] - 1/30*B[6]]
-                            sage: orth[2] * orth[4]
-                            0
-                            sage: orth[1] ** 2 == orth[1]
+                            sage: all(e*e == e for e in orths)
+                            True
+                            sage: all(e*f == f*e and e*f == 0 for e,f in itertools.product(orths, orths) if e != f)
                             True
                         """
                         return [(e.leading_coefficient()/(e*e).leading_coefficient())*e for

@@ -26,7 +26,7 @@ This file contains the following elements:
 
 from sage.structure.sage_object import SageObject
 from sage.rings.finite_rings.constructor import GF
-from sage.misc.prandom import randint, random, random_error_position
+from sage.misc.prandom import randint, random, sample_range
 from sage.modules.free_module_element import vector
 from sage.misc.abstract_method import abstract_method
 from sage.combinat.cartesian_product import CartesianProduct
@@ -36,9 +36,6 @@ def random_error_vector(n, F, error_positions):
     r"""
     Return a vector of length ``n`` over ``F`` filled with random non-zero coefficients
     at the positions given by ``error_positions``.
-
-    This function was taken from codinglib (https://bitbucket.org/jsrn/codinglib/)
-    and was written by Johan Nielsen.
 
     .. NOTE::
 
@@ -55,6 +52,11 @@ def random_error_vector(n, F, error_positions):
     OUTPUT:
 
     - a vector of ``F``
+
+    AUTHORS:
+
+    This function is taken from codinglib (https://bitbucket.org/jsrn/codinglib/)
+    and was written by Johan Nielsen.
 
     EXAMPLES::
 
@@ -254,7 +256,7 @@ class AbstractChannel(SageObject):
             Vector space of dimension 6 over Finite Field of size 59
         """
         return self._output_space
-    
+
     @abstract_method
     def transmit_unsafe(self, message):
         r"""
@@ -314,7 +316,7 @@ class StaticErrorRateChannel(AbstractChannel):
     def __init__(self, space, number_errors):
         r"""
         TESTS:
-        
+
         If the number of errors exceeds the dimension of the input space,
         it will return an error::
 
@@ -363,7 +365,7 @@ class StaticErrorRateChannel(AbstractChannel):
             sage: Chan._latex_()
             '\\textnormal{Static error rate channel, creating }42 \\textnormal{ error(s)}'
         """
-        if not hasattr(self.number_errors(), "__iter__"): 
+        if not hasattr(self.number_errors(), "__iter__"):
             return "\\textnormal{Static error rate channel, creating }%s \\textnormal{ error(s)}"\
                     % self.number_errors()
         else:
@@ -376,7 +378,7 @@ class StaticErrorRateChannel(AbstractChannel):
         Checks if ``self`` is equal to ``other``.
 
         EXAMPLES::
-        
+
             sage: F = VectorSpace(GF(59), 50)
             sage: n_err = 42
             sage: Chan1 = channels.StaticErrorRateChannel(F, n_err)
@@ -416,9 +418,9 @@ class StaticErrorRateChannel(AbstractChannel):
         V = self.input_space()
         n = V.dimension()
         error_vector = random_error_vector(n, V.base_ring(),\
-                random_error_position(n, number_errors))
+                sample_range(n, number_errors))
         return message + error_vector
-    
+
     def number_errors(self):
         r"""
         Returns the number of errors created by ``self``.
@@ -612,9 +614,9 @@ class ErrorErasureChannel(AbstractChannel):
         V = self.input_space()
         n = V.dimension()
 
-        erroneous_positions = random_error_position(n,\
+        erroneous_positions = sample_range(n,\
                 number_errors + number_erasures)
-        error_split = random_error_position(number_errors + number_erasures,\
+        error_split = sample_range(number_errors + number_erasures,\
                 number_errors)
         error_positions = [ erroneous_positions[i] for i in\
                 range(number_errors + number_erasures) if i in error_split ]

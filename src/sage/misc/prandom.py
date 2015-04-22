@@ -177,38 +177,41 @@ def sample(population, k):
     """
     return _pyrand().sample(population, k)
 
-def random_error_position(n , number_errors):
+def sample_range(n , k):
     r"""
-    Returns a list of exactly ``number_errors`` unique random numbers between 0 and ``n-1``.
-    This function was taken from codinglib (https://bitbucket.org/jsrn/codinglib/)
-    and was written by Johan Nielsen.
+    Returns a subset of [0, ..., n-1] of size k with uniform probability.
 
     INPUT:
 
-    - ``number_errors`` -- the number of elements in the list
-
-    - ``n`` -- upper bound for the elements of the list
+    - ``n``, ``k`` -- integers
 
     OUTPUT:
 
-    - A list of integers
+    - An ordered list of integers
+
+    AUTHORS:
+
+    This function is taken from codinglib (https://bitbucket.org/jsrn/codinglib/)
+    and was written by Johan Nielsen.
 
     EXAMPLES::
 
-        sage: random_error_position(6, 2) # random
+        sage: sample_range(6, 2) # random
         [1, 4]
-        sage:set_random_seed(10)
-        sage: random_error_position(10,4)
-        [0, 2, 4, 9]
+        sage: set_random_seed(10)
+        sage: sample_range(10,4)
+        [6, 7, 8, 9]
     """
-    error_position = []
+    n = int(n)
+    k = int(k)
+    ordered_set = []
     i = 0
-    while i < n and number_errors > 0:
-        if random() < number_errors/(n-i):
-            error_position.append(i)
-            number_errors -= 1
+    while i < n and k > 0:
+        if random() < k/(n-i):
+            ordered_set.append(i)
+            k -= 1
         i += 1
-    return error_position
+    return ordered_set
 
 
 def random():

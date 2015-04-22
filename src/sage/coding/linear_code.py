@@ -696,9 +696,9 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
 class AbstractLinearCode(module.Module):
     """
     Abstract class for linear codes.
-    
+
     This class contains all methods that can be used on Linear Codes
-    and on Linear Codes families. 
+    and on Linear Codes families.
     So, every Linear Code-related class should inherit from this abstract
     class.
 
@@ -792,7 +792,7 @@ class AbstractLinearCode(module.Module):
         raise an exception::
 
             sage: C = CodeExample(GF(17), 10.0, 5, generator_matrix)
-            Traceback (most recent call last): 
+            Traceback (most recent call last):
             ...
             ValueError: length must be a Python int or a Sage Integer
         """
@@ -1017,7 +1017,7 @@ class AbstractLinearCode(module.Module):
             sage: G  = Matrix(GF(2), [[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
             sage: C  = LinearCode(G)
             sage: C.base_field()
-            Finite Field of size 2 
+            Finite Field of size 2
         """
         return self.base_ring()
 
@@ -1331,7 +1331,7 @@ class AbstractLinearCode(module.Module):
         r"""
         Returns the parity check matrix of ``self``.
 
-        The parity check matrix of a linear code `C` corresponds to the 
+        The parity check matrix of a linear code `C` corresponds to the
         generator matrix of the dual code of `C`.
 
         EXAMPLES::
@@ -1803,7 +1803,7 @@ class AbstractLinearCode(module.Module):
         return codeword
 
     def generator_matrix(self):
-        return NotImplementedError("This method must be set in subclasses") 
+        return NotImplementedError("This method must be set in subclasses")
 
     def generator_matrix_systematic(self):
         """
@@ -2972,7 +2972,7 @@ class AbstractLinearCode(module.Module):
         Returns the syndrome of ``r``.
 
         The syndrome of ``r`` is the result of `H \times r` where `H` is
-        the parity check matrix of ``self``. If ``r`` belongs to ``self``, 
+        the parity check matrix of ``self``. If ``r`` belongs to ``self``,
         its syndrome equals to the zero vector.
 
         INPUT:
@@ -2982,13 +2982,13 @@ class AbstractLinearCode(module.Module):
         OUTPUT:
 
         - a column vector
-        
+
         EXAMPLES::
 
             sage: MS = MatrixSpace(GF(2),4,7)
             sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
             sage: C  = LinearCode(G)
-            sage: r = vector(GF(2), (1,0,1,0,1,0,1)) 
+            sage: r = vector(GF(2), (1,0,1,0,1,0,1))
             sage: r in C
             True
             sage: C.syndrome(r)
@@ -2996,7 +2996,7 @@ class AbstractLinearCode(module.Module):
 
         If ``r`` is not a codeword, its syndrome is not equal to zero::
 
-            sage: r = vector(GF(2), (1,0,1,0,1,1,1)) 
+            sage: r = vector(GF(2), (1,0,1,0,1,1,1))
             sage: r in C
             False
             sage: C.syndrome(r)
@@ -3214,13 +3214,19 @@ def LinearCodeFromVectorSpace(V, d=None):
 
 class LinearCode(AbstractLinearCode):
     r"""
-    Linear codes over a finite field or finite ring.   
+    Linear codes over a finite field or finite ring, represented using a
+    generator matrix.
 
-    A *linear code* is a subspace of a vector space over a finite field. It can
-    be defined by one of its basis or equivalently a generator matrix (a `k
-    \times n` matrix of full rank `k`).
+    This class should be used for arbitrary and unstructured linear codes. This
+    means that basic operations on the code, such as the computation of the
+    minimum distance, will use generic, slow algorithms.
 
-    See :wikipedia:`Linear_code` for more information.
+    If you are looking for constructing a code from a more specific family, see
+    if the family has been implemented by investigating codes.<tab>. These
+    more specific classes use properties particular for that family to allow
+    faster algorithms, and could also have family-specific methods.
+
+    See :wikipedia:`Linear_code` for more information on unstructured linear codes.
 
     INPUT:
 

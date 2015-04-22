@@ -439,6 +439,13 @@ def is_prime(n):
         False
         sage: is_prime(-2)
         False
+
+        sage: a = 2**2048 + 981
+        sage: is_prime(a)    # not tested - takes ~ 1min
+        sage: proof.arithmetic(False)
+        sage: is_prime(a)    # instantaneous!
+        True
+        sage: proof.arithmetic(True)
     """
     try:
         return n.is_prime()

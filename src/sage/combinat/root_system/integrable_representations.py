@@ -21,7 +21,7 @@ from sage.misc.all import cached_method
 from sage.matrix.constructor import Matrix
 from sage.functions.other import floor
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
-import sage.combinat.root_system.weyl_characters
+from sage.combinat.root_system.weyl_characters import WeylCharacterRing
 
 # TODO: Make this a proper parent and implement actions
 class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
@@ -778,7 +778,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             mu = self.to_weight(n)
             return m_Lambda-self._inner_pp(mu,mu)/(2*k)
 
-    def branch(self, wcring, depth):
+    def branch(self, weyl_character_ring=None, depth=5):
         """
         If ``self`` is a representation of the untwisted affine Lie algebra of Cartan
         type ``[X, r, 1]``, then corresponding to the inclusion of ``[X, r]`` in
@@ -786,17 +786,19 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         of type ``[X, r]``. The `k`-th representation of this sequence is the restriction
         of all weights in which `\delta` has coefficient `k`.
 
-        INPUT:
+        OPTIONAL:
 
-        - ``wcring`` -- a WeylCharacterRing of Cartan Type `[X, r]`
-        - ``depth`` -- an upper bound for `k` determining how many terms to give.
+        - ``weyl_character_ring`` -- a WeylCharacterRing of Cartan Type `[X, r]`
+        - ``depth`` -- an upper bound for `k` determining how many terms to give (default 5)
+
+        If the parameter weyl_character_ring is omitted, the ring may be recovered
+        as the parent of one of the branched coefficients.
 
         EXAMPLES::
 
             sage: Lambda = RootSystem(['A',2,1]).weight_lattice(extended=true).fundamental_weights()
             sage: v = IntegrableRepresentation(2*Lambda[0])
-            sage: A2 = WeylCharacterRing("A2",style="coroots")
-            sage: v.branch(A2, 5)
+            sage: v.branch()
             [A2(0,0),
             A2(1,1),
             A2(0,0) + 2*A2(1,1) + A2(2,2),
@@ -805,7 +807,9 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             6*A2(0,0) + 9*A2(0,3) + 20*A2(1,1) + 9*A2(3,0) + 3*A2(1,4) + 12*A2(2,2) + 3*A2(4,1) + A2(3,3)]
 
         """
-        if wcring.cartan_type() != self.cartan_type().classical():
+        if weyl_character_ring is None:
+            weyl_character_ring = WeylCharacterRing(self.cartan_type().classical(), style="coroots")
+        if weyl_character_ring.cartan_type() != self.cartan_type().classical():
             raise ValueError("Cartan Type of WeylCharacterRing must be %s"%self.cartan_type().classical())
         def next_level(x):
             ret = []
@@ -820,7 +824,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             return ret
         hwv = (tuple([0 for i in self._index_set]), 1)
         terms = RecursivelyEnumeratedSet([hwv], next_level)
-        fw = wcring.fundamental_weights()
+        fw = weyl_character_ring.fundamental_weights()
         P = self.weight_lattice()
         ret = []
         for l in range(depth+1):
@@ -833,5 +837,5 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
                     ldict[contr] += x[1]
                 else:
                     ldict[contr] = x[1]
-            ret.append(wcring.char_from_weights(ldict))
+            ret.append(weyl_character_ring.char_from_weights(ldict))
         return ret

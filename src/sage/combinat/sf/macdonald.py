@@ -1185,61 +1185,6 @@ class MacdonaldPolynomials_j(MacdonaldPolynomials_generic):
     class Element(MacdonaldPolynomials_generic.Element):
         pass
 
-def self_to_s(self, x):
-    r"""
-    Convert an element of either the ``H`` or ``Ht`` basis to the Schur basis
-
-    This function is here to force the coercion path to the Schur basis
-    because these bases are computed using their monomial expansion.
-
-    INPUT:
-
-    - ``self`` - either a ``H`` or an ``Ht`` Macdonald basis
-    - ``x`` - an element of ``self``
-
-    OUTPUT:
-
-    - an element of the Schur basis
-
-    EXAMPLES::
-
-        sage: Ht = SymmetricFunctions(FractionField(QQ['q','t'])).macdonald().Ht()
-        sage: sage.combinat.sf.macdonald.self_to_s(Ht, Ht[2,1])
-        q*t*s[1, 1, 1] + (q+t)*s[2, 1] + s[3]
-        sage: H = SymmetricFunctions(FractionField(QQ['q','t'])).macdonald().H()
-        sage: sage.combinat.sf.macdonald.self_to_s(H, H[2,1])
-        q*s[1, 1, 1] + (q*t+1)*s[2, 1] + t*s[3]
-    """
-    return self._s(self._self_to_m(x))
-
-def s_to_self( self, x ):
-    r"""
-    Convert an element of either the Schur basis to either the ``H`` or ``Ht`` basis
-
-    This function is here to force the coercion path from the Schur basis
-    because these bases are computed using the monomial expansion.
-
-    INPUT:
-
-    - ``self`` - either a ``H`` or an ``Ht`` Macdonald basis
-    - ``x`` - an element of ``s`` basis
-
-    OUTPUT:
-
-    - an element of the basis ``self``
-
-    EXAMPLES::
-        sage: s = SymmetricFunctions(FractionField(QQ['q','t'])).s()
-        sage: Ht = s.symmetric_function_ring().macdonald().Ht()
-        sage: sage.combinat.sf.macdonald.s_to_self(Ht, s[2])
-        ((-q)/(-q+t))*McdHt[1, 1] + (t/(-q+t))*McdHt[2]
-        sage: H = s.symmetric_function_ring().macdonald().H()
-        sage: sage.combinat.sf.macdonald.s_to_self(H, s[2])
-        (q/(q*t-1))*McdH[1, 1] - (1/(q*t-1))*McdH[2]
-    """
-    return self._m_to_self(self._m(x))
-
-
 class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
     def __init__(self, macdonald):
         r"""
@@ -1309,7 +1254,7 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
             x*s[1, 1, 1] + 2*s[2, 1] + 1/x*s[3]
         """
         if self.t:
-            return self_to_s(self, x)
+            return self._s(self._self_to_m(x))
         else:
             return sum(cmu*self._s(self._Qp(mu.conjugate())) for mu,cmu in x).omega()
 
@@ -1352,7 +1297,7 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
             McdH[2, 1]
         """
         if self.t:
-            return s_to_self(self, x)
+            return self._m_to_self(self._m(x))
         else:
             return self._from_dict({mu.conjugate() : cmu for mu,cmu in self._Qp(x.omega())})
 
@@ -1489,8 +1434,53 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         self._m.register_coercion(SetMorphism(Hom(self, self._m, category), self._self_to_m))
         self.register_coercion(SetMorphism(Hom(self._m, self, category), self._m_to_self))
 
-    _self_to_s = self_to_s
-    _s_to_self = s_to_self
+    def _self_to_s(self, x):
+        r"""
+        Convert an element of the ``Ht`` basis to the Schur basis
+
+        This function is here to force the coercion path to the Schur basis
+        because these bases are computed using their monomial expansion.
+
+        INPUT:
+
+        - ``x`` - an element of ``self``
+
+        OUTPUT:
+
+        - an element of the Schur basis
+
+        EXAMPLES::
+
+            sage: Ht = SymmetricFunctions(FractionField(QQ['q','t'])).macdonald().Ht()
+            sage: s = Ht.symmetric_function_ring().s()
+            sage: Ht._self_to_s(Ht[2,1])
+            q*t*s[1, 1, 1] + (q+t)*s[2, 1] + s[3]
+        """
+        return self._s(self._self_to_m(x))
+
+    def _s_to_self( self, x ):
+        r"""
+        Convert an element of either the Schur basis to the ``Ht`` basis
+
+        This function is here to force the coercion path from the Schur basis
+        because these bases are computed using the monomial expansion.
+
+        INPUT:
+
+        - ``x`` - an element of ``s`` basis
+
+        OUTPUT:
+
+        - an element of the basis ``self``
+
+        EXAMPLES::
+
+            sage: s = SymmetricFunctions(FractionField(QQ['q','t'])).s()
+            sage: Ht = s.symmetric_function_ring().macdonald().Ht()
+            sage: Ht._s_to_self(s[2])
+            ((-q)/(-q+t))*McdHt[1, 1] + (t/(-q+t))*McdHt[2]
+        """
+        return self._m_to_self(self._m(x))
 
     def _Lmunu(self, nu, mu ):
         r"""

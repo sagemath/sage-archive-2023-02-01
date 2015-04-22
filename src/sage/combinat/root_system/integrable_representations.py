@@ -791,20 +791,23 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         - ``weyl_character_ring`` -- a WeylCharacterRing of Cartan Type `[X, r]`
         - ``depth`` -- an upper bound for `k` determining how many terms to give (default 5)
 
-        If the parameter weyl_character_ring is omitted, the ring may be recovered
-        as the parent of one of the branched coefficients.
-
         EXAMPLES::
 
             sage: Lambda = RootSystem(['A',2,1]).weight_lattice(extended=true).fundamental_weights()
             sage: v = IntegrableRepresentation(2*Lambda[0])
-            sage: v.branch()
+            sage: b = v.branch(); b
             [A2(0,0),
             A2(1,1),
             A2(0,0) + 2*A2(1,1) + A2(2,2),
             2*A2(0,0) + 2*A2(0,3) + 4*A2(1,1) + 2*A2(3,0) + 2*A2(2,2),
             4*A2(0,0) + 3*A2(0,3) + 10*A2(1,1) + 3*A2(3,0) + A2(1,4) + 6*A2(2,2) + A2(4,1),
             6*A2(0,0) + 9*A2(0,3) + 20*A2(1,1) + 9*A2(3,0) + 3*A2(1,4) + 12*A2(2,2) + 3*A2(4,1) + A2(3,3)]
+
+        If the parameter weyl_character_ring is omitted, the ring may be recovered
+        as the parent of one of the branched coefficients::
+
+            sage: A2 = b[0].parent(); A2
+            The Weyl Character Ring of Type A2 with Integer Ring coefficients
 
         """
         if weyl_character_ring is None:
@@ -813,16 +816,16 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             raise ValueError("Cartan Type of WeylCharacterRing must be %s"%self.cartan_type().classical())
         def next_level(x):
             ret = []
-            for i in self._index_set:
+            for j in self._index_set:
                 t = list(x[0])
-                t[i] += 1
+                t[j] += 1
                 t = tuple(t)
                 u = self.to_weight(t)
                 m = self.m(t)
                 if m > 0 and t[0] <= depth:
                     ret.append((t,m))
             return ret
-        hwv = (tuple([0 for i in self._index_set]), 1)
+        hwv = (tuple([0 for j in self._index_set]), 1)
         terms = RecursivelyEnumeratedSet([hwv], next_level)
         fw = weyl_character_ring.fundamental_weights()
         P = self.weight_lattice()
@@ -832,7 +835,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             ldict = {}
             for x in lterms:
                 mc = P(self.to_weight(x[0])).monomial_coefficients()
-                contr = sum(fw[i]*mc.get(i,0) for i in self._index_set_classical).coerce_to_sl()
+                contr = sum(fw[j]*mc.get(j,0) for j in self._index_set_classical).coerce_to_sl()
                 if ldict.has_key(contr):
                     ldict[contr] += x[1]
                 else:

@@ -13,12 +13,14 @@ AUTHORS:
 
 - Jeroen Demeyer (2013-05-13): handle SIGALRM also (#13311)
 
+- Jeroen Demeyer (2015-03-21): move to Cython (#18027)
+
 */
 
 /*****************************************************************************
  *       Copyright (C) 2006 William Stein <wstein@gmail.com>
  *                     2006 Martin Albrecht <malb@informatik.uni-bremen.de>
- *                     2010-2013 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+ *                     2010-2015 Jeroen Demeyer <jdemeyer@cage.ugent.be>
  *
  *  Distributed under the terms of the GNU General Public License (GPL)
  *  as published by the Free Software Foundation; either version 2 of
@@ -40,18 +42,19 @@ AUTHORS:
 #ifdef __linux__
 #include <sys/prctl.h>
 #endif
-#include "interrupt.h"
+#include "interrupt/struct_signals.h"
+#include "build/cythonized/sage/ext/interrupt/interrupt.h"
 
 
 /* Interrupt debug level.  This only works if ENABLE_DEBUG_INTERRUPT
- * has been set to "1" in c_lib/include/interrupt.h */
+ * has been set to "1" in debug.h */
 #if ENABLE_DEBUG_INTERRUPT
-int sage_interrupt_debug_level = 2;
+static int default_debug_level = 2;
 static struct timeval sigtime;  /* Time of signal */
 #endif
 
-
-struct sage_signals_t _signals;
+/* The _signals object (there is a unique copy of this throughout Sage) */
+static sage_signals_t _signals;
 
 /* The default signal mask during normal operation,
  * initialized by setup_sage_signal_handler(). */
@@ -60,13 +63,11 @@ static sigset_t default_sigmask;
 /* default_sigmask with SIGHUP, SIGINT, SIGALRM added. */
 static sigset_t sigmask_with_sigint;
 
-static void do_raise_exception(int sig);
 
-/* Does this processor support the x86 EMMS instruction? */
-#if defined(__i386__) || defined(__x86_64__)
-#define CPU_ARCH_x86
-static int cpu_has_emms = 0;
-#endif
+static void do_raise_exception(int sig);
+static void sigdie(int sig, const char* s);
+static void print_backtrace(void);
+
 
 /* Do whatever is needed to reset the CPU to a sane state after
  * handling a signal.  In particular on x86 CPUs, we need to clear
@@ -81,34 +82,25 @@ static int cpu_has_emms = 0;
  */
 static inline void reset_CPU()
 {
-#ifdef CPU_ARCH_x86
+#if defined(__i386__) || defined(__x86_64__)
     /* Clear FPU tag word */
-    if (cpu_has_emms)
-    {
-        asm("emms");
-    }
-    else
-    {
-        asm("ffree %st(0)");
-        asm("ffree %st(1)");
-        asm("ffree %st(2)");
-        asm("ffree %st(3)");
-        asm("ffree %st(4)");
-        asm("ffree %st(5)");
-        asm("ffree %st(6)");
-        asm("ffree %st(7)");
-    }
+    asm("emms");
 #endif
 }
 
 
-/* Handler for SIGHUP, SIGINT, SIGALRM */
-void sage_interrupt_handler(int sig)
+/* Handler for SIGHUP, SIGINT, SIGALRM
+ *
+ * Inside sig_on() (i.e. when _signals.sig_on_count is positive), this
+ * raises an exception and jumps back to sig_on().
+ * Outside of sig_on(), we set Python's interrupt flag using
+ * PyErr_SetInterrupt() */
+static void sage_interrupt_handler(int sig)
 {
 #if ENABLE_DEBUG_INTERRUPT
-    if (sage_interrupt_debug_level >= 1) {
+    if (_signals.debug_level >= 1) {
         fprintf(stderr, "\n*** SIG %i *** %s sig_on\n", sig, (_signals.sig_on_count > 0) ? "inside" : "outside");
-        if (sage_interrupt_debug_level >= 3) print_backtrace();
+        if (_signals.debug_level >= 3) print_backtrace();
         fflush(stderr);
         /* Store time of this signal, unless there is already a
          * pending signal. */
@@ -143,8 +135,12 @@ void sage_interrupt_handler(int sig)
         _signals.interrupt_received = sig;
 }
 
-/* Handler for SIGQUIT, SIGILL, SIGABRT, SIGFPE, SIGBUS, SIGSEGV */
-void sage_signal_handler(int sig)
+/* Handler for SIGQUIT, SIGILL, SIGABRT, SIGFPE, SIGBUS, SIGSEGV
+ *
+ * Inside sig_on() (i.e. when _signals.sig_on_count is positive), this
+ * raises an exception and jumps back to sig_on().
+ * Outside of sig_on(), we terminate Sage. */
+static void sage_signal_handler(int sig)
 {
     sig_atomic_t inside = _signals.inside_signal_handler;
     _signals.inside_signal_handler = 1;
@@ -153,9 +149,9 @@ void sage_signal_handler(int sig)
     {
         /* We are inside sig_on(), so we can handle the signal! */
 #if ENABLE_DEBUG_INTERRUPT
-        if (sage_interrupt_debug_level >= 1) {
+        if (_signals.debug_level >= 1) {
             fprintf(stderr, "\n*** SIG %i *** inside sig_on\n", sig);
-            if (sage_interrupt_debug_level >= 3) print_backtrace();
+            if (_signals.debug_level >= 3) print_backtrace();
             fflush(stderr);
             gettimeofday(&sigtime, NULL);
         }
@@ -215,15 +211,12 @@ void sage_signal_handler(int sig)
 }
 
 
-/* This calls the externally defined function _signals.raise_exception
- * to actually raise the exception. Since it uses the Python API, the
- * GIL needs to be acquired first. */
+/* This calls sig_raise_exception() to actually raise the exception. */
 static void do_raise_exception(int sig)
 {
-    PyGILState_STATE gilstate_save = PyGILState_Ensure();
 #if ENABLE_DEBUG_INTERRUPT
     struct timeval raisetime;
-    if (sage_interrupt_debug_level >= 2) {
+    if (_signals.debug_level >= 2) {
         gettimeofday(&raisetime, NULL);
         long delta_ms = (raisetime.tv_sec - sigtime.tv_sec)*1000L + ((long)raisetime.tv_usec - (long)sigtime.tv_usec)/1000;
         fprintf(stderr, "do_raise_exception(sig=%i)\nPyErr_Occurred() = %p\nRaising Python exception %li ms after signal...\n",
@@ -232,19 +225,14 @@ static void do_raise_exception(int sig)
     }
 #endif
 
-    /* Do not raise an exception if an exception is already pending */
-    if (!PyErr_Occurred())
-    {
-        _signals.raise_exception(sig, _signals.s);
-        assert(PyErr_Occurred());
-    }
-
-    PyGILState_Release(gilstate_save);
+    /* Call Cython function to raise exception */
+    sig_raise_exception(sig, _signals.s);
 }
 
 
-/* Handle an interrupt before sig_on(). */
-void _sig_on_interrupt_received()
+/* This will be called during _sig_on_postjmp() when an interrupt was
+ * received *before* the call to sig_on(). */
+static void _sig_on_interrupt_received()
 {
     /* Momentarily block signals to avoid race conditions */
     sigset_t oldset;
@@ -257,8 +245,9 @@ void _sig_on_interrupt_received()
     sigprocmask(SIG_SETMASK, &oldset, NULL);
 }
 
-/* Recover after siglongjmp() */
-void _sig_on_recover()
+/* Cleanup after siglongjmp() (reset signal mask to the default, set
+ * sig_on_count to zero) */
+static void _sig_on_recover()
 {
     _signals.block_sigint = 0;
     _signals.sig_on_count = 0;
@@ -269,7 +258,8 @@ void _sig_on_recover()
     _signals.inside_signal_handler = 0;
 }
 
-void _sig_off_warning(const char* file, int line)
+/* Give a warning that sig_off() was called without sig_on() */
+static void _sig_off_warning(const char* file, int line)
 {
     char buf[320];
     snprintf(buf, sizeof(buf), "sig_off() without sig_on() at %s:%i", file, line);
@@ -283,13 +273,7 @@ void _sig_off_warning(const char* file, int line)
 }
 
 
-void set_sage_signal_handler_message(const char* s)
-{
-    _signals.s = s;
-}
-
-
-void setup_sage_signal_handler()
+static void setup_sage_signal_handler()
 {
     /* Reset the _signals structure */
     memset(&_signals, 0, sizeof(_signals));
@@ -327,23 +311,10 @@ void setup_sage_signal_handler()
     if (sigaction(SIGBUS, &sa, NULL)) {perror("sigaction"); exit(1);}
     if (sigaction(SIGSEGV, &sa, NULL)) {perror("sigaction"); exit(1);}
 
-    /* If the CPU architecture is x86, check whether the EMMS
-     * instruction is supported by executing it and catching a
-     * possible SIGILL (illegal instruction signal). */
-#ifdef CPU_ARCH_x86
-    if (!cpu_has_emms)
-    {
-        if (sig_on_no_except())  /* try: */
-        {
-            asm("emms");
-            sig_off();
-            cpu_has_emms = 1;
-        }
-        else  /* except: */
-        {
-            PyErr_Clear();  /* Clear Python exception */
-        }
-    }
+#if ENABLE_DEBUG_INTERRUPT
+    _signals.debug_level = default_debug_level;
+    if (_signals.debug_level >= 1)
+        fprintf(stderr, "Finished setting up interrupts\n");
 #endif
 }
 
@@ -355,7 +326,8 @@ static void print_sep()
     fflush(stderr);
 }
 
-void print_backtrace()
+/* Print a backtrace if supported by libc */
+static void print_backtrace()
 {
     void* backtracebuffer[1024];
     fflush(stderr);
@@ -366,7 +338,8 @@ void print_backtrace()
 #endif
 }
 
-void print_enhanced_backtrace()
+/* Print a backtrace using gdb */
+static void print_enhanced_backtrace()
 {
     /* Bypass Linux Yama restrictions on ptrace() to allow debugging */
     /* See https://www.kernel.org/doc/Documentation/security/Yama.txt */
@@ -414,7 +387,8 @@ void print_enhanced_backtrace()
 }
 
 
-void sigdie(int sig, const char* s)
+/* Print a message s and kill ourselves with signal sig */
+static void sigdie(int sig, const char* s)
 {
     print_sep();
     print_backtrace();
@@ -445,3 +419,9 @@ void sigdie(int sig, const char* s)
     /* We should be dead! */
     exit(128 + sig);
 }
+
+
+/* Finally include the macros and inline functions for use in
+ * interrupt.pyx. These require some of the above functions, therefore
+ * this include must come at the end of this file. */
+#include "interrupt/macros.h"

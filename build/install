@@ -424,7 +424,7 @@ fi
 echo >&5
 
 echo >&5 'CSAGE_SOURCES = \'
-for file in "$SAGE_SRC/c_lib/src/"*.c "$SAGE_SRC/c_lib/src/"*.cpp "$SAGE_SRC/c_lib/include"/*.h; do
+for file in "$SAGE_SRC/c_lib/src/"*.cpp "$SAGE_SRC/c_lib/include"/*.h; do
     echo >&5 "                \$(SAGE_SRC)${file#$SAGE_SRC} \\"
 done
 echo >&5

@@ -11,8 +11,10 @@
 #include <signal.h>
 #include <sys/select.h>
 #include <sys/wait.h>
-#include "interrupt.h"
+#include "interrupt/pxi.h"
 
+
+/* Wait ``ms`` milliseconds */
 void ms_sleep(long ms)
 {
     struct timespec t;
@@ -87,3 +89,9 @@ void signal_pid_after_delay(int signum, pid_t killpid, long ms, long interval, i
     int wait_status;
     waitpid(child1, &wait_status, 0);
 }
+
+/* Signal the Sage process */
+#define signal_after_delay(signum, ms) signal_pid_after_delay(signum, getpid(), ms, 0, 1)
+
+/* The same as above, but sending ``n`` signals */
+#define signals_after_delay(signum, ms, interval, n) signal_pid_after_delay(signum, getpid(), ms, interval, n)

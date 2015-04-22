@@ -319,10 +319,10 @@ cdef cl_object ecl_safe_eval(cl_object form) except NULL:
     Test interrupts::
 
         sage: from sage.libs.ecl import *
-        sage: from sage.tests.interrupt import *
+        sage: from sage.ext.interrupt.tests import *
         sage: ecl_eval("(setf i 0)")
         <ECL: 0>
-        sage: inf_loop=ecl_eval("(defun infinite() (loop (incf i)))")
+        sage: inf_loop = ecl_eval("(defun infinite() (loop (incf i)))")
         sage: interrupt_after_delay(1000)
         sage: inf_loop()
         Traceback (most recent call last):

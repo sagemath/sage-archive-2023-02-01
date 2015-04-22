@@ -203,7 +203,7 @@ class HighestWeightCrystals(Category_singleton):
             from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
             return RecursivelyEnumeratedSet(self.module_generators,
                            lambda x: [x.f(i) for i in index_set],
-                           structure=None,
+                           structure='graded',
                            max_depth=max_depth).breadth_first_search_iterator()
 
         @cached_method

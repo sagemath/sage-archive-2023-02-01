@@ -177,6 +177,40 @@ def sample(population, k):
     """
     return _pyrand().sample(population, k)
 
+def random_error_position(n , number_errors):
+    r"""
+    Returns a list of exactly ``number_errors`` unique random numbers between 0 and ``n-1``.
+    This function was taken from codinglib (https://bitbucket.org/jsrn/codinglib/)
+    and was written by Johan Nielsen.
+
+    INPUT:
+
+    - ``number_errors`` -- the number of elements in the list
+
+    - ``n`` -- upper bound for the elements of the list
+
+    OUTPUT:
+
+    - A list of integers
+
+    EXAMPLES::
+
+        sage: random_error_position(6, 2) # random
+        [1, 4]
+        sage:set_random_seed(10)
+        sage: random_error_position(10,4)
+        [0, 2, 4, 9]
+    """
+    error_position = []
+    i = 0
+    while i < n and number_errors > 0:
+        if random() < number_errors/(n-i):
+            error_position.append(i)
+            number_errors -= 1
+        i += 1
+    return error_position
+
+
 def random():
     r"""
     Get the next random number in the range [0.0, 1.0).

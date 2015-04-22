@@ -25,50 +25,23 @@ This file contains the following elements:
 #*****************************************************************************
 
 from sage.rings.finite_rings.constructor import GF
-from sage.misc.prandom import randint, random
+from sage.misc.prandom import randint, random, random_error_position
 from sage.modules.free_module_element import vector
 from sage.misc.abstract_method import abstract_method
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.modules.free_module import VectorSpace
 
-def _random_error_position(n , number_errors):
-    r"""
-    Returns a list of exactly ``number_errors`` random numbers between 0 and ``n-1``
-    This is a helper function, for internal use only.
-    This function was taken from codinglib (https://bitbucket.org/jsrn/codinglib/)
-    and was written by Johan Nielsen.
-
-    INPUT:
-
-    - ``number_errors`` -- the number of elements in the list
-
-    - ``n`` -- upper bound for the elements of the list
-
-    OUTPUT:
-
-    - A list of integers
-
-    EXAMPLES::
-
-        sage: sage.coding.channel_constructions._random_error_position(6, 2) # random
-        [1, 4]
-    """
-    error_position = []
-    i = 0
-    while i < n and number_errors > 0:
-        if random() < number_errors/(n-i):
-            error_position.append(i)
-            number_errors -= 1
-        i += 1
-    return error_position
-
 def _random_error_vector(n, F, error_positions):
     r"""
     Return a vector of length ``n`` over ``F`` filled with random non-zero coefficients
     at the positions given by ``error_positions``.
-    This is a helper function, for internal use only.
+
     This function was taken from codinglib (https://bitbucket.org/jsrn/codinglib/)
     and was written by Johan Nielsen.
+
+    ..NOTE::
+
+        This is a helper function, which should only be used when implementing new channels.
 
     INPUT:
 
@@ -97,7 +70,10 @@ def _tuple_to_integer(value):
     r"""
     Returns an integer from ``value``. If ``value`` is a tuple, it will return a random
     integer between its bounds.
-    This is a helper function, for internal use only.
+
+    ..NOTE::
+
+        This is a helper function, which should only be used when implementing new channels.
 
     INPUT:
 
@@ -412,7 +388,7 @@ class StaticErrorRateChannel(AbstractChannel):
         V = self.input_space()
         n = V.dimension()
         error_vector = _random_error_vector(n, V.base_ring(),\
-                _random_error_position(n, number_errors))
+                random_error_position(n, number_errors))
         return message + error_vector
     
     def number_errors(self):
@@ -608,9 +584,9 @@ class ErrorErasureChannel(AbstractChannel):
         V = self.input_space()
         n = V.dimension()
 
-        erroneous_positions = _random_error_position(n,\
+        erroneous_positions = random_error_position(n,\
                 number_errors + number_erasures)
-        error_split = _random_error_position(number_errors + number_erasures,\
+        error_split = random_error_position(number_errors + number_erasures,\
                 number_errors)
         error_positions = [ erroneous_positions[i] for i in\
                 range(number_errors + number_erasures) if i in error_split ]

@@ -1,5 +1,5 @@
 r"""
-Fast Expression Evaluation.
+Fast Expression Evaluation
 
 For many applications such as numerical integration, differential
 equation approximation, plotting a 3d surface, optimization problems,

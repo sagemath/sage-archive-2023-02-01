@@ -1,5 +1,5 @@
 r"""
-Work with WAV files.
+Work with WAV files
 
 A WAV file is a header specifying format information, followed by a
 sequence of bytes, representing the state of some audio signal over a
@@ -12,7 +12,7 @@ per channel, per frame. Every wav file has a sample width, or, the
 number of bytes per sample. Typically this is either 1 or 2 bytes.
 
 The wav module supplies more convenient access to this data. In
-particular, see the docstring for \code{Wave.channel_data()}.
+particular, see the docstring for ``Wave.channel_data()``.
 
 The header contains information necessary for playing the WAV file,
 including the number of frames per second, the number of bytes per

@@ -1,5 +1,5 @@
 """
-Relational (sqlite) Databases Module.
+Relational (sqlite) Databases Module
 
 INFO:
 

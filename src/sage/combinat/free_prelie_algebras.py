@@ -58,6 +58,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.magmatic_algebras import MagmaticAlgebras
 from sage.categories.all import GradedModulesWithBasis
 from sage.combinat.free_module import (CombinatorialFreeModule,
                                        CombinatorialFreeModuleElement)
@@ -119,7 +120,8 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         self.__ngens = self._alphabet.cardinality()
         CombinatorialFreeModule.__init__(self, R, Trees,
                                          latex_prefix="",
-                                         category=GradedModulesWithBasis(R))
+                                         category=(GradedModulesWithBasis(R),
+                                                   MagmaticAlgebras(R)))
 
     def variable_names(self):
         r"""
@@ -270,6 +272,8 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             B[[[], [[]]]] + B[[[[[]]]]]
         """
         return self.sum(self.basis()[u] for u in x.graft_list(y))
+
+    product_on_basis = pre_Lie_product_on_basis
 
     @lazy_attribute
     def pre_Lie_product(self):

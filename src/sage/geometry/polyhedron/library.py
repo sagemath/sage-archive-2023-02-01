@@ -884,7 +884,7 @@ class Polytopes():
         """
         Return the standard permutahedron of (1,...,n)
 
-        The premutahedron (or permutohedron) is the convex hull of the
+        The permutahedron (or permutohedron) is the convex hull of the
         permutations of `\{1,\ldots,n\}` seen as vectors.
 
         If we take the graph in which the vertices correspond to vertices of the

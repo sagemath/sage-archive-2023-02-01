@@ -508,9 +508,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: W = WeylGroup(['A', 3]); W.rename("W")
                 sage: ambient_monoid = FiniteSetMaps(W, action="right")
                 sage: pi = W.simple_projections(length_increasing=True).map(ambient_monoid)
-                sage: M = AutomaticSemigroup(pi, one=ambient_monoid.one()); M
-                A submonoid of (Maps from W to itself) with 3 generators
-                sage: A = M.algebra(QQ)
+                sage: A = AutomaticSemigroup(pi, one=ambient_monoid.one()).algebra(QQ)
                 sage: orth = A.orthogonal_idempotents_central_mod_rad()
                 sage: sum(orth) == 1
                 True
@@ -817,8 +815,8 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
               idempotents returned by
               :meth:`orthogonal_idempotents_central_mod_rad`)
 
-            - ``check`` -- whether to check that the idempotents are
-              indeed orthogonal (default: True)
+            - ``check`` -- (default:True) whether to check that the idempotents
+              are indeed orthogonal
 
             OUTPUT:
 
@@ -862,15 +860,45 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             if idempotents is None:
                 idempotents = self.orthogonal_idempotents_central_mod_rad()
             if check:
-                if not (self.sum(idempotents) == self.one() and
-                        all(e*e == e for e in idempotents) and
-                        all(e*f == 0 and f*e == 0
-                            for e in idempotents
-                            for f in idempotents if f != e)):
+                if not self.is_orthogonal_idempotents(idempotents):
                     raise ValueError("Not a collection of orthogonal idempotents that sum to 1")
             return [self.peirce_summand(ei, ej)
                     for ei in idempotents
                     for ej in idempotents]
+
+        def is_orthogonal_idempotents(self, l):
+            r"""
+            Return True of ``l`` is a list of orthogonal idempotents with sum
+            one.
+
+            INPUT:
+
+            - ``l`` -- a list of elements of ``self``
+
+            OUTPUT:
+
+            - True if ``l`` is a list of orthogonal idempotents with sum `1`,
+              False otherwise.
+
+              EXAMPLES::
+
+                sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example()
+                sage: A.is_orthogonal_idempotents(A.orthogonal_idempotents_central_mod_rad())
+                True
+
+            With the algebra of the `0`-Hecke monoid::
+
+                sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
+                sage: W = WeylGroup(['A', 4]); W.rename("W")
+                sage: ambient_monoid = FiniteSetMaps(W, action="right")
+                sage: pi = W.simple_projections(length_increasing=True).map(ambient_monoid)
+                sage: A = AutomaticSemigroup(pi, one=ambient_monoid.one()).algebra(QQ)
+                sage: A.is_orthogonal_idempotents(A.orthogonal_idempotents_central_mod_rad())
+                True
+            """
+            return (self.sum(l) == self.one() and all(e*e == e for e in l)
+                and all(e*f == 0 and f*e == 0 for e in l for f in l if f != e)
+                and sum(l) == self.one())
 
     class ElementMethods:
 

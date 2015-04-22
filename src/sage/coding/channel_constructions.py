@@ -24,6 +24,7 @@ This file contains the following elements:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.structure.sage_object import SageObject
 from sage.rings.finite_rings.constructor import GF
 from sage.misc.prandom import randint, random, random_error_position
 from sage.modules.free_module_element import vector
@@ -97,7 +98,7 @@ def tuple_to_integer(value):
 
 
 
-class AbstractChannel(object):
+class AbstractChannel(SageObject):
     r"""
     Abstract top-class for Channel objects.
 
@@ -191,11 +192,39 @@ class AbstractChannel(object):
             Traceback (most recent call last):
             ...
             TypeError: Message must be an element of the input space for the given channel
+
+        .. NOTE::
+
+            One can also call directly ``Chan(message)``, which does the same as ``Chan.transmit(message)``
         """
         if message in self.input_space():
             return self.transmit_unsafe(message)
         else :
             raise TypeError("Message must be an element of the input space for the given channel")
+
+    def __call__(self, message):
+        r"""
+        This is an alias for ``transmit`` method.
+        With this method, one can transmit a message ``msg`` through a Channel ``Chan``
+        by calling ``Chan(msg)`` instead of having to write ``Chan.transmit(msg)``.
+        See :meth:`transmit` for details.
+
+        EXAMPLES::
+
+            sage: F = VectorSpace(GF(59), 6)
+            sage: n_err = 2
+            sage: Chan = channels.StaticErrorRateChannel(F, n_err)
+            sage: msg = F((4, 8, 15, 16, 23, 42))
+            sage: set_random_seed(10)
+            sage: m1 = Chan(msg)
+            sage: set_random_seed(10)
+            sage: m2 = Chan.transmit(msg)
+            sage: m1 == m2
+            True
+        """
+        pass
+
+    __call__ = transmit
 
     def input_space(self):
         r"""

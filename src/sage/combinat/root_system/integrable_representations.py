@@ -59,8 +59,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
     lattice and `\rho` is the Weyl vector. Moreover every `\mu` differs from
     `\Lambda` by an element of the root lattice. ([Kac], Propositions 11.3 and
     11.4) such that `\Lambda - \mu` is in the root lattice, then multiplicity
-    of `\mu` in this representation will be denoted `m(\mu)`. The set of `\mu`
-    such that the multiplicity
+    of `\mu` in this representation will be denoted `m(\mu)`.
     
     Let `\delta` be the nullroot, which is the lowest positive imaginary
     root. Then by [Kac], Proposition 11.3 or Corollary 11.9, for fixed `\mu`
@@ -176,7 +175,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         self._mdict = {tuple(0 for i in self._index_set): 1}
         self._rho = self._P.rho()
         self._delta = self._Q.null_root()
-        # Coerce a classical root into Q
+        # Coerce a classical root into the root lattice Q
         from_cl_root = lambda h: self._Q._from_dict(h._monomial_coefficients)
         self._classical_roots = [from_cl_root(al)
                                  for al in self._Q.classical().roots()]
@@ -778,18 +777,31 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             mu = self.to_weight(n)
             return m_Lambda-self._inner_pp(mu,mu)/(2*k)
 
-    def branch(self, weyl_character_ring=None, depth=5):
+    def branch(self, i=0, weyl_character_ring=None, sequence=None, depth=5):
         """
-        If ``self`` is a representation of the untwisted affine Lie algebra of Cartan
-        type ``[X, r, 1]``, then corresponding to the inclusion of ``[X, r]`` in
-        ``[X, r, 1]``, there is a branching rule producing a sequence of representations
-        of type ``[X, r]``. The `k`-th representation of this sequence is the restriction
-        of all weights in which `\delta` has coefficient `k`.
+        Removing any node from the extended Dynkin diagram of the affine
+        Lie algebra results in the Dynkin diagram of a classical Lie
+        algebra, which is therefore a Lie subalgebra. For example
+        removing the `0` node from the Dynkin diagram of type ``[X, r, 1]``
+        produces the classical Dynkin diagram of ``[X, r]``.
+
+        Thus for each `i` in the index set, we may restrict `self` to
+        the corresponding classical subalgebra. Of course `self` is
+        an infinite dimensional representation, but each weight `\mu`
+        is assigned a grading by the number of times the simple root
+        `\\alpha_i` appears in `\Lambda-\mu`. Thus the branched
+        representation is graded and we get sequence of finite-dimensional
+        representations which this method is able to compute.
 
         OPTIONAL:
 
+        - ``i`` -- an element of the index set (default 0)
         - ``weyl_character_ring`` -- a WeylCharacterRing of Cartan Type `[X, r]`
+        - ``sequence`` -- a dictionary
         - ``depth`` -- an upper bound for `k` determining how many terms to give (default 5)
+
+        In the default case where `i=0`, you do not need to specify anything else,
+        though you may want to increase the depth if you need more terms.
 
         EXAMPLES::
 
@@ -809,11 +821,78 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             sage: A2 = b[0].parent(); A2
             The Weyl Character Ring of Type A2 with Integer Ring coefficients
 
+        If `i` is not zero then you should specify the WeylCharacterRing that you
+        are branching to. This is determined by the Dynkin diagram::
+
+            sage: Lambda = RootSystem(['B',3,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: v = IntegrableRepresentation(Lambda[0])
+            sage: v.cartan_type().dynkin_diagram()
+                O 0
+                |
+                |
+            O---O=>=O
+            1   2   3   
+            B3~
+
+        In this example, we observe that removing the `i=2` node from the Dynkin diagram
+        produces a reducible diagram of type ``A1xA1xA1``. Thus we have a branching
+        to `\mathfrak{sl}(2)\\times \mathfrak{sl}(2)\\times \mathfrak{sl}(2)`::
+
+            sage: A1xA1xA1 = WeylCharacterRing("A1xA1xA1",style="coroots")
+            sage: v.branch(i=2,weyl_character_ring=A1xA1xA1)
+            [A1xA1xA1(1,0,0),
+             A1xA1xA1(0,1,2),
+             A1xA1xA1(1,0,0) + A1xA1xA1(1,2,0) + A1xA1xA1(1,0,2),
+             A1xA1xA1(2,1,2) + A1xA1xA1(0,1,0) + 2*A1xA1xA1(0,1,2),
+             3*A1xA1xA1(1,0,0) + 2*A1xA1xA1(1,2,0) + A1xA1xA1(1,2,2) + 2*A1xA1xA1(1,0,2) + A1xA1xA1(1,0,4) + A1xA1xA1(3,0,0),
+             A1xA1xA1(2,1,0) + 3*A1xA1xA1(2,1,2) + 2*A1xA1xA1(0,1,0) + 5*A1xA1xA1(0,1,2) + A1xA1xA1(0,1,4) + A1xA1xA1(0,3,2)]
+
+        If the nodes of the two Dynkin diagrams are not in the same order, you
+        must specify an additional parameter, ``sequence`` which gives a dictionary
+        to the affine Dynkin diagram to the classical one.
+
+        EXAMPLES::
+
+            sage: Lambda = RootSystem(['F',4,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: v = IntegrableRepresentation(Lambda[0])
+            sage: v.cartan_type().dynkin_diagram()
+            O---O---O=>=O---O
+            0   1   2   3   4   
+            F4~
+            sage: A1xC3=WeylCharacterRing("A1xC3",style="coroots")
+            sage: A1xC3.dynkin_diagram()
+            O
+            1   
+            O---O=<=O
+            2   3   4   
+            A1xC3
+
+        Observe that removing the `i=1` node from the ``F4~`` Dynkin diagram
+        gives the ``A1xC3`` diagram, but the roots are in a different order.
+        The nodes `0, 2, 3, 4` of ``F4~`` correspond to ``1, 4, 3, 2``
+        of ``A1xC3`` and so we encode this in a dictionary::
+
+            sage: v.branch(i=1,weyl_character_ring=A1xC3,sequence={0:1,2:4,3:3,4:2})
+            [A1xC3(1,0,0,0),
+             A1xC3(0,0,0,1),
+             A1xC3(1,0,0,0) + A1xC3(1,2,0,0),
+             A1xC3(2,0,0,1) + A1xC3(0,0,0,1) + A1xC3(0,1,1,0),
+             2*A1xC3(1,0,0,0) + A1xC3(1,0,1,0) + 2*A1xC3(1,2,0,0) + A1xC3(1,0,2,0) + A1xC3(3,0,0,0),
+             2*A1xC3(2,0,0,1) + A1xC3(2,1,1,0) + A1xC3(0,1,0,0) + 3*A1xC3(0,0,0,1) + 2*A1xC3(0,1,1,0) + A1xC3(0,2,0,1)]
+
         """
-        if weyl_character_ring is None:
-            weyl_character_ring = WeylCharacterRing(self.cartan_type().classical(), style="coroots")
-        if weyl_character_ring.cartan_type() != self.cartan_type().classical():
-            raise ValueError("Cartan Type of WeylCharacterRing must be %s"%self.cartan_type().classical())
+        if i==0:
+            if weyl_character_ring is None:
+                weyl_character_ring = WeylCharacterRing(self.cartan_type().classical(), style="coroots")
+            if weyl_character_ring.cartan_type() != self.cartan_type().classical():
+                raise ValueError("Cartan Type of WeylCharacterRing must be %s"%self.cartan_type().classical())
+        if sequence == None:
+            sequence = {}
+            for j in self._index_set:
+                if j < i:
+                    sequence[j] = j+1
+                elif j > i:
+                    sequence[j] = j
         def next_level(x):
             ret = []
             for j in self._index_set:
@@ -822,7 +901,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
                 t = tuple(t)
                 u = self.to_weight(t)
                 m = self.m(t)
-                if m > 0 and t[0] <= depth:
+                if m > 0 and t[i] <= depth:
                     ret.append((t,m))
             return ret
         hwv = (tuple([0 for j in self._index_set]), 1)
@@ -831,11 +910,11 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         P = self.weight_lattice()
         ret = []
         for l in range(depth+1):
-            lterms = [x for x in terms if x[0][0] == l]
+            lterms = [x for x in terms if x[0][i] == l]
             ldict = {}
             for x in lterms:
                 mc = P(self.to_weight(x[0])).monomial_coefficients()
-                contr = sum(fw[j]*mc.get(j,0) for j in self._index_set_classical).coerce_to_sl()
+                contr = sum(fw[sequence[j]]*mc.get(j,0) for j in self._index_set if j != i).coerce_to_sl()
                 if ldict.has_key(contr):
                     ldict[contr] += x[1]
                 else:

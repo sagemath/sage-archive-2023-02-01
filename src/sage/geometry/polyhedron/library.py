@@ -918,17 +918,12 @@ class Polytopes():
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 24 vertices
             sage: perm4.plot()
             Graphics3d Object
+            sage: perm4.graph().is_isomorphic(graphs.BubbleSortGraph(4))
+            True
 
         .. SEEALSO::
 
             * :meth:`~sage.graphs.graph_generators.GraphGenerators.BubbleSortGraph`
-
-        TESTS::
-
-            sage: perm4 = polytopes.permutahedron(4)
-            sage: perm4.graph().is_isomorphic(graphs.BubbleSortGraph(4))
-            True
-
         """
         verts = list(itertools.permutations(range(1,n+1)))
         if project: verts = project_points(*verts)

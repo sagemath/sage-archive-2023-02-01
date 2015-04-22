@@ -466,7 +466,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             idempotent, we then construct `f_n` by lifting the element
             `(1 - \sum_{i < n} f_i) e_n (1 - \sum_{i < n} f_i)`.
 
-            See [CR62] for correctness and termination proofs.
+            See [CR62]_ for correctness and termination proofs.
 
             .. SEEALSO:: :meth:`idempotent_lift`
 
@@ -501,8 +501,8 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: all(e*f == f*e and e*f == 0 for e,f in itertools.product(orth, orth) if e!= f)
                 True
 
-            We construct the minimal orthogonal idempotents of the `0`-Hecke
-            monoid algebra::
+            We construct orthogonal idempotents of the algebra of the `0`-Hecke
+            monoid::
 
                 sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
                 sage: W = WeylGroup(['A', 3]); W.rename("W")
@@ -556,7 +556,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             is `\overline{e}` and then iterate the formula `1 - (1 - e^2)^2`
             until having an idempotent.
 
-            See [CR62] for correctness and termination proofs.
+            See [CR62]_ for correctness and termination proofs.
 
             EXAMPLES::
 

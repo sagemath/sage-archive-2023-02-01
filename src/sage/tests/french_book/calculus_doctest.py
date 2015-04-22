@@ -100,7 +100,7 @@ Sage example in ./calculus.tex, line 306::
 Sage example in ./calculus.tex, line 318::
 
     sage: f = sqrt(abs(x)^2); f.canonicalize_radical()
-    abs(x)
+    x
     sage: f = log(x*y); f.canonicalize_radical()
     log(x) + log(y)
 

@@ -389,7 +389,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         the polynomial at the field's generator::
 
             sage: R.<x> = QQ[]
-            sage: k, a = FiniteField(5^2, 'a', impl='pari_mod').objgen()
+            sage: k.<a> = FiniteField(5^2, impl='pari_mod')
             sage: k(R(2/3))
             4
             sage: k(x^2)
@@ -402,7 +402,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: k(x^25)
             a
 
-            sage: Q, q = FiniteField(5^7, 'q', impl='pari_mod').objgen()
+            sage: Q.<q> = FiniteField(5^7, impl='pari_mod')
             sage: L = GF(5)
             sage: LL.<xx> = L[]
             sage: Q(xx^2 + 2*xx + 4)

@@ -796,7 +796,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         OPTIONAL:
 
         - ``i`` -- an element of the index set (default 0)
-        - ``weyl_character_ring`` -- a WeylCharacterRing of Cartan Type `[X, r]`
+        - ``weyl_character_ring`` -- a WeylCharacterRing
         - ``sequence`` -- a dictionary
         - ``depth`` -- an upper bound for `k` determining how many terms to give (default 5)
 
@@ -881,11 +881,13 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
              2*A1xC3(2,0,0,1) + A1xC3(2,1,1,0) + A1xC3(0,1,0,0) + 3*A1xC3(0,0,0,1) + 2*A1xC3(0,1,1,0) + A1xC3(0,2,0,1)]
 
         """
-        if i==0:
+        if i==0 or self.cartan_type()[0] == 'A':
             if weyl_character_ring is None:
                 weyl_character_ring = WeylCharacterRing(self.cartan_type().classical(), style="coroots")
             if weyl_character_ring.cartan_type() != self.cartan_type().classical():
                 raise ValueError("Cartan Type of WeylCharacterRing must be %s"%self.cartan_type().classical())
+        elif weyl_character_ring is None:
+            raise ValueError("""The argument "weyl_character_ring" cannot be omitted if "i != 0" """)
         if sequence == None:
             sequence = {}
             for j in self._index_set:

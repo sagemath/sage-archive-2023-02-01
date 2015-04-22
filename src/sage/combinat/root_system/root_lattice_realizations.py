@@ -691,7 +691,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 index_set = tuple(self.cartan_type().index_set())
             return RecursivelyEnumeratedSet([self.simple_root(i) for i in index_set],
                        attrcall('pred', index_set=index_set),
-                       structure=None, enumeration='breadth')
+                       structure='graded', enumeration='breadth')
 
         @cached_method
         def nonparabolic_positive_roots(self, index_set = None):

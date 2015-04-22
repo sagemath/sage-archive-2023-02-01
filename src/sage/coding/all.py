@@ -77,4 +77,3 @@ lazy_import('sage.coding', 'codes_catalog', 'codes')
 lazy_import('sage.coding', 'channels_catalog', 'channels')
 
 import sage.coding.channel_constructions
-

@@ -31,7 +31,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.modules.free_module import VectorSpace
 
-def _random_error_vector(n, F, error_positions):
+def random_error_vector(n, F, error_positions):
     r"""
     Return a vector of length ``n`` over ``F`` filled with random non-zero coefficients
     at the positions given by ``error_positions``.
@@ -39,7 +39,7 @@ def _random_error_vector(n, F, error_positions):
     This function was taken from codinglib (https://bitbucket.org/jsrn/codinglib/)
     and was written by Johan Nielsen.
 
-    ..NOTE::
+    .. NOTE::
 
         This is a helper function, which should only be used when implementing new channels.
 
@@ -57,21 +57,20 @@ def _random_error_vector(n, F, error_positions):
 
     EXAMPLES::
 
-        sage: sage.coding.channel_constructions._random_error_vector(5, GF(2), [1,3])
+        sage: sage.coding.channel_constructions.random_error_vector(5, GF(2), [1,3])
         (0, 1, 0, 1, 0)
     """
     vect = [F.zero()]*n
     for i in error_positions:
-        while vect[i].is_zero():
-            vect[i] = F.random_element()
+        vect[i] = F._random_nonzero_element()
     return vector(F, vect)
 
-def _tuple_to_integer(value):
+def tuple_to_integer(value):
     r"""
     Returns an integer from ``value``. If ``value`` is a tuple, it will return a random
     integer between its bounds.
 
-    ..NOTE::
+    .. NOTE::
 
         This is a helper function, which should only be used when implementing new channels.
 
@@ -85,10 +84,10 @@ def _tuple_to_integer(value):
 
     EXAMPLES::
 
-        sage: sage.coding.channel_constructions._tuple_to_integer(4)
+        sage: sage.coding.channel_constructions.tuple_to_integer(4)
         4
 
-        sage: sage.coding.channel_constructions._tuple_to_integer((1,5)) # random
+        sage: sage.coding.channel_constructions.tuple_to_integer((1,5)) # random
         3
     """
     value = value if not hasattr(value, "__iter__") else randint(value[0], value[1])
@@ -384,10 +383,10 @@ class StaticErrorRateChannel(AbstractChannel):
             sage: Chan.transmit_unsafe(msg) # random
             (4, 14, 15, 16, 17, 42)
         """
-        number_errors = _tuple_to_integer(self.number_errors())
+        number_errors = tuple_to_integer(self.number_errors())
         V = self.input_space()
         n = V.dimension()
-        error_vector = _random_error_vector(n, V.base_ring(),\
+        error_vector = random_error_vector(n, V.base_ring(),\
                 random_error_position(n, number_errors))
         return message + error_vector
     
@@ -579,8 +578,8 @@ class ErrorErasureChannel(AbstractChannel):
             sage: Chan.transmit_unsafe(msg) # random
             ((0, 14, 15, 0, 26, 53, 45, 9, 7, 14, 3), (1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0))
         """
-        number_errors = _tuple_to_integer(self.number_errors())
-        number_erasures = _tuple_to_integer(self.number_erasures())
+        number_errors = tuple_to_integer(self.number_errors())
+        number_erasures = tuple_to_integer(self.number_erasures())
         V = self.input_space()
         n = V.dimension()
 
@@ -593,8 +592,8 @@ class ErrorErasureChannel(AbstractChannel):
         erasure_positions = [ erroneous_positions[i] for i in\
                 range(number_errors + number_erasures) if i not in error_split]
 
-        error_vector = _random_error_vector(n, V.base_ring(), error_positions)
-        erasure_vector = _random_error_vector(n , GF(2), erasure_positions)
+        error_vector = random_error_vector(n, V.base_ring(), error_positions)
+        erasure_vector = random_error_vector(n , GF(2), erasure_positions)
 
         message = message + error_vector
 

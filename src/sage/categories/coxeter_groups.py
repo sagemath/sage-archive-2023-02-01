@@ -1041,6 +1041,18 @@ v            EXAMPLES::
             is the graph whose vertices are reduced words `R_w` and there
             is an `m`-colored edge between `x, y \in R_w` if `x` and `y`
             differ by exactly one length `m` braid move.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',3], prefix='s')
+                sage: w0 = W.long_element()
+                sage: G = w0.reduced_word_graph()
+                sage: G.num_verts()
+                16
+                sage: len(w0.reduced_words())
+                16
+                sage: G.num_edges()
+                18
             """
             R = self.reduced_words()
             from sage.graphs.graph import Graph

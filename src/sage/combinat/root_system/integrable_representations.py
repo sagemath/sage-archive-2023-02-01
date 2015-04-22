@@ -99,7 +99,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
     type `A_3^{(1)}`, then define ``Lambda`` to be the fundamental
     weights. We find there are 5 maximal dominant weights in irreducible
     representation of highest weight ``Lambda[1]+Lambda[2]+Lambda[3]``,
-    and we determine their string functions.
+    and we determine their strings.
 
     It was shown in [KacPeterson] that each string is the set of Fourier
     coefficients of a modular form.
@@ -299,7 +299,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
     def __repr__(self):
         """
-        Return a string representation of ``self``.
+        Return a representation of ``self``.
         """
         return "The Integrable representation of %s with highest weight %s"%(self._cartan_type, self._Lam)
 

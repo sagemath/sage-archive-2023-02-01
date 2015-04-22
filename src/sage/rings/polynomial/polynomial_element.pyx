@@ -715,6 +715,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     return self.reverse()(a_inverse) / a_inverse**self.degree()
             except AttributeError:
                 pass
+        from sage.symbolic.ring import SR
+        if parent(a) is SR:
+            if len(x) == 1:
+                try:
+                    return SR(self(a.pyobject()))
+                except TypeError:
+                    return SR.zero().add(*(self[i]*a**i for i in xrange(d + 1)))
+            else:
+                return SR.zero().add(*(self[i](other_args)*a**i for i in xrange(d + 1)))
 
         i = d - 1
         if len(x) > 1:
@@ -1072,7 +1081,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = QQ[]
             sage: f = x^3 + x
             sage: g = f._symbolic_(SR); g
-            (x^2 + 1)*x
+            x^3 + x
             sage: g(x=2)
             10
 

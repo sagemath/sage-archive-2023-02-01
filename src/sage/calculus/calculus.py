@@ -889,7 +889,7 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
         sage: f = a.minpoly(); f
         x^8 - 40*x^6 + 352*x^4 - 960*x^2 + 576
         sage: f(a)
-        ((((sqrt(5) + sqrt(3) + sqrt(2))^2 - 40)*(sqrt(5) + sqrt(3) + sqrt(2))^2 + 352)*(sqrt(5) + sqrt(3) + sqrt(2))^2 - 960)*(sqrt(5) + sqrt(3) + sqrt(2))^2 + 576
+        (sqrt(5) + sqrt(3) + sqrt(2))^8 - 40*(sqrt(5) + sqrt(3) + sqrt(2))^6 + 352*(sqrt(5) + sqrt(3) + sqrt(2))^4 - 960*(sqrt(5) + sqrt(3) + sqrt(2))^2 + 576
         sage: f(a).expand()
         0
 
@@ -906,7 +906,7 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
         NotImplementedError: Could not prove minimal polynomial x^4 - 5/4*x^2 + 5/16 (epsilon 0.00000000000000e-1)
         sage: f = a.minpoly(algorithm='numerical', epsilon=1e-100); f
         x^4 - 5/4*x^2 + 5/16
-        sage: f(a).numerical_approx(100)
+        sage: f(a).horner(a).numerical_approx(100)
         0.00000000000000000000000000000
 
     The degree must be high enough (default tops out at 24).

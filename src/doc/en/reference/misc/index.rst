@@ -81,8 +81,9 @@ Media
    :maxdepth: 1
 
    sage/structure/graphics_file
-   sage/media/channels
    sage/media/wav
+.. underscore-methods only
+..   sage/media/channels
 
 Warnings
 ~~~~~~~~

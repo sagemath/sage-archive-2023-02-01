@@ -881,14 +881,14 @@ class Polytopes():
         return Polyhedron(vertices=verts)
 
     def permutahedron(self, n, project=False):
-        """
-        Return the standard permutahedron of (1,...,n)
+        """Return the standard permutahedron of (1,...,n)
 
         The permutahedron (or permutohedron) is the convex hull of the
         permutations of `\{1,\ldots,n\}` seen as vectors.
 
-        If we take the graph in which the vertices correspond to vertices of the
-        polyhedron, and edges to edges, we get the bubble sort graph.
+        If we take the graph in which the vertices correspond to
+        vertices of the polyhedron, and edges to edges, we get the
+        :meth:`~sage.graphs.graph_generators.GraphGenerators.BubbleSortGraph`.
 
         INPUT:
 
@@ -925,6 +925,7 @@ class Polytopes():
             sage: perm4 = polytopes.permutahedron(4)
             sage: perm4.graph().is_isomorphic(graphs.BubbleSortGraph(4))
             True
+
         """
         verts = list(itertools.permutations(range(1,n+1)))
         if project: verts = project_points(*verts)

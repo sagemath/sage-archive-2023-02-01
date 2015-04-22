@@ -368,10 +368,9 @@ def BubbleSortGraph(n):
     on `n` symbols. Two vertices are adjacent if one can be obtained
     from the other by swapping the labels in the `i`-th and `(i+1)`-th
     positions for `1 \leq i \leq n-1`. In total, `B(n)` has order
-    `n!`. Thus, the order of `B(n)` increases according to `f(n) =
-    n!`. Swapping two labels as described previously corresponds to
+    `n!`. Swapping two labels as described previously corresponds to
     multiplying on the right the permutation corresponding to the node
-    by an elemantary transposition in the
+    by an elementary transposition in the
     :class:`~sage.groups.perm_gps.permgroup_named.SymmetricGroup`.
 
     The bubble sort graph is the underlying graph of the

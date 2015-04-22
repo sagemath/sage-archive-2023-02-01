@@ -1189,7 +1189,8 @@ def self_to_s(self, x):
     r"""
     Convert an element of either the ``H`` or ``Ht`` basis to the Schur basis
 
-    This function is here to force the coercion path to the Schur basis.
+    This function is here to force the coercion path to the Schur basis
+    because these bases are computed using their monomial expansion.
 
     INPUT:
 
@@ -1215,7 +1216,8 @@ def s_to_self( self, x ):
     r"""
     Convert an element of either the Schur basis to either the ``H`` or ``Ht`` basis
 
-    This function is here to force the coercion path from the Schur basis.
+    This function is here to force the coercion path from the Schur basis
+    because these bases are computed using the monomial expansion.
 
     INPUT:
 
@@ -1263,14 +1265,96 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
         MacdonaldPolynomials_generic.__init__(self, macdonald)
         self._m = self._sym.m()
         self._Lmunu = macdonald.Ht()._Lmunu
+        if not self.t:
+            self._Qp = self._sym.hall_littlewood(t=self.q).Qp()
         category = ModulesWithBasis(self.base_ring())
         self._s.register_coercion(SetMorphism(Hom(self, self._s, category), self._self_to_s))
         self.register_coercion(SetMorphism(Hom(self._s, self, category), self._s_to_self))
         self._m.register_coercion(SetMorphism(Hom(self, self._m, category), self._self_to_m))
         self.register_coercion(SetMorphism(Hom(self._m, self, category), self._m_to_self))
 
-    _self_to_s = self_to_s
-    _s_to_self = s_to_self
+    def _self_to_s(self, x):
+        r"""
+        Return an element ``x`` of ``self`` expanded in the Schur basis.
+
+        If `t=0` then the expression for `H_\mu[X;q,0]` is equal to
+        `\omega Q'_{\mu'}[X;q]` where `Q'` is the Hall-Littlewood basis.
+
+        If `t \neq 0` then the conversion uses the monomial basis.
+
+        INPUT:
+
+        - ``x`` -- an element of ``H`` basis
+
+        OUTPUT:
+
+        - an element of the Schur basis
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
+            sage: H = Sym.macdonald().H()
+            sage: s = Sym.s()
+            sage: s(H[2,1])
+            q*s[1, 1, 1] + (q*t+1)*s[2, 1] + t*s[3]
+            sage: H2 = Sym.macdonald(t=0).H()
+            sage: s(H2[2,1])
+            q*s[1, 1, 1] + s[2, 1]
+
+            sage: Sym = SymmetricFunctions(FractionField(QQ['x']))
+            sage: x = Sym.base_ring().gen()
+            sage: H = Sym.macdonald(q=x,t=1/x).H()
+            sage: s = Sym.s()
+            sage: s(H[2,1])
+            x*s[1, 1, 1] + 2*s[2, 1] + 1/x*s[3]
+        """
+        if self.t:
+            return self_to_s(self, x)
+        else:
+            return sum(cmu*self._s(self._Qp(mu.conjugate())) for mu,cmu in x).omega()
+
+    def _s_to_self(self, x):
+        r"""
+        Return an element of the Schur basis ``x`` expanded in the ``H`` basis.
+
+        If `t=0` then the expression for `H_\mu[X;q,0]` is equal to
+        `\omega Q'_{\mu'}[X;q]` where `Q'` is the Hall-Littlewood basis.
+
+        If `t \neq 0` then the conversion uses the monomial basis.
+
+        INPUT:
+
+        - ``x`` -- an element of the Schur basis
+
+        OUTPUT:
+
+        - an element of the ``H`` basis
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
+            sage: H = Sym.macdonald().H()
+            sage: s = Sym.s()
+            sage: H(s[1,1])
+            -(1/(q*t-1))*McdH[1, 1] + (t/(q*t-1))*McdH[2]
+            sage: (q,t) = Sym.base_ring().gens()
+            sage: H(q*s[1, 1, 1] + (q*t+1)*s[2, 1] + t*s[3])
+            McdH[2, 1]
+            sage: H2 = Sym.macdonald(t=0).H()
+            sage: H2(q*s[1, 1, 1] + (q*t+1)*s[2, 1] + t*s[3])
+            (-q^2*t+1)*McdH[2, 1] + t*McdH[3]
+
+            sage: Sym = SymmetricFunctions(FractionField(QQ['x']))
+            sage: x = Sym.base_ring().gen()
+            sage: H = Sym.macdonald(q=x,t=1/x).H()
+            sage: s = Sym.s()
+            sage: H(x*s[1, 1, 1] + 2*s[2, 1] + 1/x*s[3])
+            McdH[2, 1]
+        """
+        if self.t:
+            return s_to_self(self, x)
+        else:
+            return self._from_dict({mu.conjugate() : cmu for mu,cmu in self._Qp(x.omega())})
 
     def _self_to_m(self, x):
         r"""
@@ -1298,13 +1382,21 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
             sage: m = Sym.m()
             sage: m(H[2,1])
             ((x^2+4*x+1)/x)*m[1, 1, 1] + ((2*x+1)/x)*m[2, 1] + 1/x*m[3]
+            sage: H2 = Sym.macdonald(q=x,t=1).H()
+            sage: H2((3*x+3)*m[1, 1, 1] + (x+2)*m[2, 1] + m[3])
+            McdH[2, 1]
+            sage: H3 = Sym.macdonald(q=x,t=0).H()
+            sage: H3((3*x+3)*m[1, 1, 1] + (x+2)*m[2, 1] + m[3])
+            (-x^2+1)*McdH[2, 1] + McdH[3]
         """
-        (q,t)=QQqt.gens()
-        return self._m._from_dict({ part2:
-            self._base(sum(x.coefficient(mu)* (QQqt(self._Lmunu(part2, mu)).subs(t=1/t)*
-                t**mu.weighted_size()).subs(q=self.q,t=self.t)
-                    for mu in x.homogeneous_component(d).support()))
-                        for d in range(x.degree()+1) for part2 in Partitions(d) })
+        if self.t:
+            return self._m._from_dict({ part2:
+                self._base(sum(x.coefficient(mu) * QQqt(self._Lmunu(part2, 
+                    mu)).subs(q=self.q,t=1/self.t) * self.t**mu.weighted_size()
+                        for mu in x.homogeneous_component(d).support()))
+                            for d in range(x.degree()+1) for part2 in Partitions(d) })
+        else:
+            return self._m(self._self_to_s(x))
 
     def _m_to_self( self, f ):
         r"""

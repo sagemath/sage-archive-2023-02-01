@@ -55,6 +55,8 @@ from sage.libs.flint.fmpz_poly cimport fmpz_poly_reverse, fmpz_poly_revert_serie
 from sage.libs.flint.ntl_interface cimport fmpz_set_ZZ, fmpz_poly_set_ZZX, fmpz_poly_get_ZZX
 from sage.libs.ntl.ntl_ZZX_decl cimport *
 
+from cpython.number cimport PyNumber_AsSsize_t
+
 cdef extern from "limits.h":
     long LONG_MAX
 
@@ -861,7 +863,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         return x
 
-    def __pow__(Polynomial_integer_dense_flint self, int exp, ignored):
+    def __pow__(Polynomial_integer_dense_flint self, exp, ignored):
         """
 
         EXAMPLES::
@@ -889,15 +891,29 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: negative exponent in power of zero
+
+        Check that :trac:`18278` is fixed::
+            
+            sage: R.<x> = ZZ[]
+            sage: x^(1/2)
+            Traceback (most recent call last):
+            ...
+            TypeError: non-integral exponents not supported
         """
-        cdef long nn = exp
+        cdef Py_ssize_t nn
         cdef Polynomial_integer_dense_flint res = self._new()
+
+        try:
+            nn = PyNumber_AsSsize_t (exp, OverflowError)
+        except TypeError:
+            raise TypeError("non-integral exponents not supported")
+
         if self.is_zero():
             if exp == 0:
                 fmpz_poly_set_coeff_si(res.__poly, 0, 1)
                 return res
             elif exp < 0:
-                raise ZeroDivisionError, "negative exponent in power of zero"
+                raise ZeroDivisionError("negative exponent in power of zero")
             else:
                 return res
         if exp < 0:

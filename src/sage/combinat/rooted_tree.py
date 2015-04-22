@@ -257,7 +257,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
 
             sage: RT = RootedTree
             sage: hash(RT([[],[[]]]))  # indirect doctest
-            2578595415271398032
+            1119083152
         """
         return hash(self.sort_key())
 
@@ -889,7 +889,7 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
 
             sage: lb = RootedTrees()([[],[[], []]]).canonical_labelling()
             sage: hash(lb)  # indirect doctest
-            686798862222558969
+            652936953
         """
         return hash(self.sort_key())
 

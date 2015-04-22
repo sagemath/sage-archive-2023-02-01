@@ -19,7 +19,7 @@ from copy import copy
 
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
-from sage.categories.modules_with_basis import ModuleMorphismByLinearity
+from sage.modules.with_basis.morphism import ModuleMorphismByLinearity
 from sage.categories.poor_man_map import PoorManMap
 from sage.rings.all import ZZ
 from sage.modules.free_module import FreeModule, FreeModule_generic
@@ -477,7 +477,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         sage: Cl = CliffordAlgebra(Q)
         sage: Cl
         The Clifford algebra of the Quadratic form in 3 variables
-         over Integer Ring with coefficients: 
+         over Integer Ring with coefficients:
         [ 1 2 3 ]
         [ * 4 5 ]
         [ * * 6 ]
@@ -557,7 +557,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: CliffordAlgebra(Q)
             The Clifford algebra of the Quadratic form in 3 variables
-             over Integer Ring with coefficients: 
+             over Integer Ring with coefficients:
             [ 1 2 3 ]
             [ * 4 5 ]
             [ * * 6 ]
@@ -833,7 +833,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: Cl.quadratic_form()
-            Quadratic form in 3 variables over Integer Ring with coefficients: 
+            Quadratic form in 3 variables over Integer Ring with coefficients:
             [ 1 2 3 ]
             [ * 4 5 ]
             [ * * 6 ]

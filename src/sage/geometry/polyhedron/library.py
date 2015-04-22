@@ -884,7 +884,10 @@ class Polytopes():
         """Return the standard permutahedron of (1,...,n)
 
         The permutahedron (or permutohedron) is the convex hull of the
-        permutations of `\{1,\ldots,n\}` seen as vectors.
+        permutations of `\{1,\ldots,n\}` seen as vectors. The edges
+        between the permutations correspond to multiplication on the
+        right by an elementary transposition in the
+        :class:`~sage.groups.perm_gps.permgroup_named.SymmetricGroup`.
 
         If we take the graph in which the vertices correspond to
         vertices of the polyhedron, and edges to edges, we get the

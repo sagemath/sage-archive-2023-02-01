@@ -965,7 +965,7 @@ class SQLDatabase(SageObject):
             ...           if g not in labels[i]:
             ...               labels[i].append(g)
             ...               D.add_row('simon', (g.size(), g.graph6_string(), g.order()))
-            sage: D.show('simon')
+            sage: D.show('simon') # random
             edges                graph6               vertices
             ------------------------------------------------------------
             0                    ?                    0
@@ -995,7 +995,9 @@ class SQLDatabase(SageObject):
             sage: Q = SQLQuery(D, {'table_name':'simon', 'display_cols':['graph6'], 'expression':['vertices','=',4]})
             sage: Q2 = SQLQuery(D, {'table_name':'simon', 'display_cols':['graph6'], 'expression':['edges','=',3]})
             sage: Q = Q.intersect(Q2)
-            sage: Q.query_results()
+            sage: len(Q.query_results())
+            3
+            sage: Q.query_results() # random
             [(u'CF', u'CF'), (u'CJ', u'CJ'), (u'CL', u'CL')]
 
         NOTE: The values of ``display_cols`` are always concatenated in
@@ -1011,7 +1013,7 @@ class SQLDatabase(SageObject):
         instance. We can load the file as an immutable database::
 
             sage: E = SQLDatabase(replace_with_your_own_filepath + 'simon.db')
-            sage: E.show('simon')
+            sage: E.show('simon') # random
             edges                graph6               vertices
             ------------------------------------------------------------
             0                    ?                    0

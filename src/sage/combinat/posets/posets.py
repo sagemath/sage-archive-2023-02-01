@@ -3832,8 +3832,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = P.canonical_label()
             sage: Q.list()
             [0, 1, 2, 3, 4, 5]
-            sage: Q.cover_relations()
-            [[0, 1], [0, 2], [1, 4], [2, 3], [2, 4], [3, 5], [4, 5]]
+            sage: Q.is_isomorphic(P)
+            True
 
         As a facade::
 
@@ -3845,8 +3845,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = P.canonical_label()
             sage: Q.list()
             [0, 1, 2, 3, 4, 5]
-            sage: Q.cover_relations()
-            [[0, 1], [0, 2], [1, 4], [2, 3], [2, 4], [3, 5], [4, 5]]
+            sage: Q.is_isomorphic(P)
+            True
 
         TESTS::
 
@@ -3860,8 +3860,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = P.canonical_label()
             sage: Q.linear_extension()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-            sage: Q.cover_relations()
-            [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9]]
+            sage: Q.is_isomorphic(P)
+            True
         """
         P = Poset(DiGraph(self._hasse_diagram).canonical_label(), linear_extension=self._with_linear_extension,
                   category=self.category(), facade=self._is_facade)

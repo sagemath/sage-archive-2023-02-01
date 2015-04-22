@@ -305,8 +305,9 @@ class Semigroups(CategoryWithAxiom):
                 raise ValueError("option 'side' must be 'left', 'right' or 'twosided'")
             if elements is None:
                 assert self.is_finite(), "elements should be specified for infinite semigroups"
-                elements = list(self)
-            elements_set = set(elements)
+                elements = self
+            else:
+                elements = set(elements)
             if simple or self in Groups():
                 result = DiGraph()
             else:
@@ -329,7 +330,9 @@ class Semigroups(CategoryWithAxiom):
                 Skips edges whose targets are not in elements
                 Return an appropriate edge given the options
                 """
-                if target not in elements_set: return
+                if (elements is not self and
+                    target not in elements):
+                    return
                 if simple:
                     result.add_edge([source, target])
                 elif side == "twosided":

@@ -56,7 +56,6 @@ from sage.matrix.constructor import matrix
 from sage.modules.all import vector
 from sage.geometry.polyhedron.double_description import StandardAlgorithm as Algorithm
 
-
 # Compare with PPL if the base ring is QQ. Can be left enabled since
 # we don't use the Python fallback for polyhedra over QQ unless you
 # construct one by hand.
@@ -252,11 +251,12 @@ class Hrep2Vrep(PivotedInequalities):
             sage: H._split_linear_subspace()
             (None, [(0, 1, 0), (0, 0, 1)])
         """
-        lines = self._linear_subspace.matrix().rows()
+        lines = self._linear_subspace.basis_matrix().rows()
         L0 = []
         L1 = []
+        zero = self.base_ring.zero()
         for l in lines:
-            if l[0] == 0:
+            if l[0] == zero:
                 L0.append(l)
             else:
                 l = l / l[0]
@@ -302,13 +302,15 @@ class Hrep2Vrep(PivotedInequalities):
         else:
             # have to really intersect with x_0 = 0
             L1 = []
-            R1 = [r / r[0] for r in R if r[0] > 0]
+            zero = self.base_ring.zero()
+            R1 = [r / r[0] for r in R if r[0] > zero]
             DD0 = DD.first_coordinate_plane()
             R0 = map(self._unpivot_ray, DD0.R)
 
         vertices = []
+        one = self.base_ring.one()
         for v in R1 + L1:
-            assert v[0] == 1
+            assert v[0] == one
             vertices.append(v[1:])
         self.vertices = vertices
         if len(vertices) > 0:
@@ -332,7 +334,7 @@ class Hrep2Vrep(PivotedInequalities):
         from sage.matrix.constructor import block_matrix
 
         def make_matrix(rows):
-            return matrix(self.base_ring, len(rows), self.dim, rows).transpose()
+             return matrix(self.base_ring, len(rows), self.dim, rows).transpose()
         V = make_matrix(self.vertices)
         R = make_matrix(self.rays)
         L = make_matrix(self.lines)
@@ -463,11 +465,13 @@ class Vrep2Hrep(PivotedInequalities):
             [   0 -1/2  2/3]
             [   0  1/2 -1/3]
         """
+        one = self.base_ring.one()
+        zero = self.base_ring.zero()
         homogeneous = \
-            [[1] + list(v) for v in vertices] + \
-            [[0] + list(r) for r in rays] + \
-            [[0] + list(l) for l in lines] + \
-            [[0] + [-x for x in l] for l in lines]
+            [[one] + list(v) for v in vertices] + \
+            [[zero] + list(r) for r in rays] + \
+            [[zero] + list(l) for l in lines] + \
+            [[zero] + [-x for x in l] for l in lines]
         A = matrix(self.base_ring, homogeneous)
         return self._pivot_inequalities(A)
 
@@ -488,9 +492,10 @@ class Vrep2Hrep(PivotedInequalities):
             sage: DD = StandardAlgorithm(matrix([[1,2], [3,5]])).run()
             sage: V2H._extract_Hrep(DD)
         """
+        zero = self.base_ring.zero()
         def is_trivial(ray):
             # trivial Hrep output 1 >= 0
-            return ray[0] > 0 and all(r == 0 for r in ray[1:])
+            return ray[0] > zero and all(r == zero for r in ray[1:])
         ieqs = map(self._unpivot_ray, DD.R)
         self.inequalities = [r for r in ieqs if not is_trivial(r)]
         self.equations = self._linear_subspace.matrix().rows()
@@ -544,7 +549,7 @@ class Vrep2Hrep(PivotedInequalities):
             return
         P = Polyhedron(vertices=vertices, rays=rays, lines=lines,
                        base_ring=QQ, ambient_dim=self.dim)
-        trivial = [1] + [0] * self.dim   # always true equation
+        trivial = [self.base_ring.one()] + [self.base_ring.zero()] * self.dim   # always true equation
         Q = Polyhedron(ieqs=self.inequalities + [trivial], eqns=self.equations,
                        base_ring=QQ, ambient_dim=self.dim)
         if not P == Q:

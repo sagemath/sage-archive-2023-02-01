@@ -646,7 +646,7 @@ def cmunu1(mu, nu):
 
     OUTPUT:
 
-    - a rational polynomial in `q` and `t`
+    - an element of the fraction field of polynomials in `q` and `t`
 
     EXAMPLES::
 
@@ -696,7 +696,7 @@ def cmunu(mu, nu):
 
     OUTPUT:
 
-    - a rational polynomial in `q` and `t`
+    - an element of the fraction field of polynomials in `q` and `t`
 
     EXAMPLES::
 

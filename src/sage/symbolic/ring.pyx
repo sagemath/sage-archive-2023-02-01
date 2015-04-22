@@ -31,6 +31,7 @@ from sage.structure.element cimport RingElement, Element, Matrix
 from sage.structure.parent_base import ParentWithBase
 from sage.rings.ring cimport CommutativeRing
 from sage.categories.morphism cimport Morphism
+from sage.structure.coerce cimport is_numpy_type
 
 from sage.rings.all import RR, CC
 
@@ -119,7 +120,7 @@ cdef class SymbolicRing(CommutativeRing):
 
         TESTS:
 
-        Check if arithmetic with bools work #9560::
+        Check if arithmetic with bools works (see :trac:`9560`)::
 
             sage: SR.has_coerce_map_from(bool)
             True
@@ -136,14 +137,14 @@ cdef class SymbolicRing(CommutativeRing):
             if R in [int, float, long, complex, bool]:
                 return True
 
-            if 'numpy' in R.__module__:
+            if is_numpy_type(R):
                 import numpy
-                basic_types = [numpy.float, numpy.float32, numpy.float64,
-                               numpy.complex, numpy.complex64, numpy.complex128]
-                if hasattr(numpy, 'float128'):
-                    basic_types += [numpy.float128, numpy.complex256]
-                if R in basic_types:
+                if (issubclass(R, numpy.integer) or
+                    issubclass(R, numpy.floating) or
+                    issubclass(R, numpy.complexfloating)):
                     return NumpyToSRMorphism(R, self)
+                else:
+                    return None
 
             if 'sympy' in R.__module__:
                 from sympy.core.basic import Basic
@@ -793,6 +794,35 @@ cdef unsigned sage_domain_to_ginac(object domain) except +:
             raise ValueError("domain must be one of 'complex', 'real' or 'positive'")
 
 cdef class NumpyToSRMorphism(Morphism):
+    r"""
+    A morphism from numpy types to the symbolic ring.
+
+    TESTS:
+
+    We check that :trac:`8949` and :trac:`9769` are fixed (see also :trac:`18076`)::
+
+        sage: import numpy
+        sage: f(x) = x^2
+        sage: f(numpy.int8('2'))
+        4
+        sage: f(numpy.int32('3'))
+        9
+
+    Note that the answer is a Sage integer and not a numpy type::
+
+        sage: a = f(numpy.int8('2')).pyobject()
+        sage: type(a)
+        <type 'sage.rings.integer.Integer'>
+
+    This behavior also applies to standard functions::
+
+        sage: cos(numpy.int('2'))
+        cos(2)
+        sage: numpy.cos(numpy.int('2'))
+        -0.41614683654714241
+    """
+    cdef _intermediate_ring
+
     def __init__(self, numpy_type, R):
         """
         A Morphism which constructs Expressions from NumPy floats and
@@ -812,6 +842,17 @@ cdef class NumpyToSRMorphism(Morphism):
         from sage.structure.parent import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(numpy_type), R))
 
+        import numpy
+        if issubclass(numpy_type, numpy.integer):
+            from sage.rings.all import ZZ
+            self._intermediate_ring = ZZ
+        if issubclass(numpy_type, numpy.floating):
+            from sage.rings.all import RDF
+            self._intermediate_ring = RDF
+        elif issubclass(numpy_type, numpy.complexfloating):
+            from sage.rings.all import CDF
+            self._intermediate_ring = CDF
+
     cpdef Element _call_(self, a):
         """
         EXAMPLES:
@@ -820,17 +861,20 @@ cdef class NumpyToSRMorphism(Morphism):
         float or complex to the Symbolic Ring::
 
             sage: import numpy
+            sage: SR(numpy.int32('1')).pyobject().parent()
+            Integer Ring
+            sage: SR(numpy.int64('-2')).pyobject().parent()
+            Integer Ring
+
+            sage: SR(numpy.float16('1')).pyobject().parent()
+            Real Double Field
             sage: SR(numpy.float64('2.0')).pyobject().parent()
             Real Double Field
-        """
-        from sage.rings.all import RDF, CDF
-        numpy_type = self.domain().object()
-        if 'complex' in numpy_type.__name__:
-            res = CDF(a)
-        else:
-            res = RDF(a)
 
-        return new_Expression_from_pyobject(self.codomain(), res)
+            sage: SR(numpy.complex64(1jr)).pyobject().parent()
+            Complex Double Field
+        """
+        return new_Expression_from_pyobject(self.codomain(), self._intermediate_ring(a))
 
 cdef class UnderscoreSageMorphism(Morphism):
     def __init__(self, t, R):

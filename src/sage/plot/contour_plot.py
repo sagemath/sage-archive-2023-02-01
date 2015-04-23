@@ -770,7 +770,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
     INPUT:
 
-    - ``f`` -- a boolean function of two variables
+    - ``f`` -- a boolean function or a list of boolean functions of two variables
 
     - ``(xmin, xmax)`` -- 2-tuple, the range of ``x`` values OR 3-tuple
       ``(x,xmin,xmax)``
@@ -901,7 +901,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
     TESTS:
 
-    To check that ticket 16907 is fixed::
+    To check that ticket #16907 is fixed::
 
         sage: x, y = var('x, y')
         sage: disc1 = region_plot(x^2+y^2 < 1, (x, -1, 1), (y, -1, 1), alpha=0.5)
@@ -909,23 +909,41 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
         sage: disc1 + disc2
         Graphics object consisting of 2 graphics primitives
 
+    To check that ticket #18286 is fixed::
+        sage: x, y = var('x, y')
+        sage: region_plot([x == 0], (x, -1, 1), (y, -1, 1))
+        Graphics object consisting of 1 graphics primitive
+        sage: region_plot([x^2+y^2==1, x<y], (x, -1, 1), (y, -1, 1))
+        Graphics object consisting of 1 graphics primitive
+
     """
 
     from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid
+    from sage.symbolic.expression import is_Expression
     import numpy
 
     if not isinstance(f, (list, tuple)):
         f = [f]
 
-    f = [equify(g) for g in f]
-
-    g, ranges = setup_for_eval_on_grid(f, [xrange, yrange], plot_points)
+    feqs = [equify(g) for g in f if is_Expression(g) and g.operator() is operator.eq and not equify(g).is_zero()]
+    f = [equify(g) for g in f if not (is_Expression(g) and g.operator() is operator.eq)]
+    neqs = len(feqs)
+    if neqs > 1:
+        logging.warn("There are at least 2 equations; If the region is degenerated to points, plotting might show nothing.")
+        feqs = [sum([fn**2 for fn in feqs])]
+        neqs = 1
+    if neqs and not bordercol:
+        bordercol = incol
+    if not f:
+        return implicit_plot(feqs[0], xrange, yrange, plot_points=plot_points, fill=False, \
+                             linewidth=borderwidth, linestyle=borderstyle, color=bordercol, **options)
+    f_all, ranges = setup_for_eval_on_grid(feqs + f, [xrange, yrange], plot_points)
     xrange,yrange=[r[:2] for r in ranges]
 
     xy_data_arrays = numpy.asarray([[[func(x, y) for x in xsrange(*ranges[0], include_endpoint=True)]
                                      for y in xsrange(*ranges[1], include_endpoint=True)]
-                                    for func in g],dtype=float)
+                                    for func in f_all[neqs::]],dtype=float)
     xy_data_array=numpy.abs(xy_data_arrays.prod(axis=0))
     # Now we need to set entries to negative iff all
     # functions were negative at that point.
@@ -955,9 +973,15 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
         options['aspect_ratio'] = 'automatic'
 
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
-    g.add_primitive(ContourPlot(xy_data_array, xrange,yrange,
-                                dict(contours=[-1e-20, 0, 1e-20], cmap=cmap, fill=True, **options)))
 
+    if neqs == 0:
+        g.add_primitive(ContourPlot(xy_data_array, xrange,yrange,
+                                dict(contours=[-1e-20, 0, 1e-20], cmap=cmap, fill=True, **options)))
+    else:
+        mask = numpy.asarray([[elt > 0 for elt in rows] for rows in xy_data_array], dtype=bool)
+        xy_data_array = numpy.asarray([[f_all[0](x, y) for x in xsrange(*ranges[0], include_endpoint=True)]
+                                        for y in xsrange(*ranges[1], include_endpoint=True)], dtype=float)
+        xy_data_array[mask] = None
     if bordercol or borderstyle or borderwidth:
         cmap = [rgbcolor(bordercol)] if bordercol else ['black']
         linestyles = [borderstyle] if borderstyle else None

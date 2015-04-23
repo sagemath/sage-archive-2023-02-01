@@ -224,9 +224,7 @@ class AbstractChannel(SageObject):
             sage: m1 == m2
             True
         """
-        pass
-
-    __call__ = transmit
+        return self.transmit(message)
 
     def input_space(self):
         r"""

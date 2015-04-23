@@ -16,6 +16,7 @@ REFERENCES:
 #  Copyright (C) 2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2011-2015 Nicolas M. Thiéry <nthiery at users.sf.net>
 #                2011-2015 Franco Saliola <saliola@gmail.com>
+#                2014-2015 Aladin Virmaux <aladin.virmaux at u-psud.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -850,55 +851,73 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             .. TODO::
 
-                - Extract a method that tests whether a collection of
-                  elements form a decomposition of the identity into
-                  orthogonal idempotents.
-
                 - Specify the order in which the summands are returned,
                   or return a list of list or a dictionary.
             """
             if idempotents is None:
                 idempotents = self.orthogonal_idempotents_central_mod_rad()
             if check:
-                if not self.is_orthogonal_idempotents(idempotents):
-                    raise ValueError("Not a collection of orthogonal idempotents that sum to 1")
+                if not self.is_identity_decomposition_into_orthogonal_idempotents(idempotents):
+                    raise ValueError("Not a decomposition of the identity into orthogonal idempotents")
             return [self.peirce_summand(ei, ej)
                     for ei in idempotents
                     for ej in idempotents]
 
-        def is_orthogonal_idempotents(self, l):
+        def is_identity_decomposition_into_orthogonal_idempotents(self, l):
             r"""
-            Return True of ``l`` is a list of orthogonal idempotents with sum
-            one.
+            Return whether ``l`` is a decomposition of the identity
+            into orthogonal idempotents.
 
             INPUT:
 
-            - ``l`` -- a list of elements of ``self``
+            - ``l`` -- a list or iterable of elements of ``self``
 
-            OUTPUT:
+            EXAMPLES::
 
-            - True if ``l`` is a list of orthogonal idempotents with sum `1`,
-              False otherwise.
+                sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
+                An example of a finite dimensional algebra with basis:
+                the path algebra of the Kronecker quiver
+                (containing the arrows a:x->y and b:x->y) over Rational Field
 
-              EXAMPLES::
+                sage: x,y,a,b = A.algebra_generators(); x,y,a,b
+                (x, y, a, b)
 
-                sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example()
-                sage: A.is_orthogonal_idempotents(A.orthogonal_idempotents_central_mod_rad())
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents([A.one()])
                 True
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents([x,y])
+                True
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents([x+a, y-a])
+                True
+
+            Here the idempotents do not sum up to `1`::
+
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents([x])
+                False
+
+            Here `1+x` and `-x` are neither idempotent nor orthogonal::
+
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents([1+x,-x])
+                False
 
             With the algebra of the `0`-Hecke monoid::
 
-                sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
-                sage: W = WeylGroup(['A', 4]); W.rename("W")
+                sage: W = SymmetricGroup(4); W.rename("W")
                 sage: ambient_monoid = FiniteSetMaps(W, action="right")
                 sage: pi = W.simple_projections(length_increasing=True).map(ambient_monoid)
-                sage: A = AutomaticSemigroup(pi, one=ambient_monoid.one()).algebra(QQ)
-                sage: A.is_orthogonal_idempotents(A.orthogonal_idempotents_central_mod_rad())
+                sage: A = ambient_monoid.submonoid(pi).algebra(QQ)
+                sage: idempotents = A.orthogonal_idempotents_central_mod_rad()
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents(idempotents)
                 True
+
+            .. TODO::
+
+                Add examples of elements that are orthogonal and sum
+                to the identity yet are not idempotent and reciprocally.
+
             """
-            return (self.sum(l) == self.one() and all(e*e == e for e in l)
-                and all(e*f == 0 and f*e == 0 for e in l for f in l if f != e)
-                and sum(l) == self.one())
+            return (self.sum(l) == self.one()
+                    and all(e*e == e for e in l)
+                    and all(e*f == 0 for e in l for f in l if f != e))
 
     class ElementMethods:
 

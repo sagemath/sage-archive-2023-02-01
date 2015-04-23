@@ -1,5 +1,5 @@
 """
-Cython -- C-Extensions for Python
+Cython support functions
 
 AUTHORS:
 

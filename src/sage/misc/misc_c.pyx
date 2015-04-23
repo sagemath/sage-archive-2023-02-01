@@ -1,5 +1,5 @@
 """
-Miscellaneous functions
+Miscellaneous functions (Cython)
 
 This file contains support for products, running totals, balanced sums, and
 bitset tests.

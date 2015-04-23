@@ -1328,10 +1328,11 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
         """
         if self.t:
             tinv = ~self.t
+            part_coeff = lambda x, d: sorted((mu,c) for mu,c in x if sum(mu) == d)
             return self._m._from_dict({ part2:
                 self._base( sum(c * self.t**mu.weighted_size()
                                 * self._Lmunu(part2, mu).subs(q=self.q, t=tinv)
-                                for mu,c in x if sum(mu) == d))
+                                for mu,c in part_coeff(x, d)) )
                 for d in range(x.degree()+1) for part2 in Partitions_n(d) })
         else:
             return self._m(self._self_to_s(x))
@@ -1563,10 +1564,11 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
             ((2*x^2+2*x+2)/x)*m[1, 1, 1] + ((x^2+x+1)/x)*m[2, 1] + m[3]
 
         """
+        part_coeff = lambda x, d: sorted((mu,c) for mu,c in x if sum(mu) == d)
         return self._m._from_dict({ part2:
-            self._base( sum(x.coefficient(mu) * QQqt(self._Lmunu(part2,
+            self._base( sum(c * QQqt(self._Lmunu(part2,
                         mu)).subs(q=self.q, t=self.t)
-                            for mu in x.homogeneous_component(d).support()) )
+                            for mu,c in part_coeff(x, d)) )
                     for d in range(x.degree()+1) for part2 in Partitions_n(d) })
 
     def _m_to_self( self, f ):

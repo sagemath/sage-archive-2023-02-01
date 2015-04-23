@@ -609,33 +609,6 @@ def c2(part, q, t):
     return res
 
 @cached_function
-def Bmu(mu):
-    r"""
-    Return the bi-exponent generator for the cells of ``mu``.
-
-    The weight in the bi-exponent generator is `t` raised the
-    `x`-coordinate of the cell, `q` raised to the `y` coordinate.
-
-    INPUT:
-
-    - ``mu`` -- a partition or a skew partition
-
-    OUTPUT:
-
-    - a polynomial in `q` and `t`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.sf.macdonald import Bmu
-        sage: Bmu(Partition([2,1]))
-        q + t + 1
-        sage: Bmu(SkewPartition([[3,3],[2]]))
-        q^2*t + q^2 + q*t + t
-    """
-    q,t = QQqt.gens()
-    return QQqt.sum(t**c[0] * q**c[1] for c in mu.cells())
-
-@cached_function
 def cmunu1(mu, nu):
     r"""
     Return the coefficient of `{\tilde H}_\nu` in `h_1^\perp {\tilde H}_\mu`.
@@ -1562,7 +1535,7 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
                                                        for ga in mu.down()) )
         else:
             self._self_to_m_cache[(mu,nu)] = QQqt( sum(cmunu(mu,ga) * self._Lmunu(short_nu, ga)
-                        for ga in Partitions_n(nu.size()-nu[-1]) if mu.contains(ga) ) )
+                        for ga in Partitions_n(short_nu.size()) if mu.contains(ga) ) )
         return self._self_to_m_cache[(mu,nu)]
 
     def _self_to_m(self, x):
@@ -1596,7 +1569,7 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         """
         return self._m._from_dict({ part2:
             self._base( sum(c * QQqt(self._Lmunu(part2, mu))(q=self.q, t=self.t)
-                            for mu, c in x if self.degree_on_basis(mu) == d) )
+                            for mu, c in x if sum(mu)==d) )
                     for d in range(x.degree()+1) for part2 in Partitions_n(d) })
 
     def _m_to_self( self, f ):

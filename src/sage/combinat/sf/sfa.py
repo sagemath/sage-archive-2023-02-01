@@ -1019,7 +1019,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 ....:                             for sigma in Permutations(n)
                 ....:                             if sigma.cycle_type() == lam])
                 ....:     return r.to_symmetric_function()
-                sage: all( h(GR_def2(lam)) == h.gessel_reutenauer(lam)
+                sage: all( GR_def2(lam) == h.gessel_reutenauer(lam)
                 ....:      for n in range(5) for lam in Partitions(n) )
                 True
 

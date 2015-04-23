@@ -302,7 +302,7 @@ def CycleIndexSeriesRing(R):
     r"""
     Return the ring of cycle index series over ``R``.
 
-    This is the ring of formal power series `\Lambda[X]`, where
+    This is the ring of formal power series `\Lambda[x]`, where
     `\Lambda` is the ring of symmetric functions over ``R`` in the
     `p`-basis. Its purpose is to house the cycle index series of
     species (in a somewhat nonstandard notation tailored to Sage):
@@ -314,16 +314,16 @@ def CycleIndexSeriesRing(R):
         \sum_{n \geq 0} \frac{1}{n!} (\sum_{\sigma \in S_n}
         \operatorname{fix} F[\sigma]
         \prod_{z \text{ is a cycle of } \sigma}
-        p_{\text{length of } z}) X^n
-        \in \Lambda_\QQ [X],
+        p_{\text{length of } z}) x^n
+        \in \Lambda_\QQ [x],
 
     where `\operatorname{fix} F[\sigma]` denotes the number of
     fixed points of the permutation `F[\sigma]` of `F[n]`. We
     notice that this power series is "equigraded" (meaning that
-    its `X^n`-coefficient is homogeneous of degree `n`). A more
+    its `x^n`-coefficient is homogeneous of degree `n`). A more
     standard convention in combinatorics would be to use
-    `x_i` instead of `p_i`, and drop the `X` (that is, evaluate
-    the above power series at `X = 1`); but this would be more
+    `x_i` instead of `p_i`, and drop the `x` (that is, evaluate
+    the above power series at `x = 1`); but this would be more
     difficult to implement in Sage, as it would be an element
     of a power series ring in infinitely many variables.
 

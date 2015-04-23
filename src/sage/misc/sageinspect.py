@@ -118,14 +118,29 @@ import functools
 import os
 import tokenize
 import types
-import sys
 EMBEDDED_MODE = False
 from sage.env import SAGE_SRC
 
-if sys.platform == 'cygwin':
-    generic_so_extension = os.path.extsep + 'dll'
-else:
-    generic_so_extension = os.path.extsep + 'so'
+def shared_lib_extension():
+    r"""
+    Return the filename extension of shared libraries, including the dot.
+    It is '.dll' on cygwin, '.so' otherwise.
+
+    EXAMPLES::
+
+        sage: from site import getsitepackages
+        sage: site_packages = getsitepackages()[0]
+        sage: from sage_setup.find import installed_files_by_module
+        sage: files_by_module = installed_files_by_module(site_packages)
+        sage: from sage.misc.sageinspect import shared_lib_extension
+        sage: files_by_module['sage.structure.sage_object'].pop().endswith(shared_lib_extension())
+        True
+    """
+    import sys
+    if sys.platform == 'cygwin':
+        return os.path.extsep+'dll'
+    else:
+        return os.path.extsep+'so'
 
 def isclassinstance(obj):
     r"""
@@ -1181,8 +1196,8 @@ def sage_getfile(obj):
 
     # No go? fall back to inspect.
     sourcefile = inspect.getabsfile(obj)
-    if sourcefile.endswith(generic_so_extension):
-        return sourcefile[:-len(generic_so_extension)]+os.path.extsep+'pyx'
+    if sourcefile.endswith(shared_lib_extension()):
+        return sourcefile[:-len(shared_lib_extension())]+os.path.extsep+'pyx'
     return sourcefile
 
 def sage_getargspec(obj):

@@ -378,13 +378,13 @@ def cython(filename, verbose=False, compile_message=False,
         # There is already a module here. Maybe we do not have to rebuild?
         # Find the name.
         if use_cache:
-            from sage.misc.sageinspect import generic_so_extension
-            prev_so = [F for F in os.listdir(build_dir) if F[-len(generic_so_extension):] == generic_so_extension]
+            from sage.misc.sageinspect import shared_lib_extension
+            prev_so = [F for F in os.listdir(build_dir) if F.endswith(shared_lib_extension())]
             if len(prev_so) > 0:
                 prev_so = prev_so[0]     # should have length 1 because of deletes below
                 if os.path.getmtime(filename) <= os.path.getmtime('%s/%s'%(build_dir, prev_so)):
                     # We do not have to rebuild.
-                    return prev_so[:-len(generic_so_extension)], build_dir
+                    return prev_so[:-len(shared_lib_extension())], build_dir
     else:
         os.makedirs(build_dir)
     for F in os.listdir(build_dir):
@@ -544,8 +544,8 @@ setup(ext_modules = ext_modules,
 
     if create_local_so_file:
         # Copy from lib directory into local directory
-        from sage.misc.sageinspect import generic_so_extension
-        cmd = 'cp %s/%s%s %s'%(build_dir, name, generic_so_extension, os.path.abspath(os.curdir))
+        from sage.misc.sageinspect import shared_lib_extension
+        cmd = 'cp %s/%s%s %s'%(build_dir, name, shared_lib_extension(), os.path.abspath(os.curdir))
         if os.system(cmd):
             raise RuntimeError("Error making local copy of shared object library for {}".format(filename))
 

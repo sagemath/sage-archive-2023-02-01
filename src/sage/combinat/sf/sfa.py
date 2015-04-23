@@ -245,7 +245,8 @@ def SymmetricFunctionAlgebra(R, basis="schur"):
         See http://trac.sagemath.org/15473 for details.
         Symmetric Functions over Rational Field in the Schur basis
     """
-    sage.misc.superseded.deprecation(15473, "this function is deprecated. Use SymmetricFunctions(R).basis()")
+    from sage.misc.superseded import deprecation
+    deprecation(15473, "this function is deprecated. Use SymmetricFunctions(R).basis()")
     from sage.combinat.sf.sf import SymmetricFunctions
     Sym = SymmetricFunctions(R)
     if basis == 'schur' or basis == 's':
@@ -1018,7 +1019,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 ....:                             for sigma in Permutations(n)
                 ....:                             if sigma.cycle_type() == lam])
                 ....:     return r.to_symmetric_function()
-                sage: all( GR_def2(lam) == h.gessel_reutenauer(lam)
+                sage: all( h(GR_def2(lam)) == h.gessel_reutenauer(lam)
                 ....:      for n in range(5) for lam in Partitions(n) )
                 True
 
@@ -1075,8 +1076,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 m = lam.to_exp_dict() # == {i: m_i | i occurs in lam}
                 p = self.realization_of().power()
                 h = self.realization_of().complete()
-                mu = sage.rings.arith.Moebius()
-                from sage.rings.arith import squarefree_divisors
+                from sage.rings.arith import Moebius, squarefree_divisors
+                mu = Moebius()
                 def component(i, g): # == h_g[L_i]
                     L_i = p.sum_of_terms([(_Partitions([d] * (i//d)), R(mu(d)))
                                           for d in squarefree_divisors(i)],
@@ -1304,7 +1305,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             # Stupid implementation.
             R = self.base_ring()
             m = self.realization_of().m()
-            Permus_mset = sage.combinat.permutation.Permutations_mset
+            from sage.combinat.permutation import Permutations_mset
             # Defining a ``check_word`` function. This function will be used
             # to check if an `n`-tuple `w` of positive integers belongs to
             # `W(n, d, s)` and satisfies the additional requirement
@@ -1344,8 +1345,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             def coeff_of_m_mu_in_result(mu):
                 # Compute the coefficient of the monomial symmetric
                 # function ``m[mu]`` in the result.
-                words_to_check = Permus_mset([i for (i, l) in enumerate(mu)
-                                              for _ in range(l)])
+                words_to_check = Permutations_mset([i for (i, l) in enumerate(mu)
+                                                    for _ in range(l)])
                 return R( sum(1 for w in words_to_check if check_word(w)) )
 
             from sage.combinat.partition import Partitions_n
@@ -3772,7 +3773,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: v = s[1].left_padded_kronecker_product(s[1]); parent(v)
             Symmetric Functions over Integer Ring in the Schur basis
         """
-        _Compositions = sage.combinat.composition.Compositions()
+        from sage.combinat.composition import Compositions
+        _Compositions = Compositions()
         parent = self.parent()
         h = parent.realization_of().h()
         h_self = h(self)

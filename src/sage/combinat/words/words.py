@@ -678,6 +678,8 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             word: 1111111111
         """
         wc = '_with_caching' if caching else ""
+        if length is None:
+            length = getattr(self,'_length',None)
         if length in (None, Infinity, 'infinite'):
             return self._element_classes['InfiniteWord_iter'+wc](self, data, length)
         elif (length == 'finite') or (length in ZZ and length >= 0):

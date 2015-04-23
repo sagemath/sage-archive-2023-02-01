@@ -1564,8 +1564,9 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
 
         """
         return self._m._from_dict({ part2:
-            self._base( sum(c * QQqt(self._Lmunu(part2, mu)).subs(q=self.q, t=self.t)
-                            for mu, c in x if sum(mu) == d) )
+            self._base( sum(x.coefficient(mu) * QQqt(self._Lmunu(part2,
+                        mu)).subs(q=self.q, t=self.t)
+                            for mu in x.homogeneous_component(d).support()) )
                     for d in range(x.degree()+1) for part2 in Partitions_n(d) })
 
     def _m_to_self( self, f ):

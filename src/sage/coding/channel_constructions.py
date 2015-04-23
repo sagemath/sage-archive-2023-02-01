@@ -7,10 +7,10 @@ the input space (the message) and transforms it into an element of the output sp
 
 This file contains the following elements:
 
-    - *AbstractChannel*, the abstract class for Channels
-    - *StaticErrorRateChannel*, which creates a specific number of errors in each
+    - :class:`AbstractChannel`, the abstract class for Channels
+    - :class:`StaticErrorRateChannel`, which creates a specific number of errors in each
       transmitted message
-    - *ErrorErasureChannel*, which creates a specific number of errors and a
+    - :class:`ErrorErasureChannel`, which creates a specific number of errors and a
       specific number of erasures in each transmitted message
 """
 
@@ -151,8 +151,9 @@ class AbstractChannel(SageObject):
             sage: n_err = 2
             sage: Chan = channels.StaticErrorRateChannel(F, n_err)
             sage: msg = F((4, 8, 15, 16, 23, 42))
-            sage: Chan.transmit(msg) # random
-            (4, 14, 15, 16, 17, 42)
+            sage: set_random_seed(10)
+            sage: Chan.transmit(msg)
+            (4, 8, 4, 16, 23, 53)
 
         If we transmit a vector which is not in the input space of ``self``::
 
@@ -251,6 +252,24 @@ class StaticErrorRateChannel(AbstractChannel):
     Constructs a channel which adds a static number of errors to each message
     it transmits. The input space and the output space of this channel
     are the same.
+
+    The main purpose of communication channels is to transmit messages, which can be achieved with
+    two methods:
+
+    - with the method :meth:`AbstractChannel.transmit`. Considering a channel ``Chan``
+      and a message ``msg``, transmitting
+      ``msg`` with ``Chan`` can be done this way::
+
+        Chan.transmit(msg)
+
+      It can also be written in a more convenient way::
+
+        Chan(msg)
+
+    - with the method :meth:`transmit_unsafe`. It does the exact same thing as :meth:`transmit` except
+      that it does not check if ``msg`` belongs to the input space of ``Chan``::
+
+        Chan.transmit_unsafe(msg)
 
     INPUT:
 
@@ -382,8 +401,9 @@ class StaticErrorRateChannel(AbstractChannel):
             sage: n_err = 2
             sage: Chan = channels.StaticErrorRateChannel(F, n_err)
             sage: msg = F((4, 8, 15, 16, 23, 42))
-            sage: Chan.transmit_unsafe(msg) # random
-            (4, 14, 15, 16, 17, 42)
+            sage: set_random_seed(10)
+            sage: Chan.transmit_unsafe(msg)
+            (4, 8, 4, 16, 23, 53)
         """
         w = copy(message)
         number_errors = randint(*self.number_errors())
@@ -420,6 +440,24 @@ class ErrorErasureChannel(AbstractChannel):
     Constructs a channel which adds errors to any message it transmits. It also erases several positions
     in the transmitted message. The output space of this channel is a cartesian product
     between its input space and a VectorSpace of the same dimension over GF(2)
+
+    The main purpose of communication channels is to transmit messages, which can be achieved with
+    two methods:
+
+    - with the method :meth:`AbstractChannel.transmit`. Considering a channel ``Chan``
+      and a message ``msg``, transmitting
+      ``msg`` with ``Chan`` can be done this way::
+
+        Chan.transmit(msg)
+
+      It can also be written in a more convenient way::
+
+        Chan(msg)
+
+    - with the method :meth:`transmit_unsafe`. It does the exact same thing as :meth:`transmit` except
+      that it does not check if ``msg`` belongs to the input space of ``Chan``::
+
+        Chan.transmit_unsafe(msg)
 
     INPUT:
 
@@ -595,8 +633,9 @@ class ErrorErasureChannel(AbstractChannel):
             sage: n_err, n_era = 2, 2
             sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
             sage: msg = F((3, 14, 15, 9, 26, 53, 58, 9, 7, 9, 3))
-            sage: Chan.transmit_unsafe(msg) # random
-            ((0, 14, 15, 0, 26, 53, 45, 9, 7, 14, 3), (1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0))
+            sage: set_random_seed(10)
+            sage: Chan.transmit_unsafe(msg)
+            ((32, 0, 15, 9, 8, 53, 58, 9, 0, 9, 3), (0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0))
         """
         number_errors = randint(*self.number_errors())
         number_erasures = randint(*self.number_erasures())

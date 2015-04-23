@@ -177,43 +177,6 @@ def sample(population, k):
     """
     return _pyrand().sample(population, k)
 
-def sample_range(n , k):
-    r"""
-    Returns a subset of [0, ..., n-1] of size k with uniform probability.
-
-    INPUT:
-
-    - ``n``, ``k`` -- integers
-
-    OUTPUT:
-
-    - An ordered list of integers
-
-    AUTHORS:
-
-    This function is taken from codinglib (https://bitbucket.org/jsrn/codinglib/)
-    and was written by Johan Nielsen.
-
-    EXAMPLES::
-
-        sage: sample_range(6, 2) # random
-        [1, 4]
-        sage: set_random_seed(10)
-        sage: sample_range(10,4)
-        [6, 7, 8, 9]
-    """
-    n = int(n)
-    k = int(k)
-    ordered_set = []
-    i = 0
-    while i < n and k > 0:
-        if random() < k/(n-i):
-            ordered_set.append(i)
-            k -= 1
-        i += 1
-    return ordered_set
-
-
 def random():
     r"""
     Get the next random number in the range [0.0, 1.0).

@@ -26,11 +26,12 @@ This file contains the following elements:
 
 from sage.structure.sage_object import SageObject
 from sage.rings.finite_rings.constructor import GF
-from sage.misc.prandom import randint, random, sample_range
+from sage.misc.prandom import randint, random, sample
 from sage.modules.free_module_element import vector
 from sage.misc.abstract_method import abstract_method
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.modules.free_module import VectorSpace
+from copy import copy
 
 def random_error_vector(n, F, error_positions):
     r"""
@@ -412,12 +413,12 @@ class StaticErrorRateChannel(AbstractChannel):
             sage: Chan.transmit_unsafe(msg) # random
             (4, 14, 15, 16, 17, 42)
         """
+        w = copy(message)
         number_errors = tuple_to_integer(self.number_errors())
         V = self.input_space()
-        n = V.dimension()
-        error_vector = random_error_vector(n, V.base_ring(),\
-                sample_range(n, number_errors))
-        return message + error_vector
+        for i in sample(xrange(V.dimension()), number_errors):
+            w[i] = V.base_ring().random_element()
+        return w
 
     def number_errors(self):
         r"""
@@ -612,13 +613,13 @@ class ErrorErasureChannel(AbstractChannel):
         V = self.input_space()
         n = V.dimension()
 
-        erroneous_positions = sample_range(n,\
+        erroneous_positions = sample(xrange(n),\
                 number_errors + number_erasures)
-        error_split = sample_range(number_errors + number_erasures,\
+        error_split = sample(xrange(number_errors + number_erasures),\
                 number_errors)
-        error_positions = [ erroneous_positions[i] for i in\
-                range(number_errors + number_erasures) if i in error_split ]
-        erasure_positions = [ erroneous_positions[i] for i in\
+        error_positions = [erroneous_positions[i] for i in\
+                range(number_errors + number_erasures) if i in error_split]
+        erasure_positions = [erroneous_positions[i] for i in\
                 range(number_errors + number_erasures) if i not in error_split]
 
         error_vector = random_error_vector(n, V.base_ring(), error_positions)

@@ -7,7 +7,7 @@ the input space (the message) and transforms it into an element of the output sp
 
 This file contains the following elements:
 
-    - :class:`AbstractChannel`, the abstract class for Channels
+    - :class:`Channel`, the abstract class for Channels
     - :class:`StaticErrorRateChannel`, which creates a specific number of errors in each
       transmitted message
     - :class:`ErrorErasureChannel`, which creates a specific number of errors and a
@@ -70,7 +70,7 @@ def random_error_vector(n, F, error_positions):
         vect[i] = F._random_nonzero_element()
     return vector(F, vect)
 
-class AbstractChannel(SageObject):
+class Channel(SageObject):
     r"""
     Abstract top-class for Channel objects.
 
@@ -111,7 +111,7 @@ class AbstractChannel(SageObject):
 
         We first create a new Channel subclass::
 
-            sage: class ChannelExample(sage.coding.channel_constructions.AbstractChannel):
+            sage: class ChannelExample(sage.coding.channel_constructions.Channel):
             ....:   def __init__(self, input_space, output_space):
             ....:       super(ChannelExample, self).__init__(input_space, output_space)
 
@@ -175,27 +175,7 @@ class AbstractChannel(SageObject):
         else :
             raise TypeError("Message must be an element of the input space for the given channel")
 
-    def __call__(self, message):
-        r"""
-        This is an alias for ``transmit`` method.
-        With this method, one can transmit a message ``msg`` through a Channel ``Chan``
-        by calling ``Chan(msg)`` instead of having to write ``Chan.transmit(msg)``.
-        See :meth:`transmit` for details.
-
-        EXAMPLES::
-
-            sage: F = VectorSpace(GF(59), 6)
-            sage: n_err = 2
-            sage: Chan = channels.StaticErrorRateChannel(F, n_err)
-            sage: msg = F((4, 8, 15, 16, 23, 42))
-            sage: set_random_seed(10)
-            sage: m1 = Chan(msg)
-            sage: set_random_seed(10)
-            sage: m2 = Chan.transmit(msg)
-            sage: m1 == m2
-            True
-        """
-        return self.transmit(message)
+    __call__ = transmit
 
     def input_space(self):
         r"""
@@ -247,7 +227,7 @@ class AbstractChannel(SageObject):
 
 
 
-class StaticErrorRateChannel(AbstractChannel):
+class StaticErrorRateChannel(Channel):
     r"""
     Constructs a channel which adds a static number of errors to each message
     it transmits. The input space and the output space of this channel
@@ -256,7 +236,7 @@ class StaticErrorRateChannel(AbstractChannel):
     The main purpose of communication channels is to transmit messages, which can be achieved with
     two methods:
 
-    - with the method :meth:`AbstractChannel.transmit`. Considering a channel ``Chan``
+    - with the method :meth:`Channel.transmit`. Considering a channel ``Chan``
       and a message ``msg``, transmitting
       ``msg`` with ``Chan`` can be done this way::
 
@@ -435,7 +415,7 @@ class StaticErrorRateChannel(AbstractChannel):
 
 
 
-class ErrorErasureChannel(AbstractChannel):
+class ErrorErasureChannel(Channel):
     r"""
     Constructs a channel which adds errors to any message it transmits. It also erases several positions
     in the transmitted message. The output space of this channel is a cartesian product
@@ -444,7 +424,7 @@ class ErrorErasureChannel(AbstractChannel):
     The main purpose of communication channels is to transmit messages, which can be achieved with
     two methods:
 
-    - with the method :meth:`AbstractChannel.transmit`. Considering a channel ``Chan``
+    - with the method :meth:`Channel.transmit`. Considering a channel ``Chan``
       and a message ``msg``, transmitting
       ``msg`` with ``Chan`` can be done this way::
 

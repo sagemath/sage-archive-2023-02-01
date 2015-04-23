@@ -827,11 +827,32 @@ class AdditiveMagmas(Category_singleton):
                     sage: a - b
                     B['a'] - B['b']
                 """
-                if have_same_parent(left, right) and hasattr(left, "_sub_"):
+                if have_same_parent(left, right):
                     return left._sub_(right)
                 from sage.structure.element import get_coercion_model
                 import operator
                 return get_coercion_model().bin_op(left, right, operator.sub)
+
+            def _sub_(left, right):
+                r"""
+                Default implementation of difference.
+
+                EXAMPLES::
+
+                    sage: F = CombinatorialFreeModule(QQ, ['a','b'])
+                    sage: a,b = F.basis()
+                    sage: a - b
+                    B['a'] - B['b']
+
+                TESTS:
+
+                Check that :trac:`18275` is fixed::
+
+                    sage: C = GF(5).cartesian_product(GF(5))
+                    sage: C.one() - C.one()
+                    (0, 0)
+                """
+                return left._add_(-right)
 
             def __neg__(self):
                 """

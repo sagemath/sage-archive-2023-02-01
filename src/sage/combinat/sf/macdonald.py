@@ -1566,8 +1566,7 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         """
         part_coeff = lambda x, d: sorted((mu,c) for mu,c in x if sum(mu) == d)
         return self._m._from_dict({ part2:
-            self._base( sum(c * QQqt(self._Lmunu(part2,
-                        mu)).subs(q=self.q, t=self.t)
+            self._base( sum(c * self._Lmunu(part2, mu).subs(q=self.q, t=self.t)
                             for mu,c in part_coeff(x, d)) )
                     for d in range(x.degree()+1) for part2 in Partitions_n(d) })
 

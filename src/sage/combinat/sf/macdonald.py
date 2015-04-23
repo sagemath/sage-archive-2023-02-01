@@ -711,9 +711,9 @@ def cmunu(mu, nu):
                 res += t**i * q**j
         return res
 
-    num = sum(cmunu(mu, al) * cmunu1(al, nu) * Bmu_skew(al, nu)
-              for al in nu.up())
-    return num / Bmu_skew(mu, nu)
+    nulist = nu._list
+    return (sum(cmunu(mu, al) * cmunu1(al, nu) * Bmu_skew(al, nulist)
+                for al in nu.up()) / Bmu_skew(mu, nulist))
 
 #Generic MacdonaldPolynomials
 class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
@@ -1331,7 +1331,7 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
             return self._m._from_dict({ part2:
                 self._base( sum(c * self.t**mu.weighted_size()
                                 * self._Lmunu(part2, mu).subs(q=self.q, t=tinv)
-                                for mu,c in x if self.degree_on_basis(mu) == d))
+                                for mu,c in x if sum(mu) == d))
                 for d in range(x.degree()+1) for part2 in Partitions_n(d) })
         else:
             return self._m(self._self_to_s(x))
@@ -1565,7 +1565,7 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         """
         return self._m._from_dict({ part2:
             self._base( sum(c * QQqt(self._Lmunu(part2, mu)).subs(q=self.q, t=self.t)
-                            for mu, c in x if sum(mu)==d) )
+                            for mu, c in x if sum(mu) == d) )
                     for d in range(x.degree()+1) for part2 in Partitions_n(d) })
 
     def _m_to_self( self, f ):

@@ -563,7 +563,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             if isinstance(x, numpy.integer):
                 self.__set_value(integer.Integer(x), base)
             elif isinstance(x, numpy.floating):
-                self.__set_value(sage.rings.real_double.RDF(x), base)
+                self.__set_value(sage.rings.real_mpfr.RR(x), base)
             else:
                 raise TypeError("Unable to coerce {} ({}) to Rational".format(x,type(x)))
 

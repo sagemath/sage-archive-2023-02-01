@@ -322,7 +322,7 @@ cdef class RealDoubleField_class(Field):
             ...
             TypeError: no canonical coercion from Symbolic Ring to Real Double Field
 
-        Test that :trac:`15965` is fixed (see also :trac:`18076`)::
+        Test that :trac:`15695` is fixed (see also :trac:`18076`)::
 
             sage: 1j + numpy.float64(2)
             2.00000000000000 + 1.00000000000000*I
@@ -331,17 +331,25 @@ cdef class RealDoubleField_class(Field):
         """
         if S is int or S is float:
             return ToRDF(S)
+
         from rational_field import QQ
         from real_lazy import RLF
-        from real_mpfr import RR, RealField_class
-        if S is ZZ or S is QQ or S is RLF or (isinstance(S, RealField_class) and S.prec() >= 53):
+        if S is ZZ or S is QQ or S is RLF:
             return ToRDF(S)
+
+        from real_mpfr import RR, RealField_class
+        if isinstance(S, RealField_class):
+            if S.prec() >= 53:
+                return ToRDF(S)
+            else:
+                return None
         elif is_numpy_type(S):
             import numpy
             if issubclass(S, numpy.integer) or issubclass(S, numpy.floating):
                 return ToRDF(S)
             else:
                 return None
+
         connecting = RR._internal_coerce_map_from(S)
         if connecting is not None:
             return ToRDF(RR) * connecting

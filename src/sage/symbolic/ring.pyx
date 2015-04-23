@@ -142,7 +142,7 @@ cdef class SymbolicRing(CommutativeRing):
                 if (issubclass(R, numpy.integer) or
                     issubclass(R, numpy.floating) or
                     issubclass(R, numpy.complexfloating)):
-                    return NumpyToSRMorphism(R, self)
+                    return NumpyToSRMorphism(R)
                 else:
                     return None
 
@@ -823,35 +823,44 @@ cdef class NumpyToSRMorphism(Morphism):
     """
     cdef _intermediate_ring
 
-    def __init__(self, numpy_type, R):
+    def __init__(self, numpy_type):
         """
         A Morphism which constructs Expressions from NumPy floats and
         complexes by converting them to elements of either RDF or CDF.
+
+        INPUT:
+
+        - ``numpy_type`` - a numpy number type
 
         EXAMPLES::
 
             sage: import numpy
             sage: from sage.symbolic.ring import NumpyToSRMorphism
-            sage: f = NumpyToSRMorphism(numpy.float64, SR)
+            sage: f = NumpyToSRMorphism(numpy.float64)
             sage: f(numpy.float64('2.0'))
             2.0
             sage: _.parent()
             Symbolic Ring
+
+            sage: NumpyToSRMorphism(str)
+            Traceback (most recent call last):
+            ...
+            TypeError: <type 'str'> is not a numpy number type
         """
-        import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
-        Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(numpy_type), R))
+        Morphism.__init__(self, numpy_type, SR)
 
         import numpy
         if issubclass(numpy_type, numpy.integer):
             from sage.rings.all import ZZ
             self._intermediate_ring = ZZ
-        if issubclass(numpy_type, numpy.floating):
+        elif issubclass(numpy_type, numpy.floating):
             from sage.rings.all import RDF
             self._intermediate_ring = RDF
         elif issubclass(numpy_type, numpy.complexfloating):
             from sage.rings.all import CDF
             self._intermediate_ring = CDF
+        else:
+            raise TypeError("{} is not a numpy number type".format(numpy_type))
 
     cpdef Element _call_(self, a):
         """

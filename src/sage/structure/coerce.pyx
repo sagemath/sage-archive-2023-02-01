@@ -135,7 +135,7 @@ cpdef py_scalar_parent(py_type):
         sage: py_scalar_parent(numpy.complex)
         Complex Double Field
     """
-    if issubclass(py_type, int) or issubclass(py_type, long) or issubclass(py_type, bool):
+    if issubclass(py_type, int) or issubclass(py_type, long):
         import sage.rings.integer_ring
         return sage.rings.integer_ring.ZZ
     elif issubclass(py_type, float):
@@ -206,8 +206,8 @@ cpdef py_scalar_to_element(x):
         ....:        numpy.int32('-19'), numpy.uint32('44'),
         ....:        numpy.int64('-3'),  numpy.uint64('552'),
         ....:        numpy.float16('-1.23'), numpy.float32('-2.22'),
-        ....:        numpy.float64('-3.412'), numpy.complex64(1.2+1jr),
-        ....:         numpy.complex128(-2+.1jr)]
+        ....:        numpy.float64('-3.412'), numpy.complex64(1.2+I),
+        ....:         numpy.complex128(-2+.I)]
         sage: for x in elt:
         ....:     assert py_scalar_parent(type(x)) == py_scalar_to_element(x).parent()
     """
@@ -1124,7 +1124,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         if x_numeric and y_numeric:
             ty = type(x + y)
             if ty != type(y + x):
-                raise RuntimeError("x + y and y + x have different types for x={} ({}) and y={} ({})".format(x, type(x), y, type(y)))
+                raise TypeError("x + y and y + x have different types for x={} (of type {}) and y={} (of type {})".format(x, type(x), y, type(y)))
             return ty(x), ty(y)
 
         # Now handle the native python + sage object cases

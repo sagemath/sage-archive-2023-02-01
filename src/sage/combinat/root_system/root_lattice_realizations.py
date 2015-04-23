@@ -789,7 +789,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             if self.cartan_type().is_finite():
                 return tuple(RecursivelyEnumeratedSet(self.simple_roots(),
-                    attrcall('pred'), structure=None,
+                    attrcall('pred'), structure='graded',
                     enumeration='breadth'))
             if not self.cartan_type().is_affine():
                 raise NotImplementedError("only implemented for finite and affine Cartan types")
@@ -938,7 +938,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             generators = [x for x in self.simple_roots() if x.is_parabolic_root(index_set)]
             return RecursivelyEnumeratedSet(generators, parabolic_covers,
-                    structure=None, enumeration='breadth')
+                    structure='graded', enumeration='breadth')
 
         @cached_method
         def positive_roots_nonparabolic(self, index_set = None):

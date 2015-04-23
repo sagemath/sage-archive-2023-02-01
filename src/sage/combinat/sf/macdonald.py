@@ -664,25 +664,21 @@ def cmunu1(mu, nu):
         True
     """
     q,t = QQqt.gens()
-    # The following is equivalent to:
+    # The following for loop is equivalent to:
     #    r,c = SkewPartition([mu,nu]).cells()[0]
-    for i, val in enumerate(nu):
-        if val < mu[i]:
-            r,c = i, val
-            break
-    else:
-        r,c = len(nu), 0
+    for i, val in enumerate(nu._list):
+        if val < mu._list[i]:
+            A = prod((t**mu.leg_length(i, s) - q**(mu.arm_length(i, s)+1))
+                     / (t**nu.leg_length(i, s) - q**(nu.arm_length(i, s)+1))
+                     for s in range(val))
+            B = prod((q**mu.arm_length(*s) - t**(mu.leg_length(*s)+1))
+                     / (q**nu.arm_length(*s) - t**(nu.leg_length(*s)+1))
+                     for s in nu.cells() if s[1] == val)
+            return QQqt(A * B)
 
-    if r < len(nu):
-        A = prod((t**mu.leg_length(r, s) - q**(mu.arm_length(r, s)+1))
-                 / (t**nu.leg_length(r, s) - q**(nu.arm_length(r, s)+1))
-                 for s in range(nu[r]))
-    else:
-        A = QQqt.one()
-    B = prod((q**mu.arm_length(*s) - t**(mu.leg_length(*s)+1))
-             / (q**nu.arm_length(*s) - t**(nu.leg_length(*s)+1))
-             for s in nu.cells() if s[1] == c)
-    return QQqt(A * B)
+    return QQqt(prod( (q**mu.arm_length(s, 0) - t**(mu.leg_length(s, 0)+1))
+                      / (q**nu.arm_length(s, 0) - t**(nu.leg_length(s, 0)+1))
+                      for s in range(len(nu._list)) ))
 
 @cached_function
 def cmunu(mu, nu):
@@ -1361,7 +1357,7 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
             tinv = ~self.t
             return self._m._from_dict({ part2:
                 self._base( sum(c * self.t**mu.weighted_size()
-                                * self._Lmunu(part2, mu)(q=self.q, t=tinv)
+                                * self._Lmunu(part2, mu).subs(q=self.q, t=tinv)
                                 for mu,c in x if self.degree_on_basis(mu) == d))
                 for d in range(x.degree()+1) for part2 in Partitions_n(d) })
         else:
@@ -1595,7 +1591,7 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
 
         """
         return self._m._from_dict({ part2:
-            self._base( sum(c * QQqt(self._Lmunu(part2, mu))(q=self.q, t=self.t)
+            self._base( sum(c * QQqt(self._Lmunu(part2, mu)).subs(q=self.q, t=self.t)
                             for mu, c in x if self.degree_on_basis(mu) == d) )
                     for d in range(x.degree()+1) for part2 in Partitions_n(d) })
 

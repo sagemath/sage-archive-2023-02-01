@@ -54,8 +54,8 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 from sage.categories.modules_with_basis import ModulesWithBasis
 import sfa
-from sage.combinat.partition import Partition, Partitions
-from sage.combinat.skew_partition import SkewPartition
+from sage.combinat.partition import Partition, Partitions_n, _Partitions
+from sage.combinat.skew_partition import SkewPartitions
 from sage.matrix.all import MatrixSpace
 from sage.rings.all import QQ
 from sage.misc.all import prod
@@ -664,15 +664,25 @@ def cmunu1(mu, nu):
         True
     """
     q,t = QQqt.gens()
-    from sage.combinat.skew_partition import SkewPartition
-    c = SkewPartition([mu,nu]).cells()[0]
-    A = prod((t**mu.leg_length(*s) - q**(mu.arm_length(*s)+1))
-             / (t**nu.leg_length(*s) - q**(nu.arm_length(*s)+1))
-             for s in nu.cells() if s[0] == c[0])
+    # The following is equivalent to:
+    #    r,c = SkewPartition([mu,nu]).cells()[0]
+    for i, val in enumerate(nu):
+        if val < mu[i]:
+            r,c = i, val
+            break
+    else:
+        r,c = len(nu), 0
+
+    if r < len(nu):
+        A = prod((t**mu.leg_length(r, s) - q**(mu.arm_length(r, s)+1))
+                 / (t**nu.leg_length(r, s) - q**(nu.arm_length(r, s)+1))
+                 for s in range(nu[r]))
+    else:
+        A = QQqt.one()
     B = prod((q**mu.arm_length(*s) - t**(mu.leg_length(*s)+1))
              / (q**nu.arm_length(*s) - t**(nu.leg_length(*s)+1))
-             for s in nu.cells() if s[1] == c[1])
-    return A*B
+             for s in nu.cells() if s[1] == c)
+    return QQqt(A * B)
 
 @cached_function
 def cmunu(mu, nu):
@@ -714,14 +724,27 @@ def cmunu(mu, nu):
         True
     """
     if not nu:
-        return 1
+        return QQqt.one()
     if not mu.contains(nu):
-        return 0
+        return QQqt.zero()
     if mu.size() == nu.size() + 1:
         return cmunu1(mu, nu)
-    num = sum(cmunu(mu, al) * cmunu1(al, nu) * Bmu(SkewPartition([al,nu]))
-              for al in nu.up_list())
-    return num / Bmu(SkewPartition([mu,nu]))
+
+    # This is equivalent to:
+    #   Bmu(SkewPartition([outer, inner]))
+    def Bmu_skew(outer, inner):
+        inner = list(inner) # This makes a (shallow) copy of inner
+        inner += [0]*(len(outer)-len(inner))
+        q,t = QQqt.gens()
+        res = QQqt.zero()
+        for i, val in enumerate(outer):
+            for j in range(inner[i], val):
+                res += t**i * q**j
+        return res
+
+    num = sum(cmunu(mu, al) * cmunu1(al, nu) * Bmu_skew(al, nu)
+              for al in nu.up())
+    return num / Bmu_skew(mu, nu)
 
 #Generic MacdonaldPolynomials
 class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
@@ -1335,11 +1358,12 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
             (-x^2+1)*McdH[2, 1] + McdH[3]
         """
         if self.t:
+            tinv = ~self.t
             return self._m._from_dict({ part2:
-                self._base(sum(x.coefficient(mu) * QQqt(self._Lmunu(part2, 
-                    mu)).subs(q=self.q,t=1/self.t) * self.t**mu.weighted_size()
-                        for mu in x.homogeneous_component(d).support()))
-                            for d in range(x.degree()+1) for part2 in Partitions(d) })
+                self._base( sum(c * self.t**mu.weighted_size()
+                                * self._Lmunu(part2, mu)(q=self.q, t=tinv)
+                                for mu,c in x if self.degree_on_basis(mu) == d))
+                for d in range(x.degree()+1) for part2 in Partitions_n(d) })
         else:
             return self._m(self._self_to_s(x))
 
@@ -1395,8 +1419,9 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
         while not g.is_zero():
             sprt = g.support()
             Hmu = mu_to_H(sprt[-1])
-            out[fl(sprt[-1])] = self._base(g.coefficient(sprt[-1]) / Hmu.coefficient(sprt[-1]))
-            g -= out[fl(sprt[-1])] * Hmu
+            fl_sprt = fl(sprt[-1])
+            out[fl_sprt] = self._base(g.coefficient(sprt[-1]) / Hmu.coefficient(sprt[-1]))
+            g -= out[fl_sprt] * Hmu
         return self._from_dict(out)
 
     class Element(MacdonaldPolynomials_generic.Element):
@@ -1482,7 +1507,7 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         """
         return self._m_to_self(self._m(x))
 
-    def _Lmunu(self, nu, mu ):
+    def _Lmunu(self, nu, mu):
         r"""
         Return the coefficient of `m_\nu` in `{\tilde H}_\mu`.
 
@@ -1524,19 +1549,20 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         """
         if not mu:
             if not nu:
-                return 1
+                return QQqt.one()
             else:
-                return 0
+                return QQqt.zero()
         if (mu,nu) in self._self_to_m_cache:
             return self._self_to_m_cache[(mu,nu)]
         if len(nu) == 1:
-            return 1
+            return QQqt.one()
+        short_nu = _Partitions(nu[:-1])
         if nu[-1] == 1:
-            self._self_to_m_cache[(mu,nu)] = QQqt( sum(cmunu1(mu,ga) * self._Lmunu(Partition(nu[:-1]), ga)
-                                                       for ga in mu.down_list()) )
-            return self._self_to_m_cache[(mu,nu)]
-        self._self_to_m_cache[(mu,nu)] = QQqt(sum( cmunu(mu,ga) * self._Lmunu(Partition(nu[:-1]), ga)
-                  for ga in Partitions(nu.size()-nu[-1]) if mu.contains(ga) ))
+            self._self_to_m_cache[(mu,nu)] = QQqt( sum(cmunu1(mu,ga) * self._Lmunu(short_nu, ga)
+                                                       for ga in mu.down()) )
+        else:
+            self._self_to_m_cache[(mu,nu)] = QQqt( sum(cmunu(mu,ga) * self._Lmunu(short_nu, ga)
+                        for ga in Partitions_n(nu.size()-nu[-1]) if mu.contains(ga) ) )
         return self._self_to_m_cache[(mu,nu)]
 
     def _self_to_m(self, x):
@@ -1569,9 +1595,9 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
 
         """
         return self._m._from_dict({ part2:
-            self._base( sum(x.coefficient(mu) * QQqt(self._Lmunu(part2, mu)).subs(q=self.q, t=self.t)
-                            for mu in x.homogeneous_component(d).support()) )
-                    for d in range(x.degree()+1) for part2 in Partitions(d) })
+            self._base( sum(c * QQqt(self._Lmunu(part2, mu))(q=self.q, t=self.t)
+                            for mu, c in x if self.degree_on_basis(mu) == d) )
+                    for d in range(x.degree()+1) for part2 in Partitions_n(d) })
 
     def _m_to_self( self, f ):
         r"""
@@ -1996,8 +2022,8 @@ def qt_kostka(lam, mu):
         sage: qt_kostka([2,1],[1,1,1,1])
         0
     """
-    lam = Partition(lam)
-    mu = Partition(mu)
+    lam = _Partitions(lam)
+    mu = _Partitions(mu)
 
     if lam.size() != mu.size():
         return QQqt.zero()
@@ -2010,7 +2036,7 @@ def qt_kostka(lam, mu):
     H = Sym.macdonald().H()
     s = Sym.schur()
 
-    parts = Partitions(mu.size())
+    parts = Partitions_n(mu.size())
 
     for p2 in parts:
         res = s(H(p2))

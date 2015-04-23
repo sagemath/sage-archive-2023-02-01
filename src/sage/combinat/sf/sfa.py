@@ -215,8 +215,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.all import Integer, PolynomialRing, QQ, ZZ
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
-import sage.combinat.partition
-from sage.combinat.partition import _Partitions, Partitions
+from sage.combinat.partition import _Partitions, Partitions, Partitions_n, Partition
 import sage.libs.symmetrica.all as symmetrica  # used in eval()
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
@@ -308,8 +307,8 @@ def zee(part):
         sage: zee([2,1,1])
         4
     """
-    if not isinstance(part, sage.combinat.partition.Partition):
-        part = sage.combinat.partition.Partition(part)
+    if not isinstance(part, Partition):
+        part = _Partitions(part)
     return part.centralizer_size()
 
 
@@ -593,7 +592,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
             .. TODO:: generalize to Modules.Graded.Connected.ParentMethods
             """
-            return sage.combinat.partition.Partition([])
+            return _Partitions([])
 
         def degree_on_basis(self, b):
             r"""
@@ -1883,7 +1882,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         zero = base_ring.zero()
 
         #Get and store the list of partitions we'll need
-        pn = sage.combinat.partition.Partitions_n(n).list()
+        pn = Partitions_n(n).list()
         len_pn = len(pn)
 
         #Create the initial cache dictionaries
@@ -2100,7 +2099,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: e.transition_matrix(m,7) == e.transition_matrix(m,7).transpose()
             True
         """
-        P = sage.combinat.partition.Partitions_n(n)
+        P = Partitions_n(n)
         Plist = P.list()
         m = []
         for row_part in Plist:
@@ -2167,7 +2166,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         # We are going to be doing everything like we are in the upper-triangular case
         # We list the partitions in "decreasing order" and work from the beginning forward.
         # If we are in the lower-triangular case, then we shouldn't reverse the list
-        l = Partitions(n).list()
+        l = Partitions_n(n).list()
         if upper_triangular:
             l.reverse()
 
@@ -2257,7 +2256,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         res = 0
         degrees = uniq([ sum(m) for m in g.support() ])
         for d in degrees:
-            for mu in sage.combinat.partition.Partitions(d):
+            for mu in Partitions_n(d):
                 mu_k = mu.power(k)
                 if mu_k in g:
                     res += g.coefficient(mu_k)*mu_k.centralizer_size()/mu.centralizer_size()*p(mu)
@@ -3019,7 +3018,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         res = p_self.map_item(lambda m,c: (m, c * a**len(m)))
         return self.parent()(res)
 
-    def theta_qt(self,q=None,t=None):
+    def theta_qt(self, q=None, t=None):
         r"""
         Return the image of ``self`` under the `q,t`-deformed theta
         endomorphism which sends `p_k` to `\frac{1-q^k}{1-t^k} \cdot p_k`
@@ -3066,10 +3065,16 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
                 q = parent.q
             else:
                 q = BR(QQ['q'].gen())
-        res = p_self.map_item(lambda m,c: (m, BR(prod([(1-q**k)/(1-t**k) for k in m])*c)))
+        one = BR.one()
+        if not t:
+            res = p._from_dict({m: BR(prod(one - q**k for k in m) * c)
+                                for m,c in p_self})
+        else:
+            res = p._from_dict({m: BR(prod((one-q**k) / (one-t**k) for k in m)*c)
+                                for m,c in p_self})
         return parent(res)
 
-    def omega_qt(self,q = None,t = None):
+    def omega_qt(self, q=None, t=None):
         r"""
         Return the image of ``self`` under the `q,t`-deformed omega
         automorphism which sends `p_k` to
@@ -3134,8 +3139,16 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
                 q = parent.q
             else:
                 q = BR(QQ['q'].gen())
-        f = lambda part: prod([(-1)**(i-1)*(1-q**i)/(1-t**i) for i in part])
-        res = p_self.map_item(lambda m,c: (m, BR(f(m)*c)))
+        one = BR.one()
+        if not t:
+            res = p._from_dict({m: c * (-one)**(sum(m)-len(m))
+                                     * BR(prod(one-q**i for i in m))
+                                for m,c in p_self})
+        else:
+            res = p._from_dict({m: c * (-one)**(sum(m)-len(m))
+                                     * BR(prod((one-q**i) / (one-t**i)
+                                               for i in m))
+                                for m,c in p_self})
         return parent(res)
 
     def itensor(self, x):

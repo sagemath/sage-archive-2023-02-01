@@ -25,6 +25,7 @@ This file contains the following elements:
 #*****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.rings.integer import Integer
 from sage.rings.finite_rings.constructor import GF
 from sage.misc.prandom import randint, random, sample
 from sage.modules.free_module_element import vector
@@ -68,38 +69,6 @@ def random_error_vector(n, F, error_positions):
     for i in error_positions:
         vect[i] = F._random_nonzero_element()
     return vector(F, vect)
-
-def tuple_to_integer(value):
-    r"""
-    Returns an integer from ``value``. If ``value`` is a tuple, it will return a random
-    integer between its bounds.
-
-    .. NOTE::
-
-        This is a helper function, which should only be used when implementing new channels.
-
-    INPUT:
-
-    - ``value`` -- an integer or a couple of integers
-
-    OUTPUT:
-
-    - an integer
-
-    EXAMPLES::
-
-        sage: sage.coding.channel_constructions.tuple_to_integer(4)
-        4
-
-        sage: sage.coding.channel_constructions.tuple_to_integer((1,5)) # random
-        3
-    """
-    value = value if not hasattr(value, "__iter__") else randint(value[0], value[1])
-    return value
-
-
-
-
 
 class AbstractChannel(SageObject):
     r"""
@@ -326,9 +295,12 @@ class StaticErrorRateChannel(AbstractChannel):
             ...
             ValueError: There might be more errors than the dimension of the input space
         """
+        if isinstance(number_errors, (Integer, int)):
+            number_errors = (number_errors, number_errors)
+        if not isinstance(number_errors, (tuple, list)):
+            raise ValueError("number_errors must be a tuple, a list, an Integer or a Python int")
         super(StaticErrorRateChannel, self).__init__(space, space)
-        no_err = number_errors if not hasattr(number_errors, "__iter__") else number_errors[1]
-        if no_err > space.dimension():
+        if number_errors[1] > space.dimension():
             raise ValueError("There might be more errors than the dimension of the input space")
         self._number_errors = number_errors
 
@@ -344,11 +316,11 @@ class StaticErrorRateChannel(AbstractChannel):
             sage: Chan
             Static error rate channel creating 42 error(s)
         """
-        if not hasattr(self.number_errors(), "__iter__"):
+        no_err = self.number_errors()
+        if no_err[0] == no_err[1]:
             return "Static error rate channel creating %s error(s)"\
-                    % self.number_errors()
+                    % no_err[0]
         else:
-            no_err = self.number_errors()
             return "Static error rate channel creating between %s and %s errors"\
                     % (no_err[0], no_err[1])
 
@@ -364,11 +336,11 @@ class StaticErrorRateChannel(AbstractChannel):
             sage: Chan._latex_()
             '\\textnormal{Static error rate channel, creating }42 \\textnormal{ error(s)}'
         """
-        if not hasattr(self.number_errors(), "__iter__"):
+        no_err = self.number_errors()
+        if no_err[0] == no_err[1]:
             return "\\textnormal{Static error rate channel, creating }%s \\textnormal{ error(s)}"\
-                    % self.number_errors()
+                    % no_err[0]
         else:
-            no_err = self.number_errors()
             return "\\textnormal{Static error rate channel, creating between %s and %s errors}"\
                     % (no_err[0], no_err[1])
 
@@ -414,7 +386,7 @@ class StaticErrorRateChannel(AbstractChannel):
             (4, 14, 15, 16, 17, 42)
         """
         w = copy(message)
-        number_errors = tuple_to_integer(self.number_errors())
+        number_errors = randint(*self.number_errors())
         V = self.input_space()
         for i in sample(xrange(V.dimension()), number_errors):
             w[i] = V.base_ring().random_element()
@@ -430,7 +402,7 @@ class StaticErrorRateChannel(AbstractChannel):
             sage: n_err = 3
             sage: Chan = channels.StaticErrorRateChannel(F, n_err)
             sage: Chan.number_errors()
-            3
+            (3, 3)
         """
         return self._number_errors
 
@@ -500,13 +472,19 @@ class ErrorErasureChannel(AbstractChannel):
             ...
             ValueError: The total number of errors and erasures can exceed the dimension of the input space
         """
+        if isinstance(number_errors, (Integer, int)):
+            number_errors = (number_errors, number_errors)
+        if not isinstance(number_errors, (tuple, list)):
+            raise ValueError("number_errors must be a tuple, a list, an Integer or a Python int")
+
+        if isinstance(number_erasures, (Integer, int)):
+            number_erasures = (number_erasures, number_erasures)
+        if not isinstance(number_erasures, (tuple, list)):
+            raise ValueError("number_erasures must be a tuple, a list, an Integer or a Python int")
+
         output_space = CartesianProduct(space, VectorSpace(GF(2), space.dimension()))
         super(ErrorErasureChannel, self).__init__(space, output_space)
-        no_err = number_errors if not hasattr(number_errors, "__iter__")\
-                else number_errors[1]
-        no_era = number_erasures if not hasattr(number_erasures, "__iter__")\
-                else number_erasures[1]
-        if no_err + no_era > space.dimension():
+        if number_errors[1] + number_erasures[1] > space.dimension():
             raise ValueError("The total number of errors and erasures can exceed the dimension of the input space")
         self._number_errors = number_errors
         self._number_erasures = number_erasures
@@ -523,14 +501,20 @@ class ErrorErasureChannel(AbstractChannel):
             sage: Chan
             Error-and-erasure channel creating 21 error(s) and 21 erasure(s)
         """
-        if not hasattr(self.number_errors(), "__iter__"):
+        no_err = self.number_errors()
+        no_era = self.number_erasures()
+        if no_err[0] == no_err[1] and no_era[0] == no_era[1]:
             return "Error-and-erasure channel creating %s error(s) and %s erasure(s)"\
-                    %(self.number_errors(), self.number_erasures())
+                    %(no_err[0], no_era[0])
+        elif no_err[0] != no_err[1] and no_era[0] == no_era[1]:
+            return "Error-and-erasure channel creating between %s and %s errors and %s erasure(s)"\
+                    % (no_err[0], no_err[1], no_era[0])
+        elif no_err[0] == no_err[1] and no_era[0] != no_era[1]:
+            return "Error-and-erasure channel creating %s error(s) and between %s and %s erasures"\
+                    % (no_err[0], no_era[0], no_era[1])
         else:
-            no_err = self.number_errors()
-            no_era = self.number_erasures()
             return "Error-and-erasure channel creating between %s and %s errors and between %s and %s erasures"\
-            % (no_err[0], no_err[1], no_era[0], no_era[1])
+                    % (no_err[0], no_err[1], no_era[0], no_era[1])
 
     def _latex_(self):
         r"""
@@ -544,14 +528,20 @@ class ErrorErasureChannel(AbstractChannel):
             sage: latex(Chan)
             \textnormal{Error-and-erasure channel creating 21 error(s) and 21 erasure(s)}
         """
-        if not hasattr(self.number_errors(), "__iter__"):
+        no_err = self.number_errors()
+        no_era = self.number_erasures()
+        if no_err[0] == no_err[1] and no_era[0] == no_era[1]:
             return "\\textnormal{Error-and-erasure channel creating %s error(s) and %s erasure(s)}"\
-                    %(self.number_errors(), self.number_erasures())
+                    %(no_err[0], no_era[0])
+        elif no_err[0] != no_err[1] and no_era[0] == no_era[1]:
+            return "\\textnormal{Error-and-erasure channel creating between %s and %s error(s) and %s erasure(s)}"\
+                    % (no_err[0], no_err[1], no_era[0])
+        elif no_err[0] == no_err[1] and no_era[0] != no_era[1]:
+            return "\\textnormal{Error-and-erasure channel creating %s error(s) and between %s and %s erasure(s)}"\
+                    % (no_err[0], no_era[0], no_era[1])
         else:
-            no_err = self.number_errors()
-            no_era = self.number_erasures()
-            return "\\textnormal{Error-and-erasure channel creating between %s and %s errors and between %s and %s erasures}"\
-            % (no_err[0], no_err[1], no_era[0], no_era[1])
+            return "\\textnormal{Error-and-erasure channel creating between %s and %s error(s) and between %s and %s erasure(s)}"\
+                    % (no_err[0], no_err[1], no_era[0], no_era[1])
 
     def __eq__(self, other):
         r"""
@@ -608,8 +598,8 @@ class ErrorErasureChannel(AbstractChannel):
             sage: Chan.transmit_unsafe(msg) # random
             ((0, 14, 15, 0, 26, 53, 45, 9, 7, 14, 3), (1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0))
         """
-        number_errors = tuple_to_integer(self.number_errors())
-        number_erasures = tuple_to_integer(self.number_erasures())
+        number_errors = randint(*self.number_errors())
+        number_erasures = randint(*self.number_erasures())
         V = self.input_space()
         n = V.dimension()
 
@@ -641,7 +631,7 @@ class ErrorErasureChannel(AbstractChannel):
             sage: n_err, n_era = 3, 0
             sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
             sage: Chan.number_errors()
-            3
+            (3, 3)
         """
         return self._number_errors
 
@@ -655,6 +645,6 @@ class ErrorErasureChannel(AbstractChannel):
             sage: n_err, n_era = 0, 3
             sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
             sage: Chan.number_erasures()
-            3
+            (3, 3)
         """
         return self._number_erasures

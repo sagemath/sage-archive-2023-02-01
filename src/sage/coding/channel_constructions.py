@@ -84,7 +84,7 @@ class Channel(SageObject):
     - override :meth:`transmit_unsafe`.
 
     While not being mandatory, it might be useful to reimplement representation methods (``__repr__`` and
-    ``_latex_``), along with a comparison method (``__eq__``).
+    ``_latex_``).
 
     This abstract class provides the following parameters:
 
@@ -175,6 +175,7 @@ class Channel(SageObject):
         else :
             raise TypeError("Message must be an element of the input space for the given channel")
 
+    #Alias for transmit method
     __call__ = transmit
 
     def input_space(self):
@@ -216,7 +217,6 @@ class Channel(SageObject):
         This is an abstract method which should be reimplemented in all the subclasses of
         Channel.
         """
-        raise NotImplementedError
 
 
 
@@ -342,23 +342,6 @@ class StaticErrorRateChannel(Channel):
         else:
             return "\\textnormal{Static error rate channel, creating between %s and %s errors}"\
                     % (no_err[0], no_err[1])
-
-    def __eq__(self, other):
-        r"""
-        Checks if ``self`` is equal to ``other``.
-
-        EXAMPLES::
-
-            sage: F = VectorSpace(GF(59), 50)
-            sage: n_err = 42
-            sage: Chan1 = channels.StaticErrorRateChannel(F, n_err)
-            sage: Chan2 = channels.StaticErrorRateChannel(F, n_err)
-            sage: Chan1 == Chan2
-            True
-        """
-        return isinstance(other, StaticErrorRateChannel)\
-                and self.input_space() == other.input_space()\
-                and self.number_errors() == other.number_errors()
 
     def transmit_unsafe(self, message):
         r"""
@@ -488,7 +471,7 @@ class ErrorErasureChannel(Channel):
             sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
             Traceback (most recent call last):
             ...
-            ValueError: The total number of errors and erasures can exceed the dimension of the input space
+            ValueError: The total number of errors and erasures can not exceed the dimension of the input space
         """
         if isinstance(number_errors, (Integer, int)):
             number_errors = (number_errors, number_errors)
@@ -503,7 +486,7 @@ class ErrorErasureChannel(Channel):
         output_space = CartesianProduct(space, VectorSpace(GF(2), space.dimension()))
         super(ErrorErasureChannel, self).__init__(space, output_space)
         if number_errors[1] + number_erasures[1] > space.dimension():
-            raise ValueError("The total number of errors and erasures can exceed the dimension of the input space")
+            raise ValueError("The total number of errors and erasures can not exceed the dimension of the input space")
         self._number_errors = number_errors
         self._number_erasures = number_erasures
 
@@ -560,25 +543,6 @@ class ErrorErasureChannel(Channel):
         else:
             return "\\textnormal{Error-and-erasure channel creating between %s and %s error(s) and between %s and %s erasure(s)}"\
                     % (no_err[0], no_err[1], no_era[0], no_era[1])
-
-    def __eq__(self, other):
-        r"""
-        Checks if ``self`` is equal to ``other``.
-
-        EXAMPLES::
-
-            sage: F = VectorSpace(GF(59), 50)
-            sage: n_err = 17
-            sage: n_era = 7
-            sage: Chan1 = channels.ErrorErasureChannel(F, n_err, n_era)
-            sage: Chan2 = channels.ErrorErasureChannel(F, n_err, n_era)
-            sage: Chan1 == Chan2
-            True
-        """
-        return isinstance(other, ErrorErasureChannel)\
-                and self.input_space() == other.input_space()\
-                and self.number_errors() == other.number_errors()\
-                and self.number_erasures() == other.number_erasures()
 
     def transmit_unsafe(self, message):
         r"""

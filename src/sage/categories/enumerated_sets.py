@@ -230,6 +230,31 @@ class EnumeratedSets(Category_singleton):
             else:
                 raise NotImplementedError("iterator called but not implemented")
 
+        def is_empty(self):
+            r"""
+            Return whether this set is empty.
+
+            EXAMPLES::
+
+                sage: F = FiniteEnumeratedSet([1,2,3])
+                sage: F.is_empty()
+                False
+                sage: F = FiniteEnumeratedSet([])
+                sage: F.is_empty()
+                True
+
+            TESTS::
+
+                sage: F.is_empty.__module__
+                'sage.categories.enumerated_sets'
+            """
+            try:
+                next(iter(self))
+            except StopIteration:
+                return True
+            else:
+                return False
+
         def list(self):
             """
             Returns an error since the cardinality of self is not known.
@@ -248,7 +273,6 @@ class EnumeratedSets(Category_singleton):
             raise NotImplementedError("unknown cardinality")
         _list_default  = list # needed by the check system.
 
-
         def _first_from_iterator(self):
             """
             The "first" element of ``self``.
@@ -264,8 +288,7 @@ class EnumeratedSets(Category_singleton):
                 sage: C.first() # indirect doctest
                 1
             """
-            it = self.__iter__()
-            return next(it)
+            return next(iter(self))
         first = _first_from_iterator
 
         def _next_from_iterator(self, obj):
@@ -332,7 +355,7 @@ class EnumeratedSets(Category_singleton):
             """
             The rank of an element of ``self``
 
-            ``self.unrank(x)`` returns the rank of `x`, that is its
+            ``self.rank(x)`` returns the rank of `x`, that is its
             position in the enumeration of ``self``. This is an
             integer between ``0`` and ``n-1`` where ``n`` is the
             cardinality of ``self``, or None if `x` is not in `self`.
@@ -693,15 +716,81 @@ class EnumeratedSets(Category_singleton):
 
         class ParentMethods:
             def __iter__(self):
-                r"""
-                Iterates over the elements of self.
-
-                EXAMPLE::
-
-                    sage: F33 = GF(2).cartesian_product(GF(2))
-                    sage: list(F33)
-                    [(0, 0), (0, 1), (1, 0), (1, 1)]
                 """
-                from itertools import product
-                for x in product(*self._sets):
-                    yield self._cartesian_product_of_elements(x)
+                Return an iterator for the elements of this cartesian product
+
+                EXAMPLES::
+
+                    sage: A = FiniteEnumeratedSets()(["a", "b"])
+                    sage: B = FiniteEnumeratedSets().example(); B
+                    An example of a finite enumerated set: {1,2,3}
+                    sage: C = cartesian_product([A, B, A]); C
+                    The cartesian product of ({'a', 'b'}, An example of a finite enumerated set: {1,2,3}, {'a', 'b'})
+                    sage: C in FiniteEnumeratedSets()
+                    True
+                    sage: list(C)
+                    [('a', 1, 'a'), ('a', 1, 'b'), ('a', 2, 'a'), ('a', 2, 'b'), ('a', 3, 'a'), ('a', 3, 'b'),
+                     ('b', 1, 'a'), ('b', 1, 'b'), ('b', 2, 'a'), ('b', 2, 'b'), ('b', 3, 'a'), ('b', 3, 'b')]
+                    sage: C.__iter__.__module__
+                    'sage.categories.enumerated_sets'
+
+                    sage: F22 = GF(2).cartesian_product(GF(2))
+                    sage: list(F22)
+                    [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+                    sage: C = cartesian_product([Permutations(10)]*4)
+                    sage: it = iter(C)
+                    sage: it.next()
+                    ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+                    sage: it.next()
+                    ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     [1, 2, 3, 4, 5, 6, 7, 8, 10, 9])
+
+                    sage: it = iter(cartesian_product([ZZ,GF(5)]))
+                    sage: it.next()
+                    Traceback (most recent call last):
+                    ...
+                    NotImplementedError: iteration over infinite cartesian
+                    product is not implemented
+
+                .. NOTE::
+
+                    Here it would be faster to use ``itertools.factor`` for sets
+                    of small size. But the latter expands all factor in memory!
+                    So we can not reasonably use it in general.
+                """
+                if not self.is_finite():
+                    raise ValueError("the iteration order of cartesian product of infinite sets is not well defined")
+
+                # visualize an odometer, with "wheels" displaying "digits"...:
+                factors = list(self.cartesian_factors())
+                wheels = map(iter, factors)
+                digits = [next(it) for it in wheels]
+                while True:
+                    yield self._cartesian_product_of_elements(digits)
+                    for i in range(len(digits)-1, -1, -1):
+                        try:
+                            digits[i] = next(wheels[i])
+                            break
+                        except StopIteration:
+                            wheels[i] = iter(factors[i])
+                            digits[i] = next(wheels[i])
+                    else:
+                        break
+
+            def first(self):
+                r"""
+                Return the first element.
+
+                EXAMPLES::
+
+                    sage: cartesian_product([ZZ]*10).first()
+                    (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+                """
+                return self._cartesian_product_of_elements(
+                        tuple(c.first() for c in self.cartesian_factors()))

@@ -8,8 +8,11 @@ Finite Enumerated Sets
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+import itertools
+
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.enumerated_sets import EnumeratedSets
+from sage.categories.sets_cat import Sets
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.isomorphic_objects   import IsomorphicObjectsCategory
 from sage.misc.cachefunc import cached_method
@@ -481,41 +484,118 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             return [FiniteEnumeratedSets()]
 
         class ParentMethods:
-            def __iter__(self):
-                """
-                Return an iterator for the elements of this cartesian product.
+            # NOTE: the two methods below are taken from sets as otherwise the
+            # (potentially very slow) ones from FiniteEnumeratedSets get
+            # called...
+            random_element = Sets.CartesianProducts.ParentMethods.random_element.im_func
+            cardinality    = Sets.CartesianProducts.ParentMethods.cardinality.im_func
 
-                From Recipe 19.9 in the Python Cookbook by Alex Martelli
-                and David Ascher.
+            # NOTE: the method below is taken from enumerated sets as otherwise
+            # the (potentially very expensive) one from FiniteEnumeratedSets get
+            # called...
+            __iter__ = EnumeratedSets.CartesianProducts.ParentMethods.__iter__.im_func
+
+            def last(self):
+                r"""
+                Return the last element
 
                 EXAMPLES::
 
-                    sage: A = FiniteEnumeratedSets()(["a", "b"])
-                    sage: B = FiniteEnumeratedSets().example(); B
-                    An example of a finite enumerated set: {1,2,3}
-                    sage: C = cartesian_product([A, B, A]); C
-                    The cartesian product of ({'a', 'b'}, An example of a finite enumerated set: {1,2,3}, {'a', 'b'})
-                    sage: C in FiniteEnumeratedSets()
-                    True
-                    sage: list(C)
-                    [('a', 1, 'a'), ('a', 1, 'b'), ('a', 2, 'a'), ('a', 2, 'b'), ('a', 3, 'a'), ('a', 3, 'b'),
-                     ('b', 1, 'a'), ('b', 1, 'b'), ('b', 2, 'a'), ('b', 2, 'b'), ('b', 3, 'a'), ('b', 3, 'b')]
+                    sage: C = cartesian_product([Zmod(42), Partitions(10), IntegerRange(5)])
+                    sage: C.last()
+                    (41, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], 4)
                 """
-                # visualize an odometer, with "wheels" displaying "digits"...:
-                factors = list(self.cartesian_factors())
-                wheels = map(iter, factors)
-                digits = [next(it) for it in wheels]
-                while True:
-                    yield self._cartesian_product_of_elements(digits)
-                    for i in range(len(digits)-1, -1, -1):
-                        try:
-                            digits[i] = next(wheels[i])
-                            break
-                        except StopIteration:
-                            wheels[i] = iter(factors[i])
-                            digits[i] = next(wheels[i])
-                    else:
-                        break
+                return self._cartesian_product_of_elements(
+                        tuple(c.last() for c in self.cartesian_factors()))
+
+            def rank(self, x):
+                r"""
+                The rank of an element of this cartesian product
+
+                The *rank* of ``x`` is its position in the enumeration.  It is
+                an integer between ``0`` and ``n-1`` where ``n`` is the
+                cardinality of this set.
+
+                EXAMPLES::
+
+                    sage: C = cartesian_product([GF(2), GF(11), GF(7)])
+                    sage: C.rank(C((1,2,5)))
+                    96
+                    sage: C.rank(C((0,0,0)))
+                    0
+
+                    sage: for c in C: print C.rank(c)
+                    0
+                    1
+                    2
+                    3
+                    4
+                    5
+                    ...
+                    150
+                    151
+                    152
+                    153
+
+                    sage: F1 = FiniteEnumeratedSet('abcdefgh')
+                    sage: F2 = IntegerRange(250)
+                    sage: F3 = Partitions(20)
+                    sage: C = cartesian_product([F1, F2, F3])
+                    sage: c = C(('a', 86, [7,5,4,4]))
+                    sage: C.rank(c)
+                    54213
+                    sage: C.unrank(54213)
+                    ('a', 86, [7, 5, 4, 4])
+                """
+                from sage.rings.integer_ring import ZZ
+                x = self(x)
+                b = ZZ.one()
+                rank = ZZ.zero()
+                for f,c in itertools.izip(reversed(x.cartesian_factors()),
+                                      reversed(self.cartesian_factors())):
+                    rank += b * c.rank(f)
+                    b *= c.cardinality()
+                return rank
+
+            def unrank(self, i):
+                r"""
+                The ``i``-th element of this cartesian product
+
+                INPUT:
+
+                - ``i`` -- integer between ``0`` and ``n-1`` where ``n`` is the
+                  cardinality of this set.
+
+                EXAMPLES::
+
+                    sage: C = cartesian_product([GF(3), GF(11), GF(7), GF(5)])
+                    sage: c = C.unrank(123); c
+                    (0, 3, 3, 3)
+                    sage: C.rank(c)
+                    123
+
+                    sage: c = C.unrank(857); c
+                    (2, 2, 3, 2)
+                    sage: C.rank(c)
+                    857
+
+                    sage: C.unrank(2500)
+                    Traceback (most recent call last):
+                    ...
+                    IndexError: index i (=2) is greater than the cardinality
+                """
+                from sage.rings.integer_ring import ZZ
+                i = ZZ(i)
+                if i < 0:
+                    raise IndexError("i (={}) must be a non-negative integer")
+                elt = []
+                for c in reversed(self.cartesian_factors()):
+                    card = c.cardinality()
+                    elt.insert(0, c.unrank(i % card))
+                    i //= card
+                if i > 0:
+                    raise IndexError("index i (={}) is greater than the cardinality".format(i))
+                return self._cartesian_product_of_elements(elt)
 
     class IsomorphicObjects(IsomorphicObjectsCategory):
 

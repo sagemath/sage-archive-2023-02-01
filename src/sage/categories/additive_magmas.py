@@ -757,6 +757,25 @@ class AdditiveMagmas(Category_singleton):
                 deprecation(17694, ".zero_element() is deprecated. Use .zero() instead")
                 return self.zero()
 
+            def is_empty(self):
+                r"""
+                Return whether this set is empty.
+
+                Since this set is an additive magma it has a zero element and
+                hence is not empty. This method always return ``False``.
+
+                EXAMPLES::
+
+                    sage: NN.is_empty()
+                    False
+
+                TESTS::
+
+                    sage: NN.is_empty.__module__
+                    'sage.categories.additive_magmas'
+                """
+                return False
+
         class ElementMethods:
             # TODO: merge with the implementation in Element which currently
             # overrides this one, and further requires self.parent()(0) to work.

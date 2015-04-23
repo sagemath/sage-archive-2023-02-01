@@ -30,7 +30,8 @@ class FinitePermutationGroups(CategoryWithAxiom):
         sage: C.super_categories()
         [Category of permutation groups,
          Category of finite groups,
-         Category of finite finitely generated semigroups]
+         Category of finite finitely generated semigroups,
+         Category of unital finitely generated magmas]
 
         sage: C.example()
         Dihedral group of order 6 as a permutation group

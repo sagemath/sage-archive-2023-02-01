@@ -1368,12 +1368,54 @@ class Sets(Category_singleton):
                 sage: class broken(UniqueRepresentation, Parent):
                 ....:     def __init__(self):
                 ....:         Parent.__init__(self, category = Sets())
+                ....:     def _repr_(self):
+                ....:         return 'broken parent'
                 sage: broken().cardinality()
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: unknown cardinality
+                NotImplementedError: unknown cardinality for 'broken parent'
             """
-            raise NotImplementedError("unknown cardinality")
+            raise NotImplementedError("unknown cardinality for '{}'".format(self))
+
+        def is_finite(self):
+            r"""
+            Return whether this set is finite.
+
+            EXAMPLES::
+
+                sage: Set([1,2,3]).is_finite()
+                True
+            """
+            from sage.rings.infinity import Infinity
+            return self.cardinality() != Infinity
+
+        def is_empty(self):
+            r"""
+            Return whether this set is empty.
+
+            EXAMPLES::
+
+                sage: Set([]).is_empty()
+                True
+            """
+            return self.cardinality().is_zero()
+
+        def random_element(self):
+            r"""
+            TESTS::
+
+                sage: class Broken(UniqueRepresentation, Parent):
+                ....:     def __init__(self):
+                ....:         Parent.__init__(self, category=Sets())
+                ....:     def _repr_(self):
+                ....:         return "broken parent"
+                sage: Broken().random_element()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: random_element not implemented
+                for 'broken parent'
+            """
+            raise NotImplementedError("random_element not implemented for '{}'".format(self))
 
         # Functorial constructions
 
@@ -1652,6 +1694,20 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
                     sage: C.is_finite.im_func is sage.categories.sets_cat.Sets.Infinite.ParentMethods.is_finite.im_func
                     True
+                """
+                return False
+
+            def is_empty(self):
+                r"""
+                Test whether this set is empty.
+
+                Since this set is infinite it is not empty.
+
+                EXAMPLES::
+
+                    sage: C = InfiniteEnumeratedSets().example()
+                    sage: C.is_empty()
+                    False
                 """
                 return False
 
@@ -1963,19 +2019,106 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 """
                 return self._cartesian_product_of_elements(s.an_element() for s in self._sets)
 
-            # Here or in Sets.Finite.CartesianProducts.ParentMethods?
-            def cardinality(self):
-                """
-                Return the cardinality of ``self``
+            def is_empty(self):
+                r"""
+                Test whether this set is empty.
 
                 EXAMPLES::
 
-                    sage: C = cartesian_product([GF(3), FiniteEnumeratedSet(['a','b']), GF(5)])
-                    sage: C.cardinality()
-                    30
+
+                    sage: S1 = FiniteEnumeratedSet([1,2,3])
+                    sage: S2 = Set([])
+                    sage: cartesian_product([S1,ZZ]).is_empty()
+                    False
+                    sage: cartesian_product([S1,S2,S1]).is_empty()
+                    True
                 """
-                from sage.misc.misc_c import prod
-                return prod(x.cardinality() for x in self._sets)
+                return any(c.is_empty() for c in self.cartesian_factors())
+
+            def is_finite(self):
+                r"""
+                Test whether this set is finite.
+
+                EXAMPLES::
+
+                    sage: E = FiniteEnumeratedSet([1,2,3])
+                    sage: C = cartesian_product([E, SymmetricGroup(4)])
+                    sage: C.is_finite()
+                    True
+
+                    sage: cartesian_product([ZZ,ZZ]).is_finite()
+                    False
+                    sage: cartesian_product([ZZ, Set(), ZZ]).is_finite()
+                    True
+                """
+                f = self.cartesian_factors()
+                return any(c.is_empty() for c in f) or all(c.is_finite() for c in f)
+
+            def cardinality(self):
+                r"""
+                Return the cardinality of self.
+
+                EXAMPLES::
+
+                    sage: E = FiniteEnumeratedSet([1,2,3])
+                    sage: C = cartesian_product([E,SymmetricGroup(4)])
+                    sage: C.cardinality()
+                    72
+
+                    sage: E = FiniteEnumeratedSet([])
+                    sage: C = cartesian_product([E, ZZ, QQ])
+                    sage: C.cardinality()
+                    0
+
+                    sage: C = cartesian_product([ZZ, QQ])
+                    sage: C.cardinality()
+                    +Infinity
+
+                    sage: cartesian_product([GF(5), Permutations(10)]).cardinality()
+                    18144000
+                    sage: cartesian_product([GF(71)]*20).cardinality() == 71**20
+                    True
+                """
+                f = self.cartesian_factors()
+                if any(c.is_empty() for c in f):
+                    from sage.rings.integer_ring import ZZ
+                    return ZZ.zero()
+                elif any(not c.is_finite() for c in f):
+                    from sage.rings.infinity import Infinity
+                    return Infinity
+                else:
+                    from sage.misc.misc_c import prod
+                    return prod(c.cardinality() for c in f)
+
+            def random_element(self, *args):
+                r"""
+                Return a random element of this cartesian product.
+
+                The extra arguments are sent to each of the factor of the
+                cartesian product.
+
+                EXAMPLES::
+
+                    sage: C = cartesian_product([Permutations(10)]*5)
+                    sage: C.random_element()           # random
+                    ([2, 9, 4, 7, 1, 8, 6, 10, 5, 3],
+                     [8, 6, 5, 7, 1, 4, 9, 3, 10, 2],
+                     [5, 10, 3, 8, 2, 9, 1, 4, 7, 6],
+                     [9, 6, 10, 3, 2, 1, 5, 8, 7, 4],
+                     [8, 5, 2, 9, 10, 3, 7, 1, 4, 6])
+
+                    sage: C = cartesian_product([ZZ]*10)
+                    sage: c1 = C.random_element()
+                    sage: c1                   # random
+                    (3, 1, 4, 1, 1, -3, 0, -4, -17, 2)
+                    sage: c2 = C.random_element(4,7)
+                    sage: c2                   # random
+                    (6, 5, 6, 4, 5, 6, 6, 4, 5, 5)
+                    sage: all(4 <= i < 7 for i in c2)
+                    True
+                """
+                return self._cartesian_product_of_elements(
+                        tuple(c.random_element(*args) for c in self.cartesian_factors()))
 
             @abstract_method
             def _sets_keys(self):
@@ -1985,7 +2128,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 EXAMPLES::
 
                     sage: cartesian_product([QQ, ZZ, ZZ])._sets_keys()
-                    [0, 1, 2]
+                    {0, 1, 2}
                 """
 
             @abstract_method

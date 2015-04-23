@@ -53,3 +53,33 @@ class FinitelyGeneratedMagmas(CategoryWithAxiom):
                 sage: S.magma_generators()
                 Family ('a', 'b', 'c', 'd')
             """
+
+    class Unital(CategoryWithAxiom):
+        class ParentMethods:
+            def is_empty(self):
+                r"""
+                Return whether ``self`` is empty.
+
+                Since this set is a unital magma it is not empty and this method
+                always return ``False``.
+
+                EXAMPLES::
+
+                    sage: SymmetricGroup(2).is_empty()
+                    False
+
+                TESTS::
+
+                    sage: SymmetricGroup(2).is_empty.__module__
+                    'sage.categories.finitely_generated_magmas'
+
+                .. TODO::
+
+                    This method belong to ``Magmas.Unital.ParentMethods``. But due to
+                    another implementation of ``is_empty`` in ``EnumeratedSets``
+                    and the fact that ``Enumerated`` is not an axiom we get that
+                    for an enumerated unital magmas the ``is_empty`` which is
+                    used is the one from enumerated sets. But it should be this
+                    one!
+                """
+                return False

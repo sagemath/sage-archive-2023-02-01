@@ -223,7 +223,8 @@ class SemisimpleAlgebras(Category_over_base_ring):
                         .. TODO::
 
                             Improve speed by using matrix operations
-                            only, if possible.
+                            only, or even better delegating to a
+                            multivariate polynomial solver.
                         """
                         if self.dimension() == 1:
                             return self.basis().list()

@@ -755,8 +755,8 @@ class EnumeratedSets(Category_singleton):
                     sage: it.next()
                     Traceback (most recent call last):
                     ...
-                    NotImplementedError: iteration over infinite cartesian
-                    product is not implemented
+                    ValueError: the iteration order of cartesian product of
+                    infinite sets is not well defined
 
                 .. NOTE::
 

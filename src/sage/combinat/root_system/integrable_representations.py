@@ -115,19 +115,19 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
     multiplicity you use the method :meth:`m` and supply it with this tuple::
 
         sage: Lambda = RootSystem(['C',2,1]).weight_lattice(extended=true).fundamental_weights()
-        sage: v = IntegrableRepresentation(2*Lambda[0]); v
+        sage: V = IntegrableRepresentation(2*Lambda[0]); V
         Integrable representation of ['C', 2, 1] with highest weight 2*Lambda[0]
-        sage: v.m((3,5,3))
+        sage: V.m((3,5,3))
         18
 
     The :class:`IntegrableRepresentation` class has methods :meth:`to_weight`
     and :meth:`from_weight` to convert between this internal representation
     and the weight lattice::
 
-        sage: delta = v.weight_lattice().null_root()
-        sage: v.to_weight((4,3,2))
+        sage: delta = V.weight_lattice().null_root()
+        sage: V.to_weight((4,3,2))
         -3*Lambda[0] + 6*Lambda[1] - Lambda[2] - 4*delta
-        sage: v.from_weight(-3*Lambda[0] + 6*Lambda[1] - Lambda[2] - 4*delta)
+        sage: V.from_weight(-3*Lambda[0] + 6*Lambda[1] - Lambda[2] - 4*delta)
         (4, 3, 2)
 
     To get more values, use the depth parameter::
@@ -142,8 +142,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
     An example in type `C_2^{(1)}`::
 
         sage: Lambda = RootSystem(['C',2,1]).weight_lattice(extended=true).fundamental_weights()
-        sage: v = IntegrableRepresentation(2*Lambda[0])
-        sage: v.print_strings()    # long time
+        sage: V = IntegrableRepresentation(2*Lambda[0])
+        sage: V.print_strings()    # long time
         2*Lambda[0]: 1 2 9 26 77 194 477 1084 2387 5010 10227 20198
         Lambda[0] + Lambda[2] - delta: 1 5 18 55 149 372 872 1941 4141 8523 17005 33019
         2*Lambda[1] - delta: 1 4 15 44 122 304 721 1612 3469 7176 14414 28124
@@ -156,8 +156,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['A',3,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(Lambda[1]+Lambda[2]+Lambda[3])
-            sage: TestSuite(v).run()
+            sage: V = IntegrableRepresentation(Lambda[1]+Lambda[2]+Lambda[3])
+            sage: TestSuite(V).run()
         """
         CategoryObject.__init__(self, base=ZZ, category=Modules(ZZ))
 
@@ -210,8 +210,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: v=IntegrableRepresentation(RootSystem(['E',6,1]).weight_lattice(extended=true).fundamental_weight(0))
-            sage: v.weight_lattice()
+            sage: V=IntegrableRepresentation(RootSystem(['E',6,1]).weight_lattice(extended=true).fundamental_weight(0))
+            sage: V.weight_lattice()
             Extended weight lattice of the Root system of type ['E', 6, 1]
         """
         return self._P
@@ -222,8 +222,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: v=IntegrableRepresentation(RootSystem(['F',4,1]).weight_lattice(extended=true).fundamental_weight(0))
-            sage: v.root_lattice()
+            sage: V=IntegrableRepresentation(RootSystem(['F',4,1]).weight_lattice(extended=true).fundamental_weight(0))
+            sage: V.root_lattice()
             Root lattice of the Root system of type ['F', 4, 1]
         """
         return self._Q
@@ -254,8 +254,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['F',4,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(Lambda[0])
-            sage: v.coxeter_number()
+            sage: V = IntegrableRepresentation(Lambda[0])
+            sage: V.coxeter_number()
             12
         """
         return self._coxeter_number
@@ -270,8 +270,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['F',4,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(Lambda[0])
-            sage: v.dual_coxeter_number()
+            sage: V = IntegrableRepresentation(Lambda[0])
+            sage: V.dual_coxeter_number()
             9
         """
         return self._dual_coxeter_number
@@ -295,8 +295,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['C',3,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(Lambda[0]+2*Lambda[3])
-            sage: latex(v)
+            sage: V = IntegrableRepresentation(Lambda[0]+2*Lambda[3])
+            sage: latex(V)
             V_{\Lambda_{0} + 2\Lambda_{3}}
         """
         return "V_{{{}}}".format(self._Lam._latex_())
@@ -308,8 +308,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['F',4,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(Lambda[0])
-            sage: v.cartan_type()
+            sage: V = IntegrableRepresentation(Lambda[0])
+            sage: V.cartan_type()
             ['F', 4, 1]
         """
         return self._cartan_type
@@ -323,9 +323,9 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
             sage: P = RootSystem(['F',4,1]).weight_lattice(extended=true)
             sage: Lambda = P.fundamental_weights()
-            sage: v = IntegrableRepresentation(Lambda[0])
-            sage: alpha = v.root_lattice().simple_roots()
-            sage: Matrix([[v._inner_qq(alpha[i], alpha[j]) for j in v._index_set] for i in v._index_set])
+            sage: V = IntegrableRepresentation(Lambda[0])
+            sage: alpha = V.root_lattice().simple_roots()
+            sage: Matrix([[V._inner_qq(alpha[i], alpha[j]) for j in V._index_set] for i in V._index_set])
             [   2   -1    0    0    0]
             [  -1    2   -1    0    0]
             [   0   -1    2   -1    0]
@@ -365,9 +365,9 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
             sage: P = RootSystem(['F',4,1]).weight_lattice(extended=true)
             sage: Lambda = P.fundamental_weights()
-            sage: v = IntegrableRepresentation(Lambda[0])
-            sage: alpha = v.root_lattice().simple_roots()
-            sage: Matrix([[v._inner_pq(P(alpha[i]), alpha[j]) for j in v._index_set] for i in v._index_set])
+            sage: V = IntegrableRepresentation(Lambda[0])
+            sage: alpha = V.root_lattice().simple_roots()
+            sage: Matrix([[V._inner_pq(P(alpha[i]), alpha[j]) for j in V._index_set] for i in V._index_set])
             [   2   -1    0    0    0]
             [  -1    2   -1    0    0]
             [   0   -1    2   -1    0]
@@ -376,9 +376,9 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             sage: P = RootSystem(['G',2,1]).weight_lattice(extended=true)
             sage: P = RootSystem(['G',2,1]).weight_lattice(extended=true)
             sage: Lambda = P.fundamental_weights()
-            sage: v = IntegrableRepresentation(Lambda[0])
-            sage: alpha = v.root_lattice().simple_roots()
-            sage: Matrix([[v._inner_pq(Lambda[i],alpha[j]) for j in v._index_set] for i in v._index_set])
+            sage: V = IntegrableRepresentation(Lambda[0])
+            sage: alpha = V.root_lattice().simple_roots()
+            sage: Matrix([[V._inner_pq(Lambda[i],alpha[j]) for j in V._index_set] for i in V._index_set])
             [  1   0   0]
             [  0 1/3   0]
             [  0   0   1]
@@ -397,13 +397,13 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
             sage: P = RootSystem(['G',2,1]).weight_lattice(extended=true)
             sage: Lambda = P.fundamental_weights()
-            sage: v = IntegrableRepresentation(Lambda[0])
-            sage: alpha = v.root_lattice().simple_roots()
-            sage: Matrix([[v._inner_pp(Lambda[i],P(alpha[j])) for j in v._index_set] for i in v._index_set])
+            sage: V = IntegrableRepresentation(Lambda[0])
+            sage: alpha = V.root_lattice().simple_roots()
+            sage: Matrix([[V._inner_pp(Lambda[i],P(alpha[j])) for j in V._index_set] for i in V._index_set])
             [  1   0   0]
             [  0 1/3   0]
             [  0   0   1]
-            sage: Matrix([[v._inner_pp(Lambda[i],Lambda[j]) for j in v._index_set] for i in v._index_set])
+            sage: Matrix([[V._inner_pp(Lambda[i],Lambda[j]) for j in V._index_set] for i in V._index_set])
             [  0   0   0]
             [  0 2/3   1]
             [  0   1   2]
@@ -435,8 +435,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['A',2,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(2*Lambda[2])
-            sage: v.to_weight((1,0,0))
+            sage: V = IntegrableRepresentation(2*Lambda[2])
+            sage: V.to_weight((1,0,0))
             -2*Lambda[0] + Lambda[1] + 3*Lambda[2] - delta
         """
         alpha = self._P.simple_roots()
@@ -464,11 +464,11 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['A',2,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(2*Lambda[2])
-            sage: v.to_weight((1,0,0))
+            sage: V = IntegrableRepresentation(2*Lambda[2])
+            sage: V.to_weight((1,0,0))
             -2*Lambda[0] + Lambda[1] + 3*Lambda[2] - delta
-            sage: delta = v.weight_lattice().null_root()
-            sage: v._from_weight_helper(2*Lambda[0] - Lambda[1] - 1*Lambda[2] + delta)
+            sage: delta = V.weight_lattice().null_root()
+            sage: V._from_weight_helper(2*Lambda[0] - Lambda[1] - 1*Lambda[2] + delta)
             (1, 0, 0)
         """
         mu = self._P(mu)
@@ -495,11 +495,11 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['A',2,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(2*Lambda[2])
-            sage: v.to_weight((1,0,0))
+            sage: V = IntegrableRepresentation(2*Lambda[2])
+            sage: V.to_weight((1,0,0))
             -2*Lambda[0] + Lambda[1] + 3*Lambda[2] - delta
-            sage: delta = v.weight_lattice().null_root()
-            sage: v.from_weight(-2*Lambda[0] + Lambda[1] + 3*Lambda[2] - delta)
+            sage: delta = V.weight_lattice().null_root()
+            sage: V.from_weight(-2*Lambda[0] + Lambda[1] + 3*Lambda[2] - delta)
             (1, 0, 0)
         """
         return self._from_weight_helper(self._Lam - mu)
@@ -511,8 +511,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: v = IntegrableRepresentation(RootSystem(['A',2,1]).weight_lattice(extended=true).fundamental_weight(0))
-            sage: [v.s((0,0,0),i) for i in v._index_set]
+            sage: V = IntegrableRepresentation(RootSystem(['A',2,1]).weight_lattice(extended=true).fundamental_weight(0))
+            sage: [V.s((0,0,0),i) for i in V._index_set]
             [(1, 0, 0), (0, 0, 0), (0, 0, 0)]
         """
         ret = list(n) # This makes a copy
@@ -528,10 +528,10 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['A',2,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(3*Lambda[0])
-            sage: n = v.to_dominant((13,11,7)); n
+            sage: V = IntegrableRepresentation(3*Lambda[0])
+            sage: n = V.to_dominant((13,11,7)); n
             (4, 3, 3)
-            sage: v.to_weight(n)
+            sage: V.to_weight(n)
             Lambda[0] + Lambda[1] + Lambda[2] - 4*delta
         """
         if n in self._ddict:
@@ -581,9 +581,9 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['B',3,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(Lambda[0]+Lambda[1]+Lambda[3])   
-            sage: [v._freudenthal_roots_imaginary(v.highest_weight() - mw)
-            ....:  for mw in v.dominant_maximal_weights()]
+            sage: V = IntegrableRepresentation(Lambda[0]+Lambda[1]+Lambda[3])   
+            sage: [V._freudenthal_roots_imaginary(V.highest_weight() - mw)
+            ....:  for mw in V.dominant_maximal_weights()]
             [[], [], [], [], []]
         """
         l = self._from_weight_helper(nu)
@@ -603,9 +603,9 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['B',3,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(Lambda[0]+Lambda[1]+Lambda[3])
-            sage: mw = v.dominant_maximal_weights()[0]
-            sage: v._freudenthal_roots_real(v.highest_weight() - mw)
+            sage: V = IntegrableRepresentation(Lambda[0]+Lambda[1]+Lambda[3])
+            sage: mw = V.dominant_maximal_weights()[0]
+            sage: V._freudenthal_roots_real(V.highest_weight() - mw)
             [alpha[1],
              alpha[2],
              alpha[3],
@@ -629,10 +629,10 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['B',3,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(Lambda[0]+Lambda[1]+Lambda[3])
-            sage: mw = v.dominant_maximal_weights()[0]
-            sage: F = v._freudenthal_roots_real(v.highest_weight() - mw)
-            sage: [v._freudenthal_accum(mw, al) for al in F]
+            sage: V = IntegrableRepresentation(Lambda[0]+Lambda[1]+Lambda[3])
+            sage: mw = V.dominant_maximal_weights()[0]
+            sage: F = V._freudenthal_roots_real(V.highest_weight() - mw)
+            sage: [V._freudenthal_accum(mw, al) for al in F]
             [4, 4, 3, 4, 3, 3]
         """
         ret = 0
@@ -659,10 +659,10 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['B',3,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(Lambda[0]+Lambda[1]+Lambda[3])
-            sage: D = list(v.dominant_maximal_weights())
-            sage: D.remove(v.highest_weight())
-            sage: [v._m_freudenthal(v.from_weight(mw)) for mw in D]
+            sage: V = IntegrableRepresentation(Lambda[0]+Lambda[1]+Lambda[3])
+            sage: D = list(V.dominant_maximal_weights())
+            sage: D.remove(V.highest_weight())
+            sage: [V._m_freudenthal(V.from_weight(mw)) for mw in D]
             [3, 7, 3, 3]
         """
         if min(n) < 0:
@@ -694,11 +694,11 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['E',6,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(Lambda[0])
-            sage: u = v.highest_weight() - v.weight_lattice().null_root()
-            sage: v.from_weight(u)
+            sage: V = IntegrableRepresentation(Lambda[0])
+            sage: u = V.highest_weight() - V.weight_lattice().null_root()
+            sage: V.from_weight(u)
             (1, 1, 2, 2, 3, 2, 1)
-            sage: v.m(v.from_weight(u))
+            sage: V.m(V.from_weight(u))
             6
         """
         # TODO: Make this non-recursive by implementing our own stack
@@ -773,10 +773,10 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['A',2,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(2*Lambda[0])
-            sage: v.string(2*Lambda[0])
+            sage: V = IntegrableRepresentation(2*Lambda[0])
+            sage: V.string(2*Lambda[0])
             [1, 2, 8, 20, 52, 116, 256, 522, 1045, 1996, 3736, 6780]
-            sage: v.string(Lambda[1] + Lambda[2])
+            sage: V.string(Lambda[1] + Lambda[2])
             [0, 1, 4, 12, 32, 77, 172, 365, 740, 1445, 2736, 5041]
         """
         ret = []
@@ -800,8 +800,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['A',1,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(2*Lambda[0])
-            sage: S = v.strings(depth=25)
+            sage: V = IntegrableRepresentation(2*Lambda[0])
+            sage: S = V.strings(depth=25)
             sage: for k in S:
             ....:     print "{}: {}".format(k, ' '.join(str(x) for x in S[k]))
             2*Lambda[0]: 1 1 3 5 10 16 28 43 70 105 161 236 350 501 722 1016 1431 1981 2741 3740 5096 6868 9233 12306 16357
@@ -821,8 +821,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['A',1,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(2*Lambda[0])
-            sage: v.print_strings(depth=25)
+            sage: V = IntegrableRepresentation(2*Lambda[0])
+            sage: V.print_strings(depth=25)
             2*Lambda[0]: 1 1 3 5 10 16 28 43 70 105 161 236 350 501 722 1016 1431 1981 2741 3740 5096 6868 9233 12306 16357
             2*Lambda[1] - delta: 1 2 4 7 13 21 35 55 86 130 196 287 420 602 858 1206 1687 2331 3206 4368 5922 7967 10670 14193 18803
         """
@@ -864,8 +864,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['A',1,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(3*Lambda[0]+2*Lambda[1])
-            sage: [v.modular_characteristic(x) for x in v.dominant_maximal_weights()]
+            sage: V = IntegrableRepresentation(3*Lambda[0]+2*Lambda[1])
+            sage: [V.modular_characteristic(x) for x in V.dominant_maximal_weights()]
             [11/56, -1/280, 111/280]
         """
         if type(mu) is tuple:
@@ -915,8 +915,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['A',2,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(2*Lambda[0])
-            sage: b = v.branch(); b
+            sage: V = IntegrableRepresentation(2*Lambda[0])
+            sage: b = V.branch(); b
             [A2(0,0),
              A2(1,1),
              A2(0,0) + 2*A2(1,1) + A2(2,2),
@@ -934,8 +934,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         are branching to. This is determined by the Dynkin diagram::
 
             sage: Lambda = RootSystem(['B',3,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(Lambda[0])
-            sage: v.cartan_type().dynkin_diagram()
+            sage: V = IntegrableRepresentation(Lambda[0])
+            sage: V.cartan_type().dynkin_diagram()
                 O 0
                 |
                 |
@@ -949,7 +949,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         `\mathfrak{sl}(2) \times \mathfrak{sl}(2) \times \mathfrak{sl}(2)`::
 
             sage: A1xA1xA1 = WeylCharacterRing("A1xA1xA1",style="coroots")
-            sage: v.branch(i=2,weyl_character_ring=A1xA1xA1)
+            sage: V.branch(i=2,weyl_character_ring=A1xA1xA1)
             [A1xA1xA1(1,0,0),
              A1xA1xA1(0,1,2),
              A1xA1xA1(1,0,0) + A1xA1xA1(1,2,0) + A1xA1xA1(1,0,2),
@@ -964,8 +964,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: Lambda = RootSystem(['F',4,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v = IntegrableRepresentation(Lambda[0])
-            sage: v.cartan_type().dynkin_diagram()
+            sage: V = IntegrableRepresentation(Lambda[0])
+            sage: V.cartan_type().dynkin_diagram()
             O---O---O=>=O---O
             0   1   2   3   4   
             F4~
@@ -982,7 +982,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         The nodes `0, 2, 3, 4` of ``F4~`` correspond to ``1, 4, 3, 2``
         of ``A1xC3`` and so we encode this in a dictionary::
 
-            sage: v.branch(i=1,weyl_character_ring=A1xC3,sequence={0:1,2:4,3:3,4:2}) # long time
+            sage: V.branch(i=1,weyl_character_ring=A1xC3,sequence={0:1,2:4,3:3,4:2}) # long time
             [A1xC3(1,0,0,0),
              A1xC3(0,0,0,1),
              A1xC3(1,0,0,0) + A1xC3(1,2,0,0),

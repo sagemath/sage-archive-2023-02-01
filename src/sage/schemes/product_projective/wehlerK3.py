@@ -17,7 +17,7 @@ AUTHORS:
     .. [FaHu] J. A. de Faria, B. Hutz. Combinatorics of Cycle Lengths on
                 Wehler K3 Surfaces over finite fields 
                 :arxiv:`1309.6598`, 2013.
-    .. [CaSi] G. Call and J. Silverman. Computing the Cannonical Height on
+    .. [CaSi] G. Call and J. Silverman. Computing the Canonical Height on
                 K3 Surfaces. Mathematics of Comp. , 65 (1996), 259-290.
     .. [Wehl] J. Wehler. Hypersurfaces of the Flag Variety: Deformation
                 Theory and the Theorems of Kodaira-Spencer, Torelli,
@@ -615,7 +615,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
     def Ramification_poly(self,i):
         r"""
         Function will return the Ramification polynomial defined by:
-        `g^* = \frac{\left(H^*_{ij}\right)^2 - 4G^*_iG^*_j}{\left(L^*_k\right)^2}
+        `g^* = \frac{\left(H^*_{ij}\right)^2 - 4G^*_iG^*_j}{\left(L^*_k\right)^2}`
         The roots of this polynomial will either be degenerate fibers or fixed points
         of the involutions `\sigma_x` or `\sigma_y`
 
@@ -652,7 +652,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
     @cached_method
     def is_degenerate(self):
-        """
+        r"""
         Function will return True if there is a fiber (over the algebraic closure of the
         base ring) of dimension greater than 0 and False otherwise.
 
@@ -662,8 +662,8 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
             sage: R.<x0,x1,x2,y0,y1,y2> = PolynomialRing(ZZ,6)
             sage: Y = x0*y0 + x1*y1 - x2*y2
-            sage: Z = x0^2*y0*y1 + x0^2*y2^2 - x0*x1*y1*y2 + x1^2*y2*y1 + x2^2*y2^2\
-            + x2^2*y1^2 + x1^2*y2^2
+            sage: Z = x0^2*y0*y1 + x0^2*y2^2 - x0*x1*y1*y2 + x1^2*y2*y1 + x2^2*y2^2 + \
+            x2^2*y1^2 + x1^2*y2^2
             sage: X = WehlerK3Surface([Z,Y])
             sage: X.is_degenerate()
             True
@@ -671,9 +671,9 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ::
 
             sage: PP.<x0,x1,x2,y0,y1,y2> = ProductProjectiveSpaces([2,2],QQ)
-            sage: Z = x0^2*y0^2 + 3*x0*x1*y0^2 + x1^2*y0^2 + 4*x0^2*y0*y1 + 3*x0*x1*y0*y1\
-            - 2*x2^2*y0*y1 - x0^2*y1^2 + 2*x1^2*y1^2 - x0*x2*y1^2 -4*x1*x2*y1^2 + 5*x0*x2*y0*y2\
-            - 4*x1*x2*y0*y2 + 7*x0^2*y1*y2 + 4*x1^2*y1*y2 + x0*x1*y2^2 + 3*x2^2*y2^2
+            sage: Z = x0^2*y0^2 + 3*x0*x1*y0^2 + x1^2*y0^2 + 4*x0^2*y0*y1 + 3*x0*x1*y0*y1 - \
+            2*x2^2*y0*y1 - x0^2*y1^2 + 2*x1^2*y1^2 - x0*x2*y1^2 -4*x1*x2*y1^2 + 5*x0*x2*y0*y2 - \
+            4*x1*x2*y0*y2 + 7*x0^2*y1*y2 + 4*x1^2*y1*y2 + x0*x1*y2^2 + 3*x2^2*y2^2
             sage: Y = x0*y0 + x1*y1 + x2*y2
             sage: X = WehlerK3Surface([Z,Y])
             sage: X.is_degenerate()
@@ -682,9 +682,9 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ::
 
             sage: PP.<x0,x1,x2,y0,y1,y2> = ProductProjectiveSpaces([2,2],GF(3))
-            sage: Z = x0^2*y0^2 + 3*x0*x1*y0^2 + x1^2*y0^2 + 4*x0^2*y0*y1 + 3*x0*x1*y0*y1\
-            - 2*x2^2*y0*y1 - x0^2*y1^2 + 2*x1^2*y1^2 - x0*x2*y1^2 -4*x1*x2*y1^2 + 5*x0*x2*y0*y2\
-            - 4*x1*x2*y0*y2 + 7*x0^2*y1*y2 + 4*x1^2*y1*y2 + x0*x1*y2^2 + 3*x2^2*y2^2
+            sage: Z = x0^2*y0^2 + 3*x0*x1*y0^2 + x1^2*y0^2 + 4*x0^2*y0*y1 + 3*x0*x1*y0*y1 - \
+            2*x2^2*y0*y1 - x0^2*y1^2 + 2*x1^2*y1^2 - x0*x2*y1^2 -4*x1*x2*y1^2 + 5*x0*x2*y0*y2 - \
+            4*x1*x2*y0*y2 + 7*x0^2*y1*y2 + 4*x1^2*y1*y2 + x0*x1*y2^2 + 3*x2^2*y2^2
             sage: Y = x0*y0 + x1*y1 + x2*y2
             sage: X = WehlerK3Surface([Z,Y])
             sage: X.is_degenerate()
@@ -722,8 +722,8 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         ALGORITHM:
 
-        The criteria for degeneracy by the common vanishing of the polynomials `self.Gpoly(1,0)`, `self.Gpoly(1,1)`,
-        `self.Gpoly(1,2)`, `self.Hpoly(1,0,1)`, `self.Hpoly(1,0,2)`, `self.Hpoly(1,1,2)` (for the first component),
+        The criteria for degeneracy by the common vanishing of the polynomials ``self.Gpoly(1,0)``, ``self.Gpoly(1,1)``,
+        ``self.Gpoly(1,2)``, ``self.Hpoly(1,0,1)``, ``self.Hpoly(1,0,2)``, ``self.Hpoly(1,1,2)`` (for the first component),
         is from Proposition 1.4 in the following article: [CaSi].
         This function finds the common solution through elimination via Groebner bases by using the .variety()
         function on the three affine charts in each component.
@@ -1406,7 +1406,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         - ``normalize`` -- boolean (optional - default: ``True``) normalizes the point
 
-        OUTPUT: Point in `\mathbb{P} \times \mathbb{P}`
+        OUTPUT: Point in `\mathbb{P}^2 \times \mathbb{P}^2`
 
         EXAMPLES::
 
@@ -1447,7 +1447,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         - ``normalize`` -- boolean (optional - default: ``True``) normalizes the point
 
-        OUTPUT: Point in `\mathbb{P} \times \mathbb{P}`
+        OUTPUT: Point in `\mathbb{P}^2 \times \mathbb{P}^2`
 
         EXAMPLES::
 
@@ -1484,7 +1484,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         - ``v`` - non-negative integer. a place, use v = 0 for the archimedean place
 
-        - ``m,n`` - positive integers, We compute the local heigt for the divisor `E_{mn}^{+}`.
+        - ``m,n`` - positive integers, We compute the local height for the divisor `E_{mn}^{+}`.
                     These must be indices of non-zero coordinates of the point ``P``.
 
         - ``prec`` - float point or p-adic precision, default: 100
@@ -1523,22 +1523,29 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         i = L.index(max(L))
         L = [y.abs() for y in list(PK[1])]
         j = L.index(max(L))
+
+        #Compute the local height wrt the divisor E_{mn}^{+}
         local_height = beta*R((PK[0][i]/PK[0][m]).abs()).log() - R((PK[1][j]/PK[1][n]).abs()).log()
+
         for e in range(N):
+            #Take next iterate
             Q = W.phi(PK, check=False)
             L = [x.abs() for x in list(Q[0])]
             k = L.index(max(L))
             L = [y.abs() for y in list(Q[1])]
             l = L.index(max(L))
             newP = copy(PK)
+            #normalize PK
             newP.scale_by([1/PK[0][i],1])
 
+            #Find B and A, helper values for the local height 
             if PK[1][j].abs() <= PK[1][l].abs():
                 B = Rx(W.Gpoly(1,l))(tuple(newP[0]))*PK[1][j]/PK[1][l]
             else:
                 B = -Rx(W.Gpoly(1,j))(tuple(newP[0]))*PK[1][l]/PK[1][j]
                 B = B - Rx(W.Hpoly(1,j,l))(tuple(newP[0]))
 
+            #Normalize Q
             newQ = copy(Q)
             newQ.scale_by([1,1/Q[1][l]])
 
@@ -1547,8 +1554,9 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             else:
                 A = -Ry(W.Gpoly(0,i))(tuple(newQ[1]))*PK[0][k]/PK[0][i]
                 A = A - Ry(W.Hpoly(0,i,k))(tuple(newQ[1]))
-
+            #Compute the new local height
             local_height += beta**(-2*R(e)-1)*R(A.abs()).log() + beta**(-2*R(e))*R(B.abs()).log()
+
             i = k
             j = l
             newQ.scale_by([1/Q[0][k],1])
@@ -1608,22 +1616,27 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         j = L.index(max(L))
         L = [y.abs() for y in list(PK[1])]
         i = L.index(max(L))
+
+        ##Compute the local height wrt the divisor E_{mn}^{-}
         local_height = beta*R((PK[1][i]/PK[1][n]).abs()).log() - R((PK[0][j]/PK[0][m]).abs()).log()
         for e in range(N):
+            #Take the next iterate
             Q = W.psi(PK, check=False)
             L = [x.abs() for x in list(Q[0])]
             l = L.index(max(L))
             L = [y.abs() for y in list(Q[1])]
             k = L.index(max(L))
+            #Normalize the point
             newP = copy(PK)
             newP.scale_by([1,1/PK[1][i]])
-
+            #Find A and B, helper functions for computing local height
             if PK[0][j].abs() <= PK[0][l].abs():
                 B = Ry(W.Gpoly(0,l))(tuple(newP[1]))*PK[0][j]/PK[0][l]
             else:
                 B = -Ry(W.Gpoly(0,j))(tuple(newP[1]))*PK[0][l]/PK[0][j]
                 B = B - Ry(W.Hpoly(0,j,l))(tuple(newP[1]))
 
+            #Normalize Q
             newQ = copy(Q)
             newQ.scale_by([1/Q[0][l],1])
 
@@ -1633,7 +1646,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
                 A = -Rx(W.Gpoly(1,i))(tuple(newQ[0]))*PK[1][k]/PK[1][i]
                 A = A-Rx(W.Hpoly(1,i,k))(tuple(newQ[0]))
 
-            #print "A,B:",A,B
+            #Compute the local height
             local_height += beta**(-2*R(e)-1)*R(A.abs()).log() + beta**(-2*R(e))*R(B.abs()).log()
             i = k
             j = l
@@ -1767,7 +1780,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         ALGORITHM:
 
-        The sum of the canonical height - and cannonical height plus , for more info see section 4 of [CaSi]
+        The sum of the canonical height - and canonical height plus , for more info see section 4 of [CaSi]
 
         INPUT:
 
@@ -1811,7 +1824,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         return(self.canonical_height_plus(P, N,badprimes,prec) + self.canonical_height_minus(P, N,badprimes,prec))
 
     def fiber(self,p):
-        """
+        r"""
         Returns the fibers of a point on a K3 Surface, will work for nondegenerate fibers only.
         For algorithm, see [Hutz_thesis]
 
@@ -1824,7 +1837,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             sage: R.<x0,x1,x2,y0,y1,y2> = PolynomialRing(ZZ,6)
             sage: Y = x0*y0 + x1*y1 - x2*y2
             sage: Z = y0^2*x0*x1 + y0^2*x2^2 - y0*y1*x1*x2 + y1^2*x2*x1 + y2^2*x2^2 +\
-             y2^2*x1^2 + y1^2*x2^2
+            y2^2*x1^2 + y1^2*x2^2
             sage: X = WehlerK3Surface([Z,Y])
             sage: Proj = ProjectiveSpace(QQ,2)
             sage: P = Proj([1,0,0])
@@ -1836,8 +1849,8 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ::
 
             sage: P.<x0,x1,x2,y0,y1,y2> = ProductProjectiveSpaces([2,2],QQ)
-            sage: Z = x0^2*y0^2 + 3*x0*x1*y0^2 + x1^2*y0^2 + 4*x0^2*y0*y1 + 3*x0*x1*y0*y1 -\
-            2*x2^2*y0*y1 - x0^2*y1^2 + 2*x1^2*y1^2 - x0*x2*y1^2 -4*x1*x2*y1^2 + 5*x0*x2*y0*y2 -\
+            sage: Z = x0^2*y0^2 + 3*x0*x1*y0^2 + x1^2*y0^2 + 4*x0^2*y0*y1 + 3*x0*x1*y0*y1 - \
+            2*x2^2*y0*y1 - x0^2*y1^2 + 2*x1^2*y1^2 - x0*x2*y1^2 -4*x1*x2*y1^2 + 5*x0*x2*y0*y2 - \
             4*x1*x2*y0*y2 + 7*x0^2*y1*y2 + 4*x1^2*y1*y2 + x0*x1*y2^2 + 3*x2^2*y2^2
             sage: Y = x0*y0 + x1*y1 + x2*y2
             sage: X = WehlerK3Surface([Z,Y])
@@ -1926,11 +1939,11 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
     def nth_iterate_phi(self, P, n, **kwds):
         r"""
-        Computes the nth iterate for the `\phi` function
+        Computes the nth iterate for the phi function
 
-        INPUT::
+        INPUT:
 
-        - ``P`` -- - a point in `\mathbb{P}^2 \times `\mathbb{P}^2`
+        - ``P`` -- - a point in `\mathbb{P}^2 \times \mathbb{P}^2`
 
         - ``n`` -- an integer.
 
@@ -1982,11 +1995,11 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
     def nth_iterate_psi(self, P, n, **kwds):
         r"""
-        Computes the nth iterate for the `\psi` function
+        Computes the nth iterate for the psi function
 
-        INPUT::
+        INPUT:
 
-        - ``P`` -- - a point in `\mathbb{P}^2 \times `\mathbb{P}^2`
+        - ``P`` -- - a point in `\mathbb{P}^2 \times \mathbb{P}^2`
 
         - ``n`` -- an integer.
 
@@ -2191,7 +2204,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         r"""
         Checks to see if the orbit is symmetric (i.e. if one of the points on the orbit is fixed by '\sigma_x' or '\sigma_y')
 
-        INPUT: ``orbit`` a periodic cycle of either `\psi` or `\phi`
+        INPUT: ``orbit`` a periodic cycle of either ps` or phi.
 
         OUTPUT: Boolean
 

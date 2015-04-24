@@ -6355,6 +6355,28 @@ cdef class Expression(CommutativeRingElement):
             res = res*x + c
         return res
 
+    def _evaluate_polynomial(self, pol):
+        """
+        Evaluate a univariate polynomial on this expression.
+
+        EXAMPLES::
+
+            sage: pol = QQ['s'](range(5))
+            sage: pol(sin(x))
+            4*sin(x)^4 + 3*sin(x)^3 + 2*sin(x)^2 + sin(x)
+
+        TESTS::
+
+            sage: SR(0.1)._evaluate_polynomial(pol)
+            0.123400000000000
+        """
+        cdef Expression zero
+        try:
+            return new_Expression_from_pyobject(self._parent, pol(self.pyobject()))
+        except TypeError:
+            zero = self._parent.zero()
+            return zero.add(*(pol[i]*self**i
+                              for i in xrange(pol.degree() + 1)))
     def collect_common_factors(self):
         """
         This function does not perform a full factorization but only

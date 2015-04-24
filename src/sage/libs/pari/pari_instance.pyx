@@ -974,6 +974,24 @@ cdef class PariInstance(PariInstance_auto):
     cdef _an_element_c_impl(self):  # override this in Cython
         return self.PARI_ZERO
 
+    cpdef gen zero(self):
+        """
+        EXAMPLES::
+
+            sage: pari.zero()
+            0
+        """
+        return self.PARI_ZERO
+
+    cpdef gen one(self):
+        """
+        EXAMPLES::
+
+            sage: pari.one()
+            1
+        """
+        return self.PARI_ONE
+
     def new_with_bits_prec(self, s, long precision):
         r"""
         pari.new_with_bits_prec(self, s, precision) creates s as a PARI

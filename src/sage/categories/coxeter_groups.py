@@ -1033,6 +1033,64 @@ v            EXAMPLES::
                          for r in (self.apply_simple_reflection(i)).reduced_words()
                          ]
 
+        def reduced_word_graph(self):
+            r"""
+            Return the reduced word graph of ``self``.
+
+            The reduced word graph of an element `w` in a Coxeter group
+            is the graph whose vertices are reduced words `R_w` and there
+            is an `m`-colored edge between `x, y \in R_w` if `x` and `y`
+            differ by exactly one length `m` braid move.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',3], prefix='s')
+                sage: w0 = W.long_element()
+                sage: G = w0.reduced_word_graph()
+                sage: G.num_verts()
+                16
+                sage: len(w0.reduced_words())
+                16
+                sage: G.num_edges()
+                18
+            """
+            R = self.reduced_words()
+            from sage.graphs.graph import Graph
+            # Special case for when the graph does not contain any edges
+            if len(R) == 1:
+                return Graph({tuple(R[0]): []}, immutable=True)
+
+            P = self.parent()
+            edges = []
+            for i,x in enumerate(R):
+                x = tuple(x)
+                for y in R[i:]:
+                    y = tuple(y)
+                    # Check that the reduced expressions differ by only
+                    #   a single braid move
+                    i = 0
+                    while i < len(x) and x[i] == y[i]:
+                        i += 1
+                    if i == len(x):
+                        continue
+                    a, b = x[i], y[i]
+                    I = P.index_set()
+                    m = P.coxeter_matrix()[I.index(a),I.index(b)]
+                    subword = [a,b] * (m // 2)
+                    subword2 = [b,a] * (m // 2)
+                    if m % 2 != 0:
+                        subword.append(a)
+                        subword2.append(b)
+                    if (x[i:i+m] != tuple(subword)
+                            or y[i:i+m] != tuple(subword2)
+                            or x[i+m:] != y[i+m:]):
+                        continue
+                    edges.append([x, y, m])
+            G = Graph(edges, immutable=True)
+            colors = {2: 'blue', 3: 'red', 4: 'green'}
+            G.set_latex_options(edge_labels=True, color_by_label=lambda x: colors[x])
+            return G
+
         def length(self):
             r"""
             Returns the length of self, that is the minimal length of

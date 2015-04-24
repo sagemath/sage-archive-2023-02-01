@@ -948,7 +948,7 @@ v            EXAMPLES::
 
         def reduced_word_reverse_iterator(self):
             """
-            Returns a reverse iterator on a reduced word for self.
+            Return a reverse iterator on a reduced word for ``self``.
 
             EXAMPLES::
 
@@ -963,7 +963,9 @@ v            EXAMPLES::
                 sage: sigma.length()
                 3
 
-            SEE ALSO :meth:`.reduced_word`
+            .. SEEALSO::
+
+                :meth:`.reduced_word`
 
             Default implementation: recursively remove the first right
             descent until the identity is reached (see :meth:`.first_descent` and
@@ -979,11 +981,12 @@ v            EXAMPLES::
 
         def reduced_word(self):
             r"""
-            Returns a reduced word for self.
+            Return a reduced word for ``self``.
 
             This is a word `[i_1,i_2,\ldots,i_k]` of minimal length
-            such that `s_{i_1} s_{i_2} \cdots s_{i_k}=self`, where `s`
-            are the simple reflections.
+            such that
+            `s_{i_1} s_{i_2} \cdots s_{i_k} = \operatorname{self}`,
+            where the `s_i` are the simple reflections.
 
             EXAMPLES::
 
@@ -996,8 +999,10 @@ v            EXAMPLES::
                 sage: w.reduced_word()
                 [2, 0]
 
-            SEE ALSO: :meth:`.reduced_words`, :meth:`.reduced_word_reverse_iterator`, :meth:`length`
+            .. SEEALSO::
 
+                :meth:`.reduced_words`, :meth:`.reduced_word_reverse_iterator`,
+                :meth:`length`, :meth:`reduced_word_graph`
             """
             result = list(self.reduced_word_reverse_iterator())
             return list(reversed(result))
@@ -1007,7 +1012,10 @@ v            EXAMPLES::
 
         def reduced_words(self):
             r"""
-            Returns all reduced words for self.
+            Return all reduced words for ``self``.
+
+            See :meth:`reduced_word` for the definition of a reduced
+            word.
 
             EXAMPLES::
 
@@ -1023,6 +1031,11 @@ v            EXAMPLES::
 
             TODO: the result should be full featured finite enumerated
             set (e.g. counting can be done much faster than iterating).
+
+            .. SEEALSO::
+
+                :meth:`.reduced_word`, :meth:`.reduced_word_reverse_iterator`,
+                :meth:`length`, :meth:`reduced_word_graph`
             """
             descents = self.descents()
             if descents == []:
@@ -1038,9 +1051,14 @@ v            EXAMPLES::
             Return the reduced word graph of ``self``.
 
             The reduced word graph of an element `w` in a Coxeter group
-            is the graph whose vertices are reduced words `R_w` and there
-            is an `m`-colored edge between `x, y \in R_w` if `x` and `y`
-            differ by exactly one length `m` braid move.
+            is the graph whose vertices are the reduced words for `w`
+            (see :meth:`reduced_word` for a definition of this term),
+            and which has an `m`-colored edge between two reduced words
+            `x` and `y` whenever `x` and `y` differ by exactly one
+            length-`m` braid move (with `m \geq 2`).
+
+            This graph is always connected (a theorem due to Tits) and
+            has no multiple edges.
 
             EXAMPLES::
 
@@ -1053,6 +1071,24 @@ v            EXAMPLES::
                 16
                 sage: G.num_edges()
                 18
+                sage: len([e for e in G.edges() if e[2] == 2])
+                10
+                sage: len([e for e in G.edges() if e[2] == 3])
+                8
+
+            TESTS::
+
+                sage: w1 = W.one()
+                sage: G = w1.reduced_word_graph()
+                sage: G.num_verts()
+                1
+                sage: G.num_edges()
+                0
+
+            .. SEEALSO::
+
+                :meth:`.reduced_words`, :meth:`.reduced_word_reverse_iterator`,
+                :meth:`length`, :meth:`reduced_word`
             """
             R = self.reduced_words()
             from sage.graphs.graph import Graph

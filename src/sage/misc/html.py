@@ -158,6 +158,22 @@ def math_parse(s):
     return HtmlFragment(t)
 
 
+_old_and_deprecated_behavior = False
+
+def old_and_deprecated_wrapper(method):
+    """
+    Wrapper to reinstate the old behavior of ``html``
+    """
+    def wrapped(*args, **kwds):
+        output = method(*args, **kwds)
+        if _old_and_deprecated_behavior:
+            # workaround for the old SageNB interacts
+            print(output)
+        else:
+            return output
+    return wrapped
+
+
 class HTMLFragmentFactory(SageObject):
 
     def _repr_(self):
@@ -175,6 +191,7 @@ class HTMLFragmentFactory(SageObject):
         """
         return 'Create HTML output (see html? for details)'
     
+    @old_and_deprecated_wrapper
     def __call__(self, obj):
         r"""
         Construct a HTML fragment
@@ -222,6 +239,7 @@ class HTMLFragmentFactory(SageObject):
         # If all else fails
         return math_parse(HtmlFragment(obj))
          
+    @old_and_deprecated_wrapper
     def eval(self, s, locals=None):
         r"""
         Evaluate embedded <sage> tags
@@ -268,6 +286,7 @@ class HTMLFragmentFactory(SageObject):
             s = s[j+7:]
         return HtmlFragment(t)
 
+    @old_and_deprecated_wrapper
     @rename_keyword(deprecation=18292, header='header_row')
     def table(self, x, header_row=False):
         r"""
@@ -352,6 +371,7 @@ class HTMLFragmentFactory(SageObject):
         from table import table
         return table(x, header_row=header_row)._html_()
 
+    @old_and_deprecated_wrapper
     def iframe(self, url, height=400, width=800):
         r"""
         Generate an iframe HTML fragment

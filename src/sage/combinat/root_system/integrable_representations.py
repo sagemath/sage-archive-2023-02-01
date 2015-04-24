@@ -892,11 +892,11 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         removing the `0` node from the Dynkin diagram of type ``[X, r, 1]``
         produces the classical Dynkin diagram of ``[X, r]``.
 
-        Thus for each `i` in the index set, we may restrict `self` to
-        the corresponding classical subalgebra. Of course `self` is
+        Thus for each `i` in the index set, we may restrict ``self`` to
+        the corresponding classical subalgebra. Of course ``self`` is
         an infinite dimensional representation, but each weight `\mu`
         is assigned a grading by the number of times the simple root
-        `\\alpha_i` appears in `\Lambda-\mu`. Thus the branched
+        `\alpha_i` appears in `\Lambda-\mu`. Thus the branched
         representation is graded and we get sequence of finite-dimensional
         representations which this method is able to compute.
 
@@ -924,13 +924,13 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
              4*A2(0,0) + 3*A2(0,3) + 10*A2(1,1) + 3*A2(3,0) + A2(1,4) + 6*A2(2,2) + A2(4,1),
              6*A2(0,0) + 9*A2(0,3) + 20*A2(1,1) + 9*A2(3,0) + 3*A2(1,4) + 12*A2(2,2) + 3*A2(4,1) + A2(3,3)]
 
-        If the parameter weyl_character_ring is omitted, the ring may be recovered
+        If the parameter ``weyl_character_ring`` is omitted, the ring may be recovered
         as the parent of one of the branched coefficients::
 
             sage: A2 = b[0].parent(); A2
             The Weyl Character Ring of Type A2 with Integer Ring coefficients
 
-        If `i` is not zero then you should specify the WeylCharacterRing that you
+        If `i` is not zero then you should specify the :class:`WeylCharacterRing` that you
         are branching to. This is determined by the Dynkin diagram::
 
             sage: Lambda = RootSystem(['B',3,1]).weight_lattice(extended=true).fundamental_weights()
@@ -989,6 +989,15 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
              A1xC3(2,0,0,1) + A1xC3(0,0,0,1) + A1xC3(0,1,1,0),
              2*A1xC3(1,0,0,0) + A1xC3(1,0,1,0) + 2*A1xC3(1,2,0,0) + A1xC3(1,0,2,0) + A1xC3(3,0,0,0),
              2*A1xC3(2,0,0,1) + A1xC3(2,1,1,0) + A1xC3(0,1,0,0) + 3*A1xC3(0,0,0,1) + 2*A1xC3(0,1,1,0) + A1xC3(0,2,0,1)]
+
+        The branch method gives a way of computing the graded dimension of the integrable representation::
+
+            sage: Lambda = RootSystem("A1~").weight_lattice(extended=true).fundamental_weights()
+            sage: V=IntegrableRepresentation(Lambda[0])
+            sage: r = [x.degree() for x in V.branch(depth=15)]; r
+            [1, 3, 4, 7, 13, 19, 29, 43, 62, 90, 126, 174, 239, 325, 435, 580]
+            sage: oeis(r)
+            0: A029552: Expansion of phi(x) / f(-x) in powers of x where phi(), f() are Ramanujan theta functions.
 
         """
         if i is None:

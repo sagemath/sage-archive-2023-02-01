@@ -598,7 +598,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         Is 50015104*y^2-50015103 positive, negative or zero?
         sage: assume(y>1)
         sage: res = integral(f,x,0.0001414, 1.); res
-        -2*y*arctan(0.0001414/y) + 2*y*arctan(1/y) + log(y^2 + 1.0) - 0.0001414*log(y^2 + 1.9993959999999997e-08) - 1.9997172
+        2*y*arctan(1.0/y) - 2*y*arctan(0.0001414/y) + 1.0*log(1.0*y^2 + 1.0) - 0.0001414*log(1.0*y^2 + 1.9993959999999997e-08) - 1.9997172
         sage: nres = numerical_integral(f.subs(y=2), 0.0001414, 1.); nres
         (1.4638323264144..., 1.6251803529759...e-14)
         sage: res.subs(y=2).n()

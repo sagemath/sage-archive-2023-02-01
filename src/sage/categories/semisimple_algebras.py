@@ -139,8 +139,8 @@ class SemisimpleAlgebras(Category_over_base_ring):
                         sage: A3 = SymmetricGroup(3).algebra(QQ)
                         sage: idempotents = A3.central_orthogonal_idempotents()
                         sage: idempotents
-                        [2/3*() - 1/3*(1,2,3) - 1/3*(1,3,2),
-                         1/6*() + 1/6*(2,3) + 1/6*(1,2) + 1/6*(1,2,3) + 1/6*(1,3,2) + 1/6*(1,3),
+                        [1/6*() + 1/6*(2,3) + 1/6*(1,2) + 1/6*(1,2,3) + 1/6*(1,3,2) + 1/6*(1,3),
+                         2/3*() - 1/3*(1,2,3) - 1/3*(1,3,2),
                          1/6*() - 1/6*(2,3) - 1/6*(1,2) + 1/6*(1,2,3) + 1/6*(1,3,2) - 1/6*(1,3)]
                         sage: A3.is_identity_decomposition_into_orthogonal_idempotents(idempotents)
                         True
@@ -154,7 +154,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
                         the arrows a:x->y and b:x->y) over Rational Field
                         sage: Aquo = A.semisimple_quotient()
                         sage: Aquo.central_orthogonal_idempotents()
-                        [B['y'], B['x']]
+                        [B['x'], B['y']]
                     """
                     return [x.lift()
                             for x in self.center().central_orthogonal_idempotents()]
@@ -199,63 +199,56 @@ class SemisimpleAlgebras(Category_over_base_ring):
 
                         2. Decompose both eigenspaces recursively.
 
-                        EXAMPLES::
+                        EXAMPLES:
 
-                            sage: G5 = SymmetricGroup(5)
-                            sage: A5 = G5.algebra(QQ)
-                            sage: Z5 = A5.center()
-                            sage: Z5._orthogonal_decomposition()
-                            [B[0] - 1/3*B[2] + 1/6*B[6], B[0] + B[1] + B[2] +
-                            B[3] + B[4] + B[5] + B[6], B[0] - B[1] + B[2] + B[3]
-                            - B[4] - B[5] + B[6], B[0] + 1/5*B[1] + 1/5*B[2] -
-                            1/5*B[3] + 1/5*B[4] - 1/5*B[5], B[0] - 1/5*B[1] +
-                            1/5*B[2] - 1/5*B[3] - 1/5*B[4] + 1/5*B[5], B[0] +
-                            1/2*B[1] + 1/4*B[3] - 1/4*B[4] - 1/4*B[6], B[0] -
-                            1/2*B[1] + 1/4*B[3] + 1/4*B[4] - 1/4*B[6]]
+                        We compute an orthogonal decomposition of the
+                        center of the algebra of the symmetric group
+                        `S_4`::
+
+                            sage: Z4 = SymmetricGroup(4).algebra(QQ).center()
+                            sage: Z4._orthogonal_decomposition()
+                            [B[0] + B[1] + B[2] + B[3] + B[4],
+                             B[0] + 1/3*B[1] - 1/3*B[2] - 1/3*B[4],
+                             B[0] + B[2] - 1/2*B[3],
+                             B[0] - 1/3*B[1] - 1/3*B[2] + 1/3*B[4],
+                             B[0] - B[1] + B[2] + B[3] - B[4]]
 
                         .. TODO::
 
                             Improve speed by using matrix operations
                             only, if possible.
                         """
-                        category = Algebras(self.base_ring()).Semisimple().WithBasis().FiniteDimensional().Commutative().Subobjects()
-                        if generators is None:
-                            generators = self.basis().list()
                         if self.dimension() == 1:
                             return self.basis().list()
 
-                        def rec(space, generators=None):
-                            if generators is None:
-                                generators = space.basis().list()
-                            generators = list(generators)
+                        category = Algebras(self.base_ring()).Semisimple().WithBasis().FiniteDimensional().Commutative().Subobjects()
 
-                            if space.dimension() == 1:
-                                return space.basis().list()
-                            eigenspaces = []
+                        if generators is None:
+                            generators = self.basis().list()
 
-                            # Searching for a good generator ...
-                            while len(eigenspaces) < 2:
-                                if generators == []:
-                                    raise Exception("Unable to fully decompose...")
-                                gen = generators.pop()
-                                phi = space.module_morphism(on_basis=lambda i:
-                                        gen*space.basis()[i],
-                                        codomain=space,
-                                        triangular='lower')
-                                eigenspaces = phi.matrix().eigenspaces_right()
+                        # Searching for a good generator ...
+                        for gen in generators:
+                            # Computing the eigenspaces of the
+                            # linear map x -> gen*x
+                            phi = self.module_morphism(
+                                on_basis=lambda i:
+                                gen*self.term(i),
+                                codomain=self)
+                            eigenspaces = phi.matrix().eigenspaces_right()
 
-                            # Gotcha! Let's split the algebra ...
-                            subalgebras = \
-                            [space.submodule(map(space.from_vector, eigenspace.basis()),
-                                             category=category)
-                             for eigenvalue, eigenspace in eigenspaces]
+                            if len(eigenspaces) >= 2:
+                                # Gotcha! Let's split the algebra according to the eigenspaces
+                                subalgebras = [
+                                    self.submodule(map(self.from_vector, eigenspace.basis()),
+                                                   category=category)
+                                    for eigenvalue, eigenspace in eigenspaces]
 
-                            # Decompose recursively each eigenspace
-                            return [idempotent.lift()
-                                    for subalgebra in subalgebras
-                                    for idempotent in rec(subalgebra)]
-
-                        return rec(self, generators)
+                                # Decompose recursively each eigenspace
+                                return [idempotent.lift()
+                                        for subalgebra in subalgebras
+                                        for idempotent in subalgebra._orthogonal_decomposition()]
+                        # TODO: Should this be an assertion check?
+                        raise Exception("Unable to fully decompose %s!"%self)
 
                     @cached_method
                     def central_orthogonal_idempotents(self):
@@ -278,9 +271,9 @@ class SemisimpleAlgebras(Category_over_base_ring):
                             sage: idempotents = Z4.central_orthogonal_idempotents()
                             sage: idempotents
                             [1/24*B[0] + 1/24*B[1] + 1/24*B[2] + 1/24*B[3] + 1/24*B[4],
-                             3/8*B[0] - 1/8*B[1] - 1/8*B[2] + 1/8*B[4],
-                             1/6*B[0] + 1/6*B[2] - 1/12*B[3],
                              3/8*B[0] + 1/8*B[1] - 1/8*B[2] - 1/8*B[4],
+                             1/6*B[0] + 1/6*B[2] - 1/12*B[3],
+                             3/8*B[0] - 1/8*B[1] - 1/8*B[2] + 1/8*B[4],
                              1/24*B[0] - 1/24*B[1] + 1/24*B[2] + 1/24*B[3] - 1/24*B[4]]
 
                         Lifting those idempotents from the center, we

@@ -121,19 +121,15 @@ import types
 EMBEDDED_MODE = False
 from sage.env import SAGE_SRC
 
-def shared_lib_extension():
+def loadable_module_extension():
     r"""
-    Return the filename extension of shared libraries, including the dot.
+    Return the filename extension of loadable modules, including the dot.
     It is '.dll' on cygwin, '.so' otherwise.
 
     EXAMPLES::
 
-        sage: from site import getsitepackages
-        sage: site_packages = getsitepackages()[0]
-        sage: from sage_setup.find import installed_files_by_module
-        sage: files_by_module = installed_files_by_module(site_packages)
-        sage: from sage.misc.sageinspect import shared_lib_extension
-        sage: files_by_module['sage.structure.sage_object'].pop().endswith(shared_lib_extension())
+        sage: from sage.misc.sageinspect import loadable_module_extension
+        sage: sage.structure.sage_object.__file__.endswith(loadable_module_extension())
         True
     """
     import sys
@@ -1196,8 +1192,8 @@ def sage_getfile(obj):
 
     # No go? fall back to inspect.
     sourcefile = inspect.getabsfile(obj)
-    if sourcefile.endswith(shared_lib_extension()):
-        return sourcefile[:-len(shared_lib_extension())]+os.path.extsep+'pyx'
+    if sourcefile.endswith(loadable_module_extension()):
+        return sourcefile[:-len(loadable_module_extension())]+os.path.extsep+'pyx'
     return sourcefile
 
 def sage_getargspec(obj):

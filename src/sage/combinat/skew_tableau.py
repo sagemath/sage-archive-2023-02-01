@@ -443,13 +443,10 @@ class SkewTableau(ClonableList):
             sage: SkewTableau([]).to_word_by_row()
             word:
         """
-        word = []
-        for row in self:
-            word = list(row) + word
-
+        word = [x for row in reversed(self) for x in row if x is not None]
         if not as_word:
-            return filter(lambda x: x is not None, word)
-        return Words("positive integers")([i for i in word if i is not None])
+            return word
+        return Words("positive integers")(word)
 
     def to_word_by_column(self, as_word=True):
         """

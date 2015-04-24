@@ -1788,7 +1788,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         map `\gamma`.
 
         Consider the map `\gamma : RC(B^{r,1} \otimes B) \to RC(B^{1,1}
-         B^{r-1,1} \otimes B)` for `r > 1`, which is a natural strict
+        \otimes B^{r-1,1} \otimes B)` for `r > 1`, which is a natural strict
         classical crystal injection. On rigged configurations, the map
         `\gamma` adds a singular string of length `1` to `\nu^{(a)}`.
 

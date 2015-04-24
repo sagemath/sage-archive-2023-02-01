@@ -13,20 +13,17 @@ Integrable Representations of Affine Lie Algebras
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.category_object import CategoryObject
 from sage.categories.modules import Modules
-from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.root_system.root_space import RootSpace
-from sage.combinat.root_system.weight_space import WeightSpace
-from sage.rings.all import ZZ, QQ
+from sage.rings.all import ZZ
 from sage.misc.all import cached_method
 from sage.matrix.constructor import Matrix
-from sage.functions.other import floor
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.combinat.root_system.weyl_characters import WeylCharacterRing
 
 # TODO: Make this a proper parent and implement actions
 class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
     r"""
-    An irreducible highest weight representation of an affine Lie algebra.
+    An irreducible integrable highest weight representation of
+    an affine Lie algebra.
 
     INPUT:
 
@@ -46,23 +43,24 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
        functions and modular forms. Adv. in Math. 53 (1984), no. 2, 125-264.
 
     If `\Lambda` is a dominant integral weight for an affine root system,
-    there exists a unique integrable representation `V=V_\Lambda` of highest weight
-    `\Lambda`. If `\mu` is another weight, let `m(\mu)` denote the
+    there exists a unique integrable representation `V=V_\Lambda` of highest
+    weight `\Lambda`. If `\mu` is another weight, let `m(\mu)` denote the
     multiplicity of the weight `\mu` in this representation. The set
     `\text{supp}(V)` of `\mu` such that `m(\mu)>0` is contained in the
     paraboloid
 
     .. MATH::
-             (\Lambda+\rho|\Lambda+\rho) - (\mu+\rho|\mu+\rho) \ge 0
+
+         (\Lambda+\rho | \Lambda+\rho) - (\mu+\rho | \mu+\rho) \geq 0
 
     where `(\,|\,)` is the invariant inner product on the weight
     lattice and `\rho` is the Weyl vector. Moreover every `\mu` differs from
-    `\Lambda` by an element of the root lattice. ([Kac], Propositions 11.3 and
-    11.4) such that `\Lambda - \mu` is in the root lattice, then multiplicity
-    of `\mu` in this representation will be denoted `m(\mu)`.
+    `\Lambda` by an element of the root lattice. ([Kac]_, Propositions 11.3
+    and 11.4) such that `\Lambda - \mu` is in the root lattice, then
+    multiplicity of `\mu` in this representation will be denoted `m(\mu)`.
     
     Let `\delta` be the nullroot, which is the lowest positive imaginary
-    root. Then by [Kac], Proposition 11.3 or Corollary 11.9, for fixed `\mu`
+    root. Then by [Kac]_, Proposition 11.3 or Corollary 11.9, for fixed `\mu`
     the function `m(\mu - k\delta)` is a monotone increasing function of
     `k`. It is useful to take `\mu` to be such that this function is nonzero
     if and only if `k \geq 0`. Therefore we make the following definition.  If
@@ -71,8 +69,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
     Since `\delta` is fixed under the action of the affine Weyl group,
     and since the weight multiplicities are Weyl group invariant, the
-    function `k \mapsto m(\mu-k\delta)` is unchanged if `\mu` is replaced by
-    an equivalent weight. Therefore in tabulating these functions, we may
+    function `k \mapsto m(\mu - k \delta)` is unchanged if `\mu` is replaced
+    by an equivalent weight. Therefore in tabulating these functions, we may
     assume that `\mu` is dominant. There are only a finite number of dominant
     maximal weights.
 
@@ -81,27 +79,27 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
     weights `\mu`, it is important to be able to compute these. We may
     do this as follows.
 
-    EXAMPLE::
+    EXAMPLES::
 
          sage: Lambda = RootSystem(['A',3,1]).weight_lattice(extended=true).fundamental_weights()
-         sage: IntegrableRepresentation(Lambda[1]+Lambda[2]+Lambda[3]).strings()
+         sage: IntegrableRepresentation(Lambda[1]+Lambda[2]+Lambda[3]).print_strings()
          2*Lambda[0] + Lambda[2]: 4 31 161 665 2380 7658 22721 63120 166085 417295 1007601 2349655
          Lambda[0] + 2*Lambda[1]: 2 18 99 430 1593 5274 16005 45324 121200 308829 754884 1779570
          Lambda[0] + 2*Lambda[3]: 2 18 99 430 1593 5274 16005 45324 121200 308829 754884 1779570
          Lambda[1] + Lambda[2] + Lambda[3]: 1 10 60 274 1056 3601 11199 32354 88009 227555 563390 1343178
          3*Lambda[2] - delta: 3 21 107 450 1638 5367 16194 45687 121876 310056 757056 1783324
          sage: Lambda = RootSystem(['D',4,1]).weight_lattice(extended=true).fundamental_weights()
-         sage: IntegrableRepresentation(Lambda[0]+Lambda[1]).strings()                        # long time
+         sage: IntegrableRepresentation(Lambda[0]+Lambda[1]).print_strings()                        # long time
          Lambda[0] + Lambda[1]: 1 10 62 293 1165 4097 13120 38997 109036 289575 735870 1799620
          Lambda[3] + Lambda[4] - delta: 3 25 136 590 2205 7391 22780 65613 178660 463842 1155717 2777795
 
     In this example, we construct the extended weight lattice of Cartan
     type `A_3^{(1)}`, then define ``Lambda`` to be the fundamental
-    weights. We find there are 5 maximal dominant weights in irreducible
-    representation of highest weight ``Lambda[1]+Lambda[2]+Lambda[3]``,
-    and we determine their strings.
+    weights `(\Lambda_i)_{i \in I}`. We find there are 5 maximal
+    dominant weights in irreducible representation of highest weight
+    `\Lambda_1 + \Lambda_2 + \Lambda_3`, and we determine their strings.
 
-    It was shown in [KacPeterson] that each string is the set of Fourier
+    It was shown in [KacPeterson]_ that each string is the set of Fourier
     coefficients of a modular form.
 
     Every weight `\mu` such that the weight multiplicity `m(\mu)` is
@@ -112,12 +110,12 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
           \Lambda - n_0 \alpha_0 - n_1 \alpha_1 - \cdots,
 
     where the `n_i` are nonnegative integers. This is represented internally
-    as a tuple ``(n0, n1, n2, ...)``. If you want an individual multiplicity
-    you use the method ``m`` and supply it with this tuple::
+    as a tuple `(n_0, n_1, n_2, \ldots)`. If you want an individual
+    multiplicity you use the method :meth:`m` and supply it with this tuple::
 
         sage: Lambda = RootSystem(['C',2,1]).weight_lattice(extended=true).fundamental_weights()
         sage: v = IntegrableRepresentation(2*Lambda[0]); v
-        The Integrable representation of ['C', 2, 1] with highest weight 2*Lambda[0]
+        Integrable representation of ['C', 2, 1] with highest weight 2*Lambda[0]
         sage: v.m((3,5,3))
         18
 
@@ -125,7 +123,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
     and :meth:`from_weight` to convert between this internal representation
     and the weight lattice::
 
-        sage: delta = v.null_root()
+        sage: delta = v.weight_lattice().null_root()
         sage: v.to_weight((4,3,2))
         -3*Lambda[0] + 6*Lambda[1] - Lambda[2] - 4*delta
         sage: v.from_weight(-3*Lambda[0] + 6*Lambda[1] - Lambda[2] - 4*delta)
@@ -135,7 +133,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
         sage: L0 = RootSystem(["A",1,1]).weight_lattice(extended=true).fundamental_weight(0); L0
         Lambda[0]
-        sage: IntegrableRepresentation(4*L0).strings(depth=20)
+        sage: IntegrableRepresentation(4*L0).print_strings(depth=20)
         4*Lambda[0]: 1 1 3 6 13 23 44 75 131 215 354 561 889 1368 2097 3153 4712 6936 10151 14677
         2*Lambda[0] + 2*Lambda[1] - delta: 1 2 5 10 20 36 66 112 190 310 501 788 1230 1880 2850 4256 6303 9222 13396 19262
         4*Lambda[1] - 2*delta: 1 2 6 11 23 41 75 126 215 347 561 878 1368 2082 3153 4690 6936 10121 14677 21055
@@ -144,7 +142,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
         sage: Lambda = RootSystem(['C',2,1]).weight_lattice(extended=true).fundamental_weights()
         sage: v = IntegrableRepresentation(2*Lambda[0])
-        sage: v.strings()    # long time
+        sage: v.print_strings()    # long time
         2*Lambda[0]: 1 2 9 26 77 194 477 1084 2387 5010 10227 20198
         Lambda[0] + Lambda[2] - delta: 1 5 18 55 149 372 872 1941 4141 8523 17005 33019
         2*Lambda[1] - delta: 1 4 15 44 122 304 721 1612 3469 7176 14414 28124
@@ -153,11 +151,17 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
     def __init__(self, Lam):
         """
         Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: Lambda = RootSystem(['A',3,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: v = IntegrableRepresentation(Lambda[1]+Lambda[2]+Lambda[3])
+            sage: TestSuite(v).run()
         """
         CategoryObject.__init__(self, base=ZZ, category=Modules(ZZ))
 
-        if not Lam.parent()._extended:
-            raise ValueError("The parent of %s must be an extended affine root lattice."%Lam)
+        if not Lam.parent().cartan_type().is_affine() or not Lam.parent()._extended:
+            raise ValueError("the parent of %s must be an extended affine root lattice"%Lam)
         self._Lam = Lam
         self._P = Lam.parent()
         self._Q = self._P.root_system.root_lattice()
@@ -165,7 +169,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         self._cartan_matrix = self._P.root_system.cartan_matrix()
         self._cartan_type = self._P.root_system.cartan_type()
         if not self._cartan_type.is_untwisted_affine():
-            raise NotImplementedError("Integrable Representations are only implemented for Untwisted Affine Types.")
+            raise NotImplementedError("integrable representations are only implemented for untwisted affine types")
         self._classical_rank = self._cartan_type.classical().rank()
         self._index_set = self._P.index_set()
         self._index_set_classical = self._cartan_type.classical().index_set()
@@ -173,40 +177,35 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
         self._ddict = {}
         self._mdict = {tuple(0 for i in self._index_set): 1}
-        self._rho = self._P.rho()
-        self._delta = self._Q.null_root()
         # Coerce a classical root into the root lattice Q
         from_cl_root = lambda h: self._Q._from_dict(h._monomial_coefficients)
         self._classical_roots = [from_cl_root(al)
                                  for al in self._Q.classical().roots()]
         self._classical_positive_roots = [from_cl_root(al)
                                           for al in self._Q.classical().positive_roots()]
-        self._eps = {i: self._cartan_type.a()[i] / self._cartan_type.dual().a()[i]
-                     for i in self._index_set}
-        self._a = self._cartan_type.a()
-        self._ac = self._cartan_type.dual().a()
-        self._coxeter_number = sum(self._a[i] for i in self._index_set)
-        self._dual_coxeter_number = sum(self._ac[i] for i in self._index_set)
+        self._a = self._cartan_type.a() # This is not cached
+        self._ac = self._cartan_type.dual().a() # This is not cached
+        self._eps = {i: self._a[i] / self._ac[i] for i in self._index_set}
+        self._coxeter_number = sum(self._a)
+        self._dual_coxeter_number = sum(self._ac)
         E = Matrix.diagonal([self._eps[i] for i in self._index_set_classical])
         self._ip = (self._cartan_type.classical().cartan_matrix()*E).inverse()
-        self._den0 = self._inner_pp(self._Lam+self._rho, self._Lam+self._rho)
 
     def highest_weight(self):
         """
-        Returns the highest weight of the IntegrableRepresentation ``self``.
+        Returns the highest weight of ``self``.
 
         EXAMPLES::
 
             sage: Lambda = RootSystem(['D',4,1]).weight_lattice(extended=true).fundamental_weights()
             sage: IntegrableRepresentation(Lambda[0]+2*Lambda[2]).highest_weight()
             Lambda[0] + 2*Lambda[2]
-
         """
         return self._Lam
 
     def weight_lattice(self):
         """
-        Returns the Weight Lattice of ``self``.
+        Return the weight lattice associated to ``self``.
 
         EXAMPLES::
 
@@ -214,12 +213,11 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             sage: v.weight_lattice()
             Extended weight lattice of the Root system of type ['E', 6, 1]
         """
-
         return self._P
 
     def root_lattice(self):
         """
-        Returns the Root Lattice of ``self``.
+        Return the root lattice associated to ``self``.
 
         EXAMPLES::
 
@@ -229,47 +227,27 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         """
         return self._Q
 
-    def null_root(self):
-        """
-        Returns the nullroot of ``self``.
-
-        EXAMPLES::
-        
-            sage: Lambda = RootSystem(['G',2,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: v=IntegrableRepresentation(Lambda[0])
-            sage: delta = v.null_root(); delta
-            alpha[0] + 3*alpha[1] + 2*alpha[2]
-        """
-        return self._delta
-
-    def rho(self):
-        """
-        Returns the Weyl vector `\\rho`.
-
-        EXAMPLES::
-
-            sage: Lambda = RootSystem(['G',2,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: IntegrableRepresentation(Lambda[0]).rho()
-            Lambda[0] + Lambda[1] + Lambda[2]
-        """
-        return self._rho
-
+    @cached_method
     def level(self):
         """
-        The level of the representation equals `(\Lambda|\delta)`. See [Kac] section 12.4.
+        Return the level of ``self``.
+
+        The level of a highest weight representation `B(\Lambda)` is
+        defined as `(\Lambda | \delta)` See [Kac]_ section 12.4.
 
         EXAMPLES::
 
             sage: Lambda = RootSystem(['G',2,1]).weight_lattice(extended=true).fundamental_weights()
             sage: [IntegrableRepresentation(Lambda[i]).level() for i in [0,1,2]]
             [1, 1, 2]
-
         """
-        return ZZ(self._inner_pq(self._Lam, self._delta))
+        return ZZ(self._inner_pq(self._Lam, self._Q.null_root()))
 
     def coxeter_number(self):
         """
-        The dual Coxeter number is defined in [Kac] Chapter 6, and commonly
+        Return the Coxeter number of the Cartan type of ``self``.
+
+        The Coxeter number is defined in [Kac]_ Chapter 6, and commonly
         denoted `h`.
 
         EXAMPLES::
@@ -278,14 +256,15 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             sage: v = IntegrableRepresentation(Lambda[0])
             sage: v.coxeter_number()
             12
-
         """
         return self._coxeter_number
 
     def dual_coxeter_number(self):
-        """
-        The dual Coxeter number is defined in [Kac] Chapter 6, and commonly
-        denoted `h^\\vee`.
+        r"""
+        Return the dual Coxeter number of the Cartan type of ``self``.
+
+        The dual Coxeter number is defined in [Kac]_ Chapter 6, and commonly
+        denoted `h^{\vee}`.
 
         EXAMPLES::
 
@@ -293,28 +272,54 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             sage: v = IntegrableRepresentation(Lambda[0])
             sage: v.dual_coxeter_number()
             9
-
         """
         return self._dual_coxeter_number
 
-    def __repr__(self):
+    def _repr_(self):
         """
-        Return a representation of ``self``.
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: Lambda = RootSystem(['F',4,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: IntegrableRepresentation(Lambda[0])
+            Integrable representation of ['F', 4, 1] with highest weight Lambda[0]
         """
-        return "The Integrable representation of %s with highest weight %s"%(self._cartan_type, self._Lam)
+        return "Integrable representation of %s with highest weight %s"%(self._cartan_type, self._Lam)
+
+    def _latex_(self):
+        """
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: Lambda = RootSystem(['C',3,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: v = IntegrableRepresentation(Lambda[0]+2*Lambda[3])
+            sage: latex(v)
+            B(\Lambda_{0} + 2\Lambda_{3})
+        """
+        return "B({})".format(self._Lam._latex_())
 
     def cartan_type(self):
         """
-        Return the Cartan Type of ``self``.
+        Return the Cartan type of ``self``.
+
+        EXAMPLES::
+
+            sage: Lambda = RootSystem(['F',4,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: v = IntegrableRepresentation(Lambda[0])
+            sage: v.cartan_type()
+            ['F', 4, 1]
         """
         return self._cartan_type
 
     def _inner_qq(self, qelt1, qelt2):
         """
-        Symmetric form between two elements of the root lattice.
-        
+        Symmetric form between two elements of the root lattice
+        associated to ``self``.
+
         EXAMPLES::
-            
+
             sage: P = RootSystem(['F',4,1]).weight_lattice(extended=true)
             sage: Lambda = P.fundamental_weights()
             sage: v = IntegrableRepresentation(Lambda[0])
@@ -333,7 +338,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             and it will be wrong. To make this code robust, parents
             should be checked. This is not done since in the application
             the parents are known, so checking would unnecessarily slow
-=            us down.
+            us down.
         """
         mc1 = qelt1.monomial_coefficients()
         mc2 = qelt2.monomial_coefficients()
@@ -344,7 +349,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
     def _inner_pq(self, pelt, qelt):
         """
-        Symmetric form between an element of the weight and root lattices.
+        Symmetric form between an element of the weight and root lattices
+        associated to ``self``.
 
         .. WARNING:
 
@@ -383,7 +389,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
     def _inner_pp(self, pelt1, pelt2):
         """
-        Symmetric form between an two elements of the weight lattice.
+        Symmetric form between an two elements of the weight lattice
+        associated to ``self``.
 
         EXAMPLES::
 
@@ -399,24 +406,30 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             [  0   0   0]
             [  0 2/3   1]
             [  0   1   2]
-
         """
         mc1 = pelt1.monomial_coefficients()
         mc2 = pelt2.monomial_coefficients()
-        return sum(mc1.get(i,0)*self._ac[i]*mc2.get('delta',0) for i in self._index_set) +\
-           sum(mc2.get(i,0)*self._ac[i]*mc1.get('delta',0) for i in self._index_set) +\
-           sum(mc1.get(i,0)*mc2.get(j,0)*self._ip[i-1][j-1] for i in self._index_set_classical for j in self._index_set_classical)
+        zero = ZZ.zero()
+        mc1d = mc1.get('delta', zero)
+        mc2d = mc2.get('delta', zero)
+        return sum(mc1.get(i,zero) * self._ac[i] * mc2d
+                   + mc2.get(i,zero) * self._ac[i] * mc1d
+                   for i in self._index_set) \
+               + sum(mc1.get(i,zero) * mc2.get(j,zero) * self._ip[ii,ij]
+                     for ii, i in enumerate(self._index_set_classical)
+                     for ij, j in enumerate(self._index_set_classical))
 
     def to_weight(self, n):
-        """
+        r"""
+        Return the weight associated to the tuple ``n`` in ``self``.
+
+        If ``n`` is the tuple `(n_1, n_2, \ldots)`, then the associated
+        weight is `\Lambda - \sum_i n_i \alpha_i`, where `\Lambda`
+        is the weight of the representation.
+
         INPUT:
 
-        - ``n`` -- a tuple representing a weight.
-
-        Returns the weight associated to the tuple ``n``.  If ``n``
-        is the tuple `(n_1, n_2, \ldots)`, then the associated
-        weight is `\Lambda - \sum_i n_i \\alpha_i`, where `\Lambda`
-        is the weight of the representation.
+        - ``n`` -- a tuple representing a weight
 
         EXAMPLES::
 
@@ -424,7 +437,6 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             sage: v = IntegrableRepresentation(2*Lambda[2])
             sage: v.to_weight((1,0,0))
             -2*Lambda[0] + Lambda[1] + 3*Lambda[2] - delta
-
         """
         alpha = self._P.simple_roots()
         I = self._index_set
@@ -433,7 +445,11 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
     def _from_weight_helper(self, mu, check=False):
         r"""
-        Return ``(n[0], n[1], ...)`` such that ``mu = sum n[i]*alpha[i]``.
+        Return the coefficients of a tuple of the weight ``mu`` expressed
+        in terms of the simple roots in ``self``.
+
+        The tuple ``n`` is defined as the tuple `(n_0, n_1, \ldots)`
+        such that `\mu = \sum_{i \in I} n_i \alpha_i`.
 
         INPUT:
 
@@ -443,25 +459,6 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
             Implement this as a section map of the inverse of the
             coercion from `Q \to P`.
-        """
-        mu = self._P(mu)
-        n0 = mu.monomial_coefficients().get('delta', 0)
-        mu0 = mu - n0*self._P.simple_root(self._cartan_type.special_node())
-        ret = [n0] # This should be in ZZ because it is in the weight lattice
-        mc_mu0 = mu0.monomial_coefficients()
-        zero = ZZ.zero()
-        for i in self._index_set_classical:
-            # -1 for indexing
-            ret.append( sum(self._cminv[i-1,j-1] * mc_mu0.get(j, zero)
-                               for j in self._index_set_classical) )
-        if check:
-            return all(x in ZZ for x in ret)
-        else:
-            return tuple(ZZ(x) for x in ret)
-    
-    def from_weight(self, mu):
-        """
-        Return ``(n[0], n[1], ...)`` such that ``mu = Lam - sum n[i]*alpha[i]``
 
         EXAMPLES::
 
@@ -469,24 +466,53 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             sage: v = IntegrableRepresentation(2*Lambda[2])
             sage: v.to_weight((1,0,0))
             -2*Lambda[0] + Lambda[1] + 3*Lambda[2] - delta
-            sage: delta = v.null_root()
+            sage: delta = v.weight_lattice().null_root()
+            sage: v._from_weight_helper(2*Lambda[0] - Lambda[1] - 1*Lambda[2] + delta)
+            (1, 0, 0)
+        """
+        mu = self._P(mu)
+        zero = ZZ.zero()
+        n0 = mu.monomial_coefficients().get('delta', zero)
+        mu0 = mu - n0 * self._P.simple_root(self._cartan_type.special_node())
+        ret = [n0] # This should be in ZZ because it is in the weight lattice
+        mc_mu0 = mu0.monomial_coefficients()
+        for ii, i in enumerate(self._index_set_classical):
+            # -1 for indexing
+            ret.append( sum(self._cminv[ii,ij] * mc_mu0.get(j, zero)
+                               for ij, j in enumerate(self._index_set_classical)) )
+        if check:
+            return all(x in ZZ for x in ret)
+        else:
+            return tuple(ZZ(x) for x in ret)
+
+    def from_weight(self, mu):
+        r"""
+        Return the tuple `(n_0, n_1, ...)`` such that ``mu`` equals
+        `\Lambda - sum_{i \in I} n_i \alpha_i` in ``self``, where `\Lambda`
+        is the highest weight of ``self``.
+
+        EXAMPLES::
+
+            sage: Lambda = RootSystem(['A',2,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: v = IntegrableRepresentation(2*Lambda[2])
+            sage: v.to_weight((1,0,0))
+            -2*Lambda[0] + Lambda[1] + 3*Lambda[2] - delta
+            sage: delta = v.weight_lattice().null_root()
             sage: v.from_weight(-2*Lambda[0] + Lambda[1] + 3*Lambda[2] - delta)
             (1, 0, 0)
-
         """
         return self._from_weight_helper(self._Lam - mu)
 
     def s(self, n, i):
         """
-        Implements the `i`-th simple reflection in the internal
-        representation of weights by tuples.
+        Return the action of the ``i``-th simple reflection on the
+        internal representation of weights by tuples ``n`` in ``self``.
 
         EXAMPLES::
 
             sage: v = IntegrableRepresentation(RootSystem(['A',2,1]).weight_lattice(extended=true).fundamental_weight(0))
             sage: [v.s((0,0,0),i) for i in v._index_set]
             [(1, 0, 0), (0, 0, 0), (0, 0, 0)]
-
         """
         ret = list(n) # This makes a copy
         ret[i] += self._Lam._monomial_coefficients.get(i, ZZ.zero())
@@ -495,7 +521,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
     def to_dominant(self, n):
         """
-        Return the dominant weight equivalent to ``n`` under the affine Weyl group.
+        Return the dominant weight in ``self`` equivalent to ``n``
+        under the affine Weyl group.
 
         EXAMPLES::
 
@@ -543,18 +570,47 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
     def _freudenthal_roots_imaginary(self, nu):
         r"""
-        It is assumed that ``nu`` is in `Q`. Returns the set of imaginary
-        roots `\alpha \in \Delta^+` such that `\\nu - \alpha \in Q^+`.
+        Return the set of imaginary roots `\alpha \in \Delta^+` in ``self``
+        such that `\nu - \alpha \in Q^+`.
+
+        INPUT:
+
+        - ``nu`` -- an element in `Q`
+
+        EXAMPLES::
+
+            sage: Lambda = RootSystem(['B',3,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: v = IntegrableRepresentation(Lambda[0]+Lambda[1]+Lambda[3])   
+            sage: [v._freudenthal_roots_imaginary(v.highest_weight() - mw)
+            ....:  for mw in v.dominant_maximal_weights()]
+            [[], [], [], [], []]
         """
         l = self._from_weight_helper(nu)
-        kp = min(floor(l[i] / self._a[i]) for i in self._index_set)
+        kp = min(l[i] // self._a[i] for i in self._index_set)
         delta = self._Q.null_root()
-        return [u*delta for u in range(1, kp+1)]
+        return [u * delta for u in range(1, kp+1)]
 
     def _freudenthal_roots_real(self, nu):
         r"""
-        It is assumed that ``nu`` is in `Q`. Returns the set of real positive
-        roots `\alpha \in \Delta^+` such that `\\nu - \alpha \in Q^+`.
+        Return the set of real positive roots `\alpha \in \Delta^+` in
+        ``self`` such that `\nu - \alpha \in Q^+`.
+
+        INPUT:
+
+        - ``nu`` -- an element in `Q`
+
+        EXAMPLES::
+
+            sage: Lambda = RootSystem(['B',3,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: v = IntegrableRepresentation(Lambda[0]+Lambda[1]+Lambda[3])
+            sage: mw = v.dominant_maximal_weights()[0]
+            sage: v._freudenthal_roots_real(v.highest_weight() - mw)
+            [alpha[1],
+             alpha[2],
+             alpha[3],
+             alpha[1] + alpha[2],
+             alpha[2] + alpha[3],
+             alpha[1] + alpha[2] + alpha[3]]
         """
         ret = []
         for al in self._classical_positive_roots:
@@ -567,7 +623,16 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
     def _freudenthal_accum(self, nu, al):
         """
-        Helper method for computing the Freudenthal formula.
+        Helper method for computing the Freudenthal formula in ``self``.
+
+        EXAMPLES::
+
+            sage: Lambda = RootSystem(['B',3,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: v = IntegrableRepresentation(Lambda[0]+Lambda[1]+Lambda[3])
+            sage: mw = v.dominant_maximal_weights()[0]
+            sage: F = v._freudenthal_roots_real(v.highest_weight() - mw)
+            sage: [v._freudenthal_accum(mw, al) for al in F]
+            [4, 4, 3, 4, 3, 3]
         """
         ret = 0
         n = list(self._from_weight_helper(self._Lam - nu))
@@ -587,7 +652,17 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
     def _m_freudenthal(self, n):
         """
-        Compute the weight multiplicity using the Freudenthal multiplicity formula.
+        Compute the weight multiplicity using the Freudenthal
+        multiplicity formula in ``self``.
+
+        EXAMPLES::
+
+            sage: Lambda = RootSystem(['B',3,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: v = IntegrableRepresentation(Lambda[0]+Lambda[1]+Lambda[3])
+            sage: D = list(v.dominant_maximal_weights())
+            sage: D.remove(v.highest_weight())
+            sage: [v._m_freudenthal(v.from_weight(mw)) for mw in D]
+            [3, 7, 3, 3]
         """
         if min(n) < 0:
             return 0
@@ -601,27 +676,25 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             num += self._freudenthal_accum(mu, al)
         for al in self._freudenthal_roots_imaginary(self._Lam - mu):
             num += self._classical_rank * self._freudenthal_accum(mu, al)
-        if den == 0 and num == 0:
-            print "_m_freudenthal","m: n=%s, num=den=0"%n.__repr__()
         try:
             return ZZ(num / den)
-        except:
+        except TypeError:
             return None
 
     def m(self, n):
-        """
+        r"""
+        Return the multiplicity of the weight `\mu` in ``self``, where
+        `\mu = \Lambda - \sum_i n_i \alpha_i`.
+
         INPUT:
         
         - ``n`` -- a tuple representing a weight `\mu`.
-
-        Return the multiplicity of the weight `\mu` in ``self``, where
-        `\mu = \Lambda - \sum_i n_i \\alpha_i`.
 
         EXAMPLES::
 
             sage: Lambda = RootSystem(['E',6,1]).weight_lattice(extended=true).fundamental_weights()
             sage: v = IntegrableRepresentation(Lambda[0])
-            sage: u = v.highest_weight()-v.null_root()
+            sage: u = v.highest_weight() - v.weight_lattice().null_root()
             sage: v.from_weight(u)
             (1, 1, 2, 2, 3, 2, 1)
             sage: v.m(v.from_weight(u))
@@ -632,27 +705,28 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         #   - m
         #   - _m_freudenthal
         #   - _freudenthal_accum
-        if self._mdict.has_key(n):
+        if n in self._mdict:
             return self._mdict[n]
-        elif self._ddict.has_key(n):
+        elif n in self._ddict:
             self._mdict[n] = self.m(self._ddict[n])
         m = self.to_dominant(n)
-        if self._mdict.has_key(m):
+        if m in self._mdict:
             return self._mdict[m]
         ret = self._m_freudenthal(m)
-        if ret is not None:
-            self._mdict[n] = ret
-        else:
-            print "m: error - failed to compute m%s"%n.__repr__()
+        assert ret is not None, "m: error - failed to compute m{}".format(n)
+        self._mdict[n] = ret
         return ret
 
+    @cached_method
     def dominant_maximal_weights(self):
-        """
-        A weight `\\mu` is *maximal* if it has nonzero multiplicity but
-        `\\mu+\\delta`` has multiplicity zero. There are a finite number
-        of dominant maximal weights. Indeed, [Kac] Proposition 12.6
+        r"""
+        Return the dominant maximal weights of ``self``.
+
+        A weight `\mu` is *maximal* if it has nonzero multiplicity but
+        `\mu + \delta`` has multiplicity zero. There are a finite number
+        of dominant maximal weights. Indeed, [Kac]_ Proposition 12.6
         shows that the dominant maximal weights are in bijection with
-        the classical weights in `k\cdot F` where `F` is the fundamental
+        the classical weights in `k \cdot F` where `F` is the fundamental
         alcove and `k` is the level. The construction used in this
         method is based on that Proposition.
 
@@ -660,39 +734,50 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
             sage: Lambda = RootSystem(['C',3,1]).weight_lattice(extended=true).fundamental_weights()
             sage: IntegrableRepresentation(2*Lambda[0]).dominant_maximal_weights()
-            [2*Lambda[0],
-            Lambda[0] + Lambda[2] - delta,
-            2*Lambda[1] - delta,
-            Lambda[1] + Lambda[3] - 2*delta,
-            2*Lambda[2] - 2*delta,
-            2*Lambda[3] - 3*delta]
-     
+            (2*Lambda[0],
+             Lambda[0] + Lambda[2] - delta,
+             2*Lambda[1] - delta,
+             Lambda[1] + Lambda[3] - 2*delta,
+             2*Lambda[2] - 2*delta,
+             2*Lambda[3] - 3*delta)
         """
         k = self.level()
         Lambda = self._P.fundamental_weights()
         def next_level(wt):
-            return [wt + Lambda[i] for i in self._index_set_classical if (wt + Lambda[i]).level() <= k]
+            return [wt + Lambda[i] for i in self._index_set_classical
+                    if (wt + Lambda[i]).level() <= k]
         R = RecursivelyEnumeratedSet([self._P.zero()], next_level)
         candidates = [x + (k - x.level())*Lambda[0] for x in list(R)]
         ret = []
+        delta = self._Q.null_root()
         for x in candidates:
             if self._from_weight_helper(self._Lam-x, check=True):
                 t = 0
-                while self.m(self.from_weight(x-t*self._delta)) == 0:
+                while self.m(self.from_weight(x - t*delta)) == 0:
                     t += 1
-                ret.append(x-t*self._delta)
-        return ret
+                ret.append(x - t*delta)
+        return tuple(ret)
 
     def string(self, max_weight, depth=12):
         """
-        Return the list of multiplicities `m(\Lambda - k \delta)` where
-        `\Lambda` is ``max_weight`` and `k` runs from `0` to ``depth``.
+        Return the list of multiplicities `m(\Lambda - k \delta)` in
+        ``self``, where `\Lambda` is ``max_weight`` and `k` runs from `0`
+        to ``depth``.
 
         INPUT:
 
         - ``max_weight`` -- a dominant maximal weight
         - ``depth`` -- (default: 12) the maximum value of `k`
-            """
+
+        EXAMPLES::
+
+            sage: Lambda = RootSystem(['A',2,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: v = IntegrableRepresentation(2*Lambda[0])
+            sage: v.string(2*Lambda[0])
+            [1, 2, 8, 20, 52, 116, 256, 522, 1045, 1996, 3736, 6780]
+            sage: v.string(Lambda[1] + Lambda[2])
+            [0, 1, 4, 12, 32, 77, 172, 365, 740, 1445, 2736, 5041]
+        """
         ret = []
         delta = self._Q.null_root()
         cur_weight = max_weight
@@ -701,7 +786,6 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             cur_weight -= delta
         return ret
 
-    # FIXME: Return a dictionary
     def strings(self, depth=12):
         """
         Return the set of dominant maximal weights of ``self``, together
@@ -709,53 +793,73 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
         OPTIONAL:
 
-        - ``depth`` -- a parameter indicating how far to push computations
-
-        The depth parameter defaults to 12.
+        - ``depth`` -- (default: 12) a parameter indicating how far
+          to push computations
 
         EXAMPLES::
 
             sage: Lambda = RootSystem(['A',1,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: IntegrableRepresentation(2*Lambda[0]).strings(depth=25)
+            sage: v = IntegrableRepresentation(2*Lambda[0])
+            sage: S = v.strings(depth=25)
+            sage: for k in S:
+            ....:     print "{}: {}".format(k, ' '.join(str(x) for x in S[k]))
             2*Lambda[0]: 1 1 3 5 10 16 28 43 70 105 161 236 350 501 722 1016 1431 1981 2741 3740 5096 6868 9233 12306 16357
             2*Lambda[1] - delta: 1 2 4 7 13 21 35 55 86 130 196 287 420 602 858 1206 1687 2331 3206 4368 5922 7967 10670 14193 18803
-
         """
-        for max_weight in self.dominant_maximal_weights():
-            s = self.string(max_weight, depth)
-            print "%s:"%max_weight,
-            for j in s:
-                print j,
-            print
+        return {max_weight: self.string(max_weight, depth)
+                for max_weight in self.dominant_maximal_weights()}
+
+    def print_strings(self, depth=12):
+        """
+        Print the strings of ``self``.
+
+        .. SEEALSO::
+
+            :meth:`strings`
+
+        EXAMPLES::
+
+            sage: Lambda = RootSystem(['A',1,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: v = IntegrableRepresentation(2*Lambda[0])
+            sage: v.print_strings(depth=25)
+            2*Lambda[0]: 1 1 3 5 10 16 28 43 70 105 161 236 350 501 722 1016 1431 1981 2741 3740 5096 6868 9233 12306 16357
+            2*Lambda[1] - delta: 1 2 4 7 13 21 35 55 86 130 196 287 420 602 858 1206 1687 2331 3206 4368 5922 7967 10670 14193 18803
+        """
+        S = self.strings(depth=depth)
+        for mw in self.dominant_maximal_weights():
+            print( "{}: {}".format(mw, ' '.join(str(x) for x in S[mw])) )
 
     def modular_characteristic(self, mu=None):
-        """
+        r"""
+        Return the modular characteristic of ``self``.
+
         The modular characteristic is a rational number introduced
-        by Kac and Peterson (1984), required to interpret the string
-        functions as Fourier coefficients of modular forms. See
-        [Kac] Section 12.7. Let `k` be the level, and let `h^\\vee`
+        by Kac and Peterson [KacPeterson]_, required to interpret the
+        string functions as Fourier coefficients of modular forms. See
+        [Kac]_ Section 12.7. Let `k` be the level, and let `h^\vee`
         be the dual Coxeter number. Then
 
         .. MATH::
 
-            m_\Lambda = \\frac{|\Lambda+\\rho|^2}{2(k+h^\\vee)} - \\frac{|\\rho|^2}{2h^\\vee}
+            m_\Lambda = \frac{|\Lambda+\rho|^2}{2(k+h^\vee)}
+            - \frac{|\rho|^2}{2h^\vee}
 
-        If $\mu$ is a weight, then
+        If `\mu` is a weight, then
 
         .. MATH::
 
-            m_{\Lambda,\mu} = m_\Lambda - \\frac{|\mu|^2}{2k}.
-            
+            m_{\Lambda,\mu} = m_\Lambda - \frac{|\mu|^2}{2k}.
+
         OPTIONAL:
 
         - ``mu`` -- a weight; or alternatively:
         - ``n`` -- a tuple representing a weight `\mu`.
 
-        If not optional parameter is specified, The function returns `m_\Lambda`.
-        If ``mu`` is specified, it returns `m_{\Lambda,\mu}`. You may use the
-        tuple ``n`` to specify `\mu`. If you do this, `\mu` is
-        `\Lambda - \sum_i n_i \\alpha_i`.
-        
+        If no optional parameter is specified, this returns `m_\Lambda`.
+        If ``mu`` is specified, it returns `m_{\Lambda,\mu}`. You may
+        use the tuple ``n`` to specify `\mu`. If you do this, `\mu` is
+        `\Lambda - \sum_i n_i \alpha_i`.
+
         EXAMPLES::
 
             sage: Lambda = RootSystem(['A',1,1]).weight_lattice(extended=true).fundamental_weights()
@@ -769,16 +873,18 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             n = self.from_weight(mu)
         k = self.level()
         hd = self._dual_coxeter_number
-        m_Lambda = self._inner_pp(self._Lam+self._rho, self._Lam+self._rho)/(2*(k+hd)) - \
-                   self._inner_pp(self._rho,self._rho)/(2*hd)
+        rho = self._P.rho()
+        m_Lambda = self._inner_pp(self._Lam+rho, self._Lam+rho) / (2*(k+hd)) \
+                   - self._inner_pp(rho, rho) / (2*hd)
         if n is None:
             return m_Lambda
-        else:
-            mu = self.to_weight(n)
-            return m_Lambda-self._inner_pp(mu,mu)/(2*k)
+        mu = self.to_weight(n)
+        return m_Lambda - self._inner_pp(mu,mu) / (2*k)
 
-    def branch(self, i=0, weyl_character_ring=None, sequence=None, depth=5):
-        """
+    def branch(self, i=None, weyl_character_ring=None, sequence=None, depth=5):
+        r"""
+        Return the branching rule on ``self``.
+
         Removing any node from the extended Dynkin diagram of the affine
         Lie algebra results in the Dynkin diagram of a classical Lie
         algebra, which is therefore a Lie subalgebra. For example
@@ -795,13 +901,15 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
 
         OPTIONAL:
 
-        - ``i`` -- an element of the index set (default 0)
+        - ``i`` -- (default: 0) an element of the index set
         - ``weyl_character_ring`` -- a WeylCharacterRing
         - ``sequence`` -- a dictionary
-        - ``depth`` -- an upper bound for `k` determining how many terms to give (default 5)
+        - ``depth`` -- (default: 5) an upper bound for `k` determining
+          how many terms to give
 
-        In the default case where `i=0`, you do not need to specify anything else,
-        though you may want to increase the depth if you need more terms.
+        In the default case where `i = 0`, you do not need to specify
+        anything else, though you may want to increase the depth if
+        you need more terms.
 
         EXAMPLES::
 
@@ -809,11 +917,11 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             sage: v = IntegrableRepresentation(2*Lambda[0])
             sage: b = v.branch(); b
             [A2(0,0),
-            A2(1,1),
-            A2(0,0) + 2*A2(1,1) + A2(2,2),
-            2*A2(0,0) + 2*A2(0,3) + 4*A2(1,1) + 2*A2(3,0) + 2*A2(2,2),
-            4*A2(0,0) + 3*A2(0,3) + 10*A2(1,1) + 3*A2(3,0) + A2(1,4) + 6*A2(2,2) + A2(4,1),
-            6*A2(0,0) + 9*A2(0,3) + 20*A2(1,1) + 9*A2(3,0) + 3*A2(1,4) + 12*A2(2,2) + 3*A2(4,1) + A2(3,3)]
+             A2(1,1),
+             A2(0,0) + 2*A2(1,1) + A2(2,2),
+             2*A2(0,0) + 2*A2(0,3) + 4*A2(1,1) + 2*A2(3,0) + 2*A2(2,2),
+             4*A2(0,0) + 3*A2(0,3) + 10*A2(1,1) + 3*A2(3,0) + A2(1,4) + 6*A2(2,2) + A2(4,1),
+             6*A2(0,0) + 9*A2(0,3) + 20*A2(1,1) + 9*A2(3,0) + 3*A2(1,4) + 12*A2(2,2) + 3*A2(4,1) + A2(3,3)]
 
         If the parameter weyl_character_ring is omitted, the ring may be recovered
         as the parent of one of the branched coefficients::
@@ -834,9 +942,10 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             1   2   3   
             B3~
 
-        In this example, we observe that removing the `i=2` node from the Dynkin diagram
-        produces a reducible diagram of type ``A1xA1xA1``. Thus we have a branching
-        to `\mathfrak{sl}(2)\\times \mathfrak{sl}(2)\\times \mathfrak{sl}(2)`::
+        In this example, we observe that removing the `i=2` node from the
+        Dynkin diagram produces a reducible diagram of type ``A1xA1xA1``.
+        Thus we have a branching to
+        `\mathfrak{sl}(2) \times \mathfrak{sl}(2) \times \mathfrak{sl}(2)`::
 
             sage: A1xA1xA1 = WeylCharacterRing("A1xA1xA1",style="coroots")
             sage: v.branch(i=2,weyl_character_ring=A1xA1xA1)
@@ -872,7 +981,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         The nodes `0, 2, 3, 4` of ``F4~`` correspond to ``1, 4, 3, 2``
         of ``A1xC3`` and so we encode this in a dictionary::
 
-            sage: v.branch(i=1,weyl_character_ring=A1xC3,sequence={0:1,2:4,3:3,4:2})
+            sage: v.branch(i=1,weyl_character_ring=A1xC3,sequence={0:1,2:4,3:3,4:2}) # long time
             [A1xC3(1,0,0,0),
              A1xC3(0,0,0,1),
              A1xC3(1,0,0,0) + A1xC3(1,2,0,0),
@@ -881,14 +990,16 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
              2*A1xC3(2,0,0,1) + A1xC3(2,1,1,0) + A1xC3(0,1,0,0) + 3*A1xC3(0,0,0,1) + 2*A1xC3(0,1,1,0) + A1xC3(0,2,0,1)]
 
         """
-        if i==0 or self.cartan_type()[0] == 'A':
+        if i is None:
+            i = self._cartan_type.special_node()
+        if i == self._cartan_type.special_node() or self._cartan_type.type() == 'A':
             if weyl_character_ring is None:
-                weyl_character_ring = WeylCharacterRing(self.cartan_type().classical(), style="coroots")
-            if weyl_character_ring.cartan_type() != self.cartan_type().classical():
-                raise ValueError("Cartan Type of WeylCharacterRing must be %s"%self.cartan_type().classical())
+                weyl_character_ring = WeylCharacterRing(self._cartan_type.classical(), style="coroots")
+            if weyl_character_ring.cartan_type() != self._cartan_type.classical():
+                raise ValueError("Cartan type of WeylCharacterRing must be %s"%self.cartan_type().classical())
         elif weyl_character_ring is None:
-            raise ValueError("""The argument "weyl_character_ring" cannot be omitted if "i != 0" """)
-        if sequence == None:
+            raise ValueError("the argument weyl_character_ring cannot be omitted if i != 0")
+        if sequence is None:
             sequence = {}
             for j in self._index_set:
                 if j < i:
@@ -901,7 +1012,6 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
                 t = list(x[0])
                 t[j] += 1
                 t = tuple(t)
-                u = self.to_weight(t)
                 m = self.m(t)
                 if m > 0 and t[i] <= depth:
                     ret.append((t,m))
@@ -916,10 +1026,12 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             ldict = {}
             for x in lterms:
                 mc = P(self.to_weight(x[0])).monomial_coefficients()
-                contr = sum(fw[sequence[j]]*mc.get(j,0) for j in self._index_set if j != i).coerce_to_sl()
+                contr = sum(fw[sequence[j]]*mc.get(j,0)
+                            for j in self._index_set if j != i).coerce_to_sl()
                 if ldict.has_key(contr):
                     ldict[contr] += x[1]
                 else:
                     ldict[contr] = x[1]
             ret.append(weyl_character_ring.char_from_weights(ldict))
         return ret
+

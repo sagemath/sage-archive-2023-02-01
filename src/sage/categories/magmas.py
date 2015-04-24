@@ -1045,7 +1045,8 @@ class Magmas(Category_singleton):
 
                     sage: S = Semigroups().Subquotients().example()
                     sage: S
-                    An example of a (sub)quotient semigroup: a quotient of the left zero semigroup
+                    An example of a (sub)quotient semigroup:
+                    a quotient of the left zero semigroup
                     sage: S.product(S(19), S(3))
                     19
 

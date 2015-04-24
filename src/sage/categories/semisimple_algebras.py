@@ -167,8 +167,8 @@ class SemisimpleAlgebras(Category_over_base_ring):
                     @cached_method
                     def _orthogonal_decomposition(self, generators=None):
                         r"""
-                        Return a list of orthogonal quasi-idempotents of this
-                        semisimple commutative finite dimensional algebra.
+                        Return a maximal list of orthogonal quasi-idempotents of
+                        this finite dimensional semisimple commutative algebra.
 
                         INPUT:
 
@@ -177,11 +177,18 @@ class SemisimpleAlgebras(Category_over_base_ring):
 
                         OUTPUT:
 
-                        - list of elements of ``self`` each generating a one
-                          dimensional simple submodule summand of ``self``. The
-                          list is maximal in the sense that no quasi-idempotent
-                          `e` can be decomposed as a sum `e = e_1 + e_2` of
-                          quasi-idempotents elements.
+                        - a list of quasi-idempotent elements of ``self``.
+
+                        Each quasi-idempotent `e` spans a one
+                        dimensional (non unital) subalgebra of
+                        ``self``, and cannot be decomposed as a sum
+                        `e=e_1+e_2` of quasi-idempotents elements.
+                        All together, they form a basis of ``self``.
+
+                        Up to the order and scalar factors, the result
+                        is unique. In particular it does not depend on
+                        the provided generators which are only used
+                        for improved efficiency.
 
                         ALGORITHM:
 

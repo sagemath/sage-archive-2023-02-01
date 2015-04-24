@@ -508,14 +508,11 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: A.is_identity_decomposition_into_orthogonal_idempotents(idempotents)
                 True
 
-            We construct orthogonal idempotents of the algebra of the
+            We construct orthogonal idempotents for the algebra of the
             `0`-Hecke monoid::
 
-                sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
-                sage: W = WeylGroup(['A', 3]); W.rename("W")
-                sage: ambient_monoid = FiniteSetMaps(W, action="right")
-                sage: pi = W.simple_projections(length_increasing=True).map(ambient_monoid)
-                sage: A = AutomaticSemigroup(pi, one=ambient_monoid.one()).algebra(QQ)
+                sage: from sage.monoids.hecke_monoid import HeckeMonoid
+                sage: A = HeckeMonoid(SymmetricGroup(4)).algebra(QQ)
                 sage: idempotents = A.orthogonal_idempotents_central_mod_rad()
                 sage: A.is_identity_decomposition_into_orthogonal_idempotents(idempotents)
                 True
@@ -681,15 +678,10 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 [0 0 0 0 0 0 0 2 0]
                 [0 0 0 0 0 0 0 0 2]
 
-            With the 0-Hecke monoid algebra::
+            With the algebra of the `0`-Hecke monoid::
 
-                sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
-                sage: W = SymmetricGroup(4); W.rename("W")
-                sage: ambient_monoid = FiniteSetMaps(W, action="right")
-                sage: pi = W.simple_projections(length_increasing=True).map(ambient_monoid)
-                sage: H4 = ambient_monoid.submonoid(pi); H4
-                A submonoid of (Maps from W to itself) with 3 generators
-                sage: A = H4.algebra(QQ)
+                sage: from sage.monoids.hecke_monoid import HeckeMonoid
+                sage: A = HeckeMonoid(SymmetricGroup(4)).algebra(QQ)
                 sage: A.cartan_invariants_matrix()
                 [1 0 0 0 0 0 0 0]
                 [0 1 1 1 0 0 0 0]
@@ -903,10 +895,8 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             With the algebra of the `0`-Hecke monoid::
 
-                sage: W = SymmetricGroup(4); W.rename("W")
-                sage: ambient_monoid = FiniteSetMaps(W, action="right")
-                sage: pi = W.simple_projections(length_increasing=True).map(ambient_monoid)
-                sage: A = ambient_monoid.submonoid(pi).algebra(QQ)
+                sage: from sage.monoids.hecke_monoid import HeckeMonoid
+                sage: A = HeckeMonoid(SymmetricGroup(4)).algebra(QQ)
                 sage: idempotents = A.orthogonal_idempotents_central_mod_rad()
                 sage: A.is_identity_decomposition_into_orthogonal_idempotents(idempotents)
                 True

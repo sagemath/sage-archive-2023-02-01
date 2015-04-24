@@ -20,6 +20,7 @@ from sage.misc.latex import latex
 from sage.misc.sage_eval import sage_eval
 from sage.structure.sage_object import SageObject
 from sage.misc.superseded import deprecation
+from sage.misc.decorators import rename_keyword
 
 
 class HtmlFragment(str, SageObject):
@@ -267,7 +268,8 @@ class HTMLFragmentFactory(SageObject):
             s = s[j+7:]
         return HtmlFragment(t)
 
-    def table(self, x, header=False):
+    @rename_keyword(deprecation=18292, header='header_row')
+    def table(self, x, header_row=False):
         r"""
         Generate a HTML table.  
 
@@ -277,7 +279,7 @@ class HTMLFragmentFactory(SageObject):
 
         - ``x`` -- a list of lists (i.e., a list of table rows)
 
-        - ``header`` -- a row of headers.  If ``True``, then the first
+        - ``header_row`` -- a row of headers.  If ``True``, then the first
           row of the table is taken to be the header.
 
         OUTPUT:
@@ -318,7 +320,7 @@ class HTMLFragmentFactory(SageObject):
             </div>
 
             sage: output = html.table([(x,n(sin(x), digits=2)) for x in [0..3]], 
-            ....:                     header=["$x$", "$\sin(x)$"])
+            ....:                     header_row=["$x$", "$\sin(x)$"])
             sage: print(output)
             <div class="notruncate">
             <table class="table_form">
@@ -348,7 +350,7 @@ class HTMLFragmentFactory(SageObject):
             </div>
         """
         from table import table
-        return table(x, header_row=header)._html_()
+        return table(x, header_row=header_row)._html_()
 
     def iframe(self, url, height=400, width=800):
         r"""

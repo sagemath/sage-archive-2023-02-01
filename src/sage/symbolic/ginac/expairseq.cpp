@@ -207,7 +207,7 @@ void expairseq::do_print_tree(const print_tree & c, unsigned level) const
 		if (i != num - 1)
 			c.s << std::string(level + c.delta_indent, ' ') << "-----" << std::endl;
 	}
-	if (!overall_coeff.is_equal(default_overall_coeff())) {
+	if (!overall_coeff_equals_default()) {
 		c.s << std::string(level + c.delta_indent, ' ') << "-----" << std::endl
 		    << std::string(level + c.delta_indent, ' ') << "overall_coeff" << std::endl;
 		overall_coeff.print(c, level + c.delta_indent);
@@ -295,7 +295,7 @@ bool expairseq::info(unsigned inf) const
 
 size_t expairseq::nops() const
 {
-	if (overall_coeff.is_equal(default_overall_coeff()))
+	if (overall_coeff_equals_default())
 		return seq.size();
 	else
 		return seq.size()+1;
@@ -305,7 +305,7 @@ ex expairseq::op(size_t i) const
 {
 	if (i < seq.size())
 		return recombine_pair_to_ex(seq[i]);
-	GINAC_ASSERT(!overall_coeff.is_equal(default_overall_coeff()));
+	GINAC_ASSERT(!overall_coeff_equals_default());
 	return overall_coeff;
 }
 
@@ -314,7 +314,7 @@ ex expairseq::stable_op(size_t i) const
 	if (i < seq.size()) {
 		return recombine_pair_to_ex(get_sorted_seq()[i]);
 	}
-	GINAC_ASSERT(!overall_coeff.is_equal(default_overall_coeff()));
+	GINAC_ASSERT(!overall_coeff_equals_default());
 	return overall_coeff;
 }
 
@@ -329,7 +329,7 @@ ex expairseq::map(map_function &f) const
 		++cit;
 	}
 
-	if (overall_coeff.is_equal(default_overall_coeff()))
+	if (overall_coeff_equals_default())
 		return thisexpairseq(v, default_overall_coeff(), true);
 	else {
 		ex newcoeff = f(overall_coeff);
@@ -729,7 +729,7 @@ void expairseq::printseq(const print_context & c, char delim,
 		c.s << delim;
 	}
 	printpair(c, *it, this_precedence);
-	if (!overall_coeff.is_equal(default_overall_coeff())) {
+	if (!overall_coeff_equals_default()) {
 		c.s << delim;
 		overall_coeff.print(c, this_precedence);
 	}
@@ -784,6 +784,12 @@ bool expairseq::expair_needs_further_processing(epp it)
 ex expairseq::default_overall_coeff() const
 {
 	return _ex0;
+}
+
+bool expairseq::overall_coeff_equals_default() const
+{
+    numeric num = ex_to<numeric>(overall_coeff);
+    return (num.is_integer() && num.is_equal(ex_to<numeric>(default_overall_coeff())));
 }
 
 void expairseq::combine_overall_coeff(const ex &c)

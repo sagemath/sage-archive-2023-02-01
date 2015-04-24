@@ -135,6 +135,7 @@ protected:
 	void make_flat(const epvector & v, bool do_index_renaming = false);
 	void canonicalize();
 	void combine_same_terms_sorted_seq();
+        bool overall_coeff_equals_default() const;
 #if EXPAIRSEQ_USE_HASHTAB
 	void combine_same_terms();
 	unsigned calc_hashtabsize(unsigned sz) const;

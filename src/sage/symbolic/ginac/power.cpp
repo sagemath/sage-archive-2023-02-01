@@ -121,7 +121,7 @@ void power::print_power(const print_context & c, const char *powersymbol, const 
 
 void power::do_print_dflt(const print_dflt & c, unsigned level) const
 {
-       if ((-exponent).is_equal(_ex1)) {
+       if ((-exponent).is_integer_one()) {
 		// inverses printed in a special way
  	        if (level >= 20) c.s << "(";
 		c.s << "1/";
@@ -160,7 +160,7 @@ void power::do_print_dflt(const print_dflt & c, unsigned level) const
 		basis.print(c, precedence());
 		if (exp_parenthesis)
 			c.s << ')';
-		if (!exponent.is_equal(_ex_1)) {
+		if (!(-exponent).is_integer_one()) {
     		        c.s << "^" << expstr;
 		}
 		if (precedence() <= level)
@@ -199,7 +199,7 @@ void power::do_print_latex(const print_latex & c, unsigned level) const
 		if (base_parenthesis)
 			c.s << "\\right)";
 
-		if (!exponent.is_equal(_ex_1)) {
+		if (!(-exponent).is_integer_one()) {
     		        c.s << "^{";
 			bool exp_parenthesis = is_a<power>(exponent);
 			if (exp_parenthesis)
@@ -523,7 +523,7 @@ ex power::eval(int level) const
 	}
 	
 	// ^(x,1) -> x
-	if (eexponent.is_equal(_ex1))
+	if (eexponent.is_integer_one())
 		return ebasis;
 
 	// ^(0,c1) -> 0 or exception  (depending on real value of c1)
@@ -537,7 +537,7 @@ ex power::eval(int level) const
 	}
 
 	// ^(1,x) -> 1
-	if (ebasis.is_equal(_ex1))
+	if (ebasis.is_integer_one())
 		return _ex1;
 
 	// power of a function calculated by separate rules defined for this function
@@ -549,7 +549,6 @@ ex power::eval(int level) const
 		return power(ebasis.op(0), ebasis.op(1) * eexponent);
 
 	if (exponent_is_numerical) {
-
 		// ^(c1,c2) -> c1^c2  (c1, c2 numeric(),
 		// except if c1,c2 are rational, but c1^c2 is not)
 		if (basis_is_numerical) {

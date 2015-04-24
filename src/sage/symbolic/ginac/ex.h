@@ -231,6 +231,8 @@ public:
 	  return is_equal(_ex0); 
 	}
 	bool is_zero_matrix() const;
+        bool is_integer_one() const;
+        bool is_integer_pmone() const;
 	
 	// symmetry
 	ex symmetrize() const;

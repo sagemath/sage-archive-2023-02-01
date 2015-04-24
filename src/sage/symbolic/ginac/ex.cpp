@@ -266,6 +266,23 @@ bool ex::is_zero_matrix() const
 	}
 }
 
+bool ex::is_integer_one() const
+{
+    if (!is_exactly_a<numeric>(*this))
+        return false;
+    numeric num = ex_to<numeric>(*this);
+    return num.is_integer() && num.is_equal(*_num1_p);
+}
+  
+bool ex::is_integer_pmone() const
+{
+    if (!is_exactly_a<numeric>(*this))
+        return false;
+    numeric num = ex_to<numeric>(*this);
+    return ((num.is_integer()) &&
+            (num.is_equal(*_num1_p) || num.is_equal(*_num_1_p)));
+}
+
 size_t ex::nsymbols() const
 {
 	int res = 0;

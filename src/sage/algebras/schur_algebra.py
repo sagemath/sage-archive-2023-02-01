@@ -34,7 +34,7 @@ from sage.categories.all import AlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.permutation import Permutations
 from copy import copy
-from sage.rings.ring import CommutativeRing
+from sage.categories.rings import Rings
 from sage.rings.integer import Integer
 from sage.misc.cachefunc import cached_method
 from sage.combinat.sf.sf import SymmetricFunctions
@@ -49,29 +49,9 @@ from sage.combinat.partition import Partitions, Partition
 from sage.matrix.constructor import Matrix
 
 
-def SchurAlgebra(n, r, R):
-    """
-    The Schur algebra for `GL_n` with rank `r` over the
-    ring `R`.
-
-    EXAMPLES::
-
-        sage: SchurAlgebra(6,3,QQ)
-        Schur Algebra (6,3) over Rational Field
-    """
-    if not isinstance(n, (int, Integer)) or n <= 0:
-        raise ValueError("n must be a positive integer (n=%s)" % (n))
-    if not isinstance(r, (int, Integer)) or r < 0:
-        raise ValueError("r must be a non-negative integer (r=%s)" % (r))
-    if not isinstance(R, CommutativeRing):
-        raise ValueError("R must be a commutative Ring (R=%s)" % (R))
-
-    return SchurAlgebra_nrR(n, r, R)
-
-
 def _schur_I_nr_representatives(n, r, element, index):
     """
-    This is an internal function called by schur_representation_indices below.
+    Internal function called by :func:`schur_representation_indices`.
     """
     if r == 0:
         return index
@@ -109,7 +89,8 @@ def schur_representative_indices(n, r):
 
     EXAMPLES::
 
-        sage: sage.algebras.schur_algebra.schur_representative_indices(2,2)
+        sage: from sage.algebras.schur_algebra import schur_representative_indices
+        sage: schur_representative_indices(2,2)
         [(word: 11, word: 11), (word: 11, word: 12), (word: 11, word: 22),
         (word: 12, word: 11), (word: 12, word: 12), (word: 12, word: 21),
         (word: 12, word: 22), (word: 22, word: 11), (word: 22, word: 12),
@@ -175,7 +156,10 @@ def schur_representative_from_index(index):
 
     EXAMPLES::
 
-        sage: sage.algebras.schur_algebra.schur_representative_from_index((Word([2,1,2,2]),Word([1,3,0,0])))
+        sage: from sage.algebras.schur_algebra import schur_representative_from_index
+        sage: w1 = Word([2,1,2,2])
+        sage: w2 = Word([1,3,0,0])
+        sage: schur_representative_from_index((w1,w2))
         (word: 1222, word: 3001)
     """
     w = []
@@ -189,17 +173,38 @@ def schur_representative_from_index(index):
     return tuple(map(Word, index))
 
 
-class SchurAlgebra_nrR(CombinatorialFreeModule):
+class SchurAlgebra(CombinatorialFreeModule):
     """
     This is the class that implements Schur algebras.
 
     EXAMPLES::
 
         sage: from sage.algebras.all import SchurAlgebra
-        sage: S = SchurAlgebra(2, 2, ZZ); S   # indirect doctest
+        sage: S = SchurAlgebra(2, 2, ZZ); S
         Schur Algebra (2,2) over Integer Ring
+
+    TESTS::
+
+        sage: SchurAlgebra(-2, 2, ZZ)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be a positive integer (n=-2)
+        sage: SchurAlgebra(2, -2, ZZ)
+        Traceback (most recent call last):
+        ...
+        ValueError: r must be a non-negative integer (r=-2)
+        sage: SchurAlgebra(2, 2, 'niet')
+        Traceback (most recent call last):
+        ...
+        ValueError: R must be a commutative Ring (R=niet)
     """
     def __init__(self, n, r, R):
+        if not isinstance(n, (int, Integer)) or n <= 0:
+            raise ValueError("n must be a positive integer (n=%s)" % (n))
+        if not isinstance(r, (int, Integer)) or r < 0:
+            raise ValueError("r must be a non-negative integer (r=%s)" % (r))
+        if not R in Rings.Commutative():
+            raise ValueError("R must be a commutative Ring (R=%s)" % (R))
 
         self._n = n
         self._r = r
@@ -553,5 +558,5 @@ def GL_n_irred_character(n, mu, KK):
                 temp.append(graded_basis[aa][kk].inner_product(carter_lusztig[j]))
             Mat.append(temp)
         Angle = Matrix(Mat)
-        Phi += (len(JJ[aa]) - Angle.kernel().rank()) * mbasis(contents[aa])
+        Phi += (len(JJ[aa]) - Angle.nullity()) * mbasis(contents[aa])
     return Phi

@@ -485,7 +485,8 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: Z12 = Monoids().Finite().example(); Z12
                 An example of a finite multiplicative monoid: the integers modulo 12
                 sage: A = Z12.algebra(QQ)
-                sage: orth = A.orthogonal_idempotents_central_mod_rad(); orth
+                sage: idempotents = A.orthogonal_idempotents_central_mod_rad()
+                sage: idempotents
                 [-1/2*B[8] + 1/2*B[4],
                  1/4*B[1] - 1/2*B[4] - 1/4*B[5] + 1/4*B[7] + 1/2*B[8] - 1/4*B[11],
                  1/4*B[1] + 1/2*B[3] + 1/4*B[5] - 1/4*B[7] - 1/2*B[9] - 1/4*B[11],
@@ -495,27 +496,28 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                  1/4*B[1] + 1/4*B[11] - 1/4*B[5] - 1/4*B[7],
                  -B[0] + 1/2*B[3] + 1/2*B[9],
                  B[0] + 1/4*B[1] - 1/2*B[3] - 1/2*B[4] + 1/4*B[5] + 1/4*B[7] - 1/2*B[8] - 1/2*B[9] + 1/4*B[11]]
-                sage: sum(orth) == 1
+                sage: sum(idempotents) == 1
                 True
-                sage: all(e*e == e for e in orth)
+                sage: all(e*e == e for e in idempotents)
                 True
-                sage: all(e*f == 0 and f*e == 0 for e in orth for f in orth if e != f)
+                sage: all(e*f == 0 and f*e == 0 for e in idempotents for f in idempotents if e != f)
                 True
 
-            We construct orthogonal idempotents of the algebra of the `0`-Hecke
-            monoid::
+            This is best tested with::
+
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents(idempotents)
+                True
+
+            We construct orthogonal idempotents of the algebra of the
+            `0`-Hecke monoid::
 
                 sage: from sage.monoids.automatic_semigroup import AutomaticSemigroup
                 sage: W = WeylGroup(['A', 3]); W.rename("W")
                 sage: ambient_monoid = FiniteSetMaps(W, action="right")
                 sage: pi = W.simple_projections(length_increasing=True).map(ambient_monoid)
                 sage: A = AutomaticSemigroup(pi, one=ambient_monoid.one()).algebra(QQ)
-                sage: orth = A.orthogonal_idempotents_central_mod_rad()
-                sage: sum(orth) == 1
-                True
-                sage: all(e*e == e for e in orth)
-                True
-                sage: all(e*f == 0 and f*e == 0 for e in orth for f in orth if e!= f)
+                sage: idempotents = A.orthogonal_idempotents_central_mod_rad()
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents(idempotents)
                 True
             """
             one = self.one()

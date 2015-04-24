@@ -1431,9 +1431,7 @@ class OEISSequence(SageObject):
             'http://oeis.org/A000024'
 
             sage: s.links(format="html")
-            <html><font color='black'>0: Wikipedia, <a href="http://en.wikipedia.org/wiki/42_(number)">42 (number)</a>
-            1: See. also <a href="http://trac.sagemath.org/sage_trac/ticket/42">trac ticket #42</a>
-            ...
+            '0: Wikipedia, <a href="http://en.wikipedia.org/wiki/42_(number)">42 (number)</a>\n1: See. also <a href="http://trac.sagemath.org/sage_trac/ticket/42">trac ticket #42</a>...'
         """
         url_absolute = lambda s: re.sub('\"\/', '\"' + oeis_url, s)
         if browse is None:
@@ -1445,7 +1443,7 @@ class OEISSequence(SageObject):
             elif format == 'raw':
                 return FancyTuple(self._fields['H'])
             elif format == 'html':
-                html(FancyTuple(map(url_absolute, self._fields['H'])))
+                return html(FancyTuple(map(url_absolute, self._fields['H'])))
             elif format == 'url':
                 url_list = flatten([_urls(url_absolute(string)) for string in self._fields['H']])
                 return FancyTuple(url_list)

@@ -35,25 +35,26 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
     .. [Kac] Kac, *Infinite-dimensional Lie algebras*, Third Edition.
        Cambridge, 1990.
 
-    .. [KMPS] Kass, Moody, Patera and Slansky, Affine Lie algebras,
-       weight multiplicities, and branching rules. Vols. 1, 2. University of
-       California Press, Berkeley, CA, 1990.
+    .. [KMPS] Kass, Moody, Patera and Slansky, *Affine Lie algebras,
+       weight multiplicities, and branching rules*. Vols. 1, 2. University
+       of California Press, Berkeley, CA, 1990.
 
-    .. [KacPeterson] Kac and Peterson. Infinite-dimensional Lie algebras, theta
-       functions and modular forms. Adv. in Math. 53 (1984), no. 2, 125-264.
+    .. [KacPeterson] Kac and Peterson. *Infinite-dimensional Lie algebras,
+       theta functions and modular forms*. Adv. in Math. 53 (1984),
+       no. 2, 125-264.
 
     If `\Lambda` is a dominant integral weight for an affine root system,
     there exists a unique integrable representation `V=V_\Lambda` of highest
     weight `\Lambda`. If `\mu` is another weight, let `m(\mu)` denote the
     multiplicity of the weight `\mu` in this representation. The set
-    `\text{supp}(V)` of `\mu` such that `m(\mu)>0` is contained in the
+    `\operatorname{supp}(V)` of `\mu` such that `m(\mu) > 0` is contained in the
     paraboloid
 
     .. MATH::
 
          (\Lambda+\rho | \Lambda+\rho) - (\mu+\rho | \mu+\rho) \geq 0
 
-    where `(\,|\,)` is the invariant inner product on the weight
+    where `(\, | \,)` is the invariant inner product on the weight
     lattice and `\rho` is the Weyl vector. Moreover every `\mu` differs from
     `\Lambda` by an element of the root lattice. ([Kac]_, Propositions 11.3
     and 11.4) such that `\Lambda - \mu` is in the root lattice, then
@@ -232,7 +233,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         """
         Return the level of ``self``.
 
-        The level of a highest weight representation `B(\Lambda)` is
+        The level of a highest weight representation `V_{\Lambda}` is
         defined as `(\Lambda | \delta)` See [Kac]_ section 12.4.
 
         EXAMPLES::
@@ -296,9 +297,9 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             sage: Lambda = RootSystem(['C',3,1]).weight_lattice(extended=true).fundamental_weights()
             sage: v = IntegrableRepresentation(Lambda[0]+2*Lambda[3])
             sage: latex(v)
-            B(\Lambda_{0} + 2\Lambda_{3})
+            V_{\Lambda_{0} + 2\Lambda_{3}}
         """
-        return "B({})".format(self._Lam._latex_())
+        return "V_{{{}}}".format(self._Lam._latex_())
 
     def cartan_type(self):
         """

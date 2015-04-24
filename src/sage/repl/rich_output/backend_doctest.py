@@ -181,7 +181,8 @@ class BackendDoctest(BackendBase):
         self.validate(rich_output)
         if isinstance(rich_output, OutputLatex):
             print(rich_output.mathjax(display=False))
-        elif any(isinstance(rich_output, cls) for cls in [OutputPlainText, OutputAsciiArt]):
+        elif any(isinstance(rich_output, cls) for cls in
+                 [OutputPlainText, OutputAsciiArt, OutputHtml]):
             rich_output.print_to_stdout()
 
     def validate(self, rich_output):

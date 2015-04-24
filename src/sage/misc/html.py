@@ -1,5 +1,9 @@
 """
-HTML typesetting for the notebook
+HTML Fragments
+
+This module defines a HTML fragment class, which holds a piece of
+HTML. This is primarily used in browser-based notebooks, though it
+might be useful for creating static pages as well.
 """
 
 #*****************************************************************************
@@ -11,11 +15,46 @@ HTML typesetting for the notebook
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import warnings
 from sage.misc.latex import latex
 from sage.misc.sage_eval import sage_eval
+from sage.structure.sage_object import SageObject
+from sage.misc.superseded import deprecation
+
+
+class HtmlFragment(str, SageObject):
+    r"""
+    A HTML fragment.
+
+    This is a piece of HTML, usually not a complete document.  For
+    example, just a ``<div>...</div>`` piece and not the entire
+    ``<html>...</html>``.
+
+    .. automethod:: _rich_repr_
+    """
+
+    def _rich_repr_(self, display_manager, **kwds):
+        """
+        Rich Output Magic Method
+
+        See :mod:`sage.repl.rich_output` for details.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: h = html(1/2)
+            sage: h._rich_repr_(dm)    # the doctest backend does not suppot html
+        """
+        OutputHtml = display_manager.types.OutputHtml
+        if OutputHtml in display_manager.supported_output():
+            return OutputHtml(self)
+
 
 def math_parse(s):
     r"""
+    Replace TeX-``$`` with Mathjax equations.
+    
     Turn the HTML-ish string s that can have \$\$ and \$'s in it into
     pure HTML.  See below for a precise definition of what this means.
 
@@ -25,7 +64,7 @@ def math_parse(s):
 
     OUTPUT:
 
-    - a string.
+    A :class:`HtmlFragment` instance.
 
     Do the following:
 
@@ -76,7 +115,7 @@ def math_parse(s):
         i = s.find('$')
         if i == -1:
             # No dollar signs -- definitely done.
-            return t + s
+            return HtmlFragment(t + s)
         elif i > 0 and s[i-1] == '\\':
             # A dollar sign with a backslash right before it, so
             # we ignore it by sticking it in the parsed string t
@@ -115,66 +154,102 @@ def math_parse(s):
         s = s[j+1:]
         if len(disp) > 0:
             s = s[1:]
-    return t
+    return HtmlFragment(t)
 
-class HTMLExpr(str):
-    r"""
-    A class for HTML expression
-    """
-    def __repr__(self):
-        return str(self)
 
-class HTML:
-    def __call__(self, s, globals=None, locals=None):
+class HTMLFragmentFactory(SageObject):
+
+    def _repr_(self):
         """
-        Display the given HTML expression in the notebook.
-
-        INPUT:
-
-        - ``s`` -- a string
+        Return string representation
 
         OUTPUT:
 
-        - prints a code that embeds HTML in the output.
-
-        By default in the notebook an output cell has two parts, first a plain
-        text preformat part, then second a general HTML part (not pre).  If
-        you call html(s) at any point then that adds something that will be
-        displayed in the preformated part in html.
+        String.
 
         EXAMPLES::
+        
+            sage: html
+            Create HTML output (see html? for details)
+        """
+        return 'Create HTML output (see html? for details)'
+    
+    def __call__(self, obj):
+        r"""
+        Construct a HTML fragment
+     
+        INPUT:
+     
+        - ``obj`` -- anything. An object for which you want a HTML
+          representation.
+     
+        OUTPUT:
+     
+        A :class:`HtmlFragment` instance.
+     
+        EXAMPLES::
+     
+            sage: html('<hr>')
+            '<hr>'
+            sage: type(html('<hr>'))
+            <class 'sage.misc.html.HtmlFragment'>
+
+            sage: html(1/2)
+            '<script type="math/tex">\\frac{1}{2}</script>'
 
             sage: html('<a href="http://sagemath.org">sagemath</a>')
-            <html><font color='black'><a href="http://sagemath.org">sagemath</a></font></html>
-            sage: html('<hr>')
-            <html><font color='black'><hr></font></html>
+            '<a href="http://sagemath.org">sagemath</a>'
         """
-        return HTMLExpr(self.eval(s, globals, locals))
-
-    def eval(self, s, globals=None, locals=None):
+        # Prefer dedicated _html_() method
+        try:
+            result = obj._html_()
+        except AttributeError:
+            pass
+        else:
+            if not isinstance(result, HtmlFragment):
+                warnings.warn('_html_() did not return a HtmlFragment')
+                return HtmlFragment(result)
+            else:
+                return result
+        # Otherwise: convert latex to html
+        try:
+            result = obj._latex_()
+        except AttributeError:
+            pass
+        else:
+            return math_parse('${0}$'.format(obj._latex_()))
+        # If all else fails
+        return math_parse(HtmlFragment(obj))
+         
+    def eval(self, s, locals=None):
         r"""
-        Return an html representation for an object ``s``.
+        Evaluate embedded <sage> tags
 
-        If ``s`` has a method ``_html_()``, call that. Otherwise, call
-        :func:`math_parse` on ``str(s)``, evaluate any variables in
-        the result, and add some html preamble and postamble.
+        INPUT:
 
-        In any case, *print* the resulting html string. This method
-        always *returns* an empty string.
+        - ``s`` -- string.
 
+        - ``globals`` -- dictionary. The global variables when
+          evaluating ``s``. Default: the current global variables.
+
+        OUTPUT:
+     
+        A :class:`HtmlFragment` instance.
+     
         EXAMPLES::
 
-            sage: html.eval('<hr>')
-            <html><font color='black'><hr></font></html>
-            ''
+            sage: a = 123
+            sage: html.eval('<sage>a</sage>')
+            '<script type="math/tex">123</script>'
+            sage: html.eval('<sage>a</sage>', locals={'a': 456})
+            '<script type="math/tex">456</script>'
         """
         if hasattr(s, '_html_'):
-            s._html_()
-            return ''
-        if globals is None:
-            globals = {}
+            deprecation(18292, 'html.eval() is for strings, use html() for sage objects')
+            return s._html_()
         if locals is None:
-            locals = {}
+            from sage.repl.user_globals import get_globals
+            locals = get_globals()
         s = str(s)
         s = math_parse(s)
         t = ''
@@ -190,27 +265,31 @@ class HTML:
             t += s[:i] + '<script type="math/tex">%s</script>'%\
                      latex(sage_eval(s[6+i:j], locals=locals))
             s = s[j+7:]
-        print("<html><font color='black'>{}</font></html>".format(t))
-        return ''
+        return HtmlFragment(t)
 
-    def table(self, x, header = False):
+    def table(self, x, header=False):
         r"""
-        Print a nested list as a HTML table.  Strings of html
-        will be parsed for math inside dollar and double-dollar signs.
-        2D graphics will be displayed in the cells.  Expressions will
-        be latexed.
+        Generate a HTML table.  
 
+        See :class:`~sage.misc.table.table`.
 
         INPUT:
 
         - ``x`` -- a list of lists (i.e., a list of table rows)
+
         - ``header`` -- a row of headers.  If ``True``, then the first
           row of the table is taken to be the header.
 
+        OUTPUT:
+     
+        A :class:`HtmlFragment` instance.
+
         EXAMPLES::
 
-            sage: html.table([(i, j, i == j) for i in [0..1] for j in [0..1]])
-            <html>
+            sage: output = html.table([(i, j, i == j) for i in [0..1] for j in [0..1]])
+            sage: output
+            '<div.../div>'
+            sage: print(output)
             <div class="notruncate">
             <table class="table_form">
             <tbody>
@@ -237,10 +316,10 @@ class HTML:
             </tbody>
             </table>
             </div>
-            </html>
 
-            sage: html.table([(x,n(sin(x), digits=2)) for x in [0..3]], header = ["$x$", "$\sin(x)$"])
-            <html>
+            sage: output = html.table([(x,n(sin(x), digits=2)) for x in [0..3]], 
+            ....:                     header=["$x$", "$\sin(x)$"])
+            sage: print(output)
             <div class="notruncate">
             <table class="table_form">
             <tbody>
@@ -267,63 +346,56 @@ class HTML:
             </tbody>
             </table>
             </div>
-            </html>
-
         """
         from table import table
-        table(x, header_row=header)._html_()
+        return table(x, header_row=header)._html_()
 
     def iframe(self, url, height=400, width=800):
         r"""
-        Put an existing web page into a worksheet.
+        Generate an iframe HTML fragment
 
         INPUT:
 
-        - ``url`` -- a url string, either with or without URI scheme
-          (defaults to "http").
+        - ``url`` -- string. A url, either with or without URI scheme
+          (defaults to "http"), or an absolute file path.
+
         - ``height`` -- the number of pixels for the page height.
           Defaults to 400.
+
         - ``width`` -- the number of pixels for the page width.
           Defaults to 800.
 
         OUTPUT:
-
-            Opens the url in a worksheet. If the url is a regular web page it
-            will appear in the worksheet. This was originally intended to bring
-            GeoGebra worksheets into Sage, but it can be used for many other
-            purposes.
+     
+        A :class:`HtmlFragment` instance.
 
         EXAMPLES::
 
             sage: html.iframe("sagemath.org")
-            <html><font color='black'><iframe height="400" width="800"
-            src="http://sagemath.org"></iframe></font></html>
+            '<iframe height="400" width="800"
+            src="http://sagemath.org"></iframe>'
             sage: html.iframe("http://sagemath.org",30,40)
-            <html><font color='black'><iframe height="30" width="40"
-            src="http://sagemath.org"></iframe></font></html>
+            '<iframe height="30" width="40"
+            src="http://sagemath.org"></iframe>'
             sage: html.iframe("https://sagemath.org",30)
-            <html><font color='black'><iframe height="30" width="800"
-            src="https://sagemath.org"></iframe></font></html>
+            '<iframe height="30" width="800"
+            src="https://sagemath.org"></iframe>'
             sage: html.iframe("/home/admin/0/data/filename")
-            <html><font color='black'><iframe height="400" width="800"
-            src="/home/admin/0/data/filename"></iframe></font></html>
+            '<iframe height="400" width="800"
+            src="file:///home/admin/0/data/filename"></iframe>'
             sage: html.iframe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA'
             ... 'AUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBA'
             ... 'AO9TXL0Y4OHwAAAABJRU5ErkJggg=="')
-            <html><font color='black'><iframe height="400" width="800"
-            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==""></iframe></font></html>
-
-        AUTHOR:
-
-        - Bruce Cohen (2011-06-14)
+            '<iframe height="400" width="800" 
+            src="http://data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==""></iframe>'
         """
-        if ":" not in url and not url.startswith('/'):
-            url = "http://" + url
-        string = ( '<iframe height="%d" width="%d" src="%s"></iframe>' %
-                    (height, width, url) )
-        return html(string)
+        if url.startswith('/'):
+            url = 'file://{0}'.format(url)
+        elif '://' not in url:
+            url = 'http://{0}'.format(url)
+        return HtmlFragment('<iframe height="{0}" width="{1}" src="{2}"></iframe>'
+                            .format(height, width, url))
 
-html = HTML()
-# Ensure that html appear in the sphinx doc as a function
-# so that the link :func:`html` is correctly set up.
-html.__doc__ = HTML.__call__.__doc__
+
+html = HTMLFragmentFactory()
+html.__doc__ = HTMLFragmentFactory.__call__.__doc__

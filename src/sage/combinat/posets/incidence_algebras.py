@@ -15,7 +15,6 @@ Incidence Algebras
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.algebras import Algebras
@@ -25,6 +24,7 @@ from sage.matrix.matrix_space import MatrixSpace
 
 from copy import copy
 
+
 class IncidenceAlgebra(CombinatorialFreeModule):
     r"""
     The incidence algebra of a poset.
@@ -32,7 +32,7 @@ class IncidenceAlgebra(CombinatorialFreeModule):
     Let `P` be a poset and `R` be a commutative unital associative ring.
     The *incidence algebra* `I_P` is the algebra of functions
     `\alpha \colon P \times P \to R` such that `\alpha(x, y) = 0`
-    if `x \not\leq y` where multiplication is given by covolution:
+    if `x \not\leq y` where multiplication is given by convolution:
 
     .. MATH::
 
@@ -63,7 +63,7 @@ class IncidenceAlgebra(CombinatorialFreeModule):
 
             sage: P = posets.BooleanLattice(4)
             sage: I = P.incidence_algebra(QQ)
-            sage: TestSuite(I).run()
+            sage: TestSuite(I).run()  # long time
         """
         cat = Algebras(R).WithBasis()
         if P in FiniteEnumeratedSets():
@@ -96,7 +96,8 @@ class IncidenceAlgebra(CombinatorialFreeModule):
             Incidence algebra of Finite lattice containing 16 elements
              over Rational Field
         """
-        return "Incidence algebra of {} over {}".format(self._poset, self.base_ring())
+        return "Incidence algebra of {} over {}".format(self._poset,
+                                                        self.base_ring())
 
     def _coerce_map_from_(self, R):
         """
@@ -315,7 +316,7 @@ class IncidenceAlgebra(CombinatorialFreeModule):
             P = self.parent()._poset
             x = P(x)
             y = P(y)
-            return self[x,y]
+            return self[x, y]
 
         @cached_method
         def to_matrix(self):
@@ -357,7 +358,7 @@ class IncidenceAlgebra(CombinatorialFreeModule):
             MS = MatrixSpace(P.base_ring(), P._poset.cardinality(), sparse=True)
             L = P._linear_extension
             M = copy(MS.zero())
-            for i,c in self:
+            for i, c in self:
                 M[L.index(i[0]), L.index(i[1])] = c
             M.set_immutable()
             return M
@@ -390,7 +391,7 @@ class IncidenceAlgebra(CombinatorialFreeModule):
                 sage: y.is_unit()
                 False
             """
-            return all(self[x,x].is_unit() for x in self.parent()._poset)
+            return all(self[x, x].is_unit() for x in self.parent()._poset)
 
         def __invert__(self):
             """
@@ -425,8 +426,9 @@ class IncidenceAlgebra(CombinatorialFreeModule):
                 raise ValueError("element is not invertible")
             inv = ~M
             L = self.parent()._linear_extension
-            return self.parent().sum_of_terms( ((L[i], L[j]), inv[i,j])
-                       for i,j in inv.nonzero_positions(copy=False) )
+            return self.parent().sum_of_terms(((L[i], L[j]), inv[i, j])
+                       for i, j in inv.nonzero_positions(copy=False))
+
 
 class ReducedIncidenceAlgebra(CombinatorialFreeModule):
     r"""
@@ -443,9 +445,9 @@ class ReducedIncidenceAlgebra(CombinatorialFreeModule):
 
         TESTS::
 
-            sage: P = posets.BooleanLattice(4)
+            sage: P = posets.BooleanLattice(3)
             sage: R = P.incidence_algebra(QQ).reduced_subalgebra()
-            sage: TestSuite(R).run()
+            sage: TestSuite(R).run()  # long time
         """
         self._ambient = I
         EC = {}
@@ -480,8 +482,8 @@ class ReducedIncidenceAlgebra(CombinatorialFreeModule):
             Reduced incidence algebra of Finite lattice containing 16 elements
              over Rational Field
         """
-        return "Reduced incidence algebra of {} over {}".format(
-                                self._ambient._poset, self.base_ring())
+        msg = "Reduced incidence algebra of {} over {}"
+        return msg.format(self._ambient._poset, self.base_ring())
 
     def poset(self):
         """
@@ -780,4 +782,3 @@ class ReducedIncidenceAlgebra(CombinatorialFreeModule):
                  + 2*I[1, 3] + 2*I[2, 2] + 2*I[2, 3] + 2*I[3, 3]
             """
             return self.parent().lift(self)
-

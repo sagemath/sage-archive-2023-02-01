@@ -157,6 +157,7 @@ Comprehensive Module list
     sage/combinat/posets/all
     sage/combinat/posets/elements
     sage/combinat/posets/hasse_diagram
+    sage/combinat/posets/incidence_algebras
     sage/combinat/posets/lattices
     sage/combinat/posets/linear_extensions
     sage/combinat/posets/poset_examples

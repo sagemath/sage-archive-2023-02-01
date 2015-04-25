@@ -637,8 +637,8 @@ def cmunu1(mu, nu):
         True
     """
     q,t = QQqt.gens()
-    # The following for loop is equivalent to:
-    #    r,c = SkewPartition([mu,nu]).cells()[0]
+    # The following for loop is equivalent to getting the cell:
+    #    SkewPartition([mu,nu]).cells()[0]
     for i, val in enumerate(nu._list):
         if val < mu._list[i]:
             A = prod((t**mu.leg_length(i, s) - q**(mu.arm_length(i, s)+1))
@@ -927,13 +927,17 @@ class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
 
         def nabla(self, q=None, t=None, power=1):
             r"""
-            Returns the value of the nabla operator applied to ``self``. The
-            eigenvectors of the nabla operator are the Macdonald polynomials in
-            the `Ht` basis.  For more information see: [BGHT1999]_.
+            Return the value of the nabla operator applied to ``self``.
+
+            The eigenvectors of the nabla operator are the Macdonald
+            polynomials in the `Ht` basis.  For more information
+            see: [BGHT1999]_.
 
             The operator nabla acts on symmetric functions and has the
             Macdonald `Ht` basis as eigenfunctions and the eigenvalues
-            are `q^{n(\mu')} t^{n(\mu)}` where `n(\mu) = \sum_{i} (i-1) \mu_i`.
+            are `q^{n(\mu')} t^{n(\mu)}` where
+            `n(\mu) = \sum_{i} (i-1) \mu_i` and `\mu'` is the conjugate
+            shape of `\mu`.
 
             If the parameter ``power`` is an integer then it calculates
             nabla to that integer.  The default value of ``power`` is 1.

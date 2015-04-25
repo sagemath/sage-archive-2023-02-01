@@ -5371,7 +5371,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
         where `n` is the ``max_entry``, `c(u)` is the content of `u`,
         and `h(u)` is the hook length of `u`.
         See [Sta-EC2]_ Corollary 7.21.4.
-        
+
         EXAMPLES::
 
             sage: SemistandardTableaux([2,1]).cardinality()

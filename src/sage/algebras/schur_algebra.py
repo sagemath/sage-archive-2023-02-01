@@ -31,22 +31,24 @@ REFERENCES:
 
 
 from sage.categories.all import AlgebrasWithBasis
-from sage.combinat.free_module import CombinatorialFreeModule
-from sage.combinat.permutation import Permutations
-from copy import copy
 from sage.categories.rings import Rings
-from sage.rings.integer import Integer
-from sage.misc.cachefunc import cached_method
+from sage.combinat.free_module import CombinatorialFreeModule
+from sage.combinat.integer_list import IntegerListsLex
+from sage.combinat.partition import Partitions, Partition
+from sage.combinat.permutation import Permutations
 from sage.combinat.sf.sf import SymmetricFunctions
-from sage.rings.rational_field import QQ
+from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
+from sage.combinat.tableau import SemistandardTableaux
 from sage.combinat.words.word import Word
 from sage.combinat.words.words import Words
-from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-from sage.combinat.tableau import SemistandardTableaux
-from sage.misc.flatten import flatten
-from sage.combinat.partition import Partitions, Partition
 from sage.matrix.constructor import Matrix
+from sage.misc.cachefunc import cached_method
+from sage.misc.flatten import flatten
+from sage.rings.integer import Integer
+from sage.rings.rational_field import QQ
+
+from copy import copy
 
 
 def _schur_I_nr_representatives(n, r, element, index):
@@ -224,23 +226,27 @@ class SchurAlgebra(CombinatorialFreeModule):
             sage: repr(S)
             'Schur Algebra (4,4) over Integer Ring'
         """
-        return "Schur Algebra (%s,%s) over %s" % (self._n, self._r,
-                                                  self.base_ring())
+        msg = "Schur Algebra ({},{}) over {}"
+        return msg.format(self._n, self._r, self.base_ring())
 
     @cached_method
-    def one_basis(self):
+    def one(self):
         """
-        Return the index of the one of the algebra.
-
-        THIS IS WRONG !
+        Return the one of the algebra.
 
         EXAMPLES::
 
             sage: from sage.algebras.all import SchurAlgebra
-            sage: SchurAlgebra(4, 4, ZZ).one()   # indirect doctest
-            B[None]
+            sage: S = SchurAlgebra(4, 4, ZZ)
+            sage: e = S.one()
+            sage: x = S.an_element()
+            sage: x * e == x
+            True
         """
-        return None
+        tt = IntegerListsLex(length=self._r, min_part=1, max_part=self._n,
+                             min_slope=0)
+        words = [Word(u) for u in tt]
+        return self.sum(self._monomial((w, w)) for w in words)
 
     def product_on_basis(self, e_ij, e_kl):
         r"""

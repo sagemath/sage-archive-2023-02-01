@@ -5053,6 +5053,48 @@ class SemistandardTableaux_size(SemistandardTableaux):
         return SemistandardTableaux.__contains__(self, x) \
             and sum(map(len,x)) == self.size and max(flatten(x)) <= self.max_entry
 
+    def random_element(self):
+        """
+        Generate a random ``SemistandardTableau`` with uniform probability.
+
+        The RSK algorithm gives a bijection between symmetric `k\times k` matrices
+        of nonnegative integers that sum to `n` and semistandard tableaux with size `n`
+        and maximum entry `k`.
+
+        To generate a random symmetric matrix with a given sum, we first choose the trace of the
+        matrix
+
+        TESTS::
+
+            sage: SemistandardTableaux(6, max_entry=7).random_element()
+            [[2, 2], [3, 3], [6, 6]]
+
+        """
+        from sage.rings.all import ZZ
+        from sage.rings.arith import binomial
+        from sage.matrix.constructor import diagonal_matrix
+        from sage.combinat.rsk import RSK
+        kchoose2m1 = self.max_entry * (self.max_entry - 1) / 2 - 1
+        km1 = self.max_entry - 1
+        weights = [binomial(self.size - i + km1, km1) * binomial((i/2) + kchoose2m1, kchoose2m1)
+                   for i in range(0, self.size + 1, 2)]
+        randpos = ZZ.random_element(sum(weights))
+        tot = weights[0]
+        pos = 0
+        while (randpos >= tot):
+            pos += 1
+            tot += weights[pos]
+        # we now have pos elements over the diagonal and n - 2 * pos on it
+        m = diagonal_matrix(IntegerVectors(self.size - 2 * pos, self.max_entry).random_element())
+        above_diagonal = IntegerVectors(pos, kchoose2m1 + 1).random_element()
+        index = 0
+        for i in range(self.max_entry - 1):
+            for j in range(i + 1, self.max_entry):
+                m[i,j] = above_diagonal[index]
+                m[j,i] = above_diagonal[index]
+                index += 1
+        return RSK(m)[0]
+    
     def cardinality(self):
         """
         Return the cardinality of ``self``.
@@ -5237,6 +5279,55 @@ class SemistandardTableaux_shape(SemistandardTableaux):
             'Semistandard tableaux of shape [2, 1] and maximum entry 5'
         """
         return "Semistandard tableaux of shape %s and maximum entry %s" %(str(self.shape), str(self.max_entry))
+
+    def random_element(self):
+        """
+        Returns a uniformly distributed random tableau of the given shape and max_entry.
+
+        Uses the algorithm from [Krat99] based on the Novelli-Pak-Stoyanovskii bijection
+
+        TESTS::
+
+            sage: SemistandardTableaux([2, 2, 1, 1], max_entry=7).random_element()
+            [[1, 2], [2, 4], [3], [5]] 
+
+        
+        REFERENCES:
+
+        .. [Krat99] C. Krattenthaler,
+           *Another Involution Principle-Free Bijective Proof of Stanley's Hook Content Formula*,
+           Journal of Combinatorial Theory, Series A vol 88 Issue 1 (1999), 66-92,
+           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
+        """
+        from sage.misc.prandom import randint
+        from sage.combinat.partition import Partition
+        with_sentinels = [max(i,j) for i,j in zip([0]+list(self.shape), [k+1 for k in self.shape]+[0])]
+        t = [[self.max_entry+1]*i for i in with_sentinels]
+        for i,l in enumerate(self.shape):
+            for j in range(l):
+                content = j - i
+                t[i][j] = randint(1 - content, self.max_entry)
+        conj = Partition(self.shape).conjugate()
+        for i in xrange(len(conj) - 1, -1, -1):
+            for j in xrange(conj[i] - 1, -1, -1):
+                row = j
+                col = i
+                s = t[row][col]
+                x = t[row][col + 1]
+                y = t[row + 1][col]
+                while s > x or s >= y:
+                    if x + 1 < y:
+                        t[row][col] = x + 1
+                        t[row][col + 1] = s
+                        col += 1
+                    else:
+                        t[row][col] = y - 1
+                        t[row + 1][col] = s
+                        row += 1
+                    x = t[row][col + 1]
+                    y = t[row + 1][col]
+        return SemistandardTableau([l[:c] for l,c in zip(t, self.shape)])
+
 
     def cardinality(self):
         """

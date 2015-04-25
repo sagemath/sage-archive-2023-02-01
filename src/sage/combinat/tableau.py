@@ -5350,26 +5350,27 @@ class SemistandardTableaux_shape(SemistandardTableaux):
 
     def cardinality(self, algorithm='hook'):
         r"""
-        Returns the cardinality of ``self``.
+        Return the cardinality of ``self``.
 
-        
         INPUT:
 
-        - ``algorithm`` -- (Default: ``'hook'``) any one of the following:
+        - ``algorithm`` -- (default: ``'hook'``) any one of the following:
 
-          - ``'hook'`` -- Use Stanley's hook formula
+          - ``'hook'`` -- use Stanley's hook length formula
 
-          - ``'sum'`` -- Sum over the compositions of ``max_entry`` the number of semistandard tableau with ``shape`` and given weight vector.
+          - ``'sum'`` -- sum over the compositions of ``max_entry`` the
+            number of semistandard tableau with ``shape`` and given
+            weight vector
 
-        This is computed using *Stanley's hook length formula*  
+        This is computed using *Stanley's hook length formula*:
 
         .. MATH::
+
            f_{\lambda} = \prod_{u\in\lambda} \frac{n+c(u)}{h(u)}.
 
-        where `n` is the ``max_entry``, `c(u)` is the content of `u` and `h(u)` is the hook length
-        of `u`.
-        
-        See [Sta99] Corollary 7.21.4.
+        where `n` is the ``max_entry``, `c(u)` is the content of `u`,
+        and `h(u)` is the hook length of `u`.
+        See [Sta-EC2]_ Corollary 7.21.4.
         
         EXAMPLES::
 
@@ -5388,32 +5389,25 @@ class SemistandardTableaux_shape(SemistandardTableaux):
             sage: SemistandardTableaux([6,5,4,3,2,1], max_entry=30).cardinality()
             208361017592001331200
             sage: ssts = [SemistandardTableaux(p, max_entry=6) for p in Partitions(5)]
-            sage: all(sst.cardinality() == sst.cardinality(algorithm='sum') for sst in ssts)
+            sage: all(sst.cardinality() == sst.cardinality(algorithm='sum')
+            ....:     for sst in ssts)
             True
-
-
-        REFERENCES:
-
-        .. [Sta99] Stanley, Richard.
-           Enumerative Combinatorics, Vol. 2.
-           Cambridge University Press, 1999
-            
         """
         if algorithm == 'hook':
             conj = self.shape.conjugate()
-            num = 1
-            den = 1
+            num = Integer(1)
+            den = Integer(1)
             for i,l in enumerate(self.shape):
                 for j in range(l):
-                    num *= (self.max_entry + j -i)
-                    den *= (l + conj[j] - i - j - 1)
+                    num *= self.max_entry + j - i
+                    den *= l + conj[j] - i - j - 1
             return Integer(num / den)
         elif algorithm == 'sum':
             c = 0
             for comp in IntegerVectors(sum(self.shape), self.max_entry):
                 c += SemistandardTableaux_shape_weight(self.shape, Composition(comp)).cardinality()
             return c
-        raise ValueError("unknown algorithm %r" % algorithm)
+        raise ValueError("unknown algorithm {}".format(algorithm))
 
 class SemistandardTableaux_shape_weight(SemistandardTableaux_shape):
     r"""

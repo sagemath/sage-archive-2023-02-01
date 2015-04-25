@@ -55,10 +55,9 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
          (\Lambda+\rho | \Lambda+\rho) - (\mu+\rho | \mu+\rho) \geq 0
 
     where `(\, | \,)` is the invariant inner product on the weight
-    lattice and `\rho` is the Weyl vector. Moreover every `\mu` differs from
-    `\Lambda` by an element of the root lattice. ([Kac]_, Propositions 11.3
-    and 11.4) such that `\Lambda - \mu` is in the root lattice, then
-    multiplicity of `\mu` in this representation will be denoted `m(\mu)`.
+    lattice and `\rho` is the Weyl vector. Moreover if `m(\mu)>0`
+    then `\mu\in\operatorname{supp}(V)` differs from `\Lambda` by an element
+    of the root lattice ([Kac]_, Propositions 11.3 and 11.4).
     
     Let `\delta` be the nullroot, which is the lowest positive imaginary
     root. Then by [Kac]_, Proposition 11.3 or Corollary 11.9, for fixed `\mu`
@@ -489,7 +488,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
     def from_weight(self, mu):
         r"""
         Return the tuple `(n_0, n_1, ...)`` such that ``mu`` equals
-        `\Lambda - sum_{i \in I} n_i \alpha_i` in ``self``, where `\Lambda`
+        `\Lambda - \sum_{i \in I} n_i \alpha_i` in ``self``, where `\Lambda`
         is the highest weight of ``self``.
 
         EXAMPLES::

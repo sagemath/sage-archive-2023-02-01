@@ -332,7 +332,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         sage: numpy.uint8('2') + 3
         5
         sage: type(_)
-        <type 'numpy.int64'>
+        <type 'numpy.int32'>  # 32-bit
+        <type 'numpy.int64'>  # 64-bit
 
         sage: numpy.int8('12') + 1/3
         12.333333333333334

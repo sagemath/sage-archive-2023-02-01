@@ -83,7 +83,7 @@ class Channel(SageObject):
 
     - override :meth:`transmit_unsafe`.
 
-    While not being mandatory, it might be useful to reimplement representation methods (``__repr__`` and
+    While not being mandatory, it might be useful to reimplement representation methods (``_repr_`` and
     ``_latex_``).
 
     This abstract class provides the following parameters:
@@ -303,7 +303,7 @@ class StaticErrorRateChannel(Channel):
             raise ValueError("There might be more errors than the dimension of the input space")
         self._number_errors = number_errors
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Returns a string representation of ``self``.
 
@@ -490,7 +490,7 @@ class ErrorErasureChannel(Channel):
         self._number_errors = number_errors
         self._number_erasures = number_erasures
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Returns a string representation of ``self``.
 

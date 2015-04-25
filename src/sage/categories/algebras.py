@@ -20,8 +20,10 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.cartesian_product import CartesianProductsCategory
+from sage.categories.quotients import QuotientsCategory
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.tensor import TensorProductsCategory
+from sage.categories.subobjects import SubobjectsCategory
 from sage.categories.associative_algebras import AssociativeAlgebras
 
 class Algebras(CategoryWithAxiom_over_base_ring):
@@ -86,9 +88,31 @@ class Algebras(CategoryWithAxiom_over_base_ring):
     #     R = self.base_ring()
     #     return [Rings()] # TODO: won't be needed when Rings() will be Rngs().Unital()
 
+    class SubcategoryMethods:
+        def Semisimple(self):
+            """
+            Return the subcategory of semisimple objects of ``self``.
+
+            .. NOTE::
+
+                This mimics the syntax of axioms for a smooth
+                transition if ``Semisimple`` becomes one.
+
+            EXAMPLES::
+
+                sage: Algebras(QQ).Semisimple()
+                Category of semisimple algebras over Rational Field
+                sage: Algebras(QQ).WithBasis().FiniteDimensional().Semisimple()
+                Category of finite dimensional semisimple algebras with basis over Rational Field
+            """
+            from sage.categories.semisimple_algebras import SemisimpleAlgebras
+            return self & SemisimpleAlgebras(self.base_ring())
+
     Commutative = LazyImport('sage.categories.commutative_algebras', 'CommutativeAlgebras', at_startup=True)
     Graded      = LazyImport('sage.categories.graded_algebras',      'GradedAlgebras')
     WithBasis   = LazyImport('sage.categories.algebras_with_basis',  'AlgebrasWithBasis')
+    #if/when Semisimple becomes an axiom
+    Semisimple  = LazyImport('sage.categories.semisimple_algebras',  'SemisimpleAlgebras')
 
     class ElementMethods:
         # TODO: move the content of AlgebraElement here or higher in the category hierarchy
@@ -114,6 +138,31 @@ class Algebras(CategoryWithAxiom_over_base_ring):
                 ValueError: cannot invert self (= B[word: a])
             """
             return self.parent().product(self, ~y)
+
+    class Quotients(QuotientsCategory):
+
+        class ParentMethods:
+
+            def algebra_generators(self):
+                r"""
+                Return algebra generators for ``self``.
+
+                This implementation retracts the algebra generators
+                from the ambient algebra.
+
+                EXAMPLES::
+
+                    sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
+                    An example of a finite dimensional algebra with basis:
+                    the path algebra of the Kronecker quiver
+                    (containing the arrows a:x->y and b:x->y) over Rational Field
+                    sage: S = A.semisimple_quotient()
+                    sage: S.algebra_generators()
+                    Finite family {'y': B['y'], 'x': B['x'], 'b': 0, 'a': 0}
+
+                .. TODO:: this could possibly remove the elements that retract to zero.
+                """
+                return self.ambient().algebra_generators().map(self.retract)
 
     class CartesianProducts(CartesianProductsCategory):
         """

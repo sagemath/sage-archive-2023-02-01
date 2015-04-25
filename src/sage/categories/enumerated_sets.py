@@ -549,9 +549,9 @@ class EnumeratedSets(Category_singleton):
                 sage: R.cardinality()
                 6
                 sage: R.list()
-                [[], [2], [1], [2, 1], [1, 2], [1, 2, 1]]
+                [[], [1], [2, 1], [1, 2], [2], [1, 2, 1]]
                 sage: [ r for r in R]
-                [[], [2], [1], [2, 1], [1, 2], [1, 2, 1]]
+                [[], [1], [2, 1], [1, 2], [2], [1, 2, 1]]
 
             .. warning::
 
@@ -560,9 +560,9 @@ class EnumeratedSets(Category_singleton):
 
                     sage: P = SymmetricGroup(3)
                     sage: P.list()
-                    [(), (2,3), (1,2), (1,2,3), (1,3,2), (1,3)]
+                    [(), (1,2), (1,2,3), (1,3,2), (2,3), (1,3)]
                     sage: P.map(attrcall('length')).list()
-                    [0, 1, 1, 2, 2, 3]
+                    [0, 1, 2, 2, 1, 3]
 
             .. warning::
 

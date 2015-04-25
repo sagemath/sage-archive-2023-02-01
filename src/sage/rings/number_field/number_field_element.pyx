@@ -525,7 +525,7 @@ cdef class NumberFieldElement(FieldElement):
 
         EXAMPLES::
 
-            sage: C,zeta12=CyclotomicField(12).objgen()
+            sage: C.<zeta12> = CyclotomicField(12)
             sage: latex(zeta12^4-zeta12) # indirect doctest
             \zeta_{12}^{2} - \zeta_{12} - 1
         """

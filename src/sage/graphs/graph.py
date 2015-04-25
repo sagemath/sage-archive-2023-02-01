@@ -31,7 +31,6 @@ graphs.
 
     :meth:`~Graph.centrality_closeness` | Returns the closeness centrality (1/average distance to all vertices)
     :meth:`~Graph.centrality_degree` | Returns the degree centrality
-    :meth:`~Graph.centrality_betweenness` | Returns the betweenness centrality
 
 
 **Graph properties:**
@@ -4604,100 +4603,7 @@ class Graph(GenericGraph):
         from sage.graphs.convexity_properties import ConvexityProperties
         return ConvexityProperties(self)
 
-    ### Centrality
-
-    def centrality_betweenness(self, k=None, normalized=True, weight=None,
-                               endpoints=False, seed=None, exact=False,
-                               algorithm=None):
-        r"""
-        Returns the betweenness centrality (fraction of number of
-        shortest paths that go through each vertex) as a dictionary
-        keyed by vertices. The betweenness is normalized by default to
-        be in range (0,1).
-
-        Measures of the centrality of a vertex within a graph determine
-        the relative importance of that vertex to its graph. Vertices
-        that occur on more shortest paths between other vertices have
-        higher betweenness than vertices that occur on less.
-
-        INPUT:
-
-        -  ``normalized`` - boolean (default True) - if set to False,
-           result is not normalized.
-
-        - ``k`` - integer or None (default None) - if set to an integer, use
-          ``k`` node samples to estimate betweenness. Higher values give better
-          approximations. Not available when ``algorithm="Sage"``.
-
-        - ``weight`` - None or string. If set to a string, use that attribute of
-          the nodes as weight. ``weight = True`` is equivalent to ``weight =
-          "weight"``. Not available when ``algorithm="Sage"``.
-
-        - ``endpoints`` - Boolean. If set to True it includes the endpoints in
-          the shortest paths count. Not available when ``algorithm="Sage"``.
-
-        - ``exact`` (boolean, default: ``False``) -- whether to compute over
-          rationals or on ``double`` C variables. Not available when
-          ``algorithm="NetworkX"``.
-
-        - ``algorithm`` (default: ``None``) -- can be either ``"Sage"`` (see
-          :mod:`~sage.graphs.centrality`), ``"NetworkX"`` or ``"None"``. In the
-          latter case, Sage's algorithm will be used whenever possible.
-
-        REFERENCE:
-
-        .. [Brandes2003] Ulrik Brandes. (2003). Faster Evaluation of
-           Shortest-Path Based Centrality Indices. [Online] Available:
-           http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.43.1504
-
-        EXAMPLES::
-
-            sage: g = graphs.ChvatalGraph()
-            sage: g.centrality_betweenness() # abs tol 1e-10
-            {0: 0.06969696969696969, 1: 0.06969696969696969,
-             2: 0.0606060606060606, 3: 0.0606060606060606,
-             4: 0.06969696969696969, 5: 0.06969696969696969,
-             6: 0.0606060606060606, 7: 0.0606060606060606,
-             8: 0.0606060606060606, 9: 0.0606060606060606,
-             10: 0.0606060606060606, 11: 0.0606060606060606}
-            sage: g.centrality_betweenness(normalized=False) # abs tol 1e-10
-            {0: 3.833333333333333, 1: 3.833333333333333, 2: 3.333333333333333,
-             3: 3.333333333333333, 4: 3.833333333333333, 5: 3.833333333333333,
-             6: 3.333333333333333, 7: 3.333333333333333, 8: 3.333333333333333,
-             9: 3.333333333333333, 10: 3.333333333333333,
-             11: 3.333333333333333}
-            sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
-            sage: D.show(figsize=[2,2])
-            sage: D = D.to_undirected()
-            sage: D.show(figsize=[2,2])
-            sage: D.centrality_betweenness() # abs tol abs 1e-10
-            {0: 0.16666666666666666, 1: 0.16666666666666666, 2: 0.0, 3: 0.0}
-        """
-        if algorithm == "NetworkX" and exact:
-            raise ValueError("'exact' is not available with the NetworkX implementation")
-        if (algorithm is None and
-            seed is None and
-            weight is None and
-            endpoints is False and
-            k is None):
-            algorithm = "Sage"
-        elif algorithm is None:
-            algorithm = "NetworkX"
-
-        if algorithm == "Sage":
-            from centrality import centrality_betweenness
-            return centrality_betweenness(self, normalize = normalized,exact=exact)
-        elif algorithm == "NetworkX":
-            import networkx
-            return networkx.betweenness_centrality(self.networkx_graph(copy=False),
-                                                   k=k,
-                                                   normalized=normalized,
-                                                   weight=weight,
-                                                   endpoints=endpoints,
-                                                   seed=seed)
-        else:
-            raise ValueError("'algorithm' can be \"NetworkX\", \"Sage\" or None")
-
+    # Centrality
     def centrality_degree(self, v=None):
         r"""
         Returns the degree centrality (fraction of vertices connected to)

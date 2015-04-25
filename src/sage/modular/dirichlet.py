@@ -202,7 +202,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         EXAMPLES::
 
-            sage: G, e = DirichletGroup(13).objgen()
+            sage: G.<e> = DirichletGroup(13)
             sage: G
             Group of Dirichlet characters of modulus 13 over Cyclotomic Field of order 12 and degree 4
             sage: e

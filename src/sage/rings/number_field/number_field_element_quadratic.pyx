@@ -47,6 +47,8 @@ from sage.rings.number_field.number_field_element import _inverse_mod_generic
 
 import number_field
 
+from sage.libs.gmp.pylong cimport mpz_pythonhash
+
 
 def __make_NumberFieldElement_quadratic0(parent, a, b, denom):
     """
@@ -1291,17 +1293,41 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
     def __hash__(self):
         """
-        Return hash of this number field element, which is just the
-        hash of the underlying polynomial.
+        Return hash of this number field element.
 
-        EXAMPLE::
+        For elements in `\ZZ` or `\QQ` the hash coincides with the one in the
+        native `\ZZ` or `\QQ`.
+
+        EXAMPLES::
 
             sage: L.<a> = QuadraticField(-7)
             sage: hash(a)
-            1505322287 # 32-bit
-            15360174650385711 # 64-bit
+            42082631
+
+            sage: hash(L(1))
+            1
+            sage: hash(L(-3))
+            -3
+
+            sage: hash(L(-32/118))
+            -53
+            sage: hash(-32/118)
+            -53
         """
-        return hash(self.polynomial())
+        # 1. compute the hash of a/denom as if it was a rational
+        # (see the corresponding code in sage/rings/rational.pyx)
+        cdef long a_hash = mpz_pythonhash(self.a)
+        cdef long d_hash = mpz_pythonhash(self.denom)
+        if d_hash != 1:
+            a_hash ^= d_hash
+            if a_hash == -1:
+                a_hash == -2
+
+        # 2. mix them together with b
+        a_hash += 42082631 * mpz_pythonhash(self.b)
+        if a_hash == -1:
+            return -2
+        return a_hash
 
 
     def __nonzero__(self):

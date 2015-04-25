@@ -25,6 +25,9 @@ TESTS::
     sage: f = x^5 + 2*x^2 + (-1)
     sage: f == loads(dumps(f))
     True
+
+    sage: PolynomialRing(ZZ,'x').objgen()
+    (Univariate Polynomial Ring in x over Integer Ring, x)
 """
 
 #*****************************************************************************
@@ -180,6 +183,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         sage: R.<y> = QQ['y']
         sage: S.<x> = R['x']
+        sage: S
+        Univariate Polynomial Ring in x over Univariate Polynomial Ring in y
+        over Rational Field
         sage: f = x*y; f
         y*x
         sage: type(f)
@@ -6150,7 +6156,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: P,x=PolynomialRing(ZZ,'x').objgen()
+            sage: P.<x> = ZZ[]
             sage: (x^2+x).valuation()
             1
             sage: (x^2+x).valuation(x+1)
@@ -6203,7 +6209,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: P,x=PolynomialRing(ZZ,'x').objgen()
+            sage: R.<x> = ZZ[]
             sage: (x^2+x).ord(x+1)
             1
         """

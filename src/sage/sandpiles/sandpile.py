@@ -194,7 +194,14 @@ Distribution of avalanche sizes::
     sage: p.axes_labels(['log(N)','log(D(N))'])
     sage: t = text("Distribution of avalanche sizes", (2,2), rgbcolor=(1,0,0))
     sage: show(p+t,axes_labels=['log(N)','log(D(N))'])
+
+To calculate linear systems associated with divisors, 4ti2 must be installed.
+One way to do this is to run sage -i to install glpk, then 4ti2.  See
+http://sagemath.org/download-packages.html to get the exact names of these
+packages.  An alternative is to install 4ti2 separately, then point the
+following variable to the correct path.
 """
+
 #*****************************************************************************
 #       Copyright (C) 2011 David Perkinson <davidp@reed.edu>
 #
@@ -218,14 +225,6 @@ from sage.combinat.set_partition import SetPartitions
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.plot.colors import rainbow
 from sage.env import SAGE_LOCAL
-
-r"""
-To calculate linear systems associated with divisors, 4ti2 must be installed.
-One way to do this is to run sage -i to install glpk, then 4ti2.  See
-http://sagemath.org/download-packages.html to get the exact names of these
-packages.  An alternative is to install 4ti2 separately, then point the
-following variable to the correct path.
-"""
 
 path_to_zsolve = os.path.join(SAGE_LOCAL,'bin','zsolve')
 

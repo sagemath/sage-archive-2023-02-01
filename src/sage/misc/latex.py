@@ -5,10 +5,10 @@ In order to support latex formatting, an object should define a
 special method ``_latex_(self)`` that returns a string, which will be typeset
 in a mathematical mode (the exact mode depends on circumstances).
 
-    AUTHORS:
+AUTHORS:
 
-    - William Stein: original implementation
-    - Joel B. Mohler: latex_variable_name() drastic rewrite and many doc-tests
+- William Stein: original implementation
+- Joel B. Mohler: latex_variable_name() drastic rewrite and many doc-tests
 """
 
 #*****************************************************************************

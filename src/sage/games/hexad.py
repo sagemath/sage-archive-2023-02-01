@@ -50,7 +50,7 @@ David Joyner (2006-05)
 
 REFERENCES:
 
-R. Curtis, The Steiner system $S(5,6,12)$, the Mathieu group $M_{12}$,
+R. Curtis, The Steiner system `S(5,6,12)`, the Mathieu group `M_{12}`,
 and the kitten, in *Computational group theory*, ed. M. Atkinson,
 Academic Press, 1984.
 
@@ -405,7 +405,7 @@ class Minimog():
 
         OUTPUT:
 
-        hexad containing `S \union \{x0\}` of type 2
+        hexad containing `S \cup \{x0\}` of type 2
 
         EXAMPLES::
 
@@ -440,7 +440,7 @@ class Minimog():
         return [],[]
 
     def find_hexad3(self, pts, x0, x1):
-        """
+        r"""
         INPUT:
 
         - pts -- a list of 3 elements of MINIMOG, not including any "points at
@@ -449,7 +449,7 @@ class Minimog():
 
         OUTPUT:
 
-        hexad containing pts \union \{x0,x1\} of type 3 (square at
+        hexad containing pts union \{x0,x1\} of type 3 (square at
         picture of "omitted point at infinity")
 
         EXAMPLES::
@@ -479,27 +479,27 @@ class Minimog():
         return [],[]
 
     def find_hexad(self, pts):
-        """
+        r"""
         INPUT:
 
         pts -- a list S of 5 elements of MINIMOG
 
         OUTPUT:
 
-        hexad containing $S \union \{x0\}$ of some type
+        hexad containing `S \cup \{x0\}` of some type
 
         NOTE: 3 "points at infinity" = {MINIMOG[0][2], MINIMOG[2][1], MINIMOG[0][0]}
 
         Theorem (Curtis, Conway): Each hexads is of exactly one of the following types:
 
-        0. {3 "points at infinity"} $\cup$ {any line},
+        0. {3 "points at infinity"} union {any line},
         1. the union of any two (distinct) parallel lines in the same picture,
         2. one "point at infinity" union a cross in the corresponding picture,
         3. two "points at infinity" union a square in the picture corresponding
            to the omitted point at infinity.
 
         More precisely, there are 132 such hexads (12 of type 0, 12 of type 1, 54 of type 2,
-        and 54 of type 3). They form a Steiner system of type $(5,6,12)$.
+        and 54 of type 3). They form a Steiner system of type `(5,6,12)`.
 
         EXAMPLES::
 
@@ -523,7 +523,7 @@ class Minimog():
 
         REFERENCES:
 
-        R. Curtis, The Steiner system $S(5,6,12)$, the Mathieu group $M_{12}$,
+        R. Curtis, The Steiner system `S(5,6,12)`, the Mathieu group `M_{12}`,
         and the kitten, in *Computational group theory*, ed. M. Atkinson,
         Academic Press, 1984.
 
@@ -611,10 +611,10 @@ class Minimog():
 
         MATHEMATICAL BLACKJACK
 
-        Mathematical blackjack is played with 12 cards, labeled $0,...,11$
-        (for example:  king,  ace, $2$, $3$, ..., $10$,  jack, where the  king is
-        $0$ and the  jack is $11$). Divide the 12 cards into two piles of $6$ (to be
-        fair, this should be done randomly). Each of the $6$ cards of one of these
+        Mathematical blackjack is played with 12 cards, labeled `0,...,11`
+        (for example:  king,  ace, `2`, `3`, ..., `10`,  jack, where the  king is
+        `0` and the  jack is `11`). Divide the 12 cards into two piles of `6` (to be
+        fair, this should be done randomly). Each of the `6` cards of one of these
         piles are to be placed face up on the table. The remaining cards are in a
         stack which is shared and visible to both players. If the sum of the cards
         face up on the table is less than 21 then no legal move is possible so you must
@@ -626,9 +626,9 @@ class Minimog():
         * The player whose move makes the sum of the cards on the table under 21 loses.
 
         The winning strategy (given below) for this game is due to Conway and Ryba.
-        There is a Steiner system $S(5,6,12)$ of hexads in the set $\{0,1,...,11\}$.
+        There is a Steiner system `S(5,6,12)` of hexads in the set `\{0,1,...,11\}`.
         This Steiner system is associated to the MINIMOG of in the "shuffle numbering"
-        rather than the "modulo $11$ labeling".
+        rather than the "modulo `11` labeling".
 
         Proposition (Ryba, Conway)   For this Steiner system, the winning strategy is to choose a
         move which is a hexad from this system.

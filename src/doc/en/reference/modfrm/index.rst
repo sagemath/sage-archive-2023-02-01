@@ -1,6 +1,9 @@
 Modular Forms
 =============
 
+Module List
+-----------
+
 .. toctree::
    :maxdepth: 2
 
@@ -24,7 +27,14 @@ Modular Forms
    sage/modular/modform/half_integral
    sage/modular/modform/find_generators
    sage/modular/modform/j_invariant
-   sage/modular/modform/notes
    sage/modular/modform/theta
+
+Design Notes
+------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/modular/modform/notes
 
 .. include:: ../footer.txt

@@ -2093,7 +2093,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 We check that the result is indexed by partitions::
 
                     sage: M([]).to_symmetric_function().leading_support().parent()
-                    Parittions
+                    Partitions
                 """
                 m = SymmetricFunctions(self.parent().base_ring()).monomial()
                 if self.is_symmetric():

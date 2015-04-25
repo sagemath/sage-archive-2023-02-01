@@ -6,12 +6,10 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-cd "src"
-
-gcc -o "$SAGE_LOCAL/lib/libplanarity.so" *.c -fPIC --shared &&
-rm -rf "$SAGE_LOCAL/include/planarity/" &&
-mkdir  "$SAGE_LOCAL/include/planarity/" &&
-mv *.h "$SAGE_LOCAL/include/planarity/"
+cd src &&
+./configure --prefix="$SAGE_LOCAL" &&
+make &&
+make install
 
 if [ $? -ne 0 ]; then
     echo "An error occurred whilst building planarity"

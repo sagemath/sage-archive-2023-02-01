@@ -4559,7 +4559,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         - ``proof`` -- Boolean or ``None`` (default). If False, use a
           strong pseudo-primality test (see :meth:`is_pseudoprime`).
           If True, use a provable primality test.  If unset, use the
-          default arithmetic proof flag.
+          :mod:`default arithmetic proof flag <sage.structure.proof.proof>`.
 
         .. note::
 
@@ -4606,7 +4606,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: timeit("n.is_prime()")  # not tested
             1000 loops, best of 3: 573 us per loop
 
-        IMPLEMENTATION: Calls the PARI ``isprime`` function.
+        ALGORITHM:
+
+        Calls the PARI ``isprime`` function.
         """
         if mpz_sgn(self.value) <= 0:
             return False

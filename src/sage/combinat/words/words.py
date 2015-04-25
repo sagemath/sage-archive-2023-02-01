@@ -1632,6 +1632,12 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
         TESTS::
 
             sage: _ = Words(GF(5),4).random_element()
+
+        Check that :trac:`18283` is fixed::
+
+            sage: w = Words('abc', 5).random_element()
+            sage: w.length()
+            5
         """
         if self.alphabet().cardinality() == Infinity:
             raise ValueError("How can I pick a random word with an infinite aphabet?")

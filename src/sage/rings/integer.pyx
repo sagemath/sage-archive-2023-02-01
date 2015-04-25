@@ -320,7 +320,7 @@ cdef _digits_internal(mpz_t v,l,int offset,int power_index,power_list,digits):
         mpz_clear(mpz_quot)
         mpz_clear(mpz_res)
 
-from sage.structure.sage_object cimport SageObject
+from sage.structure.sage_object cimport SageObject, rich_to_bool_sgn
 from sage.structure.element cimport EuclideanDomainElement, ModuleElement, Element
 from sage.structure.element import  bin_op
 from sage.structure.coerce_exceptions import CoercionException
@@ -891,7 +891,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 c = -mpz_cmp_d((<Integer>right).value, d)
             else:
                 return (<sage.structure.element.Element>left)._richcmp(right, op)
-        return (<sage.structure.element.Element>left)._rich_to_bool(op, c)
+        return rich_to_bool_sgn(op, c)
 
     cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         cdef int i

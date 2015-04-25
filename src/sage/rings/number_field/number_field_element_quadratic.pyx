@@ -36,6 +36,7 @@ include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 
 from sage.structure.element cimport Element
+from sage.structure.sage_object cimport rich_to_bool_sgn
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -45,14 +46,6 @@ from sage.categories.morphism cimport Morphism
 from sage.rings.number_field.number_field_element import _inverse_mod_generic
 
 import number_field
-
-# TODO: this doesn't belong here, but robert thinks it would be nice
-# to have globally available....
-#
-# cdef mpz_to_str(mpz_t z):
-#     cdef Integer zz = PY_NEW(Integer)
-#     mpz_set(zz.value, z)
-#     return str(zz)
 
 
 def __make_NumberFieldElement_quadratic0(parent, a, b, denom):
@@ -762,7 +755,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             if test:
                 mpz_clear(i)
                 mpz_clear(j)
-                return (<Element>left)._rich_to_bool(op, test)
+                return rich_to_bool_sgn(op, test)
             mpz_mul(i, left.b, right.denom)
             mpz_mul(j, right.b, left.denom)
             test = mpz_cmp(i,j)
@@ -771,11 +764,11 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
                     test = -test
                 mpz_clear(i)
                 mpz_clear(j)
-                return (<Element>left)._rich_to_bool(op, test)
+                return rich_to_bool_sgn(op, test)
             test = mpz_cmp(left.denom, right.denom)
             mpz_clear(i)
             mpz_clear(j)
-            return (<Element>left)._rich_to_bool(op, test)
+            return rich_to_bool_sgn(op, test)
 
         # comparison in the real case
         mpz_init(i)
@@ -809,7 +802,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
         mpz_clear(i)
         mpz_clear(j)
-        return (<Element>left)._rich_to_bool(op, test)
+        return rich_to_bool_sgn(op, test)
 
     def __cmp__(left, right):
         r"""

@@ -54,6 +54,7 @@ import operator
 import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.misc.randstate cimport randstate, current_randstate
+from sage.structure.sage_object cimport rich_to_bool
 
 include 'pari_err.pxi'
 include 'sage/ext/stdsage.pxi'
@@ -1122,7 +1123,7 @@ cdef class gen(gen_auto):
         elif op == 3:  # !=
             r = (gequal(x, y) == 0)
         else:
-            r = left._rich_to_bool(op, gcmp(x, y))
+            r = rich_to_bool(op, gcmp(x, y))
         pari_catch_sig_off()
         return r
 

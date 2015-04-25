@@ -160,6 +160,7 @@ from operator import add, sub, mul, div, iadd, isub, imul, idiv
 cdef MethodType
 from types import MethodType
 
+from sage.structure.sage_object cimport rich_to_bool
 from sage.structure.coerce cimport py_scalar_to_element
 from sage.structure.parent cimport Parent
 from sage.structure.misc import is_extension_type, getattr_from_other_class
@@ -938,14 +939,14 @@ cdef class Element(SageObject):
         cdef int r
         if not have_same_parent_c(left, right):
             if left is None or left is Ellipsis:
-                return _rich_to_bool(op, -1)
+                return rich_to_bool(op, -1)
             elif right is None or right is Ellipsis:
-                return _rich_to_bool(op, 1)
+                return rich_to_bool(op, 1)
             try:
                 _left, _right = coercion_model.canonical_coercion(left, right)
                 if isinstance(_left, Element):
                     return (<Element>_left)._richcmp(_right, op)
-                return _rich_to_bool(op, cmp(_left, _right))
+                return rich_to_bool(op, cmp(_left, _right))
             except (TypeError, NotImplementedError):
                 r = cmp(type(left), type(right))
                 if r == 0:
@@ -964,15 +965,12 @@ cdef class Element(SageObject):
                     elif isinstance(right, Element) and isinstance(left, (int, float, Integer)) and not left:
                         left = (<Element>right)._parent(left)
                     else:
-                        return _rich_to_bool(op, r)
+                        return rich_to_bool(op, r)
                 except TypeError:
-                    return _rich_to_bool(op, r)
+                    return rich_to_bool(op, r)
 
         # Same parents
         return left._richcmp_(<Element>right, op)
-
-    cdef _rich_to_bool(self, int op, int r):
-        return _rich_to_bool(op, r)
 
     ####################################################################
     # For a derived Cython class, you **must** put the __richcmp__
@@ -997,7 +995,7 @@ cdef class Element(SageObject):
     cpdef _richcmp_(left, Element right, int op):
         # Obvious case
         if left is right:
-            return _rich_to_bool(op, 0)
+            return rich_to_bool(op, 0)
 
         cdef int c
         try:
@@ -1007,7 +1005,8 @@ cdef class Element(SageObject):
             if op == Py_EQ: return False
             if op == Py_NE: return True
             raise
-        return _rich_to_bool(op, c)
+        assert -1 <= c <= 1
+        return rich_to_bool(op, c)
 
     cpdef int _cmp_(left, Element right) except -2:
         # Check for Python class defining __cmp__
@@ -1015,21 +1014,6 @@ cdef class Element(SageObject):
         if isinstance(left_cmp, MethodType):
             return left_cmp(right)
         raise NotImplementedError("comparison not implemented for %r"%type(left))
-
-
-cdef inline bint _rich_to_bool(int op, int r):
-    if op == Py_LT:  #<
-        return (r  < 0)
-    elif op == Py_EQ: #==
-        return (r == 0)
-    elif op == Py_GT: #>
-        return (r  > 0)
-    elif op == Py_LE: #<=
-        return (r <= 0)
-    elif op == Py_NE: #!=
-        return (r != 0)
-    elif op == Py_GE: #>=
-        return (r >= 0)
 
 
 def is_ModuleElement(x):

@@ -40,7 +40,6 @@ cdef class Element(SageObject):
     cdef _cmp(self, right)
     cdef _set_parent_c(self, Parent parent)
     cpdef base_extend(self, R)
-    cdef _rich_to_bool(self, int op, int r)
 
     cpdef _act_on_(self, x, bint self_on_left)
     cpdef _acted_upon_(self, x, bint self_on_left)

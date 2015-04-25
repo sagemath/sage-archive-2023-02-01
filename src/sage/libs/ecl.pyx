@@ -828,20 +828,7 @@ cdef class EclObject:
         #and does not have generic routines for doing that.
         #we could dispatch based on type here, but that seems
         #inappropriate for an *interface*.
-        raise NotImplementedError,"EclObjects can only be compared for equality"
-
-        #if not(isinstance(left,EclObject)) or not(isinstance(right,EclObject)):
-        #    raise TypeError,"Can only compare EclObjects"
-        #if op == 0: # "<"
-        #    pass
-        #elif op == 1: # "<="
-        #    pass
-        #elif op == 4: # ">"
-        #    pass
-        #elif op == 5: # ">="
-        #    pass
-        #else:
-        #    raise ValueError,"richcmp received operation code %d"%op
+        raise NotImplementedError("EclObjects can only be compared for equality")
 
     def __iter__(self):
         r"""

@@ -99,7 +99,7 @@ from element cimport parent_c
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
 from sage.structure.debug_options import debug
-from sage.structure.sage_object import SageObject
+from sage.structure.sage_object cimport SageObject, rich_to_bool
 from sage.structure.misc import (dir_with_other_class, getattr_from_other_class,
                                  is_extension_type)
 from sage.misc.lazy_attribute import lazy_attribute
@@ -1500,18 +1500,8 @@ cdef class Parent(category_object.CategoryObject):
             # Both are parents -- but need *not* have the same type.
             r = left._cmp_(right)
 
-        if op == 0:  #<
-            return r  < 0
-        elif op == 2: #==
-            return r == 0
-        elif op == 4: #>
-            return r  > 0
-        elif op == 1: #<=
-            return r <= 0
-        elif op == 3: #!=
-            return r != 0
-        elif op == 5: #>=
-            return r >= 0
+        assert -1 <= r <= 1
+        return rich_to_bool(op, r)
 
     cpdef int _cmp_(left, right) except -2:
         # Check for Python class defining __cmp__

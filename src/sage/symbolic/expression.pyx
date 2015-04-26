@@ -202,10 +202,12 @@ cpdef bint is_SymbolicEquation(x):
     return isinstance(x, Expression) and is_a_relational((<Expression>x)._gobj)
 
 
-def _subs_safe_merge(d1, d2):
+def _dict_update_check_duplicate(dict d1, dict d2):
     r"""
-    Merge two dictionaries containing substitutions of the form {expr:
-    replacement}. Throw an error if any expressions are substituted
+    Merge the dictionary ``d2`` into ``d1`` and check for duplicates.
+    
+    The two dictionaries must be of the form ``{expr: replacement}``. This
+    function throws a ``ValueError`` if any expressions are substituted
     for twice.
 
     INPUT:
@@ -214,55 +216,43 @@ def _subs_safe_merge(d1, d2):
 
     -  ``d2`` -- Another dictionary.
 
-    OUTPUT:
-
-    If there are no duplicate substitutions, a new dictionary
-    containing the union of ``d1`` and ``d2`` is returned. Otherwise,
-    a ValueError is raised.
-
     EXAMPLES:
 
     A normal merge with no conflicts::
 
-        sage: from sage.symbolic.expression import _subs_safe_merge
+        sage: from sage.symbolic.expression import _dict_update_check_duplicate
         sage: d1 = {'a': 1}
         sage: d2 = {'b': 2}
-        sage: _subs_safe_merge(d1, d2)
+        sage: _dict_update_check_duplicate(d1, d2)
+        sage: d1
         {'a': 1, 'b': 2}
 
     In this case, the variable ``a`` is substituted twice resulting in
     an error::
 
-        sage: from sage.symbolic.expression import _subs_safe_merge
+        sage: from sage.symbolic.expression import _dict_update_check_duplicate
         sage: d1 = {'a': 1}
         sage: d2 = {'a': 2}
-        sage: _subs_safe_merge(d1, d2)
+        sage: _dict_update_check_duplicate(d1, d2)
         Traceback (most recent call last):
         ...
-        ValueError: Duplicate substitutions given: a
+        ValueError: duplicate substitutions a->1 and a->2
 
     We should report all such conflicts, not just the first one::
 
-        sage: from sage.symbolic.expression import _subs_safe_merge
+        sage: from sage.symbolic.expression import _dict_update_check_duplicate
         sage: d1 = {'a': 1, 'b': 2}
         sage: d2 = {'b': 1, 'a': 2}
-        sage: _subs_safe_merge(d1, d2)
+        sage: _dict_update_check_duplicate(d1, d2)
         Traceback (most recent call last):
         ...
-        ValueError: Duplicate substitutions given: a, b
-
+        ValueError: duplicate substitutions a->1 and a->2
     """
-    dupes = []
-    for k in d1.keys():
-        if k in d2.keys():
-            dupes.append(k)
-    if len(dupes) > 0:
-        errmsg = 'Duplicate substitutions given: %s'
-        if len(dupes) > 1:
-            errmsg += ', %s' * (len(dupes)-1)
-        raise ValueError, errmsg  % tuple(dupes)
-    return dict(d1.items() + d2.items())
-
+    if any(k in d1 for k in d2):
+        k = (k for k in d1 if k in d2).next()
+        raise ValueError("duplicate substitutions {}->{} and {}->{}".format(
+            k, d1[k], k, d2[k]))
+    d1.update(d2)
 
 def _subs_make_dict(s):
     r"""
@@ -290,63 +280,50 @@ def _subs_make_dict(s):
 
     And a dictionary (we just return it as-is)::
 
-        sage: from sage.symbolic.expression import _subs_make_dict
         sage: _subs_make_dict({x: 1})
         {x: 1}
 
-    And finally, a list containing one of everything::
+    And finally, a tuple or a list containing one of everything::
 
-        sage: from sage.symbolic.expression import _subs_make_dict
         sage: x, y, z = var('x, y, z')
         sage: _subs_make_dict([x == 1, {y: 1}, [z == 1]])
         {z: 1, y: 1, x: 1}
+        sage: _subs_make_dict((x == 1, y == 2))
+        {y: 2, x: 1}
 
-    Expect a TypeError if ``s`` is not one of the three allowed
-    types::
+    Note that it recursively calls itself so that the following does work::
 
-        sage: from sage.symbolic.expression import _subs_make_dict
+        sage: _subs_make_dict([[x == 1], [[y == 2], [z == 3]]])
+        {z: 3, y: 2, x: 1}
+
+    Check that a ``TypeError`` is raised if the input is not valid::
+
         sage: _subs_make_dict(1)
         Traceback (most recent call last):
         ...
-        TypeError: _subs_make_dict accepts a symbolic equation, dictionary,
-        or a list comprised of expressions, dictionaries, and lists.
-
-    And a ValueError if you pass an expression that is not an equation::
-
-        sage: from sage.symbolic.expression import _subs_make_dict
+        TypeError: not able to determine a substitution from 1
         sage: _subs_make_dict(x)
         Traceback (most recent call last):
         ...
-        ValueError: The symbolic expression passed to _subs_make_dict must
-        be an equation, e.g. `a == b`.
-
+        TypeError: not able to determine a substitution from x
+        sage: _subs_make_dict(x <= 1)
+        Traceback (most recent call last):
+        ...
+        TypeError: can only substitute equality, not inequalities; got x <= 1
     """
     if isinstance(s, dict):
         return s
-
-    if isinstance(s, Expression):
-        try:
-            # This will work if `s` is an equation.
-            return {s.lhs(): s.rhs()}
-        except ValueError:
-            # And will throw a ValueError otherwise.
-            msg = 'The symbolic expression passed to _subs_make_dict must be an equation, e.g. `a == b`.'
-            raise ValueError, msg
-
-
-    if isinstance(s, list):
-        # This will recurse with base case not-a-list.
-        dict_list = map(_subs_make_dict, s)
+    elif is_SymbolicEquation(s):
+        if s.operator() is not operator.eq:
+            raise TypeError("can only substitute equality, not inequalities; got {}".format(s))
+        return {s.lhs(): s.rhs()}
+    elif isinstance(s, (tuple,list)):
         result = {}
-        for d in dict_list:
-            # We use _subs_safe_merge to "bubble up" the elements of
-            # the list. This way we detect any duplicate
-            # substitutions.
-            result = _subs_safe_merge(result, d)
+        for d in s:
+            _dict_update_check_duplicate(result, _subs_make_dict(d))
         return result
-
-    raise TypeError, '_subs_make_dict accepts a symbolic equation, dictionary, or a list comprised of expressions, dictionaries, and lists.'
-
+    else:
+        raise TypeError("not able to determine a substitution from {}".format(s))
 
 
 cdef class Expression(CommutativeRingElement):
@@ -4328,6 +4305,8 @@ cdef class Expression(CommutativeRingElement):
 
     def substitute(self, in_dict=None, **kwds):
         """
+        Substitute the given subexpressions in this expression.
+
         EXAMPLES::
 
             sage: var('x,y,z,a,b,c,d,f,g')
@@ -4388,7 +4367,7 @@ cdef class Expression(CommutativeRingElement):
             sage: t.subs({a:b}, a=c)
             Traceback (most recent call last):
             ...
-            ValueError: Duplicate substitutions given: a
+            ValueError: duplicate substitutions a->b and a->c
 
         Even when the duplicate assignment is a keyword argument::
 
@@ -4396,7 +4375,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.subs([x == 1], x = 2)
             Traceback (most recent call last):
             ...
-            ValueError: Duplicate substitutions given: x
+            ValueError: duplicate substitutions x->1 and x->2
 
         All substitutions are performed at the same time::
 
@@ -4420,9 +4399,7 @@ cdef class Expression(CommutativeRingElement):
             sage: t.subs(5)
             Traceback (most recent call last):
             ...
-            TypeError: Substitutions can be given as a set of keyword arguments,
-            a dictionary, a symbolic relational expression, or a list containing
-            any of those.
+            TypeError: not able to determine a substitution from 5
 
         Substitutions with infinity::
 
@@ -4481,21 +4458,13 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef dict sdict = {}
         if in_dict is not None:
-            try:
-                sdict.update(_subs_make_dict(in_dict))
-            except TypeError:
-                raise TypeError("Substitutions can be given as a set of keyword "
-                 "arguments, a dictionary, a symbolic relational expression, or "
-                 "a list containing any of those.")
+            sdict.update(_subs_make_dict(in_dict))
 
         if kwds:
             # Ensure that the keys are symbolic variables.
-            kwdlist = []
-            for k,v in kwds.iteritems():
-                kwdlist.append( (self._parent.var(k), v) )
-            varkwds = dict(kwdlist)
-            # This will catch conflicting (duplicate) substitutions.
-            sdict = _subs_safe_merge(sdict, varkwds)
+            varkwds = {self._parent.var(k): v for k,v in kwds.iteritems()}
+            # Check for duplicate
+            _dict_update_check_duplicate(sdict, varkwds)
 
         cdef GExMap smap
         for k, v in sdict.iteritems():

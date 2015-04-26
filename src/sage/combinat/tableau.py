@@ -327,7 +327,7 @@ class Tableau(ClonableList):
         ClonableList.__init__(self, parent, t)
         # This dispatches the input verification to the :meth:`check`
         # method.
-    
+
     def __eq__(self, other):
         r"""
         Check whether ``self`` is equal to ``other``.
@@ -364,7 +364,7 @@ class Tableau(ClonableList):
             return list(self) == list(other)
         else:
             return list(self) == other
-    
+
     def __ne__(self, other):
         r"""
         Check whether ``self`` is unequal to ``other``.
@@ -1717,7 +1717,7 @@ class Tableau(ClonableList):
         REFERENCES:
 
         .. [Ive2012] S. Iveson,
-           *Tableaux on `k + 1`-cores, reduced words for affine 
+           *Tableaux on `k + 1`-cores, reduced words for affine
            permutations, and `k`-Schur expansions*,
            Operators on `k`-tableaux and the `k`-Littlewood-Richardson
            rule for a special case,
@@ -5164,18 +5164,29 @@ class SemistandardTableaux_size(SemistandardTableaux):
             and max(max(row) for row in x) <= self.max_entry)
 
     def random_element(self):
-        """
-        Generate a random ``SemistandardTableau`` with uniform probability.
+        r"""
+        Generate a random :class:`SemistandardTableau` with uniform probability.
 
         The RSK algorithm gives a bijection between symmetric `k\times k` matrices
         of nonnegative integers that sum to `n` and semistandard tableaux with size `n`
         and maximum entry `k`.
 
-        To generate a random symmetric matrix with a given sum, we first choose the trace of the
-        matrix
+        The number of `k\times k` symmetric matrices of nonnegative integers
+        having sum of elements on the diagonal `i` and sum of elements above
+        the diagonal `j` is `\binom{k + i - 1}{k - 1}\binom{\binom{k}{2} + j - 1}{\binom{k}{2} - 1}`.
+        We first choose the sum of the elements on the diagonal randomly weighted by the
+        number of matrices having that trace.  We then create random integer vectors
+        of length `k` having that sum and use them to generate a `k\times k` diagonal matrix.
+        Then we take a random integer vector of length `\binom{k}{2}` summing to half the
+        remainder and distribute it symmetrically to the remainder of the matrix.
 
-        TESTS::
+        Applying RSK to the random symmetric matrix gives us a pair of identical
+        :class:`SemistandardTableau` of which we choose the first.
 
+        EXAMPLES::
+
+            sage: SemistandardTableaux(6).random_element()
+            [[2, 2], [3, 3], [6, 6]]
             sage: SemistandardTableaux(6, max_entry=7).random_element()
             [[2, 2], [3, 3], [6, 6]]
 
@@ -5191,7 +5202,7 @@ class SemistandardTableaux_size(SemistandardTableaux):
         randpos = ZZ.random_element(sum(weights))
         tot = weights[0]
         pos = 0
-        while (randpos >= tot):
+        while randpos >= tot:
             pos += 1
             tot += weights[pos]
         # we now have pos elements over the diagonal and n - 2 * pos on it
@@ -5204,7 +5215,7 @@ class SemistandardTableaux_size(SemistandardTableaux):
                 m[j,i] = above_diagonal[index]
                 index += 1
         return RSK(m)[0]
-    
+
     def cardinality(self):
         """
         Return the cardinality of ``self``.
@@ -5392,16 +5403,18 @@ class SemistandardTableaux_shape(SemistandardTableaux):
 
     def random_element(self):
         """
-        Returns a uniformly distributed random tableau of the given shape and max_entry.
+        Return a uniformly distributed random tableau of the given ``shape`` and ``max_entry``.
 
-        Uses the algorithm from [Krat99] based on the Novelli-Pak-Stoyanovskii bijection
+        Uses the algorithm from [Krat99]_ based on the Novelli-Pak-Stoyanovskii bijection
 
-        TESTS::
+        EXAMPLES::
 
+            sage: SemistandardTableaux([2, 2, 1, 1]).random_element()
+            [[1, 1], [2, 3], [3], [5]]
             sage: SemistandardTableaux([2, 2, 1, 1], max_entry=7).random_element()
-            [[1, 2], [2, 4], [3], [5]] 
+            [[1, 4], [5, 5], [6], [7]]
 
-        
+
         REFERENCES:
 
         .. [Krat99] C. Krattenthaler,
@@ -6007,7 +6020,7 @@ class StandardTableaux_size(StandardTableaux):
         EXAMPLES::
 
             sage: StandardTableaux(5).random_element() # random
-            [[1, 4, 5], [2], [3]] 
+            [[1, 4, 5], [2], [3]]
             sage: StandardTableaux(0).random_element()
             []
             sage: StandardTableaux(1).random_element()
@@ -6468,5 +6481,3 @@ register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_n',  S
 register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_p',  SemistandardTableaux_shape)
 register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_nmu',  SemistandardTableaux_size_weight)
 register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_pmu',  SemistandardTableaux_shape_weight)
-
-

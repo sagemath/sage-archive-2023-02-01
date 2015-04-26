@@ -364,6 +364,7 @@ PILLOW=`newest_version pillow`
 PIP=`newest_version pip`
 PKGCONF=`newest_version pkgconf`
 PKGCONFIG=`newest_version pkgconfig`
+PLANARITY=`newest_version planarity`
 POLYBORI=`newest_version polybori`
 POLYTOPES_DB=`newest_version polytopes_db`
 PPL=`newest_version ppl`

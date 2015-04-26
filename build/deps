@@ -86,6 +86,7 @@ all-sage: \
      $(INST)/$(PIP) \
      $(INST)/$(PKGCONF) \
      $(INST)/$(PKGCONFIG) \
+     $(INST)/$(PLANARITY) \
      $(INST)/$(POLYBORI) \
      $(INST)/$(POLYTOPES_DB) \
      $(INST)/$(PPL) \
@@ -191,6 +192,9 @@ $(INST)/$(BOOST_CROPPED):
 
 $(INST)/$(CLIQUER):
 	+$(PIPE) "$(SAGE_SPKG) $(CLIQUER) 2>&1" "tee -a $(SAGE_LOGS)/$(CLIQUER).log"
+
+$(INST)/$(PLANARITY):
+	+$(PIPE) "$(SAGE_SPKG) $(PLANARITY) 2>&1" "tee -a $(SAGE_LOGS)/$(PLANARITY).log"
 
 $(INST)/$(COMBINATORIAL_DESIGNS):
 	+$(PIPE) "$(SAGE_SPKG) $(COMBINATORIAL_DESIGNS) 2>&1" "tee -a $(SAGE_LOGS)/$(COMBINATORIAL_DESIGNS).log"
@@ -510,6 +514,7 @@ $(INST)/sage: \
 		 $(INST)/$(NTL) \
 		 $(INST)/$(NUMPY) \
 		 $(INST)/$(PARI) \
+		 $(INST)/$(PLANARITY) \
 		 $(INST)/$(POLYBORI) \
 		 $(INST)/$(PPL) \
 		 $(INST)/$(PYNAC) \

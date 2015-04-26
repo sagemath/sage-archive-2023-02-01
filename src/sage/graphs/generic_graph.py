@@ -4043,7 +4043,7 @@ class GenericGraph(GenericGraph_pyx):
              attribute if minimal is set to ``False``.
 
            - The value ``True``, in order to indicate that the embedding stored
-             as ``_embedding`` should be used (see eg's).
+             as ``_embedding`` should be used (see examples).
 
         -  ``minimal (boolean)`` - whether or not to compute
            the minimal genus of the graph (i.e., testing all embeddings). If

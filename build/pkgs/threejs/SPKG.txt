@@ -1,4 +1,4 @@
-= MathJax =
+= Three.js =
 
 == Description ==
 

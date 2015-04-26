@@ -59,7 +59,7 @@ cdef inline bint rich_to_bool(int op, int c):
     return (bits >> (shift & 31)) & 1
 
 
-cdef inline bint rich_to_bool_sgn(int op, long c):
+cdef inline bint rich_to_bool_sgn(int op, int c):
     """
     Same as ``rich_to_bool``, but allow any `c < 0` and `c > 0`
     instead of only `-1` and `1`.
@@ -68,7 +68,4 @@ cdef inline bint rich_to_bool_sgn(int op, long c):
 
         This is in particular needed for ``mpz_cmp()``.
     """
-    if c < 0:
-        return rich_to_bool(op, -1)
-    else:
-        return rich_to_bool(op, c != 0)
+    return rich_to_bool(op, (c > 0) - (c < 0))

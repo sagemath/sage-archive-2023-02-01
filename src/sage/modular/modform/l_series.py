@@ -8,6 +8,8 @@ class GrossZagierLseries(SageObject):
 
     def __init__(self, E, A, prec=53):
         """
+        Class for the Gross-Zagier L-series.
+
         EXAMPLES::
 
             sage: e = EllipticCurve('37a')
@@ -29,14 +31,14 @@ class GrossZagierLseries(SageObject):
         self._nterms = nterms = Integer(self._dokchister.gp()('cflength()'))
         if nterms > 1e6:
             # just takes way to long
-            raise ValueError("Too many terms: %s" % nterms)
+            raise ValueError("Too many terms: {}".format(nterms))
         an_list = list(gross_zagier_L_series(E.anlist(nterms + 1), Q, N, A.ideal().number_field().zeta_order()))
         self._dokchister.gp().set('a', an_list[1:])
         self._dokchister.init_coeffs('a[k]', 1)
 
     def __call__(self, s, der=0):
         r"""
-        Return the value at `s`
+        Return the value at `s`.
 
         EXAMPLES::
 
@@ -52,7 +54,7 @@ class GrossZagierLseries(SageObject):
 
     def taylor_series(self, s, nterms):
         r"""
-        Return the Taylor series at `s`
+        Return the Taylor series at `s`.
 
         EXAMPLES::
 
@@ -68,7 +70,7 @@ class GrossZagierLseries(SageObject):
 
     def _repr_(self):
         """
-        Return the string representation
+        Return the string representation.
 
         EXAMPLES::
 
@@ -79,4 +81,5 @@ class GrossZagierLseries(SageObject):
             sage: GrossZagierLseries(e, A)
             Gross Zagier L-series attached to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field with ideal class Fractional ideal class (2, 1/2*a)
         """
-        return "Gross Zagier L-series attached to %s with ideal class %s" % (self._E, self._A)
+        msg = "Gross Zagier L-series attached to {} with ideal class {}"
+        return msg.format(self._E, self._A)

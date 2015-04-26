@@ -106,6 +106,37 @@ cdef long* bqf_theta_series_c(long* terms, long bound, long a, long b, long c) e
 
 
 def gross_zagier_L_series(an_list, Q, long N, long u, var=None):
+    """
+    Compute the coefficients of the Gross-Zagier L-series.
+
+    INPUT:
+
+    - ``a_n`` -- list of coefficients of the L-series of an elliptic curve
+    - ``Q`` -- a positive definite quadratic form
+    - ``N`` -- conductor of the elliptic curve
+    - ``u`` -- number of roots of unity in the field associated with Q
+    - ``var`` -- (optional) the variable in which to express this power series
+
+    OUTPUT:
+
+    A power series in ``var``, or list of ints if ``var`` is unspecified.
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform.l_series_coeffs import gross_zagier_L_series
+        sage: e = EllipticCurve('37a')
+        sage: N = 37
+        sage: an = e.anlist(60)
+        sage: K.<a> = QuadraticField(-40)
+        sage: A = K.class_group().gen(0)
+        sage: Q = A.ideal().quadratic_form().reduced_form()
+        sage: u = K.zeta_order()
+        sage: t = PowerSeriesRing(ZZ,'t').gen()
+        sage: gross_zagier_L_series(an,Q,N,u,t)
+        -2*t^2 - 2*t^5 - 2*t^7 - 4*t^13 - 6*t^18 - 4*t^20 + 20*t^22 + 4*t^23
+        - 4*t^28 + 8*t^32 - 2*t^37 - 6*t^45 - 18*t^47 + 2*t^50 - 8*t^52
+        + 2*t^53 + 20*t^55 + O(t^61)
+    """
     cdef long bound = len(an_list)
     cdef long a, b, c
     a, b, c = Q

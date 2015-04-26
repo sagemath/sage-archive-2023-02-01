@@ -15564,7 +15564,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: Graph()._rich_repr_(dm, edge_labels=True)
             OutputImagePng container
         """
-        return self.plot(**kwds)._rich_repr_(display_manager)
+        if display_manager.preferences.plot_graphs != 'never' and (
+                display_manager.preferences.plot_graphs == 'always' or (
+                    0 < self.num_verts() < 20)):
+            return self.plot(**kwds)._rich_repr_(display_manager)
+        # Avoid latex output, it produces a huge tikz environment
+        return display_manager.types.OutputPlainText(repr(self))
         
     @options()
     def plot(self, **options):

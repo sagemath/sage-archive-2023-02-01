@@ -295,25 +295,25 @@ class SageMagics(Magics):
             import sage.misc.ascii_art as ascii_art
             ascii_art.MAX_WIDTH = max_width
             dm.preferences.text = 'ascii_art'
-        # Unset
+        # Unset all
         elif arg0 in ['default', 'None']:  # un-stringify "%display None"
-            dm.preferences.text = None  
-            dm.preferences.graphics = None  
+            for option in map(str, dm.preferences.available_options()):
+                delattr(dm.preferences, option)
         # Normal argument handling
-        elif arg0 == 'text' and len(args) == 1:
-            print(dm.preferences.text)
-        elif arg0 == 'text' and len(args) == 2:
-            try:
-                dm.preferences.text = args[1]
-            except ValueError as err:
-                print(err)  # do not show traceback
-        elif arg0 == 'graphics' and len(args) == 1:
-            print(dm.preferences.graphics)
-        elif arg0 == 'graphics' and len(args) == 2:
-            try:
-                dm.preferences.graphics = args[1]
-            except ValueError as err:
-                print(err)  # do not show traceback
+        elif arg0 in map(str, dm.preferences.available_options()) and len(args) <= 2:
+            if len(args) == 1:
+                # "%display text" => get current value
+                print(getattr(dm.preferences, arg0))
+            else:
+                # "%display text latex" => set new value
+                assert len(args) == 2
+                if args[1] in ['default', 'None']:
+                    delattr(dm.preferences, arg0)
+                else:
+                    try:
+                        setattr(dm.preferences, arg0, args[1])
+                    except ValueError as err:
+                        print(err)  # do not show traceback
         # If all else fails: assume text
         else:
             try:

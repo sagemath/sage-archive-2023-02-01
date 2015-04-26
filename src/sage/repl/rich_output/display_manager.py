@@ -319,6 +319,7 @@ class DisplayManager(SageObject):
             sage: dm.preferences
             Display preferences:
             * graphics is not specified
+            * plot_graphs = never
             * text is not specified
         """
         return self._preferences

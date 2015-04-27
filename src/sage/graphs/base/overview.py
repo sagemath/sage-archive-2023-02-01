@@ -8,34 +8,34 @@ and digraphs. They can be used directly at Cython/C level, or through the
 Data structures
 ---------------
 
-Four data structures are natively available for graphs in Sage:
+Four data structures are natively available for (di)graphs in Sage:
 
-- :mod:`~sage.graphs.base.sparse_graph` (default) -- for sparse graphs, with a
-  `\log(n)` edge test, and easy enumeration of neighbors. It is the most
+- :mod:`~sage.graphs.base.sparse_graph` (default) -- for sparse (di)graphs, with
+  a `\log(n)` edge test, and easy enumeration of neighbors. It is the most
   general-purpose data structure, though it can have a high memory cost in
   practice.
 
   - Supports: Addition/removal of edges/vertices, multiple edges, edge labels
     and loops.
 
-- :mod:`~sage.graphs.base.dense_graph` -- for dense graphs, with a `O(1)` edge
-  test, and slow enumeration of neighbors.
+- :mod:`~sage.graphs.base.dense_graph` -- for dense (di)graphs, with a `O(1)`
+  edge test, and slow enumeration of neighbors.
 
-  - Supports: addition/removal of edges/vertices available, and loops.
+  - Supports: addition/removal of edges/vertices, and loops.
   - Does not support: multiple edges and edge labels.
 
-- :mod:`~sage.graphs.base.static_sparse_graph` -- for sparse graphs and very
+- :mod:`~sage.graphs.base.static_sparse_graph` -- for sparse (di)graphs and very
   intensive computations (at C-level). It is faster than
-  :mod:`~sage.graphs.base.sparse_graph` in practice and *much* ligther in
+  :mod:`~sage.graphs.base.sparse_graph` in practice and *much* lighter in
   memory.
 
   - Supports: multiple edges, edge labels and loops
   - Does not support: addition/removal of edges/vertices.
 
-- :mod:`~sage.graphs.base.static_dense_graph` -- for dense graphs and very
+- :mod:`~sage.graphs.base.static_dense_graph` -- for dense (di)graphs and very
   intensive computations (at C-level). It is mostly a wrapper over bitsets.
 
-  - Supports: addition/removal of edges/vertices available, and loops.
+  - Supports: addition/removal of edges/vertices, and loops.
   - Does not support: multiple edges and edge labels.
 
 For more information, see the data structures' respective pages.
@@ -50,7 +50,7 @@ and edges to other objects: the :mod:`graph backends
     sage: Graph()._backend
     <class 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
 
-A graph backend is a simpler (di)graph class having only the most elementary
+A (di)graph backend is a simpler (di)graph class having only the most elementary
 methods (e.g.: add/remove vertices/edges). Its vertices can be arbitrary
 hashable objects.
 

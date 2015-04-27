@@ -70,6 +70,37 @@ def random_error_vector(n, F, error_positions):
         vect[i] = F._random_nonzero_element()
     return vector(F, vect)
 
+def format_interval(t):
+    r"""
+    Returns a formatted string representation of ``t``.
+
+    This method should be called by any representation function in Channel classes.
+
+    .. NOTE::
+
+        This is a helper function, which should only be used when implementing new channels.
+
+    INPUT:
+
+    - ``t`` -- a list or a tuple
+
+    OUTPUT:
+
+    - a string
+
+    TESTS::
+
+        sage: t = (5, 5)
+        sage: sage.coding.channel_constructions.format_interval(t)
+        '5'
+
+        sage: t = (2, 10)
+        sage: sage.coding.channel_constructions.format_interval(t)
+        'between 2 and 10'
+
+    """
+    return str(t[0]) if t[0] == t[1] else 'between %s and %s' % (t[0], t[1])
+
 class Channel(SageObject):
     r"""
     Abstract top-class for Channel objects.
@@ -269,7 +300,7 @@ class StaticErrorRateChannel(Channel):
         sage: n_err = 2
         sage: Chan = channels.StaticErrorRateChannel(F, n_err)
         sage: Chan
-        Static error rate channel creating 2 error(s)
+        Static error rate channel creating 2 errors
 
     We can also pass a tuple for the number of errors::
 
@@ -313,15 +344,11 @@ class StaticErrorRateChannel(Channel):
             sage: n_err = 42
             sage: Chan = channels.StaticErrorRateChannel(F, n_err)
             sage: Chan
-            Static error rate channel creating 42 error(s)
+            Static error rate channel creating 42 errors
         """
         no_err = self.number_errors()
-        if no_err[0] == no_err[1]:
-            return "Static error rate channel creating %s error(s)"\
-                    % no_err[0]
-        else:
-            return "Static error rate channel creating between %s and %s errors"\
-                    % (no_err[0], no_err[1])
+        return "Static error rate channel creating %s errors"\
+                    % (format_interval(no_err))
 
     def _latex_(self):
         r"""
@@ -336,12 +363,8 @@ class StaticErrorRateChannel(Channel):
             '\\textnormal{Static error rate channel, creating }42 \\textnormal{ error(s)}'
         """
         no_err = self.number_errors()
-        if no_err[0] == no_err[1]:
-            return "\\textnormal{Static error rate channel, creating }%s \\textnormal{ error(s)}"\
-                    % no_err[0]
-        else:
-            return "\\textnormal{Static error rate channel, creating between %s and %s errors}"\
-                    % (no_err[0], no_err[1])
+        return "\\textnormal{Static error rate channel, creating }%s \\textnormal{ error(s)}"\
+                % format_interval(no_err)
 
     def transmit_unsafe(self, message):
         r"""
@@ -445,7 +468,7 @@ class ErrorErasureChannel(Channel):
         sage: n_err, n_era = 2, 2
         sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
         sage: Chan
-        Error-and-erasure channel creating 2 error(s) and 2 erasure(s)
+        Error-and-erasure channel creating 2 errors and 2 erasures
 
     We can also pass the number of errors and erasures as a couple of integers::
 
@@ -500,22 +523,12 @@ class ErrorErasureChannel(Channel):
             sage: n_err, n_era = 21, 21
             sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
             sage: Chan
-            Error-and-erasure channel creating 21 error(s) and 21 erasure(s)
+            Error-and-erasure channel creating 21 errors and 21 erasures
         """
         no_err = self.number_errors()
         no_era = self.number_erasures()
-        if no_err[0] == no_err[1] and no_era[0] == no_era[1]:
-            return "Error-and-erasure channel creating %s error(s) and %s erasure(s)"\
-                    %(no_err[0], no_era[0])
-        elif no_err[0] != no_err[1] and no_era[0] == no_era[1]:
-            return "Error-and-erasure channel creating between %s and %s errors and %s erasure(s)"\
-                    % (no_err[0], no_err[1], no_era[0])
-        elif no_err[0] == no_err[1] and no_era[0] != no_era[1]:
-            return "Error-and-erasure channel creating %s error(s) and between %s and %s erasures"\
-                    % (no_err[0], no_era[0], no_era[1])
-        else:
-            return "Error-and-erasure channel creating between %s and %s errors and between %s and %s erasures"\
-                    % (no_err[0], no_err[1], no_era[0], no_era[1])
+        return "Error-and-erasure channel creating %s errors and %s erasures"\
+                    % (format_interval(no_err), format_interval(no_era))
 
     def _latex_(self):
         r"""
@@ -527,22 +540,12 @@ class ErrorErasureChannel(Channel):
             sage: n_err, n_era = 21, 21
             sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
             sage: latex(Chan)
-            \textnormal{Error-and-erasure channel creating 21 error(s) and 21 erasure(s)}
+            \textnormal{Error-and-erasure channel creating 21 errors and 21 erasures}
         """
         no_err = self.number_errors()
         no_era = self.number_erasures()
-        if no_err[0] == no_err[1] and no_era[0] == no_era[1]:
-            return "\\textnormal{Error-and-erasure channel creating %s error(s) and %s erasure(s)}"\
-                    %(no_err[0], no_era[0])
-        elif no_err[0] != no_err[1] and no_era[0] == no_era[1]:
-            return "\\textnormal{Error-and-erasure channel creating between %s and %s error(s) and %s erasure(s)}"\
-                    % (no_err[0], no_err[1], no_era[0])
-        elif no_err[0] == no_err[1] and no_era[0] != no_era[1]:
-            return "\\textnormal{Error-and-erasure channel creating %s error(s) and between %s and %s erasure(s)}"\
-                    % (no_err[0], no_era[0], no_era[1])
-        else:
-            return "\\textnormal{Error-and-erasure channel creating between %s and %s error(s) and between %s and %s erasure(s)}"\
-                    % (no_err[0], no_err[1], no_era[0], no_era[1])
+        return "\\textnormal{Error-and-erasure channel creating %s errors and %s erasures}"\
+                % (format_interval(no_err), format_interval(no_era))
 
     def transmit_unsafe(self, message):
         r"""

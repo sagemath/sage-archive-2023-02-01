@@ -1194,8 +1194,6 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
 
         sage: for k in EDS:
         ....:     for v in EDS[k]:
-        ....:         if EDS[k][v] is False:
-        ....:             continue
         ....:         assert designs.difference_family(v,k,1,existence=True) is True
         ....:         df = designs.difference_family(v,k,1,check=True)
 

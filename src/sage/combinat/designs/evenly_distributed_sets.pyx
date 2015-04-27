@@ -516,7 +516,7 @@ cdef class EvenlyDistributedSetsBacktracker:
                 if x < m or x >= q_m_1:
                     raise RuntimeError("got x < m or x > q_m_1 (x={})".format(x))
                 if self.cosets[x/m]:
-                    raise RuntimeError("got x={} in an already occuppied coset".format(x))
+                    raise RuntimeError("got x={} in an already occupied coset".format(x))
 
             # try to append x
             B[kk] = x
@@ -596,17 +596,20 @@ cdef class EvenlyDistributedSetsBacktracker:
         # 1. that the newly created differences x-B[i] will not be in a coset
         #    already occuppied
         #
-        # 2. that applying some automorphisms we will not get an
-        #    element smaller than B[2]. We should test all linear functions that
-        #    send a subset of the form {x, B[i], B[j]} to {0, 1, z}.
-        #    Given one such function, the values of the other functions can be
-        #    easily deduced: the value different from 0/1 are 1/z, 1-z,
-        #    1/(1-z), (z-1)/z and z/(z-1). The attribute 'min_orbit[z]' is
-        #    exactly the minimum among these values.
-        #    So it is enough to test one of these functions. We choose
-        #      t -> (x - t)/ (x - B[j])
-        #    (that maps x to 0 and B[j] to 1). Its value at B[i] is just
-        #      z = (x - B[i]) / (x - B[j]).
+        # 2. that by applying some automorphisms we will not get an
+        #    element smaller than B[2].
+        #
+        #    We should test all linear functions that send a subset of the form
+        #    {x, B[i], B[j]} to some {0, 1, ?}.
+        #
+        #    Note that if {x, B[i], B[j]} can be mapped to {0, 1, z} by some
+        #    function, then it can also be mapped to all {0, 1, z'} where z'=
+        #    1/z, 1-z, 1/(1-z), (z-1)/z and z/(z-1). The attribute
+        #    'min_orbit[z]' is exactly the minimum among these values.
+        #
+        #    So, it is enough to test one of these functions. We choose t -> (x
+        #    - t)/ (x - B[j]) (that maps x to 0 and B[j] to 1). Its value at
+        #    B[i] is just z = (x - B[i]) / (x - B[j]).
         #
         #    In the special case when kk=2, or equivalently when we are testing if x
         #    fits as a new B[2], then we just check that x is the minimum among
@@ -619,13 +622,13 @@ cdef class EvenlyDistributedSetsBacktracker:
         for i in range(2,kk):
             x_m_i = diff[x][B[i]]
 
-            # check that the difference x-B[i] was not already in an
-            # occuppied coset
+            # 1. check that the difference x-B[i] was not already in an
+            #    occuppied coset
             if self.cosets[x_m_i / m]:
                 self.cosets[x / m] = 0
                 return 0
 
-            # check relabeling
+            # 2. check relabeling
             for j in range(i):
                 x_m_j = diff[x][B[j]]
                 if self.min_orb[self.ratio[x_m_i][x_m_j]] < B[2]:
@@ -643,6 +646,7 @@ cdef class EvenlyDistributedSetsBacktracker:
         self.t, self.cosets = self.cosets, self.t
         return 1
 
+    @cython.cdivision(True)
     cdef int _check_cosets(self, unsigned int kk) except -1:
         r"""
         Sanity check (only for debug purposes).
@@ -655,8 +659,8 @@ cdef class EvenlyDistributedSetsBacktracker:
         c = 0
         for i in range(self.e):
             c += self.cosets[i]
-        if c != kk * (kk-1) / 2:
-            raise RuntimeError("the number of elements in cosets is wrong! Got {} instead of {}.".format(c, kk*(kk-1)))
+        if c != (kk * (kk-1)) / 2:
+            raise RuntimeError("the number of elements in cosets is wrong! Got {} instead of {}.".format(c, (kk*(kk-1))/2))
 
         for i in range(kk):
             for j in range(i):

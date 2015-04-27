@@ -4138,7 +4138,6 @@ BIBD_constructions = {
 # 4, 5,..., 10. For each k in {4,...,10} the keys of EDS[k] are the prime powers
 # `q` so that `q = 1 modulo k(k-1)`.
 # The value at position EDS[k][q] is one of:
-#   - ``False`` if there is no `(q,k)`-evenly distributed set
 #   - ``(None, B)`` if `q` is prime and `B` is an evenly distributed set in Z/pZ
 #   - ``(poly, B)`` if `q=p^k` is a prime power (but not a prime). The
 #     polynomial ``poly`` is such that GF(p)[x] / (poly) is a finite field of

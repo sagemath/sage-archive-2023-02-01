@@ -21,7 +21,7 @@ include "sage/ext/stdsage.pxi"
 cimport cython
 
 from libc.limits cimport UINT_MAX
-from libc.string cimport memset
+from libc.string cimport memset, memcpy
 
 from sage.ext.memory cimport check_malloc, check_calloc
 
@@ -156,6 +156,7 @@ cdef class EvenlyDistributedSetsBacktracker:
     cdef unsigned int q          # cardinality of the field
     cdef unsigned int k          # size of the subsets
     cdef unsigned int e          # k(k-1)/2
+    cdef unsigned int m          # (q-1) / e
     cdef unsigned int ** diff    # qxq array: diff[x][y]  = x - y
     cdef unsigned int ** ratio   # qxq array: ratio[x][y] = x / y
     cdef unsigned int * min_orb  # q array  : min_orb[x]  = min {x, 1-x, 1/x,
@@ -211,6 +212,7 @@ cdef class EvenlyDistributedSetsBacktracker:
         self.q = q
         self.e = e
         self.k = k
+        self.m = (q-1) / e
         self.K = K
 
         self.diff    = <unsigned int **> check_calloc(q, sizeof(unsigned int *))
@@ -253,7 +255,6 @@ cdef class EvenlyDistributedSetsBacktracker:
                     self.ratio[i][j] = K_to_int[x/y]
                 else:
                     self.ratio[i][j] = UINT_MAX
-
 
     def to_difference_family(self, B, check=True):
         r"""
@@ -476,10 +477,9 @@ cdef class EvenlyDistributedSetsBacktracker:
             ....:     print B
             [0, 1, 11, 5]
         """
-        cdef unsigned int k = self.k
-        cdef unsigned int q = self.q
-        cdef unsigned int e = self.e
-        cdef unsigned int m = (q-1) / e
+        cdef unsigned int k_m_1 = self.k - 1
+        cdef unsigned int q_m_1 = self.q - 1
+        cdef unsigned int m = self.m
 
         # in the list B we store the candidate for being an e.d.s.
         # we always have B[0] = 0 and B[1] = 1
@@ -487,10 +487,10 @@ cdef class EvenlyDistributedSetsBacktracker:
         # disjoint.
         cdef unsigned int kk = 2
         cdef unsigned int * B  = self.B
-        B[0] = q-1  # the element 0 in K
-        B[1] = 0    # the element 1 in K
+        B[0] = q_m_1  # the element 0 in K
+        B[1] = 0      # the element 1 in K
 
-        memset(self.cosets, 0, e * sizeof(unsigned int))
+        memset(self.cosets, 0, self.e * sizeof(unsigned int))
 
         self.cosets[0] = 1  # coset 0 is hit by the difference 1-0
 
@@ -498,47 +498,71 @@ cdef class EvenlyDistributedSetsBacktracker:
         while True:
             if self.check:
                 self._check_cosets(kk)
-                assert m < x < q-1, "got x < m or x > q where x={}".format(x)
+                if x < m or x >= q_m_1:
+                    raise RuntimeError("got x < m or x > q_m_1 (x={})".format(x))
+                if self.cosets[x/m]:
+                    raise RuntimeError("got x={} in an already occuppied coset".format(x))
 
             # try to append x
-            if self._add_element(x,kk):
-                # note: the element x is already added to B in ._add_element()
-                if kk == k-1:
-                    ans = self._B_automorphisms()
+            B[kk] = x
+            if self._check_last_element(kk):
+                if kk == k_m_1:
+                    ans = self._B_relabelled_copies()
+
+                    if self.check and ans:
+                        for a in ans:
+                            r = [self.list_K[q_m_1]] + [self.list_K[a[r]] for r in range(k_m_1)]
+                            self.to_difference_family(r, check=True)
+
                     if ans is False:
-                        continue
+                        pass
                     elif self.count:
                         yield len(ans)
                     else:
                         for a in ans:
-                            yield [self.list_K[q-1]] + [self.list_K[a[r]] for r in range(k-1)]
-                    self._pop(kk)
+                            yield [self.list_K[q_m_1]] + [self.list_K[a[r]] for r in range(k_m_1)]
+
+                    # remove the differences created by x and increment
+                    for j in range(kk):
+                        self.cosets[ self.diff[x][B[j]] / m ] = 0
+                    x += 1
                 else:
-                    # we need to choose the next element from a new coset. In
-                    # order to jump we artificially set x to the last element of
-                    # the coset.
-                    x += m - x%m - 1
                     kk += 1
+                    x += m - x%m
+            else:
+                x += 1
+
+            if self.check:
+                self._check_cosets(kk)
 
             # now we determine the next element x to be tested
-            if x == q-2:
-                kk -= 1
-                x = B[kk]
-                self._pop(kk)
-                if x == q-2:
+            while True:
+                if kk == 1:
+                    return
+                elif x == q_m_1:
                     kk -= 1
-                    x = B[kk]
-                    self._pop(kk)
-                    if x == q-2:
-                        raise RuntimeError("this is impossible!")
-
-            x += 1
-
-            if kk == 1:
-                return
+                    x = self.B[kk]
+                    # remove the differences created by x and increment
+                    for j in range(kk):
+                        self.cosets[ self.diff[x][B[j]] / m ] = 0
+                    x += 1
+                    if self.check:
+                        self._check_cosets(kk)
+                elif self.cosets[x / m]:
+                    x += m - x%m
+                elif kk == 2:
+                    if self.min_orb[x] < x:
+                        x += 1
+                    else:
+                        break
+                else:
+                    if self.min_orb[x] < B[2]:
+                        x += 1
+                    else:
+                        break
 
     @cython.cdivision(True)
-    cdef inline int _add_element(self, unsigned int x, unsigned int kk) except -1:
+    cdef inline int _check_last_element(self, unsigned int kk) except -1:
         r"""
         Add the element ``x`` to ``B`` in position kk if the resulting set is
         still evenly distributed.
@@ -548,62 +572,61 @@ cdef class EvenlyDistributedSetsBacktracker:
             1 if the element was added, and 0 otherwise.
         """
         cdef unsigned int i, j, x_m_i, x_m_j
-        cdef unsigned int m = (self.q-1)/self.e
+        cdef unsigned int m = self.m
+        cdef unsigned int * B = self.B
+        cdef unsigned int ** diff = self.diff
+        cdef unsigned int x = B[kk]
 
-        # We first check that applying some automorphisms we will not get an
-        # element smaller than B[2]. We should test all linear functions that
-        # send a subset of the form {x, B[i], B[j]} to {0, 1, z}.
-        # Given one such function, the values of the other are 1/z, 1-z,
-        # 1/(1-z), (z-1)/z and z/(z-1). The attribute 'min_orbit[z]' is
-        # exactly the minimum among these values.
-        # So it is enough to test one of these functions. We choose
-        #    t -> (x - t)/ (x - B[j])
-        #  (that maps x to 0 and B[i] to 1). Its value at B[i] is just
-        #    z = (x - B[i]) / (x - B[j]).
+        # We check two things:
+        # 1. that the newly created differences x-B[i] will not be in a coset
+        #    already occuppied
         #
-        # In the special case when kk=2, or equivalently when we are testing if x
-        # fits as a new B[2], then we just check that x is the minimum among
-        # {x, 1/x, 1-x, 1/(1-x), (x-1)/x and x/(x-1)}.
-        if kk == 2:
-            if self.min_orb[x] < x:
+        # 2. that applying some automorphisms we will not get an
+        #    element smaller than B[2]. We should test all linear functions that
+        #    send a subset of the form {x, B[i], B[j]} to {0, 1, z}.
+        #    Given one such function, the values of the other functions can be
+        #    easily deduced: the value different from 0/1 are 1/z, 1-z,
+        #    1/(1-z), (z-1)/z and z/(z-1). The attribute 'min_orbit[z]' is
+        #    exactly the minimum among these values.
+        #    So it is enough to test one of these functions. We choose
+        #      t -> (x - t)/ (x - B[j])
+        #    (that maps x to 0 and B[j] to 1). Its value at B[i] is just
+        #      z = (x - B[i]) / (x - B[j]).
+        #
+        #    In the special case when kk=2, or equivalently when we are testing if x
+        #    fits as a new B[2], then we just check that x is the minimum among
+        #    {x, 1/x, 1-x, 1/(1-x), (x-1)/x and x/(x-1)}.
+
+        if self.cosets[diff[x][0] / m] == 1:
+            return 0
+
+        self.cosets[x / m] = 1
+        for i in range(2,kk):
+            x_m_i = diff[x][B[i]]
+
+            # check that the difference x-B[i] was not already in an
+            # occuppied coset
+            if self.cosets[x_m_i / m]:
+                self.cosets[x / m] = 0
                 return 0
-        else:
-            for i in range(1,kk):
-                x_m_i = self.diff[x][self.B[i]]
-                for j in range(i):
-                    x_m_j = self.diff[x][self.B[j]]
-                    if self.min_orb[self.ratio[x_m_i][x_m_j]] < self.B[2]:
-                        return 0
 
-        memset(self.t, 0, self.e*sizeof(unsigned int))
+            # check relabeling
+            for j in range(i):
+                x_m_j = diff[x][B[j]]
+                if self.min_orb[self.ratio[x_m_i][x_m_j]] < B[2]:
+                    self.cosets[x / m] = 0
+                    return 0
 
-        # Next we compute the cosets hit by the differences
-        for j in range(kk):
-            i = self.diff[x][self.B[j]] / m
-            if self.cosets[i] or self.t[i]:
+        # Now check that the x-B[i] belongs to distinct cosets
+        memcpy(self.t, self.cosets, self.e*sizeof(unsigned int))
+        for i in range(1,kk):
+            x_m_i = diff[x][B[i]] / m
+            if self.t[x_m_i]:
+                self.cosets[x / m] = 0
                 return 0
-            self.t[i] = 1
-
-        # If everything went smoothly, we add x to B
-        self.B[kk] = x
-
-        # coset = cosets (union) t
-        for i in range(self.e):
-            self.cosets[i] |= self.t[i]
-
+            self.t[x_m_i] = 1
+        self.t, self.cosets = self.cosets, self.t
         return 1
-
-    cdef inline void _pop(self, unsigned int kk):
-        r"""
-        Pop the element of ``self.B`` at position ``kk`` and updates
-        ``self.cosets``
-        """
-        cdef unsigned int i,j,x
-        cdef unsigned int m = (self.q-1)/self.e
-        x = self.B[kk]
-        for j in range(kk):
-            i = self.diff[x][self.B[j]] / m
-            self.cosets[i] = 0
 
     cdef int _check_cosets(self, unsigned int kk) except -1:
         r"""

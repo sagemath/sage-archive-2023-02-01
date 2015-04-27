@@ -168,6 +168,7 @@ class Channel(SageObject):
         transmitted through.
 
         Checks if ``message`` belongs to the input space, and returns an exception if not.
+        Note that ``message`` itself is never modified by the channel.
 
         INPUT:
 
@@ -186,6 +187,11 @@ class Channel(SageObject):
             sage: set_random_seed(10)
             sage: Chan.transmit(msg)
             (4, 8, 4, 16, 23, 53)
+
+        We can check that the input ``msg`` is not modified::
+
+            sage: msg
+            (4, 8, 15, 16, 23, 42)
 
         If we transmit a vector which is not in the input space of ``self``::
 
@@ -580,6 +586,7 @@ class ErrorErasureChannel(Channel):
         number_erasures = randint(*self.number_erasures())
         V = self.input_space()
         n = V.dimension()
+        zero = V.base_ring().zero()
 
         errors = sample(xrange(n), number_errors + number_erasures)
         error_positions   = errors[:number_errors]
@@ -591,7 +598,7 @@ class ErrorErasureChannel(Channel):
         message = message + error_vector
 
         for i in erasure_positions:
-            message[i] = 0
+            message[i] = zero
         return message, erasure_vector
 
     def number_errors(self):

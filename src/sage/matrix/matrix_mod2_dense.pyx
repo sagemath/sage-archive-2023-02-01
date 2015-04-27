@@ -268,7 +268,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 mzd_write_bit(self._entries,i,j, R(entries[k]))
                 k = k + 1
 
-    def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
+    def __richcmp__(Matrix self, right, int op):
         """
         Compares ``self`` with ``right``. While equality and
         inequality are clearly defined, ``<`` and ``>`` are not.  For
@@ -286,10 +286,6 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         EXAMPLE::
 
-            sage: A = random_matrix(GF(2),2,2)
-            sage: B = random_matrix(GF(2),3,3)
-            sage: A < B
-            True
             sage: A = MatrixSpace(GF(2),3,3).one()
             sage: B = copy(MatrixSpace(GF(2),3,3).one())
             sage: B[0,1] = 1

@@ -100,7 +100,7 @@ underscores).
    module to work out how to make them have the same parent. After any
    necessary coercions have been performed, it calls ``_add_`` to dispatch to
    the correct underlying addition implementation.
-   
+
    Note that although this function is declared as ``def``, it doesn't have the
    usual overheads associated with Python functions (either for the caller or
    for ``__add__`` itself). This is because Python has optimised calling
@@ -311,16 +311,16 @@ cdef class Element(SageObject):
 
     Subtypes must either call ``__init__()`` to set ``_parent``, or may
     set ``_parent`` themselves if that would be more efficient.
-    """
 
+    .. automethod:: _cmp_
+    .. automethod:: _richcmp_
+    """
     def __init__(self, parent):
         r"""
         INPUT:
 
         - ``parent`` - a SageObject
         """
-        #if parent is None:
-        #    raise RuntimeError, "bug -- can't set parent to None"
         self._parent = parent
 
     def _set_parent(self, parent):
@@ -745,8 +745,8 @@ cdef class Element(SageObject):
         from sage.misc.functional import numerical_approx
         return numerical_approx(self, prec=prec, digits=digits,
                                 algorithm=algorithm)
-    n = numerical_approx 
-    N = n 
+    n = numerical_approx
+    N = n
 
     def _mpmath_(self, prec=53, rounding=None):
         """
@@ -807,7 +807,7 @@ cdef class Element(SageObject):
 
     cpdef _act_on_(self, x, bint self_on_left):
         """
-        Use this method to implement ``self`` acting on x. 
+        Use this method to implement ``self`` acting on ``x``.
 
         Return None or raise a CoercionException if no
         such action is defined here.
@@ -931,46 +931,76 @@ cdef class Element(SageObject):
         # Same parents
         return left._cmp_(<Element>right)
 
-    cdef _richcmp(left, right, int op):
+    cdef _richcmp(self, other, int op):
         """
-        Compare left and right, according to the comparison operator op.
-        """
-        global coercion_model
-        cdef int r
-        if not have_same_parent_c(left, right):
-            if left is None or left is Ellipsis:
-                return rich_to_bool(op, -1)
-            elif right is None or right is Ellipsis:
-                return rich_to_bool(op, 1)
-            try:
-                _left, _right = coercion_model.canonical_coercion(left, right)
-                if isinstance(_left, Element):
-                    return (<Element>_left)._richcmp(_right, op)
-                return rich_to_bool(op, cmp(_left, _right))
-            except (TypeError, NotImplementedError):
-                r = cmp(type(left), type(right))
-                if r == 0:
-                    r = -1
-                # Often things are compared against 0 (or 1), even when there
-                # is not a canonical coercion ZZ -> other
-                # Things should implement and/or use __nonzero__ and is_one()
-                # but we can't do that here as that calls this.
-                # The old coercion model would declare a coercion if 0 went in.
-                # (Though would fail with a TypeError for other values, thus
-                # contaminating the _has_coerce_map_from cache.)
-                from sage.rings.integer import Integer
-                try:
-                    if isinstance(left, Element) and isinstance(right, (int, float, Integer)) and not right:
-                        right = (<Element>left)._parent(right)
-                    elif isinstance(right, Element) and isinstance(left, (int, float, Integer)) and not left:
-                        left = (<Element>right)._parent(left)
-                    else:
-                        return rich_to_bool(op, r)
-                except TypeError:
-                    return rich_to_bool(op, r)
+        Compare ``self`` and ``other`` using the coercion framework,
+        comparing according to the comparison operator ``op``.
 
-        # Same parents
-        return left._richcmp_(<Element>right, op)
+        This method exists only because of the strange way that Python
+        handles inheritance of ``__richcmp__``. A Cython class should
+        always define ``__richcmp__`` as calling ``_richcmp``.
+
+        Normally, a class will not redefine ``_richcmp`` but rely on
+        this ``Element._richcmp`` method which uses coercion to
+        compare elements. Then ``_richcmp_`` is called on the coerced
+        elements.
+
+        If a class wants to implement rich comparison without coercion,
+        then ``_richcmp`` should be defined (as well as ``__richcmp__``
+        as usual).
+        """
+        if have_same_parent_c(self, other):
+            # Same parents, in particular other must be an Element too.
+            # The explicit cast <Element>other tells Cython to omit the
+            # check isinstance(other, Element) when calling _richcmp_
+            return self._richcmp_(<Element>other, op)
+
+        # Some very special cases
+        if self is None or self is Ellipsis:
+            return rich_to_bool(op, -1)
+        if other is None or other is Ellipsis:
+            return rich_to_bool(op, 1)
+
+        # Different parents => coerce
+        try:
+            left, right = coercion_model.canonical_coercion(self, other)
+            if isinstance(left, Element):
+                return (<Element>left)._richcmp(<Element>right, op)
+            # left and right are the same non-Element type:
+            # use a plain cmp()
+            return rich_to_bool(op, cmp(left, right))
+        except (TypeError, NotImplementedError):
+            pass
+
+        # Comparing with coercion didn't work, try something else.
+
+        # Often things are compared against 0, even when there is no
+        # canonical coercion from ZZ. For ModuleElements, we manually
+        # convert zero to handle this case.
+        from sage.rings.integer import Integer
+        cdef Element zero
+        try:
+            if isinstance(self, ModuleElement) and isinstance(other, (int, float, Integer)) and not other:
+                zero = (<Element>self)._parent(0)
+                return self._richcmp_(zero, op)
+            elif isinstance(other, ModuleElement) and isinstance(self, (int, float, Integer)) and not self:
+                zero = (<Element>other)._parent(0)
+                return zero._richcmp_(other, op)
+        except (TypeError, AttributeError):
+            pass
+
+        # If types are not equal: compare types
+        cdef int r = cmp(type(self), type(other))
+        if r:
+            return rich_to_bool(op, r)
+
+        # Final attempt: compare by id()
+        if (<unsigned long><PyObject*>self) >= (<unsigned long><PyObject*>other):
+            # It cannot happen that self is other, since they don't
+            # have the same parent.
+            return rich_to_bool(op, 1)
+        else:
+            return rich_to_bool(op, -1)
 
     ####################################################################
     # For a derived Cython class, you **must** put the __richcmp__
@@ -993,6 +1023,30 @@ cdef class Element(SageObject):
         return (<Element>left)._cmp(right)
 
     cpdef _richcmp_(left, Element right, int op):
+        r"""
+        Default implementation of rich comparisons for elements with
+        equal parents.
+
+        It tries to see if ``_cmp_`` is implemented. Otherwise it does a
+        comparison by id for ``==`` and ``!=``. Calling this default method
+        with ``<``, ``<=``, ``>`` or ``>=`` will raise a
+        ``NotImplementedError``.
+
+        EXAMPLES::
+
+            sage: from sage.structure.parent import Parent
+            sage: from sage.structure.element import Element
+            sage: P = Parent()
+            sage: e1 = Element(P); e2 = Element(P)
+            sage: e1 == e1    # indirect doctest
+            True
+            sage: e1 == e2    # indirect doctest
+            False
+            sage: e1 < e2     # indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: comparison not implemented for <type 'sage.structure.element.Element'>
+        """
         # Obvious case
         if left is right:
             return rich_to_bool(op, 0)
@@ -1009,7 +1063,10 @@ cdef class Element(SageObject):
         return rich_to_bool(op, c)
 
     cpdef int _cmp_(left, Element right) except -2:
-        # Check for Python class defining __cmp__
+        """
+        Default three-way comparison method which only checks for a
+        Python class defining ``__cmp__``.
+        """
         left_cmp = left.__cmp__
         if isinstance(left_cmp, MethodType):
             return left_cmp(right)
@@ -2996,7 +3053,7 @@ def is_PrincipalIdealDomainElement(x):
 cdef class PrincipalIdealDomainElement(DedekindDomainElement):
     def lcm(self, right):
         """
-        Return the least common multiple of ``self`` and right. 
+        Return the least common multiple of ``self`` and ``right``.
         """
         if not isinstance(right, Element) or not ((<Element>right)._parent is self._parent):
             from sage.rings.arith import lcm

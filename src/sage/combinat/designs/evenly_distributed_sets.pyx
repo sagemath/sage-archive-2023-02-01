@@ -1,3 +1,4 @@
+# coding=utf-8
 r"""
 Evenly distributed sets in finite fields
 
@@ -253,7 +254,8 @@ cdef class EvenlyDistributedSetsBacktracker:
                 else:
                     self.ratio[i][j] = UINT_MAX
 
-    def to_difference_family(self, B):
+
+    def to_difference_family(self, B, check=True):
         r"""
         Given an evenly distributed set ``B`` convert it to a difference family.
 
@@ -263,6 +265,12 @@ cdef class EvenlyDistributedSetsBacktracker:
 
         This method is useful if you want to obtain the difference family from
         the output of the iterator.
+
+        INPUT:
+
+        - ``B`` -- an evenly distributed set
+
+        - ``check`` -- (boolean, default ``True``) whether to check the result
 
         EXAMPLES::
 
@@ -276,9 +284,26 @@ cdef class EvenlyDistributedSetsBacktracker:
             sage: from sage.combinat.designs.difference_family import is_difference_family
             sage: is_difference_family(Zmod(41),D,41,5,1)
             True
+
+        Setting ``check`` to ``False`` is much faster::
+
+            sage: timeit("df = E.to_difference_family(B, check=True)") # random
+            625 loops, best of 3: 117 µs per loop
+
+            sage: timeit("df = E.to_difference_family(B, check=False)")  # random
+            625 loops, best of 3: 1.83 µs per loop
         """
         xe = self.K.multiplicative_generator() ** (self.e)
-        return [[xe**j*b for b in B] for j in range((self.q-1)/(2*self.e))]
+        df = [[xe**j*b for b in B] for j in range((self.q-1)/(2*self.e))]
+        if check:
+            from difference_family import is_difference_family
+            if not is_difference_family(self.K, df, self.q, self.k, 1):
+                raise RuntimeError("a wrong evenly distributed set was "
+                        "produced by the Sage library for the parameters:\n"
+                        "  q={}  k={}\n"
+                        "Please send an e-mail to "
+                        "sage-devel@googlegroups.com".format(self.q, self.k))
+        return df
 
     def an_element(self):
         r"""
@@ -307,6 +332,7 @@ cdef class EvenlyDistributedSetsBacktracker:
             B = it.next()
         except StopIteration:
             raise EmptySetError("no {}-evenly distributed set in {}".format(self.k,self.K))
+        self.to_difference_family(B, check=True) # check the validity
         return B
 
     def __repr__(self):

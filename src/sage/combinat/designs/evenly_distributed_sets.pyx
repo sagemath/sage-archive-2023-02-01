@@ -108,6 +108,8 @@ cdef class EvenlyDistributedSetsBacktracker:
         sage: for B in E: print B
         [0, 1, 11, 5]
 
+
+
     Or only count them::
 
         sage: for k in range(13, 200, 12):
@@ -121,14 +123,14 @@ cdef class EvenlyDistributedSetsBacktracker:
          37  12   1
          49  24   2
          61  12   1
-         73  12   1
-         97  24   2
-        109  60   5
-        121 168  14
-        157  24   2
-        169  60   5
-        181  84   7
-        193 168  14
+         73  48   4
+         97  64   6
+        109  72   6
+        121 240  20
+        157  96   8
+        169 240  20
+        181 204  17
+        193 336  28
 
     Note that by definition, the number of evenly distributed sets up to
     isomorphisms is at most `k(k-1)` times smaller than without isomorphisms.
@@ -194,6 +196,18 @@ cdef class EvenlyDistributedSetsBacktracker:
             Traceback (most recent call last):
             ...
             ValueError: k(k-1)=42 does not divide q-1=70
+
+        For `q=421` which is congruent to 1 modulo `12`, `20`, `30` and `42` we
+        run backtracker with the ``check`` argument set to ``True``::
+
+            sage: for _ in EvenlyDistributedSetsBacktracker(Zmod(421), 4, check=True):
+            ....:     pass
+            sage: for _ in EvenlyDistributedSetsBacktracker(Zmod(421), 5, check=True):
+            ....:    pass
+            sage: for _ in EvenlyDistributedSetsBacktracker(Zmod(421), 6, check=True):
+            ....:    pass
+            sage: for _ in EvenlyDistributedSetsBacktracker(Zmod(421), 7, check=True):
+            ....:    pass
         """
         self.check      = bool(check)
         self.up_to_isom = bool(up_to_isomorphism)

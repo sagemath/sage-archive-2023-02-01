@@ -166,6 +166,7 @@ class Channel(SageObject):
         r"""
         Returns ``message``, modified accordingly with the algorithm of the channel it was
         transmitted through.
+
         Checks if ``message`` belongs to the input space, and returns an exception if not.
 
         INPUT:
@@ -178,7 +179,7 @@ class Channel(SageObject):
 
         EXAMPLES::
 
-            sage: F = VectorSpace(GF(59), 6)
+            sage: F = GF(59)^6
             sage: n_err = 2
             sage: Chan = channels.StaticErrorRateChannel(F, n_err)
             sage: msg = F((4, 8, 15, 16, 23, 42))
@@ -188,9 +189,8 @@ class Channel(SageObject):
 
         If we transmit a vector which is not in the input space of ``self``::
 
-            sage: F = VectorSpace(GF(59), 6)
             sage: n_err = 2
-            sage: Chan = channels.StaticErrorRateChannel(F, n_err)
+            sage: Chan = channels.StaticErrorRateChannel(GF(59)^6, n_err)
             sage: msg = (4, 8, 15, 16, 23, 42)
             sage: Chan.transmit(msg)
             Traceback (most recent call last):
@@ -215,9 +215,8 @@ class Channel(SageObject):
 
         EXAMPLES::
 
-            sage: F = VectorSpace(GF(59), 6)
             sage: n_err = 2
-            sage: Chan = channels.StaticErrorRateChannel(F, n_err)
+            sage: Chan = channels.StaticErrorRateChannel(GF(59)^6, n_err)
             sage: Chan.input_space()
             Vector space of dimension 6 over Finite Field of size 59
 
@@ -230,9 +229,8 @@ class Channel(SageObject):
 
         EXAMPLES::
 
-            sage: F = VectorSpace(GF(59), 6)
             sage: n_err = 2
-            sage: Chan = channels.StaticErrorRateChannel(F, n_err)
+            sage: Chan = channels.StaticErrorRateChannel(GF(59)^6, n_err)
             sage: Chan.output_space()
             Vector space of dimension 6 over Finite Field of size 59
         """
@@ -243,6 +241,7 @@ class Channel(SageObject):
         r"""
         Returns ``message``, modified accordingly with the algorithm of the channel it was
         transmitted through.
+
         This method does not check if ``message`` belongs to the input space of``self``.
 
         This is an abstract method which should be reimplemented in all the subclasses of
@@ -260,9 +259,9 @@ class Channel(SageObject):
 
 class StaticErrorRateChannel(Channel):
     r"""
-    Constructs a channel which adds a static number of errors to each message
-    it transmits. The input space and the output space of this channel
-    are the same.
+    Channel which adds a static number of errors to each message it transmits.
+
+    The input space and the output space of this channel are the same.
 
     The main purpose of communication channels is to transmit messages, which can be achieved with
     two methods:
@@ -296,17 +295,15 @@ class StaticErrorRateChannel(Channel):
     We construct a StaticErrorRateChannel which adds 2 errors
     to any transmitted message::
 
-        sage: F = VectorSpace(GF(59), 40)
         sage: n_err = 2
-        sage: Chan = channels.StaticErrorRateChannel(F, n_err)
+        sage: Chan = channels.StaticErrorRateChannel(GF(59)^40, n_err)
         sage: Chan
         Static error rate channel creating 2 errors
 
     We can also pass a tuple for the number of errors::
 
-        sage: F = VectorSpace(GF(59), 40)
         sage: n_err = (1, 10)
-        sage: Chan = channels.StaticErrorRateChannel(F, n_err)
+        sage: Chan = channels.StaticErrorRateChannel(GF(59)^40, n_err)
         sage: Chan
         Static error rate channel creating between 1 and 10 errors
     """
@@ -318,9 +315,8 @@ class StaticErrorRateChannel(Channel):
         If the number of errors exceeds the dimension of the input space,
         it will return an error::
 
-            sage: F = VectorSpace(GF(59), 40)
             sage: n_err = 42
-            sage: Chan = channels.StaticErrorRateChannel(F, n_err)
+            sage: Chan = channels.StaticErrorRateChannel(GF(59)^40, n_err)
             Traceback (most recent call last):
             ...
             ValueError: There might be more errors than the dimension of the input space
@@ -340,9 +336,8 @@ class StaticErrorRateChannel(Channel):
 
         EXAMPLES::
 
-            sage: F = VectorSpace(GF(59), 50)
             sage: n_err = 42
-            sage: Chan = channels.StaticErrorRateChannel(F, n_err)
+            sage: Chan = channels.StaticErrorRateChannel(GF(59)^50, n_err)
             sage: Chan
             Static error rate channel creating 42 errors
         """
@@ -356,9 +351,8 @@ class StaticErrorRateChannel(Channel):
 
         EXAMPLES::
 
-            sage: F = VectorSpace(GF(59), 50)
             sage: n_err = 42
-            sage: Chan = channels.StaticErrorRateChannel(F, n_err)
+            sage: Chan = channels.StaticErrorRateChannel(GF(59)^50, n_err)
             sage: Chan._latex_()
             '\\textnormal{Static error rate channel, creating }42 \\textnormal{ error(s)}'
         """
@@ -369,8 +363,10 @@ class StaticErrorRateChannel(Channel):
     def transmit_unsafe(self, message):
         r"""
         Returns ``message`` with as many errors as ``self._number_errors`` in it.
+
         If ``self._number_errors`` was passed as a tuple for the number of errors, it will
         pick a random integer between the bounds of the tuple and use it as the number of errors.
+
         This method does not check if ``message`` belongs to the input space of``self``.
 
         INPUT:
@@ -383,7 +379,7 @@ class StaticErrorRateChannel(Channel):
 
         EXAMPLES::
 
-            sage: F = VectorSpace(GF(59), 6)
+            sage: F = GF(59)^6
             sage: n_err = 2
             sage: Chan = channels.StaticErrorRateChannel(F, n_err)
             sage: msg = F((4, 8, 15, 16, 23, 42))
@@ -404,9 +400,8 @@ class StaticErrorRateChannel(Channel):
 
         EXAMPLES::
 
-            sage: F = VectorSpace(GF(59), 6)
             sage: n_err = 3
-            sage: Chan = channels.StaticErrorRateChannel(F, n_err)
+            sage: Chan = channels.StaticErrorRateChannel(GF(59)^6, n_err)
             sage: Chan.number_errors()
             (3, 3)
         """
@@ -423,8 +418,9 @@ class StaticErrorRateChannel(Channel):
 
 class ErrorErasureChannel(Channel):
     r"""
-    Constructs a channel which adds errors to any message it transmits. It also erases several positions
-    in the transmitted message. The output space of this channel is a cartesian product
+    Channel which adds errors and erases several positions in any message it transmits.
+
+    The output space of this channel is a cartesian product
     between its input space and a VectorSpace of the same dimension over GF(2)
 
     The main purpose of communication channels is to transmit messages, which can be achieved with
@@ -464,17 +460,15 @@ class ErrorErasureChannel(Channel):
     We construct a ErrorErasureChannel which adds 2 errors
     and 2 erasures to any transmitted message::
 
-        sage: F = VectorSpace(GF(59), 40)
         sage: n_err, n_era = 2, 2
-        sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
+        sage: Chan = channels.ErrorErasureChannel(GF(59)^40, n_err, n_era)
         sage: Chan
         Error-and-erasure channel creating 2 errors and 2 erasures
 
     We can also pass the number of errors and erasures as a couple of integers::
 
-        sage: F = VectorSpace(GF(59), 40)
         sage: n_err, n_era = (1, 10), (1, 10)
-        sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
+        sage: Chan = channels.ErrorErasureChannel(GF(59)^40, n_err, n_era)
         sage: Chan
         Error-and-erasure channel creating between 1 and 10 errors and between 1 and 10 erasures
     """
@@ -489,9 +483,8 @@ class ErrorErasureChannel(Channel):
         exceeds (or may exceed, in the case of tuples) the dimension of the input space,
         it will return an error::
 
-            sage: F = VectorSpace(GF(59), 40)
             sage: n_err, n_era = 21, 21
-            sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
+            sage: Chan = channels.ErrorErasureChannel(GF(59)^40, n_err, n_era)
             Traceback (most recent call last):
             ...
             ValueError: The total number of errors and erasures can not exceed the dimension of the input space
@@ -519,9 +512,8 @@ class ErrorErasureChannel(Channel):
 
         EXAMPLES::
 
-            sage: F = VectorSpace(GF(59), 50)
             sage: n_err, n_era = 21, 21
-            sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
+            sage: Chan = channels.ErrorErasureChannel(GF(59)^50, n_err, n_era)
             sage: Chan
             Error-and-erasure channel creating 21 errors and 21 erasures
         """
@@ -536,9 +528,8 @@ class ErrorErasureChannel(Channel):
 
         EXAMPLES::
 
-            sage: F = VectorSpace(GF(59), 50)
             sage: n_err, n_era = 21, 21
-            sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
+            sage: Chan = channels.ErrorErasureChannel(GF(59)^50, n_err, n_era)
             sage: latex(Chan)
             \textnormal{Error-and-erasure channel creating 21 errors and 21 erasures}
         """
@@ -551,9 +542,10 @@ class ErrorErasureChannel(Channel):
         r"""
         Returns ``message`` with as many errors as ``self._number_errors`` in it, and as many erasures
         as ``self._number_erasures`` in it.
+
         If ``self._number_errors`` was passed as an tuple for the number of errors, it will
         pick a random integer between the bounds of the tuple and use it as the number of errors.
-        The same method applies with ``self._number_erasures``.
+        It does the same with ``self._number_erasures``.
 
         All erased positions are set to 0 in the transmitted message.
         It is guaranteed that the erasures and the errors will never overlap:
@@ -576,7 +568,7 @@ class ErrorErasureChannel(Channel):
 
         EXAMPLES::
 
-            sage: F = VectorSpace(GF(59), 11)
+            sage: F = GF(59)^11
             sage: n_err, n_era = 2, 2
             sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
             sage: msg = F((3, 14, 15, 9, 26, 53, 58, 9, 7, 9, 3))
@@ -613,9 +605,8 @@ class ErrorErasureChannel(Channel):
 
         EXAMPLES::
 
-            sage: F = VectorSpace(GF(59), 6)
             sage: n_err, n_era = 3, 0
-            sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
+            sage: Chan = channels.ErrorErasureChannel(GF(59)^6, n_err, n_era)
             sage: Chan.number_errors()
             (3, 3)
         """
@@ -627,9 +618,8 @@ class ErrorErasureChannel(Channel):
 
         EXAMPLES::
 
-            sage: F = VectorSpace(GF(59), 6)
             sage: n_err, n_era = 0, 3
-            sage: Chan = channels.ErrorErasureChannel(F, n_err, n_era)
+            sage: Chan = channels.ErrorErasureChannel(GF(59)^6, n_err, n_era)
             sage: Chan.number_erasures()
             (3, 3)
         """

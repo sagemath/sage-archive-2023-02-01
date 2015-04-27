@@ -577,13 +577,20 @@ cdef class EvenlyDistributedSetsBacktracker:
         r"""
         Sanity check (only for debug purposes).
         """
-        cdef unsigned int i,j,x,y
-        cdef set s = set()
-        for i in range(kk):
-            x = self.B[i]
-            for j in range(i):
-                y = self.B[j]
-                s.add(self.diff_to_coset[x][y])
+        cdef unsigned int i,j
+        cdef unsigned int m = self.m
+        cdef unsigned int c
 
-        if set(j for j in range(self.e) if self.cosets[j]) != s:
-            raise RuntimeError("self.cosets is not synchronized with self.B!")
+        # count the number of elements in self.cosets
+        c = 0
+        for i in range(self.e):
+            c += self.cosets[i]
+        if c != kk * (kk-1) / 2:
+            raise RuntimeError("the number of elements in cosets is wrong! Got {} instead of {}.".format(c, kk*(kk-1)))
+
+        for i in range(kk):
+            for j in range(i):
+                if self.cosets[ self.diff[self.B[i]][self.B[j]] / m ] != 1:
+                    raise RuntimeError("self.cosets misses the difference B[{}]-B[{}]".format(i,j))
+
+        return 0

@@ -109,7 +109,8 @@ class Encoder(SageObject):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: word = vector((0, 1, 1, 0))
-            sage: C.encode(word)
+            sage: E = EncoderLinearCodeGeneratorMatrix(C)
+            sage: E.encode(word)
             (1, 1, 0, 0, 1, 1, 0)
         """
         return vector(word) * self.generator_matrix()
@@ -135,7 +136,8 @@ class Encoder(SageObject):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: c = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
-            sage: C.unencode(c)
+            sage: E = EncoderLinearCodeGeneratorMatrix(C)
+            sage: E.unencode(c)
             (0, 1, 1, 0)
         """
         if nocheck == False:

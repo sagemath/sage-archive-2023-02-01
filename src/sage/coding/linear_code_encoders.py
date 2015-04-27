@@ -32,10 +32,10 @@ class EncoderLinearCodeGeneratorMatrix(Encoder):
         EXAMPLES::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = codes.LinearCode(G)
-            sage: C.encoder()
-            Generator-matrix based encoder for the Linear code of length 7, dimension 4 over
-            Finite Field of size 2
+            sage: C = LinearCode(G)
+            sage: E = EncoderLinearCodeGeneratorMatrix(C)
+            sage: E
+            Generator matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
         """
         super(EncoderLinearCodeGeneratorMatrix, self).__init__(code)
 
@@ -46,10 +46,10 @@ class EncoderLinearCodeGeneratorMatrix(Encoder):
         EXAMPLES::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = codes.LinearCode(G)
-            sage: C.encoder()
-            Generator-matrix based encoder for the Linear code of length 7, dimension 4 over
-            Finite Field of size 2
+            sage: C = LinearCode(G)
+            sage: E = EncoderLinearCodeGeneratorMatrix(C)
+            sage: E
+            Generator matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
         """
         return "Generator matrix-based encoder for the %s" % self.code()
 
@@ -60,13 +60,12 @@ class EncoderLinearCodeGeneratorMatrix(Encoder):
         EXAMPLES::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = codes.LinearCode(G)
-            sage: E = C.encoder()
+            sage: C = LinearCode(G)
+            sage: E = EncoderLinearCodeGeneratorMatrix(C)
             sage: latex(E)
-            \textnormal{Generator-matrix based encoder for the Linear code of length 7, dimension 4 over
-            Finite Field of size 2}
+            \textnormal{Generator matrix-based encoder for the }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
         """
-        return "\\textnormal{Generator matrix-based encoder for the %s}" % self.code()._latex_()
+        return "\\textnormal{Generator matrix-based encoder for the }%s" % self.code()._latex_()
 
     @cached_method
     def generator_matrix(self):
@@ -76,7 +75,7 @@ class EncoderLinearCodeGeneratorMatrix(Encoder):
         EXAMPLES::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = codes.LinearCode(G)
+            sage: C = LinearCode(G)
             sage: E = EncoderLinearCodeGeneratorMatrix(C)
             sage: E.generator_matrix()
             [1 1 1 0 0 0 0]

@@ -706,6 +706,11 @@ class AbstractLinearCode(module.Module):
 
     - ``length``, the length of the code
 
+    - ``encoder_default_name``, the name of the encoder that will be used if no encoder name is passed
+    to an encoder-related method (``generator_matrix``, ``encode``, ``unencode``)
+
+    - ``_registered_encoders``, a set of all encoders available for this class
+
     - numerous methods that will work for any linear code (including families)
 
     To implement a linear code, you need to:
@@ -719,19 +724,19 @@ class AbstractLinearCode(module.Module):
       You need of course to complete the constructor by adding any additional parameter
       needed to describe properly the code defined in the subclass.
 
-    - reimplement ``generator_matrix()`` method
-
     As AbstractLinearCode is not designed to be implemented, it does not have any representation
     methods. You should implement ``_repr_`` and ``_latex_`` methods in the sublclass.
 
-    .. NOTE::
+    ..NOTE::
 
-        AbstractLinearCode embeds some generic implementations of helper methods like ``__cmp__`` or ``__eq__``.
-        As they are designed to fit for every linear code, they mostly use the generator matrix
-        and thus can be long for certain families of code. In that case, overriding these methods is encouraged.
-
+        A lot of methods of the abstract class rely on the knowledge of a generator_matrix.
+        It is thus strongly recommended to set an encoder with a generator matrix implemented
+        as a default encoder.
     """
-    def __init__(self, base_field, length):
+
+    _registered_encoders = {}
+
+    def __init__(self, base_field, length, encoder_default_name):
         """
         Initializes mandatory parameters for a Linear Code object.
 
@@ -745,13 +750,15 @@ class AbstractLinearCode(module.Module):
 
         - ``length`` -- the length of ``self``
 
+        - ``encoder_default_name`` -- the name of the default encoder of ``self``
+
         EXAMPLES:
 
         We first create a new LinearCode subclass::
 
             sage: class CodeExample(sage.coding.linear_code.AbstractLinearCode):
             ....:   def __init__(self, field, length, dimension, generator_matrix):
-            ....:       sage.coding.linear_code.AbstractLinearCode.__init__(self,field, length)
+            ....:       sage.coding.linear_code.AbstractLinearCode.__init__(self,field, length, "GeneratorMatrix")
             ....:       self._dimension = dimension
             ....:       self._generator_matrix = generator_matrix
             ....:   def generator_matrix(self):
@@ -795,10 +802,31 @@ class AbstractLinearCode(module.Module):
             Traceback (most recent call last):
             ...
             ValueError: length must be a Python int or a Sage Integer
+
+        If the name of the default encoder is not known by the class, it will raise
+        an exception::
+
+            sage: class CodeExample(sage.coding.linear_code.AbstractLinearCode):
+            ....:   def __init__(self, field, length, dimension, generator_matrix):
+            ....:       sage.coding.linear_code.AbstractLinearCode.__init__(self,field, length, "Fail")
+            ....:       self._dimension = dimension
+            ....:       self._generator_matrix = generator_matrix
+            ....:   def generator_matrix(self):
+            ....:       return self._generator_matrix
+            ....:   def _repr_(self):
+            ....:       return "Dummy code of length %d, dimension %d over %s" % (self.length(), self.dimension(), self.base_field())
+
+            sage: C = CodeExample(GF(17), 10, 5, generator_matrix)
+            Traceback (most recent call last):
+            ...
+            ValueError: You must set a valid encoder as default encoder for this code
         """
         if not isinstance(length, (int, Integer)):
             raise ValueError("length must be a Python int or a Sage Integer")
         self._length = Integer(length)
+        if not encoder_default_name in self._registered_encoders:
+            raise ValueError("You must set a valid encoder as default encoder for this code")
+        self._encoder_default_name = encoder_default_name
         cat = Modules(base_field).FiniteDimensional().WithBasis().Finite()
         facade_for = VectorSpace(base_field, self._length)
         self.Element = type(facade_for.an_element()) #for when we made this a non-facade parent
@@ -1650,7 +1678,7 @@ class AbstractLinearCode(module.Module):
         EXAMPLES::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = codes.LinearCode(G)
+            sage: C = LinearCode(G)
             sage: word = vector((0, 1, 1, 0))
             sage: C.encode(word)
             (1, 1, 0, 0, 1, 1, 0)
@@ -1661,7 +1689,7 @@ class AbstractLinearCode(module.Module):
             ['GeneratorMatrix']
             sage: word = vector((0, 1, 1, 0))
             sage: C.encode(word, 'GeneratorMatrix')
-            (3, 5, 0, 4, 0, 4, 10, 1, 4, 2)
+            (1, 1, 0, 0, 1, 1, 0)
         """
         E = self.encoder(name, **kwargs)
         return E.encode(word)
@@ -1685,10 +1713,9 @@ class AbstractLinearCode(module.Module):
         EXAMPLES::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = codes.LinearCode(G)
+            sage: C = LinearCode(G)
             sage: C.encoder()
-            Generator-matrix based encoder for the Linear code of length 7, dimension 4 over
-            Finite Field of size 2
+            Generator matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
 
         If the name of an encoder which is not known by ``self`` is passed,
         an exception will be raised::
@@ -1717,7 +1744,7 @@ class AbstractLinearCode(module.Module):
         EXAMPLES::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = codes.LinearCode(G)
+            sage: C = LinearCode(G)
             sage: C.encoders_available()
             ['GeneratorMatrix']
         """
@@ -1894,8 +1921,28 @@ class AbstractLinearCode(module.Module):
         codeword.set_immutable()
         return codeword
 
-    def generator_matrix(self):
-        return NotImplementedError("This method must be set in subclasses")
+    def generator_matrix(self, name=None, **kwargs):
+        r"""
+        Returns a generator matrix of ``self``.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name of the encoder which will be
+          used to compute the generator matrix. The default encoder of ``self``
+          will be used if default value is kept.
+
+        EXAMPLES::
+
+            sage: G = matrix(GF(3),2,[1,-1,1,-1,1,1])
+            sage: code = LinearCode(G)
+            sage: code.generator_matrix()
+            [1 2 1]
+            [2 1 1]
+        """
+        E = self.encoder(name, **kwargs)
+        return E.generator_matrix()
+
+    gen_mat = deprecated_function_alias(17973, generator_matrix)
 
     def generator_matrix_systematic(self):
         """
@@ -3126,7 +3173,7 @@ class AbstractLinearCode(module.Module):
         EXAMPLES::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = codes.LinearCode(G)
+            sage: C = LinearCode(G)
             sage: c = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
             sage: C.unencode(c)
             (0, 1, 1, 0)
@@ -3408,8 +3455,6 @@ class LinearCode(AbstractLinearCode):
     #    sage: C.minimum_distance_why()     # optional (net connection)
     #    Ub(7,4) = 3 follows by the Griesmer bound.
 
-    _registered_encoders = {}
-
     def __init__(self, generator_matrix, d=None):
         r"""
         See the docstring for :meth:`LinearCode`.
@@ -3471,11 +3516,10 @@ class LinearCode(AbstractLinearCode):
             if generator_matrix.nrows() == 0:
                 raise ValueError("this linear code contains no non-zero vector")
 
-        super(LinearCode, self).__init__(base_ring, generator_matrix.ncols())
+        super(LinearCode, self).__init__(base_ring, generator_matrix.ncols(), "GeneratorMatrix")
         self._generator_matrix = generator_matrix
         self._dimension = generator_matrix.rank()
         self._minimum_distance = d
-        self._encoder_default_name = "GeneratorMatrix"
 
     def _repr_(self):
         r"""
@@ -3490,19 +3534,3 @@ class LinearCode(AbstractLinearCode):
             Linear code of length 7, dimension 4 over Finite Field of size 2
         """
         return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())
-
-    def generator_matrix(self):
-        r"""
-        Return a generator matrix of this code.
-
-        EXAMPLES::
-
-            sage: G = matrix(GF(3),2,[1,-1,1,-1,1,1])
-            sage: code = LinearCode(G)
-            sage: code.generator_matrix()
-            [1 2 1]
-            [2 1 1]
-        """
-        return self._generator_matrix
-
-    gen_mat = deprecated_function_alias(17973, generator_matrix)

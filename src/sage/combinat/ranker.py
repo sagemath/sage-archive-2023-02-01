@@ -53,23 +53,41 @@ def from_list(l):
 
 
 def rank_from_list(l):
-    """
-    Returns a rank function given a list l.
+    r"""
+    Return a rank function for the elements of ``l``.
+
+    INPUT:
+
+     - ``l``: a list (or iterable) of hashable objects
 
     EXAMPLES::
 
         sage: import sage.combinat.ranker as ranker
-        sage: l = [1,2,3]
+        sage: l = ["a", "b", "c"]
         sage: r = ranker.rank_from_list(l)
-        sage: r(1)
+        sage: r("a")
         0
-        sage: r(3)
+        sage: r("c")
         2
+
+    For non elements a ``ValueError`` is raised, as with the usual
+    ``index`` method of lists::
+
+        sage: r("blah")
+        Traceback (most recent call last):
+        ...
+        ValueError: blah is not in list
+
+    TESTS::
+
+        sage: TestSuite(r).run() # todo: not implemented
     """
-    rank = lambda obj: l.index(obj)
-
+    @cached_function
+    def rank(obj):
+        raise ValueError("%s is not in list"%obj)
+    for i, obj in enumerate(l):
+        rank.set_cache(i, obj)
     return rank
-
 
 def unrank_from_list(l):
     """

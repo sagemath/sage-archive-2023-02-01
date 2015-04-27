@@ -69,7 +69,8 @@ cdef class EvenlyDistributedSetsBacktracker:
 
     - ``up_to_isomorphism`` - (boolean, default ``True``) whether only consider
       evenly distributed sets up to automorphisms of the field of the form
-      `x \mapsto ax + b`.
+      `x \mapsto ax + b`. If set to ``False`` then the iteration is over all
+      evenly distributed sets that contain ``0`` and ``1``.
 
     - ``check`` -- boolean (default is ``False``). Whether you want to check
       intermediate steps of the iterator. This is mainly intended for debugging
@@ -167,7 +168,7 @@ cdef class EvenlyDistributedSetsBacktracker:
     # DYNAMIC DATA
     cdef unsigned int * B        # current stack of elements of {0,...,q-1}
     cdef unsigned int * cosets   # e array: cosets of differences of elts in B
-    cdef unsigned int * t        # temporary variable for updates
+    cdef unsigned int * t        # e array: temporary variable for updates
 
     def __dealloc__(self):
         if self.diff != NULL:

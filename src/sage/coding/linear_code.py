@@ -1631,6 +1631,98 @@ class AbstractLinearCode(module.Module):
                 return False
         return True
 
+    def encode(self, word, name=None, **kwargs):
+        r"""
+        Encodes ``word`` as a codeword of ``self``.
+
+        INPUT:
+
+        - ``word`` -- a vector of the same length as dimension of ``self``
+
+        - ``name`` -- (default: ``None``) Name of the encoder which will be used
+          to encode ``word``. The default encoder of ``self`` will be used if
+          default value is kept
+
+        OUTPUT:
+
+        - a vector of ``self``
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = codes.LinearCode(G)
+            sage: word = vector((0, 1, 1, 0))
+            sage: C.encode(word)
+            (1, 1, 0, 0, 1, 1, 0)
+
+        It is possible to manually choose the encoder amongst the list of the available ones::
+
+            sage: C.encoders_available()
+            ['GeneratorMatrix']
+            sage: word = vector((0, 1, 1, 0))
+            sage: C.encode(word, 'GeneratorMatrix')
+            (3, 5, 0, 4, 0, 4, 10, 1, 4, 2)
+        """
+        E = self.encoder(name, **kwargs)
+        return E.encode(word)
+
+    @cached_method
+    def encoder(self, name=None, **kwargs):
+        r"""
+        Returns an encoder of ``self``.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name of the encoder which will be
+          returned. The default encoder of ``self`` will be used if
+          default value is kept.
+
+        OUTPUT:
+
+        - an Encoder object
+
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = codes.LinearCode(G)
+            sage: C.encoder()
+            Generator-matrix based encoder for the Linear code of length 7, dimension 4 over
+            Finite Field of size 2
+
+        If the name of an encoder which is not known by ``self`` is passed,
+        an exception will be raised::
+
+            sage: C.encoders_available()
+            ['GeneratorMatrix']
+            sage: C.encoder('NonExistingEncoder')
+            Traceback (most recent call last):
+            ...
+            ValueError: Passed Encoder name not known
+        """
+        if name is None:
+            name = self._encoder_default_name
+            return self.encoder(name, **kwargs)
+        if name in self._registered_encoders:
+            encClass = self._registered_encoders[name]
+            E = encClass(self, **kwargs)
+            return E
+        else:
+            raise ValueError("Passed Encoder name not known")
+
+    def encoders_available(self):
+        r"""
+        Returns a list of the possible encoders for ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = codes.LinearCode(G)
+            sage: C.encoders_available()
+            ['GeneratorMatrix']
+        """
+        return self._registered_encoders.keys()
+
     def extended_code(self):
         r"""
         If ``self`` is a linear code of length `n` defined over `F` then this
@@ -3011,6 +3103,36 @@ class AbstractLinearCode(module.Module):
         """
         return self.parity_check_matrix()*r
 
+    def unencode(self, c, name=None, nocheck=False, **kwargs):
+        r"""
+        Returns ``c`` decoded to the message space of ``self``.
+
+        INPUT:
+
+        - ``c`` -- a vector of the same length as ``self`` over the
+          base field of ``self``
+
+        - ``name`` -- (default: ``None``) name of the decoder which will be used
+          to decode ``word``. The default decoder of ``self`` will be used if
+          default value is kept.
+
+        - ``nocheck`` -- (default: ``False``) checks if ``c`` is in self. If this is set
+          to True, the return value of this method is not guaranteed to be correct.
+
+        OUTPUT:
+
+        - a vector
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = codes.LinearCode(G)
+            sage: c = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
+            sage: C.unencode(c)
+            (0, 1, 1, 0)
+        """
+        E = self.encoder(name, **kwargs)
+        return E.unencode(c, nocheck)
 
     def weight_enumerator(self, names="xy", name2=None):
         """

@@ -574,21 +574,16 @@ class ErrorErasureChannel(Channel):
             sage: msg = F((3, 14, 15, 9, 26, 53, 58, 9, 7, 9, 3))
             sage: set_random_seed(10)
             sage: Chan.transmit_unsafe(msg)
-            ((32, 0, 15, 9, 8, 53, 58, 9, 0, 9, 3), (0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0))
+            ((31, 0, 15, 9, 38, 53, 58, 9, 0, 9, 3), (0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0))
         """
         number_errors = randint(*self.number_errors())
         number_erasures = randint(*self.number_erasures())
         V = self.input_space()
         n = V.dimension()
 
-        erroneous_positions = sample(xrange(n),\
-                number_errors + number_erasures)
-        error_split = sample(xrange(number_errors + number_erasures),\
-                number_errors)
-        error_positions = [erroneous_positions[i] for i in\
-                range(number_errors + number_erasures) if i in error_split]
-        erasure_positions = [erroneous_positions[i] for i in\
-                range(number_errors + number_erasures) if i not in error_split]
+        errors = sample(xrange(n), number_errors + number_erasures)
+        error_positions   = errors[:number_errors]
+        erasure_positions = errors[number_errors:]
 
         error_vector = random_error_vector(n, V.base_ring(), error_positions)
         erasure_vector = random_error_vector(n , GF(2), erasure_positions)

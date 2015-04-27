@@ -55,9 +55,10 @@ cdef class EvenlyDistributedSetsBacktracker:
     By default, this backtracker only considers evenly distributed sets up to
     affine automorphisms, i.e. `B` is considered equivalent to `s B + t` for any
     invertible element `s` and any element `t` in the field `K`. Note that the
-    set of differences is just multiplicatively translated by `s` as
-    `\Delta (s B + t) = s (\Delta B)`. This can be modified via the argument
-    ``up_to_isomorphisms`` (see the input section and the examples below).
+    set of differences is just multiplicatively translated by `s` as `\Delta (s
+    B + t) = s (\Delta B)`, and so that `B` is an evenly distributed set if and
+    only if `sB` is one too. This behaviour can be modified via the argument
+    ``up_to_isomorphism`` (see the input section and the examples below).
 
     INPUT:
 
@@ -66,7 +67,7 @@ cdef class EvenlyDistributedSetsBacktracker:
     - ``k`` -- a positive integer such that `k(k-1)` divides `q-1`
 
     - ``up_to_isomorphism`` - (boolean, default ``True``) whether only consider
-      evenly distributed set up to automorphisms of the field of the form
+      evenly distributed sets up to automorphisms of the field of the form
       `x \mapsto ax + b`.
 
     - ``check`` -- boolean (default is ``False``). Whether you want to check
@@ -161,7 +162,7 @@ cdef class EvenlyDistributedSetsBacktracker:
 
     # DYNAMIC DATA
     cdef unsigned int * B        # current stack of elements of {0,...,q-1}
-    cdef unsigned int * cosets   # cosets of differences of elts in B
+    cdef unsigned int * cosets   # e array: cosets of differences of elts in B
     cdef unsigned int * t        # temporary variable for updates
 
     def __dealloc__(self):
@@ -243,7 +244,7 @@ cdef class EvenlyDistributedSetsBacktracker:
         self.min_orb[0] = self.min_orb[q-1] = 0
         for i,x in enumerate(self.list_K):
             if x != zero and x != one:
-                self.min_orb[i] = min(K_to_int[z] for z in \
+                self.min_orb[i] = min(K_to_int[z] for z in
                         [x, one/x, one-x, one/(one-x), (x-one)/x, x/(x-one)])
             for j,y in enumerate(self.list_K):
                 self.diff[i][j]  = K_to_int[x-y]
@@ -408,6 +409,8 @@ cdef class EvenlyDistributedSetsBacktracker:
                     else:
                         tmp2 = self.ratio[self.diff[self.B[k]][self.B[i]]][tmp1]
                         if tmp2 == 0 or tmp2 == self.q-1 or tmp2 < self.B[2]:
+                            # the backtracker should never build a set which by
+                            # relabelling is strictly smaller than B[:3]
                             raise RuntimeError("there is a problem got tmp2={}".format(tmp2,self.B[2]))
                         elif tmp2 == self.B[2]:
                             verify = 1
@@ -456,14 +459,13 @@ cdef class EvenlyDistributedSetsBacktracker:
         B[1] = 0    # the element 1 in K
 
         memset(self.cosets, 0, e * sizeof(unsigned int))
-        memset(self.t,      0, e * sizeof(unsigned int))
 
-        self.cosets[0] = 1  # the coset of 1
+        self.cosets[0] = 1  # coset 0 is hit by the difference 1-0
 
         cdef unsigned int x = m
         while True:
             if self.check:
-                self._check(kk)
+                self._check_cosets(kk)
                 assert m < x < q-1, "got x < m or x > q where x={}".format(x)
 
             # try to append x
@@ -498,16 +500,20 @@ cdef class EvenlyDistributedSetsBacktracker:
                     if x == q-2:
                         raise RuntimeError("this is impossible!")
 
+            x += 1
+
             if kk == 1:
                 return
-
-            x += 1
 
     @cython.cdivision(True)
     cdef inline int _add_element(self, unsigned int x, unsigned int kk) except -1:
         r"""
         Add the element ``x`` to ``B`` in position kk if the resulting set is
         still evenly distributed.
+
+        OUTPUT:
+
+            1 if the element was added, and 0 otherwise.
         """
         cdef unsigned int i, j, x_m_i, x_m_j
         cdef unsigned int m = (self.q-1)/self.e
@@ -537,20 +543,22 @@ cdef class EvenlyDistributedSetsBacktracker:
                     if self.min_orb[self.ratio[x_m_i][x_m_j]] < self.B[2]:
                         return 0
 
+        memset(self.t, 0, self.e*sizeof(unsigned int))
+
         # Next we compute the cosets hit by the differences
         for j in range(kk):
             i = self.diff[x][self.B[j]] / m
             if self.cosets[i] or self.t[i]:
-                memset(self.t, 0, self.e*sizeof(unsigned int))
                 return 0
             self.t[i] = 1
 
         # If everything went smoothly, we add x to B
         self.B[kk] = x
+
+        # coset = cosets (union) t
         for i in range(self.e):
-            if self.t[i]:
-                self.cosets[i] = 1
-                self.t[i] = 0
+            self.cosets[i] |= self.t[i]
+
         return 1
 
     cdef inline void _pop(self, unsigned int kk):
@@ -565,7 +573,7 @@ cdef class EvenlyDistributedSetsBacktracker:
             i = self.diff[x][self.B[j]] / m
             self.cosets[i] = 0
 
-    cdef int _check(self, unsigned int kk) except -1:
+    cdef int _check_cosets(self, unsigned int kk) except -1:
         r"""
         Sanity check (only for debug purposes).
         """

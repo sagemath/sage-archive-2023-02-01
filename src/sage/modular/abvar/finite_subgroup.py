@@ -640,7 +640,7 @@ class FiniteSubgroup(Module):
             sage: G(J.torsion_subgroup(3).0)
             Traceback (most recent call last):
             ...
-            TypeError: x does not define an element of self
+            TypeError: cannot convert (1/3, 0, 0, 0) into Finite subgroup with invariants [11, 11, 11, 11] over QQ of Abelian variety J0(23) of dimension 2
         """
         if isinstance(x, TorsionPoint):
             if x.parent() == self:
@@ -651,7 +651,7 @@ class FiniteSubgroup(Module):
             z = self.abelian_variety().vector_space()(x, check=check)
             if z in self.lattice():
                 return self.element_class(self, z, check=False)
-        raise TypeError("x does not define an element of self")
+        raise TypeError("cannot convert {!r} into {}".format(x, self))
 
 
     def __contains__(self, x):
@@ -786,20 +786,6 @@ class FiniteSubgroup(Module):
         I.set_immutable()
         self.__invariants = I
         return I
-
-    def generator_orders(self):
-        """
-        Return the orders of the chosen generators of ``self``.
-
-        EXAMPLES::
-
-            sage: G = J0(24).cuspidal_subgroup()
-            sage: G.gens()
-            [[(1/4, 0)], [(0, 1/2)]]
-            sage: G.generator_orders()
-            [4, 2]
-        """
-        return [x.additive_order() for x in self.gens()]
 
     __iter__ = abelian_iterator
 

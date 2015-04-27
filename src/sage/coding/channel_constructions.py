@@ -30,7 +30,7 @@ from sage.rings.finite_rings.constructor import GF
 from sage.misc.prandom import randint, random, sample
 from sage.modules.free_module_element import vector
 from sage.misc.abstract_method import abstract_method
-from sage.combinat.cartesian_product import CartesianProduct
+from sage.categories.cartesian_product import cartesian_product
 from sage.modules.free_module import VectorSpace
 from copy import copy
 
@@ -499,7 +499,7 @@ class ErrorErasureChannel(Channel):
         if not isinstance(number_erasures, (tuple, list)):
             raise ValueError("number_erasures must be a tuple, a list, an Integer or a Python int")
 
-        output_space = CartesianProduct(space, VectorSpace(GF(2), space.dimension()))
+        output_space = cartesian_product([space, VectorSpace(GF(2), space.dimension())])
         super(ErrorErasureChannel, self).__init__(space, output_space)
         if number_errors[1] + number_erasures[1] > space.dimension():
             raise ValueError("The total number of errors and erasures can not exceed the dimension of the input space")

@@ -68,6 +68,8 @@ from linear_code import (LinearCode, LinearCodeFromVectorSpace,
                          bounds_minimum_distance,
                          self_orthogonal_binary_codes)
 
+from linear_code_encoders import EncoderLinearCodeGeneratorMatrix
+
 from sd_codes import self_dual_codes_binary
 
 lazy_import("sage.coding.delsarte_bounds",

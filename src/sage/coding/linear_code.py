@@ -3408,6 +3408,8 @@ class LinearCode(AbstractLinearCode):
     #    sage: C.minimum_distance_why()     # optional (net connection)
     #    Ub(7,4) = 3 follows by the Griesmer bound.
 
+    _registered_encoders = {}
+
     def __init__(self, generator_matrix, d=None):
         r"""
         See the docstring for :meth:`LinearCode`.
@@ -3473,6 +3475,7 @@ class LinearCode(AbstractLinearCode):
         self._generator_matrix = generator_matrix
         self._dimension = generator_matrix.rank()
         self._minimum_distance = d
+        self._encoder_default_name = "GeneratorMatrix"
 
     def _repr_(self):
         r"""

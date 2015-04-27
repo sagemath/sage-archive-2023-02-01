@@ -381,9 +381,9 @@ cdef class EvenlyDistributedSetsBacktracker:
         self.count = 0
         return smallInteger(n)
 
-    def _B_automorphisms(self):
+    def _B_relabelled_copies(self):
         r"""
-        Check whether `self.B` is minimal among its relabelization.
+        Check whether ``self.B`` is minimal among its relabelization.
 
         If `B=\{b_1,...,b_k\}` is an evenly distributed set and contains `0` and
         `1`, then for any two distinct `i,j` we define `f_{ij} : x \mapsto
@@ -412,6 +412,12 @@ cdef class EvenlyDistributedSetsBacktracker:
             sage: E = EvenlyDistributedSetsBacktracker(Zmod(13), 4, up_to_isomorphism=False)
             sage: E.cardinality()   # indirect doctest
             4
+
+        .. NOTE::
+
+            this method is not seriously optimized. The main goal of this backtracker
+            is to generate one evenly distributed set. In that case, this method
+            will be called only once.
         """
         cdef unsigned int i,j,k,tmp1,tmp2,verify
         cdef list B = [self.B[i] for i in range(1,self.k)]

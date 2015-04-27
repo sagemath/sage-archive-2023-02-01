@@ -119,8 +119,7 @@ from sage.graphs.dot2tex_utils import have_dot2tex
 
 
 class DiGraph(GenericGraph):
-    """
-    Directed graph.
+    """Directed graph.
 
     A digraph or directed graph is a set of vertices connected by oriented
     edges. For more information, see the
@@ -264,7 +263,8 @@ class DiGraph(GenericGraph):
       ``data_structure="sparse"``, and ``sparse=False`` is an alias for
       ``data_structure="dense"``.
 
-    -  ``data_structure`` -- one of the following
+    - ``data_structure`` -- one of the following (for more information, see
+       :mod:`~sage.graphs.base.overview`):
 
        * ``"dense"`` -- selects the :mod:`~sage.graphs.base.dense_graph`
          backend.

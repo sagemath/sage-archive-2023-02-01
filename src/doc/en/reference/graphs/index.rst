@@ -35,6 +35,7 @@ Low-level implementation
 .. toctree::
    :maxdepth: 1
 
+   sage/graphs/base/overview
    sage/graphs/base/c_graph
    sage/graphs/base/sparse_graph
    sage/graphs/base/dense_graph

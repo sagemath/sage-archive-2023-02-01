@@ -15564,12 +15564,20 @@ class GenericGraph(GenericGraph_pyx):
             sage: Graph()._rich_repr_(dm, edge_labels=True)
             OutputImagePng container
         """
-        if display_manager.preferences.plot_graphs != 'never' and (
-                display_manager.preferences.plot_graphs == 'always' or (
-                    0 < self.num_verts() < 20)):
-            return self.plot(**kwds)._rich_repr_(display_manager)
-        # Avoid latex output, it produces a huge tikz environment
-        return display_manager.types.OutputPlainText(repr(self))
+        is_small = (0 < self.num_verts() < 20)
+        plot_graph = display_manager.preferences.plot_graphs != 'never' and (
+            display_manager.preferences.plot_graphs == 'always' or is_small)
+        # Under certain circumstances we display the plot as graphics
+        if plot_graph:
+            output = self.plot(**kwds)._rich_repr_(display_manager)
+            if output is not None:
+                return output
+        # latex() produces huge tikz environment, override 
+        tp = display_manager.types
+        if (display_manager.preferences.text == 'latex' and 
+                tp.OutputLatex in display_manager.supported_output()):
+            return tp.OutputLatex('G_{{{0}}}'.format(self.num_verts()))
+        return tp.OutputPlainText(repr(self))
         
     @options()
     def plot(self, **options):

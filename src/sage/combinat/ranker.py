@@ -76,7 +76,7 @@ def rank_from_list(l):
         sage: r("blah")
         Traceback (most recent call last):
         ...
-        ValueError: blah is not in list
+        ValueError: 'blah' is not in list
 
     TESTS::
 
@@ -84,7 +84,7 @@ def rank_from_list(l):
     """
     @cached_function
     def rank(obj):
-        raise ValueError("%s is not in list"%obj)
+        raise ValueError(repr(obj)+" is not in list")
     for i, obj in enumerate(l):
         rank.set_cache(i, obj)
     return rank

@@ -304,14 +304,16 @@ class StaticErrorRateChannel(Channel):
         sage: n_err = 2
         sage: Chan = channels.StaticErrorRateChannel(GF(59)^40, n_err)
         sage: Chan
-        Static error rate channel creating 2 errors
+        Static error rate channel creating 2 errors, of input and output space
+        Vector space of dimension 40 over Finite Field of size 59
 
     We can also pass a tuple for the number of errors::
 
         sage: n_err = (1, 10)
         sage: Chan = channels.StaticErrorRateChannel(GF(59)^40, n_err)
         sage: Chan
-        Static error rate channel creating between 1 and 10 errors
+        Static error rate channel creating between 1 and 10 errors,
+        of input and output space Vector space of dimension 40 over Finite Field of size 59
     """
 
     def __init__(self, space, number_errors):
@@ -345,11 +347,12 @@ class StaticErrorRateChannel(Channel):
             sage: n_err = 42
             sage: Chan = channels.StaticErrorRateChannel(GF(59)^50, n_err)
             sage: Chan
-            Static error rate channel creating 42 errors
+            Static error rate channel creating 42 errors, of input and output space
+            Vector space of dimension 50 over Finite Field of size 59
         """
         no_err = self.number_errors()
-        return "Static error rate channel creating %s errors"\
-                    % (format_interval(no_err))
+        return "Static error rate channel creating %s errors, of input and output space %s"\
+                    % (format_interval(no_err), self.input_space())
 
     def _latex_(self):
         r"""
@@ -359,12 +362,13 @@ class StaticErrorRateChannel(Channel):
 
             sage: n_err = 42
             sage: Chan = channels.StaticErrorRateChannel(GF(59)^50, n_err)
-            sage: Chan._latex_()
-            '\\textnormal{Static error rate channel, creating }42 \\textnormal{ error(s)}'
+            sage: latex(Chan)
+            \textnormal{Static error rate channel creating 42 errors, of
+            input and output space Vector space of dimension 50 over Finite Field of size 59}
         """
         no_err = self.number_errors()
-        return "\\textnormal{Static error rate channel, creating }%s \\textnormal{ error(s)}"\
-                % format_interval(no_err)
+        return "\\textnormal{Static error rate channel creating %s errors, of input and output space %s}"\
+                % (format_interval(no_err), self.input_space())
 
     def transmit_unsafe(self, message):
         r"""
@@ -470,13 +474,20 @@ class ErrorErasureChannel(Channel):
         sage: Chan = channels.ErrorErasureChannel(GF(59)^40, n_err, n_era)
         sage: Chan
         Error-and-erasure channel creating 2 errors and 2 erasures
+        of input space Vector space of dimension 40 over Finite Field of size 59
+        and output space The cartesian product of (Vector space of dimension 40
+        over Finite Field of size 59, Vector space of dimension 40 over Finite Field of size 2)
 
     We can also pass the number of errors and erasures as a couple of integers::
 
         sage: n_err, n_era = (1, 10), (1, 10)
         sage: Chan = channels.ErrorErasureChannel(GF(59)^40, n_err, n_era)
         sage: Chan
-        Error-and-erasure channel creating between 1 and 10 errors and between 1 and 10 erasures
+        Error-and-erasure channel creating between 1 and 10 errors and
+        between 1 and 10 erasures of input space Vector space of dimension 40
+        over Finite Field of size 59 and output space The cartesian product of
+        (Vector space of dimension 40 over Finite Field of size 59,
+        Vector space of dimension 40 over Finite Field of size 2)
     """
 
     def __init__(self, space, number_errors, number_erasures):
@@ -522,11 +533,14 @@ class ErrorErasureChannel(Channel):
             sage: Chan = channels.ErrorErasureChannel(GF(59)^50, n_err, n_era)
             sage: Chan
             Error-and-erasure channel creating 21 errors and 21 erasures
+            of input space Vector space of dimension 50 over Finite Field of size 59
+            and output space The cartesian product of (Vector space of dimension 50
+            over Finite Field of size 59, Vector space of dimension 50 over Finite Field of size 2)
         """
         no_err = self.number_errors()
         no_era = self.number_erasures()
-        return "Error-and-erasure channel creating %s errors and %s erasures"\
-                    % (format_interval(no_err), format_interval(no_era))
+        return "Error-and-erasure channel creating %s errors and %s erasures of input space %s and output space %s"\
+                % (format_interval(no_err), format_interval(no_era), self.input_space(), self.output_space())
 
     def _latex_(self):
         r"""
@@ -537,12 +551,15 @@ class ErrorErasureChannel(Channel):
             sage: n_err, n_era = 21, 21
             sage: Chan = channels.ErrorErasureChannel(GF(59)^50, n_err, n_era)
             sage: latex(Chan)
-            \textnormal{Error-and-erasure channel creating 21 errors and 21 erasures}
+            \textnormal{Error-and-erasure channel creating 21 errors and 21 erasures
+            of input space Vector space of dimension 50 over Finite Field of size 59
+            and output space The cartesian product of (Vector space of dimension 50
+            over Finite Field of size 59, Vector space of dimension 50 over Finite Field of size 2)}
         """
         no_err = self.number_errors()
         no_era = self.number_erasures()
-        return "\\textnormal{Error-and-erasure channel creating %s errors and %s erasures}"\
-                % (format_interval(no_err), format_interval(no_era))
+        return "\\textnormal{Error-and-erasure channel creating %s errors and %s erasures of input space %s and output space %s}"\
+                % (format_interval(no_err), format_interval(no_era), self.input_space(), self.output_space())
 
     def transmit_unsafe(self, message):
         r"""

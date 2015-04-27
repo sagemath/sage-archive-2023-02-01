@@ -621,9 +621,12 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         if not self.base_ring().is_field():
             raise NotImplementedError("checking irreducibility of polynomials over rings with composite characteristic is not implemented")
 
+        sig_on()
         if 1 == nmod_poly_is_irreducible(&self.x):
+            sig_off()
             return True
         else:
+            sig_off()
             return False
 
     def squarefree_decomposition(self):

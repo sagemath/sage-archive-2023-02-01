@@ -166,6 +166,7 @@ import sage.rings.infinity
 import sage.libs.pari.pari_instance
 cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
+from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element import canonical_coercion, coerce_binop
 
 cdef object numpy_long_interface = {'typestr': '=i4' if sizeof(long) == 4 else '=i8' }
@@ -589,6 +590,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
             sage: a == ZZ(L,base=2^64)
             True
+
+        Test comparisons with numpy types (see :trac:`13386` and :trac:`18076`)::
+
+            sage: import numpy
+            sage: numpy.int8('12') == 12
+            True
+            sage: 12 == numpy.int8('12')
+            True
+
+            sage: numpy.float('15') == 15
+            True
+            sage: 15 == numpy.float('15')
+            True
         """
         # TODO: All the code below should somehow be in an external
         # cdef'd function.  Then e.g., if a matrix or vector or
@@ -676,12 +690,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     mpz_set(self.value, tmp.value)
                     return
 
-                import numpy
-                if isinstance(x, numpy.integer):
-                    mpz_set_pylong(self.value, x.__long__())
-                    return
+                elif is_numpy_type(type(x)):
+                    import numpy
+                    if isinstance(x, numpy.integer):
+                        mpz_set_pylong(self.value, x.__long__())
+                        return
 
-                raise TypeError, "unable to coerce %s to an integer" % type(x)
+                raise TypeError("unable to coerce %s to an integer" % type(x))
 
     def __reduce__(self):
         """

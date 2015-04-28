@@ -64,6 +64,8 @@ from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 
 from sage.categories.morphism cimport Morphism
+from sage.structure.coerce cimport is_numpy_type
+
 
 def is_RealDoubleField(x):
     """
@@ -288,8 +290,9 @@ cdef class RealDoubleField_class(Field):
 
         - the real double field itself
         - int, long, integer, and rational rings
-        - real mathematical constants
-        - the MPFR real field with at most 53 bits of precision
+        - numpy integers and floatings
+        - the real lazy field
+        - the MPFR real field with at least 53 bits of precision
 
         EXAMPLES::
 
@@ -307,13 +310,46 @@ cdef class RealDoubleField_class(Field):
             5.0 + 1.0*I
             sage: RLF(2/3) + RDF(1)
             1.6666666666666665
+
+            sage: import numpy
+            sage: RDF.coerce(numpy.int8('1'))
+            1.0
+            sage: RDF.coerce(numpy.float64('1'))
+            1.0
+
+            sage: RDF.coerce(pi)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Symbolic Ring to Real Double Field
+
+        Test that :trac:`15695` is fixed (see also :trac:`18076`)::
+
+            sage: 1j + numpy.float64(2)
+            2.00000000000000 + 1.00000000000000*I
+            sage: parent(_)
+            Complex Field with 53 bits of precision
         """
-        from integer_ring import ZZ
+        if S is int or S is float:
+            return ToRDF(S)
+
         from rational_field import QQ
         from real_lazy import RLF
-        from real_mpfr import RR, RealField_class
-        if S in [int, float, ZZ, QQ, RLF] or isinstance(S, RealField_class) and S.prec() >= 53:
+        if S is ZZ or S is QQ or S is RLF:
             return ToRDF(S)
+
+        from real_mpfr import RR, RealField_class
+        if isinstance(S, RealField_class):
+            if S.prec() >= 53:
+                return ToRDF(S)
+            else:
+                return None
+        elif is_numpy_type(S):
+            import numpy
+            if issubclass(S, numpy.integer) or issubclass(S, numpy.floating):
+                return ToRDF(S)
+            else:
+                return None
+
         connecting = RR._internal_coerce_map_from(S)
         if connecting is not None:
             return ToRDF(RR) * connecting

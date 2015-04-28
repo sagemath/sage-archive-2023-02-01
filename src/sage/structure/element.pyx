@@ -948,6 +948,13 @@ cdef class Element(SageObject):
         If a class wants to implement rich comparison without coercion,
         then ``_richcmp`` should be defined (as well as ``__richcmp__``
         as usual).
+        See :class:`sage.numerical.linear_functions.LinearConstraint`
+        for such an example.
+
+        For efficiency reasons, a class can do certain "manual"
+        coercions directly in ``__richcmp__``, using ``_richcmp``
+        for the remaining cases. This is done for example in
+        :class:`Integer`.
         """
         if have_same_parent_c(self, other):
             # Same parents, in particular other must be an Element too.

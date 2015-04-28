@@ -467,12 +467,12 @@ class PanAxiom(Expect):
             # print "'%s'"%line
             if line[:4] == '   (':
                 i = line.find('(')
-                i += line[i:].find(')')
-                if line[i+1:] == "":
+                i += line[i:].find(')')+1
+                if line[i:] == "":
                     i = 0
                     outs = outs[1:]
                 break;
-        out = "\n".join(line[i+1:] for line in outs[1:])
+        out = "\n".join(line[i:] for line in outs[1:])
         return out
 
     # define relational operators

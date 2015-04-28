@@ -100,7 +100,7 @@ Properties
     :meth:`~FiniteStateMachine.is_monochromatic` | Checks whether the colors of all states are equal
     :meth:`~FiniteStateMachine.asymptotic_moments` | Main terms of expectation and variance of sums of labels
     :meth:`~FiniteStateMachine.epsilon_successors` | Epsilon successors of a state
-    :meth:`Automaton.transition_probabilities` | Compute transition probabilities
+    :meth:`Automaton.shannon_parry_markov_chain` | Compute Markov chain with Parry measure
 
 Operations
 ^^^^^^^^^^
@@ -9944,24 +9944,26 @@ class Automaton(FiniteStateMachine):
             return accept_input
 
 
-    def transition_probabilities(self):
+    def shannon_parry_markov_chain(self):
         """
-        Compute transition probabilities such that all paths of equal
-        length weighted by these probabilities have the same weight,
-        up to an exponentially small error.
+        Compute the Parry measure (see [S1948]_ and [P1964]_), that are
+        transition probabilities such that all paths of equal length weighted
+        by these probabilities have the same weight, up to an exponentially
+        small error.
 
         OUTPUT:
 
-        A Markov chain. Its input labels are the transition probabilities,
-        the output labels the labels of the original automaton. The exit
-        weights are stored in the attribute ``color`` of the Markov chain.
+        A Markov chain. Its input labels are the transition probabilities, the
+        output labels the labels of the original automaton. The exit weights
+        (used because of a single initial state) are stored in the attribute
+        ``color`` of the Markov chain.
 
         EXAMPLES::
 
             sage: NAF = Automaton([(0, 0, 0), (0, 1, 1), (0, 1, -1),
             ....:                  (1, 0, 0)], initial_states=[0],
             ....:                 final_states=[0, 1])
-            sage: P_NAF = NAF.transition_probabilities()
+            sage: P_NAF = NAF.shannon_parry_markov_chain()
             sage: P_NAF.transitions()
             [Transition from 0 to 0: 1/2|0,
              Transition from 0 to 1: 1/4|1,
@@ -9980,13 +9982,19 @@ class Automaton(FiniteStateMachine):
 
         .. [HKP2015a] Clemens Heuberger, Sara Kropf, and Helmut
            Prodinger, *Analysis of Carries in Signed Digit Expansions*,
-           submitted.
+           :arxiv:`1503.08816`.
+        .. [P1964] William Parry, *Intrinsic Markov chains*, Transactions
+           of the American Mathematical Society 112, 1964, pp. 55-66.
+           :doi:`10.1090/S0002-9947-1964-0161372-1`.
+        .. [S1948] Claude E. Shannon, *A mathematical theory of communication*,
+           The Bell System Technical Journal 27, 1948, 379-423,
+           :doi:`10.1002/j.1538-7305.1948.tb01338.x`.
         """
         from sage.modules.free_module_element import vector
         if not self.digraph().is_aperiodic():
             raise NotImplementedError("Automaton must be aperiodic.")
         if not self.digraph().is_strongly_connected():
-            raise NotImplementedError("Automaton must be aperiodic.")
+            raise NotImplementedError("Automaton must be strongly connected.")
         M = self.adjacency_matrix().change_ring(ZZ)
         states = {state: i for i, state in enumerate(self.iter_states())}
         w_all = sorted(M.eigenvectors_right(),

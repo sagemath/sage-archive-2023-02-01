@@ -1,8 +1,7 @@
 r"""
 Encoder
 
-Given a code, an encoder embeds some specific methods to link this code's
-message space to this code's ambient space.
+Representation of a bijection between a message space and a code.
 """
 
 #*****************************************************************************
@@ -24,7 +23,6 @@ class Encoder(SageObject):
     r"""
     Abstract top-class for Encoder objects.
 
-
     This class contains all methods that can be used by encoders.
     So, every encoder class should inherit from this abstract class.
 
@@ -32,7 +30,7 @@ class Encoder(SageObject):
 
     - ``code``, the associated code of the encoder
 
-    - methods that will work for any encoder
+    - some methods for encoder objects
 
     To implement an encoder, you need to:
 
@@ -48,7 +46,8 @@ class Encoder(SageObject):
     ``unencode_nocheck`` methods are provided. These implementations rely on ``generator_matrix``
     which you need to override to use the default implementations.
 
-    If the message space is not a vectorial space, you cannot have a generator matrix.
+    If the message space is not of the form `F ** k`, where `F` is a finite field,
+    you cannot have a generator matrix.
     In that case, you need to override ``encode`` and ``unencode_nocheck``.
 
     As Encoder is not designed to be implemented, it does not have any representation

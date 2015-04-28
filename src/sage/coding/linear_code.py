@@ -709,7 +709,7 @@ class AbstractLinearCode(module.Module):
     - ``encoder_default_name``, the name of the encoder that will be used if no encoder name is passed
     to an encoder-related method (``generator_matrix``, ``encode``, ``unencode``)
 
-    - ``_registered_encoders``, a set of all encoders available for this class
+    - ``_registered_encoders``, a dictionary of all encoders available for this class
 
     - numerous methods that will work for any linear code (including families)
 
@@ -724,8 +724,15 @@ class AbstractLinearCode(module.Module):
       You need of course to complete the constructor by adding any additional parameter
       needed to describe properly the code defined in the subclass.
 
+    - fill the dictionary of its encoders in ``sage.coding.__init__`` file. Example:
+      I want to link the encoder ``MyEncoderClass`` to ``MyNewCodeClass``
+      under the name ``MyEncoderName``.
+      All I need to do is to write this line in the ``__init__.py`` file:
+      ``MyNewCodeClass._registered_encoders["NameOfMyEncoder"] = MyEncoderClass`` and all instances of
+      ``MyNewCodeClass`` will be able to use instances of ``MyEncoderClass``.
+
     As AbstractLinearCode is not designed to be implemented, it does not have any representation
-    methods. You should implement ``_repr_`` and ``_latex_`` methods in the sublclass.
+    methods. You should implement ``_repr_`` and ``_latex_`` methods in the subclass.
 
     ..NOTE::
 

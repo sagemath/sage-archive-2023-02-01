@@ -554,7 +554,7 @@ class Interface(ParentWithBase):
         TESTS::
 
             sage: ParentWithBase.__getattribute__(singular, '_coerce_map_from_')
-            <built-in method _coerce_map_from_ of Singular object at ...>
+            <bound method Singular._coerce_map_from_ of Singular>
         """
         try:
             return ParentWithBase.__getattribute__(self, attrname)

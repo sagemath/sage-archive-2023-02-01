@@ -1144,7 +1144,7 @@ def previous_prime_power(n):
         sage: 127.previous_prime_power()
         125
 
-    Input lesser or equal than `2` raises errors::
+    Input less than or equal to `2` raises errors::
 
         sage: previous_prime_power(2)
         Traceback (most recent call last):

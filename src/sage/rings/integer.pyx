@@ -5095,7 +5095,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r"""
         Return the next prime after self.
 
-        This method calls the Pari ``nextprime`` function.
+        This method calls the PARI ``nextprime`` function.
 
         INPUT:
 
@@ -5134,7 +5134,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r"""
         Returns the previous prime before self.
 
-        This method calls the Pari ``precprime`` function.
+        This method calls the PARI ``precprime`` function.
 
         INPUT:
 
@@ -5214,30 +5214,39 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             109
             sage: 2044.next_prime_power()
             2048
+
+        TESTS::
+
+            sage: [(2**k-1).next_prime_power() for k in range(1,10)]
+            [2, 4, 8, 16, 32, 64, 128, 256, 512]
+            sage: [(2**k).next_prime_power() for k in range(10)]
+            [2, 3, 5, 9, 17, 37, 67, 131, 257, 521]
+
+            sage: l0 = [ZZ.random_element(3,1000).previous_prime_power() for _ in range(10)]
+            sage: l1 = [n.next_prime_power().previous_prime_power() for n in l0]
+            sage: l0 == l1
+            True
         """
         cdef Integer n = PY_NEW(Integer)
 
-        mpz_set(n.value, self.value)
-        if mpz_cmp_ui(n.value, 2) < 0:
-            mpz_set_ui(n.value, 2)
-            return n
+        mpz_add_ui(n.value, self.value, 1)
+        if mpz_cmp_ui(n.value, 2) <= 0:
+            return smallInteger(2)
 
-        mpz_add_ui(n.value, n.value, 1)
         if mpz_even_p(n.value):
             if n.is_prime_power(proof=proof):
                 return n
             mpz_add_ui(n.value, n.value, 1)
 
-        # the next power of 2
-        cdef Integer m = PY_NEW(Integer)
-        mpz_set_ui(m.value, 1)
-        mpz_mul_2exp(m.value, m.value, mpz_sizeinbase(n.value,2))
-
-        while mpz_cmp(m.value, n.value) == 1:
+        cdef mp_bitcnt_t bit_index = mpz_sizeinbase(n.value,2)
+        while not mpz_tstbit(n.value, bit_index):
             if n.is_prime_power(proof=proof):
                 return n
             mpz_add_ui(n.value, n.value, 2)
-        return m
+
+        # return the power of 2 we just skept
+        mpz_sub_ui(n.value, n.value, 1)
+        return n
 
     def previous_prime_power(self, proof=None):
         r"""
@@ -5278,29 +5287,39 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             Traceback (most recent call last):
             ...
             ValueError: no prime power less than 2
+
+        TESTS::
+
+            sage: [(2**k+1).previous_prime_power() for k in range(1,10)]
+            [2, 4, 8, 16, 32, 64, 128, 256, 512]
+            sage: [(2**k).previous_prime_power() for k in range(2, 10)]
+            [3, 7, 13, 31, 61, 127, 251, 509]
+
+            sage: l0 = [ZZ.random_element(3,1000).next_prime_power() for _ in range(10)]
+            sage: l1 = [n.previous_prime_power().next_prime_power() for n in l0]
+            sage: l0 == l1
+            True
         """
         if mpz_cmp_ui(self.value, 2) <= 0:
             raise ValueError("no prime power less than 2")
 
         cdef Integer n = PY_NEW(Integer)
 
-        mpz_set(n.value, self.value)
-        mpz_sub_ui(n.value, n.value, 1)
+        mpz_sub_ui(n.value, self.value, 1)
         if mpz_even_p(n.value):
             if n.is_prime_power(proof=proof):
                 return n
             mpz_sub_ui(n.value, n.value, 1)
 
-        # the previous power of 2
-        cdef Integer m = PY_NEW(Integer)
-        mpz_set_ui(m.value, 1)
-        mpz_mul_2exp(m.value, m.value, mpz_sizeinbase(n.value,2)-1)
-
-        while mpz_cmp(m.value, n.value) == -1:
+        cdef mp_bitcnt_t bit_index = mpz_sizeinbase(n.value,2)-1
+        while mpz_tstbit(n.value, bit_index):
             if n.is_prime_power(proof=proof):
                 return n
             mpz_sub_ui(n.value, n.value, 2)
-        return m
+
+        # return the power of 2 we just skept
+        mpz_add_ui(n.value, n.value, 1)
+        return n
 
     def additive_order(self):
         """

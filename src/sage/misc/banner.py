@@ -19,11 +19,15 @@ def version(clone = False):
     Return the version of Sage.
 
     INPUT:
-       nothing
-    OUTPUT:
-       str
 
-    EXAMPLES:
+    nothing
+
+    OUTPUT:
+
+    str
+
+    EXAMPLES::
+
        sage: version()
        'SageMath Version ..., Release Date: ...'
        sage: version(clone=True)
@@ -104,18 +108,23 @@ def version_dict():
     A dictionary describing the version of Sage.
 
     INPUT:
-        nothing
+
+    nothing
+
     OUTPUT:
-        dictionary with keys 'major', 'minor', 'tiny', 'prerelease'
+
+    dictionary with keys 'major', 'minor', 'tiny', 'prerelease'
 
     This process the Sage version string and produces a dictionary.
-    It expects the Sage version to be in one of these forms:
+    It expects the Sage version to be in one of these forms::
+
        N.N
        N.N.N
        N.N.N.N
        N.N.str
        N.N.N.str
        N.N.N.N.str
+
     where 'N' stands for an integer and 'str' stands for a string.
     The first integer is stored under the 'major' key and the second
     integer under 'minor'.  If there is one more integer, it is stored
@@ -130,7 +139,8 @@ def version_dict():
     If the Sage version is '3.2.alpha0', then the dictionary is
     {'major': 3, 'minor': 2, 'tiny': 0, 'prerelease': True}.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.misc.banner import version_dict
         sage: print "SageMath major version is %s" % version_dict()['major']
         SageMath major version is ...
@@ -162,14 +172,16 @@ def require_version(major, minor=0, tiny=0, prerelease=False,
     True if Sage version is at least major.minor.tiny.
 
     INPUT:
-        major -- integer
-        minor -- integer (optional, default = 0)
-        tiny -- float (optional, default = 0)
-        prerelease -- boolean (optional, default = False)
-        print_message -- boolean (optional, default = False)
+
+    - major -- integer
+    - minor -- integer (optional, default = 0)
+    - tiny -- float (optional, default = 0)
+    - prerelease -- boolean (optional, default = False)
+    - print_message -- boolean (optional, default = False)
 
     OUTPUT:
-        True if major.minor.tiny is <= version of Sage, False otherwise
+
+    True if major.minor.tiny is <= version of Sage, False otherwise
 
     For example, if the Sage version number is 3.1.2, then
     require_version(3, 1, 3) will return False, while
@@ -184,7 +196,8 @@ def require_version(major, minor=0, tiny=0, prerelease=False,
     If optional argument print_message is True and this function
     is returning False, print a warning message.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.misc.banner import require_version
         sage: require_version(2, 1, 3)
         True

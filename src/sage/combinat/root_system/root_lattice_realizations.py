@@ -16,7 +16,7 @@ from sage.misc.abstract_method import abstract_method, AbstractMethod
 from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.lazy_import import lazy_import, LazyImport
+from sage.misc.lazy_import import LazyImport
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.modules_with_basis import ModulesWithBasis
@@ -27,6 +27,7 @@ from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.combinat.backtrack import TransitiveIdeal, TransitiveIdealGraded
 from sage.combinat.root_system.plot import PlotOptions, barycentric_projection_matrix
+
 
 class RootLatticeRealizations(Category_over_base_ring):
     r"""
@@ -2182,7 +2183,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                 (0, 0, 0)
 
             """
-            from sage.matrix.constructor import matrix
             from sage.symbolic.constants import pi
             m = matrix(QQ, barycentric_projection_matrix(self.dimension()-1, angle=2*pi/3).n(20))
             # We want to guarantee that the sum of the columns of the
@@ -3775,6 +3775,51 @@ class RootLatticeRealizations(Category_over_base_ring):
                 [1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 6, 8, 8, 8, 8, 12, 12, 12, 24]
             """
             return [x for x in TransitiveIdeal(attrcall('pred'), [self])]
+
+        def extraspecial_pair(self):
+            r"""
+            Return the extraspecial pair of ``self`` under the ordering
+            defined by
+            :meth:`~sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations.ParentMethods.positive_roots_by_height`.
+
+            The *extraspecial pair* of a positive root `\gamma` with some total
+            ordering `<` of the root lattice that respects height is the pair
+            of positive roots `(\alpha, \beta)` such that `\gamma = \alpha +
+            \beta` and `\alpha` is as small as possible.
+
+            EXAMPLES::
+
+                sage: Q = RootSystem(['G', 2]).root_lattice()
+                sage: Q.highest_root().extraspecial_pair()
+                (alpha[2], 3*alpha[1] + alpha[2])
+            """
+            if self.is_positive_root():
+                r = self
+            else:
+                r = -self
+            p_roots = self.parent().positive_roots_by_height()
+            # We won't need any roots higher than us
+            p_roots = p_roots[:p_roots.index(r)]
+            for i, a in enumerate(p_roots):
+                for b in p_roots[i + 1:]:
+                    if a + b == r:
+                        return (a, b)
+            raise ValueError("Unable to find an extraspecial pair")
+
+        def height(self):
+            r"""
+            Return the height of ``self``.
+
+            The height of a root `\alpha = \sum_i a_i \alpha_i` is defined
+            to be `h(\alpha) := \sum_i a_i`.
+
+            EXAMPLES::
+
+                sage: Q = RootSystem(['G', 2]).root_lattice()
+                sage: Q.highest_root().height()
+                5
+            """
+            return sum(self.coefficients())
 
         ##########################################################################
         # Level

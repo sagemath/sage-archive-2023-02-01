@@ -85,6 +85,7 @@ Comprehensive Module list
     sage/combinat/designs/designs_pyx
     sage/combinat/designs/difference_family
     sage/combinat/designs/difference_matrices
+    sage/combinat/designs/evenly_distributed_sets
     sage/combinat/designs/ext_rep
     sage/combinat/designs/incidence_structures
     sage/combinat/designs/latin_squares
@@ -157,6 +158,7 @@ Comprehensive Module list
     sage/combinat/posets/all
     sage/combinat/posets/elements
     sage/combinat/posets/hasse_diagram
+    sage/combinat/posets/incidence_algebras
     sage/combinat/posets/lattices
     sage/combinat/posets/linear_extensions
     sage/combinat/posets/poset_examples
@@ -236,6 +238,7 @@ Comprehensive Module list
     sage/combinat/root_system/weight_space
     sage/combinat/root_system/weyl_characters
     sage/combinat/root_system/weyl_group
+    sage/combinat/rooted_tree
     sage/combinat/rsk
     sage/combinat/schubert_polynomial
     sage/combinat/set_partition

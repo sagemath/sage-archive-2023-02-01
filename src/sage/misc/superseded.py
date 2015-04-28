@@ -467,10 +467,10 @@ def deprecated_callable_import(trac_number, module_name, globs, locs, fromlist, 
 
     - ``locs`` -- dictionary. The ``locals()`` from where this is being called.
 
-    - ``param fromlist``: -- list of strings. The list the names of the
+    - ``fromlist`` -- list of strings. The list the names of the
       callables to deprecate
 
-    - ``message`` --` string. Message to display when the deprecated functions are called.
+    - ``message`` -- string. Message to display when the deprecated functions are called.
 
     .. note::
 

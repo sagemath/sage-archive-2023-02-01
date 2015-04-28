@@ -11,9 +11,11 @@ Standard C helper code for Cython modules
 #*****************************************************************************
 
 from cpython.object cimport Py_TYPE, PyTypeObject
-from cpython.type cimport type
 
-cdef inline PY_NEW(type t):
+# Don't cimport "type" directly, see Trac #18321
+from cpython.type cimport type as pytype
+
+cdef inline PY_NEW(pytype t):
     """
     Return ``t.__new__(t)``.  This works even for types like
     :class:`Integer` where we change ``tp_new`` at runtime (Cython

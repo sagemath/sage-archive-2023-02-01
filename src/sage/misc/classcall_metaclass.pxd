@@ -5,8 +5,6 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cpython.type cimport type
-
 from sage.misc.nested_class cimport NestedClassMetaclass
 
 cdef class ClasscallMetaclass(NestedClassMetaclass):

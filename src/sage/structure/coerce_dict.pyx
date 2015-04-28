@@ -70,6 +70,9 @@ cdef extern from "Python.h":
 cdef extern from "pyx_visit.h":
     void Py_VISIT3(PyObject*, visitproc, void* arg)
 
+# Use TypeInitMetaclass to patch tp_traverse and tp_clear
+cimport sage.misc.cython_metaclass
+
 #it's important that this is not an interned string: this object
 #must be a unique sentinel. We could reuse the "dummy" sentinel
 #that is defined in python's dictobject.c
@@ -426,6 +429,19 @@ cdef class MonoDict:
     - Simon King (2013-02)
     - Nils Bruin (2013-11)
     """
+    def __getmetaclass__(_):
+        from sage.misc.cython_metaclass import TypeInitMetaclass
+        return TypeInitMetaclass
+
+    def __typeinit__(cls):
+        """
+        Patch ``tp_traverse`` and ``tp_clear``.
+        """
+        if not isinstance(cls, type):
+            raise TypeError
+        (<PyTypeObject*>cls).tp_traverse = <traverseproc>(&MonoDict_traverse)
+        (<PyTypeObject*>cls).tp_clear = <inquiry>(&MonoDict_clear)
+
     cdef mono_cell* lookup(self, PyObject* key):
         """
         This routine is used for all cases where a (potential) spot for
@@ -865,8 +881,6 @@ cdef int MonoDict_clear(MonoDict op):
     PyMem_Free(table)
     return 0
 
-(<PyTypeObject*>MonoDict).tp_traverse = <traverseproc>(&MonoDict_traverse)
-(<PyTypeObject*>MonoDict).tp_clear = <inquiry>(&MonoDict_clear)
 
 cdef class TripleDictEraser:
     """
@@ -1144,6 +1158,19 @@ cdef class TripleDict:
 
     - Nils Bruin, 2013-11
     """
+    def __getmetaclass__(_):
+        from sage.misc.cython_metaclass import TypeInitMetaclass
+        return TypeInitMetaclass
+
+    def __typeinit__(cls):
+        """
+        Patch ``tp_traverse`` and ``tp_clear``.
+        """
+        if not isinstance(cls, type):
+            raise TypeError
+        (<PyTypeObject*>cls).tp_traverse = <traverseproc>(&TripleDict_traverse)
+        (<PyTypeObject*>cls).tp_clear = <inquiry>(&TripleDict_clear)
+
     cdef triple_cell* lookup(self, PyObject* key1, PyObject* key2, PyObject* key3):
         #returns a pointer to where key should be stored in this dictionary.
         cdef size_t perturb
@@ -1570,6 +1597,3 @@ cdef int TripleDict_clear(TripleDict op):
             Py_XDECREF(cursor.value)
     PyMem_Free(table)
     return 0
-
-(<PyTypeObject*>TripleDict).tp_traverse = <traverseproc>(&TripleDict_traverse)
-(<PyTypeObject*>TripleDict).tp_clear = <inquiry>(&TripleDict_clear)

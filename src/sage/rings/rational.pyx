@@ -26,6 +26,8 @@ AUTHORS:
 
 - Vincent Delecroix (2013): continued fraction
 
+- Vincent Delecroix (2017-05-03): faster integer-rational comparison
+
 TESTS::
 
     sage: a = -2/3
@@ -35,6 +37,7 @@ TESTS::
 
 #*****************************************************************************
 #       Copyright (C) 2004, 2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2017 Vincent Delecroix <20100.delecroix@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -45,6 +48,7 @@ TESTS::
 from __future__ import absolute_import
 
 from cpython cimport *
+from cpython.object cimport Py_EQ, Py_NE
 
 from cysignals.signals cimport sig_on, sig_off
 
@@ -55,6 +59,8 @@ from sage.misc.mathml import mathml
 from sage.misc.long cimport pyobject_to_long
 
 import sage.misc.misc as misc
+from sage.structure.sage_object cimport SageObject
+from sage.structure.richcmp cimport rich_to_bool_sgn
 import sage.rings.rational_field
 
 cimport sage.rings.integer as integer
@@ -68,6 +74,9 @@ from .integer_ring import ZZ
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 
 from sage.structure.coerce cimport is_numpy_type
+
+from sage.libs.gmp.pylong cimport mpz_set_pylong
+
 from sage.structure.element cimport Element, RingElement, ModuleElement, coercion_model
 from sage.structure.element import bin_op, coerce_binop
 from sage.structure.parent cimport Parent
@@ -80,6 +89,8 @@ import sage.rings.real_mpfr
 import sage.rings.real_double
 from libc.stdint cimport uint64_t
 from sage.libs.gmp.binop cimport mpq_add_z, mpq_mul_z, mpq_div_zz
+
+from cpython.int cimport PyInt_AS_LONG
 
 cimport sage.rings.fast_arith
 import  sage.rings.fast_arith
@@ -754,7 +765,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         l = self.continued_fraction_list()
         return ContinuedFraction_periodic(l)
 
-    cpdef int _cmp_(left, right) except -2:
+    def __richcmp__(left, right, int op):
         """
         Compare two rational numbers.
 
@@ -774,12 +785,60 @@ cdef class Rational(sage.structure.element.FieldElement):
             True
             sage: 4/5 < 0.8
             False
+
+            sage: ones = [1, 1r, 1l, 1/1, 1.0r, 1.0]
+            sage: twos = [2, 2r, 2l, 2/1, 2.0r, 2.0]
+            sage: threes = [3, 3r, 3l, 3/1, 3.0r, 3.0]
+            sage: from itertools import product
+            sage: for one,two,three in product(ones,twos,threes):
+            ....:     assert one < two < three
+            ....:     assert one <= two <= three
+            ....:     assert three > two > one
+            ....:     assert three >= two >= one
+            ....:     assert one != two and one != three and two != three
+            sage: for one1, one2 in product(ones,repeat=2):
+            ....:     assert (one1 == one2) is True
+            ....:     assert (one1 <= one2) is True
+            ....:     assert (one1 >= one2) is True
         """
-        cdef int i
-        i = mpq_cmp((<Rational>left).value, (<Rational>right).value)
-        if i < 0: return -1
-        elif i == 0: return 0
-        else: return 1
+        cdef int c
+        cdef mpz_t mpz_tmp
+
+        assert isinstance(left, Rational)
+
+        if isinstance(right, Rational):
+            if op == Py_EQ:
+                return <bint> mpq_equal((<Rational>left).value, (<Rational>right).value)
+            elif op == Py_NE:
+                return not mpq_equal((<Rational>left).value, (<Rational>right).value)
+            else:
+                c = mpq_cmp((<Rational>left).value, (<Rational>right).value)
+        elif isinstance(right, Integer):
+            c = mpq_cmp_z((<Rational>left).value, (<Integer>right).value)
+        elif isinstance(right, int):
+            c = mpq_cmp_si((<Rational>left).value, PyInt_AS_LONG(right), 1)
+        elif isinstance(right, long):
+            mpz_init(mpz_tmp)
+            mpz_set_pylong(mpz_tmp, right)
+            c = mpq_cmp_z((<Rational>left).value, mpz_tmp)
+            mpz_clear(mpz_tmp)
+        else:
+            return coercion_model.richcmp(left, right, op)
+
+        return rich_to_bool_sgn(op, c)
+
+    cpdef int _cmp_(left, right) except -2:
+        r"""
+        TESTS::
+
+            sage: (2/3)._cmp_(3/4)
+            -1
+            sage: (1/2)._cmp_(1/2)
+            0
+        """
+        cdef int c
+        c = mpq_cmp((<Rational>left).value, (<Rational>right).value)
+        return (c > 0) - (c < 0)
 
     def __copy__(self):
         """

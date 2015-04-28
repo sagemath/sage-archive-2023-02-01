@@ -634,25 +634,26 @@ class FiniteSubgroup(Module):
             sage: x == G([1/11, 1/11, 0, 10/11])
             True
 
-        Finally we attempt to convert an element that shouldn't work,
-        since is is not in `G`::
+        Finally we attempt to convert some elements that shouldn't
+        work, since they are not in `G`::
 
             sage: G(J.torsion_subgroup(3).0)
             Traceback (most recent call last):
             ...
-            TypeError: cannot convert (1/3, 0, 0, 0) into Finite subgroup with invariants [11, 11, 11, 11] over QQ of Abelian variety J0(23) of dimension 2
+            TypeError: element [1/3, 0, 0, 0] is not in free module
+
+            sage: G(J0(27).cuspidal_subgroup()(0))
+            Traceback (most recent call last):
+            ...
+            ValueError: ambient abelian varieties are different
+
         """
         if isinstance(x, TorsionPoint):
-            if x.parent() == self:
-                return self.element_class(self, x.element(), check=False)
-            elif x.parent().abelian_variety() == self.abelian_variety():
-                return self(x.element(), check=check)
-        else:
-            z = self.abelian_variety().vector_space()(x, check=check)
-            if z in self.lattice():
-                return self.element_class(self, z, check=False)
-        raise TypeError("cannot convert {!r} into {}".format(x, self))
-
+            if x.parent().abelian_variety() != self.abelian_variety():
+                raise ValueError('ambient abelian varieties are different')
+            x = x.element()
+        x = self.lattice()(x, check=check)
+        return self.element_class(self, x, check=False)
 
     def __contains__(self, x):
         """
@@ -697,7 +698,7 @@ class FiniteSubgroup(Module):
         """
         try:
             self(x)
-        except TypeError:
+        except (TypeError, ValueError):
             return False
         return True
 

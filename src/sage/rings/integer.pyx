@@ -5222,29 +5222,25 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: [(2**k).next_prime_power() for k in range(10)]
             [2, 3, 5, 9, 17, 37, 67, 131, 257, 521]
 
-            sage: l0 = [ZZ.random_element(3,1000).previous_prime_power() for _ in range(10)]
-            sage: l1 = [n.next_prime_power().previous_prime_power() for n in l0]
-            sage: l0 == l1
-            True
+            sage: for _ in range(10):
+            ....:     n = ZZ.random_element(2**256).next_prime_power()
+            ....:     m = n.next_prime_power().previous_prime_power()
+            ....:     assert m == n, "problem with n = {}".format(n)
         """
-        cdef Integer n = PY_NEW(Integer)
-
-        mpz_add_ui(n.value, self.value, 1)
-        if mpz_cmp_ui(n.value, 2) <= 0:
+        if mpz_cmp_ui(self.value, 2) < 0:
             return smallInteger(2)
 
-        if mpz_even_p(n.value):
-            if n.is_prime_power(proof=proof):
-                return n
-            mpz_add_ui(n.value, n.value, 1)
+        cdef mp_bitcnt_t bit_index = mpz_sizeinbase(self.value,2)
+        cdef Integer n = PY_NEW(Integer)
 
-        cdef mp_bitcnt_t bit_index = mpz_sizeinbase(n.value,2)
+        mpz_add_ui(n.value, self.value, 1 if mpz_even_p(self.value) else 2)
+
         while not mpz_tstbit(n.value, bit_index):
             if n.is_prime_power(proof=proof):
                 return n
             mpz_add_ui(n.value, n.value, 2)
 
-        # return the power of 2 we just skept
+        # return the power of 2 we just skipped
         mpz_sub_ui(n.value, n.value, 1)
         return n
 
@@ -5295,10 +5291,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: [(2**k).previous_prime_power() for k in range(2, 10)]
             [3, 7, 13, 31, 61, 127, 251, 509]
 
-            sage: l0 = [ZZ.random_element(3,1000).next_prime_power() for _ in range(10)]
-            sage: l1 = [n.previous_prime_power().next_prime_power() for n in l0]
-            sage: l0 == l1
-            True
+            sage: for _ in range(10):
+            ....:     n = ZZ.random_element(3,2**256).previous_prime_power()
+            ....:     m = n.previous_prime_power().next_prime_power()
+            ....:     assert m == n, "problem with n = {}".format(n)
         """
         if mpz_cmp_ui(self.value, 2) <= 0:
             raise ValueError("no prime power less than 2")
@@ -5306,18 +5302,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Integer n = PY_NEW(Integer)
 
         mpz_sub_ui(n.value, self.value, 1)
+        cdef mp_bitcnt_t bit_index = mpz_sizeinbase(n.value,2)-1
         if mpz_even_p(n.value):
-            if n.is_prime_power(proof=proof):
-                return n
             mpz_sub_ui(n.value, n.value, 1)
 
-        cdef mp_bitcnt_t bit_index = mpz_sizeinbase(n.value,2)-1
         while mpz_tstbit(n.value, bit_index):
             if n.is_prime_power(proof=proof):
                 return n
             mpz_sub_ui(n.value, n.value, 2)
 
-        # return the power of 2 we just skept
+        # return the power of 2 we just skipped
         mpz_add_ui(n.value, n.value, 1)
         return n
 

@@ -538,6 +538,15 @@ class FractionField_generic(ring.Field):
             Traceback (most recent call last):
             ...
             TypeError: unable to evaluate 'z' in Fraction Field of Multivariate Polynomial Ring in x, y over Integer Ring
+
+        Check that :trac:`17971` is fixed::
+
+            sage: A.<a,c> = Frac(PolynomialRing(QQ,'a,c'))
+            sage: B.<d,e> = PolynomialRing(A,'d,e')
+            sage: R.<x> = PolynomialRing(B,'x')
+            sage: (a*d*x^2+a+e+1).resultant(-4*c^2*x+1)
+            a*d + 16*c^4*e + 16*a*c^4 + 16*c^4
+
         """
         Element = self._element_class
         if isinstance(x, Element) and y == 1:
@@ -583,7 +592,7 @@ class FractionField_generic(ring.Field):
                         # Below, v is the variable with highest priority,
                         # and the x[i] are rational functions in the
                         # remaining variables.
-                        v = self(x.variable())
+                        v = Element(self, x.variable(), 1)
                         return sum(self(x[i]) * v**i for i in xrange(x.poldegree() + 1))
             raise
 

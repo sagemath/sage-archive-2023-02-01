@@ -8244,7 +8244,7 @@ class NumberField_absolute(NumberField_generic):
         Certain computations may be faster assuming GRH, which may be done
         globally by using the number_field(True/False) switch.
 
-        For details: See [Doyle-Krumm].
+        For details: See [Doyle-Krumm]_.
 
         INPUT:
 
@@ -8267,7 +8267,7 @@ class NumberField_absolute(NumberField_generic):
         .. TODO::
 
            Should implement a version of the algorithm that guarantees correct
-           output. See Algorithm 4 in [Doyle-Krumm] for details of an
+           output. See Algorithm 4 in [Doyle-Krumm]_ for details of an
            implementation that takes precision issues into account.
 
         EXAMPLES:
@@ -8359,12 +8359,6 @@ class NumberField_absolute(NumberField_generic):
         - John Doyle (2013)
 
         - David Krumm (2013)
-
-        REFERENCES:
-
-        ..  [Doyle-Krumm] John R. Doyle and David Krumm, Computing algebraic
-            numbers of bounded height, :arxiv:`1111.4963` (2013).
-
         """
         from sage.rings.number_field.bdd_height import bdd_height, bdd_height_iq
         r1, r2 = self.signature()

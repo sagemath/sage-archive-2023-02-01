@@ -509,7 +509,7 @@ cdef class FP_LLL:
         _check_delta(delta)
         _check_precision(precision)
 
-        cdef BKZParam o = BKZParam()
+        cdef BKZParam o
 
         o.b = self._lattice
         o.delta = delta

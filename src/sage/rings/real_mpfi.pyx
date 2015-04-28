@@ -209,6 +209,22 @@ interval coerces to plus infinity::
 
     sage: RIF(-oo,oo) == oo
     True
+
+TESTS:
+
+Comparisons with numpy types are right (see :trac:`17758` and :trac:`18076`)::
+
+    sage: import numpy
+    sage: RIF(0,1) < numpy.float('2')
+    True
+    sage: RIF(0,1) <= numpy.float('1')
+    True
+    sage: RIF(0,1) <= numpy.float('0.5')
+    False
+    sage: RIF(2) == numpy.int8('2')
+    True
+    sage: numpy.int8('2') == RIF(2)
+    True
 """
 
 #*****************************************************************************

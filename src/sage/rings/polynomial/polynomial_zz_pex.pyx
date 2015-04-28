@@ -2,6 +2,7 @@
 Univariate Polynomials over GF(p^e) via NTL's ZZ_pEX.
 
 AUTHOR:
+
 - Yann Laigle-Chapuy (2010-01) initial implementation
 """
 

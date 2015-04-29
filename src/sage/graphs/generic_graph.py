@@ -449,7 +449,6 @@ class GenericGraph(GenericGraph_pyx):
             return False
         if self.weighted() != other.weighted():
             return False
-
         verts = self.vertices()
         # Finally, we are prepared to check edges:
         if not self.allows_multiple_edges():

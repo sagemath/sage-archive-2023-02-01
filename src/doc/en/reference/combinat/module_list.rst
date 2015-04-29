@@ -203,6 +203,7 @@ Comprehensive Module list
     sage/combinat/root_system/coxeter_matrix
     sage/combinat/root_system/dynkin_diagram
     sage/combinat/root_system/hecke_algebra_representation
+    sage/combinat/root_system/integrable_representations
     sage/combinat/root_system/non_symmetric_macdonald_polynomials
     sage/combinat/root_system/pieri_factors
     sage/combinat/root_system/plot

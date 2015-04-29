@@ -238,7 +238,7 @@ def cyclic_sort_vertices_2d(Vlist):
          A line in the direction (1, 0),
          A ray in the direction (0, 1)]
     """
-    if len(Vlist) == 0:
+    if not Vlist:
         return Vlist
     Vlist = list(Vlist)
     result = []
@@ -246,7 +246,7 @@ def cyclic_sort_vertices_2d(Vlist):
 
     # Any object in Vlist has 0,1, or 2 adjacencies. Break into connected chains:
     chain = [ Vlist.pop() ]
-    while len(Vlist) > 0:
+    while Vlist:
         first_index = chain[0].index()
         last_index = chain[-1].index()
         for v in Vlist:

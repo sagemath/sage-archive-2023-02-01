@@ -216,6 +216,7 @@ import urllib
 import sage.modules.free_module as fm
 import sage.modules.module as module
 from sage.categories.modules import Modules
+from copy import copy
 from sage.interfaces.all import gap
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -707,7 +708,7 @@ class AbstractLinearCode(module.Module):
     - ``length``, the length of the code
 
     - ``encoder_default_name``, the name of the encoder that will be used if no encoder name is passed
-    to an encoder-related method (``generator_matrix``, ``encode``, ``unencode``)
+      to an encoder-related method (``generator_matrix``, ``encode``, ``unencode``)
 
     - ``_registered_encoders``, a dictionary of all encoders available for this class
 
@@ -734,9 +735,9 @@ class AbstractLinearCode(module.Module):
     As AbstractLinearCode is not designed to be implemented, it does not have any representation
     methods. You should implement ``_repr_`` and ``_latex_`` methods in the subclass.
 
-    ..NOTE::
+    .. NOTE::
 
-        A lot of methods of the abstract class rely on the knowledge of a generator_matrix.
+        A lot of methods of the abstract class rely on the knowledge of a generator matrix.
         It is thus strongly recommended to set an encoder with a generator matrix implemented
         as a default encoder.
     """
@@ -828,6 +829,7 @@ class AbstractLinearCode(module.Module):
             ...
             ValueError: You must set a valid encoder as default encoder for this code
         """
+        self._registered_encoders = copy(self._registered_encoders)
         if not isinstance(length, (int, Integer)):
             raise ValueError("length must be a Python int or a Sage Integer")
         self._length = Integer(length)
@@ -870,6 +872,72 @@ class AbstractLinearCode(module.Module):
             ((1, 0, 0, 0, 0, 1, 1), (1, 0, 0, 0, 0, 1, 1))
         """
         return self.gens()[0]
+
+    def add_encoder(self, name, encoder, check=True):
+        r"""
+        Adds an encoder to the list of registered encoders of ``self``.
+
+        INPUT:
+
+        - ``name`` -- the string name for the encoder
+
+        - ``encoder`` -- the class name of the encoder
+
+        - ``check`` -- (default: ``True``) if true, checks if ``name`` or ``encoder``
+          are already in the list of registered encoders, and raises an error if yes
+
+        EXAMPLES:
+
+        First of all, we create a (very basic) new encoder::
+
+            sage: class MyEncoder(sage.coding.encoder.Encoder):
+            ....:   def __init__(self, code):
+            ....:       super(MyEncoder, self).__init__(code)
+            ....:   def _repr_(self):
+            ....:       return "MyEncoder encoder with associated code %s" % self.code()
+
+        We now create a new code::
+
+            sage: C = codes.HammingCode(3, GF(2))
+
+        We can add our new encoder to the list of available encoders of C::
+
+            sage: C.add_encoder("MyEncoder", MyEncoder)
+            sage: C.encoders_available()
+            ['MyEncoder', 'GeneratorMatrix']
+
+        We can verify that any new code will not know MyEncoder::
+
+            sage: C2 = codes.HammingCode(3, GF(3))
+            sage: C2.encoders_available()
+            ['GeneratorMatrix']
+
+        TESTS:
+
+        If ``check`` is True, it is impossible to use a name which is in
+        the dictionnary of available encoders::
+
+            sage: C.add_encoder("GeneratorMatrix", MyEncoder)
+            Traceback (most recent call last):
+            ...
+            ValueError: There is already a registered encoder with this name
+
+        But if ``check`` is set to false, overriding names is authorized::
+
+            sage: C.encoders_available(True)
+            [('MyEncoder', <class '__main__.MyEncoder'>),
+            ('GeneratorMatrix',
+            <class 'sage.coding.linear_code_encoders.EncoderLinearCodeGeneratorMatrix'>)]
+            sage: C.add_encoder("GeneratorMatrix", MyEncoder, False)
+            sage: C.encoders_available(True)
+            [('MyEncoder', <class '__main__.MyEncoder'>),
+            ('GeneratorMatrix', <class '__main__.MyEncoder'>)]
+        """
+        reg_enc = self._registered_encoders
+        if check==True:
+            if(name in reg_enc.keys()):
+                raise ValueError("There is already a registered encoder with this name")
+        reg_enc[name] = encoder
 
     def automorphism_group_gens(self, equivalence="semilinear"):
         r"""
@@ -1744,9 +1812,14 @@ class AbstractLinearCode(module.Module):
         else:
             raise ValueError("Passed Encoder name not known")
 
-    def encoders_available(self):
+    def encoders_available(self, values=False):
         r"""
-        Returns a list of the possible encoders for ``self``.
+        Returns a list of the available encoders' names for ``self``.
+
+        INPUT:
+
+        - ``values`` -- (default: ``False``) if values is set to ``True``, it also
+          returns the encoders' classes associated with the encoders' names
 
         EXAMPLES::
 
@@ -1754,8 +1827,15 @@ class AbstractLinearCode(module.Module):
             sage: C = LinearCode(G)
             sage: C.encoders_available()
             ['GeneratorMatrix']
+
+            sage: C.encoders_available(True)
+            [('GeneratorMatrix',
+            <class 'sage.coding.linear_code_encoders.EncoderLinearCodeGeneratorMatrix'>)]
         """
-        return self._registered_encoders.keys()
+        reg_enc = self._registered_encoders
+        if values == True:
+            return reg_enc.items()
+        return reg_enc.keys()
 
     def extended_code(self):
         r"""

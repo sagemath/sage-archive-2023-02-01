@@ -15576,7 +15576,7 @@ class GenericGraph(GenericGraph_pyx):
         tp = display_manager.types
         if (display_manager.preferences.text == 'latex' and 
                 tp.OutputLatex in display_manager.supported_output()):
-            return tp.OutputLatex('G_{{{0}}}'.format(self.num_verts()))
+            return tp.OutputLatex(r'\text{{{0}}}'.format(self._repr_()))
         return tp.OutputPlainText(repr(self))
         
     @options()

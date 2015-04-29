@@ -193,6 +193,28 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         #    tester.assert_(self.product is not None)
         #    could check that self.product is in Hom( self x self, self)
 
+        def algebra_generators(self):
+            r"""
+            Return algebra generators for this algebra, namely its basis.
+
+            OUTPUT:
+
+            - A family that generate self
+
+            EXAMPLES::
+
+                sage: D4 = DescentAlgebra(QQ, 4).B()
+                sage: D4.algebra_generators()
+                Lazy family (Term map from Compositions of 4 to Descent algebra
+                of 4 over Rational Field in the subset basis(i))_{i in
+                Compositions of 4}
+                sage: R.<x> = ZZ[]
+                sage: P = PartitionAlgebra(1, x, R)
+                sage: P.algebra_generators()
+                Finite family {{{-1, 1}}: P[{{-1, 1}}], {{-1}, {1}}: P[{{-1}, {1}}]}
+            """
+            return self.basis()
+
     class ElementMethods:
 
         def __invert__(self):

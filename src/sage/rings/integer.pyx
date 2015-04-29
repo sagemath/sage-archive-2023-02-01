@@ -4122,7 +4122,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
         """
         return True
-        
+
     def is_integer(self):
         """
         Returns ``True`` as they are integers
@@ -5111,7 +5111,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def next_prime(self, proof=None):
         r"""
-        Returns the next prime after self.
+        Return the next prime after self.
+
+        This method calls the PARI ``nextprime`` function.
 
         INPUT:
 
@@ -5145,6 +5147,191 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         while not p._pseudoprime_is_prime(proof):
             p = Integer(p._pari_().nextprime(True))
         return p
+
+    def previous_prime(self, proof=None):
+        r"""
+        Returns the previous prime before self.
+
+        This method calls the PARI ``precprime`` function.
+
+        INPUT:
+
+        - ``proof`` - if ``True`` ensure that the returned value is the next
+          prime power and if set to ``False`` uses probabilistic methods
+          (i.e. the result is not guaranteed). By default it uses global
+          configuration variables to determine which alternative to use (see
+          :mod:`proof.arithmetic` or :mod:`sage.structure.proof`).
+
+        .. SEEALSO:
+
+            - :meth:`next_prime`
+
+        EXAMPLES::
+
+            sage: 10.previous_prime()
+            7
+            sage: 7.previous_prime()
+            5
+            sage: 14376485.previous_prime()
+            14376463
+
+            sage: 2.previous_prime()
+            Traceback (most recent call last):
+            ...
+            ValueError: no prime less than 2
+
+        An example using ``proof=False``, which is way faster since it does not
+        need a primality proof::
+
+            sage: b = (2^1024).previous_prime(proof=False)
+            sage: 2^1024 - b
+            105
+        """
+        if mpz_cmp_ui(self.value, 2) <= 0:
+            raise ValueError("no prime less than 2")
+        cdef Integer p = self-1
+        p = Integer(p._pari_().precprime())
+        while not p._pseudoprime_is_prime(proof):
+            mpz_sub_ui(p.value, p.value, 1)
+            p = Integer(p._pari_().precprime())
+        return p
+
+    def next_prime_power(self, proof=None):
+        r"""
+        Return the next prime power after self.
+
+        INPUT:
+
+        - ``proof`` - if ``True`` ensure that the returned value is the next
+          prime power and if set to ``False`` uses probabilistic methods
+          (i.e. the result is not guaranteed). By default it uses global
+          configuration variables to determine which alternative to use (see
+          :mod:`proof.arithmetic` or :mod:`sage.structure.proof`).
+
+        ALGORITHM:
+
+        The algorithm is naive. It computes the next power of 2 and go through
+        the odd numbers calling :meth:`is_prime_power`.
+
+        .. SEEALSO::
+
+            - :meth:`previous_prime_power`
+            - :meth:`is_prime_power`
+            - :meth:`next_prime`
+            - :meth:`previous_prime`
+
+        EXAMPLES::
+
+            sage: (-1).next_prime_power()
+            2
+            sage: 2.next_prime_power()
+            3
+            sage: 103.next_prime_power()
+            107
+            sage: 107.next_prime_power()
+            109
+            sage: 2044.next_prime_power()
+            2048
+
+        TESTS::
+
+            sage: [(2**k-1).next_prime_power() for k in range(1,10)]
+            [2, 4, 8, 16, 32, 64, 128, 256, 512]
+            sage: [(2**k).next_prime_power() for k in range(10)]
+            [2, 3, 5, 9, 17, 37, 67, 131, 257, 521]
+
+            sage: for _ in range(10):
+            ....:     n = ZZ.random_element(2**256).next_prime_power()
+            ....:     m = n.next_prime_power().previous_prime_power()
+            ....:     assert m == n, "problem with n = {}".format(n)
+        """
+        if mpz_cmp_ui(self.value, 2) < 0:
+            return smallInteger(2)
+
+        cdef mp_bitcnt_t bit_index = mpz_sizeinbase(self.value,2)
+        cdef Integer n = PY_NEW(Integer)
+
+        mpz_add_ui(n.value, self.value, 1 if mpz_even_p(self.value) else 2)
+
+        while not mpz_tstbit(n.value, bit_index):
+            if n.is_prime_power(proof=proof):
+                return n
+            mpz_add_ui(n.value, n.value, 2)
+
+        # return the power of 2 we just skipped
+        mpz_sub_ui(n.value, n.value, 1)
+        return n
+
+    def previous_prime_power(self, proof=None):
+        r"""
+        Return the previous prime power before self.
+
+        INPUT:
+
+        - ``proof`` - if ``True`` ensure that the returned value is the next
+          prime power and if set to ``False`` uses probabilistic methods
+          (i.e. the result is not guaranteed). By default it uses global
+          configuration variables to determine which alternative to use (see
+          :mod:`proof.arithmetic` or :mod:`sage.structure.proof`).
+
+        ALGORITHM:
+
+        The algorithm is naive. It computes the previous power of 2 and go
+        through the odd numbers calling the method :meth:`is_prime_power`.
+
+        .. SEEALSO::
+
+            - :meth:`next_prime_power`
+            - :meth:`is_prime_power`
+            - :meth:`previous_prime`
+            - :meth:`next_prime`
+
+        EXAMPLES::
+
+            sage: 3.previous_prime_power()
+            2
+            sage: 103.previous_prime_power()
+            101
+            sage: 107.previous_prime_power()
+            103
+            sage: 2044.previous_prime_power()
+            2039
+
+            sage: 2.previous_prime_power()
+            Traceback (most recent call last):
+            ...
+            ValueError: no prime power less than 2
+
+        TESTS::
+
+            sage: [(2**k+1).previous_prime_power() for k in range(1,10)]
+            [2, 4, 8, 16, 32, 64, 128, 256, 512]
+            sage: [(2**k).previous_prime_power() for k in range(2, 10)]
+            [3, 7, 13, 31, 61, 127, 251, 509]
+
+            sage: for _ in range(10):
+            ....:     n = ZZ.random_element(3,2**256).previous_prime_power()
+            ....:     m = n.previous_prime_power().next_prime_power()
+            ....:     assert m == n, "problem with n = {}".format(n)
+        """
+        if mpz_cmp_ui(self.value, 2) <= 0:
+            raise ValueError("no prime power less than 2")
+
+        cdef Integer n = PY_NEW(Integer)
+
+        mpz_sub_ui(n.value, self.value, 1)
+        cdef mp_bitcnt_t bit_index = mpz_sizeinbase(n.value,2)-1
+        if mpz_even_p(n.value):
+            mpz_sub_ui(n.value, n.value, 1)
+
+        while mpz_tstbit(n.value, bit_index):
+            if n.is_prime_power(proof=proof):
+                return n
+            mpz_sub_ui(n.value, n.value, 2)
+
+        # return the power of 2 we just skipped
+        mpz_add_ui(n.value, n.value, 1)
+        return n
 
     def additive_order(self):
         """

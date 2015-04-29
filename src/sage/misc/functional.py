@@ -124,7 +124,7 @@ def category(x):
 
         sage: V = VectorSpace(QQ,3)
         sage: category(V)
-        Category of vector spaces over Rational Field
+        Category of vector spaces with basis over quotient fields
     """
     try:
         return x.category()
@@ -1029,10 +1029,10 @@ def norm(x):
         sage: v = vector([-1,2,3])
         sage: norm(v)
         sqrt(14)
-        sage: _ = var("a b c d")
+        sage: _ = var("a b c d", domain='real')
         sage: v = vector([a, b, c, d])
         sage: norm(v)
-        sqrt(abs(a)^2 + abs(b)^2 + abs(c)^2 + abs(d)^2)
+        sqrt(a^2 + b^2 + c^2 + d^2)
 
     The norm of matrices::
 
@@ -1516,66 +1516,6 @@ def quotient(x, y, *args, **kwds):
         return x/y
 
 quo = quotient
-
-def show(x, *args, **kwds):
-    r"""
-    Show a graphics object x.
-
-    For additional ways to show objects in the notebook, look
-    at the methods on the html object.  For example,
-    html.table will produce an HTML table from a nested
-    list.
-
-
-    OPTIONAL INPUT:
-
-
-    -  ``filename`` - (default: None) string
-
-
-    SOME OF THESE MAY APPLY:
-
-    - ``dpi`` - dots per inch
-
-    - ``figsize``- [width, height] (same for square aspect)
-
-    - ``axes`` - (default: True)
-
-    - ``fontsize`` - positive integer
-
-    - ``frame`` - (default: False) draw a MATLAB-like frame around the
-      image
-
-    EXAMPLES::
-
-        sage: show(graphs(3))
-        sage: show(list(graphs(3)))
-    """
-    if not isinstance(x, (sage.interfaces.expect.Expect, sage.interfaces.expect.ExpectElement)):
-        try:
-            return x.show(*args, **kwds)
-        except AttributeError:
-            pass
-    if isinstance(x, sage.interfaces.mathematica.MathematicaElement):
-        return x.show(*args, **kwds)
-
-    import types
-    if isinstance(x, types.GeneratorType):
-        x = list(x)
-    if isinstance(x, list):
-        if len(x) > 0:
-            from sage.graphs.graph import GenericGraph
-            if isinstance(x[0], GenericGraph):
-                import sage.graphs.graph_list as graphs_list
-                graphs_list.show_graphs(x)
-                return
-    _do_show(x)
-
-def _do_show(x):
-    if sage.doctest.DOCTEST_MODE:
-        return sage.misc.latex.latex(x)
-    from latex import view
-    view(x, mode='display')
 
 
 def isqrt(x):

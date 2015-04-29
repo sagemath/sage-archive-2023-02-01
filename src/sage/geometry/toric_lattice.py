@@ -383,12 +383,10 @@ class ToricLattice_generic(FreeModule_generic_pid):
     Abstract base class for toric lattices.
     """
 
-    # This is how other free modules work now, but it seems that things
-    # should be a bit different in the new coersion model
-    _element_class = ToricLatticeElement
+    Element = ToricLatticeElement
 
     # It is not recommended to override __call__ in Parent-derived objects
-    # since it may interfere with the coersion model. We do it here to allow
+    # since it may interfere with the coercion model. We do it here to allow
     # N(1,2,3) to be interpreted as N([1,2,3]). We also prohibit N(m) where
     # m is an element of another lattice. Otherwise morphisms will care only
     # about dimension of lattices.
@@ -418,14 +416,6 @@ class ToricLattice_generic(FreeModule_generic_pid):
 
             sage: N(1,2,3)
             N(1, 2, 3)
-
-        And to prohibit conversion between different lattices::
-
-            sage: M = N.dual()
-            sage: M(N(1,2,3))
-            Traceback (most recent call last):
-            ...
-            TypeError: N(1, 2, 3) cannot be converted to 3-d lattice M!
 
         We also test that the special treatment of zero still works::
 
@@ -466,6 +456,27 @@ class ToricLattice_generic(FreeModule_generic_pid):
             return supercall(*args, **kwds)
         # Coordinates were given without packing them into a list or a tuple
         return supercall(coordinates, **kwds)
+
+    def _coerce_map_from_(self, other):
+        """
+        Return a coercion map from ``other`` to ``self``, or None.
+
+        This prevents the construction of coercion maps between
+        lattices with different ambient modules, so :meth:`__call__`
+        is invoked instead, which prohibits conversion::
+
+            sage: N = ToricLattice(3)
+            sage: M = N.dual()
+            sage: M(N(1,2,3))
+            Traceback (most recent call last):
+            ...
+            TypeError: N(1, 2, 3) cannot be converted to 3-d lattice M!
+
+        """
+        if (is_ToricLattice(other) and
+            other.ambient_module() is not self.ambient_module()):
+            return None
+        return super(ToricLattice_generic, self)._convert_map_from_(other)
 
     def __contains__(self, point):
         r"""
@@ -817,6 +828,8 @@ class ToricLattice_ambient(ToricLattice_generic, FreeModule_ambient_pid):
         3-d lattice N
         sage: TestSuite(N).run()
     """
+
+    Element = ToricLatticeElement
 
     def __init__(self, rank, name, dual_name, latex_name, latex_dual_name):
         r"""

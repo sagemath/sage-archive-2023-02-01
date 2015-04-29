@@ -19,6 +19,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 include "sage/libs/ntl/decl.pxi"
 include "sage/libs/pari/decl.pxi"
 include "sage/libs/pari/pari_err.pxi"

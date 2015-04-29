@@ -316,9 +316,8 @@ from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_list import IntegerListsLex
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.combinatorial_map import combinatorial_map
-
 from sage.groups.perm_gps.permgroup import PermutationGroup
-
+from sage.graphs.dot2tex_utils import have_dot2tex
 
 PartitionOptions=GlobalOptions(name='partitions',
     doc=r"""
@@ -641,6 +640,19 @@ class Partition(CombinatorialObject, Element):
 
         else:
             raise ValueError("%s is not a valid partition"%repr(mu))
+
+    @cached_method
+    def __hash__(self):
+        r"""
+        Return the hash of ``self``.
+
+        TESTS::
+
+            sage: P = Partition([4,2,2,1])
+            sage: hash(P) == hash(P)
+            True
+        """
+        return tuple(self._list).__hash__()
 
     def _repr_(self, compact=None):
         r"""
@@ -2287,10 +2299,11 @@ class Partition(CombinatorialObject, Element):
 
         if row+1>=len(self) or col>=self[row+1]:
             raise ValueError('(row+1, col) must be inside the diagram')
-        g=tableau.Tableau(self.initial_tableau().to_list())
+        g=self.initial_tableau().to_list()
         a=g[row][col]
         g[row][col:]=range(a+col+1,g[row+1][col]+1)
         g[row+1][:col+1]=range(a,a+col+1)
+        g=tableau.Tableau(g)
         g._garnir_cell=cell
         return g
 
@@ -4488,6 +4501,157 @@ class Partition(CombinatorialObject, Element):
         return sum(abs(variable+c) for c in outside_contents)\
                        -sum(abs(variable+c) for c in inside_contents)
 
+    def dual_equivalence_graph(self, directed=False, coloring=None):
+        r"""
+        Return the dual equivalence graph of ``self``.
+
+        Two permutations `p` and `q` in the symmetric group `S_n`
+        differ by an `i`-*elementary dual equivalence (or dual Knuth)
+        relation* (where `i` is an integer with `1 < i < n`) when the
+        following two conditions are satisfied:
+
+        - In the one-line notation of the permutation `p`, the letter
+          `i` does not appear inbetween `i-1` and `i+1`.
+
+        - The permutation `q` is obtained from `p` by switching two
+          of the three letters `i-1, i, i+1` (in its one-line
+          notation) -- namely, the leftmost and the rightmost one
+          in order of their appearance in `p`.
+
+        Notice that this is equivalent to the statement that the
+        permutations `p^{-1}` and `q^{-1}` differ by an elementary
+        Knuth equivalence at positions `i-1, i, i+1`.
+
+        Two standard Young tableaux of shape `\lambda` differ by an
+        `i`-elementary dual equivalence relation (of color `i`), if
+        their reading words differ by an `i`-elementary dual
+        equivalence relation.
+
+        The *dual equivalence graph* of the partition `\lambda` is the
+        edge-colored graph whose vertices are the standard Young
+        tableaux of shape `\lambda`, and whose edges colored by `i` are
+        given by the `i`-elementary dual equivalences.
+
+        INPUT:
+
+        - ``directed`` -- (default: ``False``) whether to have the dual
+          equivalence graph be directed (where we have a directed edge
+          `S \to T` if `i` appears to the left of `i+1` in the
+          reading word of `T`; otherwise we have the directed edge
+          `T \to S`)
+
+        - ``coloring`` -- (optional) a function which sends each
+          integer `i > 1` to a color (as a string, e.g., ``'red'`` or
+          ``'black'``) to be used when visually representing the
+          resulting graph using dot2tex; the default choice is
+          ``2 -> 'red', 3 -> 'blue', 4 -> 'green', 5 -> 'purple',
+          6 -> 'brown', 7 -> 'orange', 8 -> 'yellow', anything greater
+          than 8 -> 'black'``.
+
+        REFERENCES:
+
+        .. [AssafDEG] Sami Assaf. *Dual equivalence graphs and a
+           combinatorial proof of LLT and Macdonald positivity*.
+           (2008). :arxiv:`1005.3759v5`.
+
+        EXAMPLES::
+
+            sage: P = Partition([3,1,1])
+            sage: G = P.dual_equivalence_graph()
+            sage: sorted(G.edges())
+            [([[1, 2, 3], [4], [5]], [[1, 2, 4], [3], [5]], 3),
+             ([[1, 2, 4], [3], [5]], [[1, 2, 5], [3], [4]], 4),
+             ([[1, 2, 4], [3], [5]], [[1, 3, 4], [2], [5]], 2),
+             ([[1, 2, 5], [3], [4]], [[1, 3, 5], [2], [4]], 2),
+             ([[1, 3, 4], [2], [5]], [[1, 3, 5], [2], [4]], 4),
+             ([[1, 3, 5], [2], [4]], [[1, 4, 5], [2], [3]], 3)]
+            sage: G = P.dual_equivalence_graph(directed=True)
+            sage: sorted(G.edges())
+            [([[1, 2, 4], [3], [5]], [[1, 2, 3], [4], [5]], 3),
+             ([[1, 2, 5], [3], [4]], [[1, 2, 4], [3], [5]], 4),
+             ([[1, 3, 4], [2], [5]], [[1, 2, 4], [3], [5]], 2),
+             ([[1, 3, 5], [2], [4]], [[1, 2, 5], [3], [4]], 2),
+             ([[1, 3, 5], [2], [4]], [[1, 3, 4], [2], [5]], 4),
+             ([[1, 4, 5], [2], [3]], [[1, 3, 5], [2], [4]], 3)]
+
+        TESTS::
+
+            sage: G = Partition([1]).dual_equivalence_graph()
+            sage: G.vertices()
+            [[[1]]]
+            sage: G = Partition([]).dual_equivalence_graph()
+            sage: G.vertices()
+            [[]]
+
+            sage: P = Partition([3,1,1])
+            sage: G = P.dual_equivalence_graph(coloring=lambda x: 'red')
+            sage: G2 = P.dual_equivalence_graph(coloring={2: 'black', 3: 'blue', 4: 'cyan', 5: 'grey'})
+            sage: G is G2
+            False
+            sage: G == G2
+            True
+        """
+        # We do some custom caching to not recreate the graph, but to make
+        #   copies with the desired coloring (i.e., act like a factory).
+        try:
+            if directed:
+                G = self._DDEG.copy(immutable=False)
+            else:
+                G = self._DEG.copy(immutable=False)
+            if have_dot2tex():
+                if coloring is None:
+                    d = {2: 'red', 3: 'blue', 4: 'green', 5: 'purple',
+                         6: 'brown', 7: 'orange', 8: 'yellow'}
+                    def coloring(i):
+                        if i in d:
+                            return d[i]
+                        return 'black'
+                elif isinstance(coloring, dict):
+                    d = coloring
+                    coloring = lambda x: d[x]
+                G.set_latex_options(format="dot2tex",
+                                    edge_labels=True,
+                                    color_by_label=coloring)
+            return G
+        except AttributeError:
+            pass
+
+        T = list(tableau.StandardTableaux(self))
+        n = sum(self)
+        edges = []
+        to_perms = {t: t.reading_word_permutation() for t in T}
+        to_tab = {to_perms[k]: k for k in to_perms}
+        Perm = permutation.Permutations()
+        for t in T:
+            pt = list(to_perms[t])
+            for i in range(2, n):
+                ii = pt.index(i)
+                iip = pt.index(i+1)
+                iim = pt.index(i-1)
+                l = sorted([iim, ii, iip])
+                if l[0] != ii:
+                    continue
+                x = pt[:]
+                x[l[0]], x[l[2]] = x[l[2]], x[l[0]]
+                if ii < iip:
+                    e = [t, to_tab[Perm(x)], i]
+                    edges.append(e)
+                else:
+                    e = [to_tab[Perm(x)], t, i]
+                    edges.append(e)
+
+        if directed:
+            from sage.graphs.digraph import DiGraph
+            G = DiGraph(edges, multiedges=True)
+            G.add_vertices(T) # Add isolated vertices
+            self._DDEG = G.copy(immutable=True)
+        else:
+            from sage.graphs.graph import Graph
+            G = Graph(edges, multiedges=True)
+            G.add_vertices(T) # Add isolated vertices
+            self._DEG = G.copy(immutable=True)
+        return self.dual_equivalence_graph(directed, coloring)
+
 ##############
 # Partitions #
 ##############
@@ -5226,7 +5390,7 @@ class Partitions_all_bounded(Partitions):
         """
         TESTS::
 
-            sage: TestSuite( sage.combinat.partition.Partitions_all_bounded(3) ).run()
+            sage: TestSuite( sage.combinat.partition.Partitions_all_bounded(3) ).run() # long time
         """
         self.k = k
         Partitions.__init__(self, is_infinite=True)

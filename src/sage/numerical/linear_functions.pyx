@@ -75,7 +75,6 @@ See :trac:`12091` ::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
 from cpython.object cimport *
@@ -1001,7 +1000,7 @@ cdef class LinearConstraintsParent_class(Parent):
 
     .. warning::
 
-        This class has no reason to be instanciated by the user, and
+        This class has no reason to be instantiated by the user, and
         is meant to be used by instances of
         :class:`MixedIntegerLinearProgram`. Also, use the
         :func:`LinearConstraintsParent` factory function.
@@ -1190,7 +1189,7 @@ cdef class LinearConstraint(Element):
 
     .. warning::
 
-        This class has no reason to be instanciated by the user, and
+        This class has no reason to be instantiated by the user, and
         is meant to be used by instances of
         :class:`MixedIntegerLinearProgram`.
 

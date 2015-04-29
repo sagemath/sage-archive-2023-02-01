@@ -1,7 +1,3 @@
-include "sage/ext/interrupt.pxi"
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
-
 cdef extern from "modular_decomposition.h":
 
     ctypedef struct noeud:

@@ -63,16 +63,6 @@ Python classes::
     sage: sage_getsource(BlockFinder)
     'class BlockFinder:...'
 
-Python classes with no docstring, but an __init__ docstring::
-
-    sage: class Foo:
-    ...     def __init__(self):
-    ...         'docstring'
-    ...         pass
-    ...
-    sage: sage_getdoc(Foo)
-    'docstring\n'
-
 Test introspection of functions defined in Python and Cython files:
 
 Cython functions::
@@ -127,8 +117,26 @@ import inspect
 import functools
 import os
 import tokenize
+import types
 EMBEDDED_MODE = False
 from sage.env import SAGE_SRC
+
+def loadable_module_extension():
+    r"""
+    Return the filename extension of loadable modules, including the dot.
+    It is '.dll' on cygwin, '.so' otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import loadable_module_extension
+        sage: sage.structure.sage_object.__file__.endswith(loadable_module_extension())
+        True
+    """
+    import sys
+    if sys.platform == 'cygwin':
+        return os.path.extsep+'dll'
+    else:
+        return os.path.extsep+'so'
 
 def isclassinstance(obj):
     r"""
@@ -162,7 +170,7 @@ import re
 # Parse strings of form "File: sage/rings/rational.pyx (starting at line 1080)"
 # "\ " protects a space in re.VERBOSE mode.
 __embedded_position_re = re.compile(r'''
-\A                                          # anchor to the beginning of the string
+^                                           # anchor to the beginning of the line
 File:\ (?P<FILENAME>.*?)                    # match File: then filename
 \ \(starting\ at\ line\ (?P<LINENO>\d+)\)   # match line number
 \n?                                         # if there is a newline, eat it
@@ -204,19 +212,22 @@ def _extract_embedded_position(docstring):
     - Extensions by Nick Alexander
     - Extension for interactive Cython code by Simon King
     """
-    if docstring is None:
+    try:
+        res = __embedded_position_re.search(docstring)
+    except TypeError:
         return None
-    res = __embedded_position_re.match(docstring)
-    if res is not None:
-        raw_filename = res.group('FILENAME')
-        filename = os.path.join(SAGE_SRC, raw_filename)
-        if not os.path.isfile(filename):
-            from sage.misc.misc import SPYX_TMP
-            filename = os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]), raw_filename)
-        lineno = int(res.group('LINENO'))
-        original = res.group('ORIGINAL')
-        return (original, filename, lineno)
-    return None
+
+    if res is None:
+        return None
+
+    raw_filename = res.group('FILENAME')
+    filename = os.path.join(SAGE_SRC, raw_filename)
+    if not os.path.isfile(filename):
+        from sage.misc.misc import SPYX_TMP
+        filename = os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]), raw_filename)
+    lineno = int(res.group('LINENO'))
+    original = res.group('ORIGINAL')
+    return (original, filename, lineno)
 
 
 class BlockFinder:
@@ -1181,8 +1192,8 @@ def sage_getfile(obj):
 
     # No go? fall back to inspect.
     sourcefile = inspect.getabsfile(obj)
-    if sourcefile.endswith(os.path.extsep+'so'):
-        return sourcefile[:-3]+os.path.extsep+'pyx'
+    if sourcefile.endswith(loadable_module_extension()):
+        return sourcefile[:-len(loadable_module_extension())]+os.path.extsep+'pyx'
     return sourcefile
 
 def sage_getargspec(obj):
@@ -1474,23 +1485,30 @@ def sage_getdef(obj, obj_name=''):
 def _sage_getdoc_unformatted(obj):
     r"""
     Return the unformatted docstring associated to ``obj`` as a
-    string.  Feed the results from this into the
-    sage.misc.sagedoc.format for printing to the screen.
-
-    INPUT: ``obj``, a function, module, etc.: something with a docstring.
+    string.
 
     If ``obj`` is a Cython object with an embedded position in its
-    docstring, the embedded position is stripped.
+    docstring, the embedded position is **not** stripped.
+
+    INPUT:
+
+    - ``obj`` -- a function, module, etc.: something with a docstring.
 
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import _sage_getdoc_unformatted
-        sage: _sage_getdoc_unformatted(identity_matrix)[87:126]
-        'Return the `n \\times n` identity matrix'
+        sage: print _sage_getdoc_unformatted(sage.rings.integer.Integer)
+        Integer(x=None, base=0)
+        File: sage/rings/integer.pyx (starting at line ...)
+        <BLANKLINE>
+            The ``Integer`` class represents arbitrary precision
+            integers. It derives from the ``Element`` class, so
+            integers can be used as ring elements anywhere in Sage.
+        ...
 
     TESTS:
 
-    Test that we suppress useless built-in output (Ticket #3342)
+    Test that we suppress useless built-in output (:trac:`3342`)::
 
         sage: from sage.misc.sageinspect import _sage_getdoc_unformatted
         sage: _sage_getdoc_unformatted(isinstance.__class__)
@@ -1501,35 +1519,131 @@ def _sage_getdoc_unformatted(obj):
     - William Stein
     - extensions by Nick Alexander
     """
-    if obj is None: return ''
-    r = None
+    if obj is None:
+        return ''
     try:
         r = obj._sage_doc_()
     except (AttributeError, TypeError): # the TypeError occurs if obj is a class
         r = obj.__doc__
 
-    #Check to see if there is an __init__ method, and if there
-    #is, use its docstring.
-    if r is None and hasattr(obj, '__init__'):
-        r = obj.__init__.__doc__
-
-    if r is None:
-        return ''
-
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.
-    import types
     if not isinstance(r, types.StringTypes):
         return ''
+    elif isinstance(r, unicode):
+        return r.encode('utf-8', 'ignore')
+    else:
+        return r
 
-    from sagenb.misc.misc import encoded_str
-    return encoded_str(r)
+
+def sage_getdoc_original(obj):
+    r"""
+    Return the unformatted docstring associated to ``obj`` as a
+    string.
+
+    If ``obj`` is a Cython object with an embedded position or signature in
+    its docstring, the embedded information is stripped. If the stripped
+    docstring is empty, then the stripped docstring of ``obj.__init__`` is
+    returned instead.
+
+    Feed the results from this into the function
+    :func:`sage.misc.sagedoc.format` for printing to the screen.
+
+    INPUT:
+
+    - ``obj`` -- a function, module, etc.: something with a docstring.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import sage_getdoc_original
+
+    Here is a class that has its own docstring::
+
+        sage: print sage_getdoc_original(sage.rings.integer.Integer)
+        <BLANKLINE>
+            The ``Integer`` class represents arbitrary precision
+            integers. It derives from the ``Element`` class, so
+            integers can be used as ring elements anywhere in Sage.
+        ...
+
+    Here is a class that does not have its own docstring, so that the
+    docstring of the ``__init__`` method is used::
+
+        sage: print sage_getdoc_original(Parent)
+        <BLANKLINE>
+        Base class for all parents.
+        <BLANKLINE>
+        Parents are the Sage/mathematical analogues of container
+        objects in computer science.
+        ...
+
+    Old-style classes are supported::
+
+        sage: class OldStyleClass:
+        ....:     def __init__(self):
+        ....:         '''The __init__ docstring'''
+        ....:         pass
+        sage: print sage_getdoc_original(OldStyleClass)
+        The __init__ docstring
+
+    When there is no ``__init__`` method, we just get an empty string::
+
+        sage: class OldStyleClass:
+        ....:     pass
+        sage: sage_getdoc_original(OldStyleClass)
+        ''
+
+    If an instance of a class does not have its own docstring, the docstring
+    of its class results::
+
+        sage: sage_getdoc_original(sage.plot.colors.aliceblue) == sage_getdoc_original(sage.plot.colors.Color)
+        True
+
+    """
+    # typ is the type corresponding to obj, which is obj itself if
+    # that was a type or old-style class
+    if isinstance(obj, (type, types.ClassType) ):
+        typ = obj
+    else:
+        typ = type(obj)
+
+    s = _sage_getdoc_unformatted(obj)
+    if s:
+        pos = _extract_embedded_position(s)
+        if pos is None:
+            # It can still be that the doc starts with the signature of the
+            # class' __init__ method, but does not contain embedding
+            # information. This is particularly critical if it contains * or
+            # **, which would be misinterpreted by sphinx.
+            name = typ.__name__.split('.')[-1]
+            if s.startswith(name + "("):
+                L = s.split(os.linesep, 1)
+                if L[0].endswith(")"):
+                    if len(L) < 2:
+                        s = ""    # The doc was just one line with the signature
+                    else:
+                        s = L[1]  # Remove first line, keep the rest
+        else:
+            s = pos[0]
+    if not s:
+        try:
+            init = typ.__init__
+        except AttributeError:
+            pass
+        else:
+            # The docstring of obj is empty. To get something, we want to use
+            # the documentation of the __init__ method, but only if it belongs
+            # to (the type of) obj. The type for which a method is defined is
+            # either stored in the attribute `__objclass__` (cython) or
+            # `im_class` (python) of the method.
+            if (getattr(init, '__objclass__', None) or
+                getattr(init, 'im_class', None)) == typ:
+                return sage_getdoc_original(init)
+    return s
 
 def sage_getdoc(obj, obj_name='', embedded_override=False):
     r"""
     Return the docstring associated to ``obj`` as a string.
-
-    INPUT: ``obj``, a function, module, etc.: something with a docstring.
 
     If ``obj`` is a Cython object with an embedded position in its
     docstring, the embedded position is stripped.
@@ -1538,6 +1652,10 @@ def sage_getdoc(obj, obj_name='', embedded_override=False):
     value), then the string is formatted according to the value of
     EMBEDDED_MODE.  If this argument is True, then it is formatted as
     if EMBEDDED_MODE were True.
+
+    INPUT:
+
+    - ``obj`` -- a function, module, etc.: something with a docstring.
 
     EXAMPLES::
 
@@ -1561,18 +1679,10 @@ def sage_getdoc(obj, obj_name='', embedded_override=False):
     - extensions by Nick Alexander
     """
     import sage.misc.sagedoc
-    if obj is None: return ''
-    r = _sage_getdoc_unformatted(obj)
-
-    if r is None:
+    if obj is None:
         return ''
-
-    s = sage.misc.sagedoc.format(str(r), embedded=(embedded_override or EMBEDDED_MODE))
-
-    # If there is a Cython embedded position, it needs to be stripped
-    pos = _extract_embedded_position(s)
-    if pos is not None:
-        s, _, _ = pos
+    r = sage_getdoc_original(obj)
+    s = sage.misc.sagedoc.format(r, embedded=(embedded_override or EMBEDDED_MODE))
 
     # Fix object naming
     if obj_name != '':
@@ -1763,7 +1873,7 @@ def sage_getsourcelines(obj):
 
     - ``obj`` -- function, etc.
 
-    OUTPUT: 
+    OUTPUT:
 
     (source_lines, lineno) or None: ``source_lines`` is a list of
     strings, and ``lineno`` is an integer.
@@ -1879,37 +1989,41 @@ def sage_getsourcelines(obj):
         if isinstance(obj,functools.partial):
             return sage_getsourcelines(obj.func)
         else:
-            #obj=obj.__class__
             return sage_getsourcelines(obj.__class__)
 
-    # If we can handle it, we do.  We first try Python's inspect, and
-    # if that fails then we try _sage_getdoc_unformatted. We can not use
-    # the latter right away, since otherwise there is an import problem
-    # at sage startup, believe it or not.
-    d = inspect.getdoc(obj)
+    # First, we deal with nested classes. Their name contains a dot, and we
+    # have a special function for that purpose.
+    if (not hasattr(obj, '__class__')) or hasattr(obj,'__metaclass__'):
+        # That hapens for ParentMethods
+        # of categories
+        if '.' in obj.__name__ or '.' in getattr(obj,'__qualname__',''):
+            return _sage_getsourcelines_name_with_dot(obj)
+
+    # Next, we try _sage_getdoc_unformatted()
+    d = _sage_getdoc_unformatted(obj)
     pos = _extract_embedded_position(d)
     if pos is None:
-        if (not hasattr(obj, '__class__')) or hasattr(obj,'__metaclass__'):
-            # That hapens for ParentMethods
-            # of categories
-            if '.' in obj.__name__ or '.' in getattr(obj,'__qualname__',''):
-                return _sage_getsourcelines_name_with_dot(obj)
-        d = _sage_getdoc_unformatted(obj)
-        pos = _extract_embedded_position(d)
-        if pos is None:
+        try:
+            return inspect.getsourcelines(obj)
+        except (IOError, TypeError) as err:
             try:
-                return inspect.getsourcelines(obj)
-            except (IOError, TypeError):
-                if inspect.isclass(obj):
-                    try:
-                        B = obj.__base__
-                    except AttributeError:
-                        B = None
-                    if B is not None and B is not obj:
-                        return sage_getsourcelines(B)
-                if obj.__class__ != type:
-                    return sage_getsourcelines(obj.__class__)
-                raise
+                objinit = obj.__init__
+            except AttributeError:
+                pass
+            else:
+                d = _sage_getdoc_unformatted(objinit)
+                pos = _extract_embedded_position(d)
+                if pos is None:
+                    if inspect.isclass(obj):
+                        try:
+                            B = obj.__base__
+                        except AttributeError:
+                            B = None
+                        if B is not None and B is not obj:
+                            return sage_getsourcelines(B)
+                    if obj.__class__ != type:
+                        return sage_getsourcelines(obj.__class__)
+                    raise err
 
     (orig, filename, lineno) = pos
     try:

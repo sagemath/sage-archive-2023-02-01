@@ -975,22 +975,33 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
     def __hash__(self):
         """
-        Return hash of this permutation.
+        Return a hash for this permutation.
 
         EXAMPLES::
 
             sage: G = SymmetricGroup(5)
-            sage: s = G([2,1,5,3,4])
-            sage: s.tuple()
-            (2, 1, 5, 3, 4)
-            sage: hash(s)
-            1592966088          # 32-bit
-            2865702456085625800 # 64-bit
-            sage: hash(s.tuple())
-            1592966088          # 32-bit
-            2865702456085625800 # 64-bit
+            sage: hash(G([2,1,5,3,4]))
+            -1203337681           # 32-bit
+            -1527414595000039889  # 64-bit
+
+        Check that the hash looks reasonable::
+
+            sage: s = set()
+            sage: s.update(map(hash,SymmetricGroup(1)))
+            sage: s.update(map(hash,SymmetricGroup(2)))
+            sage: s.update(map(hash,SymmetricGroup(3)))
+            sage: s.update(map(hash,SymmetricGroup(4)))
+            sage: s.update(map(hash,SymmetricGroup(5)))
+            sage: len(s) == 1 + 2 + 6 + 24 + 120
+            True
         """
-        return hash(tuple(self._gap_list()))
+        cdef size_t i
+        cdef long ans = self.n
+        for i in range(self.n):
+            ans = (ans ^ (self.perm[i])) * 1000003L
+        if ans == -1:
+            ans = -2
+        return ans
 
     def tuple(self):
         """
@@ -1051,8 +1062,10 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: prod(primes(150))
             1492182350939279320058875736615841068547583863326864530410
             sage: L = [tuple(range(sum(primes(p))+1, sum(primes(p))+1+p)) for p in primes(150)]
-            sage: PermutationGroupElement(L).order()
+            sage: t=PermutationGroupElement(L).order(); t
             1492182350939279320058875736615841068547583863326864530410
+            sage: type(t)
+            <type 'sage.rings.integer.Integer'>
         """
         order = None
         cdef long long order_c = 1
@@ -1076,7 +1089,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 if order_c > LONG_LONG_MAX / (self.n - i):
                     order = Integer(order_c)
         sage_free(seen)
-        return int(order_c) if order is None else order
+        return Integer(order_c) if order is None else order
 
     def inverse(self):
         r"""

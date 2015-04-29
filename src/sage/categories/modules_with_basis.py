@@ -18,20 +18,22 @@ AUTHORS:
 
 from sage.misc.lazy_import import LazyImport
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import attrcall
 from sage.misc.sage_itertools import max_cmp, min_cmp
 from sage.categories.homsets import HomsetsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.tensor import tensor, TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
-from sage.categories.morphism import SetMorphism, Morphism
-from sage.categories.homset import Hom
-from sage.categories.sets_cat import Sets
-from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
-from sage.categories.commutative_additive_semigroups import CommutativeAdditiveSemigroups
 from sage.categories.modules import Modules
 from sage.structure.element import Element, parent
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.modules.with_basis.morphism',
+            ['ModuleMorphismByLinearity',
+             'ModuleMorphismFromMatrix',
+             'ModuleMorphismFromFunction',
+             'DiagonalModuleMorphism',
+             'TriangularModuleMorphismByLinearity',
+             'TriangularModuleMorphismFromFunction'])
 
 class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
     """
@@ -62,7 +64,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
         sage: X = CombinatorialFreeModule(QQ, [1,2]); X.__custom_name = "X"
         sage: Y = CombinatorialFreeModule(QQ, [3,4]); Y.__custom_name = "Y"
         sage: H = Hom(X, Y); H
-        Set of Morphisms from X to Y in Category of vector spaces with basis over Rational Field
+        Set of Morphisms from X to Y in Category of finite dimensional vector spaces with basis over Rational Field
 
     The simplest morphism is the zero map::
 
@@ -202,74 +204,109 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             from sage.combinat.family import Family
             return Family(self._indices, self.monomial)
 
-        def module_morphism(self, on_basis = None, diagonal = None, triangular = None, **keywords):
+        def module_morphism(self, on_basis=None, matrix=None, function=None,
+                            diagonal=None, triangular=None, unitriangular=False,
+                            **keywords):
             r"""
-            Construct a morphism from ``self`` to ``codomain`` by
-            linearity from its restriction ``on_basis`` to the basis of
-            ``self``.
+            Construct a module morphism from ``self`` to ``codomain``.
 
-            Let ``self`` be the module `X` with a basis indexed by `I`.
+            Let ``self`` be a module `X` with a basis indexed by `I`.
             This constructs a morphism `f: X \to Y` by linearity from
             a map `I \to Y` which is to be its restriction to the
-            basis `(x_i)_{i \in I}` of `X`.
+            basis `(x_i)_{i \in I}` of `X`. Some variants are possible
+            too.
 
             INPUT:
 
-            - ``codomain`` -- the codomain `Y` of `f`: defaults to
-              ``f.codomain()`` if the latter is defined
-            - ``zero`` -- the zero of the codomain; defaults to
-              ``codomain.zero()``; can be used (with care) to define affine maps
-            - ``position`` -- a non-negative integer; defaults to 0
-            - ``on_basis`` -- a function `f` which accepts elements of `I`
-              (the indexing set of the basis of `X`) as ``position``-th argument
-              and returns elements of `Y`
-            - ``diagonal`` -- a function `d` from `I` to `R` (the base ring
-              of ``self`` and ``codomain``)
+            - ``self`` -- a parent `X` in ``ModulesWithBasis(R)`` with
+              basis `x=(x_i)_{i\in I}`.
+
+            Exactly one of the four following options must be
+            specified in order to define the morphism:
+
+            - ``on_basis`` -- a function `f` from `I` to `Y`
+            - ``diagonal`` -- a function `d` from `I` to `R`
+            - ``function`` -- a function `f` from `X` to `Y`
+            - ``matrix``   -- a matrix of size `\dim X \times \dim Y` or `\dim Y \times \dim X`
+
+            Further options include:
+
+            - ``codomain`` -- the codomain `Y` of the morphism (default:
+              ``f.codomain()`` if it's defined; otherwise it must be specified)
+
+            - ``category`` -- a category or ``None`` (default: `None``)
+
+            - ``zero`` -- the zero of the codomain (default: ``codomain.zero()``);
+              can be used (with care) to define affine maps.
+              Only meaningful with ``on_basis``.
+
+            - ``position`` -- a non-negative integer specifying which
+              positional argument in used as the input of the function `f`
+              (default: 0); this is currently only used with ``on_basis``.
+
             - ``triangular`` --  (default: ``None``) ``"upper"`` or
               ``"lower"`` or ``None``:
 
-              * ``"upper"`` - if the :meth:`leading_support()` of the image
-                of the basis vector `x_i` is `i`, or
-              * ``"lower"`` - if the :meth:`trailing_support()` of the image
-                of the basis vector `x_i` is `i`
+              * ``"upper"`` - if the
+                :meth:`~ModulesWithBasis.ElementMethods.leading_support`
+                of the image of the basis vector `x_i` is `i`, or
 
-            - ``category`` -- a category; by default, this is
-              ``ModulesWithBasis(R)`` if `Y` is in this category, and
-              otherwise this lets `Hom(X,Y)` decide
+              * ``"lower"`` - if the
+                :meth:`~ModulesWithBasis.ElementMethods.trailing_support`
+                of the image of the basis vector `x_i` is `i`.
 
-            Exactly one of ``on_basis`` and ``diagonal`` options should
-            be specified.
+            - ``unitriangular`` -- (default: ``False``) a boolean.
+              Only meaningful for a triangular morphism.
+              As a shorthand, one may use ``unitriangular="lower"``
+              for ``triangular="lower", unitriangular=True``.
+
+            - ``side`` -- "left" or "right" (default: "left")
+              Only meaningful for a morphism built from a matrix.
+
+            EXAMPLES:
 
             With the ``on_basis`` option, this returns a function `g`
-            obtained by extending `f` by linearity on the ``position``-th
-            positional argument. For example, for ``position == 1`` and a
-            ternary function `f`, one has:
+            obtained by extending `f` by linearity on the
+            ``position``-th positional argument. For example, for
+            ``position == 1`` and a ternary function `f`, one has:
 
             .. MATH::
 
                 g\left( a,\ \sum_i \lambda_i x_i,\ c \right)
                 = \sum_i \lambda_i f(a, i, c).
 
-            EXAMPLES::
+            ::
 
                 sage: X = CombinatorialFreeModule(QQ, [1,2,3]);   X.rename("X")
                 sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4]); Y.rename("Y")
                 sage: phi = X.module_morphism(lambda i: Y.monomial(i) + 2*Y.monomial(i+1), codomain = Y)
-                sage: phi
-                Generic morphism:
-                From: X
-                To:   Y
-                sage: phi.category_for()
-                Category of vector spaces with basis over Rational Field
                 sage: x = X.basis(); y = Y.basis()
                 sage: phi(x[1] + x[3])
                 B[1] + 2*B[2] + B[3] + 2*B[4]
 
+                sage: phi
+                Generic morphism:
+                From: X
+                To:   Y
+
+            By default, the category is the first of
+            ``Modules(R).WithBasis().FiniteDimensional()``,
+            ``Modules(R).WithBasis()``, ``Modules(R)``, and
+            ``CommutativeAdditiveMonoids()`` that contains both the
+            domain and the codomain::
+
+                sage: phi.category_for()
+                Category of finite dimensional vector spaces with basis over Rational Field
+
             With the ``zero`` argument, one can define affine morphisms::
 
-                sage: phi = X.module_morphism(lambda i: Y.monomial(i) + 2*Y.monomial(i+1), codomain = Y, zero = 10*y[1])
+                sage: phi = X.module_morphism(lambda i: Y.monomial(i) + 2*Y.monomial(i+1),
+                ....:                         codomain = Y, zero = 10*y[1])
                 sage: phi(x[1] + x[3])
                 11*B[1] + 2*B[2] + B[3] + 2*B[4]
+
+            In this special case, the default category is ``Sets()``::
+
                 sage: phi.category_for()
                 Category of sets
 
@@ -286,7 +323,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             Or more generaly any ring admitting a coercion map from the base ring::
 
-                sage: phi = X.module_morphism(on_basis= lambda i: i, codomain=RR )
+                sage: phi = X.module_morphism(on_basis=lambda i: i, codomain=RR )
                 sage: phi( 2 * X.monomial(1) + 3 * X.monomial(-1) )
                 -1.00000000000000
                 sage: phi.category_for()
@@ -294,11 +331,11 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: phi.category_for() # todo: not implemented (RR is currently not in Modules(ZZ))
                 Category of modules over Integer Ring
 
-                sage: phi = X.module_morphism(on_basis= lambda i: i, codomain=Zmod(4) )
+                sage: phi = X.module_morphism(on_basis=lambda i: i, codomain=Zmod(4) )
                 sage: phi( 2 * X.monomial(1) + 3 * X.monomial(-1) )
                 3
 
-                sage: phi = Y.module_morphism(on_basis= lambda i: i, codomain=Zmod(4) )
+                sage: phi = Y.module_morphism(on_basis=lambda i: i, codomain=Zmod(4) )
                 Traceback (most recent call last):
                 ...
                 ValueError: codomain(=Ring of integers modulo 4) should be a module over the base ring of the domain(=Y)
@@ -350,20 +387,45 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 ValueError: codomain(=Free module generated by {'x', 'y'} over Real Field with 53 bits of precision) should be a module over the base ring of the domain(=Free module generated by {'z'} over Univariate Polynomial Ring in q over Real Field with 53 bits of precision)
 
 
-            With the ``diagonal`` argument, this returns the module
-            morphism `g` such that:
+            With the ``diagonal=d`` argument, this constructs the
+            module morphism `g` such that
+
+            .. MATH::
 
                 `g(x_i) = d(i) y_i`
 
             This assumes that the respective bases `x` and `y` of `X`
-            and `Y` have the same index set `I`.
+            and `Y` have the same index set `I`::
 
-            With ``triangular = upper``, the constructed module
-            morphism is assumed to be upper triangular; that is its
-            matrix in the distinguished basis of `X` and `Y` would be
-            upper triangular with invertible elements on its
-            diagonal. This is used to compute preimages and
-            inverting the morphism::
+                sage: X = CombinatorialFreeModule(ZZ, [1,2,3]); X.rename("X")
+                sage: phi = X.module_morphism(diagonal=factorial, codomain=X)
+                sage: x = X.basis()
+                sage: phi(x[1]), phi(x[2]), phi(x[3])
+                (B[1], 2*B[2], 6*B[3])
+
+            See also: :class:`sage.modules.with_basis.morphism.DiagonalModuleMorphism`.
+
+            With the ``matrix=m`` argument, this constructs the module
+            morphism whose matrix in the distinguished basis of `X`
+            and `Y` is `m`::
+
+                sage: X = CombinatorialFreeModule(ZZ, [1,2,3]); X.rename("X"); x = X.basis()
+                sage: Y = CombinatorialFreeModule(ZZ, [3,4]); Y.rename("Y"); y = Y.basis()
+                sage: m = matrix([[0,1,2],[3,5,0]])
+                sage: phi = X.module_morphism(matrix=m, codomain=Y)
+                sage: phi(x[1])
+                3*B[4]
+                sage: phi(x[2])
+                B[3] + 5*B[4]
+
+
+            See also: :class:`sage.modules.with_basis.morphism.ModuleMorphismFromMatrix`.
+
+            With ``triangular="upper"``, the constructed module morphism is
+            assumed to be upper triangular; that is its matrix in the
+            distinguished basis of `X` and `Y` would be upper triangular with
+            invertible elements on its diagonal. This is used to compute
+            preimages and to invert the morphism::
 
                 sage: I = range(1,200)
                 sage: X = CombinatorialFreeModule(QQ, I); X.rename("X"); x = X.basis()
@@ -385,25 +447,97 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: (phi^-1)(y[30])
                 -B[1] + B[2] + B[3] + B[5] - B[6] - B[10] - B[15] + B[30]
 
+            Since :trac:`8678`, one can also define a triangular
+            morphism from a function::
+
+                sage: X = CombinatorialFreeModule(QQ, [0,1,2,3,4]); x = X.basis()
+                sage: from sage.modules.with_basis.morphism import TriangularModuleMorphismFromFunction
+                sage: def f(x): return x + X.term(0, sum(x.coefficients()))
+                sage: phi = X.module_morphism(function=f, codomain=X, triangular="upper")
+                sage: phi(x[2] + 3*x[4])
+                4*B[0] + B[2] + 3*B[4]
+                sage: phi.preimage(_)
+                B[2] + 3*B[4]
+
             For details and further optional arguments, see
-            :class:`sage.categories.modules_with_basis.TriangularModuleMorphism`.
+            :class:`sage.modules.with_basis.morphism.TriangularModuleMorphism`.
 
+            .. WARNING::
 
-            Caveat: the returned element is in ``Hom(codomain, domain,
-            category``). This is only correct for unary functions.
+                As a temporary measure, until multivariate morphisms
+                are implemented, the constructed morphism is in
+                ``Hom(codomain, domain, category)``. This is only
+                correct for unary functions.
 
             .. TODO::
 
-                Should codomain be ``self`` by default in the
-                diagonal and triangular cases?
+               - Should codomain be ``self`` by default in the
+                 diagonal, triangular, and matrix cases?
+
+               - Support for diagonal morphisms between modules not
+                 sharing the same index set
+
+            TESTS::
+
+                sage: X = CombinatorialFreeModule(ZZ, [1,2,3]); X.rename("X")
+                sage: phi = X.module_morphism(codomain=X)
+                Traceback (most recent call last):
+                ...
+                ValueError: module_morphism() takes exactly one option
+                out of `matrix`, `on_basis`, `function`, `diagonal`
+
+            ::
+
+                sage: X = CombinatorialFreeModule(ZZ, [1,2,3]); X.rename("X")
+                sage: phi = X.module_morphism(diagonal=factorial, matrix=matrix(), codomain=X)
+                Traceback (most recent call last):
+                ...
+                ValueError: module_morphism() takes exactly one option
+                out of `matrix`, `on_basis`, `function`, `diagonal`
+
+            ::
+
+                sage: X = CombinatorialFreeModule(ZZ, [1,2,3]); X.rename("X")
+                sage: phi = X.module_morphism(matrix=factorial, codomain=X)
+                Traceback (most recent call last):
+                ...
+                ValueError: matrix (=factorial) should be a matrix
+
+            ::
+
+                sage: X = CombinatorialFreeModule(ZZ, [1,2,3]); X.rename("X")
+                sage: phi = X.module_morphism(diagonal=3, codomain=X)
+                Traceback (most recent call last):
+                ...
+                ValueError: diagonal (=3) should be a function
+
             """
+            if not len([x for x in [matrix, on_basis, function, diagonal] if x is not None]) == 1:
+                raise ValueError("module_morphism() takes exactly one option out of `matrix`, `on_basis`, `function`, `diagonal`")
+            if matrix is not None:
+                return ModuleMorphismFromMatrix(domain=self, matrix=matrix, **keywords)
             if diagonal is not None:
-                return DiagonalModuleMorphism(diagonal = diagonal, domain = self, **keywords)
-            elif on_basis is not None:
-                if triangular is not None:
-                    return TriangularModuleMorphism(on_basis, domain = self, triangular = triangular, **keywords)
-                return ModuleMorphismByLinearity(on_basis = on_basis, domain = self, **keywords)
-            raise ValueError("module morphism requires either on_basis or diagonal argument")
+                return DiagonalModuleMorphism(domain=self, diagonal=diagonal, **keywords)
+            if unitriangular in ["upper", "lower"] and triangular is None:
+                triangular = unitriangular
+                unitriangular = True
+            if triangular is not None:
+                if on_basis is not None:
+                    return TriangularModuleMorphismByLinearity(
+                        domain=self, on_basis=on_basis,
+                        triangular=triangular, unitriangular=unitriangular,
+                        **keywords)
+                else:
+                    return TriangularModuleMorphismFromFunction(
+                        domain=self, function=function,
+                        triangular=triangular, unitriangular=unitriangular,
+                        **keywords)
+            if on_basis is not None:
+                return ModuleMorphismByLinearity(
+                    domain=self, on_basis=on_basis, **keywords)
+            else:
+                return ModuleMorphismFromFunction( # Or just SetMorphism?
+                    domain=self, function=function, **keywords)
 
         _module_morphism = module_morphism
 
@@ -433,6 +567,188 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 name = "Free module generated by {}".format(self.basis().keys())
             return name + " over {}".format(self.base_ring())
 
+        def echelon_form(self, elements):
+            r"""
+            Return a basis in echelon form of the subspace spanned by
+            a finite set of elements.
+
+            INPUT:
+
+            - ``elements`` -- a list or finite iterable of elements of ``self``.
+
+            OUTPUT:
+
+            A list of elements of ``self`` whose expressions as
+            vectors form a matrix in echelon form. If ``base_ring`` is
+            specified, then the calculation is achieved in this base
+            ring.
+
+            EXAMPLES::
+
+                sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x")
+                sage: x = X.basis()
+                sage: V = X.echelon_form([x[0]-x[1], x[0]-x[2],x[1]-x[2]]); V
+                [x[0] - x[2], x[1] - x[2]]
+                sage: matrix(map(vector, V))
+                [ 1  0 -1]
+                [ 0  1 -1]
+
+            ::
+
+                sage: F = CombinatorialFreeModule(ZZ, [1,2,3,4])
+                sage: B = F.basis()
+                sage: elements = [B[1]-17*B[2]+6*B[3], B[1]-17*B[2]+B[4]]
+                sage: F.echelon_form(elements)
+                [B[1] - 17*B[2] + B[4], 6*B[3] - B[4]]
+
+            ::
+
+                sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+                sage: a,b,c = F.basis()
+                sage: F.echelon_form([8*a+b+10*c, -3*a+b-c, a-b-c])
+                [B['a'] + B['c'], B['b'] + 2*B['c']]
+            """
+            from sage.matrix.constructor import matrix
+            mat = matrix([g._vector_() for g in elements])
+            mat.echelonize()
+            return [self.from_vector(vec) for vec in mat if vec]
+
+        def submodule(self, gens,
+                      check=True, already_echelonized=False, category=None):
+            r"""
+            The submodule spanned by a finite set of elements.
+
+            INPUT:
+
+            - ``gens`` -- a list or family of elements of ``self``
+
+            - ``check`` -- (default: ``True``) whether to verify that the
+               elements of ``gens`` are in ``self``.
+
+            - ``already_echelonized`` -- (default: ``False``) whether
+               the elements of ``gens`` are already in (not necessarily
+               reduced) echelon form.
+
+            If ``already_echelonized`` is ``False``, then the
+            generators are put in reduced echelon form using
+            :meth:`echelonize`, and reindexed by `0,1,...`.
+
+            .. WARNING::
+
+                At this point, this method only works for finite
+                dimensional submodules and if matrices can be
+                echelonized over the base ring.
+
+            The basis of the submodule uses the same index set as the
+            generators, and the lifting map sends `y_i` to `gens[i]`.
+
+
+            .. SEEALSO::
+
+                 - :meth:`ModulesWithBasis.FiniteDimensional.ParentMethods.quotient_module`
+                 - :class:`sage.modules.with_basis.subquotient.SubmoduleWithBasis`
+
+            EXAMPLES:
+
+            We construct a submodule of the free `\QQ`-module generated by
+            `x_0, x_1, x_2`. The submodule is spanned by `y_0 = x_0 - x_1` and
+            `y_1 - x_1 - x_2`, and its basis elements are indexed by `0` and `1`::
+
+                sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x")
+                sage: x = X.basis()
+                sage: gens = [x[0] - x[1], x[1] - x[2]]; gens
+                [x[0] - x[1], x[1] - x[2]]
+                sage: Y = X.submodule(gens, already_echelonized=True)
+                sage: Y.print_options(prefix='y'); Y
+                Free module generated by {0, 1} over Rational Field
+                sage: y = Y.basis()
+                sage: y[1]
+                y[1]
+                sage: y[1].lift()
+                x[1] - x[2]
+                sage: Y.retract(x[0]-x[2])
+                y[0] + y[1]
+                sage: Y.retract(x[0])
+                Traceback (most recent call last):
+                ...
+                ValueError: x[0] is not in the image
+
+            By using a family to specify a basis of the submodule, we obtain a
+            submodule whose index set coincides with the index set of the family::
+
+                sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x")
+                sage: x = X.basis()
+                sage: gens = Family({1 : x[0] - x[1], 3: x[1] - x[2]}); gens
+                Finite family {1: x[0] - x[1], 3: x[1] - x[2]}
+                sage: Y = X.submodule(gens, already_echelonized=True)
+                sage: Y.print_options(prefix='y'); Y
+                Free module generated by {1, 3} over Rational Field
+                sage: y = Y.basis()
+                sage: y[1]
+                y[1]
+                sage: y[1].lift()
+                x[0] - x[1]
+                sage: y[3].lift()
+                x[1] - x[2]
+                sage: Y.retract(x[0]-x[2])
+                y[1] + y[3]
+                sage: Y.retract(x[0])
+                Traceback (most recent call last):
+                ...
+                ValueError: x[0] is not in the image
+
+            It is not necessary that the generators of the submodule form
+            a basis (an explicit basis will be computed)::
+
+                sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x")
+                sage: x = X.basis()
+                sage: gens = [x[0] - x[1], 2*x[1] - 2*x[2], x[0] - x[2]]; gens
+                [x[0] - x[1], 2*x[1] - 2*x[2], x[0] - x[2]]
+                sage: Y = X.submodule(gens, already_echelonized=False)
+                sage: Y.print_options(prefix='y')
+                sage: Y
+                Free module generated by {0, 1} over Rational Field
+                sage: [b.lift() for b in Y.basis()]
+                [x[0] - x[2], x[1] - x[2]]
+
+            We now implement by hand the center of the algebra of the
+            symmetric group `S_3`::
+
+                sage: S3 = SymmetricGroup(3)
+                sage: S3A = S3.algebra(QQ)
+                sage: basis = S3A.annihilator_basis(S3A.algebra_generators(), S3A.bracket)
+                sage: basis
+                [(), (2,3) + (1,2) + (1,3), (1,2,3) + (1,3,2)]
+                sage: center = S3A.submodule(basis,
+                ....:                        category=AlgebrasWithBasis(QQ).Subobjects(),
+                ....:                        already_echelonized=True)
+                sage: center
+                Free module generated by {0, 1, 2} over Rational Field
+                sage: center in Algebras
+                True
+                sage: center.print_options(prefix='c')
+                sage: c = center.basis()
+                sage: c[1].lift()
+                (2,3) + (1,2) + (1,3)
+                sage: c[0]^2
+                c[0]
+                sage: e = 1/6*(c[0]+c[1]+c[2])
+                sage: e.is_idempotent()
+                True
+
+            Of course, this center is best constructed using::
+
+                sage: center = S3A.center()
+
+            TESTS::
+
+                sage: TestSuite(Y).run()
+                sage: TestSuite(center).run()
+            """
+            if not already_echelonized:
+                gens = self.echelon_form(gens)
+            from sage.modules.with_basis.subquotient import SubmoduleWithBasis
+            return SubmoduleWithBasis(gens, ambient=self, category=category)
 
         def tensor(*parents):
             """
@@ -1001,9 +1317,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
                We check that the homset category is properly set up::
 
-                    sage: category = FiniteDimensionalModulesWithBasis(QQ)
-                    sage: X = CombinatorialFreeModule(QQ, [1,2,3], category = category);   X.rename("X")
-                    sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4], category = category); Y.rename("Y")
+                    sage: X = CombinatorialFreeModule(QQ, [1,2,3]);   X.rename("X")
+                    sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4]); Y.rename("Y")
                     sage: H = Hom(X, Y)
                     sage: H.zero().category_for()
                     Category of finite dimensional vector spaces with basis over Rational Field
@@ -1040,8 +1355,24 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: g == f
                 True
             """
-            monomial = self.domain().monomial
-            return lambda t: self(monomial(t))
+            return self._on_basis
+
+        def _on_basis(self, i):
+            """
+            Return the image of ``self`` on the basis element indexed by ``i``.
+
+            INPUT:
+
+            - ``i`` -- the index of an element of the basis of the domain of ``self``
+
+            EXAMPLES::
+
+                sage: X = CombinatorialFreeModule(QQ, [1,2,3]); X.rename("X")
+                sage: phi = End(X)(lambda x: 2*x)
+                sage: phi._on_basis(3)
+                2*B[3]
+            """
+            return self(self.domain().monomial(i))
 
     class CartesianProducts(CartesianProductsCategory):
         """
@@ -1073,7 +1404,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: B = HopfAlgebrasWithBasis(QQ).example(); B
                     An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
                     sage: A.an_element(), B.an_element()
-                    (2*B[word: ] + 2*B[word: a] + 3*B[word: b], B[()] + 2*B[(2,3)] + 3*B[(1,2)] + B[(1,2,3)])
+                    (2*B[word: ] + 2*B[word: a] + 3*B[word: b], B[()] + 4*B[(1,2,3)] + 2*B[(1,3)])
                     sage: cartesian_product((A, B, A)).an_element()           # indirect doctest
                     2*B[(0, word: )] + 2*B[(0, word: a)] + 3*B[(0, word: b)]
                 """
@@ -1244,888 +1575,3 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 [Category of duals of vector spaces over Rational Field, Category of duals of modules with basis over Rational Field]
             """
             return [Modules(self.base_category().base_ring())]
-
-
-class ModuleMorphismByLinearity(Morphism):
-    """
-    A class for module morphisms obtained by extending a function by linearity.
-    """
-    def __init__(self, domain, on_basis = None, position = 0, zero = None, codomain = None, category = None):
-        """
-        Construct a module morphism by linearity.
-
-        INPUT:
-
-        - ``domain`` -- a parent in ``ModulesWithBasis(...)``
-        - ``codomain`` -- a parent in ``Modules(...)``; defaults to
-          ``f.codomain()`` if the latter is defined
-        - ``position`` -- a non-negative integer; defaults to 0
-        - ``on_basis`` -- a function which accepts indices of the basis of
-          ``domain`` as ``position``-th argument (optional)
-        - ``zero`` -- the zero of the codomain; defaults to ``codomain.zero()``
-
-        ``on_basis`` may alternatively be provided in derived classes by
-        implementing or setting ``_on_basis``.
-
-        EXAMPLES::
-
-            sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
-            sage: Y = CombinatorialFreeModule(ZZ, [1, 2])
-            sage: phi = sage.categories.modules_with_basis.ModuleMorphismByLinearity(X, on_basis = Y.monomial * abs)
-
-        TESTS::
-
-            sage: TestSuite(phi).run() # known issue
-            Failure in _test_category:
-            ...
-            The following tests failed: _test_category
-
-        Analysis: ``phi`` does not inherit from the element class of
-        the category of its parent::
-
-            sage: isinstance(phi, phi.parent().category().element_class)
-            False
-
-        To be fixed in the general morphism overhaul (#....), possibly
-        by making sure to create ``phi`` through its parent.
-        """
-        # Might want to assert that domain is a module with basis
-        base_ring = domain.base_ring()
-
-        if codomain is None and hasattr(on_basis, 'codomain'):
-            codomain = on_basis.codomain()
-        if not hasattr( codomain, 'base_ring' ):
-            raise ValueError("codomain(=%s) needs to have a base_ring attribute"%(codomain))
-        # codomain should be a module over base_ring
-        # The natural test would be ``codomains in Modules(base_ring)``
-        # But this is not properly implemented yet:
-        #     sage: CC in Modules(QQ)
-        #     False
-        #     sage: QQ in Modules(QQ)
-        #     False
-        #     sage: CC[x] in Modules(QQ)
-        #     False
-        # The test below is a bit more restrictive
-        if (not codomain.base_ring().has_coerce_map_from(base_ring)) \
-           and (not codomain.has_coerce_map_from(base_ring)):
-            raise ValueError("codomain(=%s) should be a module over the base ring of the domain(=%s)"%(codomain, domain))
-
-        if zero is None:
-            zero = codomain.zero()
-        self._zero = zero
-
-        self._is_module_with_basis_over_same_base_ring = \
-            codomain in ModulesWithBasis( base_ring ) and zero == codomain.zero()
-
-        if category is None:
-            if self._is_module_with_basis_over_same_base_ring:
-                category = ModulesWithBasis(base_ring)
-            elif zero == codomain.zero():
-                if codomain in Modules(base_ring):
-                    category = Modules(base_ring)
-                else:
-                    # QQ is not in Modules(QQ)!
-                    category = CommutativeAdditiveSemigroups()
-            else:
-                category = Sets()
-
-        Morphism.__init__(self, Hom(domain, codomain, category = category))
-
-
-        self._position = position
-        if on_basis is not None:
-            self._on_basis = on_basis
-
-    def __eq__(self, other):
-        """
-        EXAMPLES::
-
-            sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
-            sage: Y = CombinatorialFreeModule(ZZ, [1, 2])
-            sage: f  = X.module_morphism(on_basis = Y.monomial * abs)
-            sage: g  = X.module_morphism(on_basis = Y.monomial * abs)
-            sage: h1 = X.module_morphism(on_basis = X.monomial * abs)
-            sage: h2 = X.module_morphism(on_basis = X.monomial * factorial)
-            sage: h3 = X.module_morphism(on_basis = Y.monomial * abs, category = Modules(ZZ))
-            sage: f == g, f == h1, f == h2, f == h3, f == 1, 1 == f
-            (True, False, False, False, False, False)
-        """
-        return self.__class__ is other.__class__ and parent(self) == parent(other) and self.__dict__ == other.__dict__
-
-
-    def on_basis(self):
-        """
-        Return the action of this morphism on basis elements, as per
-        :meth:`ModulesWithBasis.Homsets.ElementMethods.on_basis`.
-
-        OUTPUT:
-
-        - a function from the indices of the basis of the domain to the
-          codomain
-
-        EXAMPLES::
-
-            sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
-            sage: Y = CombinatorialFreeModule(ZZ, [1, 2])
-            sage: phi_on_basis = Y.monomial * abs
-            sage: phi = sage.categories.modules_with_basis.ModuleMorphismByLinearity(X, on_basis = phi_on_basis, codomain = Y)
-            sage: x = X.basis()
-            sage: phi.on_basis()(-2)
-            B[2]
-            sage: phi.on_basis() == phi_on_basis
-            True
-        """
-        return self._on_basis
-
-    def __call__(self, *args):
-        r"""
-        Apply this morphism to ``*args``.
-
-        EXAMPLES::
-
-            sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
-            sage: Y = CombinatorialFreeModule(ZZ, [1, 2])
-            sage: def phi_on_basis(i): return Y.monomial(abs(i))
-            sage: phi = sage.categories.modules_with_basis.ModuleMorphismByLinearity(X, on_basis = Y.monomial * abs, codomain = Y)
-            sage: x = X.basis()
-            sage: phi(x[1]), phi(x[-2]), phi(x[1] + 3 * x[-2])
-            (B[1], B[2], B[1] + 3*B[2])
-
-        .. TODO::
-
-            Add more tests for multi-parameter module morphisms.
-        """
-        before = args[0:self._position]
-        after = args[self._position+1:len(args)]
-        x = args[self._position]
-        assert(x.parent() is self.domain())
-
-        if self._is_module_with_basis_over_same_base_ring:
-            return self.codomain().linear_combination( (self._on_basis(*(before+(index,)+after)), coeff ) for (index, coeff) in args[self._position] )
-        else:
-            return sum(( coeff * self._on_basis(*(before+(index,)+after)) for (index, coeff) in args[self._position]), self._zero)
-
-    # As per the specs of Map, we should in fact implement _call_.
-    # However we currently need to abuse Map.__call__ (which strict
-    # type checking) for multi-parameter module morphisms
-    # To be cleaned up
-    _call_ = __call__
-
-class TriangularModuleMorphism(ModuleMorphismByLinearity):
-    r"""
-    A class for triangular module morphisms; that is, module morphisms
-    from `X` to `Y` whose representing matrix in the distinguished
-    bases of `X` and `Y` is upper triangular with invertible elements
-    on its diagonal.
-
-    See :meth:`ModulesWithBasis.ParentMethods.module_morphism`
-
-    INPUT:
-
-    - ``domain`` -- a module `X` with basis `F`
-    - ``codomain`` -- a module `Y` with basis `G` (defaults to `X`)
-    - ``on_basis`` -- a function from the index set of the basis `F`
-      to the module `Y` which determines the morphism by linearity
-    - ``unitriangular`` -- boolean (default: ``False``)
-    - ``triangular`` -- (default: ``"upper"``) ``"upper"`` or ``"lower"``:
-
-      * ``"upper"`` - if the :meth:`leading_support()` of the image of
-        `F(i)` is `i`, or
-      * ``"lower"`` - if the :meth:`trailing_support()` of the image of
-        `F(i)` is `i`
-
-    - ``cmp`` -- an optional comparison function on the index set `J` of
-      the basis `G` of the codomain.
-    - ``invertible`` -- boolean or ``None`` (default: ``None``); should
-      be set to ``True`` if Sage is to compute an inverse for ``self``.
-      Automatically set to ``True`` if the domain and codomain share the
-      same indexing set and to ``False`` otherwise.
-    - ``inverse_on_support`` - compute the inverse on the support if the
-      codomain and domain have different index sets. See assumptions
-      below.
-
-    Assumptions:
-
-    - `X` and `Y` have the same base ring `R`.
-
-    - Let `I` and `J` be the respective index sets of the bases `F` and
-      `G`. Either `I = J`, or ``inverse_on_support`` is a
-      function `r : J \to I` with the following property: for any `j \in J`,
-      `r(j)` should return an `i \in I` such that the leading term (or
-      trailing term, if ``triangular`` is set to ``"lower"``) of
-      ``on_basis(i)`` (with respect to the comparison ``cmp``, if the
-      latter is set, or just the default comparison otherwise) is `j` if
-      there exists such an `i`, or ``None`` if not.
-
-    OUTPUT:
-
-    The triangular module morphism from `X` to `Y` which maps `F(i)`
-    to ``on_basis(i)`` and is extended by linearity.
-
-    EXAMPLES:
-
-    We construct and invert an upper unitriangular module morphism between
-    two free `\QQ`-modules::
-
-        sage: I = range(1,200)
-        sage: X = CombinatorialFreeModule(QQ, I); X.rename("X"); x = X.basis()
-        sage: Y = CombinatorialFreeModule(QQ, I); Y.rename("Y"); y = Y.basis()
-        sage: f = Y.sum_of_monomials * divisors   # This * is map composition.
-        sage: phi = X.module_morphism(f, triangular="upper", unitriangular = True, codomain = Y)
-        sage: phi(x[2])
-        B[1] + B[2]
-        sage: phi(x[6])
-        B[1] + B[2] + B[3] + B[6]
-        sage: phi(x[30])
-        B[1] + B[2] + B[3] + B[5] + B[6] + B[10] + B[15] + B[30]
-        sage: phi.preimage(y[2])
-        -B[1] + B[2]
-        sage: phi.preimage(y[6])
-        B[1] - B[2] - B[3] + B[6]
-        sage: phi.preimage(y[30])
-        -B[1] + B[2] + B[3] + B[5] - B[6] - B[10] - B[15] + B[30]
-        sage: (phi^-1)(y[30])
-        -B[1] + B[2] + B[3] + B[5] - B[6] - B[10] - B[15] + B[30]
-
-    A lower triangular (but not unitriangular) morphism::
-
-        sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X"); x = X.basis()
-        sage: def ut(i): return sum(j*x[j] for j in range(i,4))
-        sage: phi = X.module_morphism(ut, triangular="lower", codomain = X)
-        sage: phi(x[2])
-        2*B[2] + 3*B[3]
-        sage: phi.preimage(x[2])
-        1/2*B[2] - 1/2*B[3]
-        sage: phi(phi.preimage(x[2]))
-        B[2]
-
-    Using the ``cmp`` keyword, we can use triangularity even if
-    the map becomes triangular only after a permutation of the basis::
-
-        sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X"); x = X.basis()
-        sage: def vt(i): return (x[1] + x[2] if i == 1 else x[2] + (x[3] if i == 3 else 0))
-        sage: perm = [0, 2, 1, 3]
-        sage: phi = X.module_morphism(vt, triangular="upper", codomain = X,
-        ....:                         cmp=lambda a, b: cmp(perm[a], perm[b]))
-        sage: [phi(x[i]) for i in range(1, 4)]
-        [B[1] + B[2], B[2], B[2] + B[3]]
-        sage: [phi.preimage(x[i]) for i in range(1, 4)]
-        [B[1] - B[2], B[2], -B[2] + B[3]]
-
-    The same works in the lower-triangular case::
-
-        sage: def wt(i): return (x[1] + x[2] + x[3] if i == 2 else x[i])
-        sage: phi = X.module_morphism(wt, triangular="lower", codomain = X,
-        ....:                         cmp=lambda a, b: cmp(perm[a], perm[b]))
-        sage: [phi(x[i]) for i in range(1, 4)]
-        [B[1], B[1] + B[2] + B[3], B[3]]
-        sage: [phi.preimage(x[i]) for i in range(1, 4)]
-        [B[1], -B[1] + B[2] - B[3], B[3]]
-
-    An injective but not surjective morphism cannot be inverted,
-    but the ``inverse_on_support`` keyword allows Sage to find a
-    partial inverse::
-
-        sage: X = CombinatorialFreeModule(QQ, [1,2,3]); x = X.basis()
-        sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
-        sage: uut = lambda i: sum(  y[j] for j in range(i+1,6)  )
-        sage: phi = X.module_morphism(uut, codomain = Y,
-        ....:        triangular=True, unitriangular=True,
-        ....:        inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
-        sage: phi(x[2])
-        B[3] + B[4] + B[5]
-        sage: phi.preimage(y[3])
-        B[2] - B[3]
-
-    The ``inverse_on_support`` keyword can also be used if the
-    bases of the domain and the codomain are identical but one of
-    them has to be permuted in order to render the morphism
-    triangular. For example::
-
-        sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X"); x = X.basis()
-        sage: def zt(i):
-        ....:     return (x[3] if i == 1 else x[1] if i == 2
-        ....:             else x[1] + x[2])
-        sage: def perm(i):
-        ....:     return (2 if i == 1 else 3 if i == 2 else 1)
-        sage: phi = X.module_morphism(zt, triangular="upper", codomain = X,
-        ....:                         inverse_on_support=perm)
-        sage: [phi(x[i]) for i in range(1, 4)]
-        [B[3], B[1], B[1] + B[2]]
-        sage: [phi.preimage(x[i]) for i in range(1, 4)]
-        [B[2], -B[2] + B[3], B[1]]
-
-    The same works if the permutation induces lower triangularity::
-
-        sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X"); x = X.basis()
-        sage: def zt(i):
-        ....:     return (x[3] if i == 1 else x[2] if i == 2
-        ....:             else x[1] + x[2])
-        sage: def perm(i):
-        ....:     return 4 - i
-        sage: phi = X.module_morphism(zt, triangular="lower", codomain = X,
-        ....:                         inverse_on_support=perm)
-        sage: [phi(x[i]) for i in range(1, 4)]
-        [B[3], B[2], B[1] + B[2]]
-        sage: [phi.preimage(x[i]) for i in range(1, 4)]
-        [-B[2] + B[3], B[2], B[1]]
-
-    The ``inverse_on_basis`` and ``cmp`` keywords can be combined::
-
-        sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X"); x = X.basis()
-        sage: def zt(i):
-        ....:     return (2*x[2] + 3*x[3] if i == 1
-        ....:             else x[1] + x[2] + x[3] if i == 2
-        ....:             else 4*x[2])
-        sage: def perm(i):
-        ....:     return (2 if i == 1 else 3 if i == 2 else 1)
-        sage: perverse_cmp = lambda a, b: cmp((a-2) % 3, (b-2) % 3)
-        sage: phi = X.module_morphism(zt, triangular="upper", codomain = X,
-        ....:                         inverse_on_support=perm, cmp=perverse_cmp)
-        sage: [phi(x[i]) for i in range(1, 4)]
-        [2*B[2] + 3*B[3], B[1] + B[2] + B[3], 4*B[2]]
-        sage: [phi.preimage(x[i]) for i in range(1, 4)]
-        [-1/3*B[1] + B[2] - 1/12*B[3], 1/4*B[3], 1/3*B[1] - 1/6*B[3]]
-    """
-    def __init__(self, on_basis, domain, triangular = "upper", unitriangular=False,
-                 codomain = None, category = None, cmp = None,
-                 inverse = None, inverse_on_support = None, invertible = None):
-        """
-        TESTS::
-
-            sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X"); x = X.basis()
-            sage: def ut(i): return sum(j*x[j] for j in range(i,4))
-            sage: import __main__; __main__.ut = ut
-            sage: phi = X.module_morphism(ut, triangular="lower", codomain = X)
-            sage: phi.__class__
-            <class 'sage.categories.modules_with_basis.TriangularModuleMorphism'>
-            sage: TestSuite(phi).run() # known issue; see ModuleMorphism above
-            Failure in _test_category:
-            ...
-            The following tests failed: _test_category
-        """
-        ModuleMorphismByLinearity.__init__(self, domain = domain, codomain = codomain, category = category)
-        if triangular == "upper":
-            self._dominant_item = attrcall("leading_item",  cmp)
-        else:
-            self._dominant_item = attrcall("trailing_item", cmp)
-        # We store those two just be able to pass them down to the inverse function
-        self._triangular = triangular
-        self._cmp = cmp
-
-        self._unitriangular = unitriangular
-        self._inverse = inverse
-        self.on_basis = on_basis # should this be called on_basis (or _on_basis)?
-        self._inverse_on_support = inverse_on_support
-        if invertible is not None:
-            self._invertible = invertible
-        else:
-            self._invertible = (domain.basis().keys() == codomain.basis().keys())
-
-    def _test_triangular(self, **options):
-        """
-        Test that ``self`` is actually triangular
-
-        See also: :class:`sage.misc.sage_unittest.TestSuite`.
-
-        EXAMPLES::
-
-            sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); x = X.basis()
-            sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3]); y = Y.basis()
-            sage: f = lambda i: sum(  y[j] for j in range(i,4)  )
-            sage: phi = X.module_morphism(f, triangular="lower", codomain = Y)
-            sage: phi._test_triangular()
-
-            sage: fw = lambda i: sum(  y[j] for j in range(i+1,4)  )
-            sage: phi = X.module_morphism(fw, triangular="lower", codomain = Y)
-            sage: phi._test_triangular()
-            Traceback (most recent call last):
-            ...
-            AssertionError: morphism is not triangular on 1
-
-            sage: X = CombinatorialFreeModule(QQ, [1,2,3]); x = X.basis()
-            sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
-            sage: uut = lambda i: sum(  y[j] for j in range(i+1,6)  )
-            sage: phi = X.module_morphism(uut, codomain = Y,
-            ....:      triangular=True, unitriangular=True,
-            ....:      inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
-            sage: phi._test_triangular()
-
-            sage: uutw = lambda i: sum(  2*y[j] for j in range(i+1,6)  ) # uni-upper
-            sage: phi = X.module_morphism(uutw, codomain = Y,
-            ....:      triangular=True, unitriangular=True,
-            ....:      inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
-            sage: phi._test_triangular()
-            Traceback (most recent call last):
-            ...
-            AssertionError: morphism is not untriangular on 1
-        """
-        from sage.misc.lazy_format import LazyFormat
-        tester = self._tester(**options)
-        for x in self.domain().basis().keys():
-            # or should it be self.domain().basis().some_elements() # ?
-            bs, co = self._dominant_item(self._on_basis(x))
-            if self._unitriangular:
-                tester.assertEqual(co, self.domain().base_ring().one(),
-                    LazyFormat("morphism is not untriangular on %s")%(x))
-            if self._inverse_on_support is not None:
-                xback = self._inverse_on_support(bs)
-            else:
-                xback = bs
-            tester.assertEqual(x, xback,
-                LazyFormat("morphism is not triangular on %s")%(x))
-
-
-    def _on_basis(self, i):
-        """
-        Return the image, by ``self``, of the basis element indexed by ``i``.
-
-        TESTS::
-
-            sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); x = X.basis()
-            sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3]); y = Y.basis()
-            sage: f = lambda i: sum(  y[j] for j in range(i,4)  )
-            sage: phi = X.module_morphism(f, triangular="lower", codomain = Y)
-            sage: phi._on_basis(2)
-            B[2] + B[3]
-        """
-        return self.on_basis(i)
-
-    def __invert__(self):
-        """
-        Return the triangular morphism which is the inverse of ``self``.
-
-        Raises an error if ``self`` is not invertible.
-
-        TESTS::
-
-            sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); x = X.basis()
-            sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3]); y = Y.basis()
-            sage: uut = lambda i: sum(  y[j] for j in range(1,i+1)) # uni-upper
-            sage: ult = lambda i: sum(  y[j] for j in range(i,4)  ) # uni-lower
-            sage: ut =  lambda i: sum(j*y[j] for j in range(1,i+1)) # upper
-            sage: lt =  lambda i: sum(j*y[j] for j in range(i,4  )) # lower
-            sage: f_uut = X.module_morphism(uut, triangular="upper", unitriangular=True,  codomain = Y)
-            sage: f_ult = X.module_morphism(ult, triangular="lower", unitriangular=True,  codomain = Y)
-            sage: f_ut =  X.module_morphism(ut,  triangular="upper",                      codomain = Y)
-            sage: f_lt =  X.module_morphism(lt,  triangular="lower",                      codomain = Y)
-            sage: (~f_uut)(y[2])
-            -B[1] + B[2]
-            sage: (~f_ult)(y[2])
-            B[2] - B[3]
-            sage: (~f_ut)(y[2])
-            -1/2*B[1] + 1/2*B[2]
-            sage: (~f_lt)(y[2])
-            1/2*B[2] - 1/2*B[3]
-        """
-        if not self._invertible:
-            raise ValueError("Non invertible morphism")
-        else:
-            return self.section()
-
-    def section(self):
-        """
-        Return the section (partial inverse) of ``self``.
-
-        Return a partial triangular morphism which is a section of
-        ``self``. The section morphism raise a ``ValueError`` if asked to
-        apply on an element which is not in the image of ``self``.
-
-        EXAMPLES::
-
-            sage: X = CombinatorialFreeModule(QQ, [1,2,3]); x = X.basis()
-            sage: X.rename('X')
-            sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
-            sage: uut = lambda i: sum(  y[j] for j in range(i+1,6)  ) # uni-upper
-            sage: phi = X.module_morphism(uut, triangular=True, codomain = Y,
-            ....:      inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
-            sage: ~phi
-            Traceback (most recent call last):
-            ...
-            ValueError: Non invertible morphism
-            sage: phiinv = phi.section()
-            sage: map(phiinv*phi, X.basis().list()) == X.basis().list()
-            True
-            sage: phiinv(Y.basis()[1])
-            Traceback (most recent call last):
-            ...
-            ValueError: B[1] is not in the image
-        """
-        if self._inverse is not None:
-            return self._inverse
-        if self._inverse_on_support is None:
-            retract_dom = None
-        else:
-            def retract_dom(i):
-                self._dominant_item(self._on_basis(i))[0]
-
-        if self._invertible:
-            return self.__class__( self._invert_on_basis,
-                domain = self.codomain(),               codomain = self.domain(),
-                unitriangular = self._unitriangular,  triangular = self._triangular,
-                cmp = self._cmp,
-                inverse = self,                       category = self.category_for(),
-                inverse_on_support=retract_dom, invertible = self._invertible)
-        else:
-            return SetMorphism(Hom(self.codomain(), self.domain(),
-                                   SetsWithPartialMaps()),
-                               self.preimage)
-
-    # This should be removed and optimized (the inverse should not be computed
-    # on the basis
-    def _invert_on_basis(self, i):
-        r"""
-        Return the image, by the inverse of ``self``, of the basis element
-        indexed by ``i``.
-
-        TESTS::
-
-            sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); x = X.basis()
-            sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3]); y = Y.basis()
-            sage: uut = lambda i: sum(  y[j] for j in range(i,4)  ) # uni-upper
-            sage: phi = X.module_morphism(uut, triangular=True, codomain = Y)
-            sage: phi._invert_on_basis(2)
-            B[2] - B[3]
-        """
-        return self.preimage( self.codomain().monomial(i) )
-
-    def preimage(self, f):
-        """
-        Return the preimage of `f` under ``self``.
-
-        EXAMPLES::
-
-            sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); x = X.basis()
-            sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3]); y = Y.basis()
-            sage: uut = lambda i: sum(  y[j] for j in range(i,4)  ) # uni-upper
-            sage: phi = X.module_morphism(uut, triangular=True, codomain = Y)
-            sage: phi.preimage(y[1] + y[2])
-            B[1] - B[3]
-
-            sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); x = X.basis()
-            sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3, 4]); y = Y.basis()
-            sage: uut = lambda i: sum(  y[j] for j in range(i,5)  ) # uni-upper
-            sage: phi = X.module_morphism(uut, triangular=True, codomain = Y)
-            sage: phi.preimage(y[1] + y[2])
-            B[1] - B[3]
-
-            sage: X = CombinatorialFreeModule(QQ, [1,2,3]); x = X.basis()
-            sage: X.rename("X")
-            sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
-            sage: uut = lambda i: sum(  y[j] for j in range(i+1,6)  ) # uni-upper
-            sage: phi = X.module_morphism(uut, triangular=True, codomain = Y,
-            ....:         inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
-            sage: phi.preimage(y[2] + y[3])
-            B[1] - B[3]
-            sage: phi(phi.preimage(y[2] + y[3])) == y[2] + y[3]
-            True
-            sage: el = x[1] + 3*x[2] + 2*x[3]
-            sage: phi.preimage(phi(el)) == el
-            True
-
-            sage: phi = X.module_morphism(uut, triangular=True, codomain = Y,
-            ....:         inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
-            sage: phi.preimage(y[1])
-            Traceback (most recent call last):
-            ...
-            ValueError: B[1] is not in the image
-        """
-        F = self.domain()
-        G = self.codomain()
-        basis_map = self._on_basis
-        if not f in G:
-            raise ValueError("f(={}) must be in the codomain of the morphism to have a preimage under the latter".format(f))
-
-        remainder = f
-
-        out = F.zero()
-        while not remainder.is_zero():
-            (j,c) = self._dominant_item(remainder)
-
-            if self._inverse_on_support is None:
-                j_preimage = j
-            else:
-                j_preimage = self._inverse_on_support(j)
-                if j_preimage is None:
-                    raise ValueError("{} is not in the image".format(f))
-            s = basis_map(j_preimage)
-            if not j == self._dominant_item(s)[0]:
-                raise ValueError("The morphism (={}) is not triangular at {}, and therefore a preimage cannot be computed".format(f, s))
-
-            if not self._unitriangular:
-                c /= s[j]
-
-            remainder -= s._lmul_(c)
-            out += F.term(j_preimage, c)
-
-        return out
-
-    def co_reduced(self, y):
-        """
-        Reduce element `y` of codomain of ``self`` w.r.t. the image of
-        ``self``.
-
-        Suppose that ``self`` is a morphism from `X` to `Y`. Then for any
-        `y \in Y`, the call ``self.co_reduced(y)`` returns a normal form for
-        `y` in the quotient `Y / I` where `I` is the image of ``self``.
-
-        EXAMPLES::
-
-            sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); x = X.basis()
-            sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3]); y = Y.basis()
-            sage: uut = lambda i: sum(  y[j] for j in range(i,4)  ) # uni-upper
-            sage: phi = X.module_morphism(uut, triangular=True, codomain = Y)
-            sage: phi.co_reduced(y[1] + y[2])
-            0
-        """
-        G = self.codomain()
-        basis_map = self._on_basis
-        assert y in G
-
-        result    = G.zero()
-        remainder = y
-
-        while not remainder.is_zero():
-            (j,c) = self._dominant_item(remainder)
-            if self._inverse_on_support is None:
-                j_preimage = j
-            else:
-                j_preimage = self._inverse_on_support(j)
-            if j_preimage is None:
-                dom_term = G.term(j,c)
-                remainder -= dom_term
-                result += dom_term
-            else:
-                s = basis_map(j_preimage)
-                assert j == self._dominant_item(s)[0]
-                if not self._unitriangular:
-                    c /= s[j]
-                    remainder -= s._lmul_(c)
-        return result
-
-    def co_kernel_projection(self, category = None):
-        """
-        Return a projection on the co-kernel of ``self``.
-
-        INPUT:
-
-        - ``category`` -- the category of the result
-
-        EXAMPLES::
-
-            sage: X = CombinatorialFreeModule(QQ, [1,2,3]); x = X.basis()
-            sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
-            sage: uut = lambda i: sum(  y[j] for j in range(i+1,6)  ) # uni-upper
-            sage: phi = X.module_morphism(uut, triangular=True, codomain = Y,
-            ....:      inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
-            sage: phipro = phi.co_kernel_projection()
-            sage: phipro(y[1] + y[2])
-            B[1]
-            sage: all(phipro(phi(x)).is_zero() for x in X.basis())
-            True
-            sage: phipro(y[1])
-            B[1]
-            sage: phipro(y[4])
-            -B[5]
-            sage: phipro(y[5])
-            B[5]
-        """
-        category = ModulesWithBasis(self.codomain().base_ring()).or_subcategory(category)
-        return SetMorphism(Hom(self.codomain(), self.codomain(), category),
-                           self.co_reduced)
-
-class DiagonalModuleMorphism(ModuleMorphismByLinearity):
-    r"""
-    A class for diagonal module morphisms.
-
-    See :meth:`ModulesWithBasis.ParentMethods.module_morphism`.
-
-    INPUT:
-
-    - ``domain``, ``codomain`` -- two modules with basis `F` and `G`,
-      respectively
-    - ``diagonal`` -- a function `d`
-
-    Assumptions:
-
-    - ``domain`` and ``codomain`` have the same base ring `R`,
-    - their respective bases `F` and `G` have the same index set `I`,
-    - `d` is a function `I \to R`.
-
-    Return the diagonal module morphism from ``domain`` to ``codomain``
-    sending `F(i) \mapsto d(i) G(i)` for all `i \in I`.
-
-    By default, ``codomain`` is currently assumed to be ``domain``.
-    (Todo: make a consistent choice with ``*ModuleMorphism``.)
-
-    .. TODO::
-
-        - Implement an optimized ``_call_()`` function.
-        - Generalize to a mapcoeffs.
-        - Generalize to a mapterms.
-
-    EXAMPLES::
-
-        sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X")
-        sage: phi = X.module_morphism(diagonal = factorial, codomain = X)
-        sage: x = X.basis()
-        sage: phi(x[1]), phi(x[2]), phi(x[3])
-        (B[1], 2*B[2], 6*B[3])
-    """
-    def __init__(self, diagonal, domain, codomain = None, category = None):
-        r"""
-        Initialize ``self``.
-
-        TESTS::
-
-            sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X")
-            sage: phi = X.module_morphism(diagonal = factorial, codomain = X)
-            sage: phi.__class__
-            <class 'sage.categories.modules_with_basis.DiagonalModuleMorphism'>
-            sage: TestSuite(phi).run() # known issue; see ModuleMorphismByLinearity.__init__
-            Failure in _test_category:
-            ...
-            The following tests failed: _test_category
-        """
-        assert codomain is not None
-        assert domain.basis().keys() == codomain.basis().keys()
-        assert domain.base_ring()    == codomain.base_ring()
-        if category is None:
-            category = ModulesWithBasis(domain.base_ring())
-        ModuleMorphismByLinearity.__init__(self, domain = domain, codomain = codomain, category = category)
-        self._diagonal = diagonal
-
-    def _on_basis(self, i):
-        """
-        Return the image by ``self`` of the basis element indexed by ``i``.
-
-        TESTS::
-
-            sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X"); x = X.basis()
-            sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3]); Y.rename("Y"); y = Y.basis()
-            sage: phi = X.module_morphism(diagonal = factorial, codomain = X)
-            sage: phi._on_basis(3)
-            6*B[3]
-        """
-        return self.codomain().term(i, self._diagonal(i))
-
-    def __invert__(self):
-        """
-        Return the inverse diagonal morphism.
-
-        EXAMPLES::
-
-            sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X"); x = X.basis()
-            sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3]); Y.rename("Y"); y = Y.basis()
-            sage: phi = X.module_morphism(diagonal = factorial, codomain = X)
-            sage: phi_inv = ~phi
-            sage: phi_inv
-            Generic endomorphism of Y
-            sage: phi_inv(y[3])
-            1/6*B[3]
-
-        Caveat: this inverse morphism is only well defined if
-        `d(\lambda)` is always invertible in the base ring. This is
-        condition is *not* tested for, so using an ill defined inverse
-        morphism will trigger arithmetic errors.
-        """
-        return self.__class__(
-            pointwise_inverse_function(self._diagonal),
-            domain = self.codomain(), codomain = self.domain(), category = self.category_for())
-
-
-def pointwise_inverse_function(f):
-    r"""
-    Return the function `x \mapsto 1 / f(x)`.
-
-    INPUT:
-
-    - ``f`` -- a function
-
-    EXAMPLES::
-
-        sage: from sage.categories.modules_with_basis import pointwise_inverse_function
-        sage: def f(x): return x
-        ....:
-        sage: g = pointwise_inverse_function(f)
-        sage: g(1), g(2), g(3)
-        (1, 1/2, 1/3)
-
-    :func:`pointwise_inverse_function` is an involution::
-
-        sage: f is pointwise_inverse_function(g)
-        True
-
-    .. TODO::
-
-        This has nothing to do here!!! Should there be a library for
-        pointwise operations on functions somewhere in Sage?
-    """
-    if hasattr(f, "pointwise_inverse"):
-        return f.pointwise_inverse()
-    return PointwiseInverseFunction(f)
-
-from sage.structure.sage_object import SageObject
-class PointwiseInverseFunction(SageObject):
-    r"""
-    A class for pointwise inverse functions.
-
-    The pointwise inverse function of a function `f` is the function
-    sending every `x` to `1 / f(x)`.
-
-    EXAMPLES::
-
-        sage: from sage.categories.modules_with_basis import PointwiseInverseFunction
-        sage: f = PointwiseInverseFunction(factorial)
-        sage: f(0), f(1), f(2), f(3)
-        (1, 1, 1/2, 1/6)
-    """
-
-    def __eq__(self, other):
-        """
-        TESTS::
-
-            sage: from sage.categories.modules_with_basis import PointwiseInverseFunction
-            sage: f = PointwiseInverseFunction(factorial)
-            sage: g = PointwiseInverseFunction(factorial)
-            sage: f is g
-            False
-            sage: f == g
-            True
-        """
-        return self.__class__ is other.__class__ and self.__dict__ == other.__dict__
-
-    def __init__(self, f):
-        """
-        TESTS::
-
-            sage: from sage.categories.modules_with_basis import PointwiseInverseFunction
-            sage: f = PointwiseInverseFunction(factorial)
-            sage: f(0), f(1), f(2), f(3)
-            (1, 1, 1/2, 1/6)
-            sage: TestSuite(f).run()
-        """
-        self._pointwise_inverse = f
-
-    def __call__(self, *args):
-        """
-        TESTS::
-
-            sage: from sage.categories.modules_with_basis import PointwiseInverseFunction
-            sage: g = PointwiseInverseFunction(operator.mul)
-            sage: g(5,7)
-            1/35
-        """
-        return ~(self._pointwise_inverse(*args))
-
-    def pointwise_inverse(self):
-        """
-        TESTS::
-
-            sage: from sage.categories.modules_with_basis import PointwiseInverseFunction
-            sage: g = PointwiseInverseFunction(operator.mul)
-            sage: g.pointwise_inverse() is operator.mul
-            True
-        """
-        return self._pointwise_inverse
-

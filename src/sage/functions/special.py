@@ -285,11 +285,10 @@ class MaximaFunction(BuiltinFunction):
         correctly (see :trac:`7557`)::
 
             sage: t = f(1.2+2*I*elliptic_kc(1-.5),.5)
-            sage: t._maxima_init_(maxima)  # abs tol 1e-13
-            '0.88771548861928029 - 1.7301614091485560e-15*%i'
+            sage: maxima(t) # abs tol 1e-13
+            0.88771548861928029 - 1.7301614091485560e-15*%i
             sage: t.n() # abs tol 1e-13
-            0.887715488619280 - 1.79195288804672e-15*I
-
+            0.887715488619280 - 1.73016140914856e-15*I
         """
         args_maxima = []
         for a in args:
@@ -554,8 +553,6 @@ class SphericalHarmonic(BuiltinFunction):
 
     For integers `n > -1`, `|m| \leq n`, simplification is done automatically.
     Numeric evaluation is supported for complex `n` and `m`.
-
-    Reference: Merzbacher 9.64
 
     EXAMPLES::
 

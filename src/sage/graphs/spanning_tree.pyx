@@ -73,7 +73,6 @@ Methods
 
 include "sage/ext/cdefs.pxi"
 include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
 
 cpdef kruskal(G, wfunction=None, bint check=False):
     r"""

@@ -8,7 +8,6 @@ from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
 cdef class pAdicGenericElement(LocalGenericElement):
-    cdef int _cmp_c_impl(left, Element right) except -2
     cdef long valuation_c(self)
     cpdef val_unit(self)
 

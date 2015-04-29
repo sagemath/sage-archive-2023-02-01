@@ -853,7 +853,7 @@ cdef class FractionFieldElement(FieldElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         """
         EXAMPLES::
 

@@ -168,7 +168,7 @@ def skipfile(filename):
         True
     """
     base, ext = os.path.splitext(filename)
-    if ext not in ('.py', '.pyx', '.pxi', '.sage', '.spyx', '.rst', '.tex'):
+    if ext not in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx', '.rst', '.tex'):
         return True
     with open(filename) as F:
         line_count = 0

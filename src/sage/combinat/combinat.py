@@ -929,14 +929,13 @@ class CombinatorialObject(SageObject):
 
                 sage: from sage.structure.element import Element
                 sage: class Bar(Element, CombinatorialObject):
-                ...       def __init__(self, l):
-                ...           CombinatorialObject.__init__(self, l)
-                ...
+                ....:     def __init__(self, l):
+                ....:         CombinatorialObject.__init__(self, l)
                 sage: L = [Bar([4-i]) for i in range(4)]
                 sage: sorted(L, cmp)
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: BUG: sort algorithm for elements of 'None' not implemented
+                NotImplementedError: comparison not implemented for <class '__main__.Bar'>
         """
         if isinstance(other, CombinatorialObject):
             return cmp(self._list, other._list)

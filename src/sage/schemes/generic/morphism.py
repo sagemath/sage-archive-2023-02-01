@@ -1549,7 +1549,7 @@ class SchemeMorphism_point(SchemeMorphism):
         """
         return len(self._coords)
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Compare two scheme morphisms.
 
@@ -1578,6 +1578,8 @@ class SchemeMorphism_point(SchemeMorphism):
             except TypeError:
                 return -1
         return cmp(self._coords, other._coords)
+
+    __cmp__ = _cmp_
 
     def scheme(self):
         """

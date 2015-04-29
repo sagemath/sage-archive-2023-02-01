@@ -2854,9 +2854,9 @@ cdef class PartitionStack:
                 self.col_percolate(j, i)
                 j = i + 1
 
-    def _cmp(self, other, C):
+    cpdef int cmp(self, PartitionStack other, BinaryCode CG):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -2891,13 +2891,9 @@ cdef class PartitionStack:
             1224
             sage: Q._is_discrete(4)
             1
-            sage: Q._cmp(P, B)
+            sage: Q.cmp(P, B)
             0
-
         """
-        return self.cmp(other, C)
-
-    cdef int cmp(self, PartitionStack other, BinaryCode CG):
         cdef int *self_wd_ents = self.wd_ents
         cdef codeword *CG_words = CG.words
         cdef int i, j, l, m, span = 1, ncols = self.ncols, nwords = self.nwords

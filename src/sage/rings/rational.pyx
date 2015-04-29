@@ -733,7 +733,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return (<sage.structure.element.Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         cdef int i
         i = mpq_cmp((<Rational>left).value, (<Rational>right).value)
         if i < 0: return -1

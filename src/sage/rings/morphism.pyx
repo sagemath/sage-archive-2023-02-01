@@ -1152,7 +1152,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         r"""
         EXAMPLES:
 
@@ -1458,7 +1458,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         r"""
         EXAMPLES:
 
@@ -2113,7 +2113,7 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         if left is right: return 0
         domain = left.domain()
         c = cmp(domain, right.domain())

@@ -3305,7 +3305,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef _richcmp_c_impl(left, Element right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         """
         Implements comparisons between intervals. (See the file header
         comment for more information on interval comparison.)
@@ -3529,7 +3529,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         return (<Element>left)._cmp(right)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Implements the lexicographic total order on intervals.
         """

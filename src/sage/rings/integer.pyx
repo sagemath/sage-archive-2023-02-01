@@ -322,7 +322,7 @@ cdef _digits_internal(mpz_t v,l,int offset,int power_index,power_list,digits):
         mpz_clear(mpz_quot)
         mpz_clear(mpz_res)
 
-from sage.structure.sage_object cimport SageObject
+from sage.structure.sage_object cimport SageObject, rich_to_bool_sgn
 from sage.structure.element cimport EuclideanDomainElement, ModuleElement, Element
 from sage.structure.element import  bin_op
 from sage.structure.coerce_exceptions import CoercionException
@@ -907,14 +907,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 c = -mpz_cmp_d((<Integer>right).value, d)
             else:
                 return (<sage.structure.element.Element>left)._richcmp(right, op)
-        return (<sage.structure.element.Element>left)._rich_to_bool(op, c)
+        return rich_to_bool_sgn(op, c)
 
-    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
-        cdef int i
-        i = mpz_cmp((<Integer>left).value, (<Integer>right).value)
-        if i < 0: return -1
-        elif i == 0: return 0
-        else: return 1
+    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
+        cdef int c
+        c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
+        return (c > 0) - (c < 0)
 
     def __copy__(self):
         """

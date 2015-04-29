@@ -54,6 +54,7 @@ import operator
 import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.misc.randstate cimport randstate, current_randstate
+from sage.structure.sage_object cimport rich_to_bool
 from sage.misc.superseded import deprecation, deprecated_function_alias
 
 include 'pari_err.pxi'
@@ -1054,7 +1055,7 @@ cdef class gen(gen_auto):
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
-    cdef _richcmp_c_impl(left, Element right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         """
         Compare ``left`` and ``right`` using ``op``.
 
@@ -1123,14 +1124,14 @@ cdef class gen(gen_auto):
         elif op == 3:  # !=
             r = (gequal(x, y) == 0)
         else:
-            r = left._rich_to_bool(op, gcmp(x, y))
+            r = rich_to_bool(op, gcmp(x, y))
         pari_catch_sig_off()
         return r
 
     def __cmp__(left, right):
         return (<Element>left)._cmp(right)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Compare ``left`` and ``right``.
 

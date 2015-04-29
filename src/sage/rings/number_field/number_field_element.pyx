@@ -777,7 +777,7 @@ cdef class NumberFieldElement(FieldElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         cdef NumberFieldElement _right = right
         return not (ZZX_equal(left.__numerator, _right.__numerator) and ZZ_equal(left.__denominator, _right.__denominator))
 

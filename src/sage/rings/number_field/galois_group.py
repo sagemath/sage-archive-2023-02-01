@@ -635,7 +635,6 @@ class GaloisGroupElement(PermutationGroupElement):
         sage: G[4](G[4](G[4](v)))
         1/18*y^4
     """
-
     @cached_method
     def as_hom(self):
         r"""
@@ -689,21 +688,6 @@ class GaloisGroupElement(PermutationGroupElement):
         gens = self.parent().number_field().ring_of_integers().ring_generators()
         w = [ (self(g) - g).valuation(P) for g in gens]
         return min(w)
-
-    def __cmp__(self, other):
-        r"""
-        Compare self to other. For some bizarre reason, if you just let it
-        inherit the cmp routine from PermutationGroupElement, cmp(x, y) works
-        but sorting lists doesn't.
-
-        TEST::
-
-            sage: K.<a> = NumberField(x^6 + 40*x^3 + 1372);G = K.galois_group()
-            sage: sorted([G.artin_symbol(Q) for Q in K.primes_above(5)])
-            [(1,3)(2,6)(4,5), (1,2)(3,4)(5,6), (1,5)(2,4)(3,6)]
-        """
-        return PermutationGroupElement.__cmp__(self, other)
-
 
 
 # For unpickling purposes we rebind GaloisGroup as GaloisGroup_v1.

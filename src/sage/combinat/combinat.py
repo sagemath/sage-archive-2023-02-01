@@ -2702,6 +2702,22 @@ def bell_polynomial(n, k):
         sage: bell_polynomial(6,3)
         15*x_2^3 + 60*x_1*x_2*x_3 + 15*x_1^2*x_4
 
+    TESTS:
+
+    Check that :trac:`18338` is fixed::
+
+        sage: bell_polynomial(0,0).parent()
+        Univariate Polynomial Ring in x_1 over Rational Field
+
+        sage: for n in (0..4):
+        ....:     print [bell_polynomial(n,k).coefficients() for k in (0..n)]
+        [[1]]
+        [[], [1]]
+        [[], [1], [1]]
+        [[], [1], [3], [1]]
+        [[], [1], [3, 4], [6], [1]]
+
+
     REFERENCES:
 
     - E.T. Bell, "Partition Polynomials"
@@ -2709,23 +2725,22 @@ def bell_polynomial(n, k):
     AUTHORS:
 
     - Blair Sutton (2009-01-26)
+    - Thierry Monteil (2015-09-29): the result must always be a polynomial.
     """
     from sage.combinat.partition import Partitions
     from sage.rings.arith import factorial
-    vars = ZZ[tuple(['x_'+str(i) for i in range(1, n-k+2)])].gens()
-    result = 0
+    R = QQ[tuple(['x_'+str(i) for i in range(1, n-k+2)])]
+    vars = R.gens()
+    result = R.zero()
     for p in Partitions(n, length=k):
-        factorial_product  = 1
+        factorial_product = 1
         power_factorial_product = 1
         for part, count in p.to_exp_dict().iteritems():
             factorial_product *= factorial(count)
             power_factorial_product *= factorial(part)**count
-
         coefficient = factorial(n) / (factorial_product * power_factorial_product)
         result += coefficient * prod([vars[i - 1] for i in p])
-
     return result
-
 
 def fibonacci_sequence(start, stop=None, algorithm=None):
     r"""

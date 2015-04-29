@@ -4609,12 +4609,17 @@ class Graph(GenericGraph):
         Returns the degree centrality of a vertex.
 
         The degree centrality of a vertex `v` is its degree, divided by
-        `n-1`. For more information, see the :wikipedia:`Centrality`.
+        `|V(G)|-1`. For more information, see the :wikipedia:`Centrality`.
 
         INPUT:
 
         - ``v`` - a vertex. Set to ``None`` (default) to get a dictionary
           associating each vertex with its centrality degree.
+
+        .. SEEALSO::
+
+            - :meth:`centrality_closeness`
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.centrality_betweenness`
 
         EXAMPLES::
 
@@ -4665,6 +4670,11 @@ class Graph(GenericGraph):
 
         - ``v`` - a vertex. Set to ``None`` (default) to get a dictionary
           associating each vertex with its centrality closeness.
+
+        .. SEEALSO::
+
+            - :meth:`centrality_degree`
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.centrality_betweenness`
 
         REFERENCE:
 

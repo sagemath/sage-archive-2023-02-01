@@ -20,6 +20,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import MonoidElement
 from sage.structure.indexed_generators import IndexedGenerators
+from sage.structure.sage_object import op_EQ, op_NE, py_rich_to_bool
 from sage.combinat.dict_addition import dict_addition
 
 from sage.categories.monoids import Monoids
@@ -200,11 +201,11 @@ class IndexedMonoidElement(MonoidElement):
         """
         return ((self.parent().gen(index), exp) for (index,exp) in self._sorted_items())
 
-    def __eq__(self, y):
-        """
-        Check equality.
+    def _richcmp_(self, other, op):
+        r"""
+        Comparisons
 
-        EXAMPLES::
+        TESTS::
 
             sage: F = FreeMonoid(index_set=ZZ)
             sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
@@ -214,51 +215,12 @@ class IndexedMonoidElement(MonoidElement):
             True
             sage: a*b*c^3*b*d == (a*b*c)*(c^2*b*d)
             True
-
-            sage: F = FreeAbelianMonoid(index_set=ZZ)
-            sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
-            sage: a == a
-            True
-            sage: a*e == e*a
-            True
-            sage: a*b*c^3*b*d == a*d*(b^2*c^2)*c
-            True
-        """
-        if not isinstance(y, IndexedMonoidElement):
-            return y == 1 and not self._monomial
-        return y.parent() is self.parent() and y._monomial == self._monomial
-
-    def __ne__(self, y):
-        """
-        Check inequality.
-
-        EXAMPLES::
-
-            sage: F = FreeMonoid(index_set=ZZ)
-            sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
             sage: a != b
             True
             sage: a*b != b*a
             True
             sage: a*b*c^3*b*d != (a*b*c)*(c^2*b*d)
             False
-
-            sage: F = FreeAbelianMonoid(index_set=ZZ)
-            sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
-            sage: a != b
-            True
-            sage: a*b != a*a
-            True
-            sage: a*b*c^3*b*d != a*d*(b^2*c^2)*c
-            False
-        """
-        return not self.__eq__(y)
-
-    def __lt__(self, y):
-        """
-        Check less than.
-
-        EXAMPLES::
 
             sage: F = FreeMonoid(index_set=ZZ)
             sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
@@ -270,55 +232,37 @@ class IndexedMonoidElement(MonoidElement):
             False
             sage: a^2*b < a*b*b
             True
-        """
-        if not isinstance(y, IndexedMonoidElement):
-            return False
-        return self.to_word_list() < y.to_word_list()
-
-    def __gt__(self, y):
-        """
-        Check less than.
-
-        EXAMPLES::
-
-            sage: F = FreeMonoid(index_set=ZZ)
-            sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
             sage: b > a
             True
             sage: a*b > b*a
             False
             sage: a*b > a*a
             True
-        """
-        if not isinstance(y, IndexedMonoidElement):
-            return False
-        return y.__lt__(self)
-
-    def __le__(self, y):
-        """
-        Check less than or equals.
-
-        EXAMPLES::
-
-            sage: F = FreeMonoid(index_set=ZZ)
-            sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
             sage: a*b <= b*a
             True
-        """
-        return self.__eq__(y) or self.__lt__(y)
-
-    def __ge__(self, y):
-        """
-        Check greater than or equals.
-
-        EXAMPLES::
-
-            sage: F = FreeMonoid(index_set=ZZ)
-            sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
             sage: a*b <= b*a
             True
+
+            sage: FA = FreeAbelianMonoid(index_set=ZZ)
+            sage: a,b,c,d,e = [FA.gen(i) for i in range(5)]
+            sage: a == a
+            True
+            sage: a*e == e*a
+            True
+            sage: a*b*c^3*b*d == a*d*(b^2*c^2)*c
+            True
+            sage: a != b
+            True
+            sage: a*b != a*a
+            True
+            sage: a*b*c^3*b*d != a*d*(b^2*c^2)*c
+            False
         """
-        return self.__eq__(y) or self.__gt__(y)
+        if op == op_EQ:
+            return self._monomial == other._monomial
+        elif op == op_NE:
+            return self._monomial != other._monomial
+        return py_rich_to_bool(op, cmp(self.to_word_list(), other.to_word_list()))
 
     def support(self):
         """

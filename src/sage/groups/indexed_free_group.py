@@ -206,33 +206,6 @@ class IndexedFreeGroup(IndexedGroup, Group):
             return self.element_class(self, ((x,1),))
 
     class Element(IndexedFreeMonoidElement):
-        def __lt__(self, other):
-            """
-            Return whether ``self`` is smaller than ``y``.
-
-            This is done by comparing lexicographically the words for
-            ``self`` and ``y``. In particular this assumes that the
-            (index of) the generators are totally ordered.
-
-            EXAMPLES::
-
-                sage: G = Groups().free(index_set=ZZ)
-                sage: a,b,c,d,e = [G.gen(i) for i in range(5)]
-                sage: a < b
-                True
-                sage: a^-1*b < b^-1*a
-                True
-                sage: a*b < a*a^-1
-                False
-                sage: a^-1*a < a^2
-                True
-                sage: a^2*b < a*b^-1*a*b
-                True
-            """
-            if not isinstance(other, IndexedMonoidElement):
-                return False
-            return self.to_word_list() < other.to_word_list()
-
         def __len__(self):
             """
             Return the length of ``self``.

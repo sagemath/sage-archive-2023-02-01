@@ -912,7 +912,6 @@ class GraphPlot(SageObject):
                 for item in comp:
                     G += item
 
-        G.set_axes_range(*(self._graph._layout_bounding_box(self._pos)))
         if self._options['graph_border']:
             xmin = G.xmin()
             xmax = G.xmax()
@@ -925,7 +924,6 @@ class GraphPlot(SageObject):
             G += border
         G.set_aspect_ratio(1)
         G.axes(False)
-        G._extra_kwds['axes_pad']=.05
         return G
 
     def layout_tree(self,root,orientation):

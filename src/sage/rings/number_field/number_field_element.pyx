@@ -2646,6 +2646,46 @@ cdef class NumberFieldElement(FieldElement):
     cdef bint is_rational_c(self):
         return ZZX_deg(self.__numerator) == 0
 
+    def is_rational(self):
+        r"""
+        Test whether this number field element is a rational
+
+        EXAMPLES::
+
+            sage: K.<cbrt3> = NumberField(x^3 - 3)
+            sage: cbrt3.is_rational()
+            False
+            sage: (cbrt3**2 - cbrt3 + 1/2).is_rational()
+            False
+            sage: K(-12).is_rational()
+            True
+            sage: K(0).is_rational()
+            True
+            sage: K(1/2).is_rational()
+            True
+        """
+        return ZZX_deg(self.__numerator) <= 0
+
+    def is_integer(self):
+        r"""
+        Test whether this number field element is an integer
+
+        EXAMPLES::
+
+            sage: K.<cbrt3> = NumberField(x^3 - 3)
+            sage: cbrt3.is_integer()
+            False
+            sage: (cbrt3**2 - cbrt3 + 2).is_integer()
+            False
+            sage: K(-12).is_integer()
+            True
+            sage: K(0).is_integer()
+            True
+            sage: K(1/2).is_integer()
+            False
+        """
+        return ZZX_deg(self.__numerator) <= 0 and ZZ_IsOne(self.__denominator) == 1
+
     def trace(self, K=None):
         """
         Return the absolute or relative trace of this number field

@@ -1392,6 +1392,46 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             mpq_canonicalize(res.value)
             return res
 
+    def is_rational(self):
+        r"""
+        Check whether this number field element is a rational number.
+
+        EXAMPLES::
+
+            sage: K.<sqrt3> = QuadraticField(3)
+            sage: sqrt3.is_rational()
+            False
+            sage: (sqrt3-1/2).is_rational()
+            False
+            sage: K(0).is_rational()
+            True
+            sage: K(-12).is_rational()
+            True
+            sage: K(1/3).is_rational()
+            True
+        """
+        return mpz_cmp_ui(self.b, 0) == 0
+
+    def is_integer(self):
+        r"""
+        Check whether this number field element is an integer.
+
+        EXAMPLES::
+
+            sage: K.<sqrt3> = QuadraticField(3)
+            sage: sqrt3.is_integer()
+            False
+            sage: (sqrt3-1/2).is_integer()
+            False
+            sage: K(0).is_integer()
+            True
+            sage: K(-12).is_integer()
+            True
+            sage: K(1/3).is_integer()
+            False
+        """
+        return mpz_cmp_ui(self.b, 0) == mpz_cmp_ui(self.denom, 1) == 0
+
     def real(self):
         r"""
         Returns the real part of self, which is either self (if self lives

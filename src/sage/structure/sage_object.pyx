@@ -19,6 +19,43 @@ have_same_parent = LazyImport('sage.structure.element', 'have_same_parent', depr
 import zlib; comp = zlib
 import bz2; comp_other = bz2
 
+op_LT = Py_LT   # operator <
+op_LE = Py_LE   # operator <=
+op_EQ = Py_EQ   # operator ==
+op_NE = Py_NE   # operator !=
+op_GT = Py_GT   # operator >
+op_GE = Py_GE   # operator >=
+
+def py_rich_to_bool(op, c):
+    r"""
+    Return ``True`` or ``False`` for a rich comparison, given the result of an
+    ordinary comparison.
+
+    Do not use this function from Cython. Instead, call ``rich_to_bool`` or
+    ``rich_to_bool_sgn`` defined in ``sage_object.pxd``.
+
+    INPUT:
+
+    - ``op`` -- a rich comparison operation (e.g. ``op_EQ``)
+
+    - ``c`` -- the result of an ordinary comparison, i.e. an integer.
+
+    EXAMPLES::
+
+        sage: from sage.structure.sage_object import (py_rich_to_bool,
+        ....:    op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE)
+        sage: for op in (op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE):
+        ....:     for c in (-1,0,1):
+        ....:         print py_rich_to_bool(op, c),
+        ....:     print
+        True False False
+        True True False
+        False True False
+        True False True
+        False False True
+        False True True
+    """
+    return rich_to_bool_sgn(op, c)
 
 cdef process(s):
     if s[-5:] != '.sobj':

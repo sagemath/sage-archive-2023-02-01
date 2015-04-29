@@ -1446,9 +1446,13 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     def real(self):
         """
-        Return the real part of ``self``.
+        Return the real part of this real interval.
 
-        (Since ``self`` is a real number, this simply returns ``self``.)
+        (Since this interval is real, this simply returns itself.)
+
+        .. SEEALSO:
+
+            :meth:`imag`
 
         EXAMPLES::
 
@@ -1456,6 +1460,23 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             True
         """
         return self
+
+    def imag(self):
+        r"""
+        Return the imaginary part of this real interval.
+
+        (Since this is interval is real, this simply returns the zero interval.)
+
+        .. SEEALSO::
+
+            :meth:`real`
+
+        EXAMPLES::
+
+            sage: RIF(2,3).imag()
+            0
+        """
+        return self._parent.zero()
 
     # MPFR had an elaborate "truncation" scheme to avoid printing
     # inaccurate-looking results; this has been removed for MPFI,

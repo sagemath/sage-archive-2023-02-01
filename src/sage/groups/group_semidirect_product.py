@@ -1,11 +1,7 @@
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 from sage.categories.groups import Groups
-from sage.structure.element import MultiplicativeGroupElement
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import Parent
 from sage.sets.cartesian_product import CartesianProduct
 from sage.misc.cachefunc import cached_method
-from sage.groups.group_exp import GroupExp
 
 class GroupSemidirectProductElement(CartesianProduct.Element):
     r"""

@@ -18,7 +18,6 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.sets.family import Family
 from sage.combinat.root_system.root_system import RootSystem
-from sage.categories.finite_sets import FiniteSets
 
 def FundamentalGroupOfExtendedAffineWeylGroup(cartan_type, prefix='pi', general_linear=None):
     r"""
@@ -329,7 +328,6 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
             self._special_nodes = tuple([0] + [i for i in I if theta[i] == 1])
             om = RootSystem(cartan_type_classical).weight_lattice().fundamental_weights()
             W = Q.weyl_group(prefix="s")
-            w0 = W.long_element()
             fg_dict = {}
             for j in cartan_type.index_set():
                 fg_dict[0,j] = j

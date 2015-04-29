@@ -9,7 +9,6 @@ AUTHORS:
 - Mark Shimozono (2012): initial version
 - Nicolas Thiery (2012): initial version
 - Mark Shimozono (2013): twisted affine root systems, multiple realizations
-
 """
 
 #*****************************************************************************
@@ -30,9 +29,7 @@ from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.categories.groups import Groups
 from sage.categories.sets_cat import Sets
-from sage.categories.all import WeylGroups, FiniteWeylGroups, AffineWeylGroups
 from sage.misc.cachefunc import cached_method
-from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.sets.family import Family
@@ -2204,7 +2201,6 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
                 [(0, True), (1, False), (2, False)]
 
             """
-            E = self.parent().realization_of()
             if side == 'right':
                 self = ~self
             if positive:
@@ -2367,7 +2363,6 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
                 [(0, False), (1, False), (2, True)]
 
             """
-            E = self.parent().realization_of()
             if side == 'left':
                 self = ~self
             if positive:

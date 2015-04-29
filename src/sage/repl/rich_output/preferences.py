@@ -419,9 +419,9 @@ DisplayPreferences._add_option(
     'plot_graphs',
     ('always', 'never'),
     """
-    Whether to graphically display graphs, posets, and other
-    graph-like objects. When not specified small objects are show
-    graphically and large objects as textual overview.
+    Whether to graphically display graphs and other graph-like objects
+    that implement rich output. When not specified small objects are
+    show graphically and large objects as textual overview.
     """
 )
 

@@ -1,5 +1,5 @@
 """
-Utility classes for multi-modular algorithms.
+Utility classes for multi-modular algorithms
 """
 
 ######################################################################

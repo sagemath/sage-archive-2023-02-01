@@ -7,7 +7,7 @@ isomorphic to the field `\QQ` of rational numbers, but with different
 printing and semantics.  It should be possible to use this field in
 most cases where one could use `\QQ`, except arithmetic is *much* slower.
 
-EXAMPLES::
+EXAMPLES:
 
 We can create matrices, polynomials, vectors, etc., over the continued fraction
 field::

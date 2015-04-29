@@ -122,6 +122,23 @@ import types
 EMBEDDED_MODE = False
 from sage.env import SAGE_SRC
 
+def loadable_module_extension():
+    r"""
+    Return the filename extension of loadable modules, including the dot.
+    It is '.dll' on cygwin, '.so' otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import loadable_module_extension
+        sage: sage.structure.sage_object.__file__.endswith(loadable_module_extension())
+        True
+    """
+    import sys
+    if sys.platform == 'cygwin':
+        return os.path.extsep+'dll'
+    else:
+        return os.path.extsep+'so'
+
 def isclassinstance(obj):
     r"""
     Checks if argument is instance of non built-in class
@@ -1227,8 +1244,8 @@ def sage_getfile(obj):
         sourcefile = inspect.getabsfile(obj)
     except TypeError: # this happens for Python builtins
         return ''
-    if sourcefile.endswith(os.path.extsep+'so'):
-        return sourcefile[:-3]+os.path.extsep+'pyx'
+    if sourcefile.endswith(loadable_module_extension()):
+        return sourcefile[:-len(loadable_module_extension())]+os.path.extsep+'pyx'
     return sourcefile
 
 def sage_getargspec(obj):

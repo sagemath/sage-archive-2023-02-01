@@ -8268,10 +8268,13 @@ cdef class Matrix(matrix1.Matrix):
         This function, given a bistochastic matrix, returns the corresponding
         decomposition.
 
-        .. SEEALSO:
+        .. SEEALSO::
 
-        - :meth:`bistochastic_as_sum_of_permutations <sage.combinat.permutation.bistochastic_as_sum_of_permutations>`
-          -- for more information on this method.
+            - :func:`bistochastic_as_sum_of_permutations
+              <sage.combinat.permutation.bistochastic_as_sum_of_permutations>`
+              -- for more information on this method.
+
+            - :meth:`~sage.geometry.polyhedron.library.Polytopes.Birkhoff_polytope`
 
         EXAMPLE:
 

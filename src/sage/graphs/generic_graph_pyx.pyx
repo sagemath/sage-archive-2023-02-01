@@ -571,7 +571,8 @@ cdef class SubgraphSearch:
         for _ in self:
             i+=1
 
-        return i
+        from sage.rings.integer import Integer
+        return Integer(i)
 
     def _initialization(self):
         r"""

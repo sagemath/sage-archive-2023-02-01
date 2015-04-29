@@ -40,6 +40,7 @@ from sage.structure.sage_object import SageObject
 from sage.repl.rich_output.output_basic import (
     OutputPlainText, OutputAsciiArt, OutputLatex,
 )
+from sage.repl.rich_output.preferences import DisplayPreferences
 
 
 class DisplayException(Exception):
@@ -104,11 +105,15 @@ class restricted_output(object):
         """
         Context manager to temporarily restrict the accepted output types
 
+        In the context, the output is restricted to the output
+        container types listed in ``output_classes``. Additionally,
+        display preferences are changed not not show graphics.
+
         INPUT:
 
         - ``display_manager`` -- the display manager.
 
-        - ``output_classes`` -- iterable of
+        - ``output_classes`` -- iterable of output container types.
 
         EXAMPLES::
 
@@ -135,11 +140,25 @@ class restricted_output(object):
             sage: with restricted_output(dm, [dm.types.OutputPlainText]):
             ....:    dm.supported_output()
             frozenset({<class 'sage.repl.rich_output.output_basic.OutputPlainText'>})
+
+            sage: dm.preferences.plot_graphs
+            'never'
+            sage: dm.preferences.plot_graphs = 'always'
+            sage: with restricted_output(dm, [dm.types.OutputPlainText]):
+            ....:    dm.preferences
+            Display preferences:
+            * graphics = disable
+            * plot_graphs = never
+            * text is not specified
+            sage: dm.preferences.plot_graphs = 'never'
         """
         dm = self._display_manager
         self._original = dm._supported_output
         dm._supported_output = self._output_classes
-
+        self._original_prefs = DisplayPreferences(dm.preferences)
+        dm.preferences.graphics = 'disable'
+        dm.preferences.plot_graphs = 'never'
+        
     def __exit__(self, exception_type, value, traceback):
         """
         Exit the restricted output context
@@ -153,9 +172,10 @@ class restricted_output(object):
             ....:     assert len(dm.supported_output()) == 1
             sage: assert len(dm.supported_output()) > 1
         """
-        self._display_manager._supported_output = self._original
-        
-        
+        dm = self._display_manager
+        dm._supported_output = self._original
+        dm.preferences.graphics = self._original_prefs.graphics
+        dm.preferences.plot_graphs = self._original_prefs.plot_graphs
 
 
 class DisplayManager(SageObject):
@@ -298,7 +318,6 @@ class DisplayManager(SageObject):
             old_backend = None
         self._backend = backend
         self._backend.install(**kwds)
-        from sage.repl.rich_output.preferences import DisplayPreferences
         self._preferences = DisplayPreferences(self._backend.default_preferences())
         return old_backend
 

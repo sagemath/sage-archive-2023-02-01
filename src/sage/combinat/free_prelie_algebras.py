@@ -367,16 +367,15 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             raise TypeError('not able to coerce this in this algebra')
         # Ok, not a pre-Lie algebra element (or should not be viewed as one).
 
-    def _coerce_impl(self, x):
+    def _coerce_map_from_(self, R):
         r"""
-        Canonical coercion of ``x`` into ``self``.
+        Return ``True`` if there is a coercion from ``R`` into ``self``
+        and ``False`` otherwise.
 
-        Here is what canonically coerces to ``self``:
+        The things that coerce into ``self`` are
 
-        - this free prelie algebra,
-
-        - any free prelie algebra on the same variables, whose base ring
-          coerces to the base ring of this free prelie algebra.
+        - PreLie Algebras in the same variables over a base with a coercion
+          map into ``self.base_ring()``
 
         EXAMPLES::
 
@@ -411,31 +410,6 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             on 3 generators ['x', 'y', 'z'] over Finite Field of size
             7 to Free PreLie algebra on 3 generators ['x', 'y', 'z']
             over Integer Ring
-        """
-        try:
-            R = x.parent()
-
-            # prelie algebras in the same variables over any base
-            # that coerces in:
-            if isinstance(R, FreePreLieAlgebra):
-                if R.variable_names() == self.variable_names():
-                    if self.base_ring().has_coerce_map_from(R.base_ring()):
-                        return self(x)
-                    raise TypeError("no natural map between bases of "
-                                    "Free PreLie algebras")
-
-        except AttributeError:
-            pass
-
-    def _coerce_map_from_(self, R):
-        r"""
-        Return ``True`` if there is a coercion from ``R`` into ``self``
-        and ``False`` otherwise.
-
-        The things that coerce into ``self`` are
-
-        - PreLie Algebras in the same variables over a base with a coercion
-          map into ``self.base_ring()``
 
         TESTS::
 

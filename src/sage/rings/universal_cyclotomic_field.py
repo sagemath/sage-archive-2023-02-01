@@ -169,15 +169,12 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import Infinity
 
-from sage.categories.fields import Fields
-
 # Deprecations from the old universal cyclotomic field
 from sage.misc.lazy_import import lazy_import
 lazy_import("sage.rings", "universal_cyclotomic_field", deprecation=18152)
 
 libgap = GapElement_Integer = GapElement_Rational = GapElement_Cyclotomic = None
 gap = gap3 = None
-_UCF = None
 
 def late_import():
     r"""
@@ -934,6 +931,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             sage: UCF = UniversalCyclotomicField()
             sage: TestSuite(UCF).run()
         """
+        from sage.categories.fields import Fields
         Field.__init__(self, base_ring=QQ, category=Fields().Infinite())
         self._populate_coercion_lists_(embedding=UCFtoQQbar(self))
         late_import()

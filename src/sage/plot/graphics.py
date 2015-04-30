@@ -29,6 +29,7 @@ AUTHORS:
 #*****************************************************************************
 
 import os
+from math import isnan
 import sage.misc.misc
 from sage.misc.html import html
 from sage.misc.temporary_file import tmp_filename
@@ -2082,7 +2083,7 @@ class Graphics(SageObject):
 
 
     def get_minmax_data(self):
-        """
+        r"""
         Return a dictionary whose keys give the xmin, xmax, ymin, and ymax
         data for this graphic.
 
@@ -2105,6 +2106,21 @@ class Graphics(SageObject):
             sage: g.ymax(10)
             sage: list(sorted(g.get_minmax_data().items()))
             [('xmax', 3.0), ('xmin', -1.0), ('ymax', 2.0), ('ymin', 1.0)]
+
+        The width/height ratio (in output units, after factoring in the
+        chosen aspect ratio) of the plot is limited to `10^{-15}\dots
+        10^{15}`, otherwise floating point errors cause problems in
+        matplotlib::
+
+            sage: l = line([(1e-19,-1), (-1e-19,+1)], aspect_ratio=1.0)
+            sage: l.get_minmax_data()
+            {'xmax': 1.00010000000000e-15,
+             'xmin': -9.99900000000000e-16,
+             'ymax': 1.0,
+             'ymin': -1.0}
+            sage: l = line([(0,0), (1,1)], aspect_ratio=1e19)
+            sage: l.get_minmax_data()
+            {'xmax': 5000.50000000000, 'xmin': -4999.50000000000, 'ymax': 1.0, 'ymin': 0.0}
         """
         objects = self._objects
         if objects:
@@ -2113,15 +2129,13 @@ class Graphics(SageObject):
             xmax = max(d['xmax'] for d in minmax_data)
             ymin = min(d['ymin'] for d in minmax_data)
             ymax = max(d['ymax'] for d in minmax_data)
-            # check for NaN's: weird thing -- only way I know to check if a float
-            # is a NaN is to check if it is not equal to itself.
-            if xmin!=xmin:
+            if isnan(xmin):
                 xmin=0; sage.misc.misc.verbose("xmin was NaN (setting to 0)", level=0)
-            if xmax!=xmax:
+            if isnan(xmax):
                 xmax=0; sage.misc.misc.verbose("xmax was NaN (setting to 0)", level=0)
-            if ymin!=ymin:
+            if isnan(ymin):
                 ymin=0; sage.misc.misc.verbose("ymin was NaN (setting to 0)", level=0)
-            if ymax!=ymax:
+            if isnan(ymax):
                 ymax=0; sage.misc.misc.verbose("ymax was NaN (setting to 0)", level=0)
         else:
             xmin = xmax = ymin = ymax = 0
@@ -2132,6 +2146,44 @@ class Graphics(SageObject):
         if ymin == ymax:
             ymin -= 1
             ymax += 1
+        return self._limit_output_aspect_ratio(xmin, xmax, ymin, ymax)
+
+    def _limit_output_aspect_ratio(self, xmin, xmax, ymin, ymax):
+        """
+        Private helper function for :meth:`get_minmax_data`
+
+        EXAMPLES::
+        
+            sage: l = line([(0,0), (1,1)], aspect_ratio=1.0)
+            sage: l._limit_output_aspect_ratio(1, 2, 1e19, 3)
+            {'xmax': -4999.50000000000,
+             'xmin': 5000.50000000000,
+             'ymax': 3,
+             'ymin': 1.00000000000000e19}
+            sage: l._limit_output_aspect_ratio(1, 2, 3, 1e19)
+            {'xmax': 5000.50000000000,
+             'xmin': -4999.50000000000,
+             'ymax': 1.00000000000000e19,
+             'ymin': 3}
+            sage: l = line([(0,0), (1,1)], aspect_ratio=1e16)
+            sage: l._limit_output_aspect_ratio(0, 1, 2, 3)
+            {'xmax': 5.50000000000000, 'xmin': -4.50000000000000, 'ymax': 3, 'ymin': 2}
+        """
+        aspect_ratio = self.aspect_ratio()
+        if aspect_ratio != 'automatic':
+            width = xmax - xmin
+            height = ymax - ymin
+            output_aspect = width/height/aspect_ratio
+            if output_aspect > 1e15:
+                height = 1e15 * width / aspect_ratio
+                ycenter = (ymax - ymin) / 2
+                ymin = ycenter - height/2
+                ymax = ycenter + height/2
+            if output_aspect < 1e-15:
+                width = 1e-15 * height * aspect_ratio
+                xcenter = (xmax - xmin) / 2
+                xmin = xcenter - width/2
+                xmax = xcenter + width/2
         return {'xmin':xmin, 'xmax':xmax, 'ymin':ymin, 'ymax':ymax}
 
     def _matplotlib_tick_formatter(self, subplot, base=(10, 10),

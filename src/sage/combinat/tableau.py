@@ -5185,11 +5185,10 @@ class SemistandardTableaux_size(SemistandardTableaux):
 
         EXAMPLES::
 
-            sage: SemistandardTableaux(6).random_element()
-            [[2, 2], [3, 3], [6, 6]]
-            sage: SemistandardTableaux(6, max_entry=7).random_element()
-            [[2, 2], [3, 3], [6, 6]]
-
+            sage: SemistandardTableaux(6).random_element() # random
+            [[1, 1, 2], [3, 5, 5]]
+            sage: SemistandardTableaux(6, max_entry=7).random_element() # random
+            [[2, 4, 4, 6, 6, 6]]
         """
         from sage.rings.all import ZZ
         from sage.rings.arith import binomial

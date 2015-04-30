@@ -10,6 +10,17 @@ documentation: arithmetical operations are quite expensive, so the use of
 internally represented cyclotomics is not recommended for doing arithmetic over
 number fields, such as calculations with matrices of cyclotomics.
 
+.. NOTE::
+
+    There used to be a native Sage version of the universal cyclotomic field
+    written by Christian Stump (see :trac:`8327`). It was slower on most
+    operations and it was decided to use a version based on libGAP instead (see
+    :trac:`18152`). One main difference in the design choices is that GAP stores
+    dense vectors whereas the native ones used Python dictionaries (storing only
+    nonzero coefficients). Most operations are faster with libGAP except some
+    operation on very sparse elements. All details can be found in
+    :trac:`18152`.
+
 REFERENCES:
 
 .. [Bre97] T. Breuer "Integral bases for subfields of cyclotomic fields" AAECC 8, 279--289 (1997).

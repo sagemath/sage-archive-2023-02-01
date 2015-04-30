@@ -35,6 +35,7 @@ from sage.combinat.root_system.coxeter_type import CoxeterType
 from sage.combinat.root_system.root_system import RootSystem
 from sage.sets.family import Family
 
+
 class CoxeterMatrix(CoxeterType):
     """
     A Coxeter matrix.
@@ -95,7 +96,7 @@ class CoxeterMatrix(CoxeterType):
         [ 1  3 -1]
         [ 3  1  4]
         [-1  4  1]
-    
+
     It is possible to give a number `\leq -1` to represent an infinite label
 
         sage: CoxeterMatrix([[1,-1],[-1,1]])
@@ -149,9 +150,9 @@ class CoxeterMatrix(CoxeterType):
         """
         # Special cases with 0 args
         if not args:
-            if "coxeter_type" in kwds: # kwds has Coxeter type
+            if "coxeter_type" in kwds:  # kwds has Coxeter type
                 args = ( CoxeterType(kwds["coxeter_type"]), )
-            elif "cartan_type" in kwds: # kwds has Cartan type
+            elif "cartan_type" in kwds:  # kwds has Cartan type
                 args = ( CoxeterType(CartanType(kwds["cartan_type"])), )
             base_ring = ZZ
 
@@ -163,7 +164,7 @@ class CoxeterMatrix(CoxeterType):
             subdivisions = None
             base_ring = ZZ
 
-        elif len(args) == 4 and isinstance(args[0], MatrixSpace): # For pickling
+        elif len(args) == 4 and isinstance(args[0], MatrixSpace):  # For pickling
             return typecall(cls, args[0], args[1], args[2], args[3])
         elif isinstance(args[0], CoxeterMatrix):
             return args[0]
@@ -196,7 +197,7 @@ class CoxeterMatrix(CoxeterType):
                     m = e[2]
                     if m is None:
                         m = 3
-                    elif m == infinity: 
+                    elif m == infinity:
                         m = -1
                     elif m not in ZZ and m > -1:
                         raise ValueError("invalid Coxeter graph label")
@@ -219,7 +220,7 @@ class CoxeterMatrix(CoxeterType):
                 n = len(index_set)
                 reverse = {index_set[i]: i for i in range(n)}
                 data = [[1 if i == j else 2 for j in range(n)] for i in range(n)]
-                for (i,j,l) in coxeter_type.coxeter_graph().edge_iterator():
+                for (i, j, l) in coxeter_type.coxeter_graph().edge_iterator():
                     if l == infinity:
                         l = -1
                     data[reverse[i]][reverse[j]] = l
@@ -270,12 +271,12 @@ class CoxeterMatrix(CoxeterType):
             sage: C = CoxeterMatrix(['A', 2, 1])
             sage: TestSuite(C).run(skip=["_test_category", "_test_change_ring"])
         """
-        
-        self._matrix = Matrix_generic_dense(parent,data,False,True)
+
+        self._matrix = Matrix_generic_dense(parent, data, False, True)
         self._matrix.set_immutable()
         # Matrix_generic_dense.__init__(self, parent, data, False, True)
 
-        if self._matrix.base_ring() not in [ZZ,QQ]:
+        if self._matrix.base_ring() not in [ZZ, QQ]:
             self._is_cyclotomic = False
         else:
             self._is_cyclotomic = True
@@ -283,7 +284,7 @@ class CoxeterMatrix(CoxeterType):
         self._index_set = index_set
         self.rank = self._matrix.nrows()
 
-        self._dict = {(self._index_set[i],self._index_set[j]):self._matrix[i,j]
+        self._dict = {(self._index_set[i], self._index_set[j]): self._matrix[i, j]
                 for i in range(self.rank) for j in range(self.rank)}
 
     def __reduce__(self):
@@ -316,7 +317,7 @@ class CoxeterMatrix(CoxeterType):
         Return ``self`` as a matrix over the ring ``R``.
         """
 
-        if R != None:
+        if R is not None:
             return self._matrix.change_ring(R)
         else:
             return self._matrix
@@ -501,7 +502,7 @@ class CoxeterMatrix(CoxeterType):
             ...
             NotImplementedError
         """
-        if self._coxeter_type is not None: 
+        if self._coxeter_type is not None:
             return self._coxeter_type.is_affine()
         else:
             return False
@@ -563,9 +564,9 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
         sage: CoxeterMatrix(CoxeterType(['H',4]).coxeter_graph()).coxeter_type()
         Coxeter type of ['H', 4]
 
-        
+
     Some affine graphs::
-        
+
         sage: CoxeterMatrix(CoxeterType(['A',3,1]).coxeter_graph()).coxeter_type()
         Coxeter type of ['A', 3, 1]
         sage: CoxeterMatrix(CoxeterType(['B',3,1]).coxeter_graph()).coxeter_type()
@@ -594,11 +595,11 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
     """
     # First, we build the Coxeter graph of the group without the edge labels
     n = ZZ(coxeter_matrix.nrows())
-    G = Graph([range(n), lambda i,j: coxeter_matrix[i, j] not in [1,2]])
+    G = Graph([range(n), lambda i, j: coxeter_matrix[i, j] not in [1, 2]])
     # Coxeter graphs of finite Coxeter groups are forests
     # Coxeter graphs of affine Coxeter groups are forests possibly with cycle
     # graphs
-    
+
     comps = G.connected_components()
     # The group is finite if and only if for every connected
     # component ``comp`` of its Coxeter graph, the submatrix of
@@ -611,11 +612,11 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
         G0 = G.subgraph(comp)
         if l == 1:
             # Any `1 \times 1` Coxeter matrix gives a finite group.
-            types.append(['A',1])
+            types.append(['A', 1])
             continue  # A1
         elif l == 2:
             # A finite dihedral group iff there is no `\infty` in its
-            # Coxeter matrix. Otherwise it is affine iff the 
+            # Coxeter matrix. Otherwise it is affine iff the
             # off-diagonal value is -1.
             c0, c1 = comp
             if coxeter_matrix[c0, c1] > 0:
@@ -625,7 +626,7 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
                 types.append(['A', 1, 1])
                 continue
             else:
-                return None #TODO: return hyperbolic type once implemented
+                return None  # TODO: return hyperbolic type once implemented
         elif l == 3:
             # The `3`-node case. The finite groups to check for
             # here are `A_3`, `B_3` and `H_3`.
@@ -635,29 +636,29 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
             s = sorted([coxeter_matrix[c0, c1],
                         coxeter_matrix[c0, c2],
                         coxeter_matrix[c1, c2]])
-            if s[0] == 2: #Have a tree
+            if s[0] == 2:  # Have a tree
                 if s[1] == 3:
                     if s[2] == 3:
-                        types.append(['A',3])
+                        types.append(['A', 3])
                         continue
                     elif s[2] == 4:
-                        types.append(['B',3])
+                        types.append(['B', 3])
                         continue
                     elif s[2] == 5:
-                        types.append(['H',3])
+                        types.append(['H', 3])
                         continue
                     elif s[2] == 6:
-                        types.append(['G',2,1])
+                        types.append(['G', 2, 1])
                         continue
                     else:
                         return None
                 elif s[1] == 4 and s[2] == 4:
-                    types.append(['B',2,1])
+                    types.append(['B', 2, 1])
                     continue
                 else:
                     return None
             elif s[0] == 3 and s[1] == 3 and s[2] == 3:
-                types.append(['A',2,1])
+                types.append(['A', 2, 1])
                 continue
             else:
                 return None
@@ -682,21 +683,21 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
             if s[:3] == [2, 2, 2]:
                 if s[3:] == [3, 3, 3]:
                     if max(G0.degree()) == 2:
-                        types.append(['A',4])
+                        types.append(['A', 4])
                         continue
                     else:
-                        types.append(['D',4])
+                        types.append(['D', 4])
                         continue
                 elif s[3:] == [3, 3, 4] or s[3:] == [3, 3, 5] or s[3:] == [3,
-                        4, 4]: 
+                        4, 4]:
                     if max(G0.degree()) == 3:
                         if s[4:] == [3, 4]:
                             types.append(['B', 3, 1])
                             continue
                         else:
                             return None
-                    else: # The graph is a path
-                          # Differenciate using sum of edge labels
+                    else:  # The graph is a path
+                           # Differenciate using sum of edge labels
                         u0 = u[0] + u[1] + u[2]
                         u1 = u[0] + u[3] + u[4]
                         u2 = u[1] + u[3] + u[5]
@@ -704,18 +705,18 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
                         ss = sorted([u0, u1, u2, u3])
                         if s[5] == 4:
                             if ss == [7, 7, 9, 9]:
-                                types.append(['F',4])
+                                types.append(['F', 4])
                                 continue
                             elif ss == [7, 8, 8, 9]:
-                                types.append(['B',4])
+                                types.append(['B', 4])
                                 continue
                             elif ss == [8, 8, 9, 9]:
-                                types.append(['C',3,1])
+                                types.append(['C', 3, 1])
                                 continue
                             else:
                                 return None
                         elif ss == [7, 8, 9, 10]:
-                            types.append(['H',4])
+                            types.append(['H', 4])
                             continue
                         else:
                             return None
@@ -724,7 +725,7 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
                     return None
 
             elif s == [2, 2, 3, 3, 3, 3] and max(G0.degree()) == 2:
-                types.append(['A',3,1])
+                types.append(['A', 3, 1])
                 continue
             else:
                 return None
@@ -739,66 +740,64 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
             # or `F_{4,1}`.
 
             degrees = G0.degree()
-            vertices= G0.vertices()
-            sub_cox_matrix = coxeter_matrix.matrix_from_rows_and_columns(vertices,vertices)
+            vertices = G0.vertices()
+            sub_cox_matrix = coxeter_matrix.matrix_from_rows_and_columns(vertices, vertices)
             vertices_labels = [set(filter(lambda x: x != 1, r)) for r in
                     sub_cox_matrix.rows()]
             label_list = filter(lambda x: x != 1, sub_cox_matrix.list())
             labels = sorted(set(label_list))
-            
+
             vertices_4 = [index for index in range(l) if 4 in
                     vertices_labels[index]]
-            occur_4 = label_list.count(4)/2 # Each label appear twice
+            occur_4 = label_list.count(4)/2  # Each label appear twice
 
             if not G0.is_tree():
-                if G0.is_isomorphic(CycleGraph(l)): # Type `A_{l-1,1}`
-                    types.append(['A',l-1,1])
+                if G0.is_isomorphic(CycleGraph(l)):  # Type `A_{l-1,1}`
+                    types.append(['A', l-1, 1])
                     continue
                 else:
                     return None
-            
-            elif max(degrees) == 2: # The component is a path
-                
-                
-                if labels[-1] == 3: # Highest label is 3
-                    types.append(['A',l])
+
+            elif max(degrees) == 2:  # The component is a path
+
+                if labels[-1] == 3:  # Highest label is 3
+                    types.append(['A', l])
                     continue
-                elif labels[-1] == 4: # Highest label is 4
-                    
-                    if occur_4 == 1: # There is 1 edge with label 4
+                elif labels[-1] == 4:  # Highest label is 4
+
+                    if occur_4 == 1:  # There is 1 edge with label 4
                         if not (3 in vertices_labels[vertices_4[0]] and 3 in
-                        vertices_labels[vertices_4[1]]): # The edge is at the end of the path
-                            types.append(['B',l])
+                        vertices_labels[vertices_4[1]]):  # The edge is at the end of the path
+                            types.append(['B', l])
                             continue
                         elif l == 5:
-                            types.append(['F',4,1])
+                            types.append(['F', 4, 1])
                             continue
                         else:
                             return None
-                    elif occur_4 == 2: # There are 2 edges labeled 4
+                    elif occur_4 == 2:  # There are 2 edges labeled 4
                         if len(filter(lambda x: 2 in x and 3 not in x and 4 in
                             x, [vertices_labels[i] for i in vertices_4])) == 2:
                             # The edges with 4 are at the ends of the path
-                            types.append(['C',l-1,1])
+                            types.append(['C', l-1, 1])
                             continue
                     else:
                         return None
                 else:
                     return None
 
-
-            else: # The graph contains branching vertices
+            else:  # The graph contains branching vertices
 
                 #Finite D_n,E_6,E_7,E_8
                 #Affine B_n,D_n, E_6,E_7,E_8
 
-                if max(degrees) == 3: # Branching degree is 3
+                if max(degrees) == 3:  # Branching degree is 3
 
                     highest_label = labels[-1]
 
                     nb_branching = degrees.count(3)
                     ecc = sorted(G0.eccentricity())
-                    
+
                     if nb_branching == 1:
 
                         if highest_label == 3:
@@ -807,26 +806,26 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
                                 types.append(['D', l])
                                 continue  # Dl
                             elif l <= 9 and ecc[-2] == l - 2 and ecc[-5] == l - 3:
-                                if l <= 8: #E_{6,7,8}
+                                if l <= 8:  # E_{6,7,8}
                                     types.append(['E', l])
                                     continue
-                                else: #E_{8,1}
-                                    types.append(['E',l-1,1])
+                                else:  # E_{8,1}
+                                    types.append(['E', l-1, 1])
                                     continue
                             elif l <= 8 and ecc[0] == l-5 and ecc[-3] == l-3:
-                                #TO TEST
-                                types.append(['E',l-1,1])
+                                # TO TEST
+                                types.append(['E', l-1, 1])
                                 continue
                             else:
                                 return None
 
                         elif highest_label == 4:
-                            if ecc[-3] == l - 2 and occur_4 == 1: # D_n graph
+                            if ecc[-3] == l - 2 and occur_4 == 1:  # D_n graph
                                 # and 1 occurence of label 4
                                 if not (3 in vertices_labels[vertices_4[0]] and 3 in vertices_labels[vertices_4[1]]) and 3 not in G0.degree(vertices=vertices_4):
                                     # Edge with label 4 is at the end and not
                                     # on a degree 3 vertex.
-                                    types.append(['B',l-1,1])
+                                    types.append(['B', l-1, 1])
                                     continue
                         else:
                             return None
@@ -834,18 +833,18 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
                     elif nb_branching == 2:
                         if highest_label == 3:
                             if ecc[-4] == l - 3:
-                                types.append(['D',l-1,1])
+                                types.append(['D', l-1, 1])
                                 continue
                             else:
                                 return None
 
-                        else: # Highest label too high
+                        else:  # Highest label too high
                             return None
 
-                    else: # Nb of branching too high
+                    else:  # Nb of branching too high
                         return None
 
-                else: # Branching degree too high
+                else:  # Branching degree too high
                     return None
 
 
@@ -913,7 +912,7 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
 
 def check_coxeter_matrix(m):
     """
-    Check if ``m`` represents a generalized Coxeter matrix and raise 
+    Check if ``m`` represents a generalized Coxeter matrix and raise
     and error if not.
 
     EXAMPLES::
@@ -941,12 +940,12 @@ def check_coxeter_matrix(m):
         ValueError: the matrix is not symmetric
 
     """
-    
-    mat=matrix(m)
+
+    mat = matrix(m)
     if not mat.is_square():
         raise ValueError("not a square matrix")
     for i, row in enumerate(m):
-        if mat[i,i] != 1:
+        if mat[i, i] != 1:
             raise ValueError("the matrix diagonal is not all 1")
         for j, val in enumerate(row[i+1:]):
             if val != m[j+i+1][i]:
@@ -980,7 +979,7 @@ def coxeter_matrix_as_function(t):
     m = t.coxeter_matrix()
     index_set = t.index_set()
     reverse = dict((index_set[i], i) for i in range(len(index_set)))
-    return lambda i,j: m[reverse[i], reverse[j]]
+    return lambda i, j: m[reverse[i], reverse[j]]
 
 def coxeter_matrix(t):
     """
@@ -999,4 +998,3 @@ def coxeter_matrix(t):
     from sage.misc.superseded import deprecation
     deprecation(17798, 'coxeter_matrix() is deprecated. Use CoxeterMatrix() instead')
     return CoxeterMatrix(t)
-

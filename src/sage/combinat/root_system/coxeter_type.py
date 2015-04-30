@@ -27,6 +27,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
 from sage.combinat.root_system.cartan_type import CartanType
 
+
 class CoxeterType(object):
     """
     Abstract class for Coxeter types.
@@ -234,7 +235,7 @@ class CoxeterType(object):
             [-1  1 -1]
             [-1 -1  1]
         """
-        
+
         n = self.rank()
         mat = self.coxeter_matrix()
         base_ring = sum(mat.list()).parent()
@@ -261,6 +262,7 @@ class CoxeterType(object):
                       coerce=True, copy=True)
         bilinear.set_immutable()
         return bilinear
+
 
 class CoxeterTypeFromCartanType(SageObject, CoxeterType, UniqueRepresentation):
     """
@@ -425,4 +427,3 @@ class CoxeterTypeFromCartanType(SageObject, CoxeterType, UniqueRepresentation):
             False
         """
         return self._cartan_type.is_simply_laced()
-

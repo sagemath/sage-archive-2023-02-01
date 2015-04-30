@@ -2084,8 +2084,7 @@ class Graphics(SageObject):
 
     def get_minmax_data(self):
         r"""
-        Return a dictionary whose keys give the xmin, xmax, ymin, and ymax
-        data for this graphic.
+        Return the x and y coordinate minimum and maximum
 
         .. warning::
 
@@ -2094,6 +2093,11 @@ class Graphics(SageObject):
            of the primitives which make up this Graphics object.  To change the
            range of the axes, call methods :meth:`xmin`, :meth:`xmax`,
            :meth:`ymin`, :meth:`ymax`, or :meth:`set_axes_range`.
+
+        OUTPUT:
+
+        A dictionary whose keys give the xmin, xmax, ymin, and ymax
+        data for this graphic.
 
         EXAMPLES::
 
@@ -2151,6 +2155,19 @@ class Graphics(SageObject):
     def _limit_output_aspect_ratio(self, xmin, xmax, ymin, ymax):
         """
         Private helper function for :meth:`get_minmax_data`
+
+        INPUT:
+
+        - ``xmin``, ``xmax``, ``ymin``, ``ymax`` -- bounding box for
+          the graphics.
+
+        OUTPUT:
+
+        A dictionary whose keys give the xmin, xmax, ymin, and ymax
+        data for this graphic. Possibly enlarged in order to keep the
+        width/height ratio (in output units, after factoring in the
+        chosen aspect ratio) of the plot is limited to `10^{-15}\dots
+        10^{15}` to avoid floating point issues in matplotlib.
 
         EXAMPLES::
         

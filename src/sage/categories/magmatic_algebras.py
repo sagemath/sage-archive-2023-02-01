@@ -114,6 +114,32 @@ class MagmaticAlgebras(Category_over_base_ring):
 
         class ParentMethods:
 
+            def algebra_generators(self):
+                r"""
+                Return generators for this algebra.
+
+                This default implementation returns the basis of this algebra.
+
+                OUTPUT: a family
+
+                .. SEEALSO::
+
+                    - :meth:`Modules.WithBasis.ParentMethods.basis`
+                    - :meth:`MagmaticAlgebras.ParentMethods.algebra_generators`
+
+                EXAMPLES::
+
+                    sage: D4 = DescentAlgebra(QQ, 4).B()
+                    sage: D4.algebra_generators()
+                    Lazy family (...)_{i in Compositions of 4}
+
+                    sage: R.<x> = ZZ[]
+                    sage: P = PartitionAlgebra(1, x, R)
+                    sage: P.algebra_generators()
+                    Finite family {{{-1, 1}}: P[{{-1, 1}}], {{-1}, {1}}: P[{{-1}, {1}}]}
+                """
+                return self.basis()
+
             @abstract_method(optional = True)
             def product_on_basis(self, i, j):
                 """

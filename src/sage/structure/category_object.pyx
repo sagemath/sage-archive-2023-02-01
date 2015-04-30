@@ -665,7 +665,7 @@ cdef class CategoryObject(sage_object.SageObject):
 
         EXAMPLES::
 
-         sage: R, x = PolynomialRing(QQ,'x',12).objgens()
+         sage: R, x = PolynomialRing(QQ, 'x', 12).objgens()
          sage: x
          (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11)
          sage: print R.latex_variable_names ()
@@ -757,8 +757,8 @@ cdef class CategoryObject(sage_object.SageObject):
                         from sage.structure.generators import Generators
                         self._generators = Generators(self, None, Objects())
                     else:
-                        from sage.structure.generators import Generator_list
-                        self._generators = Generator_list(self, d['_gens'], Objects())
+                        from sage.structure.generators import Generators_list
+                        self._generators = Generators_list(self, d['_gens'], Objects())
                     self._generator_orders = d['_generator_orders'] # this may raise a KeyError, but that's okay.
                     # We throw away d['_latex_names'] and d['_list'] and d['_gens_dict']
                 except (AttributeError, KeyError):

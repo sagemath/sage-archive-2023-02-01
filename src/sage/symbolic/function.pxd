@@ -1,5 +1,4 @@
 from sage.structure.sage_object cimport SageObject
-include "sage/ext/stdsage.pxi"
 
 cdef class Function(SageObject):
     cdef unsigned int _serial

@@ -24,6 +24,7 @@ Integer lists
   (see also: :ref:`sage.combinat.catalog_partitions`)
 - :ref:`sage.combinat.composition`
 - :class:`~sage.combinat.composition_signed.SignedCompositions`
+- :class:`IntegerListsLex`
 
 - :class:`~sage.combinat.integer_vector.IntegerVectors`
 - :func:`~sage.combinat.integer_vector_weighted.WeightedIntegerVectors`
@@ -99,6 +100,7 @@ Trees
 - :ref:`sage.combinat.abstract_tree`
 - :ref:`sage.combinat.ordered_tree`
 - :ref:`sage.combinat.binary_tree`
+- :ref:`sage.combinat.rooted_tree`
 
 Enumerated sets related to graphs
 ---------------------------------

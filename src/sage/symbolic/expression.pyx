@@ -132,7 +132,6 @@ Test if :trac:`9947` is fixed::
 ###############################################################################
 
 include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 
@@ -1757,6 +1756,8 @@ cdef class Expression(CommutativeRingElement):
 
     def is_numeric(self):
         """
+        A Pynac numeric is an object you can do arithmetic with
+        that is not a symbolic variable, function, or constant.
         Return True if this expression only consists of a numeric object.
 
         EXAMPLES::
@@ -1766,6 +1767,8 @@ cdef class Expression(CommutativeRingElement):
             sage: x.is_numeric()
             False
             sage: pi.is_numeric()
+            False
+            sage: sin(x).is_numeric()
             False
         """
         return is_a_numeric(self._gobj)
@@ -8951,10 +8954,10 @@ cdef class Expression(CommutativeRingElement):
 
         This tests that :trac:`11668` has been fixed (by :trac:`12780`)::
 
-            sage: a,b = var('a b')
+            sage: a,b = var('a b', domain='real')
             sage: A = abs((a+I*b))^2
             sage: A.canonicalize_radical()
-            abs(a + I*b)^2
+            a^2 + b^2
             sage: imag(A)
             0
             sage: imag(A.canonicalize_radical())
@@ -10304,16 +10307,23 @@ cdef class Expression(CommutativeRingElement):
         return fast_callable(self, etb)
 
     def show(self):
-        """
-        Show this symbolic expression, i.e., typeset it nicely.
+        r"""
+        Pretty-Print this symbolic expression
+
+        This typeset it nicely and prints it immediately.
+
+        OUTPUT:
+
+        This method does not return anything. Like ``print``, output
+        is sent directly to the screen.
 
         EXAMPLES::
 
             sage: (x^2 + 1).show()
-            x^{2}  + 1
+            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{2} + 1</script></html>
         """
-        from sage.misc.functional import _do_show
-        return _do_show(self)
+        from sage.repl.rich_output.pretty_print import pretty_print
+        pretty_print(self)
 
     def plot(self, *args, **kwds):
         """
@@ -10428,8 +10438,9 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES::
 
+            sage: x = var('x', domain='real')
             sage: s = abs((1+I*x)^4); s
-            abs((I*x + 1)^4)
+            (I*x + 1)^2*(-I*x + 1)^2
             sage: s._plot_fast_callable(x)
             <sage.ext.interpreters.wrapper_py.Wrapper_py object at ...>
             sage: s._plot_fast_callable(x)(10)

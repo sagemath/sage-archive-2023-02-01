@@ -426,8 +426,7 @@ def hom(X, Y, f):
 
     EXAMPLES::
 
-        sage: R, x = PolynomialRing(QQ,'x').objgen()
-        sage: phi = hom(R, QQ, [2])
+        sage: phi = hom(QQ['x'], QQ, [2])
         sage: phi(x^2 + 3)
         7
     """
@@ -503,7 +502,7 @@ def end(X, f):
 
     EXAMPLES::
 
-        sage: R, x = PolynomialRing(QQ,'x').objgen()
+        sage: R.<x> = QQ[]
         sage: phi = end(R, [x + 1])
         sage: phi
         Ring endomorphism of Univariate Polynomial Ring in x over Rational Field
@@ -652,7 +651,7 @@ class Homset(Set_generic):
             (<function Hom at ...>,
              (Vector space of dimension 2 over Rational Field,
               Vector space of dimension 3 over Rational Field,
-              Category of vector spaces over Rational Field,
+              Category of vector spaces with basis over quotient fields,
               False))
 
         TESTS::
@@ -1168,11 +1167,19 @@ class Homset(Set_generic):
         EXAMPLES::
 
             sage: H = Hom(ZZ^2, ZZ^3); H
-            Set of Morphisms from Ambient free module of rank 2 over the principal ideal domain Integer Ring to Ambient free module of rank 3 over the principal ideal domain Integer Ring in Category of modules with basis over Integer Ring
+            Set of Morphisms from Ambient free module of rank 2 over
+            the principal ideal domain Integer Ring to Ambient free
+            module of rank 3 over the principal ideal domain Integer
+            Ring in Category of modules with basis over (euclidean
+            domains and infinite enumerated sets)
             sage: type(H)
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
             sage: H.reversed()
-            Set of Morphisms from Ambient free module of rank 3 over the principal ideal domain Integer Ring to Ambient free module of rank 2 over the principal ideal domain Integer Ring in Category of modules with basis over Integer Ring
+            Set of Morphisms from Ambient free module of rank 3 over
+            the principal ideal domain Integer Ring to Ambient free
+            module of rank 2 over the principal ideal domain Integer
+            Ring in Category of modules with basis over (euclidean
+            domains and infinite enumerated sets)
             sage: type(H.reversed())
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
         """

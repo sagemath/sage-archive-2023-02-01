@@ -18,7 +18,6 @@ def _convert_dense_entries_to_list(entries):
     return e
 
 include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.ref cimport *

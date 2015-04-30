@@ -146,11 +146,10 @@ And now over a large prime field::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 
-from sage.rings.field import Field
-from sage.rings.integer import Integer
-from sage.rings.rational import Rational
+from sage.rings.ring cimport Field
+from sage.rings.integer cimport Integer
+from sage.rings.rational cimport Rational
 from sage.categories.homset import Hom
 from sage.rings.all import ZZ, QQ, Integers
 from sage.rings.finite_rings.constructor import zech_log_bound, FiniteField as GF

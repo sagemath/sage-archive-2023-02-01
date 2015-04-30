@@ -638,25 +638,92 @@ class SkewPartition(CombinatorialObject, Element):
 
     def is_ribbon(self):
         r"""
-        Return ``True`` if and only if ``self`` is a ribbon, that is if it
-        has no `2 \times 2` boxes.
+        Return ``True`` if and only if ``self`` is a ribbon, that is,
+        if it has exactly one cell in each of `q` consecutive
+        diagonals for some nonnegative integer `q`.
 
         EXAMPLES::
 
-            sage: SkewPartition([[3,3,1],[2,2]]).is_ribbon()
+            sage: P=SkewPartition([[4,4,3,3],[3,2,2]])
+            sage: P.pp()
+               *
+              **
+              *
+            ***
+            sage: P.is_ribbon()
             True
-            sage: SkewPartition([[3,1],[3]]).is_ribbon()
-            True
-            sage: SkewPartition([[3,3,2],[2]]).is_ribbon()
-            False
-        """
-        outer = self[0]
-        inner = self[1]
-        inner += [0]*(len(outer)-len(inner))
 
-        for i in range(1, len(outer)):
-            if outer[i] > inner[i-1]+1:
-                return False
+            sage: P=SkewPartition([[4,3,3],[1,1]])
+            sage: P.pp()
+             ***
+             **
+            ***
+            sage: P.is_ribbon()
+            False
+
+            sage: P=SkewPartition([[4,4,3,2],[3,2,2]])
+            sage: P.pp()
+               *
+              **
+              *
+            **
+            sage: P.is_ribbon()
+            False
+
+            sage: P=SkewPartition([[4,4,3,3],[4,2,2,1]])
+            sage: P.pp()
+            <BLANKLINE>
+              **
+              *
+             **
+            sage: P.is_ribbon()
+            True
+
+            sage: P=SkewPartition([[4,4,3,3],[4,2,2]])
+            sage: P.pp()
+            <BLANKLINE>
+              **
+              *
+            ***
+            sage: P.is_ribbon()
+            True
+
+            sage: SkewPartition([[2,2,1],[2,2,1]]).is_ribbon()
+            True
+        """
+        lam = self[0]
+        mu = self[1]
+        l_out = len(lam)
+        l_in = len(mu)
+        mu += [0]*(l_out-l_in)
+        
+        if l_out == 0:
+            return True
+        else:
+            # Find the least u for which lam[u]>mu[u], if it exists
+            # If it does not exist then u will equal l_out
+            u = 0
+            u_test = True
+            while u_test:
+                if u >= l_out or lam[u] > mu[u]:
+                    u_test = False
+                else:
+                    u += 1
+
+            # Find the least v strictly greater than u for which 
+            # lam[v] != mu[v-1]+1
+            v = u + 1
+            v_test = True
+            while v_test:
+                if v >= l_out or lam[v] != mu[v-1] + 1:
+                    v_test = False
+                else:
+                    v += 1
+
+            # Check if lam[i]==mu[i] for all i >= v
+            for i in range(v, l_out):
+                if lam[i] != mu[i]:
+                    return False
 
         return True
 
@@ -952,7 +1019,7 @@ class SkewPartition(CombinatorialObject, Element):
         """
         return map(list, list(self))
 
-    def to_dag(self):
+    def to_dag(self, format="string"):
         """
         Return a directed acyclic graph corresponding to the skew
         partition ``self``.
@@ -962,39 +1029,56 @@ class SkewPartition(CombinatorialObject, Element):
         whose edges go from each cell to its lower and right
         neighbors (in English notation).
 
+        INPUT:
+
+        - ``format`` -- either ``'string'`` or ``'tuple'`` (default:
+          ``'string'``); determines whether the vertices of the
+          resulting dag will be strings or 2-tuples of coordinates
+
         EXAMPLES::
 
-            sage: dag = SkewPartition([[3, 2, 1], [1, 1]]).to_dag()
+            sage: dag = SkewPartition([[3, 3, 1], [1, 1]]).to_dag()
             sage: dag.edges()
-            [('0,1', '0,2', None), ('0,1', '1,1', None)]
+            [('0,1', '0,2', None),
+            ('0,1', '1,1', None),
+            ('0,2', '1,2', None),
+            ('1,1', '1,2', None)]
             sage: dag.vertices()
-            ['0,1', '0,2', '1,1', '2,0']
+            ['0,1', '0,2', '1,1', '1,2', '2,0']
+            sage: dag = SkewPartition([[3, 2, 1], [1, 1]]).to_dag(format="tuple")
+            sage: dag.edges()
+            [((0, 1), (0, 2), None), ((0, 1), (1, 1), None)]
+            sage: dag.vertices()
+            [(0, 1), (0, 2), (1, 1), (2, 0)]
         """
-        i = 0
-
-        #Make the skew tableau from the shape
-        skew = [[1]*row_length for row_length in self.outer()]
-        inner = self.inner()
-        for i in range(len(inner)):
-            for j in range(inner[i]):
-                skew[i][j] = None
+        outer = list(self.outer())
+        inner = list(self.inner())
+        inner += [0] * (len(outer) - len(inner))
 
         G = DiGraph()
-        for row in range(len(skew)):
-            for column in range(len(skew[row])):
-                if skew[row][column] is not None:
-                    string = "%d,%d" % (row, column)
-                    G.add_vertex(string)
-                    #Check to see if there is a node to the right
-                    if column != len(skew[row]) - 1:
-                        newstring = "%d,%d" % (row, column+1)
-                        G.add_edge(string, newstring)
+        for i, outer_i in enumerate(outer):
+            for j in xrange(inner[i], outer_i):
+                if format == "string":
+                    string = "%d,%d" % (i, j)
+                else:
+                    string = (i, j)
+                G.add_vertex(string)
+                #Check to see if there is a node to the right
+                if j != outer_i - 1:
+                    if format == "string":
+                        newstring = "%d,%d" % (i, j + 1)
+                    else:
+                        newstring = (i, j + 1)
+                    G.add_edge(string, newstring)
 
-                    #Check to see if there is anything below
-                    if row != len(skew) - 1:
-                        if len(skew[row+1]) > column:
-                            newstring = "%d,%d" % (row+1, column)
-                            G.add_edge(string, newstring)
+                #Check to see if there is anything below
+                if i != len(outer) - 1:
+                    if outer[i+1] > j:
+                        if format == "string":
+                            newstring = "%d,%d" % (i + 1, j)
+                        else:
+                            newstring = (i + 1, j)
+                        G.add_edge(string, newstring)
         return G
 
     def quotient(self, k):

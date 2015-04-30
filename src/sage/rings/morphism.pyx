@@ -40,7 +40,7 @@ Reduction to finite field::
 
 Map from single variable polynomial ring::
 
-    sage: R, x = PolynomialRing(ZZ, 'x').objgen()
+    sage: R.<x> = ZZ[]
     sage: phi = R.hom([2], GF(5))
     sage: phi
     Ring morphism:
@@ -352,7 +352,6 @@ TESTS::
 #*****************************************************************************
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
 
 import ideal
 
@@ -417,7 +416,7 @@ cdef class RingMap_lift(RingMap):
 
     EXAMPLES::
 
-        sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
+        sage: R.<x,y> = QQ[]
         sage: S.<xbar,ybar> = R.quo( (x^2 + y^2, y) )
         sage: S.lift()
         Set-theoretic ring morphism:

@@ -143,7 +143,7 @@ def render_4d(polyhedron, point_opts={}, line_opts={}, polygon_opts={}, projecti
     TESTS::
 
         sage: from sage.geometry.polyhedron.plot import render_4d
-        sage: p = polytopes.n_cube(4)
+        sage: p = polytopes.hypercube(4)
         sage: q = render_4d(p)
         doctest:...: DeprecationWarning: use Polyhedron.schlegel_projection instead
         See http://trac.sagemath.org/16625 for details.
@@ -289,7 +289,7 @@ class ProjectionFuncStereographic():
     EXAMPLES::
 
         sage: from sage.geometry.polyhedron.plot import ProjectionFuncStereographic
-        sage: cube = polytopes.n_cube(3).vertices()
+        sage: cube = polytopes.hypercube(3).vertices()
         sage: proj = ProjectionFuncStereographic([1.2, 3.4, 5.6])
         sage: ppoints = [proj(vector(x)) for x in cube]
         sage: ppoints[0]
@@ -461,7 +461,7 @@ class Projection(SageObject):
 
         EXAMPLES::
 
-            sage: p = polytopes.icosahedron()
+            sage: p = polytopes.icosahedron(exact=False)
             sage: from sage.geometry.polyhedron.plot import Projection
             sage: Projection(p)
             The projection of a polyhedron into 3 dimensions
@@ -511,7 +511,7 @@ class Projection(SageObject):
 
         EXAMPLES::
 
-            sage: p = polytopes.n_cube(3)
+            sage: p = polytopes.hypercube(3)
             sage: from sage.geometry.polyhedron.plot import Projection
             sage: proj = Projection(p)
             sage: print proj._repr_()
@@ -528,13 +528,13 @@ class Projection(SageObject):
 
         EXAMPLES::
 
-            sage: p = polytopes.icosahedron()
+            sage: p = polytopes.icosahedron(exact=False)
             sage: from sage.geometry.polyhedron.plot import Projection
             sage: pproj = Projection(p)
             sage: from sage.geometry.polyhedron.plot import ProjectionFuncStereographic
             sage: pproj_stereo = pproj.__call__(proj = ProjectionFuncStereographic([1,2,3]))
             sage: pproj_stereo.polygons[0]
-            [10, 4, 6]
+            [10, 1, 4]
         """
         self.transformed_coords = \
             Sequence([proj(p) for p in self.coords])
@@ -548,7 +548,7 @@ class Projection(SageObject):
 
         EXAMPLES::
 
-            sage: p = polytopes.icosahedron()
+            sage: p = polytopes.icosahedron(exact=False)
             sage: from sage.geometry.polyhedron.plot import Projection
             sage: pproj = Projection(p)
             sage: ppid = pproj.identity()
@@ -609,7 +609,7 @@ class Projection(SageObject):
 
         EXAMPLES::
 
-            sage: cube4 = polytopes.n_cube(4)
+            sage: cube4 = polytopes.hypercube(4)
             sage: from sage.geometry.polyhedron.plot import Projection
             sage: Projection(cube4).schlegel([1,0,0,0])
             The projection of a polyhedron into 3 dimensions
@@ -637,7 +637,7 @@ class Projection(SageObject):
 
         EXAMPLES::
 
-            sage: p = polytopes.n_cube(3)
+            sage: p = polytopes.hypercube(3)
             sage: proj = p.projection()
             sage: proj.coord_index_of(vector((1,1,1)))
             7
@@ -656,7 +656,7 @@ class Projection(SageObject):
 
         EXAMPLES::
 
-            sage: p = polytopes.n_cube(3)
+            sage: p = polytopes.hypercube(3)
             sage: proj = p.projection()
             sage: proj.coord_indices_of([vector((1,1,1)),vector((1,-1,1))])
             [7, 5]
@@ -670,9 +670,9 @@ class Projection(SageObject):
 
         EXAMPLES::
 
-            sage: p = polytopes.n_simplex(4).projection()
+            sage: p = polytopes.simplex(4, project=True).projection()
             sage: p.coordinates_of([1])
-            [[0, -81649/100000, 7217/25000, 22361/100000]]
+            [[-0.7071067812, 0.4082482905, 0.2886751346, 0.2236067977]]
         """
         return [self.transformed_coords[i] for i in coord_index_list]
 
@@ -686,7 +686,7 @@ class Projection(SageObject):
         TESTS::
 
             sage: from sage.geometry.polyhedron.plot import Projection, render_2d
-            sage: p = polytopes.n_simplex(2).projection()
+            sage: p = polytopes.simplex(2, project=True).projection()
             sage: test = p._init_dimension()
             sage: p.plot.__doc__ == p.render_2d.__doc__
             True
@@ -716,7 +716,7 @@ class Projection(SageObject):
 
         EXAMPLE::
 
-            sage: P8 = polytopes.n_cube(4)
+            sage: P8 = polytopes.hypercube(4)
             sage: P8.schlegel_projection([2,5,11,17]).show()
             doctest:...: DeprecationWarning: use Projection.plot instead
             See http://trac.sagemath.org/16625 for details.
@@ -778,7 +778,7 @@ class Projection(SageObject):
 
         TESTS::
 
-            sage: p = polytopes.n_cube(2)
+            sage: p = polytopes.hypercube(2)
             sage: pp = p.projection()
             sage: del pp.points
             sage: pp.points = Sequence([])
@@ -977,7 +977,7 @@ class Projection(SageObject):
 
         EXAMPLES::
 
-            sage: cube1 = polytopes.n_cube(1)
+            sage: cube1 = polytopes.hypercube(1)
             sage: proj = cube1.projection()
             sage: points = proj.render_points_1d()
             sage: points._objects
@@ -1000,7 +1000,7 @@ class Projection(SageObject):
 
         EXAMPLES::
 
-            sage: outline = polytopes.n_cube(1).projection().render_line_1d()
+            sage: outline = polytopes.hypercube(1).projection().render_line_1d()
             sage: outline._objects[0]
             Line defined by 2 points
         """
@@ -1087,7 +1087,7 @@ class Projection(SageObject):
 
         EXAMPLES::
 
-            sage: cube = polytopes.n_cube(3)
+            sage: cube = polytopes.hypercube(3)
             sage: cube_proj = cube.projection()
             sage: wire = cube_proj.render_wireframe_3d()
             sage: print wire.tachyon().split('\n')[77]  # for testing
@@ -1108,7 +1108,7 @@ class Projection(SageObject):
 
         EXAMPLES::
 
-            sage: p = polytopes.n_cube(3).projection()
+            sage: p = polytopes.hypercube(3).projection()
             sage: p_solid = p.render_solid_3d(opacity = .7)
             sage: type(p_solid)
             <class 'sage.plot.plot3d.base.Graphics3dGroup'>

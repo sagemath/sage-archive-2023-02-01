@@ -3892,6 +3892,76 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         val = self.interval_diameter(target)
         return field(val)
 
+    def radical_expression(self):
+        r"""
+        Attempt to obtain a symbolic expression using radicals. If no
+        exact symbolic expression can be found, the algebraic number
+        will be returned without modification.
+
+        EXAMPLES::
+
+            sage: AA(1/sqrt(5)).radical_expression()
+            1/5*sqrt(5)
+            sage: AA(sqrt(5 + sqrt(5))).radical_expression()
+            sqrt(sqrt(5) + 5)
+            sage: QQbar.zeta(5).radical_expression()
+            1/4*sqrt(5) + 1/2*sqrt(-1/2*sqrt(5) - 5/2) - 1/4
+            sage: a = QQ[x](x^7 - x - 1).roots(AA, False)[0]
+            sage: a.radical_expression()
+            1.112775684278706?
+            sage: a.radical_expression().parent() == SR
+            False
+            sage: a = sorted(QQ[x](x^7-x-1).roots(QQbar, False), key=imag)[0]
+            sage: a.radical_expression()
+            -0.3636235193291805? - 0.9525611952610331?*I
+            sage: QQbar.zeta(5).imag().radical_expression()
+            1/2*sqrt(1/2*sqrt(5) + 5/2)
+            sage: AA(5/3).radical_expression()
+            5/3
+            sage: AA(5/3).radical_expression().parent() == SR
+            True
+            sage: QQbar(0).radical_expression()
+            0
+
+        TESTS:
+
+        In this example we find the correct answer despite the fact that
+        multiple roots overlap with the current value. As a consequence,
+        the precision of the evaluation will have to be increased.
+
+        ::
+
+            sage: a = AA(sqrt(2) + 10^25)
+            sage: p = a.minpoly()
+            sage: v = a._value
+            sage: f = ComplexIntervalField(v.prec())
+            sage: [f(b.rhs()).overlaps(f(v)) for b in SR(p).solve(x)]
+            [True, True]
+            sage: a.radical_expression()
+            sqrt(2) + 10000000000000000000000000
+        """
+        from sage.symbolic.ring import SR # Lazy to avoid cyclic dependency
+
+        # Adapted from NumberFieldElement._symbolic_()
+        poly = self.minpoly()
+        var = SR(poly.variable_name())
+        if is_ComplexIntervalFieldElement(self._value):
+            interval_field = self._value.parent()
+        else:
+            interval_field = ComplexIntervalField(self._value.prec())
+        roots = poly.roots(SR, multiplicities=False)
+        if len(roots) != poly.degree():
+            return self
+        while True:
+            candidates = []
+            for root in roots:
+                if interval_field(root).overlaps(interval_field(self._value)):
+                    candidates.append(root)
+            if len(candidates) == 1:
+                return candidates[0]
+            roots = candidates
+            interval_field = interval_field.to_prec(interval_field.prec()*2)
+
 class AlgebraicNumber(AlgebraicNumber_base):
     r"""
     The class for algebraic numbers (complex numbers which are the roots

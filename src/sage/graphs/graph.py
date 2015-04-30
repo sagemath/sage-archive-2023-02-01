@@ -4567,45 +4567,55 @@ class Graph(GenericGraph):
     # Centrality
     def centrality_degree(self, v=None):
         r"""
-        Returns the degree centrality (fraction of vertices connected to)
-        as a dictionary of values keyed by vertex. The degree centrality is
-        normalized to be in range (0,1).
+        Returns the degree centrality of a vertex.
 
-        Measures of the centrality of a vertex within a graph determine the
-        relative importance of that vertex to its graph. Degree centrality
-        measures the number of links incident upon a vertex.
+        The degree centrality of a vertex `v` is its degree, divided by
+        `|V(G)|-1`. For more information, see the :wikipedia:`Centrality`.
 
         INPUT:
 
+        - ``v`` - a vertex. Set to ``None`` (default) to get a dictionary
+          associating each vertex with its centrality degree.
 
-        -  ``v`` - a vertex label (to find degree centrality of
-           only one vertex)
+        .. SEEALSO::
 
+            - :meth:`centrality_closeness`
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.centrality_betweenness`
 
         EXAMPLES::
 
             sage: (graphs.ChvatalGraph()).centrality_degree()
-            {0: 0.36363636363636365, 1: 0.36363636363636365, 2: 0.36363636363636365, 3: 0.36363636363636365, 4: 0.36363636363636365, 5: 0.36363636363636365, 6: 0.36363636363636365, 7: 0.36363636363636365, 8: 0.36363636363636365, 9: 0.36363636363636365, 10: 0.36363636363636365, 11: 0.36363636363636365}
-            sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
-            sage: D.show(figsize=[2,2])
-            sage: D = D.to_undirected()
-            sage: D.show(figsize=[2,2])
+            {0: 4/11, 1: 4/11, 2: 4/11, 3: 4/11,  4: 4/11,  5: 4/11,
+             6: 4/11, 7: 4/11, 8: 4/11, 9: 4/11, 10: 4/11, 11: 4/11}
+            sage: D = graphs.DiamondGraph()
             sage: D.centrality_degree()
-            {0: 1.0, 1: 1.0, 2: 0.6666666666666666, 3: 0.6666666666666666}
+            {0: 2/3, 1: 1, 2: 1, 3: 2/3}
             sage: D.centrality_degree(v=1)
-            1.0
+            1
+
+        TESTS::
+
+            sage: Graph(1).centrality_degree()
+            Traceback (most recent call last):
+            ...
+            ValueError: The centrality degree is not defined on graphs with only one vertex
         """
-        import networkx
+        from sage.rings.integer import Integer
+        n_minus_one = Integer(self.order()-1)
+        if n_minus_one == 0:
+            raise ValueError("The centrality degree is not defined "
+                             "on graphs with only one vertex")
         if v is None:
-            return networkx.degree_centrality(self.networkx_graph(copy=False))
+            return {v:self.degree(v)/n_minus_one for v in self}
         else:
-            return networkx.degree_centrality(self.networkx_graph(copy=False))[v]
+            return self.degree(v)/n_minus_one
 
     def centrality_closeness(self, v=None):
         r"""
-        Returns the closeness centrality (1/average distance to all
-        vertices) as a dictionary of values keyed by vertex. The degree
-        centrality is normalized to be in range (0,1).
+        Returns the closeness centrality of a vertex.
+
+        The closeness centrality of a vertex `v` is equal to the inverse of [the
+        average distance between `v` and other vertices].
 
         Measures of the centrality of a vertex within a graph determine the
         relative importance of that vertex to its graph. 'Closeness
@@ -4615,12 +4625,17 @@ class Graph(GenericGraph):
         central actor while a smaller value indicates a more central
         actor,' [Borgatti95]_.
 
+        For more information, see the :wikipedia:`Centraliy`.
+
         INPUT:
 
+        - ``v`` - a vertex. Set to ``None`` (default) to get a dictionary
+          associating each vertex with its centrality closeness.
 
-        -  ``v`` - a vertex label (to find degree centrality of
-           only one vertex)
+        .. SEEALSO::
 
+            - :meth:`centrality_degree`
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.centrality_betweenness`
 
         REFERENCE:
 

@@ -12790,6 +12790,11 @@ class GenericGraph(GenericGraph_pyx):
           :mod:`~sage.graphs.centrality`), ``"NetworkX"`` or ``"None"``. In the
           latter case, Sage's algorithm will be used whenever possible.
 
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.graph.Graph.centrality_degree`
+            - :meth:`~sage.graphs.graph.Graph.centrality_closeness`
+
         EXAMPLES::
 
             sage: g = graphs.ChvatalGraph()

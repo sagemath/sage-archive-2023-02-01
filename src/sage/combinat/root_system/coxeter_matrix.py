@@ -112,7 +112,8 @@ class CoxeterMatrix(CoxeterType):
     @staticmethod
     def __classcall_private__(cls, *args, **kwds):
         """
-        Normalize input so we can get the appropriate ring.
+        A Coxeter matrix can we created via a graph, a Coxeter type, or
+        a matrix.
 
         .. NOTE::
 
@@ -249,13 +250,51 @@ class CoxeterMatrix(CoxeterType):
 
     @classmethod
     def _from_matrix(cls,data,coxeter_type,index_set,coxeter_type_check):
+        """
+        Initiate the Coxeter matrix from a matrix.
+
+        TESTS::
+            
+            sage: CM = CoxeterMatrix([[1,2],[2,1]]);CM
+            [1 2]
+            [2 1]
+            sage: CM = CoxeterMatrix([[1,-1],[-1,1]]);CM
+            [ 1 -1]
+            [-1  1]
+            sage: CM = CoxeterMatrix([[1,-1.5],[-1.5,1]]);CM
+            [ 1.00000000000000 -1.50000000000000]
+            [-1.50000000000000  1.00000000000000]
+            sage: CM = CoxeterMatrix([[1,-3/2],[-3/2,1]]);CM
+            [   1 -3/2]
+            [-3/2    1]
+            sage: CM = CoxeterMatrix([[1,-3/2,5],[-3/2,1,-1],[5,-1,1]]);CM
+            [   1 -3/2    5]
+            [-3/2    1   -1]
+            [   5   -1    1]
+            sage: CM = CoxeterMatrix([[1,-3/2,5],[-3/2,1,oo],[5,oo,1]]);CM
+            [   1 -3/2    5]
+            [-3/2    1   -1]
+            [   5   -1    1]
+        """
+
 
         # Check that the data is valid
         check_coxeter_matrix(data)
 
+        
         M = matrix(data)
-        base_ring = M.base_ring()
         n = M.ncols()
+
+        # TODO:: remove when oo is possible in matrices.
+        entries = []
+        for r in data:
+            entries += r
+        raw_data = map(lambda x: x if x != infinity else -1, entries)
+        M = matrix(n,n,raw_data)
+        # until here
+
+        base_ring = M.base_ring()
+
         if not coxeter_type:
             if n == 1:
                 coxeter_type = CoxeterType(['A', 1])
@@ -276,6 +315,40 @@ class CoxeterMatrix(CoxeterType):
 
     @classmethod
     def _from_graph(cls,graph,coxeter_type_check):
+        """
+        Initiate the Coxeter matrix from a graph.
+
+        TESTS::
+            
+            sage: CoxeterMatrix(CoxeterMatrix(['A',4,1]).coxeter_graph())
+            [1 3 2 2 3]
+            [3 1 3 2 2]
+            [2 3 1 3 2]
+            [2 2 3 1 3]
+            [3 2 2 3 1]
+            sage: CoxeterMatrix(CoxeterMatrix(['B',4,1]).coxeter_graph())
+            [1 2 3 2 2]
+            [2 1 3 2 2]
+            [3 3 1 3 2]
+            [2 2 3 1 4]
+            [2 2 2 4 1]
+            sage: CoxeterMatrix(CoxeterMatrix(['F',4]).coxeter_graph())
+            [1 3 2 2]
+            [3 1 4 2]
+            [2 4 1 3]
+            [2 2 3 1]
+
+            sage: G=Graph()
+            sage: G.add_edge([0,1,oo])
+            sage: CoxeterMatrix(G)
+            [ 1 -1]
+            [-1  1]
+            sage: H = Graph()
+            sage: H.add_edge([0,1,-1.5])
+            sage: CoxeterMatrix(H)
+            [ 1.00000000000000 -1.50000000000000]
+            [-1.50000000000000  1.00000000000000]
+        """
 
         verts = sorted(graph.vertices())
         index_set = tuple(verts)
@@ -309,7 +382,18 @@ class CoxeterMatrix(CoxeterType):
 
     @classmethod
     def _from_coxetertype(cls,coxeter_type):
+        """
+        Initiate the Coxeter matrix from a Coxeter type.
 
+        TESTS::
+
+            sage: CoxeterMatrix(['A',4]).coxeter_type()
+            Coxeter type of ['A', 4]
+            sage: CoxeterMatrix(['A',4,1]).coxeter_type()
+            Coxeter type of ['A', 4, 1]
+            sage: CoxeterMatrix(['D',4,1]).coxeter_type()
+            Coxeter type of ['D', 4, 1]
+        """
         index_set = coxeter_type.index_set()
         n = len(index_set)
         reverse = {index_set[i]: i for i in range(n)}
@@ -319,7 +403,6 @@ class CoxeterMatrix(CoxeterType):
                 l = -1
             data[reverse[i]][reverse[j]] = l
             data[reverse[j]][reverse[i]] = l
-        data = [val for row in data for val in row]
 
         return cls._from_matrix(data,coxeter_type,index_set,False)
 
@@ -974,7 +1057,7 @@ def check_coxeter_matrix(m):
             if val != m[j+i+1][i]:
                 raise ValueError("the matrix is not symmetric")
             if val not in ZZ:
-                if val > -1 and val in RR:
+                if val > -1 and val in RR and val != infinity:
                     raise ValueError("invalid Coxeter label {}".format(val))
             else:
                 if val == 1 or val == 0:

@@ -247,6 +247,8 @@ class CoxeterMatrix(CoxeterType):
 
         self._dict = {(self._index_set[i], self._index_set[j]): self._matrix[i, j]
                 for i in range(self.rank()) for j in range(self.rank())}
+        for i in range(self.rank()):
+            self._dict[i] = self._matrix[i]
 
     @classmethod
     def _from_matrix(cls,data,coxeter_type,index_set,coxeter_type_check):

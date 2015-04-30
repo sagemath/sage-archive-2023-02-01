@@ -10,9 +10,7 @@ Implements various backends for Sage graphs.
 #                         http://www.gnu.org/licenses/
 #*******************************************************************************
 
-from sage.structure.sage_object import SageObject
-
-class GenericGraphBackend(SageObject):
+cdef class GenericGraphBackend(SageObject):
     """
     A generic wrapper for the backend of a graph.  Various graph classes use
     extensions of this class.  Note, this graph has a number of placeholder
@@ -601,7 +599,6 @@ class NetworkXGraphDeprecated(SageObject):
 
             sage: from sage.graphs.base.graph_backends import NetworkXGraphDeprecated
             sage: NetworkXGraphDeprecated()
-            doctest:...
             <class 'sage.graphs.base.graph_backends.NetworkXGraphDeprecated'>
         """
         from sage.misc.superseded import deprecation
@@ -622,7 +619,6 @@ class NetworkXGraphDeprecated(SageObject):
 
             sage: from sage.graphs.base.graph_backends import NetworkXGraphDeprecated as NXGD
             sage: X = NXGD()
-            doctest:...
             sage: X.adj = {1:{2:7}, 2:{1:7}, 3:{2:[4,5,6,7]}, 2:{3:[4,5,6,7]}}
             sage: X.multiedges = True
             sage: G = X.mutate()
@@ -691,7 +687,6 @@ class NetworkXDiGraphDeprecated(SageObject):
 
             sage: from sage.graphs.base.graph_backends import NetworkXDiGraphDeprecated as NXDGD
             sage: X = NXDGD()
-            doctest:...
             sage: X.adj = {1:{2:7}, 2:{1:[7,8], 3:[4,5,6,7]}}
             sage: X.multiedges = True
             sage: G = X.mutate()
@@ -748,7 +743,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.iterator_edges([],True)
-            <generator object iterator_edges at ...>
+            <generator object at ...>
         """
         if N is None:
             import networkx
@@ -1137,7 +1132,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.iterator_edges([],True)
-            <generator object iterator_edges at ...>
+            <generator object at ...>
         """
         if isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)):
             self._nxg = self._nxg.mutate()

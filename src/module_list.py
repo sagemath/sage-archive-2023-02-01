@@ -390,6 +390,9 @@ ext_modules = [
               sources = ['sage/graphs/distances_all_pairs.pyx'],
               libraries = ['gmp']),
 
+    Extension('sage.graphs.base.graph_backends',
+              sources = ['sage/graphs/base/graph_backends.pyx']),
+
     Extension('sage.graphs.base.static_dense_graph',
               sources = ['sage/graphs/base/static_dense_graph.pyx'],
               libraries = ['gmp']),

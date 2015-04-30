@@ -3,7 +3,8 @@ Coxeter Types
 """
 #*****************************************************************************
 #       Copyright (C) 2015 Travis Scrimshaw <tscrim at ucdavis.edu>,
-#
+#                     2015 Jean-Philippe Labbe <labbe at math.huji.ac.il>,
+#        
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
 #    This code is distributed in the hope that it will be useful,
@@ -54,6 +55,105 @@ class CoxeterType(object):
 
         raise NotImplementedError("Coxeter types not from Cartan types not yet implemented")
 
+    def samples(self, finite=None, affine=None, crystallographic=None):
+        """
+        Return a sample of the available Coxeter types.
+
+        INPUT:
+
+        - ``finite`` -- a boolean or ``None`` (default: ``None``)
+
+        - ``affine`` -- a boolean or ``None`` (default: ``None``)
+
+        - ``crystallographic`` -- a boolean or ``None`` (default: ``None``)
+
+        The sample contains all the exceptional finite and affine
+        Coxeter types, as well as typical representatives of the
+        infinite families.
+
+        EXAMPLES::
+
+            sage: CartanType.samples()
+            [['A', 1], ['A', 5], ['B', 1], ['B', 5], ['C', 1], ['C', 5], ['D', 2], ['D', 3], ['D', 5],
+             ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2], ['I', 5], ['H', 3], ['H', 4],
+             ['A', 1, 1], ['A', 5, 1], ['B', 1, 1], ['B', 5, 1],
+             ['C', 1, 1], ['C', 5, 1], ['D', 3, 1], ['D', 5, 1],
+             ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['BC', 1, 2], ['BC', 5, 2],
+             ['B', 5, 1]^*, ['C', 4, 1]^*, ['F', 4, 1]^*, ['G', 2, 1]^*, ['BC', 1, 2]^*, ['BC', 5, 2]^*]
+
+        The finite, affine and crystallographic options allow
+        respectively for restricting to (non) finite, (non) affine,
+        and (non) crystallographic Cartan types::
+
+            sage: CartanType.samples(finite=True)
+            [['A', 1], ['A', 5], ['B', 1], ['B', 5], ['C', 1], ['C', 5], ['D', 2], ['D', 3], ['D', 5],
+             ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2], ['I', 5], ['H', 3], ['H', 4]]
+
+            sage: CartanType.samples(affine=True)
+            [['A', 1, 1], ['A', 5, 1], ['B', 1, 1], ['B', 5, 1],
+             ['C', 1, 1], ['C', 5, 1], ['D', 3, 1], ['D', 5, 1],
+             ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['BC', 1, 2], ['BC', 5, 2],
+             ['B', 5, 1]^*, ['C', 4, 1]^*, ['F', 4, 1]^*, ['G', 2, 1]^*, ['BC', 1, 2]^*, ['BC', 5, 2]^*]
+
+            sage: CartanType.samples(crystallographic=True)
+            [['A', 1], ['A', 5], ['B', 1], ['B', 5], ['C', 1], ['C', 5], ['D', 2], ['D', 3], ['D', 5],
+             ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2],
+             ['A', 1, 1], ['A', 5, 1], ['B', 1, 1], ['B', 5, 1],
+             ['C', 1, 1], ['C', 5, 1], ['D', 3, 1], ['D', 5, 1],
+             ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['BC', 1, 2], ['BC', 5, 2],
+             ['B', 5, 1]^*, ['C', 4, 1]^*, ['F', 4, 1]^*, ['G', 2, 1]^*, ['BC', 1, 2]^*, ['BC', 5, 2]^*]
+
+            sage: CartanType.samples(crystallographic=False)
+            [['I', 5], ['H', 3], ['H', 4]]
+
+        .. TODO:: add some reducible Coxeter types (suggestions?)
+
+        TESTS::
+
+            sage: for ct in CoxeterType.samples(): TestSuite(ct).run()
+            sage: CartanType.samples(crystalographic=False)
+            doctest:...: DeprecationWarning: use the option 'crystallographic' instead of 'crystalographic'
+            See http://trac.sagemath.org/14673 for details.
+            [['I', 5], ['H', 3], ['H', 4]]
+        """
+        result = self._samples()
+        if crystallographic is not None:
+            result = [t for t in result if t.is_crystallographic() == crystallographic ]
+        if finite is not None:
+            result = [t for t in result if t.is_finite() == finite]
+        if affine is not None:
+            result = [t for t in result if t.is_affine() == affine]
+        return result
+
+    @cached_method
+    def _samples(self):
+        """
+        Return a sample of all implemented Coxeter types.
+
+        .. NOTE:: This is intended to be used through :meth:`samples`.
+
+        EXAMPLES::
+
+            sage: CartanType._samples()
+            [['A', 1], ['A', 5], ['B', 1], ['B', 5], ['C', 1], ['C', 5], ['D', 2], ['D', 3], ['D', 5],
+             ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2], ['I', 5], ['H', 3], ['H', 4],
+             ['A', 1, 1], ['A', 5, 1], ['B', 1, 1], ['B', 5, 1],
+             ['C', 1, 1], ['C', 5, 1], ['D', 3, 1], ['D', 5, 1],
+             ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['BC', 1, 2], ['BC', 5, 2],
+             ['B', 5, 1]^*, ['C', 4, 1]^*, ['F', 4, 1]^*, ['G', 2, 1]^*, ['BC', 1, 2]^*, ['BC', 5, 2]^*]
+        """
+        finite = [CoxeterType(t)       for t in [['A', 1], ['A', 5], ['B', 1], ['B', 5],
+                                            ['C', 1], ['C', 5], ['D', 4], ['D', 5],
+                                            ['E', 6], ['E', 7], ['E', 8], ['F', 4],
+                                            ['H', 3], ['H', 4], ['I', 10]]]
+
+        affine  = [CoxeterType(t)      for t in ['A', 2, 1], ['B', 5, 1], 
+                                            ['C', 5, 1], ['D', 5, 1], ['E', 6, 1],
+                                            ['E', 7, 1], ['E', 8, 1], ['F', 4, 1],
+                                            ['G', 2, 1], ['A', 1, 1]]
+
+        return finite + affine
+    
     @abstract_method
     def rank(self):
         """

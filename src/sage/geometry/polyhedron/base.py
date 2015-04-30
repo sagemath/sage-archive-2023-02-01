@@ -2615,13 +2615,8 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
-<<<<<<< HEAD
-            sage: cube = polytopes.n_cube(3)
-            sage: trunc_cube = cube.truncation()
-=======
             sage: cube = polytopes.hypercube(3)
-            sage: trunc_cube = cube.edge_truncation()
->>>>>>> develop
+            sage: trunc_cube = cube.truncation()
             sage: trunc_cube.n_vertices()
             24
             sage: trunc_cube.n_inequalities()

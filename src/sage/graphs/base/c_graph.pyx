@@ -1115,100 +1115,6 @@ cdef class CGraph:
         """
         return self.num_arcs
 
-cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
-                    CGraph G) except ? -2:
-    """
-    Returns an int representing the arbitrary hashable vertex u (whether or not
-    u is actually in the graph), or -1 if a new association must be made for u
-    to be a vertex.
-
-    TESTS:
-
-    We check that the bug described in :trac:`8406` is gone::
-
-        sage: G = Graph()
-        sage: R.<a> = GF(3**3)
-        sage: S.<x> = R[]
-        sage: G.add_vertex(a**2)
-        sage: G.add_vertex(x)
-        sage: G.vertices()
-        [a^2, x]
-
-    And that the bug described in :trac:`9610` is gone::
-
-        sage: n = 20
-        sage: k = 3
-        sage: g = DiGraph()
-        sage: g.add_edges( (i,Mod(i+j,n)) for i in range(n) for j in range(1,k+1) )
-        sage: g.vertices()
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
-        sage: g.strongly_connected_components()
-        [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]
-
-    The bug in :trac:`14967` and :trac:`14853` is fixed::
-
-        sage: DiGraph({0: {}, 1/2: {}})
-        Multi-digraph on 2 vertices
-        sage: A = Set([RDF.random_element(min=0, max=10) for k in range(10)])
-        sage: G = Graph()
-        sage: G.add_vertices(A)
-        sage: Set(G.vertices()) == A
-        True
-
-    """
-    cdef int u_int
-    if u in vertex_ints:
-        return vertex_ints[u]
-    try:
-        u_int = u
-    except Exception:
-        return -1
-    if u_int < 0 or u_int >= G.active_vertices.size or u_int in vertex_labels or u_int != u:
-        return -1
-    return u_int
-
-cdef object vertex_label(int u_int, dict vertex_ints, dict vertex_labels,
-                         CGraph G):
-    """
-    Returns the object represented by u_int, or None if this does not represent
-    a vertex.
-    """
-    if u_int in vertex_labels:
-        return vertex_labels[u_int]
-    elif bitset_in(G.active_vertices, u_int):
-        return u_int
-    else:
-        return None
-
-cdef int check_vertex(object u, dict vertex_ints, dict vertex_labels,
-                      CGraph G, CGraph G_rev, bint reverse) except ? -1:
-    """
-    Returns an int representing the arbitrary hashable vertex u, and updates,
-    if necessary, the translation dict and list. Adds a vertex if the label
-    is new.
-    """
-    cdef int u_int = get_vertex(u, vertex_ints, vertex_labels, G)
-    if u_int != -1:
-        if not bitset_in(G.active_vertices, u_int):
-            bitset_add(G.active_vertices, u_int)
-            G.num_verts += 1
-            if reverse:
-                bitset_add(G_rev.active_vertices, u_int)
-                G_rev.num_verts += 1
-        return u_int
-    u_int = bitset_first_in_complement(G.active_vertices)
-    if u_int == -1:
-        G.realloc(2*G.active_vertices.size)
-        if reverse:
-            G_rev.realloc(2*G_rev.active_vertices.size)
-        return check_vertex(u, vertex_ints, vertex_labels, G, G_rev, reverse)
-    vertex_labels[u_int] = u
-    vertex_ints[u] = u_int
-    G.add_vertex(u_int)
-    if reverse:
-        G_rev.add_vertex(u_int)
-    return u_int
-
 class CGraphBackend(GenericGraphBackend):
     """
     Base class for sparse and dense graph backends.
@@ -1251,6 +1157,100 @@ class CGraphBackend(GenericGraphBackend):
     _cg = None
     _cg_rev = None
     _directed = None
+
+    cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
+                        CGraph G) except ? -2:
+        """
+        Returns an int representing the arbitrary hashable vertex u (whether or not
+        u is actually in the graph), or -1 if a new association must be made for u
+        to be a vertex.
+
+        TESTS:
+
+        We check that the bug described in :trac:`8406` is gone::
+
+            sage: G = Graph()
+            sage: R.<a> = GF(3**3)
+            sage: S.<x> = R[]
+            sage: G.add_vertex(a**2)
+            sage: G.add_vertex(x)
+            sage: G.vertices()
+            [a^2, x]
+
+        And that the bug described in :trac:`9610` is gone::
+
+            sage: n = 20
+            sage: k = 3
+            sage: g = DiGraph()
+            sage: g.add_edges( (i,Mod(i+j,n)) for i in range(n) for j in range(1,k+1) )
+            sage: g.vertices()
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+            sage: g.strongly_connected_components()
+            [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]
+
+        The bug in :trac:`14967` and :trac:`14853` is fixed::
+
+            sage: DiGraph({0: {}, 1/2: {}})
+            Multi-digraph on 2 vertices
+            sage: A = Set([RDF.random_element(min=0, max=10) for k in range(10)])
+            sage: G = Graph()
+            sage: G.add_vertices(A)
+            sage: Set(G.vertices()) == A
+            True
+
+        """
+        cdef int u_int
+        if u in vertex_ints:
+            return vertex_ints[u]
+        try:
+            u_int = u
+        except Exception:
+            return -1
+        if u_int < 0 or u_int >= G.active_vertices.size or u_int in vertex_labels or u_int != u:
+            return -1
+        return u_int
+
+    cdef object vertex_label(int u_int, dict vertex_ints, dict vertex_labels,
+                             CGraph G):
+        """
+        Returns the object represented by u_int, or None if this does not represent
+        a vertex.
+        """
+        if u_int in vertex_labels:
+            return vertex_labels[u_int]
+        elif bitset_in(G.active_vertices, u_int):
+            return u_int
+        else:
+            return None
+
+    cdef int check_vertex(object u, dict vertex_ints, dict vertex_labels,
+                          CGraph G, CGraph G_rev, bint reverse) except ? -1:
+        """
+        Returns an int representing the arbitrary hashable vertex u, and updates,
+        if necessary, the translation dict and list. Adds a vertex if the label
+        is new.
+        """
+        cdef int u_int = get_vertex(u, vertex_ints, vertex_labels, G)
+        if u_int != -1:
+            if not bitset_in(G.active_vertices, u_int):
+                bitset_add(G.active_vertices, u_int)
+                G.num_verts += 1
+                if reverse:
+                    bitset_add(G_rev.active_vertices, u_int)
+                    G_rev.num_verts += 1
+            return u_int
+        u_int = bitset_first_in_complement(G.active_vertices)
+        if u_int == -1:
+            G.realloc(2*G.active_vertices.size)
+            if reverse:
+                G_rev.realloc(2*G_rev.active_vertices.size)
+            return check_vertex(u, vertex_ints, vertex_labels, G, G_rev, reverse)
+        vertex_labels[u_int] = u
+        vertex_ints[u] = u_int
+        G.add_vertex(u_int)
+        if reverse:
+            G_rev.add_vertex(u_int)
+        return u_int
 
     def has_vertex(self, v):
         """

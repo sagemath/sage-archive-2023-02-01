@@ -281,6 +281,18 @@ class CoxeterMatrix(CoxeterType):
         else:
             self._is_cyclotomic = True
         self._coxeter_type = coxeter_type
+
+        if self._coxeter_type is not None:
+            if self._coxeter_type.is_finite():
+                self._is_finite = True
+                self._is_affine = False
+            elif self._coxeter_type.is_affine():
+                self._is_finite = False
+                self._is_affine = True
+        else:
+            self._is_finite = False
+            self._is_affine = False
+
         self._index_set = index_set
         self.rank = self._matrix.nrows()
 
@@ -473,13 +485,7 @@ class CoxeterMatrix(CoxeterType):
             sage: M.is_finite()
             False
         """
-        if self._coxeter_type is not None:
-            return self._coxeter_type.is_finite()
-        # The type checker should catch all finite types, and checking for
-        #   positive definiteness is difficult, so we just assume it is
-        #   not finite if the type checker cannot determine the type.
-        #return self.bilinear_form().is_positive_definite()
-        return False
+        return self._is_finite
 
     def is_affine(self):
         """
@@ -502,14 +508,8 @@ class CoxeterMatrix(CoxeterType):
             ...
             NotImplementedError
         """
-        if self._coxeter_type is not None:
-            return self._coxeter_type.is_affine()
-        else:
-            return False
-            # if self.bilinear_form().rank() == self.rank() - 1 and self.bilinear_form().determinant() == 0:
-            #     return True
-            # else:
-            #     return False
+        return self._is_affine
+
 
 #####################################################################
 ## Type check functions

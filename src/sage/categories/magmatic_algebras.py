@@ -81,8 +81,9 @@ class MagmaticAlgebras(Category_over_base_ring):
 
         .. TODO::
 
-            This category should be a :class:`CategoryWithAxiom`, the
-            axiom specifying the compability between the magma and
+            This category should be a
+            :class:`~sage.categories.category_with_axiom.CategoryWithAxiom`,
+            the axiom specifying the compability between the magma and
             module structure.
 
         EXAMPLES::
@@ -124,7 +125,7 @@ class MagmaticAlgebras(Category_over_base_ring):
 
                 .. SEEALSO::
 
-                    - :meth:`Modules.WithBasis.ParentMethods.basis`
+                    - :meth:`~sage.categories.modules_with_basis.ModulesWithBasis.ParentMethods.basis`
                     - :meth:`MagmaticAlgebras.ParentMethods.algebra_generators`
 
                 EXAMPLES::

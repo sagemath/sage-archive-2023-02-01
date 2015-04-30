@@ -15580,7 +15580,9 @@ class GenericGraph(GenericGraph_pyx):
         plot_graph = can_plot and (prefs.plot_graphs == 'always' or is_small)
         # Under certain circumstances we display the plot as graphics
         if plot_graph:
-            output = self.plot(**kwds)._rich_repr_(display_manager)
+            plot_kwds = dict(kwds)
+            plot_kwds.setdefault('title', repr(self))
+            output = self.plot(**plot_kwds)._rich_repr_(display_manager)
             if output is not None:
                 return output
         # create text for non-graphical output

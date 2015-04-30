@@ -148,119 +148,67 @@ class CoxeterMatrix(CoxeterType):
             Real Field with 53 bits of precision
 
         """
+
         # Special cases with 0 args
         if not args:
             if "coxeter_type" in kwds:  # kwds has Coxeter type
                 args = ( CoxeterType(kwds["coxeter_type"]), )
             elif "cartan_type" in kwds:  # kwds has Cartan type
                 args = ( CoxeterType(CartanType(kwds["cartan_type"])), )
-            base_ring = ZZ
 
-        if not args:
             data = []
             n = 0
             index_set = tuple()
             coxeter_type = None
-            subdivisions = None
             base_ring = ZZ
+            mat = typecall(cls, MatrixSpace(base_ring, n, sparse=False), data, coxeter_type, index_set)
+            mat._subdivisions = None
+
+            return mat
 
         elif len(args) == 4 and isinstance(args[0], MatrixSpace):  # For pickling
             return typecall(cls, args[0], args[1], args[2], args[3])
-        elif isinstance(args[0], CoxeterMatrix):
+        elif isinstance(args[0], CoxeterMatrix):  # Initiate from itself
             return args[0]
-
         else:
-            coxeter_type = None
-            subdivisions = None
-            index_set = None
-            base_ring = ZZ
+            # Get the type check
+            if kwds.get("coxeter_type_check", True):
+                coxeter_type_check = True
+            else:
+                coxeter_type_check = False
+ 
+            # Initiate from a graph:
+            if isinstance(args[0], Graph):
+                return cls._from_graph(args[0],coxeter_type_check)
 
+            # Get the Coxeter type
+            coxeter_type = None
             from sage.combinat.root_system.cartan_type import CartanType_abstract
             if isinstance(args[0], CartanType_abstract):
                 coxeter_type = args[0].coxeter_type()
-            elif isinstance(args[0], Graph):
-                G = args[0]
-                n = G.num_verts()
-
-                # Setup the basis matrix as all 2 except 1 on the diagonal
-                data = []
-                for i in range(n):
-                    data += [[]]
-                    for j in range(n):
-                        if i == j:
-                            data[-1] += [ZZ.one()]
-                        else:
-                            data[-1] += [2]
-
-                verts = sorted(G.vertices())
-                for e in G.edges():
-                    m = e[2]
-                    if m is None:
-                        m = 3
-                    elif m == infinity:
-                        m = -1
-                    elif m not in ZZ and m > -1:
-                        raise ValueError("invalid Coxeter graph label")
-                    elif m == 0 or m == 1:
-                        raise ValueError("invalid Coxeter graph label")
-                    i = verts.index(e[0])
-                    j = verts.index(e[1])
-                    data[j][i] = data[i][j] = m
-                    base_ring = (base_ring.one()*m).parent()
-                index_set = tuple(verts)
-                args = [data]
             else:
                 try:
                     coxeter_type = CoxeterType(args[0])
                 except (TypeError, ValueError, NotImplementedError):
                     pass
 
+            # Initiate from a Coxeter type
             if coxeter_type:
-                index_set = coxeter_type.index_set()
-                n = len(index_set)
-                reverse = {index_set[i]: i for i in range(n)}
-                data = [[1 if i == j else 2 for j in range(n)] for i in range(n)]
-                for (i, j, l) in coxeter_type.coxeter_graph().edge_iterator():
-                    if l == infinity:
-                        l = -1
-                    data[reverse[i]][reverse[j]] = l
-                    data[reverse[j]][reverse[i]] = l
-                data = [val for row in data for val in row]
-            else:
-                M = matrix(args[0])
-                check_coxeter_matrix(args[0])
-                base_ring = M.base_ring()
-                n = M.ncols()
-                if "coxeter_type" in kwds:
-                    coxeter_type = CoxeterType(kwds["coxeter_type"])
-                elif n == 1:
-                    coxeter_type = CoxeterType(['A', 1])
-                elif kwds.get("coxeter_type_check", True):
-                    coxeter_type = find_coxeter_type_from_matrix(M)
-                data = M.list()
-                subdivisions = M._subdivisions
-
+                return cls._from_coxetertype(coxeter_type)
+            
+            # Get the index set
+            n = len(list(args[0]))
+            index_set = None
             if kwds.get("index_set", None):
                 index_set = tuple(kwds["index_set"])
-
-            if len(args) == 1:
-                if coxeter_type is not None and index_set is None:
-                    index_set = tuple(coxeter_type.index_set())
-            elif len(args) == 2:
+            if len(args) == 2:
                 index_set = tuple(args[1])
-            else:
+            elif len(args) > 2:
                 raise ValueError("too many arguments")
-
-            if index_set is None:
-                index_set = tuple(range(n))
-
-            if len(set(index_set)) != n:
-                raise ValueError("the given index set is not valid")
-
-        mat = typecall(cls, MatrixSpace(base_ring, n, sparse=False), data,
-                       coxeter_type, index_set)
-        mat._subdivisions = subdivisions
-        return mat
+            if index_set and len(set(index_set)) != n:
+                    raise ValueError("the given index set is not valid")
+            
+            return cls._from_matrix(args[0],coxeter_type,index_set,coxeter_type_check)
 
     def __init__(self, parent, data, coxeter_type, index_set):
         """
@@ -297,7 +245,83 @@ class CoxeterMatrix(CoxeterType):
         self._rank = self._matrix.nrows()
 
         self._dict = {(self._index_set[i], self._index_set[j]): self._matrix[i, j]
-                for i in range(self.rank) for j in range(self.rank)}
+                for i in range(self.rank()) for j in range(self.rank())}
+
+    @classmethod
+    def _from_matrix(cls,data,coxeter_type,index_set,coxeter_type_check):
+
+        # Check that the data is valid
+        check_coxeter_matrix(data)
+
+        M = matrix(data)
+        base_ring = M.base_ring()
+        n = M.ncols()
+        if not coxeter_type:
+            if n == 1:
+                coxeter_type = CoxeterType(['A', 1])
+            elif coxeter_type_check:
+                coxeter_type = find_coxeter_type_from_matrix(M)
+            else:
+                coxeter_type = None
+        if not index_set:
+            index_set = range(n)
+
+        raw_data = M.list()
+        
+        mat = typecall(cls, MatrixSpace(base_ring, n, sparse=False), raw_data,
+                       coxeter_type, index_set)
+        mat._subdivisions = M._subdivisions
+
+        return mat
+
+    @classmethod
+    def _from_graph(cls,graph,coxeter_type_check):
+
+        verts = sorted(graph.vertices())
+        index_set = tuple(verts)
+        n = len(index_set)
+
+        # Setup the basis matrix as all 2 except 1 on the diagonal
+        data = []
+        for i in range(n):
+            data += [[]]
+            for j in range(n):
+                if i == j:
+                    data[-1] += [ZZ.one()]
+                else:
+                    data[-1] += [2]
+
+        for e in graph.edges():
+            label = e[2]
+            if label is None:
+                label = 3
+            elif label == infinity:
+                label = -1
+            elif label not in ZZ and label > -1:
+                raise ValueError("invalid Coxeter graph label")
+            elif label == 0 or label == 1:
+                raise ValueError("invalid Coxeter graph label")
+            i = verts.index(e[0])
+            j = verts.index(e[1])
+            data[j][i] = data[i][j] = label
+        
+        return cls._from_matrix(data,None,index_set,coxeter_type_check)
+
+    @classmethod
+    def _from_coxetertype(cls,coxeter_type):
+
+        index_set = coxeter_type.index_set()
+        n = len(index_set)
+        reverse = {index_set[i]: i for i in range(n)}
+        data = [[1 if i == j else 2 for j in range(n)] for i in range(n)]
+        for (i, j, l) in coxeter_type.coxeter_graph().edge_iterator():
+            if l == infinity:
+                l = -1
+            data[reverse[i]][reverse[j]] = l
+            data[reverse[j]][reverse[i]] = l
+        data = [val for row in data for val in row]
+
+        return cls._from_matrix(data,coxeter_type,index_set,False)
 
     def __reduce__(self):
         """
@@ -424,7 +448,7 @@ class CoxeterMatrix(CoxeterType):
             sage: C.coxeter_graph()
             Graph on 4 vertices
         """
-        n = self.rank
+        n = self.rank()
         I = self.index_set()
         val = lambda x: infinity if x == -1 else x
         G = Graph([(I[i], I[j], val((self._matrix)[i, j]))

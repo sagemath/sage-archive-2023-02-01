@@ -223,7 +223,6 @@ class CoxeterMatrix(CoxeterType):
 
         self._matrix = Matrix_generic_dense(parent, data, False, True)
         self._matrix.set_immutable()
-        # Matrix_generic_dense.__init__(self, parent, data, False, True)
 
         if self._matrix.base_ring() not in [ZZ, QQ]:
             self._is_cyclotomic = False
@@ -238,6 +237,9 @@ class CoxeterMatrix(CoxeterType):
             elif self._coxeter_type.is_affine():
                 self._is_finite = False
                 self._is_affine = True
+            else:
+                self._is_finite = False
+                self._is_affine = False
         else:
             self._is_finite = False
             self._is_affine = False
@@ -665,26 +667,18 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
         Coxeter type of ['F', 4]
         sage: CoxeterMatrix(CoxeterType(['G',2]).coxeter_graph()).coxeter_type()
         Coxeter type of ['G', 2]
-        sage:CoxeterMatrix(CoxeterType(['I',100]).coxeter_graph()).coxeter_type()
-        Coxeter type of ['I', 100]
         sage: CoxeterMatrix(CoxeterType(['H',3]).coxeter_graph()).coxeter_type()
         Coxeter type of ['H', 3]
         sage: CoxeterMatrix(CoxeterType(['H',4]).coxeter_graph()).coxeter_type()
         Coxeter type of ['H', 4]
+        sage:CoxeterMatrix(CoxeterType(['I',100]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['I', 100]
 
 
     Some affine graphs::
 
-        sage: CoxeterMatrix(CoxeterType(['A',3,1]).coxeter_graph()).coxeter_type()
-        Coxeter type of ['A', 3, 1]
-        sage: CoxeterMatrix(CoxeterType(['B',3,1]).coxeter_graph()).coxeter_type()
-        Coxeter type of ['B', 3, 1]
-        sage: CoxeterMatrix(CoxeterType(['C',3,1]).coxeter_graph()).coxeter_type()
-        Coxeter type of ['C', 3, 1]
-        sage: CoxeterMatrix(CoxeterType(['F',4,1]).coxeter_graph()).coxeter_type()
-        Coxeter type of ['F', 4, 1]
-
-
+        sage: CoxeterMatrix(CoxeterType(['A',1,1]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['A', 1, 1]
         sage: CoxeterMatrix(CoxeterType(['A',10,1]).coxeter_graph()).coxeter_type()
         Coxeter type of ['A', 10, 1]
         sage: CoxeterMatrix(CoxeterType(['B',10,1]).coxeter_graph()).coxeter_type()
@@ -699,7 +693,10 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
         Coxeter type of ['E', 7, 1]
         sage: CoxeterMatrix(CoxeterType(['E',8,1]).coxeter_graph()).coxeter_type()
         Coxeter type of ['E', 8, 1]
-
+        sage: CoxeterMatrix(CoxeterType(['F',4,1]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['F', 4, 1]
+        sage: CoxeterMatrix(CoxeterType(['G',2,1]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['G', 2, 1]
     """
     # First, we build the Coxeter graph of the group without the edge labels
     n = ZZ(coxeter_matrix.nrows())
@@ -768,7 +765,7 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
             elif s[0] == 3 and s[1] == 3 and s[2] == 3:
                 types.append(['A', 2, 1])
                 continue
-            else:
+            else:  # Have a hyperbolic type of rank 3
                 return None
         elif l == 4:
             # The `4`-node case. The finite groups to check for
@@ -954,62 +951,6 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
 
                 else:  # Branching degree too high
                     return None
-
-
-            # # Checking that the Coxeter matrix of the subgroup
-            # # corresponding to the vertices ``comp`` has all its
-            # # off-diagonal entries equal to 2, 3 or at most once 4
-            # found_a_4 = False
-            # for j in range(l):
-            #     for i in range(j):
-            #         coxeter_entry = coxeter_matrix[comp[i], comp[j]]
-            #         if coxeter_entry in [2, 3]:
-            #             continue
-            #         if coxeter_entry == 4 and not found_a_4:
-            #             found_a_4 = True
-            #             continue
-            #         return None
-            #
-            # G0 = G.subgraph(comp)
-            # if found_a_4:
-            #     # The case when a `4` has been found in the
-            #     # Coxeter matrix. This needs only to be checked
-            #     # against `B_l`. We use the observation that
-            #     # the group is `B_l` if and only if the Coxeter
-            #     # graph is an `l`-path (i.e., has diameter
-            #     # `l - 1`) and the `4` corresponds to one of
-            #     # its two outermost edges.
-            #     diameter = G0.diameter()
-            #     if diameter != l - 1:
-            #         return None
-            #
-            #     ecc = sorted(((u, v) for (v, u) in G0.eccentricity(with_labels=True).items()))
-            #     left_end = ecc[-1][1]
-            #     right_end = ecc[-2][1]
-            #     left_almost_end = G0.neigbors(left_end)[0]
-            #     right_almost_end = G0.neigbors(right_end)[0]
-            #     if (coxeter_matrix[left_end, left_almost_end] == 4
-            #         or coxeter_matrix[right_end, right_almost_end] == 4):
-            #         types.append(['B', l])
-            #         continue  # Bl
-            #     return None
-            #
-            # # Now, all off-diagonal entries of the Coxeter matrix
-            # # are 2's and 3's. We need to check our group against
-            # # `A_l`, `D_l` and `E_l`. Knowing that the Coxeter
-            # # graph is a tree, we can use its vertex
-            # # eccentricities to check this.
-            # ecc = sorted(G0.eccentricity())
-            # if ecc[-1] == l - 1:
-            #     types.append(['A', l])
-            #     continue  # Al
-            # if ecc[-3] == l - 2:
-            #     types.append(['D', l])
-            #     continue  # Dl
-            # if l <= 8 and ecc[-2] == l - 2 and ecc[-5] == l - 3:
-            #     types.append(['E', l])
-            #     continue  # El
-            # return None
 
     if len(types) == 1:
         types = types[0]

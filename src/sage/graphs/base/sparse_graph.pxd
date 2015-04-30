@@ -7,6 +7,7 @@
 #*******************************************************************************
 
 from c_graph cimport CGraph
+from c_graph cimport CGraphBackend
 
 cdef struct SparseGraphLLNode:
     int label

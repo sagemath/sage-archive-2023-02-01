@@ -1158,8 +1158,7 @@ class CGraphBackend(GenericGraphBackend):
     _cg_rev = None
     _directed = None
 
-    cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
-                        CGraph G) except ? -2:
+    cdef int get_vertex(self, object u) except ? -2:
         """
         Returns an int representing the arbitrary hashable vertex u (whether or not
         u is actually in the graph), or -1 if a new association must be made for u
@@ -1199,6 +1198,9 @@ class CGraphBackend(GenericGraphBackend):
             True
 
         """
+        cdef dict vertex_ints   = self.vertex_ints
+        cdef dict vertex_labels = self.vertex_labels
+        cdef CGraph G = self._cg
         cdef int u_int
         if u in vertex_ints:
             return vertex_ints[u]
@@ -1210,12 +1212,15 @@ class CGraphBackend(GenericGraphBackend):
             return -1
         return u_int
 
-    cdef object vertex_label(int u_int, dict vertex_ints, dict vertex_labels,
-                             CGraph G):
+    cdef object vertex_label(self, int u_int):
         """
         Returns the object represented by u_int, or None if this does not represent
         a vertex.
         """
+        cdef dict vertex_ints   = self.vertex_ints
+        cdef dict vertex_labels = self.vertex_labels,
+        cdef CGraph G = self._cg
+
         if u_int in vertex_labels:
             return vertex_labels[u_int]
         elif bitset_in(G.active_vertices, u_int):
@@ -1223,14 +1228,18 @@ class CGraphBackend(GenericGraphBackend):
         else:
             return None
 
-    cdef int check_vertex(object u, dict vertex_ints, dict vertex_labels,
-                          CGraph G, CGraph G_rev, bint reverse) except ? -1:
+    cdef int check_labelled_vertex(self, object u, bint reverse) except ? -1:
         """
         Returns an int representing the arbitrary hashable vertex u, and updates,
         if necessary, the translation dict and list. Adds a vertex if the label
         is new.
         """
-        cdef int u_int = get_vertex(u, vertex_ints, vertex_labels, G)
+        cdef dict vertex_ints   = self.vertex_ints
+        cdef dict vertex_labels = self.vertex_labels,
+        cdef CGraph G = self._cg
+        cdef CGraph G_rev = self._cg_rev
+
+        cdef int u_int = self.get_vertex(u)
         if u_int != -1:
             if not bitset_in(G.active_vertices, u_int):
                 bitset_add(G.active_vertices, u_int)
@@ -1244,7 +1253,7 @@ class CGraphBackend(GenericGraphBackend):
             G.realloc(2*G.active_vertices.size)
             if reverse:
                 G_rev.realloc(2*G_rev.active_vertices.size)
-            return check_vertex(u, vertex_ints, vertex_labels, G, G_rev, reverse)
+            return self.check_labelled_vertex(u, reverse)
         vertex_labels[u_int] = u
         vertex_ints[u] = u_int
         G.add_vertex(u_int)
@@ -1273,10 +1282,7 @@ class CGraphBackend(GenericGraphBackend):
             sage: B.has_vertex(7)
             False
         """
-        cdef int v_int = get_vertex(v,
-                                    self.vertex_ints,
-                                    self.vertex_labels,
-                                    self._cg)
+        cdef int v_int = self.get_vertex(v)
         if v_int == -1:
             return False
         if not bitset_in((<CGraph>self._cg).active_vertices, v_int):
@@ -1414,10 +1420,7 @@ class CGraphBackend(GenericGraphBackend):
             sage: h.degree()
             [1, 1]
         """
-        cdef int v_int = get_vertex(v,
-                                    self.vertex_ints,
-                                    self.vertex_labels,
-                                    self._cg)
+        cdef int v_int = self.get_vertex(v)
         if directed:
             return self._cg._in_degree(v_int) + self._cg._out_degree(v_int)
         d = 0
@@ -1443,10 +1446,7 @@ class CGraphBackend(GenericGraphBackend):
             sage: D.out_degree(1)
             2
         """
-        cdef int v_int = get_vertex(v,
-                                    self.vertex_ints,
-                                    self.vertex_labels,
-                                    self._cg)
+        cdef int v_int = self.get_vertex(v)
         if self._directed:
             return self._cg._out_degree(v_int)
         d = 0
@@ -1476,10 +1476,7 @@ class CGraphBackend(GenericGraphBackend):
         if not self._directed:
             return self.out_degree(v)
 
-        cdef int v_int = get_vertex(v,
-                                    self.vertex_ints,
-                                    self.vertex_labels,
-                                    self._cg)
+        cdef int v_int = self.get_vertex(v)
 
         return self._cg_rev._out_degree(v_int)
 
@@ -1532,11 +1529,7 @@ class CGraphBackend(GenericGraphBackend):
                 name += 1
             retval = name
 
-        check_vertex(name,
-                     self.vertex_ints,
-                     self.vertex_labels,
-                     self._cg,
-                     self._cg_rev,
+        self.check_labelled_vertex(name,
                      (self._directed and
                       self._cg_rev is not None)) # this will add the vertex
 
@@ -1632,10 +1625,7 @@ class CGraphBackend(GenericGraphBackend):
         """
         if not self.has_vertex(v):
             return
-        cdef int v_int = get_vertex(v,
-                                    self.vertex_ints,
-                                    self.vertex_labels,
-                                    self._cg)
+        cdef int v_int = self.get_vertex(v)
 
         # delete each arc incident with v and v
         self._cg.del_vertex(v_int)
@@ -1749,19 +1739,16 @@ class CGraphBackend(GenericGraphBackend):
             [1, 4, 5]
         """
         cdef int u_int
-        cdef int v_int = get_vertex(v,
-                                    self.vertex_ints,
-                                    self.vertex_labels,
-                                    self._cg)
+        cdef int v_int = self.get_vertex(v)
         # Sparse
         if self._cg_rev is not None:
             for u_int in self._cg_rev.out_neighbors(v_int):
-                yield vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                yield self.vertex_label(u_int)
 
         # Dense
         else:
             for u_int in self._cg.in_neighbors(v_int):
-                yield vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                yield self.vertex_label(u_int)
 
     def iterator_out_nbrs(self, v):
         """
@@ -1790,13 +1777,10 @@ class CGraphBackend(GenericGraphBackend):
             [1, 4, 5]
         """
         cdef u_int
-        cdef int v_int = get_vertex(v,
-                                    self.vertex_ints,
-                                    self.vertex_labels,
-                                    self._cg)
+        cdef int v_int = self.get_vertex(v)
 
         for u_int in self._cg.out_neighbors(v_int):
-            yield vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+            yield self.vertex_label(u_int)
 
     def iterator_verts(self, verts=None):
         """
@@ -2056,7 +2040,7 @@ class CGraphBackend(GenericGraphBackend):
         cdef dict new_vx_ints = {}
         cdef dict new_vx_labels = {}
         for v in self.iterator_verts(None):
-            i = get_vertex(v, self.vertex_ints, self.vertex_labels, self._cg)
+            i = self.get_vertex(v)
             new_vx_ints[perm[v]] = i
             new_vx_labels[i] = perm[v]
         self.vertex_ints = new_vx_ints
@@ -2097,14 +2081,8 @@ class CGraphBackend(GenericGraphBackend):
         # considering the out_neighbors on x's side, and in_neighbors on
         # y's side.
 
-        cdef int x_int = get_vertex(x,
-                                    self.vertex_ints,
-                                    self.vertex_labels,
-                                    self._cg)
-        cdef int y_int = get_vertex(y,
-                                    self.vertex_ints,
-                                    self.vertex_labels,
-                                    self._cg)
+        cdef int x_int = self.get_vertex(x)
+        cdef int y_int = self.get_vertex(y)
         cdef int u = 0
         cdef int v = 0
         cdef int w = 0
@@ -2169,11 +2147,7 @@ class CGraphBackend(GenericGraphBackend):
                             w = v
 
                             while w != x_int:
-                                shortest_path.append(
-                                    vertex_label(w,
-                                                 self.vertex_ints,
-                                                 self.vertex_labels,
-                                                 self._cg))
+                                shortest_path.append(self.vertex_label(w))
                                 w = pred_x[w]
 
                             shortest_path.append(x)
@@ -2184,11 +2158,7 @@ class CGraphBackend(GenericGraphBackend):
 
                             w = pred_y[v]
                             while w != y_int:
-                                shortest_path.append(
-                                    vertex_label(w,
-                                                 self.vertex_ints,
-                                                 self.vertex_labels,
-                                                 self._cg))
+                                shortest_path.append(self.vertex_label(w))
                                 w = pred_y[w]
                             shortest_path.append(y)
 
@@ -2251,14 +2221,8 @@ class CGraphBackend(GenericGraphBackend):
         # define dictionaries like pred_current and pred_other, which
         # represent alternatively pred_x or pred_y according to the side
         # studied.
-        cdef int x_int = get_vertex(x,
-                                    self.vertex_ints,
-                                    self.vertex_labels,
-                                    self._cg)
-        cdef int y_int = get_vertex(y,
-                                    self.vertex_ints,
-                                    self.vertex_labels,
-                                    self._cg)
+        cdef int x_int = self.get_vertex(x)
+        cdef int y_int = self.get_vertex(y)
         cdef int u = 0
         cdef int v = 0
         cdef int w = 0
@@ -2330,8 +2294,8 @@ class CGraphBackend(GenericGraphBackend):
                     # If the neighbor is new, adds its non-found neighbors to
                     # the queue.
                     if w not in dist_current:
-                        v_obj = vertex_label(v, self.vertex_ints, self.vertex_labels, self._cg)
-                        w_obj = vertex_label(w, self.vertex_ints, self.vertex_labels, self._cg)
+                        v_obj = self.vertex_label(v)
+                        w_obj = self.vertex_label(w)
                         edge_label = self.get_edge_label(v_obj, w_obj) if side == 1 else self.get_edge_label(w_obj, v_obj)
                         heappush(queue, (distance + edge_label, side, v, w))
 
@@ -2343,11 +2307,7 @@ class CGraphBackend(GenericGraphBackend):
             w = meeting_vertex
 
             while w != x_int:
-                shortest_path.append(
-                    vertex_label(w,
-                                 self.vertex_ints,
-                                 self.vertex_labels,
-                                 self._cg))
+                shortest_path.append(self.vertex_label(w))
                 w = pred_x[w]
 
             shortest_path.append(x)
@@ -2358,11 +2318,7 @@ class CGraphBackend(GenericGraphBackend):
 
             w = pred_y[meeting_vertex]
             while w != y_int:
-                shortest_path.append(
-                    vertex_label(w,
-                                 self.vertex_ints,
-                                 self.vertex_labels,
-                                 self._cg))
+                shortest_path.append(self.vertex_label(w))
                 w = pred_y[w]
             shortest_path.append(y)
 
@@ -2419,7 +2375,7 @@ class CGraphBackend(GenericGraphBackend):
         distances = {}
         d = 0
 
-        v_int = get_vertex(v, self.vertex_ints, self.vertex_labels, self._cg)
+        v_int = self.get_vertex(v)
 
         bitset_init(seen, (<CGraph>self._cg).active_vertices.size)
         bitset_set_first_n(seen, 0)
@@ -2439,7 +2395,7 @@ class CGraphBackend(GenericGraphBackend):
 
                 if bitset_not_in(seen, v_int):
                     bitset_add(seen, v_int)
-                    distances[vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)] = distances[vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)] + [vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)]
+                    distances[self.vertex_label(v_int)] = distances[self.vertex_label(u_int)] + [self.vertex_label(v_int)]
                     next_layer.extend([(u_int, v_int) for u_int in self._cg.out_neighbors(v_int)])
 
             current_layer = next_layer
@@ -2653,7 +2609,7 @@ class CGraphBackend(GenericGraphBackend):
 
         if v_int == -1:
             return True
-        v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, cg)
+        v = self.vertex_label(v_int)
         return len(list(self.depth_first_search(v, ignore_direction=True))) == cg.num_verts
 
     def is_strongly_connected(self):
@@ -2682,7 +2638,7 @@ class CGraphBackend(GenericGraphBackend):
         if v_int == -1:
             return True
 
-        v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
+        v = self.vertex_label(v_int)
 
         return (<CGraph>self._cg).num_verts == len(list(self.depth_first_search(v))) and \
             (<CGraph>self._cg).num_verts == len(list(self.depth_first_search(v, reverse=True)))
@@ -2711,10 +2667,7 @@ class CGraphBackend(GenericGraphBackend):
             sage: all([[v] == g.strongly_connected_component_containing_vertex(v) for v in g])
             True
         """
-        cdef int v_int = get_vertex(v,
-                                    self.vertex_ints,
-                                    self.vertex_labels,
-                                    self._cg)
+        cdef int v_int = self.get_vertex(v)
         cdef set a = set(self.depth_first_search(v))
         cdef set b = set(self.depth_first_search(v, reverse=True))
         return list(a & b)
@@ -2808,7 +2761,6 @@ class CGraphBackend(GenericGraphBackend):
             ...        for i in range(50))                              # long time
             True
         """
-
         if not self._directed:
             raise ValueError("Input must be a directed graph.")
 
@@ -2858,7 +2810,7 @@ class CGraphBackend(GenericGraphBackend):
                 # out-neighbors have been de-activated already, for we put them
                 # *after* u in the stack.
                 if bitset_in(tried, u):
-                    ordering.insert(0, vertex_label(u, self.vertex_ints, self.vertex_labels, self._cg))
+                    ordering.insert(0, self.vertex_label(u))
                     bitset_discard(tried, u)
                     bitset_discard(activated, u)
                     stack.pop(-1)
@@ -2890,12 +2842,12 @@ class CGraphBackend(GenericGraphBackend):
 
                         # We build it, then return it
                         # // answer = [u]
-                        cycle = [vertex_label(u, self.vertex_ints, self.vertex_labels, self._cg)]
+                        cycle = [self.vertex_label(u)]
 
                         tmp = u
                         while u != uu:
                             u = parent.get(u,uu)
-                            cycle.append(vertex_label(u, self.vertex_ints, self.vertex_labels, self._cg))
+                            cycle.append(self.vertex_label(u))
 
                         cycle.reverse()
                         return (False, cycle)
@@ -2951,7 +2903,7 @@ cdef class Search_iterator:
         [0, 1, 4, 5, 2, 6, 3, 9, 7, 8]
     """
 
-    cdef graph
+    cdef CGraphBackend graph
     cdef int direction
     cdef list stack
     cdef bitset_t seen
@@ -3025,10 +2977,7 @@ cdef class Search_iterator:
         bitset_init(self.seen, (<CGraph>self.graph._cg).active_vertices.size)
         bitset_set_first_n(self.seen, 0)
 
-        cdef int v_id = get_vertex(v,
-                                 self.graph.vertex_ints,
-                                 self.graph.vertex_labels,
-                                 self.graph._cg)
+        cdef int v_id = self.graph.get_vertex(v)
 
         if v_id == -1:
             raise LookupError("Vertex ({0}) is not a vertex of the graph.".format(repr(v)))
@@ -3078,10 +3027,7 @@ cdef class Search_iterator:
             v_int = self.stack.pop(self.direction)
 
             if bitset_not_in(self.seen, v_int):
-                value = vertex_label(v_int,
-                                     self.graph.vertex_ints,
-                                     self.graph.vertex_labels,
-                                     self.graph._cg)
+                value = self.graph.vertex_label(v_int)
                 bitset_add(self.seen, v_int)
 
                 if self.test_out:

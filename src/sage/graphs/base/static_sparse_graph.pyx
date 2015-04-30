@@ -161,6 +161,7 @@ cimport cpython
 from sage.graphs.base.c_graph cimport CGraph
 from libc.stdint cimport INT32_MAX
 from static_sparse_backend cimport StaticSparseCGraph
+from static_sparse_backend cimport StaticSparseBackend
 
 cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1:
     r"""

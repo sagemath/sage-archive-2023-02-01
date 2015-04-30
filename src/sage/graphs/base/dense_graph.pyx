@@ -692,8 +692,7 @@ def _test_adjacency_sequence_out():
 # Dense Graph Backend
 ###########################################
 
-from c_graph import CGraphBackend
-from c_graph cimport check_vertex, vertex_label, get_vertex
+from c_graph cimport CGraphBackend
 
 class DenseGraphBackend(CGraphBackend):
     """
@@ -774,10 +773,8 @@ class DenseGraphBackend(CGraphBackend):
         if u is None: u = self.add_vertex(None)
         if v is None: v = self.add_vertex(None)
 
-        cdef int u_int = check_vertex(u, self.vertex_ints, self.vertex_labels,
-                      self._cg, None, 0)
-        cdef int v_int = check_vertex(v, self.vertex_ints, self.vertex_labels,
-                      self._cg, None, 0)
+        cdef int u_int = self.check_labelled_vertex(u, 0)
+        cdef int v_int = self.check_labelled_vertex(v, 0)
 
         if directed or u_int == v_int:
             self._cg.add_arc(u_int, v_int)
@@ -845,10 +842,8 @@ class DenseGraphBackend(CGraphBackend):
         """
         if not ( self.has_vertex(u) and self.has_vertex(v) ):
             return
-        cdef int u_int = check_vertex(u, self.vertex_ints, self.vertex_labels,
-                      self._cg, None, 0)
-        cdef int v_int = check_vertex(v, self.vertex_ints, self.vertex_labels,
-                      self._cg, None, 0)
+        cdef int u_int = self.check_labelled_vertex(u, 0)
+        cdef int v_int = self.check_labelled_vertex(v, 0)
         if v is None:
             u, v = u[:2]
         if directed:
@@ -917,10 +912,8 @@ class DenseGraphBackend(CGraphBackend):
         """
         if not ( self.has_vertex(u) and self.has_vertex(v) ):
             return False
-        cdef int u_int = get_vertex(u, self.vertex_ints, self.vertex_labels,
-                      self._cg)
-        cdef int v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
-                      self._cg)
+        cdef int u_int = self.get_vertex(u)
+        cdef int v_int = self.get_vertex(v)
         return self._cg.has_arc(u_int, v_int)
 
     def iterator_edges(self, object vertices, bint labels):
@@ -943,21 +936,20 @@ class DenseGraphBackend(CGraphBackend):
 
         """
         cdef object v
-        vertices = [get_vertex(v, self.vertex_ints, self.vertex_labels,
-                    self._cg) for v in vertices if self.has_vertex(v)]
+        vertices = [self.get_vertex(v) for v in vertices if self.has_vertex(v)]
         cdef int u_int, v_int
         if labels:
             return iter([tuple(sorted(
-            (vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
-             vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+            (self.vertex_label(v_int),
+             self.vertex_label(u_int)
             )))+(None,)
                 for v_int in vertices
                     for u_int in self._cg.out_neighbors(v_int)
                         if u_int >= v_int or u_int not in vertices])
         else:
             return iter([tuple(sorted(
-            (vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
-             vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+            (self.vertex_label(v_int),
+             self.vertex_label(u_int)
             )))
                 for v_int in vertices
                     for u_int in self._cg.out_neighbors(v_int)
@@ -984,20 +976,19 @@ class DenseGraphBackend(CGraphBackend):
 
         """
         cdef object v
-        vertices = [get_vertex(v, self.vertex_ints, self.vertex_labels,
-                    self._cg) for v in vertices if self.has_vertex(v)]
+        vertices = [self.get_vertex(v) for v in vertices if self.has_vertex(v)]
         cdef int u_int, v_int
         if labels:
             return iter([
-            (vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
-             vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
+            (self.vertex_label(u_int),
+             self.vertex_label(v_int),
              None)
                 for v_int in vertices
                     for u_int in self._cg.in_neighbors(v_int)])
         else:
             return iter([
-            (vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
-             vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg))
+            (self.vertex_label(u_int),
+             self.vertex_label(v_int))
                 for v_int in vertices
                     for u_int in self._cg.in_neighbors(v_int)])
 
@@ -1022,20 +1013,19 @@ class DenseGraphBackend(CGraphBackend):
 
         """
         cdef object u, v
-        vertices = [get_vertex(v, self.vertex_ints, self.vertex_labels,
-                    self._cg) for v in vertices if self.has_vertex(v)]
+        vertices = [self.get_vertex(v) for v in vertices if self.has_vertex(v)]
         cdef int u_int, v_int
         if labels:
             return iter([
-            (vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
-             vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
+            (self.vertex_label(v_int),
+             self.vertex_label(u_int),
              None)
                 for v_int in vertices
                     for u_int in self._cg.out_neighbors(v_int)])
         else:
             return iter([
-            (vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
-             vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg))
+            (self.vertex_label(v_int),
+             self.vertex_label(u_int))
                 for v_int in vertices
                     for u_int in self._cg.out_neighbors(v_int)])
 

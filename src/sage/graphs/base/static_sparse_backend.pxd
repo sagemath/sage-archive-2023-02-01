@@ -1,6 +1,6 @@
 from c_graph cimport CGraph
 from static_sparse_graph cimport short_digraph, ushort
-from c_graph import CGraphBackend
+from c_graph cimport CGraphBackend
 
 cdef class StaticSparseCGraph(CGraph):
     cdef short_digraph g

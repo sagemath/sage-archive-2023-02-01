@@ -294,7 +294,7 @@ class CoxeterMatrix(CoxeterType):
             self._is_affine = False
 
         self._index_set = index_set
-        self.rank = self._matrix.nrows()
+        self._rank = self._matrix.nrows()
 
         self._dict = {(self._index_set[i], self._index_set[j]): self._matrix[i, j]
                 for i in range(self.rank) for j in range(self.rank)}
@@ -374,19 +374,18 @@ class CoxeterMatrix(CoxeterType):
             return self
         return self._coxeter_type
 
-    # It seems that this method should be an attribute
-    # def rank(self):
-    #     r"""
-    #     Return the rank of ``self``.
-    #
-    #     EXAMPLES::
-    #
-    #         sage: CoxeterMatrix(['C',3]).rank()
-    #         3
-    #         sage: CoxeterMatrix(["A2","B2","F4"]).rank()
-    #         8
-    #     """
-    #     return len(self._index_set)
+    def rank(self):
+        r"""
+        Return the rank of ``self``.
+
+        EXAMPLES::
+
+            sage: CoxeterMatrix(['C',3]).rank()
+            3
+            sage: CoxeterMatrix(["A2","B2","F4"]).rank()
+            8
+        """
+        return self._rank
 
     def coxeter_matrix(self):
         r"""

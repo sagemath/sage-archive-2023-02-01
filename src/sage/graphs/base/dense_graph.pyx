@@ -212,38 +212,6 @@ cdef class DenseGraph(CGraph):
         sage_free(self.out_degrees)
         bitset_free(self.active_vertices)
 
-    def __reduce__(self):
-        """
-        Return a tuple used for pickling this graph.
-
-        TESTS::
-
-            sage: from sage.graphs.base.dense_graph import DenseGraph
-            sage: D = DenseGraph(nverts = 10, extra_vertices = 10)
-            sage: D.add_arc(0,1)
-            sage: D.has_arc(0,1)
-            1
-            sage: D.has_arc(1,2)
-            0
-            sage: LD = loads(dumps(D))
-            sage: LD.has_arc(0,1)
-            1
-            sage: LD.has_arc(1,2)
-            0
-
-        """
-        from sage.graphs.all import DiGraph
-        D = DiGraph(implementation='c_graph', sparse=False)
-        cdef CGraphBackend cgb = <CGraphBackend> D._backend
-        cgb._cg = self
-        cdef int i
-        cgb.vertex_labels = {}
-        for i from 0 <= i < self.active_vertices.size:
-            if bitset_in(self.active_vertices, i):
-                cgb.vertex_labels[i] = i
-        cgb.vertex_ints = cgb.vertex_labels
-        return (DenseGraph, (0, self.active_vertices.size, self.verts(), D.edges(labels=False)))
-
     cpdef realloc(self, int total_verts):
         """
         Reallocate the number of vertices to use, without actually adding any.

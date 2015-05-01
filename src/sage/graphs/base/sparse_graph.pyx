@@ -210,45 +210,6 @@ cdef inline int compare(int a, int b):
         return -1
     return 0
 
-class id_dict:
-    """
-    This is a helper class for pickling sparse graphs. It emulates a dictionary
-    ``d`` which contains all objects, and always, ``d[x] == x``.
-
-    EXAMPLE::
-
-        sage: from sage.graphs.base.sparse_graph import id_dict
-        sage: d = id_dict()
-        sage: d[None] is None
-        True
-        sage: d[7]
-        7
-        sage: d[{}]
-        {}
-        sage: d[()]
-        ()
-
-    """
-    def __getitem__(self, x):
-        """
-        Implements d[x].
-
-        EXAMPLE:
-
-            sage: from sage.graphs.base.sparse_graph import id_dict
-            sage: d = id_dict()
-            sage: d[None] is None
-            True
-            sage: d[7]
-            7
-            sage: d[{}]
-            {}
-            sage: d[()]
-            ()
-
-        """
-        return x
-
 cdef class SparseGraph(CGraph):
     """
     Compiled sparse graphs.
@@ -379,53 +340,6 @@ cdef class SparseGraph(CGraph):
         sage_free(self.in_degrees)
         sage_free(self.out_degrees)
         bitset_free(self.active_vertices)
-
-    def __reduce__(self):
-        """
-        Return a tuple used for pickling this graph.
-
-        TESTS::
-
-            sage: from sage.graphs.base.sparse_graph import SparseGraph
-            sage: S = SparseGraph(nverts = 10, expected_degree = 3, extra_vertices = 10)
-            sage: S.add_arc(0,1)
-            sage: S.add_arc(0,1)
-            sage: S.all_arcs(0,1)
-            [0, 0]
-            sage: S.all_arcs(1,2)
-            []
-            sage: S.add_arc_label(0,0,3)
-            sage: S.all_arcs(0,0)
-            [3]
-            sage: LS = loads(dumps(S))
-            sage: LS.all_arcs(0,1)
-            [0, 0]
-            sage: LS.all_arcs(1,2)
-            []
-            sage: LS.all_arcs(0,0)
-            [3]
-
-        Test for the trac 10916 -- are multiedges and loops pickled
-        correctly?::
-
-            sage: DG = DiGraph({0:{0:[0, 1], 1:[0, 1]}})
-            sage: loads(dumps(DG)).edges()
-            [(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1)]
-
-        """
-        from sage.graphs.all import DiGraph
-        D = DiGraph(implementation='c_graph', sparse=True, multiedges=True, loops=True)
-        cdef CGraphBackend cgb = <CGraphBackend?> D._backend
-        cgb._cg = self
-        cdef int i
-        cgb.vertex_labels = {}
-        for i from 0 <= i < self.active_vertices.size:
-            if bitset_in(self.active_vertices, i):
-                cgb.vertex_labels[i] = i
-        cgb.vertex_ints = cgb.vertex_labels
-        cgb.edge_labels = id_dict()
-        arcs = [(u,v,l) if l is not None else (u,v,0) for u,v,l in D.edges(labels=True)]
-        return (SparseGraph, (0, self.hash_length, self.active_vertices.size, self.verts(), arcs))
 
     cpdef realloc(self, int total):
         """

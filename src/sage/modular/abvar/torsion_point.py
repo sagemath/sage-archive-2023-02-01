@@ -23,29 +23,38 @@ AUTHORS:
 from sage.structure.element import ModuleElement
 
 class TorsionPoint(ModuleElement):
+    r"""
+    An element of a finite subgroup of a modular abelian variety.
+
+    INPUT:
+
+    - ``parent`` -- a finite subgroup of a modular abelian variety
+
+    - ``element`` -- a `\QQ`-vector space element that represents
+       this element in terms of the ambient rational homology
+
+    - ``check`` -- bool (default: ``True``): whether to check that
+       element is in the appropriate vector space
+
+    EXAMPLES:
+
+    The following calls the :class:`TorsionPoint` constructor implicitly::
+
+        sage: J = J0(11)
+        sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
+        Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
+        sage: type(G.0)
+        <class 'sage.modular.abvar.torsion_point.FiniteSubgroup_lattice_with_category.element_class'>
+    """
     def __init__(self, parent, element, check=True):
-        r"""
-        An element of a finite subgroup of a modular abelian variety.
+        """
+        Initialize ``self``.
 
-        INPUT:
-
-        - ``parent`` -- a finite subgroup of a modular abelian variety
-
-        - ``element`` -- a `\QQ`-vector space element that represents
-           this element in terms of the ambient rational homology
-
-        - ``check`` -- bool (default: True): whether to check that
-           element is in the appropriate vector space
-
-        EXAMPLES:
-
-        The following calls the TorsionPoint constructor implicitly::
+        EXAMPLES::
 
             sage: J = J0(11)
-            sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
-            Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
-            sage: type(G.0)
-            <class 'sage.modular.abvar.torsion_point.FiniteSubgroup_lattice_with_category.element_class'>
+            sage: G = J.finite_subgroup([[1/2,0], [0,1/2]])
+            sage: TestSuite(G).run() # long time
         """
         ModuleElement.__init__(self, parent)
         if check:

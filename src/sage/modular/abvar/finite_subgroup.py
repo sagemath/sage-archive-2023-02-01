@@ -106,33 +106,41 @@ import abvar as abelian_variety
 
 
 class FiniteSubgroup(Module):
+    r"""
+    A finite subgroup of a modular abelian variety.
+
+    INPUT:
+
+    - ``abvar`` -- a modular abelian variety
+
+    - ``field_of_definition`` -- a field over which this group is defined
+
+    EXAMPLES:
+
+    This is an abstract base class, so there are no instances of
+    this class itself::
+
+        sage: A = J0(37)
+        sage: G = A.torsion_subgroup(3); G
+        Finite subgroup with invariants [3, 3, 3, 3] over QQ of Abelian variety J0(37) of dimension 2
+        sage: type(G)
+        <class 'sage.modular.abvar.finite_subgroup.FiniteSubgroup_lattice_with_category'>
+        sage: from sage.modular.abvar.finite_subgroup import FiniteSubgroup
+        sage: isinstance(G, FiniteSubgroup)
+        True
+    """
 
     Element = TorsionPoint
 
     def __init__(self, abvar, field_of_definition=QQ):
         """
-        A finite subgroup of a modular abelian variety.
+        Initialize ``self``.
 
-        INPUT:
+        TESTS::
 
-        - ``abvar`` -- a modular abelian variety
-
-        - ``field_of_definition`` -- a field over which this group is
-           defined
-
-        EXAMPLES:
-
-        This is an abstract base class, so there are no instances of
-        this class itself::
-
-            sage: A = J0(37)
-            sage: G = A.torsion_subgroup(3); G
-            Finite subgroup with invariants [3, 3, 3, 3] over QQ of Abelian variety J0(37) of dimension 2
-            sage: type(G)
-            <class 'sage.modular.abvar.finite_subgroup.FiniteSubgroup_lattice_with_category'>
-            sage: from sage.modular.abvar.finite_subgroup import FiniteSubgroup
-            sage: isinstance(G, FiniteSubgroup)
-            True
+            sage: A = J0(11)
+            sage: G = A.torsion_subgroup(2)
+            sage: TestSuite(G).run() # long time
         """
         from sage.categories.category import Category
         from sage.categories.fields import Fields
@@ -657,7 +665,7 @@ class FiniteSubgroup(Module):
 
     def __contains__(self, x):
         """
-        Returns True if `x` is contained in this finite subgroup.
+        Return ``True`` if ``x`` is contained in this finite subgroup.
 
         EXAMPLES:
 

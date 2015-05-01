@@ -31,13 +31,13 @@ Algebras
    sage/algebras/iwahori_hecke_algebra
    sage/algebras/nil_coxeter_algebra
    sage/algebras/affine_nil_temperley_lieb
-   sage/algebras/schur_algebra
 
    sage/algebras/hall_algebra
    sage/algebras/jordan_algebra
 
    sage/algebras/quatalg/quaternion_algebra
 
+   sage/algebras/schur_algebra
    sage/algebras/shuffle_algebra
 
    sage/algebras/steenrod/steenrod_algebra

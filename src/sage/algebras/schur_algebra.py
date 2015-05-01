@@ -40,38 +40,46 @@ from sage.combinat.permutation import Permutations
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
 from sage.combinat.tableau import SemistandardTableaux
+from sage.functions.other import binomial
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.matrix.constructor import Matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
 from sage.rings.all import ZZ, QQ
 
-from copy import copy
 
+def _schur_I_nr_representatives(n, r):
+    r"""
+    Internal function called by :func:`schur_representation_indices`,
+    which generates all weakly increasing words of length ``r`` in the
+    alphabet ``1, 2, ..., n``.
 
-def _schur_I_nr_representatives(n, r, element, index):
-    """
-    Internal function called by :func:`schur_representation_indices`.
+    EXAMPLES::
+
+        sage: from sage.algebras.schur_algebra import _schur_I_nr_representatives
+        sage: _schur_I_nr_representatives(2, 4)
+        ((1, 1, 1, 1), (1, 1, 1, 2), (1, 1, 2, 2), (1, 2, 2, 2), (2, 2, 2, 2))
     """
     if r == 0:
-        return index
+        return ()
 
-    if len(element) == r:
-        index.append(copy(element))
-        return
-
-    if not element:
-        for i in range(1, n + 1):
-            element.append(i)
-            _schur_I_nr_representatives(n, r, element, index)
+    index = []
+    element = [1]
+    while element:
+        if element[-1] > n:
             element.pop()
-    else:
-        for i in range(element[-1], n + 1):
-            element.append(i)
-            _schur_I_nr_representatives(n, r, element, index)
-            element.pop()
+            if element:
+                element[-1] += 1
+            continue
 
-    return index
+        if len(element) == r:
+            index.append(tuple(element))
+            element[-1] += 1
+            continue
+
+        element.append(element[-1])
+
+    return tuple(index)
 
 
 def schur_representative_indices(n, r):
@@ -98,7 +106,7 @@ def schur_representative_indices(n, r):
          ((2, 2), (1, 2)), ((2, 2), (2, 2))]
     """
     basis = []
-    I_nr_repr = _schur_I_nr_representatives(n, r, [], [])
+    I_nr_repr = _schur_I_nr_representatives(n, r)
     for e in I_nr_repr:
         j = 0
         k = 0
@@ -108,9 +116,9 @@ def schur_representative_indices(n, r):
             if e[k] != e[j]:
                 I2 = []
                 if j == 0:
-                    I1 = _schur_I_nr_representatives(n, k, [], [])
+                    I1 = _schur_I_nr_representatives(n, k)
                 else:
-                    I2 = _schur_I_nr_representatives(n, k - j, [], [])
+                    I2 = _schur_I_nr_representatives(n, k - j)
                     I = []
                     for m1 in range(len(I1)):
                         for m2 in range(len(I2)):
@@ -121,9 +129,9 @@ def schur_representative_indices(n, r):
                 I2 = []
                 k += 1
                 if j == 0:
-                    I1 = _schur_I_nr_representatives(n, k, [], [])
+                    I1 = _schur_I_nr_representatives(n, k)
                 else:
-                    I2 = _schur_I_nr_representatives(n, k - j, [], [])
+                    I2 = _schur_I_nr_representatives(n, k - j)
                     I = []
                     for m1 in range(len(I1)):
                         for m2 in range(len(I2)):
@@ -174,13 +182,34 @@ def schur_representative_from_index(i0, i1):
 
 
 class SchurAlgebra(CombinatorialFreeModule):
-    """
+    r"""
     A Schur algebra.
+
+    Let `R` be a commutative ring, `n` be a positive integer, and `r`
+    be a non-negative integer. Define `A_R(n,r)` to be the set of
+    homogeneous polynomials of degree `r` in `n^2` variables `x_{ij}`.
+    Therefore we can write `R[x_{ij}] = \bigoplus_{r \geq 0} A_R(n,r)`,
+    and `R[x_{ij}]` is known to be a bialgebra with coproduct given by
+    `\Delta(x_{ij}) = \sum_l x_{il} \otimes x_{lj}` and counit
+    `\varepsilon(x_{ij}) = \delta_{ij}`. Therefore `A_R(n,r)` is a
+    subcoalgebra of `R[x_{ij}]`. The *Schur algebra* `S_R(n,r)` is the
+    linear dual to `A_R(n,r)`, that is `S_R(n,r) := \Hom(A_R(n,r), R)`,
+    and `S_R(n,r)` obtains its algebra structure naturally by dualizing
+    the comultiplication of `A_R(n,r)`.
+
+    Let `V = R^n`. One of the most important properties of the Schur
+    algebra `S_R(n, r)` is that it is isomorphic to the endomorphisms
+    of `V^{\otimes r}` which commute with the natural action of `S_r`.
 
     EXAMPLES::
 
         sage: S = SchurAlgebra(ZZ, 2, 2); S
         Schur algebra (2, 2) over Integer Ring
+
+    REFERENCES:
+
+    - [GreenPoly]_
+    - :wikipedia:`Schur_algebra`
     """
     def __init__(self, R, n, r):
         """
@@ -235,7 +264,7 @@ class SchurAlgebra(CombinatorialFreeModule):
     @cached_method
     def one(self):
         """
-        Return the one of the algebra.
+        Return the element `1` of ``self``.
 
         EXAMPLES::
 
@@ -271,16 +300,14 @@ class SchurAlgebra(CombinatorialFreeModule):
 
         If we multiply two basis elements `x` and `y`, such that
         `x[1]` and `y[0]` are not permutations of each other, the
-        result is zero ::
+        result is zero::
 
-            sage: x = B[((1, 1, 1), (1, 1, 2))]
-            sage: y = B[((1, 2, 2), (1, 1, 2))]
-            sage: x * y
+            sage: S.product_on_basis(((1, 1, 1), (1, 1, 2)), ((1, 2, 2), (1, 1, 2)))
             0
 
         If we multiply a basis element `x` by a basis element which
         consists of the same tuple repeated twice (on either side),
-        the result is either zero (if the previous case applies) or `x` ::
+        the result is either zero (if the previous case applies) or `x`::
 
             sage: ww = B[((1, 2, 2), (1, 2, 2))]
             sage: x = B[((1, 2, 2), (1, 1, 2))]
@@ -321,30 +348,69 @@ class SchurAlgebra(CombinatorialFreeModule):
 
         return product
 
+    def dimension(self):
+        r"""
+        Return the dimension of ``self``.
 
-class TensorSpace(CombinatorialFreeModule_Tensor):
-    """
-    This is the ``r``-fold tensor product of an ``n``-dimensional free
-    module over ``R``, equipped with an action of the Schur algebra
-    `S(n,r)` and the symmetric group `S_r`.
+        The dimension of the Schur algebra `S_R(n, r)` is
+
+        .. MATH::
+
+            \dim S_R(n,r) = \binom{n^2+r-1}{r}.
+
+        EXAMPLES::
+
+            sage: S = SchurAlgebra(QQ, 4, 2)
+            sage: S.dimension()
+            136
+            sage: S = SchurAlgebra(QQ, 2, 4)
+            sage: S.dimension()
+            35
+        """
+        return binomial(self._n**2 + self._r - 1, self._r)
+
+
+class SchurTensorModule(CombinatorialFreeModule_Tensor):
+    r"""
+    The space `V^{\otimes r}` where `V = R^n` equipped with a left action
+    of the Schur algebra `S_R(n,r)` and a right action of the symmetric
+    group `S_r`.
+
+    Let `R` be a commutative ring and `V = R^n`. We consider the module
+    `V^{\otimes r}` equppied with a natural right action of the symmetric
+    group `S_r` given by
+
+    .. MATH::
+
+        (v_1 \otimes v_2 \otimes \cdots \otimes v_n) \sigma
+        = v_{\sigma(1)} \otimes v_{\simga(2)} \otimes \cdots
+        \otimes v_{\simga(n)}.
+
+    The Schur algebra `S_R(n,r)` is naturally isomorphic to the
+    endomorphisms of `V^{\otimes r}` which commutes with the `S_r` action.
+    We let the natural left action of `S_R(n,r)` by this isomorphism.
 
     EXAMPLES::
 
-        sage: from sage.algebras.all import TensorSpace
-        sage: TensorSpace(QQ, 2, 3)
+        sage: SchurTensorModule(QQ, 2, 3)
         The 3-fold tensor product of a free module of dimension 2
         over Rational Field
     """
     def __init__(self, R, n, r):
         """
         Initialize ``self``.
+
+        TESTS::
+
+            sage: T = SchurTensorModule(QQ, 2, 3)
+            sage: TestSuite(T).run()
         """
         C = CombinatorialFreeModule(R, range(1,n+1))
         self._n = n
         self._r = r
         self._sga = SymmetricGroupAlgebra(R, r)
         self._schur = SchurAlgebra(R, n, r)
-        CombinatorialFreeModule_Tensor.__init__(self, [C]*r)
+        CombinatorialFreeModule_Tensor.__init__(self, tuple([C]*r))
         g = self._schur.module_morphism(self._monomial_product, codomain=self)
         self._schur_action = self.module_morphism(g, codomain=self, position=1)
 
@@ -354,8 +420,7 @@ class TensorSpace(CombinatorialFreeModule_Tensor):
 
         EXAMPLES::
 
-            sage: from sage.algebras.all import TensorSpace
-            sage: TensorSpace(QQ, 2, 3)
+            sage: SchurTensorModule(QQ, 2, 3)
             The 3-fold tensor product of a free module of dimension 2
             over Rational Field
         """
@@ -365,14 +430,22 @@ class TensorSpace(CombinatorialFreeModule_Tensor):
 
     def _monomial_product(self, xi, v):
         """
-        Result of acting by the basis element ``xi`` of ``S`` on the
-        basis element ``v`` of ``self``.
+        Result of acting by the basis element ``xi`` of the corresponding
+        Schur algebra on the basis element ``v`` of ``self``.
+
+        EXAMPLES::
+
+            sage: T = SchurTensorModule(QQ, 2, 3)
+            sage: xi = T._schur.basis().keys()[4]; xi
+            ((1, 1, 2), (1, 1, 1))
+            sage: T._monomial_product(xi, (1, 1, 1))
+            B[1] # B[1] # B[2] + B[1] # B[2] # B[1] + B[2] # B[1] # B[1]
         """
-        x = self.zero()
+        ret = []
         for i in CartesianProduct(*[range(1,self._n+1)]*self._r):
             if schur_representative_from_index(i, v) == xi:
-                x += self.basis()[tuple(i)]
-        return x
+                ret.append(tuple(i))
+        return self.sum_of_monomials(ret)
 
     class Element(CombinatorialFreeModule_Tensor.Element):
         def _acted_upon_(self, elt, self_on_left=False):
@@ -381,6 +454,40 @@ class TensorSpace(CombinatorialFreeModule_Tensor):
 
             We add the *left* action of the Schur algebra, and the *right*
             actions of the symmetric group algebra and the symemtric group.
+
+            EXAMPLES::
+
+                sage: T = SchurTensorModule(QQ, 2, 4)
+                sage: x = T.an_element()
+                sage: A = SchurAlgebra(QQ, 2, 4)
+                sage: y = A.an_element()
+                sage: y * x
+                14*B[1] # B[1] # B[1] # B[1]
+                sage: x * y
+                Traceback (most recent call last):
+                ...
+                TypeError: unsupported operand parent(s) for '*': ...
+
+            ::
+
+                sage: SGA = SymmetricGroupAlgebra(QQ, 4)
+                sage: y = SGA.an_element()
+                sage: x * y
+                14*B[1] # B[1] # B[1] # B[1] + 17*B[1] # B[1] # B[1] # B[2]
+                 + 7*B[1] # B[1] # B[2] # B[1] + 9*B[1] # B[2] # B[1] # B[1]
+                 + 2*B[2] # B[1] # B[1] # B[1]
+                sage: y * x
+                Traceback (most recent call last):
+                ...
+                TypeError: unsupported operand parent(s) for '*': ...
+
+            ::
+
+                sage: S = Permutations(4)
+                sage: y = S.an_element()
+                sage: x * y
+                2*B[1] # B[1] # B[1] # B[1] + 3*B[1] # B[1] # B[1] # B[2]
+                 + 2*B[2] # B[1] # B[1] # B[1]
             """
             P = self.parent()
             if self_on_left:
@@ -394,10 +501,10 @@ class TensorSpace(CombinatorialFreeModule_Tensor):
 
             elif elt in P._schur: # self_on_left is False
                 return P._schur_action(elt, self)
-            return super(TensorSpace.Element, self)._acted_upon_(elt, self_on_left)
+            return super(SchurTensorModule.Element, self)._acted_upon_(elt, self_on_left)
 
 
-def GL_n_irred_character(n, mu, KK):
+def GL_irreducible_character(n, mu, KK):
     r"""
     Return the character of the irreducible module indexed by ``mu``
     of `GL(n)` over the field ``KK``.
@@ -419,16 +526,15 @@ def GL_n_irred_character(n, mu, KK):
     function associated to `\mu`, plus garbage terms (Schur
     functions associated to partitions with more than `n` parts)::
 
-        sage: from sage.algebras.schur_algebra import GL_n_irred_character
-        sage: z = GL_n_irred_character(2, [2], QQ)
+        sage: from sage.algebras.schur_algebra import GL_irreducible_character
+        sage: z = GL_irreducible_character(2, [2], QQ)
         sage: sbasis = SymmetricFunctions(QQ).s()
         sage: sbasis(z)
         s[2]
 
-        sage: from sage.algebras.schur_algebra import GL_n_irred_character
-        sage: z = GL_n_irred_character(4, [3, 2], QQ)  # long time
-        sage: sbasis = SymmetricFunctions(QQ).s()  # long time
-        sage: sbasis(z)  # long time
+        sage: z = GL_irreducible_character(4, [3, 2], QQ)
+        sage: sbasis = SymmetricFunctions(QQ).s()
+        sage: sbasis(z)
         -5*s[1, 1, 1, 1, 1] + s[3, 2]
 
     Over a Galois field, the irreducible character for `\mu` will
@@ -439,13 +545,13 @@ def GL_n_irred_character(n, mu, KK):
     after 5.5d] the product of `h[a_0], h[a_1]( pbasis[p]), h[a_2]
     ( pbasis[p^2]), \dots,` which is consistent with the following ::
 
-        sage: from sage.algebras.schur_algebra import GL_n_irred_character
-        sage: GL_n_irred_character(2, [7], GF(3)) # long time
+        sage: from sage.algebras.schur_algebra import GL_irreducible_character
+        sage: GL_irreducible_character(2, [7], GF(3))
         m[4, 3] + m[6, 1] + m[7]
     """
     mbasis = SymmetricFunctions(QQ).m()
     r = sum(mu)
-    M = TensorSpace(KK, n, r)
+    M = SchurTensorModule(KK, n, r)
     A = M._schur
     SGA = M._sga
 
@@ -528,15 +634,15 @@ def GL_n_irred_character(n, mu, KK):
 
     length = len(carter_lusztig)
 
-    Phi = mbasis.zero()
+    phi = mbasis.zero()
     for aa in range(len(contents)):
-        Mat = []
+        mat = []
         for kk in range(len(JJ[aa])):
             temp = []
             for j in range(length):
                 temp.append(graded_basis[aa][kk].inner_product(carter_lusztig[j]))
-            Mat.append(temp)
-        Angle = Matrix(Mat)
-        Phi += (len(JJ[aa]) - Angle.nullity()) * mbasis(contents[aa])
-    return Phi
+            mat.append(temp)
+        angle = Matrix(mat)
+        phi += (len(JJ[aa]) - angle.nullity()) * mbasis(contents[aa])
+    return phi
 

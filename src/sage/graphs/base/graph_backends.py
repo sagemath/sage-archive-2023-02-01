@@ -20,7 +20,7 @@ Any graph backend must redefine the following methods (for which
     :meth:`~GenericGraphBackend.degree` | Return the total number of vertices incident to `v`.
     :meth:`~GenericGraphBackend.in_degree` | Return the in-degree of `v`
     :meth:`~GenericGraphBackend.out_degree` | Return the out-degree of `v`
-    :meth:`~GenericGraphBackend.del_edge` | Deletes the edge `(u,v)` with label `l`.
+    :meth:`~GenericGraphBackend.del_edge` | Delete the edge `(u,v)` with label `l`.
     :meth:`~GenericGraphBackend.del_vertex` | Delete a labelled vertex in ``self``.
     :meth:`~GenericGraphBackend.del_vertices` | Delete labelled vertices in ``self``.
     :meth:`~GenericGraphBackend.get_edge_label` | Return the edge label of `(u,v)`.
@@ -215,7 +215,7 @@ class GenericGraphBackend(SageObject):
         raise NotImplementedError()
     def del_edge(self, u, v, l, directed):
         """
-        Deletes the edge (u,v) with label l.
+        Delete the edge `(u,v)` with label `l`.
 
         INPUT:
 
@@ -1006,7 +1006,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
     def del_edge(self, u, v, l, directed):
         """
-        Deletes the edge (u,v) with label l.
+        Delete the edge `(u,v)` with label `l`.
 
         INPUT:
 

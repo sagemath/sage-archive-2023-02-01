@@ -1498,7 +1498,7 @@ def floyd_warshall(gg, paths = True, distances = False):
     """
 
     from sage.rings.infinity import Infinity
-    cdef CGraph g = <CGraph> gg._backend._cg
+    cdef CGraph g = <CGraph> gg._backend.c_graph()[0]
 
     cdef list gverts = g.verts()
 

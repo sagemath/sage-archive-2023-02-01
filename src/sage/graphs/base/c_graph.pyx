@@ -1284,6 +1284,20 @@ cdef class CGraphBackend(GenericGraphBackend):
             return False
         return True
 
+    def c_graph(self):
+        r"""
+        Return the ``._cg`` and ``._cg_rev`` attributes
+
+        EXAMPLES::
+
+            sage: cg,cg_rev = graphs.PetersenGraph()._backend.c_graph()
+            sage: cg
+            <sage.graphs.base.sparse_graph.SparseGraph object at ...>
+            sage: cg_rev
+            <sage.graphs.base.sparse_graph.SparseGraph object at ...>
+        """
+        return (self._cg, self._cg_rev)
+
     def degree(self, v, directed):
         """
         Return the degree of the vertex ``v``.

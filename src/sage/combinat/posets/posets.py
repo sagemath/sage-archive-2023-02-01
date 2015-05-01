@@ -145,6 +145,7 @@ import copy
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
+from sage.functions.other import floor
 from sage.categories.category import Category
 from sage.categories.sets_cat import Sets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -156,6 +157,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.polynomial.polynomial_ring import polygen
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.graphs.digraph import DiGraph
 from sage.graphs.digraph_generators import digraphs
 from sage.combinat.posets.hasse_diagram import HasseDiagram
@@ -5245,6 +5247,95 @@ class FinitePoset(UniqueRepresentation, Parent):
         return res
 
     def cuts(self):
+        r"""
+        Return the list of cuts of the poset ``self``.
+
+        A cut is a subset `A` of ``self`` such that the set of lower
+        bounds of the set of upper bounds of `A` is exactly `A`.
+
+        The cuts are computed here using the maximal independent sets in the
+        auxiliary graph defined as `P \times [0,1]` with an edge
+        from `(x, 0)` to `(y, 1)` if
+        and only if `x \not\geq_P y`. See the end of section 4 in [JRJ94]_.
+
+        EXAMPLES::
+
+            sage: P = posets.AntichainPoset(3)
+            sage: Pc = P.cuts()
+            sage: [list(c) for c in Pc]
+            [[0], [0, 1, 2], [], [1], [2]]
+            sage: Pc[0]
+            frozenset({0})
+
+        .. SEEALSO::
+
+            :meth:`completion_by_cuts`
+
+        REFERENCES:
+
+        .. [JRJ94] Jourdan, Guy-Vincent; Rampon, Jean-Xavier; Jard, Claude
+           (1994), "Computing on-line the lattice of maximal antichains
+           of posets", Order 11 (3) p. 197-210, :doi:`10.1007/BF02115811`
+        """
+        from sage.graphs.graph import Graph
+        from sage.graphs.independent_sets import IndependentSets
+        auxg = Graph({(u, 0): [(v, 1) for v in self if not self.ge(u, v)]
+                      for u in self})
+        auxg.add_vertices([(v, 1) for v in self])
+        return [frozenset([xa for xa, xb in c if xb == 0])
+                for c in IndependentSets(auxg, maximal=True)]
+
+    def completion_by_cuts(self):
+        """
+        Return the completion by cuts of ``self``.
+
+        This is a lattice, also called the Dedekind-MacNeille completion.
+
+        See the :wikipedia:`Dedekind-MacNeille completion`.
+
+        OUTPUT:
+
+        - a finite lattice
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: P.completion_by_cuts().is_isomorphic(P)
+            True
+
+            sage: P = posets.AntichainPoset(3)
+            sage: Q = P.completion_by_cuts()
+            sage: Q.is_isomorphic(posets.DiamondPoset(5))
+            True
+
+            sage: P = posets.SymmetricGroupBruhatOrderPoset(3)
+            sage: Q = P.completion_by_cuts(); Q
+            Finite lattice containing 7 elements
+
+        .. SEEALSO::
+
+            :meth:`cuts`
+        """
+        from sage.combinat.posets.lattices import LatticePoset
+        from sage.misc.misc import attrcall
+        return LatticePoset((self.cuts(), attrcall("issubset")))
+
+    def incidence_algebra(self, R, prefix='I'):
+        r"""
+        Return the incidence algebra of ``self`` over ``R``.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(4)
+            sage: P.incidence_algebra(QQ)
+            Incidence algebra of Finite lattice containing 16 elements
+             over Rational Field
+        """
+        from sage.combinat.posets.incidence_algebras import IncidenceAlgebra
+        return IncidenceAlgebra(R, self, prefix)
+
+    @cached_method(key=lambda self,x,y,l: (x,y))
+    def _kl_poly(self, x=None, y=None, canonical_labels=None):
         r"""
         Return the list of cuts of the poset ``self``.
 

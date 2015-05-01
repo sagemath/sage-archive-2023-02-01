@@ -9,6 +9,8 @@ Implements various backends for Sage graphs.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*******************************************************************************
+from c_graph cimport CGraphBackend
+from c_graph cimport CGraph
 
 cdef class GenericGraphBackend(SageObject):
     """
@@ -578,6 +580,99 @@ cdef class GenericGraphBackend(SageObject):
             NotImplementedError
         """
         raise NotImplementedError()
+
+    def __reduce__(self):
+        r""""
+        Return a tuple used for pickling this graph.
+
+        This function returns a pair ``(f, args)`` such that ``f(*args)``
+        produces a copy of ``self``. The function returned is always
+        :func:`unpickle_graph_backend`.
+
+        """
+        from static_sparse_backend import StaticSparseBackend
+        from sparse_graph import SparseGraphBackend
+        from dense_graph import DenseGraphBackend
+
+        # implementation, data_structure, multiedges, directed, loops
+        if isinstance(self, CGraphBackend):
+            implementation = "c_graph"
+            if isinstance(self,SparseGraphBackend):
+                data_structure = "sparse"
+            elif isinstance(self,DenseGraphBackend):
+                data_structure = "dense"
+            elif isinstance(self,StaticSparseBackend):
+                implementaton = "static_sparse"
+            else:
+                raise Exception
+            multiedges = (<CGraphBackend> self)._multiple_edges
+            directed   = (<CGraphBackend> self)._directed
+            loops      = (<CGraphBackend> self)._loops
+        elif isinstance(self, NetworkXGraphBackend):
+            data_structure = "implementation"
+            implementation = "networkx"
+            multiedges =  self._nxg.is_multigraph()
+            directed   =  self._nxg.is_directed()
+            loops      =  bool(self._nxg.number_of_selfloops)
+        else:
+            raise Exception
+
+        # Vertices and edges
+        vertices = list(self.iterator_verts(None))
+        if directed:
+            edges    = list(self.iterator_out_edges(vertices,True))
+        else:
+            edges    = list(self.iterator_edges(vertices,True))
+
+        return (unpickle_graph_backend,
+                (directed, vertices, edges,
+                 {'loops': loops,
+                  'multiedges': multiedges}))
+
+def unpickle_graph_backend(directed,vertices,edges,kwds):
+    r"""
+    Return a backend from its pickled data
+
+    This methods is defined because Python's pickling mechanism can only build
+    objects from a pair ``(f,args)`` by running ``f(*args)``. In particular,
+    there is apparently no way to define a ``**kwargs`` (i.e. define the value
+    of keyword arguments of ``f``), which means that one must know the order of
+    all arguments of ``f`` (here, ``f`` is :class:`Graph` or :class:`DiGraph`).
+
+    As a consequence, this means that the order cannot change in the future,
+    which is something we cannot swear.
+
+    INPUT:
+
+    - ``directed`` (boolean)
+
+    - ``vertices`` -- list of vertices.
+
+    - ``edges`` -- list of edges
+
+    - ``kwds`` -- any dictionary whose keywords will be forwarded to the graph
+      constructor.
+
+    This function builds a :class:`Graph` or :class:`DiGraph` from its data, and
+    returns the ``_backend`` attribute of this object.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.base.graph_backends import unpickle_graph_backend
+        sage: b = unpickle_graph_backend(0,[0,1,2,3],[(0,3,'label'),(0,0,1)],{'loops':True})
+        sage: b
+        <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+        sage: list(b.iterator_edges(range(4),1))
+        [(0, 0, 1), (0, 3, 'label')]
+    """
+    if directed:
+        from sage.graphs.digraph import DiGraph as constructor
+    else:
+        from sage.graphs.graph import Graph as constructor
+
+    G = constructor(data=edges,**kwds)
+    G.add_vertices(vertices)
+    return G._backend
 
 class NetworkXGraphDeprecated(SageObject):
     """

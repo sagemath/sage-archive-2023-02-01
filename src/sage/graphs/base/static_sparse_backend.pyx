@@ -426,6 +426,7 @@ cdef class StaticSparseBackend(CGraphBackend):
         # vertex_labels (which is a dictionary)
         self.vertex_ints = self._vertex_to_int
         self.vertex_labels = {i:v for i,v in enumerate(vertices)}
+        self._multiple_edges = self._multiedges
 
     def __reduce__(self):
         """

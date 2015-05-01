@@ -28,21 +28,44 @@ to `E`. In this basis, the product of two (decorated) rooted trees `S
 adding one edge from the root of `T` to the given vertex of `S`. The root of
 these trees is taken to be the root of `S`.
 
-The shortcut ``<`` can be used for the pre-Lie product, but must be
-parenthesized properly, as it does not have priority over ``+``.
+The usual binary operator ``*`` can be used for the pre-Lie product.
+Beware that it but must be parenthesized properly, as the pre-Lie
+product is not associative. By default, a multiple product will be
+taken with left parentheses.
 
 EXAMPLES::
 
     sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
     sage: F = FreePreLieAlgebra(ZZ, 'xyz')
     sage: x,y,z = F.gens()
-    sage: (x < y) < z
+    sage: (x * y) * z
     B[x[y[], z[]]] + B[x[y[z[]]]]
+    sage: x * y * z == (x * y) * z
+    True
+    sage: (x * y) * z - x * (y * z) == (x * z) * y - x * (z * y)
+    True
+
+The NAP product as defined in [Liv]_ is also implemented on the same
+vector space::
+
+    sage: N = F.nap_product
+    sage: N(x*y,z*z)
+    B[x[y[], z[z[]]]]
+
+When there is only one generator, unlabelled trees are used instead::
+
+    sage: F1 = FreePreLieAlgebra(QQ, 'w')
+    sage: w = F1.gen(0); w
+    B[[]]
+    sage: w * w * w * w
+    B[[[], [], []]] + 3*B[[[], [[]]]] + B[[[[], []]]] + B[[[[[]]]]]
 
 REFERENCES:
 
 .. [ChLi] F. Chapoton and M. Livernet, *Pre-Lie algebras and the rooted trees
-   operad*, International Math. Research Notices (2001) no 8, pages 395-408
+   operad*, International Math. Research Notices (2001) no 8, pages 395-408.
+.. [Liv] M. Livernet, *A rigidity theorem for pre-Lie algebras*, J. Pure Appl.
+   Algebra 207 (2006), no 1, pages 1-18. 
 
 AUTHORS:
 
@@ -73,7 +96,7 @@ from sage.sets.family import Family
 class FreePreLieAlgebra(CombinatorialFreeModule):
     r"""
     An example of an algebra over an operad with basis: the free
-    algebras over the PreLie operad
+    algebras over the PreLie operad.
 
     EXAMPLES::
 
@@ -117,7 +140,6 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         # so that one can restrict the labels to some fixed set
 
         self._alphabet = names
-        self.__ngens = self._alphabet.cardinality()
         CombinatorialFreeModule.__init__(self, R, Trees,
                                          latex_prefix="",
                                          category=(GradedModulesWithBasis(R),
@@ -146,10 +168,11 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: FreePreLieAlgebra(QQ, '@')  # indirect doctest
             Free PreLie algebra on one generator ['@'] over Rational Field
         """
-        if self.__ngens == 1:
+        n = len(self.algebra_generators())
+        if n == 1:
             gen = "one generator"
         else:
-            gen = "{} generators".format(self.__ngens)
+            gen = "{} generators".format(n)
         s = "Free PreLie algebra on {} {} over {}"
         return s.format(gen, self._alphabet.list(), self.base_ring())
 
@@ -174,7 +197,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             ...
             IndexError: argument i (= 4) must be between 0 and 2
         """
-        n = self.__ngens
+        n = len(self.algebra_generators())
         if i < 0 or not i < n:
             m = "argument i (= {}) must be between 0 and {}".format(i, n - 1)
             raise IndexError(m)
@@ -249,18 +272,22 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             B[y[]]]
         """
         o = self.gen(0)
-        x = o < o
+        x = o * o
         y = o
         for w in self.gens():
-            y = (y < w)
-        return [o, x, x < x, x < o, w]
+            y = y * w
+        return [o, x, x * x, x * o, w]
 
-    def pre_Lie_product_on_basis(self, x, y):
+    def product_on_basis(self, x, y):
         """
         Return the pre-Lie product of two trees.
 
         This is the sum over all graftings of the root of `y` over a vertex
         of `x`. The root of the resulting trees is the root of `x`.
+
+        .. SEEALSO::
+
+            :meth:`pre_Lie_product`
 
         EXAMPLES::
 
@@ -268,17 +295,21 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: A = FreePreLieAlgebra(QQ,'@')
             sage: RT = A.basis().keys()
             sage: x = RT([RT([])])
-            sage: A.pre_Lie_product_on_basis(x, x)
+            sage: A.product_on_basis(x, x)
             B[[[], [[]]]] + B[[[[[]]]]]
         """
         return self.sum(self.basis()[u] for u in x.graft_list(y))
 
-    product_on_basis = pre_Lie_product_on_basis
+    pre_Lie_product_on_basis = product_on_basis
 
     @lazy_attribute
     def pre_Lie_product(self):
         """
         Return the pre-Lie product.
+
+        .. SEEALSO::
+
+            :meth:`pre_Lie_product_on_basis`
 
         EXAMPLES::
 
@@ -296,10 +327,14 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
     def nap_product_on_basis(self, x, y):
         """
-        Return the nap product of two trees.
+        Return the NAP product of two trees.
 
         This is the grafting of the root of `y` over the root
         of `x`. The root of the resulting tree is the root of `x`.
+
+        .. SEEALSO::
+
+            :meth:`nap_product`
 
         EXAMPLES::
 
@@ -315,7 +350,11 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
     @lazy_attribute
     def nap_product(self):
         """
-        Return the nap product.
+        Return the NAP product.
+
+        .. SEEALSO::
+
+            :meth:`nap_product_on_basis`
 
         EXAMPLES::
 
@@ -437,35 +476,3 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
                 if self.base_ring().has_coerce_map_from(R.base_ring()):
                     return True
         return False
-
-    class Element(CombinatorialFreeModuleElement):
-        def __lt__(self, other):
-            r"""
-            Shortcut for the prelie product using the symbol ``<``.
-
-            EXAMPLES::
-
-                sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-                sage: A = FreePreLieAlgebra(QQ,'@')
-                sage: a = A.gen(0)
-                sage: a < a
-                B[[[]]]
-
-            .. WARNING::
-
-                Due to priority rules for operators, term must be put
-                within parentheses inside sum, product... For example you must
-                write::
-
-                    sage: a = A.gen(0)
-                    sage: (a<a) + a
-                    B[[]] + B[[[]]]
-
-                Indeed ``a<a + a`` is understood as ``a< (a + a)``::
-
-                    sage: (a<a + a) - (a < (a + a))
-                    0
-            """
-            parent = self.parent()
-            assert(parent == other.parent())
-            return parent.pre_Lie_product(self, other)

@@ -8,12 +8,11 @@ Hopf algebras
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-
 from sage.misc.lazy_import import LazyImport
 from category import Category
 from category_types import Category_over_base_ring
 from sage.categories.bialgebras import Bialgebras
-from sage.categories.tensor import TensorProductsCategory # tensor
+from sage.categories.tensor import TensorProductsCategory, tensor
 from sage.categories.realizations import RealizationsCategory
 from sage.misc.cachefunc import cached_method
 #from sage.misc.lazy_attribute import lazy_attribute
@@ -85,6 +84,59 @@ class HopfAlgebras(Category_over_base_ring):
             # result not guaranted to be in self
             # This choice should be done consistently with coproduct, ...
             # return operator.antipode(self)
+
+        def adams_operator(self, k):
+            """
+            (I am not sure about the name...)
+
+            Iterate `k` times the coproduct and then the product:
+
+            MATH::
+
+                \mu^k \circ \Delta^{k}
+
+            where `\Delta^k := (\Delta \otimes Id^{k -1 \otimes}) \circ \Delta^{k-1}` and
+            `\mu^k := \mu \circ (Id \otimes \mu^{k-1})` with `\mu^1 = \mu`.
+
+            TESTS::
+
+                sage: h = SymmetricFunctions(QQ).h()
+                sage: h[5].adams_operator(2)
+                2*h[3, 2] + 2*h[4, 1] + 2*h[5]
+                sage: h[5].plethysm(2*h[1])
+                2*h[3, 2] + 2*h[4, 1] + 2*h[5]
+
+                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                sage: S[4].adams_operator(5)
+                5*S[1, 1, 1, 1] + 10*S[1, 1, 2] + 10*S[1, 2, 1] + 10*S[1, 3] + 10*S[2, 1, 1] + 10*S[2, 2] + 10*S[3, 1] + 5*S[4]
+
+            """
+            if k == 1: return self
+
+            S = self.parent()
+            term = self.coproduct()
+            dom = tensor((S,)*2)
+            cod = tensor((S,)*3)
+            for _ in range(k-2):
+                term = dom.module_morphism(
+                    on_basis=lambda t: cod.sum_of_terms(map(lambda (a, c): (a+t[1:], c), S(t[0]).coproduct())),
+                    codomain=cod
+                )(term)
+                dom, cod = cod, tensor([S, cod])
+
+            for i in range(k-1):
+                dom = tensor((S,)*(k-i))
+                cod = tensor((S,)*(k-i-1))
+                term = dom.module_morphism(
+                    on_basis=lambda t: cod.sum_of_terms(map(lambda (a, c): ((a,) + t[:-2], c), S(t[-2]) * S(t[-1]))),
+                    codomain=cod
+                )(term)
+
+            return term
+
+
+
+
 
     class ParentMethods:
         #def __setup__(self): # Check the conventions for _setup_ or __setup__

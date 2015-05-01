@@ -287,8 +287,7 @@ class HTMLFragmentFactory(SageObject):
         return HtmlFragment(t)
 
     @old_and_deprecated_wrapper
-    @rename_keyword(deprecation=18292, header='header_row')
-    def table(self, x, header_row=False):
+    def table(self, x, header=False):
         r"""
         Generate a HTML table.  
 
@@ -298,7 +297,7 @@ class HTMLFragmentFactory(SageObject):
 
         - ``x`` -- a list of lists (i.e., a list of table rows)
 
-        - ``header_row`` -- a row of headers.  If ``True``, then the first
+        - ``header`` -- a row of headers.  If ``True``, then the first
           row of the table is taken to be the header.
 
         OUTPUT:
@@ -307,7 +306,7 @@ class HTMLFragmentFactory(SageObject):
 
         EXAMPLES::
 
-            sage: output = html.table([(i, j, i == j) for i in [0..1] for j in [0..1]])
+            sage: output = html(table([(i, j, i == j) for i in [0..1] for j in [0..1]]))
             sage: output
             '<div.../div>'
             sage: print(output)
@@ -338,8 +337,9 @@ class HTMLFragmentFactory(SageObject):
             </table>
             </div>
 
-            sage: output = html.table([(x,n(sin(x), digits=2)) for x in [0..3]], 
-            ....:                     header_row=["$x$", "$\sin(x)$"])
+            sage: output = html(table(
+            ....:     [(x,n(sin(x), digits=2)) for x in range(4)],
+            ....:     header_row=["$x$", "$\sin(x)$"]))
             sage: print(output)
             <div class="notruncate">
             <table class="table_form">
@@ -368,8 +368,10 @@ class HTMLFragmentFactory(SageObject):
             </table>
             </div>
         """
+        from sage.misc.superseded import deprecation
+        deprecation(18292, 'use table() instead of html.table()')
         from table import table
-        return table(x, header_row=header_row)._html_()
+        return table(x, header_row=header)._html_()
 
     @old_and_deprecated_wrapper
     def iframe(self, url, height=400, width=800):

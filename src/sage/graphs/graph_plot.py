@@ -894,6 +894,14 @@ class GraphPlot(SageObject):
             ...
             ValueError: Invalid input 'egabrag=garbage'
 
+        Make sure that no graphics primitive is clipped::
+
+            sage: tadpole = Graph({0:[0,1]}).plot()
+            sage: bbox = tadpole.get_minmax_data()
+            sage: for part in tadpole:
+            ....:      part_bbox = part.get_minmax_data()
+            ....:      assert bbox['xmin'] <= part_bbox['xmin'] <= part_bbox['xmax'] <= bbox['xmax']
+            ....:      assert bbox['ymin'] <= part_bbox['ymin'] <= part_bbox['ymax'] <= bbox['ymax']
         """
         G = Graphics()
         options = self._options.copy()

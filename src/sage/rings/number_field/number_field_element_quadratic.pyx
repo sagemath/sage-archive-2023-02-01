@@ -1289,8 +1289,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
     cpdef NumberFieldElement galois_conjugate(self):
         """
-        Returns the image of this element under action of the nontrivial
-        element of the galois group of this field.
+        Return the image of this element under action of the nontrivial
+        element of the Galois group of this field.
 
         EXAMPLES::
 

@@ -7,8 +7,16 @@ from l_series_coeffs import gross_zagier_L_series
 class GrossZagierLseries(SageObject):
 
     def __init__(self, E, A, prec=53):
-        """
+        r"""
         Class for the Gross-Zagier L-series.
+
+        INPUT:
+
+        - ``E`` -- an elliptic curve over `\QQ`
+
+        - ``A`` -- an ideal class in a quadratic number field
+
+        - ``prec`` -- an integer (default 53) giving the required precision
 
         EXAMPLES::
 
@@ -18,11 +26,11 @@ class GrossZagierLseries(SageObject):
             sage: from sage.modular.modform.l_series import GrossZagierLseries
             sage: G = GrossZagierLseries(e, A)
         """
-        Q = A.ideal().quadratic_form().reduced_form()
-        self._A = A
-        self._Q = Q
         self._E = E
         self._N = N = E.conductor()
+        self._A = A
+        ideal = A.ideal()
+        Q = ideal.quadratic_form().reduced_form()
         a, b, c = self._Q = Q
         D = b ** 2 - 4 * a * c
         self._dokchister = Dokchitser(N ** 2 * D ** 2 / Integer(4),
@@ -32,13 +40,20 @@ class GrossZagierLseries(SageObject):
         if nterms > 1e6:
             # just takes way to long
             raise ValueError("Too many terms: {}".format(nterms))
-        an_list = list(gross_zagier_L_series(E.anlist(nterms + 1), Q, N, A.ideal().number_field().zeta_order()))
+        an_list = list(gross_zagier_L_series(E.anlist(nterms + 1), Q, N,
+                                             ideal.number_field().zeta_order()))
         self._dokchister.gp().set('a', an_list[1:])
         self._dokchister.init_coeffs('a[k]', 1)
 
     def __call__(self, s, der=0):
         r"""
         Return the value at `s`.
+
+        INPUT:
+
+        - ``s` -- complex number
+
+        - ``der`` -- ? (default 0)
 
         EXAMPLES::
 
@@ -55,6 +70,12 @@ class GrossZagierLseries(SageObject):
     def taylor_series(self, s, nterms):
         r"""
         Return the Taylor series at `s`.
+
+        INPUT:
+
+        - ``s` -- complex number
+
+        - ``nterms`` -- number of terms in the Taylor series
 
         EXAMPLES::
 

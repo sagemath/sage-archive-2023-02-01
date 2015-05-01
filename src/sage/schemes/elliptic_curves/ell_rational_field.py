@@ -3066,6 +3066,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def lseries_gross_zagier(self, A):
         """
+        Return the Gross-Zagier L-series attached to ``self``
+        and an ideal class.
+
+        INPUT:
+
+        - ``A`` -- an ideal class in a quadratic number field
+
         EXAMPLES::
 
             sage: E = EllipticCurve('37a')

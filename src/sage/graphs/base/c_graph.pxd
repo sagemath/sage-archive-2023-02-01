@@ -6,6 +6,7 @@
 #**************************************************************************
 
 from sage.data_structures.bitset cimport bitset_t
+from graph_backends cimport GenericGraphBackend
 
 cdef class CGraph:
     cdef int num_verts
@@ -39,9 +40,18 @@ cdef class CGraph:
     cpdef realloc(self, int)
     cdef int add_vertex_unsafe(self, int) except -1
 
-cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels, CGraph G) except ? -2
-cdef object vertex_label(int u_int, dict vertex_ints, dict vertex_labels, CGraph G)
-cdef int check_vertex(object u, dict vertex_ints, dict vertex_labels, CGraph G, CGraph G_revx, bint reverse) except ? -1
+cdef class CGraphBackend(GenericGraphBackend):
+    cdef int get_vertex(self, object u) except ? -2
+    cdef object vertex_label(self, int u_int)
+    cdef int check_labelled_vertex(self, object u, bint reverse) except ? -1
+    cdef CGraph _cg
+    cdef CGraph _cg_rev
+    cdef bint _directed
+    cdef dict vertex_labels
+    cdef dict vertex_ints
+    cdef dict edge_labels
+    cdef bint _loops
+    cdef bint _multiple_edges
 # TODO: edge functions!
 
 

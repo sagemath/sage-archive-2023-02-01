@@ -234,13 +234,14 @@ cdef class DenseGraph(CGraph):
         """
         from sage.graphs.all import DiGraph
         D = DiGraph(implementation='c_graph', sparse=False)
-        D._backend._cg = self
+        cdef CGraphBackend cgb = <CGraphBackend> D._backend
+        cgb._cg = self
         cdef int i
-        D._backend.vertex_labels = {}
+        cgb.vertex_labels = {}
         for i from 0 <= i < self.active_vertices.size:
             if bitset_in(self.active_vertices, i):
-                D._backend.vertex_labels[i] = i
-        D._backend.vertex_ints = D._backend.vertex_labels
+                cgb.vertex_labels[i] = i
+        cgb.vertex_ints = cgb.vertex_labels
         return (DenseGraph, (0, self.active_vertices.size, self.verts(), D.edges(labels=False)))
 
     cpdef realloc(self, int total_verts):
@@ -694,7 +695,7 @@ def _test_adjacency_sequence_out():
 
 from c_graph cimport CGraphBackend
 
-class DenseGraphBackend(CGraphBackend):
+cdef class DenseGraphBackend(CGraphBackend):
     """
     Backend for Sage graphs using DenseGraphs.
 

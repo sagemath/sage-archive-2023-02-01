@@ -39,4 +39,7 @@ cdef class SparseGraph(CGraph):
     cdef int out_neighbors_BTNode_unsafe(self, int u, SparseGraphBTNode *** p_pointers)
     cdef list out_arcs_unsafe(self, int u, bint labels)
 
+cdef class SparseGraphBackend(CGraphBackend):
+    pass
+
 cdef int new_edge_label(object l, dict edge_labels)

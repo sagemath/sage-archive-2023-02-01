@@ -517,7 +517,7 @@ def triangles_count(G):
     # g is a copy of G. If G is internally a static sparse graph, we use it.
     cdef short_digraph g
     G = G.copy(immutable=True)
-    g[0] = (<StaticSparseCGraph?> (G._backend._cg)).g[0]
+    g[0] = (<StaticSparseCGraph> (<StaticSparseBackend> G._backend)._cg).g[0]
 
     cdef uint64_t count = 0
     cdef uint32_t u,v,i

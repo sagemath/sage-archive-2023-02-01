@@ -39,7 +39,6 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 
 include "sage/data_structures/bitset.pxi"
 
-from graph_backends import GenericGraphBackend
 from sage.rings.integer cimport Integer
 
 cdef class CGraph:
@@ -1115,7 +1114,7 @@ cdef class CGraph:
         """
         return self.num_arcs
 
-class CGraphBackend(GenericGraphBackend):
+cdef class CGraphBackend(GenericGraphBackend):
     """
     Base class for sparse and dense graph backends.
 
@@ -1136,7 +1135,7 @@ class CGraphBackend(GenericGraphBackend):
         sage: CGB.degree(0, True)
         Traceback (most recent call last):
         ...
-        AttributeError: 'CGraphBackend' object has no attribute 'vertex_ints'
+        TypeError: 'NoneType' object is not iterable
 
     The appropriate way to use these backends is via Sage graphs::
 
@@ -1153,10 +1152,6 @@ class CGraphBackend(GenericGraphBackend):
         - :class:`DenseGraphBackend <sage.graphs.base.dense_graph.DenseGraphBackend>`
           -- backend for dense graphs.
     """
-
-    _cg = None
-    _cg_rev = None
-    _directed = None
 
     cdef int get_vertex(self, object u) except ? -2:
         """
@@ -1941,23 +1936,23 @@ class CGraphBackend(GenericGraphBackend):
             2
             sage: from sage.graphs.base.sparse_graph import SparseGraphBackend
             sage: S = SparseGraphBackend(7)
-            sage: S.num_edges(directed=False)
+            sage: S.num_edges(False)
             0
             sage: S.loops(True)
             sage: S.add_edge(1, 1, None, directed=False)
-            sage: S.num_edges(directed=False)
+            sage: S.num_edges(False)
             1
             sage: S.multiple_edges(True)
             sage: S.add_edge(1, 1, None, directed=False)
-            sage: S.num_edges(directed=False)
+            sage: S.num_edges(False)
             2
             sage: from sage.graphs.base.dense_graph import DenseGraphBackend
             sage: D = DenseGraphBackend(7)
-            sage: D.num_edges(directed=False)
+            sage: D.num_edges(False)
             0
             sage: D.loops(True)
             sage: D.add_edge(1, 1, None, directed=False)
-            sage: D.num_edges(directed=False)
+            sage: D.num_edges(False)
             1
         """
         if directed:
@@ -2974,7 +2969,7 @@ cdef class Search_iterator:
         self.graph = graph
         self.direction = direction
 
-        bitset_init(self.seen, (<CGraph>self.graph._cg).active_vertices.size)
+        bitset_init(self.seen, self.graph._cg.active_vertices.size)
         bitset_set_first_n(self.seen, 0)
 
         cdef int v_id = self.graph.get_vertex(v)

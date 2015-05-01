@@ -415,14 +415,15 @@ cdef class SparseGraph(CGraph):
         """
         from sage.graphs.all import DiGraph
         D = DiGraph(implementation='c_graph', sparse=True, multiedges=True, loops=True)
-        D._backend._cg = self
+        cdef CGraphBackend cgb = <CGraphBackend?> D._backend
+        cgb._cg = self
         cdef int i
-        D._backend.vertex_labels = {}
+        cgb.vertex_labels = {}
         for i from 0 <= i < self.active_vertices.size:
             if bitset_in(self.active_vertices, i):
-                D._backend.vertex_labels[i] = i
-        D._backend.vertex_ints = D._backend.vertex_labels
-        D._backend.edge_labels = id_dict()
+                cgb.vertex_labels[i] = i
+        cgb.vertex_ints = cgb.vertex_labels
+        cgb.edge_labels = id_dict()
         arcs = [(u,v,l) if l is not None else (u,v,0) for u,v,l in D.edges(labels=True)]
         return (SparseGraph, (0, self.hash_length, self.active_vertices.size, self.verts(), arcs))
 
@@ -1605,7 +1606,7 @@ cdef int new_edge_label(object l, dict edge_labels):
     edge_labels[max+1] = l
     return max+1
 
-class SparseGraphBackend(CGraphBackend):
+cdef class SparseGraphBackend(CGraphBackend):
     """
     Backend for Sage graphs using SparseGraphs.
 

@@ -264,7 +264,7 @@ class DiGraph(GenericGraph):
       ``data_structure="dense"``.
 
     - ``data_structure`` -- one of the following (for more information, see
-       :mod:`~sage.graphs.base.overview`):
+      :mod:`~sage.graphs.base.overview`):
 
        * ``"dense"`` -- selects the :mod:`~sage.graphs.base.dense_graph`
          backend.

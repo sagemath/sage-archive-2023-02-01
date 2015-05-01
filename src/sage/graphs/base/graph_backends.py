@@ -17,13 +17,13 @@ Any graph backend must redefine the following methods (for which
     :meth:`~GenericGraphBackend.add_edges` | Add a sequence of edges to ``self``.
     :meth:`~GenericGraphBackend.add_vertex` | Add a labelled vertex to ``self``.
     :meth:`~GenericGraphBackend.add_vertices` | Add labelled vertices to ``self``.
-    :meth:`~GenericGraphBackend.degree` | Returns the total number of vertices incident to v.
+    :meth:`~GenericGraphBackend.degree` | Return the total number of vertices incident to `v`.
     :meth:`~GenericGraphBackend.in_degree` | Return the in-degree of `v`
     :meth:`~GenericGraphBackend.out_degree` | Return the out-degree of `v`
     :meth:`~GenericGraphBackend.del_edge` | Deletes the edge `(u,v)` with label `l`.
     :meth:`~GenericGraphBackend.del_vertex` | Delete a labelled vertex in ``self``.
     :meth:`~GenericGraphBackend.del_vertices` | Delete labelled vertices in ``self``.
-    :meth:`~GenericGraphBackend.get_edge_label` | Returns the edge label of `(u,v)`.
+    :meth:`~GenericGraphBackend.get_edge_label` | Return the edge label of `(u,v)`.
     :meth:`~GenericGraphBackend.has_edge` | True if ``self`` has an edge `(u,v)` with label `l`.
     :meth:`~GenericGraphBackend.has_vertex` | True if ``self`` has a vertex with label `v`.
     :meth:`~GenericGraphBackend.iterator_edges` | Iterate over the edges incident to a sequence of vertices.
@@ -159,7 +159,7 @@ class GenericGraphBackend(SageObject):
         raise NotImplementedError()
     def degree(self, v, directed):
         """
-        Returns the total number of vertices incident to v.
+        Return the total number of vertices incident to `v`.
 
         INPUT:
 
@@ -268,7 +268,7 @@ class GenericGraphBackend(SageObject):
         raise NotImplementedError()
     def get_edge_label(self, u, v):
         """
-        Returns the edge label of (u,v).
+        Return the edge label of `(u,v)`.
 
         INPUT:
 
@@ -276,7 +276,7 @@ class GenericGraphBackend(SageObject):
 
         OUTPUT:
 
-            label of (u,v)
+            label of `(u,v)`
 
         TESTS::
 
@@ -929,7 +929,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
     def degree(self, v, directed):
         """
-        Returns the total number of vertices incident to v.
+        Return the total number of vertices incident to `v`.
 
         INPUT:
 
@@ -954,7 +954,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
     def in_degree(self, v):
         """
-        Returns the in-degree of v.
+        Return the in-degree of `v`.
 
         INPUT:
 
@@ -980,7 +980,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
     def out_degree(self, v):
         """
-        Returns the out-degree of v.
+        Return the out-degree of `v`.
 
         INPUT:
 
@@ -1081,14 +1081,14 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
     def get_edge_label(self, u, v):
         """
-        Returns the edge label of (u,v).
+        Return the edge label of `(u,v)`.
 
         INPUT:
 
         - ``u,v`` -- vertex labels
 
         OUTPUT:
-            label of (u,v)
+            label of `(u,v)`
 
         TESTS::
 

@@ -95,8 +95,8 @@ class HopfAlgebras(Category_over_base_ring):
 
                 \mu^k \circ \Delta^{k}
 
-            where `\Delta^k := (\Delta \otimes Id^{k -1 \otimes}) \circ \Delta^{k-1}` and
-            `\mu^k := \mu \circ (Id \otimes \mu^{k-1})` with `\mu^1 = \mu`.
+            where `\Delta^k := (\Delta \otimes Id^{k -1 \otimes}) \circ \Delta^{k-1}` with `\Delta^1 = Id` and
+            `\mu^k := \mu \circ (Id \otimes \mu^{k-1})` with `\mu^1 = Id`.
 
             TESTS::
 

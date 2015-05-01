@@ -80,6 +80,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.is_incomparable_chain_free` | Returns whether the poset is `(m+n)`-free.
     :meth:`~FinitePoset.is_ranked` | Returns whether this poset is ranked.
     :meth:`~FinitePoset.is_slender` | Returns whether the poset ``self`` is slender or not.
+    :meth:`~FinitePoset.kazhdan_lusztig_polynomial` | Return the Kazhdan-Lusztig polynomial `P_{x,y}(q)` of ``self``.
     :meth:`~FinitePoset.lequal_matrix` | Computes the matrix whose ``(i,j)`` entry is 1 if ``self.linear_extension()[i] < self.linear_extension()[j]`` and 0 otherwise
     :meth:`~FinitePoset.level_sets` | Returns a list l such that l[i+1] is the set of minimal elements of the poset obtained by removing the elements in l[0], l[1], ..., l[i].
     :meth:`~FinitePoset.linear_extension` | Returns a linear extension of this poset.
@@ -5337,91 +5338,133 @@ class FinitePoset(UniqueRepresentation, Parent):
     @cached_method(key=lambda self,x,y,l: (x,y))
     def _kl_poly(self, x=None, y=None, canonical_labels=None):
         r"""
-        Return the list of cuts of the poset ``self``.
-
-        A cut is a subset `A` of ``self`` such that the set of lower
-        bounds of the set of upper bounds of `A` is exactly `A`.
-
-        The cuts are computed here using the maximal independent sets in the
-        auxiliary graph defined as `P \times [0,1]` with an edge
-        from `(x, 0)` to `(y, 1)` if
-        and only if `x \not\geq_P y`. See the end of section 4 in [JRJ94]_.
-
-        EXAMPLES::
-
-            sage: P = posets.AntichainPoset(3)
-            sage: Pc = P.cuts()
-            sage: [list(c) for c in Pc]
-            [[0], [0, 1, 2], [], [1], [2]]
-            sage: Pc[0]
-            frozenset({0})
+        Cached Kazhdan-Lusztig polynomial of ``self`` for generic `q`.
 
         .. SEEALSO::
 
-            :meth:`completion_by_cuts`
+            :meth:`kazhdan_lusztig_polynomial`
+
+        EXAMPLES::
+
+            sage: L = posets.SymmetricGroupWeakOrderPoset(4)
+            sage: L._kl_poly()
+            1
+            sage: x = '2314'
+            sage: y = '3421'
+            sage: L._kl_poly(x, y)
+            -q + 1
+
+        AUTHORS:
+
+        - Travis Scrimshaw (27-12-2014)
+        """
+        R = PolynomialRing(ZZ, 'q')
+        q = R.gen(0)
+
+        # Handle some special cases
+        if self.cardinality() == 0:
+            return q.parent().zero()
+        if not self.rank():
+            return q.parent().one()
+
+        if canonical_labels is None:
+            canonical_labels = x is None and y is None
+
+        if x is not None or y is not None:
+            if x == y:
+                return q.parent().one()
+            if x is None:
+                x = self.minimal_elements()[0]
+            if y is None:
+                y = self.maximal_elements()[0]
+            if not self.le(x, y):
+                return q.parent().zero()
+            P = self.subposet(self.interval(x, y))
+            return P.kazhdan_lusztig_polynomial(q=q, canonical_labels=canonical_labels)
+
+        min_elt = self.minimal_elements()[0]
+        if canonical_labels:
+            sublat = lambda P: self.subposet(P).canonical_label()
+        else:
+            sublat = lambda P: self.subposet(P)
+        poly = -sum(sublat(self.order_ideal([x])).characteristic_polynomial()
+                    * sublat(self.order_filter([x])).kazhdan_lusztig_polynomial()
+                    for x in self if x != min_elt)
+        tr = floor(self.rank()/2) + 1
+        ret = poly.truncate(tr)
+        return ret(q=q)
+
+    def kazhdan_lusztig_polynomial(self, x=None, y=None, q=None, canonical_labels=None):
+        r"""
+        Return the Kazhdan-Lusztig polynomial `P_{x,y}(q)` of ``self``.
+
+        We follow the definition given in [EPW14]_. Let `G` denote a
+        graded poset with unique minimal and maximal elements and `\chi_G`
+        denote the characteristic polynomial of `G`. Let `I_x` and `F^x`
+        denote the order ideal and filter of `x` respectively. Define the
+        *Kazhdan-Lusztig polynomial* of `G` as the unique polynomial
+        `P_G(q)` satisfying the following:
+
+        1. If `\operatorname{rank} G = 0`, then `P_G(q) = 1`.
+        2. If `\operatorname{rank} G > 0`, then `\deg P_G(q) <
+           \frac{1}{2} \operatorname{rank} G`.
+        3. We have
+
+           .. MATH::
+
+                q^{\operatorname{rank} G} P_G(q^{-1})
+                = \sum_{x \in G} \chi_{I_x}(q) P_{F^x}(q).
+
+        We then extend this to `P_{x,y}(q)` by considering the subposet
+        corresponding to the (closed) interval `[x, y]`. We also
+        define `P_{\emptyset}(q) = 0` (so if `x \not\leq y`,
+        then `P_{x,y}(q) = 0`).
+
+        INPUT:
+
+        - ``q`` -- (default: `q \in \ZZ[q]`) the indeterminate `q`
+        - ``x`` -- (default: the minimal element) the element `x`
+        - ``y`` -- (default: the maximal element) the element `y`
+        - ``canonical_labels`` -- (optional) for subposets, use the
+          canonical labeling (this can limit recursive calls for posets
+          with large amounts of symmetry, but producing the labeling
+          takes time); if not specified, this is ``True`` if ``x``
+          and ``y`` are both not specified and ``False`` otherwise
+
+        EXAMPLES::
+
+            sage: L = posets.BooleanLattice(3)
+            sage: L.kazhdan_lusztig_polynomial()
+            1
+
+        ::
+
+            sage: L = posets.SymmetricGroupWeakOrderPoset(4)
+            sage: L.kazhdan_lusztig_polynomial()
+            1
+            sage: x = '2314'
+            sage: y = '3421'
+            sage: L.kazhdan_lusztig_polynomial(x, y)
+            -q + 1
+            sage: L.kazhdan_lusztig_polynomial(x, y, var('t'))
+            -t + 1
 
         REFERENCES:
 
-        .. [JRJ94] Jourdan, Guy-Vincent; Rampon, Jean-Xavier; Jard, Claude
-           (1994), "Computing on-line the lattice of maximal antichains
-           of posets", Order 11 (3) p. 197-210, :doi:`10.1007/BF02115811`
+        .. [EPW14] Ben Elias, Nicholas Proudfoot, and Max Wakefield.
+           *The Kazhdan-Lusztig polynomial of a matroid*. 2014.
+           :arxiv:`1412.7408`.
+
+        AUTHORS:
+
+        - Travis Scrimshaw (27-12-2014)
         """
-        from sage.graphs.graph import Graph
-        from sage.graphs.independent_sets import IndependentSets
-        auxg = Graph({(u, 0): [(v, 1) for v in self if not self.ge(u, v)]
-                      for u in self})
-        auxg.add_vertices([(v, 1) for v in self])
-        return [frozenset([xa for xa, xb in c if xb == 0])
-                for c in IndependentSets(auxg, maximal=True)]
-
-    def completion_by_cuts(self):
-        """
-        Return the completion by cuts of ``self``.
-
-        This is a lattice, also called the Dedekind-MacNeille completion.
-
-        See the :wikipedia:`Dedekind-MacNeille completion`.
-
-        OUTPUT:
-
-        - a finite lattice
-
-        EXAMPLES::
-
-            sage: P = posets.PentagonPoset()
-            sage: P.completion_by_cuts().is_isomorphic(P)
-            True
-
-            sage: P = posets.AntichainPoset(3)
-            sage: Q = P.completion_by_cuts()
-            sage: Q.is_isomorphic(posets.DiamondPoset(5))
-            True
-
-            sage: P = posets.SymmetricGroupBruhatOrderPoset(3)
-            sage: Q = P.completion_by_cuts(); Q
-            Finite lattice containing 7 elements
-
-        .. SEEALSO::
-
-            :meth:`cuts`
-        """
-        from sage.combinat.posets.lattices import LatticePoset
-        from sage.misc.misc import attrcall
-        return LatticePoset((self.cuts(), attrcall("issubset")))
-
-    def incidence_algebra(self, R, prefix='I'):
-        r"""
-        Return the incidence algebra of ``self`` over ``R``.
-
-        EXAMPLES::
-
-            sage: P = posets.BooleanLattice(4)
-            sage: P.incidence_algebra(QQ)
-            Incidence algebra of Finite lattice containing 16 elements
-             over Rational Field
-        """
-        from sage.combinat.posets.incidence_algebras import IncidenceAlgebra
-        return IncidenceAlgebra(R, self, prefix)
+        if not self.is_ranked():
+            raise ValueError("poset is not ranked")
+        if q is None:
+            q = PolynomialRing(ZZ, 'q').gen(0)
+        poly = self._kl_poly(x, y, canonical_labels)
+        return poly(q=q)
 
 FinitePoset._dual_class = FinitePoset
 

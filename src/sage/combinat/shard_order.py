@@ -23,8 +23,96 @@ from sage.combinat.permutation import Permutations
 from sage.misc.cachefunc import cached_function
 from sage.rings.infinity import Infinity
 
+class ShardPosetElement:
+    r"""
+    An element of the shard poset.
 
-@cached_function
+    This is basically a permutation with extra stored arguments:
+
+    - ``p`` - the permutation itself as a tuple
+    - ``runs`` - the decreasing runs as a tuple of tuples
+    - ``run_indices`` - a list ``integer -> index of the run``
+    - ``dpg`` - the transitive closure of the shard preorder graph
+    - ``spg`` - the transitive reduction of the shard preorder graph
+    """
+    def __init__(self, p):
+        r"""
+        INPUT:
+
+        - ``p`` - a permutation
+        """
+        self.p = tuple(p)
+        self.runs = p.decreasing_runs(as_tuple=True)
+        self.run_indices = [None] * (len(p)+1)
+        for i,bloc in enumerate(self.runs):
+            for j in bloc:
+                self.run_indices[j] = i
+        G = shard_preorder_graph(self.runs)
+        self.dpg = G.transitive_closure()
+        self.spg = G.transitive_reduction()
+
+    def __repr__(self):
+        return repr(self.p)
+
+    def __hash__(self):
+        return hash(self.p)
+
+    def __le__(self, other):
+        """
+        Comparison between two elements of the poset.
+
+        This is the core function in the implementation of the
+        shard intesection order.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.shard_order import ShardPosetElement
+            sage: p0 = Permutation([1,3,4,2])
+            sage: p1 = Permutation([1,4,3,2])
+            sage: e0 = ShardPosetElement(p0)
+            sage: e1 = ShardPosetElement(p1)
+            sage: e0 <= e1
+            True
+            sage: e1 <= e0
+            False
+
+            sage: p0 = Permutation([1,2,5,7,3,4,6,8])
+            sage: p1 = Permutation([2,5,7,3,4,8,6,1])
+            sage: e0 = ShardPosetElement(p0)
+            sage: e1 = ShardPosetElement(p1)
+            sage: e0 <= e1
+            True
+            sage: e1 <= e0
+            False
+        """
+        if self.runs == other.runs:
+            return True
+
+        # r1 must have less runs than r0
+        if len(other.runs) > len(self.runs):
+            return False
+
+        dico1 = other.run_indices
+
+        # conversion: index of run in r0 -> index of run in r1
+        dico0 = [None] * len(self.runs)
+        for i, bloc in enumerate(self.runs):
+            j0 = dico1[bloc[0]]
+            for k in bloc:
+                if dico1[k] != j0:
+                    return False
+            dico0[i] = j0
+
+        # at this point, the set partitions given by tuples are comparable
+        dg0 = self.spg
+        dg1 = other.dpg
+
+        for i,j in dg0.edge_iterator(labels=False):
+            if dico0[i] != dico0[j] and not dg1.has_edge(dico0[i], dico0[j]):
+                return False
+        return True
+
+
 def shard_preorder_graph(runs):
     """
     Return the preorder attached to a tuple of decreasing runs.
@@ -48,18 +136,17 @@ def shard_preorder_graph(runs):
         Digraph on 5 vertices
     """
     N = len(runs)
-    dg = DiGraph()
-    dg.add_vertices(range(N))
-    for i in range(N - 1):
-        for j in range(i + 1, N):
-            if not(runs[i][1] > runs[j][0] or runs[j][1] > runs[i][0]):
-                dg.add_edge((i, j))
-    dg_red = dg.transitive_reduction()
-    return dg_red
+    dg = DiGraph(N)
+    dg.add_edges((i,j) for i in range(N - 1) \
+                       for j in range(i + 1, N) \
+                       if runs[i][-1] < runs[j][0] and runs[j][-1] < runs[i][0])
+    return dg
 
 
 def shard_compares(r0, r1):
     """
+    Comparison between two tuples of decreasing runs.
+
     Comparison between two tuples of decreasing runs.
 
     This is the core function in the implementation of the
@@ -129,5 +216,6 @@ def shard_poset(n):
         sage: P.is_selfdual()
         False
     """
-    Sn = [s.decreasing_runs(as_tuple=True) for s in Permutations(n)]
-    return Poset([Sn, shard_compares], cover_relations=False)
+    import operator
+    Sn = [ShardPosetElement(s) for s in Permutations(n)]
+    return Poset([Sn, operator.le], cover_relations=False, facade=True)

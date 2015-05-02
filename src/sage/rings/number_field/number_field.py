@@ -5929,9 +5929,9 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.zeta(2, all=True)
             [-1]
             sage: K.zeta(3)
-            -1/2*z - 1/2
+            1/2*z - 1/2
             sage: K.zeta(3, all=True)
-            [-1/2*z - 1/2, 1/2*z - 1/2]
+            [1/2*z - 1/2, -1/2*z - 1/2]
             sage: K.zeta(4)
             Traceback (most recent call last):
             ...
@@ -5975,18 +5975,19 @@ class NumberField_generic(number_field_base.NumberField):
                 return [K(-1)]
             else:
                 return K(-1)
-        N = K.zeta_order()
-        if n.divides(N):
-            z = K.primitive_root_of_unity() ** (N//n)
+
+        # First check if the degree of K is compatible with an
+        # inclusion QQ(\zeta_n) -> K.
+        if sage.rings.arith.euler_phi(n).divides(K.absolute_degree()):
+            # Factor the n-th cyclotomic polynomial over K.
+            f = K.absolute_polynomial().change_variable_name('y')
+            factors = pari.polcyclo(n).factornf(f).component(1)
+            roots = [K(-g.polcoeff(0)) for g in factors if g.poldegree() == 1]
             if all:
-                return [z**i for i in n.coprime_integers(n)]
-            else:
-                return z
-        else:
-            if all:
-                return []
-            else:
-                raise ValueError("There are no %s roots of unity in self."%n.ordinal_str())
+                return roots
+            if roots:
+                return roots[0]
+        raise ValueError("There are no %s roots of unity in self." % n.ordinal_str())
 
     def zeta_order(self):
         r"""

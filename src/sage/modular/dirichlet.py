@@ -1829,15 +1829,13 @@ class DirichletGroupFactory(UniqueFactory):
 
         if zeta is None:
             e = rings.IntegerModRing(modulus).unit_group_exponent()
-            try:
-                zeta = base_ring.zeta(e)
-                zeta_order = zeta.multiplicative_order()
-            except (TypeError, ValueError, ArithmeticError):
-                zeta = base_ring.zeta(base_ring.zeta_order())
-                n = zeta.multiplicative_order()
-                zeta_order = arith.GCD(e,n)
-                zeta = zeta**(n//zeta_order)
-
+            for d in reversed(e.divisors()):
+                try:
+                    zeta = base_ring.zeta(d)
+                    zeta_order = d
+                    break
+                except ValueError:
+                    pass
         elif zeta_order is None:
             zeta_order = zeta.multiplicative_order()
 

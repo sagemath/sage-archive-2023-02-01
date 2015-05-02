@@ -80,6 +80,9 @@ protected:
 	int compare_same_type_function(const function &lh, const function &rh) const;
 	// fderivative objects
 	int compare_same_type_fderivative(const fderivative &lh, const fderivative &rh) const;
+
+	int generic_compare(const tinfo_t typeid_lh, const tinfo_t typeid_rh) const
+		{ return 1; }
 };
 
 

@@ -235,7 +235,7 @@ int print_order::compare(const basic &lh, const basic &rh) const
 			return -compare_add_mul(
 					static_cast<const add&>(rh),
 					static_cast<const mul&>(lh));
-		else throw (std::runtime_error("comparing typeid's"));
+		else return generic_compare(typeid_lh, typeid_rh);
 	else if (typeid_lh == add_id())
 		if (typeid_rh == power_id())
 			return compare_add_power(
@@ -249,7 +249,7 @@ int print_order::compare(const basic &lh, const basic &rh) const
 			return compare_add_mul(
 					static_cast<const add&>(lh),
 					static_cast<const mul&>(rh));
-		else throw (std::runtime_error("comparing typeid's"));
+		else return generic_compare(typeid_lh, typeid_rh);
 	else if (typeid_lh == power_id())
 		if (typeid_rh == mul_id())
 			return -compare_mul_power(
@@ -263,7 +263,7 @@ int print_order::compare(const basic &lh, const basic &rh) const
 			return compare_power_symbol(
 					static_cast<const power&>(lh),
 					static_cast<const symbol&>(rh));
-		else throw (std::runtime_error("comparing typeid's"));
+		else return generic_compare(typeid_lh, typeid_rh);
 	else if (typeid_lh == symbol_id())
 		if (typeid_rh == mul_id())
 			return -compare_mul_symbol(
@@ -277,8 +277,8 @@ int print_order::compare(const basic &lh, const basic &rh) const
 			return -compare_power_symbol(
 					static_cast<const power&>(rh),
 					static_cast<const symbol&>(lh));
-		else throw (std::runtime_error("comparing typeid's"));
-	throw (std::runtime_error("comparing typeid's"));
+		else return generic_compare(typeid_lh, typeid_rh);
+        return generic_compare(typeid_lh, typeid_rh);
 }
 
 // compare a mul and a symbol objects

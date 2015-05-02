@@ -2130,13 +2130,17 @@ class Permutation(CombinatorialObject, Element):
 
         return runs
 
-    def decreasing_runs(self):
+    def decreasing_runs(self, as_tuple=False):
         """
         Decreasing runs of the permutation.
 
+        INPUT:
+
+        - ``as_tuple`` -- boolean (default: ``False``) choice of output format
+
         OUTPUT:
 
-        a tuple of tuples
+        a list of lists or a tuple of tuples
 
         .. SEEALSO::
 
@@ -2146,11 +2150,15 @@ class Permutation(CombinatorialObject, Element):
 
             sage: s = Permutation([2,8,3,9,6,4,5,1,7])
             sage: s.decreasing_runs()
+            [[2], [8, 3], [9, 6, 4], [5, 1], [7]]
+            sage: s.decreasing_runs(as_tuple=True)
             ((2,), (8, 3), (9, 6, 4), (5, 1), (7,))
         """
         n = len(self)
         s_bar = self.complement()
-        return tuple(tuple(n + 1 - i for i in r) for r in s_bar.runs())
+        if as_tuple:
+            return tuple(tuple(n + 1 - i for i in r) for r in s_bar.runs())
+        return [[n + 1 - i for i in r] for r in s_bar.runs()]
 
     def longest_increasing_subsequence_length(self):
         r"""

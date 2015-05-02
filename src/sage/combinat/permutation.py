@@ -2138,6 +2138,10 @@ class Permutation(CombinatorialObject, Element):
 
         a tuple of tuples
 
+        .. SEEALSO::
+
+            :meth:`runs`
+
         EXAMPLES::
 
             sage: s = Permutation([2,8,3,9,6,4,5,1,7])
@@ -2146,8 +2150,7 @@ class Permutation(CombinatorialObject, Element):
         """
         n = len(self)
         s_bar = self.complement()
-        runs = [tuple([n + 1 - i for i in r]) for r in s_bar.runs()]
-        return tuple(runs)
+        return tuple(tuple(n + 1 - i for i in r) for r in s_bar.runs())
 
     def longest_increasing_subsequence_length(self):
         r"""

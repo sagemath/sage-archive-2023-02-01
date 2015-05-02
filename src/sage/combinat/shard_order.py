@@ -66,13 +66,10 @@ def shard_compares(r0, r1):
         sage: shard_compares(s1.decreasing_runs(),s0.decreasing_runs())
         False
     """
-    # We assumes that r1 has less runs than r0
+    # We assume that r1 has less runs than r0
 
-    dico1 = {}
     # conversion: integer -> index of run in r1
-    for i, bloc in enumerate(r1):
-        for j in bloc:
-            dico1[j] = i
+    dico1 = {j: i  for i, bloc in enumerate(r1) for j in bloc}
 
     dico0 = {}
     # conversion: index of run in r0 -> index of run in r1

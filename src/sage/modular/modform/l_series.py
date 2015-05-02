@@ -40,8 +40,8 @@ class GrossZagierLseries(SageObject):
         if nterms > 1e6:
             # just takes way to long
             raise ValueError("Too many terms: {}".format(nterms))
-        an_list = list(gross_zagier_L_series(E.anlist(nterms + 1), Q, N,
-                                             ideal.number_field().zeta_order()))
+        zeta_ord = ideal.number_field().zeta_order()
+        an_list = gross_zagier_L_series(E.anlist(nterms + 1), Q, N, zeta_ord)
         self._dokchister.gp().set('a', an_list[1:])
         self._dokchister.init_coeffs('a[k]', 1)
 

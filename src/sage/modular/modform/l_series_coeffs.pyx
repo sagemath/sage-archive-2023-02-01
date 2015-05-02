@@ -111,37 +111,50 @@ def gross_zagier_L_series(an_list, Q, long N, long u, var=None):
 
     INPUT:
 
-    - ``a_n`` -- list of coefficients of the L-series of an elliptic curve
+    - ``an_list`` -- list of coefficients of the L-series of an elliptic curve
     - ``Q`` -- a positive definite quadratic form
     - ``N`` -- conductor of the elliptic curve
-    - ``u`` -- number of roots of unity in the field associated with Q
+    - ``u`` -- number of roots of unity in the field associated with ``Q``
     - ``var`` -- (optional) the variable in which to express this power series
 
     OUTPUT:
 
     A power series in ``var``, or list of ints if ``var`` is unspecified.
 
+    The number of terms is the length of the input ``an_list``.
+
     EXAMPLES::
 
         sage: from sage.modular.modform.l_series_coeffs import gross_zagier_L_series
-        sage: e = EllipticCurve('37a')
+        sage: E = EllipticCurve('37a')
         sage: N = 37
-        sage: an = e.anlist(60)
+        sage: an = E.anlist(60); len(an)
+        61
         sage: K.<a> = QuadraticField(-40)
         sage: A = K.class_group().gen(0)
         sage: Q = A.ideal().quadratic_form().reduced_form()
+        sage: Q2 = (A**2).ideal().quadratic_form().reduced_form()
         sage: u = K.zeta_order()
         sage: t = PowerSeriesRing(ZZ,'t').gen()
-        sage: gross_zagier_L_series(an,Q,N,u,t)
+        sage: LA = gross_zagier_L_series(an,Q,N,u,t); LA
         -2*t^2 - 2*t^5 - 2*t^7 - 4*t^13 - 6*t^18 - 4*t^20 + 20*t^22 + 4*t^23
         - 4*t^28 + 8*t^32 - 2*t^37 - 6*t^45 - 18*t^47 + 2*t^50 - 8*t^52
         + 2*t^53 + 20*t^55 + O(t^61)
+        sage: len(gross_zagier_L_series(an,Q,N,u))
+        61
+
+        sage: LA + gross_zagier_L_series(an,Q2,N,u,t)
+        t - 2*t^2 + 2*t^4 - 2*t^5 - 2*t^7 + 3*t^9 + 4*t^10 - 10*t^11 - 4*t^13
+        + 4*t^14 - 4*t^16 - 6*t^18 - 4*t^20 + 20*t^22 + 4*t^23 - t^25 + 8*t^26
+        - 4*t^28 + 8*t^32 + 4*t^35 + 6*t^36 - 2*t^37 - 18*t^41 - 20*t^44
+        - 6*t^45 - 8*t^46 - 18*t^47 - 11*t^49 + 2*t^50 - 8*t^52 + 2*t^53
+        + 20*t^55 + 16*t^59 + O(t^61)
     """
     cdef long bound = len(an_list)
     cdef long a, b, c
     a, b, c = Q
     cdef long D = b * b - 4 * a * c
-    cdef long i, m, n, e
+    cdef long i, m, n, me, j
     cdef long* con_terms = bqf_theta_series_c(NULL, bound - 1, a, b, c)
     cdef long* terms = <long*>malloc(sizeof(long) * bound)
     if terms == NULL:
@@ -155,9 +168,13 @@ def gross_zagier_L_series(an_list, Q, long N, long u, var=None):
     memcpy(terms, con_terms, sizeof(long) * bound)  # m = 1
     for m from 2 <= m <= <long>sqrt(bound):
         if arith.c_gcd_longlong(D * N, m) == 1:
-            e = kronecker_symbol(D, m)
-            for n from 0 <= n < bound // (m * m):
-                terms[m * m * n] += m * e * con_terms[n]
+            me = m * kronecker_symbol(D, m)
+            j = 0
+            n = 0
+            while j < bound:
+                terms[j] += me * con_terms[n]
+                j += m * m
+                n += 1
     sig_off()
     L = [terms[i] for i from 0 <= i < bound]
     free(con_terms)

@@ -100,8 +100,10 @@ def installed_files_by_module(site_packages, modules=('sage',)):
         sage: from site import getsitepackages
         sage: site_packages = getsitepackages()[0]
         sage: files_by_module = installed_files_by_module(site_packages)
-        sage: files_by_module['sage.structure.sage_object']
-        {'sage/structure/sage_object.so'}
+        sage: from sage.misc.sageinspect import loadable_module_extension
+        sage: files_by_module['sage.structure.sage_object'] == \
+        ....:     {'sage/structure/sage_object' + loadable_module_extension()}
+        True
         sage: sorted(files_by_module['sage.structure'])
         ['sage/structure/__init__.py', 'sage/structure/__init__.pyc']
 

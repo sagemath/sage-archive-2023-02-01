@@ -404,14 +404,22 @@ def is_prime(n):
     r"""
     Return ``True`` if `n` is a prime number, and ``False`` otherwise.
 
-    AUTHORS:
-
-    - Kevin Stueve kstueve@uw.edu (2010-01-17):
-      delegated calculation to ``n.is_prime()``
+    Use a provable primality test or a strong pseudo-primality test depending
+    on the global :mod:`arithmetic proof flag <sage.structure.proof.proof>`.
 
     INPUT:
 
     -  ``n`` - the object for which to determine primality
+
+    .. SEEALSO::
+
+        - :meth:`is_pseudoprime`
+        - :meth:`sage.rings.integer.Integer.is_prime`
+
+    AUTHORS:
+
+    - Kevin Stueve kstueve@uw.edu (2010-01-17):
+      delegated calculation to ``n.is_prime()``
 
     EXAMPLES::
 
@@ -427,6 +435,13 @@ def is_prime(n):
         False
         sage: is_prime(-2)
         False
+
+        sage: a = 2**2048 + 981
+        sage: is_prime(a)    # not tested - takes ~ 1min
+        sage: proof.arithmetic(False)
+        sage: is_prime(a)    # instantaneous!
+        True
+        sage: proof.arithmetic(True)
     """
     try:
         return n.is_prime()

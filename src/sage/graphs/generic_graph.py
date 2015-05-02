@@ -3480,22 +3480,25 @@ class GenericGraph(GenericGraph_pyx):
     ### Planarity
 
     def is_planar(self, on_embedding=None, kuratowski=False, set_embedding=False, set_pos=False):
-        """
-        Returns True if the graph is planar, and False otherwise. This
-        wraps the reference implementation provided by John Boyer of the
-        linear time planarity algorithm by edge addition due to Boyer
-        Myrvold. (See reference code in graphs.planarity).
+        r"""
+        Test whether the graph is planar.
 
-        Note - the argument on_embedding takes precedence over
-        set_embedding. This means that only the on_embedding
-        combinatorial embedding will be tested for planarity and no
-        _embedding attribute will be set as a result of this function
-        call, unless on_embedding is None.
+        This wraps the reference implementation provided by John Boyer of the
+        linear time planarity algorithm by edge addition due to Boyer
+        Myrvold. (See reference code in :mod:`sage.graphs.planarity`).
+
+        .. NOTE::
+
+            the argument on_embedding takes precedence over
+            ``set_embedding``. This means that only the ``on_embedding``
+            combinatorial embedding will be tested for planarity and no
+            ``_embedding`` attribute will be set as a result of this function
+            call, unless ``on_embedding`` is None.
 
         REFERENCE:
 
-        - [1] John M. Boyer and Wendy J. Myrvold, On the Cutting Edge:
-          Simplified O(n) Planarity by Edge Addition. Journal of Graph
+        .. [1] John M. Boyer and Wendy J. Myrvold, On the Cutting Edge:
+          Simplified `O(n)` Planarity by Edge Addition. Journal of Graph
           Algorithms and Applications, Vol. 8, No. 3, pp. 241-273,
           2004.
 
@@ -3507,23 +3510,21 @@ class GenericGraph(GenericGraph_pyx):
           subdivision of `K_5` or `K_{3,3}`) as the second tuple entry.  If the
           graph is planar, returns ``None`` as the second entry.
 
-        -  ``on_embedding`` - the embedding dictionary to test
-           planarity on. (i.e.: will return True or False only for the given
+        - ``on_embedding`` - the embedding dictionary to test planarity
+           on. (i.e.: will return ``True`` or ``False`` only for the given
            embedding.)
 
-        -  ``set_embedding`` - whether or not to set the
-           instance field variable that contains a combinatorial embedding
-           (clockwise ordering of neighbors at each vertex). This value will
-           only be set if a planar embedding is found. It is stored as a
-           Python dict: v1: [n1,n2,n3] where v1 is a vertex and n1,n2,n3 are
-           its neighbors.
+        - ``set_embedding`` - whether or not to set the instance field variable
+           that contains a combinatorial embedding (clockwise ordering of
+           neighbors at each vertex). This value will only be set if a planar
+           embedding is found. It is stored as a Python dict: ``v1: [n1,n2,n3]``
+           where ``v1`` is a vertex and ``n1,n2,n3`` are its neighbors.
 
         -  ``set_pos`` - whether or not to set the position
            dictionary (for plotting) to reflect the combinatorial embedding.
            Note that this value will default to False if set_emb is set to
            False. Also, the position dictionary will only be updated if a
            planar embedding is found.
-
 
         EXAMPLES::
 
@@ -3601,13 +3602,21 @@ class GenericGraph(GenericGraph_pyx):
             sage: k.vertices()
             [0, 1, 2, 3, 4]
 
+        :trac:`18045`::
+
+            sage: g = graphs.CompleteGraph(4)
+            sage: g.is_planar(set_embedding=True)
+            True
+            sage: emb = {0 : [2,3,1], 1: [2,3,0], 2: [1,3,0], 3:[0,1,2]}
+            sage: g.is_planar(on_embedding=emb)
+            False
         """
         if self.has_multiple_edges() or self.has_loops():
             if set_embedding or (on_embedding is not None) or set_pos:
                 raise NotImplementedError("Cannot compute with embeddings of multiple-edged or looped graphs.")
             else:
                 return self.to_simple().is_planar(kuratowski=kuratowski)
-        if on_embedding:
+        if on_embedding is not None:
             if self._check_embedding_validity(on_embedding):
                 return (0 == self.genus(minimal=False,set_embedding=False,on_embedding=on_embedding))
             else:
@@ -4006,7 +4015,7 @@ class GenericGraph(GenericGraph_pyx):
         return True
 
     def genus(self, set_embedding=True, on_embedding=None, minimal=True, maximal=False, circular=False, ordered=True):
-        """
+        r"""
         Returns the minimal genus of the graph.
 
         The genus of a compact surface is the number of handles it
@@ -4022,16 +4031,19 @@ class GenericGraph(GenericGraph_pyx):
            store an embedding attribute of the computed (minimal) genus of the
            graph. (Default is True).
 
-        -  ``on_embedding (dict)`` - a combinatorial embedding
-           to compute the genus of the graph on. Note that this must be a
-           valid embedding for the graph. The dictionary structure is given
-           by: vertex1: [neighbor1, neighbor2, neighbor3], vertex2: [neighbor]
-           where there is a key for each vertex in the graph and a (clockwise)
-           ordered list of each vertex's neighbors as values. on_embedding
-           takes precedence over a stored _embedding attribute if minimal is
-           set to False. Note that as a shortcut, the user can enter
-           on_embedding=True to compute the genus on the current _embedding
-           attribute. (see eg's.)
+        -  ``on_embedding`` (default: ``None``) - two kinds of input are allowed:
+
+           - a dictionnary representing a combinatorial embedding on which the
+             genus should be computed. Note that this must be a valid embedding
+             for the graph. The dictionary structure is given by: ``vertex1:
+             [neighbor1, neighbor2, neighbor3], vertex2: [neighbor]`` where
+             there is a key for each vertex in the graph and a (clockwise)
+             ordered list of each vertex's neighbors as values. The value of
+             ``on_embedding`` takes precedence over a stored ``_embedding``
+             attribute if minimal is set to ``False``.
+
+           - The value ``True``, in order to indicate that the embedding stored
+             as ``_embedding`` should be used (see examples).
 
         -  ``minimal (boolean)`` - whether or not to compute
            the minimal genus of the graph (i.e., testing all embeddings). If
@@ -4176,14 +4188,15 @@ class GenericGraph(GenericGraph_pyx):
         if on_embedding is not None:
             if self.has_loops() or self.is_directed() or self.has_multiple_edges():
                 raise NotImplementedError("Can't work with embeddings of non-simple graphs")
-            if on_embedding: #i.e., if on_embedding True (returns False if on_embedding is of type dict)
+
+            if isinstance(on_embedding,dict):
+                faces = len(self.faces(on_embedding))
+                return (2-verts+edges-faces) // 2
+            elif on_embedding:
                 try:
                     faces = len(self.faces(self._embedding))
                 except AttributeError:
                     raise AttributeError('graph must have attribute _embedding set to compute current (embedded) genus')
-                return (2-verts+edges-faces) // 2
-            else: # compute genus on the provided dict
-                faces = len(self.faces(on_embedding))
                 return (2-verts+edges-faces) // 2
         else: # then compute either maximal or minimal genus of all embeddings
             import genus
@@ -14068,7 +14081,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def add_path(self, vertices):
         """
-        Adds a cycle to the graph with the given vertices. If the vertices
+        Adds a path to the graph with the given vertices. If the vertices
         are already present, only the edges are added.
 
         For digraphs, adds the directed path vertices[0], ...,
@@ -14078,7 +14091,7 @@ class GenericGraph(GenericGraph_pyx):
 
 
         -  ``vertices`` - a list of indices for the vertices of
-           the cycle to be added.
+           the path to be added.
 
 
         EXAMPLES::

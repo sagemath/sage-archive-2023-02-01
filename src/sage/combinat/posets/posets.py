@@ -56,6 +56,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.has_isomorphic_subposet` | Return ``True`` if the poset contains a subposet isomorphic to another poset, and ``False`` otherwise.
     :meth:`~FinitePoset.has_top` | Returns True if the poset contains a unique maximal element, and False otherwise.
     :meth:`~FinitePoset.height` | Return the height (number of elements in the longest chain) of the poset.
+    :meth:`~FinitePoset.incidence_algebra` | Return the indicence algebra of ``self``.
     :meth:`~FinitePoset.incomparability_graph` | Returns the incomparability graph of the poset.
     :meth:`~FinitePoset.interval` | Returns a list of the elements `z` such that `x \le z \le y`.
     :meth:`~FinitePoset.intervals` | Returns a list of all intervals of the poset.
@@ -5316,6 +5317,20 @@ class FinitePoset(UniqueRepresentation, Parent):
         from sage.combinat.posets.lattices import LatticePoset
         from sage.misc.misc import attrcall
         return LatticePoset((self.cuts(), attrcall("issubset")))
+
+    def incidence_algebra(self, R, prefix='I'):
+        r"""
+        Return the incidence algebra of ``self`` over ``R``.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(4)
+            sage: P.incidence_algebra(QQ)
+            Incidence algebra of Finite lattice containing 16 elements
+             over Rational Field
+        """
+        from sage.combinat.posets.incidence_algebras import IncidenceAlgebra
+        return IncidenceAlgebra(R, self, prefix)
 
 FinitePoset._dual_class = FinitePoset
 

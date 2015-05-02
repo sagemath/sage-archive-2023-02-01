@@ -2368,7 +2368,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self.parent().base_ring()
 
-    def base_extend(self, R):
+    cpdef base_extend(self, R):
         """
         Return a copy of this polynomial but with coefficients in R, if
         there is a natural map from coefficient ring of self to R.
@@ -6404,9 +6404,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (f*(x^2-5)).is_squarefree()
             False
 
-        A generic implementation is available for polynomials defined over
-        principal ideal domains of characteristic 0; the algorithm relies on
-        gcd computations::
+        A generic implementation is available, which relies on gcd
+        computations::
 
             sage: R.<x> = ZZ[]
             sage: (2*x).is_squarefree()
@@ -6418,6 +6417,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R(0).is_squarefree()
             False
 
+        This can obviously fail if the ring does not implement ``gcd()``::
+
             sage: S.<y> = QQ[]
             sage: R.<x> = S[]
             sage: (2*x*y).is_squarefree() # R does not provide a gcd implementation
@@ -6427,8 +6428,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (2*x*y^2).is_squarefree()
             False
 
-        Over principal ideal domains of positive characteristic, we compute the
-        square-free decomposition or a full factorization depending on which is
+        In positive characteristic, we compute the square-free
+        decomposition or a full factorization, depending on which is
         available::
 
             sage: K.<t> = FunctionField(GF(3))
@@ -6462,12 +6463,24 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: c = f.content()
             sage: (f/c).is_squarefree()
             True
+
+        If the base ring is not an integral domain, the question is not
+        mathematically well-defined::
+
+            sage: R.<x> = IntegerModRing(9)[]
+            sage: pol = (x + 3)*(x + 6); pol
+            x^2
+            sage: pol.is_squarefree()
+            Traceback (most recent call last):
+            ...
+            TypeError: is_squarefree() is not defined for polynomials over Ring of integers modulo 9
         """
-        if self.parent().base_ring() not in sage.categories.principal_ideal_domains.PrincipalIdealDomains():
-            raise NotImplementedError("is_squarefree() is only implemented for polynomials over principal ideal domains")
+        B = self.parent().base_ring()
+        if B not in sage.categories.integral_domains.IntegralDomains():
+            raise TypeError("is_squarefree() is not defined for polynomials over {}".format(B))
 
         # a square-free polynomial has a square-free content
-        if not self.parent().base_ring().is_field():
+        if not B.is_field():
             content = self.content()
             if content not in self.parent().base_ring():
                 content = content.gen()
@@ -6479,7 +6492,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return True
 
         # for characteristic zero rings, square-free polynomials have to be separable
-        if self.parent().characteristic().is_zero():
+        if B.characteristic().is_zero():
             return False
 
         # over rings of positive characteristic, we rely on the square-free decomposition if available

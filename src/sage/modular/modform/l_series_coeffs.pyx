@@ -150,7 +150,7 @@ def gross_zagier_L_series(an_list, Q, long N, long u, var=None):
         - 6*t^45 - 8*t^46 - 18*t^47 - 11*t^49 + 2*t^50 - 8*t^52 + 2*t^53
         + 20*t^55 + 16*t^59 + O(t^61)
     """
-    cdef long bound = len(an_list)
+    cdef long bound = len(an_list) + 1  # one more term for safety
     cdef long a, b, c
     a, b, c = Q
     cdef long D = b * b - 4 * a * c
@@ -176,7 +176,7 @@ def gross_zagier_L_series(an_list, Q, long N, long u, var=None):
                 j += m * m
                 n += 1
     sig_off()
-    L = [terms[i] for i from 0 <= i < bound]
+    L = [terms[i] for i from 0 <= i < bound - 1]
     free(con_terms)
     free(terms)
     return to_series(L, var)

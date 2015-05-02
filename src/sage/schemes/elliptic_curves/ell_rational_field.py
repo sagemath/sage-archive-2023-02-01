@@ -3086,7 +3086,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: L.taylor_series(1, 5)
             0.000000000000000 - 5.51899839494458*z + 13.6297841350649*z^2 - 16.2292417817675*z^3 + 7.94788823722712*z^4 + O(z^5)
 
-        These should(?) be equal.::
+        These should be equal::
 
             sage: L(2) + E.lseries_gross_zagier(A^2)(2)
             0.502803417587467

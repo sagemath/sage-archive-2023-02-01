@@ -51,7 +51,7 @@ class GrossZagierLseries(SageObject):
 
         INPUT:
 
-        - ``s` -- complex number
+        - `s` -- complex number
 
         - ``der`` -- ? (default 0)
 
@@ -73,7 +73,7 @@ class GrossZagierLseries(SageObject):
 
         INPUT:
 
-        - ``s` -- complex number
+        - `s` -- complex number
 
         - ``nterms`` -- number of terms in the Taylor series
 

@@ -33,7 +33,8 @@ EXAMPLES::
     sage: pari('5! + 10/x')
     (120*x + 10)/x
     sage: pari('intnum(x=0,13,sin(x)+sin(x^2) + x)')
-    84.1818153922297
+    83.8179442684285  # 32-bit
+    84.1818153922297  # 64-bit
     sage: f = pari('x^3-1')
     sage: v = f.factor(); v
     [x - 1, 1; x^2 + x + 1, 1]

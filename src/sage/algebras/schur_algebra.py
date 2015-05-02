@@ -41,7 +41,6 @@ from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
 from sage.combinat.tableau import SemistandardTableaux
 from sage.functions.other import binomial
-from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.matrix.constructor import Matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
@@ -51,7 +50,7 @@ from sage.rings.all import ZZ, QQ
 def _schur_I_nr_representatives(n, r):
     r"""
     Internal function called by :func:`schur_representation_indices`,
-    which generates all weakly increasing words of length ``r`` in the
+    which generates all weakly increasing tuples of length ``r`` in the
     alphabet ``1, 2, ..., n``.
 
     EXAMPLES::
@@ -87,12 +86,12 @@ def schur_representative_indices(n, r):
     Return a set which functions as a basis of `S_K(n,r)`.
 
     More specifically, the basis for `S_K(n,r)` consists of
-    equivalence classes of pairs words of length ``r`` on the alphabet
-    `1 \dots n`, where the equivalence relation is simultaneous
-    permutation of the two words.  We can therefore fix a
+    equivalence classes of pairs of tuples of length ``r`` on the alphabet
+    `\{1, \dots, n\}`, where the equivalence relation is simultaneous
+    permutation of the two tuples.  We can therefore fix a
     representative for each equivalence class in which the entries of
-    the first word weakly increase, and the entries of the second word
-    whose corresponding values in the first word are equal, also
+    the first tuple weakly increase, and the entries of the second tuple
+    whose corresponding values in the first tuple are equal, also
     weakly increase.
 
     EXAMPLES::
@@ -148,7 +147,7 @@ def schur_representative_indices(n, r):
 
 def schur_representative_from_index(i0, i1):
     """
-    Simultaneously reorder a pair of words to obtain the equivalent
+    Simultaneously reorder a pair of tuples to obtain the equivalent
     element of the distinguished basis of the Schur algebra.
 
     .. SEEALSO::
@@ -157,11 +156,11 @@ def schur_representative_from_index(i0, i1):
 
     INPUT:
 
-    - A pair of words from ``Words(range(1,n+1), r)``
+    - A pair of tuples of length `r` with elements in `\{1,\dots,n\}`
 
     OUTPUT:
 
-    - The corresponding pair of words ordered correctly.
+    - The corresponding pair of tuples ordered correctly.
 
     EXAMPLES::
 
@@ -193,7 +192,7 @@ class SchurAlgebra(CombinatorialFreeModule):
     `\Delta(x_{ij}) = \sum_l x_{il} \otimes x_{lj}` and counit
     `\varepsilon(x_{ij}) = \delta_{ij}`. Therefore `A_R(n,r)` is a
     subcoalgebra of `R[x_{ij}]`. The *Schur algebra* `S_R(n,r)` is the
-    linear dual to `A_R(n,r)`, that is `S_R(n,r) := \Hom(A_R(n,r), R)`,
+    linear dual to `A_R(n,r)`, that is `S_R(n,r) := \hom(A_R(n,r), R)`,
     and `S_R(n,r)` obtains its algebra structure naturally by dualizing
     the comultiplication of `A_R(n,r)`.
 
@@ -368,7 +367,7 @@ class SchurAlgebra(CombinatorialFreeModule):
             sage: S.dimension()
             35
         """
-        return binomial(self._n**2 + self._r - 1, self._r)
+        return binomial(self._n ** 2 + self._r - 1, self._r)
 
 
 class SchurTensorModule(CombinatorialFreeModule_Tensor):
@@ -378,18 +377,18 @@ class SchurTensorModule(CombinatorialFreeModule_Tensor):
     group `S_r`.
 
     Let `R` be a commutative ring and `V = R^n`. We consider the module
-    `V^{\otimes r}` equppied with a natural right action of the symmetric
+    `V^{\otimes r}` equipped with a natural right action of the symmetric
     group `S_r` given by
 
     .. MATH::
 
         (v_1 \otimes v_2 \otimes \cdots \otimes v_n) \sigma
-        = v_{\sigma(1)} \otimes v_{\simga(2)} \otimes \cdots
-        \otimes v_{\simga(n)}.
+        = v_{\sigma(1)} \otimes v_{\sigma(2)} \otimes \cdots
+        \otimes v_{\sigma(n)}.
 
     The Schur algebra `S_R(n,r)` is naturally isomorphic to the
     endomorphisms of `V^{\otimes r}` which commutes with the `S_r` action.
-    We let the natural left action of `S_R(n,r)` by this isomorphism.
+    We get the natural left action of `S_R(n,r)` by this isomorphism.
 
     EXAMPLES::
 
@@ -429,12 +428,12 @@ class SchurTensorModule(CombinatorialFreeModule_Tensor):
             sage: T = SchurTensorModule(QQ, 2, 3)
             sage: TestSuite(T).run()
         """
-        C = CombinatorialFreeModule(R, range(1,n+1))
+        C = CombinatorialFreeModule(R, range(1, n + 1))
         self._n = n
         self._r = r
         self._sga = SymmetricGroupAlgebra(R, r)
         self._schur = SchurAlgebra(R, n, r)
-        CombinatorialFreeModule_Tensor.__init__(self, tuple([C]*r))
+        CombinatorialFreeModule_Tensor.__init__(self, tuple([C] * r))
         g = self._schur.module_morphism(self._monomial_product, codomain=self)
         self._schur_action = self.module_morphism(g, codomain=self, position=1)
 
@@ -466,7 +465,7 @@ class SchurTensorModule(CombinatorialFreeModule_Tensor):
             B[1] # B[1] # B[2] + B[1] # B[2] # B[1] + B[2] # B[1] # B[1]
         """
         ret = []
-        for i in CartesianProduct(*[range(1,self._n+1)]*self._r):
+        for i in CartesianProduct(*[range(1, self._n + 1)] * self._r):
             if schur_representative_from_index(i, v) == xi:
                 ret.append(tuple(i))
         return self.sum_of_monomials(ret)
@@ -477,7 +476,7 @@ class SchurTensorModule(CombinatorialFreeModule_Tensor):
             Return the action of ``elt`` on ``self``.
 
             We add the *left* action of the Schur algebra, and the *right*
-            actions of the symmetric group algebra and the symemtric group.
+            actions of the symmetric group algebra and the symmetric group.
 
             EXAMPLES::
 
@@ -516,14 +515,15 @@ class SchurTensorModule(CombinatorialFreeModule_Tensor):
             P = self.parent()
             if self_on_left:
                 if elt in P._sga:
-                    return P.sum_of_terms((tuple([m[i-1] for i in me]), c * ce)
-                                          for m,c in self for me,ce in elt)
+                    return P.sum_of_terms((tuple([m[i - 1] for i in me]),
+                                           c * ce)
+                                          for m, c in self for me, ce in elt)
 
                 if elt in P._sga._indices:
-                    return P.sum_of_terms((tuple([m[i-1] for i in elt]), c)
-                                          for m,c in self)
+                    return P.sum_of_terms((tuple([m[i - 1] for i in elt]), c)
+                                          for m, c in self)
 
-            elif elt in P._schur: # self_on_left is False
+            elif elt in P._schur:  # self_on_left is False
                 return P._schur_action(elt, self)
             return super(SchurTensorModule.Element, self)._acted_upon_(elt, self_on_left)
 
@@ -551,13 +551,12 @@ def GL_irreducible_character(n, mu, KK):
     functions associated to partitions with more than `n` parts)::
 
         sage: from sage.algebras.schur_algebra import GL_irreducible_character
-        sage: z = GL_irreducible_character(2, [2], QQ)
         sage: sbasis = SymmetricFunctions(QQ).s()
+        sage: z = GL_irreducible_character(2, [2], QQ)
         sage: sbasis(z)
         s[2]
 
         sage: z = GL_irreducible_character(4, [3, 2], QQ)
-        sage: sbasis = SymmetricFunctions(QQ).s()
         sage: sbasis(z)
         -5*s[1, 1, 1, 1, 1] + s[3, 2]
 
@@ -565,8 +564,8 @@ def GL_irreducible_character(n, mu, KK):
     in general be smaller.
 
     In characteristic `p`, for a one-part partition `(r)`, where
-    `r = a_0 + p a_1 + p^2 a_2 + \dots`, the result is [Green,
-    after 5.5d] the product of `h[a_0], h[a_1]( pbasis[p]), h[a_2]
+    `r = a_0 + p a_1 + p^2 a_2 + \dots`, the result is (see [GreenPoly]_,
+    after 5.5d) the product of `h[a_0], h[a_1]( pbasis[p]), h[a_2]
     ( pbasis[p^2]), \dots,` which is consistent with the following ::
 
         sage: from sage.algebras.schur_algebra import GL_irreducible_character
@@ -584,7 +583,7 @@ def GL_irreducible_character(n, mu, KK):
     ST = from_shape_and_word(mu, range(1, r + 1), convention='English')
 
     #make ell the reading word of the highest weight tableau of shape mu
-    ell = [i+1 for i,l in enumerate(mu) for dummy in range(l)]
+    ell = [i + 1 for i, l in enumerate(mu) for dummy in range(l)]
 
     e = M.basis()[tuple(ell)]  # the element e_l
 
@@ -592,7 +591,7 @@ def GL_irreducible_character(n, mu, KK):
     S = SGA._indices
     BracC = SGA._from_dict({S(x.tuple()): x.sign() for x in ST.column_stabilizer()},
                            remove_zeros=False)
-    f = e * BracC #M.action_by_symmetric_group_algebra(e, BracC)
+    f = e * BracC  # M.action_by_symmetric_group_algebra(e, BracC)
 
     # [Green, Theorem 5.3b] says that a basis of the Carter-Lusztig
     # module V_\mu is given by taking this f, and multiplying by all
@@ -602,7 +601,7 @@ def GL_irreducible_character(n, mu, KK):
     for T in SemistandardTableaux(mu, max_entry=n):
         i = tuple(flatten(T))
         schur_rep = schur_representative_from_index(i, tuple(ell))
-        y = A.basis()[schur_rep] * e #M.action_by_Schur_alg(A.basis()[schur_rep], e)
+        y = A.basis()[schur_rep] * e  # M.action_by_Schur_alg(A.basis()[schur_rep], e)
         carter_lusztig.append(y.to_vector())
 
     #Therefore, we now have carter_lusztig as a list giving the basis
@@ -633,7 +632,7 @@ def GL_irreducible_character(n, mu, KK):
     for T in SemistandardTableaux(mu, max_entry=n):
         i = tuple(flatten(T))
         # Get the content of T
-        con = [0]*n
+        con = [0] * n
         for a in i:
             con[a - 1] += 1
         try:
@@ -641,7 +640,7 @@ def GL_irreducible_character(n, mu, KK):
             P_index = contents.index(P)
             JJ[P_index].append(i)
             schur_rep = schur_representative_from_index(i, tuple(ell))
-            x = A.basis()[schur_rep] * f #M.action_by_Schur_alg(A.basis()[schur_rep], f)
+            x = A.basis()[schur_rep] * f  # M.action_by_Schur_alg(A.basis()[schur_rep], f)
             graded_basis[P_index].append(x.to_vector())
         except ValueError:
             pass
@@ -669,4 +668,3 @@ def GL_irreducible_character(n, mu, KK):
         angle = Matrix(mat)
         phi += (len(JJ[aa]) - angle.nullity()) * mbasis(contents[aa])
     return phi
-

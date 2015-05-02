@@ -247,6 +247,7 @@ class SchurAlgebra(CombinatorialFreeModule):
 
         CombinatorialFreeModule.__init__(self, R,
                                          schur_representative_indices(n, r),
+                                         prefix='S', bracket=False,
                                          category=AlgebrasWithBasis(R))
 
     def _repr_(self):
@@ -270,7 +271,7 @@ class SchurAlgebra(CombinatorialFreeModule):
 
             sage: S = SchurAlgebra(ZZ, 2, 2)
             sage: e = S.one(); e
-            B[((1, 1), (1, 1))] + B[((1, 2), (1, 2))] + B[((2, 2), (2, 2))]
+            S((1, 1), (1, 1)) + S((1, 2), (1, 2)) + S((2, 2), (2, 2))
 
             sage: x = S.an_element()
             sage: x * e == x
@@ -312,14 +313,14 @@ class SchurAlgebra(CombinatorialFreeModule):
             sage: ww = B[((1, 2, 2), (1, 2, 2))]
             sage: x = B[((1, 2, 2), (1, 1, 2))]
             sage: ww * x
-            B[((1, 2, 2), (1, 1, 2))]
+            S((1, 2, 2), (1, 1, 2))
 
         An arbitrary product, on the other hand, may have multiplicities::
 
             sage: x = B[((1, 1, 1), (1, 1, 2))]
             sage: y = B[((1, 1, 2), (1, 2, 2))]
             sage: x * y
-            2*B[((1, 1, 1), (1, 2, 2))]
+            2*S((1, 1, 1), (1, 2, 2))
         """
         j = e_ij[1]
 
@@ -392,9 +393,32 @@ class SchurTensorModule(CombinatorialFreeModule_Tensor):
 
     EXAMPLES::
 
-        sage: SchurTensorModule(QQ, 2, 3)
+        sage: T = SchurTensorModule(QQ, 2, 3); T
         The 3-fold tensor product of a free module of dimension 2
-        over Rational Field
+         over Rational Field
+        sage: A = SchurAlgebra(QQ, 2, 3)
+        sage: P = Permutations(3)
+        sage: t = T.an_element(); t
+        2*B[1] # B[1] # B[1] + 2*B[1] # B[1] # B[2] + 3*B[1] # B[2] # B[1]
+        sage: a = A.an_element(); a
+        2*S((1, 1, 1), (1, 1, 1)) + 2*S((1, 1, 1), (1, 1, 2))
+         + 3*S((1, 1, 1), (1, 2, 2))
+        sage: p = P.an_element(); p
+        [3, 1, 2]
+        sage: y = a * t; y
+        14*B[1] # B[1] # B[1]
+        sage: y * p
+        14*B[1] # B[1] # B[1]
+        sage: z = t * p; z
+        2*B[1] # B[1] # B[1] + 3*B[1] # B[1] # B[2] + 2*B[2] # B[1] # B[1]
+        sage: a * z
+        14*B[1] # B[1] # B[1]
+
+    We check the commuting action property::
+
+        sage: all( (bA * bT) * p == bA * (bT * p)
+        ....:      for bT in T.basis() for bA in A.basis() for p in P)
+        True
     """
     def __init__(self, R, n, r):
         """

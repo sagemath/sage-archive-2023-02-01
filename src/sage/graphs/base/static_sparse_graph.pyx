@@ -13,9 +13,11 @@ for graph algorithms whose main operation is to *list the out-neighbours of a
 vertex* (which is precisely what BFS, DFS, distance computations and the
 flow-related stuff waste their life on).
 
-The code contained in this module is written C-style. While Sage needs a class
-for static graphs (not available today, i.e. 2012-01-13) it is not what we try
-to address here. The purpose is efficiency and simplicity.
+The code contained in this module is written C-style. The purpose is efficiency
+and simplicity.
+
+For an overview of graph data structures in sage, see
+:mod:`~sage.graphs.base.overview`.
 
 Author:
 

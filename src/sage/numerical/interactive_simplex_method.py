@@ -175,7 +175,7 @@ Classes and functions
 #*****************************************************************************
 
 
-import operator, re, sys
+import operator, re
 
 
 from copy import copy
@@ -192,7 +192,6 @@ from sage.misc.all import (LatexExpr,
                            latex,
                            randint,
                            random)
-from sage.misc.latex import EMBEDDED_MODE
 from sage.misc.misc import get_main_globals
 from sage.modules.all import random_vector, vector
 from sage.plot.all import Graphics, arrow, line, point, rainbow, text
@@ -206,7 +205,7 @@ from sage.symbolic.all import SR
 # LaTeX. We use our own variable as it may be convenient to override it.
 # Hopefully, some day there will be no need in it at all and only "if" parts
 # will have to be left.
-generate_real_LaTeX = not EMBEDDED_MODE
+generate_real_LaTeX = False
 
 def _assemble_arrayl(lines, stretch=None):
     r"""

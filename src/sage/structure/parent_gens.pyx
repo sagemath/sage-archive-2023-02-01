@@ -107,8 +107,6 @@ def is_ParentWithAdditiveAbelianGens(x):
         sage: from sage.structure.parent_gens import is_ParentWithAdditiveAbelianGens
         sage: is_ParentWithAdditiveAbelianGens(QQ)
         False
-        sage: is_ParentWithAdditiveAbelianGens(OverconvergentModularForms(3, 0, 1/2))
-        True
     """
     return isinstance(x, ParentWithAdditiveAbelianGens)
 

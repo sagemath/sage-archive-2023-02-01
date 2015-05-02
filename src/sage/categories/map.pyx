@@ -593,10 +593,14 @@ cdef class Map(Element):
 
     def domains(self):
         """
-        Yield the domain of self. In general, iterate over the domains of
-        the factors of a composite map.
+        Iterate over the domains of the factors of a (composite) map.
+
+        This default implementation simply yields the domain of this map.
+
+        .. SEEALSO:: :meth:`FormalCompositeMap.domains`
 
         EXAMPLES::
+
             sage: list(QQ.coerce_map_from(ZZ).domains())
             [Integer Ring]
         """
@@ -1917,9 +1921,13 @@ cdef class FormalCompositeMap(Map):
 
     def domains(self):
         """
-        Iterate over the domains of the factors of self.
+        Iterate over the domains of the factors of this map.
 
-        EXAMPLES:::
+        (This is useful in particular to check for loops in coercion maps.)
+
+        .. SEEALSO:: :meth:`Map.domains`
+
+        EXAMPLES::
 
             sage: f = QQ.coerce_map_from(ZZ)
             sage: g = MatrixSpace(QQ, 2, 2).coerce_map_from(QQ)

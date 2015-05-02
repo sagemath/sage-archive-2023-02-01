@@ -3084,12 +3084,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: L(1)
             0.000000000000000
             sage: L.taylor_series(1, 5)
-            0.000000000000000 - 3.89768645753380*z + 6.92410249537050*z^2 - 3.97397873821629*z^3 - 3.34761723805513*z^4 + O(z^5)
+            0.000000000000000 - 5.51899839494458*z + 13.6297841350649*z^2 - 16.2292417817675*z^3 + 7.94788823722712*z^4 + O(z^5)
 
         These should(?) be equal.::
 
             sage: L(2) + E.lseries_gross_zagier(A^2)(2)
-            0.506799279512368
+            0.502803417587467
             sage: E.lseries()(2) * E.quadratic_twist(-40).lseries()(2)
             0.502803417587467
         """

@@ -33,7 +33,7 @@ class GrossZagierLseries(SageObject):
         Q = ideal.quadratic_form().reduced_form()
         a, b, c = self._Q = Q
         D = b ** 2 - 4 * a * c
-        self._dokchister = Dokchitser(N ** 2 * D ** 2 / Integer(4),
+        self._dokchister = Dokchitser(N ** 2 * D ** 2,
                                       [0, 0, 1, 1],
                                       weight=2, eps=-1, prec=prec)
         self._nterms = nterms = Integer(self._dokchister.gp()('cflength()'))
@@ -63,7 +63,7 @@ class GrossZagierLseries(SageObject):
             sage: from sage.modular.modform.l_series import GrossZagierLseries
             sage: G = GrossZagierLseries(e, A)
             sage: G(3)
-            -0.272819809220447
+            -0.272946890617590
         """
         return self._dokchister(s, der)
 
@@ -85,7 +85,7 @@ class GrossZagierLseries(SageObject):
             sage: from sage.modular.modform.l_series import GrossZagierLseries
             sage: G = GrossZagierLseries(e, A)
             sage: G.taylor_series(2,3)
-            -0.598849375222341 + 0.431769334217468*z - 0.0128395302793324*z^2 + O(z^3)
+            -0.613002046122894 + 0.490374999263514*z - 0.122903033710382*z^2 + O(z^3)
         """
         return self._dokchister.taylor_series(s, nterms)
 

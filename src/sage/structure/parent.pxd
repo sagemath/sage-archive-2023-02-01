@@ -56,7 +56,7 @@ cdef class Parent(category_object.CategoryObject):
     cpdef coerce(self, x)
 
     cpdef an_element(self)
-    cdef public object __an_element
+    cdef public object _cache_an_element
 
 
     # For internal use

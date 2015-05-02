@@ -405,13 +405,13 @@ cdef class Parent(parent.Parent):
 
     cpdef _an_element_c(self):     # do not override this (call from Cython)
         check_old_coerce(self)
-        if not self.__an_element is None:
-            return self.__an_element
+        if not self._cache_an_element is None:
+            return self._cache_an_element
         if HAS_DICTIONARY(self):
-            self.__an_element = self._an_element_impl()
+            self._cache_an_element = self._an_element_impl()
         else:
-            self.__an_element = self._an_element_c_impl()
-        return self.__an_element
+            self._cache_an_element = self._an_element_c_impl()
+        return self._cache_an_element
 
     # This should eventually be inherited from the EnumeratedSets() category
     # This is just a convenient spot to cover the relevant cython parents,

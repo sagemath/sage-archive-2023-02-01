@@ -201,22 +201,9 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
                 mpz_set_ui(self.denom, 1)
             self._reduce_c_()
 
-        # set the attribute standard embedding which is used in the method
-        # __cmp__
-        try:
-            self.standard_embedding = parent._standard_embedding
-        except AttributeError:
-            emb = parent.coerce_embedding()
-            if emb is None:
-                self.standard_embedding = True
-                try:
-                    parent._standard_embedding = True
-                except AttributeError:
-                    pass
-            else:
-                raise ValueError("A parent of NumberFieldElement_quadratic with "
-                                 "a canonical embedding should have an attribute "
-                                 "_standard_embedding (used for comparisons of elements)")
+        # set the attribute standard embedding which is used in the methods
+        # __cmp__, sign, real, imag, floor, ceil, ...
+        self.standard_embedding = parent._standard_embedding
 
     cdef _new(self):
         """

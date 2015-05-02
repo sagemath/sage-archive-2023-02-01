@@ -1153,7 +1153,7 @@ cdef class CGraphBackend(GenericGraphBackend):
           -- backend for dense graphs.
     """
 
-    cdef int get_vertex(self, object u) except ? -2:
+    cdef int get_vertex(self, u) except ? -2:
         """
         Returns an int representing the arbitrary hashable vertex u (whether or not
         u is actually in the graph), or -1 if a new association must be made for u
@@ -1207,7 +1207,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             return -1
         return u_int
 
-    cdef object vertex_label(self, int u_int):
+    cdef vertex_label(self, int u_int):
         """
         Returns the object represented by u_int, or None if this does not represent
         a vertex.

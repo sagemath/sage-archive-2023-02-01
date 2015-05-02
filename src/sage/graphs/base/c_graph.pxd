@@ -41,8 +41,8 @@ cdef class CGraph:
     cdef int add_vertex_unsafe(self, int) except -1
 
 cdef class CGraphBackend(GenericGraphBackend):
-    cdef int get_vertex(self, object u) except ? -2
-    cdef object vertex_label(self, int u_int)
+    cdef int get_vertex(self, u) except ? -2
+    cdef vertex_label(self, int u_int)
     cdef int check_labelled_vertex(self, object u, bint reverse) except ? -1
     cdef CGraph _cg
     cdef CGraph _cg_rev

@@ -300,13 +300,12 @@ class Stock:
             if ':' in symbol:
                 R = self._get_data('', startdate, enddate, histperiod)
             else:
-                R = self._get_data('NASDAQ:', startdate, enddate, histperiod)
-                if "Bad Request" in R:
+                try:
+                    R = self._get_data('NASDAQ:', startdate, enddate, histperiod)
+                except RuntimeError:
                      R = self._get_data("NYSE:", startdate, enddate, histperiod)
         else:
             R = self._get_data('', startdate, enddate, histperiod)
-        if "Bad Request" in R:
-            raise RuntimeError
         self.__historical = []
         self.__historical = self._load_from_csv(R)
         return self.__historical
@@ -539,6 +538,13 @@ class Stock:
               2-Jan-90 0.00 2.34 2.19 2.33   26171200,
               3-Jan-90 0.00 2.38 2.34 2.34   29713600
             ]
+
+        TESTS::
+
+            sage: finance.Stock('whatever').history() # optional -- internet
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Google reported a wrong request (did you specify a cid?)
         """
         symbol = self.symbol
         cid = self.cid
@@ -546,4 +552,7 @@ class Stock:
             url = 'http://finance.google.com/finance/historical?q=%s%s&startdate=%s&enddate=%s&histperiod=%s&output=csv'%(exchange, symbol.upper(), startdate, enddate, histperiod)
         else:
             url = 'http://finance.google.com/finance/historical?cid=%s&startdate=%s&enddate=%s&histperiod=%s&output=csv'%(cid, startdate, enddate, histperiod)
-        return urllib.urlopen(url).read()
+        data = urllib.urlopen(url).read()
+        if "Bad Request" in data or "The requested URL was not found on this server." in data:
+            raise RuntimeError("Google reported a wrong request (did you specify a cid?)")
+        return data

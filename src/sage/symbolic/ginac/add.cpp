@@ -426,10 +426,10 @@ ex add::eval(int level) const
 	if (terms_to_collect) {
 		std::auto_ptr<epvector> s(new epvector);
 		s->reserve(seq_size - terms_to_collect);
-		numeric oc = *_num1_p;
+		numeric oc = *_num0_p;
 		for (epvector::const_iterator j = seq.begin(); j != seq.end(); j++)
 			if (unlikely(is_a<numeric>(j->rest)))
-				oc = oc.mul(ex_to<numeric>(j->rest)).mul(ex_to<numeric>(j->coeff));
+				oc = oc.add((ex_to<numeric>(j->rest)).mul(ex_to<numeric>(j->coeff)));
 			else
 				s->push_back(*j);
 		return (new add(s, ex_to<numeric>(overall_coeff).add_dyn(oc)))

@@ -419,6 +419,20 @@ class PanAxiom(Expect):
             sage: print axiom._eval_line('2+2')  #optional - axiom
               4
                                                        Type: PositiveInteger
+            sage: fricas._eval_line(")set output algebra off")  #optional - fricas
+            ''
+            sage: fricas._eval_line(")set output tex on")  #optional - fricas
+            ''
+            sage: print fricas._eval_line("2+2")  #optional - fricas
+            $$
+            4 
+            \leqno(11)
+            $$
+                                                       Type: PositiveInteger
+            sage: fricas._eval_line(")set output tex off")  #optional - fricas
+            ''
+            sage: fricas._eval_line(")set output algebra on")  #optional - fricas
+            ''
         """
         if not wait_for_prompt:
             return Expect._eval_line(self, line)

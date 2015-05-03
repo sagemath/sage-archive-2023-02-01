@@ -35,7 +35,7 @@ cdef class CGraph:
     cpdef list in_neighbors(self, int v)
     cpdef list out_neighbors(self, int u)
     cpdef list verts(self)
-    cpdef add_vertices(self, object verts)
+    cpdef add_vertices(self, verts)
     cdef int del_vertex_unsafe(self, int) except -1
     cpdef realloc(self, int)
     cdef int add_vertex_unsafe(self, int) except -1
@@ -43,7 +43,7 @@ cdef class CGraph:
 cdef class CGraphBackend(GenericGraphBackend):
     cdef int get_vertex(self, u) except ? -2
     cdef vertex_label(self, int u_int)
-    cdef int check_labelled_vertex(self, object u, bint reverse) except ? -1
+    cdef int check_labelled_vertex(self, u, bint reverse) except ? -1
     cdef CGraph _cg
     cdef CGraph _cg_rev
     cdef bint _directed

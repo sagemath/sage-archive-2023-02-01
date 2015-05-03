@@ -238,7 +238,7 @@ class Stock:
         data['short_ratio'] = values[19]
         return data
 
-    yahoo = deprecated_function_alias(1000,current_price_data)
+    yahoo = deprecated_function_alias(18355,current_price_data)
 
     def history(self,startdate='Jan+1,+1900',enddate=date.today().strftime("%b+%d,+%Y"), histperiod='daily'):
         """
@@ -354,7 +354,7 @@ class Stock:
         self.__historical = self._load_from_csv(R)
         return self.__historical
 
-    google = deprecated_function_alias(1000,history)
+    google = deprecated_function_alias(18355,history)
 
     def open(self, *args, **kwds):
         r"""

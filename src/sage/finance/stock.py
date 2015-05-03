@@ -167,8 +167,51 @@ class Stock:
 
         EXAMPLES::
 
-            sage: finance.Stock('GOOG').current_price_data()          # optional -- internet
-            {'stock_exchange': '"NasdaqNM"', 'market_cap': '...', '200day_moving_avg': '...', '52_week_high': '...', 'price_earnings_growth_ratio': '...', 'price_sales_ratio': '...', 'price': '...', 'earnings_per_share': '...', '50day_moving_avg': '...', 'avg_daily_volume': '...', 'volume': '...', '52_week_low': '...', 'short_ratio': '...', 'price_earnings_ratio': '...', 'dividend_yield': '...', 'dividend_per_share': '...', 'price_book_ratio': '...', 'ebitda': '...', 'change': '...', 'book_value': '...'}
+            sage: finance.Stock('GOOG').current_price_data()  # random
+            {'200day_moving_avg': '536.57',
+             '50day_moving_avg': '546.01',
+             '52_week_high': '599.65',
+             '52_week_low': '487.56',
+             'avg_daily_volume': '1826450',
+             'book_value': '153.64',
+             'change': '+0.56',
+             'dividend_per_share': 'N/A',
+             'dividend_yield': 'N/A',
+             'earnings_per_share': '20.99',
+             'ebitda': '21.48B',
+             'market_cap': '366.11B',
+             'price': '537.90',
+             'price_book_ratio': '3.50',
+             'price_earnings_growth_ratio': '0.00',
+             'price_earnings_ratio': '25.62',
+             'price_sales_ratio': '5.54',
+             'short_ratio': '1.50',
+             'stock_exchange': '"NMS"',
+             'volume': '1768181'}
+
+        TESTS::
+
+            sage: finance.Stock('GOOG').current_price_data()  # optional -- internet
+            {'200day_moving_avg': ...,
+             '50day_moving_avg': ...,
+             '52_week_high': ...,
+             '52_week_low': ...,
+             'avg_daily_volume': ...,
+             'book_value': ...,
+             'change': ...,
+             'dividend_per_share': ...,
+             'dividend_yield': ...,
+             'earnings_per_share': ...,
+             'ebitda': ...,
+             'market_cap': ...,
+             'price': ...,
+             'price_book_ratio': ...,
+             'price_earnings_growth_ratio': ...,
+             'price_earnings_ratio': ...,
+             'price_sales_ratio': ...,
+             'short_ratio': ...,
+             'stock_exchange': ...,
+             'volume': ...}
         """
         url = 'http://finance.yahoo.com/d/quotes.csv?s=%s&f=%s' % (self.symbol, 'l1c1va2xj1b4j4dyekjm3m4rr5p5p6s7')
         values = urllib.urlopen(url).read().strip().strip('"').split(',')
@@ -292,6 +335,7 @@ class Stock:
               5-Jan-90 0.00 9.56 9.25 9.44    4404000,
               8-Jan-90 0.00 9.50 9.25 9.50    3627600
             ]
+
         """
         cid = self.cid
         symbol = self.symbol

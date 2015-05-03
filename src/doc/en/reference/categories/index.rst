@@ -87,6 +87,7 @@ Categories
    sage/categories/finite_dimensional_coalgebras_with_basis
    sage/categories/finite_dimensional_hopf_algebras_with_basis
    sage/categories/finite_dimensional_modules_with_basis
+   sage/categories/finite_dimensional_semisimple_algebras_with_basis
    sage/categories/finite_enumerated_sets
    sage/categories/finite_fields
    sage/categories/finite_groups

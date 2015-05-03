@@ -1392,7 +1392,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             mpq_canonicalize(res.value)
             return res
 
-    def is_one(self):
+    cpdef bint is_one(self):
         r"""
         Check whether this number field element is `1`.
 
@@ -1416,9 +1416,14 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
                mpz_cmp_ui(self.b, 0) == 0 and \
                mpz_cmp_ui(self.denom, 1) == 0
 
-    def is_rational(self):
+    cpdef bint is_rational(self):
         r"""
         Check whether this number field element is a rational number.
+
+        .. SEEALSO:
+
+            - :meth:`is_integer` to test if this element is an integer
+            - :meth:`is_integral` to test if this element is an algebraic integer
 
         EXAMPLES::
 
@@ -1439,6 +1444,11 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
     def is_integer(self):
         r"""
         Check whether this number field element is an integer.
+
+        .. SEEALSO:
+
+            - :meth:`is_rational` to test if this element is a rational number
+            - :meth:`is_integral` to test if this element is an algebraic integer
 
         EXAMPLES::
 

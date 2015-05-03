@@ -2634,7 +2634,7 @@ cdef class NumberFieldElement(FieldElement):
         if not self: return ZZ.one()
         else: return sage.rings.infinity.infinity
 
-    def is_one(self):
+    cpdef bint is_one(self):
         r"""
         Test whether this number field element is `1`.
 
@@ -2655,9 +2655,14 @@ cdef class NumberFieldElement(FieldElement):
         return ZZX_IsOne(self.__numerator) == 1 and \
                ZZ_IsOne(self.__denominator) == 1
 
-    def is_rational(self):
+    cpdef bint is_rational(self):
         r"""
-        Test whether this number field element is a rational
+        Test whether this number field element is a rational number
+
+        .. SEEALSO:
+
+            - :meth:`is_integer` to test if this element is an integer
+            - :meth:`is_integral` to test if this element is an algebraic integer
 
         EXAMPLES::
 
@@ -2678,6 +2683,11 @@ cdef class NumberFieldElement(FieldElement):
     def is_integer(self):
         r"""
         Test whether this number field element is an integer
+
+        .. SEEALSO:
+
+            - :meth:`is_rational` to test if this element is a rational number
+            - :meth:`is_integral` to test if this element is an algebraic integer
 
         EXAMPLES::
 

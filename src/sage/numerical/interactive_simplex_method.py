@@ -53,9 +53,9 @@ you can run these commands with typeset mode on and get
 
     \begin{array}{l}
     \begin{array}{lcrcrcl}
-     \max \!\!\!&\!\!\!  \!\!\!&\!\!\! 10 C \!\!\!&\!\!\! + \!\!\!&\!\!\! 5 B \!\!\! \\
-     \!\!\!&\!\!\!  \!\!\!&\!\!\! C \!\!\!&\!\!\! + \!\!\!&\!\!\! B \!\!\!&\!\!\! \leq \!\!\!&\!\!\! 1000 \\
-     \!\!\!&\!\!\!  \!\!\!&\!\!\! 3 C \!\!\!&\!\!\! + \!\!\!&\!\!\! B \!\!\!&\!\!\! \leq \!\!\!&\!\!\! 1500 \\
+     \max \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} 10 C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 5 B \mspace{-6mu} \\
+     \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} B \mspace{-6mu}&\mspace{-6mu} \leq \mspace{-6mu}&\mspace{-6mu} 1000 \\
+     \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} 3 C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} B \mspace{-6mu}&\mspace{-6mu} \leq \mspace{-6mu}&\mspace{-6mu} 1500 \\
     \end{array} \\
     C, B \geq 0
     \end{array}
@@ -83,7 +83,8 @@ the simplex method.
 The simplest way to use the simplex method is::
 
     sage: P.run_simplex_method()
-    '...'
+    %notruncate
+    ...
 
 (This method produces quite long formulas which have been omitted here.)
 But, of course, it is much more fun to do most of the steps by hand. Let's start
@@ -100,10 +101,10 @@ Using typeset mode as recommended, you'll see
     \renewcommand{\arraystretch}{1.5}
     \begin{array}{|rcrcrcr|}
     \hline
-    x_{3} \!\!\!&\!\!\! = \!\!\!&\!\!\! 1000 \!\!\!&\!\!\! - \!\!\!&\!\!\!  C \!\!\!&\!\!\! - \!\!\!&\!\!\!  B\\
-    x_{4} \!\!\!&\!\!\! = \!\!\!&\!\!\! 1500 \!\!\!&\!\!\! - \!\!\!&\!\!\! 3 C \!\!\!&\!\!\! - \!\!\!&\!\!\!  B\\
+    x_{3} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 1000 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} C \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} B\\
+    x_{4} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 1500 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} 3 C \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} B\\
     \hline
-    z \!\!\!&\!\!\! = \!\!\!&\!\!\! 0 \!\!\!&\!\!\! + \!\!\!&\!\!\! 10 C \!\!\!&\!\!\! + \!\!\!&\!\!\! 5 B\\
+    z \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 0 \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 10 C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 5 B\\
     \hline
     \end{array}
 
@@ -175,7 +176,7 @@ Classes and functions
 #*****************************************************************************
 
 
-import operator, re, sys
+import operator, re
 
 
 from copy import copy
@@ -192,7 +193,6 @@ from sage.misc.all import (LatexExpr,
                            latex,
                            randint,
                            random)
-from sage.misc.latex import EMBEDDED_MODE
 from sage.misc.misc import get_main_globals
 from sage.modules.all import random_vector, vector
 from sage.plot.all import Graphics, arrow, line, point, rainbow, text
@@ -206,7 +206,7 @@ from sage.symbolic.all import SR
 # LaTeX. We use our own variable as it may be convenient to override it.
 # Hopefully, some day there will be no need in it at all and only "if" parts
 # will have to be left.
-generate_real_LaTeX = not EMBEDDED_MODE
+generate_real_LaTeX = False
 
 def _assemble_arrayl(lines, stretch=None):
     r"""
@@ -229,11 +229,13 @@ def _assemble_arrayl(lines, stretch=None):
         ....:     import _assemble_arrayl
         sage: lines = ["1 + 1", "2"]
         sage: print _assemble_arrayl(lines)
+        %notruncate
         \begin{array}{l}
         1 + 1\\
         2
         \end{array}
         sage: print _assemble_arrayl(lines, 1.5)
+        %notruncate
         \renewcommand{\arraystretch}{1.500000}
         \begin{array}{l}
         1 + 1\\
@@ -295,7 +297,7 @@ def _latex_product(coefficients, variables,
         sage: var("x, y")
         (x, y)
         sage: print _latex_product([-1, 3], [x, y])
-        - & x & + & 3 y
+        - \mspace{-6mu}&\mspace{-6mu} x \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 3 y
     """
     entries = []
     for c, v in zip(coefficients, variables):
@@ -464,9 +466,9 @@ class InteractiveLPProblem(SageObject):
 
         \begin{array}{l}
         \begin{array}{lcrcrcl}
-         \max \!\!\!&\!\!\!  \!\!\!&\!\!\! 10 C \!\!\!&\!\!\! + \!\!\!&\!\!\! 5 B \!\!\! \\
-         \!\!\!&\!\!\!  \!\!\!&\!\!\! C \!\!\!&\!\!\! + \!\!\!&\!\!\! B \!\!\!&\!\!\! \leq \!\!\!&\!\!\! 1000 \\
-         \!\!\!&\!\!\!  \!\!\!&\!\!\! 3 C \!\!\!&\!\!\! + \!\!\!&\!\!\! B \!\!\!&\!\!\! \leq \!\!\!&\!\!\! 1500 \\
+         \max \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} 10 C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 5 B \mspace{-6mu} \\
+         \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} B \mspace{-6mu}&\mspace{-6mu} \leq \mspace{-6mu}&\mspace{-6mu} 1000 \\
+         \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} 3 C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} B \mspace{-6mu}&\mspace{-6mu} \leq \mspace{-6mu}&\mspace{-6mu} 1500 \\
         \end{array} \\
         C, B \geq 0
         \end{array}
@@ -616,11 +618,11 @@ class InteractiveLPProblem(SageObject):
             sage: c = (10, 5)
             sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: print P._latex_()
-            \begin{array}{l} \setlength{\arraycolsep}{0.125em}
+            \begin{array}{l}
             \begin{array}{lcrcrcl}
-             \max &  & 10 C & + & 5 B\\
-             &  & C & + & B & \leq & 1000 \\
-             &  & 3 C & + & B & \leq & 1500 \\
+             \max \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} 10 C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 5 B \mspace{-6mu} \\
+             \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} B \mspace{-6mu}&\mspace{-6mu} \leq \mspace{-6mu}&\mspace{-6mu} 1000 \\
+             \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} 3 C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} B \mspace{-6mu}&\mspace{-6mu} \leq \mspace{-6mu}&\mspace{-6mu} 1500 \\
             \end{array} \\
             C, B \geq 0
             \end{array}
@@ -1847,6 +1849,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             sage: c = (10, 5)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: P.run_revised_simplex_method()
+            %notruncate
             \renewcommand{\arraystretch}{1.500000}
             \begin{array}{l}
             ...
@@ -1929,22 +1932,22 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         `\LaTeX` code::
 
             sage: print P.run_simplex_method()
-            \begin{gather*}
+            %notruncate
             ...
-            \text{The initial dictionary is infeasible, solving auxiliary problem.}\displaybreak[0]\\
+            \text{The initial dictionary is infeasible, solving auxiliary problem.}\\
             ...
-            \text{Entering: $x_{0}$. Leaving: $x_{5}$.}\displaybreak[0]\\
+            \text{Entering: $x_{0}$. Leaving: $x_{5}$.}\\
             ...
-            \text{Entering: $x_{1}$. Leaving: $x_{0}$.}\displaybreak[0]\\
+            \text{Entering: $x_{1}$. Leaving: $x_{0}$.}\\
             ...
-            \text{Back to the original problem.}\displaybreak[0]\\
+            \text{Back to the original problem.}\\
             ...
-            \text{Entering: $x_{5}$. Leaving: $x_{4}$.}\displaybreak[0]\\
+            \text{Entering: $x_{5}$. Leaving: $x_{4}$.}\\
             ...
-            \text{Entering: $x_{2}$. Leaving: $x_{3}$.}\displaybreak[0]\\
+            \text{Entering: $x_{2}$. Leaving: $x_{3}$.}\\
             ...
             \text{The optimal value: $6250$. An optimal solution: $\left(250,\,750\right)$.}
-            \end{gather*}
+            ...
         """
         result = []
         d = self.initial_dictionary()
@@ -2717,13 +2720,13 @@ class LPDictionary(LPAbstractDictionary):
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: print D._latex_()
-            \renewcommand{\arraystretch}{1.5} \setlength{\arraycolsep}{0.125em}
+            \renewcommand{\arraystretch}{1.5}
             \begin{array}{|rcrcrcr|}
             \hline
-            x_{3} & = & 1000 & - &  x_{1} & - &  x_{2}\\
-            x_{4} & = & 1500 & - & 3 x_{1} & - &  x_{2}\\
+            x_{3} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 1000 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} x_{1} \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} x_{2}\\
+            x_{4} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 1500 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} 3 x_{1} \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} x_{2}\\
             \hline
-            z & = & 0 & + & 10 x_{1} & + & 5 x_{2}\\
+            z \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 0 \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 10 x_{1} \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 5 x_{2}\\
             \hline
             \end{array}
         """
@@ -2751,8 +2754,6 @@ class LPDictionary(LPAbstractDictionary):
             for i, line in enumerate(lines):
                 line = line.split("&")
                 if len(line) > 1:
-                    if not generate_real_LaTeX:
-                        line[e] = ("{" + line[e] + "}").replace(r"\\}", r"}\\")
                     line[e] = r"\color{green}" + line[e]
                     lines[i] = "&".join(line)
         if self._leaving is not None:
@@ -2760,16 +2761,9 @@ class LPDictionary(LPAbstractDictionary):
             l = tuple(B).index(self._leaving) + 3
             line = lines[l].split("&")
             for i, term in enumerate(line):
-                if not generate_real_LaTeX:
-                    term = ("{" + term + "}").replace(r"\\}", r"}\\")
                 line[i] = r"\color{red}" + term
             line = "&".join(line)
-            if generate_real_LaTeX:
-                line = line.replace(r"\color{red}\color{green}",
-                                    r"\color{blue}")
-            else:
-                line = line.replace(r"\color{red}{\color{green}",
-                                    r"\color{blue}{")
+            line = line.replace(r"\color{red}\color{green}", r"\color{blue}")
             lines[l] = line
         return  "\n".join(lines)
 
@@ -2795,20 +2789,20 @@ class LPDictionary(LPAbstractDictionary):
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.ELLUL("x1", "x4")
-            \renewcommand{\arraystretch}{1.5} \setlength{\arraycolsep}{0.125em}
+            \renewcommand{\arraystretch}{1.5}
             \begin{array}{|rcrcrcr|}
             \hline
-            x_{3} & = & 1000 & - &\color{green}  x_{1} & - &  x_{2}\\
-            \color{red}x_{4} &\color{red} = &\color{red} 1500 &\color{red} - &\color{blue} 3 x_{1} &\color{red} - &\color{red}  x_{2}\\
+            x_{3} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 1000 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\color{green}\mspace{-6mu} x_{1} \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} x_{2}\\
+            \color{red}x_{4} \mspace{-6mu}&\color{red}\mspace{-6mu} = \mspace{-6mu}&\color{red}\mspace{-6mu} 1500 \mspace{-6mu}&\color{red}\mspace{-6mu} - \mspace{-6mu}&\color{blue}\mspace{-6mu} 3 x_{1} \mspace{-6mu}&\color{red}\mspace{-6mu} - \mspace{-6mu}&\color{red}\mspace{-6mu} x_{2}\\
             \hline
-            z & = & 0 & + &\color{green} 10 x_{1} & + & 5 x_{2}\\
+            z \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 0 \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\color{green}\mspace{-6mu} 10 x_{1} \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 5 x_{2}\\
             \hline
-            \multicolumn{2}{c}{}\\[-3ex]
+            \\
             \hline
-            x_{3} & = & 500 & + & \frac{1}{3} x_{4} & - & \frac{2}{3} x_{2}\\
-            x_{1} & = & 500 & - & \frac{1}{3} x_{4} & - & \frac{1}{3} x_{2}\\
+            x_{3} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 500 \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} \frac{1}{3} x_{4} \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} \frac{2}{3} x_{2}\\
+            x_{1} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 500 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} \frac{1}{3} x_{4} \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} \frac{1}{3} x_{2}\\
             \hline
-            z & = & 5000 & - & \frac{10}{3} x_{4} & + & \frac{5}{3} x_{2}\\
+            z \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 5000 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} \frac{10}{3} x_{4} \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} \frac{5}{3} x_{2}\\
             \hline
             \end{array}
 
@@ -2819,17 +2813,17 @@ class LPDictionary(LPAbstractDictionary):
             \renewcommand{\arraystretch}{1.5}
             \begin{array}{|rcrcrcr|}
             \hline
-            x_{3} \!\!\!&\!\!\! = \!\!\!&\!\!\! 1000 \!\!\!&\!\!\! - \!\!\!&\color{green}{\!\!\!  x_{1} \!\!\!}&\!\!\! - \!\!\!&\!\!\!  x_{2}\\
-            \color{red}{x_{4} \!\!\!}&\color{red}{\!\!\! = \!\!\!}&\color{red}{\!\!\! 1500 \!\!\!}&\color{red}{\!\!\! - \!\!\!}&\color{blue}{{\!\!\! 3 x_{1} \!\!\!}}&\color{red}{\!\!\! - \!\!\!}&\color{red}{\!\!\!  x_{2}}\\
+            x_{3} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 1000 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\color{green}\mspace{-6mu} x_{1} \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} x_{2}\\
+            \color{red}x_{4} \mspace{-6mu}&\color{red}\mspace{-6mu} = \mspace{-6mu}&\color{red}\mspace{-6mu} 1500 \mspace{-6mu}&\color{red}\mspace{-6mu} - \mspace{-6mu}&\color{blue}\mspace{-6mu} 3 x_{1} \mspace{-6mu}&\color{red}\mspace{-6mu} - \mspace{-6mu}&\color{red}\mspace{-6mu} x_{2}\\
             \hline
-            z \!\!\!&\!\!\! = \!\!\!&\!\!\! 0 \!\!\!&\!\!\! + \!\!\!&\color{green}{\!\!\! 10 x_{1} \!\!\!}&\!\!\! + \!\!\!&\!\!\! 5 x_{2}\\
+            z \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 0 \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\color{green}\mspace{-6mu} 10 x_{1} \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 5 x_{2}\\
             \hline
             \\
             \hline
-            x_{3} \!\!\!&\!\!\! = \!\!\!&\!\!\! 500 \!\!\!&\!\!\! + \!\!\!&\!\!\! \frac{1}{3} x_{4} \!\!\!&\!\!\! - \!\!\!&\!\!\! \frac{2}{3} x_{2}\\
-            x_{1} \!\!\!&\!\!\! = \!\!\!&\!\!\! 500 \!\!\!&\!\!\! - \!\!\!&\!\!\! \frac{1}{3} x_{4} \!\!\!&\!\!\! - \!\!\!&\!\!\! \frac{1}{3} x_{2}\\
+            x_{3} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 500 \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} \frac{1}{3} x_{4} \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} \frac{2}{3} x_{2}\\
+            x_{1} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 500 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} \frac{1}{3} x_{4} \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} \frac{1}{3} x_{2}\\
             \hline
-            z \!\!\!&\!\!\! = \!\!\!&\!\!\! 5000 \!\!\!&\!\!\! - \!\!\!&\!\!\! \frac{10}{3} x_{4} \!\!\!&\!\!\! + \!\!\!&\!\!\! \frac{5}{3} x_{2}\\
+            z \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 5000 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} \frac{10}{3} x_{4} \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} \frac{5}{3} x_{2}\\
             \hline
             \end{array}
 
@@ -3193,7 +3187,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         \renewcommand{\arraystretch}{1.500000}
         \begin{array}{l}
         \begin{array}{l|r|rr||r||r}
-        x_B & c_B &  & \!\!\!\!\!\!\!\! B^{-1} & y & B^{-1} b \\
+        x_B & c_B &  & \mspace{-16mu} B^{-1} & y & B^{-1} b \\
         \hline
         x_{1} & 10 & -\frac{1}{2} & \frac{1}{2} & \frac{5}{2} & 250 \\
         x_{2} & 5 & \frac{3}{2} & -\frac{1}{2} & \frac{5}{2} & 750 \\
@@ -3203,6 +3197,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         x_N & x_{3} & x_{4} \\
         \hline
         c_N^T & 0 & 0 \\
+        \hline
         y^T A_N & \frac{5}{2} & \frac{5}{2} \\
         \hline
         c_N^T - y^T A_N & -\frac{5}{2} & -\frac{5}{2} \\
@@ -3292,10 +3287,11 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: D.enter(1)
             sage: D.leave(3)
             sage: print D._latex_()
+            %notruncate
             \renewcommand{\arraystretch}{1.500000}
             \begin{array}{l}
             \begin{array}{l|r|rr||r||r|r|r}
-            x_B & c_B & \multicolumn{2}{c||}{B^{-1}} & y & B^{-1} b & B^{-1} A_{x_{1}} & \hbox{Ratio} \\
+            x_B & c_B &  & \mspace{-16mu} B^{-1} & y & B^{-1} b & B^{-1} A_{x_{1}} & \hbox{Ratio} \\
             \hline
             \color{red} x_{3} & \color{red} 0 & \color{red} 1 & \color{red} 0 & 0 & \color{red} 1000 & \color{red} 1 & \color{red} 1000 \\
             x_{4} & 0 & 0 & 1 & 0 & 1500 & 3 & 500 \\
@@ -3328,7 +3324,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             headers.append(r"\multicolumn{%d}{c||}{B^{-1}}" % m)
         else:
             headers.extend([""] * (m//2))
-            headers.append(r"\!\!\!\!\!\!\!\! B^{-1}")
+            headers.append(r"\mspace{-16mu} B^{-1}")
             headers.extend([""] * ((m-1)//2))
         headers.extend(["y", "B^{-1} b"])
         if entering is not None:
@@ -3359,8 +3355,6 @@ class LPRevisedDictionary(LPAbstractDictionary):
                 for j, t in enumerate(terms):
                     if j == m + 2:
                         continue
-                    if not generate_real_LaTeX:
-                        t = "{" + t + "}"
                     terms[j] = r"\color{red} " + t
             lines.append(" & ".join(terms) + r" \\")
         lines.append(r"\end{array}")
@@ -3369,10 +3363,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         def make_line(header, terms):
             terms = map(latex, terms)
             if entering is not None:
-                t = terms[k]
-                if not generate_real_LaTeX:
-                    t = "{" + t + "}"
-                terms[k] = r"\color{green} " + t
+                terms[k] = r"\color{green} " + terms[k]
             lines.append(" & ".join([header] + terms) + r" \\")
 
         lines = []

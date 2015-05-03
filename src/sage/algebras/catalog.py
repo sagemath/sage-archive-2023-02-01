@@ -16,6 +16,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.FiniteDimensional
   <sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra.FiniteDimensionalAlgebra>`
 - :class:`algebras.Free <sage.algebras.free_algebra.FreeAlgebraFactory>`
+- :class:`algebras.PreLieAlgebra <sage.combinat.free_prelie_algebra.FreePreLieAlgebra>`
 - :func:`algebras.GradedCommutative
   <sage.algebras.commutative_dga.GradedCommutativeAlgebra>`
 - :class:`algebras.Group <sage.algebras.group_algebra.GroupAlgebra>`
@@ -48,5 +49,6 @@ lazy_import('sage.algebras.hall_algebra', 'HallAlgebra', 'Hall')
 lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra', 'Shuffle')
 lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra', 'GradedCommutative')
 lazy_import('sage.combinat.posets.incidence_algebras', 'IncidenceAlgebra', 'Incidence')
+lazy_import('sage.combinat.free_prelie_algebra', 'FreePreLieAlgebra', 'FreePreLie')
 del lazy_import # We remove the object from here so it doesn't appear under tab completion
 

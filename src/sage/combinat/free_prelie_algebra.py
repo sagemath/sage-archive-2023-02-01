@@ -1,71 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-The free Pre-Lie algebras
-
-Pre-Lie algebras are non-associative algebras, where the product `*` satisfies
-
-.. MATH::
-
-    (x * y) * z - x * (y * z) = (x * z) * y - x * (z * y).
-
-We use here the convention where the associator 
-
-.. MATH::
-
-    (x, y, z) := (x * y) * z - x * (y * z)
-
-is symmetric in its two rightmost arguments. This is sometimes called a right
-pre-Lie algebra.
-
-They have appeared in numerical analysis and deformation theory.
-
-The free Pre-Lie algebra on a given set `E` has an explicit
-description using rooted trees, just as the free associative algebra
-can be described using words. The underlying vector space has a basis
-indexed by finite rooted trees endowed with a map from their vertices
-to `E`. In this basis, the product of two (decorated) rooted trees `S
-* T` is the sum over vertices of `S` of the rooted tree obtained by
-adding one edge from the root of `T` to the given vertex of `S`. The root of
-these trees is taken to be the root of `S`.
-
-The usual binary operator ``*`` can be used for the pre-Lie product.
-Beware that it but must be parenthesized properly, as the pre-Lie
-product is not associative. By default, a multiple product will be
-taken with left parentheses.
-
-EXAMPLES::
-
-    sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-    sage: F = FreePreLieAlgebra(ZZ, 'xyz')
-    sage: x,y,z = F.gens()
-    sage: (x * y) * z
-    B[x[y[], z[]]] + B[x[y[z[]]]]
-    sage: x * y * z == (x * y) * z
-    True
-    sage: (x * y) * z - x * (y * z) == (x * z) * y - x * (z * y)
-    True
-
-The NAP product as defined in [Liv]_ is also implemented on the same
-vector space::
-
-    sage: N = F.nap_product
-    sage: N(x*y,z*z)
-    B[x[y[], z[z[]]]]
-
-When there is only one generator, unlabelled trees are used instead::
-
-    sage: F1 = FreePreLieAlgebra(QQ, 'w')
-    sage: w = F1.gen(0); w
-    B[[]]
-    sage: w * w * w * w
-    B[[[], [], []]] + 3*B[[[], [[]]]] + B[[[[], []]]] + B[[[[[]]]]]
-
-REFERENCES:
-
-.. [ChLi] F. Chapoton and M. Livernet, *Pre-Lie algebras and the rooted trees
-   operad*, International Math. Research Notices (2001) no 8, pages 395-408.
-.. [Liv] M. Livernet, *A rigidity theorem for pre-Lie algebras*, J. Pure Appl.
-   Algebra 207 (2006), no 1, pages 1-18. 
+Free Pre-Lie Algebras
 
 AUTHORS:
 
@@ -95,14 +30,85 @@ from sage.sets.family import Family
 
 class FreePreLieAlgebra(CombinatorialFreeModule):
     r"""
-    An example of an algebra over an operad with basis: the free
-    algebras over the PreLie operad.
+    The free pre-Lie algebra.
+
+    Pre-Lie algebras are non-associative algebras, where the product `*`
+    satisfies
+
+    .. MATH::
+
+        (x * y) * z - x * (y * z) = (x * z) * y - x * (z * y).
+
+    We use here the convention where the associator
+
+    .. MATH::
+
+        (x, y, z) := (x * y) * z - x * (y * z)
+
+    is symmetric in its two rightmost arguments. This is sometimes called
+    a right pre-Lie algebra.
+
+    They have appeared in numerical analysis and deformation theory.
+
+    The free Pre-Lie algebra on a given set `E` has an explicit
+    description using rooted trees, just as the free associative algebra
+    can be described using words. The underlying vector space has a basis
+    indexed by finite rooted trees endowed with a map from their vertices
+    to `E`. In this basis, the product of two (decorated) rooted trees `S
+    * T` is the sum over vertices of `S` of the rooted tree obtained by
+    adding one edge from the root of `T` to the given vertex of `S`. The
+    root of these trees is taken to be the root of `S`. The free pre-Lie
+    algebra can also be considered as the free algebra over the PreLie operad.
+
+    .. WARNING::
+
+        The usual binary operator ``*`` can be used for the pre-Lie product.
+        Beware that it but must be parenthesized properly, as the pre-Lie
+        product is not associative. By default, a multiple product will be
+        taken with left parentheses.
 
     EXAMPLES::
 
-        sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-        sage: P = FreePreLieAlgebra(ZZ, 'abc'); P
-        Free PreLie algebra on 3 generators ['a', 'b', 'c'] over Integer Ring
+        sage: F = algebras.FreePreLie(ZZ, 'xyz')
+        sage: x,y,z = F.gens()
+        sage: (x * y) * z
+        B[x[y[], z[]]] + B[x[y[z[]]]]
+        sage: (x * y) * z - x * (y * z) == (x * z) * y - x * (z * y)
+        True
+
+    The free pre-Lie algebra is non-associative::
+
+        sage: x * (y * z) == (x * y) * z
+        False
+
+    The default product is with left paretheses::
+
+        sage: x * y * z == (x * y) * z
+        True
+        sage: x * y * z * x == ((x * y) * z) * x
+        True
+
+    The NAP product as defined in [Liv]_ is also implemented on the same
+    vector space::
+
+        sage: N = F.nap_product
+        sage: N(x*y,z*z)
+        B[x[y[], z[z[]]]]
+
+    When there is only one generator, unlabelled trees are used instead::
+
+        sage: F1 = algebras.FreePreLie(QQ, 'w')
+        sage: w = F1.gen(0); w
+        B[[]]
+        sage: w * w * w * w
+        B[[[], [], []]] + 3*B[[[], [[]]]] + B[[[[], []]]] + B[[[[[]]]]]
+
+    REFERENCES:
+
+    .. [ChLi] F. Chapoton and M. Livernet, *Pre-Lie algebras and the rooted trees
+       operad*, International Math. Research Notices (2001) no 8, pages 395-408.
+    .. [Liv] M. Livernet, *A rigidity theorem for pre-Lie algebras*, J. Pure Appl.
+       Algebra 207 (2006), no 1, pages 1-18.
     """
     @staticmethod
     def __classcall_private__(cls, R, names):
@@ -111,27 +117,30 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: F1 = FreePreLieAlgebra(QQ, 'xyz')
-            sage: F2 = FreePreLieAlgebra(QQ, ['x','y','z'])
-            sage: F3 = FreePreLieAlgebra(QQ, Alphabet('xyz'))
+            sage: F1 = algebras.FreePreLie(QQ, 'xyz')
+            sage: F2 = algebras.FreePreLie(QQ, ['x','y','z'])
+            sage: F3 = algebras.FreePreLie(QQ, Alphabet('xyz'))
             sage: F1 is F2 and F1 is F3
             True
         """
+        if R not in Rings():
+            raise TypeError("argument R must be a ring")
         return super(FreePreLieAlgebra, cls).__classcall__(cls, R,
                                                            Alphabet(names))
 
     def __init__(self, R, names=None):
         """
-        EXAMPLES::
+        Initialize ``self``.
 
-            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: A = FreePreLieAlgebra(QQ, '@'); A
+        TESTS::
+
+            sage: A = algebras.FreePreLie(QQ, '@'); A
             Free PreLie algebra on one generator ['@'] over Rational Field
             sage: TestSuite(A).run()
+
+            sage: F = algebras.FreePreLie(QQ, 'xyz')
+            sage: TestSuite(F).run()
         """
-        if R not in Rings():
-            raise TypeError("argument R must be a ring")
         if len(names) == 1:
             Trees = RootedTrees()
         else:
@@ -140,10 +149,10 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         # so that one can restrict the labels to some fixed set
 
         self._alphabet = names
+        cat = MagmaticAlgebras(R).WithBasis().Graded()
         CombinatorialFreeModule.__init__(self, R, Trees,
                                          latex_prefix="",
-                                         category=(GradedModulesWithBasis(R),
-                                                   MagmaticAlgebras(R)))
+                                         category=cat)
 
     def variable_names(self):
         r"""
@@ -151,8 +160,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: R = FreePreLieAlgebra(QQ, 'xy')
+            sage: R = algebras.FreePreLie(QQ, 'xy')
             sage: R.variable_names()
             {'x', 'y'}
         """
@@ -164,8 +172,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: FreePreLieAlgebra(QQ, '@')  # indirect doctest
+            sage: algebras.FreePreLie(QQ, '@')  # indirect doctest
             Free PreLie algebra on one generator ['@'] over Rational Field
         """
         n = len(self.algebra_generators())
@@ -186,9 +193,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: A = FreePreLieAlgebra(QQ,'@')
-            sage: F = FreePreLieAlgebra(ZZ,'xyz')
+            sage: F = algebras.FreePreLie(ZZ, 'xyz')
             sage: F.gen(0)
             B[x[]]
 
@@ -212,14 +217,13 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: A = FreePreLieAlgebra(ZZ,'fgh'); A
-            Free PreLie algebra on 3 generators ['f', 'g', 'h'] over
-            Integer Ring
+            sage: A = algebras.FreePreLie(ZZ, 'fgh'); A
+            Free PreLie algebra on 3 generators ['f', 'g', 'h']
+             over Integer Ring
             sage: A.algebra_generators()
             Family (B[f[]], B[g[]], B[h[]])
 
-            sage: A = FreePreLieAlgebra(QQ, ['x1','x2'])
+            sage: A = algebras.FreePreLie(QQ, ['x1','x2'])
             sage: A.algebra_generators()
             Family (B[x1[]], B[x2[]])
         """
@@ -241,8 +245,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: A = FreePreLieAlgebra(QQ,'@')
+            sage: A = algebras.FreePreLie(QQ,'@')
             sage: RT = A.basis().keys()
             sage: A.degree_on_basis(RT([RT([])]))
             2
@@ -255,21 +258,20 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: A = FreePreLieAlgebra(QQ,'@')
+            sage: A = algebras.FreePreLie(QQ,'@')
             sage: A.some_elements()
             [B[[]], B[[[]]], B[[[], [[]]]] + B[[[[[]]]]],
-            B[[[], []]] + B[[[[]]]], B[[]]]
+             B[[[], []]] + B[[[[]]]], B[[]]]
 
         With several generators::
 
-            sage: A = FreePreLieAlgebra(QQ,'xy')
+            sage: A = algebras.FreePreLie(QQ,'xy')
             sage: A.some_elements()
             [B[x[]],
-            B[x[x[]]],
-            B[x[x[], x[x[]]]] + B[x[x[x[x[]]]]],
-            B[x[x[], x[]]] + B[x[x[x[]]]],
-            B[y[]]]
+             B[x[x[]]],
+             B[x[x[], x[x[]]]] + B[x[x[x[x[]]]]],
+             B[x[x[], x[]]] + B[x[x[x[]]]],
+             B[y[]]]
         """
         o = self.gen(0)
         x = o * o
@@ -291,8 +293,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: A = FreePreLieAlgebra(QQ,'@')
+            sage: A = algebras.FreePreLie(QQ, '@')
             sage: RT = A.basis().keys()
             sage: x = RT([RT([])])
             sage: A.product_on_basis(x, x)
@@ -313,8 +314,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: A = FreePreLieAlgebra(QQ,'@')
+            sage: A = algebras.FreePreLie(QQ, '@')
             sage: RT = A.basis().keys()
             sage: x = A(RT([RT([])]))
             sage: A.pre_Lie_product(x, x)
@@ -338,8 +338,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: A = FreePreLieAlgebra(QQ,'@')
+            sage: A = algebras.FreePreLie(QQ, '@')
             sage: RT = A.basis().keys()
             sage: x = RT([RT([])])
             sage: A.nap_product_on_basis(x, x)
@@ -358,8 +357,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: A = FreePreLieAlgebra(QQ,'@')
+            sage: A = algebras.FreePreLie(QQ, '@')
             sage: RT = A.basis().keys()
             sage: x = A(RT([RT([])]))
             sage: A.nap_product(x, x)
@@ -378,8 +376,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: R = FreePreLieAlgebra(QQ, 'xy')
+            sage: R = algebras.FreePreLie(QQ, 'xy')
             sage: x, y = R.gens()
             sage: R(x)
             B[x[]]
@@ -389,7 +386,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: Trees = R.basis().keys()
             sage: R(Trees([],'x'))
             B[x[]]
-            sage: D = FreePreLieAlgebra(ZZ, 'xy')
+            sage: D = algebras.FreePreLie(ZZ, 'xy')
             sage: X, Y = D.gens()
             sage: R(X-Y).parent()
             Free PreLie algebra on 2 generators ['x', 'y'] over Rational Field
@@ -413,49 +410,47 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         The things that coerce into ``self`` are
 
-        - PreLie Algebras in the same variables over a base with a coercion
-          map into ``self.base_ring()``
+        - free pre-Lie algebras in the same variables over a base with
+          a coercion map into ``self.base_ring()``
 
         EXAMPLES::
 
-            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: F = FreePreLieAlgebra(GF(7), 'xyz'); F
-            Free PreLie algebra on 3 generators ['x', 'y', 'z'] over
-            Finite Field of size 7
+            sage: F = algebras.FreePreLie(GF(7), 'xyz'); F
+            Free PreLie algebra on 3 generators ['x', 'y', 'z']
+             over Finite Field of size 7
 
-        Elements of the free PreLie algebra canonically coerce in::
+        Elements of the free pre-Lie algebra canonically coerce in::
 
             sage: x, y, z = F.gens()
             sage: F.coerce(x+y) == x+y
             True
 
-        The free prelie algebra over `\ZZ` on `x, y, z` coerces in, since
+        The free pre-Lie algebra over `\ZZ` on `x, y, z` coerces in, since
         `\ZZ` coerces to `\GF{7}`::
 
-            sage: G = FreePreLieAlgebra(ZZ, 'xyz')
+            sage: G = algebras.FreePreLie(ZZ, 'xyz')
             sage: Gx,Gy,Gz = G.gens()
             sage: z = F.coerce(Gx+Gy); z
             B[x[]] + B[y[]]
             sage: z.parent() is F
             True
 
-        However, `\GF{7}` does not coerce to `\ZZ`, so the free prelie
+        However, `\GF{7}` does not coerce to `\ZZ`, so the free pre-Lie
         algebra over `\GF{7}` does not coerce to the one over `\ZZ`::
 
             sage: G.coerce(y)
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Free PreLie algebra
-            on 3 generators ['x', 'y', 'z'] over Finite Field of size
-            7 to Free PreLie algebra on 3 generators ['x', 'y', 'z']
-            over Integer Ring
+             on 3 generators ['x', 'y', 'z'] over Finite Field of size
+             7 to Free PreLie algebra on 3 generators ['x', 'y', 'z']
+             over Integer Ring
 
         TESTS::
 
-            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: F = FreePreLieAlgebra(ZZ, 'xyz')
-            sage: G = FreePreLieAlgebra(QQ, 'xyz')
-            sage: H = FreePreLieAlgebra(ZZ, 'y')
+            sage: F = algebras.FreePreLie(ZZ, 'xyz')
+            sage: G = algebras.FreePreLie(QQ, 'xyz')
+            sage: H = algebras.FreePreLie(ZZ, 'y')
             sage: F._coerce_map_from_(G)
             False
             sage: G._coerce_map_from_(F)
@@ -476,3 +471,4 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
                 if self.base_ring().has_coerce_map_from(R.base_ring()):
                     return True
         return False
+

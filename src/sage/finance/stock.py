@@ -1,5 +1,19 @@
-"""
+r"""
 Stock Market Price Series
+
+This module's main class is :class:`Stock`. It defines the following methods:
+
+.. csv-table::
+    :class: contentstable
+    :widths: 20,80
+    :delim: |
+
+    :meth:`~sage.finance.stock.Stock.market_value` | Return the current market value of this stock.
+    :meth:`~sage.finance.stock.Stock.current_price_data` | Get Yahoo current price data for this stock.
+    :meth:`~sage.finance.stock.Stock.history` | Return an immutable sequence of historical price data for this stock
+    :meth:`~sage.finance.stock.Stock.open` | Return a time series containing historical opening prices for this stock.
+    :meth:`~sage.finance.stock.Stock.close` | Return the time series of all historical closing prices for this stock.
+    :meth:`~sage.finance.stock.Stock.load_from_file` | Load historical data from a local csv formatted data file.
 
 AUTHORS:
 
@@ -14,6 +28,9 @@ TESTS::
     sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
     sage: loads(dumps(ohlc)) == ohlc
     True
+
+Classes and methods
+-------------------
 """
 from sage.misc.superseded import deprecated_function_alias
 import urllib

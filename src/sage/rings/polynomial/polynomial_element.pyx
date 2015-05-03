@@ -5487,6 +5487,282 @@ cdef class Polynomial(CommutativeAlgebraElement):
         except (TypeError, ValueError, PariError, NotImplementedError):
             return self.sylvester_matrix(other).det()
 
+    def newton_sum(self, prec, is_sum=True):
+        """
+        Compute the truncated Newton series of the power of the roots of `p`.
+
+        INPUT:
+
+        - ``self`` -- a polynomial on rationals
+
+        - ``prec`` -- the Newton series is truncated at degree `prec`
+
+        - ``is_sum`` -- if `is_sum` is false, return
+          ``(p.degree() - p.newton_sum(prec)/x``
+
+
+        TODO Implemented as in [BFSS], in the case of a real or rational ring;
+        there are probably faster implementations.
+
+        EXAMPLES:
+
+            sage: R.<x> = QQ[]
+            sage: p = x^2 - 2
+            sage: p.newton_sum(5)
+            8*x^4 + 4*x^2 + 2
+
+        """
+        from sage.rings.power_series_ring import PowerSeriesRing
+
+        if self.parent().base_ring() not in (ZZ, QQ):
+            raise ValueError('implemented only for integer or rational ring.')
+        deg = self.degree()
+        p1 = self.reverse()
+        R = PowerSeriesRing(QQ, 'x', default_prec=prec)
+        p2 = ~R(p1)
+        p3 = p1.derivative()*p2
+        # TODO: can one use truncate() instead of truncate(prec) ?
+        if is_sum:
+            res = deg - p3*R.gen()
+            return res.truncate(prec)
+        else:
+            return p3.truncate(prec)
+
+
+    def hadamard_exp(self, inverse=False):
+        """
+        Return `\sum f_i/i! x^i` given `p=\sum f_i x^i`
+
+        This is a routine used in meth:`composed_sum`
+
+        INPUT:
+
+        - ``p`` -- a polynomial
+
+        - ``inverse`` -- (default False) if True, return `\sum f_i i! x^i`
+
+        EXAMPLES:
+
+            sage: R.<x> = QQ[]
+            sage: p = 1 + x + x^2 + x^3
+            sage: p.hadamard_exp()
+            1/6*x^3 + 1/2*x^2 + x + 1
+
+        """
+
+        if self.parent().base_ring() != QQ:
+            raise ValueError('implemented only for the rational ring.')
+        cdef int i
+        K = self.parent()
+        x = K.gen()
+        res = self[0]
+        fi = QQ(1)
+        if not inverse:
+            for i from 1 <= i <= self.degree():
+                fi = fi*i
+                res += self[i]*x**i / fi
+        else:
+            for i from 1 <= i <= self.degree():
+                fi = fi*i
+                res += self[i]*x**i * fi
+        return res
+
+    def hadamard_product(p1, p2):
+        """
+        Compute the pointwise product of two polynomials.
+
+        EXAMPLES:
+
+            sage: R.<x> = QQ[]
+            sage: p1 = 1 + x + 2*x^2 + x^3
+            sage: p2 = 2 + 3*x + 4*x^2
+            sage: p1.hadamard_product(p2)
+            8*x^2 + 3*x + 2
+        """
+        cdef int i
+        K = p1.parent()
+        x = K.gen()
+        p = K.zero()
+        for i from 0 <= i <= min(p1.degree(), p2.degree()):
+            p = p + p1[i]*p2[i]*x**i
+        return p
+
+    def composed_sum(p1, p2, algorithm, op, _cached_QQ=[]):
+        """
+        Compute the composed sum `\prod_{a:p1(a)=0,b:p2(b)=0}(x - (a + b))`
+        or `\prod_{p1(beta)=0} p2(x - beta)` of irreducible polynomials
+
+        INPUT:
+
+        - ``p1, p2`` -- polynomials
+
+        - ``algorithm`` -- can be "resultant" or "BFSS";
+          the latter is faster for high degrees, and with it the degrees must
+          be at least `2`.
+
+        - ``op`` -- ``+`` or ``-``.
+
+        This composed sum can be computed as the resultant
+        `Res_y(p1(x-y), p2(y))`; in [BFSS] it has been shown that it can be
+        computed using the power sums of roots of polynomials and
+        series expansions; for high degrees the latter method is faster.
+
+        TODO:
+
+           The [BFSS] algorithm has been implemented only in the case of
+           polynomials on integer or rational ring. In the same paper
+           there is an algorithm for non-zero characteristics, which
+           has not beeb implemented here.
+
+        EXAMPLES:
+
+            sage: R.<x> = QQ[]
+            sage: p1 = x^2 - 2
+            sage: p2 = x^2 - 3
+            sage: p1.composed_sum(p2, "resultant", "+")
+            x^4 - 10*x^2 + 1
+            sage: p1.composed_sum(p2, "BFSS", "+")
+            x^4 - 10*x^2 + 1
+            sage: p1.composed_sum(p2, "resultant", "-")
+            x^4 - 10*x^2 + 1
+            sage: p1.composed_sum(p2, "BFSS", "-")
+            x^4 - 10*x^2 + 1
+
+        REFERENCES:
+
+        .. [BFSS] A. Bostan, P. Flajolet, B. Salvy and E. Schost,
+           "Fast Computation of special resultants",
+           Journal of Symbolic Computation 41 (2006), 1-29
+
+        """
+        from sage.rings.power_series_ring import PowerSeriesRing
+        from sage.rings.big_oh import O as big_O
+
+        if op not in ("+", "-"):
+            raise ValueError('op must be "+" or "-".')
+        if algorithm == "resultant":
+            if not _cached_QQ:
+                QQxy = QQ['x', 'y']
+                _cached_QQ.append(QQxy)
+            else:
+                QQxy = _cached_QQ[0]
+            QQxy_x = QQxy.gen(0)
+            QQxy_y = QQxy.gen(1)
+            if op == "+":
+                lp = p1(QQxy_x - QQxy_y)
+            else:
+                lp = p1(QQxy_x + QQxy_y)
+            rp = p2(QQxy_y)
+            p = lp.resultant(rp, QQxy_y).univariate_polynomial()
+            return p
+        elif algorithm == "BFSS":
+            if p1.parent().base_ring() not in (ZZ, QQ):
+                raise ValueError('implemented only for polynomials on integer or rational ring')
+            K = p2.parent()
+            if op == "-":
+                p2 = p2(-K.gen())
+            prec = p1.degree() * p2.degree()
+            np1 = p1.newton_sum(prec + 1)
+            R = PowerSeriesRing(QQ, 'x', default_prec=prec+1)
+            x = R.gen()
+            np1e = np1.hadamard_exp()
+            np2 = p2.newton_sum(prec + 1)
+            np2e = K(np2).hadamard_exp()
+            np2e = R(np2e) + big_O(x**(prec+1))
+            np3e = np1e*np2e
+            np3 = K(np3e).hadamard_exp(True)
+            np3a = (np3.coefficients()[0] - np3)/x
+            q = np3a.integral()
+            q = R(q)
+            q = q.exp()
+            q = q.polynomial().reverse()
+            dp = p1.degree() * p2.degree() - q.degree()
+            if dp:
+                q = q*K.gen()**dp
+            return q
+        else:
+            raise ValueError('algorithm must be "resultant" or "BFSS".')
+
+
+    def composed_product(p1, p2, algorithm, op, _cached_QQ=[]):
+        """
+        Compute the composed product `\prod_{a:p1(a)=0,b:p2(b)=0}(x - a*b)`
+        of irreducible polynomials
+
+        INPUT:
+
+        - ``p1, p2`` -- polynomials
+
+        - ``algorithm`` -- can be "resultant" or "BFSS";
+          the latter is faster for high degrees, and with it the degrees must
+          be at least `2`.
+
+        - ``op`` -- "*" or "/".
+
+        The composed product can be computed as a resultant;
+        in [BFSS] it has been shown that it can be
+        computed using the power sums of roots of polynomials and
+        series expansions; for high degrees the latter method is faster.
+
+        EXAMPLES:
+
+            sage: R.<x> = QQ[]
+            sage: p1 = x^2 - 2
+            sage: p2 = x^2 - 3
+            sage: p1.composed_product(p2, "resultant", "*")
+            x^4 - 12*x^2 + 36
+            sage: p1.composed_product(p2, "BFSS", "*")
+            x^4 - 12*x^2 + 36
+            sage: p1.composed_product(p2, "resultant", "/").monic()
+            x^4 - 4/3*x^2 + 4/9
+            sage: p1.composed_product(p2, "BFSS", "/")
+            x^4 - 4/3*x^2 + 4/9
+        """
+        from sage.rings.power_series_ring import PowerSeriesRing
+
+        cdef int i
+        if op not in ("*", "/"):
+            raise ValueError('op must be "*" or "/".')
+        if algorithm == "resultant":
+            if not _cached_QQ:
+                QQxy = QQ['x', 'y']
+                _cached_QQ.append(QQxy)
+            else:
+                QQxy = _cached_QQ[0]
+            QQxy_x = QQxy.gen(0)
+            QQxy_y = QQxy.gen(1)
+            if op == '*':
+                lp = p1(QQxy_x).homogenize(QQxy_y)
+            else:
+                lp = p1(QQxy_x * QQxy_y)
+            rp = p2(QQxy_y)
+            p = lp.resultant(rp, QQxy_y).univariate_polynomial()
+            return p
+        elif algorithm == "BFSS":
+            prec = p1.degree() * p2.degree()
+            if op == '/':
+                p2 = p2.reverse()
+            np1 = p1.newton_sum(prec, 0)
+            np2 = p2.newton_sum(prec, 0)
+            np = np1.hadamard_product(np2)
+            x = np.parent().gen()
+            q = np[0]*x
+            for i from 1 <= i <= np.degree():
+                q = q + np[i]*x**(i+1)/(i+1)
+            R = PowerSeriesRing(QQ, 'x', default_prec=prec+1)
+            x = R.gen()
+            q = R(-q)
+            q = q.exp()
+            q = q.polynomial().reverse()
+            dp = p1.degree() * p2.degree() - q.degree()
+            if dp:
+                K = p2.parent()
+                q = q*K.gen()**dp
+            return q
+        else:
+            raise ValueError('algorithm must be "resultant" or "BFSS".')
+
+
     def discriminant(self):
         r"""
         Returns the discriminant of self.

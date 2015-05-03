@@ -13,6 +13,7 @@ Groups
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
+from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.monoids import Monoids
 from sage.categories.algebra_functor import AlgebrasCategory

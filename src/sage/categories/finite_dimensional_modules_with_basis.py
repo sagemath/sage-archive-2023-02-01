@@ -10,7 +10,6 @@ Finite dimensional modules with basis
 #******************************************************************************
 
 import operator
-from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 
 class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
@@ -403,7 +402,6 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 ...
                 RuntimeError: morphism is not invertible
             """
-            from sage.categories.homset import Hom
             mat = self.matrix()
             try:
                 inv_mat = mat.parent()(~mat)

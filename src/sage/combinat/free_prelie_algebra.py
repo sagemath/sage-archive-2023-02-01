@@ -138,10 +138,14 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             Free PreLie algebra on one generator ['@'] over Rational Field
             sage: TestSuite(A).run()
 
-            sage: F = algebras.FreePreLie(QQ, 'xyz')
-            sage: TestSuite(F).run()
+            sage: F = algebras.FreePreLie(QQ, 'xy')
+            sage: TestSuite(F).run() # long time
+
+            sage: F = algebras.FreePreLie(QQ, ZZ)
+            sage: elts = F.some_elements()[:-1] # Skip the last element
+            sage: TestSuite(F).run(some_elements=elts) # long time
         """
-        if len(names) == 1:
+        if names.cardinality() == 1:
             Trees = RootedTrees()
         else:
             Trees = LabelledRootedTrees()
@@ -175,13 +179,16 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: algebras.FreePreLie(QQ, '@')  # indirect doctest
             Free PreLie algebra on one generator ['@'] over Rational Field
         """
-        n = len(self.algebra_generators())
+        n = self.algebra_generators().cardinality()
         if n == 1:
             gen = "one generator"
         else:
             gen = "{} generators".format(n)
         s = "Free PreLie algebra on {} {} over {}"
-        return s.format(gen, self._alphabet.list(), self.base_ring())
+        try:
+            return s.format(gen, self._alphabet.list(), self.base_ring())
+        except NotImplementedError:
+            return s.format(gen, self._alphabet, self.base_ring())
 
     def gen(self, i):
         r"""
@@ -207,7 +214,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         if i < 0 or not i < n:
             m = "argument i (= {}) must be between 0 and {}".format(i, n - 1)
             raise IndexError(m)
-        return G[G.keys()[i]]
+        return G[G.keys().unrank(i)]
 
     @cached_method
     def algebra_generators(self):
@@ -258,6 +265,20 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         """
         return t.node_number()
 
+    @cached_method
+    def an_element(self):
+        """
+        Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: A = algebras.FreePreLie(QQ, 'xy')
+            sage: A.an_element()
+            B[x[x[], x[x[]]]] + B[x[x[x[x[]]]]]
+        """
+        o = self.gen(0)
+        return (o * o) * (o * o)
+
     def some_elements(self):
         """
         Return some elements of the free pre-Lie algebra.
@@ -267,24 +288,31 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: A = algebras.FreePreLie(QQ,'@')
             sage: A.some_elements()
             [B[[]], B[[[]]], B[[[], [[]]]] + B[[[[[]]]]],
-             B[[[], []]] + B[[[[]]]], B[[]]]
+             B[[[], []]] + B[[[[]]]], B[[[]]]]
 
         With several generators::
 
-            sage: A = algebras.FreePreLie(QQ,'xy')
+            sage: A = algebras.FreePreLie(QQ, 'xy')
             sage: A.some_elements()
             [B[x[]],
              B[x[x[]]],
              B[x[x[], x[x[]]]] + B[x[x[x[x[]]]]],
              B[x[x[], x[]]] + B[x[x[x[]]]],
-             B[y[]]]
+             B[x[x[], y[]]] + B[x[x[y[]]]]]
         """
         o = self.gen(0)
         x = o * o
         y = o
-        for w in self.gens():
-            y = y * w
-        return [o, x, x * x, x * o, w]
+        G = self.algebra_generators()
+        # Take only the first 3 generators, otherwise the final element is too big
+        if G.cardinality() < 3:
+            for w in G:
+                y = y * w
+        else:
+            K = G.keys()
+            for i in range(3):
+                y = y * G[K.unrank(i)]
+        return [o, x, x * x, x * o, y]
 
     def product_on_basis(self, x, y):
         """

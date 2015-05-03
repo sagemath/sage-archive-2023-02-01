@@ -1207,6 +1207,51 @@ class FinitePoset(UniqueRepresentation, Parent):
             s += " with distinguished linear extension"
         return s
 
+    def _rich_repr_(self, display_manager, **kwds):
+        """
+        Rich Output Magic Method
+
+        See :mod:`sage.repl.rich_output` for details.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: Poset()._rich_repr_(dm, edge_labels=True)
+            OutputPlainText container
+
+        The ``plot_graphs`` preference lets us control whether this object
+        is shown as picture or text::
+
+            sage: dm.preferences.plot_graphs
+            'never'
+            sage: del dm.preferences.plot_graphs
+            sage: posets.ChainPoset(20)
+            Finite lattice containing 20 elements (use the .plot() method to plot)
+            sage: dm.preferences.plot_graphs = 'never'
+        """
+        prefs = display_manager.preferences
+        is_small = (0 < self.cardinality() < 20)
+        can_plot = (prefs.plot_graphs != 'never')
+        plot_graph = can_plot and (prefs.plot_graphs == 'always' or is_small)
+        # Under certain circumstances we display the plot as graphics
+        if plot_graph:
+            plot_kwds = dict(kwds)
+            plot_kwds.setdefault('title', repr(self))
+            output = self.plot(**plot_kwds)._rich_repr_(display_manager)
+            if output is not None:
+                return output
+        # create text for non-graphical output
+        if can_plot:
+            text = '{0} (use the .plot() method to plot)'.format(repr(self))
+        else:
+            text = repr(self)
+        # latex() produces huge tikz environment, override
+        tp = display_manager.types
+        if (prefs.text == 'latex' and tp.OutputLatex in display_manager.supported_output()):
+            return tp.OutputLatex(r'\text{{{0}}}'.format(text))
+        return tp.OutputPlainText(text)
+
     def __iter__(self):
         """
         Iterates through the elements of a linear extension of the poset.

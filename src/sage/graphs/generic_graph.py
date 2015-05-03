@@ -15576,7 +15576,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: dm = get_display_manager()
             sage: Graph()._rich_repr_(dm, edge_labels=True)
             OutputPlainText container
-        
+
         The ``plot_graphs`` preference lets us control whether graphs
         are shown as picture or text::
 
@@ -15608,7 +15608,7 @@ class GenericGraph(GenericGraph_pyx):
         if (prefs.text == 'latex' and tp.OutputLatex in display_manager.supported_output()):
             return tp.OutputLatex(r'\text{{{0}}}'.format(text))
         return tp.OutputPlainText(text)
-        
+
     @options()
     def plot(self, **options):
         r"""

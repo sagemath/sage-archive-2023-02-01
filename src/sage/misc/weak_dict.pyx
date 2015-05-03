@@ -119,8 +119,8 @@ from weakref import KeyedRef
 from copy import deepcopy
 
 from cpython.dict cimport *
-from cpython.weakref cimport *
-from cpython.list cimport *
+from cpython.weakref cimport PyWeakref_NewRef
+from cpython.list cimport PyList_New
 from cpython.object cimport PyObject_Hash
 from cpython cimport Py_XINCREF, Py_XDECREF
 

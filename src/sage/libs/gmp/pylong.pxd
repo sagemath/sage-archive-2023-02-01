@@ -2,8 +2,6 @@
 Various functions to deal with conversion mpz <-> Python int/long
 """
 
-from cpython.ref cimport PyTypeObject
-
 cdef extern from "longintrepr.h":
     cdef _PyLong_New(Py_ssize_t s)
     cdef long PyLong_SHIFT

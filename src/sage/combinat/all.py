@@ -116,7 +116,10 @@ from ordered_tree import (OrderedTree, OrderedTrees,
                           LabelledOrderedTree, LabelledOrderedTrees)
 from binary_tree import (BinaryTree, BinaryTrees,
                          LabelledBinaryTree, LabelledBinaryTrees)
+
 lazy_import('sage.combinat.interval_posets', ['TamariIntervalPoset', 'TamariIntervalPosets'])
+from rooted_tree import (RootedTree, RootedTrees,
+                         LabelledRootedTree, LabelledRootedTrees)
 
 from combination import Combinations
 from cartesian_product import CartesianProduct

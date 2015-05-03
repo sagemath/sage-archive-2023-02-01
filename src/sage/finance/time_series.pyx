@@ -36,24 +36,25 @@ AUTHOR:
 - William Stein
 """
 
-include "sage/ext/cdefs.pxi"
+#*****************************************************************************
+#       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 include "sage/ext/stdsage.pxi"
-include "sage/ext/random.pxi"
 from cpython.slice cimport PySlice_Check
 from cpython.string cimport *
-
-cdef extern from "math.h":
-    double exp(double)
-    double floor(double)
-    double log(double)
-    double pow(double, double)
-    double sqrt(double)
-
-cdef extern from "string.h":
-    void* memcpy(void* dst, void* src, size_t len)
+from libc.math cimport exp, floor, log, pow, sqrt
+from libc.string cimport memcpy
 
 cimport numpy as cnumpy
 
+from sage.misc.randstate cimport randstate, current_randstate
 from sage.rings.integer import Integer
 from sage.rings.real_double import RDF
 from sage.modules.vector_real_double_dense cimport Vector_real_double_dense

@@ -36,6 +36,7 @@ Algebras
 
    sage/algebras/quatalg/quaternion_algebra
 
+   sage/algebras/schur_algebra
    sage/algebras/shuffle_algebra
 
    sage/algebras/steenrod/steenrod_algebra

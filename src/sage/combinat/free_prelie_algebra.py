@@ -202,11 +202,12 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             ...
             IndexError: argument i (= 4) must be between 0 and 2
         """
-        n = len(self.algebra_generators())
+        G = self.algebra_generators()
+        n = G.cardinality()
         if i < 0 or not i < n:
             m = "argument i (= {}) must be between 0 and {}".format(i, n - 1)
             raise IndexError(m)
-        return self.algebra_generators()[i]
+        return G[G.keys()[i]]
 
     @cached_method
     def algebra_generators(self):
@@ -220,22 +221,27 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: A = algebras.FreePreLie(ZZ, 'fgh'); A
             Free PreLie algebra on 3 generators ['f', 'g', 'h']
              over Integer Ring
-            sage: A.algebra_generators()
-            Family (B[f[]], B[g[]], B[h[]])
+            sage: list(A.algebra_generators())
+            [B[f[]], B[g[]], B[h[]]]
 
             sage: A = algebras.FreePreLie(QQ, ['x1','x2'])
-            sage: A.algebra_generators()
-            Family (B[x1[]], B[x2[]])
+            sage: list(A.algebra_generators())
+            [B[x1[]], B[x2[]]]
         """
         Trees = self.basis().keys()
-        return Family([self.monomial(Trees([], a)) for a in self._alphabet])
-        # FIXME: use this once the keys argument of FiniteFamily will
-        # be honoured for the specifying the order of the elements in
-        # the family
-        #return Family(self._alphabet, lambda a:
-        #self.term(self.basis().keys()(a)))
+        return Family(self._alphabet, lambda a: self.monomial(Trees([], a)))
 
-    gens = algebra_generators
+    def gens(self):
+        """
+        Return the generators of ``self`` (as an algebra).
+
+        EXAMPLES::
+
+            sage: A = algebras.FreePreLie(ZZ, 'fgh')
+            sage: A.gens()
+            (B[f[]], B[g[]], B[h[]])
+        """
+        return tuple(self.algebra_generators())
 
     def degree_on_basis(self, t):
         """

@@ -15,7 +15,7 @@ TESTS::
     sage: loads(dumps(ohlc)) == ohlc
     True
 """
-
+from sage.misc.superseded import deprecated_function_alias
 import urllib
 from sage.structure.all import Sequence
 from datetime import date
@@ -93,7 +93,7 @@ class Stock:
         .. NOTE::
 
             Currently, the symbol and cid do not have to match.  When using
-            ``google()``, the cid will take precedence.
+            :meth:`history`, the cid will take precedence.
 
         EXAMPLES::
 
@@ -128,19 +128,29 @@ class Stock:
             sage: finance.Stock('goog').market_value()   # random; optional - internet
             575.83000000000004
         """
-        return float(self.yahoo()['price'])
+        return float(self.current_price_data()['price'])
 
-    def yahoo(self):
-        """
+    def current_price_data(self):
+        r"""
         Get Yahoo current price data for this stock.
 
-        OUTPUT:
+        This method returns a dictionary wit the following keys:
 
-        A dictionary.
+
+        .. csv-table::
+            :class: contentstable
+            :widths: 25,25,25,25
+            :delim: |
+
+            ``'price'`` | ``'change'`` | ``'volume'`` | ``'avg_daily_volume'``
+            ``'stock_exchange'`` | ``'market_cap'`` | ``'book_value'`` | ``'ebitda'``
+            ``'dividend_per_share'`` | ``'dividend_yield'`` | ``'earnings_per_share'`` | ``'52_week_high'``
+            ``'52_week_low'`` | ``'50day_moving_avg'`` | ``'200day_moving_avg'`` | ``'price_earnings_ratio'``
+            ``'price_earnings_growth_ratio'`` | ``'price_sales_ratio'`` | ``'price_book_ratio'`` | ``'short_ratio'``.
 
         EXAMPLES::
 
-            sage: finance.Stock('GOOG').yahoo()          # optional -- internet
+            sage: finance.Stock('GOOG').current_price_data()          # optional -- internet
             {'stock_exchange': '"NasdaqNM"', 'market_cap': '...', '200day_moving_avg': '...', '52_week_high': '...', 'price_earnings_growth_ratio': '...', 'price_sales_ratio': '...', 'price': '...', 'earnings_per_share': '...', '50day_moving_avg': '...', 'avg_daily_volume': '...', 'volume': '...', '52_week_low': '...', 'short_ratio': '...', 'price_earnings_ratio': '...', 'dividend_yield': '...', 'dividend_per_share': '...', 'price_book_ratio': '...', 'ebitda': '...', 'change': '...', 'book_value': '...'}
         """
         url = 'http://finance.yahoo.com/d/quotes.csv?s=%s&f=%s' % (self.symbol, 'l1c1va2xj1b4j4dyekjm3m4rr5p5p6s7')
@@ -168,7 +178,9 @@ class Stock:
         data['short_ratio'] = values[19]
         return data
 
-    def google(self,startdate='Jan+1,+1900',enddate=date.today().strftime("%b+%d,+%Y"), histperiod='daily'):
+    yahoo = deprecated_function_alias(1000,current_price_data)
+
+    def history(self,startdate='Jan+1,+1900',enddate=date.today().strftime("%b+%d,+%Y"), histperiod='daily'):
         """
         Return an immutable sequence of historical price data
         for this stock, obtained from Google. OHLC data is stored
@@ -186,7 +198,7 @@ class Stock:
             public.  By default, this function only looks at the NASDAQ and
             NYSE markets.  However, if you specified the market during
             initialization of the stock (i.e. ``finance.Stock("OTC:NTDOY")``),
-            ``Stock.google()`` will give correct results.
+            this method will give correct results.
 
         INPUT:
 
@@ -204,7 +216,7 @@ class Stock:
 
         We get the first five days of VMware's stock history::
 
-            sage: finance.Stock('vmw').google('Aug+13,+2007')[:5] # optional -- internet
+            sage: finance.Stock('vmw').history('Aug+13,+2007')[:5] # optional -- internet
             [
              14-Aug-07 51.99 55.50 48.00 51.00   38253700,
              15-Aug-07 52.11 59.87 51.50 57.71   10487000,
@@ -213,7 +225,7 @@ class Stock:
              20-Aug-07 56.05 57.50 55.61 57.33    2077200
             ]
 
-            sage: finance.Stock('F').google('Jan+3,+1978', 'Jul+7,+2008')[:5] # optional -- internet
+            sage: finance.Stock('F').history('Jan+3,+1978', 'Jul+7,+2008')[:5] # optional -- internet
             [
               3-Jan-78 0.00 1.93 1.89 1.89    1618200,
               4-Jan-78 0.00 1.89 1.87 1.88    2482700,
@@ -227,7 +239,7 @@ class Stock:
         leading up to the specified end date.  For example, Apple's (AAPL)
         stock history only dates back to September 7, 1984::
 
-            sage: finance.Stock('AAPL').google('Sep+1,+1900', 'Jan+1,+2000')[0:5] # optional -- internet
+            sage: finance.Stock('AAPL').history('Sep+1,+1900', 'Jan+1,+2000')[0:5] # optional -- internet
             [
               4-Jan-99 0.00 2.64 2.50 2.58  136126400,
               5-Jan-99 0.00 2.75 2.59 2.71  201441600,
@@ -239,7 +251,7 @@ class Stock:
         Here is an example where we create and get the history of a stock
         that is not in NASDAQ or NYSE::
 
-            sage: finance.Stock("OTC:NTDOY").google(startdate="Jan+1,+2007", enddate="Jan+1,+2008")[:5]  # optional -- internet
+            sage: finance.Stock("OTC:NTDOY").history(startdate="Jan+1,+2007", enddate="Jan+1,+2008")[:5]  # optional -- internet
             [
               3-Jan-07 32.44 32.75 32.30 32.44     156283,
               4-Jan-07 31.70 32.40 31.20 31.70     222643,
@@ -255,7 +267,7 @@ class Stock:
         the symbol and cid do not match, the history based on the
         contract id will be returned. ::
 
-            sage: sage.finance.stock.Stock("AAPL", 22144).google(startdate='Jan+1,+1990')[:5] #optional -- internet
+            sage: sage.finance.stock.Stock("AAPL", 22144).history(startdate='Jan+1,+1990')[:5] #optional -- internet
             [
               2-Jan-90 0.00 9.38 8.75 9.31    6542800,
               3-Jan-90 0.00 9.50 9.38 9.38    7428400,
@@ -281,6 +293,8 @@ class Stock:
         self.__historical = []
         self.__historical = self._load_from_csv(R)
         return self.__historical
+
+    google = deprecated_function_alias(1000,history)
 
     def open(self, *args, **kwds):
         r"""
@@ -311,7 +325,7 @@ class Stock:
         data::
 
             sage: c = finance.Stock('vmw') # optional -- internet
-            sage: c.google(startdate='Feb+1,+2008', enddate='Mar+1,+2008')[:5]    # optional -- internet
+            sage: c.history(startdate='Feb+1,+2008', enddate='Mar+1,+2008')[:5]    # optional -- internet
             [
               1-Feb-08 56.98 58.14 55.06 57.85    2473000,
               4-Feb-08 58.00 60.47 56.91 58.05    1816500,
@@ -322,7 +336,7 @@ class Stock:
             sage: c.open()    # optional -- internet
             [56.9800, 58.0000, 57.6000, 60.3200, ... 56.5500, 59.3000, 60.0000, 59.7900, 59.2600]
 
-        Otherwise, ``self.google()`` will be called with the default
+        Otherwise, :meth:`history` will be called with the default
         arguments returning a year's worth of data::
 
             sage: finance.Stock('vmw').open()   # random; optional -- internet
@@ -332,14 +346,14 @@ class Stock:
         from time_series import TimeSeries
 
         if len(args) != 0:
-            return TimeSeries([x.open for x in self.google(*args, **kwds)])
+            return TimeSeries([x.open for x in self.history(*args, **kwds)])
 
         try:
             return TimeSeries([x.open for x in self.__historical])
         except AttributeError:
             pass
 
-        return TimeSeries([x.open for x in self.google(*args, **kwds)])
+        return TimeSeries([x.open for x in self.history(*args, **kwds)])
 
     def close(self, *args, **kwds):
         r"""
@@ -370,7 +384,7 @@ class Stock:
         data::
 
             sage: c = finance.Stock('vmw')  # optional -- internet
-            sage: c.google(startdate='Feb+1,+2008', enddate='Mar+1,+2008')[:5]    # optional -- internet
+            sage: c.history(startdate='Feb+1,+2008', enddate='Mar+1,+2008')[:5]    # optional -- internet
             [
               1-Feb-08 56.98 58.14 55.06 57.85    2473000,
               4-Feb-08 58.00 60.47 56.91 58.05    1816500,
@@ -381,7 +395,7 @@ class Stock:
             sage: c.close()    # optional -- internet
             [57.8500, 58.0500, 59.3000, 61.5200, ... 58.2900, 60.1800, 59.8600, 59.9500, 58.6700]
 
-        Otherwise, ``self.google()`` will be called with the default
+        Otherwise, :meth:`history` will be called with the default
         arguments returning a year's worth of data::
 
             sage: finance.Stock('vmw').close()   # random; optional -- internet
@@ -391,14 +405,14 @@ class Stock:
         from time_series import TimeSeries
 
         if len(args) != 0:
-            return TimeSeries([x.close for x in self.google(*args, **kwds)])
+            return TimeSeries([x.close for x in self.history(*args, **kwds)])
 
         try:
             return TimeSeries([x.close for x in self.__historical])
         except AttributeError:
             pass
 
-        return TimeSeries([x.close for x in self.google(*args, **kwds)])
+        return TimeSeries([x.close for x in self.history(*args, **kwds)])
 
     def load_from_file(self, file):
         r"""
@@ -503,7 +517,7 @@ class Stock:
 
         This indirectly tests the use of ``_get_data()``::
 
-            sage: finance.Stock('aapl').google(startdate='Jan+1,+1990',enddate='Jan+1,+1991')[:2]    # optional -- internet
+            sage: finance.Stock('aapl').history(startdate='Jan+1,+1990',enddate='Jan+1,+1991')[:2]    # optional -- internet
             [
               2-Jan-90 0.00 2.34 2.19 2.33   26171200,
               3-Jan-90 0.00 2.38 2.34 2.34   29713600

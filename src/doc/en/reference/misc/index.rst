@@ -8,6 +8,7 @@ Miscellaneous
    sage/misc/ascii_art
    sage/misc/bindable_class
    sage/misc/cachefunc
+   sage/misc/callable_dict
    sage/misc/weak_dict
    sage/misc/c3
    sage/misc/c3_controlled

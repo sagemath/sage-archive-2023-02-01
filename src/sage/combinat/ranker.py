@@ -20,6 +20,7 @@ Rankers
 
 from collections import Iterable, Sequence
 from sage.misc.cachefunc import cached_function
+from sage.misc.callable_dict import CallableDict
 from sage.structure.parent import Parent
 from sage.categories.enumerated_sets import EnumeratedSets
 
@@ -58,36 +59,55 @@ def rank_from_list(l):
 
     INPUT:
 
-     - ``l``: a list (or iterable) of hashable objects
+    - ``l`` -- a duplicate free list (or iterable) of hashable objects
+
+    OUTPUT:
+
+    - a function from the elements of ``l`` to ``0,...,len(l)``
 
     EXAMPLES::
 
         sage: import sage.combinat.ranker as ranker
-        sage: l = ["a", "b", "c"]
+        sage: l = ['a', 'b', 'c']
         sage: r = ranker.rank_from_list(l)
-        sage: r("a")
+        sage: r('a')
         0
-        sage: r("c")
+        sage: r('c')
         2
 
     For non elements a ``ValueError`` is raised, as with the usual
     ``index`` method of lists::
 
-        sage: r("blah")
+        sage: r('blah')
         Traceback (most recent call last):
         ...
-        ValueError: 'blah' is not in list
+        ValueError: 'blah' is not in dict
+
+    Currently, the rank function is a
+    :class:`~sage.misc.callable_dict.CallableDict`; but this is an
+    implementation detail::
+
+        sage: type(r)
+        <type 'sage.misc.callable_dict.CallableDict'>
+        sage: r
+        {'a': 0, 'c': 2, 'b': 1}
+
+    No error is issued in case of duplicate value in ``l``. Instead,
+    the rank function returns the position of some of the duplicates::
+
+        sage: r = ranker.rank_from_list(['a', 'b', 'a', 'c'])
+        sage: r('a')
+        2
+
+    Constructing the rank function itself is of complexity
+    ``O(len(l))``. Then, each call to the rank function consists of an
+    essentially constant time dictionary lookup.
 
     TESTS::
 
-        sage: TestSuite(r).run() # todo: not implemented
+        sage: TestSuite(r).run()
     """
-    @cached_function
-    def rank(obj):
-        raise ValueError(repr(obj)+" is not in list")
-    for i, obj in enumerate(l):
-        rank.set_cache(i, obj)
-    return rank
+    return CallableDict((x,i) for i,x in enumerate(l))
 
 def unrank_from_list(l):
     """

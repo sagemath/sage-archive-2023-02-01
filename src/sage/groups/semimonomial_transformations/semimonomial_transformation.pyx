@@ -52,7 +52,6 @@ TESTS::
 
     sage: TestSuite(G[0]).run()
 """
-include "../../ext/stdsage.pxi"
 
 
 def _is_id(f, R):

@@ -68,7 +68,7 @@ def _check_trac_number(trac_number):
     if trac_number <= 0:
         raise ValueError('%r is not a valid trac issue number'%trac_number)
 
-def deprecation(trac_number, message):
+def deprecation(trac_number, message, stacklevel=4):
     r"""
     Issue a deprecation warning.
 
@@ -77,8 +77,11 @@ def deprecation(trac_number, message):
     - ``trac_number`` -- integer. The trac ticket number where the
       deprecation is introduced.
 
-    - ``message`` -- string. an explanation why things are deprecated
+    - ``message`` -- string. An explanation why things are deprecated
       and by what it should be replaced.
+
+    - ``stack_level`` -- (default: ``4``) an integer. This is passed on to
+      :func:`warnings.warn`.
 
     EXAMPLES::
 
@@ -87,6 +90,47 @@ def deprecation(trac_number, message):
         sage: foo()
         doctest:...: DeprecationWarning: the function foo is replaced by bar
         See http://trac.sagemath.org/13109 for details.
+
+    .. SEEALSO::
+
+        :func:`experimental`,
+        :func:`warning`.
+    """
+    warning(trac_number, message, DeprecationWarning, stacklevel)
+
+def warning(trac_number, message, warning_class=Warning, stacklevel=3):
+    r"""
+    Issue a warning.
+
+    INPUT:
+
+    - ``trac_number`` -- integer. The trac ticket number where the
+      deprecation is introduced.
+
+    - ``message`` -- string. An explanation what is going on.
+
+    - ``warning_class`` -- (default: ``Warning``) a class inherited
+      from a Python :class:`~exceptions.Warning`.
+
+    - ``stack_level`` -- (default: ``3``) an integer. This is passed on to
+      :func:`warnings.warn`.
+
+    EXAMPLES::
+
+        sage: def foo():
+        ....:     sage.misc.superseded.warning(
+        ....:         99999,
+        ....:         'The syntax will change in future.',
+        ....:         FutureWarning)
+        sage: foo()
+        doctest:...: FutureWarning: The syntax will change in future.
+        See http://trac.sagemath.org/99999 for details.
+
+    .. SEEALSO::
+
+        :func:`deprecation`,
+        :func:`experimental`,
+        :class:`exceptions.Warning`.
     """
     _check_trac_number(trac_number)
     message += '\n'
@@ -94,7 +138,130 @@ def deprecation(trac_number, message):
     resetwarnings()
     # Stack level 3 to get the line number of the code which called
     # the deprecated function which called this function.
-    warn(message, DeprecationWarning, stacklevel=3)
+    warn(message, warning_class, stacklevel)
+
+def experimental_warning(trac_number, message, stacklevel=4):
+    r"""
+    Issue a warning that the functionality or class is experimental
+    and might change in future.
+
+    INPUT:
+
+    - ``trac_number`` -- an integer. The trac ticket number where the
+      experimental functionality was introduced.
+
+    - ``message`` -- a string. An explanation what is going on.
+
+    - ``stack_level`` -- (default: ``4``) an integer. This is passed on to
+      :func:`warnings.warn`.
+
+    EXAMPLES::
+
+        sage: def foo():
+        ....:    sage.misc.superseded.experimental_warning(
+        ....:        66666, 'This function is experimental and '
+        ....:               'might change in future.')
+        sage: foo()
+        doctest:...: FutureWarning: This function is experimental and
+        might change in future.
+        See http://trac.sagemath.org/66666 for details.
+
+    .. SEEALSO::
+
+        :class:`mark_as_experimental`,
+        :func:`warning`,
+        :func:`deprecation`.
+    """
+    warning(trac_number, message, FutureWarning, stacklevel)
+
+
+class experimental(object):
+    def __init__(self, trac_number, stacklevel=4):
+        """
+        A decorator which warns about the experimental/unstable status of
+        the decorated class/method/function.
+
+        INPUT:
+
+        - ``trac_number`` -- an integer. The trac ticket number where this
+          code was introduced.
+
+        - ``stack_level`` -- (default: ``4``) an integer. This is passed on to
+          :func:`warnings.warn`.
+
+        EXAMPLES::
+
+            sage: @sage.misc.superseded.experimental(trac_number=79997)
+            ....: def foo(*args, **kwargs):
+            ....:     print args, kwargs
+            sage: foo(7, what='Hello')
+            doctest:...: FutureWarning: This class/method/function is
+            marked as experimental. It, its functionality or its
+            interface might change without a formal deprecation.
+            See http://trac.sagemath.org/79997 for details.
+            (7,) {'what': 'Hello'}
+
+        ::
+
+            sage: class bird(SageObject):
+            ....:     @sage.misc.superseded.experimental(trac_number=99999)
+            ....:     def __init__(self, *args, **kwargs):
+            ....:         print "piep", args, kwargs
+            sage: _ = bird(99)
+            doctest:...: FutureWarning: This class/method/function is
+            marked as experimental. It, its functionality or its
+            interface might change without a formal deprecation.
+            See http://trac.sagemath.org/99999 for details.
+            piep (99,) {}
+
+        .. SEEALSO::
+
+            :func:`experimental`,
+            :func:`warning`,
+            :func:`deprecation`.
+        """
+        self.trac_number = trac_number
+        self.stacklevel = stacklevel
+
+    def __call__(self, func):
+        """
+        Print experimental warning.
+
+        INPUT:
+
+        - ``func`` -- the function to decorate.
+
+        OUTPUT:
+
+        The wrapper to this function.
+
+        TESTS::
+
+            sage: def foo(*args, **kwargs):
+            ....:     print args, kwargs
+            sage: from sage.misc.superseded import experimental
+            sage: ex_foo = experimental(trac_number=99399)(foo)
+            sage: ex_foo(3, what='Hello')
+            doctest:...: FutureWarning: This class/method/function is
+            marked as experimental. It, its functionality or its
+            interface might change without a formal deprecation.
+            See http://trac.sagemath.org/99399 for details.
+            (3,) {'what': 'Hello'}
+        """
+        from sage.misc.decorators import sage_wraps
+        @sage_wraps(func)
+        def wrapper(*args, **kwds):
+            from sage.misc.superseded import experimental_warning
+            experimental_warning(self.trac_number,
+                         'This class/method/function is marked as '
+                         'experimental. It, its functionality or its '
+                         'interface might change without a '
+                         'formal deprecation.',
+                         self.stacklevel)
+            return func(*args, **kwds)
+
+        return wrapper
+
 
 class DeprecatedFunctionAlias(object):
     """
@@ -300,10 +467,10 @@ def deprecated_callable_import(trac_number, module_name, globs, locs, fromlist, 
 
     - ``locs`` -- dictionary. The ``locals()`` from where this is being called.
 
-    - ``param fromlist``: -- list of strings. The list the names of the
+    - ``fromlist`` -- list of strings. The list the names of the
       callables to deprecate
 
-    - ``message`` --` string. Message to display when the deprecated functions are called.
+    - ``message`` -- string. Message to display when the deprecated functions are called.
 
     .. note::
 

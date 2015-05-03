@@ -1494,6 +1494,18 @@ class MinusInfinity(_uniq, AnInfinity, MinusInfinityElement):
         import sympy
         return -sympy.oo
 
+    def _gap_init_(self):
+        r"""
+        Conversion to gap and libgap.
+
+        EXAMPLES::
+
+            sage: gap(-Infinity)
+            -infinity
+            sage: libgap(-Infinity)
+            -infinity
+        """
+        return '-infinity'
 
 class PlusInfinity(_uniq, AnInfinity, PlusInfinityElement):
 
@@ -1550,6 +1562,19 @@ class PlusInfinity(_uniq, AnInfinity, PlusInfinityElement):
         """
         import sympy
         return sympy.oo
+
+    def _gap_init_(self):
+        r"""
+        Conversion to gap and libgap.
+
+        EXAMPLES::
+
+            sage: gap(+Infinity)
+            infinity
+            sage: libgap(+Infinity)
+            infinity
+        """
+        return 'infinity'
 
 InfinityRing = InfinityRing_class()
 infinity = InfinityRing.gen(0)

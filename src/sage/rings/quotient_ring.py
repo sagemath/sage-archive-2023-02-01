@@ -45,7 +45,7 @@ form of an element `x` with respect to `I` (i.e., we have
     z*x^2, z*x*y, z*x*z, z*y*x, z*y^2, z*y*z, z^2*x, z^2*y, z^3) of
     Free Algebra on 3 generators (x, y, z) over Rational Field
 
-Free algebras have a custom quotient method that seves at creating
+Free algebras have a custom quotient method that serves at creating
 finite dimensional quotients defined by multiplication matrices. We
 are bypassing it, so that we obtain the default quotient::
 
@@ -483,7 +483,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         """
         from sage.categories.pushout import QuotientFunctor
         # Is there a better generic way to distinguish between things like Z/pZ as a field and Z/pZ as a ring?
-        from sage.rings.field import Field
+        from sage.rings.ring import Field
         try:
             names = self.variable_names()
         except ValueError:

@@ -227,10 +227,10 @@ def bezier3d(path, **options):
     """
     import parametric_plot3d as P3D
     from sage.modules.free_module_element import vector
-    from sage.calculus.calculus import var
+    from sage.symbolic.ring import SR
 
     p0 = vector(path[0][-1])
-    t = var('t')
+    t = SR.var('t')
     if len(path[0]) > 2:
         B = (1-t)**3*vector(path[0][0])+3*t*(1-t)**2*vector(path[0][1])+3*t**2*(1-t)*vector(path[0][-2])+t**3*p0
         G = P3D.parametric_plot3d(list(B), (0, 1), color=options['color'], aspect_ratio=options['aspect_ratio'], thickness=options['thickness'], opacity=options['opacity'])
@@ -1055,7 +1055,7 @@ def point3d(v, size=5, **kwds):
         sage: print point(vector((2,3,4)))
         Graphics3d Object
 
-        sage: c = polytopes.n_cube(3)
+        sage: c = polytopes.hypercube(3)
         sage: v = c.vertices()[0];  v
         A vertex at (-1, -1, -1)
         sage: print point(v)

@@ -483,7 +483,9 @@ class KBoundedQuotientBases(Category_realization_of_parent):
             sage: Q = Sym.kBoundedQuotient(3,t=1)
             sage: KQB = KBoundedQuotientBases(Q)
             sage: KQB.super_categories()
-            [Category of realizations of 3-Bounded Quotient of Symmetric Functions over Univariate Polynomial Ring in t over Rational Field with t=1, Join of Category of graded hopf algebras with basis over Univariate Polynomial Ring in t over Rational Field and Category of subquotients of monoids and Category of quotients of semigroups]
+            [Category of realizations of 3-Bounded Quotient of Symmetric Functions over Univariate Polynomial Ring in t over Rational Field with t=1,
+             Join of Category of graded hopf algebras with basis over Univariate Polynomial Ring in t over Rational Field and
+                     Category of quotients of algebras over Univariate Polynomial Ring in t over Rational Field]
         """
         R = self.base().base_ring()
         category = GradedHopfAlgebrasWithBasis(R)

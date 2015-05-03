@@ -18,13 +18,12 @@ Rings
 #*****************************************************************************
 
 # Ring base classes
-from ring import Ring
+from ring import Ring, Field
 from commutative_ring import CommutativeRing
 from integral_domain import IntegralDomain
 from dedekind_domain import DedekindDomain
 from principal_ideal_domain import PrincipalIdealDomain
 from euclidean_domain import EuclideanDomain
-from field import Field
 
 from commutative_algebra_element import CommutativeAlgebraElement
 
@@ -171,8 +170,6 @@ CC = ComplexField()
 CIF = ComplexIntervalField()
 
 from misc import composite_field
-
-import tests
 
 # Universal Cyclotomic Field
 from sage.rings.universal_cyclotomic_field.all import *

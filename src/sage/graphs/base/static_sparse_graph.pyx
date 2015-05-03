@@ -160,6 +160,7 @@ cimport cpython
 
 from sage.graphs.base.c_graph cimport CGraph
 from libc.stdint cimport INT32_MAX
+from static_sparse_backend cimport StaticSparseCGraph
 
 cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1:
     r"""
@@ -493,3 +494,53 @@ def strongly_connected_components(G):
     free_short_digraph(g)
     free_short_digraph(gr)
     return answer
+
+def triangles_count(G):
+    r"""
+    Return the number of triangles in an undirected graph G
+
+    INPUT:
+
+    - `G`-- a graph
+
+    EXAMPLE::
+
+        sage: from sage.graphs.base.static_sparse_graph import triangles_count
+        sage: triangles_count(graphs.PetersenGraph())
+        0
+        sage: triangles_count(graphs.CompleteGraph(15)) == binomial(15,3)
+        True
+    """
+    G._scream_if_not_simple()
+
+    # g is a copy of G. If G is internally a static sparse graph, we use it.
+    cdef short_digraph g
+    G = G.copy(immutable=True)
+    g[0] = (<StaticSparseCGraph?> (G._backend._cg)).g[0]
+
+    cdef uint64_t count = 0
+    cdef uint32_t u,v,i
+    cdef uint32_t * p1
+    cdef uint32_t * p2
+
+    for u in range(g.n):
+        for i in range(out_degree(g,u)):
+            v = g.neighbors[u][i]
+            if v<=u:
+                continue
+
+            # Size of [N(u) inter N(v)]. Both are sorted lists.
+            p1 = g.neighbors[u]
+            p2 = g.neighbors[v]
+            while (p1 < g.neighbors[u+1] and p2 < g.neighbors[v+1]):
+                if p1[0] == p2[0]:
+                    count += 1
+                    p1 += 1
+                    p2 += 1
+                elif p1[0] < p2[0]:
+                    p1 += 1
+                else:
+                    p2 += 1
+
+    from sage.rings.integer import Integer
+    return Integer(count)//3

@@ -803,7 +803,7 @@ cdef class CachedFunction(object):
         from sage.misc.sageinspect import _extract_embedded_position
         f = self.f
         doc = f.__doc__ or ''
-        if not doc or _extract_embedded_position(doc.splitlines()[0]) is None:
+        if not doc or _extract_embedded_position(doc) is None:
             try:
                 sourcelines = sage_getsourcelines(f)
                 from sage.env import SAGE_SRC, SAGE_LIB

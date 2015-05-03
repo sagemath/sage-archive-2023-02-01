@@ -1454,7 +1454,7 @@ class MPolynomialIdeal_singular_repr(
         Consider the hyperelliptic curve `y^2 = 4x^5 - 30x^3 + 45x -
         22` over `\QQ`, it has genus 2::
 
-            sage: P, x = PolynomialRing(QQ,"x").objgen()
+            sage: P.<x> = QQ[]
             sage: f = 4*x^5 - 30*x^3 + 45*x - 22
             sage: C = HyperellipticCurve(f); C
             Hyperelliptic Curve over Rational Field defined by y^2 = 4*x^5 - 30*x^3 + 45*x - 22
@@ -3234,7 +3234,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         ::
 
-            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
+            sage: R.<x,y> = QQ[]
             sage: I = (x^3 + y, y)*R
             sage: J = (x^3 + y, y, y*x^3 + y^2)*R
             sage: I == J
@@ -3857,7 +3857,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         EXAMPLES::
 
-            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
+            sage: R.<x,y> = QQ[]
             sage: I = (x^3 + y, y)*R
             sage: x in I # indirect doctest
             False
@@ -4057,7 +4057,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         from sage.misc.misc_c import prod
         from sage.rings.power_series_ring import PowerSeriesRing
 
-        R,z = PowerSeriesRing(QQ,'z', default_prec=sum(degs)).objgen()
+        R = PowerSeriesRing(QQ,'z', default_prec=sum(degs))
+        z = R.gen()
         dreg = 0
         s = prod([1-z**d for d in degs]) / (1-z)**n
         for dreg in xrange(0,sum(degs)):
@@ -4242,7 +4243,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: P = PolynomialRing(GF(127), 10, 'x')
             sage: I = sage.rings.ideal.Katsura(P)
             sage: I.random_element(degree=3)
-            7*x0^2*x1 + 14*x1^3 + 57*x0*x1*x2 - 32*x1^2*x2 - ... + 49*x4 + 48*x5 - 40*x7 - 6*x8
+            -25*x0^2*x1 + 14*x1^3 + 57*x0*x1*x2 + ... + 19*x7*x9 + 40*x8*x9 + 49*x1
 
         We show that the default method does not sample uniformly at random from the ideal::
 
@@ -4258,7 +4259,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: P.<x,y> = QQ[]
             sage: I = P.ideal([x^2,y^2])
             sage: I.random_element(degree=2)
-            52*x^2 - 8/3*y^2
+            -x^2
 
         """
         if compute_gb:

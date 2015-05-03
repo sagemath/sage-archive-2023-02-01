@@ -248,7 +248,7 @@ class PolyhedronFace(SageObject):
 
         EXAMPLES::
 
-            sage: square = polytopes.n_cube(2)
+            sage: square = polytopes.hypercube(2)
             sage: f = square.faces(1)
             sage: matrix(4,4, lambda i,j: cmp(f[i], f[j]))
             [ 0 -1 -1 -1]
@@ -284,7 +284,7 @@ class PolyhedronFace(SageObject):
 
         EXAMPLES::
 
-            sage: square = polytopes.n_cube(2)
+            sage: square = polytopes.hypercube(2)
             sage: for face in square.face_lattice():
             ...       print face.ambient_Hrepresentation()
             (An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0,
@@ -325,7 +325,7 @@ class PolyhedronFace(SageObject):
 
         EXAMPLES::
 
-            sage: square = polytopes.n_cube(2)
+            sage: square = polytopes.hypercube(2)
             sage: for fl in square.face_lattice():
             ...       print fl.ambient_Vrepresentation()
             ...
@@ -444,7 +444,7 @@ class PolyhedronFace(SageObject):
 
         EXAMPLES::
 
-            sage: square = polytopes.n_cube(2)
+            sage: square = polytopes.hypercube(2)
             sage: a_face = list( square.face_lattice() )[8]
             sage: a_face.__repr__()
             '<1,3>'

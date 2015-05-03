@@ -71,7 +71,7 @@ class BackendEmacs(BackendIPythonCommandline):
             sage: backend.default_preferences()
             Display preferences:
             * graphics is not specified
-            * plot_graphs is not specified
+            * supplemental_plot is not specified
             * text is not specified
         """
         from sage.repl.rich_output.preferences import DisplayPreferences

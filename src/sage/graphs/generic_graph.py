@@ -15577,20 +15577,20 @@ class GenericGraph(GenericGraph_pyx):
             sage: Graph()._rich_repr_(dm, edge_labels=True)
             OutputPlainText container
 
-        The ``plot_graphs`` preference lets us control whether graphs
-        are shown as picture or text::
+        The ``supplemental_plot`` preference lets us control whether
+        this object is shown as text or picture+text::
 
-            sage: dm.preferences.plot_graphs
+            sage: dm.preferences.supplemental_plot
             'never'
-            sage: del dm.preferences.plot_graphs
+            sage: del dm.preferences.supplemental_plot
             sage: graphs.RandomGNP(20,0.0)
             RandomGNP(20,0.000000000000000): Graph on 20 vertices (use the .plot() method to plot)
-            sage: dm.preferences.plot_graphs = 'never'
+            sage: dm.preferences.supplemental_plot = 'never'
         """
         prefs = display_manager.preferences
         is_small = (0 < self.num_verts() < 20)
-        can_plot = (prefs.plot_graphs != 'never')
-        plot_graph = can_plot and (prefs.plot_graphs == 'always' or is_small)
+        can_plot = (prefs.supplemental_plot != 'never')
+        plot_graph = can_plot and (prefs.supplemental_plot == 'always' or is_small)
         # Under certain circumstances we display the plot as graphics
         if plot_graph:
             plot_kwds = dict(kwds)

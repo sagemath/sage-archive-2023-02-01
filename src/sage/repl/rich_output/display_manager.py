@@ -141,23 +141,23 @@ class restricted_output(object):
             ....:    dm.supported_output()
             frozenset({<class 'sage.repl.rich_output.output_basic.OutputPlainText'>})
 
-            sage: dm.preferences.plot_graphs
+            sage: dm.preferences.supplemental_plot
             'never'
-            sage: dm.preferences.plot_graphs = 'always'
+            sage: dm.preferences.supplemental_plot = 'always'
             sage: with restricted_output(dm, [dm.types.OutputPlainText]):
             ....:    dm.preferences
             Display preferences:
             * graphics = disable
-            * plot_graphs = never
+            * supplemental_plot = never
             * text is not specified
-            sage: dm.preferences.plot_graphs = 'never'
+            sage: dm.preferences.supplemental_plot = 'never'
         """
         dm = self._display_manager
         self._original = dm._supported_output
         dm._supported_output = self._output_classes
         self._original_prefs = DisplayPreferences(dm.preferences)
         dm.preferences.graphics = 'disable'
-        dm.preferences.plot_graphs = 'never'
+        dm.preferences.supplemental_plot = 'never'
         
     def __exit__(self, exception_type, value, traceback):
         """
@@ -175,7 +175,7 @@ class restricted_output(object):
         dm = self._display_manager
         dm._supported_output = self._original
         dm.preferences.graphics = self._original_prefs.graphics
-        dm.preferences.plot_graphs = self._original_prefs.plot_graphs
+        dm.preferences.supplemental_plot = self._original_prefs.supplemental_plot
 
 
 class DisplayManager(SageObject):
@@ -338,7 +338,7 @@ class DisplayManager(SageObject):
             sage: dm.preferences
             Display preferences:
             * graphics is not specified
-            * plot_graphs = never
+            * supplemental_plot = never
             * text is not specified
         """
         return self._preferences

@@ -81,6 +81,16 @@ static CYTHON_INLINE int Sage_PyType_Ready(PyTypeObject* t)
     if (init == NULL || init == PyType_Type.tp_init)
         return 0;
 
+    /* Safety check: since we didn't call tp_new of metaclass,
+     * we cannot safely call tp_init if the size of the structure
+     * differs. */
+    if (metaclass->tp_basicsize != PyType_Type.tp_basicsize)
+    {
+        PyErr_SetString(PyExc_TypeError,
+                "metaclass is not compatible with 'type' (you cannot use cdef attributes in Cython metaclasses)");
+        return -1;
+    }
+
     /* Initialize a tuple (None, None, None) */
     if (!NoneNoneNone)
     {

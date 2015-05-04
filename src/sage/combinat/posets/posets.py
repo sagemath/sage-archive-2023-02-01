@@ -105,6 +105,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.plot` | Returns a Graphic object corresponding the Hasse diagram of the poset.
     :meth:`~FinitePoset.product` | Returns the cartesian product of ``self`` and ``other``.
     :meth:`~FinitePoset.promotion` | Computes the (extended) promotion on the linear extension of the poset ``self``
+    :meth:`~FinitePoset.random_order_ideal` | Return a random order ideal of ``self`` with uniform probability.
     :meth:`~FinitePoset.random_subposet` | Return a random subposet that contains each element with probability ``p``.
     :meth:`~FinitePoset.rank_function` | Returns a rank function of the poset, if it exists.
     :meth:`~FinitePoset.rank` | Returns the rank of an element, or the rank of the poset if element is None.
@@ -4032,9 +4033,18 @@ class FinitePoset(UniqueRepresentation, Parent):
         return self.subposet(elements)
 
 
-    def random_order_ideal(self):
+    def random_order_ideal(self, direction='down'):
         """
         Return a random order ideal with uniform probability.
+
+        INPUT:
+
+        - ``direction`` -- ``'up'``, ``'down'`` or ``'antichain'`` (default: ``'down'``)
+
+        OUTPUT:
+
+        A randomly selected order ideal (or order filter if ``direction='up'``, or antichain if
+        ``direction='antichain'``) where all order ideals have equal probability of occurring.
 
         ALGORITHM:
 
@@ -4045,6 +4055,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Posets.BooleanLattice(3)
             sage: P.random_order_ideal()
             [0, 2, 4, 6]
+            sage: P.random_order_ideal(direction='up')
+            [5, 6, 7]
+            sage: P.random_order_ideal(direction='antichain')
+            [3, 6]
 
         REFERENCES:
 
@@ -4082,7 +4096,13 @@ class FinitePoset(UniqueRepresentation, Parent):
                 break
             count = seedlist[0][1] * 2
             seedlist.insert(0, (current_randstate().long_seed(), count))
-        return map(self._vertex_to_element, [i for i,x in enumerate(state) if x == 0])
+        if direction == 'up':
+            return map(self._vertex_to_element, [i for i,x in enumerate(state) if x == 1])
+        if direction == 'antichain':
+            return map(self._vertex_to_element, [i for i,x in enumerate(state)
+                                                 if x == 0 and all(state[j]==1 for j in hd.upper_covers_iterator(i))])
+        else:
+            return map(self._vertex_to_element, [i for i,x in enumerate(state) if x == 0])
 
     def order_filter(self,elements):
         """

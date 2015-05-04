@@ -92,8 +92,9 @@ def rank_from_list(l):
         sage: r
         {'a': 0, 'c': 2, 'b': 1}
 
-    No error is issued in case of duplicate value in ``l``. Instead,
-    the rank function returns the position of some of the duplicates::
+    With the current implementation, no error is issued in case of
+    duplicate value in ``l``. Instead, the rank function returns the
+    position of some of the duplicates::
 
         sage: r = ranker.rank_from_list(['a', 'b', 'a', 'c'])
         sage: r('a')

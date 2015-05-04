@@ -20,11 +20,12 @@ cdef class CallableDict(dict):
 
     Typical use cases involve passing a dictionary `d` down to some
     tool that takes a function as input. The usual idiom in such use
-    cases is to pass the `d.__getitem__` bound method. A pitfall is
+    cases is to pass the ``d.__getitem__`` bound method. A pitfall is
     that this object is not picklable. When this feature is desired, a
-    `CallableDict` can be used instead. Note however that
-    `CallableDict` is slightly slower than `d.__getitem__` (see
-    :trac:`6484`).
+    :class:`CallableDict` can be used instead. Note however that, with
+    the current implementation, :class:`CallableDict` is slightly
+    slower than ``d.__getitem__`` (see :trac:`6484` for benchmarks, and
+    :trac:`18330` for potential for improvement).
 
     EXAMPLES::
 
@@ -56,7 +57,7 @@ cdef class CallableDict(dict):
 
         - ``x`` -- any hashable object
 
-        A :class:`ValueError` is raised if `x` is not in ``self``.
+        A :class:`ValueError` is raised if ``x`` is not in ``self``.
 
         TESTS::
 

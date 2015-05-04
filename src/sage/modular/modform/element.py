@@ -222,6 +222,11 @@ class ModularForm_abstract(ModuleElement):
             True
             sage: f != f
             False
+
+        TESTS::
+
+        The following used to fail (see :trac:`18068`)::
+
             sage: f != loads(dumps(f))
             False
         """

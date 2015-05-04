@@ -898,7 +898,11 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: x^(1/2)
             Traceback (most recent call last):
             ...
-            TypeError: non-integral exponents not supported
+            TypeError: rational is not an integer
+            sage: x^(2^100)
+            Traceback (most recent call last):
+            ...
+            OverflowError: Python int too large to convert to C long
         """
         cdef Polynomial_integer_dense_flint res = self._new()
         cdef long nn = PyNumber_Index(exp)

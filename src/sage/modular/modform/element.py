@@ -132,30 +132,6 @@ class ModularForm_abstract(ModuleElement):
         """
         return str(self.q_expansion())
 
-    def _ensure_is_compatible(self, other):
-        """
-        Make sure self and other are compatible for arithmetic or
-        comparison operations. Raise an error if incompatible,
-        do nothing otherwise.
-
-        EXAMPLES::
-
-            sage: f = ModularForms(DirichletGroup(17).0^2,2).2
-            sage: g = ModularForms(DirichletGroup(17).0^2,2).1
-            sage: h = ModularForms(17,4).0
-
-            sage: f._ensure_is_compatible(g)
-
-            sage: f._ensure_is_compatible(h)
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: Modular forms must be in the same ambient space.
-        """
-        if not isinstance(other, ModularForm_abstract):
-            raise TypeError("Second argument must be a modular form.")
-        if self.parent().ambient() != other.parent().ambient():
-            raise ArithmeticError("Modular forms must be in the same ambient space.")
-
     def __call__(self, x, prec=None):
         """
         Evaluate the q-expansion of this modular form at x.
@@ -213,7 +189,6 @@ class ModularForm_abstract(ModuleElement):
         """
         return self.q_expansion(prec)
 
-
     def __eq__(self, other):
         """
         Compare self to other.
@@ -235,28 +210,27 @@ class ModularForm_abstract(ModuleElement):
         else:
             return self.element() == other.element()
 
-    def __cmp__(self, other):
+    def __ne__(self, other):
         """
-        Compare self to other. If they are not the same object, but
-        are of the same type, compare them as vectors.
+        Return True if ``self != other``.
 
         EXAMPLES::
 
-            sage: f = ModularForms(DirichletGroup(17).0^2,2).2
-            sage: g = ModularForms(DirichletGroup(17).0^2,2).1
-            sage: f == g ## indirect doctest
-            False
-            sage: f == f
+            sage: f = Newforms(Gamma1(30), 2, names='a')[1]
+            sage: g = ModularForms(23, 2).0
+            sage: f != g
             True
+            sage: f != f
+            False
+
+        TESTS:
+
+        The following used to fail (see :trac:`18068`)::
+
+            sage: f != loads(dumps(f))
+            False
         """
-        try:
-            self._ensure_is_compatible(other)
-        except Exception:
-            return self.parent().__cmp__(other.parent())
-        if self.element() == other.element():
-            return 0
-        else:
-            return -1
+        return not (self == other)
 
     def _compute(self, X):
         """
@@ -915,49 +889,17 @@ class Newform(ModularForm_abstract):
             sage: f1.__eq__(f2)
             False
         """
-        try:
-            self._ensure_is_compatible(other)
-        except Exception:
+        if (not isinstance(other, ModularForm_abstract)
+            or self.parent().ambient() != other.parent().ambient()):
             return False
-        if isinstance(other, Newform):
-            if self.q_expansion(self.parent().sturm_bound()) == other.q_expansion(other.parent().sturm_bound()):
-                return True
-            else:
-                return False
-        if is_ModularFormElement(other):
-            if self.element() == other.element():
-                return True
-            else:
-                return False
-
-    def __cmp__(self, other):
-        """
-        Compare self with other.
-
-        EXAMPLES::
-
-            sage: f1, f2 = Newforms(19,4,names='a')
-            sage: f1.__cmp__(f1)
-            0
-            sage: f1.__cmp__(f2)
-            -1
-            sage: f2.__cmp__(f1)
-            -1
-        """
-        try:
-            self._ensure_is_compatible(other)
-        except Exception:
-            return self.parent().__cmp__(other.parent())
-        if isinstance(other, Newform):
-            if self.q_expansion(self.parent().sturm_bound()) == other.q_expansion(other.parent().sturm_bound()):
-                return 0
-            else:
-                return -1
-        if is_ModularFormElement(other):
-            if self.element() == other.element():
-                return 0
-            else:
-                return -1
+        if (isinstance(other, Newform) and
+            self.q_expansion(self.parent().sturm_bound())
+            == other.q_expansion(other.parent().sturm_bound())):
+            return True
+        if (is_ModularFormElement(other) and
+            self.element() == other.element()):
+            return True
+        return False
 
     def abelian_variety(self):
         """

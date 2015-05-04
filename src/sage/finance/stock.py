@@ -167,7 +167,7 @@ class Stock:
 
         EXAMPLES::
 
-            sage: finance.Stock('GOOG').current_price_data()  # random
+            sage: finance.Stock('GOOG').current_price_data()  #  random; optional - internet
             {'200day_moving_avg': '536.57',
              '50day_moving_avg': '546.01',
              '52_week_high': '599.65',

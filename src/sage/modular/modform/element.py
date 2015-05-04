@@ -223,7 +223,7 @@ class ModularForm_abstract(ModuleElement):
             sage: f != f
             False
 
-        TESTS::
+        TESTS:
 
         The following used to fail (see :trac:`18068`)::
 

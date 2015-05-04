@@ -387,6 +387,11 @@ relational::operator relational::safe_bool() const
 		const infinity & lh_inf = ex_to<infinity>(lh);
 		const infinity & rh_inf = ex_to<infinity>(rh);
 		const ex df = lh_inf.get_direction() - rh_inf.get_direction();
+
+                if (!is_exactly_a<numeric>(df))
+                        // cannot decide on non-numerical results
+                        return o==not_equal ? make_safe_bool(true) : make_safe_bool(false);
+
 		switch (o) {
 		case equal:
 			return make_safe_bool(ex_to<numeric>(df).is_zero());

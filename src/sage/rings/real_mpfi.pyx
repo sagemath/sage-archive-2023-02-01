@@ -2993,6 +2993,14 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         an integer. The integer `x-y` can be obtained through the method
         :meth:`trunc`.
 
+        The output of this function is the smallest interval that contains all
+        possible values of `frac(x)` for `x` in this interval. Note that if it
+        contains an integer then the answer might not be very meaningful. More
+        precisely, if the endpoints are `a` and `b` then:
+
+        - if `floor(b) > \max(a,0)` then the interval obtained contains `[0,1]`,
+        - if `ceil(a) < \min(b,0)` then the interval obtained contains `[-1,0]`.
+
         .. SEEALSO::
 
             :meth:`trunc` -- return the integer part complement to this
@@ -3005,6 +3013,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: RIF(-23.12, -23.13).frac()
             -0.13?
 
+            sage: RIF(.5, 1).frac().endpoints()
+            (0.000000000000000, 1.00000000000000)
+            sage: RIF(1, 1.5).frac().endpoints()
+            (0.000000000000000, 0.500000000000000)
+
             sage: r = RIF(-22.47, -22.468)
             sage: r in (r.frac() + r.trunc())
             True
@@ -3013,8 +3026,13 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: r in (r.frac() + r.trunc())
             True
 
-            sage: RIF(1.25, 2.05).frac().endpoints()
+            sage: RIF(1.99, 2.025).frac().endpoints()
             (0.000000000000000, 1.00000000000000)
+            sage: RIF(1.99, 2.00).frac().endpoints()
+            (0.000000000000000, 1.00000000000000)
+            sage: RIF(2.00, 2.025).frac().endpoints()
+            (0.000000000000000, 0.0250000000000000)
+
             sage: RIF(-2.1,-0.9).frac().endpoints()
             (-1.00000000000000, -0.000000000000000)
             sage: RIF(-0.5,0.5).frac().endpoints()
@@ -3025,7 +3043,6 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         P = self.parent()
         r = P(a.frac(), b.frac())
         if b.floor() > max(a,0):
-            # result contains [0,1]
             r = r.union(P(0, 1))
         if a.ceil() < min(b,0):
             r = r.union(P(-1, 0))

@@ -55,7 +55,7 @@ from sage.libs.flint.fmpz_poly cimport fmpz_poly_reverse, fmpz_poly_revert_serie
 from sage.libs.flint.ntl_interface cimport fmpz_set_ZZ, fmpz_poly_set_ZZX, fmpz_poly_get_ZZX
 from sage.libs.ntl.ntl_ZZX_decl cimport *
 
-from cpython.number cimport PyNumber_AsSsize_t
+from cpython.number cimport PyNumber_Index
 
 cdef extern from "limits.h":
     long LONG_MAX
@@ -893,18 +893,18 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             ZeroDivisionError: negative exponent in power of zero
 
         Check that :trac:`18278` is fixed::
-            
+
             sage: R.<x> = ZZ[]
             sage: x^(1/2)
             Traceback (most recent call last):
             ...
             TypeError: non-integral exponents not supported
         """
-        cdef Py_ssize_t nn
+        cdef long nn
         cdef Polynomial_integer_dense_flint res = self._new()
 
         try:
-            nn = PyNumber_AsSsize_t (exp, OverflowError)
+            nn = PyNumber_Index(exp)
         except TypeError:
             raise TypeError("non-integral exponents not supported")
 

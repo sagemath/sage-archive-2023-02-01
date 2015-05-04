@@ -1762,7 +1762,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         TESTS:
 
-        Prior to Trac #11544 this could take a full minute to run (2011). ::
+        Prior to :trac:`11544` this could take a full minute to run (2011). ::
 
             sage: A = matrix(QQ, 4, 4, [1, 2, -2, 2, 1, 0, -1, -1, 0, -1, 1, 1, -1, 2, 1/2, 0])
             sage: e = A.eigenvalues()[3]

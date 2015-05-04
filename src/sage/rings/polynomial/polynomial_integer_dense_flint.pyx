@@ -900,13 +900,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             ...
             TypeError: non-integral exponents not supported
         """
-        cdef long nn
         cdef Polynomial_integer_dense_flint res = self._new()
-
-        try:
-            nn = PyNumber_Index(exp)
-        except TypeError:
-            raise TypeError("non-integral exponents not supported")
+        cdef long nn = PyNumber_Index(exp)
 
         if self.is_zero():
             if exp == 0:
@@ -924,7 +919,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         else:
             if self is self._parent.gen():
                 sig_on()
-                fmpz_poly_set_coeff_ui(res.__poly, exp, 1)
+                fmpz_poly_set_coeff_ui(res.__poly, nn, 1)
                 sig_off()
             else:
                 sig_on()

@@ -2968,6 +2968,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: parent(_)
             Real Interval Field with 53 bits of precision
 
+            sage: RIF(-0.9, 0.9).trunc()
+            0
             sage: RIF(-7.5, -7.3).trunc()
             -7
 
@@ -3010,8 +3012,24 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: r = RIF(18.222, 18.223)
             sage: r in (r.frac() + r.trunc())
             True
+
+            sage: RIF(1.25, 2.05).frac().endpoints()
+            (0.000000000000000, 1.00000000000000)
+            sage: RIF(-2.1,-0.9).frac().endpoints()
+            (-1.00000000000000, -0.000000000000000)
+            sage: RIF(-0.5,0.5).frac().endpoints()
+            (-0.500000000000000, 0.500000000000000)
         """
-        return self.parent()(self.lower().frac(), self.upper().frac())
+        a = self.lower()
+        b = self.upper()
+        P = self.parent()
+        r = P(a.frac(), b.frac())
+        if b.floor() > max(a,0):
+            # result contains [0,1]
+            r = r.union(P(0, 1))
+        if a.ceil() < min(b,0):
+            r = r.union(P(-1, 0))
+        return r
 
     ###########################################
     # Conversions
@@ -3265,9 +3283,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         if a == b:
             return a
         elif a < b:
-            raise ValueError, "interval contains more than one integer"
+            raise ValueError("interval contains more than one integer")
         else:
-            raise ValueError, "interval contains no integer"
+            raise ValueError("interval contains no integer")
 
     def simplest_rational(self, low_open=False, high_open=False):
         """

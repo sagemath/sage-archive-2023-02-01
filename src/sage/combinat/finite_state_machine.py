@@ -192,6 +192,7 @@ LaTeX output
     :attr:`~FSMState.final_word_out` | Final output of a state
     :attr:`~FSMState.is_final` | Describes whether a state is final or not
     :attr:`~FSMState.is_initial` | Describes whether a state is initial or not
+    :attr:`~FSMState.initial_probability` | Probability of starting in this state as part of a Markov chain
     :meth:`~FSMState.label` | Label of a state
     :meth:`~FSMState.relabeled` | Returns a relabeled deep copy of a state
     :meth:`~FSMState.fully_equal` | Checks whether two states are fully equal (including all attributes)
@@ -1099,6 +1100,9 @@ class FSMState(SageObject):
       the state is reached as the last state of some input; only for final
       states.
 
+    - ``initial_probability`` -- (default: ``None``) The probability of
+      starting in this state if it is a state of a Markov chain.
+
     - ``hook`` -- (default: ``None``) A function which is called when
       the state is reached during processing input. It takes two input
       parameters: the first is the current state (to allow using the same
@@ -1241,9 +1245,21 @@ class FSMState(SageObject):
         [0]
     """
 
+    initial_probability = None
+    """
+    The probability of starting in this state if it is part of a Markov chain.
+
+    EXAMPLES::
+
+        sage: S = FSMState('state', initial_probability=1/3)
+        sage: S.initial_probability
+        1/3
+    """
+
 
     def __init__(self, label, word_out=None,
                  is_initial=False, is_final=False, final_word_out=None,
+                 initial_probability=None,
                  hook=None, color=None, allow_label_None=False):
         """
         See :class:`FSMState` for more information.
@@ -1313,6 +1329,7 @@ class FSMState(SageObject):
         self._final_word_out_ = None
         self.is_final = is_final
         self.final_word_out = final_word_out
+        self.initial_probability = initial_probability
 
         if hook is not None:
             if hasattr(hook, '__call__'):
@@ -3840,8 +3857,9 @@ class FiniteStateMachine(SageObject):
         ``True`` or ``False``.
 
         :attr:`on_duplicate_transition` must be
-        :func:`duplicate_transition_add_input` and the sum of the input
-        weights of the transitions leaving a state must add up to 1.
+        :func:`duplicate_transition_add_input`, the sum of the input weights
+        of the transitions leaving a state must add up to 1 and the sum of
+        initial probabilities must add up to 1 (or all are ``None``).
 
         EXAMPLES::
 
@@ -3868,6 +3886,24 @@ class FiniteStateMachine(SageObject):
             sage: F.is_Markov_chain()
             False
 
+        The initial probabilities of all states must be ``None`` or they must
+        sum up to 1. The initial probabilities of all states have to be set::
+
+            sage: F = Transducer([[0, 0, 1/4, 0], [0, 1, 3/4, 1],
+            ....:                 [1, 0, 1, 0]],
+            ....:                on_duplicate_transition=duplicate_transition_add_input)
+            sage: F.is_Markov_chain()
+            True
+            sage: F.state(0).initial_probability = 1/4
+            sage: F.is_Markov_chain()
+            False
+            sage: F.state(1).initial_probability = 7
+            sage: F.is_Markov_chain()
+            False
+            sage: F.state(1).initial_probability = 3/4
+            sage: F.is_Markov_chain()
+            True
+
         If the probabilities are variables in the symbolic ring,
         :func:`~sage.symbolic.assumptions.assume` will do the trick::
 
@@ -3891,6 +3927,7 @@ class FiniteStateMachine(SageObject):
             ....:     return polynomial in (p + q - 1)*R
             sage: F = Transducer([(0, 0, p, 1), (0, 0, q, 0)],
             ....:                on_duplicate_transition=duplicate_transition_add_input)
+            sage: F.state(0).initial_probability = p + q
             sage: F.is_Markov_chain()
             False
             sage: F.is_Markov_chain(is_zero_polynomial)
@@ -3904,6 +3941,15 @@ class FiniteStateMachine(SageObject):
             is_zero_function = is_zero
 
         if self.on_duplicate_transition != duplicate_transition_add_input:
+            return False
+
+        if any(s.initial_probability is not None for s in self.states()) and \
+               any(s.initial_probability is None for s in self.states()):
+            return False
+
+        if any(s.initial_probability is not None for s in self.states()) and \
+               not is_zero_function(sum(list(s.initial_probability for s
+                                     in self.states())) - 1):
             return False
 
         return all(is_zero_function(sum(t.word_in[0] for t in state.transitions) - 1)

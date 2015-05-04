@@ -10001,8 +10001,9 @@ class Automaton(FiniteStateMachine):
 
         A Markov chain. Its input labels are the transition probabilities, the
         output labels the labels of the original automaton. The exit weights
-        (used because of a single initial state) are stored in the attribute
-        ``color`` of the Markov chain.
+        (used to obtain equal weight) are stored in the attribute ``color`` of
+        the Markov chain. The stationary distribution of this Markov chain is
+        saved as the initial probabilities of the states.
 
         EXAMPLES::
 
@@ -10019,6 +10020,14 @@ class Automaton(FiniteStateMachine):
             ....:     print s.color
             3/4
             3/2
+
+            The stationary distribution is also computed and saved as the
+            initial probabilities of the returned Markov chain::
+
+            sage: for s in P_NAF.states():
+            ....:     print s, s.initial_probability
+            0 2/3
+            1 1/3
 
         ALGORITHM:
 
@@ -10067,6 +10076,7 @@ class Automaton(FiniteStateMachine):
                              t.word_in)
         for s in self.iter_states():
             P.state(s.label()).color = 1/(w[states[s]] * ff)
+            P.state(s.label()).initial_probability = w[states[s]] * u[states[s]]
         return P
             
  

@@ -54,10 +54,10 @@ Classes and methods
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*******************************************************************************
+from c_graph cimport CGraphBackend
+from c_graph cimport CGraph
 
-from sage.structure.sage_object import SageObject
-
-class GenericGraphBackend(SageObject):
+cdef class GenericGraphBackend(SageObject):
     """
     A generic wrapper for the backend of a graph.  Various graph classes use
     extensions of this class.  Note, this graph has a number of placeholder
@@ -626,6 +626,134 @@ class GenericGraphBackend(SageObject):
         """
         raise NotImplementedError()
 
+    def __reduce__(self):
+        r""""
+        Return a tuple used for pickling this graph.
+
+        This function returns a pair ``(f, args)`` such that ``f(*args)``
+        produces a copy of ``self``. The function returned is always
+        :func:`unpickle_graph_backend`.
+
+        Pickling of the static graph backend makes pickling of immutable
+        graphs and digraphs work::
+
+            sage: G = Graph(graphs.PetersenGraph(), immutable=True)
+            sage: G == loads(dumps(G))
+            True
+            sage: uc = [[2,3], [], [1], [1], [1], [3,4]]
+            sage: D = DiGraph(dict([[i,uc[i]] for i in range(len(uc))]), immutable=True)
+            sage: loads(dumps(D)) == D
+            True
+
+        No problems with loops and multiple edges, with Labels::
+
+            sage: g = Graph(multiedges = True, loops = True)
+            sage: g.add_edges(2*graphs.PetersenGraph().edges())
+            sage: g.add_edge(0,0)
+            sage: g.add_edge(1,1, "a label")
+            sage: g.add_edge([(0,1,"labellll"), (0,1,"labellll"), (0,1,"LABELLLL")])
+            sage: g.add_vertex("isolated vertex")
+            sage: gi = g.copy(immutable=True)
+            sage: loads(dumps(gi)) == gi
+            True
+
+        Similar, with a directed graph::
+
+            sage: g = DiGraph(multiedges = True, loops = True)
+            sage: H = 2*(digraphs.Circuit(15)+DiGraph(graphs.PetersenGraph()))
+            sage: g.add_edges(H.edges())
+            sage: g.add_edge(0,0)
+            sage: g.add_edge(1,1, "a label")
+            sage: g.add_edge([(0,1,"labellll"), (0,1,"labellll"), (0,1,"LABELLLL")])
+            sage: g.add_vertex("isolated vertex")
+            sage: gi = g.copy(immutable=True)
+            sage: loads(dumps(gi)) == gi
+            True
+        """
+        from static_sparse_backend import StaticSparseBackend
+        from sparse_graph import SparseGraphBackend
+        from dense_graph import DenseGraphBackend
+
+        # implementation, data_structure, multiedges, directed, loops
+        if isinstance(self, CGraphBackend):
+            implementation = "c_graph"
+            if isinstance(self,SparseGraphBackend):
+                data_structure = "sparse"
+            elif isinstance(self,DenseGraphBackend):
+                data_structure = "dense"
+            elif isinstance(self,StaticSparseBackend):
+                implementaton = "static_sparse"
+            else:
+                raise Exception
+            multiedges = (<CGraphBackend> self)._multiple_edges
+            directed   = (<CGraphBackend> self)._directed
+            loops      = (<CGraphBackend> self)._loops
+        elif isinstance(self, NetworkXGraphBackend):
+            data_structure = "implementation"
+            implementation = "networkx"
+            multiedges =  self._nxg.is_multigraph()
+            directed   =  self._nxg.is_directed()
+            loops      =  bool(self._nxg.number_of_selfloops)
+        else:
+            raise Exception
+
+        # Vertices and edges
+        vertices = list(self.iterator_verts(None))
+        if directed:
+            edges    = list(self.iterator_out_edges(vertices,True))
+        else:
+            edges    = list(self.iterator_edges(vertices,True))
+
+        return (unpickle_graph_backend,
+                (directed, vertices, edges,
+                 {'loops': loops,
+                  'multiedges': multiedges}))
+
+def unpickle_graph_backend(directed,vertices,edges,kwds):
+    r"""
+    Return a backend from its pickled data
+
+    This methods is defined because Python's pickling mechanism can only build
+    objects from a pair ``(f,args)`` by running ``f(*args)``. In particular,
+    there is apparently no way to define a ``**kwargs`` (i.e. define the value
+    of keyword arguments of ``f``), which means that one must know the order of
+    all arguments of ``f`` (here, ``f`` is :class:`Graph` or :class:`DiGraph`).
+
+    As a consequence, this means that the order cannot change in the future,
+    which is something we cannot swear.
+
+    INPUT:
+
+    - ``directed`` (boolean)
+
+    - ``vertices`` -- list of vertices.
+
+    - ``edges`` -- list of edges
+
+    - ``kwds`` -- any dictionary whose keywords will be forwarded to the graph
+      constructor.
+
+    This function builds a :class:`Graph` or :class:`DiGraph` from its data, and
+    returns the ``_backend`` attribute of this object.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.base.graph_backends import unpickle_graph_backend
+        sage: b = unpickle_graph_backend(0,[0,1,2,3],[(0,3,'label'),(0,0,1)],{'loops':True})
+        sage: b
+        <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+        sage: list(b.iterator_edges(range(4),1))
+        [(0, 0, 1), (0, 3, 'label')]
+    """
+    if directed:
+        from sage.graphs.digraph import DiGraph as constructor
+    else:
+        from sage.graphs.graph import Graph as constructor
+
+    G = constructor(data=edges,**kwds)
+    G.add_vertices(vertices)
+    return G._backend
+
 class NetworkXGraphDeprecated(SageObject):
     """
     Class for unpickling old networkx.XGraph formats
@@ -646,7 +774,6 @@ class NetworkXGraphDeprecated(SageObject):
 
             sage: from sage.graphs.base.graph_backends import NetworkXGraphDeprecated
             sage: NetworkXGraphDeprecated()
-            doctest:...
             <class 'sage.graphs.base.graph_backends.NetworkXGraphDeprecated'>
         """
         from sage.misc.superseded import deprecation
@@ -667,7 +794,6 @@ class NetworkXGraphDeprecated(SageObject):
 
             sage: from sage.graphs.base.graph_backends import NetworkXGraphDeprecated as NXGD
             sage: X = NXGD()
-            doctest:...
             sage: X.adj = {1:{2:7}, 2:{1:7}, 3:{2:[4,5,6,7]}, 2:{3:[4,5,6,7]}}
             sage: X.multiedges = True
             sage: G = X.mutate()
@@ -736,7 +862,6 @@ class NetworkXDiGraphDeprecated(SageObject):
 
             sage: from sage.graphs.base.graph_backends import NetworkXDiGraphDeprecated as NXDGD
             sage: X = NXDGD()
-            doctest:...
             sage: X.adj = {1:{2:7}, 2:{1:[7,8], 3:[4,5,6,7]}}
             sage: X.multiedges = True
             sage: G = X.mutate()
@@ -793,7 +918,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.iterator_edges([],True)
-            <generator object iterator_edges at ...>
+            <generator object at ...>
         """
         if N is None:
             import networkx
@@ -1182,7 +1307,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.iterator_edges([],True)
-            <generator object iterator_edges at ...>
+            <generator object at ...>
         """
         if isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)):
             self._nxg = self._nxg.mutate()

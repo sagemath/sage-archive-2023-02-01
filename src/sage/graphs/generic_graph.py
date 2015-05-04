@@ -949,27 +949,27 @@ class GenericGraph(GenericGraph_pyx):
         Which backend ?::
 
             sage: G.copy(data_structure="sparse")._backend
-            <class 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
             sage: G.copy(data_structure="dense")._backend
-            <class 'sage.graphs.base.dense_graph.DenseGraphBackend'>
+            <type 'sage.graphs.base.dense_graph.DenseGraphBackend'>
             sage: G.copy(data_structure="static_sparse")._backend
-            <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
             sage: G.copy(immutable=True)._backend
-            <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
             sage: G.copy(immutable=True, sparse=True)._backend
-            <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
             sage: G.copy(immutable=False, sparse=True)._backend
-            <class 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
             sage: G.copy(immutable=False, sparse=False)._backend
-            <class 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
             sage: Graph(implementation="networkx").copy(implementation='c_graph')._backend
-            <class 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
 
         Fake immutable graphs::
 
             sage: G._immutable = True
             sage: G.copy()._backend
-            <class 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
         """
         # Which data structure should be used ?
         if implementation != 'c_graph':
@@ -14322,7 +14322,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = g.copy(immutable=True)
             sage: (2*g)._backend
-            <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
         """
         if (self._directed and not other._directed) or (not self._directed and other._directed):
             raise TypeError('both arguments must be of the same class')
@@ -17749,7 +17749,7 @@ class GenericGraph(GenericGraph_pyx):
             for u,v in G.edge_iterator(labels=False):
                 u = G_to[u]; v = G_to[v]
                 HB.add_edge(u,v,None,G._directed)
-            GC = HB._cg
+            GC = HB.c_graph()[0]
             partition = [[G_to[v] for v in cell] for cell in partition]
             A = search_tree(GC, partition, lab=False, dict_rep=True, dig=dig, verbosity=verbosity, order=order)
             if order:
@@ -17796,7 +17796,7 @@ class GenericGraph(GenericGraph_pyx):
             for u,v in self.edge_iterator(labels=False):
                 u = G_to[u]; v = G_to[v]
                 HB.add_edge(u,v,None,self._directed)
-            GC = HB._cg
+            GC = HB.c_graph()[0]
             partition = [[G_to[v] for v in cell] for cell in partition]
 
             if return_group:
@@ -18214,7 +18214,7 @@ class GenericGraph(GenericGraph_pyx):
         for u,v in G.edge_iterator(labels=False):
             u = G_to[u]; v = G_to[v]
             HB.add_edge(u,v,None,G._directed)
-        G = HB._cg
+        G = HB.c_graph()[0]
         partition = [[G_to[v] for v in cell] for cell in partition]
         GC = G
         G2_to = {}
@@ -18225,7 +18225,7 @@ class GenericGraph(GenericGraph_pyx):
         for u,v in G2.edge_iterator(labels=False):
             u = G2_to[u]; v = G2_to[v]
             H2B.add_edge(u,v,None,G2._directed)
-        G2 = H2B._cg
+        G2 = H2B.c_graph()[0]
         partition2 = [G2_to[v] for v in partition2]
         GC2 = G2
         isom = isomorphic(GC, GC2, partition, partition2, (self._directed or self.has_loops()), 1)
@@ -18395,7 +18395,7 @@ class GenericGraph(GenericGraph_pyx):
             for u,v in G.edge_iterator(labels=False):
                 u = G_to[u]; v = G_to[v]
                 HB.add_edge(u,v,None,G._directed)
-            GC = HB._cg
+            GC = HB.c_graph()[0]
             partition = [[G_to[v] for v in cell] for cell in partition]
             a,b,c = search_tree(GC, partition, certify=True, dig=dig, verbosity=verbosity)
             # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
@@ -18419,7 +18419,7 @@ class GenericGraph(GenericGraph_pyx):
         for u,v in self.edge_iterator(labels=False):
             u = G_to[u]; v = G_to[v]
             HB.add_edge(u,v,None,self._directed)
-        GC = HB._cg
+        GC = HB.c_graph()[0]
         partition = [[G_to[v] for v in cell] for cell in partition]
         a,b,c = search_tree(GC, partition, certify=True, dig=dig, verbosity=verbosity)
         H = copy(self)

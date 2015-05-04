@@ -8260,11 +8260,14 @@ cdef class gen(gen_auto):
         INPUT:
 
         - ``self`` -- a quadratic form
+
         - ``b`` -- a bound on vector norm (finds minimal non-zero
-          vectors if b=0)
+          vectors if b is ``None``)
+
         - ``m`` -- maximum number of vectors to return.  If ``None``
           (default), return all vectors of norm at most B
-        - flag (optional) --
+
+        - ``flag`` (optional) --
 
            - 0: default;
            - 1: return only the first minimal vector found (ignore ``max``);
@@ -8304,7 +8307,7 @@ cdef class gen(gen_auto):
 
         All vectors of minimal norm::
 
-             sage: pari(A).qfminim(0).python()
+             sage: pari(A).qfminim().python()
              [
                    [-5 -2  1]
                    [ 1  1  0]
@@ -9249,7 +9252,7 @@ cdef class gen(gen_auto):
         With flag=1, compute the pair P(z) and P'(z)::
 
             sage: E.ellwp(1, flag=1)
-            [13.9658695257485, 50.5619893875144]
+            [13.9658695257485, 50.5619300880073]
         """
         cdef gen t0 = objtogen(z)
         cdef GEN g0 = t0.g

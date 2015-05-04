@@ -14,7 +14,7 @@ class GrossZagierLseries(SageObject):
 
         - ``E`` -- an elliptic curve over `\QQ`
 
-        - ``A`` -- an ideal class in a quadratic number field
+        - ``A`` -- an ideal class in an imaginary quadratic number field
 
         - ``prec`` -- an integer (default 53) giving the required precision
 
@@ -25,11 +25,24 @@ class GrossZagierLseries(SageObject):
             sage: A = K.class_group().gen(0)
             sage: from sage.modular.modform.l_series import GrossZagierLseries
             sage: G = GrossZagierLseries(e, A)
+
+        TESTS::
+
+            sage: K.<b> = QuadraticField(131)
+            sage: A = K.class_group().one()
+            sage: G = GrossZagierLseries(e, A)
+            Traceback (most recent call last):
+            ...
+            ValueError: A is not an ideal class in an imaginary quadratic field
         """
         self._E = E
         self._N = N = E.conductor()
         self._A = A
         ideal = A.ideal()
+        K = A.gens()[0].parent()
+        if not(K.degree() == 2 and K.disc() < 0):
+            raise ValueError("A is not an ideal class in an"
+                             " imaginary quadratic field")
         Q = ideal.quadratic_form().reduced_form()
         a, b, c = self._Q = Q
         D = b ** 2 - 4 * a * c

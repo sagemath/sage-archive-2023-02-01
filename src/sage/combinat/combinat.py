@@ -2698,16 +2698,16 @@ def bell_polynomial(n, k):
     EXAMPLES::
 
         sage: bell_polynomial(6,2)
-        10*x_3^2 + 15*x_2*x_4 + 6*x_1*x_5
+        10*x2^2 + 15*x1*x3 + 6*x0*x4
         sage: bell_polynomial(6,3)
-        15*x_2^3 + 60*x_1*x_2*x_3 + 15*x_1^2*x_4
+        15*x1^3 + 60*x0*x1*x2 + 15*x0^2*x3
 
     TESTS:
 
     Check that :trac:`18338` is fixed::
 
         sage: bell_polynomial(0,0).parent()
-        Univariate Polynomial Ring in x_1 over Rational Field
+        Multivariate Polynomial Ring in x over Rational Field
 
         sage: for n in (0..4):
         ....:     print [bell_polynomial(n,k).coefficients() for k in (0..n)]
@@ -2727,9 +2727,10 @@ def bell_polynomial(n, k):
     - Blair Sutton (2009-01-26)
     - Thierry Monteil (2015-09-29): the result must always be a polynomial.
     """
+    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
     from sage.combinat.partition import Partitions
     from sage.rings.arith import factorial
-    R = QQ[tuple(['x_'+str(i) for i in range(1, n-k+2)])]
+    R = PolynomialRing(QQ, 'x', n-k+1)
     vars = R.gens()
     result = R.zero()
     for p in Partitions(n, length=k):

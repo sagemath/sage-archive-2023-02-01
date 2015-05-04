@@ -11,6 +11,9 @@ you need to list the graph's edge, or those incident to a vertex, but an
 adjacency test can be much longer than in a dense data structure (i.e. like in
 :mod:`sage.graphs.base.static_dense_graph`)
 
+For an overview of graph data structures in sage, see
+:mod:`~sage.graphs.base.overview`.
+
 Two classes
 -----------
 

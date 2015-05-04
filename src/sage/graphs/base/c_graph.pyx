@@ -1,4 +1,4 @@
-"""
+r"""
 Fast compiled graphs
 
 This is a Cython implementation of the base class for sparse and dense graphs
@@ -7,6 +7,8 @@ extend this base class and implement missing functionalities. Whenever
 possible, specific methods should also be overridden with implementations that
 suit the graph type under consideration.
 
+For an overview of graph data structures in sage, see
+:mod:`~sage.graphs.base.overview`.
 
 Data structure
 --------------

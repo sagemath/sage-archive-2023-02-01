@@ -1,6 +1,51 @@
-"""
-Implements various backends for Sage graphs.
+r"""
+Backends for Sage (di)graphs.
 
+This module implements :class:`GenericGraphBackend` (the base class for
+backends) and :class:`NetworkXGraphBackend` (a wrapper for `NetworkX
+<http://networkx.lanl.gov/>`__ graphs)
+
+Any graph backend must redefine the following methods (for which
+:class:`GenericGraphBackend` raises a ``NotImplementedError``)
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~GenericGraphBackend.add_edge` | Add an edge `(u,v)` to ``self``, with label `l`.
+    :meth:`~GenericGraphBackend.add_edges` | Add a sequence of edges to ``self``.
+    :meth:`~GenericGraphBackend.add_vertex` | Add a labelled vertex to ``self``.
+    :meth:`~GenericGraphBackend.add_vertices` | Add labelled vertices to ``self``.
+    :meth:`~GenericGraphBackend.degree` | Return the total number of vertices incident to `v`.
+    :meth:`~GenericGraphBackend.in_degree` | Return the in-degree of `v`
+    :meth:`~GenericGraphBackend.out_degree` | Return the out-degree of `v`
+    :meth:`~GenericGraphBackend.del_edge` | Delete the edge `(u,v)` with label `l`.
+    :meth:`~GenericGraphBackend.del_vertex` | Delete a labelled vertex in ``self``.
+    :meth:`~GenericGraphBackend.del_vertices` | Delete labelled vertices in ``self``.
+    :meth:`~GenericGraphBackend.get_edge_label` | Return the edge label of `(u,v)`.
+    :meth:`~GenericGraphBackend.has_edge` | True if ``self`` has an edge `(u,v)` with label `l`.
+    :meth:`~GenericGraphBackend.has_vertex` | True if ``self`` has a vertex with label `v`.
+    :meth:`~GenericGraphBackend.iterator_edges` | Iterate over the edges incident to a sequence of vertices.
+    :meth:`~GenericGraphBackend.iterator_in_edges` | Iterate over the incoming edges incident to a sequence of vertices.
+    :meth:`~GenericGraphBackend.iterator_out_edges` | Iterate over the outbound edges incident to a sequence of vertices.
+    :meth:`~GenericGraphBackend.iterator_nbrs` | Iterate over the vertices adjacent to `v`.
+    :meth:`~GenericGraphBackend.iterator_in_nbrs` | Iterate over the vertices u such that the edge `(u,v)` is in ``self`` (that is, predecessors of `v`).
+    :meth:`~GenericGraphBackend.iterator_out_nbrs` | Iterate over the vertices u such that the edge `(v,u)` is in ``self`` (that is, successors of `v`).
+    :meth:`~GenericGraphBackend.iterator_verts` | Iterate over the vertices `v` with labels in verts.
+    :meth:`~GenericGraphBackend.loops` | Get/set whether or not ``self`` allows loops.
+    :meth:`~GenericGraphBackend.multiple_edges` | Get/set whether or not ``self`` allows multiple edges.
+    :meth:`~GenericGraphBackend.name` | Get/set name of ``self``.
+    :meth:`~GenericGraphBackend.num_edges` | The number of edges in ``self``
+    :meth:`~GenericGraphBackend.num_verts` | The number of vertices in ``self``
+    :meth:`~GenericGraphBackend.relabel` | Relabel the vertices of ``self`` by a permutation.
+    :meth:`~GenericGraphBackend.set_edge_label` | Label the edge `(u,v)` by `l`.
+
+For an overview of graph data structures in sage, see
+:mod:`~sage.graphs.base.overview`.
+
+Classes and methods
+-------------------
 """
 
 #*******************************************************************************
@@ -114,7 +159,7 @@ cdef class GenericGraphBackend(SageObject):
         raise NotImplementedError()
     def degree(self, v, directed):
         """
-        Returns the total number of vertices incident to v.
+        Return the total number of vertices incident to `v`.
 
         INPUT:
 
@@ -170,7 +215,7 @@ cdef class GenericGraphBackend(SageObject):
         raise NotImplementedError()
     def del_edge(self, u, v, l, directed):
         """
-        Deletes the edge (u,v) with label l.
+        Delete the edge `(u,v)` with label `l`.
 
         INPUT:
 
@@ -223,7 +268,7 @@ cdef class GenericGraphBackend(SageObject):
         raise NotImplementedError()
     def get_edge_label(self, u, v):
         """
-        Returns the edge label of (u,v).
+        Return the edge label of `(u,v)`.
 
         INPUT:
 
@@ -231,7 +276,7 @@ cdef class GenericGraphBackend(SageObject):
 
         OUTPUT:
 
-            label of (u,v)
+            label of `(u,v)`
 
         TESTS::
 
@@ -1009,7 +1054,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
     def degree(self, v, directed):
         """
-        Returns the total number of vertices incident to v.
+        Return the total number of vertices incident to `v`.
 
         INPUT:
 
@@ -1034,7 +1079,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
     def in_degree(self, v):
         """
-        Returns the in-degree of v.
+        Return the in-degree of `v`.
 
         INPUT:
 
@@ -1060,7 +1105,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
     def out_degree(self, v):
         """
-        Returns the out-degree of v.
+        Return the out-degree of `v`.
 
         INPUT:
 
@@ -1086,7 +1131,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
     def del_edge(self, u, v, l, directed):
         """
-        Deletes the edge (u,v) with label l.
+        Delete the edge `(u,v)` with label `l`.
 
         INPUT:
 
@@ -1161,14 +1206,14 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
     def get_edge_label(self, u, v):
         """
-        Returns the edge label of (u,v).
+        Return the edge label of `(u,v)`.
 
         INPUT:
 
         - ``u,v`` -- vertex labels
 
         OUTPUT:
-            label of (u,v)
+            label of `(u,v)`
 
         TESTS::
 

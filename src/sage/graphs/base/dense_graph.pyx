@@ -1,6 +1,9 @@
 r"""
 Fast dense graphs
 
+For an overview of graph data structures in sage, see
+:mod:`~sage.graphs.base.overview`.
+
 Usage Introduction
 ------------------
 

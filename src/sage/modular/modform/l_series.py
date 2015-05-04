@@ -80,15 +80,15 @@ class GrossZagierLseries(SageObject):
         """
         return self._dokchister(s, der)
 
-    def taylor_series(self, s, nterms):
+    def taylor_series(self, s=1, series_prec=6, var='z'):
         r"""
         Return the Taylor series at `s`.
 
         INPUT:
 
-        - `s` -- complex number
-
-        - ``nterms`` -- number of terms in the Taylor series
+        - `s` -- complex number (default 1)
+        - ``series_prec`` -- number of terms (default 6) in the Taylor series
+        - ``var`` -- variable (default 'z')
 
         EXAMPLES::
 
@@ -100,7 +100,7 @@ class GrossZagierLseries(SageObject):
             sage: G.taylor_series(2,3)
             -0.613002046122894 + 0.490374999263514*z - 0.122903033710382*z^2 + O(z^3)
         """
-        return self._dokchister.taylor_series(s, nterms)
+        return self._dokchister.taylor_series(s, series_prec, var)
 
     def _repr_(self):
         """

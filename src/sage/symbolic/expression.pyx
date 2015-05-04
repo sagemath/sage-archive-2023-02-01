@@ -2181,6 +2181,11 @@ cdef class Expression(CommutativeRingElement):
             sage: expr.is_zero()
             False
             sage: forget()
+
+        Check that :trac:`13326` is fixed::
+
+            sage: bool(log(2)*Infinity == Infinity)
+            False
         """
         if self.is_relational():
             # constants are wrappers around Sage objects, compare directly

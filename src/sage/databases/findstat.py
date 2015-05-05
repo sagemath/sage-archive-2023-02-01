@@ -342,15 +342,15 @@ class FindStat():
     A particular statistic can be retrieved by its St-identifier or
     number::
 
-        sage: findstat('St000045')                                              # optional -- internet,random
-        St000045: The number of linear extensions of the tree.
+        sage: findstat('St000041')                                              # optional -- internet,random
+        St000041: The number of nestings of a perfect matching.
 
-        sage: findstat(3)                                                       # optional -- internet,random
-        St000003: The number of [[/StandardTableaux|standard Young tableaux]] of the partition.
+        sage: findstat(51)                                                      # optional -- internet,random
+        St000051: The size of the left subtree.
 
     The database can be searched by providing a list of pairs::
 
-        sage: q = findstat([(pi, pi.length()) for pi in Permutations(4)]); q    # optional -- internet,random
+        sage: q = findstat([(pi, pi.length()) for pi in Permutations(4)]); q    # optional -- internet,randomo
         0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
         1: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [Mp00062: inversion-number to major-index bijection], 24)
         ...
@@ -400,9 +400,16 @@ class FindStat():
     """
     def __init__(self):
         r"""
-        Initialize a cache from integers to
+        Initialize the database.
+
+        In particular, we set up a cache from integers to
         :class:`FindStatStatistic` instances that avoids retrieving
         the same statistic over and over again.
+
+        TESTS::
+
+            sage: findstat
+            The Combinatorial Statistic Finder (http://www.findstat.org/)
         """
         self._statistic_cache = dict()
 
@@ -591,6 +598,12 @@ class FindStat():
             this method caches the statistics.  It may make sense to
             provide a method that clears the cache, or reloads a
             single statistic.
+
+        TESTS::
+
+            sage: findstat(41).set_description("")                              # optional -- internet
+            sage: findstat(41).description() == ""                              # optional -- internet
+            True
         """
         if id > 0:
             if id not in self._statistic_cache.keys():
@@ -643,6 +656,11 @@ class FindStatStatistic(SageObject):
         there are two rather different queries possible, see
         :meth:`_find_by_id` and :meth:`_find_by_values`.
 
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatStatistic
+            sage: FindStatStatistic(1)._find_by_id()                            # optional -- internet
+            St000001: The number of ways to write a permutation as a minimal length product of simple transpositions.
         """
         self._depth = depth
         self._query = None
@@ -734,7 +752,7 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(1) == findstat(2)                                    # optional -- internet
+            sage: findstat(1) == findstat(41)                                   # optional -- internet
             False
 
             sage: r1 = findstat(lambda pi: pi.saliances()[0], Permutations(3))  # optional -- internet
@@ -1311,7 +1329,7 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(45).browse()                                         # optional -- webbrowser
+            sage: findstat(41).browse()                                         # optional -- webbrowser
         """
         if self._query == "ID":
             webbrowser.open(FINDSTAT_URL_BROWSE + self.id_str())
@@ -1401,40 +1419,48 @@ class FindStatStatistic(SageObject):
     # editing and submitting is really the same thing
     edit = submit
 
+
+# helper for generation of CartanTypes
+def _finite_irreducible_cartan_types_by_rank(n):
+    """
+    Return the Cartan types of rank n.
+
+    INPUT:
+
+    - n -- an integer.
+
+    OUTPUT:
+
+    The list of Cartan types of rank n.
+
+    TESTS::
+
+        sage: from sage.databases.findstat import _finite_irreducible_cartan_types_by_rank
+        sage: _finite_irreducible_cartan_types_by_rank(2)
+        [['A', 2], ['B', 2], ['G', 2]]
+    """
+    cartan_types      = [ CartanType(['A',n]) ]
+    if n >= 2:
+        cartan_types += [ CartanType(['B',n]) ]
+    if n >= 3:
+        cartan_types += [ CartanType(['C',n]) ]
+    if n >= 4:
+        cartan_types += [ CartanType(['D',n]) ]
+    if n in [6,7,8]:
+        cartan_types += [ CartanType(['E',n]) ]
+    if n == 4:
+        cartan_types += [ CartanType(['F',n]) ]
+    if n == 2:
+        cartan_types += [ CartanType(['G',n]) ]
+    return cartan_types
+
+
 class FindStatCollection(SageObject):
     r"""
     The class of FindStat collections.
 
     .. automethod:: __init__
     """
-    # helper for generation of CartanTypes
-    def _finite_irreducible_cartan_types_by_rank(n):
-        """
-        Return the Cartan types of rank n.
-
-        INPUT:
-
-        - n -- an integer.
-
-        OUTPUT:
-
-        The list of Cartan types of rank n.
-        """
-        cartan_types      = [ CartanType(['A',n]) ]
-        if n >= 2:
-            cartan_types += [ CartanType(['B',n]) ]
-        if n >= 3:
-            cartan_types += [ CartanType(['C',n]) ]
-        if n >= 4:
-            cartan_types += [ CartanType(['D',n]) ]
-        if n in [6,7,8]:
-            cartan_types += [ CartanType(['E',n]) ]
-        if n == 4:
-            cartan_types += [ CartanType(['F',n]) ]
-        if n == 2:
-            cartan_types += [ CartanType(['G',n]) ]
-        return cartan_types
-
     # we set up a dict of FindStat collections containing, with key
     # being the FINDSTAT_COLLECTION_IDENTIFIER to tuples, containing in this order:
 

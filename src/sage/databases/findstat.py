@@ -350,7 +350,7 @@ class FindStat():
 
     The database can be searched by providing a list of pairs::
 
-        sage: q = findstat([(pi, pi.length()) for pi in Permutations(4)]); q    # optional -- internet,randomo
+        sage: q = findstat([(pi, pi.length()) for pi in Permutations(4)]); q    # optional -- internet,random
         0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 24)
         1: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [Mp00062: inversion-number to major-index bijection], 24)
         ...

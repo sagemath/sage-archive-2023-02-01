@@ -32,12 +32,13 @@ Special Base Classes, Decorators, etc.
    sage/misc/object_multiplexer
    sage/misc/fast_methods
 
-Lists and Iteration
-~~~~~~~~~~~~~~~~~~~
+Lists and Iteration, etc.
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. toctree::
    :maxdepth: 1
 
+   sage/misc/callable_dict
    sage/misc/flatten
    sage/misc/search
    sage/misc/sage_itertools

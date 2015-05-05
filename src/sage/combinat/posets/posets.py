@@ -4054,11 +4054,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Posets.BooleanLattice(3)
             sage: P.random_order_ideal()
-            [0, 2, 4, 6]
+            [0, 1, 2, 3, 4, 5, 6]
             sage: P.random_order_ideal(direction='up')
-            [5, 6, 7]
+            [6, 7]
             sage: P.random_order_ideal(direction='antichain')
-            [3, 6]
+            [1, 2]
 
         REFERENCES:
 
@@ -4069,8 +4069,11 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         from sage.misc.randstate import current_randstate
         from sage.misc.randstate import seed
+        from sage.misc.randstate import random
         hd = self._hasse_diagram
         n = len(hd)
+        lower_covers = [[j for j in hd.lower_covers_iterator(i)] for i in range(n)]
+        upper_covers = [[j for j in hd.upper_covers_iterator(i)] for i in range(n)]
         count = n
         seedlist = [(current_randstate().long_seed(), count)]
         while True:
@@ -4080,18 +4083,20 @@ class FinitePoset(UniqueRepresentation, Parent):
                 with seed(currseed):
                     for _ in range(count):
                         for element in range(n):
-                            if current_randstate().python_random().randint(0,1) == 1:
-                                s = set(state[i] for i in hd.lower_covers_iterator(element))
-                                if 1 not in s and 2 not in s:
-                                    state[element] = 0
-                                elif 1 not in s and state[element] == 1:
-                                    state[element] = 2
+                            if random() % 2 == 1:
+                                s = [state[i] for i in lower_covers[element]]
+                                if 1 not in s:
+                                    if 2 not in s:
+                                        state[element] = 0
+                                    elif state[element] == 1:
+                                        state[element] = 2
                             else:
-                                s = set(state[i] for i in hd.upper_covers_iterator(element))
-                                if 0 not in s and 2 not in s:
-                                    state[element] = 1
-                                elif 0 not in s and state[element] == 0:
-                                    state[element] = 2
+                                s = [state[i] for i in upper_covers[element]]
+                                if 0 not in s:
+                                    if 2 not in s:
+                                        state[element] = 1
+                                    elif state[element] == 0:
+                                        state[element] = 2
             if all(x != 2 for x in state):
                 break
             count = seedlist[0][1] * 2

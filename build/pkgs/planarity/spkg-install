@@ -6,12 +6,15 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-cd src &&
-./configure --prefix="$SAGE_LOCAL" &&
-make &&
-make install
+cd src
 
-if [ $? -ne 0 ]; then
-    echo "An error occurred whilst building planarity"
-    exit 1
-fi
+for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
+
+./configure --prefix="$SAGE_LOCAL" && $MAKE install

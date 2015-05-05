@@ -61,5 +61,5 @@ Combinatorial Representation Theory
 Operads and their algebras
 --------------------------
 
-- :ref:`sage.combinat.free_prelie_algebras`
+- :ref:`sage.combinat.free_prelie_algebra`
 """

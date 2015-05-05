@@ -6,6 +6,7 @@ Coding Theory
 .. toctree::
    :maxdepth: 1
 
+   sage/coding/encoder
    sage/coding/codes_catalog
    sage/coding/linear_code
    sage/coding/code_constructions

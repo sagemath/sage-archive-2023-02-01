@@ -37,16 +37,16 @@ class Encoder(SageObject):
     - inherit from Encoder
 
     - call Encoder ``__init__`` method in the subclass constructor. Example:
-    ``super(SubclassName, self).__init__(code)``.
-    By doing that, your subclass will have its ``code`` parameter initialized.
-    You need of course to complete the constructor by adding any additional parameter
-    needed to describe properly the code defined in the subclass.
+      ``super(SubclassName, self).__init__(code)``.
+      By doing that, your subclass will have its ``code`` parameter initialized.
+      You need of course to complete the constructor by adding any additional parameter
+      needed to describe properly the code defined in the subclass.
 
     Then, if the message space is a vectorial space, default implementation of ``encode`` and
     ``unencode_nocheck`` methods are provided. These implementations rely on ``generator_matrix``
     which you need to override to use the default implementations.
 
-    If the message space is not of the form `F ** k`, where `F` is a finite field,
+    If the message space is not of the form `F^k`, where `F` is a finite field,
     you cannot have a generator matrix.
     In that case, you need to override ``encode`` and ``unencode_nocheck``.
 
@@ -89,7 +89,7 @@ class Encoder(SageObject):
 
     def encode(self, word):
         r"""
-        Encodes ``word`` as a codeword of ``self``.
+        Transforms an element of the message space into an element of the code.
 
         This is a default implementation which assumes that the message
         space of the encoder is a Vector Space. If this is not the case,
@@ -97,7 +97,7 @@ class Encoder(SageObject):
 
         INPUT:
 
-        - ``word`` -- a vector of the same length as dimension of ``self``
+        - ``word`` -- a vector of the message space of the code
 
         OUTPUT:
 

@@ -1736,11 +1736,11 @@ class AbstractLinearCode(module.Module):
 
     def encode(self, word, name=None, **kwargs):
         r"""
-        Encodes ``word`` as a codeword of ``self``.
+        Transforms an element of the message space into an element of the code.
 
         INPUT:
 
-        - ``word`` -- a vector of the same length as dimension of ``self``
+        - ``word`` -- a vector of the message space of the code
 
         - ``name`` -- (default: ``None``) Name of the encoder which will be used
           to encode ``word``. The default encoder of ``self`` will be used if

@@ -27,8 +27,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
 
 from libc.stdint cimport uint32_t
 from decl cimport lbool, Var, Lit, Clause, l_Undef, l_False, RetClause
@@ -112,9 +112,7 @@ cdef class CryptoMiniSat(SatSolver):
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
             sage: del cms                                    # optional - cryptominisat
         """
-        sig_on()
-        del self
-        sig_off()
+        del self._solver
 
     def __repr__(self):
          """

@@ -837,7 +837,7 @@ cdef class ClonableArray(ClonableElement):
         return (<Element>left)._richcmp(right, op)
 
     # See protocol in comment in sage/structure/element.pyx
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         TEST::
 
@@ -1593,7 +1593,7 @@ cdef class ClonableIntArray(ClonableElement):
         return (<Element>left)._richcmp(right, op)
 
     # See protocol in comment in sage/structure/element.pyx
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         TEST::
 

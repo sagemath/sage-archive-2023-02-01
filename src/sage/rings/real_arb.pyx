@@ -129,7 +129,6 @@ Classes and Methods
 
 include 'sage/ext/interrupt.pxi'
 include "sage/ext/python.pxi"
-include "sage/ext/stdsage.pxi"
 
 import operator
 
@@ -1420,7 +1419,7 @@ cdef class RealBall(RingElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef _richcmp_c_impl(left, Element right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         """
         Compare ``left`` and ``right``.
 

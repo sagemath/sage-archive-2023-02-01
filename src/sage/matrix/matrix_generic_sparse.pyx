@@ -323,7 +323,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     # LEVEL 2 functionality
     # x  * cdef _add_
     #    * cdef _mul_
-    #    * cdef _cmp_c_impl
+    #    * cpdef _cmp_
     #    * __neg__
     #    * __invert__
     # x  * __copy__

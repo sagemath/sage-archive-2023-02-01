@@ -483,12 +483,14 @@ class FileDocTestSource(DocTestSource):
         self.path = path
         DocTestSource.__init__(self, options)
         base, ext = os.path.splitext(path)
-        if ext in ('.py', '.pyx', '.pxi', '.sage', '.spyx'):
+        if ext in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx'):
             self.__class__ = dynamic_class('PythonFileSource',(FileDocTestSource,PythonSource))
         elif ext == '.tex':
             self.__class__ = dynamic_class('TexFileSource',(FileDocTestSource,TexSource))
         elif ext == '.rst':
             self.__class__ = dynamic_class('RestFileSource',(FileDocTestSource,RestSource))
+        else:
+            raise ValueError("unknown file extension %r"%ext)
 
     def __iter__(self):
         r"""
@@ -694,7 +696,7 @@ class FileDocTestSource(DocTestSource):
             ....:     dirs.sort(); files.sort()
             ....:     for F in files:
             ....:         _, ext = os.path.splitext(F)
-            ....:         if ext in ('.py', '.pyx', '.pxi', '.sage', '.spyx', '.rst'):
+            ....:         if ext in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx', '.rst'):
             ....:             filename = os.path.join(path, F)
             ....:             FDS = FileDocTestSource(filename, DocTestDefaults(long=True,optional=True))
             ....:             FDS._test_enough_doctests(verbose=False)

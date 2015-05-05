@@ -315,7 +315,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     # x * cdef _add_
     # x * cdef _mul_
     # x * cdef _vector_times_matrix_
-    # x * cdef _cmp_c_impl
+    # x * cpdef _cmp_
     # x * __neg__
     #   * __invert__
     # x * __copy__
@@ -410,7 +410,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         sig_off()
         return M
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         cdef mpq_t *a
         cdef mpq_t *b
         cdef Py_ssize_t i, j
@@ -589,7 +589,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return M
 
     # cdef _mul_(self, Matrix right):
-    # cdef int _cmp_c_impl(self, Matrix right) except -2:
+    # cpdef int _cmp_(self, Matrix right) except -2:
     # def __invert__(self):
     # def _list(self):
     # def _dict(self):
@@ -2670,6 +2670,29 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         for j in range(self._nrows):
             mpq_init(v._entries[j]); mpq_set(v._entries[j], self._matrix[j][i])
         return v
+
+    ################################################
+    # LLL
+    ################################################
+
+    def LLL(self, *args, **kwargs):
+        """
+        Return an LLL reduced or approximated LLL reduced lattice for
+        ``self`` interpreted as a lattice.
+
+        For details on input parameters, see
+        :meth:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`.
+
+        EXAMPLE::
+
+            sage: A = Matrix(QQ, 3, 3, [1/n for n in range(1, 10)])
+            sage: A.LLL()
+            [ 1/28 -1/40 -1/18]
+            [ 1/28 -1/40  1/18]
+            [    0 -3/40     0]
+        """
+        A, d = self._clear_denom()
+        return A.LLL(*args, **kwargs) / d
 
 
 cdef new_matrix_from_pari_GEN(parent, GEN d):

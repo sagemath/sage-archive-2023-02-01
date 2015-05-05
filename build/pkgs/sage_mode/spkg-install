@@ -48,6 +48,10 @@ else
     echo Byte compiling sage-mode with "'$EMACS'"
     echo Set the EMACS environment variable to compile with a different emacs.
     $EMACS -batch -L $INSTALL_DIR/ -f batch-byte-compile $INSTALL_DIR/*.el
+    echo Creating autoloads
+    $EMACS --batch -Q -L $INSTALL_DIR/ --load $INSTALL_DIR/sage.el \
+           --funcall 'sage-update-autoloads'
+    rm $INSTALL_DIR/sage-load.el~
 
     # Trick the shell into expanding $INSTALL_DIR and $SAGE_ROOT
     export INSTALL_DIR

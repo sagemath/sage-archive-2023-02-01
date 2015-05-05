@@ -144,20 +144,20 @@ class PolyhedronRepresentation(SageObject):
             sage: s = polytopes.cuboctahedron()
             sage: v = next(s.vertex_generator())
             sage: v
-            A vertex at (-1/2, -1/2, 0)
+            A vertex at (-1, -1, 0)
             sage: v.vector()
-            (-1/2, -1/2, 0)
+            (-1, -1, 0)
             sage: v()
-            (-1/2, -1/2, 0)
+            (-1, -1, 0)
             sage: type(v())
-            <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
+            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
 
        Conversion to a different base ring can be forced with the optional argument::
 
             sage: v.vector(RDF)
-            (-0.5, -0.5, 0.0)
+            (-1.0, -1.0, 0.0)
             sage: vector(RDF, v)
-            (-0.5, -0.5, 0.0)
+            (-1.0, -1.0, 0.0)
         """
         if (base_ring is None) or (base_ring is self._base_ring):
             return self._vector
@@ -338,10 +338,8 @@ class Hrepresentation(PolyhedronRepresentation):
         if len(data) != self._vector.degree():
             raise ValueError('H-representation data requires a list of length ambient_dim+1')
 
-        for i in range(0, self._vector.degree()):
-            self._vector.set(i, data[i])
-        for i in range(0, self._A.degree()):
-            self._A.set(i, data[i+1])
+        self._vector[:] = data
+        self._A[:] = data[1:]
         self._b = self._base_ring(data[0])
 
         self._index = len(polyhedron._Hrepresentation)
@@ -632,7 +630,7 @@ class Inequality(Hrepresentation):
             sage: i1 = next(p.inequality_generator())
             sage: [i1.contains(q) for q in p.vertex_generator()]
             [True, True, True, True, True, True]
-            sage: p2 = 3*polytopes.n_cube(3)
+            sage: p2 = 3*polytopes.hypercube(3)
             sage: [i1.contains(q) for q in p2.vertex_generator()]
             [True, False, False, False, True, True, True, False]
         """
@@ -659,7 +657,7 @@ class Inequality(Hrepresentation):
             sage: i1 = next(p.inequality_generator())
             sage: [i1.interior_contains(q) for q in p.vertex_generator()]
             [False, True, True, False, False, True]
-            sage: p2 = 3*polytopes.n_cube(3)
+            sage: p2 = 3*polytopes.hypercube(3)
             sage: [i1.interior_contains(q) for q in p2.vertex_generator()]
             [True, False, False, False, True, True, True, False]
 
@@ -853,8 +851,7 @@ class Vrepresentation(PolyhedronRepresentation):
         if len(data) != self._vector.degree():
             raise ValueError('V-representation data requires a list of length ambient_dim')
 
-        for i in range(0, self._vector.degree()):
-            self._vector.set(i, data[i])
+        self._vector[:] = data
 
         self._index = len(polyhedron._Vrepresentation)
         polyhedron._Vrepresentation.append(self)
@@ -968,7 +965,7 @@ class Vrepresentation(PolyhedronRepresentation):
 
         EXAMPLES::
 
-            sage: p = polytopes.n_cube(3)
+            sage: p = polytopes.hypercube(3)
             sage: h1 = next(p.inequality_generator())
             sage: h1
             An inequality (0, 0, -1) x + 1 >= 0
@@ -986,7 +983,7 @@ class Vrepresentation(PolyhedronRepresentation):
 
         TESTS::
 
-            sage: p = polytopes.n_cube(3)
+            sage: p = polytopes.hypercube(3)
             sage: h1 = next(p.inequality_generator())
             sage: v1 = next(p.vertex_generator())
             sage: v1.__mul__(h1)
@@ -1093,7 +1090,7 @@ class Vertex(Vrepresentation):
 
         EXAMPLES::
 
-            sage: p = polytopes.n_cube(3)
+            sage: p = polytopes.hypercube(3)
             sage: v = next(p.vertex_generator())
             sage: h = next(p.inequality_generator())
             sage: v

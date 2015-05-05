@@ -209,6 +209,22 @@ interval coerces to plus infinity::
 
     sage: RIF(-oo,oo) == oo
     True
+
+TESTS:
+
+Comparisons with numpy types are right (see :trac:`17758` and :trac:`18076`)::
+
+    sage: import numpy
+    sage: RIF(0,1) < numpy.float('2')
+    True
+    sage: RIF(0,1) <= numpy.float('1')
+    True
+    sage: RIF(0,1) <= numpy.float('0.5')
+    False
+    sage: RIF(2) == numpy.int8('2')
+    True
+    sage: numpy.int8('2') == RIF(2)
+    True
 """
 
 #*****************************************************************************
@@ -225,7 +241,6 @@ import math # for log
 import sys
 
 include 'sage/ext/interrupt.pxi'
-include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 from cpython.mem cimport *
 from cpython.string cimport *
@@ -1431,9 +1446,13 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     def real(self):
         """
-        Return the real part of ``self``.
+        Return the real part of this real interval.
 
-        (Since ``self`` is a real number, this simply returns ``self``.)
+        (Since this interval is real, this simply returns itself.)
+
+        .. SEEALSO:
+
+            :meth:`imag`
 
         EXAMPLES::
 
@@ -1441,6 +1460,23 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             True
         """
         return self
+
+    def imag(self):
+        r"""
+        Return the imaginary part of this real interval.
+
+        (Since this is interval is real, this simply returns the zero interval.)
+
+        .. SEEALSO::
+
+            :meth:`real`
+
+        EXAMPLES::
+
+            sage: RIF(2,3).imag()
+            0
+        """
+        return self._parent.zero()
 
     # MPFR had an elaborate "truncation" scheme to avoid printing
     # inaccurate-looking results; this has been removed for MPFI,
@@ -2495,22 +2531,6 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         mpfi_alea(x.value, self.value)
         return x
 
-#     def integer_part(self):
-#         """
-#         If in decimal this number is written n.defg, returns n.
-
-#         OUTPUT:
-#             -- a Sage Integer
-
-#         EXAMPLE:
-#             sage: a = 119.41212
-#             sage: a.integer_part()
-#             119
-#         """
-#         s = self.str(base=32, no_sci=True)
-#         i = s.find(".")
-#         return Integer(s[:i], base=32)
-
     ########################
     #   Basic Arithmetic
     ########################
@@ -2816,9 +2836,6 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             return 2
         return sage.rings.infinity.infinity
 
-#     def sign(self):
-#         return mpfr_sgn(self.value)
-
     def precision(self):
         """
         Returns the precision of ``self``.
@@ -2838,50 +2855,20 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
     # Rounding etc
     ###################
 
-    # Not implemented on intervals (for good reason!)
-#     def round(self):
-#         """
-#         Rounds self to the nearest real number. There are 4
-#         rounding modes. They are
-
-#         EXAMPLES:
-#             RNDN -- round to nearest:
-
-#             sage: R = RealIntervalField(20,False,'RNDN')
-#             sage: R(22.454)
-#             22.454
-#             sage: R(22.491)
-#             22.490
-
-#             RNDZ -- round towards zero:
-#             sage: R = RealIntervalField(20,False,'RNDZ')
-#             sage: R(22.454)
-#             22.453
-#             sage: R(22.491)
-#             22.490
-
-#             RNDU -- round towards plus infinity:
-#             sage: R = RealIntervalField(20,False,'RNDU')
-#             sage: R(22.454)
-#             22.454
-#             sage: R(22.491)
-#             22.491
-
-#             RNDU -- round towards minus infinity:
-#             sage: R = RealIntervalField(20,False,'RNDD')
-#             sage: R(22.454)
-#             22.453
-#             sage: R(22.491)
-#             22.490
-#         """
-#         cdef RealIntervalFieldElement x
-#         x = self._new()
-#         mpfr_round(x.value, self.value)
-#         return x
-
     def floor(self):
         """
-        Return the floor of ``self``.
+        Return the floor of this interval as an interval
+
+        The floor of a real number `x` is the largest integer smaller than or
+        equal to `x`.
+
+        .. SEEALSO::
+
+            - :meth:`unique_floor` -- method which returns the floor as an integer
+              if it is unique or raises a ``ValueError`` otherwise.
+            - :meth:`ceil` -- truncation towards plus infinity
+            - :meth:`round` -- rounding
+            - :meth:`trunc` -- truncation towards zero
 
         EXAMPLES::
 
@@ -2908,11 +2895,18 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     def ceil(self):
         """
-        Return the ceiling of ``self``.
+        Return the celing of this interval as an interval
 
-        OUTPUT:
+        The ceiling of a real number `x` is the smallest integer larger than or
+        equal to `x`.
 
-        integer
+        .. SEEALSO::
+
+            - :meth:`unique_ceil` -- return the ceil as an integer if it is
+              unique and raises a ``ValueError`` otherwise
+            - :meth:`floor` -- truncation towards minus infinity
+            - :meth:`trunc` -- truncation towards zero
+            - :meth:`round` -- rounding
 
         EXAMPLES::
 
@@ -2936,41 +2930,144 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     ceiling = ceil
 
-#     def trunc(self):
-#         """
-#         Truncates this number
+    def round(self):
+        r"""
+        Return the nearest integer of this interval as an interval
 
-#         EXAMPLES:
-#             sage: (2.99).trunc()
-#             2.00000000000000
-#             sage: (-0.00).trunc()
-#             -0.000000000000000
-#             sage: (0.00).trunc()
-#             0.000000000000000
-#         """
-#         cdef RealIntervalFieldElement x
-#         x = self._new()
-#         mpfr_trunc(x.value, self.value)
-#         return x
+        .. SEEALSO:
 
-#     def frac(self):
-#         """
-#         frac returns a real number > -1 and < 1. it satisfies the
-#         relation:
-#             x = x.trunc() + x.frac()
+            - :meth:`unique_round` -- return the round as an integer if it is
+              unique and raises a ``ValueError`` otherwise
+            - :meth:`floor` -- truncation towards `-\infty`
+            - :meth:`ceil` -- truncation towards `+\infty`
+            - :meth:`trunc` -- truncation towards `0`
 
-#         EXAMPLES:
-#             sage: (2.99).frac()
-#             0.990000000000000
-#             sage: (2.50).frac()
-#             0.500000000000000
-#             sage: (-2.79).frac()
-#             -0.790000000000000
-#         """
-#         cdef RealIntervalFieldElement x
-#         x = self._new()
-#         mpfr_frac(x.value, self.value, (<RealIntervalField>self._parent).rnd)
-#         return x
+        EXAMPLES::
+
+            sage: RIF(7.2, 7.3).round()
+            7
+            sage: RIF(-3.2, -3.1).round()
+            -3
+
+        Be careful that the answer is not an integer but an interval::
+
+            sage: RIF(2.2, 2.3).round().parent()
+            Real Interval Field with 53 bits of precision
+
+        And in some cases, the lower and upper bounds of this interval do not
+        agree::
+
+            sage: r = RIF(2.5, 3.5).round()
+            sage: r
+            4.?
+            sage: r.lower()
+            3.00000000000000
+            sage: r.upper()
+            4.00000000000000
+        """
+        return self.parent()(self.lower().round(), self.upper().round())
+
+    def trunc(self):
+        r"""
+        Return the truncation of this interval as an interval
+
+        The truncation of `x` is the floor of `x` if `x` is non-negative or the
+        ceil of `x` if `x` is negative.
+
+        .. SEEALSO::
+
+            - :meth:`unique_trunc` -- return the trunc as an integer if it is
+              unique and raises a ``ValueError`` otherwise
+            - :meth:`floor` -- truncation towards `-\infty`
+            - :meth:`ceil` -- truncation towards `+\infty`
+            - :meth:`round` -- rounding
+
+        EXAMPLES::
+
+            sage: RIF(2.3, 2.7).trunc()
+            2
+            sage: parent(_)
+            Real Interval Field with 53 bits of precision
+
+            sage: RIF(-0.9, 0.9).trunc()
+            0
+            sage: RIF(-7.5, -7.3).trunc()
+            -7
+
+        In the above example, the obtained interval contains only one element.
+        But on the following it is not the case anymore::
+
+            sage: r = RIF(2.99, 3.01).trunc()
+            sage: r.upper()
+            3.00000000000000
+            sage: r.lower()
+            2.00000000000000
+        """
+        return self.parent()(self.lower().trunc(), self.upper().trunc())
+
+    def frac(self):
+        r"""
+        Return the fractional part of this interval as an interval.
+
+        The fractional part `y` of a real number `x` is the unique element in the
+        interval `(-1,1)` that has the same sign as `x` and such that `x-y` is
+        an integer. The integer `x-y` can be obtained through the method
+        :meth:`trunc`.
+
+        The output of this function is the smallest interval that contains all
+        possible values of `frac(x)` for `x` in this interval. Note that if it
+        contains an integer then the answer might not be very meaningful. More
+        precisely, if the endpoints are `a` and `b` then:
+
+        - if `floor(b) > \max(a,0)` then the interval obtained contains `[0,1]`,
+        - if `ceil(a) < \min(b,0)` then the interval obtained contains `[-1,0]`.
+
+        .. SEEALSO::
+
+            :meth:`trunc` -- return the integer part complement to this
+            fractional part
+
+        EXAMPLES::
+
+            sage: RIF(2.37123, 2.372).frac()
+            0.372?
+            sage: RIF(-23.12, -23.13).frac()
+            -0.13?
+
+            sage: RIF(.5, 1).frac().endpoints()
+            (0.000000000000000, 1.00000000000000)
+            sage: RIF(1, 1.5).frac().endpoints()
+            (0.000000000000000, 0.500000000000000)
+
+            sage: r = RIF(-22.47, -22.468)
+            sage: r in (r.frac() + r.trunc())
+            True
+
+            sage: r = RIF(18.222, 18.223)
+            sage: r in (r.frac() + r.trunc())
+            True
+
+            sage: RIF(1.99, 2.025).frac().endpoints()
+            (0.000000000000000, 1.00000000000000)
+            sage: RIF(1.99, 2.00).frac().endpoints()
+            (0.000000000000000, 1.00000000000000)
+            sage: RIF(2.00, 2.025).frac().endpoints()
+            (0.000000000000000, 0.0250000000000000)
+
+            sage: RIF(-2.1,-0.9).frac().endpoints()
+            (-1.00000000000000, -0.000000000000000)
+            sage: RIF(-0.5,0.5).frac().endpoints()
+            (-0.500000000000000, 0.500000000000000)
+        """
+        a = self.lower()
+        b = self.upper()
+        P = self.parent()
+        r = P(a.frac(), b.frac())
+        if b.floor() > max(a,0):
+            r = r.union(P(0, 1))
+        if a.ceil() < min(b,0):
+            r = r.union(P(-1, 0))
+        return r
 
     ###########################################
     # Conversions
@@ -3004,6 +3101,44 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #     def _pari_(self):
 #         return sage.libs.pari.all.pari.new_with_bits_prec(str(self), (<RealIntervalField>self._parent).__prec)
 
+    def unique_sign(self):
+        r"""
+        Return the sign of this element if it is well defined.
+
+        This method returns `+1` if all elements in this interval are positive,
+        `-1` if all of them are negative and `0` if it contains only zero.
+        Otherwise it raises a ``ValueError``.
+
+        EXAMPLES::
+
+            sage: RIF(1.2,5.7).unique_sign()
+            1
+            sage: RIF(-3,-2).unique_sign()
+            -1
+            sage: RIF(0).unique_sign()
+            0
+            sage: RIF(0,1).unique_sign()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique sign
+            sage: RIF(-1,0).unique_sign()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique sign
+            sage: RIF(-0.1, 0.1).unique_sign()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique sign
+        """
+        if mpfi_is_zero(self.value):
+            return 0
+        elif mpfi_is_strictly_pos(self.value):
+            return 1
+        elif mpfi_is_strictly_neg(self.value):
+            return -1
+        else:
+            raise ValueError("interval does not have a unique sign")
+
     def unique_floor(self):
         """
         Returns the unique floor of this interval, if it is well defined,
@@ -3012,6 +3147,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         OUTPUT:
 
         - an integer.
+
+        .. SEEALSO::
+
+            :meth:`floor` -- return the floor as an interval (and never raise
+            error)
 
         EXAMPLES::
 
@@ -3039,6 +3179,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         - an integer.
 
+        .. SEEALSO::
+
+            :meth:`ceil` -- return the ceil as an interval (and never raise
+            error)
+
         EXAMPLES::
 
             sage: RIF(pi).unique_ceil()
@@ -3064,6 +3209,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         OUTPUT:
 
         - an integer.
+
+        .. SEEALSO::
+
+            :meth:`round` -- return the round as an interval (and never raise
+            error)
 
         EXAMPLES::
 
@@ -3115,6 +3265,38 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         else:
             raise ValueError("interval does not have a unique round (nearest integer)")
 
+    def unique_trunc(self):
+        r"""
+        Return the nearest integer toward zero if it is unique, otherwise raise
+        a ``ValueError``.
+
+        .. SEEALSO:
+
+            :meth:`trunc` -- return the truncation as an interval (and never
+            raise error)
+
+        EXAMPLES::
+
+            sage: RIF(1.3,1.4).unique_trunc()
+            1
+            sage: RIF(-3.3, -3.2).unique_trunc()
+            -3
+            sage: RIF(2.9,3.2).unique_trunc()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique trunc (nearest integer toward zero)
+            sage: RIF(-3.1,-2.9).unique_trunc()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique trunc (nearest integer toward zero)
+        """
+        a = self.lower().trunc()
+        b = self.upper().trunc()
+        if a == b:
+            return a
+        else:
+            raise ValueError("interval does not have a unique trunc (nearest integer toward zero)")
+
     def unique_integer(self):
         """
         Return the unique integer in this interval, if there is exactly one,
@@ -3139,9 +3321,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         if a == b:
             return a
         elif a < b:
-            raise ValueError, "interval contains more than one integer"
+            raise ValueError("interval contains more than one integer")
         else:
-            raise ValueError, "interval contains no integer"
+            raise ValueError("interval contains no integer")
 
     def simplest_rational(self, low_open=False, high_open=False):
         """
@@ -3290,7 +3472,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef _richcmp_c_impl(left, Element right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         """
         Implements comparisons between intervals. (See the file header
         comment for more information on interval comparison.)
@@ -3514,7 +3696,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         return (<Element>left)._cmp(right)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Implements the lexicographic total order on intervals.
         """
@@ -4638,7 +4820,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         return (~self).arctanh()
 
     def algdep(self, n):
-        """
+        r"""
         Returns a polynomial of degree at most `n` which is
         approximately satisfied by ``self``.
 
@@ -4696,7 +4878,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         known_bits = -self.relative_diameter().log2()
 
         return sage.rings.arith.algdep(self.center(), n, known_bits=known_bits)
-        
+
     def factorial(self):
         """
         Return the factorial evaluated on ``self``.

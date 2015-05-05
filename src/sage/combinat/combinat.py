@@ -818,7 +818,7 @@ def stirling_number2(n, k, algorithm=None):
         raise ValueError("unknown algorithm: %s" % algorithm)
 
 class CombinatorialObject(SageObject):
-    def __init__(self, l):
+    def __init__(self, l, copy=True):
         """
         CombinatorialObject provides a thin wrapper around a list. The main
         differences are that __setitem__ is disabled so that
@@ -830,10 +830,19 @@ class CombinatorialObject(SageObject):
         list and the hash of its parent's class. Thus, each
         CombinatorialObject should have a unique string representation.
 
+        .. WARNING::
+
+            This class is slowly being deprecated. Use
+            :class:`~sage.structure.list_clone.ClonableList` instead.
+
         INPUT:
 
-        -  ``l`` - a list or any object that can be convert to a list by
-                   ``list``
+        -  ``l`` -- a list or any object that can be converted to a
+           list by calling ``list()``.
+
+        - ``copy`` -- (boolean, default ``True``) if ``False``, then
+          ``l`` must be a ``list``, which is assigned to ``self._list``
+          without copying.
 
         EXAMPLES::
 
@@ -844,11 +853,34 @@ class CombinatorialObject(SageObject):
             [1, 2, 3]
             sage: c._hash is None
             True
+
+        For efficiency, you can specify ``copy=False`` if you know what
+        you are doing::
+
+            sage: from sage.combinat.combinat import CombinatorialObject
+            sage: x = [3, 2, 1]
+            sage: C = CombinatorialObject(x, copy=False)
+            sage: C
+            [3, 2, 1]
+            sage: x[0] = 5
+            sage: C
+            [5, 2, 1]
+
+        TESTS:
+
+        Test indirectly that we copy the input (see :trac:`18184`)::
+
+            sage: L = IntegerListsLex(element_class=Partition)
+            sage: x = [3, 2, 1]
+            sage: P = L(x)
+            sage: x[0] = 5
+            sage: list(P)
+            [3, 2, 1]
         """
-        if isinstance(l, list):
-            self._list = l
-        else:
+        if copy:
             self._list = list(l)
+        else:
+            self._list = l
         self._hash = None
 
     def __str__(self):
@@ -897,14 +929,13 @@ class CombinatorialObject(SageObject):
 
                 sage: from sage.structure.element import Element
                 sage: class Bar(Element, CombinatorialObject):
-                ...       def __init__(self, l):
-                ...           CombinatorialObject.__init__(self, l)
-                ...
+                ....:     def __init__(self, l):
+                ....:         CombinatorialObject.__init__(self, l)
                 sage: L = [Bar([4-i]) for i in range(4)]
                 sage: sorted(L, cmp)
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: BUG: sort algorithm for elements of 'None' not implemented
+                NotImplementedError: comparison not implemented for <class '__main__.Bar'>
         """
         if isinstance(other, CombinatorialObject):
             return cmp(self._list, other._list)
@@ -1187,7 +1218,7 @@ class CombinatorialClass(Parent):
     """
     __metaclass__ = ClasscallMetaclass
 
-    def __init__(self, category = None, *keys, **opts):
+    def __init__(self, category = None):
         """
         TESTS::
 

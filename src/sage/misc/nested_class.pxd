@@ -1,6 +1,4 @@
-cdef extern from "object.h":
-    ctypedef class __builtin__.type [object PyHeapTypeObject]:
-        pass
+from cpython.type cimport type
 
 cdef class NestedClassMetaclass(type):
     pass

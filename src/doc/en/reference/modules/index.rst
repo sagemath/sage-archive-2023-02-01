@@ -28,4 +28,8 @@ Modules
 
    sage/modules/diamond_cutting
 
+   sage/modules/with_basis/__init__
+   sage/modules/with_basis/morphism
+   sage/modules/with_basis/subquotient
+
 .. include:: ../footer.txt

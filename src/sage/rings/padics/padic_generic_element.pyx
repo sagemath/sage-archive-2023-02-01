@@ -55,7 +55,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         First compare valuations, then compare normalized
         residue of unit part.

@@ -26,7 +26,7 @@ from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.misc.cachefunc import cached_method
 from sage.misc.all import lazy_attribute
 from sage.categories.poor_man_map import PoorManMap
-from sage.categories.all import ModulesWithBasis
+from sage.categories.all import Category, Sets, ModulesWithBasis
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
 from sage.sets.family import Family
 from sage.misc.ascii_art import AsciiArt, empty_ascii_art
@@ -832,9 +832,9 @@ class CombinatorialFreeModuleElement(Element):
         parent = self.parent()
         dense_free_module = parent._dense_free_module(new_base_ring)
         d = self._monomial_coefficients
-        return dense_free_module._element_class(dense_free_module,
-                                                [d.get(m, 0) for m in parent.get_order()],
-                                                coerce=True, copy=False)
+        return dense_free_module.element_class(dense_free_module,
+                                               [d.get(m, 0) for m in parent.get_order()],
+                                               coerce=True, copy=False)
 
     to_vector = _vector_
 
@@ -992,7 +992,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
     - ``category`` - the category in which this module lies (optional,
       default None, in which case use the "category of modules with
-      basis" over the base ring ``R``)
+      basis" over the base ring ``R``); this should be a subcategory
+      of :class:`ModulesWithBasis`
 
     For the options controlling the printing of elements, see
     :class:`~sage.structure.indexed_generators.IndexedGenerators`.
@@ -1087,11 +1088,21 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
         sage: F2.print_options(prefix='F') #reset for following doctests
 
-    The default category is the category of modules with basis over
-    the base ring::
+    The constructed module is in the category of modules with basis
+    over the base ring::
 
-        sage: CombinatorialFreeModule(GF(3), ((1,2), (3,4))).category()
-        Category of vector spaces with basis over Finite Field of size 3
+        sage: CombinatorialFreeModule(QQ, Partitions()).category()
+        Category of vector spaces with basis over Rational Field
+
+    If furthermore the index set is finite (i.e. in the category
+    ``Sets().Finite()``), then the module is declared as being finite
+    dimensional::
+
+        sage: CombinatorialFreeModule(QQ, [1,2,3,4]).category()
+        Category of finite dimensional vector spaces with basis over Rational Field
+        sage: CombinatorialFreeModule(QQ, Partitions(3),
+        ....:                         category=Algebras(QQ).WithBasis()).category()
+        Category of finite dimensional algebras with basis over Rational Field
 
     See :mod:`sage.categories.examples.algebras_with_basis` and
     :mod:`sage.categories.examples.hopf_algebras_with_basis` for
@@ -1219,19 +1230,27 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
 
             sage: F.category()
-            Category of vector spaces with basis over Rational Field
+            Category of finite dimensional vector spaces with basis over Rational Field
 
         One may specify the category this module belongs to::
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'], category=AlgebrasWithBasis(QQ))
             sage: F.category()
-            Category of algebras with basis over Rational Field
+            Category of finite dimensional algebras with basis over Rational Field
+
+            sage: F = CombinatorialFreeModule(GF(3), ['a','b','c'],
+            ....:                             category=(Modules(GF(3)).WithBasis(), Semigroups()))
+            sage: F.category()
+            Join of Category of finite semigroups
+                 and Category of finite dimensional modules with basis over Finite Field of size 3
+                 and Category of vector spaces with basis over Finite Field of size 3
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'], category = FiniteDimensionalModulesWithBasis(QQ))
             sage: F.basis()
             Finite family {'a': B['a'], 'c': B['c'], 'b': B['b']}
             sage: F.category()
             Category of finite dimensional vector spaces with basis over Rational Field
+
             sage: TestSuite(F).run()
 
         TESTS:
@@ -1266,9 +1285,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if R not in Rings():
             raise TypeError("Argument R must be a ring.")
 
-        if category is None:
-            category = ModulesWithBasis(R)
-
         if element_class is not None:
             self.Element = element_class
 
@@ -1284,6 +1300,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             kwds['generator_cmp'] = kwds['monomial_cmp']
             del kwds['monomial_cmp']
         IndexedGenerators.__init__(self, basis_keys, prefix, **kwds)
+
+        if category is None:
+            category = ModulesWithBasis(R)
+        elif isinstance(category, tuple):
+            category = Category.join(category)
+        if basis_keys in Sets().Finite():
+            category = category.FiniteDimensional()
 
         Parent.__init__(self, base = R, category = category,
                         # Could we get rid of this?
@@ -1567,6 +1590,12 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         the one used in the generation of the elements of self's
         associated enumerated set.
 
+        .. WARNING:: Many cached methods depend on this order, in
+           particular for constructing subspaces and quotients.
+           Changing the order after some computations have been
+           cached does not invalidate the cache, and is likely to
+           introduce inconsistencies.
+
         EXAMPLES::
 
             sage: QS2 = SymmetricGroupAlgebra(QQ,2)
@@ -1577,6 +1606,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             [[2, 1], [1, 2]]
         """
         self._order = order
+        from sage.combinat.ranker import rank_from_list
+        self._rank_basis = rank_from_list(self._order)
 
     @cached_method
     def get_order(self):
@@ -1590,8 +1621,54 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             [[2, 1], [1, 2]]
         """
         if self._order is None:
-            self._order = list(self.basis().keys())
+            self.set_order(self.basis().keys().list())
         return self._order
+
+    def get_order_cmp(self):
+        """
+        Return a comparison function on the basis indices that is
+        compatible with the current term order.
+
+        EXAMPLES::
+
+            sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example()
+            sage: Acmp = A.get_order_cmp()
+            sage: sorted(A.basis().keys(), Acmp)
+            ['x', 'y', 'a', 'b']
+            sage: A.set_order(list(reversed(A.basis().keys())))
+            sage: Acmp = A.get_order_cmp()
+            sage: sorted(A.basis().keys(), Acmp)
+            ['b', 'a', 'y', 'x']
+        """
+        self.get_order()
+        return self._order_cmp
+
+    def _order_cmp(self, x, y):
+        """
+        Compare `x` and `y` w.r.t. the term order.
+
+        INPUT:
+
+        - ``x``, ``y`` -- indices of the basis of ``self``
+
+        OUTPUT:
+
+        `-1`, `0`, or `1` depending on whether `x<y`, `x==y`, or `x>y`
+        w.r.t. the term order.
+
+        EXAMPLES::
+
+            sage: A = CombinatorialFreeModule(QQ, ['x','y','a','b'])
+            sage: A.set_order(['x', 'y', 'a', 'b'])
+            sage: A._order_cmp('x', 'y')
+            -1
+            sage: A._order_cmp('y', 'y')
+            0
+            sage: A._order_cmp('a', 'y')
+            1
+        """
+        return cmp( self._rank_basis(x), self._rank_basis(y) )
+
 
     @cached_method
     def _dense_free_module(self, base_ring=None):
@@ -2006,7 +2083,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if remove_zeros:
             d = dict( (key, coeff) for key, coeff in d.iteritems() if coeff)
         return self.element_class( self, d )
-
 
 class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         """

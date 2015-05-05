@@ -18,7 +18,7 @@ AUTHORS:
 #*****************************************************************************
 
 include "sage/libs/pari/decl.pxi"
-include "sage/ext/stdsage.pxi"
+from sage.ext.stdsage cimport PY_NEW
 
 from sage.rings.integer cimport Integer
 from sage.rings.fast_arith import prime_range
@@ -122,7 +122,7 @@ cpdef aurifeuillian(n, m, F=None, bint check=True):
 
 cpdef factor_aurifeuillian(n, check=True):
     r"""
-    Return Aurifeuillian factors of `n` if `n = x^{(2k-1)x} \pw 1`
+    Return Aurifeuillian factors of `n` if `n = x^{(2k-1)x} \pm 1`
     (where the sign is '-' if x = 1 mod 4, and '+' otherwise) else `n`
 
     INPUT:

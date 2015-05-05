@@ -21,7 +21,6 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 from cpython.list cimport *
@@ -3558,6 +3557,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         Returns True if this is a symmetric matrix.
 
+        A symmetric matrix is necessarily square.
+
         EXAMPLES::
 
             sage: m=Matrix(QQ,2,range(0,4))
@@ -5259,7 +5260,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     cdef long _hash(self) except -1:
         raise NotImplementedError
 
-    cdef int _cmp_c_impl(left,Element right) except -2:
+    cpdef int _cmp_(left,Element right) except -2:
         """
         Compare two matrices.
 

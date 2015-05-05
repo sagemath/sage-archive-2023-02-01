@@ -4039,18 +4039,20 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``direction`` -- ``'up'``, ``'down'`` or ``'antichain'`` (default: ``'down'``)
+        - ``direction`` -- ``'up'``, ``'down'`` or ``'antichain'``
+          (default: ``'down'``)
 
         OUTPUT:
 
-        A randomly selected order ideal (or order filter if ``direction='up'``, or antichain if
-        ``direction='antichain'``) where all order ideals have equal probability of occurring.
+        A randomly selected order ideal (or order filter if
+        ``direction='up'``, or antichain if ``direction='antichain'``)
+        where all order ideals have equal probability of occurring.
 
         ALGORITHM:
 
         Uses the coupling from the past algorithm described in [Propp1997]_.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: P = Posets.BooleanLattice(3)
             sage: P.random_order_ideal()
@@ -4059,6 +4061,17 @@ class FinitePoset(UniqueRepresentation, Parent):
             [6, 7]
             sage: P.random_order_ideal(direction='antichain')
             [1, 2]
+
+            sage: P = posets.TamariLattice(5)
+            sage: a = P.random_order_ideal('antichain')
+            sage: P.is_antichain_of_poset(a)
+            True
+            sage: a = P.random_order_ideal('up')
+            sage: P.is_order_filter(a)
+            True
+            sage: a = P.random_order_ideal('down')
+            sage: P.is_order_ideal(a)
+            True
 
         REFERENCES:
 
@@ -4072,13 +4085,14 @@ class FinitePoset(UniqueRepresentation, Parent):
         from sage.misc.randstate import random
         hd = self._hasse_diagram
         n = len(hd)
-        lower_covers = [[j for j in hd.lower_covers_iterator(i)] for i in range(n)]
-        upper_covers = [[j for j in hd.upper_covers_iterator(i)] for i in range(n)]
+        lower_covers = [list(hd.lower_covers_iterator(i)) for i in range(n)]
+        upper_covers = [list(hd.upper_covers_iterator(i)) for i in range(n)]
         count = n
         seedlist = [(current_randstate().long_seed(), count)]
         while True:
-            # states are 0 -- in order ideal 1 -- not in order ideal 2 -- undecided
-            state = [2 for _ in range(n)]
+            # states are 0 -- in order ideal
+            # 1 -- not in order ideal 2 -- undecided
+            state = [2] * n
             for currseed, count in seedlist:
                 with seed(currseed):
                     for _ in range(count):
@@ -4102,12 +4116,16 @@ class FinitePoset(UniqueRepresentation, Parent):
             count = seedlist[0][1] * 2
             seedlist.insert(0, (current_randstate().long_seed(), count))
         if direction == 'up':
-            return map(self._vertex_to_element, [i for i,x in enumerate(state) if x == 1])
+            return map(self._vertex_to_element,
+                       [i for i, x in enumerate(state) if x == 1])
         if direction == 'antichain':
-            return map(self._vertex_to_element, [i for i,x in enumerate(state)
-                                                 if x == 0 and all(state[j]==1 for j in hd.upper_covers_iterator(i))])
-        else:
-            return map(self._vertex_to_element, [i for i,x in enumerate(state) if x == 0])
+            return map(self._vertex_to_element,
+                       [i for i, x in enumerate(state)
+                        if x == 0 and all(state[j] == 1
+                                          for j in hd.upper_covers_iterator(i))])
+        else:  # direction is assumed to be 'down'
+            return map(self._vertex_to_element, [i for i, x in enumerate(state)
+                                                 if x == 0])
 
     def order_filter(self,elements):
         """

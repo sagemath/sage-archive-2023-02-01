@@ -390,9 +390,9 @@ class FindStat():
     appropriately, but this may be impossible, especially with
     distribution searches::
 
-        sage: S6 = Permutations(6); S6.cardinality()                        # optional -- internet
+        sage: S6 = Permutations(6); S6.cardinality()                            # optional -- internet
         720
-        sage: findstat((S6, [1 for a in S6]))                               # optional -- internet
+        sage: findstat((S6, [1 for a in S6]))                                   # optional -- internet
         Traceback (most recent call last):
         ...
         ValueError: after discarding elements not in the range, and keeping less than 200 values, nothing remained to send to FindStat.
@@ -445,9 +445,10 @@ class FindStat():
             elif isinstance(query, dict):
                 # we expect a dictionary from objects to integers
                 data = [([key], [value]) for (key, value) in query.iteritems()]
+                first_terms = [(key, value) for (key, value) in query.iteritems()]
                 collection = FindStatCollection(data[0][0][0])
                 return FindStatStatistic(id=0, data=data,
-                                         first_terms=query,
+                                         first_terms=first_terms,
                                          collection=collection,
                                          depth=depth)._find_by_values(max_values=max_values)
 
@@ -992,7 +993,7 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: S4 = Permutations(4); findstat((S4, [pi.length() for pi in S4])).data()           # optional -- internet
+            sage: S4 = Permutations(4); findstat((S4, [pi.length() for pi in S4])).data() # optional -- internet
             [(Standard permutations of 4,
               [0, 1, 1, 2, 2, 3, 1, 2, 2, 3, 3, 4, 2, 3, 3, 4, 4, 5, 3, 4, 4, 5, 5, 6])]
         """
@@ -1072,6 +1073,16 @@ class FindStatStatistic(SageObject):
              ([1, 3, 2], 1),
              ([2, 1, 3], 1),
              ...
+
+        TESTS::
+
+            sage: r = findstat({d: randint(1,1000) for d in DyckWords(4)}); r   # optional -- internet
+            a new statistic on Cc0005: Dyck paths
+
+            sage: isinstance(r.first_terms(), list)                             # optional -- internet
+            True
+            sage: all(isinstance(e, tuple) and len(e)==2 and isinstance(e[1], (ZZ, int)) for e in r.first_terms())      # optional -- internet
+            True
         """
         return self._first_terms
 
@@ -1091,6 +1102,7 @@ class FindStatStatistic(SageObject):
 
             sage: findstat(1).first_terms_str()[:10]                            # optional -- internet,random
             '[1] => 1\r\n'
+
         """
         if self._first_terms != None:
             to_str = self._collection.to_string()
@@ -1138,7 +1150,7 @@ class FindStatStatistic(SageObject):
 
             sage: s = findstat([(d, randint(1,1000)) for d in DyckWords(4)]); s # optional -- internet
             a new statistic on Cc0005: Dyck paths
-            sage: s.set_description("Random values on Dyck paths.\r\nNot for submssion.")           # optional -- internet
+            sage: s.set_description("Random values on Dyck paths.\r\nNot for submssion.") # optional -- internet
             sage: s                                                             # optional -- internet
             a new statistic on Cc0005: Dyck paths
             sage: s.name()                                                      # optional -- internet

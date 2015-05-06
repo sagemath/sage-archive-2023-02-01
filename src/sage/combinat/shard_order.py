@@ -20,8 +20,7 @@ REFERENCES:
 from sage.combinat.posets.posets import Poset
 from sage.graphs.digraph import DiGraph
 from sage.combinat.permutation import Permutations
-from sage.misc.cachefunc import cached_function
-from sage.rings.infinity import Infinity
+
 
 class ShardPosetElement:
     r"""
@@ -40,11 +39,18 @@ class ShardPosetElement:
         INPUT:
 
         - ``p`` - a permutation
+
+        EXAMPLES::
+
+            sage: from sage.combinat.shard_order import ShardPosetElement
+            sage: p0 = Permutation([1,3,4,2])
+            sage: e0 = ShardPosetElement(p0); e0
+            (1, 3, 4, 2)
         """
         self.p = tuple(p)
         self.runs = p.decreasing_runs(as_tuple=True)
-        self.run_indices = [None] * (len(p)+1)
-        for i,bloc in enumerate(self.runs):
+        self.run_indices = [None] * (len(p) + 1)
+        for i, bloc in enumerate(self.runs):
             for j in bloc:
                 self.run_indices[j] = i
         G = shard_preorder_graph(self.runs)
@@ -52,9 +58,29 @@ class ShardPosetElement:
         self.spg = G.transitive_reduction()
 
     def __repr__(self):
+        """
+        Return the string representation.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.shard_order import ShardPosetElement
+            sage: p0 = Permutation([1,3,4,2])
+            sage: e0 = ShardPosetElement(p0); e0
+            (1, 3, 4, 2)
+        """
         return repr(self.p)
 
     def __hash__(self):
+        """
+        Return the hash.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.shard_order import ShardPosetElement
+            sage: p0 = Permutation([1,3,4,2])
+            sage: e0 = ShardPosetElement(p0); hash(e0)
+            -1087745035442439091  # 64-bit
+        """
         return hash(self.p)
 
     def __le__(self, other):
@@ -62,7 +88,7 @@ class ShardPosetElement:
         Comparison between two elements of the poset.
 
         This is the core function in the implementation of the
-        shard intesection order.
+        shard intersection order.
 
         EXAMPLES::
 
@@ -107,7 +133,7 @@ class ShardPosetElement:
         dg0 = self.spg
         dg1 = other.dpg
 
-        for i,j in dg0.edge_iterator(labels=False):
+        for i, j in dg0.edge_iterator(labels=False):
             if dico0[i] != dico0[j] and not dg1.has_edge(dico0[i], dico0[j]):
                 return False
         return True
@@ -137,59 +163,10 @@ def shard_preorder_graph(runs):
     """
     N = len(runs)
     dg = DiGraph(N)
-    dg.add_edges((i,j) for i in range(N - 1) \
-                       for j in range(i + 1, N) \
-                       if runs[i][-1] < runs[j][0] and runs[j][-1] < runs[i][0])
+    dg.add_edges((i, j) for i in range(N - 1)
+                 for j in range(i + 1, N)
+                 if runs[i][-1] < runs[j][0] and runs[j][-1] < runs[i][0])
     return dg
-
-
-def shard_compares(r0, r1):
-    """
-    Comparison between two tuples of decreasing runs.
-
-    Comparison between two tuples of decreasing runs.
-
-    This is the core function in the implementation of the
-    shard intesection order.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.shard_order import shard_compares
-        sage: s0 = Permutation([1,2,5,7,3,4,6,8])
-        sage: s1 = Permutation([2,5,7,3,4,8,6,1])
-        sage: shard_compares(s0.decreasing_runs(),s1.decreasing_runs())
-        True
-        sage: shard_compares(s1.decreasing_runs(),s0.decreasing_runs())
-        False
-    """
-    # r1 must have less runs than r0
-    if len(r1) > len(r0):
-        return False
-
-    # conversion: integer -> index of run in r1
-    dico1 = {j: i for i, bloc in enumerate(r1) for j in bloc}
-
-    dico0 = {}
-    # conversion: index of run in r0 -> index of run in r1
-    for i, bloc in enumerate(r0):
-        ind = set([dico1[k] for k in bloc])
-        if len(ind) == 1:
-            dico0[i] = ind.pop()
-        else:
-            return False
-    # at this point, the set partitions given by tuples are comparable
-
-    cr0 = tuple((r[0], r[-1]) for r in r0)
-    cr1 = tuple((r[0], r[-1]) for r in r1)
-    dg0 = shard_preorder_graph(cr0)
-    dg1 = shard_preorder_graph(cr1)
-    for deb, fin, _ in dg0.edges():
-        ideb = dico0[deb]
-        ifin = dico0[fin]
-        if dg1.distance(ideb, ifin) == Infinity:
-            return False
-
-    return True
 
 
 def shard_poset(n):
@@ -209,7 +186,7 @@ def shard_poset(n):
 
     EXAMPLES::
 
-        sage: P = posets.ShardPoset(4); P
+        sage: P = posets.ShardPoset(4); P  # indirect doctest
         Finite poset containing 24 elements
         sage: len(P.maximal_chains())
         34

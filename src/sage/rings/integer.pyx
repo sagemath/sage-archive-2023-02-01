@@ -140,7 +140,7 @@ from sage.misc.superseded import deprecated_function_alias
 
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "sage/ext/stdsage.pxi"
-from sage.ext.memory cimport check_allocarray
+from sage.ext.memory cimport check_malloc, check_allocarray
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
@@ -6753,7 +6753,7 @@ cdef int total_alloc = 0
 cdef int use_pool = 0
 
 
-cdef PyObject* fast_tp_new(type t, args, kwds):
+cdef PyObject* fast_tp_new(type t, args, kwds) except NULL:
     global integer_pool, integer_pool_count, total_alloc, use_pool
 
     cdef PyObject* new
@@ -6806,7 +6806,7 @@ cdef PyObject* fast_tp_new(type t, args, kwds):
         #  Applications expecting to be compatible with future releases should use
         #  only the documented interfaces described in previous chapters."
         new_mpz = <mpz_ptr>((<Integer>new).value)
-        new_mpz._mp_d = <mp_ptr>sage_malloc(GMP_LIMB_BITS >> 3)
+        new_mpz._mp_d = <mp_ptr>check_malloc(GMP_LIMB_BITS >> 3)
 
     # This line is only needed if Python is compiled in debugging mode
     # './configure --with-pydebug' or SAGE_DEBUG=yes. If that is the

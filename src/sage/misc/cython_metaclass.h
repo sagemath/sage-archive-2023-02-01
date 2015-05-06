@@ -51,8 +51,8 @@ static CYTHON_INLINE int Sage_PyType_Ready(PyTypeObject* t)
     getmetaclass = PyObject_GetAttrString((PyObject*)t, "__getmetaclass__");
     if (getmetaclass)
     {
-        /* Class getmetaclass with self == None */
-        metaclass = PyMethodDescr_CallSelf((PyMethodDescrObject*)getmetaclass, Py_None);
+        /* Call getmetaclass with self=None */
+        metaclass = (PyTypeObject*)(PyMethodDescr_CallSelf((PyMethodDescrObject*)getmetaclass, Py_None));
         Py_DECREF(getmetaclass);
         if (!metaclass)
             return -1;
@@ -97,7 +97,7 @@ static CYTHON_INLINE int Sage_PyType_Ready(PyTypeObject* t)
         NoneNoneNone = PyTuple_Pack(3, Py_None, Py_None, Py_None);
         if (!NoneNoneNone) return -1;
     }
-    return init(t, NoneNoneNone, NULL);
+    return init((PyObject*)t, NoneNoneNone, NULL);
 }
 
 

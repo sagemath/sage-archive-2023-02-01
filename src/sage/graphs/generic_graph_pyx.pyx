@@ -342,12 +342,13 @@ def binary_string_to_graph6(x):
 
     - ``x`` -- a binary string.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: from sage.graphs.generic_graph_pyx import binary_string_to_graph6
         sage: binary_string_to_graph6('110111010110110010111000001100000001000000001')
         'vUqwK@?G'
 
-    REFERENCES::
+    REFERENCES:
 
     .. [McK] McKay, Brendan. 'Description of graph6 and sparse6 encodings.'
        http://cs.anu.edu.au/~bdm/data/formats.txt (2007-02-13)
@@ -486,7 +487,7 @@ def binary_string_from_dig6(s, n):
 
 cdef class SubgraphSearch:
     r"""
-    This class implements methods to exhaustively search for labelled
+    This class implements methods to exhaustively search for
     copies of a graph `H` in a larger graph `G`.
 
     It is possible to look for induced subgraphs instead, and to
@@ -503,6 +504,11 @@ cdef class SubgraphSearch:
     This way, most of the time we need to test far less than `k!
     \binom{|V(G)|}{k}` subsets, and hope this brute-force technique
     can sometimes be useful.
+
+    .. NOTE::
+
+        This algorithm does not take vertex/edge labels into account.
+
     """
     def __init__(self, G, H, induced = False):
         r"""

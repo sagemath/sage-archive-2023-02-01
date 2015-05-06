@@ -105,6 +105,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.plot` | Returns a Graphic object corresponding the Hasse diagram of the poset.
     :meth:`~FinitePoset.product` | Returns the cartesian product of ``self`` and ``other``.
     :meth:`~FinitePoset.promotion` | Computes the (extended) promotion on the linear extension of the poset ``self``
+    :meth:`~FinitePoset.random_order_ideal` | Return a random order ideal of ``self`` with uniform probability.
     :meth:`~FinitePoset.random_subposet` | Return a random subposet that contains each element with probability ``p``.
     :meth:`~FinitePoset.rank_function` | Returns a rank function of the poset, if it exists.
     :meth:`~FinitePoset.rank` | Returns the rank of an element, or the rank of the poset if element is None.
@@ -4030,6 +4031,101 @@ class FinitePoset(UniqueRepresentation, Parent):
             if random() <= p:
                 elements.append(v)
         return self.subposet(elements)
+
+
+    def random_order_ideal(self, direction='down'):
+        """
+        Return a random order ideal with uniform probability.
+
+        INPUT:
+
+        - ``direction`` -- ``'up'``, ``'down'`` or ``'antichain'``
+          (default: ``'down'``)
+
+        OUTPUT:
+
+        A randomly selected order ideal (or order filter if
+        ``direction='up'``, or antichain if ``direction='antichain'``)
+        where all order ideals have equal probability of occurring.
+
+        ALGORITHM:
+
+        Uses the coupling from the past algorithm described in [Propp1997]_.
+
+        EXAMPLES::
+
+            sage: P = Posets.BooleanLattice(3)
+            sage: P.random_order_ideal()
+            [0, 1, 2, 3, 4, 5, 6]
+            sage: P.random_order_ideal(direction='up')
+            [6, 7]
+            sage: P.random_order_ideal(direction='antichain')
+            [1, 2]
+
+            sage: P = posets.TamariLattice(5)
+            sage: a = P.random_order_ideal('antichain')
+            sage: P.is_antichain_of_poset(a)
+            True
+            sage: a = P.random_order_ideal('up')
+            sage: P.is_order_filter(a)
+            True
+            sage: a = P.random_order_ideal('down')
+            sage: P.is_order_ideal(a)
+            True
+
+        REFERENCES:
+
+        .. [Propp1997] James Propp,
+           *Generating Random Elements of Finite Distributive Lattices*,
+           Electron. J. Combin. 4 (1997), no. 2, The Wilf Festschrift volume,
+           Research Paper 15.
+        """
+        from sage.misc.randstate import current_randstate
+        from sage.misc.randstate import seed
+        from sage.misc.randstate import random
+        hd = self._hasse_diagram
+        n = len(hd)
+        lower_covers = [list(hd.lower_covers_iterator(i)) for i in range(n)]
+        upper_covers = [list(hd.upper_covers_iterator(i)) for i in range(n)]
+        count = n
+        seedlist = [(current_randstate().long_seed(), count)]
+        while True:
+            # states are 0 -- in order ideal
+            # 1 -- not in order ideal 2 -- undecided
+            state = [2] * n
+            for currseed, count in seedlist:
+                with seed(currseed):
+                    for _ in range(count):
+                        for element in range(n):
+                            if random() % 2 == 1:
+                                s = [state[i] for i in lower_covers[element]]
+                                if 1 not in s:
+                                    if 2 not in s:
+                                        state[element] = 0
+                                    elif state[element] == 1:
+                                        state[element] = 2
+                            else:
+                                s = [state[i] for i in upper_covers[element]]
+                                if 0 not in s:
+                                    if 2 not in s:
+                                        state[element] = 1
+                                    elif state[element] == 0:
+                                        state[element] = 2
+            if all(x != 2 for x in state):
+                break
+            count = seedlist[0][1] * 2
+            seedlist.insert(0, (current_randstate().long_seed(), count))
+        if direction == 'up':
+            return map(self._vertex_to_element,
+                       [i for i, x in enumerate(state) if x == 1])
+        if direction == 'antichain':
+            return map(self._vertex_to_element,
+                       [i for i, x in enumerate(state)
+                        if x == 0 and all(state[j] == 1
+                                          for j in hd.upper_covers_iterator(i))])
+        else:  # direction is assumed to be 'down'
+            return map(self._vertex_to_element, [i for i, x in enumerate(state)
+                                                 if x == 0])
 
     def order_filter(self,elements):
         """

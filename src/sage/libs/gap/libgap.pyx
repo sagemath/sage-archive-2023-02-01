@@ -805,4 +805,3 @@ class Gap(Parent):
 
 
 libgap = Gap()
-

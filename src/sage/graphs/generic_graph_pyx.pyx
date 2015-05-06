@@ -342,12 +342,13 @@ def binary_string_to_graph6(x):
 
     - ``x`` -- a binary string.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: from sage.graphs.generic_graph_pyx import binary_string_to_graph6
         sage: binary_string_to_graph6('110111010110110010111000001100000001000000001')
         'vUqwK@?G'
 
-    REFERENCES::
+    REFERENCES:
 
     .. [McK] McKay, Brendan. 'Description of graph6 and sparse6 encodings.'
        http://cs.anu.edu.au/~bdm/data/formats.txt (2007-02-13)

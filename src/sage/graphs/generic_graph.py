@@ -1911,12 +1911,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.set_embedding({'s': [1, 5, 4], 1: [0, 2, 6], 2: [1, 3, 7], 3: [8, 2, 4], 4: [0, 9, 3], 5: [0, 8, 7], 6: [8, 1, 9], 7: [9, 2, 5], 8: [3, 5, 6], 9: [4, 6, 7]})
             Traceback (most recent call last):
             ...
-            ValueError: embedding is not valid for Petersen graph
+            ValueError: The following vertices from the embedding do not belong to the graph: ['s']
         """
-        if self._check_embedding_validity(embedding):
-            self._embedding = embedding
-        else:
-            raise ValueError('embedding is not valid for %s'%self)
+        self._check_embedding_validity(embedding,boolean=False)
+        self._embedding = embedding
 
     def get_embedding(self):
         """
@@ -1940,14 +1938,17 @@ class GenericGraph(GenericGraph_pyx):
         else:
             raise ValueError('%s has been modified and the embedding is no longer valid'%self)
 
-    def _check_embedding_validity(self, embedding=None):
+    def _check_embedding_validity(self, embedding=None, boolean=True):
         """
         Checks whether an _embedding attribute is well defined.
 
-        If the ``_embedding`` attribute exists, it is checked for
-        accuracy. Returns True if everything is okay, False otherwise.
+        INPUT:
 
-        If embedding=None will test the attribute _embedding.
+        - ``embedding`` -- the embedding to test. If set to ``None`` (default),
+          the test is performed on ``_embedding``
+
+        - ``boolean`` (boolean; ``True``) -- whether to return a boolean answer
+          or raise a ``ValueError`` exception if the embedding is invalid.
 
         EXAMPLES::
 
@@ -1956,25 +1957,64 @@ class GenericGraph(GenericGraph_pyx):
             sage: G._check_embedding_validity(d)
             True
 
+        Exceptions::
+
+            sage: g = graphs.PathGraph(2)
+            sage: g._check_embedding_validity(boolean=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: No embedding has been defined
+            sage: g._check_embedding_validity({8:[],9:[]},boolean=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: The following vertices from the embedding do not belong to the graph: [8, 9]
+            sage: g._check_embedding_validity({0:[],1:[0]},boolean=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: The list associated with vertex 0 has length 0 but d(0)=1
+            sage: g._check_embedding_validity({0:[5],1:[0]},boolean=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: 5 and 0 are not neighbors but 5 is in the list associated with 0
+            sage: graphs.PathGraph(3)._check_embedding_validity({0:[1],1:[0,0],2:[1]},boolean=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: The list associated with vertex 1 contains >1 occurrences of: [0]
+
         """
         if embedding is None:
             embedding = getattr(self, '_embedding', None)
         if embedding is None:
-            return False
-        if len(embedding) != self.order():
-            return False
+            if boolean:
+                return False
+            raise ValueError("No embedding has been defined")
+
+        if set(embedding) != set(self):
+            if boolean:
+                return False
+            if set(embedding).difference(self):
+                raise ValueError("The following vertices from the embedding do not belong to the graph: {}".format(list(set(embedding).difference(self))))
+            else:
+                raise ValueError("The following vertices have no corresponding entry in the embedding: {}".format(list(set(self).difference(embedding))))
+
         if self._directed:
             connected = lambda u,v : self.has_edge(u,v) or self.has_edge(v,u)
         else:
             connected = lambda u,v : self.has_edge(u,v)
         for v in embedding:
-            if not self.has_vertex(v):
-                return False
-            if len(embedding[v]) != len(self.neighbors(v)):
-                return False
+            if len(embedding[v]) != self.degree(v):
+                if boolean:
+                    return False
+                raise ValueError("The list associated with vertex {} has length {} but d({})={}".format(v,len(embedding[v]),v,self.degree(v)))
+            if len(embedding[v]) != len(set(embedding[v])):
+                if boolean:
+                    return False
+                raise ValueError("The list associated with vertex {} contains >1 occurrences of: {}".format(v,[x for x in set(embedding[v]) if embedding[v].count(x)>1]))
             for u in embedding[v]:
                 if not connected(v,u):
-                    return False
+                    if boolean:
+                        return False
+                    raise ValueError("{} and {} are not neighbors but {} is in the list associated with {}".format(u,v,u,v))
         return True
 
     def has_loops(self):
@@ -3615,11 +3655,10 @@ class GenericGraph(GenericGraph_pyx):
                 raise NotImplementedError("Cannot compute with embeddings of multiple-edged or looped graphs.")
             else:
                 return self.to_simple().is_planar(kuratowski=kuratowski)
+
         if on_embedding is not None:
-            if self._check_embedding_validity(on_embedding):
-                return (0 == self.genus(minimal=False,set_embedding=False,on_embedding=on_embedding))
-            else:
-                raise ValueError('on_embedding is not a valid embedding for %s'%self)
+            self._check_embedding_validity(on_embedding,boolean=False)
+            return (0 == self.genus(minimal=False,set_embedding=False,on_embedding=on_embedding))
         else:
             from sage.graphs.planarity import is_planar
             G = self.to_undirected()
@@ -3884,11 +3923,9 @@ class GenericGraph(GenericGraph_pyx):
             embedding_copy = G._embedding
         else:
             if on_embedding is not None:
-                if G._check_embedding_validity(on_embedding):
-                    if not (G.is_planar(on_embedding=on_embedding)):
-                        raise ValueError('provided embedding is not a planar embedding for %s'%self )
-                else:
-                    raise ValueError('provided embedding is not a valid embedding for %s. Try putting set_embedding=True'%self)
+                G._check_embedding_validity(on_embedding,boolean=False)
+                if not (G.is_planar(on_embedding=on_embedding)):
+                    raise ValueError('provided embedding is not a planar embedding for %s'%self )
             else:
                 if hasattr(G,'_embedding'):
                     if G._check_embedding_validity():

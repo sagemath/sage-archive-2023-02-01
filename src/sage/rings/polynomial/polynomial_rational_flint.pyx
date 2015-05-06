@@ -19,6 +19,8 @@ AUTHOR:
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 
+from sage.misc.long cimport pyobject_to_long
+
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.libs.flint.fmpz cimport *
@@ -41,8 +43,6 @@ from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_int
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from sage.structure.element import coerce_binop
-
-from cpython.number cimport PyNumber_AsSsize_t
 
 cdef inline bint _do_sig(fmpq_poly_t op):
     """
@@ -1085,7 +1085,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: (1 + t)^(2^63)
             Traceback (most recent call last):
             ...
-            OverflowError: cannot fit 'sage.rings.integer.Integer' into an index-sized integer
+            OverflowError: Sage Integer too large to convert to C long
 
         FLINT memory errors do not crash Sage (:trac:`17629`)::
 
@@ -1098,7 +1098,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef Polynomial_rational_flint res
 
         try:
-            n = PyNumber_AsSsize_t(exp, OverflowError)
+            n = pyobject_to_long(exp)
         except TypeError:
             raise TypeError("non-integral exponents not supported")
 

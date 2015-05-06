@@ -37,7 +37,6 @@ cdef class BasisMatroid(BasisExchangeMatroid):
     cpdef  bint is_distinguished(self, e)
     cpdef _is_relaxation(self, M, morphism)
     cpdef _is_isomorphism(self, M, morphism)
-    cpdef _isomorphism(self, other)
     cpdef _is_isomorphic(self, other)
 
 

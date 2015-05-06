@@ -2961,17 +2961,15 @@ cdef class Matroid(SageObject):
             sage: morphism=M1.isomorphism(M2)
             sage: M1.is_isomorphism(M2, morphism)
             True
+            sage: M1 = matroids.named_matroids.Fano()
+            sage: M2 = matroids.named_matroids.NonFano()
+            sage: M1.isomorphism(M2) is not None
+            False
             sage: G3 = graphs.CompleteGraph(4)
             sage: M1.isomorphism(G3)
             Traceback (most recent call last):
             ...
             TypeError: can only give isomorphism between matroids.
-
-
-            sage: M1 = matroids.named_matroids.Fano()
-            sage: M2 = matroids.named_matroids.NonFano()
-            sage: M1.isomorphism(M2) is not None
-            False
         """
         if not isinstance(other, Matroid):
             raise TypeError("can only give isomorphism between matroids.")

@@ -90,7 +90,6 @@ cdef class BasisExchangeMatroid(Matroid):
 
     cpdef _equitable_partition(self, P=*)
     cpdef _is_isomorphic(self, other)
-    cpdef _isomorphism(self, other)
     cpdef _is_isomorphism(self, other, morphism)
     cdef bint __is_isomorphism(self, BasisExchangeMatroid other, morphism)
 

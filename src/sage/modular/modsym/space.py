@@ -36,6 +36,7 @@ from   sage.structure.all import Sequence, SageObject
 import sage.modular.modsym.ambient
 
 from sage.modular.arithgroup.all import Gamma0, is_Gamma0 # for Sturm bound given a character
+from sage.modular.modsym.element import ModularSymbolsElement
 
 import hecke_operator
 
@@ -59,7 +60,10 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
     r"""
     Base class for spaces of modular symbols.
     """
-    def __init__(self, group, weight, character, sign, base_ring):
+
+    Element = ModularSymbolsElement
+
+    def __init__(self, group, weight, character, sign, base_ring, category=None):
         """
         Create a space of modular symbols.
 
@@ -73,7 +77,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         self.__group = group
         self.__character = character
         self.__sign = sign
-        hecke.HeckeModule_free_module.__init__(self, base_ring, group.level(), weight)
+        hecke.HeckeModule_free_module.__init__(self, base_ring, group.level(), weight, category=category)
 
     def __cmp__(self, other):
         """

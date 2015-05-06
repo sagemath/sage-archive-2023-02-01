@@ -21,7 +21,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.infinity import infinity
 from sage.rings.arith import binomial
 import sage.combinat.ranker
-from sage.combinat.backtrack import TransitiveIdeal
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.combinat.root_system.root_system import RootSystem
 from sage.combinat.root_system.dynkin_diagram import DynkinDiagram
 from sage.combinat.root_system.weyl_group import WeylGroup
@@ -137,7 +137,7 @@ class PieriFactors(UniqueRepresentation, Parent):
         Those are constructed as the elements below the maximal
         elements of ``self`` in Bruhat order.
 
-        OUTPUT: a :class:`TransitiveIdeal` object
+        OUTPUT: a :class:`RecursivelyEnumeratedSet_generic` object
 
         EXAMPLES::
 
@@ -150,9 +150,11 @@ class PieriFactors(UniqueRepresentation, Parent):
         .. TODO::
 
             Possibly remove this method and instead have this class
-            inherit from :class:`TransitiveIdeal`.
+            inherit from :class:`RecursivelyEnumeratedSet_generic`.
         """
-        return TransitiveIdeal(attrcall('bruhat_lower_covers'), self.maximal_elements())
+        return RecursivelyEnumeratedSet(self.maximal_elements(),
+                attrcall('bruhat_lower_covers'), structure=None,
+                enumeration='naive')
 
     def __iter__(self):
         r"""

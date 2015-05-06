@@ -20,8 +20,13 @@ Algebraic Number Fields
    sage/rings/number_field/unit_group
    sage/rings/number_field/small_primes_of_degree_one
    sage/rings/number_field/splitting_field
+   sage/rings/number_field/bdd_height
+   sage/rings/number_field/structure
    sage/rings/number_field/totallyreal
    sage/rings/number_field/totallyreal_rel
+   sage/rings/number_field/totallyreal_data
+   sage/rings/number_field/totallyreal_phc
+
    sage/rings/qqbar
 
 .. include:: ../footer.txt

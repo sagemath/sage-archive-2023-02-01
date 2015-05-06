@@ -256,7 +256,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             a = Mod(y,K.pol);
             bnfellrank(K, [0, 0, 0, 1, a], [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]]);
              elliptic curve: Y^2 = x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)
-              A = 0
+              A = Mod(0, y^2 + 7)
               B = Mod(1, y^2 + 7)
               C = Mod(y, y^2 + 7)
             <BLANKLINE>
@@ -289,7 +289,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
             v = [1, 1, [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]]]
             sage: v
             (1, 1, [(1/2*a + 3/2 : -a - 2 : 1)])
-
 
         A curve with 2-torsion::
 
@@ -2728,6 +2727,17 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.is_isogenous(Ec)
             True
 
+        Check that :trac:`17295` is fixed::
+
+            sage: k.<s> = QuadraticField(2)
+            sage: K.<b> = k.extension(x^2 - 3)
+            sage: E = EllipticCurve(k, [-3*s*(4 + 5*s), 2*s*(2 + 14*s + 11*s^2)])
+            sage: Ec = EllipticCurve(k, [3*s*(4 - 5*s), -2*s*(2 - 14*s + 11*s^2)])
+            sage: EK = E.base_extend(K)
+            sage: EcK = Ec.base_extend(K)
+            sage: EK.is_isogenous(EcK)      # long time (about 3.5 s)
+            True
+
         """
         if not is_EllipticCurve(other):
             raise ValueError("Second argument is not an Elliptic Curve.")
@@ -2746,7 +2756,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         PI = K.primes_of_degree_one_iter()
         while True:
             P = next(PI)
-            if P.norm() > maxnorm: break
+            if P.absolute_norm() > maxnorm: break
             if not P.divides(N):
                 if E1.reduction(P).cardinality() != E2.reduction(P).cardinality():
                     return False
@@ -2771,7 +2781,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # Next we try looking modulo some more primes:
 
         while True:
-            if P.norm() > 10*maxnorm: break
+            if P.absolute_norm() > 10*maxnorm: break
             if not P.divides(N):
                 OP = K.residue_field(P)
                 if E1.change_ring(OP).cardinality() != E2.change_ring(OP).cardinality():

@@ -575,7 +575,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f.reverse(5)
             t^4 + t^3 + 1/2*t^2 + 1/3*t
 
-        TESTS::
+        TESTS:
 
         We illustrate two ways in which the interpretation of `n` as an
         unsigned long int may fail.  Firstly, an integral value which is

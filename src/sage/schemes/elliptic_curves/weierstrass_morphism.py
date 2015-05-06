@@ -95,9 +95,8 @@ class baseWI:
             sage: baseWI(1,2,3,4)>baseWI(1,2,3,4)
             False
 
-        ::
+        It will never return equality if other is of another type::
 
-        It will never return equality if other is of another type:
             sage: baseWI() == 1
             False
 
@@ -368,7 +367,7 @@ def isomorphisms(E,F,JustOne=False):
     ans.sort()
     return ans
 
-class WeierstrassIsomorphism(baseWI,Morphism):
+class WeierstrassIsomorphism(baseWI, Morphism):
     r"""
     Class representing a Weierstrass isomorphism between two elliptic curves.
     """
@@ -470,43 +469,43 @@ class WeierstrassIsomorphism(baseWI,Morphism):
             self._codomain_curve = F
         return
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         r"""
         Standard comparison function for the WeierstrassIsomorphism class.
 
-        EXAMPLE::
+        EXAMPLES::
 
-        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
-        sage: E=EllipticCurve('389a1')
-        sage: F=E.change_weierstrass_model(1,2,3,4)
-        sage: w1=E.isomorphism_to(F)
-        sage: w1==w1
-        True
-        sage: w2 = F.automorphisms()[0] *w1
-        sage: w1==w2
-        False
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
+            sage: E=EllipticCurve('389a1')
+            sage: F=E.change_weierstrass_model(1,2,3,4)
+            sage: w1=E.isomorphism_to(F)
+            sage: w1==w1
+            True
+            sage: w2 = F.automorphisms()[0] *w1
+            sage: w1==w2
+            False
 
-    ::
+        ::
 
-        sage: E=EllipticCurve_from_j(GF(7)(0))
-        sage: F=E.change_weierstrass_model(2,3,4,5)
-        sage: a=E.isomorphisms(F)
-        sage: b=[w*a[0] for w in F.automorphisms()]
-        sage: b.sort()
-        sage: a==b
-        True
-        sage: c=[a[0]*w for w in E.automorphisms()]
-        sage: c.sort()
-        sage: a==c
-        True
+            sage: E=EllipticCurve_from_j(GF(7)(0))
+            sage: F=E.change_weierstrass_model(2,3,4,5)
+            sage: a=E.isomorphisms(F)
+            sage: b=[w*a[0] for w in F.automorphisms()]
+            sage: b.sort()
+            sage: a==b
+            True
+            sage: c=[a[0]*w for w in E.automorphisms()]
+            sage: c.sort()
+            sage: a==c
+            True
         """
-        if not isinstance(other, WeierstrassIsomorphism):
-            return cmp(type(self), type(other))
         t = cmp(self._domain_curve, other._domain_curve)
         if t: return t
         t = cmp(self._codomain_curve, other._codomain_curve)
         if t: return t
         return baseWI.__cmp__(self,other)
+
+    __cmp__ = _cmp_
 
     def __call__(self, P):
         r"""

@@ -67,11 +67,12 @@ cdef class FractionFieldElement(FieldElement):
     """
     EXAMPLES::
 
-        sage: K, x = FractionField(PolynomialRing(QQ, 'x')).objgen()
+        sage: K = FractionField(PolynomialRing(QQ, 'x'))
         sage: K
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
         sage: loads(K.dumps()) == K
         True
+        sage: x = K.gen()
         sage: f = (x^3 + x)/(17 - x^19); f
         (x^3 + x)/(-x^19 + 17)
         sage: loads(f.dumps()) == f
@@ -852,7 +853,7 @@ cdef class FractionFieldElement(FieldElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         """
         EXAMPLES::
 

@@ -28,6 +28,7 @@ matrix ([1]_, [2]_). :class:`IncidenceStructure` instances have the following me
     :meth:`~IncidenceStructure.automorphism_group` | Return the automorphism group
     :meth:`~IncidenceStructure.canonical_label` | Return a canonical label for the incidence structure.
     :meth:`~IncidenceStructure.is_isomorphic` | Return whether the two incidence structures are isomorphic.
+    :meth:`~IncidenceStructure.isomorphic_substructures_iterator` | Iterates over all copies of ``H2`` contained in ``self``
     :meth:`~IncidenceStructure.edge_coloring` | Return an optimal edge coloring`
     :meth:`~IncidenceStructure.copy` | Return a copy of the incidence structure.
     :meth:`~IncidenceStructure.induced_substructure` | Return the substructure induced by a set of points.
@@ -487,12 +488,6 @@ class IncidenceStructure(object):
         r"""
         Return whether the two incidence structures are isomorphic.
 
-        .. NOTE::
-
-            If you need to test isomorphisms between one incidence
-            structure and many others, you should consider using
-            :meth:`canonical_label` instead of this function.
-
         INPUT:
 
         - ``other`` -- an incidence structure.
@@ -527,19 +522,32 @@ class IncidenceStructure(object):
             False
             sage: IS2.is_isomorphic(IS,certificate=True)
             {}
+
+        Checking whether two :class:`IncidenceStructure` are isomorphic
+        incidentally computes their canonical label (if necessary). Thus,
+        subsequent calls to :meth:`is_isomorphic` will be faster::
+
+            sage: IS1 = designs.projective_plane(3)
+            sage: IS2 = IS1.relabel(Permutations(IS1.ground_set()).random_element(),inplace=False)
+            sage: IS2 = IncidenceStructure(IS2.blocks())
+            sage: IS1._canonical_label is None and IS2._canonical_label is None
+            True
+            sage: IS1.is_isomorphic(IS2)
+            True
+            sage: IS1._canonical_label is None or IS2._canonical_label is None
+            False
+
         """
         if (self.num_points() != other.num_points() or
             self.num_blocks() != other.num_blocks() or
             sorted(self.block_sizes()) != sorted(other.block_sizes())):
             return {} if certificate else False
 
-        A = self.copy()
-        B = other.copy()
+        A_canon = self.canonical_label()
+        B_canon = other.canonical_label()
 
-        A_canon = A.canonical_label()
-        B_canon = B.canonical_label()
-        A.relabel(A_canon)
-        B.relabel(B_canon)
+        A = self.relabel(A_canon,inplace=False)
+        B = other.relabel(B_canon,inplace=False)
 
         if A == B:
             if certificate:
@@ -549,6 +557,75 @@ class IncidenceStructure(object):
                 return True
         else:
             return {} if certificate else False
+
+    def isomorphic_substructures_iterator(self, H2,induced=False):
+        r"""
+        Iterates over all copies of ``H2`` contained in ``self``.
+
+        A hypergraph `H_1` contains an isomorphic copy of a hypergraph `H_2` if
+        there exists an injection `f:V(H_2)\mapsto V(H_1)` such that for any set
+        `S_2\in E(H_2)` the set `S_1=f(S2)` belongs to `E(H_1)`.
+
+        It is an *induced* copy if no other set of `E(H_1)` is contained in
+        `f(V(H_2))`, i.e. `|E(H_2)|=\{S:S\in E(H_1)\text{ and }f(V(H_2))\}`.
+
+        This function lists all such injections. In particular, the number of
+        copies of `H` in itself is equal to *the size of its automorphism
+        group*.
+
+        See :mod:`~sage.combinat.designs.subhypergraph_search` for more information.
+
+        INPUT:
+
+        - ``H2`` an :class:`IncidenceStructure` object.
+
+        - ``induced`` (boolean) -- whether to require the copies to be
+          induced. Set to ``False`` by default.
+
+        EXAMPLES:
+
+        How many distinct `C_5` in Petersen's graph ? ::
+
+            sage: P = graphs.PetersenGraph()
+            sage: C = graphs.CycleGraph(5)
+            sage: IP = IncidenceStructure(P.edges(labels=False))
+            sage: IC = IncidenceStructure(C.edges(labels=False))
+            sage: sum(1 for _ in IP.isomorphic_substructures_iterator(IC))
+            120
+
+        As the automorphism group of `C_5` has size 10, the number of distinct
+        unlabelled copies is 12. Let us check that all functions returned
+        correspond to an actual `C_5` subgraph::
+
+            sage: for f in IP.isomorphic_substructures_iterator(IC):
+            ....:     assert all(P.has_edge(f[x],f[y]) for x,y in C.edges(labels=False))
+
+        The number of induced copies, in this case, is the same::
+
+            sage: sum(1 for _ in IP.isomorphic_substructures_iterator(IC,induced=True))
+            120
+
+        They begin to differ if we make one vertex universal::
+
+            sage: P.add_edges([(0,x) for x in P])
+            sage: IP = IncidenceStructure(P.edges(labels=False))
+            sage: IC = IncidenceStructure(C.edges(labels=False))
+            sage: sum(1 for _ in IP.isomorphic_substructures_iterator(IC))
+            420
+            sage: sum(1 for _ in IP.isomorphic_substructures_iterator(IC,induced=True))
+            60
+
+        The number of copies of `H` in itself is the size of its automorphism
+        group::
+
+            sage: H = designs.projective_plane(3)
+            sage: sum(1 for _ in H.isomorphic_substructures_iterator(H))
+            5616
+            sage: H.automorphism_group().cardinality()
+            5616
+        """
+        from sage.combinat.designs.subhypergraph_search import SubHypergraphSearch
+        return SubHypergraphSearch(self,H2,induced=induced)
 
     def copy(self):
         r"""
@@ -1426,7 +1503,9 @@ class IncidenceStructure(object):
             sage: G.is_isomorphic(PGL(3,2))
             True
             sage: G
-            Permutation Group with generators [(2,3)(4,5), (2,4)(3,5), (1,2)(4,6), (0,1)(4,5)]
+            Permutation Group with generators [...]
+            sage: G.cardinality()
+            168
 
         A non self-dual example::
 
@@ -1444,19 +1523,21 @@ class IncidenceStructure(object):
             sage: designs.IncidenceStructure([[(1,2),(3,4)]]).automorphism_group()
             Permutation Group with generators [((1,2),(3,4))]
         """
-        from sage.groups.perm_gps.partn_ref.refinement_matrices import MatrixStruct
+        from sage.graphs.graph import Graph
         from sage.groups.perm_gps.permgroup import PermutationGroup
-        from sage.groups.perm_gps.permgroup_element import standardize_generator
-        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-        M1 = self.incidence_matrix().transpose()
-        M2 = MatrixStruct(M1)
-        M2.run()
-        gens = M2.automorphism_group()[0]
-        gens = [standardize_generator([x+1 for x in g]) for g in gens]
+        g = Graph()
+        n = self.num_points()
+        g.add_edges((i+n,x) for i,b in enumerate(self._blocks) for x in b)
+        ag = g.automorphism_group(partition=[range(n), range(n,n+self.num_blocks())])
+
         if self._point_to_index:
-            gens = [[tuple([self._points[i-1] for i in cycle]) for cycle in g] for g in gens]
+            gens = [[tuple([self._points[i] for i in cycle if (not cycle or cycle[0]<n)])
+                     for cycle in g.cycle_tuples()]
+                    for g in ag.gens()]
         else:
-            gens = [[tuple([i-1 for i in cycle]) for cycle in g] for g in gens]
+            gens = [[tuple(cycle) for cycle in g.cycle_tuples() if (not cycle or cycle[0]<n)]
+                    for g in ag.gens()]
+
         return PermutationGroup(gens, domain=self._points)
 
     def is_resolvable(self, certificate=False, solver=None, verbose=0, check=True):

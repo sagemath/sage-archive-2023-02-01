@@ -2640,6 +2640,8 @@ class NumberField_generic(number_field_base.NumberField):
             False
 
         """
+        if self is other:
+            return 0
         if not isinstance(other, NumberField_generic):
             return cmp(type(self), type(other))
         c = cmp(self.base_field(), other.base_field())
@@ -4527,7 +4529,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.elements_of_norm(3)
             []
             sage: K.elements_of_norm(50)
-            [-7*a + 1, -5*a - 5, a - 7]
+            [-7*a + 1, -5*a - 5, 7*a + 1]
         """
         proof = proof_flag(proof)
         B = self.pari_bnf(proof).bnfisintnorm(n)
@@ -5107,10 +5109,10 @@ class NumberField_generic(number_field_base.NumberField):
             x
             sage: F.<alpha> = NumberField(x^4+x^2+712312*x+131001238)
             sage: F.reduced_gram_matrix(prec=128)
-            [   4.0000000000000000000000000000000000000   0.00000000000000000000000000000000000000 -2.1369320000000000000000000000000000000e6 -3.3122478000000000000000000000000000000e7]
+            [   4.0000000000000000000000000000000000000   0.00000000000000000000000000000000000000 -2.1369360000000000000000000000000000000e6 -3.3122478000000000000000000000000000000e7]
             [  0.00000000000000000000000000000000000000    46721.539331563218381658483353092335550 -2.2467769057394530109094755223395819322e7 -3.4807276041138450473611629088647496430e8]
-            [-2.1369320000000000000000000000000000000e6 -2.2467769057394530109094755223395819322e7 7.0704243186034907491782135494859351061e12 1.1256636615786237006027526953641297995e14]
-            [-3.3122478000000000000000000000000000000e7 -3.4807276041138450473611629088647496430e8 1.1256636615786237006027526953641297995e14 1.7923838231014970520503146603069479547e15]
+            [-2.1369360000000000000000000000000000000e6 -2.2467769057394530109094755223395819322e7 7.0704285924714907491782135494859351061e12 1.1256639928034037006027526953641297995e14]
+            [-3.3122478000000000000000000000000000000e7 -3.4807276041138450473611629088647496430e8 1.1256639928034037006027526953641297995e14 1.7923838231014970520503146603069479547e15]
         """
         if self.is_totally_real():
             try:
@@ -5656,7 +5658,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: A = x^4 - 10*x^3 + 20*5*x^2 - 15*5^2*x + 11*5^3
             sage: K = NumberField(A, 'a')
             sage: K.units()
-            (6/275*a^3 - 9/55*a^2 + 14/11*a - 2,)
+            (7/275*a^3 - 1/11*a^2 + 9/11*a + 2,)
 
         For big number fields, provably computing the unit group can
         take a very long time.  In this case, one can ask for the
@@ -5726,7 +5728,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: U.gens()
             (u0, u1)
             sage: U.gens_values()
-            [-7/275*a^3 + 1/11*a^2 - 9/11*a - 1, 6/275*a^3 - 9/55*a^2 + 14/11*a - 2]
+            [-7/275*a^3 + 1/11*a^2 - 9/11*a - 1, 7/275*a^3 - 1/11*a^2 + 9/11*a + 2]
             sage: U.invariants()
             (10, 0)
             sage: [u.multiplicative_order() for u in U.gens()]
@@ -5796,7 +5798,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: U.gens()
             (u0, u1, u2, u3)
             sage: U.gens_values()
-            [-7/275*a^3 + 1/11*a^2 - 9/11*a - 1, 6/275*a^3 - 9/55*a^2 + 14/11*a - 2, 1/275*a^3 + 4/55*a^2 - 5/11*a + 5, -14/275*a^3 + 21/55*a^2 - 29/11*a + 6]
+            [-7/275*a^3 + 1/11*a^2 - 9/11*a - 1, 7/275*a^3 - 1/11*a^2 + 9/11*a + 2, 1/275*a^3 + 4/55*a^2 - 5/11*a + 5, -14/275*a^3 + 21/55*a^2 - 29/11*a + 6]
             sage: U.invariants()
             (10, 0, 0, 0)
             sage: [u.multiplicative_order() for u in U.gens()]
@@ -5927,9 +5929,9 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.zeta(2, all=True)
             [-1]
             sage: K.zeta(3)
-            -1/2*z - 1/2
+            1/2*z - 1/2
             sage: K.zeta(3, all=True)
-            [-1/2*z - 1/2, 1/2*z - 1/2]
+            [1/2*z - 1/2, -1/2*z - 1/2]
             sage: K.zeta(4)
             Traceback (most recent call last):
             ...
@@ -5973,18 +5975,19 @@ class NumberField_generic(number_field_base.NumberField):
                 return [K(-1)]
             else:
                 return K(-1)
-        N = K.zeta_order()
-        if n.divides(N):
-            z = K.primitive_root_of_unity() ** (N//n)
+
+        # First check if the degree of K is compatible with an
+        # inclusion QQ(\zeta_n) -> K.
+        if sage.rings.arith.euler_phi(n).divides(K.absolute_degree()):
+            # Factor the n-th cyclotomic polynomial over K.
+            f = K.absolute_polynomial().change_variable_name('y')
+            factors = pari.polcyclo(n).factornf(f).component(1)
+            roots = [K(-g.polcoeff(0)) for g in factors if g.poldegree() == 1]
             if all:
-                return [z**i for i in n.coprime_integers(n)]
-            else:
-                return z
-        else:
-            if all:
-                return []
-            else:
-                raise ValueError("There are no %s roots of unity in self."%n.ordinal_str())
+                return roots
+            if roots:
+                return roots[0]
+        raise ValueError("There are no %s roots of unity in self." % n.ordinal_str())
 
     def zeta_order(self):
         r"""
@@ -8243,7 +8246,7 @@ class NumberField_absolute(NumberField_generic):
         Certain computations may be faster assuming GRH, which may be done
         globally by using the number_field(True/False) switch.
 
-        For details: See [Doyle-Krumm].
+        For details: See [Doyle-Krumm]_.
 
         INPUT:
 
@@ -8266,7 +8269,7 @@ class NumberField_absolute(NumberField_generic):
         .. TODO::
 
            Should implement a version of the algorithm that guarantees correct
-           output. See Algorithm 4 in [Doyle-Krumm] for details of an
+           output. See Algorithm 4 in [Doyle-Krumm]_ for details of an
            implementation that takes precision issues into account.
 
         EXAMPLES:
@@ -8358,12 +8361,6 @@ class NumberField_absolute(NumberField_generic):
         - John Doyle (2013)
 
         - David Krumm (2013)
-
-        REFERENCES:
-
-        ..  [Doyle-Krumm] John R. Doyle and David Krumm, Computing algebraic
-            numbers of bounded height, :arxiv:`1111.4963` (2013).
-
         """
         from sage.rings.number_field.bdd_height import bdd_height, bdd_height_iq
         r1, r2 = self.signature()
@@ -8446,6 +8443,8 @@ class NumberField_cyclotomic(NumberField_absolute):
             <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
             sage: type(CyclotomicField(6).one())
             <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+            sage: type(CyclotomicField(6).an_element())
+            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
             sage: type(CyclotomicField(15).zero())
             <type 'sage.rings.number_field.number_field_element.NumberFieldElement_absolute'>
         """
@@ -8473,7 +8472,11 @@ class NumberField_cyclotomic(NumberField_absolute):
             # imaginary value).
             # Note that the test is done with NumberFieldElement and not with
             # NumberFieldElement_quadratic which requires somehow this flag.
+            # As a consequence, a result of _an_element_() with the wrong class
+            # is cached during the call to has_coerce_map_from. We reset the
+            # cache afterwards.
             self._standard_embedding = not CDF.has_coerce_map_from(self) or CDF(self.gen()).imag() > 0
+            self._cache_an_element = None
 
             self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
             if n == 4:
@@ -8551,7 +8554,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: z = CyclotomicField(3).an_element(); z
             zeta3
             sage: c = K.character([1,z,z**2]); c
-            Character of Subgroup of (Alternating group of order 4!/2 as a permutation group) generated by [(2,3,4)]
+            Character of Subgroup of (Alternating group of order 4!/2 as a permutation group) generated by [(1,2,3)]
             sage: c(g^2); z^2
             -zeta3 - 1
             -zeta3 - 1

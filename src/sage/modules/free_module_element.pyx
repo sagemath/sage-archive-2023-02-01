@@ -10,10 +10,9 @@ AUTHORS:
 - Thomas Feulner (2012-11): Added :meth:`FreeModuleElement.hamming_weight` and
   :meth:`FreeModuleElement_generic_sparse.hamming_weight`
 
-TODO: Change to use a get_unsafe / set_unsafe, etc., structure
-exactly like with matrices, since we'll have to define a bunch of
-special purpose implementations of vectors easily and
-systematically.
+- Jeroen Demeyer (2015-02-24): Implement fast Cython methods
+  ``get_unsafe`` and ``set_unsafe`` similar to other places in Sage
+  (:trac:`17562`)
 
 EXAMPLES: We create a vector space over `\QQ` and a
 subspace of this space.
@@ -107,6 +106,7 @@ TESTS::
 #*****************************************************************************
 
 cimport cython
+from cpython.slice cimport PySlice_GetIndicesEx
 
 from sage.structure.sequence import Sequence
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
@@ -425,8 +425,13 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     # We first efficiently handle the important special case of the zero vector
     # over a ring. See trac 11657.
     # !! PLEASE DO NOT MOVE THIS CODE LOWER IN THIS FUNCTION !!
-    if arg2 is None and is_Ring(arg0) and isinstance(arg1, (Integer, int, long)):
-        return (arg0**arg1).zero_vector()
+    if arg2 is None and is_Ring(arg0) and (isinstance(arg1, (int, long, Integer))):
+        if sparse:
+            from free_module import FreeModule
+            M = FreeModule(arg0, arg1, sparse=True)
+        else:
+            M = arg0 ** arg1
+        return M.zero_vector()
 
     # WARNING TO FUTURE OPTIMIZERS: The following two hasattr's take
     # quite a significant amount of time.
@@ -499,10 +504,12 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     v, R = prepare(v, R, degree)
 
     if sparse:
-        import free_module  # slow -- can we improve
-        return free_module.FreeModule(R, len(v), sparse=True)(v)
+        from free_module import FreeModule
+        M = FreeModule(R, len(v), sparse=True)
     else:
-        return (R**len(v))(v)
+        M = R ** len(v)
+    return M(v)
+
 
 free_module_element = vector
 
@@ -1661,7 +1668,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         s = sum([a**p for a in abs_self])
         return s**(__one__/p)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         EXAMPLES::
 
@@ -1706,17 +1713,118 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
         EXAMPLES::
 
-        This just raises NotImplementedError since this is an abstract
-        base class, and __getitem__ has to be overloaded in the
-        derived class::
-
             sage: v = sage.modules.free_module_element.FreeModuleElement(QQ^3)
             sage: v.__getitem__(0)
             Traceback (most recent call last):
             ...
             NotImplementedError
         """
+        cdef Py_ssize_t d = self._degree
+        cdef Py_ssize_t start, stop, step, slicelength
+        cdef Py_ssize_t n
+        cdef list values
+        if isinstance(i, slice):
+            PySlice_GetIndicesEx(i, d, &start, &stop, &step, &slicelength)
+            values = []
+            for n in range(slicelength):
+                values.append(self.get_unsafe(start + n*step))
+            from free_module import FreeModule
+            M = FreeModule(self.coordinate_ring(), slicelength, sparse=self.is_sparse())
+            return M(values, coerce=False, copy=False)
+        else:
+            n = i
+            if n < 0:
+                n += d
+            if n < 0 or n >= d:
+                raise IndexError("vector index out of range")
+            return self.get_unsafe(n)
+
+    cdef get_unsafe(self, Py_ssize_t i):
+        """
+        Cython function to get the `i`'th entry of this vector.
+
+        Used as building block for a generic ``__getitem__``.
+        """
         raise NotImplementedError
+
+    def get(self, i):
+        """
+        Like ``__getitem__`` but without bounds checking:
+        `i` must satisfy ``0 <= i < self.degree``.
+
+        EXAMPLES::
+
+            sage: vector(SR, [1/2,2/5,0]).get(0)
+            1/2
+        """
+        return self.get_unsafe(i)
+
+    def __setitem__(self, i, value):
+        """
+        Set the `i`-th entry or slice of self to ``value``.
+
+        EXAMPLES::
+
+            sage: v = sage.modules.free_module_element.FreeModuleElement(QQ^3)
+            sage: v[0] = 5
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        For derived classes, this works::
+
+            sage: v = vector([1,2/3,8])
+            sage: v[0] = 5
+            sage: v
+            (5, 2/3, 8)
+        """
+        if not self._is_mutable:
+            raise ValueError("vector is immutable; please change a copy instead (use copy())")
+        cdef Py_ssize_t d = self._degree
+        cdef Py_ssize_t start, stop, step, slicelength
+        cdef Py_ssize_t n
+        cdef list values
+        R = self.coordinate_ring()
+        if isinstance(i, slice):
+            PySlice_GetIndicesEx(i, d, &start, &stop, &step, &slicelength)
+            values = [R(x) for x in value]
+            if len(values) != slicelength:
+                raise IndexError("slice assignment would change dimension")
+            for n in range(slicelength):
+                self.set_unsafe(start + n*step, values[n])
+        else:
+            n = i
+            if n < 0:
+                n += d
+            if n < 0 or n >= d:
+                raise IndexError("vector index out of range")
+            self.set_unsafe(n, R(value))
+
+    cdef int set_unsafe(self, Py_ssize_t i, value) except -1:
+        """
+        Cython function to set the `i`'th entry of this vector to
+        ``value``.
+
+        Used as building block for a generic ``__setitem__``.
+        """
+        raise NotImplementedError
+
+    def set(self, i, value):
+        """
+        Like ``__setitem__`` but without type or bounds checking:
+        `i` must satisfy ``0 <= i < self.degree`` and ``value`` must be
+        an element of the coordinate ring.
+
+        EXAMPLES::
+
+            sage: v = vector(SR, [1/2,2/5,0]); v
+            (1/2, 2/5, 0)
+            sage: v.set(2, pi); v
+            (1/2, 2/5, pi)
+        """
+        assert value.parent() is self.coordinate_ring()
+        self.set_unsafe(i, value)
+
 
     def __invert__(self):
         """
@@ -1917,27 +2025,6 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         """
         return "Vector[row](%s)"%(str(self.list()))
 
-    def __setitem__(self, i, x):
-        """
-        Set the `i`-th entry or slice of self to x. This is not implemented,
-        since self is an abstract base class.
-
-        EXAMPLES::
-
-            sage: v = sage.modules.free_module_element.FreeModuleElement(QQ^3)
-            sage: v[0] = 5
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-
-        For derived classes, this works::
-
-            sage: v = vector([1,2/3,8])
-            sage: v[0] = 5
-            sage: v
-            (5, 2/3, 8)
-        """
-        raise NotImplementedError
 
     def degree(self):
         """
@@ -2736,38 +2823,6 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             (1/2, 2/5, 0)
         """
         return self
-
-    def get(self, Py_ssize_t i):
-        """
-        The get method is in some cases more efficient (and more
-        dangerous) than __getitem__, because it is not guaranteed to
-        do any error checking.
-
-        EXAMPLES::
-
-            sage: vector([1/2,2/5,0]).get(0)
-            1/2
-            sage: vector([1/2,2/5,0]).get(3)
-            Traceback (most recent call last):
-            ...
-            IndexError: index out of range
-        """
-        return self[i]
-
-    def set(self, Py_ssize_t i, x):
-        """
-        The set method is meant to be more efficient than __setitem__,
-        because it need not be guaranteed to do any error checking or
-        coercion. Use with great, great care.
-
-        EXAMPLES::
-
-            sage: v = vector([1/2,2/5,0]); v
-            (1/2, 2/5, 0)
-            sage: v.set(2, -15/17); v
-            (1/2, 2/5, -15/17)
-        """
-        self[i] = x
 
 
     def monic(self):
@@ -3776,7 +3831,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
             sage: v = vector([-1,0,3,pi])
             sage: type(v)
-            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+            <class 'sage.modules.vector_symbolic_dense.FreeModule_ambient_field_with_category.element_class'>
             sage: v.__copy__()
             (-1, 0, 3, pi)
             sage: v.__copy__() is v
@@ -4003,9 +4058,17 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         return (make_FreeModuleElement_generic_dense_v1, (self._parent, self._entries, self._degree, self._is_mutable))
 
-    def __getitem__(self, i):
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef get_unsafe(self, Py_ssize_t i):
         """
         EXAMPLES::
+
+            sage: v = vector(RR, [-1,0,2/3,pi])
+            sage: v.get(3)
+            3.14159265358979
+
+        ::
 
             sage: v = vector([RR(1), RR(2)]); v
             (1.00000000000000, 2.00000000000000)
@@ -4016,11 +4079,13 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: v[4]
             Traceback (most recent call last):
             ...
-            IndexError: index must be between -2 and 1
+            IndexError: vector index out of range
             sage: v[-4]
             Traceback (most recent call last):
             ...
-            IndexError: index must be between -2 and 1
+            IndexError: vector index out of range
+
+        ::
 
             sage: v = vector(QQ['x,y'], [1,2, 'x*y'])
             sage: v
@@ -4028,58 +4093,21 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: v[1:]
             (2, x*y)
         """
-        if isinstance(i, slice):
-            start, stop, step = i.indices(len(self))
-            return vector(self.base_ring(), list(self)[start:stop:step])
-        else:
-            degree = self.degree()
-            if i < 0:
-                i += degree
-            if i < 0 or i >= self.degree():
-                raise IndexError("index must be between -%s and %s"%(degree, degree-1))
-            return self._entries[i]
+        return self._entries[i]
 
-    def __setitem__(self, i, value):
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef int set_unsafe(self, Py_ssize_t i, value) except -1:
         """
-        Set entry i of self to value.
-
         EXAMPLES::
 
-            sage: v = vector([1,2/3,pi])
-            sage: v[1] = 19+pi
+            sage: v = vector(RR, [-1,0,2/3,pi])
+            sage: v.set(3, RR(1))
             sage: v
-            (1, pi + 19, pi)
-            sage: v = vector(QQ['x,y'], [1,2, 'x*y'])
-            sage: v
-            (1, 2, x*y)
-            sage: v[1:]
-            (2, x*y)
-            sage: v[1:] = [4,5]; v
-            (1, 4, 5)
-            sage: v[:2] = [5,(6,2)]; v
-            (5, 3, 5)
-            sage: v[:2]
-            (5, 3)
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 1.00000000000000)
         """
-        if not self._is_mutable:
-            raise ValueError("vector is immutable; please change a copy instead (use copy())")
-        cdef Py_ssize_t k, n, d
-        if isinstance(i, slice):
-            start, stop, step = i.indices(len(self))
-            d = self.degree()
-            R = self.base_ring()
-            n = 0
-            for k from start <= k < stop:
-                if k >= d:
-                    return
-                if k >= 0:
-                    self._entries[k] = R(value[n])
-                    n = n + 1
-        else:
-            if i < 0 or i >= self.degree():
-                raise IndexError("index (i=%s) must be between 0 and %s"%(i,
-                                self.degree()-1))
-            self._entries[i] = self.base_ring()(value)
+        self._entries[i] = value
+
 
     def list(self, copy=True):
         """
@@ -4122,7 +4150,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: g
             (2*x, 2*y)
             sage: type(g)
-            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+            <class 'sage.modules.vector_symbolic_dense.FreeModule_ambient_field_with_category.element_class'>
             sage: g(y=2, x=3)
             (6, 4)
             sage: f(x,y) = x^2 + y^2
@@ -4504,7 +4532,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                     v[i] = prod
         return left._new_c(v)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Compare two sparse free module elements.
 
@@ -4587,92 +4615,95 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         return (make_FreeModuleElement_generic_sparse_v1, (self._parent, self._entries, self._degree, self._is_mutable))
 
+    @cython.cdivision(True)
     def __getitem__(self, i):
         """
         EXAMPLES::
 
-            sage: v = vector([RR(1), RR(2)], sparse=True); v
-            (1.00000000000000, 2.00000000000000)
-            sage: v[0]
+            sage: v = vector(RR, range(6), sparse=True); v
+            (0.000000000000000, 1.00000000000000, 2.00000000000000, 3.00000000000000, 4.00000000000000, 5.00000000000000)
+            sage: v[1]
             1.00000000000000
             sage: v[-1]
-            2.00000000000000
-            sage: v[5]
+            5.00000000000000
+            sage: v[9]
             Traceback (most recent call last):
             ...
-            IndexError: index must be between -2 and 1
-            sage: v[-3]
+            IndexError: vector index out of range
+            sage: v[-7]
             Traceback (most recent call last):
             ...
-            IndexError: index must be between -2 and 1
+            IndexError: vector index out of range
+            sage: v[::2]
+            (0.000000000000000, 2.00000000000000, 4.00000000000000)
+            sage: v[5:2:-1]
+            (5.00000000000000, 4.00000000000000, 3.00000000000000)
+
+        All these operations with zero vectors should be very fast::
+
+            sage: v = vector(RR, 10^9, sparse=True)
+            sage: v[123456789]
+            0.000000000000000
+            sage: w = v[::-1]
+            sage: v[::-250000000]
+            (0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000)
+            sage: v[123456789:123456798:3]
+            (0.000000000000000, 0.000000000000000, 0.000000000000000)
         """
+        cdef Py_ssize_t d = self._degree
+        cdef Py_ssize_t start, stop, step, slicelength
+        cdef Py_ssize_t min, max, mod
+        cdef Py_ssize_t k, n
+        cdef dict newentries
         if isinstance(i, slice):
-            start, stop, step = i.indices(len(self))
-            return vector(self.base_ring(), self.list()[start:stop])
-        else:
-            i = int(i)
-            degree = self.degree()
-            if i < 0:
-                i += degree
-            if i < 0 or i >= degree:
-                raise IndexError("index must be between %s and %s"%(-degree,
-                                degree-1))
-            if i in self._entries:
-                return self._entries[i]
-            return self.base_ring()(0)  # optimize this somehow
+            PySlice_GetIndicesEx(i, d, &start, &stop, &step, &slicelength)
+            if step > 0:
+                min = start
+                max = stop-1
+            else:
+                min = stop+1
+                max = start
+            mod = start % step
+            # Loop over the old dict and convert old index n to new
+            # index k in slice
+            newentries = {}
+            for n, x in self._entries.iteritems():
+                if min <= n <= max and n % step == mod:
+                    k = (n - start) // step
+                    newentries[k] = x
+            from free_module import FreeModule
+            M = FreeModule(self.coordinate_ring(), slicelength, sparse=True)
+            return M(newentries, coerce=False, copy=False)
 
-    def get(self, i):
+        n = i
+        if n < 0:
+            n += d
+        if n < 0 or n >= d:
+            raise IndexError("vector index out of range")
+        return self.get_unsafe(n)
+
+    cdef get_unsafe(self, Py_ssize_t i):
         """
-        Like __getitem__ but with no guaranteed type or bounds checking. Returns 0
-        if access is out of bounds.
-
         EXAMPLES::
 
-            sage: v = vector([1,2/3,pi], sparse=True)
+            sage: v = vector([-1,0,2/3,pi], sparse=True)
             sage: v.get(1)
+            0
+            sage: v.get(2)
             2/3
+
+        For this class, 0 is returned if the access is out of bounds::
+
             sage: v.get(10)
             0
         """
-        i = int(i)
-        if i in self._entries:
+        try:
             return self._entries[i]
-        return self.base_ring()(0)  # optimize this somehow
+        except KeyError:
+            return self.coordinate_ring().zero()
 
-
-    def set(self, i, x):
+    cdef int set_unsafe(self, Py_ssize_t i, value) except -1:
         """
-        Like __setitem__ but with no guaranteed type or bounds checking.
-
-        EXAMPLES::
-
-            sage: v = vector([1,2/3,pi], sparse=True)
-            sage: v.set(1, pi^3)
-            sage: v
-            (1, pi^3, pi)
-
-        No bounds checking::
-
-            sage: v.set(10, pi)
-
-        This lack of bounds checking causes trouble later::
-
-            sage: v
-            <repr(<sage.modules.free_module_element.FreeModuleElement_generic_sparse at 0x...>) failed: IndexError: list assignment index out of range>
-        """
-        if not self._is_mutable:
-            raise ValueError("vector is immutable; please change a copy instead (use copy())")
-        i = int(i)
-        if x == 0:
-            if i in self._entries:
-                del self._entries[i]
-            return
-        self._entries[i] = x
-
-    def __setitem__(self, i, value):
-        """
-        Set the `i`-th entry or slice of self to value.
-
         EXAMPLES::
 
             sage: V = VectorSpace(GF(17), 10000000, sparse=True)
@@ -4688,27 +4719,31 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             Traceback (most recent call last):
             ...
             TypeError: unable to convert sqrt(2) to an integer
+
+        ::
+
+            sage: v = vector([1,2/3,pi], sparse=True)
+            sage: v.set(1, pi^3)
+            sage: v
+            (1, pi^3, pi)
+            sage: v.set(2, SR(0))
+            sage: v
+            (1, pi^3, 0)
+
+        This assignment is illegal::
+
+            sage: v.set(10, pi)
+
+        This lack of bounds checking causes trouble later::
+
+            sage: v
+            <repr(<sage.modules.free_module_element.FreeModuleElement_generic_sparse at 0x...>) failed: IndexError: list assignment index out of range>
         """
-        if not self._is_mutable:
-            raise ValueError("vector is immutable; please change a copy instead (use copy())")
-        cdef Py_ssize_t k, d, n
-        if isinstance(i, slice):
-            start, stop = i.start, i.stop
-            d = self.degree()
-            R = self.base_ring()
-            n = 0
-            for k from start <= k < stop:
-                if k >= d:
-                    return
-                if k >= 0:
-                    self[k] = R(value[n])
-                    n = n + 1
+        if value:
+            self._entries[i] = value
         else:
-            i = int(i)
-            if i < 0 or i >= self.degree():
-                raise IndexError("index (i=%s) must be between 0 and %s"%(i,
-                                self.degree()-1))
-            self.set(i, self._parent.base_ring()(value))
+            self._entries.pop(i, None)
+
 
     def denominator(self):
         """

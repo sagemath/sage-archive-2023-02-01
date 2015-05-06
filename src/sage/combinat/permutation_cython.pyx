@@ -180,3 +180,132 @@ def permutation_iterator_transposition_list(int n):
     sage_free(c)
 
     return T
+
+
+
+
+#####################################################################
+## Multiplication functions for permutations
+
+cpdef list left_action_same_n(list S, list lp):
+    r"""
+    Return the permutation obtained by composing a permutation
+    ``S`` with a permutation ``lp`` in such an order that ``lp``
+    is applied first and ``S`` is applied afterwards and ``S``
+    and ``lp`` are of the same length.
+
+    .. SEEALSO::
+
+        :meth:`sage.combinat.permutation.Permutation.left_action_product`
+
+    EXAMPLES::
+
+        sage: p = [2,1,3]
+        sage: q = [3,1,2]
+        sage: from sage.combinat.permutation_cython import left_action_same_n
+        sage: left_action_same_n(p, q)
+        [3, 2, 1]
+        sage: left_action_same_n(q, p)
+        [1, 3, 2]
+    """
+    cdef int i
+    cdef list ret = []
+    for i in lp:
+        ret.append(S[i-1])
+    return ret
+
+cpdef list right_action_same_n(list S, list rp):
+    """
+    Return the permutation obtained by composing a permutation
+    ``S`` with a permutation ``rp`` in such an order that ``S`` is
+    applied first and ``rp`` is applied afterwards and ``S`` and
+    ``rp`` are of the same length.
+
+    .. SEEALSO::
+
+        :meth:`sage.combinat.permutation.Permutation.right_action_product`
+
+    EXAMPLES::
+
+        sage: p = [2,1,3]
+        sage: q = [3,1,2]
+        sage: from sage.combinat.permutation_cython import right_action_same_n
+        sage: right_action_same_n(p, q)
+        [1, 3, 2]
+        sage: right_action_same_n(q, p)
+        [3, 2, 1]
+    """
+    cdef int i
+    cdef list ret = []
+    for i in S:
+        ret.append(rp[i-1])
+    return ret
+
+cpdef list left_action_product(list S, list lp):
+    r"""
+    Return the permutation obtained by composing a permutation
+    ``S`` with a permutation ``lp`` in such an order that ``lp`` is
+    applied first and ``S`` is applied afterwards.
+
+    .. SEEALSO::
+
+        :meth:`sage.combinat.permutation.Permutation.left_action_product`
+
+    EXAMPLES::
+
+        sage: p = [2,1,3,4]
+        sage: q = [3,1,2]
+        sage: from sage.combinat.permutation_cython import left_action_product
+        sage: left_action_product(p, q)
+        [3, 2, 1, 4]
+        sage: left_action_product(q, p)
+        [1, 3, 2, 4]
+        sage: q
+        [3, 1, 2]
+    """
+    cdef int i
+
+    # Pad the permutations if they are of
+    # different sizes
+    S = S[:]
+    lp = lp[:]
+    for i in range(len(S)+1, len(lp)+1):
+        S.append(i)
+    for i in range(len(lp)+1, len(S)+1):
+        lp.append(i)
+    return left_action_same_n(S, lp)
+
+cpdef list right_action_product(list S, list rp):
+    """
+    Return the permutation obtained by composing a permutation
+    ``S`` with a permutation ``rp`` in such an order that ``S`` is
+    applied first and ``rp`` is applied afterwards.
+
+    .. SEEALSO::
+
+        :meth:`sage.combinat.permutation.Permutation.right_action_product`
+
+    EXAMPLES::
+
+        sage: p = [2,1,3,4]
+        sage: q = [3,1,2]
+        sage: from sage.combinat.permutation_cython import right_action_product
+        sage: right_action_product(p, q)
+        [1, 3, 2, 4]
+        sage: right_action_product(q, p)
+        [3, 2, 1, 4]
+        sage: q
+        [3, 1, 2]
+    """
+    cdef int i
+
+    # Pad the permutations if they are of
+    # different sizes
+    S = S[:]
+    rp = rp[:]
+    for i in range(len(S)+1, len(rp)+1):
+        S.append(i)
+    for i in range(len(rp)+1, len(S)+1):
+        rp.append(i)
+    return right_action_same_n(S, rp)
+

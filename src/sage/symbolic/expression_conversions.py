@@ -16,7 +16,7 @@ overridden by subclasses.
 ###############################################################################
 
 import operator as _operator
-from sage.symbolic.ring import SR,var
+from sage.symbolic.ring import SR
 from sage.symbolic.pynac import I
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator
@@ -586,7 +586,7 @@ class InterfaceInit(Converter):
             # one. So, we replace the argument `1` with a temporary
             # variable e.g. `t0` and then evaluate the derivative
             # f'(t0) symbolically at t0=1. See trac #12796.
-            temp_args=[var("t%s"%i) for i in range(len(args))]
+            temp_args = [SR.var("t%s"%i) for i in range(len(args))]
             f = operator.function()(*temp_args)
             params = operator.parameter_set()
             params = ["%s, %s"%(temp_args[i]._maxima_init_(), params.count(i)) for i in set(params)]

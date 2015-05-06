@@ -136,7 +136,6 @@ from functional import (additive_order,
                         round,
                         quotient,
                         quo,
-                        show,
                         isqrt,
                         squarefree_part,
                         symbolic_sum as sum,
@@ -144,7 +143,7 @@ from functional import (additive_order,
                         zero)
 
 
-from latex import LatexExpr, latex, view, pretty_print, pretty_print_default
+from latex import LatexExpr, latex, view, pretty_print_default
 
 from trace import trace
 
@@ -199,6 +198,6 @@ class logstr(str):
         return r"""\verb%s%s%s"""%(delim, self.replace('\n\n','\n').replace('\n','; '), delim)
 
 
-import messaging
+lazy_import("sage.misc", "messaging", deprecation=18140)
 
 from ascii_art import ascii_art

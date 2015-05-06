@@ -1,4 +1,6 @@
 """
+Newton Polygons
+
 This module implements finite Newton polygons and
 infinite Newton polygons having a finite number of
 slopes (and hence a last infinite slope).
@@ -642,8 +644,6 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
         Infinite Newton polygon with 3 vertices: (0, 0), (1, 0), (3, 1) ending by an infinite line of slope 2/3
         sage: NP.slopes()
         [0, 1/2, 1/2]
-
-    ::
 
     Be careful, do not confuse Newton polygons provided by this class
     with Newton polytopes. Compare::

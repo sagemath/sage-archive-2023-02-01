@@ -340,7 +340,6 @@ Class Diagram (an x means that class is currently supported)::
     x  Matrix_dense
     x     Matrix_generic_dense
     x     Matrix_integer_dense
-          Matrix_integer_2x2_dense
     x     Matrix_rational_dense
           Matrix_cyclo_dense    -- idea: restrict scalars to QQ, compute charpoly there, then factor
     x     Matrix_modn_dense
@@ -394,7 +393,7 @@ are named
        * cdef _add_ -- add two matrices with identical parents
        * _matrix_times_matrix_c_impl -- multiply two matrices with compatible dimensions and
                                         identical base rings (both sparse or both dense)
-       * cdef _cmp_c_impl -- compare two matrices with identical parents
+       * cpdef _cmp_ -- compare two matrices with identical parents
        * cdef _lmul_c_impl -- multiply this matrix on the right by a scalar, i.e., self * scalar
        * cdef _rmul_c_impl -- multiply this matrix on the left by a scalar, i.e., scalar * self
        * __copy__

@@ -315,7 +315,7 @@ class SetPartition(ClonableArray):
         """
         return self.__eq__(y) or self.__gt__(y)
 
-    def __cmp__(self, y):
+    def _cmp_(self, y):
         """
         Return the result of ``cmp``.
 
@@ -336,6 +336,8 @@ class SetPartition(ClonableArray):
         if self > y:
             return 1
         return 0
+
+    __cmp__ = _cmp_
 
     def __mul__(self, other):
         r"""

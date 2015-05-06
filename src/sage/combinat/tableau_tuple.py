@@ -340,7 +340,7 @@ class TableauTuple(CombinatorialObject,Element):
         sage: TableauTuple([[1],[2,3]])
         Traceback (most recent call last):
         ...
-        ValueError: A tableau must be a list of lists.
+        ValueError: A tableau must be a list of iterables.
 
         sage: TestSuite( TableauTuple([ [[1,2],[3,4]], [[1,2],[3,4]] ]) ).run()
         sage: TestSuite( TableauTuple([ [[1,2],[3,4]], [], [[1,2],[3,4]] ]) ).run()
@@ -783,7 +783,7 @@ class TableauTuple(CombinatorialObject,Element):
             sage: TableauTuple([[[1,2],[3,4]],[[9,10],[11],[12]],[[5,6,7],[8]]]).entries()
             [1, 2, 3, 4, 9, 10, 11, 12, 5, 6, 7, 8]
         """
-        return sum((s.entries() for s in self), [])
+        return list(sum((s.entries() for s in self), ()))
 
     def entry(self, l, r, c):
         """
@@ -800,7 +800,7 @@ class TableauTuple(CombinatorialObject,Element):
             sage: t.entry(1, 1, 1)
             Traceback (most recent call last):
             ...
-            IndexError: list index out of range
+            IndexError: tuple index out of range
         """
         return self[l][r][c]
 
@@ -1356,7 +1356,7 @@ class StandardTableauTuple(TableauTuple):
             raise ValueError( 'tableaux must be column strict' )
 
         # Finally, the more costly check that the entries are {1,2...n}
-        entries=sorted(sum((s.entries() for s in t), []))
+        entries=sorted(sum((s.entries() for s in t), ()))
         if not entries==range(1,len(entries)+1):
             raise ValueError( 'entries must be in bijection with {1,2,...,n}' )
 

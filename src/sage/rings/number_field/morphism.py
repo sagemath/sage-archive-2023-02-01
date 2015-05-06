@@ -612,7 +612,7 @@ class RelativeNumberFieldHomomorphism_from_abs(RingHomomorphism):
         self.__im_gens = v
         return v
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Compare
 
@@ -623,9 +623,9 @@ class RelativeNumberFieldHomomorphism_from_abs(RingHomomorphism):
             sage: all([u^2 == e, u*v == w, u != e])
             True
         """
-        if not isinstance(other, RelativeNumberFieldHomomorphism_from_abs):
-            return cmp(type(self), type(other))
         return cmp(self.abs_hom(), other.abs_hom())
+
+    __cmp__ = _cmp_
 
     def _repr_defn(self):
         r"""

@@ -477,13 +477,6 @@ def _cache_key(G):
     Return the key used to cache the result for the graph G
 
     This is used by the decorator :func:`_cached`.
-
-    EXAMPLES::
-
-        sage: from sage.graphs.tutte_polynomial import _cache_key
-        sage: G = graphs.PetersenGraph()
-        sage: _cache_key(G)
-        ((0, 7), (0, 8), (0, 9), (1, 4), (1, 6), (1, 9), (2, 3), (2, 6), (2, 8), (3, 5), (3, 9), (4, 5), (4, 8), (5, 7), (6, 7))
     """
     return tuple(sorted(G.canonical_label().edges(labels=False)))
 

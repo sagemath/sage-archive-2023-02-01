@@ -1017,8 +1017,16 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
          eigenvectors, if computed by hand, will have only integer
          entries.
 
-    -  ``*args, **kwds`` - arguments and keywords to describe additional properties.
-       See more detailed documentation below.
+    -  ``*args, **kwds`` - arguments and keywords to describe additional 
+       properties. See more detailed documentation below.
+
+    .. warning::
+
+        Matrices generated are not uniformly distributed. For unimodular
+        matrices over finite field this function does not even generate
+        all of them: for example ``Matrix.random(GF(3), 2)`` never
+        generates ``[[2,0],[0,2]]``. This function is made for
+        teaching purposes.
 
     .. warning::
 
@@ -1031,13 +1039,14 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
 
     .. note::
 
-        When constructing matrices with random entries and no additional properties
-        (i.e. when ``algorithm='randomize'``), most of the randomness
-        is controlled by the ``random_element`` method for elements of the
-        base ring of the matrix, so the documentation of that method may be
-        relevant or useful.  Also, the default is to not create zero entries,
-        unless the ``density`` keyword is set to something strictly less
-        than one.
+        When constructing matrices with random entries and no
+        additional properties (i.e. when ``algorithm='randomize'``),
+        most of the randomness is controlled by the ``random_element``
+        method for elements of the base ring of the matrix, so the
+        documentation of that method may be relevant or useful.  Also,
+        the default is to not create zero entries, unless the
+        ``density`` keyword is set to something strictly less than
+        one.
 
     EXAMPLES:
 

@@ -1,5 +1,5 @@
 import operator
-from sage.symbolic.ring import is_SymbolicVariable, var
+from sage.symbolic.ring import is_SymbolicVariable, SR
 
 arithmetic_operators = {operator.add: '+',
                         operator.sub: '-',
@@ -61,7 +61,7 @@ class FDerivativeOperator(object):
             # temporary variable e.g. `t0` and then evaluate the
             # derivative f'(t0) symbolically at t0=1. See trac
             # #12796.
-            temp_args=[var("t%s"%i) for i in range(len(args))]
+            temp_args=[SR.var("t%s"%i) for i in range(len(args))]
             vars=[temp_args[i] for i in self._parameter_set]
             return self._f(*temp_args).diff(*vars).function(*temp_args)(*args)
         vars = [args[i] for i in self._parameter_set]

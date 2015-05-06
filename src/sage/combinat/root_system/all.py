@@ -14,3 +14,5 @@ from coxeter_group import CoxeterGroup
 from weyl_characters import WeylCharacterRing, WeightRing
 from branching_rules import BranchingRule, branching_rule_from_plethysm, branching_rule
 lazy_import('sage.combinat.root_system.non_symmetric_macdonald_polynomials', 'NonSymmetricMacdonaldPolynomials')
+lazy_import('sage.combinat.root_system.integrable_representations', 'IntegrableRepresentation')
+

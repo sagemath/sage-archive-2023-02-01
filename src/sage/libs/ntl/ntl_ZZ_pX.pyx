@@ -434,8 +434,7 @@ cdef class ntl_ZZ_pX:
             sage: f % g
             Traceback (most recent call last):
             ...
-            RuntimeError: ZZ_p: division by non-invertible element
-
+            NTLError: ZZ_p: division by non-invertible element
         """
         if self.c is not other.c:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."

@@ -394,7 +394,7 @@ class Subwords_wk(Subwords_w):
             sage: Subwords([1,2,3], 2).cardinality()
             3
         """
-        return arith.binomial(len(self._w),self._k)
+        return arith.binomial(Integer(len(self._w)), self._k)
 
     def first(self):
         r"""

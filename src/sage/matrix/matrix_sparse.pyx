@@ -2,6 +2,16 @@ r"""
 Base class for sparse matrices
 """
 
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
+cimport cython
 cimport matrix
 cimport matrix0
 from sage.structure.element cimport Element, RingElement, ModuleElement, Vector
@@ -11,11 +21,6 @@ from sage.misc.misc import verbose
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/python.pxi'
 include 'sage/ext/interrupt.pxi'
-
-cdef extern from "Python.h":
-    PyObject* PyTuple_GET_ITEM0 "PyTuple_GET_ITEM" (PyObject*  p, Py_ssize_t pos)
-    PyObject* PyList_GET_ITEM0 "PyList_GET_ITEM" (PyObject*  list, Py_ssize_t i)
-    Py_ssize_t PyNumber_AsSsize_t(PyObject* o, PyObject* exc)
 
 import sage.matrix.matrix_space
 
@@ -352,13 +357,11 @@ cdef class Matrix_sparse(matrix.Matrix):
         cdef Py_ssize_t i, j, k
         if version == -1:
             for ij, x in data.iteritems():
-                i = PyNumber_AsSsize_t(PyTuple_GET_ITEM0(<PyObject*> ij, 0), NULL)
-                j = PyNumber_AsSsize_t(PyTuple_GET_ITEM0(<PyObject*> ij, 1), NULL)
-                self.set_unsafe(i, j, x)
+                self.set_unsafe(ij[0], ij[1], x)
         else:
-            raise RuntimeError, "unknown matrix version (=%s)"%version
+            raise RuntimeError("unknown matrix version (=%s)"%version)
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         return cmp(self._dict(), right._dict())
 
     def transpose(self):
@@ -1089,70 +1092,11 @@ cdef class Matrix_sparse(matrix.Matrix):
             s[i] += a * v[j]
         return s
 
-##     def _echelon_in_place_classical(self):
-##         """
-##         Replace this matrix by its echelon form.
 
-##         INPUT:
-##            params -- ignored.
-##         """
-##         # ALGORITHM:
-##         # Since we know nothing about the base field, we use a generic
-##         # algorithm.  We first convert to a list of sparse rows, then
-##         # directly perform a generic echelon algorithm on that list of
-##         # rows.
-##         if self.fetch('in_echelon_form'):
-##             return
-##         K = self.base_ring()
-##         ONE = K(1)
-##         if not K.is_field():
-##             raise ArithmeticError, "The base ring must be a field."
-##         X = self.rows()
-##         nrows = self.nrows()
-##         ncols = self.ncols()
-##         pivot_positions = []
-##         start_row = 0
-##         nrows = self.nrows()
-##         ncols = self.ncols()
-##         for c in range(ncols):
-##             N = []
-##             for r in xrange(start_row, nrows):
-##                 if X[r].first_nonzero_position() == c:
-##                     N.append((X[r].num_nonzero(),r))
-##             if len(N) == 0:
-##                 continue
-##             N.sort()
-##             r = N[0][1]
-##             leading = X[r].first_nonzero_entry()
-##             if leading != 0:
-##                 pivot_positions.append(c)
-##                 # 1. Rescale
-##                 X[r].rescale(ONE/leading)
-##                 # 2. Swap
-##                 X[r], X[start_row] = X[start_row], X[r]
-##                 # 3. Clear column
-##                 for i in range(nrows):
-##                     if i != start_row:
-##                         s = X[i][c]
-##                         if s != 0:
-##                             X[i] = X[i].add(X[start_row], -s)
-##             # endif
-##             start_row = start_row + 1
-##         #endfor
-##         if self.is_immutable():
-##             self.__pivots = pivot_positions
-##             E = Matrix_generic_sparse_from_rows(X)
-##             E.__pivots = pivot_positions
-##             self.__echelon_form = E
-##         misc.verbose("Finished generic echelon.",t)
-##         return E
-
-##################################
-# Helper code
-
-cdef Py_ssize_t get_ij(v, Py_ssize_t i, int j):
-    return PyNumber_AsSsize_t(PyTuple_GET_ITEM0(PyList_GET_ITEM0(<PyObject*>v, i), j), NULL)
-
-#cdef Py_ssize_t get_ij(v, Py_ssize_t i, int j):
-#    return PyNumber_AsSsize_t(<object>PyTuple_GET_ITEM(
-#              <object>PyList_GET_ITEM(v, i), j), <object>NULL)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+# Return v[i][j] where v is a list of tuples.
+# No checking is done, make sure you feed it valid input!
+cdef inline Py_ssize_t get_ij(v, Py_ssize_t i, Py_ssize_t j):
+    t = (<list>v)[i]
+    return (<tuple>t)[j]

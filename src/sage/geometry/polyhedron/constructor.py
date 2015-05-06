@@ -446,14 +446,11 @@ def Polyhedron(vertices=None, rays=None, lines=None,
     parent = Polyhedra(base_ring, ambient_dim, backend=backend)
     base_ring = parent.base_ring()
 
-    # Convert into base_ring if necessary
-    def convert_base_ring(lstlst):
-        return [ [base_ring(x) for x in lst] for lst in lstlst]
+
+    # finally, construct the Polyhedron
     Hrep = Vrep = None
     if got_Hrep:
         Hrep = [ieqs, eqns]
     if got_Vrep:
         Vrep = [vertices, rays, lines]
-
-    # finally, construct the Polyhedron
     return parent(Vrep, Hrep, convert=convert, verbose=verbose)

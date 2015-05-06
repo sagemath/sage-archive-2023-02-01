@@ -795,7 +795,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
                self._parent   == other._parent   and \
                self.__matrix  == other.__matrix
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         EXAMPLES::
 
@@ -806,11 +806,11 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: s[1] == s[2]
             False
         """
-        if self.__class__ != other.__class__:
-            return cmp(self.__class__, other.__class__)
         if self._parent.cartan_type() != other._parent.cartan_type():
             return cmp(self._parent.cartan_type(), other._parent.cartan_type())
         return cmp(self.matrix(), other.matrix())
+
+    __cmp__ = _cmp_
 
     def action(self, v):
         """

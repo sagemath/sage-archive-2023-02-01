@@ -2074,7 +2074,7 @@ class Permutation(CombinatorialObject, Element):
 
         return Permutations()(l)
 
-    def runs(self):
+    def runs(self, as_tuple=False):
         r"""
         Return a list of the runs in the nonempty permutation
         ``self``.
@@ -2086,6 +2086,14 @@ class Permutation(CombinatorialObject, Element):
         ``[3,4,5]`` and ``[2]``.
 
         Runs in an empty permutation are not defined.
+                                                                                      INPUT:
+
+        - ``as_tuple`` -- boolean (default: ``False``) choice of
+          output format
+
+        OUTPUT:
+
+        a list of lists or a tuple of tuples
 
         REFERENCES:
 
@@ -2106,6 +2114,8 @@ class Permutation(CombinatorialObject, Element):
 
             sage: Permutation([6,1,7,3,4,5,2]).runs()
             [[6], [1, 7], [3, 4, 5], [2]]
+            sage: Permutation([6,1,7,3,4,5,2]).runs(as_tuple=True)
+            ((6,), (1, 7), (3, 4, 5), (2,))
 
         The number of runs in a nonempty permutation equals its
         number of descents plus 1::
@@ -2128,6 +2138,9 @@ class Permutation(CombinatorialObject, Element):
             current_value = i
         runs.append(current_run)
 
+        if as_tuple:
+            return tuple(tuple(r) for r in runs)
+
         return runs
 
     def decreasing_runs(self, as_tuple=False):
@@ -2136,7 +2149,8 @@ class Permutation(CombinatorialObject, Element):
 
         INPUT:
 
-        - ``as_tuple`` -- boolean (default: ``False``) choice of output format
+        - ``as_tuple`` -- boolean (default: ``False``) choice of output
+          format
 
         OUTPUT:
 

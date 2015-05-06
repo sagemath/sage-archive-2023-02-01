@@ -2130,6 +2130,36 @@ class Permutation(CombinatorialObject, Element):
 
         return runs
 
+    def decreasing_runs(self, as_tuple=False):
+        """
+        Decreasing runs of the permutation.
+
+        INPUT:
+
+        - ``as_tuple`` -- boolean (default: ``False``) choice of output format
+
+        OUTPUT:
+
+        a list of lists or a tuple of tuples
+
+        .. SEEALSO::
+
+            :meth:`runs`
+
+        EXAMPLES::
+
+            sage: s = Permutation([2,8,3,9,6,4,5,1,7])
+            sage: s.decreasing_runs()
+            [[2], [8, 3], [9, 6, 4], [5, 1], [7]]
+            sage: s.decreasing_runs(as_tuple=True)
+            ((2,), (8, 3), (9, 6, 4), (5, 1), (7,))
+        """
+        n = len(self)
+        s_bar = self.complement()
+        if as_tuple:
+            return tuple(tuple(n + 1 - i for i in r) for r in s_bar.runs())
+        return [[n + 1 - i for i in r] for r in s_bar.runs()]
+
     def longest_increasing_subsequence_length(self):
         r"""
         Return the length of the longest increasing subsequences of ``self``.
@@ -4000,6 +4030,39 @@ class Permutation(CombinatorialObject, Element):
         """
         n = len(self)
         return self.__class__(self.parent(), map(lambda x: n - x + 1, self) )
+
+    def connected_parts(self):
+        """
+        Return the connected parts of the permutation.
+
+        This gives the supports in the unique decomposition
+        into connected permutations.
+
+        OUTPUT:
+
+        a list of pairs (i,j), meaning the interval from i to j
+
+        EXAMPLES::
+
+            sage: S = Permutations()
+            sage: S([1,3,2,4]).connected_parts()
+            [(1, 1), (2, 3), (4, 4)]
+            sage: S([4,3,1,2,5]).connected_parts()
+            [(1, 4), (5, 5)]
+            sage: S([4,5,1,2,3]).connected_parts()
+            [(1, 5)]
+        """
+        resu = []
+        m = 0
+        n = len(self)
+        start_block = 1
+        for i in range(1, n + 1):
+            m = max(m, self(i))
+            if m == i:
+                resu += [(start_block, i)]
+                m = 0
+                start_block = i + 1
+        return resu
 
     @combinatorial_map(name='permutation poset')
     def permutation_poset(self):

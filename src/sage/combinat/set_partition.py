@@ -233,7 +233,7 @@ class SetPartition(ClonableArray):
         """
         if not isinstance(y, SetPartition):
             return False
-        return list(map(sorted, self)) < list(map(sorted, y))
+        return [sorted(_) for _ in self] < [sorted(_) for _ in y]
 
     def __gt__(self, y):
         """
@@ -261,7 +261,7 @@ class SetPartition(ClonableArray):
         """
         if not isinstance(y, SetPartition):
             return False
-        return list(map(sorted, self)) > list(map(sorted, y))
+        return [sorted(_) for _ in self] > [sorted(_) for _ in y]
 
     def __le__(self, y):
         """
@@ -543,7 +543,7 @@ class SetPartition(ClonableArray):
             sage: [x.standard_form() for x in SetPartitions(4, [2,2])]
             [[[1, 2], [3, 4]], [[1, 3], [2, 4]], [[1, 4], [2, 3]]]
         """
-        return list(map(list, self))
+        return [list(_) for _ in self]
 
     def apply_permutation(self, p):
         r"""
@@ -581,8 +581,8 @@ class SetPartition(ClonableArray):
         AUTHOR: Florent Hivert
         """
         l = list(self)
-        mins = list(map(min, l))
-        maxs = list(map(max, l))
+        mins = [min(_) for _ in l]
+        maxs = [max(_) for _ in l]
 
         for i in range(1, len(l)):
             for j in range(i):
@@ -692,7 +692,7 @@ class SetPartition(ClonableArray):
         """
         if len(self) == 0:
             return self
-        temp = list(map(list, self))
+        temp = [list(_) for _ in self]
         mins = [min(p) for p in temp]
         over_max = max([max(p) for p in temp]) + 1
         ret = [[] for i in range(len(temp))]
@@ -812,7 +812,7 @@ class SetPartition(ClonableArray):
             sub_parts = [list(self[i-1]) for i in part] # -1 for indexing
             # Standardizing sub_parts (the cur variable not being reset
             # to 1 gives us the offset we want):
-            mins = list(map(min, sub_parts))
+            mins = [min(_) for _ in sub_parts]
             over_max = max(map(max, sub_parts)) + 1
             temp = [[] for i in range(len(part))]
             while min(mins) != over_max:

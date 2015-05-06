@@ -475,7 +475,7 @@ class Permutation(SageObject):
             sage: p.letters()
             [0, 1]
         """
-        return list(map(self._alphabet.unrank, range(len(self))))
+        return [self._alphabet.unrank(_) for _ in range(len(self))]
 
     def left_right_inverse(self):
         r"""
@@ -1437,7 +1437,7 @@ class PermutationIET(Permutation):
         right_corner = ((l[0][-1], l[1][-1]), 'R')
 
         s = res.separatrix_diagram(side=True)
-        lengths = list(map(len, s))
+        lengths = [len(_) for _ in s]
 
         while 2 in lengths:
             if lengths == [2]:
@@ -1455,7 +1455,7 @@ class PermutationIET(Permutation):
             l = res.list()
 
             s = res.separatrix_diagram(side=True)
-            lengths = list(map(len, s))
+            lengths = [len(_) for _ in s]
 
         return res
 

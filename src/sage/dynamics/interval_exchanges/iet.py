@@ -847,7 +847,7 @@ class IntervalExchangeTransformation(SageObject):
 
         G = Graphics()
 
-        lengths = list(map(float,self._lengths))
+        lengths = [float(_) for _ in self._lengths]
         total_length = sum(lengths)
 
         if colors is None:

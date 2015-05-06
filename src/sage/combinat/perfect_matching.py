@@ -174,7 +174,7 @@ class PerfectMatching(ElementWrapper):
         if (isinstance(p, list) or isinstance(p, tuple)) and (
                 all([isinstance(x, list) or isinstance(x, tuple) for x in p])):
             objects = Set(flatten(p))
-            data = list(map(tuple, p))
+            data = [tuple(_) for _ in p]
             #check if the data are correct
             if not all([len(t) == 2 for t in data]):
                 raise ValueError("%s is not a valid perfect matching:\n"
@@ -293,7 +293,7 @@ class PerfectMatching(ElementWrapper):
                 return False
         except AttributeError:
             return False
-        return Set(list(map(Set, self.value))) == Set(list(map(Set, other.value)))
+        return Set([Set(_) for _ in self.value]) == Set([Set(_) for _ in other.value])
 
     def size(self):
         r"""

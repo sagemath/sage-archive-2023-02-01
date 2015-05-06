@@ -256,7 +256,7 @@ class Converter(object):
 
         len_d = len(d)
         if len_d == 0:
-            repr_n = list(map(repr, n))
+            repr_n = [repr(_) for _ in n]
             if len(n) == 2 and "-1" in repr_n:
                 a = n[0] if repr_n[1] == "-1" else n[1]
                 return FakeExpression([a], _operator.neg)
@@ -635,7 +635,7 @@ class InterfaceInit(Converter):
         if hasattr(operator, self.name_init + "evaled_"):
             return getattr(operator, self.name_init + "evaled_")(*ops)
         else:
-            ops = list(map(self, ops))
+            ops = [self(_) for _ in ops]
         try:
             op = getattr(operator, self.name_init)()
         except (TypeError, AttributeError):
@@ -1346,7 +1346,7 @@ class FastFloatConverter(Converter):
             1.41421356237309...
         """
         f = operator
-        g = list(map(self, ex.operands()))
+        g = [self(_) for _ in ex.operands()]
         try:
             return f(*g)
         except TypeError:
@@ -1647,7 +1647,7 @@ class RingConverter(Converter):
             sage: R(cos(2))
             -0.4161468365471424?
         """
-        res =  operator(*list(map(self, ex.operands())))
+        res =  operator(*[self(_) for _ in ex.operands()])
         if res.parent() is not self.ring:
             raise TypeError
         else:
@@ -1745,9 +1745,9 @@ class SubstituteFunction(Converter):
             bar(sin(x))
         """
         if operator == self.original:
-            return self.new(*list(map(self, ex.operands())))
+            return self.new(*[self(_) for _ in ex.operands()])
         else:
-            return operator(*list(map(self, ex.operands())))
+            return operator(*[self(_) for _ in ex.operands()])
 
     def derivative(self, ex, operator):
         """
@@ -1772,6 +1772,6 @@ class SubstituteFunction(Converter):
 
         """
         if operator.function() == self.original:
-            return operator.change_function(self.new)(*list(map(self,ex.operands())))
+            return operator.change_function(self.new)(*[self(_) for _ in ex.operands()])
         else:
-            return operator(*list(map(self, ex.operands())))
+            return operator(*[self(_) for _ in ex.operands()])

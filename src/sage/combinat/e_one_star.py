@@ -616,9 +616,9 @@ class Patch(SageObject):
 
         else:
             self._face_contour = {
-                    1: list(map(vector, [(0,0,0),(0,1,0),(0,1,1),(0,0,1)])),
-                    2: list(map(vector, [(0,0,0),(0,0,1),(1,0,1),(1,0,0)])),
-                    3: list(map(vector, [(0,0,0),(1,0,0),(1,1,0),(0,1,0)]))
+                    1: [vector(_) for _ in [(0,0,0),(0,1,0),(0,1,1),(0,0,1)]],
+                    2: [vector(_) for _ in [(0,0,0),(0,0,1),(1,0,1),(1,0,0)]],
+                    3: [vector(_) for _ in [(0,0,0),(1,0,0),(1,1,0),(0,1,0)]]
             }
 
     def __eq__(self, other):

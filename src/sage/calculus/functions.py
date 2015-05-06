@@ -96,7 +96,7 @@ def wronskian(*args):
         # memory management problem on some platforms (only VMware as far
         # as we know?).  See trac #2990.
         # There may still be a real problem that this is just hiding for now.
-        A = matrix(list(map(row, range(len(fs)))))
+        A = matrix([row(_) for _ in range(len(fs))])
         return A.determinant()
         #return matrix(map(row, range(len(fs)))).determinant()
 

@@ -611,7 +611,7 @@ class Braid(FinitelyPresentedGroupElement):
 
         from sage.rings.semirings.tropical_semiring import TropicalSemiring
         T = TropicalSemiring(IntegerRing())
-        return list(map(T, coord))
+        return [T(_) for _ in coord]
 
     @cached_method
     def left_normal_form(self):

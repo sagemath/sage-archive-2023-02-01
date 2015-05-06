@@ -62,7 +62,7 @@ class Tuples_sk(CombinatorialClass):
         """
         self.S = S
         self.k = k
-        self._index_list = list(map(S.index, S))
+        self._index_list = [S.index(_) for _ in S]
 
     def __repr__(self):
         """
@@ -151,7 +151,7 @@ class UnorderedTuples_sk(CombinatorialClass):
         """
         self.S = S
         self.k = k
-        self._index_list = list(map(S.index, S))
+        self._index_list = [S.index(_) for _ in S]
 
     def __repr__(self):
         """

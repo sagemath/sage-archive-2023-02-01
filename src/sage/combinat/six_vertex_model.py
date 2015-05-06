@@ -124,7 +124,7 @@ class SixVertexConfiguration(ClonableArray):
             if x == 3:
                 return 1
             return 0
-        return matrix([list(map(matrix_sign, row)) for row in self])
+        return matrix([[matrix_sign(_) for _ in row] for row in self])
 
     def plot(self, color='sign'):
         """

@@ -6275,7 +6275,7 @@ class Graph(GenericGraph):
 
         id_label = dict(enumerate(self.vertices()))
 
-        relabel = lambda x : (x[0], list(map(relabel,x[1]))) if isinstance(x,tuple) else id_label[x]
+        relabel = lambda x : (x[0], [relabel(_) for _ in x[1]]) if isinstance(x,tuple) else id_label[x]
 
         return relabel(D)
 

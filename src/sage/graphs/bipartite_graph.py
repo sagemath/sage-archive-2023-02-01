@@ -1012,10 +1012,10 @@ class BipartiteGraph(Graph):
             return None
 
         # read header information
-        num_cols, num_rows = list(map(int, fi.readline().split()))
-        max_col_degree, max_row_degree = list(map(int, fi.readline().split()))
-        col_degrees = list(map(int, fi.readline().split()))
-        row_degrees = list(map(int, fi.readline().split()))
+        num_cols, num_rows = [int(_) for _ in fi.readline().split()]
+        max_col_degree, max_row_degree = [int(_) for _ in fi.readline().split()]
+        col_degrees = [int(_) for _ in fi.readline().split()]
+        row_degrees = [int(_) for _ in fi.readline().split()]
 
         # sanity checks on header info
         if len(col_degrees) != num_cols:

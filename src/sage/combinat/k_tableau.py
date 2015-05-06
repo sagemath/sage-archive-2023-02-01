@@ -3597,7 +3597,7 @@ class StrongTableau(ClonableList):
             sage: StrongTableau([],4).to_unmarked_standard_list()
             []
         """
-        return [list(map(nabs,x)) for x in self.to_standard_list()]
+        return [[nabs(_) for _ in x] for x in self.to_standard_list()]
 
     def _latex_(self):
         r"""
@@ -4157,7 +4157,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
         else:
             for T in cls.standard_unmarked_iterator(k, size-1, outer_shape, inner_shape):
                 for TT in cls.follows_tableau_unsigned_standard(T, k):
-                    if outer_shape is None or Core(outer_shape, k+1).contains(list(map(len,TT))):
+                    if outer_shape is None or Core(outer_shape, k+1).contains([len(_) for _ in TT]):
                         yield TT
 
     @classmethod
@@ -4299,7 +4299,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: T
             [[None, -10, -4], [4]]
         """
-        innershape = Core(list(map(len, Tlist)), k+1)
+        innershape = Core([len(_) for _ in Tlist], k+1)
         outershape = innershape.affine_symmetric_group_action(tij, transposition=True)
         if outershape.length()==innershape.length()+1:
             for c in SkewPartition([outershape.to_partition(),innershape.to_partition()]).cells():
@@ -4351,7 +4351,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
         """
         v = max([0]+[abs(v) for rows in Tlist for v in rows if v is not None])+1
         out = []
-        sh = Core(list(map(len, Tlist)), k+1)
+        sh = Core([len(_) for _ in Tlist], k+1)
         for ga in sh.strong_covers():
             T = copy.deepcopy(Tlist)
             T += [[] for i in range(len(ga)-len(T))]
@@ -4513,7 +4513,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
         marks = [v for row in T for v in row if v is not None and v<0] + [0]
         m = -min(marks) # the largest marked cell
         transeq = [] # start with the empty list and append on the right
-        sh = Core(list(map(len,T)), k+1)
+        sh = Core([len(_) for _ in T], k+1)
         j = max([ c-r for r,row in enumerate(LL) for c,val in enumerate(row)
                   if val == -m ])
         P = sh.to_partition()

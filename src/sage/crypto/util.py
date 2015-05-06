@@ -601,7 +601,7 @@ def least_significant_bits(n, k):
         sage: least_significant_bits(n, len(b))
         [1, 1, 1, 1, 0, 1, 1]
     """
-    return list(map(int, list(n.binary()[-k:])))
+    return [int(_) for _ in list(n.binary()[-k:])]
 
 def random_blum_prime(lbound, ubound, ntries=100):
     r"""

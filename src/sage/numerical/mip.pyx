@@ -628,7 +628,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         self._backend.problem_name(name)
 
-    def new_variable(self, real=False, binary=False, integer=False, nonnegative=None, dim=1, name=""):
+    def new_variable(self, real=False, binary=False, integer=False, nonnegative=None, name=""):
         r"""
         Return a new MIPVariable
 
@@ -651,10 +651,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         INPUT:
 
-        - ``dim`` -- integer. Defines the dimension of the dictionary.
-          If ``x`` has dimension `2`, its fields will be of the form
-          ``x[key1][key2]``. Deprecated.
-
         - ``binary, integer, real`` -- boolean. Set one of these
           arguments to ``True`` to ensure that the variable gets the
           corresponding type.
@@ -668,7 +664,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
           effect.
 
         OUTPUT:
-        
+
         A new instance of :class:`MIPVariable` associated to the
         current :class:`MixedIntegerLinearProgram`.
 
@@ -757,9 +753,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
         if not name and self._first_variable_names:
             name = self._first_variable_names.pop(0)
 
-        return mip_variable_parent(self, 
+        return mip_variable_parent(self,
                       vtype,
-                      dim=dim,
                       name=name,
                       lower_bound=0 if (nonnegative or binary) else None,
                       upper_bound=1 if binary else None)
@@ -1321,34 +1316,14 @@ cdef class MixedIntegerLinearProgram(SageObject):
         Or::
 
             sage: [x_sol, y_sol] = p.get_values([x, y])
-
-        TESTS:
-
-        When 'dim' will be removed, also remove from this function the code that
-        uses it::
-
-            sage: p = MixedIntegerLinearProgram()
-            sage: b = p.new_variable(dim=2)
-            doctest:...: DeprecationWarning: The 'dim' argument will soon disappear. Fortunately variable[1,2] is easier to use than variable[1][2]
-            See http://trac.sagemath.org/15489 for details.
-            sage: p.add_constraint(b[1][2] +  b[2][3] == 0)
-            sage: _ = p.solve()
-            sage: _ = p.get_values(b)
         """
         val = []
         for l in lists:
             if isinstance(l, MIPVariable):
-                if l.depth() == 1:
-                    c = {}
-                    for (k,v) in l.items():
-                        #c[k] = self._values[v] if self._values.has_key(v) else None
-                        c[k] = self._backend.get_variable_value(self._variables[v])
-                    val.append(c)
-                else:
-                    c = {}
-                    for (k,v) in l.items():
-                        c[k] = self.get_values(v)
-                    val.append(c)
+                c = {}
+                for (k,v) in l.items():
+                    c[k] = self._backend.get_variable_value(self._variables[v])
+                val.append(c)
             elif isinstance(l, list):
                 if len(l) == 1:
                     val.append([self.get_values(l[0])])
@@ -1357,7 +1332,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
                     [c.append(self.get_values(ll)) for ll in l]
                     val.append(c)
             elif l in self._variables:
-                #val.append(self._values[l])
                 val.append(self._backend.get_variable_value(self._variables[l]))
 
         if len(lists) == 1:
@@ -1867,27 +1841,14 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             sage: p.set_integer(x[3])
 
-        TESTS:
-
-        When 'dim' will be removed, also remove all the ``is_*`` and ``set_*``
-        functions the code that uses it::
-
-            sage: p = MixedIntegerLinearProgram()
-            sage: b = p.new_variable(dim=2)
-            sage: p.add_constraint(b[1][2] +  b[2][3] == 0)
-            sage: p.set_binary(b)
         """
         cdef MIPVariable e
         e = <MIPVariable> ee
 
         if isinstance(e, MIPVariable):
             e._vtype = self.__BINARY
-            if e.depth() == 1:
-                for v in e.values():
-                    self._backend.set_variable_type(self._variables[v],self.__BINARY)
-            else:
-                for v in e.keys():
-                    self.set_binary(e[v])
+            for v in e.values():
+                self._backend.set_variable_type(self._variables[v],self.__BINARY)
         elif e in self._variables:
             self._backend.set_variable_type(self._variables[e],self.__BINARY)
         else:
@@ -1950,12 +1911,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         if isinstance(e, MIPVariable):
             e._vtype = self.__INTEGER
-            if e.depth() == 1:
-                for v in e.values():
-                    self._backend.set_variable_type(self._variables[v],self.__INTEGER)
-            else:
-                for v in e.keys():
-                    self.set_integer(e[v])
+            for v in e.values():
+                self._backend.set_variable_type(self._variables[v],self.__INTEGER)
         elif e in self._variables:
             self._backend.set_variable_type(self._variables[e],self.__INTEGER)
         else:
@@ -2019,13 +1976,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         if isinstance(e, MIPVariable):
             e._vtype = self.__REAL
-            if e.depth() == 1:
-                for v in e.values():
-                    self._backend.set_variable_type(self._variables[v],self.__REAL)
-                    self._backend.variable_lower_bound(self._variables[v], 0)
-            else:
-                for v in e.keys():
-                    self.set_real(e[v])
+            for v in e.values():
+                self._backend.set_variable_type(self._variables[v],self.__REAL)
+                self._backend.variable_lower_bound(self._variables[v], 0)
         elif e in self._variables:
             self._backend.set_variable_type(self._variables[e],self.__REAL)
             self._backend.variable_lower_bound(self._variables[e], 0)
@@ -2489,7 +2442,7 @@ cdef class MIPVariable(Element):
         :meth:`MixedIntegerLinearProgram.new_variable`.
     """
 
-    def __init__(self, parent, mip, vtype, dim, name, lower_bound, upper_bound):
+    def __init__(self, parent, mip, vtype, name, lower_bound, upper_bound):
         r"""
         Constructor for ``MIPVariable``.
 
@@ -2503,8 +2456,6 @@ cdef class MIPVariable(Element):
 
         - ``vtype`` (integer) -- Defines the type of the variables
           (default is ``REAL``).
-
-        - ``dim`` -- the integer defining the definition of the variable.
 
         - ``name`` -- A name for the ``MIPVariable``.
 
@@ -2522,7 +2473,6 @@ cdef class MIPVariable(Element):
             MIPVariable of dimension 1.
         """
         super(MIPVariable, self).__init__(parent)
-        self._dim = dim
         self._dict = {}
         self._p = mip
         self._vtype = vtype
@@ -2530,18 +2480,11 @@ cdef class MIPVariable(Element):
         self._upper_bound = upper_bound
         self._name = name
 
-        if dim > 1:
-            from sage.misc.superseded import deprecation
-            deprecation(15489, "The 'dim' argument will soon disappear. "+
-                        "Fortunately variable[1,2] is easier to use than "+
-                        "variable[1][2]")
-
     def __getitem__(self, i):
         r"""
         Returns the symbolic variable corresponding to the key.
 
         Returns the element asked, otherwise creates it.
-        (When depth>1, recursively creates the variables).
 
         EXAMPLE::
 
@@ -2550,46 +2493,25 @@ cdef class MIPVariable(Element):
             sage: p.set_objective(v[0] + v[1])
             sage: v[0]
             x_0
-
-        TESTS:
-
-        This function contains "dim" code that will have to be removed::
-
-            sage: p = MixedIntegerLinearProgram()
-            sage: b = p.new_variable(binary=True, dim=2)
         """
         cdef int j
         if i in self._dict:
             return self._dict[i]
-        elif self._dim == 1:
-            zero = self._p._backend.zero()
-            name = self._name + "[" + str(i) + "]" if self._name else None
-            j = self._p._backend.add_variable(
-                lower_bound=self._lower_bound,
-                upper_bound=self._upper_bound,
-                binary=False,
-                continuous=True,
-                integer=False,
-                obj=zero,
-                name=name,
-            )
-            v = self._p.linear_function({j : 1})
-            self._p._variables[v] = j
-            self._p._backend.set_variable_type(j, self._vtype)
-            self._dict[i] = v
-            return v
-        else:
-            name = self._name + "[" + str(i) + "]" if self._name else ''
-            self._dict[i] = self.parent().element_class(
-                self.parent(),
-                self._p,
-                self._vtype,
-                dim=self._dim - 1,
-                name=name,
-                lower_bound=self._lower_bound,
-                upper_bound=self._upper_bound,
-            )
-            return self._dict[i]
+        zero = self._p._backend.zero()
+        name = self._name + "[" + str(i) + "]" if self._name else None
+        j = self._p._backend.add_variable(
+            lower_bound=self._lower_bound,
+            upper_bound=self._upper_bound,
+            binary=False,
+            continuous=True,
+            integer=False,
+            obj=zero,
+            name=name)
+        v = self._p.linear_function({j : 1})
+        self._p._variables[v] = j
+        self._p._backend.set_variable_type(j, self._vtype)
+        self._dict[i] = v
+        return v
 
     def set_min(self, min):
         r"""
@@ -2603,28 +2525,20 @@ cdef class MIPVariable(Element):
         EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
-            sage: v = p.new_variable(real=True, nonnegative=True, dim=2)
+            sage: v = p.new_variable(real=True, nonnegative=True)
             sage: p.get_min(v)
             0
             sage: p.get_min(v[0])
-            0
-            sage: p.get_min(v[0][0])
             0.0
             sage: p.set_min(v,4)
             sage: p.get_min(v)
             4
             sage: p.get_min(v[0])
-            4
-            sage: p.get_min(v[0][0])
             4.0
         """
         self._lower_bound = min
-        if self._dim == 1:
-            for v in self._p._variables:
-                self._p.set_min(v,min)
-        else:
-            for v in self._dict.itervalues():
-                v.set_min(min)
+        for v in self._p._variables:
+            self._p.set_min(v,min)
 
     def set_max(self, max):
         r"""
@@ -2638,25 +2552,18 @@ cdef class MIPVariable(Element):
         EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
-            sage: v = p.new_variable(real=True, nonnegative=True, dim=2)
+            sage: v = p.new_variable(real=True, nonnegative=True)
             sage: p.get_max(v)
             sage: p.get_max(v[0])
-            sage: p.get_max(v[0][0])
             sage: p.set_max(v,4)
             sage: p.get_max(v)
             4
             sage: p.get_max(v[0])
-            4
-            sage: p.get_max(v[0][0])
             4.0
         """
         self._upper_bound = max
-        if self._dim == 1:
-            for v in self._p._variables:
-                self._p.set_max(v,max)
-        else:
-            for v in self._dict.itervalues():
-                v.set_max(max)
+        for v in self._p._variables:
+            self._p.set_max(v,max)
 
     def _repr_(self):
         r"""
@@ -2665,15 +2572,11 @@ cdef class MIPVariable(Element):
         EXAMPLE::
 
             sage: p=MixedIntegerLinearProgram()
-            sage: v=p.new_variable(dim=3)
+            sage: v=p.new_variable()
             sage: v
-            MIPVariable of dimension 3.
-            sage: v[2][5][9]
-            x_0
-            sage: v
-            MIPVariable of dimension 3.
+            MIPVariable of dimension 1.
         """
-        return "MIPVariable of dimension " + str(self._dim) + "."
+        return "MIPVariable of dimension 1."
 
     def keys(self):
         r"""
@@ -2702,20 +2605,6 @@ cdef class MIPVariable(Element):
             [(0, x_0), (1, x_1)]
         """
         return self._dict.items()
-
-    def depth(self):
-        r"""
-        Returns the current variable's depth.
-
-        EXAMPLE::
-
-            sage: p = MixedIntegerLinearProgram()
-            sage: v = p.new_variable(nonnegative=True)
-            sage: p.set_objective(v[0] + v[1])
-            sage: v.depth()
-            1
-        """
-        return self._dim
 
     def values(self):
         r"""
@@ -2760,7 +2649,7 @@ cdef class MIPVariable(Element):
         V = FreeModule(self._p.base_ring(), m.nrows())
         T = self._p.linear_functions_parent().tensor(V)
         return T(result)
-        
+
     cpdef _acted_upon_(self, mat, bint self_on_left):
         """
         Act with matrices on MIPVariables.
@@ -2792,7 +2681,7 @@ cdef class MIPVariableParent(Parent):
     """
 
     Element = MIPVariable
-    
+
     def _repr_(self):
         r"""
         Return representation of self.
@@ -2832,7 +2721,7 @@ cdef class MIPVariableParent(Parent):
         """
         raise TypeError('disallow coercion')
 
-    def _element_constructor_(self, mip, vtype, dim=1, name="", lower_bound=0, upper_bound=None):
+    def _element_constructor_(self, mip, vtype, name="", lower_bound=0, upper_bound=None):
         """
         The Element constructor
 
@@ -2846,7 +2735,7 @@ cdef class MIPVariableParent(Parent):
             sage: mip.new_variable()    # indirect doctest
             MIPVariable of dimension 1.
         """
-        return self.element_class(self, mip, vtype, dim, name, lower_bound, upper_bound)
+        return self.element_class(self, mip, vtype, name, lower_bound, upper_bound)
 
 
 mip_variable_parent = MIPVariableParent()

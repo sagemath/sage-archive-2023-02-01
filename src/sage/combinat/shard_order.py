@@ -188,8 +188,12 @@ def shard_poset(n):
 
         sage: P = posets.ShardPoset(4); P  # indirect doctest
         Finite poset containing 24 elements
-        sage: len(P.maximal_chains())
-        34
+        sage: P.chain_polynomial()
+        34*q^4 + 90*q^3 + 79*q^2 + 24*q + 1
+        sage: P.characteristic_polynomial()
+        q^3 - 11*q^2 + 23*q - 13
+        sage: P.zeta_polynomial()
+        17/3*q^3 - 6*q^2 + 4/3*q
         sage: P.is_selfdual()
         False
     """

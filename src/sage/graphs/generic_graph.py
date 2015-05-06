@@ -10949,7 +10949,7 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``G`` -- the graph whose copy we are looking for in ``self``.
+        - ``G`` -- the (di)graph whose copy we are looking for in ``self``.
 
         - ``induced`` -- boolean (default: ``False``). Whether or not to
           search for an induced copy of ``G`` in ``self``.
@@ -10965,19 +10965,20 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            This method also works on digraphs.
+            This method does not take vertex/edge labels into account.
 
         .. SEEALSO::
 
             - :meth:`~GenericGraph.subgraph_search_count` -- Counts the number
-              of copies of a graph `H` inside of a graph `G`
+              of copies of `H` inside of `G`
 
             - :meth:`~GenericGraph.subgraph_search_iterator` -- Iterate on the
-              copies of a graph `H` inside of a graph `G`
+              copies of `H` inside of `G`
 
         ALGORITHM:
 
-        Brute-force search.
+        See the documentation of
+        :class:`~sage.graphs.generic_graph_pyx.SubgraphSearch`.
 
         EXAMPLES:
 
@@ -11088,19 +11089,20 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``G`` -- the graph whose copies we are looking for in
+        - ``G`` -- the (di)graph whose copies we are looking for in
           ``self``.
 
         - ``induced`` -- boolean (default: ``False``). Whether or not
           to count induced copies of ``G`` in ``self``.
 
-        ALGORITHM:
-
-        Brute-force search.
-
         .. NOTE::
 
-            This method also works on digraphs.
+            This method does not take vertex/edge labels into account.
+
+        ALGORITHM:
+
+        See the documentation of
+        :class:`~sage.graphs.generic_graph_pyx.SubgraphSearch`.
 
         .. SEEALSO::
 
@@ -11181,9 +11183,14 @@ class GenericGraph(GenericGraph_pyx):
         - ``induced`` -- boolean (default: ``False``). Whether or not
           to iterate over the induced copies of ``G`` in ``self``.
 
+        .. NOTE::
+
+            This method does not take vertex/edge labels into account.
+
         ALGORITHM:
 
-        Brute-force search.
+        See the documentation of
+        :class:`~sage.graphs.generic_graph_pyx.SubgraphSearch`.
 
         OUTPUT:
 
@@ -11199,10 +11206,10 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
             - :meth:`~GenericGraph.subgraph_search` -- finds an subgraph
-              isomorphic to `H` inside of a graph `G`
+              isomorphic to `H` inside of `G`
 
             - :meth:`~GenericGraph.subgraph_search_count` -- Counts the number
-              of copies of a graph `H` inside of a graph `G`
+              of copies of `H` inside of `G`
 
         EXAMPLE:
 
@@ -13671,7 +13678,7 @@ class GenericGraph(GenericGraph_pyx):
           vertices.  For a graph, ``neighbors`` is by default the
           :meth:`.neighbors` function of the graph.  For a digraph,
           the ``neighbors`` function defaults to the
-          :meth:`.successors` function of the graph.
+          :meth:`successors` function of the graph.
 
         - ``report_distance`` -- (default ``False``) If ``True``,
           reports pairs (vertex, distance) where distance is the

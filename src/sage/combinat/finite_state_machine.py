@@ -10038,6 +10038,27 @@ class Automaton(FiniteStateMachine):
             0 2/3
             1 1/3
 
+        The automaton is assumed to be deterministic, irreducible and aperiodic::
+
+            sage: A = Automaton([(0, 0, 0), (0, 1, 1), (1, 1, 1), (1, 1, 0)],
+            ....:               initial_states=[0])
+            sage: A.shannon_parry_markov_chain()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Automaton must be strongly connected.
+            sage: A = Automaton([(0, 0, 0), (0, 1, 0)],
+            ....:               initial_states=[0])
+            sage: A.shannon_parry_markov_chain()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Automaton must be deterministic.
+            sage: A = Automaton([(0, 1, 0), (1, 0, 0)],
+            ....:               initial_states=[0])
+            sage: A.shannon_parry_markov_chain()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Automaton must be aperiodic.
+
         ALGORITHM:
 
         See [HKP2015a]_, Theorem 1.
@@ -10055,6 +10076,8 @@ class Automaton(FiniteStateMachine):
            :doi:`10.1002/j.1538-7305.1948.tb01338.x`.
         """
         from sage.modules.free_module_element import vector
+        if not self.is_deterministic():
+            raise NotImplementedError("Automaton must be deterministic.")
         if not self.digraph().is_aperiodic():
             raise NotImplementedError("Automaton must be aperiodic.")
         if not self.digraph().is_strongly_connected():

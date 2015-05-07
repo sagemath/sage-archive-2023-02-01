@@ -3944,17 +3944,17 @@ class FiniteStateMachine(SageObject):
         if self.on_duplicate_transition != duplicate_transition_add_input:
             return False
 
-        if any(s.initial_probability is not None for s in self.states()) and \
-               any(s.initial_probability is None for s in self.states()):
+        if any(s.initial_probability is not None for s in self.iter_states()) and \
+               any(s.initial_probability is None for s in self.iter_states()):
             return False
 
-        if any(s.initial_probability is not None for s in self.states()) and \
-               not is_zero_function(sum(list(s.initial_probability for s
-                                     in self.states())) - 1):
+        if any(s.initial_probability is not None for s in self.iter_states()) and \
+               not is_zero_function(sum(s.initial_probability for s
+                                        in self.iter_states()) - 1):
             return False
 
         return all(is_zero_function(sum(t.word_in[0] for t in state.transitions) - 1)
-                   for state in self.states())
+                   for state in self.iter_states())
 
 
     #*************************************************************************

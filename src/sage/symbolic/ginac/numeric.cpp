@@ -132,6 +132,53 @@ void py_error(const char* s) {
   }
 }
 
+#if PY_MAJOR_VERSION < 3
+#define PyNumber_TrueDivide PyNumber_Divide
+
+inline int Pynac_PyObj_Cmp(PyObject *optr1, PyObject *optr2, const char *errmsg) {
+        int result;
+        if (PyObject_Cmp(optr1, optr2, &result) == -1)
+                py_error(errmsg);
+        return result;
+}
+
+inline int Pynac_PyObj_RichCmp(PyObject *optr1, PyObject *optr2, int opid, const char *errmsg) {
+        int result;
+        if (PyObject_Cmp(optr1, optr2, &result) == -1)
+                py_error(errmsg);
+        switch (result) {
+                case -1: return opid == Py_LT || opid == Py_LE || opid == Py_NE;
+                case  0: return opid == Py_LE || opid == Py_EQ || opid == Py_GE;
+                case  1: return opid == Py_GT || opid == Py_GE || opid == Py_NE;
+        }
+}
+#else
+#define PyInt_Check PyLong_Check
+#define PyInt_AsLong PyLong_AsLong
+#define PyInt_FromLong PyLong_FromLong
+
+inline int Pynac_PyObj_Cmp(PyObject *optr1, PyObject *optr2, const char *errmsg) {
+        int result = PyObject_RichCompareBool(optr1, optr2, Py_LT);
+        if (result == 1)
+                return -1;
+        else if (result == -1)
+                py_error(errmsg);
+        else {    // result == 0
+                result = PyObject_RichCompareBool(optr1, optr2, Py_GT);
+                if (result == -1)
+                        py_error(errmsg);
+        }
+        return result;
+}
+
+inline int Pynac_PyObj_RichCmp(PyObject *optr1, PyObject *optr2, int opid, const char *errmsg) {
+        int result = PyObject_RichCompareBool(optr1, optr2, opid);
+        if (result == -1)
+                py_error(errmsg);
+        return result;
+}
+#endif
+
 // The following variable gets changed to true once
 // this library has been imported by the Python
 // interpreter.  This is because the interpreter calls
@@ -177,7 +224,7 @@ PyObject* Integer(const long int& x) {
 }  
 
 PyObject* Rational(const long int& n, const long int& d) {
-  return PyNumber_Divide(Integer(n), Integer(d));
+  return PyNumber_TrueDivide(Integer(n), Integer(d));
 }  
 
 namespace GiNaC {
@@ -206,7 +253,11 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
         PyErr_Clear();
 	throw(std::runtime_error("operator<<(ostream, Number_T): exception printing python object"));
       } else {
+#if PY_MAJOR_VERSION < 3
 	os << PyString_AsString(o);
+#else
+        os << PyObject_REPR(o);
+#endif
 	Py_DECREF(o);
       }
       return os;
@@ -545,31 +596,35 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return v._long / (long int)x;
     case PYOBJECT:
-	if (PyObject_Compare(x.v._pyobject, ONE) == 0) {
-	    return *this;
-	}
-	if (PyInt_Check(v._pyobject))  {
-	    if(PyInt_Check(x.v._pyobject)) {
-		// This branch happens at startup.
-		PyObject* o = Rational(PyInt_AS_LONG(v._pyobject),  
-				       PyInt_AS_LONG(x.v._pyobject));
-		// I don't 100% understand why I have to incref this, 
-		// but if I don't, Sage crashes on exit.
-		Py_INCREF(o);
-		return o;
-	    } else if (PyLong_Check(x.v._pyobject)) {
-		PyObject* d = py_funcs.py_integer_from_python_obj(x.v._pyobject);
-		PyObject* ans = PyNumber_Divide(v._pyobject, d);
-		Py_DECREF(d);
-		return ans;
-	    }
-	} else if (PyLong_Check(v._pyobject)) {
-	    PyObject* n = py_funcs.py_integer_from_python_obj(v._pyobject);
-	    PyObject* ans = PyNumber_Divide(n, x.v._pyobject);
+#if PY_MAJOR_VERSION < 3
+       if (PyObject_Compare(x.v._pyobject, ONE) == 0) {
+           return *this;
+       }
+       if (PyInt_Check(v._pyobject))  {
+           if(PyInt_Check(x.v._pyobject)) {
+               // This branch happens at startup.
+               PyObject* o = Rational(PyInt_AS_LONG(v._pyobject),  
+                                      PyInt_AS_LONG(x.v._pyobject));
+               // I don't 100% understand why I have to incref this, 
+               // but if I don't, Sage crashes on exit.
+               Py_INCREF(o);
+               return o;
+           } else if (PyLong_Check(x.v._pyobject)) {
+               PyObject* d = py_funcs.py_integer_from_python_obj(x.v._pyobject);
+               PyObject* ans = PyNumber_TrueDivide(v._pyobject, d);
+               Py_DECREF(d);
+               return ans;
+           }
+       } else if (PyLong_Check(v._pyobject)) {
+#else
+       	if (PyLong_Check(v._pyobject)) {
+#endif
+            PyObject* n = py_funcs.py_integer_from_python_obj(v._pyobject);
+	    PyObject* ans = PyNumber_TrueDivide(n, x.v._pyobject);
 	    Py_DECREF(n);
 	    return ans;
 	}
-	return PyNumber_Divide(v._pyobject, x.v._pyobject);
+	return PyNumber_TrueDivide(v._pyobject, x.v._pyobject);
 
     default:
 	stub("invalid type: operator/() type not handled");
@@ -770,11 +825,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return (v._long < right.v._long)?-1:(v._long > right.v._long);
     case PYOBJECT:
-      int result;
-      if (PyObject_Cmp(v._pyobject, right.v._pyobject, &result) == -1) {
-	py_error("compare_same_type");
-      }
-      return result;
+      return Pynac_PyObj_Cmp(v._pyobject, right.v._pyobject, "compare_same_type");
     default:
       stub("invalid type: compare_same_type type not handled");
     }
@@ -794,11 +845,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return v._long <= right.v._long;
     case PYOBJECT:
-      int result;
-      if (PyObject_Cmp(v._pyobject, right.v._pyobject, &result) == -1) {
-	py_error("<=");
-      }
-      return (result <= 0);
+      return Pynac_PyObj_RichCmp(v._pyobject, right.v._pyobject, Py_LE, "<=");
     default:
       stub("invalid type: operator<= type not handled");
     }
@@ -818,11 +865,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return v._long >= right.v._long;
     case PYOBJECT:
-      int result;
-      if (PyObject_Cmp(v._pyobject, right.v._pyobject, &result) == -1) {
-	py_error(">=");
-      }
-      return (result >= 0);
+      return Pynac_PyObj_RichCmp(v._pyobject, right.v._pyobject, Py_GE, ">=");
     default:
       stub("invalid type: operator!= type not handled");
     }
@@ -842,11 +885,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return v._long < right.v._long;
     case PYOBJECT:
-      int result;
-      if (PyObject_Cmp(v._pyobject, right.v._pyobject, &result) == -1) {
-	py_error("<");
-      }
-      return (result < 0);
+      return Pynac_PyObj_RichCmp(v._pyobject, right.v._pyobject, Py_LT, "<");
     default:
       stub("invalid type: operator< type not handled");
     }
@@ -865,11 +904,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return v._long > right.v._long;
     case PYOBJECT:
-      int result;
-      if (PyObject_Cmp(v._pyobject, right.v._pyobject, &result) == -1) {
-	py_error(">");
-      }
-      return (result > 0);
+      return Pynac_PyObj_RichCmp(v._pyobject, right.v._pyobject, Py_GT, ">");
     default:
       stub("invalid type: operator> type not handled");
     }
@@ -897,19 +932,16 @@ void Number_T::archive(archive_node &n) const {
     case PYOBJECT:
       int result;
       if (is_real()) {
-	      if (PyObject_Cmp(v._pyobject, ZERO, &result) == -1)
-		      py_error("csgn");
+              result = compare_same_type(ZERO);
       } else {
-	      PyObject *t = py_funcs.py_real(v._pyobject);
-	      if (PyObject_Cmp(t, ZERO, &result) == -1)
-		      py_error("csgn");
-	      if (result == 0) {
-		      Py_DECREF(t);
-		      t = py_funcs.py_imag(v._pyobject);
-		      if (PyObject_Cmp(t, ZERO, &result) == -1)
-			      py_error("csgn");
-		      Py_DECREF(t);
-	      }
+                PyObject *t = py_funcs.py_real(v._pyobject);
+                result = Pynac_PyObj_Cmp(t, ZERO, "csgn");
+                Py_DECREF(t);
+                if (result == 0)  {
+                        t = py_funcs.py_imag(v._pyobject);
+                        result = Pynac_PyObj_Cmp(t, ZERO, "csgn");
+                        Py_DECREF(t);
+                }
       }
       return result;
     default:
@@ -945,10 +977,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return v._long > 0; 
     case PYOBJECT:
-      n = is_real() && (PyObject_Compare(v._pyobject, ZERO) > 0);
-      if (PyErr_Occurred()) 
-	py_error("is_positive");
-      return n;
+      return is_real() and Pynac_PyObj_RichCmp(v._pyobject, ZERO, Py_GT, "is_positive");
     default:
       stub("invalid type: is_positive() type not handled");
     }
@@ -963,10 +992,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return v._long < 0; 
     case PYOBJECT:
-      n = is_real() && (PyObject_Compare(v._pyobject, ZERO) < 0);
-      if (PyErr_Occurred()) 
-	py_error("is_negative");
-      return n;
+      return is_real() and Pynac_PyObj_RichCmp(v._pyobject, ZERO, Py_LT, "is_negative");
     default:
       stub("invalid type: is_negative() type not handled");
     }
@@ -1027,10 +1053,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return (v._long >= 0);
     case PYOBJECT:
-      n = (is_integer() && (PyObject_Compare(v._pyobject, ZERO) >= 0));
-      if (PyErr_Occurred()) 
-	py_error("is_nonneg_integer");
-      return n;
+        return is_integer() and Pynac_PyObj_RichCmp(v._pyobject, ZERO, Py_GE, "is_nonneg_integer");
     default:
       stub("invalid type: is_nonneg_integer() type not handled");
     }

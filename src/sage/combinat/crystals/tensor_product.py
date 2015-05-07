@@ -1876,8 +1876,8 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: t
             [[1, 2], [3, 4]]
 
-        Currently inputting the empty tableau as an empty sequence is broken due to a bug in
-        the generic __call__ method (see trac ticket #8648)
+        Currently inputting the empty tableau as an empty sequence is
+        broken due to a bug in the generic __call__ method (see :trac:`8648`).
 
         EXAMPLES::
 

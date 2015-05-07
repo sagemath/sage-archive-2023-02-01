@@ -42,7 +42,7 @@ AUTHORS:
 - Daniel Krenn (2014-04-15): improved common docstring during review
 - Clemens Heuberger, Daniel Krenn, Sara Kropf (2014-04-16--2014-05-02):
   A couple of improvements. Details see
-  #16141, #16142, #16143, #16186.
+  :trac:`16141`, :trac:`16142`, :trac:`16143`, :trac:`16186`.
 - Sara Kropf (2014-04-29): weight transducer
 - Clemens Heuberger, Daniel Krenn (2014-07-18): transducers Wait, all,
   any

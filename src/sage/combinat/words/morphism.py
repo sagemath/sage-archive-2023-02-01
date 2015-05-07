@@ -1249,7 +1249,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism({0:[0],1:[1]}).is_identity()
             True
 
-        We check that #8618 is fixed::
+        We check that :trac:`8618` is fixed::
 
             sage: t = WordMorphism({'a1':['a2'], 'a2':['a1']})
             sage: (t*t).is_identity()
@@ -1569,7 +1569,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->bb,b->aac').is_prolongable(letter='a')
             False
 
-        We check that #8595 is fixed::
+        We check that :trac:`8595` is fixed::
 
             sage: s = WordMorphism({('a', 1) : [('a', 1), ('a', 2)], ('a', 2) : [('a', 1)]})
             sage: s.is_prolongable(('a',1))
@@ -1674,7 +1674,7 @@ class WordMorphism(SageObject):
             ...
             KeyError: 'c'
 
-        We check that #8595 is fixed::
+        We check that :trac:`8595` is fixed::
 
             sage: s = WordMorphism({('a', 1):[('a', 1), ('a', 2)], ('a', 2):[('a', 1)]})
             sage: it = s._fixed_point_iterator(('a',1))

@@ -804,20 +804,20 @@ AUTHORS:
 - Daniel Krenn (2013-11-04): next release candidate for Sage patch
 - Sara Kropf (2013-11-08): fix for adjacency matrix
 - Clemens Heuberger (2013-11-11): fix for prepone_output
-- Daniel Krenn (2013-11-11): comments from trac #15078 included:
+- Daniel Krenn (2013-11-11): comments from :trac:`15078` included:
     docstring of FiniteStateMachine rewritten, Automaton and Transducer
     inherited from FiniteStateMachine
 - Daniel Krenn (2013-11-25): documentation improved according to
-    comments from trac #15078
+    comments from :trac:`15078`
 - Clemens Heuberger, Daniel Krenn, Sara Kropf (2014-02-21--2014-07-18):
   A huge bunch of improvements. Details see
-  #15841, #15847, #15848, #15849, #15850, #15922, #15923, #15924,
-  #15925, #15928, #15960, #15961, #15962, #15963, #15975, #16016,
-  #16024, #16061, #16128, #16132, #16138, #16139, #16140, #16143,
-  #16144, #16145, #16146, #16191, #16200, #16205, #16206, #16207,
-  #16229, #16253, #16254, #16255, #16266, #16355, #16357, #16387,
-  #16425, #16539, #16555, #16557, #16588, #16589, #16666, #16668,
-  #16674, #16675, #16677.
+  :trac:`15841`, :trac:`15847`, :trac:`15848`, :trac:`15849`, :trac:`15850`, :trac:`15922`, :trac:`15923`, :trac:`15924`,
+  :trac:`15925`, :trac:`15928`, :trac:`15960`, :trac:`15961`, :trac:`15962`, :trac:`15963`, :trac:`15975`, :trac:`16016`,
+  :trac:`16024`, :trac:`16061`, :trac:`16128`, :trac:`16132`, :trac:`16138`, :trac:`16139`, :trac:`16140`, :trac:`16143`,
+  :trac:`16144`, :trac:`16145`, :trac:`16146`, :trac:`16191`, :trac:`16200`, :trac:`16205`, :trac:`16206`, :trac:`16207`,
+  :trac:`16229`, :trac:`16253`, :trac:`16254`, :trac:`16255`, :trac:`16266`, :trac:`16355`, :trac:`16357`, :trac:`16387`,
+  :trac:`16425`, :trac:`16539`, :trac:`16555`, :trac:`16557`, :trac:`16588`, :trac:`16589`, :trac:`16666`, :trac:`16668`,
+  :trac:`16674`, :trac:`16675`, :trac:`16677`.
 
 ACKNOWLEDGEMENT:
 
@@ -4013,11 +4013,11 @@ class FiniteStateMachine(SageObject):
 
         TEST:
 
-            Check that #16357 is fixed::
-
-                sage: T = Transducer()
-                sage: T.format_transition_label_reversed([])
-                '\\varepsilon'
+        Check that :trac:`16357` is fixed::
+        
+            sage: T = Transducer()
+            sage: T.format_transition_label_reversed([])
+            '\\varepsilon'
         """
         return self.default_format_transition_label(reversed(word))
 
@@ -4094,13 +4094,13 @@ class FiniteStateMachine(SageObject):
 
         TEST:
 
-            Check that #16357 is fixed::
+        Check that :trac:`16357` is fixed::
 
-                sage: T = Transducer()
-                sage: T.default_format_transition_label([])
-                '\\varepsilon'
-                sage: T.default_format_transition_label(iter([]))
-                '\\varepsilon'
+            sage: T = Transducer()
+            sage: T.default_format_transition_label([])
+            '\\varepsilon'
+            sage: T.default_format_transition_label(iter([]))
+            '\\varepsilon'
         """
         result = " ".join(imap(self.format_letter, word))
         if result:
@@ -6429,11 +6429,13 @@ class FiniteStateMachine(SageObject):
             sage: F.transitions()
             [Transition from 'B' to 'B': 1|-]
 
-        TESTS::
+        TESTS:
+
+        This shows that :trac:`16024` is fixed. ::
 
             sage: F._states_
             ['B']
-            sage: F._states_dict_  # This shows that #16024 is fixed.
+            sage: F._states_dict_
             {'B': 'B'}
         """
         state = self.state(s)
@@ -9451,7 +9453,7 @@ class Automaton(FiniteStateMachine):
 
         TESTS:
 
-        This is from `trac ticket #15078, comment 13 <http://trac.sagemath.org/ticket/15078#comment:13>`_.
+        This is from :trac:`15078`, comment 13.
 
         ::
 

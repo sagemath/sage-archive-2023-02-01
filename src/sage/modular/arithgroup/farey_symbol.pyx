@@ -45,6 +45,8 @@ from sage.plot.misc import options, rename_keyword
 from sage.plot.all import hyperbolic_arc, hyperbolic_triangle, text
 
 from sage.misc.latex import latex
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.cachefunc import cached_method
 
 cdef class Farey:
     r"""
@@ -147,7 +149,6 @@ cdef class Farey:
     """
     cdef cpp_farey *this_ptr
     cdef object group
-    cdef object _pmats_to_gens
 
     def __cinit__(self, group, data=None):
         r"""
@@ -157,7 +158,6 @@ cdef class Farey:
             FareySymbol(Congruence Subgroup Gamma0(23))
         """
         self.group = group
-        self._pmats_to_gens = None
         # if data is present we want to restore
         if data is not None:
             sig_on()
@@ -209,7 +209,8 @@ cdef class Farey:
         """
         del self.this_ptr
 
-    def get_pmats_to_gens(self):
+    @cached_method
+    def pairing_matrices_to_tietze_index(self):
         r"""
         Obtain the translation table from pairing matrices
         to generators.
@@ -226,7 +227,7 @@ cdef class Farey:
         EXAMPLES::
 
             sage: F = Gamma0(40).farey_symbol()
-            sage: table = F.get_pmats_to_gens()
+            sage: table = F.pairing_matrices_to_tietze_index()
             sage: table[12]
             -2
             sage: F.pairing_matrices()[12]
@@ -236,57 +237,56 @@ cdef class Farey:
             [ -3   1]
             [-40  13]
         """
-        if self._pmats_to_gens is not None:
-            return self._pmats_to_gens
-        gens = self.generators()
-        pairs = self.pairing_matrices()
+        gens_dict = {g:i+1 for i,g in enumerate(self.generators())}
         ans = []
-        for pm in pairs:
+        for pm in self.pairing_matrices():
             a, b, c, d = pm.matrix().list()
-            try:
-                ans.append(1 + gens.index(SL2Z([a, b, c, d])))
+            newval = gens_dict.get(SL2Z([a, b, c, d]))
+            if newval is not None:
+                ans.append(newval)
                 continue
-            except ValueError:
-                pass
-            try:
-                ans.append(1 + gens.index(SL2Z([-a, -b, -c, -d])))
+            newval = gens_dict.get(SL2Z([-a, -b, -c, -d]))
+            if newval is not None:
+                ans.append(newval)
                 continue
-            except ValueError:
-                pass
-            try:
-                ans.append(-(1 + gens.index(SL2Z([d, -b, -c, a]))))
+            newval = gens_dict.get(SL2Z([d, -b, -c, a]))
+            if newval is not None:
+                ans.append(-newval)
                 continue
-            except ValueError:
-                pass
-            try:
-                ans.append(-(1 + gens.index(SL2Z([-d, b, c, -a]))))
+            newval = gens_dict.get(SL2Z([-d, b, c, -a]))
+            if newval is not None:
+                ans.append(-newval)
                 continue
-            except ValueError:
-                pass
-        assert len(ans) == len(pairs)
-        self._pmats_to_gens = ans
+            raise RuntimeError("This should have not happened")
         return ans
 
-    def tietze(self, M):
+    def word_problem(self, M, output = 'standard'):
         r"""
         Solve the word problem (up to sign) using this Farey symbol.
-
-        The return format is sometimes called the Tietze representation,
-        and consists of a tuple of non-zero integers `i`, where if `i > 0`
-        then it indicates the `i`th generator (that is, ``self.generators()[0]``
-        would correspond to `i = 1`), and if `i < 0` then it indicates
-        the inverse of the `i`th generator.
-
-        See also :meth:`.syllables` and :meth:`.word_problem`.
+        See also :meth:`.syllables` and :meth:`.tietze`.
 
         INPUT:
 
-        An element `M` of `{\rm SL}_2(\ZZ)`.
+        - ``M`` -- An element `M` of `{\rm SL}_2(\ZZ)`.
+        - ``output`` -- (default: ``'standard'``) Should be one of ``'standard'``,
+          ``'syllables'``, ``'gens'``.
 
         OUTPUT:
 
-        The Tietze representation of `M` in the generators of ``self``,
-        up to sign.
+        A solution to the word problem for the matrix `M`.
+        The format depends on the ``output`` parameter, as follows.
+
+        - ``standard`` returns the so called the Tietze representation,
+          consists of a tuple of nonzero integers `i`, where if `i` > 0
+          then it indicates the `i`th generator (that is, ``self.generators()[0]``
+          would correspond to `i` = 1), and if `i` < 0 then it indicates
+          the inverse of the `i`-th generator.
+        - ``syllables`` returns a tuple of tuples of the form `(i,n)`, where
+          `(i,n)` represents ``self.generators()[i] ^ n``,
+          whose product equals `M` up to sign.
+        - ``gens`` returns tuple of tuples of the form `(g,n)`,
+          `(g,n)` such that the product of the matrices `g^n`
+          equals `M` up to sign.
 
         EXAMPLES::
 
@@ -296,77 +296,13 @@ cdef class Farey:
             sage: g
             [-628597   73008]
             [-692130   80387]
-            sage: F.tietze(g)
+            sage: F.word_problem(g)
             (4, 11, -9, 6)
-        """
-        cdef Integer a = M.d()
-        cdef Integer b = -M.b()
-        cdef Integer c = -M.c()
-        cdef Integer d = M.a()
-        sig_on()
-        result = self.this_ptr.word_problem(a.value, b.value, c.value, d.value)
-        sig_off()
-        result.reverse()
-        pmats_to_gens = self.get_pmats_to_gens()
-        return tuple([pmats_to_gens[o-1] if o > 0 else -pmats_to_gens[-o-1]
-                for o in result])
-
-    def syllables(self, M):
-        r"""
-        Solve the word problem (up to sign) using this Farey symbol.
-
-        See also :meth:`.word_problem` and :meth:`.tietze`.
-
-        INPUT:
-
-        An element `M` of `{\rm SL}_2(\ZZ)`.
-
-        OUTPUT:
-
-        A tuple of tuples of the form `(i,n)`, where
-        `(i,n)` represents ``self.generators()[i] ^ n``,
-        whose product equals `M` up to sign.
-
-        EXAMPLES::
-
-            sage: F = Gamma0(30).farey_symbol()
-            sage: gens = F.generators()
             sage: g = gens[3] * gens[10]^2 * gens[8]^-1 * gens[5]
             sage: g
             [-5048053   586303]
             [-5558280   645563]
-            sage: F.syllables(g)
-            ((3, 1), (10, 2), (8, -1), (5, 1))
-        """
-        tietze = self.tietze(M)
-        from itertools import groupby
-        return tuple([(a-1,len(list(g))) if a > 0 else (-a-1,-len(list(g))) for a,g in groupby(tietze)])
-
-    def word_problem(self, M):
-        r"""
-        Solve the word problem (up to sign) using this Farey symbol.
-
-        See also :meth:`.syllables` and :meth:`.tietze`.
-
-        INPUT:
-
-        An element `M` of `{\rm SL}_2(\ZZ)`.
-
-        OUTPUT:
-
-        A tuple of tuples of the form `(g,n)`,
-        `(g,n)` such that the product of the matrices `g^n`
-        equals `M` up to sign.
-
-        EXAMPLES::
-
-            sage: F = Gamma0(30).farey_symbol()
-            sage: gens = F.generators()
-            sage: g = gens[3] * gens[10]^2 * gens[8]^-1 * gens[5]
-            sage: g
-            [-628597   73008]
-            [-692130   80387]
-            sage: F.word_problem()
+            sage: F.word_problem(g, output = 'gens')
             ((
             [109 -10]
             [120 -11], 1
@@ -383,11 +319,29 @@ cdef class Farey:
             [17 -2]
             [60 -7], 1
             ))
+            sage: F.word_problem(g, output = 'syllables')
+            ((3, 1), (10, 2), (8, -1), (5, 1))
         """
-        tietze = self.tietze(M)
+        if output not in ['standard', 'syllables', 'gens']:
+            raise ValueError('Unrecognized output format')
+        cdef Integer a = M.d()
+        cdef Integer b = -M.b()
+        cdef Integer c = -M.c()
+        cdef Integer d = M.a()
+        sig_on()
+        result = self.this_ptr.word_problem(a.value, b.value, c.value, d.value)
+        sig_off()
+        result.reverse()
+        V = self.pairing_matrices_to_tietze_index()
+        tietze = tuple(V[o-1] if o > 0 else -V[-o-1] for o in result)
+        if output == 'standard':
+            return tietze
         from itertools import groupby
-        gens = self.generators()
-        return tuple([(gens[a-1],len(list(g))) if a > 0 else (gens[-a-1],-len(list(g))) for a,g in groupby(tietze)])
+        if output == 'syllables':
+            return tuple((a-1,len(list(g))) if a > 0 else (-a-1,-len(list(g))) for a,g in groupby(tietze))
+        else: # output == 'gens'
+            gens = self.generators()
+            return tuple((gens[a-1],len(list(g))) if a > 0 else (gens[-a-1],-len(list(g))) for a,g in groupby(tietze))
 
     def __contains__(self, M):
         r"""

@@ -10021,8 +10021,8 @@ class Automaton(FiniteStateMachine):
             3/4
             3/2
 
-            The stationary distribution is also computed and saved as the
-            initial probabilities of the returned Markov chain::
+        The stationary distribution is also computed and saved as the
+        initial probabilities of the returned Markov chain::
 
             sage: for s in P_NAF.states():
             ....:     print s, s.initial_probability

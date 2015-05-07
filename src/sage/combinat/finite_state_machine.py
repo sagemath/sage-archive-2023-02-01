@@ -10059,6 +10059,15 @@ class Automaton(FiniteStateMachine):
             ...
             NotImplementedError: Automaton must be aperiodic.
 
+        All states must be final::
+
+            sage: A = Automaton([(0, 1, 0), (0, 0, 1), (1, 0, 0)],
+            ....:               initial_states=[0])
+            sage: A.shannon_parry_markov_chain()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: All states must be final.
+
         ALGORITHM:
 
         See [HKP2015a]_, Theorem 1.
@@ -10082,6 +10091,8 @@ class Automaton(FiniteStateMachine):
             raise NotImplementedError("Automaton must be aperiodic.")
         if not self.digraph().is_strongly_connected():
             raise NotImplementedError("Automaton must be strongly connected.")
+        if not all(s.is_final for s in self.iter_states()):
+            raise NotImplementedError("All states must be final.")
         M = self.adjacency_matrix().change_ring(ZZ)
         states = {state: i for i, state in enumerate(self.iter_states())}
         w_all = sorted(M.eigenvectors_right(),

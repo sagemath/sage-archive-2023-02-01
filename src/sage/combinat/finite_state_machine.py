@@ -10012,7 +10012,8 @@ class Automaton(FiniteStateMachine):
         The transition probabilities correspond to the Parry measure
         (see [S1948]_ and [P1964]_).
 
-        The automaton is assumed to be irreducible and aperiodic.
+        The automaton is assumed to be deterministic, irreducible and
+        aperiodic. All states must be final.
 
         EXAMPLES::
 

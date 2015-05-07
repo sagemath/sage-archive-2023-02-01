@@ -34,9 +34,10 @@ static CYTHON_INLINE PyObject* PyMethodDescr_CallSelf(PyMethodDescrObject* desc,
 }
 
 /*
- * This function calls PyType_Ready(t) and then calls t.__typeinit__(t)
- * as if that was a class method. The __typeinit__ method can then be
- * used for example to make changes to the tp_foo slots.
+ * This function calls PyType_Ready(t) and then calls
+ * t.__getmetaclass__(None) (if that method exists) which should
+ * return the metaclass for t. Then type(t) is set to this metaclass
+ * and metaclass.__init__(t, None, None, None) is called.
  */
 static CYTHON_INLINE int Sage_PyType_Ready(PyTypeObject* t)
 {

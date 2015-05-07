@@ -1251,6 +1251,7 @@ class FSMState(SageObject):
 
     EXAMPLES::
 
+        sage: from sage.combinat.finite_state_machine import FSMState
         sage: S = FSMState('state', initial_probability=1/3)
         sage: S.initial_probability
         1/3

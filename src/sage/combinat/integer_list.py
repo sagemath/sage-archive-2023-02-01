@@ -940,7 +940,9 @@ If you know what you are doing, you can set check=False to skip this warning."""
             element_constructor = self._element_constructor_nocheck
             self._element_constructor_is_copy_safe = True
         if global_options is not None:
-            self.global_options = global_options
+            from sage.misc.superseded import deprecation
+            deprecation(15525, 'the global_options argument is deprecated since, in general,'
+                               ' pickling is broken; create your own class instead')
 
         Parent.__init__(self, element_constructor=element_constructor,
                         category=category)

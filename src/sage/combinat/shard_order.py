@@ -90,6 +90,9 @@ class ShardPosetElement:
         This is the core function in the implementation of the
         shard intersection order.
 
+        One first compares the number of runs, then the set partitions,
+        then the pre-orders.
+
         EXAMPLES::
 
             sage: from sage.combinat.shard_order import ShardPosetElement
@@ -145,12 +148,22 @@ def shard_preorder_graph(runs):
 
     This is a directed graph, whose vertices correspond to the runs.
 
+    There is an edge from a run `R` to a run `S` if `R` is before `S`
+    in the list of runs and the two intervals defined by the initial and
+    final indices of `R` and `S` overlap.
+
     This only depends on the initial and final indices of the runs.
-    For this reason, this input is given in that shorten way.
+    For this reason, this input can also be given in that shorten way.
 
     INPUT:
 
-    a tuple of pairs (i,j), each one standing for a run from `i` to `j`.
+    - a tuple of tuples, the runs of a permutation, or
+
+    - a tuple of pairs (i,j), each one standing for a run from `i` to `j`.
+
+    OUTPUT:
+
+    a directed graph, with vertices labelled by integers
 
     EXAMPLES::
 
@@ -160,6 +173,10 @@ def shard_preorder_graph(runs):
         ....:     return tuple((r[0], r[-1]) for r in lr)
         sage: shard_preorder_graph(cut(s.decreasing_runs()))
         Digraph on 5 vertices
+        sage: s = Permutation([9,4,3,2,8,6,5,1,7])
+        sage: P = shard_preorder_graph(s.decreasing_runs())
+        sage: P.is_isomorphic(digraphs.TransitiveTournament(3))
+        True
     """
     N = len(runs)
     dg = DiGraph(N)
@@ -179,6 +196,10 @@ def shard_poset(n):
 
     The shard intersection order is given by the implication (or refinement)
     order on the set of pre-orders defined from all permutations.
+
+    This can also be seen in a geometrical way. Every pre-order defines
+    a cone in a vector space of dimension `n`. The shard poset is given by
+    the inclusion of these cones.
 
     .. SEEALSO::
 

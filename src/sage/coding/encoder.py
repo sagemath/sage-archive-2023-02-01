@@ -106,13 +106,13 @@ class Encoder(SageObject):
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: E1 = LinearCodeGeneratorMatrixEncoder(C)
-            sage: E2 = LinearCodeGeneratorMatrixEncoder(C)
+            sage: E1 = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
+            sage: E2 = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
             sage: E1 == E2
             True
             sage: G = Matrix(GF(3), [[2,1,1,0,0,0,1],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,1,1,0,0,1]])
             sage: C1 = LinearCode(G)
-            sage: E2 = LinearCodeGeneratorMatrixEncoder(C1)
+            sage: E2 = codes.encoders.LinearCodeGeneratorMatrixEncoder(C1)
             sage: E1 == E2
             False
         """
@@ -126,13 +126,13 @@ class Encoder(SageObject):
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: E1 = LinearCodeGeneratorMatrixEncoder(C)
-            sage: E2 = LinearCodeGeneratorMatrixEncoder(C)
+            sage: E1 = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
+            sage: E2 = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
             sage: E1 != E2
             False
             sage: G = Matrix(GF(3), [[2,1,1,0,0,0,1],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,1,1,0,0,1]])
             sage: C1 = LinearCode(G)
-            sage: E2 = LinearCodeGeneratorMatrixEncoder(C1)
+            sage: E2 = codes.encoders.LinearCodeGeneratorMatrixEncoder(C1)
             sage: E1 != E2
             True
         """
@@ -159,7 +159,7 @@ class Encoder(SageObject):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: word = vector((0, 1, 1, 0))
-            sage: E = LinearCodeGeneratorMatrixEncoder(C)
+            sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
             sage: E.encode(word)
             (1, 1, 0, 0, 1, 1, 0)
         """
@@ -186,7 +186,7 @@ class Encoder(SageObject):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: c = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
-            sage: E = LinearCodeGeneratorMatrixEncoder(C)
+            sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
             sage: E.unencode(c)
             (0, 1, 1, 0)
         """
@@ -218,7 +218,7 @@ class Encoder(SageObject):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: E = C.encoder()
-            sage: E._unencoder_matrix()
+            sage: E.unencoder_matrix()
             [0 0 1 1]
             [0 1 0 1]
             [1 1 1 0]
@@ -254,7 +254,7 @@ class Encoder(SageObject):
             sage: c = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
             sage: c in C
             True
-            sage: E = LinearCodeGeneratorMatrixEncoder(C)
+            sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
             sage: E.unencode_nocheck(c)
             (0, 1, 1, 0)
 
@@ -263,7 +263,7 @@ class Encoder(SageObject):
             sage: c = vector(GF(2), (1, 1, 0, 0, 1, 1, 1))
             sage: c in C
             False
-            sage: E = LinearCodeGeneratorMatrixEncoder(C)
+            sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
             sage: E.unencode_nocheck(c)
             (0, 1, 1, 0)
             sage: m = vector(GF(2), (0, 1, 1, 0))
@@ -271,7 +271,7 @@ class Encoder(SageObject):
             sage: c == c1
             False
         """
-        U = self._unencoder_matrix()
+        U = self.unencoder_matrix()
         info_set = self.code().information_set()
         cc = vector( c[i] for i in info_set )
         return cc * U

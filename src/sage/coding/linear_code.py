@@ -3656,7 +3656,7 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: E = LinearCodeGeneratorMatrixEncoder(C)
+            sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
             sage: E
             Generator matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
         """
@@ -3670,7 +3670,7 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: E = LinearCodeGeneratorMatrixEncoder(C)
+            sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
             sage: E
             Generator matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
         """
@@ -3684,7 +3684,7 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: E = LinearCodeGeneratorMatrixEncoder(C)
+            sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
             sage: latex(E)
             \textnormal{Generator matrix-based encoder for the }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
         """
@@ -3699,7 +3699,7 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: E = LinearCodeGeneratorMatrixEncoder(C)
+            sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
             sage: E.generator_matrix()
             [1 1 1 0 0 0 0]
             [1 0 0 1 1 0 0]

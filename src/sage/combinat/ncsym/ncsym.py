@@ -24,8 +24,10 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.ncsym.bases import NCSymBases, MultiplicativeNCSymBases, NCSymBasis_abstract
 from sage.combinat.set_partition import SetPartitions
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
+from sage.combinat.subset import Subsets
 from sage.combinat.posets.posets import Poset
 from sage.combinat.sf.sf import SymmetricFunctions
+from sage.matrix.matrix_space import MatrixSpace
 from sage.sets.set import Set
 from functools import reduce
 
@@ -73,6 +75,69 @@ def matchings(A, B):
         b = rem_B.pop(i)
         for m in matchings(rem_A, rem_B):
             yield [[a, b]] + m
+
+def nesting(la, nu):
+    r"""
+    Return the nesting number of ``la`` inside of ``nu``.
+
+    If we consider a set partition `A` as a set of arcs `i - j` where `i`
+    and `j` are in the same part of `A`. Define
+
+    .. MATH::
+
+        \operatorname{nst}_{\lambda}^{\nu} = #\{ i < j < k < l \mid
+        i - l \in \nu, j - k \in \lambda \},
+
+    and this corresponds to the number of arcs of `\lambda` strictly
+    contained inside of `\nu`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.ncsym.ncsym import nesting
+        sage: nu = SetPartition([[1,4], [2], [3]])
+        sage: mu = SetPartition([[1,4], [2,3]])
+        sage: nesting(set(mu).difference(nu), nu)
+        1
+
+    ::
+
+        sage: lst = list(SetPartitions(4))
+        sage: d = {}
+        sage: for i, nu in enumerate(lst):
+        ....:    for mu in nu.coarsenings():
+        ....:        if set(nu.arcs()).issubset(mu.arcs()):
+        ....:            d[i, lst.index(mu)] = nesting(set(mu).difference(nu), nu)
+        sage: matrix(d)
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 1 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+    """
+    arcs = []
+    for p in nu:
+        p = sorted(p)
+        arcs += [(p[i], p[i+1]) for i in range(len(p)-1)]
+    nst = 0
+    for p in la:
+        p = sorted(p)
+        for i in range(len(p)-1):
+            for a in arcs:
+                if a[0] >= p[i]:
+                    break
+                if p[i+1] < a[1]:
+                    nst += 1
+    return nst
 
 class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
     r"""
@@ -128,6 +193,10 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
        *Invariants and coinvariants of the symmetric group in noncommuting
        variables*. Canad. J. Math. **60** (2008). 266-296.
        http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/2008/NBergeronRosasZabrocki.pdf
+
+    .. [BT13] N. Bergeron, N. Thiem. *A supercharacter table decomposition
+       via power-sum symmetric functions*. Int. J. Algebra Comput. **23**,
+       763 (2013). :doi:`10.1142/S0218196713400171`. :arxiv:`1112.4901`.
 
     EXAMPLES:
 
@@ -242,7 +311,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
         """
         return self.powersum()
 
-    _shorthands = tuple(['m', 'e', 'h', 'p', 'q', 'x'])
+    _shorthands = tuple(['a', 'chi', 'm', 'e', 'h', 'p', 'q', 'rho', 'x'])
 
     def dual(self):
         r"""
@@ -295,7 +364,8 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
                 sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
                 sage: m = NCSym.m()
-                sage: all(m(m._m_to_p_on_basis(A)) == m[A] for i in range(5) for A in SetPartitions(i))
+                sage: all(m(m._m_to_p_on_basis(A)) == m[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
                 True
             """
             def lt(s, t):
@@ -327,12 +397,40 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
                 sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
                 sage: m = NCSym.m()
-                sage: all(m(m._m_to_q_on_basis(A)) == m[A] for i in range(5) for A in SetPartitions(i))
+                sage: all(m(m._m_to_q_on_basis(A)) == m[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
                 True
             """
             q = self.realization_of().q()
             P = Poset((A.strict_coarsenings(), SetPartitions().is_strict_refinement))
             return q.sum_of_terms([(B, P.mobius_function(A, B)) for B in P], distinct=True)
+
+        @cached_method
+        def _m_to_a_on_basis(self, A):
+            r"""
+            Return `\mathbf{m}_A` in terms of the `\mathbf{a}` basis.
+
+            INPUT:
+
+            - ``A`` -- a set partition
+
+            OUTPUT:
+
+            - an element of the `\mathbf{a}` basis
+
+            TESTS::
+
+                sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
+                sage: m = NCSym.m()
+                sage: all(m(m._m_to_a_on_basis(A)) == m[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
+                True
+            """
+            a = self.realization_of().a()
+            arcs = set(A.arcs())
+            return a.sum_of_terms([(B, (-1)**len(set(B.arcs()).difference(A.arcs())))
+                                   for B in A.coarsenings() if arcs.issubset(B.arcs())],
+                                  distinct=True)
 
         def from_symmetric_function(self, f):
             """
@@ -777,12 +875,16 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             self.module_morphism(self._e_to_m_on_basis, codomain=m).register_as_coercion()
             # homogeneous
             h = NCSym.h()
-            self.module_morphism(self._e_to_h_on_basis, codomain=h).register_as_coercion()
-            h.module_morphism(h._h_to_e_on_basis, codomain=self).register_as_coercion()
+            self.module_morphism(self._e_to_h_on_basis, codomain=h,
+                                 triangular="upper").register_as_coercion()
+            h.module_morphism(h._h_to_e_on_basis, codomain=self,
+                              triangular="upper").register_as_coercion()
             # powersum
             p = NCSym.p()
-            self.module_morphism(self._e_to_p_on_basis, codomain=p).register_as_coercion()
-            p.module_morphism(p._p_to_e_on_basis, codomain=self).register_as_coercion()
+            self.module_morphism(self._e_to_p_on_basis, codomain=p,
+                                 triangular="upper").register_as_coercion()
+            p.module_morphism(p._p_to_e_on_basis, codomain=self,
+                              triangular="upper").register_as_coercion()
 
         @cached_method
         def _e_to_m_on_basis(self, A):
@@ -801,7 +903,8 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
                 sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
                 sage: e = NCSym.e()
-                sage: all(e(e._e_to_m_on_basis(A)) == e[A] for i in range(5) for A in SetPartitions(i))
+                sage: all(e(e._e_to_m_on_basis(A)) == e[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
                 True
             """
             m = self.realization_of().m()
@@ -827,7 +930,8 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
                 sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
                 sage: e = NCSym.e()
-                sage: all(e(e._e_to_h_on_basis(A)) == e[A] for i in range(5) for A in SetPartitions(i))
+                sage: all(e(e._e_to_h_on_basis(A)) == e[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
                 True
             """
             h = self.realization_of().h()
@@ -853,7 +957,8 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
                 sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
                 sage: e = NCSym.e()
-                sage: all(e(e._e_to_p_on_basis(A)) == e[A] for i in range(5) for A in SetPartitions(i))
+                sage: all(e(e._e_to_p_on_basis(A)) == e[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
                 True
             """
             p = self.realization_of().p()
@@ -972,7 +1077,8 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
                 sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
                 sage: h = NCSym.h()
-                sage: all(h(h._h_to_m_on_basis(A)) == h[A] for i in range(5) for A in SetPartitions(i))
+                sage: all(h(h._h_to_m_on_basis(A)) == h[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
                 True
             """
             P = SetPartitions()
@@ -997,7 +1103,8 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
                 sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
                 sage: h = NCSym.h()
-                sage: all(h(h._h_to_e_on_basis(A)) == h[A] for i in range(5) for A in SetPartitions(i))
+                sage: all(h(h._h_to_e_on_basis(A)) == h[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
                 True
             """
             e = self.realization_of().e()
@@ -1023,7 +1130,8 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
                 sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
                 sage: h = NCSym.h()
-                sage: all(h(h._h_to_p_on_basis(A)) == h[A] for i in range(5) for A in SetPartitions(i))
+                sage: all(h(h._h_to_p_on_basis(A)) == h[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
                 True
             """
             p = self.realization_of().p()
@@ -1103,10 +1211,27 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
         The Hopf algebra of symmetric functions in non-commuting variables
         in the powersum basis.
 
+        The powersum basis is given by
+
+        .. MATH::
+
+            \mathbf{p}_A = \sum_{A \leq B} \mathbf{m}_B,
+
+        where we sum over all coarsenings of the set partition `A`. If we
+        allow our variables to commute, then `\mathbf{p}_A` goes to the
+        usual powersum symmetric function `p_{\lambda}` whose (integer)
+        partition `\lambda` is the shape of `A`.
+
         EXAMPLES::
 
             sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
             sage: p = NCSym.p()
+
+            sage: x = p.an_element()**2; x
+            4*p{} + 8*p{{1}} + 4*p{{1}, {2}} + 6*p{{1}, {2, 3}}
+             + 12*p{{1, 2}} + 6*p{{1, 2}, {3}} + 9*p{{1, 2}, {3, 4}}
+            sage: x.to_symmetric_function()
+            4*p[] + 8*p[1] + 4*p[1, 1] + 12*p[2] + 12*p[2, 1] + 9*p[2, 2]
         """
         def __init__(self, NCSym):
             """
@@ -1120,11 +1245,15 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                                              category=MultiplicativeNCSymBases(NCSym))
             # Register coercions
             m = NCSym.m()
-            self.module_morphism(self._p_to_m_on_basis, codomain=m).register_as_coercion()
-            m.module_morphism(m._m_to_p_on_basis, codomain=self).register_as_coercion()
+            self.module_morphism(self._p_to_m_on_basis, codomain=m,
+                                 unitriangular="lower").register_as_coercion()
+            m.module_morphism(m._m_to_p_on_basis, codomain=self,
+                              unitriangular="lower").register_as_coercion()
             x = NCSym.x()
-            self.module_morphism(self._p_to_x_on_basis, codomain=x).register_as_coercion()
-            x.module_morphism(x._x_to_p_on_basis, codomain=self).register_as_coercion()
+            self.module_morphism(self._p_to_x_on_basis, codomain=x,
+                                 unitriangular="upper").register_as_coercion()
+            x.module_morphism(x._x_to_p_on_basis, codomain=self,
+                              unitriangular="upper").register_as_coercion()
 
         @cached_method
         def _p_to_m_on_basis(self, A):
@@ -1143,7 +1272,8 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
                 sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
                 sage: p = NCSym.p()
-                sage: all(p(p._p_to_m_on_basis(A)) == p[A] for i in range(5) for A in SetPartitions(i))
+                sage: all(p(p._p_to_m_on_basis(A)) == p[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
                 True
             """
             m = self.realization_of().m()
@@ -1166,7 +1296,8 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
                 sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
                 sage: p = NCSym.p()
-                sage: all(p(p._p_to_e_on_basis(A)) == p[A] for i in range(5) for A in SetPartitions(i))
+                sage: all(p(p._p_to_e_on_basis(A)) == p[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
                 True
             """
             e = self.realization_of().e()
@@ -1191,7 +1322,8 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
                 sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
                 sage: p = NCSym.p()
-                sage: all(p(p._p_to_h_on_basis(A)) == p[A] for i in range(5) for A in SetPartitions(i))
+                sage: all(p(p._p_to_h_on_basis(A)) == p[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
                 True
             """
             h = self.realization_of().h()
@@ -1216,7 +1348,8 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
                 sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
                 sage: p = NCSym.p()
-                sage: all(p(p._p_to_x_on_basis(A)) == p[A] for i in range(5) for A in SetPartitions(i))
+                sage: all(p(p._p_to_x_on_basis(A)) == p[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
                 True
             """
             x = self.realization_of().x()
@@ -1469,7 +1602,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
         .. MATH::
 
-            \mathbf{q}_A = \sum_{A \leq_* B} \mathbf{m}_B
+            \mathbf{q}_A = \sum_{A \leq_* B} \mathbf{m}_B,
 
         where we sum over all strict coarsenings of the set partition `A`.
 
@@ -1490,8 +1623,10 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                                              category=MultiplicativeNCSymBases(NCSym))
             # Register coercions
             m = NCSym.m()
-            self.module_morphism(self._q_to_m_on_basis, codomain=m).register_as_coercion()
-            m.module_morphism(m._m_to_q_on_basis, codomain=self).register_as_coercion()
+            self.module_morphism(self._q_to_m_on_basis, codomain=m,
+                                 unitriangular="lower").register_as_coercion()
+            m.module_morphism(m._m_to_q_on_basis, codomain=self,
+                              unitriangular="lower").register_as_coercion()
 
         @cached_method
         def _q_to_m_on_basis(self, A):
@@ -1510,7 +1645,8 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
                 sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
                 sage: q = NCSym.q()
-                sage: all(q(q._q_to_m_on_basis(A)) == q[A] for i in range(5) for A in SetPartitions(i))
+                sage: all(q(q._q_to_m_on_basis(A)) == q[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
                 True
             """
             m = self.realization_of().m()
@@ -1568,7 +1704,8 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
                 sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
                 sage: x = NCSym.x()
-                sage: all(x(x._x_to_p_on_basis(A)) == x[A] for i in range(5) for A in SetPartitions(i))
+                sage: all(x(x._x_to_p_on_basis(A)) == x[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
                 True
             """
             def lt(s, t):
@@ -1582,3 +1719,349 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             p = self.realization_of().p()
             P_refine = Poset((A.refinements(), lt))
             return p.sum_of_terms([(B, P_refine.mobius_function(B, A)) for B in P_refine], distinct=True)
+
+    class a(NCSymBasis_abstract):
+        r"""
+        The Hopf algebra of symmetric functions in non-commuting variables
+        in the `\mathbf{a}` basis.
+
+        This basis was defined in [BN13]_ as
+
+        .. MATH::
+
+            \mathbf{a}_A = \sum_{A \subseteq B} \mathbf{m}_B,
+
+        where we sum over all set partitions whose arcs are a subset of
+        the arcs of the set partition `A`.
+
+        .. NOTE::
+
+            In [BN13]_, this was called the powersum basis, however
+            it is a "coarser" basis than the usual powersum basis in
+            the sense that it does not yield the usual powersum basis
+            of the symmetric function under the natural map of letting
+            the variables commute.
+
+        EXAMPLES::
+
+            sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
+            sage: a = NCSym.a()
+        """
+        def __init__(self, NCSym):
+            """
+            EXAMPLES::
+
+                sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
+                sage: TestSuite(NCSym.a()).run()
+            """
+            CombinatorialFreeModule.__init__(self, NCSym.base_ring(), SetPartitions(),
+                                             prefix='a', bracket=False,
+                                             category=MultiplicativeNCSymBases(NCSym))
+            # Register coercions
+            m = NCSym.m()
+            self.module_morphism(self._a_to_m_on_basis, codomain=m,
+                                 unitriangular="lower").register_as_coercion()
+            m.module_morphism(m._m_to_a_on_basis, codomain=self,
+                              unitriangular="lower").register_as_coercion()
+
+        @cached_method
+        def _a_to_m_on_basis(self, A):
+            """
+            Return `\mathbf{a}_A` in terms of the monomial basis.
+
+            INPUT:
+
+            - ``A`` -- a set partition
+
+            OUTPUT:
+
+            - an element of the `\mathbf{m}` basis
+
+            TESTS::
+
+                sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
+                sage: a = NCSym.a()
+                sage: all(a(a._a_to_m_on_basis(A)) == a[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
+                True
+            """
+            m = self.realization_of().m()
+            arcs = set(A.arcs())
+            return m.sum_of_terms([(B, 1) for B in A.strict_coarsenings()
+                                   if arcs.issubset(B.arcs())], distinct=True)
+
+    class rho(NCSymBasis_abstract):
+        r"""
+        The Hopf algebra of symmetric functions in non-commuting variables
+        in the `\rho` basis.
+
+        This basis was defined in [BT13]_ as a `q`-deformation of the
+        `\mathbf{a}` basis:
+
+        .. MATH::
+
+            \rho_A = \sum_{A \subseteq B}
+            \frac{1}{q^{\operatorname{nst}_{B-A}^A}} \mathbf{m}_B,
+
+        where we sum over all set partitions whose arcs are a subset of
+        the arcs of the set partition `A`.
+
+        EXAMPLES::
+
+            sage: R = QQ['q'].fraction_field()
+            sage: q = R.gen()
+            sage: NCSym = SymmetricFunctionsNonCommutingVariables(R)
+            sage: rho = NCSym.rho(q)
+
+        We construct Example 3.1 in [BT13]_::
+
+            sage: rnode = lambda A: sorted([a[1] for a in A.arcs()], reverse=True)
+            sage: dimv = lambda A: sorted([a[1]-a[0] for a in A.arcs()], reverse=True)
+            sage: lst = list(SetPartitions(4))
+            sage: S = sorted(lst, key=lambda A: (dimv(A), rnode(A)))
+            sage: m = NCSym.m()
+            sage: matrix([[m(rho[A])[B] for B in S] for A in S])
+            [  1   1   1   1   1   1   1   1   1   1   1   1   1   1   1]
+            [  0   1   0   0   1   1   0   1   0   0   1   0   0   0   0]
+            [  0   0   1   0   1   0   1   1   0   0   0   0   0   0   1]
+            [  0   0   0   1   0   1   1   1   0   0   0   1   0   0   0]
+            [  0   0   0   0   1   0   0   1   0   0   0   0   0   0   0]
+            [  0   0   0   0   0   1   0   1   0   0   0   0   0   0   0]
+            [  0   0   0   0   0   0   1   1   0   0   0   0   0   0   0]
+            [  0   0   0   0   0   0   0   1   0   0   0   0   0   0   0]
+            [  0   0   0   0   0   0   0   0   1   0   0   1   1   0   0]
+            [  0   0   0   0   0   0   0   0   0   1   1   0   1   0   0]
+            [  0   0   0   0   0   0   0   0   0   0   1   0   0   0   0]
+            [  0   0   0   0   0   0   0   0   0   0   0   1   0   0   0]
+            [  0   0   0   0   0   0   0   0   0   0   0   0   1   0   0]
+            [  0   0   0   0   0   0   0   0   0   0   0   0   0   1 1/q]
+            [  0   0   0   0   0   0   0   0   0   0   0   0   0   0   1]
+        """
+        def __init__(self, NCSym, q='q'):
+            """
+            EXAMPLES::
+
+                sage: R = QQ['q'].fraction_field()
+                sage: q = R.gen()
+                sage: NCSym = SymmetricFunctionsNonCommutingVariables(R)
+                sage: TestSuite(NCSym.rho(q)).run()
+            """
+            R = NCSym.base_ring()
+            self._q = R(q)
+            CombinatorialFreeModule.__init__(self, R, SetPartitions(),
+                                             prefix='rho', bracket=False,
+                                             category=MultiplicativeNCSymBases(NCSym))
+            # Register coercions
+            m = NCSym.m()
+            self.module_morphism(self._rho_to_m_on_basis, codomain=m).register_as_coercion()
+            m.module_morphism(self._m_to_rho_on_basis, codomain=self).register_as_coercion()
+
+        @cached_method
+        def _rho_to_m_on_basis(self, A):
+            r"""
+            Return `\rho_A` in terms of the monomial basis.
+
+            INPUT:
+
+            - ``A`` -- a set partition
+
+            OUTPUT:
+
+            - an element of the `\mathbf{m}` basis
+
+            TESTS::
+
+                sage: R = QQ['q'].fraction_field()
+                sage: q = R.gen()
+                sage: NCSym = SymmetricFunctionsNonCommutingVariables(R)
+                sage: rho = NCSym.rho(q)
+                sage: all(rho(rho._rho_to_m_on_basis(A)) == rho[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
+                True
+            """
+            m = self.realization_of().m()
+            arcs = set(A.arcs())
+            return m.sum_of_terms([(B, self._q**-nesting(set(B).difference(A), A))
+                                   for B in A.coarsenings() if arcs.issubset(B.arcs())],
+                                  distinct=True)
+
+        @cached_method
+        def _m_to_rho_on_basis(self, A):
+            r"""
+            Return `\mathbf{m}_A` in terms of the `\rho` basis.
+
+            INPUT:
+
+            - ``A`` -- a set partition
+
+            OUTPUT:
+
+            - an element of the `\rho` basis
+
+            TESTS::
+
+                sage: R = QQ['q'].fraction_field()
+                sage: q = R.gen()
+                sage: NCSym = SymmetricFunctionsNonCommutingVariables(R)
+                sage: rho = NCSym.rho(q)
+                sage: m = NCSym.m()
+                sage: all(m(rho._m_to_rho_on_basis(A)) == m[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
+                True
+            """
+            coeff = lambda A,B: ((-1)**len(set(B.arcs()).difference(A.arcs()))
+                                 / self._q**nesting(set(B).difference(A), B))
+            arcs = set(A.arcs())
+            return self.sum_of_terms([(B, coeff(A,B)) for B in A.coarsenings()
+                                      if arcs.issubset(B.arcs())],
+                                      distinct=True)
+
+    class supercharacter(NCSymBasis_abstract):
+        r"""
+        The Hopf algebra of symmetric functions in non-commuting variables
+        in the supercharacter `\chi` basis.
+
+        This basis was defined in [BT13]_ as a `q`-deformation of the
+        supercharacter basis.
+
+        .. MATH::
+
+            \chi_A = \sum_B \chi_A(B) \mathbf{m}_B,
+
+        where we sum over all set partitions `A` and `\chi_A(B)` is the
+        evaluation of the supercharacter `\chi_A` on the superclass `\mu_B`.
+
+        .. NOTE::
+
+            The supercharacters considered in [BT13]_ are coarser than
+            those considered by Aguiar et. al.
+
+        INPUT:
+
+        - ``q`` -- (default: ``2``) the parameter `q`
+
+        EXAMPLES::
+
+            sage: R = QQ['q'].fraction_field()
+            sage: q = R.gen()
+            sage: NCSym = SymmetricFunctionsNonCommutingVariables(R)
+            sage: chi = NCSym.chi(q)
+        """
+        def __init__(self, NCSym, q=2):
+            """
+            EXAMPLES::
+
+                sage: R = QQ['q'].fraction_field()
+                sage: q = R.gen()
+                sage: NCSym = SymmetricFunctionsNonCommutingVariables(R)
+                sage: TestSuite(NCSym.chi(q)).run()
+            """
+            R = NCSym.base_ring()
+            self._q = R(q)
+            CombinatorialFreeModule.__init__(self, R, SetPartitions(),
+                                             prefix='chi', bracket=False,
+                                             category=MultiplicativeNCSymBases(NCSym))
+            # Register coercions
+            m = NCSym.m()
+            self.module_morphism(self._chi_to_m_on_basis, codomain=m).register_as_coercion()
+            m.module_morphism(self._m_to_chi_on_basis, codomain=self).register_as_coercion()
+
+        @cached_method
+        def _chi_to_m_on_basis(self, A):
+            r"""
+            Return `\chi_A` in terms of the monomial basis.
+
+            INPUT:
+
+            - ``A`` -- a set partition
+
+            OUTPUT:
+
+            - an element of the `\mathbf{m}` basis
+
+            TESTS::
+
+                sage: R = QQ['q'].fraction_field()
+                sage: q = R.gen()
+                sage: NCSym = SymmetricFunctionsNonCommutingVariables(R)
+                sage: chi = NCSym.chi(q)
+                sage: all(chi(chi._chi_to_m_on_basis(A)) == chi[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
+                True
+            """
+            m = self.realization_of().m()
+            q = self._q
+            arcs = set(A.arcs())
+            ret = {}
+            for B in SetPartitions(A.size()):
+                Barcs = B.arcs()
+                if any((a[0] == b[0] and b[1] < a[1])
+                       or (b[0] > a[0] and a[1] == b[1])
+                       for a in arcs for b in Barcs):
+                    continue
+                ret[B] = ((-1)**len(arcs.intersection(Barcs))
+                          * (q - 1)**(len(arcs) - len(arcs.intersection(Barcs)))
+                          * q**(sum(a[1] - a[0] for a in arcs) - len(arcs))
+                          / q**nesting(B, A))
+            return m._from_dict(ret, remove_zeros=False)
+
+        @cached_method
+        def _graded_inverse_matrix(self, n):
+            r"""
+            Return the inverse of the transition matrix of the ``n``-th
+            graded part from the `\chi` basis to the monomial basis.
+
+            EXAMPLES::
+
+                sage: R = QQ['q'].fraction_field(); q = R.gen()
+                sage: NCSym = SymmetricFunctionsNonCommutingVariables(R)
+                sage: chi = NCSym.chi(q); m = NCSym.m()
+                sage: lst = list(SetPartitions(2))
+                sage: m = matrix([[m(chi[A])[B] for A in lst] for B in lst]); m
+                [   -1     1]
+                [q - 1     1]
+                sage: chi._graded_inverse_matrix(2)
+                [     -1/q       1/q]
+                [(q - 1)/q       1/q]
+                sage: chi._graded_inverse_matrix(2) * m
+                [1 0]
+                [0 1]
+            """
+            lst = SetPartitions(n)
+            MS = MatrixSpace(self.base_ring(), lst.cardinality())
+            m = self.realization_of().m()
+            m = MS([[m(self[A])[B] for A in lst] for B in lst])
+            return ~m
+
+        @cached_method
+        def _m_to_chi_on_basis(self, A):
+            r"""
+            Return `\mathbf{m}_A` in terms of the `\chi` basis.
+
+            INPUT:
+
+            - ``A`` -- a set partition
+
+            OUTPUT:
+
+            - an element of the `\chi` basis
+
+            TESTS::
+
+                sage: R = QQ['q'].fraction_field()
+                sage: q = R.gen()
+                sage: NCSym = SymmetricFunctionsNonCommutingVariables(R)
+                sage: chi = NCSym.chi(q)
+                sage: m = NCSym.m()
+                sage: all(m(chi._m_to_chi_on_basis(A)) == m[A] for i in range(5)
+                ....:     for A in SetPartitions(i))
+                True
+            """
+            n = A.size()
+            lst = list(SetPartitions(n))
+            m = self._graded_inverse_matrix(n)
+            i = lst.index(A)
+            return self._from_dict({B: m[j,i] for j,B in enumerate(lst)})
+
+    chi = supercharacter
+

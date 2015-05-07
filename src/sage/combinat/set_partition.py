@@ -920,6 +920,30 @@ class SetPartition(ClonableArray):
                             ret.append(next)
         return ret
 
+    def arcs(self):
+        r"""
+        Return ``self`` as a list of arcs.
+
+        Consider a set partition `X = \{X_1, X_2, \ldots, X_n\}`,
+        then the arcs are the pairs `i - j` such that `i,j \in X_k`
+        for some `k`.
+
+        EXAMPLES::
+
+            sage: A = SetPartition([[1],[2,3],[4]])
+            sage: A.arcs()
+            [(2, 3)]
+            sage: B = SetPartition([[1,3,6,7],[2,5],[4]])
+            sage: B.arcs()
+            [(1, 3), (3, 6), (6, 7), (2, 5)]
+        """
+        arcs = []
+        for p in self:
+            p = sorted(p)
+            for i in range(len(p)-1):
+                arcs.append((p[i], p[i+1]))
+        return arcs
+
 class SetPartitions(Parent, UniqueRepresentation):
     r"""
     An (unordered) partition of a set `S` is a set of pairwise

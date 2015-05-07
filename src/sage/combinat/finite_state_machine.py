@@ -9992,18 +9992,27 @@ class Automaton(FiniteStateMachine):
 
     def shannon_parry_markov_chain(self):
         """
-        Compute the Parry measure (see [S1948]_ and [P1964]_), that are
-        transition probabilities such that all paths of equal length weighted
-        by these probabilities have the same weight, up to an exponentially
-        small error.
+        Compute a time homogeneous Markov chain such that all words of a
+        given length recognized by the original automaton occur as the
+        output with the same weight; the transition probabilities
+        correspond to the Parry measure.
 
         OUTPUT:
 
         A Markov chain. Its input labels are the transition probabilities, the
-        output labels the labels of the original automaton. The exit weights
-        (used to obtain equal weight) are stored in the attribute ``color`` of
-        the Markov chain. The stationary distribution of this Markov chain is
+        output labels the labels of the original automaton. In order to obtain
+        equal weight for all words of the same length, an "exit weight" is
+        needed. It is stored in the attribute ``color`` of the states of the
+        Markov chain. The weights of the words of the same length sum up to one
+        up to an exponentially small error.
+
+        The stationary distribution of this Markov chain is
         saved as the initial probabilities of the states.
+
+        The transition probabilities correspond to the Parry measure
+        (see [S1948]_ and [P1964]_).
+
+        The automaton is assumed to be irreducible and aperiodic.
 
         EXAMPLES::
 

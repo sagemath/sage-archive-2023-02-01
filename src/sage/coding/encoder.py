@@ -50,6 +50,17 @@ class Encoder(SageObject):
     you cannot have a generator matrix.
     In that case, you need to override ``encode`` and ``unencode_nocheck``.
 
+    Equality methods (``__eq__`` and ``__ne__``) might be useful for encoding in advanced
+    codes constructions (like concatenated codes). If provided default implementation of
+    these methods is not enough for your subclass, you are strongly encouraged to override
+    them.
+
+    .. NOTE::
+
+        For consistency on encoders, please follow this convention on names for subclasses:
+        for a new encoder named ``EncName``, for code family ``CodeFam``, call it
+        ``CodeFamEncNameEncoder``.
+
     As Encoder is not designed to be implemented, it does not have any representation
     methods. You should implement ``_repr_`` and ``_latex_`` methods in the sublclass.
     """
@@ -87,6 +98,46 @@ class Encoder(SageObject):
         """
         self._code = code
 
+    def __eq__(self, other):
+        r"""
+        Checks equality between ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E1 = LinearCodeGeneratorMatrixEncoder(C)
+            sage: E2 = LinearCodeGeneratorMatrixEncoder(C)
+            sage: E1 == E2
+            True
+            sage: G = Matrix(GF(3), [[2,1,1,0,0,0,1],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,1,1,0,0,1]])
+            sage: C1 = LinearCode(G)
+            sage: E2 = LinearCodeGeneratorMatrixEncoder(C1)
+            sage: E1 == E2
+            False
+        """
+        return self.code() == other.code()
+
+    def __ne__(self, other):
+        r"""
+        Checks difference between ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E1 = LinearCodeGeneratorMatrixEncoder(C)
+            sage: E2 = LinearCodeGeneratorMatrixEncoder(C)
+            sage: E1 != E2
+            False
+            sage: G = Matrix(GF(3), [[2,1,1,0,0,0,1],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,1,1,0,0,1]])
+            sage: C1 = LinearCode(G)
+            sage: E2 = LinearCodeGeneratorMatrixEncoder(C1)
+            sage: E1 != E2
+            True
+        """
+        return not self.__eq__(other)
+
     def encode(self, word):
         r"""
         Transforms an element of the message space into an element of the code.
@@ -108,7 +159,7 @@ class Encoder(SageObject):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: word = vector((0, 1, 1, 0))
-            sage: E = EncoderLinearCodeGeneratorMatrix(C)
+            sage: E = LinearCodeGeneratorMatrixEncoder(C)
             sage: E.encode(word)
             (1, 1, 0, 0, 1, 1, 0)
         """
@@ -116,7 +167,7 @@ class Encoder(SageObject):
 
     def unencode(self, c, nocheck=False, **kwargs):
         r"""
-        Returns ``c`` decoded to the message space of ``self``.
+        Returns the message corresponding to ``c``.
 
         INPUT:
 
@@ -135,7 +186,7 @@ class Encoder(SageObject):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: c = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
-            sage: E = EncoderLinearCodeGeneratorMatrix(C)
+            sage: E = LinearCodeGeneratorMatrixEncoder(C)
             sage: E.unencode(c)
             (0, 1, 1, 0)
         """
@@ -148,10 +199,14 @@ class Encoder(SageObject):
             return self.unencode_nocheck(c, **kwargs)
 
     @cached_method
-    def _unencoder_matrix(self):
+    def unencoder_matrix(self):
         r"""
-        Finds an information set for G, and return the inverse of those
+        Finds an information set for G, and returns the inverse of those
         columns of G.
+
+        .. NOTE::
+
+            This is a helper function, for internal use only.
 
         AUTHORS:
 
@@ -174,7 +229,7 @@ class Encoder(SageObject):
 
     def unencode_nocheck(self, c, **kwargs):
         r"""
-        Returns the message corresponding to a codeword.
+        Returns the message corresponding to ``c``.
 
         When c is not a codeword, the output is unspecified.
 
@@ -199,7 +254,7 @@ class Encoder(SageObject):
             sage: c = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
             sage: c in C
             True
-            sage: E = EncoderLinearCodeGeneratorMatrix(C)
+            sage: E = LinearCodeGeneratorMatrixEncoder(C)
             sage: E.unencode_nocheck(c)
             (0, 1, 1, 0)
 
@@ -208,7 +263,7 @@ class Encoder(SageObject):
             sage: c = vector(GF(2), (1, 1, 0, 0, 1, 1, 1))
             sage: c in C
             False
-            sage: E = EncoderLinearCodeGeneratorMatrix(C)
+            sage: E = LinearCodeGeneratorMatrixEncoder(C)
             sage: E.unencode_nocheck(c)
             (0, 1, 1, 0)
             sage: m = vector(GF(2), (0, 1, 1, 0))

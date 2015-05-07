@@ -927,7 +927,7 @@ class AbstractLinearCode(module.Module):
             sage: C.encoders_available(True)
             [('MyEncoder', <class '__main__.MyEncoder'>),
             ('GeneratorMatrix',
-            <class 'sage.coding.linear_code_encoders.EncoderLinearCodeGeneratorMatrix'>)]
+            <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>)]
             sage: C.add_encoder("GeneratorMatrix", MyEncoder, False)
             sage: C.encoders_available(True)
             [('MyEncoder', <class '__main__.MyEncoder'>),
@@ -1774,6 +1774,10 @@ class AbstractLinearCode(module.Module):
         r"""
         Returns an encoder of ``self``.
 
+        This methods creates a new instance of the encoder subclass designated by ``name``.
+        While it is also possible to do the same by directly calling the subclass' constructor,
+        it is strongly advised to use this method to take advantage of the caching mechanism.
+
         INPUT:
 
         - ``name`` -- (default: ``None``) name of the encoder which will be
@@ -1830,7 +1834,7 @@ class AbstractLinearCode(module.Module):
 
             sage: C.encoders_available(True)
             [('GeneratorMatrix',
-            <class 'sage.coding.linear_code_encoders.EncoderLinearCodeGeneratorMatrix'>)]
+            <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>)]
         """
         reg_enc = self._registered_encoders
         if values == True:
@@ -3239,7 +3243,7 @@ class AbstractLinearCode(module.Module):
 
     def unencode(self, c, name=None, nocheck=False, **kwargs):
         r"""
-        Returns ``c`` decoded to the message space of ``self``.
+        Returns the message corresponding to ``c``.
 
         INPUT:
 
@@ -3621,3 +3625,88 @@ class LinearCode(AbstractLinearCode):
             Linear code of length 7, dimension 4 over Finite Field of size 2
         """
         return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())
+
+####################### encoders ###############################
+from encoder import Encoder
+
+class LinearCodeGeneratorMatrixEncoder(Encoder):
+    r"""
+    Encoder based on generator_matrix for Linear codes.
+
+    The only purpose of this encoder is to set generic linear codes
+    into the new Encoder structure by providing a valid ``generator_matrix``
+    method.
+
+    This encoder uses default implementations of ``encode`` and ``unencode``.
+    Its ``generator_matrix`` method returns private field ``_generator_matrix``
+    of its associated code if any, else it calls the ``generator_matrix`` method
+    of the default encoder of the associated code.
+
+    According to this behaviour, this encoder should never be used for other codes than
+    :class:`LinearCode`.
+
+    INPUT:
+
+    - ``code`` -- The associated code of this encoder.
+    """
+
+    def __init__(self, code):
+        r"""
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = LinearCodeGeneratorMatrixEncoder(C)
+            sage: E
+            Generator matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        super(LinearCodeGeneratorMatrixEncoder, self).__init__(code)
+
+    def _repr_(self):
+        r"""
+        Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = LinearCodeGeneratorMatrixEncoder(C)
+            sage: E
+            Generator matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        return "Generator matrix-based encoder for the %s" % self.code()
+
+    def _latex_(self):
+        r"""
+        Returns a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = LinearCodeGeneratorMatrixEncoder(C)
+            sage: latex(E)
+            \textnormal{Generator matrix-based encoder for the }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
+        """
+        return "\\textnormal{Generator matrix-based encoder for the }%s" % self.code()._latex_()
+
+    @cached_method
+    def generator_matrix(self):
+        r"""
+        Returns a generator matrix of the associated code of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = LinearCodeGeneratorMatrixEncoder(C)
+            sage: E.generator_matrix()
+            [1 1 1 0 0 0 0]
+            [1 0 0 1 1 0 0]
+            [0 1 0 1 0 1 0]
+            [1 1 0 1 0 0 1]
+        """
+        if hasattr(self.code(), "_generator_matrix"):
+            return self.code()._generator_matrix
+        else:
+            return self.code().generator_matrix()

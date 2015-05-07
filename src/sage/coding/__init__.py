@@ -1,2 +1,2 @@
 import all
-linear_code.AbstractLinearCode._registered_encoders["GeneratorMatrix"] = linear_code_encoders.EncoderLinearCodeGeneratorMatrix
+linear_code.AbstractLinearCode._registered_encoders["GeneratorMatrix"] = linear_code.LinearCodeGeneratorMatrixEncoder

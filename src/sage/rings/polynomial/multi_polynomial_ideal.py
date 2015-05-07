@@ -1454,7 +1454,7 @@ class MPolynomialIdeal_singular_repr(
         Consider the hyperelliptic curve `y^2 = 4x^5 - 30x^3 + 45x -
         22` over `\QQ`, it has genus 2::
 
-            sage: P, x = PolynomialRing(QQ,"x").objgen()
+            sage: P.<x> = QQ[]
             sage: f = 4*x^5 - 30*x^3 + 45*x - 22
             sage: C = HyperellipticCurve(f); C
             Hyperelliptic Curve over Rational Field defined by y^2 = 4*x^5 - 30*x^3 + 45*x - 22
@@ -3234,7 +3234,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         ::
 
-            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
+            sage: R.<x,y> = QQ[]
             sage: I = (x^3 + y, y)*R
             sage: J = (x^3 + y, y, y*x^3 + y^2)*R
             sage: I == J
@@ -3857,7 +3857,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         EXAMPLES::
 
-            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
+            sage: R.<x,y> = QQ[]
             sage: I = (x^3 + y, y)*R
             sage: x in I # indirect doctest
             False
@@ -4057,7 +4057,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         from sage.misc.misc_c import prod
         from sage.rings.power_series_ring import PowerSeriesRing
 
-        R,z = PowerSeriesRing(QQ,'z', default_prec=sum(degs)).objgen()
+        R = PowerSeriesRing(QQ,'z', default_prec=sum(degs))
+        z = R.gen()
         dreg = 0
         s = prod([1-z**d for d in degs]) / (1-z)**n
         for dreg in xrange(0,sum(degs)):

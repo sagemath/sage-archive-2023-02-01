@@ -87,6 +87,7 @@ Categories
    sage/categories/finite_dimensional_coalgebras_with_basis
    sage/categories/finite_dimensional_hopf_algebras_with_basis
    sage/categories/finite_dimensional_modules_with_basis
+   sage/categories/finite_dimensional_semisimple_algebras_with_basis
    sage/categories/finite_enumerated_sets
    sage/categories/finite_fields
    sage/categories/finite_groups
@@ -147,6 +148,7 @@ Categories
    sage/categories/schemes
    sage/categories/semigroups
    sage/categories/semirings
+   sage/categories/semisimple_algebras
    sage/categories/sets_cat
    sage/categories/sets_with_grading
    sage/categories/sets_with_partial_maps
@@ -198,6 +200,7 @@ Miscellaneous
    :maxdepth: 2
 
    sage/categories/action
+   sage/categories/category_cy_helper
    sage/categories/poor_man_map
 
 .. include:: ../footer.txt

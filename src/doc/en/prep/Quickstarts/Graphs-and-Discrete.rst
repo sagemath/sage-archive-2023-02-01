@@ -122,7 +122,7 @@ cube.
     sage: Aut=C.automorphism_group()
     sage: print "Order of automorphism group: ", Aut.order()
     Order of automorphism group:  48
-    sage: print "Group: \n", Aut
+    sage: print "Group: \n", Aut # random
     Group:
     Permutation Group with generators [('010','100')('011','101'), ('001','010')('101','110'), ('000','001')('010','011')('100','101')('110','111')]
 

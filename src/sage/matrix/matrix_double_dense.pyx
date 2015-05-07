@@ -386,7 +386,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         return M
 
 
-    #   * cdef _cmp_c_impl
+    #   * cpdef _cmp_
     # x * __copy__
     #   * _list -- list of underlying elements (need not be a copy)
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)

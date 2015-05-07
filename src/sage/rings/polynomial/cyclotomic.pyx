@@ -30,8 +30,11 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
 
+from sage.structure.element cimport parent_c
+
 from sage.rings.arith import factor
 from sage.rings.infinity import infinity
+from sage.rings.integer_ring import ZZ
 from sage.misc.all import prod, subsets
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
@@ -276,19 +279,29 @@ def cyclotomic_value(n, x):
         -t^7 - t^6 - t^5 + t^2 + t + 1
         sage: cyclotomic_value(10,mod(3,4))
         1
+
+    Check that the issue with symbolic element in :trac:`14982` is fixed::
+
+        sage: a = cyclotomic_value(3, I)
+        sage: a.pyobject()
+        I
+        sage: parent(_)
+        Number Field in I with defining polynomial x^2 + 1
     """
-    n = int(n)
+    n = ZZ(n)
     if n < 3:
         if n == 1:
-            return x - 1
+            return x - ZZ.one()
         if n == 2:
-            return x + 1
+            return x + ZZ.one()
         raise ValueError("n must be positive")
 
+    P = parent_c(x)
     try:
-        return x.parent()(pari.polcyclo_eval(n, x))
+        return P(pari.polcyclo_eval(n, x).sage())
     except Exception:
         pass
+    one = P(1)
 
     # The following is modeled on the implementation in PARI and is
     # used for cases for which PARI doesn't work. These are in
@@ -297,11 +310,11 @@ def cyclotomic_value(n, x):
     # - x is some Sage type which cannot be converted to PARI;
     # - PARI's algorithm encounters a zero-divisor which is not zero.
 
-    factors = factor(n)
+    factors = n.factor()
     cdef Py_ssize_t i, j, ti, L, root_of_unity = -1
     primes = [p for p, e in factors]
     L = len(primes)
-    if any([e != 1 for p, e in factors]):
+    if any(e != 1 for p, e in factors):
         # If there are primes that occur in the factorization with multiplicity
         # greater than one we use the fact that Phi_ar(x) = Phi_r(x^a) when all
         # primes dividing a divide r.
@@ -318,7 +331,6 @@ def cyclotomic_value(n, x):
     xd = [x] # the x^d for d | n
     cdef char mu
     cdef char* md = <char*>sage_malloc(sizeof(char) * (1 << L)) # the mu(d) for d | n
-    one = x.parent()(1)
     try:
         md[0] = 1
         if L & 1:

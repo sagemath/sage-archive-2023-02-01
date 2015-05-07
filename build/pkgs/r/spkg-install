@@ -84,6 +84,13 @@ if [ "$UNAME" = "Darwin" ]; then
     R_CONFIGURE="--enable-R-framework=no $R_CONFIGURE"
 fi
 
+# OS X 10.10 and/or Xcode 6.3 broke the R installation. See
+# http://trac.sagemath.org/ticket/18254.
+if { uname -sr | grep 'Darwin 14\.' ;} &>/dev/null; then
+    echo "OS X 10.10: Configuring R without aqua support."
+    R_CONFIGURE="--with-aqua=no $R_CONFIGURE"
+fi 
+
 if [ "$UNAME" = "CYGWIN" ]; then
     # Cygwin libm does not provide "long double" functions
     # and we do not install Cephes on Cygwin at the moment

@@ -48,6 +48,7 @@ cdef class PariInstance_auto(ParentWithBase):
 function_re = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
 function_blacklist = {"O",  # O(p^e) needs special parser support
         "alias",            # Not needed and difficult documentation
+        "listcreate",       # "redundant and obsolete" according to PARI
         }
 
 class PariFunctionGenerator(object):

@@ -458,7 +458,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     # x * cdef _sub_
     #   * cdef _mul_
     # x * cdef _lmul_    -- scalar multiplication
-    # x * cdef _cmp_c_impl
+    # x * cpdef _cmp_
     # x * __neg__
     #   * __invert__
     # x * __copy__
@@ -725,7 +725,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         else:
             raise TypeError, "mutable matrices are unhashable"
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         """
         Implements comparison of two cyclotomic matrices with
         identical parents.
@@ -749,7 +749,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: cmp(2*A,A)
             1
         """
-        return self._matrix._cmp_c_impl((<Matrix_cyclo_dense>right)._matrix)
+        return self._matrix._cmp_((<Matrix_cyclo_dense>right)._matrix)
 
     def __copy__(self):
         """

@@ -141,11 +141,11 @@ class CoxeterMatrix(CoxeterType):
 
         The base ring of the matrix depends on the entries given::
 
-            sage: CoxeterMatrix([[1,-1],[-1,1]]).base_ring()
+            sage: CoxeterMatrix([[1,-1],[-1,1]])._matrix.base_ring()
             Integer Ring
-            sage: CoxeterMatrix([[1,-3/2],[-3/2,1]]).base_ring()
+            sage: CoxeterMatrix([[1,-3/2],[-3/2,1]])._matrix.base_ring()
             Rational Field
-            sage: CoxeterMatrix([[1,-1.5],[-1.5,1]]).base_ring()
+            sage: CoxeterMatrix([[1,-1.5],[-1.5,1]])._matrix.base_ring()
             Real Field with 53 bits of precision
 
         """
@@ -248,9 +248,11 @@ class CoxeterMatrix(CoxeterType):
         self._rank = self._matrix.nrows()
 
         self._dict = {(self._index_set[i], self._index_set[j]): self._matrix[i, j]
-                for i in range(self.rank()) for j in range(self.rank())}
-        for i in range(self.rank()):
-            self._dict[i] = self._matrix[i]
+                for i in range(self._rank) for j in range(self._rank)}
+
+        for key in self._index_set:
+            index_key = self._index_set.index(key)
+            self._dict[key] = {i:self._matrix[index_key,self._index_set.index(i)] for i in self._index_set}
 
     @classmethod
     def _from_matrix(cls,data,coxeter_type,index_set,coxeter_type_check):
@@ -281,7 +283,6 @@ class CoxeterMatrix(CoxeterType):
             [   5   -1    1]
         """
 
-
         # Check that the data is valid
         check_coxeter_matrix(data)
 
@@ -292,7 +293,7 @@ class CoxeterMatrix(CoxeterType):
         # TODO:: remove when oo is possible in matrices.
         entries = []
         for r in data:
-            entries += r
+            entries += list(r)
         raw_data = map(lambda x: x if x != infinity else -1, entries)
         M = matrix(n,n,raw_data)
         # until here
@@ -303,7 +304,7 @@ class CoxeterMatrix(CoxeterType):
             if n == 1:
                 coxeter_type = CoxeterType(['A', 1])
             elif coxeter_type_check:
-                coxeter_type = find_coxeter_type_from_matrix(M)
+                coxeter_type = recognize_coxeter_type_from_matrix(M)
             else:
                 coxeter_type = None
         if not index_set:
@@ -410,6 +411,198 @@ class CoxeterMatrix(CoxeterType):
 
         return cls._from_matrix(data,coxeter_type,index_set,False)
 
+    @classmethod
+    def samples(self, finite=None, affine=None, crystallographic=None, 
+            higher_rank=None):
+        """
+        Return a sample of the available Coxeter types.
+
+        INPUT:
+
+        - ``finite`` -- a boolean or ``None`` (default: ``None``)
+
+        - ``affine`` -- a boolean or ``None`` (default: ``None``)
+
+        - ``crystallographic`` -- a boolean or ``None`` (default: ``None``)
+
+        - ``higher_rank`` -- a boolean or ``None`` (default: ``None``)
+        
+        The sample contains all the exceptional finite and affine
+        Coxeter types, as well as typical representatives of the
+        infinite families.
+
+        EXAMPLES::
+
+            sage: [CM.coxeter_type() for CM in CoxeterMatrix.samples()]
+            [Coxeter type of ['A', 1], Coxeter type of ['A', 5],
+            Coxeter type of ['B', 5], Coxeter type of ['D', 4],
+            Coxeter type of ['D', 5], Coxeter type of ['E', 6],
+            Coxeter type of ['E', 7], Coxeter type of ['E', 8],
+            Coxeter type of ['F', 4], Coxeter type of ['H', 3],
+            Coxeter type of ['H', 4], Coxeter type of ['I', 10],
+            Coxeter type of ['A', 2, 1], Coxeter type of ['B', 5, 1], 
+            Coxeter type of ['C', 5, 1], Coxeter type of ['D', 5, 1],
+            Coxeter type of ['E', 6, 1], Coxeter type of ['E', 7, 1],
+            Coxeter type of ['E', 8, 1], Coxeter type of ['F', 4, 1],
+            Coxeter type of ['G', 2, 1], Coxeter type of ['A', 1, 1],
+            [ 1 -2]
+            [-2  1],
+            [ 1 -1 -1]
+            [-1  1 -1]
+            [-1 -1  1],
+            [1 2 3]
+            [2 1 7]
+            [3 7 1],
+            [ 1 -2  3  2]
+            [-2  1  2  3]
+            [ 3  2  1 -8]
+            [ 2  3 -8  1]]
+
+        The finite, affine and crystallographic options allow
+        respectively for restricting to (non) finite, (non) affine,
+        and (non) crystallographic Cartan types::
+
+            sage: [CM.coxeter_type() for CM in CoxeterMatrix.samples(finite=True)]
+            [Coxeter type of ['A', 1], Coxeter type of ['A', 5],
+            Coxeter type of ['B', 5], Coxeter type of ['D', 4],
+            Coxeter type of ['D', 5], Coxeter type of ['E', 6],
+            Coxeter type of ['E', 7], Coxeter type of ['E', 8],
+            Coxeter type of ['F', 4], Coxeter type of ['H', 3],
+            Coxeter type of ['H', 4], Coxeter type of ['I', 10]]
+
+            sage: [CM.coxeter_type() for CM in CoxeterMatrix.samples(affine=True)]
+            [Coxeter type of ['A', 2, 1], Coxeter type of ['B', 5, 1],
+            Coxeter type of ['C', 5, 1], Coxeter type of ['D', 5, 1], 
+            Coxeter type of ['E', 6, 1], Coxeter type of ['E', 7, 1],
+            Coxeter type of ['E', 8, 1], Coxeter type of ['F', 4, 1],
+            Coxeter type of ['G', 2, 1], Coxeter type of ['A', 1, 1]]
+
+            sage: [CM.coxeter_type() for CM in CoxeterMatrix.samples(crystallographic=True)]
+            [Coxeter type of ['A', 1], Coxeter type of ['A', 5],
+            Coxeter type of ['B', 5], Coxeter type of ['D', 4],
+            Coxeter type of ['D', 5], Coxeter type of ['E', 6],
+            Coxeter type of ['E', 7], Coxeter type of ['E', 8],
+            Coxeter type of ['F', 4], Coxeter type of ['A', 2, 1],
+            Coxeter type of ['B', 5, 1], Coxeter type of ['C', 5, 1],
+            Coxeter type of ['D', 5, 1], Coxeter type of ['E', 6, 1],
+            Coxeter type of ['E', 7, 1], Coxeter type of ['E', 8, 1],
+            Coxeter type of ['F', 4, 1], Coxeter type of ['G', 2, 1]]
+
+            sage: CoxeterMatrix.samples(crystallographic=False)
+            [[1 3 2]
+            [3 1 5]
+            [2 5 1], [1 3 2 2]
+            [3 1 3 2]
+            [2 3 1 5]
+            [2 2 5 1], [ 1 10]
+            [10  1], [ 1 -1]
+            [-1  1], [ 1 -2]
+            [-2  1], [ 1 -1 -1]
+            [-1  1 -1]
+            [-1 -1  1], [1 2 3]
+            [2 1 7]
+            [3 7 1], [ 1 -2  3  2]
+            [-2  1  2  3]
+            [ 3  2  1 -8]
+            [ 2  3 -8  1]]
+
+        .. TODO:: add some reducible Coxeter types (suggestions?)
+
+        TESTS::
+
+            sage: for ct in CoxeterMatrix.samples(): TestSuite(ct).run()
+        """
+        result = self._samples()
+        if crystallographic is not None:
+            result = [t for t in result if t.is_crystallographic() == crystallographic ]
+        if finite is not None:
+            result = [t for t in result if t.is_finite() == finite]
+        if affine is not None:
+            result = [t for t in result if t.is_affine() == affine]
+        if higher_rank is not None:
+            result = [t for t in result if not t.is_affine() and not t.is_finite()]
+        return result
+
+    @cached_method
+    def _samples(self):
+        """
+        Return a sample of all implemented Coxeter types.
+
+        .. NOTE:: This is intended to be used through :meth:`samples`.
+
+        EXAMPLES::
+
+            sage: [CM.coxeter_type() for CM in CoxeterMatrix._samples()]
+            [Coxeter type of ['A', 1], Coxeter type of ['A', 5],
+            Coxeter type of ['B', 5], Coxeter type of ['D', 4], 
+            Coxeter type of ['D', 5], Coxeter type of ['E', 6], 
+            Coxeter type of ['E', 7], Coxeter type of ['E', 8],
+            Coxeter type of ['F', 4], Coxeter type of ['H', 3],
+            Coxeter type of ['H', 4], Coxeter type of ['I', 10],
+            Coxeter type of ['A', 2, 1], Coxeter type of ['B', 5, 1],
+            Coxeter type of ['C', 5, 1], Coxeter type of ['D', 5, 1],
+            Coxeter type of ['E', 6, 1], Coxeter type of ['E', 7, 1],
+            Coxeter type of ['E', 8, 1], Coxeter type of ['F', 4, 1],
+            Coxeter type of ['G', 2, 1], Coxeter type of ['A', 1, 1],
+            [ 1 -2]
+            [-2  1],
+            [ 1 -1 -1]
+            [-1  1 -1]
+            [-1 -1  1],
+            [1 2 3]
+            [2 1 7]
+            [3 7 1],
+            [ 1 -2  3  2]
+            [-2  1  2  3]
+            [ 3  2  1 -8]
+            [ 2  3 -8  1]]
+        """
+        finite = [CoxeterMatrix(t)       for t in [['A', 1], ['A', 5], ['B', 5],
+                                            ['D', 4], ['D', 5], ['E', 6], ['E', 7],
+                                            ['E', 8], ['F', 4], ['H', 3], ['H', 4], 
+                                            ['I', 10]]]
+
+        affine  = [CoxeterMatrix(t)      for t in ['A', 2, 1], ['B', 5, 1], 
+                                            ['C', 5, 1], ['D', 5, 1], ['E', 6, 1],
+                                            ['E', 7, 1], ['E', 8, 1], ['F', 4, 1],
+                                            ['G', 2, 1], ['A', 1, 1]]
+
+        higher_matrices = [[[1,-2],[-2,1]],
+                [[1,-1,-1],[-1,1,-1],[-1,-1,1]], [[1,2,3],[2,1,7],[3,7,1]], 
+                [[1,-2,3,2],[-2,1,2,3],[3,2,1,-8],[2,3,-8,1]]]
+
+        higher = [CoxeterMatrix(m) for m in higher_matrices]
+
+        return finite + affine + higher
+
+    def relabel(self, relabelling):
+        """
+        Return a relabelled copy of this Coxeter matrix.
+
+        INPUT:
+
+        - ``relabelling`` -- a function (or a list or dictionary)
+
+        OUTPUT:
+
+        an isomorphic Coxeter type obtained by relabelling the nodes of
+        the Coxeter graph. Namely, the node with label ``i`` is
+        relabelled ``f(i)`` (or, by ``f[i]`` if ``f`` is a list or
+        dictionary).
+
+        EXAMPLES::
+
+            sage: CoxeterMatrix(['F',4]).relabel({ 1:2, 2:3, 3:4, 4:1})
+            [1 4 2 3]
+            [4 1 3 2]
+            [2 3 1 2]
+            [3 2 2 1]
+        """
+
+        data = [[self[relabelling[i]][relabelling[j]] for j in self.index_set()] for i in self.index_set()]
+
+        return CoxeterMatrix(data)
+
     def __reduce__(self):
         """
         Used for pickling.
@@ -421,7 +614,7 @@ class CoxeterMatrix(CoxeterType):
             sage: M._index_set
             (1, 2, 3, 4)
         """
-        return (CoxeterMatrix, (self.parent(), self.list(),
+        return (CoxeterMatrix, (self._matrix.parent(), self._matrix.list(),
                                 self._coxeter_type, self._index_set))
 
     def __repr__(self):
@@ -431,9 +624,21 @@ class CoxeterMatrix(CoxeterType):
 
         return self._matrix.__repr__()
 
+    def __iter__(self):
+
+        return self._matrix.__iter__()
+
     def __getitem__(self, key):
 
         return self._dict[key]
+
+    def __hash__(self):
+
+        return self._matrix.__hash__()
+
+    def __eq__(self,other):
+
+        return self._matrix.__eq__(other._matrix)
 
     def _matrix_(self, R = None):
         """
@@ -614,9 +819,7 @@ class CoxeterMatrix(CoxeterType):
             False
             sage: M = CoxeterMatrix([[1, -1, 7], [-1, 1, 3], [7, 3, 1]])
             sage: M.is_affine()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            False
         """
         return self._is_affine
 
@@ -624,7 +827,7 @@ class CoxeterMatrix(CoxeterType):
 #####################################################################
 ## Type check functions
 
-def find_coxeter_type_from_matrix(coxeter_matrix):
+def recognize_coxeter_type_from_matrix(coxeter_matrix):
     """
     Return the Coxeter type of ``coxeter_matrix`` if known,
     otherwise return ``None``.
@@ -671,9 +874,8 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
         Coxeter type of ['H', 3]
         sage: CoxeterMatrix(CoxeterType(['H',4]).coxeter_graph()).coxeter_type()
         Coxeter type of ['H', 4]
-        sage:CoxeterMatrix(CoxeterType(['I',100]).coxeter_graph()).coxeter_type()
+        sage: CoxeterMatrix(CoxeterType(['I',100]).coxeter_graph()).coxeter_type()
         Coxeter type of ['I', 100]
-
 
     Some affine graphs::
 
@@ -697,6 +899,18 @@ def find_coxeter_type_from_matrix(coxeter_matrix):
         Coxeter type of ['F', 4, 1]
         sage: CoxeterMatrix(CoxeterType(['G',2,1]).coxeter_graph()).coxeter_type()
         Coxeter type of ['G', 2, 1]
+
+    TESTS::
+
+        sage: from sage.combinat.root_system.coxeter_matrix import recognize_coxeter_type_from_matrix
+        sage: for C in CoxeterMatrix.samples():
+        ....:     relabelling_perm = Permutations(C.index_set()).random_element()
+        ....:     relabelling_dict = {C.index_set()[i]: relabelling_perm[i] for i in range(C.rank())}
+        ....:     relabeled_matrix = C.relabel(relabelling_dict)._matrix
+        ....:     recognized_type = recognize_coxeter_type_from_matrix(relabeled_matrix)
+        ....:     if C.is_finite() or C.is_affine():
+        ....:         assert recognized_type == C.coxeter_type()
+
     """
     # First, we build the Coxeter graph of the group without the edge labels
     n = ZZ(coxeter_matrix.nrows())
@@ -1028,7 +1242,7 @@ def coxeter_matrix_as_function(t):
     m = t.coxeter_matrix()
     index_set = t.index_set()
     reverse = dict((index_set[i], i) for i in range(len(index_set)))
-    return lambda i, j: m[reverse[i], reverse[j]]
+    return lambda i, j: m[i,j]  # m[reverse[i], reverse[j]]
 
 def coxeter_matrix(t):
     """

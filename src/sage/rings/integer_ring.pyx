@@ -283,6 +283,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
     TESTS::
 
         sage: TestSuite(ZZ).run()
+        sage: list(ZZ)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: len() of an infinite set
     """
 
     def __init__(self):
@@ -401,21 +405,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             \Bold{Z}
         """
         return "\\Bold{Z}"
-
-    def __len__(self):
-        r"""
-        Return the length of the integers `\ZZ`. This throws a ``TypeError``
-        since `\ZZ` is an infinite set.
-
-        TESTS::
-
-            sage: from sage.rings.integer_ring import IntegerRing_class
-            sage: IntegerRing_class().__len__()
-            Traceback (most recent call last):
-            ...
-            TypeError: len() of unsized object
-        """
-        raise TypeError, 'len() of unsized object'
 
     def _div(self, integer.Integer left, integer.Integer right):
         """

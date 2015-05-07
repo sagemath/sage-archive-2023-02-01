@@ -82,10 +82,6 @@ cdef class PolynomialRealDense(Polynomial):
             TypeError: Cannot evaluate symbolic expression to a numeric value.
             sage: sig_on_count()
             0
-            sage: alarm(0.5); PolynomialRealDense(RR['x'], ZZ)  # Will loop forever
-            Traceback (most recent call last):
-            ...
-            AlarmInterrupt
 
         Test that we don't clean up uninitialized coefficients (#9826)::
 

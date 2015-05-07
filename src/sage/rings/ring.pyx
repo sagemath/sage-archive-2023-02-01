@@ -193,7 +193,7 @@ cdef class Ring(ParentWithGens):
     def __len__(self):
         r"""
         Return the cardinality of this ring if it is finite, else raise
-        a ``TypeError``.
+        a ``NotImplementedError``.
 
         EXAMPLES::
 
@@ -202,11 +202,11 @@ cdef class Ring(ParentWithGens):
             sage: len(RR)
             Traceback (most recent call last):
             ...
-            TypeError: len() of unsized object
+            NotImplementedError: len() of an infinite set
         """
         if self.is_finite():
             return self.cardinality()
-        raise TypeError, 'len() of unsized object'
+        raise NotImplementedError, 'len() of an infinite set'
 
     def __xor__(self, n):
         r"""

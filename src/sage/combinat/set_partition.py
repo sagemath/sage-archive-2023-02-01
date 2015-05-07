@@ -905,7 +905,7 @@ class SetPartition(ClonableArray):
         todo = [self]
         visited = set([self])
         ret = [self]
-        while len(todo) != 0:
+        while todo:
             A = todo.pop()
             for i, part in enumerate(A):
                 for j, other in enumerate(A[i+1:]):

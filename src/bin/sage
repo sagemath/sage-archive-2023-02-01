@@ -43,7 +43,7 @@ usage() {
     echo "                           --help - show all testing options"
     echo "  -upgrade [version]  -- download, build and install the given version. Here,"
     echo "                         'version' is a git branch or tag name. Useful values"
-    echo "                         are 'master' (the currend development version, this"
+    echo "                         are 'master' (the current development version, this"
     echo "                         is the default) or a version number like '5.13'."
     echo "  -v, -version        -- display Sage version information"
     exit 0
@@ -136,7 +136,7 @@ usage_advanced() {
    #echo "  -update-build       -- build and install all downloaded non-optional Sage packages"
     echo "  -upgrade [version]  -- download, build and install the given version. Here,"
     echo "                         'version' is a git branch or tag name. Useful values"
-    echo "                         are 'master' (the currend development version, this"
+    echo "                         are 'master' (the current development version, this"
     echo "                         is the default) or a version number like '5.13'."
 
     echo

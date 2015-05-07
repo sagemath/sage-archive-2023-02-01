@@ -349,7 +349,7 @@ cdef class Morphism(Map):
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         if left is right: return 0
         domain = left.domain()
         c = cmp(domain, right.domain())
@@ -362,7 +362,7 @@ cdef class Morphism(Map):
                 c = cmp(left(x), right(x))
                 if c: return c
         except (AttributeError, NotImplementedError):
-            raise NotImplementedError
+            raise NotImplementedError("comparison not implemented for %r"%type(left))
 
 
 cdef class FormalCoercionMorphism(Morphism):

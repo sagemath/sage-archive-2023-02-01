@@ -509,22 +509,20 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
 
     def _image_of_finite_subgroup(self, G):
         """
-        Return the image of the finite group `G` under this
-        morphism.
+        Return the image of the finite group `G` under ``self``.
 
         INPUT:
 
+        - ``G`` -- a finite subgroup of the domain of ``self``
 
-        -  ``G`` - a finite subgroup of the domain of this
-           morphism
+        OUTPUT:
 
-
-        OUTPUT: a finite subgroup of the codomain
+        A finite subgroup of the codomain.
 
         EXAMPLES::
 
             sage: J = J0(33); A = J[0]; B = J[1]
-            sage: C = A.intersection(B)[0] ; C
+            sage: C = A.intersection(B)[0]; C
             Finite subgroup with invariants [5] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
             sage: t = J.hecke_operator(3)
             sage: D = t(C); D

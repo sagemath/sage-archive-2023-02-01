@@ -6,7 +6,7 @@ AUTHORS:
 
 - Jayant Apte (2014-06-06): initial version
 
-    .. NOTE::
+.. NOTE::
 
     This file provides functions that are called by ``show()`` and ``plot()``
     methods of abstract matroids class. The basic idea is to first decide
@@ -28,22 +28,24 @@ AUTHORS:
     matroid. Loops and parallel elements are added as per conventions in
     [Oxley] using function ``addlp``. The priority order for point placement
     methods used inside plot() and show() is as follows:
-    1) User Specified points dictionary and lineorders
-    2) cached point placement dictionary and line orders (a list of ordered
-    lists) in M._cached_info (a dictionary)
-    3) Internal point placement and orders deciding heuristics
-    If a custom point placement and/or line orders is desired, then user can
-    simply specify the custom points dictionary as ``M.cached info =
-    {'plot_positions':<dictionary_of _points>,
-     'plot_lineorders':<list of lists>}``
+
+    1. User Specified points dictionary and lineorders
+    2. cached point placement dictionary and line orders (a list of ordered
+       lists) in M._cached_info (a dictionary)
+    3. Internal point placement and orders deciding heuristics
+       If a custom point placement and/or line orders is desired, then user
+       can simply specify the custom points dictionary as::
+
+            M.cached info = {'plot_positions':<dictionary_of _points>,
+                             'plot_lineorders':<list of lists>}
 
 
 
 REFERENCES
 ==========
 
-..  [Oxley] James Oxley, "Matroid Theory, Second Edition". Oxford University
-    Press, 2011.
+[Oxley] James Oxley, "Matroid Theory, Second Edition". Oxford University
+Press, 2011.
 
 EXAMPLES::
 
@@ -744,16 +746,16 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
 
     - ``M1`` -- A matroid.
     - ``B1`` -- (optional) A list of elements in ``M1.groundset()`` that
-    correspond to a basis of ``M1`` and will be placed as vertices of the
-    triangle in the geometric representation of ``M1``.
+      correspond to a basis of ``M1`` and will be placed as vertices of the
+      triangle in the geometric representation of ``M1``.
     - ``lineorders1`` -- (optional) A list of ordered lists of elements of
-    ``M1.grondset()`` such that if a line in geometric representation is
-    setwise same as any of these then points contained will be traversed in
-    that order thus overriding internal order deciding heuristic.
+      ``M1.grondset()`` such that if a line in geometric representation is
+      setwise same as any of these then points contained will be traversed in
+      that order thus overriding internal order deciding heuristic.
     - ``pd`` - (optional) A dictionary mapping ground set elements to their
-    (x,y) positions.
+      (x,y) positions.
     - ``sp`` -- (optional) If True, a positioning dictionary and line orders
-    will be placed in ``M._cached_info``.
+      will be placed in ``M._cached_info``.
 
     OUTPUT:
 

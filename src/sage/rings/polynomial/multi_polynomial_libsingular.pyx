@@ -731,6 +731,17 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R(2^31)
             2
 
+        Check that :trac:`17964` is fixed::
+
+            sage: K.<a> = QuadraticField(17)
+            sage: Q.<x,y> = K[]
+            sage: f = (-3*a)*y + (5*a)
+            sage: p = K.primes_above(5)[0]
+            sage: R = K.residue_field(p)
+            sage: S = R['x','y']
+            sage: S(f)
+            (2*abar)*y
+
         """
         cdef poly *_p
         cdef poly *mon
@@ -850,7 +861,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 El_base = El_parent._base
 
                 while El_poly:
-                    rChangeCurrRing(El_ring)
                     c = si2sa(p_GetCoeff(El_poly, El_ring), El_ring, El_base)
                     try:
                         c = K(c)
@@ -858,7 +868,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                         p_Delete(&_p, _ring)
                         raise
                     if c:
-                        rChangeCurrRing(_ring)
                         mon = p_Init(_ring)
                         p_SetCoeff(mon, sa2si(c, _ring), _ring)
                         for j from 1 <= j <= El_ring.N:
@@ -1456,9 +1465,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P == R
             False
         """
-        return (<Parent>left)._richcmp_helper(right, op)
+        return (<Parent>left)._richcmp(right, op)
 
-    def _cmp_(left, right):
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare ``left`` with ``right``.
 
@@ -2200,7 +2209,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         if left is right:
             return 0
         cdef poly *p = (<MPolynomial_libsingular>left)._poly

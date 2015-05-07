@@ -26,7 +26,9 @@ from operator import add, sub, mul, div, pow, neg, inv
 
 cdef canonical_coercion
 from sage.structure.element import canonical_coercion
+from sage.structure.all import parent
 
+import sage.categories.map
 from sage.categories.morphism cimport Morphism
 from sage.rings.ring cimport Field
 import sage.rings.infinity
@@ -112,8 +114,20 @@ cdef class LazyField(Field):
     cpdef _coerce_map_from_(self, R):
         r"""
         The only things that coerce into this ring are exact rings that
-        embed into `\RR` or `\CC` (depending on whether or not this field
-        is real or complex).
+        embed into `\RR` or `\CC` (depending on whether this field
+        is real or complex), that is, exact rings that coerce into all
+        rings into which this ring coerces.
+
+        .. NOTE::
+
+            The rings into which this ring coerces are currently the
+            corresponding floating-point fields (RealField(p) or
+            ComplexField(p)), machine-precision floating-point fields (RDF,
+            CDF), and interval fields (RealIntervalField(p),
+            ComplexIntervalField(p)). This method should be updated if a new
+            parent is added that declares a coercion from RLF/CLF but not from
+            one of these, otherwise coercions of elements of type LazyWrapper
+            into the new ring might fail.
 
         EXAMPLES::
 
@@ -141,8 +155,18 @@ cdef class LazyField(Field):
             if R in [int, long]:
                 from sage.structure.parent import Set_PythonType
                 return LazyWrapperMorphism(Set_PythonType(R), self)
-        elif self.interval_field().has_coerce_map_from(R) and R.is_exact():
-            return LazyWrapperMorphism(R, self)
+        elif R.is_exact():
+            ivf = self.interval_field()
+            mor = ivf.coerce_map_from(R)
+            # Indirect coercions might lead to loops both in the coercion
+            # discovery algorithm and when trying to convert LazyWrappers,
+            # so we only consider direct coercions.
+            if mor is not None and not isinstance(mor, sage.categories.map.FormalCompositeMap):
+                mor = ivf._middle_field().coerce_map_from(R)
+                if mor is not None and not isinstance(mor, sage.categories.map.FormalCompositeMap):
+                    return LazyWrapperMorphism(R, self)
+            # We can skip the test for a coercion to RDF/CDF since RR/CC
+            # already coerce into it.
 
     def algebraic_closure(self):
         """
@@ -631,7 +655,7 @@ cdef class LazyFieldElement(FieldElement):
         """
         return self._new_unop(self, inv)
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         """
         If things are being wrapped, tries to compare values. That failing, it
         tries to compare intervals, which may return a false negative.
@@ -1004,7 +1028,14 @@ cdef class LazyWrapper(LazyFieldElement):
             sage: a.eval(ZZ).parent()
             Integer Ring
         """
-        return R(self._value)
+        try:
+            mor = R.convert_map_from(parent(self._value))
+        except AttributeError:
+            return R(self._value)
+        if mor is not None and self.parent() not in mor.domains():
+            return mor(self._value)
+        else:
+            raise TypeError("unable to convert {} to an element of {}".format(self._value, R))
 
     def __reduce__(self):
         """

@@ -37,7 +37,6 @@ from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.lazy_attribute import lazy_class_attribute
 
-include "sage/ext/python_rich_object.pxi"
 from cpython.bool cimport *
 from cpython.ref cimport *
 

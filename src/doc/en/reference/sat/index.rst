@@ -91,7 +91,11 @@ Details on Specific Solvers
 .. toctree::
    :maxdepth: 1
 
+   sage/sat/solvers/satsolver
    sage/sat/solvers/dimacs
+.. optional - cryptominisat
+.. sage/sat/solvers/cryptominisat/cryptominisat
+.. sage/sat/solvers/cryptominisat/solverconf
 
 Converters
 ----------

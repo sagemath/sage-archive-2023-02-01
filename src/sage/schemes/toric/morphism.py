@@ -876,7 +876,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
             raise ValueError('The fan morphism codomain must be the fan of the codomain.')
         self._fan_morphism = fan_morphism
 
-    def __cmp__(self, right):
+    def _cmp_(self, right):
         r"""
         Compare ``self`` and ``right``.
 
@@ -910,6 +910,8 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
                 [right.domain(), right.codomain(), right.fan_morphism()])
         else:
             return cmp(type(self), type(right))
+
+    __cmp__ = _cmp_
 
     def _composition_(self, right, homset):
         """

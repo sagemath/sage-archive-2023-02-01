@@ -47,7 +47,6 @@ all-sage: \
      $(INST)/$(FREETYPE) \
      $(INST)/$(GAP) \
      $(INST)/$(GD) \
-     $(INST)/$(GDMODULE) \
      $(INST)/$(GFAN) \
      $(INST)/$(GF2X) \
      $(INST)/$(GIVARO) \
@@ -329,9 +328,6 @@ $(INST)/$(PEXPECT): $(INST)/$(PYTHON)
 $(INST)/$(GD): $(INST)/$(LIBPNG) $(INST)/$(FREETYPE) $(INST)/$(ICONV)
 	+$(PIPE) "$(SAGE_SPKG) $(GD) 2>&1" "tee -a $(SAGE_LOGS)/$(GD).log"
 
-$(INST)/$(GDMODULE): $(INST)/$(PYTHON) $(INST)/$(GD) $(INST)/$(ICONV)
-	+$(PIPE) "$(SAGE_SPKG) $(GDMODULE) 2>&1" "tee -a $(SAGE_LOGS)/$(GDMODULE).log"
-
 $(INST)/$(SCONS): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(SCONS) 2>&1" "tee -a $(SAGE_LOGS)/$(SCONS).log"
 
@@ -406,9 +402,8 @@ $(INST)/$(MATHJAX):
 
 $(INST)/$(MATPLOTLIB): $(INST)/$(PYTHON) $(INST)/$(NUMPY) \
                        $(INST)/$(FREETYPE) $(INST)/$(LIBPNG) \
-                       $(INST)/$(GDMODULE) $(INST)/$(DATEUTIL) \
-                       $(INST)/$(PYPARSING) $(INST)/$(SETUPTOOLS) \
-                       $(INST)/$(TORNADO) $(INST)/$(SIX)
+                       $(INST)/$(DATEUTIL) $(INST)/$(PYPARSING) \
+                       $(INST)/$(SETUPTOOLS) $(INST)/$(TORNADO) $(INST)/$(SIX)
 	+$(PIPE) "$(SAGE_SPKG) $(MATPLOTLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(MATPLOTLIB).log"
 
 $(INST)/$(CDDLIB): $(INST)/$(SAGE_MP_LIBRARY)

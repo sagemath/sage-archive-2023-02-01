@@ -471,7 +471,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         return (<Element>left)._cmp(right)
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         """
         Auxiliary method for comparison.
 

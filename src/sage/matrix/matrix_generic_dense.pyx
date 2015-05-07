@@ -184,7 +184,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     # LEVEL 2 functionality
     #    * cdef _add_
     #    * cdef _mul_
-    #    * cdef _cmp_c_impl
+    #    * cpdef _cmp_
     #    * __neg__
     #    * __invert__
     # x  * __copy__

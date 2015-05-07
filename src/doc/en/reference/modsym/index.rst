@@ -27,5 +27,8 @@ Modular Symbols
 
    sage/modular/modsym/p1list_nf
 
+   sage/modular/modsym/apply
+   sage/modular/modsym/hecke_operator
+   sage/modular/modsym/relation_matrix_pyx
 
 .. include:: ../footer.txt

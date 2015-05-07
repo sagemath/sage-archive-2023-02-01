@@ -641,6 +641,19 @@ class Partition(CombinatorialObject, Element):
         else:
             raise ValueError("%s is not a valid partition"%repr(mu))
 
+    @cached_method
+    def __hash__(self):
+        r"""
+        Return the hash of ``self``.
+
+        TESTS::
+
+            sage: P = Partition([4,2,2,1])
+            sage: hash(P) == hash(P)
+            True
+        """
+        return tuple(self._list).__hash__()
+
     def _repr_(self, compact=None):
         r"""
         Return a string representation of ``self`` depending on

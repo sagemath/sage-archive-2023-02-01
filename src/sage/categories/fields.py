@@ -126,10 +126,8 @@ class Fields(CategoryWithAxiom):
             sage: P.<x> = QQ[]
             sage: Q = P.quotient(x^2+2)
             sage: Q.category()
-            Join of Category of integral domains
-             and Category of commutative algebras over Rational Field
-             and Category of subquotients of monoids
-             and Category of quotients of semigroups
+            Category of commutative no zero divisors quotients
+            of algebras over Rational Field
             sage: F = Fields()
             sage: F._contains_helper(Q)
             False

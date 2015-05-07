@@ -68,11 +68,10 @@ import sage.misc.misc
 import operator
 import sage.misc.latex
 
-from sage.modules.module import Module_old as Module
+from sage.modules.module import Module
 from sage.structure.element import ModuleElement
 from sage.rings.integer_ring import ZZ
 from sage.structure.parent import Parent
-from sage.structure.parent_base import ParentWithBase
 from sage.structure.coerce import LeftModuleAction, RightModuleAction
 from sage.categories.action import PrecomposedAction
 from sage.structure.unique_representation import UniqueRepresentation
@@ -86,6 +85,10 @@ class FormalSums(UniqueRepresentation, Module):
 
         sage: FormalSums()
         Abelian Group of all Formal Finite Sums over Integer Ring
+        sage: FormalSums(ZZ)
+        Abelian Group of all Formal Finite Sums over Integer Ring
+        sage: FormalSums(GF(7))
+        Abelian Group of all Formal Finite Sums over Finite Field of size 7
         sage: FormalSums(ZZ[sqrt(2)])
         Abelian Group of all Formal Finite Sums over Order in Number Field in sqrt2 with defining polynomial x^2 - 2
         sage: FormalSums(GF(9,'a'))
@@ -103,21 +106,6 @@ class FormalSums(UniqueRepresentation, Module):
             True
         """
         return UniqueRepresentation.__classcall__(cls, base_ring)
-
-    def __init__(self, base_ring):
-        """
-        INPUT:
-
-        - ``R`` -- a ring (default: ZZ).
-
-        EXAMPLES::
-
-            sage: FormalSums(ZZ)
-            Abelian Group of all Formal Finite Sums over Integer Ring
-            sage: FormalSums(GF(7))
-            Abelian Group of all Formal Finite Sums over Finite Field of size 7
-        """
-        ParentWithBase.__init__(self, base_ring)
 
     def _repr_(self):
         """

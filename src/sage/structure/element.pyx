@@ -1128,7 +1128,8 @@ cdef class Element(SageObject):
         left_cmp = left.__cmp__
         if isinstance(left_cmp, MethodType):
             return left_cmp(right)
-        raise NotImplementedError("comparison not implemented for %r"%type(left))
+        msg = LazyFormat("comparison not implemented for %r")%type(left)
+        raise NotImplementedError(msg)
 
 
 def is_ModuleElement(x):

@@ -16,6 +16,9 @@ def add_vararg(first,*rest):
         sage: from sage.symbolic.operators import add_vararg
         sage: add_vararg(1,2,3,4,5,6,7)
         28
+        sage: F=(1+x+x^2)
+        sage: bool(F.operator()(*F.operands()) == F)
+        True
     """
 
     for r in rest:
@@ -37,6 +40,9 @@ def mul_vararg(first,*rest):
         sage: from sage.symbolic.operators import mul_vararg
         sage: mul_vararg(9,8,7,6,5,4)
         60480
+        sage: G=x*cos(x)*sin(x)
+        sage: bool(G.operator()(*G.operands())==G)
+        True
     """
 
     for r in rest:

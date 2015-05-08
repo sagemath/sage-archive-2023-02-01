@@ -170,6 +170,9 @@ class MirrorList(object):
         print('Searching fastest mirror')
         timeout = 1
         for mirror in self.mirrors:
+            if not mirror.startswith('http'):
+                # we cannot handle ftp://, urllib only does http
+                continue
             port = self._port_of_mirror(mirror)
             mirror_hostname = urlparse.urlsplit(mirror).netloc
             time_before = time.time()

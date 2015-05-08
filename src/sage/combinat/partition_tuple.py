@@ -484,7 +484,7 @@ class PartitionTuple(CombinatorialObject,Element):
         """
         return self.level()
 
-    def _repr_(self, compact=False):
+    def _repr_(self, compact=None):
         """
         Return a string representation of ``self`` depending on
         :meth:`PartitionTuples.global_options`.
@@ -526,10 +526,9 @@ class PartitionTuple(CombinatorialObject,Element):
             2, 1 | 3, 2 | 1^3
             sage: PartitionTuples.global_options.reset()
         """
-        if compact:
+        if compact is not None:
             from sage.misc.superseded import deprecation
-            deprecation(13605, 'compact option is deprecated. Use PartitionTuples.global_options instead.')
-            return self._repr_compact_high()
+            deprecation(16933, 'compact argument is deprecated.')
 
         return self.parent().global_options.dispatch(self, '_repr_', 'display')
 
@@ -1052,7 +1051,7 @@ class PartitionTuple(CombinatorialObject,Element):
         ``cell``.
 
         If ``cell`` `= (k,a,c)` then `(k,a+1,c)` must belong to the diagram of
-        the :class:`PartitionTuple`. If this is not the case when we return
+        the :class:`PartitionTuple`. If this is not the case then we return
         ``False``.
 
         .. NOTE::
@@ -1116,11 +1115,12 @@ class PartitionTuple(CombinatorialObject,Element):
         if comp>=len(self) or row+1>=len(self[comp]) or col>=self[comp][row+1]:
             raise ValueError('(comp, row+1, col) must be inside the diagram')
         from tableau_tuple import TableauTuple
-        g = TableauTuple(self.initial_tableau().to_list())
-        a=g[comp][row][col]
-        g[comp][row][col:]=range(a+col+1,g[comp][row+1][col]+1)
-        g[comp][row+1][:col+1]=range(a,a+col+1)
-        g._garnir_cell=(comp,row,col)
+        g = self.initial_tableau().to_list()
+        a = g[comp][row][col]
+        g[comp][row][col:] = range(a+col+1, g[comp][row+1][col]+1)
+        g[comp][row+1][:col+1] = range(a, a+col+1)
+        g = TableauTuple(g)
+        g._garnir_cell = (comp,row,col)
         return g
 
     def top_garnir_tableau(self,e,cell):
@@ -1212,7 +1212,7 @@ class PartitionTuple(CombinatorialObject,Element):
 
         INPUT:
 
-        - ``k`` -- The compoenent
+        - ``k`` -- The component
         - ``r`` -- The row
         - ``c`` -- The cell
 
@@ -1244,7 +1244,7 @@ class PartitionTuple(CombinatorialObject,Element):
 
         INPUT:
 
-        - ``k`` -- The compoenent
+        - ``k`` -- The component
         - ``r`` -- The row
         - ``c`` -- The cell
 

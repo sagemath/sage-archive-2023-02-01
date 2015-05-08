@@ -29,7 +29,7 @@ from sage.symbolic.assumptions import assume
 def _simplify_full_rad(f):
     """
     Helper function to conveniently call :meth:`simplify_full` and
-    :meth:`simplify_radical` in succession.
+    :meth:`canonicalize_radical` in succession.
 
     INPUT:
 
@@ -42,7 +42,7 @@ def _simplify_full_rad(f):
         1
 
     """
-    return f.simplify_full().simplify_radical()
+    return f.simplify_full().canonicalize_radical()
 
 
 class ParametrizedSurface3D(SageObject):
@@ -1505,12 +1505,12 @@ class ParametrizedSurface3D(SageObject):
 
         """
         from sage.ext.fast_eval import fast_float
-        from sage.calculus.var import var
         from sage.gsl.ode import ode_solver
 
         u1 = self.variables[1]
         u2 = self.variables[2]
-        v1, v2 = var('v1, v2', domain='real')
+        v1 = SR.var('v1', domain='real')
+        v2 = SR.var('v2', domain='real')
 
         C = self.connection_coefficients()
 
@@ -1618,12 +1618,12 @@ class ParametrizedSurface3D(SageObject):
         """
 
         from sage.ext.fast_eval import fast_float
-        from sage.calculus.var import var
         from sage.gsl.ode import ode_solver
 
         u1 = self.variables[1]
         u2 = self.variables[2]
-        v1, v2 = var('v1, v2', domain='real')
+        v1 = SR.var('v1', domain='real')
+        v2 = SR.var('v2', domain='real')
 
         du1 = diff(curve[0], t)
         du2 = diff(curve[1], t)

@@ -7,7 +7,7 @@ def var(*args, **kwds):
 
     INPUT:
 
-    - ``args`` - A single string ``var('x y')``, a list of strings
+    - ``args`` -- A single string ``var('x y')``, a list of strings
       ``var(['x','y'])``, or multiple strings ``var('x', 'y')``. A
       single string can be either a single variable name, or a space
       or comma separated list of variable names. In a list or tuple of
@@ -15,14 +15,15 @@ def var(*args, **kwds):
       specified, each argument is taken to be one variable. Spaces
       before or after variable names are ignored.
 
-    - ``kwds`` - keyword arguments can be given to specify domain and
+    - ``kwds`` -- keyword arguments can be given to specify domain and
       custom latex_name for variables. See EXAMPLES for usage.
 
     .. note::
 
        The new variable is both returned and automatically injected
-       into the global namespace. If you need symbolic variable in
-       library code, it is better to use either SR.var() or SR.symbol().
+       into the global namespace. If you need a symbolic variable in
+       library code, you must use either ``SR.var()``
+       or ``SR.symbol()``.
 
     OUTPUT:
 
@@ -71,12 +72,12 @@ def var(*args, **kwds):
     Custom latex expression can be assigned to variable::
 
         sage: x = var('sui', latex_name="s_{u,i}"); x._latex_()
-        's_{u,i}'
+        '{s_{u,i}}'
 
     In notebook, we can also colorize latex expression::
 
         sage: x = var('sui', latex_name="\\color{red}{s_{u,i}}"); x._latex_()
-        '\\color{red}{s_{u,i}}'
+        '{\\color{red}{s_{u,i}}}'
 
     We can substitute a new variable name for n::
 

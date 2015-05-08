@@ -122,7 +122,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         if not (
             elem and\
             self._analytic_type <= parent.analytic_type() ):
-                raise Exception("{} does not correspond to an element of the {}.".format(rat, parent))
+                raise ValueError("{} does not correspond to an element of the {}.".format(rat, parent))
 
         super(FormsRingElement, self).__init__(parent)
 
@@ -1070,7 +1070,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
     # note that this is qd/dq, resp 1/(2*pi*i)*d/dtau
     def derivative(self):
         r"""
-        Return the derivative ``d/dq = 1/(2*pi*i) d/dtau`` of ``self``.
+        Return the derivative ``d/dq = lambda/(2*pi*i) d/dtau`` of ``self``.
 
         Note that the parent might (probably will) change.
         In particular its analytic type will be extended
@@ -1307,7 +1307,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                 if (self.group().in_FD(tau)):
                     raise NotImplementedError("Orders at general points (here: tau={}) are not yet implemented!".format(tau))
                 else:
-                    w = self.group().get_FD(tau, prec=self.parent().default_num_prec())[1]
+                    w = self.group().get_FD(tau)[1]
                     return self.order_at(w)
             else:
                 raise ValueError("tau={} does not lie in the extended upper half plane!").format(tau)
@@ -1766,7 +1766,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         return vector([qexp[m] for m in range(min_exp, max_exp +1)])
 
-    def evaluate(self, tau, prec = None, num_prec = None):
+    def evaluate(self, tau, prec = None, num_prec = None, check=False):
         r"""
         Try to return ``self`` evaluated at a point ``tau``
         in the upper half plane, where ``self`` is interpreted
@@ -1795,6 +1795,10 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                            (default) then the default numerical precision of
                            ``self.parent()`` is used.
 
+        - ``check``     -- If ``True`` then the order of ``tau`` is checked.
+                           Otherwise the order is only considered for
+                           ``tau = infinity, i, rho, -1/rho``. Default: ``False``.
+
         OUTPUT:
 
         The (numerical) evaluated function value.
@@ -1809,15 +1813,6 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
            Return the constant Fourier coefficient of ``self``.
 
         #. Else if ``self`` is homogeneous and modular:
-
-           #. Determine the matrix ``A`` which sends ``tau``
-              to ``w`` in the fundamental domain, together
-              with ``aut_factor(A,w)``.
-
-              Note: These values are determined by the method
-              ``get_FD(tau, aut_factor)`` from ``self.group()``,
-              where ``aut_factor = self.parent().aut_factor``
-              (which is only defined on the basic generators).
 
            #. Because of the (modular) transformation property
               of ``self`` the evaluation at ``tau`` is given by
@@ -1915,7 +1910,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: T = G.T()
             sage: A == (T*S)**3*T
             True
-            sage: az = G.act(A, z)
+            sage: az = A.acton(z)
             sage: az == (A[0,0]*z + A[0,1]) / (A[1,0]*z + A[1,1])
             True
 
@@ -1924,15 +1919,17 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f_rho(az)
             -2.29216470688... - 1.46235057536...*I
             sage: k = f_rho.weight()
-            sage: aut_fact = f_rho.ep()^3 * (G.act((T*S)**2*T, z)/i)**k * (G.act((T*S)*T, z)/i)**k * (G.act(T, z)/i)**k
+            sage: aut_fact = f_rho.ep()^3 * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k * (((T*S)*T).acton(z)/AlgebraicField()(i))**k * (T.acton(z)/AlgebraicField()(i))**k
+            sage: abs(aut_fact - f_rho.parent().aut_factor(A, z)) < 1e-12
+            True
             sage: aut_fact * f_rho(z)
             -2.29216470688... - 1.46235057536...*I
 
             sage: f_rho.parent().default_num_prec(1000)
             sage: f_rho.parent().default_prec(300)
-            sage: (f_rho.q_expansion_fixed_d().polynomial())(exp(2*pi*i*(z/G.lam()).n(1000))).n(100)    # long time
+            sage: (f_rho.q_expansion_fixed_d().polynomial())(exp((2*pi*i).n(1000)*z/G.lam()))    # long time
             1.0374047672719462149821251... + 0.013194103452368974597290332...*I
-            sage: (f_rho.q_expansion_fixed_d().polynomial())(exp(2*pi*i*(az/G.lam()).n(1000))).n(100)    # long time
+            sage: (f_rho.q_expansion_fixed_d().polynomial())(exp((2*pi*i).n(1000)*az/G.lam()))    # long time
             -2.2921647068881834598616367... - 1.4623505753697635207183406...*I
 
             sage: f_i(z)
@@ -1940,15 +1937,17 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f_i(az)
             14.5845388476... - 28.4604652892...*I
             sage: k = f_i.weight()
-            sage: aut_fact = f_i.ep()^3 * (G.act((T*S)**2*T, z)/i)**k * (G.act((T*S)*T, z)/i)**k * (G.act(T, z)/i)**k
+            sage: aut_fact = f_i.ep()^3 * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k * (((T*S)*T).acton(z)/AlgebraicField()(i))**k * (T.acton(z)/AlgebraicField()(i))**k
+            sage: abs(aut_fact - f_i.parent().aut_factor(A, z)) < 1e-12
+            True
             sage: aut_fact * f_i(z)
             14.5845388476... - 28.4604652892...*I
 
             sage: f_i.parent().default_num_prec(1000)
             sage: f_i.parent().default_prec(300)
-            sage: (f_i.q_expansion_fixed_d().polynomial())(exp(2*pi*i*(z/G.lam()).n(1000))).n(100)    # long time
+            sage: (f_i.q_expansion_fixed_d().polynomial())(exp((2*pi*i).n(1000)*z/G.lam()))    # long time
             0.66748932042300250077433252... - 0.11890282487028677063054267...*I
-            sage: (f_i.q_expansion_fixed_d().polynomial())(exp(2*pi*i*(az/G.lam()).n(1000))).n(100)    # long time
+            sage: (f_i.q_expansion_fixed_d().polynomial())(exp((2*pi*i).n(1000)*az/G.lam()))    # long time
             14.584538847698600875918891... - 28.460465289220303834894855...*I
 
             sage: f = f_rho*E2
@@ -1957,18 +1956,22 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f(az)
             -15.9978074989... - 29.2775758341...*I
             sage: k = f.weight()
-            sage: aut_fact = f.ep()^3 * (G.act((T*S)**2*T, z)/i)**k * (G.act((T*S)*T, z)/i)**k * (G.act(T, z)/i)**k
+            sage: aut_fact = f.ep()^3 * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k * (((T*S)*T).acton(z)/AlgebraicField()(i))**k * (T.acton(z)/AlgebraicField()(i))**k
+            sage: abs(aut_fact - f.parent().aut_factor(A, z)) < 1e-12
+            True
             sage: k2 = f_rho.weight()
-            sage: aut_fact2 = f_rho.ep() * (G.act((T*S)**2*T, z)/i)**k2 * (G.act((T*S)*T, z)/i)**k2 * (G.act(T, z)/i)**k2
-            sage: cor_term = (4 * G.n() / (G.n()-2) * A[1][0] * (A[1][0]*z+A[1][1])) / (2*pi*i).n(1000) * G.lam()
+            sage: aut_fact2 = f_rho.ep() * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k2 * (((T*S)*T).acton(z)/AlgebraicField()(i))**k2 * (T.acton(z)/AlgebraicField()(i))**k2
+            sage: abs(aut_fact2 - f_rho.parent().aut_factor(A, z)) < 1e-12
+            True
+            sage: cor_term = (4 * G.n() / (G.n()-2) * A.c() * (A.c()*z+A.d())) / (2*pi*i).n(1000) * G.lam()
             sage: aut_fact*f(z) + cor_term*aut_fact2*f_rho(z)
             -15.9978074989... - 29.2775758341...*I
 
             sage: f.parent().default_num_prec(1000)
             sage: f.parent().default_prec(300)
-            sage: (f.q_expansion_fixed_d().polynomial())(exp(2*pi*i*(z/G.lam()).n(1000))).n(100)    # long time
+            sage: (f.q_expansion_fixed_d().polynomial())(exp((2*pi*i).n(1000)*z/G.lam()))    # long time
             0.96602438641867296777809436... - 0.013889469942995530807311503...*I
-            sage: (f.q_expansion_fixed_d().polynomial())(exp(2*pi*i*(az/G.lam()).n(1000))).n(100)    # long time
+            sage: (f.q_expansion_fixed_d().polynomial())(exp((2*pi*i).n(1000)*az/G.lam()))    # long time
             -15.997807498958825352887040... - 29.277575834123246063432206...*I
 
             sage: MR = QuasiMeromorphicModularFormsRing(n=infinity, red_hom=True)
@@ -2012,7 +2015,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: T = G.T()
             sage: A == (T*S)**3*T
             True
-            sage: az = G.act(A, z)
+            sage: az = A.acton(z)
             sage: az == (A[0,0]*z + A[0,1]) / (A[1,0]*z + A[1,1])
             True
 
@@ -2021,15 +2024,17 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f_i(az)
             6.103314419... + 20.42678597...*I
             sage: k = f_i.weight()
-            sage: aut_fact = f_i.ep()^3 * (G.act((T*S)**2*T, z)/i)**k * (G.act((T*S)*T, z)/i)**k * (G.act(T, z)/i)**k
+            sage: aut_fact = f_i.ep()^3 * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k * (((T*S)*T).acton(z)/AlgebraicField()(i))**k * (T.acton(z)/AlgebraicField()(i))**k
+            sage: abs(aut_fact - f_i.parent().aut_factor(A, z)) < 1e-12
+            True
             sage: aut_fact * f_i(z)
             6.103314419... + 20.42678597...*I
 
             sage: f_i.parent().default_num_prec(1000)
             sage: f_i.parent().default_prec(300)
-            sage: (f_i.q_expansion_fixed_d().polynomial())(exp(2*pi*i*(z/G.lam()).n(1000))).n(100)    # long time
+            sage: (f_i.q_expansion_fixed_d().polynomial())(exp((2*pi*i).n(1000)*z/G.lam()))    # long time
             0.620885340917559158572271... - 0.121252549240996430425967...*I
-            sage: (f_i.q_expansion_fixed_d().polynomial())(exp(2*pi*i*(az/G.lam()).n(1000))).n(100)    # long time
+            sage: (f_i.q_expansion_fixed_d().polynomial())(exp((2*pi*i).n(1000)*az/G.lam()))    # long time
             6.10331441975198186745017... + 20.4267859728657976382684...*I
 
             sage: f = f_i*E2
@@ -2038,19 +2043,23 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f(az)
             -140.4711702... + 469.0793692...*I
             sage: k = f.weight()
-            sage: aut_fact = f.ep()^3 * (G.act((T*S)**2*T, z)/i)**k * (G.act((T*S)*T, z)/i)**k * (G.act(T, z)/i)**k
+            sage: aut_fact = f.ep()^3 * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k * (((T*S)*T).acton(z)/AlgebraicField()(i))**k * (T.acton(z)/AlgebraicField()(i))**k
+            sage: abs(aut_fact - f.parent().aut_factor(A, z)) < 1e-12
+            True
             sage: k2 = f_i.weight()
-            sage: aut_fact2 = f_i.ep() * (G.act((T*S)**2*T, z)/i)**k2 * (G.act((T*S)*T, z)/i)**k2 * (G.act(T, z)/i)**k2
-            sage: cor_term = (4 * A[1][0] * (A[1][0]*z+A[1][1])) / (2*pi*i).n(1000) * G.lam()
+            sage: aut_fact2 = f_i.ep() * (((T*S)**2*T).acton(z)/AlgebraicField()(i))**k2 * (((T*S)*T).acton(z)/AlgebraicField()(i))**k2 * (T.acton(z)/AlgebraicField()(i))**k2
+            sage: abs(aut_fact2 - f_i.parent().aut_factor(A, z)) < 1e-12
+            True
+            sage: cor_term = (4 * A.c() * (A.c()*z+A.d())) / (2*pi*i).n(1000) * G.lam()
             sage: aut_fact*f(z) + cor_term*aut_fact2*f_i(z)
             -140.4711702... + 469.0793692...*I
 
             sage: f.parent().default_num_prec(1000)
             sage: f.parent().default_prec(300)
-            sage: (f.q_expansion_fixed_d().polynomial())(exp(2*pi*i*(z/G.lam()).n(1000))).n(100)    # long time
+            sage: (f.q_expansion_fixed_d().polynomial())(exp((2*pi*i).n(1000)*z/G.lam()))    # long time
             0.534919027587592616802582... - 0.132237085641931661668338...*I
 
-            sage: (f.q_expansion_fixed_d().polynomial())(exp(2*pi*i*(az/G.lam()).n(1000))).n(100)    # long time
+            sage: (f.q_expansion_fixed_d().polynomial())(exp((2*pi*i).n(1000)*az/G.lam()))    # long time
             -140.471170232432551196978... + 469.079369280804086032719...*I
         """
 
@@ -2060,17 +2069,22 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             num_prec = self.parent().default_num_prec()
 
         # In case the order is known
-        try:
-            order_tau = self.order_at(tau)
+        if (check or\
+          tau == infinity or\
+          tau == i or\
+          tau == self.group().rho() or\
+          tau == -self.group().rho().conjugate()):
+            try:
+                order_tau = self.order_at(tau)
 
-            if (order_tau > 0):
-                return ZZ(0)
-            elif (order_tau < 0):
-                return infinity
-            elif (tau == infinity):
-                return self.q_expansion(prec=1)[0]
-        except NotImplementedError:
-            pass
+                if (order_tau > 0):
+                    return ZZ(0)
+                elif (order_tau < 0):
+                    return infinity
+                elif (tau == infinity):
+                    return self.q_expansion(prec=1)[0]
+            except NotImplementedError:
+                pass
 
         # The general case
         num_prec = max(\
@@ -2082,19 +2096,21 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         if (self.is_homogeneous() and self.is_modular()):
             q_exp = self.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec)
-            A, w, aut_factor = self.group().get_FD(tau, self.reduce(force=True).parent().aut_factor, prec=num_prec)
+            (A, w) = self.group().get_FD(tau)
+            aut_factor = self.reduce(force=True).parent().aut_factor(A, w)
             if (type(q_exp) == LaurentSeries):
                 return q_exp.laurent_polynomial()(exp((2 * pi * i).n(num_prec) / self.group().lam() * w)) * aut_factor
             else:
                 return q_exp.polynomial()(exp((2 * pi * i).n(num_prec) / self.group().lam() * w)) * aut_factor
         elif (self._rat == z):
             E2 = self.parent().graded_ring().E2().reduce(force=True)
-            A, w, aut_factor = self.group().get_FD(tau, E2.parent().aut_factor, prec=num_prec)
+            (A, w) = self.group().get_FD(tau)
+            aut_factor = E2.parent().aut_factor(A, w)
             E2_wvalue = E2.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec).polynomial()(exp((2 * pi * i).n(num_prec) / self.group().lam() * w))
             if (self.hecke_n() == infinity):
-                E2_cor_term = 4 * self.group().lam() / (2*pi*i).n(num_prec) * A[1][0] * (A[1][0]*w + A[1][1])
+                E2_cor_term = 4 * self.group().lam() / (2*pi*i).n(num_prec) * A.c() * (A.c()*w + A.d())
             else:
-                E2_cor_term = 4 * self.group().lam() / (2*pi*i).n(num_prec) * self.hecke_n() / (self.hecke_n()-2) * A[1][0] * (A[1][0]*w + A[1][1])
+                E2_cor_term = 4 * self.group().lam() / (2*pi*i).n(num_prec) * self.hecke_n() / (self.hecke_n()-2) * A.c() * (A.c()*w + A.d())
             return E2_wvalue*aut_factor + E2_cor_term
         else:
             f_i   = self.parent().graded_ring().f_i()
@@ -2107,7 +2123,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                 f_rho = self.parent().graded_ring().f_rho()
                 return self._rat.subs(x=f_rho(tau), y=f_i(tau), z=E2(tau), d=dval)
 
-    def __call__(self, tau, prec = None, num_prec = None):
+    def __call__(self, tau, prec = None, num_prec = None, check=False):
         r"""
         Try to return ``self`` evaluated at a point ``tau``
         in the upper half plane, where ``self`` is interpreted
@@ -2126,4 +2142,4 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             True
         """
 
-        return self.evaluate(tau, prec, num_prec)
+        return self.evaluate(tau, prec, num_prec, check)

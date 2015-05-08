@@ -43,7 +43,7 @@ from sage.graphs.all import Graph, graphs
 
 from sage.rings.all import ZZ, QQ, FiniteField, GF
 from sage.schemes.all import ProjectiveSpace
-from sage.calculus.var import var
+from sage.symbolic.ring import SR
 
 import sage.matroids.matroid
 import sage.matroids.basis_exchange_matroid
@@ -947,7 +947,7 @@ def PG(n, q, x=None):
         the Finite Field of size 7
     """
     if x is None:
-        x = var('x')
+        x = SR.var('x')
     F = GF(q, x)
     P = ProjectiveSpace(n, F)
     A = Matrix(F, [list(p) for p in P]).transpose()
@@ -991,7 +991,7 @@ def AG(n, q, x=None):
 
     """
     if x is None:
-        x = var('x')
+        x = SR.var('x')
     F = GF(q, x)
     P = ProjectiveSpace(n, F)
     A = Matrix(F, [list(p) for p in P if not list(p)[0] == 0]).transpose()

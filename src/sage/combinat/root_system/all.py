@@ -1,3 +1,6 @@
+r"""
+Root system features that are imported by default in the interpreter namespace
+"""
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.combinat.root_system.associahedron', 'Associahedron')
 
@@ -11,3 +14,5 @@ from coxeter_group import CoxeterGroup
 from weyl_characters import WeylCharacterRing, WeightRing
 from branching_rules import BranchingRule, branching_rule_from_plethysm, branching_rule
 lazy_import('sage.combinat.root_system.non_symmetric_macdonald_polynomials', 'NonSymmetricMacdonaldPolynomials')
+lazy_import('sage.combinat.root_system.integrable_representations', 'IntegrableRepresentation')
+

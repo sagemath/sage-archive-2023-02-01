@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Binary Trees.
+Binary Trees
 
 This module deals with binary trees as mathematical (in particular immutable)
 objects.
@@ -775,6 +775,186 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         from sage.combinat.interval_posets import TamariIntervalPosets
         return TamariIntervalPosets.from_binary_trees(self, other)
 
+    def tamari_join(self, other):
+        r"""
+        Return the join of the binary trees ``self`` and ``other``
+        (of equal size) in the `n`-th Tamari poset (where `n` is
+        the size of these trees).
+
+        The `n`-th Tamari poset (defined in :meth:`tamari_lequal`)
+        is known to be a lattice, and the map from the `n`-th
+        symmetric group `S_n` to the `n`-th Tamari poset defined
+        by sending every permutation `p \in S_n` to the binary
+        search tree of `p` (more precisely, to
+        ``p.binary_search_tree_shape()``) is a lattice
+        homomorphism. (See Theorem 6.2 in [Read04]_.)
+
+        .. SEEALSO::
+
+            :meth:`tamari_lequal`, :meth:`tamari_meet`.
+
+        AUTHORS:
+
+        Viviane Pons and Darij Grinberg, 18 June 2014.
+
+        EXAMPLES::
+
+            sage: a = BinaryTree([None, [None, []]])
+            sage: b = BinaryTree([None, [[], None]])
+            sage: c = BinaryTree([[None, []], None])
+            sage: d = BinaryTree([[[], None], None])
+            sage: e = BinaryTree([[], []])
+            sage: a.tamari_join(c) == a
+            True
+            sage: b.tamari_join(c) == b
+            True
+            sage: c.tamari_join(e) == a
+            True
+            sage: d.tamari_join(e) == e
+            True
+            sage: e.tamari_join(b) == a
+            True
+            sage: e.tamari_join(a) == a
+            True
+
+        ::
+
+            sage: b1 = BinaryTree([None, [[[], None], None]])
+            sage: b2 = BinaryTree([[[], None], []])
+            sage: b1.tamari_join(b2)
+            [., [[., .], [., .]]]
+            sage: b3 = BinaryTree([[], [[], None]])
+            sage: b1.tamari_join(b3)
+            [., [., [[., .], .]]]
+            sage: b2.tamari_join(b3)
+            [[., .], [., [., .]]]
+
+        The universal property of the meet operation is
+        satisfied::
+
+            sage: def test_uni_join(p, q):
+            ....:     j = p.tamari_join(q)
+            ....:     if not p.tamari_lequal(j):
+            ....:         return False
+            ....:     if not q.tamari_lequal(j):
+            ....:         return False
+            ....:     for r in p.tamari_greater():
+            ....:         if q.tamari_lequal(r) and not j.tamari_lequal(r):
+            ....:             return False
+            ....:     return True
+            sage: all( test_uni_join(p, q) for p in BinaryTrees(3) for q in BinaryTrees(3) )
+            True
+            sage: p = BinaryTrees(6).random_element(); q = BinaryTrees(6).random_element(); test_uni_join(p, q)
+            True
+
+        Border cases::
+
+            sage: b = BinaryTree(None)
+            sage: b.tamari_join(b)
+            .
+            sage: b = BinaryTree([])
+            sage: b.tamari_join(b)
+            [., .]
+
+        REFERENCES:
+
+        .. [Read04] Nathan Reading.
+           *Cambrian Lattices*.
+           :arxiv:`math/0402086v2`.
+        """
+        # We use Reading's result that the projection from the symmetric
+        # group is a lattice homomorphism.
+        a = self.to_132_avoiding_permutation()
+        b = other.to_132_avoiding_permutation()
+        return a.permutohedron_join(b).binary_search_tree_shape(left_to_right=False)
+
+    def tamari_meet(self, other, side="right"):
+        r"""
+        Return the meet of the binary trees ``self`` and ``other``
+        (of equal size) in the `n`-th Tamari poset (where `n` is
+        the size of these trees).
+
+        The `n`-th Tamari poset (defined in :meth:`tamari_lequal`)
+        is known to be a lattice, and the map from the `n`-th
+        symmetric group `S_n` to the `n`-th Tamari poset defined
+        by sending every permutation `p \in S_n` to the binary
+        search tree of `p` (more precisely, to
+        ``p.binary_search_tree_shape()``) is a lattice
+        homomorphism. (See Theorem 6.2 in [Read04]_.)
+
+        .. SEEALSO::
+
+            :meth:`tamari_lequal`, :meth:`tamari_join`.
+
+        AUTHORS:
+
+        Viviane Pons and Darij Grinberg, 18 June 2014.
+
+        EXAMPLES::
+
+            sage: a = BinaryTree([None, [None, []]])
+            sage: b = BinaryTree([None, [[], None]])
+            sage: c = BinaryTree([[None, []], None])
+            sage: d = BinaryTree([[[], None], None])
+            sage: e = BinaryTree([[], []])
+            sage: a.tamari_meet(c) == c
+            True
+            sage: b.tamari_meet(c) == c
+            True
+            sage: c.tamari_meet(e) == d
+            True
+            sage: d.tamari_meet(e) == d
+            True
+            sage: e.tamari_meet(b) == d
+            True
+            sage: e.tamari_meet(a) == e
+            True
+
+        ::
+
+            sage: b1 = BinaryTree([None, [[[], None], None]])
+            sage: b2 = BinaryTree([[[], None], []])
+            sage: b1.tamari_meet(b2)
+            [[[[., .], .], .], .]
+            sage: b3 = BinaryTree([[], [[], None]])
+            sage: b1.tamari_meet(b3)
+            [[[[., .], .], .], .]
+            sage: b2.tamari_meet(b3)
+            [[[[., .], .], .], .]
+
+        The universal property of the meet operation is
+        satisfied::
+
+            sage: def test_uni_meet(p, q):
+            ....:     m = p.tamari_meet(q)
+            ....:     if not m.tamari_lequal(p):
+            ....:         return False
+            ....:     if not m.tamari_lequal(q):
+            ....:         return False
+            ....:     for r in p.tamari_smaller():
+            ....:         if r.tamari_lequal(q) and not r.tamari_lequal(m):
+            ....:             return False
+            ....:     return True
+            sage: all( test_uni_meet(p, q) for p in BinaryTrees(3) for q in BinaryTrees(3) )
+            True
+            sage: p = BinaryTrees(6).random_element(); q = BinaryTrees(6).random_element(); test_uni_meet(p, q)
+            True
+
+        Border cases::
+
+            sage: b = BinaryTree(None)
+            sage: b.tamari_meet(b)
+            .
+            sage: b = BinaryTree([])
+            sage: b.tamari_meet(b)
+            [., .]
+        """
+        # We use Reading's result that the projection from the symmetric
+        # group is a lattice homomorphism.
+        a = self.to_132_avoiding_permutation()
+        b = other.to_132_avoiding_permutation()
+        return a.permutohedron_meet(b).binary_search_tree_shape(left_to_right=False)
+
     @combinatorial_map(name="to Dyck paths: up step, left tree, down step, right tree")
     def to_dyck_word(self, usemap="1L0R"):
         r"""
@@ -1046,12 +1226,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         EXAMPLES::
 
             sage: bt = BinaryTree([[],[None,[]]])
-            sage: bt.canonical_labelling()
-            2[1[., .], 3[., 4[., .]]]
-            sage: bt.canonical_labelling().to_undirected_graph().edges()
-            [(1, 2, None), (2, 3, None), (3, 4, None)]
-            sage: bt.to_undirected_graph().edges()
-            [(0, 3, None), (1, 2, None), (2, 3, None)]
             sage: bt.canonical_labelling().to_undirected_graph() == bt.to_undirected_graph()
             False
             sage: BinaryTree([[],[]]).to_undirected_graph() == BinaryTree([[[],None],None]).to_undirected_graph()
@@ -1093,7 +1267,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: bt.to_poset(with_leaves=True)
             Finite poset containing 3 elements
             sage: bt.to_poset(with_leaves=True).cover_relations()
-            [[0, 2], [1, 2]]
+            [[1, 2], [0, 2]]
             sage: bt = BinaryTree([])
             sage: bt.to_poset(with_leaves=True,root_to_leaf=True).cover_relations()
             [[0, 1], [0, 2]]
@@ -1791,6 +1965,63 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         return (res +
              [B([g, self[1]]) for g in self[0].tamari_succ()] +
              [B([self[0], d]) for d in self[1].tamari_succ()])
+
+    def single_edge_cut_shapes(self):
+        """
+        Return the list of possible single-edge cut shapes for the binary tree.
+
+        This is used in :meth:`sage.combinat.interval_posets.TamariIntervalPoset.is_new`.
+
+        OUTPUT:
+
+        a list of triples `(m, i, n)` of integers
+
+        This is a list running over all inner edges (i.e., edges
+        joining two non-leaf vertices) of the binary tree. The removal
+        of each inner edge defines two binary trees (connected
+        components), the root-tree and the sub-tree. Thus, to every
+        inner edge, we can assign three positive integers:
+        `m` is the node number of the root-tree `R`, and `n` is
+        the node number of the sub-tree `S`. The integer `i` is the
+        index of the leaf of `R` on which `S` is grafted to obtain the
+        original tree. The leaves of `R` are numbered starting from
+        `1` (from left to right), hence `1 \leq i \leq m+1`.
+
+        In fact, each of `m` and `n` determines the other, as the
+        total node number of `R` and `S` is the node number of
+        ``self``.
+
+        EXAMPLES::
+
+            sage: BT = BinaryTrees(3)
+            sage: [t.single_edge_cut_shapes() for t in BT]
+            [[(2, 3, 1), (1, 2, 2)],
+            [(2, 2, 1), (1, 2, 2)],
+            [(2, 1, 1), (2, 3, 1)],
+            [(2, 2, 1), (1, 1, 2)],
+            [(2, 1, 1), (1, 1, 2)]]
+
+            sage: BT = BinaryTrees(2)
+            sage: [t.single_edge_cut_shapes() for t in BT]
+            [[(1, 2, 1)], [(1, 1, 1)]]
+
+            sage: BT = BinaryTrees(1)
+            sage: [t.single_edge_cut_shapes() for t in BT]
+            [[]]
+        """
+        resu = []
+        left, right = list(self)
+        L = left.node_number()
+        R = right.node_number()
+        if L:
+            resu += [(m + R + 1, i, n)
+                     for m, i, n in left.single_edge_cut_shapes()]
+            resu += [(R + 1, 1, L)]
+        if R:
+            resu += [(m + L + 1, i + L + 1, n)
+                     for m, i, n in right.single_edge_cut_shapes()]
+            resu += [(L + 1, L + 2, R)]
+        return resu
 
     def q_hook_length_fraction(self, q=None, q_factor=False):
         r"""
@@ -2787,9 +3018,9 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
             +Infinity
 
             sage: it = iter(B)
-            sage: (it.next(), it.next(), it.next(), it.next(), it.next())
+            sage: (next(it), next(it), next(it), next(it), next(it))
             (., [., .], [., [., .]], [[., .], .], [., [., [., .]]])
-            sage: it.next().parent()
+            sage: next(it).parent()
             Binary trees
             sage: B([])
             [., .]
@@ -2907,7 +3138,7 @@ class BinaryTrees_size(BinaryTrees):
             sage: BinaryTrees(3)   # indirect doctest
             Binary trees of size 3
         """
-        return "Binary trees of size %s"%(self._size)
+        return "Binary trees of size %s" % (self._size)
 
     def __contains__(self, x):
         """
@@ -2945,6 +3176,30 @@ class BinaryTrees_size(BinaryTrees):
         """
         from combinat import catalan_number
         return catalan_number(self._size)
+
+    def random_element(self):
+        r"""
+        Return a random ``BinaryTree`` with uniform probability.
+
+        This method generates a random ``DyckWord`` and then uses a
+        bijection between Dyck words and binary trees.
+
+        EXAMPLES::
+
+            sage: BinaryTrees(5).random_element() # random
+            [., [., [., [., [., .]]]]]
+            sage: BinaryTrees(0).random_element()
+            .
+            sage: BinaryTrees(1).random_element()
+            [., .]
+
+        TESTS::
+
+            sage: all([BinaryTrees(10).random_element() in BinaryTrees(10) for i in range(20)])
+            True
+        """
+        from sage.combinat.dyck_word import CompleteDyckWords_size
+        return CompleteDyckWords_size(self._size).random_element().to_binary_tree()
 
     def __iter__(self):
         """

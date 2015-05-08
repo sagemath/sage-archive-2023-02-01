@@ -89,7 +89,7 @@ die dann MathJax verwendet. ::
     <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}z^{12}</script></html>
     sage: mj(QQ)
     <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Q}</script></html>
-    sage: mj(ZZ[x])
+    sage: mj(ZZ['x'])
     <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z}[x]</script></html>
     sage: mj(integrate(z^4, z))
     <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{5} \, z^{5}</script></html>
@@ -128,7 +128,6 @@ Kapitel :ref:`sec-custom-generation` dargestellt.
 Der interne ``pretty_print()`` Befehl zeigt die Konvertierung von Sage
 Objekten in HTML Code der MathJax nutzt im Notebook.  ::
 
-    sage: from sage.misc.latex import pretty_print
     sage: pretty_print(x^12)
     <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
     sage: pretty_print(integrate(sin(x), x))

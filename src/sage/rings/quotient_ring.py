@@ -45,7 +45,7 @@ form of an element `x` with respect to `I` (i.e., we have
     z*x^2, z*x*y, z*x*z, z*y*x, z*y^2, z*y*z, z^2*x, z^2*y, z^3) of
     Free Algebra on 3 generators (x, y, z) over Rational Field
 
-Free algebras have a custom quotient method that seves at creating
+Free algebras have a custom quotient method that serves at creating
 finite dimensional quotients defined by multiplication matrices. We
 are bypassing it, so that we obtain the default quotient::
 
@@ -483,7 +483,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         """
         from sage.categories.pushout import QuotientFunctor
         # Is there a better generic way to distinguish between things like Z/pZ as a field and Z/pZ as a ring?
-        from sage.rings.field import Field
+        from sage.rings.ring import Field
         try:
             names = self.variable_names()
         except ValueError:
@@ -994,7 +994,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
     def _coerce_map_from_(self, R):
         """
-        Returns ``True`` if there is a coercion map from ``R`` to ``self``.
+        Return ``True`` if there is a coercion map from ``R`` to ``self``.
 
         EXAMPLES::
 
@@ -1009,8 +1009,53 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             False
             sage: T.has_coerce_map_from(R)
             True
+
+        TESTS:
+
+        We check that :trac:`13682` is fixed::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: I = R.ideal(x^2+y^2)
+            sage: J = R.ideal(x^2+y^2, x^3 - y)
+            sage: I < J
+            True
+            sage: S = R.quotient(I)
+            sage: T = R.quotient(J)
+            sage: T.has_coerce_map_from(S)
+            True
+            sage: S.quotient_ring(x^4-x*y+1).has_coerce_map_from(S)
+            True
+            sage: S.has_coerce_map_from(T)
+            False
+
+        We also allow coercions with the cover rings::
+
+            sage: Rp.<x,y> = PolynomialRing(ZZ)
+            sage: Ip = Rp.ideal(x^2+y^2)
+            sage: Jp = Rp.ideal(x^2+y^2, x^3 - y)
+            sage: Sp = Rp.quotient(Ip)
+            sage: Tp = Rp.quotient(Jp)
+            sage: R.has_coerce_map_from(Rp)
+            True
+            sage: Sp.has_coerce_map_from(Sp)
+            True
+            sage: T.has_coerce_map_from(Sp)
+            True
+            sage: Sp.has_coerce_map_from(T)
+            False
         """
-        return self.cover_ring().has_coerce_map_from(R)
+        C = self.cover_ring()
+        if isinstance(R, QuotientRing_nc):
+            if C == R.cover_ring():
+                if R.defining_ideal() <= self.defining_ideal():
+                    return True
+            elif C.has_coerce_map_from(R.cover_ring()):
+                try:
+                    if R.defining_ideal().change_ring(C) <= self.defining_ideal():
+                        return True
+                except AttributeError: # Not all ideals have a change_ring
+                    pass
+        return C.has_coerce_map_from(R)
 
     def __cmp__(self, other):
         r"""

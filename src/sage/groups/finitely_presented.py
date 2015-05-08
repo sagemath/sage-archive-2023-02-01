@@ -128,6 +128,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+import types
 
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP, ElementLibGAP
@@ -146,6 +147,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.functions.generalized import sign
 from sage.matrix.constructor import matrix
+from sage.groups.generic import structure_description
 
 class FinitelyPresentedGroupElement(FreeGroupElement):
     """
@@ -1079,7 +1081,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         GAP_gens = fp_product.FreeGeneratorsOfFpGroup()
         if new_names:
             name_itr = _lexi_gen() # Python generator for lexicographical variable names
-            gen_names = [name_itr.next() for i in GAP_gens]
+            gen_names = [next(name_itr) for i in GAP_gens]
         else:
             gen_names= [str(g) for g in self.gens()] + [str(g) for g in H.gens()]
         # Build the direct product in Sage for better variable names
@@ -1261,7 +1263,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         # lists for readability of variable names
         GAP_gens = prod.FreeGeneratorsOfFpGroup()
         name_itr = _lexi_gen() # Python generator for lexicographical variable names
-        ret_F = FreeGroup([name_itr.next() for i in GAP_gens])
+        ret_F = FreeGroup([next(name_itr) for i in GAP_gens])
         ret_rls = tuple([ret_F(rel_word.TietzeWordAbstractWord(GAP_gens).sage())
             for rel_word in prod.RelatorsOfFpGroup()])
         ret_fpg = FinitelyPresentedGroup(ret_F, ret_rls)
@@ -1392,19 +1394,24 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         """
         return self.simplification_isomorphism().codomain()
 
-    def alexander_matrix(self):
+    def alexander_matrix(self, im_gens = None):
         """
         Return the Alexander matrix of the group.
 
         This matrix is given by the fox derivatives of the relations
         with respect to the generators.
 
+        - ``im_gens`` -- (optional) the images of the generators.
+
         OUTPUT:
 
-        A group algebra-valued matrix. It depends on the (fixed)
-        choice of presentation.
+        A matrix with coefficients in the group algebra. If ``im_gens`` is given,
+        the coefficients will live in the same algebra as the given values.
+        The result depends on the (fixed) choice of presentation.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        ::
 
             sage: G.<a,b,c> = FreeGroup()
             sage: H = G.quotient([a*b/a/b, a*c/a/c, c*b/c/b])
@@ -1412,6 +1419,11 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             [     B[1] - B[a*b*a^-1] B[a] - B[a*b*a^-1*b^-1]                       0]
             [     B[1] - B[a*c*a^-1]                       0 B[a] - B[a*c*a^-1*c^-1]]
             [                      0 B[c] - B[c*b*c^-1*b^-1]      B[1] - B[c*b*c^-1]]
+
+
+        If we introduce the images of the generators, we obtain the result in the corresponding algebra.
+
+        ::
 
             sage: G.<a,b,c,d,e> = FreeGroup()
             sage: H = G.quotient([a*b/a/b, a*c/a/c, a*d/a/d, b*c*d/(c*d*b), b*c*d/(d*b*c)])
@@ -1421,11 +1433,18 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             [              B[1] - B[a*d*a^-1]                                0                                0          B[a] - B[a*d*a^-1*d^-1]                                0]
             [                               0             B[1] - B[b*c*d*b^-1]   B[b] - B[b*c*d*b^-1*d^-1*c^-1]      B[b*c] - B[b*c*d*b^-1*d^-1]                                0]
             [                               0        B[1] - B[b*c*d*c^-1*b^-1]             B[b] - B[b*c*d*c^-1] B[b*c] - B[b*c*d*c^-1*b^-1*d^-1]                                0]
+            sage: R.<t1,t2,t3,t4> = LaurentPolynomialRing(ZZ)
+            sage: H.alexander_matrix([t1,t2,t3,t4])
+            [    -t2 + 1      t1 - 1           0           0           0]
+            [    -t3 + 1           0      t1 - 1           0           0]
+            [    -t4 + 1           0           0      t1 - 1           0]
+            [          0  -t3*t4 + 1      t2 - 1  t2*t3 - t3           0]
+            [          0     -t4 + 1 -t2*t4 + t2   t2*t3 - 1           0]
         """
         rel = self.relations()
         gen = self._free_group.gens()
         return matrix(len(rel), len(gen),
-                      lambda i,j: rel[i].fox_derivative(gen[j]))
+                      lambda i,j: rel[i].fox_derivative(gen[j], im_gens))
 
     def rewriting_system(self):
         """
@@ -1462,3 +1481,4 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         """
         return RewritingSystem(self)
 
+FinitelyPresentedGroup.structure_description = types.MethodType(structure_description, None, FinitelyPresentedGroup)

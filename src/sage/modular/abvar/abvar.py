@@ -44,7 +44,7 @@ from sage.matrix.all            import matrix, block_diagonal_matrix, identity_m
 from sage.modules.all           import vector
 from sage.groups.all            import AbelianGroup
 from sage.databases.cremona     import cremona_letter_code
-from sage.misc.misc             import prod
+from sage.misc.all              import prod
 
 from copy import copy
 
@@ -3655,11 +3655,11 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
 
     def lattice(self):
         r"""
-        Return the lattice the defines this modular symbols modular abelian
-        variety.
+        Return the lattice defining this modular abelian variety.
 
-        OUTPUT: a free `\ZZ`-module embedded in an ambient
-        `\QQ`-vector space
+        OUTPUT:
+
+        A free `\ZZ`-module embedded in an ambient `\QQ`-vector space.
 
         EXAMPLES::
 

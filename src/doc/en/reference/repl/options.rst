@@ -208,8 +208,6 @@ Command-line options for Sage
 - ``--bdist VER`` -- build a binary distribution of Sage, with
   version ``VER``
 - ``--sdist`` -- build a source distribution of Sage
-- ``--crap sage-ver.tar`` -- detect suspicious garbage in the Sage
-  source tarball
 
 .. rubric:: Valgrind memory debugging
 

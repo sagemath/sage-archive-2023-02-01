@@ -52,7 +52,6 @@ TESTS::
 
     sage: TestSuite(G[0]).run()
 """
-include "../../ext/stdsage.pxi"
 
 
 def _is_id(f, R):
@@ -137,7 +136,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
     cdef _new_c(self):
         # Create a copy of self.
         cdef SemimonomialTransformation x
-        x = PY_NEW(SemimonomialTransformation)
+        x = SemimonomialTransformation.__new__(SemimonomialTransformation)
         x._parent = self._parent
         x.v = self.v
         x.perm = self.perm
@@ -261,7 +260,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
         """
         return (<Element> self)._cmp(right)
 
-    cdef int _cmp_c_impl(left, Element _right) except -2:
+    cpdef int _cmp_(left, Element _right) except -2:
         cdef SemimonomialTransformation right = <SemimonomialTransformation> _right
         return cmp([left.v, left.perm, left.get_autom()],
                    [right.v, right.perm, right.get_autom()])

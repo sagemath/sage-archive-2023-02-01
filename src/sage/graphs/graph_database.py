@@ -51,7 +51,7 @@ import os,re
 from sage.rings.integer import Integer
 from sqlite3 import dbapi2 as sqlite # if anyone would like to explain why dbapi2...
 from sage.databases.sql_db import SQLDatabase, SQLQuery
-from sage.misc.misc import SAGE_SHARE
+from sage.env import SAGE_SHARE
 from sage.graphs.graph import Graph
 dblocation = os.path.join(SAGE_SHARE,'graphs','graphs.db')
 
@@ -89,8 +89,8 @@ def data_to_degseq(data, graph6=None):
     degseq = Integer(data).digits(10)
     if not degseq:
         # compute number of 0's in list from graph6 string
-        from sage.graphs.generic_graph_pyx import N_inverse
-        return N_inverse(str(graph6))[0]*[0]
+        from sage.graphs.generic_graph_pyx import length_and_string_from_graph6
+        return length_and_string_from_graph6(str(graph6))[0]*[0]
     else:
         return degseq
 
@@ -498,7 +498,7 @@ class GraphQuery(GenericGraphQuery):
             sage: Q = GraphQuery(display_cols=['graph6'],num_vertices=7, diameter=5)
             sage: it = iter(Q)
             sage: while True:
-            ...     try: print it.next().graph6_string()
+            ...     try: print next(it).graph6_string()
             ...     except StopIteration: break
             F?`po
             F?gqg

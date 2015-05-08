@@ -83,6 +83,24 @@ class HighestWeightCrystals(Category_singleton):
         from sage.categories.crystals import Crystals
         return Crystals().example()
 
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, the category of highest weight crystals defines no
+        additional structure: it only guarantees the existence of a
+        unique highest weight element in each component.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
+
+        EXAMPLES::
+
+            sage: HighestWeightCrystals().additional_structure()
+        """
+        return None
+
     class ParentMethods:
 
         @cached_method
@@ -182,9 +200,11 @@ class HighestWeightCrystals(Category_singleton):
             """
             if index_set is None:
                 index_set = self.index_set()
-            from sage.combinat.backtrack import TransitiveIdealGraded
-            return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set],
-                                         self.module_generators, max_depth).__iter__()
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+            return RecursivelyEnumeratedSet(self.module_generators,
+                           lambda x: [x.f(i) for i in index_set],
+                           structure='graded',
+                           max_depth=max_depth).breadth_first_search_iterator()
 
         @cached_method
         def q_dimension(self, q=None, prec=None, use_product=False):
@@ -443,7 +463,7 @@ class HighestWeightCrystals(Category_singleton):
                 ret = []
                 while it:
                     try:
-                        x = it[-1].next()
+                        x = next(it[-1])
                     except StopIteration:
                         it.pop()
                         if path:

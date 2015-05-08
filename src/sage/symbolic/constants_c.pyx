@@ -14,7 +14,6 @@ from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
 from sage.symbolic.ring import SR
 
 from ginac cimport *
-include "sage/ext/stdsage.pxi"
 
 cdef extern from "pynac/constant.h":
     pass
@@ -230,7 +229,7 @@ cdef class E(Expression):
             [0 e]
         """
         global exp_one
-        exp_one = SR.one_element().exp()
+        exp_one = SR.one().exp()
         Expression.__init__(self, SR, exp_one)
 
     def __pow__(left, right, dummy):
@@ -268,8 +267,8 @@ cdef class E(Expression):
             [51.968956198705044  74.73656456700327]
             [112.10484685050491 164.07380304920997]
         """
-        if PY_TYPE_CHECK(left, E):
-            if PY_TYPE_CHECK(right, E):
+        if isinstance(left, E):
+            if isinstance(right, E):
                 return exp_one.exp()
             try:
                 return right.exp()

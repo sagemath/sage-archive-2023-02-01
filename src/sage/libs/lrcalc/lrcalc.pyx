@@ -98,12 +98,17 @@ this example `\mu=[3,2,1]` and `\nu=[2,1]`. Specifying a third entry
 
 .. seealso::
 
-- :func:`lrcoef`
-- :func:`mult`
-- :func:`coprod`
-- :func:`skew`
-- :func:`lrskew`
-- :func:`mult_schubert`
+    - :func:`lrcoef`
+    
+    - :func:`mult`
+    
+    - :func:`coprod`
+    
+    - :func:`skew`
+    
+    - :func:`lrskew`
+    
+    - :func:`mult_schubert`
 
 .. rubric:: Underlying algorithmic in lrcalc
 
@@ -371,7 +376,9 @@ def lrcoef_unsafe(outer, inner1, inner2):
         0
     """
     cdef long long result
-    cdef vector *o, *i1, *i2
+    cdef vector *o
+    cdef vector *i1
+    cdef vector *i2
     o = iterable_to_vector(outer)
     i1 = iterable_to_vector(inner1)
     i2 = iterable_to_vector(inner2)

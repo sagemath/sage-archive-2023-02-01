@@ -520,7 +520,7 @@ bool mul::info(unsigned inf) const
 				else
 					return false;
 			}
-			return (overall_coeff.info(info_flags::negative)? pos : !pos);
+			return (overall_coeff.info(info_flags::negative)? !pos : pos);
 		}
 		case info_flags::posint:
 		case info_flags::negint: {

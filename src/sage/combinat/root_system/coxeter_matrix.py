@@ -44,8 +44,6 @@ class CoxeterMatrix(CoxeterType):
 
         Because there is no object `\ZZ \cup \{ \infty \}`, we define `-1`
         to represent `\infty`.
-        Make it possible to input algebraic number in the matrix and have the
-        corresponding base ring
 
     EXAMPLES::
 
@@ -122,7 +120,7 @@ class CoxeterMatrix(CoxeterType):
 
         EXAMPLES::
 
-            sage: C = CoxeterMatrix(['A',1,1])
+            sage: C = CoxeterMatrix(['A',1,1],['a','b'])
             sage: C2 = CoxeterMatrix([[1, -1], [-1, 1]])
             sage: C3 = CoxeterMatrix(matrix([[1, -1], [-1, 1]]), [0, 1])
             sage: C == C2 and C == C3
@@ -429,6 +427,12 @@ class CoxeterMatrix(CoxeterType):
         Coxeter types, as well as typical representatives of the
         infinite families.
 
+        Here the ``higher_rank`` term denotes non-finite, non-affine, 
+        Coxeter groups (including hyperbolic types).
+
+        .. TODO:: Implement the hyperbolic and compact hyperbolic in the
+        samples.
+
         EXAMPLES::
 
             sage: [CM.coxeter_type() for CM in CoxeterMatrix.samples()]
@@ -580,14 +584,13 @@ class CoxeterMatrix(CoxeterType):
 
         INPUT:
 
-        - ``relabelling`` -- a function (or a list or dictionary)
+        - ``relabelling`` -- a function (or dictionary)
 
         OUTPUT:
 
         an isomorphic Coxeter type obtained by relabelling the nodes of
         the Coxeter graph. Namely, the node with label ``i`` is
-        relabelled ``f(i)`` (or, by ``f[i]`` if ``f`` is a list or
-        dictionary).
+        relabelled ``f(i)`` (or, by ``f[i]`` if ``f`` is a dictionary).
 
         EXAMPLES::
 
@@ -596,9 +599,17 @@ class CoxeterMatrix(CoxeterType):
             [4 1 3 2]
             [2 3 1 2]
             [3 2 2 1]
+            sage: CoxeterMatrix(['F',4]).relabel(lambda x: x+1 if x<4 else 1)
+            [1 4 2 3]
+            [4 1 3 2]
+            [2 3 1 2]
+            [3 2 2 1]
         """
 
-        data = [[self[relabelling[i]][relabelling[j]] for j in self.index_set()] for i in self.index_set()]
+        if isinstance(relabelling,type({})):
+            data = [[self[relabelling[i]][relabelling[j]] for j in self.index_set()] for i in self.index_set()]
+        else:
+            data = [[self[relabelling(i)][relabelling(j)] for j in self.index_set()] for i in self.index_set()]
 
         return CoxeterMatrix(data)
 
@@ -624,24 +635,84 @@ class CoxeterMatrix(CoxeterType):
         return self._matrix.__repr__()
 
     def __iter__(self):
+        """
+        Return an iterator for the rows of the Coxeter matrix.
+
+        EXAMPLES::
+
+            sage: CM = CoxeterMatrix([[1,8],[8,1]])
+            sage: CM.__iter__().next()
+            (1, 8)
+        """
 
         return self._matrix.__iter__()
 
     def __getitem__(self, key):
+        """
+        Return a dictionary of labels adjacent to a node or
+        the label of an edge in the Coxeter graph.
+
+        EXAMPLES::
+            
+            sage: CM = CoxeterMatrix([[1,-2],[-2,1]])
+            sage: CM = CoxeterMatrix([[1,-2],[-2,1]],['a','b'])
+            sage: CM['a']
+            {'a': 1, 'b': -2}
+            sage: CM['b']
+            {'a': -2, 'b': 1}
+            sage: CM['a','b']
+            -2
+            sage: CM['a','a']
+            1
+        """
 
         return self._dict[key]
 
     def __hash__(self):
+        r"""
+        Return hash of the Coxeter matrix.
 
+        EXAMPLES::
+
+            sage: CM = CoxeterMatrix([[1,-2],[-2,1]],['a','b'])
+            sage: CM.__hash__()
+            1
+            sage: CM = CoxeterMatrix([[1,-3],[-3,1]],['1','2'])
+            sage: CM.__hash__()
+            4
+                                                                                                                                                                """
+        
         return self._matrix.__hash__()
 
     def __eq__(self, other):
+        r"""
+        Return if ``self`` and ``other`` are equal, ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: CM = CoxeterMatrix([[1,-2],[-2,1]],['a','b'])
+            sage: CM.__hash__()
+            1
+            sage: CM = CoxeterMatrix([[1,-3],[-3,1]],['1','2'])
+            sage: CM.__hash__()
+            4
+                                                                                                                                                                """
 
         return self._matrix.__eq__(other._matrix)
 
     def _matrix_(self, R = None):
         """
         Return ``self`` as a matrix over the ring ``R``.
+
+        EXAMPLES::
+
+            sage: CM = CoxeterMatrix([[1,-3],[-3,1]])
+            sage: matrix(CM)
+            [ 1 -3]
+            [-3  1]
+            sage: matrix(CM,RR)
+            [ 1.00000000000000 -3.00000000000000]
+            [-3.00000000000000  1.00000000000000]
         """
 
         if R is not None:
@@ -669,7 +740,7 @@ class CoxeterMatrix(CoxeterType):
 
     def coxeter_type(self):
         """
-        Return the Cartan type of ``self`` or ``self`` if unknown.
+        Return the Coxeter type of ``self`` or ``self`` if unknown.
 
         EXAMPLES::
 
@@ -677,7 +748,7 @@ class CoxeterMatrix(CoxeterType):
             sage: C.coxeter_type()
             Coxeter type of ['A', 4, 1]
 
-        If the Cartan type is unknown::
+        If the Coxeter type is unknown::
 
             sage: C = CoxeterMatrix([[1,3,4], [3,1,-1], [4,-1,1]])
             sage: C.coxeter_type()
@@ -1201,6 +1272,18 @@ def check_coxeter_matrix(m):
         ...
         ValueError: the matrix is not symmetric
 
+        sage: m = matrix([[1,3,1/2],[3,1,-1],[1/2,-1,1]])
+        sage: check_coxeter_matrix(m)
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid Coxeter label 1/2
+
+        sage: m = matrix([[1,3,1],[3,1,-1],[1,-1,1]])
+        sage: check_coxeter_matrix(m)
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid Coxeter label 1
+
     """
 
     mat = matrix(m)
@@ -1221,7 +1304,7 @@ def check_coxeter_matrix(m):
 
 def coxeter_matrix_as_function(t):
     """
-    Returns the Coxeter matrix, as a function
+    Return the Coxeter matrix, as a function
 
     INPUT:
 

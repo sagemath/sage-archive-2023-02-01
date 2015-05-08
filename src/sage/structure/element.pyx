@@ -1067,9 +1067,13 @@ cdef class Element(SageObject):
     #
     # You must also define either _cmp_ (if your subclass is totally
     # ordered), _richcmp_ (if your subclass is partially ordered), or
-    # both (if your class has both a total order and a partial order).
-    # If you want to use cmp(), then you must also define __cmp__ in
-    # your subclass.
+    # both (if your class has both a total order and a partial order,
+    # or if that gives better performance).
+    #
+    # Rich comparisons (like a < b) will default to using _richcmp_,
+    # three-way comparisons (like cmp(a,b)) will default to using
+    # _cmp_. But if you define just one of _richcmp_ and _cmp_, it will
+    # be used for all kinds of comparisons.
     #
     # In the _cmp_ and _richcmp_ methods, you can assume that both
     # arguments have identical parents.

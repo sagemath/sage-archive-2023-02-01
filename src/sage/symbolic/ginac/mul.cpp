@@ -472,6 +472,8 @@ bool mul::info(unsigned inf) const
 		case info_flags::even:
 		case info_flags::crational_polynomial:
 		case info_flags::rational_function: {
+                        if (not overall_coeff.info(info_flags::real))
+                                return false;
 			epvector::const_iterator i = seq.begin(), end = seq.end();
 			while (i != end) {
 				if (!(recombine_pair_to_ex(*i).info(inf)))
@@ -493,6 +495,8 @@ bool mul::info(unsigned inf) const
 		}
 		case info_flags::positive:
 		case info_flags::negative: {
+                        if (not overall_coeff.info(info_flags::real))
+                                return false;
 			bool pos = true;
 			epvector::const_iterator i = seq.begin(), end = seq.end();
 			while (i != end) {
@@ -509,6 +513,8 @@ bool mul::info(unsigned inf) const
 			return (inf ==info_flags::positive? pos : !pos);
 		}
 		case info_flags::nonnegative: {
+                        if (not overall_coeff.info(info_flags::real))
+                                return false;
 			bool pos = true;
 			epvector::const_iterator i = seq.begin(), end = seq.end();
 			while (i != end) {
@@ -524,6 +530,8 @@ bool mul::info(unsigned inf) const
 		}
 		case info_flags::posint:
 		case info_flags::negint: {
+                        if (not overall_coeff.info(info_flags::real))
+                                return false;
 			bool pos = true;
 			epvector::const_iterator i = seq.begin(), end = seq.end();
 			while (i != end) {
@@ -542,6 +550,8 @@ bool mul::info(unsigned inf) const
 			return (inf ==info_flags::posint? pos : !pos); 
 		}
 		case info_flags::nonnegint: {
+                        if (not overall_coeff.info(info_flags::real))
+                                return false;
 			bool pos = true;
 			epvector::const_iterator i = seq.begin(), end = seq.end();
 			while (i != end) {

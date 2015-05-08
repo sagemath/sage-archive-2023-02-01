@@ -41,6 +41,7 @@ from sage.rings.finite_rings.constructor import GF
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.fraction_field     import FractionField
 from sage.rings.integer_ring       import ZZ
+from sage.rings.number_field.order import is_NumberFieldOrder
 from sage.rings.padics.factory     import Qp
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field     import QQ
@@ -52,6 +53,7 @@ from sage.schemes.projective.projective_space import is_ProjectiveSpace
 from sage.symbolic.constants       import e
 from copy                          import copy
 
+_NumberFields = NumberFields()
 _Fields = Fields()
 
 def WehlerK3Surface(polys):
@@ -865,11 +867,14 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             sage: X.degenerate_primes()
             [2, 3, 5, 11, 23, 47, 48747691, 111301831]
         """
-        if self.ambient_space().base_ring() !=  ZZ and self.ambient_space().base_ring() !=  QQ:
-            raise TypeError( "Must be ZZ or QQ")
+        PP = self.ambient_space()
+        if PP.base_ring() in _NumberFields or is_NumberFieldOrder(PP.base_ring()):
+            if PP.base_ring() !=  ZZ and PP.base_ring() !=  QQ:
+                raise NotImplementedError( "Must be ZZ or QQ")
+        else:
+            raise TypeError( "Must be over a number field")
         if self.is_degenerate():
             raise TypeError( "Surface is degenerate at all primes")
-        PP = self.ambient_space()
         RR = PP.coordinate_ring()
 
         #x-fibers
@@ -982,6 +987,8 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         r"""
         Function returns the involution on the surface `self` induced by the double covers. In particular, 
         it fixes the projection to the first coordinate and swaps the two points in the fiber, i.e. `(x,y) \to (x,y')`.
+        Note that in the degenerate case, while we have two points in the fiber, it is not always possible to distinguish them,
+        using this algorithm.
 
         ALGORITHM:
 
@@ -1030,6 +1037,23 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             (0 : 0 : 1 , 1 : 1 : 0)
             sage: X.sigmaX(X([0,0,1,1,1,1]))
             (0 : 0 : 1 , -1 : -1 : 1)
+
+        Case where we cannot distinguish the two points::
+
+            sage: PP.<y0,y1,y2,x0,x1,x2>=ProductProjectiveSpaces([2,2],GF(3))
+            sage: l = x0*y0 + x1*y1 + x2*y2
+            sage: q=-3*x0^2*y0^2 + 4*x0*x1*y0^2 - 3*x0*x2*y0^2 - 5*x0^2*y0*y1 - \
+            190*x0*x1*y0*y1- 5*x1^2*y0*y1 + 5*x0*x2*y0*y1 + 14*x1*x2*y0*y1 + \
+            5*x2^2*y0*y1 - x0^2*y1^2 - 6*x0*x1*y1^2- 2*x1^2*y1^2 + 2*x0*x2*y1^2 - \
+            4*x2^2*y1^2 + 4*x0^2*y0*y2 - x1^2*y0*y2 + 3*x0*x2*y0*y2+ 6*x1*x2*y0*y2 - \
+            6*x0^2*y1*y2 - 4*x0*x1*y1*y2 - x1^2*y1*y2 + 51*x0*x2*y1*y2 - 7*x1*x2*y1*y2 - \
+            9*x2^2*y1*y2 - x0^2*y2^2 - 4*x0*x1*y2^2 + 4*x1^2*y2^2 - x0*x2*y2^2 + 13*x1*x2*y2^2 - x2^2*y2^2
+            sage: X = WehlerK3Surface([l,q])
+            sage: P = X([1,0,0,0,1,1])
+            sage: X.sigmaX(X.sigmaX(P))
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot distinguish points in the degenerate fiber
         """
         check = kwds.get("check",True)
         normalize = kwds.get("normalize",True)
@@ -1127,13 +1151,20 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         SS = PolynomialRing(BR,4,'s,z0,z1,z2',order = 'lex')
         s,z0,z1,z2 = SS.gens()
         phi = RR.hom([s,1,z0,z1,z2],SS)
-        V = phi(I).variety()
-
-        if len(V) !=  1:
+        J = phi(I)
+        if J.dimension() > 0:
+            raise ValueError( "Cannot distinguish points in the degenerate fiber")
+        V = J.variety()
+        #Our blow-up point has more than one line passing through it, thus we cannot find 
+        #the corresponding point on the surface
+        if len(V) > 2:
+            raise ValueError( "Cannot distinguish points in the degenerate fiber")
+        #We always expect to have the trivial solution (0,0,0)
+        if len(V) ==  2:
             for D in V:
-                if D[s]!= 0: #(0,0,0,0) is always a solution
+                if D[s] != 0:
                     [a,b,c] = [D[z0],D[z1],D[z2]]
-        else: #maybe s == 0 and we need to cancel powers of s
+        else:
             newT = [phi(t) for t in T]
             for i in range(2):
                 while newT[i]!= 0 and s.divides(newT[i]):
@@ -1168,17 +1199,29 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             SSS = PolynomialRing(BR,3,'z0,z1,z2',order = 'lex')
             z0,z1,z2 = SSS.gens()
             phi = SS.hom([0,z0,z1,z2],SSS)
-            V = phi(II).variety()
+            J2 = phi(II)
+            if J2.dimension() > 0:
+                raise ValueError( "Cannot distinguish points in the degenerate fiber")
+            V = J2.variety()
+            if len(V) > 1:
+                raise ValueError( "Cannot distinguish points in the degenerate fiber")
 
-            if len(V) != 0:
+            if len(V) == 1:
                 [a,b,c] = [V[0][z0],V[0][z1],V[0][z2]]
 
             if len(V) == 0 or [a,b,c] == [0,0,0]:
                 SS = PolynomialRing(BR,3,'z0,z1,z2',order = 'lex')
                 z0,z1,z2 = SS.gens()
                 phi = RR.hom([1,0,z0,z1,z2],SS)
+                J = phi(I)
+                if J.dimension() > 0:
+                    raise ValueError( "Cannot distinguish points in the degenerate fiber")
                 V = phi(I).variety()
+                if len(V) > 1:
+                    raise ValueError( "Cannot distinguish points in the degenerate fiber")
                 [a,b,c] = [V[0][z0],V[0][z1],V[0][z2]]
+
+            
 
         Point = [P[0][0],P[0][1],P[0][2],a,b,c]
         if normalize:
@@ -1191,6 +1234,8 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         r"""
         Function returns the involution on the surface `self` induced by the double covers. In particular, 
         it fixes the projection to the second coordinate and swaps the two points in the fiber, i.e. `(x,y) \to (x',y)`.
+        Note that in the degenerate case, while we have two points in the fiber, it is not always possible to distinguish them,
+        using this algorithm.
 
         ALGORITHM:
 
@@ -1237,6 +1282,22 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             (-3 : -3 : 1 , 0 : 0 : 1)
             sage: X.sigmaY(X([1,1,1,0,0,1]))
             (1 : 0 : 0 , 0 : 0 : 1)
+
+        Case where we cannot distinguish the two points::
+
+            sage: PP.<x0,x1,x2,y0,y1,y2>=ProductProjectiveSpaces([2,2],GF(3))
+            sage: l = x0*y0 + x1*y1 + x2*y2
+            sage: q=-3*x0^2*y0^2 + 4*x0*x1*y0^2 - 3*x0*x2*y0^2 - 5*x0^2*y0*y1 - 190*x0*x1*y0*y1\
+            - 5*x1^2*y0*y1 + 5*x0*x2*y0*y1 + 14*x1*x2*y0*y1 + 5*x2^2*y0*y1 - x0^2*y1^2 - 6*x0*x1*y1^2\
+            - 2*x1^2*y1^2 + 2*x0*x2*y1^2 - 4*x2^2*y1^2 + 4*x0^2*y0*y2 - x1^2*y0*y2 + 3*x0*x2*y0*y2\
+            + 6*x1*x2*y0*y2 - 6*x0^2*y1*y2 - 4*x0*x1*y1*y2 - x1^2*y1*y2 + 51*x0*x2*y1*y2 - 7*x1*x2*y1*y2\
+            - 9*x2^2*y1*y2 - x0^2*y2^2 - 4*x0*x1*y2^2 + 4*x1^2*y2^2 - x0*x2*y2^2 + 13*x1*x2*y2^2 - x2^2*y2^2
+            sage: X = WehlerK3Surface([l,q])
+            sage: P = X([0,1,1,1,0,0])
+            sage: X.sigmaY(X.sigmaY(P))
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot distinguish points in the degenerate fiber
         """
         check = kwds.get("check",True)
         normalize = kwds.get("normalize",True)
@@ -1333,11 +1394,19 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         SS = PolynomialRing(BR,4,'s,z0,z1,z2',order = 'lex')
         s,z0,z1,z2 = SS.gens()
         phi = RR.hom([s,1,z0,z1,z2],SS)
-        V = phi(I).variety()
+        J = phi(I)
+        if J.dimension() > 0:
+            raise ValueError( "Cannot distinguish points in the degenerate fiber")
+        V = J.variety()
 
-        if len(V) !=  1:
+        #Our blow-up point has more than one line passing through it, thus we cannot find 
+        #the corresponding point on the surface
+        if len(V) > 2:
+            raise ValueError( "Cannot distinguish points in the degenerate fiber")
+        #We always expect to have the trivial solution (0,0,0)
+        if len(V) ==  2:
             for D in V:
-                if D[s]!= 0:
+                if D[s] != 0:
                     [a,b,c] = [D[z0],D[z1],D[z2]]
         else:
             newT = [phi(t) for t in T]
@@ -1368,15 +1437,25 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             SSS = PolynomialRing(BR,3,'z0,z1,z2',order = 'lex')
             z0,z1,z2 = SSS.gens()
             phi = SS.hom([0,z0,z1,z2],SSS)
-            V = phi(II).variety()
+            J2 = phi(II)
+            if J2.dimension() > 0:
+                raise ValueError( "Cannot distinguish points in the degenerate fiber")
+            V = J2.variety()
 
-            if len(V) != 0:
+            if len(V) > 1:
+                raise ValueError( "Cannot distinguish points in the degenerate fiber")
+            if len(V) == 1:
                 [a,b,c] = [V[0][z0],V[0][z1],V[0][z2]]
             if len(V) == 0 or [a,b,c] == [0,0,0]:
                 SS = PolynomialRing(BR,3,'z0,z1,z2',order = 'lex')
                 z0,z1,z2 = SS.gens()
                 phi = RR.hom([1,0,z0,z1,z2],SS)
+                J = phi(I)
+                if J.dimension() > 0:
+                    raise ValueError( "Cannot distinguish points in the degenerate fiber")
                 V = phi(I).variety()
+                if len(V) > 1:
+                    raise ValueError( "Cannot distinguish points in the degenerate fiber")
                 [a,b,c] = [V[0][z0],V[0][z1],V[0][z2]]
 
         Point = [a,b,c,P[1][0],P[1][1],P[1][2]]
@@ -1678,6 +1757,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         EXAMPLES::
 
+            sage: set_verbose(None)
             sage: R.<x0,x1,x2,y0,y1,y2> = PolynomialRing(QQ,6)
             sage: L =  (-y0 - y1)*x0 + (-y0*x1 - y2*x2)
             sage: Q = (-y2*y0 - y1^2)*x0^2 + ((-y0^2 - y2*y0 + (-y2*y1 - y2^2))*x1 + \
@@ -1690,6 +1770,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         Call-Silverman Example::
 
+            sage: set_verbose(None)
             sage: PP.<x0,x1,x2,y0,y1,y2> = ProductProjectiveSpaces([2,2],QQ)
             sage: Z = x0^2*y0^2 + 3*x0*x1*y0^2 + x1^2*y0^2 + 4*x0^2*y0*y1 +\
             3*x0*x1*y0*y1 - 2*x2^2*y0*y1 - x0^2*y1^2 + 2*x1^2*y1^2 - x0*x2*y1^2\
@@ -1738,6 +1819,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         EXAMPLES::
 
+            sage: set_verbose(None)
             sage: R.<x0,x1,x2,y0,y1,y2> = PolynomialRing(QQ,6)
             sage: L =  (-y0 - y1)*x0 + (-y0*x1 - y2*x2)
             sage: Q = (-y2*y0 - y1^2)*x0^2 + ((-y0^2 - y2*y0 + (-y2*y1 - y2^2))*x1\
@@ -1750,6 +1832,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         Call-Silverman example::
 
+            sage: set_verbose(None)
             sage: PP.<x0,x1,x2,y0,y1,y2> = ProductProjectiveSpaces([2,2],QQ)
             sage: Z = x0^2*y0^2 + 3*x0*x1*y0^2 + x1^2*y0^2 + 4*x0^2*y0*y1 +\
              3*x0*x1*y0*y1 -2*x2^2*y0*y1 - x0^2*y1^2 + 2*x1^2*y1^2 - x0*x2*y1^2 -\
@@ -1796,6 +1879,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         EXAMPLES::
 
+            sage: set_verbose(None)
             sage: R.<x0,x1,x2,y0,y1,y2> = PolynomialRing(QQ,6)
             sage: L =  (-y0 - y1)*x0 + (-y0*x1 - y2*x2)
             sage: Q = (-y2*y0 - y1^2)*x0^2 + ((-y0^2 - y2*y0 + (-y2*y1 - y2^2))*x1 +\
@@ -1823,9 +1907,9 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             badprimes = self.degenerate_primes()
         return(self.canonical_height_plus(P, N,badprimes,prec) + self.canonical_height_minus(P, N,badprimes,prec))
 
-    def fiber(self,p):
+    def fiber(self,p,component):
         r"""
-        Returns the fibers of a point on a K3 Surface, will work for nondegenerate fibers only.
+        Returns the fibers [y ( component = 1) or x ( Component = 0)]  of a point on a K3 Surface, will work for nondegenerate fibers only.
         For algorithm, see [Hutz_thesis]
 
         INPUT: ``p`` - a point in `\mathbb{P}^2`
@@ -1841,7 +1925,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             sage: X = WehlerK3Surface([Z,Y])
             sage: Proj = ProjectiveSpace(QQ,2)
             sage: P = Proj([1,0,0])
-            sage: X.fiber(P)
+            sage: X.fiber(P, 1)
             Traceback (most recent call last):
             ...
             TypeError: Fiber is degenerate
@@ -1856,7 +1940,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             sage: X = WehlerK3Surface([Z,Y])
             sage: Proj = P[0]
             sage: T = Proj([0,0,1])
-            sage: X.fiber(T)
+            sage: X.fiber(T,1)
              [(0 : 0 : 1 , 0 : 1 : 0), (0 : 0 : 1 , 2 : 0 : 0)]
         """
         R = self.base_ring()
@@ -1866,66 +1950,90 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         for i in list(p):
             j = R(i)
             P.append(j)
-        P0 = P+[Zero,Zero,Zero]
+        if component == 1:
+            P0 = P+[Zero,Zero,Zero]
+        else:
+            P0 = [Zero,Zero,Zero] + P
         Points = []
-        T0 = (self.Hpoly(1,0,1)(P0)**2 -4*self.Gpoly(1,0)(P0)*self.Gpoly(1,1)(P0))
-        T1 = (self.Hpoly(1,0,2)(P0)**2 -4*self.Gpoly(1,0)(P0)*self.Gpoly(1,2)(P0))
-        if (self.Gpoly(1,0)(P0)!=0):
+        T0 = (self.Hpoly(component,0,1)(P0)**2 -4*self.Gpoly(component,0)(P0)*self.Gpoly(component,1)(P0))
+        T1 = (self.Hpoly(component,0,2)(P0)**2 -4*self.Gpoly(component,0)(P0)*self.Gpoly(component,2)(P0))
+        if (self.Gpoly(component,0)(P0)!=0):
              #We are using the quadratic formula, we need this check to ensure that the points
              #will be rational
             if (T0.is_square() and T1.is_square()): 
-                T0 = (self.Hpoly(1,0,1)(P0)**2 -4*self.Gpoly(1,0)(P0)*self.Gpoly(1,1)(P0)).sqrt()
-                T1 = (self.Hpoly(1,0,2)(P0)**2 -4*self.Gpoly(1,0)(P0)*self.Gpoly(1,2)(P0)).sqrt()
-                B1 = (-self.Hpoly(1,0,1)(P0)+T0)/(2*self.Gpoly(1,0)(P0))
-                B2 = (-self.Hpoly(1,0,1)(P0)-T0)/(2*self.Gpoly(1,0)(P0))
-                C1 = (-self.Hpoly(1,0,2)(P0)+T1)/(2*self.Gpoly(1,0)(P0))
-                C2 = (-self.Hpoly(1,0,2)(P0)-T1)/(2*self.Gpoly(1,0)(P0))
-                Points.append(P+[One,B1,C1])
-                Points.append(P+[One,B2,C1])
-                Points.append(P+[One,B1,C2])
-                Points.append(P+[One,B2,C2])
+                T0 = (self.Hpoly(component,0,1)(P0)**2 -4*self.Gpoly(component,0)(P0)*self.Gpoly(component,1)(P0)).sqrt()
+                T1 = (self.Hpoly(component,0,2)(P0)**2 -4*self.Gpoly(component,0)(P0)*self.Gpoly(component,2)(P0)).sqrt()
+                B1 = (-self.Hpoly(component,0,1)(P0)+T0)/(2*self.Gpoly(component,0)(P0))
+                B2 = (-self.Hpoly(component,0,1)(P0)-T0)/(2*self.Gpoly(component,0)(P0))
+                C1 = (-self.Hpoly(component,0,2)(P0)+T1)/(2*self.Gpoly(component,0)(P0))
+                C2 = (-self.Hpoly(component,0,2)(P0)-T1)/(2*self.Gpoly(component,0)(P0))
+                if component == 1:
+                    Points.append(P+[One,B1,C1])
+                    Points.append(P+[One,B2,C1])
+                    Points.append(P+[One,B1,C2])
+                    Points.append(P+[One,B2,C2])
+                else:
+                    Points.append([One,B1,C1]+P)
+                    Points.append([One,B2,C1]+P)
+                    Points.append([One,B1,C2]+P)
+                    Points.append([One,B2,C2]+P)
             else:
                 return []
             
-        elif (self.Gpoly(1,1)(P0)!=0):
+        elif (self.Gpoly(component,1)(P0)!=0):
             if (T0.is_square() and T1.is_square()):
-                T0 = (self.Hpoly(1,0,1)(P0)**2 -4*self.Gpoly(1,0)(P0)*self.Gpoly(1,1)(P0)).sqrt()
-                T1 = (self.Hpoly(1,1,2)(P0)**2 -4*self.Gpoly(1,1)(P0)*self.Gpoly(1,2)(P0)).sqrt()
-                A1 = (-self.Hpoly(1,0,1)(P0)+T0)/(2*self.Gpoly(1,1)(P0))
-                A2 = (-self.Hpoly(1,0,1)(P0)-T0)/(2*self.Gpoly(1,1)(P0))
-                C1 = (-self.Hpoly(1,1,2)(P0)+T1)/(2*self.Gpoly(1,1)(P0))
-                C2 = (-self.Hpoly(1,1,2)(P0)-T1)/(2*self.Gpoly(1,1)(P0))
-                Points.append(P+[A1,One,C1])
-                Points.append(P+[A1,One,C2])
-                Points.append(P+[A2,One,C1])
-                Points.append(P+[A2,One,C2])
+                T0 = (self.Hpoly(component,0,1)(P0)**2 -4*self.Gpoly(component,0)(P0)*self.Gpoly(component,1)(P0)).sqrt()
+                T1 = (self.Hpoly(component,1,2)(P0)**2 -4*self.Gpoly(component,1)(P0)*self.Gpoly(component,2)(P0)).sqrt()
+                A1 = (-self.Hpoly(component,0,1)(P0)+T0)/(2*self.Gpoly(component,1)(P0))
+                A2 = (-self.Hpoly(component,0,1)(P0)-T0)/(2*self.Gpoly(component,1)(P0))
+                C1 = (-self.Hpoly(component,1,2)(P0)+T1)/(2*self.Gpoly(component,1)(P0))
+                C2 = (-self.Hpoly(component,1,2)(P0)-T1)/(2*self.Gpoly(component,1)(P0))
+                if component == 1:
+                    Points.append(P+[A1,One,C1])
+                    Points.append(P+[A1,One,C2])
+                    Points.append(P+[A2,One,C1])
+                    Points.append(P+[A2,One,C2])
+                else:
+                    Points.append([A1,One,C1]+P)
+                    Points.append([A1,One,C2]+P)
+                    Points.append([A2,One,C1]+P)
+                    Points.append([A2,One,C2]+P)
             else:
                 return []
-        elif(self.Gpoly(1,2)(P0)!=0):
+        elif(self.Gpoly(component,2)(P0)!=0):
             if (T0.is_square() and T1.is_square()):
-                T0 = (self.Hpoly(1,0,2)(P0)**2 -4*self.Gpoly(1,0)(P0)*self.Gpoly(1,2)(P0)).sqrt()
-                T1 = (self.Hpoly(1,1,2)(P0)**2 -4*self.Gpoly(1,1)(P0)*self.Gpoly(1,2)(P0)).sqrt()
-                A1 = (-self.Hpoly(1,0,2)(P0)+T0)/(2*self.Gpoly(1,2)(P0))
-                A2 = (-self.Hpoly(1,0,2)(P0)-T0)/(2*self.Gpoly(1,2)(P0))
-                B1 = (-self.Hpoly(1,1,2)(P0)+T1)/(2*self.Gpoly(1,2)(P0))
-                B2 = (-self.Hpoly(1,1,2)(P0)-T1)/(2*self.Gpoly(1,2)(P0))
-                Points.append(P+[A1,B1,One])
-                Points.append(P+[A1,B2,One])
-                Points.append(P+[A2,B1,One])
-                Points.append(P+[A2,B2,One])
+                T0 = (self.Hpoly(component,0,2)(P0)**2 -4*self.Gpoly(component,0)(P0)*self.Gpoly(component,2)(P0)).sqrt()
+                T1 = (self.Hpoly(component,1,2)(P0)**2 -4*self.Gpoly(component,1)(P0)*self.Gpoly(component,2)(P0)).sqrt()
+                A1 = (-self.Hpoly(component,0,2)(P0)+T0)/(2*self.Gpoly(component,2)(P0))
+                A2 = (-self.Hpoly(component,0,2)(P0)-T0)/(2*self.Gpoly(component,2)(P0))
+                B1 = (-self.Hpoly(component,1,2)(P0)+T1)/(2*self.Gpoly(component,2)(P0))
+                B2 = (-self.Hpoly(component,1,2)(P0)-T1)/(2*self.Gpoly(component,2)(P0))
+                if component ==1:
+                    Points.append(P+[A1,B1,One])
+                    Points.append(P+[A1,B2,One])
+                    Points.append(P+[A2,B1,One])
+                    Points.append(P+[A2,B2,One])
+                else:
+                    Points.append([A1,B1,One]+P)
+                    Points.append([A1,B2,One]+P)
+                    Points.append([A2,B1,One]+P)
+                    Points.append([A2,B2,One]+P)
             else:
                 return []
-        elif(self.Hpoly(1,0,1)(P0) != 0):
-            Points.append(P+[Zero,One,Zero])
-            Points.append(P+[-self.Hpoly(1,0,1)(P0),Zero,-self.Hpoly(1,1,2)(P0)])
-            Points.append(P+[One,Zero,Zero])
-            Points.append(P+[Zero,-self.Hpoly(1,0,1)(P0),-self.Hpoly(1,0,2)(P0)])
-        elif(self.Hpoly(1,0,2)(P0)!=0):
-            Points.append(P+[Zero,Zero,One])
-            Points.append(P+[-self.Hpoly(1,0,2)(P0),-self.Hpoly(1,1,2)(P0),Zero])
-        elif(self.Hpoly(1,1,2)(P0) != 0):
-            Points.append(P+[Zero,Zero,One])
-            Points.append(P+[Zero,One,Zero])
+        elif(self.Hpoly(component,0,1)(P0) != 0):
+            if component == 1:
+                Points.append(P+[Zero,One,Zero])
+                Points.append(P+[-self.Hpoly(component,0,1)(P0),Zero,-self.Hpoly(component,1,2)(P0)])
+                Points.append(P+[One,Zero,Zero])
+                Points.append(P+[Zero,-self.Hpoly(component,0,1)(P0),-self.Hpoly(component,0,2)(P0)])
+        elif(self.Hpoly(component,0,2)(P0)!=0):
+            if component == 1:
+                Points.append(P+[Zero,Zero,One])
+                Points.append(P+[-self.Hpoly(1,0,2)(P0),-self.Hpoly(1,1,2)(P0),Zero])
+        elif(self.Hpoly(component,1,2)(P0) != 0):
+            if component == 1:
+                Points.append(P+[Zero,Zero,One])
+                Points.append(P+[Zero,One,Zero])
         else:
             raise TypeError("Fiber is degenerate")
 
@@ -1977,6 +2085,17 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             sage: T = W([-1,-1,1,1,0,1])
             sage: W.nth_iterate_phi(T,-7)
             (1 : 0 : 1 , -1 : 2 : 1)
+
+        ::
+
+            sage: R.<x0,x1,x2,y0,y1,y2>=PolynomialRing(QQ,6)
+            sage: L = (-y0 - y1)*x0 + (-y0*x1 - y2*x2)
+            sage: Q = (-y2*y0 - y1^2)*x0^2 + ((-y0^2 - y2*y0 + (-y2*y1 - y2^2))*x1 + (-y0^2 - y2*y1)*x2)*x0 \
+            + ((-y0^2 - y2*y0 - y2^2)*x1^2 + (-y2*y0 - y1^2)*x2*x1 + (-y0^2 + (-y1 - y2)*y0)*x2^2)
+            sage: X = WehlerK3Surface([L,Q])
+            sage: P = X([1,0,-1,1,-1,0])
+            sage: X.nth_iterate_phi(P,8) == X.nth_iterate_psi(P,8)
+            True
         """
         try:
             n=ZZ(n)

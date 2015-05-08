@@ -11405,6 +11405,17 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [ 1.414213562373095?                   0]
             [0.7071067811865475? 0.7071067811865475?]
 
+        We check that if the input is a real matrix then the output is real as
+        well (:trac:`18381`)::
+
+            sage: E = matrix(QQ, [[4, 2], [2, 10/9]])
+            sage: E.cholesky().base_ring()
+            Rational Field
+
+            sage: E = matrix(QQ, [[2, 1], [1, 1]])
+            sage: E.cholesky().base_ring()
+            Algebraic Real Field
+
         AUTHOR:
 
         - Rob Beezer (2012-05-27)

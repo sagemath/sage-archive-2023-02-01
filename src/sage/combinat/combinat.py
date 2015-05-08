@@ -136,17 +136,14 @@ Functions and classes
 #                     2007 Mike Hansen <mhansen@gmail.com>,
 #                     2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+
 from sage.interfaces.all import maxima
 from sage.rings.all import ZZ, QQ, Integer, infinity
 from sage.rings.arith import bernoulli, binomial
@@ -158,7 +155,10 @@ from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.misc.lazy_attribute import lazy_attribute
 from combinat_cython import _stirling_number2
-######### combinatorial sequences
+from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.categories.enumerated_sets import EnumeratedSets
+from sage.structure.element import Element
+
 
 def bell_number(n, algorithm='flint', **options):
     r"""
@@ -817,6 +817,7 @@ def stirling_number2(n, k, algorithm=None):
     else:
         raise ValueError("unknown algorithm: %s" % algorithm)
 
+
 class CombinatorialObject(SageObject):
     def __init__(self, l, copy=True):
         """
@@ -829,6 +830,11 @@ class CombinatorialObject(SageObject):
         function which computes the hash of the string representation of a
         list and the hash of its parent's class. Thus, each
         CombinatorialObject should have a unique string representation.
+
+        .. SEEALSO::
+
+            :class:`CombinatorialElement` if you want a combinatorial
+            object which is an element of a parent.
 
         .. WARNING::
 
@@ -1199,8 +1205,95 @@ class CombinatorialObject(SageObject):
         return self._list.index(key)
 
 
-from sage.misc.classcall_metaclass import ClasscallMetaclass
-from sage.categories.enumerated_sets import EnumeratedSets
+class CombinatorialElement(CombinatorialObject, Element):
+    """
+    ``CombinatorialElement`` is both a :class:`CombinatorialObject`
+    and an :class:`Element`. So it represents a list which is an
+    element of some parent.
+
+    A ``CombinatorialElement`` subclass also automatically supports
+    the ``__classcall__`` mechanism.
+
+    .. WARNING::
+
+        This class is slowly being deprecated. Use
+        :class:`~sage.structure.list_clone.ClonableList` instead.
+
+    INPUT:
+
+    -  ``parent`` -- the :class:`Parent` class for this element.
+
+    -  ``lst`` -- a list or any object that can be converted to a
+       list by calling ``list()``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.combinat import CombinatorialElement
+        sage: e = CombinatorialElement(Partitions(6), [3,2,1])
+        sage: e == loads(dumps(e))
+        True
+        sage: parent(e)
+        Partitions of the integer 6
+        sage: list(e)
+        [3, 2, 1]
+
+    Check classcalls::
+
+        sage: class Foo(CombinatorialElement):
+        ....:     @staticmethod
+        ....:     def __classcall__(cls, x):
+        ....:         return x
+        sage: Foo(17)
+        17
+    """
+    __metaclass__ = ClasscallMetaclass
+
+    def __init__(self, parent, *args, **kwds):
+        """
+        Initialize this ``CombinatorialElement`` with a parent and a
+        list.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.combinat import CombinatorialElement
+            sage: e = CombinatorialElement(ZZ, list=(3,2,1))
+            sage: e._list
+            [3, 2, 1]
+            sage: e.parent()
+            Integer Ring
+
+        TESTS::
+
+            sage: CombinatorialElement(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() takes exactly 2 arguments (1 given)
+            sage: CombinatorialElement(ZZ, 1, 2)
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() takes exactly 2 arguments (3 given)
+            sage: CombinatorialElement(ZZ, 1, list=2)
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() takes exactly 2 arguments (3 given)
+            sage: CombinatorialElement(ZZ, a=1, b=2)
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() takes exactly 2 arguments (3 given)
+        """
+        # There should be one "list" argument, which can be given as
+        # positional or keyword argument (in the latter case, the name
+        # doesn't matter).
+        if len(args) == 1 and not kwds:
+            L = args[0]
+        elif len(kwds) == 1 and not args:
+            L = kwds.values()[0]
+        else:
+            raise TypeError("__init__() takes exactly 2 arguments ({} given)".format(1+len(args)+len(kwds)))
+        super(CombinatorialElement, self).__init__(L)
+        super(CombinatorialObject, self).__init__(parent)
+
+
 class CombinatorialClass(Parent):
     """
     This class is deprecated, and will disappear as soon as all derived

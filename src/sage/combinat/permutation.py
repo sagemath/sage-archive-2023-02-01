@@ -8,7 +8,7 @@ the combinatorial class of permutations.
 .. WARNING::
 
    This file defined :class:`Permutation` which depends upon
-   :class:`CombinatorialObject` despite it being deprecated (see
+   :class:`CombinatorialElement` despite it being deprecated (see
    :trac:`13742`). This is dangerous. In particular, the
    :meth:`Permutation._left_to_right_multiply_on_right` method (which can
    be called trough multiplication) disables the input checks (see
@@ -214,29 +214,23 @@ AUTHORS:
 Classes and methods
 ===================
 """
+
 #*****************************************************************************
-#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
+#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.finite_weyl_groups import FiniteWeylGroups
 from sage.categories.finite_permutation_groups import FinitePermutationGroups
-from sage.structure.element import Element
 from sage.structure.list_clone import ClonableArray
 from sage.structure.global_options import GlobalOptions
 
@@ -252,7 +246,7 @@ from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.misc.prandom import sample
 from sage.graphs.digraph import DiGraph
 import itertools
-from combinat import CombinatorialObject, catalan_number
+from combinat import CombinatorialElement, catalan_number
 from sage.misc.misc import uniq
 from sage.misc.cachefunc import cached_method
 from backtrack import GenericBacktracker
@@ -334,7 +328,7 @@ PermutationOptions = GlobalOptions(name='permutations',
               case_sensitive=False)
 )
 
-class Permutation(CombinatorialObject, Element):
+class Permutation(CombinatorialElement):
     r"""
     A permutation.
 
@@ -489,8 +483,6 @@ class Permutation(CombinatorialObject, Element):
     .. automethod:: _left_to_right_multiply_on_right
     .. automethod:: _left_to_right_multiply_on_left
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, l, check_input = True):
         """
@@ -545,14 +537,14 @@ class Permutation(CombinatorialObject, Element):
             else:
                 raise ValueError("cannot convert l (= %s) to a Permutation"%l)
 
-        # otherwise, it gets processed by CombinatorialObject's __init__.
+        # otherwise, it gets processed by CombinatorialElement's __init__.
         return Permutations()(l, check_input=check_input)
 
     def __init__(self, parent, l, check_input=True):
         """
         Constructor. Checks that INPUT is not a mess, and calls
-        :class:`CombinatorialObject`. It should not, because
-        :class:`CombinatorialObject` is deprecated.
+        :class:`CombinatorialElement`. It should not, because
+        :class:`CombinatorialElement` is deprecated.
 
         INPUT:
 
@@ -584,9 +576,13 @@ class Permutation(CombinatorialObject, Element):
             is something wrong with its length.
         """
         l = list(l)
-        if check_input:
+
+        if check_input and len(l) > 0:
+            # Make a copy to sort later
+            lst = list(l)
+
             # Is input a list of positive integers ?
-            for i in l:
+            for i in lst:
                 try:
                     i = int(i)
                 except TypeError:
@@ -594,37 +590,26 @@ class Permutation(CombinatorialObject, Element):
                 if i < 1:
                     raise ValueError("the elements must be strictly positive integers")
 
-            sorted_copy = list(l)
+            lst.sort()
 
-            # Empty list ?
-            if not sorted_copy:
-                CombinatorialObject.__init__(self, l)
+            # Is the maximum element of the permutation the length of input,
+            # or is some integer missing ?
+            if int(lst[-1]) != len(lst):
+                raise ValueError("The permutation has length "+str(len(lst))+
+                                 " but its maximal element is "+
+                                 str(int(lst[-1]))+". Some element "+
+                                 "may be repeated, or an element is missing"+
+                                 ", but there is something wrong with its length.")
 
-            else:
-                sorted_copy.sort()
-                # Is the maximum element of the permutation the length of input,
-                # or is some integer missing ?
-                if int(sorted_copy[-1]) != len(l):
-                    raise ValueError("The permutation has length "+str(len(l))+
-                                     " but its maximal element is "+
-                                     str(int(sorted_copy[-1]))+". Some element "+
-                                     "may be repeated, or an element is missing"+
-                                     ", but there is something wrong with its length.")
+            # Do the elements appear only once ?
+            previous = lst[0]-1
 
-                # Do the elements appear only once ?
-                previous = sorted_copy[0]-1
+            for i in lst:
+                if i == previous:
+                    raise ValueError("An element appears twice in the input. It should not.")
+                previous = i
 
-                for i in sorted_copy:
-                    if i == previous:
-                        raise ValueError("An element appears twice in the input. It should not.")
-                    else:
-                        previous = i
-
-                CombinatorialObject.__init__(self, l)
-        else:
-            CombinatorialObject.__init__(self, l)
-
-        Element.__init__(self, parent)
+        CombinatorialElement.__init__(self, parent, l)
 
     def __setstate__(self, state):
         r"""

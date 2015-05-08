@@ -1,0 +1,25 @@
+From aac5897aa12daf056b8fe08f1b6512d9f60c2d27 Mon Sep 17 00:00:00 2001
+From: Depado <paul.lhussiez@gmail.com>
+Date: Fri, 17 Apr 2015 11:02:52 +0200
+Subject: [PATCH] Fix issue 126 for 3.x branch
+
+---
+ pexpect/__init__.py | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/pexpect/__init__.py b/pexpect/__init__.py
+index cace43b..acabf5a 100644
+--- a/pexpect/__init__.py
++++ b/pexpect/__init__.py
+@@ -490,7 +490,10 @@ def __init__(self, command, args=[], timeout=30, maxread=2000,
+         # inherit EOF and INTR definitions from controlling process.
+         try:
+             from termios import VEOF, VINTR
+-            fd = sys.__stdin__.fileno()
++            try:
++                fd = sys.__stdin__.fileno()
++            except ValueError:
++                fd = sys.__stdout__.fileno()
+             self._INTR = ord(termios.tcgetattr(fd)[6][VINTR])
+             self._EOF = ord(termios.tcgetattr(fd)[6][VEOF])
+         except (ImportError, OSError, IOError, termios.error):

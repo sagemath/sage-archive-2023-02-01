@@ -32,10 +32,17 @@ from sage.rings.rational cimport Rational
 from sage.misc.misc import verbose, cputime
 from sage.rings.infinity import Infinity
 
+from cpython.tuple cimport *
+cdef extern from "Python.h":
+      bint PySlice_Check(object ob)
+
 include "sage/ext/cdefs.pxi"
 include "sage/ext/interrupt.pxi"
-include "sage/libs/flint/fmpz_poly.pxi"
+
+#include "sage/libs/flint/fmpz_poly.pxi"
 include "sage/ext/stdsage.pxi"
+
+#from sage.libs.flint.fmpz_poly cimport 
 
 from sage.libs.flint.nmod_poly cimport (nmod_poly_init2_preinv,
                                         nmod_poly_set_coeff_ui,

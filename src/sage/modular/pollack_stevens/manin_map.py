@@ -40,7 +40,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.arith import convergents
+from sage.rings.continued_fraction import convergents
 from sage.misc.misc import verbose
 from sigma0 import Sigma0
 from fund_domain import t00, t10, t01, t11, M2Z

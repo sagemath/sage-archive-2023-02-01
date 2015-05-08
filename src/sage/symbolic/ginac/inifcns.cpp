@@ -204,6 +204,24 @@ static ex abs_eval(const ex & arg)
 	if (is_ex_the_function(arg, exp))
 		return exp(arg.op(0).real_part());
 
+	if (is_exactly_a<mul>(arg)) {
+                const ex& mex = ex_to<mul>(arg);
+                const int n_ops = mex.nops();
+                ex prod_re = _ex1;
+                ex prod_ir = _ex1;
+                for (int i=0; i<n_ops; ++i) {
+                        const ex& factor = mex.op(i);
+                        if (factor.info(info_flags::real))
+                                prod_re *= factor;
+                        else
+                                prod_ir *= factor;
+                }
+                if (is_exactly_a<numeric>(prod_ir))
+                        return abs(prod_re) * abs(prod_ir);
+                else
+                        return abs(prod_re) * abs(prod_ir).hold();
+	}
+
 	if (is_exactly_a<power>(arg)) {
 		const ex& base = arg.op(0);
 		const ex& exponent = arg.op(1);

@@ -940,6 +940,51 @@ ex power::expand(unsigned options) const
 		return *this;
 	}
 
+	// (x*p)^c -> x^c * p^c, if p>0
+	// makes sense before expanding the basis
+	if (is_exactly_a<mul>(basis) && !basis.info(info_flags::indefinite)) {
+		const mul &m = ex_to<mul>(basis);
+		exvector prodseq;
+		epvector powseq;
+		prodseq.reserve(m.seq.size() + 1);
+		powseq.reserve(m.seq.size() + 1);
+		epvector::const_iterator last = m.seq.end();
+		epvector::const_iterator cit = m.seq.begin();
+		bool possign = true;
+
+		// search for positive/negative factors
+		while (cit!=last) {
+			ex e=m.recombine_pair_to_ex(*cit);
+			if (e.info(info_flags::positive))
+				prodseq.push_back(pow(e, exponent).expand(options));
+			else if (e.info(info_flags::negative)) {
+				prodseq.push_back(pow(-e, exponent).expand(options));
+				possign = !possign;
+			} else
+				powseq.push_back(*cit);
+			++cit;
+		}
+
+		// take care on the numeric coefficient
+		ex coeff=(possign? _ex1 : _ex_1);
+		if (m.overall_coeff.info(info_flags::positive) && m.overall_coeff != _ex1)
+			prodseq.push_back(power(m.overall_coeff, exponent));
+		else if (m.overall_coeff.info(info_flags::negative) && m.overall_coeff != _ex_1)
+			prodseq.push_back(power(-m.overall_coeff, exponent));
+		else
+			coeff *= m.overall_coeff;
+
+		// If positive/negative factors are found, then extract them.
+		// In either case we set a flag to avoid the second run on a part
+		// which does not have positive/negative terms.
+		if (prodseq.size() > 0) {
+			ex newbasis = coeff*mul(powseq);
+			ex_to<basic>(newbasis).setflag(status_flags::purely_indefinite);
+			return ((new mul(prodseq))->setflag(status_flags::dynallocated)*(new power(newbasis, exponent))->setflag(status_flags::dynallocated).expand(options)).expand(options);
+		} else
+			ex_to<basic>(basis).setflag(status_flags::purely_indefinite);
+	}
+
 	const ex expanded_basis = basis.expand(options);
 	const ex expanded_exponent = exponent.expand(options);
 	

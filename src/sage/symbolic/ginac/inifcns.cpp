@@ -195,6 +195,9 @@ static ex abs_eval(const ex & arg)
 	if (arg.info(info_flags::nonnegative))
 		return arg;
 
+	if (arg.info(info_flags::negative) || (-arg).info(info_flags::nonnegative))
+		return -arg;
+
 	if (is_ex_the_function(arg, abs))
 		return arg;
 

@@ -2992,16 +2992,15 @@ cdef class Matroid(SageObject):
 
         EXAMPLES::
 
-        sage: M1 = matroids.Wheel(3)
-        sage: M2 = matroids.CompleteGraphic(4)
-        sage: morphism=M1.isomorphism(M2)
-        sage: M1.is_isomorphism(M2, morphism)
-        True
-        sage: M1 = matroids.named_matroids.Fano()
-        sage: M2 = matroids.named_matroids.NonFano()
-        sage: M1.isomorphism(M2) is not None
-        False
-
+            sage: M1 = matroids.Wheel(3)
+            sage: M2 = matroids.CompleteGraphic(4)
+            sage: morphism=M1.isomorphism(M2)
+            sage: M1.is_isomorphism(M2, morphism)
+            True
+            sage: M1 = matroids.named_matroids.Fano()
+            sage: M2 = matroids.named_matroids.NonFano()
+            sage: M1.isomorphism(M2) is not None
+            False
         """
         if self is other:
             return {e:e for e in self.groundset()}

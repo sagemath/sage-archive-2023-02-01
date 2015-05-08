@@ -1975,11 +1975,11 @@ cdef class BasisExchangeMatroid(Matroid):
         EXAMPLES::
 
             sage: from sage.matroids.advanced import *
-            sage: M1 = matroids.Wheel(3)
+            sage: M1 = BasisMatroid(matroids.Wheel(3))
             sage: M2 = matroids.CompleteGraphic(4)
             sage: M1._is_isomorphic(M2)
             True
-            sage: M1 = matroids.named_matroids.Fano()
+            sage: M1 = BasisMatroid(matroids.named_matroids.Fano())
             sage: M2 = matroids.named_matroids.NonFano()
             sage: M1._is_isomorphic(M2)
             False

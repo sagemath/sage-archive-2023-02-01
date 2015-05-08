@@ -34,7 +34,7 @@ heavily modified:
 #*****************************************************************************
 
 import complex_double
-import field
+import ring
 import integer
 import weakref
 import real_mpfi
@@ -93,7 +93,7 @@ def ComplexIntervalField(prec=53, names=None):
         0.207879576350761908546955619834978770033877841631769608075136?
     """
     global cache
-    if cache.has_key(prec):
+    if prec in cache:
         X = cache[prec]
         C = X()
         if not C is None:
@@ -103,7 +103,7 @@ def ComplexIntervalField(prec=53, names=None):
     return C
 
 
-class ComplexIntervalField_class(field.Field):
+class ComplexIntervalField_class(ring.Field):
     """
     The field of complex (interval) numbers.
 
@@ -470,7 +470,7 @@ class ComplexIntervalField_class(field.Field):
             1*I
         """
         if n != 0:
-            raise IndexError, "n must be 0"
+            raise IndexError("n must be 0")
         return complex_interval.ComplexIntervalFieldElement(self, 0, 1)
 
     def random_element(self, *args, **kwds):

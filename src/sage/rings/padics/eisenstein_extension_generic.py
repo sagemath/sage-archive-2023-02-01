@@ -171,7 +171,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
 
     #def galois_group(self):
     #    r"""
-    #    Returns the galois group of self's fraction field over Qp.
+    #    Returns the Galois group of self's fraction field over Qp.
     #    """
     #    ##
     #    ## If K is a number field, then K.galois_group() can return
@@ -199,7 +199,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
             t + O(t^21)
         """
         if n != 0:
-            raise IndexError, "only one generator"
+            raise IndexError("only one generator")
         return self([0,1])
 
     def uniformizer_pow(self, n):

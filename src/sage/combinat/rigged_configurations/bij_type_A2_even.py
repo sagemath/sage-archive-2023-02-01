@@ -10,7 +10,7 @@ AUTHORS:
 
 TESTS::
 
-    sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 2], [[2, 1]])
+    sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 2], [[2, 1]])
     sage: from sage.combinat.rigged_configurations.bij_type_A2_even import KRTToRCBijectionTypeA2Even
     sage: bijection = KRTToRCBijectionTypeA2Even(KRT(pathlist=[[-1,2]]))
     sage: TestSuite(bijection).run()
@@ -54,7 +54,7 @@ class KRTToRCBijectionTypeA2Even(KRTToRCBijectionTypeC):
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 2], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 2], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A2_even import KRTToRCBijectionTypeA2Even
             sage: bijection = KRTToRCBijectionTypeA2Even(KRT(pathlist=[[-1,-2]]))
             sage: bijection.cur_path.insert(0, [])

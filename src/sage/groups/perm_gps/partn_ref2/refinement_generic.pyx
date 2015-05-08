@@ -223,7 +223,7 @@ cdef tuple PS_refinement(PartitionStack * part, long *refine_vals, long *best,
                 qsort(part.entries + loc_begin, (i+1)-loc_begin, sizeof(int), my_comp_func);
             last_val = refine_vals[ part.entries[loc_begin] ]
             j = loc_begin
-            while 1:
+            while True:
                 act_val = refine_vals[ part.entries[j] ]
                 if act_val != last_val:
                     if j == 1 or part.levels[j - 2] <= part.depth:
@@ -377,7 +377,7 @@ cdef class LabelledBranching:
         for i in range(self.n):
             self.father[i] = -1
 
-        while 1:
+        while True:
             i = libgap.SmallestMovedPoint(h).sage()
             i_1 = i - 1
             f = self.father[i_1]
@@ -691,7 +691,7 @@ cdef class PartitionRefinement_generic:
         self._latex_act_node()
 
         # recursively individualize the elements of the cell
-        while 1:  # run over all elements in this cell
+        while True:  # run over all elements in this cell
             self._part.depth = old_partition_depth + 1
             PS_clear(self._part)
             PS_split_point(self._part, pos)  # <- individualization!!!

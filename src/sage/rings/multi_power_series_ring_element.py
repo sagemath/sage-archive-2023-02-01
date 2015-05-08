@@ -158,7 +158,7 @@ AUTHORS:
 
 from sage.rings.power_series_ring_element import PowerSeries
 
-from sage.rings.polynomial.all import is_PolynomialRing
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.power_series_ring import is_PowerSeriesRing
 
 from sage.rings.integer import Integer
@@ -208,7 +208,7 @@ class MPowerSeries(PowerSeries):
     #
     # change_ring : works just fine
     #
-    # _cmp_c_impl : don't understand this
+    # _cmp_ : don't understand this
     #
     # __copy__ : works just fine
     #
@@ -432,12 +432,19 @@ class MPowerSeries(PowerSeries):
 
             sage: f.truncate()(t,2)
             2*t + 3*t^2 + 7*t^3 + 3*t^4
+
+        Checking that :trac:`15059` is fixed::
+
+            sage: M.<u,v> = PowerSeriesRing(GF(5))
+            sage: s = M.hom([u, u+v])
+            sage: s(M.one())
+            1
         """
         if len(x) != self.parent().ngens():
             raise ValueError("Number of arguments does not match number of variables in parent.")
 
         sub_dict = {}
-        valn_list =[]
+        valn_list = []
         for i in range(len(x)):
             try:
                  xi = self.parent(x[i])
@@ -456,7 +463,7 @@ class MPowerSeries(PowerSeries):
             newprec = infinity
         else:
             newprec = self.prec()*min(valn_list)
-        return self._value().subs(sub_dict).add_bigoh(newprec)
+        return self.parent()(self._value().subs(sub_dict)).add_bigoh(newprec)
 
     def _subs_formal(self, *x, **kwds):
         """
@@ -652,7 +659,7 @@ class MPowerSeries(PowerSeries):
             raise NotImplementedError("Multiplicative inverse of multivariate power series currently implemented only if constant coefficient is a unit.")
 
     ## comparisons
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Compare ``self`` to ``other``.
 
@@ -1101,7 +1108,10 @@ class MPowerSeries(PowerSeries):
             sage: m2 = 1/2*t0^12*t1^29*t2^46*t3^6 - 1/4*t0^39*t1^5*t2^23*t3^30 + M.O(100)
             sage: s = m + m2
             sage: s.dict()
-            {(1, 15, 0, 48): 2/3, (15, 21, 28, 5): -1, (12, 29, 46, 6): 1/2, (39, 5, 23, 30): -1/4}
+            {(1, 15, 0, 48): 2/3,
+             (12, 29, 46, 6): 1/2,
+             (15, 21, 28, 5): -1,
+             (39, 5, 23, 30): -1/4}
         """
         out_dict = {}
         for j in self._bg_value.coefficients():
@@ -1192,9 +1202,9 @@ class MPowerSeries(PowerSeries):
             Multivariate Power Series Ring in s, t over Integer Ring
             sage: f = 1 + t + s + s*t + R.O(3)
             sage: f.coefficients()
-            {s*t: 1, 1: 1, s: 1, t: 1}
+            {s*t: 1, t: 1, s: 1, 1: 1}
             sage: (f^2).coefficients()
-            {t^2: 1, 1: 1, t: 2, s*t: 4, s^2: 1, s: 2}
+            {t^2: 1, s*t: 4, s^2: 1, t: 2, s: 2, 1: 1}
 
             sage: g = f^2 + f - 2; g
             3*s + 3*t + s^2 + 5*s*t + t^2 + O(s, t)^3
@@ -1947,7 +1957,7 @@ class MPowerSeries(PowerSeries):
         n_inv_factorial = R.base_ring().one()
         x_pow_n = Rbg.one()
         exp_x = Rbg.one().add_bigoh(prec)
-        for n in range(1,prec/val+1):
+        for n in range(1,prec//val+1):
             x_pow_n = (x_pow_n * x).add_bigoh(prec)
             n_inv_factorial /= n
             exp_x += x_pow_n * n_inv_factorial
@@ -2039,7 +2049,7 @@ class MPowerSeries(PowerSeries):
             prec = R.default_prec()
         x_pow_n = Rbg.one()
         log_x = Rbg.zero().add_bigoh(prec)
-        for n in range(1,prec/val+1):
+        for n in range(1,prec//val+1):
             x_pow_n = (x_pow_n * x).add_bigoh(prec)
             log_x += x_pow_n / n
         result_bg = log_c - log_x

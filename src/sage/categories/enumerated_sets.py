@@ -9,10 +9,11 @@ Enumerated Sets
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from category_types import Category
+from sage.misc.lazy_import import LazyImport
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_cat import EmptySetError
+from sage.categories.cartesian_product import CartesianProductsCategory
 
 class EnumeratedSets(Category_singleton):
     """
@@ -94,6 +95,20 @@ class EnumeratedSets(Category_singleton):
         """
         return [Sets()]
 
+    def additional_structure(self):
+        """
+        Return ``None``.
+
+        Indeed, morphisms of enumerated sets are not required to
+        preserve the enumeration.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        EXAMPLES::
+
+            sage: EnumeratedSets().additional_structure()
+        """
+        return None
 
     def _call_(self, X):
         """
@@ -161,7 +176,7 @@ class EnumeratedSets(Category_singleton):
                 ...    def __init__(self):
                 ...        Parent.__init__(self, category = EnumeratedSets())
                 ...
-                sage: it = iter(broken()); [it.next(), it.next(), it.next()]
+                sage: it = iter(broken()); [next(it), next(it), next(it)]
                 Traceback (most recent call last):
                 ...
                 NotImplementedError: iterator called but not implemented
@@ -176,7 +191,7 @@ class EnumeratedSets(Category_singleton):
                 ...    def next(self, elt):
                 ...        return elt+1
                 ...
-                sage: it = iter(set_first_next()); [it.next(), it.next(), it.next()]
+                sage: it = iter(set_first_next()); [next(it), next(it), next(it)]
                 [0, 1, 2]
 
             Let us try with ``unrank``::
@@ -187,7 +202,7 @@ class EnumeratedSets(Category_singleton):
                 ...    def unrank(self, i):
                 ...        return i + 5
                 ...
-                sage: it = iter(set_unrank()); [it.next(), it.next(), it.next()]
+                sage: it = iter(set_unrank()); [next(it), next(it), next(it)]
                 [5, 6, 7]
 
             Let us finally try with ``list``::
@@ -198,7 +213,7 @@ class EnumeratedSets(Category_singleton):
                 ...    def list(self):
                 ...        return [5, 6, 7]
                 ...
-                sage: it = iter(set_list()); [it.next(), it.next(), it.next()]
+                sage: it = iter(set_list()); [next(it), next(it), next(it)]
                 [5, 6, 7]
 
             """
@@ -213,31 +228,7 @@ class EnumeratedSets(Category_singleton):
             elif self.list != self._list_default:
                 return self._iterator_from_list()
             else:
-                raise NotImplementedError, "iterator called but not implemented"
-
-        def cardinality(self):
-            """
-            The cardinality of ``self``.
-
-            ``self.cardinality()`` should return the cardinality of the set
-            ``self`` as a sage :class:`Integer` or as ``infinity``.
-
-            This if the default implementation from the category
-            ``EnumeratedSets()`` it returns ``NotImplementedError`` since one does
-            not know whether the set is finite or not.
-
-            EXAMPLES::
-
-                sage: class broken(UniqueRepresentation, Parent):
-                ...    def __init__(self):
-                ...        Parent.__init__(self, category = EnumeratedSets())
-                ...
-                sage: broken().cardinality()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError: unknown cardinality
-            """
-            raise NotImplementedError, "unknown cardinality"
+                raise NotImplementedError("iterator called but not implemented")
 
         def list(self):
             """
@@ -254,7 +245,7 @@ class EnumeratedSets(Category_singleton):
                 ...
                 NotImplementedError: unknown cardinality
             """
-            raise NotImplementedError, "unknown cardinality"
+            raise NotImplementedError("unknown cardinality")
         _list_default  = list # needed by the check system.
 
 
@@ -274,7 +265,7 @@ class EnumeratedSets(Category_singleton):
                 1
             """
             it = self.__iter__()
-            return it.next()
+            return next(it)
         first = _first_from_iterator
 
         def _next_from_iterator(self, obj):
@@ -299,10 +290,10 @@ class EnumeratedSets(Category_singleton):
             TODO: specify the behavior when ``obj`` is not in ``self``.
             """
             it = iter(self)
-            el = it.next()
+            el = next(it)
             while el != obj:
-                el = it.next()
-            return it.next()
+                el = next(it)
+            return next(it)
         next = _next_from_iterator
 
 
@@ -334,7 +325,7 @@ class EnumeratedSets(Category_singleton):
                 if counter == r:
                     return u
                 counter += 1
-            raise ValueError, "the value must be between %s and %s inclusive"%(0,counter-1)
+            raise ValueError("the value must be between %s and %s inclusive"%(0,counter-1))
         unrank = _unrank_from_iterator
 
         def _rank_from_iterator(self, x):
@@ -383,7 +374,7 @@ class EnumeratedSets(Category_singleton):
 
                 sage: C = FiniteEnumeratedSets().example()
                 sage: it = C._iterator_from_list()
-                sage: [it.next(), it.next(), it.next()]
+                sage: [next(it), next(it), next(it)]
                 [1, 2, 3]
             """
             for x in self.list():
@@ -402,7 +393,7 @@ class EnumeratedSets(Category_singleton):
 
                 sage: C = InfiniteEnumeratedSets().example()
                 sage: it = C._iterator_from_next()
-                sage: [it.next(), it.next(), it.next(), it.next(), it.next()]
+                sage: [next(it), next(it), next(it), next(it), next(it)]
                 [0, 1, 2, 3, 4]
             """
             f = self.first()
@@ -431,7 +422,7 @@ class EnumeratedSets(Category_singleton):
 
                 sage: C = InfiniteEnumeratedSets().example()
                 sage: it = C._iterator_from_unrank()
-                sage: [it.next(), it.next(), it.next(), it.next(), it.next()]
+                sage: [next(it), next(it), next(it), next(it), next(it)]
                 [0, 1, 2, 3, 4]
             """
             r = 0
@@ -447,7 +438,7 @@ class EnumeratedSets(Category_singleton):
                 except (TypeError, ValueError, IndexError):
                     break
 
-                if u == None:
+                if u is None:
                     break
                 else:
                     yield u
@@ -487,7 +478,7 @@ class EnumeratedSets(Category_singleton):
             """
             it = self.__iter__()
             try:
-                return it.next()
+                return next(it)
             except StopIteration:
                 raise EmptySetError
 
@@ -542,7 +533,7 @@ class EnumeratedSets(Category_singleton):
                 ...
                 NotImplementedError: unknown cardinality
                 """
-            raise NotImplementedError, "unknown cardinality"
+            raise NotImplementedError("unknown cardinality")
 
         def map(self, f, name=None):
             r"""
@@ -558,9 +549,9 @@ class EnumeratedSets(Category_singleton):
                 sage: R.cardinality()
                 6
                 sage: R.list()
-                [[], [2], [1], [2, 1], [1, 2], [1, 2, 1]]
+                [[], [1], [2, 1], [1, 2], [2], [1, 2, 1]]
                 sage: [ r for r in R]
-                [[], [2], [1], [2, 1], [1, 2], [1, 2, 1]]
+                [[], [1], [2, 1], [1, 2], [2], [1, 2, 1]]
 
             .. warning::
 
@@ -569,9 +560,9 @@ class EnumeratedSets(Category_singleton):
 
                     sage: P = SymmetricGroup(3)
                     sage: P.list()
-                    [(), (2,3), (1,2), (1,2,3), (1,3,2), (1,3)]
+                    [(), (1,2), (1,2,3), (1,3,2), (2,3), (1,3)]
                     sage: P.map(attrcall('length')).list()
-                    [0, 1, 1, 2, 2, 3]
+                    [0, 1, 2, 2, 1, 3]
 
             .. warning::
 
@@ -694,3 +685,23 @@ class EnumeratedSets(Category_singleton):
                 7
             """
             return self.parent().rank(self)
+
+    Finite   = LazyImport('sage.categories.finite_enumerated_sets', 'FiniteEnumeratedSets', at_startup=True)
+    Infinite = LazyImport('sage.categories.infinite_enumerated_sets', 'InfiniteEnumeratedSets', at_startup=True)
+
+    class CartesianProducts(CartesianProductsCategory):
+
+        class ParentMethods:
+            def __iter__(self):
+                r"""
+                Iterates over the elements of self.
+
+                EXAMPLE::
+
+                    sage: F33 = GF(2).cartesian_product(GF(2))
+                    sage: list(F33)
+                    [(0, 0), (0, 1), (1, 0), (1, 1)]
+                """
+                from itertools import product
+                for x in product(*self._sets):
+                    yield self._cartesian_product_of_elements(x)

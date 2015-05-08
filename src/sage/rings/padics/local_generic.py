@@ -20,6 +20,8 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.rings.ring import CommutativeRing
+from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationRings, CompleteDiscreteValuationFields
+from sage.structure.category_object import check_default_category
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
 
@@ -48,7 +50,14 @@ class LocalGeneric(CommutativeRing):
         """
         self._prec = prec
         self.Element = element_class
-        Parent.__init__(self, base, names=(names,), normalize=False, category=getattr(self,'_default_category',None), element_constructor=element_class)
+        default_category = getattr(self, '_default_category', None)
+        if self.is_field():
+            category = CompleteDiscreteValuationFields()
+        else:
+            category = CompleteDiscreteValuationRings()
+        if default_category is not None:
+            category = check_default_category(default_category, category)
+        Parent.__init__(self, base, names=(names,), normalize=False, category=category, element_constructor=element_class)
 
     def is_capped_relative(self):
         """
@@ -335,7 +344,7 @@ class LocalGeneric(CommutativeRing):
         if K is None or K is self:
             return Integer(1)
         else:
-            raise ValueError, "K should be a subring of self"
+            raise ValueError("K should be a subring of self")
 
     def e(self, K = None):
         r"""
@@ -525,3 +534,41 @@ class LocalGeneric(CommutativeRing):
         """
         return self.extension(*args, **kwds)
 
+    def _test_residue(self, **options):
+        r"""
+        Perform some tests on the residue field of this ring.
+
+        EXAMPLES::
+
+            sage: R = Zp(2)
+            sage: R._test_residue()
+
+        """
+        tester = self._tester(**options)
+        tester.assertEqual(self.residue_field().characteristic(), self.residue_characteristic())
+
+        for x in tester.some_elements():
+            errors = []
+            if x.precision_absolute() <= 0:
+                from precision_error import PrecisionError
+                errors.append(PrecisionError)
+            if x.valuation() < 0:
+                errors.append(ValueError)
+            if errors:
+                with tester.assertRaises(tuple(errors)):
+                    x.residue()
+                continue
+            y = x.residue()
+            # residue() is in `Z/pZ` which is not identical to the residue field `F_p`
+            tester.assertEqual(y.parent().cardinality(), self.residue_field().cardinality())
+            z = self(y)
+            tester.assertGreater((x-z).valuation(), 0)
+
+        for x in self.residue_field().some_elements():
+            y = self(x)
+            if x.is_zero():
+                tester.assertGreater(y.valuation(), 0)
+            else:
+                tester.assertEqual(y.valuation(), 0)
+            z = y.residue()
+            tester.assertEqual(x, z)

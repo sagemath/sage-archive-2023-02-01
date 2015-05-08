@@ -24,8 +24,6 @@ compression of FreeMonoid elements (a feature), and could be packed into words.
 # import operator
 from sage.rings.integer import Integer
 from sage.rings.all import RealField
-# from sage.structure.element import MonoidElement
-from sage.probability.random_variable import DiscreteProbabilitySpace
 from free_monoid_element import FreeMonoidElement
 import string_monoid
 
@@ -220,7 +218,7 @@ class StringMonoidElement(FreeMonoidElement):
         EXAMPLES::
 
             sage: t = AlphabeticStrings()('SHRUBBERY')
-            sage: t.__iter__().next()
+            sage: next(t.__iter__())
             S
             sage: list(t)
             [S, H, R, U, B, B, E, R, Y]
@@ -248,7 +246,7 @@ class StringMonoidElement(FreeMonoidElement):
         """
         try:
             c = self._element_list[n]
-        except StandardError:
+        except Exception:
             raise IndexError("Argument n (= %s) is not a valid index." % n)
         if not isinstance(c, list):
             c = [c]
@@ -328,9 +326,6 @@ class StringMonoidElement(FreeMonoidElement):
             RR = RealField(prec)
         char_dict = {}
         for i in self._element_list:
-            # if char_dict.has_key(i):
-            # The method .has_key() has been deprecated since Python 2.2. Use
-            # "k in Dict" instead of "Dict.has_key(k)".
             if i in char_dict:
                 char_dict[i] += 1
             else:
@@ -508,13 +503,11 @@ class StringMonoidElement(FreeMonoidElement):
         eps = RR(Integer(1)/N)
         for i in range(N):
             c = self[i:i+length]
-            # if X.has_key(c):
-            # The method .has_key() has been deprecated since Python 2.2. Use
-            # "k in Dict" instead of "Dict.has_key(k)".
             if c in X:
                 X[c] += eps
             else:
                 X[c] = eps
         # Return a dictionary of probability distribution. This should
         # allow for easier parsing of the dictionary.
+        from sage.probability.random_variable import DiscreteProbabilitySpace
         return DiscreteProbabilitySpace(Alph, X, RR)

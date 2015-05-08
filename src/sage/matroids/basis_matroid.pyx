@@ -71,8 +71,7 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include 'sage/ext/stdsage.pxi'
-include 'sage/misc/bitset.pxi'
+include 'sage/data_structures/bitset.pxi'
 from matroid cimport Matroid
 from basis_exchange_matroid cimport BasisExchangeMatroid
 from itertools import permutations
@@ -101,7 +100,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         sage: from sage.matroids.advanced import *
         sage: M = BasisMatroid()
         sage: M.groundset()
-        frozenset([])
+        frozenset()
         sage: M.full_rank()
         0
 
@@ -260,7 +259,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
 
     # support for parent BasisExchangeMatroid
 
-    cdef  bint __is_exchange_pair(self, long x, long y):      # test if current_basis-x + y is a basis
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:      # test if current_basis-x + y is a basis
         """
         Test if `B-e + f` is a basis of the current matroid.
 
@@ -474,7 +473,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         cdef bint found
         cdef frozenset B
         if self.full_rank() == 0:
-            return BasisMatroid(groundset=self._E + [e], bases=[set()])
+            return BasisMatroid(groundset=self._E + (e,), bases=[set()])
 
         BB = self.bases()
         BT = self.independent_r_sets(self.full_rank() - 1)
@@ -489,7 +488,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             if not found:
                 BE.append(B | se)
         BE += BB
-        return BasisMatroid(groundset=self._E + [e], bases=BE)
+        return BasisMatroid(groundset=self._E + (e,), bases=BE)
 
     cpdef _with_coloop(self, e):
         r"""
@@ -516,7 +515,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
 
         """
         cdef frozenset se = frozenset([e])
-        return BasisMatroid(groundset=self._E + [e], bases=[B | se for B in self.bases()])
+        return BasisMatroid(groundset=self._E + (e,), bases=[B | se for B in self.bases()])
 
     cpdef relabel(self, l):
         """

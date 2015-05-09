@@ -47,6 +47,31 @@ class BackendDoctest(BackendBase):
         """
         return 'doctest'
 
+    def default_preferences(self):
+        """
+        Return the backend's display preferences
+
+        Matches the IPython command line display preferences to keep
+        the differences between that and the doctests to a minimum.
+        
+        OUTPUT:
+
+        Instance of
+        :class:`~sage.repl.rich_output.preferences.DisplayPreferences`.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
+            sage: backend = BackendIPythonCommandline()
+            sage: backend.default_preferences()
+            Display preferences:
+            * graphics is not specified
+            * supplemental_plot = never
+            * text is not specified
+        """
+        from sage.repl.rich_output.preferences import DisplayPreferences
+        return DisplayPreferences(supplemental_plot='never')
+
     def install(self, **kwds):
         """
         Switch to the the doctest backend

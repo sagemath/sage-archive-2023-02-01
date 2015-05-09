@@ -849,7 +849,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 where `I_{(\alpha_1, \alpha_2, \ldots, \alpha_m)}` is the
                 immaculate function associated to the `m`-tuple
                 `(\alpha_1, \alpha_2, \ldots, \alpha_m)` (see
-                :meth:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.I.immaculate_function`).
+                :meth:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ParentMethods.immaculate_function`).
 
                 EXAMPLES:
 

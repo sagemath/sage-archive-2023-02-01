@@ -363,12 +363,12 @@ usage = \
 """
 USAGE:
 
-    sage-download-file --fastest-mirror
+    sage-download-file --print-fastest-mirror
 
 Print out the fastest mirror. All further arguments are ignored in
 that case.
 
-    sage-download-file [--print-fastest-mirror] [--quiet] url-or-tarball [destination]
+    sage-download-file [--quiet] url-or-tarball [destination]
 
 The single mandatory argument can be a http:// or ftp:// url or a
 tarball filename. In the latter case, the tarball is downloaded from

@@ -4280,24 +4280,40 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 return parent._from_dict(dct)
 
     class Monomial(CombinatorialFreeModule, BindableClass):
+        r"""
+        The monomial basis defined in Tevlin's paper [Tev2007]_. It
+        is the basis denoted by `(M^I)_I` in that paper.
+
+        The Monomial basis is well-defined only when the base ring is a
+        `\QQ`-algebra.
+
+        TESTS::
+
+            sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+            sage: nM = NCSF.monomial(); nM
+            Non-Commutative Symmetric Functions over the Rational Field in the Monomial basis
+            sage: nM([1,1])*nM([2])
+            3*nM[1, 1, 2] + nM[1, 3] + nM[2, 2]
+            sage: R = NCSF.ribbon()
+            sage: nM(R[1,3,1])
+            11*nM[1, 1, 1, 1, 1] + 8*nM[1, 1, 2, 1] + 8*nM[1, 2, 1, 1] + 5*nM[1, 3, 1] + 8*nM[2, 1, 1, 1] + 5*nM[2, 2, 1] + 5*nM[3, 1, 1] + 2*nM[4, 1]
+        """
+
         def __init__(self, NCSF):
             r"""
-            The monomial basis defined in Tevlin's paper [Tev2007]_. It
-            is the basis denoted by `(M^I)_I` in that paper.
+            TESTS:
 
-            The Monomial basis is well-defined only when the base ring is a
-            `\QQ`-algebra.
+            We include a sanity test to verify the conversion to
+            and from the complete basis works the way it should::
 
-            TESTS::
-
-                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
-                sage: nM = NCSF.monomial(); nM
+                sage: S = NonCommutativeSymmetricFunctions(QQ).complete()
+                sage: nM = NonCommutativeSymmetricFunctions(QQ).Monomial(); nM
                 Non-Commutative Symmetric Functions over the Rational Field in the Monomial basis
-                sage: nM([1,1])*nM([2])
-                3*nM[1, 1, 2] + nM[1, 3] + nM[2, 2]
-                sage: R = NCSF.ribbon()
-                sage: nM(R[1,3,1])
-                11*nM[1, 1, 1, 1, 1] + 8*nM[1, 1, 2, 1] + 8*nM[1, 2, 1, 1] + 5*nM[1, 3, 1] + 8*nM[2, 1, 1, 1] + 5*nM[2, 2, 1] + 5*nM[3, 1, 1] + 2*nM[4, 1]
+                sage: all(S(nM(S[comp])) == S[comp] for comp in Compositions(5))
+                True
+                sage: all(nM(S(nM[comp])) == nM[comp] for comp in Compositions(5))
+                True
+
             """
             CombinatorialFreeModule.__init__(self, NCSF.base_ring(), Compositions(),
                                              prefix='nM', bracket=False,
@@ -4393,45 +4409,61 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     nM = monomial = Monomial
 
     class Immaculate(CombinatorialFreeModule, BindableClass):
+        r"""
+        The immaculate basis of the non-commutative symmetric
+        functions. This basis first appears in Berg, Bergeron,
+        Saliola, Serrano and Zabrocki's [BBSSZ2012]_. It can be
+        described as the family `(\mathfrak{S}_{\alpha})`, where
+        `\alpha` runs over all compositions, and
+        `\mathfrak{S}_{\alpha}` denotes the immaculate function
+        corresponding to `\alpha` (see
+        :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ParentMethods.immaculate_function`).
+
+        .. WARNING::
+
+            This *basis* contains only the immaculate functions
+            indexed by compositions (i.e., finite sequences of
+            positive integers). To obtain the remaining immaculate
+            functions (sensu lato), use the
+            :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ParentMethods.immaculate_function`
+            method. Calling the immaculate *basis* with a list
+            which is not a composition will currently return
+            garbage!
+
+        EXAMPLES::
+
+            sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+            sage: I = NCSF.I()
+            sage: I([1,3,2])*I([1])
+            I[1, 3, 2, 1] + I[1, 3, 3] + I[1, 4, 2] + I[2, 3, 2]
+            sage: I([1])*I([1,3,2])
+            I[1, 1, 3, 2] - I[2, 2, 1, 2] - I[2, 2, 2, 1] - I[2, 2, 3] - I[3, 2, 2]
+            sage: I([1,3])*I([1,1])
+            I[1, 3, 1, 1] + I[1, 4, 1] + I[2, 3, 1] + I[2, 4]
+            sage: I([3,1])*I([2,1])
+            I[3, 1, 2, 1] + I[3, 2, 1, 1] + I[3, 2, 2] + I[3, 3, 1] + I[4, 1, 1, 1] + I[4, 1, 2] + 2*I[4, 2, 1] + I[4, 3] + I[5, 1, 1] + I[5, 2]
+            sage: R = NCSF.ribbon()
+            sage: I(R[1,3,1])
+            I[1, 3, 1] + I[2, 2, 1] + I[2, 3] + I[3, 1, 1] + I[3, 2]
+            sage: R(I(R([2,1,3])))
+            R[2, 1, 3]
+        """
+
         def __init__(self, NCSF):
             r"""
-            The immaculate basis of the non-commutative symmetric
-            functions. This basis first appears in Berg, Bergeron,
-            Saliola, Serrano and Zabrocki's [BBSSZ2012]_. It can be
-            described as the family `(\mathfrak{S}_{\alpha})`, where
-            `\alpha` runs over all compositions, and
-            `\mathfrak{S}_{\alpha}` denotes the immaculate function
-            corresponding to `\alpha` (see
-            :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ParentMethods.immaculate_function`).
+            TESTS:
 
-            .. WARNING::
+            We include a sanity test to verify the conversion to
+            and from the complete basis works the way it should::
 
-                This *basis* contains only the immaculate functions
-                indexed by compositions (i.e., finite sequences of
-                positive integers). To obtain the remaining immaculate
-                functions (sensu lato), use the
-                :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ParentMethods.immaculate_function`
-                method. Calling the immaculate *basis* with a list
-                which is not a composition will currently return
-                garbage!
+                sage: S = NonCommutativeSymmetricFunctions(QQ).complete()
+                sage: I = NonCommutativeSymmetricFunctions(QQ).Immaculate(); I
+                Non-Commutative Symmetric Functions over the Rational Field in the Immaculate basis
+                sage: all(S(I(S[comp])) == S[comp] for comp in Compositions(5))
+                True
+                sage: all(I(S(I[comp])) == I[comp] for comp in Compositions(5))
+                True
 
-            EXAMPLES::
-
-                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
-                sage: I = NCSF.I()
-                sage: I([1,3,2])*I([1])
-                I[1, 3, 2, 1] + I[1, 3, 3] + I[1, 4, 2] + I[2, 3, 2]
-                sage: I([1])*I([1,3,2])
-                I[1, 1, 3, 2] - I[2, 2, 1, 2] - I[2, 2, 2, 1] - I[2, 2, 3] - I[3, 2, 2]
-                sage: I([1,3])*I([1,1])
-                I[1, 3, 1, 1] + I[1, 4, 1] + I[2, 3, 1] + I[2, 4]
-                sage: I([3,1])*I([2,1])
-                I[3, 1, 2, 1] + I[3, 2, 1, 1] + I[3, 2, 2] + I[3, 3, 1] + I[4, 1, 1, 1] + I[4, 1, 2] + 2*I[4, 2, 1] + I[4, 3] + I[5, 1, 1] + I[5, 2]
-                sage: R = NCSF.ribbon()
-                sage: I(R[1,3,1])
-                I[1, 3, 1] + I[2, 2, 1] + I[2, 3] + I[3, 1, 1] + I[3, 2]
-                sage: R(I(R([2,1,3])))
-                R[2, 1, 3]
             """
             CombinatorialFreeModule.__init__(self, NCSF.base_ring(), Compositions(),
                                              prefix='I', bracket=False,

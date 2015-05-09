@@ -19,7 +19,7 @@ import operator as _operator
 from sage.symbolic.ring import SR
 from sage.symbolic.pynac import I
 from sage.functions.all import exp
-from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator
+from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator, add_vararg, mul_vararg
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from functools import reduce
 GaussianField = I.pyobject().parent()
@@ -209,7 +209,7 @@ class Converter(object):
             return self.symbol(ex)
 
         if operator in arithmetic_operators:
-            if getattr(self, 'use_fake_div', False) and operator is _operator.mul:
+            if getattr(self, 'use_fake_div', False) and (operator is _operator.mul or operator is mul_vararg):
                 div = self.get_fake_div(ex)
                 return self.arithmetic(div, div.operator())
             return self.arithmetic(ex, operator)
@@ -609,7 +609,7 @@ class InterfaceInit(Converter):
             sage: import operator
             sage: from sage.symbolic.expression_conversions import InterfaceInit
             sage: m = InterfaceInit(maxima)
-            sage: m.arithmetic(x+2, operator.add)
+            sage: m.arithmetic(x+2, sage.symbolic.operators.add_vararg)
             '(_SAGE_VAR_x)+(2)'
         """
         args = ["(%s)"%self(op) for op in ex.operands()]
@@ -824,6 +824,10 @@ class AlgebraicConverter(Converter):
                 expt = Rational(expt)
                 return self.field(base**expt)
             else:
+                if operator is add_vararg:
+                    operator = _operator.add
+                elif operator is mul_vararg:
+                    operator = _operator.mul
                 return reduce(operator, map(self, ex.operands()))
         except TypeError:
             pass
@@ -1108,9 +1112,12 @@ class PolynomialConverter(Converter):
             from sage.rings.all import Integer
             base, exp = ex.operands()
             return self(base)**Integer(exp)
-        else:
-            ops = [self(a) for a in ex.operands()]
-            return reduce(operator, ops)
+        if operator == add_vararg:
+            operator = _operator.add
+        elif operator == mul_vararg:
+            operator = _operator.mul
+        ops = [self(a) for a in ex.operands()]
+        return reduce(operator, ops)
 
 def polynomial(ex, base_ring=None, ring=None):
     """
@@ -1323,6 +1330,10 @@ class FastFloatConverter(Converter):
             from sage.functions.all import sqrt
             return sqrt(self(operands[0]))
         fops = map(self, operands)
+        if operator == add_vararg:
+            operator = _operator.add
+        elif operator == mul_vararg:
+            operator = _operator.mul
         return reduce(operator, fops)
 
     def composition(self, ex, operator):
@@ -1477,6 +1488,10 @@ class FastCallableConverter(Converter):
                 return self.etb.call(_operator.div, 1, self.etb.call(sqrt, operands[0]))
         elif operator is _operator.neg:
             return self.etb.call(operator, operands[0])
+        if operator == add_vararg:
+            operator = _operator.add
+        elif operator == mul_vararg:
+            operator = _operator.mul
         return reduce(lambda x,y: self.etb.call(operator, x,y), operands)
 
     def symbol(self, ex):
@@ -1617,7 +1632,7 @@ class RingConverter(Converter):
             sage: R(a)
             2*z^2 + z + 3
         """
-        if operator not in [_operator.add, _operator.mul, _operator.pow]:
+        if operator not in [_operator.pow, add_vararg, mul_vararg]:
             raise TypeError
 
         operands = ex.operands()
@@ -1635,8 +1650,12 @@ class RingConverter(Converter):
 
             base = self(base)
             return base ** expt
-        else:
-            return reduce(operator, map(self, operands))
+
+        if operator == add_vararg:
+            operator = _operator.add
+        elif operator == mul_vararg:
+            operator = _operator.mul         
+        return reduce(operator, map(self, operands))
 
     def composition(self, ex, operator):
         """
@@ -1722,6 +1741,10 @@ class SubstituteFunction(Converter):
             sage: s.arithmetic(f, f.operator())
             x*bar(x) + pi/bar(x)
         """
+        if operator == add_vararg:
+            operator = _operator.add
+        elif operator == mul_vararg:
+            operator = _operator.mul
         return reduce(operator, map(self, ex.operands()))
 
     def composition(self, ex, operator):

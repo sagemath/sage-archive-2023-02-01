@@ -832,14 +832,14 @@ you. This is influenced by the following environment variable:
   falling back to the official Sage mirror list. Note that Sage will
   search the directory
 
-  - ``SAGE_SERVER/packages/upstream``
+  - ``SAGE_SERVER/spkg/upstream``
 
   for clean upstream tarballs, and it searches the directories
 
-  - ``SAGE_SERVER/packages/standard/``,
-  - ``SAGE_SERVER/packages/optional/``,
-  - ``SAGE_SERVER/packages/experimental/``,
-  - ``SAGE_SERVER/packages/archive/``
+  - ``SAGE_SERVER/spkg/standard/``,
+  - ``SAGE_SERVER/spkg/optional/``,
+  - ``SAGE_SERVER/spkg/experimental/``,
+  - ``SAGE_SERVER/spkg/archive/``
 
   for old-style Sage packages.
 

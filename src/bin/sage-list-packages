@@ -13,8 +13,7 @@ SAGE_SPKG_INST=os.environ.get("SAGE_SPKG_INST",
         os.path.join(os.environ["SAGE_ROOT"],'spkg','installed'))
 
 if "SAGE_SERVER" not in os.environ:
-    sys.stderr.write("The environment variable SAGE_SERVER must be set.\n")
-    sys.exit(1)
+    os.environ['SAGE_SERVER'] = "http://www.sagemath.org/"
 
 def get_remote_package_list(category):
     r"""

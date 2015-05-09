@@ -233,7 +233,7 @@ class MirrorList(object):
         but also urls for packages that are currently being tested.
         """
         try:
-            yield os.environ['SAGE_MIRROR']
+            yield os.environ['SAGE_SERVER']
         except KeyError:
             pass
         for mirror in self.mirrors:

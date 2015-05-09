@@ -828,8 +828,21 @@ packages before building). Package downloads use the Sage mirror
 network, the nearest mirror will be determined automatically for
 you. This is influenced by the following environment variable:
 
-- :envvar:`SAGE_MIRROR` - try the specified mirror first, before
-  falling back to the official Sage mirror list.
+- :envvar:`SAGE_SERVER` - Try the specified mirror first, before
+  falling back to the official Sage mirror list. Note that Sage will
+  search the directory
+
+  - ``SAGE_SERVER/packages/upstream``
+
+  for clean upstream tarballs, and it searches the directories
+
+  - ``SAGE_SERVER/packages/standard/``,
+  - ``SAGE_SERVER/packages/optional/``,
+  - ``SAGE_SERVER/packages/experimental/``,
+  - ``SAGE_SERVER/packages/archive/``
+
+  for old-style Sage packages.
+
 
 Here are some of the more commonly used variables affecting the build process:
 
@@ -1258,25 +1271,6 @@ Sage uses the following environment variables when it runs:
 - :envvar:`SAGE_STARTUP_FILE` - a file including commands to be executed every
   time Sage starts.
   The default value is :file:`$DOT_SAGE/init.sage`.
-
-- :envvar:`SAGE_SERVER` - if you want to install a Sage package using
-  ``sage -i <package-name>``, Sage downloads the file from the web, using the
-  address ``http://www.sagemath.org/`` by default, or the address given by
-  :envvar:`SAGE_SERVER` if it is set.
-  If you wish to set up your own server, then note that Sage will search the
-  directory
-
-  - ``SAGE_SERVER/packages/upstream``
-
-  for clean upstream tarballs, and it searches the directories
-
-  - ``SAGE_SERVER/packages/standard/``,
-  - ``SAGE_SERVER/packages/optional/``,
-  - ``SAGE_SERVER/packages/experimental/``,
-  - and ``SAGE_SERVER/packages/archive/``
-
-  for old-style Sage packages.
-  See the script :file:`$SAGE_ROOT/src/bin/sage-spkg` for the implementation.
 
 - :envvar:`SAGE_PATH` - a colon-separated list of directories which Sage
   searches when trying to locate Python libraries.

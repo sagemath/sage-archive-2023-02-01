@@ -115,6 +115,7 @@ def http_download(url, destination=None, progress=True):
     else:
         filename, info = opener.retrieve(url, destination)
 
+
 class MirrorList(object):
     
     URL = 'http://www.sagemath.org/mirror_list'
@@ -188,7 +189,7 @@ class MirrorList(object):
             timed_mirrors.append((result, mirror))
         timed_mirrors.sort()
         self.mirrors = [m[1] for m in timed_mirrors]
-        print('Fastest mirror: ' + self.mirrors[0])
+        print('Fastest mirror: ' + self.fastest)
 
     @property
     def fastest(self):
@@ -223,6 +224,10 @@ class MirrorList(object):
         of preference. This will not just yield the official mirrors,
         but also urls for packages that are currently being tested.
         """
+        try:
+            yield os.environ['SAGE_MIRROR']
+        except KeyError:
+            pass
         for mirror in self.mirrors:
             yield mirror
         yield 'http://boxen.math.washington.edu/home/release/upstream-testing'

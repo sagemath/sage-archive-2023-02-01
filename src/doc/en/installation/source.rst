@@ -819,6 +819,18 @@ speed up the process.)
 Building Sage involves building about 100 packages, each of which has its own
 compilation instructions.
 
+The Sage source tarball already includes the sources for all standard
+packages, that is, it allows you to build Sage without internet
+connection. The git repository, however, does not contain the source
+code for third-party packages. Instead, it will be downloaded as
+needed (Note: you can run ``make download`` to force downloading
+packages before building). Package downloads use the Sage mirror
+network, the nearest mirror will be determined automatically for
+you. This is influenced by the following environment variable:
+
+- :envvar:`SAGE_MIRROR` - try the specified mirror first, before
+  falling back to the official Sage mirror list.
+
 Here are some of the more commonly used variables affecting the build process:
 
 - :envvar:`MAKE` - one useful setting for this variable when building Sage is

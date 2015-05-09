@@ -271,7 +271,10 @@ class Tarball(object):
         """
         import re
         regex = re.compile('(?P<base>(?:[^-]|-(?!\d))*)-(?P<version>.*)\.(?P<ext>tar.*|zip|tgz)')
-        return regex.match(name).groups()
+        match = regex.match(name)
+        if match is None:
+            raise ValueError('tarball name must be of the form source-x.y.z.[tar.*|zip|tgz]')
+        return match.groups()
 
     def _init_checksum(self):
         """
@@ -355,7 +358,12 @@ usage = \
 """
 USAGE:
 
-    sage-download-file [--quiet] url-or-tarball [destination]
+    sage-download-file --fastest-mirror
+
+Print out the fastest mirror. All further arguments are ignored in
+that case.
+
+    sage-download-file [--print-fastest-mirror] [--quiet] url-or-tarball [destination]
 
 The single mandatory argument can be a http:// or ftp:// url or a
 tarball filename. In the latter case, the tarball is downloaded from
@@ -372,6 +380,9 @@ if __name__ == '__main__':
     url = None
     destination = None
     for arg in sys.argv[1:]:
+        if arg.startswith('--print-fastest-mirror'):
+            print(MirrorList().fastest)
+            sys.exit(0)
         if arg.startswith('--quiet'):
             progress = False
             continue

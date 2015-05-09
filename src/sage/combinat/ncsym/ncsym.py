@@ -312,7 +312,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
         """
         return self.powersum()
 
-    _shorthands = tuple(['chi', 'm', 'e', 'h', 'p', 'q', 'rho', 'x'])
+    _shorthands = tuple(['chi', 'cp', 'm', 'e', 'h', 'p', 'rho', 'x'])
 
     def dual(self):
         r"""
@@ -383,9 +383,9 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             return p._from_dict({B: R(P.mobius_function(A, B)) for B in P})
 
         @cached_method
-        def _m_to_q_on_basis(self, A):
+        def _m_to_cp_on_basis(self, A):
             r"""
-            Return `\mathbf{m}_A` in terms of the `\mathbf{q}` basis.
+            Return `\mathbf{m}_A` in terms of the `\mathbf{cp}` basis.
 
             INPUT:
 
@@ -393,22 +393,22 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - An element of the `\mathbf{q}` basis
+            - An element of the `\mathbf{cp}` basis
 
             TESTS::
 
                 sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
                 sage: m = NCSym.m()
-                sage: all(m(m._m_to_q_on_basis(A)) == m[A] for i in range(5)
+                sage: all(m(m._m_to_cp_on_basis(A)) == m[A] for i in range(5)
                 ....:     for A in SetPartitions(i))
                 True
             """
-            q = self.realization_of().q()
+            cp = self.realization_of().cp()
             arcs = set(A.arcs())
             R = self.base_ring()
-            return q._from_dict({B: R((-1)**len(set(B.arcs()).difference(A.arcs())))
-                                 for B in A.coarsenings() if arcs.issubset(B.arcs())},
-                                remove_zeros=False)
+            return cp._from_dict({B: R((-1)**len(set(B.arcs()).difference(A.arcs())))
+                                  for B in A.coarsenings() if arcs.issubset(B.arcs())},
+                                 remove_zeros=False)
 
         def from_symmetric_function(self, f):
             """
@@ -1592,31 +1592,32 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
     p = powersum
 
-    class q(NCSymBasis_abstract):
+    class coarse_powersum(NCSymBasis_abstract):
         r"""
         The Hopf algebra of symmetric functions in non-commuting variables
-        in the `\mathbf{q}` basis.
+        in the `\mathbf{cp}` basis.
 
         This basis was defined in [BZ05]_ as
 
         .. MATH::
 
-            \mathbf{q}_A = \sum_{A \leq_* B} \mathbf{m}_B,
+            \mathbf{cp}_A = \sum_{A \leq_* B} \mathbf{m}_B,
 
         where we sum over all strict coarsenings of the set partition `A`.
         An alternative description of this basis was given in [BN13]_ as
 
         .. MATH::
 
-            \mathbf{a}_A = \sum_{A \subseteq B} \mathbf{m}_B,
+            \mathbf{cp}_A = \sum_{A \subseteq B} \mathbf{m}_B,
 
         where we sum over all set partitions whose arcs are a subset of
         the arcs of the set partition `A`.
 
         .. NOTE::
 
-            In [BN13]_, this was called the powersum basis, however
-            it is a "coarser" basis than the usual powersum basis in
+            In [BZ05]_, this basis was denoted by `\mathbf{q}`. In [BN13]_,
+            this basis was called the powersum basis and denoted by `p`.
+            However it is a coarser basis than the usual powersum basis in
             the sense that it does not yield the usual powersum basis
             of the symmetric function under the natural map of letting
             the variables commute.
@@ -1624,29 +1625,29 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
-            sage: q = NCSym.q()
+            sage: cp = NCSym.cp()
         """
         def __init__(self, NCSym):
             """
             EXAMPLES::
 
                 sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
-                sage: TestSuite(NCSym.q()).run()
+                sage: TestSuite(NCSym.cp()).run()
             """
             CombinatorialFreeModule.__init__(self, NCSym.base_ring(), SetPartitions(),
-                                             prefix='q', bracket=False,
+                                             prefix='cp', bracket=False,
                                              category=MultiplicativeNCSymBases(NCSym))
             # Register coercions
             m = NCSym.m()
-            self.module_morphism(self._q_to_m_on_basis, codomain=m,
+            self.module_morphism(self._cp_to_m_on_basis, codomain=m,
                                  unitriangular="lower").register_as_coercion()
-            m.module_morphism(m._m_to_q_on_basis, codomain=self,
+            m.module_morphism(m._m_to_cp_on_basis, codomain=self,
                               unitriangular="lower").register_as_coercion()
 
         @cached_method
-        def _q_to_m_on_basis(self, A):
+        def _cp_to_m_on_basis(self, A):
             """
-            Return `\mathbf{q}_A` in terms of the monomial basis.
+            Return `\mathbf{cp}_A` in terms of the monomial basis.
 
             INPUT:
 
@@ -1659,8 +1660,8 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             TESTS::
 
                 sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
-                sage: q = NCSym.q()
-                sage: all(q(q._q_to_m_on_basis(A)) == q[A] for i in range(5)
+                sage: cp = NCSym.cp()
+                sage: all(cp(cp._cp_to_m_on_basis(A)) == cp[A] for i in range(5)
                 ....:     for A in SetPartitions(i))
                 True
             """
@@ -1669,7 +1670,25 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             return m._from_dict({B: one for B in A.strict_coarsenings()},
                                 remove_zeros=False)
 
-    class x(NCSymBasis_abstract):
+    cp = coarse_powersum
+
+    def q(self):
+        """
+        Old name for the `\mathbf{cp}`-basis. Deprecated in :trac:`18371`.
+
+        EXAMPLES::
+
+            sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
+            sage: NCSym.q()
+            doctest:...: DeprecationWarning: q is deprecated, use instead cp or coarse_powersum.
+            See http://trac.sagemath.org/18371 for details.
+            Symmetric functions in non-commuting variables over the Rational Field in the coarse_powersum basis
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(18371, 'q is deprecated, use instead cp or coarse_powersum.')
+        return self.cp()
+
+    class x_basis(NCSymBasis_abstract):
         r"""
         The Hopf algebra of symmetric functions in non-commuting variables
         in the `\mathbf{x}` basis.
@@ -1739,13 +1758,15 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             return p._from_dict({B: R(P_refine.mobius_function(B, A))
                                  for B in P_refine})
 
-    class rho(NCSymBasis_abstract):
+    x = x_basis
+
+    class deformed_coarse_powersum(NCSymBasis_abstract):
         r"""
         The Hopf algebra of symmetric functions in non-commuting variables
         in the `\rho` basis.
 
         This basis was defined in [BT13]_ as a `q`-deformation of the
-        `\mathbf{a}` basis:
+        `\mathbf{cp}` basis:
 
         .. MATH::
 
@@ -1754,6 +1775,10 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
         where we sum over all set partitions whose arcs are a subset of
         the arcs of the set partition `A`.
+
+        INPUT:
+
+        - ``q`` -- (default: ``2``) the parameter `q`
 
         EXAMPLES::
 
@@ -1786,7 +1811,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             [  0   0   0   0   0   0   0   0   0   0   0   0   0   1 1/q]
             [  0   0   0   0   0   0   0   0   0   0   0   0   0   0   1]
         """
-        def __init__(self, NCSym, q='q'):
+        def __init__(self, NCSym, q=2):
             """
             EXAMPLES::
 
@@ -1804,6 +1829,26 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             m = NCSym.m()
             self.module_morphism(self._rho_to_m_on_basis, codomain=m).register_as_coercion()
             m.module_morphism(self._m_to_rho_on_basis, codomain=self).register_as_coercion()
+
+        def q(self):
+            """
+            Return the deformation parameter `q` of ``self``.
+
+            EXAMPLES::
+
+                sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
+                sage: rho = NCSym.rho(5)
+                sage: rho.q()
+                5
+
+                sage: R = QQ['q'].fraction_field()
+                sage: q = R.gen()
+                sage: NCSym = SymmetricFunctionsNonCommutingVariables(R)
+                sage: rho = NCSym.rho(q)
+                sage: rho.q() == q
+                True
+            """
+            return self._q
 
         @cached_method
         def _rho_to_m_on_basis(self, A):
@@ -1865,6 +1910,8 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                                     if arcs.issubset(B.arcs())},
                                    remove_zeros=False)
 
+    rho = deformed_coarse_powersum
+
     class supercharacter(NCSymBasis_abstract):
         r"""
         The Hopf algebra of symmetric functions in non-commuting variables
@@ -1914,6 +1961,26 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             m = NCSym.m()
             self.module_morphism(self._chi_to_m_on_basis, codomain=m).register_as_coercion()
             m.module_morphism(self._m_to_chi_on_basis, codomain=self).register_as_coercion()
+
+        def q(self):
+            """
+            Return the deformation parameter `q` of ``self``.
+
+            EXAMPLES::
+
+                sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
+                sage: chi = NCSym.chi(5)
+                sage: chi.q()
+                5
+
+                sage: R = QQ['q'].fraction_field()
+                sage: q = R.gen()
+                sage: NCSym = SymmetricFunctionsNonCommutingVariables(R)
+                sage: chi = NCSym.chi(q)
+                sage: chi.q() == q
+                True
+            """
+            return self._q
 
         @cached_method
         def _chi_to_m_on_basis(self, A):

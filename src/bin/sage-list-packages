@@ -31,10 +31,10 @@ def get_remote_package_list(category):
         from urllib import pathname2url
         from urllib2 import urlopen
 
-    PKG_SERVER = urljoin(os.environ['SAGE_SERVER'],'packages')
+    PKG_SERVER = urljoin(os.environ['SAGE_SERVER'], 'spkg')
     print("Using Sage Server {}".format(PKG_SERVER))
 
-    url_path = os.path.join('packages', category, 'list')
+    url_path = os.path.join('spkg', category, 'list')
     url = urljoin(PKG_SERVER, pathname2url(url_path))
 
     try:

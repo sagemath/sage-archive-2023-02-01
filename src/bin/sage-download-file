@@ -87,6 +87,9 @@ def http_download(url, destination=None, progress=True, ignore_errors=False):
     """
     Download via HTTP
 
+    This should work for FTP as well but, in fact, hangs on python <
+    3.4, see http://bugs.python.org/issue16270
+
     INPUT:
 
     - ``url`` -- string. The URL to download.
@@ -177,7 +180,7 @@ class MirrorList(object):
         timeout = 1
         for mirror in self.mirrors:
             if not mirror.startswith('http'):
-                # we cannot handle ftp://, urllib only does http
+                # we currently cannot handle ftp://
                 continue
             port = self._port_of_mirror(mirror)
             mirror_hostname = urlparse.urlsplit(mirror).netloc
@@ -375,9 +378,9 @@ that case.
 
     sage-download-file [--quiet] url-or-tarball [destination]
 
-The single mandatory argument can be a http:// or ftp:// url or a
-tarball filename. In the latter case, the tarball is downloaded from
-the mirror network and its checksum is verified.
+The single mandatory argument can be a http:// url or a tarball
+filename. In the latter case, the tarball is downloaded from the
+mirror network and its checksum is verified.
 
 If the destination is not specified:
 * a url will be downloaded and the content written to stdout

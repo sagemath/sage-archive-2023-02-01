@@ -83,7 +83,7 @@ class ProgressBar(object):
         self.stream.flush()
         
 
-def http_download(url, destination=None, progress=True):
+def http_download(url, destination=None, progress=True, ignore_errors=False):
     """
     Download via HTTP
 
@@ -97,6 +97,9 @@ def http_download(url, destination=None, progress=True):
 
     - ``progress`` -- boolean (default: ``True``). Whether to print a
       progress bar to stderr.
+
+    - ``ignore_errors`` -- boolean (default: ``False``). Catch network
+      errors (a message is still printed to stdout).
     """
     if destination is None:
         destination = '/dev/stdout'
@@ -107,9 +110,11 @@ def http_download(url, destination=None, progress=True):
         progress_bar.start()
         try:
             filename, info = opener.retrieve(url, destination, progress_bar)
-        except IOError:
+        except IOError as err:
             progress_bar.error_stop()
-            raise
+            print(err)
+            if not ignore_errors:
+                raise
         else:
             progress_bar.stop()
     else:
@@ -402,7 +407,7 @@ if __name__ == '__main__':
         print(usage)
         sys.exit(1)
     if url.startswith('http://') or url.startswith('https://') or url.startswith('ftp://'):
-        http_download(url, destination, progress=progress)
+        http_download(url, destination, progress=progress, ignore_errors=True)
     else:
         # url is a tarball name
         mirror_list = MirrorList()

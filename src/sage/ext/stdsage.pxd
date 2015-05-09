@@ -11,7 +11,7 @@ Standard C helper code for Cython modules
 #*****************************************************************************
 
 from cpython.object cimport Py_TYPE, PyTypeObject
-from cpython.type cimport type
+
 
 cdef inline PY_NEW(type t):
     """

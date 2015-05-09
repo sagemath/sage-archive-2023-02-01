@@ -361,7 +361,7 @@ if [ ! -f "$PKG_SRC" ]; then
         else
             # Handle cases 2a and 3, where the package name is something
             # like "foo" or "foo-1.2.3".
-            MIRROR=$(sage-download-file --print-fastest-mirror)
+            MIRROR=$(sage-download-file --print-fastest-mirror)/spkg
             for repo in optional experimental standard huge archive; do
                 # Download the list of packages.
                 echo ">>> Checking online list of $repo packages."
@@ -422,7 +422,7 @@ if [ ! -f "$PKG_SRC" ]; then
             done
 
             if [ -z "$PKG_URL" ]; then
-                echo >&2 "Error: could not find a package matching $PKG_NAME on $SAGE_SERVER"
+                echo >&2 "Error: could not find a package matching $PKG_NAME on $MIRROR"
                 exit 1
             fi
     

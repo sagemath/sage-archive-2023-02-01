@@ -1029,6 +1029,10 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
             sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
             sage: h = NCSym.h()
+            sage: h[[1,3],[2,4]]*x[[1,2,3]]
+            h{{1, 3}, {2, 4}, {5, 6, 7}}
+            sage: h[[1,2]].coproduct()
+            h{} # h{{1, 2}} + 2*h{{1}} # h{{1}} + h{{1, 2}} # h{}
         """
         def __init__(self, NCSym):
             """

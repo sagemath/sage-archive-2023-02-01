@@ -263,8 +263,8 @@ class NCSymOrNCSymDualBases(Category_realization_of_parent):
                 [1 0 1 0 0]
                 [1 0 0 1 0]
                 [1 1 1 1 1]
-                sage: q = NCSym.q()
-                sage: q.duality_pairing_matrix(w, 3)
+                sage: cp = NCSym.cp()
+                sage: cp.duality_pairing_matrix(w, 3)
                 [1 0 0 0 0]
                 [1 1 0 0 0]
                 [0 0 1 0 0]
@@ -476,10 +476,10 @@ class NCSymBases(Category_realization_of_parent):
 
             EXAMPLES::
 
-                sage: q = SymmetricFunctionsNonCommutingVariables(QQ).q()
-                sage: q.internal_coproduct(q[[1,3],[2]] - 2*q[[1]])
-                -2*q{{1}} # q{{1}} + q{{1, 2, 3}} # q{{1, 3}, {2}} + q{{1, 3}, {2}} # q{{1, 2, 3}}
-                 + q{{1, 3}, {2}} # q{{1, 3}, {2}}
+                sage: cp = SymmetricFunctionsNonCommutingVariables(QQ).cp()
+                sage: cp.internal_coproduct(cp[[1,3],[2]] - 2*cp[[1]])
+                -2*cp{{1}} # cp{{1}} + cp{{1, 2, 3}} # cp{{1, 3}, {2}} + cp{{1, 3}, {2}} # cp{{1, 2, 3}}
+                 + cp{{1, 3}, {2}} # cp{{1, 3}, {2}}
             """
             if self.internal_coproduct_on_basis is not NotImplemented:
                 return Hom(self, tensor([self, self]),
@@ -575,9 +575,9 @@ class NCSymBases(Category_realization_of_parent):
                 sage: e = NCSym.e()
                 sage: h = NCSym.h()
                 sage: p = NCSym.p()
-                sage: q = NCSym.q()
+                sage: cp = NCSym.cp()
                 sage: x = NCSym.x()
-                sage: q[[1,3],[2]].to_symmetric_function()
+                sage: cp[[1,3],[2]].to_symmetric_function()
                 m[2, 1]
                 sage: x[[1,3],[2]].to_symmetric_function()
                 -6*m[1, 1, 1] - 2*m[2, 1]
@@ -641,8 +641,8 @@ class NCSymBases(Category_realization_of_parent):
                 sage: p = NCSym.p()
                 sage: p[[1,3],[2]].omega()
                 -p{{1, 3}, {2}}
-                sage: q = NCSym.q()
-                sage: q[[1,3],[2]].omega()
+                sage: cp = NCSym.cp()
+                sage: cp[[1,3],[2]].omega()
                 -2*q{{1, 2, 3}} - q{{1, 3}, {2}}
                 sage: x = NCSym.x()
                 sage: x[[1,3],[2]].omega()
@@ -724,7 +724,7 @@ class MultiplicativeNCSymBases(Category_realization_of_parent):
                 sage: e = SymmetricFunctionsNonCommutingVariables(QQ).e()
                 sage: h = SymmetricFunctionsNonCommutingVariables(QQ).h()
                 sage: x = SymmetricFunctionsNonCommutingVariables(QQ).x()
-                sage: q = SymmetricFunctionsNonCommutingVariables(QQ).q()
+                sage: cp = SymmetricFunctionsNonCommutingVariables(QQ).cp()
                 sage: p = SymmetricFunctionsNonCommutingVariables(QQ).p()
                 sage: A = SetPartition([[1], [2, 3]])
                 sage: B = SetPartition([[1], [3], [2,4]])
@@ -734,7 +734,7 @@ class MultiplicativeNCSymBases(Category_realization_of_parent):
                 h{{1}, {2, 3}, {4}, {5, 7}, {6}}
                 sage: x.product_on_basis(A, B)
                 x{{1}, {2, 3}, {4}, {5, 7}, {6}}
-                sage: q.product_on_basis(A, B)
+                sage: cp.product_on_basis(A, B)
                 q{{1}, {2, 3}, {4}, {5, 7}, {6}}
                 sage: p.product_on_basis(A, B)
                 p{{1}, {2, 3}, {4}, {5, 7}, {6}}
@@ -744,7 +744,7 @@ class MultiplicativeNCSymBases(Category_realization_of_parent):
                 True
                 sage: x.product_on_basis(A,B)==x(h(x(A))*h(x(B)))
                 True
-                sage: q.product_on_basis(A,B)==q(p(q(A))*p(q(B)))
+                sage: cp.product_on_basis(A,B)==cp(p(cp(A))*p(cp(B)))
                 True
                 sage: p.product_on_basis(A,B)==p(e(p(A))*e(p(B)))
                 True

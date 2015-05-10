@@ -232,18 +232,18 @@ def _dict_update_check_duplicate(dict d1, dict d2):
         ...
         ValueError: duplicate substitution for a, got values 1 and 2
 
-    We just report the first conflict (though the order is somehow random since
-    it depends on the dictionary order)::
+    We report only the first conflict (according to the Python sort
+    order)::
 
         sage: from sage.symbolic.expression import _dict_update_check_duplicate
-        sage: d1 = {'a': 1, 'b': 2}
-        sage: d2 = {'b': 1, 'a': 2}
+        sage: d1 = {'b': 1, 'a': 1}
+        sage: d2 = {'b': 2, 'a': 2}
         sage: _dict_update_check_duplicate(d1, d2)
         Traceback (most recent call last):
         ...
         ValueError: duplicate substitution for a, got values 1 and 2
     """
-    for k in (k for k in d1 if k in d2):
+    for k in sorted(k for k in d1 if k in d2):
         msg = "duplicate substitution for {}, got values {} and {}"
         raise ValueError(msg.format(k, d1[k], d2[k]))
 

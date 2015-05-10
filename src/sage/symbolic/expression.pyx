@@ -3622,7 +3622,7 @@ cdef class Expression(CommutativeRingElement):
             prec = order
         sig_on()
         try:
-            x = self._gobj.series(symbol0._gobj, prec, 0)
+            x = self._gobj.expand(0).series(symbol0._gobj, prec, 0)
         finally:
             sig_off()
         return new_Expression_from_GEx(self._parent, x)
@@ -3669,6 +3669,11 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (exp(x)/sin(x)^4).residue(x == 0)
             5/6
+
+        Check that :trac:`18372` is resolved::
+
+            sage: (1/(x^2 - x - 1)).residue(x == 1/2*sqrt(5) + 1/2)
+            1/5*sqrt(5)
         """
         if symbol.is_relational():
             x = symbol.lhs()

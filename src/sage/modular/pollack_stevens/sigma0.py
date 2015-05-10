@@ -45,7 +45,6 @@ AUTHORS:
 # conventions for matrix actions (since there are several in use in the
 # literature and no natural "best" choice).
 
-from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.abstract_method import abstract_method
 from sage.structure.factory import UniqueFactory
@@ -83,7 +82,7 @@ class _default_adjuster(Sigma0ActionAdjuster):
 
     INPUT:
 
-    - ``g`` -- a 2x2 matrix
+    - ``g`` -- a `2 \times 2` matrix
 
     OUTPUT:
 
@@ -114,9 +113,9 @@ class Sigma0_factory(UniqueFactory):
 
     - ``N`` (integer) -- the level (should be strictly positive)
     - ``base_ring`` (commutative ring, default `\ZZ`) -- the base ring (normally `\ZZ` or a `p`-adic ring)
-    - ``adjuster`` -- None, or a callable which takes a 2x2 matrix and returns
+    - ``adjuster`` -- None, or a callable which takes a `2 \times 2` matrix and returns
       a 4-tuple of integers. This is supplied in order to support differing
-      conventions for the action of 2x2 matrices on distributions.
+      conventions for the action of `2 \times 2` matrices on distributions.
 
     EXAMPLE::
 
@@ -163,7 +162,7 @@ Sigma0 = Sigma0_factory('sage.modular.pollack_stevens.sigma0.Sigma0')
 
 class Sigma0Element(MonoidElement):
     r"""
-    An element of the monoid Sigma0. This is a wrapper around a 2x2 matrix.
+    An element of the monoid Sigma0. This is a wrapper around a `2 \times 2` matrix.
     """
     def __init__(self, parent, mat):
         r"""
@@ -267,7 +266,7 @@ class Sigma0Element(MonoidElement):
             sage: type(s)
             <class 'sage.modular.pollack_stevens.sigma0.Sigma0_class_with_category.element_class'>
             sage: type(sm)
-            <type 'sage.matrix.matrix_integer_2x2.Matrix_integer_2x2'>
+            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
             sage: s == sm
             True
         """
@@ -329,7 +328,7 @@ class _Sigma0Embedding(Morphism):
             sage: S = Sigma0(3)
             sage: x = _Sigma0Embedding(S)
             sage: x(S([1,0,0,3])).parent() # indirect doctest
-            Space of 2x2 integer matrices
+            Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
         """
         return x.matrix()
 
@@ -367,10 +366,7 @@ class Sigma0_class(Parent):
         self._primes = list(N.factor())
         self._base_ring = base_ring
         self._adjuster = adjuster
-        if base_ring == ZZ:
-            self._matrix_space = MatrixSpace_ZZ_2x2()
-        else:
-            self._matrix_space = MatrixSpace(base_ring, 2)
+        self._matrix_space = MatrixSpace(base_ring, 2)
         Parent.__init__(self, category=Monoids())
         self.register_embedding(_Sigma0Embedding(self))
 

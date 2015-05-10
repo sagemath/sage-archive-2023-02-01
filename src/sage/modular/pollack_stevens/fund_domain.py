@@ -27,7 +27,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
+from sage.matrix.matrix_space import MatrixSpace
 from sage.modular.modsym.all import P1List
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
@@ -37,12 +37,12 @@ from sage.misc.cachefunc import cached_method
 
 from sigma0 import Sigma0
 
-M2ZSpace = MatrixSpace_ZZ_2x2()
+M2ZSpace = MatrixSpace(ZZ,2)
 
 
 def M2Z(x):
     r"""
-    Create an immutable 2x2 integer matrix from x.
+    Create an immutable `2 \times 2` integer matrix from x.
 
     EXAMPLES::
 
@@ -76,7 +76,7 @@ class PSModularSymbolsDomain(SageObject):
         - ``N`` -- a positive integer, the level of the congruence subgroup
           `\Gamma_0(N)`
 
-        - ``reps`` -- a list of 2x2 matrices, the coset representatives of
+        - ``reps`` -- a list of `2 \times 2` matrices, the coset representatives of
           `Div^0(P^1(\QQ))`
 
         - ``indices`` -- a list of integers; indices of elements in ``reps``
@@ -511,9 +511,7 @@ class PSModularSymbolsDomain(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
-            sage: M2Z = MatrixSpace_ZZ_2x2()
-            sage: A = M2Z([5,3,38,23])
+            sage: A = matrix([[5,3],[38,23]])
             sage: ManinRelations(60).equivalent_rep(A)
             [-7 -3]
             [26 11]
@@ -1300,7 +1298,7 @@ class ManinRelations(PSModularSymbolsDomain):
 
         OUTPUT:
 
-        A pair of 2x2 matrices of determinant 1
+        A pair of `2 \times 2` matrices of determinant 1
 
         EXAMPLES::
 
@@ -1338,7 +1336,7 @@ class ManinRelations(PSModularSymbolsDomain):
 
         OUTPUT:
 
-        A list of 2x2 integer matrices of determinant 1 whose associated
+        A list of `2 \times 2` integer matrices of determinant 1 whose associated
         unimodular paths give the boundary of a fundamental domain for
         `Gamma_0(N)` (or nearly so in the case of 3-torsion).
 
@@ -1532,7 +1530,7 @@ class ManinRelations(PSModularSymbolsDomain):
 
 def basic_hecke_matrix(a, l):
     r"""
-    Returns the 2x2 matrix with entries ``[1, a, 0, l]`` if ``a<l``
+    Returns the `2 \times 2` matrix with entries ``[1, a, 0, l]`` if ``a<l``
     and ``[l, 0, 0, 1]`` if ``a>=l``.
 
     INPUT:
@@ -1542,7 +1540,7 @@ def basic_hecke_matrix(a, l):
 
     OUTPUT:
 
-    A 2x2 matrix of determinant l
+    A `2 \times 2` matrix of determinant l
 
     EXAMPLES::
 

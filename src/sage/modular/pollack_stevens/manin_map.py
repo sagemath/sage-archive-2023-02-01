@@ -575,7 +575,7 @@ class ManinMap(object):
 
         INPUT:
 
-        - ``A`` -- a 2x2 matrix
+        - ``A`` -- a `2 \times 2` matrix
 
         OUTPUT:
 
@@ -674,7 +674,7 @@ class ManinMap(object):
 
     def _right_action(self, gamma):
         r"""
-        Return self | gamma, where gamma is a 2x2 integer matrix.
+        Return self | gamma, where gamma is a `2 \times 2` integer matrix.
 
         The action is defined by `(self | gamma)(D) = self(gamma D)|gamma`
 
@@ -686,7 +686,7 @@ class ManinMap(object):
 
         INPUT:
 
-        - ``gamma`` - 2x2 integer matrix of nonzero determinant, with a
+        - ``gamma`` - `2 \times 2` integer matrix of nonzero determinant, with a
           well-defined action on the coefficient module
 
         OUTPUT:

@@ -1561,8 +1561,7 @@ cdef class WeightKAction(Action):
         INPUT:
 
         - ``g`` -- an instance of
-          :class:`sage.matrices.matrix_integer_2x2.Matrix_integer_2x2`
-          or of :class:`sage.matrix.matrix_generic_dense.Matrix_generic_dense`
+          :class:`sage.matrix.matrix_generic_dense.Matrix_generic_dense`
 
         - ``M`` -- a positive integer giving the precision at which
           ``g`` should act.
@@ -1615,8 +1614,8 @@ cdef class WeightKAction(Action):
 
         INPUT:
 
-        - ``g`` -- an instance of
-          :class:`sage.matrices.matrix_integer_2x2.Matrix_integer_2x2`
+        - ``g`` -- a `2 \times 2` instance of
+          :class:`sage.matrices.matrix_integer_dense.Matrix_integer_dense`
 
         - ``M`` -- a positive integer giving the precision at which
           ``g`` should act.
@@ -1643,9 +1642,8 @@ cdef class WeightKAction_vector(WeightKAction):
 
         INPUT:
 
-        - ``g`` -- an instance of
-          :class:`sage.matrices.matrix_integer_2x2.Matrix_integer_2x2`
-          or :class:`sage.matrix.matrix_generic_dense.Matrix_generic_dense`
+        - ``g`` -- a `2 \times 2` instance of
+          :class:`sage.matrix.matrix_generic_dense.Matrix_generic_dense`
 
         - ``M`` -- a positive integer giving the precision at which
           ``g`` should act.
@@ -1709,9 +1707,8 @@ cdef class WeightKAction_vector(WeightKAction):
         - ``_v`` -- a :class:`Dist_vector` instance, the distribution
           on which to act.
 
-        - ``g`` -- a
-          :class:`sage.matrix.matrix_integer_2x2.Matrix_integer_2x2`
-          instance, the `2 \times 2` matrix that is acting.
+        - ``g`` -- a `2 \times 2` instance of
+          :class:`sage.matrix.matrix_integer_dense.Matrix_integer_dense`.
 
         OUTPUT:
 
@@ -1852,8 +1849,8 @@ cdef class WeightKAction_long(WeightKAction):
 
         INPUT:
 
-        - ``g`` -- an instance of
-          :class:`sage.matrices.matrix_integer_2x2.Matrix_integer_2x2`
+        - ``g`` -- a `2 \times 2` instance of
+          :class:`sage.matrices.matrix_integer_dense.Matrix_integer_dense`
 
         - ``_M`` -- a positive integer giving the precision at which
           ``g`` should act.
@@ -1913,9 +1910,8 @@ cdef class WeightKAction_long(WeightKAction):
         - ``_v`` -- a :class:`Dist_long` instance, the distribution on
           which to act.
 
-        - ``g`` -- a
-          :class:`sage.matrix.matrix_integer_2x2.Matrix_integer_2x2`
-          instance, the `2 \times 2` matrix that is acting.
+        - ``g`` -- a `2 \times 2` instance of
+          :class:`sage.matrix.matrix_integer_dense.Matrix_integer_dense`.
 
         OUTPUT:
 

@@ -38,7 +38,7 @@ class Distributions_factory(UniqueFactory):
     - ``prec_cap`` -- positive integer or None
     - ``base`` -- ring or None
     - ``character`` -- a dirichlet character or None
-    - ``adjuster`` -- None or callable that turns 2x2 matrices into a 4-tuple
+    - ``adjuster`` -- None or callable that turns `2 \times 2` matrices into a 4-tuple
     - ``act_on_left`` -- bool (default: False)
     - ``dettwist`` -- integer or None (interpreted as 0)
     - ``act_padic`` -- whether monoid should allow p-adic coefficients
@@ -124,7 +124,7 @@ class Symk_factory(UniqueFactory):
     - ``k`` (integer): the degree (degree `k` corresponds to weight `k + 2` modular forms)
     - ``base`` (ring, default None): the base ring (None is interpreted as `\QQ`)
     - ``character`` (Dirichlet character or None, default None) the character
-    - ``adjuster`` (None or a callable that turns 2x2 matrices into a 4-tuple, default None)
+    - ``adjuster`` (None or a callable that turns `2 \times 2` matrices into a 4-tuple, default None)
     - ``act_on_left`` (boolean, default False) whether to have the group acting
       on the left rather than the right.
     - ``dettwist`` (integer or None) -- power of determinant to twist by

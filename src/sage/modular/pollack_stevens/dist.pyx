@@ -32,17 +32,13 @@ from sage.rings.rational cimport Rational
 from sage.misc.misc import verbose, cputime
 from sage.rings.infinity import Infinity
 
-from cpython.tuple cimport *
-cdef extern from "Python.h":
-      bint PySlice_Check(object ob)
-
 include "sage/ext/cdefs.pxi"
 include "sage/ext/interrupt.pxi"
 
 #include "sage/libs/flint/fmpz_poly.pxi"
 include "sage/ext/stdsage.pxi"
 
-#from sage.libs.flint.fmpz_poly cimport 
+#from sage.libs.flint.fmpz_poly cimport
 
 from sage.libs.flint.nmod_poly cimport (nmod_poly_init2_preinv,
                                         nmod_poly_set_coeff_ui,
@@ -481,7 +477,10 @@ cdef class Dist(ModuleElement):
         """
         return self._lmul_(_left)
 
-    cdef int _cmp_c_impl(_left, Element _right) except -2:
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
+    cpdef int _cmp_(_left, Element _right) except -2:
         r"""
         Comparison.
 
@@ -518,7 +517,7 @@ cdef class Dist(ModuleElement):
         right.normalize()
         # print 'Comparing two distributions...'
         cdef long rprec = min(left._relprec(), right._relprec())
-        cdef long i
+        cdef long i, c
         p = left.parent().prime()
         if False:  # left.ordp > right.ordp:
             shift = p ** (left.ordp - right.ordp)
@@ -770,7 +769,7 @@ cdef class Dist_vector(Dist):
         Dist.__init__(self, parent)
         if check:
             # case 1: input is a distribution already
-            if PY_TYPE_CHECK(moments, Dist):
+            if isinstance(moments, Dist):
                 moments = moments._moments.change_ring(parent.base_ring())
             # case 2: input is a vector, or something with a len
             elif hasattr(moments, '__len__'):
@@ -1140,7 +1139,7 @@ cdef class Dist_long(Dist):
         if check:
 
             # case 1: input is a distribution already
-            if PY_TYPE_CHECK(moments, Dist):
+            if isinstance(moments, Dist):
                 M = len(moments)
                 moments = [ZZ(moments.moment(i)) for i in range(M)]
             # case 2: input is a vector, or something with a len
@@ -1356,7 +1355,7 @@ cdef class Dist_long(Dist):
         cdef pAdicCappedAbsoluteElement pcaright
         cdef pAdicCappedRelativeElement pcrright
         cdef pAdicFixedModElement pfmright
-        if PY_TYPE_CHECK(_right, Integer):
+        if isinstance(_right, Integer):
             iright = <Integer>_right
             if mpz_sgn(iright.value) == 0:
                 ans.ordp = maxordp
@@ -1368,7 +1367,7 @@ cdef class Dist_long(Dist):
                 scalar = mpz_get_si(iright.value) % self.prime_pow(self.relprec)
             else:
                 scalar = mpz_fdiv_ui(iright.value, self.prime_pow(self.relprec))
-        elif PY_TYPE_CHECK(_right, Rational):
+        elif isinstance(_right, Rational):
             qright = <Rational>_right
             if mpq_sgn(qright.value) == 0:
                 ans.ordp = maxordp
@@ -1387,7 +1386,7 @@ cdef class Dist_long(Dist):
             mpz_mul(mpq_numref(qunit.value), mpq_numref(qunit.value), mpq_denref(qunit.value))
             scalar = mpz_fdiv_ui(mpq_numref(qunit.value), self.prime_pow(self.relprec))
             # qunit should not be used now (it's unnormalized)
-        elif PY_TYPE_CHECK(_right, pAdicCappedAbsoluteElement):
+        elif isinstance(_right, pAdicCappedAbsoluteElement):
             pcaright = <pAdicCappedAbsoluteElement>_right
             unit = PY_NEW(Integer)
             ordp = mpz_remove(unit.value, pcaright.value, p.value)
@@ -1396,7 +1395,7 @@ cdef class Dist_long(Dist):
                 scalar = mpz_get_si(unit.value)
             else:
                 scalar = mpz_fdiv_ui(unit.value, self.prime_pow(self.relprec))
-        elif PY_TYPE_CHECK(_right, pAdicCappedRelativeElement):
+        elif isinstance(_right, pAdicCappedRelativeElement):
             pcrright = <pAdicCappedRelativeElement>_right
             ordp = pcrright.ordp
             if pcrright.relprec <= self.relprec:
@@ -1404,7 +1403,7 @@ cdef class Dist_long(Dist):
                 scalar = mpz_get_si(pcrright.unit)
             else:
                 scalar = mpz_fdiv_ui(pcrright.unit, self.prime_pow(self.relprec))
-        elif PY_TYPE_CHECK(_right, pAdicFixedModElement):
+        elif isinstance(_right, pAdicFixedModElement):
             pfmright = <pAdicFixedModElement>_right
             scalar = mpz_get_si(pfmright.value)
             ordp = 0
@@ -1815,9 +1814,9 @@ cdef class SimpleMat(SageObject):
         """
         cdef Py_ssize_t r, c, Mnew, Morig = self.M
         cdef SimpleMat ans
-        if PyTuple_Check(i) and PyTuple_Size(i) == 2:
+        if isinstance(i,tuple) and len(i) == 2:
             a, b = i
-            if PySlice_Check(a) and PySlice_Check(b):
+            if isinstance(a, slice) and isinstance(b, slice):
                 r0, r1, rs = a.indices(Morig)
                 c0, c1, cs = b.indices(Morig)
                 if r0 != 0 or c0 != 0 or rs != 1 or cs != 1:

@@ -218,8 +218,8 @@ def _dict_update_check_duplicate(dict d1, dict d2):
         sage: d1 = {'a': 1}
         sage: d2 = {'b': 2}
         sage: _dict_update_check_duplicate(d1, d2)
-        sage: d1
-        {'a': 1, 'b': 2}
+        sage: d1 == {'a': 1, 'b': 2}
+        True
 
     In this case, the variable ``a`` is substituted twice resulting in
     an error::
@@ -280,18 +280,19 @@ def _subs_make_dict(s):
 
     And finally, a tuple or a list containing one of everything::
 
-        sage: u, v, w, x, y, z = var('u, v, w, x, y, z')
-        sage: _subs_make_dict([x == 1, {y: 1}, [z == 1]])
-        {z: 1, y: 1, x: 1}
-        sage: _subs_make_dict((x == 1, y == 2))
-        {y: 2, x: 1}
+        sage: w, x, y, z = SR.var('w, x, y, z')
+        sage: actual = _subs_make_dict([w == 1, {x: 1}, [y == 1], (z == 1,)])
+        sage: expected = {w: 1, y: 1, x: 1, z: 1}
+        sage: actual == expected
+        True
 
     Note that it recursively calls itself so that the following does work::
 
-        sage: _subs_make_dict([[x == 1], [[y == 2], [z == 3]]])
-        {z: 3, y: 2, x: 1}
-        sage: _subs_make_dict([w == 1, {x: 1}, [y == 1, {u: 1}], (z == 1, v == 1)])
-        {w: 1, y: 1, u: 1, z: 1, v: 1, x: 1}
+        sage: x, y, z = SR.var('x, y, z')
+        sage: actual = _subs_make_dict([[x == 1], [[y == 2], [z == 3]]])
+        sage: expected = {z: 3, y: 2, x: 1}
+        sage: actual == expected
+        True
 
     Check that a ``TypeError`` is raised if the input is not valid::
 

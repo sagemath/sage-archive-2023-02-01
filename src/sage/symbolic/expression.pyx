@@ -205,7 +205,7 @@ cpdef bint is_SymbolicEquation(x):
 def _dict_update_check_duplicate(dict d1, dict d2):
     r"""
     Merge the dictionary ``d2`` into ``d1`` and check for duplicates.
-    
+
     The two dictionaries must be of the form ``{expr: replacement}``. This
     function throws a ``ValueError`` if any expressions are substituted
     for twice.
@@ -8944,17 +8944,17 @@ cdef class Expression(CommutativeRingElement):
         r"""
         For every symbolic sum in the given expression, try to expand it,
         symbolically or numerically.
-        
+
         While symbolic sum expressions with constant limits are evaluated
         immediately on the command line, unevaluated sums of this kind can
-        result from, e.g., substitution of limit variables. 
+        result from, e.g., substitution of limit variables.
 
         INPUT:
 
         - ``self`` - symbolic expression
 
         EXAMPLES::
-        
+
             sage: (k,n) = var('k,n')
             sage: ex = sum(abs(-k*k+n),k,1,n)(n=8); ex
             sum(abs(-k^2 + 8), k, 1, 8)

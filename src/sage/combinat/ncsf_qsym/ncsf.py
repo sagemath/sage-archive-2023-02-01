@@ -4629,7 +4629,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 For more information on the `n`-th Bernstein creation
                 operator, see
-                :meth:`NonCommutativeSymmetricFunctions.Bases.ElementMethods.bernstein_creation_operator`.
+                :meth:`~NonCommutativeSymmetricFunctions.Bases.ElementMethods.bernstein_creation_operator`.
 
                 EXAMPLES::
 

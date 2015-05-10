@@ -253,9 +253,9 @@ def _subs_make_dict(s):
     r"""
     There are a few ways we can represent a substitution. The first is
     a symbolic equation. The second is a dictionary. The third would
-    be a list whose entries are expressions, dictionaries, or lists
-    themselves. This function converts all such representations to
-    dictionaries.
+    be a list/tuple whose entries are expressions, dictionaries, or
+    lists/tuples themselves. This function converts all such
+    representations to dictionaries.
 
     INPUT:
 

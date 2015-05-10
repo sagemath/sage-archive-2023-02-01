@@ -255,9 +255,9 @@ cdef class ManinSymbol(Element):
                 raise ValueError("matrix(=%s) must be 2x2" % matrix)
             matrix = matrix.list()
         return type(self)(self.parent(),
-                              (self.i,
-                               matrix[0]*self.u + matrix[2]*self.v,
-                               matrix[1]*self.u + matrix[3]*self.v))
+                          (self.i,
+                           matrix[0]*self.u + matrix[2]*self.v,
+                           matrix[1]*self.u + matrix[3]*self.v))
 
     def apply(self, a,b,c,d):
         """

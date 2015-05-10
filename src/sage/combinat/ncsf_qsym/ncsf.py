@@ -202,9 +202,19 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: (R[3] - 2*R[3,1,2] + 7).counit()
         7
 
-    .. rubric:: Other concrete representations
+    It is possible to change the prefix used to display the basis elements using
+    the method :meth:`sage.structure.indexed_generators.IndexedGenerators.print_options`.
+    Say that for instance one wanted to display the :class:`complete` basis as
+    having a prefix `H`, then::
 
-    .. TODO:: demonstrate how to customize the basis names
+        sage: H = NCSF.complete()
+        sage: H.an_element()
+        2*S[] + 2*S[1] + 3*S[1, 1]
+        sage: H.print_options(prefix='H')
+        sage: H.an_element()
+        2*H[] + 2*H[1] + 3*H[1, 1]
+
+    .. rubric:: Other concrete representations
 
     NCSF admits many other concrete realizations::
 

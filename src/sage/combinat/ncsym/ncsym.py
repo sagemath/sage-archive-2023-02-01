@@ -86,7 +86,7 @@ def nesting(la, nu):
 
     .. MATH::
 
-        \operatorname{nst}_{\lambda}^{\nu} = #\{ i < j < k < l \mid
+        \operatorname{nst}_{\lambda}^{\nu} = \#\{ i < j < k < l \mid
         i - l \in \nu, j - k \in \lambda \},
 
     and this corresponds to the number of arcs of `\lambda` strictly
@@ -654,7 +654,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             return self.tensor_square().sum_of_monomials(L1 + L2)
 
         def internal_coproduct_on_basis(self, A):
-            """
+            r"""
             Return the internal coproduct of a monomial basis element.
 
             The internal coproduct is defined by

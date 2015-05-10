@@ -1604,7 +1604,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             \mathbf{cp}_A = \sum_{A \leq_* B} \mathbf{m}_B,
 
         where we sum over all strict coarsenings of the set partition `A`.
-        An alternative description of this basis was given in [BN13]_ as
+        An alternative description of this basis was given in [BT13]_ as
 
         .. MATH::
 
@@ -1615,7 +1615,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
         .. NOTE::
 
-            In [BZ05]_, this basis was denoted by `\mathbf{q}`. In [BN13]_,
+            In [BZ05]_, this basis was denoted by `\mathbf{q}`. In [BT13]_,
             this basis was called the powersum basis and denoted by `p`.
             However it is a coarser basis than the usual powersum basis in
             the sense that it does not yield the usual powersum basis

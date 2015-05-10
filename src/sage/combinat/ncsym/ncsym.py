@@ -1968,9 +1968,9 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             sage: chi[[1,3],[2]]*chi[[1,2]]
             chi{{1, 3}, {2}, {4, 5}}
             sage: chi[[1,3],[2]].coproduct()
-            chi{} # chi{{1, 3}, {2}} + 2*chi{{1}} # chi{{1}, {2}} + 4*chi{{1}} #
-             chi{{1, 2}} + 2*chi{{1}, {2}} # chi{{1}} + 4*chi{{1, 2}} # chi{{1}} +
-             chi{{1, 3}, {2}} # chi{}
+            chi{} # chi{{1, 3}, {2}} + (2*q-2)*chi{{1}} # chi{{1}, {2}} +
+             (3*q-2)*chi{{1}} # chi{{1, 2}} + (2*q-2)*chi{{1}, {2}} # chi{{1}} +
+             (3*q-2)*chi{{1, 2}} # chi{{1}} + chi{{1, 3}, {2}} # chi{}
         """
         def __init__(self, NCSym, q=2):
             """

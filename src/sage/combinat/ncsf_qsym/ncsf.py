@@ -618,8 +618,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 OUTPUT:
 
-                The immaculate function `\mathfrak{S}_{\alpha}`, where
-                `\alpha = ` ``xs``, written in the basis ``self``.
+                The immaculate function `\mathfrak{S}_{xs}`
+                written in the basis ``self``.
 
                 EXAMPLES:
 

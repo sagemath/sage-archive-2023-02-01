@@ -336,6 +336,11 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
             sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
             sage: m = NCSym.m()
+            sage: m[[1,3],[2]]*m[[1,2]]
+            m{{1, 3}, {2}, {4, 5}} + m{{1, 3}, {2, 4, 5}} + m{{1, 3, 4, 5}, {2}}
+            sage: m[[1,3],[2]].coproduct()
+            m{} # m{{1, 3}, {2}} + m{{1}} # m{{1, 2}} + m{{1, 2}} # m{{1}} + m{{1,
+             3}, {2}} # m{}
         """
         def __init__(self, NCSym):
             """
@@ -1960,6 +1965,12 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             sage: q = R.gen()
             sage: NCSym = SymmetricFunctionsNonCommutingVariables(R)
             sage: chi = NCSym.chi(q)
+            sage: chi[[1,3],[2]]*chi[[1,2]]
+            chi{{1, 3}, {2}, {4, 5}}
+            sage: chi[[1,3],[2]].coproduct()
+            chi{} # chi{{1, 3}, {2}} + 2*chi{{1}} # chi{{1}, {2}} + 4*chi{{1}} #
+             chi{{1, 2}} + 2*chi{{1}, {2}} # chi{{1}} + 4*chi{{1, 2}} # chi{{1}} +
+             chi{{1, 3}, {2}} # chi{}
         """
         def __init__(self, NCSym, q=2):
             """

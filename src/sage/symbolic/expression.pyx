@@ -313,7 +313,8 @@ def _subs_make_dict(s):
         return s
     elif is_SymbolicEquation(s):
         if s.operator() is not operator.eq:
-            raise TypeError("can only substitute equality, not inequalities; got {}".format(s))
+            msg = "can only substitute equality, not inequalities; got {}"
+            raise TypeError(msg.format(s))
         return {s.lhs(): s.rhs()}
     elif isinstance(s, (tuple,list)):
         result = {}
@@ -321,7 +322,8 @@ def _subs_make_dict(s):
             _dict_update_check_duplicate(result, _subs_make_dict(d))
         return result
     else:
-        raise TypeError("not able to determine a substitution from {}".format(s))
+        msg = "not able to determine a substitution from {}"
+        raise TypeError(msg.format(s))
 
 
 cdef class Expression(CommutativeRingElement):
@@ -4377,8 +4379,8 @@ cdef class Expression(CommutativeRingElement):
              sage: t.subs({a:b, b:c})
              (x + y)^3 + b^2 + c^2
 
-        Substitutions are done term by term, in other words Sage is not able to
-        identify partial sums in a substitution (see :trac:`18396`)::
+        Substitutions are done term by term, in other words Sage is not
+        able to identify partial sums in a substitution (see :trac:`18396`)::
 
             sage: f = x + x^2 + x^4
             sage: f.subs(x^2 == y)             # one term is fine
@@ -4388,13 +4390,14 @@ cdef class Expression(CommutativeRingElement):
             sage: f.subs(x + x^2 + x^4 == y)   # whole sum is fine
             y
 
-        This last result might not be the one expected. In the same veine, the
-        following seems really weird, but it *is* what Maple does::
+        This last result might not be the one expected. In the same vein,
+        the following seems really weird, but it *is* what Maple does::
 
             sage: f(x,y,t) = cos(x) + sin(y) + x^2 + y^2 + t
             sage: f.subs(x^2 + y^2 == t)
             (x, y, t) |--> x^2 + y^2 + t + cos(x) + sin(y)
-            sage: maple.eval('subs(x^2 + y^2 = t, cos(x) + sin(y) + x^2 + y^2 + t)')          # optional - maple
+            sage: cmd = 'subs(x^2 + y^2 = t, cos(x) + sin(y) + x^2 + y^2 + t)'
+            sage: maple.eval(cmd)          # optional - maple
             'cos(x)+sin(y)+x^2+y^2+t'
             sage: maxima.quit()
             sage: maxima.eval('cos(x) + sin(y) + x^2 + y^2 + t, x^2 + y^2 = t')
@@ -4402,7 +4405,8 @@ cdef class Expression(CommutativeRingElement):
 
         Actually Mathematica does something that makes more sense::
 
-            sage: mathematica.eval('Cos[x] + Sin[y] + x^2 + y^2 + t /. x^2 + y^2 -> t')       # optional - mathematica
+            sage: cmd = 'Cos[x] + Sin[y] + x^2 + y^2 + t /. x^2 + y^2 -> t'
+            sage: mathematica.eval(cmd)       # optional - mathematica
             2 t + Cos[x] + Sin[y]
 
         TESTS:
@@ -4503,7 +4507,8 @@ cdef class Expression(CommutativeRingElement):
             smap.insert(make_pair((<Expression>self.coerce_in(k))._gobj,
                                   (<Expression>self.coerce_in(v))._gobj))
 
-        return new_Expression_from_GEx(self._parent, self._gobj.subs_map(smap, 0))
+        return new_Expression_from_GEx(self._parent,
+                                       self._gobj.subs_map(smap, 0))
 
     subs = substitute
 

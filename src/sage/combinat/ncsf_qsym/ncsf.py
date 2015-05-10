@@ -204,8 +204,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     It is possible to change the prefix used to display the basis elements using
     the method :meth:`~sage.structure.indexed_generators.IndexedGenerators.print_options`.
-    Say that for instance one wanted to display the :class:`complete` basis as
-    having a prefix `H`, then::
+    Say that for instance one wanted to display the 
+    :class:`~NonCommutativeSymmetricFunctions.complete` basis as having a prefix ``H``
+    instead of the default ``S``::
 
         sage: H = NCSF.complete()
         sage: H.an_element()
@@ -597,7 +598,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 where `\alpha` is written in the form
                 `(\alpha_1, \alpha_2, \ldots, \alpha_m)`, and where `S`
                 stands for the complete basis
-                (:class:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.S`).
+                (:class:`~NonCommutativeSymmetricFunctions.complete`).
 
                 The immaculate function `\mathfrak{S}_{\alpha}` first
                 appeared in [BBSSZ2012]_ (where it was defined
@@ -608,7 +609,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 `\alpha` running over all compositions (i.e., finite
                 sequences of positive integers) form a basis of `NCSF`.
                 This is the *immaculate basis*
-                (:class:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.I`).
+                (:class:`~NonCommutativeSymmetricFunctions.Immaculate`).
 
                 INPUT:
 

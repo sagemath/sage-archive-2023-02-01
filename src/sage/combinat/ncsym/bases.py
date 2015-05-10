@@ -107,10 +107,10 @@ class NCSymOrNCSymDualBases(Category_realization_of_parent):
                  of Univariate Polynomial Ring in q over Rational Field in the
                  deformed_coarse_powersum basis with parameter q=q
             """
+            str = "{} in the {} basis".format(self.realization_of(), self._realization_name())
             if hasattr(self,'_q'):
-                return "{} in the {} basis with parameter q={}".format(self.realization_of(),
-                    self._realization_name(), self._q)
-            return "{} in the {} basis".format(self.realization_of(), self._realization_name())
+                str += " with parameter q={}".format(self._q)
+            return str
 
         def __getitem__(self, i):
             """

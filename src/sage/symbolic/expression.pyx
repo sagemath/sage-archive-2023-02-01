@@ -243,10 +243,10 @@ def _dict_update_check_duplicate(dict d1, dict d2):
         ...
         ValueError: duplicate substitution for a, got values 1 and 2
     """
-    if any(k in d1 for k in d2):
-        k = (k for k in d1 if k in d2).next()
-        raise ValueError("duplicate substitution for {}, got values {} and {}".format(
-                          k, d1[k], d2[k]))
+    for k in (k for k in d1 if k in d2):
+        msg = "duplicate substitution for {}, got values {} and {}"
+        raise ValueError(msg.format(k, d1[k], d2[k]))
+
     d1.update(d2)
 
 def _subs_make_dict(s):

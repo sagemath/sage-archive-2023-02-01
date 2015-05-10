@@ -1630,6 +1630,11 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             cp{{1, 3}, {2, 4}, {5, 6, 7}}
             sage: cp[[1,2],[3]].internal_coproduct()
             cp{{1, 2}, {3}} # cp{{1, 2}, {3}}
+            sage: ps = SymmetricFunctions(NCSym.base_ring()).p()
+            sage: ps(cp[[1,3],[2]].to_symmetric_function())
+            p[2, 1] - p[3]
+            sage: ps(cp[[1,2],[3]].to_symmetric_function())
+            p[2, 1]
         """
         def __init__(self, NCSym):
             """

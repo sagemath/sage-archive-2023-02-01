@@ -643,7 +643,7 @@ class NCSymBases(Category_realization_of_parent):
                 -p{{1, 3}, {2}}
                 sage: cp = NCSym.cp()
                 sage: cp[[1,3],[2]].omega()
-                -2*q{{1, 2, 3}} - q{{1, 3}, {2}}
+                -2*cp{{1, 2, 3}} - cp{{1, 3}, {2}}
                 sage: x = NCSym.x()
                 sage: x[[1,3],[2]].omega()
                 -2*x{{1}, {2}, {3}} - x{{1, 3}, {2}}
@@ -735,7 +735,7 @@ class MultiplicativeNCSymBases(Category_realization_of_parent):
                 sage: x.product_on_basis(A, B)
                 x{{1}, {2, 3}, {4}, {5, 7}, {6}}
                 sage: cp.product_on_basis(A, B)
-                q{{1}, {2, 3}, {4}, {5, 7}, {6}}
+                cp{{1}, {2, 3}, {4}, {5, 7}, {6}}
                 sage: p.product_on_basis(A, B)
                 p{{1}, {2, 3}, {4}, {5, 7}, {6}}
                 sage: e.product_on_basis(A,B)==e(h(e(A))*h(e(B)))

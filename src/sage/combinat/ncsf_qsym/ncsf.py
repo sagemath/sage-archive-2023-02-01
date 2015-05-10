@@ -203,7 +203,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         7
 
     It is possible to change the prefix used to display the basis elements using
-    the method :meth:`sage.structure.indexed_generators.IndexedGenerators.print_options`.
+    the method :meth:`~sage.structure.indexed_generators.IndexedGenerators.print_options`.
     Say that for instance one wanted to display the :class:`complete` basis as
     having a prefix `H`, then::
 
@@ -730,7 +730,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 It is a lift of the `n`-th Verschiebung operator on the ring
                 of symmetric functions (
-                :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+                :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
                 ) to the ring of noncommutative symmetric functions.
 
                 The action of the `n`-th Verschiebung operator can also be
@@ -2441,7 +2441,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 It is a lift of the `n`-th Verschiebung operator on the ring
                 of symmetric functions (
-                :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+                :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
                 ) to the ring of noncommutative symmetric functions.
 
                 The action of the `n`-th Verschiebung operator can also be
@@ -3098,7 +3098,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 It is a lift of the `n`-th Verschiebung operator on the ring
                 of symmetric functions (
-                :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+                :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
                 ) to the ring of noncommutative symmetric functions.
 
                 The action of the `n`-th Verschiebung operator can also be
@@ -3772,7 +3772,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 It is a lift of the `n`-th Verschiebung operator on the ring
                 of symmetric functions (
-                :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+                :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
                 ) to the ring of noncommutative symmetric functions.
 
                 The action of the `n`-th Verschiebung operator can also be
@@ -4045,7 +4045,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 It is a lift of the `n`-th Verschiebung operator on the ring
                 of symmetric functions (
-                :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+                :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
                 ) to the ring of noncommutative symmetric functions.
 
                 The action of the `n`-th Verschiebung operator can also be

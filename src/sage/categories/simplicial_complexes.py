@@ -60,6 +60,12 @@ class SimplicialComplexes(Category_singleton):
             def dimension(self):
                 """
                 Return the dimension of ``self``.
+
+                EXAMPLES::
+
+                    sage: S = SimplicialComplex([[1,3,4], [1,2],[2,5],[4,5]])
+                    sage: S.dimension()
+                    2
                 """
                 return max(c.dimension() for c in self.facets())
 
@@ -68,11 +74,26 @@ class SimplicialComplexes(Category_singleton):
         def facets(self):
             """
             Return the facets of ``self``.
+
+            EXAMPLES::
+
+                sage: S = SimplicialComplex([[1,3,4], [1,2],[2,5],[4,5]])
+                sage: S.facets()
+                {(1, 2), (1, 3, 4), (2, 5), (4, 5)}
             """
 
         @abstract_method
         def faces(self):
             """
             Return the faces of ``self``.
+
+            EXAMPLES::
+
+                sage: S = SimplicialComplex([[1,3,4], [1,2],[2,5],[4,5]])
+                sage: S.faces()
+                {-1: {()},
+                 0: {(1,), (2,), (3,), (4,), (5,)},
+                 1: {(1, 2), (1, 3), (1, 4), (2, 5), (3, 4), (4, 5)},
+                 2: {(1, 3, 4)}}
             """
 

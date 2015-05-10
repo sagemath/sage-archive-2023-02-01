@@ -670,8 +670,8 @@ class Sets(Category_singleton):
 
                 sage: TestSuite(Sets().Metric()).run()
             """
-            from sage.categories.metric_spaces import MetricSpaces
-            return MetricSpaces.category_of(self)
+            from sage.categories.metric_spaces import MetricSpacesCategory
+            return MetricSpacesCategory.category_of(self)
 
         @cached_method
         def Algebras(self, base_ring):

@@ -97,7 +97,7 @@ class HyperbolicPlane(Parent, UniqueRepresentation):
             sage: H = HyperbolicPlane()
             sage: TestSuite(H).run()
         """
-        Parent.__init__(self, category=Sets().WithRealizations())
+        Parent.__init__(self, category=Sets().Metric().WithRealizations())
         self.a_realization() # We create a realization so at least one is known
 
     def _repr_(self):
@@ -181,9 +181,10 @@ class HyperbolicModels(Category_realization_of_parent):
             sage: H = HyperbolicPlane()
             sage: models = HyperbolicModels(H)
             sage: models.super_categories()
-            [Category of sets, Category of realizations of Hyperbolic plane]
+            [Category of metric spaces,
+             Category of realizations of Hyperbolic plane]
         """
-        return [Sets(), Realizations(self.base())]
+        return [Sets().Metric(), Realizations(self.base())]
 
     class ParentMethods:
         def _an_element_(self):
@@ -204,31 +205,3 @@ class HyperbolicModels(Category_realization_of_parent):
             """
             return self(self.realization_of().PD().get_point(0))
 
-        # TODO: Move to a category of metric spaces once created
-        @abstract_method
-        def dist(self, a, b):
-            """
-            Return the distance between ``a`` and ``b``.
-
-            EXAMPLES::
-
-                sage: PD = HyperbolicPlane().PD()
-                sage: PD.dist(PD.get_point(0), PD.get_point(I/2))
-                arccosh(5/3)
-            """
-
-    class ElementMethods:
-        # TODO: Move to a category of metric spaces once created
-        def dist(self, other):
-            """
-            Return the distance between ``self`` and ``other``.
-
-            EXAMPLES::
-
-                sage: UHP = HyperbolicPlane().UHP()
-                sage: p1 = UHP.get_point(5 + 7*I)
-                sage: p2 = UHP.get_point(1 + I)
-                sage: p1.dist(p2)
-                arccosh(33/7)
-            """
-            return self.parent().dist(self, other)

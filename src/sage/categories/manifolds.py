@@ -22,9 +22,9 @@ class Manifolds(Category_singleton):
     r"""
     The category of manifolds over any field.
 
-    Let `k` be a field. A `k`-*manifold* `M` is a second countable
-    Hausdorff space such that the neighborhood of any point `x \in M`
-    is homeomorphic to `k^d` for some `d`.
+    Let `k` be a field. A `k`-*manifold* `M`  of dimension `d` is a
+    second countable Hausdorff space such that the neighborhood of
+    any point `x \in M` is homeomorphic to `k^b` for some `b \leq d`.
 
     EXAMPLES::
 
@@ -65,6 +65,13 @@ class Manifolds(Category_singleton):
             sage: Manifolds().additional_structure()
         """
         return None
+
+    class ParentMethods:
+        @abstract_method
+        def dimension(self):
+            """
+            Return the dimension of ``self``.
+            """
 
     class SubcategoryMethods:
         @cached_method
@@ -143,44 +150,37 @@ class Manifolds(Category_singleton):
             """
             return self._with_axiom('Complex')
 
+        @cached_method
+        def FiniteDimensional(self):
+            """
+            Return the full subcategory of the finite dimensional
+            objects of ``self``.
+
+            EXAMPLES::
+
+                sage: from sage.categories.manifolds import Manifolds
+                sage: C = Manifolds().Connected().FiniteDimensional(); C
+                Category of finite dimensional connected manifolds
+
+            TESTS::
+
+                sage: from sage.categories.manifolds import Manifolds
+                sage: C = Manifolds().Connected().FiniteDimensional()
+                sage: TestSuite(C).run()
+                sage: Manifolds().Connected().FiniteDimensional.__module__
+                'sage.categories.manifolds'
+            """
+            return self._with_axiom('FiniteDimensional')
+
+    class FiniteDimensional(CategoryWithAxiom):
+        """
+        Category of finite dimensional manifolds.
+        """
+
     class Connected(CategoryWithAxiom):
         """
         The category of connected manifolds.
         """
-        class ParentMethods:
-            @abstract_method
-            def dimension(self):
-                """
-                Return the dimension of ``self``.
-                """
-
-        class SubcategoryMethods:
-            @cached_method
-            def FiniteDimensional(self):
-                """
-                Return the full subcategory of the finite dimensional
-                objects of ``self``.
-
-                EXAMPLES::
-
-                    sage: from sage.categories.manifolds import Manifolds
-                    sage: C = Manifolds().Connected().FiniteDimensional(); C
-                    Category of finite dimensional connected manifolds
-
-                TESTS::
-
-                    sage: from sage.categories.manifolds import Manifolds
-                    sage: C = Manifolds().Connected().FiniteDimensional()
-                    sage: TestSuite(C).run()
-                    sage: Manifolds().Connected().FiniteDimensional.__module__
-                    'sage.categories.manifolds'
-                """
-                return self._with_axiom('FiniteDimensional')
-
-        class FiniteDimensional(CategoryWithAxiom):
-            """
-            Category of finite dimensional (connected) manifolds.
-            """
 
     class Differentiable(CategoryWithAxiom):
         """

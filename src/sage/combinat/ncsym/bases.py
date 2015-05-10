@@ -105,11 +105,13 @@ class NCSymOrNCSymDualBases(Category_realization_of_parent):
                 sage: SymmetricFunctionsNonCommutingVariables(QQ['q'].fraction_field()).rho('q')
                 Symmetric functions in non-commuting variables over the Fraction Field
                  of Univariate Polynomial Ring in q over Rational Field in the
-                 deformed_coarse_powersum basis with parameter q=q
+                 deformed_coarse_powersum basis with parameter q
             """
             str = "{} in the {} basis".format(self.realization_of(), self._realization_name())
             if hasattr(self,'_q'):
-                str += " with parameter q={}".format(self._q)
+                str += " with parameter q"
+                if self._q.__repr__()!='q':
+                    str += "="+self._q.__repr__()
             return str
 
         def __getitem__(self, i):

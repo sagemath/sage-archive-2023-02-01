@@ -1971,6 +1971,13 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             chi{} # chi{{1, 3}, {2}} + (2*q-2)*chi{{1}} # chi{{1}, {2}} +
              (3*q-2)*chi{{1}} # chi{{1, 2}} + (2*q-2)*chi{{1}, {2}} # chi{{1}} +
              (3*q-2)*chi{{1, 2}} # chi{{1}} + chi{{1, 3}, {2}} # chi{}
+            sage: chi2 = NCSym.chi()
+            sage: chi(chi2[[1,2],[3]])
+            ((-q+2)/q)*chi{{1}, {2}, {3}} + 2/q*chi{{1, 2}, {3}}
+            sage: chi2
+            Symmetric functions in non-commuting variables over the Fraction Field
+             of Univariate Polynomial Ring in q over Rational Field in the
+             supercharacter basis with parameter q=2
         """
         def __init__(self, NCSym, q=2):
             """

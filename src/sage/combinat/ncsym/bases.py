@@ -99,7 +99,17 @@ class NCSymOrNCSymDualBases(Category_realization_of_parent):
                 Symmetric functions in non-commuting variables over the Rational Field in the monomial basis
                 sage: SymmetricFunctionsNonCommutingVariables(QQ).m().dual_basis()
                 Dual symmetric functions in non-commuting variables over the Rational Field in the w basis
+                sage: SymmetricFunctionsNonCommutingVariables(QQ).chi()
+                Symmetric functions in non-commuting variables over the Rational Field in the
+                 supercharacter basis with parameter q=2
+                sage: SymmetricFunctionsNonCommutingVariables(QQ['q'].fraction_field()).rho('q')
+                Symmetric functions in non-commuting variables over the Fraction Field
+                 of Univariate Polynomial Ring in q over Rational Field in the
+                 deformed_coarse_powersum basis with parameter q=q
             """
+            if hasattr(self,'_q'):
+                return "{} in the {} basis with parameter q={}".format(self.realization_of(),
+                    self._realization_name(), self._q)
             return "{} in the {} basis".format(self.realization_of(), self._realization_name())
 
         def __getitem__(self, i):

@@ -210,12 +210,6 @@ def _dict_update_check_duplicate(dict d1, dict d2):
     function throws a ``ValueError`` if any expressions are substituted
     for twice.
 
-    INPUT:
-
-    -  ``d1`` -- A dictionary.
-
-    -  ``d2`` -- Another dictionary.
-
     EXAMPLES:
 
     A normal merge with no conflicts::
@@ -236,9 +230,10 @@ def _dict_update_check_duplicate(dict d1, dict d2):
         sage: _dict_update_check_duplicate(d1, d2)
         Traceback (most recent call last):
         ...
-        ValueError: duplicate substitutions a->1 and a->2
+        ValueError: duplicate substitution for a, got values 1 and 2
 
-    We should report all such conflicts, not just the first one::
+    We just report the first conflict (though the order is somehow random since
+    it depends on the dictionary order)::
 
         sage: from sage.symbolic.expression import _dict_update_check_duplicate
         sage: d1 = {'a': 1, 'b': 2}
@@ -246,12 +241,12 @@ def _dict_update_check_duplicate(dict d1, dict d2):
         sage: _dict_update_check_duplicate(d1, d2)
         Traceback (most recent call last):
         ...
-        ValueError: duplicate substitutions a->1 and a->2
+        ValueError: duplicate substitution for a, got values 1 and 2
     """
     if any(k in d1 for k in d2):
         k = (k for k in d1 if k in d2).next()
-        raise ValueError("duplicate substitutions {}->{} and {}->{}".format(
-            k, d1[k], k, d2[k]))
+        raise ValueError("duplicate substitution for {}, got values {} and {}".format(
+                          k, d1[k], d2[k]))
     d1.update(d2)
 
 def _subs_make_dict(s):
@@ -285,7 +280,7 @@ def _subs_make_dict(s):
 
     And finally, a tuple or a list containing one of everything::
 
-        sage: x, y, z = var('x, y, z')
+        sage: u, v, w, x, y, z = var('u, v, w, x, y, z')
         sage: _subs_make_dict([x == 1, {y: 1}, [z == 1]])
         {z: 1, y: 1, x: 1}
         sage: _subs_make_dict((x == 1, y == 2))
@@ -295,6 +290,8 @@ def _subs_make_dict(s):
 
         sage: _subs_make_dict([[x == 1], [[y == 2], [z == 3]]])
         {z: 3, y: 2, x: 1}
+        sage: _subs_make_dict([w == 1, {x: 1}, [y == 1, {u: 1}], (z == 1, v == 1)])
+        {w: 1, y: 1, u: 1, z: 1, v: 1, x: 1}
 
     Check that a ``TypeError`` is raised if the input is not valid::
 
@@ -4303,7 +4300,7 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression p = self.coerce_in(pattern)
         return self._gobj.has(p._gobj)
 
-    def substitute(self, in_dict=None, **kwds):
+    def substitute(self, *args, **kwds):
         """
         Substitute the given subexpressions in this expression.
 
@@ -4318,6 +4315,8 @@ cdef class Expression(CommutativeRingElement):
 
             sage: t.subs(a=c)
             (x + y)^3 + b^2 + c^2
+            sage: t.subs(b=19, x=z)
+            (y + z)^3 + a^2 + 361
 
         Substitute with a dictionary argument::
 
@@ -4327,29 +4326,27 @@ cdef class Expression(CommutativeRingElement):
             sage: t.subs({w0^2: w0^3})
             a^3 + b^3 + (x + y)^3
 
-        Substitute with a relational expression::
+        Substitute with one or more relational expressions::
 
             sage: t.subs(w0^2 == w0^3)
             a^3 + b^3 + (x + y)^3
 
-            sage: t.subs(w0==w0^2)
+            sage: t.subs(w0 == w0^2)
             (x^2 + y^2)^18 + a^16 + b^16
 
-        More than one keyword argument is accepted::
+            sage: t.subs(a == b, b == c)
+            (x + y)^3 + b^2 + c^2
+
+        Any number of arguments is accepted::
 
             sage: t.subs(a=b, b=c)
             (x + y)^3 + b^2 + c^2
 
-        Using keyword arguments with a dictionary is allowed::
-
             sage: t.subs({a:b}, b=c)
             (x + y)^3 + b^2 + c^2
 
-        It also accept a list of equations (see :trac:`12834`)::
-
-            sage: f = x + y + z
-            sage: f.subs([ x == 1, y == 2 ])
-            z + 3
+            sage: t.subs([x == 3, y == 2], a == 2, {b:3})
+            138
 
         It can even accept lists of lists::
 
@@ -4367,31 +4364,57 @@ cdef class Expression(CommutativeRingElement):
             sage: t.subs({a:b}, a=c)
             Traceback (most recent call last):
             ...
-            ValueError: duplicate substitutions a->b and a->c
+            ValueError: duplicate substitution for a, got values b and c
 
-        Even when the duplicate assignment is a keyword argument::
-
-            sage: f = 3*x
-            sage: f.subs([x == 1], x = 2)
+            sage: t.subs([x == 1], a = 1, b = 2, x = 2)
             Traceback (most recent call last):
             ...
-            ValueError: duplicate substitutions x->1 and x->2
+            ValueError: duplicate substitution for x, got values 1 and 2
 
         All substitutions are performed at the same time::
 
              sage: t.subs({a:b, b:c})
              (x + y)^3 + b^2 + c^2
 
+        Substitutions are done term by term, in other words Sage is not able to
+        identify partial sums in a substitution (see :trac:`18396`)::
+
+            sage: f = x + x^2 + x^4
+            sage: f.subs(x^2 == y)             # one term is fine
+            x^4 + x + y
+            sage: f.subs(x + x^2 == y)         # partial sum does not work
+            x^4 + x^2 + x
+            sage: f.subs(x + x^2 + x^4 == y)   # whole sum is fine
+            y
+
+        This last result might not be the one expected. In the same veine, the
+        following seems really weird, but it *is* what Maple does::
+
+            sage: f(x,y,t) = cos(x) + sin(y) + x^2 + y^2 + t
+            sage: f.subs(x^2 + y^2 == t)
+            (x, y, t) |--> x^2 + y^2 + t + cos(x) + sin(y)
+            sage: maple.eval('subs(x^2 + y^2 = t, cos(x) + sin(y) + x^2 + y^2 + t)')          # optional - maple
+            'cos(x)+sin(y)+x^2+y^2+t'
+            sage: maxima.quit()
+            sage: maxima.eval('cos(x) + sin(y) + x^2 + y^2 + t, x^2 + y^2 = t')
+            'sin(y)+y^2+cos(x)+x^2+t'
+
+        Actually Mathematica does something that makes more sense::
+
+            sage: mathematica.eval('Cos[x] + Sin[y] + x^2 + y^2 + t /. x^2 + y^2 -> t')       # optional - mathematica
+            2 t + Cos[x] + Sin[y]
+
         TESTS:
 
         No arguments return the same expression::
 
+            sage: t = a^2 + b^2 + (x+y)^3
             sage: t.subs()
             (x + y)^3 + a^2 + b^2
 
-        Similarly for an empty dictionary argument::
+        Similarly for a empty dictionary, empty tuples and empty lists::
 
-            sage: t.subs({})
+            sage: t.subs({}, (), [], ())
             (x + y)^3 + a^2 + b^2
 
         Invalid argument returns error::
@@ -4457,8 +4480,16 @@ cdef class Expression(CommutativeRingElement):
             Infinity
         """
         cdef dict sdict = {}
-        if in_dict is not None:
-            sdict.update(_subs_make_dict(in_dict))
+
+        if args and args[0] is None:
+            # this is needed because sometimes this function get called as
+            # expr.substitute(None, **kwds). This is because its signature used
+            # to be (in_dict=None, **kwds) instead of (*args, **kwds)
+            # (see ticket #12834)
+            args = args[1:]
+
+        for a in args:
+            _dict_update_check_duplicate(sdict, _subs_make_dict(a))
 
         if kwds:
             # Ensure that the keys are symbolic variables.
@@ -4520,78 +4551,36 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression p = self.coerce_in(expr)
         return new_Expression_from_GEx(self._parent, self._gobj.subs(p._gobj))
 
-    def substitute_expression(self, *equations):
-        """
-        Given a dictionary of key:value pairs, substitute all occurrences
-        of key for value in self.  The substitutions can also be given
-        as a number of symbolic equalities key == value; see the
-        examples.
 
-        .. warning::
+    substitute_expression = deprecated_function_alias(12834, substitute)
+    subs_expr = deprecated_function_alias(12834, subs)
+    """
+    Check that the doctest of the method ``substitute_expression`` or
+    ``subs_expr`` still works.
 
-           This is a formal pattern substitution, which may or may not
-           have any mathematical meaning. The exact rules used at
-           present in Sage are determined by Maxima's subst
-           command. Sometimes patterns are not replaced even though
-           one would think they should be - see examples below.
+    TESTS::
 
-        EXAMPLES::
-
-            sage: f = x^2 + 1
-            sage: f.subs_expr(x^2 == x)
-            x + 1
-
-        ::
-
-            sage: var('x,y,z'); f = x^3 + y^2 + z
-            (x, y, z)
-            sage: f.subs_expr(x^3 == y^2, z == 1)
-            2*y^2 + 1
-
-        Or the same thing giving the substitutions as a dictionary::
-
-            sage: f.subs_expr({x^3:y^2, z:1})
-            2*y^2 + 1
-
-            sage: f = x^2 + x^4
-            sage: f.subs_expr(x^2 == x)
-            x^4 + x
-            sage: f = cos(x^2) + sin(x^2)
-            sage: f.subs_expr(x^2 == x)
-            cos(x) + sin(x)
-
-        ::
-
-            sage: f(x,y,t) = cos(x) + sin(y) + x^2 + y^2 + t
-            sage: f.subs_expr(y^2 == t)
-            (x, y, t) |--> x^2 + 2*t + cos(x) + sin(y)
-
-        The following seems really weird, but it *is* what Maple does::
-
-            sage: f.subs_expr(x^2 + y^2 == t)
-            (x, y, t) |--> x^2 + y^2 + t + cos(x) + sin(y)
-            sage: maple.eval('subs(x^2 + y^2 = t, cos(x) + sin(y) + x^2 + y^2 + t)')          # optional - maple
-            'cos(x)+sin(y)+x^2+y^2+t'
-            sage: maxima.quit()
-            sage: maxima.eval('cos(x) + sin(y) + x^2 + y^2 + t, x^2 + y^2 = t')
-            'sin(y)+y^2+cos(x)+x^2+t'
-
-        Actually Mathematica does something that makes more sense::
-
-            sage: mathematica.eval('Cos[x] + Sin[y] + x^2 + y^2 + t /. x^2 + y^2 -> t')       # optional - mathematica
-            2 t + Cos[x] + Sin[y]
-        """
-        if isinstance(equations[0], dict):
-            eq_dict = equations[0]
-            equations = [ x == eq_dict[x] for x in eq_dict.keys() ]
-
-        if not all([is_SymbolicEquation(eq) for eq in equations]):
-            raise TypeError("each expression must be an equation")
-
-        d = dict([(eq.lhs(), eq.rhs()) for eq in equations])
-        return self.subs(d)
-
-    subs_expr = substitute_expression
+        sage: var('x,y,z'); f = x^3 + y^2 + z
+        (x, y, z)
+        sage: f.subs_expr(x^3 == y^2, z == 1)
+        doctest:...: DeprecationWarning: subs_expr is deprecated. Please use
+        substitute instead.
+        See http://trac.sagemath.org/12834 for details.
+        2*y^2 + 1
+        sage: f.subs_expr({x^3:y^2, z:1})
+        2*y^2 + 1
+        sage: f = x^2 + x^4
+        sage: f.subs_expr(x^2 == x)
+        x^4 + x
+        sage: f = cos(x^2) + sin(x^2)
+        sage: f.subs_expr(x^2 == x)
+        cos(x) + sin(x)
+        sage: f(x,y,t) = cos(x) + sin(y) + x^2 + y^2 + t
+        sage: f.subs_expr(y^2 == t)
+        (x, y, t) |--> x^2 + 2*t + cos(x) + sin(y)
+        sage: f.subs_expr(x^2 + y^2 == t)
+        (x, y, t) |--> x^2 + y^2 + t + cos(x) + sin(y)
+    """
 
     def substitute_function(self, original, new):
         """

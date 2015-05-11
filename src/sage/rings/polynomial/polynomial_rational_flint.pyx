@@ -1081,7 +1081,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: (1 + t)^(2/3)
             Traceback (most recent call last):
             ...
-            TypeError: non-integral exponents not supported
+            TypeError: rational is not an integer
             sage: (1 + t)^(2^63)
             Traceback (most recent call last):
             ...
@@ -1094,13 +1094,9 @@ cdef class Polynomial_rational_flint(Polynomial):
             ...
             RuntimeError: FLINT exception
         """
-        cdef Py_ssize_t n
         cdef Polynomial_rational_flint res
 
-        try:
-            n = pyobject_to_long(exp)
-        except TypeError:
-            raise TypeError("non-integral exponents not supported")
+        cdef long n = pyobject_to_long(exp)
 
         if n < 0:
             if fmpq_poly_is_zero(self.__poly):

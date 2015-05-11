@@ -1207,7 +1207,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef dict vertex_ints   = self.vertex_ints
         cdef dict vertex_labels = self.vertex_labels
         cdef CGraph G = self._cg
-        cdef int u_long
+        cdef long u_long
         if u in vertex_ints:
             return vertex_ints[u]
         try:

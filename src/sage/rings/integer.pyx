@@ -1892,7 +1892,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 2^t
             Traceback (most recent call last):
             ...
-            TypeError: non-integral exponents not supported
+            TypeError:
+            'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'
+            object cannot be interpreted as an index
             sage: int(3)^-3
             1/27
             sage: type(int(3)^2)

@@ -23,7 +23,6 @@ cdef inline long pyobject_to_long(x) except? LONG_MIN:
 
     We test indirectly that ``Integer.__pow__`` and ``Rational.__pow__`` work::
 
-        sage: tens = [10r, 10l, 10, 10/1]
         sage: a = 10
         sage: a^10
         10000000000

@@ -484,16 +484,52 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             return [FiniteEnumeratedSets()]
 
         class ParentMethods:
-            # NOTE: the two methods below are taken from sets as otherwise the
-            # (potentially very slow) ones from FiniteEnumeratedSets get
-            # called...
+            # NOTE: three methods are overriden to avoid the default
+            # implementations in FiniteEnumeratedSets
             random_element = Sets.CartesianProducts.ParentMethods.random_element.im_func
-            cardinality    = Sets.CartesianProducts.ParentMethods.cardinality.im_func
+            r"""
+            Return a random element
 
-            # NOTE: the method below is taken from enumerated sets as otherwise
-            # the (potentially very expensive) one from FiniteEnumeratedSets get
-            # called...
+            TESTS:
+
+            We check that parents inherit the right function::
+
+                sage: C = cartesian_product([Permutations(10), Permutations(10)])
+                sage: C in FiniteEnumeratedSets()
+                True
+                sage: C.random_element.__module__
+                'sage.categories.sets_cat'
+            """
+
+            cardinality = Sets.CartesianProducts.ParentMethods.cardinality.im_func
+            r"""
+            Return the cardinality
+
+            TESTS:
+
+            We check that parents inherit the right function::
+
+                sage: C = cartesian_product([Partitions(10), Permutations(12)])
+                sage: C in FiniteEnumeratedSets()
+                True
+                sage: C.cardinality.__module__
+                'sage.categories.sets_cat'
+            """
+
             __iter__ = EnumeratedSets.CartesianProducts.ParentMethods.__iter__.im_func
+            r"""
+            Return an iterator through the element of this cartesian product
+
+            TESTS:
+
+            We check parents inherit the right function::
+
+                sage: C = cartesian_product([Partitions(10), Permutations(12)])
+                sage: C in FiniteEnumeratedSets()
+                True
+                sage: C.__iter__.__module__
+                'sage.categories.enumerated_sets'
+            """
 
             def last(self):
                 r"""

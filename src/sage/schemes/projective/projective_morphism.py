@@ -2434,13 +2434,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         if self.domain().dimension_relative() != 1:
             raise NotImplementedError("Must be dimension 1")
-        else:
-            f = self.dehomogenize(1)
-            z = f[0].parent().gen()
+        f = self.dehomogenize(1)
+        R = PolynomialRing(f.base_ring(),'x')
         if is_FractionFieldElement(f[0]):
-            F = (f[0].numerator().polynomial(z))/f[0].denominator().polynomial(z)
+            F = (f[0].numerator().univariate_polynomial(R))/f[0].denominator().univariate_polynomial(R)
         else:
-            F = f[0].polynomial(z)
+            F = f[0].univariate_polynomial(R)
         from endPN_automorphism_group import automorphism_group_QQ_CRT, automorphism_group_QQ_fixedpoints
         if alg is None:
             if self.degree() <= 12:

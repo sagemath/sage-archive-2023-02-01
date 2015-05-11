@@ -5642,18 +5642,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             q = lp.resultant(rp, QQxy_y).univariate_polynomial(K)
         elif algorithm == "BFSS":
             from sage.rings.power_series_ring import PowerSeriesRing
-            from sage.rings.big_oh import O as big_O
             if op == "-":
                 p2 = p2(-K.gen())
             elif op == "/":
                 p2 = p2.reverse()
             prec = d1*d2 + 1
-            R = PowerSeriesRing(QQ, str(K.gen()), default_prec=prec)
+            S = K.base_ring()
+            R = PowerSeriesRing(S, K.variable_name(), default_prec=prec)
             np1 = p1.newton_sum(R)
             np2 = p2.newton_sum(R)
             if op in ("+", "-"):
-                x = R.gen()
-                fj = QQ(1)
+                fj = S.one()
                 a1, a2 = [np1[0]], [np2[0]]
                 for j in range(1, prec):
                     fj = fj*j
@@ -5661,18 +5660,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     a2.append(np2[j] / fj)
                 np1e = K(a1)
                 np2e = K(a2)
-                np2e = R(np2e) + big_O(x**prec)
                 np3e = np1e*np2e
-                fj = QQ(1)
-                a3 = []
+                fj = -S.one()
+                a3 = [S.zero()]
                 for j in range(1, prec):
-                    fj = fj*j
                     a3.append(np3e[j] * fj)
-                np = -K(a3)
+                    fj = fj*j
+                np = K(a3)
+                q = R(np)
             else:
                 np = K([-np1[i]*np2[i] for i in range(1, prec)])
+                q = R(np.integral())
 
-            q = R(np.integral())
             q = q.exp()
             q = q.polynomial().reverse()
             dp = prec - q.degree() - 1

@@ -69,7 +69,7 @@ full_unary = [(0.8, operator.neg), (0.2, operator.inv)]
 full_functions = _mk_full_functions()
 full_nullary = [(1.0, c) for c in [pi, e]] + [(0.05, c) for c in
         [golden_ratio, log2, euler_gamma, catalan, khinchin, twinprime,
-            mertens, brun]]
+            mertens]]
 full_internal = [(0.6, full_binary, 2), (0.2, full_unary, 1),
         (0.2, full_functions)]
 

@@ -89,7 +89,6 @@ namespace GiNaC {
     Number_T(const unsigned long& x);
     Number_T(const double& x);
     Number_T(const Number_T& x);
-    Number_T(const char* s);
     Number_T(PyObject* o);  // *STEALS a REFERENCE*
     // unarchive
     Number_T(const archive_node &n, lst &sym_lst);
@@ -218,7 +217,6 @@ namespace GiNaC {
     numeric(unsigned long i);
     numeric(long numer, long denom);
     numeric(double d);
-    numeric(const char *);
     numeric(const Number_T& x);
     numeric(PyObject*);
     numeric(archive_node& n, const lst &sym_lst);
@@ -271,7 +269,6 @@ namespace GiNaC {
     const numeric & operator=(long i);
     const numeric & operator=(unsigned long i);
     const numeric & operator=(double d);
-    const numeric & operator=(const char *s);
     const numeric inverse() const;
     numeric step() const;
     int csgn() const;

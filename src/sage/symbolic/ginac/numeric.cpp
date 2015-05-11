@@ -469,13 +469,6 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     }
   }
 
-  Number_T::Number_T(const char* s) { 
-    // We should never use this. 
-    verbose("Number_T(const char* s)");
-    t = DOUBLE;
-    sscanf(s, "%lf", &v._double);
-  }
-
   Number_T::Number_T(PyObject* o) {
     verbose("Number_T::Number_T(PyObject* o)");
     if(! o) py_error("Error");
@@ -1472,14 +1465,6 @@ void Number_T::archive(archive_node &n) const {
     setflag(status_flags::evaluated | status_flags::expanded);
   }
 
-  /** constructor from C-style string.  It also accepts complex numbers in GiNaC
-   *  notation like "2+5*I". */
-  numeric::numeric(const char *s) : value(s),
-				    basic(&numeric::tinfo_static)
-  {
-    setflag(status_flags::evaluated | status_flags::expanded);
-  }
-
 
   //////////
   // archiving
@@ -1935,13 +1920,6 @@ void Number_T::archive(archive_node &n) const {
   {
     return operator=(numeric(d));
   }
-
-
-  const numeric &numeric::operator=(const char * s)
-  {
-    return operator=(numeric(s));
-  }
-
 
   /** Inverse of a number. */
   const numeric numeric::inverse() const

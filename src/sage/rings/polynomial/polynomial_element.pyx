@@ -5535,13 +5535,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def composed_op(p1, p2, op, algorithm=None, monic=True):
         """
         Return `\prod_{a:p1(a)=0,b:p2(b)=0}(x - (a op b))`
-        where ``op`` is "+"", "-", "*" or "/".
+        where ``op`` is `operator.OP` where `OP=add, sub, mul` or `div`.
 
         INPUT:
 
         - ``p1, p2`` -- polynomials on the same polynomial ring on rationals.
 
-        - ``op`` -- "+"", "-", "*" or "/".
+        - ``op`` -- `operator.OP` where `OP=add, sub, mul` or `div`. 
 
         - ``algorithm`` -- can be "resultant" or "BFSS";
           by default the former is used when the polynomials have few
@@ -5549,11 +5549,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         - ``monic`` -- (default True) if True, return the monic form.
 
-        The composed sum (``op="+"``) can be computed as the resultant
+        The composed sum (``op=operator.add``) can be computed as the resultant
         `Res_y(p1(x-y), p2(y))`; in [BFSS] it has been shown that it can be
         computed using the power sums of roots of polynomials and
         series expansions; for polynomials with many nonzero coefficients
-        the latter method is faster. Similarly for ``op=`` "-", "*" or "/".
+        the latter method is faster. Similarly for `OP` is `sub, mul` or `div`.
 
 
         TODO:
@@ -5568,11 +5568,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = QQ[]
             sage: p1 = x^2 - 1
             sage: p2 = x^4 - 1
-            sage: p1.composed_op(p2, "+")
+            sage: p1.composed_op(p2, operator.add)
             x^8 - 4*x^6 + 4*x^4 - 16*x^2
-            sage: p1.composed_op(p2, "*")
+            sage: p1.composed_op(p2, operator.mul)
             x^8 - 2*x^4 + 1
-            sage: p1.composed_op(p2, "/")
+            sage: p1.composed_op(p2, operator.div)
             x^8 - 2*x^4 + 1
 
         TESTS::
@@ -5580,17 +5580,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<y> = QQ[]
             sage: p1 = y^2 - 2
             sage: p2 = y^2 - 3
-            sage: p1.composed_op(p2, "+", "resultant")
+            sage: p1.composed_op(p2, operator.add, "resultant")
             y^4 - 10*y^2 + 1
-            sage: p1.composed_op(p2, "+", "BFSS")
+            sage: p1.composed_op(p2, operator.add, "BFSS")
             y^4 - 10*y^2 + 1
-            sage: p1.composed_op(p2, "*", "resultant")
+            sage: p1.composed_op(p2, operator.mul, "resultant")
             y^4 - 12*y^2 + 36
-            sage: p1.composed_op(p2, "*", "BFSS")
+            sage: p1.composed_op(p2, operator.mul, "BFSS")
             y^4 - 12*y^2 + 36
-            sage: p1.composed_op(p2, "/", "resultant")
+            sage: p1.composed_op(p2, operator.div, "resultant")
             y^4 - 4/3*y^2 + 4/9
-            sage: p1.composed_op(p2, "/", "BFSS")
+            sage: p1.composed_op(p2, operator.div, "BFSS")
             y^4 - 4/3*y^2 + 4/9
 
         REFERENCES:
@@ -5603,7 +5603,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         cdef int j
 
-        if op not in ("+", "-", "*", "/"):
+        if op not in (operator.add, operator.sub, operator.mul, operator.div):
             raise ValueError('op must be "+", "-", "*" or "/".')
 
         d1 = p1.degree()
@@ -5630,11 +5630,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         if algorithm == "resultant":
             QQxy, QQxy_x, QQxy_y = QQxy_with_gens()
-            if op == "+":
+            if op is operator.add:
                 lp = p1(QQxy_x - QQxy_y)
-            elif op == "-":
+            elif op is operator.sub:
                 lp = p1(QQxy_x + QQxy_y)
-            elif op == "*":
+            elif op is operator.mul:
                 lp = p1(QQxy_x).homogenize(QQxy_y)
             else:
                 lp = p1(QQxy_x * QQxy_y)
@@ -5642,16 +5642,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             q = lp.resultant(rp, QQxy_y).univariate_polynomial(K)
         elif algorithm == "BFSS":
             from sage.rings.power_series_ring import PowerSeriesRing
-            if op == "-":
+            if op == operator.sub:
                 p2 = p2(-K.gen())
-            elif op == "/":
+            elif op is operator.div:
                 p2 = p2.reverse()
             prec = d1*d2 + 1
             S = K.base_ring()
             R = PowerSeriesRing(S, K.variable_name(), default_prec=prec)
             np1 = p1.newton_sum(R)
             np2 = p2.newton_sum(R)
-            if op in ("+", "-"):
+            if op in (operator.add, operator.sub):
                 fj = S.one()
                 a1, a2 = [np1[0]], [np2[0]]
                 for j in range(1, prec):

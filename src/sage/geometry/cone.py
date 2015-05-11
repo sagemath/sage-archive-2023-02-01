@@ -3925,15 +3925,16 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
     def is_solid(self):
         r"""
-        Check whether or not this cone is solid. A cone is said to be
-        "solid" if it has nonempty interior. That is, if its extreme
-        rays span the entire ambient space.
+        Return whether or not this cone is solid.
+
+        A cone is said to be solid if it has nonempty interior. That
+        is, if its extreme rays span the entire ambient space.
 
         OUTPUT:
 
         ``True`` if this cone is solid, and ``False`` otherwise.
 
-        .. seealso::
+        .. SEEALSO::
 
             :meth:`is_proper`
 
@@ -3962,16 +3963,18 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
     def is_proper(self):
         r"""
-        Check whether or not this cone is proper. A cone is said to be
-        "proper" if it is closed, convex, solid, and contains no lines.
-        This cone is assumed to be closed and convex; therefore it is
-        proper if it is solid and contains no lines.
+        Return whether or not this cone is proper.
+
+        A cone is said to be proper if it is closed, convex, solid,
+        and contains no lines. This cone is assumed to be closed and
+        convex; therefore it is proper if it is solid and contains no
+        lines.
 
         OUTPUT:
 
         ``True`` if this cone is proper, and ``False`` otherwise.
 
-        .. seealso::
+        .. SEEALSO::
 
             :meth:`is_strictly_convex`, :meth:`is_solid`
 

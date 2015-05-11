@@ -425,7 +425,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             in non-commuting variables that does not preserve the product or
             coproduct structure of the Hopf algebra.
 
-            .. SEEALSO:: :meth:`~monomial.Element.to_symmetric_function`
+            .. SEEALSO:: :meth:`~Element.to_symmetric_function`
 
             INPUT:
 

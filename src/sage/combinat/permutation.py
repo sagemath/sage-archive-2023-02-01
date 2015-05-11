@@ -4045,39 +4045,6 @@ class Permutation(CombinatorialObject, Element):
         n = len(self)
         return self.__class__(self.parent(), map(lambda x: n - x + 1, self) )
 
-    def connected_parts(self):
-        """
-        Return the connected parts of the permutation.
-
-        This gives the supports in the unique decomposition
-        into connected permutations.
-
-        OUTPUT:
-
-        a list of pairs (i,j), meaning the interval from i to j
-
-        EXAMPLES::
-
-            sage: S = Permutations()
-            sage: S([1,3,2,4]).connected_parts()
-            [(1, 1), (2, 3), (4, 4)]
-            sage: S([4,3,1,2,5]).connected_parts()
-            [(1, 4), (5, 5)]
-            sage: S([4,5,1,2,3]).connected_parts()
-            [(1, 5)]
-        """
-        resu = []
-        m = 0
-        n = len(self)
-        start_block = 1
-        for i in range(1, n + 1):
-            m = max(m, self(i))
-            if m == i:
-                resu += [(start_block, i)]
-                m = 0
-                start_block = i + 1
-        return resu
-
     @combinatorial_map(name='permutation poset')
     def permutation_poset(self):
         r"""

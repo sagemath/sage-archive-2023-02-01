@@ -71,7 +71,6 @@ http://www.python.org/community/
    flag, which isn't valid for C++ (but Python uses the same compiler flags
    for C and C++). See http://bugs.python.org/issue5755.
  * hashlibfallbacks-issue_18000.patch: Fixed Python issue #18000.
- * node-issue_3871.patch: fix _PyNode_Sizeof declaration.
  * tinfo.patch: make sure tinfo is correctly linked in when needed on Cygwin.
 
 Temporarily removed since it does not apply to python-2.7.6:

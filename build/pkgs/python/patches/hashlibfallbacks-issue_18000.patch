@@ -1,7 +1,7 @@
 diff -ur src/Lib/test/test_hashlib.py new/Lib/test/test_hashlib.py
 --- a/Lib/test/test_hashlib.py	2013-05-12 04:32:46.000000000 +0100
 +++ b/Lib/test/test_hashlib.py	2013-05-18 12:24:04.055336404 +0100
-@@ -19,9 +19,6 @@
+@@ -21,9 +21,6 @@
  from test import test_support
  from test.test_support import _4G, precisionbigmemtest
  
@@ -11,7 +11,7 @@ diff -ur src/Lib/test/test_hashlib.py new/Lib/test/test_hashlib.py
  
  def hexstr(s):
      import string
-@@ -38,7 +35,7 @@
+@@ -40,7 +37,7 @@
                               'sha224', 'SHA224', 'sha256', 'SHA256',
                               'sha384', 'SHA384', 'sha512', 'SHA512' )
  
@@ -33,7 +33,7 @@ diff -ur src/setup.py new/setup.py
  # This global variable is used to hold the list of modules to be disabled.
  disabled_module_list = []
  
-@@ -848,21 +845,18 @@
+@@ -854,21 +851,18 @@
                  print ("warning: openssl 0x%08x is too old for _hashlib" %
                         openssl_ver)
                  missing.append('_hashlib')

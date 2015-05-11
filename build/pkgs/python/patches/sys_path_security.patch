@@ -19,7 +19,7 @@ diff -ru src/Python/sysmodule.c b/Python/sysmodule.c
  PyObject *
  PySys_GetObject(char *name)
  {
-@@ -1597,93 +1601,86 @@
+@@ -1615,93 +1619,86 @@
      return av;
  }
  
@@ -159,7 +159,7 @@ diff -ru src/Python/sysmodule.c b/Python/sysmodule.c
  #endif /* RISCOS */
  #if SEP == '/' /* Special case for Unix filename syntax */
              if (n > 1)
-@@ -1691,12 +1688,146 @@
+@@ -1709,12 +1706,146 @@
  #endif /* Unix */
          }
  #endif /* All others */

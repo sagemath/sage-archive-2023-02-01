@@ -1,23 +1,7 @@
 diff -druN python-2.7.5.orig/Lib/uuid.py python-2.7.5/Lib/uuid.py
 --- python-2.7.5.orig/Lib/uuid.py	2013-05-12 05:32:48.000000000 +0200
 +++ python-2.7.5/Lib/uuid.py	2014-04-10 10:46:45.556242700 +0200
-@@ -50,6 +50,7 @@
-     'reserved for NCS compatibility', 'specified in RFC 4122',
-     'reserved for Microsoft compatibility', 'reserved for future definition']
- 
-+
- class UUID(object):
-     """Instances of the UUID class represent UUIDs as specified in RFC 4122.
-     UUID objects are immutable, hashable, and usable as dictionary keys.
-@@ -291,6 +292,7 @@
- 
-     version = property(get_version)
- 
-+
- def _find_mac(command, args, hw_identifiers, get_index):
-     import os
-     for dir in ['', '/sbin/', '/usr/sbin']:
-@@ -390,67 +392,88 @@
+@@ -435,67 +437,88 @@
          return ((bytes[0]<<40L) + (bytes[1]<<32L) + (bytes[2]<<24L) +
                  (bytes[3]<<16L) + (bytes[4]<<8L) + bytes[5])
  
@@ -152,7 +136,7 @@ diff -druN python-2.7.5.orig/Lib/uuid.py python-2.7.5/Lib/uuid.py
          return UUID(bytes=_buffer.raw).node
  
  def _random_getnode():
-@@ -497,9 +520,12 @@
+@@ -543,9 +566,12 @@
  
      # When the system provides a version-1 UUID generator, use it (but don't
      # use UuidCreate here because its UUIDs don't conform to RFC 4122).
@@ -167,7 +151,7 @@ diff -druN python-2.7.5.orig/Lib/uuid.py python-2.7.5/Lib/uuid.py
          return UUID(bytes=_buffer.raw)
  
      global _last_timestamp
-@@ -534,9 +560,11 @@
+@@ -580,9 +606,11 @@
      """Generate a random UUID."""
  
      # When the system provides a version-4 UUID generator, use it.

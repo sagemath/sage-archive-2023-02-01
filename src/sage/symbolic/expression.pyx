@@ -242,10 +242,25 @@ def _dict_update_check_duplicate(dict d1, dict d2):
         Traceback (most recent call last):
         ...
         ValueError: duplicate substitution for a, got values 1 and 2
+
     """
-    for k in sorted(k for k in d1 if k in d2):
-        msg = "duplicate substitution for {}, got values {} and {}"
-        raise ValueError(msg.format(k, d1[k], d2[k]))
+    # We need to check for duplicates in a predictable order so that
+    # errors are reported reliably. We only need to sort one of the
+    # dictionaries to achieve that, and we suspect that d2 will
+    # generally be smaller than d1, so we sort d2. This gives us a
+    # list of d2's keys.
+    #
+    # When sorting d2, we compare the string representations of its
+    # keys rather than the keys themselves. This is because comparison
+    # of symbolic expressions doesn't do what the sorted() function
+    # needs: `x <= y` is a symbolic inequality, and we need a
+    # True/False answer. The expression 'x' <= 'y' on the other hand
+    # is unambiguous.
+    #
+    for k in sorted(d2, key=str):
+        if k in d1.keys():
+            msg = "duplicate substitution for {}, got values {} and {}"
+            raise ValueError(msg.format(k, d1[k], d2[k]))
 
     d1.update(d2)
 

@@ -258,7 +258,7 @@ def _dict_update_check_duplicate(dict d1, dict d2):
     # is unambiguous.
     #
     for k in sorted(d2, key=str):
-        if k in d1.keys():
+        if k in d1:
             msg = "duplicate substitution for {}, got values {} and {}"
             raise ValueError(msg.format(k, d1[k], d2[k]))
 

@@ -22,7 +22,7 @@ from sage.graphs.digraph import DiGraph
 from sage.combinat.permutation import Permutations
 
 
-class ShardPosetElement:
+class ShardPosetElement(tuple):
     r"""
     An element of the shard poset.
 
@@ -47,7 +47,7 @@ class ShardPosetElement:
             sage: e0 = ShardPosetElement(p0); e0
             (1, 3, 4, 2)
         """
-        self.p = tuple(p)
+        tuple.__init__(self, p)
         self.runs = p.decreasing_runs(as_tuple=True)
         self.run_indices = [None] * (len(p) + 1)
         for i, bloc in enumerate(self.runs):
@@ -56,32 +56,6 @@ class ShardPosetElement:
         G = shard_preorder_graph(self.runs)
         self.dpg = G.transitive_closure()
         self.spg = G.transitive_reduction()
-
-    def __repr__(self):
-        """
-        Return the string representation.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.shard_order import ShardPosetElement
-            sage: p0 = Permutation([1,3,4,2])
-            sage: e0 = ShardPosetElement(p0); e0
-            (1, 3, 4, 2)
-        """
-        return repr(self.p)
-
-    def __hash__(self):
-        """
-        Return the hash.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.shard_order import ShardPosetElement
-            sage: p0 = Permutation([1,3,4,2])
-            sage: e0 = ShardPosetElement(p0); hash(e0)
-            -1087745035442439091  # 64-bit
-        """
-        return hash(self.p)
 
     def __le__(self, other):
         """
@@ -114,6 +88,8 @@ class ShardPosetElement:
             sage: e1 <= e0
             False
         """
+        if type(self) is not type(other) or len(self) != len(other):
+            raise TypeError("these are not comparable")
         if self.runs == other.runs:
             return True
 

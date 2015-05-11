@@ -4398,6 +4398,8 @@ cdef class Expression(CommutativeRingElement):
         able to identify partial sums in a substitution (see :trac:`18396`)::
 
             sage: f = x + x^2 + x^4
+            sage: f.subs(x = y)
+            y^4 + y^2 + y
             sage: f.subs(x^2 == y)             # one term is fine
             x^4 + x + y
             sage: f.subs(x + x^2 == y)         # partial sum does not work
@@ -4405,24 +4407,35 @@ cdef class Expression(CommutativeRingElement):
             sage: f.subs(x + x^2 + x^4 == y)   # whole sum is fine
             y
 
-        This last result might not be the one expected. In the same vein,
-        the following seems really weird, but it *is* what Maple does::
+        Not that it is the very same behavior as in Maxima::
 
-            sage: f(x,y,t) = cos(x) + sin(y) + x^2 + y^2 + t
-            sage: f.subs(x^2 + y^2 == t)
-            (x, y, t) |--> x^2 + y^2 + t + cos(x) + sin(y)
-            sage: cmd = 'subs(x^2 + y^2 = t, cos(x) + sin(y) + x^2 + y^2 + t)'
-            sage: maple.eval(cmd)          # optional - maple
-            'cos(x)+sin(y)+x^2+y^2+t'
-            sage: maxima.quit()
-            sage: maxima.eval('cos(x) + sin(y) + x^2 + y^2 + t, x^2 + y^2 = t')
-            'sin(y)+y^2+cos(x)+x^2+t'
+            sage: E = 'x^4 + x^2 + x'
+            sage: subs = [('x','y'), ('x^2','y'), ('x^2+x','y'), ('x^4+x^2+x','y')]
 
-        Actually Mathematica does something that makes more sense::
+            sage: for s1,s2 in subs:
+            ....:     maxima.eval('{}, {}={}'.format(E, s1, s2))
+            'y^4+y^2+y'
+            'y+x^4+x'
+            'x^4+x^2+x'
+            'y'
 
-            sage: cmd = 'Cos[x] + Sin[y] + x^2 + y^2 + t /. x^2 + y^2 -> t'
-            sage: mathematica.eval(cmd)       # optional - mathematica
-            2 t + Cos[x] + Sin[y]
+        Or as in Maple::
+
+            sage: for s1,s2 in subs:                                 # optional - maple
+            ....:     maple.eval('subs({}={}, {})'.format(s1,s2, E)) # optional - maple
+            'y^4+y^2+y'
+            'x^4+x+y'
+            'x^4+x^2+x'
+            'y'
+
+        But Mathematica does something different on the third example::
+
+            sage: for s1,s2 in subs:                                     # optional - mathematica
+            ....:     mathematica.eval('{} /. {} -> {}'.format(E,s1,s2)) # optional - mathematica
+            'y^4+y^2+y'
+            'x^4+y+x'
+            'x^4+y'
+            'y'
 
         TESTS:
 

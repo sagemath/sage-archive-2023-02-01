@@ -720,8 +720,8 @@ class MultiplicativeNCSymBases(Category_realization_of_parent):
             The product on a multiplicative basis is given by
             `\mathbf{b}_A \cdot \mathbf{b}_B = \mathbf{b}_{A | B}`.
 
-            The bases `\{ \mathbf{e}, \mathbf{h}, \mathbf{x}, \mathbf{cp}, \mathbf{p} \}`
-            are all multiplicative.
+            The bases `\{ \mathbf{e}, \mathbf{h}, \mathbf{x}, \mathbf{cp}, \mathbf{p},
+            \mathbf{chi}, \mathbf{rho} \}` are all multiplicative.
 
             INPUT:
 
@@ -738,6 +738,8 @@ class MultiplicativeNCSymBases(Category_realization_of_parent):
                 sage: x = SymmetricFunctionsNonCommutingVariables(QQ).x()
                 sage: cp = SymmetricFunctionsNonCommutingVariables(QQ).cp()
                 sage: p = SymmetricFunctionsNonCommutingVariables(QQ).p()
+                sage: chi = SymmetricFunctionsNonCommutingVariables(QQ).chi()
+                sage: rho = SymmetricFunctionsNonCommutingVariables(QQ).rho()
                 sage: A = SetPartition([[1], [2, 3]])
                 sage: B = SetPartition([[1], [3], [2,4]])
                 sage: e.product_on_basis(A, B)
@@ -750,6 +752,10 @@ class MultiplicativeNCSymBases(Category_realization_of_parent):
                 cp{{1}, {2, 3}, {4}, {5, 7}, {6}}
                 sage: p.product_on_basis(A, B)
                 p{{1}, {2, 3}, {4}, {5, 7}, {6}}
+                sage: chi.product_on_basis(A, B)
+                chi{{1}, {2, 3}, {4}, {5, 7}, {6}}
+                sage: rho.product_on_basis(A, B)
+                rho{{1}, {2, 3}, {4}, {5, 7}, {6}}
                 sage: e.product_on_basis(A,B)==e(h(e(A))*h(e(B)))
                 True
                 sage: h.product_on_basis(A,B)==h(x(h(A))*x(h(B)))

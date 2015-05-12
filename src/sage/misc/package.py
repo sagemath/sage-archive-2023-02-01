@@ -230,7 +230,12 @@ def _package_lists_from_sage_output(package_type):
         print("not available or corrupted (network error?).")
         return [], []
 
-    pname_from_line = lambda line: line[:line.split(' ')[0].rfind('-')]
+    def pname_from_line(line):
+        pname = line.split(' ')[0]
+        if '-' in pname:
+            return pname[:pname.rfind('-')]
+        else:
+            return pname
 
     installed     = [pname_from_line(l) for l in X
                      if ('already installed' in l or

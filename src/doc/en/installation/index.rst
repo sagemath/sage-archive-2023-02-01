@@ -13,7 +13,6 @@ the installation of Sage packages.)
    quick-guide
    binary
    source
-   sagetex
    icon
 
 This work is licensed under a `Creative Commons Attribution-Share Alike

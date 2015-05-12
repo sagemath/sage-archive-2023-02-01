@@ -4,14 +4,12 @@
 Using SageTeX
 *************
 
-The SageTeX package allows you to embed the results of Sage computations
-into a LaTeX document. It comes standard with Sage. To use it, you will
-need to "install" it into your local TeX system; here "install" means
-copying a single file. See :ref:`installation` in this tutorial and the
-"Make SageTeX known to TeX" section of the `Sage installation guide
-<http://sagemath.org/doc/installation/index.html>`_ (`this link
-<../installation/index.html>`_ should take you to a local copy of the
-installation guide) for more information on doing that.
+The SageTeX package allows you to embed the results of Sage computations into a
+LaTeX document. To use it, you will need to "install" it first (see
+:ref:`sec-sagetex_install`).
+
+An example
+----------
 
 Here is a very brief example of using SageTeX. The full documentation
 can be found in ``SAGE_ROOT/local/share/doc/sagetex``,
@@ -20,9 +18,9 @@ located. That directory contains the documentation and an example file.
 See ``SAGE_ROOT/local/share/texmf/tex/generic/sagetex`` for
 some possibly useful Python scripts.
 
-To see how SageTeX works, follow the directions for installing SageTeX
-(in :ref:`installation`) and copy the following text into a file named,
-say, ``st_example.tex``:
+To see how SageTeX works, follow the directions for installing SageTeX (in
+:ref:`sec-sagetex_install`) and copy the following text into a file named, say,
+``st_example.tex``:
 
 .. warning::
 
@@ -107,8 +105,10 @@ complex, powerful tools, it's a good idea to read the documentation for
 SageTeX, which is in
 ``SAGE_ROOT/local/share/doc/sagetex``.
 
+.. _sec-sagetex_install:
+
 Make SageTeX known to TeX
-===========================
+-------------------------
 
 Sage is largely self-contained, but some parts do need some intervention
 to work properly. SageTeX is one such part.

@@ -814,9 +814,7 @@ class SignedPermutations(ColoredPermutations):
 
     def simple_reflection(self, i):
         r"""
-        Return the ``i``-th simple refection of ``self``.
-
-        Return the generators of ``self``.
+        Return the ``i``-th simple reflection of ``self``.
 
         EXAMPLES::
 

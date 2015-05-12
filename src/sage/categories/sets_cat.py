@@ -1682,7 +1682,9 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
             def is_finite(self):
                 """
-                Return ``False`` since ``self`` is not finite.
+                Return whether this set is finite.
+
+                Since this set is infinite this always returns ``False``.
 
                 EXAMPLES::
 
@@ -1699,9 +1701,9 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
             def is_empty(self):
                 r"""
-                Test whether this set is empty.
+                Return whether this set is empty.
 
-                Since this set is infinite it is not empty.
+                Since this set is infinite this always returns ``False``.
 
                 EXAMPLES::
 
@@ -2021,7 +2023,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
             def is_empty(self):
                 r"""
-                Test whether this set is empty.
+                Return whether this set is empty.
 
                 EXAMPLES::
 
@@ -2037,7 +2039,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
             def is_finite(self):
                 r"""
-                Test whether this set is finite.
+                Return whether this set is finite.
 
                 EXAMPLES::
 
@@ -2094,8 +2096,8 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 r"""
                 Return a random element of this cartesian product.
 
-                The extra arguments are sent to each of the factor of the
-                cartesian product.
+                The extra arguments are passed down to each of the
+                factors of the cartesian product.
 
                 EXAMPLES::
 

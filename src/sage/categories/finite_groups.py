@@ -211,6 +211,3 @@ class FiniteGroups(CategoryWithAxiom):
                 return [Algebras(self.base_ring()).Semisimple()]
             else:
                 return []
-
-
-

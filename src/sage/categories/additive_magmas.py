@@ -762,7 +762,7 @@ class AdditiveMagmas(Category_singleton):
                 Return whether this set is empty.
 
                 Since this set is an additive magma it has a zero element and
-                hence is not empty. This method always return ``False``.
+                hence is not empty. This method thus always returns ``False``.
 
                 EXAMPLES::
 

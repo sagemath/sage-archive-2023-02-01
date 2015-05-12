@@ -484,18 +484,20 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             return [FiniteEnumeratedSets()]
 
         class ParentMethods:
-            # NOTE: three methods are overriden to avoid the default
-            # implementations in FiniteEnumeratedSets
+            # Ambiguity resolution between methods inherited from
+            # Sets.CartesianProducts and from EnumeratedSets.Finite.
             random_element = Sets.CartesianProducts.ParentMethods.random_element.im_func
             r"""
-            Return a random element
+            Return a random element.
 
             TESTS:
 
-            We check that parents inherit the right function::
+            We check that cartesian products of finite enumerated sets
+            inherit the `random` method from `Sets.CartesianProducts`
+            and not from :class:`EnumeratedSets.Finite`::
 
                 sage: C = cartesian_product([Permutations(10), Permutations(10)])
-                sage: C in FiniteEnumeratedSets()
+                sage: C in EnumeratedSets().Finite()
                 True
                 sage: C.random_element.__module__
                 'sage.categories.sets_cat'
@@ -503,14 +505,16 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
             cardinality = Sets.CartesianProducts.ParentMethods.cardinality.im_func
             r"""
-            Return the cardinality
+            Return the cardinality.
 
             TESTS:
 
-            We check that parents inherit the right function::
+            We check that cartesian products of finite enumerated sets
+            inherit the `cardinality` method from `Sets.CartesianProducts`
+            and not from :class:`EnumeratedSets.Finite`::
 
                 sage: C = cartesian_product([Partitions(10), Permutations(12)])
-                sage: C in FiniteEnumeratedSets()
+                sage: C in EnumeratedSets().Finite()
                 True
                 sage: C.cardinality.__module__
                 'sage.categories.sets_cat'
@@ -522,10 +526,12 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
             TESTS:
 
-            We check parents inherit the right function::
+            We check that cartesian products of finite enumerated sets
+            inherit the `__iter__` method from `Sets.CartesianProducts`
+            and not from :class:`EnumeratedSets.Finite`::
 
                 sage: C = cartesian_product([Partitions(10), Permutations(12)])
-                sage: C in FiniteEnumeratedSets()
+                sage: C in EnumeratedSets().Finite()
                 True
                 sage: C.__iter__.__module__
                 'sage.categories.enumerated_sets'
@@ -546,11 +552,16 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
             def rank(self, x):
                 r"""
-                The rank of an element of this cartesian product
+                Return the rank of an element of this cartesian product.
 
-                The *rank* of ``x`` is its position in the enumeration.  It is
-                an integer between ``0`` and ``n-1`` where ``n`` is the
-                cardinality of this set.
+                The *rank* of ``x`` is its position in the
+                enumeration. It is an integer between ``0`` and
+                ``n-1`` where ``n`` is the cardinality of this set.
+
+                .. SEEALSO::
+
+                    - :meth:`EnumeratedSets.ParentMethods.rank`
+                    - :meth:`unrank`
 
                 EXAMPLES::
 
@@ -588,19 +599,24 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 b = ZZ.one()
                 rank = ZZ.zero()
                 for f,c in itertools.izip(reversed(x.cartesian_factors()),
-                                      reversed(self.cartesian_factors())):
+                                          reversed(self.cartesian_factors())):
                     rank += b * c.rank(f)
                     b *= c.cardinality()
                 return rank
 
             def unrank(self, i):
                 r"""
-                The ``i``-th element of this cartesian product
+                Return the ``i``-th element of this cartesian product.
 
                 INPUT:
 
-                - ``i`` -- integer between ``0`` and ``n-1`` where ``n`` is the
-                  cardinality of this set.
+                - ``i`` -- integer between ``0`` and ``n-1`` where
+                  ``n`` is the cardinality of this set.
+
+                .. SEEALSO::
+
+                    - :meth:`EnumeratedSets.ParentMethods.unrank`
+                    - :meth:`rank`
 
                 EXAMPLES::
 

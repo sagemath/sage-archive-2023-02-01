@@ -324,7 +324,7 @@ class EnumeratedSets(Category_singleton):
             """
             The ``r``-th element of ``self``
 
-            ``self.unrank(r)`` returns the ``r``-th element of self where
+            ``self.unrank(r)`` returns the ``r``-th element of self, where
             ``r`` is an integer between ``0`` and ``n-1`` where ``n`` is the
             cardinality of ``self``.
 
@@ -716,8 +716,8 @@ class EnumeratedSets(Category_singleton):
 
         class ParentMethods:
             def __iter__(self):
-                """
-                Return an iterator for the elements of this cartesian product
+                r"""
+                Return an iterator for the elements of this cartesian product.
 
                 EXAMPLES::
 
@@ -751,18 +751,30 @@ class EnumeratedSets(Category_singleton):
                      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                      [1, 2, 3, 4, 5, 6, 7, 8, 10, 9])
 
-                    sage: it = iter(cartesian_product([ZZ,GF(5)]))
-                    sage: it.next()
-                    Traceback (most recent call last):
-                    ...
-                    ValueError: the iteration order of cartesian product of
-                    infinite sets is not well defined
+                .. WARNING::
+
+                    The elements are returned in lexicographic order,
+                    which gives a valid enumeration only in the finite
+                    case::
+
+                        sage: it = iter(cartesian_product([ZZ,GF(5)]))
+                        sage: it.next()
+                        Traceback (most recent call last):
+                        ...
+                        ValueError: the iteration order of cartesian product of
+                        infinite sets is not well defined
+
 
                 .. NOTE::
 
-                    Here it would be faster to use ``itertools.factor`` for sets
+                    Here it would be faster to use :meth:`itertools.product` for sets
                     of small size. But the latter expands all factor in memory!
                     So we can not reasonably use it in general.
+
+                ALGORITHM:
+
+                Recipe 19.9 in the Python Cookbook by Alex Martelli
+                and David Ascher.
                 """
                 if not self.is_finite():
                     raise ValueError("the iteration order of cartesian product of infinite sets is not well defined")

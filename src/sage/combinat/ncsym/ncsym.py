@@ -529,7 +529,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             `C` such that `C \wedge ([n] | [k]) = A | B` where `n = |A|`
             and `k = |B|`. Here `A \wedge B` is the infimum of `A` and `B`
             and `A | B` is the
-            :meth:`~sage.combinat.set_partition.SetPartition.pipe` operation.
+            :meth:`SetPartition.pipe` operation.
             Equivalently we can describe all `C` as matchings between the
             partitions of `A` and `B` where if `a \in A` is matched
             with `b \in B`, we take `a \cup b` instead of `a` and `b` in `C`.

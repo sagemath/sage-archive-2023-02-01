@@ -36,7 +36,8 @@ from yang_baxter_graph import YangBaxterGraph
 #Permutations
 from permutation import Permutation, Permutations, Arrangements, PermutationOptions, CyclicPermutations, CyclicPermutationsOfPartition
 from affine_permutation import AffinePermutationGroup
-from colored_permutations import ColoredPermutations, SignedPermutations
+lazy_import('sage.combinat.colored_permutations', ['ColoredPermutations',
+                                                   'SignedPermutations'])
 from derangements import Derangements
 lazy_import('sage.combinat.baxter_permutations', ['BaxterPermutations'])
 

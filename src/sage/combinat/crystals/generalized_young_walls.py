@@ -40,17 +40,16 @@ REFERENCES:
 import re
 from copy import deepcopy
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.combinat.combinat import CombinatorialObject
+from sage.combinat.combinat import CombinatorialElement
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.root_system.root_system import RootSystem
 from sage.rings.infinity import Infinity
 
-class GeneralizedYoungWall(CombinatorialObject, Element):
+class GeneralizedYoungWall(CombinatorialElement):
     r"""
     A generalized Young wall.
 
@@ -85,8 +84,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
         else:
             self.cols = max([len(r) for r in data])
         self.data = data
-        CombinatorialObject.__init__(self, data)
-        Element.__init__(self, parent)
+        CombinatorialElement.__init__(self, parent, data)
 
     def _repr_(self):
         r"""

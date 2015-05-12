@@ -180,12 +180,12 @@ from itertools import chain
 from sage.misc.all import prod
 from sage.functions.all import factorial
 from sage.rings.arith import moebius
-from sage.structure.parent import Parent
 from sage.structure.element import Element
+from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.combinat.combinat import CombinatorialObject
+from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.partition import Partitions, Partition
 from sage.rings.all import ZZ, QQ, FractionField, divisors
 from sage.misc.cachefunc import cached_in_parent_method, cached_function
@@ -652,7 +652,7 @@ class PrimarySimilarityClassTypes(Parent, UniqueRepresentation):
 
 ###############################################################################
 
-class SimilarityClassType(CombinatorialObject, Element):
+class SimilarityClassType(CombinatorialElement):
     r"""
     A similarity class type.
 
@@ -667,8 +667,6 @@ class SimilarityClassType(CombinatorialObject, Element):
         sage: tau1 = SimilarityClassType([[3, [3, 2, 1]], [2, [2, 1]]]); tau1
         [[2, [2, 1]], [3, [3, 2, 1]]]
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, tau):
         """
@@ -712,8 +710,8 @@ class SimilarityClassType(CombinatorialObject, Element):
             sage: elt =  SimilarityClassType([[3, [3, 2, 1]], [2, [2, 1]]])
             sage: TestSuite(elt).run()
         """
-        CombinatorialObject.__init__(self, sorted(tau, key=lambda PT: (PT.degree(), PT.partition())))
-        Element.__init__(self, parent)
+        tau = sorted(tau, key=lambda PT: (PT.degree(), PT.partition()))
+        CombinatorialElement.__init__(self, parent, tau)
 
     def size(self):
         """

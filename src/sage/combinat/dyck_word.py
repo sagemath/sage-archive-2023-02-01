@@ -58,13 +58,12 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from combinat import CombinatorialObject, catalan_number
+from combinat import CombinatorialElement, catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
 from backtrack import GenericBacktracker
 
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
-from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -75,7 +74,6 @@ from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.words.word import Word
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrices
 from sage.misc.latex import latex
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.superseded import deprecated_function_alias
 
 
@@ -240,7 +238,7 @@ def replace_symbols(x):
         raise ValueError
 
 
-class DyckWord(CombinatorialObject, Element):
+class DyckWord(CombinatorialElement):
     r"""
     A Dyck word.
 
@@ -334,8 +332,6 @@ class DyckWord(CombinatorialObject, Element):
          _|  .
         |  . .
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, dw=None, noncrossing_partition=None,
                               area_sequence=None, heights_sequence=None,
@@ -403,8 +399,7 @@ class DyckWord(CombinatorialObject, Element):
             sage: DW = DyckWords().from_area_sequence([])
             sage: TestSuite(DW).run()
         """
-        Element.__init__(self, parent)
-        CombinatorialObject.__init__(self, l)
+        CombinatorialElement.__init__(self, parent, l)
         self._latex_options = dict(latex_options)
 
     _has_2D_print = False

@@ -111,8 +111,11 @@ cdef class ManinSymbol(Element):
             [X^2*Y^4,(2,3)]
 
         """
-        self.__t = t
         Element.__init__(self, parent)
+        (i, u, v) = t
+        self.i = Integer(i)
+        self.u = Integer(u)
+        self.v = Integer(v)
 
     def __reduce__(self):
         """
@@ -128,7 +131,7 @@ cdef class ManinSymbol(Element):
             (2,3)
 
         """
-        return ManinSymbol, (self.parent(), self.__t)
+        return ManinSymbol, (self.parent(), self.tuple())
 
     def __setstate__(self, state):
         """
@@ -145,7 +148,7 @@ cdef class ManinSymbol(Element):
 
         """
         self._parent = state['_ManinSymbol__parent']
-        self.__t = state['_ManinSymbol__t']
+        (self.i, self.u, self.v) = state['_ManinSymbol__t']
 
     def tuple(self):
         r"""
@@ -159,61 +162,8 @@ cdef class ManinSymbol(Element):
             sage: s = ManinSymbol(m,(2,2,3))
             sage: s.tuple()
             (2, 2, 3)
-
         """
-        return self.__t
-
-    def __get_i(self):
-        """
-        Return the `i` field of this Manin symbol `(i,u,v)`.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
-            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3))
-            sage: s.__get_i()
-            2
-            sage: s.i
-            2
-        """
-        return self.__t[0]
-
-    i = property(__get_i)
-
-    def __get_u(self):
-        """
-        Return the `u` field of this Manin symbol `(i,u,v)`.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
-            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3))
-            sage: s.u # indirect doctest
-            2
-        """
-        return self.__t[1]
-
-    u = property(__get_u)
-
-    def __get_v(self):
-        """
-        Return the `v` field of this Manin symbol `(i,u,v)`.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbol import ManinSymbol
-            sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3))
-            sage: s.v # indirect doctest
-            3
-        """
-        return self.__t[2]
-    v = property(__get_v)
+        return (self.i, self.u, self.v)
 
     def _repr_(self):
         """
@@ -249,7 +199,7 @@ cdef class ManinSymbol(Element):
         """
         return self._repr_()
 
-    def __cmp__(self, other):
+    cpdef int _cmp_(self, Element right) except -2:
         """
         Comparison function for ManinSymbols.
 
@@ -259,6 +209,10 @@ cdef class ManinSymbol(Element):
             sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: slist = m.manin_symbol_list()
+            sage: slist[10] <= slist[20]
+            True
+            sage: slist[20] <= slist[10]
+            False
             sage: cmp(slist[10],slist[20])
             -1
             sage: cmp(slist[20],slist[10])
@@ -266,9 +220,9 @@ cdef class ManinSymbol(Element):
             sage: cmp(slist[20],slist[20])
             0
         """
-        if not isinstance(other, ManinSymbol):
-            return -1
-        return cmp(self.tuple(), other.tuple())
+        cdef ManinSymbol other = <ManinSymbol>right
+        # Compare tuples (i,u,v)
+        return cmp(self.i, other.i) or cmp(self.u, other.u) or cmp(self.v, other.v)
 
     def __mul__(self, matrix):
         """
@@ -300,10 +254,10 @@ cdef class ManinSymbol(Element):
             if (not matrix.nrows() == 2) or (not matrix.ncols() == 2):
                 raise ValueError("matrix(=%s) must be 2x2" % matrix)
             matrix = matrix.list()
-        return self.__class__(self.parent(),
-                              (self.i,
-                               matrix[0]*self.u + matrix[2]*self.v,
-                               matrix[1]*self.u + matrix[3]*self.v))
+        return type(self)(self.parent(),
+                          (self.i,
+                           matrix[0]*self.u + matrix[2]*self.v,
+                           matrix[1]*self.u + matrix[3]*self.v))
 
     def apply(self, a,b,c,d):
         """
@@ -335,7 +289,7 @@ cdef class ManinSymbol(Element):
             sage: s2
             [X^2*Y^4,(2,3)]
         """
-        return self.__class__(self.parent(), (self.i, self.u, self.v))
+        return type(self)(self.parent(), (self.i, self.u, self.v))
 
     def lift_to_sl2z(self, N=None):
         r"""

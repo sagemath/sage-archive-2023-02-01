@@ -1,3 +1,6 @@
+Standard packages
+=================
+
 The Sage distribution includes most programs on which Sage depends --
 see a partial list below. These programs are all released under a
 license compatible with the GNU General Public License (GPL), version 3.

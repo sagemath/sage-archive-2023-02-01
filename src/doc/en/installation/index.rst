@@ -14,10 +14,10 @@ for you to build some of the packages that come with Sage (e.g., Singular).
 .. toctree::
    :maxdepth: 1
 
-   introduction
    quick-guide
    binary
    source
+   standard_packages
    icon
 
 This work is licensed under a `Creative Commons Attribution-Share Alike

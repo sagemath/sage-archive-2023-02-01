@@ -15,7 +15,6 @@ the installation of Sage packages.)
    source
    sagetex
    icon
-   documentation
 
 This work is licensed under a `Creative Commons Attribution-Share Alike
 3.0 License`__.

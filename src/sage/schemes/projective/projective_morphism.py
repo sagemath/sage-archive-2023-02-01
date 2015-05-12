@@ -3212,16 +3212,16 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 #apply this algorithm.
                 g = self.dehomogenize(1)
                 inf = PS([1,0])
+                k = 1
                 if isinstance(g[0], FractionFieldElement):
                     g = self.dehomogenize(0)
                     inf = PS([0,1])
+                    k = 0
                     if isinstance(g[0], FractionFieldElement):
                         raise NotImplementedError("Rational Preperiodic Points for Number Fields only implemented for polynomials")
                 #determine rational preperiodic points
-                preper = set()
-                #check infty
-                if inf.is_preperiodic(self):
-                    preper.add(inf)
+                #infinity is a totally ramified fixed point for a polynomial
+                preper = set([inf])
                 #compute the weil resctriction
                 G = g.weil_restriction()
                 F = G.homogenize(d)
@@ -3231,7 +3231,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                     #take the 'good' points in the weil restriction and find the
                     #associated number field points.
                     if P[d] == 1:
-                        Q = PS(sum([P[i]*w**i for i in range(d)]))
+                        pt = [sum([P[i]*w**i for i in range(d)])]
+                        pt.insert(k,1)
+                        Q = PS(pt)
                         #for each preperidic point get the entire connected component
                         if not Q in preper:
                             for t in self.connected_rational_component(Q):
@@ -3254,6 +3256,8 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                     preper = self.all_rational_preimages(T) #find the preperiodic points
                     preper = list(preper)
             return(preper)
+        else:
+            raise TypeError("Base field must be an absolute number field")
 
     def rational_preperiodic_graph(self, **kwds):
         r"""

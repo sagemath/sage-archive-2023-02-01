@@ -193,7 +193,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
     .. [BRRZ08] N. Bergeron, C. Reutenauer, M. Rosas, M. Zabrocki.
        *Invariants and coinvariants of the symmetric group in noncommuting
        variables*. Canad. J. Math. **60** (2008). 266-296.
-       http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/2008/NBergeronRosasZabrocki.pdf
+       :arxiv:`math/0502082`
 
     .. [BT13] N. Bergeron, N. Thiem. *A supercharacter table decomposition
        via power-sum symmetric functions*. Int. J. Algebra Comput. **23**,

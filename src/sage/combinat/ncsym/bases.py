@@ -720,7 +720,7 @@ class MultiplicativeNCSymBases(Category_realization_of_parent):
             The product on a multiplicative basis is given by
             `\mathbf{b}_A \cdot \mathbf{b}_B = \mathbf{b}_{A | B}`.
 
-            The bases `\{ \mathbf{e}, \mathbf{h}, \mathbf{x}, \mathbf{q}, \mathbf{p} \}`
+            The bases `\{ \mathbf{e}, \mathbf{h}, \mathbf{x}, \mathbf{cp}, \mathbf{p} \}`
             are all multiplicative.
 
             INPUT:

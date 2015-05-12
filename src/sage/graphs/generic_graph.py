@@ -16269,7 +16269,9 @@ class GenericGraph(GenericGraph_pyx):
             vertex_labels=True,edge_labels=False,
             edge_color=None,edge_colors=None,
             edge_options = (),
-            color_by_label=False)
+            color_by_label=False,
+            rankdir="down",
+    )
     def graphviz_string(self, **options):
         r"""
         Returns a representation in the dot language.
@@ -16438,6 +16440,43 @@ class GenericGraph(GenericGraph_pyx):
               node_10 -> node_5 [color = "blue"];
             }
 
+        By default ``graphviz`` renders digraphs using a hierarchical
+        layout, ranking the vertices down from top to bottom. Here we
+        specify alternative ranking directions for this layout::
+
+            sage: D = DiGraph([[1,2]])
+            sage: print D.graphviz_string(rankdir="up")
+            digraph {
+              rankdir=BT
+              node_0  [label="1"];
+              node_1  [label="2"];
+            <BLANKLINE>
+              node_0 -> node_1;
+            }
+            sage: print D.graphviz_string(rankdir="down")
+            digraph {
+              node_0  [label="1"];
+              node_1  [label="2"];
+            <BLANKLINE>
+              node_0 -> node_1;
+            }
+            sage: print D.graphviz_string(rankdir="left")
+            digraph {
+              rankdir=RL
+              node_0  [label="1"];
+              node_1  [label="2"];
+            <BLANKLINE>
+              node_0 -> node_1;
+            }
+            sage: print D.graphviz_string(rankdir="right")
+            digraph {
+              rankdir=LR
+              node_0  [label="1"];
+              node_1  [label="2"];
+            <BLANKLINE>
+              node_0 -> node_1;
+            }
+
         Edge-specific options can also be specified by providing a
         function (or tuple thereof) which maps each edge to a
         dictionary of options. Valid options are "color", "backward"
@@ -16602,6 +16641,11 @@ class GenericGraph(GenericGraph_pyx):
         key = self._keys_for_vertices()
 
         s = '%s {\n' % graph_string
+        if options['rankdir'] != "down":
+            directions = {'up': 'BT', 'down': 'TB', 'left': 'RL', 'right': 'LR'}
+            if options['rankdir'] not in directions:
+                raise ValueError("rankdir should be one of %s"%directions.keys())
+            s += '  rankdir=%s\n'%(directions[options['rankdir']])
         if (options['vertex_labels'] and
             options['labels'] == "latex"): # not a perfect option name
             # TODO: why do we set this only for latex labels?

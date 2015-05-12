@@ -484,58 +484,36 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             return [FiniteEnumeratedSets()]
 
         class ParentMethods:
-            # Ambiguity resolution between methods inherited from
-            # Sets.CartesianProducts and from EnumeratedSets.Finite.
-            random_element = Sets.CartesianProducts.ParentMethods.random_element.im_func
             r"""
-            Return a random element.
-
             TESTS:
 
+            Ideally, these tests should be just after the declaration of the
+            associated attributes. But doing this way, Sage will not consider
+            them as a doctest.
+
             We check that cartesian products of finite enumerated sets
-            inherit the `random` method from `Sets.CartesianProducts`
+            inherit various methods from `Sets.CartesianProducts`
             and not from :class:`EnumeratedSets.Finite`::
 
-                sage: C = cartesian_product([Permutations(10), Permutations(10)])
+                sage: C = cartesian_product([Partitions(10), Permutations(20)])
                 sage: C in EnumeratedSets().Finite()
                 True
+
                 sage: C.random_element.__module__
                 'sage.categories.sets_cat'
-            """
 
-            cardinality = Sets.CartesianProducts.ParentMethods.cardinality.im_func
-            r"""
-            Return the cardinality.
-
-            TESTS:
-
-            We check that cartesian products of finite enumerated sets
-            inherit the `cardinality` method from `Sets.CartesianProducts`
-            and not from :class:`EnumeratedSets.Finite`::
-
-                sage: C = cartesian_product([Partitions(10), Permutations(12)])
-                sage: C in EnumeratedSets().Finite()
-                True
                 sage: C.cardinality.__module__
                 'sage.categories.sets_cat'
-            """
 
-            __iter__ = EnumeratedSets.CartesianProducts.ParentMethods.__iter__.im_func
-            r"""
-            Return an iterator through the element of this cartesian product
-
-            TESTS:
-
-            We check that cartesian products of finite enumerated sets
-            inherit the `__iter__` method from `Sets.CartesianProducts`
-            and not from :class:`EnumeratedSets.Finite`::
-
-                sage: C = cartesian_product([Partitions(10), Permutations(12)])
-                sage: C in EnumeratedSets().Finite()
-                True
                 sage: C.__iter__.__module__
                 'sage.categories.enumerated_sets'
             """
+
+            # Ambiguity resolution between methods inherited from
+            # Sets.CartesianProducts and from EnumeratedSets.Finite.
+            random_element = Sets.CartesianProducts.ParentMethods.random_element.im_func
+            cardinality = Sets.CartesianProducts.ParentMethods.cardinality.im_func
+            __iter__ = EnumeratedSets.CartesianProducts.ParentMethods.__iter__.im_func
 
             def last(self):
                 r"""
@@ -645,7 +623,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                     card = c.cardinality()
                     elt.insert(0, c.unrank(i % card))
                     i //= card
-                if i > 0:
+                if i:
                     raise IndexError("index i (={}) is greater than the cardinality".format(i))
                 return self._cartesian_product_of_elements(elt)
 

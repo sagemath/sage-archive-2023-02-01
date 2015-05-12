@@ -766,12 +766,24 @@ class AdditiveMagmas(Category_singleton):
 
                 EXAMPLES::
 
-                    sage: NN.is_empty()
+                    sage: A = AdditiveAbelianGroup([3,3])
+                    sage: A in AdditiveMagmas()
+                    True
+                    sage: A.is_empty()
                     False
 
-                TESTS::
+                    sage: B = CommutativeAdditiveMonoids().example()
+                    sage: B.is_empty()
+                    False
 
-                    sage: NN.is_empty.__module__
+                TESTS:
+
+                We check that the method `is_empty` is inherited from this
+                category in both examples above::
+
+                    sage: A.is_empty.__module__
+                    'sage.categories.additive_magmas'
+                    sage: B.is_empty.__module__
                     'sage.categories.additive_magmas'
                 """
                 return False

@@ -1352,70 +1352,16 @@ class Sets(Category_singleton):
                 tester.assertTrue(x in self, LazyFormat(
                     "the object %s in self.some_elements() is not in self")%(x,))
 
-        def cardinality(self):
-            """
-            The cardinality of ``self``.
+        #Note: the four methods 'cardinality', 'is_finite_, 'is_empty' and
+        # 'random_element' might or might not be implemented in the parent
+        # objects. Most of the time a default implementation will be provided by
+        # a subcategory of Sets. We do not declare them as optional abstract
+        # methods to not pollute the namespace.
 
-            ``self.cardinality()`` should return the cardinality of the set
-            ``self`` as a sage :class:`Integer` or as ``infinity``.
-
-            This if the default implementation from the category
-            ``Sets()``; it raises a ``NotImplementedError`` since one
-            does not know whether the set is finite or not.
-
-            EXAMPLES::
-
-                sage: class broken(UniqueRepresentation, Parent):
-                ....:     def __init__(self):
-                ....:         Parent.__init__(self, category = Sets())
-                ....:     def _repr_(self):
-                ....:         return 'broken parent'
-                sage: broken().cardinality()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError: unknown cardinality for 'broken parent'
-            """
-            raise NotImplementedError("unknown cardinality for '{}'".format(self))
-
-        def is_finite(self):
-            r"""
-            Return whether this set is finite.
-
-            EXAMPLES::
-
-                sage: Set([1,2,3]).is_finite()
-                True
-            """
-            from sage.rings.infinity import Infinity
-            return self.cardinality() != Infinity
-
-        def is_empty(self):
-            r"""
-            Return whether this set is empty.
-
-            EXAMPLES::
-
-                sage: Set([]).is_empty()
-                True
-            """
-            return self.cardinality().is_zero()
-
-        def random_element(self):
-            r"""
-            TESTS::
-
-                sage: class Broken(UniqueRepresentation, Parent):
-                ....:     def __init__(self):
-                ....:         Parent.__init__(self, category=Sets())
-                ....:     def _repr_(self):
-                ....:         return "broken parent"
-                sage: Broken().random_element()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError: random_element not implemented
-                for 'broken parent'
-            """
-            raise NotImplementedError("random_element not implemented for '{}'".format(self))
+        # def cardinality(self)
+        # def is_finite(self)
+        # def is_empty(self)
+        # def random_element(self):
 
         # Functorial constructions
 
@@ -2082,15 +2028,23 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     True
                 """
                 f = self.cartesian_factors()
-                if any(c.is_empty() for c in f):
-                    from sage.rings.integer_ring import ZZ
-                    return ZZ.zero()
-                elif any(not c.is_finite() for c in f):
-                    from sage.rings.infinity import Infinity
-                    return Infinity
+
+                try:
+                    # Note: some parent might not implement "is_empty". So we
+                    # carefully isolate this test.
+                    is_empty = any(c.is_empty() for c in f)
+                except Exception:
+                    pass
                 else:
-                    from sage.misc.misc_c import prod
-                    return prod(c.cardinality() for c in f)
+                    if is_empty:
+                        from sage.rings.integer_ring import ZZ
+                        return ZZ.zero()
+                    elif any(c in Sets().Infinite() for c in f):
+                        from sage.rings.infinity import Infinity
+                        return Infinity
+
+                from sage.misc.misc_c import prod
+                return prod(c.cardinality() for c in f)
 
             def random_element(self, *args):
                 r"""
@@ -2120,7 +2074,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     True
                 """
                 return self._cartesian_product_of_elements(
-                        tuple(c.random_element(*args) for c in self.cartesian_factors()))
+                        c.random_element(*args) for c in self.cartesian_factors())
 
             @abstract_method
             def _sets_keys(self):

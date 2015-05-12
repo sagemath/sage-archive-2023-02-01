@@ -717,7 +717,7 @@ class EnumeratedSets(Category_singleton):
         class ParentMethods:
             def __iter__(self):
                 r"""
-                Return an iterator for the elements of this cartesian product.
+                Return a lexicographic iterator for the elements of this cartesian product.
 
                 EXAMPLES::
 
@@ -754,20 +754,30 @@ class EnumeratedSets(Category_singleton):
                 .. WARNING::
 
                     The elements are returned in lexicographic order,
-                    which gives a valid enumeration only in the finite
-                    case::
+                    which gives a valid enumeration only if the factors
+                    excluding the first one are finite. So the following one is
+                    fine::
 
-                        sage: it = iter(cartesian_product([ZZ,GF(5)]))
-                        sage: it.next()
-                        Traceback (most recent call last):
-                        ...
-                        ValueError: the iteration order of cartesian product of
-                        infinite sets is not well defined
+                        sage: it = iter(cartesian_product([ZZ, GF(2)]))
+                        sage: [it.next() for _ in range(10)]
+                        [(0, 0), (0, 1), (1, 0), (1, 1),
+                         (-1, 0), (-1, 1), (2, 0), (2, 1),
+                         (-2, 0), (-2, 1)]
 
+                    But this one is not::
+
+                        sage: it = iter(cartesian_product([GF(2), ZZ]))
+                        sage: [it.next() for _ in range(10)]
+                        doctest:...: UserWarning: Sage is not able to determine
+                        whether the factors of this cartesian product are
+                        finite. The lexicographic ordering might not go through
+                        all elements.
+                        [(0, 0), (0, 1), (0, -1), (0, 2), (0, -2),
+                         (0, 3), (0, -3), (0, 4), (0, -4), (0, 5)]
 
                 .. NOTE::
 
-                    Here it would be faster to use :meth:`itertools.product` for sets
+                    Here it would be faster to use :func:`itertools.product` for sets
                     of small size. But the latter expands all factor in memory!
                     So we can not reasonably use it in general.
 
@@ -776,8 +786,11 @@ class EnumeratedSets(Category_singleton):
                 Recipe 19.9 in the Python Cookbook by Alex Martelli
                 and David Ascher.
                 """
-                if not self.is_finite():
-                    raise ValueError("the iteration order of cartesian product of infinite sets is not well defined")
+                if any(f not in Sets().Finite() for f in self.cartesian_factors()[1:]):
+                    from warnings import warn
+                    warn("Sage is not able to determine whether the factors of "
+                         "this cartesian product are finite. The lexicographic "
+                         "ordering might not go through all elements.")
 
                 # visualize an odometer, with "wheels" displaying "digits"...:
                 factors = list(self.cartesian_factors())

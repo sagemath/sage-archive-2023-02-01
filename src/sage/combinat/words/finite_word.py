@@ -1852,7 +1852,7 @@ class FiniteWord_class(Word_class):
 
         TESTS:
 
-        We check that trac #11128 is fixed::
+        We check that :trac:`11128` is fixed::
 
             sage: w = Word([0,0,1,0,2,1])
             sage: [w.conjugate(i).conjugate_position(w) for i in range(w.length())]
@@ -1917,7 +1917,7 @@ class FiniteWord_class(Word_class):
             sage: Word('12131').is_conjugate_with(Word('11213'))
             True
 
-        We make sure that trac #11128 is fixed::
+        We make sure that :trac:`11128` is fixed::
 
             sage: Word('abaa').is_conjugate_with(Word('aaba'))
             True
@@ -6560,7 +6560,7 @@ class FiniteWord_class(Word_class):
 
         TESTS:
 
-        We make sure that #8490 is fixed::
+        We make sure that :trac:`8490` is fixed::
 
             sage: Word('11').is_square_free()
             False
@@ -6613,7 +6613,7 @@ class FiniteWord_class(Word_class):
 
         TESTS:
 
-        We make sure that #8490 is fixed::
+        We make sure that :trac:`8490` is fixed::
 
             sage: Word('111').is_cube_free()
             False

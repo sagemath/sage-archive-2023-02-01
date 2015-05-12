@@ -2983,23 +2983,23 @@ class DiGraph(GenericGraph):
             {0: [..., ...], 1: [..., ...], 2: [..., ...], 3: [..., ...], 5: [..., ...], 6: [..., ...]}
 
             sage: H = DiGraph({0:[1]})
-            sage: pos = H.layout_acyclic_dummy(rankdir='up')
+            sage: pos = H.layout_acyclic(rankdir='up')
             sage: pos[1][1] > pos[0][1] + .5
             True
-            sage: pos = H.layout_acyclic_dummy(rankdir='down')
+            sage: pos = H.layout_acyclic(rankdir='down')
             sage: pos[1][1] < pos[0][1] - .5
             True
-            sage: pos = H.layout_acyclic_dummy(rankdir='right')
+            sage: pos = H.layout_acyclic(rankdir='right')
             sage: pos[1][0] > pos[0][0] + .5
             True
-            sage: pos = H.layout_acyclic_dummy(rankdir='left')
+            sage: pos = H.layout_acyclic(rankdir='left')
             sage: pos[1][0] < pos[0][0] - .5
             True
         """
         if have_dot2tex():
             return self.layout_graphviz(rankdir=rankdir, **options)
         else:
-            return self.layout_acyclic_dummy(**options)
+            return self.layout_acyclic_dummy(rankdir=rankdir, **options)
 
     def layout_acyclic_dummy(self, heights=None, rankdir='up', **options):
         """

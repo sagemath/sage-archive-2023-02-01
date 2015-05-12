@@ -214,7 +214,7 @@ def _package_lists_from_sage_output(package_type):
     EXAMPLE::
 
         sage: from sage.misc.package import standard_packages # indirect doctest
-        sage: installed, not_installed = standard_packages()  # internet
+        sage: installed, not_installed = standard_packages()  # optional internet
     """
     if package_type not in ['standard','optional','experimental']:
         raise ValueError("'package_type' must be one of 'standard','optional','experimental'.")
@@ -270,10 +270,10 @@ def standard_packages():
     EXAMPLE::
 
         sage: from sage.misc.package import standard_packages
-        sage: installed, not_installed = standard_packages() # internet
-        sage: installed[0], installed[-1]                    # internet
+        sage: installed, not_installed = standard_packages() # optional internet
+        sage: installed[0], installed[-1]                    # optional internet
         ('atlas', 'zn_poly')
-        sage: 'mercurial' in not_installed                   # internet
+        sage: 'mercurial' in not_installed                   # optional internet
         True
 
     """
@@ -300,10 +300,10 @@ def optional_packages():
     EXAMPLE::
 
         sage: from sage.misc.package import optional_packages
-        sage: installed, not_installed = optional_packages() # internet
-        sage: min(installed+not_installed)                   # internet
+        sage: installed, not_installed = optional_packages() # optional internet
+        sage: min(installed+not_installed)                   # optional internet
         '4ti2'
-        sage: max(installed+not_installed)                   # internet
+        sage: max(installed+not_installed)                   # optional internet
         'zeromq'
     """
     return _package_lists_from_sage_output('optional')
@@ -329,10 +329,10 @@ def experimental_packages():
     EXAMPLE::
 
         sage: from sage.misc.package import experimental_packages
-        sage: installed, not_installed = experimental_packages() # internet
-        sage: min(installed+not_installed)                   # internet
+        sage: installed, not_installed = experimental_packages() # optional internet
+        sage: min(installed+not_installed)                   # optional internet
         'PyQt4'
-        sage: max(installed+not_installed)                   # internet
+        sage: max(installed+not_installed)                   # optional internet
         'yassl'
     """
     return _package_lists_from_sage_output('experimental')

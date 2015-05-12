@@ -5515,7 +5515,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         EXAMPLES:
 
             sage: K.<x> = QQ[]
-            sage: R = PowerSeriesRing(QQ, str(x), default_prec=5)
+            sage: R = PowerSeriesRing(QQ, 'x', default_prec=5)
             sage: p = x^2 - 2
             sage: p.newton_sum(R)
             8*x^4 + 4*x^2 + 2
@@ -5604,16 +5604,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
         cdef int j
 
         if op not in (operator.add, operator.sub, operator.mul, operator.div):
-            raise ValueError('op must be "+", "-", "*" or "/".')
+            raise ValueError('`op` must be `operator.OP` where `OP=add, sub, mul` or `div`.')
 
         d1 = p1.degree()
         d2 = p2.degree()
+        if d1 <= 0 or d2 <= 0:
+            raise ValueError('the polynomials must have positive degree')
         K = p1.parent()
         if p2.parent() is not K:
             raise ValueError('p1 and p2 should have the same parent.')
         if p1.parent().base_ring() is not QQ:
                 raise ValueError('implemented only for polynomials on the rational ring')
 
+        if op is operator.div and p2.valuation() > 0:
+            raise ZeroDivisionError('p2 must have zero valuation.')
         if not algorithm:
             # choose the algorithm observing that the "resultant" one
             # is fast when there are few terms and the degrees are not high

@@ -11,6 +11,20 @@ particular several iterators could be written in a more efficient way.
     :mod:`.set_factories` for an introduction to set
     factories, their specifications, and examples of their use and
     implementation based on this module.
+
+We describe here a factory used to construct the set `S` of couples `(x,y)`
+with `x` and `y` in `I:=\{0,1,2,3,4\}`, together with the following subsets,
+where `(a, b)\in S`
+
+.. MATH::
+
+    S_a := \{(x,y) \in S \mid x = a\},
+
+    S^b := \{(x,y) \in S \mid y = b\},
+
+    S_a^b := \{(x,y) \in S \mid x = a, y = b\}.
+
+
 """
 #*****************************************************************************
 #  Copyright (C) 2012 Florent Hivert <florent.hivert at lri.fr>
@@ -189,6 +203,21 @@ class AllPairs(ParentWithSetFactory, DisjointUnionEnumeratedSets):
     This parent shows how one can use set factories together with
     :class:`DisjointUnionEnumeratedSets`.
 
+    It is constructed as the disjoint union
+    (:class:`DisjointUnionEnumeratedSets`) of :class:`Pairs_y` parents:
+
+    .. math::
+
+        S := \bigcup_{i = 0,1,..., 4} S^y
+
+    .. WARNING::
+
+        When writing a parent ``P`` as a disjoint union of a family of parents
+        ``P_i``, the parents ``P_i`` must be constructed as facade parents for
+        ``P``. As a consequence, it should be passed ``P.facade_policy()`` as
+        policy argument. See the source code of :meth:`pairs_y` for an
+        example.
+
     TESTS::
 
         sage: from sage.structure.set_factories_example import XYPairs
@@ -206,17 +235,39 @@ class AllPairs(ParentWithSetFactory, DisjointUnionEnumeratedSets):
                                       category=FiniteEnumeratedSets())
         DisjointUnionEnumeratedSets.__init__(self,
                                              LazyFamily(range(MAX),
-                                                        self._single_pair),
+                                                        self.pairs_y),
                                              facade=True, keepkey=False,
                                              category=self.category())
 
-    def _single_pair(self, letter):
+    def pairs_y(self, letter):
         r"""
+        Construct the parent for the disjoint union
+
+        Construct a parent in :class:`Pairs_y` as a facade parent for
+        ``self``.
+
+        This is an internal function which should be hidden from the user
+        (typically under the name ``_pairs_y``. We put it here for
+        documentation.
+
         TESTS::
 
-            sage: from sage.structure.set_factories_example import XYPairs
-            sage: XYPairs()._single_pair(1)
+            sage: from sage.structure.set_factories_example import XYPairs, XYPair
+            sage: S = XYPairs()
+            sage: S1 = S.pairs_y(1); S1
             {(a, 1) | a in range(5)}
+            sage: S.an_element().parent()
+            AllPairs
+
+            sage: from sage.structure.set_factories import SelfParentPolicy
+            sage: selfpolicy = SelfParentPolicy(XYPairs, XYPair)
+            sage: selfS = XYPairs(policy=selfpolicy)
+            sage: selfS1 = selfS.pairs_y(1); selfS1
+            {(a, 1) | a in range(5)}
+            sage: S.an_element().parent() is selfS
+            False
+            sage: selfS.an_element().parent() is selfS
+            True
         """
         return Pairs_Y(letter, policy=self.facade_policy())
 
@@ -318,9 +369,18 @@ class Pairs_Y(ParentWithSetFactory, DisjointUnionEnumeratedSets):
     r"""
     The set of pairs `(0, y), (1, y), ..., (4, y)`.
 
-    .. WARNING::
+    It is constructed as the disjoint union
+    (:class:`DisjointUnionEnumeratedSets`) of :class:`SingletonPair` parents:
 
-        Put a nice warning _single_pair
+    .. math::
+
+        S^y := \bigcup_{i = 0,1,..., 4} S_i^y
+
+    .. SEEALSO::
+
+        :class:`AllPairs` for how to properly construct
+        :class:`DisjointUnionEnumeratedSets` using
+        :class:`ParentWithSetFactory`.
 
     TESTS::
 
@@ -339,7 +399,7 @@ class Pairs_Y(ParentWithSetFactory, DisjointUnionEnumeratedSets):
         ParentWithSetFactory.__init__(self, (None, y), policy,
                                       category=FiniteEnumeratedSets())
         DisjointUnionEnumeratedSets.__init__(
-            self, LazyFamily(range(MAX), self._single_pair),
+            self, LazyFamily(range(MAX), self.single_pair),
             facade=True, keepkey=False,
             category=self.category())  # TODO remove and fix disjoint union.
 
@@ -363,15 +423,27 @@ class Pairs_Y(ParentWithSetFactory, DisjointUnionEnumeratedSets):
         """
         return self._element_constructor_((0, self._y), check=False)
 
-    def _single_pair(self, letter):
+    def single_pair(self, letter):
         r"""
-        Comment that and put link to documentation caveat....
+        Construct the singleton pair parent
+
+        Construct a singleton pair for ``(self.y, letter)`` as a facade parent
+        for ``self``.
+
+        .. SEEALSO::
+
+            :class:`AllPairs` for how to properly construct
+            :class:`DisjointUnionEnumeratedSets` using
+            :class:`ParentWithSetFactory`.
 
         TESTS::
 
             sage: from sage.structure.set_factories_example import XYPairs
-            sage: XYPairs(y=1)._single_pair(0)
+            sage: P = XYPairs(y=1)
+            sage: P.single_pair(0)
             {(0, 1)}
+            sage: P.single_pair(0).an_element().parent()
+            AllPairs
         """
         return SingletonPair(letter, self._y, policy=self.facade_policy())
 

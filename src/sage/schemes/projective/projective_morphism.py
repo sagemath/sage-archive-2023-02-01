@@ -508,7 +508,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         For a map `f:\mathbb{P}^1 \to \mathbb{P}^1` this function computes the dynatomic polynomial.
 
         The dynatomic polynomial is the analog of the cyclotomic
-        polynomial and its roots are the points of formal period `period`.
+        polynomial and its roots are the points of formal period `period`. If possible the division is
+        done in the coordinate ring of ``self`` and a polynomial is returned. In rings where that is not possible,
+        a FractionField element will be returned. In certain cases, when the conversion back to a polynomial
+        fails, a SymbolRing element will be returned.
 
         ALGORITHM:
 
@@ -543,12 +546,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         OUTPUT:
 
         - If possible, a two variable polynomial in the coordinate ring of ``self``.
-          Otherwise a fraction field element of the coordinate ring of ``self``
+          Otherwise a fraction field element of the coordinate ring of ``self``. Or,
+          a Symbolic Ring element.
 
         .. TODO::
 
-            Do the division when the base ring is p-adic or a function field
-            so that the output is a polynomial.
+            Do the division when the base ring is p-adic so that the output is a polynomial.
 
         EXAMPLES::
 
@@ -732,16 +735,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         except TypeError: # something Singular can't handle
             pass
         from sage.rings.padics.generic_nodes import is_pAdicField, is_pAdicRing
-        BR = self.domain().base_ring().base_ring()
-        if not (is_pAdicRing(BR) or is_pAdicField(BR)):
-            try:
-                PHI = PHI.numerator()._maxima_().divide(PHI.denominator())[0].sage()
-                # do it again to divide out by denominators of coefficients
-                PHI = PHI.numerator()._maxima_().divide(PHI.denominator())[0].sage()
-                if PHI.denominator() == 1:
-                    PHI = self.coordinate_ring()(PHI)
-            except TypeError: #something Maxima can't handle
-                pass
+        if period != [0,1]: #period==[0,1] we don't need to do any division
+            BR = self.domain().base_ring().base_ring()
+            if not (is_pAdicRing(BR) or is_pAdicField(BR)):
+                try:
+                    PHI = PHI.numerator()._maxima_().divide(PHI.denominator())[0].sage()
+                    # do it again to divide out by denominators of coefficients
+                    PHI = PHI.numerator()._maxima_().divide(PHI.denominator())[0].sage()
+                    if not is_FractionFieldElement(PHI):
+                        from sage.symbolic.expression_conversions import polynomial
+                        PHI = polynomial(PHI, ring=self.coordinate_ring())
+                except (TypeError, NotImplementedError): #something Maxima, or the conversion, can't handle
+                    pass
         return(PHI)
 
     def nth_iterate_map(self, n):

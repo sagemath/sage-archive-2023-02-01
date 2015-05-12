@@ -149,7 +149,7 @@ class ColoredPermutation(MultiplicativeGroupElement):
             sage: list(x)
             [(1, 3), (0, 1), (0, 2)]
         """
-        for i,p in enumerate(self._perm):
+        for i, p in enumerate(self._perm):
             yield (self._colors[i], p)
 
     def one_line_form(self):
@@ -218,10 +218,12 @@ class ColoredPermutation(MultiplicativeGroupElement):
         """
         Cp = CyclotomicField(self.parent()._m)
         g = Cp.gen()
-        D = diagonal_matrix(Cp, [g**i for i in self._colors])
+        D = diagonal_matrix(Cp, [g ** i for i in self._colors])
         return self._perm.to_matrix() * D
 
-# TODO: Parts of this should be put in the category of complex reflection groups
+
+# TODO: Parts of this should be put in the category of complex
+# reflection groups
 class ColoredPermutations(Parent, UniqueRepresentation):
     r"""
     The group of `m`-colored permutations on `\{1, 2, \ldots, n\}`.
@@ -319,7 +321,7 @@ class ColoredPermutations(Parent, UniqueRepresentation):
              [[0, 0, 0], [1, 3, 2]],
              [[0, 0, 1], [1, 2, 3]])
         """
-        zero = [self._C.zero()]*self._n
+        zero = [self._C.zero()] * self._n
         g = []
         for i in range(self._n-1):
             p = range(1, self._n+1)
@@ -408,7 +410,7 @@ class ColoredPermutations(Parent, UniqueRepresentation):
             sage: C.cardinality() == 4**3 * factorial(3)
             True
         """
-        return self._m**self._n * self._P.cardinality()
+        return self._m ** self._n * self._P.cardinality()
 
     def rank(self):
         """
@@ -461,9 +463,9 @@ class ColoredPermutations(Parent, UniqueRepresentation):
             sage: prod(S.degrees()) == S.cardinality()
             True
         """
-        if self._m == 1: # Special case for the usual symmetric group
-            return range(2, self._n+1)
-        return [self._m * i for i in range(1, self._n+1)]
+        if self._m == 1:  # Special case for the usual symmetric group
+            return range(2, self._n + 1)
+        return [self._m * i for i in range(1, self._n + 1)]
 
     def codegrees(self):
         """
@@ -503,8 +505,8 @@ class ColoredPermutations(Parent, UniqueRepresentation):
             sage: f == g
             True
         """
-        if self._m == 1: # Special case for the usual symmetric group
-            return list(reversed(range(self._n-1)))
+        if self._m == 1:  # Special case for the usual symmetric group
+            return list(reversed(range(self._n - 1)))
         return [self._m * i for i in reversed(range(self._n))]
 
     def number_reflection_hyperplanes(self):
@@ -512,7 +514,7 @@ class ColoredPermutations(Parent, UniqueRepresentation):
         Return the number of reflection hyperplanes of ``self``.
 
         The number of reflection hyperplanes of a complex reflection
-        group is equal to the sume of the codegrees plus the rank.
+        group is equal to the sum of the codegrees plus the rank.
 
         EXAMPLES::
 
@@ -533,7 +535,7 @@ class ColoredPermutations(Parent, UniqueRepresentation):
         The fixed point polynomial of ``self``.
 
         The fixed point polynomial `f_G` of a complex reflection group `G` is
-        counting the dimesions fixed points subspaces:
+        counting the dimensions of fixed points subspaces:
 
         .. MATH::
 
@@ -595,12 +597,13 @@ class ColoredPermutations(Parent, UniqueRepresentation):
         """
         deg = self.degrees()
         dstar = self.codegrees()
-        return all(deg[-1] == d + dstar[i] for i,d in enumerate(deg))
+        return all(deg[-1] == d + dstar[i] for i, d in enumerate(deg))
 
     Element = ColoredPermutation
 
 #####################################################################
 ## Signed permutations
+
 
 class SignedPermutation(ColoredPermutation):
     """
@@ -642,7 +645,7 @@ class SignedPermutation(ColoredPermutation):
             True
         """
         colors = tuple(self._colors[i] * other._colors[val-1] #-1 for indexing
-                       for i,val in enumerate(self._perm))
+                       for i, val in enumerate(self._perm))
         p = self._perm._left_to_right_multiply_on_right(other._perm)
         return self.__class__(self.parent(), colors, p)
 
@@ -679,7 +682,7 @@ class SignedPermutation(ColoredPermutation):
             sage: [a for a in x]
             [-4, 1, 2, -3]
         """
-        for i,p in enumerate(self._perm):
+        for i, p in enumerate(self._perm):
             yield self._colors[i] * p
 
     def to_matrix(self):
@@ -720,9 +723,10 @@ class SignedPermutation(ColoredPermutation):
         n = self.parent()._n
         if i == n:
             return self._colors[-1] == -1
-        if self._colors[i-1] == -1:
+        if self._colors[i - 1] == -1:
             return self._colors[i] == 1 or self._perm[i-1] < self._perm[i]
         return self._colors[i] == 1 and self._perm[i-1] > self._perm[i]
+
 
 class SignedPermutations(ColoredPermutations):
     r"""
@@ -791,7 +795,8 @@ class SignedPermutations(ColoredPermutations):
             sage: S.one()
             [1, 2, 3, 4]
         """
-        return self.element_class(self, [ZZ.one()]*self._n, self._P.identity())
+        return self.element_class(self, [ZZ.one()] * self._n,
+                                  self._P.identity())
 
     def simple_reflection(self, i):
         r"""
@@ -810,11 +815,11 @@ class SignedPermutations(ColoredPermutations):
         if i not in self.index_set():
             raise ValueError("i must be in the index set")
         if i < self._n:
-            p = range(1, self._n+1)
-            p[i-1] = i+1
+            p = range(1, self._n + 1)
+            p[i - 1] = i + 1
             p[i] = i
             return self.element_class(self, [ZZ.one()]*self._n, self._P(p))
-        temp = [ZZ.one()]*self._n
+        temp = [ZZ.one()] * self._n
         temp[-1] = -ZZ.one()
         return self.element_class(self, temp, self._P.identity())
 
@@ -889,7 +894,7 @@ class SignedPermutations(ColoredPermutations):
              [2, 1], [2, -1], [-2, 1], [-2, -1]]
         """
         one = ZZ.one()
-        C = CartesianProduct(*[[one,-one]]*self._n)
+        C = CartesianProduct(*[[one,-one]] * self._n)
         for p in self._P:
             for c in C:
                 yield self.element_class(self, c, p)
@@ -930,7 +935,7 @@ class SignedPermutations(ColoredPermutations):
 
         INPUT:
 
-        - ``index_set`` -- (optioal) a subset (as a list or iterable)
+        - ``index_set`` -- (optional) a subset (as a list or iterable)
           of the nodes of the indexing set
 
         EXAMPLES::
@@ -942,7 +947,7 @@ class SignedPermutations(ColoredPermutations):
         if index_set is not None:
             return super(SignedPermutations, self).long_element()
         p = range(self._n, 0, -1)
-        return self.element_class(self, [-ZZ.one()]*self._n, self._P(p))
+        return self.element_class(self, [-ZZ.one()] * self._n, self._P(p))
 
     Element = SignedPermutation
 
@@ -969,4 +974,3 @@ class SignedPermutations(ColoredPermutations):
 #
 #            if total % 2 == 0:
 #                yield s
-

@@ -226,7 +226,7 @@ def _package_lists_from_sage_output(package_type):
         X = X[:X.index('')]
     except ValueError as msg:
         print(R)
-        print("Standard package list (shown above) appears to be currently")
+        print("The list of %s packages (shown above) appears to be currently" % package_type)
         print("not available or corrupted (network error?).")
         return [], []
 

@@ -179,7 +179,12 @@ you would use
 
      sudo apt-get install binutils gcc make m4 perl tar
 
-to install all general requirements (this was tested on Ubuntu 12.04.2).
+to install all general requirements, or, if you don't want Sage to build its
+own GCC::
+
+     sudo apt-get install binutils gcc g++ gfortran make m4 perl tar
+
+(This was tested on Ubuntu 12.04.2.)
 On other Linux systems, you might use
 `rpm <http://en.wikipedia.org/wiki/RPM_Package_Manager>`_,
 `yum <http://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified>`_,

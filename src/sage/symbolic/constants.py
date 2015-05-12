@@ -25,8 +25,6 @@ Maxima, Mathematica, Maple, Octave, and Singular::
     twinprime
     sage: mertens
     mertens
-    sage: brun
-    brun
 
 Support for coercion into the various systems means that if, e.g.,
 you want to create `\pi` in Maxima and Singular, you don't

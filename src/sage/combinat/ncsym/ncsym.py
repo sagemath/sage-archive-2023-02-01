@@ -860,17 +860,19 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             # monomials
             m = NCSym.m()
             self.module_morphism(self._e_to_m_on_basis, codomain=m).register_as_coercion()
+            # powersum
+            # NOTE: Keep this ahead of creating the homogeneous basis to
+            #   get the coercion path m -> p -> e
+            p = NCSym.p()
+            self.module_morphism(self._e_to_p_on_basis, codomain=p,
+                                 triangular="upper").register_as_coercion()
+            p.module_morphism(p._p_to_e_on_basis, codomain=self,
+                              triangular="upper").register_as_coercion()
             # homogeneous
             h = NCSym.h()
             self.module_morphism(self._e_to_h_on_basis, codomain=h,
                                  triangular="upper").register_as_coercion()
             h.module_morphism(h._h_to_e_on_basis, codomain=self,
-                              triangular="upper").register_as_coercion()
-            # powersum
-            p = NCSym.p()
-            self.module_morphism(self._e_to_p_on_basis, codomain=p,
-                                 triangular="upper").register_as_coercion()
-            p.module_morphism(p._p_to_e_on_basis, codomain=self,
                               triangular="upper").register_as_coercion()
 
         @cached_method

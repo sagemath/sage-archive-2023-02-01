@@ -235,6 +235,26 @@ cdef bint biseq_init_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1:
     bitset_or(R.data, R.data, S1.data)
     sig_off()
 
+cdef bint biseq_realloc_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1:
+    """
+    Concatenate two bounded integer sequences ``S1`` and ``S2``.
+
+    ASSUMPTION:
+
+    - The two sequences must have equivalent bounds, i.e., the items on the
+      sequences must fit into the same number of bits.
+
+    OUTPUT:
+
+    The result is written into ``R``, which must be initialised
+    """
+    bitset_realloc(R.data, S1.data.size + S2.data.size)
+    R.itembitsize = S1.itembitsize
+    R.length = S1.length+S2.length
+    R.mask_item = S1.mask_item
+    bitset_lshift(R.data, S2.data, S1.length * S1.itembitsize)
+    bitset_or(R.data, R.data, S1.data)
+
 
 cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2) except -1:
     """

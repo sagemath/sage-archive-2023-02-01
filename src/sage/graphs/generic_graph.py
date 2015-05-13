@@ -16311,9 +16311,9 @@ class GenericGraph(GenericGraph_pyx):
           edges to a dictionary of options for this edge.
 
         - ``rankdir`` -- 'left', 'right', 'up', or 'down'
-          (default: 'down', for consistency with `graphviz`)
-          The preferred ranking direction for acyclic layouts.
-          See the `rankdir` option of `graphviz`.
+          (default: 'down', for consistency with `graphviz`):
+          the preferred ranking direction for acyclic layouts;
+          see the `rankdir` option of `graphviz`.
 
         EXAMPLES::
 

@@ -1,0 +1,23 @@
+From aaee7882e1cae938804d84cac51f2475f56eb462 Mon Sep 17 00:00:00 2001
+From: Bill Page <bill.page@newsynthesis.org>
+Date: Mon, 11 May 2015 22:01:09 -0400
+Subject: [PATCH] Do we really need 'time.sleep()' in expect_loop?
+ https://github.com/pexpect/pexpect/issues/215
+
+---
+ pexpect/__init__.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pexpect/__init__.py b/pexpect/__init__.py
+index acabf5a..eeba56a 100644
+--- a/pexpect/__init__.py
++++ b/pexpect/__init__.py
+@@ -1537,7 +1537,7 @@ def expect_loop(self, searcher, timeout=-1, searchwindowsize=-1):
+                 # Still have time left, so read more data
+                 c = self.read_nonblocking(self.maxread, timeout)
+                 freshlen = len(c)
+-                time.sleep(0.0001)
++                #time.sleep(0.0001)
+                 incoming = incoming + c
+                 if timeout is not None:
+                     timeout = end_time - time.time()

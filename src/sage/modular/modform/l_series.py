@@ -2,6 +2,7 @@ from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
 from sage.lfunctions.dokchitser import Dokchitser
 from l_series_coeffs import gross_zagier_L_series
+from sage.rings.arith import jacobi_symbol
 
 
 class GrossZagierLseries(SageObject):
@@ -40,15 +41,15 @@ class GrossZagierLseries(SageObject):
         self._A = A
         ideal = A.ideal()
         K = A.gens()[0].parent()
-        if not(K.degree() == 2 and K.disc() < 0):
+        D = K.disc()
+        if not(K.degree() == 2 and D < 0):
             raise ValueError("A is not an ideal class in an"
                              " imaginary quadratic field")
         Q = ideal.quadratic_form().reduced_form()
-        a, b, c = self._Q = Q
-        D = b ** 2 - 4 * a * c
+        epsilon = - jacobi_symbol(D, N)
         self._dokchister = Dokchitser(N ** 2 * D ** 2,
                                       [0, 0, 1, 1],
-                                      weight=2, eps=-1, prec=prec)
+                                      weight=2, eps=epsilon, prec=prec)
         self._nterms = nterms = Integer(self._dokchister.gp()('cflength()'))
         if nterms > 1e6:
             # just takes way to long

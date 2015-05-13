@@ -920,7 +920,7 @@ The command below should return 16, but it is not yet implemented::
     sage: C.cardinality()
     Traceback (most recent call last):
     ...
-    NotImplementedError: unknown cardinality for 'Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 2'
+    AttributeError: 'MatrixSpace_with_category' object has no attribute 'cardinality'
 
 .. topic:: Exercise
 

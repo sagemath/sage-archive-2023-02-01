@@ -266,13 +266,12 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
             Join of Category of subquotients of monoids and
             Category of commutative monoids and
             Category of finitely generated semigroups and
-            Category of unital finitely generated magmas and
             Category of subobjects of sets
             sage: AutomaticSemigroup((0,), one=0).category()
             Join of Category of commutative monoids and
             Category of finitely generated semigroups and
             Category of subquotients of semigroups and
-            Category of unital finitely generated magmas and            Category of subobjects of sets
+            Category of subobjects of sets
             sage: AutomaticSemigroup((0,), mul=operator.add).category()
             Join of Category of semigroups and Category of subobjects of sets
             sage: AutomaticSemigroup((0,), one=0, mul=operator.add).category()
@@ -283,7 +282,6 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
             Join of Category of finite groups and
             Category of subquotients of monoids and
             Category of finite finitely generated semigroups and
-            Category of unital finitely generated magmas and
             Category of subquotients of finite sets and
             Category of subobjects of sets
 

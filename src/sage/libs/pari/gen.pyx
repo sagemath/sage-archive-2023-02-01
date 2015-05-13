@@ -15,19 +15,22 @@ AUTHORS:
   handling.
 
 - Robert Bradshaw, Jeroen Demeyer, William Stein (2010-08-15):
-  Upgrade to PARI 2.4.3 (#9343)
+  Upgrade to PARI 2.4.3 (:trac:`9343`)
 
 - Jeroen Demeyer (2011-11-12): rewrite various conversion routines
-  (#11611, #11854, #11952)
+  (:trac:`11611`, :trac:`11854`, :trac:`11952`)
 
 - Peter Bruin (2013-11-17): move PariInstance to a separate file
-  (#15185)
+  (:trac:`15185`)
 
-- Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (#15767)
+- Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (:trac:`15767`)
 
-- Martin von Gagern (2014-12-17): Added some Galois functions (#17519)
+- Martin von Gagern (2014-12-17): Added some Galois functions (:trac:`17519`)
 
-- Jeroen Demeyer (2015-01-12): upgrade to PARI 2.8 (#16997)
+- Jeroen Demeyer (2015-01-12): upgrade to PARI 2.8 (:trac:`16997`)
+
+- Jeroen Demeyer (2015-03-17): automatically generate methods from
+  ``pari.desc`` (:trac:`17631` and :trac:`17860`)
 
 """
 
@@ -36,7 +39,7 @@ AUTHORS:
 #       Copyright (C) ???? Justin Walker
 #       Copyright (C) ???? Gonzalo Tornaria
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
-#       Copyright (C) 2010-2014 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#       Copyright (C) 2010-2015 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -51,6 +54,8 @@ import operator
 import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.misc.randstate cimport randstate, current_randstate
+from sage.structure.sage_object cimport rich_to_bool
+from sage.misc.superseded import deprecation, deprecated_function_alias
 
 include 'pari_err.pxi'
 include 'sage/ext/stdsage.pxi'
@@ -1050,7 +1055,7 @@ cdef class gen(gen_auto):
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
-    cdef _richcmp_c_impl(left, Element right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         """
         Compare ``left`` and ``right`` using ``op``.
 
@@ -1119,14 +1124,14 @@ cdef class gen(gen_auto):
         elif op == 3:  # !=
             r = (gequal(x, y) == 0)
         else:
-            r = left._rich_to_bool(op, gcmp(x, y))
+            r = rich_to_bool(op, gcmp(x, y))
         pari_catch_sig_off()
         return r
 
     def __cmp__(left, right):
         return (<Element>left)._cmp(right)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Compare ``left`` and ``right``.
 
@@ -3683,50 +3688,6 @@ cdef class gen(gen_auto):
         """
         return gsizebyte(x.g)
 
-    def sizedigit(gen x):
-        """
-        sizedigit(x): Return a quick estimate for the maximal number of
-        decimal digits before the decimal point of any component of x.
-
-        INPUT:
-
-
-        -  ``x`` - gen
-
-
-        OUTPUT:
-
-
-        -  ``int`` - Python integer
-
-
-        EXAMPLES::
-
-            sage: x = pari('10^100')
-            sage: x.Str().length()
-            101
-            sage: x.sizedigit()
-            101
-
-        Note that digits after the decimal point are ignored.
-
-        ::
-
-            sage: x = pari('1.234')
-            sage: x
-            1.23400000000000
-            sage: x.sizedigit()
-            1
-
-        The estimate can be one too big::
-
-            sage: pari('7234.1').sizedigit()
-            4
-            sage: pari('9234.1').sizedigit()
-            5
-        """
-        return sizedigit(x.g)
-
     def truncate(gen x, estimate=False):
         """
         truncate(x,estimate=False): Return the truncation of x. If estimate
@@ -4171,31 +4132,6 @@ cdef class gen(gen_auto):
         """
         pari_catch_sig_on()
         return P.new_gen(bernreal(x, prec_bits_to_words(precision)))
-
-    def bernvec(gen x):
-        r"""
-        Creates a vector containing, as rational numbers, the Bernoulli
-        numbers `B_0, B_2,\ldots, B_{2x}`. This routine is
-        obsolete. Use bernfrac instead each time you need a Bernoulli
-        number in exact form.
-
-        Note: this routine is implemented using repeated independent calls
-        to bernfrac, which is faster than the standard recursion in exact
-        arithmetic.
-
-        EXAMPLES::
-
-            sage: pari(8).bernvec()
-            doctest:...: DeprecationWarning: bernvec() is deprecated, use repeated calls to bernfrac() instead
-            See http://trac.sagemath.org/15767 for details.
-            [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
-            sage: [pari(2*n).bernfrac() for n in range(9)]
-            [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(15767, 'bernvec() is deprecated, use repeated calls to bernfrac() instead')
-        pari_catch_sig_on()
-        return P.new_gen(bernvec(x))
 
     def besselh1(gen nu, x, unsigned long precision=0):
         r"""
@@ -5160,17 +5096,6 @@ cdef class gen(gen_auto):
     # 4: NUMBER THEORETICAL functions
     ###########################################
 
-    def bezout(gen x, y):
-        cdef gen u, v, g
-        cdef GEN U, V, G
-        cdef gen t0 = objtogen(y)
-        pari_catch_sig_on()
-        G = gbezout(x.g, t0.g, &U, &V)
-        g = P.new_gen_noclear(G)
-        u = P.new_gen_noclear(U)
-        v = P.new_gen(V)
-        return g, u, v
-
     def binomial(gen x, long k):
         """
         binomial(x, k): return the binomial coefficient "x choose k".
@@ -5537,17 +5462,6 @@ cdef class gen(gen_auto):
         """
         pari_catch_sig_on()
         return P.new_gen(sumdivk(n.g, k))
-
-    def xgcd(gen x, y):
-        """
-        Returns u,v,d such that d=gcd(x,y) and u\*x+v\*y=d.
-
-        EXAMPLES::
-
-            sage: pari(10).xgcd(15)
-            (5, -1, 1)
-        """
-        return x.bezout(y)
 
     def Zn_issquare(gen self, n):
         """
@@ -5938,31 +5852,6 @@ cdef class gen(gen_auto):
             set_gel(g, i + 1, ellap(self.g, gel(g, i + 1)))
         return P.new_gen(g)
 
-    def ellbil(self, z0, z1, unsigned long precision=0):
-        """
-        e.ellbil(z0, z1): return the value of the canonical bilinear form
-        on z0 and z1.
-
-        INPUT:
-
-
-        -  ``e`` - elliptic curve (assumed integral given by a
-           minimal model, as returned by ellminimalmodel)
-
-        -  ``z0, z1`` - rational points on e
-
-
-        EXAMPLES::
-
-            sage: e = pari([0,1,1,-2,0]).ellinit().ellminimalmodel()[0]
-            sage: e.ellbil([1, 0], [-1, 1])
-            0.418188984498861
-        """
-        cdef gen t0 = objtogen(z0)
-        cdef gen t1 = objtogen(z1)
-        pari_catch_sig_on()
-        return P.new_gen(bilhell(self.g, t0.g, t1.g, prec_bits_to_words(precision)))
-
     def ellchangecurve(self, ch):
         """
         e.ellchangecurve(ch): return the new model (equation) for the
@@ -6011,15 +5900,18 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(elleta(self.g, prec_bits_to_words(precision)))
 
-    def ellheight(self, a, long flag=-1, unsigned long precision=0):
+    def ellheight(self, a, b=None, long flag=-1, unsigned long precision=0):
         """
-        canonical height of point ``a`` on elliptic curve ``self``.
+        Canonical height of point ``a`` on elliptic curve ``self``,
+        resp. the value of the associated bilinear form at ``(a,b)``.
 
         INPUT:
 
         - ``self``-- an elliptic curve over `\QQ`.
 
         - ``a`` -- rational point on ``self``.
+
+        - ``b`` -- (optional) rational point on ``self``.
 
         - ``precision (optional)`` -- the precision of the
           result, in bits.
@@ -6032,13 +5924,24 @@ cdef class gen(gen_auto):
             sage: e.ellheight([1,0], precision=128).sage()
             0.47671165934373953737948605888465305945902294218            # 32-bit
             0.476711659343739537379486058884653059459022942211150879336  # 64-bit
+
+        Computing the bilinear form::
+
+            sage: e.ellheight([1, 0], [-1, 1])
+            0.418188984498861
         """
         if flag != -1:
             from sage.misc.superseded import deprecation
             deprecation(16997, 'The flag argument to ellheight() is deprecated and not used anymore')
         cdef gen t0 = objtogen(a)
-        pari_catch_sig_on()
-        return P.new_gen(ellheight(self.g, t0.g, prec_bits_to_words(precision)))
+        cdef gen t1
+        if b is None:
+            pari_catch_sig_on()
+            return P.new_gen(ellheight(self.g, t0.g, prec_bits_to_words(precision)))
+        else:
+            t1 = objtogen(b)
+            pari_catch_sig_on()
+            return P.new_gen(ellheight0(self.g, t0.g, t1.g, prec_bits_to_words(precision)))
 
     def ellheightmatrix(self, x, unsigned long precision=0):
         """
@@ -6425,13 +6328,11 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(zell(self.g, t0.g, prec_bits_to_words(precision)))
 
-    def ellpow(self, z, n):
+    def ellmul(self, z, n):
         """
-        e.ellpow(z, n): return `n` times the point `z` on the elliptic
-        curve `e`.
+        Return `n` times the point `z` on the elliptic curve `e`.
 
         INPUT:
-
 
         -  ``e`` - elliptic curve
 
@@ -6441,7 +6342,6 @@ cdef class gen(gen_auto):
            multiplication for `e`. Complex multiplication currently
            only works if `e` is defined over `Q`.
 
-
         EXAMPLES: We consider a curve with CM by `Z[i]`::
 
             sage: e = pari([0,0,0,3,0]).ellinit()
@@ -6449,16 +6349,16 @@ cdef class gen(gen_auto):
 
         Multiplication by two::
 
-            sage: e.ellpow([0,0], 2)
+            sage: e.ellmul([0,0], 2)
             [0]
-            sage: e.ellpow(p, 2)
+            sage: e.ellmul(p, 2)
             [1/4, -7/8]
 
         Complex multiplication::
 
-            sage: q = e.ellpow(p, 1+I); q
+            sage: q = e.ellmul(p, 1+I); q
             [-2*I, 1 + I]
-            sage: e.ellpow(q, 1-I)
+            sage: e.ellmul(q, 1-I)
             [1/4, -7/8]
 
         TESTS::
@@ -6479,8 +6379,8 @@ cdef class gen(gen_auto):
             ....:     # Evaluate cm_minpoly(cm)(P), which should be zero
             ....:     #
             ....:     e = pari(E)  # Convert E to PARI
-            ....:     P2 = e.ellpow(P, cm_minpoly[2]*cm + cm_minpoly[1])
-            ....:     P0 = e.elladd(e.ellpow(P, cm_minpoly[0]), e.ellpow(P2, cm))
+            ....:     P2 = e.ellmul(P, cm_minpoly[2]*cm + cm_minpoly[1])
+            ....:     P0 = e.elladd(e.ellmul(P, cm_minpoly[0]), e.ellmul(P2, cm))
             ....:     assert(P0 == E(0))
         """
         cdef gen t0 = objtogen(z)
@@ -8230,11 +8130,7 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(rootpadic(self.g, t0.g, r))
 
-    def polsturm_full(self):
-        pari_catch_sig_on()
-        n = sturmpart(self.g, NULL, NULL)
-        pari_catch_sig_off()
-        return n
+    polsturm_full = deprecated_function_alias(18203, gen_auto.polsturm)
 
     def serreverse(self):
         """
@@ -8364,11 +8260,14 @@ cdef class gen(gen_auto):
         INPUT:
 
         - ``self`` -- a quadratic form
+
         - ``b`` -- a bound on vector norm (finds minimal non-zero
-          vectors if b=0)
+          vectors if b is ``None``)
+
         - ``m`` -- maximum number of vectors to return.  If ``None``
           (default), return all vectors of norm at most B
-        - flag (optional) --
+
+        - ``flag`` (optional) --
 
            - 0: default;
            - 1: return only the first minimal vector found (ignore ``max``);
@@ -8408,7 +8307,7 @@ cdef class gen(gen_auto):
 
         All vectors of minimal norm::
 
-             sage: pari(A).qfminim(0).python()
+             sage: pari(A).qfminim().python()
              [
                    [-5 -2  1]
                    [ 1  1  0]
@@ -8680,13 +8579,6 @@ cdef class gen(gen_auto):
         This is the LLL-reduced Z-basis of the kernel of the matrix x with
         integral entries.
 
-        INPUT:
-
-
-        -  ``flag`` - optional, and may be set to 0: default,
-           uses a modified LLL, 1: uses matrixqz.
-
-
         EXAMPLES::
 
             sage: pari('[2,1;2,1]').matker()
@@ -8694,8 +8586,12 @@ cdef class gen(gen_auto):
             sage: pari('[2,1;2,1]').matkerint()
             [1; -2]
             sage: pari('[2,1;2,1]').matkerint(1)
+            doctest:...: DeprecationWarning: The flag argument to matkerint() is deprecated by PARI
+            See http://trac.sagemath.org/18203 for details.
             [1; -2]
         """
+        if flag:
+            deprecation(18203, "The flag argument to matkerint() is deprecated by PARI")
         pari_catch_sig_on()
         return P.new_gen(matkerint0(self.g, flag))
 
@@ -9356,7 +9252,7 @@ cdef class gen(gen_auto):
         With flag=1, compute the pair P(z) and P'(z)::
 
             sage: E.ellwp(1, flag=1)
-            [13.9658695257485, 50.5619893875144]
+            [13.9658695257485, 50.5619300880073]
         """
         cdef gen t0 = objtogen(z)
         cdef GEN g0 = t0.g
@@ -9413,6 +9309,110 @@ cdef class gen(gen_auto):
         dbgGEN(self.g, depth)
         pari_catch_sig_off()
         return
+
+    ####################################################################
+    # Functions deprecated by upstream PARI
+    #
+    # NOTE: these should remain in Sage as long as PARI supports them,
+    # do not just delete these methods!
+    ####################################################################
+
+    def bezout(x, y):
+        deprecation(18203, "bezout() is deprecated in PARI, use gcdext() instead (note that the output is in a different order!)")
+        u, v, g = x.gcdext(y)
+        return g, u, v
+
+    def xgcd(x, y):
+        """
+        Returns u,v,d such that d=gcd(x,y) and u\*x+v\*y=d.
+
+        EXAMPLES::
+
+            sage: pari(10).xgcd(15)
+            doctest:...: DeprecationWarning: xgcd() is deprecated, use gcdext() instead (note that the output is in a different order!)
+            See http://trac.sagemath.org/18203 for details.
+            (5, -1, 1)
+        """
+        deprecation(18203, "xgcd() is deprecated, use gcdext() instead (note that the output is in a different order!)")
+        u, v, g = x.gcdext(y)
+        return g, u, v
+
+    def sizedigit(x):
+        """
+        sizedigit(x): Return a quick estimate for the maximal number of
+        decimal digits before the decimal point of any component of x.
+
+        INPUT:
+
+        -  ``x`` - gen
+
+        OUTPUT: Python integer
+
+        EXAMPLES::
+
+            sage: x = pari('10^100')
+            sage: x.Str().length()
+            101
+            sage: x.sizedigit()
+            doctest:...: DeprecationWarning: sizedigit() is deprecated in PARI
+            See http://trac.sagemath.org/18203 for details.
+            101
+
+        Note that digits after the decimal point are ignored::
+
+            sage: x = pari('1.234')
+            sage: x
+            1.23400000000000
+            sage: x.sizedigit()
+            1
+
+        The estimate can be one too big::
+
+            sage: pari('7234.1').sizedigit()
+            4
+            sage: pari('9234.1').sizedigit()
+            5
+        """
+        deprecation(18203, "sizedigit() is deprecated in PARI")
+        return sizedigit(x.g)
+
+    def bernvec(x):
+        r"""
+        Creates a vector containing, as rational numbers, the Bernoulli
+        numbers `B_0, B_2,\ldots, B_{2x}`. This routine is
+        obsolete. Use bernfrac instead each time you need a Bernoulli
+        number in exact form.
+
+        Note: this routine is implemented using repeated independent calls
+        to bernfrac, which is faster than the standard recursion in exact
+        arithmetic.
+
+        EXAMPLES::
+
+            sage: pari(8).bernvec()
+            doctest:...: DeprecationWarning: bernvec() is deprecated, use repeated calls to bernfrac() instead
+            See http://trac.sagemath.org/15767 for details.
+            [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
+            sage: [pari(2*n).bernfrac() for n in range(9)]
+            [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
+        """
+        deprecation(15767, 'bernvec() is deprecated, use repeated calls to bernfrac() instead')
+        pari_catch_sig_on()
+        return P.new_gen(bernvec(x))
+
+    bezoutres = deprecated_function_alias(18203, gen_auto.polresultantext)
+
+    ellbil = deprecated_function_alias(18203, ellheight)
+
+    ellpow = deprecated_function_alias(18203, ellmul)
+
+    def rnfpolred(*args, **kwds):
+        deprecation(18203, "rnfpolred() is deprecated in PARI, port your code to use rnfpolredbest() instead")
+        return gen_auto.rnfpolred(*args, **kwds)
+
+    def rnfpolredabs(*args, **kwds):
+        deprecation(18203, "rnfpolredabs() is deprecated in PARI, port your code to use rnfpolredbest() instead")
+        return gen_auto.rnfpolredabs(*args, **kwds)
 
 
 cpdef gen objtogen(s):

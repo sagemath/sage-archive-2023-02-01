@@ -160,6 +160,106 @@ class Magmas(Category_singleton):
             return self._with_axiom("Unital")
 
         @cached_method
+        def FinitelyGeneratedAsMagma(self):
+            r"""
+            Return the subcategory of the objects of ``self`` that are
+            endowed with a distinguished finite set of
+            (multiplicative) magma generators.
+
+            A set `S` of elements of a multiplicative magma form a
+            *set of generators* if any element of the magma can be
+            expressed recursively from elements of `S` and products
+            thereof.
+
+            It is not imposed that morphisms shall preserve the
+            distinguished set of generators; hence this is a full
+            subcategory.
+
+            .. SEEALSO:: :wikipedia:`Unital_magma#unital`
+
+            EXAMPLES::
+
+                sage: Magmas().FinitelyGeneratedAsMagma()
+                Category of finitely generated magmas
+
+            Being finitely generated does depend on the structure: for
+            a ring, being finitely generated as a magma, as an
+            additive magma, or as a ring are different concepts. Hence
+            the name of this axiom is explicit::
+
+                sage: Rings().FinitelyGeneratedAsMagma()
+                Category of finitely generated as magma rings
+
+            On the other hand, it does not depend on the
+            multiplicative structure: for example a group is finitely
+            generated if and only if it is finitely generated as a
+            magma. A short hand is provided when there is no
+            ambiguity, and the output tries to reflect that::
+
+                sage: Semigroups().FinitelyGenerated()
+                Category of finitely generated semigroups
+                sage: Groups().FinitelyGenerated()
+                Category of finitely generated groups
+
+                sage: Semigroups().FinitelyGenerated().axioms()
+                frozenset({'Associative', 'FinitelyGeneratedAsMagma'})
+
+            Note that the set of generators may depend on the actual
+            category; for example, in a group, one can often use less
+            generators since it is allowed to take inverses.
+
+            TESTS::
+
+                sage: TestSuite(Magmas().FinitelyGeneratedAsMagma()).run()
+                sage: Semigroups().FinitelyGeneratedAsMagma.__module__
+                'sage.categories.magmas'
+            """
+            return self._with_axiom("FinitelyGeneratedAsMagma")
+
+        @cached_method
+        def FinitelyGenerated(self):
+            r"""
+            Return the subcategory of the objects of ``self`` that are
+            endowed with a distinguished finite set of
+            (multiplicative) magma generators.
+
+            EXAMPLES:
+
+            This is a shorthand for :meth:`FinitelyGeneratedAsMagma`,
+            which see::
+
+                sage: Magmas().FinitelyGenerated()
+                Category of finitely generated magmas
+                sage: Semigroups().FinitelyGenerated()
+                Category of finitely generated semigroups
+                sage: Groups().FinitelyGenerated()
+                Category of finitely generated groups
+
+            An error is raised if this is ambiguous::
+
+                sage: (Magmas() & AdditiveMagmas()).FinitelyGenerated()
+                Traceback (most recent call last):
+                ...
+                ValueError: FinitelyGenerated is ambiguous for
+                Join of Category of magmas and Category of additive magmas.
+                Please use explicitly one of the FinitelyGeneratedAsXXX methods
+
+            .. NOTE::
+
+                Checking that there is no ambiguity currently assumes
+                that all the other "finitely generated" axioms involve
+                an additive structure. As of Sage 6.4, this is
+                correct.
+
+                The use of this shorthand should be reserved for casual
+                interactive use or when there is no risk of ambiguity.
+                """
+            from sage.categories.additive_magmas import AdditiveMagmas
+            if self.is_subcategory(AdditiveMagmas()):
+                raise ValueError("FinitelyGenerated is ambiguous for {}.\nPlease use explicitly one of the FinitelyGeneratedAsXXX methods".format(self))
+            return self.FinitelyGeneratedAsMagma()
+
+        @cached_method
         def Distributive(self):
             """
             Return the full subcategory of the objects of ``self``
@@ -214,6 +314,7 @@ class Magmas(Category_singleton):
             return (self & MagmasAndAdditiveMagmas()).Distributive()
 
     Associative = LazyImport('sage.categories.semigroups', 'Semigroups', at_startup=True)
+    FinitelyGeneratedAsMagma = LazyImport('sage.categories.finitely_generated_magmas', 'FinitelyGeneratedMagmas')
 
     class Algebras(AlgebrasCategory):
 
@@ -943,8 +1044,18 @@ class Magmas(Category_singleton):
                 EXAMPLES::
 
                     sage: S = Semigroups().Subquotients().example()
+                    sage: S
+                    An example of a (sub)quotient semigroup:
+                    a quotient of the left zero semigroup
                     sage: S.product(S(19), S(3))
                     19
+
+                Here is a more elaborate example involving a sub algebra::
+
+                    sage: Z = SymmetricGroup(5).algebra(QQ).center()
+                    sage: B = Z.basis()
+                    sage: B[3] * B[2]
+                    4*B[2] + 6*B[3] + 5*B[6]
                 """
                 assert(x in self)
                 assert(y in self)

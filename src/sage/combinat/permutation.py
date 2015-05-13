@@ -6123,18 +6123,30 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         from sage.groups.perm_gps.symgp_conjugacy_class import PermutationsConjugacyClass
         return PermutationsConjugacyClass(self, g)
 
-    def algebra(self, base_ring):
+    def algebra(self, base_ring, category=None):
         """
         Return the symmetric group algebra associated to ``self``.
+
+        INPUT:
+
+        - ``base_ring`` -- a ring
+        - ``category`` -- a category (default: the category of ``self``)
 
         EXAMPLES::
 
             sage: P = Permutations(4)
-            sage: P.algebra(QQ)
+            sage: A = P.algebra(QQ); A
             Symmetric group algebra of order 4 over Rational Field
+
+            sage: A.category()
+            Join of Category of coxeter group algebras over Rational Field
+                and Category of finite group algebras over Rational Field
+            sage: A = P.algebra(QQ, category=Monoids())
+            sage: A.category()
+            Category of finite dimensional monoid algebras over Rational Field
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
-        return SymmetricGroupAlgebra(base_ring, self)
+        return SymmetricGroupAlgebra(base_ring, self, category=category)
 
     @cached_method
     def index_set(self):

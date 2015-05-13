@@ -5,6 +5,8 @@
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 include 'vector_modn_sparse_h.pxi'
 
 cdef int allocate_c_vector_modint(c_vector_modint* v, Py_ssize_t num_nonzero) except -1:

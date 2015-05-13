@@ -100,6 +100,7 @@ Trees
 - :ref:`sage.combinat.abstract_tree`
 - :ref:`sage.combinat.ordered_tree`
 - :ref:`sage.combinat.binary_tree`
+- :ref:`sage.combinat.rooted_tree`
 
 Enumerated sets related to graphs
 ---------------------------------
@@ -116,11 +117,8 @@ Backtracking solvers and generic enumerated sets
     Do we want a separate section, possibly more proeminent, for
     backtracking solvers?
 
+- :func:`~sage.sets.recursively_enumerated_set.RecursivelyEnumeratedSet`
 - :class:`~sage.combinat.backtrack.GenericBacktracker`
-- :class:`~sage.combinat.backtrack.TransitiveIdeal`
-- :class:`~sage.combinat.backtrack.TransitiveIdealGraded`
-- :func:`~sage.combinat.tools.transitive_ideal`
-- :class:`~sage.combinat.backtrack.SearchForest`
 - :ref:`sage.combinat.tiling`
 - :ref:`sage.combinat.dlx`
 - :ref:`sage.combinat.matrices.dlxcpp`

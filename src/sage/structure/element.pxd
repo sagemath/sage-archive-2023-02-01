@@ -34,13 +34,12 @@ cdef str arith_error_message(x, y, op)
 
 cdef class Element(SageObject):
     cdef Parent _parent
-    cdef _richcmp_c_impl(left, Element right, int op)
-    cdef int _cmp_c_impl(left, Element right) except -2
-    cdef public _richcmp(self, right, int op)
-    cdef public _cmp(self, right)
+    cpdef _richcmp_(left, Element right, int op)
+    cpdef int _cmp_(left, Element right) except -2
+    cdef _richcmp(self, right, int op)
+    cdef _cmp(self, right)
     cdef _set_parent_c(self, Parent parent)
     cpdef base_extend(self, R)
-    cdef _rich_to_bool(self, int op, int r)
 
     cpdef _act_on_(self, x, bint self_on_left)
     cpdef _acted_upon_(self, x, bint self_on_left)

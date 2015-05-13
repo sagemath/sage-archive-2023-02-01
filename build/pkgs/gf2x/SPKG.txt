@@ -36,4 +36,5 @@ Website: http://gf2x.gforge.inria.fr/
  * 0005-Update-autotooled-files.patch: the above patches make changes to
    code used by autotools for generation of the build system. This patches
    those files, so that autotools need not be installed.
-
+ * 0006-Fix_make_check_not_failing_on_errors.patch: (upstream patch)
+   Fix bug in shell script such that 'make check' always fails upon errors.

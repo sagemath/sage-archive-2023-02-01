@@ -200,9 +200,11 @@ class HighestWeightCrystals(Category_singleton):
             """
             if index_set is None:
                 index_set = self.index_set()
-            from sage.combinat.backtrack import TransitiveIdealGraded
-            return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set],
-                                         self.module_generators, max_depth).__iter__()
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+            return RecursivelyEnumeratedSet(self.module_generators,
+                           lambda x: [x.f(i) for i in index_set],
+                           structure='graded',
+                           max_depth=max_depth).breadth_first_search_iterator()
 
         @cached_method
         def q_dimension(self, q=None, prec=None, use_product=False):

@@ -68,8 +68,9 @@ from sage.libs.pari.pari_instance cimport PariInstance, INT_to_mpz, INTFRAC_to_m
 from integer_ring import ZZ
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 
+from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element cimport Element, RingElement, ModuleElement
-from sage.structure.element import bin_op
+from sage.structure.element import bin_op, coerce_binop
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 
@@ -352,6 +353,21 @@ cdef class Rational(sage.structure.element.FieldElement):
         -939082/3992923
         sage: Rational(pari('Pol([-1/2])'))  #9595
         -1/2
+
+    Conversions from numpy::
+
+        sage: import numpy as np
+        sage: QQ(np.int8('-15'))
+        -15
+        sage: QQ(np.int16('-32'))
+        -32
+        sage: QQ(np.int32('-19'))
+        -19
+        sage: QQ(np.uint32('1412'))
+        1412
+
+        sage: QQ(np.float16('12'))
+        12
     """
     def __cinit__(self):
         r"""
@@ -542,9 +558,17 @@ cdef class Rational(sage.structure.element.FieldElement):
         elif isinstance(x, (float, sage.rings.real_double.RealDoubleElement)):
             self.__set_value(sage.rings.real_mpfr.RealNumber(sage.rings.real_mpfr.RR, x), base)
 
-        else:
+        elif is_numpy_type(type(x)):
+            import numpy
+            if isinstance(x, numpy.integer):
+                self.__set_value(integer.Integer(x), base)
+            elif isinstance(x, numpy.floating):
+                self.__set_value(sage.rings.real_mpfr.RR(x), base)
+            else:
+                raise TypeError("Unable to coerce {} ({}) to Rational".format(x,type(x)))
 
-            raise TypeError, "Unable to coerce %s (%s) to Rational"%(x,type(x))
+        else:
+            raise TypeError("Unable to coerce {} ({}) to Rational".format(x,type(x)))
 
     cdef void set_from_mpq(Rational self, mpq_t value):
         mpq_set(self.value, value)
@@ -709,7 +733,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return (<sage.structure.element.Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         cdef int i
         i = mpq_cmp((<Rational>left).value, (<Rational>right).value)
         if i < 0: return -1
@@ -882,109 +906,6 @@ cdef class Rational(sage.structure.element.FieldElement):
             -17/37
         """
         return codomain._coerce_(self)
-
-    def lcm(self, Rational other):
-        r"""
-        Return the least common multiple of self and other.
-
-        One way to define this notion is the following:
-
-        Note that each rational positive rational number can be written as
-        a product of primes with integer (positive or negative) powers in a
-        unique way.
-
-        Then, the LCM of two rational numbers `x,y` can be defined by
-        specifying that the exponent of every prime `p` in ``lcm(x,y)`` is the
-        supremum of the exponents of `p` in `x`, and the exponent of `p` in `y`
-        (The primes that does not appear in the decomposition of `x` or `y` are
-        considered to have exponent zero).
-
-        This definition is consistent with the definition of the LCM in the
-        rational integers. Our hopefully interesting notion of LCM for
-        rational numbers is illustrated in the examples below.
-
-        EXAMPLES::
-
-            sage: lcm(2/3,1/5)
-            2
-
-        This is consistent with the definition above, since:
-
-        .. math::
-
-                        2/3 = 2^1 * 3^{-1}*5^0
-
-        .. math::
-
-                        1/5 = 2^0 * 3^0   *5^{-1}
-
-        and hence,
-
-        .. math::
-
-                        lcm(2/3,1/5)= 2^1*3^0*5^0 = 2.
-
-        ::
-
-            sage: lcm(2/3,7/5)
-            14
-
-        In this example:
-
-        .. math::
-
-                        2/3 = 2^1*3^{-1}*5^0    * 7^0
-
-        .. math::
-
-                        7/5 = 2^0*3^0   *5^{-1} * 7^1
-
-        .. math::
-
-                        lcm(2/3,7/5) = 2^1*3^0*5^0*7^1 = 14
-
-        ::
-
-            sage: lcm(1/3,1/5)
-            1
-
-        In this example:
-
-        .. math::
-
-                        1/3 = 3^{-1}*5^0
-
-        .. math::
-
-                        1/5 = 3^0 * 5^{-1}
-
-        .. math::
-
-                        lcm(1/3,1/5)=3^0*5^0=1
-
-        ::
-
-            sage: lcm(1/3,1/6)
-            1/3
-
-        In this example:
-
-        .. math::
-
-                        1/3 = 2^0*3^{-1}
-
-        .. math::
-
-                        1/6 = 2^{-1}*3^{-1}
-
-        .. math::
-
-                        lcm(1/3,1/6)=2^0*3^{-1}=1/3
-        """
-        d = self.denom()*other.denom()
-        self_d = self.numer()*other.denom()
-        other_d = other.numer()*self.denom()
-        return self_d.lcm(other_d) / d
 
     def content(self, other):
         """

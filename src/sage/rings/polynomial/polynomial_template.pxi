@@ -9,8 +9,6 @@ Polynomial Template for C/C++ Library Interfaces
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, Element, RingElement
@@ -545,7 +543,7 @@ cdef class Polynomial_template(Polynomial):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         EXAMPLE::
 

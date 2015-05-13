@@ -90,8 +90,7 @@ class Braid(FinitelyPresentedGroupElement):
         sage: B((1, 2, -3, -2))
         s0*s1*s2^-1*s1^-1
     """
-
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Compare ``self`` and ``other``
 
@@ -102,9 +101,9 @@ class Braid(FinitelyPresentedGroupElement):
             sage: c = B([2, 1, 2])
             sage: b == c #indirect doctest
             True
-            sage: b.__cmp__(c^(-1))
+            sage: b._cmp_(c^(-1))
             -1
-            sage: B([]).__cmp__(B.one())
+            sage: B([])._cmp_(B.one())
             0
         """
         if self.Tietze()==other.Tietze():
@@ -112,6 +111,8 @@ class Braid(FinitelyPresentedGroupElement):
         nfself = map(lambda i: i.Tietze(), self.left_normal_form())
         nfother = map(lambda i: i.Tietze(), other.left_normal_form())
         return cmp(nfself, nfother)
+
+    __cmp__ = _cmp_
 
     def __hash__(self):
         r"""

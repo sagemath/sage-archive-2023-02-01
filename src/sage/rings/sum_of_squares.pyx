@@ -1,4 +1,6 @@
 r"""
+Fast decomposition of small integers into sums of squares
+
 Implement fast version of decomposition of (small) integers into sum of squares
 by direct method not relying on factorisation.
 

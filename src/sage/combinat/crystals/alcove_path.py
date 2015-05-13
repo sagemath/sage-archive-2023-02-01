@@ -64,8 +64,8 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
       edges.  We'll call the included edges pseudo-Demazure.  They are
       all non-zero edges and the 0-edges not at the end of a 0-string
       of edges, i.e.  not those with `f_{0}(b) = b'` with
-      `\phi_0(b) =1`.  (Whereas Demazure 0-edges are those that
-      are not at the beginning of a zero string) In this case the
+      `\varphi_0(b) =1`.  (Whereas Demazure 0-edges are those that
+      are not at the beginning of a zero string.) In this case the
       weight `[c_1, c_2, \ldots, c_k]` represents
       `\sum_{i=1}^k c_i \omega_i`.
 
@@ -648,9 +648,9 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
 
             sage: C = crystals.AlcovePaths(['A',2],[1,1])
             sage: [c.phi(1) for c in C]
-            [1, 2, 0, 1, 0, 0, 1, 0]
-            sage: [c.phi(2) for c in C]
             [1, 0, 2, 0, 1, 1, 0, 0]
+            sage: [c.phi(2) for c in C]
+            [1, 2, 0, 1, 0, 0, 1, 0]
         """
         highest_weight_crystal = self.parent()._highest_weight_crystal
         positions, gi = self._gi(i)
@@ -672,9 +672,9 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
 
             sage: C = crystals.AlcovePaths(['A',2],[1,1])
             sage: [c.epsilon(1) for c in C]
-            [0, 0, 1, 1, 0, 2, 0, 1]
-            sage: [c.epsilon(2) for c in C]
             [0, 1, 0, 0, 1, 0, 2, 1]
+            sage: [c.epsilon(2) for c in C]
+            [0, 0, 1, 1, 0, 2, 0, 1]
         """
         #crude but functional
         j = 0

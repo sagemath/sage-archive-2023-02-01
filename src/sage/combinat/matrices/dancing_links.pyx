@@ -21,7 +21,6 @@ Dancing Links internal pyx code
 import sys
 
 from cpython.list cimport *
-include "sage/ext/stdsage.pxi"
 from cpython.int cimport *
 from cpython.ref cimport *
 

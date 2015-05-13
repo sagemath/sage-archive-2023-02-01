@@ -46,9 +46,7 @@ import free_module_element
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
 from sage.rings.real_double import RDF
-
 from sage.rings.complex_double import CDF
-from sage.rings.complex_double cimport ComplexDoubleElement, new_ComplexDoubleElement
 
 # This is for the NumPy C API (the PyArray... functions) to work
 numpy.import_array()
@@ -179,11 +177,11 @@ cdef class Vector_double_dense(FreeModuleElement):
             (0.0, 1.0, 2.0, 3.0)
 
             sage: V = RDF^2
-            sage: V._element_class(V, 5)
+            sage: V.element_class(V, 5)
             Traceback (most recent call last):
             ...
             TypeError: entries must be a list or 0
-            sage: V._element_class(V, 0)
+            sage: V.element_class(V, 0)
             (0.0, 0.0)
         """
         cdef Py_ssize_t i,j
@@ -229,93 +227,20 @@ cdef class Vector_double_dense(FreeModuleElement):
         """
         return self._degree
 
-    def __setitem__(self, i, object value):
+    cdef int set_unsafe(self, Py_ssize_t i, value) except -1:
         """
-        Set the `i`-th entry of self.
-
         EXAMPLES::
 
             sage: v = vector(CDF, [1,CDF(3,2), -1]); v
             (1.0, 3.0 + 2.0*I, -1.0)
             sage: v[1] = 2
             sage: v[-1] = I
-            sage: v[5] = 2
-            Traceback (most recent call last):
-            ...
-            IndexError: index out of range
             sage: v
             (1.0, 2.0, 1.0*I)
             sage: v[1:3] = [1, 1]; v
             (1.0, 1.0, 1.0)
         """
-        if not self._is_mutable:
-            raise ValueError("vector is immutable; please change a copy instead (use copy())")
-        cdef Py_ssize_t k, d, n
-        if isinstance(i, slice):
-            start, stop = i.start, i.stop
-            d = self.degree()
-            R = self.base_ring()
-            n = 0
-            for k from start <= k < stop:
-                if k >= d:
-                    return
-                if k >= 0:
-                    self[k] = R(value[n])
-                    n = n + 1
-        else:
-            if i < 0:
-                i += self._degree
-            if i < 0 or i >= self._degree:
-                raise IndexError('index out of range')
-            self.set_unsafe(i, value)
-
-    def __getitem__(self, i):
-        """
-        Return the `i`-th entry of self.
-
-        EXAMPLES::
-
-            sage: v = vector(CDF, [1,CDF(3,2), -1]); v
-            (1.0, 3.0 + 2.0*I, -1.0)
-            sage: v[1]
-            3.0 + 2.0*I
-            sage: v[-1]
-            -1.0
-            sage: v[5]
-            Traceback (most recent call last):
-            ...
-            IndexError: index out of range
-            sage: v[-5]
-            Traceback (most recent call last):
-            ...
-            IndexError: index out of range
-            sage: v[1:3]
-            (3.0 + 2.0*I, -1.0)
-        """
-        if isinstance(i, slice):
-            start, stop, step = i.indices(len(self))
-            return free_module_element.vector(self.base_ring(), self.list()[start:stop])
-        else:
-            if i < 0:
-                i += self._degree
-            if i < 0 or i >= self._degree:
-                raise IndexError('index out of range')
-            return self.get_unsafe(i)
-
-    cdef set_unsafe(self, Py_ssize_t i, object value):
-        """
-        Set the ith entry to value without any bounds checking,
-        mutability checking, etc.
-        """
         # We assume that Py_ssize_t is the same as npy_intp
-
-        # We must patch the ndarrayobject.h file so that the SETITEM
-        # macro does not have a semicolon at the end for this to work.
-        # Cython wraps the macro in a function that converts the
-        # returned int to a python object, which leads to compilation
-        # errors because after preprocessing you get something that
-        # looks like "););".  This is bug
-        # http://scipy.org/scipy/numpy/ticket/918
 
         # We call the self._python_dtype function on the value since
         # numpy does not know how to deal with complex numbers other
@@ -326,10 +251,18 @@ cdef class Vector_double_dense(FreeModuleElement):
                         self._python_dtype(value))
         #TODO: Throw an error if status == -1
 
-
     cdef get_unsafe(self, Py_ssize_t i):
         """
-        Get the (i,j) entry without any bounds checking, etc.
+        EXAMPLES::
+
+            sage: v = vector(CDF, [1,CDF(3,2), -1]); v
+            (1.0, 3.0 + 2.0*I, -1.0)
+            sage: v[1]
+            3.0 + 2.0*I
+            sage: v[-1]
+            -1.0
+            sage: v[1:3]
+            (3.0 + 2.0*I, -1.0)
         """
         # We assume that Py_ssize_t is the same as npy_intp
         return self._sage_dtype(numpy.PyArray_GETITEM(self._vector_numpy,

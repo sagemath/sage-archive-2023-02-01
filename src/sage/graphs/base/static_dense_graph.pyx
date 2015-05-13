@@ -16,6 +16,9 @@ It is all based on the binary matrix data structure described in
 structure. The only difference is that it differentiates the rows (the vertices)
 instead of storing the whole data in a long bitset, and we can use that.
 
+For an overview of graph data structures in sage, see
+:mod:`~sage.graphs.base.overview`.
+
 Index
 -----
 
@@ -188,8 +191,8 @@ def is_strongly_regular(g, parameters = False):
         return False
 
     bitset_init(b_tmp, n)
-    
-    # m i now our copy of the graph
+
+    # m is now our copy of the graph
     dense_graph_init(m, g)
 
     cdef int llambda = -1
@@ -226,3 +229,44 @@ def is_strongly_regular(g, parameters = False):
         return (n,k,llambda,mu)
     else:
         return True
+
+def triangles_count(G):
+    r"""
+    Return the number of triangles in G
+
+    INPUT:
+
+    - ``G``-- a simple graph
+
+    EXAMPLE::
+
+        sage: from sage.graphs.base.static_dense_graph import triangles_count
+        sage: triangles_count(graphs.PetersenGraph())
+        0
+        sage: triangles_count(graphs.CompleteGraph(15)) == binomial(15,3)
+        True
+    """
+    G._scream_if_not_simple()
+    cdef int n = G.order()
+
+    cdef binary_matrix_t g
+    dense_graph_init(g, G)
+
+    cdef bitset_t b_tmp
+    bitset_init(b_tmp, n)
+
+    cdef int i,j
+    cdef uint64_t count = 0
+
+    for i in range(n):
+        for j in range(i+1,n):
+            if not bitset_in(g.rows[i],j):
+                continue
+            bitset_and(b_tmp, g.rows[i], g.rows[j])
+            count += bitset_len(b_tmp)
+
+    bitset_free(b_tmp)
+    binary_matrix_free(g)
+
+    from sage.rings.integer import Integer
+    return Integer(count)//3

@@ -2265,7 +2265,7 @@ cdef class BooleanMonomial(MonoidElement):
         # boilerplate code from sage.structure.parent
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         cdef int res
         res = left._pbmonom.compare((<BooleanMonomial>right)._pbmonom)
         return res
@@ -3141,7 +3141,7 @@ cdef class BooleanPolynomial(MPolynomial):
         #boilerplate from sage.structure.element
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
 
 
 

@@ -1,10 +1,7 @@
 """
-This module implements Generators, a type of object that represents (algebraic) generators of a Sage object.
-
-
+(Algebraic) generators of a Sage object
 """
 
-include "sage/ext/stdsage.pxi"
 from sage.structure.sage_object cimport SageObject
 
 class GenIter(SageObject):

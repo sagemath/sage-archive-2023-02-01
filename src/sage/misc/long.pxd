@@ -17,11 +17,11 @@ cdef inline long pyobject_to_long(x) except? LONG_MIN:
     Given a Python object ``x`` cast it quickly to a C long.
 
     A ``TypeError`` is raised if the input can not be converted to an integer or
-    an ``OverflowError`` is raied if it does not fit into a C long.
+    an ``OverflowError`` is raised if it does not fit into a C long.
 
     TESTS:
 
-    We test indirectly that ``Integer.__pow__`` and ``Rational.__pow__`` work::
+    We test indirectly that ``Integer.__pow__`` works::
 
         sage: a = 10
         sage: a^10
@@ -33,21 +33,6 @@ cdef inline long pyobject_to_long(x) except? LONG_MIN:
         sage: a^(10/1)
         10000000000
         sage: a^(2**258)
-        Traceback (most recent call last):
-        ...
-        RuntimeError: exponent must be at most 2147483647            # 32-bit
-        RuntimeError: exponent must be at most 9223372036854775807   # 64-bit
-
-        sage: b = 1/2
-        sage: b^10
-        1/1024
-        sage: b^(10r)
-        1/1024
-        sage: b^(10l)
-        1/1024
-        sage: b^(10/1)
-        1/1024
-        sage: b^(2**258)
         Traceback (most recent call last):
         ...
         RuntimeError: exponent must be at most 2147483647            # 32-bit

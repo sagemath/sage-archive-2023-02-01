@@ -2,7 +2,7 @@ from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
 from sage.lfunctions.dokchitser import Dokchitser
 from l_series_coeffs import gross_zagier_L_series
-from sage.rings.arith import jacobi_symbol
+from sage.modular.dirichlet import kronecker_character
 
 
 class GrossZagierLseries(SageObject):
@@ -46,7 +46,7 @@ class GrossZagierLseries(SageObject):
             raise ValueError("A is not an ideal class in an"
                              " imaginary quadratic field")
         Q = ideal.quadratic_form().reduced_form()
-        epsilon = - jacobi_symbol(D, N)
+        epsilon = - kronecker_character(D)(N)
         self._dokchister = Dokchitser(N ** 2 * D ** 2,
                                       [0, 0, 1, 1],
                                       weight=2, eps=epsilon, prec=prec)

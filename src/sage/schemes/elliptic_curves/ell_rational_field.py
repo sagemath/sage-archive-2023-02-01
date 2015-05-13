@@ -3064,6 +3064,46 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             self.__lseries = Lseries_ell(self)
             return self.__lseries
 
+    def lseries_gross_zagier(self, A):
+        """
+        Return the Gross-Zagier L-series attached to ``self``
+        and an ideal class.
+
+        INPUT:
+
+        - ``A`` -- an ideal class in a quadratic number field
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a')
+            sage: K.<a> = QuadraticField(-40)
+            sage: A = K.class_group().gen(0); A
+            Fractional ideal class (2, 1/2*a)
+            sage: L = E.lseries_gross_zagier(A)  ; L
+            Gross Zagier L-series attached to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field with ideal class Fractional ideal class (2, 1/2*a)
+            sage: L(1)
+            0.000000000000000
+            sage: L.taylor_series(1, 5)
+            0.000000000000000 - 5.51899839494458*z + 13.6297841350649*z^2 - 16.2292417817675*z^3 + 7.94788823722712*z^4 + O(z^5)
+
+        These should be equal::
+
+            sage: L(2) + E.lseries_gross_zagier(A^2)(2)
+            0.502803417587467
+            sage: E.lseries()(2) * E.quadratic_twist(-40).lseries()(2)
+            0.502803417587467
+        """
+        try:
+            return self.__lseries_gross_zagier[A]
+        except AttributeError:
+            self.__lseries_gross_zagier = {}
+        except KeyError:
+            pass
+
+        from sage.modular.modform.l_series import GrossZagierLseries
+        self.__lseries_gross_zagier[A] = GrossZagierLseries(self, A)
+        return self.__lseries_gross_zagier[A]
+
     def Lambda(self, s, prec):
         r"""
         Returns the value of the Lambda-series of the elliptic curve E at

@@ -1,3 +1,4 @@
+## -*- encoding: utf-8 -*-
 """
 Path Semigroups
 """
@@ -26,8 +27,12 @@ from sage.categories.monoids import Monoids
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from paths import QuiverPath
 from representation import QuiverRep
+
+#########################
+# Some auxiliary function to create generating functions to count paths.
 
 class PathSemigroup(UniqueRepresentation, Parent):
     r"""
@@ -173,6 +178,20 @@ class PathSemigroup(UniqueRepresentation, Parent):
             cat = cat.join([cat,Semigroups()])
         Parent.__init__(self, names=names, category=cat)
 
+    @lazy_attribute
+    def _nb_arrows(self):
+        """
+        The number of arrows of the path semigroup's quiver.
+
+        EXAMPLES::
+
+            sage: P = DiGraph({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}}).path_semigroup()
+            sage: P._nb_arrows
+            4
+
+        """
+        return max(len(self._quiver.edges()),1)
+
     def _repr_(self):
         """
         String representation.
@@ -248,6 +267,59 @@ class PathSemigroup(UniqueRepresentation, Parent):
             return False
         return all(sQ.has_edge(*e) for e in oQ.iterator_out_edges(oQ.iterator_verts(None), True))
 
+    def _element_constructor_(self, data, check=True):
+        """
+        The accepted data are
+
+        - the integer ``1``, which returns the first idempotent,
+        - a list, whose only item is a tuple ``(v,v)`` for a vertex ``v``,
+        - a list of edge labels,
+        - a single edge label,
+        - a list of triples ``(v, w, s)`` that are edges of the underlying quiver, or
+        - an element of another path semigroup.
+
+        EXAMPLES::
+
+            sage: P = DiGraph({1:{2:['a','b'], 3:['c']}, 3:{1:['d']}}).path_semigroup()
+            sage: P(1)
+            e_1
+            sage: P([(3,3)])
+            e_3
+            sage: P(['c','d'])
+            c*d
+            sage: P('c')
+            c
+            sage: Q = DiGraph({1:{2:['a','b'], 3:['c']}, 3:{1:['d'], 2:['e']}}).path_semigroup()
+            sage: Q([(1,3,'c'), (3,1,'d'), (1,2,'b')])
+            c*d*b
+            sage: Q(P(['c','d']))
+            c*d
+
+        """
+        if not data:
+            raise ValueError("No data given to define this path")
+        if isinstance(data, QuiverPath):
+            if data.parent() is self:
+                return data
+            if len(data):
+                return self(list(data), check=check)
+            return self.element_class(self, data.initial_vertex(), data.terminal_vertex(), [], check=True)
+        if data==1:
+            return self.element_class(self, self._quiver.vertices()[0], self._quiver.vertices()[0], [], check=False)
+        if isinstance(data, basestring):
+            E = self._quiver.edge_labels()
+            start,end = self._quiver.edges()[E.index(data)][0:2]
+            return self.element_class(self, start, end, [E.index(data)], check=False)
+        if isinstance(data[0], basestring):
+            E = self._quiver.edge_labels()
+            start = self._quiver.edges()[E.index(data[0])][0]
+            end   = self._quiver.edges()[E.index(data[-1])][1]
+            return self.element_class(self, start, end, [E.index(e) for e in data], check=check)
+        if len(data[0])==2:
+            return self.element_class(self, data[0][0], data[0][1], [])
+        E = self._quiver.edges()
+        return self.element_class(self, data[0][0], data[-1][1], [E.index(e) for e in data], check=check)
+
     @cached_method
     def arrows(self):
         """
@@ -259,7 +331,8 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: P.arrows()
             (a, b, c, d)
         """
-        return tuple(self([e]) for e in self._quiver.edges())
+        Q = self._quiver
+        return tuple(self.element_class(self, e[0],e[1], [i], check=False) for i,e in enumerate(Q.edges()))
 
     @cached_method
     def idempotents(self):
@@ -273,7 +346,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: P.idempotents()
             (e_1, e_2, e_3)
         """
-        return tuple(self((v,v)) for v in self._quiver.vertices())
+        return tuple(self.element_class(self, v,v, [], check=False) for v in self._quiver.vertices())
 
     def ngens(self):
         """
@@ -315,14 +388,9 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: P.gens()[5]
             c
         """
-        Q = self._quiver
-        nv = Q.num_verts()
-        if i < nv:
-            v = Q.vertices()[i]
-            return self((v,v))
-        e = Q.edges()[i-nv]
-        return self([e])
+        return self.gens()[i]
 
+    @cached_method
     def gens(self):
         """
         Return the tuple of generators.
@@ -519,7 +587,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         if v not in self._quiver:
             raise ValueError("the starting point {} is not a vertex of the underlying quiver".format(v))
         if not d:
-            yield self([(v,v)], check=False)
+            yield self.element_class(self,v,v,[], check=False)
         else:
             for w in self.iter_paths_by_length_and_startpoint(d-1, v):
                 for a in self._quiver._backend.iterator_out_edges([w.terminal_vertex()], True):
@@ -553,7 +621,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         if v not in self._quiver:
             raise ValueError("the starting point {} is not a vertex of the underlying quiver".format(v))
         if not d:
-            yield self([(v,v)], check=False)
+            yield self.element_class(self,v,v, [], check=False)
         else:
             for w in self.iter_paths_by_length_and_endpoint(d-1, v):
                 for a in self._quiver._backend.iterator_in_edges([w.initial_vertex()],True):
@@ -783,6 +851,55 @@ class PathSemigroup(UniqueRepresentation, Parent):
         """
         return QuiverRep(k, self, [[(v, v)] for v in self._quiver], option='paths')
 
+    @lazy_attribute
+    def _poincare_series(self):
+        r"""
+        The Poincaré series matrix of this path semigroup.
+
+        The coefficient `(i,j)` of the matrix is a generating function for the
+        number of paths from vertex number `i` to vertex number `j`.
+
+        EXAMPLES::
+
+            sage: S = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup()
+            sage: S._poincare_series
+            [             (-t + 1)/(-2*t^2 - t + 1)                     t/(-2*t^2 - t + 1)                     t/(-2*t^2 - t + 1)]
+            [                    t/(-2*t^2 - t + 1) (t^2 + t - 1)/(-2*t^3 + t^2 + 2*t - 1)          -t^2/(-2*t^3 + t^2 + 2*t - 1)]
+            [                    t/(-2*t^2 - t + 1)          -t^2/(-2*t^3 + t^2 + 2*t - 1) (-t^2 - t + 1)/(2*t^3 - t^2 - 2*t + 1)]
+
+        Let us check that the result is plausible. We study the paths from
+        vertex `1` to vertex `2`. The number of paths sorted by length are
+        given by the power series expansion of the corresponding matrix
+        entry::
+
+            sage: P = PowerSeriesRing(ZZ, 't', default_prec=10)
+            sage: P(S._poincare_series[1,2].numerator())/P(S._poincare_series[1,2].denominator())
+            t^2 + 2*t^3 + 5*t^4 + 10*t^5 + 21*t^6 + 42*t^7 + 85*t^8 + 170*t^9 + 341*t^10 + 682*t^11 + O(t^12)
+
+        For comparison, we list the paths that start at `1` and end at `2`, by
+        length, and see that the Poincaré series matrix predicts the correct
+        numbers::
+
+            sage: [p for p in S.iter_paths_by_length_and_startpoint(1,1) if p.terminal_vertex()==2]
+            []
+            sage: [p for p in S.iter_paths_by_length_and_startpoint(2,1) if p.terminal_vertex()==2]
+            [c*b]
+            sage: [p for p in S.iter_paths_by_length_and_startpoint(3,1) if p.terminal_vertex()==2]
+            [c*b*f, d*c*b]
+            sage: [p for p in S.iter_paths_by_length_and_startpoint(4,1) if p.terminal_vertex()==2]
+            [c*a*c*b, c*b*e*b, c*b*f*f, d*c*b*f, d*d*c*b]
+            sage: len([p for p in S.iter_paths_by_length_and_startpoint(5,1) if p.terminal_vertex()==2])
+            10
+            sage: len([p for p in S.iter_paths_by_length_and_startpoint(10,1) if p.terminal_vertex()==2])
+            341
+
+        """
+        P = ZZ['t']
+        t = P.gen()
+        M = self._quiver.adjacency_matrix()
+        out = ~(1-M*t)
+        out.set_immutable()
+        return out
 
     def all_paths(self, start=None, end=None):
         """
@@ -912,13 +1029,13 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
         # Handle the trivial case
         if start == end:
-            return [self([(start, end)], check=False)]
+            return [self.element_class(self,start, end, [], check=False)]
 
         # This function will recursively convert a path given in terms of
         # vertices to a list of QuiverPaths.
         def _v_to_e(path):
             if len(path) == 1:
-                return [self([(path[0], path[0])], check=False)]
+                return [self.element_class(self,path[0], path[0], [], check=False)]
             paths = []
             l = Q.edge_label(path[0], path[1])
             if isinstance(l, str):

@@ -19,7 +19,7 @@ Quiver Paths
 #*****************************************************************************
 
 from sage.data_structures.bounded_integer_sequences cimport *
-from cpython.slice cimport PySlice_Check
+from cpython.slice cimport PySlice_Check, PySlice_GetIndicesEx
 from cython.operator cimport dereference as deref, preincrement as preinc, predecrement as predec, postincrement as postinc
 
 include "sage/ext/interrupt.pxi"
@@ -116,17 +116,6 @@ cdef class QuiverPath(MonoidElement):
         sage: p.terminal_vertex()
         3
     """
-    def __cinit__(self):
-        """
-        TESTS::
-
-            sage: from sage.quivers.paths import QuiverPath
-            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
-            sage: p = Q([(1, 1)])  # indirect doctest
-
-        """
-        self._path.length = 0
-
     def __dealloc__(self):
         """
         TESTS::
@@ -148,7 +137,7 @@ cdef class QuiverPath(MonoidElement):
             sage: p = Q(['a']) * Q(['b'])    # indirect doctest
 
         """
-        cdef QuiverPath out = PY_NEW(self._parent.element_class)
+        cdef QuiverPath out = QuiverPath.__new__(self._parent.element_class)
         out._parent = self._parent
         out._start = start
         out._end = end
@@ -281,33 +270,22 @@ cdef class QuiverPath(MonoidElement):
         """
         Return the length of the path.
 
+        ``length()`` and ``degree()`` are aliases
+
         TESTS::
 
             sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: len(Q([(1, 2, 'a'), (2, 3, 'b')]))
             2
-            sage: len(Q([(1, 1)]))
+            sage: Q([(1, 1)]).degree()
             0
-            sage: len(Q([(1, 2, 'a')]))
+            sage: Q([(1, 2, 'a')]).length()
             1
         """
         return self._path.length
 
-    def deg(self):
-        """
-        Return the degree of the path, which is the same as its length.
-
-        TESTS::
-
-            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
-            sage: Q([(1, 2, 'a'), (2, 3, 'b')]).deg()
-            2
-            sage: Q([(1, 1)]).deg()
-            0
-            sage: Q([(1, 2, 'a')]).deg()
-            1
-        """
-        return len(self)
+    degree = __len__
+    length = __len__
 
     def __nonzero__(self):
         """
@@ -409,12 +387,14 @@ cdef class QuiverPath(MonoidElement):
             b*c
         """
         cdef list E = self._parent._quiver.edges()
-        cdef int start, stop, step
+        cdef Py_ssize_t start, stop, step, slicelength
         cdef int init, end
         cdef size_t i,ind
         cdef QuiverPath OUT
         if PySlice_Check(index):
-            start,stop,step = index.indices(self._path.length)
+            PySlice_GetIndicesEx(index, self._path.length,
+                                 &start, &stop, &step,
+                                 &slicelength)
             if step!=1:
                 raise ValueError("Slicing only possible for step 1")
             if start==0 and stop==self._path.length:
@@ -635,7 +615,7 @@ cdef class QuiverPath(MonoidElement):
             return 0
         return 1
 
-    cpdef bint has_initial_segment(self, QuiverPath subpath) except -1:
+    cpdef bint has_prefix(self, QuiverPath subpath) except -1:
         """
         Tells whether ``self`` starts with a given sub-path.
 
@@ -652,13 +632,13 @@ cdef class QuiverPath(MonoidElement):
             sage: S = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup()
             sage: S.inject_variables()
             Defining e_0, e_1, e_2, a, b, c, d, e, f
-            sage: (c*b*e*a).has_initial_segment(b*e)
+            sage: (c*b*e*a).has_prefix(b*e)
             0
-            sage: (c*b*e*a).has_initial_segment(c*b)
+            sage: (c*b*e*a).has_prefix(c*b)
             1
-            sage: (c*b*e*a).has_initial_segment(e_1)
+            sage: (c*b*e*a).has_prefix(e_1)
             1
-            sage: (c*b*e*a).has_initial_segment(e_2)
+            sage: (c*b*e*a).has_prefix(e_2)
             0
             
         """
@@ -764,7 +744,7 @@ cpdef QuiverPath NewQuiverPath(Q, start, end, biseq_data):
           ((0, 4L, 1, ..., (4L,)), 2L, 2)))
 
     """
-    cdef QuiverPath out = PY_NEW(Q.element_class)
+    cdef QuiverPath out = QuiverPath.__new__(Q.element_class)
     out._parent = Q
     out._start = start
     out._end   = end

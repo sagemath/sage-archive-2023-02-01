@@ -16270,44 +16270,50 @@ class GenericGraph(GenericGraph_pyx):
             edge_color=None,edge_colors=None,
             edge_options = (),
             color_by_label=False,
-            rankdir="down",
+            rankdir='down',
     )
     def graphviz_string(self, **options):
         r"""
-        Returns a representation in the dot language.
+        Return a representation in the `dot` language.
 
-        The dot language is a text based format for graphs. It is used
-        by the software suite graphviz. The specifications of the
+        The `dot` language is a text based format for graphs. It is used
+        by the software suite `graphviz`. The specifications of the
         language are available on the web (see the reference [dotspec]_).
 
         INPUT:
 
-        - ``labels`` - "string" or "latex" (default: "string"). If labels is
-          string latex command are not interpreted. This option stands for both
-          vertex labels and edge labels.
+        - ``labels`` -- "string" or "latex" (default: "string"). If
+          labels is string latex command are not interpreted. This
+          option stands for both vertex labels and edge labels.
 
-        - ``vertex_labels`` - boolean (default: True) whether to add the labels
-          on vertices.
+        - ``vertex_labels`` -- boolean (default: True) whether to add
+          the labels on vertices.
 
-        - ``edge_labels`` - boolean (default: False) whether to add
+        - ``edge_labels`` -- boolean (default: False) whether to add
           the labels on edges.
 
-        - ``edge_color`` - (default: None) specify a default color for the
-          edges.
+        - ``edge_color`` -- (default: None) specify a default color
+          for the edges.
 
-        - ``edge_colors`` - (default: None) a dictionary whose keys
-          are colors and values are list of edges. The list of edges need not to
-          be complete in which case the default color is used.
+        - ``edge_colors`` -- (default: None) a dictionary whose keys
+          are colors and values are list of edges. The list of edges
+          need not to be complete in which case the default color is
+          used.
 
-        - ``color_by_label`` - a boolean or dictionary or function (default: False)
-           whether to color each edge with a different color according
-           to its label; the colors are chosen along a rainbow, unless
-           they are specified by a function or dictionary mapping
-           labels to colors; this option is incompatible with
-           ``edge_color`` and ``edge_colors``.
+        - ``color_by_label`` -- (default: False) a boolean or
+          dictionary or function whether to color each edge with a
+          different color according to its label; the colors are
+          chosen along a rainbow, unless they are specified by a
+          function or dictionary mapping labels to colors; this option
+          is incompatible with ``edge_color`` and ``edge_colors``.
 
-        - ``edge_options`` - a function (or tuple thereof) mapping
+        - ``edge_options`` -- a function (or tuple thereof) mapping
           edges to a dictionary of options for this edge.
+
+        - ``rankdir`` -- 'left', 'right', 'up', or 'down'
+          (default: 'down', for consistency with `graphviz`)
+          The preferred ranking direction for acyclic layouts.
+          See the `rankdir` option of `graphviz`.
 
         EXAMPLES::
 

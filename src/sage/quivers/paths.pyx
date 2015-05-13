@@ -518,6 +518,10 @@ cdef class QuiverPath(MonoidElement):
         """
         Greatest common divisor of two quiver paths, with co-factors.
 
+        For paths, by "greatest common divisor", we mean the largest terminal
+        segment of the first path that is an initial segment of the second
+        path.
+
         INPUT:
 
         A :class:`QuiverPath` ``P``

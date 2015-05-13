@@ -2126,17 +2126,22 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 """
                 Return the cartesian product of the given ``elements``.
 
+                This method should accept any iterable.
+
                 INPUT:
 
-                - ``elements`` -- a tuple with one element of each
-                  cartesian factor of ``self``
+                - ``elements`` -- an iterable (e.g. a tuple or a list) of
+                  elements of each cartesian factor of ``self``
 
                 EXAMPLES::
 
                     sage: S1 = Sets().example()
                     sage: S2 = InfiniteEnumeratedSets().example()
-                    sage: C = cartesian_product([S2, S1, S2])
-                    sage: C._cartesian_product_of_elements([S2.an_element(), S1.an_element(), S2.an_element()])
+                    sage: X = [S2, S1, S2]
+                    sage: C = cartesian_product(X)
+                    sage: C._cartesian_product_of_elements([S.an_element() for S in X])
+                    (42, 47, 42)
+                    sage: C._cartesian_product_of_elements(S.an_element() for S in X)
                     (42, 47, 42)
                 """
 

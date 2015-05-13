@@ -197,10 +197,9 @@ class CartesianProduct(UniqueRepresentation, Parent):
         Return the cartesian product of the given ``elements``.
 
         This implements :meth:`Sets.CartesianProducts.ParentMethods._cartesian_product_of_elements`.
-
         INPUT:
 
-        - ``elements`` -- a tuple (or iterable) with one element of
+        - ``elements`` -- an iterable (e.g. tuple, list) with one element of
           each cartesian factor of ``self``
 
         .. WARNING::

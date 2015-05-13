@@ -1016,7 +1016,7 @@ cdef class PathAlgebraElement(RingElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Helper for comparison of path algebra elements.
 

@@ -1673,6 +1673,14 @@ class NumberFieldIdeal(Ideal_generic):
             sage: (A^2).ideal().quadratic_form().reduced_form()
             x^2 + 10*y^2
 
+        One more check::
+
+            sage: K = QuadraticField(-79)
+            sage: A = K.class_group().gen()
+            sage: [(A**i).ideal().quadratic_form().discriminant()
+            ....:     for i in range(5)]
+            [-79, -79, -79, -79, -79]
+
         This is not defined for higher-degree extensions::
 
             sage: x = var('x')
@@ -1692,18 +1700,21 @@ class NumberFieldIdeal(Ideal_generic):
             from sage.quadratic_forms.binary_qf import BinaryQF
             gens = self.gens_reduced()
             if len(gens) == 1:
-                alpha, beta = gens[0], gens[0] * K.ring_of_integers().gen(1)
+                u, v = K.ring_of_integers().gens()
+                alpha, beta = gens[0] * u, gens[0] * v
             else:
                 alpha, beta = gens
             if QQ((beta * alpha.galois_conjugate() - alpha * beta.galois_conjugate()) / K.gen()) < 0:
                 alpha, beta = beta, alpha
             N = self.norm()
             a = alpha.norm() // N
-            b = ZZ(alpha * beta.galois_conjugate() + beta * alpha.galois_conjugate()) // N
+            b = ZZ(alpha * beta.galois_conjugate() +
+                    beta * alpha.galois_conjugate()) // N
             c = beta.norm() // N
             return BinaryQF([a, b, c])
-        else:
-            raise ValueError("not defined for ideals in number fields of degree > 2 over Q.")
+
+        raise ValueError("not defined for ideals in number fields of degree > 2 over Q.")
+
 
 def basis_to_module(B, K):
     r"""

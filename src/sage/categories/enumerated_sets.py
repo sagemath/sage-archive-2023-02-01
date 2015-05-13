@@ -754,9 +754,9 @@ class EnumeratedSets(Category_singleton):
                 .. WARNING::
 
                     The elements are returned in lexicographic order,
-                    which gives a valid enumeration only if the factors
-                    excluding the first one are finite. So the following one is
-                    fine::
+                    which gives a valid enumeration only if all
+                    factors, but possibly the first one, are
+                    finite. So the following one is fine::
 
                         sage: it = iter(cartesian_product([ZZ, GF(2)]))
                         sage: [it.next() for _ in range(10)]

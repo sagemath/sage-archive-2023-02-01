@@ -34,9 +34,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
     """
     A class implementing a raw data structure for cartesian products
     of sets (and elements thereof). See :obj:`cartesian_product` for
-    how to construct full fledge cartesian products.
-
-    .. automethod:: _cartesian_product_of_elements
+    how to construct full fledged cartesian products.
 
     EXAMPLES::
 
@@ -47,8 +45,14 @@ class CartesianProduct(UniqueRepresentation, Parent):
         18144000
         sage: G.random_element()    # random
         (1, [4, 7, 6, 5, 10, 1, 3, 2, 8, 9])
+        sage: G.category()
+        Join of Category of finite monoids
+            and Category of Cartesian products of monoids
+            and Category of Cartesian products of finite enumerated sets
+
+    .. automethod:: _cartesian_product_of_elements
     """
-    def __init__(self, sets, category, flatten = False):
+    def __init__(self, sets, category, flatten=False):
         r"""
         INPUT:
 

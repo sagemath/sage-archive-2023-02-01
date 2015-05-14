@@ -6407,6 +6407,13 @@ cdef class Expression(CommutativeRingElement):
 
             sage: a = SR(2).real_part(hold=True); a.simplify()
             2
+
+        TESTS:
+
+        Check that :trac:`12807` is fixed::
+
+            sage: (6*exp(i*pi/3)-6*exp(i*2*pi/3)).real_part()
+            6
         """
         return new_Expression_from_GEx(self._parent,
                 g_hold_wrapper(g_real_part, self._gobj, hold))

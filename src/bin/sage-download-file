@@ -238,7 +238,8 @@ class MirrorList(object):
             pass
         for mirror in self.mirrors:
             yield mirror
-        yield 'http://boxen.math.washington.edu/home/release/upstream-testing'
+        # If all else fails: Try the packages we host ourselves
+        yield 'http://sagepad.org/'
         
 
 

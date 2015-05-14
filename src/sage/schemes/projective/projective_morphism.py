@@ -736,31 +736,29 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             period = [0, period]
         x = self.domain().gen(0)
         y = self.domain().gen(1)
-        F = self._polys
-        f = F
+        f0, f1 = F0, F1 = self._polys
+        PHI = self.base_ring().one()
+        n = period[1]
         if period[0] != 0:
             m = period[0]
             fm = self.nth_iterate_map(m)
             fm1 = self.nth_iterate_map(m - 1)
-            n = period[1]
-            PHI = 1;
             for d in range(1, n):
                 if n % d == 0:
-                    PHI = PHI * ((y*F[0] - x*F[1]) ** moebius(n/d))
-                F = [f[0](F[0], F[1]), f[1](F[0], F[1])]
-            PHI = PHI * (y*F[0] - x*F[1])
+                    PHI = PHI * ((y*F0 - x*F1) ** moebius(n/d))
+                F0, F1 = f0(F0, F1), f1(F0, F1)
+            PHI = PHI * (y*F0 - x*F1)
             if m != 0:
                 PHI = PHI(fm._polys)/ PHI(fm1._polys )
         else:
-            PHI = 1
-            for d in range(1, period[1]):
-                if period[1] % d == 0:
-                    PHI = PHI * ((y*F[0] - x*F[1]) ** moebius(period[1]/d))
-                F = [f[0](F[0], F[1]), f[1](F[0], F[1])]
-            PHI = PHI * (y*F[0] - x*F[1])
+            for d in range(1, n):
+                if n % d == 0:
+                    PHI = PHI * ((y*F0 - x*F1) ** moebius(n//d))
+                F0, F1 = f0(F0, F1), f1(F0, F1)
+            PHI = PHI * (y*F0 - x*F1)
         try:
             QR = PHI.numerator().quo_rem(PHI.denominator())
-            if QR[1] == 0:
+            if not QR[1]:
                 return(QR[0])
         except TypeError: # something Singular can't handle
             pass
@@ -779,7 +777,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                         PHI = polynomial(PHI, ring=self.coordinate_ring())
                 except (TypeError, NotImplementedError): #something Maxima, or the conversion, can't handle
                     pass
-        return(PHI)
+        return PHI
 
     def nth_iterate_map(self, n):
         r"""
@@ -849,26 +847,28 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
               Defn: Defined on coordinates by sending (x : y : z) to
                     (x^4 : x^2*z^2 : z^4)
         """
-        if self.domain() != self.codomain():
+        E = self.domain()
+        if E is not self.codomain():
             raise TypeError("Domain and Codomain of function not equal")
-        if n < 0:
+
+        D = int(n)
+        if D < 0:
             raise TypeError("Iterate number must be a positive integer")
         N = self.codomain().ambient_space().dimension_relative() + 1
         F = list(self._polys)
-        D = Integer(n).digits(2)  #need base 2
         Coord_ring = self.codomain().coordinate_ring()
         if isinstance(Coord_ring, QuotientRing_generic):
             PHI = [Coord_ring.gen(i).lift() for i in range(N)]
         else:
             PHI = [Coord_ring.gen(i) for i in range(N)]
-        for i in range(len(D)):
-            T = tuple([F[j] for j in range(N)])
-            for k in range(D[i]):
-                PHI = [PHI[j](T) for j in range(N)]
-            if i != len(D) - 1: #avoid extra iterate
-                F = [F[j](T) for j in range(N)] #'square'
-        H = Hom(self.domain(), self.codomain())
-        return(H(PHI))
+
+        while D:
+            if D&1:
+                PHI = [PHI[j](*F) for j in range(N)]
+            if D > 1: #avoid extra iterate
+                F = [F[j](*F) for j in range(N)] #'square'
+            D >>= 1
+        return End(E)(PHI)
 
     def nth_iterate(self, P, n, normalize=False):
         r"""

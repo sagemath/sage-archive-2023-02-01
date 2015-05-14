@@ -4,6 +4,7 @@ Kirillov-Reshetikhin Crystals
 
 #*****************************************************************************
 #       Copyright (C) 2009   Anne Schilling <anne at math.ucdavis.edu>
+#                     2014   Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -22,6 +23,7 @@ Kirillov-Reshetikhin Crystals
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.functional import is_even, is_odd
 from sage.functions.other import floor, ceil
 from sage.combinat.combinat import CombinatorialObject
@@ -424,6 +426,10 @@ def KashiwaraNakashimaTableaux(cartan_type, r, s):
                 return KR_type_Dn_twisted(ct, r, s)
             else:
                 raise ValueError("wrong range of parameters")
+        elif ct.dual().type() == 'G':
+            if r == 1:
+                return KR_type_D_tri1(ct, s)
+            raise NotImplementedError
         else:
             raise NotImplementedError
 
@@ -3135,6 +3141,211 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
                 return n
             return i
         return T.crystal_morphism( self.promotion_on_highest_weight_vectors_inverse(), index_set = ind)
+
+class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
+    r"""
+    Class of Kirillov-Reshetikhin crystals `B^{1,s}` of type `D_4^{(3)}`.
+
+    The crystal structure was defined in Section 4 of [KMOY07]_ using
+    the coordinate representation.
+
+    REFERENCES:
+
+    .. [KMOY07] M. Kashiwara, K. C. Misra, M. Okado, D. Yamada.
+       *Perfect crystals for* `U_q(D_4^{(3)})`, J. Algebra. **317** (2007).
+    """
+    def __init__(self, ct, s):
+        r"""
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['D',4,3], 1, 2)
+            sage: TestSuite(K).run()
+        """
+        KirillovReshetikhinGenericCrystal.__init__(self, ct, 1, s)
+
+    def classical_decomposition(self):
+        """
+        Return the classical decomposition of ``self``.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['D',4,3], 1, 5)
+            sage: K.classical_decomposition()
+            The crystal of tableaux of type ['G', 2]
+             and shape(s) [[], [1], [2], [3], [4], [5]]
+        """
+        sh = [Partition([j]) for j in range(self._s+1)]
+        return CrystalOfTableaux(self.cartan_type().classical(), shapes=sh)
+
+    def from_coordinates(self, coords):
+        r"""
+        Return an element of ``self`` from the coordinates ``coords``.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['D',4,3], 1, 5)
+            sage: K.from_coordinates((0, 2, 3, 1, 0, 1))
+            [[2, 2, 3, 0, -1]]
+        """
+        C = self.classical_decomposition()
+        if not sum(coords): # Special empty element (i.e. the unique element of B(0))
+            return self.element_class(self, C.module_generators[0])
+
+        l = C.letters
+        lst = ([l(1)]*coords[0] + [l(2)]*coords[1] + [l(3)]*(coords[2]//2)
+               + [l(0)]*(coords[2]%2) + [l(-3)]*(coords[3]//2)
+               + [l(-2)]*coords[4] + [l(-1)]*coords[5])
+        return self.element_class(self, C(*lst))
+
+    class Element(KirillovReshetikhinGenericCrystalElement):
+        @cached_method
+        def coordinates(self):
+            """
+            Return ``self`` as coordinates.
+
+            EXAMPLES::
+
+                sage: K = crystals.KirillovReshetikhin(['D',4,3], 1, 3)
+                sage: all(K.from_coordinates(x.coordinates()) == x for x in K)
+                True
+            """
+            letters = self.parent().classical_decomposition().letters
+            l = list(self.value)
+            return ( l.count(letters(1)), l.count(letters(2)),
+                     2*l.count(letters(3)) + l.count(letters(0)),
+                     2*l.count(letters(-3)) + l.count(letters(0)),
+                     l.count(letters(-2)), l.count(letters(-1)) )
+
+        @lazy_attribute
+        def _A(self):
+            r"""
+            Compute the vector `A = (0, z_1, z_1 + z_2, z_1 + z_2 + 3 z_4,
+            z_1 + z_2 + z_3 + 3 z_4, 2 z_1 + z_2 + z_3 + 3 z_4)`, where
+            `z_1 = \bar{x}_1 - x_1`, `z_2 = \bar{x}_2 - \bar{x}_3`,
+            `z_3 = x_3 - x_2`, and `z_4 = (\bar{x}_3 - x_3) / 2`.
+
+            EXAMPLES::
+
+                sage: K = crystals.KirillovReshetikhin(['D',4,3], 1,1)
+                sage: [mg._A for mg in K.module_generators]
+                [(0, 0, 0, 0, 0, 0), (0, -1, -1, -1, -1, -2)]
+            """
+            coords = self.coordinates()
+            z = [coords[-1] - coords[0], coords[-2] - coords[-3],
+                 coords[2] - coords[1], (coords[-3] - coords[2]) / 2]
+            return (0, z[0], z[0] + z[1], z[0] + z[1] + 3*z[3],
+                    sum(z) + 2*z[3], sum(z) + z[0] + 2*z[3])
+
+        def e0(self):
+            r"""
+            Return the action of `e_0` on ``self``.
+
+            EXAMPLES::
+
+                sage: K = crystals.KirillovReshetikhin(['D',4,3], 1,1)
+                sage: [x.e0() for x in K]
+                [[[-1]], [], [[-3]], [[-2]], None, None, None, None]
+            """
+            A = self._A
+            c = list(self.coordinates())
+            M = max(A)
+            if A[5] == M:
+                if c[0] + c[1] + (c[2] + c[3]) / 2 + c[4] + c[5] == self.parent()._s:
+                    return None
+                c[5] += 1
+                return self.parent().from_coordinates(c)
+            if A[4] == M:
+                c[0] -= 1
+                c[2] += 1
+                c[3] += 1
+                return self.parent().from_coordinates(c)
+            if A[3] == M:
+                c[1] -= 1
+                c[3] += 2
+                return self.parent().from_coordinates(c)
+            if A[2] == M:
+                c[2] -= 2
+                c[4] += 1
+                return self.parent().from_coordinates(c)
+            if A[1] == M:
+                c[2] -= 1
+                c[3] -= 1
+                c[5] += 1
+                return self.parent().from_coordinates(c)
+            if A[0] == M:
+                c[0] -= 1
+                return self.parent().from_coordinates(c)
+
+        def f0(self):
+            r"""
+            Return the action of `f_0` on ``self``.
+
+            EXAMPLES::
+
+                sage: K = crystals.KirillovReshetikhin(['D',4,3], 1,1)
+                sage: [x.f0() for x in K]
+                [[[1]], None, None, None, None, [[2]], [[3]], []]
+            """
+            A = self._A
+            c = list(self.coordinates())
+            M = max(A)
+            if A[0] == M:
+                if c[0] + c[1] + (c[2] + c[3]) / 2 + c[4] + c[5] == self.parent()._s:
+                    return None
+                c[0] += 1
+                return self.parent().from_coordinates(c)
+            if A[1] == M:
+                c[2] += 1
+                c[3] += 1
+                c[5] -= 1
+                return self.parent().from_coordinates(c)
+            if A[2] == M:
+                c[2] += 2
+                c[4] -= 1
+                return self.parent().from_coordinates(c)
+            if A[3] == M:
+                c[1] += 1
+                c[3] -= 2
+                return self.parent().from_coordinates(c)
+            if A[4] == M:
+                c[0] += 1
+                c[2] -= 1
+                c[3] -= 1
+                return self.parent().from_coordinates(c)
+            if A[5] == M:
+                c[5] -= 1
+                return self.parent().from_coordinates(c)
+
+        def epsilon0(self):
+            r"""
+            Return `\varepsilon_0` of ``self``.
+
+            EXAMPLES::
+
+                sage: K = crystals.KirillovReshetikhin(['D',4,3], 1, 5)
+                sage: [mg.epsilon0() for mg in K.module_generators]
+                [5, 6, 7, 8, 9, 10]
+            """
+            c = self.coordinates()
+            z = [c[-1] - c[0], c[-2] - c[-3], c[2] - c[1], (c[-3] - c[2]) / 2]
+            s = c[0] + c[1] + (c[2] + c[3]) / 2 + c[4] + c[5]
+            return self.parent()._s - s + max(self._A) - (2*z[0] + z[1] + z[2] + 3*z[3])
+
+        def phi0(self):
+            r"""
+            Return `\varphi_0` of ``self``.
+
+            EXAMPLES::
+
+                sage: K = crystals.KirillovReshetikhin(['D',4,3], 1, 5)
+                sage: [mg.phi0() for mg in K.module_generators]
+                [5, 4, 3, 2, 1, 0]
+            """
+            c = self.coordinates()
+            s = c[0] + c[1] + (c[2] + c[3]) / 2 + c[4] + c[5]
+            return self.parent()._s - s + max(self._A)
 
 #####################################################################
 

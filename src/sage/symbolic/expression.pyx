@@ -3277,6 +3277,11 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from <type 'NoneType'> to Symbolic Ring
+
+        Check that :trac:`18088` is fixed::
+
+            sage: SR(0)^SR(0)
+            1
         """
         cdef Expression base, nexp
 

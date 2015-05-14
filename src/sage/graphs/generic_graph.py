@@ -16343,43 +16343,51 @@ class GenericGraph(GenericGraph_pyx):
             vertex_labels=True,edge_labels=False,
             edge_color=None,edge_colors=None,
             edge_options = (),
-            color_by_label=False)
+            color_by_label=False,
+            rankdir='down',
+    )
     def graphviz_string(self, **options):
         r"""
-        Returns a representation in the dot language.
+        Return a representation in the `dot` language.
 
-        The dot language is a text based format for graphs. It is used
-        by the software suite graphviz. The specifications of the
+        The `dot` language is a text based format for graphs. It is used
+        by the software suite `graphviz`. The specifications of the
         language are available on the web (see the reference [dotspec]_).
 
         INPUT:
 
-        - ``labels`` - "string" or "latex" (default: "string"). If labels is
-          string latex command are not interpreted. This option stands for both
-          vertex labels and edge labels.
+        - ``labels`` -- "string" or "latex" (default: "string"). If
+          labels is string latex command are not interpreted. This
+          option stands for both vertex labels and edge labels.
 
-        - ``vertex_labels`` - boolean (default: True) whether to add the labels
-          on vertices.
+        - ``vertex_labels`` -- boolean (default: True) whether to add
+          the labels on vertices.
 
-        - ``edge_labels`` - boolean (default: False) whether to add
+        - ``edge_labels`` -- boolean (default: False) whether to add
           the labels on edges.
 
-        - ``edge_color`` - (default: None) specify a default color for the
-          edges.
+        - ``edge_color`` -- (default: None) specify a default color
+          for the edges.
 
-        - ``edge_colors`` - (default: None) a dictionary whose keys
-          are colors and values are list of edges. The list of edges need not to
-          be complete in which case the default color is used.
+        - ``edge_colors`` -- (default: None) a dictionary whose keys
+          are colors and values are list of edges. The list of edges
+          need not to be complete in which case the default color is
+          used.
 
-        - ``color_by_label`` - a boolean or dictionary or function (default: False)
-           whether to color each edge with a different color according
-           to its label; the colors are chosen along a rainbow, unless
-           they are specified by a function or dictionary mapping
-           labels to colors; this option is incompatible with
-           ``edge_color`` and ``edge_colors``.
+        - ``color_by_label`` -- (default: False) a boolean or
+          dictionary or function whether to color each edge with a
+          different color according to its label; the colors are
+          chosen along a rainbow, unless they are specified by a
+          function or dictionary mapping labels to colors; this option
+          is incompatible with ``edge_color`` and ``edge_colors``.
 
-        - ``edge_options`` - a function (or tuple thereof) mapping
+        - ``edge_options`` -- a function (or tuple thereof) mapping
           edges to a dictionary of options for this edge.
+
+        - ``rankdir`` -- 'left', 'right', 'up', or 'down'
+          (default: 'down', for consistency with `graphviz`):
+          the preferred ranking direction for acyclic layouts;
+          see the `rankdir` option of `graphviz`.
 
         EXAMPLES::
 
@@ -16510,6 +16518,43 @@ class GenericGraph(GenericGraph_pyx):
               node_4 -> node_8 [color = "blue"];
               node_10 -> node_3 [color = "red"];
               node_10 -> node_5 [color = "blue"];
+            }
+
+        By default ``graphviz`` renders digraphs using a hierarchical
+        layout, ranking the vertices down from top to bottom. Here we
+        specify alternative ranking directions for this layout::
+
+            sage: D = DiGraph([[1,2]])
+            sage: print D.graphviz_string(rankdir="up")
+            digraph {
+              rankdir=BT
+              node_0  [label="1"];
+              node_1  [label="2"];
+            <BLANKLINE>
+              node_0 -> node_1;
+            }
+            sage: print D.graphviz_string(rankdir="down")
+            digraph {
+              node_0  [label="1"];
+              node_1  [label="2"];
+            <BLANKLINE>
+              node_0 -> node_1;
+            }
+            sage: print D.graphviz_string(rankdir="left")
+            digraph {
+              rankdir=RL
+              node_0  [label="1"];
+              node_1  [label="2"];
+            <BLANKLINE>
+              node_0 -> node_1;
+            }
+            sage: print D.graphviz_string(rankdir="right")
+            digraph {
+              rankdir=LR
+              node_0  [label="1"];
+              node_1  [label="2"];
+            <BLANKLINE>
+              node_0 -> node_1;
             }
 
         Edge-specific options can also be specified by providing a
@@ -16676,6 +16721,11 @@ class GenericGraph(GenericGraph_pyx):
         key = self._keys_for_vertices()
 
         s = '%s {\n' % graph_string
+        if options['rankdir'] != "down":
+            directions = {'up': 'BT', 'down': 'TB', 'left': 'RL', 'right': 'LR'}
+            if options['rankdir'] not in directions:
+                raise ValueError("rankdir should be one of %s"%directions.keys())
+            s += '  rankdir=%s\n'%(directions[options['rankdir']])
         if (options['vertex_labels'] and
             options['labels'] == "latex"): # not a perfect option name
             # TODO: why do we set this only for latex labels?

@@ -1164,8 +1164,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         if have_dot2tex():
             G.set_latex_options(format='dot2tex',
                                 prog='dot',
-                                layout='acyclic',
-                                edge_options=lambda x: {'backward':True})
+                                rankdir='up',)
         return G
 
     def _latex_(self):

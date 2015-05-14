@@ -3107,14 +3107,14 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
     def rational_preperiodic_points(self, **kwds):
         r"""
-        Determined the set of rational preperiodic points for ``self``.
+        Determine the set of rational preperiodic points for ``self``.
         ``self`` must be defined over `\QQ` and be an endomorphism of projective space.
         If ``self`` is a polynomial endomorphism of `\mathbb{P}^1`, i.e. has a totally
         ramified fixed point, then the base ring can also be an absolute number field.
         This is done by passing to the Weil restriction.
 
         The default parameter values are typically good choices for `\mathbb{P}^1`. If you are having
-        trouble getting a partiuclar map to finish, try first computing the possible periods, then
+        trouble getting a particular map to finish, try first computing the possible periods, then
         try various different values for ``lifting_prime``.
 
         ALGORITHM:
@@ -3261,7 +3261,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
     def rational_preperiodic_graph(self, **kwds):
         r"""
-        Determines the set of rational preperiodic points for ``self``.
+        Determine the directed graph of the rational preperiodic points for ``self``.
         self must be defined over `\QQ` and be an endomorphism of projective space.
         If ``self`` is a polynomial endomorphism of `\mathbb{P}^1`, i.e. has a totally
         ramified fixed point, then the base ring can also be an absolute number field.

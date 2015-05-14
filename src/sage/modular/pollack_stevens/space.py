@@ -696,7 +696,7 @@ class PSModularSymbolSpace(Module):
 #            print "post:",D[g]
 
         ## now we compute nu_infty of Prop 5.1 of [PS1]
-        t = self.coefficient_module().zero_element()
+        t = self.coefficient_module().zero()
         for g in manin.gens()[1:]:
             if (not g in manin.reps_with_two_torsion()) and (not g in manin.reps_with_three_torsion()):
                 t += D[g] * manin.gammas[g] - D[g]

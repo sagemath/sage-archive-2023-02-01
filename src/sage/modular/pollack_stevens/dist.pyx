@@ -798,9 +798,9 @@ cdef class Dist_vector(Dist):
             sage: D = sage.modular.pollack_stevens.distributions.Symk(2)
             sage: x = D([2,3,4])
             sage: x.__reduce__()
-            (<type 'sage.modular.pollack_stevens.dist.Dist_vector'>, ((2, 3, 4), Sym^2 Q^2, False))
+            (<type 'sage.modular.pollack_stevens.dist.Dist_vector'>, ((2, 3, 4), Sym^2 Q^2, 0, False))
         """
-        return (self.__class__, (self._moments, self.parent(), False))
+        return (self.__class__, (self._moments, self.parent(), self.ordp, False))
 
     cdef Dist_vector _new_c(self):
         r"""

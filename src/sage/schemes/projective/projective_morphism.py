@@ -551,7 +551,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         .. TODO::
 
-            Do the division when the base ring is p-adic so that the output is a polynomial.
+            - Do the division when the base ring is p-adic so that the output is a polynomial.
+
+            - Convert back to a polynomial when the base ring is a function field (not over `\QQ` or `F_p`)
 
         EXAMPLES::
 
@@ -683,9 +685,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = ProjectiveSpace(CC, 1)
             sage: H = Hom(P,P)
-            sage: f = H([x^2+(1+CC.0)*y^2,y^2])
+            sage: f = H([x^2-CC.0/3*y^2,y^2])
             sage: f.dynatomic_polynomial(2)
-            x^2 + x*y + (2.00000000000000 + 1.00000000000000*I)*y^2
+            0.666666666666667*x^2 + 0.333333333333333*y^2
 
         ::
 
@@ -695,45 +697,75 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H ([x^2 + (t ^ 2 + 1) * y^2 , y^2 ])
             sage: f.dynatomic_polynomial(2)
             x^2 + x*y + (t^2 + 2)*y^2
+
+        TESTS:
+
+        We check that the dynatomic polynomial has the right parent (see :trac:`18409`)::
+
+            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
+            sage: H = End(P)
+            sage: R = P.coordinate_ring()
+            sage: f = H([x^2-1/3*y^2,y^2])
+            sage: f.dynatomic_polynomial(2).parent()
+            Multivariate Polynomial Ring in x, y over Algebraic Field
+
+        ::
+
+            sage: T.<v> = QuadraticField(33)
+            sage: S.<t> = PolynomialRing(T)
+            sage: P.<x,y> = ProjectiveSpace(FractionField(S),1)
+            sage: H = End(P)
+            sage: f = H([t*x^2-1/t*y^2,y^2])
+            sage: f.dynatomic_polynomial([1,2]).parent()
+            Multivariate Polynomial Ring in x, y over Fraction Field of Univariate Polynomial
+            Ring in t over Number Field in v with defining polynomial x^2 - 33
+
+        This one still does not work, some function fields still return Symoblic Ring elements::
+
+            sage: S.<t> = FunctionField(CC)
+            sage: P.<x,y> = ProjectiveSpace(S,1)
+            sage: H = End(P)
+            sage: R = P.coordinate_ring()
+            sage: f = H([t*x^2-1*y^2,t*y^2])
+            sage: f.dynatomic_polynomial([1,2]).parent()
+            Symbolic Ring
        """
         if self.domain().ngens() > 2:
             raise TypeError("Does not make sense in dimension >1")
-        if (isinstance(period, (list, tuple)) is False):
+        if not isinstance(period, (list, tuple)):
             period = [0, period]
+        x = self.domain().gen(0)
+        y = self.domain().gen(1)
+        F = self._polys
+        f = F
         if period[0] != 0:
             m = period[0]
             fm = self.nth_iterate_map(m)
             fm1 = self.nth_iterate_map(m - 1)
             n = period[1]
             PHI = 1;
-            x = self.domain().gen(0)
-            y = self.domain().gen(1)
-            F = self._polys
-            f = F
-            for d in range(1, n + 1):
+            for d in range(1, n):
                 if n % d == 0:
                     PHI = PHI * ((y*F[0] - x*F[1]) ** moebius(n/d))
-                if d != n: # avoid extra iteration
-                    F = [f[0](F[0], F[1]), f[1](F[0], F[1])]
+                F = [f[0](F[0], F[1]), f[1](F[0], F[1])]
+            PHI = PHI * (y*F[0] - x*F[1])
             if m != 0:
                 PHI = PHI(fm._polys)/ PHI(fm1._polys )
         else:
             PHI = 1
-            x = self.domain().gen(0)
-            y = self.domain().gen(1)
-            F = self._polys
-            f = F
-            for d in range(1, period[1] + 1):
+            for d in range(1, period[1]):
                 if period[1] % d == 0:
                     PHI = PHI * ((y*F[0] - x*F[1]) ** moebius(period[1]/d))
-                if d != period[1]: # avoid extra iteration
-                    F = [f[0](F[0], F[1]), f[1](F[0], F[1])]
+                F = [f[0](F[0], F[1]), f[1](F[0], F[1])]
+            PHI = PHI * (y*F[0] - x*F[1])
         try:
             QR = PHI.numerator().quo_rem(PHI.denominator())
             if QR[1] == 0:
                 return(QR[0])
         except TypeError: # something Singular can't handle
             pass
+        #even when the ring can be passed to singular in quo_rem,
+        #it can't always do the division, so we call Maxima
         from sage.rings.padics.generic_nodes import is_pAdicField, is_pAdicRing
         if period != [0,1]: #period==[0,1] we don't need to do any division
             BR = self.domain().base_ring().base_ring()

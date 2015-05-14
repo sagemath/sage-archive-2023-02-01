@@ -245,32 +245,34 @@ subgroup::
     [1, 2, 3, 6, 8, 11, 12]
 
 """
+
 #*****************************************************************************
-#       Copyright (C) 2012 Andrew Mathas <andrew.mathas@sydney.edu.au>,
+#       Copyright (C) 2012 Andrew Mathas <andrew.mathas@sydney.edu.au>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from cartesian_product import CartesianProduct
-from combinat import CombinatorialObject
+from combinat import CombinatorialElement
 from integer_vector import IntegerVectors
 from partition import Partition, Partitions, Partitions_n, _Partitions
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.interfaces.all import gp
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.rings.all import NN, ZZ
 from sage.rings.integer import Integer
-from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
 #--------------------------------------------------
 # Partition tuple - element class
 #--------------------------------------------------
-class PartitionTuple(CombinatorialObject,Element):
+class PartitionTuple(CombinatorialElement):
     r"""
     A tuple of :class:`Partition`.
 
@@ -394,7 +396,6 @@ class PartitionTuple(CombinatorialObject,Element):
         - :class:`PartitionTuples`
         - :class:`Partitions`
     """
-    __metaclass__ = ClasscallMetaclass
     Element = Partition
 
     @staticmethod
@@ -451,9 +452,8 @@ class PartitionTuple(CombinatorialObject,Element):
             ValueError: [[], [], [2, 1, 2, 1]] is not a tuple of Partitions
 
         """
-        Element.__init__(self, parent)
-        mu=[Partition(nu) for nu in mu]
-        CombinatorialObject.__init__(self, mu)
+        mu = [Partition(nu) for nu in mu]
+        CombinatorialElement.__init__(self, parent, mu)
 
     def level(self):
         """

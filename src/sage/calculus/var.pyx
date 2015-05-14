@@ -176,7 +176,7 @@ def function(s, *args, **kwds):
        code, it is better to use sage.symbolic.function_factory.function,
        since it won't touch the global namespace.
 
-    EXAMPLES::
+    EXAMPLES:
 
     We create a formal function called supersin::
 
@@ -200,16 +200,14 @@ def function(s, *args, **kwds):
         sage: k = g.diff(x); k
         (x, y) |--> 2*supersin(x)*D[0](supersin)(x)
 
-    Custom typesetting of symbolic functions in LaTeX::
-
-    (1) Either using latex_name keyword::
+    Custom typesetting of symbolic functions in LaTeX, either using latex_name
+    keyword::
 
         sage: riemann(x) = function('riemann', x, latex_name="\\mathcal{R}")
         sage: latex(riemann(x))
         \mathcal{R}\left(x\right)
 
-    (2) Or passing a custom callable function that returns a
-        latex expression::
+    or passing a custom callable function that returns a latex expression::
 
         sage: mu,nu = var('mu,nu')
         sage: def my_latex_print(self, *args): return "\\psi_{%s}"%(', '.join(map(latex, args)))

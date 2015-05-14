@@ -1,3 +1,5 @@
+"Symbolic integration via external software"
+
 from sage.symbolic.expression import Expression
 from sage.symbolic.ring import SR
 

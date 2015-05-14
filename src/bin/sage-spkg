@@ -347,32 +347,29 @@ if [ ! -f "$PKG_SRC" ]; then
         echo "Attempting to get on-line info for package $PKG_NAME"
     fi
 
-    # Reduce everything to case 4: full URL.
-    if [ -n "$PKG_HAS_PATH" ]; then
-        PKG_URL="$PKG_SRC"
+    if [ -n "$PKG_NAME_UPSTREAM" ]; then
+        # This is the new-style package way of downloading the tarball
+        sage-download-file $PKG_NAME_UPSTREAM
+        PKG_SRC="$SAGE_DISTFILES/$PKG_NAME_UPSTREAM"
     else
-        if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
-            PKG_URL="$SAGE_UPSTREAM/$PKG_BASE/$PKG_NAME_UPSTREAM"
+        # Handle all the legacy cruft. This branch can be deleted once
+        # we get rid of old-style spkgs
+        
+        # Reduce everything to case 4: full URL.
+        if [ -n "$PKG_HAS_PATH" ]; then
+            PKG_URL="$PKG_SRC"
         else
             # Handle cases 2a and 3, where the package name is something
             # like "foo" or "foo-1.2.3".
+            MIRROR=$(sage-download-file --print-fastest-mirror)/spkg
             for repo in optional experimental standard huge archive; do
                 # Download the list of packages.
                 echo ">>> Checking online list of $repo packages."
-
-                # Huge packages are not mirrored
-                if [ $repo = huge ]; then
-                    URL_REPO="http://www.sagemath.org/spkg/huge"
-                else
-                    URL_REPO="${SAGE_SERVER}spkg/$repo"
-                fi
-
                 # File inside DOT_SAGE should be writable
                 repolist="${DOT_SAGE}/${repo}.list"
-
-                sage-download-file "$URL_REPO/list" >$repolist
+                sage-download-file "$MIRROR/$repo/list" $repolist
                 if [ $? -ne 0 ]; then
-                    echo >&2 "Error: failed to download $URL_REPO/list, aborting"
+                    echo >&2 "Error: failed to download $MIRROR/$repo/list, aborting"
                     rm -f $repolist
                     exit 1
                 fi
@@ -389,8 +386,8 @@ if [ ! -f "$PKG_SRC" ]; then
 
                     # If INFO is set, try downloading only the .txt file
                     if [ $INFO -eq 1 ]; then
-                        PKG_URL="$URL_REPO/$pkg.txt"
-                        sage-download-file 2>/dev/null "$PKG_URL" && exit 0
+                        PKG_URL="$MIRROR/$repo/$pkg.txt"
+                        sage-download-file "$PKG_URL" && exit 0
                         # If the download failed (for whatever reason),
                         # fall through and use the .spkg file.
                     else
@@ -419,51 +416,52 @@ if [ ! -f "$PKG_SRC" ]; then
                             esac
                         fi
                     fi
-                    PKG_URL="$URL_REPO/$pkg.spkg"
+                    PKG_URL="$MIRROR/$repo/$pkg.spkg"
                     break
                 fi
             done
+
+            if [ -z "$PKG_URL" ]; then
+                echo >&2 "Error: could not find a package matching $PKG_NAME on $MIRROR"
+                exit 1
+            fi
+    
+            # Check a second time whether the package is already installed.
+            if [ $INFO -eq 0 -a $FORCE -eq 0 -a -f "$SAGE_SPKG_INST/$PKG_NAME" ]; then
+                echo "Package $PKG_NAME is already installed."
+                echo "Use 'sage -f $PKG_BASE' to force a reinstallation."
+                # Touch installed file such that "make" considers it up-to-date.
+                touch "$SAGE_SPKG_INST/$PKG_NAME"
+                exit 0
+            fi
         fi
-        if [ -z "$PKG_URL" ]; then
-            echo >&2 "Error: could not find a package matching $PKG_NAME on $SAGE_SERVER"
+    
+        # Trac #5852: check write permissions
+        mkdir -p "$SAGE_DISTFILES"
+        if [ ! -w "$SAGE_DISTFILES" ]; then
+            echo >&2 "Error: no write access to packages directory $SAGE_PACKAGES."
             exit 1
         fi
-
-        # Check a second time whether the package is already installed.
-        if [ $INFO -eq 0 -a $FORCE -eq 0 -a -f "$SAGE_SPKG_INST/$PKG_NAME" ]; then
-            echo "Package $PKG_NAME is already installed."
-            echo "Use 'sage -f $PKG_BASE' to force a reinstallation."
-            # Touch installed file such that "make" considers it up-to-date.
-            touch "$SAGE_SPKG_INST/$PKG_NAME"
-            exit 0
+        cd "$SAGE_DISTFILES" || exit $?
+    
+        # Download to a temporary file (such that we don't end up with a
+        # corrupted .spkg file).
+        PKG_TMP="${PKG_URL##*/}.tmp"
+        echo ">>> Trying to download $PKG_URL"
+        sage-download-file "$PKG_URL" "$PKG_TMP"
+        if [ $? -ne 0 ]; then
+            # Delete failed download
+            rm -f "$PKG_TMP"
+            echo >&2 "Error: failed to download package $PKG_NAME"
+            exit 1
         fi
+    
+        PKG_SRC="`pwd`/${PKG_URL##*/}"
+        if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
+            verify_checksum "$PKG_TMP" "$PKG_SCRIPTS/checksums.ini"
+        fi
+        mv -f "$PKG_TMP" "$PKG_SRC"
     fi
-
-    # Trac #5852: check write permissions
-    mkdir -p "$SAGE_DISTFILES"
-    if [ ! -w "$SAGE_DISTFILES" ]; then
-        echo >&2 "Error: no write access to packages directory $SAGE_PACKAGES."
-        exit 1
-    fi
-    cd "$SAGE_DISTFILES" || exit $?
-
-    # Download to a temporary file (such that we don't end up with a
-    # corrupted .spkg file).
-    PKG_TMP="${PKG_URL##*/}.tmp"
-    echo ">>> Trying to download $PKG_URL"
-    sage-download-file "$PKG_URL" >"$PKG_TMP"
-    if [ $? -ne 0 ]; then
-        # Delete failed download
-        rm -f "$PKG_TMP"
-        echo >&2 "Error: failed to download package $PKG_NAME"
-        exit 1
-    fi
-
-    PKG_SRC="`pwd`/${PKG_URL##*/}"
-    if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
-        verify_checksum "$PKG_TMP" "$PKG_SCRIPTS/checksums.ini"
-    fi
-    mv -f "$PKG_TMP" "$PKG_SRC"
 else
     if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
         verify_checksum "$PKG_SRC" "$PKG_SCRIPTS/checksums.ini"

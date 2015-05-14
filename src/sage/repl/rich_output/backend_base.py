@@ -152,6 +152,7 @@ class BackendBase(SageObject):
             sage: backend.default_preferences()
             Display preferences:
             * graphics is not specified
+            * supplemental_plot is not specified
             * text is not specified
         """
         from sage.repl.rich_output.preferences import DisplayPreferences

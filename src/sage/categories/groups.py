@@ -919,3 +919,26 @@ class Groups(CategoryWithAxiom):
                                                for i,G in enumerate(F)])
                 return Family(gens_prod, lift, name="gen")
 
+            def order(self):
+                r"""
+                Return the cardinality of self.
+
+                EXAMPLES::
+
+                    sage: C = cartesian_product([SymmetricGroup(10), SL(2,GF(3))])
+                    sage: C.order()
+                    87091200
+
+                TESTS::
+
+                    sage: C.order.__module__
+                    'sage.categories.groups'
+
+                .. TODO::
+
+                    this method is just here to prevent
+                    ``FiniteGroups.ParentMethods`` to call
+                    ``_cardinality_from_iterator``.
+                """
+                from sage.misc.misc_c import prod
+                return prod(c.cardinality() for c in self.cartesian_factors())

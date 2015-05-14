@@ -456,6 +456,32 @@ class Magmas(Category_singleton):
                 tester.assertEqual(type(one.__hash__()), int)
                 tester.assertEqual(one.__hash__(), one.__hash__())
 
+            def is_empty(self):
+                r"""
+                Return whether ``self`` is empty.
+
+                Since this set is a unital magma it is not empty and this method
+                always return ``False``.
+
+                EXAMPLES::
+
+                    sage: S = SymmetricGroup(2)
+                    sage: S.is_empty()
+                    False
+
+                    sage: M = Monoids().example()
+                    sage: M.is_empty()
+                    False
+
+                TESTS::
+
+                    sage: S.is_empty.__module__
+                    'sage.categories.magmas'
+                    sage: M.is_empty.__module__
+                    'sage.categories.magmas'
+                """
+                return False
+
         class SubcategoryMethods:
 
             @cached_method

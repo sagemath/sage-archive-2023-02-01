@@ -670,7 +670,7 @@ class NumberField_relative(NumberField_generic):
             sage: O2.index_in(OK)
             144
 
-        The following was previously "ridiculously slow"; see trac #4738::
+        The following was previously "ridiculously slow"; see :trac:`4738`::
 
             sage: K.<a,b> = NumberField([x^4 + 1, x^4 - 3])
             sage: K.maximal_order()
@@ -678,10 +678,10 @@ class NumberField_relative(NumberField_generic):
 
         An example with nontrivial ``v``::
 
-            sage: L.<a,b> = NumberField([x^2 - 3, x^2 - 5])
+            sage: L.<a,b> = NumberField([x^2 - 3, x^2 - 5*49])
             sage: O3 = L.maximal_order([3])
             sage: O3.absolute_discriminant()
-            3686400
+            8643600
             sage: O3.is_maximal()
             False
         """

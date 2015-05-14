@@ -199,6 +199,12 @@ testing whether something is infinity), so make sure it is satisfied::
 
     sage: loads(dumps(infinity)) is infinity
     True
+
+We check that :trac:`17990` is fixed::
+
+    sage: m = Matrix([Infinity])
+    sage: m.rows()
+    [(+Infinity)]
 """
 
 from sage.rings.ring_element import RingElement
@@ -682,7 +688,7 @@ class UnsignedInfinityRing_class(_uniq, Ring):
             (Infinity, Infinity)
 
         The following rings have a ``is_infinity`` method::
-        
+
             sage: RR(oo).is_infinity()
             True
             sage: SR(oo).is_infinity()
@@ -990,6 +996,28 @@ class InfinityRing_class(_uniq, Ring):
         """
         return [self.gen(0), self.gen(1)]
 
+    def is_zero(self):
+        """
+        The Infinity Ring is not zero
+
+        EXAMPLES::
+
+           sage: InfinityRing.is_zero()
+           False
+        """
+        return False
+
+    def is_commutative(self):
+        """
+        The Infinity Ring is commutative
+
+        EXAMPLES::
+
+            sage: InfinityRing.is_commutative()
+            True
+        """
+        return True
+
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -1048,7 +1076,7 @@ class InfinityRing_class(_uniq, Ring):
 
         The following rings have ``is_positive_infinity`` /
         ``is_negative_infinity`` methods::
-        
+
             sage: RR(oo).is_positive_infinity(), RR(-oo).is_negative_infinity()
             (True, True)
             sage: SR(oo).is_positive_infinity(), SR(-oo).is_negative_infinity()
@@ -1558,19 +1586,19 @@ minus_infinity = InfinityRing.gen(1)
 def test_comparison(ring):
     """
     Check comparison with infinity
-    
+
     INPUT:
 
     - ``ring`` -- a sub-ring of the real numbers
 
     OUTPUT:
-    
+
     Various attempts are made to generate elements of ``ring``. An
     assertion is triggered if one of these elements does not compare
     correctly with plus/minus infinity.
 
     EXAMPLES::
-        
+
         sage: from sage.rings.infinity import test_comparison
         sage: rings = [ZZ, QQ, RR, RealField(200), RDF, RLF, AA, RIF]
         sage: for R in rings:
@@ -1584,9 +1612,9 @@ def test_comparison(ring):
         testing Real Lazy Field
         testing Algebraic Real Field
         testing Real Interval Field with 53 bits of precision
-   
+
     Comparison with number fields does not work::
-    
+
         sage: K.<sqrt3> = NumberField(x^2-3)
         sage: (-oo < 1+sqrt3) and (1+sqrt3 < oo)     # known bug
         False
@@ -1619,7 +1647,7 @@ def test_comparison(ring):
         assert z <= infinity, msg
         assert infinity >= z, msg
 
-    
+
 def test_signed_infinity(pos_inf):
     """
     Test consistency of infinity representations.
@@ -1631,7 +1659,7 @@ def test_signed_infinity(pos_inf):
     INPUT:
 
     - ``pos_inf`` -- a representation of positive infinity.
-    
+
     OUTPUT:
 
     An assertion error is raised if the representation is not
@@ -1647,7 +1675,7 @@ def test_signed_infinity(pos_inf):
         False
         sage: oo == float('+inf')
         True
-  
+
     EXAMPLES::
 
         sage: from sage.rings.infinity import test_signed_infinity

@@ -28,5 +28,6 @@ Algebraic Number Fields
    sage/rings/number_field/totallyreal_phc
 
    sage/rings/qqbar
+   sage/rings/universal_cyclotomic_field
 
 .. include:: ../footer.txt

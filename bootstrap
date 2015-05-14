@@ -56,15 +56,10 @@ bootstrap () {
 # Bootstrap by downloading the auto-generated files
 bootstrap-download () {
     source src/bin/sage-env
-
-    mkdir upstream 2>/dev/null
-    if [ ! -f $CONFBALL ]; then
-        sage-download-file $SAGE_UPSTREAM/configure/configure-$CONFVERSION.tar.gz >$CONFBALL
-        if [ $? -ne 0 ]; then
-            rm -f "$CONFBALL"
-            echo >&2 "Error: downloading configure-$CONFVERSION.tar.gz failed"
-            exit 1
-        fi
+    sage-download-file configure-$CONFVERSION.tar.gz
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: downloading configure-$CONFVERSION.tar.gz failed"
+        exit 1
     fi
 
     # The "m" option to tar ensures that timestamps are set to the

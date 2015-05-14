@@ -205,7 +205,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     It is possible to change the prefix used to display the basis elements using
     the method :meth:`~sage.structure.indexed_generators.IndexedGenerators.print_options`.
     Say that for instance one wanted to display the 
-    :class:`~NonCommutativeSymmetricFunctions.complete` basis as having a prefix ``H``
+    :class:`~NonCommutativeSymmetricFunctions.Complete` basis as having a prefix ``H``
     instead of the default ``S``::
 
         sage: H = NCSF.complete()
@@ -214,6 +214,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: H.print_options(prefix='H')
         sage: H.an_element()
         2*H[] + 2*H[1] + 3*H[1, 1]
+        sage: H.print_options(prefix='S') #restore to 'S'
 
     .. rubric:: Other concrete representations
 
@@ -598,7 +599,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 where `\alpha` is written in the form
                 `(\alpha_1, \alpha_2, \ldots, \alpha_m)`, and where `S`
                 stands for the complete basis
-                (:class:`~NonCommutativeSymmetricFunctions.complete`).
+                (:class:`~NonCommutativeSymmetricFunctions.Complete`).
 
                 The immaculate function `\mathfrak{S}_{\alpha}` first
                 appeared in [BBSSZ2012]_ (where it was defined
@@ -730,9 +731,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 Verschiebung endomorphism.
 
                 It is a lift of the `n`-th Verschiebung operator on the ring
-                of symmetric functions (
-                :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
-                ) to the ring of noncommutative symmetric functions.
+                of symmetric functions
+                (:meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`)
+                to the ring of noncommutative symmetric functions.
 
                 The action of the `n`-th Verschiebung operator can also be
                 described on the ribbon Schur functions. Namely, every
@@ -1290,10 +1291,10 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 mapping two non-commutative symmetric functions to
                 another, not necessarily preserving degree.
                 It can be defined as follows: Let `*` denote the internal
-                product (:meth:`internal_product`) on the space of
-                non-commutative symmetric functions. For any composition
-                `I`, let `S^I` denote the complete homogeneous symmetric
-                function indexed by `I`. For any compositions
+                product (:meth:`~sage.combinat.ncsf_qsym.generic_basis_code.GradedModulesWithInternalProduct.ElementMethods.internal_product`)
+                on the space of non-commutative symmetric functions. For any
+                composition `I`, let `S^I` denote the complete homogeneous
+                symmetric function indexed by `I`. For any compositions
                 `\alpha`, `\beta`, `\gamma`, let
                 `g^{\gamma}_{\alpha, \beta}` denote the coefficient of
                 `S^{\gamma}` in the internal product
@@ -1874,8 +1875,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                     sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
                     sage: Psi = NCSF.Psi()
-                    sage: def double(i) : return Psi[i,i]
-                    ...
+                    sage: double = lambda i: Psi[i,i]
                     sage: f = Psi.algebra_morphism(double, codomain = Psi)
                     sage: f
                     Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field in the Psi basis
@@ -1887,7 +1887,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 When extra properties about the morphism are known, one
                 can specify the category of which it is a morphism::
 
-                    sage: def negate(i): return -Psi[i]
+                    sage: negate = lambda i: -Psi[i]
                     sage: f = Psi.algebra_morphism(negate, codomain = Psi, category = GradedHopfAlgebrasWithBasis(QQ))
                     sage: f
                     Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field in the Psi basis
@@ -2441,9 +2441,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 Verschiebung endomorphism.
 
                 It is a lift of the `n`-th Verschiebung operator on the ring
-                of symmetric functions (
-                :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
-                ) to the ring of noncommutative symmetric functions.
+                of symmetric functions
+                (:meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`)
+                to the ring of noncommutative symmetric functions.
 
                 The action of the `n`-th Verschiebung operator can also be
                 described on the ribbon Schur functions. Namely, every
@@ -2464,7 +2464,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.qsym.NonCommutativeSymmetricFunctions.Bases.ElementMethods.verschiebung`,
+                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.verschiebung`,
                     :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.frobenius`,
                     :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
 
@@ -2567,15 +2567,16 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 graded vector space `NCSF`. Under the canonical isomorphism
                 between the `n`-th graded component of `NCSF` and the descent
                 algebra of the symmetric group `S_n` (see
-                :meth:`to_descent_algebra`), the star involution (restricted to
+                :meth:`~NonCommutativeSymmetricFunctions.Bases.ElementMethods.to_descent_algebra`),
+                the star involution (restricted to
                 the `n`-th graded component) corresponds to the automorphism
                 of the descent algebra given by
                 `x \mapsto \omega_n x \omega_n`, where `\omega_n` is the
                 permutation `(n, n-1, \ldots, 1) \in S_n` (written here in
                 one-line notation). If `\pi` denotes the projection from `NCSF`
                 to the ring of symmetric functions
-                (:meth:`to_symmetric_function`), then `\pi(f^{\ast}) = \pi(f)`
-                for every `f \in NCSF`.
+                (:meth:`~NonCommutativeSymmetricFunctions.Bases.ElementMethods.to_symmetric_function`),
+                then `\pi(f^{\ast}) = \pi(f)` for every `f \in NCSF`.
 
                 The star involution on `NCSF` is adjoint to the star involution
                 on `QSym` by the standard adjunction between `NCSF` and `QSym`.
@@ -2908,8 +2909,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 kind, and `R` for the ribbon basis). The map `\psi` is an
                 involution and a graded Hopf algebra automorphism of `NCSF`.
                 If `\pi` denotes the projection from `NCSF` to the ring of
-                symmetric functions (:meth:`to_symmetric_function`), then
-                `\pi(\psi(f)) = \omega(\pi(f))` for every `f \in NCSF`, where
+                symmetric functions
+                (:meth:`~NonCommutativeSymmetricFunctions.Bases.ElementMethods.to_symmetric_function`),
+                then `\pi(\psi(f)) = \omega(\pi(f))` for every `f \in NCSF`, where
                 the `\omega` on the right hand side denotes the omega
                 automorphism of `Sym`.
 
@@ -3098,9 +3100,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 Verschiebung endomorphism.
 
                 It is a lift of the `n`-th Verschiebung operator on the ring
-                of symmetric functions (
-                :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
-                ) to the ring of noncommutative symmetric functions.
+                of symmetric functions
+                (:meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`)
+                to the ring of noncommutative symmetric functions.
 
                 The action of the `n`-th Verschiebung operator can also be
                 described on the ribbon Schur functions. Namely, every
@@ -3221,15 +3223,16 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 graded vector space `NCSF`. Under the canonical isomorphism
                 between the `n`-th graded component of `NCSF` and the descent
                 algebra of the symmetric group `S_n` (see
-                :meth:`to_descent_algebra`), the star involution (restricted to
+                :meth:`~NonCommutativeSymmetricFunctions.Bases.ElementMethods.to_descent_algebra`),
+                the star involution (restricted to
                 the `n`-th graded component) corresponds to the automorphism
                 of the descent algebra given by
                 `x \mapsto \omega_n x \omega_n`, where `\omega_n` is the
                 permutation `(n, n-1, \ldots, 1) \in S_n` (written here in
                 one-line notation). If `\pi` denotes the projection from `NCSF`
                 to the ring of symmetric functions
-                (:meth:`to_symmetric_function`), then `\pi(f^{\ast}) = \pi(f)`
-                for every `f \in NCSF`.
+                (:meth:`~NonCommutativeSymmetricFunctions.Bases.ElementMethods.to_symmetric_function`),
+                then `\pi(f^{\ast}) = \pi(f)` for every `f \in NCSF`.
 
                 The star involution on `NCSF` is adjoint to the star involution
                 on `QSym` by the standard adjunction between `NCSF` and `QSym`.
@@ -3240,8 +3243,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmeticFunctions.Bases.ElementMethods.star_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmeticFunctions.Bases.ElementMethods.psi_involution`,
+                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution`,
+                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution`,
                     :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution`.
 
                 EXAMPLES::
@@ -3296,9 +3299,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 `\Phi` for the basis of the power sums of the second kind,
                 and `R` for the ribbon basis). The map `\psi` is an involution
                 and a graded Hopf algebra automorphism of `NCSF`. If `\pi`
-                denotes the projection from `NCSF` to the ring of symmetric
-                functions (:meth:`to_symmetric_function`), then
-                `\pi(\psi(f)) = \omega(\pi(f))` for every `f \in NCSF`, where
+                denotes the projection from `NCSF` to the ring of symmetric functions
+                (:meth:`~NonCommutativeSymmetricFunctions.Bases.ElementMethods.to_symmetric_function`),
+                then `\pi(\psi(f)) = \omega(\pi(f))` for every `f \in NCSF`, where
                 the `\omega` on the right hand side denotes the omega
                 automorphism of `Sym`.
 
@@ -3311,9 +3314,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmeticFunctions.Bases.ElementMethods.psi_involution`,
+                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution`,
                     :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.psi_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmeticFunctions.Bases.ElementMethods.star_involution`.
+                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution`.
 
                 EXAMPLES::
 
@@ -3772,9 +3775,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 Verschiebung endomorphism.
 
                 It is a lift of the `n`-th Verschiebung operator on the ring
-                of symmetric functions (
-                :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
-                ) to the ring of noncommutative symmetric functions.
+                of symmetric functions
+                (:meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`)
+                to the ring of noncommutative symmetric functions.
 
                 The action of the `n`-th Verschiebung operator can also be
                 described on the ribbon Schur functions. Namely, every
@@ -3795,7 +3798,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmeticFunctions.Bases.ElementMethods.verschiebung`,
+                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.verschiebung`,
                     :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.frobenius`,
                     :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
 
@@ -4045,9 +4048,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 Verschiebung endomorphism.
 
                 It is a lift of the `n`-th Verschiebung operator on the ring
-                of symmetric functions (
-                :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
-                ) to the ring of noncommutative symmetric functions.
+                of symmetric functions
+                (:meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`)
+                to the ring of noncommutative symmetric functions.
 
                 The action of the `n`-th Verschiebung operator can also be
                 described on the ribbon Schur functions. Namely, every
@@ -4068,7 +4071,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmeticFunctions.Bases.ElementMethods.verschiebung`,
+                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.verschiebung`,
                     :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.frobenius`,
                     :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
 
@@ -4168,15 +4171,16 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 graded vector space `NCSF`. Under the canonical isomorphism
                 between the `n`-th graded component of `NCSF` and the descent
                 algebra of the symmetric group `S_n` (see
-                :meth:`to_descent_algebra`), the star involution (restricted to
+                :meth:`~NonCommutativeSymmetricFunctions.Bases.ElementMethods.to_descent_algebra`),
+                the star involution (restricted to
                 the `n`-th graded component) corresponds to the automorphism
                 of the descent algebra given by
                 `x \mapsto \omega_n x \omega_n`, where `\omega_n` is the
                 permutation `(n, n-1, \ldots, 1) \in S_n` (written here in
                 one-line notation). If `\pi` denotes the projection from `NCSF`
                 to the ring of symmetric functions
-                (:meth:`to_symmetric_function`), then `\pi(f^{\ast}) = \pi(f)`
-                for every `f \in NCSF`.
+                (:meth:`~NonCommutativeSymmetricFunctions.Bases.ElementMethods.to_symmetric_function`),
+                then `\pi(f^{\ast}) = \pi(f)` for every `f \in NCSF`.
 
                 The star involution on `NCSF` is adjoint to the star involution
                 on `QSym` by the standard adjunction between `NCSF` and `QSym`.
@@ -4187,8 +4191,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmeticFunctions.Bases.ElementMethods.star_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmeticFunctions.Bases.ElementMethods.psi_involution`,
+                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution`,
+                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution`,
                     :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution`.
 
                 EXAMPLES::
@@ -4243,9 +4247,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 `\Phi` for the basis of the power sums of the second kind,
                 and `R` for the ribbon basis). The map `\psi` is an involution
                 and a graded Hopf algebra automorphism of `NCSF`. If `\pi`
-                denotes the projection from `NCSF` to the ring of symmetric
-                functions (:meth:`to_symmetric_function`), then
-                `\pi(\psi(f)) = \omega(\pi(f))` for every `f \in NCSF`, where
+                denotes the projection from `NCSF` to the ring of symmetric functions
+                (:meth:`~NonCommutativeSymmetricFunctions.Bases.ElementMethods.to_symmetric_function`),
+                then `\pi(\psi(f)) = \omega(\pi(f))` for every `f \in NCSF`, where
                 the `\omega` on the right hand side denotes the omega
                 automorphism of `Sym`.
 
@@ -4258,9 +4262,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmeticFunctions.Bases.ElementMethods.psi_involution`,
+                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution`,
                     :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.psi_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmeticFunctions.Bases.ElementMethods.star_involution`.
+                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution`.
 
                 EXAMPLES::
 

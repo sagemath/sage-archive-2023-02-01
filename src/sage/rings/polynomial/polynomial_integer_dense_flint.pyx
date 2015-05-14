@@ -33,6 +33,8 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/libs/ntl/decl.pxi"
 
+from sage.misc.long cimport pyobject_to_long
+
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, RingElement
 from sage.structure.element import coerce_binop
@@ -54,8 +56,6 @@ from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport fmpz_poly_reverse, fmpz_poly_revert_series
 from sage.libs.flint.ntl_interface cimport fmpz_set_ZZ, fmpz_poly_set_ZZX, fmpz_poly_get_ZZX
 from sage.libs.ntl.ntl_ZZX_decl cimport *
-
-from cpython.number cimport PyNumber_Index
 
 cdef extern from "limits.h":
     long LONG_MAX
@@ -902,10 +902,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: x^(2^100)
             Traceback (most recent call last):
             ...
-            OverflowError: Python int too large to convert to C long
+            OverflowError: Sage Integer too large to convert to C long
         """
         cdef Polynomial_integer_dense_flint res = self._new()
-        cdef long nn = PyNumber_Index(exp)
+        cdef long nn = pyobject_to_long(exp)
 
         if self.is_zero():
             if exp == 0:

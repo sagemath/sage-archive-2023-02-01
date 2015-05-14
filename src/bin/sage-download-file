@@ -346,7 +346,8 @@ class Tarball(object):
                 return
             else:
                 # Garbage in the upstream directory? Delete and re-download
-                print('Invalid checksum for cached file {destination}'.format(destination=destination))
+                print('Invalid checksum for cached file {destination}, deleting'
+                      .format(destination=destination))
                 os.remove(destination)
         successful_download = False
         for mirror in mirror_list:

@@ -88,39 +88,6 @@ lookup_param()
     sed -n "s/^${param} *= *//p" $file
 }
 
-verify_checksum()
-{
-    local file=$1
-    local checksums=$2
-
-    if [ ! -f $checksums ]; then
-        echo "No checksum file: $checksums"
-        exit 1
-    fi
-
-    if command -v shasum > /dev/null; then
-        expected=`lookup_param sha1 $checksums`
-        actual=`shasum -a 1 $file | sed 's/[^0-9a-f].*//'`
-    elif command -v md5sum > /dev/null; then
-        expected=`lookup_param md5 $checksums`
-        actual=`md5sum $file | sed 's/[^0-9a-f].*//'`
-    elif command -v md5 > /dev/null; then
-        expected=`lookup_param md5 $checksums`
-        actual=`md5 $file | sed 's/.*= *//'`
-    else
-        # POSIX; Note that Solaris is not compliant and its sed
-        # does not understand [[:space:]]
-        expected=`lookup_param cksum $checksums`
-        actual=`cksum $file | sed 's/[^0-9].*//'`
-    fi
-
-    echo "Checksum: $expected vs $actual"
-    if [ "$expected" != "$actual" ]; then
-        echo "Invalid checksum for $file"
-        exit 1
-    fi
-}
-
 # Handle -n, -t, -q options for recursive make
 # See Trac #12016.
 if echo "$MAKE $MAKEFLAGS -$MAKEFLAGS" |grep '[ ]-[A-Za-z]*[qnt]' >/dev/null; then
@@ -299,15 +266,6 @@ elif [ -z "$PKG_HAS_PATH" ]; then
         PKG_BASE_VER=`echo $PKG_VER | sed 's/\.p[0-9][0-9]*$//'`
         PKG_NAME_UPSTREAM=`lookup_param tarball "$PKG_SCRIPTS/checksums.ini" | sed "s/VERSION/$PKG_BASE_VER/"`
         echo "Found local metadata for $PKG_NAME"
-
-        if [ $INFO -eq 0 ]; then
-            # see if we can the source tarball locally
-            if [ -f "$SAGE_DISTFILES/$PKG_NAME_UPSTREAM" ]; then
-                # Found a good tarball
-                PKG_SRC="$SAGE_DISTFILES/$PKG_NAME_UPSTREAM"
-                echo "Found local sources at $PKG_SRC"
-            fi
-        fi
     else
         cd "$SAGE_DISTFILES"
         for spkg in `ls -1t ${PKG_NAME}.spkg ${PKG_NAME}-*.spkg 2>/dev/null`; do
@@ -457,14 +415,7 @@ if [ ! -f "$PKG_SRC" ]; then
         fi
     
         PKG_SRC="`pwd`/${PKG_URL##*/}"
-        if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
-            verify_checksum "$PKG_TMP" "$PKG_SCRIPTS/checksums.ini"
-        fi
         mv -f "$PKG_TMP" "$PKG_SRC"
-    fi
-else
-    if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
-        verify_checksum "$PKG_SRC" "$PKG_SCRIPTS/checksums.ini"
     fi
 fi
 

@@ -58,7 +58,7 @@ Hyperbolicity
           hyp(a, b, c, d) \leq \min_{u,v\in\{a,b,c,d\}}2dist(u,v)
 
       This result is used to reduce the number of tested 4-tuples in the naive
-      implementation (called 'basic+').
+      implementation (called 'basic+C' or 'basic+').
 
     - Another upper bound on `hyp(a, b, c, d)` has been proved in [CCL12]_. It
       is used to design an algorithm with worse case time complexity in `O(n^4)`
@@ -84,13 +84,13 @@ Hyperbolicity
           =& dist(c, d)\\
 
       We obtain similarly that `hyp(a, b, c, d) \leq dist(a, b)`. Consequently,
-      in the implementation of the 'cuts' algorithm, we ensure that `S_1` is
+      in the implementation of the 'CCL' algorithm, we ensure that `S_1` is
       larger than `S_2` and `S_3` using an ordering of the pairs by decreasing
       lengths. Then, we use the best value `h` found so far to stop exploration
       as soon as `dist(a, b) \leq h`.
 
       The worst case time complexity of this algorithm is `O(n^4)`, but it
-      performs very well in practice since it cuts the search space.  This
+      performs very well in practice since it CCL the search space.  This
       algorithm can be turned into an approximation algorithm since at any step
       of its execution we maintain an upper and a lower bound. We can thus stop
       execution as soon as a multiplicative approximation factor or an additive
@@ -109,8 +109,8 @@ Hyperbolicity
       `(a,b)` and `(c,d)` satisfying `\delta(G) = hyp(a, b, c, d)/2`. For
       instance, the `n\times m`-grid has only two far-apart pairs, and so
       computing its hyperbolicity is immediate once the far-apart pairs are
-      found. The 'cuts+' algorithm improves the 'cuts' algorithm since it uses
-      far-apart pairs.
+      found. The 'CCL+FA' or 'CCL+' algorithm improves the 'CCL' algorithm since it
+      uses far-apart pairs.
 
 TODO:
 
@@ -152,6 +152,7 @@ AUTHORS:
 - David Coudert (2012): initial version, exact and approximate algorithm,
   distribution, sampling
 - David Coudert (2014): improved exact algorithm using far-apart pairs
+- Michele Borassi (2015): cleaned the code
 
 
 Methods
@@ -276,24 +277,18 @@ cdef inline int __hyp__(unsigned short ** distances, int a, int b, int c, int d)
 
 cdef tuple __hyperbolicity_basic_algorithm__(int N,
                                              unsigned short **  distances,
-                                             use_bounds,
                                              verbose):
     """
     Returns **twice** the hyperbolicity of a graph, and a certificate.
 
     This method implements the basic algorithm for computing the hyperbolicity
-    of a graph which tests all `\binom n 4` 4-tuples of vertices. It can
-    optionally use a cutting rule proposed in [Soto11]_. See the module's
-    documentation for more details.
+    of a graph which tests all `\binom n 4` 4-tuples of vertices.
 
     INPUTS:
 
     - ``N`` -- number of vertices of the graph.
 
     - ``distances`` -- path distance matrix (see the distance_all_pairs module).
-
-    - ``use_bounds`` -- (default: ``True``) is boolean. Uses a cutting rule
-      proposed in [Soto11]_ when set to ``True``.
 
     - ``verbose`` -- (default: ``False``) is boolean. Set to True to display
       some information during execution.
@@ -313,49 +308,22 @@ cdef tuple __hyperbolicity_basic_algorithm__(int N,
     cdef list certificate
 
     h_LB = -1
-    if use_bounds:
-        for 0 <= a < N-3:
-            for a < b < N-2:
+   
+    for 0 <= a < N-3:
+        for a < b < N-2:
+            for b < c < N-1:
+                for c < d < N:
 
-                # We use the cutting rule proposed in [Soto11]_
-                if 2*distances[a][b] <= h_LB:
-                    continue
+                    # We compute the hyperbolicity of the 4-tuple
+                    hh = __hyp__(distances, a, b, c, d)
 
-                for b < c < N-1:
+                    # We compare the value with previously known bound
+                    if hh > h_LB:
+                        h_LB = hh
+                        certificate = [a, b, c, d]
 
-                    # We use the cutting rule proposed in [Soto11]_
-                    if 2*distances[a][c] <= h_LB or 2*distances[b][c] <= h_LB:
-                        continue
-
-                    for c < d < N:
-
-                        # We compute the hyperbolicity of the 4-tuple
-                        hh = __hyp__(distances, a, b, c, d)
-
-                        # We compare the value with previously known bound
-                        if hh > h_LB:
-                            h_LB = hh
-                            certificate = [a, b, c, d]
-
-                            if verbose:
-                                print 'New lower bound:', ZZ(hh)/2
-
-    else:
-        for 0 <= a < N-3:
-            for a < b < N-2:
-                for b < c < N-1:
-                    for c < d < N:
-
-                        # We compute the hyperbolicity of the 4-tuple
-                        hh = __hyp__(distances, a, b, c, d)
-
-                        # We compare the value with previously known bound
-                        if hh > h_LB:
-                            h_LB = hh
-                            certificate = [a, b, c, d]
-
-                            if verbose:
-                                print 'New lower bound:',ZZ(hh)/2
+                        if verbose:
+                            print 'New lower bound:',ZZ(hh)/2
 
     # Last, we return the computed value and the certificate
     if h_LB != -1:
@@ -786,7 +754,7 @@ cdef tuple __hyperbolicity__(int N,
         return (h, certificate, h_UB if GOTO_RETURN else h)
 
 
-def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=None, verbose = False):
+def hyperbolicity(G, algorithm='CCL+FA', approximation_factor=None, additive_gap=None, verbose = False):
     r"""
     Return the hyperbolicity of the graph or an approximation of this value.
 
@@ -805,28 +773,27 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
 
     - ``G`` -- a connected Graph
 
-    - ``algorithm`` -- (default: ``'cuts'``) specifies the algorithm to use
-      among:
+    - ``algorithm`` -- (default: ``'CCL+FA'``) specifies the algorithm to use among:
 
           - ``'basic'`` is an exhaustive algorithm considering all possible
             4-tuples and so have time complexity in `O(n^4)`.
 
-          - ``'basic+'`` uses a cutting rule proposed in [Soto11]_ to
-            significantly reduce the overall computation time of the ``'basic'``
+          - ``'basic+C'`` or ``'basic+'`` uses a cutting rule proposed in [Soto11]_ 
+            to significantly reduce the overall computation time of the ``'basic'``
             algorithm.
 
-          - ``'cuts'`` is an exact algorithm proposed in [CCL12_]. It considers
+          - ``'CCL'`` is an exact algorithm proposed in [CCL12_]. It considers
             the 4-tuples in an ordering allowing to cut the search space as soon
             as a new lower bound is found (see the module's documentation). This
             algorithm can be turned into a approximation algorithm.
 
-          - ``'cuts+'`` uses the notion of far-apart pairs as proposed in
+          - ``'CCL+FA'`` or ``'CCL+'`` uses the notion of far-apart pairs as proposed in
             [Soto11]_ to significantly reduce the overall computation time of
-            the ``'cuts'`` algorithm.
+            the ``'CCL'`` algorithm.
 
           - ``'dom'`` is an approximation with additive constant four. It
             computes the hyperbolicity of the vertices of a dominating set of
-            the graph. This is sometimes slower than ``'cuts'`` and sometimes
+            the graph. This is sometimes slower than ``'CCL'`` and sometimes
             faster. Try it to know if it is interesting for you.
             The ``additive_gap`` and ``approximation_factor`` parameters cannot
             be used in combination with this method and so are ignored.
@@ -836,13 +803,13 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
       soon as the ratio between the upper bound and the best found solution is
       less than the approximation factor. When the approximation factor is 1.0,
       the problem is solved optimaly. This parameter is used only when the
-      chosen algorithm is ``'cuts'``.
+      chosen algorithm is ``'CCL'`` or ``'CCL+FA'``.
 
     - ``additive_gap`` -- (default: None) When sets to a positive number, the
       function stop computations as soon as the difference between the upper
       bound and the best found solution is less than additive gap. When the gap
       is 0.0, the problem is solved optimaly. This parameter is used only when
-      the chosen algorithm is ``'cuts'``.
+      the chosen algorithm is ``'CCL'`` or ``'CCL+FA'``.
 
     - ``verbose`` -- (default: ``False``) is a boolean set to True to display
       some information during execution: new upper and lower bounds, etc.
@@ -866,7 +833,7 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
 
         sage: from sage.graphs.hyperbolicity import hyperbolicity
         sage: G = graphs.GridGraph([3,3])
-        sage: hyperbolicity(G,algorithm='cuts')
+        sage: hyperbolicity(G,algorithm='CCL')
         (2, [(0, 0), (0, 2), (2, 0), (2, 2)], 2)
         sage: hyperbolicity(G,algorithm='basic')
         (2, [(0, 0), (0, 2), (2, 0), (2, 2)], 2)
@@ -875,29 +842,44 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
 
         sage: from sage.graphs.hyperbolicity import hyperbolicity
         sage: G = graphs.PetersenGraph()
-        sage: hyperbolicity(G,algorithm='cuts')
+        sage: hyperbolicity(G,algorithm='CCL')
         (1/2, [0, 1, 2, 3], 1/2)
-        sage: hyperbolicity(G,algorithm='cuts+')
+        sage: hyperbolicity(G,algorithm='CCL+')
+        (1/2, [0, 1, 2, 3], 1/2)
+        sage: hyperbolicity(G,algorithm='CCL+FA')
         (1/2, [0, 1, 2, 3], 1/2)
         sage: hyperbolicity(G,algorithm='basic')
         (1/2, [0, 1, 2, 3], 1/2)
-        sage: hyperbolicity(G,algorithm='basic+')
+        sage: hyperbolicity(G,algorithm='basic+C')
         (1/2, [0, 1, 2, 3], 1/2)
         sage: hyperbolicity(G,algorithm='dom')
         (0, [0, 2, 8, 9], 1)
 
-    Asking for an approximation::
+    Asking for an approximation in a grid graph::
 
         sage: from sage.graphs.hyperbolicity import hyperbolicity
         sage: G = graphs.GridGraph([2,10])
-        sage: hyperbolicity(G,algorithm='cuts', approximation_factor=1.5)
+        sage: hyperbolicity(G,algorithm='CCL', approximation_factor=1.5)
         (1, [(0, 0), (0, 9), (1, 0), (1, 9)], 3/2)
-        sage: hyperbolicity(G,algorithm='cuts', approximation_factor=4)
+        sage: hyperbolicity(G,algorithm='CCL+', approximation_factor=1.5)
+        (1, [(0, 0), (0, 9), (1, 0), (1, 9)], 1)
+        sage: hyperbolicity(G,algorithm='CCL', approximation_factor=4)
         (1, [(0, 0), (0, 9), (1, 0), (1, 9)], 4)
-        sage: hyperbolicity(G,algorithm='cuts', additive_gap=2)
+        sage: hyperbolicity(G,algorithm='CCL', additive_gap=2)
         (1, [(0, 0), (0, 9), (1, 0), (1, 9)], 3)
         sage: hyperbolicity(G,algorithm='dom')
         (1, [(0, 1), (0, 9), (1, 0), (1, 8)], 5)
+        
+    Asking for an approximation in a cycle graph::
+    
+        sage: from sage.graphs.hyperbolicity import hyperbolicity
+        sage: G = graphs.CycleGraph(10)
+        sage: hyperbolicity(G,algorithm='CCL', approximation_factor=1.5)
+        (2, [0, 2, 5, 7], 5/2)
+        sage: hyperbolicity(G,algorithm='CCL+FA', approximation_factor=1.5)
+        (2, [0, 2, 5, 7], 5/2)
+        sage: hyperbolicity(G,algorithm='CCL+FA', additive_gap=1)
+        (2, [0, 2, 5, 7], 5/2)
 
     Comparison of results::
 
@@ -906,10 +888,11 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
         ...       G = graphs.RandomBarabasiAlbert(100,2)
         ...       d1,_,_ = hyperbolicity(G,algorithm='basic')
         ...       d4,_,_ = hyperbolicity(G,algorithm='basic+')
-        ...       d2,_,_ = hyperbolicity(G,algorithm='cuts')
-        ...       d3,_,_ = hyperbolicity(G,algorithm='cuts+')
+        ...       d2,_,_ = hyperbolicity(G,algorithm='CCL')
+        ...       d3,_,_ = hyperbolicity(G,algorithm='CCL+')
+        ...       d5,_,_ = hyperbolicity(G,algorithm='CCL+FA')
         ...       l3,_,u3 = hyperbolicity(G,approximation_factor=2)
-        ...       if (not d1==d2==d3==d4) or l3>d1 or u3<d1:
+        ...       if (not d1==d2==d3==d4==d5) or l3>d1 or u3<d1:
         ...          print "That's not good!"
 
 
@@ -944,7 +927,7 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
 
         sage: from sage.graphs.hyperbolicity import hyperbolicity
         sage: G = graphs.PetersenGraph()
-        sage: hyperbolicity(G,algorithm='cuts', approximation_factor=0.1)
+        sage: hyperbolicity(G,algorithm='CCL', approximation_factor=0.1)
         Traceback (most recent call last):
         ...
         ValueError: The approximation factor must be >= 1.0.
@@ -953,10 +936,10 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
 
         sage: from sage.graphs.hyperbolicity import hyperbolicity
         sage: G = Graph()
-        sage: hyperbolicity(G,algorithm='cuts', additive_gap=-1)
+        sage: hyperbolicity(G,algorithm='CCL', additive_gap=-1)
         Traceback (most recent call last):
         ...
-        ValueError: The additive gap must be >= 0 when using the 'cuts' algorithm.
+        ValueError: The additive gap must be >= 0 when using the 'CCL' algorithm.
 
     Asking for an unknown algorithm::
 
@@ -966,16 +949,24 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
         Traceback (most recent call last):
         ...
         ValueError: Algorithm 'tip top' not yet implemented. Please contribute.
-    """
+    """            
+    
+    # Abbreviations for algorithms are expanded.
+    if algorithm == "CCL+":
+        algorithm = "CCL+FA"
+
+    if algorithm == "basic+":
+        algorithm = "basic+C"
+        
     if not isinstance(G,Graph):
         raise ValueError("The input parameter must be a Graph.")
-    if not algorithm in ['basic', 'basic+', 'cuts', 'cuts+', 'dom']:
+    if not algorithm in ['basic', 'basic+', 'basic+C', 'CCL', 'CCL+FA', 'dom']:
         raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
     if approximation_factor is None:
         approximation_factor = 1.0
     elif approximation_factor==1.0:
         pass
-    elif algorithm=='cuts':
+    elif algorithm in ['CCL', 'CCL+FA']:
         if not approximation_factor in RR or approximation_factor < 1.0:
             raise ValueError("The approximation factor must be >= 1.0.")
     else:
@@ -984,14 +975,14 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
         additive_gap = 0.0
     elif additive_gap==0.0:
         pass
-    elif algorithm=='cuts':
+    elif algorithm in ['CCL', 'CCL+FA']:
         if not additive_gap in RR:
             raise ValueError("The additive gap must be a real positive number.")
         elif additive_gap < 0.0:
             raise ValueError("The additive gap must be >= 0 when using the '%s' algorithm." %(algorithm))
     else:
         raise ValueError("The additive_gap is ignored when using the '%s' algorithm." %(algorithm))
-
+    
     # The hyperbolicity is defined on connected graphs
     if not G.is_connected():
         raise ValueError("The input Graph must be connected.")
@@ -1072,7 +1063,7 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
     if distances == NULL:
         raise MemoryError("Unable to allocate array 'distances'.")
 
-    if algorithm=='cuts+':
+    if algorithm == 'CCL+FA':
         _distances_       = <unsigned short *> sage_malloc(N * N * sizeof(unsigned short))
         _far_apart_pairs_ = <unsigned short *> sage_malloc(N * N * sizeof(unsigned short))
         far_apart_pairs   = <unsigned short **>sage_malloc(N * sizeof(unsigned short *))
@@ -1103,7 +1094,7 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
 
     # We call the cython function for computing the hyperbolicity with the
     # required parameters.
-    if algorithm in ['cuts', 'cuts+']:
+    if algorithm in ['CCL', 'CCL+FA']:
         sig_on()
         hyp, certif, hyp_UB = __hyperbolicity__(N, distances, far_apart_pairs, D, hyp,
                                                 approximation_factor, 2*additive_gap, verbose)
@@ -1131,10 +1122,10 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
         sig_off()
         hyp_UB = min( hyp+8, D)
 
-    elif algorithm in ['basic', 'basic+']:
+    elif algorithm in ['basic', 'basic+C']:
         sig_on()
         hyp, certif = __hyperbolicity_basic_algorithm__(N, distances,
-                                                        use_bounds=(algorithm=='basic+'),
+                                                        use_bounds=(algorithm=='basic+C'),
                                                         verbose=verbose)
         sig_off()
         hyp_UB = hyp

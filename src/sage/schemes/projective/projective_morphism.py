@@ -2425,6 +2425,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([3*x^2*y - y^3,x^3 - 3*x*y^2])
             sage: f.automorphism_group(algorithm='CRT',return_functions=True,iso_type=True)
             ([x, (x + 1)/(x - 1), (-x + 1)/(x + 1), -x, 1/x, -1/x, (x - 1)/(x + 1), (-x - 1)/(x - 1)], 'Dihedral of order 8')
+
+        ::
+
+            sage: A.<z> = AffineSpace(QQ,1)
+            sage: H = End(A)
+            sage: f = H([1/z^3])
+            sage: F = f.homogenize(1)
+            sage: F.automorphism_group()
+            [
+            [1 0]  [0 2]  [-1  0]  [ 0 -2]
+            [0 1], [2 0], [ 0  1], [ 2  0]
+            ]
         """
 
         alg = kwds.get('algorithm',None)

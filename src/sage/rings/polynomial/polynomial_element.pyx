@@ -5496,41 +5496,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         except (TypeError, ValueError, PariError, NotImplementedError):
             return self.sylvester_matrix(other).det()
 
-    def newton_sum(self, R):
-        """
-        Return the truncated Newton series of the power of the roots of `p`.
-
-        INPUT:
-
-        - ``self`` -- a polynomial on rationals
-
-
-        - ``R`` -- ``PowerSeriesRing`` on ``QQ`` with `default_prec``
-          specifying the truncation on the Newton series.
-
-        Implemented as in [BFSS], in the case of the rational ring.
-
-        TODO: implement it for other rings.
-
-        EXAMPLES:
-
-            sage: K.<x> = QQ[]
-            sage: R = PowerSeriesRing(QQ, 'x', default_prec=5)
-            sage: p = x^2 - 2
-            sage: p.newton_sum(R)
-            8*x^4 + 4*x^2 + 2
-
-        """
-
-        if self.parent().base_ring() is not QQ or \
-           R.base_ring() is not QQ:
-            raise ValueError('implemented only for rational ring.')
-        deg = self.degree()
-        p1 = self.reverse()
-        p2 = ~R(p1)
-        p3 = p1.derivative()*p2
-        res = deg - p3*R.gen()
-        return res.truncate(R.default_prec())
 
     def composed_op(p1, p2, op, algorithm=None, monic=True):
         """
@@ -5541,7 +5506,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         - ``p1, p2`` -- polynomials on the same polynomial ring on rationals.
 
-        - ``op`` -- `operator.OP` where `OP=add, sub, mul` or `div`. 
+        - ``op`` -- `operator.OP` where `OP=add, sub, mul` or `div`.
 
         - ``algorithm`` -- can be "resultant" or "BFSS";
           by default the former is used when the polynomials have few
@@ -5653,8 +5618,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             prec = d1*d2 + 1
             S = K.base_ring()
             R = PowerSeriesRing(S, K.variable_name(), default_prec=prec)
-            np1 = p1.newton_sum(R)
-            np2 = p2.newton_sum(R)
+            np1 = ((~R(p1.reverse()))*p1.derivative().reverse()).truncate(prec)
+            np2 = ((~R(p2.reverse()))*p2.derivative().reverse()).truncate(prec)
             if op in (operator.add, operator.sub):
                 fj = S.one()
                 a1, a2 = [np1[0]], [np2[0]]

@@ -754,8 +754,10 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.frobenius`,
-                    :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+                    :meth:`frobenius method of QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.frobenius>`,
+                    :meth:`verschiebung method of Sym
+                    <sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung>`
 
                 INPUT:
 
@@ -961,8 +963,10 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution`.
+                    :meth:`star involution of QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution>`,
+                    :meth:`psi involution of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution>`.
 
                 EXAMPLES::
 
@@ -1107,9 +1111,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.omega_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution`.
+                    :meth:`omega involution of QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.omega_involution>`,
+                    :meth:`psi involution of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution>`,
+                    :meth:`star involution of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution>`.
 
                 EXAMPLES::
 
@@ -1208,8 +1215,10 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.psi_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution`.
+                    :meth:`psi involution of QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.psi_involution>`,
+                    :meth:`star involution of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution>`.
 
                 EXAMPLES::
 
@@ -2464,9 +2473,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.verschiebung`,
-                    :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.frobenius`,
-                    :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+                    :meth:`verschiebung method of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.verschiebung>`,
+                    :meth:`frobenius method of QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.frobenius>`,
+                    :meth:`verschiebung method of Sym
+                    <sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung>`
 
                 INPUT:
 
@@ -2587,9 +2599,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution`.
+                    :meth:`star involution of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution>`,
+                    :meth:`star involution of QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution>`,
+                    :meth:`psi involution of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution>`.
 
                 EXAMPLES::
 
@@ -2924,9 +2939,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.psi_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution`.
+                    :meth:`psi involution of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution>`,
+                    :meth:`psi involution of QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.psi_involution>`,
+                    :meth:`star involution of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution>`.
 
                 EXAMPLES::
 
@@ -3123,9 +3141,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.verschiebung`,
-                    :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.frobenius`,
-                    :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+                    :meth:`verschiebung method of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.verschiebung>`,
+                    :meth:`frobenius method of QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.frobenius>`,
+                    :meth:`verschiebung method of Sym
+                    <sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung>`
 
                 INPUT:
 
@@ -3243,9 +3264,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution`.
+                    :meth:`star involution of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution>`,
+                    :meth:`psi involution of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution>`,
+                    :meth:`star involution of QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution>`.
 
                 EXAMPLES::
 
@@ -3314,9 +3338,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.psi_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution`.
+                    :meth:`psi involution of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution>`,
+                    :meth:`psi involution of QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.psi_involution>`,
+                    :meth:`star involution of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution>`.
 
                 EXAMPLES::
 
@@ -3798,9 +3825,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.verschiebung`,
-                    :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.frobenius`,
-                    :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+                    :meth:`verschiebung method of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.verschiebung>`,
+                    :meth:`frobenius method of QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.frobenius>`,
+                    :meth:`verschiebung method of Sym
+                    <sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung>`
 
                 INPUT:
 
@@ -4071,9 +4101,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.verschiebung`,
-                    :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.frobenius`,
-                    :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+                    :meth:`verschiebung method of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.verschiebung>`,
+                    :meth:`frobenius method of QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.frobenius>`,
+                    :meth:`verschiebung method of Sym
+                    <sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung>`
 
                 INPUT:
 
@@ -4191,9 +4224,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution`.
+                    :meth:`star involution of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution>`,
+                    :meth:`psi involution of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution>`,
+                    :meth:`star involution of QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution>`.
 
                 EXAMPLES::
 
@@ -4262,9 +4298,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.psi_involution`,
-                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution`.
+                    :meth:`psi involution of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution>`,
+                    :meth:`psi involution of QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.psi_involution>`,
+                    :meth:`star involution of NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution>`.
 
                 EXAMPLES::
 

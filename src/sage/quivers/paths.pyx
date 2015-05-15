@@ -205,7 +205,7 @@ cdef class QuiverPath(MonoidElement):
             raise ValueError("First edge should start at vertex {}".format(start))
         if E[path[-1]][1]!=end:
             raise ValueError("Last edge should end at vertex {}".format(end))
-        for n from 0<n<l:
+        for n in range(1,l):
             if E[path[n-1]][1]!=E[path[n]][0]:
                 raise ValueError("Edge {} ends at {}, but edge {} starts at {}".format(E[path[n-1]][2], E[path[n-1]][1], E[path[n]][2], E[path[n]][0]))
 
@@ -361,12 +361,20 @@ cdef class QuiverPath(MonoidElement):
         cself = left
         other = right
         # we want *negative* degree reverse lexicographical order
-        cdef int c = cmp(other._path.length, cself._path.length)
-        if c!=0:
-            return c
-        c = cmp((cself._start,cself._end), (other._start,other._end))
-        if c or (cself._path.length==0):
-            return c
+        if other._path.length < cself._path.length:
+            return -1
+        if other._path.length > cself._path.length:
+            return 1
+        if cself._start < other._start:
+            return -1
+        if cself._start > other._start:
+            return 1
+        if cself._end < other._end:
+            return -1
+        if cself._end > other._end:
+            return 1
+        if cself._path.length==0:
+            return 0
         return biseq_cmp(cself._path, other._path)
 
     def __getitem__(self, index):
@@ -431,7 +439,7 @@ cdef class QuiverPath(MonoidElement):
         # return an iterator for _path as a list
         cdef mp_size_t i
         E = self._parent.quiver().edges()
-        for i from 0<=i<self._path.length:
+        for i in range(0,self._path.length):
             yield E[biseq_getitem(self._path, i)]
 
     cpdef MonoidElement _mul_(self, MonoidElement other):
@@ -610,7 +618,6 @@ cdef class QuiverPath(MonoidElement):
         if subpath._path.length == 0:
             raise ValueError("We only consider sub-paths of positive length")
         cdef int v
-        cdef object C
         cdef size_t i
         cdef size_t max_i, bitsize
         if self._path.length < subpath._path.length:
@@ -716,7 +723,17 @@ cdef class QuiverPath(MonoidElement):
 
         # Reverse all the edges in the path, then reverse the path
         cdef mp_size_t i
-        return Q.element_class(Q, self._end, self._start, [biseq_getitem(self._path,i) for i in xrange(self._path.length-1,-1,-1)], check=False)
+        cdef QuiverPath out = QuiverPath.__new__(Q.element_class)
+        out._parent = Q
+        out._start = self._end
+        out._end   = self._start
+        sig_on()
+        biseq_init(out._path, self._path.length, self._path.itembitsize)
+        cdef mp_size_t l = self._path.length - 1
+        for i in range(self._path.length):
+            biseq_inititem(out._path, i, biseq_getitem(self._path, l-i))
+        sig_off()
+        return out
 
 cpdef QuiverPath NewQuiverPath(Q, start, end, biseq_data):
     """
@@ -727,11 +744,12 @@ cpdef QuiverPath NewQuiverPath(Q, start, end, biseq_data):
     - ``Q``, the path semigroup of a quiver
     - ``start``, an integer, the label of the startpoint
     - ``end``, an integer, the label of the endpoint
-    - ``data``, a string: The bitmap encoding the path represented as integer
-       at base `32`.
-    - ``bitsize``, the number of bits used to store the path
-    - ``itembitsize``, the number of bits used to store a single item
-    - ``length``, the number of items in the path
+    - ``biseq_data``, a tuple formed by
+      - A string, encoding a bitmap representing the path as integer
+        at base `32`,
+      - the number of bits used to store the path,
+      - the number of bits used to store a single item
+      - the number of items in the path.
 
     TESTS::
 

@@ -3,8 +3,19 @@
 Shard intersection order
 
 This file builds a combinatorial version of the shard intersection
-order of type A. This is a lattice on the set of permutations, closely
-related to noncrossing partitions and the weak order.
+order of type A (in the classification of finite Coxeter groups). This
+is a lattice on the set of permutations, closely related to
+noncrossing partitions and the weak order.
+
+For technical reasons, the elements of the posets are not permutations,
+but can be easily converted from and to permutations::
+
+    sage: from sage.combinat.shard_order import ShardPosetElement
+    sage: p0 = Permutation([1,3,4,2])
+    sage: e0 = ShardPosetElement(p0); e0
+    (1, 3, 4, 2)
+    sage: Permutation(list(e0)) == p0
+    True
 
 REFERENCES:
 
@@ -28,11 +39,20 @@ class ShardPosetElement(tuple):
 
     This is basically a permutation with extra stored arguments:
 
-    - ``p`` - the permutation itself as a tuple
-    - ``runs`` - the decreasing runs as a tuple of tuples
-    - ``run_indices`` - a list ``integer -> index of the run``
-    - ``dpg`` - the transitive closure of the shard preorder graph
-    - ``spg`` - the transitive reduction of the shard preorder graph
+    - ``p`` -- the permutation itself as a tuple
+    - ``runs`` -- the decreasing runs as a tuple of tuples
+    - ``run_indices`` -- a list ``integer -> index of the run``
+    - ``dpg`` -- the transitive closure of the shard preorder graph
+    - ``spg`` -- the transitive reduction of the shard preorder graph
+
+    These elements can easily be converted from and to permutations::
+
+        sage: from sage.combinat.shard_order import ShardPosetElement
+        sage: p0 = Permutation([1,3,4,2])
+        sage: e0 = ShardPosetElement(p0); e0
+        (1, 3, 4, 2)
+        sage: Permutation(list(e0)) == p0
+        True
     """
     def __init__(self, p):
         r"""
@@ -135,7 +155,7 @@ def shard_preorder_graph(runs):
 
     - a tuple of tuples, the runs of a permutation, or
 
-    - a tuple of pairs (i,j), each one standing for a run from `i` to `j`.
+    - a tuple of pairs `(i,j)`, each one standing for a run from `i` to `j`.
 
     OUTPUT:
 

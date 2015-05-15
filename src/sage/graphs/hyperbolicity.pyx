@@ -468,33 +468,57 @@ cdef inline distances_and_far_apart_pairs(gg,
     
     
 
-cdef inline pair** sort_pairs(int N, int D, unsigned short ** distances,
-                       unsigned short ** far_apart_pairs,
-                       uint32_t * nb_p,
-                       uint32_t * nb_pairs_of_length
-                       ):
+cdef inline pair** sort_pairs(int N, 
+                              int D, 
+                              unsigned short ** values,
+                              unsigned short ** to_include,
+                              uint32_t * nb_p,
+                              uint32_t * nb_pairs_of_length
+                              ):
     """
-    Uses quick sort to create the list of far apart pairs, in decreasing order of
-    distance (see the module's documentation for the definition of far-apart pairs).
+    Uses quick sort to create a list of unordered pairs (i,j), in decreasing 
+    order of values(i,j). If to_include[i][j] = 0, the pair is ignored. We 
+    assume N and D to be correct with respect to the arrays values and to_include.
 
-    This method assumes that the arrays distances and far_apart_pairs have length
-    N. If not, the result will be incorrect.
+    INPUT:
+
+    - ``N`` -- the range of i and j (that is, the square root of the number
+      of pairs to be sorted);
+
+    - ``D`` -- the maximum value of an element;
+
+    - ``values`` -- the maximum value of an element;
+    
+    - ``to_include`` -- an array such that to_include[i][j] contains "1" if pair
+      (i,j) should be included, "0" otherwise;
+
+    OUTPUT:
+    
+     - ``nb_p`` -- the number of pairs to be included;
+     
+     - ``nb_pairs_of_length`` -- an array containing in position k the number of
+       pairs (i,j) that are included and such that values[i][j] = k.
     """
         # pairs_of_length[d] is the list of pairs of vertices at distance d
     cdef pair ** pairs_of_length = <pair **>sage_malloc(sizeof(pair *)*(D+1))
-    cdef unsigned short *p_far_apart
+    cdef unsigned short *p_to_include
     nb_p[0] = 0;
     
+    # fills nb_pairs_of_length and nb_p
     memset(nb_pairs_of_length, 0, (D+1) * sizeof(uint32_t))
         
-    if far_apart_pairs == NULL:
+    if to_include == NULL:
         nb_p[0] = (N*(N-1))/2
+        for i from 0 <= i < N:
+            for j from i < j < N:
+                nb_pairs_of_length[ values[i][j] ] += 1
     else:
         for i from 0 <= i < N:
-            p_far_apart = far_apart_pairs[i]
+            p_to_include = to_include[i]
             for j from i < j < N:
-                if far_apart_pairs[i][j]:
+                if p_to_include[j]:
                     nb_p[0] += 1
+                    nb_pairs_of_length[ values[i][j] ] += 1
 
     if pairs_of_length != NULL:
         pairs_of_length[0] = <pair *>sage_malloc(sizeof(pair) * nb_p[0])
@@ -512,37 +536,25 @@ cdef inline pair** sort_pairs(int N, int D, unsigned short ** distances,
         sage_free(cpt_pairs)
         raise MemoryError
 
-    # ==> Fills nb_pairs_of_length
-    if far_apart_pairs == NULL:
-        for i from 0 <= i < N:
-            for j from i < j < N:
-                nb_pairs_of_length[ distances[i][j] ] += 1
-    else:
-        for i from 0 <= i < N:
-            p_far_apart = far_apart_pairs[i]
-            for j from i < j < N:
-                if p_far_apart[j]:
-                    nb_pairs_of_length[ distances[i][j] ] += 1
-
     # ==> Defines pairs_of_length[d] for all d
     for i from 1 <= i <= D:
         pairs_of_length[i] = pairs_of_length[i-1] + nb_pairs_of_length[i-1]
 
     # ==> Fills pairs_of_length[d] for all d
-    if far_apart_pairs == NULL:
+    if to_include == NULL:
         for i from 0 <= i < N:
             for j from i+1 <= j < N:
-                k = distances[i][j]
+                k = values[i][j]
                 if k:
                     pairs_of_length[ k ][ cpt_pairs[ k ] ].s = i
                     pairs_of_length[ k ][ cpt_pairs[ k ] ].t = j
                     cpt_pairs[ k ] += 1
     else:
         for i from 0 <= i < N:
-            p_far_apart = far_apart_pairs[i]
+            p_to_include = to_include[i]
             for j from i+1 <= j < N:
-                if p_far_apart[j]:
-                    k = distances[i][j]
+                if p_to_include[j]:
+                    k = values[i][j]
                     pairs_of_length[ k ][ cpt_pairs[ k ] ].s = i
                     pairs_of_length[ k ][ cpt_pairs[ k ] ].t = j
                     cpt_pairs[ k ] += 1
@@ -555,7 +567,7 @@ cdef inline pair** sort_pairs(int N, int D, unsigned short ** distances,
 # Compute the hyperbolicity using the algorithm of [CCL12]_
 ######################################################################
 
-cdef tuple __hyperbolicity__(int N,
+cdef tuple __hyperbolicity_old__(int N,
                              unsigned short **  distances,
                              unsigned short **  far_apart_pairs,
                              int D,

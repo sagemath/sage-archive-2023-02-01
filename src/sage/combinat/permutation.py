@@ -2071,7 +2071,8 @@ class Permutation(CombinatorialElement):
         ``[3,4,5]`` and ``[2]``.
 
         Runs in an empty permutation are not defined.
-                                                                                      INPUT:
+
+        INPUT:
 
         - ``as_tuple`` -- boolean (default: ``False``) choice of
           output format

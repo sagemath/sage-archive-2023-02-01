@@ -50,16 +50,6 @@ Hyperbolicity
     Several improvements over the naive algorithm have been proposed and are
     implemented in the current module.
 
-    - It is shown in [Soto11]_ that `hyp(a, b, c, d)` is upper bounded by the
-      smallest distance between the vertices in `\{a,b,c,d\}` multiplied by 2.
-
-      .. MATH::
-
-          hyp(a, b, c, d) \leq \min_{u,v\in\{a,b,c,d\}}2dist(u,v)
-
-      This result is used to reduce the number of tested 4-tuples in the naive
-      implementation (called 'basic+C' or 'basic+').
-
     - Another upper bound on `hyp(a, b, c, d)` has been proved in [CCL12]_. It
       is used to design an algorithm with worse case time complexity in `O(n^4)`
       but that behaves much better in practice.
@@ -386,7 +376,7 @@ cdef inline distances_and_far_apart_pairs(gg,
         # less than MAX_UNSIGNED_SHORT vertices.
         raise ValueError("The graph backend contains more than {} nodes and "
                          "we cannot compute the matrix of distances/far-apart "
-                         "pairs on something like that !".format(<unsigned short> -1))
+                         "pairs on something like that!".format(<unsigned short> -1))
 
     # The vertices which have already been visited
     cdef bitset_t seen
@@ -475,10 +465,94 @@ cdef inline distances_and_far_apart_pairs(gg,
     sage_free(waiting_list)
     free_short_digraph(sd)
     sage_free(c_far_apart)
+    
+    
 
+cdef inline pair** sort_pairs(int N, int D, unsigned short ** distances,
+                       unsigned short ** far_apart_pairs,
+                       uint32_t * nb_p,
+                       uint32_t * nb_pairs_of_length
+                       ):
+    """
+    Uses quick sort to create the list of far apart pairs, in decreasing order of
+    distance (see the module's documentation for the definition of far-apart pairs).
+
+    This method assumes that the arrays distances and far_apart_pairs have length
+    N. If not, the result will be incorrect.
+    """
+        # pairs_of_length[d] is the list of pairs of vertices at distance d
+    cdef pair ** pairs_of_length = <pair **>sage_malloc(sizeof(pair *)*(D+1))
+    cdef unsigned short *p_far_apart
+    nb_p[0] = 0;
+    
+    memset(nb_pairs_of_length, 0, (D+1) * sizeof(uint32_t))
+        
+    if far_apart_pairs == NULL:
+        nb_p[0] = (N*(N-1))/2
+    else:
+        for i from 0 <= i < N:
+            p_far_apart = far_apart_pairs[i]
+            for j from i < j < N:
+                if far_apart_pairs[i][j]:
+                    nb_p[0] += 1
+
+    if pairs_of_length != NULL:
+        pairs_of_length[0] = <pair *>sage_malloc(sizeof(pair) * nb_p[0])
+
+    # temporary variable used to fill pairs_of_length
+    cdef uint32_t * cpt_pairs = <uint32_t *>sage_calloc(D+1, sizeof(uint32_t))
+
+    if (pairs_of_length    == NULL or
+        pairs_of_length[0] == NULL or
+        cpt_pairs          == NULL):
+        if pairs_of_length != NULL:
+            sage_free(pairs_of_length[0])
+        sage_free(nb_pairs_of_length)
+        sage_free(pairs_of_length)
+        sage_free(cpt_pairs)
+        raise MemoryError
+
+    # ==> Fills nb_pairs_of_length
+    if far_apart_pairs == NULL:
+        for i from 0 <= i < N:
+            for j from i < j < N:
+                nb_pairs_of_length[ distances[i][j] ] += 1
+    else:
+        for i from 0 <= i < N:
+            p_far_apart = far_apart_pairs[i]
+            for j from i < j < N:
+                if p_far_apart[j]:
+                    nb_pairs_of_length[ distances[i][j] ] += 1
+
+    # ==> Defines pairs_of_length[d] for all d
+    for i from 1 <= i <= D:
+        pairs_of_length[i] = pairs_of_length[i-1] + nb_pairs_of_length[i-1]
+
+    # ==> Fills pairs_of_length[d] for all d
+    if far_apart_pairs == NULL:
+        for i from 0 <= i < N:
+            for j from i+1 <= j < N:
+                k = distances[i][j]
+                if k:
+                    pairs_of_length[ k ][ cpt_pairs[ k ] ].s = i
+                    pairs_of_length[ k ][ cpt_pairs[ k ] ].t = j
+                    cpt_pairs[ k ] += 1
+    else:
+        for i from 0 <= i < N:
+            p_far_apart = far_apart_pairs[i]
+            for j from i+1 <= j < N:
+                if p_far_apart[j]:
+                    k = distances[i][j]
+                    pairs_of_length[ k ][ cpt_pairs[ k ] ].s = i
+                    pairs_of_length[ k ][ cpt_pairs[ k ] ].t = j
+                    cpt_pairs[ k ] += 1
+
+    sage_free(cpt_pairs)
+    return pairs_of_length
+    
 
 ######################################################################
-# Compute the hyperbolicity using a the algorithm of [CCL12]_
+# Compute the hyperbolicity using the algorithm of [CCL12]_
 ######################################################################
 
 cdef tuple __hyperbolicity__(int N,
@@ -544,8 +618,7 @@ cdef tuple __hyperbolicity__(int N,
     cdef int a, b, c, d, h, h_UB
     cdef int x, y, l1, l2, S1, S2, S3
     cdef list certificate = []
-    cdef unsigned short *p_far_apart
-    cdef int nb_p = 0
+    cdef uint32_t *nb_p = <uint32_t *>sage_malloc(sizeof(uint32_t)) # The total number of pairs.
 
     # Test if the distance matrix corresponds to a connected graph, i.e., if
     # distances from node 0 are all less or equal to N-1.
@@ -553,83 +626,21 @@ cdef tuple __hyperbolicity__(int N,
         if distances[0][a]>=N:
             raise ValueError("The input graph must be connected.")
 
-
-    if far_apart_pairs == NULL:
-        nb_p = (N*(N-1))/2
-    else:
-        for i from 0 <= i < N:
-            p_far_apart = far_apart_pairs[i]
-            for j from i < j < N:
-                if far_apart_pairs[i][j]:
-                    nb_p += 1
-
     # nb_pairs_of_length[d] is the number of pairs of vertices at distance d
-    cdef uint32_t * nb_pairs_of_length = <uint32_t *>sage_calloc(D+1,sizeof(uint32_t))
+    cdef uint32_t * nb_pairs_of_length = <uint32_t *>sage_malloc((D+1) * sizeof(uint32_t))
 
-    # pairs_of_length[d] is the list of pairs of vertices at distance d
-    cdef pair ** pairs_of_length = <pair **>sage_malloc(sizeof(pair *)*(D+1))
-
-    if pairs_of_length != NULL:
-        pairs_of_length[0] = <pair *>sage_malloc(sizeof(pair)*nb_p)
-
-    # temporary variable used to fill pairs_of_length
-    cdef uint32_t * cpt_pairs = <uint32_t *>sage_calloc(D+1,sizeof(uint32_t))
-
-    if (nb_pairs_of_length == NULL or
-        pairs_of_length    == NULL or
-        pairs_of_length[0] == NULL or
-        cpt_pairs          == NULL):
-        if pairs_of_length != NULL:
-            sage_free(pairs_of_length[0])
-        sage_free(nb_pairs_of_length)
-        sage_free(pairs_of_length)
-        sage_free(cpt_pairs)
+    if (nb_pairs_of_length == NULL):
         raise MemoryError
 
-    # ==> Fills nb_pairs_of_length
-    if far_apart_pairs == NULL:
-        for i from 0 <= i < N:
-            for j from i < j < N:
-                nb_pairs_of_length[ distances[i][j] ] += 1
-    else:
-        for i from 0 <= i < N:
-            p_far_apart = far_apart_pairs[i]
-            for j from i < j < N:
-                if p_far_apart[j]:
-                    nb_pairs_of_length[ distances[i][j] ] += 1
-
-    # ==> Defines pairs_of_length[d] for all d
-    for i from 1 <= i <= D:
-        pairs_of_length[i] = pairs_of_length[i-1] + nb_pairs_of_length[i-1]
-
-    # ==> Fills pairs_of_length[d] for all d
-    if far_apart_pairs == NULL:
-        for i from 0 <= i < N:
-            for j from i+1 <= j < N:
-                k = distances[i][j]
-                if k:
-                    pairs_of_length[ k ][ cpt_pairs[ k ] ].s = i
-                    pairs_of_length[ k ][ cpt_pairs[ k ] ].t = j
-                    cpt_pairs[ k ] += 1
-    else:
-        for i from 0 <= i < N:
-            p_far_apart = far_apart_pairs[i]
-            for j from i+1 <= j < N:
-                if p_far_apart[j]:
-                    k = distances[i][j]
-                    pairs_of_length[ k ][ cpt_pairs[ k ] ].s = i
-                    pairs_of_length[ k ][ cpt_pairs[ k ] ].t = j
-                    cpt_pairs[ k ] += 1
-
-    sage_free(cpt_pairs)
-
+    cdef pair ** pairs_of_length = sort_pairs(N, D, distances, far_apart_pairs, nb_p, nb_pairs_of_length)
+    
     if verbose:
         print "Current 2 connected component has %d vertices and diameter %d" %(N,D)
         if far_apart_pairs == NULL:
-            print "Number of pairs: %d" %(nb_p)
+            print "Number of pairs: %d" %(nb_p[0])
             print "Repartition of pairs:", [ (i, nb_pairs_of_length[i]) for i in range(1, D+1) if nb_pairs_of_length[i]>0]
         else:
-            print "Number of far-apart pairs: %d\t(%d pairs in total)" %(nb_p, binomial(N, 2))
+            print "Number of far-apart pairs: %d\t(%d pairs in total)" %(nb_p[0], binomial(N, 2))
             print "Repartition of far-apart pairs:", [ (i, nb_pairs_of_length[i]) for i in range(1, D+1) if nb_pairs_of_length[i]>0]
 
 
@@ -778,10 +789,6 @@ def hyperbolicity(G, algorithm='CCL+FA', approximation_factor=None, additive_gap
           - ``'basic'`` is an exhaustive algorithm considering all possible
             4-tuples and so have time complexity in `O(n^4)`.
 
-          - ``'basic+C'`` or ``'basic+'`` uses a cutting rule proposed in [Soto11]_ 
-            to significantly reduce the overall computation time of the ``'basic'``
-            algorithm.
-
           - ``'CCL'`` is an exact algorithm proposed in [CCL12_]. It considers
             the 4-tuples in an ordering allowing to cut the search space as soon
             as a new lower bound is found (see the module's documentation). This
@@ -849,8 +856,6 @@ def hyperbolicity(G, algorithm='CCL+FA', approximation_factor=None, additive_gap
         sage: hyperbolicity(G,algorithm='CCL+FA')
         (1/2, [0, 1, 2, 3], 1/2)
         sage: hyperbolicity(G,algorithm='basic')
-        (1/2, [0, 1, 2, 3], 1/2)
-        sage: hyperbolicity(G,algorithm='basic+C')
         (1/2, [0, 1, 2, 3], 1/2)
         sage: hyperbolicity(G,algorithm='dom')
         (0, [0, 2, 8, 9], 1)
@@ -954,13 +959,10 @@ def hyperbolicity(G, algorithm='CCL+FA', approximation_factor=None, additive_gap
     # Abbreviations for algorithms are expanded.
     if algorithm == "CCL+":
         algorithm = "CCL+FA"
-
-    if algorithm == "basic+":
-        algorithm = "basic+C"
         
     if not isinstance(G,Graph):
         raise ValueError("The input parameter must be a Graph.")
-    if not algorithm in ['basic', 'basic+', 'basic+C', 'CCL', 'CCL+FA', 'dom']:
+    if not algorithm in ['basic', 'CCL', 'CCL+FA', 'dom']:
         raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
     if approximation_factor is None:
         approximation_factor = 1.0
@@ -1122,10 +1124,9 @@ def hyperbolicity(G, algorithm='CCL+FA', approximation_factor=None, additive_gap
         sig_off()
         hyp_UB = min( hyp+8, D)
 
-    elif algorithm in ['basic', 'basic+C']:
+    elif algorithm == 'basic':
         sig_on()
         hyp, certif = __hyperbolicity_basic_algorithm__(N, distances,
-                                                        use_bounds=(algorithm=='basic+C'),
                                                         verbose=verbose)
         sig_off()
         hyp_UB = hyp

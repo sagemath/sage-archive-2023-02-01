@@ -97,7 +97,7 @@ all-sage: \
      $(INST)/$(PYZMQ) \
      $(INST)/$(RATPOINTS) \
      $(INST)/$(R) \
-     $(INST)/$(RPY) \
+     $(INST)/$(RPY2) \
      $(INST)/$(READLINE) \
      $(INST)/$(RUBIKS) \
      $(INST)/$(SAGENB) \
@@ -430,8 +430,8 @@ $(INST)/$(MAXIMA): $(INST)/$(ECL)
 $(INST)/$(R): $(INST)/$(ATLAS) $(INST)/$(ICONV) $(INST)/$(READLINE)
 	+$(PIPE) "$(SAGE_SPKG) $(R) 2>&1" "tee -a $(SAGE_LOGS)/$(R).log"
 
-$(INST)/$(RPY): $(INST)/$(PYTHON) $(INST)/$(R)
-	+$(PIPE) "$(SAGE_SPKG) $(RPY) 2>&1" "tee -a $(SAGE_LOGS)/$(RPY).log"
+$(INST)/$(RPY2): $(INST)/$(PYTHON) $(INST)/$(R)
+	+$(PIPE) "$(SAGE_SPKG) $(RPY2) 2>&1" "tee -a $(SAGE_LOGS)/$(RPY2).log"
 
 $(INST)/$(SYMPY): $(INST)/$(PYTHON) $(INST)/$(MPMATH)
 	+$(PIPE) "$(SAGE_SPKG) $(SYMPY) 2>&1" "tee -a $(SAGE_LOGS)/$(SYMPY).log"

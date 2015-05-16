@@ -3044,7 +3044,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                              prefix='L', bracket=False,
                                              category=NCSF.MultiplicativeBasesOnGroupLikeElements())
 
-        # TODO: use alternating_sum_of_finer_compositions, if possible getting rid of this method
         def _from_complete_on_basis(self, I):
             r"""
             Expand a complete basis element of non-commutative symmetric functions
@@ -3067,10 +3066,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: L._from_complete_on_basis(Composition([]))
                 L[]
             """
-            n = I.size()
-            minus_one = -self.base_ring().one()
-            return self.sum_of_terms( ( (compo, minus_one**(n-len(compo))) for compo in I.finer() ),
-                                      distinct=True )
+            return (-1)**(I.size()+I.length())*self.alternating_sum_of_finer_compositions(I)
 
         class Element(CombinatorialFreeModule.Element):
 

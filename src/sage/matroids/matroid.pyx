@@ -107,6 +107,7 @@ additional functionality (e.g. linear extensions).
     - :meth:`components() <sage.matroids.matroid.Matroid.components>`
     - :meth:`is_connected() <sage.matroids.matroid.Matroid.is_connected>`
     - :meth:`is_3connected() <sage.matroids.matroid.Matroid.is_3connected>`
+    - :meth:`connectivity() <sage.matroids.matroid.Matroid.connectivity>`
 
 - Optimization
     - :meth:`max_weight_independent() <sage.matroids.matroid.Matroid.max_weight_independent>`
@@ -4567,16 +4568,16 @@ cdef class Matroid(SageObject):
         S = set(S)
         T = set(T)
         if T is None:
-            return self.rank(S)+self.rank(self.groundset()-S)-self.full_rank()    
+            return self.rank(S)+self.rank(self.groundset()-S)-self.full_rank()
         if S.intersection(T):
-            raise ValueError("no well-defined matroid connectivity between intersecting sets.")    
+            raise ValueError("no well-defined matroid connectivity between intersecting sets.")
         return self._connectivity(self, S, T)
         
     cpdef _connectivity(self, S, T):
         r"""
         Evaluates the connectivity 
             min { r(X) + r(Y) - r(E) : X contains S, Y contains T, {X,Y} a partition of E }
-        between two disjoint subsets S and T of the groundset E.
+        between two disjoint subsets S and T of the groundset E of this matroid.
         
         Internal version that does not verify that S and T are sets, are disjoint, are subsets of the groundset. 
         
@@ -4598,8 +4599,7 @@ cdef class Matroid(SageObject):
         
         N1 = self.minor(S,T)
         N2 = self.minor(T,S)
-        
-        return len(N1.intersection(N2)) - self.full_rank() + self.rank(S) + self.rank(T)   
+        return len(N1.intersection(N2)) - self.full_rank() + self.rank(S) + self.rank(T)
 
     cpdef is_3connected(self):
         """

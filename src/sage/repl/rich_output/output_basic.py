@@ -101,8 +101,9 @@ class OutputPlainText(OutputBase):
 
         - ``plain_text`` --
           :class:`~sage.repl.rich_output.buffer.OutputBuffer`. Alternatively,
-          a string (bytes) can be passed directly which will then be
-          converted into an
+          a bytes (string in Python 2.x) or string (unicode in Python
+          2.x) can be passed directly which will then be converted
+          into an
           :class:`~sage.repl.rich_output.buffer.OutputBuffer`. The
           plain text output.
 
@@ -116,7 +117,11 @@ class OutputPlainText(OutputBase):
             sage: OutputPlainText('foo')
             OutputPlainText container
         """
-        self.text = OutputBuffer(plain_text)        
+        # Internally, all buffers store bytes. Strings/Unicode is always utf-8
+        # encoded.
+        if isinstance(plain_text, unicode):
+            plain_text = plain_text.encode('utf-8')
+        self.text = OutputBuffer(plain_text)
 
     @classmethod
     def example(cls):

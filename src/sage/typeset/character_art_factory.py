@@ -158,6 +158,10 @@ class CharacterArtFactory(SageObject):
         """
         Return the character art object created from splitting the object's string representation
 
+        INPUT:
+
+        - ``obj`` -- utf-8 encoded byte string or unicode.
+
         OUTPUT:
 
         Character art instance.
@@ -172,9 +176,19 @@ class CharacterArtFactory(SageObject):
             ccccccccc
             sage: type(out)
             <class 'sage.typeset.ascii_art.AsciiArt'>
+
+        TESTS::
+
+            sage: factory.build_from_string(u'a\nbb\nccc')  # same with unicode
+            a
+            bb
+            ccc
         """
-        lines = self.string_type(obj).splitlines()
-        return self.art_type(lines)
+        if self.string_type is unicode and not isinstance(obj, unicode):
+            obj = str(obj).decode('utf-8')
+        if self.string_type is str and not isinstance(obj, str):
+            obj = unicode(obj).encode('utf-8')
+        return self.art_type(obj.splitlines())
     
     def build_comma_sequence(self, iterable, func=None):
         r"""

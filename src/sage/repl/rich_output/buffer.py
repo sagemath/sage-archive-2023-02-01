@@ -177,6 +177,25 @@ class OutputBuffer(SageObject):
                 self._data = f.read()
         return self._data
 
+    def get_unicode(self):
+        """
+        Return the buffer content as string
+        
+        OUTPUT:
+
+        String. Unicode in Python 2.x. Raises a ``UnicodeEncodeError``
+        if the data is not valid utf-8.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.buffer import OutputBuffer
+            sage: OutputBuffer('test1234').get()
+            'test1234'
+            sage: OutputBuffer('test1234').get_unicode()
+            u'test1234'
+        """
+        return self.get().decode('utf-8')
+
     def filename(self, ext=None):
         """
         Return the filename.

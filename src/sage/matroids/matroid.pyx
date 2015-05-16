@@ -4558,13 +4558,19 @@ cdef class Matroid(SageObject):
             An integer
             
         EXAMPLES::
-        
+            sage: M = matroids.named_matroids.BetsyRoss()
+            sage: M.connectivity('ab')
+            2
+            sage: M.connectivity('ab', 'cd')
+            2
         """
+        S = set(S)
+        T = set(T)
         if T is None:
             return self.rank(S)+self.rank(self.groundset()-S)-self.full_rank()    
         if S.intersection(T):
-            raise ValueError("no well-defined matroid connectivity between intersecting sets.")
-        return self._connectivity(self,S,T)
+            raise ValueError("no well-defined matroid connectivity between intersecting sets.")    
+        return self._connectivity(self, S, T)
         
     cpdef _connectivity(self, S, T):
         r"""
@@ -4580,20 +4586,20 @@ cdef class Matroid(SageObject):
             
         OUTPUT::
             An integer
+        
+            EXAMPLES::
+                sage: M = matroids.named_matroids.BetsyRoss()
+                sage: M._connectivity('ab', 'cd')
+                2
             
         ALGORITHM::
             Computes the maximum cardinality of a common independent set of M/S\T and M\S/T.
         """
-        s = self.rank(S)
-        t = self.rank(T)
-        E = self.groundset()
-        #N1 = RankMatroid(E-S-T, lambda X: self.rank(X.union(S)-T)-s)
-        #N2 = RankMatroid(E-S-T, lambda X: self.rank(X.union(T)-S)-t)
-        C,D = sanitize_contractions_deletions(self,S,T)
-        N1 = MinorMatroid(self, C, D)
-        C,D = sanitize_contractions_deletions(self,T,S)
-        N2 = MinorMatroid(self, C, D)
-        return len(N1.intersection(N2))-self.full_rank()+s+t    
+        
+        N1 = self.minor(S,T)
+        N2 = self.minor(T,S)
+        
+        return len(N1.intersection(N2)) - self.full_rank() + self.rank(S) + self.rank(T)   
 
     cpdef is_3connected(self):
         """
@@ -4634,7 +4640,10 @@ cdef class Matroid(SageObject):
 
         ALGORITHM:
         
-            Evaluates the connectivity between suitable pairs of disjoint sets S,T so that |S|=|T|=2.
+            Evaluates the connectivity between O(|E|^2) pairs of disjoint sets S,T with |S|=|T|=2. 
+        
+        TODO:
+            Implement the more efficient O(|E|^3) 3-connectivity algorithm from [BC79]_.
 
         """
         E = set(self.groundset())

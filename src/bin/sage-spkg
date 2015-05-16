@@ -54,6 +54,9 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+# Bail on errors
+set -e
+
 # Avoid surprises with character ranges [a-z] in regular expressions
 export LC_ALL=C
 

@@ -4541,7 +4541,7 @@ cdef class Matroid(SageObject):
         """
         return len(self.components()) == 1
         
-    cpdef connectivity(self, S, T):
+    cpdef connectivity(self, S, T = None):
         r"""
         Evaluates the connectivity function of the matroid. 
         
@@ -4558,6 +4558,7 @@ cdef class Matroid(SageObject):
             An integer
             
         EXAMPLES::
+        
         """
         if T is None:
             return self.rank(S)+self.rank(self.groundset()-S)-self.full_rank()    
@@ -4586,8 +4587,12 @@ cdef class Matroid(SageObject):
         s = self.rank(S)
         t = self.rank(T)
         E = self.groundset()
-        N1 = RankMatroid(E-S-T, lambda X: self.rank(X.union(S)-T)-s)
-        N2 = RankMatroid(E-S-T, lambda X: self.rank(X.union(T)-S)-t)
+        #N1 = RankMatroid(E-S-T, lambda X: self.rank(X.union(S)-T)-s)
+        #N2 = RankMatroid(E-S-T, lambda X: self.rank(X.union(T)-S)-t)
+        C,D = sanitize_contractions_deletions(self,S,T)
+        N1 = MinorMatroid(self, C, D)
+        C,D = sanitize_contractions_deletions(self,T,S)
+        N2 = MinorMatroid(self, C, D)
         return len(N1.intersection(N2))-self.full_rank()+s+t    
 
     cpdef is_3connected(self):
@@ -4645,7 +4650,7 @@ cdef class Matroid(SageObject):
                 if g is h:
                     continue
                 T = {f, h}
-                if self._connectivity(S, T)<2:
+                if self._connectivity(S, T) < 2:
                     return False
         return True
 

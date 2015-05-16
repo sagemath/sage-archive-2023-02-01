@@ -135,6 +135,8 @@ cdef class Matroid(SageObject):
     cpdef is_cosimple(self)
     cpdef components(self)
     cpdef is_connected(self)
+    cpdef connectivity(self, S, T=*)
+    cpdef _connectivity(self, S, T)
     cpdef is_3connected(self)
 
     # matroid k-closed

@@ -349,18 +349,65 @@ class BackendBase(SageObject):
             sage: backend.ascii_art_formatter([1,2,3], concatenate=True ).ascii_art.get()
             '1 2 3'
         """
-        from sage.misc.ascii_art import ascii_art, empty_ascii_art
+        from sage.typeset.ascii_art import ascii_art, empty_ascii_art
         if kwds.get('concatenate', False):
-            result = empty_ascii_art
-            for o in obj:
-                if result is not empty_ascii_art:
-                    result += ascii_art(' ')
-                result += ascii_art(o)
+            result = ascii_art(*obj, sep=' ')
         else:
             result = ascii_art(obj)
         from sage.repl.rich_output.output_basic import OutputAsciiArt
         return OutputAsciiArt(str(result))
 
+    def unicode_art_formatter(self, obj, **kwds):
+        r"""
+        Hook to override how unicode art is being formatted.
+
+        INPUT:
+
+        - ``obj`` -- anything.
+
+        - ``**kwds`` -- optional keyword arguments to control the
+          formatting. Supported are:
+
+            * ``concatenate`` -- boolean (default: ``False``). If
+              ``True``, the argument ``obj`` must be iterable and its
+              entries will be concatenated. There is a single
+              whitespace between entries.
+
+        OUTPUT:
+
+        Instance of
+        :class:`~sage.repl.rich_output.output_basic.OutputUnicodeArt`
+        containing the unicode art string representation of the object.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_base import BackendBase
+            sage: backend = BackendBase()
+            sage: out = backend.unicode_art_formatter(range(30))
+            sage: out
+            OutputUnicodeArt container
+            sage: out.unicode_art
+            buffer containing 236 bytes
+            sage: print(out.unicode_art.get())
+            ⎡                                                                              
+            ⎣ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+            <BLANKLINE>
+                                           ⎤
+            22, 23, 24, 25, 26, 27, 28, 29 ⎦
+
+            sage: backend.unicode_art_formatter([1,2,3], concatenate=False).unicode_art.get()
+            '\xe2\x8e\xa1         \xe2\x8e\xa4\n\xe2\x8e\xa3 1, 2, 3 \xe2\x8e\xa6'
+            sage: backend.unicode_art_formatter([1,2,3], concatenate=True ).unicode_art.get()
+            '1 2 3'
+        """
+        from sage.typeset.unicode_art import unicode_art, empty_unicode_art
+        if kwds.get('concatenate', False):
+            result = unicode_art(*obj, sep=' ')
+        else:
+            result = unicode_art(obj)
+        from sage.repl.rich_output.output_basic import OutputUnicodeArt
+        return OutputUnicodeArt(str(result))
+    
     def latex_formatter(self, obj, **kwds):
         r"""
         Hook to override how Latex is being formatted.

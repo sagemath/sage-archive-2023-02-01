@@ -193,14 +193,22 @@ _ascii_art_factory = CharacterArtFactory(
 )
 
 
-def ascii_art(obj):
+empty_ascii_art = _ascii_art_factory.build_empty()
+
+
+def ascii_art(*obj, **kwds):
     r"""
     Return an ASCII art representation
 
     INPUT:
 
-    - ``obj`` -- anything. The object whose ascii art representation
-      we want.
+    - ``*obj`` -- any number of positional arguments, of arbitrary
+      type. The objects whose ascii art representation we want.
+
+    - ``sep`` -- optional ``'sep=...'`` keyword argument. Anything
+      that can be converted to ascii art (default: empty ascii
+      art). The separator in-between a list of objects. Only used if
+      more than one object given.
 
     OUTPUT:
     
@@ -219,6 +227,12 @@ def ascii_art(obj):
            |
           /
 
+        sage: ident = lambda n: identity_matrix(ZZ, n)
+        sage: ascii_art(ident(1), ident(2), ident(3), sep=' : ')
+                      [1 0 0]
+              [1 0]   [0 1 0]
+        [1] : [0 1] : [0 0 1]
+    
     TESTS::
 
         sage: n = var('n')
@@ -235,8 +249,15 @@ def ascii_art(obj):
         sage: ascii_art(1)
         1
     """
-    return _ascii_art_factory.build(obj)
+    separator = kwds.pop('sep', empty_ascii_art)
+    if kwds:
+        raise ValueError('unknown keyword arguments: {0}'.format(kwds.keys()))
+    if len(obj) == 1:
+        return _ascii_art_factory.build(obj[0])
+    if not isinstance(separator, AsciiArt):
+        separator = _ascii_art_factory.build(separator)
+    obj = map(_ascii_art_factory.build, obj)
+    return _ascii_art_factory.concatenate(obj, separator, empty_ascii_art)
 
 
-empty_ascii_art = _ascii_art_factory.build_empty()
 

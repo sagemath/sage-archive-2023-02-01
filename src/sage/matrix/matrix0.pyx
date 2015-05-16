@@ -1880,35 +1880,28 @@ cdef class Matrix(sage.structure.element.Matrix):
         s = "\n".join(rows)
         return s
 
-##     def _latex_sparse(self, variable="x"):
-##         r"""
-##         Return a latex string that represents this matrix as a sparse
-##         matrix.  The rows are printed as sums $\sum a_i x_i$, where
-##         $x$ is the variable.
+    def _unicode_art_(self):
+        """
+        Unicode art representation of matrices
 
-##         EXAMPLES:
+        EXAMPLES::
 
-##         """
-##         cdef Py_ssize_t nr, nc, i, j
-##         nr = self._nrows
-##         nc = self._ncols
-##         s = "\\left(\\begin{align*}\n"
-##         for i from 0 <= i < nr:
-##             v = []
-##             for j from 0 <= j < nc:
-##                 x = self.get_unsafe(i, j)
-##                 if x != 0:
-##                     v.append((j, x))
-##             for j from 0 <= j < len(v):
-##                 s  = s + "%s*%s_{%s}"%(v[j][1], variable, v[j][0])
-##                 if j == 0:
-##                     s = s + "& + "
-##                 elif j < len(v) - 1:
-##                     s =  s + " + "
-##                 else:
-##                     s =  s + "\\\\\n"
-##         s = s + "\n\\end{align*}"
-##         return s
+            sage: A = matrix([[1,2], [3,4], [5,6]])
+            sage: A._unicode_art_()
+            sage: unicode_art(A)    # indirect doctest
+
+        If the matrix is too big, don't print all of the elements::
+
+            sage: A = random_matrix(ZZ, 100)
+            sage: unicode_art(A)
+            100 x 100 dense matrix over Integer Ring
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+        if self._nrows < max_rows and self._ncols < max_cols:
+            output = self.str(unicode=True)
+        else:
+            output = self.__repr__()
+        return UnicodeArt(output.splitlines())
 
     def _latex_(self):
         r"""

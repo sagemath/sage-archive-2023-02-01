@@ -221,6 +221,78 @@ class OutputAsciiArt(OutputBase):
         print(self.ascii_art.get())
 
 
+class OutputUnicodeArt(OutputBase):
+
+    def __init__(self, unicode_art):
+        """
+        Unicode Art Output
+        
+        Similar to :class:`OutputAsciiArt` but using the entire
+        unicode range.
+
+        INPUT:
+
+        - ``unicode_art`` --
+          :class:`~sage.repl.rich_output.buffer.OutputBuffer`. Alternatively,
+          a string (unicode in Python 2.x) can be passed directly
+          which will then be converted into an
+          :class:`~sage.repl.rich_output.buffer.OutputBuffer`. Unicode
+          art rendered into a string.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_catalog import OutputUnicodeArt
+            sage: OutputUnicodeArt(u':-}')
+            OutputUnicodeArt container
+        """
+        # Internally, all buffers store bytes. Unicode is always utf-8
+        # encoded.
+        if isinstance(unicode_art, unicode):
+            unicode_art = unicode_art.encode('utf-8')
+        self.unicode_art = OutputBuffer(unicode_art)
+
+    @classmethod
+    def example(cls):
+        r"""
+        Construct a sample unicode art output container
+
+        This static method is meant for doctests, so they can easily
+        construt an example.
+
+        OUTPUT:
+
+        An instance of :class:`OutputUnicodeArt`.
+        
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_catalog import OutputUnicodeArt
+            sage: OutputUnicodeArt.example()
+            OutputUnicodeArt container
+            sage: OutputUnicodeArt.example().unicode_art.get()
+            '\xe2\x8e\x9b-11   0   1\xe2\x8e\x9e\n\xe2\x8e\x9c  3  -1   0\xe2\x8e\x9f\n\xe2\x8e\x9d -1  -1   0\xe2\x8e\xa0'
+        """
+        return cls(u'⎛-11   0   1⎞\n'
+                   u'⎜  3  -1   0⎟\n'
+                   u'⎝ -1  -1   0⎠')
+
+    def print_to_stdout(self):
+        """
+        Write the data to stdout.
+
+        This is just a convenience method to help with debugging.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_catalog import OutputUnicodeArt
+            sage: unicode_art = OutputUnicodeArt.example()
+            sage: unicode_art.print_to_stdout()
+            ⎛-11   0   1⎞
+            ⎜  3  -1   0⎟
+            ⎝ -1  -1   0⎠
+        """
+        print(self.unicode_art.get())
+
+
 class OutputLatex(OutputBase):
 
     def __init__(self, latex):

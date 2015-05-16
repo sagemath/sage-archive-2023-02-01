@@ -187,7 +187,7 @@ class BackendIPythonCommandline(BackendIPython):
             True
         """
         return set([
-            OutputPlainText, OutputAsciiArt, OutputLatex,
+            OutputPlainText, OutputAsciiArt, OutputUnicodeArt, OutputLatex,
             OutputImagePng, OutputImageGif,
             OutputImagePdf, OutputImageDvi,
             OutputSceneJmol, OutputSceneWavefront,
@@ -230,6 +230,8 @@ class BackendIPythonCommandline(BackendIPython):
             return ({u'text/plain': rich_output.text.get()}, {})
         elif isinstance(rich_output, OutputAsciiArt):
             return ({u'text/plain': rich_output.ascii_art.get()}, {})
+        elif isinstance(rich_output, OutputUnicodeArt):
+            return ({u'text/plain': rich_output.unicode_art.get()}, {})
         elif isinstance(rich_output, OutputLatex):
             return ({u'text/plain': rich_output.latex.get()}, {})
         elif isinstance(rich_output, OutputImagePng):
@@ -449,7 +451,7 @@ class BackendIPythonNotebook(BackendIPython):
             False
         """
         return set([
-            OutputPlainText, OutputAsciiArt, OutputLatex,
+            OutputPlainText, OutputAsciiArt, OutputUnicodeArt, OutputLatex,
             OutputImagePng, OutputImageJpg,
             OutputImageSvg, OutputImagePdf,
             OutputSceneJmol,
@@ -492,6 +494,8 @@ class BackendIPythonNotebook(BackendIPython):
             return ({u'text/plain': rich_output.text.get()}, {})
         elif isinstance(rich_output, OutputAsciiArt):
             return ({u'text/plain': rich_output.ascii_art.get()}, {})
+        elif isinstance(rich_output, OutputUnicodeArt):
+            return ({u'text/plain': rich_output.unicode_art.get()}, {})
         elif isinstance(rich_output, OutputLatex):
             return ({u'text/html':  rich_output.mathjax(),
                      u'text/plain': plain_text.text.get(),

@@ -322,3 +322,30 @@ class CharacterArtFactory(SageObject):
         return self.build_container(
             repr_elems, self.left_parenthesis, self.right_parenthesis)
     
+    def concatenate(self, iterable, separator, empty):
+        """
+        Concatenate multiple character art instances
+
+        INPUT:
+
+        - ``iterable`` -- iterable of character art.
+
+        - ``separable`` -- character art. The separator in-between the
+          iterable.
+
+        - ``empty`` -- the empty character art.
+
+        EXAMPLES::
+
+            sage: i2 = identity_matrix(ZZ, 2)
+            sage: ascii_art(i2, i2, i2, sep=ascii_art(1/x))
+                 1     1
+            [1 0]-[1 0]-[1 0]
+            [0 1]x[0 1]x[0 1]
+        """
+        result = empty
+        for obj in iterable:
+            if result is not empty:
+                result += separator
+            result += obj
+        return result

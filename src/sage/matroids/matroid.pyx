@@ -4549,7 +4549,7 @@ cdef class Matroid(SageObject):
         If the input is a single subset S of the groundset E, then the output is r(S)+r(E\S)-r(E).
         
         If the input are disjoint subsets S,T of the groundset, then the output is
-            min { r(X) + r(Y) - r(E) : X contains S, Y contains T, {X,Y} a partition of E }
+            `\min { r(X) + r(Y) - r(E) : X contains S, Y contains T, {X,Y} a partition of E }`
         
         INPUT::
             - 'S', a set
@@ -4576,8 +4576,8 @@ cdef class Matroid(SageObject):
     cpdef _connectivity(self, S, T):
         r"""
         Evaluates the connectivity 
-            min { r(X) + r(Y) - r(E) : X contains S, Y contains T, {X,Y} a partition of E }
-        between two disjoint subsets S and T of the groundset E of this matroid.
+            `\min { r(X) + r(Y) - r(E) : X contains S, Y contains T, {X,Y} a partition of E }`
+        between two disjoint subsets `S` and `T` of the groundset `E` of this matroid.
         
         Internal version that does not verify that S and T are sets, are disjoint, are subsets of the groundset. 
         
@@ -4588,13 +4588,15 @@ cdef class Matroid(SageObject):
         OUTPUT::
             An integer
         
-            EXAMPLES::
-                sage: M = matroids.named_matroids.BetsyRoss()
-                sage: M._connectivity('ab', 'cd')
-                2
+        EXAMPLES::
+            sage: M = matroids.named_matroids.BetsyRoss()
+            sage: M._connectivity('ab', 'cd')
+            2
             
         ALGORITHM::
+        
             Computes the maximum cardinality of a common independent set of M/S\T and M\S/T.
+        
         """
         
         N1 = self.minor(S,T)
@@ -4609,13 +4611,9 @@ cdef class Matroid(SageObject):
         groundset with `|X| \geq k, |Y| \geq k` and `r(X) + r(Y) - r(M) < k`.
         A matroid is `k`-*connected* if it has no `l`-separations for `l < k`.
 
-        OUTPUT:
+        OUTPUT::
 
-        Boolean.
-
-        .. TODO::
-
-            Implement this using the efficient algorithm from [BC79]_.
+            Boolean.
 
         .. SEEALSO::
 
@@ -4637,15 +4635,20 @@ cdef class Matroid(SageObject):
             False
             sage: matroids.named_matroids.BetsyRoss().is_3connected()
             True
+            sage: matroids.named_matroids.R6().is_3connected()
+            False
 
-        ALGORITHM:
+        ALGORITHM::
         
-            Evaluates the connectivity between O(|E|^2) pairs of disjoint sets S,T with |S|=|T|=2. 
+            Evaluates the connectivity between `O(|E|^2)` pairs of disjoint sets `S`,`T` with `|S|=|T|=2`. 
         
-        TODO:
-            Implement the more efficient O(|E|^3) 3-connectivity algorithm from [BC79]_.
+        TODO::
+        
+            Implement the more efficient 3-connectivity algorithm from [BC79]_ which runs in `O(|E|^3)` time.
 
         """
+        if self.loops() or self.coloops():
+            return False
         E = set(self.groundset())
         e = E.pop()
         f = E.pop()

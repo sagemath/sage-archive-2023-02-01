@@ -31,7 +31,7 @@ all-sage: \
      $(INST)/$(CERTIFI) \
      $(INST)/$(CLIQUER) \
      $(INST)/$(COMBINATORIAL_DESIGNS) \
-     $(INST)/$(CONWAY) \
+     $(INST)/$(CONWAY_POLYNOMIALS) \
      $(INST)/$(CVXOPT) \
      $(INST)/$(CYTHON) \
      $(INST)/$(DATEUTIL) \
@@ -210,10 +210,10 @@ $(INST)/$(DOCUTILS): $(INST)/$(PYTHON)
 $(INST)/$(ELLIPTIC_CURVES): | $(INST)/$(SQLITE) $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(ELLIPTIC_CURVES) 2>&1" "tee -a $(SAGE_LOGS)/$(ELLIPTIC_CURVES).log"
 
-# CONWAY depends on depends on SAGERUNTIME because it runs Sage code to
+# CONWAY_POLYNOMIALS depends on depends on SAGERUNTIME because it runs Sage code to
 # generate a Sage object (.sobj).
-$(INST)/$(CONWAY): | $(SAGERUNTIME)
-	+$(PIPE) "$(SAGE_SPKG) $(CONWAY) 2>&1" "tee -a $(SAGE_LOGS)/$(CONWAY).log"
+$(INST)/$(CONWAY_POLYNOMIALS): | $(SAGERUNTIME)
+	+$(PIPE) "$(SAGE_SPKG) $(CONWAY_POLYNOMIALS) 2>&1" "tee -a $(SAGE_LOGS)/$(CONWAY_POLYNOMIALS).log"
 
 $(INST)/$(GRAPHS):
 	+$(PIPE) "$(SAGE_SPKG) $(GRAPHS) 2>&1" "tee -a $(SAGE_LOGS)/$(GRAPHS).log"

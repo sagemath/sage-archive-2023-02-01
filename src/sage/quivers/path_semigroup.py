@@ -649,6 +649,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         """
         return self._quiver
 
+    @cached_method
     def reverse(self):
         """
         The path semigroup of the reverse quiver.

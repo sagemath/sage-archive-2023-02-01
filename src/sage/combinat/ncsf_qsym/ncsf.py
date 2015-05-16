@@ -216,15 +216,15 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         2*H[] + 2*H[1] + 3*H[1, 1]
         sage: H.print_options(prefix='S') #restore to 'S'
 
-    .. rubric:: Other concrete representations
+    .. rubric:: Concrete representations
 
     NCSF admits many other concrete realizations::
 
         sage: Phi        = NCSF.Phi()
+        sage: Psi        = NCSF.Psi()
         sage: ribbon     = NCSF.ribbon()
         sage: complete   = NCSF.complete()
         sage: elementary = NCSF.elementary()
-        sage: monomial   = NCSF.monomial()
 
     To change from one basis to another, one simply does::
 
@@ -267,7 +267,54 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: elementary(ribbon[2,1,2,1])
         L[1, 3, 2] - L[1, 5] - L[4, 2] + L[6]
 
-    .. TODO:: explain the other changes of bases!
+    The Phi and Psi bases are computed by changing to and from the complete
+    basis.  The expansion of Psi basis is given in Proposition 4.5 of [NCSF1]_
+    by the formulae
+
+            .. MATH::
+
+                S^I = \sum_{J \geq I} \frac{1}{\pi_u(J,I)} \Psi^J
+
+    and
+
+            .. MATH::
+
+                \Psi^I = \sum_{J \geq I} (-1)^{\ell(J)-\ell(I)} lp(J,I) S^J
+
+    where the coefficients `\pi_u(J,I)` and `lp(J,I)` are coefficients in the
+    methods :meth:`~sage.combinat.ncsf_qsym.combinatorics.coeff_pi` and
+    :meth:`~sage.combinat.ncsf_qsym.combinatorics.coeff_lp` respectively.  For
+    example::
+
+        sage: Psi(complete[3])
+        1/6*Psi[1, 1, 1] + 1/3*Psi[1, 2] + 1/6*Psi[2, 1] + 1/3*Psi[3]
+        sage: complete(Psi[3])
+        S[1, 1, 1] - 2*S[1, 2] - S[2, 1] + 3*S[3]
+
+    The Phi basis is another analogue of the power sum basis in the algebra of
+    symmetric functions and the expansion in the complete basis is given in
+    Proposition 4.9 of [NCSF1]_ by the formulae
+
+            .. MATH::
+
+                S^I = \sum_{J \geq I} \frac{1}{sp(J,I)} \Phi^J
+
+    and
+
+            .. MATH::
+
+                \Phi^I = \sum_{J \geq I} (-1)^{\ell(J)-\ell(I)} 
+                \frac{\prod_i I_i}{\ell(J,I)} S^J
+
+    where the coefficients `sp(J,I)` and `\ell(J,I)` are coefficients in the
+    methods :meth:`~sage.combinat.ncsf_qsym.combinatorics.coeff_sp` and
+    :meth:`~sage.combinat.ncsf_qsym.combinatorics.coeff_ell` respectively.  For
+    example::
+
+        sage: Phi(complete[3])
+        1/6*Phi[1, 1, 1] + 1/4*Phi[1, 2] + 1/4*Phi[2, 1] + 1/3*Phi[3]
+        sage: complete(Phi[3])
+        S[1, 1, 1] - 3/2*S[1, 2] - 3/2*S[2, 1] + 3*S[3]
 
     Here is how to fetch the conversion morphisms::
 
@@ -299,6 +346,24 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: h(complete[1,3,2])
         S[1, 3, 2]
 
+    .. rubric:: Additional concrete representations
+
+    NCSF has some additional bases which appear in the literature.
+
+        sage: Monomial        = NCSF.Monomial()
+        sage: Immaculate      = NCSF.Immaculate()
+
+    The :class:`~sage.combinat.ncsf_qsym.NonCommutativeSymmetricFunctions.Monomial`
+    basis was introduced in [Tev2007]_ and the
+    :class:`~sage.combinat.ncsf_qsym.NonCommutativeSymmetricFunctions.Immaculate`
+    basis was introduced in [BBSSZ2012]_.  Refer to the documentation for their
+    use and definition.
+
+    .. TODO::
+
+        - implement fundamental, forgotten, and quasi_schur_dual and simple (coming
+        from the simple modules of HS_n)
+
     We revert back to the original name from our custom short name NCSF::
 
         sage: NCSF
@@ -313,16 +378,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: TestSuite(Psi).run()
         sage: TestSuite(complete).run()
 
-    .. TODO::
-
-        - Bases: fundamental, forgotten, quasi_schur_dual
-          simple() ? (<=> simple modules of HS_n; to be discussed with Florent)
-        - Multiplication in:
-
-          - fundamental and monomial (cf. Lenny's code)
-
-        - Coproducts (most done by coercions)
-        - Systematic coercion checks (in AlgebrasWithBasis().Abstract())
     """
     def __init__(self, R):
         r"""
@@ -3578,7 +3633,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: Psi._to_complete_on_basis(Composition([1,1,1]))
                 S[1, 1, 1]
             """
-            # Proposition 4.5 of NCSF I article
             minus_one = -self.base_ring().one()
             complete = self.realization_of().complete()
             return complete.sum_of_terms( ( (J, minus_one**(len(J)+len(I))*coeff_lp(J,I))

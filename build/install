@@ -415,8 +415,8 @@ cat >&5 <<EOF
 EOF
 
 cat "$SAGE_ROOT/build/deps" >&5
-
 # Copy build/deps
+
 cat >&5 <<EOF
 
 #==============================================================================
@@ -450,6 +450,21 @@ done
 filtered_packages_list standard | while read PKG_NAME; do
     add_make_package_target "$PKG_NAME"
 done
+
+cat >&5 <<EOF
+
+#==============================================================================
+# sage-standard-packages target
+#==============================================================================
+
+EOF
+
+echo >&5 -n "sage-standard-packages:"
+filtered_packages_list standard | while read PKG_NAME; do
+    PKG_VAR_NAME="$(echo $PKG_NAME | tr '[:lower:]' '[:upper:]')"
+    echo >&5 -n " \$(INST)/\$($PKG_VAR_NAME)"
+done
+echo >&5 ""
 
 # Close the Makefile
 exec 5>&-

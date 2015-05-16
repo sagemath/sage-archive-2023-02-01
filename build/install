@@ -395,7 +395,7 @@ TORNADO=`newest_version tornado`
 NCURSES=`newest_version ncurses`
 ZEROMQ=`newest_version zeromq`
 ZLIB=`newest_version zlib`
-ZNPOLY=`newest_version zn_poly`
+ZN_POLY=`newest_version zn_poly`
 
 # Directory to keep track of which packages are installed
 INST=`echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`

@@ -117,7 +117,7 @@ all-sage: \
      $(INST)/$(NCURSES) \
      $(INST)/$(ZEROMQ) \
      $(INST)/$(ZLIB) \
-     $(INST)/$(ZNPOLY) \
+     $(INST)/$(ZN_POLY) \
      $(INST)/$(SAGE_MP_LIBRARY) \
      $(INST)/sage \
      $(INST)/csage \
@@ -456,8 +456,8 @@ $(INST)/$(M4RIE): $(INST)/$(M4RI) $(INST)/$(GIVARO) $(INST)/$(NTL)
 
 # zn_poly really does depend on Python, despite this is far from obvious.
 # The 'configure' script in zn_poly calls Python to make a 'makefile'.
-$(INST)/$(ZNPOLY): $(INST)/$(SAGE_MP_LIBRARY) | $(INST)/$(PYTHON)
-	+$(PIPE) "$(SAGE_SPKG) $(ZNPOLY) 2>&1" "tee -a $(SAGE_LOGS)/$(ZNPOLY).log"
+$(INST)/$(ZN_POLY): $(INST)/$(SAGE_MP_LIBRARY) | $(INST)/$(PYTHON)
+	+$(PIPE) "$(SAGE_SPKG) $(ZN_POLY) 2>&1" "tee -a $(SAGE_LOGS)/$(ZN_POLY).log"
 
 $(INST)/$(SAGENB): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(PEXPECT) \
                    $(INST)/$(JINJA2) $(INST)/$(SPHINX) $(INST)/$(DOCUTILS)
@@ -518,7 +518,7 @@ $(INST)/sage: \
 		 $(INST)/$(READLINE) \
 		 $(INST)/$(SINGULAR) \
 		 $(INST)/$(SYMMETRICA) \
-		 $(INST)/$(ZNPOLY) \
+		 $(INST)/$(ZN_POLY) \
 		 $(INST)/csage
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && \

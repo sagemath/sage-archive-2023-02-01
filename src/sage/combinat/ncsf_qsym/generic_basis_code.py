@@ -194,6 +194,43 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
             """
             return self.sum_of_monomials( compo for compo in composition.fatter() )
 
+        def alternating_sum_of_compositions(self, n):
+            r"""
+            Alternating sum over compositions of ``n``
+
+            Note that this differs from the method
+            :meth:`alternating_sum_of_finer_compositions` because the coefficient of
+            the composition `1^n` is positive.  This method is used in the expansion
+            of the elementary generators into the complete generators and vice versa.
+
+            INPUT:
+
+            - ``n`` -- a positive integer
+
+            OUTPUT:
+
+            - The expansion of the complete generator indexed by ``n`` into the
+              elementary basis.
+
+            EXAMPLES::
+
+                sage: L=NonCommutativeSymmetricFunctions(QQ).L()
+                sage: L.alternating_sum_of_compositions(0)
+                L[]
+                sage: L.alternating_sum_of_compositions(1)
+                L[1]
+                sage: L.alternating_sum_of_compositions(2)
+                L[1, 1] - L[2]
+                sage: L.alternating_sum_of_compositions(3)
+                L[1, 1, 1] - L[1, 2] - L[2, 1] + L[3]
+                sage: S=NonCommutativeSymmetricFunctions(QQ).S()
+                sage: S.alternating_sum_of_compositions(3)
+                S[1, 1, 1] - S[1, 2] - S[2, 1] + S[3]
+            """
+            ring = self.base_ring()
+            return (-ring.one())**(n)*self.sum_of_terms(
+                (compo, ring((-1)**(len(compo)))) for compo in Compositions(n) )
+
         def alternating_sum_of_finer_compositions(self, composition, conjugate = False):
             """
             Return the alternating sum of finer compositions in a basis of the

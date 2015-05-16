@@ -331,7 +331,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
           From: NCSF in the Complete basis
           To:   NCSF in the Elementary basis
         sage: f.category()
-        Category of homsets of modules with basis over Rational Field
+        Category of homsets of unital magmas and right modules over Rational Field and
+          left modules over Rational Field
         sage: f(elementary[1,2,2])
         S[1, 1, 1, 1, 1] - S[1, 1, 1, 2] - S[1, 2, 1, 1] + S[1, 2, 2]
         sage: g(complete[1,2,2])
@@ -404,18 +405,14 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         complete  .module_morphism(ribbon.sum_of_fatter_compositions,               codomain=ribbon    ).register_as_coercion()
         ribbon    .module_morphism(complete.alternating_sum_of_fatter_compositions, codomain=complete  ).register_as_coercion()
 
+        complete  .algebra_morphism(elementary.alternating_sum_of_compositions,     codomain=elementary).register_as_coercion()
+        elementary.algebra_morphism(complete.alternating_sum_of_compositions,       codomain=complete  ).register_as_coercion()
 
-        # complete to elementary, and back (should be constructed from _on_generators?)
-        complete  .module_morphism(complete._from_elementary_on_basis,              codomain=elementary).register_as_coercion()
-        elementary.module_morphism(elementary._from_complete_on_basis,              codomain=complete  ).register_as_coercion()
+        complete  .algebra_morphism(Psi._from_complete_on_generators,               codomain=Psi       ).register_as_coercion()
+        Psi       .algebra_morphism(Psi._to_complete_on_generators,                 codomain=complete  ).register_as_coercion()
 
-        # complete to Psi, and back (should be constructed from _on_generators?)
-        complete  .module_morphism(Psi._from_complete_on_basis,                     codomain=Psi       ).register_as_coercion()
-        Psi       .module_morphism(Psi._to_complete_on_basis,                       codomain=complete  ).register_as_coercion()
-
-        # complete to Phi, and back (should be constructed from _on_generators?)
-        complete  .module_morphism(Phi._from_complete_on_basis,                     codomain=Phi       ).register_as_coercion()
-        Phi       .module_morphism(Phi._to_complete_on_basis,                       codomain=complete  ).register_as_coercion()
+        complete  .algebra_morphism(Phi._from_complete_on_generators,               codomain=Phi       ).register_as_coercion()
+        Phi       .algebra_morphism(Phi._to_complete_on_generators,                 codomain=complete  ).register_as_coercion()
 
     def _repr_(self): # could be taken care of by the category
         r"""
@@ -3103,30 +3100,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                              prefix='L', bracket=False,
                                              category=NCSF.MultiplicativeBasesOnGroupLikeElements())
 
-        def _from_complete_on_basis(self, I):
-            r"""
-            Expand a complete basis element of non-commutative symmetric functions
-            in the elementary basis.
-
-            INPUT:
-
-            - ``I`` -- a composition
-
-            OUTPUT:
-
-            - The expansion of the complete function indexed by ``I`` into the
-              elementary basis.
-
-            EXAMPLES::
-
-                sage: L=NonCommutativeSymmetricFunctions(QQ).L()
-                sage: L._from_complete_on_basis(Composition([2,1]))
-                L[1, 1, 1] - L[2, 1]
-                sage: L._from_complete_on_basis(Composition([]))
-                L[]
-            """
-            return (-1)**(I.size()+len(I))*self.alternating_sum_of_finer_compositions(I)
-
         class Element(CombinatorialFreeModule.Element):
 
             def verschiebung(self, n):
@@ -3519,7 +3492,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                              prefix='Psi', bracket=False,
                                              category=NCSF.MultiplicativeBasesOnPrimitiveElements())
 
-        # TODO: should those be defined using algebra morphism?
         def _from_complete_on_generators(self, n):
             r"""
             Expand a complete generator of non-commutative symmetric
@@ -3551,51 +3523,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             return self.sum_of_terms( ( (J, one/coeff_pi(J,I)) for J in Compositions(n) ),
                                       distinct=True )
 
-        def _from_complete_on_basis(self, I):
-            r"""
-            Expand a complete basis element of non-commutative symmetric functions
-            in the Psi basis.
-
-            This formula is given in Proposition 4.5 of [NCSF1]_ which states
-
-            .. MATH::
-
-                S^I = \sum_{J \geq I} \frac{1}{\pi_u(J,I)} \Psi^J
-
-            The coefficient `\pi_u(J,I)` is given in the function
-            :meth:`sage.combinat.ncsf_qsym.combinatorics.coeff_pi`.
-
-            INPUT:
-
-            - ``I`` -- a composition
-
-            OUTPUT:
-
-            - The expansion of the complete function indexed by ``I`` in the
-              Psi basis.
-
-            TESTS::
-
-                sage: S = NonCommutativeSymmetricFunctions(QQ).complete()
-                sage: Psi = NonCommutativeSymmetricFunctions(QQ).Psi()
-                sage: Psi._from_complete_on_basis(Composition([1]))
-                Psi[1]
-                sage: Psi._from_complete_on_basis(Composition([2]))
-                1/2*Psi[1, 1] + 1/2*Psi[2]
-                sage: Psi._from_complete_on_basis(Composition([3]))
-                1/6*Psi[1, 1, 1] + 1/3*Psi[1, 2] + 1/6*Psi[2, 1] + 1/3*Psi[3]
-                sage: Psi._from_complete_on_basis(Composition([2,1]))
-                1/2*Psi[1, 1, 1] + 1/2*Psi[2, 1]
-                sage: Psi._from_complete_on_basis(Composition([1,2]))
-                1/2*Psi[1, 1, 1] + 1/2*Psi[1, 2]
-                sage: Psi._from_complete_on_basis(Composition([1,1,1]))
-                Psi[1, 1, 1]
-            """
-            one = self.base_ring().one()
-            return self.sum_of_terms( ( (J, one/coeff_pi(J,I)) for J in I.finer() ),
-                                      distinct=True )
-
-        def _to_complete_on_basis(self, I):
+        def _to_complete_on_generators(self, n):
             r"""
             Expand a Psi basis element of non-commutative symmetric functions
             in the complete basis.
@@ -3604,44 +3532,34 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             .. MATH::
 
-                \Psi^I = \sum_{J \geq I} (-1)^{\ell(J)-\ell(I)} lp(J,I) S^J
+                \Psi_n = \sum_{J \models n} (-1)^{\ell(J)-1} lp(J,I) S^J
 
             The coefficient `lp(J,I)` is given in the function
             :meth:`sage.combinat.ncsf_qsym.combinatorics.coeff_lp`.
 
             INPUT:
 
-            - ``I`` -- a composition
+            - ``n`` -- a positive integer
 
             OUTPUT:
 
-            - The expansion of the Psi function indexed by ``I`` in the
+            - The expansion of the Psi function indexed by ``n`` in the
               complete basis.
 
             TESTS::
 
-                sage: S = NonCommutativeSymmetricFunctions(QQ).complete()
                 sage: Psi = NonCommutativeSymmetricFunctions(QQ).Psi()
-                sage: Psi._to_complete_on_basis(Composition([1]))
+                sage: Psi._to_complete_on_generators(1)
                 S[1]
-                sage: Psi._to_complete_on_basis(Composition([2]))
+                sage: Psi._to_complete_on_generators(2)
                 -S[1, 1] + 2*S[2]
-                sage: Psi._to_complete_on_basis(Composition([1,1]))
-                S[1, 1]
-                sage: Psi._to_complete_on_basis(Composition([3]))
+                sage: Psi._to_complete_on_generators(3)
                 S[1, 1, 1] - 2*S[1, 2] - S[2, 1] + 3*S[3]
-                sage: Psi._to_complete_on_basis(Composition([2,1]))
-                -S[1, 1, 1] + 2*S[2, 1]
-                sage: Psi._to_complete_on_basis(Composition([1,2]))
-                -S[1, 1, 1] + 2*S[1, 2]
-                sage: Psi._to_complete_on_basis(Composition([1,1,1]))
-                S[1, 1, 1]
             """
             minus_one = -self.base_ring().one()
             complete = self.realization_of().complete()
-            return complete.sum_of_terms( ( (J, minus_one**(len(J)+len(I))*coeff_lp(J,I))
-                                            for J in I.finer() ),
-                                          distinct=True )
+            return complete.sum_of_terms( ((J, minus_one**(len(J)+1)*coeff_lp(J,[n]))
+                        for J in Compositions(n)), distinct=True )
 
         def internal_product_on_basis_by_bracketing(self, I, J):
             r"""
@@ -4022,82 +3940,66 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                              prefix='Phi', bracket=False,
                                              category=NCSF.MultiplicativeBasesOnPrimitiveElements())
 
-        def _from_complete_on_basis(self, I):
+        def _from_complete_on_generators(self, n):
             r"""
             Expand a complete basis element of non-commutative symmetric
             functions in the Phi basis.
 
             INPUT:
 
-            - ``I`` -- a composition
+            - ``n`` -- a positive integer
 
             OUTPUT:
 
-            - The expansion of the complete function indexed by ``I`` in the
+            - The expansion of the complete function indexed by ``n`` in the
               Phi basis.
 
             TESTS::
 
                 sage: S = NonCommutativeSymmetricFunctions(QQ).complete()
                 sage: Phi = NonCommutativeSymmetricFunctions(QQ).Phi()
-                sage: Phi._from_complete_on_basis(Composition([1]))
+                sage: Phi._from_complete_on_generators(1)
                 Phi[1]
-                sage: Phi._from_complete_on_basis(Composition([2]))
+                sage: Phi._from_complete_on_generators(2)
                 1/2*Phi[1, 1] + 1/2*Phi[2]
-                sage: Phi._from_complete_on_basis(Composition([1,1]))
-                Phi[1, 1]
-                sage: Phi._from_complete_on_basis(Composition([3]))
+                sage: Phi._from_complete_on_generators(3)
                 1/6*Phi[1, 1, 1] + 1/4*Phi[1, 2] + 1/4*Phi[2, 1] + 1/3*Phi[3]
-                sage: Phi._from_complete_on_basis(Composition([2,1]))
-                1/2*Phi[1, 1, 1] + 1/2*Phi[2, 1]
-                sage: Phi._from_complete_on_basis(Composition([1,2]))
-                1/2*Phi[1, 1, 1] + 1/2*Phi[1, 2]
-                sage: Phi._from_complete_on_basis(Composition([1,1,1]))
-                Phi[1, 1, 1]
             """
             # Proposition 4.9 of NCSF I article
             one = self.base_ring().one()
-            return self.sum_of_terms( ( (J, one / coeff_sp(J,I)) for J in I.finer() ),
+            return self.sum_of_terms( ( (J, one / coeff_sp(J,[n])) for J in Compositions(n) ),
                                       distinct=True )
 
-        def _to_complete_on_basis(self, I):
+        def _to_complete_on_generators(self, n):
             r"""
             Expand a Phi basis element of non-commutative symmetric functions
             in the complete basis.
 
             INPUT:
 
-            - ``I`` -- a composition
+            - ``n`` -- a positive integer
 
             OUTPUT:
 
-            - The expansion of the Phi function indexed by ``I`` in the
+            - The expansion of the Phi function indexed by ``n`` in the
               complete basis.
 
             TESTS::
 
                 sage: S = NonCommutativeSymmetricFunctions(QQ).complete()
                 sage: Phi = NonCommutativeSymmetricFunctions(QQ).Phi()
-                sage: Phi._to_complete_on_basis(Composition([1]))
+                sage: Phi._to_complete_on_generators(1)
                 S[1]
-                sage: Phi._to_complete_on_basis(Composition([2]))
+                sage: Phi._to_complete_on_generators(2)
                 -S[1, 1] + 2*S[2]
-                sage: Phi._to_complete_on_basis(Composition([1,1]))
-                S[1, 1]
-                sage: Phi._to_complete_on_basis(Composition([3]))
+                sage: Phi._to_complete_on_generators(3)
                 S[1, 1, 1] - 3/2*S[1, 2] - 3/2*S[2, 1] + 3*S[3]
-                sage: Phi._to_complete_on_basis(Composition([2,1]))
-                -S[1, 1, 1] + 2*S[2, 1]
-                sage: Phi._to_complete_on_basis(Composition([1,2]))
-                -S[1, 1, 1] + 2*S[1, 2]
-                sage: Phi._to_complete_on_basis(Composition([1,1,1]))
-                S[1, 1, 1]
             """
             # Proposition 4.9 of NCSF I article
             minus_one = -self.base_ring().one()
             complete = self.realization_of().complete()
-            return complete.sum_of_terms( ( (J, minus_one**(len(J)+len(I)) * prod(I) / coeff_ell(J,I))
-                                            for J in I.finer() ),
+            return complete.sum_of_terms( ( (J, minus_one**(len(J)+1) * n / coeff_ell(J,[n]))
+                                            for J in Compositions(n) ),
                                           distinct=True )
 
         class Element(CombinatorialFreeModule.Element):

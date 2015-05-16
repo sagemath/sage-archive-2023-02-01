@@ -315,15 +315,13 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     .. TODO::
 
-        - Bases: monomial, fundamental, forgotten, quasi_schur_dual
+        - Bases: fundamental, forgotten, quasi_schur_dual
           simple() ? (<=> simple modules of HS_n; to be discussed with Florent)
         - Multiplication in:
 
           - fundamental and monomial (cf. Lenny's code)
-          - ribbon (from Mike's code)
 
         - Coproducts (most done by coercions)
-        - some_elements in all bases
         - Systematic coercion checks (in AlgebrasWithBasis().Abstract())
     """
     def __init__(self, R):
@@ -2050,8 +2048,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: S[2,3].coproduct().apply_multilinear_morphism(lambda be,ga: S(be).antipode()*S(ga))
                     0
                 """
-                # TODO: avoid this -1^... by using properly
-
                 return (-1)**len(composition) * self.alternating_sum_of_finer_compositions(composition.reversed())
 
             # @cached_method?
@@ -2372,7 +2368,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 ....:      for I in Compositions(4) )
                 True
             """
-            # TODO: avoid this -1^... by using properly
             if composition.size() % 2 == 0:
                 return self[composition.conjugate()]
             else:
@@ -3498,8 +3493,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             # Equation (58) of NCSF I article
             one = self.base_ring().one()
             I = self._indices([n])
-            # TODO: I being trivial, there is no refinement going on here, so
-            # one can probably be a bit more explicit / fast
             return self.sum_of_terms( ( (J, one/coeff_pi(J,I)) for J in Compositions(n) ),
                                       distinct=True )
 
@@ -3507,6 +3500,15 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             r"""
             Expand a complete basis element of non-commutative symmetric functions
             in the Psi basis.
+
+            This formula is given in Proposition 4.5 of [NCSF1]_ which states
+
+            .. MATH::
+
+                S^I = \sum_{J \geq I} \frac{1}{\pi_u(J,I)} \Psi^J
+
+            The coefficient `\pi_u(J,I)` is given in the function
+            :meth:`sage.combinat.ncsf_qsym.combinatorics.coeff_pi`.
 
             INPUT:
 
@@ -3534,8 +3536,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: Psi._from_complete_on_basis(Composition([1,1,1]))
                 Psi[1, 1, 1]
             """
-            # TODO: make this comment into a reference in the doctest (same thing elsewhere)
-            # Proposition 4.5 of NCSF I article
             one = self.base_ring().one()
             return self.sum_of_terms( ( (J, one/coeff_pi(J,I)) for J in I.finer() ),
                                       distinct=True )
@@ -3544,6 +3544,15 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             r"""
             Expand a Psi basis element of non-commutative symmetric functions
             in the complete basis.
+
+            This formula is given in Proposition 4.5 of [NCSF1]_ which states
+
+            .. MATH::
+
+                \Psi^I = \sum_{J \geq I} (-1)^{\ell(J)-\ell(I)} lp(J,I) S^J
+
+            The coefficient `lp(J,I)` is given in the function
+            :meth:`sage.combinat.ncsf_qsym.combinatorics.coeff_lp`.
 
             INPUT:
 

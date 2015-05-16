@@ -57,6 +57,9 @@
 # Bail on errors
 set -e
 
+# This script is called in a pipe, do not let Python buffer stdout
+export PYTHONUNBUFFERED=yes
+
 # Avoid surprises with character ranges [a-z] in regular expressions
 export LC_ALL=C
 
@@ -302,12 +305,6 @@ fi
 
 # If we haven't found the package yet, we must download it
 if [ ! -f "$PKG_SRC" ]; then
-    if [ $INFO -eq 0 ]; then
-        echo "Attempting to download package $PKG_NAME"
-    else
-        echo "Attempting to get on-line info for package $PKG_NAME"
-    fi
-
     if [ -n "$PKG_NAME_UPSTREAM" ]; then
         # This is the new-style package way of downloading the tarball
         sage-download-file $PKG_NAME_UPSTREAM
@@ -315,6 +312,7 @@ if [ ! -f "$PKG_SRC" ]; then
     else
         # Handle all the legacy cruft. This branch can be deleted once
         # we get rid of old-style spkgs
+        echo "Attempting to get on-line info for package $PKG_NAME"
         
         # Reduce everything to case 4: full URL.
         if [ -n "$PKG_HAS_PATH" ]; then

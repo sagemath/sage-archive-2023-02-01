@@ -335,7 +335,7 @@ class Tarball(object):
         sha1 = self._compute_sha1()
         return sha1 == self.sha1
 
-    def download(self, mirror_list):
+    def download(self):
         """
         Download the tarball to the upstream directory.
         """
@@ -350,7 +350,8 @@ class Tarball(object):
                       .format(destination=destination))
                 os.remove(destination)
         successful_download = False
-        for mirror in mirror_list:
+        print('Attempting to download package {0} from mirrors'.format(self.filename))
+        for mirror in MirrorList():
             url = mirror + '/'.join(['spkg', 'upstream', self.package, self.filename])
             print(url)
             try:
@@ -415,8 +416,7 @@ if __name__ == '__main__':
         http_download(url, destination, progress=progress, ignore_errors=True)
     else:
         # url is a tarball name
-        mirror_list = MirrorList()
         tarball = Tarball(url)
-        tarball.download(mirror_list)
+        tarball.download()
         if destination is not None:
             tarball.save_as(destination)

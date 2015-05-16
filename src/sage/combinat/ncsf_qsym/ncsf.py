@@ -218,7 +218,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Concrete representations
 
-    NCSF admits many other concrete realizations::
+    NCSF admits the concrete realizations defined in [NCSF1]_::
 
         sage: Phi        = NCSF.Phi()
         sage: Psi        = NCSF.Psi()
@@ -268,18 +268,20 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         L[1, 3, 2] - L[1, 5] - L[4, 2] + L[6]
 
     The Phi and Psi bases are computed by changing to and from the complete
-    basis.  The expansion of Psi basis is given in Proposition 4.5 of [NCSF1]_
+    basis.  The expansion of
+    :class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Psi`
+    basis is given in Proposition 4.5 of [NCSF1]_
     by the formulae
 
-            .. MATH::
+    .. MATH::
 
-                S^I = \sum_{J \geq I} \frac{1}{\pi_u(J,I)} \Psi^J
+        S^I = \sum_{J \geq I} \frac{1}{\pi_u(J,I)} \Psi^J
 
     and
 
-            .. MATH::
+    .. MATH::
 
-                \Psi^I = \sum_{J \geq I} (-1)^{\ell(J)-\ell(I)} lp(J,I) S^J
+        \Psi^I = \sum_{J \geq I} (-1)^{\ell(J)-\ell(I)} lp(J,I) S^J
 
     where the coefficients `\pi_u(J,I)` and `lp(J,I)` are coefficients in the
     methods :meth:`~sage.combinat.ncsf_qsym.combinatorics.coeff_pi` and
@@ -291,20 +293,22 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: complete(Psi[3])
         S[1, 1, 1] - 2*S[1, 2] - S[2, 1] + 3*S[3]
 
-    The Phi basis is another analogue of the power sum basis in the algebra of
+    The
+    :class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Phi`
+    basis is another analogue of the power sum basis from the algebra of
     symmetric functions and the expansion in the complete basis is given in
     Proposition 4.9 of [NCSF1]_ by the formulae
 
-            .. MATH::
+    .. MATH::
 
-                S^I = \sum_{J \geq I} \frac{1}{sp(J,I)} \Phi^J
+        S^I = \sum_{J \geq I} \frac{1}{sp(J,I)} \Phi^J
 
     and
 
-            .. MATH::
+    .. MATH::
 
-                \Phi^I = \sum_{J \geq I} (-1)^{\ell(J)-\ell(I)} 
-                \frac{\prod_i I_i}{\ell(J,I)} S^J
+        \Phi^I = \sum_{J \geq I} (-1)^{\ell(J)-\ell(I)} 
+        \frac{\prod_i I_i}{\ell(J,I)} S^J
 
     where the coefficients `sp(J,I)` and `\ell(J,I)` are coefficients in the
     methods :meth:`~sage.combinat.ncsf_qsym.combinatorics.coeff_sp` and
@@ -348,21 +352,21 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Additional concrete representations
 
-    NCSF has some additional bases which appear in the literature.
+    NCSF has some additional bases which appear in the literature.::
 
         sage: Monomial        = NCSF.Monomial()
         sage: Immaculate      = NCSF.Immaculate()
 
-    The :class:`~sage.combinat.ncsf_qsym.NonCommutativeSymmetricFunctions.Monomial`
+    The :class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Monomial`
     basis was introduced in [Tev2007]_ and the
-    :class:`~sage.combinat.ncsf_qsym.NonCommutativeSymmetricFunctions.Immaculate`
+    :class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Immaculate`
     basis was introduced in [BBSSZ2012]_.  Refer to the documentation for their
     use and definition.
 
     .. TODO::
 
         - implement fundamental, forgotten, and quasi_schur_dual and simple (coming
-        from the simple modules of HS_n)
+          from the simple modules of HS_n)
 
     We revert back to the original name from our custom short name NCSF::
 
@@ -4531,6 +4535,15 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         `\mathfrak{S}_{\alpha}` denotes the immaculate function
         corresponding to `\alpha` (see
         :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ParentMethods.immaculate_function`).
+
+        If `\alpha` is a composition `(\alpha_1, \alpha_2, \ldots, \alpha_m)`, then
+
+        .. MATH::
+
+            \mathfrak{S}_{\alpha}
+            = \sum_{\sigma \in S_m} (-1)^{\sigma}
+            S_{\alpha_1 + \sigma(1) - 1} S_{\alpha_2 + \sigma(2) - 2}
+            \cdots S_{\alpha_m + \sigma(m) - m}.
 
         .. WARNING::
 

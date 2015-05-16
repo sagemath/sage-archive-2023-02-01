@@ -3066,7 +3066,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: L._from_complete_on_basis(Composition([]))
                 L[]
             """
-            return (-1)**(I.size()+I.length())*self.alternating_sum_of_finer_compositions(I)
+            return (-1)**(I.size()+len(I))*self.alternating_sum_of_finer_compositions(I)
 
         class Element(CombinatorialFreeModule.Element):
 

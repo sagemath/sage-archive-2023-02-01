@@ -416,6 +416,41 @@ EOF
 
 cat "$SAGE_ROOT/build/deps" >&5
 
+# Copy build/deps
+cat >&5 <<EOF
+
+#==============================================================================
+# Rules generated for standard packages from pkgs/<package>/dependencies files
+#==============================================================================
+
+EOF
+
+# Add a Makefile target corresponding to a given package
+add_make_package_target () {
+    PKG_NAME="$*"
+    DEP_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/dependencies"
+    if [ -e "$DEP_FILE" ]; then
+	DEP="$(head -n 1 $DEP_FILE)"
+    else
+	DEP=""
+    fi
+    PKG_VAR_NAME="$(echo $PKG_NAME | tr '[:lower:]' '[:upper:]')"
+    echo >&5 "\$(INST)/\$($PKG_VAR_NAME):$DEP"
+    echo >&5 "	+\$(PIPE) \"\$(SAGE_SPKG) \$($PKG_VAR_NAME) 2>&1\" \"tee -a \$(SAGE_LOGS)/\$($PKG_VAR_NAME).log\""
+}
+
+# Base packages
+filtered_packages_list base | while read PKG_NAME; do
+    if [ "$PKG_NAME" != "configure" ]; then
+	add_make_package_target "$PKG_NAME"
+    fi
+done
+
+# Standard packages
+filtered_packages_list standard | while read PKG_NAME; do
+    add_make_package_target "$PKG_NAME"
+done
+
 # Close the Makefile
 exec 5>&-
 

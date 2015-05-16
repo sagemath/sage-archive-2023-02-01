@@ -2734,42 +2734,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                              prefix='S', bracket=False,
                                              category=NCSF.MultiplicativeBasesOnGroupLikeElements())
 
-        def _from_elementary_on_basis(self, I):
-            r"""
-            Expand an elementary basis element of non-commutative symmetric
-            functions in the complete basis.
-
-            INPUT:
-
-            - ``I`` -- a composition
-
-            OUTPUT:
-
-            - The expansion of the elementary function indexed by ``I`` into
-              the complete basis.
-
-            EXAMPLES::
-
-                sage: S=NonCommutativeSymmetricFunctions(QQ).S()
-                sage: S._from_elementary_on_basis(Composition([2,1]))
-                S[1, 1, 1] - S[2, 1]
-                sage: S._from_elementary_on_basis(Composition([]))
-                S[]
-
-            TESTS:
-
-            The parent of the coefficients is the base ring given::
-
-                sage: S = NonCommutativeSymmetricFunctions(ZZ).S()
-                sage: g = S._from_elementary_on_basis(Composition([2]))
-                sage: [type(a) for _, a in g]
-                [<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>]
-            """
-            n = I.size()
-            minus_one = -self.base_ring().one()
-            return self.sum_of_terms( ( (compo, minus_one**(n-len(compo))) for compo in I.finer() ),
-                                      distinct=True )
-
         def dual(self):
             r"""
             Return the dual basis to the complete basis of non-commutative symmetric

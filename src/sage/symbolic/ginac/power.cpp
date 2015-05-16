@@ -636,40 +636,43 @@ ex power::eval(int level) const
 			}
 		}
 	
-		// ^(*(x,y,z),c1) -> *(x^c1,y^c1,z^c1) (c1 integer)
-		if (num_exponent->is_integer() && is_exactly_a<mul>(ebasis)) {
-			return expand_mul(ex_to<mul>(ebasis), *num_exponent, 0);
-		}
+		if (num_exponent->is_integer()) {
+                        
+                        // ^(*(x,y,z),c1) -> *(x^c1,y^c1,z^c1) (c1 integer)
+                        if (is_exactly_a<mul>(ebasis)) {
+                                return expand_mul(ex_to<mul>(ebasis), *num_exponent, 0);
+                        }
 
-		// (2*x + 6*y)^(-4) -> 1/16*(x + 3*y)^(-4)
-		if (num_exponent->is_integer() && is_exactly_a<add>(ebasis)) {
-			numeric icont = ebasis.integer_content();
-			const numeric lead_coeff = 
-				ex_to<numeric>(ex_to<add>(ebasis).\
-						lead_coeff()).div(icont);
+                        // (2*x + 6*y)^(-4) -> 1/16*(x + 3*y)^(-4)
+                        if (is_exactly_a<add>(ebasis)) {
+                                numeric icont = ebasis.integer_content();
+                                const numeric lead_coeff = 
+                                        ex_to<numeric>(ex_to<add>(ebasis).\
+                                                        lead_coeff()).div(icont);
 
-			const bool canonicalizable = lead_coeff.is_integer();
-			const bool unit_normal = lead_coeff.is_pos_integer();
-			if (canonicalizable && (! unit_normal))
-				icont = icont.mul(*_num_1_p);
-			
-			if (canonicalizable && (icont != *_num1_p)) {
-				const add& addref = ex_to<add>(ebasis);
-				add* addp = new add(addref);
-				addp->setflag(status_flags::dynallocated);
-				addp->clearflag(status_flags::hash_calculated);
-				addp->overall_coeff = ex_to<numeric>(addp->overall_coeff).div_dyn(icont);
-				addp->seq_sorted.resize(0);
-				for (epvector::iterator i = addp->seq.begin(); i != addp->seq.end(); ++i)
-					i->coeff = ex_to<numeric>(i->coeff).div_dyn(icont);
+                                const bool canonicalizable = lead_coeff.is_integer();
+                                const bool unit_normal = lead_coeff.is_pos_integer();
+                                if (canonicalizable && (! unit_normal))
+                                        icont = icont.mul(*_num_1_p);
 
-				const numeric c = icont.power(*num_exponent);
-				if (likely(c != *_num1_p))
-					return (new mul(power(*addp, *num_exponent), c))->setflag(status_flags::dynallocated);
-				else
-					return power(*addp, *num_exponent);
-			}
-		}
+                                if (canonicalizable && (icont != *_num1_p)) {
+                                        const add& addref = ex_to<add>(ebasis);
+                                        add* addp = new add(addref);
+                                        addp->setflag(status_flags::dynallocated);
+                                        addp->clearflag(status_flags::hash_calculated);
+                                        addp->overall_coeff = ex_to<numeric>(addp->overall_coeff).div_dyn(icont);
+                                        addp->seq_sorted.resize(0);
+                                        for (epvector::iterator i = addp->seq.begin(); i != addp->seq.end(); ++i)
+                                                i->coeff = ex_to<numeric>(i->coeff).div_dyn(icont);
+
+                                        const numeric c = icont.power(*num_exponent);
+                                        if (likely(c != *_num1_p))
+                                                return (new mul(power(*addp, *num_exponent), c))->setflag(status_flags::dynallocated);
+                                        else
+                                                return power(*addp, *num_exponent);
+                                }
+                        }
+                }
 
 		// ^(*(...,x;c1),c2) -> *(^(*(...,x;1),c2),c1^c2)  (c1, c2 numeric(), c1>0)
 		// ^(*(...,x;c1),c2) -> *(^(*(...,x;-1),c2),(-c1)^c2)  (c1, c2 numeric(), c1<0)
@@ -706,9 +709,9 @@ ex power::eval(int level) const
 		}
 
 		// ^(nc,c1) -> ncmul(nc,nc,...) (c1 positive integer, unless nc is a matrix)
-		if (num_exponent->is_pos_integer() &&
-		    ebasis.return_type() != return_types::commutative &&
-		    !is_a<matrix>(ebasis)) {
+		if (ebasis.return_type() != return_types::commutative &&
+                    num_exponent->is_pos_integer() &&
+                    !is_a<matrix>(ebasis)) {
 			return ncmul(exvector(num_exponent->to_int(), ebasis), true);
 		}
 	}

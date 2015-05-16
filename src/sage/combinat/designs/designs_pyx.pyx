@@ -204,7 +204,7 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
         sage: is_group_divisible_design([range(40)],[["e",2]],40,lambd=1,verbose=True)
         e does not belong to [0,...,39]
         False
-        sage: is_group_divisible_design([range(40)],[["e",2]],40,G=[5],lambd=1,verbose=True)
+        sage: is_group_divisible_design([range(40)],[range(40)],40,G=[5],lambd=1,verbose=True)
         a group has size 40 while G=[5]
         False
         sage: is_group_divisible_design([range(40)],[["e",2]],40,K=[1],lambd=1,verbose=True)

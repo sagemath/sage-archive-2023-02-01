@@ -46,7 +46,7 @@ all-sage: \
      $(INST)/$(LIBFPLLL) \
      $(INST)/$(FREETYPE) \
      $(INST)/$(GAP) \
-     $(INST)/$(GD) \
+     $(INST)/$(LIBGD) \
      $(INST)/$(GFAN) \
      $(INST)/$(GF2X) \
      $(INST)/$(GIVARO) \
@@ -253,7 +253,7 @@ $(INST)/$(PIP): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 
 $(INST)/$(POLYBORI): $(INST)/$(PYTHON) $(INST)/$(IPYTHON) \
          $(INST)/$(SCONS) $(INST)/$(BOOST_CROPPED) \
-         $(INST)/$(M4RI) $(INST)/$(GD)
+         $(INST)/$(M4RI) $(INST)/$(LIBGD)
 	+$(PIPE) "$(SAGE_SPKG) $(POLYBORI) 2>&1" "tee -a $(SAGE_LOGS)/$(POLYBORI).log"
 
 $(INST)/$(POLYTOPES_DB):
@@ -325,8 +325,8 @@ $(INST)/$(IPYTHON): $(INST)/$(PYTHON) $(INST)/$(JINJA2) $(INST)/$(TORNADO) $(INS
 $(INST)/$(PEXPECT): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(PEXPECT) 2>&1" "tee -a $(SAGE_LOGS)/$(PEXPECT).log"
 
-$(INST)/$(GD): $(INST)/$(LIBPNG) $(INST)/$(FREETYPE) $(INST)/$(ICONV)
-	+$(PIPE) "$(SAGE_SPKG) $(GD) 2>&1" "tee -a $(SAGE_LOGS)/$(GD).log"
+$(INST)/$(LIBGD): $(INST)/$(LIBPNG) $(INST)/$(FREETYPE) $(INST)/$(ICONV)
+	+$(PIPE) "$(SAGE_SPKG) $(LIBGD) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBGD).log"
 
 $(INST)/$(SCONS): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(SCONS) 2>&1" "tee -a $(SAGE_LOGS)/$(SCONS).log"
@@ -490,7 +490,7 @@ $(INST)/sage: \
 		 $(INST)/$(ECM) \
 		 $(INST)/$(FLINT) \
 		 $(INST)/$(LIBFPLLL) \
-		 $(INST)/$(GD) \
+		 $(INST)/$(LIBGD) \
 		 $(INST)/$(GIVARO) \
 		 $(INST)/$(GLPK) \
 		 $(INST)/$(GSL) \

@@ -4540,6 +4540,55 @@ cdef class Matroid(SageObject):
 
         """
         return len(self.components()) == 1
+        
+    cpdef connectivity(self, S, T):
+        r"""
+        Evaluates the connectivity function of the matroid. 
+        
+        If the input is a single subset S of the groundset E, then the output is r(S)+r(E\S)-r(E).
+        
+        If the input are disjoint subsets S,T of the groundset, then the output is
+            min { r(X) + r(Y) - r(E) : X contains S, Y contains T, {X,Y} a partition of E }
+        
+        INPUT::
+            - 'S', a set
+            - 'T', a set
+            
+        OUTPUT::
+            An integer
+            
+        EXAMPLES::
+        """
+        if T is None:
+            return self.rank(S)+self.rank(self.groundset()-S)-self.full_rank()    
+        if S.intersection(T):
+            raise ValueError("no well-defined matroid connectivity between intersecting sets.")
+        return self._connectivity(self,S,T)
+        
+    cpdef _connectivity(self, S, T):
+        r"""
+        Evaluates the connectivity 
+            min { r(X) + r(Y) - r(E) : X contains S, Y contains T, {X,Y} a partition of E }
+        between two disjoint subsets S and T of the groundset E.
+        
+        Internal version that does not verify that S and T are sets, are disjoint, are subsets of the groundset. 
+        
+        INPUT::
+            - 'S', a set
+            - 'T', a set
+            
+        OUTPUT::
+            An integer
+            
+        ALGORITHM::
+            Computes the maximum cardinality of a common independent set of M/S\T and M\S/T.
+        """
+        s = self.rank(S)
+        t = self.rank(T)
+        E = self.groundset()
+        N1 = RankMatroid(E-S-T, lambda X: self.rank(X.union(S)-T)-s)
+        N2 = RankMatroid(E-S-T, lambda X: self.rank(X.union(T)-S)-t)
+        return len(N1.intersection(N2))-self.full_rank()+s+t    
 
     cpdef is_3connected(self):
         """
@@ -4579,24 +4628,24 @@ cdef class Matroid(SageObject):
             True
 
         ALGORITHM:
-
-        Test all subsets `X` to see if `r(X) + r(E - X) - r(E)` does not equal
-        `1`.
+        
+            Evaluates the connectivity between suitable pairs of disjoint sets S,T so that |S|=|T|=2.
 
         """
-        groundset = self.groundset()
-        size = len(groundset)
-        if not self.is_connected():
-            return False
-        if (size < 4):
-            return True  # vacuously true
-        r = self.full_rank()
-        part_sizes = xrange(2, (size / 2) + 1)  # all possible partition sizes
-        for part in part_sizes:
-            subs = Subsets(groundset, part)
-            for X in subs:
-                Y = groundset.difference(X)
-                if (self.rank(X) + self.rank(Y) - r == 1):
+        E = set(self.groundset())
+        e = E.pop()
+        f = E.pop()
+        S = {e, f}
+        for T in combinations(E, 2):
+            if self._connectivity(S,set(T)) < 2:
+                return False
+        for g in E:
+            S = {e, g}
+            for h in E:
+                if g is h:
+                    continue
+                T = {f, h}
+                if self._connectivity(S, T)<2:
                     return False
         return True
 

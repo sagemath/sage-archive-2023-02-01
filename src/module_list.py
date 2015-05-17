@@ -1244,6 +1244,9 @@ ext_modules = [
               extra_compile_args = ['-std=c99'],
               depends = flint_depends),
 
+    Extension('sage.modular.modform.l_series_coeffs',
+              sources = ['sage/modular/modform/l_series_coeffs.pyx']),
+
     Extension('sage.modular.modsym.apply',
               sources = ['sage/modular/modsym/apply.pyx'],
               libraries = ["flint", "gmp", "gmpxx", "m", "stdc++"],

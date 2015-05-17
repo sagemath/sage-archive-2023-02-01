@@ -1,6 +1,6 @@
  | $(SAGERUNTIME)
 
-CONWAY_POLYNOMIALS depends on depends on SAGERUNTIME because it runs Sage code to
+CONWAY_POLYNOMIALS depends on SAGERUNTIME because it runs Sage code to
 generate a Sage object (.sobj).
 
 ----------

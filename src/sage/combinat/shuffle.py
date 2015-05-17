@@ -160,10 +160,10 @@ class SetShuffleProduct(SageObject):
             [ [  ], [    o   o ] ] and [ [ 1, 4 ] ]
 
         """
-        from sage.misc.ascii_art import ascii_art, ascii_art_list
+        from sage.misc.ascii_art import ascii_art
         return ascii_art("Set shuffle product of:") * \
-            (ascii_art_list(self._l1) + ascii_art(" and ") +
-             ascii_art_list(self._l2))
+            (ascii_art(self._l1) + ascii_art(" and ") +
+             ascii_art(self._l2))
 
     def __iter__(self):
         """
@@ -304,10 +304,10 @@ class ShuffleProduct(SageObject):
             [     / \  ]     [  / \     /  ]
             [    o   o ] and [ o   o   o   ]
         """
-        from sage.misc.ascii_art import ascii_art, ascii_art_list
+        from sage.misc.ascii_art import ascii_art
         return ascii_art("Shuffle product of:") * \
-            (ascii_art_list(self._l1) + ascii_art(" and ") +
-             ascii_art_list(self._l2))
+            (ascii_art(self._l1) + ascii_art(" and ") +
+             ascii_art(self._l2))
 
     def __iter__(self):
         r"""

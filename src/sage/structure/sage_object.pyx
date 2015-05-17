@@ -285,7 +285,7 @@ cdef class SageObject:
 
         TESTS::
 
-            sage: 1._ascii_art_()
+            sage: 1._unicode_art_()
             1
             sage: type(_)
             <class 'sage.typeset.unicode_art.UnicodeArt'>

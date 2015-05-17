@@ -149,7 +149,10 @@ class PathSemigroup(UniqueRepresentation, Parent):
         ## Verify that the graph labels are acceptable for this implementation ##
         # Check that edges are labelled with nonempty strings and don't begin
         # with 'e_' or contain '*'
-        for x in Q.edge_labels():
+        labels = tuple(sorted(Q.edge_labels()))
+        if len(set(labels)) != Q.num_edges():
+            raise ValueError("edge labels of the digraph must be unique")
+        for x in labels:
             if not isinstance(x, str) or x == '':
                 raise ValueError("edge labels of the digraph must be nonempty strings")
             if x[0:2] == 'e_':
@@ -161,15 +164,15 @@ class PathSemigroup(UniqueRepresentation, Parent):
         for v in Q:
             if v not in ZZ:
                 raise ValueError("vertices of the digraph must be labelled by integers")
-        if len(set(Q.edge_labels())) != Q.num_edges():
-            raise ValueError("edge labels of the digraph must be unique")
         nvert = len(Q.vertices())
         ## Determine the category which this (partial) semigroup belongs to
         if Q.is_directed_acyclic() and not Q.has_loops():
             cat = FiniteEnumeratedSets()
         else:
             cat = InfiniteEnumeratedSets()
-        names = ['e_{0}'.format(v) for v in Q.vertices()] + [e[2] for e in Q.edges()]
+        self._sorted_edges = tuple(sorted(Q.edges(), key=lambda x:x[2]))
+        self._labels = labels
+        names = ['e_{0}'.format(v) for v in Q.vertices()] + list(labels)
         self._quiver = Q
         if nvert == 1:
             cat = cat.join([cat,Monoids()])
@@ -190,7 +193,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             4
 
         """
-        return max(len(self._quiver.edges()),1)
+        return max(len(self._sorted_edges),1)
 
     def _repr_(self):
         """
@@ -296,28 +299,28 @@ class PathSemigroup(UniqueRepresentation, Parent):
             c*d
 
         """
-        if not data:
-            raise ValueError("No data given to define this path")
         if isinstance(data, QuiverPath):
             if data.parent() is self:
                 return data
             if len(data):
                 return self(list(data), check=check)
             return self.element_class(self, data.initial_vertex(), data.terminal_vertex(), [], check=True)
+        if not data:
+            raise ValueError("No data given to define this path")
         if data==1:
             return self.element_class(self, self._quiver.vertices()[0], self._quiver.vertices()[0], [], check=False)
+        L = self._labels
+        E = self._sorted_edges
         if isinstance(data, basestring):
-            E = self._quiver.edge_labels()
-            start,end = self._quiver.edges()[E.index(data)][0:2]
-            return self.element_class(self, start, end, [E.index(data)], check=False)
+            i = L.index(data)
+            start,end = E[i][0:2]
+            return self.element_class(self, start, end, [i], check=False)
         if isinstance(data[0], basestring):
-            E = self._quiver.edge_labels()
-            start = self._quiver.edges()[E.index(data[0])][0]
-            end   = self._quiver.edges()[E.index(data[-1])][1]
-            return self.element_class(self, start, end, [E.index(e) for e in data], check=check)
+            start = E[L.index(data[0])][0]
+            end   = E[L.index(data[-1])][1]
+            return self.element_class(self, start, end, [L.index(e) for e in data], check=check)
         if len(data[0])==2:
             return self.element_class(self, data[0][0], data[0][1], [])
-        E = self._quiver.edges()
         return self.element_class(self, data[0][0], data[-1][1], [E.index(e) for e in data], check=check)
 
     @cached_method
@@ -332,7 +335,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             (a, b, c, d)
         """
         Q = self._quiver
-        return tuple(self.element_class(self, e[0],e[1], [i], check=False) for i,e in enumerate(Q.edges()))
+        return tuple(self.element_class(self, e[0],e[1], [i], check=False) for i,e in enumerate(self._sorted_edges))
 
     @cached_method
     def idempotents(self):
@@ -649,6 +652,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         """
         return self._quiver
 
+    @cached_method
     def reverse(self):
         """
         The path semigroup of the reverse quiver.

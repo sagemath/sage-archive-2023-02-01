@@ -94,7 +94,7 @@ If the vertices along the path do not match, a value error is raised::
     sage: inv3 = PQ([(1, 2, 'x')])
     Traceback (most recent call last):
     ...
-    ValueError: (1, 2, 'x') is not in list
+    ValueError: tuple.index(x): x not in tuple
 
 The ``*`` operator is concatenation of paths. If the two paths do not compose,
 then the result is ``None`` (whence the "partial" in "partial semigroup").  ::
@@ -709,7 +709,7 @@ class QuiverRepFactory(UniqueFactory):
             # vertex is 1 so the space assigned to vertex v is key[2 + v]
             from sage.matrix.constructor import Matrix
             from sage.categories.morphism import is_Morphism
-            for x in Q.edges():
+            for x in P._sorted_edges:
                 if x in maps:
                     e = maps[x]
                 elif (x[0], x[1]) in maps:
@@ -791,7 +791,7 @@ class QuiverRepFactory(UniqueFactory):
 
             # Get the maps
             maps = {}
-            for e in Q.edges():
+            for e in P._sorted_edges:
                 maps[e] = key[i]
                 i += 1
 
@@ -1425,7 +1425,7 @@ class QuiverRep_generic(WithEqualityById, Module):
         # label.  This is the form in which quiver.edges() and other such
         # functions give the edge.  But here edges can be specified by giving
         # only the two vertices or giving only the edge label.
-        for x in Q.edges():
+        for x in P._sorted_edges:
             if x in maps:
                 e = maps[x]
             elif (x[0], x[1]) in maps:
@@ -1483,7 +1483,7 @@ class QuiverRep_generic(WithEqualityById, Module):
             sage: M._maps[(1, 2, 'a')] = sv
         """
 
-        for x in self._quiver.edges():
+        for x in self._semigroup._sorted_edges:
             if self._maps[x].domain() != self._spaces[x[0]]:
                 raise ValueError("domain of map at edge '{}' does not match".format(x[2]))
             if self._maps[x].codomain() != self._spaces[x[1]]:
@@ -1568,7 +1568,7 @@ class QuiverRep_generic(WithEqualityById, Module):
 
         # Create edge homomorphisms restricted to the new domains and codomains
         maps = {}
-        for e in self._quiver.edges():
+        for e in self._semigroup._sorted_edges:
             maps[e] = self._maps[e].restrict_domain(spaces[e[0]]).restrict_codomain(spaces[e[1]])
 
         return self._semigroup.representation(self.base_ring(), spaces, maps)
@@ -1874,7 +1874,7 @@ class QuiverRep_generic(WithEqualityById, Module):
         """
         # A quiver representation is semisimple if and only if the zero map is
         # assigned to each edge.
-        for x in self._quiver.edges():
+        for x in self._semigroup._sorted_edges:
             if not self._maps[x].is_zero():
                 return False
         return True
@@ -2169,7 +2169,7 @@ class QuiverRep_generic(WithEqualityById, Module):
             old_dim, dim = dim, 0
 
             # First sum the subspaces
-            for e in self._quiver.edges():
+            for e in self._semigroup._sorted_edges:
                 spaces[e[1]] += self._maps[e](spaces[e[0]])
 
             # Then get the resulting dimensions
@@ -2229,14 +2229,14 @@ class QuiverRep_generic(WithEqualityById, Module):
 
         # Check the maps of sub if desired
         if check:
-            for e in self._quiver.edges():
+            for e in self._semigroup._sorted_edges:
                 for x in sub._spaces[e[0]].gens():
                     if sub._maps[e](x) != self._maps[e](x):
                         raise ValueError("the quotient method was not passed a submodule")
 
         # Then pass the edge maps to the quotient
         maps = {}
-        for e in self._quiver.edges():
+        for e in self._semigroup._sorted_edges:
             # Sage can automatically coerce an element of a module to an
             # element of a quotient of that module but not the other way
             # around.  So in order to pass a map to the quotient we need to
@@ -2283,7 +2283,7 @@ class QuiverRep_generic(WithEqualityById, Module):
         # all the edge maps.  The empty intersection is defined to be the
         # entire space so this is what we start with.
         spaces = self._spaces.copy()
-        for e in self._quiver.edges():
+        for e in self._semigroup._sorted_edges:
             spaces[e[0]] = spaces[e[0]].intersection(self._maps[e].kernel())
 
         return self._submodule(spaces)
@@ -2307,7 +2307,7 @@ class QuiverRep_generic(WithEqualityById, Module):
         # all of the edge maps.  The empty sum is defined to be zero so this is
         # what we start with.
         spaces = dict((v, self._spaces[v].zero_submodule()) for v in self._quiver)
-        for e in self._quiver.edges():
+        for e in self._semigroup._sorted_edges:
             spaces[e[1]] += self._maps[e].image()
 
         return self._submodule(spaces)
@@ -2381,14 +2381,14 @@ class QuiverRep_generic(WithEqualityById, Module):
         maps = dict(((e[1], e[0], e[2]),
                      self._spaces[e[1]].hom(self._maps[e].matrix().transpose(), 
                                             self._spaces[e[0]]))
-                    for e in self._quiver.edges())
+                    for e in self._semigroup._sorted_edges)
 
         # Reverse the bases if present
         if hasattr(self, '_bases'):
             bases = {}
             basis = []
             for v in self._bases:
-                bases[v] = [p.reverse() for p in self._bases[v]]
+                bases[v] = [p.reversal() for p in self._bases[v]]
                 basis.extend(bases[v])
 
         if isinstance(self, QuiverRep_with_path_basis):
@@ -2543,7 +2543,7 @@ class QuiverRep_generic(WithEqualityById, Module):
         # Take block sums of matrices to form the maps
         from sage.matrix.constructor import block_diagonal_matrix
         maps = {}
-        for e in self._quiver.edges():
+        for e in self._semigroup._sorted_edges:
             maps[e] = block_diagonal_matrix([x._maps[e].matrix() for x in mods], subdivide=False)
 
         # Create the QuiverRep, return if the maps aren't wanted
@@ -2722,8 +2722,6 @@ class QuiverRep_generic(WithEqualityById, Module):
 
         # Invalid paths are zero in the quiver algebra
         result = self()  # this must not be self.zero(), which is cached
-        if not qpath:
-            return result
 
         # Start with the element at the initial vertex
         x = element._elems[qpath.initial_vertex()]
@@ -2807,13 +2805,13 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
         # key
         self._bases = dict((v, []) for v in Q)
         for path in basis:
-            if path:
+            #if path:
                 self._bases[path.terminal_vertex()].append(path)
 
         # Create the matrices of the maps
         from sage.matrix.constructor import Matrix
         maps = {}
-        for e in Q.edges():
+        for e in P._sorted_edges:
             arrow = P([e], check=False)
             # Start with the zero matrix and fill in from there
             maps[e] = Matrix(k, len(self._bases[e[0]]), len(self._bases[e[1]]))
@@ -2830,7 +2828,7 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
         # fails just return, there's no edge action and the construction is
         # done
         action_mats = {}
-        for e in self._quiver.edges():
+        for e in P._sorted_edges:
             action_mats[e] = {}
             for v in self._quiver:
                 # Start with the zero matrix and fill in
@@ -3021,13 +3019,13 @@ class QuiverRep_with_dual_path_basis(QuiverRep_generic):
         # key
         self._bases = dict((v, []) for v in Q)
         for path in basis:
-            if path:
+            #if path:
                 self._bases[path.initial_vertex()].append(path)
 
         # Create the matrices of the maps
         from sage.matrix.constructor import Matrix
         maps = {}
-        for e in Q.edges():
+        for e in P._sorted_edges:
             arrow = P([e],check=False)
             # Start with the zero matrix and fill in from there
             maps[e] = Matrix(k, len(self._bases[e[0]]), len(self._bases[e[1]]))

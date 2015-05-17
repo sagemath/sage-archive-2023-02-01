@@ -3071,7 +3071,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
 
-        - ``A`` -- an ideal class in a quadratic number field
+        - ``A`` -- an ideal class in an imaginary quadratic number field
 
         For the exact definition, in the more general setting of modular forms
         instead of elliptic curves, see section IV of [GrossZagier]_.

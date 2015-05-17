@@ -1802,13 +1802,47 @@ cdef class Matrix(sage.structure.element.Matrix):
         # - crossing lines           (cl)
         if shape is None:
             shape = "round" if unicode else "square"
+        if unicode:
+            import unicodedata
+            hl = unicodedata.lookup('BOX DRAWINGS LIGHT HORIZONTAL')
+            vl = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL')
+            cl = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL')
+        else:
+            hl = '-'        # - horizontal line
+            vl = '|'        # - vertical line
+            cl = '+'        # - crossing lines
         if shape == "square":
-            symbols = u"⎡⎢⎣[⎤⎥⎦]│─┼" if unicode else "[[[[]]]]|-+"
+            if unicode:
+                from sage.typeset.symbols import (
+                    unicode_left_square_bracket as left, 
+                    unicode_right_square_bracket as right
+                )
+            else:
+                from sage.typeset.symbols import (
+                    ascii_left_square_bracket as left, 
+                    ascii_right_square_bracket as right
+                )
         elif shape == "round":
-            symbols = u"⎛⎜⎝(⎞⎟⎠)│─┼" if unicode else "(((())))|-+"
+            if unicode:
+                from sage.typeset.symbols import (
+                    unicode_left_parenthesis as left, 
+                    unicode_right_parenthesis as right
+                )
+            else:
+                from sage.typeset.symbols import (
+                    ascii_left_parenthesis as left, 
+                    ascii_right_parenthesis as right
+                )
         else:
             raise ValueError("No such shape")
-        tlb, mlb, blb, slb, trb, mrb, brb, srb, vl, hl, cl = symbols
+        tlb = left.top              # - top left bracket
+        mlb = left.extension        # - extension piece left bracket
+        blb = left.bottom           # - bottom left bracket
+        slb = left.character        # - single-row left bracket
+        trb = right.top             # - top right bracket
+        mrb = right.extension       # - extension piece right bracket
+        brb = right.bottom          # - bottom right bracket
+        srb = right.character       # - single-row right bracket
 
         if nr == 0 or nc == 0:
             return slb + srb
@@ -1888,7 +1922,13 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             sage: A = matrix([[1,2], [3,4], [5,6]])
             sage: A._unicode_art_()
+            ⎛1 2⎞
+            ⎜3 4⎟
+            ⎝5 6⎠
             sage: unicode_art(A)    # indirect doctest
+            ⎛1 2⎞
+            ⎜3 4⎟
+            ⎝5 6⎠
 
         If the matrix is too big, don't print all of the elements::
 

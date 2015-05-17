@@ -48,7 +48,7 @@ generally, all sage expression as an ASCII art object::
     sage: shell.quit()
 
 This other facility uses a simple
-:class:`~sage.misc.ascii_art.AsciiArt` object (see and
+:class:`~sage.typeset.ascii_art.AsciiArt` object (see and
 :meth:`sage.structure.sage_object.SageObject._ascii_art_`).  """
 
 #*****************************************************************************

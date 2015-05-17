@@ -26,16 +26,16 @@ class CharacterArtFactory(SageObject):
     def __init__(self,
                  art_type, string_type, magic_method_name,
                  parenthesis, square_bracet, curly_brace):
-        """
+        r"""
         Abstract base class for character art factory
 
         This class is the common implementation behind
         :func:`~sage.typeset.ascii_art.ascii_art` and
-        :func:`sage.typeset.unicode_art.unicode_art`.
+        :func:`~sage.typeset.unicode_art.unicode_art` .
 
         INPUT:
 
-        - ``art_type` -- type of the character art.
+        - ``art_type`` -- type of the character art.
 
         - ``string_type`` -- type of strings (the lines in the
           character art).
@@ -155,7 +155,7 @@ class CharacterArtFactory(SageObject):
         return magic_method()
 
     def build_from_string(self, obj):
-        """
+        r"""
         Return the character art object created from splitting the object's string representation
 
         INPUT:

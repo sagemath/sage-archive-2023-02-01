@@ -517,7 +517,7 @@ class Tableau(ClonableList):
             sage: Tableaux.global_options.reset()
         """
         ascii = self.parent().global_options.dispatch(self,'_ascii_art_','ascii_art')
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(ascii.splitlines())
 
     def _unicode_art_(self):

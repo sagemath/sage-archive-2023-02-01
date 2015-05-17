@@ -606,7 +606,7 @@ class DyckWord(CombinatorialElement):
             [            /\    /\      /\/\    /  \  ]
             [ /\/\/\, /\/  \, /  \/\, /    \, /    \ ]
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         rep = self.parent().global_options['ascii_art']
         if rep == "path":
             ret = self.to_path_string()

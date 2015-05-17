@@ -893,7 +893,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
               3  3  3     2
              -4 -4 -4
         """
-        from sage.misc.ascii_art import ascii_art, AsciiArt
+        from sage.typeset.ascii_art import ascii_art, AsciiArt
         s = ascii_art(self[0])
         s._baseline = s._h // 2
         ret = s

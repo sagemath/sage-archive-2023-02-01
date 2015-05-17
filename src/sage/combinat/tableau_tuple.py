@@ -502,7 +502,7 @@ class TableauTuple(CombinatorialElement):
              2  3     -     4     -
                             5
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._repr_diagram().splitlines())
 
     def _latex_(self):

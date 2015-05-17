@@ -1536,11 +1536,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         kwds:
 
-        - ``N`` - positive integer. number of terms of the series to use, default: 10
+        - ``N`` - positive integer. number of terms of the series to use, (optional - default: 10)
 
         - ``prec`` - positive integer, float point or p-adic precision, default: 100
 
-        - ``error_bound`` - a positive real number
+        - ``error_bound`` - a positive real number (optional)
 
         OUTPUT:
 
@@ -1576,13 +1576,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         kwds:
 
-        - ``badprimes`` - a list of primes of bad reduction
+        - ``badprimes`` - a list of primes of bad reduction (optional)
 
         - ``N`` - positive integer. number of terms of the series to use in the local green functions
+          (optional - default: 10)
 
         - ``prec`` - positive integer, float point or p-adic precision, default: 100
 
-        - ``error_bound`` - a positive real number
+        - ``error_bound`` - a positive real number (optional)
 
         OUTPUT:
 
@@ -2180,7 +2181,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         """
         V = []
         E = []
-        #we need to avoid the issue of equal points with different representations
+        #We store the points we encounter is a list, D. Each new point is checked to 
+        #see if it is in that list (which uses ==) so that equal points with different
+        #representations only appear once in the graph.
         D=[]
         for i in range(0, len(preper)):
             try:
@@ -2493,8 +2496,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         """
         dom = self.domain()
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
-        if is_ProjectiveSpace(dom) == False or is_ProjectiveSpace(self.codomain()) == False:
-            raise NotImplementedError, "Not implemented for subschemes"
+        if not (is_ProjectiveSpace(dom) and is_ProjectiveSpace(self.codomain())):
+            raise NotImplementedError("Not implemented for subschemes")
         N = dom.dimension_relative()+1
         R = dom.coordinate_ring()
         J = jacobian(self.defining_polynomials(),dom.gens())
@@ -2549,14 +2552,13 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         wr = F.wronskian_ideal()
         X = P.subscheme(wr)
         crit_points = X.rational_points()
-        return(list(crit_points))
+        return crit_points
 
     def is_postcritically_finite(self, err = 0.01):
         r"""
         Determine if ``self`` is post-critially finite for ``self`` an endomorphism of
         `\mathbb{P}^1`, i.e., check if each critical point is preperiodic. The optional
         parameter ``err`` is passed into ``is_preperiodic()`` as part of the preperiodic check.
-
 
         INPUT:
 
@@ -2592,21 +2594,23 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         ::
 
-
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([6*x^2+16*x*y+16*y^2,-3*x^2-4*x*y-4*y^2])
             sage: f.is_postcritically_finite()
             True
         """
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
-        PS = self.domain()
-        if not is_ProjectiveSpace(PS):
-            raise NotImplementedError("Not implemented for subschemes")
         if not self.is_endomorphism():
-            raise NotImplementedError("Must be an endomorphism")
-        if PS.dimension_relative() > 1:
+            raise TypeError("Must be an endomorphism")
+
+        #iteration of subschemes not yet implemented
+        if self.domain().dimension_relative() > 1:
             raise NotImplementedError("Only implemented in dimension 1")
+
+        #Since is_preperiodic uses heights we need to be over a numberfield
+        K = FractionField(self.codomain().base_ring())
+        if not K in _NumberFields and not K is QQbar:
+            raise NotImplementedError("Must be over a NumberField or a NumberField Order or QQbar")
 
         F = self.change_ring(QQbar)
         crit_points = F.critical_points()
@@ -2659,31 +2663,90 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             ...
             TypeError: Map be be post-critically finite
         """
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
-        PS = self.domain()
-        if not is_ProjectiveSpace(PS):
-            raise NotImplementedError("Not implemented for subschemes")
-        if not self.is_endomorphism():
-            raise NotImplementedError("Must be an endomorphism")
-        if PS.dimension_relative() > 1:
-            raise NotImplementedError("Only implemented in dimension 1")
-
+        #input checking done in is_postcritically_finite
         if check:
             if not self.is_postcritically_finite():
                 raise TypeError("Map be be post-critically finite")
         F = self.change_ring(QQbar)
         crit_points = F.critical_points()
-        preperiodic = copy(crit_points)
-        for P in crit_points:
+        N = len(crit_points)
+        for i in range(N):
             done = False
-            Q= F(P)
+            Q= F(crit_points[i])
             while not done:
-                if Q in preperiodic:
+                if Q in crit_points:
                     done = True
                 else:
-                    preperiodic.append(Q)
+                    crit_points.append(Q)
                 Q = F(Q)
-        return(F._preperiodic_points_to_cyclegraph(list(preperiodic)))
+        return(F._preperiodic_points_to_cyclegraph(crit_points))
+
+    def critical_height(self, **kwds):
+        r"""
+        Compute the critical height of ``self``. The critical height is defined by J. Silverman as
+        the sum of the canonical heights of the critical points. This must be dimension 1 and
+        defined over a number field or number field order.
+
+        INPUT:
+
+        kwds:
+
+        - ``badprimes`` - a list of primes of bad reduction (optional)
+
+        - ``N`` - positive integer. number of terms of the series to use in the local green functions
+          (optional - Default: 10)
+
+        - ``prec`` - positive integer, float point or p-adic precision, Default: 100
+
+        - ``error_bound`` - a positive real number (optional)
+
+        OUTPUT: Real number
+
+        Examples::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^3+7*y^3, 11*y^3])
+            sage: f.critical_height()
+            1.1989273321156851418802151128
+
+        ::
+
+            sage: K.<w> = QuadraticField(2)
+            sage: O = K.maximal_order()
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+w*y^2,y^2])
+            sage: f.critical_height()
+            0.16090842452312941163719755472
+
+        Postcritically finite maps have critical height 0::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^3-3/4*x*y^2 + 3/4*y^3, y^3])
+            sage: f.critical_height(error_bound=0.0001)
+            0.000011738508366948556443245983996
+        """
+        if not self.is_endomorphism():
+            raise TypeError("Must be an endomorphism")
+        PS = self.codomain()
+        if PS.dimension_relative() > 1:
+            raise NotImplementedError("Only implemented in dimension 1")
+
+        K = FractionField(PS.base_ring())
+        if not K in _NumberFields and not K is QQbar:
+            raise NotImplementedError("Must be over a NumberField or a NumberField Order or QQbar")
+        F = self.change_ring(QQbar)
+        crit_points = F.critical_points()
+        n = len(crit_points)
+        err_bound = kwds.get("error_bound", None)
+        if not err_bound is None:
+            kwds.update({"error_bound": err_bound/n})
+        ch = 0
+        for P in crit_points:
+            ch += P.canonical_height(F, **kwds)
+        return(ch)
 
     def periodic_points(self, n, minimal = True):
         r"""
@@ -3615,61 +3678,6 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 j += 1
             F.append(G)
         return(H(F))
-
-    def critical_height(self, **kwds):
-        r"""
-        Compute the critical height of ``self``. The critical height is defined by J. Silverman as
-        the sum of the canonical heights of the critical points. This must be dimension 1.
-
-        INPUT:
-
-        kwds:
-
-        - ``badprimes`` - a list of primes of bad reduction
-
-        - ``N`` - positive integer. number of terms of the series to use in the local green functions
-
-        - ``prec`` - positive integer, float point or p-adic precision
-
-        - ``error_bound`` - a positive real number
-
-        OUTPUT: Real number
-
-        Examples::
-
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: H = End(P)
-            sage: f = H([x^3+7*y^3, 11*y^3])
-            sage: f.critical_height()
-            1.1989273321156851418802151128
-
-        Postcritically finite maps have critical height 0::
-
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: H = End(P)
-            sage: f = H([x^3-3/4*x*y^2 + 3/4*y^3, y^3])
-            sage: f.critical_height(error_bound=0.0001)
-            0.000011738508366948556443245983996
-        """
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
-        PS = self.domain()
-        if not is_ProjectiveSpace(PS):
-            raise NotImplementedError("Not implemented for subschemes")
-        if not self.is_endomorphism():
-            raise NotImplementedError("Must be an endomorphism")
-        if PS.dimension_relative() > 1:
-            raise NotImplementedError("Only implemented in dimension 1")
-
-        F = self.change_ring(QQbar)
-        crit_points = F.critical_points()
-        n = len(crit_points)
-        err_bound = kwds.get("error_bound", None)
-        if not err_bound is None:
-            kwds.update({"error_bound": err_bound/n})
-        ch = 0
-        for P in crit_points:
-            ch += P.canonical_height(F, **kwds)
-        return(ch)
 
 class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_polynomial_projective_space_field):
 

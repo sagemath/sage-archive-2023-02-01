@@ -81,10 +81,13 @@ AUTHORS:
 from sage.structure.element   import AdditiveGroupElement, RingElement, Element, generic_power, parent
 from sage.structure.sequence  import Sequence
 from sage.categories.homset   import Homset, Hom, End
+from sage.categories.number_fields import NumberFields
 from sage.rings.all           import Integer, CIF
 from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.fraction_field     import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.morphism import is_RingHomomorphism
+from sage.rings.number_field.order import is_NumberFieldOrder
 from point                    import is_SchemeTopologicalPoint
 from sage.rings.infinity      import infinity
 import scheme
@@ -1413,7 +1416,9 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             H = Hom(T,S)
 
         if emb is None:
-            if R == QQbar and K != QQ:
+            if is_NumberFieldOrder(K):
+                K = FractionField(K)
+            if R == QQbar and K in NumberFields() and K != QQ:
                 #if we are embedding a number field into QQbar and the emb is not
                 #specified we need to construct one
                 abspoly = K.absolute_polynomial()
@@ -1681,7 +1686,9 @@ class SchemeMorphism_point(SchemeMorphism):
         K = self.codomain().base_ring()
         S = self._codomain.change_ring(R)
         if emb is None:
-            if R == QQbar and K != QQ:
+            if is_NumberFieldOrder(K):
+                K = FractionField(K)
+            if R == QQbar and K in NumberFields() and K != QQ:
                 #if we are embedding a number field into QQbar and the emb is not
                 #specified we need to construct one
                 abspoly = K.absolute_polynomial()

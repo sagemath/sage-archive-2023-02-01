@@ -11,6 +11,7 @@ Bialgebras
 
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.all import Algebras, Coalgebras
+from sage.categories.super_modules import SuperModulesCategory
 
 class Bialgebras(Category_over_base_ring):
     """
@@ -56,8 +57,6 @@ class Bialgebras(Category_over_base_ring):
         """
         return None
 
-    class ParentMethods:
+    class Super(SuperModulesCategory):
         pass
 
-    class ElementMethods:
-        pass

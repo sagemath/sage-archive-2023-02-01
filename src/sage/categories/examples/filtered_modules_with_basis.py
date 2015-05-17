@@ -1,5 +1,5 @@
 r"""
-Examples of graded modules with basis
+Examples of filtered modules with basis
 """
 #*****************************************************************************
 #  Copyright (C) 2013 Frederic Chapoton <fchapoton2@gmail.com>
@@ -8,16 +8,15 @@ Examples of graded modules with basis
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories.graded_modules_with_basis import GradedModulesWithBasis
 from sage.categories.filtered_modules_with_basis import FilteredModulesWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.partition import Partitions
 
 
-class GradedPartitionModule(CombinatorialFreeModule):
+class FilteredPartitionModule(CombinatorialFreeModule):
     r"""
-    This class illustrates an implementation of a graded module
-    with basis: the free module over partitions.
+    This class illustrates an implementation of a filtered module
+    with basis: the free module on the set of all partitions.
 
     INPUT:
 
@@ -34,20 +33,7 @@ class GradedPartitionModule(CombinatorialFreeModule):
 
       ::
 
-          sage: A = GradedModulesWithBasis(QQ).example()
-
-    - A basis function - this module is graded by the non-negative
-      integers, so there is a function defined in this module,
-      creatively called :func:`basis`, which takes an integer
-      `d` as input and returns a family of partitions representing a basis
-      for the algebra in degree `d`.
-
-      ::
-
-          sage: A.basis(2)
-          Lazy family (Term map from Partitions to An example of a graded module with basis: the free module on partitions over Rational Field(i))_{i in Partitions of the integer 2}
-          sage: A.basis(6)[Partition([3,2,1])]
-          P[3, 2, 1]
+          sage: A = ModulesWithBasis(QQ).Filtered().example()
 
     - If the algebra is called ``A``, then its basis function is
       stored as ``A.basis``.  Thus the function can be used to
@@ -63,7 +49,7 @@ class GradedPartitionModule(CombinatorialFreeModule):
     - For dealing with basis elements: :meth:`degree_on_basis`, and
       :meth:`_repr_term`. The first of these defines the degree of any
       monomial, and then the :meth:`degree
-      <GradedModules.Element.degree>` method for elements --
+      <FilteredModules.Element.degree>` method for elements --
       see the next item -- uses it to compute the degree for a linear
       combination of monomials.  The last of these determines the
       print representation for monomials, which automatically produces
@@ -82,8 +68,8 @@ class GradedPartitionModule(CombinatorialFreeModule):
       element is determined by a dictionary whose keys are partitions and whose
       corresponding values are the coefficients.  The class implements
       two things: an :meth:`is_homogeneous
-      <GradedModules.Element.is_homogeneous>` method and a
-      :meth:`degree <GradedModules.Element.degree>` method.
+      <FilteredModules.Element.is_homogeneous>` method and a
+      :meth:`degree <FilteredModules.Element.degree>` method.
 
       ::
 
@@ -98,12 +84,12 @@ class GradedPartitionModule(CombinatorialFreeModule):
         """
         EXAMPLES::
 
-            sage: A = GradedModulesWithBasis(QQ).example(); A
-            An example of a graded module with basis: the free module on partitions over Rational Field
+            sage: A = ModulesWithBasis(QQ).Filtered().example(); A
+            An example of a filtered module with basis: the free module on partitions over Rational Field
             sage: TestSuite(A).run()
         """
         CombinatorialFreeModule.__init__(self, base_ring, Partitions(),
-                                         category=GradedModulesWithBasis(base_ring))
+                                         category=FilteredModulesWithBasis(base_ring))
 
     # FIXME: this is currently required, because the implementation of ``basis``
     # in CombinatorialFreeModule overrides that of GradedModulesWithBasis
@@ -112,8 +98,8 @@ class GradedPartitionModule(CombinatorialFreeModule):
     # This could be a default implementation
     def degree_on_basis(self, t):
         """
-        The degree of the element determined by the partition ``t`` in
-        this graded module.
+        The degree of the basis element indexed by the partition ``t``
+        in this filtered module.
 
         INPUT:
 
@@ -124,7 +110,7 @@ class GradedPartitionModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = GradedModulesWithBasis(QQ).example()
+            sage: A = ModulesWithBasis(QQ).Filtered().example()
             sage: A.degree_on_basis(Partition((2,1)))
             3
             sage: A.degree_on_basis(Partition((4,2,1,1,1,1)))
@@ -136,14 +122,14 @@ class GradedPartitionModule(CombinatorialFreeModule):
 
     def _repr_(self):
         """
-        Print representation
+        Print representation of ``self``.
 
         EXAMPLES::
 
-            sage: GradedModulesWithBasis(QQ).example()  # indirect doctest
-            An example of a graded module with basis: the free module on partitions over Rational Field
+            sage: ModulesWithBasis(QQ).Filtered().example()  # indirect doctest
+            An example of a filtered module with basis: the free module on partitions over Rational Field
         """
-        return "An example of a graded module with basis: the free module on partitions over %s" % self.base_ring()
+        return "An example of a filtered module with basis: the free module on partitions over %s" % self.base_ring()
 
     def _repr_term(self, t):
         """
@@ -155,10 +141,11 @@ class GradedPartitionModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = GradedModulesWithBasis(QQ).example()
+            sage: A = ModulesWithBasis(QQ).Filtered().example()
             sage: A._repr_term(Partition((4,2,1)))
             'P[4, 2, 1]'
         """
         return 'P' + t._repr_()
 
-Example = GradedPartitionModule
+Example = FilteredPartitionModule
+

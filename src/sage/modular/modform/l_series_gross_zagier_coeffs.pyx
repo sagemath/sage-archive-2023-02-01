@@ -23,7 +23,7 @@ cpdef to_series(L, var):
 
     EXAMPLES::
 
-        sage: from sage.modular.modform.l_series_coeffs import to_series
+        sage: from sage.modular.modform.l_series_gross_zagier_coeffs import to_series
         sage: to_series([1,10,100], 't')
         1 + 10*t + 100*t^2 + O(t^3)
         sage: to_series([0..5], CDF[['z']].0)
@@ -63,7 +63,7 @@ def bqf_theta_series(Q, long bound, var=None):
 
     EXAMPLES::
 
-        sage: from sage.modular.modform.l_series_coeffs import bqf_theta_series
+        sage: from sage.modular.modform.l_series_gross_zagier_coeffs import bqf_theta_series
         sage: bqf_theta_series([2,1,5], 10)
         [1, 0, 2, 0, 0, 2, 2, 0, 4, 0, 0]
         sage: Q = BinaryQF([41,1,1])
@@ -125,7 +125,7 @@ def gross_zagier_L_series(an_list, Q, long N, long u, var=None):
 
     EXAMPLES::
 
-        sage: from sage.modular.modform.l_series_coeffs import gross_zagier_L_series
+        sage: from sage.modular.modform.l_series_gross_zagier_coeffs import gross_zagier_L_series
         sage: E = EllipticCurve('37a')
         sage: N = 37
         sage: an = E.anlist(60); len(an)

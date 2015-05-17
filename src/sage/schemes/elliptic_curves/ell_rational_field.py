@@ -3067,11 +3067,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def lseries_gross_zagier(self, A):
         """
         Return the Gross-Zagier L-series attached to ``self``
-        and an ideal class.
+        and an ideal class `A`.
 
         INPUT:
 
         - ``A`` -- an ideal class in a quadratic number field
+
+        For the exact definition, in the more general setting of modular forms
+        instead of elliptic curves, see section IV of [GrossZagier]_.
 
         EXAMPLES::
 
@@ -3092,6 +3095,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             0.502803417587467
             sage: E.lseries()(2) * E.quadratic_twist(-40).lseries()(2)
             0.502803417587467
+
+        REFERENCES:
+
+        .. [GrossZagier] B. Gross and D. Zagier, *Heegner points and
+           derivatives of L-series.* Invent. Math. 84 (1986), no. 2, 225-320.
         """
         try:
             return self.__lseries_gross_zagier[A]
@@ -3100,7 +3108,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         except KeyError:
             pass
 
-        from sage.modular.modform.l_series import GrossZagierLseries
+        from sage.modular.modform.l_series_gross_zagier import GrossZagierLseries
         self.__lseries_gross_zagier[A] = GrossZagierLseries(self, A)
         return self.__lseries_gross_zagier[A]
 

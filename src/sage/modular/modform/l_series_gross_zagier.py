@@ -1,7 +1,7 @@
 from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
 from sage.lfunctions.dokchitser import Dokchitser
-from l_series_coeffs import gross_zagier_L_series
+from l_series_gross_zagier_coeffs import gross_zagier_L_series
 from sage.modular.dirichlet import kronecker_character
 
 
@@ -10,6 +10,12 @@ class GrossZagierLseries(SageObject):
     def __init__(self, E, A, prec=53):
         r"""
         Class for the Gross-Zagier L-series.
+
+        This is attached to a pair `(E,A)` where `E` is an elliptic curve over
+        `\QQ` and `A` is an ideal class in an imaginary quadratic number field.
+
+        For the exact definition, in the more general setting of modular forms
+        instead of elliptic curves, see section IV of [GrossZagier]_.
 
         INPUT:
 
@@ -24,7 +30,7 @@ class GrossZagierLseries(SageObject):
             sage: e = EllipticCurve('37a')
             sage: K.<a> = QuadraticField(-40)
             sage: A = K.class_group().gen(0)
-            sage: from sage.modular.modform.l_series import GrossZagierLseries
+            sage: from sage.modular.modform.l_series_gross_zagier import GrossZagierLseries
             sage: G = GrossZagierLseries(e, A)
 
         TESTS::
@@ -74,7 +80,7 @@ class GrossZagierLseries(SageObject):
             sage: e = EllipticCurve('37a')
             sage: K.<a> = QuadraticField(-40)
             sage: A = K.class_group().gen(0)
-            sage: from sage.modular.modform.l_series import GrossZagierLseries
+            sage: from sage.modular.modform.l_series_gross_zagier import GrossZagierLseries
             sage: G = GrossZagierLseries(e, A)
             sage: G(3)
             -0.272946890617590
@@ -96,7 +102,7 @@ class GrossZagierLseries(SageObject):
             sage: e = EllipticCurve('37a')
             sage: K.<a> = QuadraticField(-40)
             sage: A = K.class_group().gen(0)
-            sage: from sage.modular.modform.l_series import GrossZagierLseries
+            sage: from sage.modular.modform.l_series_gross_zagier import GrossZagierLseries
             sage: G = GrossZagierLseries(e, A)
             sage: G.taylor_series(2,3)
             -0.613002046122894 + 0.490374999263514*z - 0.122903033710382*z^2 + O(z^3)
@@ -112,7 +118,7 @@ class GrossZagierLseries(SageObject):
             sage: e = EllipticCurve('37a')
             sage: K.<a> = QuadraticField(-40)
             sage: A = K.class_group().gen(0)
-            sage: from sage.modular.modform.l_series import GrossZagierLseries
+            sage: from sage.modular.modform.l_series_gross_zagier import GrossZagierLseries
             sage: GrossZagierLseries(e, A)
             Gross Zagier L-series attached to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field with ideal class Fractional ideal class (2, 1/2*a)
         """

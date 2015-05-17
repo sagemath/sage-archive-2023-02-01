@@ -384,7 +384,8 @@ cdef class QuiverPath(MonoidElement):
 
         A slice with step -1 return a sub-path of the reversed path::
 
-            
+            sage: p[4:1:-1]
+            b*a*d
         """
         cdef tuple E
         cdef Py_ssize_t start, stop, step, slicelength
@@ -398,7 +399,7 @@ cdef class QuiverPath(MonoidElement):
             if step!=1 and step!=-1:
                 raise ValueError("Slicing only possible for step +/-1")
             if step==-1:
-                return self.reversal()[self._path.length-start:self._path.length-stop]
+                return self.reversal()[self._path.length-1-start:self._path.length-1-stop]
             if start==0 and stop==self._path.length:
                 return self
             E = self._parent._sorted_edges

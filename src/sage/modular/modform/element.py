@@ -1114,7 +1114,7 @@ class Newform(ModularForm_abstract):
           By default, the algorithm tries to compute `N` using
           [Atkin-Li]_, Theorem 3.1.
 
-        - ``check` -- (optional) boolean; if ``True`` (default),
+        - ``check`` -- (optional) boolean; if ``True`` (default),
           ensure that the coefficients `b_n` are correct for `n` up to
           the Sturm bound and coprime to the level of `f` and to the
           conductor of `\chi`.  This makes it less likely that a wrong
@@ -1127,11 +1127,19 @@ class Newform(ModularForm_abstract):
 
         EXAMPLES::
 
+            sage: G = DirichletGroup(3, base_ring=QQ)
             sage: Delta = Newforms(SL2Z, 12)[0]; Delta
             q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
-            sage: chi = DirichletGroup(3)[1]
-            sage: Delta.twist(chi)  # long time (about 5 s)
+            sage: Delta.twist(G[0]) == Delta
+            True
+            sage: Delta.twist(G[1])  # long time (about 5 s)
             q + 24*q^2 - 1472*q^4 - 4830*q^5 + O(q^6)
+
+            sage: M = CuspForms(Gamma1(13), 2)
+            sage: f = M.newforms('a')[0]; f
+            q + a0*q^2 + (-2*a0 - 4)*q^3 + (-a0 - 1)*q^4 + (2*a0 + 3)*q^5 + O(q^6)
+            sage: f.twist(G[1])
+            q - a0*q^2 + (-a0 - 1)*q^4 + (-2*a0 - 3)*q^5 + O(q^6)
 
             sage: f = Newforms(Gamma1(30), 2, names='a')[1]; f
             q + a1*q^2 - a1*q^3 - q^4 + (a1 - 2)*q^5 + O(q^6)

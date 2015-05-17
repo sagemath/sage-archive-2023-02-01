@@ -2785,7 +2785,10 @@ cdef class BinaryMatroid(LinearMatroid):
 
         # Setup representation; construct displayed basis
         if matrix is not None:
-            A = BinaryMatrix(matrix.nrows(), matrix.ncols(), M=matrix)
+            if type(matrix) == BinaryMatrix:
+                A = matrix.copy()
+            else:
+                A = BinaryMatrix(matrix.nrows(), matrix.ncols(), M=matrix)
             if keep_initial_representation:
                 self._representation = A.copy()   # Deprecated Sage matrix operation
             if basis is None:
@@ -3718,7 +3721,10 @@ cdef class TernaryMatroid(LinearMatroid):
 
         # Setup representation; construct displayed basis
         if matrix is not None:
-            A = TernaryMatrix(matrix.nrows(), matrix.ncols(), M=matrix)
+            if type(matrix) == TernaryMatrix:
+                A = matrix.copy()
+            else:
+                A = TernaryMatrix(matrix.nrows(), matrix.ncols(), M=matrix)
             if keep_initial_representation:
                 self._representation = A.copy()   # Deprecated Sage matrix operation
             if basis is None:
@@ -4510,7 +4516,10 @@ cdef class QuaternaryMatroid(LinearMatroid):
 
         # Setup representation; construct displayed basis
         if matrix is not None:
-            A = QuaternaryMatrix(matrix.nrows(), matrix.ncols(), M=matrix, ring=ring)
+            if type(matrix) == QuaternaryMatrix:
+                A = matrix.copy()
+            else:
+                A = QuaternaryMatrix(matrix.nrows(), matrix.ncols(), M=matrix, ring=ring)
             if keep_initial_representation:
                 self._representation = A.copy()   # Deprecated Sage matrix operation
             if basis is None:

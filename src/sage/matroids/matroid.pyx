@@ -4571,7 +4571,7 @@ cdef class Matroid(SageObject):
             return self.rank(S)+self.rank(self.groundset()-S)-self.full_rank()
         if S.intersection(T):
             raise ValueError("no well-defined matroid connectivity between intersecting sets.")
-        return self._connectivity(self, S, T)
+        return self._connectivity(S, T)
         
     cpdef _connectivity(self, S, T):
         r"""
@@ -4653,16 +4653,39 @@ cdef class Matroid(SageObject):
         e = E.pop()
         f = E.pop()
         S = {e, f}
+        w = {e:1 for e in E}
+        I = set()
         for T in combinations(E, 2):
-            if self._connectivity(S,set(T)) < 2:
+            T = set(T)
+            N1 = self.minor(S,T)
+            N2 = self.minor(T,S)
+            I = I - T                # make old I a common independent set of N1, N2
+            I = N1.max_independent(I)
+            I = N2.max_independent(I)
+            J = N1._intersection_augmentation(N2, w, I)
+            while J is not None:    # augment to max common independent set of N1, N2
+                I = I.symmetric_difference(J)
+                J = N1._intersection_augmentation(N2, w, I)
+            if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2: # check if connectivity between S,T is <2
                 return False
         for g in E:
             S = {e, g}
+            I = I - S
             for h in E:
                 if g is h:
                     continue
                 T = {f, h}
-                if self._connectivity(S, T) < 2:
+                T = set(T)
+                N1 = self.minor(S,T)
+                N2 = self.minor(T,S)
+                I = I - T                # make old I a common independent set of N1, N2
+                I = N1.max_independent(I)
+                I = N2.max_independent(I)
+                J = N1._intersection_augmentation(N2, w, I)
+                while J is not None:    # augment to max common independent set of N1, N2
+                    I = I.symmetric_difference(J)
+                    J = N1._intersection_augmentation(N2, w, I)
+                if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2: # check if connectivity between S,T is <2
                     return False
         return True
 

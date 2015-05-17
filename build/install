@@ -310,21 +310,21 @@ filtered_packages_list() {
     # for each package in pkgs/
     for DIR in $SAGE_ROOT/build/pkgs/*; do
 
-	PKG_TYPE_FILE="$DIR/type"
+        PKG_TYPE_FILE="$DIR/type"
         PKG_TYPE=`cat $PKG_TYPE_FILE`
         if [ $? -ne 0 ]; then
-	    continue
-	fi
+            continue
+        fi
 
-	# Check consistency of 'DIR/type' file
+        # Check consistency of 'DIR/type' file
         if [ "$PKG_TYPE" != "base" ] && [ "$PKG_TYPE" != "standard" ] && [ "$PKG_TYPE" != "optional" ] && [ "$PKG_TYPE" != "experimental" ]; then
-	    echo >&2 "The content of \"$PKG_TYPE_FILE\" must be 'base', 'standard', 'optional' or 'experimental'"
+            echo >&2 "The content of \"$PKG_TYPE_FILE\" must be 'base', 'standard', 'optional' or 'experimental'"
             return 1
-	fi
+        fi
 
-	# Filter
-	if   [ "$PKG_TYPE" == "$*" ]; then
-	    basename $DIR
+        # Filter
+        if   [ "$PKG_TYPE" == "$*" ]; then
+            basename $DIR
         fi
     done
 }
@@ -430,9 +430,9 @@ add_make_package_target () {
     PKG_NAME="$*"
     DEP_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/dependencies"
     if [ -e "$DEP_FILE" ]; then
-	DEP="$(head -n 1 $DEP_FILE)"
+        DEP="$(head -n 1 $DEP_FILE)"
     else
-	DEP=""
+        DEP=""
     fi
     PKG_VAR_NAME="$(echo $PKG_NAME | tr '[:lower:]' '[:upper:]')"
     echo >&5 "\$(INST)/\$($PKG_VAR_NAME):$DEP"
@@ -442,7 +442,7 @@ add_make_package_target () {
 # Base packages
 filtered_packages_list base | while read PKG_NAME; do
     if [ "$PKG_NAME" != "configure" ]; then
-	add_make_package_target "$PKG_NAME"
+        add_make_package_target "$PKG_NAME"
     fi
 done
 

@@ -39,7 +39,7 @@ from sage.structure.set_factories import (
     SetFactory, ParentWithSetFactory, TopMostParentPolicy)
 from sage.sets.all import DisjointUnionEnumeratedSets
 from sage.sets.family import LazyFamily
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.enumerated_sets import EnumeratedSets
 from sage.rings.integer import Integer
 from sage.misc.lazy_attribute import lazy_attribute
 
@@ -88,6 +88,11 @@ class XYPairsFactory(SetFactory):
 
             This function is actually the ``__call__`` method of
             :class:`XYPairsFactory`.
+
+        TESTS::
+
+            sage: TestSuite(P).run()
+
         """
         if policy is None:
             policy = self._default_policy
@@ -172,7 +177,7 @@ class XYPair(ElementWrapper):
 
     EXAMPLES::
 
-        sage: from sage.structure.set_factories_example import *
+        sage: from sage.structure.set_factories_example import XYPair
         sage: p = XYPair(Parent(), (0,1)); p
         (0, 1)
         sage: p = XYPair(Parent(), (0,8))
@@ -184,7 +189,7 @@ class XYPair(ElementWrapper):
         """
         TESTS::
 
-            sage: from sage.structure.set_factories_example import *
+            sage: from sage.structure.set_factories_example import XYPairs
             sage: P = XYPairs(); p = P.list()[0]
             sage: TestSuite(p).run()
         """
@@ -204,7 +209,7 @@ class AllPairs(ParentWithSetFactory, DisjointUnionEnumeratedSets):
     :class:`DisjointUnionEnumeratedSets`.
 
     It is constructed as the disjoint union
-    (:class:`DisjointUnionEnumeratedSets`) of :class:`Pairs_y` parents:
+    (:class:`DisjointUnionEnumeratedSets`) of :class:`Pairs_Y` parents:
 
     .. math::
 
@@ -231,8 +236,8 @@ class AllPairs(ParentWithSetFactory, DisjointUnionEnumeratedSets):
             sage: from sage.structure.set_factories_example import XYPairs
             sage: TestSuite(XYPairs()).run()
         """
-        ParentWithSetFactory.__init__(self, (), policy,
-                                      category=FiniteEnumeratedSets())
+        ParentWithSetFactory.__init__(self, (), policy=policy,
+                                      category=EnumeratedSets().Finite())
         DisjointUnionEnumeratedSets.__init__(self,
                                              LazyFamily(range(MAX),
                                                         self.pairs_y),
@@ -243,7 +248,7 @@ class AllPairs(ParentWithSetFactory, DisjointUnionEnumeratedSets):
         r"""
         Construct the parent for the disjoint union
 
-        Construct a parent in :class:`Pairs_y` as a facade parent for
+        Construct a parent in :class:`Pairs_Y` as a facade parent for
         ``self``.
 
         This is an internal function which should be hidden from the user
@@ -314,8 +319,8 @@ class PairsX_(ParentWithSetFactory, UniqueRepresentation):
             sage: TestSuite(XYPairs(0)).run()
         """
         self._x = x
-        ParentWithSetFactory.__init__(self, (x, None), policy,
-                                      category=FiniteEnumeratedSets())
+        ParentWithSetFactory.__init__(self, (x, None), policy=policy,
+                                      category=EnumeratedSets().Finite())
 
     def _repr_(self):
         """
@@ -380,7 +385,7 @@ class Pairs_Y(ParentWithSetFactory, DisjointUnionEnumeratedSets):
 
         :class:`AllPairs` for how to properly construct
         :class:`DisjointUnionEnumeratedSets` using
-        :class:`ParentWithSetFactory`.
+        :class:`~sage.structure.set_factories.ParentWithSetFactory`.
 
     TESTS::
 
@@ -396,8 +401,8 @@ class Pairs_Y(ParentWithSetFactory, DisjointUnionEnumeratedSets):
             sage: TestSuite(XYPairs(y=1)).run()
         """
         self._y = y
-        ParentWithSetFactory.__init__(self, (None, y), policy,
-                                      category=FiniteEnumeratedSets())
+        ParentWithSetFactory.__init__(self, (None, y), policy=policy,
+                                      category=EnumeratedSets().Finite())
         DisjointUnionEnumeratedSets.__init__(
             self, LazyFamily(range(MAX), self.single_pair),
             facade=True, keepkey=False,
@@ -434,7 +439,7 @@ class Pairs_Y(ParentWithSetFactory, DisjointUnionEnumeratedSets):
 
             :class:`AllPairs` for how to properly construct
             :class:`DisjointUnionEnumeratedSets` using
-            :class:`ParentWithSetFactory`.
+            :class:`~sage.structure.set_factories.ParentWithSetFactory`.
 
         TESTS::
 
@@ -480,8 +485,8 @@ class SingletonPair(ParentWithSetFactory, UniqueRepresentation):
             sage: TestSuite(XYPairs(0,1)).run()
         """
         self._xy = (x, y)
-        ParentWithSetFactory.__init__(self, (x, y), policy,
-                                      category=FiniteEnumeratedSets())
+        ParentWithSetFactory.__init__(self, (x, y), policy=policy,
+                                      category=EnumeratedSets().Finite())
 
     def _repr_(self):
         """

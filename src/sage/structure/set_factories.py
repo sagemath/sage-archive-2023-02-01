@@ -126,11 +126,15 @@ different choices.
 
 1 - In a first use case, we want to add some methods to the constructed
 elements. As illustration, we add here a new method ``sum`` which returns
-`x+y`. We therefore inherit from :class:`~.set_factories_example.XYPair`::
+`x+y`. We therefore create a new class for the elements which inherits from
+:class:`~.set_factories_example.XYPair`::
 
     sage: class NewXYPair(XYPair):
     ....:     def sum(self):
     ....:         return sum(self.value)
+
+Here is an instance of this class (with a dummy parent)::
+
     sage: el = NewXYPair(Parent(), (2,3))
     sage: el.sum()
     5
@@ -147,23 +151,25 @@ parameters:
 Calling the factory with this policy returns a new set which builds its
 elements with the new policy::
 
-    sage: newpolicy = TopMostParentPolicy(XYPairs, (), NewXYPair)
-    sage: newS = XYPairs(policy=newpolicy)
-    sage: el = newS.an_element(); el
+    sage: new_policy = TopMostParentPolicy(XYPairs, (), NewXYPair)
+    sage: NewS = XYPairs(policy=new_policy)
+    sage: el = NewS.an_element(); el
     (0, 0)
     sage: el.sum()
     0
-    sage: el.parent() is newS
+    sage: el.parent() is NewS
+    True
+    sage: isinstance(el, NewXYPair)
     True
 
 Newly constructed subsets inherit the policy::
 
-    sage: newS2 = newS.subset(x=2)
-    sage: el2 = newS2.an_element(); el2
+    sage: NewS2 = NewS.subset(x=2)
+    sage: el2 = NewS2.an_element(); el2
     (2, 0)
     sage: el2.sum()
     2
-    sage: el2.parent() is newS
+    sage: el2.parent() is NewS
     True
 
 2 - In a second use case, we want the elements to remember which
@@ -176,19 +182,38 @@ parent created them. The corresponding policy is called
 Here is an example::
 
     sage: selfpolicy = SelfParentPolicy(XYPairs, NewXYPair)
-    sage: selfS = XYPairs(policy=selfpolicy)
-    sage: el = selfS.an_element();
-    sage: el.parent() is selfS
+    sage: SelfS = XYPairs(policy=selfpolicy)
+    sage: el = SelfS.an_element();
+    sage: el.parent() is SelfS
     True
 
 Now all subsets are the parent of the elements that they create::
 
-    sage: selfS2 = selfS.subset(x=2)
-    sage: el2 = selfS2.an_element()
-    sage: el2.parent() is newS
+    sage: SelfS2 = SelfS.subset(x=2)
+    sage: el2 = SelfS2.an_element()
+    sage: el2.parent() is NewS
     False
-    sage: el2.parent() is selfS2
+    sage: el2.parent() is SelfS2
     True
+
+3 - Finaly, a common use case is to construct simple python object which are
+not Sage :class:`sage.structure.Element`. As an example, we show how to build
+a parent ``TupleS`` which construct pairs as tuple. The corresponding policy
+is called :class:`BareFunctionPolicy`. It takes two parameters:
+
+- the factory;
+- the function called to construct the elements.
+
+Here is how to do it::
+
+    sage: cons = lambda t, check: tuple(t) # ignore the check parameter
+    sage: tuplepolicy = BareFunctionPolicy(XYPairs, cons)
+    sage: P = XYPairs(x=2, policy=tuplepolicy)
+    sage: P.list()
+    [(2, 0), (2, 1), (2, 2), (2, 3), (2, 4)]
+    sage: el = P.an_element()
+    sage: type(el)
+    <type 'tuple'>
 
 Here are the currently implemented policies:
 
@@ -203,6 +228,9 @@ Here are the currently implemented policies:
 
 - :class:`SelfParentPolicy`: provide systematically ``Element`` and
   element_class and ensure that the parent is ``self``.
+
+- :class:`BareFunctionPolicy`: instead of calling a class constructor element
+  are passed to a function provided to the policy.
 
 .. TODO::
 
@@ -320,8 +348,10 @@ class SetFactory(UniqueRepresentation, SageObject):
         Construct the parent associated with the constraints in
         argument. This should return a :class:`Parent`.
 
-        Currently there is no specification on how constraints are
-        passed as arguments.
+        .. NOTE::
+
+            Currently there is no specification on how constraints are
+            passed as arguments.
 
         EXAMPLES::
 
@@ -352,8 +382,12 @@ class SetFactory(UniqueRepresentation, SageObject):
         r"""
         Add constraints to the set of constraints `cons`.
 
-        Should return a set of constraints. Currently there is no
-        specification on how constraints are passed as arguments.
+        Should return a set of constraints.
+
+        .. NOTE::
+
+            Currently there is no specification on how constraints are
+            passed as arguments.
 
         EXAMPLES::
 
@@ -402,8 +436,8 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
         r"""
         TEST::
 
-            sage: from sage.structure.set_factories_example import *
-            sage: from sage.structure.set_factories import *
+            sage: from sage.structure.set_factories import SetFactoryPolicy
+            sage: from sage.structure.set_factories_example import XYPairs
             sage: S = SetFactoryPolicy(XYPairs); S
             <class 'sage.structure.set_factories.SetFactoryPolicy'>
         """
@@ -416,8 +450,8 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: from sage.structure.set_factories_example import *
-            sage: from sage.structure.set_factories import *
+            sage: from sage.structure.set_factories import SetFactoryPolicy, SelfParentPolicy
+            sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: XYPairs._default_policy.factory()
             Factory for XY pairs
             sage: XYPairs._default_policy.factory() is XYPairs
@@ -433,7 +467,7 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
         """
         return self._factory
 
-    def _self_element_constructor_attributes(self, Element):
+    def self_element_constructor_attributes(self, Element):
         r"""
         Element Constructor Attributes for non facade parent.
 
@@ -448,13 +482,13 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
 
             sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: pol = XYPairs._default_policy
-            sage: pol._self_element_constructor_attributes(XYPair)
+            sage: pol.self_element_constructor_attributes(XYPair)
             {'Element': <class 'sage.structure.set_factories_example.XYPair'>,
              '_parent_for': 'self'}
         """
         return {'_parent_for': "self", 'Element': Element}
 
-    def _facade_element_constructor_attributes(self, parent):
+    def facade_element_constructor_attributes(self, parent):
         r"""
         Element Constructor Attributes for facade parent.
 
@@ -469,7 +503,7 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
 
             sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: pol = XYPairs._default_policy
-            sage: pol._facade_element_constructor_attributes(XYPairs())
+            sage: pol.facade_element_constructor_attributes(XYPairs())
             {'_facade_for': AllPairs,
              '_parent_for': AllPairs,
              'element_class': <class 'sage.structure.set_factories_example.AllPairs_with_category.element_class'>}
@@ -479,7 +513,7 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
                 'element_class': parent.element_class}
 
     @abstract_method
-    def _element_constructor_attributes(self, constraints):
+    def element_constructor_attributes(self, constraints):
         r"""
         Element constructor attributes.
 
@@ -491,18 +525,18 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
         construction. This is coordinated with
         :meth:`ParentWithSetFactory._element_constructor_`. Currently two standard
         attributes are provided in
-        :meth:`_facade_element_constructor_attributes` and
-        :meth:`_self_element_constructor_attributes`. You should return to
+        :meth:`facade_element_constructor_attributes` and
+        :meth:`self_element_constructor_attributes`. You should return the
         one needed depending on the given constraints.
 
         EXAMPLES::
 
             sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: pol = XYPairs._default_policy
-            sage: pol._element_constructor_attributes(())
+            sage: pol.element_constructor_attributes(())
             {'Element': <class 'sage.structure.set_factories_example.XYPair'>,
              '_parent_for': 'self'}
-            sage: pol._element_constructor_attributes((1))
+            sage: pol.element_constructor_attributes((1))
             {'_facade_for': AllPairs,
              '_parent_for': AllPairs,
              'element_class': <class 'sage.structure.set_factories_example.AllPairs_with_category.element_class'>}
@@ -524,8 +558,8 @@ class SelfParentPolicy(SetFactoryPolicy):
 
     EXAMPLES::
 
-        sage: from sage.structure.set_factories_example import *
-        sage: from sage.structure.set_factories import *
+        sage: from sage.structure.set_factories import SelfParentPolicy
+        sage: from sage.structure.set_factories_example import XYPairs, XYPair, Pairs_Y
         sage: pol = SelfParentPolicy(XYPairs, XYPair)
         sage: S = Pairs_Y(3, pol)
         sage: el = S.an_element()
@@ -543,8 +577,8 @@ class SelfParentPolicy(SetFactoryPolicy):
         r"""
         TEST::
 
-            sage: from sage.structure.set_factories_example import *
-            sage: from sage.structure.set_factories import *
+            sage: from sage.structure.set_factories import SelfParentPolicy
+            sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: S = SelfParentPolicy(XYPairs, XYPair); S
             Set factory policy for <class 'sage.structure.set_factories_example.XYPair'> with parent ``self``
             sage: TestSuite(S).run(skip='_test_category')
@@ -552,10 +586,10 @@ class SelfParentPolicy(SetFactoryPolicy):
         self._Element = Element
         SetFactoryPolicy.__init__(self, factory)
 
-    def _element_constructor_attributes(self, constraints):
+    def element_constructor_attributes(self, constraints):
         r"""
         Return the element constructor attributes as per
-        :meth:`SetFactoryPolicy._element_constructor_attributes`
+        :meth:`SetFactoryPolicy.element_constructor_attributes`
 
         INPUT:
 
@@ -563,21 +597,21 @@ class SelfParentPolicy(SetFactoryPolicy):
 
         TESTS::
 
-            sage: from sage.structure.set_factories_example import *
-            sage: from sage.structure.set_factories import *
+            sage: from sage.structure.set_factories import SelfParentPolicy
+            sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: pol = SelfParentPolicy(XYPairs, XYPair)
-            sage: pol._element_constructor_attributes(())
+            sage: pol.element_constructor_attributes(())
             {'Element': <class 'sage.structure.set_factories_example.XYPair'>,
              '_parent_for': 'self'}
         """
-        return self._self_element_constructor_attributes(self._Element)
+        return self.self_element_constructor_attributes(self._Element)
 
     def _repr_(self):
         r"""
         TESTS::
 
             sage: from sage.structure.set_factories import SelfParentPolicy
-            sage: from sage.structure.set_factories_example import *
+            sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: SelfParentPolicy(XYPairs, XYPair)    # indirect doctest
             Set factory policy for <class 'sage.structure.set_factories_example.XYPair'> with parent ``self``
         """
@@ -600,7 +634,7 @@ class TopMostParentPolicy(SetFactoryPolicy):
 
     EXAMPLES::
 
-        sage: from sage.structure.set_factories_example import *
+        sage: from sage.structure.set_factories_example import XYPairs, XYPair
         sage: P = XYPairs(); P.policy()
         Set factory policy for <class 'sage.structure.set_factories_example.XYPair'> with parent AllPairs[=Factory for XY pairs(())]
     """
@@ -608,8 +642,8 @@ class TopMostParentPolicy(SetFactoryPolicy):
         """
         TEST::
 
-            sage: from sage.structure.set_factories_example import *
-            sage: from sage.structure.set_factories import *
+            sage: from sage.structure.set_factories import TopMostParentPolicy
+            sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: T = TopMostParentPolicy(XYPairs, (), XYPair); T
             Set factory policy for <class 'sage.structure.set_factories_example.XYPair'> with parent AllPairs[=Factory for XY pairs(())]
             sage: TestSuite(T).run(skip='_test_category')
@@ -619,10 +653,10 @@ class TopMostParentPolicy(SetFactoryPolicy):
         self._Element = Element
         SetFactoryPolicy.__init__(self, factory)
 
-    def _element_constructor_attributes(self, constraints):
+    def element_constructor_attributes(self, constraints):
         r"""
         Return the element constructor attributes as per
-        :meth:`SetFactoryPolicy._element_constructor_attributes`.
+        :meth:`SetFactoryPolicy.element_constructor_attributes`.
 
         INPUT:
 
@@ -630,29 +664,30 @@ class TopMostParentPolicy(SetFactoryPolicy):
 
         TESTS::
 
-            sage: from sage.structure.set_factories_example import *
-            sage: from sage.structure.set_factories import *
+            sage: from sage.structure.set_factories import TopMostParentPolicy
+            sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: pol = TopMostParentPolicy(XYPairs, (), XYPair)
-            sage: pol._element_constructor_attributes(())
+            sage: pol.element_constructor_attributes(())
             {'Element': <class 'sage.structure.set_factories_example.XYPair'>,
              '_parent_for': 'self'}
-            sage: pol._element_constructor_attributes((1))
+            sage: pol.element_constructor_attributes((1))
             {'_facade_for': AllPairs,
              '_parent_for': AllPairs,
              'element_class': <class 'sage.structure.set_factories_example.AllPairs_with_category.element_class'>}
         """
         factory = self._factory
         if constraints == self._top_constraints:
-            return self._self_element_constructor_attributes(self._Element)
+            return self.self_element_constructor_attributes(self._Element)
         else:
-            return self._facade_element_constructor_attributes(
+            return self.facade_element_constructor_attributes(
                 factory(*self._top_constraints, policy=self))
 
     def _repr_(self):
         r"""
         TESTS::
 
-            sage: from sage.structure.set_factories_example import *
+            sage: from sage.structure.set_factories import TopMostParentPolicy
+            sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: TopMostParentPolicy(XYPairs, (), XYPair)  # indirect doctest
             Set factory policy for <class 'sage.structure.set_factories_example.XYPair'> with parent AllPairs[=Factory for XY pairs(())]
         """
@@ -676,8 +711,8 @@ class FacadeParentPolicy(SetFactoryPolicy):
 
     EXAMPLES::
 
-        sage: from sage.structure.set_factories import *
-        sage: from sage.structure.set_factories_example import *
+        sage: from sage.structure.set_factories import SelfParentPolicy, FacadeParentPolicy
+        sage: from sage.structure.set_factories_example import XYPairs, XYPair
 
     We create a custom standard parent ``P``::
 
@@ -710,8 +745,8 @@ class FacadeParentPolicy(SetFactoryPolicy):
         r"""
         TEST::
 
-            sage: from sage.structure.set_factories_example import *
-            sage: from sage.structure.set_factories import *
+            sage: from sage.structure.set_factories import FacadeParentPolicy
+            sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: F = FacadeParentPolicy(XYPairs, XYPairs()); F
             Set factory policy for facade parent AllPairs
             sage: TestSuite(F).run(skip='_test_category')
@@ -719,10 +754,10 @@ class FacadeParentPolicy(SetFactoryPolicy):
         self._parent_for = parent
         SetFactoryPolicy.__init__(self, factory)
 
-    def _element_constructor_attributes(self, constraints):
+    def element_constructor_attributes(self, constraints):
         r"""
         Return the element constructor attributes as per
-        :meth:`SetFactoryPolicy._element_constructor_attributes`.
+        :meth:`SetFactoryPolicy.element_constructor_attributes`.
 
         INPUT:
 
@@ -730,19 +765,19 @@ class FacadeParentPolicy(SetFactoryPolicy):
 
         TESTS::
 
-            sage: from sage.structure.set_factories_example import *
-            sage: from sage.structure.set_factories import *
+            sage: from sage.structure.set_factories import FacadeParentPolicy
+            sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: pol = FacadeParentPolicy(XYPairs, XYPairs())
-            sage: pol._element_constructor_attributes(())
+            sage: pol.element_constructor_attributes(())
             {'_facade_for': AllPairs,
              '_parent_for': AllPairs,
              'element_class': <class 'sage.structure.set_factories_example.AllPairs_with_category.element_class'>}
-            sage: pol._element_constructor_attributes((1))
+            sage: pol.element_constructor_attributes((1))
             {'_facade_for': AllPairs,
              '_parent_for': AllPairs,
              'element_class': <class 'sage.structure.set_factories_example.AllPairs_with_category.element_class'>}
         """
-        return self._facade_element_constructor_attributes(
+        return self.facade_element_constructor_attributes(
             self._parent_for._parent_for)
 
     def _repr_(self):
@@ -750,12 +785,81 @@ class FacadeParentPolicy(SetFactoryPolicy):
         TESTS::
 
             sage: from sage.structure.set_factories import FacadeParentPolicy
-            sage: from sage.structure.set_factories_example import *
+            sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: FacadeParentPolicy(XYPairs, XYPairs())  # indirect doctest
             Set factory policy for facade parent AllPairs
         """
         return "Set factory policy for facade parent {}".format(
             self._parent_for)
+
+
+
+
+class BareFunctionPolicy(SetFactoryPolicy):
+    r"""
+    Policy where element are contructed using a bare function.
+
+    INPUT:
+
+    - ``factory`` -- an instance of :class:`SetFactory`
+    - ``contructor`` -- a function
+
+    Given a factory ``F`` and a function ``c``, returns a policy for
+    parent ``P`` creating element using the function ``f``.
+
+    EXAMPLES::
+
+        sage: from sage.structure.set_factories import BareFunctionPolicy
+        sage: from sage.structure.set_factories_example import XYPairs
+        sage: cons = lambda t, check: tuple(t) # ignore the check parameter
+        sage: tuplepolicy = BareFunctionPolicy(XYPairs, cons)
+        sage: P = XYPairs(x=2, policy=tuplepolicy)
+        sage: el = P.an_element()
+        sage: type(el)
+        <type 'tuple'>
+    """
+    def __init__(self, factory, constructor):
+        """
+        TEST::
+
+            sage: from sage.structure.set_factories import BareFunctionPolicy
+            sage: from sage.structure.set_factories_example import XYPairs
+            sage: pol = BareFunctionPolicy(XYPairs, tuple)
+            sage: TestSuite(pol).run(skip='_test_category')
+        """
+        # assert(isinstance(top_constraints, tuple))
+        self._constructor = constructor
+        SetFactoryPolicy.__init__(self, factory)
+
+    def element_constructor_attributes(self, constraints):
+        r"""
+        Return the element constructor attributes as per
+        :meth:`SetFactoryPolicy.element_constructor_attributes`.
+
+        INPUT:
+
+        - ``constraints`` -- a bunch of constraints
+
+        TESTS::
+
+            sage: from sage.structure.set_factories import BareFunctionPolicy
+            sage: from sage.structure.set_factories_example import XYPairs
+            sage: pol = BareFunctionPolicy(XYPairs, tuple)
+            sage: pol.element_constructor_attributes(())
+            {'_element_constructor_': <type 'tuple'>, '_parent_for': None}
+        """
+        return {'_element_constructor_' : self._constructor, '_parent_for' : None}
+
+    def _repr_(self):
+        r"""
+        TESTS::
+
+            sage: from sage.structure.set_factories import BareFunctionPolicy
+            sage: from sage.structure.set_factories_example import XYPairs
+            sage: BareFunctionPolicy(XYPairs, tuple)
+            Set factory policy for bare function <type 'tuple'>
+        """
+        return "Set factory policy for bare function {}".format(self._constructor)
 
 
 ####################################################
@@ -778,8 +882,7 @@ class ParentWithSetFactory(Parent):
 
     EXAMPLES::
 
-        sage: from sage.structure.set_factories_example import *
-        sage: from sage.structure.set_factories import *
+        sage: from sage.structure.set_factories_example import XYPairs, PairsX_
         sage: P = PairsX_(3, XYPairs._default_policy)
         sage: P is XYPairs(3)
         True
@@ -796,27 +899,27 @@ class ParentWithSetFactory(Parent):
             True
         """
         self._constraints = constraints
-        assert(isinstance(policy, SetFactoryPolicy))
+        assert isinstance(policy, SetFactoryPolicy)
         self._policy = policy
-        policy_attributes = policy._element_constructor_attributes(constraints)
+        policy_attributes = policy.element_constructor_attributes(constraints)
         for attrname, attr in policy_attributes.items():
             if attr == "self":
                 setattr(self, attrname, self)
             else:
                 setattr(self, attrname, attr)
-        assert(isinstance(self._parent_for, Parent))
-        if '_facade_for' in attrname:
-            category = Sets().Facades().or_subcategory(category)
+        assert self._parent_for is None or isinstance(self._parent_for, Parent)
         Parent.__init__(self,
-                        category=Sets().or_subcategory(category),
+                        category=category,
                         facade=policy_attributes.get('_facade_for', None))
 
     def constraints(self):
         r"""
         Return the constraints defining ``self``.
 
-        Currently there is no specification on how constraints are
-        handled.
+        .. NOTE::
+
+            Currently there is no specification on how constraints are
+            passed as arguments.
 
         EXAMPLES::
 
@@ -850,8 +953,8 @@ class ParentWithSetFactory(Parent):
 
         EXAMPLES::
 
-            sage: from sage.structure.set_factories import *
-            sage: from sage.structure.set_factories_example import *
+            sage: from sage.structure.set_factories import SelfParentPolicy
+            sage: from sage.structure.set_factories_example import XYPairs, XYPair
 
         We create a custom standard parent ``P``::
 
@@ -889,6 +992,11 @@ class ParentWithSetFactory(Parent):
     def subset(self, *args, **options):
         r"""
         Return a subset of ``self`` by adding more constraints.
+
+        .. NOTE::
+
+            Currently there is no specification on how constraints are
+            passed as arguments.
 
         EXAMPLES::
 

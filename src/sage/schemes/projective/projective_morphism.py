@@ -2425,6 +2425,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([3*x^2*y - y^3,x^3 - 3*x*y^2])
             sage: f.automorphism_group(algorithm='CRT',return_functions=True,iso_type=True)
             ([x, (x + 1)/(x - 1), (-x + 1)/(x + 1), -x, 1/x, -1/x, (x - 1)/(x + 1), (-x - 1)/(x - 1)], 'Dihedral of order 8')
+
+        ::
+
+            sage: A.<z> = AffineSpace(QQ,1)
+            sage: H = End(A)
+            sage: f = H([1/z^3])
+            sage: F = f.homogenize(1)
+            sage: F.automorphism_group()
+            [
+            [1 0]  [0 2]  [-1  0]  [ 0 -2]
+            [0 1], [2 0], [ 0  1], [ 2  0]
+            ]
         """
 
         alg = kwds.get('algorithm',None)
@@ -2434,13 +2446,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         if self.domain().dimension_relative() != 1:
             raise NotImplementedError("Must be dimension 1")
-        else:
-            f = self.dehomogenize(1)
-            z = f[0].parent().gen()
+        f = self.dehomogenize(1)
+        R = PolynomialRing(f.base_ring(),'x')
         if is_FractionFieldElement(f[0]):
-            F = (f[0].numerator().polynomial(z))/f[0].denominator().polynomial(z)
+            F = (f[0].numerator().univariate_polynomial(R))/f[0].denominator().univariate_polynomial(R)
         else:
-            F = f[0].polynomial(z)
+            F = f[0].univariate_polynomial(R)
         from endPN_automorphism_group import automorphism_group_QQ_CRT, automorphism_group_QQ_fixedpoints
         if alg is None:
             if self.degree() <= 12:

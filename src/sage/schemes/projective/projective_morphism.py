@@ -508,7 +508,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         For a map `f:\mathbb{P}^1 \to \mathbb{P}^1` this function computes the dynatomic polynomial.
 
         The dynatomic polynomial is the analog of the cyclotomic
-        polynomial and its roots are the points of formal period `period`.
+        polynomial and its roots are the points of formal period `period`. If possible the division is
+        done in the coordinate ring of ``self`` and a polynomial is returned. In rings where that is not possible,
+        a FractionField element will be returned. In certain cases, when the conversion back to a polynomial
+        fails, a SymbolRing element will be returned.
 
         ALGORITHM:
 
@@ -543,12 +546,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         OUTPUT:
 
         - If possible, a two variable polynomial in the coordinate ring of ``self``.
-          Otherwise a fraction field element of the coordinate ring of ``self``
+          Otherwise a fraction field element of the coordinate ring of ``self``. Or,
+          a Symbolic Ring element.
 
         .. TODO::
 
-            Do the division when the base ring is p-adic or a function field
-            so that the output is a polynomial.
+            - Do the division when the base ring is p-adic so that the output is a polynomial.
+
+            - Convert back to a polynomial when the base ring is a function field (not over `\QQ` or `F_p`)
 
         EXAMPLES::
 
@@ -680,9 +685,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = ProjectiveSpace(CC, 1)
             sage: H = Hom(P,P)
-            sage: f = H([x^2+(1+CC.0)*y^2,y^2])
+            sage: f = H([x^2-CC.0/3*y^2,y^2])
             sage: f.dynatomic_polynomial(2)
-            x^2 + x*y + (2.00000000000000 + 1.00000000000000*I)*y^2
+            0.666666666666667*x^2 + 0.333333333333333*y^2
 
         ::
 
@@ -692,57 +697,87 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H ([x^2 + (t ^ 2 + 1) * y^2 , y^2 ])
             sage: f.dynatomic_polynomial(2)
             x^2 + x*y + (t^2 + 2)*y^2
+
+        TESTS:
+
+        We check that the dynatomic polynomial has the right parent (see :trac:`18409`)::
+
+            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
+            sage: H = End(P)
+            sage: R = P.coordinate_ring()
+            sage: f = H([x^2-1/3*y^2,y^2])
+            sage: f.dynatomic_polynomial(2).parent()
+            Multivariate Polynomial Ring in x, y over Algebraic Field
+
+        ::
+
+            sage: T.<v> = QuadraticField(33)
+            sage: S.<t> = PolynomialRing(T)
+            sage: P.<x,y> = ProjectiveSpace(FractionField(S),1)
+            sage: H = End(P)
+            sage: f = H([t*x^2-1/t*y^2,y^2])
+            sage: f.dynatomic_polynomial([1,2]).parent()
+            Multivariate Polynomial Ring in x, y over Fraction Field of Univariate Polynomial
+            Ring in t over Number Field in v with defining polynomial x^2 - 33
+
+        This one still does not work, some function fields still return Symoblic Ring elements::
+
+            sage: S.<t> = FunctionField(CC)
+            sage: P.<x,y> = ProjectiveSpace(S,1)
+            sage: H = End(P)
+            sage: R = P.coordinate_ring()
+            sage: f = H([t*x^2-1*y^2,t*y^2])
+            sage: f.dynatomic_polynomial([1,2]).parent()
+            Symbolic Ring
        """
         if self.domain().ngens() > 2:
             raise TypeError("Does not make sense in dimension >1")
-        if (isinstance(period, (list, tuple)) is False):
+        if not isinstance(period, (list, tuple)):
             period = [0, period]
+        x = self.domain().gen(0)
+        y = self.domain().gen(1)
+        f0, f1 = F0, F1 = self._polys
+        PHI = self.base_ring().one()
+        n = period[1]
         if period[0] != 0:
             m = period[0]
             fm = self.nth_iterate_map(m)
             fm1 = self.nth_iterate_map(m - 1)
-            n = period[1]
-            PHI = 1;
-            x = self.domain().gen(0)
-            y = self.domain().gen(1)
-            F = self._polys
-            f = F
-            for d in range(1, n + 1):
+            for d in range(1, n):
                 if n % d == 0:
-                    PHI = PHI * ((y*F[0] - x*F[1]) ** moebius(n/d))
-                if d != n: # avoid extra iteration
-                    F = [f[0](F[0], F[1]), f[1](F[0], F[1])]
+                    PHI = PHI * ((y*F0 - x*F1) ** moebius(n/d))
+                F0, F1 = f0(F0, F1), f1(F0, F1)
+            PHI = PHI * (y*F0 - x*F1)
             if m != 0:
                 PHI = PHI(fm._polys)/ PHI(fm1._polys )
         else:
-            PHI = 1
-            x = self.domain().gen(0)
-            y = self.domain().gen(1)
-            F = self._polys
-            f = F
-            for d in range(1, period[1] + 1):
-                if period[1] % d == 0:
-                    PHI = PHI * ((y*F[0] - x*F[1]) ** moebius(period[1]/d))
-                if d != period[1]: # avoid extra iteration
-                    F = [f[0](F[0], F[1]), f[1](F[0], F[1])]
+            for d in range(1, n):
+                if n % d == 0:
+                    PHI = PHI * ((y*F0 - x*F1) ** moebius(n//d))
+                F0, F1 = f0(F0, F1), f1(F0, F1)
+            PHI = PHI * (y*F0 - x*F1)
         try:
             QR = PHI.numerator().quo_rem(PHI.denominator())
-            if QR[1] == 0:
+            if not QR[1]:
                 return(QR[0])
         except TypeError: # something Singular can't handle
             pass
+        #even when the ring can be passed to singular in quo_rem,
+        #it can't always do the division, so we call Maxima
         from sage.rings.padics.generic_nodes import is_pAdicField, is_pAdicRing
-        BR = self.domain().base_ring().base_ring()
-        if not (is_pAdicRing(BR) or is_pAdicField(BR)):
-            try:
-                PHI = PHI.numerator()._maxima_().divide(PHI.denominator())[0].sage()
-                # do it again to divide out by denominators of coefficients
-                PHI = PHI.numerator()._maxima_().divide(PHI.denominator())[0].sage()
-                if PHI.denominator() == 1:
-                    PHI = self.coordinate_ring()(PHI)
-            except TypeError: #something Maxima can't handle
-                pass
-        return(PHI)
+        if period != [0,1]: #period==[0,1] we don't need to do any division
+            BR = self.domain().base_ring().base_ring()
+            if not (is_pAdicRing(BR) or is_pAdicField(BR)):
+                try:
+                    PHI = PHI.numerator()._maxima_().divide(PHI.denominator())[0].sage()
+                    # do it again to divide out by denominators of coefficients
+                    PHI = PHI.numerator()._maxima_().divide(PHI.denominator())[0].sage()
+                    if not is_FractionFieldElement(PHI):
+                        from sage.symbolic.expression_conversions import polynomial
+                        PHI = polynomial(PHI, ring=self.coordinate_ring())
+                except (TypeError, NotImplementedError): #something Maxima, or the conversion, can't handle
+                    pass
+        return PHI
 
     def nth_iterate_map(self, n):
         r"""
@@ -812,26 +847,28 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
               Defn: Defined on coordinates by sending (x : y : z) to
                     (x^4 : x^2*z^2 : z^4)
         """
-        if self.domain() != self.codomain():
+        E = self.domain()
+        if E is not self.codomain():
             raise TypeError("Domain and Codomain of function not equal")
-        if n < 0:
+
+        D = int(n)
+        if D < 0:
             raise TypeError("Iterate number must be a positive integer")
         N = self.codomain().ambient_space().dimension_relative() + 1
         F = list(self._polys)
-        D = Integer(n).digits(2)  #need base 2
         Coord_ring = self.codomain().coordinate_ring()
         if isinstance(Coord_ring, QuotientRing_generic):
             PHI = [Coord_ring.gen(i).lift() for i in range(N)]
         else:
             PHI = [Coord_ring.gen(i) for i in range(N)]
-        for i in range(len(D)):
-            T = tuple([F[j] for j in range(N)])
-            for k in range(D[i]):
-                PHI = [PHI[j](T) for j in range(N)]
-            if i != len(D) - 1: #avoid extra iterate
-                F = [F[j](T) for j in range(N)] #'square'
-        H = Hom(self.domain(), self.codomain())
-        return(H(PHI))
+
+        while D:
+            if D&1:
+                PHI = [PHI[j](*F) for j in range(N)]
+            if D > 1: #avoid extra iterate
+                F = [F[j](*F) for j in range(N)] #'square'
+            D >>= 1
+        return End(E)(PHI)
 
     def nth_iterate(self, P, n, normalize=False):
         r"""

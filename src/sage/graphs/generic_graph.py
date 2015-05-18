@@ -650,8 +650,7 @@ class GenericGraph(GenericGraph_pyx):
             15
         """
         self._scream_if_not_simple()
-        vertices = self.vertices()
-        n = len(vertices)
+        n = self.order()
         if self._directed:
             total_length = n*n
             bit = lambda x,y : x*n + y
@@ -660,8 +659,10 @@ class GenericGraph(GenericGraph_pyx):
             n_ch_2 = lambda b : int(b*(b-1))//2
             bit = lambda x,y : n_ch_2(max([x,y])) + min([x,y])
         bit_vector = set()
+
+        v_to_int = {v:i for i,v in enumerate(self.vertices())}
         for u,v,_ in self.edge_iterator():
-            bit_vector.add(bit(vertices.index(u), vertices.index(v)))
+            bit_vector.add(bit(v_to_int[u], v_to_int[v]))
         bit_vector = sorted(bit_vector)
         s = []
         j = 0

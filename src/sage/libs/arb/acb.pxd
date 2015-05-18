@@ -16,6 +16,7 @@ cdef extern from "acb.h":
     void acb_set_ui(acb_t z, unsigned long c)
 
     bint acb_equal(const acb_t x, const acb_t y)
+    bint acb_overlaps(const acb_t x, const acb_t y)
 
     void acb_add(acb_t z, const acb_t x, const acb_t y, long prec)
     void acb_sub(acb_t z, const acb_t x, const acb_t y, long prec)

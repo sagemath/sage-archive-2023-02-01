@@ -701,11 +701,7 @@ cdef class ComplexBall(Element):
                 and acb_equal(lt.value, rt.value))
 
         if op == Py_NE:
-            acb_init(difference)
-            acb_sub(difference, lt.value, rt.value, prec(lt))
-            result = acb_is_nonzero(difference)
-            acb_clear(difference)
+            return not acb_overlaps(lt.value, rt.value)
+
         elif op == Py_GT or op == Py_GE or op == Py_LT or op == Py_LE:
             raise TypeError("No order is defined for ComplexBalls.")
-
-        return result

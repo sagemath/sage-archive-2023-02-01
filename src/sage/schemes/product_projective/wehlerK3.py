@@ -1645,7 +1645,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
     def lambda_minus(self,P,v,N,m,n,prec = 100):
         r"""
-        Evaluates the local canonical height function of Call-Silverman at the place ``v``
+        Evaluates the local canonical height minus function of Call-Silverman at the place ``v``
         for ``P`` with ``N`` terms of the series.
         Use ``v = 0`` for the archimedean place. Must be over `\ZZ` or `\QQ`.
 
@@ -1864,7 +1864,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         ALGORITHM:
 
-        The sum of the canonical height minus and canonical height plus , for more info see section 4 of [CaSi]
+        The sum of the canonical height minus and canonical height plus, for more info see section 4 of [CaSi]
 
         INPUT:
 
@@ -1943,17 +1943,6 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             sage: T = Proj([0,0,1])
             sage: X.fiber(T,1)
             [(0 : 0 : 1 , 0 : 1 : 0), (0 : 0 : 1 , 2 : 0 : 0)]
-
-        ::
-
-            sage: PP.<x0,x1,x2,y0,y1,y2> = ProductProjectiveSpaces([2,2],GF(7))
-            sage: L = x0*y0 + x1*y1 - 1*x2*y2
-            sage: Q = (2*y0^2 + y2*y0 + (2*y1^2 + y2^2))*x0^2 + ((y0^2 + y1*y0 +(y1^2 + 2*y2*y1 + y2^2))*x1 + \
-            (2*y1^2 + y2*y1 + y2^2)*x2)*x0 + ((2*y0^2+ (y1 + 2*y2)*y0 + (2*y1^2 + y2*y1))*x1^2 + ((2*y1 + 2*y2)*y0 + \
-            (y1^2 +y2*y1 + 2*y2^2))*x2*x1 + (2*y0^2 + y1*y0 + (2*y1^2 + y2^2))*x2^2)
-            sage: W = WehlerK3Surface([L,Q])
-            sage: W.fiber([1,0,0],1)
-            []
 
         ::
 
@@ -2071,7 +2060,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
                 Points.append(P+[Zero,One,Zero])
             else:
                 Points.append([Zero,Zero,One]+P)
-                Points.append([-self.Hpoly(component,0,2)(P0),-self.Hpoly(component,1,2)(P0),Zero]+P)
+                Points.append([Zero,One,Zero]+P)
         else:
             raise TypeError("Fiber is degenerate")
 

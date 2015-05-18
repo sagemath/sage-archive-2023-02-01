@@ -27,6 +27,9 @@ or if both are exact and equal::
 
     sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
     sage: CBF = ComplexBallField() # optional - arb
+    doctest:...: FutureWarning: This class/method/function is marked as experimental.
+    It, its functionality or its interface might change without a formal deprecation.
+    See http://trac.sagemath.org/17218 for details.
     sage: a = CBF(1, 2) # optional - arb
     sage: b = CBF(1, 2) # optional - arb
     sage: a is b # optional - arb
@@ -75,6 +78,7 @@ include "sage/ext/stdsage.pxi"
 import sage.categories.fields
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
+from sage.misc.superseded import experimental
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
 from sage.rings.real_arb import RealBallField
@@ -169,6 +173,7 @@ class ComplexBallField(UniqueRepresentation, Parent):
         """
         return super(ComplexBallField, cls).__classcall__(cls, precision)
 
+    @experimental(17218)
     def __init__(self, precision):
         r"""
         Initialize the complex ball field.

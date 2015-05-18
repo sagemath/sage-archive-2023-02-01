@@ -315,7 +315,7 @@ numeric basic::integer_content() const
 
 numeric numeric::integer_content() const
 {
-	return abs(*this);
+	return abs();
 }
 
 numeric add::integer_content() const
@@ -1158,7 +1158,7 @@ numeric basic::max_coefficient() const
 
 numeric numeric::max_coefficient() const
 {
-	return abs(*this);
+	return abs();
 }
 
 numeric add::max_coefficient() const

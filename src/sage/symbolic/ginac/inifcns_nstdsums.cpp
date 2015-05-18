@@ -104,15 +104,15 @@ namespace {
 
 // lookup table for factors built from Bernoulli numbers
 // see fill_Xn()
-std::vector<std::vector<Number_T> > Xn;
+//std::vector<std::vector<numeric> > Xn;
 // initial size of Xn that should suffice for 32bit machines (must be even)
-const int xninitsizestep = 26;
-int xninitsize = xninitsizestep;
-int xnsize = 0;
+// const int xninitsizestep = 26;
+// int xninitsize = xninitsizestep;
+// int xnsize = 0;
 
   // Waiting to be implemented
-  void binomial(Number_T x, Number_T y) {throw dunno();}
-  void factorial (Number_T x) {throw dunno();}
+ // void binomial(Number_T x, Number_T y) {throw dunno();}
+ // void factorial (Number_T x) {throw dunno();}
 
 // This function calculates the X_n. The X_n are needed for speed up of classical polylogarithms.
 // With these numbers the polylogs can be calculated as follows:
@@ -241,7 +241,7 @@ void double_Xn()
 
 
 // calculates Li(2,x) without Xn
-Number_T Li2_do_sum(const Number_T& x)
+numeric Li2_do_sum(const numeric& x)
 {
   /*
 	Number_T res = x;
@@ -262,7 +262,7 @@ Number_T Li2_do_sum(const Number_T& x)
 
 
 // calculates Li(2,x) with Xn
-Number_T Li2_do_sum_Xn(const Number_T& x)
+numeric Li2_do_sum_Xn(const numeric& x)
 {
   /*
 	std::vector<Number_T>::const_iterator it = Xn[0].begin();
@@ -290,7 +290,7 @@ Number_T Li2_do_sum_Xn(const Number_T& x)
 
 
 // calculates Li(n,x), n>2 without Xn
-Number_T Lin_do_sum(int n, const Number_T& x)
+numeric Lin_do_sum(int n, const numeric& x)
 {
   /*
 	Number_T factor = x;
@@ -309,7 +309,7 @@ Number_T Lin_do_sum(int n, const Number_T& x)
 
 
 // calculates Li(n,x), n>2 with Xn
-Number_T Lin_do_sum_Xn(int n, const Number_T& x)
+numeric Lin_do_sum_Xn(int n, const numeric& x)
 {
 // 	std::vector<Number_T>::const_iterator it = Xn[n-2].begin();
 // 	std::vector<Number_T>::const_iterator xend = Xn[n-2].end();
@@ -397,7 +397,7 @@ numeric S_num(int n, int p, const numeric& x);
 // helper function for classical polylog Li
 numeric Lin_numeric(const numeric& n, const numeric& x, PyObject* parent)
 {
-  return x.value.Li(n.value, parent);
+  return Li2(x, n, parent);
 // 	if (n == 1) {
 // 		// just a log
 // 		return -cln::log(1-x.to_cl_N());
@@ -484,7 +484,7 @@ namespace {
 
 
 // performs the actual series summation for multiple polylogarithms
-Number_T multipleLi_do_sum(const std::vector<int>& s, const std::vector<Number_T>& x)
+numeric multipleLi_do_sum(const std::vector<int>& s, const std::vector<numeric>& x)
 {
 // 	// ensure all x <> 0.
 // 	for (std::vector<Number_T>::const_iterator it = x.begin(); it != x.end(); ++it) {
@@ -519,7 +519,7 @@ Number_T multipleLi_do_sum(const std::vector<int>& s, const std::vector<Number_T
 
 
 // converts parameter types and calls multipleLi_do_sum (convenience function for G_numeric)
-Number_T mLi_do_summation(const lst& m, const lst& x)
+numeric mLi_do_summation(const lst& m, const lst& x)
 {
   /*
 	std::vector<int> m_int;
@@ -1677,9 +1677,9 @@ namespace {
 
 // lookup table for special Euler-Zagier-Sums (used for S_n,p(x))
 // see fill_Yn()
-std::vector<std::vector<Number_T> > Yn;
-int ynsize = 0; // number of Yn[]
-int ynlength = 100; // initial length of all Yn[i]
+//std::vector<std::vector<Number_T> > Yn;
+//int ynsize = 0; // number of Yn[]
+//int ynlength = 100; // initial length of all Yn[i]
 
 
 // This function calculates the Y_n. The Y_n are needed for the evaluation of S_{n,p}(x).
@@ -1818,7 +1818,7 @@ int ynlength = 100; // initial length of all Yn[i]
 
 // helper function for S(n,p,x)
 // [Kol] remark to (9.1)
-Number_T a_k(int k)
+numeric a_k(int k)
 {
 // 	Number_T result;
 
@@ -1837,7 +1837,7 @@ Number_T a_k(int k)
 
 // helper function for S(n,p,x)
 // [Kol] remark to (9.1)
-Number_T b_k(int k)
+numeric b_k(int k)
 {
 // 	Number_T result;
 
@@ -3047,7 +3047,7 @@ struct map_trafo_H_1mxt1px : public map_function
 
 
 // do the actual summation.
-Number_T H_do_sum(const std::vector<int>& m, const Number_T& x)
+numeric H_do_sum(const std::vector<int>& m, const numeric& x)
 {
 // 	const int j = m.size();
 
@@ -3431,16 +3431,16 @@ namespace {
 
 // parameters and data for [Cra] algorithm
 //const Number_T lambda = Number_T("319/320");
-const Number_T lambda = Number_T(319)/Number_T(320);
-int L1;
-int L2;
-std::vector<std::vector<Number_T> > f_kj;
-std::vector<Number_T> crB;
-std::vector<std::vector<Number_T> > crG;
-std::vector<Number_T> crX;
+//const numeric lambda = numeric(319)/numeric(320);
+//int L1;
+//int L2;
+//std::vector<std::vector<numeric> > f_kj;
+//std::vector<numeric> crB;
+//std::vector<std::vector<numeric> > crG;
+//std::vector<numeric> crX;
 
 
-void halfcyclic_convolute(const std::vector<Number_T>& a, const std::vector<Number_T>& b, std::vector<Number_T>& c)
+void halfcyclic_convolute(const std::vector<numeric>& a, const std::vector<numeric>& b, std::vector<numeric>& c)
 {
 	const int size = a.size();
 	for (int n=0; n<size; n++) {
@@ -3490,7 +3490,7 @@ void initcX(const std::vector<int>& s)
 
 
 // [Cra] section 4
-Number_T crandall_Y_loop(const Number_T& Sqk)
+numeric crandall_Y_loop(const numeric& Sqk)
 {
 // 	cln::cl_F one = cln::cl_float(1, cln::float_format(Digits));
 // 	Number_T factor = cln::expt(lambda, Sqk);
@@ -3538,7 +3538,7 @@ void calc_f(int maxr)
 
 
 // [Cra] (3.1)
-Number_T crandall_Z(const std::vector<int>& s)
+numeric crandall_Z(const std::vector<int>& s)
 {
 // 	const int j = s.size();
 
@@ -3575,7 +3575,7 @@ Number_T crandall_Z(const std::vector<int>& s)
 
 
 // [Cra] (2.4)
-Number_T zeta_do_sum_Crandall(const std::vector<int>& s)
+numeric zeta_do_sum_Crandall(const std::vector<int>& s)
 {
 // 	std::vector<int> r = s;
 // 	const int j = r.size();
@@ -3655,7 +3655,7 @@ Number_T zeta_do_sum_Crandall(const std::vector<int>& s)
 }
 
 
-Number_T zeta_do_sum_simple(const std::vector<int>& r)
+numeric zeta_do_sum_simple(const std::vector<int>& r)
 {
 // 	const int j = r.size();
 
@@ -3680,7 +3680,7 @@ Number_T zeta_do_sum_simple(const std::vector<int>& r)
 
 
 // does Hoelder convolution. see [BBB] (7.0)
-Number_T zeta_do_Hoelder_convolution(const std::vector<int>& m_, const std::vector<int>& s_)
+numeric zeta_do_Hoelder_convolution(const std::vector<int>& m_, const std::vector<int>& s_)
 {
   /*
 	// prepare parameters

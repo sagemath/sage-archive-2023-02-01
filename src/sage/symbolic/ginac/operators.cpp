@@ -177,7 +177,7 @@ const numeric operator+(const numeric & lh)
 
 const numeric operator-(const numeric & lh)
 {
-	return _num_1_p->mul(lh);
+	return lh.negative(); // better than _num_1_p->mul(lh)
 }
 
 

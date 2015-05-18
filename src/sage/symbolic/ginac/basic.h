@@ -170,6 +170,10 @@ public:
 	virtual bool match(const ex & pattern, lst & repl_lst) const;
 protected:
 	virtual bool match_same_type(const basic & other) const;
+
+	virtual void do_print(const print_context & c, unsigned level) const;
+	virtual void do_print_tree(const print_tree & c, unsigned level) const;
+	virtual void do_print_python_repr(const print_python_repr & c, unsigned level) const;
 public:
 
 	// substitutions
@@ -280,10 +284,6 @@ public:
 protected:
 	void ensure_if_modifiable() const;
 
-	void do_print(const print_context & c, unsigned level) const;
-	void do_print_tree(const print_tree & c, unsigned level) const;
-	void do_print_python_repr(const print_python_repr & c, unsigned level) const;
-	
 	// member variables
 protected:
 	tinfo_t tinfo_key;                  ///< type info

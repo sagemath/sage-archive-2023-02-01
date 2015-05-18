@@ -211,7 +211,9 @@ static ex abs_eval(const ex & arg)
                 ex prod_ir = _ex1;
                 for (int i=0; i<n_ops; ++i) {
                         const ex& factor = mex.op(i);
-                        if (factor.info(info_flags::real))
+                        if (factor.info(info_flags::real) and
+                                (is_exactly_a<numeric>(factor)
+                                or is_exactly_a<constant>(factor)))
                                 prod_re *= factor;
                         else
                                 prod_ir *= factor;

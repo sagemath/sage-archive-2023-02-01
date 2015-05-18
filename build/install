@@ -364,7 +364,7 @@ echo >&5
 echo >&5
 
 echo >&5 '# All standard packages'
-echo >&5 'STANDARD_PACKGES = \'
+echo >&5 'STANDARD_PACKAGES = \'
 filtered_packages_list standard | while read PKG_NAME PKG_VERSION PKG_VAR; do
     echo >&5 "    \$(INST)/\$($PKG_VAR) \\"
 done

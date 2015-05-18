@@ -54,9 +54,6 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-# Bail on errors
-set -e
-
 # This script is called in a pipe, do not let Python buffer stdout
 export PYTHONUNBUFFERED=yes
 
@@ -308,6 +305,9 @@ if [ ! -f "$PKG_SRC" ]; then
     if [ -n "$PKG_NAME_UPSTREAM" ]; then
         # This is the new-style package way of downloading the tarball
         sage-download-file $PKG_NAME_UPSTREAM
+        if [ $? -ne 0 ]; then
+            exit 1
+        fi
         PKG_SRC="$SAGE_DISTFILES/$PKG_NAME_UPSTREAM"
     else
         # Handle all the legacy cruft. This branch can be deleted once
@@ -321,6 +321,9 @@ if [ ! -f "$PKG_SRC" ]; then
             # Handle cases 2a and 3, where the package name is something
             # like "foo" or "foo-1.2.3".
             MIRROR=$(sage-download-file --print-fastest-mirror)/spkg
+            if [ $? -ne 0 ]; then
+                exit 1
+            fi
             for repo in optional experimental standard huge archive; do
                 # Download the list of packages.
                 echo ">>> Checking online list of $repo packages."
@@ -408,6 +411,9 @@ if [ ! -f "$PKG_SRC" ]; then
         PKG_TMP="${PKG_URL##*/}.tmp"
         echo ">>> Trying to download $PKG_URL"
         sage-download-file "$PKG_URL" "$PKG_TMP"
+        if [ $? -ne 0 ]; then
+            exit 1
+        fi
         if [ $? -ne 0 ]; then
             # Delete failed download
             rm -f "$PKG_TMP"

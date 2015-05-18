@@ -2660,16 +2660,18 @@ class Polyhedron_base(Element):
             sage: P.barycentric_subdivision(2)
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
             sage: P.barycentric_subdivision(1)
+            Traceback (most recent call last):
             ...
-            Traceback (most recent call last)
             ValueError: The subdivision proportion is too big, try a smaller value.
             sage: P.barycentric_subdivision(3)
-            Traceback (most recent call last)
+            Traceback (most recent call last):
+            ...
             ValueError: The subdivision proportion is too big, try a smaller value.
 
             sage: P=Polyhedron(ieqs=[[1,0,1],[0,1,0],[1,0,0],[0,0,1]])
             sage: P.barycentric_subdivision()
-            Traceback (most recent call last)
+            Traceback (most recent call last):
+            ...
             AssertionError: The polytope has to be compact.
         """
 

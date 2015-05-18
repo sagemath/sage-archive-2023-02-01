@@ -6412,11 +6412,11 @@ class Graph(GenericGraph):
         Returns a Gomory-Hu tree of self.
 
         Given a tree `T` with labeled edges representing capacities, it is very
-        easy to determine the maximal flow between any pair of vertices :
+        easy to determine the maximum flow between any pair of vertices :
         it is the minimal label on the edges of the unique path between them.
 
         Given a graph `G`, a Gomory-Hu tree `T` of `G` is a tree
-        with the same set of vertices, and such that the maximal flow
+        with the same set of vertices, and such that the maximum flow
         between any two vertices is the same in `G` as in `T`. See the
         `Wikipedia article on Gomory-Hu tree <http://en.wikipedia.org/wiki/Gomory%E2%80%93Hu_tree>`_.
         Note that, in general, a graph admits more than one Gomory-Hu tree.

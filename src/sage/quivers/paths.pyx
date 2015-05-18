@@ -169,7 +169,6 @@ cdef class QuiverPath(MonoidElement):
         if not check:
             return
         cdef unsigned int n
-        cdef tuple arrow
         Q = parent.quiver()
         cdef tuple E = parent._sorted_edges
         if not l:
@@ -291,6 +290,30 @@ cdef class QuiverPath(MonoidElement):
         return self._path.length != 0
 
     def __cmp__(left, right):
+        """
+        Generic comparison code, copied from :class:`~sage.structure.element.Element`.
+
+        EXAMPLES:
+
+        A path semigroup of a quiver with a single vertex has a multiplicative
+        unit::
+
+            sage: D = DiGraph({0:{0:['x','y','z']}}).path_semigroup()
+            sage: D(1)
+            e_0
+            sage: D in Monoids()
+            True
+
+        However, there is no coercion from the ring of integers and hence the
+        generic comparison code finds that the multiplicative units in `D` and
+        in the ring of integers evaluate unequal::
+
+            sage: D.has_coerce_map_from(ZZ)
+            False
+            sage: D(1) == 1
+            False
+
+        """
         return (<Element>left)._cmp(right)
 
     cpdef int _cmp_(left, Element right) except -2:

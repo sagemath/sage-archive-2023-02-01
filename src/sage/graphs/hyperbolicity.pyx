@@ -172,8 +172,8 @@ include "sage/data_structures/bitset.pxi"
 
 # Defining a pair of vertices as a C struct
 ctypedef struct pair:
-    uint16_t s
-    uint16_t t
+    uint32_t s
+    uint32_t t
 
 
 ######################################################################
@@ -468,17 +468,20 @@ cdef inline distances_and_far_apart_pairs(gg,
     
     
 
-cdef inline pair** sort_pairs(int N, 
-                              int D, 
+cdef inline pair** sort_pairs(uint32_t N, 
+                              uint16_t D, 
                               unsigned short ** values,
                               unsigned short ** to_include,
                               uint32_t * nb_p,
                               uint32_t * nb_pairs_of_length
                               ):
     """
-    Uses quick sort to create a list of unordered pairs (i,j), in decreasing 
+    Uses quick sort to create a list of unordered pairs {i,j}, in decreasing 
     order of values(i,j). If to_include[i][j] = 0, the pair is ignored. We 
-    assume N and D to be correct with respect to the arrays values and to_include.
+    assume N and D to be correct with respect to the arrays values and to_include,
+    that values and to_include are symmetric (that is, 
+    values[i][j] = values[j][i] and to_include[i][j] = to_include[j][i], and that
+    nb_p, nb_pairs_of_length are already allocated.
 
     INPUT:
 
@@ -487,10 +490,11 @@ cdef inline pair** sort_pairs(int N,
 
     - ``D`` -- the maximum value of an element;
 
-    - ``values`` -- the maximum value of an element;
+    - ``values`` -- an array containing in position (i,j) the value of the pair
+      (i,j);
     
     - ``to_include`` -- an array such that to_include[i][j] contains "1" if pair
-      (i,j) should be included, "0" otherwise;
+      (i,j) should be included, "0" otherwise. If NULL, all elements are included;
 
     OUTPUT:
     
@@ -498,6 +502,10 @@ cdef inline pair** sort_pairs(int N,
      
      - ``nb_pairs_of_length`` -- an array containing in position k the number of
        pairs (i,j) that are included and such that values[i][j] = k.
+           
+     - ``pairs_of_length`` -- this function returns this array, containing in 
+       position k a pointer to the first included pair (i,j) such that 
+       values[i][j] = k.
     """
         # pairs_of_length[d] is the list of pairs of vertices at distance d
     cdef pair ** pairs_of_length = <pair **>sage_malloc(sizeof(pair *)*(D+1))
@@ -567,7 +575,7 @@ cdef inline pair** sort_pairs(int N,
 # Compute the hyperbolicity using the algorithm of [CCL12]_
 ######################################################################
 
-cdef tuple __hyperbolicity_old__(int N,
+cdef tuple __hyperbolicity__(int N,
                              unsigned short **  distances,
                              unsigned short **  far_apart_pairs,
                              int D,
@@ -779,7 +787,7 @@ cdef tuple __hyperbolicity_old__(int N,
 
 def hyperbolicity(G, algorithm='CCL+FA', approximation_factor=None, additive_gap=None, verbose = False):
     r"""
-    Return the hyperbolicity of the graph or an approximation of this value.
+    Returns the hyperbolicity of the graph or an approximation of this value.
 
     The hyperbolicity of a graph has been defined by Gromov [Gromov87]_ as
     follows: Let `a, b, c, d` be vertices of the graph, let `S_1 = dist(a, b) +
@@ -904,12 +912,11 @@ def hyperbolicity(G, algorithm='CCL+FA', approximation_factor=None, additive_gap
         sage: for i in xrange(10): # long time
         ...       G = graphs.RandomBarabasiAlbert(100,2)
         ...       d1,_,_ = hyperbolicity(G,algorithm='basic')
-        ...       d4,_,_ = hyperbolicity(G,algorithm='basic+')
         ...       d2,_,_ = hyperbolicity(G,algorithm='CCL')
         ...       d3,_,_ = hyperbolicity(G,algorithm='CCL+')
-        ...       d5,_,_ = hyperbolicity(G,algorithm='CCL+FA')
+        ...       d4,_,_ = hyperbolicity(G,algorithm='CCL+FA')
         ...       l3,_,u3 = hyperbolicity(G,approximation_factor=2)
-        ...       if (not d1==d2==d3==d4==d5) or l3>d1 or u3<d1:
+        ...       if (not d1==d2==d3==d4) or l3>d1 or u3<d1:
         ...          print "That's not good!"
 
 

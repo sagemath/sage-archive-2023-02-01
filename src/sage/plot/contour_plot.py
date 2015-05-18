@@ -921,6 +921,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
     from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid
     from sage.symbolic.expression import is_Expression
+    from warnings import warn
     import numpy
 
     if not isinstance(f, (list, tuple)):
@@ -930,7 +931,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
     f = [equify(g) for g in f if not (is_Expression(g) and g.operator() is operator.eq)]
     neqs = len(feqs)
     if neqs > 1:
-        logging.warn("There are at least 2 equations; If the region is degenerated to points, plotting might show nothing.")
+        warn("There are at least 2 equations; If the region is degenerated to points, plotting might show nothing.")
         feqs = [sum([fn**2 for fn in feqs])]
         neqs = 1
     if neqs and not bordercol:

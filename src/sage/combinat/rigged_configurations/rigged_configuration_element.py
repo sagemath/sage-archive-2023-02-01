@@ -1929,7 +1929,7 @@ class KRRCSimplyLacedElement(KRRiggedConfigurationElement):
         """
         B = self.parent()
         if not hasattr(B, "_max_charge"):
-            B._max_charge = max(b.cocharge() for b in B)
+            B._max_charge = max(b.cocharge() for b in B.module_generators)
         return B._max_charge - self.cocharge()
 
 class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedElement):

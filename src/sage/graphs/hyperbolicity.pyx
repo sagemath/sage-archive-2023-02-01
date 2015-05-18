@@ -1344,7 +1344,7 @@ def hyperbolicity_distribution(G, algorithm='sampling', sampling_size=10**6):
 
     TESTS:
 
-    Giving anythin else than a Graph::
+    Giving anything else than a Graph::
 
         sage: from sage.graphs.hyperbolicity import hyperbolicity_distribution
         sage: hyperbolicity_distribution([])

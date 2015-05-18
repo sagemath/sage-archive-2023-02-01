@@ -393,7 +393,7 @@ cdef class ComplexBall(Element):
             sage: ComplexBallField(106)(1/3, 1/6) # optional - arb
             [0.33333333333333333333333333333333 +/- 6.94e-33] + [0.16666666666666666666666666666666 +/- 7.70e-33]*I
         """
-        super(ComplexBall, self).__init__(parent)
+        Element.__init__(self, parent)
 
         if x is None:
             return

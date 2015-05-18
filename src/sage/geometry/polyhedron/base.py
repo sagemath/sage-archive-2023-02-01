@@ -2634,6 +2634,67 @@ class Polyhedron_base(Element):
                           lines=new_lines,
                           base_ring=self.parent()._coerce_base_ring(cut_frac))
 
+    def barycentric_subdivision(self, subdivision_frac=Integer(4)/3):
+        r"""
+        Return the barycentric subdivision of a compact polyhedron
+
+        INPUT:
+
+        - ``subdivision_frac`` -- number. Gives the proportion how far the new
+          vertices are pulled out of the polytope.
+            Default is `\frac{4}{3}`.
+
+        OUTPUT:
+
+        A Polyhedron object, subdivided as described above.
+
+        EXAMPLES::
+
+            sage: P=Polyhedron(vertices=[[0,0,0],[0,1,0],[1,0,0],[0,0,1]])
+            sage: P.barycentric_subdivision()
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
+            sage: P.barycentric_subdivision(3/2)
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
+            sage: P.barycentric_subdivision(1.5)
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 14 vertices
+            sage: P.barycentric_subdivision(2)
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
+            sage: P.barycentric_subdivision(1)
+            ...
+            Traceback (most recent call last)
+            ValueError: The subdivision proportion is too big, try a smaller value.
+            sage: P.barycentric_subdivision(3)
+            Traceback (most recent call last)
+            ValueError: The subdivision proportion is too big, try a smaller value.
+
+            sage: P=Polyhedron(ieqs=[[1,0,1],[0,1,0],[1,0,0],[0,0,1]])
+            sage: P.barycentric_subdivision()
+            Traceback (most recent call last)
+            AssertionError: The polytope has to be compact.
+        """
+
+        assert(self.is_compact()), "The polytope has to be compact."
+
+        dict_face_vertex = {v:v.vertices()[0].vector() for v in self.faces(0)}
+        face_lattice = self.face_lattice()
+        barycenter = sum([v.vector() for v in self.vertices()])/self.n_vertices()
+
+        for i in range(1,self.dimension()):
+            for face in self.faces(i):
+                ridges = face_lattice.lower_covers(face)
+                relative_vertex = sum([dict_face_vertex[ridge]-barycenter for ridge in ridges])/len(face.vertices())
+                new_vertex = barycenter + subdivision_frac*relative_vertex
+                dict_face_vertex[face] = new_vertex
+
+        new_vertices = dict_face_vertex.values()
+        ring = self.parent()._coerce_base_ring(sum(new_vertices).parent().base_ring())
+        bary_subdivision = Polyhedron(vertices=new_vertices, base_ring=ring)
+
+        if len(new_vertices) != bary_subdivision.n_vertices():
+            raise ValueError, "The subdivision proportion is too big, try a smaller value."
+
+        return bary_subdivision
+
     def _make_polyhedron_face(self, Vindices, Hindices):
         """
         Construct a face of the polyhedron.

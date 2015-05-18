@@ -1,4 +1,4 @@
- $(INST)/$(PYTHON) $(INST)/$(MPMATH)
+$(INST)/$(PYTHON) $(INST)/$(MPMATH)
 
 ----------
 All lines of this file are ignored except the first.

@@ -1,4 +1,4 @@
- $(INST)/$(PYTHON) $(INST)/$(ATLAS)
+$(INST)/$(PYTHON) $(INST)/$(ATLAS)
 
 ----------
 All lines of this file are ignored except the first.

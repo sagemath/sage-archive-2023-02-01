@@ -93,8 +93,6 @@ else
     esac
 fi
 
-export SAGE_MP_LIBRARY
-
 ###############################################################################
 # Determine whether to install GCC (gcc, g++, gfortran).
 ###############################################################################
@@ -299,14 +297,16 @@ newest_version() {
 #     filtered_packages_list standard
 #     filtered_packages_list optional
 #     filtered_packages_list experimental
+#
+# Or, if you want all packages:
+#
+#     filtered_packages_list all
+#
+# The output consists of triples
+# PKG_NAME PKG_VERSION PKG_VAR
+#
 
 filtered_packages_list() {
-    # Check validity of input
-    if [ "$*" != "base" ] && [ "$*" != "standard" ] && [ "$*" != "optional" ] && [ "$*" != "experimental" ]; then
-        echo >&2 "This functions takes 'base', 'standard', 'optional' or 'experimentaĺ' as argument"
-        return 1
-    fi
-
     # for each package in pkgs/
     for DIR in $SAGE_ROOT/build/pkgs/*; do
 
@@ -323,18 +323,20 @@ filtered_packages_list() {
         fi
 
         # Filter
-        if   [ "$PKG_TYPE" == "$*" ]; then
-            basename $DIR
+        if [ "$1" = "$PKG_TYPE" -o "$1" = all ]; then
+            PKG_NAME=$(basename $DIR)
+            PKG_VAR="$(echo $PKG_NAME | sed 's/^4/FOUR/' | tr '[:lower:]' '[:upper:]')"
+            PKG_VERSION=$(newest_version $PKG_NAME)
+            echo "$PKG_NAME $PKG_VERSION $PKG_VAR"
         fi
     done
 }
 
-cat >&5 "# Standard packages"
+echo >&5 "# All Sage packages"
 
-filtered_packages_list standard | while read PKG_NAME; do
-    PKG_VAR_NAME=$(echo $PKG_NAME | tr [:lower:] [:upper:])
-    echo >&5 "$PKG_VAR_NAME=$(newest_version $PKG_NAME)"
-    echo "$PKG_VAR_NAME=$(newest_version $PKG_NAME)"
+filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
+    echo >&5 "$PKG_VAR = $PKG_VERSION"
+    echo "$PKG_VAR=$PKG_VERSION"
 done
 
 cat >&5 <<EOF
@@ -345,17 +347,12 @@ INST=`echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`
 EOF
 
 # Sage MP library
-sage_mp_library=`echo "$SAGE_MP_LIBRARY" | tr '[A-Z]' '[a-z]'`
-cat >&5 << EOF
-# Sage MP library
-SAGE_MP_LIBRARY=`newest_version $sage_mp_library`
-
-EOF
+echo >&5 "SAGE_MP_LIBRARY = \$($SAGE_MP_LIBRARY)"
 
 # $(TOOLCHAIN) variable containing prerequisites for the build
 echo >&5 -n 'TOOLCHAIN ='
 if [ "$SAGE_INSTALL_CCACHE" = yes ]; then
-    echo >&5 -n ' $(INST)/ccache'
+    echo >&5 -n ' $(INST)/$(CCACHE)'
 fi
 if [ "$need_to_install_gcc" = yes ]; then
     echo >&5 -n ' $(INST)/$(GCC)'
@@ -364,6 +361,16 @@ if [ "$need_to_install_gcc" = yes ]; then
     export PREREQ_OPTIONS="--disable-compiler-checks $PREREQ_OPTIONS"
 fi
 echo >&5
+echo >&5
+
+echo >&5 '# All standard packages'
+echo >&5 'STANDARD_PACKGES = \'
+filtered_packages_list standard | while read PKG_NAME PKG_VERSION PKG_VAR; do
+    echo >&5 "    \$(INST)/\$($PKG_VAR) \\"
+done
+echo >&5
+echo >&5
+
 
 echo >&5 'CSAGE_SOURCES = \'
 for file in "$SAGE_SRC/c_lib/src/"*.c "$SAGE_SRC/c_lib/src/"*.cpp "$SAGE_SRC/c_lib/include"/*.h; do
@@ -420,51 +427,23 @@ cat "$SAGE_ROOT/build/deps" >&5
 cat >&5 <<EOF
 
 #==============================================================================
-# Rules generated for standard packages from pkgs/<package>/dependencies files
+# Rules generated from pkgs/<package>/dependencies files
 #==============================================================================
 
 EOF
 
 # Add a Makefile target corresponding to a given package
-add_make_package_target () {
-    PKG_NAME="$*"
+filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
     DEP_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/dependencies"
-    if [ -e "$DEP_FILE" ]; then
-        DEP="$(head -n 1 $DEP_FILE)"
+    if [ -f "$DEP_FILE" ]; then
+        DEPS=" $(head -n 1 $DEP_FILE)"
     else
-        DEP=""
+        DEPS=""
     fi
-    PKG_VAR_NAME="$(echo $PKG_NAME | tr '[:lower:]' '[:upper:]')"
-    echo >&5 "\$(INST)/\$($PKG_VAR_NAME):$DEP"
-    echo >&5 "	+\$(PIPE) \"\$(SAGE_SPKG) \$($PKG_VAR_NAME) 2>&1\" \"tee -a \$(SAGE_LOGS)/\$($PKG_VAR_NAME).log\""
-}
-
-# Base packages
-filtered_packages_list base | while read PKG_NAME; do
-    if [ "$PKG_NAME" != "configure" ]; then
-        add_make_package_target "$PKG_NAME"
-    fi
+    echo >&5 "\$(INST)/$PKG_VERSION:$DEPS"
+    echo >&5 "	+\$(PIPE) \"\$(SAGE_SPKG) \$($PKG_VAR) 2>&1\" \"tee -a \$(SAGE_LOGS)/\$($PKG_VAR).log\""
+    echo >&5
 done
-
-# Standard packages
-filtered_packages_list standard | while read PKG_NAME; do
-    add_make_package_target "$PKG_NAME"
-done
-
-cat >&5 <<EOF
-
-#==============================================================================
-# sage-standard-packages target
-#==============================================================================
-
-EOF
-
-echo >&5 -n "sage-standard-packages:"
-filtered_packages_list standard | while read PKG_NAME; do
-    PKG_VAR_NAME="$(echo $PKG_NAME | tr '[:lower:]' '[:upper:]')"
-    echo >&5 -n " \$(INST)/\$($PKG_VAR_NAME)"
-done
-echo >&5 ""
 
 # Close the Makefile
 exec 5>&-

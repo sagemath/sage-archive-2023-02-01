@@ -10,11 +10,13 @@ PIPE = $(SAGE_ROOT)/build/pipestatus
 # Tell make not to look for files with these names:
 .PHONY: all all-sage base toolchain toolchain-deps
 
-# Make the 4 build phases: base, toolchain, toolchain-deps, all-sage
+# Make the 5 build phases:
+# prereq, base, toolchain, toolchain-deps, all-sage
 # During the toolchain build, we export SAGE_BUILD_TOOLCHAIN=yes
 # such that packages can do different things when they are built
 # as prerequisite of GCC.
 all:
+	$(MAKE) $(INST)/prereq
 	$(MAKE) base
 	env SAGE_BUILD_TOOLCHAIN=yes $(MAKE) toolchain
 	$(MAKE) toolchain-deps
@@ -22,7 +24,7 @@ all:
 
 # All targets except for the base packages
 all-sage: \
-     sage-standard-packages \
+     $(STANDARD_PACKAGES) \
      $(INST)/$(SAGE_MP_LIBRARY) \
      $(INST)/sage \
      $(INST)/csage \
@@ -55,7 +57,7 @@ SAGERUNTIME = $(SCRIPTS) $(INST)/sage $(INST)/$(SAGENB) $(INST)/$(IPYTHON)
 #
 # This consists of packages which are required for the Sage build system.
 ###############################################################################
-base: $(INST)/prereq $(INST)/$(BZIP2) $(INST)/$(PATCH) $(INST)/$(PKGCONF)
+base: $(INST)/$(BZIP2) $(INST)/$(PATCH) $(INST)/$(PKGCONF)
 
 $(INST)/prereq: ../configure
 	@cd ..; rm -f config.log; ln -s logs/pkgs/config.log config.log; \
@@ -135,9 +137,8 @@ $(INST)/csage: $(INST)/$(SCONS) \
 		touch $@; \
 	fi
 
-$(INST)/ccache: $(BASE) $(INST)/$(ZLIB)
+# TODO: remove this once ccache is a new-style package
+CCACHE = ccache
+$(INST)/ccache: base $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) ccache 2>&1" "tee -a $(SAGE_LOGS)/ccache.log"
-	touch $(INST)/ccache
-
-$(INST)/$(SAGE_MP_LIBRARY): $(INST)/$(ICONV)
-	+$(PIPE) "$(SAGE_SPKG) $(SAGE_MP_LIBRARY) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGE_MP_LIBRARY).log"
+	touch $@

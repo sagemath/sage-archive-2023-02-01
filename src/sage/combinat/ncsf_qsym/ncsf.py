@@ -1654,7 +1654,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: S[2,1].to_descent_algebra()
                     B[2, 1]
                     sage: S.zero().to_descent_algebra().parent()
-                    Descent algebra of 0 over Rational Field in the subset basis
+                    Descent algebra of 0 over Integer Ring in the subset basis
                     sage: (S[1,2,1] - 3 * S[1,1,2]).to_descent_algebra(1)
                     0
                 """

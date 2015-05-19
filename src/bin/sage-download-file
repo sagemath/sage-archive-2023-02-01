@@ -60,9 +60,9 @@ class ProgressBar(object):
 
     def __call__(self, chunks_so_far, chunk_size, total_size):
         if total_size == -1:  # we do not know size
-            n = 0 if chunks_so_far == 0 else self.length / 2
+            n = 0 if chunks_so_far == 0 else self.length // 2
         else:
-            n = chunks_so_far * chunk_size * self.length / total_size
+            n = chunks_so_far * chunk_size * self.length // total_size
         if n > self.length: 
             # If there is a Content-Length, this will be sent as the last progress
             return

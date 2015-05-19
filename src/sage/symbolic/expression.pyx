@@ -4407,13 +4407,14 @@ cdef class Expression(CommutativeRingElement):
             sage: f.subs(x + x^2 + x^4 == y)   # whole sum is fine
             y
 
-        Not that it is the very same behavior as in Maxima::
+        Note that it is the very same behavior as in Maxima::
 
             sage: E = 'x^4 + x^2 + x'
             sage: subs = [('x','y'), ('x^2','y'), ('x^2+x','y'), ('x^4+x^2+x','y')]
 
+            sage: cmd = '{}, {}={}'
             sage: for s1,s2 in subs:
-            ....:     maxima.eval('{}, {}={}'.format(E, s1, s2))
+            ....:     maxima.eval(cmd.format(E, s1, s2))
             'y^4+y^2+y'
             'y+x^4+x'
             'x^4+x^2+x'
@@ -4421,8 +4422,9 @@ cdef class Expression(CommutativeRingElement):
 
         Or as in Maple::
 
-            sage: for s1,s2 in subs:                                 # optional - maple
-            ....:     maple.eval('subs({}={}, {})'.format(s1,s2, E)) # optional - maple
+            sage: cmd = 'subs({}={}, {})'              # optional - maple
+            sage: for s1,s2 in subs:                   # optional - maple
+            ....:     maple.eval(cmd.format(s1,s2, E)) # optional - maple
             'y^4+y^2+y'
             'x^4+x+y'
             'x^4+x^2+x'
@@ -4430,8 +4432,9 @@ cdef class Expression(CommutativeRingElement):
 
         But Mathematica does something different on the third example::
 
-            sage: for s1,s2 in subs:                                     # optional - mathematica
-            ....:     mathematica.eval('{} /. {} -> {}'.format(E,s1,s2)) # optional - mathematica
+            sage: cmd = '{} /. {} -> {}'                    # optional - mathematica
+            sage: for s1,s2 in subs:                        # optional - mathematica
+            ....:     mathematica.eval(cmd.format(E,s1,s2)) # optional - mathematica
             'y^4+y^2+y'
             'x^4+y+x'
             'x^4+y'

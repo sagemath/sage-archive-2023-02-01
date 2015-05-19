@@ -6,20 +6,19 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-cd src
+NAUTY_VERSION="$(cat ${SAGE_ROOT}/build/pkgs/nauty/package-version.txt)"
+SRC="nauty${NAUTY_VERSION}"
+
+cd $SRC
 
 # Unfortunately, runalltests script does not exit with a nonzero status if some
 # tests failed, so we parse the last line of the log to decide whether all
 # tests passed or not, in order to exit with the correct status.
 
-make checks
-FAILED_TESTS="$(./runalltests | tee >(cat 1>&2) | tail -n 1 | sed 's/ tests failed//g')"
+$MAKE checks
+source ./runalltests
 
-if [ "${FAILED_TESTS}" -ne "0" ]; then
+if [ "${fails}" -ne "0" ]; then
    echo >&2 "Error checking nauty."
    exit 1
 fi
-
-echo "Tests suite for nauty passed without errors."
-exit 0
-

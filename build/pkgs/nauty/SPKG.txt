@@ -27,6 +27,12 @@ following restrictions:
     Magma project and distributed with nauty by permission, nor to the file
     watercluster2.c, which is copyright to Gunnar Brinkmann.
 
+== Special Packaging Instruction ==
+
+Upstream distribute tarball named nauty${version}.tar.gz. We cannot
+deal with that so rename it nauty-${version}.tar.gz (notice the "-")
+without any changes.
+
 == Upstream Contact ==
 
 Brendan D. McKay

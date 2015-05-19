@@ -1162,7 +1162,7 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
         @lazy_attribute
         def internal_product(self):
             r"""
-            Internal product as an endomorphism of ``self``.
+            The bilinear product inherited from the isomorphism with the descent algebra
 
             This is constructed by extending the method
             :meth:`internal_product_on_basis` bilinearly, if available,
@@ -1195,9 +1195,6 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
                 sage: R.internal_product(R[2,2], R[1,2])
                 0
 
-            .. TODO::
-
-                Despite the ``__repr__``, this is NOT an endomorphism!
             """
             if self.internal_product_on_basis is not NotImplemented:
                 return self.module_morphism(

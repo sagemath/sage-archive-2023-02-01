@@ -1619,7 +1619,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                             result += a * b * c * comp_parent(nu_unstabilized)
                 return parent(result)
 
-            def to_descent_algebra(self, n):
+            def to_descent_algebra(self, n=None):
                 r"""
                 Return the image of the ``n``-th degree homogeneous component
                 of ``self`` in the descent algebra of `S_n` over the same
@@ -1632,6 +1632,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 noncommutative symmetric functions either to the product
                 in the descent algebra of `S_n` or to its opposite
                 (depending on how the latter is defined).
+
+                If ``n`` is not specified, it will be taken to be the highest
+                homogeneous component of ``self``.
 
                 OUTPUT:
 
@@ -1648,9 +1651,18 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     -3*B[1, 1, 2] + B[1, 2, 1]
                     sage: S[2,1].to_descent_algebra(2)
                     0
+                    sage: S[2,1].to_descent_algebra()
+                    B[2, 1]
+                    sage: S.zero().to_descent_algebra().parent()
+                    Descent algebra of 0 over Rational Field in the subset basis
                     sage: (S[1,2,1] - 3 * S[1,1,2]).to_descent_algebra(1)
                     0
                 """
+                if n is None:
+                    if self.is_zero():
+                        n = 0
+                    else:
+                        n = self.degree()
                 from sage.combinat.descent_algebra import DescentAlgebra
                 S = NonCommutativeSymmetricFunctions(self.base_ring()).S()
                 S_expansion = S(self)

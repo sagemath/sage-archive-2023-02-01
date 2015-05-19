@@ -20,12 +20,9 @@ Quiver Paths
 
 from sage.data_structures.bounded_integer_sequences cimport *
 from cpython.slice cimport PySlice_Check, PySlice_GetIndicesEx
-from cython.operator cimport dereference as deref, preincrement as preinc, predecrement as predec, postincrement as postinc
 
 include "sage/ext/interrupt.pxi"
-include 'sage/data_structures/bitset.pxi'
-
-from sage.rings.integer_ring import ZZ
+include "sage/data_structures/bitset.pxi"
 
 cdef class QuiverPath(MonoidElement):
     r"""
@@ -125,7 +122,7 @@ cdef class QuiverPath(MonoidElement):
         out._end = end
         return out
 
-    def __init__(self, parent, start, end, path, check=True):
+    def __init__(self, parent, start, end, path):
         """
         Creates a path object.  Type ``QuiverPath?`` for more information.
 
@@ -138,7 +135,6 @@ cdef class QuiverPath(MonoidElement):
           occuring in the path, labelled according to the position in
           the list of all arrows (resp. the list of outgoing arrows at
           each vertex).
-        - ``check``, whether or not to check the input.
 
         TESTS::
 
@@ -148,47 +144,22 @@ cdef class QuiverPath(MonoidElement):
             sage: Q([(1,3,'x')])
             Traceback (most recent call last):
             ...
-            ValueError: tuple.index(x): x not in tuple
+            ValueError: (1, 3, 'x') is not an edge
 
         Note that QuiverPath should not be called directly, because
         the elements of the path semigroup associated with a quiver
         may use a sub-class of QuiverPath. Nonetheless, just for test, we
         show that it *is* possible to create a path in a deprecated way::
 
-            sage: p == QuiverPath(Q, 1, 1, [], max(len(Q.quiver().outgoing_edges(v)) for v in Q.quiver().vertices()))
+            sage: p == QuiverPath(Q, 1, 1, [])
             True
             sage: list(Q([(1, 1)])*Q([(1, 2, 'a')])*Q([(2, 2)])*Q([(2, 3, 'b')])*Q([(3, 3)]))
             [(1, 2, 'a'), (2, 3, 'b')]
-
         """
         MonoidElement.__init__(self, parent=parent)
-        cdef unsigned int l = len(path)
         self._start = start
         self._end   = end
         biseq_init_list(self._path, path, parent._nb_arrows)
-        if not check:
-            return
-        cdef unsigned int n
-        Q = parent.quiver()
-        cdef tuple E = parent._sorted_edges
-        if not l:
-            if start!=end:
-                raise ValueError("Start and endpoint of a path of length 0 must coincide")
-            if start not in Q:
-                raise ValueError("Vertex {} not in the quiver".format(start))
-            return
-        V = Q.vertices()
-        if start not in V:
-            raise ValueError("Startpoint {} should belong to {}".format(start, V))
-        if end not in V:
-            raise ValueError("Startpoint {} should belong to {}".format(end, V))
-        if E[path[0]][0]!=start:
-            raise ValueError("First edge should start at vertex {}".format(start))
-        if E[path[-1]][1]!=end:
-            raise ValueError("Last edge should end at vertex {}".format(end))
-        for n in range(1,l):
-            if E[path[n-1]][1]!=E[path[n]][0]:
-                raise ValueError("Edge {} ends at {}, but edge {} starts at {}".format(E[path[n-1]][2], E[path[n-1]][1], E[path[n]][2], E[path[n]][0]))
 
     def __reduce__(self):
         """
@@ -741,7 +712,7 @@ cdef class QuiverPath(MonoidElement):
         Q = self._parent.reverse()
         # Handle trivial paths
         if self._path.length==0:
-            return Q.element_class(Q, self._end, self._start, [], check=False)
+            return Q.element_class(Q, self._end, self._start, [])
 
         # Reverse all the edges in the path, then reverse the path
         cdef mp_size_t i

@@ -94,7 +94,7 @@ If the vertices along the path do not match, a value error is raised::
     sage: inv3 = PQ([(1, 2, 'x')])
     Traceback (most recent call last):
     ...
-    ValueError: tuple.index(x): x not in tuple
+    ValueError: (1, 2, 'x') is not an edge
 
 The ``*`` operator is concatenation of paths. If the two paths do not compose,
 then the result is ``None`` (whence the "partial" in "partial semigroup").  ::
@@ -571,7 +571,7 @@ class QuiverRepFactory(UniqueFactory):
     In the following example, the 3rd and 4th paths are actually the same,
     so the duplicate is removed::
 
-        sage: N = Q1.representation(QQ, [[(1, 1)], [(2, 2)], [(1, 1), (1, 2, 'a'), (2, 2)], [(1, 2, 'a')]], option='paths')
+        sage: N = Q1.representation(QQ, [[(1, 1)], [(2, 2)], [(1, 2, 'a')], [(1, 2, 'a')]], option='paths')
         sage: N.dimension()
         3
 
@@ -2787,7 +2787,7 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
             sage: P1 = Q1.representation(QQ, [[(1, 1)]], option='paths')
             sage: P1.dimension()
             2
-            sage: kQ = Q1.representation(QQ, [[(1, 1)], [(2, 2)], [(1, 1), (1, 2, 'a'), (2, 2)], [(1, 2, 'a')]], option='paths')
+            sage: kQ = Q1.representation(QQ, [[(1, 1)], [(2, 2)], [(1, 2, 'a')], [(1, 2, 'a')]], option='paths')
             sage: kQ.dimension()
             3
             sage: Q2 = DiGraph({1:{2:['a'], 3:['b', 'c']}, 2:{3:['d']}}).path_semigroup()
@@ -3001,7 +3001,7 @@ class QuiverRep_with_dual_path_basis(QuiverRep_generic):
             sage: I2 = Q1.representation(QQ, [[(2, 2)]], option='dual paths')
             sage: I2.dimension()
             2
-            sage: kQdual = Q1.representation(QQ, [[(1, 1)], [(2, 2)], [(1, 1), (1, 2, 'a'), (2, 2)], [(1, 2, 'a')]], option='dual paths')
+            sage: kQdual = Q1.representation(QQ, [[(1, 1)], [(2, 2)], [(1, 2, 'a')], [(1, 2, 'a')]], option='dual paths')
             sage: kQdual.dimension()
             3
             sage: Q2 = DiGraph({1:{2:['a'], 3:['b', 'c']}, 2:{3:['d']}}).path_semigroup()

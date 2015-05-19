@@ -392,7 +392,7 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: A1(b)
             Traceback (most recent call last):
             ...
-            ValueError: tuple.index(x): x not in tuple
+            ValueError: b is not an edge
         """
         if index is not None:
             return self._from_dict( {self._semigroup(index): self.base_ring().one()},

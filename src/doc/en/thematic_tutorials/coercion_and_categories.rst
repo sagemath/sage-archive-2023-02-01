@@ -123,7 +123,6 @@ This base class provides a lot more methods than a general parent::
      '_coerce_try',
      '_default_category',
      '_gens',
-     '_gens_dict',
      '_has_coerce_map_from',
      '_ideal_class_',
      '_latex_names',

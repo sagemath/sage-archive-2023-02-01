@@ -88,5 +88,6 @@ Libraries of algorithms
    sage/graphs/graph_list
    sage/graphs/hyperbolicity
    sage/graphs/tutte_polynomial
+   sage/graphs/generic_graph_pyx
 
 .. include:: ../footer.txt

@@ -146,20 +146,18 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.structure.element import Element
 
 from sage.rings.all import ZZ, QQ
 from sage.sets.set import Set
 from sage.graphs.digraph import DiGraph
 from sage.matrix.matrix_space import MatrixSpace
 
-from sage.combinat.combinat import CombinatorialObject
+from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.partition import PartitionOptions, _Partitions
 from sage.combinat.tableau import TableauOptions
 from sage.combinat.composition import Compositions
@@ -238,7 +236,7 @@ SkewPartitionOptions=GlobalOptions(name="skew partitions",
     notation = dict(alt_name='convention')
 )
 
-class SkewPartition(CombinatorialObject, Element):
+class SkewPartition(CombinatorialElement):
     r"""
     A skew partition.
 
@@ -246,8 +244,6 @@ class SkewPartition(CombinatorialObject, Element):
     partition `\lambda` and removing the partition `\mu` from the upper-left
     corner in English convention.
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, skp):
         """
@@ -274,8 +270,8 @@ class SkewPartition(CombinatorialObject, Element):
             sage: skp = SkewPartition([[3,2,1],[2,1]])
             sage: TestSuite(skp).run()
         """
-        CombinatorialObject.__init__(self, [_Partitions(skp[0]), _Partitions(skp[1])])
-        Element.__init__(self, parent)
+        CombinatorialElement.__init__(self, parent,
+                [_Partitions(skp[0]), _Partitions(skp[1])])
 
     def _repr_(self):
         """

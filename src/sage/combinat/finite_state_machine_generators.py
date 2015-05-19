@@ -42,7 +42,7 @@ AUTHORS:
 - Daniel Krenn (2014-04-15): improved common docstring during review
 - Clemens Heuberger, Daniel Krenn, Sara Kropf (2014-04-16--2014-05-02):
   A couple of improvements. Details see
-  #16141, #16142, #16143, #16186.
+  :trac:`16141`, :trac:`16142`, :trac:`16143`, :trac:`16186`.
 - Sara Kropf (2014-04-29): weight transducer
 - Clemens Heuberger, Daniel Krenn (2014-07-18): transducers Wait, all,
   any
@@ -70,6 +70,7 @@ Functions and methods
 
 import collections
 import operator
+from sage.symbolic.operators import add_vararg, mul_vararg
 
 from sage.combinat.finite_state_machine import Transducer
 from sage.rings.integer_ring import ZZ
@@ -1034,7 +1035,7 @@ class TransducerGenerators(object):
             raise ValueError("%d is less than %d."
                              % (base_power_K, base))
 
-        if right_side.operator() == operator.add:
+        if right_side.operator() == add_vararg:
             function_calls = [o for o in right_side.operands()
                               if o.operator() == function]
             other_terms = [o for o in right_side.operands()

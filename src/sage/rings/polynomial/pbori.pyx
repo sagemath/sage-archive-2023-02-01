@@ -192,6 +192,7 @@ import operator
 from sage.misc.cachefunc import cached_method
 
 from sage.misc.randstate import current_randstate
+from sage.misc.long cimport pyobject_to_long
 import sage.misc.weak_dict
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.constructor import FiniteField as GF
@@ -6131,13 +6132,17 @@ cdef class BooleanPolynomialVector:
             sage: v[3]
             Traceback (most recent call last):
             ...
-            IndexError
+            IndexError: index out of range
+            sage: v['a']
+            Traceback (most recent call last):
+            ...
+            TypeError: 'str' object cannot be interpreted as an index
         """
-        cdef long i = int(ind)
-        while i < 0:
+        cdef long i = pyobject_to_long(ind)
+        if i < 0:
             i += self._vec.size()
-        if i >= self._vec.size():
-            raise IndexError
+        if i < 0 or i >= self._vec.size():
+            raise IndexError("index out of range")
         return new_BP_from_PBPoly(self._parent, self._vec.get(i))
 
 

@@ -75,6 +75,7 @@ import sage.rings.arith                     as arith
 import sage.rings.number_field.number_field as number_field
 import sage.structure.parent_gens           as parent_gens
 
+from sage.categories.map import Map
 from sage.rings.rational_field import is_RationalField
 from sage.rings.complex_field import is_ComplexField
 from sage.rings.ring import is_Ring
@@ -309,7 +310,13 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
     def change_ring(self, R):
         """
-        Returns the base extension of self to the ring R.
+        Return the base extension of ``self`` to ``R``.
+
+        INPUT:
+
+        - ``R`` -- either a ring admitting a conversion map from the
+          base ring of ``self``, or a ring homomorphism with the base
+          ring of ``self`` as its domain
 
         EXAMPLE::
 
@@ -325,10 +332,24 @@ class DirichletCharacter(MultiplicativeGroupElement):
             Traceback (most recent call last):
             ...
             ValueError: cannot coerce element of order 12 into self
+
+        We test the case where `R` is a map (:trac:`18072`)::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: chi = DirichletGroup(5, K)[1]
+            sage: chi(2)
+            i
+            sage: f = K.complex_embeddings()[0]
+            sage: psi = chi.change_ring(f)
+            sage: psi(2)
+            -1.00000000000000*I
+
         """
         if self.base_ring() is R:
             return self
         G = self.parent().change_ring(R)
+        if isinstance(R, Map):
+            return DirichletCharacter(G, self.element())
         return G(self)
 
     def __cmp__(self, other):
@@ -1915,7 +1936,13 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
 
     def change_ring(self, R, zeta=None, zeta_order=None):
         """
-        Returns the Dirichlet group over R with the same modulus as self.
+        Return the base extension of ``self`` to ``R``.
+
+        INPUT:
+
+        - ``R`` -- either a ring admitting a conversion map from the
+          base ring of ``self``, or a ring homomorphism with the base
+          ring of ``self`` as its domain
 
         EXAMPLES::
 
@@ -1923,7 +1950,22 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
             Group of Dirichlet characters of modulus 7 over Rational Field
             sage: G.change_ring(CyclotomicField(6))
             Group of Dirichlet characters of modulus 7 over Cyclotomic Field of order 6 and degree 2
+
+        TESTS:
+
+        We test the case where `R` is a map (:trac:`18072`)::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: f = K.complex_embeddings()[0]
+            sage: D = DirichletGroup(5, K)
+            sage: D.change_ring(f)
+            Group of Dirichlet characters of modulus 5 over Complex Field with 53 bits of precision
+
         """
+        if isinstance(R, Map):
+            if zeta is None:
+                zeta = R(self._zeta)
+            R = R.codomain()
         return DirichletGroup(self.modulus(), R,
                               zeta=zeta,
                               zeta_order=zeta_order)

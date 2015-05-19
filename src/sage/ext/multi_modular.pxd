@@ -1,4 +1,3 @@
-# distutils: libraries = gmp
 # distutils: extra_compile_args = -std=c99
 
 include "sage/ext/cdefs.pxi"

@@ -25,7 +25,7 @@ from sage.rings.real_mpfr cimport RealNumber
 
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
 
-from sage.libs.pari.pari_instance cimport PariInstance
+from sage.libs.pari.pari_instance import PariInstance
 from sage.misc.latex import latex_variable_name
 from sage.structure.element cimport RingElement, Element, Matrix
 from sage.structure.parent_base import ParentWithBase

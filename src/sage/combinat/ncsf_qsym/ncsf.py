@@ -37,7 +37,7 @@ from sage.combinat.composition import Compositions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.ncsf_qsym.generic_basis_code import BasesOfQSymOrNCSF
 from sage.combinat.ncsf_qsym.combinatorics import (coeff_pi, coeff_lp,
-        coeff_sp, coeff_ell, m_to_s_stat, number_of_fCT)
+        coeff_sp, coeff_ell, m_to_s_stat, number_of_fCT, compositions_order)
 from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
 
@@ -4607,6 +4607,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                      for comp_shape in Compositions(sum(comp_content)) ),
                                    distinct=True )
 
+        def dual(self):
+            return self.realization_of().dual().dualImmaculate()
+
         class Element(CombinatorialFreeModule.Element):
             """
             An element in the Immaculate basis.
@@ -4673,4 +4676,67 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 return P.sum_of_terms( (C([n] + list(m)), c) for m,c in self )
 
     I = Immaculate
+
+    class dualQuasisymmetric_Schur(CombinatorialFreeModule, BindableClass):
+
+        def __init__(self, NCSF):
+            CombinatorialFreeModule.__init__(self, NCSF.base_ring(), Compositions(),
+                                             prefix='dQS', bracket=False,
+                                             category=NCSF.Bases())
+            category = self.category()
+            R = self.realization_of().ribbon()
+            self._QS = self.realization_of().dual().Quasisymmetric_Schur()
+            to_R = self.module_morphism(
+                    on_basis = self._to_ribbon_on_basis,
+                    codomain = R,
+                    category = category)
+            to_R.register_as_coercion()
+
+            from_R = R.module_morphism(
+                        on_basis = self._from_ribbon_on_basis,
+                        codomain = self,
+                        category = category)
+            from_R.register_as_coercion()
+
+        def _realization_name(self):
+            r"""
+            TESTS::
+
+                sage: N = NonCommutativeSymmetricFunctions(QQ)
+                sage: dQS = N.dQS()
+                sage: dQS._realization_name()
+                'dual Quasi-Schur'
+            """
+            return "dual Quasisymmetric-Schur"
+
+        def _to_ribbon_transition_matrix(self, n):
+            return self._QS._from_fundamental_transition_matrix(n).transpose()
+
+        def _from_ribbon_transition_matrix(self, n):
+            return self._QS._to_fundamental_transition_matrix(n).transpose()
+
+        @cached_method
+        def _to_ribbon_on_basis(self, comp):
+            #comp = Composition(comp)
+            if not comp._list:
+                return self.one()
+            comps = compositions_order(comp.size())
+            T = self._to_ribbon_transition_matrix(comp.size())
+            return self.sum_of_terms( zip(comps, T[comps.index(comp)]),
+                                      distinct=True )
+
+        @cached_method
+        def _from_ribbon_on_basis(self, comp):
+            #comp = Composition(comp)
+            if not comp._list:
+                return self.one()
+            comps = compositions_order(comp.size())
+            T = self._from_ribbon_transition_matrix(comp.size())
+            return self.sum_of_terms( zip(comps, T[comps.index(comp)]),
+                                      distinct=True )
+
+        def dual(self):
+            return self._QS
+
+    dQS = dualQuasisymmetric_Schur
 

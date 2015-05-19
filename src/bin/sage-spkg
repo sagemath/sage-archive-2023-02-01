@@ -412,9 +412,6 @@ if [ ! -f "$PKG_SRC" ]; then
         echo ">>> Trying to download $PKG_URL"
         sage-download-file "$PKG_URL" "$PKG_TMP"
         if [ $? -ne 0 ]; then
-            exit 1
-        fi
-        if [ $? -ne 0 ]; then
             # Delete failed download
             rm -f "$PKG_TMP"
             echo >&2 "Error: failed to download package $PKG_NAME"

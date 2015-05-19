@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo >&2 "SAGE_LOCAL undefined ... exiting";
+   echo >&2 "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cd src
+
+# Unfortunately, runalltests script does not exit with a nonzero status if some
+# tests failed, so we parse the last line of the log to decide whether all
+# tests passed or not, in order to exit with the correct status.
+
+make checks
+FAILED_TESTS="$(./runalltests | tee >(cat 1>&2) | tail -n 1 | sed 's/ tests failed//g')"
+
+if [ "${FAILED_TESTS}" -ne "0" ]; then
+   echo >&2 "Error checking nauty."
+   exit 1
+fi
+
+echo "Tests suite for nauty passed without errors."
+exit 0
+

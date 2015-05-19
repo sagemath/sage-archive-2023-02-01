@@ -6,10 +6,7 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-NAUTY_VERSION="$(cat ${SAGE_ROOT}/build/pkgs/nauty/package-version.txt)"
-SRC="nauty${NAUTY_VERSION}"
-
-cd $SRC
+cd nauty*
 
 # Nauty doesn't have an install target 
 # passing a prefix to configure is useless
@@ -29,7 +26,7 @@ fi
 echo >&2 "Copying nauty..."
 for program in addedgeg amtog biplabg catg complg copyg countg deledgeg directg dreadnaut dretog genbg geng genrang labelg listg multig newedgeg NRswitchg pickg planarg shortg showg gentourng;
 do
-  cp -p $program $SAGE_LOCAL/bin/$program
+  cp -p $program "$SAGE_LOCAL"/bin/$program
   if [ $? -ne 0 ]; then
    echo >&2 "Error installing nauty."
    exit 1

@@ -1166,7 +1166,7 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
 
             This is constructed by extending the method
             :meth:`internal_product_on_basis` bilinearly, if available,
-            or using the method :meth:`internal_product_by_coercion`.
+            or using the method :meth:`~GradedModulesWithInternalProduct.Realizations.ParentMethods.internal_product_by_coercion`.
 
             OUTPUT:
 

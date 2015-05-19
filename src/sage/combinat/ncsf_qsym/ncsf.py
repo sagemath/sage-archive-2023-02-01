@@ -469,7 +469,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 Morphism of ``self`` to the algebra of symmetric functions.
 
                 This is constructed by extending the method
-                :meth:`to_symmetric_function_on_basis` linearly.
+                :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Complete.to_ncsym_on_basis`
+                linearly.
 
                 OUTPUT:
 
@@ -509,6 +510,10 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 This default implementation does a change of basis and
                 computes the image in the complete basis.
 
+                .. SEEALSO::
+
+                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Complete.to_ncsym_on_basis`
+
                 INPUT:
 
                 - ``I`` -- a composition
@@ -535,7 +540,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 have `\chi \circ \kappa = \rho`.
 
                 This is constructed by extending the method
-                :meth:`to_ncsym_on_basis` linearly.
+                :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Complete.to_ncsym_on_basis`
+                linearly.
 
                 EXAMPLES::
 
@@ -1649,8 +1655,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             def to_ncsym(self):
                 r"""
                 Return the image of ``self`` in the symmetric functions in
-                non-commuting variables under the map that fixes the usual
-                symmetric functions.
+                non-commuting variables under the map described in
+                :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Complete.to_ncsym_on_basis`.
 
                 EXAMPLES::
 
@@ -2822,6 +2828,14 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 \frac{\lambda(A)! \lambda(A)^!}{n!} \mathbf{m}_A
 
             and extended as an algebra homomorphism.
+
+            .. NOTE::
+
+                A remark in [BRRZ08]_  makes it clear that the embedding of ``NCSF``
+                into ``NCSym`` that preserves the projection into the symmetric
+                functions is not unique.  While this seems to be a natural embedding,
+                any set of algebraic generators can be sent to a set of free elements
+                in ``NCSym`` is also an embedding.
 
             EXAMPLES::
 

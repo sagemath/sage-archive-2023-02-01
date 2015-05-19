@@ -288,7 +288,30 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             return result+"Dynkin diagram of rank %s"%self.rank()
         else:
             return result+"%s"%ct._repr_(compact=True)
-            #return result+"Dynkin diagram of type %s"%self.cartan_type()._repr_(compact = True)
+
+    def _rich_repr_(self, display_manager, **kwds):
+        """
+        Rich Output Magic Method
+
+        Override rich output because :meth:`_repr_` outputs ascii
+        art. The proper fix will be in :trac:`18328`.
+
+        See :mod:`sage.repl.rich_output` for details.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: E8 = WeylCharacterRing('E8')
+            sage: E8.dynkin_diagram()._rich_repr_(dm)
+            OutputAsciiArt container
+        """
+        OutputAsciiArt = display_manager.types.OutputAsciiArt
+        OutputPlainText = display_manager.types.OutputPlainText
+        if OutputAsciiArt in display_manager.supported_output():
+            return OutputAsciiArt(self._repr_())
+        else:
+            return OutputPlainText(self._repr_())
 
     def _latex_(self, scale=0.5):
         r"""

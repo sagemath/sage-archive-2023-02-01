@@ -37,7 +37,7 @@ cdef class Element(SageObject):
     cpdef _richcmp_(left, Element right, int op)
     cpdef int _cmp_(left, Element right) except -2
     cdef _richcmp(self, right, int op)
-    cdef _cmp(self, right)
+    cdef int _cmp(self, right) except -2
     cdef _set_parent_c(self, Parent parent)
     cpdef base_extend(self, R)
 

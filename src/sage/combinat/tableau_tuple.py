@@ -196,21 +196,18 @@ REFERENCES:
    Adv. Math., 222 (2009), 1883-1942"
 
 """
+
 #*****************************************************************************
 #       Copyright (C) 2012 Andrew Mathas <andrew dot mathas at sydney dot edu dot au>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.combinat.combinat import CombinatorialObject
+
+from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.words.word import Word
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -229,7 +226,6 @@ from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.integer import Integer
 from sage.rings.all import NN
 from sage.sets.positive_integers import PositiveIntegers
-from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -238,7 +234,7 @@ import permutation
 #--------------------------------------------------
 # Tableau tuple - element class
 #--------------------------------------------------
-class TableauTuple(CombinatorialObject,Element):
+class TableauTuple(CombinatorialElement):
     """
     A class to model a tuple of tableaux.
 
@@ -346,7 +342,6 @@ class TableauTuple(CombinatorialObject,Element):
         sage: TestSuite( TableauTuple([ [[1,2],[3,4]], [], [[1,2],[3,4]] ]) ).run()
         sage: TestSuite( TableauTuple([[[1,1],[1]],[[1,1,1]],[[1],[1],[1]],[[1]]]) ).run()
     """
-    __metaclass__ = ClasscallMetaclass
     Element = Tableau
 
     @staticmethod
@@ -412,11 +407,10 @@ class TableauTuple(CombinatorialObject,Element):
             sage: s is t # identical tableaux are distinct objects
             False
         """
-        Element.__init__(self, parent)
         # By calling Tableau we implicitly check that the shape is a PartitionTuple
-        t=[Tableau(s) for s in t]
-        CombinatorialObject.__init__(self, t)
-        self._level=len(self._list)
+        t = [Tableau(s) for s in t]
+        CombinatorialElement.__init__(self, parent, t)
+        self._level = len(self._list)
 
     def _repr_(self):
         """

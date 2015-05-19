@@ -158,7 +158,7 @@ class Posets(object):
 
         TESTS:
 
-        Check that #8422 is solved::
+        Check that :trac:`8422` is solved::
 
             sage: Posets.ChainPoset(0)
             Finite lattice containing 0 elements
@@ -196,7 +196,7 @@ class Posets(object):
 
         TESTS:
 
-        Check that #8422 is solved::
+        Check that :trac:`8422` is solved::
 
             sage: Posets.AntichainPoset(0)
             Finite poset containing 0 elements

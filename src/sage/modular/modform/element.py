@@ -1120,6 +1120,17 @@ class Newform(ModularForm_abstract):
             This method assumes that the `Q`-th coefficient in the
             `q`-expansion of ``self`` is non-zero.
 
+        TESTS::
+
+            sage: f = Newforms(Gamma0(18), 4)[0]; f
+            q + 2*q^2 + 4*q^4 - 6*q^5 + O(q^6)
+            sage: f._atkin_lehner_action_prime_power(2)
+            (-1, q + 2*q^2 + 4*q^4 - 6*q^5 + O(q^6))
+            sage: f._atkin_lehner_action_prime_power(9)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: action of W_Q is not implemented if a_Q(f) = 0
+
         """
         a_Q = self[Q]
         if not a_Q:

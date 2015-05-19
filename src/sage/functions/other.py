@@ -267,7 +267,7 @@ class Function_abs(GinacFunction):
             sage: sqrt(x^2)
             sqrt(x^2)
             sage: abs(sqrt(x))
-            abs(sqrt(x))
+            sqrt(abs(x))
             sage: complex(abs(3*I))
             (3+0j)
 

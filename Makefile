@@ -20,7 +20,7 @@ build: logs configure
 	"../$(PIPE)" \
 		"env SAGE_PARALLEL_SPKG_BUILD='$(SAGE_PARALLEL_SPKG_BUILD)' ./install all 2>&1" \
 		"tee -a ../logs/install.log"
-	./sage -b
+	+./sage -b
 
 # Preemptively download all standard upstream source tarballs.
 download:

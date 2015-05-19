@@ -12,8 +12,8 @@ these operations on monomial ideals useful.
 
 AUTHORS:
 
-Bjarke Hammersholt Roune (2008-04-25): Wrote the Frobby C++
-program and the initial version of the Python interface.
+- Bjarke Hammersholt Roune (2008-04-25): Wrote the Frobby C++
+  program and the initial version of the Python interface.
 
 NOTES:
 

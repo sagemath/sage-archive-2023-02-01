@@ -547,27 +547,38 @@ class PathAlgebra(CombinatorialFreeModule):
 
     __getitem__ = homogeneous_component
 
-    def __iter__(self):
+    def homogeneous_components(self):
         r"""
-        Iterate over the non-zero homogeneous components of ``self``.
+        Return the non-zero homogeneous components of ``self``.
 
         EXAMPLES::
 
             sage: Q = DiGraph([[1,2,'a'],[2,3,'b'],[3,4,'c']])
             sage: PQ = Q.path_semigroup()
             sage: A = PQ.algebra(GF(7))
-            sage: list(A)
+            sage: A.homogeneous_components()
             [Free module spanned by [e_1, e_2, e_3, e_4] over Finite Field of size 7,
              Free module spanned by [a, b, c] over Finite Field of size 7,
              Free module spanned by [a*b, b*c] over Finite Field of size 7,
              Free module spanned by [a*b*c] over Finite Field of size 7]
+
+        .. WARNING::
+
+             Backward incompatible change: since :trac:`12630` and
+             until :trac:`8678`, this feature was implemented under
+             the syntax ``list(A)`` by means of ``A.__iter__``. This
+             was incorrect since ``A.__iter__``, when defined for a
+             parent, should iterate through the elements of `A`.
         """
+        result = []
         i = 0
-        c = self.homogeneous_component(i)
-        while c.dimension() != 0:
-            yield c
-            i += 1
+        while True:
             c = self.homogeneous_component(i)
+            if not c.dimension():
+                break
+            result.append(c)
+            i += 1
+        return result
 
     ###########################################################################
     #                                                                         #

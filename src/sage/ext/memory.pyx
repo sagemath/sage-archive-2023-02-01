@@ -1,3 +1,4 @@
+# distutils: libraries = gmp
 """
 Low-level memory allocation functions
 

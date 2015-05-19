@@ -82,44 +82,21 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         A = parent._matrix_space()(A)
         matrix_morphism.MatrixMorphism.__init__(self, parent, A)
 
-    def __call__(self, x):
+    def pushforward(self, x):
         """
-        Evaluate this matrix morphism at x, which is either an element
-        that can be coerced into the domain or a submodule of the domain.
+        Compute the image of a sub-module of the domain.
 
         EXAMPLES::
 
             sage: V = QQ^3; W = span([[1,2,3],[-1,2,5/3]], QQ)
             sage: phi = V.hom(matrix(QQ,3,[1..9]))
-
-        We compute the image of some elements::
-
-            sage: phi(V.0)
-            (1, 2, 3)
-            sage: phi(V.1)
-            (4, 5, 6)
-            sage: phi(V.0  - 1/4*V.1)
-            (0, 3/4, 3/2)
-
-        We compute the image of a *subspace*::
-
-            sage: V = QQ^3; W = span([[1,2,3],[-1,2,5/3]], QQ)
-            sage: phi = V.hom(matrix(QQ,3,[1..9]))
             sage: phi.rank()
             2
-            sage: phi(V)
+            sage: phi(V)   #indirect doctest
             Vector space of degree 3 and dimension 2 over Rational Field
             Basis matrix:
             [ 1  0 -1]
             [ 0  1  2]
-
-        We restrict phi to W and compute the image of an element::
-
-            sage: psi = phi.restrict_domain(W)
-            sage: psi(W.0) == phi(W.0)
-            True
-            sage: psi(W.1) == phi(W.1)
-            True
 
         We compute the image of a submodule of a ZZ-module embedded in
         a rational vector space::
@@ -139,7 +116,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         if free_module.is_FreeModule(x):
             V = self.domain().submodule(x)
             return self.restrict_domain(V).image()
-        return matrix_morphism.MatrixMorphism.__call__(self, x)
+        raise TypeError("`pushforward` is only defined for submodules")
 
     def _repr_(self):
         r"""

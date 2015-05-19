@@ -23,11 +23,19 @@ polytopes and polyhedra (with rational or numerical coordinates).
    sage/geometry/lattice_polytope
 
    sage/geometry/polyhedron/constructor
+   sage/geometry/polyhedron/parent
    sage/geometry/polyhedron/representation
    sage/geometry/polyhedron/library
    sage/geometry/polyhedron/plot
    sage/geometry/polyhedron/face
    sage/geometry/polyhedron/cdd_file_format
+   sage/geometry/polyhedron/lattice_euclidean_group_element
+   sage/geometry/polyhedron/palp_database
+   sage/geometry/polyhedron/ppl_lattice_polygon
+   sage/geometry/polyhedron/ppl_lattice_polytope
+
+   sage/geometry/polytope
+
    sage/geometry/pseudolines
 
    sage/geometry/triangulation/point_configuration
@@ -38,8 +46,11 @@ polytopes and polyhedra (with rational or numerical coordinates).
    sage/geometry/hyperplane_arrangement/library
    sage/geometry/hyperplane_arrangement/hyperplane
    sage/geometry/hyperplane_arrangement/affine_subspace
+   sage/geometry/hyperplane_arrangement/plot
 
    sage/geometry/linear_expression
+
+   sage/geometry/newton_polygon
 
 Hyperbolic Geometry
 -------------------
@@ -55,7 +66,7 @@ Hyperbolic Geometry
 
 Backends for Polyhedral Computations
 ------------------------------------
-   
+
 .. toctree::
    :maxdepth: 1
 
@@ -69,5 +80,15 @@ Backends for Polyhedral Computations
    sage/geometry/polyhedron/base_ZZ
    sage/geometry/polyhedron/base_RDF
    
+
+Internals
+---------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/geometry/fan_isomorphism
+   sage/geometry/hasse_diagram
+   sage/geometry/integral_points
 
 .. include:: ../footer.txt

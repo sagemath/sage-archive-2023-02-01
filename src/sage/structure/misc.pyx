@@ -1,14 +1,17 @@
-include 'sage/ext/stdsage.pxi'
+"Miscellaneous utilities"
+
 from sage.misc.sage_itertools import unique_merge
 
 def is_extension_type(cls):
     """
     INPUT:
-     - cls: a class
+
+    - cls: a class
 
     Tests whether cls is an extension type (int, list, cython compiled classes, ...)
 
-    EXAMPLES
+    EXAMPLES::
+
         sage: from sage.structure.parent import is_extension_type
         sage: is_extension_type(int)
         True
@@ -34,14 +37,14 @@ cdef class AttributeErrorMessage:
     """
     Tries to emulate the standard Python ``AttributeError`` message.
 
-    NOTE:
+    .. note::
 
-    The typical fate of an attribute error is being caught. Hence,
-    under normal circumstances, nobody will ever see the error
-    message. The idea for this class is to provide an object that
-    is fast to create and whose string representation is an attribute
-    error's message. That string representation is only created if
-    someone wants to see it.
+        The typical fate of an attribute error is being caught. Hence,
+        under normal circumstances, nobody will ever see the error
+        message. The idea for this class is to provide an object that
+        is fast to create and whose string representation is an attribute
+        error's message. That string representation is only created if
+        someone wants to see it.
 
     EXAMPLES::
 
@@ -61,8 +64,7 @@ cdef class AttributeErrorMessage:
 
     By :trac:`14100`, the attribute errors raised on elements and parents are
     unique objects. The error message of this unique error object is changed
-    inplace. This is for reasons of efficiency.
-    ::
+    inplace. This is for reasons of efficiency. ::
 
         sage: try:
         ....:     1.__bla

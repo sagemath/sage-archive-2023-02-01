@@ -1,7 +1,7 @@
 r"""
 Canonical forms and automorphism group computation for linear codes over finite fields.
 
-We implemented the algorithm described in [Feu2009] which computes the unique
+We implemented the algorithm described in [Feu2009]_ which computes the unique
 semilinearly isometric code (canonical form) in the equivalence class of a given
 linear code ``C``. Furthermore, this algorithm will return the automorphism
 group of ``C``, too.
@@ -53,9 +53,7 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Feu2009] T. Feulner. The Automorphism Groups of Linear Codes and
-  Canonical Representatives of Their Semilinear Isometry Classes.
-  Advances in Mathematics of Communications 3 (4), pp. 363-383, Nov 2009
+[Feu2009]_
 
 EXAMPLES:
 
@@ -110,31 +108,27 @@ cdef class InnerGroup:
     `G = (GL(k,q) \times \GF{q}^n ) \rtimes Aut(\GF{q})`.
 
     Those stabilizers can be stored as triples:
-        - ``rank`` - an integer in `\{0, \ldots, k\}`
-        - ``row_partition`` - a partition of `\{0, \ldots, k-1\}` with
-          discrete cells for all integers `i \geq rank`.
-        - ``frob_pow`` an integer in `\{0, \ldots, r-1\}` if `q = p^r`
+
+    - ``rank`` - an integer in `\{0, \ldots, k\}`
+    - ``row_partition`` - a partition of `\{0, \ldots, k-1\}` with
+        discrete cells for all integers `i \geq rank`.
+    - ``frob_pow`` an integer in `\{0, \ldots, r-1\}` if `q = p^r`
 
     The group `G_{\Pi^{(I)}(x)}` contains all elements `(A, \varphi, \alpha) \in G`,
     where
-        - `A` is a `2 \times 2` blockmatrix, whose upper left matrix
-          is a `k \times k` diagonal matrix whose entries `A_{i,i}` are constant
-          on the cells of the partition ``row_partition``.
-          The lower left matrix is zero.
-          And the right part is arbitrary.
-        - The support of the columns given by `i \in I` intersect exactly one
-          cell of the partition. The entry `\varphi_i` is equal to the entries
-          of the corresponding diagonal entry of `A`.
-        - `alpha` is a power of `\tau^{frob_pow}`, where `tau` denotes the
-          Frobenius automorphism of the finite field `\GF{q}`.
+
+    - `A` is a `2 \times 2` blockmatrix, whose upper left matrix
+      is a `k \times k` diagonal matrix whose entries `A_{i,i}` are constant
+      on the cells of the partition ``row_partition``.
+      The lower left matrix is zero.
+      And the right part is arbitrary.
+    - The support of the columns given by `i \in I` intersect exactly one
+      cell of the partition. The entry `\varphi_i` is equal to the entries
+      of the corresponding diagonal entry of `A`.
+    - `\alpha` is a power of `\tau^{frob_pow}`, where `\tau` denotes the
+       Frobenius automorphism of the finite field `\GF{q}`.
 
     See [Feu2009]_ for more details.
-
-    REFERENCES:
-
-    .. [Feu2009] T. Feulner. The Automorphism Groups of Linear Codes and
-      Canonical Representatives of Their Semilinear Isometry Classes.
-      Advances in Mathematics of Communications 3 (4), pp. 363-383, Nov 2009
     """
     def __cinit__(self, k=0, algorithm="semilinear", **kwds):
         r"""
@@ -144,9 +138,11 @@ cdef class InnerGroup:
 
         - ``k`` -- an integer, gives the dimension of the matrix component
         - ``algorithm`` -- either
+
             * "semilinear" --  full group
             * "linear" -- no field automorphisms, i.e. `G = (GL(k,q) \times \GF{q}^n )`
             * "permutational -- no field automorphisms and no column multiplications
+
               i.e. `G = GL(k,q)`
         - ``transporter`` (optional) -- set to an element of the group
           :class:`sage.groups.semimonomial_transformations.semimonomial_transformation_group.SemimonomialTransformationGroup`
@@ -528,10 +524,11 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
           `\{0, \ldots, n-1\}` which restricts the action of the permutational
           part of the group to the stabilizer of this partition
         - algorithm_type (optional) -- use one of the following options
-            * "semilinear" -  full group
-            * "linear" - no field automorphisms, i.e. `G = (GL(k,q) \times \GF{q}^n )`
-            * "permutational - no field automorphisms and no column multiplications
-              i.e. `G = GL(k,q)`
+
+          * "semilinear" -  full group
+          * "linear" - no field automorphisms, i.e. `G = (GL(k,q) \times \GF{q}^n )`
+          * "permutational - no field automorphisms and no column multiplications
+            i.e. `G = GL(k,q)`
 
         EXAMPLES::
 

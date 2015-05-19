@@ -1886,7 +1886,7 @@ class SubspaceFunctor(ConstructionFunctor):
             sage: S1 = (ZZ^3).submodule([(1,2,3),(4,5,6)])
             sage: S2 = (Frac(P)^3).submodule([(t,t^2,t^3+1),(4*t,0,1)])
             sage: v = S1([0,3,6]) + S2([2,0,1/(2*t)]); v   # indirect doctest
-            (2, 3, (12*t + 1)/(2*t))
+            (2, 3, (-12*t - 1)/(-2*t))
             sage: v.parent()
             Vector space of degree 3 and dimension 3 over Fraction Field of Univariate Polynomial Ring in t over Integer Ring
             User basis matrix:
@@ -1908,7 +1908,9 @@ class SubspaceFunctor(ConstructionFunctor):
             except CoercionException:
                 return None
             try:
-                submodule = P.submodule
+                # Use span instead of submodule because we want to
+                # allow denominators.
+                submodule = P.span
             except AttributeError:
                 return None
             S = submodule(self.basis+other.basis).echelonized_basis()

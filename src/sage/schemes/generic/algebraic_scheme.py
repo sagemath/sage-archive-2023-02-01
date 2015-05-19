@@ -194,7 +194,7 @@ def is_AlgebraicScheme(x):
 
     We create a more complicated closed subscheme::
 
-        sage: A, x = AffineSpace(10, QQ).objgens()
+        sage: A,x = AffineSpace(10, QQ).objgens()
         sage: X = A.subscheme([sum(x)]); X
         Closed subscheme of Affine Space of dimension 10 over Rational Field defined by:
         x0 + x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9
@@ -1501,10 +1501,8 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             F = self.base_ring()
         X = self(F)
         if F in NumberFields() or F == ZZ:
-            if not bound > 0:
-                raise TypeError("A positive bound (= %s) must be specified."%bound)
             try:
-                return X.points(bound)
+                return X.points(bound) # checks for proper bound done in points functions
             except TypeError:
                 raise TypeError("Unable to enumerate points over %s."%F)
         try:
@@ -1778,10 +1776,11 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         PR = PP.coordinate_ring()
         v = list(PP.gens())
         z = v.pop(i)
+        R = AA.coordinate_ring()
+        phi = R.hom(v,PR)
         v.append(z)
         polys = self.defining_polynomials()
-        X = PP.subscheme([ PR(f.homogenize())(v) for f in polys ])
-        R = AA.coordinate_ring()
+        X = PP.subscheme([phi(f).homogenize(i) for f in polys ])
         v = list(R.gens())
         v.insert(i, R(1))
         phi = self.hom(v, X)

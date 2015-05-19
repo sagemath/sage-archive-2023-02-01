@@ -639,8 +639,8 @@ def FaceFan(polytope, lattice=None):
         sage: cuboctahed = polytopes.cuboctahedron()
         sage: FaceFan(cuboctahed)
         Rational polyhedral fan in 3-d lattice M
-        sage: cuboctahed.is_lattice_polytope(), cuboctahed.dilation(2).is_lattice_polytope()
-        (False, True)
+        sage: cuboctahed.is_lattice_polytope(), cuboctahed.dilation(1/2).is_lattice_polytope()
+        (True, False)
         sage: fan1 = FaceFan(cuboctahed)
         sage: fan2 = FaceFan(cuboctahed.dilation(2).lattice_polytope())
         sage: fan1.is_equivalent(fan2)
@@ -745,8 +745,8 @@ def NormalFan(polytope, lattice=None):
 
     TESTS::
 
-        sage: cuboctahed.is_lattice_polytope(), cuboctahed.dilation(2).is_lattice_polytope()
-        (False, True)
+        sage: cuboctahed.is_lattice_polytope(), cuboctahed.dilation(1/2).is_lattice_polytope()
+        (True, False)
         sage: fan1 = NormalFan(cuboctahed)
         sage: fan2 = NormalFan(cuboctahed.dilation(2).lattice_polytope())
         sage: fan1.is_equivalent(fan2)

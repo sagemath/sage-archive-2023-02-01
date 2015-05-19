@@ -1,4 +1,4 @@
-include 'sage/ext/stdsage.pxi'
+from sage.ext.stdsage cimport PY_NEW
 
 from sage.libs.gmp.mpz cimport *
 

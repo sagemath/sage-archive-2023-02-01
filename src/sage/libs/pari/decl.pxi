@@ -38,44 +38,25 @@ cdef extern from "sage/libs/pari/parisage.h":
 
     # Various structures that we don't use in Sage but which need to be
     # declared, otherwise Cython complains.
-    struct bb_group:
-        pass
-    struct bb_field:
-        pass
-    struct bb_ring:
-        pass
-    struct bb_algebra:
-        pass
-    struct qfr_data:
-        pass
-    struct nfmaxord_t:
-        pass
-    struct forcomposite_t:
-        pass
-    struct forpart_t:
-        pass
-    struct forprime_t:
-        pass
-    struct forvec_t:
-        pass
-    struct entree:
-        pass
-    struct gp_context:
-        pass
-    struct pariFILE:
-        pass
-    struct pari_mt:
-        pass
-    struct pari_thread:
-        pass
-    struct pari_timer:
-        pass
-    struct GENbin:
-        pass
-    struct hashentry:
-        pass
-    struct hashtable:
-        pass
+    struct bb_group
+    struct bb_field
+    struct bb_ring
+    struct bb_algebra
+    struct qfr_data
+    struct nfmaxord_t
+    struct forcomposite_t
+    struct forpart_t
+    struct forprime_t
+    struct forvec_t
+    struct entree
+    struct gp_context
+    struct pariFILE
+    struct pari_mt
+    struct pari_thread
+    struct pari_timer
+    struct GENbin
+    struct hashentry
+    struct hashtable
 
     # PARI types: these are actually an enum type, but that doesn't
     # matter for Cython.
@@ -293,6 +274,32 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     RgE_to_F2xqE(GEN x, GEN T)
     GEN     random_F2xqE(GEN a2, GEN a6, GEN T)
 
+    # Fle.c
+
+    ulong   Fl_elldisc(ulong a4, ulong a6, ulong p)
+    ulong   Fl_elldisc_pre(ulong a4, ulong a6, ulong p, ulong pi)
+    ulong   Fl_ellj(ulong a4, ulong a6, ulong p)
+    void    Fl_ellj_to_a4a6(ulong j, ulong p, ulong *pt_a4, ulong *pt_a6)
+    void    Fl_elltwist(ulong a4, ulong a6, ulong D, ulong p, ulong *pt_a4, ulong *pt_a6)
+    GEN     Fle_add(GEN P, GEN Q, ulong a4, ulong p)
+    GEN     Fle_dbl(GEN P, ulong a4, ulong p)
+    GEN     Fle_changepoint(GEN x, GEN ch, ulong p)
+    GEN     Fle_changepointinv(GEN x, GEN ch, ulong p)
+    GEN     Fle_log(GEN a, GEN b, GEN o, ulong a4, ulong p)
+    GEN     Fle_mul(GEN P, GEN n, ulong a4, ulong p)
+    GEN     Fle_mulu(GEN P, ulong n, ulong a4, ulong p)
+    GEN     Fle_order(GEN z, GEN o, ulong a4, ulong p)
+    GEN     Fle_sub(GEN P, GEN Q, ulong a4, ulong p)
+    GEN     Fle_to_Flj(GEN P)
+    GEN     Flj_add_pre(GEN P, GEN Q, ulong a4, ulong p, ulong pi)
+    GEN     Flj_dbl_pre(GEN P, ulong a4, ulong p, ulong pi)
+    GEN     Flj_mulu_pre(GEN P, ulong n, ulong a4, ulong p, ulong pi)
+    GEN     Flj_neg(GEN Q, ulong p)
+    GEN     Flj_to_Fle_pre(GEN P, ulong p, ulong pi)
+    GEN     random_Fle(ulong a4, ulong a6, ulong p)
+    GEN     random_Fle_pre(ulong a4, ulong a6, ulong p, ulong pi)
+    GEN     random_Flj_pre(ulong a4, ulong a6, ulong p, ulong pi)
+
     # Flx.c
 
     bb_group * get_Flxq_star(void **E, GEN T, ulong p)
@@ -310,6 +317,9 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     Flm_to_ZM(GEN z)
     GEN     Flv_FlvV_polint(GEN xa, GEN ya, ulong p, long vs)
     GEN     Flv_inv(GEN x, ulong p)
+    void    Flv_inv_inplace(GEN x, ulong p)
+    void    Flv_inv_pre_inplace(GEN x, ulong p, ulong pi)
+    GEN     Flv_inv_pre(GEN x, ulong p, ulong pi)
     GEN     Flv_polint(GEN xa, GEN ya, ulong p, long vs)
     GEN     Flv_roots_to_pol(GEN a, ulong p, long vs)
     GEN     Flv_to_Flx(GEN x, long vs)
@@ -318,7 +328,8 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     Flx_Fl_add(GEN y, ulong x, ulong p)
     GEN     Flx_Fl_mul(GEN y, ulong x, ulong p)
     GEN     Flx_Fl_mul_to_monic(GEN y, ulong x, ulong p)
-    GEN     Flx_Flv_eval(GEN P, GEN v, ulong p)
+    GEN     Flx_Fl2_eval_pre(GEN x, GEN y, ulong D, ulong p, ulong pi)
+    GEN     Flx_Flv_multieval(GEN P, GEN v, ulong p)
     GEN     Flx_Flxq_eval(GEN f, GEN x, GEN T, ulong p)
     GEN     Flx_FlxqV_eval(GEN f, GEN x, GEN T, ulong p)
     GEN     Flx_Frobenius(GEN T, ulong p)
@@ -330,6 +341,8 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     Flx_divrem(GEN x, GEN y, ulong p, GEN *pr)
     int     Flx_equal(GEN V, GEN W)
     ulong   Flx_eval(GEN x, ulong y, ulong p)
+    ulong   Flx_eval_powers_pre(GEN x, GEN y, ulong p, ulong pi)
+    ulong   Flx_eval_pre(GEN x, ulong y, ulong p, ulong pi)
     GEN     Flx_extgcd(GEN a, GEN b, ulong p, GEN *ptu, GEN *ptv)
     ulong   Flx_extresultant(GEN a, GEN b, ulong p, GEN *ptU, GEN *ptV)
     GEN     Flx_gcd(GEN a, GEN b, ulong p)
@@ -368,10 +381,11 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     FlxM_Flx_add_shallow(GEN x, GEN y, ulong p)
     GEN     FlxM_to_ZXM(GEN z)
     GEN     FlxT_red(GEN z, ulong p)
-    GEN     FlxV_to_ZXV(GEN x)
     GEN     FlxV_Flc_mul(GEN V, GEN W, ulong p)
+    GEN     FlxV_prod(GEN V, ulong p)
     GEN     FlxV_red(GEN z, ulong p)
     GEN     FlxV_to_Flm(GEN v, long n)
+    GEN     FlxV_to_ZXV(GEN x)
     GEN     FlxX_Fl_mul(GEN x, ulong y, ulong p)
     GEN     FlxX_Flx_add(GEN y, GEN x, ulong p)
     GEN     FlxX_Flx_mul(GEN x, GEN y, ulong p)
@@ -390,7 +404,9 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     FlxY_Flxq_evalx(GEN P, GEN x, GEN T, ulong p)
     GEN     FlxY_FlxqV_evalx(GEN P, GEN x, GEN T, ulong p)
     GEN     FlxY_Flx_div(GEN x, GEN y, ulong p)
+    ulong   FlxY_eval_powers_pre(GEN pol, GEN ypowers, GEN xpowers, ulong p, ulong pi)
     GEN     FlxY_evalx(GEN Q, ulong x, ulong p)
+    GEN     FlxY_evalx_powers_pre(GEN pol, GEN ypowers, ulong p, ulong pi)
     GEN     FlxYqq_pow(GEN x, GEN n, GEN S, GEN T, ulong p)
     GEN     Flxq_autpow(GEN x, ulong n, GEN T, ulong p)
     GEN     Flxq_autsum(GEN x, ulong n, GEN T, ulong p)
@@ -461,6 +477,8 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     pol1_FlxX(long v, long sv)
     GEN     polx_FlxX(long v, long sv)
     GEN     random_Flx(long d1, long v, ulong p)
+    GEN     zx_to_Flx(GEN x, ulong p)
+    GEN     zxX_to_FlxX(GEN B, ulong p)
     GEN     zxX_to_Kronecker(GEN P, GEN Q)
 
     # FlxqE.c
@@ -469,6 +487,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     Flxq_ellgens(GEN a4, GEN a6, GEN ch, GEN D, GEN m, GEN T, ulong p)
     GEN     Flxq_ellgroup(GEN a4, GEN a6, GEN N, GEN T, ulong p, GEN *pt_m)
     GEN     Flxq_ellj(GEN a4, GEN a6, GEN T, ulong p)
+    void    Flxq_ellj_to_a4a6(GEN j, GEN T, ulong p, GEN *pt_a4, GEN *pt_a6)
     GEN     FlxqE_add(GEN P, GEN Q, GEN a4, GEN T, ulong p)
     GEN     FlxqE_changepoint(GEN x, GEN ch, GEN T, ulong p)
     GEN     FlxqE_changepointinv(GEN x, GEN ch, GEN T, ulong p)
@@ -487,17 +506,13 @@ cdef extern from "sage/libs/pari/parisage.h":
     # FpE.c
 
     long    Fl_elltrace(ulong a4, ulong a6, ulong p)
-    GEN     Fle_add(GEN P, GEN Q, ulong a4, ulong p)
-    GEN     Fle_dbl(GEN P, ulong a4, ulong p)
-    GEN     Fle_mul(GEN P, GEN n, ulong a4, ulong p)
-    GEN     Fle_mulu(GEN P, ulong n, ulong a4, ulong p)
-    GEN     Fle_order(GEN z, GEN o, ulong a4, ulong p)
-    GEN     Fle_sub(GEN P, GEN Q, ulong a4, ulong p)
+    long    Fl_elltrace_CM(long CM, ulong a4, ulong a6, ulong p)
     GEN     Fp_ellcard(GEN a4, GEN a6, GEN p)
     GEN     Fp_elldivpol(GEN a4, GEN a6, long n, GEN p)
     GEN     Fp_ellgens(GEN a4, GEN a6, GEN ch, GEN D, GEN m, GEN p)
     GEN     Fp_ellgroup(GEN a4, GEN a6, GEN N, GEN p, GEN *pt_m)
     GEN     Fp_ellj(GEN a4, GEN a6, GEN p)
+    int     Fp_elljissupersingular(GEN j, GEN p)
     GEN     Fp_ffellcard(GEN a4, GEN a6, GEN q, long n, GEN p)
     GEN     FpE_add(GEN P, GEN Q, GEN a4, GEN p)
     GEN     FpE_changepoint(GEN x, GEN ch, GEN p)
@@ -516,6 +531,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     FpXQ_ellgens(GEN a4, GEN a6, GEN ch, GEN D, GEN m, GEN T, GEN p)
     GEN     FpXQ_ellgroup(GEN a4, GEN a6, GEN N, GEN T, GEN p, GEN *pt_m)
     GEN     FpXQ_ellj(GEN a4, GEN a6, GEN T, GEN p)
+    int     FpXQ_elljissupersingular(GEN j, GEN T, GEN p)
     GEN     FpXQE_add(GEN P, GEN Q, GEN a4, GEN T, GEN p)
     GEN     FpXQE_changepoint(GEN x, GEN ch, GEN T, GEN p)
     GEN     FpXQE_changepointinv(GEN x, GEN ch, GEN T, GEN p)
@@ -533,7 +549,6 @@ cdef extern from "sage/libs/pari/parisage.h":
     bb_group * get_FpE_group(void **E, GEN a4, GEN a6, GEN p)
     bb_group * get_FpXQE_group(void **E, GEN a4, GEN a6, GEN T, GEN p)
     GEN     elltrace_extension(GEN t, long n, GEN p)
-    GEN     random_Fle(ulong a4, ulong a6, ulong p)
     GEN     random_FpE(GEN a4, GEN a6, GEN p)
     GEN     random_FpXQE(GEN a4, GEN a6, GEN T, GEN p)
 
@@ -640,6 +655,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     Flx_nbfact_by_degree(GEN z, long *nb, ulong p)
     long    Flx_nbroots(GEN f, ulong p)
     ulong   Flx_oneroot(GEN f, ulong p)
+    ulong   Flx_oneroot_split(GEN f, ulong p)
     GEN     Flx_roots(GEN f, ulong p)
     GEN     FlxqX_Frobenius(GEN S, GEN T, ulong p)
     GEN     FlxqXQ_halfFrobenius(GEN a, GEN S, GEN T, ulong p)
@@ -677,6 +693,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     FpXQX_FpXQ_mul(GEN P, GEN U, GEN T, GEN p)
     GEN     FpXQX_FpXQXQV_eval(GEN P, GEN V, GEN S, GEN T, GEN p)
     GEN     FpXQX_FpXQXQ_eval(GEN P, GEN x, GEN S, GEN T, GEN p)
+    GEN     FpXQX_div_by_X_x(GEN a, GEN x, GEN T, GEN p, GEN *pr)
     GEN     FpXQX_divrem(GEN x, GEN y, GEN T, GEN p, GEN *pr)
     GEN     FpXQX_divrem_Barrett(GEN x, GEN B, GEN S, GEN T, GEN p, GEN *pr)
     GEN     FpXQX_digits(GEN x, GEN B, GEN T, GEN p)
@@ -717,6 +734,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     Kronecker_to_FpXQX(GEN z, GEN pol, GEN p)
     GEN     Kronecker_to_ZXX(GEN z, long N, long v)
     GEN     ZXX_mul_Kronecker(GEN x, GEN y, long n)
+    GEN     ZXX_sqr_Kronecker(GEN x, long n)
 
     # FpV.c
 
@@ -733,6 +751,8 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     Flm_Fl_mul(GEN y, ulong x, ulong p)
     void    Flm_Fl_mul_inplace(GEN y, ulong x, ulong p)
     GEN     Flm_Flc_mul(GEN x, GEN y, ulong p)
+    GEN     Flm_Flc_mul_pre(GEN x, GEN y, ulong p, ulong pi)
+    GEN     Flm_add(GEN x, GEN y, ulong p)
     GEN     Flm_center(GEN z, ulong p, ulong ps2)
     GEN     Flm_mul(GEN x, GEN y, ulong p)
     GEN     Flm_neg(GEN y, ulong p)
@@ -742,6 +762,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     Flv_add(GEN x, GEN y, ulong p)
     void    Flv_add_inplace(GEN x, GEN y, ulong p)
     ulong   Flv_dotproduct(GEN x, GEN y, ulong p)
+    ulong   Flv_dotproduct_pre(GEN x, GEN y, ulong p, ulong pi)
     GEN     Flv_center(GEN z, ulong p, ulong ps2)
     GEN     Flv_sub(GEN x, GEN y, ulong p)
     void    Flv_sub_inplace(GEN x, GEN y, ulong p)
@@ -750,11 +771,15 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     FpC_FpV_mul(GEN x, GEN y, GEN p)
     GEN     FpC_Fp_mul(GEN x, GEN y, GEN p)
     GEN     FpC_center(GEN z, GEN p, GEN pov2)
+    void    FpC_center_inplace(GEN z, GEN p, GEN pov2)
     GEN     FpC_red(GEN z, GEN p)
     GEN     FpC_to_mod(GEN z, GEN p)
+    GEN     FpM_add(GEN x, GEN y, GEN p)
+    GEN     FpM_Fp_mul(GEN X, GEN c, GEN p)
     GEN     FpM_FpC_mul(GEN x, GEN y, GEN p)
     GEN     FpM_FpC_mul_FpX(GEN x, GEN y, GEN p, long v)
     GEN     FpM_center(GEN z, GEN p, GEN pov2)
+    void    FpM_center_inplace(GEN z, GEN p, GEN pov2)
     GEN     FpM_mul(GEN x, GEN y, GEN p)
     GEN     FpM_powu(GEN x, ulong n, GEN p)
     GEN     FpM_red(GEN z, GEN p)
@@ -787,9 +812,11 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     zCs_to_ZC(GEN C, long nbrow)
     GEN     zMs_to_ZM(GEN M, long nbrow)
     GEN     zMs_ZC_mul(GEN M, GEN B)
+    GEN     ZMV_to_FlmV(GEN z, ulong m)
 
     # Hensel.c
 
+    GEN     Zp_sqrt(GEN x, GEN p, long e)
     GEN     Zp_sqrtlift(GEN b, GEN a, GEN p, long e)
     GEN     Zp_sqrtnlift(GEN b, GEN n, GEN a, GEN p, long e)
     GEN     ZpX_Frobenius(GEN T, GEN p, long e)
@@ -803,6 +830,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     ZpXQ_inv(GEN a, GEN T, GEN p, long e)
     GEN     ZpXQ_invlift(GEN b, GEN a, GEN T, GEN p, long e)
     GEN     ZpXQ_log(GEN a, GEN T, GEN p, long N)
+    GEN     ZpXQ_sqrt(GEN a, GEN T, GEN p, long e)
     GEN     ZpXQ_sqrtnlift(GEN b, GEN n, GEN a, GEN T, GEN p, long e)
     GEN     ZpXQM_prodFrobenius(GEN M, GEN T, GEN p, long e)
     GEN     ZpXQX_liftroot(GEN f, GEN a, GEN T, GEN p, long e)
@@ -835,6 +863,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     RgC_RgM_mul(GEN x, GEN y)
     GEN     RgC_RgV_mul(GEN x, GEN y)
     GEN     RgC_add(GEN x, GEN y)
+    long    RgC_is_ei(GEN x)
     GEN     RgC_neg(GEN x)
     GEN     RgC_sub(GEN x, GEN y)
     GEN     RgM_Rg_add(GEN x, GEN y)
@@ -857,6 +886,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     RgM_powers(GEN x, long l)
     GEN     RgM_sqr(GEN x)
     GEN     RgM_sub(GEN x, GEN y)
+    GEN     RgM_sumcol(GEN A)
     GEN     RgM_transmul(GEN x, GEN y)
     GEN     RgM_transmultosym(GEN x, GEN y)
     GEN     RgM_zc_mul(GEN x, GEN y)
@@ -871,6 +901,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     int     RgV_is_ZMV(GEN V)
     long    RgV_isin(GEN v, GEN x)
     GEN     RgV_neg(GEN x)
+    GEN     RgV_prod(GEN v)
     GEN     RgV_sub(GEN x, GEN y)
     GEN     RgV_sum(GEN v)
     GEN     RgV_sumpart(GEN v, long n)
@@ -912,8 +943,10 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     RgX_Rg_add_shallow(GEN y, GEN x)
     GEN     RgX_Rg_div(GEN y, GEN x)
     GEN     RgX_Rg_divexact(GEN x, GEN y)
+    GEN     RgX_Rg_eval_bk(GEN Q, GEN x)
     GEN     RgX_Rg_mul(GEN y, GEN x)
     GEN     RgX_Rg_sub(GEN y, GEN x)
+    GEN     RgX_RgV_eval(GEN Q, GEN x)
     GEN     RgX_add(GEN x, GEN y)
     GEN     RgX_blocks(GEN P, long n, long m)
     GEN     RgX_deflate(GEN x0, long d)
@@ -968,6 +1001,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     RgXV_to_RgM(GEN v, long n)
     GEN     RgXV_unscale(GEN v, GEN h)
     GEN     RgXX_to_RgM(GEN v, long n)
+    long    RgXY_degreex(GEN bpol)
     GEN     RgXY_swap(GEN x, long n, long w)
     GEN     RgXY_swapspec(GEN x, long n, long w, long nx)
     GEN     RgXn_eval(GEN Q, GEN x, long n)
@@ -1017,6 +1051,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     ZC_add(GEN x, GEN y)
     GEN     ZC_copy(GEN x)
     GEN     ZC_hnfremdiv(GEN x, GEN y, GEN *Q)
+    long    ZC_is_ei(GEN x)
     GEN     ZC_lincomb(GEN u, GEN v, GEN X, GEN Y)
     void    ZC_lincomb1_inplace(GEN X, GEN Y, GEN v)
     GEN     ZC_neg(GEN M)
@@ -1025,6 +1060,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     ZC_sub(GEN x, GEN y)
     GEN     ZC_z_mul(GEN X, long c)
     GEN     ZM_ZC_mul(GEN x, GEN y)
+    GEN     ZM_Z_div(GEN X, GEN c)
     GEN     ZM_Z_divexact(GEN X, GEN c)
     GEN     ZM_Z_mul(GEN X, GEN c)
     GEN     ZM_add(GEN x, GEN y)
@@ -1104,6 +1140,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     ZX_add(GEN x, GEN y)
     GEN     ZX_copy(GEN x)
     GEN     ZX_deriv(GEN x)
+    GEN     ZX_div_by_X_1(GEN a, GEN *r)
     int     ZX_equal(GEN V, GEN W)
     GEN     ZX_eval1(GEN x)
     long    ZX_max_lg(GEN x)
@@ -1130,6 +1167,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     ZXV_remi2n(GEN x, long n)
     GEN     ZXX_Z_divexact(GEN y, GEN x)
     GEN     ZXX_Z_mul(GEN y, GEN x)
+    GEN     ZXX_Z_add_shallow(GEN x, GEN y)
     long    ZXX_max_lg(GEN x)
     GEN     ZXX_renormalize(GEN x, long lx)
     GEN     ZXX_to_Kronecker(GEN P, long n)
@@ -1137,6 +1175,120 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     scalar_ZX(GEN x, long v)
     GEN     scalar_ZX_shallow(GEN x, long v)
     GEN     zx_to_ZX(GEN z)
+
+    # algebras.c
+
+    GEN alg_centralproj(GEN al, GEN z, int maps)
+    GEN alg_change_overorder_shallow(GEN al, GEN ord)
+    GEN alg_complete(GEN rnf, GEN aut, GEN hi, GEN hf, int maxord)
+    GEN alg_csa_table(GEN nf, GEN mt, long v, int maxord)
+    GEN alg_cyclic(GEN rnf, GEN aut, GEN b, int maxord)
+    GEN alg_decomposition(GEN al)
+    long alg_get_absdim(GEN al)
+    long algabsdim(GEN al)
+    GEN alg_get_abssplitting(GEN al)
+    GEN alg_get_aut(GEN al)
+    GEN algaut(GEN al)
+    GEN alg_get_auts(GEN al)
+    GEN alg_get_b(GEN al)
+    GEN algb(GEN al)
+    GEN alg_get_center(GEN al)
+    GEN alggetcenter(GEN al)
+    GEN alg_get_char(GEN al)
+    GEN algchar(GEN al)
+    long alg_get_degree(GEN al)
+    long algdegree(GEN al)
+    long alg_get_dim(GEN al)
+    long algdim(GEN al)
+    GEN alg_get_hasse_f(GEN al)
+    GEN alghassef(GEN al)
+    GEN alg_get_hasse_i(GEN al)
+    GEN alghassei(GEN al)
+    GEN alg_get_invord(GEN al)
+    GEN alginvbasis(GEN al)
+    GEN alg_get_multable(GEN al)
+    GEN alggetmultable(GEN al)
+    GEN alg_get_ord(GEN al)
+    GEN algbasis(GEN al)
+    GEN alg_get_relmultable(GEN al)
+    GEN algrelmultable(GEN al)
+    GEN alg_get_splitpol(GEN al)
+    GEN alg_get_splitting(GEN al)
+    GEN algsplittingfield(GEN al)
+    GEN alg_get_splittingbasis(GEN al)
+    GEN alg_get_splittingbasisinv(GEN al)
+    GEN alg_get_splittingdata(GEN al)
+    GEN algsplittingdata(GEN al)
+    GEN alg_get_tracebasis(GEN al)
+    GEN alg_hasse(GEN nf, long n, GEN hi, GEN hf, long var, long flag)
+    GEN alg_hilbert(GEN nf, GEN a, GEN b, long v, long flag)
+    GEN alg_matrix(GEN nf, long n, long v, GEN L, long flag)
+    long alg_model(GEN al, GEN x)
+    GEN alg_ordermodp(GEN al, GEN p)
+    GEN alg_quotient(GEN al, GEN I, int maps)
+    GEN algradical(GEN al)
+    GEN algsimpledec(GEN al, int maps)
+    GEN algsubalg(GEN al, GEN basis)
+    long alg_type(GEN al)
+    GEN algadd(GEN al, GEN x, GEN y)
+    GEN algalgtobasis(GEN al, GEN x)
+    GEN algbasischarpoly(GEN al, GEN x, long v)
+    GEN algbasismul(GEN al, GEN x, GEN y)
+    GEN algbasismultable(GEN al, GEN x)
+    GEN algbasismultable_Flm(GEN mt, GEN x, ulong m)
+    GEN algbasistoalg(GEN al, GEN x)
+    GEN algcenter(GEN al)
+    GEN algcharpoly(GEN al, GEN x, long v)
+    GEN algdisc(GEN al)
+    GEN algdivl(GEN al, GEN x, GEN y)
+    GEN algdivr(GEN al, GEN x, GEN y)
+    GEN alghasse(GEN al, GEN pl)
+    GEN alginit(GEN A, GEN B, long v, long flag)
+    long algindex(GEN al, GEN pl)
+    GEN alginv(GEN al, GEN x)
+    int algisassociative(GEN mt0, GEN p)
+    int algiscommutative(GEN al)
+    int algisdivision(GEN al, GEN pl)
+    int algisramified(GEN al, GEN pl)
+    int algissemisimple(GEN al)
+    int algissimple(GEN al, long ss)
+    int algissplit(GEN al, GEN pl)
+    int algisdivl(GEN al, GEN x, GEN y, GEN* ptz)
+    int algisinv(GEN al, GEN x, GEN* ptix)
+    GEN algleftordermodp(GEN al, GEN Ip, GEN p)
+    GEN algmul(GEN al, GEN x, GEN y)
+    GEN algmultable(GEN al, GEN x)
+    GEN algneg(GEN al, GEN x)
+    GEN algnorm(GEN al, GEN x)
+    GEN algpoleval(GEN al, GEN pol, GEN x)
+    GEN algpow(GEN al, GEN x, GEN n)
+    GEN algprimesubalg(GEN al)
+    GEN algramifiedplaces(GEN al)
+    GEN algrandom(GEN al, GEN b)
+    GEN algsplittingmatrix(GEN al, GEN x)
+    GEN algsqr(GEN al, GEN x)
+    GEN algsub(GEN al, GEN x, GEN y)
+    GEN algtableinit(GEN mt, GEN p)
+    GEN algtensor(GEN al1, GEN al2, int maxord)
+    GEN algtrace(GEN al, GEN x)
+    long algtype(GEN al)
+    GEN bnfgwgeneric(GEN bnf, GEN Lpr, GEN Ld, GEN pl, long var)
+    GEN bnrconj(GEN bnr, long i)
+    GEN bnrgwsearch(GEN bnr, GEN Lpr, GEN Ld, GEN pl)
+    void checkalg(GEN x)
+    void checkhasse(GEN nf, GEN hi, GEN hf, long n)
+    long cyclicrelfrob(GEN rnf, GEN nf2, GEN auts, GEN pr)
+    GEN gp_algcenter(GEN al)
+    GEN gp_algmultable(GEN al, GEN x)
+    GEN hassecoprime(GEN hi, GEN hf, long n)
+    GEN hassedown(GEN nf, long n, GEN hi, GEN hf)
+    GEN hassewedderburn(GEN hi, GEN hf, long n)
+    long localhasse(GEN rnf, GEN nf2, GEN cnd, GEN pl, GEN auts, GEN b, long k)
+    GEN nfgrunwaldwang(GEN nf0, GEN Lpr, GEN Ld, GEN pl, long var)
+    GEN nfgwkummer(GEN nf, GEN Lpr, GEN Ld, GEN pl, long var)
+    GEN extchinese(GEN nf, GEN x, GEN y, GEN pl, GEN* red)
+    GEN factoredextchinese(GEN nf, GEN x, GEN y, GEN pl, GEN* fa)
+    GEN factoredextchinesetest(GEN nf, GEN x, GEN y, GEN pl, GEN* fa, GEN data, int (*test)(GEN, GEN, GEN))
 
     # alglin1.c
 
@@ -1218,7 +1370,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     RgM_invimage(GEN A, GEN B)
     GEN     RgM_solve(GEN a, GEN b)
     GEN     RgM_solve_realimag(GEN x, GEN y)
-    void    RgMs_elim(GEN M, long N, GEN A, GEN *p_col, GEN *p_lin)
+    void    RgMs_structelim(GEN M, long N, GEN A, GEN *p_col, GEN *p_lin)
     GEN     ZM_det(GEN a)
     GEN     ZM_detmult(GEN A)
     GEN     ZM_gauss(GEN a, GEN b)
@@ -1272,6 +1424,8 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     QM_ImZ_hnf(GEN x)
     GEN     QM_ImQ_hnf(GEN x)
     GEN     QM_charpoly_ZX(GEN M)
+    GEN     QM_charpoly_ZX_bound(GEN M, long bit)
+    GEN     QM_charpoly_ZX2_bound(GEN M, GEN M2, long bit)
     GEN     ZM_charpoly(GEN x)
     GEN     adj(GEN x)
     GEN     adjsafe(GEN x)
@@ -1306,7 +1460,9 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     diagonal(GEN x)
     GEN     diagonal_shallow(GEN x)
     GEN     extract0(GEN x, GEN l1, GEN l2)
+    GEN     fold0(GEN f, GEN A)
     GEN     genapply(void *E, GEN (*f)(void *E, GEN x), GEN A)
+    GEN     genfold(void *E, GEN (*f)(void *E, GEN x, GEN y), GEN A)
     GEN     genindexselect(void *E, long (*f)(void *E, GEN x), GEN A)
     GEN     genselect(void *E, long (*f)(void *E, GEN x), GEN A)
     GEN     gtomat(GEN x)
@@ -1315,6 +1471,8 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     matmultodiagonal(GEN x, GEN y)
     GEN     matslice0(GEN A, long x1, long x2, long y1, long y2)
     GEN     parapply(GEN V, GEN C)
+    void    parfor(GEN a, GEN b, GEN code, void *E, long call(void*, GEN, GEN))
+    void    parforprime(GEN a, GEN b, GEN code, void *E, long call(void*, GEN, GEN))
     GEN     parselect(GEN C, GEN D, long flag)
     GEN     select0(GEN A, GEN f, long flag)
     GEN     shallowextract(GEN x, GEN L)
@@ -1338,19 +1496,19 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     compile_str(char *s)
     GEN     chartoGENstr(char c)
     long    delete_var()
-    entree* fetch_named_var(char *s)
     long    fetch_user_var(char *s)
     long    fetch_var()
+    long    fetch_var_higher()
     GEN     fetch_var_value(long vx, GEN t)
     GEN     gp_read_str(char *t)
     entree* install(void *f, char *name, char *code)
     entree* is_entry(char *s)
     void    kill0(char *e)
-    long    manage_var(long n, entree *ep)
+    void    pari_var_close()
     void    pari_var_init()
     long    pari_var_next()
     long    pari_var_next_temp()
-    void    pari_var_create(entree *ep)
+    long    pari_var_create(entree *ep)
     void    name_var(long n, char *s)
     GEN     readseq(char *t)
     GEN*    safegel(GEN x, long l)
@@ -1362,6 +1520,8 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     strtoi(char *s)
     GEN     strtor(char *s, long prec)
     GEN     type0(GEN x)
+    GEN     varhigher(char *s, long v)
+    GEN     varlower(char *s, long v)
 
     # aprcl.c
 
@@ -1375,14 +1535,15 @@ cdef extern from "sage/libs/pari/parisage.h":
     void    check_quaddisc_real(GEN x, long *r, char *f)
     long    cornacchia(GEN d, GEN p, GEN *px, GEN *py)
     long    cornacchia2(GEN d, GEN p, GEN *px, GEN *py)
-    GEN     nucomp(GEN x, GEN y, GEN l)
-    GEN     nudupl(GEN x, GEN l)
-    GEN     nupow(GEN x, GEN n)
+    GEN     nucomp(GEN x, GEN y, GEN L)
+    GEN     nudupl(GEN x, GEN L)
+    GEN     nupow(GEN x, GEN n, GEN L)
     GEN     primeform(GEN x, GEN p, long prec)
     GEN     primeform_u(GEN x, ulong p)
     GEN     qfbcompraw(GEN x, GEN y)
     GEN     qfbpowraw(GEN x, long n)
     GEN     qfbred0(GEN x, long flag, GEN D, GEN isqrtD, GEN sqrtD)
+    GEN     qfbredsl2(GEN q, GEN S)
     GEN     qfbsolve(GEN Q, GEN n)
     GEN     qfi(GEN x, GEN y, GEN z)
     GEN     qfi_1(GEN x)
@@ -1426,6 +1587,8 @@ cdef extern from "sage/libs/pari/parisage.h":
     # arith1.c
 
     ulong   Fl_order(ulong a, ulong o, ulong p)
+    GEN     Fl_powers(ulong x, long n, ulong p)
+    GEN     Fl_powers_pre(ulong x, long n, ulong p, ulong pi)
     ulong   Fl_powu(ulong x, ulong n, ulong p)
     ulong   Fl_powu_pre(ulong x, ulong n, ulong p, ulong pi)
     ulong   Fl_sqrt(ulong a, ulong p)
@@ -1437,6 +1600,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     Fp_log(GEN a, GEN g, GEN ord, GEN p)
     GEN     Fp_order(GEN a, GEN o, GEN p)
     GEN     Fp_pow(GEN a, GEN n, GEN m)
+    GEN     Fp_powers(GEN x, long n, GEN p)
     GEN     Fp_pows(GEN A, long k, GEN N)
     GEN     Fp_powu(GEN x, ulong k, GEN p)
     GEN     Fp_sqrt(GEN a, GEN p)
@@ -1453,8 +1617,12 @@ cdef extern from "sage/libs/pari/parisage.h":
     long    Z_ispow2(GEN x)
     long    Z_ispowerall(GEN x, ulong k, GEN *pt)
     long    Z_issquareall(GEN x, GEN *pt)
+    GEN     Z_nv_mod(GEN P, GEN xa)
     GEN     ZV_allpnqn(GEN x)
-    GEN     ZV_chinese(GEN xa, GEN ya, GEN *pt_mod)
+    GEN     ZV_chinese(GEN A, GEN P, GEN *pt_mod)
+    GEN     ZV_chinese_tree(GEN A, GEN P, GEN tree, GEN *pt_mod)
+    GEN     ZV_producttree(GEN xa)
+    GEN     ZX_nv_mod_tree(GEN P, GEN xa, GEN T)
     long    Zp_issquare(GEN a, GEN p)
     GEN     bestappr(GEN x, GEN k)
     GEN     bestapprPade(GEN x, long B)
@@ -1503,6 +1671,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     long    logint0(GEN B, GEN y, GEN *ptq)
     GEN     mpfact(long n)
     GEN     mulu_interval(ulong a, ulong b)
+    GEN     nmV_chinese(GEN A, GEN P, GEN *pt_mod)
     GEN     odd_prime_divisors(GEN q)
     GEN     order(GEN x)
     GEN     pnqn(GEN x)
@@ -1540,12 +1709,14 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     coredisc(GEN n)
     GEN     coredisc0(GEN n, long flag)
     GEN     coredisc2(GEN n)
+    long    corediscs(long D, ulong *f)
     GEN     digits(GEN N, GEN B)
     GEN     divisors(GEN n)
     GEN     divisorsu(ulong n)
     GEN     factor_pn_1(GEN p, ulong n)
     GEN     factor_pn_1_limit(GEN p, long n, ulong lim)
     GEN     factoru_pow(ulong n)
+    GEN     fromdigits(GEN x, GEN B)
     GEN     fuse_Z_factor(GEN f, GEN B)
     GEN     gen_digits(GEN x, GEN B, long n, void *E, bb_ring *r,
                               GEN (*div)(void *E, GEN x, GEN y, GEN *r))
@@ -1654,6 +1825,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     compositum(GEN P, GEN Q)
     GEN     compositum2(GEN P, GEN Q)
     GEN     nfdisc(GEN x)
+    GEN     get_modpr(GEN x)
     GEN     indexpartial(GEN P, GEN DP)
     GEN     modpr_genFq(GEN modpr)
     GEN     nf_to_Fq_init(GEN nf, GEN *pr, GEN *T, GEN *p)
@@ -1662,11 +1834,15 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     nfV_to_FqV(GEN z, GEN nf, GEN modpr)
     GEN     nfX_to_FqX(GEN x, GEN nf, GEN modpr)
     GEN     nfbasis(GEN x, GEN *y, GEN p)
+    GEN     nfcompositum(GEN nf, GEN A, GEN B, long flag)
     void    nfmaxord(nfmaxord_t *S, GEN T, long flag)
     GEN     nfmodprinit(GEN nf, GEN pr)
     GEN     nfreducemodpr(GEN nf, GEN x, GEN modpr)
+    GEN     nfsplitting(GEN T, GEN D)
     GEN     polcompositum0(GEN P, GEN Q, long flag)
     GEN     idealprimedec(GEN nf, GEN p)
+    GEN     idealprimedec_limit_f(GEN nf, GEN p, long f)
+    GEN     idealprimedec_limit_norm(GEN nf, GEN p, GEN B)
     GEN     rnfbasis(GEN bnf, GEN order)
     GEN     rnfdedekind(GEN nf, GEN T, GEN pr, long flag)
     GEN     rnfdet(GEN nf, GEN order)
@@ -1713,6 +1889,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     nfdiv(GEN nf, GEN x, GEN y)
     GEN     nfdiveuc(GEN nf, GEN a, GEN b)
     GEN     nfdivrem(GEN nf, GEN a, GEN b)
+    GEN     nfembed(GEN nf, GEN x, long k)
     GEN     nfinv(GEN nf, GEN x)
     GEN     nfinvmodideal(GEN nf, GEN x, GEN ideal)
     GEN     nfmod(GEN nf, GEN a, GEN b)
@@ -1739,6 +1916,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     rnfelttrace(GEN rnf, GEN x)
     GEN     set_sign_mod_divisor(GEN nf, GEN x, GEN y, GEN idele, GEN sarch)
     GEN     vec01_to_indices(GEN arch)
+    GEN     vecsmall01_to_indices(GEN v)
     GEN     vecmodii(GEN a, GEN b)
     GEN     ideallog(GEN nf, GEN x, GEN bigideal)
 
@@ -1759,6 +1937,7 @@ cdef extern from "sage/libs/pari/parisage.h":
 
     GEN     RM_round_maxrank(GEN G)
     GEN     ZM_famat_limit(GEN fa, GEN limit)
+    GEN     famat_Z_gcd(GEN M, GEN n)
     GEN     famat_inv(GEN f)
     GEN     famat_inv_shallow(GEN f)
     GEN     famat_makecoprime(GEN nf, GEN g, GEN e, GEN pr, GEN prk, GEN EX)
@@ -1798,6 +1977,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     idealhnf0(GEN nf, GEN a, GEN b)
     GEN     idealintersect(GEN nf, GEN x, GEN y)
     GEN     idealinv(GEN nf, GEN ix)
+    GEN     idealinv_HNF(GEN nf, GEN I)
     GEN     idealred0(GEN nf, GEN I, GEN vdir)
     GEN     idealmul(GEN nf, GEN ix, GEN iy)
     GEN     idealmul0(GEN nf, GEN ix, GEN iy, long flag)
@@ -1821,12 +2001,14 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     nfdetint(GEN nf, GEN pseudo)
     GEN     nfdivmodpr(GEN nf, GEN x, GEN y, GEN modpr)
     GEN     nfhnf(GEN nf, GEN x)
+    GEN     nfhnf0(GEN nf, GEN x, long flag)
     GEN     nfhnfmod(GEN nf, GEN x, GEN d)
     GEN     nfkermodpr(GEN nf, GEN x, GEN modpr)
     GEN     nfmulmodpr(GEN nf, GEN x, GEN y, GEN modpr)
     GEN     nfpowmodpr(GEN nf, GEN x, GEN k, GEN modpr)
     GEN     nfreduce(GEN nf, GEN x, GEN ideal)
     GEN     nfsnf(GEN nf, GEN x)
+    GEN     nfsnf0(GEN nf, GEN x, long flag)
     GEN     nfsolvemodpr(GEN nf, GEN a, GEN b, GEN modpr)
     GEN     to_famat(GEN x, GEN y)
     GEN     to_famat_shallow(GEN x, GEN y)
@@ -1884,6 +2066,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN gen_powu_i(GEN x, ulong n, void *E, GEN (*sqr)(void*, GEN), GEN (*mul)(void*, GEN, GEN))
     GEN gen_powu_fold(GEN x, ulong n, void *E, GEN (*sqr)(void*, GEN), GEN (*msqr)(void*, GEN))
     GEN gen_powu_fold_i(GEN x, ulong n, void *E, GEN  (*sqr)(void*, GEN), GEN (*msqr)(void*, GEN))
+    GEN gen_product(GEN x, void *data, GEN (*mul)(void*, GEN, GEN))
 
     # bibli1.c
 
@@ -1909,7 +2092,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     qfrep0(GEN a, GEN borne, long flag)
     GEN     qfminim0(GEN a, GEN borne, GEN stockmax, long flag, long prec)
     GEN     seralgdep(GEN s, long p, long r)
-    GEN     zncoppersmith(GEN P0, GEN N, GEN X, GEN B) 
+    GEN     zncoppersmith(GEN P0, GEN N, GEN X, GEN B)
 
     # bibli2.c
 
@@ -2084,6 +2267,10 @@ cdef extern from "sage/libs/pari/parisage.h":
     long    hyperell_locally_soluble(GEN pol, GEN p)
     long    nf_hyperell_locally_soluble(GEN nf, GEN pol, GEN p)
 
+    # classpoly.c
+
+    GEN     polclass(GEN D, long xvar)
+
     # compile.c
 
     GEN     closure_deriv(GEN G)
@@ -2108,7 +2295,7 @@ cdef extern from "sage/libs/pari/parisage.h":
 
     GEN default0(char *a, char *b)
     long getrealprecision()
-    int pari_is_default(char *s)
+    entree *pari_is_default(char *s)
     GEN sd_TeXstyle(char *v, long flag)
     GEN sd_colors(char *v, long flag)
     GEN sd_compatible(char *v, long flag)
@@ -2145,6 +2332,39 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN setdefault(char *s, char *v, long flag)
     long setrealprecision(long n, long *prec)
 
+    # gplib.c
+    GEN sd_breakloop(char *v, long flag)
+    GEN sd_echo(char *v, long flag)
+    GEN sd_graphcolormap(char *v, long flag)
+    GEN sd_graphcolors(char *v, long flag)
+    GEN sd_help(char *v, long flag)
+    GEN sd_histfile(char *v, long flag)
+    GEN sd_lines(char *v, long flag)
+    GEN sd_linewrap(char *v, long flag)
+    GEN sd_prompt(char *v, long flag)
+    GEN sd_prompt_cont(char *v, long flag)
+    GEN sd_psfile(char *v, long flag)
+    GEN sd_readline(char *v, long flag)
+    GEN sd_recover(char *v, long flag)
+    GEN sd_timer(char *v, long flag)
+    void pari_hit_return()
+    void gp_load_gprc()
+    int  gp_meta(char *buf, int ismain)
+    void pari_center(char *s)
+    void pari_print_version()
+    char *gp_format_time(long delay)
+    char *gp_format_prompt(char *p)
+    void pari_alarm(long s)
+    GEN  gp_alarm(long s, GEN code)
+    GEN  gp_input()
+    void gp_allocatemem(GEN z)
+    int  gp_handle_exception(long numerr)
+    void gp_alarm_handler(int sig)
+    void gp_sigint_fun()
+    void gp_help(char *s, long flag)
+    void gp_echo_and_log(char *prompt, char *s)
+    void print_fun_list(char **list, long nbli)
+
     # ellanal.c
 
     GEN     ellanalyticrank(GEN e, GEN eps, long prec)
@@ -2161,9 +2381,13 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     ellsearchcurve(GEN name)
     void    forell(void *E, long call(void*, GEN), long a, long b)
 
-    # elliptic.c
+    # ellfromeqn.c
 
-    extern int t_ELL_Rg, t_ELL_Q, t_ELL_Qp, t_ELL_Fp, t_ELL_Fq, t_ELL_NF
+    GEN     ellfromeqn(GEN s)
+
+    # elliptic.c
+    long    ellQ_get_CM(GEN e)
+    int     ell_is_integral(GEN E)
     GEN     ellbasechar(GEN E)
     GEN     akell(GEN e, GEN n)
     GEN     anell(GEN e, long n)
@@ -2176,9 +2400,12 @@ cdef extern from "sage/libs/pari/parisage.h":
     void    checkellisog(GEN v)
     void    checkellpt(GEN z)
     void    checkell5(GEN e)
+    GEN     ec_bmodel(GEN e)
     GEN     ec_f_evalx(GEN E, GEN x)
+    GEN     ec_h_evalx(GEN e, GEN x)
     GEN     ec_dFdx_evalQ(GEN E, GEN Q)
     GEN     ec_dFdy_evalQ(GEN E, GEN Q)
+    GEN     ec_dmFdy_evalQ(GEN e, GEN Q)
     GEN     ec_2divpol_evalx(GEN E, GEN x)
     GEN     ec_half_deriv_2divpol_evalx(GEN E, GEN x)
     GEN     ellanal_globalred(GEN e, GEN *gr)
@@ -2196,6 +2423,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     ellR_roots(GEN E, long prec)
     GEN     elladd(GEN e, GEN z1, GEN z2)
     GEN     ellap(GEN e, GEN p)
+    long    ellap_CM_fast(GEN E, ulong p, long CM)
     GEN     ellcard(GEN E, GEN p)
     GEN     ellchangecurve(GEN e, GEN ch)
     GEN     ellchangeinvert(GEN w)
@@ -2224,7 +2452,10 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     ellheightmatrix(GEN E, GEN x, long n)
     GEN     ellheightoo(GEN e, GEN z, long prec)
     GEN     ellinit(GEN x, GEN p, long prec)
+    GEN     ellintegralmodel(GEN e, GEN *pv)
     GEN     ellisoncurve(GEN e, GEN z)
+    int     ellissupersingular(GEN x, GEN p)
+    int     elljissupersingular(GEN x)
     GEN     elllseries(GEN e, GEN s, GEN A, long prec)
     GEN     elllocalred(GEN e, GEN p1)
     GEN     elllog(GEN e, GEN a, GEN g, GEN o)
@@ -2233,6 +2464,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     ellnonsingularmultiple(GEN e, GEN P)
     GEN     ellneg(GEN e, GEN z)
     GEN     ellorder(GEN e, GEN p, GEN o)
+    long    ellorder_Q(GEN E, GEN P)
     GEN     ellordinate(GEN e, GEN x, long prec)
     GEN     ellpadicfrobenius(GEN E, ulong p, long n)
     GEN     ellpadicheight(GEN e, GEN p, long n, GEN P)
@@ -2254,12 +2486,18 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     ellwp(GEN w, GEN z, long prec)
     GEN     ellwp0(GEN w, GEN z, long flag, long prec)
     GEN     ellwpseries(GEN e, long v, long PRECDL)
+    GEN     ellxn(GEN e, long n, long v)
     GEN     ellzeta(GEN om, GEN z, long prec)
     GEN     expIxy(GEN x, GEN y, long prec)
     int     oncurve(GEN e, GEN z)
     GEN     orderell(GEN e, GEN p)
     GEN     pointell(GEN e, GEN z, long prec)
+    GEN     point_to_a4a6(GEN E, GEN P, GEN p, GEN *pa4)
+    GEN     point_to_a4a6_Fl(GEN E, GEN P, ulong p, ulong *pa4)
     GEN     zell(GEN e, GEN z, long prec)
+
+    # elltors.c
+    long    ellisdivisible(GEN E, GEN P, GEN n, GEN *Q)
 
     # ellpadicL.c
     GEN ellpadicL(GEN E, GEN p, long n, long r, GEN D, GEN C)
@@ -2278,6 +2516,11 @@ cdef extern from "sage/libs/pari/parisage.h":
 
     # es.c
 
+    GEN     externstr(char *cmd)
+    char    *gp_filter(char *s)
+    GEN     gpextern(char *cmd)
+    void    gpsystem(char *s)
+    GEN     readstr(char *s)
     GEN     GENtoGENstr_nospace(GEN x)
     GEN     GENtoGENstr(GEN x)
     char*   GENtoTeXstr(GEN x)
@@ -2349,7 +2592,6 @@ cdef extern from "sage/libs/pari/parisage.h":
     void    out_term_color(PariOUT *out, long c)
     void    out_vprintf(PariOUT *out, char *fmt, va_list ap)
     char*   pari_sprint0(char *msg, GEN g, long flag)
-    extern int f_RAW, f_PRETTYMAT, f_PRETTY, f_TEX
     void    print0(GEN g, long flag)
     void    print1(GEN g)
     void    printf0(char *fmt, GEN args)
@@ -2375,13 +2617,14 @@ cdef extern from "sage/libs/pari/parisage.h":
 
     # eval.c
 
-    extern int br_NONE, br_BREAK, br_NEXT, br_MULTINEXT, br_RETURN
     void    bincopy_relink(GEN C, GEN vi)
     GEN     break0(long n)
     GEN     closure_callgen1(GEN C, GEN x)
+    GEN     closure_callgen1prec(GEN C, GEN x, long prec)
     GEN     closure_callgen2(GEN C, GEN x, GEN y)
     GEN     closure_callgenall(GEN C, long n, ...)
     GEN     closure_callgenvec(GEN C, GEN args)
+    GEN     closure_callgenvecprec(GEN C, GEN args, long prec)
     void    closure_callvoid1(GEN C, GEN x)
     long    closure_context(long start, long level)
     void    closure_disassemble(GEN n)
@@ -2394,20 +2637,28 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     closure_trapgen(GEN C, long numerr)
     GEN     copybin_unlink(GEN C)
     GEN     get_lex(long vn)
+    long    get_localprec()
     GEN     gp_call(void *E, GEN x)
+    GEN     gp_callprec(void *E, GEN x, long prec)
+    GEN     gp_call2(void *E, GEN x, GEN y)
     long    gp_callbool(void *E, GEN x)
     long    gp_callvoid(void *E, GEN x)
     GEN     gp_eval(void *E, GEN x)
     long    gp_evalbool(void *E, GEN x)
+    GEN     gp_evalprec(void *E, GEN x, long prec)
     GEN     gp_evalupto(void *E, GEN x)
     long    gp_evalvoid(void *E, GEN x)
+    void    localprec(long p)
     long    loop_break()
     GEN     next0(long n)
     GEN     pareval(GEN C)
+    GEN     pari_self()
     GEN     parsum(GEN a, GEN b, GEN code, GEN x)
     GEN     parvector(long n, GEN code)
     void    pop_lex(long n)
+    void    pop_localprec()
     void    push_lex(GEN a, GEN C)
+    void    push_localprec(long p)
     GEN     return0(GEN x)
     void    set_lex(long vn, GEN x)
 
@@ -2592,9 +2843,13 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     gtolist(GEN x)
     long    gtolong(GEN x)
     int     lexcmp(GEN x, GEN y)
+    GEN     listcreate_typ(long t)
+    GEN     listcreate()
     GEN     listinsert(GEN list, GEN object, long index)
     void    listpop(GEN L, long index)
+    void    listpop0(GEN L, long index)
     GEN     listput(GEN list, GEN object, long index)
+    GEN     listput0(GEN list, GEN object, long index)
     void    listsort(GEN list, long flag)
     GEN     matsize(GEN x)
     GEN     mklistcopy(GEN x)
@@ -2738,6 +2993,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     long    poldegree(GEN x, long v)
     long    RgX_degree(GEN x, long v)
     GEN     poleval(GEN x, GEN y)
+    GEN     RgX_cxeval(GEN T, GEN u, GEN ui)
     GEN     pollead(GEN x, long v)
     long    precision(GEN x)
     GEN     precision0(GEN x, long n)
@@ -2762,6 +3018,10 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     toser_i(GEN x)
     GEN     trunc0(GEN x, GEN *pte)
     GEN     uu32toi(ulong a, ulong b)
+    GEN     vars_sort_inplace(GEN z)
+    GEN     vars_to_RgXV(GEN h)
+    GEN     variables_vecsmall(GEN x)
+    GEN     variables_vec(GEN x)
 
     # genus2red.c
 
@@ -2774,11 +3034,17 @@ cdef extern from "sage/libs/pari/parisage.h":
 
     # hash.c
 
+    hashtable *hash_create_ulong(ulong s, long stack)
+    hashtable *hash_create_str(ulong s, long stack)
     hashtable *hash_create(ulong minsize, ulong (*hash)(void*), int (*eq)(void*, void*), int use_stack)
     void hash_insert(hashtable *h, void *k, void *v)
+    GEN hash_keys(hashtable *h)
+    GEN hash_values(hashtable *h)
     hashentry *hash_search(hashtable *h, void *k)
     hashentry *hash_search2(hashtable *h, void *k, ulong hash)
+    hashentry *hash_select(hashtable *h, void *k, void *E, int(*select)(void *, hashentry *))
     hashentry *hash_remove(hashtable *h, void *k)
+    hashentry *hash_remove_select(hashtable *h, void *k, void *E, int (*select)(void*, hashentry*))
     void hash_destroy(hashtable *h)
     ulong hash_str(char *str)
     ulong hash_str2(char *s)
@@ -2787,7 +3053,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     # hyperell.c
 
     GEN     hyperellpadicfrobenius(GEN x, ulong p, long e)
-    GEN     hyperellzeta(GEN x)
+    GEN     hyperellcharpoly(GEN x)
     GEN     nfhyperellpadicfrobenius(GEN H, GEN T, ulong p, long n)
 
     # hnf_snf.c
@@ -2912,7 +3178,8 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     obj_check(GEN S, long K)
     GEN     obj_checkbuild(GEN S, long tag, GEN (*build)(GEN))
     GEN     obj_checkbuild_padicprec(GEN S, long tag, GEN (*build)(GEN, long), long prec)
-    GEN     obj_checkbuild_prec(GEN S, long tag, GEN (*build)(GEN, long), long prec)
+    GEN     obj_checkbuild_realprec(GEN S, long tag, GEN (*build)(GEN, long), long prec)
+    GEN     obj_checkbuild_prec(GEN S, long tag, GEN (*build)(GEN, long), long (*pr)(GEN), long prec)
     void    obj_free(GEN S)
     GEN     obj_init(long d, long n)
     GEN     obj_insert(GEN S, long K, GEN O)
@@ -2920,9 +3187,9 @@ cdef extern from "sage/libs/pari/parisage.h":
     void    pari_add_function(entree *ep)
     void    pari_add_module(entree *ep)
     void    pari_add_defaults_module(entree *ep)
-    void    pari_add_oldmodule(entree *ep)
     void    pari_close()
     void    pari_close_opts(ulong init_opts)
+    GEN     pari_compile_str(char *lex)
     int     pari_daemon()
     void    pari_err(int numerr, ...)
     GEN     pari_err_last()
@@ -2957,22 +3224,19 @@ cdef extern from "sage/libs/pari/parisage.h":
 
     # intnum.c
 
+    GEN     contfraceval(GEN CF, GEN t, long nlim)
+    GEN     contfracinit(GEN M, long lim)
     GEN     intcirc(void *E, GEN (*eval) (void *, GEN), GEN a, GEN R, GEN tab, long prec)
-    GEN     intfouriercos(void *E, GEN (*eval) (void *, GEN), GEN a, GEN b, GEN x, GEN tab, long prec)
-    GEN     intfourierexp(void *E, GEN (*eval)(void *, GEN), GEN a, GEN b, GEN x, GEN tab, long prec)
-    GEN     intfouriersin(void *E, GEN (*eval) (void *, GEN), GEN a, GEN b, GEN x, GEN tab, long prec)
-    GEN     intfuncinit(void *E, GEN (*eval) (void *, GEN), GEN a, GEN b, long m, long flag, long prec)
-    GEN     intlaplaceinv(void *E, GEN (*eval) (void *, GEN), GEN sig, GEN x, GEN tab, long prec)
-    GEN     intmellininv(void *E, GEN (*eval) (void *, GEN), GEN sig, GEN x, GEN tab, long prec)
-    GEN     intmellininvshort(GEN sig, GEN x, GEN tab, long prec)
+    GEN     intfuncinit(void *E, GEN (*eval) (void *, GEN), GEN a, GEN b, long m, long prec)
     GEN     intnum(void *E, GEN (*eval) (void *, GEN), GEN a, GEN b, GEN tab, long prec)
+    GEN     intnumgauss(void *E, GEN (*eval)(void*, GEN), GEN a, GEN b, GEN tab, long prec)
+    GEN     intnumgaussinit(long n, long prec)
     GEN     intnuminit(GEN a, GEN b, long m, long prec)
-    GEN     intnuminitgen(void *E, GEN (*eval) (void *, GEN), GEN a, GEN b, long m, long flext, long prec)
     GEN     intnumromb(void *E, GEN (*eval) (void *, GEN), GEN a, GEN b, long flag, long prec)
-    long    intnumstep(long prec)
-    GEN     sumnum(void *E, GEN (*f) (void *, GEN), GEN a, GEN sig, GEN tab, long flag, long prec)
-    GEN     sumnumalt(void *E, GEN (*f) (void *, GEN), GEN a, GEN s, GEN tab, long flag, long prec)
-    GEN     sumnuminit(GEN sig, long m, long sgn, long prec)
+    GEN     sumnum(void *E, GEN (*eval)(void*, GEN), GEN a, GEN tab, long prec)
+    GEN     sumnuminit(GEN fast, long prec)
+    GEN     sumnummon(void *E, GEN (*eval)(void*, GEN), GEN a, GEN tab, long prec)
+    GEN     sumnummoninit(GEN asymp, GEN w, GEN n0, long prec)
 
     # krasner.c
 
@@ -3002,6 +3266,28 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     matkerint0(GEN x, long flag)
     GEN     qflll0(GEN x, long flag)
     GEN     qflllgram0(GEN x, long flag)
+
+    # map.c
+
+    GEN     gtomap(GEN M)
+    void    mapdelete(GEN T, GEN a)
+    GEN     mapdomain(GEN T)
+    GEN     mapdomain_shallow(GEN T)
+    GEN     mapget(GEN T, GEN a)
+    int     mapisdefined(GEN T, GEN a, GEN *pt_z)
+    void    mapput(GEN T, GEN a, GEN b)
+    GEN     maptomat(GEN T)
+    GEN     maptomat_shallow(GEN T)
+
+    # mellininv.c
+
+    GEN     gammamellininv(GEN Vga, GEN s, long m, long prec)
+    GEN     gammamellininv_bitprec(GEN Vga, GEN s, long m, long bitprec)
+    GEN     gammamellininvasymp(GEN Vga, long nlimmax, long m)
+    GEN     gammamellininvinit(GEN Vga, long m, long prec)
+    GEN     gammamellininvinit_bitprec(GEN Vga, long m, long bitprec)
+    GEN     gammamellininvrt(GEN K, GEN x, long prec)
+    GEN     gammamellininvrt_bitprec(GEN K, GEN s, long bitprec)
 
     # members.c
 
@@ -3053,6 +3339,14 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     member_zk(GEN x)
     GEN     member_zkst(GEN bid)
 
+    # modpoly.c
+
+    GEN     Flm_Fl_polmodular_evalx(GEN phi, long L, ulong j, ulong p, ulong pi)
+    GEN     Fp_polmodular_evalx(long L, GEN J, GEN P, long v, int compute_derivs)
+    GEN     polmodular_ZM(long L)
+    GEN     polmodular_ZXX(long L, long xvar, long yvar)
+    GEN     polmodular(long L, GEN x, long yvar, int compute_derivs)
+
     # mp.c
 
     GEN     addmulii(GEN x, GEN y, GEN z)
@@ -3075,6 +3369,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     void    affrr(GEN x, GEN y)
     GEN     bezout(GEN a, GEN b, GEN *u, GEN *v)
     long    cbezout(long a, long b, long *uu, long *vv)
+    GEN     cbrtr_abs(GEN x)
     int     cmpii(GEN x, GEN y)
     int     cmprr(GEN x, GEN y)
     long    dblexpo(double x)
@@ -3146,6 +3441,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     nffactormod(GEN nf, GEN pol, GEN pr)
     GEN     nfgcd(GEN P, GEN Q, GEN nf, GEN den)
     GEN     nfgcd_all(GEN P, GEN Q, GEN T, GEN den, GEN *Pnew)
+    int     nfissquarefree(GEN nf, GEN x)
     GEN     nfroots(GEN nf, GEN pol)
     GEN     polfnf(GEN a, GEN t)
     GEN     rootsof1(GEN x)
@@ -3208,7 +3504,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     vecperm_orbits(GEN v, long n)
     GEN     vec_insert(GEN v, long n, GEN x)
     int     vec_is1to1(GEN v)
-    int     vec_is(GEN v)
+    int     vec_isconst(GEN v)
     long    vecsmall_duplicate(GEN x)
     long    vecsmall_duplicate_sorted(GEN x)
     GEN     vecsmall_indexsort(GEN V)
@@ -3273,8 +3569,6 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     centermodii(GEN x, GEN p, GEN po2)
     GEN     content(GEN x)
     GEN     deg1_from_roots(GEN L, long v)
-    GEN     divide_conquer_assoc(GEN x, void *data, GEN (*mul)(void*, GEN, GEN))
-    GEN     divide_conquer_prod(GEN x, GEN (*mul)(GEN, GEN))
     GEN     factor(GEN x)
     GEN     factor0(GEN x, long flag)
     GEN     factorback(GEN fa)
@@ -3505,8 +3799,9 @@ cdef extern from "sage/libs/pari/parisage.h":
 
     # sumiter.c
 
-    GEN     derivnum(void *E, GEN (*eval)(void *, GEN), GEN x, long prec)
-    GEN     derivfun(void *E, GEN (*eval)(void *, GEN), GEN x, long prec)
+    GEN     asympnum(void *E, GEN (*f)(void *, GEN, long), long muli, GEN alpha, long prec)
+    GEN     derivnum(void *E, GEN (*eval)(void *, GEN, long prec), GEN x, long prec)
+    GEN     derivfun(void *E, GEN (*eval)(void *, GEN, long prec), GEN x, long prec)
     GEN     direuler(void *E, GEN (*eval)(void *, GEN), GEN ga, GEN gb, GEN c)
     int     forcomposite_init(forcomposite_t *C, GEN a, GEN b)
     GEN     forcomposite_next(forcomposite_t *C)
@@ -3514,6 +3809,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     int     forprime_init(forprime_t *T, GEN a, GEN b)
     int     forvec_init(forvec_t *T, GEN x, long flag)
     GEN     forvec_next(forvec_t *T)
+    GEN     limitnum(void *E, GEN (*f)(void *, GEN, long), long muli, GEN alpha, long prec)
     GEN     polzag(long n, long m)
     GEN     prodeuler(void *E, GEN (*eval)(void *, GEN), GEN ga, GEN gb, long prec)
     GEN     prodinf(void *E, GEN (*eval)(void *, GEN), GEN a, long prec)
@@ -3550,10 +3846,10 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     Zn_sqrt(GEN x, GEN n)
     GEN     Zp_teichmuller(GEN x, GEN p, long n, GEN q)
     GEN     agm(GEN x, GEN y, long prec)
-    GEN     catalan(long prec)
-    GEN     euler(long prec)
-    GEN     log2(long prec)
-    GEN     pi(long prec)
+    GEN     constcatalan(long prec)
+    GEN     consteuler(long prec)
+    GEN     constlog2(long prec)
+    GEN     constpi(long prec)
     GEN     cxexpm1(GEN z, long prec)
     GEN     expIr(GEN x)
     GEN     exp1r_abs(GEN x)
@@ -3566,6 +3862,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     gpowers(GEN x, long n)
     GEN     gpowgs(GEN x, long n)
     GEN     gsin(GEN x, long prec)
+    GEN     gsinc(GEN x, long prec)
     void    gsincos(GEN x, GEN *s, GEN *c, long prec)
     GEN     gsqrt(GEN x, long prec)
     GEN     gsqrtn(GEN x, GEN n, GEN *zetan, long prec)
@@ -3626,31 +3923,33 @@ cdef extern from "sage/libs/pari/parisage.h":
 
     # trans3.c
 
+    double  dblmodulus(GEN x)
     GEN     dilog(GEN x, long prec)
     GEN     eint1(GEN x, long prec)
     GEN     eta(GEN x, long prec)
     GEN     eta0(GEN x, long flag, long prec)
     GEN     gerfc(GEN x, long prec)
+    GEN     glambertW(GEN y, long prec)
     GEN     gpolylog(long m, GEN x, long prec)
     GEN     gzeta(GEN x, long prec)
+    GEN     hbessel1(GEN n, GEN z, long prec)
+    GEN     hbessel2(GEN n, GEN z, long prec)
     GEN     hyperu(GEN a, GEN b, GEN gx, long prec)
+    GEN     ibessel(GEN n, GEN z, long prec)
     GEN     incgam(GEN a, GEN x, long prec)
     GEN     incgam0(GEN a, GEN x, GEN z, long prec)
     GEN     incgamc(GEN a, GEN x, long prec)
-    GEN     hbessel1(GEN n, GEN z, long prec)
-    GEN     hbessel2(GEN n, GEN z, long prec)
-    GEN     ibessel(GEN n, GEN z, long prec)
     GEN     jbessel(GEN n, GEN z, long prec)
     GEN     jbesselh(GEN n, GEN z, long prec)
+    GEN     jell(GEN x, long prec)
+    GEN     kbessel(GEN nu, GEN gx, long prec)
     GEN     mpeint1(GEN x, GEN expx)
     GEN     mplambertW(GEN y)
     GEN     mpveceint1(GEN C, GEN eC, long n)
     GEN     nbessel(GEN n, GEN z, long prec)
-    GEN     jell(GEN x, long prec)
-    GEN     kbessel(GEN nu, GEN gx, long prec)
     GEN     polylog0(long m, GEN x, long flag, long prec)
-    GEN     sumdedekind_coprime(GEN h, GEN k)
     GEN     sumdedekind(GEN h, GEN k)
+    GEN     sumdedekind_coprime(GEN h, GEN k)
     GEN     szeta(long x, long prec)
     GEN     theta(GEN q, GEN z, long prec)
     GEN     thetanullk(GEN q, long k, long prec)
@@ -3663,28 +3962,34 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     weberf(GEN x, long prec)
     GEN     weberf1(GEN x, long prec)
     GEN     weberf2(GEN x, long prec)
-    GEN     glambertW(GEN y, long prec)
+    GEN     zetaBorweinRecycled(long s, long h, long N, long prec)
 
     # modsym.c
-    GEN     Cuspidal_subspace(GEN W)
-    GEN     Eisenstein_subspace(GEN W)
     GEN     Eisenstein_symbol(GEN W, GEN c)
-    GEN     Q_xpm(GEN E, GEN c)
-    GEN     Qevproj_init(GEN M)
+    GEN     Q_xpm(GEN W, GEN xpm, GEN c)
     GEN     Qevproj_apply(GEN T, GEN pro)
     GEN     Qevproj_apply_vecei(GEN T, GEN pro, long k)
+    GEN     Qevproj_init(GEN M)
     GEN     RgX_act_Gl2Q(GEN g, long k)
     GEN     RgX_act_ZGl2Q(GEN z, long k)
-    GEN     ellsym(GEN E, long signe)
-    GEN     modsymbAtkinLehner(GEN W, GEN Q)
-    GEN     modsymbHecke(GEN W, ulong p)
-    GEN     modsymbSigma(GEN W)
-    GEN     modsymblog(GEN W, GEN path)
+    void    checkms(GEN W)
+    GEN     msfromell(GEN E, long signe)
+    GEN     msatkinlehner(GEN W, long Q, GEN)
+    GEN     mscuspidal(GEN W, long flag)
+    GEN     mseisenstein(GEN W)
+    GEN     mseval(GEN W, GEN s, GEN p)
+    GEN     mshecke(GEN W, long p, GEN H)
     GEN     msinit(GEN N, GEN k, long sign)
-    GEN     new_subspace(GEN W)
-    GEN     qexpansion(GEN W, GEN proV, long B)
-    GEN     simple_subspaces(GEN W, GEN H)
-    GEN     xpm(GEN E, GEN a, GEN b)
+    long    msissymbol(GEN W, GEN s)
+    GEN     mspathgens(GEN W)
+    GEN     mspathlog(GEN W, GEN path)
+    GEN     msnew(GEN W)
+    GEN     msstar(GEN W, GEN)
+    GEN     msqexpansion(GEN W, GEN proV, ulong B)
+    GEN     mssplit(GEN W, GEN H)
+
+    # zetamult.c
+    GEN zetamult(GEN avec, long prec)
 
     # level1.h
 
@@ -3692,6 +3997,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     long   Fl_center(ulong u, ulong p, ulong ps2)
     ulong  Fl_div(ulong a, ulong b, ulong p)
     ulong  Fl_double(ulong a, ulong p)
+    ulong  Fl_ellj_pre(ulong a4, ulong a6, ulong p, ulong pi)
     ulong  Fl_halve(ulong y, ulong p)
     ulong  Fl_mul(ulong a, ulong b, ulong p)
     ulong  Fl_mul_pre(ulong a, ulong b, ulong p, ulong pi)
@@ -3883,7 +4189,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     ulong  udiviu_rem(GEN n, ulong d, ulong *r)
     ulong  udivuu_rem(ulong x, ulong y, ulong *r)
     void   setabssign(GEN x)
-    void   shift_left(GEN z2, GEN z1, long min, long M, ulong f,  ulong sh)
+    void   shift_left(GEN z2, GEN z1, long min, long M, ulong f, ulong sh)
     void   shift_right(GEN z2, GEN z1, long min, long M, ulong f, ulong sh)
     ulong  shiftl(ulong x, ulong y)
     ulong  shiftlr(ulong x, ulong y)
@@ -3922,6 +4228,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN    truedivis(GEN a, long b)
     GEN    truedivsi(long a, GEN b)
     ulong  udivui_rem(ulong x, GEN y, ulong *rem)
+    ulong  umodsu(long x, ulong y)
     ulong  umodui(ulong x, GEN y)
     GEN    utoi(ulong x)
     GEN    utoineg(ulong x)
@@ -3930,6 +4237,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN    uutoi(ulong x, ulong y)
     GEN    uutoineg(ulong x, ulong y)
     long   vali(GEN x)
+    int    varncmp(long x, long y)
 
 cdef extern from "sage/libs/pari/parisage.h":
     GEN set_gel(GEN x, long n, GEN z)              # gel(x,n) = z
@@ -3955,7 +4263,7 @@ cdef extern from 'pari/paripriv.h':
     struct gp_data:
         pariout_t *fmt
         unsigned long flags
-    
+
     extern gp_data* GP_DATA
 
 cdef extern from 'pari/anal.h':

@@ -33,7 +33,6 @@ from sage.rings.number_field.number_field_element cimport NumberFieldElement
 from sage.rings.all import PolynomialRing
 from sage.matrix.all import matrix
 
-include "sage/ext/stdsage.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
@@ -372,7 +371,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         """
         return self._do_print(self[0], self[1], self[2], self[3])
 
-    cdef int _cmp_c_impl(self, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(self, sage.structure.element.Element right) except -2:
         """
         Comparing elements.
 
@@ -925,7 +924,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         """
         return bool(mpz_sgn(self.x) or mpz_sgn(self.y) or mpz_sgn(self.z) or mpz_sgn(self.w))
 
-    cdef int _cmp_c_impl(self, sage.structure.element.Element _right) except -2:
+    cpdef int _cmp_(self, sage.structure.element.Element _right) except -2:
         """
         Compare two quaternions.  The comparison is fairly arbitrary
         -- first the denominators are compared and if equal then each

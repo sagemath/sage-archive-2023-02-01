@@ -53,7 +53,6 @@ from sage.libs.ntl.ntl_ZZ_pX_decl cimport *
 def make_element(parent, args):
     return parent(*args)
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
 

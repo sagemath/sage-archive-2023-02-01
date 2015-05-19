@@ -1,3 +1,4 @@
+# distutils: libraries = gmp
 r"""
 Asteroidal triples
 

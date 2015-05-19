@@ -6,7 +6,6 @@
 #*****************************************************************************
 
 include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
 
 cpdef fibers(f, domain)
 

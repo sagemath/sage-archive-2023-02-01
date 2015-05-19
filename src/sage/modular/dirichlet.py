@@ -189,6 +189,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
            - vector over `\ZZ/e\ZZ`, where `e` is the order of the
              standard root of unity for ``parent``.
 
+           In both cases, the orders of the elements must divide the
+           orders of the respective generators of `(\ZZ/N\ZZ)^*`.
+
         OUTPUT:
 
         The Dirichlet character defined by `x` (type
@@ -224,7 +227,14 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: G([i, -1, -1])
             Traceback (most recent call last):
             ...
-            ValueError: incompatible orders of values (= [zeta16^4, -1, -1]) on generators (want (2, 16, 2))
+            ValueError: values (= (zeta16^4, -1, -1)) must have multiplicative orders dividing (2, 16, 2), respectively
+
+            sage: from sage.modular.dirichlet import DirichletCharacter
+            sage: M = FreeModule(Zmod(16), 3)
+            sage: DirichletCharacter(G, M([4, 8, 8]))
+            Traceback (most recent call last):
+            ...
+            ValueError: values (= (4, 8, 8) modulo 16) must have additive orders dividing (2, 16, 2), respectively
         """
         MultiplicativeGroupElement.__init__(self, parent)
         self.__modulus = parent.modulus()
@@ -235,14 +245,16 @@ class DirichletCharacter(MultiplicativeGroupElement):
             if free_module_element.is_FreeModuleElement(x):
                 x = parent._module(x)
                 if any(map(lambda u, v: v*u != 0, x, orders)):
-                    raise ValueError("incompatible orders of values (= {}) on generators (want {})".format(x, orders))
+                    raise ValueError("values (= {} modulo {}) must have additive orders dividing {}, respectively"
+                                     .format(x, parent.zeta_order(), orders))
                 self.__element = x
             else:
                 R = parent.base_ring()
-                x = map(R, x)
+                x = tuple(map(R, x))
                 if R.is_exact() and any(map(lambda u, v: u**v != 1, x, orders)):
-                    raise ValueError("incompatible orders of values (= {}) on generators (want {})".format(x, orders))
-                self.__values_on_gens = tuple(x)
+                    raise ValueError("values (= {}) must have multiplicative orders dividing {}, respectively"
+                                     .format(x, orders))
+                self.__values_on_gens = x
         else:
             if free_module_element.is_FreeModuleElement(x):
                 self.__element = x

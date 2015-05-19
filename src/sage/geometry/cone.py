@@ -907,6 +907,16 @@ class IntegralRayCollection(SageObject,
             sage: Cone([], ZZ^3).dual_lattice()
             Ambient free module of rank 3
             over the principal ideal domain Integer Ring
+
+        TESTS:
+
+        The dual lattice of the dual lattice of a random cone should be
+        the original lattice::
+
+            sage: K = random_cone(max_dim = 10, max_rays = 10)
+            sage: K.dual_lattice().dual() == K.lattice()
+            True
+
         """
         try:
             return self.lattice().dual()
@@ -1892,6 +1902,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: Cone([(1,0),(0,1),(-1,-1)], lattice=N).dual().rays()  # whole space
             Empty collection
             in 2-d lattice M
+
+        TESTS:
+
+        The dual cone of a (random) dual cone is the original cone::
+
+            sage: K = random_cone(max_dim=10, max_rays=10)
+            sage: K.dual().dual().is_equivalent(K)
+            True
+
         """
         if "_dual" not in self.__dict__:
             rays = list(self.facet_normals())
@@ -2629,6 +2648,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             False
             sage: cone1.is_equivalent(cone2)
             True
+
+        TESTS:
+
+        A random cone is equivalent to itself::
+
+            sage: K = random_cone(max_dim=10, max_rays=10)
+            sage: K.is_equivalent(K)
+            True
+
         """
         if self is other:
             return True
@@ -2670,6 +2698,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: cone = Cone([(2,1,0),(1,2,0)])
             sage: cone.is_face_of(octant)
             False
+
+        TESTS:
+
+        Any cone is a face of itself::
+
+            sage: K = random_cone(max_dim=10, max_rays=10)
+            sage: K.is_face_of(K)
+            True
+
         """
         if self.lattice() != cone.lattice():
             return False
@@ -2745,6 +2782,13 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             (1, 0)
             sage: classify_cone_2d(*cone2.rays())
             (3, 2)
+
+        A random cone is isomorphic to itself::
+
+            sage: K = random_cone(max_dim=10, max_rays=10)
+            sage: K.is_isomorphic(K)
+            True
+
         """
         from sage.geometry.fan import Fan
         return Fan([self]).is_isomorphic(Fan([other]))

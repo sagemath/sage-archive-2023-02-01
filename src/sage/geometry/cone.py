@@ -4019,3 +4019,46 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         """
         return (self.is_strictly_convex() and self.is_solid())
+
+
+    def is_full_space(self):
+        r"""
+        Return whether or not this cone is equal to its ambient vector
+        space.
+
+        OUTPUT:
+
+        ``True`` if this cone equals its entire ambient vector
+        space and ``False`` otherwise.
+
+        EXAMPLES:
+
+        A single ray in two dimensions is not equal to the entire
+        space::
+
+            sage: K = Cone([(1,0)])
+            sage: K.is_full_space()
+            False
+
+        Neither is the nonnegative orthant::
+
+            sage: K = Cone([(1,0),(0,1)])
+            sage: K.is_full_space()
+            False
+
+        The right half-space contains a vector subspace, but it is
+        still not equal to the entire space::
+
+            sage: K = Cone([(1,0),(-1,0),(0,1)])
+            sage: K.is_full_space()
+            False
+
+        However, if we allow conic combinations of both axes, then
+        the resulting cone is the entire two-dimensional space::
+
+            sage: K = Cone([(1,0),(-1,0),(0,1),(0,-1)])
+            sage: K.is_full_space()
+            True
+
+        """
+        return self.linear_subspace() == self.lattice().vector_space()

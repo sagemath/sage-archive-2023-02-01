@@ -8,6 +8,9 @@ fi
 
 cd nauty*
 
+# runalltests doesn't exit with a zero status.
+# So we check $fails instead.
+
 $MAKE checks
 source ./runalltests
 

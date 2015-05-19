@@ -271,7 +271,7 @@ cdef inline int __hyp__(unsigned short ** distances, int a, int b, int c, int d)
 ######################################################################
 
 cdef tuple __hyperbolicity_basic_algorithm__(int N,
-                                             unsigned short **  distances,
+                                             unsigned short ** distances,
                                              verbose):
     """
     Returns **twice** the hyperbolicity of a graph, and a certificate.

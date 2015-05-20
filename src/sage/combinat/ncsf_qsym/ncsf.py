@@ -355,18 +355,23 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     NCSF has some additional bases which appear in the literature.::
 
-        sage: Monomial        = NCSF.Monomial()
-        sage: Immaculate      = NCSF.Immaculate()
+        sage: Monomial                 = NCSF.Monomial()
+        sage: Immaculate               = NCSF.Immaculate()
+        sage: dualQuasiSymmetric_Schur = NCSF.dualQuasiSymmetric_Schur()
 
     The :class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Monomial`
     basis was introduced in [Tev2007]_ and the
     :class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Immaculate`
-    basis was introduced in [BBSSZ2012]_.  Refer to the documentation for their
-    use and definition.
+    basis was introduced in [BBSSZ2012]_.  The
+    :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.QuasiSymmetric_Schur`
+    were defined in [QSCHUR]_ and the dual basis is implemented here as
+    :class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.dualQuasiSymmetric_Schur`.
+    Refer to the documentation for the use and definition of these bases.
+
 
     .. TODO::
 
-        - implement fundamental, forgotten, and quasi_schur_dual and simple (coming
+        - implement fundamental, forgotten, and simple (coming
           from the simple modules of HS_n)
 
     We revert back to the original name from our custom short name NCSF::
@@ -4609,7 +4614,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def dual(self):
             r"""
-            Return the dual basis to the Immaculate basis of NCSF
+            Return the dual basis to the Immaculate basis of NCSF.
 
             The basis returned is the dualImmaculate basis of QSym.
 
@@ -4695,10 +4700,11 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     class dualQuasisymmetric_Schur(CombinatorialFreeModule, BindableClass):
         r"""
-        The basis of the NonCommutativeSymmetricFunctions dual to the Quasisymmetric
-        Schur basis of QSym
+        The basis of NCSF dual to the Quasisymmetric_Schur basis of QSym.
 
-        The Quasisymmetric Schur functions are defined in [QSCHUR]_ (see also
+        The 
+        :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.QuasiSymmetric_Schur`
+        functions are defined in [QSCHUR]_ (see also
         Definition 5.1.1 of [LMvW13]_).  The dual basis in the algebra of
         non-commutative symmetric functions is defined by the following formula.
 
@@ -4708,6 +4714,19 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         where the sum is over all standard composition tableaux with
         descent composition equal to `\alpha`.
+        The
+        :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.QuasiSymmetric_Schur`
+        basis `QS_\alpha` has the property that
+
+        .. MATH::
+
+            s_\lambda = \sum_{sort(\alpha) = \lambda} QS_\alpha
+
+        As a consequence the commutative image in the algebra of symmetric functions
+        defined in the method
+        :meth:`~sage.combinat.ncsf_qsym.qsym.NonCommutativeSymmetricFunctions.Bases.to_symmetric_function`
+        is equal to the Schur function indexed by the decreasing sort of the
+        indexing composition.
 
         .. SEEALSO::
 
@@ -4729,11 +4748,16 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             2, 1] + dQS[3, 2, 2] + dQS[3, 3, 1] + dQS[4, 3] + dQS[5, 2]
             sage: dQS([1,1]).coproduct()
             dQS[] # dQS[1, 1] + dQS[1] # dQS[1] + dQS[1, 1] # dQS[]
+            sage: dQS([3,3]).coproduct().monomial_coefficients()[(Composition([1,2]),Composition([1,2]))]
+            -1
             sage: R = NCSF.ribbon()
             sage: dQS(R[1,3,1])
             dQS[1, 3, 1] + dQS[3, 2]
             sage: R(dQS[1,3,1])
             R[1, 3, 1] + R[1, 4] - R[3, 2]
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: s(dQS([2,1,3,1]).to_symmetric_function())
+            s[3, 2, 1, 1]
         """
 
         def __init__(self, NCSF):
@@ -4838,7 +4862,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         def _to_ribbon_on_basis(self, comp):
             r"""
             The expansion of the dualQuasisymmetric_Schur basis element indexed
-            by ``comp`` in the ribbon basis
+            by ``comp`` in the ribbon basis.
 
             INPUT:
 
@@ -4866,7 +4890,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         def _from_ribbon_on_basis(self, comp):
             r"""
             The expansion of the ribbon basis element indexed by ``comp``
-            in the dualQuasisymmetric_Schur basis
+            in the dual to the quasi-symmetric Schur basis.
 
             INPUT:
 
@@ -4892,13 +4916,15 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def dual(self):
             r"""
-            Return the dual basis to the dualQuasisymmetric_Schur basis of NCSF
+            The dual basis to the dualQuasisymmetric_Schur basis of NCSF.
 
-            The basis returned is the Quasisymmetric_Schur basis of QSym.
+            The basis returned is the
+            :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.QuasiSymmetric_Schur`
+            basis of QSym.
 
             OUTPUT:
 
-            - The Quasisymmetric_Schur basis of the quasi-symmetric functions.
+            - the Quasisymmetric_Schur basis of the quasi-symmetric functions.
 
             EXAMPLES::
 
@@ -4906,6 +4932,11 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: dQS.dual()
                 Quasisymmetric functions over the Rational Field in the Quasisymmetric
                 Schur basis
+                sage: dQS.duality_pairing_matrix(dQS.dual(),3)
+                [1 0 0 0]
+                [0 1 0 0]
+                [0 0 1 0]
+                [0 0 0 1]
             """
             return self._QS
 

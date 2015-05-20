@@ -108,6 +108,9 @@ additional functionality (e.g. linear extensions).
     - :meth:`is_connected() <sage.matroids.matroid.Matroid.is_connected>`
     - :meth:`is_3connected() <sage.matroids.matroid.Matroid.is_3connected>`
 
+- Representation
+    - :meth:`is_binary() <sage.matroids.matroid.Matroid.is_binary>`
+
 - Optimization
     - :meth:`max_weight_independent() <sage.matroids.matroid.Matroid.max_weight_independent>`
     - :meth:`max_weight_coindependent() <sage.matroids.matroid.Matroid.max_weight_coindependent>`
@@ -317,6 +320,10 @@ from sage.misc.misc import subsets
 from utilities import newlabel, sanitize_contractions_deletions
 from sage.rings.all import ZZ
 from sage.numerical.mip import MixedIntegerLinearProgram
+
+from sage.matroids.linear_matroid cimport BinaryMatroid
+from sage.matroids.lean_matrix cimport BinaryMatrix
+from sage.misc.prandom import shuffle
 
 
 # On some systems, macros "minor()" and "major()" are defined in system header
@@ -4600,6 +4607,79 @@ cdef class Matroid(SageObject):
                     return False
         return True
 
+    # representability
+
+    cpdef _local_binary_matroid(self, basis = None):
+        r"""
+        Return a binary matroid M so that relative to a fixed basis B,
+        X is a basis of self if and only if X is a basis of M 
+        for all subsets X of the ground set such that |X\B|<=1.
+
+        INPUT::
+            - ``basis``, a set (optional)
+
+        OUTPUT::
+            A BinaryMatroid
+
+        EXAMPLES::
+            sage: N = self.named_matroids.Fano()
+            sage: M = N.local_binary_matroid()
+            sage: N.is_isomorphism(M, {e:e for e in N.groundset()})
+            True
+            sage: N = self.named_matroids.NonFano()
+            sage: M = N.local_binary_matroid()
+            sage: N.is_isomorphism(M, {e:e for e in N.groundset()})
+            False
+        """        
+        if basis is None:
+            basis = self.basis()
+        basis = list(basis)
+        E = list(self.groundset())
+        idx = { E[i]:i for i in range(len(E)) }
+        A = BinaryMatrix(len(basis), len(E))
+        i = 0
+        for e in basis:
+            C = self._fundamental_cocircuit(basis, e)
+            for e in C:
+                A.set(i,idx[e])
+            i = i+1
+        return BinaryMatroid(groundset=E, matrix=A, basis=basis, keep_initial_representation=False)     
+
+
+
+    cpdef is_binary(self, randomized_tests = 1):
+        r"""
+        Test if self is a binary matroid.
+
+        INPUT::
+            - ``randomized_tests``, number of randomized tests executed before rigorous test (default = 1).
+
+        OUTPUT::
+            A Boolean.
+
+        EXAMPLES::
+            sage: N = self.named_matroids.Fano()
+            sage: N.is_binary()
+            True
+            sage: N = self.named_matroids.NonFano()
+            sage: N.is_binary()
+            False
+        """
+        if type(self) == BinaryMatroid:
+            return True
+        M = self._local_binary_matroid()
+        m = {e:e for e in self.groundset()} 
+        if randomized_tests > 0: 
+            E = list(self.groundset())
+            for r in range(randomized_tests):
+                shuffle(E)
+                B = self.max_weight_independent(E) 
+                N = self._local_binary_matroid(B)
+                if not M.is_field_isomorphism(N, m): # if self is binary, then M and N are isomorphic to self
+                    return False
+                M = N
+        return self.is_isomorphism(M, m)
+            
     # matroid k-closed
 
     cpdef is_k_closed(self, k):
@@ -4643,8 +4723,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``X`` -- (default: ``None``) an iterable with a subset of
-          ``self.groundset()``.  If ``X`` is ``None``, the method returns a
-          maximum-weight independent subset of the groundset.
+          ``self.groundset()``.  
         - ``weights`` -- a dictionary or function mapping the elements of
           ``X`` to nonnegative weights.
 
@@ -4654,9 +4733,10 @@ cdef class Matroid(SageObject):
 
         ALGORITHM:
 
-        The greedy algorithm. Sort the elements of ``X`` by decreasing
-        weight, then greedily select elements if they are independent of
-        all that was selected before.
+        The greedy algorithm. If a weight function is given, then sort the elements 
+        of ``X`` by decreasing weight, and otherwise use the ordering in which ``X`` 
+        lists its elements. Then greedily select elements if they are independent
+        of all that was selected before.
 
         EXAMPLES::
 
@@ -4725,8 +4805,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``X`` -- (default: ``None``) an iterable with a subset of
-          ``self.groundset()``.  If ``X`` is ``None``, the method returns a
-          maximum-weight coindependent subset of the groundset.
+          ``self.groundset()``.  
         - ``weights`` -- a dictionary or function mapping the elements of
           ``X`` to nonnegative weights.
 
@@ -4736,8 +4815,9 @@ cdef class Matroid(SageObject):
 
         ALGORITHM:
 
-            The greedy algorithm. Sort the elements of ``X`` by decreasing
-            weight, then greedily select elements if they are coindependent of
+            The greedy algorithm. If a weight function is given, then sort the elements 
+            of ``X`` by decreasing weight, and otherwise use the ordering in which ``X`` 
+            lists its elements. Then greedily select elements if they are coindependent of
             all that was selected before.
 
         EXAMPLES::

@@ -137,6 +137,10 @@ cdef class Matroid(SageObject):
     cpdef is_connected(self)
     cpdef is_3connected(self)
 
+    # representability
+    cpdef _local_binary_matroid(self, basis = *)
+    cpdef is_binary(self, randomized_tests = *)
+    
     # matroid k-closed
     cpdef is_k_closed(self, k)
 

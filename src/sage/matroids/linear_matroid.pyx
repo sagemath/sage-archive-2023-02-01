@@ -3061,6 +3061,38 @@ cdef class BinaryMatroid(LinearMatroid):
         else:
             return LinearMatroid._is_isomorphic(self, other)
 
+    
+    cpdef _is_isomorphism(self, other, morphism):
+        """
+        Test if a given bijection is an isomorphism.
+        
+        Version of is_isomorphism() that does no type checking of ``morphism``.
+
+        INPUT:
+
+        - ``other`` -- A matroid instance.
+        - ``morphism`` -- a dictionary mapping the groundset of ``self`` to
+          the groundset of ``other``
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+        
+            sage: M = matroids.named_matroids.Fano() \ ['a']
+            sage: N = matroids.named_matroids.Fano() \ ['b']
+            sage: morphism = {'b':'a', 'c':'c', 'd':'e', 'e':'d', 'f':'f', 'g':'g'}
+            sage: M._is_isomorphism(N, morphism)
+            True
+        """
+        if type(other) == BinaryMatroid:
+            return self.is_field_isomorphism(other, morphism)
+        else:
+            return LinearMatroid._is_isomorphism(self, other, morphism)
+    
+    
+        
     # invariants
     cpdef _make_invariant(self):
         """

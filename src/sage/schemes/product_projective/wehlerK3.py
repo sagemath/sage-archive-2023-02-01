@@ -22,7 +22,7 @@ AUTHORS:
     .. [Wehl] J. Wehler. Hypersurfaces of the Flag Variety: Deformation
                 Theory and the Theorems of Kodaira-Spencer, Torelli,
                 Lefschetz, M. Noether, and Serre. Math. Z. 198 (1988), 21-38
-    .. [Hutz_thesis] B. Hutz. Arithmetic Dynamics on Varieties of dimension greater 
+    .. [Hutzthesis] B. Hutz. Arithmetic Dynamics on Varieties of dimension greater 
                 than one. PhD Thesis, Brown University 2007
 
 """
@@ -1911,7 +1911,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
     def fiber(self,p,component):
         r"""
         Returns the fibers [y ( component = 1) or x ( Component = 0)]  of a point on a K3 Surface, will work for nondegenerate fibers only.
-        For algorithm, see [Hutz_thesis]
+        For algorithm, see [Hutzthesis]
 
         INPUT: ``p`` - a point in `\mathbb{P}^2`
 

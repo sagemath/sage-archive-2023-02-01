@@ -4608,6 +4608,22 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                    distinct=True )
 
         def dual(self):
+            r"""
+            Return the dual basis to the Immaculate basis of NCSF
+
+            The basis returned is the dualImmaculate basis of QSym.
+
+            OUTPUT:
+
+            - The dualImmaculate basis of the quasi-symmetric functions.
+
+            EXAMPLES::
+
+                sage: I=NonCommutativeSymmetricFunctions(QQ).Immaculate()
+                sage: I.dual()
+                Quasisymmetric functions over the Rational Field in the dualImmaculate
+                basis
+            """
             return self.realization_of().dual().dualImmaculate()
 
         class Element(CombinatorialFreeModule.Element):
@@ -4678,21 +4694,74 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     I = Immaculate
 
     class dualQuasisymmetric_Schur(CombinatorialFreeModule, BindableClass):
+        r"""
+        The basis of the NonCommutativeSymmetricFunctions dual to the Quasisymmetric
+        Schur basis of QSym
+
+        The Quasisymmetric Schur functions are defined in [QSCHUR]_ (see also
+        Definition 5.1.1 of [LMvW13]_).  The dual basis in the algebra of
+        non-commutative symmetric functions is defined by the following formula.
+
+        .. MATH::
+
+            R_\alpha = \sum_{T} dQS_{shape(T)}
+
+        where the sum is over all standard composition tableaux with
+        descent composition equal to `\alpha`.
+
+        .. SEEALSO::
+
+            :class:`~sage.combinat.composition_tableau.CompositionTableaux`,
+            :class:`~sage.combinat.composition_tableau.CompositionTableau`.
+
+        EXAMPLES::
+
+            sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+            sage: dQS = NCSF.dQS()
+            sage: dQS([1,3,2])*dQS([1])
+            dQS[1, 2, 4] + dQS[1, 3, 2, 1] + dQS[1, 3, 3] + dQS[3, 2, 2]
+            sage: dQS([1])*dQS([1,3,2])
+            dQS[1, 1, 3, 2] + dQS[1, 3, 3] + dQS[1, 4, 2] + dQS[2, 3, 2]
+            sage: dQS([1,3])*dQS([1,1])
+            dQS[1, 3, 1, 1] + dQS[1, 4, 1] + dQS[3, 2, 1] + dQS[4, 2]
+            sage: dQS([3,1])*dQS([2,1])
+            dQS[1, 1, 4, 1] + dQS[1, 4, 2] + dQS[1, 5, 1] + dQS[2, 4, 1] + dQS[3, 1,
+            2, 1] + dQS[3, 2, 2] + dQS[3, 3, 1] + dQS[4, 3] + dQS[5, 2]
+            sage: dQS([1,1]).coproduct()
+            dQS[] # dQS[1, 1] + dQS[1] # dQS[1] + dQS[1, 1] # dQS[]
+            sage: R = NCSF.ribbon()
+            sage: dQS(R[1,3,1])
+            dQS[1, 3, 1] + dQS[3, 2]
+            sage: R(dQS[1,3,1])
+            R[1, 3, 1] + R[1, 4] - R[3, 2]
+        """
 
         def __init__(self, NCSF):
+            r"""
+            EXAMPLES::
+
+                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+                sage: R = NCSF.ribbon()
+                sage: dQS = NCSF.dualQuasisymmetric_Schur()
+                sage: dQS(R(dQS.an_element())) == dQS.an_element()
+                True
+                sage: R(dQS(R.an_element())) == R.an_element()
+                True
+                sage: TestSuite(dQS).run() # long time
+            """
             CombinatorialFreeModule.__init__(self, NCSF.base_ring(), Compositions(),
                                              prefix='dQS', bracket=False,
                                              category=NCSF.Bases())
             category = self.category()
-            R = self.realization_of().ribbon()
+            self._R = self.realization_of().ribbon()
             self._QS = self.realization_of().dual().Quasisymmetric_Schur()
             to_R = self.module_morphism(
                     on_basis = self._to_ribbon_on_basis,
-                    codomain = R,
+                    codomain = self._R,
                     category = category)
             to_R.register_as_coercion()
 
-            from_R = R.module_morphism(
+            from_R = self._R.module_morphism(
                         on_basis = self._from_ribbon_on_basis,
                         codomain = self,
                         category = category)
@@ -4702,32 +4771,118 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             r"""
             TESTS::
 
-                sage: N = NonCommutativeSymmetricFunctions(QQ)
-                sage: dQS = N.dQS()
+                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+                sage: dQS = NCSF.dQS()
                 sage: dQS._realization_name()
-                'dual Quasi-Schur'
+                'dual Quasisymmetric-Schur'
             """
             return "dual Quasisymmetric-Schur"
 
         def _to_ribbon_transition_matrix(self, n):
+            r"""
+            A matrix representing the transition coefficients to the ribbon basis
+
+            INPUT:
+
+            - ``n`` -- an integer
+
+            OUTPUT:
+
+            - a square matrix
+
+            EXAMPLES::
+
+                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+                sage: dQS = NCSF.dQS()
+                sage: dQS._to_ribbon_transition_matrix(4)
+                [ 1  0  0  0  0  0  0  0]
+                [ 0  1  0  0  0  0  0  0]
+                [ 0  0  1  0  0  0  0  0]
+                [ 0  0 -1  1  0  0  0  0]
+                [ 0  0  0  0  1  0  0  0]
+                [ 0  0  1 -1  0  1  0  0]
+                [ 0  0  0  0  0  0  1  0]
+                [ 0  0  0  0  0  0  0  1]
+            """
             return self._QS._from_fundamental_transition_matrix(n).transpose()
 
         def _from_ribbon_transition_matrix(self, n):
+            r"""
+            A matrix representing the transition coefficients from the ribbon basis
+
+            INPUT:
+
+            - ``n`` -- an integer
+
+            OUTPUT:
+
+            - a square matrix
+
+            EXAMPLES::
+
+                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+                sage: dQS = NCSF.dQS()
+                sage: dQS._from_ribbon_transition_matrix(4)
+                [1 0 0 0 0 0 0 0]
+                [0 1 0 0 0 0 0 0]
+                [0 0 1 0 0 0 0 0]
+                [0 0 1 1 0 0 0 0]
+                [0 0 0 0 1 0 0 0]
+                [0 0 0 1 0 1 0 0]
+                [0 0 0 0 0 0 1 0]
+                [0 0 0 0 0 0 0 1]
+            """
             return self._QS._to_fundamental_transition_matrix(n).transpose()
 
         @cached_method
         def _to_ribbon_on_basis(self, comp):
-            #comp = Composition(comp)
+            r"""
+            The expansion of the dualQuasisymmetric_Schur basis element indexed
+            by ``comp`` in the ribbon basis
+
+            INPUT:
+
+            - ``comp`` -- a composition
+
+            OUTPUT:
+
+            - a quasi-symmetric function in the ribbon basis
+
+            EXAMPLES::
+
+                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+                sage: dQS = NCSF.dQS()
+                sage: dQS._to_ribbon_on_basis(Composition([1,3,1]))
+                R[1, 3, 1] + R[1, 4] - R[3, 2]
+            """
             if not comp._list:
                 return self.one()
             comps = compositions_order(comp.size())
             T = self._to_ribbon_transition_matrix(comp.size())
-            return self.sum_of_terms( zip(comps, T[comps.index(comp)]),
+            return self._R.sum_of_terms( zip(comps, T[comps.index(comp)]),
                                       distinct=True )
 
         @cached_method
         def _from_ribbon_on_basis(self, comp):
-            #comp = Composition(comp)
+            r"""
+            The expansion of the ribbon basis element indexed by ``comp``
+            in the dualQuasisymmetric_Schur basis
+
+            INPUT:
+
+            - ``comp`` -- a composition
+
+            OUTPUT:
+
+            - a ribbon function in the dualQuasisymmetric_Schur basis
+
+            EXAMPLES::
+
+                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+                sage: dQS = NCSF.dQS()
+                sage: dQS._from_ribbon_on_basis(Composition([1,3,1]))
+                dQS[1, 3, 1] + dQS[3, 2]
+            """
             if not comp._list:
                 return self.one()
             comps = compositions_order(comp.size())
@@ -4736,6 +4891,22 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                       distinct=True )
 
         def dual(self):
+            r"""
+            Return the dual basis to the dualQuasisymmetric_Schur basis of NCSF
+
+            The basis returned is the Quasisymmetric_Schur basis of QSym.
+
+            OUTPUT:
+
+            - The Quasisymmetric_Schur basis of the quasi-symmetric functions.
+
+            EXAMPLES::
+
+                sage: dQS=NonCommutativeSymmetricFunctions(QQ).dualQuasisymmetric_Schur()
+                sage: dQS.dual()
+                Quasisymmetric functions over the Rational Field in the Quasisymmetric
+                Schur basis
+            """
             return self._QS
 
     dQS = dualQuasisymmetric_Schur

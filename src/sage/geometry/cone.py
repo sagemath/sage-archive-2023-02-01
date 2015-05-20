@@ -4108,7 +4108,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         return self.linear_subspace() == self.lattice().vector_space()
 
 
-def random_cone(min_dim=0, max_dim=None, min_rays=0, max_rays=None):
+def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
+                max_rays=None):
     r"""
     Generate a random rational convex polyhedral cone.
 
@@ -4116,6 +4117,10 @@ def random_cone(min_dim=0, max_dim=None, min_rays=0, max_rays=None):
     ambient space and the number of generating rays of the cone. If a
     lower bound is left unspecified, it defaults to zero. Unspecified
     upper bounds will be chosen randomly.
+
+    You may also specify the ambient ``lattice`` for the returned
+    cone. In that case, the ``min_dim`` and ``max_dim`` parameters are
+    ignored.
 
     The lower bound on the number of rays is limited to twice the
     maximum dimension of the ambient vector space. To see why, consider
@@ -4132,6 +4137,11 @@ def random_cone(min_dim=0, max_dim=None, min_rays=0, max_rays=None):
         the returned cone will simply be equal to the entire space.
 
     INPUT:
+
+    * ``lattice`` (default: random) -- A ``ToricLattice`` object in which
+      the returned cone will live. By default a new lattice will be
+      constructed with a randomly-chosen rank (subject to ``min_dim``
+      and ``max_dim``).
 
     * ``min_dim`` (default: zero) -- A nonnegative integer representing
       the minimum dimension of the ambient lattice.
@@ -4160,11 +4170,13 @@ def random_cone(min_dim=0, max_dim=None, min_rays=0, max_rays=None):
 
     * ``min_rays`` is greater than twice ``max_dim``.
 
+    * Both ``max_dim`` and ``lattice`` are specified.
+
     EXAMPLES:
 
     Generate a trivial cone in a trivial space::
 
-        sage: random_cone(0,0,0,0)
+        sage: random_cone(max_dim=0, max_rays=0)
         0-d cone in 0-d lattice N
 
     We can predict the dimension when ``min_dim == max_dim``::
@@ -4176,6 +4188,13 @@ def random_cone(min_dim=0, max_dim=None, min_rays=0, max_rays=None):
 
         sage: random_cone(min_dim=10, max_dim=10, min_rays=10, max_rays=10)
         10-d cone in 10-d lattice N
+
+    If we specify a lattice, then the returned cone will live in it::
+
+        sage: L = ToricLattice(5, "L")
+        sage: K = random_cone(lattice=L)
+        sage: K.lattice() == L
+        True
 
     TESTS:
 
@@ -4215,6 +4234,14 @@ def random_cone(min_dim=0, max_dim=None, min_rays=0, max_rays=None):
         ...
         ValueError: min_rays cannot be larger than twice max_dim.
 
+    Or if we specify both ``max_dim`` and ``lattice``::
+
+        sage: L = ToricLattice(5, "L")
+        sage: random_cone(lattice=L, max_dim=10)
+        Traceback (most recent call last):
+        ...
+        ValueError: max_dim cannot be specified when a lattice is provided.
+
     """
 
     # Catch obvious mistakes so that we can generate clear error
@@ -4233,6 +4260,9 @@ def random_cone(min_dim=0, max_dim=None, min_rays=0, max_rays=None):
             raise ValueError('max_dim cannot be less than min_dim.')
         if min_rays > 2*max_dim:
             raise ValueError('min_rays cannot be larger than twice max_dim.')
+        if lattice is not None:
+            msg = 'max_dim cannot be specified when a lattice is provided.'
+            raise ValueError(msg)
 
     if max_rays is not None:
         if max_rays < 0:
@@ -4259,21 +4289,23 @@ def random_cone(min_dim=0, max_dim=None, min_rays=0, max_rays=None):
             # ZZ.random_element() docs.
             return l + ZZ.random_element(u - l + 1)
 
-    d = random_min_max(min_dim, max_dim)
-    r = random_min_max(min_rays, max_rays)
+    if lattice is None:
+        # No lattice given, make our own.
+        d = random_min_max(min_dim, max_dim)
+        lattice = ToricLattice(d)
 
-    L = ToricLattice(d)
+    r = random_min_max(min_rays, max_rays)
 
     # The rays are trickier to generate, since we could generate v and
     # 2*v as our "two rays." In that case, the resulting cone would
     # have one generating ray. To avoid such a situation, we start by
     # generating ``r`` rays where ``r`` is the number we want to end
     # up with...
-    rays = [L.random_element() for i in range(0, r)]
+    rays = [lattice.random_element() for i in range(0, r)]
 
     # (The lattice parameter is required when no rays are given, so we
     # pass it just in case ``r == 0``).
-    K = Cone(rays, lattice=L)
+    K = Cone(rays, lattice=lattice)
 
     # ...Now if we generated two of the "same" rays, we'll have fewer
     # generating rays than ``r``. In that case, we keep making up new
@@ -4281,7 +4313,7 @@ def random_cone(min_dim=0, max_dim=None, min_rays=0, max_rays=None):
     # independent generators. We can obviously stop if ``K`` is the
     # entire ambient vector space.
     while r > K.nrays() and not K.is_full_space():
-        rays.append(L.random_element())
+        rays.append(lattice.random_element())
         K = Cone(rays)
 
     return K

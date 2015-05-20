@@ -2634,15 +2634,16 @@ class Polyhedron_base(Element):
                           lines=new_lines,
                           base_ring=self.parent()._coerce_base_ring(cut_frac))
 
-    def barycentric_subdivision(self, subdivision_frac=Integer(4)/3):
+    def barycentric_subdivision(self, subdivision_frac=Integer(1)/3):
         r"""
         Return the barycentric subdivision of a compact polyhedron
 
         INPUT:
 
         - ``subdivision_frac`` -- number. Gives the proportion how far the new
-          vertices are pulled out of the polytope.
-            Default is `\frac{4}{3}`.
+          vertices are pulled out of the polytope. Default is `\frac{1}{3}` and
+          the value should be smaller than `\frac{1}{2}`.
+            The subdivision is computed on the polar polyhedron.
 
         OUTPUT:
 
@@ -2650,24 +2651,19 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
+            sage: P=polytopes.hypercube(3)
+            sage: P.barycentric_subdivision()
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 26 vertices
             sage: P=Polyhedron(vertices=[[0,0,0],[0,1,0],[1,0,0],[0,0,1]])
             sage: P.barycentric_subdivision()
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
-            sage: P.barycentric_subdivision(3/2)
-            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
-            sage: P.barycentric_subdivision(1.5)
-            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 14 vertices
-            sage: P.barycentric_subdivision(2)
-            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
-            sage: P.barycentric_subdivision(1)
-            Traceback (most recent call last):
-            ...
-            ValueError: The subdivision proportion is too big, try a smaller value.
-            sage: P.barycentric_subdivision(3)
-            Traceback (most recent call last):
-            ...
-            ValueError: The subdivision proportion is too big, try a smaller value.
 
+        TESTS::
+
+            sage: P.barycentric_subdivision(1/2)
+            Traceback (most recent call last):
+            ...
+            AssertionError: The subdivision fraction should be between 0 and 1/2.
             sage: P=Polyhedron(ieqs=[[1,0,1],[0,1,0],[1,0,0],[0,0,1]])
             sage: P.barycentric_subdivision()
             Traceback (most recent call last):
@@ -2676,26 +2672,49 @@ class Polyhedron_base(Element):
         """
 
         assert(self.is_compact()), "The polytope has to be compact."
+        assert(subdivision_frac < Integer(1)/2 and subdivision_frac > 0), "The subdivision fraction should be between 0 and 1/2."
 
-        dict_face_vertex = {v:v.vertices()[0].vector() for v in self.faces(0)}
-        face_lattice = self.face_lattice()
-        barycenter = sum([v.vector() for v in self.vertices()])/self.n_vertices()
+        barycenter = self.center()
 
-        for i in range(1,self.dimension()):
-            for face in self.faces(i):
-                ridges = face_lattice.lower_covers(face)
-                relative_vertex = sum([dict_face_vertex[ridge]-barycenter for ridge in ridges])/len(face.vertices())
-                new_vertex = barycenter + subdivision_frac*relative_vertex
-                dict_face_vertex[face] = new_vertex
+        start_polar = (self-barycenter).polar()
+        polar = (self-barycenter).polar()
+        
+        for i in range(self.dimension() - 1):
 
-        new_vertices = dict_face_vertex.values()
-        ring = self.parent()._coerce_base_ring(sum(new_vertices).parent().base_ring())
-        bary_subdivision = Polyhedron(vertices=new_vertices, base_ring=ring)
+            new_ineq = []
+            subdivided_faces = list(start_polar.faces(i))
+            Hrep = polar.Hrepresentation()
+            
+            for face in subdivided_faces:
+            
+                face_vertices = face.vertices()
+                normal_vectors = []
+                
+                for facet in Hrep:
+                    if False not in map(lambda x: facet.contains(x) and not facet.interior_contains(x), face_vertices):
+                        # The facet contains the face
+                        normal_vectors.append(facet.A())
 
-        if len(new_vertices) != bary_subdivision.n_vertices():
-            raise ValueError, "The subdivision proportion is too big, try a smaller value."
+                normal_vector = sum(normal_vectors)
+                B = - normal_vector * (face_vertices[0].vector())
+                linear_evaluation = set([-normal_vector * (v.vector()) for v in
+                    polar.vertices()])
 
-        return bary_subdivision
+                if B == max(linear_evaluation):
+                    C = max(linear_evaluation.difference(set([B])))
+                else:
+                    C = min(linear_evaluation.difference(set([B])))
+
+                ineq_vector = tuple((1 - subdivision_frac) * B + subdivision_frac * C) + tuple(normal_vector)
+                new_ineq += [ineq_vector]
+
+            new_ieqs = polar.inequalities_list() + new_ineq
+            new_eqns = polar.equations_list()
+            
+            polar = Polyhedron(ieqs=new_ieqs, eqns=new_eqns, base_ring=
+                self.parent()._coerce_base_ring(subdivision_frac))
+
+        return (polar.polar())+barycenter
 
     def _make_polyhedron_face(self, Vindices, Hindices):
         """

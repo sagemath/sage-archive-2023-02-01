@@ -412,7 +412,7 @@ class Fields(CategoryWithAxiom):
             gcd (:trac:`17671`)::
 
                 sage: R.<x> = QQbar[]
-                sage: zero = R.zero_element()
+                sage: zero = R.zero()
                 sage: zero.xgcd(2*x)
                 (x, 0, 1/2)
                 sage: (2*x).xgcd(zero)
@@ -421,8 +421,8 @@ class Fields(CategoryWithAxiom):
                 (0, 0, 0)
             """
             R = left.parent()
-            zero = R.zero_element()
-            one = R.one_element()
+            zero = R.zero()
+            one = R.one()
             if right.is_zero():
                 if left.is_zero():
                     return (zero, zero, zero)

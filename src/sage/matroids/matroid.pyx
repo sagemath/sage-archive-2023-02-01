@@ -4545,19 +4545,19 @@ cdef class Matroid(SageObject):
     cpdef connectivity(self, S, T = None):
         r"""
         Evaluates the connectivity function of the matroid. 
-        
+    
         If the input is a single subset S of the groundset E, then the output is r(S)+r(E\S)-r(E).
-        
+    
         If the input are disjoint subsets S,T of the groundset, then the output is
             `\min { r(X) + r(Y) - r(E) : X contains S, Y contains T, {X,Y} a partition of E }`
-        
+    
         INPUT::
             - 'S', a set
             - 'T', a set
-            
+        
         OUTPUT::
             An integer
-            
+        
         EXAMPLES::
             sage: M = matroids.named_matroids.BetsyRoss()
             sage: M.connectivity('ab')
@@ -4565,10 +4565,10 @@ cdef class Matroid(SageObject):
             sage: M.connectivity('ab', 'cd')
             2
         """
-        S = set(S)
-        T = set(T)
+        S = set(S)   
         if T is None:
             return self.rank(S)+self.rank(self.groundset()-S)-self.full_rank()
+        T = set(T)
         if S.intersection(T):
             raise ValueError("no well-defined matroid connectivity between intersecting sets.")
         return self._connectivity(S, T)
@@ -4578,27 +4578,27 @@ cdef class Matroid(SageObject):
         Evaluates the connectivity 
             `\min { r(X) + r(Y) - r(E) : X contains S, Y contains T, {X,Y} a partition of E }`
         between two disjoint subsets `S` and `T` of the groundset `E` of this matroid.
-        
+    
         Internal version that does not verify that S and T are sets, are disjoint, are subsets of the groundset. 
-        
+    
         INPUT::
             - 'S', a set
             - 'T', a set
-            
+        
         OUTPUT::
             An integer
-        
+    
         EXAMPLES::
             sage: M = matroids.named_matroids.BetsyRoss()
             sage: M._connectivity('ab', 'cd')
             2
-            
+        
         ALGORITHM::
-        
+    
             Computes the maximum cardinality of a common independent set of M/S\T and M\S/T.
-        
+    
         """
-        
+    
         N1 = self.minor(S,T)
         N2 = self.minor(T,S)
         return len(N1.intersection(N2)) - self.full_rank() + self.rank(S) + self.rank(T)
@@ -4639,11 +4639,11 @@ cdef class Matroid(SageObject):
             False
 
         ALGORITHM::
-        
+    
             Evaluates the connectivity between `O(|E|^2)` pairs of disjoint sets `S`,`T` with `|S|=|T|=2`. 
-        
+    
         TODO::
-        
+    
             Implement the more efficient 3-connectivity algorithm from [BC79]_ which runs in `O(|E|^3)` time.
 
         """
@@ -4659,14 +4659,16 @@ cdef class Matroid(SageObject):
             T = set(T)
             N1 = self.minor(S,T)
             N2 = self.minor(T,S)
-            I = I - T                # make old I a common independent set of N1, N2
+            # make previous I a common independent set of current N1, N2
+            I = I - T                
             I = N1.max_independent(I)
             I = N2.max_independent(I)
             J = N1._intersection_augmentation(N2, w, I)
-            while J is not None:    # augment to max common independent set of N1, N2
+            while J is not None:    
                 I = I.symmetric_difference(J)
                 J = N1._intersection_augmentation(N2, w, I)
-            if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2: # check if connectivity between S,T is <2
+            # check if connectivity between S,T is <2
+            if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2: 
                 return False
         for g in E:
             S = {e, g}
@@ -4678,14 +4680,16 @@ cdef class Matroid(SageObject):
                 T = set(T)
                 N1 = self.minor(S,T)
                 N2 = self.minor(T,S)
-                I = I - T                # make old I a common independent set of N1, N2
+                # make previous I a common independent set of current N1, N2
+                I = I - T                
                 I = N1.max_independent(I)
                 I = N2.max_independent(I)
                 J = N1._intersection_augmentation(N2, w, I)
-                while J is not None:    # augment to max common independent set of N1, N2
+                while J is not None:    
                     I = I.symmetric_difference(J)
                     J = N1._intersection_augmentation(N2, w, I)
-                if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2: # check if connectivity between S,T is <2
+                # check if connectivity between S,T is <2
+                if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2: 
                     return False
         return True
 

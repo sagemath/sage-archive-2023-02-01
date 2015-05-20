@@ -21,7 +21,7 @@ Matthias Köppe, UC Davis, CA, USA
 
 GLPK, GMP.
 
-=== 4ti2-1.6.5 (Dima Pasechnik, May 19, 2015) ===
+=== 4ti2-1.6.5 (Matthias Köppe, May 19, 2015) ===
  * update to 4ti2 version 1.6.5
  * add spkg-check script
 

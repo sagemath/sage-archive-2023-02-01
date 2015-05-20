@@ -2181,7 +2181,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         """
         V = []
         E = []
-        #We store the points we encounter is a list, D. Each new point is checked to 
+        #We store the points we encounter is a list, D. Each new point is checked to
         #see if it is in that list (which uses ==) so that equal points with different
         #representations only appear once in the graph.
         D=[]

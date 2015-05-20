@@ -171,9 +171,6 @@ class AsciiArt(CharacterArt):
 
     - ``baseline`` -- the reference line (from the bottom)
 
-    - ``atomic`` -- indicate if the ascii art representation is splittable
-      (must be coherent with breakpoints)
-
     EXAMPLES::
 
         sage: i = var('i')

@@ -35,7 +35,8 @@ class CharacterArtFactory(SageObject):
 
         INPUT:
 
-        - ``art_type`` -- type of the character art.
+        - ``art_type`` -- type of the character art (i.e. a subclass of
+          :class:`~sage.typeset.character_art.CharacterArt`)
 
         - ``string_type`` -- type of strings (the lines in the
           character art).
@@ -213,7 +214,6 @@ class CharacterArtFactory(SageObject):
         not_first = False
         for elem in iterable:
             if not_first:
-                #print repr_elems.get_baseline()
                 if repr_elems._baseline is not None:
                     repr_elems += self.art_type(
                         ["" ** ZZ(repr_elems._h - 1 - repr_elems._baseline) ] +
@@ -302,7 +302,7 @@ class CharacterArtFactory(SageObject):
             lines.append(left + pad + line.ljust(w) + pad + right)
         shift = len(left_border) + len(pad)
         basepoints = [bp + shift for bp in content.get_breakpoints()] + [w+shift]
-        return self.art_type(lines, basepoints, baseline=0, atomic=False)
+        return self.art_type(lines, basepoints, baseline=0)
 
     def build_list(self, list):
         r"""

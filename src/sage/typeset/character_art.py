@@ -8,7 +8,7 @@ This is the common base class for
 graphics by placing characters on a rectangular grid, in other words,
 using monospace fonts. The difference is that one is restricted to
 7-bit ascii, the other uses all unicode code points.
- """
+"""
 
 #*******************************************************************************
 #       Copyright (C) 2013 Jean-Baptiste Priez <jbp@kerios.fr>,
@@ -27,7 +27,6 @@ using monospace fonts. The difference is that one is restricted to
 
 import os, sys
 from sage.structure.sage_object import SageObject
-from sage.rings.integer import Integer
 
 
 ################################################################################
@@ -38,7 +37,7 @@ MAX_WIDTH = None
 
 class CharacterArt(SageObject):
 
-    def __init__(self, lines=[], breakpoints=[], baseline=None, atomic=True):
+    def __init__(self, lines=[], breakpoints=[], baseline=None, atomic=None):
         r"""
         Abstract base class for character art
 
@@ -52,9 +51,6 @@ class CharacterArt(SageObject):
 
         - ``baseline`` -- the reference line (from the bottom)
 
-        - ``atomic`` -- indicate if the character art representation is
-          splittable (must be coherent with breakpoints)
-
         EXAMPLES::
 
             sage: i = var('i')
@@ -66,8 +62,6 @@ class CharacterArt(SageObject):
 
             sage: from sage.typeset.ascii_art import AsciiArt
             sage: aao = AsciiArt()
-            sage: aao.is_atomic()
-            True
             sage: aao
             <BLANKLINE>
             sage: aa = AsciiArt(["  *  ", " * * ", "*****"]); aa
@@ -75,14 +69,15 @@ class CharacterArt(SageObject):
              * *
             *****
         """
-        self._is_uniq = True
+        if atomic is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(18357, "the argument atomic is deprecated and will be ignored")
         self._matrix = lines
         self._breakpoints = breakpoints
         self._baseline = baseline if baseline is not None else 0
-        self._is_atomic = atomic
 
         self._h = len(lines)
-        self._l = max(map(lambda line: len(line), lines) + [0])
+        self._l = 0 if not lines else max([len(line) for line in lines])
 
     @classmethod
     def empty(cls):
@@ -144,7 +139,7 @@ class CharacterArt(SageObject):
             hsize = self._terminal_width()
         #########
         # if the draw is larger than the max length it try to split...
-        if hsize <= self._l and len(self._breakpoints) > 0:
+        if hsize <= self._l and self._breakpoints:
             return self._split_repr_(hsize)
         #########
         output = ""
@@ -153,36 +148,6 @@ class CharacterArt(SageObject):
                 output += self._matrix[i] + "\n"
             return output + self._matrix[len(self._matrix) - 1]
         return output
-
-    def is_atomic(self):
-        r"""
-        Return ``True`` if the object is not splitable
-
-        For example, we considere a linear expression::
-
-            sage: a = 14*x^5 + 5*x^4
-            sage: ascii_art(a)
-                5      4
-            14*x  + 5*x
-
-        If ASCII art object is not atomic, it is splittable on the ``+``
-        (in fact it is not really true because we use ``sympy`` to make
-        ASCII art).
-
-        TESTS::
-
-            sage: from sage.typeset.ascii_art import AsciiArt
-            sage: aa = AsciiArt(["  *  ", " * * ", "*****"]); aa
-              *
-             * *
-            *****
-            sage: aa.is_atomic()
-            True
-            sage: laa = ascii_art([aa,aa])
-            sage: laa.is_atomic()
-            False
-        """
-        return self._is_atomic
 
     def get_baseline(self):
         r"""
@@ -305,7 +270,6 @@ class CharacterArt(SageObject):
                * *  ]
             , ***** ]
         """
-        import sys
         f_split = self._breakpoints[0]; i = 1
         while i < len(self._breakpoints) and self._breakpoints[i] < size:
             f_split = self._breakpoints[i]
@@ -638,7 +602,7 @@ class CharacterArt(SageObject):
         if self._baseline is not None and Nelt._baseline is not None:
             # left treatement
             for line in self._matrix:
-                new_matrix.append(line + " "** Integer(self._l - len(line)))
+                new_matrix.append(line + " " * (self._l - len(line)))
 
             if new_h > self._h:
                 # |                 new_h > self._h
@@ -648,7 +612,7 @@ class CharacterArt(SageObject):
                 #  | }
                 if new_baseline > self._baseline:
                     for k in range(new_baseline - self._baseline):
-                        new_matrix.append(" " ** Integer(self._l))
+                        new_matrix.append(" " * self._l)
                 #  | }              new_h > self._h
                 #  | }              new_h - new_baseline > self._h - self._baseline
                 # ||<-- baseline    number of white lines at the top
@@ -658,7 +622,7 @@ class CharacterArt(SageObject):
                 #  |
                 if new_h - new_baseline > self._h - self._baseline:
                     for _ in range((new_h - new_baseline) - (self._h - self._baseline)):
-                        new_matrix.insert(0, " " ** Integer(self._l))
+                        new_matrix.insert(0, " "  * self._l)
 
             # right treatement
             i = 0
@@ -675,10 +639,10 @@ class CharacterArt(SageObject):
                 new_matrix[i+j] += Nelt._matrix[j]
         else:
             for line in self._matrix:
-                new_matrix.append(line + " " ** Integer(self._l - len(line)))
+                new_matrix.append(line + " " * (self._l - len(line)))
             for i, line_i in enumerate(Nelt._matrix):
                 if i == len(new_matrix):
-                    new_matrix.append(" "**Integer(self._l) + line_i)
+                    new_matrix.append(" " * self._l + line_i)
                 else: new_matrix[i] += line_i
 
         # breakpoint
@@ -691,7 +655,6 @@ class CharacterArt(SageObject):
             lines=new_matrix,
             breakpoints=uniq(new_breakpoints),
             baseline=new_baseline,
-            atomic=False
         )
 
     def __mul__(self, Nelt):

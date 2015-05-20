@@ -3667,17 +3667,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
     @coerce_binop
     def gcd(self, other):
         """
-        Compute a greatest common divisor of this polynomial and ``other``.
+        Return a greatest common divisor of this polynomial and ``other``.
 
         INPUT:
 
-            - ``other`` -- a polynomial in the same ring as this polynomial
+        - ``other`` -- a polynomial in the same ring as this polynomial
 
         OUTPUT:
 
-            A greatest common divisor as a polynomial in the same ring as this
-            polynomial. Over a field, the return value will be a monic
-            polynomial.
+        A greatest common divisor as a polynomial in the same ring as
+        this polynomial. If the base ring is a field, the return value
+        is a monic polynomial.
 
         .. NOTE::
 
@@ -6103,17 +6103,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
     @coerce_binop
     def xgcd(self, other):
         r"""
-        Compute an extended gcd of this polynomialn and ``other``.
+        Return an extended gcd of this polynomial and ``other``.
 
         INPUT:
 
-            - ``other`` -- a polynomial in the same ring as this polynomial
+        - ``other`` -- a polynomial in the same ring as this polynomial
 
         OUTPUT:
 
-            A tuple ``(r,s,t)`` where ``r`` is a greatest common divisor of
-            this polynomial and ``other``, and ``s`` and ``t`` are such that ``r =
-            s*self + t*other`` holds.
+        A tuple ``(r, s, t)`` where ``r`` is a greatest common divisor
+        of this polynomial and ``other``, and ``s`` and ``t`` are such
+        that ``r = s*self + t*other`` holds.
 
         .. NOTE::
 

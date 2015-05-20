@@ -207,7 +207,7 @@ class Fields(CategoryWithAxiom):
 
             INPUT:
 
-                - ``f``, ``g`` -- two polynomials defined over ``self``
+            - ``f``, ``g`` -- two polynomials defined over ``self``
 
             .. NOTE::
 
@@ -370,20 +370,22 @@ class Fields(CategoryWithAxiom):
 
         def _xgcd_univariate_polynomial(self, left, right):
             r"""
-            Extended gcd of ``left`` and ``right``.
+            Return an extended gcd of ``left`` and ``right``.
 
             INPUT:
 
-                - ``left``, ``right`` -- two polynomials over this field
+            - ``left``, ``right`` -- two polynomials over this field
 
             OUTPUT:
 
-            Polynomials ``g``, ``u``, and ``v`` such that ``g = u*left + v*right``
+            Polynomials ``g``, ``u``, and ``v`` such that ``g`` is a
+            greatest common divisor of ``left and ``right``, and such
+            that ``g = u*left + v*right`` holds.
 
             .. NOTE::
 
                 This is a helper method for
-                :meth:`sage.rings.polynomial.polynomial_element.xgcd`
+                :meth:`sage.rings.polynomial.polynomial_element.Polynomial.xgcd`.
 
             EXAMPLES::
 
@@ -408,8 +410,8 @@ class Fields(CategoryWithAxiom):
 
             TESTS:
 
-            We check that the behavior of xgcd with zero elements is compatible with
-            gcd (:trac:`17671`)::
+            We check that the behavior of xgcd with zero elements is
+            compatible with gcd (:trac:`17671`)::
 
                 sage: R.<x> = QQbar[]
                 sage: zero = R.zero()

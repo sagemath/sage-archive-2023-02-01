@@ -929,31 +929,32 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
         ``chain_state`` is possibly modified.
 
         TESTS:
-        sage: G=GelfandTsetlinPatterns(3,4)
-        sage: state = [[3,2,1],[3,1],[2]]
-        sage: G._toggle_markov_chain(state, 0, 0, 1)
-        sage: state
-        [[4, 2, 1], [3, 1], [2]]
-        sage: G._toggle_markov_chain(state, 1, 1, 1)
-        sage: state
-        [[4, 2, 1], [3, 2], [2]]
-        sage: G._toggle_markov_chain(state, 0, 2, 1)
-        sage: state
-        [[4, 2, 2], [3, 2], [2]]
-        sage: G._toggle_markov_chain(state, 0, 2, 1)
-        sage: state
-        [[4, 2, 2], [3, 2], [2]]
-        sage: G._toggle_markov_chain(state, 0, 2, 0)
-        sage: state
-        [[4, 2, 1], [3, 2], [2]]
-        sage: G._toggle_markov_chain(state, 0, 2, 0)
-        sage: state
-        [[4, 2, 0], [3, 2], [2]]
-        sage: G._toggle_markov_chain(state, 0, 2, 0)
-        sage: state
-        [[4, 2, 0], [3, 2], [2]]
 
-        """
+            sage: G=GelfandTsetlinPatterns(3,4)
+            sage: state = [[3,2,1],[3,1],[2]]
+            sage: G._toggle_markov_chain(state, 0, 0, 1)
+            sage: state
+            [[4, 2, 1], [3, 1], [2]]
+            sage: G._toggle_markov_chain(state, 1, 1, 1)
+            sage: state
+            [[4, 2, 1], [3, 2], [2]]
+            sage: G._toggle_markov_chain(state, 0, 2, 1)
+            sage: state
+            [[4, 2, 2], [3, 2], [2]]
+            sage: G._toggle_markov_chain(state, 0, 2, 1)
+            sage: state
+            [[4, 2, 2], [3, 2], [2]]
+            sage: G._toggle_markov_chain(state, 0, 2, 0)
+            sage: state
+            [[4, 2, 1], [3, 2], [2]]
+            sage: G._toggle_markov_chain(state, 0, 2, 0)
+            sage: state
+            [[4, 2, 0], [3, 2], [2]]
+            sage: G._toggle_markov_chain(state, 0, 2, 0)
+            sage: state
+            [[4, 2, 0], [3, 2], [2]]
+
+            """
         if direction == 1:
             upbound = self._k
             if row != 0:
@@ -982,10 +983,10 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
 
         TESTS:
 
-        sage: GelfandTsetlinPatterns(3, 5)._cftp_upper()
-        [[5, 5, 5], [5, 5], [5]]
-        sage: GelfandTsetlinPatterns(3, 5, strict=True)._cftp_upper()
-        [[5, 4, 3], [5, 4], [5]]
+            sage: GelfandTsetlinPatterns(3, 5)._cftp_upper()
+            [[5, 5, 5], [5, 5], [5]]
+            sage: GelfandTsetlinPatterns(3, 5, strict=True)._cftp_upper()
+            [[5, 4, 3], [5, 4], [5]]
         """
         if self._strict:
             return [[self._k - j for j in range(self._n - i)] for i in range(self._n)]
@@ -998,10 +999,10 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
 
         TESTS:
 
-        sage: GelfandTsetlinPatterns(3, 5)._cftp_lower()
-        [[0, 0, 0], [0, 0], [0]]
-        sage: GelfandTsetlinPatterns(3, 5, strict=True)._cftp_lower()
-        [[2, 1, 0], [1, 0], [0]]
+            sage: GelfandTsetlinPatterns(3, 5)._cftp_lower()
+            [[0, 0, 0], [0, 0], [0]]
+            sage: GelfandTsetlinPatterns(3, 5, strict=True)._cftp_lower()
+            [[2, 1, 0], [1, 0], [0]]
         """
         if self._strict:
             return [[self._n - j - i - 1 for j in range(self._n - i)] for i in range(self._n)]
@@ -1009,6 +1010,18 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
             return [[0 for j in range(self._n - i)] for i in range(self._n)]
 
     def _cftp(self, start_row):
+        """
+        Implement coupling from the past.
+
+        ALGORITHM:
+
+        The set of Gelfand-Tsetlin patterns can partially ordered by elementwise
+        domination.  The partial order has unique maximum and minimum elements
+        that are computed by the methods ``_cftp_upper`` and ``_cftp_lower``.
+        We then run the markov chain that randomly toggles each element up or
+        down from the past until the state reached from the upper and lower start
+        points coalesce as described in [Propp1997]_.
+        """
         from sage.misc.randstate import current_randstate
         from sage.misc.randstate import seed
         from sage.misc.randstate import random
@@ -1037,6 +1050,15 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
     def random_element(self):
         """
         Return a uniformly random GelfandTsetlinPattern
+
+        EXAMPLES::
+
+            sage: g = GelfandTsetlinPatterns(4, 5)
+            sage: g.random_element()
+            [[5, 2, 2, 1], [2, 2, 1], [2, 1], [1]]
+            sage: g = GelfandTsetlinPatterns(4, 5, strict=True)
+            sage: g.random_element()
+            [[5, 4, 1, 0], [5, 2, 1], [2, 1], [2]]
         """
         if self._n is not None and self._k is not None:
             return self._cftp(0)
@@ -1218,8 +1240,8 @@ class GelfandTsetlinPatternsTopRow(GelfandTsetlinPatterns):
 
         TESTS:
 
-        sage: GelfandTsetlinPatterns(top_row = [5, 4, 3])._cftp_upper()
-        [[5, 4, 3], [5, 4], [5]]
+            sage: GelfandTsetlinPatterns(top_row = [5, 4, 3])._cftp_upper()
+            [[5, 4, 3], [5, 4], [5]]
         """
         return [[self._row[j] for j in range(self._n - i)] for i in range(self._n)]
 
@@ -1229,12 +1251,24 @@ class GelfandTsetlinPatternsTopRow(GelfandTsetlinPatterns):
 
         TESTS:
 
-        sage: GelfandTsetlinPatterns(top_row = [5, 4, 3])._cftp_lower()
-        [[5, 4, 3], [4, 3], [3]]
+            sage: GelfandTsetlinPatterns(top_row = [5, 4, 3])._cftp_lower()
+            [[5, 4, 3], [4, 3], [3]]
         """
         return [[self._row[i + j] for j in range(self._n - i)] for i in range(self._n)]
 
     def random_element(self):
+        """
+        Return a uniformly random GelfandTsetlinPattern
+
+        EXAMPLES::
+
+            sage: g = GelfandTsetlinPatterns(top_row = [4, 3, 1, 1])
+            sage: g.random_element()
+            [[4, 3, 1, 1], [4, 3, 1], [4, 1], [3]]
+            sage: g = GelfandTsetlinPatterns(top_row=[4, 3, 2, 1], strict=True)
+            sage: g.random_element()
+            [[4, 3, 2, 1], [4, 2, 1], [4, 1], [2]]
+        """
         if self._strict:
             return self._cftp(1)
         else:

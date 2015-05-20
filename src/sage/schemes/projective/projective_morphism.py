@@ -2563,11 +2563,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         - ``n`` - a positive integer period
 
         - ``formal`` - a Boolean. True specifies to find the formal ``n`` multiplier spectra of ``self``. False
-            specifies to find the ``n`` multiplier spectra of ``self``
+            specifies to find the ``n`` multiplier spectra of ``self``. Default: True
 
         OUTPUT:
 
-        - a list of elements in QQbar
+        - a list of QQbar elements
 
         EXAMPLES::
 
@@ -2661,11 +2661,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - ``formal`` - a Boolean. True specifies to find the values of the elementary symmetric polynomials
             corresponding to the formal ``n`` multiplier spectra of ``self``. False specifies to instead find the values
-            corresponding to the ``n`` multiplier spectra of ``self``
+            corresponding to the ``n`` multiplier spectra of ``self``. Default: True
 
         OUTPUT:
 
-        - a list of elements in QQbar
+        - a list of QQbar elements
 
         EXAMPLES::
 

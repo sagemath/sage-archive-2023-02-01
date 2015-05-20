@@ -4514,6 +4514,30 @@ cdef class Expression(CommutativeRingElement):
             sage: u = gamma(x) - gamma(x-1)
             sage: u.subs(x=-1)
             Infinity
+
+        Check that the deprecated method ``subs_expr`` works as expected (see
+        :trac:`12834`)::
+
+            sage: var('x,y,z'); f = x^3 + y^2 + z
+            (x, y, z)
+            sage: f.subs_expr(x^3 == y^2, z == 1)
+            doctest:...: DeprecationWarning: subs_expr is deprecated. Please use
+            substitute instead.
+            See http://trac.sagemath.org/12834 for details.
+            2*y^2 + 1
+            sage: f.subs_expr({x^3:y^2, z:1})
+            2*y^2 + 1
+            sage: f = x^2 + x^4
+            sage: f.subs_expr(x^2 == x)
+            x^4 + x
+            sage: f = cos(x^2) + sin(x^2)
+            sage: f.subs_expr(x^2 == x)
+            cos(x) + sin(x)
+            sage: f(x,y,t) = cos(x) + sin(y) + x^2 + y^2 + t
+            sage: f.subs_expr(y^2 == t)
+            (x, y, t) |--> x^2 + 2*t + cos(x) + sin(y)
+            sage: f.subs_expr(x^2 + y^2 == t)
+            (x, y, t) |--> x^2 + y^2 + t + cos(x) + sin(y)
         """
         cdef dict sdict = {}
 
@@ -4591,33 +4615,6 @@ cdef class Expression(CommutativeRingElement):
 
     substitute_expression = deprecated_function_alias(12834, substitute)
     subs_expr = deprecated_function_alias(12834, subs)
-    """
-    Check that the doctest of the method ``substitute_expression`` or
-    ``subs_expr`` still works.
-
-    TESTS::
-
-        sage: var('x,y,z'); f = x^3 + y^2 + z
-        (x, y, z)
-        sage: f.subs_expr(x^3 == y^2, z == 1)
-        doctest:...: DeprecationWarning: subs_expr is deprecated. Please use
-        substitute instead.
-        See http://trac.sagemath.org/12834 for details.
-        2*y^2 + 1
-        sage: f.subs_expr({x^3:y^2, z:1})
-        2*y^2 + 1
-        sage: f = x^2 + x^4
-        sage: f.subs_expr(x^2 == x)
-        x^4 + x
-        sage: f = cos(x^2) + sin(x^2)
-        sage: f.subs_expr(x^2 == x)
-        cos(x) + sin(x)
-        sage: f(x,y,t) = cos(x) + sin(y) + x^2 + y^2 + t
-        sage: f.subs_expr(y^2 == t)
-        (x, y, t) |--> x^2 + 2*t + cos(x) + sin(y)
-        sage: f.subs_expr(x^2 + y^2 == t)
-        (x, y, t) |--> x^2 + y^2 + t + cos(x) + sin(y)
-    """
 
     def substitute_function(self, original, new):
         """

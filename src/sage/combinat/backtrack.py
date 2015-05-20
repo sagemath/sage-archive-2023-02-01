@@ -727,10 +727,10 @@ class SearchForest(Parent):
 
         EXAMPLES::
 
-            sage: F = SearchForest( [([i],i, i) for i in range(1,10)],
+            sage: F = RecursivelyEnumeratedSet( [([i],i, i) for i in range(1,10)],
             ...     lambda (list, sum, last):
             ...         [(list + [i], sum + i, i) for i in range(1,last)],
-            ...     lambda x: x)
+            ...     structure='forest', enumeration='depth')
             sage: y = var('y')
             sage: F.map_reduce(
             ...    lambda (li, sum, _): y**sum, lambda x,y: x + y,  0 )

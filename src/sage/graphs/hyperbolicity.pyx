@@ -81,7 +81,7 @@ Z
       as soon as `dist(a, b) \leq h`.
 
       The worst case time complexity of this algorithm is `O(n^4)`, but it
-      performs very well in practice since it CCL the search space.  This
+      performs very well in practice since it cuts the search space. This
       algorithm can be turned into an approximation algorithm since at any step
       of its execution we maintain an upper and a lower bound. We can thus stop
       execution as soon as a multiplicative approximation factor or an additive
@@ -270,7 +270,7 @@ cdef inline int __hyp__(unsigned short ** distances, int a, int b, int c, int d)
 # Basic algorithm for the hyperbolicity
 ######################################################################
 
-cdef tuple __hyperbolicity_basic_algorithm__(int N,
+cdef tuple hyperbolicity_basic_algorithm(int N,
                                              unsigned short ** distances,
                                              verbose):
     """
@@ -494,12 +494,14 @@ cdef inline pair** sort_pairs(uint32_t N,
                               uint32_t * nb_pairs_of_length
                               ):
     """
-    Uses counting sort to create a list of unordered pairs {i,j}, in decreasing
-    order of values(i,j). If to_include[i][j] = 0, the pair is ignored. We 
-    assume N and D to be correct with respect to the arrays values and 
-    to_include, that values and to_include are symmetric (that is, 
-    values[i][j] = values[j][i] and to_include[i][j] = to_include[j][i], and 
-    that nb_p, nb_pairs_of_length are already allocated.
+    Returns an array of unordered pairs {i,j} in increasing order of values.
+    
+    Uses counting sort to list pairs {i,j} in increasing order of values(i,j).
+    If to_include[i][j] = 0, the pair is ignored. We assume N and D to be 
+    correct with respect to the arrays values and to_include, that values and 
+    to_include are symmetric (that is, values[i][j] = values[j][i] and 
+    to_include[i][j] = to_include[j][i], and that nb_p, nb_pairs_of_length are
+    already allocated.
 
     INPUT:
 
@@ -529,6 +531,7 @@ cdef inline pair** sort_pairs(uint32_t N,
         # pairs_of_length[d] is the list of pairs of vertices at distance d
     cdef pair ** pairs_of_length = <pair **>check_allocarray(D+1, sizeof(pair *))
     cdef unsigned short *p_to_include
+    cdef uint32_t i,j,k
     nb_p[0] = 0;
     
     # fills nb_pairs_of_length and nb_p
@@ -594,7 +597,7 @@ cdef inline pair** sort_pairs(uint32_t N,
 # Compute the hyperbolicity using the algorithm of [CCL12]_
 ######################################################################
 
-cdef tuple __hyperbolicity__(int N,
+cdef tuple hyperbolicity_ccl(int N,
                              unsigned short **  distances,
                              unsigned short **  far_apart_pairs,
                              int D,
@@ -658,7 +661,7 @@ cdef tuple __hyperbolicity__(int N,
     cdef int a, b, c, d, h, h_UB
     cdef int x, y, l1, l2, S1, S2, S3
     cdef list certificate = []
-    cdef uint32_t *nb_p = <uint32_t *>check_allocarray(1, sizeof(uint32_t)) 
+    cdef uint32_t nb_p
             # The total number of pairs.
 
     # Test if the distance matrix corresponds to a connected graph, i.e., if
@@ -674,15 +677,15 @@ cdef tuple __hyperbolicity__(int N,
         raise MemoryError
 
     cdef pair ** pairs_of_length = sort_pairs(N, D, distances, far_apart_pairs, 
-                                              nb_p, nb_pairs_of_length)
+                                              &nb_p, nb_pairs_of_length)
     
     if verbose:
         print "Current 2 connected component has %d vertices and diameter %d" %(N,D)
         if far_apart_pairs == NULL:
-            print "Number of pairs: %d" %(nb_p[0])
+            print "Number of pairs: %d" %(nb_p)
             print "Repartition of pairs:", [(i, nb_pairs_of_length[i]) for i in range(1, D+1) if nb_pairs_of_length[i]>0]
         else:
-            print "Number of far-apart pairs: %d\t(%d pairs in total)" %(nb_p[0], binomial(N, 2))
+            print "Number of far-apart pairs: %d\t(%d pairs in total)" %(nb_p, binomial(N, 2))
             print "Repartition of far-apart pairs:", [(i, nb_pairs_of_length[i]) for i in range(1, D+1) if nb_pairs_of_length[i]>0]
 
 
@@ -1144,7 +1147,7 @@ def hyperbolicity(G,
     # required parameters.
     if algorithm in ['CCL', 'CCL+FA']:
         sig_on()
-        hyp, certif, hyp_UB = __hyperbolicity__(N, distances, far_apart_pairs, D, hyp,
+        hyp, certif, hyp_UB = hyperbolicity_ccl(N, distances, far_apart_pairs, D, hyp,
                                                 approximation_factor, 2*additive_gap, verbose)
         sig_off()
 
@@ -1166,14 +1169,14 @@ def hyperbolicity(G,
                     distances[i][j] = 0
                     distances[j][i] = 0
         sig_on()
-        hyp, certif, hyp_UB = __hyperbolicity__(N, distances, NULL, D, hyp, 1.0, 0.0, verbose)
+        hyp, certif, hyp_UB = hyperbolicity_ccl(N, distances, NULL, D, hyp, 1.0, 0.0, verbose)
         sig_off()
         hyp_UB = min( hyp+8, D)
 
     elif algorithm == 'basic':
         sig_on()
-        hyp, certif = __hyperbolicity_basic_algorithm__(N, distances,
-                                                        verbose=verbose)
+        hyp, certif = hyperbolicity_basic_algorithm(N, distances,
+                                                    verbose=verbose)
         sig_off()
         hyp_UB = hyp
 

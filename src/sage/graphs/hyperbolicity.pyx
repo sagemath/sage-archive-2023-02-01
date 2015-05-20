@@ -597,7 +597,7 @@ cdef inline pair** sort_pairs(uint32_t N,
 # Compute the hyperbolicity using the algorithm of [CCL12]_
 ######################################################################
 
-cdef tuple hyperbolicity_ccl(int N,
+cdef tuple hyperbolicity_CCL(int N,
                              unsigned short **  distances,
                              unsigned short **  far_apart_pairs,
                              int D,
@@ -1147,7 +1147,7 @@ def hyperbolicity(G,
     # required parameters.
     if algorithm in ['CCL', 'CCL+FA']:
         sig_on()
-        hyp, certif, hyp_UB = hyperbolicity_ccl(N, distances, far_apart_pairs, D, hyp,
+        hyp, certif, hyp_UB = hyperbolicity_CCL(N, distances, far_apart_pairs, D, hyp,
                                                 approximation_factor, 2*additive_gap, verbose)
         sig_off()
 
@@ -1169,7 +1169,7 @@ def hyperbolicity(G,
                     distances[i][j] = 0
                     distances[j][i] = 0
         sig_on()
-        hyp, certif, hyp_UB = hyperbolicity_ccl(N, distances, NULL, D, hyp, 1.0, 0.0, verbose)
+        hyp, certif, hyp_UB = hyperbolicity_CCL(N, distances, NULL, D, hyp, 1.0, 0.0, verbose)
         sig_off()
         hyp_UB = min( hyp+8, D)
 

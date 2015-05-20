@@ -25,6 +25,9 @@ TESTS::
     sage: f = x^5 + 2*x^2 + (-1)
     sage: f == loads(dumps(f))
     True
+
+    sage: PolynomialRing(ZZ,'x').objgen()
+    (Univariate Polynomial Ring in x over Integer Ring, x)
 """
 
 #*****************************************************************************
@@ -180,6 +183,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         sage: R.<y> = QQ['y']
         sage: S.<x> = R['x']
+        sage: S
+        Univariate Polynomial Ring in x over Univariate Polynomial Ring in y
+        over Rational Field
         sage: f = x*y; f
         y*x
         sage: type(f)
@@ -787,7 +793,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 expr *= x
         return expr
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         """
         Compare the two polynomials self and other.
 
@@ -1666,7 +1672,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         EXAMPLES::
 
-            sage: R.<x> = QQ[]
+            sage: x = polygen(QQ['u']['v'])
             sage: f = x - 1
             sage: f._pow(3)
             x^3 - 3*x^2 + 3*x - 1
@@ -1681,6 +1687,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         TESTS::
 
+            sage: x = polygen(QQ['u']['v'])
             sage: x^(1/2)
             Traceback (most recent call last):
             ...
@@ -2362,7 +2369,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self.parent().base_ring()
 
-    def base_extend(self, R):
+    cpdef base_extend(self, R):
         """
         Return a copy of this polynomial but with coefficients in R, if
         there is a natural map from coefficient ring of self to R.
@@ -6150,7 +6157,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: P,x=PolynomialRing(ZZ,'x').objgen()
+            sage: P.<x> = ZZ[]
             sage: (x^2+x).valuation()
             1
             sage: (x^2+x).valuation(x+1)
@@ -6203,7 +6210,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: P,x=PolynomialRing(ZZ,'x').objgen()
+            sage: R.<x> = ZZ[]
             sage: (x^2+x).ord(x+1)
             1
         """
@@ -6398,9 +6405,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (f*(x^2-5)).is_squarefree()
             False
 
-        A generic implementation is available for polynomials defined over
-        principal ideal domains of characteristic 0; the algorithm relies on
-        gcd computations::
+        A generic implementation is available, which relies on gcd
+        computations::
 
             sage: R.<x> = ZZ[]
             sage: (2*x).is_squarefree()
@@ -6412,6 +6418,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R(0).is_squarefree()
             False
 
+        This can obviously fail if the ring does not implement ``gcd()``::
+
             sage: S.<y> = QQ[]
             sage: R.<x> = S[]
             sage: (2*x*y).is_squarefree() # R does not provide a gcd implementation
@@ -6421,8 +6429,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (2*x*y^2).is_squarefree()
             False
 
-        Over principal ideal domains of positive characteristic, we compute the
-        square-free decomposition or a full factorization depending on which is
+        In positive characteristic, we compute the square-free
+        decomposition or a full factorization, depending on which is
         available::
 
             sage: K.<t> = FunctionField(GF(3))
@@ -6456,12 +6464,24 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: c = f.content()
             sage: (f/c).is_squarefree()
             True
+
+        If the base ring is not an integral domain, the question is not
+        mathematically well-defined::
+
+            sage: R.<x> = IntegerModRing(9)[]
+            sage: pol = (x + 3)*(x + 6); pol
+            x^2
+            sage: pol.is_squarefree()
+            Traceback (most recent call last):
+            ...
+            TypeError: is_squarefree() is not defined for polynomials over Ring of integers modulo 9
         """
-        if self.parent().base_ring() not in sage.categories.principal_ideal_domains.PrincipalIdealDomains():
-            raise NotImplementedError("is_squarefree() is only implemented for polynomials over principal ideal domains")
+        B = self.parent().base_ring()
+        if B not in sage.categories.integral_domains.IntegralDomains():
+            raise TypeError("is_squarefree() is not defined for polynomials over {}".format(B))
 
         # a square-free polynomial has a square-free content
-        if not self.parent().base_ring().is_field():
+        if not B.is_field():
             content = self.content()
             if content not in self.parent().base_ring():
                 content = content.gen()
@@ -6473,7 +6493,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return True
 
         # for characteristic zero rings, square-free polynomials have to be separable
-        if self.parent().characteristic().is_zero():
+        if B.characteristic().is_zero():
             return False
 
         # over rings of positive characteristic, we rely on the square-free decomposition if available
@@ -7347,7 +7367,8 @@ cdef class Polynomial_generic_dense(Polynomial):
             sage: loads(dumps(f)) == f
             True
 
-        Make sure we're testing the right method.
+        Make sure we're testing the right method::
+
             sage: type(f)
             <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
         """
@@ -7356,8 +7377,24 @@ cdef class Polynomial_generic_dense(Polynomial):
     def __nonzero__(self):
         return len(self.__coeffs) > 0
 
-    cdef void __normalize(self):
-        x = self.__coeffs
+    cdef int __normalize(self) except -1:
+        """
+        TESTS:
+
+        Check that exceptions are propagated correctly (:trac:`18274`)::
+
+            sage: class BrokenRational(Rational):
+            ....:     def __nonzero__(self):
+            ....:         raise NotImplementedError("cannot check whether number is non-zero")
+            sage: z = BrokenRational()
+            sage: R.<x> = QQ[]
+            sage: from sage.rings.polynomial.polynomial_element import Polynomial_generic_dense
+            sage: Polynomial_generic_dense(R, [z])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: cannot check whether number is non-zero
+        """
+        cdef list x = self.__coeffs
         cdef Py_ssize_t n = len(x) - 1
         while n >= 0 and not x[n]:
             del x[n]

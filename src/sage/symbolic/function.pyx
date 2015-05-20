@@ -21,7 +21,7 @@ from sage.structure.element cimport Element, parent_c
 from expression cimport new_Expression_from_GEx, Expression
 from ring import SR
 
-from sage.structure.coerce cimport py_scalar_to_element
+from sage.structure.coerce cimport py_scalar_to_element, is_numpy_type
 from sage.structure.element import get_coercion_model
 
 # we keep a database of symbolic functions initialized in a session
@@ -421,7 +421,7 @@ cdef class Function(SageObject):
                     return method()
 
         # support numpy arrays as arguments
-        if any([type(arg).__module__ == 'numpy' for arg in args]): # avoid importing
+        if any([is_numpy_type(type(arg)) for arg in args]):
             import numpy
             # check that at least one of the arguments is a numpy array
             if any([isinstance(arg, numpy.ndarray) for arg in args]):

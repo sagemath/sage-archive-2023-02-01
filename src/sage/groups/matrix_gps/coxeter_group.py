@@ -30,7 +30,7 @@ from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.all import ZZ
 from sage.rings.infinity import infinity
-from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import UniversalCyclotomicField
+from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 
 
 class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentation):
@@ -428,7 +428,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                         ss = sorted([u0, u1, u2, u3])
                         if ss in [[7, 7, 9, 9], [7, 8, 8, 9],
                                   [7, 8, 9, 10]]:
-                            continue  # F4, B4, H4 
+                            continue  # F4, B4, H4
                 return False
             else:
                 # The case of `l \geq 5` nodes. The finite

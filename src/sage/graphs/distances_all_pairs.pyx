@@ -145,9 +145,8 @@ Functions
 
 include "sage/data_structures/binary_matrix.pxi"
 from libc.stdint cimport uint64_t, uint32_t, INT32_MAX, UINT32_MAX
+from sage.graphs.base.c_graph cimport CGraphBackend
 from sage.graphs.base.c_graph cimport CGraph
-from sage.graphs.base.c_graph cimport vertex_label
-from sage.graphs.base.c_graph cimport get_vertex
 
 from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digraph, free_short_digraph
 
@@ -360,13 +359,13 @@ def shortest_path_all_pairs(G):
     cdef dict d = {}
     cdef dict d_tmp
 
-    cdef CGraph cg = <CGraph> G._backend._cg
+    cdef CGraphBackend cg = <CGraphBackend> G._backend
 
     cdef list int_to_vertex = G.vertices()
     cdef int i, j
 
     for i, l in enumerate(int_to_vertex):
-        int_to_vertex[i] = get_vertex(l, G._backend.vertex_ints, G._backend.vertex_labels, cg)
+        int_to_vertex[i] = cg.get_vertex(l)
 
     for j in range(n):
         d_tmp = {}
@@ -1499,7 +1498,7 @@ def floyd_warshall(gg, paths = True, distances = False):
     """
 
     from sage.rings.infinity import Infinity
-    cdef CGraph g = <CGraph> gg._backend._cg
+    cdef CGraph g = <CGraph> gg._backend.c_graph()[0]
 
     cdef list gverts = g.verts()
 
@@ -1591,21 +1590,20 @@ def floyd_warshall(gg, paths = True, distances = False):
     cdef dict tmp_prec
     cdef dict tmp_dist
 
-    cdef dict ggbvi = gg._backend.vertex_ints
-    cdef dict ggbvl = gg._backend.vertex_labels
+    cdef CGraphBackend cgb = <CGraphBackend> gg._backend
 
     if paths: d_prec = {}
     if distances: d_dist = {}
     for v_int in gverts:
         if paths: tmp_prec = {}
         if distances: tmp_dist = {}
-        v = vertex_label(v_int, ggbvi, ggbvl, g)
+        v = cgb.vertex_label(v_int)
         dv = dist[v_int]
         for u_int in gverts:
-            u = vertex_label(u_int, ggbvi, ggbvl, g)
+            u = cgb.vertex_label(u_int)
             if paths:
                 tmp_prec[u] = (None if v == u
-                               else vertex_label(prec[v_int][u_int], ggbvi, ggbvl, g))
+                               else cgb.vertex_label(prec[v_int][u_int]))
             if distances:
                 tmp_dist[u] = (dv[u_int] if (dv[u_int] != <unsigned short> -1)
                                else Infinity)

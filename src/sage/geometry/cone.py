@@ -3934,3 +3934,88 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         p.solve()
 
         return vector(ZZ, p.get_values(x))
+
+
+    def is_solid(self):
+        r"""
+        Return whether or not this cone is solid.
+
+        A cone is said to be solid if it has nonempty interior. That
+        is, if its extreme rays span the entire ambient space.
+
+        OUTPUT:
+
+        ``True`` if this cone is solid, and ``False`` otherwise.
+
+        .. SEEALSO::
+
+            :meth:`is_proper`
+
+        EXAMPLES:
+
+        The nonnegative orthant is always solid::
+
+            sage: quadrant = Cone([(1,0), (0,1)])
+            sage: quadrant.is_solid()
+            True
+            sage: octant = Cone([(1,0,0), (0,1,0), (0,0,1)])
+            sage: octant.is_solid()
+            True
+
+        However, if we embed the two-dimensional nonnegative quadrant
+        into three-dimensional space, then the resulting cone no longer
+        has interior, so it is not solid::
+
+            sage: quadrant = Cone([(1,0,0), (0,1,0)])
+            sage: quadrant.is_solid()
+            False
+
+        """
+        return (self.dim() == self.lattice_dim())
+
+
+    def is_proper(self):
+        r"""
+        Return whether or not this cone is proper.
+
+        A cone is said to be proper if it is closed, convex, solid,
+        and contains no lines. This cone is assumed to be closed and
+        convex; therefore it is proper if it is solid and contains no
+        lines.
+
+        OUTPUT:
+
+        ``True`` if this cone is proper, and ``False`` otherwise.
+
+        .. SEEALSO::
+
+            :meth:`is_strictly_convex`, :meth:`is_solid`
+
+        EXAMPLES:
+
+        The nonnegative orthant is always proper::
+
+            sage: quadrant = Cone([(1,0), (0,1)])
+            sage: quadrant.is_proper()
+            True
+            sage: octant = Cone([(1,0,0), (0,1,0), (0,0,1)])
+            sage: octant.is_proper()
+            True
+
+        However, if we embed the two-dimensional nonnegative quadrant
+        into three-dimensional space, then the resulting cone no longer
+        has interior, so it is not solid, and thus not proper::
+
+            sage: quadrant = Cone([(1,0,0), (0,1,0)])
+            sage: quadrant.is_proper()
+            False
+
+        Likewise, a half-space contains at least one line, so it is not
+        proper::
+
+            sage: halfspace = Cone([(1,0),(0,1),(-1,0)])
+            sage: halfspace.is_proper()
+            False
+
+        """
+        return (self.is_strictly_convex() and self.is_solid())

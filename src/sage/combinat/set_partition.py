@@ -315,7 +315,7 @@ class SetPartition(ClonableArray):
         """
         return self.__eq__(y) or self.__gt__(y)
 
-    def __cmp__(self, y):
+    def _cmp_(self, y):
         """
         Return the result of ``cmp``.
 
@@ -336,6 +336,8 @@ class SetPartition(ClonableArray):
         if self > y:
             return 1
         return 0
+
+    __cmp__ = _cmp_
 
     def __mul__(self, other):
         r"""
@@ -903,7 +905,7 @@ class SetPartition(ClonableArray):
         todo = [self]
         visited = set([self])
         ret = [self]
-        while len(todo) != 0:
+        while todo:
             A = todo.pop()
             for i, part in enumerate(A):
                 for j, other in enumerate(A[i+1:]):
@@ -917,6 +919,30 @@ class SetPartition(ClonableArray):
                             visited.add(next)
                             ret.append(next)
         return ret
+
+    def arcs(self):
+        r"""
+        Return ``self`` as a list of arcs.
+
+        Consider a set partition `X = \{X_1, X_2, \ldots, X_n\}`,
+        then the arcs are the pairs `i - j` such that `i,j \in X_k`
+        for some `k`.
+
+        EXAMPLES::
+
+            sage: A = SetPartition([[1],[2,3],[4]])
+            sage: A.arcs()
+            [(2, 3)]
+            sage: B = SetPartition([[1,3,6,7],[2,5],[4]])
+            sage: B.arcs()
+            [(1, 3), (3, 6), (6, 7), (2, 5)]
+        """
+        arcs = []
+        for p in self:
+            p = sorted(p)
+            for i in range(len(p)-1):
+                arcs.append((p[i], p[i+1]))
+        return arcs
 
 class SetPartitions(Parent, UniqueRepresentation):
     r"""

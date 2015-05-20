@@ -1,5 +1,5 @@
 """
-Cython -- C-Extensions for Python
+Cython support functions
 
 AUTHORS:
 
@@ -378,12 +378,13 @@ def cython(filename, verbose=False, compile_message=False,
         # There is already a module here. Maybe we do not have to rebuild?
         # Find the name.
         if use_cache:
-            prev_so = [F for F in os.listdir(build_dir) if F[-3:] == '.so']
+            from sage.misc.sageinspect import loadable_module_extension
+            prev_so = [F for F in os.listdir(build_dir) if F.endswith(loadable_module_extension())]
             if len(prev_so) > 0:
                 prev_so = prev_so[0]     # should have length 1 because of deletes below
                 if os.path.getmtime(filename) <= os.path.getmtime('%s/%s'%(build_dir, prev_so)):
                     # We do not have to rebuild.
-                    return prev_so[:-3], build_dir
+                    return prev_so[:-len(loadable_module_extension())], build_dir
     else:
         os.makedirs(build_dir)
     for F in os.listdir(build_dir):
@@ -543,11 +544,8 @@ setup(ext_modules = ext_modules,
 
     if create_local_so_file:
         # Copy from lib directory into local directory
-        libext = 'so'
-        UNAME = os.uname()[0].lower()
-        if UNAME[:6] == 'cygwin':
-            libext = 'dll'
-        cmd = 'cp %s/%s.%s %s'%(build_dir, name, libext, os.path.abspath(os.curdir))
+        from sage.misc.sageinspect import loadable_module_extension
+        cmd = 'cp %s/%s%s %s'%(build_dir, name, loadable_module_extension(), os.path.abspath(os.curdir))
         if os.system(cmd):
             raise RuntimeError("Error making local copy of shared object library for {}".format(filename))
 

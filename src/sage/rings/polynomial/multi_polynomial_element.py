@@ -1399,32 +1399,19 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             return self.__lt
 
     def __eq__(self,right):
-        """
-
-        """
-        if not isinstance(right,MPolynomial_polydict):
+        if not isinstance(right, MPolynomial_polydict):
             # we want comparison with zero to be fast
-            if right == 0:
-                if self._MPolynomial_element__element.dict()=={}:
-                    return True
-                else:
-                    return False
-            return self._richcmp_(right,2)
+            if not right:
+                return not self._MPolynomial_element__element.dict()
+            return CommutativeRingElement.__eq__(self, right)
         return self._MPolynomial_element__element == right._MPolynomial_element__element
 
     def __ne__(self,right):
-        """
-
-        """
-        if not isinstance(right,MPolynomial_polydict):
+        if not isinstance(right, MPolynomial_polydict):
             # we want comparison with zero to be fast
-            if right == 0:
-                if self._MPolynomial_element__element.dict()=={}:
-                    return False
-                else:
-                    return True
-            # maybe add constant elements as well
-            return self._richcmp_(right,3)
+            if not right:
+                return not not self._MPolynomial_element__element.dict()
+            return CommutativeRingElement.__ne__(self, right)
         return self._MPolynomial_element__element != right._MPolynomial_element__element
 
     def __nonzero__(self):

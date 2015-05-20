@@ -79,8 +79,7 @@ class HeckeAlgebraRepresentation(SageObject):
             sage: domain = W.algebra(QQ)
             sage: action = lambda x,i: domain.monomial(x.apply_simple_reflection(i, side="right"))
             sage: HeckeAlgebraRepresentation(domain, action, CartanType(["A",2]), 1, -1)
-            A representation of the (1, -1)-Hecke algebra of type ['A', 2]
-             on Symmetric group algebra of order 3 over Rational Field
+            A representation of the (1, -1)-Hecke algebra of type ['A', 2] on Symmetric group algebra of order 3 over Rational Field
         """
         self._domain = domain
         self._Ti_on_basis = on_basis

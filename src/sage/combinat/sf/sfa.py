@@ -215,8 +215,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.all import Integer, PolynomialRing, QQ, ZZ
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
-import sage.combinat.partition
-from sage.combinat.partition import _Partitions, Partitions
+from sage.combinat.partition import _Partitions, Partitions, Partitions_n, Partition
 import sage.libs.symmetrica.all as symmetrica  # used in eval()
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
@@ -246,7 +245,8 @@ def SymmetricFunctionAlgebra(R, basis="schur"):
         See http://trac.sagemath.org/15473 for details.
         Symmetric Functions over Rational Field in the Schur basis
     """
-    sage.misc.superseded.deprecation(15473, "this function is deprecated. Use SymmetricFunctions(R).basis()")
+    from sage.misc.superseded import deprecation
+    deprecation(15473, "this function is deprecated. Use SymmetricFunctions(R).basis()")
     from sage.combinat.sf.sf import SymmetricFunctions
     Sym = SymmetricFunctions(R)
     if basis == 'schur' or basis == 's':
@@ -308,8 +308,8 @@ def zee(part):
         sage: zee([2,1,1])
         4
     """
-    if not isinstance(part, sage.combinat.partition.Partition):
-        part = sage.combinat.partition.Partition(part)
+    if not isinstance(part, Partition):
+        part = _Partitions(part)
     return part.centralizer_size()
 
 
@@ -593,7 +593,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
             .. TODO:: generalize to Modules.Graded.Connected.ParentMethods
             """
-            return sage.combinat.partition.Partition([])
+            return _Partitions([])
 
         def degree_on_basis(self, b):
             r"""
@@ -1076,8 +1076,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 m = lam.to_exp_dict() # == {i: m_i | i occurs in lam}
                 p = self.realization_of().power()
                 h = self.realization_of().complete()
-                mu = sage.rings.arith.Moebius()
-                from sage.rings.arith import squarefree_divisors
+                from sage.rings.arith import Moebius, squarefree_divisors
+                mu = Moebius()
                 def component(i, g): # == h_g[L_i]
                     L_i = p.sum_of_terms([(_Partitions([d] * (i//d)), R(mu(d)))
                                           for d in squarefree_divisors(i)],
@@ -1305,7 +1305,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             # Stupid implementation.
             R = self.base_ring()
             m = self.realization_of().m()
-            Permus_mset = sage.combinat.permutation.Permutations_mset
+            from sage.combinat.permutation import Permutations_mset
             # Defining a ``check_word`` function. This function will be used
             # to check if an `n`-tuple `w` of positive integers belongs to
             # `W(n, d, s)` and satisfies the additional requirement
@@ -1345,8 +1345,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             def coeff_of_m_mu_in_result(mu):
                 # Compute the coefficient of the monomial symmetric
                 # function ``m[mu]`` in the result.
-                words_to_check = Permus_mset([i for (i, l) in enumerate(mu)
-                                              for _ in range(l)])
+                words_to_check = Permutations_mset([i for (i, l) in enumerate(mu)
+                                                    for _ in range(l)])
                 return R( sum(1 for w in words_to_check if check_word(w)) )
 
             from sage.combinat.partition import Partitions_n
@@ -1883,7 +1883,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         zero = base_ring.zero()
 
         #Get and store the list of partitions we'll need
-        pn = sage.combinat.partition.Partitions_n(n).list()
+        pn = Partitions_n(n).list()
         len_pn = len(pn)
 
         #Create the initial cache dictionaries
@@ -2100,7 +2100,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: e.transition_matrix(m,7) == e.transition_matrix(m,7).transpose()
             True
         """
-        P = sage.combinat.partition.Partitions_n(n)
+        P = Partitions_n(n)
         Plist = P.list()
         m = []
         for row_part in Plist:
@@ -2167,7 +2167,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         # We are going to be doing everything like we are in the upper-triangular case
         # We list the partitions in "decreasing order" and work from the beginning forward.
         # If we are in the lower-triangular case, then we shouldn't reverse the list
-        l = Partitions(n).list()
+        l = Partitions_n(n).list()
         if upper_triangular:
             l.reverse()
 
@@ -2257,7 +2257,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         res = 0
         degrees = uniq([ sum(m) for m in g.support() ])
         for d in degrees:
-            for mu in sage.combinat.partition.Partitions(d):
+            for mu in Partitions_n(d):
                 mu_k = mu.power(k)
                 if mu_k in g:
                     res += g.coefficient(mu_k)*mu_k.centralizer_size()/mu.centralizer_size()*p(mu)
@@ -2560,6 +2560,31 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         """
         m = self.realization_of().m()
         return self(m.from_polynomial(poly, check=check))
+
+    def product_by_coercion(self, left, right):
+        r"""
+        Return the product of elements ``left`` and ``right`` by coercion to
+        the Schur basis.
+
+        INPUT:
+
+        - ``left``, ``right`` -- instances of this basis
+
+        OUTPUT:
+
+        - the product of ``left`` and ``right`` expressed in the basis ``self``
+
+        EXAMPLES::
+
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: p.product_by_coercion(p[3,1,1], p[2,2])
+            p[3, 2, 2, 1, 1]
+            sage: m = SymmetricFunctions(QQ).m()
+            sage: m.product_by_coercion(m[2,1],m[1,1]) == m[2,1]*m[1,1]
+            True
+        """
+        s = self.realization_of().schur()
+        return self(s.product(s(left),s(right)))
 
     def coproduct_by_coercion(self, elt):
         r"""
@@ -3019,7 +3044,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         res = p_self.map_item(lambda m,c: (m, c * a**len(m)))
         return self.parent()(res)
 
-    def theta_qt(self,q=None,t=None):
+    def theta_qt(self, q=None, t=None):
         r"""
         Return the image of ``self`` under the `q,t`-deformed theta
         endomorphism which sends `p_k` to `\frac{1-q^k}{1-t^k} \cdot p_k`
@@ -3066,10 +3091,16 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
                 q = parent.q
             else:
                 q = BR(QQ['q'].gen())
-        res = p_self.map_item(lambda m,c: (m, BR(prod([(1-q**k)/(1-t**k) for k in m])*c)))
+        one = BR.one()
+        if not t:
+            res = p._from_dict({m: BR(prod(one - q**k for k in m) * c)
+                                for m,c in p_self})
+        else:
+            res = p._from_dict({m: BR(prod((one-q**k) / (one-t**k) for k in m)*c)
+                                for m,c in p_self})
         return parent(res)
 
-    def omega_qt(self,q = None,t = None):
+    def omega_qt(self, q=None, t=None):
         r"""
         Return the image of ``self`` under the `q,t`-deformed omega
         automorphism which sends `p_k` to
@@ -3111,7 +3142,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: H([1,1]).omega_qt(q,t)
             ((2*q^2-2*q*t-2*q+2*t)/(t^3-t^2-t+1))*McdH[1, 1] + ((q-1)/(t-1))*McdH[2]
             sage: H([1,1]).omega_qt(t,q)
-            ((t^3-t^2-t+1)/(q^3-q^2-q+1))*McdH[2]
+            ((-t^3+t^2+t-1)/(-q^3+q^2+q-1))*McdH[2]
             sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
             sage: S = Sym.macdonald().S()
             sage: S([1,1]).omega_qt()
@@ -3134,8 +3165,16 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
                 q = parent.q
             else:
                 q = BR(QQ['q'].gen())
-        f = lambda part: prod([(-1)**(i-1)*(1-q**i)/(1-t**i) for i in part])
-        res = p_self.map_item(lambda m,c: (m, BR(f(m)*c)))
+        one = BR.one()
+        if not t:
+            res = p._from_dict({m: c * (-one)**(sum(m)-len(m))
+                                     * BR(prod(one-q**i for i in m))
+                                for m,c in p_self})
+        else:
+            res = p._from_dict({m: c * (-one)**(sum(m)-len(m))
+                                     * BR(prod((one-q**i) / (one-t**i)
+                                               for i in m))
+                                for m,c in p_self})
         return parent(res)
 
     def itensor(self, x):
@@ -3759,7 +3798,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: v = s[1].left_padded_kronecker_product(s[1]); parent(v)
             Symmetric Functions over Integer Ring in the Schur basis
         """
-        _Compositions = sage.combinat.composition.Compositions()
+        from sage.combinat.composition import Compositions
+        _Compositions = Compositions()
         parent = self.parent()
         h = parent.realization_of().h()
         h_self = h(self)
@@ -4063,7 +4103,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s(1).nabla()
             s[]
             sage: s([2,1]).nabla(power=-1)
-            ((-q-t)/(q^2*t^2))*s[2, 1] + ((-q^2-q*t-t^2)/(q^3*t^3))*s[3]
+            ((-q-t)/(q^2*t^2))*s[2, 1] + ((q^2+q*t+t^2)/(-q^3*t^3))*s[3]
             sage: (s([2])+s([3])).nabla()
             (-q*t)*s[1, 1] + (q^3*t^2+q^2*t^3)*s[1, 1, 1] + q^2*t^2*s[2, 1]
         """

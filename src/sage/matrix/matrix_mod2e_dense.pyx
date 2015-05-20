@@ -698,7 +698,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         """
         return self._richcmp(right, op)
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         if self._nrows == 0 or self._ncols == 0:
             return 0
         return mzed_cmp(self._entries, (<Matrix_mod2e_dense>right)._entries)

@@ -102,7 +102,7 @@ cdef class Matrix_dense(matrix.Matrix):
         else:
             raise RuntimeError, "unknown matrix version (=%s)"%version
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         """
         EXAMPLES::
 

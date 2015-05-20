@@ -56,7 +56,7 @@ from sage.rings.complex_interval_field import ComplexIntervalField_class
 from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.fraction_field     import FractionField
-from sage.rings.fraction_field_element import is_FractionFieldElement
+from sage.rings.fraction_field_element import is_FractionFieldElement, FractionFieldElement
 from sage.rings.integer_ring       import ZZ
 from sage.rings.number_field.order import is_NumberFieldOrder
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -3107,12 +3107,15 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
     def rational_preperiodic_points(self, **kwds):
         r"""
-        Determined the set of rational preperiodic points for ``self``.
+        Determine the set of rational preperiodic points for ``self``.
         ``self`` must be defined over `\QQ` and be an endomorphism of projective space.
+        If ``self`` is a polynomial endomorphism of `\mathbb{P}^1`, i.e. has a totally
+        ramified fixed point, then the base ring can also be an absolute number field.
+        This is done by passing to the Weil restriction.
 
         The default parameter values are typically good choices for `\mathbb{P}^1`. If you are having
-        trouble getting a partiuclar map to finish, try first computing the possible periods, then
-        try various different ``lifting_prime``.
+        trouble getting a particular map to finish, try first computing the possible periods, then
+        try various different values for ``lifting_prime``.
 
         ALGORITHM:
 
@@ -3171,28 +3174,98 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             : 1 : 1), (1/4 : 2 : 1), (5/4 : -2 : 1), (5/4 : -1 : 1), (5/4 : 0 : 1),
             (5/4 : 1 : 1), (5/4 : 2 : 1)]
 
+        ::
+
+            sage: K.<w> = QuadraticField(33)
+            sage: PS.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(PS)
+            sage: f = H([x^2-71/48*y^2, y^2])
+            sage: sorted(f.rational_preperiodic_points()) # long time
+            [(-1/12*w - 1 : 1),
+             (-1/6*w - 1/4 : 1),
+             (-1/12*w - 1/2 : 1),
+             (-1/6*w + 1/4 : 1),
+             (1/12*w - 1 : 1),
+             (1/12*w - 1/2 : 1),
+             (-1/12*w + 1/2 : 1),
+             (-1/12*w + 1 : 1),
+             (1/6*w - 1/4 : 1),
+             (1/12*w + 1/2 : 1),
+             (1 : 0),
+             (1/6*w + 1/4 : 1),
+             (1/12*w + 1 : 1)]
         """
-        #input error checking done in possible_periods and rational_peridic_points
-        badprimes = kwds.pop("bad_primes", None)
-        periods = kwds.pop("periods", None)
-        primebound = kwds.pop("prime_bound", [1, 20])
-        if badprimes is None:
-            badprimes = self.primes_of_bad_reduction()
-        if periods is None:
-            periods = self.possible_periods(prime_bound=primebound, bad_primes=badprimes) #determine the set of possible periods
-        if periods == []:
-            return([]) #no rational preperiodic points
-        else:
-            p = kwds.pop("lifting_prime", 23)
-            T = self.rational_periodic_points(prime_bound=primebound, lifting_prime=p, periods=periods, bad_primes=badprimes) #find the rational preperiodic points
-            preper = self.all_rational_preimages(T) #find the preperiodic points
-            preper = list(preper)
+        PS = self.domain()
+        K = PS.base_ring()
+        if K in _NumberFields:
+            if not K.is_absolute():
+                raise TypeError("Base field must be an absolute field")
+            d = K.absolute_degree()
+            #check that we are not over QQ
+            if d > 1:
+                if PS.dimension_relative() != 1:
+                    raise NotImplementedError("Rational Preperiodic Points for Number Fields only implemented in dimension 1")
+                w = K.absolute_generator()
+                #we need to dehomogenize for the Weil restriction and will check that point at infty
+                #separately. We also check here that we are working with a polynomial. If the map
+                #is not a polynomial, the Weil restriction will not be a morphism and we cannot
+                #apply this algorithm.
+                g = self.dehomogenize(1)
+                inf = PS([1,0])
+                k = 1
+                if isinstance(g[0], FractionFieldElement):
+                    g = self.dehomogenize(0)
+                    inf = PS([0,1])
+                    k = 0
+                    if isinstance(g[0], FractionFieldElement):
+                        raise NotImplementedError("Rational Preperiodic Points for Number Fields only implemented for polynomials")
+                #determine rational preperiodic points
+                #infinity is a totally ramified fixed point for a polynomial
+                preper = set([inf])
+                #compute the weil resctriction
+                G = g.weil_restriction()
+                F = G.homogenize(d)
+                #find the QQ rational preperiodic points for the weil restriction
+                Fpre = F.rational_preperiodic_points(**kwds)
+                for P in Fpre:
+                    #take the 'good' points in the weil restriction and find the
+                    #associated number field points.
+                    if P[d] == 1:
+                        pt = [sum([P[i]*w**i for i in range(d)])]
+                        pt.insert(k,1)
+                        Q = PS(pt)
+                        #for each preperidic point get the entire connected component
+                        if not Q in preper:
+                            for t in self.connected_rational_component(Q):
+                                preper.add(t)
+                preper = list(preper)
+            else:
+                #input error checking done in possible_periods and rational_peridic_points
+                badprimes = kwds.pop("bad_primes", None)
+                periods = kwds.pop("periods", None)
+                primebound = kwds.pop("prime_bound", [1, 20])
+                if badprimes is None:
+                    badprimes = self.primes_of_bad_reduction()
+                if periods is None:
+                    periods = self.possible_periods(prime_bound=primebound, bad_primes=badprimes) #determine the set of possible periods
+                if periods == []:
+                    return([]) #no rational preperiodic points
+                else:
+                    p = kwds.pop("lifting_prime", 23)
+                    T = self.rational_periodic_points(prime_bound=primebound, lifting_prime=p, periods=periods, bad_primes=badprimes) #find the rational preperiodic points
+                    preper = self.all_rational_preimages(T) #find the preperiodic points
+                    preper = list(preper)
             return(preper)
+        else:
+            raise TypeError("Base field must be an absolute number field")
 
     def rational_preperiodic_graph(self, **kwds):
         r"""
-        Determines the set of rational preperiodic points for ``self``.
+        Determine the directed graph of the rational preperiodic points for ``self``.
         self must be defined over `\QQ` and be an endomorphism of projective space.
+        If ``self`` is a polynomial endomorphism of `\mathbb{P}^1`, i.e. has a totally
+        ramified fixed point, then the base ring can also be an absolute number field.
+        This is done by passing to the Weil restriction.
 
         ALGORITHM:
         - Determines the list of possible periods.
@@ -3245,6 +3318,15 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: f = H([2*x^3 - 50*x*z^2 + 24*z^3,5*y^3 - 53*y*z^2 + 24*z^3,24*z^3])
             sage: f.rational_preperiodic_graph(prime_bound=[1,11],lifting_prime=13) # long time
             Looped digraph on 30 vertices
+
+        ::
+
+            sage: K.<w> = QuadraticField(-3)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([x^2+y^2,y^2])
+            sage: f.rational_preperiodic_graph() # long time
+            Looped digraph on 5 vertices
         """
         #input checking done in .rational_preperiodic_points()
         preper = self.rational_preperiodic_points(**kwds)

@@ -648,9 +648,9 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
 
             sage: C = crystals.AlcovePaths(['A',2],[1,1])
             sage: [c.phi(1) for c in C]
-            [1, 2, 0, 1, 0, 0, 1, 0]
-            sage: [c.phi(2) for c in C]
             [1, 0, 2, 0, 1, 1, 0, 0]
+            sage: [c.phi(2) for c in C]
+            [1, 2, 0, 1, 0, 0, 1, 0]
         """
         highest_weight_crystal = self.parent()._highest_weight_crystal
         positions, gi = self._gi(i)
@@ -672,9 +672,9 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
 
             sage: C = crystals.AlcovePaths(['A',2],[1,1])
             sage: [c.epsilon(1) for c in C]
-            [0, 0, 1, 1, 0, 2, 0, 1]
-            sage: [c.epsilon(2) for c in C]
             [0, 1, 0, 0, 1, 0, 2, 1]
+            sage: [c.epsilon(2) for c in C]
+            [0, 0, 1, 1, 0, 2, 0, 1]
         """
         #crude but functional
         j = 0

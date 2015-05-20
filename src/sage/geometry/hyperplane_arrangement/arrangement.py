@@ -83,7 +83,7 @@ Notation (iv): using the library of arrangements::
 
 Notation (v): from the bounding hyperplanes of a polyhedron::
 
-    sage: a = polytopes.n_cube(3).hyperplane_arrangement();  a
+    sage: a = polytopes.cube().hyperplane_arrangement();  a
     Arrangement of 6 hyperplanes of dimension 3 and rank 3
     sage: a.n_regions()
     27
@@ -540,7 +540,7 @@ class HyperplaneArrangementElement(Element):
             sage: B.rank()
             2
 
-            sage: p = polytopes.n_simplex(5)
+            sage: p = polytopes.simplex(5, project=True)
             sage: H = p.hyperplane_arrangement()
             sage: H.rank()
             5
@@ -2095,7 +2095,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             sage: L._element_constructor_([[0, 1, 0], [0, 0, 1]])
             Arrangement <y | x>
 
-            sage: L._element_constructor(polytopes.n_cube(2))
+            sage: L._element_constructor(polytopes.hypercube(2))
             Arrangement <-x + 1 | -y + 1 | y + 1 | x + 1>
 
             sage: L(x, x, warn_duplicates=True)

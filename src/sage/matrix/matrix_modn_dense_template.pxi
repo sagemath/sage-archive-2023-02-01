@@ -950,7 +950,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return M
 
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         r"""
         Compare two dense matrices over `\Z/n\Z`
 

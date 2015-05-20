@@ -20,7 +20,7 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         EXAMPLES::
 
-            sage: R, q = PowerSeriesRing(CC, 'q').objgen()
+            sage: R.<q> = PowerSeriesRing(CC)
             sage: R
             Power Series Ring in q over Complex Field with 53 bits of precision
             sage: loads(q.dumps()) == q

@@ -53,6 +53,7 @@ import sys
 import operator
 
 from sage.misc.mathml import mathml
+from sage.misc.long cimport pyobject_to_long
 
 import sage.misc.misc as misc
 import sage.rings.rational_field
@@ -68,6 +69,7 @@ from sage.libs.pari.pari_instance cimport PariInstance, INT_to_mpz, INTFRAC_to_m
 from integer_ring import ZZ
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 
+from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element cimport Element, RingElement, ModuleElement
 from sage.structure.element import bin_op, coerce_binop
 from sage.categories.morphism cimport Morphism
@@ -352,6 +354,21 @@ cdef class Rational(sage.structure.element.FieldElement):
         -939082/3992923
         sage: Rational(pari('Pol([-1/2])'))  #9595
         -1/2
+
+    Conversions from numpy::
+
+        sage: import numpy as np
+        sage: QQ(np.int8('-15'))
+        -15
+        sage: QQ(np.int16('-32'))
+        -32
+        sage: QQ(np.int32('-19'))
+        -19
+        sage: QQ(np.uint32('1412'))
+        1412
+
+        sage: QQ(np.float16('12'))
+        12
     """
     def __cinit__(self):
         r"""
@@ -542,9 +559,17 @@ cdef class Rational(sage.structure.element.FieldElement):
         elif isinstance(x, (float, sage.rings.real_double.RealDoubleElement)):
             self.__set_value(sage.rings.real_mpfr.RealNumber(sage.rings.real_mpfr.RR, x), base)
 
-        else:
+        elif is_numpy_type(type(x)):
+            import numpy
+            if isinstance(x, numpy.integer):
+                self.__set_value(integer.Integer(x), base)
+            elif isinstance(x, numpy.floating):
+                self.__set_value(sage.rings.real_mpfr.RR(x), base)
+            else:
+                raise TypeError("Unable to coerce {} ({}) to Rational".format(x,type(x)))
 
-            raise TypeError, "Unable to coerce %s (%s) to Rational"%(x,type(x))
+        else:
+            raise TypeError("Unable to coerce {} ({}) to Rational".format(x,type(x)))
 
     cdef void set_from_mpq(Rational self, mpq_t value):
         mpq_set(self.value, value)
@@ -709,7 +734,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return (<sage.structure.element.Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         cdef int i
         i = mpq_cmp((<Rational>left).value, (<Rational>right).value)
         if i < 0: return -1
@@ -2313,7 +2338,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         cdef long nn
 
         try:
-            nn = PyNumber_Index(n)
+            nn = pyobject_to_long(n)
         except TypeError:
             if isinstance(n, Rational):
                 # Perhaps it can be done exactly

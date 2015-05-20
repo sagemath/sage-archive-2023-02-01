@@ -1473,7 +1473,7 @@ cdef class NCPolynomial_plural(RingElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         if left is right:
             return 0
         cdef poly *p = (<NCPolynomial_plural>left)._poly

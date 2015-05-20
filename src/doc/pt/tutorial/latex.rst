@@ -132,7 +132,6 @@ esse processo é discutido abaixo na seção
 O comando interno ``pretty_print()`` ilustra a conversão de objetos do
 Sage para HTML que emprega o MathJax no Notebook. ::
 
-    sage: from sage.misc.latex import pretty_print
     sage: pretty_print(x^12)
     <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
     sage: pretty_print(integrate(sin(x), x))

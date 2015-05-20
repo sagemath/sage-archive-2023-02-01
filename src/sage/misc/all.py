@@ -136,7 +136,6 @@ from functional import (additive_order,
                         round,
                         quotient,
                         quo,
-                        show,
                         isqrt,
                         squarefree_part,
                         symbolic_sum as sum,
@@ -144,7 +143,7 @@ from functional import (additive_order,
                         zero)
 
 
-from latex import LatexExpr, latex, view, pretty_print, pretty_print_default
+from latex import LatexExpr, latex, view, pretty_print_default
 
 from trace import trace
 

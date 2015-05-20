@@ -87,7 +87,7 @@ class OutputBuffer(SageObject):
           stored.
 
         OUTPUT:
-        
+
         String containing the buffer data.
 
         EXAMPLES::
@@ -141,7 +141,7 @@ class OutputBuffer(SageObject):
         mode = os.stat(filename).st_mode
         mode = stat.S_IMODE(mode) & ~(stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH)
         os.chmod(filename, mode)
-        
+
     def _repr_(self):
         """
         Return a string representation
@@ -157,11 +157,11 @@ class OutputBuffer(SageObject):
             buffer containing 8 bytes
         """
         return 'buffer containing {0} bytes'.format(len(self.get()))
-        
+
     def get(self):
         """
         Return the buffer content
-        
+
         OUTPUT:
 
         Bytes. A string in Python 2.x.
@@ -180,7 +180,7 @@ class OutputBuffer(SageObject):
     def get_unicode(self):
         """
         Return the buffer content as string
-        
+
         OUTPUT:
 
         String. Unicode in Python 2.x. Raises a ``UnicodeEncodeError``
@@ -251,7 +251,7 @@ class OutputBuffer(SageObject):
 
         self._chmod_readonly(output)
         return output
-        
+
     def save_as(self, filename):
         """
         Save a copy of the buffer content.

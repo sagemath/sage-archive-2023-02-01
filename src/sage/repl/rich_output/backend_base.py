@@ -88,7 +88,7 @@ class BackendBase(SageObject):
         instance.
 
         EXAMPLES::
-        
+
             sage: from sage.repl.rich_output.backend_base import BackendBase
             sage: backend = BackendBase()
             sage: backend.get_display_manager()
@@ -234,7 +234,7 @@ class BackendBase(SageObject):
         OUTPUT:
 
         String.
-        
+
         EXAMPLES::
 
             sage: from sage.repl.rich_output.backend_base import BackendBase
@@ -288,9 +288,9 @@ class BackendBase(SageObject):
             sage: out.text
             buffer containing 139 bytes
             sage: out.text.get()
-            '[0,\n 1,\n 2,\n 3,\n 4,\n 5,\n 6,\n 7,\n 8,\n 9,\n 
-            10,\n 11,\n 12,\n 13,\n 14,\n 15,\n 16,\n 17,\n 18,\n 
-            19,\n 20,\n 21,\n 22,\n 23,\n 24,\n 25,\n 26,\n 27,\n 
+            '[0,\n 1,\n 2,\n 3,\n 4,\n 5,\n 6,\n 7,\n 8,\n 9,\n
+            10,\n 11,\n 12,\n 13,\n 14,\n 15,\n 16,\n 17,\n 18,\n
+            19,\n 20,\n 21,\n 22,\n 23,\n 24,\n 25,\n 26,\n 27,\n
             28,\n 29]'
 
             sage: out = backend.plain_text_formatter(range(20), concatenate=True)
@@ -338,7 +338,7 @@ class BackendBase(SageObject):
             sage: out.ascii_art
             buffer containing 228 bytes
             sage: print(out.ascii_art.get())
-            [                                                                              
+            [
             [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
             <BLANKLINE>
                                             ]
@@ -389,7 +389,7 @@ class BackendBase(SageObject):
             sage: out.unicode_art
             buffer containing 236 bytes
             sage: print(out.unicode_art.get())
-            ⎡                                                                              
+            ⎡
             ⎣ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
             <BLANKLINE>
                                            ⎤
@@ -407,7 +407,7 @@ class BackendBase(SageObject):
             result = unicode_art(obj)
         from sage.repl.rich_output.output_basic import OutputUnicodeArt
         return OutputUnicodeArt(str(result))
-    
+
     def latex_formatter(self, obj, **kwds):
         r"""
         Hook to override how Latex is being formatted.
@@ -495,11 +495,11 @@ class BackendBase(SageObject):
         """
         import __builtin__
         __builtin__._ = obj
-    
+
     def displayhook(self, plain_text, rich_output):
         """
         Backend implementation of the displayhook
-        
+
         The value of the last statement on a REPL input line or
         notebook cell are usually handed to the Python displayhook and
         shown on screen.  By overriding this method you define how
@@ -508,7 +508,7 @@ class BackendBase(SageObject):
         most suitable rich output container.
 
         Derived classes must implement this method.
-        
+
         INPUT:
 
         - ``plain_text`` -- instance of
@@ -551,7 +551,7 @@ class BackendBase(SageObject):
         up being called by :meth:`sage.plot.graphics.Graphics.show`.
 
         Derived classes must implement this method.
-        
+
         INPUT:
 
         Same as :meth:`displayhook`.
@@ -583,14 +583,14 @@ class BackendSimple(BackendBase):
     Simple Backend
 
     This backend only supports plain text.
-    
+
     EXAMPLES::
 
         sage: from sage.repl.rich_output.backend_base import BackendSimple
         sage: BackendSimple()
         simple
     """
-    
+
     def _repr_(self):
         r"""
         Return string representation of the backend

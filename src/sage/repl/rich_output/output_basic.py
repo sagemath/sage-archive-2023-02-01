@@ -8,7 +8,7 @@ to hold the data for each type of rich output. They all inherit from
 :class:`OutputPlainText`. Some output classes consist of more than one
 data buffer, for example jmol or certain animation formats. The output
 class is independent of user preferences and of the display
-backend. 
+backend.
 
 The display backends can define derived classes to attach
 backend-specific display functionality to, for example how to launch a
@@ -29,7 +29,7 @@ To create new types of output, you must create your own subclass of
     instances. You must never reference any files on the local file
     system, as there is no guarantee that the notebook server and the
     worker process are on the same computer. Or even share a common
-    file system.  
+    file system.
 """
 
 #*****************************************************************************
@@ -79,7 +79,7 @@ class OutputBase(SageObject):
         OUTPUT:
 
         An instance of the :class:`OutputBase` subclass.
-        
+
         EXAMPLES::
 
             sage: from sage.repl.rich_output.output_basic import OutputBase
@@ -96,7 +96,7 @@ class OutputPlainText(OutputBase):
     def __init__(self, plain_text):
         """
         Plain Text Output
-        
+
         INPUT:
 
         - ``plain_text`` --
@@ -134,7 +134,7 @@ class OutputPlainText(OutputBase):
         OUTPUT:
 
         An instance of :class:`OutputPlainText`.
-        
+
         EXAMPLES::
 
             sage: from sage.repl.rich_output.output_catalog import OutputPlainText
@@ -166,7 +166,7 @@ class OutputAsciiArt(OutputBase):
     def __init__(self, ascii_art):
         """
         ASCII Art Output
-        
+
         INPUT:
 
         - ``ascii_art`` --
@@ -182,7 +182,7 @@ class OutputAsciiArt(OutputBase):
             sage: OutputAsciiArt(':-}')
             OutputAsciiArt container
         """
-        self.ascii_art = OutputBuffer(ascii_art)        
+        self.ascii_art = OutputBuffer(ascii_art)
 
     @classmethod
     def example(cls):
@@ -195,7 +195,7 @@ class OutputAsciiArt(OutputBase):
         OUTPUT:
 
         An instance of :class:`OutputAsciiArt`.
-        
+
         EXAMPLES::
 
             sage: from sage.repl.rich_output.output_catalog import OutputAsciiArt
@@ -231,7 +231,7 @@ class OutputUnicodeArt(OutputBase):
     def __init__(self, unicode_art):
         """
         Unicode Art Output
-        
+
         Similar to :class:`OutputAsciiArt` but using the entire
         unicode range.
 
@@ -267,7 +267,7 @@ class OutputUnicodeArt(OutputBase):
         OUTPUT:
 
         An instance of :class:`OutputUnicodeArt`.
-        
+
         EXAMPLES::
 
             sage: from sage.repl.rich_output.output_catalog import OutputUnicodeArt
@@ -305,10 +305,10 @@ class OutputLatex(OutputBase):
         LaTeX Output
 
         .. note::
-        
+
             The LaTeX commands will only use a subset of LaTeX that
             can be displayed by MathJax.
-        
+
         INPUT:
 
         - ``latex`` --
@@ -363,7 +363,7 @@ class OutputLatex(OutputBase):
         OUTPUT:
 
         String.
-        
+
         EXAMPLES::
 
             sage: from sage.repl.rich_output.output_catalog import OutputLatex
@@ -384,7 +384,7 @@ class OutputLatex(OutputBase):
         OUTPUT:
 
         String.
-        
+
         EXAMPLES::
 
             sage: from sage.repl.rich_output.output_catalog import OutputLatex
@@ -409,7 +409,7 @@ class OutputLatex(OutputBase):
         OUTPUT:
 
         An instance of :class:`OutputLatex`.
-        
+
         EXAMPLES::
 
             sage: from sage.repl.rich_output.output_catalog import OutputLatex

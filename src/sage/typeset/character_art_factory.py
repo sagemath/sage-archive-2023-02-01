@@ -65,7 +65,7 @@ class CharacterArtFactory(SageObject):
         self.left_parenthesis, self.right_parenthesis = parenthesis
         self.left_square_bracket, self.right_square_bracket = square_bracet
         self.left_curly_brace, self.right_curly_brace = curly_brace
-        
+
     def build(self, obj):
         r"""
         Construct a character art reprensentation
@@ -76,11 +76,11 @@ class CharacterArtFactory(SageObject):
           we want.
 
         OUTPUT:
-        
+
         Character art object.
 
         EXAMPLES::
-    
+
             sage: ascii_art(integral(exp(x+x^2)/(x+1), x))
                 /
                |
@@ -91,9 +91,9 @@ class CharacterArtFactory(SageObject):
                |  x + 1
                |
               /
-    
+
         TESTS::
-    
+
             sage: n = var('n')
             sage: ascii_art(sum(binomial(2 * n, n + 1) * x^n, n, 0, oo))
              /        __________    \
@@ -123,7 +123,7 @@ class CharacterArtFactory(SageObject):
             return self.build_from_magic_method(obj)
         else:
             return self.build_from_string(obj)
-    
+
     def build_empty(self):
         """
         Return the empty character art object
@@ -189,20 +189,20 @@ class CharacterArtFactory(SageObject):
         if self.string_type is str and not isinstance(obj, str):
             obj = unicode(obj).encode('utf-8')
         return self.art_type(obj.splitlines())
-    
+
     def build_comma_sequence(self, iterable, func=None):
         r"""
         Build up a comma-separated sequence
 
         Auxiliary function for ``build_X`` where ``X`` is ``dict``,
         ``set``, ``list``, or ``tuple``.
-    
+
         EXAMPLES::
-    
+
             sage: from sage.typeset.ascii_art import _ascii_art_factory as factory
             sage: out = factory.build_comma_sequence(list(DyckWords(3)));  out
-                                              /\  
-                       /\    /\      /\/\    /  \ 
+                                              /\
+                       /\    /\      /\/\    /  \
             /\/\/\, /\/  \, /  \/\, /    \, /    \
             sage: type(out)
             <class 'sage.typeset.ascii_art.AsciiArt'>
@@ -228,13 +228,13 @@ class CharacterArtFactory(SageObject):
             repr_elems += func(elem, iterable)
             not_first = True
         return repr_elems
-    
+
     def build_set(self, set):
         r"""
         Return an character art output of a set.
-    
+
         TESTS::
-    
+
             sage: ascii_art(set(DyckWords(3)))
             {                                   /\   }
             {  /\      /\/\              /\    /  \  }
@@ -243,13 +243,13 @@ class CharacterArtFactory(SageObject):
         repr_elems = self.build_comma_sequence(set)
         return self.build_container(
             repr_elems, self.left_curly_brace, self.right_curly_brace)
-    
+
     def build_dict(self, dict):
         r"""
         Return an character art output of a dictionnary.
-    
+
         TESTS::
-    
+
             sage: ascii_art({i:dw for i,dw in enumerate(DyckWords(3))})
             {                                             /\   }
             {                /\      /\        /\/\      /  \  }
@@ -261,11 +261,11 @@ class CharacterArtFactory(SageObject):
         repr_elems = self.build_comma_sequence(dict, func)
         return self.build_container(
             repr_elems, self.left_curly_brace, self.right_curly_brace)
-    
+
     def build_container(self, content, left_border, right_border):
         r"""
         Return character art for a container
-    
+
         INPUT:
 
         - ``content`` --
@@ -281,7 +281,7 @@ class CharacterArtFactory(SageObject):
           border of the container.
 
         TESTS::
-    
+
             sage: l = ascii_art(list(DyckWords(3)));  l
             [                                   /\   ]
             [            /\    /\      /\/\    /  \  ]
@@ -303,13 +303,13 @@ class CharacterArtFactory(SageObject):
         shift = len(left_border) + len(pad)
         basepoints = [bp + shift for bp in content.get_breakpoints()] + [w+shift]
         return self.art_type(lines, basepoints, baseline=0, atomic=False)
-    
+
     def build_list(self, list):
         r"""
         Return an character art output of a list.
-    
+
         TESTS::
-    
+
             sage: l = ascii_art(list(DyckWords(3)));  l
             [                                   /\   ]
             [            /\    /\      /\/\    /  \  ]
@@ -320,13 +320,13 @@ class CharacterArtFactory(SageObject):
         repr_elems = self.build_comma_sequence(list)
         return self.build_container(
             repr_elems, self.left_square_bracket, self.right_square_bracket)
-    
+
     def build_tuple(self, tuple):
         r"""
         Return an character art output of a tuple.
-    
+
         TESTS::
-    
+
             sage: ascii_art(tuple(DyckWords(3)))
             (                                   /\   )
             (            /\    /\      /\/\    /  \  )
@@ -335,7 +335,7 @@ class CharacterArtFactory(SageObject):
         repr_elems = self.build_comma_sequence(tuple)
         return self.build_container(
             repr_elems, self.left_parenthesis, self.right_parenthesis)
-    
+
     def concatenate(self, iterable, separator, empty):
         """
         Concatenate multiple character art instances

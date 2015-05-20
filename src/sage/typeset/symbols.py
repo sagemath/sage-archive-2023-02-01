@@ -28,7 +28,7 @@ EXAMPLES::
                 ( )             [ ]             { }
             ( ) ( )         [ ] [ ]         { } { }
         ( ) ( ) ( )     [ ] [ ] [ ]     { } { } { }
-    ( ) ( ) ( ) ( ) [ ] [ ] [ ] [ ] { } { } { } { } 
+    ( ) ( ) ( ) ( ) [ ] [ ] [ ] [ ] { } { } { } { }
 
     sage: symbols = unicode_art(u'')
     sage: for i in range(1, 5):
@@ -50,7 +50,7 @@ EXAMPLES::
                 ⎛ ⎞             ⎡ ⎤             ⎧ ⎫
             ⎛ ⎞ ⎜ ⎟         ⎡ ⎤ ⎢ ⎥         ⎧ ⎫ ⎭ ⎩
         ⎛ ⎞ ⎜ ⎟ ⎜ ⎟     ⎡ ⎤ ⎢ ⎥ ⎢ ⎥     ⎰ ⎱ ⎨ ⎬ ⎫ ⎧
-    ( ) ⎝ ⎠ ⎝ ⎠ ⎝ ⎠ [ ] ⎣ ⎦ ⎣ ⎦ ⎣ ⎦ { } ⎱ ⎰ ⎩ ⎭ ⎩ ⎭ 
+    ( ) ⎝ ⎠ ⎝ ⎠ ⎝ ⎠ [ ] ⎣ ⎦ ⎣ ⎦ ⎣ ⎦ { } ⎱ ⎰ ⎩ ⎭ ⎩ ⎭
 """
 
 import unicodedata
@@ -160,7 +160,7 @@ class CompoundSymbol(SageObject):
         else: # num_lines %2 == 1
             ext = [self.extension] * ((num_lines-3) // 2)
             return [self.top] + ext + [self.middle] + ext + [self.bottom]
-            
+
     def print_to_stdout(self, num_lines):
         """
         Print the multi-line symbol
@@ -172,7 +172,7 @@ class CompoundSymbol(SageObject):
         - ``num_lines`` -- integer. The total number of lines.
 
         EXAMPLES::
-        
+
             sage: from sage.typeset.symbols import *
             sage: unicode_integral.print_to_stdout(1)
             ∫
@@ -209,9 +209,9 @@ class CompoundAsciiSymbol(CompoundSymbol):
         from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self(num_lines))
 
-        
+
 class CompoundUnicodeSymbol(CompoundSymbol):
-    
+
     def character_art(self, num_lines):
         """
         Return the unicode art of the symbol

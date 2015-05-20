@@ -182,7 +182,7 @@ class AsciiArt(CharacterArt):
         e
     """
     _string_type = str
-    
+
 
 
 _ascii_art_factory = CharacterArtFactory(
@@ -211,7 +211,7 @@ def ascii_art(*obj, **kwds):
       more than one object given.
 
     OUTPUT:
-    
+
     :class:`AsciiArt` instance.
 
     EXAMPLES::
@@ -232,7 +232,7 @@ def ascii_art(*obj, **kwds):
                       [1 0 0]
               [1 0]   [0 1 0]
         [1] : [0 1] : [0 0 1]
-    
+
     TESTS::
 
         sage: n = var('n')

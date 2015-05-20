@@ -82,7 +82,7 @@ def unicode_art(*obj, **kwds):
       more than one object given.
 
     OUTPUT:
-    
+
     :class:`UnicodeArt` instance.
 
     EXAMPLES::
@@ -103,7 +103,7 @@ def unicode_art(*obj, **kwds):
                       ⎛1 0 0⎞
               ⎛1 0⎞   ⎜0 1 0⎟
         (1) : ⎝0 1⎠ : ⎝0 0 1⎠
-    
+
     TESTS::
 
         sage: n = var('n')

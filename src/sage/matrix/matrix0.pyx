@@ -1814,23 +1814,23 @@ cdef class Matrix(sage.structure.element.Matrix):
         if shape == "square":
             if unicode:
                 from sage.typeset.symbols import (
-                    unicode_left_square_bracket as left, 
+                    unicode_left_square_bracket as left,
                     unicode_right_square_bracket as right
                 )
             else:
                 from sage.typeset.symbols import (
-                    ascii_left_square_bracket as left, 
+                    ascii_left_square_bracket as left,
                     ascii_right_square_bracket as right
                 )
         elif shape == "round":
             if unicode:
                 from sage.typeset.symbols import (
-                    unicode_left_parenthesis as left, 
+                    unicode_left_parenthesis as left,
                     unicode_right_parenthesis as right
                 )
             else:
                 from sage.typeset.symbols import (
-                    ascii_left_parenthesis as left, 
+                    ascii_left_parenthesis as left,
                     ascii_right_parenthesis as right
                 )
         else:

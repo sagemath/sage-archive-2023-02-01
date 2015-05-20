@@ -41,27 +41,27 @@ class CharacterArt(SageObject):
     def __init__(self, lines=[], breakpoints=[], baseline=None, atomic=True):
         r"""
         Abstract base class for character art
-    
+
         INPUT:
-    
+
         - ``lines`` -- the list of lines of the representation of the
           character art object
-    
+
         - ``breakpoints`` -- the list of points where the representation can be
           split
-    
+
         - ``baseline`` -- the reference line (from the bottom)
-    
+
         - ``atomic`` -- indicate if the character art representation is
           splittable (must be coherent with breakpoints)
-    
+
         EXAMPLES::
-    
+
             sage: i = var('i')
             sage: ascii_art(sum(pi^i/factorial(i)*x^i, i, 0, oo))
              pi*x
             e
-    
+
         TESTS::
 
             sage: from sage.typeset.ascii_art import AsciiArt
@@ -96,7 +96,7 @@ class CharacterArt(SageObject):
         """
         empty_string = cls._string_type()
         return cls([empty_string])
-        
+
     def __getitem__(self, key):
         r"""
         Return the line `key` of the ASCII art object.
@@ -267,7 +267,7 @@ class CharacterArt(SageObject):
             # The IPython zeromq kernel uses a fake stdout that does
             # not support fileno()
             return False
-    
+
     def _terminal_width(self):
         """
         Compute the width size of the terminal.
@@ -536,7 +536,7 @@ class CharacterArt(SageObject):
             3
         """
         return self._h
-        
+
     def __add__(self, Nelt):
         r"""
         Concatenate two ascii art object.

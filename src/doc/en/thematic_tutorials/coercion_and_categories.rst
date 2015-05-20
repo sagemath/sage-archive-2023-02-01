@@ -122,6 +122,7 @@ This base class provides a lot more methods than a general parent::
      '_coerce_self',
      '_coerce_try',
      '_default_category',
+     '_gcd_univariate_polynomial',
      '_gens',
      '_gens_dict',
      '_has_coerce_map_from',

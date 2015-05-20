@@ -480,7 +480,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
 
             sage: RC = RiggedConfigurations(['A', 3, 1], [[2,1], [1,1]])
             sage: g = RC.__iter__()
-            sage: g.next()
+            sage: next(g)
             <BLANKLINE>
             (/)
             <BLANKLINE>
@@ -488,7 +488,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             <BLANKLINE>
             (/)
             <BLANKLINE>
-            sage: g.next()
+            sage: next(g)
             <BLANKLINE>
             (/)
             <BLANKLINE>
@@ -498,9 +498,10 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             <BLANKLINE>
         """
         index_set = self._cartan_type.classical().index_set()
-        from sage.combinat.backtrack import TransitiveIdeal
-        return TransitiveIdeal(lambda x: [x.f(i) for i in index_set],
-                               self.module_generators).__iter__()
+        from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+        return RecursivelyEnumeratedSet(self.module_generators,
+                    lambda x: [x.f(i) for i in index_set],
+                    structure=None).naive_search_iterator()
 
     @lazy_attribute
     def module_generators(self):

@@ -573,7 +573,7 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
         EXAMPLES::
 
             sage: i = iter(GL(6,5))
-            sage: [ i.next() for j in range(8) ]
+            sage: [ next(i) for j in range(8) ]
             [
             [1 0 0 0 0 0]  [4 0 0 0 0 1]  [0 4 0 0 0 0]  [0 4 0 0 0 0]
             [0 1 0 0 0 0]  [4 0 0 0 0 0]  [0 0 4 0 0 0]  [0 0 4 0 0 0]

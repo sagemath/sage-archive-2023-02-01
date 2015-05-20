@@ -25,7 +25,6 @@ Development supported by NSF award No. 0702939.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 
 from sage.misc.decorators import options

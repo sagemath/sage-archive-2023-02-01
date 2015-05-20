@@ -81,7 +81,7 @@ from sage.rings.all import (
     IntegerRing, RealField,
     ComplexField, RationalField)
 
-import sage.misc.misc as misc
+import sage.misc.all as misc
 from sage.misc.all import verbose
 
 from sage.misc.functional import log
@@ -600,7 +600,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: Epari.omega()
             [2.99345864623196, -2.45138938198679*I]
             sage: Epari
-            [0, 0, 1, -1, 0, 0, -2, 1, -1, 48, -216, 37, 110592/37, Vecsmall([1]), [Vecsmall([64, 1])], [[2.99345864623196, -2.45138938198679*I], 0, [0.837565435283323, 0.269594436405445, -1.10715987168877]~, 0, 0, 0, 0, 0]]
+            [0, 0, 1, -1, 0, 0, -2, 1, -1, 48, -216, 37, 110592/37, Vecsmall([1]), [Vecsmall([64, 1])], [[2.99345864623196, -2.45138938198679*I], 0, [0.837565435283323, 0.269594436405445, -1.10715987168877, 1.37675430809421, 1.94472530697209, 0.567970998877878]~, 0, 0, 0, 0, 0]]
 
         This shows that the bug uncovered by :trac:`4715` is fixed::
 
@@ -4111,7 +4111,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         If the curve has square-free conductor then it is already minimal (see :trac:`14060`)::
 
-            sage: E = cremona_optimal_curves([2*3*5*7*11]).next()
+            sage: E = next(cremona_optimal_curves([2*3*5*7*11]))
             sage: (E, 1) == E.minimal_quadratic_twist()
             True
 

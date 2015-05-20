@@ -21,7 +21,7 @@ AUTHORS:
 
 import complex_number
 import complex_double
-import field
+import ring
 import integer
 import real_mpfr
 import weakref
@@ -116,7 +116,7 @@ def ComplexField(prec=53, names=None):
     return C
 
 
-class ComplexField_class(field.Field):
+class ComplexField_class(ring.Field):
     """
     An approximation to the field of complex numbers using floating
     point numbers with any specified precision. Answers derived from
@@ -344,7 +344,7 @@ class ComplexField_class(field.Field):
             Complex Field with 53 bits of precision
         """
         if x is None:
-            return self.zero_element()
+            return self.zero()
         # we leave this here to handle the imaginary parameter
         if im is not None:
             x = x, im

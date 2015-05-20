@@ -1444,13 +1444,13 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.panyushev_orbit_iter([2], stop=False)
-                sage: Piter.next()
+                sage: next(Piter)
                 {2}
-                sage: Piter.next()
+                sage: next(Piter)
                 {3}
-                sage: Piter.next()
+                sage: next(Piter)
                 {2}
-                sage: Piter.next()
+                sage: next(Piter)
                 {3}
             """
             # TODO: implement a generic function taking a set and
@@ -1533,15 +1533,15 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.rowmotion_orbit_iter([1, 2, 3], stop=False)
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3}
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3, 4}
-                sage: Piter.next()
+                sage: next(Piter)
                 set()
-                sage: Piter.next()
+                sage: next(Piter)
                 {1}
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3}
 
                 sage: P = Poset({ 1: [4], 2: [4, 5], 3: [5] })
@@ -1646,15 +1646,15 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.toggling_orbit_iter([1, 2, 4, 3], [1, 2, 3], stop=False)
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3}
-                sage: Piter.next()
+                sage: next(Piter)
                 {1}
-                sage: Piter.next()
+                sage: next(Piter)
                 set()
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3}
-                sage: Piter.next()
+                sage: next(Piter)
                 {1}
             """
             # TODO: implement a generic function taking a set and

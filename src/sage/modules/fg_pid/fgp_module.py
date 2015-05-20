@@ -215,6 +215,7 @@ AUTHOR:
 
 from sage.modules.module import Module
 from sage.modules.free_module import is_FreeModule
+from sage.structure.all import parent
 from sage.structure.sequence import Sequence
 from fgp_element  import DEBUG, FGP_Element
 from fgp_morphism import FGP_Morphism, FGP_Homset
@@ -656,7 +657,7 @@ class FGP_Module_class(Module):
             sage: Q.0 - Q.1 in Q
             True
         """
-        if hasattr(x, 'parent') and x.parent() == self:
+        if parent(x) is self:
             return True
         try:
             self(x)

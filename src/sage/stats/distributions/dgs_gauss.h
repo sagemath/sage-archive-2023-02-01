@@ -141,7 +141,7 @@ typedef struct {
    Create a new sampler for `D_{σ₂,0}`.
 */
 
-dgs_disc_gauss_sigma2p_t *dgs_disc_gauss_sigma2p_init();
+dgs_disc_gauss_sigma2p_t *dgs_disc_gauss_sigma2p_init(void);
 
 /**
    Return an ``mpz_t`` sampled from `D_{σ₂,0}`.

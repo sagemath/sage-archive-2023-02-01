@@ -272,7 +272,78 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
         return(phi(self))
 
 class SchemeMorphism_point_affine_field(SchemeMorphism_point_affine):
-    pass
+
+    def weil_restriction(self):
+        r"""
+        Compute the Weil restriction of this point over some extension
+        field. If the field is a finite field, then this computes
+        the Weil restriction to the prime subfield.
+
+        A Weil restriction of scalars - denoted `Res_{L/k}` - is a
+        functor which, for any finite extension of fields `L/k` and
+        any algebraic variety `X` over `L`, produces another
+        corresponding variety `Res_{L/k}(X)`, defined over `k`. It is
+        useful for reducing questions about varieties over large
+        fields to questions about more complicated varieties over
+        smaller fields. This functor applied to a point gives
+        the equivalent point on the Weil restriction of its
+        codomain.
+
+        OUTPUT: Scheme point on the Weil restriction of the codomain of ``self``.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = AffineSpace(GF(5^3,'t'),3)
+            sage: X = A.subscheme([y^2-x*z, z^2+y])
+            sage: Y = X.weil_restriction()
+            sage: P = X([1,-1,1])
+            sage: Q = P.weil_restriction();Q
+            (1, 0, 0, 4, 0, 0, 1, 0, 0)
+            sage: Q.codomain() == Y
+            True
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<w> = NumberField(x^5-2)
+            sage: R.<x> = K[]
+            sage: L.<v> = K.extension(x^2+w)
+            sage: A.<x,y> = AffineSpace(L,2)
+            sage: P = A([w^3-v,1+w+w*v])
+            sage: P.weil_restriction()
+            (w^3, -1, w + 1, w)
+        """
+        L = self.codomain().base_ring()
+        WR = self.codomain().weil_restriction()
+        if L.is_finite():
+            d = L.degree()
+            if d == 1:
+                return(self)
+            newP = []
+            for t in self:
+                c = t.polynomial().coefficients(sparse=False)
+                c = c + (d-len(c))*[0]
+                newP += c
+        else:
+            d = L.relative_degree()
+            if d == 1:
+                return(self)
+            #create a CoordinateFunction that gets the relative coordinates in terms of powers
+            from sage.rings.number_field.number_field_element import CoordinateFunction
+            v = L.gen()
+            V, from_V, to_V = L.relative_vector_space()
+            h = L(1)
+            B = [to_V(h)]
+            f = v.minpoly()
+            for i in range(f.degree()-1):
+                h *= v
+                B.append(to_V(h))
+            W = V.span_of_basis(B)
+            p = CoordinateFunction(v, W, to_V)
+            newP = []
+            for t in self:
+                newP += p(t)
+        return(WR(newP))
 
 class SchemeMorphism_point_affine_finite_field(SchemeMorphism_point_affine_field):
 

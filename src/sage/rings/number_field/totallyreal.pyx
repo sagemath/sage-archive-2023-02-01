@@ -333,7 +333,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
     if t_2:
         k0 = len(a)
-        if PY_TYPE_CHECK(t_2, Integer):
+        if isinstance(t_2, Integer):
             t2val = pari(t_2)
         else:
             t2val = pari(a[k0-2]**2-2*a[k0-3])
@@ -389,7 +389,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
         d_poly = nf.poldisc()
         counts[0] += 1
-        if d_poly > 0 and nf.polsturm_full() == n:
+        if d_poly > 0 and nf.polsturm() == n:
             da = int_has_small_square_divisor(Integer(d_poly))
             if d_poly > dB or d_poly <= B*da:
                 counts[1] += 1

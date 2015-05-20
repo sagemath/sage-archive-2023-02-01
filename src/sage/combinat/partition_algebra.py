@@ -49,6 +49,7 @@ def create_set_partition_function(letter, k):
 
     raise ValueError("k must be an integer or an integer + 1/2")
 
+
 class SetPartitionsXkElement(SetPartition):
     """
     An element for the classes of ``SetPartitionXk`` where ``X`` is some
@@ -61,8 +62,12 @@ class SetPartitionsXkElement(SetPartition):
         EXAMLPLES::
 
             sage: A2p5 = SetPartitionsAk(2.5)
-            sage: A2p5.first() # random
+            sage: x = A2p5.first(); x # random
             {{1, 2, 3, -1, -3, -2}}
+            sage: x.check()
+            sage: y = A2p5.next(x); y
+            {{-3, -2, -1, 2, 3}, {1}}
+            sage: y.check()
         """
         #Check to make sure each element of x is a set
         for s in self:

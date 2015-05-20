@@ -487,15 +487,27 @@ class WeightSpaceElement(CombinatorialFreeModuleElement):
 
         EXAMPLES::
 
-            sage: W=RootSystem(['A',3]).weight_space()
-            sage: Lambda=W.basis()
-            sage: w=Lambda[1]+Lambda[3]
+            sage: W = RootSystem(['A',3]).weight_space()
+            sage: Lambda = W.basis()
+            sage: w = Lambda[1]+Lambda[3]
             sage: w.is_dominant()
             True
-            sage: w=Lambda[1]-Lambda[2]
+            sage: w = Lambda[1]-Lambda[2]
             sage: w.is_dominant()
             False
+
+        In the extended affine weight lattice, 'delta' is orthogonal to
+        the positive coroots, so adding or subtracting it should not
+        effect dominance ::
+
+            sage: P = RootSystem(['A',2,1]).weight_lattice(extended=true)
+            sage: Lambda = P.fundamental_weights()
+            sage: delta = P.null_root()
+            sage: w = Lambda[1]-delta
+            sage: w.is_dominant()
+            True
+
         """
-        return all(c >= 0 for c in self.coefficients())
+        return all(self.coefficient(i) >= 0 for i in self.parent().index_set())
 
 WeightSpace.Element = WeightSpaceElement

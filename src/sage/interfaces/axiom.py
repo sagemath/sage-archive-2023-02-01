@@ -177,7 +177,8 @@ Python floats.
 import os, re
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
-from sage.misc.misc import verbose, DOT_SAGE
+from sage.misc.all import verbose
+from sage.env import DOT_SAGE
 from pexpect import EOF
 from sage.misc.multireplace import multiple_replace
 

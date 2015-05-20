@@ -422,11 +422,11 @@ cdef class CategoryObject(sage_object.SageObject):
             names = self.normalize_names(ngens, names)
         if self._names is not None and names != self._names:
             raise ValueError, 'variable names cannot be changed after object creation.'
-        if PY_TYPE_CHECK(names, str):
+        if isinstance(names, str):
             names = (names, )  # make it a tuple
-        elif PY_TYPE_CHECK(names, list):
+        elif isinstance(names, list):
             names = tuple(names)
-        elif not PY_TYPE_CHECK(names, tuple):
+        elif not isinstance(names, tuple):
             raise TypeError, "names must be a tuple of strings"
         self._names = names
 
@@ -554,36 +554,11 @@ cdef class CategoryObject(sage_object.SageObject):
     # Bases
     #################################################################################################
 
-#    cpdef base(self, category=None):
-#        if category is None:
-#            return self._base
-#        else:
-#            return category._obj_base(self)
-
     def has_base(self, category=None):
         if category is None:
             return self._base is not None
         else:
             return category._obj_base(self) is not None
-
-#    cpdef base_extend(self, other, category=None):
-#        """
-#        EXAMPLES:
-#            sage: QQ.base_extend(GF(7))
-#            Traceback (most recent call last):
-#            ...
-#            TypeError: base extension not defined for Rational Field
-#            sage: ZZ.base_extend(GF(7))
-#            Finite Field of size 7
-#        """
-#        try:
-#            if category is None:
-#                method = self._category.get_object_method("base_extend") # , self._categories[1:])
-#            else:
-#                method = category.get_object_method("base_extend")
-#            return method(self)
-#        except AttributeError:
-#            raise TypeError, "base extension not defined for %s" % self
 
     def base_ring(self):
         """
@@ -604,6 +579,20 @@ cdef class CategoryObject(sage_object.SageObject):
             Integer Ring
             sage: F.__class__.base_ring
             <method 'base_ring' of 'sage.structure.category_object.CategoryObject' objects>
+
+        Note that the coordinates of the elements of a module can lie
+        in a bigger ring, the ``coordinate_ring``::
+
+            sage: M = (ZZ^2) * (1/2)
+            sage: v = M([1/2, 0])
+            sage: v.base_ring()
+            Integer Ring
+            sage: parent(v[0])
+            Rational Field
+            sage: v.coordinate_ring()
+            Rational Field
+
+        More examples::
 
             sage: F = FreeAlgebra(QQ, 'x')
             sage: F.base_ring()
@@ -676,7 +665,7 @@ cdef class CategoryObject(sage_object.SageObject):
 
         EXAMPLES::
 
-         sage: R, x = PolynomialRing(QQ,'x',12).objgens()
+         sage: R, x = PolynomialRing(QQ, 'x', 12).objgens()
          sage: x
          (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11)
          sage: print R.latex_variable_names ()
@@ -768,8 +757,8 @@ cdef class CategoryObject(sage_object.SageObject):
                         from sage.structure.generators import Generators
                         self._generators = Generators(self, None, Objects())
                     else:
-                        from sage.structure.generators import Generator_list
-                        self._generators = Generator_list(self, d['_gens'], Objects())
+                        from sage.structure.generators import Generators_list
+                        self._generators = Generators_list(self, d['_gens'], Objects())
                     self._generator_orders = d['_generator_orders'] # this may raise a KeyError, but that's okay.
                     # We throw away d['_latex_names'] and d['_list'] and d['_gens_dict']
                 except (AttributeError, KeyError):

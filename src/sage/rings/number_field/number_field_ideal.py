@@ -52,7 +52,7 @@ from sage.rings.finite_rings.constructor import FiniteField
 import number_field
 
 from sage.rings.ideal import (Ideal_generic, Ideal_fractional)
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.misc.mrange import xmrange_iter
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import generic_power

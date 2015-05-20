@@ -33,7 +33,7 @@ import operator
 from sage.misc.latex import latex
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.structure.parent import Parent
-from sage.structure.element import Element, parent
+from sage.structure.element import parent
 from sage.structure.global_options import GlobalOptions
 from sage.categories.category import Category
 from sage.categories.classical_crystals import ClassicalCrystals
@@ -41,7 +41,7 @@ from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.sets_cat import Sets
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.cartesian_product import CartesianProduct
-from sage.combinat.combinat import CombinatorialObject
+from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.partition import Partition
 from sage.combinat.tableau import Tableau
 from letters import CrystalOfLetters
@@ -89,7 +89,7 @@ class TestParent(UniqueRepresentation, Parent):
         """
         return "A parent for tests"
 
-class ImmutableListWithParent(CombinatorialObject, Element):
+class ImmutableListWithParent(CombinatorialElement):
     r"""
     A class for lists having a parent
 
@@ -112,22 +112,11 @@ class ImmutableListWithParent(CombinatorialObject, Element):
         [3, 2, 1]
         sage: l.set_index(1,4)
         [1, 4, 3]
+
+    TESTS::
+
+        sage: TestSuite(l).run(skip = "_test_category")
     """
-    def __init__(self, parent, list):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.crystals.tensor_product import ImmutableListWithParent, TestParent
-            sage: l = ImmutableListWithParent(TestParent(), [1,2,3])
-            sage: l.parent()
-            A parent for tests
-            sage: parent(l)
-            A parent for tests
-            sage: TestSuite(l).run(skip = "_test_category")
-        """
-        Element.__init__(self, parent)
-        CombinatorialObject.__init__(self, list)
-
     def _repr_(self):
         """
         EXAMPLES::
@@ -1876,8 +1865,8 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: t
             [[1, 2], [3, 4]]
 
-        Currently inputting the empty tableau as an empty sequence is broken due to a bug in
-        the generic __call__ method (see trac ticket #8648)
+        Currently inputting the empty tableau as an empty sequence is
+        broken due to a bug in the generic __call__ method (see :trac:`8648`).
 
         EXAMPLES::
 
@@ -1908,23 +1897,22 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
             if isinstance(args[0], Tableau):
                 options['rows'] = args[0]
         if 'list' in options:
-            list = options['list']
+            the_list = options['list']
         elif 'rows' in options:
-            rows=options['rows']
-#            list=Tableau(rows).to_word_by_column()
-            rows=Tableau(rows).conjugate()
-            list=[]
+            rows = options['rows']
+#            the_list=Tableau(rows).to_word_by_column()
+            rows = Tableau(rows).conjugate()
+            the_list = []
             for col in rows:
-                col.reverse()
-                list+=col
+                the_list += reversed(col)
         elif 'columns' in options:
-            columns=options['columns']
-            list=[]
+            columns = options['columns']
+            the_list = []
             for col in columns:
-                list+=col
+                the_list += col
         else:
-            list = [i for i in args]
-        TensorProductOfRegularCrystalsElement.__init__(self, parent, map(parent.letters, list))
+            the_list = [i for i in args]
+        TensorProductOfRegularCrystalsElement.__init__(self, parent, map(parent.letters, the_list))
 
     def _repr_(self):
         """

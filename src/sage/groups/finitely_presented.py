@@ -1081,7 +1081,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         GAP_gens = fp_product.FreeGeneratorsOfFpGroup()
         if new_names:
             name_itr = _lexi_gen() # Python generator for lexicographical variable names
-            gen_names = [name_itr.next() for i in GAP_gens]
+            gen_names = [next(name_itr) for i in GAP_gens]
         else:
             gen_names= [str(g) for g in self.gens()] + [str(g) for g in H.gens()]
         # Build the direct product in Sage for better variable names
@@ -1263,7 +1263,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         # lists for readability of variable names
         GAP_gens = prod.FreeGeneratorsOfFpGroup()
         name_itr = _lexi_gen() # Python generator for lexicographical variable names
-        ret_F = FreeGroup([name_itr.next() for i in GAP_gens])
+        ret_F = FreeGroup([next(name_itr) for i in GAP_gens])
         ret_rls = tuple([ret_F(rel_word.TietzeWordAbstractWord(GAP_gens).sage())
             for rel_word in prod.RelatorsOfFpGroup()])
         ret_fpg = FinitelyPresentedGroup(ret_F, ret_rls)

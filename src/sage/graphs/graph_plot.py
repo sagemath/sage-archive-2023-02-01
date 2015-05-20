@@ -894,6 +894,14 @@ class GraphPlot(SageObject):
             ...
             ValueError: Invalid input 'egabrag=garbage'
 
+        Make sure that no graphics primitive is clipped::
+
+            sage: tadpole = Graph({0:[0,1]}).plot()
+            sage: bbox = tadpole.get_minmax_data()
+            sage: for part in tadpole:
+            ....:      part_bbox = part.get_minmax_data()
+            ....:      assert bbox['xmin'] <= part_bbox['xmin'] <= part_bbox['xmax'] <= bbox['xmax']
+            ....:      assert bbox['ymin'] <= part_bbox['ymin'] <= part_bbox['ymax'] <= bbox['ymax']
         """
         G = Graphics()
         options = self._options.copy()
@@ -912,7 +920,6 @@ class GraphPlot(SageObject):
                 for item in comp:
                     G += item
 
-        G.set_axes_range(*(self._graph._layout_bounding_box(self._pos)))
         if self._options['graph_border']:
             xmin = G.xmin()
             xmax = G.xmax()
@@ -925,7 +932,6 @@ class GraphPlot(SageObject):
             G += border
         G.set_aspect_ratio(1)
         G.axes(False)
-        G._extra_kwds['axes_pad']=.05
         return G
 
     def layout_tree(self,root,orientation):

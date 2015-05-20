@@ -927,7 +927,7 @@ class BipartiteGraph(Graph):
         Compute the matching polynomial of a line with `60` vertices::
 
             sage: from sage.functions.orthogonal_polys import chebyshev_U
-            sage: g = graphs.trees(60).next()
+            sage: g = next(graphs.trees(60))
             sage: chebyshev_U(60, x/2) == BipartiteGraph(g).matching_polynomial(algorithm='rook')
             True
 

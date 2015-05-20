@@ -12,18 +12,17 @@ from sage.misc.misc_c import prod
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.functions.other import factorial
 from sage.misc.cachefunc import cached_function
-from sage.structure.element import Element
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.composition import Composition, Compositions
 from sage.combinat.partition import Partition
-from sage.combinat.combinat import CombinatorialObject
+from sage.combinat.combinat import CombinatorialElement
 from sage.rings.integer import Integer
 from sage.combinat.backtrack import GenericBacktracker
 import copy
 
-class CompositionTableau(CombinatorialObject, Element):
+class CompositionTableau(CombinatorialElement):
     r"""
     A composition tableau.
 
@@ -92,8 +91,7 @@ class CompositionTableau(CombinatorialObject, Element):
             Composition Tableaux
         """
         if isinstance(t, CompositionTableau):
-            Element.__init__(self, parent)
-            CombinatorialObject.__init__(self, t._list)
+            CombinatorialElement.__init__(self, parent, t._list)
             return
 
         # CombinatorialObject verifies that t is a list
@@ -124,8 +122,7 @@ class CompositionTableau(CombinatorialObject, Element):
                     if TT[j][k] != 0 and TT[j][k] >= TT[i][k] and TT[j][k] <= TT[i][k-1]:
                         raise ValueError("Triple condition must be satisfied.")
 
-        Element.__init__(self, parent)
-        CombinatorialObject.__init__(self, t)
+        CombinatorialElement.__init__(self, parent, t)
 
     def _repr_diagram(self):
         r"""

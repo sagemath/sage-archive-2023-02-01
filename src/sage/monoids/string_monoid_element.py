@@ -218,7 +218,7 @@ class StringMonoidElement(FreeMonoidElement):
         EXAMPLES::
 
             sage: t = AlphabeticStrings()('SHRUBBERY')
-            sage: t.__iter__().next()
+            sage: next(t.__iter__())
             S
             sage: list(t)
             [S, H, R, U, B, B, E, R, Y]

@@ -67,6 +67,14 @@ class Polynomial_generic_sparse(Polynomial):
         s^2 + 2*Tbar*s + 4
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
+        """
+        TESTS::
+
+            sage: PolynomialRing(RIF, 'z', sparse=True)([RIF(-1, 1), RIF(-1,1)])
+            0.?*z + 0.?
+            sage: PolynomialRing(CIF, 'z', sparse=True)([CIF(RIF(-1,1), RIF(-1,1)), RIF(-1,1)])
+            0.?*z + 0.? + 0.?*I
+        """
         Polynomial.__init__(self, parent, is_gen=is_gen)
         if x is None:
             self.__coeffs = {}
@@ -85,11 +93,7 @@ class Polynomial_generic_sparse(Polynomial):
                 # Apparently, the "else" case has never occured before.
                 x = w
         elif isinstance(x, list):
-            y = {}
-            for i in xrange(len(x)):
-                if x[i] != 0:
-                    y[i] = x[i]
-            x = y
+            x = dict((i, c) for (i, c) in enumerate(x) if c)
         elif isinstance(x, pari_gen):
             y = {}
             for i in range(len(x)):
@@ -247,6 +251,12 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f._repr(name='z')
             '1.0*z^5 - 3.141592653589793*z + 3.718281828459045 + 2.0*I'
 
+        TESTS::
+
+            sage: pol = RIF['x']([0, 0, (-1,1)])
+            sage: PolynomialRing(RIF, 'x', sparse=True)(pol)
+            0.?*x^2
+
         AUTHOR:
 
         - David Harvey (2006-08-05), based on Polynomial._repr()
@@ -259,7 +269,7 @@ class Polynomial_generic_sparse(Polynomial):
         atomic_repr = self.parent().base_ring()._repr_option('element_is_atomic')
         coeffs = sorted(self.__coeffs.iteritems())
         for (n, x) in reversed(coeffs):
-            if x != 0:
+            if x:
                 if n != m-1:
                     s += " + "
                 x = y = repr(x)
@@ -624,17 +634,17 @@ class Polynomial_generic_sparse(Polynomial):
 
         d = other.degree()
         if self.degree() < d:
-            return R.zero_element(), self
+            return R.zero(), self
 
-        quo = R.zero_element()
+        quo = R.zero()
         rem = self
-        inv_lc = R.base_ring().one_element()/other.leading_coefficient()
+        inv_lc = R.base_ring().one()/other.leading_coefficient()
 
         while rem.degree() >= d:
 
             c = rem.leading_coefficient()*inv_lc
             e = rem.degree() - d
-            quo += c*R.one_element().shift(e)
+            quo += c*R.one().shift(e)
             # we know that the leading coefficient of rem vanishes
             # thus we avoid doing a useless computation
             rem = rem[:rem.degree()] - c*other[:d].shift(e)
@@ -702,7 +712,7 @@ class Polynomial_generic_field(Polynomial_singular_repr,
         A = self
         B = other
         R = A
-        Q = P.zero_element()
+        Q = P.zero()
         while R.degree() >= B.degree():
             aaa = R.leading_coefficient()/B.leading_coefficient()
             diff_deg=R.degree()-B.degree()
@@ -716,36 +726,6 @@ class Polynomial_generic_field(Polynomial_singular_repr,
             R = R[:R.degree()] - (aaa*B[:B.degree()]).shift(diff_deg)
         return (Q, R)
 
-    @coerce_binop
-    def gcd(self, other):
-        """
-        Return the greatest common divisor of this polynomial and ``other``, as
-        a monic polynomial.
-
-        INPUT:
-
-        - ``other`` -- a polynomial defined over the same ring as ``self``
-
-        EXAMPLES::
-
-            sage: R.<x> = QQbar[]
-            sage: (2*x).gcd(2*x^2)
-            x
-
-            sage: zero = R.zero_element()
-            sage: zero.gcd(2*x)
-            x
-            sage: (2*x).gcd(zero)
-            x
-            sage: zero.gcd(zero)
-            0
-        """
-        from sage.categories.euclidean_domains import EuclideanDomains
-        g = EuclideanDomains().ElementMethods().gcd(self, other)
-        c = g.leading_coefficient()
-        if c.is_unit():
-            return (1/c)*g
-        return g
 
 class Polynomial_generic_sparse_field(Polynomial_generic_sparse, Polynomial_generic_field):
     """

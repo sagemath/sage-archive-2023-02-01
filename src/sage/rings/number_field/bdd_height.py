@@ -246,7 +246,7 @@ def bdd_norm_pr_ideal_gens(K, norm_list):
         sage: from sage.rings.number_field.bdd_height import bdd_norm_pr_ideal_gens
         sage: K.<g> = QuadraticField(123)
         sage: bdd_norm_pr_ideal_gens(K, range(5))
-        {0: [], 1: [1], 2: [-g - 11], 3: [], 4: [2]}
+        {0: [0], 1: [1], 2: [-g - 11], 3: [], 4: [2]}
 
     ::
 
@@ -263,7 +263,10 @@ def bdd_norm_pr_ideal_gens(K, norm_list):
     gens = dict()
     if len(negative_norm_units) == 0:
         for n in norm_list:
-            gens[n] = K.elements_of_norm(n) + K.elements_of_norm(-n)
+            if not n:
+                gens[n] = [K.zero()]
+            else:
+                gens[n] = K.elements_of_norm(n) + K.elements_of_norm(-n)
     else:
         for n in norm_list:
             gens[n] = K.elements_of_norm(n)

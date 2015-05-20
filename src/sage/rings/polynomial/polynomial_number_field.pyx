@@ -190,7 +190,7 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
         elif other.is_zero():
             return self.monic()
         elif self.degree() == 0 or other.degree() == 0:
-            return self.parent().one_element()
+            return self.parent().one()
 
         # If the extension is of degree one, use the gcd from QQ[x]
         if self.base_ring().degree().is_one():
@@ -318,7 +318,7 @@ class Polynomial_relative_number_field_dense(Polynomial_generic_dense_field):
         elif other.is_zero():
             return self.monic()
         elif self.degree() == 0 or other.degree() == 0:
-            return self.parent().one_element()
+            return self.parent().one()
 
         L = self.parent()
         x = L.variable_name()

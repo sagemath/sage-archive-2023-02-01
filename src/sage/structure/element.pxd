@@ -1,9 +1,13 @@
 from sage_object cimport SageObject
 from parent cimport Parent
+from cpython.number cimport PyNumber_Check
 
 cdef inline parent_c(x):
     if isinstance(x, Element):
         return (<Element>x)._parent
+    # Fast check for "number" types, including int and float
+    if PyNumber_Check(x):
+        return type(x)
     try:
         p = x.parent
     except AttributeError:
@@ -30,14 +34,12 @@ cdef str arith_error_message(x, y, op)
 
 cdef class Element(SageObject):
     cdef Parent _parent
-    cdef _richcmp_c_impl(left, Element right, int op)
-    cdef int _cmp_c_impl(left, Element right) except -2
-    cdef public _richcmp(self, right, int op)
-    cdef public _cmp(self, right)
+    cpdef _richcmp_(left, Element right, int op)
+    cpdef int _cmp_(left, Element right) except -2
+    cdef _richcmp(self, right, int op)
+    cdef int _cmp(self, right) except -2
     cdef _set_parent_c(self, Parent parent)
-    cdef base_extend_c(self, Parent R)       # do *NOT* override, but OK to call directly
-    cdef base_extend_c_impl(self, Parent R)  # OK to override, but do NOT call
-    cdef _rich_to_bool(self, int op, int r)
+    cpdef base_extend(self, R)
 
     cpdef _act_on_(self, x, bint self_on_left)
     cpdef _acted_upon_(self, x, bint self_on_left)

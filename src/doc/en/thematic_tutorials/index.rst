@@ -71,6 +71,7 @@ Geometry
 --------
 
 * :ref:`polytutorial`
+* :ref:`polytikz`
 
 Combinatorics
 -------------
@@ -105,6 +106,7 @@ Advanced programming
 --------------------
 
 * :ref:`cython_interface`
+* :ref:`profiling`
 
 .. Words
 .. -----
@@ -112,15 +114,18 @@ Advanced programming
 .. Dynamics
 .. --------
 
+Documentation
+=============
+
+* :ref:`sws2srt`
+
 .. Sage development
 .. ----------------
 
-Indices and tables
-==================
-
-* :ref:`search`
+.. A hidden toctree. Sphinx wants everything to be in some toctree.
 
 .. toctree::
+   :hidden:
    :maxdepth: 1
 
    toctree

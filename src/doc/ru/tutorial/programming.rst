@@ -511,11 +511,11 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
 ::
 
     sage: v = (n^2 for n in xrange(10000000))
-    sage: v.next()
+    sage: next(v)
     0
-    sage: v.next()
+    sage: next(v)
     1
-    sage: v.next()
+    sage: next(v)
     4
 
 Следующий пример - создание итераторов из простых чисел вида :math:`4p+1` с
@@ -526,11 +526,11 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
     sage: w = (4*p + 1 for p in Primes() if is_prime(4*p+1))
     sage: w         # random output на следующей строке 0xb0853d6c может быть другим шестнадцатиричным числом
     <generator object at 0xb0853d6c>
-    sage: w.next()
+    sage: next(w)
     13
-    sage: w.next()
+    sage: next(w)
     29
-    sage: w.next()
+    sage: next(w)
     53
 
 Определенные кольца, как и конечные поля и целые числа, имеют итераторы:
@@ -540,11 +540,11 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
     sage: [x for x in GF(7)]
     [0, 1, 2, 3, 4, 5, 6]
     sage: W = ((x,y) for x in ZZ for y in ZZ)
-    sage: W.next()
+    sage: next(W)
     (0, 0)
-    sage: W.next()
+    sage: next(W)
     (0, 1)
-    sage: W.next()
+    sage: next(W)
     (0, -1)
 
 Циклы, функции, управляющие конструкции и сравнения

@@ -266,11 +266,11 @@ class QuiverRepHom(CallMorphism):
                 start_index += dim
 
         # Get the coordinates of the vector
-        from sage.categories.morphism import is_Morphism
+        from sage.categories.map import is_Map
         vector = []
         for v in self._quiver:
             if v in maps_dict:
-                if is_Morphism(maps_dict[v]):
+                if is_Map(maps_dict[v]):
                     if hasattr(maps_dict[v], 'matrix'):
                         m = maps_dict[v].matrix()
                     else:

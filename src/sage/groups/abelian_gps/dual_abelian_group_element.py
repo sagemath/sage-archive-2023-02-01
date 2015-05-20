@@ -56,7 +56,7 @@ import operator
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 from sage.rings.arith import *
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.rings.complex_field import is_ComplexField
 from sage.groups.abelian_gps.element_base import AbelianGroupElementBase
 from functools import reduce
@@ -91,7 +91,7 @@ def add_strings(x, z=0):
         return z
     if not isinstance(x, list):
         m = x.__iter__()
-        y = m.next()
+        y = next(m)
         return reduce(operator.add, m, y)
     else:
         return reduce(operator.add, x[1:], x[0])

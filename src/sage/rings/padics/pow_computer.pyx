@@ -397,7 +397,7 @@ cdef class PowComputer_class(SageObject):
         cdef mpz_t tmp
         if n is infinity:
             return Integer(0)
-        if not PY_TYPE_CHECK(n, Integer):
+        if not isinstance(n, Integer):
             _n = Integer(n)
         else:
             _n = <Integer>n
@@ -563,11 +563,11 @@ def PowComputer(m, cache_limit, prec_cap, in_field = False):
         sage: PC(-1)
         1/3
     """
-    if not PY_TYPE_CHECK(m, Integer):
+    if not isinstance(m, Integer):
         m = Integer(m)
-    if not PY_TYPE_CHECK(cache_limit, Integer):
+    if not isinstance(cache_limit, Integer):
         cache_limit = Integer(cache_limit)
-    if not PY_TYPE_CHECK(prec_cap, Integer):
+    if not isinstance(prec_cap, Integer):
         prec_cap = Integer(prec_cap)
     return PowComputer_c(m, cache_limit, prec_cap, in_field)
 

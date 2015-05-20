@@ -1,6 +1,8 @@
 from types cimport *
 from libc.stdio cimport FILE
 
+from libc.stdint cimport intmax_t, uintmax_t
+
 cdef extern from "gmp.h":
 
     ### Integer Functions ###
@@ -15,6 +17,8 @@ cdef extern from "gmp.h":
     void mpz_set (mpz_t rop, mpz_t op)
     void mpz_set_ui (mpz_t rop, unsigned long int op)
     void mpz_set_si (mpz_t rop, signed long int op)
+    void mpz_set_ux (mpz_t rop, uintmax_t op)
+    void mpz_set_sx (mpz_t rop, intmax_t op)
     void mpz_set_d (mpz_t rop, double op)
     void mpz_set_q (mpz_t rop, mpq_t op)
     void mpz_set_f (mpz_t rop, mpf_t op)
@@ -25,12 +29,16 @@ cdef extern from "gmp.h":
     void mpz_init_set (mpz_t rop, mpz_t op)
     void mpz_init_set_ui (mpz_t rop, unsigned long int op)
     void mpz_init_set_si (mpz_t rop, signed long int op)
+    void mpz_init_set_ux (mpz_t rop, uintmax_t op)
+    void mpz_init_set_sx (mpz_t rop, intmax_t op)
     void mpz_init_set_d (mpz_t rop, double op)
     int mpz_init_set_str (mpz_t rop, char *str, int base)
 
     # Conversion Functions
     unsigned long int mpz_get_ui (mpz_t op)
     signed long int mpz_get_si (mpz_t op)
+    uintmax_t mpz_get_ux (mpz_t op)
+    intmax_t mpz_get_sx (mpz_t op)
     double mpz_get_d (mpz_t op)
     double mpz_get_d_2exp (long int *exp, mpz_t op)
     char * mpz_get_str (char *str, int base, mpz_t op)

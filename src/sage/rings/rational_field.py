@@ -87,7 +87,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         ...
         TypeError: unable to convert sage to a rational
 
-    Coercion from the reals to the rational is done by default using
+    Conversion from the reals to the rationals is done by default using
     continued fractions.
 
     ::
@@ -960,14 +960,43 @@ class RationalField(Singleton, number_field_base.NumberField):
         """
         Return an random element of `\QQ`.
 
+        Elements are constructed by randomly choosing integers
+        for the numerator and denominator, not neccessarily coprime.
+
+        INPUT:
+
+        -  ``num_bound`` -- a positive integer, specifying a bound
+           on the absolute value of the numerator.
+           If absent, no bound is enforced.
+
+        -  ``den_bound`` -- a positive integer, specifying a bound
+           on the value of the denominator.
+           If absent, the bound for the numerator will be reused.
+
+        Any extra positional or keyword arguments are passed through to
+        :meth:`sage.rings.integer_ring.IntegerRing_class.random_element`.
+
         EXAMPLES::
 
-            sage: QQ.random_element(10,10)
-            1/4
+            sage: QQ.random_element()
+            -4
+            sage: QQ.random_element()
+            0
+            sage: QQ.random_element()
+            -1/2
 
-        Passes extra positional or keyword arguments through::
+        In the following example, the resulting numbers range from
+        -5/1 to 5/1 (both inclusive),
+        while the smallest possible positive value is 1/10::
 
-            sage: QQ.random_element(10,10, distribution='1/n')
+            sage: QQ.random_element(5, 10)
+            -2/7
+
+        Extra positional or keyword arguments are passed through::
+
+            sage: QQ.random_element(distribution='1/n')
+            0
+            sage: QQ.random_element(distribution='1/n')
             -1
 
         """
@@ -1108,10 +1137,11 @@ class RationalField(Singleton, number_field_base.NumberField):
             [1, 5, -1, -5]
         """
         KSgens, ords = self.selmer_group(S=S, m=m, proof=proof, orders=True)
-        one = self.one_element()
-        from sage.misc.all import prod, cartesian_product_iterator
-        for ev in cartesian_product_iterator([range(o) for o in ords]):
-            yield prod([p**e for p,e in zip(KSgens, ev)], one)
+        one = self.one()
+        from sage.misc.all import prod
+        from itertools import product
+        for ev in product(*[range(o) for o in ords]):
+            yield prod((p**e for p,e in zip(KSgens, ev)), one)
 
 
     #################################

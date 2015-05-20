@@ -423,7 +423,7 @@ def inter_reduction(Q):
     """
     if not Q:
         return Q # if Q is empty we cannot get a base ring
-    base_ring = iter(Q).next().base_ring()
+    base_ring = next(iter(Q)).base_ring()
 
     Q = set(Q)
     while True:

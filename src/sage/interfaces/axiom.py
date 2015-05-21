@@ -897,10 +897,14 @@ class PanAxiomElement(ExpectElement):
             R = PolynomialRing(base_ring, vars)
             return R(self.unparsed_input_form())
 
-        #If all else fails, try using the unparsed input form
+         #If all else fails, try using the unparsed input form
         try:
             import sage.misc.sage_eval
-            return sage.misc.sage_eval.sage_eval(self.unparsed_input_form())
+            vars=sage.symbolic.ring.var(str(self.variables())[1:-1])
+            if isinstance(vars,tuple):
+                return sage.misc.sage_eval.sage_eval(self.unparsed_input_form(), locals={str(x):x for x in vars})
+            else:
+                return sage.misc.sage_eval.sage_eval(self.unparsed_input_form(), locals={str(vars):vars})
         except Exception:
             raise NotImplementedError
 

@@ -7,7 +7,6 @@
 #*****************************************************************************
 
 from sage.rings.all import RealField
-from sage.probability.random_variable import DiscreteProbabilitySpace
 from string_monoid_element import StringMonoidElement
 
 def strip_encoding(S):
@@ -47,6 +46,7 @@ def frequency_distribution(S, n=1, field=None):
                 P[c] += eps
             else:
                 P[c] = eps
+        from sage.probability.random_variable import DiscreteProbabilitySpace
         return DiscreteProbabilitySpace(S,P,field)
     raise TypeError("Argument S (= %s) must be a string, list, or tuple.")
 

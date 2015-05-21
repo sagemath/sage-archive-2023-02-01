@@ -345,7 +345,7 @@ cdef class NCPolynomialRing_plural(Ring):
 
 
         if check:
-            from sage.libs.singular import ff
+            from sage.libs.singular.function_factory import ff
             test = ff.nctools__lib.ndcond(ring = self)
             if (len(test) != 1) or (test[0] != 0):
                 raise ValueError("NDC check failed!")

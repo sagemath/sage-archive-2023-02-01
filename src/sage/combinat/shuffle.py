@@ -124,7 +124,7 @@ class SetShuffleProduct(SageObject):
             self._element_constructor_ = element_constructor
         else:
             try:
-                e = iter(l1).next()
+                e = next(iter(l1))
                 if hasattr(e, "parent") and hasattr(e.parent(), "_element_constructor_"):
                     self._element_constructor_ = e.parent()._element_constructor_
                 else:

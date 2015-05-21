@@ -241,7 +241,7 @@ from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_di
 
 import pexpect
 
-from sage.misc.misc import verbose, DOT_SAGE
+from sage.env import DOT_SAGE
 from sage.misc.pager import pager
 
 COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj'%DOT_SAGE

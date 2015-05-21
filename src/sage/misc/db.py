@@ -20,9 +20,9 @@ Saving Sage objects to a file
 
 import cPickle
 import os
-import misc
+from sage.env import SAGE_ROOT
 
-PATH = misc.SAGE_ROOT + "/db"
+PATH = os.path.join(SAGE_ROOT, "db")
 
 USE_DB = False
 

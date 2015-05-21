@@ -149,7 +149,8 @@ Or you can create a homomorphism from one lattice to any other::
 from sage.geometry.toric_lattice_element import (ToricLatticeElement,
                                                  is_ToricLatticeElement)
 from sage.geometry.toric_plotter import ToricPlotter
-from sage.misc.all import latex, parent
+from sage.misc.all import latex
+from sage.structure.all import parent
 from sage.modules.fg_pid.fgp_element import FGP_Element
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.free_module import (FreeModule_ambient_pid,
@@ -698,7 +699,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
         S = super(ToricLattice_generic, self).saturation()
         return S if is_ToricLattice(S) else self.ambient_module().submodule(S)
 
-    def span(self, *args, **kwds):
+    def span(self, gens, base_ring=ZZ, *args, **kwds):
         """
         Return the span of the given generators.
 
@@ -706,6 +707,8 @@ class ToricLattice_generic(FreeModule_generic_pid):
 
         - ``gens`` -- list of elements of the ambient vector space of
           ``self``.
+          
+        - ``base_ring`` -- (default: `\ZZ`) base ring for the generated module.
 
         OUTPUT:
 
@@ -734,19 +737,14 @@ class ToricLattice_generic(FreeModule_generic_pid):
             ArithmeticError: Argument gens (= [N(0, 1, 0)])
             does not generate a submodule of self.
         """
-        if len(args) > 1:
-            base_ring = args[1]
-        elif "base_ring" in kwds:
-            base_ring = kwds["base_ring"]
+        A = self.ambient_module()
+        if base_ring is ZZ and all(g in A for g in gens):
+            return ToricLattice_sublattice(A, gens)
         else:
-            base_ring = None
-        if base_ring is None or base_ring is ZZ:
-            gens = args[0] if args else kwds["gens"]
-            return ToricLattice_sublattice(self.ambient_module(), gens)
-        else:
-            return super(ToricLattice_generic, self).span(*args, **kwds)
+            return super(ToricLattice_generic, self).span(gens, base_ring,
+                                                          *args, **kwds)
 
-    def span_of_basis(self, *args, **kwds):
+    def span_of_basis(self, basis, base_ring=ZZ, *args, **kwds):
         r"""
         Return the submodule with the given ``basis``.
 
@@ -754,7 +752,9 @@ class ToricLattice_generic(FreeModule_generic_pid):
 
         - ``basis`` -- list of elements of the ambient vector space of
           ``self``.
-
+          
+        - ``base_ring`` -- (default: `\ZZ`) base ring for the generated module.
+        
         OUTPUT:
 
         - submodule spanned by ``basis``.
@@ -777,7 +777,10 @@ class ToricLattice_generic(FreeModule_generic_pid):
             sage: Ns.span_of_basis([(2,4,0)])
             Sublattice <N(2, 4, 0)>
             sage: Ns.span_of_basis([(1/5,2/5,0), (1/7,1/7,0)])
-            Sublattice <(1/5, 2/5, 0), (1/7, 1/7, 0)>
+            Free module of degree 3 and rank 2 over Integer Ring
+            User basis matrix:
+            [1/5 2/5   0]
+            [1/7 1/7   0]
 
         Of course the input basis vectors must be linearly independent::
 
@@ -786,18 +789,12 @@ class ToricLattice_generic(FreeModule_generic_pid):
             ...
             ValueError: The given basis vectors must be linearly independent.
         """
-        if len(args) > 1:
-            base_ring = args[1]
-        elif "base_ring" in kwds:
-            base_ring = kwds["base_ring"]
+        A = self.ambient_module()
+        if base_ring is ZZ and all(g in A for g in basis):
+            return ToricLattice_sublattice_with_basis(A, basis)
         else:
-            base_ring = None
-        if base_ring is None or base_ring is ZZ:
-            return ToricLattice_sublattice_with_basis(self.ambient_module(),
-                    *args, **kwds)
-        else:
-            return super(ToricLattice_generic, self).span_with_basis(*args,
-                                                                     **kwds)
+            return super(ToricLattice_generic, self).span_of_basis(
+                                            basis, base_ring, *args, **kwds)
 
 
 class ToricLattice_ambient(ToricLattice_generic, FreeModule_ambient_pid):

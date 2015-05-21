@@ -114,10 +114,24 @@ cdef ideal *sage_ideal_to_singular_ideal(I) except NULL:
     INPUT:
 
     - ``I`` -- a Sage ideal in a ring of type
-      :class:`~sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular`
+      :class:`~sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular` or a list of generators.
+
+    TESTS:
+
+
+    We test conversion::
+
+        sage: P.<x,y,z> = QQ[]
+        sage: sage.libs.singular.function_factory.ff.std(Sequence([x,y,z]))
+        [z, y, x]
+        sage: sage.libs.singular.function_factory.ff.std(Ideal([x,y,z]))
+        [z, y, x]
     """
     R = I.ring()
-    gens = I.gens()
+    try:
+        gens = I.gens()
+    except AttributeError:
+        gens = I
     cdef ideal *result
     cdef ring *r
     cdef ideal *i
@@ -288,10 +302,12 @@ def interred_libsingular(I):
     cdef int j
     cdef int bck
 
-
-    if len(I.gens()) == 0:
-        return Sequence([], check=False, immutable=True)
-
+    try:
+        if len(I.gens()) == 0:
+            return Sequence([], check=False, immutable=True)
+    except AttributeError:
+        pass
+            
     i = sage_ideal_to_singular_ideal(I)
     r = currRing
 

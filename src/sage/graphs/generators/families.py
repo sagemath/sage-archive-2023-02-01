@@ -1278,7 +1278,7 @@ def MycielskiStep(g):
     """
 
     # Make a copy of the input graph g
-    gg = g.copy()
+    gg = g.copy(immutable=False)
 
     # rename a vertex v of gg as (1,v)
     renamer = dict( [ (v, (1,v)) for v in g.vertices() ] )

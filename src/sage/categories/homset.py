@@ -685,21 +685,20 @@ class Homset(Set_generic):
 
     def __hash__(self):
         """
+        The hash is obtained from domain, codomain and base.
+
         TESTS::
 
-            sage: hash(Hom(ZZ, QQ))
-            1586601211              # 32-bit
-            8060925370113826043     # 64-bit
-            sage: hash(Hom(QQ, ZZ))
-            1346950701              # 32-bit
-            -6958821237014866387    # 64-bit
+            sage: hash(Hom(ZZ, QQ)) == hash((ZZ, QQ, ZZ))
+            True
+            sage: hash(Hom(QQ, ZZ)) == hash((QQ, ZZ, QQ))
+            True
 
             sage: E = EllipticCurve('37a')
             sage: H = E(0).parent(); H
             Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
-            sage: hash(H)           # random output
-            -1145411691             # 32-bit
-            -8446824869798451307    # 64-bit
+            sage: hash(H) == hash((H.domain(), H.codomain(), H.base()))
+            True
         """
         return hash((self._domain, self._codomain, self.base()))
 

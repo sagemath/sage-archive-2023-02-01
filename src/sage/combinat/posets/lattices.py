@@ -138,9 +138,9 @@ class FiniteMeetSemilattice(FinitePoset):
         """
         return self._hasse_diagram.meet_matrix()
 
-    def meet(self,x,y):
+    def meet(self, x, y=None):
         r"""
-        Return the meet of two elements in the lattice.
+        Return the meet of given elements in the lattice.
 
         EXAMPLES::
 
@@ -154,14 +154,14 @@ class FiniteMeetSemilattice(FinitePoset):
             sage: D.meet(1, 4)
             1
 
-        If this method is used directly, it is not necessary to coerce
-        elements into the poset. (Trac #11292)  ::
+        Using list of elements as an argument. Meet of empty list is
+        the bottom element::
 
-            sage: D = Posets.DiamondPoset(5)
-            sage: D.meet(1, 0)
+            sage: B4=Posets.BooleanLattice(4)
+            sage: B4.meet([3,5,6])
             0
-            sage: D.meet(1, 4)
-            1
+            sage: B4.meet([])
+            15
 
         Test that this method also works for facade lattices::
 
@@ -172,8 +172,14 @@ class FiniteMeetSemilattice(FinitePoset):
             0
 
         """
-        i, j = map(self._element_to_vertex,(x,y))
-        return self._vertex_to_element(self._hasse_diagram._meet[i,j])
+        if y is not None: # Handle basic case fast
+            i, j = map(self._element_to_vertex, (x,y))
+            return self._vertex_to_element(self._hasse_diagram._meet[i,j])
+        L = map(self._element_to_vertex, x)
+        m = self.cardinality()-1 # m = top element
+        for i in L:
+            m = self._hasse_diagram._meet[i, m]
+        return self._vertex_to_element(m)
 
 ####################################################################################
 
@@ -290,9 +296,15 @@ class FiniteJoinSemilattice(FinitePoset):
         """
         return self._hasse_diagram.join_matrix()
 
-    def join(self,x,y):
+    def join(self, x, y=None):
         r"""
-        Return the join of two elements in the lattice.
+        Return the join of given elements in the lattice.
+
+        INPUT:
+
+        -  ``x, y`` - two elements of the (semi)lattice OR
+
+        -  ``x`` - a list or tuple of elements
 
         EXAMPLES::
 
@@ -306,14 +318,14 @@ class FiniteJoinSemilattice(FinitePoset):
             sage: D.join(1, 0)
             1
 
-        If this method is used directly, it is not necessary to coerce
-        elements into the poset. (Trac #11292)  ::
+        Using list of elements as an argument. Join of empty list is
+        the bottom element::
 
-            sage: D = Posets.DiamondPoset(5)
-            sage: D.join(1, 0)
-            1
-            sage: D.join(1, 4)
-            4
+            sage: B4=Posets.BooleanLattice(4)
+            sage: B4.join([2,4,8])
+            14
+            sage: B4.join([])
+            0
 
         Test that this method also works for facade lattices::
 
@@ -324,8 +336,15 @@ class FiniteJoinSemilattice(FinitePoset):
             3
 
         """
-        i, j = map(self._element_to_vertex,(x,y))
-        return self._vertex_to_element(self._hasse_diagram._join[i,j])
+        if y is not None: # Handle basic case fast
+            i, j = map(self._element_to_vertex, (x,y))
+            return self._vertex_to_element(self._hasse_diagram._join[i,j])
+        L = map(self._element_to_vertex, x)
+        j = 0 # j = bottom element
+        for i in L:
+            j = self._hasse_diagram._join[i, j]
+        return self._vertex_to_element(j)
+        
 
 ####################################################################################
 
@@ -620,8 +639,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return False
         H=self._hasse_diagram
         n=H.order()
-        return all(H._rank_dict[a] + H._rank_dict[b] == 
-                   H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]
+        return all(H._rank[a] + H._rank[b] ==
+                   H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
                    for a in range(n) for b in range(a+1, n))
         return True
 
@@ -661,8 +680,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return False
         H=self._hasse_diagram
         n=H.order()
-        return all(H._rank_dict[a] + H._rank_dict[b] >=
-                   H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]
+        return all(H._rank[a] + H._rank[b] >=
+                   H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
                    for a in range(n) for b in range(a+1, n))
         return True
 
@@ -698,8 +717,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return False
         H=self._hasse_diagram
         n=H.order()
-        return all(H._rank_dict[a] + H._rank_dict[b] <=
-                   H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]
+        return all(H._rank[a] + H._rank[b] <=
+                   H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
                    for a in range(n) for b in range(a+1, n))
         return True
 

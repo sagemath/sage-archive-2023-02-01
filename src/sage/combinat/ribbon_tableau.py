@@ -700,7 +700,7 @@ def spin_polynomial(part, weight, length):
     from sage.symbolic.ring import var
     sp = spin_polynomial_square(part,weight,length)
     t = var('t')
-    c = sp.coeffs()
+    c = sp.coefficients(sparse=False)
     return sum([c[i]*t**(QQ(i)/2) for i in range(len(c))])
 
 def cospin_polynomial(part, weight, length):
@@ -736,7 +736,7 @@ def cospin_polynomial(part, weight, length):
     if sp == 0:
         return R(0)
 
-    coeffs = [c for c in sp.coeffs() if c != 0]
+    coeffs = [c for c in sp.coefficients(sparse=False) if c != 0]
     d = len(coeffs)-1
     exponents = [d-e for e in range(len(coeffs))]
 
@@ -1162,47 +1162,6 @@ class SemistandardMultiSkewTableaux(MultiSkewTableaux):
                 w = [l[k][j] for j in range(pos+s[i-1], pos+s[i-1]+s[i])]
                 restmp.append( S.from_shape_and_word(parts[i], w) )
             yield self.element_class(self, restmp)
-
-def from_expr(l):
-    """
-    Deprecated in :trac:`14101`. Use instead :meth:`RibbonTableaux.from_expr()`.
-
-    EXAMPLES::
-
-        sage: sage.combinat.ribbon_tableau.from_expr([[1,1],[[5],[3,4],[1,2]]])
-        doctest:...: DeprecationWarning: from_expr is deprecated. Use RibbonTableaux().from_expr instead
-        See http://trac.sagemath.org/14101 for details.
-        [[None, 1, 2], [None, 3, 4], [5]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14101, 'from_expr is deprecated. Use RibbonTableaux().from_expr instead')
-    return RibbonTableaux().from_expr(l)
-
-def RibbonTableaux_shapeweightlength(shape, weight, length):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.ribbon_tableau.RibbonTableaux_shapeweightlength([[2,1],[]], [1,1,1], 1)
-        doctest:...: DeprecationWarning: this class is deprecated. Use RibbonTableaux instead
-        See http://trac.sagemath.org/14101 for details.
-        Ribbon tableaux of shape [2, 1] / [] and weight [1, 1, 1] with 1-ribbons
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14101, 'this class is deprecated. Use RibbonTableaux instead')
-    return RibbonTableaux(shape, weight, length)
-
-def SemistandardMultiSkewTtableaux_shapeweight(shape, weight):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.ribbon_tableau.SemistandardMultiSkewTtableaux_shapeweight([ [[2,1],[]], [[2,2],[1]] ], [2,2,2])
-        doctest:...: DeprecationWarning: this class is deprecated. Use SemistandardMultiSkewTableaux instead
-        See http://trac.sagemath.org/14101 for details.
-        Semistandard multi skew tableaux of shape [[2, 1] / [], [2, 2] / [1]] and weight [2, 2, 2]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14101, 'this class is deprecated. Use SemistandardMultiSkewTableaux instead')
-    return SemistandardMultiSkewTableaux(shape, weight)
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.ribbon_tableau', 'RibbonTableau_class', RibbonTableau)

@@ -965,7 +965,7 @@ class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
 
             sage: y = crystals.infinity.GeneralizedYoungWalls(3)([[0],[1,0,3,2],[2,1],[3,2,1,0,3,2],[0],[],[2]])
             sage: x = y.__iter__()
-            sage: x.next()
+            sage: next(x)
             [0]
         """
         for c in self.subcrystal(direction='lower'):

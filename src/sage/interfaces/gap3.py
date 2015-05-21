@@ -262,10 +262,9 @@ class Gap3(Gap_generic):
         sage: gap3(2)                                      #optional - gap3
         2
         sage: try:
-        ...     gap3._keyboard_interrupt()
-        ... except KeyboardInterrupt:
-        ...     pass                                       #optional - gap3
-        Interrupting Gap3...
+        ....:     gap3._keyboard_interrupt()
+        ....: except KeyboardInterrupt:
+        ....:     pass
         sage: gap3(2)                                      #optional - gap3
         2
 

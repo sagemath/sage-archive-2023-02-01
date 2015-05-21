@@ -22,7 +22,7 @@ from congroup_generic import CongruenceSubgroup
 from sage.modular.cusps import Cusp
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import (IntegerModRing, kronecker_symbol, ZZ)
-from sage.misc.misc import prod
+from sage.misc.all import prod
 import sage.modular.modsym.p1list
 import sage.rings.arith as arith
 

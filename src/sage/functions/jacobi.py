@@ -148,10 +148,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.symbolic.function import BuiltinFunction, is_inexact
-from sage.structure.coerce import parent
-from sage.structure.element import get_coercion_model
-from sage.symbolic.expression import Expression
+from sage.symbolic.function import BuiltinFunction
 from sage.functions.trig import (arctan, arcsin, arccos, arccot, arcsec,
                                  arccsc, csc, sec, sin, cos, tan, cot)
 from sage.functions.hyperbolic import (arctanh, arccosh, arcsinh, arcsech,
@@ -270,10 +267,6 @@ class Jacobi(BuiltinFunction):
             sage: almosteq(n(jacobi_cs(-6, 1, hold=True)), n(jacobi_cs(-6, 1)))
             True
         """
-        coercion_model = get_coercion_model()
-        co = coercion_model.canonical_coercion(x, m)[0]
-        if is_inexact(co) and not isinstance(co, Expression):
-            return self._evalf_(x, m, parent(co))
         if self.kind == 'nd':
             if m == 0:
                 return Integer(1)
@@ -641,10 +634,6 @@ class InverseJacobi(BuiltinFunction):
             ....:          n(inverse_jacobi_sn(0, 6)))
             True
         """
-        coercion_model = get_coercion_model()
-        x, m = coercion_model.canonical_coercion(x, m)
-        if is_inexact(x) and not isinstance(x, Expression):
-            return self._evalf_(x, m, parent(x))
         if self.kind == 'cd':
             if m == 0:
                 return arccos(x)
@@ -1091,10 +1080,6 @@ class JacobiAmplitude(BuiltinFunction):
             sage: jacobi_am(3, 4.)
             -0.339059208303591
         """
-        coercion_model = get_coercion_model()
-        x, m = coercion_model.canonical_coercion(x, m)
-        if is_inexact(x) and not isinstance(x, Expression):
-            return self._evalf_(x, m, parent(x))
         if m == 0:
             return x
         elif x == 0:

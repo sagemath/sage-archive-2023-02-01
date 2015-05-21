@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 
-cd src/
-
 if [ "$SAGE_LOCAL" = "" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
+
+
+LATTE_VERSION="$(cat ${SAGE_ROOT}/build/pkgs/latte_int/package-version.txt)"
+cd "latte-int-${LATTE_VERSION}"
+
 
 #CFLAGS="-I $SAGE_LOCAL/include -L$SAGE_LOCAL/lib $CFLAGS"
 #export CFLAGS

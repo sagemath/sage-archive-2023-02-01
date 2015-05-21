@@ -534,9 +534,9 @@ class GenDictWithBasering:
             sage: D = R.gens_dict()
             sage: D
             GenDict of Infinite polynomial ring in a, b over Univariate Polynomial Ring in t over Rational Field
-            sage: D.next()
+            sage: next(D)
             GenDict of Univariate Polynomial Ring in t over Rational Field
-            sage: sage_eval('t^2',D.next())
+            sage: sage_eval('t^2', next(D))
             t^2
 
         """
@@ -908,7 +908,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         try:
             from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
             if isinstance(self._base, MPolynomialRing_polydict):
-                x = sage_eval(repr(), self._gens_dict.next())
+                x = sage_eval(repr(), next(self._gens_dict))
             else:
                 x = self._base(x)
             # remark: Conversion to self._P (if applicable)

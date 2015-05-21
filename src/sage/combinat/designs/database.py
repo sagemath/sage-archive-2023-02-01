@@ -1722,14 +1722,14 @@ def OA_520_plus_x(x):
         Only a row `[p,p,...]` is missing from the `OA(10+x,520+x)`
 
     This construction is used in :func:`OA(10,520) <OA_10_520>`,
-    :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524) <OA_10_524>`.
+    :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524) <OA_14_524>`.
 
     EXAMPLE::
 
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_520_plus_x
-        sage: OA = OA_520_plus_x(0)                   # not tested (already tested in OA_10_520
-        sage: print is_orthogonal_array(OA,10,520,2)  # not tested (already tested in OA_10_520
+        sage: OA = OA_520_plus_x(0)                   # not tested (already tested in OA_10_520)
+        sage: print is_orthogonal_array(OA,10,520,2)  # not tested (already tested in OA_10_520)
         True
 
     """
@@ -1879,6 +1879,36 @@ def OA_15_896():
 
     return OA_n_times_2_pow_c_from_matrix(15,7,FiniteField(7),zip(*A),Y,check=False)
 
+def OA_9_1078():
+    r"""
+    Returns an OA(9,1078)
+
+    This is obtained through the generalized Brouwer-van Rees
+    construction. Indeed, `1078 = 89.11 + (99=9.11)` and there exists an
+    `OA(9,100) - OA(9,11)`.
+
+    .. NOTE::
+
+        This function should be removed once
+        :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_brouwer_van_rees_with_one_truncated_column`
+        can handle all incomplete orthogonal arrays obtained through
+        :func:`~sage.combinat.designs.orthogonal_arrays.incomplete_orthogonal_array`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_9_1078
+        sage: OA = OA_9_1078()                       # not tested -- ~3s
+        sage: print is_orthogonal_array(OA,9,1078,2) # not tested -- ~3s
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_arrays.is_available(9,1078)
+        True
+    """
+    return wilson_construction(None,9,11,89,[[(11,9)]])
+
 def OA_25_1262():
     r"""
     Returns an OA(25,1262)
@@ -1916,6 +1946,66 @@ def OA_25_1262():
 
     return OA_from_PBD(25,1262,PBD,check=False)
 
+def OA_9_1612():
+    r"""
+    Returns an OA(9,1612)
+
+    This is obtained through the generalized Brouwer-van Rees
+    construction. Indeed, `1612 = 89.17 + (99=9.11)` and there exists an
+    `OA(9,100) - OA(9,11)`.
+
+    .. NOTE::
+
+        This function should be removed once
+        :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_brouwer_van_rees_with_one_truncated_column`
+        can handle all incomplete orthogonal arrays obtained through
+        :func:`~sage.combinat.designs.orthogonal_arrays.incomplete_orthogonal_array`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_9_1612
+        sage: OA = OA_9_1612()                       # not tested -- ~6s
+        sage: print is_orthogonal_array(OA,9,1612,2) # not tested -- ~6s
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_arrays.is_available(9,1612)
+        True
+    """
+    return wilson_construction(None,9,17,89,[[(11,9)]])
+
+def OA_10_1620():
+    r"""
+    Returns an OA(10,1620)
+
+    This is obtained through the generalized Brouwer-van Rees
+    construction. Indeed, `1620 = 144.11+(36=4.9)` and there exists an
+    `OA(10,153) - OA(10,9)`.
+
+    .. NOTE::
+
+        This function should be removed once
+        :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_brouwer_van_rees_with_one_truncated_column`
+        can handle all incomplete orthogonal arrays obtained through
+        :func:`~sage.combinat.designs.orthogonal_arrays.incomplete_orthogonal_array`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_1620
+        sage: OA = OA_10_1620()                       # not tested -- ~7s
+        sage: print is_orthogonal_array(OA,10,1620,2) # not tested -- ~7s
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_arrays.is_available(10,1620)
+        True
+    """
+    return wilson_construction(None,10,11,144,[[(9,4)]])
+
 # Index of the OA constructions
 #
 # Associates to n the pair (k,f) where f() is a function that returns an OA(k,n)
@@ -1952,7 +2042,10 @@ OA_constructions = {
     640 : (11 , OA_11_640),
     796 : (10 , OA_10_796),
     896 : (15 , OA_15_896),
-    1262 : (25 , OA_25_1262),
+    1078 : (9 , OA_9_1078),
+    1262 : (25, OA_25_1262),
+    1612 : (9 , OA_9_1612),
+    1620 : (10, OA_10_1620),
 }
 # Add this data to the module's doc
 LIST_OF_OA_CONSTRUCTIONS = join((":func:`OA({},{}) <OA_{}_{}>`".format(k,n,k,n)
@@ -2983,6 +3076,36 @@ DF = {
   {(67,): [[0,1,9,14,15,22,24,25,40,59,62,64],
            [0,2,13,18,28,30,44,48,50,51,57,61],
            [0,4,21,26,29,33,35,36,47,55,56,60]]},
+
+# a 133-cyclic set from Ken Smith database
+# see http://www.ccrwest.org/diffsets/diff_sets/DS_133_33_8_133.html
+(133,33, 8):
+  {(133,): [[0,4,7,8,15,17,19,22,24,25,29,30,38,
+             47,49,50,55,58,61,62,71,73,76,77,78,
+             82,95,111,113,114,121,123,127]]},
+
+# a 901-cyclic
+# see http://www.ccrwest.org/diffsets/diff_sets/DS_901_225_56_901.html
+(901,225,56):
+  {(901,): [[  0,  1,  5,  9, 12, 13, 14, 16, 22, 25, 41, 43,
+              45, 47, 53, 59, 60, 65, 69, 70, 71, 79, 80, 81,
+              89, 92, 93,106,108,109,110,114,117,124,125,126,
+             133,139,144,147,152,156,159,167,168,169,173,174,
+             182,183,192,194,196,198,202,203,205,208,209,212,
+             214,215,219,222,223,224,225,226,229,231,232,233,
+             235,244,254,256,259,264,265,274,277,286,292,293,
+             295,296,300,307,308,313,318,319,325,326,345,350,
+             352,355,363,369,371,379,382,387,394,395,397,400,
+             401,402,405,407,419,422,423,424,433,445,447,460,
+             461,465,467,469,477,484,492,498,502,503,516,523,
+             526,529,530,531,533,536,540,543,545,550,559,564,
+             570,571,574,577,579,581,583,585,587,596,599,602,
+             611,617,618,620,621,622,625,630,634,636,639,641,
+             656,658,661,664,665,688,689,691,694,695,706,708,
+             711,713,720,721,724,729,735,737,742,746,752,760,
+             766,767,772,778,780,786,795,801,813,824,826,827,
+             828,835,837,840,843,845,848,849,852,853,859,862,
+             863,865,870,874,878,881,886,897,898]]}
 }
 
 # Create the list of DF for the documentation

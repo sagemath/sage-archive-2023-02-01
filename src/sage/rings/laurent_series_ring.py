@@ -12,6 +12,10 @@ EXAMPLES::
     Finite Field of size 17
     sage: S.base_ring()
     Univariate Polynomial Ring in x over Finite Field of size 17
+
+.. SEEALSO::
+
+    * :func:`sage.misc.defaults.set_series_precision`
 """
 
 import weakref
@@ -31,7 +35,7 @@ from sage.categories.fields import Fields
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
 
 laurent_series = {}
-def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=20, sparse=False):
+def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=None, sparse=False):
     """
     EXAMPLES::
 
@@ -77,6 +81,16 @@ def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=20, sparse=
         sage: W.<y> = LaurentSeriesRing(Qp(5,prec=199))
         sage: W is T
         False
+
+    TESTS:
+
+    Check if changing global series precision does it right::
+
+        sage: set_series_precision(3)
+        sage: R.<x> = LaurentSeriesRing(ZZ)
+        sage: 1/(1 - 2*x)
+        1 + 2*x + 4*x^2 + O(x^3)
+        sage: set_series_precision(20)
     """
     if not names is None: name = names
     if name is None:
@@ -136,7 +150,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         sage: TestSuite(F).run()
     """
 
-    def __init__(self, base_ring, name=None, default_prec=20, sparse=False, category=None):
+    def __init__(self, base_ring, name=None, default_prec=None, sparse=False, category=None):
         """
         Initialization
 
@@ -303,6 +317,8 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
             sage: L.<q> = LaurentSeriesRing(QQ)
             sage: L.set_default_prec(10)
+            doctest:...: DeprecationWarning: This method is deprecated.
+            See http://trac.sagemath.org/16201 for details.
             sage: L(pari('1/x'))
             q^-1
             sage: L(pari('poltchebi(5)'))
@@ -506,24 +522,27 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
     def set_default_prec(self, n):
         """
-        Sets the default precision.
+        Set the default precision.
 
-        This operation should be discouraged: parents should be
-        immutable and this function may be deprecated in the future.
+        This method is deprecated.
 
         TESTS::
 
             sage: R.<x> = LaurentSeriesRing(QQ)
             sage: R.set_default_prec(3)
+            doctest:...: DeprecationWarning: This method is deprecated.
+            See http://trac.sagemath.org/16201 for details.
             sage: 1/(x^5-x^7)
             x^-5 + x^-3 + O(x^-2)
         """
+        from sage.misc.superseded import deprecation
+        deprecation(16201, "This method is deprecated.")
         self.power_series_ring().set_default_prec(n)
 
     def default_prec(self):
         """
-        Sets the precision to which exact elements are truncated when
-        necessary (most frequently when inverting)
+        Get the precision to which exact elements are truncated when
+        necessary (most frequently when inverting).
 
         EXAMPLES::
 
@@ -641,7 +660,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         return self._power_series_ring
 
 class LaurentSeriesRing_domain(LaurentSeriesRing_generic, integral_domain.IntegralDomain):
-    def __init__(self, base_ring, name=None, default_prec=20, sparse=False):
+    def __init__(self, base_ring, name=None, default_prec=None, sparse=False):
         """
         Initialization
 
@@ -654,7 +673,7 @@ class LaurentSeriesRing_domain(LaurentSeriesRing_generic, integral_domain.Integr
 class LaurentSeriesRing_field(LaurentSeriesRing_generic, field.Field):
     _default_category = CompleteDiscreteValuationFields()
 
-    def __init__(self, base_ring, name=None, default_prec=20, sparse=False):
+    def __init__(self, base_ring, name=None, default_prec=None, sparse=False):
         """
         Initialization
 

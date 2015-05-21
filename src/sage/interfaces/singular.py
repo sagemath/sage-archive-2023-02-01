@@ -304,6 +304,8 @@ see ticket #11645::
     'ring testgf9 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);'
 """
 
+
+
 #We could also do these calculations without using the singular
 #interface (behind the scenes the interface is used by Sage):
 #    sage: x, y = PolynomialRing(RationalField(), 2, names=['x','y']).gens()
@@ -2410,3 +2412,166 @@ class SingularGBLogPrettyPrinter:
             sage: s3.flush()
         """
         sys.stdout.flush()
+
+class SingularGBDefaultContext:
+    """
+    Within this context all Singular Groebner basis calculations are
+    reduced automatically.
+
+    AUTHORS:
+
+    - Martin Albrecht
+    - Simon King
+    """
+    def __init__(self, singular=None):
+        """
+        Within this context all Singular Groebner basis calculations
+        are reduced automatically.
+
+        INPUT:
+
+        -  ``singular`` - Singular instance (default: default instance)
+
+        EXAMPLE::
+
+            sage: from sage.interfaces.singular import SingularGBDefaultContext
+            sage: P.<a,b,c> = PolynomialRing(QQ,3, order='lex')
+            sage: I = sage.rings.ideal.Katsura(P,3)
+            sage: singular.option('noredTail')
+            sage: singular.option('noredThrough')
+            sage: Is = I._singular_()
+            sage: gb = Is.groebner()
+            sage: gb
+            84*c^4-40*c^3+c^2+c,
+            7*b+210*c^3-79*c^2+3*c,
+            a+2*b+2*c-1
+
+        ::
+
+            sage: with SingularGBDefaultContext(): rgb = Is.groebner()
+            sage: rgb
+            84*c^4-40*c^3+c^2+c,
+            7*b+210*c^3-79*c^2+3*c,
+            7*a-420*c^3+158*c^2+8*c-7
+
+        Note that both bases are Groebner bases because they have
+        pairwise prime leading monomials but that the monic version of
+        the last element in ``rgb`` is smaller than the last element
+        of ``gb`` with respect to the lexicographical term ordering. ::
+
+            sage: (7*a-420*c^3+158*c^2+8*c-7)/7 < (a+2*b+2*c-1)
+            True
+
+        .. note::
+
+           This context is used automatically internally whenever a
+           Groebner basis is computed so the user does not need to use
+           it manually.
+        """
+        if singular is None:
+            from sage.interfaces.all import singular as singular_default
+            singular = singular_default
+        self.singular = singular
+
+    def __enter__(self):
+        """
+        EXAMPLE::
+
+            sage: from sage.interfaces.singular import SingularGBDefaultContext
+            sage: P.<a,b,c> = PolynomialRing(QQ,3, order='lex')
+            sage: I = sage.rings.ideal.Katsura(P,3)
+            sage: singular.option('noredTail')
+            sage: singular.option('noredThrough')
+            sage: Is = I._singular_()
+            sage: with SingularGBDefaultContext(): rgb = Is.groebner()
+            sage: rgb
+            84*c^4-40*c^3+c^2+c,
+            7*b+210*c^3-79*c^2+3*c,
+            7*a-420*c^3+158*c^2+8*c-7
+        """
+        from sage.interfaces.singular import SingularError
+        try:
+            self.bck_degBound = int(self.singular.eval('degBound'))
+        except SingularError:
+            self.bck_degBound = int(0)
+        try:
+            self.bck_multBound = int(self.singular.eval('multBound'))
+        except SingularError:
+            self.bck_multBound = int(0)
+        self.o = self.singular.option("get")
+        self.singular.option('set',self.singular._saved_options)
+        self.singular.option("redSB")
+        self.singular.option("redTail")
+        try:
+            self.singular.eval('degBound=0')
+        except SingularError:
+            pass
+        try:
+            self.singular.eval('multBound=0')
+        except SingularError:
+            pass
+
+    def __exit__(self, typ, value, tb):
+        """
+        EXAMPLE::
+
+            sage: from sage.interfaces.singular import SingularGBDefaultContext
+            sage: P.<a,b,c> = PolynomialRing(QQ,3, order='lex')
+            sage: I = sage.rings.ideal.Katsura(P,3)
+            sage: singular.option('noredTail')
+            sage: singular.option('noredThrough')
+            sage: Is = I._singular_()
+            sage: with SingularGBDefaultContext(): rgb = Is.groebner()
+            sage: rgb
+            84*c^4-40*c^3+c^2+c,
+            7*b+210*c^3-79*c^2+3*c,
+            7*a-420*c^3+158*c^2+8*c-7
+        """
+        from sage.interfaces.singular import SingularError
+        self.singular.option("set",self.o)
+        try:
+            self.singular.eval('degBound=%d'%self.bck_degBound)
+        except SingularError:
+            pass
+        try:
+            self.singular.eval('multBound=%d'%self.bck_multBound)
+        except SingularError:
+            pass
+
+def singular_gb_standard_options(func):
+    r"""
+    Decorator to force a reduced Singular groebner basis.
+
+    TESTS::
+
+        sage: P.<a,b,c,d,e> = PolynomialRing(GF(127))
+        sage: J = sage.rings.ideal.Cyclic(P).homogenize()
+        sage: from sage.misc.sageinspect import sage_getsource
+        sage: "basis" in sage_getsource(J.interreduced_basis) #indirect doctest
+        True
+
+    The following tests against a bug that was fixed in trac ticket #11298::
+
+        sage: from sage.misc.sageinspect import sage_getsourcelines, sage_getargspec
+        sage: P.<x,y> = QQ[]
+        sage: I = P*[x,y]
+        sage: sage_getargspec(I.interreduced_basis)
+        ArgSpec(args=['self'], varargs=None, keywords=None, defaults=None)
+        sage: sage_getsourcelines(I.interreduced_basis)
+        (['    @singular_gb_standard_options\n',
+          '    @libsingular_gb_standard_options\n',
+          '    def interreduced_basis(self):\n', '
+          ...
+          '        return self.basis.reduced()\n'], ...)
+
+    .. note::
+
+       This decorator is used automatically internally so the user
+       does not need to use it manually.
+    """
+    from sage.misc.decorators import sage_wraps
+    @sage_wraps(func)
+    def wrapper(*args, **kwds):
+        with SingularGBDefaultContext():
+            return func(*args, **kwds)
+    return wrapper

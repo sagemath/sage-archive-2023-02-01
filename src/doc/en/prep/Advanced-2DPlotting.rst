@@ -205,69 +205,69 @@ to put together.
     sage: # http://www.sagemath.org/doc/reference/sage/plot/plot.html
     sage: radius = 100 # scale for radius of "unit" circle
     sage: graph_params = dict(xmin = -2*radius,    xmax = 360,
-    ...                      ymin = -(radius+30), ymax = radius+30,
-    ...                      aspect_ratio=1,
-    ...                      axes = False
-    ...                      )
+    ....:                    ymin = -(radius+30), ymax = radius+30,
+    ....:                    aspect_ratio=1,
+    ....:                    axes = False
+    ....:                    )
     sage: def sine_and_unit_circle( angle=30, instant_show = True, show_pi=True ):
-    ...      ccenter_x, ccenter_y = -radius, 0  # center of cirlce on real coords
-    ...      sine_x = angle # the big magic to sync both graphs :)
-    ...      current_y = circle_y = sine_y = radius * sin(angle*pi/180)
-    ...      circle_x = ccenter_x + radius * cos(angle*pi/180)
-    ...      graph = Graphics()
-    ...      # we'll put unit circle and sine function on the same graph
-    ...      # so there will be some coordinate mangling ;)
-    ...      # CIRCLE
-    ...      unit_circle = circle((ccenter_x, ccenter_y), radius, color="#ccc")
-    ...      # SINE
-    ...      x = var('x')
-    ...      sine = plot( radius * sin(x*pi/180) , (x, 0, 360), color="#ccc" )
-    ...      graph += unit_circle + sine
-    ...      # CIRCLE axis
-    ...      # x axis
-    ...      graph +=  arrow( [-2*radius, 0], [0, 0], color = "#666" )
-    ...      graph += text("$(1, 0)$",  [-16, 16],  color = "#666")
-    ...      # circle y axis
-    ...      graph +=  arrow( [ccenter_x,-radius], [ccenter_x, radius], color = "#666" )
-    ...      graph += text("$(0, 1)$",  [ccenter_x, radius+15],  color = "#666")
-    ...      # circle center
-    ...      graph += text("$(0, 0)$",  [ccenter_x, 0],  color = "#666")
-    ...      # SINE x axis
-    ...      graph +=  arrow( [0,0], [360, 0], color = "#000" )
-    ...      # let's set tics
-    ...      # or http://aghitza.org/posts/tweak_labels_and_ticks_in_2d_plots_using_matplotlib/
-    ...      # or wayt for http://trac.sagemath.org/sage_trac/ticket/1431
-    ...      # ['$-\pi/3$', '$2\pi/3$', '$5\pi/3$']
-    ...      for x in range(0, 361, 30):
-    ...          graph += point( [x, 0] )
-    ...          angle_label = ".  $%3d^{\circ}$ " % x
-    ...          if show_pi: angle_label += " $(%s\pi) $"% x/180
-    ...          graph += text(angle_label,  [x, 0], rotation=-90,
-    ...          vertical_alignment='top', fontsize=8, color="#000" )
-    ...      # CURRENT VALUES
-    ...      # SINE -- y
-    ...      graph +=  arrow( [sine_x,0], [sine_x, sine_y], width=1, arrowsize=3)
-    ...      graph +=  arrow( [circle_x,0], [circle_x, circle_y], width=1, arrowsize=3)
-    ...      graph +=  line(([circle_x, current_y], [sine_x, current_y]), rgbcolor="#0F0", linestyle = "--", alpha=0.5)
-    ...      # LABEL on sine
-    ...      graph += text("$(%d^{\circ}, %3.2f)$"%(sine_x, float(current_y)/radius),  [sine_x+30, current_y],  color = "#0A0")
-    ...      # ANGLE -- x
-    ...      # on sine
-    ...      graph += arrow( [0,0], [sine_x, 0], width=1, arrowsize=1, color='red')
-    ...      # on circle
-    ...      graph += disk( (ccenter_x, ccenter_y), float(radius)/4, (0, angle*pi/180), color='red', fill=False, thickness=1)
-    ...      graph +=  arrow( [ccenter_x, ccenter_y], [circle_x, circle_y],
-    ...                    rgbcolor="#cccccc", width=1, arrowsize=1)
-    ...      if instant_show:
-    ...          show (graph,  **graph_params)
-    ...      return graph
+    ....:     ccenter_x, ccenter_y = -radius, 0  # center of cirlce on real coords
+    ....:     sine_x = angle # the big magic to sync both graphs :)
+    ....:     current_y = circle_y = sine_y = radius * sin(angle*pi/180)
+    ....:     circle_x = ccenter_x + radius * cos(angle*pi/180)
+    ....:     graph = Graphics()
+    ....:     # we'll put unit circle and sine function on the same graph
+    ....:     # so there will be some coordinate mangling ;)
+    ....:     # CIRCLE
+    ....:     unit_circle = circle((ccenter_x, ccenter_y), radius, color="#ccc")
+    ....:     # SINE
+    ....:     x = var('x')
+    ....:     sine = plot( radius * sin(x*pi/180) , (x, 0, 360), color="#ccc" )
+    ....:     graph += unit_circle + sine
+    ....:     # CIRCLE axis
+    ....:     # x axis
+    ....:     graph +=  arrow( [-2*radius, 0], [0, 0], color = "#666" )
+    ....:     graph += text("$(1, 0)$",  [-16, 16],  color = "#666")
+    ....:     # circle y axis
+    ....:     graph +=  arrow( [ccenter_x,-radius], [ccenter_x, radius], color = "#666" )
+    ....:     graph += text("$(0, 1)$",  [ccenter_x, radius+15],  color = "#666")
+    ....:     # circle center
+    ....:     graph += text("$(0, 0)$",  [ccenter_x, 0],  color = "#666")
+    ....:     # SINE x axis
+    ....:     graph +=  arrow( [0,0], [360, 0], color = "#000" )
+    ....:     # let's set tics
+    ....:     # or http://aghitza.org/posts/tweak_labels_and_ticks_in_2d_plots_using_matplotlib/
+    ....:     # or wayt for http://trac.sagemath.org/sage_trac/ticket/1431
+    ....:     # ['$-\pi/3$', '$2\pi/3$', '$5\pi/3$']
+    ....:     for x in range(0, 361, 30):
+    ....:         graph += point( [x, 0] )
+    ....:         angle_label = ".  $%3d^{\circ}$ " % x
+    ....:         if show_pi: angle_label += " $(%s\pi) $"% x/180
+    ....:         graph += text(angle_label,  [x, 0], rotation=-90,
+    ....:         vertical_alignment='top', fontsize=8, color="#000" )
+    ....:     # CURRENT VALUES
+    ....:     # SINE -- y
+    ....:     graph +=  arrow( [sine_x,0], [sine_x, sine_y], width=1, arrowsize=3)
+    ....:     graph +=  arrow( [circle_x,0], [circle_x, circle_y], width=1, arrowsize=3)
+    ....:     graph +=  line(([circle_x, current_y], [sine_x, current_y]), rgbcolor="#0F0", linestyle = "--", alpha=0.5)
+    ....:     # LABEL on sine
+    ....:     graph += text("$(%d^{\circ}, %3.2f)$"%(sine_x, float(current_y)/radius),  [sine_x+30, current_y],  color = "#0A0")
+    ....:     # ANGLE -- x
+    ....:     # on sine
+    ....:     graph += arrow( [0,0], [sine_x, 0], width=1, arrowsize=1, color='red')
+    ....:     # on circle
+    ....:     graph += disk( (ccenter_x, ccenter_y), float(radius)/4, (0, angle*pi/180), color='red', fill=False, thickness=1)
+    ....:     graph +=  arrow( [ccenter_x, ccenter_y], [circle_x, circle_y],
+    ....:                  rgbcolor="#cccccc", width=1, arrowsize=1)
+    ....:     if instant_show:
+    ....:         show (graph,  **graph_params)
+    ....:     return graph
     sage: #####################
     sage: # make Interaction
     sage: ######################
     sage: @interact
     sage: def _( angle = slider([0..360], default=30, step_size=5,
-    ...            label="Pasirinkite kampą:    ", display_value=True) ):
-    ...       sine_and_unit_circle(angle, show_pi = False)
+    ....:          label="Pasirinkite kampą:    ", display_value=True) ):
+    ....:     sine_and_unit_circle(angle, show_pi = False)
 
 Plotting Data
 -------------

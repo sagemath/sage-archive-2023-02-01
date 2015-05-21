@@ -31,7 +31,7 @@ http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse9.html.
 from stream import Stream, Stream_class
 from series_order import  bounded_decrement, increment, inf, unk
 from sage.rings.all import Integer
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from functools import partial
 from sage.misc.misc import repr_lincomb, is_iterator
 
@@ -308,7 +308,7 @@ class LazyPowerSeriesRing(Algebra):
             sage: L = LazyPowerSeriesRing(QQ)
             sage: series_list = [ L([1]), L([0,1]), L([0,0,1]) ]
             sage: g = L._sum_gen(series_list)
-            sage: [g.next() for i in range(5)]
+            sage: [next(g) for i in range(5)]
             [1, 2, 3, 3, 3]
         """
         last_index = len(series_list) - 1
@@ -341,7 +341,7 @@ class LazyPowerSeriesRing(Algebra):
             ...       while True:
             ...           yield s
             sage: g = L._sum_generator_gen(f())
-            sage: [g.next() for i in range(10)]
+            sage: [next(g) for i in range(10)]
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         """
         s = Stream(g)
@@ -385,10 +385,10 @@ class LazyPowerSeriesRing(Algebra):
             sage: L = LazyPowerSeriesRing(QQ)
             sage: g = imap(lambda i: L([1]+[0]*i+[1]), _integers_from(0))
             sage: g2 = L._product_generator_gen(g)
-            sage: [g2.next() for i in range(10)]
+            sage: [next(g2) for i in range(10)]
             [1, 1, 2, 4, 7, 12, 20, 33, 53, 84]
         """
-        z = g.next()
+        z = next(g)
         yield z.coefficient(0)
         yield z.coefficient(1)
 
@@ -1040,13 +1040,13 @@ class LazyPowerSeries(AlgebraElement):
             sage: L = LazyPowerSeriesRing(QQ)
             sage: gs1 = L([1])
             sage: g = gs1._plus_gen(gs1, 0)
-            sage: [g.next() for i in range(5)]
+            sage: [next(g) for i in range(5)]
             [2, 2, 2, 2, 2]
 
         ::
 
             sage: g = gs1._plus_gen(gs1, 2)
-            sage: [g.next() for i in range(5)]
+            sage: [next(g) for i in range(5)]
             [0, 0, 2, 2, 2]
         """
         base_ring = self.parent().base_ring()
@@ -1115,7 +1115,7 @@ class LazyPowerSeries(AlgebraElement):
             sage: L = LazyPowerSeriesRing(QQ)
             sage: f = L([1,1,0])
             sage: g = f._times_gen(f,0)
-            sage: [g.next() for i in range(5)]
+            sage: [next(g) for i in range(5)]
             [1, 2, 1, 0, 0]
         """
         base_ring = self.parent().base_ring()
@@ -1220,7 +1220,7 @@ class LazyPowerSeries(AlgebraElement):
             sage: s = L([1])
             sage: t = L([0,1])
             sage: g = s._compose_gen(t, 0)
-            sage: [g.next() for i in range(10)]
+            sage: [next(g) for i in range(10)]
             [1, 1, 2, 4, 8, 16, 32, 64, 128, 256]
         """
         assert y.coefficient(0) == 0
@@ -1260,10 +1260,10 @@ class LazyPowerSeries(AlgebraElement):
             sage: L = LazyPowerSeriesRing(QQ)
             sage: f = L(range(10))
             sage: g = f.iterator(2)
-            sage: [g.next() for i in range(5)]
+            sage: [next(g) for i in range(5)]
             [2, 3, 4, 5, 6]
             sage: g = f.iterator(2, initial=[0,0])
-            sage: [g.next() for i in range(5)]
+            sage: [next(g) for i in range(5)]
             [0, 0, 2, 3, 4]
         """
         if initial is not None:
@@ -1284,11 +1284,11 @@ class LazyPowerSeries(AlgebraElement):
             sage: L = LazyPowerSeriesRing(QQ)
             sage: f = L([1,1,0])
             sage: g = f._power_gen()
-            sage: g.next().coefficients(5)
+            sage: next(g).coefficients(5)
             [1, 1, 0, 0, 0]
-            sage: g.next().coefficients(5)
+            sage: next(g).coefficients(5)
             [1, 2, 1, 0, 0]
-            sage: g.next().coefficients(5)
+            sage: next(g).coefficients(5)
             [1, 3, 3, 1, 0]
         """
         z = self
@@ -1365,7 +1365,7 @@ class LazyPowerSeries(AlgebraElement):
             sage: L = LazyPowerSeriesRing(QQ)
             sage: f = L([1])
             sage: g = f._diff_gen(0)
-            sage: [g.next() for i in range(10)]
+            sage: [next(g) for i in range(10)]
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         """
         n = 1
@@ -1456,7 +1456,7 @@ class LazyPowerSeries(AlgebraElement):
             sage: L = LazyPowerSeriesRing(QQ)
             sage: s = L.gen()
             sage: g = s._integral_zero_gen(1)
-            sage: [g.next() for i in range(5)]
+            sage: [next(g) for i in range(5)]
             [0, 0, 1/2, 0, 0]
         """
         for n in range(ao):
@@ -1480,7 +1480,7 @@ class LazyPowerSeries(AlgebraElement):
             sage: L = LazyPowerSeriesRing(QQ)
             sage: f = L._new_initial(2, Stream([0,0,4,5,6,0])).derivative()
             sage: g = f._integral_nonzero_gen(1)
-            sage: [g.next() for i in range(5)]
+            sage: [next(g) for i in range(5)]
             [1, 0, 4, 5, 6]
         """
         yield integration_constant
@@ -1557,7 +1557,7 @@ class LazyPowerSeries(AlgebraElement):
             sage: u = f.exponential()
             sage: g = inv_factorial()
             sage: z1 = [1,1,2,5,15,52,203,877,4140,21147,115975]
-            sage: l1 = [z*g.next() for z in z1]
+            sage: l1 = [z*next(g) for z in z1]
             sage: l1 = [1] + l1[1:]
             sage: u.coefficients(11)
             [1, 1, 1, 5/6, 5/8, 13/30, 203/720, 877/5040, 23/224, 1007/17280, 4639/145152]
@@ -1621,19 +1621,19 @@ class LazyPowerSeries(AlgebraElement):
             sage: L = LazyPowerSeriesRing(QQ)
             sage: a = L([1])
             sage: g = a._restricted_gen(None, None, 2)
-            sage: [g.next() for i in range(10)]
+            sage: [next(g) for i in range(10)]
             [0, 0, 1, 1, 1, 1, 1, 1, 1, 1]
             sage: g = a._restricted_gen(1, None, 2)
-            sage: [g.next() for i in range(10)]
+            sage: [next(g) for i in range(10)]
             [0, 0, 1, 1, 1, 1, 1, 1, 1, 1]
             sage: g = a._restricted_gen(3, None, 2)
-            sage: [g.next() for i in range(10)]
+            sage: [next(g) for i in range(10)]
             [0, 0, 0, 1, 1, 1, 1, 1, 1, 1]
 
         ::
 
             sage: g = a._restricted_gen(1, 5, 2)
-            sage: [g.next() for i in range(6)]
+            sage: [next(g) for i in range(6)]
             [0, 0, 1, 1, 1, 0]
         """
         BR = self.parent().base_ring()

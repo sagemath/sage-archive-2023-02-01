@@ -554,7 +554,7 @@ class Groups(CategoryWithAxiom):
 
             EXAMPLES::
 
-                sage: GroupAlgebras(QQ[x]).example()
+                sage: GroupAlgebras(QQ['x']).example()
                 Group algebra of Dihedral group of order 8 as a permutation group over Univariate Polynomial Ring in x over Rational Field
 
             An other group can be specified as optional argument::

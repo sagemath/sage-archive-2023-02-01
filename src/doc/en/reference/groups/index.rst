@@ -23,11 +23,14 @@ Groups
    sage/groups/abelian_gps/abelian_group_morphism
    sage/groups/additive_abelian/additive_abelian_group
    sage/groups/additive_abelian/additive_abelian_wrapper
+   sage/groups/perm_gps/permutation_groups_catalog
    sage/groups/perm_gps/permgroup
    sage/groups/perm_gps/permgroup_named
    sage/groups/perm_gps/permgroup_element
    sage/groups/perm_gps/permgroup_morphism
    sage/groups/perm_gps/cubegroup
+   sage/groups/perm_gps/symgp_conjugacy_class
+   sage/groups/matrix_gps/catalog
    sage/groups/matrix_gps/matrix_group
    sage/groups/matrix_gps/group_element
    sage/groups/matrix_gps/finitely_generated

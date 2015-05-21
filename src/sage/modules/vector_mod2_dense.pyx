@@ -229,15 +229,6 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         """
         return free_module_element.FreeModuleElement.__hash__(self)
 
-    def __len__(self):
-        """
-        EXAMPLES::
-
-            sage: len(vector(GF(2),[0,0,1,1,1]))
-            5
-        """
-        return self._degree
-
     def __setitem__(self, i, value):
         """
         EXAMPLES::

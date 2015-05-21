@@ -216,9 +216,6 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
         """
         return free_module_element.FreeModuleElement.__hash__(self)
 
-    def __len__(self):
-        return self._degree
-
     def __setitem__(self, i, value):
         if not self._is_mutable:
             raise ValueError("vector is immutable; please change a copy instead (use copy())")

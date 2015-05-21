@@ -17,7 +17,7 @@ q-Analogues
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_function
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.rings.all import ZZ
 from sage.combinat.dyck_word import DyckWords
 from sage.combinat.partition import Partition

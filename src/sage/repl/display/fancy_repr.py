@@ -16,7 +16,7 @@ Representations of objects.
 import types
 
 from IPython.lib.pretty import (
-    _safe_getattr, _baseclass_reprs, _safe_repr,
+    _safe_getattr, _baseclass_reprs,
     _type_pprinters,
 )
 
@@ -272,7 +272,14 @@ class PlainPythonRepr(ObjectReprABC):
             p.text(klass_repr(obj))
         else:
             # A user-provided repr. Find newlines and replace them with p.break_()
-            output = _safe_repr(obj)
+            try:
+                output = repr(obj)
+            except Exception:
+                import sys, traceback
+                objrepr = object.__repr__(obj).replace("object at", "at")
+                exc = traceback.format_exception_only(sys.exc_info()[0], sys.exc_info()[1])
+                exc = (''.join(exc)).strip()
+                output = "<repr({}) failed: {}>".format(objrepr, exc)
             for idx, output_line in enumerate(output.split('\n')):
                 if idx:
                     p.break_()

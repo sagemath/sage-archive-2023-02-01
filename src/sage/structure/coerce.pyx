@@ -19,7 +19,7 @@ there. For example::
 
     sage: a = 1/2; a.parent()
     Rational Field
-    sage: b = ZZ[x].gen(); b.parent()
+    sage: b = ZZ['x'].gen(); b.parent()
     Univariate Polynomial Ring in x over Integer Ring
     sage: a+b
     x + 1/2
@@ -73,12 +73,13 @@ see the documentation for Parent.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 include "sage/ext/stdsage.pxi"
 from cpython.object cimport *
-include "coerce.pxi"
 
+cdef add, sub, mul, div, iadd, isub, imul, idiv
 import operator
+operator_dict = operator.__dict__
+from operator import add, sub, mul, div, iadd, isub, imul, idiv
 
 from sage_object cimport SageObject
 from sage.categories.map cimport Map
@@ -87,10 +88,14 @@ from sage.categories.morphism import IdentityMorphism
 from sage.categories.action import InverseAction, PrecomposedAction
 from parent cimport Set_PythonType
 from coerce_exceptions import CoercionException
+from element cimport arith_error_message, parent_c
 
 import sys, traceback
 
 from coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
+
+from sage.misc.lazy_import import LazyImport
+parent = LazyImport('sage.structure.all', 'parent', deprecation=17533)
 
 cpdef py_scalar_parent(py_type):
     """
@@ -385,7 +390,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         return self._exception_stack
 
 
-    def explain(self, xp, yp, op=operator.mul, int verbosity=2):
+    def explain(self, xp, yp, op=mul, int verbosity=2):
         """
         This function can be used to understand what coercions will happen
         for an arithmetic operation between xp and yp (which may be either
@@ -1416,7 +1421,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         if op.__name__[0] == 'i':
             try:
-                a = self.discover_action(R, S, no_inplace_op(op), r, s)
+                no_inplace_op = operator_dict[op.__name__[1:]]
+                a = self.discover_action(R, S, no_inplace_op, r, s)
                 if a is not None:
                     is_inverse = isinstance(a, InverseAction)
                     if is_inverse: a = ~a

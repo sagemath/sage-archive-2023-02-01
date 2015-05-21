@@ -12,7 +12,7 @@ Free modules
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
 from sage.structure.parent import Parent
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 from sage.structure.indexed_generators import IndexedGenerators
 from sage.modules.free_module_element import vector
 from sage.misc.misc import repr_lincomb
@@ -1354,7 +1354,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         try:
             g = iter(self.basis().keys())
             for c in range(1,4):
-                x = x + self.term(g.next(), R(c))
+                x = x + self.term(next(g), R(c))
         except Exception:
             pass
         return x
@@ -2192,7 +2192,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             else:
                 symb = tensor.symbol
             it = iter(zip(self._sets, term))
-            module, t = it.next()
+            module, t = next(it)
             rpr = module._ascii_art_term(t)
             for (module,t) in it:
                 rpr += AsciiArt([symb], [len(symb)])

@@ -393,6 +393,60 @@ def test_relation_maxima(relation):
         sage: test_relation_maxima(x!=1)
         False
         sage: forget()
+
+    TESTS:
+
+    Ensure that ``canonicalize_radical()`` and ``simplify_log`` are not
+    used inappropriately, :trac:`17389`. Either one would simplify ``f``
+    to zero below::
+
+        sage: x,y = SR.var('x,y')
+        sage: assume(y, 'complex')
+        sage: f = log(x*y) - (log(x) + log(y))
+        sage: f(x=-1, y=i)
+        -2*I*pi
+        sage: test_relation_maxima(f == 0)
+        False
+        sage: forget()
+
+    Ensure that the ``sqrt(x^2)`` -> ``abs(x)`` simplification is not
+    performed when testing equality::
+
+        sage: assume(x, 'complex')
+        sage: f = sqrt(x^2) - abs(x)
+        sage: test_relation_maxima(f == 0)
+        False
+        sage: forget()
+
+    If assumptions are made, ``simplify_rectform()`` is used::
+
+        sage: assume(x, 'real')
+        sage: f1 = ( e^(I*x) - e^(-I*x) ) / ( I*e^(I*x) + I*e^(-I*x) )
+        sage: f2 = sin(x)/cos(x)
+        sage: test_relation_maxima(f1 - f2 == 0)
+        True
+        sage: forget()
+
+    But not if ``x`` itself is complex::
+
+        sage: assume(x, 'complex')
+        sage: f1 = ( e^(I*x) - e^(-I*x) ) / ( I*e^(I*x) + I*e^(-I*x) )
+        sage: f2 = sin(x)/cos(x)
+        sage: test_relation_maxima(f1 - f2 == 0)
+        False
+        sage: forget()
+
+    If assumptions are made, then ``simplify_factorial()`` is used::
+
+        sage: n,k = SR.var('n,k')
+        sage: assume(n, 'integer')
+        sage: assume(k, 'integer')
+        sage: f1 = factorial(n+1)/factorial(n)
+        sage: f2 = n + 1
+        sage: test_relation_maxima(f1 - f2 == 0)
+        True
+        sage: forget()
+
     """
     m = relation._maxima_()
 
@@ -432,8 +486,18 @@ def test_relation_maxima(relation):
     if repr(difference) == '0':
         return True
 
-    #Try to apply some simplifications to see if left - right == 0
-    simp_list = [difference.simplify_log, difference.simplify_rational, difference.simplify_exp,difference.simplify_radical,difference.simplify_trig]
+    # Try to apply some simplifications to see if left - right == 0.
+    #
+    # TODO: If simplify_log() is ever removed from simplify_full(), we
+    # can replace all of these individual simplifications with a
+    # single call to simplify_full(). That would work in cases where
+    # two simplifications are needed consecutively; the current
+    # approach does not.
+    #
+    simp_list = [difference.simplify_factorial(),
+                 difference.simplify_rational(),
+                 difference.simplify_rectform(),
+                 difference.simplify_trig()]
     for f in simp_list:
         try:
             if repr( f() ).strip() == "0":

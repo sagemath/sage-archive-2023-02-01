@@ -74,6 +74,8 @@ from sage.structure.parent cimport Parent
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
 
+from sage.misc.superseded import deprecated_function_alias
+
 cdef object is_IntegerMod
 cdef object Integer
 cdef object Rational
@@ -1439,12 +1441,14 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
     def integer_representation(FiniteField_givaroElement self):
         """
         Return the integer representation of ``self``.  When ``self`` is in the
-        prime subfield, the integer returned is equal to ``self`` and not
-        to ``log_repr``.
+        prime subfield, the integer returned is equal to ``self``.
 
-        Elements of this field are represented as ints in as follows:
-        for `e \in \GF{p}[x]` with `e = a_0 + a_1x + a_2x^2 + \cdots`, `e` is
-        represented as: `n= a_0 + a_1  p + a_2  p^2 + \cdots`.
+        Elements of this field are represented as integers as follows:
+        given the element `e \in \GF{p}[x]` with
+        `e = a_0 + a_1 x + a_2 x^2 + \cdots`, the integer representation
+        is `a_0 + a_1 p + a_2 p^2 + \cdots`.
+
+        OUTPUT: A Python ``int``.
 
         EXAMPLES::
 
@@ -1479,27 +1483,29 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             return Integer(a)
         raise TypeError, "not in prime subfield"
 
-    def log_to_int(FiniteField_givaroElement self):
+    def _log_to_int(FiniteField_givaroElement self):
         r"""
-        Returns the int representation of ``self``, as a Sage integer.   Use
-        ``int(self)`` to directly get a Python int.
+        Return the int representation of ``self``, as a Sage integer.
 
-        Elements of this field are represented as ints in as follows:
-        for `e \in \GF{p}[x]` with `e = a_0 + a_1x + a_2x^2 + \cdots`, `e` is
-        represented as: `n = a_0 + a_1  p + a_2  p^2 + \cdots`.
+        Elements of this field are represented as ints as follows:
+        given the element `e \in \GF{p}[x]` with
+        `e = a_0 + a_1x + a_2x^2 + \cdots`, the int representation is
+        `a_0 + a_1 p + a_2 p^2 + \cdots`.
 
         EXAMPLES::
 
             sage: k.<b> = GF(5^2); k
             Finite Field in b of size 5^2
-            sage: k(4).log_to_int()
+            sage: k(4)._log_to_int()
             4
-            sage: b.log_to_int()
+            sage: b._log_to_int()
             5
-            sage: type(b.log_to_int())
+            sage: type(b._log_to_int())
             <type 'sage.rings.integer.Integer'>
         """
         return Integer(self._cache.log_to_int(self.element))
+
+    log_to_int = deprecated_function_alias(11295, _log_to_int)
 
     def log(FiniteField_givaroElement self, base):
         """
@@ -1523,7 +1529,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         b = self.parent()(base)
         return sage.groups.generic.discrete_log(self, b)
 
-    def int_repr(FiniteField_givaroElement self):
+    def _int_repr(FiniteField_givaroElement self):
         r"""
         Return the string representation of ``self`` as an int (as returned
         by :meth:`log_to_int`).
@@ -1532,12 +1538,14 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
             sage: k.<b> = GF(5^2); k
             Finite Field in b of size 5^2
-            sage: (b+1).int_repr()
+            sage: (b+1)._int_repr()
             '6'
         """
         return self._cache._element_int_repr(self)
 
-    def log_repr(FiniteField_givaroElement self):
+    int_repr = deprecated_function_alias(11295, _int_repr)
+
+    def _log_repr(FiniteField_givaroElement self):
         r"""
         Return the log representation of ``self`` as a string.  See the
         documentation of the ``_element_log_repr`` function of the
@@ -1547,12 +1555,14 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
             sage: k.<b> = GF(5^2); k
             Finite Field in b of size 5^2
-            sage: (b+2).log_repr()
+            sage: (b+2)._log_repr()
             '15'
         """
         return self._cache._element_log_repr(self)
 
-    def poly_repr(FiniteField_givaroElement self):
+    log_repr = deprecated_function_alias(11295, _log_repr)
+
+    def _poly_repr(FiniteField_givaroElement self):
         r"""
         Return representation of this finite field element as a polynomial
         in the generator.
@@ -1561,10 +1571,12 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
             sage: k.<b> = GF(5^2); k
             Finite Field in b of size 5^2
-            sage: (b+2).poly_repr()
+            sage: (b+2)._poly_repr()
             'b + 2'
         """
         return self._cache._element_poly_repr(self)
+
+    poly_repr = deprecated_function_alias(11295, _poly_repr)
 
     def polynomial(FiniteField_givaroElement self, name=None):
         """
@@ -1743,7 +1755,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             sage: hash(a)
             5
         """
-        return hash(self.log_to_int())
+        return hash(self.integer_representation())
 
     def _vector_(FiniteField_givaroElement self, reverse=False):
         """

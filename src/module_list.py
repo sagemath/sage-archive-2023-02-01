@@ -262,7 +262,8 @@ ext_modules = [
               sources=['sage/combinat/crystals/letters.pyx']),
 
     Extension('sage.combinat.designs.designs_pyx',
-              sources=['sage/combinat/designs/designs_pyx.pyx']),
+              sources=['sage/combinat/designs/designs_pyx.pyx'],
+              libraries=['gmp']),
 
     Extension('sage.combinat.designs.orthogonal_arrays_find_recursive',
               sources=['sage/combinat/designs/orthogonal_arrays_find_recursive.pyx']),
@@ -274,13 +275,19 @@ ext_modules = [
     ################################
 
     Extension('sage.crypto.boolean_function',
-              sources = ['sage/crypto/boolean_function.pyx']),
+              sources = ['sage/crypto/boolean_function.pyx'],
+              libraries=['gmp']),
+
 
     ################################
     ##
     ## sage.data_structures
     ##
     ################################
+
+    Extension('sage.data_structures.bounded_integer_sequences',
+              sources = ['sage/data_structures/bounded_integer_sequences.pyx'],
+              libraries = ['gmp']),
 
     Extension('sage.data_structures.bitset',
               sources = ['sage/data_structures/bitset.pyx'],
@@ -395,7 +402,8 @@ ext_modules = [
               libraries = ['cliquer']),
 
     Extension('sage.graphs.independent_sets',
-              sources = ['sage/graphs/independent_sets.pyx']),
+              sources = ['sage/graphs/independent_sets.pyx'],
+              libraries=['gmp']),
 
     Extension('sage.graphs.graph_decompositions.vertex_separation',
               sources = ['sage/graphs/graph_decompositions/vertex_separation.pyx']),
@@ -418,7 +426,8 @@ ext_modules = [
               sources = ['sage/graphs/graph_generators_pyx.pyx']),
 
     Extension('sage.graphs.distances_all_pairs',
-              sources = ['sage/graphs/distances_all_pairs.pyx']),
+              sources = ['sage/graphs/distances_all_pairs.pyx'],
+              libraries = ['gmp']),
 
     Extension('sage.graphs.base.static_dense_graph',
               sources = ['sage/graphs/base/static_dense_graph.pyx']),
@@ -497,6 +506,9 @@ ext_modules = [
               sources = ['sage/graphs/graph_decompositions/rankwidth.pyx',
                          'sage/graphs/graph_decompositions/rankwidth_c/rw.c']),
 
+    Extension('sage.graphs.graph_decompositions.bandwidth',
+              sources = ['sage/graphs/graph_decompositions/bandwidth.pyx']),
+
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
 
@@ -507,7 +519,8 @@ ext_modules = [
               sources = ['sage/graphs/genus.pyx']),
 
     Extension('sage.graphs.hyperbolicity',
-              sources = ['sage/graphs/hyperbolicity.pyx']),
+              sources = ['sage/graphs/hyperbolicity.pyx'],
+              libraries = ['gmp']),
 
         ################################
         ##
@@ -516,13 +529,16 @@ ext_modules = [
         ################################
 
     Extension('sage.graphs.base.c_graph',
-              sources = ['sage/graphs/base/c_graph.pyx']),
+              sources = ['sage/graphs/base/c_graph.pyx'],
+              libraries=['gmp']),
 
     Extension('sage.graphs.base.sparse_graph',
-              sources = ['sage/graphs/base/sparse_graph.pyx']),
+              sources = ['sage/graphs/base/sparse_graph.pyx'],
+              libraries=['gmp']),
 
     Extension('sage.graphs.base.dense_graph',
-              sources = ['sage/graphs/base/dense_graph.pyx']),
+              sources = ['sage/graphs/base/dense_graph.pyx'],
+              libraries=['gmp']),
 
     ################################
     ##
@@ -1169,7 +1185,8 @@ ext_modules = [
             ['sage/matroids/matroid.pyx']),
 
     Extension('sage.matroids.extension',
-            ['sage/matroids/extension.pyx']),
+            ['sage/matroids/extension.pyx'],
+              libraries = ['gmp']),
 
     Extension('sage.matroids.set_system',
             ['sage/matroids/set_system.pyx'],
@@ -1188,13 +1205,15 @@ ext_modules = [
               libraries = ['gmp']),
 
     Extension('sage.matroids.linear_matroid',
-            ['sage/matroids/linear_matroid.pyx']),
+            ['sage/matroids/linear_matroid.pyx'],
+              libraries = ['gmp']),
 
     Extension('sage.matroids.circuit_closures_matroid',
             ['sage/matroids/circuit_closures_matroid.pyx']),
 
     Extension('sage.matroids.unpickling',
-            ['sage/matroids/unpickling.pyx']),
+            ['sage/matroids/unpickling.pyx'],
+              libraries = ['gmp']),
 
     ################################
     ##
@@ -1651,13 +1670,13 @@ ext_modules = [
     Extension('sage.rings.finite_rings.element_givaro',
               sources = ["sage/rings/finite_rings/element_givaro.pyx"],
               # this order is needed to compile under windows.
-              libraries = ['givaro', 'ntl', 'gmpxx', 'gmp', 'm'],
+              libraries = ['givaro', 'ntl', 'pari', 'gmpxx', 'gmp', 'm'],
               language='c++',
               extra_compile_args = givaro_extra_compile_args),
 
     Extension('sage.rings.finite_rings.element_ntl_gf2e',
               sources = ['sage/rings/finite_rings/element_ntl_gf2e.pyx'],
-              libraries = ['ntl', 'gmp'],
+              libraries = ['ntl', 'pari', 'gmp'],
               language = 'c++'),
 
     Extension('sage.rings.finite_rings.element_pari_ffelt',
@@ -1892,7 +1911,7 @@ ext_modules = [
     Extension('sage.rings.polynomial.pbori',
               sources = ['sage/rings/polynomial/pbori.pyx'],
               libraries=['polybori-' + polybori_major_version,
-                         'polybori_groebner-' + polybori_major_version, 'm4ri', 'png12'],
+                         'polybori_groebner-' + polybori_major_version, 'm4ri', 'gd', 'png12'],
               include_dirs = [SAGE_INC, "sage/libs/polybori"],
               depends = [SAGE_INC + "/polybori/" + hd + ".h" for hd in ["polybori", "config"] ] + \
                         [SAGE_INC + '/m4ri/m4ri.h'],

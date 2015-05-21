@@ -150,7 +150,7 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
             sage: x = var('x')
             sage: N = NumberField(x-3, 'a')
             sage: a = N.gen()
-            sage: R = N[x]
+            sage: R = N['x']
             sage: f = R.random_element()
             sage: g1 = R.random_element()
             sage: g2 = g1*R.random_element() + 1
@@ -234,7 +234,7 @@ class Polynomial_relative_number_field_dense(Polynomial_generic_dense_field):
 
         EXAMPLES::
 
-            sage: f = NumberField([x^2-2, x^2-3], 'a')[x].random_element()
+            sage: f = NumberField([x^2-2, x^2-3], 'a')['x'].random_element()
             sage: type(f)
             <class 'sage.rings.polynomial.polynomial_number_field.Polynomial_relative_number_field_dense'>
         """
@@ -275,7 +275,7 @@ class Polynomial_relative_number_field_dense(Polynomial_generic_dense_field):
         TESTS::
 
             sage: x = var('x')
-            sage: R = NumberField([x^2-2, x^2-3], 'a')[x]
+            sage: R = NumberField([x^2-2, x^2-3], 'a')['x']
             sage: f = R.random_element()
             sage: g1 = R.random_element()
             sage: g2 = R.random_element()*g1+1
@@ -286,7 +286,7 @@ class Polynomial_relative_number_field_dense(Polynomial_generic_dense_field):
 
         Test for degree one extensions::
 
-            sage: R = NumberField([x-2,x+1,x-3],'a')[x]
+            sage: R = NumberField([x-2,x+1,x-3],'a')['x']
             sage: f = R.random_element(2)
             sage: g1 = R.random_element(2)
             sage: g2 = R.random_element(2)*g1+1

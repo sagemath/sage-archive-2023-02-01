@@ -230,7 +230,7 @@ small height in the root poset::
     sage: succ = attrcall("pred")
     sage: positive_roots = RecursivelyEnumeratedSet(seed, succ, structure='graded')
     sage: it = iter(positive_roots)
-    sage: first_positive_roots = [it.next() for i in range(10)]
+    sage: first_positive_roots = [next(it) for i in range(10)]
     sage: L.plot(roots=first_positive_roots, affine=False, alcoves=False)
     Graphics object consisting of 24 graphics primitives
 
@@ -257,7 +257,7 @@ Here is a polished solution for the first exercise::
     sage: succ = attrcall("pred")
     sage: positive_coroots = RecursivelyEnumeratedSet(seed, succ, structure='graded')
     sage: it = iter(positive_coroots)
-    sage: first_positive_coroots = [it.next() for i in range(20)]
+    sage: first_positive_coroots = [next(it) for i in range(20)]
     sage: p = L.plot(fundamental_chamber=True, reflection_hyperplanes=first_positive_coroots,
     ...              affine=False, alcove_labels=1,
     ...              bounding_box=[[-9,9],[-1,2]],

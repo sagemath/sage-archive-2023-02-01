@@ -118,7 +118,7 @@ class GenericBacktracker(object):
         while not done:
             #Try to get the next object in this level
             try:
-                obj, state, yld = stack[-1].next()
+                obj, state, yld = next(stack[-1])
             except StopIteration:
                 #If there are no more, go back up the tree
                 #We also need to check if we've exhausted all
@@ -174,7 +174,7 @@ def search_forest_iterator(roots, children, algorithm='depth'):
     This allows for iterating trough trees of infinite depth::
 
         sage: it = search_forest_iterator([[]], lambda l: [l+[0], l+[1]], algorithm='breadth')
-        sage: [ it.next() for i in range(16) ]
+        sage: [ next(it) for i in range(16) ]
         [[],
          [0], [1], [0, 0], [0, 1], [1, 0], [1, 1],
          [0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1],
@@ -211,7 +211,7 @@ def search_forest_iterator(roots, children, algorithm='depth'):
     stack = [iter(roots)]
     while len(stack) > 0:
         try:
-            node = stack[position].next()
+            node = next(stack[position])
         except StopIteration:
             # If there are no more, go back up the tree
             # We also need to check if we've exhausted all
@@ -305,14 +305,14 @@ class SearchForest(Parent):
     are generated::
 
         sage: depth_search = I.depth_first_search_iterator()
-        sage: [depth_search.next() for i in range(7)]
+        sage: [next(depth_search) for i in range(7)]
         [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0)]
 
     Using instead breadth first search gives the usual anti-diagonal
     iterator::
 
         sage: breadth_search = I.breadth_first_search_iterator()
-        sage: [breadth_search.next() for i in range(15)]
+        sage: [next(breadth_search) for i in range(15)]
         [(0, 0),
          (1, 0), (0, 1),
          (2, 0), (1, 1), (0, 2),
@@ -350,7 +350,7 @@ class SearchForest(Parent):
         sage: MyForest.category()
         Category of infinite enumerated sets
         sage: p = iter(MyForest)
-        sage: [p.next() for i in range(30)]
+        sage: [next(p) for i in range(30)]
         [1, 2, 3, 4, 6, 5, 7, 8, 12, 10, 14, 9, 13, 11, 16, 24, 20, 28, 18, 26, 22, 17, 25, 21, 19, 32, 48, 40, 56, 36]
 
     An alternative approach is to implement ``roots`` and ``children``
@@ -386,7 +386,7 @@ class SearchForest(Parent):
         sage: MyForest.category()
         Category of infinite enumerated sets
         sage: p = iter(MyForest)
-        sage: [p.next() for i in range(30)]
+        sage: [next(p) for i in range(30)]
         [1, 2, 3, 4, 6, 5, 7, 8, 12, 10, 14, 9, 13, 11, 16, 24, 20, 28, 18, 26, 22, 17, 25, 21, 19, 32, 48, 40, 56, 36]
 
     .. warning::
@@ -502,11 +502,11 @@ class SearchForest(Parent):
             available in that way anymore. Use RecursivelyEnumeratedSet
             instead.  See http://trac.sagemath.org/6637 for details.
             sage: f = C.__iter__()
-            sage: f.next()
+            sage: next(f)
             []
-            sage: f.next()
+            sage: next(f)
             [0]
-            sage: f.next()
+            sage: next(f)
             [0, 0]
         """
         iter = search_forest_iterator(self.roots(),
@@ -552,7 +552,7 @@ class SearchForest(Parent):
             available in that way anymore. Use RecursivelyEnumeratedSet
             instead.  See http://trac.sagemath.org/6637 for details.
             sage: p = S.breadth_first_search_iterator()
-            sage: [p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next()]
+            sage: [next(p), next(p), next(p), next(p), next(p), next(p), next(p)]
             [(5, 3), (7, 5), (13, 11), (19, 17), (31, 29), (43, 41), (61, 59)]
         """
         iter = search_forest_iterator(self.roots(), self.children, algorithm='breadth')
@@ -611,7 +611,7 @@ class SearchForest(Parent):
             available in that way anymore. Use RecursivelyEnumeratedSet
             instead.  See http://trac.sagemath.org/6637 for details.
             sage: p = S.elements_of_depth_iterator(8)
-            sage: p.next()
+            sage: next(p)
             (5, 3)
             sage: S = SearchForest(NN, lambda x : [],
             ....:                      lambda x: x^2 if x.is_prime() else None)
@@ -619,7 +619,7 @@ class SearchForest(Parent):
             available in that way anymore. Use RecursivelyEnumeratedSet
             instead.  See http://trac.sagemath.org/6637 for details.
             sage: p = S.elements_of_depth_iterator(0)
-            sage: [p.next(), p.next(), p.next(), p.next(), p.next()]
+            sage: [next(p), next(p), next(p), next(p), next(p)]
             [4, 9, 25, 49, 121]
         """
         iter = self._elements_of_depth_iterator_rec(depth)
@@ -672,10 +672,10 @@ class SearchForest(Parent):
             available in that way anymore. Use RecursivelyEnumeratedSet
             instead.  See http://trac.sagemath.org/6637 for details.
             sage: p = S.depth_first_search_iterator()
-            sage: [p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next()]
+            sage: [next(p), next(p), next(p), next(p), next(p), next(p), next(p)]
             [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6)]
             sage: p = S.breadth_first_search_iterator()
-            sage: [p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next()]
+            sage: [next(p), next(p), next(p), next(p), next(p), next(p), next(p)]
             [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0)]
             sage: (0,0) in S
             True
@@ -694,10 +694,10 @@ class SearchForest(Parent):
 
             sage: S = SearchForest(Family(NN, lambda x : (x, 0)) , lambda x : [(x[0], x[1]+1)])
             sage: p = S.depth_first_search_iterator()
-            sage: [p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next()]
+            sage: [next(p), next(p), next(p), next(p), next(p), next(p), next(p)]
             [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6)]
             sage: p = S.breadth_first_search_iterator()
-            sage: [p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next()]
+            sage: [next(p), next(p), next(p), next(p), next(p), next(p), next(p)]
             [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0)]
             sage: (0,0) in S
             True
@@ -712,7 +712,7 @@ class SearchForest(Parent):
         while len(stack) > 0:
             position = randint(0,len(stack)-1)
             try:
-                node = stack[position].next()
+                node = next(stack[position])
             except StopIteration:
                 stack.pop(position)
                 continue
@@ -859,7 +859,7 @@ class TransitiveIdeal(RecursivelyEnumeratedSet_generic):
 
         sage: C = TransitiveIdeal(lambda x: [x-1, x+1], (-10, 0, 10))
         sage: f = C.__iter__()
-        sage: [ f.next() for i in range(6) ]
+        sage: [ next(f) for i in range(6) ]
         [0, 1, 2, 3, 4, 5]
 
     We compute all the permutations of 3::
@@ -968,17 +968,17 @@ class TransitiveIdealGraded(RecursivelyEnumeratedSet_generic):
 
     The elements at distance 0 from the generators::
 
-        sage: sorted([ f.next() for i in range(3) ])
+        sage: sorted([ next(f) for i in range(3) ])
         [-10, 0, 10]
 
     The elements at distance 1 from the generators::
 
-        sage: sorted([ f.next() for i in range(6) ])
+        sage: sorted([ next(f) for i in range(6) ])
         [-11, -9, -1, 1, 9, 11]
 
     The elements at distance 2 from the generators::
 
-        sage: sorted([ f.next() for i in range(6) ])
+        sage: sorted([ next(f) for i in range(6) ])
         [-12, -8, -2, 2, 8, 12]
 
     The enumeration order between elements at the same distance is not specified.

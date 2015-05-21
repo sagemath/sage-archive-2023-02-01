@@ -858,7 +858,10 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: phi.domain().conductor().norm().factor()
             11^2
         """
-        return EllipticCurveIsogeny(self, kernel, codomain, degree, model, check=check)
+        try:
+            return EllipticCurveIsogeny(self, kernel, codomain, degree, model, check=check)
+        except AttributeError, e:
+            raise RuntimeError("Unable to contruct isogeny: %s" % e)
 
 
     def isogeny_codomain(self, kernel, degree=None):
@@ -1184,4 +1187,4 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             x = R.gen()
             E = self.short_weierstrass_model()
             f=(x**3+E.a4()*x+E.a6())**((p-1)//2)
-            return f.coeffs()[p-1]
+            return f.coefficients(sparse=False)[p-1]

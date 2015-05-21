@@ -303,8 +303,8 @@ class LatticePolygon_PPL_class(LatticePolytope_PPL_class):
             return self._find_isomorphism_degenerate(polytope)
 
         polytope_origin = polytope_vertices[0]
-        origin_P = C_Polyhedron(Generator_System_iterator(
-            polytope.minimized_generators()).next())
+        origin_P = C_Polyhedron(next(Generator_System_iterator(
+            polytope.minimized_generators())))
 
         neighbors = []
         for c in polytope.minimized_constraints():

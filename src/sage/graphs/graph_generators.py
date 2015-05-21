@@ -623,7 +623,7 @@ class GraphGenerators():
 ###########################################################################
 
     def __call__(self, vertices=None, property=lambda x: True, augment='edges',
-        size=None, deg_seq=None, degree_sequence=None, loops=False, implementation='c_graph',
+        size=None, degree_sequence=None, loops=False, implementation='c_graph',
         sparse=True, copy = True):
         """
         Accesses the generator of isomorphism class representatives.
@@ -673,12 +673,6 @@ class GraphGenerators():
         from sage.misc.superseded import deprecation
         from copy import copy as copyfun
 
-        if deg_seq is not None:
-            deprecation(11927, "The argument name deg_seq is deprecated. It will be "
-                        "removed in a future release of Sage. So, please use "
-                        "degree_sequence instead.")
-        if degree_sequence is None:
-            degree_sequence=deg_seq
         if degree_sequence is not None:
             if vertices is None:
                 raise NotImplementedError
@@ -798,11 +792,11 @@ class GraphGenerators():
         to contain it.  ::
 
             sage: gen = graphs.nauty_geng("2") # optional nauty
-            sage: gen.next() # optional nauty
+            sage: next(gen) # optional nauty
             Graph on 2 vertices
-            sage: gen.next() # optional nauty
+            sage: next(gen) # optional nauty
             Graph on 2 vertices
-            sage: gen.next() # optional nauty
+            sage: next(gen) # optional nauty
             Traceback (most recent call last):
             ...
             StopIteration: Exhausted list of graphs from nauty geng
@@ -828,7 +822,7 @@ class GraphGenerators():
         successful initiation.  ::
 
             sage: gen = graphs.nauty_geng("4", debug=True) # optional nauty
-            sage: print gen.next() # optional nauty
+            sage: print next(gen) # optional nauty
             >A nauty-geng -d0D3 n=4 e=0-6
         """
         import subprocess
@@ -843,7 +837,7 @@ class GraphGenerators():
         gen = sp.stdout
         while True:
             try:
-                s = gen.next()
+                s = next(gen)
             except StopIteration:
                 raise StopIteration("Exhausted list of graphs from nauty geng")
             G = graph.Graph(s[:-1], format='graph6')
@@ -1100,9 +1094,9 @@ class GraphGenerators():
         Buckminster Fullerene:  ::
 
             sage: gen = graphs.fullerenes(60, ipr=True)  # optional buckygen
-            sage: gen.next()  # optional buckygen
+            sage: next(gen)  # optional buckygen
             Graph on 60 vertices
-            sage: gen.next()  # optional buckygen
+            sage: next(gen)  # optional buckygen
             Traceback (most recent call last):
             ...
             StopIteration
@@ -1111,7 +1105,7 @@ class GraphGenerators():
         graph. ::
 
             sage: gen = graphs.fullerenes(20)  # optional buckygen
-            sage: g = gen.next()  # optional buckygen
+            sage: g = next(gen)  # optional buckygen
             sage: g.is_isomorphic(graphs.DodecahedralGraph()) # optional buckygen
             True
             sage: g.get_embedding()  # optional buckygen
@@ -1209,9 +1203,9 @@ class GraphGenerators():
         a graph on just 10 vertices:  ::
 
             sage: gen = graphs.fusenes(2)  # optional benzene
-            sage: gen.next()  # optional benzene
+            sage: next(gen)  # optional benzene
             Graph on 10 vertices
-            sage: gen.next()  # optional benzene
+            sage: next(gen)  # optional benzene
             Traceback (most recent call last):
             ...
             StopIteration
@@ -1495,7 +1489,7 @@ class GraphGenerators():
         graph. ::
 
             sage: gen = graphs.triangulations(6, only_eulerian=True)  # optional plantri
-            sage: g = gen.next()                                      # optional plantri
+            sage: g = next(gen)                                       # optional plantri
             sage: g.is_isomorphic(graphs.OctahedralGraph())           # optional plantri
             True
 
@@ -1519,7 +1513,7 @@ class GraphGenerators():
 
         The minimum connectivity can be at most the minimum degree::
 
-            sage: gen = graphs.triangulations(10, minimum_degree=3, minimum_connectivity=5).next()  # optional plantri
+            sage: gen = next(graphs.triangulations(10, minimum_degree=3, minimum_connectivity=5))  # optional plantri
             Traceback (most recent call last):
             ...
             ValueError: Minimum connectivity can be at most the minimum degree.
@@ -1646,10 +1640,10 @@ class GraphGenerators():
         The cube is the only 3-connected planar quadrangulation on 8 vertices::
 
             sage: gen = graphs.quadrangulations(8, minimum_connectivity=3)  # optional plantri
-            sage: g = gen.next()                                            # optional plantri
+            sage: g = next(gen)                                            # optional plantri
             sage: g.is_isomorphic(graphs.CubeGraph(3))                      # optional plantri
             True
-            sage: gen.next()                                                # optional plantri
+            sage: next(gen)                                                # optional plantri
             Traceback (most recent call last):
             ...
             StopIteration
@@ -1908,7 +1902,6 @@ class GraphGenerators():
     RandomGNM                = staticmethod(sage.graphs.generators.random.RandomGNM)
     RandomGNP                = staticmethod(sage.graphs.generators.random.RandomGNP)
     RandomHolmeKim           = staticmethod(sage.graphs.generators.random.RandomHolmeKim)
-    RandomInterval           = staticmethod(sage.graphs.generators.random.RandomInterval) # deprecated
     RandomIntervalGraph      = staticmethod(sage.graphs.generators.random.RandomIntervalGraph)
     RandomLobster            = staticmethod(sage.graphs.generators.random.RandomLobster)
     RandomNewmanWattsStrogatz = staticmethod(sage.graphs.generators.random.RandomNewmanWattsStrogatz)

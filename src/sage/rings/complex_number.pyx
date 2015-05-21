@@ -590,7 +590,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             mpc(real='1.0', imag='2.0')
         """
         if prec is not None:
-            return self.n(prec=prec)._mpmath_()
+            from complex_field import ComplexField
+            return ComplexField(prec)(self)._mpmath_()
         from sage.libs.mpmath.all import make_mpc
         re = mpfr_to_mpfval(self.__re)
         im = mpfr_to_mpfval(self.__im)

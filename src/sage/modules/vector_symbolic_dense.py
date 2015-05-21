@@ -17,7 +17,7 @@ EXAMPLES::
     sage: type(u)
     <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
     sage: u.simplify_full()
-    (1, log(6*y^2))
+    (1, log(3*y) + log(2*y))
 
 TESTS:
 
@@ -83,7 +83,7 @@ def apply_map(phi):
             sage: v = vector([sin(x)^2 + cos(x)^2, log(x*y), sin(x/(x^2 + x)), factorial(x+1)/factorial(x)])
             sage: v.simplify_trig()
             (1, log(x*y), sin(1/(x + 1)), factorial(x + 1)/factorial(x))
-            sage: v.simplify_radical()
+            sage: v.canonicalize_radical()
             (cos(x)^2 + sin(x)^2, log(x) + log(y), sin(1/(x + 1)), factorial(x + 1)/factorial(x))
             sage: v.simplify_rational()
             (cos(x)^2 + sin(x)^2, log(x*y), sin(1/(x + 1)), factorial(x + 1)/factorial(x))
@@ -111,5 +111,6 @@ class Vector_symbolic_dense(free_module_element.FreeModuleElement_generic_dense)
 # Add elementwise methods.
 for method in ['simplify', 'simplify_exp', 'simplify_factorial',
         'simplify_log', 'simplify_radical', 'simplify_rational',
-        'simplify_trig', 'simplify_full', 'trig_expand', 'trig_reduce']:
+        'simplify_trig', 'simplify_full', 'trig_expand',
+        'canonicalize_radical', 'trig_reduce']:
     setattr(Vector_symbolic_dense, method, apply_map(getattr(Expression, method)))

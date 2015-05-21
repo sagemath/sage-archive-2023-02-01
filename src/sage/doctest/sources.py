@@ -21,7 +21,8 @@ AUTHORS:
 
 import os, sys, re, random
 import doctest
-from sage.misc.preparser import preparse, load
+from sage.repl.preparse import preparse
+from sage.repl.load import load
 from sage.misc.lazy_attribute import lazy_attribute
 from parsing import SageDocTestParser
 from util import NestedName

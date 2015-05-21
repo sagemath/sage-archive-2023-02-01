@@ -1914,7 +1914,7 @@ class HyperplaneArrangementElement(Element):
         """
         from sage.rings.all import PolynomialRing
         from sage.matrix.constructor import identity_matrix
-        from sage.misc.misc import prod
+        from sage.misc.all import prod
         k = len(self)
         R = PolynomialRing(QQ, names, k)
         h = R.gens()

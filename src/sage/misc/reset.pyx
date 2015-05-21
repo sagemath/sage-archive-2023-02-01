@@ -77,8 +77,8 @@ def reset(vars=None, attached=False):
     forget()
     reset_interfaces()
     if attached:
-        import sage.misc.attached_files
-        sage.misc.attached_files.reset()
+        import sage.repl.attach
+        sage.repl.attach.reset()
 
 def restore(vars=None):
     """

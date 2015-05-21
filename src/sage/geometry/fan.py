@@ -2531,7 +2531,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
                 return other._2d_echelon_form() in self._2d_echelon_forms()
         generator = fan_isomorphism_generator(self, other)
         try:
-            generator.next()
+            next(generator)
             return True
         except StopIteration:
             return False

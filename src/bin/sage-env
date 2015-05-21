@@ -253,6 +253,11 @@ export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 export SAGE_SRC="$SAGE_ROOT/src"
 export SAGE_DOC="$SAGE_SRC/doc"
+
+if [ -z "${SAGE_ORIG_PATH_SET}" ]; then 
+    SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH 
+    SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET 
+fi 
 export PATH="$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
@@ -456,6 +461,7 @@ if [ -z "$CC" ]; then
     # See http://trac.sagemath.org/sage_trac/ticket/12820
     if [ "$SAGE_BUILD_TOOLCHAIN" = yes ] && [ "$UNAME" = Darwin ] && [ `uname -r | cut -d. -f1` -ge 11 ]; then
         CC=`which clang 2>/dev/null`
+        CXX=`which clang++ 2>/dev/null`
     fi
 fi
 if [ -z "$CC" ]; then
@@ -547,7 +553,15 @@ if [ "$LDFLAGS" = "" ]; then
     LDFLAGS=""          && export LDFLAGS
 fi
 
-if [ "$CXXFLAGS" = "" ]; then
+if [ -z "$CFLAGS" ]; then
+    unset CFLAGS
+fi
+
+if [ -z "$CXXFLAGS" ]; then
+    unset CXXFLAGS
+fi
+
+if [ -n "$CFLAGS" -a -z "$CXXFLAGS" ]; then
     export CXXFLAGS="$CFLAGS"
 fi
 

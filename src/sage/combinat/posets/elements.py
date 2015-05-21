@@ -17,7 +17,7 @@ Elements of posets, lattices, semilattices, etc.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.element import Element
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 
 class PosetElement(Element):
 

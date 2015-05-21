@@ -1,5 +1,5 @@
 r"""
-Set of homomorphisms between two proejctive schemes
+Set of homomorphisms between two projective schemes
 
 For schemes `X` and `Y`, this module implements the set of morphisms
 `Hom(X,Y)`. This is done by :class:`SchemeHomset_generic`.
@@ -280,4 +280,3 @@ from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.schemes.generic.homset',
                            'SchemeHomsetModule_abelian_variety_coordinates_field',
                            SchemeHomset_points_abelian_variety_field)
-

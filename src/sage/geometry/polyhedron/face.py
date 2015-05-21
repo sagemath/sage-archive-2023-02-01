@@ -175,7 +175,7 @@ class PolyhedronFace(SageObject):
 
             sage: pi = Polyhedron(ieqs = [[1,1,0],[1,0,1]])
             sage: face = pi.faces(1)[0]
-            sage: face.ray_generator().next()
+            sage: next(face.ray_generator())
             A ray in the direction (1, 0)
         """
         for V in self.ambient_Vrepresentation():
@@ -208,7 +208,7 @@ class PolyhedronFace(SageObject):
 
             sage: pr = Polyhedron(rays = [[1,0],[-1,0],[0,1]], vertices = [[-1,-1]])
             sage: face = pr.faces(1)[0]
-            sage: face.line_generator().next()
+            sage: next(face.line_generator())
             A line in the direction (1, 0)
         """
         for V in self.ambient_Vrepresentation():

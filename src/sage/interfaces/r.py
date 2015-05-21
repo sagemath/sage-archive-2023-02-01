@@ -212,7 +212,7 @@ AUTHORS:
 ##########################################################################
 
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
-from sage.misc.misc import DOT_SAGE
+from sage.env import DOT_SAGE
 import re
 import sage.rings.integer
 

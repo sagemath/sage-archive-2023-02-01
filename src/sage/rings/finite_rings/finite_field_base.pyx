@@ -797,14 +797,14 @@ cdef class FiniteField(Field):
 
         Although `f` is irreducible over the base field, we can double-check
         whether or not `f` factors in `F` as follows. The command
-        ``F[x](f)`` coerces `f` as a polynomial with coefficients in `F`.
+        ``F['x'](f)`` coerces `f` as a polynomial with coefficients in `F`.
         (Instead of a polynomial with coefficients over the base field.)
 
         ::
 
             sage: f.factor()
             x^2 + 6*x + 3
-            sage: F[x](f).factor()
+            sage: F['x'](f).factor()
             (x + a + 6) * (x + 6*a)
 
         Here is an example with a degree 3 extension::

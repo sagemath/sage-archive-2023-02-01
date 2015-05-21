@@ -43,11 +43,11 @@ solutions::
     sage: q = Polyomino([(0,0), (0,1), (1,0), (1,1)])
     sage: T = TilingSolver([p,q], box=[3,2])
     sage: it = T.solve()
-    sage: it.next()
+    sage: next(it)
     [Polyomino: [(0, 0), (0, 1), (1, 0), (1, 1)], Color: gray, Polyomino: [(2, 0), (2, 1)], Color: gray]
-    sage: it.next()
+    sage: next(it)
     [Polyomino: [(1, 0), (1, 1), (2, 0), (2, 1)], Color: gray, Polyomino: [(0, 0), (0, 1)], Color: gray]
-    sage: it.next()
+    sage: next(it)
     Traceback (most recent call last):
     ...
     StopIteration
@@ -67,9 +67,9 @@ length 6 with three sticks of length 1, 2 and 3. There are six solutions::
     sage: len(T.rows())
     15
     sage: it = T.solve()
-    sage: it.next()
+    sage: next(it)
     [Polyomino: [(0,)], Color: gray, Polyomino: [(1,), (2,)], Color: gray, Polyomino: [(3,), (4,), (5,)], Color: gray]
-    sage: it.next()
+    sage: next(it)
     [Polyomino: [(0,)], Color: gray, Polyomino: [(1,), (2,), (3,)], Color: gray, Polyomino: [(4,), (5,)], Color: gray]
     sage: T.number_of_solutions()
     6
@@ -103,7 +103,7 @@ If reflections are allowed, there are solutions. Solve the puzzle and show
 one solution::
 
     sage: T = TilingSolver(L, (8,8), reflection=True)
-    sage: solution = T.solve().next()
+    sage: solution = next(T.solve())
     sage: G = sum([piece.show2d() for piece in solution], Graphics())
     sage: G.show(aspect_ratio=1, axes=False)
 
@@ -139,7 +139,7 @@ The same thing done in 3d *without* allowing reflections this time::
 Solve the puzzle and show one solution::
 
     sage: T = TilingSolver(L, (8,8,1))
-    sage: solution = T.solve().next()
+    sage: solution = next(T.solve())
     sage: G = sum([piece.show3d(size=0.85) for piece in solution], Graphics())
     sage: G.show(aspect_ratio=1, viewer='tachyon')
 
@@ -159,7 +159,7 @@ Donald Knuth [Knuth1]_ considered the problem of packing 45 Y pentaminoes into a
     sage: T = TilingSolver([y], box=(5,10), reusable=True, reflection=True)
     sage: T.number_of_solutions()
     10
-    sage: solution = T.solve().next()
+    sage: solution = next(T.solve())
     sage: G = sum([piece.show2d() for piece in solution], Graphics())
     sage: G.show(aspect_ratio=1)
 
@@ -221,7 +221,7 @@ REFERENCES:
 import itertools
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method, cached_function
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.combinat.all import WeylGroup
 from sage.plot.all import Graphics
 from sage.plot.polygon import polygon
@@ -433,7 +433,7 @@ class Polyomino(SageObject):
             sage: from sage.combinat.tiling import Polyomino
             sage: p = Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
             sage: it = iter(p)
-            sage: it.next()
+            sage: next(it)
             (1, 1, 0)
         """
         return iter(self._blocs)
@@ -997,14 +997,14 @@ class TilingSolver(SageObject):
     Solutions are given by an iterator::
 
         sage: it = T.solve()
-        sage: for p in it.next(): p
+        sage: for p in next(it): p
         Polyomino: [(0, 0, 0)], Color: gray
         Polyomino: [(0, 0, 1), (0, 0, 2)], Color: gray
         Polyomino: [(0, 0, 3), (0, 0, 4), (0, 0, 5)], Color: gray
 
     Another solution::
 
-        sage: for p in it.next(): p
+        sage: for p in next(it): p
         Polyomino: [(0, 0, 0)], Color: gray
         Polyomino: [(0, 0, 1), (0, 0, 2), (0, 0, 3)], Color: gray
         Polyomino: [(0, 0, 4), (0, 0, 5)], Color: gray
@@ -1404,10 +1404,10 @@ class TilingSolver(SageObject):
             [82, 119, 150, 171, 38, 161, 8, 63, 140, 107]
         """
         it = self.dlx_solutions()
-        B = it.next()
+        B = next(it)
         while True:
             yield B
-            A, B = B, it.next()
+            A, B = B, next(it)
             common_prefix = []
             for a, b in itertools.izip(A, B):
                 if a == b:
@@ -1462,10 +1462,10 @@ class TilingSolver(SageObject):
             123
         """
         it = self.dlx_solutions()
-        B = it.next()
+        B = next(it)
         while True:
             yield B
-            A, B = B, it.next()
+            A, B = B, next(it)
             common_prefix = 0
             for a, b in itertools.izip(A, B):
                 if a == b:
@@ -1504,15 +1504,15 @@ class TilingSolver(SageObject):
             sage: r = Polyomino([(0,0,0), (0,0,1), (0,0,2)])
             sage: T = TilingSolver([p,q,r], box=(1,1,6))
             sage: it = T.solve()
-            sage: for p in it.next(): p
+            sage: for p in next(it): p
             Polyomino: [(0, 0, 0)], Color: gray
             Polyomino: [(0, 0, 1), (0, 0, 2)], Color: gray
             Polyomino: [(0, 0, 3), (0, 0, 4), (0, 0, 5)], Color: gray
-            sage: for p in it.next(): p
+            sage: for p in next(it): p
             Polyomino: [(0, 0, 0)], Color: gray
             Polyomino: [(0, 0, 1), (0, 0, 2), (0, 0, 3)], Color: gray
             Polyomino: [(0, 0, 4), (0, 0, 5)], Color: gray
-            sage: for p in it.next(): p
+            sage: for p in next(it): p
             Polyomino: [(0, 0, 0), (0, 0, 1)], Color: gray
             Polyomino: [(0, 0, 2), (0, 0, 3), (0, 0, 4)], Color: gray
             Polyomino: [(0, 0, 5)], Color: gray
@@ -1520,18 +1520,18 @@ class TilingSolver(SageObject):
         Including the partial solutions::
 
             sage: it = T.solve(partial='common_prefix')
-            sage: for p in it.next(): p
+            sage: for p in next(it): p
             Polyomino: [(0, 0, 0)], Color: gray
             Polyomino: [(0, 0, 1), (0, 0, 2)], Color: gray
             Polyomino: [(0, 0, 3), (0, 0, 4), (0, 0, 5)], Color: gray
-            sage: for p in it.next(): p
+            sage: for p in next(it): p
             Polyomino: [(0, 0, 0)], Color: gray
-            sage: for p in it.next(): p
+            sage: for p in next(it): p
             Polyomino: [(0, 0, 0)], Color: gray
             Polyomino: [(0, 0, 1), (0, 0, 2), (0, 0, 3)], Color: gray
             Polyomino: [(0, 0, 4), (0, 0, 5)], Color: gray
-            sage: for p in it.next(): p
-            sage: for p in it.next(): p
+            sage: for p in next(it): p
+            sage: for p in next(it): p
             Polyomino: [(0, 0, 0), (0, 0, 1)], Color: gray
             Polyomino: [(0, 0, 2), (0, 0, 3), (0, 0, 4)], Color: gray
             Polyomino: [(0, 0, 5)], Color: gray
@@ -1543,7 +1543,7 @@ class TilingSolver(SageObject):
             sage: r = Polyomino([(0,0,0), (0,0,1), (0,0,2)], color='yellow')
             sage: T = TilingSolver([p,q,r], box=(1,1,6), reusable=True)
             sage: it = T.solve()
-            sage: for p in it.next(): p
+            sage: for p in next(it): p
             Polyomino: [(0, 0, 0)], Color: yellow
             Polyomino: [(0, 0, 1)], Color: yellow
             Polyomino: [(0, 0, 2)], Color: yellow
@@ -1554,7 +1554,7 @@ class TilingSolver(SageObject):
         TESTS::
 
             sage: T = TilingSolver([p,q,r], box=(1,1,7))
-            sage: T.solve().next()
+            sage: next(T.solve())
             Traceback (most recent call last):
             ...
             StopIteration

@@ -190,7 +190,7 @@ from sage.interfaces.expect import Expect, ExpectElement, ExpectFunction, Functi
 
 import pexpect
 
-from sage.misc.misc import verbose, DOT_SAGE
+from sage.env import DOT_SAGE
 from sage.misc.pager import pager
 
 COMMANDS_CACHE = '%s/giac_commandlist_cache.sobj'%DOT_SAGE

@@ -33,7 +33,7 @@ from special import (hypergeometric_U,
                      spherical_bessel_J, spherical_bessel_Y,
                      spherical_hankel1, spherical_hankel2,
                      spherical_harmonic,
-                     lngamma, error_fcn, elliptic_e,
+                     error_fcn, elliptic_e,
                      elliptic_f, elliptic_ec, elliptic_eu,
                      elliptic_kc, elliptic_pi, elliptic_j,
                      airy_ai, airy_bi)

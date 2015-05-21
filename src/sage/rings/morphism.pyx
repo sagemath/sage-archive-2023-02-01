@@ -242,11 +242,10 @@ Frobenius on a power series ring over a finite field::
 
 Homomorphism of Laurent series ring::
 
-    sage: R.<t> = LaurentSeriesRing(QQ)
+    sage: R.<t> = LaurentSeriesRing(QQ, 10)
     sage: f = R.hom([t^3 + t]); f
     Ring endomorphism of Laurent Series Ring in t over Rational Field
       Defn: t |--> t + t^3
-    sage: R.set_default_prec(10)
     sage: s = 2/t^2 + 1/(1 + t); s
     2*t^-2 + 1 - t + t^2 - t^3 + t^4 - t^5 + t^6 - t^7 + t^8 - t^9 + O(t^10)
     sage: f(s)

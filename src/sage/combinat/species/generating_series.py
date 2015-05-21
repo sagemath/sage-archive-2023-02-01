@@ -262,7 +262,7 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
             sage: g1 = WP.generating_series()
             sage: g2 = P2.generating_series()
             sage: g = g1._functorial_compose_gen(g2, 0)
-            sage: [g.next() for i in range(10)]
+            sage: [next(g) for i in range(10)]
             [1, 1, 1, 4/3, 8/3, 128/15, 2048/45, 131072/315, 2097152/315, 536870912/2835]
         """
         n = 0
@@ -278,7 +278,7 @@ def factorial_gen():
 
         sage: from sage.combinat.species.generating_series import factorial_gen
         sage: g = factorial_gen()
-        sage: [g.next() for i in range(5)]
+        sage: [next(g) for i in range(5)]
         [1, 1, 2, 6, 24]
     """
     z = Integer(1)
@@ -424,7 +424,7 @@ class CycleIndexSeries(LazyPowerSeries):
             sage: CIS = CycleIndexSeriesRing(p)
             sage: f = CIS([p([1])])
             sage: g = f._stretch_gen(2,0)
-            sage: [g.next() for i in range(10)]
+            sage: [next(g) for i in range(10)]
             [p[2], 0, p[2], 0, p[2], 0, p[2], 0, p[2], 0]
         """
         from sage.combinat.partition import Partition
@@ -500,7 +500,7 @@ class CycleIndexSeries(LazyPowerSeries):
             sage: P = species.PermutationSpecies()
             sage: cis = P.cycle_index_series()
             sage: g = cis._ogs_gen(0)
-            sage: [g.next() for i in range(10)]
+            sage: [next(g) for i in range(10)]
             [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
         """
         for i in range(ao):
@@ -532,7 +532,7 @@ class CycleIndexSeries(LazyPowerSeries):
             sage: P = species.PermutationSpecies()
             sage: cis = P.cycle_index_series()
             sage: g = cis._egs_gen(0)
-            sage: [g.next() for i in range(10)]
+            sage: [next(g) for i in range(10)]
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         """
         for i in range(ao):
@@ -633,7 +633,7 @@ class CycleIndexSeries(LazyPowerSeries):
             sage: P2_cis = P2.cycle_index_series()
             sage: WP_cis = WP.cycle_index_series()
             sage: g = WP_cis._functorial_compose_gen(P2_cis,0)
-            sage: [g.next() for i in range(5)]
+            sage: [next(g) for i in range(5)]
             [p[],
              p[1],
              p[1, 1] + p[2],
@@ -837,7 +837,7 @@ class CycleIndexSeries(LazyPowerSeries):
             sage: E = species.SetSpecies(); C = species.CycleSpecies()
             sage: E_cis = E.cycle_index_series()
             sage: g = E_cis._compose_gen(C.cycle_index_series(),0)
-            sage: [g.next() for i in range(4)]
+            sage: [next(g) for i in range(4)]
             [p[], p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
         """
         assert y.coefficient(0) == 0
@@ -926,7 +926,7 @@ class CycleIndexSeries(LazyPowerSeries):
             sage: E = species.SetSpecies(); C = species.CycleSpecies()
             sage: E_cis = E.cycle_index_series()
             sage: g = E_cis._weighted_compose_gen(C,0)
-            sage: [g.next() for i in range(4)]
+            sage: [next(g) for i in range(4)]
             [p[], p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
         """
         parent = self.parent()

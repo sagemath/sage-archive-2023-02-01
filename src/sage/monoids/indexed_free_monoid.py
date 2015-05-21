@@ -734,7 +734,7 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             [F[0], F[1], F[-1]]
         """
         it = iter(self._indices)
-        return tuple(self.gen(it.next()) for i in range(n))
+        return tuple(self.gen(next(it)) for i in range(n))
 
     def _element_constructor_(self, x=None):
         """
@@ -781,7 +781,7 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
         try:
             g = iter(self._indices)
             for c in range(1,4):
-                x *= self.gen(g.next()) ** c
+                x *= self.gen(next(g)) ** c
         except Exception:
             pass
         return x

@@ -6,6 +6,7 @@ import sys
 import ast
 import argparse
 import logging
+import textwrap
 logging.basicConfig()
 logger = logging.getLogger()
 
@@ -47,6 +48,7 @@ class NotebookSageNB(object):
                 try:
                     value = ast.literal_eval(x)
                 except StandardError:
+                    value = x
                     logger.debug('cannot evaluate, treat as string')
                 args.append(value)
         return tuple(args), kwds
@@ -61,12 +63,21 @@ class NotebookSageNB(object):
             print(sage_getdoc(notebook))
         else:
             notebook(*self.args, **self.kwds)
-    
+
 
 class NotebookIPython(object):
 
+    PREREQUISITE_ERROR = textwrap.dedent("""
+    The IPython notebook requires ssl, even if you do not use
+    https. Install the openssl development packages in your system and
+    then rebuild Python (sage -f python).
+    """)
+
     def __init__(self, argv):
-        from sage.repl.notebook_ipython import SageNotebookApp
+        from sage.repl.notebook_ipython import have_prerequisites, SageNotebookApp
+        if not have_prerequisites():
+            print(self.PREREQUISITE_ERROR)
+            raise SystemExit(1)
         app = SageNotebookApp.instance()
         app.initialize(argv)
         app.start()

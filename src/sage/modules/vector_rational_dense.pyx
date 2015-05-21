@@ -57,6 +57,9 @@ from sage.rings.rational cimport Rational
 cimport free_module_element
 from free_module_element import vector
 
+from sage.libs.gmp.mpq cimport *
+
+
 cdef inline _Rational_from_mpq(mpq_t e):
     cdef Rational z = PY_NEW(Rational)
     mpq_set(z.value, e)
@@ -172,9 +175,6 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             True
         """
         return free_module_element.FreeModuleElement.__hash__(self)
-
-    def __len__(self):
-        return self._degree
 
     def __setitem__(self, i, value):
         if not self._is_mutable:

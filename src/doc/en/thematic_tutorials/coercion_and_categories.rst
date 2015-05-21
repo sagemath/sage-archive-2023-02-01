@@ -5,6 +5,10 @@
 =================================================
 How to implement new algebraic structures in Sage
 =================================================
+
+.. contents::
+   :depth: 3
+
 --------------------------------------
 Sage's category and coercion framework
 --------------------------------------
@@ -15,12 +19,7 @@ Sage's category and coercion framework
     <simon.king@uni-jena.de>
     © 2011/2013
 
-.. toctree::
-   :maxdepth: 2
-
 .. linkall
-
-
 
 The aim of this tutorial is to explain how one can benefit from Sage's
 category framework and coercion model when implementing new algebraic
@@ -1095,7 +1094,7 @@ In particular, the construction functors can be composed::
 
     sage: Poly*Fract
     Poly[x](FractionField(...))
-    sage: (Poly*Fract)(ZZ) is QQ[x]
+    sage: (Poly*Fract)(ZZ) is QQ['x']
     True
 
 .. end of output
@@ -1487,6 +1486,7 @@ Here are the tests that form the test suite of quotient fields::
      '_test_elements_eq_transitive',
      '_test_elements_neq',
      '_test_euclidean_degree',
+     '_test_gcd_vs_xgcd',
      '_test_one', '_test_prod',
      '_test_quo_rem',
      '_test_some_elements',
@@ -1538,6 +1538,7 @@ Let us see what tests are actually performed::
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
+    running ._test_gcd_vs_xgcd() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass
@@ -1706,6 +1707,7 @@ interesting.
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
+    running ._test_gcd_vs_xgcd() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass

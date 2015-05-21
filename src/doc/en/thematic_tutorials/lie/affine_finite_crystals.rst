@@ -356,8 +356,8 @@ up to a relabeling of the arrows::
     sage: f = { 1:1, 0:2, 2:0 }
     sage: for u,v,label in Gdual.edges():
     ....:     Gdual.set_edge_label(u,v,f[label])
-    sage: G.is_isomorphic(Gdual, edge_labels = True, certify = True)
-    (True, {[[1]]: [[-2]], [[2]]: [[-1]], [[-2]]: [[1]], [[-1]]: [[2]], []: [[0]]})
+    sage: G.is_isomorphic(Gdual, edge_labels = True)
+    True
 
 .. image:: ../media/KR_Atwisted_dual.png
    :scale: 60

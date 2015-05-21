@@ -57,18 +57,9 @@ ZZ = None
 
 from sage.structure.parent_gens import ParentWithGens
 import sage.rings.number_field.number_field_base as number_field_base
+from sage.misc.fast_methods import Singleton
 
-
-_obj = {}
-class _uniq(object):
-    def __new__(cls):
-        if 0 in _obj:
-            return _obj[0]
-        O = number_field_base.NumberField.__new__(cls)
-        _obj[0] = O
-        return O
-
-class RationalField(_uniq, number_field_base.NumberField):
+class RationalField(Singleton, number_field_base.NumberField):
     r"""
     The class ``RationalField`` represents the field `\QQ` of rational numbers.
 
@@ -134,6 +125,23 @@ class RationalField(_uniq, number_field_base.NumberField):
         sage: QQ(RealField(45)(t))
         1/5
     """
+    def __new__(cls):
+        """
+        This method actually is not needed for using :class:`RationalField`.
+        But it is used to unpickle some very old pickles.
+
+        TESTS::
+
+            sage: RationalField() in Fields() # indirect doctest
+            True
+
+        """
+        try:
+            from sage.rings.rational_field import QQ
+            return QQ
+        except BaseException:
+            import sage
+            return sage.rings.number_field.number_field_base.NumberField.__new__(cls)
 
     def __init__(self):
         r"""
@@ -210,17 +218,6 @@ class RationalField(_uniq, number_field_base.NumberField):
         ParentWithGens.__init__(self, self, category = QuotientFields())
         self._assign_names(('x',),normalize=False) # ???
         self._populate_coercion_lists_(element_constructor=rational.Rational, init_no_parent=True)
-
-    def __hash__(self):
-        """
-        Return hash value for ``self``.
-
-        EXAMPLES::
-
-            sage: hash(QQ)
-            -11115808
-        """
-        return -11115808
 
     def _repr_(self):
         """

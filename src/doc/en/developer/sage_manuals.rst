@@ -41,8 +41,8 @@ Here is a list of the Sage manuals and the corresponding files to edit:
    ``SAGE_ROOT/src/doc/fr/tutorial``
 
 
-Editing the Manuals
-===================
+Building the Manuals
+====================
 
 If, for example, you want to change the Sage tutorial, then you should
 start by modifying the files in
@@ -203,11 +203,12 @@ above describing the first method was an example of this.
     adding the argument ``--warn-links`` to the documentation build
     command as in::
 
-        sage -docbuild --warn-links reference html
+        sage --docbuild --warn-links reference html
 
     In this case, when a link is not resolved Sphinx will issue a
     warning.
 
+.. _section-add-file:
 
 Adding a New File
 =================
@@ -237,6 +238,88 @@ the following line::
    +   ../sage/combinat/family
        ../sage/combinat/finite_class
            [...]
+
+.. _section-create-tutorial:
+
+Creating a Tutorial from a Worksheet
+====================================
+
+Sage has a number of thematic tutorials, especially those developed by the
+`sage-combinat group <http://combinat.sagemath.org/doc/thematic_tutorials/index-sage-combinat.html>`_.
+Sage has everything needed to take a worksheet created in the
+`Sage notebook <https://github.com/sagemath/sagenb>`_ (sagenb) and then
+create a tutorial.
+
+* Once you have created a worksheet and are satisfied with the text and
+  computations, download it to a directory.
+
+We will assume here that the worksheet is called ``Tutorial.sws``
+and the directory is called ``make_tutorial``.  We also assume that
+``sage`` is your Sage command; if it is not in your ``PATH`` then replace
+this with the path to your Sage installation, such as
+``/Applications/Sage-6.2.app/Contents/Resources/sage/sage`` if you are
+using the Mac app and have placed it in your Applications directory.
+
+* Next, you will need an optional package to parse your worksheet.  Use the
+  command::
+
+      sage -i beautifulsoup
+
+  to install it (or, in the Mac app, use the ``Terminal Session`` advanced
+  menu with ``-i beautifulsoup``).
+
+* Then we will use the ``sws2rst`` script to turn the worksheet into
+  a document in the `ReStructuredText <http://sphinx-doc.org/rest.html>`_
+  format.  Be sure you are in the same directory as the worksheet::
+
+      sage --sws2rst Tutorial.sws
+
+  This will create an ``.rst`` file along with a subdirectory of image
+  files (which may be empty if there are no images).
+  
+  You can find help for ``sws2rst`` with the command
+  ``sage --sws2rst -h`` once you have installed beautifulsoup.
+
+* In principle, such a file could be added directly to the documentation;
+  see :ref:`section-add-file`.  If you add it to one of the manuals or
+  the list of thematic tutorials, be sure to edit the ``toctree`` file
+  as well, and put the line ``.. _tutorial-name:`` at the start of your
+  file with the same listing as in the ``index.rst`` file.
+
+  However, you probably want to check whether it looks right first.  So
+  next we will compile this file to html documentation.
+
+  * Follow the instructions of ``sage --sws2rst --sphinxify``.  First,
+    we will open a Sage shell session, where all appropriate Sage
+    references already work properly::
+
+        sage --sh
+
+    From here, you should be able to just type::
+
+        sphinx-quickstart
+
+    and then respond to prompts for turning your ``.rst`` file into
+    documentation.  For most of them you can just hit enter/return to
+    accept the defaults.  However, you will probably want to
+
+    * Enter a name for the project
+    * Enter a name for you
+    * Type ``y`` for the question about using MathJax
+
+    Keep note of the instructions; the main other thing to do is add
+    your file's name to ``index.rst``, and then just do::
+
+        make html
+
+    and wait while magic happens.  To see the results, open the file
+    ``make_tutorial/_build/html/Tutorial.html`` with a browser, or
+    use your graphical file system to navigate to the same place.
+
+* Now you can modify the ``.rst`` file more and repeat the steps
+  of compiling it until it is ready for inclusion, or just for distribution
+  among other Sage users as an HTML file.  (Do ``make pdf`` for a PDF
+  version.)
 
 
 .. _section-building-manuals:

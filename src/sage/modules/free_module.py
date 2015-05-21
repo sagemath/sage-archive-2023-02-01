@@ -1159,7 +1159,7 @@ done from the right side.""")
             return
         R     = self.base_ring()
         iters = [iter(R) for _ in range(len(G))]
-        for x in iters: x.next()     # put at 0
+        for x in iters: next(x)     # put at 0
         zero  = R(0)
         v = [zero for _ in range(len(G))]
         n = 0
@@ -1167,12 +1167,12 @@ done from the right side.""")
         yield z
         while n < len(G):
             try:
-                v[n] = iters[n].next()
+                v[n] = next(iters[n])
                 yield self.linear_combination_of_basis(v)
                 n = 0
             except StopIteration:
                 iters[n] = iter(R)  # reset
-                iters[n].next()     # put at 0
+                next(iters[n])     # put at 0
                 v[n] = zero
                 n += 1
 
@@ -4185,19 +4185,16 @@ class FreeModule_ambient(FreeModule_generic):
 
     def __hash__(self):
         """
-        The hash of self.
+        The hash is obtained from the rank and the base ring.
+
+        .. TODO::
+
+            Make pickling so that the hash is available early enough.
 
         EXAMPLES::
 
             sage: V = QQ^7
-            sage: V.__hash__()
-            153079684 # 32-bit
-            -3713095619189944444 # 64-bit
-            sage: U = QQ^7
-            sage: U.__hash__()
-            153079684 # 32-bit
-            -3713095619189944444 # 64-bit
-            sage: U is V
+            sage: hash(V) == hash((V.rank(), V.base_ring()))
             True
         """
         try:
@@ -5187,19 +5184,13 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def __hash__(self):
         """
-        The hash of self.
+        The hash is given by the basis.
 
         EXAMPLES::
 
-            sage: V = QQ^7
-            sage: V.__hash__()
-            153079684 # 32-bit
-            -3713095619189944444 # 64-bit
-            sage: U = QQ^7
-            sage: U.__hash__()
-            153079684 # 32-bit
-            -3713095619189944444 # 64-bit
-            sage: U is V
+            sage: M = ZZ^3
+            sage: W = M.span_of_basis([[1,2,3],[4,5,6]])
+            sage: hash(W) == hash(W.basis())
             True
         """
         return hash(self.__basis)

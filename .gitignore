@@ -29,7 +29,9 @@
 .\#*
 
 # Vim
-*.s[a-w][a-z]
+*.swp
+*.swo
+*.swn
 *.un~
 .netrwhist
 

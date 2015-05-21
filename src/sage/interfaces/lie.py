@@ -285,7 +285,8 @@ AUTHORS:
 ##########################################################################
 
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, AsciiArtString
-from sage.misc.misc import verbose, DOT_SAGE, SAGE_LOCAL
+from sage.misc.all import verbose, prod
+from sage.env import DOT_SAGE, SAGE_LOCAL
 
 
 COMMANDS_CACHE = '%s/lie_commandlist_cache.sobj'%DOT_SAGE
@@ -777,7 +778,6 @@ class LiEElement(ExpectElement):
             import sage.matrix.constructor
             return  sage.matrix.constructor.matrix( eval( str(self).replace('\n','').strip())  )
         elif t == 'pol':
-            import sage.misc.misc
             from sage.rings.all import PolynomialRing, QQ
 
             #Figure out the number of variables
@@ -808,7 +808,7 @@ class LiEElement(ExpectElement):
                 xpos = term.find('X')
                 coef = eval(term[:xpos].strip())
                 exps = eval(term[xpos+1:].strip())
-                monomial = sage.misc.misc.prod(map(lambda i: x[i]**exps[i] , range(nvars)))
+                monomial = prod(map(lambda i: x[i]**exps[i] , range(nvars)))
                 pol += coef * monomial
 
             return pol

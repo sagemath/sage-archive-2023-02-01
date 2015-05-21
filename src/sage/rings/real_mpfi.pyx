@@ -211,14 +211,15 @@ interval coerces to plus infinity::
     True
 """
 
-############################################################################
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
+#*****************************************************************************
 #       Copyright (C) 2005-2006 William Stein <wstein@gmail.com>
 #
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-############################################################################
+#*****************************************************************************
 
 import math # for log
 import sys
@@ -1440,19 +1441,6 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             True
         """
         return self
-
-    def parent(self):
-        """
-        Return the parent of ``self``.
-
-        EXAMPLES::
-
-            sage: R = RealIntervalField()
-            sage: a = R('1.2456')
-            sage: a.parent()
-            Real Interval Field with 53 bits of precision
-        """
-        return self._parent
 
     # MPFR had an elaborate "truncation" scheme to avoid printing
     # inaccurate-looking results; this has been removed for MPFI,

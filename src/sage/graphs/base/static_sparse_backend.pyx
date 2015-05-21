@@ -41,6 +41,7 @@ from c_graph import CGraphBackend
 from sage.data_structures.bitset cimport FrozenBitset
 from libc.stdint cimport uint32_t
 include 'sage/data_structures/bitset.pxi'
+from libc.stdlib cimport calloc,free
 
 cdef class StaticSparseCGraph(CGraph):
     """
@@ -62,12 +63,29 @@ cdef class StaticSparseCGraph(CGraph):
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseCGraph
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
         """
+        cdef int i, j, tmp
         has_labels = any(not l is None for _,_,l in G.edge_iterator())
         self._directed = G.is_directed()
 
         init_short_digraph(self.g, G, edge_labelled = has_labels)
         if self._directed:
             init_reverse(self.g_rev,self.g)
+
+        # Store the number of loops for undirected graphs
+        elif not G.has_loops():
+            self.number_of_loops = NULL
+        else:
+            self.number_of_loops = <int *> calloc(sizeof(int), self.g.n)
+            if self.number_of_loops == NULL:
+                free_short_digraph(self.g)
+                raise MemoryError
+            for i in range(self.g.n):
+                for tmp in range(out_degree(self.g,i)):
+                    j = self.g.neighbors[i][tmp]
+                    if j == i:
+                        self.number_of_loops[i] += 1
+                    if j > i:
+                        break
 
         # Defining the meaningless set of 'active' vertices. Because of CGraph.
         bitset_init(self.active_vertices,  self.g.n+1)
@@ -84,6 +102,7 @@ cdef class StaticSparseCGraph(CGraph):
         """
         bitset_free(self.active_vertices)
         free_short_digraph(self.g)
+        free(self.number_of_loops)
         if self.g_rev != NULL:
             free_short_digraph(self.g_rev)
 
@@ -903,6 +922,13 @@ class StaticSparseBackend(CGraphBackend):
             sage: g = Graph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.degree(0)
             3
+
+        :trac:`17225` about the degree of a vertex with a loop::
+
+            sage: Graph({0:[0]},immutable=True).degree(0)
+            2
+            sage: Graph({0:[0],1:[0,1,1,1]},immutable=True).degree(1)
+            7
         """
         try:
             v = self._vertex_to_int[v]
@@ -923,7 +949,7 @@ class StaticSparseBackend(CGraphBackend):
                                           "that it is well-defined either, "
                                           "especially for multigraphs.")
             else:
-                return cg.out_degree(v)
+                return cg.out_degree(v) + (0 if cg.number_of_loops == NULL else cg.number_of_loops[v])
 
     def in_degree(self, v):
         r"""

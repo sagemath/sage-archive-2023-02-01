@@ -187,8 +187,8 @@ def rings1():
     v = rings0()
     X = random_rings(level=0)
     from sage.all import PolynomialRing, ZZ
-    v = [(lambda : PolynomialRing(X.next(), names='x'), 'univariate polynomial ring over level 0 ring'),
-         (lambda : PolynomialRing(X.next(), abs(ZZ.random_element(x=2,y=10)), names='x'),
+    v = [(lambda : PolynomialRing(next(X), names='x'), 'univariate polynomial ring over level 0 ring'),
+         (lambda : PolynomialRing(next(X), abs(ZZ.random_element(x=2,y=10)), names='x'),
                      'multivariate polynomial ring in between 2 and 10 variables over a level 0 ring')]
     return v
 

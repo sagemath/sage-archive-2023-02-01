@@ -221,10 +221,11 @@ PROMPT = ">>>"
 SAGE_REF = "_sage_ref"
 SAGE_REF_RE = re.compile('%s\d+'%SAGE_REF)
 
+from sage.env import SAGE_EXTCODE, DOT_SAGE
 import sage.misc.misc
 import sage.misc.sage_eval
 
-INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj'%sage.misc.misc.DOT_SAGE
+INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj' % DOT_SAGE
 
 
 EXTCODE_DIR = None
@@ -243,7 +244,7 @@ def extcode_dir():
     if not EXTCODE_DIR:
         import shutil
         tmp = sage.misc.temporary_file.tmp_dir()
-        shutil.copytree('%s/magma/'%sage.misc.misc.SAGE_EXTCODE, tmp + '/data')
+        shutil.copytree('%s/magma/'%SAGE_EXTCODE, tmp + '/data')
         EXTCODE_DIR = "%s/data/"%tmp
     return EXTCODE_DIR
 
@@ -1507,7 +1508,7 @@ class Magma(Expect):
             x*y^3
             ]
         """
-        P = iter(L).next().parent()
+        P = next(iter(L)).parent()
         Pn = self(P).name()
         k = P.base_ring()
         if k.degree() > 1:
@@ -2235,9 +2236,9 @@ class MagmaElement(ExpectElement):
             Full Vector space of degree 2 over GF(3)
             sage: w = V.__iter__(); w                           # optional - magma
             <generator object __iter__ at ...>
-            sage: w.next()                                      # optional - magma
+            sage: next(w)                                       # optional - magma
             (0 0)
-            sage: w.next()                                      # optional - magma
+            sage: next(w)                                       # optional - magma
             (1 0)
             sage: list(w)                                       # optional - magma
             [(2 0), (0 1), (1 1), (2 1), (0 2), (1 2), (2 2)]
@@ -2924,3 +2925,75 @@ class MagmaGBLogPrettyPrinter:
         """
         import sys
         sys.stdout.flush()
+
+class MagmaGBDefaultContext:
+    """
+    Context to force preservation of verbosity options for Magma's
+    Groebner basis computation.
+    """
+    def __init__(self, magma=None):
+        """
+        INPUT:
+
+        - ``magma`` - (default: ``magma_default``)
+
+        EXAMPLE::
+
+            sage: from sage.interfaces.magma import MagmaGBDefaultContext
+            sage: magma.SetVerbose('Groebner',1) # optional - magma
+            sage: with MagmaGBDefaultContext(): magma.GetVerbose('Groebner')  # optional - magma
+            0
+        """
+        if magma is None:
+            from sage.interfaces.all import magma as magma_default
+            magma = magma_default
+
+        self.magma = magma
+
+    def __enter__(self):
+        """
+        EXAMPLE::
+
+            sage: from sage.interfaces.magma import MagmaGBDefaultContext
+            sage: magma.SetVerbose('Groebner',1) # optional - magma
+            sage: with MagmaGBDefaultContext(): magma.GetVerbose('Groebner')  # optional - magma
+            0
+        """
+        self.groebner_basis_verbose = self.magma.GetVerbose('Groebner')
+        self.magma.SetVerbose('Groebner',0)
+
+    def __exit__(self, typ, value, tb):
+        """
+        EXAMPLE::
+
+            sage: from sage.interfaces.magma import MagmaGBDefaultContext
+            sage: magma.SetVerbose('Groebner',1) # optional - magma
+            sage: with MagmaGBDefaultContext(): magma.GetVerbose('Groebner')  # optional - magma
+            0
+            sage: magma.GetVerbose('Groebner') # optional - magma
+            1
+        """
+        self.magma.SetVerbose('Groebner',self.groebner_basis_verbose)
+
+def magma_gb_standard_options(func):
+    """
+    Decorator to force default options for Magma.
+
+    EXAMPLE::
+
+        sage: P.<a,b,c,d,e> = PolynomialRing(GF(127))
+        sage: J = sage.rings.ideal.Cyclic(P).homogenize()
+        sage: from sage.misc.sageinspect import sage_getsource
+        sage: "mself" in sage_getsource(J._groebner_basis_magma)
+        True
+
+    """
+    from sage.misc.decorators import sage_wraps
+    @sage_wraps(func)
+    def wrapper(*args, **kwds):
+        """
+        Execute function in ``MagmaGBDefaultContext``.
+        """
+        with MagmaGBDefaultContext():
+            return func(*args, **kwds)
+    return wrapper

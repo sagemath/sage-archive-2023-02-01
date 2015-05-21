@@ -1,3 +1,6 @@
+"""
+Combinatorics features that are imported by default in the interpreter namespace
+"""
 from combinat import bell_number, catalan_number, euler_number, fibonacci, \
         lucas_number1, lucas_number2, stirling_number1, stirling_number2, \
         CombinatorialObject, CombinatorialClass, FilteredCombinatorialClass, \
@@ -85,9 +88,6 @@ from skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, Semist
 from ribbon_shaped_tableau import RibbonShapedTableau, StandardRibbonShapedTableaux
 from ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableaux, MultiSkewTableau, SemistandardMultiSkewTableaux
 from composition_tableau import CompositionTableau, CompositionTableaux
-#deprecated
-from ribbon import Ribbon, StandardRibbons
-
 
 from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
 from k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux

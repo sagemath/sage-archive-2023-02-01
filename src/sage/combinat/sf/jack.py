@@ -39,7 +39,7 @@ from sage.calculus.var import var
 import sage.categories.all
 from sage.rings.all import Integer, gcd, lcm, QQ
 from sage.rings.fraction_field import is_FractionField
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom, End
 from sage.rings.fraction_field import FractionField
@@ -467,15 +467,15 @@ def normalize_coefficients(self, c):
         numer = c.numerator()
 
         #Clear the denominators
-        a = lcm([i.denominator() for i in denom.coeffs()])
-        b = lcm([i.denominator() for i in numer.coeffs()])
+        a = lcm([i.denominator() for i in denom.coefficients(sparse=False)])
+        b = lcm([i.denominator() for i in numer.coefficients(sparse=False)])
         l = Integer(a).lcm(Integer(b))
         denom *= l
         numer *= l
 
         #Divide through by the gcd of the numerators
-        a = gcd([i.numerator() for i in denom.coeffs()])
-        b = gcd([i.numerator() for i in numer.coeffs()])
+        a = gcd([i.numerator() for i in denom.coefficients(sparse=False)])
+        b = gcd([i.numerator() for i in numer.coefficients(sparse=False)])
         l = Integer(a).gcd(Integer(b))
 
         denom = denom // l

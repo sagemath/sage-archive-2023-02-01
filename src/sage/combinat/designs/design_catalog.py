@@ -40,6 +40,8 @@ This module gathers the following designs :
     :meth:`~sage.combinat.designs.block_design.ProjectiveGeometryDesign`
     :meth:`~sage.combinat.designs.block_design.DesarguesianProjectivePlaneDesign`
     :meth:`~sage.combinat.designs.bibd.balanced_incomplete_block_design`
+    :meth:`~sage.combinat.designs.resolvable_bibd.resolvable_balanced_incomplete_block_design`
+    :meth:`~sage.combinat.designs.resolvable_bibd.kirkman_triple_system`
     :meth:`~sage.combinat.designs.block_design.AffineGeometryDesign`
     :meth:`~sage.combinat.designs.block_design.WittDesign`
     :meth:`~sage.combinat.designs.block_design.HadamardDesign`
@@ -89,8 +91,10 @@ from sage.combinat.designs.difference_family import difference_family
 from difference_matrices import difference_matrix
 
 from sage.combinat.designs.incidence_structures import IncidenceStructure
-BlockDesign = IncidenceStructure    # just an alias
+Hypergraph = BlockDesign = IncidenceStructure    # just an alias
 from sage.combinat.designs.bibd import balanced_incomplete_block_design, steiner_triple_system
+from sage.combinat.designs.resolvable_bibd import resolvable_balanced_incomplete_block_design, kirkman_triple_system
+from sage.combinat.designs.group_divisible_designs import group_divisible_design
 
 # deprecated in june 2014 (#16446)
 from sage.misc.superseded import deprecated_function_alias, deprecated_callable_import
@@ -110,3 +114,4 @@ deprecated_callable_import(17034,
 
 # We don't want this to appear in designs.<tab>
 del deprecated_function_alias
+del deprecated_callable_import

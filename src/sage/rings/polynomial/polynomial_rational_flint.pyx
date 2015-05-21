@@ -1641,7 +1641,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f.factor_padic('hello', 'world')
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x (=hello) to an integer
+            TypeError: unable to convert 'hello' to an integer
         """
         from sage.rings.padics.factory import Qp
 

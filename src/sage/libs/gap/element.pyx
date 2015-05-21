@@ -1869,7 +1869,7 @@ cdef class GapElement_String(GapElement):
         libgap_exit()
         return s
 
-
+    __str__ = sage
 
 ############################################################################
 ### GapElement_Function ####################################################

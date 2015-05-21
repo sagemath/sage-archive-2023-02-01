@@ -85,7 +85,12 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
         ....:     print('Found stale file: ' + f)
     """
     PYMOD_EXTS = (os.path.extsep + 'py', os.path.extsep + 'pyc')
-    CEXTMOD_EXTS = (os.path.extsep + 'so',)
+    import sys
+    if sys.platform == 'cygwin':
+        LIBEXT = 'dll'
+    else:
+        LIBEXT = 'so'
+    CEXTMOD_EXTS = (os.path.extsep + LIBEXT,)
     INIT_FILES= map(lambda x: '__init__' + x, PYMOD_EXTS)
 
     module_files = installed_files_by_module(site_packages, ['sage', 'sage_setup'])

@@ -58,9 +58,9 @@ import sage.modular.cusps as cusps
 import sage.modular.modsym.p1list as p1list
 import sage.modular.modsym.g1list as g1list
 import sage.modular.modsym.ghlist as ghlist
-import sage.modular.modsym.modular_symbols
-import sage.rings.arith as arith
-import sage.rings.all as rings
+from sage.rings.arith import xgcd, gcd
+from sage.rings.all import Infinity
+from sage.rings.all import ZZ, Integer
 
 from sage.structure.sage_object import SageObject
 
@@ -84,6 +84,400 @@ def is_ManinSymbol(x):
 
     """
     return isinstance(x, ManinSymbol)
+
+
+class ManinSymbol(SageObject):
+    r"""
+    A Manin symbol `[X^i\cdot Y^{k-2-i},(u,v)]`.
+
+    INPUT:
+
+    -  ``parent`` - ManinSymbolList.
+
+    -  ``t`` - a 3-tuple `(i,u,v)` of integers.
+
+    EXAMPLES::
+
+        sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+        sage: m = ManinSymbolList_gamma0(5,2)
+        sage: s = ManinSymbol(m,(2,2,3)); s
+        (2,3)
+        sage: s == loads(dumps(s))
+        True
+
+        ::
+
+        sage: m = ManinSymbolList_gamma0(5,8)
+        sage: s = ManinSymbol(m,(2,2,3)); s
+        [X^2*Y^4,(2,3)]
+
+    """
+    def __init__(self, parent, t):
+        r"""
+        Create a Manin symbol `[X^i*Y^{k-2-i},(u,v)]`, where
+        `k` is the weight.
+
+        INPUT:
+
+
+        -  ``parent`` - ManinSymbolList
+
+        -  ``t`` - a 3-tuple (i,u,v) of int's.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: m = ManinSymbolList_gamma0(5,2)
+            sage: s = ManinSymbol(m,(2,2,3)); s
+            (2,3)
+
+        ::
+
+            sage: m = ManinSymbolList_gamma0(5,8)
+            sage: s = ManinSymbol(m,(2,2,3)); s
+            [X^2*Y^4,(2,3)]
+
+        """
+        if not isinstance(parent, ManinSymbolList):
+            raise TypeError("parent (=%s) must be of type ManinSymbolList."%(
+                parent))
+        self.__parent = parent
+        if not isinstance(t, tuple):
+            raise TypeError("t (=%s) must be of type tuple."%t)
+        self.__t = t
+
+    def tuple(self):
+        r"""
+        Return the 3-tuple `(i,u,v)` of this ManinSymbol.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: m = ManinSymbolList_gamma0(5,8)
+            sage: s = ManinSymbol(m,(2,2,3))
+            sage: s.tuple()
+            (2, 2, 3)
+
+        """
+        return self.__t
+
+    def __get_i(self):
+        """
+        Return the `i` field of this ManinSymbol `(i,u,v)`.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: m = ManinSymbolList_gamma0(5,8)
+            sage: s = ManinSymbol(m,(2,2,3))
+            sage: s._ManinSymbol__get_i()
+            2
+            sage: s.i
+            2
+        """
+        return self.__t[0]
+
+    i = property(__get_i)
+    def __get_u(self):
+        """
+        Return the `u` field of this ManinSymbol `(i,u,v)`.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: m = ManinSymbolList_gamma0(5,8)
+            sage: s = ManinSymbol(m,(2,2,3))
+            sage: s.u # indirect doctest
+            2
+        """
+        return self.__t[1]
+    u = property(__get_u)
+
+    def __get_v(self):
+        """
+        Return the `v` field of this ManinSymbol `(i,u,v)`.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: m = ManinSymbolList_gamma0(5,8)
+            sage: s = ManinSymbol(m,(2,2,3))
+            sage: s.v # indirect doctest
+            3
+        """
+        return self.__t[2]
+    v = property(__get_v)
+
+    def _repr_(self):
+        """
+        Returns a string representation of this ManinSymbol.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: m = ManinSymbolList_gamma0(5,8)
+            sage: s = ManinSymbol(m,(2,2,3))
+            sage: str(s)  # indirect doctest
+            '[X^2*Y^4,(2,3)]'
+        """
+        if self.weight() > 2:
+            polypart = _print_polypart(self.i, self.weight()-2-self.i)
+            return "[%s,(%s,%s)]"%\
+                   (polypart, self.u, self.v)
+        return "(%s,%s)"%(self.u, self.v)
+
+    def _latex_(self):
+        """
+        Returns a LaTeX representation of this ManinSymbol.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: m = ManinSymbolList_gamma0(5,8)
+            sage: s = ManinSymbol(m,(2,2,3))
+            sage: latex(s) # indirect doctest
+            [X^2*Y^4,(2,3)]
+        """
+        return self._repr_()
+
+    def __cmp__(self, other):
+        """
+        Comparison function for ManinSymbols.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: m = ManinSymbolList_gamma0(5,8)
+            sage: slist = m.manin_symbol_list()
+            sage: cmp(slist[10],slist[20])
+            -1
+            sage: cmp(slist[20],slist[10])
+            1
+            sage: cmp(slist[20],slist[20])
+            0
+        """
+        if not isinstance(other, ManinSymbol):
+            return -1
+        if self.__t == other.__t:
+            return 0
+        return cmp(self.tuple(), other.tuple())
+
+    def __mul__(self, matrix):
+        """
+        Returns the result of applying a matrix to this ManinSymbol.
+
+
+        EXAMPLES::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: m = ManinSymbolList_gamma0(5,2)
+            sage: s = ManinSymbol(m,(0,2,3))
+            sage: s*[1,2,0,1]
+            (2,7)
+
+        ::
+
+            sage: m = ManinSymbolList_gamma0(5,8)
+            sage: s = ManinSymbol(m,(2,2,3))
+            sage: s*[1,2,0,1]
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ModSym * Matrix only implemented in weight 2
+        """
+        if self.weight() > 2:
+            raise NotImplementedError("ModSym * Matrix only implemented "
+                                      "in weight 2")
+        from sage.matrix.matrix import is_Matrix
+        if is_Matrix(matrix):
+            if (not matrix.nrows() == 2) or (not matrix.ncols() == 2):
+                raise ValueError("matrix(=%s) must be 2x2" % matrix)
+            matrix = matrix.list()
+        return ManinSymbol(self.parent(), \
+                           (self.i,
+                           matrix[0]*self.u + matrix[2]*self.v,\
+                           matrix[1]*self.u + matrix[3]*self.v))
+        raise ArithmeticError("Multiplication of %s by %s not defined." % (self, matrix))
+
+
+    def apply(self, a,b,c,d):
+        """
+        Return the image of self under the matrix `[a,b;c,d]`.
+
+        Not implemented for raw ManinSymbol objects, only for members
+        of ManinSymbolLists.
+
+        EXAMPLE::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: m = ManinSymbolList_gamma0(5,2)
+            sage: m.apply(10,[1,0,0,1]) # not implemented for base class
+        """
+        raise NotImplementedError
+
+    def __copy__(self):
+        """
+        Return a copy of this ManinSymbol.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: m = ManinSymbolList_gamma0(5,8)
+            sage: s = ManinSymbol(m,(2,2,3))
+            sage: s2 = copy(s)
+            sage: s2
+            [X^2*Y^4,(2,3)]
+
+        """
+        return ManinSymbol(self.parent(), (self.i, self.u, self.v))
+
+    def lift_to_sl2z(self, N=None):
+        r"""
+        Returns a lift of this Manin Symbol to `SL_2(\mathbb{Z})`.
+
+        If this Manin symbol is `(c,d)` and `N` is its level, this
+        function returns a list `[a,b, c',d']` that defines a 2x2
+        matrix with determinant 1 and integer entries, such that
+        `c=c'` (mod `N`) and `d=d'` (mod `N`).
+
+        EXAMPLES::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: m = ManinSymbolList_gamma0(5,8)
+            sage: s = ManinSymbol(m,(2,2,3))
+            sage: s
+            [X^2*Y^4,(2,3)]
+            sage: s.lift_to_sl2z()
+            [1, 1, 2, 3]
+
+        """
+        if N is None:
+            N = self.level()
+        if N == 1:
+            return [ZZ.one(), ZZ.zero(), ZZ.zero(), ZZ.one()]
+        c = Integer(self.u)
+        d = Integer(self.v)
+        g, z1, z2 = xgcd(c,d)
+
+        # We're lucky: z1*c + z2*d = 1.
+        if g==1:
+            return [z2, -z1, c, d]
+
+        # Have to try harder.
+        if c == 0:
+            c += N;
+        if d == 0:
+            d += N;
+        m = c;
+
+        # compute prime-to-d part of m.
+        while True:
+            g = gcd(m,d)
+            if g == 1:
+                break
+            m //= g
+
+        # compute prime-to-N part of m.
+        while True:
+            g = gcd(m,N);
+            if g == 1:
+                break
+            m //= g
+        d += N*m
+        g, z1, z2 = xgcd(c,d)
+        assert g==1
+        return [z2, -z1, c, d]
+
+    def endpoints(self, N=None):
+        r"""
+        Returns cusps `alpha`, `beta` such that this Manin symbol, viewed as a
+        symbol for level `N`, is `X^i*Y^{k-2-i} \{alpha, beta\}`.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: m = ManinSymbolList_gamma0(5,8)
+            sage: s = ManinSymbol(m,(2,2,3)); s
+            [X^2*Y^4,(2,3)]
+            sage: s.endpoints()
+            (1/3, 1/2)
+        """
+        if N is None:
+            N = self.parent().level()
+        else:
+            N=int(N)
+            if N < 1:
+                raise ArithmeticError("N must be positive")
+        a,b,c,d = self.lift_to_sl2z()
+        return cusps.Cusp(b,d), cusps.Cusp(a,c)
+
+    def parent(self):
+        """
+        Return the parent of this ManinSymbol.
+
+
+        EXAMPLES::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: m = ManinSymbolList_gamma0(5,8)
+            sage: s = ManinSymbol(m,(2,2,3))
+            sage: s.parent()
+            Manin Symbol List of weight 8 for Gamma0(5)
+        """
+        return self.__parent
+
+    def weight(self):
+        """
+        Return the weight of this ManinSymbol.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: m = ManinSymbolList_gamma0(5,8)
+            sage: s = ManinSymbol(m,(2,2,3))
+            sage: s.weight()
+            8
+
+        """
+        return self.__parent.weight()
+
+    def level(self):
+        """
+        Return the level of this ManinSymbol.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: m = ManinSymbolList_gamma0(5,8)
+            sage: s = ManinSymbol(m,(2,2,3))
+            sage: s.level()
+            5
+
+        """
+        return self.__parent.level()
+
+    def modular_symbol_rep(self):
+        """
+        Returns a representation of self as a formal sum of modular
+        symbols.
+
+        The result is not cached.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: m = ManinSymbolList_gamma0(5,8)
+            sage: s = ManinSymbol(m,(2,2,3))
+            sage: s.modular_symbol_rep()
+             144*X^6*{1/3, 1/2} - 384*X^5*Y*{1/3, 1/2} + 424*X^4*Y^2*{1/3, 1/2} - 248*X^3*Y^3*{1/3, 1/2} + 81*X^2*Y^4*{1/3, 1/2} - 14*X*Y^5*{1/3, 1/2} + Y^6*{1/3, 1/2}
+
+
+        """
+        # TODO: It would likely be much better to do this slightly more directly
+        from sage.modular.modsym.modular_symbols import ModularSymbol
+        x = ModularSymbol(self.__parent, self.i, 0, Infinity)
+        a,b,c,d = self.lift_to_sl2z()
+        return x.apply([a,b,c,d])
+
 
 class ManinSymbolList(SageObject):
     """
@@ -609,7 +1003,7 @@ class ManinSymbolList_group(ManinSymbolList):
         else:
             s = -1
         z = []
-        a = rings.ZZ(k-2-i)
+        a = Integer(k-2-i)
         for j in range(k-2-i+1):
             m = self.index((j, u, v))
             z.append((m, s * a.binomial(j)))
@@ -652,7 +1046,7 @@ class ManinSymbolList_group(ManinSymbolList):
         else:
             s = -1
         z = []
-        a = rings.ZZ(i)
+        a = Integer(i)
         for j in range(i+1):
             m = self.index((k-2-i+j, u, v))
             z.append((m, s * a.binomial(j)))
@@ -1164,7 +1558,7 @@ class ManinSymbolList_character(ManinSymbolList):
         else:
             s = -r
         z = []
-        a = rings.ZZ(k-2-i)
+        a = Integer(k-2-i)
         for j in range(k-2-i+1):
             m, r = self.index((j, u, v))
             z.append((m, s * r * a.binomial(j)))
@@ -1206,7 +1600,7 @@ class ManinSymbolList_character(ManinSymbolList):
         else:
             s = -r
         z = []
-        a = rings.ZZ(i)
+        a = Integer(i)
         for j in range(i+1):
             m, r = self.index((k-2-i+j, u, v))
             z.append((m, s * r * a.binomial(j)))
@@ -1306,585 +1700,6 @@ class ManinSymbolList_character(ManinSymbolList):
         u,v,s = self.__P1.normalize_with_scalar(x[1],x[2])
         return (x[0],u,v), self.__character(s)
 
-
-# class x__ManinSymbolList_gamma1(ManinSymbolList):
-#     r"""
-#     List of Manin symbols for `\Gamma_1(N)`.
-
-#     EXAMPLE::
-
-#         sage: from sage.modular.modsym.manin_symbols import ManinSymbolList_gamma0
-#         sage: m = ManinSymbolList_gamma0(5,2); m
-#         Manin Symbol List of weight 2 for Gamma0(5)
-#         sage: m.manin_symbol_list()
-#         [(0,1), (1,0), (1,1), (1,2), (1,3), (1,4)]
-#         sage: m = ManinSymbolList_gamma0(6,4); m
-#         Manin Symbol List of weight 4 for Gamma0(6)
-#         sage: len(m)
-#         36
-#     """
-#     def __init__(self, level, weight):
-#         r"""
-#         Constructor for list of Manin symbols for `\Gamma_1(N)`.
-#         """
-#         self.__level = level
-#         self.__G1 = g1list.G1list(self.level())
-#         # The list returned from P1List is guaranteed to be sorted.
-#         # Thus each list constructed below is also sorted.  This is
-#         # important since the index function assumes the list is sorted.
-#         L = [(i, u, v) for i in range(weight-2+1) for \
-#                         u, v in self.__G1.list()]
-#         ManinSymbolList.__init__(self, weight, L)
-
-#     def __repr__(self):
-#         """
-#         Returns a string representation for this ManinSymbol list.
-#         """
-#         return "Manin Symbol List of weight %s for Gamma1(%s)"%(
-#                     self.weight(), self.level())
-
-#     def apply_S(self, j):
-#         """
-#         Apply the matrix `S=[0,1,-1,0]` to the j-th Manin symbol.
-
-#         INPUT:
-
-#         - `j` - (int) a symbol index
-
-#         OUTPUT:
-
-#         (k, s) where k is the index of the symbol obtained by acting
-#         on the `j`'th symbol with `S`, and `s` is the parity of of the
-#         `j`'th symbol.
-
-#         """
-#         i, u, v = self._list[j]
-#         k = self.index((self._weight-2-i, v, -u))
-#         if i%2==0:
-#             return k, 1
-#         else:
-#             return k, -1
-
-#     def apply_I(self, j):
-#         """
-#         Apply the matrix `I=[-1,0,0,1]` to the j-th Manin symbol.
-
-#         INPUT:
-
-#         - `j` - (int) a symbol index
-
-#         OUTPUT:
-
-#         (k, s) where k is the index of the symbol obtained by acting
-#         on the `j`'th symbol with `I`, and `s` is the parity of of the
-#         `j`'th symbol.
-
-#         """
-#         i, u, v = self._list[j]
-#         k = self.index((i, -u, v))
-#         if i%2==0:
-#             return k, 1
-#         else:
-#             return k, -1
-
-#     def apply_J(self, j):
-#         """
-#         Apply the matrix `J=[-1,0,0,-1]` to the j-th Manin symbol.
-
-#         INPUT:
-
-#         - `j` - (int) a symbol index
-
-#         OUTPUT:
-
-#         (k, s) where k is the index of the symbol obtained by acting
-#         on the `j`'th symbol with `J`, and `s` is 1.
-
-#         """
-#         """
-#         Apply 2x2 matrix J = [-1,0,0,-1].
-#         """
-#         i, u, v = self._list[j]
-#         N = self.__level
-#         return self.index((i, -u, -v)), 1
-
-#     def apply_T(self, j):
-#         """
-#         Apply the matrix `T=[0,1,-1,-1]` to the j-th Manin symbol.
-
-#         INPUT:
-
-#         - `j` - (int) a symbol index
-
-#         OUTPUT: see documentation for apply()
-
-#         """
-#         k = self._weight
-#         i, u, v = self._list[j]
-#         u, v = self.__G1.normalize(v,-u-v)
-#         if (k-2) % 2 == 0:
-#             s = 1
-#         else:
-#             s = -1
-#         z = []
-#         for j in range(k-2-i +1):
-#             m = self.index((j, u, v))
-#             z.append((m,s*arith.binomial(k-2-i,j)))
-#             s *= -1
-#         return z
-
-#     def apply_TT(self, j):
-#         """
-#         Apply the matrix `TT=[-1,-1,0,1]` to the j-th Manin symbol.
-
-#         INPUT:
-
-#         - `j` - (int) a symbol index
-
-#         OUTPUT: see documentation for apply()
-
-#         """
-#         k = self._weight
-#         i, u, v = self._list[j]
-#         u, v = self.__G1.normalize(-u-v,u)
-#         if (k-2-i) % 2 == 0:
-#             s = 1
-#         else:
-#             s = -1
-#         z = []
-#         for j in range(i+1):
-#             m = self.index((k-2-i+j, u, v))
-#             z.append((m,s*arith.binomial(i,j)))
-#             s *= -1
-#         return z
-
-#     def apply(self, j, m):
-#         """
-#         Apply the integer matrix `m=[a,b;c,d]` to the `j`-th Manin symbol.
-
-#         INPUT:
-
-#         - ``j`` - (integer): the index of the symbol to act on.
-
-#         - ``m`` -  `m = [a, b; c, d]`, a list of 4 integers.
-
-
-#         OUTPUT: a list of pairs (j, c_i), where each c_i is an
-#         integer, j is an integer (the j-th Manin symbol), and the sum
-#         c_i\*x_i is the image of self under the right action of the
-#         matrix [a,b;c,d]. Here the right action of g=[a,b;c,d] on a Manin
-#         symbol [P(X,Y),(u,v)] is [P(aX+bY,cX+dY),(u,v)\*g].
-#         """
-#         a, b, c, d = m[0], m[1], m[2], m[3]
-#         i, u, v = self[j]
-#         P = apply_to_monomial(i, self._weight-2, a, b, c, d)
-#         m = self.index((0, u*a+v*c, u*b+v*d))
-#         if m == -1:
-#             return []
-#         r = len(self.__G1)
-#         return [(m + r*k, P[k]) for k in range(self._weight-2+1)
-#                             if P[k] != 0]
-
-#     def normalize(self, x):
-#         """
-#         Returns the normalization of the ModSym x with respect to this
-#         list.
-#         """
-#         u,v = self.__G1.normalize(x[1],x[2])
-#         return (x[0],u,v)
-
-
-class ManinSymbol(SageObject):
-    r"""
-    A Manin symbol `[X^i\cdot Y^{k-2-i},(u,v)]`.
-
-    INPUT:
-
-    -  ``parent`` - ManinSymbolList.
-
-    -  ``t`` - a 3-tuple `(i,u,v)` of integers.
-
-    EXAMPLES::
-
-        sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-        sage: m = ManinSymbolList_gamma0(5,2)
-        sage: s = ManinSymbol(m,(2,2,3)); s
-        (2,3)
-        sage: s == loads(dumps(s))
-        True
-
-        ::
-
-        sage: m = ManinSymbolList_gamma0(5,8)
-        sage: s = ManinSymbol(m,(2,2,3)); s
-        [X^2*Y^4,(2,3)]
-
-    """
-    def __init__(self, parent, t):
-        r"""
-        Create a Manin symbol `[X^i*Y^{k-2-i},(u,v)]`, where
-        `k` is the weight.
-
-        INPUT:
-
-
-        -  ``parent`` - ManinSymbolList
-
-        -  ``t`` - a 3-tuple (i,u,v) of int's.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,2)
-            sage: s = ManinSymbol(m,(2,2,3)); s
-            (2,3)
-
-        ::
-
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3)); s
-            [X^2*Y^4,(2,3)]
-
-        """
-        if not isinstance(parent, ManinSymbolList):
-            raise TypeError("parent (=%s) must be of type ManinSymbolList."%(
-                parent))
-        self.__parent = parent
-        if not isinstance(t, tuple):
-            raise TypeError("t (=%s) must be of type tuple."%t)
-        self.__t = t
-
-    def tuple(self):
-        r"""
-        Return the 3-tuple `(i,u,v)` of this ManinSymbol.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3))
-            sage: s.tuple()
-            (2, 2, 3)
-
-        """
-        return self.__t
-
-    def __get_i(self):
-        """
-        Return the `i` field of this ManinSymbol `(i,u,v)`.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3))
-            sage: s._ManinSymbol__get_i()
-            2
-            sage: s.i
-            2
-        """
-        return self.__t[0]
-
-    i = property(__get_i)
-    def __get_u(self):
-        """
-        Return the `u` field of this ManinSymbol `(i,u,v)`.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3))
-            sage: s.u # indirect doctest
-            2
-        """
-        return self.__t[1]
-    u = property(__get_u)
-
-    def __get_v(self):
-        """
-        Return the `v` field of this ManinSymbol `(i,u,v)`.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3))
-            sage: s.v # indirect doctest
-            3
-        """
-        return self.__t[2]
-    v = property(__get_v)
-
-    def _repr_(self):
-        """
-        Returns a string representation of this ManinSymbol.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3))
-            sage: str(s)  # indirect doctest
-            '[X^2*Y^4,(2,3)]'
-        """
-        if self.weight() > 2:
-            polypart = _print_polypart(self.i, self.weight()-2-self.i)
-            return "[%s,(%s,%s)]"%\
-                   (polypart, self.u, self.v)
-        return "(%s,%s)"%(self.u, self.v)
-
-    def _latex_(self):
-        """
-        Returns a LaTeX representation of this ManinSymbol.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3))
-            sage: latex(s) # indirect doctest
-            [X^2*Y^4,(2,3)]
-        """
-        return self._repr_()
-
-    def __cmp__(self, other):
-        """
-        Comparison function for ManinSymbols.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: slist = m.manin_symbol_list()
-            sage: cmp(slist[10],slist[20])
-            -1
-            sage: cmp(slist[20],slist[10])
-            1
-            sage: cmp(slist[20],slist[20])
-            0
-        """
-        if not isinstance(other, ManinSymbol):
-            return -1
-        if self.__t == other.__t:
-            return 0
-        return cmp(self.tuple(), other.tuple())
-
-    def __mul__(self, matrix):
-        """
-        Returns the result of applying a matrix to this ManinSymbol.
-
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,2)
-            sage: s = ManinSymbol(m,(0,2,3))
-            sage: s*[1,2,0,1]
-            (2,7)
-
-        ::
-
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3))
-            sage: s*[1,2,0,1]
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: ModSym * Matrix only implemented in weight 2
-        """
-        if self.weight() > 2:
-            raise NotImplementedError("ModSym * Matrix only implemented "
-                                      "in weight 2")
-        from sage.matrix.matrix import is_Matrix
-        if is_Matrix(matrix):
-            if (not matrix.nrows() == 2) or (not matrix.ncols() == 2):
-                raise ValueError("matrix(=%s) must be 2x2" % matrix)
-            matrix = matrix.list()
-        return ManinSymbol(self.parent(), \
-                           (self.i,
-                           matrix[0]*self.u + matrix[2]*self.v,\
-                           matrix[1]*self.u + matrix[3]*self.v))
-        raise ArithmeticError("Multiplication of %s by %s not defined." % (self, matrix))
-
-
-    def apply(self, a,b,c,d):
-        """
-        Return the image of self under the matrix `[a,b;c,d]`.
-
-        Not implemented for raw ManinSymbol objects, only for members
-        of ManinSymbolLists.
-
-        EXAMPLE::
-
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,2)
-            sage: m.apply(10,[1,0,0,1]) # not implemented for base class
-        """
-        raise NotImplementedError
-
-    def __copy__(self):
-        """
-        Return a copy of this ManinSymbol.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3))
-            sage: s2 = copy(s)
-            sage: s2
-            [X^2*Y^4,(2,3)]
-
-        """
-        return ManinSymbol(self.parent(), (self.i, self.u, self.v))
-
-    def lift_to_sl2z(self, N=None):
-        r"""
-        Returns a lift of this Manin Symbol to `SL_2(\mathbb{Z})`.
-
-        If this Manin symbol is `(c,d)` and `N` is its level, this
-        function returns a list `[a,b, c',d']` that defines a 2x2
-        matrix with determinant 1 and integer entries, such that
-        `c=c'` (mod `N`) and `d=d'` (mod `N`).
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3))
-            sage: s
-            [X^2*Y^4,(2,3)]
-            sage: s.lift_to_sl2z()
-            [1, 1, 2, 3]
-
-        """
-        if N is None:
-            N = self.level()
-        if N == 1:
-            return [1,0,0,1]
-        c = self.u
-        d = self.v
-        g, z1, z2 = arith.XGCD(c,d)
-
-        # We're lucky: z1*c + z2*d = 1.
-        if g==1:
-            return [z2, -z1, c, d]
-
-        # Have to try harder.
-        if c == 0:
-            c += N;
-        if d == 0:
-            d += N;
-        m = c;
-
-        # compute prime-to-d part of m.
-        while True:
-            g = arith.GCD(m,d)
-            if g == 1:
-                break
-            m //= g
-
-        # compute prime-to-N part of m.
-        while True:
-            g = arith.GCD(m,N);
-            if g == 1:
-                break
-            m //= g
-        d += N*m
-        g, z1, z2 = arith.XGCD(c,d)
-        assert g==1
-        return [z2, -z1, c, d]
-
-    def endpoints(self, N=None):
-        r"""
-        Returns cusps `alpha`, `beta` such that this Manin symbol, viewed as a
-        symbol for level `N`, is `X^i*Y^{k-2-i} \{alpha, beta\}`.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3)); s
-            [X^2*Y^4,(2,3)]
-            sage: s.endpoints()
-            (1/3, 1/2)
-        """
-        if N is None:
-            N = self.parent().level()
-        else:
-            N=int(N)
-            if N < 1:
-                raise ArithmeticError("N must be positive")
-        a,b,c,d = self.lift_to_sl2z()
-        return cusps.Cusp(b,d), cusps.Cusp(a,c)
-
-    def parent(self):
-        """
-        Return the parent of this ManinSymbol.
-
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3))
-            sage: s.parent()
-            Manin Symbol List of weight 8 for Gamma0(5)
-        """
-        return self.__parent
-
-    def weight(self):
-        """
-        Return the weight of this ManinSymbol.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3))
-            sage: s.weight()
-            8
-
-        """
-        return self.__parent.weight()
-
-    def level(self):
-        """
-        Return the level of this ManinSymbol.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3))
-            sage: s.level()
-            5
-
-        """
-        return self.__parent.level()
-
-    def modular_symbol_rep(self):
-        """
-        Returns a representation of self as a formal sum of modular
-        symbols.
-
-        The result is not cached.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3))
-            sage: s.modular_symbol_rep()
-             144*X^6*{1/3, 1/2} - 384*X^5*Y*{1/3, 1/2} + 424*X^4*Y^2*{1/3, 1/2} - 248*X^3*Y^3*{1/3, 1/2} + 81*X^2*Y^4*{1/3, 1/2} - 14*X*Y^5*{1/3, 1/2} + Y^6*{1/3, 1/2}
-
-
-        """
-        # TODO: It would likely be much better to do this slightly more directly
-        from sage.modular.modsym.modular_symbols import ModularSymbol
-        x = ModularSymbol(self.__parent, self.i, 0, rings.infinity)
-        a,b,c,d = self.lift_to_sl2z()
-        return x.apply([a,b,c,d])
 
 def _print_polypart(i, j):
     r"""

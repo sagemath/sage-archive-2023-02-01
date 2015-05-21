@@ -257,6 +257,30 @@ class Monoids(CategoryWithAxiom):
                 result *= self
             return result
 
+        def powers(self, n):
+            r"""
+            Return the list `[x^0, x^1, \ldots, x^{n-1}]`.
+
+            EXAMPLES::
+
+                sage: A = Matrix([[1, 1], [-1, 0]])
+                sage: A.powers(6)
+                [
+                [1 0]  [ 1  1]  [ 0  1]  [-1  0]  [-1 -1]  [ 0 -1]
+                [0 1], [-1  0], [-1 -1], [ 0 -1], [ 1  0], [ 1  1]
+                ]
+            """
+            if n < 0:
+                raise ValueError("negative number of powers requested")
+            elif n == 0:
+                return []
+            x = self.parent().one_element()
+            l = [x]
+            for i in xrange(n - 1):
+                x = x * self
+                l.append(x)
+            return l
+
     class Commutative(CategoryWithAxiom):
         """
         Category of commutative (abelian) monoids.

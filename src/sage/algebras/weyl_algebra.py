@@ -17,7 +17,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
 from sage.structure.element import AlgebraElement, get_coercion_model
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 from copy import copy
 import operator
 from sage.categories.rings import Rings
@@ -692,7 +692,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             sage: W.<x,y> = DifferentialWeylAlgebra(QQ)
             sage: B = W.basis()
             sage: it = iter(B)
-            sage: [it.next() for i in range(20)]
+            sage: [next(it) for i in range(20)]
             [1, x, y, dx, dy, x^2, x*y, x*dx, x*dy, y^2, y*dx, y*dy,
              dx^2, dx*dy, dy^2, x^3, x^2*y, x^2*dx, x^2*dy, x*y^2]
         """

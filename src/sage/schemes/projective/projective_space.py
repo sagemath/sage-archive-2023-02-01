@@ -53,6 +53,8 @@ two lines.
 AUTHORS:
 
 - Ben Hutz: (June 2012): support for rings
+
+- Ben Hutz (9/2014): added support for cartesian products
 """
 
 #*****************************************************************************
@@ -844,6 +846,32 @@ class ProjectiveSpace_ring(AmbientSpace):
         H = Hom(self,self)
         return(H(F))
 
+    def cartesian_product(self, other):
+        r"""
+        Return the cartesian product of the projective spaces ``self`` and
+        ``other``.
+
+        INPUT:
+
+        - ``other`` - A projective space with the same base ring as ``self``
+
+        OUTPUT:
+
+        - A cartesian product of projective spaces
+
+        EXAMPLES::
+
+            sage: P1 = ProjectiveSpace(QQ,1,'x')
+            sage: P2 = ProjectiveSpace(QQ,2,'y')
+            sage: PP = P1.cartesian_product(P2); PP
+            Product of projective spaces P^1 x P^2 over Rational Field
+            sage: PP.gens()
+            (x0, x1, y0, y1, y2)
+        """
+        from sage.schemes.product_projective.space import ProductProjectiveSpaces
+        return ProductProjectiveSpaces([self, other])
+
+
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):
         """
@@ -976,16 +1004,16 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
             P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
             yield self(P)
             iters = [ iter(R) for _ in range(i) ]
-            for x in iters: x.next() # put at zero
+            for x in iters: next(x) # put at zero
             j = 0
             while j < i:
                 try:
-                    P[j] = iters[j].next()
+                    P[j] = next(iters[j])
                     yield self(P)
                     j = 0
                 except StopIteration:
                     iters[j] = iter(R)  # reset
-                    iters[j].next() # put at zero
+                    next(iters[j]) # put at zero
                     P[j] = zero
                     j += 1
             i -= 1
@@ -1041,17 +1069,17 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
             D.update({self(P):index})
             index+=1
             iters = [ iter(R) for _ in range(i) ]
-            for x in iters: x.next() # put at zero
+            for x in iters: next(x) # put at zero
             j = 0
             while j < i:
                 try:
-                    P[j] = iters[j].next()
+                    P[j] = next(iters[j])
                     D.update({self(P):index})
                     index+=1
                     j = 0
                 except StopIteration:
                     iters[j] = iter(R)  # reset
-                    iters[j].next() # put at zero
+                    next(iters[j]) # put at zero
                     P[j] = zero
                     j += 1
             i -= 1

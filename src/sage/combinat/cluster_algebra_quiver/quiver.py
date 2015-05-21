@@ -1356,7 +1356,7 @@ class ClusterQuiver(SageObject):
 
             sage: Q = ClusterQuiver(['A',3])
             sage: it = Q.mutation_class_iter(return_paths=True,data_type='matrix')
-            sage: it.next()
+            sage: next(it)
             (
             [ 0  0  1]
             [ 0  0  1]

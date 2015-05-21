@@ -223,15 +223,15 @@ class Crystals(Category_singleton):
                 sage: C.__iter__.__module__
                 'sage.categories.crystals'
                 sage: g = C.__iter__()
-                sage: g.next()
+                sage: next(g)
                 (-Lambda[0] + Lambda[2],)
-                sage: g.next()
+                sage: next(g)
                 (Lambda[0] - Lambda[1] + delta,)
-                sage: g.next()
+                sage: next(g)
                 (Lambda[1] - Lambda[2] + delta,)
-                sage: g.next()
+                sage: next(g)
                 (-Lambda[0] + Lambda[2] + delta,)
-                sage: g.next()
+                sage: next(g)
                 (Lambda[1] - Lambda[2],)
 
                 sage: sorted(C.__iter__(index_set=[1,2]), key=str)

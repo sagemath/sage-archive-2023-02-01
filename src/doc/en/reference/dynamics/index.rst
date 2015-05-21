@@ -1,3 +1,5 @@
+.. _sage.dynamics:
+
 Discrete dynamics
 =================
 

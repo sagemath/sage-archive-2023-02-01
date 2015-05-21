@@ -105,7 +105,7 @@ cdef class PrimePi(BuiltinFunction):
         These examples test a variety of odd inputs::
 
             sage: prime_pi(3.5)
-            2.00000000000000
+            2
             sage: prime_pi(sqrt(2357))
             15
             sage: prime_pi(mod(30957, 9750979))

@@ -91,14 +91,14 @@ class HypergraphGenerators():
         The Fano Plane, as the only 3-uniform hypergraph with 7 sets and 7
         vertices::
 
-            sage: fano = hypergraphs.nauty(7,7, uniform = 3, max_intersection =1).next() # optional - nauty
+            sage: fano = next(hypergraphs.nauty(7, 7, uniform=3, max_intersection=1)) # optional - nauty
             sage: print fano # optional - nauty
             ((0, 1, 2), (0, 3, 4), (0, 5, 6), (1, 3, 5), (2, 4, 5), (2, 3, 6), (1, 4, 6))
 
         The Fano Plane, as the only 3-regular hypergraph with 7 sets and 7
         vertices::
 
-            sage: fano = hypergraphs.nauty(7,7, regular = 3, max_intersection =1).next() # optional - nauty
+            sage: fano = next(hypergraphs.nauty(7, 7, regular=3, max_intersection=1)) # optional - nauty
             sage: print fano # optional - nauty
             ((0, 1, 2), (0, 3, 4), (0, 5, 6), (1, 3, 5), (2, 4, 5), (2, 3, 6), (1, 4, 6))
         """
@@ -150,7 +150,7 @@ class HypergraphGenerators():
         total = number_of_sets + number_of_vertices
         while True:
             try:
-                s = gen.next()
+                s = next(gen)
             except StopIteration:
                 raise StopIteration("Exhausted list of graphs from nauty geng")
 

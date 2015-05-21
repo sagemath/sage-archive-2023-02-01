@@ -276,7 +276,7 @@ with Octave (an experimental package), or routines in the GSL (Gnu
 Scientific Library).
 
 An example, how to solve ODE's symbolically in Sage using the Maxima interface
-(do not type the ``...``):
+(do not type the ``....:``):
 
 ::
 

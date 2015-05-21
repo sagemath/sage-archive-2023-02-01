@@ -294,10 +294,10 @@ class Word_class(SageObject):
         cmp_fcn = self._parent.cmp_letters
         while True:
             try:
-                cs = self_it.next()
+                cs = next(self_it)
             except StopIteration:
                 try:
-                    co = other_it.next()
+                    co = next(other_it)
                 except StopIteration:
                     # If both self_it and other_it are exhausted then
                     # self == other. Return 0.
@@ -308,7 +308,7 @@ class Word_class(SageObject):
                     return -1
             else:
                 try:
-                    co = other_it.next()
+                    co = next(other_it)
                 except StopIteration:
                     # If self_it is not exhausted but other_it is, then
                     # other is a proper prefix of self: return 1.
@@ -381,10 +381,10 @@ class Word_class(SageObject):
         self_it, other_it = iter(self), iter(other)
         while True:
             try:
-                cs = self_it.next()
+                cs = next(self_it)
             except StopIteration:
                 try:
-                    co = other_it.next()
+                    co = next(other_it)
                 except StopIteration:
                     # If both self_it and other_it are exhausted then
                     # self == other. Return 0.
@@ -395,7 +395,7 @@ class Word_class(SageObject):
                     return False
             else:
                 try:
-                    co = other_it.next()
+                    co = next(other_it)
                 except StopIteration:
                     # If self_it is not exhausted but other_it is, then
                     # other is a proper prefix of self: return 1.
@@ -635,7 +635,7 @@ class Word_class(SageObject):
             False
         """
         try:
-            iter(self).next()
+            next(iter(self))
             return False
         except StopIteration:
             return True
@@ -658,7 +658,7 @@ class Word_class(SageObject):
             sage: from itertools import count
             sage: w = Word(count())
             sage: ir = w._to_integer_iterator()
-            sage: [ir.next() for _ in range(10)]
+            sage: [next(ir) for _ in range(10)]
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             sage: w = Word(iter("abbacabba"))
             sage: ir = w._to_integer_iterator()
@@ -928,7 +928,7 @@ class Word_class(SageObject):
 
             sage: w = Word()
             sage: it = w._iterated_right_palindromic_closure_iterator()
-            sage: it.next()
+            sage: next(it)
             Traceback (most recent call last):
             ...
             StopIteration
@@ -1011,7 +1011,7 @@ class Word_class(SageObject):
 
             sage: w = Word()
             sage: it = w._iterated_right_palindromic_closure_recursive_iterator()
-            sage: it.next()
+            sage: next(it)
             Traceback (most recent call last):
             ...
             StopIteration
@@ -1412,17 +1412,17 @@ class Word_class(SageObject):
         if mod in (None, 0):
             i = iter(self)
             j = iter(self)
-            j.next()
+            next(j)
             while True:
-                yield j.next() - i.next()
+                yield next(j) - next(i)
 
         elif mod in ZZ:
             Zn = Integers(mod)
             i = iter(self)
             j = iter(self)
-            j.next()
+            next(j)
             while True:
-                yield Zn(j.next() - i.next())
+                yield Zn(next(j) - next(i))
 
         else:
             raise TypeError('mod(=%s) must be None or an integer'%mod)
@@ -1605,11 +1605,11 @@ class Word_class(SageObject):
             sage: TM = words.ThueMorseWord()
             sage: fact = Word([0,1,1,0,1])
             sage: it = TM.factor_occurrences_iterator(fact)
-            sage: it.next()
+            sage: next(it)
             0
-            sage: it.next()
+            sage: next(it)
             12
-            sage: it.next()
+            sage: next(it)
             24
         """
         if fact.is_empty():
@@ -1646,23 +1646,23 @@ class Word_class(SageObject):
             sage: TM = words.ThueMorseWord()
             sage: fact = Word([0,1,1,0,1])
             sage: it = TM.return_words_iterator(fact)
-            sage: it.next()
+            sage: next(it)
             word: 011010011001
-            sage: it.next()
+            sage: next(it)
             word: 011010010110
-            sage: it.next()
+            sage: next(it)
             word: 0110100110010110
-            sage: it.next()
+            sage: next(it)
             word: 01101001
-            sage: it.next()
+            sage: next(it)
             word: 011010011001
-            sage: it.next()
+            sage: next(it)
             word: 011010010110
         """
         it = self.factor_occurrences_iterator(fact)
-        i = it.next()
+        i = next(it)
         while True:
-            j = it.next()
+            j = next(it)
             yield self[i:j]
             i = j
 
@@ -1688,17 +1688,17 @@ class Word_class(SageObject):
             sage: TM = words.ThueMorseWord()
             sage: fact = Word([0,1,1,0,1])
             sage: it = TM.complete_return_words_iterator(fact)
-            sage: it.next()
+            sage: next(it)
             word: 01101001100101101
-            sage: it.next()
+            sage: next(it)
             word: 01101001011001101
-            sage: it.next()
+            sage: next(it)
             word: 011010011001011001101
-            sage: it.next()
+            sage: next(it)
             word: 0110100101101
-            sage: it.next()
+            sage: next(it)
             word: 01101001100101101
-            sage: it.next()
+            sage: next(it)
             word: 01101001011001101
 
         REFERENCES:
@@ -1708,9 +1708,9 @@ class Word_class(SageObject):
         """
         it = self.factor_occurrences_iterator(fact)
         L = fact.length()
-        i = it.next()
+        i = next(it)
         while True:
-            j = it.next()
+            j = next(it)
             yield self[i:j+L]
             i = j
 

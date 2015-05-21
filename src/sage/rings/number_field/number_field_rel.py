@@ -212,7 +212,7 @@ class NumberField_relative(NumberField_generic):
             sage: l.<b> = k.extension(x^2 + 3/5)
             doctest:...: UserWarning: PARI only handles integral absolute polynomials. Computations in this field might trigger PARI errors
             sage: b
-            <repr(<sage.rings.number_field.number_field_element.NumberFieldElement_relative at 0x...>) failed: sage.libs.pari.gen.PariError: incorrect type in core2partial (t_FRAC)>
+            <repr(<sage.rings.number_field.number_field_element.NumberFieldElement_relative at 0x...>) failed: PariError: incorrect type in core2partial (t_FRAC)>
 
         However, if the polynomial is linear, rational coefficients should work::
 

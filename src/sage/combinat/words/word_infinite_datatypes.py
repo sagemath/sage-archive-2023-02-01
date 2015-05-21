@@ -69,7 +69,7 @@ class WordDatatype_callable(WordDatatype):
 
             sage: w = Word(lambda x : x % 2)
             sage: it = iter(w)
-            sage: [it.next() for _ in range(10)]
+            sage: [next(it) for _ in range(10)]
             [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
 
         TESTS::
@@ -78,7 +78,7 @@ class WordDatatype_callable(WordDatatype):
             sage: s = WordDatatype_callable(Words(), lambda n:n%3+10, length=10); s
             <sage.combinat.words.word_infinite_datatypes.WordDatatype_callable object at ...>
             sage: it = iter(s)
-            sage: [it.next() for _ in range(10)]
+            sage: [next(it) for _ in range(10)]
             [10, 11, 12, 10, 11, 12, 10, 11, 12, 10]
         """
         if self._len is Infinity:
@@ -346,7 +346,7 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
 
             sage: w = Word(lambda x : x % 2)
             sage: it = iter(w)
-            sage: [it.next() for _ in range(10)]
+            sage: [next(it) for _ in range(10)]
             [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
         """
         if self._len is Infinity:
@@ -533,9 +533,10 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
         r"""
         Empty the associated cache of letters.
 
-        EXAMPLES::
+        EXAMPLES:
 
-        The first 40 (by default) values are always cached.
+        The first 40 (by default) values are always cached::
+
             sage: w = words.ThueMorseWord()
             sage: w._letter_cache
             {0: 0, 1: 1, 2: 1, 3: 0, 4: 1, 5: 0, 6: 0, 7: 1, 8: 1, 9: 0, 10: 0, 11: 1, 12: 0, 13: 1, 14: 1, 15: 0, 16: 1, 17: 0, 18: 0, 19: 1, 20: 0, 21: 1, 22: 1, 23: 0, 24: 0, 25: 1, 26: 1, 27: 0, 28: 1, 29: 0, 30: 0, 31: 1, 32: 1, 33: 0, 34: 0, 35: 1, 36: 0, 37: 1, 38: 1, 39: 0}
@@ -843,11 +844,11 @@ class WordDatatype_iter(WordDatatype):
                 else:
                     key = self.length() + key
             it = iter(self)
-            a = it.next()
+            a = next(it)
             counter = 0
             while counter < key:
                 try:
-                    a = it.next()
+                    a = next(it)
                     counter += 1
                 except StopIteration:
                     raise IndexError("word index out of range")
@@ -920,7 +921,7 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
 
             sage: w = Word(iter([0,1,0,0,1,0,1,0,0,1,0,1,0]))
             sage: it = iter(w)
-            sage: [it.next() for _ in range(10)]
+            sage: [next(it) for _ in range(10)]
             [0, 1, 0, 0, 1, 0, 1, 0, 0, 1]
         """
         # first iterator through the cached values
@@ -1122,7 +1123,7 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
             else:
                 while self._last_index < key:
                     try:
-                        self._list.append(self._gen.next())
+                        self._list.append(next(self._gen))
                         self._last_index += 1
                     except StopIteration:
                         raise IndexError("word index out of range")

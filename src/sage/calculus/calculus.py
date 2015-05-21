@@ -379,7 +379,7 @@ Check that the problem with Taylor expansions of the gamma function
     + 4*euler_gamma*(sqrt(3)*pi + 9*log(3)) + 27*log(3)^2 + 12*psi(1,
     1/3))*x^2*gamma(1/3) - 1/6*(6*euler_gamma + sqrt(3)*pi +
     9*log(3))*x*gamma(1/3) + gamma(1/3)
-    sage: map(lambda f:f[0].n(), _.coeffs())  # numerical coefficients to make comparison easier; Maple 12 gives same answer
+    sage: map(lambda f:f[0].n(), _.coefficients())  # numerical coefficients to make comparison easier; Maple 12 gives same answer
     [2.6789385347..., -8.3905259853..., 26.662447494..., -80.683148377...]
 
 Ensure that ticket #8582 is fixed::
@@ -471,41 +471,6 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
 
         sage: symbolic_sum(1/k^5, k, 1, oo)
         zeta(5)
-
-    .. WARNING::
-    
-        This function only works with symbolic expressions. To sum any
-        other objects like list elements or function return values,
-        please use python summation, see
-        http://docs.python.org/library/functions.html#sum
-
-        In particular, this does not work::
-        
-            sage: n = var('n')
-            sage: list=[1,2,3,4,5]
-            sage: sum(list[n],n,0,3)
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to convert x (=n) to an integer
-            
-        Use python ``sum()`` instead::
-        
-            sage: sum(list[n] for n in range(4))
-            10
-            
-        Also, only a limited number of functions are recognized in symbolic sums::
-        
-            sage: sum(valuation(n,2),n,1,5)
-            Traceback (most recent call last):
-            ...
-            AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'valuation'
-            
-        Again, use python ``sum()``::
-        
-            sage: sum(valuation(n+1,2) for n in range(5))
-            3
-            
-        (now back to the Sage ``sum`` examples)
 
     A well known binomial identity::
 
@@ -1008,7 +973,7 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
                         error = abs(g(aa))
                         if error < expected_error:
                             # See if we can prove equality exactly
-                            if g(ex).simplify_trig().simplify_radical() == 0:
+                            if g(ex).simplify_trig().canonicalize_radical() == 0:
                                 return g
                             # Otherwise fall back to numerical guess
                             elif epsilon and error < epsilon:

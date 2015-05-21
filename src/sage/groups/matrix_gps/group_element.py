@@ -67,7 +67,7 @@ from sage.interfaces.gap import gap
 from sage.structure.element import MultiplicativeGroupElement
 from sage.matrix.matrix import Matrix, is_Matrix
 from sage.structure.factorization import Factorization
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 from sage.libs.gap.element import GapElement, GapElement_List
 from sage.misc.cachefunc import cached_method
 from sage.groups.libgap_wrapper import ElementLibGAP

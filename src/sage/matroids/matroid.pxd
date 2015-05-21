@@ -98,6 +98,8 @@ cdef class Matroid(SageObject):
     cpdef coflats(self, r)
     cpdef hyperplanes(self)
     cpdef f_vector(self)
+    cpdef broken_circuits(self, ordering=*)
+    cpdef no_broken_circuits_sets(self, ordering=*)
 
     # isomorphism
     cpdef is_isomorphic(self, other)

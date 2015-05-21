@@ -35,7 +35,6 @@ AUTHORS:
 import weakref
 from sage.rings.infinity import infinity
 
-include "sage/ext/gmp.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 

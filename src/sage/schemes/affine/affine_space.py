@@ -193,16 +193,16 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         P = [ zero for _ in range(n) ]
         yield self(P)
         iters = [ iter(R) for _ in range(n) ]
-        for x in iters: x.next() # put at zero
+        for x in iters: next(x) # put at zero
         i = 0
         while i < n:
             try:
-                P[i] = iters[i].next()
+                P[i] = next(iters[i])
                 yield self(P)
                 i = 0
             except StopIteration:
                 iters[i] = iter(R)  # reset
-                iters[i].next() # put at zero
+                next(iters[i]) # put at zero
                 P[i] = zero
                 i += 1
 

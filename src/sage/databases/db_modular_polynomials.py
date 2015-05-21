@@ -18,12 +18,12 @@ Database of Modular Polynomials
 
 
 import bz2, os
-import sage.misc.misc
+from sage.env import SAGE_SHARE
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-dblocation = os.path.join(sage.misc.misc.SAGE_SHARE,'kohel')
+dblocation = os.path.join(SAGE_SHARE, 'kohel')
 
 def _dbz_to_integer_list(name):
     file = os.path.join(dblocation, name)

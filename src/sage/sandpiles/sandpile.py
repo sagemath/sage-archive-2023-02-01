@@ -839,8 +839,8 @@ class Sandpile(DiGraph):
         bc = {} # burning config
         bs = {} # burning script
         for v in self._nonsink_vertices:
-            bc[v] = b.next()
-            bs[v] = s.next()
+            bc[v] = next(b)
+            bs[v] = next(s)
         self._burning_config = SandpileConfig(self,bc)
         self._burning_script = SandpileConfig(self,bs)
 

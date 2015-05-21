@@ -923,7 +923,7 @@ def _gen_names(elts):
     from sage.structure.parent_gens import _certify_names
     from sage.combinat.words.words import Words
     it = iter(Words("abcdefghijklmnopqrstuvwxyz", infinite=False))
-    it.next() # skip empty word
+    next(it) # skip empty word
     for x in elts:
         name = str(x)
         m = re.match('^sqrt\((\d+)\)$', name)
@@ -932,5 +932,5 @@ def _gen_names(elts):
         try:
             _certify_names([name])
         except ValueError:
-            name = it.next().string_rep()
+            name = next(it).string_rep()
         yield name

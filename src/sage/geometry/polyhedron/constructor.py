@@ -103,7 +103,7 @@ EXAMPLES::
     sage: trunc_quadr = Polyhedron(vertices=[[1,0],[0,1]], rays=[[1,0],[0,1]])
     sage: trunc_quadr
     A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 2 rays
-    sage: v = trunc_quadr.vertex_generator().next()  # the first vertex in the internal enumeration
+    sage: v = next(trunc_quadr.vertex_generator())  # the first vertex in the internal enumeration
     sage: v
     A vertex at (0, 1)
     sage: v.vector()
@@ -122,7 +122,7 @@ EXAMPLES::
     <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
     sage: v.polyhedron()
     A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 2 rays
-    sage: r = trunc_quadr.ray_generator().next()
+    sage: r = next(trunc_quadr.ray_generator())
     sage: r
     A ray in the direction (0, 1)
     sage: r.vector()

@@ -337,7 +337,7 @@ def deprecated_callable_import(trac_number, module_name, globs, locs, fromlist, 
         message = '\nUsing %(name)s from here is deprecated. ' + \
             'If you need to use it, please import it directly from %(module_name)s.'
     from functools import partial
-    from sage.misc.misc import sage_wraps
+    from sage.misc.decorators import sage_wraps
     if module_name is None:
         mod_dict = globs
     else:

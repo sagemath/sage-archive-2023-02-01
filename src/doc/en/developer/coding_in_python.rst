@@ -247,9 +247,9 @@ The following files are relevant to preparsing in Sage:
 
 #. ``SAGE_ROOT/src/bin/sage-preparse``
 
-#. ``SAGE_ROOT/src/sage/misc/preparser.py``
+#. ``SAGE_ROOT/src/sage/repl/preparse.py``
 
-In particular, the file ``preparser.py`` contains the Sage preparser
+In particular, the file ``preparse.py`` contains the Sage preparser
 code.
 
 

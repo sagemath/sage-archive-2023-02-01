@@ -214,7 +214,6 @@ class Macaulay2(Expect):
 
         TESTS::
 
-            sage: from sage.misc.misc import tmp_filename
             sage: filename = tmp_filename()
             sage: f = open(filename, "w")
             sage: f.write("sage_test = 7;")

@@ -1265,7 +1265,7 @@ def NFCusps_ideal_reps_for_levelN(N, nlists=1):
         if not I.is_principal():
             Iinv = (I.ideal())**(-1)
             while check<nlists:
-                J = it.next()
+                J = next(it)
                 if (J*Iinv).is_principal() and J.is_coprime(N):
                     L[check].append(J)
                     check = check + 1
@@ -1327,6 +1327,6 @@ def units_mod_ideal(I):
     elist = [Istar(I.ideallog(u)).order() for u in ulist]
 
     from sage.misc.mrange import xmrange
-    from sage.misc.misc import prod
+    from sage.misc.all import prod
 
     return [prod([u**e for u,e in zip(ulist,ei)],k(1)) for ei in xmrange(elist)]

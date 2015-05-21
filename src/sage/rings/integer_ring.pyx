@@ -32,27 +32,17 @@ other types will also coerce to the integers, when it makes sense.
 """
 
 #*****************************************************************************
-#
-#   Sage
-#
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-###########################################################################
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/gmp.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "sage/ext/random.pxi"
@@ -71,8 +61,8 @@ from sage.categories.basic import EuclideanDomains
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
-
 from sage.structure.sequence import Sequence
+from sage.misc.misc_c import prod
 
 cimport integer
 cimport rational
@@ -139,7 +129,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     One can give strings to create integers. Strings starting with
     ``0x`` are interpreted as hexadecimal, and strings starting with
-    ``0`` are interpreted as octal::
+    ``0o`` are interpreted as octal::
 
         sage: parent('37')
         <type 'str'>
@@ -149,7 +139,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         16
         sage: Z('0x1a')
         26
-        sage: Z('020')
+        sage: Z('0o20')
         16
 
     As an inverse to :meth:`~sage.rings.integer.Integer.digits`,
@@ -442,7 +432,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         cdef rational.Rational x = PY_NEW(rational.Rational)
         if mpz_sgn(right.value) == 0:
-            raise ZeroDivisionError, 'Rational division by zero'
+            raise ZeroDivisionError('Rational division by zero')
         mpz_set(mpq_numref(x.value), left.value)
         mpz_set(mpq_denref(x.value), right.value)
         mpq_canonicalize(x.value)
@@ -457,7 +447,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
             sage: ZZ[sqrt(2), sqrt(3)]
             Relative Order in Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
-            sage: ZZ[x]
+            sage: ZZ['x']
             Univariate Polynomial Ring in x over Integer Ring
             sage: ZZ['x,y']
             Multivariate Polynomial Ring in x, y over Integer Ring
@@ -1329,7 +1319,6 @@ def IntegerRing():
     """
     return ZZ
 
-import sage.misc.misc
 def crt_basis(X, xgcd=None):
     r"""
     Compute and return a Chinese Remainder Theorem basis for the list ``X``
@@ -1392,16 +1381,16 @@ def crt_basis(X, xgcd=None):
     if len(X) == 0:
         return []
 
-    P = sage.misc.misc.prod(X)
+    P = prod(X)
 
     Y = []
     # 2. Compute extended GCD's
     ONE=X[0].parent()(1)
     for i in range(len(X)):
         p = X[i]
-        prod = P//p
-        g,s,t = p.xgcd(prod)
+        others = P//p
+        g,s,t = p.xgcd(others)
         if g != ONE:
-            raise ArithmeticError, "The elements of the list X must be coprime in pairs."
-        Y.append(t*prod)
+            raise ArithmeticError("the elements of the list X must be coprime in pairs")
+        Y.append(t*others)
     return Y

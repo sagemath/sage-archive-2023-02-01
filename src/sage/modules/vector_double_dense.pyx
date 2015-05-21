@@ -388,13 +388,13 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             1.0
             sage: w*v
             1.0
-        """
-        if not right.parent() == self.parent():
-            right = self.parent().ambient_module()(right)
-        if self._degree == 0:
-            from copy import copy
-            return copy(self)
 
+        This works correctly for zero-dimensional vectors::
+
+            sage: v = vector(RDF, [])
+            sage: v._dot_product_(v)
+            0.0
+        """
         cdef Vector_double_dense _right, _left
         _right = right
         _left = self

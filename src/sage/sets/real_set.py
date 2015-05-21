@@ -701,9 +701,9 @@ class RealSet(UniqueRepresentation, Parent):
 
             sage: s = RealSet(RealSet.open_closed(0,1), RealSet.closed_open(2,3))
             sage: i = iter(s)
-            sage: i.next()
+            sage: next(i)
             (0, 1]
-            sage: i.next()
+            sage: next(i)
             [2, 3)
         """
         return iter(self._intervals)

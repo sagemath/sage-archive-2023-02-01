@@ -452,7 +452,7 @@ class GroupMixinLibGAP(object):
             sage: F = GF(3)
             sage: gens = [matrix(F,2, [1,0, -1,1]), matrix(F, 2, [1,1,0,1])]
             sage: G = MatrixGroup(gens)
-            sage: iter(G).next()
+            sage: next(iter(G))
             [1 0]
             [0 1]
         """

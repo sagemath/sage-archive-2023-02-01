@@ -18,19 +18,14 @@ Transcendental Functions
 #*****************************************************************************
 
 import sys
-import sage.libs.pari.all
-from sage.libs.pari.all import pari
 import sage.rings.complex_field as complex_field
-from sage.structure.coerce import parent
-from sage.structure.element import get_coercion_model
-from sage.symbolic.expression import Expression
 from sage.functions.other import factorial, psi
 
 from sage.rings.all import (ComplexField, ZZ, RR, RDF)
 from sage.rings.complex_number import is_ComplexNumber
 from sage.rings.real_mpfr import (RealField, is_RealNumber)
 
-from sage.symbolic.function import GinacFunction, BuiltinFunction, is_inexact
+from sage.symbolic.function import GinacFunction, BuiltinFunction
 
 import sage.libs.mpmath.utils as mpmath_utils
 from sage.misc.superseded import deprecation
@@ -127,9 +122,6 @@ class Function_HurwitzZeta(BuiltinFunction):
             sage: hurwitz_zeta(3, 0.5)
             8.41439832211716
         """
-        co = get_coercion_model().canonical_coercion(s, x)[0]
-        if is_inexact(co) and not isinstance(co, Expression):
-            return self._evalf_(s, x, parent=parent(co))
         if x == 1:
             return zeta(s)
         if s in ZZ and s > 1:

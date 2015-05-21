@@ -17,7 +17,7 @@ AUTHOR:
 """
 
 
-class SageTimeitResult():
+class SageTimeitResult(object):
     r"""
     Represent the statistics of a timeit() command.
 
@@ -195,7 +195,8 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
     import time, math
     import timeit as timeit_
 
-    import preparser, sage.repl.interpreter as interpreter
+    import sage.repl.interpreter as interpreter
+    import sage.repl.preparse as preparser
 
     number=int(number)
     repeat=int(repeat)

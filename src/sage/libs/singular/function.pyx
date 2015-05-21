@@ -50,7 +50,8 @@ available, use the :func:`lib` function as shown below::
 
 There is also a short-hand notation for the above::
 
-    sage: primdecSY = sage.libs.singular.ff.primdec__lib.primdecSY
+    sage: import sage.libs.singular.function_factory
+    sage: primdecSY = sage.libs.singular.function_factory.ff.primdec__lib.primdecSY
 
 The above line will load "primdec.lib" first and then load the
 function ``primdecSY``.
@@ -103,7 +104,6 @@ from sage.misc.misc import get_verbose
 
 from sage.structure.sequence import Sequence, Sequence_generic
 from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
-
 
 cdef poly* sage_vector_to_poly(v, ring *r) except <poly*> -1:
     """
@@ -1154,10 +1154,11 @@ cdef class SingularFunction(SageObject):
             foobar (singular function)
         """
         self._name = name
-
         global currRingHdl
         if currRingHdl == NULL:
-            currRingHdl = enterid("my_awesome_sage_ring", 0, RING_CMD, &IDROOT, 1)
+            currRingHdl = ggetid("my_awesome_sage_ring")
+            if currRingHdl == NULL:
+                currRingHdl = enterid("my_awesome_sage_ring", 0, RING_CMD, &IDROOT, 1)
             currRingHdl.data.uring.ref += 1
 
     cdef BaseCallHandler get_call_handler(self):
@@ -1230,7 +1231,7 @@ cdef class SingularFunction(SageObject):
             sage: P.<x,y,z> = PolynomialRing(QQ)
             sage: I = Ideal([x^3*y^2 + 3*x^2*y^2*z + y^3*z^2 + z^5])
             sage: I = Ideal(I.groebner_basis())
-            sage: hilb = sage.libs.singular.ff.hilb
+            sage: hilb = sage.libs.singular.function_factory.ff.hilb
             sage: hilb(I) # Singular will print // ** _ is no standard basis
             // ** _ is no standard basis
             //         1 t^0
@@ -1266,7 +1267,7 @@ cdef class SingularFunction(SageObject):
             sage: P.<e,d,c,b,a> = PolynomialRing(QQ,5,order='lex')
             sage: I = sage.rings.ideal.Cyclic(P)
 
-            sage: triangL = sage.libs.singular.ff.triang__lib.triangL
+            sage: triangL = sage.libs.singular.function_factory.ff.triang__lib.triangL
             sage: _ = triangL(I)
             Traceback (most recent call last):
             ...
@@ -1317,13 +1318,13 @@ INPUT:
 
 EXAMPLE::
 
-    sage: groebner = sage.libs.singular.ff.groebner
+    sage: groebner = sage.libs.singular.function_factory.ff.groebner
     sage: P.<x, y> = PolynomialRing(QQ)
     sage: I = P.ideal(x^2-y, y+x)
     sage: groebner(I)
     [x + y, y^2 - y]
 
-    sage: triangL = sage.libs.singular.ff.triang__lib.triangL
+    sage: triangL = sage.libs.singular.function_factory.ff.triang__lib.triangL
     sage: P.<x1, x2> = PolynomialRing(QQ, order='lex')
     sage: f1 = 1/2*((x1^2 + 2*x1 - 4)*x2^2 + 2*(x1^2 + x1)*x2 + x1^2)
     sage: f2 = 1/2*((x1^2 + 2*x1 + 1)*x2^2 + 2*(x1^2 + x1)*x2 - 4*x1^2)

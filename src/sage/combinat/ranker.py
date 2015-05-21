@@ -128,7 +128,7 @@ def on_fly():
 
     @cached_function
     def rank(x):
-        i = counter.next()
+        i = next(counter)
         unrank.set_cache(x, i)
         return i
 
@@ -241,8 +241,8 @@ def unrank(L, i):
         try:
             it = iter(L)
             for _ in range(i):
-                it.next()
-            return it.next()
+                next(it)
+            return next(it)
         except StopIteration as e:
             raise IndexError("index out of range")
     raise ValueError("Don't know how to unrank on {}".format(L))

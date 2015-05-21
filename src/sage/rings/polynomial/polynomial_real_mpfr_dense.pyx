@@ -13,7 +13,7 @@ from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
 from sage.structure.element cimport Element, ModuleElement, RingElement
-from sage.structure.element import parent, canonical_coercion, bin_op, gcd, coerce_binop
+from sage.structure.element import parent, canonical_coercion, bin_op, coerce_binop
 from sage.libs.mpfr cimport *
 
 from sage.libs.all import pari_gen
@@ -641,7 +641,7 @@ cdef class PolynomialRealDense(Polynomial):
         else:
             return a * ~a[a.degree()] << min(aval, bval)
 
-    def __call__(self, xx):
+    def __call__(self, *args, **kwds):
         """
         EXAMPLES::
 
@@ -669,16 +669,29 @@ cdef class PolynomialRealDense(Polynomial):
             sage: f = PolynomialRealDense(RR['x'])
             sage: f(12)
             0.000000000000000
+            
+        TESTS::
+        
+            sage: R.<x> = RR[]       # :trac:`17311`
+            sage: (x^2+1)(x=5)
+            26.0000000000000
         """
+        if len(args) == 1:
+            xx = args[0]
+        else:
+            return Polynomial.__call__(self, *args, **kwds)
+        
         if not PY_TYPE_CHECK(xx, RealNumber):
             if self._base_ring.has_coerce_map_from(parent(xx)):
                 xx = self._base_ring(xx)
             else:
                 return Polynomial.__call__(self, xx)
+            
         cdef Py_ssize_t i
         cdef mp_rnd_t rnd = self._base_ring.rnd
         cdef RealNumber x = <RealNumber>xx
         cdef RealNumber res
+
         if (<RealField_class>x._parent).__prec < self._base_ring.__prec:
             res = RealNumber(x._parent)
         else:
@@ -704,7 +717,7 @@ cdef class PolynomialRealDense(Polynomial):
                 mpfr_mul(res.value, res.value, x.value, rnd)
                 mpfr_add(res.value, res.value, self._coeffs[i], rnd)
         return res
-
+    
     def change_ring(self, R):
         """
         EXAMPLES::

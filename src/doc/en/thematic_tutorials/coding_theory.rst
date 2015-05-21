@@ -27,24 +27,23 @@ call GUAVA:
 
    ::
 
-
-         Sage : MS = MatrixSpace(GF(2),4,7)
-         Sage : G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], 
-                        [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
-         Sage : C  = LinearCode(G)
-         Sage : C
+         sage: MS = MatrixSpace(GF(2),4,7)
+         sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0],
+         ....:           [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+         sage: C  = LinearCode(G)
+         sage: C
          Linear code of length 7, dimension 4 over Finite Field of size 2
-         Sage : C.base_ring()
+         sage: C.base_ring()
          Finite Field of size 2
-         Sage : C.dimension()
+         sage: C.dimension()
          4
-         Sage : C.length()
+         sage: C.length()
          7
-         Sage : C.minimum_distance()
+         sage: C.minimum_distance()
          3
-         Sage : C.spectrum()
+         sage: C.spectrum()
          [1, 0, 0, 7, 7, 0, 0, 1]
-         Sage : C.weight_distribution()
+         sage: C.weight_distribution()
          [1, 0, 0, 7, 7, 0, 0, 1]
 
    This function also enables you to create your own code functions. The
@@ -59,8 +58,9 @@ call GUAVA:
            It is an extremal (Hermitian) self-dual Type IV code.
 
            EXAMPLES:
-               Sage : C = Hexacode()
-               Sage : C.minimum_distance()
+
+               sage: C = Hexacode()       # not tested (see trac #17617)
+               sage: C.minimum_distance() # not tested (see trac #17617)
                4
 
            """
@@ -81,13 +81,13 @@ call GUAVA:
    ::
 
 
-         Sage : C = HammingCode(3,GF(2))
-         Sage : C.zeta_polynomial()
+         sage: C = codes.HammingCode(3,GF(2))
+         sage: C.zeta_polynomial()
          2/5*T^2 + 2/5*T + 1/5
-         Sage : C = best_known_linear_code(6,3,GF(2))  
-         Sage : C.minimum_distance()         
+         sage: C = best_known_linear_code(6,3,GF(2)) # not tested (see trac #17617)
+         sage: C.minimum_distance()                  # not tested (see trac #17617)
          3
-         Sage : C.zeta_polynomial()
+         sage: C.zeta_polynomial()                   # not tested (see trac #17617)
          2/5*T^2 + 2/5*T + 1/5
 
 #. ``gen_mat``, ``check_mat``, ``decode``, ``dual_code``,
@@ -105,18 +105,18 @@ call GUAVA:
    ::
 
 
-           Sage : C = HammingCode(3,GF(2))
-           Sage : C.binomial_moment(2)
+           sage: C = codes.HammingCode(3,GF(2))
+           sage: C.binomial_moment(2)
            0
-           Sage : C.binomial_moment(3)    # long time
+           sage: C.binomial_moment(3)    # not tested (see trac #17617)
            0
-           Sage : C.binomial_moment(4)    # long time
+           sage: C.binomial_moment(4)    # long time
            35
-           Sage : C = HammingCode(3,GF(2))
-           Sage : MS = MatrixSpace(GF(2),1,7)
-           Sage : F = GF(2); a = F.gen()
-           Sage : v1 = [a,a,F(0),a,a,F(0),a]
-           Sage : C.decode(v1)
+           sage: C = codes.HammingCode(3,GF(2))
+           sage: MS = MatrixSpace(GF(2),1,7)
+           sage: F = GF(2); a = F.gen()
+           sage: v1 = [a,a,F(0),a,a,F(0),a]
+           sage: C.decode(v1) # not tested (see trac #17617)
            (1, 0, 0, 1, 1, 0, 1)
 
    Decoding, at the moment, merely uses syndrome decoding via GUAVA.
@@ -135,34 +135,34 @@ call GUAVA:
    ::
 
 
-           Sage : C = HammingCode(3,GF(2))
-           Sage : G = C.automorphism_group_binary_code(); G
-           Permutation Group with generators [(2,3)(5,7), (2,5)(3,7), 
+           sage: C = codes.HammingCode(3,GF(2))
+           sage: G = C.automorphism_group_binary_code(); G # not tested (see trac #17617)
+           Permutation Group with generators [(2,3)(5,7), (2,5)(3,7),
                               (2,3,7,5)(4,6), (2,4)(6,7), (1,2)(3,4)]
-           Sage : G.order()
+           sage: G.order() # not tested (see trac #17617)
            168
-           Sage : C = HammingCode(3,GF(2))
-           Sage : C.gen_mat()
+           sage: C = codes.HammingCode(3,GF(2))
+           sage: C.gen_mat() # not tested (see trac #17617)
            [1 0 0 1 0 1 0]
            [0 1 0 1 0 1 1]
            [0 0 1 1 0 0 1]
            [0 0 0 0 1 1 1]
-           Sage : C.redundancy_matrix()
+           sage: C.redundancy_matrix() # not tested (see trac #17617)
            [1 1 0]
            [1 1 1]
            [1 0 1]
            [0 1 1]
-           Sage : C.standard_form()[0].gen_mat()
+           sage: C.standard_form()[0].gen_mat() # not tested (see trac #17617)
            [1 0 0 0 1 1 0]
            [0 1 0 0 1 1 1]
            [0 0 1 0 1 0 1]
            [0 0 0 1 0 1 1]
-           Sage : MS = MatrixSpace(GF(2),4,8)
-           Sage : G  = MS([[1,0,0,0,1,1,1,0],[0,1,1,1,0,0,0,0],
-                          [0,0,0,0,0,0,0,1],[0,0,0,0,0,1,0,0]])
-           Sage : C  = LinearCode(G)
-           Sage : gp = C.automorphism_group_binary_code()   
-           Sage : C.module_composition_factors(gp)
+           sage: MS = MatrixSpace(GF(2),4,8)
+           sage: G  = MS([[1,0,0,0,1,1,1,0],[0,1,1,1,0,0,0,0],  # not tested (see trac #17617)
+           ....:          [0,0,0,0,0,0,0,1],[0,0,0,0,0,1,0,0]]) # not tested (see trac #17617)
+           sage: C  = codes.LinearCode(G)                       # not tested (see trac #17617)
+           sage: gp = C.automorphism_group_binary_code()        # not tested (see trac #17617)
+           sage: C.module_composition_factors(gp)               # not tested (see trac #17617)
            [ rec(
              field := GF(2),
              isMTXModule := true,
@@ -299,8 +299,8 @@ call GUAVA:
    ::
 
 
-          Sage : C = ExtendedBinaryGolayCode()    #  example 1
-          Sage : C.assmus_mattson_designs(5)
+          sage: C = codes.ExtendedBinaryGolayCode()    #  example 1
+          sage: C.assmus_mattson_designs(5)
           ['weights from C: ',
           [8, 12, 16, 24],
           'designs from C: ',
@@ -309,13 +309,13 @@ call GUAVA:
           [8, 12, 16],
           'designs from C*: ',
           [[5, (24, 8, 1)], [5, (24, 12, 48)], [5, (24, 16, 78)]]]
-          Sage : C.assmus_mattson_designs(6)
-          0 
-          Sage : X = range(24)#  example 2
-          Sage : blocks = [c.support() for c in C if hamming_weight(c)==8]
-          Sage : len(blocks) 
+          sage: C.assmus_mattson_designs(6)
+          0
+          sage: X = range(24)#  example 2
+          sage: blocks = [c.support() for c in C if hamming_weight(c)==8] # not tested (see trac #17617)
+          sage: len(blocks)                                               # not tested (see trac #17617)
           759
-               
+
 
 The method ``automorphism_group_binary_code`` is actually an interface
 to an extremely fast implementation written by the second author. It
@@ -349,7 +349,7 @@ Python:
    :math:`n^{th}` root of unity in the splitting field :math:`GF(q^m)`,
    :math:`b` is an integer :math:`0\leq b\leq n-\delta+1` and :math:`m`
    is the multiplicative order of :math:`q` modulo :math:`n`.
-   
+
    SEEALSO: :wikipedia:`BCH_code`
 
    EXAMPLES:
@@ -357,23 +357,23 @@ Python:
    ::
 
 
-         Sage : FF.<a> = GF(3^2,"a")
-         Sage : x = PolynomialRing(FF,"x").gen()
-         Sage : L = [b.minpoly() for b in [a,a^2,a^3]]; g = LCM(L)
-         Sage : f = x^(8)-1
-         Sage : g.divides(f)
+         sage: FF.<a> = GF(3^2,"a")
+         sage: x = PolynomialRing(FF,"x").gen()
+         sage: L = [b.minpoly() for b in [a,a^2,a^3]]; g = LCM(L)
+         sage: f = x^(8)-1
+         sage: g.divides(f)
          True
-         Sage : C = CyclicCode(8,g); C
+         sage: C = codes.CyclicCode(8,g); C
          Linear code of length 8, dimension 4 over Finite Field of size 3
-         Sage : C.minimum_distance()
+         sage: C.minimum_distance()
          4
-         Sage : C = BCHCode(8,3,GF(3),1); C
+         sage: C = codes.BCHCode(8,3,GF(3),1); C
          Linear code of length 8, dimension 4 over Finite Field of size 3
-         Sage : C.minimum_distance()
+         sage: C.minimum_distance()
          4
-         Sage : C = BCHCode(8,3,GF(3)); C
+         sage: C = codes.BCHCode(8,5,GF(3)); C
          Linear code of length 8, dimension 3 over Finite Field of size 3
-         Sage : C.minimum_distance()
+         sage: C.minimum_distance()
          5
 
 -  ``BinaryGolayCode``, ``ExtendedBinaryGolayCode``, ``TernaryGolayCode``, - the
@@ -384,17 +384,17 @@ Python:
    ::
 
 
-         Sage : C = ExtendedBinaryGolayCode()
-         Sage : C
+         sage: C = codes.ExtendedBinaryGolayCode()
+         sage: C
          Linear code of length 24, dimension 12 over Finite Field of size 2
-         Sage : C.minimum_distance()  
+         sage: C.minimum_distance()
          8
-         Sage : C.is_self_dual()
+         sage: C.is_self_dual()
          True
-         Sage : C = TernaryGolayCode()
-         Sage : C
+         sage: C = codes.TernaryGolayCode()
+         sage: C
          Linear code of length 11, dimension 6 over Finite Field of size 3
-         Sage : C.minimum_distance()
+         sage: C.minimum_distance()
          5
 
 -  Cyclic codes - ``CyclicCodeFromGeneratingPolynomial`` (= ``CyclicCode``),
@@ -405,36 +405,36 @@ Python:
    ::
 
 
-         Sage : P.<x> = PolynomialRing(GF(3),"x")
-         Sage : g = x-1
-         Sage : C = CyclicCodeFromGeneratingPolynomial(4,g); C
+         sage: P.<x> = PolynomialRing(GF(3),"x")
+         sage: g = x-1
+         sage: C = codes.CyclicCodeFromGeneratingPolynomial(4,g); C
          Linear code of length 4, dimension 3 over Finite Field of size 3
-         Sage : P.<x> = PolynomialRing(GF(4,"a"),"x")
-         Sage : g = x^3+1
-         Sage : C = CyclicCodeFromGeneratingPolynomial(9,g); C
+         sage: P.<x> = PolynomialRing(GF(4,"a"),"x")
+         sage: g = x^3+1
+         sage: C = codes.CyclicCodeFromGeneratingPolynomial(9,g); C
          Linear code of length 9, dimension 6 over Finite Field in a of size 2^2
-         Sage : P.<x> = PolynomialRing(GF(2),"x")
-         Sage : g = x^3+x+1
-         Sage : C = CyclicCodeFromGeneratingPolynomial(7,g); C
+         sage: P.<x> = PolynomialRing(GF(2),"x")
+         sage: g = x^3+x+1
+         sage: C = codes.CyclicCodeFromGeneratingPolynomial(7,g); C
          Linear code of length 7, dimension 4 over Finite Field of size 2
-         Sage : C.gen_mat()  
+         sage: C.gen_mat()
          [1 1 0 1 0 0 0]
          [0 1 1 0 1 0 0]
          [0 0 1 1 0 1 0]
          [0 0 0 1 1 0 1]
-         Sage : g = x+1
-         Sage : C = CyclicCodeFromGeneratingPolynomial(4,g); C
+         sage: g = x+1
+         sage: C = codes.CyclicCodeFromGeneratingPolynomial(4,g); C
          Linear code of length 4, dimension 3 over Finite Field of size 2
-         Sage : C.gen_mat()
+         sage: C.gen_mat()
          [1 1 0 0]
          [0 1 1 0]
          [0 0 1 1]
-         Sage : P.<x> = PolynomialRing(GF(3),"x")
-         Sage : C = CyclicCodeFromCheckPolynomial(4,x + 1); C
+         sage: P.<x> = PolynomialRing(GF(3),"x")
+         sage: C = codes.CyclicCodeFromCheckPolynomial(4,x + 1); C
          Linear code of length 4, dimension 1 over Finite Field of size 3
-         Sage : C = CyclicCodeFromCheckPolynomial(4,x^3 + x^2 + x + 1); C
+         sage: C = codes.CyclicCodeFromCheckPolynomial(4,x^3 + x^2 + x + 1); C
          Linear code of length 4, dimension 3 over Finite Field of size 3
-         Sage : C.gen_mat()
+         sage: C.gen_mat()
          [2 1 0 0]
          [0 2 1 0]
          [0 0 2 1]
@@ -449,15 +449,15 @@ Python:
    ::
 
 
-         Sage : from Sage .coding.code_constructions import is_a_splitting
-         Sage : n = 11; q = 3
-         Sage : C = cyclotomic_cosets(q,n); C
+         sage: from sage.coding.code_constructions import is_a_splitting
+         sage: n = 11; q = 3
+         sage: C = Zmod(n).cyclotomic_cosets(q); C
          [[0], [1, 3, 4, 5, 9], [2, 6, 7, 8, 10]]
-         Sage : S1 = C[1]
-         Sage : S2 = C[2]
-         Sage : is_a_splitting(S1,S2,11)
-         (True, 2)
-         Sage : DuadicCodeOddPair(GF(q),S1,S2)  
+         sage: S1 = C[1]
+         sage: S2 = C[2]
+         sage: is_a_splitting(S1,S2,11)
+         True
+         sage: codes.DuadicCodeOddPair(GF(q),S1,S2)
          (Linear code of length 11, dimension 6 over Finite Field of size 3,
           Linear code of length 11, dimension 6 over Finite Field of size 3)
 
@@ -472,7 +472,7 @@ Python:
    nonzero vectors of length r in its columns, modulo a scalar factor so
    no parallel columns arise. A Hamming code is a single
    error-correcting code.
-   
+
    SEEALSO: :wikipedia:`Hamming_code`
 
    EXAMPLES:
@@ -480,13 +480,13 @@ Python:
    ::
 
 
-         Sage : HammingCode(3,GF(2))
+         sage: codes.HammingCode(3,GF(2))
          Linear code of length 7, dimension 4 over Finite Field of size 2
-         Sage : C = HammingCode(3,GF(3)); C
+         sage: C = codes.HammingCode(3,GF(3)); C
          Linear code of length 13, dimension 10 over Finite Field of size 3
-         Sage : C.minimum_distance()
+         sage: C.minimum_distance()
          3
-         Sage : C = HammingCode(3,GF(4,'a')); C
+         sage: C = codes.HammingCode(3,GF(4,'a')); C
          Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
 
 -  ``LinearCodeFromCheckMatrix`` - for specifing the code using the check
@@ -498,7 +498,7 @@ Python:
 
    .. math::
 
-      0 \rightarrow 
+      0 \rightarrow
           {\mathbf{F}}^k \stackrel{G}{\rightarrow}
           {\mathbf{F}}^n \stackrel{H}{\rightarrow}
           {\mathbf{F}}^{n-k} \rightarrow
@@ -514,22 +514,22 @@ Python:
    ::
 
 
-         Sage : C = HammingCode(3,GF(2))
-         Sage : H = C.check_mat(); H  
+         sage: C = codes.HammingCode(3,GF(2))
+         sage: H = C.check_mat(); H   # not tested (see trac #17617)
          [1 0 0 1 1 0 1]
          [0 1 0 1 0 1 1]
          [0 0 1 1 1 1 0]
-         Sage : LinearCodeFromCheckMatrix(H) == C
+         sage: codes.LinearCodeFromCheckMatrix(H) == C # not tested (see trac #17617)
          True
-         Sage : C = HammingCode(2,GF(3))
-         Sage : H = C.check_mat(); H
+         sage: C = codes.HammingCode(2,GF(3))
+         sage: H = C.check_mat(); H                    # not tested (see trac #17617)
          [1 0 2 2]
          [0 1 2 1]
-         Sage : LinearCodeFromCheckMatrix(H) == C
+         sage: codes.LinearCodeFromCheckMatrix(H) == C # not tested (see trac #17617)
          True
-         Sage : C = RandomLinearCode(10,5,GF(4,"a"))
-         Sage : H = C.check_mat()
-         Sage : LinearCodeFromCheckMatrix(H) == C
+         sage: C = codes.RandomLinearCode(10,5,GF(4,"a"))
+         sage: H = C.check_mat()
+         sage: codes.LinearCodeFromCheckMatrix(H) == C # not tested (see trac #17617)
          True
 
 -  ``QuadraticResidueCodeEvenPair``, ``QuadraticResidueCodeOddPair``: Quadratic
@@ -551,24 +551,24 @@ Python:
    ::
 
 
-         Sage : QuadraticResidueCodeEvenPair(17,GF(13))  
+         sage: codes.QuadraticResidueCodeEvenPair(17,GF(13))
          (Linear code of length 17, dimension 8 over Finite Field of size 13,
           Linear code of length 17, dimension 8 over Finite Field of size 13)
-         Sage : QuadraticResidueCodeEvenPair(17,GF(2))
+         sage: codes.QuadraticResidueCodeEvenPair(17,GF(2))
          (Linear code of length 17, dimension 8 over Finite Field of size 2,
           Linear code of length 17, dimension 8 over Finite Field of size 2)
-         Sage : QuadraticResidueCodeEvenPair(13,GF(9,"z"))
+         sage: codes.QuadraticResidueCodeEvenPair(13,GF(9,"z"))
          (Linear code of length 13, dimension 6 over Finite Field in z of size 3^2,
           Linear code of length 13, dimension 6 over Finite Field in z of size 3^2)
-         Sage : C1 = QuadraticResidueCodeEvenPair(7,GF(2))[0]
-         Sage : C1.is_self_orthogonal()
+         sage: C1 = codes.QuadraticResidueCodeEvenPair(7,GF(2))[0]
+         sage: C1.is_self_orthogonal()
          True
-         Sage : C2 = QuadraticResidueCodeEvenPair(7,GF(2))[1]
-         Sage : C2.is_self_orthogonal()
+         sage: C2 = codes.QuadraticResidueCodeEvenPair(7,GF(2))[1]
+         sage: C2.is_self_orthogonal()
          True
-         Sage : C3 = QuadraticResidueCodeOddPair(17,GF(2))[0]
-         Sage : C4 = QuadraticResidueCodeEvenPair(17,GF(2))[1]
-         Sage : C3 == C4.dual_code()
+         sage: C3 = codes.QuadraticResidueCodeOddPair(17,GF(2))[0]
+         sage: C4 = codes.QuadraticResidueCodeEvenPair(17,GF(2))[1]
+         sage: C3 == C4.dual_code()
          True
 
    This is consistent with Theorem 6.6.9 and Exercise 365 in [HP]_.
@@ -589,7 +589,7 @@ Python:
 
    .. math::
 
-      C = \left\{ \left( f(x_1), f(x_2), ..., f(x_n) \right)\ |\  f \in \mathbb{F}[x], 
+      C = \left\{ \left( f(x_1), f(x_2), ..., f(x_n) \right)\ |\  f \in \mathbb{F}[x],
            {\rm deg}(f)<k \right\}.
 
    :math:`C` is a :math:`[n, k, n-k+1]` code. (In particular, :math:`C`
@@ -612,17 +612,17 @@ Python:
    ::
 
 
-         Sage : C = ReedSolomonCode(6,4,GF(7)); C
+         sage: C = codes.ReedSolomonCode(6,4,GF(7)); C
          Linear code of length 6, dimension 4 over Finite Field of size 7
-         Sage : C.minimum_distance()
+         sage: C.minimum_distance()
          3
-         Sage : F.<a> = GF(3^2,"a")
-         Sage : pts = [0,1,a,a^2,2*a,2*a+1]
-         Sage : len(Set(pts)) == 6 # to make sure there are no duplicates
+         sage: F.<a> = GF(3^2,"a")
+         sage: pts = [0,1,a,a^2,2*a,2*a+1]
+         sage: len(Set(pts)) == 6 # to make sure there are no duplicates
          True
-         Sage : C = ReedSolomonCode(6,4,F,pts); C
+         sage: C = codes.ReedSolomonCode(6,4,F,pts); C
          Linear code of length 6, dimension 4 over Finite Field in a of size 3^2
-         Sage : C.minimum_distance()
+         sage: C.minimum_distance()
          3
 
 -  ``ToricCode`` - Let :math:`P` denote a list of lattice points in
@@ -639,14 +639,14 @@ Python:
    ::
 
 
-         Sage : C = ToricCode([[0,0],[1,0],[2,0],[0,1],[1,1]],GF(7))
-         Sage : C     
+         sage: C = codes.ToricCode([[0,0],[1,0],[2,0],[0,1],[1,1]],GF(7))
+         sage: C
          Linear code of length 36, dimension 5 over Finite Field of size 7
-         Sage : C.minimum_distance()
+         sage: C.minimum_distance()
          24
-         Sage : P = [ [0,0],[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[3,1],[3,2],[4,1]]
-         Sage : C = ToricCode(P, GF(8,"a"))
-         Sage : C
+         sage: P = [ [0,0],[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[3,1],[3,2],[4,1]]
+         sage: C = codes.ToricCode(P, GF(8,"a"))
+         sage: C
          Linear code of length 49, dimension 11 over Finite Field in a of size 2^3
 
    This is in fact a :math:`[49,11,28]` code over :math:`GF(8)`. If you
@@ -661,10 +661,10 @@ Python:
    ::
 
 
-          Sage : C = WalshCode(4); C
+          sage: C = codes.WalshCode(4); C
           Linear code of length 16, dimension 4 over Finite Field of size 2
-          Sage : C.minimum_distance()
-          8 
+          sage: C.minimum_distance()
+          8
 
 Bounds
 ======
@@ -686,19 +686,19 @@ Regarding bounds on coding theory parameters, this module implements:
    -  ``F`` - finite field, whose field order must be in [2, 3, 4, 5, 7,
       8, 9]
 
-   -  ``verbose`` - bool (default=False), print verbose mesSage 
+   -  ``verbose`` - bool (default=False), print verbose mesSage
 
    EXAMPLES:
 
    ::
 
 
-         Sage : L = best_known_linear_code_www(72, 36, GF(2)) # requires internet
-         Sage : print L                    
+         sage: L = codes.best_known_linear_code_www(72, 36, GF(2)) # not tested (see trac #17617)
+         sage: print L                                             # not tested (see trac #17617)
          Construction of a linear code [72,36,15] over GF(2):
          [1]:  [73, 36, 16] Cyclic Linear Code over GF(2)
-               CyclicCode of length 73 with generating polynomial x^37 + x^36 
-               + x^34 + x^33 + x^32 + x^27 + x^25 + x^24 + x^22 + x^21 + x^19 
+               CyclicCode of length 73 with generating polynomial x^37 + x^36
+               + x^34 + x^33 + x^32 + x^27 + x^25 + x^24 + x^22 + x^21 + x^19
                + x^18 + x^15 + x^11 + x^10 + x^8 + x^7 + x^5 + x^3 + 1
          [2]:  [72, 36, 15] Linear Code over GF(2)
                     Puncturing of [1] at 1
@@ -711,7 +711,7 @@ Regarding bounds on coding theory parameters, this module implements:
    ::
 
 
-       Sage : print bounds_minimum_distance(10,5,GF(2))
+       sage: print bounds_minimum_distance(10,5,GF(2)) # not tested (see trac #17617)
        rec(
          n := 10,
          k := 5,
@@ -723,16 +723,16 @@ Regarding bounds on coding theory parameters, this module implements:
                              <Operation "DualCode">,
                              [ [ <Operation "RepetitionCode">, [ 8, 2 ] ] ] ],
                          [ <Operation "UUVCode">,
-                             [ [ <Operation "DualCode">, 
-                             [ [ <Operation "RepetitionCode">, [ 4, 2 ] ] ] ], 
+                             [ [ <Operation "DualCode">,
+                             [ [ <Operation "RepetitionCode">, [ 4, 2 ] ] ] ],
                                [ <Operation "RepetitionCode">, [ 4, 2 ] ] ] ] ] ],
                                [ 1, 2, 3, 4, 5, 6 ] ] ],
          lowerBound := 4,
          lowerBoundExplanation :=
-          [ "Lb(10,5)=4, by shortening of:", 
+          [ "Lb(10,5)=4, by shortening of:",
             "Lb(16,11)=4, by the u|u+v construction applied to C1 [8,7,2] and C2 [8,4,4]: ",
              "Lb(8,7)=2, dual of the repetition code",
-             "Lb(8,4)=4, by the u|u+v construction applied to C1 [4,3,2] and C2 [4,1,4]: ", 
+             "Lb(8,4)=4, by the u|u+v construction applied to C1 [4,3,2] and C2 [4,1,4]: ",
              "Lb(4,3)=2, dual of the repetition code", "Lb(4,1)=4, repetition code"
             ],
          upperBound := 4,
@@ -747,7 +747,7 @@ Regarding bounds on coding theory parameters, this module implements:
    ::
 
 
-       Sage : codesize_upper_bound(10, 3, 2)
+       sage: codesize_upper_bound(10, 3, 2) # not tested (see trac #17617)
        85
 
    This means that there is a :math:`(10,85,3)` binary (non-linear)
@@ -758,8 +758,8 @@ Regarding bounds on coding theory parameters, this module implements:
    ::
 
 
-       Sage : L = best_known_linear_code_www(10, 6, GF(2))
-       Sage : print L
+       sage: L = best_known_linear_code_www(10, 6, GF(2)) # not tested (see trac #17617)
+       sage: print L                                      # not tested (see trac #17617)
        Construction of a linear code
        [10,6,3] over GF(2):
        [1]:  [4, 1, 4] Cyclic Linear Code over GF(2)
@@ -792,7 +792,7 @@ Regarding bounds on coding theory parameters, this module implements:
    ::
 
 
-       Sage : dimension_upper_bound(10, 3, 2)
+       sage: dimension_upper_bound(10, 3, 2)
        6
 
    This was established in the example above.
@@ -858,11 +858,11 @@ Regarding bounds on coding theory parameters, this module implements:
    .. math::
 
       \begin{aligned}
-      R(C)+\delta(C) \geq 
+      R(C)+\delta(C) \geq
       &1- \delta(C)\log_q({\frac{q-1}{q}})-\delta(C)\log_q(\delta(C))\\
       &-(1-\delta(C))\log_q(1-\delta(C))-\epsilon.\\
       \end{aligned}
-      
+
    The curve
    :math:`(\delta, 1- \delta\log_q({\frac{q-1}{q}})-\delta\log_q(\delta)-
    (1-\delta)\log_q(1-\delta)))` is called the **Gilbert-Varshamov
@@ -879,9 +879,9 @@ Regarding bounds on coding theory parameters, this module implements:
 .. figure:: media/gv-bound-asymp.png
     :align: center
     :scale: 50 %
-    
+
     Figure 1: Plot of the Gilbert-Varshamov curve using Sage (i.e., ``y = gv_bound_asymp(x, 2)``).
-   
+
 -  ``plotkin_upper_bound(n,q,d)``
 
 -  ``plotkin_bound_asymp(delta,q)``, asymptotic analog of the Plotkin
@@ -890,9 +890,9 @@ Regarding bounds on coding theory parameters, this module implements:
 .. figure:: media/plotkin-bound-asymp.png
     :align: center
     :scale: 50 %
-    
+
     Figure 2: Plot using Sage of ``y = plotkin_bound_asymp(x, 2)``.
-   
+
 -  ``griesmer_upper_bound(n,q,d)``, the Griesmer upper bound.
 
 -  ``elias_upper_bound(n,q,d)``, the Elias upper bound.
@@ -903,7 +903,7 @@ Regarding bounds on coding theory parameters, this module implements:
 .. figure:: media/elias-bound-asymp.png
     :align: center
     :scale: 50 %
-    
+
     Figure 3: Plot using Sage of ``y = elias_bound_asymp(x, 2)``.
 
 -  ``hamming_upper_bound(n,q,d)``, the Hamming upper bound.
@@ -914,7 +914,7 @@ Regarding bounds on coding theory parameters, this module implements:
 .. figure:: media/hamming-bound-asymp.png
     :align: center
     :scale: 50 %
-    
+
     Figure 4: Plot using Sage of ``y = hamming_bound_asymp(x, 2)``.
 
 -  ``singleton_upper_bound(n,q,d)``, the Singleton upper bound.
@@ -925,7 +925,7 @@ Regarding bounds on coding theory parameters, this module implements:
 .. figure:: media/singleton-bound-asymp.png
     :align: center
     :scale: 50 %
-    
+
     Figure 5: Plot using Sage of ``y = singleton_bound_asymp(x, 2)``.
 
 -  ``mrrw1_bound_asymp(delta,q)``, "first" asymptotic
@@ -934,32 +934,32 @@ Regarding bounds on coding theory parameters, this module implements:
 .. figure:: media/mrrw1-bound-asymp.png
     :align: center
     :scale: 50 %
-    
+
     Figure 6: Plot using Sage of ``y = mrrw1_bound_asymp(x, 2)``.
 
-Here are all the bounds together: 
+Here are all the bounds together:
 
 ::
 
 
-    Sage : f1 = lambda x: gv_bound_asymp(x,2)
-    Sage : P1 = plot(f1,0,1/2,linestyle=":")
-    Sage : f2 = lambda x: plotkin_bound_asymp(x,2)
-    Sage : P2 = plot(f2,0,1/2,linestyle="--")
-    Sage : f3 = lambda x: elias_bound_asymp(x,2)
-    Sage : P3 = plot(f3,0,1/2,rgbcolor=(1,0,0))
-    Sage : f4 = lambda x: singleton_bound_asymp(x,2)
-    Sage : P4 = plot(f4,0,1/2,linestyle="-.")
-    Sage : f5 = lambda x: mrrw1_bound_asymp(x,2)
-    Sage : P5 = plot(f5,0,1/2,linestyle="steps")
-    Sage : f6 = lambda x: hamming_bound_asymp(x,2)
-    Sage : P6 = plot(f6,0,1/2,rgbcolor=(0,1,0))
-    Sage : show(P1+P2+P3+P4+P5+P6)
+    sage: f1 = lambda x: gv_bound_asymp(x,2)
+    sage: P1 = plot(f1,0,1/2,linestyle=":")
+    sage: f2 = lambda x: plotkin_bound_asymp(x,2)
+    sage: P2 = plot(f2,0,1/2,linestyle="--")
+    sage: f3 = lambda x: elias_bound_asymp(x,2)
+    sage: P3 = plot(f3,0,1/2,rgbcolor=(1,0,0))
+    sage: f4 = lambda x: singleton_bound_asymp(x,2)
+    sage: P4 = plot(f4,0,1/2,linestyle="-.")
+    sage: f5 = lambda x: mrrw1_bound_asymp(x,2)
+    sage: P5 = plot(f5,0,1/2,linestyle="steps")
+    sage: f6 = lambda x: hamming_bound_asymp(x,2)
+    sage: P6 = plot(f6,0,1/2,rgbcolor=(0,1,0))
+    sage: show(P1+P2+P3+P4+P5+P6)
 
 .. figure:: media/all-bounds-asymp.png
     :align: center
     :scale: 100 %
-    
+
     Figure 7: Plot of the Gilbert-Varshamov (dotted), Elias (red), Plotkin (dashed),
     Singleton (dash-dotted), Hamming (green), and MRRW (stepped) curves using
     Sage.
@@ -1007,19 +1007,19 @@ EXAMPLES:
 ::
 
 
-       Sage : C = self_dual_codes_binary(10)["10"]
-       Sage : C["0"]["code"] == C["0"]["code"].dual_code()
+       sage: C = self_dual_codes_binary(10)["10"]
+       sage: C["0"]["code"] == C["0"]["code"].dual_code()
        True
-       Sage : C["1"]["code"] == C["1"]["code"].dual_code()
+       sage: C["1"]["code"] == C["1"]["code"].dual_code()
        True
-       Sage : len(C.keys()) # number of inequiv sd codes of length 10
+       sage: len(C.keys()) # number of inequiv sd codes of length 10
        2
-       Sage : C = self_dual_codes_binary(12)["12"] 
-       Sage : C["0"]["code"] == C["0"]["code"].dual_code()
+       sage: C = self_dual_codes_binary(12)["12"]
+       sage: C["0"]["code"] == C["0"]["code"].dual_code()
        True
-       Sage : C["1"]["code"] == C["1"]["code"].dual_code()
+       sage: C["1"]["code"] == C["1"]["code"].dual_code()
        True
-       Sage : C["2"]["code"] == C["2"]["code"].dual_code()
+       sage: C["2"]["code"] == C["2"]["code"].dual_code()
        True
 
 These Sage  commands simply show that the two inequivalent self-dual

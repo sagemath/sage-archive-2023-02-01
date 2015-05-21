@@ -101,72 +101,6 @@ class HasseDiagram(DiGraph):
                     return False
             return True
 
-    # Could this be achieved by adding some options to
-    # GenericGraph.plot, and just overriding graphics_array_defaults?
-
-    def plot(self, label_elements=True, element_labels=None,
-            label_font_size=12,label_font_color='black', layout = "acyclic", **kwds):
-        """
-        Returns a Graphics object corresponding to the Hasse diagram.
-
-        EXAMPLES::
-
-            sage: uc = [[2,3], [], [1], [1], [1], [3,4]]
-            sage: elm_lbls = Permutations(3).list()
-            sage: P = Poset(uc,elm_lbls)
-            sage: H = P._hasse_diagram
-            sage: levels = H.level_sets()
-            sage: heights = dict([[i, levels[i]] for i in range(len(levels))])
-            sage: type(H.plot(label_elements=True))
-            <class 'sage.plot.graphics.Graphics'>
-
-        ::
-
-            sage: P = Posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [3,4,1,2])
-            sage: P._hasse_diagram.plot()
-            Graphics object consisting of 42 graphics primitives
-        """
-        # Set element_labels to default to the vertex set.
-        if element_labels is None:
-            element_labels = range(self.num_verts())
-
-        # Create the underlying graph.
-        graph = DiGraph(self)
-        graph.relabel(element_labels)
-
-        return graph.plot(layout = layout, **kwds)
-
-    def show(self, label_elements=True, element_labels=None,
-            label_font_size=12,label_font_color='black',
-            vertex_size=300, vertex_colors=None,**kwds):
-        """
-        Shows the Graphics object corresponding to the Hasse diagram.
-        Optionally, it is labelled.
-
-        INPUT:
-
-
-        -  ``label_elements`` - whether to display element
-           labels
-
-        -  ``element_labels`` - a dictionary of element
-           labels
-
-
-        EXAMPLES::
-
-            sage: uc = [[2,3], [], [1], [1], [1], [3,4]]
-            sage: elm_lbls = Permutations(3).list()
-            sage: P = Poset(uc,elm_lbls)
-            sage: H = P._hasse_diagram
-            sage: levels = H.level_sets()
-            sage: heights = dict([[i, levels[i]] for i in range(len(levels))])
-            sage: H.show(label_elements=True)
-        """
-        self.plot(label_elements=label_elements, element_labels=element_labels,
-            label_font_size=label_font_size,label_font_color=label_font_color,
-            vertex_size=vertex_size, vertex_colors=vertex_colors).show(**kwds)
-
     def cover_relations_iterator(self):
         r"""
         TESTS::
@@ -563,15 +497,15 @@ class HasseDiagram(DiGraph):
             sage: f = H.rank_function()
             sage: s = dumps(H)
         """
-        if(self._rank_dict is None):
+        if(self._rank is None):
             return None
-        return self._rank_dict.__getitem__ #the rank function is just the getitem of the dict
+        return self._rank.__getitem__ # the rank function is just the getitem of the list
 
     @lazy_attribute
-    def _rank_dict(self):
+    def _rank(self):
         r"""
-        Builds the rank dictionnary of the poset, if it exists, i.e.
-        a dictionary ``d`` where ``d[object] = self.rank_function()(object)``
+        Builds the rank function of the poset, if it exists, i.e.
+        an array ``d`` where ``d[object] = self.rank_function()(object)``
 
         A *rank function* of a poset `P` is a function `r`
         that maps elements of `P` to integers and satisfies:
@@ -584,46 +518,47 @@ class HasseDiagram(DiGraph):
         EXAMPLES::
 
             sage: H = Poset()._hasse_diagram
-            sage: H._rank_dict
-            {}
+            sage: H._rank
+            []
             sage: H = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])._hasse_diagram
-            sage: H._rank_dict
-            {0: 0, 1: 1, 2: 1, 3: 2, 4: 2, 5: 1, 6: 2, 7: 3}
+            sage: H._rank
+            [0, 1, 1, 2, 2, 1, 2, 3]
             sage: H = Poset(([1,2,3,4,5],[[1,2],[2,3],[3,4],[1,5],[5,4]]))._hasse_diagram
-            sage: H._rank_dict is None
+            sage: H._rank is None
             True
         """
-        rank_fcn = {}  # rank_fcn will be the dictionary whose i-th entry
-                       # is the rank of vertex i for every i.
+        # rank[i] is the rank of point i. It is equal to None until the rank of
+        # i is computed
+        rank = [None]*self.order()
         not_found = set(self.vertices())
         while not_found:
             y = not_found.pop()
-            rank_fcn[y] = ZZ.zero()  # We set some vertex to have rank 0
+            rank[y] = 0  # We set some vertex to have rank 0
             component = set([y])
             queue = set([y])
             while queue:  # look at the neighbors of y and set the ranks;
                           # then look at the neighbors of the neighbors ...
                 y = queue.pop()
                 for x in self.neighbors_out(y):
-                    if x not in rank_fcn:
-                        rank_fcn[x] = rank_fcn[y] + 1
+                    if rank[x] is None:
+                        rank[x] = rank[y] + 1
                         queue.add(x)
                         component.add(x)
                 for x in self.neighbors_in(y):
-                    if x not in rank_fcn:
-                        rank_fcn[x] = rank_fcn[y] - 1
+                    if rank[x] is None:
+                        rank[x] = rank[y] - 1
                         queue.add(x)
                         component.add(x)
-                    elif rank_fcn[x] != rank_fcn[y] - 1:
+                    elif rank[x] != rank[y] - 1:
                         return None
             # Normalize the ranks of vertices in the connected component
             # so that smallest is 0:
-            m = min(rank_fcn[j] for j in component)
+            m = min(rank[j] for j in component)
             for j in component:
-                rank_fcn[j] -= m
+                rank[j] -= m
             not_found.difference_update(component)
         #now, all ranks are set.
-        return rank_fcn
+        return rank
 
     def rank(self,element=None):
         r"""

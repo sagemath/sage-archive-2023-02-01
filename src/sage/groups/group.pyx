@@ -227,7 +227,7 @@ cdef class Group(Parent):
             sage: G.an_element()
             f0*f1*f2*f3
         """
-        from sage.misc.misc import prod
+        from sage.misc.all import prod
         return prod(self.gens())
 
     def random_element(self, bound=None):

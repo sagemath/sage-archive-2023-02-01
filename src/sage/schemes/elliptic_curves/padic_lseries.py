@@ -43,13 +43,14 @@ REFERENCES:
 - [BP] Dominique Bernardi and Bernadette Perrin-Riou,
   Variante `p`-adique de la conjecture de Birch et
   Swinnerton-Dyer (le cas supersingulier), C. R. Acad. Sci. Paris,
-  Ser I. Math, 317 (1993), no 3, 227-232.
+  Sér I. Math., 317 (1993), no. 3, 227-232.
 
-- [Po] Robert Pollack, On the `p`-adic L-function of a modular form
-  at supersingular prime, Duke Math. J. 118 (2003), no 3, 523-558.
+- [Po] Robert Pollack, On the `p`-adic `L`-function of a modular form
+  at a supersingular prime, Duke Math. J. 118 (2003), no. 3, 523-558.
 
-- [SW] William Stein and Christian Wuthrich, Computations About Tate-Shafarevich Groups
-  using Iwasawa theory, preprint 2009.
+- [SW] William Stein and Christian Wuthrich, Algorithms
+  for the Arithmetic of Elliptic Curves using Iwasawa Theory,
+  Mathematics of Computation 82 (2013), 1757-1792.
 
 AUTHORS:
 
@@ -892,12 +893,10 @@ class pAdicLseriesOrdinary(pAdicLseries):
                 K = Qp(p, 20, print_mode='series')
                 R = PowerSeriesRing(K,'T',1)
                 L = self.modular_symbol(0, sign=+1, quadratic_twist= D)
-                if self._E.has_nonsplit_multiplicative_reduction(p):
-                    L *= 2
-                if self._E.has_split_multiplicative_reduction(p):
-                    L *= 0
+                chip = kronecker_symbol(D,p)
+                if self._E.conductor() % p == 0:
+                    L *= 1 - chip/self.alpha()
                 else:
-                    chip = kronecker_symbol(D,p)
                     L *= (1-chip/self.alpha())**2
                 L /= self._quotient_of_periods_to_twist(D)*self._E.real_components()
                 L = R(L, 1)

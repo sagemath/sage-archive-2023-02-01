@@ -13,7 +13,13 @@ SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 SAGE_VERSION=`cat $SAGE_ROOT/VERSION.txt | sed 's+.*\ \(.*\),.*+\1+'`
+
+if [ -z "${SAGE_ORIG_PATH_SET}" ]; then
+    SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH
+    SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET
+fi
 PATH="$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
+
 PYTHONPATH="$SAGE_LOCAL"
 export SAGE_ROOT SAGE_SRC SAGE_LOCAL SAGE_EXTCODE SAGE_LOGS SAGE_SPKG_INST SAGE_VERSION PATH PYTHONPATH
 
@@ -55,6 +61,41 @@ mkdir -p "$SAGE_SPKG_INST"
 mkdir -p "$SAGE_SHARE"
 
 ###############################################################################
+# Determine whether to use MPIR (default standard pkg) or GMP (optional pkg).
+###############################################################################
+
+if [ -z "$SAGE_MP_LIBRARY" ]; then
+    # Automatic detection of installed MP library.
+    if [ ! -f "$SAGE_LOCAL/share/mp_config" ]; then
+        echo "MPIR" > "$SAGE_LOCAL/share/mp_config"
+    fi
+    SAGE_MP_LIBRARY=`cat "$SAGE_LOCAL/share/mp_config"`
+else
+    if [ -f "$SAGE_LOCAL/share/mp_config" -a "$SAGE_MP_LIBRARY" != `cat "$SAGE_LOCAL/share/mp_config"` ]; then
+        echo "SAGE_MP_LIBRARY differs from the value stored in"
+        echo "\"$SAGE_LOCAL/share/mp_config\"."
+        echo "This is not supported; you should rebuild Sage from scratch"
+        echo "using the new SAGE_MP_LIBRARY value."
+        exit 1
+    fi
+
+    case "$SAGE_MP_LIBRARY" in
+        MPIR|GMP)
+            echo "Using $SAGE_MP_LIBRARY as default MP library."
+            echo $SAGE_MP_LIBRARY > "$SAGE_LOCAL/share/mp_config"
+            ;;
+        *)
+            echo "Allowed values for SAGE_MP_LIBRARY are \"MPIR\" and \"GMP\"."
+            echo "If you did not set this variable, check the content of"
+            echo "\"$SAGE_LOCAL/share/mp_config\"."
+            exit 1
+            ;;
+    esac
+fi
+
+export SAGE_MP_LIBRARY
+
+###############################################################################
 # Determine whether to install GCC (gcc, g++, gfortran).
 ###############################################################################
 
@@ -84,17 +125,11 @@ if [ -z "$FC" ]; then
 fi
 
 if [ -f "$SAGE_LOCAL/bin/gcc" ]; then
-    # GCC is already installed. To disable unneeded rebuilding
-    # of GCC, we touch the installed file for GCC, such that it will
-    # really only be built if one of its dependencies has been upgraded.
-    echo >&2 "GCC was installed before, it will get re-installed if needed."
-    need_to_install_gcc=yes
-    for f in "$SAGE_SPKG_INST"/gcc-*; do
-        if [ -f "$f" ]; then
-            touch "$f"
-        fi
-    done
-elif [ -n "$SAGE_INSTALL_GCC" ]; then
+    # Ignore SAGE_INSTALL_GCC if GCC is already installed
+    SAGE_INSTALL_GCC=""
+fi
+
+if [ -n "$SAGE_INSTALL_GCC" ]; then
     # Check the value of the environment variable SAGE_INSTALL_GCC
     case "$SAGE_INSTALL_GCC" in
         yes)
@@ -113,7 +148,7 @@ else
 
     # Check whether $CXX is some version of GCC.  If it's a different
     # compiler, install GCC.
-    CXXtype=`testcxx.sh $CXX`
+    CXXtype=`source sage-env; testcxx.sh $CXX`
     if [ "$CXXtype" != GCC ]; then
         echo >&2 "Installing GCC because your '$CXX' isn't GCC (GNU C++)."
         need_to_install_gcc=yes
@@ -284,7 +319,7 @@ FPLLL=`newest_version libfplll`
 FREETYPE=`newest_version freetype`
 GAP=`newest_version gap`
 GCC=`newest_version gcc`
-GD=`newest_version gd`
+GD=`newest_version libgd`
 GDMODULE=`newest_version gdmodule`
 GFAN=`newest_version gfan`
 GF2X=`newest_version gf2x`
@@ -310,7 +345,6 @@ MAXIMA=`newest_version maxima`
 MPC=`newest_version mpc`
 MPFI=`newest_version mpfi`
 MPFR=`newest_version mpfr`
-MPIR=`newest_version mpir`
 MPMATH=`newest_version mpmath`
 NETWORKX=`newest_version networkx`
 NTL=`newest_version ntl`
@@ -322,6 +356,7 @@ PARI_SEADATA_SMALL=`newest_version pari_seadata_small`
 PATCH=`newest_version patch`
 PEXPECT=`newest_version pexpect`
 PILLOW=`newest_version pillow`
+PIP=`newest_version pip`
 PKGCONF=`newest_version pkgconf`
 PKGCONFIG=`newest_version pkgconfig`
 POLYBORI=`newest_version polybori`
@@ -346,7 +381,6 @@ SETUPTOOLS=`newest_version setuptools`
 SINGULAR=`newest_version singular`
 SIX=`newest_version six`
 SPHINX=`newest_version sphinx`
-SQLALCHEMY=`newest_version sqlalchemy`
 SQLITE=`newest_version sqlite`
 SYMMETRICA=`newest_version symmetrica`
 SYMPOW=`newest_version sympow`
@@ -360,6 +394,14 @@ ZNPOLY=`newest_version zn_poly`
 
 # Directory to keep track of which packages are installed
 INST=`echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`
+
+EOF
+
+# Sage MP library
+sage_mp_library=`echo "$SAGE_MP_LIBRARY" | tr '[A-Z]' '[a-z]'`
+cat >&5 << EOF
+# Sage MP library
+SAGE_MP_LIBRARY=`newest_version $sage_mp_library`
 
 EOF
 

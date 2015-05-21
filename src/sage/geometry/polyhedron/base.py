@@ -2660,6 +2660,9 @@ class Polyhedron_base(Element):
             sage: P=Polyhedron(vertices=[[0,1,0],[0,0,1],[1,0,0]])
             sage: P.barycentric_subdivision()
             A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 6 vertices
+            sage: P=polytopes.regular_polygon(5)
+            sage: P.barycentric_subdivision()
+            A 2-dimensional polyhedron in AA^2 defined as the convex hull of 10 vertices
 
         TESTS::
 
@@ -2715,12 +2718,12 @@ class Polyhedron_base(Element):
                 else:
                     C = min(linear_evaluation.difference(set([B])))
 
-                ineq_vector = tuple((1 - subdivision_frac) * B + subdivision_frac * C) + tuple(normal_vector)
+                ineq_vector = [(1 - subdivision_frac) * B + subdivision_frac * C] + list(normal_vector)
                 new_ineq += [ineq_vector]
 
             new_ieqs = polar.inequalities_list() + new_ineq
             new_eqns = polar.equations_list()
-            
+
             polar = Polyhedron(ieqs=new_ieqs, eqns=new_eqns, base_ring=
                 self.parent()._coerce_base_ring(subdivision_frac))
 

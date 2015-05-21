@@ -357,17 +357,16 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         sage: Monomial                 = NCSF.Monomial()
         sage: Immaculate               = NCSF.Immaculate()
-        sage: dualQuasiSymmetric_Schur = NCSF.dualQuasiSymmetric_Schur()
+        sage: dualQuasisymmetric_Schur = NCSF.dualQuasisymmetric_Schur()
 
     The :class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Monomial`
     basis was introduced in [Tev2007]_ and the
     :class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Immaculate`
     basis was introduced in [BBSSZ2012]_.  The
-    :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.QuasiSymmetric_Schur`
+    :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Quasisymmetric_Schur`
     were defined in [QSCHUR]_ and the dual basis is implemented here as
-    :class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.dualQuasiSymmetric_Schur`.
+    :class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.dualQuasisymmetric_Schur`.
     Refer to the documentation for the use and definition of these bases.
-
 
     .. TODO::
 
@@ -4703,7 +4702,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         The basis of NCSF dual to the Quasisymmetric_Schur basis of QSym.
 
         The 
-        :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.QuasiSymmetric_Schur`
+        :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Quasisymmetric_Schur`
         functions are defined in [QSCHUR]_ (see also
         Definition 5.1.1 of [LMvW13]_).  The dual basis in the algebra of
         non-commutative symmetric functions is defined by the following formula.
@@ -4715,16 +4714,16 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         where the sum is over all standard composition tableaux with
         descent composition equal to `\alpha`.
         The
-        :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.QuasiSymmetric_Schur`
+        :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Quasisymmetric_Schur`
         basis `QS_\alpha` has the property that
 
         .. MATH::
 
             s_\lambda = \sum_{sort(\alpha) = \lambda} QS_\alpha
 
-        As a consequence the commutative image in the algebra of symmetric functions
-        defined in the method
-        :meth:`~sage.combinat.ncsf_qsym.qsym.NonCommutativeSymmetricFunctions.Bases.to_symmetric_function`
+        As a consequence the commutative image of a dualQuasisymmetric_Schur element
+        in the algebra of symmetric functions (the map defined in the method
+        :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.to_symmetric_function`)
         is equal to the Schur function indexed by the decreasing sort of the
         indexing composition.
 
@@ -4919,7 +4918,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             The dual basis to the dualQuasisymmetric_Schur basis of NCSF.
 
             The basis returned is the
-            :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.QuasiSymmetric_Schur`
+            :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Quasisymmetric_Schur`
             basis of QSym.
 
             OUTPUT:

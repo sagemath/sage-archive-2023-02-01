@@ -2657,6 +2657,9 @@ class Polyhedron_base(Element):
             sage: P=Polyhedron(vertices=[[0,0,0],[0,1,0],[1,0,0],[0,0,1]])
             sage: P.barycentric_subdivision()
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
+            sage: P=Polyhedron(vertices=[[0,1,0],[0,0,1],[1,0,0]])
+            sage: P.barycentric_subdivision()
+            A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 6 vertices
 
         TESTS::
 
@@ -2676,9 +2679,16 @@ class Polyhedron_base(Element):
 
         barycenter = self.center()
 
-        start_polar = (self-barycenter).polar()
-        polar = (self-barycenter).polar()
-        
+        ambient_dim = self.ambient_dim()
+        polytope_dim = self.dimension()
+
+        if ambient_dim != polytope_dim:
+            start_polar = Polyhedron((self-barycenter).polar().vertices())
+            polar = Polyhedron((self-barycenter).polar().vertices())
+        else:
+            start_polar = (self-barycenter).polar()
+            polar = (self-barycenter).polar()
+
         for i in range(self.dimension() - 1):
 
             new_ineq = []
@@ -2714,7 +2724,12 @@ class Polyhedron_base(Element):
             polar = Polyhedron(ieqs=new_ieqs, eqns=new_eqns, base_ring=
                 self.parent()._coerce_base_ring(subdivision_frac))
 
-        return (polar.polar())+barycenter
+        if ambient_dim != polytope_dim:
+            barycentric_sub = (Polyhedron(polar.polar().vertices()))+barycenter
+        else:
+            barycentric_sub = (polar.polar())+barycenter
+
+        return barycentric_sub
 
     def _make_polyhedron_face(self, Vindices, Hindices):
         """

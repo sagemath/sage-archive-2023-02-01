@@ -3129,9 +3129,11 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(gceil(x.g))
 
-    def centerlift(gen x, v=-1):
+    centerlift = deprecated_function_alias(15804,lift_centered)
+
+    def lift_centered(gen x, v=-1):
         """
-        centerlift(x,v): Centered lift of x. This function returns exactly
+        lift_centered(x,v): Centered lift of x. This function returns exactly
         the same thing as lift, except if x is an integer mod.
 
         INPUT:
@@ -3147,21 +3149,21 @@ cdef class gen(gen_auto):
         EXAMPLES::
 
             sage: x = pari(-2).Mod(5)
-            sage: x.centerlift()
+            sage: x.lift_centered()
             -2
             sage: x.lift()
             3
             sage: f = pari('x-1').Mod('x^2 + 1')
-            sage: f.centerlift()
+            sage: f.lift_centered()
             x - 1
             sage: f.lift()
             x - 1
             sage: f = pari('x-y').Mod('x^2+1')
             sage: f
             Mod(x - y, x^2 + 1)
-            sage: f.centerlift('x')
+            sage: f.lift_centered('x')
             x - y
-            sage: f.centerlift('y')
+            sage: f.lift_centered('y')
             Mod(x - y, x^2 + 1)
         """
         pari_catch_sig_on()

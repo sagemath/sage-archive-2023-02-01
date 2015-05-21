@@ -1106,7 +1106,6 @@ class Newform(ModularForm_abstract):
 
         - ``embedding`` -- (optional) embedding of the coefficient
           field of `f` into a field containing the relevant Gauss sums
-          as well as a square root of `Q` if the weight of `f` is odd
 
         OUTPUT:
 
@@ -1125,11 +1124,18 @@ class Newform(ModularForm_abstract):
             sage: f = Newforms(Gamma0(18), 4)[0]; f
             q + 2*q^2 + 4*q^4 - 6*q^5 + O(q^6)
             sage: f._atkin_lehner_action_prime_power(2)
-            (-1, q + 2*q^2 + 4*q^4 - 6*q^5 + O(q^6))
+            (-2, q + 2*q^2 + 4*q^4 - 6*q^5 + O(q^6))
             sage: f._atkin_lehner_action_prime_power(9)
             Traceback (most recent call last):
             ...
             NotImplementedError: action of W_Q is not implemented for general newforms with a_Q(f) = 0
+
+        An example with odd weight::
+
+            sage: f = Newforms(Gamma1(15), 3, names='a')[2]; f
+            q + a2*q^2 + (-a2 - 2)*q^3 - q^4 - a2*q^5 + O(q^6)
+            sage: f._atkin_lehner_action_prime_power(5)
+            (-a2, q + a2*q^2 + (-a2 - 2)*q^3 - q^4 - a2*q^5 + O(q^6))
 
         """
         a_Q = self[Q]
@@ -1146,9 +1152,7 @@ class Newform(ModularForm_abstract):
         else:
             # eps_Q is primitive of conductor d
             g = eps_Q.gauss_sum()
-        lambda_Q = g / a_Q
-        Q = lambda_Q.parent()(Q)
-        return Q**(self.weight()/2 - 1) * lambda_Q, f_star
+        return Q**(self.weight() - 2) * g / a_Q, f_star
 
     def atkin_lehner_action(self, d, embedding=None):
         """

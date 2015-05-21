@@ -215,7 +215,7 @@ def rational_quaternions_from_integral_matrix_and_denom(A, Matrix_integer_dense 
         rng = range(H.nrows())
 
     for i in rng:
-        x = <QuaternionAlgebraElement_rational_field> PY_NEW(QuaternionAlgebraElement_rational_field)
+        x = <QuaternionAlgebraElement_rational_field> QuaternionAlgebraElement_rational_field.__new__(QuaternionAlgebraElement_rational_field)
         x._parent = A
         mpz_set(x.a, a.value)
         mpz_set(x.b, b.value)

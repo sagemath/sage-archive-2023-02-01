@@ -1336,7 +1336,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             R = self.parent()
             f = self._MPolynomial_element__element.lcmt( R.term_order().greater_tuple )
             one = R.base_ring()(1)
-            self.__lm = MPolynomial_polydict(R,polydict.PolyDict({f:one},zero=R.base_ring().zero_element(),force_int_exponents=False,  force_etuples=False))
+            self.__lm = MPolynomial_polydict(R,polydict.PolyDict({f:one},zero=R.base_ring().zero(),force_int_exponents=False,  force_etuples=False))
             return self.__lm
 
     def lc(self):
@@ -1395,7 +1395,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             R = self.parent()
             f = self._MPolynomial_element__element.dict()
             res = self._MPolynomial_element__element.lcmt( R.term_order().greater_tuple )
-            self.__lt = MPolynomial_polydict(R,polydict.PolyDict({res:f[res]},zero=R.base_ring().zero_element(),force_int_exponents=False, force_etuples=False))
+            self.__lt = MPolynomial_polydict(R,polydict.PolyDict({res:f[res]},zero=R.base_ring().zero(),force_int_exponents=False, force_etuples=False))
             return self.__lt
 
     def __eq__(self,right):

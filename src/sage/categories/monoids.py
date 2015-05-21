@@ -118,9 +118,12 @@ class Monoids(CategoryWithAxiom):
 
                 sage: S = Monoids().example()
                 sage: S.one_element()
+                doctest:...: DeprecationWarning: .one_element() is deprecated. Please use .one() instead.
+                See http://trac.sagemath.org/17694 for details.
                 ''
-
             """
+            from sage.misc.superseded import deprecation
+            deprecation(17694, ".one_element() is deprecated. Please use .one() instead.")
             return self.one()
 
         def semigroup_generators(self):
@@ -274,7 +277,7 @@ class Monoids(CategoryWithAxiom):
                 raise ValueError("negative number of powers requested")
             elif n == 0:
                 return []
-            x = self.parent().one_element()
+            x = self.parent().one()
             l = [x]
             for i in xrange(n - 1):
                 x = x * self

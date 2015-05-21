@@ -83,7 +83,8 @@ cdef class FunctionFieldElement(FieldElement):
                 (self._parent, type(self), self._x))
 
     cdef FunctionFieldElement _new_c(self):
-        cdef FunctionFieldElement x = <FunctionFieldElement>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef FunctionFieldElement x = <FunctionFieldElement>t.__new__(t)
         x._parent = self._parent
         return x
 

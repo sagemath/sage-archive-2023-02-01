@@ -831,7 +831,7 @@ class DyckWord(CombinatorialObject, Element):
         r"""
         A latex representation of ``self`` using the tikzpicture package.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: D = DyckWord([1,0,1,1,1,0,1,1,0,0,0,1,0,0])
             sage: D.set_latex_options({"valleys":True, "peaks":True, "bounce path":True})

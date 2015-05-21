@@ -464,6 +464,16 @@ class Function_ceil(BuiltinFunction):
                 return Integer(int(math.ceil(x)))
         return None
 
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = ceil(x)
+            sage: h(pi)._numerical_approx()
+            4
+        """
+        return self._eval_(x)
+
 ceil = Function_ceil()
 
 
@@ -625,6 +635,16 @@ class Function_floor(BuiltinFunction):
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.floor(x)))
         return None
+
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = floor(x)
+            sage: h(pi)._numerical_approx()
+            3
+        """
+        return self._eval_(x)
 
 floor = Function_floor()
 
@@ -1390,6 +1410,16 @@ class Function_factorial(GinacFunction):
             return py_factorial_py(x)
 
         return None
+
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = factorial(x)
+            sage: h(5)._numerical_approx()
+            120.000000000000
+        """
+        return self._eval_(x)
 
 factorial = Function_factorial()
 

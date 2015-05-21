@@ -34,18 +34,18 @@ def ratpoints(list coeffs, long H, verbose=False, long max=0,
 
     `y^2 = a_n x^n + \cdots + a_1 x + a_0.`
 
-    INPUT::
+    INPUT:
 
-        coeffs  -- list of integer coefficients a_0, a_1, ..., a_n
+    -   coeffs  -- list of integer coefficients a_0, a_1, ..., a_n
 
-        H       -- the bound for the denominator and the absolute value of the
-                   numerator of the x-coordinate
+    -   H       -- the bound for the denominator and the absolute value of the
+        numerator of the x-coordinate
 
-        verbose -- if True, ratpoints will print comments about its progress
+    -   verbose -- if True, ratpoints will print comments about its progress
 
-        max     -- maximum number of points to find (if 0, find all of them)
+    -   max     -- maximum number of points to find (if 0, find all of them)
 
-    OUTPUT::
+    OUTPUT:
 
     The points output by this program are points in (1, ceil(n/2), 1)-weighted
     projective space. If n is even, then the associated homogeneous equation is

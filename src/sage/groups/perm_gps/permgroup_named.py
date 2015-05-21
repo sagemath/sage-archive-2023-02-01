@@ -6,7 +6,7 @@ You can construct the following permutation groups:
 -- SymmetricGroup, $S_n$ of order $n!$ (n can also be a list $X$ of distinct
                    positive integers, in which case it returns $S_X$)
 
--- AlternatingGroup, $A_n$ or order $n!/2$ (n can also be a list $X$
+-- AlternatingGroup, $A_n$ of order $n!/2$ (n can also be a list $X$
                    of distinct positive integers, in which case it returns
                    $A_X$)
 
@@ -303,13 +303,13 @@ class SymmetricGroup(PermutationGroup_symalt):
 
             sage: S8 = SymmetricGroup(8)
             sage: S8.index_set()
-            [1, 2, 3, 4, 5, 6, 7]
+            (1, 2, 3, 4, 5, 6, 7)
 
             sage: S = SymmetricGroup([3,1,4,5])
             sage: S.index_set()
-            [3, 1, 4]
+            (3, 1, 4)
         """
-        return self.domain()[:-1]
+        return tuple(self.domain()[:-1])
 
     def __cmp__(self, x):
         """
@@ -345,9 +345,12 @@ class SymmetricGroup(PermutationGroup_symalt):
 
             sage: A = SymmetricGroup([2,3,7]); A.cartan_type()
             ['A', 2]
+
+            sage: A = SymmetricGroup([]); A.cartan_type()
+            ['A', 0]
         """
         from sage.combinat.root_system.cartan_type import CartanType
-        return CartanType(['A', self.degree() - 1])
+        return CartanType(['A', max(self.degree() - 1,0)])
 
     def simple_reflection(self, i):
         r"""
@@ -539,14 +542,39 @@ class SymmetricGroup(PermutationGroup_symalt):
         """
         Return the symmetric group algebra associated to ``self``.
 
+        If ``self`` is the symmetric group on `1,\ldots,n`, then this
+        is special cased to take advantage of the features in
+        :class:`SymmetricGroupAlgebra`. Otherwise the usual group
+        algebra is returned.
+
         EXAMPLES::
 
             sage: S4 = SymmetricGroup(4)
             sage: S4.algebra(QQ)
             Symmetric group algebra of order 4 over Rational Field
+
+            sage: S3 = SymmetricGroup([1,2,3])
+            sage: S3.algebra(QQ)
+            Symmetric group algebra of order 3 over Rational Field
+            sage: a = S3.an_element(); a
+            (1,2,3)
+            sage: S3.algebra(QQ)(a)
+            (1,2,3)
+
+            sage: S = SymmetricGroup([2,3,5])
+            sage: S.algebra(QQ)
+            Group algebra of Symmetric group of order 3! as a permutation group over Rational Field
+            sage: a = S.an_element(); a
+            (2,3,5)
+            sage: S.algebra(QQ)(a)
+            B[(2,3,5)]
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
-        return SymmetricGroupAlgebra(base_ring, len(self._domain))
+        domain = self.domain()
+        if list(domain) == range(1, len(domain)+1):
+            return SymmetricGroupAlgebra(base_ring, self)
+        else:
+            return super(SymmetricGroup, self).algebra(base_ring)
 
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):

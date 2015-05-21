@@ -259,7 +259,7 @@ cdef inline FiniteField_givaroElement make_FiniteField_givaroElement(Cache_givar
     if cache._has_array:
         return <FiniteField_givaroElement>cache._array[x]
     else:
-        y = PY_NEW(FiniteField_givaroElement)
+        y = FiniteField_givaroElement.__new__(FiniteField_givaroElement)
         y._parent = <Parent> cache.parent
         y._cache = cache
         y.element = x

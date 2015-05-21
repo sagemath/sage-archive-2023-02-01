@@ -1200,11 +1200,6 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
         of the letters is in a specific range::
 
             sage: for m in W.iter_morphisms((0, 3), min_length=0): m
-            WordMorphism: a->, b->
-            WordMorphism: a->a, b->
-            WordMorphism: a->b, b->
-            WordMorphism: a->, b->a
-            WordMorphism: a->, b->b
             WordMorphism: a->aa, b->
             WordMorphism: a->ab, b->
             WordMorphism: a->ba, b->
@@ -1213,18 +1208,19 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             WordMorphism: a->a, b->b
             WordMorphism: a->b, b->a
             WordMorphism: a->b, b->b
+            WordMorphism: a->a, b->
+            WordMorphism: a->b, b->
             WordMorphism: a->, b->aa
             WordMorphism: a->, b->ab
             WordMorphism: a->, b->ba
             WordMorphism: a->, b->bb
+            WordMorphism: a->, b->a
+            WordMorphism: a->, b->b
+            WordMorphism: a->, b->
 
         ::
 
             sage: for m in W.iter_morphisms( (2, 4) ): m
-            WordMorphism: a->a, b->a
-            WordMorphism: a->a, b->b
-            WordMorphism: a->b, b->a
-            WordMorphism: a->b, b->b
             WordMorphism: a->aa, b->a
             WordMorphism: a->aa, b->b
             WordMorphism: a->ab, b->a
@@ -1241,6 +1237,10 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             WordMorphism: a->b, b->ab
             WordMorphism: a->b, b->ba
             WordMorphism: a->b, b->bb
+            WordMorphism: a->a, b->a
+            WordMorphism: a->a, b->b
+            WordMorphism: a->b, b->a
+            WordMorphism: a->b, b->b
 
         Iterator over morphisms with specific image lengths::
 
@@ -1332,18 +1332,19 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
 
         """
         n = self.size_of_alphabet()
+        if min_length < 0:
+            min_length = 0
         # create an iterable of compositions (all "compositions" if arg is
         # None, or [arg] otherwise)
         if arg is None:
-            from sage.combinat.integer_list import IntegerListsLex
-            compositions = IntegerListsLex(itertools.count(),
-                    length=n, min_part = max(0,min_length))
+            # TODO in #17927: use IntegerVectors(length=n, min_part=min_length)
+            from sage.combinat.integer_list import IntegerListsNN
+            compositions = IntegerListsNN(length=n, min_part=min_length)
         elif isinstance(arg, tuple):
-            if not len(arg) == 2 or not all(isinstance(a, (int,Integer)) for a in arg):
-                raise TypeError("arg (=%s) must be a tuple of 2 integers" %arg)
             from sage.combinat.integer_list import IntegerListsLex
-            compositions = IntegerListsLex(range(*arg),
-                    length=n, min_part = max(0,min_length))
+            a, b = arg
+            compositions = IntegerListsLex(min_sum=a, max_sum=b-1,
+                    length=n, min_part=min_length)
         else:
             arg = list(arg)
             if (not len(arg) == n or not

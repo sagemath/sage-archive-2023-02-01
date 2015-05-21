@@ -21,10 +21,6 @@ from congroup_gammaH import GammaH_class, is_GammaH, GammaH_constructor
 from sage.rings.all import ZZ, euler_phi as phi, moebius, divisors
 from sage.modular.dirichlet import DirichletGroup
 
-# Just for now until we make an SL_2 group type.
-from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
-from sage.matrix.matrix_space import MatrixSpace
-Mat2Z = MatrixSpace(IntegerModRing(0),2)
 
 def is_Gamma1(x):
     """
@@ -228,9 +224,9 @@ class Gamma1_class(GammaH_class):
             return self.farey_symbol().generators()
         elif algorithm=="todd-coxeter":
             from sage.modular.modsym.g1list import G1list
-            from congroup_pyx import generators_helper
+            from congroup import generators_helper
             level = self.level()
-            gen_list = generators_helper(G1list(level), level, Mat2Z)
+            gen_list = generators_helper(G1list(level), level)
             return [self(g, check=False) for g in gen_list]
         else:
             raise ValueError("Unknown algorithm '%s' (should be either 'farey' or 'todd-coxeter')" % algorithm)

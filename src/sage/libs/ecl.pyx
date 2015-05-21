@@ -598,7 +598,7 @@ cdef class EclObject:
         sage: EclObject([1,2,EclObject([3])])
         <ECL: (1 2 (3))>
 
-    Calling an EclObject translates into the appropriate LISP ``apply'',
+    Calling an EclObject translates into the appropriate LISP ``apply``,
     where the argument is transformed into an EclObject itself, so one can
     flexibly apply LISP functions::
 

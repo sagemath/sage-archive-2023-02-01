@@ -572,7 +572,7 @@ cdef class SymbolicRing(CommutativeRing):
 
         else: # initialize a new symbol
             # Construct expression
-            e = <Expression>PY_NEW(Expression)
+            e = <Expression>Expression.__new__(Expression)
             e._parent = SR
 
             if name is None: # Check if we need a temporary anonymous new symbol

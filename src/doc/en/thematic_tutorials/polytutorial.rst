@@ -36,7 +36,7 @@ Of course, you want to know what this object looks like:
 
 ::
 
-    sage: show(P1)
+    sage: P1.plot()
     Graphics object consisting of 6 graphics primitives
 
 .. end of output
@@ -70,7 +70,7 @@ translate each inequality into a vector.  For example,
 ::
 
     sage: altP1 = Polyhedron(ieqs=[(12, -4, 1), (26, 1, 7),(5,1,0), (28, 2, -9)])
-    sage: show(altP1)
+    sage: altP1.plot()
     Graphics object consisting of 6 graphics primitives
 
 .. end of output
@@ -119,7 +119,7 @@ to a rational\-lattice polytope.  Let's look at that.
 
 ::
 
-    sage: show(P1dual)
+    sage: P1dual.plot()
     Graphics object consisting of 6 graphics primitives
 
 
@@ -127,7 +127,7 @@ to a rational\-lattice polytope.  Let's look at that.
 
 ::
 
-    sage: show(P1)+show(P1dual)
+    sage: P1.plot() + P1dual.plot()
     Graphics object consisting of 12 graphics primitives
 
 
@@ -139,7 +139,7 @@ very different size.  Let's rescale.
 
 ::
 
-    sage: show((1/4)*P1)+show(4*P1dual)
+    sage: ((1/4)*P1).plot() + (4*P1dual).plot()
     Graphics object consisting of 12 graphics primitives
 
 .. end of output
@@ -155,7 +155,7 @@ example that makes the issue a bit clearer.
     A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 5 vertices
     sage: P2dual = P2.polar(); P2dual
     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 5 vertices
-    sage: show(P2)+show(P2dual)
+    sage: P2.plot() + P2dual.plot()
     Graphics object consisting of 14 graphics primitives
 
 .. end of output
@@ -166,7 +166,7 @@ at this...
 
 ::
 
-    sage: show(P2)+show(-1*P2dual)
+    sage: P2.plot() + (-1*P2dual).plot()
     Graphics object consisting of 14 graphics primitives
 
 .. end of output
@@ -223,14 +223,14 @@ visualization software such as Javaview and Jmol installed.)
     A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 5 vertices
     sage: P4 = Polyhedron(vertices=[(-1,1,0),(1,1,0),(-1,0,1), (1,0,1),(0,-1,1),(0,1,1)]); P4
     A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
-    sage: show(P3)+show(P4)
+    sage: P3.plot() + P4.plot()
     Graphics3d Object
 
 .. end of output
 
 ::
 
-    sage: show(P3+P4)
+    sage: (P3+P4).plot()
     Graphics3d Object
 
 .. end of output
@@ -241,14 +241,14 @@ syntaxes!
 
 ::
 
-    sage: int12 = P1.intersection(P2*.5); show(int12)
+    sage: int12 = P1.intersection(P2*.5); int12.plot()
     Graphics object consisting of 7 graphics primitives
 
 .. end of output
 
 ::
 
-    sage: int34 = P3 & P4; show(int34)
+    sage: int34 = P3 & P4; int34.plot()
     Graphics3d Object
 
 .. end of output
@@ -259,7 +259,7 @@ Should one wish to translate, one can.
 ::
 
     sage: transP2 = P2.translation([2,1])
-    sage: show(P2)+show(transP2)
+    sage: P2.plot() + transP2.plot()
     Graphics object consisting of 14 graphics primitives
 
 .. end of output
@@ -269,21 +269,21 @@ Then of course we can take prisms, pyramids, and bipyramids of polytopes...
 
 ::
 
-    sage: show(P2.prism())
+    sage: P2.prism().plot()
     Graphics3d Object
 
 .. end of output
 
 ::
 
-    sage: show(P1.pyramid())
+    sage: P1.pyramid().plot()
     Graphics3d Object
 
 .. end of output
 
 ::
 
-    sage: show(P2dual.bipyramid())
+    sage: P2dual.bipyramid().plot()
     Graphics3d Object
 
 .. end of output
@@ -308,7 +308,7 @@ Let's look at a 4\-dimensional polytope.
 ::
 
     sage: P8 = polytopes.n_cube(4)
-    sage: P8.show()
+    sage: P8.plot()
     Graphics3d Object
 
 .. end of output

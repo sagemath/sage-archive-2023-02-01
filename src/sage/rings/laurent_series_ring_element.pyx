@@ -448,7 +448,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: f.coefficients()
             [-5, 1, 1, -10/3]
         """
-        zero = self.parent().base_ring().zero_element()
+        zero = self.parent().base_ring().zero()
         return [c for c in self.list() if c != zero]
 
     def residue(self):
@@ -491,7 +491,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: f.exponents()
             [-2, 1, 2, 3]
         """
-        zero = self.parent().base_ring().zero_element()
+        zero = self.parent().base_ring().zero()
         l = self.list()
         v = self.valuation()
         return [i+v for i in range(len(l)) if l[i] != zero]
@@ -1277,6 +1277,20 @@ cdef class LaurentSeries(AlgebraElement):
         u = self.__u
         t = u.parent().gen()
         return t**(self.__n) * u
+
+    def inverse(self):
+        """
+        Return the inverse of self, i.e., self^(-1).
+
+        EXAMPLES::
+
+            sage: R.<t> = LaurentSeriesRing(ZZ)
+            sage: t.inverse()
+            t^-1
+            sage: (1-t).inverse()
+            1 + t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + ...
+        """
+        return self.__invert__()
 
     def __call__(self, *x, **kwds):
         """

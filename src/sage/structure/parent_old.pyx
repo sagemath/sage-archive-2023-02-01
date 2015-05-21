@@ -190,7 +190,7 @@ cdef class Parent(parent.Parent):
         from sage.categories.homset import Hom
         cdef parent.Parent R
         for mor in self._coerce_from_list:
-            if PY_TYPE_CHECK(mor, Map):
+            if isinstance(mor, Map):
                 R = mor.domain()
             else:
                 R = mor
@@ -359,7 +359,7 @@ cdef class Parent(parent.Parent):
 
     cdef has_coerce_map_from_c_impl(self, S):
         check_old_coerce(self)
-        if not PY_TYPE_CHECK(S, parent.Parent):
+        if not isinstance(S, parent.Parent):
             return False
         try:
             self._coerce_c((<parent.Parent>S).an_element())
@@ -429,7 +429,7 @@ cdef class Parent(parent.Parent):
         check_old_coerce(left)
         cdef int r
 
-        if not PY_TYPE_CHECK(right, parent.Parent) or not PY_TYPE_CHECK(left, parent.Parent):
+        if not isinstance(right, parent.Parent) or not isinstance(left, parent.Parent):
             # One is not a parent -- use arbitrary ordering
             if (<PyObject*>left) < (<PyObject*>right):
                 r = -1
@@ -528,7 +528,7 @@ cdef class Parent(parent.Parent):
             else:
                 from sage.categories.morphism import CallMorphism
                 from sage.categories.homset import Hom
-                if PY_TYPE_CHECK(S, type):
+                if isinstance(S, type):
                     S = Set_PythonType(S)
                 return CallMorphism(Hom(S, self))
         return parent.Parent._generic_convert_map(self, S)

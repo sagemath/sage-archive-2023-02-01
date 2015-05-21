@@ -381,4 +381,3 @@ def get_matplotlib_linestyle(linestyle, return_type):
                              "'dashed', 'dotted', dashdot', 'None'}, "
                              "respectively {'-', '--', ':', '-.', ''}"%
                              (linestyle))
-

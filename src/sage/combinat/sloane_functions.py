@@ -2390,7 +2390,8 @@ class A000225(SloaneSequence):
 class A000015(SloaneSequence):
     def __init__(self):
         r"""
-        Smallest prime power `\geq n`.
+        Smallest prime power `\geq n` (where `1` is considered a prime
+        power).
 
         INPUT:
 
@@ -2447,7 +2448,7 @@ class A000015(SloaneSequence):
             sage: [sloane.A000015._eval(n) for n in range(1,11)]
             [1, 2, 3, 4, 5, 7, 7, 8, 9, 11]
         """
-        if arith.is_prime_power(n):
+        if n == 1 or arith.is_prime_power(n):
             return n
         else:
             return arith.next_prime_power(n)

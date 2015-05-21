@@ -22,6 +22,7 @@ Comprehensive Module list
     sage/combinat/all
     sage/combinat/alternating_sign_matrix
     sage/combinat/backtrack
+    sage/combinat/baxter_permutations
     sage/combinat/binary_recurrence_sequences
     sage/combinat/binary_tree
     sage/combinat/cartesian_product
@@ -91,6 +92,7 @@ Comprehensive Module list
     sage/combinat/designs/orthogonal_arrays_build_recursive
     sage/combinat/designs/orthogonal_arrays_find_recursive
     sage/combinat/designs/steiner_quadruple_systems
+    sage/combinat/designs/subhypergraph_search
     sage/combinat/diagram_algebras
     sage/combinat/dict_addition
     sage/combinat/dlx

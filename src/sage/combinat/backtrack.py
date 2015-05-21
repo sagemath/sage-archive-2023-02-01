@@ -865,13 +865,16 @@ class TransitiveIdeal(RecursivelyEnumeratedSet_generic):
     We compute all the permutations of 3::
 
         sage: [p for p in TransitiveIdeal(attrcall("permutohedron_succ"), [Permutation([1,2,3])])]
-        [[1, 2, 3], [2, 1, 3], [1, 3, 2], [2, 3, 1], [3, 2, 1], [3, 1, 2]]
+        [[1, 2, 3], [2, 1, 3], [1, 3, 2], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
 
     We compute all the permutations which are larger than [3,1,2,4],
     [2,1,3,4] in the right permutohedron::
 
         sage: [p for p in TransitiveIdeal(attrcall("permutohedron_succ"), [Permutation([3,1,2,4]), Permutation([2,1,3,4])])]
-        [[2, 1, 3, 4], [2, 1, 4, 3], [2, 4, 1, 3], [4, 2, 1, 3], [4, 2, 3, 1], [4, 3, 2, 1], [3, 1, 2, 4], [2, 4, 3, 1], [3, 2, 1, 4], [2, 3, 1, 4], [2, 3, 4, 1], [3, 2, 4, 1], [3, 1, 4, 2], [3, 4, 2, 1], [3, 4, 1, 2], [4, 3, 1, 2]]
+        [[2, 1, 3, 4], [3, 1, 2, 4], [2, 1, 4, 3], [3, 1, 4, 2],
+         [2, 3, 1, 4], [3, 4, 1, 2], [3, 4, 2, 1], [2, 3, 4, 1],
+         [2, 4, 1, 3], [3, 2, 1, 4], [4, 3, 1, 2], [4, 3, 2, 1],
+         [3, 2, 4, 1], [4, 2, 1, 3], [2, 4, 3, 1], [4, 2, 3, 1]]
 
     Using TransitiveIdeal people have been using the ``__contains__``
     method provided from the ``__iter__`` method. We need to make sure that
@@ -986,9 +989,11 @@ class TransitiveIdealGraded(RecursivelyEnumeratedSet_generic):
     We compute all the permutations which are larger than [3,1,2,4] or
     [2,1,3,4] in the permutohedron::
 
-          sage: [p for p in TransitiveIdealGraded(attrcall("permutohedron_succ"), [Permutation([3,1,2,4]), Permutation([2,1,3,4])])]
-          [[3, 1, 2, 4], [2, 1, 3, 4], [2, 1, 4, 3], [3, 2, 1, 4], [2, 3, 1, 4], [3, 1, 4, 2], [2, 3, 4, 1], [3, 4, 1, 2], [3, 2, 4, 1], [2, 4, 1, 3], [2, 4, 3, 1], [4, 3, 1, 2], [4, 2, 1, 3], [3, 4, 2, 1], [4, 2, 3, 1], [4, 3, 2, 1]]
-
+        sage: [p for p in TransitiveIdealGraded(attrcall("permutohedron_succ"), [Permutation([3,1,2,4]), Permutation([2,1,3,4])])]
+        [[3, 1, 2, 4], [2, 1, 3, 4], [2, 3, 1, 4], [2, 1, 4, 3],
+         [3, 2, 1, 4], [3, 1, 4, 2], [3, 2, 4, 1], [2, 4, 1, 3],
+         [3, 4, 1, 2], [2, 3, 4, 1], [4, 3, 1, 2], [3, 4, 2, 1],
+         [4, 2, 1, 3], [2, 4, 3, 1], [4, 3, 2, 1], [4, 2, 3, 1]]
     """
     def __init__(self, succ, generators, max_depth=float("inf")):
         r"""

@@ -94,9 +94,7 @@ Or you can create a homomorphism from one lattice to any other::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi' # Needed for PY_NEW
+from sage.libs.gmp.mpz cimport *
 
 from sage.geometry.toric_plotter import ToricPlotter
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
@@ -174,7 +172,7 @@ cdef class ToricLatticeElement(Vector_integer_dense):
     # without any further documentation as well...
     cdef _new_c(self):
         cdef ToricLatticeElement y
-        y = PY_NEW(ToricLatticeElement)
+        y = ToricLatticeElement.__new__(ToricLatticeElement)
         y._init(self._degree, self._parent)
         return y
 
@@ -450,7 +448,7 @@ def unpickle_v1(parent, entries, degree, is_mutable):
         lattice(1, 2, 3)
     """
     cdef ToricLatticeElement v
-    v = PY_NEW(ToricLatticeElement)
+    v = ToricLatticeElement.__new__(ToricLatticeElement)
     v._init(degree, parent)
     cdef Integer z
     for i from 0 <= i < degree:

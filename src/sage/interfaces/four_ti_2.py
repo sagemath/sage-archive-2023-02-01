@@ -1,5 +1,7 @@
 r"""
-Interface to 4ti2 (http://www.4ti2.de)
+Interface to 4ti2
+
+http://www.4ti2.de
 
 You must have the 4ti2 Sage package installed on your computer
 for this interface to work.

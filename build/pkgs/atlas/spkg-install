@@ -367,6 +367,9 @@ def configure_fast():
     elif conf['IA64?']:
         print('Fast configuration on Itanium.')
         arch = 'IA64Itan2'
+    elif conf['ARM?']:
+        print('Fast configuration on ARM.')
+        arch='ARMv7'
     else:
         raise NotImplementedError('I don\'t know a "fast" configuration for your cpu.')
     return (arch, isa_ext, thread_limit)
@@ -392,6 +395,9 @@ def configure_base():
     elif conf['IA64?']:
         print('Base configuration on Itanium.')
         arch = 'IA64Itan'
+    elif conf['ARM?']:
+        print('Base configuration on ARM.')
+        arch = 'ARMv6'
     else:
         raise NotImplementedError('I don\'t know a "base" configuration for your cpu.')
     return (arch, isa_ext, thread_limit)

@@ -646,7 +646,7 @@ def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
         sage: g = x^3+x+1
         sage: C = codes.CyclicCodeFromGeneratingPolynomial(7,g); C
         Linear code of length 7, dimension 4 over Finite Field of size 2
-        sage: C.gen_mat()
+        sage: C.generator_matrix()
         [1 1 0 1 0 0 0]
         [0 1 1 0 1 0 0]
         [0 0 1 1 0 1 0]
@@ -654,7 +654,7 @@ def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
         sage: g = x+1
         sage: C = codes.CyclicCodeFromGeneratingPolynomial(4,g); C
         Linear code of length 4, dimension 3 over Finite Field of size 2
-        sage: C.gen_mat()
+        sage: C.generator_matrix()
         [1 1 0 0]
         [0 1 1 0]
         [0 0 1 1]
@@ -720,7 +720,7 @@ def CyclicCodeFromCheckPolynomial(n,h,ignore=True):
         Linear code of length 4, dimension 1 over Finite Field of size 3
         sage: C = codes.CyclicCodeFromCheckPolynomial(4,x^3 + x^2 + x + 1); C
         Linear code of length 4, dimension 3 over Finite Field of size 3
-        sage: C.gen_mat()
+        sage: C.generator_matrix()
         [2 1 0 0]
         [0 2 1 0]
         [0 0 2 1]
@@ -994,7 +994,7 @@ def HammingCode(r,F):
     H = MS(PFn).transpose()
     Cd = LinearCode(H)
     # Hamming code always has distance 3, so we provide the distance.
-    return LinearCode(Cd.dual_code().gen_mat(), d=3)
+    return LinearCode(Cd.dual_code().generator_matrix(), d=3)
 
 
 def LinearCodeFromCheckMatrix(H):
@@ -1019,20 +1019,20 @@ def LinearCodeFromCheckMatrix(H):
     EXAMPLES::
 
         sage: C = codes.HammingCode(3,GF(2))
-        sage: H = C.check_mat(); H
+        sage: H = C.parity_check_matrix(); H
         [1 0 1 0 1 0 1]
         [0 1 1 0 0 1 1]
         [0 0 0 1 1 1 1]
         sage: codes.LinearCodeFromCheckMatrix(H) == C
         True
         sage: C = codes.HammingCode(2,GF(3))
-        sage: H = C.check_mat(); H
+        sage: H = C.parity_check_matrix(); H
         [1 0 1 1]
         [0 1 1 2]
         sage: codes.LinearCodeFromCheckMatrix(H) == C
         True
         sage: C = codes.RandomLinearCode(10,5,GF(4,"a"))
-        sage: H = C.check_mat()
+        sage: H = C.parity_check_matrix()
         sage: codes.LinearCodeFromCheckMatrix(H) == C
         True
     """

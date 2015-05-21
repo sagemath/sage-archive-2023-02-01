@@ -1486,7 +1486,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
         Eh = E.formal()
         lo = Eh.log(prec + 5)
-        F = lo.reversion()
+        F = lo.reverse()
 
         S = LaurentSeriesRing(QQ,'z')
         z = S.gen()

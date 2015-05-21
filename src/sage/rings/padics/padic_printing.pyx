@@ -470,7 +470,7 @@ cdef class pAdicPrinter_class(SageObject):
             sage: R = Zp(5); S = Zp(5,print_mode='bars'); R._printer == S._printer
             False
         """
-        if not PY_TYPE_CHECK(other, pAdicPrinter_class):
+        if not isinstance(other, pAdicPrinter_class):
             return 1
         return self.cmp_modes(other)
 
@@ -766,7 +766,7 @@ cdef class pAdicPrinter_class(SageObject):
             sage: P._base_p_list(1298734,False)
             [2, -2, 6, -8, -1, 1]
         """
-        if PY_TYPE_CHECK(value, Integer):
+        if isinstance(value, Integer):
             from sage.rings.padics.padic_capped_relative_element import base_p_list
             return base_p_list(value, pos, self.prime_pow)
         elif pos:

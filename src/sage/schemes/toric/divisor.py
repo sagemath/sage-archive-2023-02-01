@@ -2099,7 +2099,7 @@ class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_pid):
         self._variety = group._variety
         self._lift_matrix = group._lift_matrix
         super(ToricRationalDivisorClassGroup_basis_lattice, self).__init__(
-            ZZ, group.dimension())
+            ZZ, group.dimension(), coordinate_ring=QQ)
 
     def _repr_(self):
         r"""

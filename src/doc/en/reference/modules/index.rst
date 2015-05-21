@@ -8,6 +8,7 @@ Modules
    sage/modules/free_module
    sage/modules/free_module_integer
    sage/modules/free_module_element
+   sage/tensor/modules/finite_rank_free_module
 
    sage/modules/complex_double_vector
    sage/modules/real_double_vector

@@ -1312,7 +1312,7 @@ class Sets(Category_singleton):
             This method should return an iterable, *not* an iterator.
             """
             try:
-                return [ self.an_element() ]
+                return [self.an_element()]
             except EmptySetError:
                 return []
 
@@ -2137,14 +2137,33 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
 
             def inject_shorthands(self, verbose=True):
                 """
+                Import standard shorthands into the global namespace.
+
+                INPUT:
+
+                - ``verbose`` -- boolean (default ``True``) if ``True``, prints the defined shorthands
+
                 EXAMPLES::
 
-                    sage: A = Sets().WithRealizations().example(QQ); A
-                    The subset algebra of {1, 2, 3} over Rational Field
-                    sage: A.inject_shorthands()
-                    Injecting F as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the Fundamental basis
-                    Injecting In as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the In basis
-                    ...
+                    sage: Q = QuasiSymmetricFunctions(ZZ)
+                    sage: Q.inject_shorthands()
+                    Injecting M as shorthand for Quasisymmetric functions over
+                    the Integer Ring in the Monomial basis
+                    Injecting F as shorthand for Quasisymmetric functions over
+                    the Integer Ring in the Fundamental basis
+                    Injecting dI as shorthand for Quasisymmetric functions over
+                    the Integer Ring in the dualImmaculate basis
+                    Injecting QS as shorthand for Quasisymmetric functions over
+                    the Integer Ring in the Quasisymmetric Schur basis
+                    sage: F[1,2,1] + 5*M[1,3] + F[2]^2
+                    5*F[1, 1, 1, 1] - 5*F[1, 1, 2] - 3*F[1, 2, 1] + 6*F[1, 3] +
+                    2*F[2, 2] + F[3, 1] + F[4]
+                    sage: F
+                    Quasisymmetric functions over the Integer Ring in the
+                    Fundamental basis
+                    sage: M
+                    Quasisymmetric functions over the Integer Ring in the
+                    Monomial basis
                 """
                 from sage.misc.misc import inject_variable
                 if not hasattr(self, "_shorthands"):

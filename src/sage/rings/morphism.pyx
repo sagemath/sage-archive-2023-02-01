@@ -370,7 +370,7 @@ def is_RingHomomorphism(phi):
         sage: sage.rings.morphism.is_RingHomomorphism(2/3)
         False
     """
-    return PY_TYPE_CHECK(phi, RingHomomorphism)
+    return isinstance(phi, RingHomomorphism)
 
 cdef class RingMap(Morphism):
     """
@@ -522,7 +522,7 @@ cdef class RingMap_lift(RingMap):
             sage: Zmod(8).lift() == 1
             False
         """
-        if not PY_TYPE_CHECK(other, RingMap_lift):
+        if not isinstance(other, RingMap_lift):
             return cmp(type(self), type(other))
 
         # Since they are lifting maps they are determined by their
@@ -625,7 +625,7 @@ cdef class RingHomomorphism(RingMap):
             sage: bool(ZZ.hom(R1, [1]))
             False
         """
-        return bool(self.codomain().one_element())
+        return bool(self.codomain().one())
 
     def _repr_type(self):
         """
@@ -670,7 +670,7 @@ cdef class RingHomomorphism(RingMap):
               To:   Integer Ring
               Defn: Choice of lifting map
         """
-        if not PY_TYPE_CHECK(lift, RingMap):
+        if not isinstance(lift, RingMap):
             raise TypeError, "lift must be a RingMap"
         if lift.domain() != self.codomain():
             raise TypeError, "lift must have correct domain"
@@ -978,7 +978,7 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
             sage: f == h
             False
         """
-        if not PY_TYPE_CHECK(other, RingHomomorphism_coercion):
+        if not isinstance(other, RingHomomorphism_coercion):
             return cmp(type(self), type(other))
 
         # Since they are coercion morphisms they are determined by
@@ -1201,7 +1201,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: loads(dumps(f2)) == f2
             True
         """
-        if not PY_TYPE_CHECK(other, RingHomomorphism_im_gens):
+        if not isinstance(other, RingHomomorphism_im_gens):
             return cmp(type(self), type(other))
         return cmp(self.__im_gens, (<RingHomomorphism_im_gens>other).__im_gens)
 
@@ -1502,7 +1502,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             sage: f1M == loads(dumps(f1M))
             True
         """
-        if not PY_TYPE_CHECK(other, RingHomomorphism_from_base):
+        if not isinstance(other, RingHomomorphism_from_base):
             return cmp(type(self), type(other))
         return cmp(self.__underlying, (<RingHomomorphism_from_base>other).__underlying)
 
@@ -1555,6 +1555,21 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             return P(self.__underlying(x.numerator()))/P(self.__underlying(x.denominator()))
         except Exception:
             raise TypeError, "invalid argument %s"%repr(x)
+
+    def is_identity(self):
+        """
+        Return ``True`` if this morphism is the identity morphism.
+
+        EXAMPLES::
+
+            sage: K.<z> = GF(4)
+            sage: phi = End(K)([z^2])
+            sage: R.<t> = K[]
+            sage: psi = End(R)(phi)
+            sage: psi.is_identity()
+            False
+        """
+        return self.__underlying.is_identity() and RingHomomorphism.is_identity(self)
 
 cdef class RingHomomorphism_cover(RingHomomorphism):
     r"""
@@ -1661,7 +1676,7 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
             sage: phi == R.quo(x^2 + y^3).cover()
             False
         """
-        if not PY_TYPE_CHECK(other, RingHomomorphism_cover):
+        if not isinstance(other, RingHomomorphism_cover):
             return cmp(type(self), type(other))
         return cmp(self.parent(), other.parent())
 
@@ -1740,9 +1755,9 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
         RingHomomorphism.__init__(self, parent)
         R = parent.domain()
         pi = R.cover()  # the covering map, which should be a RingHomomorphism
-        if not PY_TYPE_CHECK(pi, RingHomomorphism):
+        if not isinstance(pi, RingHomomorphism):
             raise TypeError, "pi should be a ring homomorphism"
-        if not PY_TYPE_CHECK(phi, RingHomomorphism):
+        if not isinstance(phi, RingHomomorphism):
             raise TypeError, "phi should be a ring homomorphism"
         if pi.domain() != phi.domain():
             raise ValueError, "Domain of phi must equal domain of covering (%s != %s)."%(pi.domain(), phi.domain())
@@ -1856,7 +1871,7 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
             sage: phi == f
             True
         """
-        if not PY_TYPE_CHECK(other, RingHomomorphism_from_quotient):
+        if not isinstance(other, RingHomomorphism_from_quotient):
             return cmp(type(self), type(other))
         return cmp(self.phi, (<RingHomomorphism_from_quotient>other).phi)
 

@@ -27,6 +27,7 @@ import sage.symbolic.integration.external as external
 available_integrators['maxima'] = external.maxima_integrator
 available_integrators['sympy'] = external.sympy_integrator
 available_integrators['mathematica_free'] = external.mma_free_integrator
+available_integrators['fricas'] = external.fricas_integrator
 
 ######################################################
 #
@@ -344,6 +345,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
        - 'mathematica_free' - use http://integrals.wolfram.com/
 
+       - 'fricas' - use FriCAS (the optional fricas spkg has to be installed) 
+
     To prevent automatic evaluation use the ``hold`` argument.
 
      EXAMPLES::
@@ -517,6 +520,28 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
         sage: integral(e^(-x^2),(x, 0, 0.1))
         0.05623145800914245*sqrt(pi)
+
+    An example of an integral that fricas can integrate, but the
+    default integrator cannot::
+
+        sage: f(x) = sqrt(x+sqrt(1+x^2))/x
+        sage: integrate(f(x), x, algorithm="fricas")      # optional - fricas
+        2*sqrt(x + sqrt(x^2 + 1)) + log(sqrt(x + sqrt(x^2 + 1)) - 1)
+        - log(sqrt(x + sqrt(x^2 + 1)) + 1) - 2*arctan(sqrt(x + sqrt(x^2 + 1)))
+
+    The following definite integral is not found with the
+    default integrator::
+
+        sage: f(x) = (x^4 - 3*x^2 + 6) / (x^6 - 5*x^4 + 5*x^2 + 4)
+        sage: integrate(f(x), x, 1, 2)
+        integrate((x^4 - 3*x^2 + 6)/(x^6 - 5*x^4 + 5*x^2 + 4), x, 1, 2)
+
+    Both fricas and sympy give the correct result::
+
+        sage: integrate(f(x), x, 1, 2, algorithm="fricas")  # optional - fricas
+        -1/2*pi + arctan(1/2) + arctan(2) + arctan(5) + arctan(8)
+        sage: integrate(f(x), x, 1, 2, algorithm="sympy")
+        -1/2*pi + arctan(8) + arctan(5) + arctan(2) + arctan(1/2)
 
     ALIASES: integral() and integrate() are the same.
 
@@ -718,6 +743,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         48481/1247400*pi
         193359161/6227020800*pi
         5799919/227026800*pi
+
+    Check that :trac:`12628` is fixed::
+
+        sage: integrate(1/(sqrt(x)*((1+sqrt(x))^2)),x,1,9)
+        1/2
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

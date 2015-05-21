@@ -106,6 +106,7 @@ class AnalyticTypeElement(LatticePosetElement):
         This is used for the string representation of such spaces.
 
         EXAMPLES::
+
             sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
             sage: AT = AnalyticType()
             sage: AT(["quasi", "weak"]).analytic_space_name()
@@ -323,14 +324,12 @@ class AnalyticType(FiniteLatticePoset):
     (and analytic types) given by "inclusion". We name the analytic type
     according to its maximal analytic properties.
 
-    EXAMPLES:
-
     For `n=3` the quasi form ``el = E6 - E2^3`` has the quasi components ``E6``
     which is ``holomorphic`` and ``E2^3`` which is ``quasi holomorphic``.
     So the analytic type of ``el`` is ``quasi holomorphic`` despite the fact
     that the sum (``el``) describes a function which is zero at infinity.
 
-    ::
+    EXAMPLES::
 
         sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
         sage: x,y,z,d = var("x,y,z,d")
@@ -338,9 +337,9 @@ class AnalyticType(FiniteLatticePoset):
         sage: el.analytic_type()
         quasi modular
 
-    Similarly the type of the ring element ``el2 = E4/Delta - E6/Delta`` is
-    ``weakly holomorphic`` despite the fact that the sum (``el2``) describes
-    a function which is holomorphic at infinity.
+        Similarly the type of the ring element ``el2 = E4/Delta - E6/Delta`` is
+        ``weakly holomorphic`` despite the fact that the sum (``el2``) describes
+        a function which is holomorphic at infinity.
 
         sage: from sage.modular.modform_hecketriangle.graded_ring import WeakModularFormsRing
         sage: x,y,z,d = var("x,y,z,d")

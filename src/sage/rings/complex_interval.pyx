@@ -86,7 +86,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         same parent as ``self``.
         """
         cdef ComplexIntervalFieldElement x
-        x = PY_NEW(ComplexIntervalFieldElement)
+        x = ComplexIntervalFieldElement.__new__(ComplexIntervalFieldElement)
         x._parent = self._parent
         x._prec = self._prec
         mpfi_init2(x.__re, self._prec)
@@ -113,9 +113,9 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_init2(self.__im, self._prec)
 
         if imag is None:
-            if PY_TYPE_CHECK(real, ComplexNumber):
+            if isinstance(real, ComplexNumber):
                 real, imag = (<ComplexNumber>real).real(), (<ComplexNumber>real).imag()
-            elif PY_TYPE_CHECK(real, ComplexIntervalFieldElement):
+            elif isinstance(real, ComplexIntervalFieldElement):
                 real, imag = (<ComplexIntervalFieldElement>real).real(), (<ComplexIntervalFieldElement>real).imag()
             elif isinstance(real, sage.libs.pari.all.pari_gen):
                 real, imag = real.real(), real.imag()
@@ -436,7 +436,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
         cdef ComplexIntervalFieldElement x = self._new()
         cdef ComplexIntervalFieldElement other_intv
-        if PY_TYPE_CHECK(other, ComplexIntervalFieldElement):
+        if isinstance(other, ComplexIntervalFieldElement):
             other_intv = other
         else:
             # Let type errors from _coerce_ propagate...
@@ -462,7 +462,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         cdef ComplexIntervalFieldElement x = self._new()
         cdef ComplexIntervalFieldElement other_intv
-        if PY_TYPE_CHECK(other, ComplexIntervalFieldElement):
+        if isinstance(other, ComplexIntervalFieldElement):
             other_intv = other
         else:
             # Let type errors from _coerce_ propagate...

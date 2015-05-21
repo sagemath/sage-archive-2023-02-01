@@ -375,7 +375,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             sage: f.lift([1/24])
             Traceback (most recent call last):
             ...
-            TypeError: element (= [1/24]) is not in free module
+            TypeError: element [1/24] is not in free module
 
         This works for vector spaces, too::
 

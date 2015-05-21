@@ -199,7 +199,8 @@ cdef class simple_connected_genus_backtracker:
         """
 
         cdef int i,j,du,dv,u,v
-        cdef int *w, *s
+        cdef int *w
+        cdef int *s
 
         # set this to prevent segfaulting on dealloc in case anything goes wrong.
         self.visited = NULL
@@ -330,7 +331,8 @@ cdef class simple_connected_genus_backtracker:
 
         """
 
-        cdef int i,j, v, *w
+        cdef int i, j, v
+        cdef int *w
         cdef int *face_map = self.face_freeze
         cdef list darts_to_verts
 

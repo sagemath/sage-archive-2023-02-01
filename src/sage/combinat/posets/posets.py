@@ -32,6 +32,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.compare_elements` | Compares `x` and `y` in the poset.
     :meth:`~FinitePoset.comparability_graph` | Returns the comparability graph of the poset.
     :meth:`~FinitePoset.completion_by_cuts` | Returns the Dedekind-MacNeille completion of the poset.
+    :meth:`~FinitePoset.connected_components` | Return the connected components of ``self`` as subposets.
     :meth:`~FinitePoset.cover_relations_iterator` | Returns an iterator for the cover relations of the poset.
     :meth:`~FinitePoset.cover_relations` | Returns the list of pairs `[u,v]` which are cover relations
     :meth:`~FinitePoset.cover_relations_graph` | Return the graph of cover relations
@@ -3201,6 +3202,28 @@ class FinitePoset(UniqueRepresentation, Parent):
                                             exclude=exclude)
         result.rename("Set of chains of %s" % self)
         return result
+
+    def connected_components(self):
+        """
+        Return the connected components of ``self`` as subposets.
+
+        EXAMPLES::
+
+            sage: P = Poset({1:[2,3], 3:[4,5]})
+            sage: CC = P.connected_components()
+            sage: CC is P
+            True
+
+            sage: P = Poset({1:[2,3], 3:[4,5], 6:[7,8]})
+            sage: sorted(P.connected_components(), key=len)
+            [Finite poset containing 3 elements,
+             Finite poset containing 5 elements]
+        """
+        comps = self._hasse_diagram.connected_components()
+        if len(comps) == 1:
+            return self
+        return [self.subposet(self._vertex_to_element(x) for x in cc)
+                for cc in comps]
 
     def product(self,other):
         """

@@ -654,8 +654,10 @@ cdef class tr_data:
         """
 
         cdef int n, np1, k, i, j, nk, kz
-        cdef int *gnkm, *gnkm1
-        cdef double *betak, bl, br, akmin, akmax, tmp_dbl
+        cdef int *gnkm
+        cdef int *gnkm1
+        cdef double *betak
+        cdef double bl, br, akmin, akmax, tmp_dbl
         cdef bint maxoutflag
 
         n = self.n

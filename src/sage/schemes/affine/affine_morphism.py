@@ -32,15 +32,17 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.misc.all import prod
 from sage.calculus.functions import jacobian
 from sage.categories.homset        import Hom
 from sage.matrix.constructor       import matrix, identity_matrix
+from sage.misc.cachefunc           import cached_method
+from sage.misc.all                import prod
 from sage.rings.all                import Integer, moebius
 from sage.rings.arith              import lcm, gcd
 from sage.rings.complex_field      import ComplexField
 from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
 from sage.rings.fraction_field     import FractionField
+from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.integer_ring       import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.quotient_ring      import QuotientRing_generic
@@ -923,7 +925,61 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         return l
 
 class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_affine_space):
-    pass
+
+    @cached_method
+    def weil_restriction(self):
+        r"""
+        Compute the Weil restriction of this morphism over some extension
+        field. If the field is a finite field, then this computes
+        the Weil restriction to the prime subfield.
+
+        A Weil restriction of scalars - denoted `Res_{L/k}` - is a
+        functor which, for any finite extension of fields `L/k` and
+        any algebraic variety `X` over `L`, produces another
+        corresponding variety `Res_{L/k}(X)`, defined over `k`. It is
+        useful for reducing questions about varieties over large
+        fields to questions about more complicated varieties over
+        smaller fields. Since it is a functor it also applied to morphisms.
+        In particular, the functor applied to a morphism gives the equivalent
+        morphism from the Weil restriction of the domain to the Weil restriction
+        of the codomain.
+
+        OUTPUT: Scheme morphism on the Weil restrictions of the domain
+            and codomain of ``self``.
+
+        EXAMPLES::
+
+            sage: K.<v> = QuadraticField(5)
+            sage: A.<x,y> = AffineSpace(K,2)
+            sage: H = End(A)
+            sage: f = H([x^2-y^2,y^2])
+            sage: f.weil_restriction()
+            Scheme endomorphism of Affine Space of dimension 4 over Rational Field
+              Defn: Defined on coordinates by sending (z0, z1, z2, z3) to
+                    (z0^2 + 5*z1^2 - z2^2 - 5*z3^2, 2*z0*z1 - 2*z2*z3, z2^2 + 5*z3^2, 2*z2*z3)
+
+        ::
+
+            sage: K.<v> = QuadraticField(5)
+            sage: PS.<x,y> = AffineSpace(K,2)
+            sage: H = Hom(PS,PS)
+            sage: f = H([x,y])
+            sage: F = f.weil_restriction()
+            sage: P = PS(2,1)
+            sage: Q = P.weil_restriction()
+            sage: f(P).weil_restriction() == F(Q)
+            True
+        """
+        if any([isinstance(f,FractionFieldElement) for f in self]):
+            raise TypeError("Coordinate functions must be polynomials")
+
+        DS = self.domain()
+        R = DS.coordinate_ring()
+        #using the weil restriction on ideal generators to not duplicate code
+        result = R.ideal(self._polys).weil_restriction().gens()
+        H = Hom(DS.weil_restriction(),self.codomain().weil_restriction())
+
+        return(H(result))
 
 class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynomial_affine_space_field):
 

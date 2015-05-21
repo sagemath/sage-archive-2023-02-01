@@ -15,6 +15,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.rngs import Rngs
+from sage.structure.element import Element
 from functools import reduce
 
 class Rings(CategoryWithAxiom):
@@ -153,7 +154,7 @@ class Rings(CategoryWithAxiom):
                 sage: R.quo(x^2+1).is_zero()
                 False
             """
-            return self.one_element() == self.zero_element()
+            return self.one() == self.zero()
 
         def bracket(self, x, y):
             """
@@ -470,7 +471,7 @@ class Rings(CategoryWithAxiom):
                         try:
                             if self.has_coerce_map_from(first):
                                 gens = first.gens() # we have a ring as argument
-                            elif hasattr(first,'parent'):
+                            elif isinstance(first, Element):
                                 gens = [first]
                             else:
                                 raise ArithmeticError("There is no coercion from %s to %s"%(first,self))

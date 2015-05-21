@@ -147,22 +147,6 @@ class FiniteGroups(CategoryWithAxiom):
 
             return DiGraph(arrows, implementation='networkx')
 
-        def conjugacy_class(self, g):
-            r"""
-            Return the conjugacy class of the element ``g``.
-
-            This is a fall-back method for groups not defined over GAP.
-
-            EXAMPLES::
-
-                sage: W = WeylGroup(['C',6])
-                sage: c = W.conjugacy_class(W.an_element())
-                sage: type(c)
-                <class 'sage.groups.conjugacy_classes.ConjugacyClass_with_category'>
-            """
-            from sage.groups.conjugacy_classes import ConjugacyClass
-            return ConjugacyClass(self, g)
-
         def conjugacy_classes(self):
             r"""
             Return a list with all the conjugacy classes of the group.
@@ -197,20 +181,5 @@ class FiniteGroups(CategoryWithAxiom):
             return [C.representative() for C in self.conjugacy_classes()]
 
     class ElementMethods:
-        def conjugacy_class(self):
-            r"""
-            Return the conjugacy class of ``self``.
-
-            EXAMPLES::
-
-                sage: H = MatrixGroup([matrix(GF(5),2,[1,2, -1, 1]), matrix(GF(5),2, [1,1, 0,1])])
-                sage: h = H(matrix(GF(5),2,[1,2, -1, 1]))
-                sage: h.conjugacy_class()
-                Conjugacy class of [1 2]
-                [4 1] in Matrix group over Finite Field of size 5 with 2 generators (
-                [1 2]  [1 1]
-                [4 1], [0 1]
-                )
-            """
-            return self.parent().conjugacy_class(self)
+        pass
 

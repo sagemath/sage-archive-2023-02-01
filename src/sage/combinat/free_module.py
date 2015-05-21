@@ -10,7 +10,7 @@ Free modules
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import Element
+from sage.structure.element import Element, have_same_parent
 from sage.structure.parent import Parent
 from sage.structure.element import have_same_parent
 from sage.structure.indexed_generators import IndexedGenerators
@@ -239,7 +239,7 @@ class CombinatorialFreeModuleElement(Element):
         TESTS::
 
             sage: M = QuasiSymmetricFunctions(QQ).M()
-            sage: ascii_art(M[1,3]**2)
+            sage: ascii_art(M[1,3]**2)  # indirect doctest
             4*M      + 2*M       + 2*M      + 2*M       + 2*M       + M
                  ***      ******        ***         ***         ***     ******
                ***        *             *        ****         ***      **
@@ -473,8 +473,7 @@ class CombinatorialFreeModuleElement(Element):
             sage: len(a.monomial_coefficients())
             1
         """
-
-        assert hasattr( other, 'parent' ) and other.parent() == self.parent()
+        assert have_same_parent(self, other)
 
         F = self.parent()
         return F._from_dict( dict_addition( [ self._monomial_coefficients, other._monomial_coefficients ] ), remove_zeros=False )
@@ -513,7 +512,7 @@ class CombinatorialFreeModuleElement(Element):
             sage: s([2,1]) - s([5,4]) # indirect doctest
             s[2, 1] - s[5, 4]
         """
-        assert hasattr( other, 'parent' ) and other.parent() == self.parent()
+        assert have_same_parent(self, other)
         F = self.parent()
         return F._from_dict( dict_linear_combination( [ ( self._monomial_coefficients, 1 ), (other._monomial_coefficients, -1 ) ] ), remove_zeros=False )
 
@@ -896,10 +895,10 @@ class CombinatorialFreeModuleElement(Element):
          - add non commutative tests
         """
         # With the current design, the coercion model does not have
-        # enough information to detect apriori that this method only
+        # enough information to detect a priori that this method only
         # accepts scalars; so it tries on some elements(), and we need
         # to make sure to report an error.
-        if hasattr( scalar, 'parent' ) and scalar.parent() != self.base_ring():
+        if isinstance(scalar, Element) and scalar.parent() is not self.base_ring():
             # Temporary needed by coercion (see Polynomial/FractionField tests).
             if self.base_ring().has_coerce_map_from(scalar.parent()):
                 scalar = self.base_ring()( scalar )
@@ -1303,7 +1302,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         TESTS::
 
             sage: R = NonCommutativeSymmetricFunctions(QQ).R()
-            sage: ascii_art(R.one())
+            sage: ascii_art(R.one())  # indirect doctest
             1
         """
         from sage.misc.ascii_art import AsciiArt
@@ -1489,23 +1488,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if isinstance(x, int):
             x = Integer(x)
 
-#         if hasattr(self, '_coerce_start'):
-#             try:
-#                 return self._coerce_start(x)
-#             except TypeError:
-#                 pass
-
-        # x is an element of the same type of combinatorial free module
-        # (disabled: this yields mathematically wrong results)
-        #if hasattr(x, 'parent') and x.parent().__class__ is self.__class__:
-        #    P = x.parent()
-        #    #same base ring
-        #    if P is self:
-        #        return x
-        #    #different base ring -- coerce the coefficients from into R
-        #    else:
-        #        return eclass(self, dict([ (e1,R(e2)) for e1,e2 in x._monomial_coefficients.items()]))
-        #x is an element of the ground ring (will be disabled at some point: not so useful)
         if x in R:
             if x == 0:
                 return self.zero()
@@ -1733,9 +1715,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             if not codomain:
                 keys = x.support()
                 key = keys[0]
-                if hasattr(on_basis( key ), 'parent'):
-                    codomain = on_basis( key ).parent()
-                else:
+                try:
+                    codomain = on_basis(key).parent()
+                except Exception:
                     raise ValueError('Codomain could not be determined')
 
             if hasattr( codomain, 'linear_combination' ):
@@ -2535,15 +2517,22 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
             sage: F = CombinatorialFreeModule(ZZ, [4,5]); F.__custom_name = "F"
             sage: G = CombinatorialFreeModule(ZZ, [4,6]); G.__custom_name = "G"
             sage: S = cartesian_product([F, G])
-            sage: phi = S.summand_embedding(0)
+            sage: phi = S.cartesian_embedding(0)
             sage: phi(F.monomial(4) + 2 * F.monomial(5))
             B[(0, 4)] + 2*B[(0, 5)]
             sage: phi(F.monomial(4) + 2 * F.monomial(6)).parent() == S
             True
-            sage: phi(G.monomial(4)) # not implemented Should raise an error!  problem: G(F.monomial(4)) does not complain!!!!
+
+        TESTS::
+
+            sage: phi(G.monomial(4))
+            Traceback (most recent call last):
+            ...
+            AssertionError
         """
         assert i in self._sets_keys()
-        return self._sets[i]._module_morphism(lambda t: self.monomial((i,t)), codomain = self)
+        return self._sets[i]._module_morphism(lambda t: self.monomial((i, t)),
+                                              codomain = self)
 
     summand_embedding = cartesian_embedding
 

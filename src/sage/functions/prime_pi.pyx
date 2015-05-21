@@ -146,7 +146,8 @@ cdef class PrimePi(BuiltinFunction):
         super(PrimePi, self).__init__('prime_pi', latex_name=r"\pi",
                 conversions={'mathematica':'PrimePi', 'pari':'primepi'})
 
-    cdef uint32_t *__primes, __numPrimes, __maxSieve, __primeBound
+    cdef uint32_t *__primes
+    cdef uint32_t __numPrimes, __maxSieve, __primeBound
     cdef int_fast8_t *__tabS
     cdef uint_fast16_t *__smallPi
     cdef uint8_t *__pariPrimePtr
@@ -322,7 +323,8 @@ cdef class PrimePi(BuiltinFunction):
         """
         Populates ``self.__primes`` with all primes < b
         """
-        cdef uint32_t *prime, newNumPrimes, i
+        cdef uint32_t *prime
+        cdef uint32_t newNumPrimes, i
         pari.init_primes(b+1u)
         self.__pariPrimePtr = <uint8_t *>diffptr
         newNumPrimes = self._pi(b, 0ull)
@@ -414,7 +416,8 @@ cdef class PrimePi(BuiltinFunction):
         # Laigle-Chapuy
         if i == 5u: return ((x/77u)<<4u) + self.__tabS[x%2310u]
         cdef uint32_t s = ((x/77u)<<4u) + self.__tabS[x%2310u]
-        cdef uint32_t y=x/13u, j=5u, *prime=self.__primes+5
+        cdef uint32_t y = x/13u, j = 5u
+        cdef uint32_t *prime = self.__primes+5
         while y > self.__maxSieve:
             s -= self._phi32(y, j)
             j += 1u

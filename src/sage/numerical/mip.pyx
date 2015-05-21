@@ -1,6 +1,18 @@
 r"""
 Mixed Integer Linear Programming
 
+This module implements classes and methods for the efficient solving of Linear
+Programs (`LP <http://en.wikipedia.org/wiki/Linear_programming>`_) and Mixed
+Integer Linear Programs (`MILP
+<http://en.wikipedia.org/wiki/Mixed_integer_linear_programming>`_).
+
+*Do you want to understand how the simplex method works?* See the
+:mod:`~sage.numerical.interactive_simplex_method` module (educational purposes
+only)
+
+Definition
+----------
+
 A linear program (`LP <http://en.wikipedia.org/wiki/Linear_programming>`_)
 is an `optimization problem <http://en.wikipedia.org/wiki/Optimization_%28mathematics%29>`_
 in the following form
@@ -16,6 +28,9 @@ linear program (`MILP <http://en.wikipedia.org/wiki/Mixed_integer_linear_program
 A wide variety of problems in optimization
 can be formulated in this standard form. Then, solvers are
 able to calculate a solution.
+
+Example
+-------
 
 Imagine you want to solve the following linear system of three equations:
 

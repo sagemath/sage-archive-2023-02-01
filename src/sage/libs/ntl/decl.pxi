@@ -2,23 +2,25 @@ include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
 
+cdef extern from "ccobject.h":
+    pass
 
 cdef extern from "ntl_wrap.h":
     long NTL_OVFBND
     bint NTL_OVERFLOW(long, long, long)
 
-from sage.libs.ntl.ntl_ZZ_decl cimport *, ZZ_c
-from sage.libs.ntl.ntl_lzz_pX_decl cimport *, zz_pX_c, zz_pX_Modulus_c
-from sage.libs.ntl.ntl_ZZ_pX_decl cimport *, ZZ_pX_c, ZZ_pX_Modulus_c
-from sage.libs.ntl.ntl_ZZ_pContext_decl cimport *, ZZ_pContext_c
-from sage.libs.ntl.ntl_ZZ_p_decl cimport *, ZZ_p_c
-from sage.libs.ntl.ntl_vec_ZZ_p_decl cimport *, vec_ZZ_p_c
-from sage.libs.ntl.ntl_ZZX_decl cimport *, ZZX_c
-from sage.libs.ntl.ntl_lzz_pContext_decl cimport *, zz_pContext_c
-from sage.libs.ntl.ntl_ZZ_pEContext_decl cimport *, ZZ_pEContext_c
-from sage.libs.ntl.ntl_ZZ_pE_decl cimport *, ZZ_pE_c
-from sage.libs.ntl.ntl_vec_ZZ_pE_decl cimport *, vec_ZZ_pE_c
-from sage.libs.ntl.ntl_ZZ_pEX_decl cimport *, ZZ_pEX_c
+from sage.libs.ntl.ntl_ZZ_decl cimport *
+from sage.libs.ntl.ntl_lzz_pX_decl cimport *
+from sage.libs.ntl.ntl_ZZ_pX_decl cimport *
+from sage.libs.ntl.ntl_ZZ_pContext_decl cimport *
+from sage.libs.ntl.ntl_ZZ_p_decl cimport *
+from sage.libs.ntl.ntl_vec_ZZ_p_decl cimport *
+from sage.libs.ntl.ntl_ZZX_decl cimport *
+from sage.libs.ntl.ntl_lzz_pContext_decl cimport *
+from sage.libs.ntl.ntl_ZZ_pEContext_decl cimport *
+from sage.libs.ntl.ntl_ZZ_pE_decl cimport *
+from sage.libs.ntl.ntl_vec_ZZ_pE_decl cimport *
+from sage.libs.ntl.ntl_ZZ_pEX_decl cimport *
 
 cdef extern from "ntl_wrap.h":
     #### mat_ZZ_c
@@ -348,10 +350,3 @@ cdef extern from "ntl_wrap.h":
 
     void vec_GF2_conv_mat_GF2 "conv" (vec_GF2_c out, mat_GF2_c inp)
     void mat_GF2_conv_vec_GF2(mat_GF2_c out, vec_GF2_c inp)
-
-
-cdef extern from "ZZ_pylong.h":
-    object ZZ_get_pylong(ZZ_c z)
-    int ZZ_set_pylong(ZZ_c z, object ll)
-
-

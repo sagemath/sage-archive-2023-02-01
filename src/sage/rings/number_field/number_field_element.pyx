@@ -86,7 +86,7 @@ def is_NumberFieldElement(x):
         sage: is_NumberFieldElement(a+1)
         True
     """
-    return PY_TYPE_CHECK(x, NumberFieldElement)
+    return isinstance(x, NumberFieldElement)
 
 def __create__NumberFieldElement_version0(parent, poly):
     """
@@ -177,8 +177,8 @@ cdef class NumberFieldElement(FieldElement):
         Quickly creates a new initialized NumberFieldElement with the same
         parent as self.
         """
-        cdef NumberFieldElement x
-        x = <NumberFieldElement>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef NumberFieldElement x = <NumberFieldElement>t.__new__(t)
         x._parent = self._parent
         x.__fld_numerator = self.__fld_numerator
         x.__fld_denominator = self.__fld_denominator
@@ -303,7 +303,7 @@ cdef class NumberFieldElement(FieldElement):
             return
 
         elif isinstance(f, NumberFieldElement):
-            if PY_TYPE(self) is PY_TYPE(f):
+            if type(self) is type(f):
                 self.__numerator = (<NumberFieldElement>f).__numerator
                 self.__denominator = (<NumberFieldElement>f).__denominator
                 return
@@ -446,7 +446,8 @@ cdef class NumberFieldElement(FieldElement):
             else:
                 return self.polynomial()(new_parent.gen()**rel)
 
-        cdef NumberFieldElement x = <NumberFieldElement>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef NumberFieldElement x = <NumberFieldElement>t.__new__(t)
         x._parent = <ParentWithBase>new_parent
         x.__fld_numerator, x.__fld_denominator = new_parent.polynomial_ntl()
         x.__denominator = self.__denominator
@@ -1006,7 +1007,7 @@ cdef class NumberFieldElement(FieldElement):
             R = RealField(prec)
 
         if self.is_zero():
-            return R.zero_element()
+            return R.zero()
         val = self.valuation(P)
         nP = P.residue_class_degree()*P.absolute_ramification_index()
         return R(P.absolute_norm()) ** (-R(val) / R(nP))
@@ -1728,8 +1729,8 @@ cdef class NumberFieldElement(FieldElement):
             ...
             TypeError: An embedding into RR or CC must be specified.
         """
-        if (PY_TYPE_CHECK(base, NumberFieldElement) and
-            (PY_TYPE_CHECK(exp, Integer) or PY_TYPE_CHECK_EXACT(exp, int) or exp in ZZ)):
+        if (isinstance(base, NumberFieldElement) and
+            (isinstance(exp, Integer) or type(exp) is int or exp in ZZ)):
             return generic_power_c(base, exp, None)
         else:
             cbase, cexp = canonical_coercion(base, exp)
@@ -2510,7 +2511,7 @@ cdef class NumberFieldElement(FieldElement):
         if self.__multiplicative_order is not None:
             return self.__multiplicative_order
 
-        one = self.number_field().one_element()
+        one = self.number_field().one()
         infinity = sage.rings.infinity.infinity
 
         if self == one:
@@ -3037,9 +3038,9 @@ cdef class NumberFieldElement(FieldElement):
         if self.valuation(P) >= 0: ## includes the case self=0
             from sage.rings.real_mpfr import RealField
             if prec is None:
-                return RealField().zero_element()
+                return RealField().zero()
             else:
-                return RealField(prec).zero_element()
+                return RealField(prec).zero()
         ht = self.abs_non_arch(P,prec).log()
         if not weighted:
             return ht
@@ -3100,8 +3101,8 @@ cdef class NumberFieldElement(FieldElement):
         emb = K.places(prec=prec)[i]
         a = emb(self).abs()
         Kv = emb.codomain()
-        if a <= Kv.one_element():
-            return Kv.zero_element()
+        if a <= Kv.one():
+            return Kv.zero()
         ht = a.log()
         from sage.rings.real_mpfr import is_RealField
         if weighted and not is_RealField(Kv):
@@ -3159,7 +3160,7 @@ cdef class NumberFieldElement(FieldElement):
         else:
             R = RealField(prec)
         if self.is_zero():
-            return R.zero_element()
+            return R.zero()
         return R(self.denominator_ideal().absolute_norm()).log()
 
     def global_height_arch(self, prec=None):
@@ -3187,7 +3188,7 @@ cdef class NumberFieldElement(FieldElement):
         """
         r,s = self.number_field().signature()
         hts = [self.local_height_arch(i, prec, weighted=True) for i in range(r+s)]
-        return sum(hts, hts[0].parent().zero_element())
+        return sum(hts, hts[0].parent().zero())
 
     def global_height(self, prec=None):
         """
@@ -4252,8 +4253,8 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
             sage: O.1 * O.1 * O.1
             -18
         """
-        cdef OrderElement_absolute x
-        x = <OrderElement_absolute>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef OrderElement_absolute x = <OrderElement_absolute>t.__new__(t)
         x._parent = self._parent
         x._number_field = self._parent.number_field()
         x.__fld_numerator = self.__fld_numerator
@@ -4392,8 +4393,8 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
             sage: parent(c) == O
             True
         """
-        cdef OrderElement_relative x
-        x = <OrderElement_relative>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef OrderElement_relative x = <OrderElement_relative>t.__new__(t)
         x._parent = self._parent
         x._number_field = self._parent.number_field()
         x.__fld_numerator = self.__fld_numerator

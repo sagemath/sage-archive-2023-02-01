@@ -423,7 +423,6 @@ class FGP_Morphism(Morphism):
 
             # Stack it on top of the basis for W'.
             Wp = CD.V().coordinate_module(CD.W()).basis_matrix()
-            Wp = Wp.change_ring(A.base_ring())
             B = A.stack(Wp)
 
             # Compute Hermite form of C with transformation

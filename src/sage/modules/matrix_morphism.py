@@ -54,7 +54,7 @@ AUTHOR:
 import sage.categories.morphism
 import sage.categories.homset
 import sage.matrix.all as matrix
-from   sage.structure.all import Sequence
+from sage.structure.all import Sequence, parent
 
 def is_MatrixMorphism(x):
     """
@@ -142,7 +142,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             TypeError: [1, 1] must be coercible into Vector space of dimension 3 over Rational Field
         """
         try:
-            if not hasattr(x, 'parent') or x.parent() != self.domain():
+            if parent(x) is not self.domain():
                 x = self.domain()(x)
         except TypeError:
             raise TypeError("%s must be coercible into %s"%(x,self.domain()))
@@ -716,6 +716,39 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         """
         raise NotImplementedError("this method must be overridden in the extension class")
 
+    def _matrix_(self):
+        """
+        EXAMPLES:
+
+        Check that this works with the :func:`matrix` function
+        (:trac:`16844`)::
+
+            sage: H = Hom(ZZ^2, ZZ^3)
+            sage: x = H.an_element()
+            sage: matrix(x)
+            [0 0 0]
+            [0 0 0]
+
+        TESTS:
+
+        ``matrix(x)`` is immutable::
+
+            sage: H = Hom(QQ^3, QQ^2)
+            sage: phi = H(matrix(QQ, 3, 2, list(reversed(range(6))))); phi
+            Vector space morphism represented by the matrix:
+            [5 4]
+            [3 2]
+            [1 0]
+            Domain: Vector space of dimension 3 over Rational Field
+            Codomain: Vector space of dimension 2 over Rational Field
+            sage: A = phi.matrix()
+            sage: A[1, 1] = 19
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
+        """
+        return self.matrix()
+
     def rank(self):
         r"""
         Returns the rank of the matrix representing this morphism.
@@ -1167,11 +1200,15 @@ class MatrixMorphism(MatrixMorphism_abstract):
 
     INPUT:
 
-    -  ``parent`` - a homspace
+    -  ``parent`` -- a homspace
 
-    -  ``A`` - matrix or a :class:`MatrixMorphism_abstract` instance
+    -  ``A`` -- matrix or a :class:`MatrixMorphism_abstract` instance
+
+    -  ``copy_matrix`` -- (default: ``True``) make an immutable copy of
+       the matrix ``A`` if it is mutable; if ``False``, then this makes
+       ``A`` immutable
     """
-    def __init__(self, parent, A):
+    def __init__(self, parent, A, copy_matrix=True):
         """
         Initialize ``self``.
 
@@ -1194,6 +1231,11 @@ class MatrixMorphism(MatrixMorphism_abstract):
             raise ArithmeticError("number of rows of matrix (={}) must equal rank of domain (={})".format(A.nrows(), parent.domain().rank()))
         if A.ncols() != parent.codomain().rank():
                 raise ArithmeticError("number of columns of matrix (={}) must equal rank of codomain (={})".format(A.ncols(), parent.codomain().rank()))
+        if A.is_mutable():
+            if copy_matrix:
+                from copy import copy
+                A = copy(A)
+            A.set_immutable()
         self._matrix = A
         MatrixMorphism_abstract.__init__(self, parent)
 
@@ -1203,8 +1245,8 @@ class MatrixMorphism(MatrixMorphism_abstract):
 
         INPUT:
 
-        - ``side`` - default:``'left'`` - the side of the matrix
-          where a vector is placed to effect the morphism (function).
+        - ``side`` -- (default: ``'left'``) the side of the matrix
+          where a vector is placed to effect the morphism (function)
 
         OUTPUT:
 

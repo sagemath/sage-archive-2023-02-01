@@ -163,7 +163,7 @@ cdef class VertexInfo:
 
 cdef mk_VertexInfo(double x, double y, double z, point_c *eval_min, point_c *eval_scale):
     cdef VertexInfo v
-    v = PY_NEW(VertexInfo)
+    v = VertexInfo.__new__(VertexInfo)
     v.pt.x = x
     v.pt.y = y
     v.pt.z = z

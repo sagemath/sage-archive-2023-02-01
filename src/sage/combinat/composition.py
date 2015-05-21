@@ -1396,10 +1396,10 @@ class Compositions(Parent, UniqueRepresentation):
         sage: [4,1] in Compositions(5, inner=[2,1], max_slope = 0)
         True
 
-    Note that the given constraints should be compatible::
+    An example with incompatible constraints::
 
         sage: [4,2] in Compositions(6, inner=[2,2], min_part=3)
-        True
+        False
 
     The options ``length``, ``min_length``, and ``max_length`` can be used
     to set length constraints on the compositions. For example, the

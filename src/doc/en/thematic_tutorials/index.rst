@@ -112,6 +112,11 @@ Advanced programming
 .. Dynamics
 .. --------
 
+Documentation
+=============
+
+* :ref:`sws2srt`
+
 .. Sage development
 .. ----------------
 

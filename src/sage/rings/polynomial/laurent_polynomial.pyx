@@ -321,7 +321,10 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
 
     def __getitem__(self, i):
         """
-        Return the coefficient of `t^i`.
+        With a tuple (i,j) as argument,
+        return the Laurent polynomial `\sum_{k=i}^{j-1} c_k t^k`
+        where ``self`` is `\sum_k c_k t^k`,
+        otherwise return the coefficient of `t^i`.
 
         EXAMPLES::
 
@@ -336,17 +339,6 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             -10/3
             sage: f[-9]
             0
-        """
-        return self.__u[i-self.__n]
-
-    def __getslice__(self, i, j):
-        """
-        Return the Laurent polynomial `\sum_{k=i}^{j-1} c_k t^k`
-        where ``self`` is `\sum_k c_k t^k`.
-
-        EXAMPLES::
-
-            sage: R.<t> = LaurentPolynomialRing(QQ)
             sage: f = -5/t^(10) + 1/3 + t + t^2 - 10/3*t^3; f
             -5*t^-10 + 1/3 + t + t^2 - 10/3*t^3
             sage: f[-10:2]
@@ -354,10 +346,13 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             sage: f[0:]
             1/3 + t + t^2 - 10/3*t^3
         """
-        if j > self.__u.degree():
-            j = self.__u.degree()
-        f = self.__u[i-self.__n:j-self.__n]
-        return LaurentPolynomial_univariate(self._parent, f, self.__n)
+        if isinstance(i, slice):
+            start = i.start if i.start is not None else 0
+            stop = i.stop if i.stop is not None else self.__u.degree()
+            f = self.__u[start-self.__n:stop-self.__n]
+            return LaurentPolynomial_univariate(self._parent, f, self.__n)
+        else:
+            return self.__u[i-self.__n]
 
     def __iter__(self):
         """
@@ -1395,7 +1390,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             x*y
         """
         cdef LaurentPolynomial_mpair ans
-        ans = PY_NEW(LaurentPolynomial_mpair)
+        ans = LaurentPolynomial_mpair.__new__(LaurentPolynomial_mpair)
         ans._parent = self._parent
         return ans
 
@@ -1617,7 +1612,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if self._prod is None:
             self._compute_polydict()
         if t not in self._prod.exponents():
-            return self.parent().base_ring().zero_element()
+            return self.parent().base_ring().zero()
         return self._prod[t]
 
     def __iter__(self):
@@ -1635,7 +1630,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if self._prod is None:
             self._compute_polydict()
         for c, exps in self._prod.list():
-            prod = self.parent().one_element()
+            prod = self.parent().one()
             for i in range(len(exps)):
                 prod *= self.parent().gens()[i]**exps[i]
             yield (c, prod)
@@ -1655,7 +1650,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if self._prod is None:
             self._compute_polydict()
         for c, exps in self._prod.list():
-            prod = self.parent().one_element()
+            prod = self.parent().one()
             for i in range(len(exps)):
                 prod *= self.parent().gens()[i]**exps[i]
             L.append(prod)
@@ -2197,7 +2192,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
         cdef int l = len(x)
 
-        if l == 1 and (PY_TYPE_CHECK(x[0], tuple) or PY_TYPE_CHECK(x[0], list)):
+        if l == 1 and (isinstance(x[0], tuple) or isinstance(x[0], list)):
             x = x[0]
             l = len(x)
 

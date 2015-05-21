@@ -1012,8 +1012,7 @@ class Tableau(CombinatorialObject, Element):
         p = self.shape()
         return len(self.inversions()) - sum([ p.arm_length(*cell) for cell in self.descents() ])
 
-    @combinatorial_map(order=2,name='Schuetzenberger involution')
-    def schuetzenberger_involution(self, n = None):
+    def schuetzenberger_involution(self, n = None, check=True):
         r"""
         Return the Schuetzenberger involution of the tableau ``self``.
 
@@ -1027,6 +1026,8 @@ class Tableau(CombinatorialObject, Element):
 
         - ``n`` -- an integer specifying the maximal letter in the
           alphabet (optional)
+        - ``check`` -- (Default: ``True``) Check to make sure ``self`` is
+          semistandard. Set to ``False`` to avoid this check. (optional)
 
         OUTPUT:
 
@@ -1034,9 +1035,9 @@ class Tableau(CombinatorialObject, Element):
 
         EXAMPLES::
 
-           sage: t = Tableau([[1,1,1],[2,2]])
-           sage: t.schuetzenberger_involution(3)
-           [[2, 2, 3], [3, 3]]
+            sage: t = Tableau([[1,1,1],[2,2]])
+            sage: t.schuetzenberger_involution(3)
+            [[2, 2, 3], [3, 3]]
 
             sage: t = Tableau([[1,2,3],[4,5]])
             sage: t.schuetzenberger_involution()
@@ -1055,18 +1056,74 @@ class Tableau(CombinatorialObject, Element):
             sage: s.parent()
             Standard tableaux
         """
-        w = self.to_word()
-        if w.length() == 0:
+        if check and self not in SemistandardTableaux():
+            raise ValueError("the tableau must be semistandard")
+        w = [i for row in self for i in reversed(row)]
+        # ``w`` is now the Semitic reading word of ``self`` (that is,
+        # the reverse of the reading word of ``self``).
+        if not w:
             return self
-        wi = w.schuetzenberger_involution(n=n)
+        if n is None:
+            n = max(w)
+        N = n + 1
+        wi = [N - i for i in w]
         t = Tableau([[wi[0]]])
-        for k in range(1, w.length()):
-            t = t.bump(wi[k])
+        for k in wi[1:]:
+            t = t.bump(k)
         if isinstance(self, StandardTableau):
             return StandardTableau(list(t))
         elif isinstance(self, SemistandardTableau):
             return SemistandardTableau(list(t))
         return t
+
+    @combinatorial_map(order=2,name='evacuation')
+    def evacuation(self, n = None, check=True):
+        r"""
+        Return the evacuation of the tableau ``self``.
+
+        This is an alias for :meth:`schuetzenberger_involution`.
+
+        This method relies on the analogous method on words, which reverts the
+        word and then complements all letters within the underlying ordered
+        alphabet. If `n` is specified, the underlying alphabet is assumed to
+        be `[1, 2, \ldots, n]`. If no alphabet is specified, `n` is the maximal
+        letter appearing in ``self``.
+
+        INPUT:
+
+        - ``n`` -- an integer specifying the maximal letter in the
+          alphabet (optional)
+        - ``check`` -- (Default: ``True``) Check to make sure ``self`` is
+          semistandard. Set to ``False`` to avoid this check. (optional)
+
+        OUTPUT:
+
+        - a tableau, the evacuation of ``self``
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1,1],[2,2]])
+            sage: t.evacuation(3)
+            [[2, 2, 3], [3, 3]]
+
+            sage: t = Tableau([[1,2,3],[4,5]])
+            sage: t.evacuation()
+            [[1, 2, 5], [3, 4]]
+
+            sage: t = Tableau([[1,3,5,7],[2,4,6],[8,9]])
+            sage: t.evacuation()
+            [[1, 2, 6, 8], [3, 4, 9], [5, 7]]
+
+            sage: t = Tableau([])
+            sage: t.evacuation()
+            []
+
+            sage: t = StandardTableau([[1,2,3],[4,5]])
+            sage: s = t.evacuation()
+            sage: s.parent()
+            Standard tableaux
+        """
+        return self.schuetzenberger_involution(n,check)
 
     @combinatorial_map(name="standardization")
     def standardization(self, check=True):
@@ -1429,14 +1486,12 @@ class Tableau(CombinatorialObject, Element):
             False
             sage: Tableau([]).is_rectangular()
             True
+            sage: Tableau([[]]).is_rectangular()
+            True
         """
         if len(self) == 0:
             return True
-        width = len(self[0])
-        for row in self:
-            if len(row) != width:
-                return False
-        return True
+        return len(self[-1]) == len(self[0])
 
     def vertical_flip(self):
         """
@@ -1526,10 +1581,76 @@ class Tableau(CombinatorialObject, Element):
                     cell_list.append((r,c))
         return cell_list
 
+    def leq(self, secondtab):
+        """
+        Check whether each entry of ``self`` is less-or-equal to the
+        corresponding entry of a further tableau ``secondtab``.
+
+        INPUT:
+
+        - ``secondtab`` -- a tableau of the same shape as ``self``
+
+        EXAMPLES:
+
+            sage: T = Tableau([[1, 2], [3]])
+            sage: S = Tableau([[1, 3], [3]])
+            sage: G = Tableau([[2, 1], [4]])
+            sage: H = Tableau([[1, 2], [4]])
+            sage: T.leq(S)
+            True
+            sage: T.leq(T)
+            True
+            sage: T.leq(G)
+            False
+            sage: T.leq(H)
+            True
+            sage: S.leq(T)
+            False
+            sage: S.leq(G)
+            False
+            sage: S.leq(H)
+            False
+            sage: G.leq(H)
+            False
+            sage: H.leq(G)
+            False
+
+        TESTS::
+
+            sage: StandardTableau(T).leq(S)
+            True
+            sage: T.leq(SemistandardTableau(S))
+            True
+        """
+        if not secondtab in Tableaux():
+            raise TypeError(secondtab + " must be a tableau")
+        sh = self.shape()
+        if sh != secondtab.shape():
+            raise TypeError("the tableaux must be the same shape")
+        return all( self[a][b] <= secondtab[a][b] for a in xrange(len(self))
+                                                  for b in xrange(len(self[a])) )
+
     def k_weight(self, k):
         """
-        Return the ``k``-weight of ``self``.
+        Return the `k`-weight of ``self``.
 
+        A tableau has `k`-weight `alpha=(alpha_1,...,alpha_n)` if there
+        are exactly `alpha_i` distinct residues for the cells occupied
+        by the letter `i` for each `i`.  The residue of a cell in 
+        position `(a,b)` is `a-b` modulo `k+1`. 
+
+        This definition is the one used in [Ive2012]_ (p. 12).
+
+        REFERENCES:
+
+        .. [Ive2012] S. Iveson,
+           *Tableaux on `k + 1`-cores, reduced words for affine 
+           permutations, and `k`-Schur expansions*,  
+           Operators on `k`-tableaux and the `k`-Littlewood-Richardson
+           rule for a special case,
+           UC Berkeley: Mathematics,  Ph.D. Thesis,
+           https://escholarship.org/uc/item/7pd1v1b5
+           
         EXAMPLES::
 
             sage: Tableau([[1,2],[2,3]]).k_weight(1)
@@ -1801,40 +1922,50 @@ class Tableau(CombinatorialObject, Element):
             sage: t = Tableau([[1,2,2,3],[2,3,5,5],[4,4,6],[5,6]])
             sage: t.bump(2)
             [[1, 2, 2, 2], [2, 3, 3, 5], [4, 4, 5], [5, 6, 6]]
+            sage: t.bump(1)
+            [[1, 1, 2, 3], [2, 2, 5, 5], [3, 4, 6], [4, 6], [5]]
         """
-        new_t = self.to_list()
         to_insert = x
-        row = 0
-        done = False
-        while not done:
-            #if we are at the end of the tableau
-            #add to_insert as the last row
-            if row == len(new_t):
-                new_t.append([to_insert])
-                break
-
+        new_t = self.to_list()
+        for row in new_t:
             i = 0
             #try to insert to_insert into row
-            while i < len(new_t[row]):
-                if to_insert < new_t[row][i]:
+            while i < len(row):
+                if to_insert < row[i]:
                     t = to_insert
-                    to_insert = new_t[row][i]
-                    new_t[row][i] = t
+                    to_insert = row[i]
+                    row[i] = t
                     break
                 i += 1
 
-
             #if we haven't already inserted to_insert
             #append it to the end of row
-            if i == len(new_t[row]):
-                new_t[row].append(to_insert)
-                done = True
-
-            row += 1
+            if i == len(row):
+                row.append(to_insert)
+                if isinstance(self, SemistandardTableau):
+                    return SemistandardTableau(new_t)
+                return Tableau(new_t)
+        #if we got here, we are at the end of the tableau
+        #add to_insert as the last row
+        new_t.append([to_insert])
+        if isinstance(self, SemistandardTableau):
+            return SemistandardTableau(new_t)
         return Tableau(new_t)
 
     def schensted_insert(self, i, left=False):
         """
+        Insert ``i`` into ``self`` using Schensted's row-bumping (or
+        row-insertion) algorithm.
+
+        INPUT:
+
+        - ``i`` -- a number to insert
+        - ``left`` -- (default: ``False``) boolean; if set to
+          ``True``, the insertion will be done from the left. That
+          is, if one thinks of the algorithm as appending a letter
+          to the reading word of ``self``, we append the letter to
+          the left instead of the right
+
         EXAMPLES::
 
             sage: t = Tableau([[3,5],[7]])
@@ -1846,40 +1977,7 @@ class Tableau(CombinatorialObject, Element):
         if left:
             return self._left_schensted_insert(i)
         else:
-            return self._right_schensted_insert(i)
-
-    def _right_schensted_insert(self, letter):
-        """
-        EXAMPLES::
-
-            sage: t = Tableau([[3,5],[7]])
-            sage: t._right_schensted_insert(8)
-            [[3, 5, 8], [7]]
-            sage: t._right_schensted_insert(2)
-            [[2, 5], [3], [7]]
-            sage: t = Tableau([[3,8],[7]])
-            sage: t._right_schensted_insert(6)
-            [[3, 6], [7, 8]]
-        """
-        h = self.height()
-        if h == 0:
-            return Tableau([[letter]])
-        h += 1
-        rep = self.to_list() + [[]]
-
-        for i in range(h):
-            j = len(rep[i]) - 1
-            while j >= 0 and rep[i][j] > letter:
-                j -= 1
-            if j == len(rep[i])-1:
-                rep[i].append(letter)
-                break
-            else:
-                new_letter = rep[i][j+1]
-                rep[i][j+1] = letter
-                letter = new_letter
-
-        return Tableau([ row for row in rep if row != []])
+            return self.bump(i)
 
     def _left_schensted_insert(self, letter):
         """
@@ -1928,7 +2026,6 @@ class Tableau(CombinatorialObject, Element):
 
         rep.reverse()
         return Tableau(rep)
-
 
     def insert_word(self, w, left=False):
         """

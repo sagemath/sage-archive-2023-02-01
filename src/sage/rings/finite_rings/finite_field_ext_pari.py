@@ -180,28 +180,23 @@ class FiniteField_ext_pari(FiniteField_generic):
         q = integer.Integer(q)
         if q < 2:
             raise ArithmeticError("q must be a prime power")
-        from sage.structure.proof.all import arithmetic
-        proof = arithmetic()
-        if proof:
-            F = q.factor()
-        else:
-            from sage.rings.arith import is_pseudoprime_small_power
-            F = is_pseudoprime_small_power(q, get_data=True)
-        if len(F) != 1:
-            raise ArithmeticError("q must be a prime power")
 
-        if F[0][1] > 1:
-            base_ring = GF(F[0][0])
+        # note: the following call takes care of the fact that
+        # proof.arithmetic() is True or False.
+        p, n = q.is_prime_power(get_data=True)
+        if n > 1:
+            base_ring = GF(p)
+        elif n == 0:
+            raise ArithmeticError("q must be a prime power")
         else:
             raise ValueError("The size of the finite field must not be prime.")
-            #base_ring = self
 
         FiniteField_generic.__init__(self, base_ring, name, normalize=True)
 
         self._kwargs = {}
-        self.__char = F[0][0]
+        self.__char = p
         self.__pari_one = pari.pari(1).Mod(self.__char)
-        self.__degree = integer.Integer(F[0][1])
+        self.__degree = n
         self.__order = q
         self.__is_field = True
 

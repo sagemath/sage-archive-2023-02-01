@@ -22,9 +22,3 @@ cdef class CategoryObject(SageObject):
     cdef public _factory_data
     cdef object __weakref__
     cdef long _hash_value
-
-#    cpdef Generators gens(self, category = *)
-#    cpdef gen(self, index = *, category = *)
-#    cpdef ngens(self, category = *)
-#    cpdef base(self, category = *)
-#    cpdef base_extend(self, other, category = *)

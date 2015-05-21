@@ -148,7 +148,7 @@ cdef class FpTElement(RingElement):
         """
         Creates a new FpTElement in the same field, leaving the value to be initialized.
         """
-        cdef FpTElement x = <FpTElement>PY_NEW(FpTElement)
+        cdef FpTElement x = <FpTElement>FpTElement.__new__(FpTElement)
         x._parent = self._parent
         x.p = self.p
         nmod_poly_init_preinv(x._numer, x.p, self._numer.mod.ninv)
@@ -160,7 +160,7 @@ cdef class FpTElement(RingElement):
         """
         Creates a new FpTElement in the same field, with the same value as self.
         """
-        cdef FpTElement x = <FpTElement>PY_NEW(FpTElement)
+        cdef FpTElement x = <FpTElement>FpTElement.__new__(FpTElement)
         x._parent = self._parent
         x.p = self.p
         nmod_poly_init2_preinv(x._numer, x.p, self._numer.mod.ninv, self._numer.length)
@@ -194,7 +194,7 @@ cdef class FpTElement(RingElement):
             sage: a.numerator()
             t^6 + 3*t^4 + 10*t^3 + 3*t^2 + 1
         """
-        cdef Polynomial_zmod_flint res = <Polynomial_zmod_flint>PY_NEW(Polynomial_zmod_flint)
+        cdef Polynomial_zmod_flint res = <Polynomial_zmod_flint>Polynomial_zmod_flint.__new__(Polynomial_zmod_flint)
         nmod_poly_init2_preinv(&res.x, self.p, self._numer.mod.ninv, self._numer.length)
         nmod_poly_set(&res.x, self._numer)
         res._parent = self._parent.poly_ring
@@ -225,7 +225,7 @@ cdef class FpTElement(RingElement):
             sage: a.denominator()
             t^3
         """
-        cdef Polynomial_zmod_flint res = <Polynomial_zmod_flint>PY_NEW(Polynomial_zmod_flint)
+        cdef Polynomial_zmod_flint res = <Polynomial_zmod_flint>Polynomial_zmod_flint.__new__(Polynomial_zmod_flint)
         nmod_poly_init2_preinv(&res.x, self.p, self._denom.mod.ninv, self._denom.length)
         nmod_poly_set(&res.x, self._denom)
         res._parent = self._parent.poly_ring
@@ -1076,7 +1076,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
             t^2 + 1
         """
         cdef Polynomial_zmod_flint x = <Polynomial_zmod_flint?> _x
-        cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
+        cdef FpTElement ans = <FpTElement>FpTElement.__new__(FpTElement)
         ans._parent = self.codomain()
         ans.p = self.p
         nmod_poly_init(ans._numer, ans.p)
@@ -1132,7 +1132,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
             x = <Polynomial_zmod_flint?> _x
         except TypeError:
             raise NotImplementedError('Fraction fields not implemented for this type.')
-        cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
+        cdef FpTElement ans = <FpTElement>FpTElement.__new__(FpTElement)
         ans._parent = self.codomain()
         ans.p = self.p
         nmod_poly_init(ans._numer, ans.p)
@@ -1142,12 +1142,12 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
             nmod_poly_set_coeff_ui(ans._denom, 0, 1)  # No need to normalize
         elif len(args) == 1:
             y = args[0]
-            if PY_TYPE_CHECK(y, Integer):
+            if isinstance(y, Integer):
                 r = mpz_fdiv_ui((<Integer>y).value, self.p)
                 nmod_poly_set_coeff_ui(ans._denom, 0, r)
             else:
                 # could use the coerce keyword being set to False to not check this...
-                if not (PY_TYPE_CHECK(y, Element) and y.parent() is self.domain()):
+                if not (isinstance(y, Element) and y.parent() is self.domain()):
                     # We could special case integers and GF(p) elements here.
                     y = self.domain()(y)
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
@@ -1287,7 +1287,7 @@ cdef class FpT_Polyring_section(Section):
             normalize(x._numer, x._denom, self.p)
             if nmod_poly_degree(x._denom) != 0:
                 raise ValueError, "not integral"
-        ans = PY_NEW(Polynomial_zmod_flint)
+        ans = Polynomial_zmod_flint.__new__(Polynomial_zmod_flint)
         if nmod_poly_get_coeff_ui(x._denom, 0) != 1:
             normalize(x._numer, x._denom, self.p)
         nmod_poly_init(&ans.x, self.p)
@@ -1376,7 +1376,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
             3
         """
         cdef IntegerMod_int x = <IntegerMod_int?> _x
-        cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
+        cdef FpTElement ans = <FpTElement>FpTElement.__new__(FpTElement)
         ans._parent = self.codomain()
         ans.p = self.p
         nmod_poly_init(ans._numer, ans.p)
@@ -1405,7 +1405,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
             2/2*t
         """
         cdef IntegerMod_int x = <IntegerMod_int?> _x
-        cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
+        cdef FpTElement ans = <FpTElement>FpTElement.__new__(FpTElement)
         ans._parent = self.codomain()
         ans.p = self.p
         nmod_poly_init(ans._numer, ans.p)
@@ -1416,7 +1416,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
             nmod_poly_set_coeff_ui(ans._denom, 0, 1)
         if len(args) == 1:
             y = args[0]
-            if PY_TYPE_CHECK(y, Integer):
+            if isinstance(y, Integer):
                 r = mpz_fdiv_ui((<Integer>y).value, self.p)
                 if r == 0:
                     raise ZeroDivisionError
@@ -1424,7 +1424,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
             else:
                 R = ans._parent.ring_of_integers()
                 # could use the coerce keyword being set to False to not check this...
-                if not (PY_TYPE_CHECK(y, Element) and y.parent() is R):
+                if not (isinstance(y, Element) and y.parent() is R):
                     # We could special case integers and GF(p) elements here.
                     y = R(y)
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
@@ -1585,7 +1585,7 @@ cdef class FpT_Fp_section(Section):
                 raise ValueError, "not integral"
             if nmod_poly_degree(x._numer) > 0:
                 raise ValueError, "not constant"
-        ans = PY_NEW(IntegerMod_int)
+        ans = IntegerMod_int.__new__(IntegerMod_int)
         ans._parent = self.codomain()
         ans.__modulus = ans._parent._pyx_order
         if nmod_poly_get_coeff_ui(x._denom, 0) != 1:
@@ -1677,7 +1677,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
             3
         """
         cdef Integer x = <Integer?> _x
-        cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
+        cdef FpTElement ans = <FpTElement>FpTElement.__new__(FpTElement)
         ans._parent = self.codomain()
         ans.p = self.p
         nmod_poly_init(ans._numer, ans.p)
@@ -1708,7 +1708,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
             2/2*t
         """
         cdef Integer x = <Integer?> _x
-        cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
+        cdef FpTElement ans = <FpTElement>FpTElement.__new__(FpTElement)
         ans._parent = self.codomain()
         ans.p = self.p
         nmod_poly_init(ans._numer, ans.p)
@@ -1719,7 +1719,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
             nmod_poly_set_coeff_ui(ans._denom, 0, 1)
         if len(args) == 1:
             y = args[0]
-            if PY_TYPE_CHECK(y, Integer):
+            if isinstance(y, Integer):
                 r = mpz_fdiv_ui((<Integer>y).value, self.p)
                 if r == 0:
                     raise ZeroDivisionError
@@ -1727,7 +1727,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
             else:
                 R = ans._parent.ring_of_integers()
                 # could use the coerce keyword being set to False to not check this...
-                if not (PY_TYPE_CHECK(y, Element) and y.parent() is R):
+                if not (isinstance(y, Element) and y.parent() is R):
                     # We could special case integers and GF(p) elements here.
                     y = R(y)
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))

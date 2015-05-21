@@ -1,6 +1,5 @@
 r"""
-
-Interface to two Rubik's cube solvers.
+Interface to several Rubik's cube solvers.
 
 The first is by Michael Reid, and tries to find an optimal solution given
 the cube's state, and may take a long time.

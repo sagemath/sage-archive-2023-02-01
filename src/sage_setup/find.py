@@ -48,7 +48,7 @@ def find_python_sources(src_dir, modules=('sage',)):
         1 loops, best of 1: 18.8 ms per loop
 
         sage: find_python_sources(SAGE_SRC, modules=['sage_setup'])
-        (['sage_setup'], [...'sage_setup.find'...])
+        (['sage_setup', ...], [...'sage_setup.find'...])
     """
     PYMOD_EXT = os.path.extsep + 'py'
     INIT_FILE = '__init__' + PYMOD_EXT

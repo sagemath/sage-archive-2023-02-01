@@ -94,7 +94,8 @@ cdef class FMElement(pAdicTemplateElement):
             sage: R = ZpFM(5); R(6) * R(7) #indirect doctest
             2 + 3*5 + 5^2 + O(5^20)
         """
-        cdef FMElement ans = PY_NEW(self.__class__)
+        cdef type t = self.__class__
+        cdef FMElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
         cconstruct(ans.value, ans.prime_pow)
@@ -428,10 +429,10 @@ cdef class FMElement(pAdicTemplateElement):
             1 + O(7^4)
         """
         cdef long aprec, newprec
-        if PY_TYPE_CHECK(absprec, int):
+        if isinstance(absprec, int):
             aprec = absprec
         else:
-            if not PY_TYPE_CHECK(absprec, Integer):
+            if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
             aprec = mpz_get_si((<Integer>absprec).value)
         if aprec >= self.prime_pow.prec_cap:
@@ -487,7 +488,7 @@ cdef class FMElement(pAdicTemplateElement):
         cdef bint iszero = ciszero(self.value, self.prime_pow)
         if absprec is None:
             return iszero
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if mpz_cmp_si((<Integer>absprec).value, self.prime_pow.prec_cap) >= 0:
             return iszero
@@ -543,7 +544,7 @@ cdef class FMElement(pAdicTemplateElement):
             # The default absolute precision is given by the precision cap
             aprec = self.prime_pow.prec_cap
         else:
-            if not PY_TYPE_CHECK(absprec, Integer):
+            if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
             # If absprec is not positive, then self and right are always
             # equal.
@@ -1151,7 +1152,7 @@ def unpickle_fme_v2(cls, parent, value):
         sage: a.parent() is R
         True
     """
-    cdef FMElement ans = PY_NEW(cls)
+    cdef FMElement ans = cls.__new__(cls)
     ans._parent = parent
     ans.prime_pow = <PowComputer_class?>parent.prime_pow
     cconstruct(ans.value, ans.prime_pow)

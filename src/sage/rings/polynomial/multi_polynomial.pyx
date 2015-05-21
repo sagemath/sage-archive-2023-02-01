@@ -733,7 +733,7 @@ cdef class MPolynomial(CommutativeRingElement):
         if self.is_homogeneous():
             return self
 
-        if PY_TYPE_CHECK(var, basestring):
+        if isinstance(var, basestring):
             V = list(P.variable_names())
             try:
                 i = V.index(var)
@@ -742,7 +742,7 @@ cdef class MPolynomial(CommutativeRingElement):
                 P = PolynomialRing(P.base_ring(), len(V)+1, V + [var], order=P.term_order())
                 return P(self)._homogenize(len(V))
 
-        elif PY_TYPE_CHECK(var, MPolynomial) and \
+        elif isinstance(var, MPolynomial) and \
              ((<MPolynomial>var)._parent is P or (<MPolynomial>var)._parent == P):
             V = list(P.gens())
             try:
@@ -752,7 +752,7 @@ cdef class MPolynomial(CommutativeRingElement):
                 P = P.change_ring(names=P.variable_names() + [str(var)])
                 return P(self)._homogenize(len(V))
 
-        elif PY_TYPE_CHECK(var, int) or PY_TYPE_CHECK(var, Integer):
+        elif isinstance(var, int) or isinstance(var, Integer):
             if 0 <= var < P.ngens():
                 return self._homogenize(var)
             else:
@@ -1448,7 +1448,7 @@ cdef class MPolynomial(CommutativeRingElement):
             True
         """
         if self.degree() == -1:
-            return self.base_ring().one_element()
+            return self.base_ring().one()
         x = self.coefficients()
         try:
             d = x[0].denominator()
@@ -1456,7 +1456,7 @@ cdef class MPolynomial(CommutativeRingElement):
                 d = d.lcm(y.denominator())
             return d
         except(AttributeError):
-            return self.base_ring().one_element()
+            return self.base_ring().one()
 
     def numerator(self):
         """

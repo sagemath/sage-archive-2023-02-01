@@ -94,7 +94,7 @@ cdef class IntList:
         if isinstance(values, (int,long,Integer)):
             self._length = values
             values = None
-        elif PY_TYPE_CHECK(values, TimeSeries):
+        elif isinstance(values, TimeSeries):
             T = values
             self._length = T._length
         else:
@@ -107,7 +107,7 @@ cdef class IntList:
         if values is None:
             for i in range(self._length):
                 self._values[i] = 0
-        elif PY_TYPE_CHECK(values, TimeSeries):
+        elif isinstance(values, TimeSeries):
             for i in range(self._length):
                 self._values[i] = <int> T._values[i]
         else:
@@ -495,7 +495,7 @@ cdef class IntList:
             sage: type(T)
             <type 'sage.finance.time_series.TimeSeries'>
         """
-        cdef TimeSeries T = PY_NEW(TimeSeries)
+        cdef TimeSeries T = TimeSeries.__new__(TimeSeries)
         # We just reach into the data structure underlying T, since we
         # want this function to be *very* fast.
         T._length = self._length
@@ -549,7 +549,7 @@ cdef IntList new_int_list(Py_ssize_t length):
     """
     if length < 0:
         raise ValueError, "length must be nonnegative"
-    cdef IntList t = PY_NEW(IntList)
+    cdef IntList t = IntList.__new__(IntList)
     t._length = length
     t._values = <int*> sage_malloc(sizeof(int)*length)
     return t

@@ -12,7 +12,8 @@ Modular Symbols
 
    sage/modular/modsym/element
    sage/modular/modsym/modular_symbols
-   sage/modular/modsym/manin_symbols
+   sage/modular/modsym/manin_symbol
+   sage/modular/modsym/manin_symbol_list
 
    sage/modular/modsym/boundary
 

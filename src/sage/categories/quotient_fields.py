@@ -643,7 +643,7 @@ class QuotientFields(Category_singleton):
             den = self.denominator()
 
             if (num.is_zero()):
-                return R.zero_element()
+                return R.zero()
 
             if R.is_exact():
                 try:
@@ -657,7 +657,7 @@ class QuotientFields(Category_singleton):
                     if not tden.is_one() and tden.is_unit():
                         try:
                             tnum = tnum * tden.inverse_of_unit()
-                            tden = R.ring().one_element()
+                            tden = R.ring().one()
                         except AttributeError:
                             pass
                         except NotImplementedError:

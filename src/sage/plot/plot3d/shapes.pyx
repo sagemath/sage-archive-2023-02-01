@@ -182,7 +182,7 @@ def ColorCube(size, colors, opacity=1, **kwds):
         sage: c = ColorCube([1,2,3], ['red', 'blue', 'green', 'black', 'white', 'orange'], opacity=0.5)
         sage: c.show()
         sage: list(c.texture_set())[0].opacity
-        0.500000000000000
+        0.5
 
     If you omit the last 3 colors then the first three are repeated (with
     repeated colors on opposing faces)::

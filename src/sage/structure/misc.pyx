@@ -245,7 +245,7 @@ def getattr_from_other_class(self, cls, str name):
         ...
         AttributeError: 'sage.rings.integer.Integer' object has no attribute '__call__'
     """
-    if PY_TYPE_CHECK(self, cls):
+    if isinstance(self, cls):
         dummy_error_message.cls = type(self)
         dummy_error_message.name = name
         raise dummy_attribute_error
@@ -255,7 +255,7 @@ def getattr_from_other_class(self, cls, str name):
         dummy_error_message.cls = type(self)
         dummy_error_message.name = name
         raise dummy_attribute_error
-    if PY_TYPE_CHECK(attribute, methodwrapper):
+    if isinstance(attribute, methodwrapper):
         dummy_error_message.cls = type(self)
         dummy_error_message.name = name
         raise dummy_attribute_error

@@ -1,7 +1,6 @@
 from cpython.ref cimport PyObject, PyTypeObject
 
 cdef extern from "Python.h":
-    ctypedef void _typeobject
     ctypedef void (*freefunc)(void *)
     ctypedef void (*destructor)(PyObject *)
     ctypedef PyObject *(*getattrfunc)(PyObject *, char *)
@@ -17,12 +16,14 @@ cdef extern from "Python.h":
     ctypedef PyObject *(*descrgetfunc) (PyObject *, PyObject *, PyObject *)
     ctypedef int (*descrsetfunc) (PyObject *, PyObject *, PyObject *)
     ctypedef int (*initproc)(PyObject *, PyObject *, PyObject *)
-    ctypedef PyObject *(*newfunc)(PyTypeObject *, PyObject *, PyObject *)
+    ctypedef object (*newfunc)(PyTypeObject *, PyObject *, PyObject *)
     ctypedef PyObject *(*allocfunc)(PyTypeObject *, Py_ssize_t)
 
     # We need a PyTypeObject with elements so we can
     # get and set tp_new, tp_dealloc, tp_flags, and tp_basicsize
     ctypedef struct RichPyTypeObject "PyTypeObject":
+        long tp_dictoffset
+
         allocfunc tp_alloc
         newfunc tp_new
         freefunc tp_free

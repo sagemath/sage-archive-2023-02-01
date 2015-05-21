@@ -1,8 +1,10 @@
 r"""
 Dense univariate polynomials over `\RR`, implemented using MPFR
 """
+
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
+from sage.ext.memory cimport check_reallocarray, check_allocarray, sage_free
 
 from cpython cimport PyInt_AS_LONG, PyFloat_AS_DOUBLE
 
@@ -80,9 +82,9 @@ cdef class PolynomialRealDense(Polynomial):
         cdef int prec = self._base_ring.__prec
         cdef mp_rnd_t rnd = self._base_ring.rnd
         if x is None:
-            self._coeffs = <mpfr_t*>sage_malloc(sizeof(mpfr_t)) # degree zero
+            self._coeffs = <mpfr_t*>check_allocarray(1, sizeof(mpfr_t)) # degree zero
             mpfr_init2(self._coeffs[0], prec)
-            mpfr_set_si(self._coeffs[0], PyInt_AS_LONG(int(0)), rnd)
+            mpfr_set_si(self._coeffs[0], 0, rnd)
             self._normalize()
             return
         if is_gen:
@@ -107,21 +109,21 @@ cdef class PolynomialRealDense(Polynomial):
         degree = len(x) - 1
         self._degree = -1
         cdef mpfr_t* coeffs
-        coeffs = <mpfr_t*>sage_malloc(sizeof(mpfr_t)*(degree+1))
+        coeffs = <mpfr_t*>check_allocarray(degree+1, sizeof(mpfr_t))
         try:  # We might get Python exceptions here
             for i from 0 <= i <= degree:
                 mpfr_init2(coeffs[i], prec)
                 self._degree += 1
                 a = x[i]
-                if PY_TYPE_CHECK_EXACT(a, RealNumber):
+                if type(a) is RealNumber:
                     mpfr_set(coeffs[i], (<RealNumber>a).value, rnd)
-                elif PY_TYPE_CHECK_EXACT(a, int):
+                elif type(a) is int:
                     mpfr_set_si(coeffs[i], PyInt_AS_LONG(a), rnd)
-                elif PY_TYPE_CHECK_EXACT(a, float):
+                elif type(a) is float:
                     mpfr_set_d(coeffs[i], PyFloat_AS_DOUBLE(a), rnd)
-                elif PY_TYPE_CHECK_EXACT(a, Integer):
+                elif type(a) is Integer:
                     mpfr_set_z(coeffs[i], (<Integer>a).value, rnd)
-                elif PY_TYPE_CHECK_EXACT(a, Rational):
+                elif type(a) is Rational:
                     mpfr_set_q(coeffs[i], (<Rational>a).value, rnd)
                 else:
                     a = self._base_ring(a)
@@ -159,11 +161,7 @@ cdef class PolynomialRealDense(Polynomial):
             while i >= 0 and mpfr_zero_p(self._coeffs[i]):
                 mpfr_clear(self._coeffs[i])
                 i -= 1
-            if i == -1:
-                sage_free(self._coeffs)
-                self._coeffs = NULL
-            else:
-                self._coeffs = <mpfr_t*>sage_realloc(self._coeffs, sizeof(mpfr_t) * (i+1))
+            self._coeffs = <mpfr_t*>check_reallocarray(self._coeffs, i+1, sizeof(mpfr_t))
             self._degree = i
 
     def __getitem__(self, ix):
@@ -213,12 +211,12 @@ cdef class PolynomialRealDense(Polynomial):
     cdef PolynomialRealDense _new(self, Py_ssize_t degree):
         cdef Py_ssize_t i
         cdef int prec = self._base_ring.__prec
-        cdef PolynomialRealDense f = <PolynomialRealDense>PY_NEW(PolynomialRealDense)
+        cdef PolynomialRealDense f = <PolynomialRealDense>PolynomialRealDense.__new__(PolynomialRealDense)
         f._parent = self._parent
         f._base_ring = self._base_ring
         f._degree = degree
         if degree >= 0:
-            f._coeffs = <mpfr_t*>sage_malloc(sizeof(mpfr_t)*(degree+1))
+            f._coeffs = <mpfr_t*>check_allocarray(degree+1, sizeof(mpfr_t))
             for i from 0 <= i <= degree:
                 mpfr_init2(f._coeffs[i], prec)
         return f
@@ -681,7 +679,7 @@ cdef class PolynomialRealDense(Polynomial):
         else:
             return Polynomial.__call__(self, *args, **kwds)
         
-        if not PY_TYPE_CHECK(xx, RealNumber):
+        if not isinstance(xx, RealNumber):
             if self._base_ring.has_coerce_map_from(parent(xx)):
                 xx = self._base_ring(xx)
             else:

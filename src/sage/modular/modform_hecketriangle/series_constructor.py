@@ -236,7 +236,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         q        = self._series_ring.gen()
 
         # the current implementation of power series reversion is slow
-        # J_inv_ZZ = ZZ(1) / ((q*Phi.exp()).reversion())
+        # J_inv_ZZ = ZZ(1) / ((q*Phi.exp()).reverse())
 
         temp_f   = (q*Phi.exp()).polynomial()
         new_f    = temp_f.revert_series(temp_f.degree()+1)

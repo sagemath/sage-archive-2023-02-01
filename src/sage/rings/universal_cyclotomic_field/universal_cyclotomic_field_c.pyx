@@ -596,7 +596,7 @@ cdef inline as_rat(int a):
 
         Internal function, not to be used directly!
     """
-    cdef Rational rat = <Rational> PY_NEW(Rational)
+    cdef Rational rat = <Rational> Rational.__new__(Rational)
     mpq_set_si(rat.value,a,1)
     return rat
 
@@ -685,8 +685,8 @@ cpdef dict dict_multiplication(dict D1, dict D2, int n1, int n2, int n):
     # filling the pointers for the dicts with ints from the dicts multiplied with the lcm
     # we use positions in the Zumbroich basis with find_array
     cdef Rational old_val, new_val1, new_val2
-    new_val1 = <Rational> PY_NEW(Rational)
-    new_val2 = <Rational> PY_NEW(Rational)
+    new_val1 = <Rational> Rational.__new__(Rational)
+    new_val2 = <Rational> Rational.__new__(Rational)
 
     cdef int k
 
@@ -750,7 +750,7 @@ cpdef dict dict_multiplication(dict D1, dict D2, int n1, int n2, int n):
     for key from 0 <= key < Lnew_size:
         if linear_combination_pointer[key] != 0:
             old_val = as_rat(linear_combination_pointer[key])
-            new_val = <Rational> PY_NEW(Rational)
+            new_val = <Rational> Rational.__new__(Rational)
             mpq_div(new_val.value,old_val.value,denom_rat1.value)
             mpq_div(new_val.value,new_val.value,denom_rat2.value)
             D[(n,Lnew[key])] = new_val

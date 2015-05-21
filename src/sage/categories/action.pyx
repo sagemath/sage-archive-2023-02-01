@@ -419,7 +419,7 @@ cdef class ActionEndomorphism(Morphism):
 
     def __mul__(left, right):
         cdef ActionEndomorphism left_c, right_c
-        if PY_TYPE_CHECK(left, ActionEndomorphism) and PY_TYPE_CHECK(right, ActionEndomorphism):
+        if isinstance(left, ActionEndomorphism) and isinstance(right, ActionEndomorphism):
             left_c = left
             right_c = right
             if left_c._action is right_c._action:

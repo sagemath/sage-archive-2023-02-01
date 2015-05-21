@@ -20,7 +20,8 @@ cdef class tr_data:
     cdef double B
     cdef double b_lower, b_upper, gamma
 
-    cdef int *a, *amax
+    cdef int *a
+    cdef int *amax
     cdef double *beta
     cdef int *gnk
 

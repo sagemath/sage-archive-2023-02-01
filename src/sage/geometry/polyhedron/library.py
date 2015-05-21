@@ -19,19 +19,18 @@ REFERENCES:
 ########################################################################
 
 
-from sage.rings.all import Integer, RR, QQ, ZZ, RDF
+from sage.rings.all import Integer, RR, QQ, RDF
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.combinat.permutation import Permutations
 from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 from sage.misc.functional import norm
-from sage.functions.other import sqrt, floor, ceil
-from sage.functions.trig import sin, cos
+from sage.functions.other import sqrt
 from sage.misc.decorators import rename_keyword
 
 from constructor import Polyhedron
 
-
+from sage.graphs.digraph import DiGraph
 
 #########################################################################
 class Polytopes():
@@ -77,6 +76,8 @@ class Polytopes():
         for i in range(0,dim_n-1):
             new_m.append([RDF(100000*q/norm(m[i])).ceil()/100000 for q in m[i]])
         return matrix(QQ,new_m)
+
+    flow_polytope = staticmethod(DiGraph.flow_polytope)
 
     @staticmethod
     def project_1(fpoint):
@@ -595,7 +596,7 @@ class Polytopes():
             sage: perm4 = polytopes.permutahedron(4)
             sage: perm4
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 24 vertices
-            sage: polytopes.permutahedron(5).show()    # long time
+            sage: polytopes.permutahedron(5).plot()    # long time
             Graphics3d Object
         """
         verts = range(1,n+1)
@@ -697,7 +698,5 @@ class Polytopes():
         par =  [ 0*generators[0] ]
         par += [ sum(c) for c in Combinations(generators) if c!=[] ]
         return Polyhedron(vertices=par, base_ring=base_ring)
-
-
 
 polytopes = Polytopes()

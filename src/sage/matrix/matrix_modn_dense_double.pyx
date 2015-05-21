@@ -2,6 +2,7 @@
 Dense matrices over `\ZZ/n\ZZ` for `n < 2^{23}` using LinBox's ``Modular<double>``
 
 AUTHORS:
+
 - Burcin Erocal
 - Martin Albrecht
 """

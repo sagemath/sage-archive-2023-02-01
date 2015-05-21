@@ -574,7 +574,7 @@ def xydata_from_point_list(points):
         ([0.0, 1.0], [0.0, 0.0])
 
     This function should work for anything than can be turned into a
-    list, such as iterators and such (see ticket #10478)::
+    list, such as iterators and such (see :trac:`10478`)::
 
         sage: xydata_from_point_list(iter([(0,0), (sqrt(3), 2)]))
         ([0.0, 1.7320508075688772], [0.0, 2.0])
@@ -586,21 +586,22 @@ def xydata_from_point_list(points):
         ([2.0, 3.0, 5.0, 7.0], [11.0, 13.0, 17.0, 19.0])
     """
     from sage.rings.complex_number import ComplexNumber
-    if not isinstance(points, (list,tuple)):
+
+    if not isinstance(points, (list, tuple)):
         points = list(points)
         try:
             points = [[float(z) for z in points]]
         except TypeError:
             pass
-    elif len(points)==2 and not isinstance(points[0],(list,tuple,ComplexNumber)):
+    elif len(points) == 2 and not isinstance(points[0], (list, tuple,
+                                                         ComplexNumber)):
         try:
             points = [[float(z) for z in points]]
         except TypeError:
             pass
 
-    if len(points)>0 and len(list(points[0]))!=2:
+    if len(points) and len(list(points[0])) != 2:
         raise ValueError("points must have 2 coordinates in a 2d line")
-
 
     xdata = [float(z[0]) for z in points]
     ydata = [float(z[1]) for z in points]

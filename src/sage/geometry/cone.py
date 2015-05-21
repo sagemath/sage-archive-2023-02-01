@@ -829,6 +829,26 @@ class IntegralRayCollection(SageObject,
             r.set_immutable()
         return IntegralRayCollection(rays, lattice)
 
+    def __neg__(self):
+        """
+        Return the collection with opposite rays.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,1),(0,1)]); c
+            2-d cone in 2-d lattice N
+            sage: d = -c  # indirect doctest
+            sage: d.rays()
+            N(-1, -1),
+            N( 0, -1)
+            in 2-d lattice N
+        """
+        lattice = self.lattice()
+        rays = [-r1 for r1 in self.rays()]
+        for r in rays:
+            r.set_immutable()
+        return IntegralRayCollection(rays, lattice)
+
     def dim(self):
         r"""
         Return the dimension of the subspace spanned by rays of ``self``.
@@ -1482,6 +1502,30 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         assert is_Cone(other)
         rc = super(ConvexRationalPolyhedralCone, self).cartesian_product(
                                                                 other, lattice)
+        return ConvexRationalPolyhedralCone(rc.rays(), rc.lattice())
+
+    def __neg__(self):
+        """
+        Return the cone with opposite rays.
+
+        OUTPUT:
+
+        - a :class:`cone <ConvexRationalPolyhedralCone>`.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,1),(0,1)]); c
+            2-d cone in 2-d lattice N
+            sage: d = -c; d  # indirect doctest
+            2-d cone in 2-d lattice N
+            sage: -d == c
+            True
+            sage: d.rays()
+            N(-1, -1),
+            N( 0, -1)
+            in 2-d lattice N
+        """
+        rc = super(ConvexRationalPolyhedralCone, self).__neg__()
         return ConvexRationalPolyhedralCone(rc.rays(), rc.lattice())
 
     def __cmp__(self, right):
@@ -3172,7 +3216,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: c.sublattice(1, 0, 0)
             Traceback (most recent call last):
             ...
-            TypeError: element (= [1, 0, 0]) is not in free module
+            TypeError: element [1, 0, 0] is not in free module
         """
         if "_sublattice" not in self.__dict__:
             self._split_ambient_lattice()

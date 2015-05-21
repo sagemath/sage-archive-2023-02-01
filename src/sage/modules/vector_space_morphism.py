@@ -634,7 +634,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
         Traceback (most recent call last):
         ...
         ArithmeticError: some proposed image is not in the codomain, because
-        element (= [1, 2]) is not in free module
+        element [1, 2] is not in free module
 
 
     Functions may not apply properly to domain elements,
@@ -653,7 +653,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
         Traceback (most recent call last):
         ...
         ArithmeticError: some image of the function is not in the codomain, because
-        element (= [1, 0]) is not in free module
+        element [1, 0] is not in free module
 
     A Sage symbolic function can come in a variety of forms that are
     not representative of a linear transformation. ::
@@ -685,7 +685,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
         Traceback (most recent call last):
         ...
         ArithmeticError: some image of the function is not in the codomain, because
-        element (= [1, 0]) is not in free module
+        element [1, 0] is not in free module
     """
     from sage.matrix.constructor import matrix
     from sage.modules.module import is_VectorSpace

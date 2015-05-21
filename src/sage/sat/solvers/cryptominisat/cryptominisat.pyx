@@ -112,9 +112,7 @@ cdef class CryptoMiniSat(SatSolver):
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
             sage: del cms                                    # optional - cryptominisat
         """
-        sig_on()
         del self
-        sig_off()
 
     def __repr__(self):
          """
@@ -360,7 +358,8 @@ cdef class CryptoMiniSat(SatSolver):
         This guess was wrong and we need to flip one of the following variables::
 
             sage: cms.conflict_clause()                               # optional - cryptominisat
-            (-119, -118, -117, -116, -114, -113, -112, -110, -109, -100, -98, -97, -96, -94, -93, -92, -91, -76, -75, -71, -70, -69)
+            (-119, -118, -117, -116, -115, -114, -112, -111, -110, ...)
+
         """
         cdef Lit l
         r = []

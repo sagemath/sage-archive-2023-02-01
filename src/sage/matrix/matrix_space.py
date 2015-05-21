@@ -24,10 +24,18 @@ TESTS::
     [0 0]
 """
 
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
 # System imports
 import sys
 import types
-import weakref
 import operator
 
 # Sage matrix imports
@@ -48,32 +56,18 @@ import matrix_rational_sparse
 
 import matrix_mpolynomial_dense
 
-#import padics.matrix_padic_capped_relative_dense
-
-## import matrix_cyclo_dense
-## import matrix_cyclo_sparse
-
 
 # Sage imports
 from sage.misc.superseded import deprecation
 import sage.structure.coerce
 import sage.structure.parent_gens as parent_gens
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.all import ZZ
-import sage.rings.ring as ring
-import sage.rings.rational_field as rational_field
-import sage.rings.integer_ring as integer_ring
 import sage.rings.integer as integer
-import sage.rings.field as field
-import sage.rings.principal_ideal_domain as principal_ideal_domain
-import sage.rings.integral_domain as integral_domain
 import sage.rings.number_field.all
 import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.finite_rings.constructor
 import sage.rings.polynomial.multi_polynomial_ring_generic
 import sage.misc.latex as latex
-import sage.misc.mrange
-import sage.modules.free_module_element
 import sage.modules.free_module
 from sage.structure.sequence import Sequence
 
@@ -84,6 +78,7 @@ from sage.categories.fields import Fields
 
 _Rings = Rings()
 _Fields = Fields()
+
 
 def is_MatrixSpace(x):
     """
@@ -102,7 +97,6 @@ def is_MatrixSpace(x):
         sage: is_MatrixSpace(5)
         False
     """
-
     return isinstance(x, MatrixSpace)
 
 
@@ -1313,6 +1307,16 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: MatrixSpace(Qp(3),1,1)([Qp(3)(4/3)])
             [3^-1 + 1 + O(3^19)]
 
+        One-rowed matrices over combinatorial free modules used to break
+        the constructor (:trac:`17124`). Check that this is fixed::
+
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: h = Sym.h()
+            sage: MatrixSpace(h,1,1)([h[1]])
+            [h[1]]
+            sage: MatrixSpace(h,2,1)([h[1], h[2]])
+            [h[1]]
+            [h[2]]
         """
         if x is None or isinstance(x, (int, integer.Integer)) and x == 0:
             if self._copy_zero: # faster to copy than to create a new one.
@@ -1354,7 +1358,15 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 for v in x:
                     l = len(new_x)
                     try:
-                        new_x.extend(v)
+                        from sage.structure.element import is_Vector
+                        if isinstance(v, (list, tuple)) or is_Vector(v):
+                            # The isinstance check should prevent the "flattening"
+                            # of v if v is an iterable but not meant to be
+                            # iterated (e.g., an element of a combinatorial free
+                            # module).
+                            new_x.extend(v)
+                        else:
+                            raise TypeError
                         if len(new_x) - l != n:
                             raise TypeError
                     except TypeError:
@@ -1704,3 +1716,15 @@ def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
     assert(inv == m1)
     if checkrank:
         assert(m1.rank() == 1)
+
+
+# Fix unpickling Matrix_modn_dense and Matrix_integer_2x2
+from sage.matrix.matrix_modn_dense_double import Matrix_modn_dense_double
+from sage.matrix.matrix_integer_dense import Matrix_integer_dense
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.matrix.matrix_modn_dense',
+    'Matrix_modn_dense', Matrix_modn_dense_double)
+register_unpickle_override('sage.matrix.matrix_integer_2x2',
+    'Matrix_integer_2x2', Matrix_integer_dense)
+register_unpickle_override('sage.matrix.matrix_integer_2x2',
+    'MatrixSpace_ZZ_2x2_class', MatrixSpace)

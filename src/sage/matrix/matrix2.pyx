@@ -679,7 +679,7 @@ cdef class Matrix(matrix1.Matrix):
         # Optimized routines for specialized classes would likely be faster
         # See the "pairwise_product" of vectors for some guidance on doing this
         from sage.structure.element import canonical_coercion
-        if not PY_TYPE_CHECK(right, Matrix):
+        if not isinstance(right, Matrix):
             raise TypeError('operand must be a matrix, not an element of %s' % right.parent())
         if (self.nrows() != right.nrows()) or (self.ncols() != right.ncols()):
             raise TypeError('incompatible sizes for matrices from: %s and %s'%(self.parent(), right.parent()))
@@ -1295,6 +1295,12 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.determinant()
             -x^2*y + x*y^2
 
+        A matrix over a non-domain::
+
+            sage: m = matrix(Integers(4), 2, [1,2,2,3])
+            sage: m.determinant()
+            3
+
         TESTS::
 
             sage: A = matrix(5, 5, [next_prime(i^2) for i in range(25)])
@@ -1308,14 +1314,14 @@ cdef class Matrix(matrix1.Matrix):
             sage: d = random_matrix(GF(next_prime(10^20)),50).det()
             sage: d = random_matrix(Integers(10^50),50).det()
 
-        We verify that trac 7704 is resolved::
+        We verify that :trac:`7704` is resolved::
 
             sage: matrix(ZZ, {(0,0):1,(1,1):2,(2,2):3,(3,3):4}).det()
             24
             sage: matrix(QQ, {(0,0):1,(1,1):2,(2,2):3,(3,3):4}).det()
             24
 
-        We verify that trac 10063 is resolved::
+        We verify that :trac:`10063` is resolved::
 
             sage: A = GF(2)['x,y,z']
             sage: A.inject_variables()
@@ -2058,6 +2064,12 @@ cdef class Matrix(matrix1.Matrix):
             sage: m.charpoly('a')(m) == 0
             True
 
+        Over integers modulo `n` with composite `n`::
+
+            sage: A = Mat(Integers(6),3,3)(range(9))
+            sage: A.charpoly()
+            x^3
+
         Here is an example over a general commutative ring, that is to say,
         as of version 4.0.2, SAGE does not even positively determine that
         ``S`` in the following example is an integral domain.  But the
@@ -2378,22 +2390,6 @@ cdef class Matrix(matrix1.Matrix):
             (T - 3) * T * (T + 2)
         """
         return self.charpoly(var).factor()
-
-##     def minimal_polynomial(self, var, algorithm=''):
-##         """
-##         Synonym for self.charpoly(...).
-
-##         EXAMPLES:
-##             sage: ???
-##         """
-##         return self.minpoly(*args, **kwds)
-
-##     def minpoly(self, *args, **kwds):
-##         """
-##         EXAMPLES:
-##             sage: ???
-##         """
-##         raise NotImplementedError
 
     def denominator(self):
         r"""
@@ -3369,9 +3365,9 @@ cdef class Matrix(matrix1.Matrix):
             True
 
             sage: X = A.right_kernel_matrix(algorithm='pari', basis='computed'); X
-            [ 3  1 -5 -7 -2  3  2]
-            [ 3  1  2  5 -5  2 -6]
-            [ 4 13 -2  7 -5 -7  3]
+            [ -3  -1   5   7   2  -3  -2]
+            [  3   1   2   5  -5   2  -6]
+            [ -4 -13   2  -7   5   7  -3]
             sage: A*X.transpose() == zero_matrix(ZZ, 4, 3)
             True
 
@@ -6784,8 +6780,13 @@ cdef class Matrix(matrix1.Matrix):
         return extended
 
     def weak_popov_form(self, ascend=True):
+        from sage.misc.superseded import deprecation
+        deprecation(16888, 'You can just call row_reduced_form() instead')
+        return self.row_reduced_form(ascend)
+
+    def row_reduced_form(self, ascend=True):
         """
-        This function computes a weak Popov form of a matrix over a rational
+        This function computes a row reduced form of a matrix over a rational
         function field `k(x)`, for `k` a field.
 
         INPUT:
@@ -6798,7 +6799,7 @@ cdef class Matrix(matrix1.Matrix):
 
         A 3-tuple `(W,N,d)` consisting of:
 
-        1. `W` - a matrix over `k(x)` giving a weak the Popov form of self
+        1. `W` - a matrix over `k(x)` giving a row reduced form of `self`
         2. `N` - a matrix over `k[x]` representing row operations used to
             transform `self` to `W`
         3. `d` - degree of respective columns of W; the degree of a column is
@@ -6818,7 +6819,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: R.<t> = GF(3)['t']
             sage: K = FractionField(R)
             sage: M = matrix([[(t-1)^2/t],[(t-1)]])
-            sage: M.weak_popov_form()
+            sage: M.row_reduced_form()
             (
             [          0]  [      t 2*t + 1]
             [(2*t + 1)/t], [      1       2], [-Infinity, 0]
@@ -6831,7 +6832,7 @@ cdef class Matrix(matrix1.Matrix):
         ::
 
             sage: M1 = matrix([[t*(t-1)*(t+1)],[t*(t-2)*(t+2)],[t]])
-            sage: output1 = M1.weak_popov_form()
+            sage: output1 = M1.row_reduced_form()
             sage: output1
             (
             [0]  [        1         0 2*t^2 + 1]
@@ -6846,7 +6847,7 @@ cdef class Matrix(matrix1.Matrix):
         ::
 
             sage: M2 = M1.change_ring(K)
-            sage: output2 = M2.weak_popov_form()
+            sage: output2 = M2.row_reduced_form()
             sage: output1 == output2
             True
             sage: output1[0].base_ring() is K
@@ -6865,7 +6866,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: R.<t> = QQ['t']
             sage: M = matrix([[t^3 - t,t^2 - 2],[0,t]]).transpose()
-            sage: M.weak_popov_form()
+            sage: M.row_reduced_form()
             (
             [      t    -t^2]  [ 1 -t]
             [t^2 - 2       t], [ 0  1], [2, 2]
@@ -6878,7 +6879,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: R.<t> = GF(5)['t']
             sage: K = FractionField(R)
             sage: M = matrix([[K(0),K(0)],[K(0),K(0)]])
-            sage: M.weak_popov_form()
+            sage: M.row_reduced_form()
             (
             [0 0]  [1 0]
             [0 0], [0 1], [-Infinity, -Infinity]
@@ -6890,7 +6891,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: R.<t> = QQ['t']
             sage: M = matrix([[t,t,t],[0,0,t]], ascend=False)
-            sage: M.weak_popov_form()
+            sage: M.row_reduced_form()
             (
             [t t t]  [1 0]
             [0 0 t], [0 1], [1, 1]
@@ -6902,7 +6903,7 @@ cdef class Matrix(matrix1.Matrix):
         ::
 
             sage: M = matrix([[1,0],[1,1]])
-            sage: M.weak_popov_form()
+            sage: M.row_reduced_form()
             Traceback (most recent call last):
             ...
             TypeError: the coefficients of M must lie in a univariate
@@ -6915,26 +6916,18 @@ cdef class Matrix(matrix1.Matrix):
            for row operations; however, references such as [H] transpose and use
            column operations.
 
-         - There are multiple weak Popov forms of a matrix, so one may want to
-           extend this code to produce a Popov form (see section 1.2 of [V]).  The
-           latter is canonical, but more work to produce.
-
         REFERENCES:
 
         .. [H] F. Hess, "Computing Riemann-Roch spaces in algebraic function
           fields and related topics," J. Symbolic Comput. 33 (2002), no. 4,
           425--445.
 
-        .. [MS] T. Mulders, A. Storjohann, "On lattice reduction for polynomial
-          matrices," J. Symbolic Comput. 35 (2003), no. 4, 377--401
+        .. [K] T. Kaliath, "Linear Systems", Prentice-Hall, 1980, 383--386.
 
-        .. [V] G. Villard, "Computing Popov and Hermite forms of polynomial
-          matrices", ISSAC '96: Proceedings of the 1996 international symposium
-          on Symbolic and algebraic computation, 250--258.
 
         """
         import sage.matrix.matrix_misc
-        return sage.matrix.matrix_misc.weak_popov_form(self)
+        return sage.matrix.matrix_misc.row_reduced_form(self)
 
     ##########################################################################
     # Functions for symmetries of a matrix under row and column permutations #
@@ -8314,11 +8307,9 @@ cdef class Matrix(matrix1.Matrix):
         from sage.combinat.permutation import bistochastic_as_sum_of_permutations
         return bistochastic_as_sum_of_permutations(self)
 
-
-    def visualize_structure(self, filename=None, maxsize=512):
-        """
-        Write a PNG image to 'filename' which visualizes self by putting
-        black pixels in those positions which have nonzero entries.
+    def visualize_structure(self, maxsize=512):
+        r"""
+        Visualize the non-zero entries
 
         White pixels are put at positions with zero entries. If 'maxsize'
         is given, then the maximal dimension in either x or y direction is
@@ -8330,62 +8321,56 @@ cdef class Matrix(matrix1.Matrix):
 
         INPUT:
 
+        - ``maxsize`` - integer (default: ``512``). Maximal dimension
+          in either x or y direction of the resulting image. If
+          ``None`` or a maxsize larger than
+          ``max(self.nrows(),self.ncols())`` is given the image will
+          have the same pixelsize as the matrix dimensions.
 
-        -  ``filename`` - either a path or None in which case a
-           filename in the current directory is chosen automatically
-           (default:None)
+        OUTPUT:
 
-
-        maxsize - maximal dimension in either x or y direction of the
-        resulting image. If None or a maxsize larger than
-        max(self.nrows(),self.ncols()) is given the image will have the
-        same pixelsize as the matrix dimensions (default: 512)
+        Bitmap image as an instance of
+        :class:`~sage.repl.image.Image`.
 
         EXAMPLE::
 
-            sage: M = random_matrix(CC, 4)
-            sage: M.visualize_structure()
-        """
-        import gd
-        import os
+            sage: M = random_matrix(CC, 5, 7)
+            sage: for i in range(5):  M[i,i] = 0
+            sage: M[4, 0] = M[0, 6] = M[4, 6] = 0
+            sage: img = M.visualize_structure();  img
+            7x5px 24-bit RGB image
 
+        You can use :meth:`~sage.repl.image.Image.save` to save the
+        resulting image::
+
+            sage: filename = tmp_filename(ext='.png')
+            sage: img.save(filename)
+            sage: open(filename).read().startswith('\x89PNG') 
+            True
+        """
         cdef int x, y, _x, _y, v, bi, bisq
         cdef int ir,ic
         cdef float b, fct
-
         mr, mc = self.nrows(), self.ncols()
-
         if maxsize is None:
-
             ir = mc
             ic = mr
             b = 1.0
-
         elif max(mr,mc) > maxsize:
-
             maxsize = float(maxsize)
             ir = int(mc * maxsize/max(mr,mc))
             ic = int(mr * maxsize/max(mr,mc))
             b = max(mr,mc)/maxsize
-
         else:
-
             ir = mc
             ic = mr
             b = 1.0
-
         bi = round(b)
         bisq = bi*bi
         fct = 255.0/bisq
-
-        im = gd.image((ir,ic),1)
-        white = im.colorExact((255,255,255))
-        im.fill((0,0),white)
-
-        # these speed things up a bit
-        colorExact = im.colorExact
-        setPixel = im.setPixel
-
+        from sage.repl.image import Image
+        img = Image('RGB', (ir, ic))
+        pixel = img.pixels()
         for x from 0 <= x < ic:
             for y from 0 <= y < ir:
                 v = bisq
@@ -8393,16 +8378,9 @@ cdef class Matrix(matrix1.Matrix):
                     for _y from 0 <= _y < bi:
                         if not self.get_unsafe(<int>(x*b + _x), <int>(y*b + _y)).is_zero():
                             v-=1 #increase darkness
-
-                v =  round(v*fct)
-                val = colorExact((v,v,v))
-                setPixel((y,x), val)
-
-        if filename is None:
-            from sage.misc.temporary_file import graphics_filename
-            filename = graphics_filename()
-
-        im.writePng(filename)
+                v = round(v*fct)
+                pixel[y, x] = (v, v, v)
+        return img
 
     def density(self):
         """
@@ -10293,9 +10271,9 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: F.<a> = FiniteField(7^2)
             sage: C = matrix(F,[[  a + 2, 5*a + 4],
-            ...                 [6*a + 6, 6*a + 4]])
-            sage: S = matrix(ZZ, [[0, 1],
-            ...                   [1, 0]])
+            ....:               [6*a + 6, 6*a + 4]])
+            sage: S = matrix(F, [[0, 1],
+            ....:                [1, 0]])
             sage: D = S.inverse()*C*S
             sage: C.is_similar(D)
             Traceback (most recent call last):
@@ -12828,21 +12806,21 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: a=matrix([[1,2],[3,4]])
             sage: a.exp()
-            [-1/22*(e^sqrt(33)*(sqrt(33) - 11) - sqrt(33) - 11)*e^(-1/2*sqrt(33) + 5/2)              2/33*(sqrt(33)*e^sqrt(33) - sqrt(33))*e^(-1/2*sqrt(33) + 5/2)]
-            [             1/11*(sqrt(33)*e^sqrt(33) - sqrt(33))*e^(-1/2*sqrt(33) + 5/2)  1/22*(e^sqrt(33)*(sqrt(33) + 11) - sqrt(33) + 11)*e^(-1/2*sqrt(33) + 5/2)]
+            [-1/22*((sqrt(33) - 11)*e^sqrt(33) - sqrt(33) - 11)*e^(-1/2*sqrt(33) + 5/2)              2/33*(sqrt(33)*e^sqrt(33) - sqrt(33))*e^(-1/2*sqrt(33) + 5/2)]
+            [             1/11*(sqrt(33)*e^sqrt(33) - sqrt(33))*e^(-1/2*sqrt(33) + 5/2)  1/22*((sqrt(33) + 11)*e^sqrt(33) - sqrt(33) + 11)*e^(-1/2*sqrt(33) + 5/2)]
 
             sage: type(a.exp())
             <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
 
             sage: a=matrix([[1/2,2/3],[3/4,4/5]])
             sage: a.exp()
-            [-1/418*(e^(1/10*sqrt(209))*(3*sqrt(209) - 209) - 3*sqrt(209) - 209)*e^(-1/20*sqrt(209) + 13/20)                   20/627*(sqrt(209)*e^(1/10*sqrt(209)) - sqrt(209))*e^(-1/20*sqrt(209) + 13/20)]
-            [                  15/418*(sqrt(209)*e^(1/10*sqrt(209)) - sqrt(209))*e^(-1/20*sqrt(209) + 13/20)  1/418*(e^(1/10*sqrt(209))*(3*sqrt(209) + 209) - 3*sqrt(209) + 209)*e^(-1/20*sqrt(209) + 13/20)]
+            [-1/418*((3*sqrt(209) - 209)*e^(1/10*sqrt(209)) - 3*sqrt(209) - 209)*e^(-1/20*sqrt(209) + 13/20)                   20/627*(sqrt(209)*e^(1/10*sqrt(209)) - sqrt(209))*e^(-1/20*sqrt(209) + 13/20)]
+            [                  15/418*(sqrt(209)*e^(1/10*sqrt(209)) - sqrt(209))*e^(-1/20*sqrt(209) + 13/20)  1/418*((3*sqrt(209) + 209)*e^(1/10*sqrt(209)) - 3*sqrt(209) + 209)*e^(-1/20*sqrt(209) + 13/20)]
 
             sage: a=matrix(RR,[[1,pi.n()],[1e2,1e-2]])
             sage: a.exp()
-            [ 1/11882424341266*(e^(3/1275529100*sqrt(227345670387496707609))*(11*sqrt(227345670387496707609) + 5941212170633) - 11*sqrt(227345670387496707609) + 5941212170633)*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200)                            445243650/75781890129165569203*(sqrt(227345670387496707609)*e^(3/1275529100*sqrt(227345670387496707609)) - sqrt(227345670387496707609))*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200)]
-            [                                     10000/53470909535697*(sqrt(227345670387496707609)*e^(3/1275529100*sqrt(227345670387496707609)) - sqrt(227345670387496707609))*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200) -1/11882424341266*(e^(3/1275529100*sqrt(227345670387496707609))*(11*sqrt(227345670387496707609) - 5941212170633) - 11*sqrt(227345670387496707609) - 5941212170633)*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200)]
+            [ 1/11882424341266*((11*sqrt(227345670387496707609) + 5941212170633)*e^(3/1275529100*sqrt(227345670387496707609)) - 11*sqrt(227345670387496707609) + 5941212170633)*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200)                            445243650/75781890129165569203*(sqrt(227345670387496707609)*e^(3/1275529100*sqrt(227345670387496707609)) - sqrt(227345670387496707609))*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200)]
+            [                                     10000/53470909535697*(sqrt(227345670387496707609)*e^(3/1275529100*sqrt(227345670387496707609)) - sqrt(227345670387496707609))*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200) -1/11882424341266*((11*sqrt(227345670387496707609) - 5941212170633)*e^(3/1275529100*sqrt(227345670387496707609)) - 11*sqrt(227345670387496707609) - 5941212170633)*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200)]
             sage: a.change_ring(RDF).exp()  # rel tol 1e-14
             [42748127.31532951 7368259.244159399]
             [234538976.1381042 40426191.45156228]

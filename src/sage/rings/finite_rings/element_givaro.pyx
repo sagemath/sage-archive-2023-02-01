@@ -364,7 +364,7 @@ cdef class Cache_givaro(SageObject):
         cdef FiniteField_givaroElement to_add
         ########
 
-        if PY_TYPE_CHECK(e, FiniteField_givaroElement):
+        if isinstance(e, FiniteField_givaroElement):
             if e.parent() is self.parent:
                 return e
             if e.parent() == self.parent:
@@ -374,9 +374,9 @@ cdef class Cache_givaro(SageObject):
             else:
                 raise TypeError, "unable to coerce from a finite field other than the prime subfield"
 
-        elif PY_TYPE_CHECK(e, int) or \
-             PY_TYPE_CHECK(e, Integer) or \
-             PY_TYPE_CHECK(e, long) or is_IntegerMod(e):
+        elif isinstance(e, int) or \
+             isinstance(e, Integer) or \
+             isinstance(e, long) or is_IntegerMod(e):
             try:
                 e_int = e
             except OverflowError:
@@ -387,13 +387,13 @@ cdef class Cache_givaro(SageObject):
             e_int = 0
             res = self.objectptr.initi(res,e_int)
 
-        elif PY_TYPE_CHECK(e, float):
+        elif isinstance(e, float):
             res = self.objectptr.initd(res,e)
 
-        elif PY_TYPE_CHECK(e, str):
+        elif isinstance(e, str):
             return self.parent(eval(e.replace("^","**"),self.parent.gens_dict()))
 
-        elif PY_TYPE_CHECK(e, FreeModuleElement):
+        elif isinstance(e, FreeModuleElement):
             if self.parent.vector_space() != e.parent():
                 raise TypeError, "e.parent must match self.vector_space"
             ret = self._zero_element
@@ -404,27 +404,27 @@ cdef class Cache_givaro(SageObject):
                 ret = ret + to_add*self.parent.gen()**i
             return ret
 
-        elif PY_TYPE_CHECK(e, MPolynomial):
+        elif isinstance(e, MPolynomial):
             if e.is_constant():
                 return self.parent(e.constant_coefficient())
             else:
                 raise TypeError, "no coercion defined"
 
-        elif PY_TYPE_CHECK(e, Polynomial):
+        elif isinstance(e, Polynomial):
             if e.is_constant():
                 return self.parent(e.constant_coefficient())
             else:
                 return e.change_ring(self.parent)(self.parent.gen())
 
-        elif PY_TYPE_CHECK(e, Rational):
+        elif isinstance(e, Rational):
             num = e.numer()
             den = e.denom()
             return self.parent(num)/self.parent(den)
 
-        elif PY_TYPE_CHECK(e, gen):
+        elif isinstance(e, gen):
             pass # handle this in next if clause
 
-        elif PY_TYPE_CHECK(e, FiniteFieldElement_pari_ffelt) or PY_TYPE_CHECK(e, FiniteField_ext_pariElement):
+        elif isinstance(e, FiniteFieldElement_pari_ffelt) or isinstance(e, FiniteField_ext_pariElement):
             # Reduce to pari
             e = e._pari_()
 
@@ -449,7 +449,7 @@ cdef class Cache_givaro(SageObject):
 
         cdef GEN t
         cdef long c
-        if PY_TYPE_CHECK(e, gen):
+        if isinstance(e, gen):
             pari_catch_sig_on()
             t = (<gen>e).g
             if typ(t) == t_FFELT:
@@ -1791,7 +1791,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             (0, 2, 0, 1)
         """
         #vector(foo) might pass in ZZ
-        if PY_TYPE_CHECK(reverse, Parent):
+        if isinstance(reverse, Parent):
             raise TypeError, "Base field is fixed to prime subfield."
         cdef Cache_givaro cache = self._cache
         k = self.parent()
@@ -1839,7 +1839,7 @@ cdef inline FiniteField_givaroElement make_FiniteField_givaroElement(Cache_givar
     if cache._has_array:
         return <FiniteField_givaroElement>cache._array[x]
     else:
-        y = PY_NEW(FiniteField_givaroElement)
+        y = FiniteField_givaroElement.__new__(FiniteField_givaroElement)
         y._parent = <Parent> cache.parent
         y._cache = cache
         y.element = x

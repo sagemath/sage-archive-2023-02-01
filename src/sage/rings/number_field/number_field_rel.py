@@ -2465,7 +2465,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: K.<a, b> = NumberField([x^2 + 23, x^2 - 3])
             sage: P = K.prime_factors(5)[0]; P
-            Fractional ideal (5, (-1/2*b - 5/2)*a + 5/2*b - 9/2)
+            Fractional ideal (5, 1/2*a - b - 5/2)
             sage: u = K.uniformizer(P)
             sage: u.valuation(P)
             1

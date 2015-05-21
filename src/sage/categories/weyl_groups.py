@@ -513,6 +513,51 @@ class WeylGroups(Category_singleton):
                 return [r.reflection_to_coroot() for r in reflections]
             raise ValueError("inversion_type {} is invalid".format(inversion_type))
 
+        def inversion_arrangement(self, side='right'):
+            r"""
+            Return the inversion hyperplane arrangement of ``self``.
+
+            INPUT:
+
+            - ``side`` -- ``'right'`` (default) or ``'left'``
+
+            OUTPUT:
+
+            A (central) hyperplane arrangement whose hyperplanes correspond
+            to the inversions of ``self`` given as roots.
+
+            The ``side`` parameter determines on which side
+            to compute the inversions.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',3])
+                sage: w = W.from_reduced_word([1, 2, 3, 1, 2])
+                sage: A = w.inversion_arrangement(); A
+                Arrangement of 5 hyperplanes of dimension 3 and rank 3
+                sage: A.hyperplanes()
+                (Hyperplane 0*a1 + 0*a2 + a3 + 0,
+                 Hyperplane 0*a1 + a2 + 0*a3 + 0,
+                 Hyperplane 0*a1 + a2 + a3 + 0,
+                 Hyperplane a1 + a2 + 0*a3 + 0,
+                 Hyperplane a1 + a2 + a3 + 0)
+
+            The identity element gives the empty arrangement::
+
+                sage: W = WeylGroup(['A',3])
+                sage: W.one().inversion_arrangement()
+                Empty hyperplane arrangement of dimension 3
+            """
+            inv = self.inversions(side=side, inversion_type='roots')
+            from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangements
+            I = self.parent().cartan_type().index_set()
+            H = HyperplaneArrangements(QQ, tuple(['a{}'.format(i) for i in I]))
+            gens = H.gens()
+            if not inv:
+                return H()
+            return H([sum(c * gens[I.index(i)] for (i, c) in root)
+                      for root in inv])
+
         def bruhat_lower_covers_coroots(self):
             r"""
             Returns all 2-tuples (``v``, `\alpha`) where ``v`` is covered by ``self`` and `\alpha`

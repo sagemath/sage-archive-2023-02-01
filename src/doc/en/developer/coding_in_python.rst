@@ -473,105 +473,49 @@ for a new module.
 Deprecation
 ===========
 
-Sooner or later you will find places in the Sage library that are, in
-hindsight, not designed as well as they could be. Of course you want
-to improve the overall state, but at the same time we don't want to
-pull out the carpet under our users' feet. The process of removing old
-code is called deprecation.
+When making a **backward-incompatible** modification in Sage, a *deprecation* is
+what tells users about the change. For at least one year (if possible), the old
+code should keep working and display a message indicating how it should be
+updated/written in the future.
 
-.. note::
+Each deprecation warning contains the number of the trac ticket that defines
+it. We use 666 in the examples below. For each entry, consult the function's
+documentation for more information on its behaviour and optional arguments.
 
-    Before removing any functionality, you should keep a deprecation
-    warning in place for at least one year (if possible). The
-    deprecation must include the trac ticket number where it was
-    introduced.
+* **Rename a keyword:** by decorating a function/method with
+  :class:`~sage.misc.decorators.rename_keyword`, any user calling
+  ``my_function(my_old_keyword=5)`` will see a warning::
 
-For example, let's say you run across the following while working on a
-module in the Sage library::
+      @rename_keyword(deprecation=666, my_old_keyword='my_new_keyword')
+      def my_function(my_new_keyword=True):
+          return my_new_keyword
 
-    class Foo(SageObject):
-        def terrible_idea(self):
-            return 1
-        def bad_name(self):
-            return 1
-        def f(self, weird_keyword=True):
-            return self._f_implementation(weird_keyword=weird_keyword)
-        def _f_implementation(self, weird_keyword=True):
-            return 1
+* **Rename a function/method:** call
+  :func:`~sage.misc.superseded.deprecated_function_alias` to obtain a copy of a
+  function that raises a deprecation warning::
 
-You note that the ``terrible_idea()`` method does not make any sense,
-and should be removed altogether. You open the trac ticket number 3333
-(say), and replace the code with::
+      def my_new_function():
+          ...
 
-        def terrible_idea(self):
-            from sage.misc.superseded import deprecation
-            deprecation(3333, 'You can just call f() instead')
-            return 1
+      my_old_function = deprecated_function_alias(my_new_function)
 
-Later, you come up with a much better name for the second method. You
-open the trac ticket number 4444, and replace it with::
+* **Remove a name from the global namespace:** the function
+  :func:`~sage.misc.superseded.deprecated_callable_import` imports an object into
+  the global namespace. Any user who calls it sees a message inviting him to
+  import the object manually::
 
-        def much_better_name(self):
-            return 1
+      deprecated_callable_import(666,
+                           'sage.combinat.name_of_the_module',
+                           globals(),
+                           locals(),
+                           ["name_of_the_function"])
 
-        bad_name = deprecated_function_alias(4444, much_better_name)
+* **Any other case:** if none of the cases above apply, call
+  :func:`~sage.misc.superseded.deprecation` in the function that you want to
+  deprecate. It will display the message of your choice (and interact properly
+  with the doctest framework)::
 
-Finally, you like the ``f()`` method name but you don't like the
-``weird_keyword`` name. You fix this by opening the trac ticket 5555,
-and replacing it with::
-
-        @rename_keyword(deprecation=5555, weird_keyword='nice_keyword')
-        def f(self, nice_keyword=True):
-            return self._f_implementation(nice_keyword=nice_keyword)
-
-        def _f_implementation(self, nice_keyword=True):
-            return 1
-
-Note that the underscore-method ``_f_implementation`` is, by
-convention, not something that ought to be used by others. So we do
-not need to deprecate anything when we change it.
-
-Now, any user that still relies on the deprecated functionality will
-be informed that this is about to change, yet the deprecated commands
-still work. With all necessary imports, the final result looks like
-this::
-
-    sage: from sage.misc.superseded import deprecation, deprecated_function_alias
-    sage: from sage.misc.decorators import rename_keyword
-    sage: class Foo(SageObject):
-    ....:
-    ....:     def terrible_idea(self):
-    ....:         deprecation(3333, 'You can just call f() instead')
-    ....:         return 1
-    ....:
-    ....:     def much_better_name(self):
-    ....:         return 1
-    ....:
-    ....:     bad_name = deprecated_function_alias(4444, much_better_name)
-    ....:
-    ....:     @rename_keyword(deprecation=5555, weird_keyword='nice_keyword')
-    ....:     def f(self, nice_keyword=True):
-    ....:         return self._f_implementation(nice_keyword=nice_keyword)
-    ....:
-    ....:     def _f_implementation(self, nice_keyword=True):
-    ....:         return 1
-
-    sage: foo = Foo()
-    sage: foo.terrible_idea()
-    doctest:...: DeprecationWarning: You can just call f() instead
-    See http://trac.sagemath.org/3333 for details.
-    1
-
-    sage: foo.bad_name()
-    doctest:...: DeprecationWarning: bad_name is deprecated. Please use much_better_name instead.
-    See http://trac.sagemath.org/4444 for details.
-    1
-
-    sage: foo.f(weird_keyword=False)
-    doctest:...: DeprecationWarning: use the option 'nice_keyword' instead of 'weird_keyword'
-    See http://trac.sagemath.org/5555 for details.
-    1
-
+      deprecation(666, "Do not use your computer to compute 1+1. Use your brain.")
 
 Using Optional Packages
 =======================

@@ -1166,14 +1166,9 @@ In the latter case, please inform the developers.""".format(self.order()))
         except TypeError:
             if sage.interfaces.gap.is_GapElement(x):
                 from sage.interfaces.gap import intmod_gap_to_sage
-                try:
-                    y = intmod_gap_to_sage(x)
-                    return self.coerce(y)
-                except (ValueError, IndexError, TypeError) as msg:
-                    raise TypeError("{}\nerror coercing to finite field".format(msg))
-
+                y = intmod_gap_to_sage(x)
+                return integer_mod.IntegerMod(self, y)
             raise # Continue up with the original TypeError
-
 
     def __iter__(self):
         """

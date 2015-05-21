@@ -664,7 +664,7 @@ class ModularForm_abstract(ModuleElement):
         # coefficients of the matrix M
         (b, c, d) = (M.b(), M.c() / N, M.d())
         if d == 0:
-            return R.zero_element()
+            return R.zero()
         if d < 0:
             (b, c, d) = (-b, -c, -d)
 

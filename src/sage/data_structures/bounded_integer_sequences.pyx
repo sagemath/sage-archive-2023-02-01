@@ -112,12 +112,10 @@ include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 include 'sage/data_structures/bitset.pxi'
 
+from cpython.int cimport PyInt_FromSize_t
 from cpython.slice cimport PySlice_Check, PySlice_GetIndicesEx
 from sage.libs.gmp.mpn cimport mpn_rshift, mpn_lshift, mpn_copyi, mpn_ior_n, mpn_zero, mpn_copyd, mpn_cmp
 from sage.libs.flint.flint cimport FLINT_BIT_COUNT as BIT_COUNT
-
-cdef extern from "Python.h":
-    cdef PyInt_FromSize_t(size_t ival)
 
 cimport cython
 

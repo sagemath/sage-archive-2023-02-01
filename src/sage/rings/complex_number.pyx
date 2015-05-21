@@ -121,7 +121,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         parent as ``self``.
         """
         cdef ComplexNumber x
-        x = PY_NEW(ComplexNumber)
+        x = ComplexNumber.__new__(ComplexNumber)
         x._parent = self._parent
         x._prec = self._prec
         x._multiplicative_order = None
@@ -168,7 +168,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         if imag is None:
             if real is None: return
 
-            if PY_TYPE_CHECK(real, ComplexNumber):
+            if isinstance(real, ComplexNumber):
                 real, imag = (<ComplexNumber>real).real(), (<ComplexNumber>real).imag()
             elif isinstance(real, sage.libs.pari.all.pari_gen):
                 real, imag = real.real(), real.imag()
@@ -2598,7 +2598,7 @@ cdef class CCtoCDF(Map):
             sage: f(exp(pi*CC.0/4))
             0.7071067811865476 + 0.7071067811865475*I
         """
-        cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
+        cdef ComplexDoubleElement z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
         z._complex.dat[0] = mpfr_get_d((<ComplexNumber>x).__re, GMP_RNDN)
         z._complex.dat[1] = mpfr_get_d((<ComplexNumber>x).__im, GMP_RNDN)
         return z

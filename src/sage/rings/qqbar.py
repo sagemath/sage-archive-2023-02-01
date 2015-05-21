@@ -1960,8 +1960,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         sage: nfI^2
         -1
         sage: sum = nfrt2 + nfrt3 + nfI + nfz3; sum
-        -a^5 + a^4 + a^3 - 2*a^2 + a - 1     # 32-bit
-        2*a^6 - a^5 - a^4 + a^3 - 2*a^2 + a  # 64-bit
+        -a^5 + a^4 + a^3 - 2*a^2 + a - 1
         sage: hom(sum)
         2.646264369941973? + 1.866025403784439?*I
         sage: hom(sum) == rt2 + rt3 + qqI + z3
@@ -3939,8 +3938,101 @@ class AlgebraicNumber(AlgebraicNumber_base):
             -1
             sage: cmp(QQbar(0), x)
             1
+
+        One problem with this lexicographic ordering is the fact that if
+        two algebraic numbers have the same real component, that real
+        component has to be compared for exact equality, which can be
+        a costly operation.  For the special case where both numbers
+        have the same minimal polynomial, that cost can be avoided,
+        though (see :trac:`16964`)::
+
+            sage: x = polygen(ZZ)
+            sage: p = 69721504*x^8 + 251777664*x^6 + 329532012*x^4 + 184429548*x^2 + 37344321
+            sage: sorted(p.roots(QQbar,False))
+            [-0.0221204634374360? - 1.090991904211621?*I,
+             -0.0221204634374360? + 1.090991904211621?*I,
+             -0.8088604911480535?*I,
+             -0.7598602580415435?*I,
+             0.7598602580415435?*I,
+             0.8088604911480535?*I,
+             0.0221204634374360? - 1.090991904211621?*I,
+             0.0221204634374360? + 1.090991904211621?*I]
+
+        It also works for comparison of conjugate roots even in a degenerate
+        situation where many roots have the same real part. In the following
+        example, the polynomial ``p2`` is irreducible and all its roots have
+        real part equal to `1`::
+
+            sage: p1 = x^8 + 74*x^7 + 2300*x^6 + 38928*x^5 + \
+            ....: 388193*x^4 + 2295312*x^3 + 7613898*x^2 + \
+            ....: 12066806*x + 5477001
+            sage: p2 = p1((x-1)^2)
+            sage: sum(1 for r in p2.roots(CC,False) if abs(r.real() - 1) < 0.0001)
+            16
+            sage: r1 = QQbar.polynomial_root(p2, CIF(1, (-4.1,-4.0)))
+            sage: r2 = QQbar.polynomial_root(p2, CIF(1, (4.0, 4.1)))
+            sage: cmp(r1,r2), cmp(r1,r1), cmp(r2,r2), cmp(r2,r1)
+            (-1, 0, 0, 1)
+
+        Though, comparing roots which are not equal or conjugate is much
+        slower because the algorithm needs to check the equality of the real
+        parts::
+
+            sage: sorted(p2.roots(QQbar,False))   # long time - 3 secs
+            [1.000000000000000? - 4.016778562562223?*I,
+             1.000000000000000? - 3.850538755978243?*I,
+             1.000000000000000? - 3.390564396412898?*I,
+             ...
+             1.000000000000000? + 3.390564396412898?*I,
+             1.000000000000000? + 3.850538755978243?*I,
+             1.000000000000000? + 4.016778562562223?*I]
         """
+        # case 0: same object
         if self is other: return 0
+
+        # case 1: real parts are clearly distinct
+        ri1 = self._value.real()
+        ri2 = other._value.real()
+        if not ri1.overlaps(ri2):
+            return cmp(ri1, ri2)
+
+        # case 2: possibly equal or conjugate values
+        # (this case happen a lot when sorting the roots of a real polynomial)
+        if is_RealIntervalFieldElement(self._value):
+            ci1 = ri1.parent().zero()
+        else:
+            ci1 = self._value.imag().abs()
+        if is_RealIntervalFieldElement(other._value):
+            ci2 = ri2.parent().zero()
+        else:
+            ci2 = other._value.imag().abs()
+        if ci1.overlaps(ci2) and self.minpoly() == other.minpoly():
+            ri = ri1.union(ri2)
+            ci = ci1.union(ci2)
+            roots = self.minpoly().roots(QQbar, False)
+            roots = [r for r in roots if r._value.real().overlaps(ri)
+                     and r._value.imag().abs().overlaps(ci)]
+            if len(roots) == 1:
+                # There is only a single (real) root matching both descriptors
+                # so they both must be that root and therefore equal.
+                return 0
+            if (len(roots) == 2 and
+                not roots[0]._value.imag().contains_zero()):
+                # There is a complex conjugate pair of roots matching both
+                # descriptors, so compare by imaginary value.
+                ii1 = self._value.imag()
+                while ii1.contains_zero():
+                    self._more_precision()
+                    ii1 = self._value.imag()
+                ii2 = other._value.imag()
+                while ii2.contains_zero():
+                    other._more_precision()
+                    ii2 = other._value.imag()
+                if ii1.overlaps(ii2):
+                    return 0
+                return cmp(ii1, ii2)
+
+        # case 3: try hard to compare real parts and imaginary parts
         rcmp = cmp(self.real(), other.real())
         if rcmp != 0:
             return rcmp

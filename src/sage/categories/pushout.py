@@ -2158,7 +2158,7 @@ class CompletionFunctor(ConstructionFunctor):
             c = cmp(self.p, other.p)
         return c
 
-    _real_types = ['Interval','MPFR','RDF','RLF']
+    _real_types = ['Interval','Ball','MPFR','RDF','RLF']
     _dvr_types = [None, 'fixed-mod','capped-abs','capped-rel','lazy']
 
     def merge(self, other):

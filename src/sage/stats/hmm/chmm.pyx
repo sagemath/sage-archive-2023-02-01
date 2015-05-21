@@ -1518,7 +1518,7 @@ def unpickle_gaussian_hmm_v1(A, B, pi, prob, n_out):
         sage: loads(dumps(m)) == m   # indirect test
         True
     """
-    cdef GaussianHiddenMarkovModel m = PY_NEW(GaussianHiddenMarkovModel)
+    cdef GaussianHiddenMarkovModel m = GaussianHiddenMarkovModel.__new__(GaussianHiddenMarkovModel)
     m.A = A
     m.B = B
     m.pi = pi
@@ -1534,7 +1534,7 @@ def unpickle_gaussian_mixture_hmm_v1(A, B, pi, mixture):
         sage: loads(dumps(m)) == m   # indirect test
         True
     """
-    cdef GaussianMixtureHiddenMarkovModel m = PY_NEW(GaussianMixtureHiddenMarkovModel)
+    cdef GaussianMixtureHiddenMarkovModel m = GaussianMixtureHiddenMarkovModel.__new__(GaussianMixtureHiddenMarkovModel)
     m.A = A
     m.B = B
     m.pi = pi

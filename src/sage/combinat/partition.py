@@ -4527,7 +4527,8 @@ class Partitions(UniqueRepresentation, Parent):
       be contained inside the partition `p`.
 
     - ``min_slope=k`` specifies that the partitions have slope at least
-      `k`; the slope is the difference between successive parts.
+      `k`; the slope at position `i` is the difference between the
+      `(i+1)`-th part and the `i`-th part.
 
     - ``parts_in=S`` specifies that the partitions have parts in the set
       `S`, which can be any sequence of pairwise distinct positive
@@ -4652,7 +4653,7 @@ class Partitions(UniqueRepresentation, Parent):
 
     Except for very special cases, counting is done by brute force iteration
     through all the partitions. However the iteration itself has a reasonable
-    complexity (constant memory, constant amortized time), which allow for
+    complexity (see :class:`IntegerListsLex`), which allows for
     manipulating large partitions::
 
         sage: Partitions(1000, max_length=1).list()
@@ -4732,15 +4733,17 @@ class Partitions(UniqueRepresentation, Parent):
     Check that calling ``Partitions`` with ``outer=a`` no longer
     mutates ``a`` (:trac:`16234`)::
 
-        sage: a = [4,2,1,1,1,1,1]
+        sage: a = [4,3,2,1,1,1,1]
         sage: for p in Partitions(8, outer=a, min_slope=-1):
         ....:    print p
-        ....:     
+        [3, 3, 2]
+        [3, 2, 2, 1]
         [3, 2, 1, 1, 1]
+        [2, 2, 2, 1, 1]
         [2, 2, 1, 1, 1, 1]
         [2, 1, 1, 1, 1, 1, 1]
         sage: a
-        [4, 2, 1, 1, 1, 1, 1]
+        [4, 3, 2, 1, 1, 1, 1]
     """
     @staticmethod
     def __classcall_private__(cls, n=None, **kwargs):
@@ -4760,6 +4763,12 @@ class Partitions(UniqueRepresentation, Parent):
             sage: P2 = Partitions(int(4))
             sage: P is P2
             True
+
+        Check that :trac:`17898` is fixed::
+
+            sage: P = Partitions(5, min_slope=0)
+            sage: list(P)
+            [[5], [1, 1, 1, 1, 1]]
         """
         if n == infinity:
             raise ValueError("n cannot be infinite")
@@ -4804,22 +4813,21 @@ class Partitions(UniqueRepresentation, Parent):
             # max_slope is at most 0, and it is 0 by default
             kwargs['max_slope'] = min(0,kwargs.get('max_slope',0))
 
+            if kwargs.get('min_slope', -float('inf')) > 0:
+                raise ValueError("the minimum slope must be non-negative")
+
             if 'outer' in kwargs:
-                if 'max_length' in kwargs:
-                    kwargs['max_length'] = min(len(kwargs['outer']), kwargs['max_length'])
-                else:
-                    kwargs['max_length'] = len(kwargs['outer'])
+                kwargs['max_length'] = min(len(kwargs['outer']),
+                                           kwargs.get('max_length', infinity))
 
                 kwargs['ceiling'] = kwargs['outer']
                 del kwargs['outer']
 
             if 'inner' in kwargs:
                 inner = [x for x in kwargs['inner'] if x > 0]
-                kwargs['floor'] = lambda i: inner[i] if i < len(inner) else 1
-                if 'min_length' in kwargs:
-                    kwargs['min_length'] = max( len(inner), kwargs['min_length'])
-                else:
-                    kwargs['min_length'] = len(inner)
+                kwargs['floor'] = inner
+                kwargs['min_length'] = max(len(inner),
+                                           kwargs.get('min_length',0))
                 del kwargs['inner']
 
             kwargs['element_class'] = Partition
@@ -5166,7 +5174,7 @@ class Partitions_all(Partitions):
             sage: Partitions().from_core_and_quotient([2,1], [[2,1],[3],[1,1,1]])
             [11, 5, 5, 3, 2, 2, 2]
 
-        TESTS:
+        TESTS::
 
             sage: Partitions().from_core_and_quotient([2,1], [[2,1],[2,3,1],[1,1,1]])
             Traceback (most recent call last):
@@ -6680,6 +6688,7 @@ class PartitionsGreatestEQ(IntegerListsLex, UniqueRepresentation):
             sage: TestSuite(p).run()
         """
         IntegerListsLex.__init__(self, n, max_slope = 0, max_part=k, floor = [k])
+        self.n = n
         self.k = k
 
     def _repr_(self):

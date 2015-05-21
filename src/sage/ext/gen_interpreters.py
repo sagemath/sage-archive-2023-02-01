@@ -2549,7 +2549,7 @@ cdef inline double_complex CDE_to_dz(zz):
     return z._complex.dat[0] + _Complex_I * z._complex.dat[1]
 
 cdef inline ComplexDoubleElement dz_to_CDE(double_complex dz):
-    cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
+    cdef ComplexDoubleElement z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
     z._complex.dat[0] = creal(dz)
     z._complex.dat[1] = cimag(dz)
     return z
@@ -2925,7 +2925,7 @@ from sage.structure.element cimport Element
 cdef public object el_check_element(object v, parent):
     cdef Element v_el
 
-    if PY_TYPE_CHECK(v, Element):
+    if isinstance(v, Element):
         v_el = <Element>v
         if v_el._parent is parent:
             return v_el

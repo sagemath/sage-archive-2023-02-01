@@ -31,6 +31,7 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     :meth:`~Posets.SymmetricGroupBruhatIntervalPoset` | The poset of permutations with respect to Bruhat order.
     :meth:`~Posets.SymmetricGroupBruhatOrderPoset` | The poset of permutations with respect to Bruhat order.
     :meth:`~Posets.SymmetricGroupWeakOrderPoset` | The poset of permutations of `\{ 1, 2, \ldots, n \}` with respect to the weak order.
+    :meth:`~Posets.TamariLattice` | Return the Tamari lattice.
 
 Constructions
 -------------
@@ -609,5 +610,10 @@ class Posets(object):
                 return [v for v in s.bruhat_succ() if
                     s.length() + (s.inverse().left_action_product(v)).length() == v.length()]
         return Poset(dict([[s,weak_covers(s)] for s in Permutations(n)]),element_labels)
+
+    # Tamari lattices
+    import sage.combinat.tamari_lattices
+    TamariLattice = staticmethod(sage.combinat.tamari_lattices.TamariLattice)
+
 
 posets = Posets

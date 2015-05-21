@@ -1923,12 +1923,14 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
     cpdef RingElement _div_(self, RingElement rhs):
         """
-        Return the division of self by rhs. If the denominator is not a unit,
+        Return the division of ``self`` by ``rhs``.
+
+        If the denominator is not a unit,
         the result will be given in the fraction field.
 
         EXAMPLES::
 
-            sage: R.<s,q,t>=LaurentPolynomialRing(QQ)
+            sage: R.<s,q,t> = LaurentPolynomialRing(QQ)
             sage: 1/s
             s^-1
             sage: 1/(s*q)
@@ -1941,7 +1943,6 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             Multivariate Laurent Polynomial Ring in s, q, t over Rational Field
             sage: (s+q)/(q^2*t^(-2))
             s*q^-2*t^2 + q^-1*t^2
-
         """
         cdef LaurentPolynomial_mpair right = <LaurentPolynomial_mpair> rhs
         if right.is_zero():
@@ -1951,7 +1952,6 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             return self * ~right
         else:
             return RingElement._div_(self, rhs)
-
 
     def is_monomial(self):
         """

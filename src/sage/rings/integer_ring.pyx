@@ -105,8 +105,6 @@ def is_IntegerRing(x):
     """
     return isinstance(x, IntegerRing_class)
 
-import integer_ring_python
-
 cdef class IntegerRing_class(PrincipalIdealDomain):
     r"""
     The ring of integers.
@@ -564,7 +562,12 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             2
             -2
         """
-        return integer_ring_python.iterator(self)
+        yield self(0)
+        n = self(1)
+        while True:
+            yield n
+            yield -n
+            n += 1
 
     cdef Integer _coerce_ZZ(self, ZZ_c *z):
         cdef integer.Integer i

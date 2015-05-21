@@ -94,7 +94,7 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         x^3 + 1
         sage: p.factor()
         (x + 1) * (x^2 - x + 1)
-        sage: z^2 - z + 1
+        sage: z^2 - z + 1   # abs tol 2e-16
         0.000000000000000
 
     This example involves a `p`-adic number::

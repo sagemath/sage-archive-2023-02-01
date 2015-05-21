@@ -5687,7 +5687,7 @@ cdef class Expression(CommutativeRingElement):
         ::
 
             sage: f = x^2*e + x + pi/e
-            sage: f.polynomial(RDF)
+            sage: f.polynomial(RDF)  # abs tol 5e-16
             2.718281828459045*x^2 + x + 1.1557273497909217
             sage: g = f.polynomial(RR); g
             2.71828182845905*x^2 + x + 1.15572734979092
@@ -5695,7 +5695,7 @@ cdef class Expression(CommutativeRingElement):
             Univariate Polynomial Ring in x over Real Field with 53 bits of precision
             sage: f.polynomial(RealField(100))
             2.7182818284590452353602874714*x^2 + x + 1.1557273497909217179100931833
-            sage: f.polynomial(CDF)
+            sage: f.polynomial(CDF)  # abs tol 5e-16
             2.718281828459045*x^2 + x + 1.1557273497909217
             sage: f.polynomial(CC)
             2.71828182845905*x^2 + x + 1.15572734979092
@@ -5717,7 +5717,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = sum((e*I)^n*x^n for n in range(5)); f
             x^4*e^4 - I*x^3*e^3 - x^2*e^2 + I*x*e + 1
-            sage: f.polynomial(CDF)
+            sage: f.polynomial(CDF)   # abs tol 5e-16
             54.598150033144236*x^4 - 20.085536923187668*I*x^3 - 7.38905609893065*x^2 + 2.718281828459045*I*x + 1.0
             sage: f.polynomial(CC)
             54.5981500331442*x^4 - 20.0855369231877*I*x^3 - 7.38905609893065*x^2 + 2.71828182845905*I*x + 1.00000000000000

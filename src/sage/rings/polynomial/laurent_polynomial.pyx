@@ -1463,6 +1463,36 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         """
         self._prod = PolyDict(self._dict(), force_etuples = False)
 
+    def is_unit(self):
+        """
+        Return ``True`` if ``self`` is a unit.
+
+        The ground ring is assumed to be an integral domain.
+
+        This means that the Laurent polynomial is a monomial
+        with unit coefficient.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LaurentPolynomialRing(QQ)
+            sage: (x*y/2).is_unit()
+            True
+            sage: (x + y).is_unit()
+            False
+            sage: (L.zero()).is_unit()
+            False
+            sage: (L.one()).is_unit()
+            True
+
+            sage: L.<x,y> = LaurentPolynomialRing(ZZ)
+            sage: (2*x*y).is_unit()
+            False
+        """
+        coeffs = self.coefficients()
+        if len(coeffs) != 1:
+            return False
+        return coeffs[0].is_unit()
+        
     def _repr_(self):
         """
         EXAMPLES::

@@ -449,7 +449,7 @@ class PanAxiom(Expect):
         try:
             E = self._expect
             # debug
-            self._synchronize(cmd='1+%s\n')
+            # self._synchronize(cmd='1+%s\n')
             verbose("in = '%s'"%line,level=3)
             E.sendline(line)
             self._expect.expect(self._prompt)

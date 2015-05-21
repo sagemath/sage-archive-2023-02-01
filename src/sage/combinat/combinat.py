@@ -2693,7 +2693,7 @@ def bell_polynomial(n, k):
 
     OUTPUT:
 
-    - a polynomial in `n-k+1` variables over `\QQ`
+    - a polynomial in `n-k+1` variables over `\ZZ`
 
     EXAMPLES::
 
@@ -2707,7 +2707,7 @@ def bell_polynomial(n, k):
     Check that :trac:`18338` is fixed::
 
         sage: bell_polynomial(0,0).parent()
-        Multivariate Polynomial Ring in x over Rational Field
+        Multivariate Polynomial Ring in x over Integer Ring
 
         sage: for n in (0..4):
         ....:     print [bell_polynomial(n,k).coefficients() for k in (0..n)]
@@ -2730,7 +2730,7 @@ def bell_polynomial(n, k):
     from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
     from sage.combinat.partition import Partitions
     from sage.rings.arith import factorial
-    R = PolynomialRing(QQ, 'x', n-k+1)
+    R = PolynomialRing(ZZ, 'x', n-k+1)
     vars = R.gens()
     result = R.zero()
     for p in Partitions(n, length=k):
@@ -2741,7 +2741,7 @@ def bell_polynomial(n, k):
             power_factorial_product *= factorial(part)**count
         coefficient = factorial(n) / (factorial_product * power_factorial_product)
         result += coefficient * prod([vars[i - 1] for i in p])
-    return result
+    return R(result)
 
 def fibonacci_sequence(start, stop=None, algorithm=None):
     r"""

@@ -106,9 +106,9 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
             sage: E = EllipticCurve("389a")
             sage: Z = LFunctionZeroSum(E)
-            sage: Z.C0() # tol 1.0e-10
+            sage: Z.C0() # tol 1.0e-13
             0.5666969404983447
-            sage: Z.C0(include_euler_gamma=False) # tol 1.0e-10
+            sage: Z.C0(include_euler_gamma=False) # tol 1.0e-13
             1.1439126053998776
 
         """
@@ -149,7 +149,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             sage: E = EllipticCurve("11a")
             sage: Z = LFunctionZeroSum(E)
             sage: cnlist = Z.cnlist(11)
-            sage: for n in range(12): print(n,cnlist[n]) # tol 1.0e-10
+            sage: for n in range(12): print(n,cnlist[n]) # tol 1.0e-13
             (0, 0.0)
             (1, 0.0)
             (2, 0.6931471805599453)
@@ -195,11 +195,11 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         EXAMPLES::
 
             sage: Z = LFunctionZeroSum(EllipticCurve("37a"))
-            sage: Z.digamma(3.2) # tol 1.0e-10
+            sage: Z.digamma(3.2) # tol 1.0e-13
             0.9988388912865993
-            sage: Z.digamma(3.2,include_constant_term=False) # tol 1.0e-10
+            sage: Z.digamma(3.2,include_constant_term=False) # tol 1.0e-13
             1.576054556188132
-            sage: Z.digamma(1+I) # tol 1.0e-10
+            sage: Z.digamma(1+I) # tol 1.0e-13
             0.09465032062247625 + 1.076674047468581*I
             sage: Z.digamma(-2)
             +Infinity
@@ -276,9 +276,9 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
             sage: E = EllipticCurve([23,100])
             sage: Z = LFunctionZeroSum(E)
-            sage: Z.logarithmic_derivative(10) # tol 1.0e-10
+            sage: Z.logarithmic_derivative(10) # tol 1.0e-13
             (5.648066742632698e-05, 1.0974102859764345e-34)
-            sage: Z.logarithmic_derivative(2.2) # tol 1.0e-10
+            sage: Z.logarithmic_derivative(2.2) # tol 1.0e-13
             (0.5751257063594758, 0.024087912696974387)
 
         Increasing the number of terms should see the truncation error
@@ -294,7 +294,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         ::
 
-            sage: Z.logarithmic_derivative(1.3) # tol 1.0e-10
+            sage: Z.logarithmic_derivative(1.3) # tol 1.0e-13
             (5.442994413920786, +Infinity)
 
         Complex inputs and inputs to the left of the critical strip
@@ -302,16 +302,16 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         ::
 
-            sage: Z.logarithmic_derivative(complex(3,-1)) # tol 1.0e-10
+            sage: Z.logarithmic_derivative(complex(3,-1)) # tol 1.0e-13
             (0.04764548578052381 + 0.16513832809989326*I, 6.584671359095225e-06)
-            sage: Z.logarithmic_derivative(complex(-3,-1.1)) # tol 1.0e-10
+            sage: Z.logarithmic_derivative(complex(-3,-1.1)) # tol 1.0e-13
             (-13.908452173241546 + 2.591443099074753*I, 2.7131584736258447e-14)
 
         The logarithmic derivative has poles at the negative integers.
 
         ::
 
-            sage: Z.logarithmic_derivative(-3) # tol 1.0e-10
+            sage: Z.logarithmic_derivative(-3) # tol 1.0e-13
             (-Infinity, 2.7131584736258447e-14)
 
         """
@@ -394,7 +394,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
             sage: E = EllipticCurve([23,100])
             sage: Z = LFunctionZeroSum(E)
-            sage: Z.completed_logarithmic_derivative(3) # tol 1.0e-10
+            sage: Z.completed_logarithmic_derivative(3) # tol 1.0e-13
             (6.64372066048195, 6.584671359095225e-06)
 
         Complex values are handled. The function is odd about s=1, so
@@ -402,9 +402,9 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         ::
 
-            sage: Z.completed_logarithmic_derivative(complex(-2.2,1)) # tol 1.0e-10
+            sage: Z.completed_logarithmic_derivative(complex(-2.2,1)) # tol 1.0e-13
             (-6.898080633125154 + 0.22557015394248361*I, 5.623853049808912e-11)
-            sage: Z.completed_logarithmic_derivative(complex(4.2,-1)) # tol 1.0e-10
+            sage: Z.completed_logarithmic_derivative(complex(4.2,-1)) # tol 1.0e-13
             (6.898080633125154 - 0.22557015394248361*I, 5.623853049808912e-11)
 
         """
@@ -493,17 +493,17 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             sage: Z = LFunctionZeroSum(E)
             sage: E.lseries().zeros(3)
             [0.000000000, 0.000000000, 2.87609907]
-            sage: Z.zerosum(Delta=1,function="sincsquared_fast") # tol 1.0e-10
+            sage: Z.zerosum(Delta=1,function="sincsquared_fast") # tol 1.0e-13
             2.037500084595065
-            sage: Z.zerosum(Delta=1,function="sincsquared_parallel") # tol 1.0e-10
+            sage: Z.zerosum(Delta=1,function="sincsquared_parallel") # tol 1.0e-11
             2.037500084595065
-            sage: Z.zerosum(Delta=1,function="sincsquared") # tol 1.0e-10
+            sage: Z.zerosum(Delta=1,function="sincsquared") # tol 1.0e-13
             2.0375000845950644
-            sage: Z.zerosum(Delta=1,tau=2.876,function="sincsquared") # tol 1.0e-10
+            sage: Z.zerosum(Delta=1,tau=2.876,function="sincsquared") # tol 1.0e-13
             1.075551295651154
-            sage: Z.zerosum(Delta=1,tau=1.2,function="sincsquared") # tol 1.0e-10
+            sage: Z.zerosum(Delta=1,tau=1.2,function="sincsquared") # tol 1.0e-13
             0.10831555377490683
-            sage: Z.zerosum(Delta=1,function="gaussian") # tol 1.0e-10
+            sage: Z.zerosum(Delta=1,function="gaussian") # tol 1.0e-13
             2.056890425029435
 
         """
@@ -589,14 +589,14 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         ::
 
-            sage: Z._zerosum_sincsquared(Delta=1,tau=0) # tol 1.0e-10
+            sage: Z._zerosum_sincsquared(Delta=1,tau=0) # tol 1.0e-13
             1.0103840698356257
 
         The zero sum also detects a zero at or near 5.003, as expected.
 
         ::
 
-            sage: Z._zerosum_sincsquared(Delta=1,tau=5.003) # tol 1.0e-10
+            sage: Z._zerosum_sincsquared(Delta=1,tau=5.003) # tol 1.0e-13
             1.0168124546878288
 
         However, there is definitely no zero with imaginary part near 2.5,
@@ -604,7 +604,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         ::
 
-            sage: Z._zerosum_sincsquared(Delta=1,tau=2.5) # tol 1.0e-10
+            sage: Z._zerosum_sincsquared(Delta=1,tau=2.5) # tol 1.0e-13
             0.058058210806477814
 
         """
@@ -697,7 +697,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             sage: E = EllipticCurve("37a"); E.rank()
             1
             sage: Z = LFunctionZeroSum(E)
-            sage: Z._zerosum_gaussian(Delta=1) # tol 1.0e-10
+            sage: Z._zerosum_gaussian(Delta=1) # tol 1.0e-13
             1.0563950773441664
 
         """
@@ -797,7 +797,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         ::
 
             sage: Z = LFunctionZeroSum(E)
-            sage: Z._zerosum_cauchy(Delta=1,tau=0) # tol 1.0e-10
+            sage: Z._zerosum_cauchy(Delta=1,tau=0) # tol 1.0e-13
             0.9701073984459051
 
         The zero sum with tau=6.36 indicates there might be a zero in the
@@ -805,14 +805,14 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         ::
 
-            sage: Z._zerosum_cauchy(Delta=1,tau=6.36261389) # tol 1.0e-10
+            sage: Z._zerosum_cauchy(Delta=1,tau=6.36261389) # tol 1.0e-13
             2.180904626331156
 
         However, there are no zeros with imaginary part close to 1.5.
 
         ::
 
-            sage: Z._zerosum_cauchy(Delta=1,tau=1.5) # tol 1.0e-10
+            sage: Z._zerosum_cauchy(Delta=1,tau=1.5) # tol 1.0e-13
             0.9827072037553375
 
         Because of the weak convergence of the Dirichlet series close to the
@@ -821,9 +821,9 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         ::
 
-            sage: Z._zerosum_cauchy(Delta=1.5) # tol 1.0e-10
+            sage: Z._zerosum_cauchy(Delta=1.5) # tol 1.0e-13
             12.93835258975716
-            sage: Z._zerosum_cauchy(Delta=1.5,num_terms=100000) # tol 1.0e-10
+            sage: Z._zerosum_cauchy(Delta=1.5,num_terms=100000) # tol 1.0e-13
             10.395183960836599
 
         An error will be thrown if a Delta value >= 2 is passed.
@@ -971,7 +971,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
             sage: E = EllipticCurve("11a")
             sage: Z = LFunctionZeroSum(E)
-            sage: for n in range(12): print(n,Z.cn(n)) # tol 1.0e-10
+            sage: for n in range(12): print(n,Z.cn(n)) # tol 1.0e-13
             (0, 0.0)
             (1, 0.0)
             (2, 0.6931471805599453)
@@ -1062,80 +1062,6 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         logp = c_log(p)
         return -(t-logp)*(logp/p)*ap
 
-    def _get_residue_data(self, n):
-        r"""
-        Method called by self._zerosum_sincsquared_parallel() to determine
-        the optimal residue class breakdown when sieving for primes.
-        Returns a list of small primes, the product thereof, and a list of
-        residues coprime to the product.
-
-        INPUT:
-
-        - ``n`` -- Positive integer denoting the number of required chunks.
-
-        OUTPUT:
-
-        A triple ``(small_primes, M, residue_chunks)`` such that
-
-          - ``small_primes`` -- a list of small primes
-
-          - ``M`` -- the product of the small primes
-
-          - ``residue_chunks`` -- a list of lists comprised of all integers
-             less than M that are coprime to M, broken into n sublists of
-             approximately equal size.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve("37a"); Z = LFunctionZeroSum(E)
-            sage: Z._get_residue_data(8)
-            ([2, 3, 5, 7],
-             210,
-             [[1, 37, 71, 107, 143, 179],
-              [11, 41, 73, 109, 149, 181],
-              [13, 43, 79, 113, 151, 187],
-              [17, 47, 83, 121, 157, 191],
-              [19, 53, 89, 127, 163, 193],
-              [23, 59, 97, 131, 167, 197],
-              [29, 61, 101, 137, 169, 199],
-              [31, 67, 103, 139, 173, 209]])
-
-        """
-        # If n <=48, primes are sieved for modulo 210
-        if n <= 48:
-            small_primes = [2,3,5,7]
-            M = 210
-            residue_list = [1, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47,
-                            53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103,
-                            107, 109, 113, 121, 127, 131, 137, 139, 143, 149,
-                            151, 157, 163, 167, 169, 173, 179, 181, 187, 191,
-                            193, 197, 199, 209]
-        # General case for n > 480
-        else:
-            from sage.rings.finite_rings.integer_mod import mod
-            from sage.rings.arith import next_prime
-
-            M,p = 2,2
-            small_primes,residue_list = [2],[1]
-            num_residues = 1
-            # Enlarge residue_list by repeatedly applying Chinese Remainder
-            # Theorem
-            while num_residues<n:
-                p = next_prime(p)
-                small_primes.append(p)
-                g,h = (mod(p,M)**(-1)).lift(),(mod(M,p)**(-1)).lift()
-                residue_list = [(a*p*g + b*M*h)%(M*p) for a in residue_list
-                                for b in range(1,p)]
-                num_residues = num_residues*(p-1)
-                M *= p
-            residue_list.sort()
-
-        # Break residue_list into n chunks
-        residue_chunks = [[residue_list[i] for i in range(len(residue_list))
-                               if i%n==k] for k in range(n)]
-
-        return small_primes, M, residue_chunks
-
     cpdef _zerosum_sincsquared_fast(self, Delta=1, bad_primes=None):
         r"""
         A faster cythonized implementation of self._zerosum_sincsquared().
@@ -1173,11 +1099,11 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
             sage: E = EllipticCurve("37a")
             sage: Z = LFunctionZeroSum(E)
-            sage: print(E.rank(),Z._zerosum_sincsquared_fast(Delta=1)) # tol 1.0e-10
+            sage: print(E.rank(),Z._zerosum_sincsquared_fast(Delta=1)) # tol 1.0e-13
             (1, 1.0103840698356263)
             sage: E = EllipticCurve("121a")
             sage: Z = LFunctionZeroSum(E);
-            sage: print(E.rank(),Z._zerosum_sincsquared_fast(Delta=1.5)) # tol 1.0e-10
+            sage: print(E.rank(),Z._zerosum_sincsquared_fast(Delta=1.5)) # tol 1.0e-13
             (0, 0.0104712060086507)
 
         """
@@ -1281,6 +1207,146 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         return RDF(2*(u+w+y)/(t**2))
 
+    def _get_residue_data(self, n):
+        r"""
+        Method called by self._zerosum_sincsquared_parallel() to determine
+        the optimal residue class breakdown when sieving for primes.
+        Returns a list of small primes, the product thereof, and a list of
+        residues coprime to the product.
+
+        INPUT:
+
+        - ``n`` -- Positive integer denoting the number of required chunks.
+
+        OUTPUT:
+
+        A triple ``(small_primes, M, residue_chunks)`` such that
+
+          - ``small_primes`` -- a list of small primes
+
+          - ``modulus`` -- the product of the small primes
+
+          - ``residue_chunks`` -- a list of lists consisting of all integers
+             less than the modulus that are coprime to it, broken into n
+             sublists of approximately equal size.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve("37a"); Z = LFunctionZeroSum(E)
+            sage: Z._get_residue_data(8)
+            ([2, 3, 5, 7],
+             210,
+             [[1, 37, 71, 107, 143, 179],
+              [11, 41, 73, 109, 149, 181],
+              [13, 43, 79, 113, 151, 187],
+              [17, 47, 83, 121, 157, 191],
+              [19, 53, 89, 127, 163, 193],
+              [23, 59, 97, 131, 167, 197],
+              [29, 61, 101, 137, 169, 199],
+              [31, 67, 103, 139, 173, 209]])
+
+        """
+        # If n <=48, primes are sieved for modulo 210
+        if n <= 48:
+            small_primes = [2,3,5,7]
+            modulus = 210
+            residue_list = [1, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47,
+                            53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103,
+                            107, 109, 113, 121, 127, 131, 137, 139, 143, 149,
+                            151, 157, 163, 167, 169, 173, 179, 181, 187, 191,
+                            193, 197, 199, 209]
+        # General case for n > 480
+        else:
+            from sage.rings.finite_rings.integer_mod import mod
+            from sage.rings.arith import next_prime
+
+            modulus,p = 2,2
+            small_primes,residue_list = [2],[1]
+            num_residues = 1
+            # Enlarge residue_list by repeatedly applying Chinese Remainder
+            # Theorem
+            while num_residues<n:
+                p = next_prime(p)
+                small_primes.append(p)
+                g,h = (mod(p,modulus)**(-1)).lift(),(mod(modulus,p)**(-1)).lift()
+                residue_list = [(a*p*g + b*modulus*h)%(modulus*p) for a in residue_list
+                                for b in range(1,p)]
+                num_residues = num_residues*(p-1)
+                modulus *= p
+            residue_list.sort()
+
+        # Break residue_list into n chunks
+        residue_chunks = [[residue_list[i] for i in range(len(residue_list))
+                               if i%n==k] for k in range(n)]
+
+        return small_primes, modulus, residue_chunks
+
+#    @parallel(ncpus=2)
+#    def _sum_over_residues_2(self,
+#                             modulus,
+#                             residues,
+#                             double log_sum_bound,
+#                             double sum_bound,
+#                             double power_sum_bound):
+    @parallel(ncpus=2)
+    def _sum_over_residues_2(self, residue_sum_data):
+        r"""
+        Return the p-power sum over residues in a residue chunk
+
+        """
+        modulus, residues = residue_sum_data[0], residue_sum_data[1]
+
+        cdef double y = 0
+        cdef unsigned long n = residues[0]
+        #cdef double t = log_sum_bound
+        #cdef double expt = sum_bound
+        #cdef double bound1 = power_sum_bound
+        cdef double t = residue_sum_data[2]
+        cdef double expt = residue_sum_data[3]
+        cdef double bound1 = residue_sum_data[4]
+
+        cdef double z = 0
+        cdef double p = 0
+        cdef double q = 0
+        cdef double sqrtp = 0
+        cdef double sqrtq = 0
+        cdef double logp = 0
+        cdef double logq = 0
+        cdef double thetap = 0
+        cdef double thetaq = 0
+        cdef int ap = 0
+
+        # Generate a list of increments so that n iterates over integers with
+        # residues in the residue list
+        len_increment_list = len(residues)
+        increments = [residues[i+1]-residues[i] for i in range(len_increment_list-1)]
+        increments.append(modulus + residues[0] - residues[-1])
+
+        i = 0
+        # up to bound1=sqrt(expt), higher powers of p must be summed over too
+        while n < bound1:
+            if n_is_prime(n):
+                    y += self._sincsquared_summand_1(n, t, ap, p, logp,
+                                                     thetap, sqrtp, logq,
+                                                     thetaq, sqrtq, z)
+            n += increments[i]
+            # cycle over increments
+            i += 1
+            if i >= len_increment_list:
+                i = 0
+
+        # when bound1 <= n < expt, we don't need to consider higher powers of p
+        while n<expt:
+            if n_is_prime(n):
+                    y += self._sincsquared_summand_2(n, t, ap, p, logp)
+            n += increments[i]
+            # cycle over increments
+            i += 1
+            if i >= len_increment_list:
+                i = 0
+
+        return y
+
     def _zerosum_sincsquared_parallel(self,
                                       Delta=1,
                                       bad_primes=None,
@@ -1327,12 +1393,12 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: E = EllipticCurve("37a"); print(E.rank())
             1
             sage: Z = LFunctionZeroSum(E)
-            sage: print(Z._zerosum_sincsquared_parallel(Delta=1)) # tol 1.0e-10
+            sage: print(Z._zerosum_sincsquared_parallel(Delta=1)) # tol 1.0e-11
             1.0103840698356263
             sage: E = EllipticCurve("121a"); print(E.rank())
             0
             sage: Z = LFunctionZeroSum(E);
-            sage: print(Z._zerosum_sincsquared_parallel(Delta=1.5,ncpus=2)) # tol 1.0e-10
+            sage: print(Z._zerosum_sincsquared_parallel(Delta=1.5,ncpus=2)) # tol 1.0e-11
             0.01047120600865063
 
         """
@@ -1351,12 +1417,14 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         cdef int ap,aq
         cdef unsigned long n
 
+        # Compute bounds and smooth part of sum
         t = twopi*Delta
         expt = c_exp(t)
         bound1 = c_exp(t/2)
         u = t*(-eg + c_log(N_double)/2 - c_log(twopi))
         w = npi**2/6-(RDF(1)/expt).dilog()
 
+        # Oscillating part of sum
         y = 0
         # Do bad primes first. Add correct contributions and subtract
         # incorrect contribution; the latter are added back later on.
@@ -1393,63 +1461,61 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         # Good prime case. Bad primes are treated as good primes, but their
         # contribution here is cancelled out above; this way we don't
         # have to check if each prime divides the level or not.
-
         if ncpus is None:
             ncpus = num_cpus()
-        small_primes, jump, residue_chunks = self._get_residue_data(ncpus)
+        small_primes, modulus, residue_chunks = self._get_residue_data(ncpus)
 
-        # Must deal with small primes separately
+        # We must deal with small primes separately
         for m in small_primes:
             n = m
             if n<expt:
-                y += self._sincsquared_summand_1(n,t,ap,p,logp,thetap,sqrtp,
-                                                     logq,thetaq,sqrtq,z)
+                y += self._sincsquared_summand_1(n, t, ap, p, logp,
+                                                 thetap, sqrtp, logq,
+                                                 thetaq, sqrtq, z)
 
         @parallel(ncpus=ncpus)
-        def _sum_over_residues(residues):
+        def _sum_over_residues(residue_data):
             r"""
             Return the p-power sum over residues in a residue chunk
 
             """
             cdef double y = 0
-            cdef unsigned long n,k
+            cdef unsigned long n
 
-            n = 0
-            # Case: n+jump<sqrt(expt)
-            while n+jump<bound1:
-                for m in residues:
-                    k = n+m
-                    if n_is_prime(k):
-                        y += self._sincsquared_summand_1(k,t,ap,p,logp,thetap,sqrtp,
-                                                         logq,thetaq,sqrtq,z)
-                n += jump
-            # Case: n<sqrt(expt) but maybe n+jump>sqrt(expt)
-            for m in residues:
-                k = n+m
-                if n_is_prime(k):
-                    if k<bound1:
-                        y += self._sincsquared_summand_1(k,t,ap,p,logp,thetap,sqrtp,
-                                                         logq,thetaq,sqrtq,z)
-                    elif k<expt:
-                        y += self._sincsquared_summand_2(k,t,ap,p,logp)
-            n += jump
-            # Case: sqrt(expt)<=n<expt-jump
-            while n+jump<expt:
-                for m in residues:
-                    k = n+m
-                    if n_is_prime(k):
-                        y += self._sincsquared_summand_2(k,t,ap,p,logp)
-                n += jump
-            # Case: n<expt but n+jump>expt
-            for m in residues:
-                k = n+m
-                if k>=expt:
-                    return y
-                elif n_is_prime(k):
-                    y += self._sincsquared_summand_2(k,t,ap,p,logp)
+            modulus, residues = residue_data[0], residue_data[1:]
 
-        # _sum_over_residues() function is parallelized
-        for summand in _sum_over_residues(residue_chunks):
+            len_increment_list = len(residues)
+            increments = [residues[i+1]-residues[i] for i in range(len_increment_list-1)]
+            increments.append(modulus+residues[0]-residues[-1])
+
+            n = residues[0]
+            i = 0
+            while n<bound1:
+                if n_is_prime(n):
+                        y += self._sincsquared_summand_1(n,t,ap,p,logp,thetap,sqrtp,
+                                                         logq,thetaq,sqrtq,z)
+                n += increments[i]
+                i += 1
+                if i >= len_increment_list:
+                    i = 0
+
+            while n<expt:
+                if n_is_prime(n):
+                        y += self._sincsquared_summand_2(n,t,ap,p,logp)
+                n += increments[i]
+                i += 1
+                if i >= len_increment_list:
+                    i = 0
+
+            return y
+
+        # Now the rest of the sum via _sum_over_residues(), which is parallelized
+        residue_sum_data = []
+        for residues in residue_chunks:
+            residue_sum_data.append([modulus, residues, t, expt, bound1])
+        # residue_data = [[modulus]+residue_chunks[i] for i in range(len(residue_chunks))]
+        #for summand in _sum_over_residues(residue_data):
+        for summand in self._sum_over_residues_2(residue_sum_data):
             y += summand[1]
 
         return RDF(2*(u+w+y)/(t**2))

@@ -1129,12 +1129,12 @@ class Newform(ModularForm_abstract):
             sage: f._atkin_lehner_action_prime_power(9)
             Traceback (most recent call last):
             ...
-            NotImplementedError: action of W_Q is not implemented if a_Q(f) = 0
+            NotImplementedError: action of W_Q is not implemented for general newforms with a_Q(f) = 0
 
         """
         a_Q = self[Q]
         if not a_Q:
-            raise NotImplementedError("action of W_Q is not implemented if a_Q(f) = 0")
+            raise NotImplementedError("action of W_Q is not implemented for general newforms with a_Q(f) = 0")
         epsilon = self.character()
         eps_Q = [eps for eps in epsilon.decomposition() if eps.modulus() == Q][0]
         f_star = self.twist(~eps_Q, level=self.level())

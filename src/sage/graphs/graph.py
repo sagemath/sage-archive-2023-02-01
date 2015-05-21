@@ -1547,6 +1547,13 @@ class Graph(GenericGraph):
         Only valid for simple (no loops, multiple edges) graphs on 0 to
         262143 vertices.
 
+        .. NOTE::
+
+            As the graph6 format only handles graphs whose vertex set is
+            `\{0,...,n-1\}`, a :meth:`relabelled copy
+            <sage.graphs.generic_graph.GenericGraph.relabel>` of your graph will
+            be encoded if necessary.
+
         EXAMPLES::
 
             sage: G = graphs.KrackhardtKiteGraph()
@@ -1562,10 +1569,17 @@ class Graph(GenericGraph):
             return generic_graph_pyx.small_integer_to_graph6(n) + generic_graph_pyx.binary_string_to_graph6(self._bit_vector())
 
     def sparse6_string(self):
-        """
+        r"""
         Returns the sparse6 representation of the graph as an ASCII string.
         Only valid for undirected graphs on 0 to 262143 vertices, but loops
         and multiple edges are permitted.
+
+        .. NOTE::
+
+            As the sparse6 format only handles graphs whose vertex set is
+            `\{0,...,n-1\}`, a :meth:`relabelled copy
+            <sage.graphs.generic_graph.GenericGraph.relabel>` of your graph will
+            be encoded if necessary.
 
         EXAMPLES::
 
@@ -1584,6 +1598,14 @@ class Graph(GenericGraph):
             sage: G = Graph(loops=True, multiedges=True,data_structure="sparse")
             sage: Graph(':?',data_structure="sparse") == G
             True
+
+        TEST:
+
+        Check that :trac:`18445` is fixed::
+
+            sage: Graph(graphs.KneserGraph(5,2).sparse6_string()).size()
+            15
+
         """
         n = self.order()
         if n == 0:
@@ -1591,14 +1613,9 @@ class Graph(GenericGraph):
         if n > 262143:
             raise ValueError('sparse6 format supports graphs on 0 to 262143 vertices only.')
         else:
-            vertices = self.vertices()
-            n = len(vertices)
-            edges = self.edges(labels=False)
-            for i in xrange(len(edges)): # replace edge labels with natural numbers (by index in vertices)
-                edges[i] = (vertices.index(edges[i][0]),vertices.index(edges[i][1]))
-            # order edges 'reverse lexicographically', that is, for
-            # edge (a,b) and edge (c,d) first compare b and d, then a and c;
-            edges.sort(key=lambda e: (e[1],e[0]))
+            v_to_int = {v:i for i,v in enumerate(self.vertices())}
+            edges = [sorted((v_to_int[u],v_to_int[v])) for u,v in self.edge_iterator(labels=False)]
+            edges.sort(key=lambda e: (e[1],e[0])) # reverse lexicographic order
 
             # encode bit vector
             from math import ceil

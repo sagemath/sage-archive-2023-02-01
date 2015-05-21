@@ -231,7 +231,6 @@ class ClusterSeed(SageObject):
         from sage.plot.plot import EMBEDDED_MODE
         from sagenb.notebook.interact import interact, selector
         from sage.misc.all import html,latex
-        from sage.all import var
 
         if not EMBEDDED_MODE:
             return "The interactive mode only runs in the Sage notebook."
@@ -269,8 +268,7 @@ class ClusterSeed(SageObject):
                     html( "Cluster variables:" )
                     table = "$\\begin{align*}\n"
                     for i in xrange(self._n):
-                        v = var('v%s'%i)
-                        table += "\t" + latex( v ) + " &= " + latex( self._cluster[i] ) + "\\\\ \\\\\n"
+                        table += "\tv_{%s} &= "%i + latex( self._cluster[i] ) + "\\\\ \\\\\n"
                     table += "\\end{align*}$"
                     html( "$ $" )
                     html( table )

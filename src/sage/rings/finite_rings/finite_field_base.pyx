@@ -29,7 +29,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "sage/ext/stdsage.pxi"
 
 from sage.categories.finite_fields import FiniteFields
 from sage.structure.parent cimport Parent

@@ -67,6 +67,14 @@ class Polynomial_generic_sparse(Polynomial):
         s^2 + 2*Tbar*s + 4
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
+        """
+        TESTS::
+
+            sage: PolynomialRing(RIF, 'z', sparse=True)([RIF(-1, 1), RIF(-1,1)])
+            0.?*z + 0.?
+            sage: PolynomialRing(CIF, 'z', sparse=True)([CIF(RIF(-1,1), RIF(-1,1)), RIF(-1,1)])
+            0.?*z + 0.? + 0.?*I
+        """
         Polynomial.__init__(self, parent, is_gen=is_gen)
         if x is None:
             self.__coeffs = {}
@@ -85,11 +93,7 @@ class Polynomial_generic_sparse(Polynomial):
                 # Apparently, the "else" case has never occured before.
                 x = w
         elif isinstance(x, list):
-            y = {}
-            for i in xrange(len(x)):
-                if x[i] != 0:
-                    y[i] = x[i]
-            x = y
+            x = dict((i, c) for (i, c) in enumerate(x) if c)
         elif isinstance(x, pari_gen):
             y = {}
             for i in range(len(x)):
@@ -247,6 +251,12 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f._repr(name='z')
             '1.0*z^5 - 3.141592653589793*z + 3.718281828459045 + 2.0*I'
 
+        TESTS::
+
+            sage: pol = RIF['x']([0, 0, (-1,1)])
+            sage: PolynomialRing(RIF, 'x', sparse=True)(pol)
+            0.?*x^2
+
         AUTHOR:
 
         - David Harvey (2006-08-05), based on Polynomial._repr()
@@ -259,7 +269,7 @@ class Polynomial_generic_sparse(Polynomial):
         atomic_repr = self.parent().base_ring()._repr_option('element_is_atomic')
         coeffs = sorted(self.__coeffs.iteritems())
         for (n, x) in reversed(coeffs):
-            if x != 0:
+            if x:
                 if n != m-1:
                     s += " + "
                 x = y = repr(x)

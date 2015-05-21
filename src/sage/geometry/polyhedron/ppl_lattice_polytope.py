@@ -11,7 +11,7 @@ polytopes in 4 dimensions.
 
     For general lattice polyhedra you should use
     :func:`~sage.geometry.polyhedon.constructor.Polyhedron` with
-    `base_ring=ZZ`.
+    ``base_ring=ZZ``.
 
 The class derives from the PPL :class:`sage.libs.ppl.C_Polyhedron`
 class, so you can work with the underlying generator and constraint
@@ -193,7 +193,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
     """
     The lattice polytope class.
 
-    You should use :func:LatticePolytope_PPL` to construct instances.
+    You should use :func:`LatticePolytope_PPL` to construct instances.
 
     EXAMPLES::
 
@@ -392,7 +392,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         Finally, the 3-d reflexive polytope number 4078::
 
             sage: v = [(1,0,0), (0,1,0), (0,0,1), (0,0,-1), (0,-2,1),
-            ...        (-1,2,-1), (-1,2,-2), (-1,1,-2), (-1,-1,2), (-1,-3,2)]
+            ....:      (-1,2,-1), (-1,2,-2), (-1,1,-2), (-1,-1,2), (-1,-3,2)]
             sage: P = LatticePolytope_PPL(*v)
             sage: pts1 = P.integral_points()                     # Sage's own code
             sage: pts2 = LatticePolytope(v).points_pc()          # PALP
@@ -656,10 +656,10 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             (frozenset({(0, -1), (0, 1)}), frozenset({(-1, -1), (1, 1)}))
 
             sage: cell24 = LatticePolytope_PPL(
-            ...   (1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1),(1,-1,-1,1),(0,0,-1,1),
-            ...   (0,-1,0,1),(-1,0,0,1),(1,0,0,-1),(0,1,0,-1),(0,0,1,-1),(-1,1,1,-1),
-            ...   (1,-1,-1,0),(0,0,-1,0),(0,-1,0,0),(-1,0,0,0),(1,-1,0,0),(1,0,-1,0),
-            ...   (0,1,1,-1),(-1,1,1,0),(-1,1,0,0),(-1,0,1,0),(0,-1,-1,1),(0,0,0,-1))
+            ....: (1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1),(1,-1,-1,1),(0,0,-1,1),
+            ....: (0,-1,0,1),(-1,0,0,1),(1,0,0,-1),(0,1,0,-1),(0,0,1,-1),(-1,1,1,-1),
+            ....: (1,-1,-1,0),(0,0,-1,0),(0,-1,0,0),(-1,0,0,0),(1,-1,0,0),(1,0,-1,0),
+            ....: (0,1,1,-1),(-1,1,1,0),(-1,1,0,0),(-1,0,1,0),(0,-1,-1,1),(0,0,0,-1))
             sage: fibers = [ f.vertices() for f in cell24.fibration_generator(2) ]
             sage: cell24.pointsets_mod_automorphism(fibers)   # long time
             (frozenset({(-1, 0, 1, 0), (0, -1, -1, 1), (0, 1, 1, -1), (1, 0, -1, 0)}),
@@ -974,10 +974,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
         REFERENCES:
 
-        ..  [BSS]
-            David Bremner, Mathieu Dutour Sikiric, Achill Schuermann:
-            Polyhedral representation conversion up to symmetries.
-            http://arxiv.org/abs/math/0702239
+        [BSS]_
 
         EXAMPLES::
 
@@ -994,10 +991,10 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             ((0, 0), (1, 2), (3, 3), (2, 1))
 
             sage: cell24 = LatticePolytope_PPL(
-            ...   (1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1),(1,-1,-1,1),(0,0,-1,1),
-            ...   (0,-1,0,1),(-1,0,0,1),(1,0,0,-1),(0,1,0,-1),(0,0,1,-1),(-1,1,1,-1),
-            ...   (1,-1,-1,0),(0,0,-1,0),(0,-1,0,0),(-1,0,0,0),(1,-1,0,0),(1,0,-1,0),
-            ...   (0,1,1,-1),(-1,1,1,0),(-1,1,0,0),(-1,0,1,0),(0,-1,-1,1),(0,0,0,-1))
+            ....: (1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1),(1,-1,-1,1),(0,0,-1,1),
+            ....: (0,-1,0,1),(-1,0,0,1),(1,0,0,-1),(0,1,0,-1),(0,0,1,-1),(-1,1,1,-1),
+            ....: (1,-1,-1,0),(0,0,-1,0),(0,-1,0,0),(-1,0,0,0),(1,-1,0,0),(1,0,-1,0),
+            ....: (0,1,1,-1),(-1,1,1,0),(-1,1,0,0),(-1,0,1,0),(0,-1,-1,1),(0,0,0,-1))
             sage: cell24.restricted_automorphism_group().cardinality()
             1152
         """

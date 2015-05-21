@@ -488,12 +488,6 @@ class IncidenceStructure(object):
         r"""
         Return whether the two incidence structures are isomorphic.
 
-        .. NOTE::
-
-            If you need to test isomorphisms between one incidence
-            structure and many others, you should consider using
-            :meth:`canonical_label` instead of this function.
-
         INPUT:
 
         - ``other`` -- an incidence structure.
@@ -528,19 +522,32 @@ class IncidenceStructure(object):
             False
             sage: IS2.is_isomorphic(IS,certificate=True)
             {}
+
+        Checking whether two :class:`IncidenceStructure` are isomorphic
+        incidentally computes their canonical label (if necessary). Thus,
+        subsequent calls to :meth:`is_isomorphic` will be faster::
+
+            sage: IS1 = designs.projective_plane(3)
+            sage: IS2 = IS1.relabel(Permutations(IS1.ground_set()).random_element(),inplace=False)
+            sage: IS2 = IncidenceStructure(IS2.blocks())
+            sage: IS1._canonical_label is None and IS2._canonical_label is None
+            True
+            sage: IS1.is_isomorphic(IS2)
+            True
+            sage: IS1._canonical_label is None or IS2._canonical_label is None
+            False
+
         """
         if (self.num_points() != other.num_points() or
             self.num_blocks() != other.num_blocks() or
             sorted(self.block_sizes()) != sorted(other.block_sizes())):
             return {} if certificate else False
 
-        A = self.copy()
-        B = other.copy()
+        A_canon = self.canonical_label()
+        B_canon = other.canonical_label()
 
-        A_canon = A.canonical_label()
-        B_canon = B.canonical_label()
-        A.relabel(A_canon)
-        B.relabel(B_canon)
+        A = self.relabel(A_canon,inplace=False)
+        B = other.relabel(B_canon,inplace=False)
 
         if A == B:
             if certificate:
@@ -1496,7 +1503,9 @@ class IncidenceStructure(object):
             sage: G.is_isomorphic(PGL(3,2))
             True
             sage: G
-            Permutation Group with generators [(2,3)(4,5), (2,4)(3,5), (1,2)(4,6), (0,1)(4,5)]
+            Permutation Group with generators [...]
+            sage: G.cardinality()
+            168
 
         A non self-dual example::
 
@@ -1514,19 +1523,21 @@ class IncidenceStructure(object):
             sage: designs.IncidenceStructure([[(1,2),(3,4)]]).automorphism_group()
             Permutation Group with generators [((1,2),(3,4))]
         """
-        from sage.groups.perm_gps.partn_ref.refinement_matrices import MatrixStruct
+        from sage.graphs.graph import Graph
         from sage.groups.perm_gps.permgroup import PermutationGroup
-        from sage.groups.perm_gps.permgroup_element import standardize_generator
-        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-        M1 = self.incidence_matrix().transpose()
-        M2 = MatrixStruct(M1)
-        M2.run()
-        gens = M2.automorphism_group()[0]
-        gens = [standardize_generator([x+1 for x in g]) for g in gens]
+        g = Graph()
+        n = self.num_points()
+        g.add_edges((i+n,x) for i,b in enumerate(self._blocks) for x in b)
+        ag = g.automorphism_group(partition=[range(n), range(n,n+self.num_blocks())])
+
         if self._point_to_index:
-            gens = [[tuple([self._points[i-1] for i in cycle]) for cycle in g] for g in gens]
+            gens = [[tuple([self._points[i] for i in cycle if (not cycle or cycle[0]<n)])
+                     for cycle in g.cycle_tuples()]
+                    for g in ag.gens()]
         else:
-            gens = [[tuple([i-1 for i in cycle]) for cycle in g] for g in gens]
+            gens = [[tuple(cycle) for cycle in g.cycle_tuples() if (not cycle or cycle[0]<n)]
+                    for g in ag.gens()]
+
         return PermutationGroup(gens, domain=self._points)
 
     def is_resolvable(self, certificate=False, solver=None, verbose=0, check=True):

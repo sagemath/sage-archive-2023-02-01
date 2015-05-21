@@ -21,7 +21,7 @@ from sage.structure.element cimport Element, parent_c
 from expression cimport new_Expression_from_GEx, Expression
 from ring import SR
 
-from sage.structure.coerce cimport py_scalar_to_element
+from sage.structure.coerce cimport py_scalar_to_element, is_numpy_type
 from sage.structure.element import get_coercion_model
 
 # we keep a database of symbolic functions initialized in a session
@@ -357,12 +357,14 @@ cdef class Function(SageObject):
             array([ 0.        ,  0.84147098,  0.90929743,  0.14112001, -0.7568025 ])
 
         Symbolic functions evaluate non-exact input numerically, and return
-        symbolic expressions on exact input::
+        symbolic expressions on exact input, or if any input is symbolic::
 
             sage: arctan(1)
             1/4*pi
             sage: arctan(float(1))
             0.7853981633974483
+            sage: type(lambert_w(SR(0)))
+            <type 'sage.symbolic.expression.Expression'>
 
         Precision of the result depends on the precision of the input::
 
@@ -419,7 +421,7 @@ cdef class Function(SageObject):
                     return method()
 
         # support numpy arrays as arguments
-        if any([type(arg).__module__ == 'numpy' for arg in args]): # avoid importing
+        if any([is_numpy_type(type(arg)) for arg in args]):
             import numpy
             # check that at least one of the arguments is a numpy array
             if any([isinstance(arg, numpy.ndarray) for arg in args]):
@@ -444,7 +446,7 @@ cdef class Function(SageObject):
 
         # if the given input is a symbolic expression, we don't convert it back
         # to a numeric type at the end
-        if len(args) == 1 and parent_c(args[0]) is SR:
+        if any(parent_c(arg) is SR for arg in args):
             symbolic_input = True
         else:
             symbolic_input = False

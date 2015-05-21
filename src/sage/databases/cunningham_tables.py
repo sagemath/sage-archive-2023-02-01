@@ -1,3 +1,7 @@
+r"""
+Cunningham table
+"""
+
 import os
 from sage.misc.cachefunc import cached_function
 from sage.rings.integer import Integer

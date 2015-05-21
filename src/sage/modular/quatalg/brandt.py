@@ -1488,7 +1488,7 @@ class BrandtModuleElement(HeckeModuleElement):
             sage: parent(x)
             Brandt module of dimension 3 of level 37 of weight 2 over Rational Field
         """
-        if isinstance(x, BrandtModuleElement):
+        if isinstance(x, HeckeModuleElement):
             x = x.element()
         HeckeModuleElement.__init__(self, parent, parent.free_module()(x))
 

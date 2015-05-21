@@ -40,6 +40,7 @@ from sage.structure.sage_object import SageObject
 from sage.repl.rich_output.output_basic import (
     OutputPlainText, OutputAsciiArt, OutputLatex,
 )
+from sage.repl.rich_output.preferences import DisplayPreferences
 
 
 class DisplayException(Exception):
@@ -104,11 +105,15 @@ class restricted_output(object):
         """
         Context manager to temporarily restrict the accepted output types
 
+        In the context, the output is restricted to the output
+        container types listed in ``output_classes``. Additionally,
+        display preferences are changed not not show graphics.
+
         INPUT:
 
         - ``display_manager`` -- the display manager.
 
-        - ``output_classes`` -- iterable of
+        - ``output_classes`` -- iterable of output container types.
 
         EXAMPLES::
 
@@ -135,11 +140,25 @@ class restricted_output(object):
             sage: with restricted_output(dm, [dm.types.OutputPlainText]):
             ....:    dm.supported_output()
             frozenset({<class 'sage.repl.rich_output.output_basic.OutputPlainText'>})
+
+            sage: dm.preferences.supplemental_plot
+            'never'
+            sage: dm.preferences.supplemental_plot = 'always'
+            sage: with restricted_output(dm, [dm.types.OutputPlainText]):
+            ....:    dm.preferences
+            Display preferences:
+            * graphics = disable
+            * supplemental_plot = never
+            * text is not specified
+            sage: dm.preferences.supplemental_plot = 'never'
         """
         dm = self._display_manager
         self._original = dm._supported_output
         dm._supported_output = self._output_classes
-
+        self._original_prefs = DisplayPreferences(dm.preferences)
+        dm.preferences.graphics = 'disable'
+        dm.preferences.supplemental_plot = 'never'
+        
     def __exit__(self, exception_type, value, traceback):
         """
         Exit the restricted output context
@@ -153,9 +172,10 @@ class restricted_output(object):
             ....:     assert len(dm.supported_output()) == 1
             sage: assert len(dm.supported_output()) > 1
         """
-        self._display_manager._supported_output = self._original
-        
-        
+        dm = self._display_manager
+        dm._supported_output = self._original
+        dm.preferences.graphics = self._original_prefs.graphics
+        dm.preferences.supplemental_plot = self._original_prefs.supplemental_plot
 
 
 class DisplayManager(SageObject):
@@ -298,7 +318,6 @@ class DisplayManager(SageObject):
             old_backend = None
         self._backend = backend
         self._backend.install(**kwds)
-        from sage.repl.rich_output.preferences import DisplayPreferences
         self._preferences = DisplayPreferences(self._backend.default_preferences())
         return old_backend
 
@@ -319,6 +338,7 @@ class DisplayManager(SageObject):
             sage: dm.preferences
             Display preferences:
             * graphics is not specified
+            * supplemental_plot = never
             * text is not specified
         """
         return self._preferences
@@ -430,13 +450,13 @@ class DisplayManager(SageObject):
         output.__class__ = specialized_class
         return output
         
-    def _preferred_text_formatter(self, obj, plain_text=None):
+    def _preferred_text_formatter(self, obj, plain_text=None, **kwds):
         """
         Return the preferred textual representation
 
         INPUT:
 
-        - ``obj`` -- anything.
+        - ``obj`` -- anything. The objects to format.
 
         - ``plain_text`` -- ``None`` (default) or string. The plain
           text representation. If specified, this will be used for
@@ -458,19 +478,19 @@ class DisplayManager(SageObject):
             sage: dm = get_display_manager()
             sage: dm.preferences.text is None
             True
-            sage: dm._preferred_text_formatter(1/42)
+            sage: dm._preferred_text_formatter([1/42])
             OutputPlainText container
 
             sage: dm.preferences.text = 'plain'
-            sage: dm._preferred_text_formatter(1/42)
+            sage: dm._preferred_text_formatter([1/42])
             OutputPlainText container
 
             sage: dm.preferences.text = 'ascii_art'
-            sage: dm._preferred_text_formatter(1/42)
+            sage: dm._preferred_text_formatter([1/42])
             OutputAsciiArt container
 
             sage: dm.preferences.text = 'latex'
-            sage: dm._preferred_text_formatter(1/42)          
+            sage: dm._preferred_text_formatter([1/42])          
             \newcommand{\Bold}[1]{\mathbf{#1}}\verb|OutputLatex|\phantom{\verb!x!}\verb|container|
 
             sage: del dm.preferences.text   # reset to default
@@ -478,12 +498,12 @@ class DisplayManager(SageObject):
         want = self.preferences.text
         supported = self._backend.supported_output()
         if want == 'ascii_art' and OutputAsciiArt in supported:
-            out = self._backend.ascii_art_formatter(obj)
+            out = self._backend.ascii_art_formatter(obj, **kwds)
             if type(out) != OutputAsciiArt:
                 raise OutputTypeException('backend returned wrong output type, require AsciiArt')
             return out
         if want == 'latex' and OutputLatex in supported:
-            out = self._backend.latex_formatter(obj)
+            out = self._backend.latex_formatter(obj, **kwds)
             if type(out) != OutputLatex:
                 raise OutputTypeException('backend returned wrong output type, require Latex')
             return out
@@ -491,7 +511,7 @@ class DisplayManager(SageObject):
             if type(plain_text) != OutputPlainText:
                 raise OutputTypeException('backend returned wrong output type, require PlainText')
             return plain_text
-        out =  self._backend.plain_text_formatter(obj)
+        out =  self._backend.plain_text_formatter(obj, **kwds)
         if type(out) != OutputPlainText:
             raise OutputTypeException('backend returned wrong output type, require PlainText')
         return out
@@ -578,9 +598,10 @@ class DisplayManager(SageObject):
             with restricted_output(self, [OutputPlainText]):
                 plain_text = self._call_rich_repr(obj, rich_repr_kwds)
         if plain_text is None:
-            plain_text = self._backend.plain_text_formatter(obj)
+            plain_text = self._backend.plain_text_formatter(obj, **rich_repr_kwds)
         if rich_output is None:
-            rich_output = self._preferred_text_formatter(obj, plain_text=plain_text)
+            rich_output = self._preferred_text_formatter(
+                obj, plain_text=plain_text, **rich_repr_kwds)
         # promote output container types to backend-specific containers
         plain_text = self._promote_output(plain_text)
         rich_output = self._promote_output(rich_output)

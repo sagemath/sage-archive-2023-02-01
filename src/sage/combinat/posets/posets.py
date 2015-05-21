@@ -40,6 +40,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.coxeter_transformation` | Returns the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules.
     :meth:`~FinitePoset.cuts` | Returns the cuts of the given poset.
     :meth:`~FinitePoset.dilworth_decomposition` | Returns a partition of the points into the minimal number of chains.
+    :meth:`~FinitePoset.dimension` | Return the dimension of the poset
     :meth:`~FinitePoset.disjoint_union` | Return the disjoint union of the poset with ``other``.
     :meth:`~FinitePoset.dual` | Returns the dual poset of the given poset.
     :meth:`~FinitePoset.evacuation` | Computes evacuation on the linear extension associated to the poset ``self``.
@@ -55,6 +56,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.has_isomorphic_subposet` | Return ``True`` if the poset contains a subposet isomorphic to another poset, and ``False`` otherwise.
     :meth:`~FinitePoset.has_top` | Returns True if the poset contains a unique maximal element, and False otherwise.
     :meth:`~FinitePoset.height` | Return the height (number of elements in the longest chain) of the poset.
+    :meth:`~FinitePoset.incidence_algebra` | Return the indicence algebra of ``self``.
     :meth:`~FinitePoset.incomparability_graph` | Returns the incomparability graph of the poset.
     :meth:`~FinitePoset.interval` | Returns a list of the elements `z` such that `x \le z \le y`.
     :meth:`~FinitePoset.intervals` | Returns a list of all intervals of the poset.
@@ -103,6 +105,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.plot` | Returns a Graphic object corresponding the Hasse diagram of the poset.
     :meth:`~FinitePoset.product` | Returns the cartesian product of ``self`` and ``other``.
     :meth:`~FinitePoset.promotion` | Computes the (extended) promotion on the linear extension of the poset ``self``
+    :meth:`~FinitePoset.random_order_ideal` | Return a random order ideal of ``self`` with uniform probability.
     :meth:`~FinitePoset.random_subposet` | Return a random subposet that contains each element with probability ``p``.
     :meth:`~FinitePoset.rank_function` | Returns a rank function of the poset, if it exists.
     :meth:`~FinitePoset.rank` | Returns the rank of an element, or the rank of the poset if element is None.
@@ -1161,8 +1164,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         if have_dot2tex():
             G.set_latex_options(format='dot2tex',
                                 prog='dot',
-                                layout='acyclic',
-                                edge_options=lambda x: {'backward':True})
+                                rankdir='up',)
         return G
 
     def _latex_(self):
@@ -1204,6 +1206,51 @@ class FinitePoset(UniqueRepresentation, Parent):
         if self._with_linear_extension:
             s += " with distinguished linear extension"
         return s
+
+    def _rich_repr_(self, display_manager, **kwds):
+        """
+        Rich Output Magic Method
+
+        See :mod:`sage.repl.rich_output` for details.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: Poset()._rich_repr_(dm, edge_labels=True)
+            OutputPlainText container
+
+        The ``supplemental_plot`` preference lets us control whether
+        this object is shown as text or picture+text::
+
+            sage: dm.preferences.supplemental_plot
+            'never'
+            sage: del dm.preferences.supplemental_plot
+            sage: posets.ChainPoset(20)
+            Finite lattice containing 20 elements (use the .plot() method to plot)
+            sage: dm.preferences.supplemental_plot = 'never'
+        """
+        prefs = display_manager.preferences
+        is_small = (0 < self.cardinality() < 20)
+        can_plot = (prefs.supplemental_plot != 'never')
+        plot_graph = can_plot and (prefs.supplemental_plot == 'always' or is_small)
+        # Under certain circumstances we display the plot as graphics
+        if plot_graph:
+            plot_kwds = dict(kwds)
+            plot_kwds.setdefault('title', repr(self))
+            output = self.plot(**plot_kwds)._rich_repr_(display_manager)
+            if output is not None:
+                return output
+        # create text for non-graphical output
+        if can_plot:
+            text = '{0} (use the .plot() method to plot)'.format(repr(self))
+        else:
+            text = repr(self)
+        # latex() produces huge tikz environment, override
+        tp = display_manager.types
+        if (prefs.text == 'latex' and tp.OutputLatex in display_manager.supported_output()):
+            return tp.OutputLatex(r'\text{{{0}}}'.format(text))
+        return tp.OutputPlainText(text)
 
     def __iter__(self):
         """
@@ -2403,6 +2450,185 @@ class FinitePoset(UniqueRepresentation, Parent):
             return raising_chains
         else:
             return True
+
+    def dimension(self, certificate=False):
+        r"""
+        Return the dimension of the Poset.
+
+        The (Dushnik-Miller) dimension of a Poset defined on a set `X` of points
+        is the smallest integer `n` such that there exists `P_1,...,P_n` linear
+        extensions of `P` satisfying the following property:
+
+        .. MATH::
+
+            u\leq_P v\ \text{if and only if }\ \forall i, u\leq_{P_i} v
+
+        For more information, see the :wikipedia:`Order_dimension`.
+
+        INPUT:
+
+        - ``certificate`` (boolean; default:``False``) -- whether to return an
+          integer (the dimension) or a certificate, i.e. a smallest set of
+          linear extensions.
+
+        .. NOTE::
+
+            The speed of this function greatly improves when more efficient MILP
+            solvers (e.g. Gurobi, CPLEX) are installed. See
+            :class:`MixedIntegerLinearProgram` for more information.
+
+        **Algorithm:**
+
+        As explained [FT00]_, the dimension of a poset is equal to the (weak)
+        chromatic number of a hypergraph. More precisely:
+
+            Let `inc(P)` be the set of (ordered) pairs of incomparable elements
+            of `P`, i.e. all `uv` and `vu` such that `u\not \leq_P v` and `v\not
+            \leq_P u`. Any linear extension of `P` is a total order on `X` that
+            can be seen as the union of relations from `P` along with some
+            relations from `inc(P)`. Thus, the dimension of `P` is the smallest
+            number of linear extensions of `P` which *cover* all points of
+            `inc(P)`.
+
+            Consequently, `dim(P)` is equal to the chromatic number of the
+            hypergraph `\mathcal H_{inc}`, where `\mathcal H_{inc}` is the
+            hypergraph defined on `inc(P)` whose sets are all `S\subseteq
+            inc(P)` such that `P\cup S` is not acyclic.
+
+        We solve this problem through a :mod:`Mixed Integer Linear Program
+        <sage.numerical.mip>`.
+
+        EXAMPLES:
+
+        According to Wikipedia, the poset (of height 2) of a graph is `\leq 2`
+        if and only if the graph is a path::
+
+            sage: G = graphs.PathGraph(6)
+            sage: P = Poset(DiGraph({(u,v):[u,v] for u,v,_ in G.edges()}))
+            sage: P.dimension()
+            2
+
+        The actual linear extensions can be obtained with ``certificate=True``::
+
+            sage: P.dimension(certificates=True) # not tested -- architecture-dependent
+            [[(0, 1), 0, (1, 2), 1, (2, 3), 2, (3, 4), 3, (4, 5), 4, 5],
+            [(4, 5), 5, (3, 4), 4, (2, 3), 3, (1, 2), 2, (0, 1), 1, 0]]
+
+        According to Schnyder's theorem, the poset (of height 2) of a graph has
+        dimension `\leq 3` if and only if the graph is planar::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: P = Poset(DiGraph({(u,v):[u,v] for u,v,_ in G.edges()}))
+            sage: P.dimension()
+            3
+
+            sage: G = graphs.CompleteBipartiteGraph(3,3)
+            sage: P = Poset(DiGraph({(u,v):[u,v] for u,v,_ in G.edges()}))
+            sage: P.dimension() # not tested - around 4s with CPLEX
+            4
+
+        TESTS:
+
+        Empty Poset::
+
+            sage: Poset().dimension()
+            0
+            sage: Poset().dimension(certificate=1)
+            []
+
+        References:
+
+        .. [FT00] Stefan Felsner, William T. Trotter,
+           Dimension, Graph and Hypergraph Coloring,
+           Order,
+           2000, Volume 17, Issue 2, pp 167-177,
+           http://link.springer.com/article/10.1023%2FA%3A1006429830221
+        """
+        if self.cardinality() == 0:
+            return [] if certificate else 0
+
+        from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+        P = Poset(self._hasse_diagram) # work on an int-labelled poset
+        hasse_diagram = P.hasse_diagram()
+        inc_graph = P.incomparability_graph()
+        inc_P = inc_graph.edges(labels=False)
+
+        # Current bound on the chromatic number of the hypergraph
+        k = 1
+
+        # cycles is the list of all cycles found during the execution of the
+        # algorithm
+
+        cycles = [[(u,v),(v,u)] for u,v in inc_P]
+
+        def init_LP(k,cycles,inc_P):
+            r"""
+            Initializes a LP object with k colors and the constraints from 'cycles'
+
+                sage: init_LP(1,2,3) # not tested
+            """
+            p = MixedIntegerLinearProgram(constraint_generation=True)
+            b = p.new_variable(binary=True)
+            for (u,v) in inc_P: # Each point has a color
+                p.add_constraint(p.sum(b[(u,v),i] for i in range(k))==1)
+                p.add_constraint(p.sum(b[(v,u),i] for i in range(k))==1)
+            for cycle in cycles: # No monochromatic set
+                for i in range(k):
+                    p.add_constraint(p.sum(b[point,i] for point in cycle)<=len(cycle)-1)
+            return p,b
+
+        p,b = init_LP(k,cycles,inc_P)
+
+        while True:
+            # Compute a coloring of the hypergraph. If there is a problem,
+            # increase the number of colors and start again.
+            try:
+                p.solve()
+            except MIPSolverException:
+                k += 1
+                p,b = init_LP(k,cycles,inc_P)
+                continue
+
+            # We create the digraphs of all color classes
+            linear_extensions = [hasse_diagram.copy() for i in range(k)]
+            for ((u,v),i),x in p.get_values(b).iteritems():
+                if x == 1:
+                    linear_extensions[i].add_edge(u,v)
+
+            # We check that all color classes induce an acyclic graph, and add a
+            # constraint otherwise.
+            okay = True
+            for g in linear_extensions:
+                is_acyclic, cycle = g.is_directed_acyclic(certificate=True)
+                if not is_acyclic:
+                    okay = False # one is not acyclic
+                    cycle = [(cycle[i-1],cycle[i]) for i in range(len(cycle))]
+                    cycle = [(u,v) for u,v in cycle if not P.lt(u,v) and not P.lt(v,u)]
+                    cycles.append(cycle)
+                    for i in range(k):
+                        p.add_constraint(p.sum(b[point,i] for point in cycle)<=len(cycle)-1)
+            if okay:
+                break
+
+        linear_extensions = [g.topological_sort() for g in linear_extensions]
+
+        # Check that the linear extensions do generate the poset (just to be
+        # sure)
+        from itertools import combinations
+        n = P.cardinality()
+        d = DiGraph()
+        for l in linear_extensions:
+            d.add_edges(combinations(l,2))
+
+        # The only 2-cycles are the incomparable pair
+        if d.size() != (n*(n-1))/2+inc_graph.size():
+            raise RuntimeError("Something went wrong. Please report this "
+                               "bug to sage-devel@googlegroups.com")
+
+        if certificate:
+            return [[self._list[i] for i in l]
+                    for l in linear_extensions]
+        return k
 
     def rank_function(self):
         r"""
@@ -3652,8 +3878,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = P.canonical_label()
             sage: Q.list()
             [0, 1, 2, 3, 4, 5]
-            sage: Q.cover_relations()
-            [[0, 1], [0, 2], [1, 4], [2, 3], [2, 4], [3, 5], [4, 5]]
+            sage: Q.is_isomorphic(P)
+            True
 
         As a facade::
 
@@ -3665,8 +3891,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = P.canonical_label()
             sage: Q.list()
             [0, 1, 2, 3, 4, 5]
-            sage: Q.cover_relations()
-            [[0, 1], [0, 2], [1, 4], [2, 3], [2, 4], [3, 5], [4, 5]]
+            sage: Q.is_isomorphic(P)
+            True
 
         TESTS::
 
@@ -3680,8 +3906,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = P.canonical_label()
             sage: Q.linear_extension()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-            sage: Q.cover_relations()
-            [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9]]
+            sage: Q.is_isomorphic(P)
+            True
         """
         P = Poset(DiGraph(self._hasse_diagram).canonical_label(), linear_extension=self._with_linear_extension,
                   category=self.category(), facade=self._is_facade)
@@ -3849,6 +4075,101 @@ class FinitePoset(UniqueRepresentation, Parent):
             if random() <= p:
                 elements.append(v)
         return self.subposet(elements)
+
+
+    def random_order_ideal(self, direction='down'):
+        """
+        Return a random order ideal with uniform probability.
+
+        INPUT:
+
+        - ``direction`` -- ``'up'``, ``'down'`` or ``'antichain'``
+          (default: ``'down'``)
+
+        OUTPUT:
+
+        A randomly selected order ideal (or order filter if
+        ``direction='up'``, or antichain if ``direction='antichain'``)
+        where all order ideals have equal probability of occurring.
+
+        ALGORITHM:
+
+        Uses the coupling from the past algorithm described in [Propp1997]_.
+
+        EXAMPLES::
+
+            sage: P = Posets.BooleanLattice(3)
+            sage: P.random_order_ideal()
+            [0, 1, 2, 3, 4, 5, 6]
+            sage: P.random_order_ideal(direction='up')
+            [6, 7]
+            sage: P.random_order_ideal(direction='antichain')
+            [1, 2]
+
+            sage: P = posets.TamariLattice(5)
+            sage: a = P.random_order_ideal('antichain')
+            sage: P.is_antichain_of_poset(a)
+            True
+            sage: a = P.random_order_ideal('up')
+            sage: P.is_order_filter(a)
+            True
+            sage: a = P.random_order_ideal('down')
+            sage: P.is_order_ideal(a)
+            True
+
+        REFERENCES:
+
+        .. [Propp1997] James Propp,
+           *Generating Random Elements of Finite Distributive Lattices*,
+           Electron. J. Combin. 4 (1997), no. 2, The Wilf Festschrift volume,
+           Research Paper 15.
+        """
+        from sage.misc.randstate import current_randstate
+        from sage.misc.randstate import seed
+        from sage.misc.randstate import random
+        hd = self._hasse_diagram
+        n = len(hd)
+        lower_covers = [list(hd.lower_covers_iterator(i)) for i in range(n)]
+        upper_covers = [list(hd.upper_covers_iterator(i)) for i in range(n)]
+        count = n
+        seedlist = [(current_randstate().long_seed(), count)]
+        while True:
+            # states are 0 -- in order ideal
+            # 1 -- not in order ideal 2 -- undecided
+            state = [2] * n
+            for currseed, count in seedlist:
+                with seed(currseed):
+                    for _ in range(count):
+                        for element in range(n):
+                            if random() % 2 == 1:
+                                s = [state[i] for i in lower_covers[element]]
+                                if 1 not in s:
+                                    if 2 not in s:
+                                        state[element] = 0
+                                    elif state[element] == 1:
+                                        state[element] = 2
+                            else:
+                                s = [state[i] for i in upper_covers[element]]
+                                if 0 not in s:
+                                    if 2 not in s:
+                                        state[element] = 1
+                                    elif state[element] == 0:
+                                        state[element] = 2
+            if all(x != 2 for x in state):
+                break
+            count = seedlist[0][1] * 2
+            seedlist.insert(0, (current_randstate().long_seed(), count))
+        if direction == 'up':
+            return map(self._vertex_to_element,
+                       [i for i, x in enumerate(state) if x == 1])
+        if direction == 'antichain':
+            return map(self._vertex_to_element,
+                       [i for i, x in enumerate(state)
+                        if x == 0 and all(state[j] == 1
+                                          for j in hd.upper_covers_iterator(i))])
+        else:  # direction is assumed to be 'down'
+            return map(self._vertex_to_element, [i for i, x in enumerate(state)
+                                                 if x == 0])
 
     def order_filter(self,elements):
         """
@@ -5136,6 +5457,20 @@ class FinitePoset(UniqueRepresentation, Parent):
         from sage.combinat.posets.lattices import LatticePoset
         from sage.misc.misc import attrcall
         return LatticePoset((self.cuts(), attrcall("issubset")))
+
+    def incidence_algebra(self, R, prefix='I'):
+        r"""
+        Return the incidence algebra of ``self`` over ``R``.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(4)
+            sage: P.incidence_algebra(QQ)
+            Incidence algebra of Finite lattice containing 16 elements
+             over Rational Field
+        """
+        from sage.combinat.posets.incidence_algebras import IncidenceAlgebra
+        return IncidenceAlgebra(R, self, prefix)
 
 FinitePoset._dual_class = FinitePoset
 

@@ -121,6 +121,32 @@ class BackendIPythonCommandline(BackendIPython):
         IPython command line
     """
 
+    def default_preferences(self):
+        """
+        Return the backend's display preferences
+
+        The default for the commandline is to not plot graphs since
+        the launching of an external viewer is considered too
+        disruptive.
+
+        OUTPUT:
+
+        Instance of
+        :class:`~sage.repl.rich_output.preferences.DisplayPreferences`.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
+            sage: backend = BackendIPythonCommandline()
+            sage: backend.default_preferences()
+            Display preferences:
+            * graphics is not specified
+            * supplemental_plot = never
+            * text is not specified
+        """
+        from sage.repl.rich_output.preferences import DisplayPreferences
+        return DisplayPreferences(supplemental_plot='never')
+
     def _repr_(self):
         """
         Return a string representation

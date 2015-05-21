@@ -95,7 +95,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             raise TypeError("parent must be a Hom space")
         sage.categories.morphism.Morphism.__init__(self, parent)
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Compare two matrix morphisms.
 
@@ -109,10 +109,16 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         """
         return cmp(self.matrix(), other.matrix())
 
-    def __call__(self, x):
+    __cmp__ = _cmp_
+
+    def _call_(self, x):
         """
-        Evaluate this matrix morphism at an element that can be coerced
-        into the domain.
+        Evaluate this matrix morphism at an element of the domain.
+
+        .. NOTE::
+
+            Coercion is done in the generic :meth:`__call__` method,
+            which calls this method.
 
         EXAMPLES::
 
@@ -130,16 +136,38 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             Codomain: Vector space of dimension 2 over Rational Field
             sage: phi(V.0)
             (0, 1)
-            sage: phi([1,2,3])
+            sage: phi(V([1, 2, 3]))
             (16, 22)
-            sage: phi(5)
-            Traceback (most recent call last):
-            ...
-            TypeError: 5 must be coercible into Vector space of dimension 3 over Rational Field
-            sage: phi([1,1])
-            Traceback (most recent call last):
-            ...
-            TypeError: [1, 1] must be coercible into Vector space of dimension 3 over Rational Field
+
+        Last, we have a situation where coercion occurs::
+
+            sage: U = V.span([[3,2,1]])
+            sage: U.0
+            (1, 2/3, 1/3)
+            sage: phi(2*U.0)
+            (16/3, 28/3)
+
+        TESTS::
+
+            sage: V = QQ^3; W = span([[1,2,3],[-1,2,5/3]], QQ)
+            sage: phi = V.hom(matrix(QQ,3,[1..9]))
+
+        We compute the image of some elements::
+
+            sage: phi(V.0)    #indirect doctest
+            (1, 2, 3)
+            sage: phi(V.1)
+            (4, 5, 6)
+            sage: phi(V.0  - 1/4*V.1)
+            (0, 3/4, 3/2)
+
+        We restrict ``phi`` to ``W`` and compute the image of an element::
+
+            sage: psi = phi.restrict_domain(W)
+            sage: psi(W.0) == phi(W.0)
+            True
+            sage: psi(W.1) == phi(W.1)
+            True
         """
         try:
             if parent(x) is not self.domain():
@@ -150,17 +178,46 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             x = x.element()
         else:
             x = self.domain().coordinate_vector(x)
-        v = x*self.matrix()
         C = self.codomain()
-        if C.is_ambient():
-            return C(v)
-        return C(C.linear_combination_of_basis(v), check=False)
+        v = x.change_ring(C.base_ring()) * self.matrix()
+        if not C.is_ambient():
+            v = C.linear_combination_of_basis(v)
+        # The call method of parents uses (coercion) morphisms.
+        # Hence, in order to avoid recursion, we call the element
+        # constructor directly; after all, we already know the
+        # coordinates.
+        return C._element_constructor_(v)
 
-    def _call_(self, x):
+    def _call_with_args(self, x, args=(), kwds={}):
         """
-        Alternative for compatibility with sage.categories.map.FormalCompositeMap._call_
+        Like :meth:`_call_`, but takes optional and keyword arguments.
+
+        EXAMPLES::
+
+            sage: V = RR^2
+            sage: f = V.hom(V.gens())
+            sage: f._matrix *= I         # f is now invalid
+            sage: f((1, 0))
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to coerce entries (=[1.00000000000000*I, 0]) to coefficients in Real Field with 53 bits of precision
+            sage: f((1, 0), coerce=False)
+            (1.00000000000000*I, 0)
+
         """
-        return self.__call__(x)
+        if self.domain().is_ambient():
+            x = x.element()
+        else:
+            x = self.domain().coordinate_vector(x)
+        C = self.codomain()
+        v = x.change_ring(C.base_ring()) * self.matrix()
+        if not C.is_ambient():
+            v = C.linear_combination_of_basis(v)
+        # The call method of parents uses (coercion) morphisms.
+        # Hence, in order to avoid recursion, we call the element
+        # constructor directly; after all, we already know the
+        # coordinates.
+        return C._element_constructor_(v, *args, **kwds)
 
     def __invert__(self):
         """

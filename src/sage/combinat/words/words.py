@@ -678,6 +678,8 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             word: 1111111111
         """
         wc = '_with_caching' if caching else ""
+        if length is None:
+            length = getattr(self,'_length',None)
         if length in (None, Infinity, 'infinite'):
             return self._element_classes['InfiniteWord_iter'+wc](self, data, length)
         elif (length == 'finite') or (length in ZZ and length >= 0):
@@ -1468,8 +1470,9 @@ class FiniteWords_over_OrderedAlphabet(Words_over_OrderedAlphabet):
         r"""
         Returns an iterator over all the words of self.
 
-        The iterator outputs the words in lexicographic order,
-        based on the order of the letters in the alphabet.
+        The iterator outputs the words in shortlex order (see
+        :wikipedia:`Shortlex_order`), i.e. first by increasing length and then
+        lexicographically.
 
         EXAMPLES::
 
@@ -1629,6 +1632,12 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
         TESTS::
 
             sage: _ = Words(GF(5),4).random_element()
+
+        Check that :trac:`18283` is fixed::
+
+            sage: w = Words('abc', 5).random_element()
+            sage: w.length()
+            5
         """
         if self.alphabet().cardinality() == Infinity:
             raise ValueError("How can I pick a random word with an infinite aphabet?")

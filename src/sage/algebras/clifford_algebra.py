@@ -20,7 +20,7 @@ from copy import copy
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
-from sage.categories.modules_with_basis import ModuleMorphismByLinearity
+from sage.modules.with_basis.morphism import ModuleMorphismByLinearity
 from sage.categories.poor_man_map import PoorManMap
 from sage.rings.all import ZZ
 from sage.modules.free_module import FreeModule, FreeModule_generic

@@ -273,14 +273,14 @@ class DiGraphGenerators():
         if vertices=='strings':
             if n>=31:
                 raise NotImplementedError("vertices='strings' is only valid for n<=30.")
-            from sage.graphs.generic_graph_pyx import binary
+            from sage.graphs.generic_graph_pyx import int_to_binary_string
             butterfly = {}
             for v in xrange(2**n):
                 for i in range(n):
                     w = v
                     w ^= (1 << i)   # push 1 to the left by i and xor with w
-                    bv = binary(v)
-                    bw = binary(w)
+                    bv = int_to_binary_string(v)
+                    bw = int_to_binary_string(w)
                     # pad and reverse the strings
                     padded_bv = ('0'*(n-len(bv))+bv)[::-1]
                     padded_bw = ('0'*(n-len(bw))+bw)[::-1]

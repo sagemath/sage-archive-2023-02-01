@@ -6,7 +6,11 @@ Groups
 
    sage/groups/groups_catalog
    sage/groups/group
+   sage/groups/group_homset
    sage/groups/libgap_wrapper
+   sage/groups/libgap_group
+   sage/groups/libgap_mixin
+   sage/groups/pari_group
    sage/groups/generic
    sage/groups/free_group
    sage/groups/finitely_presented
@@ -47,7 +51,18 @@ Groups
    sage/groups/misc_gps/misc_groups
    sage/groups/semimonomial_transformations/semimonomial_transformation_group
    sage/groups/semimonomial_transformations/semimonomial_transformation
-
+   sage/groups/class_function
    sage/groups/conjugacy_classes
+   sage/groups/perm_gps/partn_ref
+   sage/groups/perm_gps/partn_ref2
+
+
+Internals
+---------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/groups/matrix_gps/named_group
 
 .. include:: ../footer.txt

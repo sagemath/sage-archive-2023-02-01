@@ -15,7 +15,7 @@ Randomized tests of GiNaC / PyNaC.
 from sage.misc.prandom import randint, random
 import operator
 from sage.rings.all import QQ
-import sage.calculus.calculus
+from sage.symbolic.ring import SR
 import sage.symbolic.pynac
 from sage.symbolic.constants import *
 from sage.functions.hypergeometric import hypergeometric
@@ -272,7 +272,7 @@ def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5,
         sgn(v1) + 1/31
 
     """
-    vars = [(1.0, sage.calculus.calculus.var('v%d' % (n+1))) for n in range(nvars)]
+    vars = [(1.0, SR.var('v%d' % (n+1))) for n in range(nvars)]
     if ncoeffs is None:
         ncoeffs = size
     coeffs = [(1.0, coeff_generator()) for _ in range(ncoeffs)]

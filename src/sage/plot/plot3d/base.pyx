@@ -70,7 +70,7 @@ cdef class Graphics3d(SageObject):
     def __cinit__(self):
         """
         The Cython constructor
-        
+
         EXAMPLES::
 
             sage: gfx = sage.plot.plot3d.base.Graphics3d()
@@ -78,7 +78,7 @@ cdef class Graphics3d(SageObject):
             {}
         """
         self._extra_kwds = dict()
-    
+
     def _repr_(self):
         """
         Return a string representation.
@@ -133,7 +133,7 @@ cdef class Graphics3d(SageObject):
         if viewer == 'jmol' and not can_view_jmol:           viewer = 'tachyon'
         ### Second, return the corresponding graphics file
         if viewer == 'jmol':
-            return self._rich_repr_jmol(**kwds)
+            return self._rich_repr_jmol(**opts)
         elif viewer == 'tachyon':
             preferred = (
                 types.OutputImagePng,
@@ -142,11 +142,11 @@ cdef class Graphics3d(SageObject):
             )
             for output_container in preferred:
                 if output_container in display_manager.supported_output():
-                    return self._rich_repr_tachyon(output_container, **kwds)
+                    return self._rich_repr_tachyon(output_container, **opts)
         elif viewer == 'canvas3d':
-            return self._rich_repr_canvas3d(**kwds)            
+            return self._rich_repr_canvas3d(**opts)
         elif viewer == 'wavefront':
-            return self._rich_repr_wavefront(**kwds)            
+            return self._rich_repr_wavefront(**opts)
         else:
             assert False   # unreachable
 
@@ -167,7 +167,7 @@ cdef class Graphics3d(SageObject):
 
         Instance of
         :class:`~sage.repl.rich_output.output_graphics.OutputImagePng`,
-        :class:`~sage.repl.rich_output.output_graphics.OutputImageGif`, or 
+        :class:`~sage.repl.rich_output.output_graphics.OutputImageGif`, or
         :class:`~sage.repl.rich_output.output_graphics.OutputImageJpg`.
 
         EXAMPLES::
@@ -238,20 +238,20 @@ cdef class Graphics3d(SageObject):
             opts['aspect_ratio'],
             zoom,
         )
-        T.export_jmol(scene_zip, zoom=zoom*100, **kwds)
+        T.export_jmol(scene_zip, **opts)
         from sage.interfaces.jmoldata import JmolData
         jdata = JmolData()
         if not jdata.is_jvm_available():
             # We can only use JMol to generate preview if a jvm is installed
             from sage.repl.rich_output.output_graphics import OutputImagePng
-            tachyon = self._rich_repr_tachyon(OutputImagePng, **kwds)
+            tachyon = self._rich_repr_tachyon(OutputImagePng, **opts)
             tachyon.png.save_as(preview_png)
         else:
             # Java needs absolute paths
             script = '''set defaultdirectory "%s"\nscript SCRIPT\n''' % scene_zip
             jdata.export_image(targetfile=preview_png, datafile=script,
                                image_type="PNG",
-                               figsize=opts['figsize'])
+                               figsize=opts['figsize'][0])
         from sage.repl.rich_output.output_graphics3d import OutputSceneJmol
         from sage.repl.rich_output.buffer import OutputBuffer
         scene_zip     = OutputBuffer.from_file(scene_zip)
@@ -821,7 +821,7 @@ end_scene""" % (render_params.antialiasing,
         return "\n".join(flatten_list([self.obj_repr(self.default_render_params()), ""]))
 
     def export_jmol(self, filename='jmol_shape.jmol', force_reload=False,
-                    zoom=100, spin=False, background=(1,1,1), stereo=False,
+                    zoom=1, spin=False, background=(1,1,1), stereo=False,
                     mesh=False, dots=False,
                     perspective_depth = True,
                     orientation = (-764,-346,-545,76.39), **ignored_kwds):
@@ -916,7 +916,7 @@ end_scene""" % (render_params.antialiasing,
             f.write('moveto 0 %s %s %s %s\n'%tuple(orientation))
 
         f.write('centerAt absolute {0 0 0}\n')
-        f.write('zoom %s\n'%zoom)
+        f.write('zoom {0}\n'.format(zoom * 100))
         f.write('frank OFF\n') # jmol logo
 
         if perspective_depth:
@@ -1367,7 +1367,7 @@ end_scene""" % (render_params.antialiasing,
     def _save_image_png(self, filename, **kwds):
         r"""
         Save a PNG rendering.
-        
+
         This private method is only for use by :meth:`save_image`.
 
         EXAMPLES::
@@ -1388,10 +1388,10 @@ end_scene""" % (render_params.antialiasing,
         viewer = opts['viewer']
         if viewer == 'tachyon':
             from sage.repl.rich_output.output_catalog import OutputImagePng
-            render = self._rich_repr_tachyon(OutputImagePng, **kwds)
+            render = self._rich_repr_tachyon(OutputImagePng, **opts)
             render.png.save_as(filename)
         elif viewer == 'jmol':
-            scene = self._rich_repr_jmol(**kwds)
+            scene = self._rich_repr_jmol(**opts)
             scene.preview_png.save_as(filename)
         else:
             raise ValueError('cannot use viewer={0} to render image'.format(viewer))

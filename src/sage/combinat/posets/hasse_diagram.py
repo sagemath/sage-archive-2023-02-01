@@ -675,8 +675,8 @@ class HasseDiagram(DiGraph):
 
         For a time, this function was named ``size()``, which
         would override the same-named method of the underlying
-        digraph.  Trac #8735 renamed this method to ``cardinality()``
-        with a deprecation warning.  Trac #11214 removed the warning
+        digraph. :trac:`8735` renamed this method to ``cardinality()``
+        with a deprecation warning. :trac:`11214` removed the warning
         since code for graphs was raising the warning inadvertently.
         This tests that ``size()`` for a Hasse diagram returns the
         number of edges in the digraph. ::

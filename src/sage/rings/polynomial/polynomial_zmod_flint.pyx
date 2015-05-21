@@ -109,7 +109,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             sage: (2*x+1).monic() #indirect doctest
             x + 3
         """
-        cdef type t = self.__class__
+        cdef type t = type(self)
         cdef Polynomial_template e = <Polynomial_template>t.__new__(t)
         nmod_poly_init(&e.x, self._parent.modulus())
         e._parent = self._parent
@@ -140,7 +140,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             ValueError: invalid literal for int() with base 10: '4.1'
 
         """
-        cdef type t = self.__class__
+        cdef type t = type(self)
         cdef Polynomial_template r = <Polynomial_template>t.__new__(t)
         r._parent = P
         r._cparent = get_cparent(P)
@@ -442,7 +442,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         """
         cdef Polynomial_zmod_flint _other = <Polynomial_zmod_flint>self._parent._coerce_(other)
 
-        cdef type t = self.__class__
+        cdef type t = type(self)
         cdef Polynomial_zmod_flint r = <Polynomial_zmod_flint>t.__new__(t)
         r._parent = (<Polynomial_zmod_flint>self)._parent
         r._cparent = (<Polynomial_zmod_flint>self)._cparent
@@ -621,9 +621,12 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         if not self.base_ring().is_field():
             raise NotImplementedError("checking irreducibility of polynomials over rings with composite characteristic is not implemented")
 
+        sig_on()
         if 1 == nmod_poly_is_irreducible(&self.x):
+            sig_off()
             return True
         else:
+            sig_off()
             return False
 
     def squarefree_decomposition(self):

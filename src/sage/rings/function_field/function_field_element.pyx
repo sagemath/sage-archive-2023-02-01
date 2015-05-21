@@ -23,7 +23,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 
 from sage.structure.element cimport FieldElement, RingElement, ModuleElement, Element
 
@@ -362,7 +361,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         """
         return not not self._x
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         """
         EXAMPLES::
 
@@ -564,7 +563,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         """
         return not not self._x
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         """
         EXAMPLES::
 

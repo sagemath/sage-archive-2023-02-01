@@ -109,7 +109,6 @@ AUTHORS:
 
 include "sage/ext/cdefs.pxi"
 include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
 include 'sage/data_structures/bitset.pxi'
 
 from cpython.int cimport PyInt_FromSize_t

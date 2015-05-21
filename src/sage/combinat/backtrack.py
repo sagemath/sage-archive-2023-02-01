@@ -23,26 +23,26 @@ Deprecation details:
 
 - ``SearchForest(seeds, succ)`` keeps the same behavior as before
   :trac:`6637` and is now the same as ``RecursivelyEnumeratedSet(seeds,
-  succ, structure='forest', enumeration='depth')``. 
+  succ, structure='forest', enumeration='depth')``.
 
 - ``TransitiveIdeal(succ, seeds)`` keeps the same behavior as before
   :trac:`6637` and is now the same as ``RecursivelyEnumeratedSet(seeds,
-  succ, structure=None, enumeration='naive')``. 
+  succ, structure=None, enumeration='naive')``.
 
 - ``TransitiveIdealGraded(succ, seeds, max_depth)`` keeps the same behavior
   as before :trac:`6637` and is now the same as
   ``RecursivelyEnumeratedSet(seeds, succ, structure=None,
-  enumeration='breadth', max_depth=max_depth)``. 
+  enumeration='breadth', max_depth=max_depth)``.
 
-TODO:
+.. todo::
 
-- For now the code of ``SearchForest`` is still in
-  ``sage/combinat/backtrack.py``.  It should be moved in
-  ``sage/sets/recursively_enumerated_set.pyx`` into a class named
-  ``RecursivelyEnumeratedSet_forest`` in a later ticket. 
+    - For now the code of :class:`SearchForest` is still in
+      ``sage/combinat/backtrack.py``.  It should be moved in
+      ``sage/sets/recursively_enumerated_set.pyx`` into a class named
+      :class:`RecursivelyEnumeratedSet_forest` in a later ticket.
 
-- Once the deprecation has been there for enough time: delete
-  ``TransitiveIdeal`` and ``TransitiveIealGraded``.
+    - Once the deprecation has been there for enough time: delete
+      :class:`TransitiveIdeal` and :class:`TransitiveIdealGraded`.
 
 """
 #*****************************************************************************

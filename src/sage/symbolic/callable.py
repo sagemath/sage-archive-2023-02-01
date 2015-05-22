@@ -239,7 +239,7 @@ class CallableSymbolicExpressionFunctor(ConstructionFunctor):
         b = x.arguments()
 
         # Rule #1
-        if [str(x) for x in a] == [str(x) for x in b]:
+        if [str(y) for y in a] == [str(z) for z in b]:
             return a
 
         # Rule #2

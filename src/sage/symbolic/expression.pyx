@@ -10947,7 +10947,7 @@ cdef class Expression(CommutativeRingElement):
         from sage.symbolic.function_factory import SymbolicFunction
 
         if not self.has(Y):
-            raise ValueError, "Expression {} contains no {} terms".format(self, Y)
+            raise ValueError("Expression {} contains no {} terms".format(self, Y))
         x = SR.symbol()
         yy = SR.symbol()
         y = SymbolicFunction('y', 1)(x)

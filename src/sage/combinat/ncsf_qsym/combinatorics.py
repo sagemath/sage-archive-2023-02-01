@@ -270,7 +270,7 @@ def number_of_SSRCT(content_comp, shape_comp):
     `S_{\beta_1} dQS_\gamma`.
 
     In sage the recording tableau for these objects are called
-    :class:`~sage.combinat.composition_tableau.CompositionTableaux`
+    :class:`~sage.combinat.composition_tableau.CompositionTableaux`.
 
     INPUT:
 

@@ -84,7 +84,14 @@ class MatrixPlot(GraphicPrimitive):
         """
         self.xrange = xrange
         self.yrange = yrange
-        self.xy_data_array = xy_data_array
+        if options.get('origin') != 'lower':
+            # we want to display the array upside down, so flip it
+            if hasattr(xy_data_array, 'tocoo'):
+                self.xy_data_array = xy_data_array.tocsr()[::-1]
+            else:
+                self.xy_data_array = xy_data_array[::-1]
+        else:
+            self.xy_data_array = xy_data_array
         if hasattr(xy_data_array, 'shape'):
             self.xy_array_row = xy_data_array.shape[0]
             self.xy_array_col = xy_data_array.shape[1]
@@ -107,9 +114,6 @@ class MatrixPlot(GraphicPrimitive):
         """
         from sage.plot.plot import minmax_data
         limits= minmax_data(self.xrange, self.yrange, dict=True)
-        if self.options()['origin']!='lower':
-            # flip y-axis so that the picture looks correct.
-            limits['ymin'],limits['ymax']=limits['ymax'],limits['ymin']
 
         # center the matrix so that, for example, the square representing the
         # (0,0) entry is centered on the origin.

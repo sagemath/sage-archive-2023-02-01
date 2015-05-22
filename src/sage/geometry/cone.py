@@ -4109,7 +4109,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
 
 def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
-                max_rays=None):
+                max_rays=None, strictly_convex=None):
     r"""
     Generate a random rational convex polyhedral cone.
 
@@ -4118,9 +4118,11 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
     lower bound is left unspecified, it defaults to zero. Unspecified
     upper bounds will be chosen randomly.
 
-    You may also specify the ambient ``lattice`` for the returned
-    cone. In that case, the ``min_dim`` and ``max_dim`` parameters are
-    ignored.
+    You may specify the ambient ``lattice`` for the returned cone. In
+    that case, the ``min_dim`` and ``max_dim`` parameters are ignored.
+
+    You may also request that the returned cone be strictly convex (or
+    not).
 
     .. WARNING:
 
@@ -4152,6 +4154,11 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
     * ``max_rays`` (default: random) -- A nonnegative integer representing
       the maximum number of generating rays of the cone.
 
+    * ``strictly_convex`` (default: random) -- Whether or not to make the
+      returned cone strictly convex. Specify ``True`` for a strictly convex
+      cone, ``False`` for a non-strictly-convex cone, or ``None`` if you
+      don't care.
+
     OUTPUT:
 
     A new, randomly generated cone.
@@ -4180,6 +4187,13 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
     * ``min_rays`` is positive but ``max_dim`` is zero.
 
     * ``min_rays`` is positive but ``lattice`` has dimension zero.
+
+    * A trivial lattice is supplied and a non-strictly-convex cone
+      is requested.
+
+    * A non-strictly-convex cone is requested but ``min_rays`` is less
+      then two (the minimum number of rays a non-strictly-convex cone
+      can have).
 
     ALGORITHM:
 
@@ -4219,6 +4233,18 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
         sage: K = random_cone(lattice=L)
         sage: K.lattice() == L
         True
+
+    We can also request a strictly convex cone::
+
+        sage: K = random_cone(max_dim=10, strictly_convex=True)
+        sage: K.is_strictly_convex()
+        True
+
+    Or one that isn't strictly convex::
+
+        sage: K = random_cone(min_dim=5, min_rays=2, strictly_convex=False)
+        sage: K.is_strictly_convex()
+        False
 
     TESTS:
 
@@ -4321,6 +4347,108 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
         sage: K.lattice_dim()
         3
 
+    This should be possible when ``strictly_convex`` is set as well::
+
+        sage: K = random_cone(max_dim=3, min_rays=5, strictly_convex=True)
+        sage: K.nrays() >= 5
+        True
+        sage: K.lattice_dim()
+        3
+
+        sage: K = random_cone(max_dim=3, min_rays=5, strictly_convex=False)
+        sage: K.nrays() >= 5
+        True
+        sage: K.lattice_dim()
+        3
+
+    Ensure that we can generate cones which are not strictly convex::
+
+        sage: l = [ random_cone(min_dim=1,max_dim=10,min_rays=2,max_rays=10,
+        ....:       strictly_convex=False).is_strictly_convex()
+        ....:       for i in range(0,10)]
+        sage: any(l)
+        False
+
+    As well as ones that are strictly convex::
+
+        sage: l = [ random_cone(min_dim=1,max_dim=10,min_rays=2,max_rays=10,
+        ....:       strictly_convex=True).is_strictly_convex()
+        ....:       for i in range(0,10)]
+        sage: all(l)
+        True
+
+    If we fix all of the parameters, we can still request (non-)strictly-
+    convex cones::
+
+        sage: K = random_cone(min_dim=2, max_dim=2, min_rays=3,
+        ....:                 max_rays=3, strictly_convex=False)
+        sage: K.nrays()
+        3
+        sage: K.lattice_dim()
+        2
+        sage: K.is_strictly_convex()
+        False
+
+        sage: K = random_cone(min_dim=3, max_dim=3, min_rays=3,
+        ....:                 max_rays=3, strictly_convex=True)
+        sage: K.nrays()
+        3
+        sage: K.lattice_dim()
+        3
+        sage: K.is_strictly_convex()
+        True
+
+        sage: K = random_cone(min_dim=3, max_dim=3, min_rays=3,
+        ....:                 max_rays=3, strictly_convex=False)
+        sage: K.nrays()
+        3
+        sage: K.lattice_dim()
+        3
+        sage: K.is_strictly_convex()
+        False
+
+        sage: K = random_cone(min_dim=3, max_dim=3, min_rays=4,
+        ....:                 max_rays=4, strictly_convex=True)
+        sage: K.nrays()
+        4
+        sage: K.lattice_dim()
+        3
+        sage: K.is_strictly_convex()
+        True
+
+        sage: K = random_cone(min_dim=3, max_dim=3, min_rays=4,
+        ....:                 max_rays=4, strictly_convex=False)
+        sage: K.nrays()
+        4
+        sage: K.lattice_dim()
+        3
+        sage: K.is_strictly_convex()
+        False
+
+    It is an error to request a non-strictly-convex trivial cone::
+
+        sage: L = ToricLattice(0,"L")
+        sage: random_cone(lattice=L, strictly_convex=False)
+        Traceback (most recent call last):
+        ...
+        ValueError: all cones in this lattice are strictly convex (trivial).
+
+    But fine to ask for a strictly convex trivial cone::
+
+        sage: L = ToricLattice(0,"L")
+        sage: random_cone(lattice=L, strictly_convex=True)
+        0-d cone in 0-d lattice L
+
+    When no lattice is provided, it is an error to request a
+    non-strictly convex cone with ``min_rays`` less then two (since
+    we need at least two rays for such a cone)::
+
+        sage: random_cone(min_dim=1, min_rays=1, strictly_convex=False)
+        Traceback (most recent call last):
+        ...
+        ValueError: min_rays must be greater than one if strictly_convex is
+        False; a single ray is always strictly convex.
+
     """
 
     # Catch obvious mistakes so that we can generate clear error
@@ -4385,6 +4513,16 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
            msg += 'Please decrease min_rays.'
            raise ValueError(msg)
 
+    # Sanity checks for strictly_convex.
+    if strictly_convex is not None and not strictly_convex:
+        if lattice is None and min_rays < 2:
+            msg = 'min_rays must be greater than one if strictly_convex is '
+            msg += 'False; a single ray is always strictly convex.'
+            raise ValueError(msg)
+        if lattice is not None and lattice.dimension() == 0:
+            msg = 'all cones in this lattice are strictly convex (trivial).'
+            raise ValueError(msg)
+
     def random_min_max(l,u):
         r"""
         We need to handle two cases for the upper bounds, and we need
@@ -4424,6 +4562,12 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
         if max_rays is not None and K.nrays() > max_rays:
             return False
 
+        if strictly_convex is not None:
+            if strictly_convex and not K.is_strictly_convex():
+                return False
+            if not strictly_convex and K.is_strictly_convex():
+                return False
+
         return True
 
     # Now we actually compute the thing. To avoid recursion (and the
@@ -4447,8 +4591,9 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
         # up with...
         rays = [L.random_element() for i in range(0, r)]
 
-        # (The lattice parameter is required when no rays are given, so we
-        # pass it just in case ``r == 0``).
+        # The lattice parameter is required when no rays are given, so
+        # we pass it in case ``r == 0`` or ``d == 0`` (or ``d == 1``
+        # but we're making a strictly convex cone).
         K = Cone(rays, lattice=L)
 
         # Now, some of the rays that we generated were probably redundant,
@@ -4459,12 +4604,46 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
         # rays after this! Since we normalize the generators in the
         # loop above, we can jump from two to four generators by
         # adding e.g. (1,1) to [(0,1), (0,-1)]. Rather than trying to
-        # mangle what we have, we just start over.
+        # mangle what we have, we just start over if we get a cone
+        # that won't work.
         #
         while r > K.nrays() and not K.is_full_space():
             rays.append(L.random_element())
-            K = Cone(rays)
+            K = Cone(rays, lattice=L)
             rays = list(K.rays()) # Avoid re-normalizing next time around
+
+
+        if strictly_convex is not None:
+            if strictly_convex:
+                if not K.is_strictly_convex():
+                    # The user wants a strictly convex cone, but
+                    # didn't get one. So let's take our rays, and give
+                    # them all either (strictly) positive or negative
+                    # leading coordinates. This makes the resulting
+                    # cone strictly convex. Whether or not those
+                    # coordinates become positive/negative is chosen
+                    # randomly.
+                    from random import choice
+                    pm = choice([-1,1])
+
+                    # rays has immutable elements
+                    from copy import copy
+                    rays = map(copy, rays)
+
+                    for idx in range(0, len(rays)):
+                        rays[idx][0] = pm * (rays[idx][0].abs() + 1)
+
+                    K = Cone(rays, lattice=L)
+            else:
+                # The user requested that the cone be NOT strictly
+                # convex. So it should contain some line...
+                if K.is_strictly_convex():
+                    # ...but it doesn't. We already made sure (via
+                    # earlier sanity checks) that we have at least two
+                    # rays, so we should be able to change one of them
+                    # into a negative multiple of the other.
+                    rays[1] = -rays[0]
+                    K = Cone(rays, lattice=L)
 
         if is_valid(K):
             # Loop if we don't have a valid cone.

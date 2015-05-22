@@ -1212,17 +1212,32 @@ class Newform(ModularForm_abstract):
             (4/5*z^7 - 2/5*z^6 - 2/5*z^5 + 2/5*z^4 + 4/5*z^3 + 1/5, q + z^5*q^2 - z^5*q^3 - q^4 + (z^5 - 2)*q^5 + O(q^6))
             (2/5*z^7 + 4/5*z^6 - 1/5*z^5 - 4/5*z^4 + 2/5*z^3 - 2/5, q + z^5*q^2 - z^5*q^3 - q^4 + (z^5 - 2)*q^5 + O(q^6))
 
+        We can compute the eigenvalue of `W_{p^e}` in certain cases
+        where the `p`-th coefficient of `f` is zero:
+
+            sage: f = Newforms(169, names='a')[0]; f
+            q + a0*q^2 + 2*q^3 + q^4 - a0*q^5 + O(q^6)
+            sage: f[13]
+            0
+            sage: f.atkin_lehner_eigenvalue(169)
+            -1
+
         """
         if d == 1:
             w = self.base_ring().one()
             if embedding is not None:
                 w = embedding(w)
             return w, self
-        if self.base_ring() is rings.QQ:
-            w = self.modular_symbols(sign=1).atkin_lehner_operator(d).matrix()[0,0]
-            if embedding is not None:
-                w = embedding(w)
-            return w, self
+        try:
+            W = self.modular_symbols(sign=1).atkin_lehner_operator(d).matrix()
+        except (ArithmeticError, ValueError):
+            pass
+        else:
+            if W.is_scalar():
+                w = W[0,0].conjugate()
+                if embedding is not None:
+                    w = embedding(w)
+                return w, self
         d = rings.Integer(d)
         q, e = d.factor()[0]
         Q = q**e

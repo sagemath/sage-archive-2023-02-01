@@ -5027,9 +5027,8 @@ cdef class Matroid(SageObject):
             True
         """
         X = self.groundset() - Y
-
-        X1 = frozenset([x for x in X if self._is_independent(Y.union([x]))])
-        X2 = frozenset([x for x in X if other._is_independent(Y.union([x]))])
+        X1 = self.groundset() - self._closure(Y)
+        X2 = other.groundset() - other._closure(Y)
 
         w = {x: -weights[x] for x in X1}
         predecessor = {x: None for x in X1}

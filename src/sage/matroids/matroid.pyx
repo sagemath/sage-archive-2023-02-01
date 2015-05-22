@@ -4679,7 +4679,6 @@ cdef class Matroid(SageObject):
             # check if connectivity between S,T is <2
             if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2: 
                 if separation:
-                    J = N1._intersection_augmentation(N2, w, I)
                     return False, S.union(J[1])
                 else:
                     return False
@@ -4704,7 +4703,6 @@ cdef class Matroid(SageObject):
                 # check if connectivity between S,T is <2
                 if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2:
                     if separation:
-                        J = N1._intersection_augmentation(N2, w, I)
                         return False, S.union(J[1])
                     else:
                         return False
@@ -5004,7 +5002,7 @@ cdef class Matroid(SageObject):
         """
         Y = set()
         U = self._intersection_augmentation(other, weights, Y)
-        while U[0] and sum([weights[x] for x in U - Y]) > sum([weights[y] for y in U.intersection(Y)]):
+        while U[0] and sum([weights[x] for x in U[1] - Y]) > sum([weights[y] for y in U[1].intersection(Y)]):
             Y = Y.symmetric_difference(U[1])
             U = self._intersection_augmentation(other, weights, Y)
         return Y
@@ -5097,7 +5095,7 @@ cdef class Matroid(SageObject):
             while predecessor[u] is not None:
                 u = predecessor[u]
                 path.add(u)
-            return True, path
+            return True, frozenset(path)
 
     # invariants
 

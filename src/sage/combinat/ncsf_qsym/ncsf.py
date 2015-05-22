@@ -4750,11 +4750,11 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             dQS[] # dQS[1, 1] + dQS[1] # dQS[1] + dQS[1, 1] # dQS[]
             sage: dQS([3,3]).coproduct().monomial_coefficients()[(Composition([1,2]),Composition([1,2]))]
             -1
-            sage: R = NCSF.ribbon()
-            sage: dQS(R[1,3,1])
-            dQS[1, 3, 1] + dQS[3, 2]
-            sage: R(dQS[1,3,1])
-            R[1, 3, 1] + R[1, 4] - R[3, 2]
+            sage: S = NCSF.complete()
+            sage: dQS(S[1,3,1])
+            dQS[1, 3, 1] + dQS[1, 4] + dQS[3, 2] + dQS[4, 1] + dQS[5]
+            sage: S(dQS[1,3,1])
+            S[1, 3, 1] - S[3, 2] - S[4, 1] + S[5]
             sage: s = SymmetricFunctions(QQ).s()
             sage: s(dQS([2,1,3,1]).to_symmetric_function())
             s[3, 2, 1, 1]
@@ -4765,11 +4765,11 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
-                sage: R = NCSF.ribbon()
+                sage: S = NCSF.complete()
                 sage: dQS = NCSF.dualQuasisymmetric_Schur()
-                sage: dQS(R(dQS.an_element())) == dQS.an_element()
+                sage: dQS(S(dQS.an_element())) == dQS.an_element()
                 True
-                sage: R(dQS(R.an_element())) == R.an_element()
+                sage: S(dQS(S.an_element())) == S.an_element()
                 True
                 sage: TestSuite(dQS).run() # long time
             """
@@ -4803,7 +4803,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def _to_complete_transition_matrix(self, n):
             r"""
-            A matrix representing the transition coefficients to the ribbon basis
+            A matrix representing the transition coefficients to the complete basis
 
             INPUT:
 
@@ -4914,7 +4914,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 [0 0 1 0]
                 [0 0 0 1]
             """
-            return self._QS
+            return self.realization_of().dual().Quasisymmetric_Schur()
 
     dQS = dualQuasisymmetric_Schur
 

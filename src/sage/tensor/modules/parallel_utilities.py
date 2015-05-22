@@ -5,9 +5,9 @@ This module defines
 
 - the singleton class :class:`TensorParallelCompute` to gather the information
   relative to the parallelization of tensor algebra (basically the number of
-  cores to be used)
+  processes to be used)
 - the global functions :func:`set_nproc` and :func:`get_nproc` to be used in
-  a Sage session for managing the number of cores involved in the
+  a Sage session for managing the number of processes involved in the
   parallelization.
 
 Some examples of parallelization are provided in the documentation
@@ -35,7 +35,7 @@ from sage.parallel.ncpus import ncpus
 
 class TensorParallelCompute(Singleton, SageObject):
     r"""
-    Singleton class for managing the number of processors in parallel
+    Singleton class for managing the number of processes used in parallel
     computations involved in tensor algebra.
 
     EXAMPLES::
@@ -90,13 +90,13 @@ class TensorParallelCompute(Singleton, SageObject):
 
     def set(self, nproc=None):
         r"""
-        Set the number of processors (cores) to be used in parallel
+        Set the number of processes to be launched in parallel
         computations
 
         INPUT:
 
-        - ``nproc`` -- (defaut: ``None``) number of processors; if ``None``, the
-          number of processors will be set to the maximum of cores found on the
+        - ``nproc`` -- (defaut: ``None``) number of processes; if ``None``, the
+          number of processes will be set to the maximum of cores found on the
           computer.
 
         EXAMPLES:
@@ -107,13 +107,13 @@ class TensorParallelCompute(Singleton, SageObject):
             sage: TensorParallelCompute()
             Number of cpu used = 1
 
-        Asking for parallelization on 4 processors::
+        Asking for parallelization on 4 cores::
 
             sage: TensorParallelCompute().set(4)
             sage: TensorParallelCompute()
             Number of cpu used = 4
 
-        Using all the processors available on the computer::
+        Using all the cores available on the computer::
 
             sage: TensorParallelCompute().set()
             sage: TensorParallelCompute()  # random
@@ -132,13 +132,13 @@ class TensorParallelCompute(Singleton, SageObject):
 
 def set_nproc(nproc=None):
     r"""
-    Set the number of processors (cores) for parallelizing computations
+    Set the number of processes for parallelizing computations
     relative to tensor algebra.
 
     INPUT:
 
-    - ``nproc`` -- (defaut: ``None``) number of processors; if ``None``, the
-      number of processors will be set to the maximum of cores found on the
+    - ``nproc`` -- (defaut: ``None``) number of processes; if ``None``, the
+      number of processes will be set to the maximum of cores found on the
       computer.
 
     EXAMPLES:
@@ -148,13 +148,13 @@ def set_nproc(nproc=None):
         sage: get_nproc()
         1
 
-    Asking for parallelization on 4 processors::
+    Asking for parallelization on 4 cores::
 
         sage: set_nproc(4)
         sage: get_nproc()
         4
 
-    Using all the processors available on the computer::
+    Using all the cores available on the computer::
 
         sage: set_nproc()
         sage: get_nproc()  # random
@@ -174,7 +174,7 @@ def set_nproc(nproc=None):
 
 def get_nproc():
     r"""
-    Return the number of processors (cores) used in parallelized tensorial
+    Return the number of processes used in parallelized tensorial
     computations.
 
     EXAMPLES:
@@ -184,7 +184,7 @@ def get_nproc():
         sage: get_nproc()
         1
 
-    Asking for parallelization on 4 processors::
+    Asking for parallelization on 4 cores::
 
         sage: set_nproc(4)
         sage: get_nproc()

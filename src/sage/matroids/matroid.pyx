@@ -4599,21 +4599,26 @@ cdef class Matroid(SageObject):
     
         """
     
-        N1 = self.minor(S,T)
-        N2 = self.minor(T,S)
+        N1 = self.minor(T,S)
+        N2 = self.minor(S,T)
         return len(N1.intersection(N2)) - self.full_rank() + self.rank(S) + self.rank(T)
 
-    cpdef is_3connected(self):
+    cpdef is_3connected(self, separation = False):
         """
-        Test if the matroid is 3-connected.
+        Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
+        If ``separation`` is set to ``True``, return ``True, None`` if the matroid is is 3-connected,
+        ``False, X`` otherwise, where ``X`` is a `<3`-separation
 
         A `k`-*separation* in a matroid is a partition `(X, Y)` of the
         groundset with `|X| \geq k, |Y| \geq k` and `r(X) + r(Y) - r(M) < k`.
         A matroid is `k`-*connected* if it has no `l`-separations for `l < k`.
 
+        INPUT::
+            ``separation`` (optional), a Boolean. Defaults to ``False``.
+
         OUTPUT::
 
-            Boolean.
+            Boolean, or a tuple (Boolean, frozenset)
 
         .. SEEALSO::
 
@@ -4635,8 +4640,12 @@ cdef class Matroid(SageObject):
             False
             sage: matroids.named_matroids.BetsyRoss().is_3connected()
             True
-            sage: matroids.named_matroids.R6().is_3connected()
+            sage: M = matroids.named_matroids.R6()
+            sage: M.is_3connected()
             False
+            sage: B, X = M.is_3connected(True)
+            sage: M.connectivity(X)
+            1
 
         ALGORITHM::
     
@@ -4657,19 +4666,23 @@ cdef class Matroid(SageObject):
         I = set()
         for T in combinations(E, 2):
             T = set(T)
-            N1 = self.minor(S,T)
-            N2 = self.minor(T,S)
+            N1 = self.minor(T,S)
+            N2 = self.minor(S,T)
             # make previous I a common independent set of current N1, N2
             I = I - T                
             I = N1.max_independent(I)
             I = N2.max_independent(I)
             J = N1._intersection_augmentation(N2, w, I)
-            while J is not None:    
-                I = I.symmetric_difference(J)
+            while J[0]:
+                I = I.symmetric_difference(J[1])
                 J = N1._intersection_augmentation(N2, w, I)
             # check if connectivity between S,T is <2
             if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2: 
-                return False
+                if separation:
+                    J = N1._intersection_augmentation(N2, w, I)
+                    return False, S.union(J[1])
+                else:
+                    return False
         for g in E:
             S = {e, g}
             I = I - S
@@ -4678,20 +4691,27 @@ cdef class Matroid(SageObject):
                     continue
                 T = {f, h}
                 T = set(T)
-                N1 = self.minor(S,T)
-                N2 = self.minor(T,S)
+                N1 = self.minor(T,S)
+                N2 = self.minor(S,T)
                 # make previous I a common independent set of current N1, N2
                 I = I - T                
                 I = N1.max_independent(I)
                 I = N2.max_independent(I)
                 J = N1._intersection_augmentation(N2, w, I)
-                while J is not None:    
-                    I = I.symmetric_difference(J)
+                while J[0]:
+                    I = I.symmetric_difference(J[1])
                     J = N1._intersection_augmentation(N2, w, I)
                 # check if connectivity between S,T is <2
-                if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2: 
-                    return False
-        return True
+                if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2:
+                    if separation:
+                        J = N1._intersection_augmentation(N2, w, I)
+                        return False, S.union(J[1])
+                    else:
+                        return False
+        if separation:
+            return True, None
+        else:
+            return True
 
     # matroid k-closed
 
@@ -4984,8 +5004,8 @@ cdef class Matroid(SageObject):
         """
         Y = set()
         U = self._intersection_augmentation(other, weights, Y)
-        while U is not None and sum([weights[x] for x in U - Y]) > sum([weights[y] for y in U.intersection(Y)]):
-            Y = Y.symmetric_difference(U)
+        while U[0] and sum([weights[x] for x in U - Y]) > sum([weights[y] for y in U.intersection(Y)]):
+            Y = Y.symmetric_difference(U[1])
             U = self._intersection_augmentation(other, weights, Y)
         return Y
 
@@ -4997,16 +5017,17 @@ cdef class Matroid(SageObject):
 
         - ``other`` -- a matroid with the same ground set as ``self``.
         - ``weights`` -- a dictionary specifying a weight for each element of
-          the ground set
+          the common ground set ``E``.
         - ``Y`` -- an extremal common independent set of ``self`` and
           ``other`` of size `k`. That is, a common independent set of maximum
           weight among common independent sets of size `k`.
 
         OUTPUT:
 
-        A set ``U`` such that the symmetric difference of ``Y`` and ``U``
-        is extremal and has `k + 1` elements; or ``None``, if there is no
-        common independent ste of size `k + 1`.
+        A pair ``true, U`` such that the symmetric difference of ``Y`` and ``U``
+        is extremal and has `k + 1` elements; or a pair ``False, X``, if there is no
+        common independent set of size `k + 1`. If all weights are ``1``, then
+        the cardinality of ``Y`` equals ``self.rank(X) + other.rank(E-X)``.
 
         .. NOTE::
 
@@ -5023,8 +5044,8 @@ cdef class Matroid(SageObject):
             sage: Y = M.intersection(N, w)
             sage: sorted(Y)
             ['a', 'd', 'e', 'g', 'i', 'k']
-            sage: M._intersection_augmentation(N, w, Y) is None
-            True
+            sage: U = M._intersection_augmentation(N, w, Y)[0]
+            False
         """
         X = self.groundset() - Y
         X1 = self.groundset() - self._closure(Y)
@@ -5037,40 +5058,46 @@ cdef class Matroid(SageObject):
         todo = set(X1)
         next_layer = set()
         while todo:
-            while todo:
+            while todo: # todo is subset of X
                 u = todo.pop()
                 m = w[u]
-                if u in Y:
-                    if u not in out_neighbors:
-                        out_neighbors[u] = X - self._closure(Y - set([u]))
-                    for x in out_neighbors[u]:
-                        m2 = m - weights[x]
-                        if not x in w or w[x] > m2:
-                            predecessor[x] = u
-                            w[x] = m2
-                            next_layer.add(x)
-                else:
-                    if u not in out_neighbors:
-                        out_neighbors[u] = other._circuit(Y.union([u])) - set([u])  # have to make sure that u is not in X2 for this
-                    for y in out_neighbors[u]:
-                        m2 = m + weights[y]
-                        if not y in w or w[y] > m2:
-                            predecessor[y] = u
-                            w[y] = m2
-                            next_layer.add(y)
+                if u not in out_neighbors:
+                    out_neighbors[u] = other._circuit(Y.union([u])) - set([u])  # if u in X2 then out_neighbors[u] was set to empty
+                for y in out_neighbors[u]:
+                    m2 = m + weights[y]
+                    if not y in w or w[y] > m2:
+                        predecessor[y] = u
+                        w[y] = m2
+                        next_layer.add(y)
             todo = next_layer
             next_layer = set()
-        X3 = X2.intersection(w)
-        if not X3:
-            return None
-        s = min([w[x] for x in X3])
-        for u in X3:
-            if w[u] == s:
-                path = set([u])
-                while predecessor[u] is not None:
-                    u = predecessor[u]
-                    path.add(u)
-                return path
+            while todo: # todo is subset of Y
+                u = todo.pop()
+                m = w[u]
+                if u not in out_neighbors:
+                    out_neighbors[u] = X - self._closure(Y - set([u]))
+                for x in out_neighbors[u]:
+                    m2 = m - weights[x]
+                    if not x in w or w[x] > m2:
+                        predecessor[x] = u
+                        w[x] = m2
+                        next_layer.add(x)
+            todo = next_layer
+            next_layer = set()
+
+        X3 = X2.intersection(w) # w is the set of elements reachable from X1
+        if not X3:              # if no path from X1 to X2, then no augmenting set exists
+            return False, frozenset(w)
+        else:
+            s = min([w[x] for x in X3]) # find shortest length of an X1 - X2 path
+            for u in X3:
+                if w[u] == s:
+                    break
+            path = set([u])             # reconstruct path
+            while predecessor[u] is not None:
+                u = predecessor[u]
+                path.add(u)
+            return True, path
 
     # invariants
 

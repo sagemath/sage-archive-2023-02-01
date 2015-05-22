@@ -4122,19 +4122,16 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
     cone. In that case, the ``min_dim`` and ``max_dim`` parameters are
     ignored.
 
-    The lower bound on the number of rays is limited to twice the
-    maximum dimension of the ambient vector space. To see why, consider
-    the space `\mathbb{R}^{2}`, and suppose we have generated four rays,
-    `\left\{ \pm e_{1}, \pm e_{2} \right\}`. Clearly any other ray in
-    the space is a nonnegative linear combination of those four,
-    so it is hopeless to generate more. It is therefore an error
-    to request more in the form of ``min_rays``.
+    .. WARNING:
 
-    .. NOTE:
-
-        If you do not explicitly request more than ``2 * max_dim`` rays,
-        a larger number may still be randomly generated. In that case,
-        the returned cone will simply be equal to the entire space.
+        If you request a large number of rays in a low-dimensional
+        space, you might be waiting for a while. For example, in three
+        dimensions, it is possible to obtain an octagon raised up to height
+        one (all z-coordinates equal to one). But in practice, we usually
+        generate the entire three-dimensional space with six rays before we
+        get to the eight rays needed for an octagon. We therefore have to
+        throw the cone out and start over from scratch. This process repeats
+        until we get lucky.
 
     INPUT:
 
@@ -4168,9 +4165,36 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
 
     * ``max_rays`` is less than ``min_rays``.
 
-    * ``min_rays`` is greater than twice ``max_dim``.
-
     * Both ``max_dim`` and ``lattice`` are specified.
+
+    * ``min_rays`` is greater than four but ``max_dim`` is less than three.
+
+    * ``min_rays`` is greater than four but ``lattice`` has dimension
+      less than three.
+
+    * ``min_rays`` is greater than two but ``max_dim`` is less than two.
+
+    * ``min_rays`` is greater than two but ``lattice`` has dimension less
+      than two.
+
+    * ``min_rays`` is positive but ``max_dim`` is zero.
+
+    * ``min_rays`` is positive but ``lattice`` has dimension zero.
+
+    ALGORITHM:
+
+    First, a lattice is determined from ``min_dim`` and ``max_dim`` (or
+    from the supplied ``lattice``).
+
+    Then, lattice elements are generated one at a time and added to a
+    cone. This continues until either the cone meets the user's
+    requirements, or the cone is equal to the entire space (at which
+    point it is futile to generate more).
+
+    We check whether or not the resulting cone meets the user's
+    requirements; if it does, it is returned. If not, we throw it away
+    and start over. This process repeats indefinitely until an
+    appropriate cone is generated.
 
     EXAMPLES:
 
@@ -4202,8 +4226,8 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
     least make sure that we get a cone back::
 
         sage: from sage.geometry.cone import is_Cone # long time
-        sage: K = random_cone() # long time
-        sage: is_Cone(K)        # long time
+        sage: K = random_cone()                      # long time
+        sage: is_Cone(K)                             # long time
         True
 
     The upper/lower bounds are respected::
@@ -4227,13 +4251,6 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
         ...
         ValueError: max_rays cannot be less than min_rays.
 
-    We also get an exception if we request too many rays::
-
-        sage: random_cone(min_rays=5, max_dim=1)
-        Traceback (most recent call last):
-        ...
-        ValueError: min_rays cannot be larger than twice max_dim.
-
     Or if we specify both ``max_dim`` and ``lattice``::
 
         sage: L = ToricLattice(5, "L")
@@ -4241,6 +4258,68 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
         Traceback (most recent call last):
         ...
         ValueError: max_dim cannot be specified when a lattice is provided.
+
+    If the user requests too many rays in zero, one, or two dimensions,
+    a ``ValueError`` is thrown::
+
+        sage: random_cone(max_dim=0, min_rays=1)
+        Traceback (most recent call last):
+        ...
+        ValueError: all cones in zero dimensions have no generators.
+        Please increase max_dim to at least 1, or decrease min_rays.
+
+        sage: random_cone(max_dim=1, min_rays=3)
+        Traceback (most recent call last):
+        ...
+        ValueError: all cones in zero/one dimensions have two or fewer
+        generators. Please increase max_dim to at least 2, or decrease
+        min_rays.
+
+        sage: random_cone(max_dim=2, min_rays=5)
+        Traceback (most recent call last):
+        ...
+        ValueError: all cones in zero/one/two dimensions have four or fewer
+        generators. Please increase max_dim to at least 3, or decrease
+        min_rays.
+
+        sage: L = ToricLattice(0)
+        sage: random_cone(lattice=L, min_rays=1)
+        Traceback (most recent call last):
+        ...
+        ValueError: all cones in the given lattice have no generators.
+        Please decrease min_rays.
+
+        sage: L = ToricLattice(1)
+        sage: random_cone(lattice=L, min_rays=3)
+        Traceback (most recent call last):
+        ...
+        ValueError: all cones in the given lattice have two or fewer
+        generators. Please decrease min_rays.
+
+        sage: L = ToricLattice(2)
+        sage: random_cone(lattice=L, min_rays=5)
+        Traceback (most recent call last):
+        ...
+        ValueError: all cones in the given lattice have four or fewer
+        generators. Please decrease min_rays.
+
+    Ensure that we can obtain a cone in three dimensions with a large
+    number (in particular, more than 2*dim) rays::
+
+        sage: K = random_cone(min_dim=3, max_dim=3, min_rays=7) # long time
+        sage: K.nrays() >= 7                                    # long time
+        True
+        sage: K.lattice_dim()                                   # long time
+        3
+
+    We need three dimensions to obtain five rays; we should throw out
+    cones in zero/one/two dimensions until we get lucky::
+
+        sage: K = random_cone(max_dim=3, min_rays=5)
+        sage: K.nrays() >= 5
+        True
+        sage: K.lattice_dim()
+        3
 
     """
 
@@ -4258,11 +4337,29 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
             raise ValueError('max_dim must be nonnegative.')
         if (max_dim < min_dim):
             raise ValueError('max_dim cannot be less than min_dim.')
-        if min_rays > 2*max_dim:
-            raise ValueError('min_rays cannot be larger than twice max_dim.')
         if lattice is not None:
             msg = 'max_dim cannot be specified when a lattice is provided.'
             raise ValueError(msg)
+
+        # The next three checks prevent an infinite loop (a futile
+        # search for more rays) in zero, one, or two dimensions.
+        if min_rays > 4 and max_dim < 3:
+            msg  = 'all cones in zero/one/two dimensions have four or fewer '
+            msg += 'generators. Please increase max_dim to at least 3, '
+            msg += 'or decrease min_rays.'
+            raise ValueError(msg)
+
+        if min_rays > 2 and max_dim < 2:
+           msg  = 'all cones in zero/one dimensions have two or fewer '
+           msg += 'generators. Please increase max_dim to at least 2, '
+           msg += 'or decrease min_rays.'
+           raise ValueError(msg)
+
+        if min_rays > 0 and max_dim == 0:
+           msg  = 'all cones in zero dimensions have no generators. '
+           msg += 'Please increase max_dim to at least 1, or decrease '
+           msg += 'min_rays.'
+           raise ValueError(msg)
 
     if max_rays is not None:
         if max_rays < 0:
@@ -4270,6 +4367,23 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
         if (max_rays < min_rays):
             raise ValueError('max_rays cannot be less than min_rays.')
 
+    # Also perform the "futile search" checks when a lattice is given,
+    # using its dimension rather than max_dim as the indicator.
+    if lattice is not None:
+        if min_rays > 4 and lattice.dimension() < 3:
+            msg  = 'all cones in the given lattice have four or fewer '
+            msg += 'generators. Please decrease min_rays.'
+            raise ValueError(msg)
+
+        if min_rays > 2 and lattice.dimension() < 2:
+           msg  = 'all cones in the given lattice have two or fewer '
+           msg += 'generators. Please decrease min_rays.'
+           raise ValueError(msg)
+
+        if min_rays > 0 and lattice.dimension() == 0:
+           msg  = 'all cones in the given lattice have no generators. '
+           msg += 'Please decrease min_rays.'
+           raise ValueError(msg)
 
     def random_min_max(l,u):
         r"""
@@ -4289,31 +4403,71 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
             # ZZ.random_element() docs.
             return l + ZZ.random_element(u - l + 1)
 
-    if lattice is None:
-        # No lattice given, make our own.
-        d = random_min_max(min_dim, max_dim)
-        lattice = ToricLattice(d)
+    def is_valid(K):
+        r"""
+        Check if the given cone is valid; that is, if its ambient
+        dimension and number of rays meet the upper and lower bounds
+        provided by the user.
+        """
+        if lattice is None:
+            # We only care about min/max_dim when no lattice is given.
+            if K.lattice_dim() < min_dim:
+                return False
+            if max_dim is not None and K.lattice_dim() > max_dim:
+                return False
+        else:
+            if K.lattice() != lattice:
+                return False
 
-    r = random_min_max(min_rays, max_rays)
+        if K.nrays() < min_rays:
+            return False
+        if max_rays is not None and K.nrays() > max_rays:
+            return False
 
-    # The rays are trickier to generate, since we could generate v and
-    # 2*v as our "two rays." In that case, the resulting cone would
-    # have one generating ray. To avoid such a situation, we start by
-    # generating ``r`` rays where ``r`` is the number we want to end
-    # up with...
-    rays = [lattice.random_element() for i in range(0, r)]
+        return True
 
-    # (The lattice parameter is required when no rays are given, so we
-    # pass it just in case ``r == 0``).
-    K = Cone(rays, lattice=lattice)
+    # Now we actually compute the thing. To avoid recursion (and the
+    # associated "maximum recustion depth exceeded" error), we loop
+    # until we have a valid cone and occasionally throw everything out
+    # and start over from scratch.
+    while True:
+        L = lattice
 
-    # ...Now if we generated two of the "same" rays, we'll have fewer
-    # generating rays than ``r``. In that case, we keep making up new
-    # rays and recreating the cone until we get the right number of
-    # independent generators. We can obviously stop if ``K`` is the
-    # entire ambient vector space.
-    while r > K.nrays() and not K.is_full_space():
-        rays.append(lattice.random_element())
-        K = Cone(rays)
+        if lattice is None:
+            # No lattice given, make our own.
+            d = random_min_max(min_dim, max_dim)
+            L = ToricLattice(d)
+
+        r = random_min_max(min_rays, max_rays)
+
+        # The rays are trickier to generate, since we could generate v and
+        # 2*v as our "two rays." In that case, the resulting cone would
+        # have one generating ray. To avoid such a situation, we start by
+        # generating ``r`` rays where ``r`` is the number we want to end
+        # up with...
+        rays = [L.random_element() for i in range(0, r)]
+
+        # (The lattice parameter is required when no rays are given, so we
+        # pass it just in case ``r == 0``).
+        K = Cone(rays, lattice=L)
+
+        # Now, some of the rays that we generated were probably redundant,
+        # so we need to come up with more. We can obviously stop if ``K``
+        # becomes the entire ambient vector space.
+        #
+        # We're still not guaranteed to have the correct number of
+        # rays after this! Since we normalize the generators in the
+        # loop above, we can jump from two to four generators by
+        # adding e.g. (1,1) to [(0,1), (0,-1)]. Rather than trying to
+        # mangle what we have, we just start over.
+        #
+        while r > K.nrays() and not K.is_full_space():
+            rays.append(L.random_element())
+            K = Cone(rays)
+            rays = list(K.rays()) # Avoid re-normalizing next time around
+
+        if is_valid(K):
+            # Loop if we don't have a valid cone.
+            break
 
     return K

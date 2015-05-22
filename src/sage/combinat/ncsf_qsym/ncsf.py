@@ -41,6 +41,8 @@ from sage.combinat.ncsf_qsym.combinatorics import (coeff_pi, coeff_lp,
 from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
 from sage.matrix.constructor import matrix
+from sage.categories.morphism import SetMorphism
+from sage.categories.homset import Hom
 
 class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
@@ -4778,11 +4780,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                              category=NCSF.Bases())
             category = self.category()
             self._S = self.realization_of().complete()
-            to_S = self.module_morphism(
-                    on_basis = self._to_complete_on_basis,
-                    codomain = self._S,
-                    category = category)
-            to_S.register_as_coercion()
+            self._S.register_coercion(SetMorphism(Hom(self, self._S, category),
+                self._to_complete_by_triangularity))
 
             from_S = self._S.module_morphism(
                         on_basis = self._from_complete_on_basis,
@@ -4801,46 +4800,13 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             return "dual Quasisymmetric-Schur"
 
-        def _to_complete_transition_matrix(self, n):
+        def _to_complete_by_triangularity(self, dQSelement):
             r"""
-            A matrix representing the transition coefficients to the complete basis
+            Expand a dualQuasisymmetric_Schur element in the complete basis.
 
             INPUT:
 
-            - ``n`` -- an integer
-
-            OUTPUT:
-
-            - a square matrix
-
-            EXAMPLES::
-
-                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
-                sage: dQS = NCSF.dQS()
-                sage: dQS._to_complete_transition_matrix(4)
-                [ 1  0  0  0  0  0  0  0]
-                [-1  1  0  0  0  0  0  0]
-                [-1  0  1  0  0  0  0  0]
-                [ 0  0 -1  1  0  0  0  0]
-                [ 1 -1  0 -1  1  0  0  0]
-                [ 1 -1  0 -1  0  1  0  0]
-                [ 1  0 -1 -1  0  0  1  0]
-                [-1  1  1  1 -1 -1 -1  1]
-            """
-            if n == 0:
-                return matrix([[]])
-            return matrix([[number_of_SSRCT(al,be) for be in compositions_order(n)]
-                for al in compositions_order(n)]).inverse()
-
-        @cached_method
-        def _to_complete_on_basis(self, comp):
-            r"""
-            The expansion of the dualQuasisymmetric_Schur basis element indexed
-            by ``comp`` in the complete basis.
-
-            INPUT:
-
-            - ``comp`` -- a composition
+            - ``dQSelement`` -- an element of the dualQuasisymmetric_Schur basis
 
             OUTPUT:
 
@@ -4850,15 +4816,18 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
                 sage: dQS = NCSF.dQS()
-                sage: dQS._to_complete_on_basis(Composition([1,3,1]))
+                sage: dQS._to_complete_by_triangularity(dQS([1,3,1]))
                 S[1, 3, 1] - S[3, 2] - S[4, 1] + S[5]
+                sage: dQS._to_complete_by_triangularity(dQS[2]+dQS[1])
+                S[2] + S[1]
             """
-            if not comp._list:
-                return self.one()
-            comps = compositions_order(comp.size())
-            T = self._to_complete_transition_matrix(comp.size())
-            return self._S.sum_of_terms( zip(comps, T[comps.index(comp)]),
-                                      distinct=True )
+            out = self._S.zero()
+            while not dQSelement.is_zero():
+                n = dQSelement.degree()
+                for al in compositions_order(n):
+                    out += dQSelement.coefficient(al)*self._S(al)
+                    dQSelement -= dQSelement.coefficient(al)*self._from_complete_on_basis(al)
+            return out
 
         @cached_method
         def _from_complete_on_basis(self, comp_content):

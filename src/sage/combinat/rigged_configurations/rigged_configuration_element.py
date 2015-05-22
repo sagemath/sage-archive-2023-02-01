@@ -343,7 +343,7 @@ class RiggedConfigurationElement(ClonableArray):
             sage: print RC(partition_list=[[],[],[],[]])._repr_horizontal()
             (/)   (/)   (/)   (/)
         """
-        tab_str = [repr(x).splitlines() for x in self]
+        tab_str = map(lambda x: repr(x).splitlines(), self)
         height = max(len(t) for t in tab_str)
         widths = [max(len(x) for x in t) for t in tab_str]
         ret_str = ''

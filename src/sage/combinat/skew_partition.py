@@ -258,7 +258,7 @@ class SkewPartition(CombinatorialElement):
             sage: skp.outer()
             [3, 2, 1]
         """
-        skp = [_Partitions(_) for _ in skp]
+        skp = map(_Partitions, skp)
         if skp not in SkewPartitions():
             raise ValueError("invalid skew partition: %s"%skp)
         return SkewPartitions()(skp)
@@ -307,7 +307,7 @@ class SkewPartition(CombinatorialElement):
             sage: print SkewPartition([[3,2,1],[2,1]])._repr_lists()
             [[3, 2, 1], [2, 1]]
         """
-        return repr([list(_) for _ in self])
+        return repr(map(list, self))
 
     def _latex_(self):
         r"""
@@ -732,7 +732,7 @@ class SkewPartition(CombinatorialElement):
             sage: SkewPartition([[3,2,1],[2]]).conjugate()
             [3, 2, 1] / [1, 1]
         """
-        return SkewPartition([x.conjugate() for x in self])
+        return SkewPartition(map(lambda x: x.conjugate(), self))
 
     def outer_corners(self):
         """
@@ -1013,7 +1013,7 @@ class SkewPartition(CombinatorialElement):
             sage: type(s.to_list())
             <type 'list'>
         """
-        return [list(_) for _ in list(self)]
+        return map(list, list(self))
 
     def to_dag(self, format="string"):
         """
@@ -1243,7 +1243,7 @@ def row_lengths_aux(skp):
     if skp[0] == []:
         return []
     else:
-        return [x[0] - x[1] for x in zip(skp[0], skp[1])]
+        return map(lambda x: x[0] - x[1], zip(skp[0], skp[1]))
 
 class SkewPartitions(Parent, UniqueRepresentation):
     """
@@ -1837,7 +1837,7 @@ class SkewPartitions_rowlengths(SkewPartitions):
         for i in range(nn+1):
             (skp1, skp2) = sskp
             skp2 += [0]*(len(skp1)-len(skp2))
-            skp1 = [x + i + mm for x in skp1]
+            skp1 = map(lambda x: x + i + mm, skp1)
             skp1 += [ck]
             skp2 = map(lambda x: x + i + mm, skp2)
             skp2 = [x for x in skp2 if x != 0]

@@ -936,7 +936,7 @@ class Composition(CombinatorialElement):
             ...
             ValueError: composition J (= [2, 1]) does not refine self (= [1, 2])
         """
-        return Compositions()([len(_) for _ in self.refinement_splitting(J)])
+        return Compositions()(map(len,self.refinement_splitting(J)))
 
     def major_index(self):
         """

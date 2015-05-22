@@ -264,6 +264,7 @@ class Necklaces_evaluation(CombinatorialClass):
             yield map(lambda x: x+1+k, z)
 
 
+
 ##############################
 #Fast Fixed Content Algorithm#
 ##############################

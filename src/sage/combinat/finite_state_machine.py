@@ -6553,7 +6553,8 @@ class FiniteStateMachine(SageObject):
                     for x in self.iter_transitions(from_state)
                     if x.word_in[0] == read]
 
-        new_initial_states=[deepcopy(x, memo) for x in self.initial_states()]
+        new_initial_states=map(lambda x: deepcopy(x, memo),
+                               self.initial_states())
         result = self.empty_copy()
         result.add_from_transition_function(accessible,
                                             initial_states=new_initial_states)
@@ -7642,7 +7643,7 @@ class FiniteStateMachine(SageObject):
         """
         DG = self.digraph()
         condensation = DG.strongly_connected_components_digraph()
-        return [self.induced_sub_finite_state_machine([self.state(_) for _ in component])
+        return [self.induced_sub_finite_state_machine(map(self.state, component))
                 for component in condensation.vertices()
                 if condensation.out_degree(component) == 0]
 
@@ -7770,7 +7771,8 @@ class FiniteStateMachine(SageObject):
                     self.transitions(state))) \
                    or state.is_final and not state.final_word_out:
                 return tuple()
-            first_letters = [transition.word_out[0] for transition in self.transitions(state)]
+            first_letters = map(lambda transition: transition.word_out[0],
+                                self.transitions(state))
             if state.is_final:
                 first_letters = first_letters + [state.final_word_out[0]]
             if not first_letters:

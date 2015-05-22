@@ -990,7 +990,7 @@ class TransducerGenerators(object):
             if output == 0:
                 return []
             elif word_function is not None and output.operator() == word_function:
-                return [convert_output(_) for _ in output.operands()]
+                return list(map(convert_output, output.operands()))
             else:
                 return [convert_output(output)]
 

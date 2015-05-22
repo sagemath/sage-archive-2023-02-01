@@ -96,13 +96,15 @@ List of Poset methods
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FinitePoset.dual` | Return the dual poset of the given poset.
-    :meth:`~FinitePoset.disjoint_union` | Return the disjoint union of the poset with ``other``.
-    :meth:`~FinitePoset.ordinal_sum` | Return the ordinal sum of the poset with ``other``.
-    :meth:`~FinitePoset.ordinal_product` | Return the ordinal product of the poset with ``other``.
-    :meth:`~FinitePoset.product` | Return the cartesian product of ``self`` and ``other``.
-    :meth:`~FinitePoset.subposet` | Return the poset containing elements with partial order induced by that of self.
-    :meth:`~FinitePoset.random_subposet` | Return a random subposet that contains each element with probability ``p``.
+    :meth:`~FinitePoset.disjoint_union` | Return the disjoint union of the poset with other poset.
+    :meth:`~FinitePoset.ordinal_sum` | Return the ordinal sum of the poset with other poset.
+    :meth:`~FinitePoset.ordinal_product` | Return the ordinal product of the poset with other poset.
+    :meth:`~FinitePoset.product` | Return the cartesian product of the poset with other poset.
+    :meth:`~FinitePoset.dual` | Return the dual poset of this poset.
+    :meth:`~FinitePoset.completion_by_cuts` | Return the Dedekind-MacNeille completion of the poset.
+    :meth:`~FinitePoset.connected_components` | Return the connected components of the poset as subposets.
+    :meth:`~FinitePoset.subposet` | Return the subposet containing elements with partial order induced by this poset.
+    :meth:`~FinitePoset.random_subposet` | Return a random subposet that contains each element with given probability.
     :meth:`~FinitePoset.canonical_label` | Return copy of the poset canonically (re)labelled with elements `\{0, \ldots, n-1\}`.
     :meth:`~FinitePoset.relabel` | Return a copy of this poset with its elements relabelled.
 
@@ -174,8 +176,6 @@ List of Poset methods
     :delim: |
 
     :meth:`~FinitePoset.comparability_graph` | Return the comparability graph of the poset.
-    :meth:`~FinitePoset.completion_by_cuts` | Return the Dedekind-MacNeille completion of the poset.
-    :meth:`~FinitePoset.connected_components` | Return the connected components of ``self`` as subposets.
     :meth:`~FinitePoset.cover_relations_graph` | Return the graph of cover relations.
     :meth:`~FinitePoset.coxeter_transformation` | Return the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules.
     :meth:`~FinitePoset.cuts` | Return the cuts of the given poset.

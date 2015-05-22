@@ -1222,6 +1222,20 @@ class Newform(ModularForm_abstract):
             sage: f.atkin_lehner_eigenvalue(169)
             -1
 
+        TESTS::
+
+            sage: K.<a> = QuadraticField(1129)
+            sage: f = Newforms(Gamma0(20), 8, base_ring=K)[2]; f
+            q + (2*a - 10)*q^3 + 125*q^5 + O(q^6)
+            sage: f.atkin_lehner_action(2)
+            (-1, q + (2*a - 10)*q^3 + 125*q^5 + O(q^6))
+
+            sage: f = Newforms(Gamma1(11), 2)[0]
+            sage: f.atkin_lehner_action(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: d (= 2) does not divide the level (= 11)
+
         """
         if d == 1:
             w = self.base_ring().one()
@@ -1239,6 +1253,10 @@ class Newform(ModularForm_abstract):
                     w = embedding(w)
                 return w, self
         d = rings.Integer(d)
+        N = self.level()
+        if not d.divides(N):
+            raise ValueError('d (= {}) does not divide the level (= {})'.format(d, N))
+        d = N // N.prime_to_m_part(d)
         q, e = d.factor()[0]
         Q = q**e
         M = d // Q

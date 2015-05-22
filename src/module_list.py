@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+from glob import glob
 from distutils.extension import Extension
 from sage.env import SAGE_LOCAL
 
@@ -32,7 +33,7 @@ else:
 
 
 #########################################################
-### Commonly used definitions
+### Commonly used definitions and aliases
 #########################################################
 
 flint_depends = [SAGE_INC + '/flint/flint.h']
@@ -40,6 +41,8 @@ singular_depends = [SAGE_INC + '/libsingular.h']
 givaro_depends = [SAGE_INC + '/givaro/givconfig.h']
 
 singular_incs = [SAGE_INC + '/singular', SAGE_INC + '/factory']
+
+aliases = dict(INTERRUPT_DEPENDS=glob("sage/ext/interrupt/*.h"))
 
 #########################################################
 ### M4RI flags
@@ -275,7 +278,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('*', ['sage/ext/*.pyx']),
+    Extension('*', ['sage/ext/**/*.pyx']),
 
     ################################
     ##
@@ -2005,9 +2008,6 @@ ext_modules = [
     ## sage.tests
     ##
     ################################
-
-    Extension('sage.tests.interrupt',
-              sources = ['sage/tests/interrupt.pyx', 'sage/tests/c_lib.c']),
 
     Extension('sage.tests.stl_vector',
               sources = ['sage/tests/stl_vector.pyx'],

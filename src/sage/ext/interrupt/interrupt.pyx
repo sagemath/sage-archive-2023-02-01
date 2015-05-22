@@ -1,15 +1,16 @@
 r"""
-Cython interface to the interrupt handling code
+Interrupt and signal handling
 
-See ``src/sage/tests/interrupt.pyx`` for extensive tests.
+See ``src/sage/ext/interrupt/tests.pyx`` for extensive tests.
 
 AUTHORS:
 
 - Jeroen Demeyer (2010-10-13): initial version
 
 """
+
 #*****************************************************************************
-#       Copyright (C) 2011 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#       Copyright (C) 2011-2015 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -17,9 +18,18 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
-include 'sage/ext/signals.pxi'
+
+from libc.signal cimport *
 from libc.stdio cimport freopen, stdin
+from cpython.exc cimport PyErr_Occurred
+
+cdef extern from "interrupt/implementation.c":
+    sage_signals_t _signals "_signals"
+    void setup_sage_signal_handler() nogil
+    void print_backtrace() nogil
+    void _sig_on_interrupt_received() nogil
+    void _sig_on_recover() nogil
+    void _sig_off_warning(const char*, int) nogil
 
 
 class AlarmInterrupt(KeyboardInterrupt):
@@ -57,11 +67,16 @@ class SignalError(BaseException):
     """
     pass
 
-cdef int sig_raise_exception(int sig, const char* msg) except 0:
+
+cdef public int sig_raise_exception "sig_raise_exception"(int sig, const char* msg) except 0 with gil:
     """
     Raise an exception for signal number ``sig`` with message ``msg``
     (or a default message if ``msg`` is ``NULL``).
     """
+    # Do not raise an exception if an exception is already pending
+    if PyErr_Occurred():
+        return 0
+
     if sig == SIGHUP or sig == SIGTERM:
         # Redirect stdin from /dev/null to close interactive sessions
         freopen("/dev/null", "r", stdin)
@@ -153,7 +168,6 @@ def init_interrupts():
     signal.signal(signal.SIGINT, sage_python_check_interrupt)
 
     setup_sage_signal_handler()
-    _signals.raise_exception = sig_raise_exception
 
 
 def sig_on_reset():
@@ -181,6 +195,3 @@ def sage_python_check_interrupt(sig, frame):
     libcsage (c_lib).
     """
     sig_check()
-
-
-init_interrupts()

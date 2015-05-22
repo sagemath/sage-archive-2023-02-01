@@ -40,6 +40,7 @@ from sage.combinat.ncsf_qsym.combinatorics import (coeff_pi, coeff_lp,
         coeff_sp, coeff_ell, m_to_s_stat, number_of_fCT, number_of_SSRCT, compositions_order)
 from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
+from sage.matrix.constructor import matrix
 
 class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
@@ -4776,20 +4777,18 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                              prefix='dQS', bracket=False,
                                              category=NCSF.Bases())
             category = self.category()
-            self._R = self.realization_of().ribbon()
-            S = self.realization_of().complete()
-            self._QS = self.realization_of().dual().Quasisymmetric_Schur()
-            to_R = self.module_morphism(
-                    on_basis = self._to_ribbon_on_basis,
-                    codomain = self._R,
+            self._S = self.realization_of().complete()
+            to_S = self.module_morphism(
+                    on_basis = self._to_complete_on_basis,
+                    codomain = self._S,
                     category = category)
-            to_R.register_as_coercion()
+            to_S.register_as_coercion()
 
-            from_R = S.module_morphism(
+            from_S = self._S.module_morphism(
                         on_basis = self._from_complete_on_basis,
                         codomain = self,
                         category = category)
-            from_R.register_as_coercion()
+            from_S.register_as_coercion()
 
         def _realization_name(self):
             r"""
@@ -4802,7 +4801,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             return "dual Quasisymmetric-Schur"
 
-        def _to_ribbon_transition_matrix(self, n):
+        def _to_complete_transition_matrix(self, n):
             r"""
             A matrix representing the transition coefficients to the ribbon basis
 
@@ -4818,51 +4817,26 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
                 sage: dQS = NCSF.dQS()
-                sage: dQS._to_ribbon_transition_matrix(4)
+                sage: dQS._to_complete_transition_matrix(4)
                 [ 1  0  0  0  0  0  0  0]
-                [ 0  1  0  0  0  0  0  0]
-                [ 0  0  1  0  0  0  0  0]
+                [-1  1  0  0  0  0  0  0]
+                [-1  0  1  0  0  0  0  0]
                 [ 0  0 -1  1  0  0  0  0]
-                [ 0  0  0  0  1  0  0  0]
-                [ 0  0  1 -1  0  1  0  0]
-                [ 0  0  0  0  0  0  1  0]
-                [ 0  0  0  0  0  0  0  1]
+                [ 1 -1  0 -1  1  0  0  0]
+                [ 1 -1  0 -1  0  1  0  0]
+                [ 1  0 -1 -1  0  0  1  0]
+                [-1  1  1  1 -1 -1 -1  1]
             """
-            return self._QS._from_fundamental_transition_matrix(n).transpose()
-
-        def _from_ribbon_transition_matrix(self, n):
-            r"""
-            A matrix representing the transition coefficients from the ribbon basis
-
-            INPUT:
-
-            - ``n`` -- an integer
-
-            OUTPUT:
-
-            - a square matrix
-
-            EXAMPLES::
-
-                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
-                sage: dQS = NCSF.dQS()
-                sage: dQS._from_ribbon_transition_matrix(4)
-                [1 0 0 0 0 0 0 0]
-                [0 1 0 0 0 0 0 0]
-                [0 0 1 0 0 0 0 0]
-                [0 0 1 1 0 0 0 0]
-                [0 0 0 0 1 0 0 0]
-                [0 0 0 1 0 1 0 0]
-                [0 0 0 0 0 0 1 0]
-                [0 0 0 0 0 0 0 1]
-            """
-            return self._QS._to_fundamental_transition_matrix(n).transpose()
+            if n == 0:
+                return matrix([[]])
+            return matrix([[number_of_SSRCT(al,be) for be in compositions_order(n)]
+                for al in compositions_order(n)]).inverse()
 
         @cached_method
-        def _to_ribbon_on_basis(self, comp):
+        def _to_complete_on_basis(self, comp):
             r"""
             The expansion of the dualQuasisymmetric_Schur basis element indexed
-            by ``comp`` in the ribbon basis.
+            by ``comp`` in the complete basis.
 
             INPUT:
 
@@ -4870,20 +4844,20 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - a quasi-symmetric function in the ribbon basis
+            - a quasi-symmetric function in the complete basis
 
             EXAMPLES::
 
                 sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
                 sage: dQS = NCSF.dQS()
-                sage: dQS._to_ribbon_on_basis(Composition([1,3,1]))
-                R[1, 3, 1] + R[1, 4] - R[3, 2]
+                sage: dQS._to_complete_on_basis(Composition([1,3,1]))
+                S[1, 3, 1] - S[3, 2] - S[4, 1] + S[5]
             """
             if not comp._list:
                 return self.one()
             comps = compositions_order(comp.size())
-            T = self._to_ribbon_transition_matrix(comp.size())
-            return self._R.sum_of_terms( zip(comps, T[comps.index(comp)]),
+            T = self._to_complete_transition_matrix(comp.size())
+            return self._S.sum_of_terms( zip(comps, T[comps.index(comp)]),
                                       distinct=True )
 
         @cached_method

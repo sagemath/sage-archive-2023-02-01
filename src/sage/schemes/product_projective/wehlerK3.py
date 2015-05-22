@@ -1,7 +1,9 @@
 r"""
+Wehler K3 Surfaces
+
 AUTHORS:
 
-- Ben Hutz (11 -2012)
+- Ben Hutz (11-2012)
 - Joao Alberto de Faria (10-2013)
 
     TODO::

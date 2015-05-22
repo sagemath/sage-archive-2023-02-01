@@ -8,7 +8,7 @@ fi
 
 
 LATTE_VERSION="$(cat ${SAGE_ROOT}/build/pkgs/latte_int/package-version.txt)"
-cd "latte-integrale-${LATTE_VERSION}"
+cd "latte-int-${LATTE_VERSION}"
 
 
 #CFLAGS="-I $SAGE_LOCAL/include -L$SAGE_LOCAL/lib $CFLAGS"
@@ -18,7 +18,7 @@ $MAKE
 $MAKE install
 
 if [ $? -ne 0 ]; then
-   echo "Error building latte_int"
+   echo "Error building latte-int"
    exit 1
 fi
 

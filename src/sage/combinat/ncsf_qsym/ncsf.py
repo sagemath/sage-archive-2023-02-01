@@ -37,7 +37,7 @@ from sage.combinat.composition import Compositions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.ncsf_qsym.generic_basis_code import BasesOfQSymOrNCSF
 from sage.combinat.ncsf_qsym.combinatorics import (coeff_pi, coeff_lp,
-        coeff_sp, coeff_ell, m_to_s_stat, number_of_fCT, compositions_order)
+        coeff_sp, coeff_ell, m_to_s_stat, number_of_fCT, number_of_SSRCT, compositions_order)
 from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
 
@@ -4777,6 +4777,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                              category=NCSF.Bases())
             category = self.category()
             self._R = self.realization_of().ribbon()
+            S = self.realization_of().complete()
             self._QS = self.realization_of().dual().Quasisymmetric_Schur()
             to_R = self.module_morphism(
                     on_basis = self._to_ribbon_on_basis,
@@ -4784,8 +4785,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     category = category)
             to_R.register_as_coercion()
 
-            from_R = self._R.module_morphism(
-                        on_basis = self._from_ribbon_on_basis,
+            from_R = S.module_morphism(
+                        on_basis = self._from_complete_on_basis,
                         codomain = self,
                         category = category)
             from_R.register_as_coercion()
@@ -4886,32 +4887,34 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                       distinct=True )
 
         @cached_method
-        def _from_ribbon_on_basis(self, comp):
+        def _from_complete_on_basis(self, comp_content):
             r"""
-            The expansion of the ribbon basis element indexed by ``comp``
-            in the dual to the quasi-symmetric Schur basis.
+            Return the expansion of a complete basis element in the
+            dualQuasisymmetric_Schur basis.
 
             INPUT:
 
-            - ``comp`` -- a composition
+            - ``comp_content`` -- a composition
 
             OUTPUT:
 
-            - a ribbon function in the dualQuasisymmetric_Schur basis
+            - The expansion in the dualQuasisymmetric_Schur basis of the basis
+              element of the complete basis indexed by the composition
+              ``comp_content``.
 
             EXAMPLES::
 
-                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
-                sage: dQS = NCSF.dQS()
-                sage: dQS._from_ribbon_on_basis(Composition([1,3,1]))
-                dQS[1, 3, 1] + dQS[3, 2]
+                sage: dQS=NonCommutativeSymmetricFunctions(QQ).dQS()
+                sage: dQS._from_complete_on_basis(Composition([]))
+                dQS[]
+                sage: dQS._from_complete_on_basis(Composition([2,1,1]))
+                dQS[1, 3] + dQS[2, 1, 1] + dQS[2, 2] + dQS[3, 1] + dQS[4]
             """
-            if not comp._list:
-                return self.one()
-            comps = compositions_order(comp.size())
-            T = self._from_ribbon_transition_matrix(comp.size())
-            return self.sum_of_terms( zip(comps, T[comps.index(comp)]),
-                                      distinct=True )
+            if not comp_content._list:
+                return self([])
+            return self.sum_of_terms( ( (comp_shape, number_of_SSRCT(comp_content, comp_shape))
+                                     for comp_shape in Compositions(sum(comp_content)) ),
+                                   distinct=True )
 
         def dual(self):
             r"""

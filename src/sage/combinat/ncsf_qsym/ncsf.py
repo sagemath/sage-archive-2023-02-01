@@ -4819,7 +4819,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: dQS._to_complete_by_triangularity(dQS([1,3,1]))
                 S[1, 3, 1] - S[3, 2] - S[4, 1] + S[5]
                 sage: dQS._to_complete_by_triangularity(dQS[2]+dQS[1])
-                S[2] + S[1]
+                S[1] + S[2]
             """
             out = self._S.zero()
             while not dQSelement.is_zero():

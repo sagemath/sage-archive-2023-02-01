@@ -269,6 +269,9 @@ def number_of_SSRCT(content_comp, shape_comp):
     and shape `\gamma` where `dQS_\alpha` appears in the expansion of
     `S_{\beta_1} dQS_\gamma`.
 
+    In sage the recording tableau for these objects are called
+    :class:`~sage.combinat.composition_tableau.CompositionTableaux`
+
     INPUT:
 
     - ``content_comp``, ``shape_comp`` -- compositions
@@ -286,6 +289,10 @@ def number_of_SSRCT(content_comp, shape_comp):
         1
         sage: number_of_SSRCT(Composition([1,1,2,2]), Composition([3,3]))
         2
+        sage: all(CompositionTableaux(be).cardinality()==
+        ....:    sum(number_of_SSRCT(al,be)*binomial(4,len(al)) for al in
+        ....:    Compositions(4)) for be in Compositions(4))
+        True
     """
     if len(content_comp) == 1:
         if len(shape_comp) == 1:

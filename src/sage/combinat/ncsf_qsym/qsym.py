@@ -72,7 +72,7 @@ from sage.combinat.partition import Partitions, _Partitions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.ncsf_qsym.generic_basis_code import BasesOfQSymOrNCSF
-from sage.combinat.ncsf_qsym.combinatorics import number_of_fCT, compositions_order
+from sage.combinat.ncsf_qsym.combinatorics import number_of_fCT, number_of_SSRCT, compositions_order
 from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
 from sage.combinat.words.word import Word
 from sage.misc.cachefunc import cached_method
@@ -549,9 +549,9 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         Monomial.module_morphism(dualImmaculate._from_Monomial_on_basis,
                                           codomain = dualImmaculate, category = category
                                           ).register_as_coercion()
-        #This changes Quasisymmetric Schur into Fundamental
-        QS         .module_morphism(QS._to_fundamental_on_basis,
-                                    codomain=Fundamental, category=category
+        #This changes Quasisymmetric Schur into Monomial
+        QS         .module_morphism(QS._to_monomial_on_basis,
+                                    codomain=Monomial, category=category
                                     ).register_as_coercion()
         #This changes Fundamental into Quasisymmetric Schur
         Fundamental.module_morphism(QS._from_fundamental_on_basis,
@@ -2617,28 +2617,33 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             """
             return "Quasisymmetric Schur"
 
-        def _to_fundamental_on_basis(self, comp):
+        def _to_monomial_on_basis(self, comp_shape):
             r"""
-            Map the quasi-symmetric Schur function indexed by ``comp`` to
-            the Fundamental basis.
+            Map the quasi-symmetric Schur function indexed by ``comp_shape`` to
+            the Monomial basis.
 
             INPUT:
 
-            - ``comp`` -- a composition
+            - ``comp_shape`` -- a composition
 
             OUTPUT:
 
-            - a quasi-symmetric function in the Fundamental basis
+            - a quasi-symmetric function in the Monomial basis
 
             EXAMPLES::
 
                 sage: QSym = QuasiSymmetricFunctions(QQ)
                 sage: QS = QSym.QS()
-                sage: QS._to_fundamental_on_basis([1,3,1])
-                F[1, 3, 1] + F[2, 2, 1]
+                sage: QS._to_monomial_on_basis(Composition([1,3,1]))
+                2*M[1, 1, 1, 1, 1] + 2*M[1, 1, 2, 1] + M[1, 2, 1, 1] + M[1, 3, 1] + M[2, 1, 1, 1] + M[2, 2, 1]
             """
-            F = self.realization_of().Fundamental()
-            return F.sum_of_monomials(T.descent_composition() for T in CompositionTableaux(comp) if T.is_standard())
+            M = self.realization_of().Monomial()
+            if len(comp_shape)==0:
+                return M([])
+            return M.sum_of_terms(((comp_content,
+                    number_of_SSRCT(comp_content, comp_shape))
+                    for comp_content in Compositions(sum(comp_shape))),
+                    distinct=True )
 
         ##########################################################################
         # Implementation of the from_fundamental by inverting to_fundamental

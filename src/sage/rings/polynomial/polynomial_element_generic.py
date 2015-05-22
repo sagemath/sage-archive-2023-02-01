@@ -67,6 +67,14 @@ class Polynomial_generic_sparse(Polynomial):
         s^2 + 2*Tbar*s + 4
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
+        """
+        TESTS::
+
+            sage: PolynomialRing(RIF, 'z', sparse=True)([RIF(-1, 1), RIF(-1,1)])
+            0.?*z + 0.?
+            sage: PolynomialRing(CIF, 'z', sparse=True)([CIF(RIF(-1,1), RIF(-1,1)), RIF(-1,1)])
+            0.?*z + 0.? + 0.?*I
+        """
         Polynomial.__init__(self, parent, is_gen=is_gen)
         if x is None:
             self.__coeffs = {}
@@ -85,11 +93,7 @@ class Polynomial_generic_sparse(Polynomial):
                 # Apparently, the "else" case has never occured before.
                 x = w
         elif isinstance(x, list):
-            y = {}
-            for i in xrange(len(x)):
-                if x[i] != 0:
-                    y[i] = x[i]
-            x = y
+            x = dict((i, c) for (i, c) in enumerate(x) if c)
         elif isinstance(x, pari_gen):
             y = {}
             for i in range(len(x)):
@@ -125,7 +129,7 @@ class Polynomial_generic_sparse(Polynomial):
         """
         return dict(self.__coeffs)
 
-    def coefficients(self):
+    def coefficients(self,sparse=True):
         """
         Return the coefficients of the monomials appearing in self.
 
@@ -137,7 +141,10 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f.coefficients()
             [5, 1, 7]
         """
-        return [c[1] for c in sorted(self.__coeffs.iteritems())]
+        if sparse:
+          return [c[1] for c in sorted(self.__coeffs.iteritems())]
+        else:
+          return [self.__coeffs[i] if self.__coeffs.has_key(i) else 0 for i in xrange(self.degree() + 1)]
 
     def exponents(self):
         """
@@ -244,6 +251,12 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f._repr(name='z')
             '1.0*z^5 - 3.141592653589793*z + 3.718281828459045 + 2.0*I'
 
+        TESTS::
+
+            sage: pol = RIF['x']([0, 0, (-1,1)])
+            sage: PolynomialRing(RIF, 'x', sparse=True)(pol)
+            0.?*x^2
+
         AUTHOR:
 
         - David Harvey (2006-08-05), based on Polynomial._repr()
@@ -256,7 +269,7 @@ class Polynomial_generic_sparse(Polynomial):
         atomic_repr = self.parent().base_ring()._repr_option('element_is_atomic')
         coeffs = sorted(self.__coeffs.iteritems())
         for (n, x) in reversed(coeffs):
-            if x != 0:
+            if x:
                 if n != m-1:
                     s += " + "
                 x = y = repr(x)
@@ -621,17 +634,17 @@ class Polynomial_generic_sparse(Polynomial):
 
         d = other.degree()
         if self.degree() < d:
-            return R.zero_element(), self
+            return R.zero(), self
 
-        quo = R.zero_element()
+        quo = R.zero()
         rem = self
-        inv_lc = R.base_ring().one_element()/other.leading_coefficient()
+        inv_lc = R.base_ring().one()/other.leading_coefficient()
 
         while rem.degree() >= d:
 
             c = rem.leading_coefficient()*inv_lc
             e = rem.degree() - d
-            quo += c*R.one_element().shift(e)
+            quo += c*R.one().shift(e)
             # we know that the leading coefficient of rem vanishes
             # thus we avoid doing a useless computation
             rem = rem[:rem.degree()] - c*other[:d].shift(e)
@@ -699,7 +712,7 @@ class Polynomial_generic_field(Polynomial_singular_repr,
         A = self
         B = other
         R = A
-        Q = P.zero_element()
+        Q = P.zero()
         while R.degree() >= B.degree():
             aaa = R.leading_coefficient()/B.leading_coefficient()
             diff_deg=R.degree()-B.degree()
@@ -729,6 +742,13 @@ class Polynomial_generic_field(Polynomial_singular_repr,
             sage: (2*x).gcd(2*x^2)
             x
 
+            sage: zero = R.zero()
+            sage: zero.gcd(2*x)
+            x
+            sage: (2*x).gcd(zero)
+            x
+            sage: zero.gcd(zero)
+            0
         """
         from sage.categories.euclidean_domains import EuclideanDomains
         g = EuclideanDomains().ElementMethods().gcd(self, other)
@@ -771,25 +791,43 @@ class Polynomial_generic_field(Polynomial_singular_repr,
             sage: g == u*P(0) + v*x
             True
 
+        TESTS:
+
+        We check that the behavior of xgcd with zero elements is compatible with
+        gcd (:trac:`17671`)::
+
+            sage: R.<x> = QQbar[]
+            sage: zero = R.zero()
+            sage: zero.xgcd(2*x)
+            (x, 0, 1/2)
+            sage: (2*x).xgcd(zero)
+            (x, 1/2, 0)
+            sage: zero.xgcd(zero)
+            (0, 0, 0)
         """
-        if other.is_zero():
-            R = self.parent()
-            return self, R.one_element(), R.zero_element()
-        # Algorithm 3.2.2 of Cohen, GTM 138
         R = self.parent()
+        zero = R.zero()
+        one = R.one()
+        if other.is_zero():
+            if self.is_zero():
+                return (zero, zero, zero)
+            else:
+                c = self.leading_coefficient()
+                return (self/c, one/c, zero)
+        elif self.is_zero():
+            c = other.leading_coefficient()
+            return (other/c, zero, one/c)
+
+        # Algorithm 3.2.2 of Cohen, GTM 138
         A = self
         B = other
-        U = R.one_element()
+        U = one
         G = A
-        V1 = R.zero_element()
+        V1 = zero
         V3 = B
         while not V3.is_zero():
             Q, R = G.quo_rem(V3)
-            T = U - V1*Q
-            U = V1
-            G = V3
-            V1 = T
-            V3 = R
+            G, U, V1, V3 = V3, V1, U-V1*Q, R
         V = (G-A*U)//B
         lc = G.leading_coefficient()
         return G/lc, U/lc, V/lc

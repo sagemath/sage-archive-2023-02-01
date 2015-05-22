@@ -341,7 +341,7 @@ class QuiverHomSpace(Homset):
             data0 = {}
         try:
             return self.element_class(self._domain, self._codomain, data0)
-        except StandardError:
+        except (TypeError, ValueError):
             return super(QuiverHomSpace,self).__call__(*data,**kwds)
 
     def _repr_(self):

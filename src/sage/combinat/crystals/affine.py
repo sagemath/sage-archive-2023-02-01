@@ -212,7 +212,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         r"""
         Coerces ``value`` into ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: n=2
             sage: C=crystals.Tableaux(['A',n],shape=[1])
@@ -236,7 +236,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         r"""
         Checks whether ``x`` is an element of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: n=2
             sage: C=crystals.Tableaux(['A',n],shape=[1])

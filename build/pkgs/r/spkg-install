@@ -84,6 +84,13 @@ if [ "$UNAME" = "Darwin" ]; then
     R_CONFIGURE="--enable-R-framework=no $R_CONFIGURE"
 fi
 
+# OS X 10.10 and/or Xcode 6.3 broke the R installation. See
+# http://trac.sagemath.org/ticket/18254.
+if { uname -sr | grep 'Darwin 14\.' ;} &>/dev/null; then
+    echo "OS X 10.10: Configuring R without aqua support."
+    R_CONFIGURE="--with-aqua=no $R_CONFIGURE"
+fi 
+
 if [ "$UNAME" = "CYGWIN" ]; then
     # Cygwin libm does not provide "long double" functions
     # and we do not install Cephes on Cygwin at the moment
@@ -146,15 +153,15 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ "$UNAME" = "Darwin" ]; then
-    # We have to move old installs of R when upgrading R in Sage on OS X.
-    # Indeed Sage modifies DYLD_LIBRARY_PATH whereas R build process
-    # modifies DYLD_LIBRARY_PATH, so that it is Sage's R and not the freshly
-    # built one which will get loaded during the build process and if they are
-    # different versions then the build process might fail.
+    # We have to move (i.e., hide) old installs of R when upgrading R in Sage on OS X.
+    # Indeed Sage modifies DYLD_LIBRARY_PATH whereas R's build process
+    # modifies DYLD_FALLBACK_LIBRARY_PATH, so that it is Sage's R and not the freshly
+    # built one which will get loaded during the build process; in case the versions
+    # differ, the build process might fail.
     # On systems using LD_LIBRARY_PATH, both Sage and R modify it and R wins,
     # so no problem should occur.
     if [ -d "$SAGE_LOCAL"/lib/R ]; then
-        RINSTALL_MOVED = yes
+        RINSTALL_MOVED=yes
         mv "$SAGE_LOCAL"/lib/R "$SAGE_LOCAL"/lib/R.old
     fi
 fi

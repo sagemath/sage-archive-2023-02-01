@@ -18,7 +18,6 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-include "sage/ext/stdsage.pxi"
 
 cdef extern from "math.h":
     double exp(double)
@@ -523,7 +522,7 @@ def unpickle_gaussian_mixture_distribution_v1(TimeSeries c0, TimeSeries c1,
         sage: loads(dumps(P)) == P          # indirect doctest
         True
     """
-    cdef GaussianMixtureDistribution G = PY_NEW(GaussianMixtureDistribution)
+    cdef GaussianMixtureDistribution G = GaussianMixtureDistribution.__new__(GaussianMixtureDistribution)
     G.c0 = c0
     G.c1 = c1
     G.param = param

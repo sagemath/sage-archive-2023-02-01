@@ -103,8 +103,7 @@ cdef extern from "fplll/fplll.h" namespace "fplll":
                      LLLMethod method, FloatType floatType,
                      int precision, int flags)
 
-    cdef struct BKZParam:
-         BKZParam()
+    cdef cppclass BKZParam:
          ZZ_mat[mpz_t]* b
          ZZ_mat[mpz_t]* u
          int blockSize

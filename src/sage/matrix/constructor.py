@@ -1017,8 +1017,16 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
          eigenvectors, if computed by hand, will have only integer
          entries.
 
-    -  ``*args, **kwds`` - arguments and keywords to describe additional properties.
-       See more detailed documentation below.
+    -  ``*args, **kwds`` - arguments and keywords to describe additional 
+       properties. See more detailed documentation below.
+
+    .. warning::
+
+        Matrices generated are not uniformly distributed. For unimodular
+        matrices over finite field this function does not even generate
+        all of them: for example ``Matrix.random(GF(3), 2)`` never
+        generates ``[[2,0],[0,2]]``. This function is made for
+        teaching purposes.
 
     .. warning::
 
@@ -1031,13 +1039,14 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
 
     .. note::
 
-        When constructing matrices with random entries and no additional properties
-        (i.e. when ``algorithm='randomize'``), most of the randomness
-        is controlled by the ``random_element`` method for elements of the
-        base ring of the matrix, so the documentation of that method may be
-        relevant or useful.  Also, the default is to not create zero entries,
-        unless the ``density`` keyword is set to something strictly less
-        than one.
+        When constructing matrices with random entries and no
+        additional properties (i.e. when ``algorithm='randomize'``),
+        most of the randomness is controlled by the ``random_element``
+        method for elements of the base ring of the matrix, so the
+        documentation of that method may be relevant or useful.  Also,
+        the default is to not create zero entries, unless the
+        ``density`` keyword is set to something strictly less than
+        one.
 
     EXAMPLES:
 
@@ -2767,7 +2776,7 @@ def block_diagonal_matrix(*sub_matrices, **kwds):
     if isinstance(sub_matrices, (list, tuple)) and len(sub_matrices) == 1:
         sub_matrices = sub_matrices[0]
     n = len(sub_matrices)
-    entries = [ZZ.zero_element()] * n**2
+    entries = [ZZ.zero()] * n**2
     for i in range(n):
         entries[n*i+i] = sub_matrices[i]
     return block_matrix(n, n, entries, **kwds)
@@ -2906,7 +2915,7 @@ def companion_matrix(poly, format='right'):
         ...
         TypeError: input must be a polynomial (not a symbolic expression, see docstring), or other iterable, not y^3 - 2*y + 1
 
-        sage: coeff_list = [q(y=0)] + [q.coeff(y^k) for k in range(1, q.degree(y)+1)]
+        sage: coeff_list = [q(y=0)] + [q.coefficient(y^k) for k in range(1, q.degree(y)+1)]
         sage: coeff_list
         [1, -2, 0, 1]
         sage: companion_matrix(coeff_list)
@@ -2922,7 +2931,7 @@ def companion_matrix(poly, format='right'):
         sage: t = polygen(QQ, 't')
         sage: p = t^12 - 7*t^4 + 28*t^2 - 456
         sage: C = companion_matrix(p, format='top')
-        sage: q = C.minpoly(var=t); q
+        sage: q = C.minpoly(var='t'); q
         t^12 - 7*t^4 + 28*t^2 - 456
         sage: p == q
         True
@@ -2930,12 +2939,12 @@ def companion_matrix(poly, format='right'):
         sage: p = t^3 + 3*t - 8
         sage: q = t^5 + t - 17
         sage: A = block_diagonal_matrix( companion_matrix(p),
-        ...                              companion_matrix(p^2),
-        ...                              companion_matrix(q),
-        ...                              companion_matrix(q) )
-        sage: A.charpoly(var=t).factor()
+        ....:                            companion_matrix(p^2),
+        ....:                            companion_matrix(q),
+        ....:                            companion_matrix(q) )
+        sage: A.charpoly(var='t').factor()
         (t^3 + 3*t - 8)^3 * (t^5 + t - 17)^2
-        sage: A.minpoly(var=t).factor()
+        sage: A.minpoly(var='t').factor()
         (t^3 + 3*t - 8)^2 * (t^5 + t - 17)
 
     TESTS::

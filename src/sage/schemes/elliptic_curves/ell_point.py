@@ -1294,7 +1294,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         if self.is_zero() or R.is_zero():
             if self == R:
-                return self.curve().base_field().one_element()
+                return self.curve().base_field().one()
             if self.is_zero():
                 return Q[0] - R[0]
             if R.is_zero():
@@ -1467,7 +1467,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             n = n.abs()
             n_is_negative = True
 
-        one = self.curve().base_field().one_element()
+        one = self.curve().base_field().one()
         t = one
         V = self
         S = 2*V
@@ -1578,7 +1578,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         if not ((n*P).is_zero() and (n*Q).is_zero()):
             raise ValueError("points must both be n-torsion")
 
-        one = E.base_field().one_element()
+        one = E.base_field().one()
 
         # Case where P = Q
         if P == Q:

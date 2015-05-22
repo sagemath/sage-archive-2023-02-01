@@ -109,13 +109,13 @@ import sage.modular.arithgroup.all as arithgroup
 import sage.modular.cusps as cusps
 import sage.modular.dirichlet as dirichlet
 import sage.modular.hecke.all as hecke
+from sage.modular.modsym.manin_symbol import ManinSymbol
 
 import sage.rings.all as rings
 import sage.rings.arith as arith
 
 import ambient
 import element
-import manin_symbols
 
 
 class BoundarySpaceElement(hecke.HeckeModuleElement):
@@ -563,7 +563,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
         elif isinstance(x, cusps.Cusp):
             return self._coerce_cusp(x)
 
-        elif manin_symbols.is_ManinSymbol(x):
+        elif isinstance(x, ManinSymbol):
             return self._coerce_in_manin_symbol(x)
 
         elif element.is_ModularSymbolsElement(x):

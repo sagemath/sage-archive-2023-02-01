@@ -57,7 +57,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         sage: S.gens()
         (e_1, e_2, e_3, a, b, c, d)
         sage: S.category()
-        Category of finite semigroups
+        Join of Category of finite semigroups and Category of finite enumerated sets
 
     In the test suite, we skip the associativity test, as in this example the
     paths used for testing can't be concatenated::
@@ -880,7 +880,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
         An example with multiple edges::
 
-            sage: Q = DiGraph([[1,2,'abc'], [1,2,'def']])
+            sage: Q = DiGraph([[1,2,'abc'], [1,2,'def']], multiedges=True)
             sage: PQ = Q.path_semigroup()
             sage: PQ.all_paths(1,2)
             [abc, def]

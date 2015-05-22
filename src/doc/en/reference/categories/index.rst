@@ -34,6 +34,8 @@ Functorial constructions
    sage/categories/subobjects
    sage/categories/isomorphic_objects
 
+   sage/categories/homsets
+
    sage/categories/realizations
    sage/categories/with_realizations
 
@@ -67,8 +69,11 @@ Categories
    sage/categories/commutative_algebras
    sage/categories/commutative_ring_ideals
    sage/categories/commutative_rings
+   sage/categories/complete_discrete_valuation
+   sage/categories/coxeter_group_algebras
    sage/categories/coxeter_groups
    sage/categories/crystals
+   sage/categories/discrete_valuation
    sage/categories/distributive_magmas_and_additive_magmas
    sage/categories/division_rings
    sage/categories/domains
@@ -82,6 +87,7 @@ Categories
    sage/categories/finite_dimensional_coalgebras_with_basis
    sage/categories/finite_dimensional_hopf_algebras_with_basis
    sage/categories/finite_dimensional_modules_with_basis
+   sage/categories/finite_dimensional_semisimple_algebras_with_basis
    sage/categories/finite_enumerated_sets
    sage/categories/finite_fields
    sage/categories/finite_groups
@@ -93,6 +99,7 @@ Categories
    sage/categories/finite_sets
    sage/categories/finite_weyl_groups
    sage/categories/function_fields
+   sage/categories/g_sets
    sage/categories/gcd_domains
    sage/categories/graded_algebras
    sage/categories/graded_algebras_with_basis
@@ -107,7 +114,6 @@ Categories
    sage/categories/group_algebras
    sage/categories/groupoid
    sage/categories/groups
-   sage/categories/g_sets
    sage/categories/hecke_modules
    sage/categories/highest_weight_crystals
    sage/categories/hopf_algebras
@@ -142,6 +148,7 @@ Categories
    sage/categories/schemes
    sage/categories/semigroups
    sage/categories/semirings
+   sage/categories/semisimple_algebras
    sage/categories/sets_cat
    sage/categories/sets_with_grading
    sage/categories/sets_with_partial_maps
@@ -175,6 +182,7 @@ Examples of parents using categories
    sage/categories/examples/finite_monoids
    sage/categories/examples/finite_semigroups
    sage/categories/examples/finite_weyl_groups
+   sage/categories/examples/graded_modules_with_basis
    sage/categories/examples/hopf_algebras_with_basis
    sage/categories/examples/infinite_enumerated_sets
    sage/categories/examples/monoids
@@ -192,5 +200,7 @@ Miscellaneous
    :maxdepth: 2
 
    sage/categories/action
+   sage/categories/category_cy_helper
+   sage/categories/poor_man_map
 
 .. include:: ../footer.txt

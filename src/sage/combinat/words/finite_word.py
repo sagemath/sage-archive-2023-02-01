@@ -137,20 +137,20 @@ As matrix and many other sage objects, words have a parent::
 Factors and Rauzy Graphs
 ========================
 
-Enumeration of factors, the successive values returned by it.next()
+Enumeration of factors, the successive values returned by next(it)
 can appear in a different order depending on hardware. Therefore we
 mark the three first results of the test random. The important test
 is that the iteration stops properly on the fourth call::
 
     sage: w = Word([4,5,6])^7
     sage: it = w.factor_iterator(4)
-    sage: it.next() # random
+    sage: next(it) # random
     word: 6456
-    sage: it.next() # random
+    sage: next(it) # random
     word: 5645
-    sage: it.next() # random
+    sage: next(it) # random
     word: 4564
-    sage: it.next()
+    sage: next(it)
     Traceback (most recent call last):
     ...
     StopIteration
@@ -1852,7 +1852,7 @@ class FiniteWord_class(Word_class):
 
         TESTS:
 
-        We check that trac #11128 is fixed::
+        We check that :trac:`11128` is fixed::
 
             sage: w = Word([0,0,1,0,2,1])
             sage: [w.conjugate(i).conjugate_position(w) for i in range(w.length())]
@@ -1917,7 +1917,7 @@ class FiniteWord_class(Word_class):
             sage: Word('12131').is_conjugate_with(Word('11213'))
             True
 
-        We make sure that trac #11128 is fixed::
+        We make sure that :trac:`11128` is fixed::
 
             sage: Word('abaa').is_conjugate_with(Word('aaba'))
             True
@@ -1946,11 +1946,11 @@ class FiniteWord_class(Word_class):
             return True
         try:
             it = iter(self)
-            s = islice(it, seq[0], None).next()
+            s = next(islice(it, seq[0], None))
             for i in xrange(1, len(seq)):
                 steps = seq[i] - seq[i-1]
-                for n in xrange(steps-1): it.next()
-                if it.next() != s:
+                for n in xrange(steps-1): next(it)
+                if next(it) != s:
                     return False
         except StopIteration:
             return False
@@ -2004,7 +2004,7 @@ class FiniteWord_class(Word_class):
             return other
 
         iter = enumerate(izip(reversed(self), reversed(other)))
-        i,(b,c) = iter.next()
+        i,(b,c) = next(iter)
         if b != c:
             #In this case, return the empty word
             return self[:0]
@@ -2472,6 +2472,218 @@ class FiniteWord_class(Word_class):
             l[i] = None
         return l
 
+    def length_maximal_palindrome(self, j, m=None, f=None):
+        r"""
+        Returns the length of the longest palindrome centered at position j.
+
+        INPUT:
+
+        - ``j`` -- rational, position of the symmetry axis of the palindrome.
+          Must return an integer when doubled. It is an integer when the
+          center of the palindrome is a letter.
+
+        - ``m`` -- integer (default: None), minimal length of palindrome, if known.
+          The parity of ``m`` can't be the same as the parity of ``2j``.
+
+        - ``f`` -- involution (default: None), on the alphabet. It must be
+          callable on letters as well as words (e.g. WordMorphism).
+
+        OUTPUT:
+
+            The length of the longest `f`-palindrome centered at position j.
+
+        EXAMPLES::
+
+            sage: Word('01001010').length_maximal_palindrome(3/2)
+            0
+            sage: Word('01101001').length_maximal_palindrome(3/2)
+            4
+            sage: Word('01010').length_maximal_palindrome(j=3, f='0->1,1->0')
+            0
+            sage: Word('01010').length_maximal_palindrome(j=2.5, f='0->1,1->0')
+            4
+            sage: Word('0222220').length_maximal_palindrome(3, f='0->1,1->0,2->2')
+            5
+
+        ::
+
+            sage: w = Word('abcdcbaxyzzyx')
+            sage: w.length_maximal_palindrome(3)
+            7
+            sage: w.length_maximal_palindrome(3, 3)
+            7
+            sage: w.length_maximal_palindrome(3.5)
+            0
+            sage: w.length_maximal_palindrome(9.5)
+            6
+            sage: w.length_maximal_palindrome(9.5, 2)
+            6
+
+        TESTS:
+
+        These are wrong inputs::
+
+            sage: w.length_maximal_palindrome(9.6)
+            Traceback (most recent call last):
+            ...
+            ValueError: j must be positive, inferior to length of self
+            sage: w.length_maximal_palindrome(3, 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: (2*j-m-1)/2(=3/2) must be an integer, i.e., 2*j(=6) and
+            m(=2) can't have the same parity
+            sage: w.length_maximal_palindrome(9.5, 3)
+            Traceback (most recent call last):
+            ...
+            ValueError: (2*j-m-1)/2(=15/2) must be an integer, i.e., 2*j(=19) and
+            m(=3) can't have the same parity
+
+        """
+        # Ensure `f` is an involutory word morphism
+        if f is not None:
+            from sage.combinat.words.morphism import WordMorphism
+            if not isinstance(f, WordMorphism):
+                f = WordMorphism(f)
+            if not f.is_involution():
+                raise ValueError("f must be an involution")
+
+        # Ensure j is a valid entry
+        jj = 2*j
+        if not jj.is_integer() or j < 0 or j >= len(self):
+            raise ValueError("j must be positive, inferior to length of self")
+        jj = Integer(jj)
+
+        # Initialize length of the known palindrome
+        if m is None:
+            m = 0 if jj % 2 == 1 else -1
+
+        # Initialize the next (left) position to check
+        i = (jj - m - 1) / 2
+        if not i.is_integer():
+            raise ValueError("(2*j-m-1)/2(={}) must be an integer, i.e., "
+                             "2*j(={}) and m(={}) can't "
+                             "have the same parity".format(i, jj, m))
+        i = Integer(i)
+
+        # Compute
+        if f is None:
+            while i >= 0 and jj-i < len(self) and self[i] == self[jj-i]:
+                i -= 1
+        else:
+            while i >= 0 and jj-i < len(self) and self[i] == f(self[jj-i])[0]:
+                i -= 1
+        if jj == 2 * i:
+            return 0
+        else:
+            return jj - 2*i - 1
+
+    def lengths_maximal_palindromes(self, f=None):
+        r"""
+        Returns the length of maximal palindromes centered at each position.
+
+        INPUT:
+
+        - ``f`` - involution (default: None) on the alphabet of self. It must
+          be callable on letters as well as words (e.g. WordMorphism).
+
+        OUTPUT:
+
+            list -- The length of the maximal palindrome (or `f`-palindrome)
+            with a given symmetry axis (letter or space between two letters).
+
+        EXAMPLES::
+
+            sage: Word('01101001').lengths_maximal_palindromes()
+            [0, 1, 0, 1, 4, 1, 0, 3, 0, 3, 0, 1, 4, 1, 0, 1, 0]
+            sage: Word('00000').lengths_maximal_palindromes()
+            [0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0]
+            sage: Word('0').lengths_maximal_palindromes()
+            [0, 1, 0]
+            sage: Word('').lengths_maximal_palindromes()
+            [0]
+            sage: Word().lengths_maximal_palindromes()
+            [0]
+            sage: f = WordMorphism('a->b,b->a')
+            sage: Word('abbabaab').lengths_maximal_palindromes(f)
+            [0, 0, 2, 0, 0, 0, 2, 0, 8, 0, 2, 0, 0, 0, 2, 0, 0]
+        """
+        if f is not None :
+            from sage.combinat.words.morphism import WordMorphism
+            if not isinstance(f, WordMorphism):
+                f = WordMorphism(f)
+            if not f.is_involution():
+                raise ValueError("f must be an involution")
+
+        LPC = []  # lengths of the maximal palindromes centered at a position
+        LPC.append(0)
+
+        k = 0  # index, center of rightmost-ending `f`-palindrome encountered
+
+        for j in range(1, 2 * len(self) + 1):
+            if j >= k + LPC[k]:
+                p = self.length_maximal_palindrome((j - 1)*0.5, -(j%2), f)
+                LPC.append(p)
+                if j + p > k + LPC[k]:
+                    k = j
+
+            # If the center is included in an encountered `f`-palindrome
+            else:
+                # If the `f`-palindrome centered at position j is not the
+                # longest proper `f`-palindromic suffix of the maximal
+                # `f`-palindrome centered at k
+                if LPC[k] + k - j != LPC[2*k - j]:
+                    LPC.append(min(LPC[k] + k - j, LPC[2*k - j]))
+
+                else:
+                    mp = LPC[k] + k - j
+                    p = self.length_maximal_palindrome((j-1)*0.5, mp, f)
+                    LPC.append(p)
+                    k = j
+        return LPC
+
+    def lps_lengths(self, f=None):
+        r"""
+        Returns the length of the longest palindromic suffix of each prefix.
+
+        INPUT:
+
+        - ``f`` - involution (default: None) on the alphabet of self. It must
+          be callable on letters as well as words (e.g. WordMorphism).
+
+        OUTPUT:
+
+            list -- The length of the longest palindromic (or `f`-palindromic)
+            suffix of each prefix of self.
+
+        EXAMPLES::
+
+            sage: Word('01101001').lps_lengths()
+            [0, 1, 1, 2, 4, 3, 3, 2, 4]
+            sage: Word('00000').lps_lengths()
+            [0, 1, 2, 3, 4, 5]
+            sage: Word('0').lps_lengths()
+            [0, 1]
+            sage: Word('').lps_lengths()
+            [0]
+            sage: Word().lps_lengths()
+            [0]
+            sage: f = WordMorphism('a->b,b->a')
+            sage: Word('abbabaab').lps_lengths(f)
+            [0, 0, 2, 0, 2, 2, 4, 6, 8]
+        """
+        LPC = self.lengths_maximal_palindromes(f)
+        LPS = []  # lengths of the longest palindromic suffix of prefixes
+        k = 0
+        LPS.append(0)
+
+        for j in range(1, 2*len(self)+1):
+            if j + LPC[j] > k + LPC[k]:
+                for i in range(k + LPC[k] + 1, j + LPC[j] + 1):
+                    if i % 2 == 0:
+                        LPS.append(i-j)
+                    k = j
+        return LPS
+
     def palindromes(self, f=None):
         r"""
         Returns the set of all palindromic (or `f`-palindromic) factors of self.
@@ -2483,8 +2695,8 @@ class FiniteWord_class(Word_class):
 
         OUTPUT:
 
-            set -- If f is None, the set of all palindromic factors of self;
-                   otherwise, the set of all f-palindromic factors of self.
+            set - If f is None, the set of all palindromic factors of self;
+            otherwise, the set of all f-palindromic factors of self.
 
         EXAMPLES::
 
@@ -2502,7 +2714,8 @@ class FiniteWord_class(Word_class):
             sage: sorted(Word('abbabaab').palindromes(f))
             [word: , word: ab, word: abbabaab, word: ba, word: baba, word: bbabaa]
         """
-        return self.palindromic_lacunas_study(f=f)[2]
+        LPS = self.lps_lengths(f)
+        return set(self[i-LPS[i] : i] for i in range(len(self)+1))
 
     def palindrome_prefixes(self):
         r"""
@@ -3273,10 +3486,10 @@ class FiniteWord_class(Word_class):
         """
         its = iter(self)
         try:
-            s = its.next()
+            s = next(its)
             for e in other:
                 if s == e:
-                    s = its.next()
+                    s = next(its)
             else:
                 return False
         except StopIteration:
@@ -3696,9 +3909,11 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        -  ``sub`` - string or word to search for.
+        -  ``sub`` - string, list, tuple or word to search for.
+
         -  ``start`` - non negative integer (default: 0) specifying
            the position from which to start the search.
+
         -  ``end`` - non negative integer (default: None) specifying
            the position at which the search must stop. If None, then
            the search is performed up to the end of the string.
@@ -3710,8 +3925,18 @@ class FiniteWord_class(Word_class):
         EXAMPLES::
 
             sage: w = Word([0,1,0,0,1])
-            sage: w.find(Word([0,1]))
-            0
+            sage: w.find(Word([1,0]))
+            1
+
+        The ``sub`` argument can also be a tuple or a list::
+
+            sage: w.find([1,0])
+            1
+            sage: w.find((1,0))
+            1
+
+        Examples using ``start`` and ``end``::
+
             sage: w.find(Word([0,1]), start=1)
             3
             sage: w.find(Word([0,1]), start=1, end=5)
@@ -3720,32 +3945,42 @@ class FiniteWord_class(Word_class):
             True
             sage: w.find(Word([1,1])) == -1
             True
+            sage: w.find("aa")
+            -1
 
         Instances of Word_str handle string inputs as well::
 
             sage: w = Word('abac')
             sage: w.find('a')
             0
-            sage: w.find(Word('a'))
+            sage: w.find('ba')
+            1
+
+        TESTS:
+
+        Check that :trac:`12804` is fixed::
+
+            sage: w = Word(iter("ababab"))
+            sage: w.find("ab")
             0
+            sage: w.find("ab", start=1)
+            2
+            sage: w.find("aa")
+            -1
+            sage: w.find("abc")
+            -1
+            sage: w = Words('ab')(tuple('babaabaaab'))
+            sage: w.find('abc')
+            -1
+
         """
-        w = self[start:end]
-        if isinstance(sub, FiniteWord_class):
-            p = sub.first_pos_in(w)
-            if p is None:
+        if not isinstance(sub, FiniteWord_class):
+            try:
+                sub = self.parent()(sub)
+            except (ValueError,TypeError):
                 return -1
-            else:
-                return p + start
-        else:
-            L = len(sub)
-            if start is None:
-                i = len(self) - L
-            else:
-                i = start - L
-            while i >= end:
-                if self[i:i+L] == sub: return i
-                i -= 1
-            return -1
+        p = sub.first_pos_in(self[start:end])
+        return -1 if p is None else p+start
 
     def rfind(self, sub, start=0, end=None):
         r"""
@@ -3755,9 +3990,11 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        -  ``sub`` - string or word to search for.
+        -  ``sub`` - string, list, tuple or word to search for.
+
         -  ``start`` - non negative integer (default: 0) specifying
            the position at which the search must stop.
+
         -  ``end`` - non negative integer (default: None) specifying
            the position from which to start the search. If None, then
            the search is performed up to the end of the string.
@@ -3771,14 +4008,24 @@ class FiniteWord_class(Word_class):
             sage: w = Word([0,1,0,0,1])
             sage: w.rfind(Word([0,1]))
             3
+
+        The ``sub`` parameter can also be a list or a tuple::
+
+            sage: w.rfind([0,1])
+            3
+            sage: w.rfind((0,1))
+            3
+
+        Examples using the argument ``start`` and ``end``::
+
             sage: w.rfind(Word([0,1]), end=4)
             0
             sage: w.rfind(Word([0,1]), end=5)
             3
             sage: w.rfind(Word([0,0]), start=2, end=5)
             2
-            sage: w.rfind(Word([0,0]), start=3, end=5) == -1
-            True
+            sage: w.rfind(Word([0,0]), start=3, end=5)
+            -1
 
         Instances of Word_str handle string inputs as well::
 
@@ -3787,12 +4034,34 @@ class FiniteWord_class(Word_class):
             2
             sage: w.rfind(Word('a'))
             2
+            sage: w.rfind([0,1])
+            -1
+
+        TESTS:
+
+        Check that :trac:`12804` is fixed::
+
+            sage: w = Word(iter("abab"))
+            sage: w.rfind("ab")
+            2
+            sage: w.rfind("ab", end=3)
+            0
+            sage: w.rfind("aa")
+            -1
+            sage: w.rfind([0,0,0])
+            -1
         """
+        if not isinstance(sub, FiniteWord_class):
+            try:
+                sub = self.parent()(sub)
+            except (ValueError,TypeError):
+                return -1
         L = len(sub)
+        start = max(0, int(start))
         if end is None:
             i = len(self) - L
         else:
-            i = end - L
+            i = min(end, len(self)) - L
         while i >= start:
             if self[i:i+L] == sub: return i
             i -= 1
@@ -4547,7 +4816,8 @@ class FiniteWord_class(Word_class):
         Returns the conversion of self to a word with partition content using
         the `s_i` operators of Lascoux and Schutzenberger.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: w = Word([1,3,2,1,2,3,4,6,4,2,3,2])
             sage: w._to_partition_content()
             word: 132112454132
@@ -4872,12 +5142,12 @@ class FiniteWord_class(Word_class):
             end = iter(self)
             abelian = dict(zip(alphabet, [0]*len(alphabet)))
             for _ in range(i):
-                abelian[end.next()] += 1
+                abelian[next(end)] += 1
             abel_max = abelian.copy()
             abel_min = abelian.copy()
             for _ in range(self.length() - i):
-                lost = start.next()
-                gain = end.next()
+                lost = next(start)
+                gain = next(end)
                 abelian[gain] += 1
                 abelian[lost] -= 1
                 abel_max[gain] = max(abel_max[gain], abelian[gain])
@@ -5040,11 +5310,11 @@ class FiniteWord_class(Word_class):
         end = iter(self)
         abelian = [0] * size
         for _ in range(n):
-            abelian[rank[end.next()]] += 1
+            abelian[rank[next(end)]] += 1
         S.add(tuple(abelian))
         for letter in end:
             abelian[rank[letter]] += 1
-            abelian[rank[start.next()]] -= 1
+            abelian[rank[next(start)]] -= 1
             S.add(tuple(abelian))
         return S
 
@@ -5678,17 +5948,17 @@ class FiniteWord_class(Word_class):
         if self.is_empty():
             return Words(alphabet)()
         if s is None:
-            s = cycle_alphabet.next()
+            s = next(cycle_alphabet)
         else:
             if s not in alphabet:
                 raise ValueError("starting letter not in alphabet")
-            t = cycle_alphabet.next()
+            t = next(cycle_alphabet)
             while t != s:
-                t = cycle_alphabet.next()
+                t = next(cycle_alphabet)
         w = []
         for i in self:
             w.extend([s] * i)
-            s = cycle_alphabet.next()
+            s = next(cycle_alphabet)
         return Words(alphabet)(w)
 
     def delta(self):
@@ -6290,7 +6560,7 @@ class FiniteWord_class(Word_class):
 
         TESTS:
 
-        We make sure that #8490 is fixed::
+        We make sure that :trac:`8490` is fixed::
 
             sage: Word('11').is_square_free()
             False
@@ -6343,7 +6613,7 @@ class FiniteWord_class(Word_class):
 
         TESTS:
 
-        We make sure that #8490 is fixed::
+        We make sure that :trac:`8490` is fixed::
 
             sage: Word('111').is_cube_free()
             False

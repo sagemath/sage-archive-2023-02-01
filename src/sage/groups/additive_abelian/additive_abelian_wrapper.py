@@ -51,6 +51,7 @@ import additive_abelian_group as addgp
 from sage.rings.all import ZZ
 from sage.misc.misc import verbose
 from sage.categories.morphism import Morphism
+from sage.structure.element import parent
 
 class UnwrappingMorphism(Morphism):
     r"""
@@ -273,8 +274,7 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             sage: G(G([1,1]))
             (6, 2)
         """
-        if hasattr(x,"parent"):
-            if x.parent() is self.universe():
-                return self.element_class(self, self._discrete_log(x), element = x)
+        if parent(x) is self.universe():
+            return self.element_class(self, self._discrete_log(x), element = x)
         return addgp.AdditiveAbelianGroup_fixed_gens._element_constructor_(self, x, check)
 

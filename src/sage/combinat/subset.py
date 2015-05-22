@@ -123,7 +123,7 @@ def Subsets(s, k=None, submultiset=False):
         sage: S2.cardinality()
         256
         sage: it = iter(S2)
-        sage: [it.next() for _ in xrange(8)]
+        sage: [next(it) for _ in xrange(8)]
         [{}, {{}}, {{1}}, {{2}}, {{3}}, {{1, 2}},  {{1, 3}}, {{2, 3}}]
         sage: S2.random_element()     # random
         {{2}, {1, 2, 3}, {}}
@@ -574,7 +574,8 @@ class Subsets_sk(Subsets_s):
 
     def __contains__(self, value):
         """
-        TESTS:
+        TESTS::
+
             sage: S = Subsets([1,2,3], 2)
             sage: Set([1,2]) in S
             True

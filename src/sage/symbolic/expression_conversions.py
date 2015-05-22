@@ -16,10 +16,10 @@ overridden by subclasses.
 ###############################################################################
 
 import operator as _operator
-from sage.symbolic.ring import SR,var
+from sage.symbolic.ring import SR
 from sage.symbolic.pynac import I
 from sage.functions.all import exp
-from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator
+from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator, add_vararg, mul_vararg
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from functools import reduce
 GaussianField = I.pyobject().parent()
@@ -209,7 +209,7 @@ class Converter(object):
             return self.symbol(ex)
 
         if operator in arithmetic_operators:
-            if getattr(self, 'use_fake_div', False) and operator is _operator.mul:
+            if getattr(self, 'use_fake_div', False) and (operator is _operator.mul or operator is mul_vararg):
                 div = self.get_fake_div(ex)
                 return self.arithmetic(div, div.operator())
             return self.arithmetic(ex, operator)
@@ -268,7 +268,7 @@ class Converter(object):
             d = FakeExpression(d, _operator.mul)
 
         if len(n) == 0:
-            return FakeExpression([SR.one_element(), d], _operator.div)
+            return FakeExpression([SR.one(), d], _operator.div)
         elif len(n) == 1:
             n = n[0]
         else:
@@ -507,6 +507,71 @@ class InterfaceInit(Converter):
             D[0](f)(x*y)
             sage: m.derivative(t, t.operator())
             "at(diff('f(_SAGE_VAR_t0), _SAGE_VAR_t0, 1), [_SAGE_VAR_t0 = (_SAGE_VAR_x)*(_SAGE_VAR_y)])"
+
+        TESTS:
+
+        Most of these confirm that :trac:`7401` was fixed::
+
+            sage: t = var('t'); f = function('f')(t)
+            sage: a = 2^e^t * f.subs(t=e^t) * diff(f, t).subs(t=e^t) + 2*t
+            sage: solve(a == 0, diff(f, t).subs(t=e^t))
+            [D[0](f)(e^t) == -2^(-e^t + 1)*t/f(e^t)]
+
+        ::
+
+            sage: f = function('f', x)
+            sage: df = f.diff(x); df
+            D[0](f)(x)
+            sage: maxima(df)
+            'diff('f(_SAGE_VAR_x),_SAGE_VAR_x,1)
+
+        ::
+
+            sage: a = df.subs(x=exp(x)); a
+            D[0](f)(e^x)
+            sage: b = maxima(a); b
+            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=%e^_SAGE_VAR_x])
+            sage: bool(b.sage() == a)
+            True
+
+        ::
+
+            sage: a = df.subs(x=4); a
+            D[0](f)(4)
+            sage: b = maxima(a); b
+            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4])
+            sage: bool(b.sage() == a)
+            True
+
+        It also works with more than one variable.  Note the preferred
+        syntax ``function('f')(x, y)`` to create a general symbolic
+        function of more than one variable::
+
+            sage: x, y = var('x y')
+            sage: f = function('f')(x, y)
+            sage: f_x = f.diff(x); f_x
+            D[0](f)(x, y)
+            sage: maxima(f_x)
+            'diff('f(_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)
+
+        ::
+
+            sage: a = f_x.subs(x=4); a
+            D[0](f)(4, y)
+            sage: b = maxima(a); b
+            %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_t1),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4,_SAGE_VAR_t1=_SAGE_VAR_y])
+            sage: bool(b.sage() == a)
+            True
+
+        ::
+
+            sage: a = f_x.subs(x=4).subs(y=8); a
+            D[0](f)(4, 8)
+            sage: b = maxima(a); b
+            %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_t1),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4,_SAGE_VAR_t1=8])
+            sage: bool(b.sage() == a)
+            True
+
         """
         #This code should probably be moved into the interface
         #object in a nice way.
@@ -521,7 +586,7 @@ class InterfaceInit(Converter):
             # one. So, we replace the argument `1` with a temporary
             # variable e.g. `t0` and then evaluate the derivative
             # f'(t0) symbolically at t0=1. See trac #12796.
-            temp_args=[var("t%s"%i) for i in range(len(args))]
+            temp_args = [SR.var("t%s"%i) for i in range(len(args))]
             f = operator.function()(*temp_args)
             params = operator.parameter_set()
             params = ["%s, %s"%(temp_args[i]._maxima_init_(), params.count(i)) for i in set(params)]
@@ -544,7 +609,7 @@ class InterfaceInit(Converter):
             sage: import operator
             sage: from sage.symbolic.expression_conversions import InterfaceInit
             sage: m = InterfaceInit(maxima)
-            sage: m.arithmetic(x+2, operator.add)
+            sage: m.arithmetic(x+2, sage.symbolic.operators.add_vararg)
             '(_SAGE_VAR_x)+(2)'
         """
         args = ["(%s)"%self(op) for op in ex.operands()]
@@ -759,6 +824,10 @@ class AlgebraicConverter(Converter):
                 expt = Rational(expt)
                 return self.field(base**expt)
             else:
+                if operator is add_vararg:
+                    operator = _operator.add
+                elif operator is mul_vararg:
+                    operator = _operator.mul
                 return reduce(operator, map(self, ex.operands()))
         except TypeError:
             pass
@@ -1043,9 +1112,12 @@ class PolynomialConverter(Converter):
             from sage.rings.all import Integer
             base, exp = ex.operands()
             return self(base)**Integer(exp)
-        else:
-            ops = [self(a) for a in ex.operands()]
-            return reduce(operator, ops)
+        if operator == add_vararg:
+            operator = _operator.add
+        elif operator == mul_vararg:
+            operator = _operator.mul
+        ops = [self(a) for a in ex.operands()]
+        return reduce(operator, ops)
 
 def polynomial(ex, base_ring=None, ring=None):
     """
@@ -1084,7 +1156,7 @@ def polynomial(ex, base_ring=None, ring=None):
          sage: polynomial(x*y, ring=SR['x'])
          y*x
 
-         sage: polynomial(y - sqrt(x), ring=SR[y])
+         sage: polynomial(y - sqrt(x), ring=SR['y'])
          y - sqrt(x)
          sage: _.list()
          [-sqrt(x), 1]
@@ -1258,6 +1330,10 @@ class FastFloatConverter(Converter):
             from sage.functions.all import sqrt
             return sqrt(self(operands[0]))
         fops = map(self, operands)
+        if operator == add_vararg:
+            operator = _operator.add
+        elif operator == mul_vararg:
+            operator = _operator.mul
         return reduce(operator, fops)
 
     def composition(self, ex, operator):
@@ -1412,6 +1488,10 @@ class FastCallableConverter(Converter):
                 return self.etb.call(_operator.div, 1, self.etb.call(sqrt, operands[0]))
         elif operator is _operator.neg:
             return self.etb.call(operator, operands[0])
+        if operator == add_vararg:
+            operator = _operator.add
+        elif operator == mul_vararg:
+            operator = _operator.mul
         return reduce(lambda x,y: self.etb.call(operator, x,y), operands)
 
     def symbol(self, ex):
@@ -1552,7 +1632,7 @@ class RingConverter(Converter):
             sage: R(a)
             2*z^2 + z + 3
         """
-        if operator not in [_operator.add, _operator.mul, _operator.pow]:
+        if operator not in [_operator.pow, add_vararg, mul_vararg]:
             raise TypeError
 
         operands = ex.operands()
@@ -1570,8 +1650,12 @@ class RingConverter(Converter):
 
             base = self(base)
             return base ** expt
-        else:
-            return reduce(operator, map(self, operands))
+
+        if operator == add_vararg:
+            operator = _operator.add
+        elif operator == mul_vararg:
+            operator = _operator.mul         
+        return reduce(operator, map(self, operands))
 
     def composition(self, ex, operator):
         """
@@ -1657,6 +1741,10 @@ class SubstituteFunction(Converter):
             sage: s.arithmetic(f, f.operator())
             x*bar(x) + pi/bar(x)
         """
+        if operator == add_vararg:
+            operator = _operator.add
+        elif operator == mul_vararg:
+            operator = _operator.mul
         return reduce(operator, map(self, ex.operands()))
 
     def composition(self, ex, operator):

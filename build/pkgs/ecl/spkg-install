@@ -70,14 +70,6 @@ export LDFLAGS
 # Building ECL in parallel doesn't work, so use only 1 thread
 MAKE="$MAKE -j1"
 
-# Currently config.[guess|sub] scripts are too old
-cp "$SAGE_ROOT"/config/config.* src/
-if [ $? -ne 0 ]; then
-    echo >&2 "Failed to copy up-to-date FSF config.* scripts from"
-    echo >&2 "\$SAGE_ROOT/config directory ... exiting"
-    exit 1
-fi
-
 if [ "`uname -sm`" = "SunOS i86pc" ] && [ "x$SAGE64" = xyes ]; then
     # Need to add --with-dffi=no to disable assembly code on OpenSolaris x64.
     # and Solaris 10 on x64.

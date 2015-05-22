@@ -21,7 +21,7 @@ AUTHORS:
 
 from sage.structure.sage_object import SageObject
 
-from sage.misc.misc import SAGE_LOCAL, DOT_SAGE, sage_makedirs
+from sage.env import SAGE_LOCAL
 from sage.misc.temporary_file import tmp_filename
 
 import subprocess
@@ -152,9 +152,13 @@ class JmolData(SageObject):
         scratchout = tmp_filename(ext=".txt")
         with open(scratchout, 'w') as jout:
             # Now call the java application and write the file.
+            env = dict(os.environ)
+            env['LC_ALL'] = 'C'
+            env['LANG'] = 'C'
             subprocess.call(["java", "-Xmx512m", "-Djava.awt.headless=true",
                 "-jar", jmolpath, "-iox", "-g", sizeStr,
-                "-J", launchscript, "-j", imagescript], stdout=jout, stderr=jout)
+                "-J", launchscript, "-j", imagescript],
+                stdout=jout, stderr=jout, env=env)
         if not os.path.isfile(targetfile):
             raise RuntimeError("Jmol failed to create file %s, see %s for details"%(repr(targetfile), repr(scratchout)))
         os.unlink(scratchout)

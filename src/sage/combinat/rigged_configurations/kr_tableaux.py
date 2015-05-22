@@ -310,17 +310,18 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
             sage: KR = crystals.KirillovReshetikhin(['A', 3, 1], 2, 1, model='KR')
             sage: g = KR.__iter__()
-            sage: g.next()
+            sage: next(g)
             [[1], [2]]
-            sage: g.next()
+            sage: next(g)
             [[1], [3]]
-            sage: g.next()
+            sage: next(g)
             [[2], [3]]
         """
         index_set = self._cartan_type.classical().index_set()
-        from sage.combinat.backtrack import TransitiveIdeal
-        return TransitiveIdeal(lambda x: [x.f(i) for i in index_set],
-                               self.module_generators).__iter__()
+        from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+        return RecursivelyEnumeratedSet(self.module_generators,
+                    lambda x: [x.f(i) for i in index_set],
+                    structure=None).naive_search_iterator()
 
     def module_generator(self, i=None, **options):
         r"""
@@ -501,7 +502,8 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         Return the tensor product of ``self`` with ``crystals``.
 
         If ``crystals`` is a list of (a tensor product of) KR tableaux, this
-        returns a :class:`TensorProductOfKirillovReshetikhinTableaux`.
+        returns a
+        :class:`~sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux`.
 
         EXAMPLES::
 
@@ -1320,11 +1322,11 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
     def epsilon(self, i):
         r"""
-        Compute `\epsilon_i` of ``self``.
+        Compute `\varepsilon_i` of ``self``.
 
         .. TODO::
 
-            Implement a direct action of `\epsilon_0` without moving to
+            Implement a direct action of `\varepsilon_0` without moving to
             KR crystals.
 
         EXAMPLES::
@@ -1339,11 +1341,11 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
     def phi(self, i):
         r"""
-        Compute `\phi_i` of ``self``.
+        Compute `\varphi_i` of ``self``.
 
         .. TODO::
 
-            Compute `\phi_0` without moving to KR crystals.
+            Compute `\varphi_0` without moving to KR crystals.
 
         EXAMPLES::
 

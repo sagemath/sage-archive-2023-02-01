@@ -3208,7 +3208,7 @@ class DiGraph(GenericGraph):
             [Subgraph of (Petersen graph): Digraph on 10 vertices]
 
         """
-        return map(self.subgraph, self.strongly_connected_components())
+        return [self.subgraph(_) for _ in self.strongly_connected_components()]
 
     def strongly_connected_components_digraph(self, keep_labels = False):
         r"""
@@ -3274,7 +3274,7 @@ class DiGraph(GenericGraph):
         from sage.sets.set import Set
 
         scc = self.strongly_connected_components()
-        scc_set = map(Set,scc)
+        scc_set = [Set(_) for _ in scc]
 
         d = {}
         for i,c in enumerate(scc):

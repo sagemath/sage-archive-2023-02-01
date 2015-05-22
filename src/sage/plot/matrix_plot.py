@@ -51,7 +51,7 @@ class MatrixPlot(GraphicPrimitive):
         sage: M.yrange
         (2, 3)
         sage: M.xy_data_array
-        [[1, 3], [2, 4]]
+        [[2, 4], [1, 3]]
         sage: M.options()
         {'cmap': 'winter'}
 
@@ -87,7 +87,8 @@ class MatrixPlot(GraphicPrimitive):
         if options.get('origin') != 'lower':
             # we want to display the array upside down, so flip it
             if hasattr(xy_data_array, 'tocoo'):
-                self.xy_data_array = xy_data_array.tocsr()[::-1]
+                self.xy_data_array = xy_data_array.tocsr().copy()
+                self.xy_data_array.indices = -self.xy_data_array.indices + self.xy_data_array.shape[1] - 1
             else:
                 self.xy_data_array = xy_data_array[::-1]
         else:
@@ -108,7 +109,7 @@ class MatrixPlot(GraphicPrimitive):
 
             sage: m = matrix_plot(matrix([[1,3,5,1],[2,4,5,6],[1,3,5,7]]))[0]
             sage: list(sorted(m.get_minmax_data().items()))
-            [('xmax', 3.5), ('xmin', -0.5), ('ymax', -0.5), ('ymin', 2.5)]
+            [('xmax', 3.5), ('xmin', -0.5), ('ymax', 2.5), ('ymin', -0.5)]
 
 
         """

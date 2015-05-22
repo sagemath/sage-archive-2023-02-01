@@ -475,7 +475,7 @@ class Permutation(SageObject):
             sage: p.letters()
             [0, 1]
         """
-        return [self._alphabet.unrank(_) for _ in range(len(self))]
+        return map(self._alphabet.unrank, range(len(self)))
 
     def left_right_inverse(self):
         r"""
@@ -1177,7 +1177,7 @@ class PermutationIET(Permutation):
         from sage.dynamics.flat_surfaces.strata import AbelianStratum
 
         if not self.is_irreducible():
-            return [x.stratum(marked_separatrix) for x in self.decompose()]
+            return map(lambda x: x.stratum(marked_separatrix), self.decompose())
 
         if len(self) == 1:
             return AbelianStratum([])
@@ -1361,7 +1361,8 @@ class PermutationIET(Permutation):
                                                         OddCCA, EvenCCA)
 
         if not self.is_irreducible():
-            return [x.connected_component(marked_separatrix) for x in self.decompose()]
+            return map(lambda x: x.connected_component(marked_separatrix),
+                       self.decompose())
 
         stratum = self.stratum(marked_separatrix=marked_separatrix)
         cc = stratum._cc
@@ -1437,7 +1438,7 @@ class PermutationIET(Permutation):
         right_corner = ((l[0][-1], l[1][-1]), 'R')
 
         s = res.separatrix_diagram(side=True)
-        lengths = [len(_) for _ in s]
+        lengths = map(len, s)
 
         while 2 in lengths:
             if lengths == [2]:
@@ -1455,7 +1456,7 @@ class PermutationIET(Permutation):
             l = res.list()
 
             s = res.separatrix_diagram(side=True)
-            lengths = [len(_) for _ in s]
+            lengths = map(len, s)
 
         return res
 
@@ -1576,7 +1577,7 @@ class PermutationIET(Permutation):
             True
         """
         from sage.combinat.permutation import Permutation
-        return Permutation([x+1 for x in self._twin[1]])
+        return Permutation(map(lambda x: x+1,self._twin[1]))
 
 class PermutationLI(Permutation):
     r"""
@@ -2767,7 +2768,9 @@ class RauzyDiagram(SageObject):
             a b
             b a
         """
-        return [self._vertex_to_permutation(x) for x in self._succ.keys()]
+        return map(
+            lambda x: self._vertex_to_permutation(x),
+            self._succ.keys())
 
     def vertex_iterator(self):
         r"""
@@ -3382,7 +3385,8 @@ class RauzyDiagram(SageObject):
             raise ValueError("Your element does not have the good type")
 
         perm = self._permutation_to_vertex(p)
-        return [self._vertex_to_permutation(x) for x in self._succ[perm]]
+        return map(lambda x: self._vertex_to_permutation(x),
+                   self._succ[perm])
 
     def __len__(self):
         r"""

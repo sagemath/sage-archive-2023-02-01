@@ -444,7 +444,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             return supercall(list(args[0]), **kwds)
 
         try:
-            coordinates = [ZZ(_) for _ in args]
+            coordinates = map(ZZ, args)
         except TypeError:
             # Prohibit conversion of elements of other lattices
             if (is_ToricLatticeElement(args[0])

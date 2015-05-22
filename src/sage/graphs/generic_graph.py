@@ -3513,7 +3513,7 @@ class GenericGraph(GenericGraph_pyx):
         def vertices_to_edges(x):
             return [(u[0], u[1], self.edge_label(u[0], u[1]))
                     for u in zip(x, x[1:] + [x[0]])]
-        return [vertices_to_edges(_) for _ in cycle_basis_v]
+        return map(vertices_to_edges, cycle_basis_v)
 
 
     ### Planarity
@@ -5737,7 +5737,7 @@ class GenericGraph(GenericGraph_pyx):
 
             p.set_objective( p.sum([ w(l) * cut[u,v] for u,v,l in self.edge_iterator() ]) )
 
-            for s,t in chain( combinations(vertices,2), [(x_y[1],x_y[0]) for x_y in combinations(vertices,2)]) :
+            for s,t in chain( combinations(vertices,2), map(lambda x_y: (x_y[1],x_y[0]), combinations(vertices,2))) :
                 # For each commodity, the source is at height 0
                 # and the destination is at height 1
                 p.add_constraint( height[(s,t),s], min = 0, max = 0)
@@ -7508,7 +7508,8 @@ class GenericGraph(GenericGraph_pyx):
 
         # Rewrites a path as a list of edges labeled with their
         # available capacity
-        path_to_labelled_edges = lambda P : [(x_y[0], x_y[1], capacity[(x_y[0], x_y[1])] - flow[(x_y[0], x_y[1])] + flow[(x_y[1], x_y[0])]) for x_y in path_to_edges(P)]
+        path_to_labelled_edges = lambda P : map(lambda x_y: (x_y[0], x_y[1], capacity[(x_y[0], x_y[1])] - flow[(x_y[0], x_y[1])] + flow[(x_y[1], x_y[0])]),
+                                                path_to_edges(P))
 
         # Total flow going from s to t
         flow_intensity = 0
@@ -7525,7 +7526,7 @@ class GenericGraph(GenericGraph_pyx):
             edges = path_to_labelled_edges(path)
 
             # minimum capacity available on the whole path
-            epsilon = min((x[2] for x in edges))
+            epsilon = min(map( lambda x : x[2], edges))
 
             flow_intensity = flow_intensity + epsilon
 
@@ -7730,7 +7731,7 @@ class GenericGraph(GenericGraph_pyx):
         # which could be .. graphs !
         if not self.is_directed():
             from sage.graphs.graph import Graph
-            flow_graphs = [Graph(_) for _ in flow_graphs]
+            flow_graphs = map(Graph, flow_graphs)
 
         return flow_graphs
 
@@ -18267,10 +18268,10 @@ class GenericGraph(GenericGraph_pyx):
                 G, partition, relabeling, G_edge_labels = graph_isom_equivalent_non_edge_labeled_graph(self, return_relabeling=True, ignore_edge_labels=(not edge_labels), return_edge_labels=True)
                 self_vertices = sum(partition,[])
                 G2, partition2, relabeling2, G2_edge_labels = graph_isom_equivalent_non_edge_labeled_graph(other, return_relabeling=True, ignore_edge_labels=(not edge_labels), return_edge_labels=True)
-                if [len(_) for _ in partition] != [len(_) for _ in partition2]:
+                if map(len, partition) != map(len, partition2):
                     return (False, None) if certify else False
-                multilabel = (lambda e:e) if edge_labels else (lambda e:[[None, el[1]] for el in e])
-                if [multilabel(_) for _ in G_edge_labels] != [multilabel(_) for _ in G2_edge_labels]:
+                multilabel = (lambda e:e) if edge_labels else (lambda e:map(lambda el: [None, el[1]], e))
+                if map(multilabel, G_edge_labels) != map(multilabel, G2_edge_labels):
                     return (False, None) if certify else False
                 partition2 = sum(partition2,[])
                 other_vertices = partition2
@@ -18765,7 +18766,7 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         if g_has_multiple_edges:
 
             # Compute the multiplicity the label
-            multiplicity = lambda x : sum((y[1] for y in x))
+            multiplicity = lambda x : sum(map(lambda y:y[1],x))
 
             # Sort the edge according to their multiplicity
             edge_partition = sorted([[multiplicity(el),part] for el, part in sorted(edge_partition)])

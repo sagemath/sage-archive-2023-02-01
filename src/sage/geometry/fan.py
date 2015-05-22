@@ -680,7 +680,7 @@ def FaceFan(polytope, lattice=None):
             raise interior_point_error
         cones = [ [ v.index() for v in facet.incident() ]
                   for facet in polytope.inequalities() ]
-        rays = [vector(_) for _ in polytope.vertices()]
+        rays = map(vector, polytope.vertices())
         if lattice is None:
             # Since default lattice polytopes are in the M lattice,
             # treat polyhedra as being there as well.
@@ -1147,7 +1147,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: sage_input(fan)
             Fan(cones=[[0, 1], [2]], rays=[(1, 0), (1, 1), (-1, -1)])
        """
-        cones = [[ZZ(_) for _ in c.ambient_ray_indices()] for c in self.generating_cones()]
+        cones = [map(ZZ, c.ambient_ray_indices()) for c in self.generating_cones()]
         rays = [sib(tuple(r)) for r in self.rays()]
         return sib.name('Fan')(cones=cones, rays=rays)
 
@@ -1902,7 +1902,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         if not points:
             return self.cones(dim=0)[0]
         try:
-            rays = [int(_) for _ in points]
+            rays = map(int, points)
             # Got ray indices
             generating_cones = set(range(self.ngenerating_cones()))
             for ray in rays:
@@ -1925,10 +1925,10 @@ class RationalPolyhedralFan(IntegralRayCollection,
         except TypeError:
             # Got points (hopefully)
             try:
-                points = [self._ambient_space_point(_) for _ in points]
+                points = map(self._ambient_space_point, points)
             except TypeError:
                 if len(points) == 1:
-                    points = [self._ambient_space_point(_) for _ in points[0]]
+                    points = map(self._ambient_space_point, points[0])
                 else:
                     raise
             # If we are still here, points are good

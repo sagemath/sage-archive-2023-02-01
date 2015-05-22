@@ -683,7 +683,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             self._vertices = PointCollection((p0, ), N)
         elif self._dim == self.ambient_dim():
             if compute_vertices:
-                points = [N(_) for _ in read_palp_matrix(self.poly_x("v")).columns()]
+                points = map(N, read_palp_matrix(self.poly_x("v")).columns())
                 for point in points:
                     point.set_immutable()
                 self._vertices = PointCollection(points, N)
@@ -772,7 +772,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         else:
             sp = self._sublattice_polytope
             N = self.dual_lattice()
-            normals = [N(_) for _ in sp.facet_normals() * self._dual_embedding_matrix]
+            normals = map(N, sp.facet_normals() * self._dual_embedding_matrix)
             for n in normals:
                 n.set_immutable()
             self._facet_normals = PointCollection(normals, N)
@@ -2532,7 +2532,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         if algorithm == "palp":
             vertices = vertices.columns()
         M = self.lattice()
-        vertices = [M(_) for _ in vertices]
+        vertices = map(M, vertices)
         for v in vertices:
             v.set_immutable()
         vertices = PointCollection(vertices, M)
@@ -3307,7 +3307,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 points = self._embed(read_palp_matrix(
                             self.poly_x("p", reduce_dimension=True))).columns()
                 M = self.lattice()
-                points = [M(_) for _ in points]
+                points = map(M, points)
                 for point in points:
                     point.set_immutable()
                 self._points = PointCollection(points, M)
@@ -5002,7 +5002,7 @@ def _palp_canonical_order(V, PM_max, permutations):
     Vs = [(V.column_matrix().with_permuted_columns(k).hermite_form(), k) 
           for k in permutations]
     Vmin = min(Vs, key=lambda x:x[0])
-    vertices = [V.module()(_) for _ in Vmin[0].columns()]
+    vertices = map(V.module(), Vmin[0].columns())
     for v in vertices:
         v.set_immutable()
     return (PointCollection(vertices, V.module()), Vmin[1])
@@ -5335,7 +5335,7 @@ def all_points(polytopes):
             raise RuntimeError("Cannot read points of a polytope!"
                                                         +"\nPolytope: %s" % p)
         M = p.lattice()
-        points = [M(_) for _ in points.columns()]
+        points = map(M, points.columns())
         for point in points:
             point.set_immutable()
         p._points = PointCollection(points, M)

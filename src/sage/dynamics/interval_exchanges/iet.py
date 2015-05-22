@@ -240,7 +240,7 @@ class IntervalExchangeTransformation(SageObject):
             sage: t.lengths()
             [2]
         """
-        self._lengths = [t*x for t in self._lengths]
+        self._lengths = map(lambda t: t*x, self._lengths)
 
     def _repr_(self):
         r"""
@@ -847,7 +847,7 @@ class IntervalExchangeTransformation(SageObject):
 
         G = Graphics()
 
-        lengths = [float(_) for _ in self._lengths]
+        lengths = map(float,self._lengths)
         total_length = sum(lengths)
 
         if colors is None:

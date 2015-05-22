@@ -421,9 +421,9 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             def convert_base_ring(lstlst):
                 return [ [self.base_ring()(x) for x in lst] for lst in lstlst]
             if convert and Hrep:
-                Hrep = [convert_base_ring(_) for _ in Hrep]
+                Hrep = map(convert_base_ring, Hrep)
             if convert and Vrep:
-                Vrep = [convert_base_ring(_) for _ in Vrep]
+                Vrep = map(convert_base_ring, Vrep)
             return self.element_class(self, Vrep, Hrep, **kwds)
         if nargs==1 and is_Polyhedron(args[0]):
             polyhedron = args[0]

@@ -1085,8 +1085,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         if point_labels is None:
             point_labels = tuple(points)
         points = [ vector(ZZ, [1]+v.list()) for v in points ]
-        for p in points:
-            p.set_immutable()
+        map(lambda x:x.set_immutable(), points)
 
         vertices = [ vector(ZZ, [1]+v.list()) for v in self.vertices() ]
         pivots = matrix(ZZ, vertices).pivot_rows()

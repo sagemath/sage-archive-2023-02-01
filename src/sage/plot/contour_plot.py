@@ -523,7 +523,7 @@ def contour_plot(f, xrange, yrange, **options):
 
     TESTS:
 
-    To check that :ticket:`5221` is fixed, note that this has three curves, not two::
+    To check that :trac:`5221` is fixed, note that this has three curves, not two::
 
         sage: x,y = var('x,y')
         sage: contour_plot(x-y^2,(x,-5,5),(y,-3,3),contours=[-4,-2,0], fill=False)
@@ -901,7 +901,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
     TESTS:
 
-    To check that :ticket:`16907` is fixed::
+    To check that :trac:`16907` is fixed::
 
         sage: x, y = var('x, y')
         sage: disc1 = region_plot(x^2+y^2 < 1, (x, -1, 1), (y, -1, 1), alpha=0.5)
@@ -909,7 +909,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
         sage: disc1 + disc2
         Graphics object consisting of 2 graphics primitives
 
-    To check that :ticket:`18286` is fixed::
+    To check that :trac:`18286` is fixed::
         sage: x, y = var('x, y')
         sage: region_plot([x == 0], (x, -1, 1), (y, -1, 1))
         Graphics object consisting of 1 graphics primitive

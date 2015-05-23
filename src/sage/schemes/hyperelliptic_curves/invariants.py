@@ -1,6 +1,6 @@
 # coding=utf-8
 r"""
-Compute invariants of quintics and sextics via “Ueberschiebung”.
+Compute invariants of quintics and sextics via 'Ueberschiebung'.
 
 REFERENCES:
 
@@ -12,19 +12,19 @@ REFERENCES:
 .. [I] Igusa, Jun-ichi.  Arithmetic variety of moduli for genus two.
    Ann. of Math. (2) 72 1960 612--649.
 
-TODO:
+.. TODO::
 
-* Implement invariants in small positive characteristic.
+    * Implement invariants in small positive characteristic.
 
-* Cardona-Quer and additional invariants for classifying automorphism groups.
+    * Cardona-Quer and additional invariants for classifying automorphism groups.
 
 AUTHOR:
 
 * Nick Alexander
 """
-
 from sage.rings.all import ZZ
 from sage.rings.all import PolynomialRing
+
 
 def diffxy(f, x, xtimes, y, ytimes):
     r"""
@@ -44,9 +44,12 @@ def diffxy(f, x, xtimes, y, ytimes):
         144*u^2*v^2 + 12*v
     """
     h = f
-    for i in range(xtimes): h = h.derivative(x)
-    for j in range(ytimes): h = h.derivative(y)
+    for i in range(xtimes):
+        h = h.derivative(x)
+    for j in range(ytimes):
+        h = h.derivative(y)
     return h
+
 
 def differential_operator(f, g, k):
     r"""
@@ -83,6 +86,7 @@ def differential_operator(f, g, k):
     U = f.base_ring()(const) * (fx*gy - fy*gx)**k
     return U
 
+
 def diffsymb(U, f, g):
     r"""
     Given a differential operator ``U`` in ``dfdx, dfdy, dgdx, dgdy``,
@@ -114,6 +118,7 @@ def diffsymb(U, f, g):
         res = res + temp
     return res
 
+
 def Ueberschiebung(f, g, k):
     r"""
     Return the differential operator `(f g)_k`.
@@ -140,6 +145,7 @@ def Ueberschiebung(f, g, k):
     U = differential_operator(f, g, k)
     # U is the (f g)_k = ... of Mestre, p315, symbolically
     return diffsymb(U, f, g)
+
 
 def ubs(f):
     r"""
@@ -207,6 +213,7 @@ def ubs(f):
     U['D'] = ub(U['y3'], U['y1'], 2)
     return U
 
+
 def clebsch_to_igusa(A, B, C, D):
     r"""
     Convert Clebsch invariants `A, B, C, D` to Igusa invariants `I_2, I_4, I_6, I_{10}`.
@@ -231,6 +238,7 @@ def clebsch_to_igusa(A, B, C, D):
     I6 = 8640*A**3 - 108000*A*B + 202500*C
     I10 = -62208*A**5 + 972000*A**3*B + 1620000*A**2*C - 3037500*A*B**2 - 6075000*B*C - 4556250*D
     return (I2, I4, I6, I10)
+
 
 def igusa_to_clebsch(I2, I4, I6, I10):
     r"""
@@ -287,6 +295,7 @@ def clebsch_invariants(f):
     assert all(t.is_constant() for t in L)
     return tuple([ t.constant_coefficient() for t in L ])
 
+
 def igusa_clebsch_invariants(f):
     r"""
     Given a sextic form `f`, return the Igusa-Clebsch invariants `I_2, I_4, I_6, I_{10}` of Igusa and Clebsch [I]_.
@@ -323,6 +332,7 @@ def igusa_clebsch_invariants(f):
     """
     return clebsch_to_igusa(*clebsch_invariants(f))
 
+
 def absolute_igusa_invariants_wamelen(f):
     r"""
     Given a sextic form `f`, return the three absolute Igusa invariants used by van Wamelen [W]_.
@@ -331,9 +341,8 @@ def absolute_igusa_invariants_wamelen(f):
 
     REFERENCES:
 
-        .. [W] van Wamelen, Paul.  Examples of genus two CM curves defined
-           over the rationals.
-           Math. Comp. 68 (1999), no. 225, 307--320.
+    .. [W] van Wamelen, Paul. *Examples of genus two CM curves defined
+       over the rationals*. Math. Comp. 68 (1999), no. 225, 307--320.
 
     EXAMPLES::
 
@@ -360,6 +369,7 @@ def absolute_igusa_invariants_wamelen(f):
     i3 = I2**2*I6/I10
     return (i1, i2, i3)
 
+
 def absolute_igusa_invariants_kohel(f):
     r"""
     Given a sextic form `f`, return the three absolute Igusa invariants used by Kohel [K]_.
@@ -368,8 +378,9 @@ def absolute_igusa_invariants_kohel(f):
 
     REFERENCES:
 
-    .. [K] Kohel, David.  ECHIDNA: Databases for Elliptic Curves and Higher Dimensional Analogues.
-        Available at http://echidna.maths.usyd.edu.au/~kohel/dbs/
+    .. [K] Kohel, David.  ECHIDNA: Databases for Elliptic Curves
+       and Higher Dimensional Analogues.
+       Available at http://echidna.maths.usyd.edu.au/~kohel/dbs/
 
     EXAMPLES::
 

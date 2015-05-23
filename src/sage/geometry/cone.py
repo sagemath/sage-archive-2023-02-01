@@ -4109,20 +4109,21 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
 
 def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
-                max_rays=None, strictly_convex=None):
+                max_rays=None, strictly_convex=None, solid=None):
     r"""
     Generate a random rational convex polyhedral cone.
 
     Lower and upper bounds may be provided for both the dimension of the
     ambient space and the number of generating rays of the cone. If a
     lower bound is left unspecified, it defaults to zero. Unspecified
-    upper bounds will be chosen randomly.
+    upper bounds will be chosen randomly, unless you set ``solid``, in
+    which case they are chosen a little more wisely.
 
     You may specify the ambient ``lattice`` for the returned cone. In
     that case, the ``min_dim`` and ``max_dim`` parameters are ignored.
 
     You may also request that the returned cone be strictly convex (or
-    not).
+    not). Likewise you may request that it be (non-)solid.
 
     .. WARNING:
 
@@ -4134,6 +4135,19 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
         get to the eight rays needed for an octagon. We therefore have to
         throw the cone out and start over from scratch. This process repeats
         until we get lucky.
+
+    .. WARNING:
+
+        We refrain from "adjusting" the min/max parameters given to us
+        when a (non-)strictly convex or (non-)solid cone is
+        requested. This means that it may take a long time to generate
+        such a cone if the parameters are chosen unwisely.
+
+        For example, you may want to set ``min_rays`` close to
+        ``min_dim`` if you desire a solid cone. Or, if you desire a
+        non-strictly-convex cone, then they all contain at least two
+        generating rays. So that might be a good candidate for
+        ``min_rays``.
 
     INPUT:
 
@@ -4158,6 +4172,10 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
       returned cone strictly convex. Specify ``True`` for a strictly convex
       cone, ``False`` for a non-strictly-convex cone, or ``None`` if you
       don't care.
+
+    * ``solid`` (defalt: random) -- Whether or not to make the returned
+      cone solid. Specify ``True`` for a solid cone, ``False`` for a
+      non-solid cone, or ``None`` if you don't care.
 
     OUTPUT:
 
@@ -4190,6 +4208,18 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
 
     * A trivial lattice is supplied and a non-strictly-convex cone
       is requested.
+
+    * A solid cone is requested but ``max_rays`` is less than ``min_dim``.
+
+    * A solid cone is requested but ``max_rays`` is less than the
+      dimension of ``lattice``.
+
+    * A non-solid cone is requested but ``max_dim`` is zero.
+
+    * A non-solid cone is requested but ``lattice`` has dimension zero.
+
+    * A non-solid cone is requested but ``min_rays`` is so large that
+      it guarantees a solid cone.
 
     ALGORITHM:
 
@@ -4241,6 +4271,19 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
         sage: K = random_cone(min_dim=5, min_rays=2, strictly_convex=False)
         sage: K.is_strictly_convex()
         False
+
+    An example with all parameters set::
+
+        sage: K = random_cone(min_dim=4, max_dim=7, min_rays=2, max_rays=10,
+        ....:                 strictly_convex=False, solid=True)
+        sage: 4 <= K.lattice_dim() and K.lattice_dim() <= 7
+        True
+        sage: 2 <= K.nrays() and K.nrays() <= 10
+        True
+        sage: K.is_strictly_convex()
+        False
+        sage: K.is_solid()
+        True
 
     TESTS:
 
@@ -4371,12 +4414,12 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
 
         sage: l = [ random_cone(min_dim=1,max_dim=10,min_rays=2,max_rays=10,
         ....:       strictly_convex=True).is_strictly_convex()
-        ....:       for i in range(0,10)]
+        ....:       for i in range(0,10) ]
         sage: all(l)
         True
 
-    If we fix all of the parameters, we can still request (non-)strictly-
-    convex cones::
+    If we fix all of the parameters, we can still request
+    (non-)strictly-convex cones::
 
         sage: K = random_cone(min_dim=2, max_dim=2, min_rays=3,
         ....:                 max_rays=3, strictly_convex=False)
@@ -4436,6 +4479,163 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
         sage: L = ToricLattice(0,"L")
         sage: random_cone(lattice=L, strictly_convex=True)
         0-d cone in 0-d lattice L
+
+    Ensure that solid cones are generated when requested::
+
+        sage: l = [ random_cone(max_dim=10,max_rays=10,solid=True).is_solid()
+        ....:       for i in range(0,10) ]
+        sage: all(l)
+        True
+
+    Ensure that non-solid cones are generated when requested::
+
+        sage: l=[ random_cone(max_dim=10,max_rays=10,solid=False).is_solid()
+        ....:     for i in range(0,10) ]
+        sage: any(l)
+        False
+
+    Ensure that solid cones are generated when requested (can take a
+    long time)::
+
+        sage: l = [ random_cone(solid=True).is_solid() # long time
+        ....:       for i in range(0,10) ]             # long time
+        sage: all(l)                                   # long time
+        True
+
+    Ensure that non-solid cones are generated when requested (can take a
+    long time)::
+
+        sage: l = [ random_cone(solid=False).is_solid() # long time
+        ....:       for i in range(0,10) ]              # long time
+        sage: any(l)                                    # long time
+        False
+
+    A ``ValueError`` is thrown if a non-solid cone is requested in a
+    zero-dimensional lattice::
+
+        sage: L = ToricLattice(0)
+        sage: random_cone(lattice=L, solid=False)
+        Traceback (most recent call last):
+        ...
+        ValueError: all cones in the given lattice are solid.
+
+        sage: random_cone(max_dim=0, solid=False)
+        Traceback (most recent call last):
+        ...
+        ValueError: all cones are solid when max_dim is zero.
+
+    A ``ValueError`` is thrown if a solid cone is requested but the
+    maximum number of rays is too few::
+
+        sage: random_cone(min_dim=4, max_rays=3, solid=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: max_rays must be at least min_dim for a solid cone.
+
+        sage: L = ToricLattice(5)
+        sage: random_cone(lattice=L, max_rays=3, solid=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: max_rays must be at least 5 for a solid cone in this
+        lattice.
+
+    A ``ValueError`` is thrown if a non-solid cone is requested but
+    ``min_rays`` guarantees a solid cone::
+
+        sage: random_cone(max_dim=4, min_rays=10, solid=False)
+        Traceback (most recent call last):
+        ...
+        ValueError: every cone is solid when min_rays > 2*(max_dim - 1).
+
+        sage: L = ToricLattice(4)
+        sage: random_cone(lattice=L, min_rays=10, solid=False)
+        Traceback (most recent call last):
+        ...
+        ValueError: every cone is solid when min_rays > 2*(d - 1) where d
+        is the dimension of the given lattice.
+
+    Check all four combinations of ``strictly_convex`` and ``solid``::
+
+        sage: K = random_cone(strictly_convex=True, solid=True) # long time
+        sage: K.is_solid()                                      # long time
+        True
+        sage: K.is_strictly_convex()                            # long time
+        True
+
+        sage: K = random_cone(strictly_convex=False, solid=True) # long time
+        sage: K.is_solid()                                       # long time
+        True
+        sage: K.is_strictly_convex()                             # long time
+        False
+
+        sage: K = random_cone(strictly_convex=False, solid=False) # long time
+        sage: K.is_solid()                                        # long time
+        False
+        sage: K.is_strictly_convex()                              # long time
+        False
+
+        sage: K = random_cone(strictly_convex=True, solid=False) # long time
+        sage: K.is_solid()                                       # long time
+        False
+        sage: K.is_strictly_convex()                             # long time
+        True
+
+    If we fix all of the parameters, we can still request (non-)solid
+    cones::
+
+        sage: K = random_cone(min_dim=3, max_dim=3, min_rays=4,
+        ....:                 max_rays=4, solid=True)
+        sage: K.nrays()
+        4
+        sage: K.lattice_dim()
+        3
+        sage: K.is_solid()
+        True
+
+        sage: K = random_cone(min_dim=3, max_dim=3, min_rays=4,
+        ....:                 max_rays=4, solid=False)
+        sage: K.nrays()
+        4
+        sage: K.lattice_dim()
+        3
+        sage: K.is_solid()
+        False
+
+        sage: K = random_cone(min_dim=4, max_dim=4, min_rays=4,
+        ....:                 max_rays=4, solid=True)
+        sage: K.nrays()
+        4
+        sage: K.lattice_dim()
+        4
+        sage: K.is_solid()
+        True
+
+        sage: K = random_cone(min_dim=4, max_dim=4, min_rays=4,
+        ....:                 max_rays=4, solid=False)
+        sage: K.nrays()
+        4
+        sage: K.lattice_dim()
+        4
+        sage: K.is_solid()
+        False
+
+        sage: K = random_cone(min_dim=4, max_dim=4, min_rays=4,
+        ....:                 max_rays=5, solid=True)
+        sage: K.nrays()
+        5
+        sage: K.lattice_dim()
+        4
+        sage: K.is_solid()
+        True
+
+        sage: K = random_cone(min_dim=4, max_dim=4, min_rays=5,
+        ....:                 max_rays=5, solid=False)
+        sage: K.nrays()
+        5
+        sage: K.lattice_dim()
+        4
+        sage: K.is_solid()
+        False
 
     """
 
@@ -4507,6 +4707,83 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
             msg = 'all cones in this lattice are strictly convex (trivial).'
             raise ValueError(msg)
 
+    # Sanity checks for solid cones.
+    if solid is not None and solid:
+        # The user wants a solid cone.
+        if lattice is None:
+            if max_rays is not None:
+                if max_rays < min_dim:
+                    msg = 'max_rays must be at least min_dim for a solid cone.'
+                    raise ValueError(msg)
+        else:
+            # Repeat the checks above when a lattice is given.
+            if max_rays is not None and max_rays < lattice.dimension():
+                msg = "max_rays must be at least {0} for a solid cone "
+                msg += "in this lattice."
+                raise ValueError(msg.format(lattice.dimension()))
+
+    # Sanity checks for non-solid cones.
+    if solid is not None and not solid:
+        if lattice is None:
+            if max_dim is not None and max_dim == 0:
+                msg = 'all cones are solid when max_dim is zero.'
+                raise ValueError(msg)
+            if max_dim is not None and min_rays > 2*(max_dim - 1):
+                msg = 'every cone is solid when min_rays > 2*(max_dim - 1).'
+                raise ValueError(msg)
+        else:
+            if lattice.dimension() == 0:
+                msg = 'all cones in the given lattice are solid.'
+                raise ValueError(msg)
+            if  min_rays > 2*(lattice.dimension() - 1):
+                msg = 'every cone is solid when min_rays > 2*(d - 1) '
+                msg += 'where d is the dimension of the given lattice.'
+                raise ValueError(msg)
+
+
+    # Now that we've sanity-checked our parameters, we can massage the
+    # min/maxes for (non-)solid cones. It doesn't violate the user's
+    # expectation to increase a minimum, decrease a maximum, or fix an
+    # "I don't care" parameter.
+    if solid is not None:
+        if solid:
+            # If max_dim is "I don't care", we can set it so that we
+            # guaranteed to generate a solid cone.
+            if max_rays is not None and max_dim is None:
+                # We won't make max_dim less than min_dim, since we
+                # already checked that min_dim <= min_rays = max_dim.
+                max_dim = min_rays
+        else:
+            if max_rays is None and max_dim is not None:
+                # This is an upper limit on the number of rays in a
+                # non-solid cone.
+                max_rays = 2*(max_dim - 1)
+            if max_rays is None and lattice is not None:
+                # Same thing, except when we're given a lattice.
+                max_rays = 2*(lattice.dimension() - 1)
+
+
+    # Now that we've sanity-checked our parameters, we can massage the
+    # min/maxes for (non-)solid cones. It doesn't violate the user's
+    # expectation to fix an "I don't care" parameter.
+    if solid is not None:
+        if solid:
+            # If max_dim is "I don't care", we can set it so that we
+            # guaranteed to generate a solid cone.
+            if max_rays is not None and max_dim is None:
+                # We won't make max_dim less than min_dim, since we
+                # already checked that min_dim <= min_rays = max_dim.
+                max_dim = min_rays
+        else:
+            if max_rays is None and max_dim is not None:
+                # This is an upper limit on the number of rays in a
+                # non-solid cone.
+                max_rays = 2*(max_dim - 1)
+            if max_rays is None and lattice is not None:
+                # Same thing, except when we're given a lattice.
+                max_rays = 2*(lattice.dimension() - 1)
+
+
     def random_min_max(l,u):
         r"""
         We need to handle two cases for the upper bounds, and we need
@@ -4552,7 +4829,14 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
             if not strictly_convex and K.is_strictly_convex():
                 return False
 
+        if solid is not None:
+            if solid and not K.is_solid():
+                return False
+            if not solid and K.is_solid():
+                return False
+
         return True
+
 
     # Now we actually compute the thing. To avoid recursion (and the
     # associated "maximum recustion depth exceeded" error), we loop

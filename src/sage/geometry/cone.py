@@ -4245,10 +4245,12 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
     TESTS:
 
     It's hard to test the output of a random process, but we can at
-    least make sure that we get a cone back::
+    least make sure that we get a cone back. To prevent this test
+    from running forever, we unfortunately have to pass the function
+    a parameter.
 
         sage: from sage.geometry.cone import is_Cone # long time
-        sage: K = random_cone()                      # long time
+        sage: K = random_cone(max_dim=20)            # long time
         sage: is_Cone(K)                             # long time
         True
 

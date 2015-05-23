@@ -177,14 +177,6 @@ cdef void late_import():
     import sage.rings.complex_interval_field
     is_ComplexIntervalField = sage.rings.complex_interval_field.is_ComplexIntervalField
 
-_QQxy = None
-def QQxy_with_gens():
-    global _QQxy
-    if _QQxy is None:
-        R = QQ['x', 'y']
-        _QQxy = (R, R.gen(0), R.gen(1))
-    return _QQxy
-
 
 cdef class Polynomial(CommutativeAlgebraElement):
     """
@@ -954,6 +946,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
         raise NotImplementedError
 
     def __iter__(self):
+        """
+        EXAMPLE::
+
+            sage: P = PolynomialRing(ZZ, 'x')([1,2,3])
+            sage: [y for y in iter(P)]
+            [1, 2, 3]
+        """
         return iter(self.list())
 
     def _cache_key(self):
@@ -1049,11 +1048,25 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return result
 
     def __float__(self):
-         if self.degree() > 0:
-             raise TypeError("cannot coerce nonconstant polynomial to float")
-         return float(self[0])
+        """
+        EXAMPLE::
+
+            sage: P = PolynomialRing(ZZ, 'x')([1])
+            sage: float(P)
+            1.0
+        """
+        if self.degree() > 0:
+            raise TypeError("cannot coerce nonconstant polynomial to float")
+        return float(self[0])
 
     def __int__(self):
+        """
+        EXAMPLE::
+
+            sage: P = PolynomialRing(ZZ, 'x')([3])
+            sage: int(P)
+            3
+        """
         if self.degree() > 0:
             raise TypeError("cannot coerce nonconstant polynomial to int")
         return int(self[0])
@@ -2516,7 +2529,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         .. math::
 
-                            (aX + b) (cX + d) = acX^2 + ((a+b)(c+d)-ac-bd)X + bd
+            (aX + b) (cX + d) = acX^2 + ((a+b)(c+d)-ac-bd)X + bd
 
 
         where ac=a\*c and bd=b\*d, which requires three multiplications
@@ -2525,14 +2538,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         .. math::
 
-               f = a X^e + b   \text{ and }   g = c X^e + d
+            f = a X^e + b   \text{ and }   g = c X^e + d
 
 
         and use the identity
 
         .. math::
 
-               (aX^e + b) (cX^e + d) = ac X^{2e} +((a+b)(c+d) - ac - bd)X^e + bd
+            (aX^e + b) (cX^e + d) = ac X^{2e} +((a+b)(c+d) - ac - bd)X^e + bd
 
 
         to recursively compute `fg`.
@@ -5598,7 +5611,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     algorithm = "BFSS"
 
         if algorithm == "resultant":
-            QQxy, QQxy_x, QQxy_y = QQxy_with_gens()
+            QQxy = QQ['x', 'y']
+            QQxy_x, QQxy_y = QQxy.gen(0), QQxy.gen(1)
             if op is operator.add:
                 lp = p1(QQxy_x - QQxy_y)
             elif op is operator.sub:
@@ -7068,9 +7082,25 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return self._parent(self.coefficients(sparse=False)[-int(n):], check=False)
 
     def __lshift__(self, k):
+        """
+        EXAMPLE::
+
+            sage: R.<x> = ZZ[]
+            sage: f = x + 2
+            sage: f << 3
+            x^4 + 2*x^3
+        """
         return self.shift(k)
 
     def __rshift__(self, k):
+        """
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: f = x^4 + 2*x^3
+            sage: f >> 3
+            x + 2
+        """
         return self.shift(-k)
 
     cpdef Polynomial truncate(self, long n):

@@ -4207,6 +4207,9 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
     * A trivial lattice is supplied and a non-strictly-convex cone
       is requested.
 
+    * A non-strictly-convex cone is requested but ``max_rays`` is less
+      than two.
+
     * A solid cone is requested but ``max_rays`` is less than ``min_dim``.
 
     * A solid cone is requested but ``max_rays`` is less than the
@@ -4472,6 +4475,14 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
         ...
         ValueError: all cones in this lattice are strictly convex (trivial).
 
+    Or a non-strictly-convex cone with fewer than two rays::
+
+        sage: random_cone(max_rays=1, strictly_convex=False)
+        Traceback (most recent call last):
+        ...
+        ValueError: all cones are strictly convex when ``max_rays`` is
+        less than two.
+
     But fine to ask for a strictly convex trivial cone::
 
         sage: L = ToricLattice(0,"L")
@@ -4703,6 +4714,10 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
     if strictly_convex is not None and not strictly_convex:
         if lattice is not None and lattice.dimension() == 0:
             msg = 'all cones in this lattice are strictly convex (trivial).'
+            raise ValueError(msg)
+        if max_rays is not None and max_rays < 2:
+            msg  = 'all cones are strictly convex when ``max_rays`` is '
+            msg += 'less than two.'
             raise ValueError(msg)
 
     # Sanity checks for solid cones.

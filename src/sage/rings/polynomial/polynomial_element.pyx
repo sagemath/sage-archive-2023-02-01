@@ -1319,7 +1319,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x = R.base_ring().gen()
             sage: p1 = 1 - x*y + 2*y**3
             sage: p2 = -1/3 + y**5
-            sage: p1._mul_trunc(p2, 5)
+            sage: p1._mul_trunc_(p2, 5)
             -2/3*y^3 + 1/3*x*y - 1/3
 
         .. TODO::

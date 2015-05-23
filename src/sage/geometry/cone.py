@@ -4191,10 +4191,6 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
     * A trivial lattice is supplied and a non-strictly-convex cone
       is requested.
 
-    * A non-strictly-convex cone is requested but ``min_rays`` is less
-      then two (the minimum number of rays a non-strictly-convex cone
-      can have).
-
     ALGORITHM:
 
     First, a lattice is determined from ``min_dim`` and ``max_dim`` (or
@@ -4439,16 +4435,6 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
         sage: random_cone(lattice=L, strictly_convex=True)
         0-d cone in 0-d lattice L
 
-    When no lattice is provided, it is an error to request a
-    non-strictly convex cone with ``min_rays`` less then two (since
-    we need at least two rays for such a cone)::
-
-        sage: random_cone(min_dim=1, min_rays=1, strictly_convex=False)
-        Traceback (most recent call last):
-        ...
-        ValueError: min_rays must be greater than one if strictly_convex is
-        False; a single ray is always strictly convex.
-
     """
 
     # Catch obvious mistakes so that we can generate clear error
@@ -4515,10 +4501,6 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
 
     # Sanity checks for strictly_convex.
     if strictly_convex is not None and not strictly_convex:
-        if lattice is None and min_rays < 2:
-            msg = 'min_rays must be greater than one if strictly_convex is '
-            msg += 'False; a single ray is always strictly convex.'
-            raise ValueError(msg)
         if lattice is not None and lattice.dimension() == 0:
             msg = 'all cones in this lattice are strictly convex (trivial).'
             raise ValueError(msg)
@@ -4638,12 +4620,13 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
                 # The user requested that the cone be NOT strictly
                 # convex. So it should contain some line...
                 if K.is_strictly_convex():
-                    # ...but it doesn't. We already made sure (via
-                    # earlier sanity checks) that we have at least two
-                    # rays, so we should be able to change one of them
-                    # into a negative multiple of the other.
-                    rays[1] = -rays[0]
-                    K = Cone(rays, lattice=L)
+                    # ...but it doesn't. If K has at least two rays,
+                    # we can just make the second one a multiple of
+                    # the first -- then K will contain a line. If K
+                    # has fewer than two rays, we punt.
+                    if len(rays) >= 2:
+                        rays[1] = -rays[0]
+                        K = Cone(rays, lattice=L)
 
         if is_valid(K):
             # Loop if we don't have a valid cone.

@@ -4125,7 +4125,7 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
     You may also request that the returned cone be strictly convex (or
     not). Likewise you may request that it be (non-)solid.
 
-    .. WARNING:
+    .. WARNING::
 
         If you request a large number of rays in a low-dimensional
         space, you might be waiting for a while. For example, in three
@@ -4136,10 +4136,8 @@ def random_cone(lattice=None, min_dim=0, max_dim=None, min_rays=0,
         throw the cone out and start over from scratch. This process repeats
         until we get lucky.
 
-    .. WARNING:
-
-        We refrain from "adjusting" the min/max parameters given to us
-        when a (non-)strictly convex or (non-)solid cone is
+        We also refrain from "adjusting" the min/max parameters given to
+        us when a (non-)strictly convex or (non-)solid cone is
         requested. This means that it may take a long time to generate
         such a cone if the parameters are chosen unwisely.
 

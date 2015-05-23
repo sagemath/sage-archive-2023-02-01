@@ -16,6 +16,7 @@ overridden by subclasses.
 ###############################################################################
 
 import operator as _operator
+from sage.rings.rational_field import QQ
 from sage.symbolic.ring import SR
 from sage.symbolic.pynac import I
 from sage.functions.all import exp
@@ -23,6 +24,7 @@ from sage.symbolic.operators import arithmetic_operators, relation_operators, FD
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from functools import reduce
 GaussianField = I.pyobject().parent()
+
 
 class FakeExpression(object):
     r"""

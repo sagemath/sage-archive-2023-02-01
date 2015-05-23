@@ -323,7 +323,7 @@ def function(s, *args, **kwds):
         names = s.split(' ')
     else:
         names = [s]
-    names = [s.strip() for s in names if s.strip()]
+    names = [sn.strip() for sn in names if sn.strip()]
 
     funcs = [function_factory(name, **kwds) for name in names]
 

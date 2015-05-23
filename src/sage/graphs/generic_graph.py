@@ -650,8 +650,7 @@ class GenericGraph(GenericGraph_pyx):
             15
         """
         self._scream_if_not_simple()
-        vertices = self.vertices()
-        n = len(vertices)
+        n = self.order()
         if self._directed:
             total_length = n*n
             bit = lambda x,y : x*n + y
@@ -660,8 +659,10 @@ class GenericGraph(GenericGraph_pyx):
             n_ch_2 = lambda b : int(b*(b-1))//2
             bit = lambda x,y : n_ch_2(max([x,y])) + min([x,y])
         bit_vector = set()
+
+        v_to_int = {v:i for i,v in enumerate(self.vertices())}
         for u,v,_ in self.edge_iterator():
-            bit_vector.add(bit(vertices.index(u), vertices.index(v)))
+            bit_vector.add(bit(v_to_int[u], v_to_int[v]))
         bit_vector = sorted(bit_vector)
         s = []
         j = 0
@@ -17771,7 +17772,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: A1 = G.automorphism_group()                   # optional - bliss
             sage: A2 = G.automorphism_group(algorithm='bliss')  # optional - bliss
             sage: A1.is_isomorphic(A2)                          # optional - bliss
-            True                                                # optional - bliss
+            True
 
         TESTS:
 
@@ -18083,8 +18084,9 @@ class GenericGraph(GenericGraph_pyx):
         except EmptySetError:
             return False
 
-    def is_isomorphic(self, other, certify=False, verbosity=0, edge_labels=False, algorithm=None):
-        """Tests for isomorphism between self and other.
+    def is_isomorphic(self, other, certify=False, verbosity=0, edge_labels=False):
+        r"""
+        Tests for isomorphism between self and other.
 
         INPUT:
 
@@ -18095,12 +18097,9 @@ class GenericGraph(GenericGraph_pyx):
         -  ``edge_labels`` - default False, otherwise allows
            only permutations respecting edge labels.
 
-        - ``algorithm`` - If ``algorithm = "bliss"`` the automorphism group is
-          computed using bliss
-          (http://www.tcs.tkk.fi/Software/bliss/index.html).  Note that bliss
-          package must be installed.
+        EXAMPLES:
 
-        EXAMPLES: Graphs::
+        Graphs::
 
             sage: from sage.groups.perm_gps.permgroup_named import SymmetricGroup
             sage: D = graphs.DodecahedralGraph()
@@ -18172,13 +18171,6 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: G.is_isomorphic(H, edge_labels=True, certify=True)
             (True, {0: 1, 1: 2, 2: 3, 3: 4, 4: 0})
-
-        Isomorphism testing using the software Bliss is supported as well::
-
-           sage: G = graphs.PetersenGraph()                                             # optional - bliss
-           sage: G.is_isomorphic(graphs.GeneralizedPetersenGraph(5,2),algorithm='bliss')# optional - bliss
-           True                                                                         # optional - bliss
-
 
         TESTS::
 
@@ -18294,18 +18286,12 @@ class GenericGraph(GenericGraph_pyx):
         if self.order() == other.order() == 0:
             return True
 
-        if (self.is_directed() != other.is_directed() or self.order() != other.order() or 
-          self.size() != other.size() or self.degree_sequence() != other.degree_sequence()):
+        if (self.is_directed() != other.is_directed() or self.order() != other.order() or
+            self.size() != other.size() or self.degree_sequence() != other.degree_sequence()):
             if certify:
                 return False,None
             else:
                 return False
-
-        from sage.misc.package import is_package_installed
-        if algorithm == 'bliss' and is_package_installed("bliss") and not edge_labels:
-            from sage.graphs.bliss import is_isomorphic 
-
-            return is_isomorphic(self, other, certify)
 
         from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic
 
@@ -18481,7 +18467,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: s1 = G.canonical_label(return_graph=false,algorithm='bliss')  # optional - bliss
             sage: s2 = H.canonical_label(return_graph=false,algorithm='bliss')  # optional - bliss
             sage: s1 == s2                                                      # optional - bliss
-            True                                                                # optional - bliss
+            True
 
         """
         from sage.misc.package import is_package_installed

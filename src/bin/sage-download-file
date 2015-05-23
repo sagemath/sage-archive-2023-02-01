@@ -60,9 +60,9 @@ class ProgressBar(object):
 
     def __call__(self, chunks_so_far, chunk_size, total_size):
         if total_size == -1:  # we do not know size
-            n = 0 if chunks_so_far == 0 else self.length / 2
+            n = 0 if chunks_so_far == 0 else self.length // 2
         else:
-            n = chunks_so_far * chunk_size * self.length / total_size
+            n = chunks_so_far * chunk_size * self.length // total_size
         if n > self.length: 
             # If there is a Content-Length, this will be sent as the last progress
             return
@@ -130,10 +130,16 @@ class MirrorList(object):
 
     MAXAGE = 24*60*60   # seconds
 
-    def __init__(self):
+    def __init__(self, verbose=True):
+        """
+        If `verbose` is False, don't print messages along the way.
+        This is needed to produce the appropriate output for
+        `sage-download-file --print-fastest-mirror`.
+        """
         self.filename = os.path.join(SAGE_DISTFILES, 'mirror_list')
+        self.verbose = verbose
         if self.must_refresh():
-            print('Downloading the Sage mirror list')
+            if self.verbose: print('Downloading the Sage mirror list')
             with contextlib.closing(urllib.urlopen(self.URL)) as f:
                 mirror_list = f.read()
             self.mirrors = self._load(mirror_list)
@@ -176,7 +182,7 @@ class MirrorList(object):
         """
         timed_mirrors = []
         import time, socket
-        print('Searching fastest mirror')
+        if self.verbose: print('Searching fastest mirror')
         timeout = 1
         for mirror in self.mirrors:
             if not mirror.startswith('http'):
@@ -190,14 +196,14 @@ class MirrorList(object):
                 sock.close()
             except (IOError, socket.error, socket.timeout):
                 continue
-                print(str('ERROR').rjust(5) + '    ' + mirror)
+                if verbose: print(str('ERROR').rjust(5) + '    ' + mirror)
             result = time.time() - time_before
             result_ms = int(1000 * result)
-            print(str(result_ms).rjust(5) + 'ms: ' + mirror)
+            if self.verbose: print(str(result_ms).rjust(5) + 'ms: ' + mirror)
             timed_mirrors.append((result, mirror))
         timed_mirrors.sort()
         self.mirrors = [m[1] for m in timed_mirrors]
-        print('Fastest mirror: ' + self.fastest)
+        if self.verbose: print('Fastest mirror: ' + self.fastest)
 
     @property
     def fastest(self):
@@ -388,14 +394,13 @@ If the destination is not specified:
 * a tarball will be saved under {SAGE_DISTFILES}
 """.format(SAGE_DISTFILES=SAGE_DISTFILES)
 
-
 if __name__ == '__main__':
     progress = True
     url = None
     destination = None
     for arg in sys.argv[1:]:
         if arg.startswith('--print-fastest-mirror'):
-            print(MirrorList().fastest)
+            print(MirrorList(verbose=False).fastest)
             sys.exit(0)
         if arg.startswith('--quiet'):
             progress = False

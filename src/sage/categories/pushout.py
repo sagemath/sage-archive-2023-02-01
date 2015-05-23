@@ -2630,6 +2630,15 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             Univariate Quotient Polynomial Ring in a over Univariate Polynomial Ring in t over Integer Ring with modulus a^3 + a^2 + 1
             sage: F(RR)       # indirect doctest
             Univariate Quotient Polynomial Ring in a over Real Field with 53 bits of precision with modulus a^3 + a^2 + 1.00000000000000
+
+        Check that :trac:`13538` is fixed::
+
+            sage: K = Qp(3,3)
+            sage: R.<a> = K[]
+            sage: AEF = sage.categories.pushout.AlgebraicExtensionFunctor([a^2-3], ['a'], [None])
+            sage: AEF(K)
+            Eisenstein Extension of 3-adic Field with capped relative precision 3 in a defined by (1 + O(3^3))*a^2 + (O(3^4))*a + (2*3 + 2*3^2 + 2*3^3 + O(3^4))
+
         """
         from sage.all import QQ, ZZ, CyclotomicField
         if self.cyclotomic:
@@ -2638,8 +2647,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             if R==ZZ:
                 return CyclotomicField(self.cyclotomic).maximal_order()
         if len(self.polys) == 1:
-            return R.extension(self.polys[0], self.names[0], embedding=self.embeddings[0], **self.kwds)
-        return R.extension(self.polys, self.names, embedding=self.embeddings)
+            return R.extension(self.polys[0], names=self.names[0], embedding=self.embeddings[0], **self.kwds)
+        return R.extension(self.polys, names=self.names, embedding=self.embeddings)
 
     def __cmp__(self, other):
         """

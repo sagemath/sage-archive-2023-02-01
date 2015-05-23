@@ -992,25 +992,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         _hash ^= hash(self.term_order())
         return _hash
 
-    def gens_dict(self):
-        """
-        Return a dictionary whose entries are ``{var_name:variable,...}``.
-
-        EXAMPLE::
-
-            sage: B.<a,b,c,d> = BooleanPolynomialRing()
-            sage: B.gens_dict()
-            {'a': a, 'b': b, 'c': c, 'd': d}
-        """
-        if self._gens_dict is not None:
-            return self._gens_dict
-
-        v = {}
-        for x in self.gens():
-            v[str(x)] = x
-        self._gens_dict = v
-        return v
-
     def remove_var(self, *var, order=None):
         """
         Remove a variable or sequence of variables from this ring.

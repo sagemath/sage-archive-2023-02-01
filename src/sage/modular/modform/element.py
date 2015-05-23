@@ -1302,6 +1302,12 @@ class Newform(ModularForm_abstract):
 
             sage: [x.atkin_lehner_eigenvalue() for x in ModularForms(53).newforms('a')]
             [1, -1]
+
+            sage: f = Newforms(Gamma1(15), 3, names='a')[2]; f
+            q + a2*q^2 + (-a2 - 2)*q^3 - q^4 - a2*q^5 + O(q^6)
+            sage: f.atkin_lehner_eigenvalue(5)
+            -a2
+
             sage: CuspForms(DirichletGroup(5).0, 5).newforms()[0].atkin_lehner_eigenvalue()
             Traceback (most recent call last):
             ...

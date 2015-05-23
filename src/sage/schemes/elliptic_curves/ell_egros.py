@@ -68,7 +68,8 @@ required have conductors 13068 and 52272 so are in the database)::
 
 
 AUTHORS:
-   * John Cremona (6 April 2009): initial version (over Q only).
+
+- John Cremona (6 April 2009): initial version (over Q only).
 """
 
 #*****************************************************************************
@@ -98,10 +99,11 @@ def is_possible_j(j,S=[]):
 
     .. note::
 
-    The condition used is necessary but not sufficient unless S
-    contains both 2 and 3.
+        The condition used is necessary but not sufficient unless S
+        contains both 2 and 3.
 
     EXAMPLES::
+
         sage: from sage.schemes.elliptic_curves.ell_egros import is_possible_j
         sage: is_possible_j(0,[])
         False

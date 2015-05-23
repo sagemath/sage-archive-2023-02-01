@@ -190,13 +190,12 @@ def affine_minimal(vp, return_transformation = False,D=None, quick = False):
                at those specific primes.
 
     - ``return_transformation`` -- a boolean value, default value True. This
-                                signals a return of the ``PGL_2`` transformation
-                                to conjugate ``vp`` to the calculated minimal
-                                model. default: False
+      signals a return of the ``PGL_2`` transformation to conjugate ``vp`` to
+      the calculated minimal model. default: False
 
     - ``quick`` -- a boolean value. If true the algorithm terminates once
-                   algorithm determines F/G is not minimal, otherwise algorithm
-                   only terminates once a minimal model has been found.
+      algorithm determines F/G is not minimal, otherwise algorithm only
+      terminates once a minimal model has been found.
 
     OUTPUT:
 
@@ -205,6 +204,7 @@ def affine_minimal(vp, return_transformation = False,D=None, quick = False):
     - ``conj`` -- linear fractional transformation which conjugates ``vp`` to ``newvp``
 
     EXAMPLES::
+
         sage: PS.<X,Y> = ProjectiveSpace(QQ,1)
         sage: H = Hom(PS,PS)
         sage: vp = H([X^2+9*Y^2,X*Y])

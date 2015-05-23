@@ -65,13 +65,6 @@ singular_libs = ['singular', 'flint', 'ntl', 'gmpxx', 'gmp', 'readline', 'm']
 
 givaro_extra_compile_args =['-D__STDC_LIMIT_MACROS']
 
-#########################################################
-### PolyBoRi settings
-#########################################################
-
-polybori_extra_compile_args = []
-polybori_major_version = '0.8'
-
 #############################################################
 ### List of modules
 ###
@@ -1822,12 +1815,11 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.pbori',
               sources = ['sage/rings/polynomial/pbori.pyx'],
-              libraries=['polybori-' + polybori_major_version,
-                         'polybori_groebner-' + polybori_major_version, 'm4ri', 'gd', 'png12'],
+              libraries=['polybori', 'polybori_groebner', 'm4ri', 'gd', 'png12'],
               include_dirs = [SAGE_INC, "sage/libs/polybori"],
               depends = [SAGE_INC + "/polybori/" + hd + ".h" for hd in ["polybori", "config"] ] + \
                         [SAGE_INC + '/m4ri/m4ri.h'],
-              extra_compile_args = polybori_extra_compile_args + m4ri_extra_compile_args,
+              extra_compile_args = m4ri_extra_compile_args,
               language = 'c++'),
 
     Extension('sage.rings.polynomial.polynomial_real_mpfr_dense',

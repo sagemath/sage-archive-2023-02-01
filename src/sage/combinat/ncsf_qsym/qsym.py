@@ -2622,6 +2622,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             """
             return "Quasisymmetric Schur"
 
+        @cached_method
         def _to_monomial_on_basis(self, comp_shape):
             r"""
             Expand the quasi-symmetric Schur function in the Monomial basis.

@@ -155,9 +155,6 @@ class GenericDeclaration(SageObject):
             self._context = maxima.newcontext('context' + maxima._next_var_name())
             try:
                 maxima.eval("declare(%s, %s)" % (self._var._maxima_init_(), self._assumption))
-#            except TypeError:
-#                if 'inconsistent' in str(mess): # note Maxima doesn't tell you if declarations are redundant
-#                    raise ValueError("Assumption is inconsistent")
             except RuntimeError as mess:
                 if 'inconsistent' in str(mess): # note Maxima doesn't tell you if declarations are redundant
                     raise ValueError("Assumption is inconsistent")

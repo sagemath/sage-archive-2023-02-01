@@ -556,12 +556,9 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                                     codomain=Monomial, category=category
                                     ).register_as_coercion()
         #This changes Monomial into Quasisymmetric Schur
-        QS.register_coercion(SetMorphism(Hom(Monomial, QS, category),
-                                   QS._from_monomial_by_triangularity))
-        #This changes Fundamental into Quasisymmetric Schur
-        #Fundamental.module_morphism(QS._from_fundamental_on_basis,
-        #                            codomain=QS, category=category
-        #                            ).register_as_coercion()
+        Monomial.module_morphism(QS._from_monomial_on_basis,
+                                    codomain=QS, category=category
+                                    ).register_as_coercion()
 
         # Embedding of Sym into QSym in the monomial bases
         Sym = SymmetricFunctions(self.base_ring())
@@ -2623,6 +2620,69 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             return "Quasisymmetric Schur"
 
         @cached_method
+        def _from_monomial_transition_matrix(self, n):
+            r"""
+            A matrix representing the transition coefficients to the complete basis
+
+            INPUT:
+
+            - ``n`` -- an integer
+
+            OUTPUT:
+
+            - a square matrix
+
+            EXAMPLES::
+
+                sage: QS = QuasiSymmetricFunctions(QQ).QS()
+                sage: QS._from_monomial_transition_matrix(4)
+                [ 1 -1 -1  0  1  1  1 -1]
+                [ 0  1  0  0 -1 -1  0  1]
+                [ 0  0  1 -1  0  0 -1  1]
+                [ 0  0  0  1 -1 -1 -1  1]
+                [ 0  0  0  0  1  0  0 -1]
+                [ 0  0  0  0  0  1  0 -1]
+                [ 0  0  0  0  0  0  1 -1]
+                [ 0  0  0  0  0  0  0  1]
+            """
+            if n == 0:
+                return matrix([[]])
+            return matrix([[number_of_SSRCT(al,be) for al in compositions_order(n)]
+                for be in compositions_order(n)]).inverse()
+
+        @cached_method
+        def _from_monomial_on_basis(self, comp):
+            r"""
+            Maps the Monomial quasi-symmetric function indexed by
+            ``comp`` to the Quasisymmetric Schur basis.
+
+            INPUT:
+
+            - ``comp`` -- a composition
+
+            OUTPUT:
+
+            - a quasi-symmetric function in the Quasisymmetric Schur basis
+
+            EXAMPLES::
+
+                sage: QSym = QuasiSymmetricFunctions(QQ)
+                sage: QS = QSym.QS()
+                sage: M = QSym.M()
+                sage: QS._from_monomial_on_basis(Composition([1,3,1]))
+                QS[1, 1, 1, 1, 1] - QS[1, 1, 2, 1] + QS[1, 3, 1] - QS[2, 2, 1]
+                sage: QS._from_monomial_on_basis(Composition([2]))
+                -QS[1, 1] + QS[2]
+             """
+            comp = Composition(comp)
+            if not comp._list:
+                return self.one()
+            comps = compositions_order(comp.size())
+            T = self._from_monomial_transition_matrix(comp.size())
+            return self.sum_of_terms( zip(comps, T[comps.index(comp)]),
+                                      distinct=True )
+
+        @cached_method
         def _to_monomial_on_basis(self, comp_shape):
             r"""
             Expand the quasi-symmetric Schur function in the Monomial basis.
@@ -2653,38 +2713,6 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     number_of_SSRCT(comp_content, comp_shape))
                     for comp_content in Compositions(sum(comp_shape))),
                     distinct=True )
-
-        def _from_monomial_by_triangularity(self, Melement):
-            r"""
-            Expand an element in the Monomial basis in the basis ``self``.
-            The expansion of the monomial quasi-symmetric function element
-            subtracts off the lowest term and then expands what remains.
-
-            INPUT:
-
-            - ``Melement`` -- an element of the Monomial basis
-
-            OUTPUT:
-
-            - an element in the complete basis
-
-            EXAMPLES::
-
-                sage: QSym = QuasiSymmetricFunctions(QQ)
-                sage: QS = QSym.QS()
-                sage: M = QSym.M()
-                sage: QS._from_monomial_by_triangularity(M[1,3,1])
-                QS[1, 1, 1, 1, 1] - QS[1, 1, 2, 1] + QS[1, 3, 1] - QS[2, 2, 1]
-                sage: QS._from_monomial_by_triangularity(M[2]+M[1])
-                QS[1] - QS[1, 1] + QS[2]
-            """
-            out = self.zero()
-            while not Melement.is_zero():
-                n = Melement.degree()
-                for al in reversed(compositions_order(n)):
-                    out += Melement.coefficient(al)*self(al)
-                    Melement -= Melement.coefficient(al)*self._to_monomial_on_basis(al)
-            return out
 
     QS = Quasisymmetric_Schur
 

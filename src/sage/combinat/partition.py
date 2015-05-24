@@ -729,7 +729,7 @@ class Partition(CombinatorialElement):
             [        ****  ***  *    **  *   * ]
             [ *****, *   , ** , *  , * , * , * ]
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._repr_diagram().splitlines(), baseline=0)
 
     def _repr_list(self):

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Tableaux
 
@@ -516,12 +517,31 @@ class Tableau(ClonableList):
             sage: Tableaux.global_options.reset()
         """
         ascii = self.parent().global_options.dispatch(self,'_ascii_art_','ascii_art')
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(ascii.splitlines())
+
+    def _unicode_art_(self):
+        r"""
+        TESTS::
+
+            sage: unicode_art(Tableau([[1,2,3],[4],[5]]))
+            ┌───┬───┬───┐
+            │ 1 │ 2 │ 3 │
+            ├───┼───┴───┘
+            │ 4 │
+            ├───┤
+            │ 5 │
+            └───┘
+            sage: unicode_art(Tableau([]))
+            ┌┐
+            └┘
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+        return UnicodeArt(self._ascii_art_table(unicode=True).splitlines())
 
     _ascii_art_repr = _repr_diagram
 
-    def _ascii_art_table(self):
+    def _ascii_art_table(self, unicode=False):
         """
         TESTS:
 
@@ -578,9 +598,54 @@ class Tableau(ClonableList):
             |  1 |  2 | 15 | 7 |
             +----+----+----+---+
             sage: Tableaux.global_options.reset()
+
+        Unicode version::
+
+            sage: t = Tableau([[1,2,15,7],[12,5],[8,10],[9]])
+            sage: print t._ascii_art_table(unicode=True)
+            ┌────┬────┬────┬───┐
+            │ 1  │ 2  │ 15 │ 7 │
+            ├────┼────┼────┴───┘
+            │ 12 │ 5  │
+            ├────┼────┤
+            │ 8  │ 10 │
+            ├────┼────┘
+            │ 9  │
+            └────┘
+            sage: Tableaux().global_options(convention='french')
+            sage: t = Tableau([[1,2,15,7],[12,5],[8,10],[9]])
+            sage: print t._ascii_art_table(unicode=True)
+            ┌────┐
+            │ 9  │
+            ├────┼────┐
+            │ 8  │ 10 │
+            ├────┼────┤
+            │ 12 │ 5  │
+            ├────┼────┼────┬───┐
+            │ 1  │ 2  │ 15 │ 7 │
+            └────┴────┴────┴───┘
+            sage: Tableaux.global_options.reset()
         """
+        if unicode:
+            import unicodedata
+            v  = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL')
+            h  = unicodedata.lookup('BOX DRAWINGS LIGHT HORIZONTAL')
+            dl = unicodedata.lookup('BOX DRAWINGS LIGHT DOWN AND LEFT')
+            dr = unicodedata.lookup('BOX DRAWINGS LIGHT DOWN AND RIGHT')
+            ul = unicodedata.lookup('BOX DRAWINGS LIGHT UP AND LEFT')
+            ur = unicodedata.lookup('BOX DRAWINGS LIGHT UP AND RIGHT')
+            vr = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND RIGHT')
+            vl = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND LEFT')
+            uh = unicodedata.lookup('BOX DRAWINGS LIGHT UP AND HORIZONTAL')
+            dh = unicodedata.lookup('BOX DRAWINGS LIGHT DOWN AND HORIZONTAL')
+            vh = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL')
+        else:
+            v = '|'
+            h = '-'
+            dl = dr = ul = ur = vr = vl = uh = dh = vh = '+'
+
         if len(self) == 0:
-            return "++\n++"
+            return dr + dl + '\n' + ur + ul
 
         # Get the widths of the columns
         str_tab = map(lambda row: map(str, row), self)
@@ -591,22 +656,47 @@ class Tableau(ClonableList):
 
         matr = []  # just the list of lines
         l1 = ""
-        for w in col_widths:
-            l1 += "+--" + '-'*w
-        matr.append(l1 + "+")
-        for row in str_tab:
+        l1 += dr + h*(2+col_widths[0])
+        for w in col_widths[1:]:
+            l1 += dh + h + h + h*w
+        matr.append(l1 + dl)
+        for nrow,row in enumerate(str_tab):
             l1 = ""; l2 = ""
-            for i,e in enumerate(row):
-                l1 += "+--" + '-'*col_widths[i]
-                l2 += "| {:^{width}} ".format(e, width=col_widths[i])
-            l1 += "+"; l2 += "|"
+            n = len(str_tab[nrow+1]) if nrow+1 < len(str_tab) else 0
+            for i,(e,w) in enumerate(zip(row,col_widths)):
+                if i == 0:
+                    if n:
+                        l1 += vr + h*(2+w)
+                    else:
+                        l1 += ur + h*(2+w)
+                elif i <= n:
+                    l1 += vh + h*(2+w)
+                else:
+                    l1 += uh + h*(2+w)
+                if unicode:
+                    l2 += u"{} {:^{width}} ".format(v, e, width=w)
+                else:
+                    l2 += "{} {:^{width}} ".format(v, e, width=w)
+            if i+1 <= n:
+                l1 += vl
+            else:
+                l1 += ul
+            l2 += v
             matr.append(l2)
             matr.append(l1)
 
         if self.parent().global_options('convention') == "English":
             return "\n".join(matr)
         else:
-            return "\n".join(reversed(matr))
+            output = "\n".join(reversed(matr))
+            if unicode:
+                tr = {
+                    ord(dl): ul, ord(dr): ur,
+                    ord(ul): dl, ord(ur): dr,
+                    ord(dh): uh, ord(uh): dh}
+                return output.translate(tr)
+            else:
+                return output
 
     def _ascii_art_compact(self):
         """

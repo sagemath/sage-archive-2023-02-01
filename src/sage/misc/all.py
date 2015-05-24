@@ -200,4 +200,3 @@ class logstr(str):
 
 lazy_import("sage.misc", "messaging", deprecation=18140)
 
-from ascii_art import ascii_art

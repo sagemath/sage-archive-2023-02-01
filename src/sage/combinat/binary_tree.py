@@ -376,10 +376,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         node_to_str = lambda bt: str(bt.label()) if hasattr(bt, "label") else "o"
 
         if self.is_empty():
-            from sage.misc.ascii_art import empty_ascii_art
+            from sage.typeset.ascii_art import empty_ascii_art
             return empty_ascii_art
 
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         if self[0].is_empty() and self[1].is_empty():
             bt_repr = AsciiArt( [node_to_str(self)] )
             bt_repr._root = 1

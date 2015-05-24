@@ -10,6 +10,8 @@ cdef class randstate:
 
     cdef object _gp_saved_seeds
 
+    cdef object _singular_saved_seed
+
     cpdef set_seed_libc(self, bint force)
     cpdef set_seed_ntl(self, bint force)
 

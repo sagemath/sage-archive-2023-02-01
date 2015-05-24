@@ -554,8 +554,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         EXAMPLES::
 
             sage: for n in ZZ:
-            ...    if n < 3: print n
-            ...    else: break
+            ....:  if n < 3: print n
+            ....:  else: break
             0
             1
             -1
@@ -565,6 +565,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         yield self(0)
         n = self(1)
         while True:
+            sig_check()
             yield n
             yield -n
             n += 1

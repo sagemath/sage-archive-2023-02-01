@@ -383,6 +383,7 @@ latex_elements['preamble'] = r"""
 \DeclareUnicodeCharacter{230B}{\rfloor}
 \DeclareUnicodeCharacter{2308}{\lceil}
 \DeclareUnicodeCharacter{2309}{\rceil}
+\DeclareUnicodeCharacter{22C5}{\ensuremath{\cdot}}
 
 \newcommand{\sageMexSymbol}[1]
 {{\fontencoding{OMX}\fontfamily{cmex}\selectfont\raisebox{0.75em}{\symbol{#1}}}}

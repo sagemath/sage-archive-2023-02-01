@@ -22,11 +22,6 @@ EXAMPLES::
     [0 : 0 : 1]
     sage: list(point_set)[0:5]
     [[0 : 0 : 1], [1 : 0 : 0], [0 : 1 : 0], [0 : 1 : 1], [0 : 1 : 2]]
-
-Syntactic shortcut::
-
-    sage: P2.cardinality()
-    13
 """
 
 #*****************************************************************************
@@ -861,7 +856,7 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
         """
         Iterate over solutions in a range.
 
-        INPUT::
+        INPUT:
 
         - ``inhomogeneous_equations`` -- list/tuple/iterable of
           inhomogeneous equations (i.e. output from

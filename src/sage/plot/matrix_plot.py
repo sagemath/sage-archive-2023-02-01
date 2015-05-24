@@ -51,7 +51,7 @@ class MatrixPlot(GraphicPrimitive):
         sage: M.yrange
         (2, 3)
         sage: M.xy_data_array
-        [[2, 4], [1, 3]]
+        [[1, 3], [2, 4]]
         sage: M.options()
         {'cmap': 'winter'}
 
@@ -84,15 +84,7 @@ class MatrixPlot(GraphicPrimitive):
         """
         self.xrange = xrange
         self.yrange = yrange
-        if options.get('origin') != 'lower':
-            # we want to display the array upside down, so flip it
-            if hasattr(xy_data_array, 'tocoo'):
-                self.xy_data_array = xy_data_array.tocsr().copy()
-                self.xy_data_array.indices = -self.xy_data_array.indices + self.xy_data_array.shape[1] - 1
-            else:
-                self.xy_data_array = xy_data_array[::-1]
-        else:
-            self.xy_data_array = xy_data_array
+        self.xy_data_array = xy_data_array
         if hasattr(xy_data_array, 'shape'):
             self.xy_array_row = xy_data_array.shape[0]
             self.xy_array_col = xy_data_array.shape[1]
@@ -211,15 +203,21 @@ class MatrixPlot(GraphicPrimitive):
             for opt in ['vmin', 'vmax', 'norm', 'origin','subdivisions','subdivision_options',
                         'colorbar','colorbar_options']:
                 del opts[opt]
+
             if origin=='lower':
-                subplot.spy(self.xy_data_array.tocsr()[::-1], **opts)
+                subplot.spy(self.xy_data_array.tocsr(), **opts)
             else:
-                subplot.spy(self.xy_data_array, **opts)
+                data = self.xy_data_array.tocsr().copy()
+                data.indices = -data.indices + data.shape[1] - 1
+                subplot.spy(data, **opts)
         else:
             opts = dict(cmap=cmap, interpolation='nearest', aspect='equal',
                       norm=norm, vmin=options['vmin'], vmax=options['vmax'],
                       origin=origin,zorder=options.get('zorder',None))
-            image=subplot.imshow(self.xy_data_array, **opts)
+            if origin == 'lower':
+                image=subplot.imshow(self.xy_data_array, **opts)
+            else:
+                image=subplot.imshow(self.xy_data_array[::-1], **opts)
 
             if options.get('colorbar', False):
                 colorbar_options = options['colorbar_options']

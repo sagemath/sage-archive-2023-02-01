@@ -23,7 +23,7 @@
 #ifndef __GINAC_BASIC_H__
 #define __GINAC_BASIC_H__
 
-#include "Python.h"
+#include <Python.h>
 
 #include <cstddef> // for size_t
 #include <vector>
@@ -106,7 +106,7 @@ protected:
 class basic : public refcounted
 {
 	GINAC_DECLARE_REGISTERED_CLASS_NO_CTORS(basic, void)
-	
+
 	friend class ex;
 	friend struct print_order;
 	friend struct print_order_pair;
@@ -128,7 +128,7 @@ protected:
 	/** Constructor with specified tinfo_key (used by derived classes instead
 	 *  of the default constructor to avoid assigning tinfo_key twice). */
 	basic(tinfo_t ti) : tinfo_key(ti), flags(0) {}
-	
+
 	// new virtual functions which can be overridden by derived classes
 public: // only const functions please (may break reference counting)
 
@@ -237,7 +237,7 @@ protected:
 	virtual bool is_equal_same_type(const basic & other) const;
 
 	virtual unsigned calchash() const;
-	
+
 	// non-virtual functions in this class
 public:
 	/** Like print(), but dispatch to the specified class. Can be used by

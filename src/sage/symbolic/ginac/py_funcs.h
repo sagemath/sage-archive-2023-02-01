@@ -7,7 +7,7 @@
 #ifndef   	PY_FUNC_H_
 # define   	PY_FUNC_H_
 
-#include <python/Python.h>
+#include <Python.h>
 #include "basic.h"
 #include "constant.h"
 #include "ex.h"
@@ -117,7 +117,7 @@ namespace GiNaC {
 	PyObject* (*paramset_to_PyTuple)(const GiNaC::paramset &s);
 
     PyObject* (*py_rational_power_parts)(PyObject* basis, PyObject* exp);
-  }; 
+  };
 
   extern py_funcs_struct py_funcs;
 

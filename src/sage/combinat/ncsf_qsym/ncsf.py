@@ -79,7 +79,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     NCSF has many representations as a concrete algebra. Each of them
     has a distinguished basis, and its elements are expanded in this
-    basis. Here is the Psi representation::
+    basis. Here is the `\Psi`
+    (:class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Psi`)
+    representation::
 
         sage: Psi = NCSF.Psi()
         sage: Psi
@@ -205,11 +207,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: (R[3] - 2*R[3,1,2] + 7).counit()
         7
 
-    It is possible to change the prefix used to display the basis elements using
-    the method :meth:`~sage.structure.indexed_generators.IndexedGenerators.print_options`.
+    It is possible to change the prefix used to display the basis
+    elements using the method
+    :meth:`~sage.structure.indexed_generators.IndexedGenerators.print_options`.
     Say that for instance one wanted to display the 
-    :class:`~NonCommutativeSymmetricFunctions.Complete` basis as having a prefix ``H``
-    instead of the default ``S``::
+    :class:`~NonCommutativeSymmetricFunctions.Complete` basis as having
+    a prefix ``H`` instead of the default ``S``::
 
         sage: H = NCSF.complete()
         sage: H.an_element()
@@ -270,11 +273,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: elementary(ribbon[2,1,2,1])
         L[1, 3, 2] - L[1, 5] - L[4, 2] + L[6]
 
-    The Phi and Psi bases are computed by changing to and from the complete
-    basis.  The expansion of
-    :class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Psi`
-    basis is given in Proposition 4.5 of [NCSF1]_
-    by the formulae
+    The `\Phi`
+    (:class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Phi`)
+    and `\Psi` bases are computed by changing to and from the
+    :class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Complete`
+    basis. The expansion of `\Psi` basis is given in Proposition 4.5
+    of [NCSF1]_ by the formulae
 
     .. MATH::
 
@@ -299,7 +303,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     The
     :class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Phi`
     basis is another analogue of the power sum basis from the algebra of
-    symmetric functions and the expansion in the complete basis is given in
+    symmetric functions and the expansion in the Complete basis is given in
     Proposition 4.9 of [NCSF1]_ by the formulae
 
     .. MATH::
@@ -315,8 +319,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     where the coefficients `sp(J,I)` and `\ell(J,I)` are coefficients in the
     methods :meth:`~sage.combinat.ncsf_qsym.combinatorics.coeff_sp` and
-    :meth:`~sage.combinat.ncsf_qsym.combinatorics.coeff_ell` respectively.  For
-    example::
+    :meth:`~sage.combinat.ncsf_qsym.combinatorics.coeff_ell` respectively.
+    For example::
 
         sage: Phi(complete[3])
         1/6*Phi[1, 1, 1] + 1/4*Phi[1, 2] + 1/4*Phi[2, 1] + 1/3*Phi[3]
@@ -356,7 +360,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Additional concrete representations
 
-    NCSF has some additional bases which appear in the literature.::
+    NCSF has some additional bases which appear in the literature::
 
         sage: Monomial                 = NCSF.Monomial()
         sage: Immaculate               = NCSF.Immaculate()
@@ -374,7 +378,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     .. TODO::
 
         - implement fundamental, forgotten, and simple (coming
-          from the simple modules of HS_n)
+          from the simple modules of HS_n) bases.
 
     We revert back to the original name from our custom short name NCSF::
 
@@ -3522,14 +3526,14 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def _to_complete_on_generators(self, n):
             r"""
-            Expand a Psi basis element of non-commutative symmetric functions
-            in the complete basis.
+            Expand a `\Psi` basis element of non-commutative symmetric
+            functions in the complete basis.
 
             This formula is given in Proposition 4.5 of [NCSF1]_ which states
 
             .. MATH::
 
-                \Psi_n = \sum_{J \models n} (-1)^{\ell(J)-1} lp(J,I) S^J
+                \Psi_n = \sum_{J \models n} (-1)^{\ell(J)-1} lp(J,I) S^J.
 
             The coefficient `lp(J,I)` is given in the function
             :meth:`sage.combinat.ncsf_qsym.combinatorics.coeff_lp`.
@@ -3540,7 +3544,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - The expansion of the Psi function indexed by ``n`` in the
+            - The expansion of the `\Psi` function indexed by ``n`` in the
               complete basis.
 
             TESTS::
@@ -3940,7 +3944,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         def _from_complete_on_generators(self, n):
             r"""
             Expand a complete basis element of non-commutative symmetric
-            functions in the Phi basis.
+            functions in the `\Phi` basis.
 
             INPUT:
 
@@ -3949,7 +3953,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             OUTPUT:
 
             - The expansion of the complete function indexed by ``n`` in the
-              Phi basis.
+              `\Phi` basis.
 
             TESTS::
 
@@ -3969,8 +3973,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def _to_complete_on_generators(self, n):
             r"""
-            Expand a Phi basis element of non-commutative symmetric functions
-            in the complete basis.
+            Expand a `\Phi` basis element of non-commutative symmetric
+            functions in the complete basis.
 
             INPUT:
 
@@ -3978,7 +3982,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - The expansion of the Phi function indexed by ``n`` in the
+            - The expansion of the `\Phi` function indexed by ``n`` in the
               complete basis.
 
             TESTS::
@@ -4297,11 +4301,10 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     class Monomial(CombinatorialFreeModule, BindableClass):
         r"""
-        The monomial basis defined in Tevlin's paper [Tev2007]_. It
-        is the basis denoted by `(M^I)_I` in that paper.
+        The monomial basis defined in Tevlin's paper [Tev2007]_.
 
-        The Monomial basis is well-defined only when the base ring is a
-        `\QQ`-algebra.
+        The monomial basis is well-defined only when the base ring is a
+        `\QQ`-algebra. It is the basis denoted by `(M^I)_I` in [Tev2007]_.
 
         TESTS::
 
@@ -4427,7 +4430,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     class Immaculate(CombinatorialFreeModule, BindableClass):
         r"""
         The immaculate basis of the non-commutative symmetric
-        functions. This basis first appears in Berg, Bergeron,
+        functions.
+
+        The immaculate basis first appears in Berg, Bergeron,
         Saliola, Serrano and Zabrocki's [BBSSZ2012]_. It can be
         described as the family `(\mathfrak{S}_{\alpha})`, where
         `\alpha` runs over all compositions, and
@@ -4435,7 +4440,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         corresponding to `\alpha` (see
         :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ParentMethods.immaculate_function`).
 
-        If `\alpha` is a composition `(\alpha_1, \alpha_2, \ldots, \alpha_m)`, then
+        If `\alpha` is a composition `(\alpha_1, \alpha_2, \ldots,
+        \alpha_m)`, then
 
         .. MATH::
 

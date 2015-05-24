@@ -110,7 +110,7 @@ from sage.interfaces.all import maxima
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.misc.all import cached_method, tmp_filename
-from sage.misc.misc import SAGE_SHARE
+from sage.env import SAGE_SHARE
 from sage.modules.all import vector, span
 from sage.misc.superseded import deprecated_function_alias, deprecation
 from sage.plot.plot3d.index_face_set import IndexFaceSet
@@ -2688,12 +2688,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
              [(), ()],
              [(2,3), (2,3)]]
             sage: PM_max.automorphisms_of_rows_and_columns()
-            [((), ()),
-            ((2,3), (2,3)),
-             ((1,2), (1,2)),
-             ((1,2,3), (1,2,3)),
-             ((1,3,2), (1,3,2)),
-             ((1,3), (1,3))]
+            [((), ()), ((2,3), (2,3)), ((1,2), (1,2)),
+             ((1,3,2), (1,3,2)), ((1,2,3), (1,2,3)), ((1,3), (1,3))]
             sage: PMs = [i._palp_PM_max(check=True)
             ....:        for i in ReflexivePolytopes(2)] # long time
             sage: all(len(i) == len(j.automorphisms_of_rows_and_columns())
@@ -3075,6 +3071,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: c = lattice_polytope.cross_polytope(3).polar()
             sage: c.plot3d()
+            Graphics3d Object
 
         Plot without facets and points, shown without the frame::
 
@@ -3083,16 +3080,19 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         Plot with facets of different colors::
 
             sage: c.plot3d(facet_colors=rainbow(c.nfacets(), 'rgbtuple'))
+            Graphics3d Object
 
         It is also possible to plot lower dimensional polytops in 3D (let's
         also change labels of vertices)::
 
             sage: lattice_polytope.cross_polytope(2).plot3d(vlabels=["A", "B", "C", "D"])
+            Graphics3d Object
 
         TESTS::
 
             sage: p = LatticePolytope([[0,0,0],[0,1,1],[1,0,1],[1,1,0]])
             sage: p.plot3d()
+            Graphics3d Object
         """
         dim = self.dim()
         amb_dim = self.ambient_dim()

@@ -204,9 +204,8 @@ The ``SPKG.txt`` file should follow this pattern::
 
      == Special Update/Build Instructions ==
 
-     List patches that need to be applied and what they do. If the
-     tarball was modified by hand and not via a spkg-src script,
-     describe what was changed.
+     If the tarball was modified by hand and not via a spkg-src
+     script, describe what was changed.
 
 
 with ``PACKAGE_NAME`` replaced by the the package name. Legacy
@@ -220,10 +219,29 @@ Patching Sources
 ----------------
 
 Actual changes to the source code must be via patches, which should be
-placed in the ``patches`` directory. GNU patch is distributed with Sage,
-so you can rely on it being available. All patches must be documented in
-``SPKG.txt``, i.e. what they do, if they are platform specific, if they
-should be pushed upstream, etc.
+placed in the ``patches`` directory. GNU patch is distributed with
+Sage, so you can rely on it being available. Patches must include
+documentation in their header (before the first diff hunk), so a
+typical patch file should look like this::
+
+    Add autodoc_builtin_argspec config option
+
+    Following the title line you can add a multi-line description of
+    what the patch does, where you got it from if you did not write it
+    yourself, if they are platform specific, if they should be pushed
+    upstream, etc...
+  
+    diff -dru Sphinx-1.2.2/sphinx/ext/autodoc.py.orig Sphinx-1.2.2/sphinx/ext/autodoc.py
+    --- Sphinx-1.2.2/sphinx/ext/autodoc.py.orig  2014-03-02 20:38:09.000000000 +1300
+    +++ Sphinx-1.2.2/sphinx/ext/autodoc.py  2014-10-19 23:02:09.000000000 +1300
+    @@ -1452,6 +1462,7 @@
+ 
+         app.add_config_value('autoclass_content', 'class', True)
+         app.add_config_value('autodoc_member_order', 'alphabetic', True)
+    +    app.add_config_value('autodoc_builtin_argspec', None, True)
+         app.add_config_value('autodoc_default_flags', [], True)
+         app.add_config_value('autodoc_docstring_signature', True, True)
+         app.add_event('autodoc-process-docstring')
 
 Patches to files in ``src/`` need to be applied in ``spkg-install``,
 that is, if there are any patches then your ``spkg-install`` script
@@ -239,12 +257,6 @@ should contain a section like this::
     done
 
 which applies the patches to the sources.
-
-A special case where no patch would be necessary is when an author
-provides an already fine SPKG on the net which includes all files needed
-for ``SAGE_ROOT/build/pkgs/foo`` and the source in its ``src/``
-subdirectory. Here it suffices to put the web link to the package into
-the ticket.
 
 
 .. _section-spkg-src:

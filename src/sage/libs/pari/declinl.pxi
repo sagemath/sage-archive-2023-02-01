@@ -12,7 +12,7 @@ AUTHORS:
 
 """
 
-cdef extern from "parisage.h":
+cdef extern from "sage/libs/pari/parisage.h":
 
     ###################################################################
     #                                                                 #

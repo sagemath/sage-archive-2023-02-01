@@ -1563,7 +1563,7 @@ class EllipticCurvePointMul(Benchmark):
         E = gp.ellinit('[0, 0, 1, -1, 0]')
         gp.eval('gettime')
         P = gp([0,0])
-        Q = E.ellpow(P, self.n)
+        Q = E.ellmul(P, self.n)
         return float(gp.eval('gettime/1000.0'))
 
     def pari(self):
@@ -1580,7 +1580,7 @@ class EllipticCurvePointMul(Benchmark):
         E = pari('ellinit([0, 0, 1, -1, 0])')
         pari('gettime')
         P = pari([0,0])
-        Q = E.ellpow(P, self.n)
+        Q = E.ellmul(P, self.n)
         return float(pari('gettime/1000.0'))
 
 class EllipticCurveMW(Benchmark):

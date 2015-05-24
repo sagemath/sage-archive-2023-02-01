@@ -40,7 +40,7 @@ import operator
 
 from sage.structure.sage_object import SageObject
 from sage.structure.parent_base import ParentWithBase
-from sage.structure.element import RingElement
+from sage.structure.element import RingElement, parent
 
 import sage.misc.sage_eval
 
@@ -97,9 +97,6 @@ class Interface(ParentWithBase):
     def _post_interact(self):
         pass
 
-    def __del__(self):
-        pass
-
     def cputime(self):
         """
         CPU time since this process started running.
@@ -115,7 +112,7 @@ class Interface(ParentWithBase):
             sage: f.write('x = 2\n')
             sage: f.close()
             sage: octave.read(filename)  # optional - octave
-            sage: octave.get('x')        #optional
+            sage: octave.get('x')        # optional - octave
             ' 2'
             sage: import os
             sage: os.unlink(filename)
@@ -125,34 +122,8 @@ class Interface(ParentWithBase):
     def _read_in_file_command(self, filename):
         raise NotImplementedError
 
-    def eval(self, code, locals=None, **kwds):
-        """
-        INPUT:
-
-
-        -  ``code`` - text to evaluate
-
-        - ``locals`` - None (ignored); this is used for compatibility with the
-          Sage notebook's generic system interface.
-
-        -  ``**kwds`` - All other arguments are passed onto
-           the _eval_line method. An often useful example is
-           reformat=False.
-        """
-
-        if not isinstance(code, basestring):
-            raise TypeError('input code must be a string.')
-
-        #Remove extra whitespace
-        code = code.strip()
-
-        try:
-            pass
-        # DO NOT CATCH KeyboardInterrupt, as it is being caught
-        # by _eval_line
-        # In particular, do NOT call self._keyboard_interrupt()
-        except TypeError as s:
-            raise TypeError('error evaluating "%s":\n%s'%(code,s))
+    def eval(self, code, **kwds):
+        raise NotImplementedError
 
     _eval_line = eval
 
@@ -876,8 +847,10 @@ class InterfaceElement(RingElement):
         except AttributeError:
             s = self.parent().get(self._name)
         if s.__contains__(self._name):
-            if hasattr(self, '__custom_name'):
-                s =  s.replace(self._name, self.__dict__['__custom_name'])
+            try:
+                s = s.replace(self._name, self.__custom_name)
+            except AttributeError:
+                pass
         return s
 
     def __getattr__(self, attrname):
@@ -1140,7 +1113,7 @@ class InterfaceElement(RingElement):
             2^(3/4)
         """
         P = self._check_valid()
-        if not hasattr(n, 'parent') or P is not n.parent():
+        if parent(n) is not P:
             n = P(n)
         return self._operation("^", n)
 

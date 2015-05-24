@@ -35,10 +35,12 @@ There are two plotting methods for iet::
 .. plot the domain and the range of T::
 
     sage: T.plot_two_intervals()
+    Graphics object consisting of 12 graphics primitives
 
 .. plot T as a function::
 
     sage: T.plot_function()
+    Graphics object consisting of 3 graphics primitives
 """
 from copy import copy
 from sage.structure.sage_object import SageObject
@@ -790,6 +792,7 @@ class IntervalExchangeTransformation(SageObject):
 
             sage: t = iet.IntervalExchangeTransformation(('a b c d','d a c b'),[1,1,1,1])
             sage: t.plot_function(rgbcolor=(0,1,0))
+            Graphics object consisting of 4 graphics primitives
         """
         from sage.plot.all import Graphics
         from sage.plot.plot import line2d
@@ -835,6 +838,7 @@ class IntervalExchangeTransformation(SageObject):
 
             sage: t = iet.IntervalExchangeTransformation(('a b','b a'),[1,1])
             sage: t.plot_two_intervals()
+            Graphics object consisting of 8 graphics primitives
         """
         from sage.plot.all import Graphics
         from sage.plot.plot import line2d

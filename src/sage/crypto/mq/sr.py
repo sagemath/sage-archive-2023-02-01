@@ -1436,9 +1436,9 @@ class SR_generic(MPolynomialSystemGenerator):
         for x in range(M.nrows()):
             for y in range(M.ncols()):
                 if e == 8:
-                    st.append("%02X"%(int(str(M[x, y].int_repr()))))
+                    st.append("%02X" % M[x, y].integer_representation())
                 else:
-                    st.append("%X"%(int(str(M[x, y].int_repr()))))
+                    st.append("%X" % M[x, y].integer_representation())
             st.append("\n")
         return " ".join(st)
 
@@ -1467,9 +1467,9 @@ class SR_generic(MPolynomialSystemGenerator):
         for y in range(M.ncols()):
             for x in range(M.nrows()):
                 if e == 8:
-                    st.append("%02X"%(int(str(M[x, y].int_repr()))))
+                    st.append("%02X" % M[x, y].integer_representation())
                 else:
-                    st.append("%X"%(int(str(M[x, y].int_repr()))))
+                    st.append("%X" % M[x, y].integer_representation())
             #st.append("\n")
         return "".join(st)
 
@@ -1634,19 +1634,49 @@ class SR_generic(MPolynomialSystemGenerator):
 
             sage: sr = mq.SR(1,1,1,4)
             sage: sr.variable_dict()
-            {'x101': x101, 'x100': x100, 'x103': x103, 'x102': x102,
-             's002': s002, 'w100': w100, 'w101': w101, 'w102': w102,
-             'w103': w103, 'k100': k100, 'k101': k101, 'k102': k102,
-             'k103': k103, 's003': s003, 's001': s001, 'k002': k002,
-             'k001': k001, 'k000': k000, 'k003': k003, 's000': s000}
+            {'k000': k000,
+             'k001': k001,
+             'k002': k002,
+             'k003': k003,
+             'k100': k100,
+             'k101': k101,
+             'k102': k102,
+             'k103': k103,
+             's000': s000,
+             's001': s001,
+             's002': s002,
+             's003': s003,
+             'w100': w100,
+             'w101': w101,
+             'w102': w102,
+             'w103': w103,
+             'x100': x100,
+             'x101': x101,
+             'x102': x102,
+             'x103': x103}
 
             sage: sr = mq.SR(1,1,1,4,gf2=True)
             sage: sr.variable_dict()
-            {'x101': x101, 'x100': x100, 'x103': x103, 'x102': x102,
-             's002': s002, 'w100': w100, 'w101': w101, 'w102': w102,
-             'w103': w103, 'k100': k100, 'k101': k101, 'k102': k102,
-             'k103': k103, 's003': s003, 's001': s001, 'k002': k002,
-             'k001': k001, 'k000': k000, 'k003': k003, 's000': s000}
+            {'k000': k000,
+             'k001': k001,
+             'k002': k002,
+             'k003': k003,
+             'k100': k100,
+             'k101': k101,
+             'k102': k102,
+             'k103': k103,
+             's000': s000,
+             's001': s001,
+             's002': s002,
+             's003': s003,
+             'w100': w100,
+             'w101': w101,
+             'w102': w102,
+             'w103': w103,
+             'x100': x100,
+             'x101': x101,
+             'x102': x102,
+             'x103': x103}
 
         """
         try:

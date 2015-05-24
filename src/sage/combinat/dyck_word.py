@@ -58,24 +58,22 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from combinat import CombinatorialObject, catalan_number
+from combinat import CombinatorialElement, catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
 from backtrack import GenericBacktracker
 
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
-from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.all import Posets
 
-from sage.rings.all import QQ
+from sage.rings.all import ZZ, QQ
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.words.word import Word
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrices
 from sage.misc.latex import latex
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.superseded import deprecated_function_alias
 
 
@@ -240,7 +238,7 @@ def replace_symbols(x):
         raise ValueError
 
 
-class DyckWord(CombinatorialObject, Element):
+class DyckWord(CombinatorialElement):
     r"""
     A Dyck word.
 
@@ -334,8 +332,6 @@ class DyckWord(CombinatorialObject, Element):
          _|  .
         |  . .
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, dw=None, noncrossing_partition=None,
                               area_sequence=None, heights_sequence=None,
@@ -403,8 +399,7 @@ class DyckWord(CombinatorialObject, Element):
             sage: DW = DyckWords().from_area_sequence([])
             sage: TestSuite(DW).run()
         """
-        Element.__init__(self, parent)
-        CombinatorialObject.__init__(self, l)
+        CombinatorialElement.__init__(self, parent, l)
         self._latex_options = dict(latex_options)
 
     _has_2D_print = False
@@ -474,7 +469,13 @@ class DyckWord(CombinatorialObject, Element):
 
             sage: D = DyckWord([1,0,1,0,1,0])
             sage: D.latex_options()
-            {'valleys': False, 'peaks': False, 'tikz_scale': 1, 'color': 'black', 'diagonal': False, 'bounce path': False, 'line width': 2}
+            {'bounce path': False,
+             'color': 'black',
+             'diagonal': False,
+             'line width': 2,
+             'peaks': False,
+             'tikz_scale': 1,
+             'valleys': False}
         """
         d = self._latex_options.copy()
         if "tikz_scale" not in d:
@@ -825,7 +826,7 @@ class DyckWord(CombinatorialObject, Element):
         r"""
         A latex representation of ``self`` using the tikzpicture package.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: D = DyckWord([1,0,1,1,1,0,1,1,0,0,0,1,0,0])
             sage: D.set_latex_options({"valleys":True, "peaks":True, "bounce path":True})
@@ -897,7 +898,7 @@ class DyckWord(CombinatorialObject, Element):
         if diagonal:
             res += "  \\draw (0,0) -- %s;\n" % str((self.number_of_open_symbols(), self.number_of_open_symbols()))
         res += "  \\draw[rounded corners=1, color=%s, line width=%s] (0, 0)" % (latex_options['color'], str(latex_options['line width']))
-        ht.next()
+        next(ht)
         for i, j in ht:
             res += " -- (%s, %s)" % (i, j)
         res += ";\n"
@@ -939,8 +940,6 @@ class DyckWord(CombinatorialObject, Element):
             0
         """
         return len([x for x in self if x == open_symbol])
-
-    size = deprecated_function_alias(13550, number_of_open_symbols)
 
     def number_of_close_symbols(self):
         r"""
@@ -1346,8 +1345,6 @@ class DyckWord(CombinatorialObject, Element):
         """
         h = self.heights()
         return [i for i in xrange(2, len(h), 2) if h[i] == 0]
-
-    return_to_zero = deprecated_function_alias(13550, returns_to_zero)
 
     def touch_points(self):
         r"""
@@ -2871,8 +2868,6 @@ class DyckWord_complete(DyckWord):
                 a += above - diagonal
         return a
 
-    a_statistic = deprecated_function_alias(13550, area)
-
     def bounce_path(self):
         r"""
         Return the bounce path of ``self`` formed by starting at `(n,n)` and
@@ -3009,8 +3004,6 @@ class DyckWord_complete(DyckWord):
                         makeup_steps = 0
 
         return b
-
-    b_statistic = deprecated_function_alias(13550, bounce)
 
     def dinv(self, labeling=None):
         r"""
@@ -3175,8 +3168,15 @@ class DyckWords(Parent, UniqueRepresentation):
                 if complete:
                     return CompleteDyckWords_all()
                 return DyckWords_all()
-            return CompleteDyckWords_size(k1)
 
+            k1 = ZZ(k1)
+            if k1 < 0:
+                raise ValueError("k1 (= %s) must be nonnegative" % k1)
+            return CompleteDyckWords_size(k1)
+        else:
+            k1 = ZZ(k1)
+
+        k2 = ZZ(k2)
         if k1 < 0 or (k2 is not None and k2 < 0):
             raise ValueError("k1 (= %s) and k2 (= %s) must be nonnegative, with k1 >= k2." % (k1, k2))
         if k1 < k2:
@@ -3394,7 +3394,7 @@ class DyckWords_all(DyckWords):
         EXAMPLES::
 
             sage: it = DyckWords(complete=False).__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[],
              [1],
              [1, 0],
@@ -3450,6 +3450,8 @@ class DyckWordBacktracker(GenericBacktracker):
         # Dyck paths, not words; having k1 opening parens and k2 closing
         # parens corresponds to paths of length k1 + k2 ending at height
         # k1 - k2.
+        k1 = ZZ(k1)
+        k2 = ZZ(k2)
         self.n = k1 + k2
         self.endht = k1 - k2
 
@@ -3496,12 +3498,18 @@ class DyckWords_size(DyckWords):
     """
     def __init__(self, k1, k2):
         r"""
-        TESTS::
+        TESTS:
 
+        Check that :trac:`18244` is fixed::
+
+            sage: DyckWords(13r, 8r).cardinality()
+            87210
+            sage: parent(_)
+            Integer Ring
             sage: TestSuite(DyckWords(4,2)).run()
         """
-        self.k1 = k1
-        self.k2 = k2
+        self.k1 = ZZ(k1)
+        self.k2 = ZZ(k2)
         DyckWords.__init__(self, category=FiniteEnumeratedSets())
 
     def _repr_(self):
@@ -3781,7 +3789,7 @@ class CompleteDyckWords_all(CompleteDyckWords, DyckWords_all):
         EXAMPLES::
 
             sage: it = DyckWords().__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[],
              [1, 0],
              [1, 0, 1, 0],

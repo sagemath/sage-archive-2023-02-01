@@ -25,7 +25,7 @@ from sage.interfaces.gap import *
 from sage.categories.morphism import *
 from sage.categories.homset import *
 
-from sage.misc.misc import prod
+from sage.misc.all import prod
 
 def is_AbelianGroupMorphism(f):
     return isinstance(f, AbelianGroupMorphism);

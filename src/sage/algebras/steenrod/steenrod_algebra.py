@@ -403,7 +403,7 @@ corresponding value representing the coefficient of that term::
     1 (5,)
     1 (2, 1)
     sage: c.monomial_coefficients()
-    {(5,): 1, (2, 1): 1}
+    {(2, 1): 1, (5,): 1}
     sage: c.monomials()
     [Sq(2,1), Sq(5)]
     sage: c.support()
@@ -3114,7 +3114,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             1 (5,)
             1 (2, 1)
             sage: c.monomial_coefficients()
-            {(5,): 1, (2, 1): 1}
+            {(2, 1): 1, (5,): 1}
             sage: c.monomials()
             [Sq(2,1), Sq(5)]
             sage: c.support()
@@ -3254,11 +3254,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             """
             if len(self.support()) == 0:
                 raise ValueError("The zero element does not have a well-defined degree.")
-            try:
-                assert self.is_homogeneous()
-                return self.parent().degree_on_basis(self.leading_support())
-            except AssertionError:
+            if not self.is_homogeneous():
                 raise ValueError("Element is not homogeneous.")
+            return self.parent().degree_on_basis(self.leading_support())
 
         def milnor(self):
             """
@@ -3357,7 +3355,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 Sq^2 Sq^1
                 sage: d = Sq(0,0,1)
                 sage: d._basis_dictionary('arnonc')
-                {(7,): 1, (2, 5): 1, (4, 3): 1, (4, 2, 1): 1}
+                {(2, 5): 1, (4, 2, 1): 1, (4, 3): 1, (7,): 1}
                 sage: d.change_basis('arnonc')
                 Sq^2 Sq^5 + Sq^4 Sq^2 Sq^1 + Sq^4 Sq^3 + Sq^7
 

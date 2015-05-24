@@ -790,7 +790,7 @@ class AbelianStratum(SageObject):
 
         self._zeroes = list(l)
 
-        if not self._marked_separatrix is 'no':
+        if not self._marked_separatrix == 'no':
             self._zeroes[1:] = sorted(self._zeroes[1:], reverse=True)
         else:
             self._zeroes.sort(reverse=True)

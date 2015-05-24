@@ -39,7 +39,7 @@ def integer_to_real_double_dense(Matrix_integer_dense A):
                                          S, None, None, None)
     for i from 0 <= i < A._nrows:
         for j from 0 <= j < A._ncols:
-            M.set_unsafe_double(i, j, mpz_get_d(A._matrix[i][j]))
+            M.set_unsafe_double(i,j,A.get_unsafe_double(i,j))
     return M
 
 

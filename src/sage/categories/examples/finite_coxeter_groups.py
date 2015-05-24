@@ -145,6 +145,7 @@ class DihedralGroup(UniqueRepresentation, Parent):
         Check in the element x is in the mathematical parent self.
 
         EXAMPLES::
+
             sage: D5 = FiniteCoxeterGroups().example()
             sage: D5.an_element() in D5
             True
@@ -153,7 +154,7 @@ class DihedralGroup(UniqueRepresentation, Parent):
 
         (also tested by :meth:`test_an_element` :meth:`test_some_elements`)
         """
-        from sage.misc.functional import parent
+        from sage.structure.all import parent
         return parent(x) is self
 
     @cached_method

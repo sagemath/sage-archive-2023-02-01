@@ -6,7 +6,7 @@ from sage.combinat.integer_vector import IntegerVectors
 from sage.matrix.constructor import Matrix
 from sage.misc.misc_c import prod as mul
 from sage.modules.free_module_element import vector
-from sage.rings.finite_rings.element_ext_pari import is_FiniteFieldElement
+from sage.rings.finite_rings.element_base import is_FiniteFieldElement
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.rings.ideal import FieldIdeal, Ideal
 from sage.rings.integer_ring import ZZ

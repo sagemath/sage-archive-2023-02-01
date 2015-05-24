@@ -646,7 +646,7 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
             sage: P1 = P2_112.orbit_closure(Cone([(1,0)]))
             sage: f = P1.embedding_morphism()
             sage: f._ray_map
-            {N(0, 1): (1), N(1, 0): (0), N(-1, -2): (-2)}
+            {N(-1, -2): (-2), N(0, 1): (1), N(1, 0): (0)}
             sage: f._reverse_ray_map()
             {N(-2): 2, N(1): 1}
         """
@@ -876,7 +876,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
             raise ValueError('The fan morphism codomain must be the fan of the codomain.')
         self._fan_morphism = fan_morphism
 
-    def __cmp__(self, right):
+    def _cmp_(self, right):
         r"""
         Compare ``self`` and ``right``.
 
@@ -910,6 +910,8 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
                 [right.domain(), right.codomain(), right.fan_morphism()])
         else:
             return cmp(type(self), type(right))
+
+    __cmp__ = _cmp_
 
     def _composition_(self, right, homset):
         """
@@ -1946,7 +1948,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             N(1, -3) (9, 2)
             N(-1, 2) (11, 1)
             sage: f._ray_index_map
-            {N(0, 1): 5, N(-3, 4): 10, N(-1, 2): 11, N(1, 0): 4, N(2, -6): 9}
+            {N(-3, 4): 10, N(-1, 2): 11, N(0, 1): 5, N(1, 0): 4, N(2, -6): 9}
         """
         try:
             image_ray_index = self._ray_index_map[fiber_ray]

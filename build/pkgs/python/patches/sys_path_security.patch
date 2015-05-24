@@ -1,3 +1,10 @@
+This patch is needed to fix http://trac.sagemath.org/ticket/13579
+It has been reported upstream as a security issue but fear of breaking
+third-party software prevents its inclusion ; see:
+http://bugs.python.org/issue16202
+and
+https://github.com/ipython/ipython/issues/7044
+
 diff -ru src/Python/sysmodule.c b/Python/sysmodule.c
 --- src/Python/sysmodule.c	2012-04-10 01:07:35.000000000 +0200
 +++ b/Python/sysmodule.c	2012-10-29 22:18:46.337514322 +0100
@@ -12,7 +19,7 @@ diff -ru src/Python/sysmodule.c b/Python/sysmodule.c
  PyObject *
  PySys_GetObject(char *name)
  {
-@@ -1597,93 +1601,86 @@
+@@ -1615,93 +1619,86 @@
      return av;
  }
  
@@ -152,7 +159,7 @@ diff -ru src/Python/sysmodule.c b/Python/sysmodule.c
  #endif /* RISCOS */
  #if SEP == '/' /* Special case for Unix filename syntax */
              if (n > 1)
-@@ -1691,12 +1688,146 @@
+@@ -1709,12 +1706,146 @@
  #endif /* Unix */
          }
  #endif /* All others */

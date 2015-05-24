@@ -11,6 +11,9 @@ Modular abelian varieties
 #******************************************************************************
 
 from category_types import Category_over_base
+from category_with_axiom import CategoryWithAxiom
+from homsets import HomsetsCategory
+from rings import Rings
 from sets_cat import Sets
 
 class ModularAbelianVarieties(Category_over_base):
@@ -57,3 +60,17 @@ class ModularAbelianVarieties(Category_over_base):
             [Category of sets]
         """
         return [Sets()] # FIXME
+
+    class Homsets(HomsetsCategory):
+
+        class Endset(CategoryWithAxiom):
+            def extra_super_categories(self):
+                """
+                Implement the fact that an endset of modular abelian variety is a ring.
+
+                EXAMPLES::
+
+                    sage: ModularAbelianVarieties(QQ).Endsets().extra_super_categories()
+                    [Category of rings]
+                """
+                return [Rings()]

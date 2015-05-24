@@ -440,20 +440,6 @@ def RandomHolmeKim(n, m, p, seed=None):
     import networkx
     return Graph(networkx.powerlaw_cluster_graph(n, m, p, seed=seed))
 
-def RandomInterval(n):
-    """
-    :meth:`RandomInterval` is deprecated.  Use :meth:`RandomIntervalGraph` instead.
-
-    TEST::
-
-        sage: g = graphs.RandomInterval(8)
-        doctest:...: DeprecationWarning: RandomInterval() is deprecated. Use RandomIntervalGraph() instead.
-        See http://trac.sagemath.org/13283 for details.
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13283, "RandomInterval() is deprecated.  Use RandomIntervalGraph() instead.")
-    return RandomIntervalGraph(n)
-
 def RandomIntervalGraph(n):
     """
     Returns a random interval graph.

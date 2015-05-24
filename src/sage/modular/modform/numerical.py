@@ -388,9 +388,9 @@ class NumericalEigenforms(SageObject):
             [28.0, 28.0, -7.92820323028, 5.92820323028]
             sage: m = n.modular_symbols()
             sage: x = polygen(QQ, 'x')
-            sage: m.T(2).charpoly(x).factor()
+            sage: m.T(2).charpoly('x').factor()
             (x - 9)^2 * (x^2 - 2*x - 2)
-            sage: m.T(3).charpoly(x).factor()
+            sage: m.T(3).charpoly('x').factor()
             (x - 28)^2 * (x^2 + 2*x - 47)
         """
         p = Integer(p)
@@ -460,7 +460,7 @@ class NumericalEigenforms(SageObject):
 
         EXAMPLES::
 
-            sage: numerical_eigenforms(61).systems_of_eigenvalues(10)  # rel tol 5e-14
+            sage: numerical_eigenforms(61).systems_of_eigenvalues(10)  # rel tol 6e-14
             [
             [-1.4811943040920152, 0.8060634335253695, 3.1563251746586642, 0.6751308705666477],
             [-1.0, -2.0000000000000027, -3.000000000000003, 1.0000000000000044],
@@ -487,7 +487,7 @@ class NumericalEigenforms(SageObject):
 
         EXAMPLES::
 
-            sage: numerical_eigenforms(61).systems_of_abs(10)  # rel tol 5e-14
+            sage: numerical_eigenforms(61).systems_of_abs(10)  # rel tol 6e-14
             [
             [0.3111078174659775, 2.903211925911551, 2.525427560843529, 3.214319743377552],
             [1.0, 2.0000000000000027, 3.000000000000003, 1.0000000000000044],

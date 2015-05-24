@@ -537,6 +537,18 @@ class KleberTree(Parent, UniqueRepresentation):
         sage: KT = KleberTree(['E', 6, 1], [[4, 2]])  # long time (9s on sage.math, 2012)
         sage: KT.cardinality()  # long time
         12
+
+    We check that relabelled types work (:trac:`16876`)::
+
+        sage: ct = CartanType(['A',3,1]).relabel(lambda x: x+2)
+        sage: kt = KleberTree(ct, [[3,1],[5,1]])
+        sage: list(kt)
+        [Kleber tree node with weight [1, 0, 1] and upwards edge root [0, 0, 0],
+         Kleber tree node with weight [0, 0, 0] and upwards edge root [1, 1, 1]]
+        sage: kt = KleberTree(['A',3,1], [[1,1],[3,1]])
+        sage: list(kt)
+        [Kleber tree node with weight [1, 0, 1] and upwards edge root [0, 0, 0],
+         Kleber tree node with weight [0, 0, 0] and upwards edge root [1, 1, 1]]
     """
     @staticmethod
     def __classcall_private__(cls, cartan_type, B, classical=None):
@@ -663,19 +675,20 @@ class KleberTree(Parent, UniqueRepresentation):
 
         # Convert the B values into an L matrix
         L = []
-        for i in range(0, n):
+        I = self._classical_ct.index_set()
+        for i in range(n):
             L.append([0])
 
         for r,s in B:
             while len(L[0]) < s: # Add more columns if needed
                 for row in L:
                     row.append(0)
-            L[r - 1][s - 1] += 1 # The -1 is b/c of indexing
+            L[I.index(r)][s - 1] += 1 # The -1 is for indexing
 
         # Perform a special case of the algorithm for the root node
         weight_basis = self._classical_ct.root_system().weight_space().basis()
         for a in range(n):
-            self.root.weight += sum(L[a]) * weight_basis[a+1] # Add 1 for indexing
+            self.root.weight += sum(L[a]) * weight_basis[I[a]]
         new_children = []
         for new_child in self._children_root_iter():
             if not self._prune(new_child, 1):
@@ -697,7 +710,7 @@ class KleberTree(Parent, UniqueRepresentation):
                     growth = True
                     for a in range(n):
                         for i in range(depth - 1, len(L[a])): # Subtract 1 for indexing
-                            x.weight += L[a][i] * weight_basis[a+1] # Add 1 for indexing
+                            x.weight += L[a][i] * weight_basis[I[a]]
 
                     if x in leaves:
                         for new_child in self._children_iter(x):
@@ -813,12 +826,13 @@ class KleberTree(Parent, UniqueRepresentation):
         """
         RS = self._classical_ct.root_system().root_space()
         WS = self._classical_ct.root_system().weight_space()
+        I = self._classical_ct.index_set()
 
         L = [range(val + 1) for val in node.up_root.to_vector()]
 
         for root in CartesianProduct(*L).list()[1:]: # First element is the zero element
             # Convert the list to an honest root in the root space
-            converted_root = RS.sum_of_terms([[i+1, val] for i, val in enumerate(root)])
+            converted_root = RS.sum_of_terms([[I[i], val] for i, val in enumerate(root)])
 
             new_weight = node.weight - WS(converted_root)
             if new_weight.is_dominant():

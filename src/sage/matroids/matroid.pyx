@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 The abstract Matroid class
 
@@ -70,6 +71,8 @@ additional functionality (e.g. linear extensions).
     - :meth:`coflats() <sage.matroids.matroid.Matroid.coflats>`
     - :meth:`hyperplanes() <sage.matroids.matroid.Matroid.hyperplanes>`
     - :meth:`f_vector() <sage.matroids.matroid.Matroid.f_vector>`
+    - :meth:`broken_circuits() <sage.matroids.matroid.Matroid.broken_circuits>`
+    - :meth:`no_broken_circuits_sets() <sage.matroids.matroid.Matroid.no_broken_circuits_sets>`
 
 - Comparison
     - :meth:`is_isomorphic() <sage.matroids.matroid.Matroid.is_isomorphic>`
@@ -117,6 +120,11 @@ additional functionality (e.g. linear extensions).
 - Visualization
     - :meth:`show() <sage.matroids.matroid.Matroid.show>`
     - :meth:`plot() <sage.matroids.matroid.Matroid.plot>`
+
+- Misc
+    - :meth:`broken_circuit_complex() <sage.matroids.matroid.Matroid.broken_circuit_complex>`
+    - :meth:`matroid_polytope() <sage.matroids.matroid.Matroid.matroid_polytope>`
+    - :meth:`independence_matroid_polytope() <sage.matroids.matroid.Matroid.independence_matroid_polytope>`
 
 In addition to these, all methods provided by
 :class:`SageObject <sage.structure.sage_object.SageObject>` are available,
@@ -307,7 +315,6 @@ from sage.combinat.subset import Subsets
 from sage.misc.misc import subsets
 
 from utilities import newlabel, sanitize_contractions_deletions
-from sage.calculus.all import var
 from sage.rings.all import ZZ
 from sage.numerical.mip import MixedIntegerLinearProgram
 
@@ -1811,9 +1818,9 @@ cdef class Matroid(SageObject):
 
             sage: M = matroids.named_matroids.Fano()
             sage: M.loops()
-            frozenset([])
+            frozenset()
             sage: (M / ['a', 'b']).loops()
-            frozenset(['f'])
+            frozenset({'f'})
         """
         return self._closure(set())
 
@@ -2046,9 +2053,9 @@ cdef class Matroid(SageObject):
 
             sage: M = matroids.named_matroids.Fano().dual()
             sage: M.coloops()
-            frozenset([])
+            frozenset()
             sage: (M \ ['a', 'b']).coloops()
-            frozenset(['f'])
+            frozenset({'f'})
         """
         return self._coclosure(set())
 
@@ -2641,14 +2648,13 @@ cdef class Matroid(SageObject):
 
             sage: M = matroids.named_matroids.Fano()
             sage: sorted([M._flags(1)])
-            [[[frozenset(['a']), set(['a']),
-            frozenset(['c', 'b', 'e', 'd', 'g', 'f'])], [frozenset(['b']),
-            set(['b']), frozenset(['c', 'e', 'd', 'g', 'f'])],
-            [frozenset(['c']), set(['c']), frozenset(['e', 'd', 'g', 'f'])],
-            [frozenset(['d']), set(['d']), frozenset(['e', 'g', 'f'])],
-            [frozenset(['e']), set(['e']), frozenset(['g', 'f'])],
-            [frozenset(['f']), set(['f']), frozenset(['g'])],
-            [frozenset(['g']), set(['g']), frozenset([])]]]
+            [[[frozenset({'a'}), {'a'}, frozenset({'b', 'c', 'd', 'e', 'f', 'g'})],
+              [frozenset({'b'}), {'b'}, frozenset({'c', 'd', 'e', 'f', 'g'})],
+              [frozenset({'c'}), {'c'}, frozenset({'d', 'e', 'f', 'g'})],
+              [frozenset({'d'}), {'d'}, frozenset({'e', 'f', 'g'})],
+              [frozenset({'e'}), {'e'}, frozenset({'f', 'g'})],
+              [frozenset({'f'}), {'f'}, frozenset({'g'})],
+              [frozenset({'g'}), {'g'}, frozenset()]]]
         """
         if r < 0:
             return []
@@ -2715,6 +2721,21 @@ cdef class Matroid(SageObject):
         """
         return self.dual().flats(r)
 
+    def lattice_of_flats(self):
+        """
+        Return the lattice of flats of the matroid.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.lattice_of_flats()
+            Finite lattice containing 16 elements
+        """
+        from sage.combinat.posets.lattices import LatticePoset
+        F = [X for i in range(self.rank() + 1)
+             for X in self.flats(i)]
+        return LatticePoset((F, lambda x, y: x < y))
+
     cpdef hyperplanes(self):
         """
         Return the set of hyperplanes of the matroid.
@@ -2764,6 +2785,181 @@ cdef class Matroid(SageObject):
             flags = self._extend_flags(flags)
             f_vec.append(len(flags))
         return f_vec
+
+    cpdef broken_circuits(self, ordering=None):
+        r"""
+        Return the list of broken circuits of ``self``.
+
+        A *broken circuit* `B` for is a subset of the ground set under
+        some total ordering `<` such that `B \cup \{ u \}` is a circuit
+        and `u < b` for all `b \in B`.
+
+        INPUT:
+
+        - ``ordering`` -- a total ordering of the groundset given as a list
+
+        EXAMPLES::
+
+            sage: M = Matroid(circuits=[[1,2,3], [3,4,5], [1,2,4,5]])
+            sage: M.broken_circuits()
+            frozenset({frozenset({2, 3}), frozenset({4, 5}), frozenset({2, 4, 5})})
+            sage: M.broken_circuits([5,4,3,2,1])
+            frozenset({frozenset({1, 2}), frozenset({3, 4}), frozenset({1, 2, 4})})
+
+        ::
+
+            sage: M = Matroid(circuits=[[1,2,3], [1,4,5], [2,3,4,5]])
+            sage: M.broken_circuits([5,4,3,2,1])
+            frozenset({frozenset({1, 2}), frozenset({1, 4}), frozenset({2, 3, 4})})
+        """
+        if ordering is None:
+            ordering = sorted(self.groundset())
+        else:
+            orderset = frozenset(ordering)
+            if len(orderset) != len(self.groundset()) or orderset != self.groundset():
+                raise ValueError("not an ordering of the ground set")
+            ordering = list(ordering)
+        ret = set()
+        for C in self.circuits():
+            for k in ordering:
+                if k in C:
+                    ret.add(C.difference([k]))
+                    break
+        return frozenset(ret)
+
+    cpdef no_broken_circuits_sets(self, ordering=None):
+        r"""
+        Return the no broken circuits (NBC) sets of ``self``.
+
+        An NBC set is a subset `A` of the ground set under some total
+        ordering `<` such that `A` contains no broken circuit.
+
+        INPUT:
+
+        - ``ordering`` -- a total ordering of the groundset given as a list
+
+        EXAMPLES::
+
+            sage: M = Matroid(circuits=[[1,2,3], [3,4,5], [1,2,4,5]])
+            sage: SimplicialComplex(M.no_broken_circuits_sets())
+            Simplicial complex with vertex set (1, 2, 3, 4, 5)
+             and facets {(1, 3, 4), (1, 3, 5), (1, 2, 5), (1, 2, 4)}
+            sage: SimplicialComplex(M.no_broken_circuits_sets([5,4,3,2,1]))
+            Simplicial complex with vertex set (1, 2, 3, 4, 5)
+             and facets {(1, 4, 5), (2, 3, 5), (1, 3, 5), (2, 4, 5)}
+
+        ::
+
+            sage: M = Matroid(circuits=[[1,2,3], [1,4,5], [2,3,4,5]])
+            sage: SimplicialComplex(M.no_broken_circuits_sets([5,4,3,2,1]))
+            Simplicial complex with vertex set (1, 2, 3, 4, 5)
+             and facets {(2, 3, 5), (1, 3, 5), (2, 4, 5), (3, 4, 5)}
+        """
+        ret = []
+        BC = self.broken_circuits(ordering)
+        for r in range(self.rank() + 1):
+            for I in self.independent_r_sets(r):
+                add = True
+                for b in BC:
+                    if b.issubset(I):
+                        add = False
+                        break
+                if add:
+                    ret.append(I)
+        return ret
+
+    # polytopes
+
+    def matroid_polytope(self):
+        r"""
+        Return the matroid polytope of ``self``.
+
+        This is defined as the convex hull of the vertices
+
+        .. MATH::
+
+            e_B = \sum_{i \in B} e_i
+
+        over all bases `B` of the matroid. Here `e_i` are the standard
+        basis vectors of `\RR^n`. An arbitrary labelling of the
+        groundset by `{0,\dots,n-1}` is chosen.
+
+        .. SEEALSO::
+
+            :meth:`independence_matroid_polytope`
+
+        EXAMPLES::
+
+            sage: M = matroids.Whirl(4)
+            sage: P = M.matroid_polytope(); P
+            A 7-dimensional polyhedron in ZZ^8 defined as the convex hull
+            of 46 vertices
+
+            sage: M = matroids.named_matroids.NonFano()
+            sage: M.matroid_polytope()
+            A 6-dimensional polyhedron in ZZ^7 defined as the convex hull
+            of 29 vertices
+
+        REFERENCE:
+
+        .. [DLHK2007] J. A. De Loera, D. C. Haws, M. Köppe, Ehrhart polynomials
+          of matroid polytopes and polymatroids. Discrete & Computational
+          Geometry, Volume 42, Issue 4. :arxiv:`0710.4346`,
+          :doi:`10.1007/s00454-008-9120-8`
+        """
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        from sage.modules.free_module import FreeModule
+        n = self.size()
+        vector_e = FreeModule(ZZ, n).basis()
+        convert = {ind: i for i, ind in enumerate(self.groundset())}
+        vertices = [sum(vector_e[convert[i]] for i in B)
+                    for B in self.bases()]
+        return Polyhedron(vertices)
+
+    def independence_matroid_polytope(self):
+        """
+        Return the independence matroid polytope of ``self``.
+
+        This is defined as the convex hull of the vertices
+
+        .. MATH::
+
+            \sum_{i \in I} e_i
+
+        over all independent sets `I` of the matroid. Here `e_i` are
+        the standard basis vectors of `\RR^n`. An arbitrary labelling
+        of the groundset by `{0,\dots,n-1}` is chosen.
+
+        .. SEEALSO::
+
+            :meth:`matroid_polytope`
+
+        EXAMPLES::
+
+            sage: M = matroids.Whirl(4)
+            sage: M.independence_matroid_polytope()
+            A 8-dimensional polyhedron in ZZ^8 defined as the convex hull
+            of 135 vertices
+
+            sage: M = matroids.named_matroids.NonFano()
+            sage: M.independence_matroid_polytope()
+            A 7-dimensional polyhedron in ZZ^7 defined as the convex hull
+            of 58 vertices
+
+        REFERENCE:
+
+        [DLHK2007]_
+        """
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        from sage.modules.free_module import FreeModule
+        n = self.size()
+        ambient = FreeModule(ZZ, n)
+        vector_e = ambient.basis()
+        convert = {ind: i for i, ind in enumerate(self.groundset())}
+        vertices = [ambient.sum(vector_e[convert[i]] for i in IS)
+                    for r in range(self.full_rank() + 1)
+                    for IS in self.independent_r_sets(r)]
+        return Polyhedron(vertices)
 
     # isomorphism and equality
 
@@ -2836,6 +3032,78 @@ cdef class Matroid(SageObject):
             return True
         return (self.full_rank() == other.full_rank() and self.nonbases()._isomorphism(other.nonbases()) is not None)
 
+    cpdef isomorphism(self, other):
+        r"""
+        Return a matroid isomorphism.
+
+        Two matroids `M` and `N` are *isomorphic* if there is a bijection `f`
+        from the groundset of `M` to the groundset of `N` such that a subset
+        `X` is independent in `M` if and only if `f(X)` is independent in `N`.
+        This method returns one isomorphism `f` from self to other, if such an isomorphism exists.
+
+        INPUT:
+
+        - ``other`` -- A matroid.
+
+        OUTPUT:
+
+        A dictionary, or ``None``.
+
+        EXAMPLES::
+
+            sage: M1 = matroids.Wheel(3)
+            sage: M2 = matroids.CompleteGraphic(4)
+            sage: morphism=M1.isomorphism(M2)
+            sage: M1.is_isomorphism(M2, morphism)
+            True
+            sage: G3 = graphs.CompleteGraph(4)
+            sage: M1.isomorphism(G3)
+            Traceback (most recent call last):
+            ...
+            TypeError: can only give isomorphism between matroids.
+
+            sage: M1 = matroids.named_matroids.Fano()
+            sage: M2 = matroids.named_matroids.NonFano()
+            sage: M1.isomorphism(M2) is not None
+            False
+        """
+        if not isinstance(other, Matroid):
+            raise TypeError("can only give isomorphism between matroids.")
+        return self._isomorphism(other)
+
+    cpdef _isomorphism(self, other):
+        """
+        Return isomorphism from ``self`` to ``other``, if such an isomorphism exists.
+
+        Internal version that performs no checks on input.
+
+        INPUT:
+
+        - ``other`` -- A matroid.
+
+        OUTPUT:
+
+        A dictionary, or ``None``
+
+        EXAMPLES::
+
+            sage: M1 = matroids.Wheel(3)
+            sage: M2 = matroids.CompleteGraphic(4)
+            sage: morphism=M1.isomorphism(M2)
+            sage: M1.is_isomorphism(M2, morphism)
+            True
+            sage: M1 = matroids.named_matroids.Fano()
+            sage: M2 = matroids.named_matroids.NonFano()
+            sage: M1.isomorphism(M2) is not None
+            False
+        """
+        if self is other:
+            return {e:e for e in self.groundset()}
+        if self.full_rank() == other.full_rank():
+            return self.nonbases()._isomorphism(other.nonbases())
+        else:
+            return None
+    
     cpdef equals(self, other):
         """
         Test for matroid equality.
@@ -3831,7 +4099,7 @@ cdef class Matroid(SageObject):
             sage: M = matroids.named_matroids.Fano()
             sage: M.modular_cut([M.groundset()]).difference(
             ....:                               [frozenset(M.groundset())])
-            set([])
+            set()
         """
         final_list = set()
         temp_list = set([self.closure(X) for X in subsets])  # Checks validity
@@ -4411,7 +4679,7 @@ cdef class Matroid(SageObject):
             sage: setprint(M.max_weight_independent())
             {0, 1}
             sage: M.max_weight_coindependent(X=[], weights={})
-            frozenset([])
+            frozenset()
         """
         if X is None:
             X = self.groundset()
@@ -4493,7 +4761,7 @@ cdef class Matroid(SageObject):
             sage: setprint(M.max_weight_coindependent())
             {0, 1, 2, 3, 4, 5}
             sage: M.max_weight_coindependent(X=[], weights={})
-            frozenset([])
+            frozenset()
         """
         if X is None:
             X = self.groundset()
@@ -5041,4 +5309,33 @@ cdef class Matroid(SageObject):
             if matroids_plot_helpers.posdict_is_sane(self,pos_dict) ==True:
                 self._cached_info={'plot_positions':pos_dict,'lineorders':lineorders}
         return
+
+    def broken_circuit_complex(self, ordering=None):
+        r"""
+        Return the broken circuit complex of ``self``.
+
+        The broken circuit complex of a matroid with a total ordering `<`
+        on the ground set is obtained from the
+        :meth:`NBC sets <no_broken_circuits_sets>` under subset inclusion.
+
+        INPUT:
+
+        - ``ordering`` -- a total ordering of the groundset given as a list
+
+        OUTPUT:
+
+        A simplicial complex of the NBC sets under inclusion.
+
+        EXAMPLES::
+
+            sage: M = Matroid(circuits=[[1,2,3], [3,4,5], [1,2,4,5]])
+            sage: M.broken_circuit_complex()
+            Simplicial complex with vertex set (1, 2, 3, 4, 5)
+             and facets {(1, 3, 4), (1, 3, 5), (1, 2, 5), (1, 2, 4)}
+            sage: M.broken_circuit_complex([5,4,3,2,1])
+            Simplicial complex with vertex set (1, 2, 3, 4, 5)
+             and facets {(1, 4, 5), (2, 3, 5), (1, 3, 5), (2, 4, 5)}
+        """
+        from sage.homology.simplicial_complex import SimplicialComplex
+        return SimplicialComplex(self.no_broken_circuits_sets(ordering))
 

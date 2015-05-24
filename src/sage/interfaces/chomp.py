@@ -131,7 +131,7 @@ class CHomP:
         sage: CHomP()('homcubes', T) # indirect doctest, optional - CHomP
         {0: 0, 1: Z x Z, 2: Z}
         """
-        from sage.misc.misc import tmp_filename
+        from sage.misc.temporary_file import tmp_filename
         from sage.homology.all import CubicalComplex, cubical_complexes
         from sage.homology.all import SimplicialComplex, Simplex
         from sage.homology.cubical_complex import Cube

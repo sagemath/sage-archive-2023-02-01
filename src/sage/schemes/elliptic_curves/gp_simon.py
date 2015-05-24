@@ -32,7 +32,10 @@ def init():
     """
     global gp
     if gp is None:
-        gp = Gp(script_subdirectory='simon')
+        import os
+        from sage.env import DOT_SAGE
+        logfile = os.path.join(DOT_SAGE, 'gp-simon.log')
+        gp = Gp(script_subdirectory='simon', logfile=logfile)
         gp.read("ell.gp")
         gp.read("ellQ.gp")
         gp.read("qfsolve.gp")

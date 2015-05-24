@@ -231,11 +231,10 @@ cdef class AxiomContainer(dict):
         EXAMPLES::
 
             sage: all_axioms = sage.categories.category_with_axiom.all_axioms
-            sage: max(all_axioms.values())
-            19
+            sage: m = max(all_axioms.values())
             sage: all_axioms.add('Awesome')
-            sage: all_axioms['Awesome']
-            20
+            sage: all_axioms['Awesome'] == m + 1
+            True
 
         To avoid side effects, we remove the added axiom::
 
@@ -250,11 +249,10 @@ cdef class AxiomContainer(dict):
         EXAMPLES::
 
             sage: all_axioms = sage.categories.category_with_axiom.all_axioms
-            sage: max(all_axioms.values())
-            19
+            sage: m = max(all_axioms.values())
             sage: all_axioms += ('Fancy', 'Awesome')
-            sage: all_axioms['Awesome']
-            21
+            sage: all_axioms['Awesome'] == m + 2
+            True
 
         To avoid side effects, we delete the axioms that we just added::
 

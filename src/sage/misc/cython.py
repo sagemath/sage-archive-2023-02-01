@@ -1,5 +1,5 @@
 """
-Cython -- C-Extensions for Python
+Cython support functions
 
 AUTHORS:
 
@@ -196,7 +196,7 @@ def pyx_preparse(s):
 
         sage: from sage.misc.cython import pyx_preparse
         sage: pyx_preparse("")
-        ('\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"  # ctrl-c interrupt block support\n\ninclude "cdefs.pxi"\n',
+        ('\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n\ninclude "cdefs.pxi"\n',
         ['mpfr',
         'gmp',
         'gmpxx',
@@ -270,8 +270,7 @@ def pyx_preparse(s):
     v, s = parse_keywords('cinclude', s)
     inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + include_dirs
     s = """\ninclude "cdefs.pxi"\n""" + s
-    if lang != "c++": # has issues with init_csage()
-        s = """\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"  # ctrl-c interrupt block support\n""" + s
+    s = """\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n""" + s
     args, s = parse_keywords('cargs', s)
     args = ['-w','-O2'] + args
 
@@ -379,12 +378,13 @@ def cython(filename, verbose=False, compile_message=False,
         # There is already a module here. Maybe we do not have to rebuild?
         # Find the name.
         if use_cache:
-            prev_so = [F for F in os.listdir(build_dir) if F[-3:] == '.so']
+            from sage.misc.sageinspect import loadable_module_extension
+            prev_so = [F for F in os.listdir(build_dir) if F.endswith(loadable_module_extension())]
             if len(prev_so) > 0:
                 prev_so = prev_so[0]     # should have length 1 because of deletes below
                 if os.path.getmtime(filename) <= os.path.getmtime('%s/%s'%(build_dir, prev_so)):
                     # We do not have to rebuild.
-                    return prev_so[:-3], build_dir
+                    return prev_so[:-len(loadable_module_extension())], build_dir
     else:
         os.makedirs(build_dir)
     for F in os.listdir(build_dir):
@@ -399,7 +399,7 @@ def cython(filename, verbose=False, compile_message=False,
     # We will use this only to make some convenient symbolic links.
     abs_base = os.path.split(os.path.abspath(filename))[0]
 
-    # bad things happen if the current directory is devel/sage-*
+    # bad things happen if the current directory is SAGE_ROOT/src
     if not os.path.exists("%s/sage" % abs_base) and not os.path.exists("%s/c_lib" % abs_base):
         cmd = 'cd "%s"; ln -sf "%s"/* .'%(build_dir, abs_base)
         os.system(cmd)
@@ -544,11 +544,8 @@ setup(ext_modules = ext_modules,
 
     if create_local_so_file:
         # Copy from lib directory into local directory
-        libext = 'so'
-        UNAME = os.uname()[0].lower()
-        if UNAME[:6] == 'cygwin':
-            libext = 'dll'
-        cmd = 'cp %s/%s.%s %s'%(build_dir, name, libext, os.path.abspath(os.curdir))
+        from sage.misc.sageinspect import loadable_module_extension
+        cmd = 'cp %s/%s%s %s'%(build_dir, name, loadable_module_extension(), os.path.abspath(os.curdir))
         if os.system(cmd):
             raise RuntimeError("Error making local copy of shared object library for {}".format(filename))
 
@@ -621,15 +618,19 @@ def cython_lambda(vars, expr,
         sage: g(0,0)
         3.2
 
-    The following should work but doesn't, see :trac:`12446`::
+    In order to access Sage globals, prefix them with ``sage.``::
 
+        sage: f = cython_lambda('double x', 'sage.sin(x) + sage.a')
+        sage: f(0)
+        Traceback (most recent call last):
+        ...
+        NameError: global 'a' is not defined
         sage: a = 25
-        sage: f = cython_lambda('double x', 'sage.math.sin(x) + sage.a')
-        sage: f(10)  # known bug
-        24.455978889110629
+        sage: f(10)
+        24.45597888911063
         sage: a = 50
-        sage: f(10)  # known bug
-        49.455978889110632
+        sage: f(10)
+        49.45597888911063
     """
     if isinstance(vars, str):
         v = vars
@@ -637,14 +638,23 @@ def cython_lambda(vars, expr,
         v = ', '.join(['%s %s'%(typ,var) for typ, var in vars])
 
     s = """
-class _s:
-   def __getattr__(self, x):
-       return globals()[x]
+cdef class _s:
+    cdef globals
+
+    def __init__(self):
+        from sage.repl.user_globals import get_globals
+        self.globals = get_globals()
+
+    def __getattr__(self, name):
+        try:
+            return self.globals[name]
+        except KeyError:
+            raise NameError("global {!r} is not defined".format(name))
 
 sage = _s()
 
 def f(%s):
- return %s
+    return %s
     """%(v, expr)
     if verbose:
         print(s)
@@ -687,7 +697,7 @@ def cython_create_local_so(filename):
 
         sage: curdir = os.path.abspath(os.curdir)
         sage: dir = tmp_dir(); os.chdir(dir)
-        sage: f = file('hello.spyx', 'w')
+        sage: f = open('hello.spyx', 'w')
         sage: s = "def hello():\n  print 'hello'\n"
         sage: f.write(s)
         sage: f.close()
@@ -759,13 +769,13 @@ def compile_and_load(code):
 
 TESTS = {
 'trac11680':"""
-#cargs -std=c99 -O3 -ggdb
-#cinclude $SAGE_SRC/sage/libs/flint $SAGE_LOCAL/include/FLINT
+#cargs -O3 -ggdb
+#cinclude $SAGE_SRC/sage/libs/flint $SAGE_LOCAL/include/flint
 #clib flint
 
 from sage.rings.rational cimport Rational
 from sage.rings.polynomial.polynomial_rational_flint cimport Polynomial_rational_flint
-include "sage/libs/flint/fmpq_poly.pxi"
+from sage.libs.flint.fmpq_poly cimport fmpq_poly_length, fmpq_poly_get_coeff_mpq, fmpq_poly_set_coeff_mpq
 
 def evaluate_at_power_of_gen(Polynomial_rational_flint f, unsigned long n):
     assert n >= 1

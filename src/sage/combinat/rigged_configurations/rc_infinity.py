@@ -139,7 +139,7 @@ class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
             sage: TestSuite(RC).run() # long time
         """
         self._cartan_type = cartan_type
-        Parent.__init__(self, category=HighestWeightCrystals())
+        Parent.__init__(self, category=HighestWeightCrystals().Infinite())
         self._rc_index = self._cartan_type.index_set()
         # We store the cartan matrix for the vacancy number calculations for speed
         self._cartan_matrix = self._cartan_type.cartan_matrix()

@@ -81,6 +81,11 @@ if [ "$UNAME" = "SunOS" ]; then
 fi
 
 
+# There is a race condition in the Singular Makefiles, building in
+# parallel sometimes fails (Trac #17774)
+export MAKE="$MAKE -j1"
+
+
 choose_patches()
 {
     cd "$PATCHES" || return $?
@@ -92,6 +97,7 @@ choose_patches()
         rm -r "$SRC/omalloc"/*
         mv configure_omalloc "$SRC/omalloc/configure"
         mv conditional/singular_xalloc.patch . || return $?
+        mv conditional/cygwin64_debug.patch ./cygwin64.patch || return $?
     fi
 }
 

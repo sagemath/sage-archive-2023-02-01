@@ -793,7 +793,7 @@ class SageDev(MercurialPatchMixin):
 
                 self._UI.debug('Creating a new branch for #{0} based on "{1}".', ticket, base)
                 self.git.silent.branch(branch, base)
-        except:
+        except BaseException:
             if self._is_local_branch_name(branch, exists=True):
                 self._UI.debug('Deleting local branch "{0}".', branch)
                 self.git.super_silent.branch(branch, D=True)
@@ -895,17 +895,18 @@ class SageDev(MercurialPatchMixin):
             #  Use "sage --dev merge" to include another ticket/branch.
             #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.git.echo.stash('apply')
-            # On branch branch2
-            # Changes not staged for commit:
-            #   (use "git add <file>..." to update what will be committed)
-            #   (use "git checkout -- <file>..." to discard changes in working directory)
-            #
-            #   modified:   tracked
-            #
-            # Untracked files:
-            #   (use "git add <file>..." to include in what will be committed)
-            #
-            #   untracked
+            On branch branch2
+            Changes not staged for commit:
+              (use "git add <file>..." to update what will be committed)
+              (use "git checkout -- <file>..." to discard changes in working directory)
+            <BLANKLINE>
+              modified:   tracked
+            <BLANKLINE>
+            Untracked files:
+              (use "git add <file>..." to include in what will be committed)
+            <BLANKLINE>
+              untracked
+            <BLANKLINE>
             no changes added to commit (use "git add" and/or "git commit -a")
 
         Or we can just discard the changes::
@@ -1320,7 +1321,7 @@ class SageDev(MercurialPatchMixin):
             except OperationCancelledError:
                 self._UI.debug("Not creating a commit.")
                 raise
-            except:
+            except BaseException:
                 self._UI.error("No commit has been created.")
                 raise
 
@@ -2932,7 +2933,7 @@ class SageDev(MercurialPatchMixin):
                 self._UI.debug('Merging {2} branch "{0}" into "{1}".'
                               .format(branch_name, branch, local_remote))
                 self.merge(branch, pull=local_remote=="remote")
-        except:
+        except Exception:
             self.git.reset_to_clean_state()
             self.git.clean_wrapper()
             self.vanilla()

@@ -712,7 +712,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         ....:           prefix='st')
         ....:         self._s = Sym.s()
         ....:         self.t = Sym.base_ring()(t)
-        ....:         cat = sage.categories.all.ModulesWithBasis(Sym.base_ring())
+        ....:         cat = HopfAlgebras(Sym.base_ring()).WithBasis()
         ....:         self.register_coercion(
         ....:           SetMorphism(Hom(self._s, self, cat), self._s_to_self))
         ....:         self._s.register_coercion(
@@ -743,7 +743,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         Symmetric Functions over Fraction Field of Multivariate Polynomial
          Ring in q, t over Rational Field in the Schur functions with a
          plethystic substitution of X -> X(1-t) basis
-        sage: st[2,1]*st[1]
+        sage: st[2,1] * st[1]
         st[2, 1, 1] + st[2, 2] + st[3, 1]
         sage: st([2]).coproduct()
         st[] # st[2] + st[1] # st[1] + st[2] # st[]

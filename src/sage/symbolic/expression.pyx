@@ -10306,7 +10306,7 @@ cdef class Expression(CommutativeRingElement):
             [(-9, -1), (-4, -2), (-1, -5), (0, -10), (2, 10), (3, 5), (6, 2), (11, 1)]
             sage: res = solve_diophantine(x*y - y == 10, solution_dict=True)
             sage: sol = [{y: -5, x: -1}, {y: -10, x: 0}, {y: -1, x: -9}, {y: -2, x: -4}, {y: 10, x: 2}, {y: 1, x: 11}, {y: 2, x: 6}, {y: 5, x: 3}]
-            sage: all(sol[i] == res[i] for i in range(len(sol)))
+            sage: all(solution in res for solution in sol)
             True
 
         If the solution is parametrized the parameter(s) are not defined,

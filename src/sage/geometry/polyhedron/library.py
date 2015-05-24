@@ -27,6 +27,7 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.hypersimplex`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.icosahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.Kirkman_icosahedron`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.octahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.parallelotope`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.pentakis_dodecahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.permutahedron`
@@ -602,6 +603,38 @@ class Polytopes():
               [ 1,  1,  0], [ 1, 0, 1], [ 1, 0,-1],
               [ 0,  1,  1], [ 0,-1, 1], [-1, 0, 1],
               [-1,  1,  0], [-1, 0,-1], [-1,-1, 0] ]
+        return Polyhedron(vertices=v, base_ring=ZZ)
+
+    def octahedron(self):
+        """
+        Return the octahedron.
+
+        The octahedron is a Platonic solid with 6 vertices and 8 faces
+        dual to the cube. It can be defined as the convex hull
+        of the twelve vertices `(0, 0, \pm 1)`, `(\pm 1, 0, 0)` and
+        `(0, \pm 1, 0)`. For more information, see the
+        :wikipedia:`Octahedron`.
+
+        EXAMPLES::
+
+            sage: co = polytopes.octahedron()
+            sage: co.f_vector()
+            (1, 6, 12, 8, 1)
+
+        Its faces are 8 triangles::
+
+            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 3)
+            8
+
+        Some more computation::
+
+            sage: co.volume()
+            4/3
+            sage: co.ehrhart_polynomial()      # optional - latte_int
+            4/3*t^3 + 2*t^2 + 8/3*t + 1
+        """
+        v = [[0, 0, -1], [0, 0, 1], [1, 0, 0],
+             [-1, 0,  0], [0, 1, 0], [0, -1, 0]]
         return Polyhedron(vertices=v, base_ring=ZZ)
 
     def buckyball(self, exact=True, base_ring=None):

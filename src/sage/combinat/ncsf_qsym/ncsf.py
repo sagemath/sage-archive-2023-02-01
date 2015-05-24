@@ -811,7 +811,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 parent = self.parent()
                 S = parent.realization_of().S()
                 C = parent._indices
-                dct = {C(map(lambda i: i // n, I)): coeff
+                dct = {C([i // n for i in I]): coeff
                        for (I, coeff) in S(self) if all(i % n == 0 for i in I)}
                 return parent(S._from_dict(dct))
 

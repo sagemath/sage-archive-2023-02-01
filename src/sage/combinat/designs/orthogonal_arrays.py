@@ -900,7 +900,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
             return "Trivial construction [n]^k"
 
         from itertools import product
-        return map(list, product(range(n), repeat=k))
+        return [list(x) for x in product(range(n), repeat=k)]
 
     elif t != 2:
         if existence:

@@ -2246,7 +2246,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def has_bottom(self):
         """
-        Return ``True`` if the poset has a unique maximal element, and
+        Return ``True`` if the poset has a unique minimal element, and
         ``False`` otherwise.
 
         EXAMPLES::

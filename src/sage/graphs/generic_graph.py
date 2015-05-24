@@ -1521,7 +1521,7 @@ class GenericGraph(GenericGraph_pyx):
         the endpoint of the edge), or one `2` (if the corresponding edge is a
         loop).
 
-        If the graph is directed return a matrix in `{-1,0,1\}` where `-1` and
+        If the graph is directed return a matrix in `\{-1,0,1\}` where `-1` and
         `+1` correspond respectively to the source and the target of the edge. A
         loop will correspond to a zero column. In particular, it is not possible
         to recover the loops of an oriented graph from its incidence matrix.

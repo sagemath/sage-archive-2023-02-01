@@ -132,7 +132,6 @@ Test if :trac:`9947` is fixed::
 ###############################################################################
 
 include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 
 import operator

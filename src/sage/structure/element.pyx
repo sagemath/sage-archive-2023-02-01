@@ -146,7 +146,6 @@ be accessible from the calling function after this operation.
 # by any element.  Derived class must call __init__
 ##################################################################
 
-include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 include "coerce.pxi"
 from sage.ext.stdsage cimport *

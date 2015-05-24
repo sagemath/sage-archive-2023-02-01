@@ -38,11 +38,8 @@ REFERENCES:
 ##############################################################################
 
 import sage.plot.plot
-include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
 include 'gsl.pxi'
-#cimport sage.rings.real_double
-#import sage.rings.real_double
 import sage.misc.prandom as random
 import sys
 import integration

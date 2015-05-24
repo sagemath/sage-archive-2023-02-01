@@ -33,6 +33,7 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/libs/ntl/decl.pxi"
 
+from sage.libs.gmp.mpz cimport *
 from sage.misc.long cimport pyobject_to_long
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial

@@ -1,4 +1,4 @@
-include "sage/ext/cdefs.pxi"
+from sage.libs.gmp.types cimport mpz_t
 
 cdef extern from "ntl_wrap.h":
     #### ZZ_c

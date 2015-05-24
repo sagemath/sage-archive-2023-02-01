@@ -193,7 +193,7 @@ cdef class Ring(ParentWithGens):
     def __len__(self):
         r"""
         Return the cardinality of this ring if it is finite, else raise
-        a ``TypeError``.
+        a ``NotImplementedError``.
 
         EXAMPLES::
 
@@ -202,11 +202,11 @@ cdef class Ring(ParentWithGens):
             sage: len(RR)
             Traceback (most recent call last):
             ...
-            TypeError: len() of unsized object
+            NotImplementedError: len() of an infinite set
         """
         if self.is_finite():
             return self.cardinality()
-        raise TypeError, 'len() of unsized object'
+        raise NotImplementedError, 'len() of an infinite set'
 
     def __xor__(self, n):
         r"""
@@ -2181,6 +2181,53 @@ cdef class Field(PrincipalIdealDomain):
             NotImplementedError: Algebraic closures of general fields not implemented.
         """
         raise NotImplementedError, "Algebraic closures of general fields not implemented."
+
+    def _gcd_univariate_polynomial(self, a, b):
+        """
+        Return the gcd of ``a`` and ``b`` as a monic polynomial.
+
+        .. WARNING:
+
+            If the base ring is inexact, the results may not be
+            entirely stable.
+
+        TESTS::
+
+            sage: for A in (RR, CC, QQbar):
+            ....:     g = A._gcd_univariate_polynomial
+            ....:     R.<x> = A[]
+            ....:     z = R.zero()
+            ....:     assert(g(2*x, 2*x^2) == x and
+            ....:            g(z, 2*x) == x and
+            ....:            g(2*x, z) == x and
+            ....:            g(z, z) == z)
+
+            sage: R.<x> = RR[]
+            sage: (x^3).gcd(x^5+1)
+            1.00000000000000
+            sage: (x^3).gcd(x^5+x^2)
+            x^2
+            sage: f = (x+3)^2 * (x-1)
+            sage: g = (x+3)^5
+            sage: f.gcd(g)
+            x^2 + 6.00000000000000*x + 9.00000000000000
+
+        The following example illustrates the fact that for inexact
+        base rings, the returned gcd is often 1 due to rounding::
+
+            sage: f = (x+RR.pi())^2 * (x-1)
+            sage: g = (x+RR.pi())^5
+            sage: f.gcd(g)
+            1.00000000000000
+
+        """
+        while b:
+            q, r = a.quo_rem(b)
+            a, b = b, r
+        if a:
+            a = a.monic()
+        return a
+
 
 cdef class Algebra(Ring):
     """

@@ -134,8 +134,7 @@ class CHomP:
         from sage.misc.temporary_file import tmp_filename
         from sage.homology.all import CubicalComplex, cubical_complexes
         from sage.homology.all import SimplicialComplex, Simplex
-        from sage.homology.cubical_complex import Cube
-        from sage.homology.chain_complex import HomologyGroup, ChainComplex
+        from sage.homology.chain_complex import HomologyGroup
         from subprocess import Popen, PIPE
         from sage.rings.all import QQ, ZZ
         from sage.modules.all import VectorSpace, vector
@@ -757,7 +756,6 @@ def process_generators_simplicial(gen_string, dim, complex):
         g = g.group(1)
     if g:
         lines = g.splitlines()
-        newlines = []
         for l in lines:
             simplex = re.search(r'([+-]?)\s?([0-9]+)?\s?[*]?\s?(\([0-9,]*\))', l)
             if simplex:

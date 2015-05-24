@@ -2318,13 +2318,12 @@ def group_to_LatinSquare(G):
         [1 2 0]
         [2 0 1]
     """
-
     if isinstance(G, GapElement):
         rows = (list(x) for x in list(gap.MultiplicationTable(G)))
         new_rows = []
 
         for x in rows:
-            new_rows.append([int(x)-1 for x in x])
+            new_rows.append([int(xx) - 1 for xx in x])
 
         return matrix(new_rows)
 

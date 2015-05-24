@@ -1,4 +1,4 @@
-$(INST)/$(PYTHON) $(INST)/$(IPYTHON) $(INST)/$(SCONS) $(INST)/$(BOOST_CROPPED) $(INST)/$(M4RI) $(INST)/$(LIBGD)
+$(INST)/$(BOOST_CROPPED) $(INST)/$(M4RI) $(INST)/$(LIBPNG)
 
 ----------
 All lines of this file are ignored except the first.

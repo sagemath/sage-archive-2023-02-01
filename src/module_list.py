@@ -13,7 +13,7 @@ SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 
 ## Choose cblas library -- note -- make sure to update sage/misc/cython.py
 ## if you change this!!
-if os.environ.has_key('SAGE_BLAS'):
+if 'SAGE_BLAS' in os.environ:
     BLAS=os.environ['SAGE_BLAS']
     BLAS2=os.environ['SAGE_BLAS']
 elif os.path.exists('%s/lib/libatlas.so'%os.environ['SAGE_LOCAL']):

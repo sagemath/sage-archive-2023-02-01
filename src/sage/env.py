@@ -6,7 +6,6 @@ AUTHORS:
 - \R. Andrew Ohana (2012): Initial version.
 
 """
-
 ########################################################################
 #       Copyright (C) 2013 R. Andrew Ohana <andrew.ohana@gmail.com>
 #
@@ -16,9 +15,10 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import absolute_import
 
-import os, socket, site
-import version
+import os, socket, site, six
+from . import version
 
 opj = os.path.join
 
@@ -73,9 +73,9 @@ def _add_variable_or_fallback(key, fallback, force=False):
         value = fallback
     if force:
         value = fallback
-    if isinstance(value, basestring):
-        for k,v in SAGE_ENV.iteritems():
-            if isinstance(v, basestring):
+    if isinstance(value, six.string_types):
+        for k,v in SAGE_ENV.items():
+            if isinstance(v, six.string_types):
                 value = value.replace('$'+k, v)
     SAGE_ENV[key] = value
     globals()[key] = value
@@ -134,4 +134,4 @@ _add_variable_or_fallback('PYTHON_EGG_CACHE',   opj('$DOT_SAGE', '.python-eggs')
 _add_variable_or_fallback('SAGE_STARTUP_FILE',  opj('$DOT_SAGE', 'init.sage'))
 
 # delete temporary variables used for setting up sage.env
-del opj, os, socket, version, site
+del opj, os, socket, version, site, six

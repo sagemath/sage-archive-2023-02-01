@@ -93,9 +93,11 @@ compatibility.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import os
 import re
+import six
 from jinja2 import Environment
 from jinja2.runtime import StrictUndefined
 from collections import defaultdict
@@ -1862,7 +1864,7 @@ def string_of_addr(a):
         sage: string_of_addr(42r)
         '42'
     """
-    if isinstance(a, (int, long)):
+    if isinstance(a, six.integer_types):
         return str(a)
     assert(isinstance(a, MemoryChunk))
     return '*%s++' % a.name
@@ -2000,7 +2002,7 @@ class InstrSpec(object):
                 if len is None:
                     n_inputs += 1
                     in_effect += 'S'
-                elif isinstance(len, (int, long)):
+                elif isinstance(len, six.integer_types):
                     n_inputs += len
                     in_effect += 'S%d' % len
                 else:
@@ -2013,7 +2015,7 @@ class InstrSpec(object):
                 if len is None:
                     n_outputs += 1
                     out_effect += 'S'
-                elif isinstance(len, (int, long)):
+                elif isinstance(len, six.integer_types):
                     n_outputs += len
                     out_effect += 'S%d' % len
                 else:
@@ -3509,8 +3511,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
             #define CHECK(x) do_check(&(x), domain)
             ...
         """
-        import cStringIO
-        buff = cStringIO.StringIO()
+        from six.moves import cStringIO as StringIO
+        buff = StringIO()
         self.write_interpreter_header(buff.write)
         return buff.getvalue()
 
@@ -3632,8 +3634,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
         parent, and if not converts it into the correct parent.  (That is,
         it can potentially modify the variable o0.)
         """
-        import cStringIO
-        buff = cStringIO.StringIO()
+        from six.moves import cStringIO as StringIO
+        buff = StringIO()
         self.write_interpreter(buff.write)
         return buff.getvalue()
 
@@ -3967,8 +3969,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
         And that's it for the wrapper.
         """
-        import cStringIO
-        buff = cStringIO.StringIO()
+        from six.moves import cStringIO as StringIO
+        buff = StringIO()
         self.write_wrapper(buff.write)
         return buff.getvalue()
 
@@ -4056,8 +4058,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
                                  mpfr_t result) except 0
 
         """
-        import cStringIO
-        buff = cStringIO.StringIO()
+        from six.moves import cStringIO as StringIO
+        buff = StringIO()
         self.write_pxd(buff.write)
         return buff.getvalue()
 
@@ -4152,7 +4154,7 @@ def rebuild(dir):
     """
     # This line will show up in "sage -b" (once per upgrade, not every time
     # you run it).
-    print "Building interpreters for fast_callable"
+    print("Building interpreters for fast_callable")
 
     try:
         os.makedirs(dir)

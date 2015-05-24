@@ -1085,6 +1085,26 @@ class Graph(GenericGraph):
             sage: g = graphs.PetersenGraph()
             sage: Graph(g, immutable=True)
             Petersen graph: Graph on 10 vertices
+
+        Check error messages for graphs built from incidence matrices (see
+        :trac:`18440`)::
+
+            sage: Graph(matrix([[-1, 1, 0],[1, 0, 0]]))
+            Traceback (most recent call last):
+            ...
+            ValueError: Column 1 of the (oriented) incidence matrix contains
+            only one nonzero value
+            sage: Graph(matrix([[1,1],[1,1],[1,0]]))
+            Traceback (most recent call last):
+            ...
+            ValueError: Non-symmetric or non-square matrix assumed to be an
+            incidence matrix: There must be one or two nonzero entries per
+            column. Got entries [1, 1, 1] in column 0
+            sage: Graph(matrix([[3,1,1],[0,1,1]]))
+            Traceback (most recent call last):
+            ...
+            ValueError: Each column of a non-oriented incidence matrix must sum
+            to 2, but column 0 does not
         """
         GenericGraph.__init__(self)
         msg = ''
@@ -1312,7 +1332,7 @@ class Graph(GenericGraph):
         elif format == 'incidence_matrix':
             assert is_Matrix(data)
 
-            oriented = any(data[pos] == -1 for pos in data.nonzero_positions(copy=False))
+            oriented = any(data[pos] < 0 for pos in data.nonzero_positions(copy=False))
 
             positions = []
             for i in range(data.ncols()):
@@ -1326,9 +1346,6 @@ class Graph(GenericGraph):
                                          "matrix must sum to 2, but column {} does not".format(i))
                     if loops is None:
                         loops = True
-                    elif not loops:
-                        raise ValueError("the graph constructor was called with loops=False but "
-                                         "column {} of the matrix indicates a loop".format(i))
                     positions.append((NZ[0],NZ[0]))
                 elif len(NZ) != 2 or \
                      (oriented and not ((data[NZ[0],i] == +1 and data[NZ[1],i] == -1) or \
@@ -6809,4 +6826,5 @@ Graph.is_line_graph = sage.graphs.line_graph.is_line_graph
 
 from sage.graphs.tutte_polynomial import tutte_polynomial
 Graph.tutte_polynomial = tutte_polynomial
+
 

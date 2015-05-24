@@ -1524,17 +1524,19 @@ class GenericGraph(GenericGraph_pyx):
         If the graph is directed return a matrix in `{-1,0,1\}` where `-1` and
         `+1` correspond respectively to the source and the target of the edge. A
         loop will correspond to a zero column. In particular, it is not possible
-        to reconstruct an oriented graph from its incidence matrix.
+        to recover the loops of an oriented graph from its incidence matrix.
 
         See :wikipedia:`Incidence_Matrix` for more informations.
 
         INPUT:
 
-        - ``oriented`` -- whether to force the incidence matrix to be oriented
-          (entries will be in `-1`, `0`, `1`) or not oriented (entries will be
-          in `0`, `1`, `2`). If the graph is not directed and setting
-          ``oriented=True`` will result in an arbitrary orientation of the
-          edges.
+        - ``oriented`` -- an optional boolean. If set to ``True``, the matrix
+          will be oriented (i.e. with entries in `-1`, `0`, `1`) and if set to
+          ``False`` the matrix will be not oriented (i.e. with entries in `0`,
+          `1`, `2`). By default, this argument is inferred from the graph type.
+          Note that in the case the graph is not directed and with the option
+          ``directed=True``, a somewhat random direction is chosen for each
+          edge.
 
         - ``sparse`` -- default to ``True``, whether to use a sparse or a dense
           matrix.
